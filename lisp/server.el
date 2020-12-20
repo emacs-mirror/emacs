@@ -1327,6 +1327,8 @@ The following commands are accepted by the client:
     (t (server-return-error proc err))))
 
 (defun server-execute (proc files nowait commands dontkill frame tty-name)
+  (when server-raise-frame
+    (select-frame-set-input-focus (or frame (selected-frame))))
   ;; This is run from timers and process-filters, i.e. "asynchronously".
   ;; But w.r.t the user, this is not really asynchronous since the timer
   ;; is run after 0s and the process-filter is run in response to the
@@ -1334,8 +1336,6 @@ The following commands are accepted by the client:
   ;; inhibit-quit flag, which is good since `commands' (as well as
   ;; find-file-noselect via the major-mode) can run arbitrary code,
   ;; including code that needs to wait.
-  (when (and frame server-raise-frame)
-    (select-frame-set-input-focus frame))
   (with-local-quit
     (condition-case err
         (let ((buffers (server-visit-files files proc nowait)))

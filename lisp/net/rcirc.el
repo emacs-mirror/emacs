@@ -1507,7 +1507,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 (make-variable-buffer-local 'rcirc-last-sender)
 
 (defcustom rcirc-omit-threshold 100
-  "Number of lines since last activity from a nick before `rcirc-omit-responses' are omitted."
+  "Lines since last activity from a nick before `rcirc-omit-responses' are omitted."
   :type 'integer)
 
 (defcustom rcirc-log-process-buffers nil

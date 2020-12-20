@@ -1356,7 +1356,7 @@ This is the input method activated by the command
   :version "28.1")
 
 (defvar current-transient-input-method nil
-  "The current input method temporarily enabled by `activate-transient-input-method'.
+  "Current input method temporarily enabled by `activate-transient-input-method'.
 If nil, that means no transient input method is active now.")
 (make-variable-buffer-local 'current-transient-input-method)
 (put 'current-transient-input-method 'permanent-local t)

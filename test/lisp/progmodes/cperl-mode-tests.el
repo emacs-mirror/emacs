@@ -312,4 +312,12 @@ have a face property."
   (let ((code "{ $a- / $b } # /"))
     (should (equal (nth 8 (cperl-test-ppss code "/")) 7))))
 
+(ert-deftest cperl-test-bug-45255 ()
+  "Verify that \"<<>>\" is recognized as not starting a HERE-doc."
+  (let ((code (concat "while (<<>>) {\n"
+                      "   ...;\n"
+                      "}\n")))
+    ;; The yadda-yadda operator should not be in a string.
+    (should (equal (nth 8 (cperl-test-ppss code "\\.")) nil))))
+
 ;;; cperl-mode-tests.el ends here

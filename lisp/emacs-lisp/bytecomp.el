@@ -144,7 +144,7 @@ is hard-coded in various places in Emacs.)"
   ;; Eg is_elc in Fload.
   :type 'regexp)
 
-(defcustom byte-compile-dest-file-function nil
+(defcustom byte-compile-dest-file-function #'byte-compile--default-dest-file
   "Function for the function `byte-compile-dest-file' to call.
 It should take one argument, the name of an Emacs Lisp source
 file name, and return the name of the compiled file.
@@ -177,14 +177,16 @@ function to do the work.  Otherwise, if FILENAME matches
 `emacs-lisp-file-regexp' (by default, files with the extension \".el\"),
 replaces the matching part (and anything after it) with \".elc\";
 otherwise adds \".elc\"."
-  (if byte-compile-dest-file-function
-      (funcall byte-compile-dest-file-function filename)
-    (setq filename (file-name-sans-versions
-		    (byte-compiler-base-file-name filename)))
-    (cond ((string-match emacs-lisp-file-regexp filename)
-	   (concat (substring filename 0 (match-beginning 0)) ".elc"))
-	  (t (concat filename ".elc")))))
-)
+  (funcall (or byte-compile-dest-file-function
+               #'byte-compile--default-dest-file)
+           filename)))
+
+(defun byte-compile--default-dest-file (filename)
+  (setq filename (file-name-sans-versions
+		  (byte-compiler-base-file-name filename)))
+  (cond ((string-match emacs-lisp-file-regexp filename)
+	 (concat (substring filename 0 (match-beginning 0)) ".elc"))
+	(t (concat filename ".elc"))))
 
 ;; This can be the 'byte-compile property of any symbol.
 (autoload 'byte-compile-inline-expand "byte-opt")
@@ -749,7 +751,8 @@ Each element is (INDEX . VALUE)")
 
 ;; These store their argument in the next two bytes
 (byte-defop 129  1 byte-constant2
-   "for reference to a constant with vector index >= byte-constant-limit")
+   "for reference to a constant with vector
+index >= byte-constant-limit")
 (byte-defop 130  0 byte-goto "for unconditional jump")
 (byte-defop 131 -1 byte-goto-if-nil "to pop value and jump if it's nil")
 (byte-defop 132 -1 byte-goto-if-not-nil "to pop value and jump if it's not nil")
@@ -769,11 +772,14 @@ otherwise pop it")
 (byte-defop 139  0 byte-save-window-excursion-OBSOLETE
   "to make a binding to record entire window configuration")
 (byte-defop 140  0 byte-save-restriction
-  "to make a binding to record the current buffer clipping restrictions")
+  "to make a binding to record the current buffer clipping
+restrictions")
 (byte-defop 141 -1 byte-catch-OBSOLETE   ; Not generated since Emacs 25.
-  "for catch.  Takes, on stack, the tag and an expression for the body")
+  "for catch.  Takes, on stack, the tag and an expression for
+the body")
 (byte-defop 142 -1 byte-unwind-protect
-  "for unwind-protect.  Takes, on stack, an expression for the unwind-action")
+  "for unwind-protect.  Takes, on stack, an expression for
+the unwind-action")
 
 ;; For condition-case.  Takes, on stack, the variable to bind,
 ;; an expression for the body, and a list of clauses.
@@ -833,8 +839,8 @@ otherwise pop it")
 (defconst byte-discardN-preserve-tos byte-discardN)
 
 (byte-defop 183 -2 byte-switch
- "to take a hash table and a value from the stack, and jump to the address
-the value maps to, if any.")
+ "to take a hash table and a value from the stack, and jump to
+the address the value maps to, if any.")
 
 ;; unused: 182-191
 
@@ -1862,24 +1868,23 @@ If compilation is needed, this functions returns the result of
   (let ((dest (byte-compile-dest-file filename))
         ;; Expand now so we get the current buffer's defaults
         (filename (expand-file-name filename)))
-    (if (if (file-exists-p dest)
-            ;; File was already compiled
-            ;; Compile if forced to, or filename newer
-            (or force
-                (file-newer-than-file-p filename dest))
-          (and arg
-               (or (eq 0 arg)
-                   (y-or-n-p (concat "Compile "
-                                     filename "? ")))))
-        (progn
-          (if (and noninteractive (not byte-compile-verbose))
-              (message "Compiling %s..." filename))
-          (byte-compile-file filename)
-          (when load
-            (load (if (file-exists-p dest) dest filename))))
+    (prog1
+        (if (if (and dest (file-exists-p dest))
+                ;; File was already compiled
+                ;; Compile if forced to, or filename newer
+                (or force
+                    (file-newer-than-file-p filename dest))
+              (and arg
+                   (or (eq 0 arg)
+                       (y-or-n-p (concat "Compile "
+                                         filename "? ")))))
+            (progn
+              (if (and noninteractive (not byte-compile-verbose))
+                  (message "Compiling %s..." filename))
+              (byte-compile-file filename))
+	  'no-byte-compile)
       (when load
-	(load (if (file-exists-p dest) dest filename)))
-      'no-byte-compile)))
+        (load (if (and dest (file-exists-p dest)) dest filename))))))
 
 (defun byte-compile--load-dynvars (file)
   (and file (not (equal file ""))
@@ -1989,7 +1994,7 @@ See also `emacs-lisp-byte-compile-and-load'."
 	  ;; (message "%s not compiled because of `no-byte-compile: %s'"
 	  ;; 	   (byte-compile-abbreviate-file filename)
 	  ;; 	   (with-current-buffer input-buffer no-byte-compile))
-	  (when (file-exists-p target-file)
+	  (when (and target-file (file-exists-p target-file))
 	    (message "%s deleted because of `no-byte-compile: %s'"
 		     (byte-compile-abbreviate-file target-file)
 		     (buffer-local-value 'no-byte-compile input-buffer))
@@ -2013,46 +2018,63 @@ See also `emacs-lisp-byte-compile-and-load'."
 	(with-current-buffer output-buffer
 	  (goto-char (point-max))
 	  (insert "\n")			; aaah, unix.
-	  (if (or (file-writable-p target-file)
-                  byte-native-compiling)
-	      ;; We must disable any code conversion here.
-	      (progn
-		(let* ((coding-system-for-write 'no-conversion)
-		       ;; Write to a tempfile so that if another Emacs
-		       ;; process is trying to load target-file (eg in a
-		       ;; parallel bootstrap), it does not risk getting a
-		       ;; half-finished file.  (Bug#4196)
-		       (tempfile
-			(make-temp-file (when (file-writable-p target-file)
-                                          (expand-file-name target-file))))
-		       (default-modes (default-file-modes))
-		       (temp-modes (logand default-modes #o600))
-		       (desired-modes (logand default-modes #o666))
-		       (kill-emacs-hook
-			(cons (lambda () (ignore-errors
-					   (delete-file tempfile)))
-			      kill-emacs-hook)))
-		  (unless (= temp-modes desired-modes)
-		    (set-file-modes tempfile desired-modes 'nofollow))
-		  (write-region (point-min) (point-max) tempfile nil 1)
-		  ;; This has the intentional side effect that any
-		  ;; hard-links to target-file continue to
-		  ;; point to the old file (this makes it possible
-		  ;; for installed files to share disk space with
-		  ;; the build tree, without causing problems when
-		  ;; emacs-lisp files in the build tree are
-		  ;; recompiled).  Previously this was accomplished by
-		  ;; deleting target-file before writing it.
-                  (if byte-native-compiling
-                      (if byte-native-for-bootstrap
-                          ;; Defer elc final renaming.
-                          (setf byte-to-native-output-file
-                                (cons tempfile target-file))
-                        (delete-file tempfile))
-                    (rename-file tempfile target-file t)))
-		(or noninteractive
-                    byte-native-compiling
-                    (message "Wrote %s" target-file)))
+	  (cond
+	   ((null target-file) nil)     ;We only wanted the warnings!
+	   ((and (or (file-writable-p target-file)
+		     byte-native-compiling)
+                 ;; We attempt to create a temporary file in the
+                 ;; target directory, so the target directory must be
+                 ;; writable.
+                 (file-writable-p
+                  (file-name-directory
+                   ;; Need to expand in case TARGET-FILE doesn't
+                   ;; include a directory (Bug#45287).
+                   (expand-file-name target-file))))
+	    ;; We must disable any code conversion here.
+	    (let* ((coding-system-for-write 'no-conversion)
+		   ;; Write to a tempfile so that if another Emacs
+		   ;; process is trying to load target-file (eg in a
+		   ;; parallel bootstrap), it does not risk getting a
+		   ;; half-finished file.  (Bug#4196)
+		   (tempfile
+		    (make-temp-file (expand-file-name target-file)))
+		   (default-modes (default-file-modes))
+		   (temp-modes (logand default-modes #o600))
+		   (desired-modes (logand default-modes #o666))
+		   (kill-emacs-hook
+		    (cons (lambda () (ignore-errors
+				  (delete-file tempfile)))
+			  kill-emacs-hook)))
+	      (unless (= temp-modes desired-modes)
+		(set-file-modes tempfile desired-modes 'nofollow))
+	      (write-region (point-min) (point-max) tempfile nil 1)
+	      ;; This has the intentional side effect that any
+	      ;; hard-links to target-file continue to
+	      ;; point to the old file (this makes it possible
+	      ;; for installed files to share disk space with
+	      ;; the build tree, without causing problems when
+	      ;; emacs-lisp files in the build tree are
+	      ;; recompiled).  Previously this was accomplished by
+	      ;; deleting target-file before writing it.
+	      (if byte-native-compiling
+                  (if byte-native-for-bootstrap
+                      ;; Defer elc final renaming.
+                      (setf byte-to-native-output-file
+                            (cons tempfile target-file))
+                    (delete-file tempfile))
+                (rename-file tempfile target-file t)))
+	    (or noninteractive
+		byte-native-compiling
+		(message "Wrote %s" target-file)))
+           ((file-writable-p target-file)
+            ;; In case the target directory isn't writable (see e.g. Bug#44631),
+            ;; try writing to the output file directly.  We must disable any
+            ;; code conversion here.
+            (let ((coding-system-for-write 'no-conversion))
+              (with-file-modes (logand (default-file-modes) #o666)
+                (write-region (point-min) (point-max) target-file nil 1)))
+            (or noninteractive (message "Wrote %s" target-file)))
+	   (t
 	    ;; This is just to give a better error message than write-region
 	    (let ((exists (file-exists-p target-file)))
 	      (signal (if exists 'file-error 'file-missing)
@@ -2060,7 +2082,7 @@ See also `emacs-lisp-byte-compile-and-load'."
 			    (if exists
 				"Cannot overwrite file"
 			      "Directory not writable or nonexistent")
-			    target-file))))
+			    target-file)))))
 	  (kill-buffer (current-buffer)))
 	(if (and byte-compile-generate-call-tree
 		 (or (eq t byte-compile-generate-call-tree)

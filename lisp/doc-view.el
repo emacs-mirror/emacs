@@ -432,6 +432,7 @@ Typically \"page-%s.png\".")
     (define-key map "P"               'doc-view-fit-page-to-window)
     (define-key map "F"               'doc-view-fit-window-to-page) ;F = frame
     ;; Killing the buffer (and the process)
+    (define-key map (kbd "k")         'image-kill-buffer)
     (define-key map (kbd "K")         'doc-view-kill-proc)
     ;; Slicing the image
     (define-key map (kbd "c s")       'doc-view-set-slice)

@@ -343,7 +343,7 @@ all included files."
   nil)
 
 (cl-defmethod semanticdb-typecache-include-tags ((table semanticdb-table))
-  "Update the typecache for TABLE, and return the merged types from the include tags.
+  "Update typecache for TABLE, and return the merged types from the include tags.
 Include-tags are the tags brought in via includes, all merged together into
 a master list."
   (let* ((cache (semanticdb-get-typecache table))

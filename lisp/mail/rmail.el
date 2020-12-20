@@ -1080,6 +1080,7 @@ The buffer is expected to be narrowed to just the header of the message."
     (define-key map [?\S-\ ] 'scroll-down-command)
     (define-key map "\177"   'scroll-down-command)
     (define-key map "?"      'describe-mode)
+    (define-key map "\C-c\C-d" 'rmail-epa-decrypt)
     (define-key map "\C-c\C-s\C-d" 'rmail-sort-by-date)
     (define-key map "\C-c\C-s\C-s" 'rmail-sort-by-subject)
     (define-key map "\C-c\C-s\C-a" 'rmail-sort-by-author)
@@ -1272,6 +1273,7 @@ Instead, these commands are available:
 \\[rmail-undelete-previous-message]	Undelete message.  Tries current message, then earlier messages
 	till a deleted message is found.
 \\[rmail-edit-current-message]	Edit the current message.  \\[rmail-cease-edit] to return to Rmail.
+\\[rmail-epa-decrypt]	Decrypt the current message.
 \\[rmail-expunge]	Expunge deleted messages.
 \\[rmail-expunge-and-save]	Expunge and save the file.
 \\[rmail-quit]       Quit Rmail: expunge, save, then switch to another buffer.
@@ -4610,11 +4612,10 @@ Argument MIME is non-nil if this is a mime message."
 		     "> ")
 	      (push (rmail-epa-decrypt-1 mime) decrypts))))
 
-      (when (and decrypts (eq major-mode 'rmail-mode))
-        (rmail-add-label "decrypt"))
-
       (when (and decrypts (rmail-buffers-swapped-p))
 	(when (y-or-n-p "Replace the original message? ")
+          (when (eq major-mode 'rmail-mode)
+            (rmail-add-label "decrypt"))
 	  (setq decrypts (nreverse decrypts))
 	  (let ((beg (rmail-msgbeg rmail-current-message))
 		(end (rmail-msgend rmail-current-message)))

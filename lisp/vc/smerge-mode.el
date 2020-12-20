@@ -925,7 +925,7 @@ Its behavior has mainly two restrictions:
   This only matters if `smerge-refine-weight-hack' is nil.")
 
 (defvar smerge-refine-ignore-whitespace t
-  "If non-nil, indicate that `smerge-refine' should try to ignore change in whitespace.")
+  "If non-nil, `smerge-refine' should try to ignore change in whitespace.")
 
 (defvar smerge-refine-weight-hack t
   "If non-nil, pass to diff as many lines as there are chars in the region.

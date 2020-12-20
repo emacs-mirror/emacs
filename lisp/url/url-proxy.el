@@ -59,7 +59,7 @@
      ((string-match "^socks +" proxy)
       (concat "socks://" (substring proxy (match-end 0))))
      (t
-      (display-warning 'url (format "Unknown proxy directive: %s" proxy) 'critical)
+      (display-warning 'url (format "Unknown proxy directive: %s" proxy) :error)
       nil))))
 
 (autoload 'url-http "url-http")

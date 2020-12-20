@@ -33,17 +33,32 @@ General steps (for each step, check for possible errors):
     or some form of "git clean -x".  It's probably simpler and safer to
     make a new working directory exclusively for the release branch.
 
+    Make sure the tree is built, or at least configured.  That's
+    because some of the commands below run Make, so they need
+    Makefiles to be present.
+
 2.  Regenerate the etc/AUTHORS file:
       M-: (require 'authors) RET
       M-x authors RET
 
     (This first updates the current versioned ChangeLog.N)
 
-    If there is an "*Authors Errors*" buffer, address the issues.
-    If there was a ChangeLog typo, fix the relevant entry.
-    If a file was deleted or renamed, consider adding an appropriate
-    entry to authors-ignored-files, authors-valid-file-names, or
-    authors-renamed-files-alist.
+    If this says "Problem updating ChangeLog", find the reason for the
+    failure of the command it runs, viz.:
+
+       make -C ROOT change-history-nocommit
+
+    (where ROOT is the top-level directory where you run this).  It
+    could be because there are uncommitted changes in ChangeLog.N, for
+    example.  One possible way forward is to invoke "C-u M-x authors",
+    which will skip updating the versioned ChangeLog.N file.
+
+    After "M-x authors" finishes, if there is an "*Authors Errors*"
+    buffer, address the issues.  If there was a ChangeLog typo, fix
+    the relevant entry.  If a file was deleted or renamed, consider
+    adding an appropriate entry to variables authors-ignored-files,
+    authors-valid-file-names, or authors-renamed-files-alist in
+    authors.el.
 
     If necessary, repeat 'C-u M-x authors' after making those changes.
     Save the "*Authors*" buffer as etc/AUTHORS.

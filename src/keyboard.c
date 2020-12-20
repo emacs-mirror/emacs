@@ -384,11 +384,13 @@ next_kbd_event (union buffered_input_event *ptr)
   return ptr == kbd_buffer + KBD_BUFFER_SIZE - 1 ? kbd_buffer : ptr + 1;
 }
 
+#ifdef HAVE_X11
 static union buffered_input_event *
 prev_kbd_event (union buffered_input_event *ptr)
 {
   return ptr == kbd_buffer ? kbd_buffer + KBD_BUFFER_SIZE - 1 : ptr - 1;
 }
+#endif
 
 /* Like EVENT_START, but assume EVENT is an event.
    This pacifies gcc -Wnull-dereference, which might otherwise
@@ -741,9 +743,6 @@ void
 force_auto_save_soon (void)
 {
   last_auto_save = - auto_save_interval - 1;
-  /* FIXME: What's the relationship between forcing auto-save and adding
-     a buffer-switch event?  */
-  record_asynch_buffer_change ();
 }
 #endif
 
@@ -3431,8 +3430,7 @@ readable_events (int flags)
 		       && event->ie.part == scroll_bar_handle
 		       && event->ie.modifiers == 0)
 #endif
-		  && !((flags & READABLE_EVENTS_FILTER_EVENTS)
-		       && event->kind == BUFFER_SWITCH_EVENT))
+		 )
 		return 1;
 	      event = next_kbd_event (event);
 	    }
@@ -3583,12 +3581,6 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
 	  return;
 	}
     }
-  /* Don't insert two BUFFER_SWITCH_EVENT's in a row.
-     Just ignore the second one.  */
-  else if (event->kind == BUFFER_SWITCH_EVENT
-	   && kbd_fetch_ptr != kbd_store_ptr
-	   && prev_kbd_event (kbd_store_ptr)->kind == BUFFER_SWITCH_EVENT)
-    return;
 
   /* Don't let the very last slot in the buffer become full,
      since that would make the two pointers equal,
@@ -3622,7 +3614,6 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
     case ICONIFY_EVENT: ignore_event = Qiconify_frame; break;
     case DEICONIFY_EVENT: ignore_event = Qmake_frame_visible; break;
     case SELECTION_REQUEST_EVENT: ignore_event = Qselection_request; break;
-    case BUFFER_SWITCH_EVENT: ignore_event = Qbuffer_switch; break;
     default: ignore_event = Qnil; break;
     }
 
@@ -3961,7 +3952,6 @@ kbd_buffer_get_event (KBOARD **kbp,
 #ifdef HAVE_XWIDGETS
       case XWIDGET_EVENT:
 #endif
-      case BUFFER_SWITCH_EVENT:
       case SAVE_SESSION_EVENT:
       case NO_EVENT:
       case HELP_EVENT:
@@ -5340,14 +5330,6 @@ make_lispy_event (struct input_event *event)
       /* Make an event (move-frame (FRAME)).  */
       return list2 (Qmove_frame, list1 (event->frame_or_window));
 #endif
-
-    case BUFFER_SWITCH_EVENT:
-      {
-	/* The value doesn't matter here; only the type is tested.  */
-	Lisp_Object obj;
-        XSETBUFFER (obj, current_buffer);
-        return obj;
-      }
 
     /* Just discard these, by returning nil.
        With MULTI_KBOARD, these events are used as placeholders
@@ -6803,41 +6785,6 @@ get_input_pending (int flags)
     }
 
   return input_pending;
-}
-
-/* Put a BUFFER_SWITCH_EVENT in the buffer
-   so that read_key_sequence will notice the new current buffer.  */
-
-void
-record_asynch_buffer_change (void)
-{
-  /* We don't need a buffer-switch event unless Emacs is waiting for input.
-     The purpose of the event is to make read_key_sequence look up the
-     keymaps again.  If we aren't in read_key_sequence, we don't need one,
-     and the event could cause trouble by messing up (input-pending-p).
-     Note: Fwaiting_for_user_input_p always returns nil when async
-     subprocesses aren't supported.  */
-  if (!NILP (Fwaiting_for_user_input_p ()))
-    {
-      struct input_event event;
-
-      EVENT_INIT (event);
-      event.kind = BUFFER_SWITCH_EVENT;
-      event.frame_or_window = Qnil;
-      event.arg = Qnil;
-
-      /* Make sure no interrupt happens while storing the event.  */
-#ifdef USABLE_SIGIO
-      if (interrupt_input)
-	kbd_buffer_store_event (&event);
-      else
-#endif
-	{
-	  stop_polling ();
-	  kbd_buffer_store_event (&event);
-	  start_polling ();
-	}
-    }
 }
 
 /* Read any terminal input already buffered up by the system
@@ -11573,8 +11520,6 @@ syms_of_keyboard (void)
   /* Menu and tool bar item parts.  */
   DEFSYM (Qmenu_enable, "menu-enable");
 
-  DEFSYM (Qbuffer_switch, "buffer-switch");
-
 #ifdef HAVE_NTGUI
   DEFSYM (Qlanguage_change, "language-change");
   DEFSYM (Qend_session, "end-session");
@@ -11884,6 +11829,13 @@ will be in `last-command' during the following command.  */);
   DEFVAR_LISP ("real-this-command", Vreal_this_command,
 	       doc: /* This is like `this-command', except that commands should never modify it.  */);
   Vreal_this_command = Qnil;
+
+  DEFSYM (Qcurrent_minibuffer_command, "current-minibuffer-command");
+  DEFVAR_LISP ("current-minibuffer-command", Vcurrent_minibuffer_command,
+	       doc: /* This is like `this-command', but bound recursively.
+Code running from (for instance) a minibuffer hook can check this variable
+to see what command invoked the current minibuffer.  */);
+  Vcurrent_minibuffer_command = Qnil;
 
   DEFVAR_LISP ("this-command-keys-shift-translated",
 	       Vthis_command_keys_shift_translated,

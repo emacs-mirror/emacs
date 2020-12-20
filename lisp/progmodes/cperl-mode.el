@@ -232,7 +232,9 @@ Versions 5.2 ... 5.20 behaved as if this were nil."
   :group 'cperl-indentation-details)
 
 (defcustom cperl-indent-subs-specially t
-  "Non-nil means indent subs that are inside other blocks (hash values, for example) relative to the beginning of the \"sub\" keyword, rather than relative to the statement that contains the declaration."
+  "If non-nil, indent subs inside other blocks relative to \"sub\" keyword.
+Otherwise, indent them relative to statement that contains the declaration.
+This applies to, for example, hash values."
   :type 'boolean
   :group 'cperl-indentation-details)
 
@@ -3694,13 +3696,14 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	       ;;    ;; "\\([^= \t0-9$@%&]\\|[ \t]+[^ \t\n0-9$@%&]\\)" ; 6 + 1
 	       ;;    "\\(\\)"		; To preserve count of pars :-( 6 + 1
 	       ;;  "\\)"
-	       ((match-beginning 3)	; 2 + 1
+	       ((match-beginning 3)	; 2 + 1: found "<<", detect its type
 		(setq b (point)
 		      tb (match-beginning 0)
 		      c (and		; not HERE-DOC
 			 (match-beginning 6)
 			 (save-match-data
 			   (or (looking-at "[ \t]*(") ; << function_call()
+			       (looking-at ">>")      ; <<>> operator
 			       (save-excursion ; 1 << func_name, or $foo << 10
 				 (condition-case nil
 				     (progn
@@ -7260,6 +7263,7 @@ __DATA__	Ends program source.
 __FILE__	Current (source) filename.
 __LINE__	Current line in current source.
 __PACKAGE__	Current package.
+__SUB__	Current sub.
 ARGV	Default multi-file input filehandle.  <ARGV> is a synonym for <>.
 ARGVOUT	Output filehandle with -i flag.
 BEGIN { ... }	Immediately executed (during compilation) piece of code.
@@ -7525,14 +7529,17 @@ use PACKAGE [SYMBOL1, ...]  Compile-time `require' with consequent `import'.
 prototype \\&SUB	Returns prototype of the function given a reference.
 =head1		Top-level heading.
 =head2		Second-level heading.
-=head3		Third-level heading (is there such?).
+=head3		Third-level heading.
+=head4		Fourth-level heading.
 =over [ NUMBER ]	Start list.
 =item [ TITLE ]		Start new item in the list.
 =back		End list.
 =cut		Switch from POD to Perl.
 =pod		Switch from Perl to POD.
-=begin		Switch from Perl6 to POD.
-=end		Switch from POD to Perl6.
+=begin formatname	Start directly formatted region.
+=end formatname	End directly formatted region.
+=for formatname text	Paragraph in special format.
+=encoding encodingname	Encoding of the document.
 ")
 
 (defun cperl-switch-to-doc-buffer (&optional interactive)

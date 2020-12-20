@@ -928,6 +928,13 @@ remapping), and @code{this-original-command} gives the command that
 was specified to run but remapped into another command.
 @end defvar
 
+@defvar current-minibuffer-command
+This has the same value as @code{this-command}, but is bound
+recursively when entering a minibuffer.  This variable can be used
+from minibuffer hooks and the like to determine what command opened
+the current minibuffer session.
+@end defvar
+
 @defun this-command-keys
 This function returns a string or vector containing the key sequence
 that invoked the present command.  Any events read by the command

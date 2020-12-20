@@ -562,7 +562,7 @@ temp_output_buffer_setup (const char *bufname)
 
   record_unwind_current_buffer ();
 
-  Fset_buffer (Fget_buffer_create (build_string (bufname)));
+  Fset_buffer (Fget_buffer_create (build_string (bufname), Qnil));
 
   Fkill_all_local_variables ();
   delete_all_overlays (current_buffer);

@@ -103,7 +103,7 @@ Please send improvements and fixes to the maintainer."
 
 (defcustom find-feature-regexp
   (concat ";;; Code:")
-  "The regexp used by `xref-find-definitions' when searching for a feature definition.
+  "Regexp used by `xref-find-definitions' when searching for a feature definition.
 Note it may contain up to one `%s' at the place where `format'
 should insert the feature name."
   ;; We search for ";;; Code" rather than (feature '%s) because the

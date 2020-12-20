@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(declare-function org-mode "org" ())
 (declare-function org-toggle-pretty-entities "org"       ())
 (declare-function org-table-align            "org-table" ())
 
@@ -226,7 +227,7 @@ packages to be loaded, add these packages to `org-latex-packages-alist'."
      ("beth" "\\beth" t "&beth;" "beth" "beth" "ב")
      ("dalet" "\\daleth" t "&daleth;" "dalet" "dalet" "ד")
 
-     "** Dead languages"
+     "** Icelandic"
      ("ETH" "\\DH{}" nil "&ETH;" "D" "Ð" "Ð")
      ("eth" "\\dh{}" nil "&eth;" "dh" "ð" "ð")
      ("THORN" "\\TH{}" nil "&THORN;" "TH" "Þ" "Þ")
@@ -386,7 +387,7 @@ packages to be loaded, add these packages to `org-latex-packages-alist'."
      ("exists" "\\exists" t "&exist;" "[there exists]" "[there exists]" "∃")
      ("nexist" "\\nexists" t "&exist;" "[there does not exists]" "[there does not  exists]" "∄")
      ("nexists" "\\nexists" t "&exist;" "[there does not exists]" "[there does not  exists]" "∄")
-     ("empty" "\\empty" t "&empty;" "[empty set]" "[empty set]" "∅")
+     ("empty" "\\emptyset" t "&empty;" "[empty set]" "[empty set]" "∅")
      ("emptyset" "\\emptyset" t "&empty;" "[empty set]" "[empty set]" "∅")
      ("isin" "\\in" t "&isin;" "[element of]" "[element of]" "∈")
      ("in" "\\in" t "&isin;" "[element of]" "[element of]" "∈")

@@ -43,6 +43,4 @@ CSS does not support sessions."
 
 (provide 'ob-css)
 
-
-
 ;;; ob-css.el ends here

@@ -122,6 +122,4 @@ a property list containing the parameters of the block."
 
 (provide 'ob-lisp)
 
-
-
 ;;; ob-lisp.el ends here

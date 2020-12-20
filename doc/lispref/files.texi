@@ -701,8 +701,11 @@ in @var{body}.
 The current buffer is restored even in case of an abnormal exit via
 @code{throw} or error (@pxref{Nonlocal Exits}).
 
-See also @code{with-temp-buffer} in @ref{Definition of
-with-temp-buffer,, The Current Buffer}.
+Like @code{with-temp-buffer} (@pxref{Definition of with-temp-buffer,,
+Current Buffer}), the temporary buffer used by this macro does not run
+the hooks @code{kill-buffer-hook}, @code{kill-buffer-query-functions}
+(@pxref{Killing Buffers}), and @code{buffer-list-update-hook}
+(@pxref{Buffer List}).
 @end defmac
 
 @node File Locks

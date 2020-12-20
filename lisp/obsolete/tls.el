@@ -130,8 +130,10 @@ the external program knows about the root certificates you
 consider trustworthy, e.g.:
 
 \(setq tls-program
-      \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
-	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"))"
+      \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt \\
+-p %p %h\"
+        \"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt \\
+-p %p %h --protocols ssl3\"))"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))

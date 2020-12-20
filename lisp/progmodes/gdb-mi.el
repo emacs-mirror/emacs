@@ -3009,7 +3009,7 @@ If NOPRESERVE is non-nil, window point is not restored after CUSTOM-DEFUN."
        (,custom-defun)
        (gdb-update-buffer-name)
        ,@(when (not nopreserve)
-          '((set-window-start window start)
+          '((set-window-start window start t)
             (set-window-point window p))))))
 
 (defmacro def-gdb-trigger-and-handler (trigger-name gdb-command
@@ -3127,24 +3127,27 @@ See `def-gdb-auto-update-handler'."
   (concat "fullname=\\(" gdb--string-regexp "\\)"))
 
 (defun gdb-get-location (bptno line flag)
-  "Find the directory containing the relevant source file.
-Put in buffer and place breakpoint icon."
+  "Glean name of source file using `gdb-source-file-regexp', and visit it.
+Place breakpoint icon in its buffer."
   (goto-char (point-min))
   (catch 'file-not-found
-    (if (re-search-forward gdb-source-file-regexp nil t)
-	(delete (cons bptno "File not found") gdb-location-alist)
-      ;; FIXME: Why/how do we use (match-string 1) when the search failed?
-      (push (cons bptno (match-string 1)) gdb-location-alist)
-      (gdb-resync)
-      (unless (assoc bptno gdb-location-alist)
-	(push (cons bptno "File not found") gdb-location-alist)
-	(message-box "Cannot find source file for breakpoint location.
+    (let (source-file)
+      (if (re-search-forward gdb-source-file-regexp nil t)
+          (progn
+            (setq source-file (gdb-mi--c-string-from-string (match-string 1)))
+            (delete (cons bptno "File not found") gdb-location-alist)
+            (push (cons bptno source-file) gdb-location-alist))
+        (gdb-resync)
+        (unless (assoc bptno gdb-location-alist)
+	  (push (cons bptno "File not found") gdb-location-alist)
+	  (message-box "Cannot find source file for breakpoint location.
 Add directory to search path for source files using the GDB command, dir."))
-      (throw 'file-not-found nil))
-    (with-current-buffer (find-file-noselect (match-string 1))
-      (gdb-init-buffer)
-      ;; only want one breakpoint icon at each location
-      (gdb-put-breakpoint-icon (eq flag ?y) bptno (string-to-number line)))))
+        (throw 'file-not-found nil))
+      (with-current-buffer (find-file-noselect source-file)
+        (gdb-init-buffer)
+        ;; Only want one breakpoint icon at each location.
+        (gdb-put-breakpoint-icon (string-equal flag "y") bptno
+                                 (string-to-number line))))))
 
 (add-hook 'find-file-hook 'gdb-find-file-hook)
 

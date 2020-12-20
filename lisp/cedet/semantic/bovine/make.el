@@ -50,7 +50,8 @@
    nil)
 
 (define-lex-regex-analyzer semantic-lex-make-command
-  "A command in a Makefile consists of a line starting with TAB, and ending at the newline."
+  "Regexp for a command in a Makefile.
+It consists of a line starting with TAB, and ending at the newline."
   "^\\(\t\\)"
   (let ((start (match-end 0)))
     (while (progn (end-of-line)

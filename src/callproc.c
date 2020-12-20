@@ -405,9 +405,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
       if (! (NILP (buffer) || EQ (buffer, Qt) || FIXNUMP (buffer)))
 	{
-	  Lisp_Object spec_buffer;
-	  spec_buffer = buffer;
-	  buffer = Fget_buffer_create (buffer);
+	  Lisp_Object spec_buffer = buffer;
+	  buffer = Fget_buffer_create (buffer, Qnil);
 	  /* Mention the buffer name for a better error message.  */
 	  if (NILP (buffer))
 	    CHECK_BUFFER (spec_buffer);

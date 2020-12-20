@@ -4004,7 +4004,7 @@ by calling `format-decode', which see.  */)
 
 		  record_unwind_current_buffer ();
 
-		  workbuf = Fget_buffer_create (name);
+		  workbuf = Fget_buffer_create (name, Qt);
 		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);
@@ -6259,6 +6259,7 @@ syms_of_fileio (void)
   DEFSYM (Qfile_date_error, "file-date-error");
   DEFSYM (Qfile_missing, "file-missing");
   DEFSYM (Qfile_notify_error, "file-notify-error");
+  DEFSYM (Qremote_file_error, "remote-file-error");
   DEFSYM (Qexcl, "excl");
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
@@ -6319,6 +6320,11 @@ behaves as if file names were encoded in `utf-8'.  */);
 	Fpurecopy (list3 (Qfile_notify_error, Qfile_error, Qerror)));
   Fput (Qfile_notify_error, Qerror_message,
 	build_pure_c_string ("File notification error"));
+
+  Fput (Qremote_file_error, Qerror_conditions,
+	Fpurecopy (list3 (Qremote_file_error, Qfile_error, Qerror)));
+  Fput (Qremote_file_error, Qerror_message,
+	build_pure_c_string ("Remote file error"));
 
   DEFVAR_LISP ("file-name-handler-alist", Vfile_name_handler_alist,
 	       doc: /* Alist of elements (REGEXP . HANDLER) for file names handled specially.

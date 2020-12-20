@@ -68,7 +68,7 @@
        ((eq format 'ascii) (format "%s (%s)" desc path))
        (t path)))))
 
-(defun org-docview-open (link)
+(defun org-docview-open (link _)
   (string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
   (let ((path (match-string 1 link))
 	(page (and (match-beginning 2)
@@ -97,7 +97,6 @@ and append it."
   (concat (replace-regexp-in-string "^file:" "docview:" (org-link-complete-file))
 	  "::"
 	  (read-from-minibuffer "Page:" "1")))
-
 
 (provide 'ol-docview)
 

@@ -153,8 +153,8 @@ The first time we visit such a file, _XXX_HEADER_FILE_INCLUDED_ is
 undefined, and so nothing is hidden.  The next time we visit it, everything will
 be hidden.
 
-This behavior is generally undesirable.  If this option is non-nil, the outermost
-#if is always visible."
+This behavior is generally undesirable.  If this option is non-nil, the
+outermost #if is always visible."
   :type 'boolean
   :version "25.1")
 
@@ -304,7 +304,7 @@ Several variables affect how the hiding is done:
         ;; (C-c @ C) every time before hiding current buffer.
 ;;      (setq-local hide-ifdef-env
 ;;           (default-value 'hide-ifdef-env))
-        (set 'hide-ifdef-env (default-value 'hide-ifdef-env))
+        (setq hide-ifdef-env (default-value 'hide-ifdef-env))
         ;; Some C/C++ headers might have other ways to prevent reinclusion and
         ;; thus would like `hide-ifdef-expand-reinclusion-protection' to be nil.
         (setq-local hide-ifdef-expand-reinclusion-protection

@@ -942,6 +942,9 @@ Otherwise, display the image by calling `image-mode'."
           (get-buffer-window-list (current-buffer) 'nomini 'visible))
     (image-toggle-display-image)))
 
+(defvar image-auto-resize-timer nil
+  "Timer for `image-auto-resize-on-window-resize' option.")
+
 (defun image--window-state-change (window)
   ;; Wait for a bit of idle-time before actually performing the change,
   ;; so as to batch together sequences of closely consecutive size changes.
@@ -950,8 +953,14 @@ Otherwise, display the image by calling `image-mode'."
   ;; consecutive calls happen without any redisplay between them,
   ;; the costly operation of image resizing should happen only once.
   (when (numberp image-auto-resize-on-window-resize)
-    (run-with-idle-timer image-auto-resize-on-window-resize nil
-                         #'image-fit-to-window window)))
+    (when image-auto-resize-timer
+      (cancel-timer image-auto-resize-timer))
+    (setq image-auto-resize-timer
+          (run-with-idle-timer image-auto-resize-on-window-resize nil
+                               #'image-fit-to-window window))))
+
+(defvar image-fit-to-window-lock nil
+  "Lock for `image-fit-to-window' timer function.")
 
 (defun image-fit-to-window (window)
   "Adjust size of image to display it exactly in WINDOW boundaries."
@@ -968,7 +977,13 @@ Otherwise, display the image by calling `image-mode'."
               (when (and image-width image-height
                          (or (not (= image-width  window-width))
                              (not (= image-height window-height))))
-                (image-toggle-display-image)))))))))
+                (unless image-fit-to-window-lock
+                  (unwind-protect
+                      (progn
+                        (setq-local image-fit-to-window-lock t)
+                        (ignore-error 'remote-file-error
+                          (image-toggle-display-image)))
+                    (setq image-fit-to-window-lock nil)))))))))))
 
 
 ;;; Animated images

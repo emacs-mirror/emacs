@@ -235,6 +235,11 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
   [(EmacsImage *)img setAlphaAtX: x Y: y to: a];
 }
 
+size_t
+ns_image_size_in_bytes (void *img)
+{
+  return [(EmacsImage *)img sizeInBytes];
+}
 
 /* ==========================================================================
 
@@ -608,6 +613,23 @@ ns_set_alpha (void *img, int x, int y, unsigned char a)
 - (void)setSmoothing: (BOOL) s
 {
   smoothing = s;
+}
+
+/* Approximate allocated size of image in bytes.  */
+- (size_t) sizeInBytes
+{
+  size_t bytes = 0;
+  NSImageRep *rep;
+  NSEnumerator *reps = [[self representations] objectEnumerator];
+  while ((rep = (NSImageRep *) [reps nextObject]))
+    {
+      if ([rep respondsToSelector: @selector (bytesPerRow)])
+        {
+          NSBitmapImageRep *bmr = (NSBitmapImageRep *) rep;
+          bytes += [bmr bytesPerRow] * [bmr numberOfPlanes] * [bmr pixelsHigh];
+        }
+    }
+  return bytes;
 }
 
 

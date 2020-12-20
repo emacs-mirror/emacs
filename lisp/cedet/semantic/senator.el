@@ -810,7 +810,7 @@ if available."
 (defun senator-lazy-highlight-update ()
   "Force lazy highlight update."
   (lazy-highlight-cleanup t)
-  (set 'isearch-lazy-highlight-last-string nil)
+  (setq isearch-lazy-highlight-last-string nil)
   (setq isearch-adjusted t)
   (isearch-update))
 

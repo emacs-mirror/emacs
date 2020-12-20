@@ -842,7 +842,7 @@ variables:
   max-width - the max width of the resulting dirname; nil means no limit
   prompt    - the basic prompt (e.g. \"Find File: \")
   literal   - the string shown if doing \"literal\" find; set to nil to omit
-  vc-off    - the string shown if version control is inhibited; set to nil to omit
+  vc-off    - the string shown if version control is inhibited; use nil to omit
   prefix    - either nil or a fixed prefix for the dirname
 
 The following variables are available, but should not be changed:
@@ -2367,7 +2367,16 @@ If cursor is not at the end of the user input, move to end of input."
 	      (read-file-name-function nil))
 	  (setq this-command (or ido-fallback fallback 'find-file))
 	  (run-hook-with-args 'ido-before-fallback-functions this-command)
-	  (call-interactively this-command)))
+          (if (eq this-command 'write-file)
+              (write-file (read-file-name
+                           "Write file: "
+                           default-directory
+                           (and buffer-file-name
+                                (expand-file-name
+                                 (file-name-nondirectory buffer-file-name)
+                                 default-directory)))
+                          t)
+	    (call-interactively this-command))))
 
        ((eq ido-exit 'switch-to-buffer)
 	(ido-buffer-internal

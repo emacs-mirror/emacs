@@ -182,6 +182,4 @@ then create.  Return the initialized session."
 
 (provide 'ob-picolisp)
 
-
-
 ;;; ob-picolisp.el ends here
