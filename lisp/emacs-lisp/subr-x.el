@@ -270,7 +270,7 @@ All sequences of whitespaces in STRING are collapsed into a
 single space character, and leading/trailing whitespace is
 removed."
   (let ((blank "[[:blank:]\n]+"))
-    (string-trim (replace-regexp-in-string blank " " string)
+    (string-trim (replace-regexp-in-string blank " " string t t)
                  blank blank)))
 
 (defun string-fill (string length)
