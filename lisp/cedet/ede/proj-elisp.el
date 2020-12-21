@@ -36,7 +36,7 @@
    (keybindings :initform nil)
    (phony :initform t)
    (sourcetype :initform '(ede-source-emacs))
-   (availablecompilers :initform '(ede-emacs-compiler ede-xemacs-compiler))
+   (availablecompilers :initform '(ede-emacs-compiler))
    (aux-packages :initarg :aux-packages
 		 :initform nil
 		 :type list
@@ -104,6 +104,7 @@ For Emacs Lisp, return addsuffix command on source files."
 	 :name "xemacs"
 	 :variables '(("EMACS" . "xemacs")))
   "Compile Emacs Lisp programs with XEmacs.")
+(make-obsolete-variable 'ede-xemacs-compiler 'ede-emacs-compiler "28.1")
 
 ;;; Claiming files
 (cl-defmethod ede-buffer-mine ((this ede-proj-target-elisp) buffer)
