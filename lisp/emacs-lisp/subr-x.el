@@ -269,7 +269,9 @@ carriage return."
 All sequences of whitespaces in STRING are collapsed into a
 single space character, and leading/trailing whitespace is
 removed."
-  (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " string)))
+  (let ((blank "[[:blank:]\n]+"))
+    (string-trim (replace-regexp-in-string blank " " string)
+                 blank blank)))
 
 (defun string-fill (string length)
   "Try to word-wrap STRING so that no lines are longer than LENGTH.
