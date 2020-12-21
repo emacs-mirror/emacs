@@ -790,18 +790,23 @@ Return a list of results."
     (native-compile (cadr func-form))))
 
 (defconst comp-tests-type-spec-tests
-  `(((defun comp-tests-ret-type-spec-f (x)
+  `(
+    ;; 1
+    ((defun comp-tests-ret-type-spec-f (x)
        x)
      t)
 
+    ;; 2
     ((defun comp-tests-ret-type-spec-f ()
        1)
      (integer 1 1))
 
+    ;; 3
     ((defun comp-tests-ret-type-spec-f (x)
        (if x 1 3))
      (or (integer 1 1) (integer 3 3)))
 
+    ;; 4
     ((defun comp-tests-ret-type-spec-f (x)
        (let (y)
          (if x
@@ -810,6 +815,7 @@ Return a list of results."
          y))
      (integer 1 2))
 
+    ;; 5
     ((defun comp-tests-ret-type-spec-f (x)
        (let (y)
          (if x
@@ -818,77 +824,90 @@ Return a list of results."
          y))
      (or (integer 1 1) (integer 3 3)))
 
+
+    ;; 6
     ((defun comp-tests-ret-type-spec-f (x)
        (if x
            (list x)
          3))
      (or cons (integer 3 3)))
 
+    ;; 7
     ((defun comp-tests-ret-type-spec-f (x)
        (if x
            'foo
          3))
      (or (member foo) (integer 3 3)))
 
+    ;; 8
     ((defun comp-tests-ret-type-spec-f (x)
        (if (eq x 3)
            x
          'foo))
      (or (member foo) (integer 3 3)))
 
+    ;; 9
     ((defun comp-tests-ret-type-spec-f (x)
        (if (eq 3 x)
            x
          'foo))
      (or (member foo) (integer 3 3)))
 
+    ;; 10
     ((defun comp-tests-ret-type-spec-f (x)
        (if (= x 3)
            x
          'foo))
      (or (member foo) (integer 3 3)))
 
+    ;; 11
     ((defun comp-tests-ret-type-spec-f (x)
        (if (= 3 x)
            x
          'foo))
      (or (member foo) (integer 3 3)))
 
-    ;; FIXME would be nice to have (or number (member foo))
+    ;; 12
     ((defun comp-tests-ret-type-spec-8-3-f (x)
        (if (= x 3)
            'foo
          x))
-     t)
+     (or (member foo) (integer * 2) (integer 4 *)))
 
+    ;; 13
     ((defun comp-tests-ret-type-spec-8-4-f (x y)
        (if (= x y)
            x
          'foo))
-     (or (member foo) number))
+     t)
 
+    ;; 14
     ((defun comp-tests-ret-type-spec-9-1-f (x)
        (comp-hint-fixnum x))
      (integer ,most-negative-fixnum ,most-positive-fixnum))
 
+    ;; 15
     ((defun comp-tests-ret-type-spec-f (x)
        (comp-hint-cons x))
      cons)
 
+    ;; 16
     ((defun comp-tests-ret-type-spec-f (x)
-        (let (y)
-          (when x
-            (setf y 4))
-          y))
+       (let (y)
+         (when x
+           (setf y 4))
+         y))
      (or null (integer 4 4)))
 
+    ;; 17
     ((defun comp-tests-ret-type-spec-f ()
-        (let (x
-              (y 3))
-          (setf x y)
-          y))
+       (let (x
+             (y 3))
+         (setf x y)
+         y))
      (integer 3 3))
 
+    ;; 18
     ((defun comp-tests-ret-type-spec-f (x)
        (let ((y 3))
          (when x
@@ -896,15 +915,26 @@ Return a list of results."
          y))
      t)
 
+    ;; 19
     ((defun comp-tests-ret-type-spec-f (x y)
        (eq x y))
      boolean)))
 
-(comp-deftest ret-type-spec ()
-  "Some derived return type specifier tests."
-  (cl-loop with comp-ctxt = (make-comp-cstr-ctxt)
-           for (func-form  type-spec) in comp-tests-type-spec-tests
-           do (comp-tests-check-ret-type-spec func-form type-spec)))
+(defun comp-tests-define-type-spec-test (number x)
+  `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()
+     ,(format "Type specifier test number %d." number)
+     (let ((comp-ctxt (make-comp-cstr-ctxt)))
+       (comp-tests-check-ret-type-spec ',(car x) ',(cadr x)))))
+
+(defmacro comp-tests-define-type-spec-tests ()
+  "Define all type specifier tests."
+  `(progn
+     ,@(cl-loop
+        for test in comp-tests-type-spec-tests
+        for n from 1
+        collect (comp-tests-define-type-spec-test n test))))
+
+(comp-tests-define-type-spec-tests)
 
 (defun comp-tests-pure-checker-1 (_)
   "Check that inside `comp-tests-pure-caller-f' `comp-tests-pure-callee-f' is
