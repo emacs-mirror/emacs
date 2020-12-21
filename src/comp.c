@@ -4458,7 +4458,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   comp.d_ephemeral_idx =
     CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
 
-  sigset_t oldset;
   ptrdiff_t count = 0;
 
   if (!noninteractive)
@@ -4472,7 +4471,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 #ifdef USABLE_SIGIO
       sigaddset (&blocked, SIGIO);
 #endif
-      pthread_sigmask (SIG_BLOCK, &blocked, &oldset);
+      pthread_sigmask (SIG_BLOCK, &blocked, &saved_sigset);
       count = SPECPDL_INDEX ();
       record_unwind_protect_void (restore_sigmask);
     }
