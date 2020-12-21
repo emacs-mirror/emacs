@@ -301,7 +301,7 @@ a substring consisitng of thelast LENGTH characters of STRING."
 If OMIT-NULLS, empty lines will be removed from the results."
   (split-string string "\n" omit-nulls))
 
-(defun slice-string (string regexp)
+(defun string-slice (string regexp)
   "Split STRING at REGEXP boundaries and return a list of slices.
 The boundaries that match REGEXP are not omitted from the results."
   (let ((start-substring 0)

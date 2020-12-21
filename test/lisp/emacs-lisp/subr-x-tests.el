@@ -602,11 +602,11 @@
   (should (equal (string-lines "foo") '("foo")))
   (should (equal (string-lines "foo \nbar") '("foo " "bar"))))
 
-(ert-deftest subr-slice-string ()
-  (should (equal (slice-string "foo-bar" "-") '("foo" "-bar")))
-  (should (equal (slice-string "foo-bar-" "-") '("foo" "-bar" "-")))
-  (should (equal (slice-string "-foo-bar-" "-") '("-foo" "-bar" "-")))
-  (should (equal (slice-string "ooo" "lala") '("ooo"))))
+(ert-deftest subr-string-slice ()
+  (should (equal (string-slice "foo-bar" "-") '("foo" "-bar")))
+  (should (equal (string-slice "foo-bar-" "-") '("foo" "-bar" "-")))
+  (should (equal (string-slice "-foo-bar-" "-") '("-foo" "-bar" "-")))
+  (should (equal (string-slice "ooo" "lala") '("ooo"))))
 
 (ert-deftest subr-string-pad ()
   (should (equal (string-pad "foo" 5) "foo  "))
