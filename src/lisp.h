@@ -4720,7 +4720,11 @@ extern void syms_of_lcms2 (void);
 #endif
 
 #ifdef HAVE_ZLIB
+
+#include <stdio.h>
+
 /* Defined in decompress.c.  */
+extern int md5_gz_stream (FILE *, void *);
 extern void syms_of_decompress (void);
 #endif
 
