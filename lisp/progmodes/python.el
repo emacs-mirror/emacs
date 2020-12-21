@@ -394,6 +394,12 @@ This variant of `rx' supports common Python named REGEXPS."
                                     (any ?' ?\") "__main__" (any ?' ?\")
                                     (* space) ?:))
             (symbol-name       (seq (any letter ?_) (* (any word ?_))))
+            (assignment-target (seq (? ?*)
+                                    (* symbol-name ?.) symbol-name
+                                    (? ?\[ (+ (not ?\])) ?\])))
+            (grouped-assignment-target (seq (? ?*)
+                                            (* symbol-name ?.) (group symbol-name)
+                                            (? ?\[ (+ (not ?\])) ?\])))
             (open-paren        (or "{" "[" "("))
             (close-paren       (or "}" "]" ")"))
             (simple-operator   (any ?+ ?- ?/ ?& ?^ ?~ ?| ?* ?< ?> ?= ?%))
@@ -605,6 +611,18 @@ This is the medium decoration level, including everything in
 `python-font-lock-keywords-level-1', as well as keywords and
 builtins.")
 
+(defun python-font-lock-assignment-matcher (regexp)
+  "Font lock matcher for assignments based on REGEXP.
+Return nil if REGEXP matched within a `paren' context (to avoid,
+e.g., default values for arguments or passing arguments by name
+being treated as assignments) or is followed by an '=' sign (to
+avoid '==' being treated as an assignment."
+  (lambda (limit)
+    (let ((res (re-search-forward regexp limit t)))
+      (unless (or (python-syntax-context 'paren)
+                  (equal (char-after (point)) ?=))
+        res))))
+
 (defvar python-font-lock-keywords-maximum-decoration
   `((python--font-lock-f-strings)
     ,@python-font-lock-keywords-level-2
@@ -652,33 +670,57 @@ builtins.")
            )
           symbol-end)
      . font-lock-type-face)
-    ;; assignments
-    ;; support for a = b = c = 5
-    (,(lambda (limit)
-        (let ((re (python-rx (group symbol-name)
-                             ;; subscript, like "[5]"
-                             (? ?\[ (+ (not ?\])) ?\]) (* space)
-                             ;; type hint, like ": int" or ": Mapping[int, str]"
-                             (? ?: (* space) (+ not-simple-operator) (* space))
-                             assignment-operator))
-              (res nil))
-          (while (and (setq res (re-search-forward re limit t))
-                      (or (python-syntax-context 'paren)
-                          (equal (char-after (point)) ?=))))
-          res))
-     (1 font-lock-variable-name-face nil nil))
-    ;; support for a, b, c = (1, 2, 3)
-    (,(lambda (limit)
-        (let ((re (python-rx (group symbol-name) (* space)
-                             (* ?, (* space) symbol-name (* space))
-                             ?, (* space) symbol-name (* space)
-                             assignment-operator))
-              (res nil))
-          (while (and (setq res (re-search-forward re limit t))
-                      (goto-char (match-end 1))
-                      (python-syntax-context 'paren)))
-          res))
-     (1 font-lock-variable-name-face nil nil)))
+    ;; multiple assignment
+    ;; (note that type hints are not allowed for multiple assignments)
+    ;;   a, b, c = 1, 2, 3
+    ;;   a, *b, c = 1, 2, 3, 4, 5
+    ;;   [a, b] = (1, 2)
+    ;;   (l[1], l[2]) = (10, 11)
+    ;;   (a, b, c, *d) = *x, y = 5, 6, 7, 8, 9
+    ;;   (a,) = 'foo'
+    ;;   (*a,) = ['foo', 'bar', 'baz']
+    ;;   d.x, d.y[0], *d.z = 'a', 'b', 'c', 'd', 'e'
+    ;; and variants thereof
+    ;; the cases
+    ;;   (a) = 5
+    ;;   [a] = 5
+    ;;   [*a] = 5, 6
+    ;; are handled separately below
+    (,(python-font-lock-assignment-matcher
+        (python-rx (? (or "[" "(") (* space))
+                   grouped-assignment-target (* space) ?, (* space)
+                   (* assignment-target (* space) ?, (* space))
+                   (? assignment-target (* space))
+                   (? ?, (* space))
+                   (? (or ")" "]") (* space))
+                   (group assignment-operator)))
+     (1 font-lock-variable-name-face)
+     (,(python-rx grouped-assignment-target)
+      (progn
+        (goto-char (match-end 1))       ; go back after the first symbol
+        (match-beginning 2))            ; limit the search until the assignment
+      nil
+      (1 font-lock-variable-name-face)))
+    ;; single assignment with type hints, e.g.
+    ;;   a: int = 5
+    ;;   b: Tuple[Optional[int], Union[Sequence[str], str]] = (None, 'foo')
+    ;;   c: Collection = {1, 2, 3}
+    ;;   d: Mapping[int, str] = {1: 'bar', 2: 'baz'}
+    (,(python-font-lock-assignment-matcher
+        (python-rx grouped-assignment-target (* space)
+                   (? ?: (* space) (+ not-simple-operator) (* space))
+                   assignment-operator))
+     (1 font-lock-variable-name-face))
+    ;; special cases
+    ;;   (a) = 5
+    ;;   [a] = 5
+    ;;   [*a] = 5, 6
+    (,(python-font-lock-assignment-matcher
+       (python-rx (or "[" "(") (* space)
+                  grouped-assignment-target (* space)
+                  (or ")" "]") (* space)
+                  assignment-operator))
+     (1 font-lock-variable-name-face)))
   "Font lock keywords to use in python-mode for maximum decoration.
 
 This decoration level includes everything in
