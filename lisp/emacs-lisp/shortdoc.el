@@ -131,6 +131,10 @@ There can be any number of :example/:result elements."
   (mapconcat
    :eval (mapconcat (lambda (a) (concat "[" a "]"))
                     '("foo" "bar" "zot") " "))
+  (string-pad
+   :eval (string-pad "foo" 5)
+   :eval (string-pad "foobar" 5)
+   :eval (string-pad "foo" -5 ?-))
   (mapcar
    :eval (mapcar #'identity "123"))
   (format

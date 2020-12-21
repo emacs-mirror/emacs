@@ -317,6 +317,26 @@ The boundaries that match REGEXP are not omitted from the results."
       (push (substring string start-substring) result)
       (nreverse result))))
 
+(defun string-pad (string length &optional padding)
+  "Pad STRING to LENGTH using PADDING.
+If PADDING is nil, the space character is used.  If not nil, it
+should be a character.
+
+If STRING is longer than the absolute value of LENGTH, no padding
+is done.
+
+If LENGTH is positive, the padding is done to the end of the
+string, and if it's negative, padding is done to the start of the
+string."
+  (if (> (length string) (abs length))
+      string
+    (let ((pad-length (- (abs length) (length string))))
+      (concat (and (< length 0)
+                   (make-string pad-length (or padding ?\s)))
+              string
+              (and (> length 0)
+                   (make-string pad-length (or padding ?\s)))))))
+
 (defun replace-region-contents (beg end replace-fn
                                     &optional max-secs max-costs)
   "Replace the region between BEG and END using REPLACE-FN.

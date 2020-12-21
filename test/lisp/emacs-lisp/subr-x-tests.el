@@ -608,5 +608,11 @@
   (should (equal (slice-string "-foo-bar-" "-") '("-foo" "-bar" "-")))
   (should (equal (slice-string "ooo" "lala") '("ooo"))))
 
+(ert-deftest subr-string-pad ()
+  (should (equal (string-pad "foo" 5) "foo  "))
+  (should (equal (string-pad "foo" 5 ?-) "foo--"))
+  (should (equal (string-pad "foo" -5 ?-) "--foo"))
+  (should (equal (string-pad "foo" 2 ?-) "foo")))
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here
