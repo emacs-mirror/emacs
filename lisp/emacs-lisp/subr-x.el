@@ -341,7 +341,7 @@ string."
 
 (defun string-chop-newline (string)
   "Remove the final newline (if any) from STRING."
-  (replace-regexp-in-string "\n\\'" "" string))
+  (string-remove-suffix "\n" string))
 
 (defun replace-region-contents (beg end replace-fn
                                     &optional max-secs max-costs)
