@@ -613,9 +613,9 @@ SELECT is `quit', also quit the *xref* window."
   (xref-show-location-at-point))
 
 (defun xref--item-at-point ()
-  (save-excursion
-    (back-to-indentation)
-    (get-text-property (point) 'xref-item)))
+  (get-text-property
+   (if (eolp) (1- (point)) (point))
+   'xref-item))
 
 (defun xref-goto-xref (&optional quit)
   "Jump to the xref on the current line and select its window.
@@ -853,17 +853,30 @@ GROUP is a string for decoration purposes and XREF is an
                                (length (and line (format "%d" line)))))
            for line-format = (and max-line-width
                                   (format "%%%dd: " max-line-width))
+           with prev-line-key = nil
            do
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
            (cl-loop for (xref . more2) on xrefs do
                     (with-slots (summary location) xref
                       (let* ((line (xref-location-line location))
+                             (new-summary summary)
+                             (line-key (list (xref-location-group location) line))
                              (prefix
                               (if line
                                   (propertize (format line-format line)
                                               'face 'xref-line-number)
                                 "  ")))
+                        ;; Render multiple matches on the same line, together.
+                        (when (and line (equal prev-line-key line-key))
+                          (let ((column (xref-file-location-column location)))
+                            (delete-region
+                             (save-excursion
+                               (forward-line -1)
+                               (move-to-column (+ (length prefix) column))
+                               (point))
+                             (point))
+                            (setq new-summary (substring summary column) prefix "")))
                         (xref--insert-propertized
                          (list 'xref-item xref
                                'mouse-face 'highlight
@@ -871,7 +884,8 @@ GROUP is a string for decoration purposes and XREF is an
                                'help-echo
                                (concat "mouse-2: display in another window, "
                                        "RET or mouse-1: follow reference"))
-                         prefix summary)))
+                         prefix new-summary)
+                        (setq prev-line-key line-key)))
                     (insert "\n"))))
 
 (defun xref--analyze (xrefs)
