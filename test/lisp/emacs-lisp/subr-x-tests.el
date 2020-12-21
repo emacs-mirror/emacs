@@ -596,6 +596,7 @@
   (should (equal (string-limit "foo" 10) "foo"))
   (should (equal (string-limit "foo" 2) "fo"))
   (should (equal (string-limit "foo" -2) "oo"))
+  (should (equal (string-limit "abc" -10) "abc"))
   (should (equal (string-limit "foo" 0) "")))
 
 (ert-deftest subr-string-lines ()

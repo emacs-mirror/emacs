@@ -292,7 +292,7 @@ is a positive number, return a a substring consisting of the
 first LENGTH characters of STRING.  If LENGTH is negative, return
 a substring consisitng of thelast LENGTH characters of STRING."
   (cond
-   ((<= (length string) length) string)
+   ((<= (length string) (abs length)) string)
    ((>= length 0) (substring string 0 length))
    (t (substring string (+ (length string) length)))))
 
