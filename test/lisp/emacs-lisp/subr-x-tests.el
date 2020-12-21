@@ -615,5 +615,10 @@
   (should (equal (string-pad "foo" -5 ?-) "--foo"))
   (should (equal (string-pad "foo" 2 ?-) "foo")))
 
+(ert-deftest subr-string-chop-newline ()
+  (should (equal (string-chop-newline "foo\n") "foo"))
+  (should (equal (string-chop-newline "foo\nbar\n") "foo\nbar"))
+  (should (equal (string-chop-newline "foo\nbar") "foo\nbar")))
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

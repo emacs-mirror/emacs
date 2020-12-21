@@ -337,6 +337,10 @@ string."
               (and (> length 0)
                    (make-string pad-length (or padding ?\s)))))))
 
+(defun string-chop-newline (string)
+  "Remove the final newline (if any) from STRING."
+  (replace-regexp-in-string "\n\\'" "" string))
+
 (defun replace-region-contents (beg end replace-fn
                                     &optional max-secs max-costs)
   "Replace the region between BEG and END using REPLACE-FN.

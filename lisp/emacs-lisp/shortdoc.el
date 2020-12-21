@@ -181,6 +181,8 @@ There can be any number of :example/:result elements."
   (string-remove-prefix
    :no-manual t
    :eval (string-remove-prefix "foo" "foobar"))
+  (string-chop-newline
+   :eval (string-chop-newline "foo\n"))
   (string-clean-whitespace
    :eval (string-clean-whitespace " foo   bar   "))
   (string-fill

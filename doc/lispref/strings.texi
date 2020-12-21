@@ -428,6 +428,10 @@ string, and if it's negative, to the start of the string (using the
 absolute value).
 @end defun
 
+@defun string-chop-newline string
+Remove the final newline, if any, from @var{string}.
+@end defun
+
 @node Modifying Strings
 @section Modifying Strings
 @cindex modifying strings
