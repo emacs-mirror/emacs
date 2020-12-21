@@ -192,6 +192,8 @@ There can be any number of :example/:result elements."
    :eval (reverse "foo"))
   (substring-no-properties
    :eval (substring-no-properties (propertize "foobar" 'face 'bold) 0 3))
+  (try-completion
+   :eval (try-completion "foo" '("foobar" "foozot" "gazonk")))
   "Predicates for Strings"
   (string-equal
    :eval (string-equal "foo" "foo"))
