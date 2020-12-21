@@ -52,8 +52,8 @@
     (should (string-match-p "file1\\.txt\\'" (xref-location-group (nth 1 locs))))
     (should (equal 1 (xref-location-line (nth 0 locs))))
     (should (equal 1 (xref-location-line (nth 1 locs))))
-    (should (equal 0 (xref-file-location-column (nth 0 locs))))
-    (should (equal 4 (xref-file-location-column (nth 1 locs))))))
+    (should (equal 0 (xref-location-column (nth 0 locs))))
+    (should (equal 4 (xref-location-column (nth 1 locs))))))
 
 (ert-deftest xref-matches-in-directory-finds-an-empty-line-regexp-match ()
   (let* ((matches (xref-matches-in-directory "^$" "*" xref-tests-data-dir nil))
@@ -61,7 +61,7 @@
     (should (= 1 (length matches)))
     (should (string-match-p "file2\\.txt\\'" (xref-location-group (nth 0 locs))))
     (should (equal 1 (xref-location-line (nth 0 locs))))
-    (should (equal 0 (xref-file-location-column (nth 0 locs))))))
+    (should (equal 0 (xref-location-column (nth 0 locs))))))
 
 (ert-deftest xref--buf-pairs-iterator-groups-markers-by-buffers-1 ()
   (let* ((xrefs (xref-matches-in-directory "foo" "*" xref-tests-data-dir nil))

@@ -97,6 +97,10 @@ This is typically the filename.")
   "Return the line number corresponding to the location."
   nil)
 
+(cl-defgeneric xref-location-column (_location)
+  "Return the exact column corresponding to the location."
+  nil)
+
 (cl-defgeneric xref-match-length (_item)
   "Return the length of the match."
   nil)
@@ -118,7 +122,7 @@ part of the file name."
 (defclass xref-file-location (xref-location)
   ((file :type string :initarg :file)
    (line :type fixnum :initarg :line :reader xref-location-line)
-   (column :type fixnum :initarg :column :reader xref-file-location-column))
+   (column :type fixnum :initarg :column :reader xref-location-column))
   :documentation "A file location is a file/line/column triple.
 Line numbers start from 1 and columns from 0.")
 
@@ -869,7 +873,7 @@ GROUP is a string for decoration purposes and XREF is an
                                 "  ")))
                         ;; Render multiple matches on the same line, together.
                         (when (and line (equal prev-line-key line-key))
-                          (let ((column (xref-file-location-column location)))
+                          (when-let ((column (xref-location-column location)))
                             (delete-region
                              (save-excursion
                                (forward-line -1)
