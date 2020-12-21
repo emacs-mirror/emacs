@@ -37,7 +37,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "commands.h"
 #include "character.h"
-#include "coding.h"
 #include "buffer.h"
 #include "region-cache.h"
 #include "indent.h"
@@ -514,16 +513,33 @@ get_truename_buffer (register Lisp_Object filename)
   return Qnil;
 }
 
-DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 1, 0,
+/* Run buffer-list-update-hook if Vrun_hooks is non-nil, and BUF is NULL
+   or does not have buffer hooks inhibited.  BUF is NULL when called by
+   make-indirect-buffer, since it does not inhibit buffer hooks.  */
+
+static void
+run_buffer_list_update_hook (struct buffer *buf)
+{
+  if (! (NILP (Vrun_hooks) || (buf && buf->inhibit_buffer_hooks)))
+    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+}
+
+DEFUN ("get-buffer-create", Fget_buffer_create, Sget_buffer_create, 1, 2, 0,
        doc: /* Return the buffer specified by BUFFER-OR-NAME, creating a new one if needed.
 If BUFFER-OR-NAME is a string and a live buffer with that name exists,
 return that buffer.  If no such buffer exists, create a new buffer with
-that name and return it.  If BUFFER-OR-NAME starts with a space, the new
-buffer does not keep undo information.
+that name and return it.
+
+If BUFFER-OR-NAME starts with a space, the new buffer does not keep undo
+information.  If optional argument INHIBIT-BUFFER-HOOKS is non-nil, the
+new buffer does not run the hooks `kill-buffer-hook',
+`kill-buffer-query-functions', and `buffer-list-update-hook'.  This
+avoids slowing down internal or temporary buffers that are never
+presented to users or passed on to other applications.
 
 If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
 even if it is dead.  The return value is never nil.  */)
-  (register Lisp_Object buffer_or_name)
+  (register Lisp_Object buffer_or_name, Lisp_Object inhibit_buffer_hooks)
 {
   register Lisp_Object buffer, name;
   register struct buffer *b;
@@ -598,11 +614,7 @@ even if it is dead.  The return value is never nil.  */)
   set_string_intervals (name, NULL);
   bset_name (b, name);
 
-  b->inhibit_buffer_hooks
-    = (STRINGP (Vcode_conversion_workbuf_name)
-       && strncmp (SSDATA (name), SSDATA (Vcode_conversion_workbuf_name),
-		   SBYTES (Vcode_conversion_workbuf_name)) == 0);
-
+  b->inhibit_buffer_hooks = !NILP (inhibit_buffer_hooks);
   bset_undo_list (b, SREF (name, 0) != ' ' ? Qnil : Qt);
 
   reset_buffer (b);
@@ -614,9 +626,8 @@ even if it is dead.  The return value is never nil.  */)
   /* Put this in the alist of all live buffers.  */
   XSETBUFFER (buffer, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, list1 (Fcons (name, buffer)));
-  /* And run buffer-list-update-hook.  */
-  if (!NILP (Vrun_hooks) && !b->inhibit_buffer_hooks)
-    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+
+  run_buffer_list_update_hook (b);
 
   return buffer;
 }
@@ -890,9 +901,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       set_buffer_internal_1 (old_b);
     }
 
-  /* Run buffer-list-update-hook.  */
-  if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+  run_buffer_list_update_hook (NULL);
 
   return buf;
 }
@@ -1536,9 +1545,7 @@ This does not change the name of the visited file (if any).  */)
       && !NILP (BVAR (current_buffer, auto_save_file_name)))
     call0 (intern ("rename-auto-save-file"));
 
-  /* Run buffer-list-update-hook.  */
-  if (!NILP (Vrun_hooks) && !current_buffer->inhibit_buffer_hooks)
-    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+  run_buffer_list_update_hook (current_buffer);
 
   /* Refetch since that last call may have done GC.  */
   return BVAR (current_buffer, name);
@@ -1612,7 +1619,7 @@ exists, return the buffer `*scratch*' (creating it if necessary).  */)
       buf = Fget_buffer (scratch);
       if (NILP (buf))
 	{
-	  buf = Fget_buffer_create (scratch);
+	  buf = Fget_buffer_create (scratch, Qnil);
 	  Fset_buffer_major_mode (buf);
 	}
       return buf;
@@ -1636,7 +1643,7 @@ other_buffer_safely (Lisp_Object buffer)
   buf = Fget_buffer (scratch);
   if (NILP (buf))
     {
-      buf = Fget_buffer_create (scratch);
+      buf = Fget_buffer_create (scratch, Qnil);
       Fset_buffer_major_mode (buf);
     }
 
@@ -1713,7 +1720,9 @@ buffer to be killed as the current buffer.  If any of them returns nil,
 the buffer is not killed.  The hook `kill-buffer-hook' is run before the
 buffer is actually killed.  The buffer being killed will be current
 while the hook is running.  Functions called by any of these hooks are
-supposed to not change the current buffer.
+supposed to not change the current buffer.  Neither hook is run for
+internal or temporary buffers created by `get-buffer-create' or
+`generate-new-buffer' with argument INHIBIT-BUFFER-HOOKS non-nil.
 
 Any processes that have this buffer as the `process-buffer' are killed
 with SIGHUP.  This function calls `replace-buffer-in-windows' for
@@ -1973,9 +1982,7 @@ cleaning up all windows currently displaying the buffer to be killed. */)
   bset_width_table (b, Qnil);
   unblock_input ();
 
-  /* Run buffer-list-update-hook.  */
-  if (!NILP (Vrun_hooks) && !b->inhibit_buffer_hooks)
-    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+  run_buffer_list_update_hook (b);
 
   return Qt;
 }
@@ -2015,9 +2022,7 @@ record_buffer (Lisp_Object buffer)
   fset_buffer_list (f, Fcons (buffer, Fdelq (buffer, f->buffer_list)));
   fset_buried_buffer_list (f, Fdelq (buffer, f->buried_buffer_list));
 
-  /* Run buffer-list-update-hook.  */
-  if (!NILP (Vrun_hooks) && !XBUFFER (buffer)->inhibit_buffer_hooks)
-    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+  run_buffer_list_update_hook (XBUFFER (buffer));
 }
 
 
@@ -2054,9 +2059,7 @@ DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
   fset_buried_buffer_list
     (f, Fcons (buffer, Fdelq (buffer, f->buried_buffer_list)));
 
-  /* Run buffer-list-update-hook.  */
-  if (!NILP (Vrun_hooks) && !XBUFFER (buffer)->inhibit_buffer_hooks)
-    call1 (Vrun_hooks, Qbuffer_list_update_hook);
+  run_buffer_list_update_hook (XBUFFER (buffer));
 
   return Qnil;
 }
@@ -2814,7 +2817,7 @@ the normal hook `change-major-mode-hook'.  */)
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */
-  update_mode_lines = 12;
+  bset_update_mode_line (current_buffer);
 
   return Qnil;
 }
@@ -5349,10 +5352,11 @@ init_buffer_once (void)
   Fput (Qkill_buffer_hook, Qpermanent_local, Qt);
 
   /* Super-magic invisible buffer.  */
-  Vprin1_to_string_buffer = Fget_buffer_create (build_pure_c_string (" prin1"));
+  Vprin1_to_string_buffer =
+    Fget_buffer_create (build_pure_c_string (" prin1"), Qt);
   Vbuffer_alist = Qnil;
 
-  Fset_buffer (Fget_buffer_create (build_pure_c_string ("*scratch*")));
+  Fset_buffer (Fget_buffer_create (build_pure_c_string ("*scratch*"), Qnil));
 
   inhibit_modification_hooks = 0;
 }
@@ -5397,7 +5401,7 @@ init_buffer (void)
 #endif /* USE_MMAP_FOR_BUFFERS */
 
   AUTO_STRING (scratch, "*scratch*");
-  Fset_buffer (Fget_buffer_create (scratch));
+  Fset_buffer (Fget_buffer_create (scratch, Qnil));
   if (NILP (BVAR (&buffer_defaults, enable_multibyte_characters)))
     Fset_buffer_multibyte (Qnil);
 
@@ -6300,9 +6304,14 @@ Use Custom to set this variable and update the display.  */);
   DEFVAR_LISP ("kill-buffer-query-functions", Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.
 The buffer being killed will be current while the functions are running.
+See `kill-buffer'.
 
 If any of them returns nil, the buffer is not killed.  Functions run by
-this hook are supposed to not change the current buffer.  */);
+this hook are supposed to not change the current buffer.
+
+This hook is not run for internal or temporary buffers created by
+`get-buffer-create' or `generate-new-buffer' with argument
+INHIBIT-BUFFER-HOOKS non-nil.  */);
   Vkill_buffer_query_functions = Qnil;
 
   DEFVAR_LISP ("change-major-mode-hook", Vchange_major_mode_hook,
@@ -6315,9 +6324,12 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
 	       doc: /* Hook run when the buffer list changes.
 Functions (implicitly) running this hook are `get-buffer-create',
 `make-indirect-buffer', `rename-buffer', `kill-buffer', `bury-buffer'
-and `select-window'.  Functions run by this hook should avoid calling
-`select-window' with a nil NORECORD argument or `with-temp-buffer'
-since either may lead to infinite recursion.  */);
+and `select-window'.  This hook is not run for internal or temporary
+buffers created by `get-buffer-create' or `generate-new-buffer' with
+argument INHIBIT-BUFFER-HOOKS non-nil.
+
+Functions run by this hook should avoid calling `select-window' with a
+nil NORECORD argument since it may lead to infinite recursion.  */);
   Vbuffer_list_update_hook = Qnil;
   DEFSYM (Qbuffer_list_update_hook, "buffer-list-update-hook");
 

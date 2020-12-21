@@ -75,7 +75,9 @@ everything preceding the ~/ is discarded so the interactive
 selection process starts again from the user's $HOME.")
 
 (defcustom icomplete-show-matches-on-no-input nil
-  "When non-nil, show completions when the minibuffer is empty.
+  "When non-nil, show completions when first prompting for input.
+This means to show completions even when the current minibuffer contents
+is the same as was the initial input after minibuffer activation.
 This also means that if you traverse the list of completions with
 commands like `C-.' and just hit RET without typing any
 characters, the match under point will be chosen instead of the
@@ -146,6 +148,10 @@ icompletion is occurring."
 (defvar icomplete-overlay (make-overlay (point-min) (point-min) nil t t)
   "Overlay used to display the list of completions.")
 
+(defvar icomplete--initial-input nil
+  "Initial input in the minibuffer when icomplete-mode was activated.
+Used to implement the option `icomplete-show-matches-on-no-input'.")
+
 (defun icomplete-pre-command-hook ()
  (let ((non-essential t))
    (icomplete-tidy)))
@@ -169,7 +175,7 @@ icompletion is occurring."
   (interactive)
   (if (and icomplete-show-matches-on-no-input
            (car completion-all-sorted-completions)
-           (eql (icomplete--field-end) (icomplete--field-beg)))
+           (equal (icomplete--field-string) icomplete--initial-input))
       (icomplete-force-complete-and-exit)
     (minibuffer-complete-and-exit)))
 
@@ -189,7 +195,7 @@ the default otherwise."
   (if (or
        ;; there's some input, meaning the default in off the table by
        ;; definition; OR
-       (> (icomplete--field-end) (icomplete--field-beg))
+       (not (equal (icomplete--field-string) icomplete--initial-input))
        ;; there's no input, but there's also no minibuffer default
        ;; (and the user really wants to see completions on no input,
        ;; meaning he expects a "force" to be at least attempted); OR
@@ -441,6 +447,7 @@ Conditions are:
   "Run in minibuffer on activation to establish incremental completion.
 Usually run by inclusion in `minibuffer-setup-hook'."
   (when (and icomplete-mode (icomplete-simple-completing-p))
+    (setq-local icomplete--initial-input (icomplete--field-string))
     (setq-local completion-show-inline-help nil)
     (use-local-map (make-composed-keymap icomplete-minibuffer-map
     					 (current-local-map)))
@@ -486,7 +493,7 @@ Usually run by inclusion in `minibuffer-setup-hook'."
        ;; `completing-read' invocations, described below:
        for fn in (cond ((and minibuffer-default
                              (stringp minibuffer-default) ; bug#38992
-                             (= (icomplete--field-end) (icomplete--field-beg)))
+                             (equal (icomplete--field-string) icomplete--initial-input))
                         ;; Here, we have a non-nil string default and
                         ;; no input whatsoever.  We want to make sure
                         ;; that the default is bubbled to the top so
@@ -579,7 +586,8 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
         (goto-char (point-max))
                                         ; Insert the match-status information:
         (when (and (or icomplete-show-matches-on-no-input
-                       (> (icomplete--field-end) (icomplete--field-beg)))
+                       (not (equal (icomplete--field-string)
+                                   icomplete--initial-input)))
                    (or
                     ;; Don't bother with delay after certain number of chars:
                     (> (- (point) (icomplete--field-beg))
@@ -602,7 +610,7 @@ See `icomplete-mode' and `minibuffer-setup-hook'."
                  (or (>= (- (point) (overlay-end rfn-eshadow-overlay)) 2)
                      (eq ?/ (char-before (- (point) 2)))))
             (delete-region (overlay-start rfn-eshadow-overlay)
-                           (overlay-end rfn-eshadow-overlay)) )
+                           (overlay-end rfn-eshadow-overlay)))
           (let* ((field-string (icomplete--field-string))
                  ;; Not sure why, but such requests seem to come
                  ;; every once in a while.  It's not fully

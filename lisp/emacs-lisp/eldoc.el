@@ -867,11 +867,7 @@ the docstrings eventually produced, using
                        eldoc--last-request-state))
            (let ((non-essential t))
              (setq eldoc--last-request-state token)
-             ;; Only keep looking for the info as long as the user hasn't
-             ;; requested our attention.  This also locally disables
-             ;; inhibit-quit.
-             (while-no-input
-               (eldoc--invoke-strategy nil)))))))
+             (eldoc--invoke-strategy nil))))))
 
 
 ;; This section only affects ElDoc output to the echo area, as in

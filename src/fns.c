@@ -4525,40 +4525,36 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 EMACS_UINT
 hash_string (char const *ptr, ptrdiff_t len)
 {
-  if (len < 16)
-    {
-      char const *p = ptr;
-      char const *end = p + len;
-      EMACS_UINT hash = len;
+  EMACS_UINT const *p   = (EMACS_UINT const *) ptr;
+  EMACS_UINT const *end = (EMACS_UINT const *) (ptr + len);
+  EMACS_UINT hash = len;
+  /* At most 8 steps.  We could reuse SXHASH_MAX_LEN, of course,
+   * but dividing by 8 is cheaper.  */
+  ptrdiff_t step = 1 + ((end - p) >> 3);
 
-      while (p < end)
+  /* Beware: `end` might be unaligned, so `p < end` is not always the same
+   * as `p <= end - 1`.  */
+  while (p <= end - 1)
+    {
+      EMACS_UINT c = *p;
+      p += step;
+      hash = sxhash_combine (hash, c);
+    }
+  if (p < end)
+    { /* A few last bytes remain (smaller than an EMACS_UINT).  */
+      /* FIXME: We could do this without a loop, but it'd require
+         endian-dependent code :-(  */
+      char const *p1 = (char const *)p;
+      char const *end1 = (char const *)end;
+      do
         {
-          unsigned char c = *p++;
+          unsigned char c = *p1++;
           hash = sxhash_combine (hash, c);
         }
-
-      return hash;
+      while (p1 < end1);
     }
-  else
-    {
-      EMACS_UINT const *p   = (EMACS_UINT const *) ptr;
-      EMACS_UINT const *end = (EMACS_UINT const *) (ptr + len);
-      EMACS_UINT hash = len;
-      /* At most 8 steps.  We could reuse SXHASH_MAX_LEN, of course,
-       * but dividing by 8 is cheaper.  */
-      ptrdiff_t step = max (1, (end - p) >> 3);
 
-      /* Beware: `end` might be unaligned, so `p < end` is not always the same
-       * as `p <= end - 1`.  */
-      while (p <= end - 1)
-        {
-          EMACS_UINT c = *p;
-          p += step;
-          hash = sxhash_combine (hash, c);
-        }
-
-      return hash;
-    }
+  return hash;
 }
 
 /* Return a hash for string PTR which has length LEN.  The hash

@@ -97,9 +97,6 @@ enum define_coding_undecided_arg_index
 
 extern Lisp_Object Vcoding_system_hash_table;
 
-/* Name (or base name) of work buffer for code conversion.  */
-extern Lisp_Object Vcode_conversion_workbuf_name;
-
 /* Enumeration of index to an attribute vector of a coding system.  */
 
 enum coding_attr_index

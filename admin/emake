@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# This script is meant to be used as ./admin/emake, and will compile
+# the Emacs tree with virtually all of the informational messages
+# removed, and with errors/warnings highlighted in red.  It'll give a
+# quick overview to confirm that nothing has broken, for instance
+# after doing a "git pull".  It's not meant to be used during actual
+# development, because it removes so much information that commands
+# like `next-error' won't be able to jump to the source code where
+# errors are.
+
+cores=1
+
+# Determine the number of cores.
+if [ -f /proc/cpuinfo ]; then
+    cores=$(($(egrep "^physical id|^cpu cores" /proc/cpuinfo |\
+	awk '{ print $4; }' |\
+	sed '$!N;s/\n/ /' |\
+	uniq |\
+	sed 's/^[0-9]*/+/')))
+fi
+
+make -j$cores "$@" 2>&1 | \
+sed -u 's# \.\./\.\./# #
+s# \.\./# #
+s#^Configuring local git # Configuring local git #
+s#^Installing git hooks...# Installing git hooks...#
+s#^Running # Running #
+s#^Configured for # Configured for #
+s#^./temacs # ./temacs #
+s#^Dumping under the name# Dumping under the name#
+' | \
+egrep --line-buffered -v "^make|\
+^Loading|\
+SCRAPE|\
+INFO.*Scraping.*[.]\$|\
+^Waiting for git|\
+^Finding pointers|\
+^Using load-path|\
+^Adding name|\
+^Dump mode|\
+^Dumping finger|\
+^Byte counts|\
+^Reloc counts|\
+^Pure-hashed|\
+^cp -f temacs|\
+^rm -f bootstrap|\
+^Dump complete|\
+^rm -f emacs|\
+mkdir -p etc|\
+mkdir -p info|\
+mkdir -p lisp|\
+^LC_ALL.*pdump|\
+^cp -f emacs.p|\
+GEN.*loaddefs|\
+^Reloading stale|\
+^Source file.*newer than|\
+^Directories for loaddefs|\
+^./autogen.sh|\
+^[Cc]hecking |\
+^.Read INSTALL.REPO for more|\
+^Your system has the required tools.|\
+^Building aclocal.m4|\
+^ Running 'autoreconf|\
+^You can now run './configure'|\
+^./configure|\
+^configure: creating|\
+^\"configure\" file built.|\
+^There seems to be no|\
+^config.status:|\
+^ *$|\
+^Makefile built|\
+The GNU allocators don't work|\
+^git config |\
+^'\.git/|\
+^\^\(\(|\
+^'build-aux/git-hooks\
+" | \
+while read
+do
+  C=""
+  [[ "X${REPLY:0:1}" != "X " ]] && C="\033[1;31m"
+  [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
+  [[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
+done

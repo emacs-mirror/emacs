@@ -136,7 +136,8 @@ specifying a variable of the same value."
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (end-of-line 1) (insert var) (comint-send-input nil t)
-              (org-babel-comint-wait-for-output session)) var-lines))
+              (org-babel-comint-wait-for-output session))
+	    var-lines))
     session))
 
 (defun org-babel-matlab-initiate-session (&optional session params)
@@ -230,7 +231,8 @@ value of the last statement in BODY, as elisp."
 			 org-babel-octave-eoe-indicator
 		       org-babel-octave-eoe-output)
 		     t full-body)
-		  (insert full-body) (comint-send-input nil t)))) results)
+		  (insert full-body) (comint-send-input nil t))))
+	 results)
     (pcase result-type
       (`value
        (org-babel-octave-import-elisp-from-file tmp-file))
@@ -258,7 +260,5 @@ This removes initial blank and comment lines and then calls
     (org-babel-import-elisp-from-file temp-file '(16))))
 
 (provide 'ob-octave)
-
-
 
 ;;; ob-octave.el ends here

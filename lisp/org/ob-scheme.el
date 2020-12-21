@@ -43,6 +43,7 @@
 (require 'geiser-impl nil t)
 (defvar geiser-repl--repl)             ; Defined in geiser-repl.el
 (defvar geiser-impl--implementation)   ; Defined in geiser-impl.el
+(defvar geiser-scheme-implementation)  ; Defined in geiser-impl.el
 (defvar geiser-default-implementation) ; Defined in geiser-impl.el
 (defvar geiser-active-implementations) ; Defined in geiser-impl.el
 (defvar geiser-debug-show-debug-p)     ; Defined in geiser-debug.el
@@ -71,7 +72,8 @@
 (defun org-babel-expand-body:scheme (body params)
   "Expand BODY according to PARAMS, return the expanded body."
   (let ((vars (org-babel--get-vars params))
-	(prepends (cdr (assq :prologue params))))
+	(prepends (cdr (assq :prologue params)))
+	(postpends (cdr (assq :epilogue params))))
     (concat (and prepends (concat prepends "\n"))
 	    (if (null vars) body
 	      (format "(let (%s)\n%s\n)"
@@ -80,7 +82,8 @@
 			 (format "%S" (print `(,(car var) ',(cdr var)))))
 		       vars
 		       "\n      ")
-		      body)))))
+		      body))
+	    (and postpends (concat "\n" postpends)))))
 
 
 (defvar org-babel-scheme-repl-map (make-hash-table :test #'equal)
@@ -175,7 +178,8 @@ is true; otherwise returns the last value."
 		(geiser-debug-show-debug-p nil))
 	    (let ((ret (geiser-eval-region (point-min) (point-max))))
 	      (setq result (if output
-			       (geiser-eval--retort-output ret)
+			       (or (geiser-eval--retort-output ret)
+				   "Geiser Interpreter produced no output")
 			     (geiser-eval--retort-result-str ret "")))))
 	  (when (not repl)
 	    (save-current-buffer (set-buffer repl-buffer)
@@ -208,6 +212,7 @@ This function is called by `org-babel-execute-src-block'."
       (let* ((result-type (cdr (assq :result-type params)))
 	     (impl (or (when (cdr (assq :scheme params))
 			 (intern (cdr (assq :scheme params))))
+		       geiser-scheme-implementation
 		       geiser-default-implementation
 		       (car geiser-active-implementations)))
 	     (session (org-babel-scheme-make-session-name

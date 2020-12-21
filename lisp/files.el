@@ -1855,6 +1855,10 @@ expand wildcards (if any) and replace the file with multiple files."
 The buffer being killed is current while the hook is running.
 See `kill-buffer'.
 
+This hook is not run for internal or temporary buffers created by
+`get-buffer-create' or `generate-new-buffer' with argument
+INHIBIT-BUFFER-HOOKS non-nil.
+
 Note: Be careful with let-binding this hook considering it is
 frequently used for cleanup.")
 
@@ -1956,7 +1960,7 @@ this function prepends a \"|\" to the final result if necessary."
   (let ((lastname (file-name-nondirectory filename)))
     (if (string= lastname "")
 	(setq lastname filename))
-    (generate-new-buffer (if (string-match-p "\\` " lastname)
+    (generate-new-buffer (if (string-prefix-p " " lastname)
 			     (concat "|" lastname)
 			   lastname))))
 

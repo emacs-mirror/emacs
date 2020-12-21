@@ -929,7 +929,7 @@ alternative implementation will be used."
 	  (unless (or (null sentinel) (functionp sentinel))
 	    (signal 'wrong-type-argument (list #'functionp sentinel)))
 	  (unless (or (null stderr) (bufferp stderr) (stringp stderr))
-	    (signal 'wrong-type-argument (list #'stringp stderr)))
+	    (signal 'wrong-type-argument (list #'bufferp stderr)))
 	  (when (and (stringp stderr) (tramp-tramp-file-p stderr)
 		     (not (tramp-equal-remote default-directory stderr)))
 	    (signal 'file-error (list "Wrong stderr" stderr)))
@@ -981,7 +981,11 @@ alternative implementation will be used."
 		      ;; otherwise we might be interrupted by
 		      ;; `verify-visited-file-modtime'.
 		      (let ((buffer-undo-list t)
-			    (inhibit-read-only t))
+			    (inhibit-read-only t)
+			    (coding-system-for-write
+			     (if (symbolp coding) coding (car coding)))
+			    (coding-system-for-read
+			     (if (symbolp coding) coding (cdr coding))))
 			(clear-visited-file-modtime)
 			(narrow-to-region (point-max) (point-max))
 			;; We call `tramp-adb-maybe-open-connection',

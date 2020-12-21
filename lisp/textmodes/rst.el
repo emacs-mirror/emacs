@@ -1302,7 +1302,8 @@ This inherits from Text mode.")
     (modify-syntax-entry ?% "." st)
     (modify-syntax-entry ?& "." st)
     (modify-syntax-entry ?' "." st)
-    (modify-syntax-entry ?* "." st)
+    (modify-syntax-entry ?` "\"`  " st)
+    (modify-syntax-entry ?* "\"*  " st)
     (modify-syntax-entry ?+ "." st)
     (modify-syntax-entry ?- "." st)
     (modify-syntax-entry ?/ "." st)
@@ -1330,7 +1331,6 @@ The hook for `text-mode' is run before this one."
 ;; Pull in variable definitions silencing byte-compiler.
 (require 'newcomment)
 
-(defvar electric-pair-pairs)
 (defvar electric-indent-inhibit)
 
 ;; Use rst-mode for *.rst and *.rest files.  Many ReStructured-Text files
@@ -1386,8 +1386,6 @@ highlighting.
   (setq-local comment-insert-comment-function #'rst-comment-insert-comment)
   (setq-local comment-region-function #'rst-comment-region)
   (setq-local uncomment-region-function #'rst-uncomment-region)
-
-  (setq-local electric-pair-pairs '((?\" . ?\") (?\* . ?\*) (?\` . ?\`)))
 
   ;; Imenu and which function.
   ;; FIXME: Check documentation of `which-function' for alternative ways to

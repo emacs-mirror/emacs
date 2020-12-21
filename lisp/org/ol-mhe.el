@@ -96,7 +96,7 @@ supported by MH-E."
 	(org-link-add-props :link link :description desc)
 	link))))
 
-(defun org-mhe-open (path)
+(defun org-mhe-open (path _)
   "Follow an MH-E message link specified by PATH."
   (let (folder article)
     (if (not (string-match "\\`\\([^#]+\\)\\(#\\(.*\\)\\)?" path))

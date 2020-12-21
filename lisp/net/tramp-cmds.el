@@ -159,9 +159,6 @@ When called interactively, a Tramp connection has to be selected."
 This includes password cache, file cache, connection cache, buffers."
   (interactive)
 
-  ;; Unlock Tramp.
-  (setq tramp-locked nil)
-
   ;; Flush password cache.
   (password-reset)
 

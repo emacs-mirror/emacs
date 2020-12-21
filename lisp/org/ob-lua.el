@@ -107,7 +107,8 @@ VARS contains resolved variable references."
     (org-babel-comint-in-buffer session
       (mapc (lambda (var)
               (end-of-line 1) (insert var) (comint-send-input)
-              (org-babel-comint-wait-for-output session)) var-lines))
+              (org-babel-comint-wait-for-output session))
+	    var-lines))
     session))
 
 (defun org-babel-load-session:lua (session body params)
@@ -396,7 +397,5 @@ fd:close()"
   (org-unbracket-string "'" "'" string))
 
 (provide 'ob-lua)
-
-
 
 ;;; ob-lua.el ends here

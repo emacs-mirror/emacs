@@ -2419,8 +2419,10 @@ If the current buffer can be edited with Wdired, (i.e. the major
 mode is `dired-mode'), call `wdired-change-to-wdired-mode'.
 Otherwise, toggle `read-only-mode'."
   (interactive)
-  (unless (file-writable-p default-directory)
-    (user-error "Directory %s isn't writeable" default-directory))
+  (when (and (not (file-writable-p default-directory))
+             (not (y-or-n-p
+                   "Directory isn't writable; edit anyway? ")))
+    (user-error "Directory %s isn't writable" default-directory))
   (if (derived-mode-p 'dired-mode)
       (wdired-change-to-wdired-mode)
     (read-only-mode 'toggle)))

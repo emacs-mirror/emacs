@@ -55,7 +55,6 @@
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (activate-transient-input-method))
-  (setq isearch-input-method-function input-method-function)
   (setq-local input-method-function nil)
   (isearch-update))
 

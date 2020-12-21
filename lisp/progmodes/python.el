@@ -1404,7 +1404,7 @@ With positive ARG search backwards, else search forwards."
          (line-beg-pos (line-beginning-position))
          (line-content-start (+ line-beg-pos (current-indentation)))
          (pos (point-marker))
-         (beg-indentation
+         (body-indentation
           (and (> arg 0)
                (save-excursion
                  (while (and
@@ -1415,9 +1415,16 @@ With positive ARG search backwards, else search forwards."
                      0))))
          (found
           (progn
-            (when (and (< arg 0)
-                       (python-info-looking-at-beginning-of-defun))
+            (when (and (python-info-looking-at-beginning-of-defun)
+                       (or (< arg 0)
+                           ;; If looking at beginning of defun, and if
+                           ;; pos is > line-content-start, ensure a
+                           ;; backward re search match this defun by
+                           ;; going to end of line before calling
+                           ;; re-search-fn bug#40563
+                           (and (> arg 0) (> pos line-content-start))))
               (end-of-line 1))
+
             (while (and (funcall re-search-fn
                                  python-nav-beginning-of-defun-regexp nil t)
                         (or (python-syntax-context-type)
@@ -1425,7 +1432,7 @@ With positive ARG search backwards, else search forwards."
                             ;; backwards by checking indentation.
                             (and (> arg 0)
                                  (not (= (current-indentation) 0))
-                                 (>= (current-indentation) beg-indentation)))))
+                                 (>= (current-indentation) body-indentation)))))
             (and (python-info-looking-at-beginning-of-defun)
                  (or (not (= (line-number-at-pos pos)
                              (line-number-at-pos)))

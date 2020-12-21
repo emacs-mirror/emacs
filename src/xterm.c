@@ -8383,10 +8383,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               inev.ie.kind = DEICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
             }
-          else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
-            /* Force a redisplay sooner or later to update the
-	       frame titles in case this is the second frame.  */
-            record_asynch_buffer_change ();
         }
       goto OTHER;
 

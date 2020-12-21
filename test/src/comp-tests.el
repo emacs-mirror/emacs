@@ -396,6 +396,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-11/msg02357.html>"
   (comp-test-44968-f "/tmp/test/foo" "/tmp"))
 
+(comp-deftest bug-45342 ()
+  "Preserve multibyte immediate strings.
+<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01771.html>"
+  (should (string= " ➊" (comp-test-45342-f 1))))
+
 (defvar comp-test-primitive-advice)
 (comp-deftest primitive-advice ()
   "Test effectiveness of primitive advicing."

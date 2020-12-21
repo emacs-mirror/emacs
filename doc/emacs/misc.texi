@@ -1709,6 +1709,7 @@ connections.  A setup to use this functionality could be:
 @example
 [Socket]
 ListenStream=/path/to/.emacs.socket
+DirectoryMode=0700
 
 [Install]
 WantedBy=sockets.target

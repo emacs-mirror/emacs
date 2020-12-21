@@ -100,7 +100,8 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   Lisp_Object val;
   xw->type = type;
   xw->title = title;
-  xw->buffer = NILP (buffer) ? Fcurrent_buffer () : Fget_buffer_create (buffer);
+  xw->buffer = (NILP (buffer) ? Fcurrent_buffer ()
+		: Fget_buffer_create (buffer, Qnil));
   xw->height = XFIXNAT (height);
   xw->width = XFIXNAT (width);
   xw->kill_without_query = false;

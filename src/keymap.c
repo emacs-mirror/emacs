@@ -3243,49 +3243,11 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
     }
 }
 
-/* Apropos - finding all symbols whose names match a regexp.		*/
-static Lisp_Object apropos_predicate;
-static Lisp_Object apropos_accumulate;
-
-static void
-apropos_accum (Lisp_Object symbol, Lisp_Object string)
-{
-  register Lisp_Object tem;
-
-  tem = Fstring_match (string, Fsymbol_name (symbol), Qnil);
-  if (!NILP (tem) && !NILP (apropos_predicate))
-    tem = call1 (apropos_predicate, symbol);
-  if (!NILP (tem))
-    apropos_accumulate = Fcons (symbol, apropos_accumulate);
-}
-
-DEFUN ("apropos-internal", Fapropos_internal, Sapropos_internal, 1, 2, 0,
-       doc: /* Show all symbols whose names contain match for REGEXP.
-If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done
-for each symbol and a symbol is mentioned only if that returns non-nil.
-Return list of symbols found.  */)
-  (Lisp_Object regexp, Lisp_Object predicate)
-{
-  Lisp_Object tem;
-  CHECK_STRING (regexp);
-  apropos_predicate = predicate;
-  apropos_accumulate = Qnil;
-  map_obarray (Vobarray, apropos_accum, regexp);
-  tem = Fsort (apropos_accumulate, Qstring_lessp);
-  apropos_accumulate = Qnil;
-  apropos_predicate = Qnil;
-  return tem;
-}
-
 void
 syms_of_keymap (void)
 {
   DEFSYM (Qkeymap, "keymap");
   DEFSYM (Qdescribe_map_tree, "describe-map-tree");
-  staticpro (&apropos_predicate);
-  staticpro (&apropos_accumulate);
-  apropos_predicate = Qnil;
-  apropos_accumulate = Qnil;
 
   DEFSYM (Qkeymap_canonicalize, "keymap-canonicalize");
 
@@ -3429,7 +3391,6 @@ be preferred.  */);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
   defsubr (&Sdescribe_buffer_bindings);
-  defsubr (&Sapropos_internal);
 }
 
 void

@@ -435,7 +435,7 @@ Initialized lazily by `json-encode-string'.")
       (concat "\"" (substring-no-properties string) "\"")
     (with-current-buffer
         (or json--string-buffer
-            (with-current-buffer (generate-new-buffer " *json-string*")
+            (with-current-buffer (generate-new-buffer " *json-string*" t)
               ;; This seems to afford decent performance gains.
               (setq-local inhibit-modification-hooks t)
               (setq json--string-buffer (current-buffer))))

@@ -2508,7 +2508,7 @@ whatever shell is installed on the device with this setting:
 @lisp
 @group
 (add-to-list 'tramp-connection-properties
-	     (list (regexp-quote "192.168.0.26") "remote-shell" "sh"))
+             (list (regexp-quote "192.168.0.26") "remote-shell" "sh"))
 @end group
 @end lisp
 
@@ -2560,7 +2560,7 @@ the previous example, fix the connection properties as follows:
 @lisp
 @group
 (add-to-list 'tramp-connection-properties
-	     (list (regexp-quote "android") "remote-shell" "sh"))
+             (list (regexp-quote "android") "remote-shell" "sh"))
 @end group
 @end lisp
 
@@ -3584,9 +3584,6 @@ It does not set process property @code{remote-pid}.
 @item
 It does not use @code{tramp-remote-path} and
 @code{tramp-remote-process-environment}.
-
-@item
-It does not set environment variable @env{INSIDE_EMACS}.
 @end itemize
 
 In order to gain even more performance, it is recommended to bind
@@ -4341,9 +4338,9 @@ configure @file{~/.ssh/config} on the proxy host:
 @example
 @group
 Host *
-     ControlMaster	auto
-     ControlPath	tramp.%C
-     ControlPersist	no
+     ControlMaster      auto
+     ControlPath        tramp.%C
+     ControlPersist     no
 @end group
 @end example
 
@@ -4878,6 +4875,27 @@ In case you have installed it from its Git repository, @ref{Recompilation}.
 
 
 @item
+I get an error @samp{Remote file error: Forbidden reentrant call of Tramp}
+
+@vindex remote-file-error
+@vindex debug-ignored-errors
+Timers, process filters and sentinels, and other event based functions
+can run at any time, when a remote file operation is still running.
+This can cause @value{tramp} to block.  When such a situation is
+detected, this error is triggered.  It shall be fixed in the
+respective function (an error report will help), but for the time
+being you can suppress this error by the following code in your
+@file{~/.emacs}:
+
+@lisp
+@group
+(setq debug-ignored-errors
+      (cons 'remote-file-error debug-ignored-errors))
+@end group
+@end lisp
+
+
+@item
 How to disable other packages from calling @value{tramp}?
 
 There are packages that call @value{tramp} without the user ever
@@ -4982,7 +5000,7 @@ handlers.
 
 @node External packages
 @section Integrating with external Lisp packages
-@subsection File name completion.
+@subsection File name completion
 
 @vindex non-essential
 Sometimes, it is not convenient to open a new connection to a remote
@@ -5000,8 +5018,9 @@ bind it to non-@code{nil} value.
 @end lisp
 
 
-@subsection File attributes cache.
+@subsection File attributes cache
 
+@vindex process-file-side-effects
 Keeping a local cache of remote file attributes in sync with the
 remote host is a time-consuming operation.  Flushing and re-querying
 these attributes can tax @value{tramp} to a grinding halt on busy
@@ -5038,6 +5057,26 @@ attributes cache in its process sentinel with this code:
 Since @value{tramp} traverses subdirectories starting with the
 root-directory, it is most likely sufficient to make the
 @code{default-directory} of the process buffer as the root directory.
+
+
+@subsection Timers
+
+@vindex remote-file-error
+Timers run asynchronously at any time when Emacs is waiting for
+sending a string to a process, or waiting for process output.  They
+can run any remote file operation, which would conflict with the
+already running remote file operation, if the same connection is
+affected.  @value{tramp} detects this situation, and raises the
+@code{remote-file-error} error.  A timer function shall avoid this
+situation.  At least, it shall protect itself against this error, by
+wrapping the timer function body with
+
+@lisp
+@group
+(ignore-error 'remote-file-error
+  @dots{})
+@end group
+@end lisp
 
 
 @node Traces and Profiles

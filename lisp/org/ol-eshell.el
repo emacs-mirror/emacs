@@ -33,7 +33,7 @@
 			 :follow #'org-eshell-open
 			 :store #'org-eshell-store-link)
 
-(defun org-eshell-open (link)
+(defun org-eshell-open (link _)
   "Switch to an eshell buffer and execute a command line.
    The link can be just a command line (executed in the default
    eshell buffer) or a command line prefixed by a buffer name

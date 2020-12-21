@@ -1287,7 +1287,7 @@ be used.)
 
 @subsubheading Cross-file variable checking
 
-@strong{Note:} This is an experimental feature that may change or
+@strong{Caution:} This is an experimental feature that may change or
 disappear without prior notice.
 
 The byte-compiler can also warn about lexical variables that are

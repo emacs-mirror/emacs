@@ -107,8 +107,10 @@ and when the encoding declaration specifies `UTF-16'."
 
 (defcustom nxml-default-buffer-file-coding-system nil
   "Default value for `buffer-file-coding-system' for a buffer for a new file.
-A value of nil means use the default value of `buffer-file-coding-system' as normal.
-A buffer's `buffer-file-coding-system' affects what \\[nxml-insert-xml-declaration] inserts."
+A value of nil means use the default value of
+`buffer-file-coding-system' as normal.
+A buffer's `buffer-file-coding-system' affects what
+\\[nxml-insert-xml-declaration] inserts."
   :group 'nxml
   :type 'coding-system)
 
