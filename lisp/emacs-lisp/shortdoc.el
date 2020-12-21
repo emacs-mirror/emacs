@@ -139,10 +139,20 @@ There can be any number of :example/:result elements."
   (substring
    :eval (substring "foobar" 0 3)
    :eval (substring "foobar" 3))
+  (string-limit
+   :eval (string-limit "foobar" 3)
+   :eval (string-limit "foobar" -3)
+   :eval (string-limit "foobar" 10))
   (split-string
    :eval (split-string "foo bar")
    :eval (split-string "|foo|bar|" "|")
    :eval (split-string "|foo|bar|" "|" t))
+  (slice-string
+   :eval (slice-string "foo-bar" "-")
+   :eval (slice-string "foo-bar--zot-" "-+"))
+  (string-lines
+   :eval (string-lines "foo\n\nbar")
+   :eval (string-lines "foo\n\nbar" t))
   (string-replace
    :eval (string-replace "foo" "bar" "foozot"))
   (replace-regexp-in-string
@@ -167,6 +177,11 @@ There can be any number of :example/:result elements."
   (string-remove-prefix
    :no-manual t
    :eval (string-remove-prefix "foo" "foobar"))
+  (string-clean-whitespace
+   :eval (string-clean-whitespace " foo   bar   "))
+  (string-fill
+   :eval (string-fill "Three short words" 12)
+   :eval (string-fill "Long-word" 3))
   (reverse
    :eval (reverse "foo"))
   (substring-no-properties

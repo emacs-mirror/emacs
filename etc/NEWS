@@ -1441,6 +1441,11 @@ that makes it a valid button.
 ** Miscellaneous
 
 +++
+*** A number of new string manipulation functions have been added.
+'string-clean-whitespace', 'string-fill', 'string-limit',
+'string-limit' and 'slice-string'.
+
++++
 *** New variable 'current-minibuffer-command'.
 This is like 'this-command', but it is bound recursively when entering
 the minibuffer.

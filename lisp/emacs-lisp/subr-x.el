@@ -264,6 +264,59 @@ carriage return."
       (substring string 0 (- (length string) (length suffix)))
     string))
 
+(defun string-clean-whitespace (string)
+  "Clean up whitespace in STRING.
+All sequences of whitespaces in STRING are collapsed into a
+single space character, and leading/trailing whitespace is
+removed."
+  (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " string)))
+
+(defun string-fill (string length)
+  "Try to word-wrap STRING so that no lines are longer than LENGTH.
+Wrapping is done where there is whitespace.  If there are
+individual words in STRING that are longer than LENGTH, the
+result will have lines that are longer than LENGTH."
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (let ((fill-column length)
+          (adaptive-fill-mode nil))
+      (fill-region (point-min) (point-max)))
+    (buffer-string)))
+
+(defun string-limit (string length)
+  "Return (up to) a LENGTH substring of STRING.
+If STRING is shorter or equal to LENGTH, the entire string is
+returned unchanged.  If STRING is longer than LENGTH, and LENGTH
+is a positive number, return a a substring consisting of the
+first LENGTH characters of STRING.  If LENGTH is negative, return
+a substring consisitng of thelast LENGTH characters of STRING."
+  (cond
+   ((<= (length string) length) string)
+   ((>= length 0) (substring string 0 length))
+   (t (substring string (+ (length string) length)))))
+
+(defun string-lines (string &optional omit-nulls)
+  "Split STRING into a list of lines.
+If OMIT-NULLS, empty lines will be removed from the results."
+  (split-string string "\n" omit-nulls))
+
+(defun slice-string (string regexp)
+  "Split STRING at REGEXP boundaries and return a list of slices.
+The boundaries that match REGEXP are not omitted from the results."
+  (let ((start-substring 0)
+        (start-search 0)
+        (result nil))
+    (save-match-data
+      (while (string-match regexp string start-search)
+        (if (zerop (match-beginning 0))
+            (setq start-search (match-end 0))
+          (push (substring string start-substring (match-beginning 0)) result)
+          (setq start-substring (match-beginning 0)
+                start-search (match-end 0))))
+      (push (substring string start-substring) result)
+      (nreverse result))))
+
 (defun replace-region-contents (beg end replace-fn
                                     &optional max-secs max-costs)
   "Replace the region between BEG and END using REPLACE-FN.
