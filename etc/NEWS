@@ -1443,7 +1443,7 @@ that makes it a valid button.
 +++
 *** A number of new string manipulation functions have been added.
 'string-clean-whitespace', 'string-fill', 'string-limit',
-'string-limit', 'string-pad' and 'string-slice'.
+'string-lines', 'string-pad' and 'string-slice'.
 
 +++
 *** New variable 'current-minibuffer-command'.

@@ -286,15 +286,15 @@ result will have lines that are longer than LENGTH."
 
 (defun string-limit (string length)
   "Return (up to) a LENGTH substring of STRING.
-If STRING is shorter or equal to LENGTH, the entire string is
-returned unchanged.  If STRING is longer than LENGTH, and LENGTH
-is a positive number, return a a substring consisting of the
+If STRING is shorter than or equal to LENGTH, the entire string
+is returned unchanged.  If STRING is longer than LENGTH, and
+LENGTH is a positive number, return a substring consisting of the
 first LENGTH characters of STRING.  If LENGTH is negative, return
-a substring consisitng of thelast LENGTH characters of STRING."
+a substring consisting of the last LENGTH characters of STRING."
   (cond
    ((<= (length string) (abs length)) string)
    ((>= length 0) (substring string 0 length))
-   (t (substring string (+ (length string) length)))))
+   ((substring string length))))
 
 (defun string-lines (string &optional omit-nulls)
   "Split STRING into a list of lines.
@@ -303,7 +303,7 @@ If OMIT-NULLS, empty lines will be removed from the results."
 
 (defun string-slice (string regexp)
   "Split STRING at REGEXP boundaries and return a list of slices.
-The boundaries that match REGEXP are not omitted from the results."
+The boundaries that match REGEXP are included in the result."
   (let ((start-substring 0)
         (start-search 0)
         (result nil))
@@ -328,9 +328,9 @@ is done.
 If LENGTH is positive, the padding is done to the end of the
 string, and if it's negative, padding is done to the start of the
 string."
-  (if (> (length string) (abs length))
-      string
-    (let ((pad-length (- (abs length) (length string))))
+  (let ((pad-length (- (abs length) (length string))))
+    (if (< pad-length 0)
+        string
       (concat (and (< length 0)
                    (make-string pad-length (or padding ?\s)))
               string
