@@ -3010,7 +3010,7 @@ DEFUN ("ns-show-character-palette",
 #endif
 
 
-/* Whether N bytes at STR are in the [0,127] range.  */
+/* Whether N bytes at STR are in the [1,127] range.  */
 static bool
 all_nonzero_ascii (unsigned char *str, ptrdiff_t n)
 {
