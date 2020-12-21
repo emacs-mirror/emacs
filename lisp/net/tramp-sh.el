@@ -2234,7 +2234,7 @@ the uid and gid from FILENAME."
 		     (file-writable-p (concat prefix localname2))))
 	    (tramp-do-copy-or-rename-file-directly
 	     op (concat prefix localname1) (concat prefix localname2)
-	     ok-if-already-exists keep-date t)
+	     ok-if-already-exists keep-date preserve-uid-gid)
 	    ;; We must change the ownership to the local user.
 	    (tramp-set-file-uid-gid
 	     (concat prefix localname2)
