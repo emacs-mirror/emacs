@@ -377,18 +377,25 @@ error when the user input is empty."
       'org-time-stamp-inactive)
     (apply #'completing-read args)))
 
-(defun org--mks-read-key (allowed-keys prompt)
+(defun org--mks-read-key (allowed-keys prompt navigation-keys)
   "Read a key and ensure it is a member of ALLOWED-KEYS.
+Enable keys to scroll the window if NAVIGATION-KEYS is set.
 TAB, SPC and RET are treated equivalently."
-  (let* ((key (char-to-string
-	       (pcase (read-char-exclusive prompt)
-		 ((or ?\s ?\t ?\r) ?\t)
-		 (char char)))))
-    (if (member key allowed-keys)
-        key
-      (message "Invalid key: `%s'" key)
-      (sit-for 1)
-      (org--mks-read-key allowed-keys prompt))))
+  (setq header-line-format (when navigation-keys "Use C-n, C-p, C-v, M-v to navigate."))
+  (let ((char-key (read-char-exclusive prompt)))
+    (if (and navigation-keys (memq char-key '(14 16 22 134217846)))
+	(progn
+	  (org-scroll char-key)
+	  (org--mks-read-key allowed-keys prompt navigation-keys))
+      (let ((key (char-to-string
+		  (pcase char-key
+		    ((or ?\s ?\t ?\r) ?\t)
+		    (char char)))))
+	(if (member key allowed-keys)
+	    key
+	  (message "Invalid key: `%s'" key)
+	  (sit-for 1)
+	  (org--mks-read-key allowed-keys prompt navigation-keys))))))
 
 (defun org-mks (table title &optional prompt specials)
   "Select a member of an alist with multiple keys.
@@ -461,15 +468,13 @@ is selected, only the bare key is returned."
 		;; Display UI and let user select an entry or
 		;; a sub-level prefix.
 		(goto-char (point-min))
-		(setq header-line-format nil)
 		(org-fit-window-to-buffer)
-		(unless (pos-visible-in-window-p (1- (point-max)))
-		  (setq header-line-format "Use C-n, C-p or C-v to navigate.")
-		  (setq allowed-keys (append allowed-keys '("\C-n" "\C-p" "\C-v"))))
-		(let ((pressed (org--mks-read-key allowed-keys prompt)))
-		  (while (and (member pressed '("\C-n" "\C-p" "\C-v")))
-		    (org-scroll (string-to-char pressed))
-		    (setq pressed (org--mks-read-key allowed-keys prompt)))
+		(message "") ; With this line the prompt appears in
+			     ; the minibuffer. Else keystrokes may
+			     ; appear, which is spurious.
+		(let ((pressed (org--mks-read-key
+				allowed-keys prompt
+				(not (pos-visible-in-window-p (1- (point-max)))))))
 		  (setq current (concat current pressed))
 		  (cond
 		   ((equal pressed "\C-g") (user-error "Abort"))
