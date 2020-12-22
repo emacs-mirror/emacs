@@ -7,10 +7,6 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.5.0-pre
-;; Package-Requires: ((emacs "25.1"))
-;; Package-Type: multi
-;; URL: https://savannah.gnu.org/projects/tramp
 
 ;; This file is part of GNU Emacs.
 
