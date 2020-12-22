@@ -4534,7 +4534,7 @@ eln_load_path_final_clean_up (void)
 				   concat2 (XCAR (dir_tail),
 					    Vcomp_native_version_dir),
 				   Qt, build_string ("\\.eln\\.old\\'"), Qnil,
-				   Qt, Qnil, return_nil);
+				   Qnil, Qt, return_nil);
       FOR_EACH_TAIL (files_in_dir)
 	Fdelete_file (XCAR (files_in_dir), Qnil);
     }
