@@ -2415,7 +2415,8 @@ is not active."
               (jsonrpc-request (eglot--current-server-or-lose)
                                :textDocument/documentSymbol
                                `(:textDocument
-                                 ,(eglot--TextDocumentIdentifier))))))))
+                                 ,(eglot--TextDocumentIdentifier))
+                               :cancel-on-input non-essential))))))
 
 (defun eglot--apply-text-edits (edits &optional version)
   "Apply EDITS for current buffer if at VERSION, or if it's nil."
