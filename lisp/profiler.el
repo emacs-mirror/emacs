@@ -745,11 +745,11 @@ below entry at point."
 	    (cpu
 	     (profiler-report-header-line-format
 	      profiler-report-cpu-line-format
-	      (list "Samples" "%") " " "Function"))
+	      (list "Samples" "%") " " "  Function"))
 	    (memory
 	     (profiler-report-header-line-format
 	      profiler-report-memory-line-format
-	      (list "Bytes" "%") " " "Function"))))
+	      (list "Bytes" "%") " " "  Function"))))
     (let ((predicate (cl-ecase order
 		       (ascending #'profiler-calltree-count<)
 		       (descending #'profiler-calltree-count>))))
