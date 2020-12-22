@@ -2038,7 +2038,7 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block *target1 = retrive_block (arg[2]);
       gcc_jit_block *target2 = retrive_block (arg[3]);
 
-      emit_cond_jump (emit_EQ (a, b), target2, target1);
+      emit_cond_jump (emit_EQ (a, b), target1, target2);
     }
   else if (EQ (op, Qcond_jump_narg_leq))
     {
@@ -2060,7 +2060,7 @@ emit_limple_insn (Lisp_Object insn)
 			       GCC_JIT_COMPARISON_LE,
 			       gcc_jit_lvalue_as_rvalue (nargs),
 			       n);
-      emit_cond_jump (test, target2, target1);
+      emit_cond_jump (test, target1, target2);
     }
   else if (EQ (op, Qphi) || EQ (op, Qassume))
     {

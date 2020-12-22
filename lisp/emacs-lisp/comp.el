@@ -1229,8 +1229,8 @@ Return value is the fall through block name."
       (when label-sp
         (cl-assert (= (1- label-sp) (+ target-offset (comp-sp)))))
       (comp-emit (if negated
-		     (list 'cond-jump a b eff-target-name bb)
-		   (list 'cond-jump a b bb eff-target-name)))
+                     (list 'cond-jump a b bb eff-target-name)
+		   (list 'cond-jump a b eff-target-name bb)))
       (comp-mark-curr-bb-closed)
       bb)))
 
@@ -1321,7 +1321,7 @@ Return value is the fall through block name."
                                             (comp-new-block-sym)))
         for ff-bb-name = (comp-block-name ff-bb)
         if (eq test-func 'eq)
-          do (comp-emit (list 'cond-jump var m-test ff-bb-name target-name))
+          do (comp-emit (list 'cond-jump var m-test target-name ff-bb-name))
         else
         ;; Store the result of the comparison into the scratch slot before
         ;; emitting the conditional jump.
@@ -1330,7 +1330,7 @@ Return value is the fall through block name."
              (comp-emit (list 'cond-jump
                               (make-comp-mvar :slot 'scratch)
                               (make-comp-mvar :constant nil)
-                              target-name ff-bb-name))
+                              ff-bb-name target-name))
         unless last
         ;; All fall through are artificially created here except the last one.
           do (puthash ff-bb-name ff-bb (comp-func-blocks comp-func))
@@ -1615,7 +1615,7 @@ the annotation emission."
   (cl-loop for i from minarg below nonrest
            for bb = (intern (format "entry_%s" i))
            for fallback = (intern (format "entry_fallback_%s" i))
-           do (comp-emit `(cond-jump-narg-leq ,i ,bb ,fallback))
+           do (comp-emit `(cond-jump-narg-leq ,i ,fallback ,bb))
               (comp-make-curr-block bb (comp-sp))
               (comp-emit `(set-args-to-local ,(comp-slot-n i)))
               (comp-emit '(inc-args))
@@ -1971,7 +1971,7 @@ TARGET-BB-SYM is the symbol name of the target block."
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for assume-target = (comp-add-cond-cstrs-target-block b branch-target)
-        for negated in '(nil t)
+        for negated in '(t nil)
         do (setf (car branch-target-cell) (comp-block-name assume-target))
         when target-mvar1
           do (comp-emit-assume target-mvar1 op2 assume-target negated)
