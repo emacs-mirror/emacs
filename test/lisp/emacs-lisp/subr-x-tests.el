@@ -584,7 +584,7 @@
 
 (ert-deftest subr-clean-whitespace ()
   (should (equal (string-clean-whitespace " foo ") "foo"))
-  (should (equal (string-clean-whitespace " foo   \n\t Bar") "foo Bar")))
+  (should (equal (string-clean-whitespace " foo   \r\n\t  Bar") "foo Bar")))
 
 (ert-deftest subr-string-fill ()
   (should (equal (string-fill "foo" 10) "foo"))

@@ -269,7 +269,7 @@ carriage return."
 All sequences of whitespaces in STRING are collapsed into a
 single space character, and leading/trailing whitespace is
 removed."
-  (let ((blank "[[:blank:]\n]+"))
+  (let ((blank "[[:blank:]\r\n]+"))
     (string-trim (replace-regexp-in-string blank " " string t t)
                  blank blank)))
 
