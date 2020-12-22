@@ -1881,15 +1881,15 @@ into the C code forwarding the compilation unit."
 ;;    afterwards both x and y must satisfy the (or number marker)
 ;;    type specifier.
 
-(defun comp-emit-assume (target rhs bb negated)
-  "Emit an assume for mvar TARGET being RHS.
+(defun comp-emit-assume (lhs rhs bb negated)
+  "Emit an assume for mvar LHS being RHS.
 When NEGATED is non-nil the assumption is negated.
 The assume is emitted at the beginning of the block BB."
-  (let ((target-slot (comp-mvar-slot target))
+  (let ((lhs-slot (comp-mvar-slot lhs))
         (tmp-mvar (if negated
                       (make-comp-mvar :slot (comp-mvar-slot rhs))
                     rhs)))
-    (push `(assume ,(make-comp-mvar :slot target-slot) (and ,target ,tmp-mvar))
+    (push `(assume ,(make-comp-mvar :slot lhs-slot) (and ,lhs ,tmp-mvar))
 	  (comp-block-insns bb))
     (if negated
         (push `(assume ,tmp-mvar (not ,rhs))
@@ -1950,6 +1950,30 @@ TARGET-BB-SYM is the symbol name of the target block."
                                                    "_cstrs"))
                                    curr-bb target-bb))))
 
+(defun comp-add-cond-cstrs-simple ()
+  "`comp-add-cstrs' worker function for each selected function."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do
+   (cl-loop
+    named in-the-basic-block
+    for insn-seq on (comp-block-insns b)
+    do
+    (pcase insn-seq
+      (`((set ,(and (pred comp-mvar-p) tmp-mvar)
+              ,(and (pred comp-mvar-p) obj1))
+         (comment ,_comment-str)
+         (cond-jump ,tmp-mvar ,obj2 . ,blocks))
+       (cl-loop
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for block-target = (comp-add-cond-cstrs-target-block b branch-target)
+        for negated in '(nil t)
+        do
+        (setf (car branch-target-cell) (comp-block-name block-target))
+        (comp-emit-assume tmp-mvar obj2 block-target negated)
+        finally (cl-return-from in-the-basic-block)))))))
+
 (defun comp-add-cond-cstrs ()
   "`comp-add-cstrs' worker function for each selected function."
   (cl-loop
@@ -1960,23 +1984,23 @@ TARGET-BB-SYM is the symbol name of the target block."
     for insns-seq on (comp-block-insns b)
     do
     (pcase insns-seq
-      (`((set ,(and (pred comp-mvar-p) cond)
+      (`((set ,(and (pred comp-mvar-p) obj1)
               (,(pred comp-call-op-p)
                ,(or 'eq 'eql '= 'equal) ,op1 ,op2))
 	 (comment ,_comment-str)
-	 (cond-jump ,cond ,(pred comp-mvar-p) . ,blocks))
+	 (cond-jump ,obj1 ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
         with target-mvar1 = (comp-cond-cstrs-target-mvar op1 (car insns-seq) b)
         with target-mvar2 = (comp-cond-cstrs-target-mvar op2 (car insns-seq) b)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
-        for assume-target = (comp-add-cond-cstrs-target-block b branch-target)
+        for block-target = (comp-add-cond-cstrs-target-block b branch-target)
         for negated in '(t nil)
-        do (setf (car branch-target-cell) (comp-block-name assume-target))
+        do (setf (car branch-target-cell) (comp-block-name block-target))
         when target-mvar1
-          do (comp-emit-assume target-mvar1 op2 assume-target negated)
+          do (comp-emit-assume target-mvar1 op2 block-target negated)
         when target-mvar2
-          do (comp-emit-assume target-mvar2 op1 assume-target negated)
+          do (comp-emit-assume target-mvar2 op1 block-target negated)
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-emit-call-cstr (mvar call-cell cstr)
@@ -2048,6 +2072,7 @@ blocks."
 			(comp-func-l-p f)
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
+                 (comp-add-cond-cstrs-simple)
                  (comp-add-cond-cstrs)
                  (comp-add-call-cstr)
                  (comp-log-func comp-func 3))))
