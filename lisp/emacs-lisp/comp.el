@@ -1891,6 +1891,7 @@ The assume is emitted at the beginning of the block BB."
         (tmp-mvar (if negated
                       (make-comp-mvar :slot (comp-mvar-slot rhs))
                     rhs)))
+    (cl-assert lhs-slot)
     (push `(assume ,(make-comp-mvar :slot lhs-slot) (and ,lhs ,tmp-mvar))
 	  (comp-block-insns bb))
     (if negated
@@ -1898,7 +1899,7 @@ The assume is emitted at the beginning of the block BB."
 	      (comp-block-insns bb)))
     (setf (comp-func-ssa-status comp-func) 'dirty)))
 
-(defun comp-add-new-block-beetween (bb-symbol bb-a bb-b)
+(defun comp-add-new-block-between (bb-symbol bb-a bb-b)
   "Create a new basic-block named BB-SYMBOL and add it between BB-A and BB-B."
   (cl-loop
    with new-bb = (make-comp-block-cstr :name bb-symbol
@@ -1913,8 +1914,8 @@ The assume is emitted at the beginning of the block BB."
          (comp-block-out-edges bb-a) (delq ed (comp-block-out-edges bb-a)))
    (push ed (comp-block-out-edges new-bb))
    ;; Connect `bb-a' `new-bb' with `new-edge'.
-   (push (comp-block-out-edges bb-a) new-edge)
-   (push (comp-block-in-edges new-bb) new-edge)
+   (push new-edge (comp-block-out-edges bb-a))
+   (push new-edge (comp-block-in-edges new-bb))
    (setf (comp-func-ssa-status comp-func) 'dirty)
    ;; Add `new-edge' to the current function and return it.
    (cl-return (puthash bb-symbol new-bb (comp-func-blocks comp-func)))
@@ -1948,9 +1949,9 @@ TARGET-BB-SYM is the symbol name of the target block."
         ;; If block has only one predecessor is already suitable for
         ;; adding constraint assumptions.
         target-bb
-      (comp-add-new-block-beetween (intern (concat (symbol-name target-bb-sym)
-                                                   "_cstrs"))
-                                   curr-bb target-bb))))
+      (comp-add-new-block-between (intern (concat (symbol-name target-bb-sym)
+                                                  "_cstrs"))
+                                  curr-bb target-bb))))
 
 (defun comp-add-cond-cstrs-simple ()
   "`comp-add-cstrs' worker function for each selected function."
@@ -1974,6 +1975,16 @@ TARGET-BB-SYM is the symbol name of the target block."
         do
         (setf (car branch-target-cell) (comp-block-name block-target))
         (comp-emit-assume tmp-mvar obj2 block-target negated)
+        finally (cl-return-from in-the-basic-block)))
+      (`((cond-jump ,obj1 ,obj2 . ,blocks))
+       (cl-loop
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for block-target = (comp-add-cond-cstrs-target-block b branch-target)
+        for negated in '(nil t)
+        do
+        (setf (car branch-target-cell) (comp-block-name block-target))
+        (comp-emit-assume obj1 obj2 block-target negated)
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-add-cond-cstrs ()
