@@ -303,6 +303,14 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
++++
+** profiler.el
+The results displayed by 'profiler-report' now have the usage figures
+at the left hand side followed by the function name.  This is intended
+to make better use of the horizontal space, in particular eliminating
+the truncation of function names.  There is no way to get the former
+layout back.
+
 ** Loading dunnet.el in batch mode doesn't start the game any more.
 Instead you need to do "emacs -f dun-batch" to start the game in
 batch mode.
