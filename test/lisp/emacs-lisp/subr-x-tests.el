@@ -595,9 +595,10 @@
 (ert-deftest subr-string-limit ()
   (should (equal (string-limit "foo" 10) "foo"))
   (should (equal (string-limit "foo" 2) "fo"))
-  (should (equal (string-limit "foo" -2) "oo"))
-  (should (equal (string-limit "abc" -10) "abc"))
-  (should (equal (string-limit "foo" 0) "")))
+  (should (equal (string-limit "foo" 2 t) "oo"))
+  (should (equal (string-limit "abc" 10 t) "abc"))
+  (should (equal (string-limit "foo" 0) ""))
+  (should-error (string-limit "foo" -1)))
 
 (ert-deftest subr-string-lines ()
   (should (equal (string-lines "foo") '("foo")))

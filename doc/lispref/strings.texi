@@ -405,13 +405,12 @@ there are individual words that are longer than @var{length}, these
 will not be shortened.
 @end defun
 
-@defun string-limit string length
-Return a string that's shorter than @var{length}.  If @var{string} is
-shorter than @var{length}, @var{string} is returned as is.  If
-@var{length} is positive, return a substring of @var{string}
-consisting of the first @var{length} characters.  If @var{length} is
-negative, return a string of the @var{-length} last characters
-instead.
+@defun string-limit string length &optional end
+If @var{string} is shorter than @var{length}, @var{string} is returned
+as is.  Otherwise, return a substring of @var{string} consisting of
+the first @var{length} characters.  If the optional @var{end}
+parameter is given, return a string of the @var{length} last
+characters instead.
 @end defun
 
 @defun string-lines string &optional omit-nulls

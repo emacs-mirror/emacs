@@ -145,7 +145,7 @@ There can be any number of :example/:result elements."
    :eval (substring "foobar" 3))
   (string-limit
    :eval (string-limit "foobar" 3)
-   :eval (string-limit "foobar" -3)
+   :eval (string-limit "foobar" 3 t)
    :eval (string-limit "foobar" 10))
   (split-string
    :eval (split-string "foo bar")
