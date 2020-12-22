@@ -58,7 +58,7 @@ symbol_to_nsstring (Lisp_Object sym)
   if (EQ (sym, QPRIMARY))     return NXPrimaryPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSPasteboardTypeString;
-  return [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (sym))];
+  return [NSString stringWithLispString: SYMBOL_NAME (sym)];
 }
 
 static NSPasteboard *
@@ -170,17 +170,12 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
     }
   else
     {
-      char *utfStr;
       NSString *type, *nsStr;
       NSEnumerator *tenum;
 
       CHECK_STRING (str);
 
-      utfStr = SSDATA (str);
-      nsStr = [[NSString alloc] initWithBytesNoCopy: utfStr
-                                             length: SBYTES (str)
-                                           encoding: NSUTF8StringEncoding
-                                       freeWhenDone: NO];
+      nsStr = [NSString stringWithLispString: str];
       // FIXME: Why those 2 different code paths?
       if (gtype == nil)
         {
@@ -196,7 +191,6 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 	  eassert (gtype == NSPasteboardTypeString);
           [pb setString: nsStr forType: gtype];
         }
-      [nsStr release];
       ns_store_pb_change_count (pb);
     }
 }
