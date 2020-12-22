@@ -613,7 +613,7 @@
 (ert-deftest subr-string-pad ()
   (should (equal (string-pad "foo" 5) "foo  "))
   (should (equal (string-pad "foo" 5 ?-) "foo--"))
-  (should (equal (string-pad "foo" -5 ?-) "--foo"))
+  (should (equal (string-pad "foo" 5 ?- t) "--foo"))
   (should (equal (string-pad "foo" 2 ?-) "foo")))
 
 (ert-deftest subr-string-chop-newline ()

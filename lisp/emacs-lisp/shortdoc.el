@@ -134,7 +134,7 @@ There can be any number of :example/:result elements."
   (string-pad
    :eval (string-pad "foo" 5)
    :eval (string-pad "foobar" 5)
-   :eval (string-pad "foo" -5 ?-))
+   :eval (string-pad "foo" 5 ?- t))
   (mapcar
    :eval (mapcar #'identity "123"))
   (format

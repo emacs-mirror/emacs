@@ -322,7 +322,7 @@ The boundaries that match REGEXP are included in the result."
       (push (substring string start-substring) result)
       (nreverse result))))
 
-(defun string-pad (string length &optional padding)
+(defun string-pad (string length &optional padding start)
   "Pad STRING to LENGTH using PADDING.
 If PADDING is nil, the space character is used.  If not nil, it
 should be a character.
@@ -330,16 +330,18 @@ should be a character.
 If STRING is longer than the absolute value of LENGTH, no padding
 is done.
 
-If LENGTH is positive, the padding is done to the end of the
-string, and if it's negative, padding is done to the start of the
+If START is nil (or not present), the padding is done to the end
+of the string, and non-nil, padding is done to the start of the
 string."
-  (let ((pad-length (- (abs length) (length string))))
+  (unless (natnump length)
+    (signal 'wrong-type-argument (list 'natnump length)))
+  (let ((pad-length (- length (length string))))
     (if (< pad-length 0)
         string
-      (concat (and (< length 0)
+      (concat (and start
                    (make-string pad-length (or padding ?\s)))
               string
-              (and (> length 0)
+              (and (not start)
                    (make-string pad-length (or padding ?\s)))))))
 
 (defun string-chop-newline (string)

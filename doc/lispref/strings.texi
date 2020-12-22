@@ -418,13 +418,13 @@ Split @var{string} into a list of strings on newline boundaries.  If
 @var{omit-nulls}, remove empty lines from the results.
 @end defun
 
-@defun string-pad string length &optional padding
+@defun string-pad string length &optional padding start
 Pad @var{string} to the be of @var{length} using @var{padding} as the
 padding character (defaulting to the space character).  If
 @var{string} is shorter than @var{length}, no padding is done.  If
-@var{length} is positive, the padding is done to the end of the
-string, and if it's negative, to the start of the string (using the
-absolute value).
+@var{start} is @code{nil} (or not present), the padding is done to the
+end of the string, and if it's non-@code{nil}, to the start of the
+string.
 @end defun
 
 @defun string-chop-newline string
