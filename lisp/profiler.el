@@ -448,7 +448,7 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
   :group 'profiler)
 
 (defvar profiler-report-cpu-line-format
-  '((14 right ((9 right)
+  '((17 right ((12 right)
 	       (5 right)))
     (1 left "%s")
     (0 left)))
@@ -500,7 +500,11 @@ RET: expand or collapse"))
 (defun profiler-report-header-line-format (fmt &rest args)
   (let* ((header (apply #'profiler-format fmt args))
 	 (escaped (replace-regexp-in-string "%" "%%" header)))
-    (concat " " escaped)))
+    (concat 
+     (propertize " " 
+                 'display '(space :align-to 0)
+                 'face 'fixed-pitch)            
+     escaped)))
 
 (defun profiler-report-line-format (tree)
   (let ((diff-p (profiler-profile-diff-p profiler-report-profile))
