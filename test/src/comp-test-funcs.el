@@ -395,6 +395,28 @@
     (1 " ➊") (2 " ➋") (3 " ➌") (4 " ➍") (5 " ➎") (6 " ➏")
     (7 " ➐") (8 " ➑") (9 " ➒") (10 " ➓") (_ "")))
 
+(defun comp-test-assume-double-neg-f (collection value)
+  ;; Reduced from `auth-source-search-collection'.
+  (when (atom collection)
+    (setq collection (list collection)))
+  (or (eq value t)
+      ;; value is (not (member t))
+      (eq collection value)
+      ;; collection is t, not (member t)!
+      (member value collection)))
+
+(defun comp-test-assume-in-loop-1-f (arg)
+  ;; Reduced from `comint-delim-arg'.
+  (let ((args nil)
+	(pos 0)
+	(len (length arg)))
+    (while (< pos len)
+      (let ((start pos))
+	(while (< pos len)
+	  (setq pos (1+ pos)))
+	(setq args (cons (substring arg start pos) args))))
+    args))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

@@ -320,7 +320,8 @@
     ;; Redefine `read-*' in order to avoid interactive input.
     (cl-letf (((symbol-function 'read-passwd) (lambda (_) passwd))
               ((symbol-function 'read-string)
-               (lambda (_prompt _initial _history default) default)))
+               (lambda (_prompt _initial _history default _inherit-input-method)
+		 default)))
       (setq auth-info
             (car (auth-source-search
                   :max 1 :host host :require '(:user :secret) :create t))))

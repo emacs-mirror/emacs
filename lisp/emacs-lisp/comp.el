@@ -164,7 +164,7 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-fwprop
                         comp-call-optim
                         comp-ipa-pure
-                        comp-cond-cstr
+                        comp-add-cstrs
                         comp-fwprop
                         comp-dead-code
                         comp-tco
@@ -198,7 +198,7 @@ Useful to hook into pass checkers.")
     (symbol-name (function (symbol) string))
     (eq (function (t t) boolean))
     (eql (function (t t) boolean))
-    (= (function ((or number marker) (or number marker)) boolean))
+    (= (function ((or number marker) &rest (or number marker)) boolean))
     (/= (function ((or number marker) (or number marker)) boolean))
     (< (function ((or number marker) &rest (or number marker)) boolean))
     (<= (function ((or number marker) &rest (or number marker)) boolean))
@@ -233,11 +233,11 @@ Useful to hook into pass checkers.")
     (string-equal (function ((or string symbol) (or string symbol)) boolean))
     (string< (function ((or string symbol) (or string symbol)) boolean))
     (string-lessp (function ((or string symbol) (or string symbol)) boolean))
-    (string-search (function (string string) (or integer null)))
+    (string-search (function (string string &optional integer) integer))
     (string-to-char (function (string) integer))
     (string-to-number (function (string &optional integer) number))
     (string-to-syntax (function (string) cons))
-    (substring (function (string &optional integer integer) string))
+    (substring (function ((or string vector) &optional integer integer) (or string vector)))
     (sxhash (function (t) integer))
     (sxhash-equal (function (t) integer))
     (sxhash-eq (function (t) integer))
@@ -253,7 +253,6 @@ Useful to hook into pass checkers.")
     (string-to-multibyte (function (string) string))
     (tan (function (number) float))
     (time-convert (function (t &optional (or boolean integer)) cons))
-    (truncate (function (number) integer))
     (unibyte-char-to-multibyte (function (fixnum) fixnum)) ;; byte is fixnum
     (upcase (function ((or fixnum string)) (or fixnum string)))
     (user-full-name (function (&optional integer) string))
@@ -275,7 +274,7 @@ Useful to hook into pass checkers.")
    for (f type-spec) in comp-known-type-specifiers
    for cstr = (comp-type-spec-to-cstr type-spec)
    do (puthash f cstr h)
-   finally (cl-return h))
+   finally return h)
   "Hash table function -> `comp-constraint'")
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
@@ -520,7 +519,8 @@ CFG is mutated by a pass.")
 
 (defun comp-mvar-value-vld-p (mvar)
   "Return t if one single value can be extracted by the MVAR constrains."
-  (when (null (comp-mvar-typeset mvar))
+  (when (and (null (comp-mvar-typeset mvar))
+             (null (comp-mvar-neg mvar)))
     (let* ((v (comp-mvar-valset mvar))
            (r (comp-mvar-range mvar))
            (valset-len (length v))
@@ -656,7 +656,7 @@ Assume allocation class 'd-default as default."
 
 (defconst comp-limple-lock-keywords
   `((,(rx bol "(comment" (1+ not-newline)) . font-lock-comment-face)
-    (,(rx "#s(" (group-n 1 "comp-mvar"))
+    (,(rx "#(" (group-n 1 "mvar"))
      (1 font-lock-function-name-face))
     (,(rx bol "(" (group-n 1 "phi"))
      (1 font-lock-variable-name-face))
@@ -715,15 +715,30 @@ log with `comp-log-to-buffer'."
         (with-selected-window log-window
           (goto-char (point-max)))))))
 
+(defun comp-prettyformat-mvar (mvar)
+  (format "#(mvar %s %s %S)"
+          (comp-mvar-id mvar)
+          (comp-mvar-slot mvar)
+          (comp-cstr-to-type-spec mvar)))
+
+(defun comp-prettyformat-insn (insn)
+  (cl-typecase insn
+    (comp-mvar (comp-prettyformat-mvar insn))
+    (atom (prin1-to-string insn))
+    (cons (concat "(" (mapconcat #'comp-prettyformat-insn insn " ") ")"))))
+
 (defun comp-log-func (func verbosity)
   "Log function FUNC.
 VERBOSITY is a number between 0 and 3."
   (when (>= comp-verbose verbosity)
     (comp-log (format "\nFunction: %s\n" (comp-func-name func)) verbosity)
-    (cl-loop for block-name being each hash-keys of (comp-func-blocks func)
-             using (hash-value bb)
-             do (comp-log (concat "<" (symbol-name block-name) ">") verbosity)
-                (comp-log (comp-block-insns bb) verbosity t))))
+    (cl-loop
+     for block-name being each hash-keys of (comp-func-blocks func)
+     using (hash-value bb)
+     do (comp-log (concat "<" (symbol-name block-name) ">") verbosity)
+        (cl-loop
+         for insn in (comp-block-insns bb)
+         do (comp-log (comp-prettyformat-insn insn) verbosity)))))
 
 (defun comp-log-edges (func)
   "Log edges in FUNC."
@@ -743,14 +758,15 @@ VERBOSITY is a number between 0 and 3."
 
 (defmacro comp-loop-insn-in-block (basic-block &rest body)
   "Loop over all insns in BASIC-BLOCK executing BODY.
-Inside BODY `insn' can be used to read or set the current
-instruction."
+Inside BODY `insn' and `insn-cell'can be used to read or set the
+current instruction or its cell."
   (declare (debug (form body))
            (indent defun))
-  (let ((sym-cell (gensym "cell-")))
-    `(cl-symbol-macrolet ((insn (car ,sym-cell)))
-       (cl-loop for ,sym-cell on (comp-block-insns ,basic-block)
-	        do ,@body))))
+  `(cl-symbol-macrolet ((insn (car insn-cell)))
+     (let ((insn-cell (comp-block-insns ,basic-block)))
+       (while insn-cell
+         ,@body
+         (setf insn-cell (cdr insn-cell))))))
 
 ;;; spill-lap pass specific code.
 
@@ -1851,32 +1867,34 @@ into the C code forwarding the compilation unit."
     (comp-add-func-to-ctxt (comp-limplify-top-level t))))
 
 
-;;; conditional branches rewrite pass specific code.
+;;; add-cstrs pass specific code.
 
-(defun comp-emit-assume (target-slot rhs bb kind)
-  "Emit an assume of kind KIND for TARGET-SLOT being RHS.
+;; This pass is responsible for adding constraints, these are
+;; generated from:
+;;
+;;  - Conditional branches: each branch taken or non taken can be used
+;;    in the CFG to infer infomations on the tested variables.
+;;
+;;  - Function calls: function calls to function assumed to be not
+;;    redefinable can be used to add constrains on the function
+;;    arguments.  Ex: if we execute successfully (= x y) we know that
+;;    afterwards both x and y must satisfy the (or number marker)
+;;    type specifier.
+
+(defun comp-emit-assume (target rhs bb negated)
+  "Emit an assume for mvar TARGET being RHS.
+When NEGATED is non-nil the assumption is negated.
 The assume is emitted at the beginning of the block BB."
-  (push `(assume ,(make-comp-mvar :slot target-slot) ,rhs ,kind)
-	(comp-block-insns bb))
-  (setf (comp-func-ssa-status comp-func) 'dirty))
-
-(defun comp-cond-cstr-target-slot (slot-num exit-insn bb)
-  "Search for the last assignment of SLOT-NUM in BB.
-Keep on searching till EXIT-INSN is encountered.
-Return the corresponding rhs slot number."
-  (cl-flet ((targetp (x)
-              ;; Ret t if x is an mvar and target the correct slot number.
-              (and (comp-mvar-p x)
-                   (eql slot-num (comp-mvar-slot x)))))
-    (cl-loop
-     with res = nil
-     for insn in (comp-block-insns bb)
-     when (eq insn exit-insn)
-     do (cl-return (and (comp-mvar-p res) (comp-mvar-slot res)))
-     do (pcase insn
-          (`(,(pred comp-assign-op-p) ,(pred targetp) ,rhs)
-           (setf res rhs)))
-     finally (cl-assert nil))))
+  (let ((target-slot (comp-mvar-slot target))
+        (tmp-mvar (if negated
+                      (make-comp-mvar :slot (comp-mvar-slot rhs))
+                    rhs)))
+    (push `(assume ,(make-comp-mvar :slot target-slot) (and ,target ,tmp-mvar))
+	  (comp-block-insns bb))
+    (if negated
+        (push `(assume ,tmp-mvar (not ,rhs))
+	      (comp-block-insns bb)))
+    (setf (comp-func-ssa-status comp-func) 'dirty)))
 
 (defun comp-add-new-block-beetween (bb-symbol bb-a bb-b)
   "Create a new basic-block named BB-SYMBOL and add it between BB-A and BB-B."
@@ -1900,7 +1918,25 @@ Return the corresponding rhs slot number."
    (cl-return (puthash bb-symbol new-bb (comp-func-blocks comp-func)))
    finally (cl-assert nil)))
 
-(defun comp-cond-cstr-target-block (curr-bb target-bb-sym)
+;; Cheap substitute to a copy propagation pass...
+(defun comp-cond-cstrs-target-mvar (mvar exit-insn bb)
+  "Given MVAR search in BB the original mvar MVAR got assigned from.
+Keep on searching till EXIT-INSN is encountered."
+  (cl-flet ((targetp (x)
+              ;; Ret t if x is an mvar and target the correct slot number.
+              (and (comp-mvar-p x)
+                   (eql (comp-mvar-slot mvar) (comp-mvar-slot x)))))
+    (cl-loop
+     with res = nil
+     for insn in (comp-block-insns bb)
+     when (eq insn exit-insn)
+     do (cl-return (and (comp-mvar-p res) res))
+     do (pcase insn
+          (`(,(pred comp-assign-op-p) ,(pred targetp) ,rhs)
+           (setf res rhs)))
+     finally (cl-assert nil))))
+
+(defun comp-add-cond-cstrs-target-block (curr-bb target-bb-sym)
   "Return the appropriate basic block to add constraint assumptions into.
 CURR-BB is the current basic block.
 TARGET-BB-SYM is the symbol name of the target block."
@@ -1914,8 +1950,8 @@ TARGET-BB-SYM is the symbol name of the target block."
                                                    "_cstrs"))
                                    curr-bb target-bb))))
 
-(defun comp-cond-cstr-func ()
-  "`comp-cond-cstr' worker function for each selected function."
+(defun comp-add-cond-cstrs ()
+  "`comp-add-cstrs' worker function for each selected function."
   (cl-loop
    for b being each hash-value of (comp-func-blocks comp-func)
    do
@@ -1926,21 +1962,80 @@ TARGET-BB-SYM is the symbol name of the target block."
     (pcase insns-seq
       (`((set ,(and (pred comp-mvar-p) cond)
               (,(pred comp-call-op-p)
-               ,(and (or 'eq 'eql '= 'equal) test-fn) ,op1 ,op2))
+               ,(or 'eq 'eql '= 'equal) ,op1 ,op2))
 	 (comment ,_comment-str)
 	 (cond-jump ,cond ,(pred comp-mvar-p) . ,blocks))
-       (let* ((bb-1 (car blocks))
-              (bb-target (comp-cond-cstr-target-block b bb-1)))
-         (setf (car blocks) (comp-block-name bb-target))
-         (when-let ((target-slot1 (comp-cond-cstr-target-slot
-                                   (comp-mvar-slot op1) (car insns-seq) b)))
-           (comp-emit-assume target-slot1 op2 bb-target test-fn))
-         (when-let ((target-slot2 (comp-cond-cstr-target-slot
-                                   (comp-mvar-slot op2) (car insns-seq) b)))
-           (comp-emit-assume target-slot2 op1 bb-target test-fn)))
-       (cl-return-from in-the-basic-block))))))
+       (cl-loop
+        with target-mvar1 = (comp-cond-cstrs-target-mvar op1 (car insns-seq) b)
+        with target-mvar2 = (comp-cond-cstrs-target-mvar op2 (car insns-seq) b)
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for assume-target = (comp-add-cond-cstrs-target-block b branch-target)
+        for negated in '(nil t)
+        do (setf (car branch-target-cell) (comp-block-name assume-target))
+        when target-mvar1
+          do (comp-emit-assume target-mvar1 op2 assume-target negated)
+        when target-mvar2
+          do (comp-emit-assume target-mvar2 op1 assume-target negated)
+        finally (cl-return-from in-the-basic-block)))))))
 
-(defun comp-cond-cstr (_)
+(defun comp-emit-call-cstr (mvar call-cell cstr)
+  "Emit a constraint CSTR for MVAR after CALL-CELL."
+  (let* ((next-cell (cdr call-cell))
+         (new-mvar (make-comp-mvar :slot (comp-mvar-slot mvar)))
+         ;; Have new-mvar as LHS *and* RHS to ensure monotonicity and
+         ;; fwprop convergence!!
+         (new-cell `((assume ,new-mvar (and ,new-mvar ,mvar ,cstr)))))
+    (setf (cdr call-cell) new-cell
+          (cdr new-cell) next-cell
+          (comp-func-ssa-status comp-func) 'dirty)))
+
+(defun comp-lambda-list-gen (lambda-list)
+  "Return a generator to iterate over LAMBDA-LIST."
+  (lambda ()
+    (cl-case (car lambda-list)
+      (&optional
+       (setf lambda-list (cdr lambda-list))
+       (prog1
+           (car lambda-list)
+         (setf lambda-list (cdr lambda-list))))
+      (&rest
+       (cadr lambda-list))
+      (t
+       (prog1
+           (car lambda-list)
+         (setf lambda-list (cdr lambda-list)))))))
+
+(defun comp-add-call-cstr ()
+  "Add args assumptions for each function of which the type specifier is known."
+  (cl-loop
+   for bb being each hash-value of (comp-func-blocks comp-func)
+   do
+   (comp-loop-insn-in-block bb
+     (when-let ((match
+                 (pcase insn
+                   (`(set ,lhs (,(pred comp-call-op-p) ,f . ,args))
+                    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+                      (cl-values f cstr-f lhs args)))
+                   (`(,(pred comp-call-op-p) ,f . ,args)
+                    (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
+                      (cl-values f cstr-f nil args))))))
+       (cl-multiple-value-bind (f cstr-f lhs args) match
+         (cl-loop
+          with gen = (comp-lambda-list-gen (comp-cstr-f-args cstr-f))
+          for arg in args
+          for cstr = (funcall gen)
+          for target = (comp-cond-cstrs-target-mvar arg insn bb)
+          unless (comp-cstr-p cstr)
+            do (signal 'native-ice
+                       (list "Incoherent type specifier for function" f))
+          when (and target
+                    (or (null lhs)
+                        (not (eql (comp-mvar-slot lhs)
+                                  (comp-mvar-slot target)))))
+            do (comp-emit-call-cstr target insn-cell cstr)))))))
+
+(defun comp-add-cstrs (_)
   "Rewrite conditional branches adding appropriate 'assume' insns.
 This is introducing and placing 'assume' insns in use by fwprop
 to propagate conditional branch test information on target basic
@@ -1953,7 +2048,8 @@ blocks."
 			(comp-func-l-p f)
                         (not (comp-func-has-non-local f)))
                (let ((comp-func f))
-                 (comp-cond-cstr-func)
+                 (comp-add-cond-cstrs)
+                 (comp-add-call-cstr)
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
@@ -2286,7 +2382,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                                for e in (comp-block-in-edges b)
                                for b = (comp-edge-src e)
                                for in-frame = (comp-block-final-frame b)
-                               collect (cons (aref in-frame slot-n)
+                               collect (list (aref in-frame slot-n)
                                              (comp-block-name b))))))
 
     (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
@@ -2369,7 +2465,8 @@ Forward propagate immediate involed in assignments."
   "Propagate into LVAL properties of RVAL."
   (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval)
         (comp-mvar-valset lval) (comp-mvar-valset rval)
-        (comp-mvar-range lval) (comp-mvar-range rval)))
+        (comp-mvar-range lval) (comp-mvar-range rval)
+        (comp-mvar-neg lval) (comp-mvar-neg rval)))
 
 (defun comp-function-foldable-p (f args)
   "Given function F called with ARGS return non-nil when optimizable."
@@ -2415,7 +2512,8 @@ Fold the call in case."
       (let ((cstr (comp-cstr-f-ret cstr-f)))
         (setf (comp-mvar-range lval) (comp-cstr-range cstr)
               (comp-mvar-valset lval) (comp-cstr-valset cstr)
-              (comp-mvar-typeset lval) (comp-cstr-typeset cstr))))))
+              (comp-mvar-typeset lval) (comp-cstr-typeset cstr)
+              (comp-mvar-neg lval) (comp-cstr-neg cstr))))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
@@ -2429,21 +2527,14 @@ Fold the call in case."
           (comp-fwprop-call insn lval f args)))
        (_
         (comp-mvar-propagate lval rval))))
-    (`(assume ,lval ,rval ,kind)
-     (pcase kind
-       ('eq
-        (comp-mvar-propagate lval rval))
-       ((or 'eql 'equal)
-        (if (or (comp-mvar-symbol-p rval)
-                (comp-mvar-fixnum-p rval))
-            (comp-mvar-propagate lval rval)
-          (setf (comp-mvar-typeset lval) (comp-mvar-typeset rval))))
-       ('=
-        (if (comp-mvar-fixnum-p rval)
-            (comp-mvar-propagate lval rval)
-          (setf (comp-mvar-typeset lval)
-                (unless (comp-mvar-range rval)
-                  '(number)))))))
+    (`(assume ,lval (,kind . ,operands))
+     (cl-ecase kind
+       (and
+        (apply #'comp-cstr-intersection lval operands))
+       (not
+        ;; Prevent double negation!
+        (unless (comp-cstr-neg (car operands))
+          (comp-cstr-negation lval (car operands))))))
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
@@ -2483,9 +2574,14 @@ Return t if something was changed."
                (let ((comp-func f))
                  (comp-fwprop-prologue)
                  (cl-loop
-                  for i from 1
+                  for i from 1 to 100
                   while (comp-fwprop*)
-                  finally (comp-log (format "Propagation run %d times\n" i) 2))
+                  finally
+                  (when (= i 100)
+                    (display-warning
+                     'comp
+                     (format "fwprop pass jammed into %s?" (comp-func-name f))))
+                  (comp-log (format "Propagation run %d times\n" i) 2))
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
@@ -2741,7 +2837,7 @@ Set it into the `ret-type-specifier' slot."
                                do (pcase insn
                                     (`(return ,mvar)
                                      (push mvar res))))
-                           finally (cl-return res)))))
+                           finally return res))))
     (setf (comp-func-ret-type-specifier func)
           (comp-cstr-to-type-spec res-mvar))))
 
