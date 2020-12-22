@@ -695,10 +695,27 @@ DST is returned."
   "Negate SRC setting the result in DST.
 DST is returned."
   (with-comp-cstr-accessors
-    (setf (typeset dst) (typeset src)
-          (valset dst) (valset src)
-          (range dst) (range src)
-          (neg dst) (not (neg src)))
+    (cond
+     ((and (null (valset src))
+           (null (range src))
+           (null (neg src))
+           (equal (typeset src) '(t)))
+      (setf (typeset dst) ()
+            (valset dst) ()
+            (range dst) nil
+            (neg dst) nil))
+     ((and (null (valset src))
+           (null (range src))
+           (null (neg src))
+           (null (typeset src)))
+      (setf (typeset dst) '(t)
+            (valset dst) ()
+            (range dst) nil
+            (neg dst) nil))
+     (t (setf (typeset dst) (typeset src)
+              (valset dst) (valset src)
+              (range dst) (range src)
+              (neg dst) (not (neg src)))))
     dst))
 
 (defun comp-cstr-value-negation (dst src)
