@@ -662,7 +662,8 @@ Assume allocation class 'd-default as default."
      (1 font-lock-variable-name-face))
     (,(rx (group-n 1 (or "entry"
                          (seq (or "entry_" "entry_fallback_" "bb_")
-                              (1+ num) (? (or "_latch" "_cstrs"))))))
+                              (1+ num) (? (or "_latch"
+                                              (seq "_cstrs_" (1+ num))))))))
      (1 font-lock-constant-face))
     (,(rx-to-string
        `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
@@ -1943,15 +1944,23 @@ Keep on searching till EXIT-INSN is encountered."
   "Return the appropriate basic block to add constraint assumptions into.
 CURR-BB is the current basic block.
 TARGET-BB-SYM is the symbol name of the target block."
-  (let ((target-bb (gethash target-bb-sym
-                            (comp-func-blocks comp-func))))
-    (if (= (length (comp-block-in-edges target-bb)) 1)
+  (let* ((target-bb (gethash target-bb-sym
+                             (comp-func-blocks comp-func)))
+         (target-bb-in-edges (comp-block-in-edges target-bb)))
+    (cl-assert target-bb-in-edges)
+    (if (= (length target-bb-in-edges) 1)
         ;; If block has only one predecessor is already suitable for
         ;; adding constraint assumptions.
         target-bb
-      (comp-add-new-block-between (intern (concat (symbol-name target-bb-sym)
-                                                  "_cstrs"))
-                                  curr-bb target-bb))))
+      (cl-loop
+       ;; Search for the first suitable basic block name.
+       for i from 0
+       for new-name = (intern (format "%s_cstrs_%d" (symbol-name target-bb-sym)
+                                      i))
+       until (null (gethash new-name (comp-func-blocks comp-func)))
+       finally
+       ;; Add it.
+       (cl-return (comp-add-new-block-between new-name curr-bb target-bb))))))
 
 (defun comp-add-cond-cstrs-simple ()
   "`comp-add-cstrs' worker function for each selected function."
