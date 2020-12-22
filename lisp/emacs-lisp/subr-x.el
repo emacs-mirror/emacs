@@ -293,7 +293,7 @@ is returned unchanged.
 
 If STRING is longer than LENGTH, return a substring consisting of
 the first LENGTH characters of STRING.  If END is non-nil, return
-the last LENTGH characters instead."
+the last LENGTH characters instead."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (cond
@@ -331,8 +331,8 @@ If STRING is longer than the absolute value of LENGTH, no padding
 is done.
 
 If START is nil (or not present), the padding is done to the end
-of the string, and non-nil, padding is done to the start of the
-string."
+of the string, and if non-nil, padding is done to the start of
+the string."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
   (let ((pad-length (- length (length string))))
