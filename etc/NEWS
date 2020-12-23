@@ -1460,6 +1460,10 @@ that makes it a valid button.
 
 ** Miscellaneous
 
+---
+*** New user option 'authinfo-hide-elements'.
+This can be set to nil to inhibit hiding passwords in .authinfo files.
+
 +++
 *** A number of new string manipulation functions have been added.
 'string-clean-whitespace', 'string-fill', 'string-limit',
