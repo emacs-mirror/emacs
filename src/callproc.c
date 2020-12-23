@@ -544,8 +544,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   char *const *env = make_environment_block (current_dir);
 
 #ifdef MSDOS /* MW, July 1993 */
-  status
-    = child_setup (filefd, fd_output, fd_error, new_argv, env, current_dir);
+  status = child_setup (filefd, fd_output, fd_error, new_argv, env,
+                        SSDATA (current_dir));
 
   if (status < 0)
     {
@@ -592,7 +592,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   block_child_signal (&oldset);
 
 #ifdef WINDOWSNT
-  pid = child_setup (filefd, fd_output, fd_error, new_argv, env, current_dir);
+  pid = child_setup (filefd, fd_output, fd_error, new_argv, env,
+                     SSDATA (current_dir));
 #else  /* not WINDOWSNT */
 
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -651,7 +652,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       signal (SIGPROF, SIG_DFL);
 #endif
 
-      child_setup (filefd, fd_output, fd_error, new_argv, env, current_dir);
+      child_setup (filefd, fd_output, fd_error, new_argv, env,
+                   SSDATA (current_dir));
     }
 
 #endif /* not WINDOWSNT */
@@ -1221,7 +1223,7 @@ exec_failed (char const *name, int err)
 
 CHILD_SETUP_TYPE
 child_setup (int in, int out, int err, char **new_argv, char *const *env,
-             Lisp_Object current_dir)
+             const char *current_dir)
 {
 #ifdef WINDOWSNT
   int cpid;
@@ -1243,13 +1245,13 @@ child_setup (int in, int out, int err, char **new_argv, char *const *env,
        should only return an error if the directory's permissions
        are changed between the check and this chdir, but we should
        at least check.  */
-    if (chdir (SSDATA (current_dir)) < 0)
+    if (chdir (current_dir) < 0)
       _exit (EXIT_CANCELED);
 #endif
 
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
-  set_process_dir (SSDATA (current_dir));
+  set_process_dir (current_dir);
   /* Spawn the child.  (See w32proc.c:sys_spawnve).  */
   cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
   reset_standard_handles (in, out, err, handles);

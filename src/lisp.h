@@ -4501,7 +4501,7 @@ extern void setup_process_coding_systems (Lisp_Object);
 #endif
 
 extern CHILD_SETUP_TYPE child_setup (int, int, int, char **, char *const *,
-                                     Lisp_Object);
+                                     const char *);
 extern char *const *make_environment_block (Lisp_Object);
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
