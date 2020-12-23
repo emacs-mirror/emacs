@@ -2212,6 +2212,10 @@ presented to users or passed on to other applications.
 ** 'start-process-shell-command' and 'start-file-process-shell-command'
 do not support the old calling conventions any longer.
 
+** Functions operating on local filenames now check that the filenames
+don't contain any NUL bytes.  This avoids subtle bugs caused by
+silently using only the part of the filename until the first NUL byte.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
