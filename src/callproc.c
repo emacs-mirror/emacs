@@ -1222,8 +1222,8 @@ exec_failed (char const *name, int err)
    On MS-DOS, either return an exit status or signal an error.  */
 
 CHILD_SETUP_TYPE
-child_setup (int in, int out, int err, char **new_argv, char *const *env,
-             const char *current_dir)
+child_setup (int in, int out, int err, char *const *new_argv,
+             char *const *env, const char *current_dir)
 {
 #ifdef WINDOWSNT
   int cpid;
