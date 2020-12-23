@@ -507,7 +507,7 @@ DST is returned."
                     (comp-cstr-ctxt-union-1-mem-no-range comp-ctxt)))
            (res (or (gethash srcs mem-h)
                     (puthash
-                     srcs
+                     (mapcar #'comp-cstr-copy srcs)
                      (apply #'comp-cstr-union-1-no-mem range srcs)
                      mem-h))))
       (setf (typeset dst) (typeset res)
@@ -676,7 +676,7 @@ DST is returned."
     (let* ((mem-h (comp-cstr-ctxt-intersection-mem comp-ctxt))
            (res (or (gethash srcs mem-h)
                     (puthash
-                     srcs
+                     (mapcar #'comp-cstr-copy srcs)
                      (apply #'comp-cstr-intersection-no-mem srcs)
                      mem-h))))
       (setf (typeset dst) (typeset res)

@@ -417,6 +417,20 @@
 	(setq args (cons (substring arg start pos) args))))
     args))
 
+(defun comp-test-45376-f ()
+  ;; Reduced from `eshell-ls-find-column-lengths'.
+  (let* (res
+	 (len 2)
+	 (i 0)
+	 (j 0))
+    (while (< j len)
+      (if (= i len)
+	  (setq i 0))
+      (setq res (cons i res)
+	    j (1+ j)
+	    i (1+ i)))
+    res))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
