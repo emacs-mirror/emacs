@@ -355,7 +355,10 @@ non-nil means return old filename."
                         dired-permission-flags-regexp nil t)
                        (goto-char (match-beginning 0))
                        (looking-at "l")
-                       (search-forward " -> " (line-end-position) t)))
+                       (if (and used-F
+                                dired-ls-F-marks-symlinks)
+                           (re-search-forward "@? -> " (line-end-position) t)
+                         (search-forward " -> " (line-end-position) t))))
             (goto-char (match-beginning 0))
             (setq end (point)))
           (when (and used-F

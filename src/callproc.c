@@ -541,8 +541,11 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       callproc_fd[CALLPROC_STDERR] = fd_error;
     }
 
+  char *const *env = make_environment_block (current_dir);
+
 #ifdef MSDOS /* MW, July 1993 */
-  status = child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
+  status = child_setup (filefd, fd_output, fd_error, new_argv, env,
+                        SSDATA (current_dir));
 
   if (status < 0)
     {
@@ -589,7 +592,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   block_child_signal (&oldset);
 
 #ifdef WINDOWSNT
-  pid = child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
+  pid = child_setup (filefd, fd_output, fd_error, new_argv, env,
+                     SSDATA (current_dir));
 #else  /* not WINDOWSNT */
 
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -604,6 +608,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     ptrdiff_t volatile sa_avail_volatile = sa_avail;
     ptrdiff_t volatile sa_count_volatile = sa_count;
     char **volatile new_argv_volatile = new_argv;
+    char *const *volatile env_volatile = env;
     int volatile callproc_fd_volatile[CALLPROC_FDS];
     for (i = 0; i < CALLPROC_FDS; i++)
       callproc_fd_volatile[i] = callproc_fd[i];
@@ -620,6 +625,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     sa_avail = sa_avail_volatile;
     sa_count = sa_count_volatile;
     new_argv = new_argv_volatile;
+    env = env_volatile;
 
     for (i = 0; i < CALLPROC_FDS; i++)
       callproc_fd[i] = callproc_fd_volatile[i];
@@ -646,7 +652,8 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       signal (SIGPROF, SIG_DFL);
 #endif
 
-      child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
+      child_setup (filefd, fd_output, fd_error, new_argv, env,
+                   SSDATA (current_dir));
     }
 
 #endif /* not WINDOWSNT */
@@ -1205,8 +1212,6 @@ exec_failed (char const *name, int err)
    Initialize inferior's priority, pgrp, connected dir and environment.
    then exec another program based on new_argv.
 
-   If SET_PGRP, put the subprocess into a separate process group.
-
    CURRENT_DIR is an elisp string giving the path of the current
    directory the subprocess should have.  Since we can't really signal
    a decent error from within the child, this should be verified as an
@@ -1217,11 +1222,9 @@ exec_failed (char const *name, int err)
    On MS-DOS, either return an exit status or signal an error.  */
 
 CHILD_SETUP_TYPE
-child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
-	     Lisp_Object current_dir)
+child_setup (int in, int out, int err, char *const *new_argv,
+             char *const *env, const char *current_dir)
 {
-  char **env;
-  char *pwd_var;
 #ifdef WINDOWSNT
   int cpid;
   HANDLE handles[3];
@@ -1235,24 +1238,6 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
      src/alloca.c) it is safe because that changes the superior's
      static variables as if the superior had done alloca and will be
      cleaned up in the usual way. */
-  {
-    char *temp;
-    ptrdiff_t i;
-
-    i = SBYTES (current_dir);
-#ifdef MSDOS
-    /* MSDOS must have all environment variables malloc'ed, because
-       low-level libc functions that launch subsidiary processes rely
-       on that.  */
-    pwd_var = xmalloc (i + 5);
-#else
-    if (MAX_ALLOCA - 5 < i)
-      exec_failed (new_argv[0], ENOMEM);
-    pwd_var = alloca (i + 5);
-#endif
-    temp = pwd_var + 4;
-    memcpy (pwd_var, "PWD=", 4);
-    lispstpcpy (temp, current_dir);
 
 #ifndef DOS_NT
     /* We can't signal an Elisp error here; we're in a vfork.  Since
@@ -1260,101 +1245,13 @@ child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
        should only return an error if the directory's permissions
        are changed between the check and this chdir, but we should
        at least check.  */
-    if (chdir (temp) < 0)
+    if (chdir (current_dir) < 0)
       _exit (EXIT_CANCELED);
-#else /* DOS_NT */
-    /* Get past the drive letter, so that d:/ is left alone.  */
-    if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
-      {
-	temp += 2;
-	i -= 2;
-      }
-#endif /* DOS_NT */
-
-    /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
-    while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))
-      temp[--i] = 0;
-  }
-
-  /* Set `env' to a vector of the strings in the environment.  */
-  {
-    register Lisp_Object tem;
-    register char **new_env;
-    char **p, **q;
-    register int new_length;
-    Lisp_Object display = Qnil;
-
-    new_length = 0;
-
-    for (tem = Vprocess_environment;
-	 CONSP (tem) && STRINGP (XCAR (tem));
-	 tem = XCDR (tem))
-      {
-	if (strncmp (SSDATA (XCAR (tem)), "DISPLAY", 7) == 0
-	    && (SDATA (XCAR (tem)) [7] == '\0'
-		|| SDATA (XCAR (tem)) [7] == '='))
-	  /* DISPLAY is specified in process-environment.  */
-	  display = Qt;
-	new_length++;
-      }
-
-    /* If not provided yet, use the frame's DISPLAY.  */
-    if (NILP (display))
-      {
-	Lisp_Object tmp = Fframe_parameter (selected_frame, Qdisplay);
-	if (!STRINGP (tmp) && CONSP (Vinitial_environment))
-	  /* If still not found, Look for DISPLAY in Vinitial_environment.  */
-	  tmp = Fgetenv_internal (build_string ("DISPLAY"),
-				  Vinitial_environment);
-	if (STRINGP (tmp))
-	  {
-	    display = tmp;
-	    new_length++;
-	  }
-      }
-
-    /* new_length + 2 to include PWD and terminating 0.  */
-    if (MAX_ALLOCA / sizeof *env - 2 < new_length)
-      exec_failed (new_argv[0], ENOMEM);
-    env = new_env = alloca ((new_length + 2) * sizeof *env);
-    /* If we have a PWD envvar, pass one down,
-       but with corrected value.  */
-    if (egetenv ("PWD"))
-      *new_env++ = pwd_var;
-
-    if (STRINGP (display))
-      {
-	if (MAX_ALLOCA - sizeof "DISPLAY=" < SBYTES (display))
-	  exec_failed (new_argv[0], ENOMEM);
-	char *vdata = alloca (sizeof "DISPLAY=" + SBYTES (display));
-	lispstpcpy (stpcpy (vdata, "DISPLAY="), display);
-	new_env = add_env (env, new_env, vdata);
-      }
-
-    /* Overrides.  */
-    for (tem = Vprocess_environment;
-	 CONSP (tem) && STRINGP (XCAR (tem));
-	 tem = XCDR (tem))
-      new_env = add_env (env, new_env, SSDATA (XCAR (tem)));
-
-    *new_env = 0;
-
-    /* Remove variable names without values.  */
-    p = q = env;
-    while (*p != 0)
-      {
-	while (*q != 0 && strchr (*q, '=') == NULL)
-	  q++;
-	*p = *q++;
-	if (*p != 0)
-	  p++;
-      }
-  }
-
+#endif
 
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
-  set_process_dir (SSDATA (current_dir));
+  set_process_dir (current_dir);
   /* Spawn the child.  (See w32proc.c:sys_spawnve).  */
   cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
   reset_standard_handles (in, out, err, handles);
@@ -1511,6 +1408,119 @@ egetenv_internal (const char *var, ptrdiff_t len)
     return value;
   else
     return 0;
+}
+
+/* Create a new environment block.  You can pass the returned pointer
+   to `execve'.  Add unwind protections for all newly-allocated
+   objects.  Don't call any Lisp code or the garbage collector while
+   the block is active.  */
+
+char *const *
+make_environment_block (Lisp_Object current_dir)
+{
+  char **env;
+  char *pwd_var;
+
+  {
+    char *temp;
+    ptrdiff_t i;
+
+    i = SBYTES (current_dir);
+    pwd_var = xmalloc (i + 5);
+    record_unwind_protect_ptr (xfree, pwd_var);
+    temp = pwd_var + 4;
+    memcpy (pwd_var, "PWD=", 4);
+    lispstpcpy (temp, current_dir);
+
+#ifdef DOS_NT
+    /* Get past the drive letter, so that d:/ is left alone.  */
+    if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
+      {
+	temp += 2;
+	i -= 2;
+      }
+#endif /* DOS_NT */
+
+    /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
+    while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))
+      temp[--i] = 0;
+  }
+
+  /* Set `env' to a vector of the strings in the environment.  */
+
+  {
+    register Lisp_Object tem;
+    register char **new_env;
+    char **p, **q;
+    register int new_length;
+    Lisp_Object display = Qnil;
+
+    new_length = 0;
+
+    for (tem = Vprocess_environment;
+	 CONSP (tem) && STRINGP (XCAR (tem));
+	 tem = XCDR (tem))
+      {
+	if (strncmp (SSDATA (XCAR (tem)), "DISPLAY", 7) == 0
+	    && (SDATA (XCAR (tem)) [7] == '\0'
+		|| SDATA (XCAR (tem)) [7] == '='))
+	  /* DISPLAY is specified in process-environment.  */
+	  display = Qt;
+	new_length++;
+      }
+
+    /* If not provided yet, use the frame's DISPLAY.  */
+    if (NILP (display))
+      {
+	Lisp_Object tmp = Fframe_parameter (selected_frame, Qdisplay);
+	if (!STRINGP (tmp) && CONSP (Vinitial_environment))
+	  /* If still not found, Look for DISPLAY in Vinitial_environment.  */
+	  tmp = Fgetenv_internal (build_string ("DISPLAY"),
+				  Vinitial_environment);
+	if (STRINGP (tmp))
+	  {
+	    display = tmp;
+	    new_length++;
+	  }
+      }
+
+    /* new_length + 2 to include PWD and terminating 0.  */
+    env = new_env = xnmalloc (new_length + 2, sizeof *env);
+    record_unwind_protect_ptr (xfree, env);
+    /* If we have a PWD envvar, pass one down,
+       but with corrected value.  */
+    if (egetenv ("PWD"))
+      *new_env++ = pwd_var;
+
+    if (STRINGP (display))
+      {
+	char *vdata = xmalloc (sizeof "DISPLAY=" + SBYTES (display));
+	record_unwind_protect_ptr (xfree, vdata);
+	lispstpcpy (stpcpy (vdata, "DISPLAY="), display);
+	new_env = add_env (env, new_env, vdata);
+      }
+
+    /* Overrides.  */
+    for (tem = Vprocess_environment;
+	 CONSP (tem) && STRINGP (XCAR (tem));
+	 tem = XCDR (tem))
+      new_env = add_env (env, new_env, SSDATA (XCAR (tem)));
+
+    *new_env = 0;
+
+    /* Remove variable names without values.  */
+    p = q = env;
+    while (*p != 0)
+      {
+	while (*q != 0 && strchr (*q, '=') == NULL)
+	  q++;
+	*p = *q++;
+	if (*p != 0)
+	  p++;
+      }
+  }
+
+  return env;
 }
 
 

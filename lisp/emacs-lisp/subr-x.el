@@ -264,6 +264,91 @@ carriage return."
       (substring string 0 (- (length string) (length suffix)))
     string))
 
+(defun string-clean-whitespace (string)
+  "Clean up whitespace in STRING.
+All sequences of whitespaces in STRING are collapsed into a
+single space character, and leading/trailing whitespace is
+removed."
+  (let ((blank "[[:blank:]\r\n]+"))
+    (string-trim (replace-regexp-in-string blank " " string t t)
+                 blank blank)))
+
+(defun string-fill (string length)
+  "Try to word-wrap STRING so that no lines are longer than LENGTH.
+Wrapping is done where there is whitespace.  If there are
+individual words in STRING that are longer than LENGTH, the
+result will have lines that are longer than LENGTH."
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (let ((fill-column length)
+          (adaptive-fill-mode nil))
+      (fill-region (point-min) (point-max)))
+    (buffer-string)))
+
+(defun string-limit (string length &optional end)
+  "Return (up to) a LENGTH substring of STRING.
+If STRING is shorter than or equal to LENGTH, the entire string
+is returned unchanged.
+
+If STRING is longer than LENGTH, return a substring consisting of
+the first LENGTH characters of STRING.  If END is non-nil, return
+the last LENGTH characters instead.
+
+When shortening strings for display purposes,
+`truncate-string-to-width' is almost always a better alternative
+than this function."
+  (unless (natnump length)
+    (signal 'wrong-type-argument (list 'natnump length)))
+  (cond
+   ((<= (length string) length) string)
+   (end (substring string (- (length string) length)))
+   (t (substring string 0 length))))
+
+(defun string-lines (string &optional omit-nulls)
+  "Split STRING into a list of lines.
+If OMIT-NULLS, empty lines will be removed from the results."
+  (split-string string "\n" omit-nulls))
+
+(defun string-slice (string regexp)
+  "Split STRING at REGEXP boundaries and return a list of slices.
+The boundaries that match REGEXP are included in the result.
+
+Also see `split-string'."
+  (if (zerop (length string))
+      (list "")
+    (let ((i (string-match-p regexp string 1)))
+      (if i
+          (cons (substring string 0 i)
+                (string-slice (substring string i) regexp))
+        (list string)))))
+
+(defun string-pad (string length &optional padding start)
+  "Pad STRING to LENGTH using PADDING.
+If PADDING is nil, the space character is used.  If not nil, it
+should be a character.
+
+If STRING is longer than the absolute value of LENGTH, no padding
+is done.
+
+If START is nil (or not present), the padding is done to the end
+of the string, and if non-nil, padding is done to the start of
+the string."
+  (unless (natnump length)
+    (signal 'wrong-type-argument (list 'natnump length)))
+  (let ((pad-length (- length (length string))))
+    (if (< pad-length 0)
+        string
+      (concat (and start
+                   (make-string pad-length (or padding ?\s)))
+              string
+              (and (not start)
+                   (make-string pad-length (or padding ?\s)))))))
+
+(defun string-chop-newline (string)
+  "Remove the final newline (if any) from STRING."
+  (string-remove-suffix "\n" string))
+
 (defun replace-region-contents (beg end replace-fn
                                     &optional max-secs max-costs)
   "Replace the region between BEG and END using REPLACE-FN.

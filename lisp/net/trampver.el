@@ -7,6 +7,10 @@
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
+;; Version: 2.5.0-pre
+;; Package-Requires: ((emacs "25.1"))
+;; Package-Type: multi
+;; URL: https://www.gnu.org/software/tramp/
 
 ;; This file is part of GNU Emacs.
 
@@ -30,10 +34,10 @@
 
 ;;; Code:
 
-;; In the Tramp GIT, the version number is auto-frobbed from tramp.el,
-;; and the bug report address is auto-frobbed from configure.ac.
-;; Emacs version check is defined in macro AC_EMACS_INFO of
-;; aclocal.m4; should be changed only there.
+;; In the Tramp GIT repository, the version number, the bug report
+;; address and the required Emacs version are auto-frobbed from
+;; configure.ac, so you should edit that file and run "autoconf &&
+;; ./configure" to change them.
 
 ;;;###tramp-autoload
 (defconst tramp-version "2.5.0-pre"

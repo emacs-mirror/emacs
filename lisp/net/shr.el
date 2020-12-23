@@ -1516,8 +1516,9 @@ ones, in case fg and bg are nil."
       plist)))
 
 (defun shr-tag-base (dom)
-  (when-let* ((base (dom-attr dom 'href)))
-    (setq shr-base (shr-parse-base base)))
+  (let ((base (dom-attr dom 'href)))
+    (when (> (length base) 0)
+      (setq shr-base (shr-parse-base base))))
   (shr-generic dom))
 
 (defun shr-tag-a (dom)

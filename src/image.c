@@ -2414,7 +2414,7 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec);
-  img = search_image_cache (f, spec, hash, foreground, background, true);
+  img = search_image_cache (f, spec, hash, foreground, background, false);
   if (img && img->load_failed_p)
     {
       free_image (f, img);

@@ -664,7 +664,7 @@ display_malloc_warning (void)
   call3 (intern ("display-warning"),
 	 intern ("alloc"),
 	 build_string (pending_malloc_warning),
-	 intern ("emergency"));
+	 intern (":emergency"));
   pending_malloc_warning = 0;
 }
 

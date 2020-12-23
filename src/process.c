@@ -2124,8 +2124,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   if (!EQ (p->command, Qt))
     add_process_read_fd (inchannel);
 
+  ptrdiff_t count = SPECPDL_INDEX ();
+
   /* This may signal an error.  */
   setup_process_coding_systems (process);
+  char *const *env = make_environment_block (current_dir);
 
   block_input ();
   block_child_signal (&oldset);
@@ -2139,6 +2142,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   int volatile forkout_volatile = forkout;
   int volatile forkerr_volatile = forkerr;
   struct Lisp_Process *p_volatile = p;
+  char *const *volatile env_volatile = env;
 
 #ifdef DARWIN_OS
   /* Darwin doesn't let us run setsid after a vfork, so use fork when
@@ -2163,6 +2167,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   forkout = forkout_volatile;
   forkerr = forkerr_volatile;
   p = p_volatile;
+  env = env_volatile;
 
   pty_flag = p->pty_flag;
 
@@ -2254,9 +2259,11 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       if (forkerr < 0)
 	forkerr = forkout;
 #ifdef WINDOWSNT
-      pid = child_setup (forkin, forkout, forkerr, new_argv, 1, current_dir);
+      pid = child_setup (forkin, forkout, forkerr, new_argv, env,
+                         SSDATA (current_dir));
 #else  /* not WINDOWSNT */
-      child_setup (forkin, forkout, forkerr, new_argv, 1, current_dir);
+      child_setup (forkin, forkout, forkerr, new_argv, env,
+                   SSDATA (current_dir));
 #endif /* not WINDOWSNT */
     }
 
@@ -2270,6 +2277,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   /* Stop blocking in the parent.  */
   unblock_child_signal (&oldset);
   unblock_input ();
+
+  /* Environment block no longer needed.  */
+  unbind_to (count, Qnil);
 
   if (pid < 0)
     report_file_errno (CHILD_SETUP_ERROR_DESC, Qnil, vfork_errno);

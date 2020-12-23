@@ -1050,6 +1050,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 	  (grouplist (or groups (gnus-search-get-active srv)))
 	  q-string artlist group)
       (message "Opening server %s" server)
+      (gnus-open-server srv)
       ;; We should only be doing this once, in
       ;; `nnimap-open-connection', but it's too frustrating to try to
       ;; get to the server from the process buffer.
@@ -1071,7 +1072,7 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (and (string-match "\\`[^ [:blank:]]+" q-string)
+      (unless (and (string-match "\\`[^[:blank:]]+" q-string)
 		   (memql (intern-soft (downcase
 					(match-string 0 q-string)))
 			  gnus-search-imap-search-keys))
@@ -1424,7 +1425,7 @@ Returns a list of [group article score] vectors."
 			(string-to-number article)
 		      (nnmaildir-base-name-to-article-number
 		       (substring article 0 (string-match ":" article))
-		       group nil))
+		       group (string-remove-prefix "nnmaildir:" server)))
 		    (if (numberp score)
 			score
 		      (string-to-number score)))

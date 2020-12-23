@@ -8947,7 +8947,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!f
 	  && (f = any)
 	  && configureEvent.xconfigure.window == FRAME_X_WINDOW (f)
-	  && FRAME_VISIBLE_P(f))
+	  && (FRAME_VISIBLE_P(f)
+	      || !(configureEvent.xconfigure.width <= 1
+		   && configureEvent.xconfigure.height <= 1)))
         {
           block_input ();
           if (FRAME_X_DOUBLE_BUFFERED_P (f))
@@ -8962,7 +8964,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           f = 0;
 	}
 #endif
-      if (f && FRAME_VISIBLE_P(f))
+      if (f
+	  && (FRAME_VISIBLE_P(f)
+	      || !(configureEvent.xconfigure.width <= 1
+		   && configureEvent.xconfigure.height <= 1)))
 	{
 #ifdef USE_GTK
 	  /* For GTK+ don't call x_net_wm_state for the scroll bar

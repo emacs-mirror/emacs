@@ -1327,8 +1327,6 @@ The following commands are accepted by the client:
     (t (server-return-error proc err))))
 
 (defun server-execute (proc files nowait commands dontkill frame tty-name)
-  (when server-raise-frame
-    (select-frame-set-input-focus (or frame (selected-frame))))
   ;; This is run from timers and process-filters, i.e. "asynchronously".
   ;; But w.r.t the user, this is not really asynchronous since the timer
   ;; is run after 0s and the process-filter is run in response to the
@@ -1688,7 +1686,9 @@ be a cons cell (LINENUMBER . COLUMNNUMBER)."
                   (switch-to-buffer next-buffer))
 	      ;; After all the above, we might still have ended up with
 	      ;; a minibuffer/dedicated-window (if there's no other).
-	      (error (pop-to-buffer next-buffer)))))))))
+	      (error (pop-to-buffer next-buffer)))))))
+    (when server-raise-frame
+      (select-frame-set-input-focus (window-frame)))))
 
 ;;;###autoload
 (defun server-save-buffers-kill-terminal (arg)

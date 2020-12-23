@@ -780,24 +780,25 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
 (defun ruby-mode-set-encoding ()
   "Insert a magic comment header with the proper encoding if necessary."
   (save-excursion
-    (widen)
-    (goto-char (point-min))
-    (when (ruby--encoding-comment-required-p)
+    (save-restriction
+      (widen)
       (goto-char (point-min))
-      (let ((coding-system (ruby--detect-encoding)))
-        (when coding-system
-          (if (looking-at "^#!") (beginning-of-line 2))
-          (cond ((looking-at "\\s *#.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
-                 ;; update existing encoding comment if necessary
-                 (unless (string= (match-string 2) coding-system)
-                   (goto-char (match-beginning 2))
-                   (delete-region (point) (match-end 2))
-                   (insert coding-system)))
-                ((looking-at "\\s *#.*coding\\s *[:=]"))
-                (t (when ruby-insert-encoding-magic-comment
-                     (ruby--insert-coding-comment coding-system))))
-          (when (buffer-modified-p)
-            (basic-save-buffer-1)))))))
+      (when (ruby--encoding-comment-required-p)
+        (goto-char (point-min))
+        (let ((coding-system (ruby--detect-encoding)))
+          (when coding-system
+            (if (looking-at "^#!") (beginning-of-line 2))
+            (cond ((looking-at "\\s *#.*\\(en\\)?coding\\s *:\\s *\\([-a-z0-9_]*\\)")
+                   ;; update existing encoding comment if necessary
+                   (unless (string= (match-string 2) coding-system)
+                     (goto-char (match-beginning 2))
+                     (delete-region (point) (match-end 2))
+                     (insert coding-system)))
+                  ((looking-at "\\s *#.*coding\\s *[:=]"))
+                  (t (when ruby-insert-encoding-magic-comment
+                       (ruby--insert-coding-comment coding-system))))
+            (when (buffer-modified-p)
+              (basic-save-buffer-1))))))))
 
 (defvar ruby--electric-indent-chars '(?. ?\) ?} ?\]))
 
