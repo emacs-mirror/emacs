@@ -113,10 +113,10 @@ Integer values are handled in the `range' slot.")
 (defun comp-cstr-copy (cstr)
   "Return a deep copy of CSTR."
   (with-comp-cstr-accessors
-    (make-comp-cstr :typeset (copy-tree (typeset cstr))
-                    :valset (copy-tree (valset cstr))
+    (make-comp-cstr :typeset (copy-sequence (typeset cstr))
+                    :valset (copy-sequence (valset cstr))
                     :range (copy-tree (range cstr))
-                    :neg (copy-tree (neg cstr)))))
+                    :neg (neg cstr))))
 
 (defsubst comp-cstr-empty-p (cstr)
   "Return t if CSTR is equivalent to the `nil' type specifier or nil otherwise."
