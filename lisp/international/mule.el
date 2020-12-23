@@ -296,11 +296,11 @@ attribute."
 
 (defun hack-elisp-shorthands (fullname)
   "Return value of the `elisp-shorthands' file-local variable in FULLNAME.
-FULLNAME is the full name of an Elisp file which potentially
-specifies a file-local value for `elisp-shorthands'.  The Elisp
-code isn't read or evaluated in any way, we merely extract what
-the buffer-local value of `elisp-shorthands' would be if the file
-had been found by `find-file'."
+FULLNAME is the absolute file name of an Elisp file which
+potentially specifies a file-local value for `elisp-shorthands'.
+The Elisp code isn't read or evaluated in any way, we merely
+extract what the buffer-local value of `elisp-shorthands' would
+be if the file had been found by `find-file'."
   (let ((size (nth 7 (file-attributes fullname))))
     (with-temp-buffer
       (insert-file-contents fullname nil (max 0 (- size 3000)) size)

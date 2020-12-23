@@ -1028,7 +1028,7 @@ evaluation of BODY."
          (expected (intern (format "shorthand-longhand-%s" gsym))))
     (cl-assert (not (intern-soft shorthand-sname)))
     (should (equal (let ((elisp-shorthands
-                          '(("^s-" . "shorthand-longhand-"))))
+                          '(("s-" . "shorthand-longhand-"))))
                      (with-temp-buffer
                        (insert shorthand-sname)
                        (goto-char (point-min))
@@ -1042,7 +1042,7 @@ evaluation of BODY."
          (expected (intern (format "shorthand-longhand-%s" gsym))))
     (cl-assert (not (intern-soft shorthand-sname)))
     (should (equal (let ((elisp-shorthands
-                          '(("^s-" . "shorthand-longhand-"))))
+                          '(("s-" . "shorthand-longhand-"))))
                      (car (read-from-string shorthand-sname)))
                    expected))
     (should (not (intern-soft shorthand-sname)))))

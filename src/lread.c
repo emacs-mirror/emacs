@@ -2956,7 +2956,10 @@ read_integer (Lisp_Object readcharfun, int radix,
   return unbind_to (count, string_to_number (read_buffer, radix, NULL));
 }
 
-Lisp_Object oblookup_considering_shorthand (Lisp_Object, Lisp_Object*);
+Lisp_Object oblookup_considering_shorthand
+(Lisp_Object obarray,
+ const char *in, ptrdiff_t size, ptrdiff_t size_byte,
+ char **out, ptrdiff_t *size_out, ptrdiff_t *size_byte_out);
 
 /* If the next token is ')' or ']' or '.', we store that character
    in *PCH and the return value is not interesting.  Else, we store
@@ -3782,17 +3785,36 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	    }
 	  else
 	    {
-	      /* Like intern_1 but supports multibyte names.  */
+	      /* Don't create the string object for the name unless
+		 we're going to retain it in a new symbol.
+
+		 Like intern_1 but supports multibyte names.  */
 	      Lisp_Object obarray = check_obarray (Vobarray);
-              Lisp_Object name
-		    = make_specified_string (read_buffer, nchars, nbytes,
-					     multibyte);
-	      Lisp_Object tem = oblookup_considering_shorthand (obarray, &name);
+
+	      char* longhand = NULL;
+	      ptrdiff_t longhand_chars = 0;
+	      ptrdiff_t longhand_bytes = 0;
+
+	      Lisp_Object tem
+		= oblookup_considering_shorthand
+		(obarray, read_buffer, nchars, nbytes,
+		 &longhand, &longhand_chars, &longhand_bytes);
 
 	      if (SYMBOLP (tem))
 		result = tem;
-	      else
-                result = intern_driver (name, obarray, tem);
+	      else if (longhand) {
+		Lisp_Object name
+		  = make_specified_string (longhand, longhand_chars,
+					   longhand_bytes,
+					   multibyte);
+		xfree (longhand);
+		result = intern_driver (name, obarray, tem);
+	      } else {
+		Lisp_Object name
+		  = make_specified_string (read_buffer, nchars, nbytes,
+					   multibyte);
+		result = intern_driver (name, obarray, tem);
+              }
 	    }
 
 	  if (EQ (Vread_with_symbol_positions, Qt)
@@ -4402,10 +4424,29 @@ it defaults to the value of `obarray'.  */)
   obarray = check_obarray (NILP (obarray) ? Vobarray : obarray);
   CHECK_STRING (string);
 
-  tem = oblookup_considering_shorthand (obarray, &string);
+
+  char* longhand = NULL;
+  ptrdiff_t longhand_chars = 0;
+  ptrdiff_t longhand_bytes = 0;
+  tem = oblookup_considering_shorthand
+    (obarray, SSDATA (string), SCHARS (string), SBYTES (string),
+     &longhand, &longhand_chars, &longhand_bytes);
+
   if (!SYMBOLP (tem))
-    tem = intern_driver (NILP (Vpurify_flag) ? string : Fpurecopy (string),
-			 obarray, tem);
+    {
+      if (longhand)
+	{
+	  tem = intern_driver (make_specified_string (longhand, longhand_chars,
+						      longhand_bytes, true),
+			       obarray, tem);
+	  xfree (longhand);
+	}
+      else
+	{
+	  tem = intern_driver (NILP (Vpurify_flag) ? string : Fpurecopy (string),
+			       obarray, tem);
+	}
+    }
   return tem;
 }
 
@@ -4426,15 +4467,24 @@ it defaults to the value of `obarray'.  */)
     {
       CHECK_STRING (name);
       string = name;
+      char* longhand = NULL;
+      ptrdiff_t longhand_chars = 0;
+      ptrdiff_t longhand_bytes = 0;
+      tem = oblookup_considering_shorthand
+	(obarray, SSDATA (string), SCHARS (string), SBYTES (string),
+	 &longhand, &longhand_chars, &longhand_bytes);
+      if (longhand) xfree (longhand);
+      if (FIXNUMP (tem)) return Qnil; else return tem;
     }
   else
-    string = SYMBOL_NAME (name);
-
-  tem = oblookup_considering_shorthand (obarray, &string);
-  if (FIXNUMP (tem) || (SYMBOLP (name) && !EQ (name, tem)))
-    return Qnil;
-  else
-    return tem;
+    {
+      // If already a symbol, we do no shorthand-longhand translation,
+      // as promised in docstring.
+      string = SYMBOL_NAME (name);
+      tem
+	= oblookup (obarray, SSDATA (string), SCHARS (string), SBYTES (string));
+      if (EQ (name, tem)) return tem; else return Qnil;
+    }
 }
 
 DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,
@@ -4461,7 +4511,14 @@ usage: (unintern NAME OBARRAY)  */)
       string = name;
     }
 
-  tem = oblookup_considering_shorthand (obarray, &string);
+  char* longhand = NULL;
+  ptrdiff_t longhand_chars = 0;
+  ptrdiff_t longhand_bytes = 0;
+  tem = oblookup_considering_shorthand
+    (obarray, SSDATA (string), SCHARS (string), SBYTES (string),
+     &longhand, &longhand_chars, &longhand_bytes);
+  if (longhand) free(longhand);
+
   if (FIXNUMP (tem))
     return Qnil;
   /* If arg was a symbol, don't delete anything but that symbol itself.  */
@@ -4549,34 +4606,65 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
   return tem;
 }
 
+/* Like 'oblookup', but considers 'Velisp_shorthands', potentially
+   recognizing that IN is shorthand for some other longhand name,
+   which is then then placed in OUT.  In that case, memory is
+   malloc'ed for OUT (which the caller must free) while SIZE_OUT and
+   SIZE_BYTE_OUT respectively hold the character and byte sizes of the
+   transformed symbol name. If IN is not recognized shorthand for any
+   other symbol, OUT is set to point to NULL and 'oblookup' is
+   called.  */
+
 Lisp_Object
-oblookup_considering_shorthand (Lisp_Object obarray, Lisp_Object* string)
+oblookup_considering_shorthand
+(Lisp_Object obarray,
+ const char *in, ptrdiff_t size, ptrdiff_t size_byte,
+ char **out, ptrdiff_t *size_out, ptrdiff_t *size_byte_out)
 {
-  Lisp_Object original = *string; /* Save pointer to original string... */
+  // First, assume no transformation will take place.
+  *out = NULL;
   Lisp_Object tail = Velisp_shorthands;
-  FOR_EACH_TAIL_SAFE(tail)
+  // Then, iterate each pair in Velisp_shorthands.
+  FOR_EACH_TAIL_SAFE (tail)
     {
       Lisp_Object pair = XCAR (tail);
-      if (!CONSP (pair)) goto undo;
-      Lisp_Object shorthand = XCAR (pair);
-      Lisp_Object longhand = XCDR (pair);
-      if (!STRINGP (shorthand) || !STRINGP (longhand)) goto undo;
-      Lisp_Object match = Fstring_match (shorthand, *string, Qnil);
-      if (!NILP(match)){
-        *string = Freplace_match(longhand, Qnil, Qnil, *string, Qnil);
-      }
+      // Be lenient to Velisp_shorthands: if some element isn't a cons
+      // or some member of that cons isn't a string, just skip to the
+      // next element.
+      if (!CONSP (pair)) continue;
+      Lisp_Object sh_prefix = XCAR (pair);
+      Lisp_Object lh_prefix = XCDR (pair);
+      if (!STRINGP (sh_prefix) || !STRINGP (lh_prefix)) continue;
+      ptrdiff_t sh_prefix_size = SBYTES (sh_prefix);
+
+      // Compare the prefix of the transformation pair to the symbol
+      // name.  If a match occurs, do the renaming and exit the loop.
+      // In other words, only one such transformation may take place.
+      // Calculate the amount of memory to allocate for the longhand
+      // version of the symbol name with realloc().  This isn't
+      // strictly needed, but it could later be used as a way for
+      // multiple transformations on a single symbol name.
+      if (sh_prefix_size <= size_byte &&
+	  memcmp(SSDATA(sh_prefix), in, sh_prefix_size) == 0)
+	{
+	  ptrdiff_t lh_prefix_size = SBYTES (lh_prefix);
+	  ptrdiff_t suffix_size = size_byte - sh_prefix_size;
+	  *out = xrealloc (*out, lh_prefix_size + suffix_size);
+	  memcpy (*out, SSDATA(lh_prefix), lh_prefix_size);
+	  memcpy (*out + lh_prefix_size, in + sh_prefix_size, suffix_size);
+	  *size_out = SCHARS (lh_prefix) - SCHARS (sh_prefix) + size;
+	  *size_byte_out = lh_prefix_size + suffix_size;
+	  break;
+	}
     }
-  goto fine;
- undo:
-  {
-    static const char* warn =
-      "Fishy value of `elisp-shorthands'.  "
-      "Consider reviewing before evaluating code.";
-    message_dolog (warn, sizeof(warn), 0, 0);
-    *string = original;   /* ...so we can any failed trickery here. */
-  }
- fine:
-  return oblookup(obarray, SSDATA (*string), SCHARS (*string), SBYTES (*string));
+  // Now, as promised, call oblookup() with the "final" symbol name to
+  // lookup.  That function remains oblivious to whether a
+  // transformation happened here or not, but the caller of this
+  // function can tell by inspecting the OUT parameter.
+  if (*out)
+    return oblookup (obarray, *out, *size_out, *size_byte_out);
+  else
+    return oblookup (obarray, in, size, size_byte);
 }
 
 
