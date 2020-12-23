@@ -701,6 +701,20 @@ DST is returned."
           (neg dst) (not (neg src)))
     dst))
 
+(defun comp-cstr-value-negation (dst src)
+  "Negate values in SRC setting the result in DST.
+DST is returned."
+  (with-comp-cstr-accessors
+    (if (or (valset src) (range src))
+        (setf (typeset dst) ()
+              (valset dst) (valset src)
+              (range dst) (range src)
+              (neg dst) (not (neg src)))
+      (setf (typeset dst) (typeset src)
+            (valset dst) ()
+            (range dst) ()))
+    dst))
+
 (defun comp-cstr-negation-make (src)
   "Negate SRC and return a new constraint."
   (comp-cstr-negation (make-comp-cstr) src))

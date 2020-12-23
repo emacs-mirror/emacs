@@ -2534,7 +2534,7 @@ Fold the call in case."
        (not
         ;; Prevent double negation!
         (unless (comp-cstr-neg (car operands))
-          (comp-cstr-negation lval (car operands))))))
+          (comp-cstr-value-negation lval (car operands))))))
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
