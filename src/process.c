@@ -2254,9 +2254,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
       if (forkerr < 0)
 	forkerr = forkout;
 #ifdef WINDOWSNT
-      pid = child_setup (forkin, forkout, forkerr, new_argv, 1, current_dir);
+      pid = child_setup (forkin, forkout, forkerr, new_argv, current_dir);
 #else  /* not WINDOWSNT */
-      child_setup (forkin, forkout, forkerr, new_argv, 1, current_dir);
+      child_setup (forkin, forkout, forkerr, new_argv, current_dir);
 #endif /* not WINDOWSNT */
     }
 

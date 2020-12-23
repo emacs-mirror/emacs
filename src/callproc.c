@@ -542,7 +542,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     }
 
 #ifdef MSDOS /* MW, July 1993 */
-  status = child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
+  status = child_setup (filefd, fd_output, fd_error, new_argv, current_dir);
 
   if (status < 0)
     {
@@ -589,7 +589,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   block_child_signal (&oldset);
 
 #ifdef WINDOWSNT
-  pid = child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
+  pid = child_setup (filefd, fd_output, fd_error, new_argv, current_dir);
 #else  /* not WINDOWSNT */
 
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -646,7 +646,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       signal (SIGPROF, SIG_DFL);
 #endif
 
-      child_setup (filefd, fd_output, fd_error, new_argv, 0, current_dir);
+      child_setup (filefd, fd_output, fd_error, new_argv, current_dir);
     }
 
 #endif /* not WINDOWSNT */
@@ -1205,8 +1205,6 @@ exec_failed (char const *name, int err)
    Initialize inferior's priority, pgrp, connected dir and environment.
    then exec another program based on new_argv.
 
-   If SET_PGRP, put the subprocess into a separate process group.
-
    CURRENT_DIR is an elisp string giving the path of the current
    directory the subprocess should have.  Since we can't really signal
    a decent error from within the child, this should be verified as an
@@ -1217,7 +1215,7 @@ exec_failed (char const *name, int err)
    On MS-DOS, either return an exit status or signal an error.  */
 
 CHILD_SETUP_TYPE
-child_setup (int in, int out, int err, char **new_argv, bool set_pgrp,
+child_setup (int in, int out, int err, char **new_argv,
 	     Lisp_Object current_dir)
 {
   char **env;
