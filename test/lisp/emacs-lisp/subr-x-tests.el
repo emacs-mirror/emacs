@@ -608,7 +608,9 @@
   (should (equal (string-slice "foo-bar" "-") '("foo" "-bar")))
   (should (equal (string-slice "foo-bar-" "-") '("foo" "-bar" "-")))
   (should (equal (string-slice "-foo-bar-" "-") '("-foo" "-bar" "-")))
-  (should (equal (string-slice "ooo" "lala") '("ooo"))))
+  (should (equal (string-slice "ooo" "lala") '("ooo")))
+  (should (equal (string-slice "foo bar" "\\b") '("foo" " " "bar" "")))
+  (should (equal (string-slice "foo bar" "\\b\\|a") '("foo" " " "b" "ar" ""))))
 
 (ert-deftest subr-string-pad ()
   (should (equal (string-pad "foo" 5) "foo  "))
