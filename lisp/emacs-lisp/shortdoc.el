@@ -147,6 +147,9 @@ There can be any number of :example/:result elements."
    :eval (string-limit "foobar" 3)
    :eval (string-limit "foobar" 3 t)
    :eval (string-limit "foobar" 10))
+  (truncate-string-to-width
+   :eval (truncate-string-to-width "foobar" 3)
+   :eval (truncate-string-to-width "你好bar" 5))
   (split-string
    :eval (split-string "foo bar")
    :eval (split-string "|foo|bar|" "|")
