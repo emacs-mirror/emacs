@@ -83,6 +83,8 @@ ac_cv_func_readlink=yes
 ac_cv_func_symlink=yes
 # Avoid run-time tests of readlink and symlink, which will fail
 gl_cv_func_readlink_works=yes
+gl_cv_func_readlink_trailing_slash=yes
+gl_cv_func_readlink_truncate=yes
 gl_cv_func_symlink_works=yes
 ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
