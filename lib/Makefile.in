@@ -67,7 +67,7 @@ endif
 
 DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
-  DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
+  DEPFLAGS = -MMD -MF $(DEPDIR)/$(*F).d -MP
   -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
 else
   DEPFLAGS =
