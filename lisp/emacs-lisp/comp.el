@@ -1884,6 +1884,34 @@ into the C code forwarding the compilation unit."
 ;;    afterwards both x and y must satisfy the (or number marker)
 ;;    type specifier.
 
+
+(defsubst comp-mvar-used-p (mvar)
+  "Non-nil when MVAR is used as lhs in the current funciton."
+  (declare (gv-setter (lambda (val)
+			`(puthash ,mvar ,val comp-pass))))
+  (gethash mvar comp-pass))
+
+(defun comp-collect-mvars (form)
+  "Add rhs m-var present in FORM into `comp-pass'."
+  (cl-loop for x in form
+           if (consp x)
+             do (comp-collect-mvars x)
+           else
+             when (comp-mvar-p x)
+               do (setf (comp-mvar-used-p x) t)))
+
+(defun comp-collect-rhs ()
+  "Collect all lhs mvars into `comp-pass'."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do (cl-loop
+       for insn in (comp-block-insns b)
+       for (op . args) = insn
+       if  (comp-set-op-p op)
+         do (comp-collect-mvars (cdr args))
+       else
+         do (comp-collect-mvars args))))
+
 (defun comp-emit-assume (lhs rhs bb negated)
   "Emit an assume for mvar LHS being RHS.
 When NEGATED is non-nil the assumption is negated.
@@ -1979,21 +2007,23 @@ TARGET-BB-SYM is the symbol name of the target block."
        (cl-loop
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
-        for block-target = (comp-add-cond-cstrs-target-block b branch-target)
         for negated in '(nil t)
+	when (comp-mvar-used-p tmp-mvar)
         do
-        (setf (car branch-target-cell) (comp-block-name block-target))
-        (comp-emit-assume tmp-mvar obj2 block-target negated)
+	(let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (comp-emit-assume tmp-mvar obj2 block-target negated))
         finally (cl-return-from in-the-basic-block)))
       (`((cond-jump ,obj1 ,obj2 . ,blocks))
        (cl-loop
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
-        for block-target = (comp-add-cond-cstrs-target-block b branch-target)
         for negated in '(nil t)
+	when (comp-mvar-used-p obj1)
         do
-        (setf (car branch-target-cell) (comp-block-name block-target))
-        (comp-emit-assume obj1 obj2 block-target negated)
+	(let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (comp-emit-assume obj1 obj2 block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-add-cond-cstrs ()
@@ -2016,13 +2046,16 @@ TARGET-BB-SYM is the symbol name of the target block."
         with target-mvar2 = (comp-cond-cstrs-target-mvar op2 (car insns-seq) b)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
-        for block-target = (comp-add-cond-cstrs-target-block b branch-target)
         for negated in '(t nil)
-        do (setf (car branch-target-cell) (comp-block-name block-target))
-        when target-mvar1
-          do (comp-emit-assume target-mvar1 op2 block-target negated)
-        when target-mvar2
-          do (comp-emit-assume target-mvar2 op1 block-target negated)
+        when (or (comp-mvar-used-p target-mvar1)
+                 (comp-mvar-used-p target-mvar2))
+        do
+        (let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (when (comp-mvar-used-p target-mvar1)
+            (comp-emit-assume target-mvar1 op2 block-target negated))
+          (when (comp-mvar-used-p target-mvar2)
+            (comp-emit-assume target-mvar2 op1 block-target negated)))
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-emit-call-cstr (mvar call-cell cstr)
@@ -2093,8 +2126,10 @@ blocks."
                         ;; variables.
 			(comp-func-l-p f)
                         (not (comp-func-has-non-local f)))
-               (let ((comp-func f))
-                 (comp-add-cond-cstrs-simple)
+               (let ((comp-func f)
+                     (comp-pass (make-hash-table :test #'eq)))
+                 (comp-collect-rhs)
+		 (comp-add-cond-cstrs-simple)
                  (comp-add-cond-cstrs)
                  (comp-add-call-cstr)
                  (comp-log-func comp-func 3))))
