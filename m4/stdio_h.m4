@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 50
+# stdio_h.m4 serial 51
 dnl Copyright (C) 2007-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -109,6 +109,11 @@ AC_DEFUN([gl_STDIO_H],
     renameat snprintf tmpfile vdprintf vsnprintf])
 
   AC_REQUIRE([AC_C_RESTRICT])
+
+  AC_CHECK_DECLS_ONCE([fcloseall])
+  if test $ac_cv_have_decl_fcloseall = no; then
+    HAVE_DECL_FCLOSEALL=0
+  fi
 ])
 
 AC_DEFUN([gl_STDIO_MODULE_INDICATOR],
@@ -176,6 +181,7 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   GNULIB_VSNPRINTF=0;            AC_SUBST([GNULIB_VSNPRINTF])
   GNULIB_VSPRINTF_POSIX=0;       AC_SUBST([GNULIB_VSPRINTF_POSIX])
   dnl Assume proper GNU behavior unless another module says otherwise.
+  HAVE_DECL_FCLOSEALL=1;         AC_SUBST([HAVE_DECL_FCLOSEALL])
   HAVE_DECL_FPURGE=1;            AC_SUBST([HAVE_DECL_FPURGE])
   HAVE_DECL_FSEEKO=1;            AC_SUBST([HAVE_DECL_FSEEKO])
   HAVE_DECL_FTELLO=1;            AC_SUBST([HAVE_DECL_FTELLO])

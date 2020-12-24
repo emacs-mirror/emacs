@@ -181,6 +181,14 @@
     _GL_EXTERN_C int _gl_cxxalias_dummy
 #endif
 
+/* _GL_CXXALIAS_MDA_CAST (func, rettype, parameters);
+   is like  _GL_CXXALIAS_MDA (func, rettype, parameters);
+   except that the C function func may have a slightly different declaration.
+   A cast is used to silence the "invalid conversion" error that would
+   otherwise occur.  */
+#define _GL_CXXALIAS_MDA_CAST(func,rettype,parameters) \
+  _GL_CXXALIAS_RPL_CAST_1 (func, _##func, rettype, parameters)
+
 /* _GL_CXXALIAS_SYS (func, rettype, parameters);
    declares a C++ alias called GNULIB_NAMESPACE::func
    that redirects to the system provided function func, if GNULIB_NAMESPACE
