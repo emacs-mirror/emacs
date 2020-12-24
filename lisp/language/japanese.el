@@ -188,6 +188,22 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 
 (define-coding-system-alias 'shift_jis-2004 'japanese-shift-jis-2004)
 
+(define-coding-system 'ibm281
+  "Japanese-E version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm281)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-jp-e 'ibm281)
+(define-coding-system-alias 'cp281 'ibm281)
+
+(define-coding-system 'ibm290
+  "Japanese katakana version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm290)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-jp-kana 'ibm290)
+(define-coding-system-alias 'cp290 'ibm290)
+
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)
 	      (exit-function . use-default-char-width-table)
