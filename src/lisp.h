@@ -4498,9 +4498,9 @@ extern void setup_process_coding_systems (Lisp_Object);
 # define CHILD_SETUP_ERROR_DESC "Doing vfork"
 #endif
 
-extern int emacs_spawn (pid_t *, int, int, int, char *const *,
-                        char *const *, const char *, const char *);
-extern char *const *make_environment_block (Lisp_Object);
+extern int emacs_spawn (pid_t *, int, int, int, char **, char **, const char *,
+			const char *);
+extern char **make_environment_block (Lisp_Object);
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);

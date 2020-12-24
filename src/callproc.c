@@ -107,8 +107,8 @@ static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
 # define CHILD_SETUP_TYPE _Noreturn void
 #endif
 
-static CHILD_SETUP_TYPE child_setup (int, int, int, char *const *,
-                                     char *const *, const char *);
+static CHILD_SETUP_TYPE child_setup (int, int, int, char **, char **,
+				     const char *);
 
 /* Return the current buffer's working directory, or the home
    directory if it's unreachable, as a string suitable for a system call.
@@ -549,7 +549,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       callproc_fd[CALLPROC_STDERR] = fd_error;
     }
 
-  char *const *env = make_environment_block (current_dir);
+  char **env = make_environment_block (current_dir);
 
 #ifdef MSDOS /* MW, July 1993 */
   status = child_setup (filefd, fd_output, fd_error, new_argv, env,
@@ -1132,16 +1132,6 @@ exec_failed (char const *name, int err)
   _exit (err == ENOENT ? EXIT_ENOENT : EXIT_CANNOT_INVOKE);
 }
 
-#else
-
-/* Do nothing.  There is no need to fail, as DOS_NT platforms do not
-   fork and exec, and handle alloca exhaustion in a different way.  */
-
-static void
-exec_failed (char const *name, int err)
-{
-}
-
 #endif
 
 /* This is the last thing run in a newly forked inferior
@@ -1160,8 +1150,8 @@ exec_failed (char const *name, int err)
    On MS-DOS, either return an exit status or signal an error.  */
 
 static CHILD_SETUP_TYPE
-child_setup (int in, int out, int err, char *const *new_argv,
-             char *const *env, const char *current_dir)
+child_setup (int in, int out, int err, char **new_argv, char **env,
+	     const char *current_dir)
 {
 #ifdef WINDOWSNT
   int cpid;
@@ -1235,9 +1225,8 @@ child_setup (int in, int out, int err, char *const *new_argv,
    NULL, don't perform any terminal setup.  */
 
 int
-emacs_spawn (pid_t *newpid, int stdin, int stdout, int stderr,
-             char *const *argv, char *const *envp, const char *cwd,
-             const char *pty)
+emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
+             char **argv, char **envp, const char *cwd, const char *pty)
 {
   sigset_t oldset;
   int pid;
@@ -1251,9 +1240,9 @@ emacs_spawn (pid_t *newpid, int stdin, int stdout, int stderr,
   const char *volatile cwd_volatile = cwd;
   const char *volatile pty_volatile = pty;
   char *const *volatile argv_volatile = argv;
-  int volatile stdin_volatile = stdin;
-  int volatile stdout_volatile = stdout;
-  int volatile stderr_volatile = stderr;
+  int volatile stdin_volatile = std_in;
+  int volatile stdout_volatile = std_out;
+  int volatile stderr_volatile = std_err;
   char *const *volatile envp_volatile = envp;
 
 #ifdef DARWIN_OS
@@ -1272,9 +1261,9 @@ emacs_spawn (pid_t *newpid, int stdin, int stdout, int stderr,
   cwd = cwd_volatile;
   pty = pty_volatile;
   argv = argv_volatile;
-  stdin = stdin_volatile;
-  stdout = stdout_volatile;
-  stderr = stderr_volatile;
+  std_in = stdin_volatile;
+  std_out = stdout_volatile;
+  std_err = stderr_volatile;
   envp = envp_volatile;
 
   if (pid == 0)
@@ -1286,30 +1275,30 @@ emacs_spawn (pid_t *newpid, int stdin, int stdout, int stderr,
       dissociate_controlling_tty ();
 
       /* Make the pty's terminal the controlling terminal.  */
-      if (pty_flag && stdin >= 0)
+      if (pty_flag && std_in >= 0)
 	{
 #ifdef TIOCSCTTY
 	  /* We ignore the return value
 	     because faith@cs.unc.edu says that is necessary on Linux.  */
-	  ioctl (stdin, TIOCSCTTY, 0);
+	  ioctl (std_in, TIOCSCTTY, 0);
 #endif
 	}
 #if defined (LDISC1)
-      if (pty_flag && stdin >= 0)
+      if (pty_flag && std_in >= 0)
 	{
 	  struct termios t;
-	  tcgetattr (stdin, &t);
+	  tcgetattr (std_in, &t);
 	  t.c_lflag = LDISC1;
-	  if (tcsetattr (stdin, TCSANOW, &t) < 0)
+	  if (tcsetattr (std_in, TCSANOW, &t) < 0)
 	    emacs_perror ("create_process/tcsetattr LDISC1");
 	}
 #else
 #if defined (NTTYDISC) && defined (TIOCSETD)
-      if (pty_flag && stdin >= 0)
+      if (pty_flag && std_in >= 0)
 	{
 	  /* Use new line discipline.  */
 	  int ldisc = NTTYDISC;
-	  ioctl (stdin, TIOCSETD, &ldisc);
+	  ioctl (std_in, TIOCSETD, &ldisc);
 	}
 #endif
 #endif
@@ -1327,11 +1316,11 @@ emacs_spawn (pid_t *newpid, int stdin, int stdout, int stderr,
 
 	  /* I wonder if emacs_close (emacs_open (pty, ...))
 	     would work?  */
-	  if (stdin >= 0)
-	    emacs_close (stdin);
-	  stdout = stdin = emacs_open (pty, O_RDWR, 0);
+	  if (std_in >= 0)
+	    emacs_close (std_in);
+	  std_out = std_in = emacs_open (pty, O_RDWR, 0);
 
-	  if (stdin < 0)
+	  if (std_in < 0)
 	    {
 	      emacs_perror (pty);
 	      _exit (EXIT_CANCELED);
@@ -1373,14 +1362,14 @@ emacs_spawn (pid_t *newpid, int stdin, int stdout, int stderr,
       unblock_child_signal (&oldset);
 
       if (pty_flag)
-	child_setup_tty (stdout);
+	child_setup_tty (std_out);
 
-      if (stderr < 0)
-	stderr = stdout;
+      if (std_err < 0)
+	std_err = std_out;
 #ifdef WINDOWSNT
-      pid = child_setup (stdin, stdout, stderr, argv, envp, cwd);
+      pid = child_setup (std_in, std_out, std_err, argv, envp, cwd);
 #else  /* not WINDOWSNT */
-      child_setup (stdin, stdout, stderr, argv, envp, cwd);
+      child_setup (std_in, std_out, std_err, argv, envp, cwd);
 #endif /* not WINDOWSNT */
     }
 
@@ -1531,7 +1520,7 @@ egetenv_internal (const char *var, ptrdiff_t len)
    objects.  Don't call any Lisp code or the garbage collector while
    the block is active.  */
 
-char *const *
+char **
 make_environment_block (Lisp_Object current_dir)
 {
   char **env;

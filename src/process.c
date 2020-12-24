@@ -2127,7 +2127,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   /* This may signal an error.  */
   setup_process_coding_systems (process);
-  char *const *env = make_environment_block (current_dir);
+  char **env = make_environment_block (current_dir);
 
   pty_flag = p->pty_flag;
   eassert (pty_flag == ! NILP (lisp_pty_name));
