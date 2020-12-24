@@ -100,6 +100,15 @@ enum
   };
 
 static Lisp_Object call_process (ptrdiff_t, Lisp_Object *, int, ptrdiff_t);
+
+#ifdef DOS_NT
+# define CHILD_SETUP_TYPE int
+#else
+# define CHILD_SETUP_TYPE _Noreturn void
+#endif
+
+static CHILD_SETUP_TYPE child_setup (int, int, int, char *const *,
+                                     char *const *, const char *);
 
 /* Return the current buffer's working directory, or the home
    directory if it's unreachable, as a string suitable for a system call.
@@ -300,8 +309,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   char *tempfile = NULL;
 #else
-  sigset_t oldset;
-  pid_t pid;
+  pid_t pid = -1;
 #endif
   int child_errno;
   int fd_output, fd_error;
@@ -588,77 +596,10 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 #ifndef MSDOS
 
-  block_input ();
-  block_child_signal (&oldset);
-
-#ifdef WINDOWSNT
-  pid = child_setup (filefd, fd_output, fd_error, new_argv, env,
-                     SSDATA (current_dir));
-#else  /* not WINDOWSNT */
-
-  /* vfork, and prevent local vars from being clobbered by the vfork.  */
-  {
-    Lisp_Object volatile buffer_volatile = buffer;
-    Lisp_Object volatile coding_systems_volatile = coding_systems;
-    Lisp_Object volatile current_dir_volatile = current_dir;
-    bool volatile display_p_volatile = display_p;
-    int volatile fd_error_volatile = fd_error;
-    int volatile filefd_volatile = filefd;
-    ptrdiff_t volatile count_volatile = count;
-    ptrdiff_t volatile sa_avail_volatile = sa_avail;
-    ptrdiff_t volatile sa_count_volatile = sa_count;
-    char **volatile new_argv_volatile = new_argv;
-    char *const *volatile env_volatile = env;
-    int volatile callproc_fd_volatile[CALLPROC_FDS];
-    for (i = 0; i < CALLPROC_FDS; i++)
-      callproc_fd_volatile[i] = callproc_fd[i];
-
-    pid = vfork ();
-
-    buffer = buffer_volatile;
-    coding_systems = coding_systems_volatile;
-    current_dir = current_dir_volatile;
-    display_p = display_p_volatile;
-    fd_error = fd_error_volatile;
-    filefd = filefd_volatile;
-    count = count_volatile;
-    sa_avail = sa_avail_volatile;
-    sa_count = sa_count_volatile;
-    new_argv = new_argv_volatile;
-    env = env_volatile;
-
-    for (i = 0; i < CALLPROC_FDS; i++)
-      callproc_fd[i] = callproc_fd_volatile[i];
-    fd_output = callproc_fd[CALLPROC_STDOUT];
-  }
-
-  if (pid == 0)
-    {
-#ifdef DARWIN_OS
-      /* Work around a macOS bug, where SIGCHLD is apparently
-	 delivered to a vforked child instead of to its parent.  See:
-	 https://lists.gnu.org/r/emacs-devel/2017-05/msg00342.html
-      */
-      signal (SIGCHLD, SIG_DFL);
-#endif
-
-      unblock_child_signal (&oldset);
-      dissociate_controlling_tty ();
-
-      /* Emacs ignores SIGPIPE, but the child should not.  */
-      signal (SIGPIPE, SIG_DFL);
-      /* Likewise for SIGPROF.  */
-#ifdef SIGPROF
-      signal (SIGPROF, SIG_DFL);
-#endif
-
-      child_setup (filefd, fd_output, fd_error, new_argv, env,
-                   SSDATA (current_dir));
-    }
-
-#endif /* not WINDOWSNT */
-
-  child_errno = errno;
+  child_errno
+    = emacs_spawn (&pid, filefd, fd_output, fd_error, new_argv, env,
+                   SSDATA (current_dir), NULL);
+  eassert ((child_errno == 0) == (0 < pid));
 
   if (pid > 0)
     {
@@ -677,9 +618,6 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	  synch_process_pid = 0;
 	}
     }
-
-  unblock_child_signal (&oldset);
-  unblock_input ();
 
   if (pid < 0)
     report_file_errno (CHILD_SETUP_ERROR_DESC, Qnil, child_errno);
@@ -1221,7 +1159,7 @@ exec_failed (char const *name, int err)
    On MS-Windows, either return a pid or return -1 and set errno.
    On MS-DOS, either return an exit status or signal an error.  */
 
-CHILD_SETUP_TYPE
+static CHILD_SETUP_TYPE
 child_setup (int in, int out, int err, char *const *new_argv,
              char *const *env, const char *current_dir)
 {
@@ -1285,6 +1223,184 @@ child_setup (int in, int out, int err, char *const *new_argv,
   return pid;
 #endif  /* MSDOS */
 #endif  /* not WINDOWSNT */
+}
+
+/* Start a new asynchronous subprocess.  If successful, return zero
+   and store the process identifier of the new process in *NEWPID.
+   Use STDIN, STDOUT, and STDERR as standard streams for the new
+   process.  Use ARGV as argument vector for the new process; use
+   process image file ARGV[0].  Use ENVP for the environment block for
+   the new process.  Use CWD as working directory for the new process.
+   If PTY is not NULL, it must be a pseudoterminal device.  If PTY is
+   NULL, don't perform any terminal setup.  */
+
+int
+emacs_spawn (pid_t *newpid, int stdin, int stdout, int stderr,
+             char *const *argv, char *const *envp, const char *cwd,
+             const char *pty)
+{
+  sigset_t oldset;
+  int pid;
+
+  block_input ();
+  block_child_signal (&oldset);
+
+#ifndef WINDOWSNT
+  /* vfork, and prevent local vars from being clobbered by the vfork.  */
+  pid_t *volatile newpid_volatile = newpid;
+  const char *volatile cwd_volatile = cwd;
+  const char *volatile pty_volatile = pty;
+  char *const *volatile argv_volatile = argv;
+  int volatile stdin_volatile = stdin;
+  int volatile stdout_volatile = stdout;
+  int volatile stderr_volatile = stderr;
+  char *const *volatile envp_volatile = envp;
+
+#ifdef DARWIN_OS
+  /* Darwin doesn't let us run setsid after a vfork, so use fork when
+     necessary.  Below, we reset SIGCHLD handling after a vfork, as
+     apparently macOS can mistakenly deliver SIGCHLD to the child.  */
+  if (pty != NULL)
+    pid = fork ();
+  else
+    pid = vfork ();
+#else
+  pid = vfork ();
+#endif
+
+  newpid = newpid_volatile;
+  cwd = cwd_volatile;
+  pty = pty_volatile;
+  argv = argv_volatile;
+  stdin = stdin_volatile;
+  stdout = stdout_volatile;
+  stderr = stderr_volatile;
+  envp = envp_volatile;
+
+  if (pid == 0)
+#endif /* not WINDOWSNT */
+    {
+      bool pty_flag = pty != NULL;
+      /* Make the pty be the controlling terminal of the process.  */
+#ifdef HAVE_PTYS
+      dissociate_controlling_tty ();
+
+      /* Make the pty's terminal the controlling terminal.  */
+      if (pty_flag && stdin >= 0)
+	{
+#ifdef TIOCSCTTY
+	  /* We ignore the return value
+	     because faith@cs.unc.edu says that is necessary on Linux.  */
+	  ioctl (stdin, TIOCSCTTY, 0);
+#endif
+	}
+#if defined (LDISC1)
+      if (pty_flag && stdin >= 0)
+	{
+	  struct termios t;
+	  tcgetattr (stdin, &t);
+	  t.c_lflag = LDISC1;
+	  if (tcsetattr (stdin, TCSANOW, &t) < 0)
+	    emacs_perror ("create_process/tcsetattr LDISC1");
+	}
+#else
+#if defined (NTTYDISC) && defined (TIOCSETD)
+      if (pty_flag && stdin >= 0)
+	{
+	  /* Use new line discipline.  */
+	  int ldisc = NTTYDISC;
+	  ioctl (stdin, TIOCSETD, &ldisc);
+	}
+#endif
+#endif
+
+#if !defined (DONT_REOPEN_PTY)
+/*** There is a suggestion that this ought to be a
+     conditional on TIOCSPGRP, or !defined TIOCSCTTY.
+     Trying the latter gave the wrong results on Debian GNU/Linux 1.1;
+     that system does seem to need this code, even though
+     both TIOCSCTTY is defined.  */
+	/* Now close the pty (if we had it open) and reopen it.
+	   This makes the pty the controlling terminal of the subprocess.  */
+      if (pty_flag)
+	{
+
+	  /* I wonder if emacs_close (emacs_open (pty, ...))
+	     would work?  */
+	  if (stdin >= 0)
+	    emacs_close (stdin);
+	  stdout = stdin = emacs_open (pty, O_RDWR, 0);
+
+	  if (stdin < 0)
+	    {
+	      emacs_perror (pty);
+	      _exit (EXIT_CANCELED);
+	    }
+
+	}
+#endif /* not DONT_REOPEN_PTY */
+
+#ifdef SETUP_SLAVE_PTY
+      if (pty_flag)
+	{
+	  SETUP_SLAVE_PTY;
+	}
+#endif /* SETUP_SLAVE_PTY */
+#endif /* HAVE_PTYS */
+
+#ifdef DARWIN_OS
+      /* Work around a macOS bug, where SIGCHLD is apparently
+	 delivered to a vforked child instead of to its parent.  See:
+	 https://lists.gnu.org/r/emacs-devel/2017-05/msg00342.html
+      */
+      signal (SIGCHLD, SIG_DFL);
+#endif
+
+      signal (SIGINT, SIG_DFL);
+      signal (SIGQUIT, SIG_DFL);
+#ifdef SIGPROF
+      signal (SIGPROF, SIG_DFL);
+#endif
+
+      /* Emacs ignores SIGPIPE, but the child should not.  */
+      signal (SIGPIPE, SIG_DFL);
+      /* Likewise for SIGPROF.  */
+#ifdef SIGPROF
+      signal (SIGPROF, SIG_DFL);
+#endif
+
+      /* Stop blocking SIGCHLD in the child.  */
+      unblock_child_signal (&oldset);
+
+      if (pty_flag)
+	child_setup_tty (stdout);
+
+      if (stderr < 0)
+	stderr = stdout;
+#ifdef WINDOWSNT
+      pid = child_setup (stdin, stdout, stderr, argv, envp, cwd);
+#else  /* not WINDOWSNT */
+      child_setup (stdin, stdout, stderr, argv, envp, cwd);
+#endif /* not WINDOWSNT */
+    }
+
+  /* Back in the parent process.  */
+
+  int vfork_error = pid < 0 ? errno : 0;
+
+  /* Stop blocking in the parent.  */
+  unblock_child_signal (&oldset);
+  unblock_input ();
+
+  if (pid < 0)
+    {
+      eassert (0 < vfork_error);
+      return vfork_error;
+    }
+
+  eassert (0 < pid);
+  *newpid = pid;
+  return 0;
 }
 
 static bool

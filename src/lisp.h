@@ -4493,15 +4493,13 @@ extern void setup_process_coding_systems (Lisp_Object);
 
 /* Defined in callproc.c.  */
 #ifdef DOS_NT
-# define CHILD_SETUP_TYPE int
 # define CHILD_SETUP_ERROR_DESC "Spawning child process"
 #else
-# define CHILD_SETUP_TYPE _Noreturn void
 # define CHILD_SETUP_ERROR_DESC "Doing vfork"
 #endif
 
-extern CHILD_SETUP_TYPE child_setup (int, int, int, char *const *,
-                                     char *const *, const char *);
+extern int emacs_spawn (pid_t *, int, int, int, char *const *,
+                        char *const *, const char *, const char *);
 extern char *const *make_environment_block (Lisp_Object);
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
