@@ -1239,11 +1239,11 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   pid_t *volatile newpid_volatile = newpid;
   const char *volatile cwd_volatile = cwd;
   const char *volatile pty_volatile = pty;
-  char *const *volatile argv_volatile = argv;
+  char **volatile argv_volatile = argv;
   int volatile stdin_volatile = std_in;
   int volatile stdout_volatile = std_out;
   int volatile stderr_volatile = std_err;
-  char *const *volatile envp_volatile = envp;
+  char **volatile envp_volatile = envp;
 
 #ifdef DARWIN_OS
   /* Darwin doesn't let us run setsid after a vfork, so use fork when
