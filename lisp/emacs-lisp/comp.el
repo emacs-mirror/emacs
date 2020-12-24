@@ -2761,7 +2761,7 @@ Return the list of m-var ids nuked."
      do (cl-loop
          for insn in (comp-block-insns b)
          for (op arg0 . rest) = insn
-         if (comp-set-op-p op)
+         if (comp-assign-op-p op)
            do (push (comp-mvar-id arg0) l-vals)
               (setf r-vals (nconc (comp-collect-mvar-ids rest) r-vals))
          else
@@ -2779,7 +2779,7 @@ Return the list of m-var ids nuked."
        for b being each hash-value of (comp-func-blocks comp-func)
        do (comp-loop-insn-in-block b
             (cl-destructuring-bind (op &optional arg0 arg1 &rest rest) insn
-              (when (and (comp-set-op-p op)
+              (when (and (comp-assign-op-p op)
                          (memq (comp-mvar-id arg0) nuke-list))
                 (setf insn
                       (if (comp-limple-insn-call-p arg1)
