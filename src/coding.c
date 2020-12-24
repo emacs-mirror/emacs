@@ -10354,8 +10354,8 @@ decode_file_name (Lisp_Object fname)
 #endif
 }
 
-Lisp_Object
-encode_file_name (Lisp_Object fname)
+static Lisp_Object
+encode_file_name_1 (Lisp_Object fname)
 {
   /* This is especially important during bootstrap and dumping, when
      file-name encoding is not yet known, and therefore any non-ASCII
@@ -10378,6 +10378,19 @@ encode_file_name (Lisp_Object fname)
   else
     return fname;
 #endif
+}
+
+Lisp_Object
+encode_file_name (Lisp_Object fname)
+{
+  Lisp_Object encoded = encode_file_name_1 (fname);
+  /* No system accepts NUL bytes in filenames.  Allowing them can
+     cause subtle bugs because the system would silently use a
+     different filename than expected.  Perform this check after
+     encoding to not miss NUL bytes introduced through encoding.  */
+  CHECK_TYPE (memchr (SSDATA (encoded), '\0', SBYTES (encoded)) == NULL,
+              Qfilenamep, fname);
+  return encoded;
 }
 
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
@@ -11780,6 +11793,7 @@ syms_of_coding (void)
   DEFSYM (Qignored, "ignored");
 
   DEFSYM (Qutf_8_string_p, "utf-8-string-p");
+  DEFSYM (Qfilenamep, "filenamep");
 
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);

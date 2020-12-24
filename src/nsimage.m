@@ -262,7 +262,7 @@ ns_image_size_in_bytes (void *img)
   found = ENCODE_FILE (found);
 
   image = [[EmacsImage alloc] initByReferencingFile:
-                     [NSString stringWithUTF8String: SSDATA (found)]];
+                     [NSString stringWithLispString: found]];
 
   image->bmRep = nil;
 #ifdef NS_IMPL_COCOA
@@ -278,7 +278,7 @@ ns_image_size_in_bytes (void *img)
 
   [image setSize: NSMakeSize([imgRep pixelsWide], [imgRep pixelsHigh])];
 
-  [image setName: [NSString stringWithUTF8String: SSDATA (file)]];
+  [image setName: [NSString stringWithLispString: file]];
 
   return image;
 }

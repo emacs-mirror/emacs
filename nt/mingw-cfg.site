@@ -156,3 +156,7 @@ gl_cv_func_copy_file_range=yes
 # We don't want to build Emacs so it depends on bcrypt.dll, since then
 # it will refuse to start on systems where that DLL is absent.
 gl_cv_lib_assume_bcrypt=no
+# Force 'ac_cv_func_strsignal' to no as mingw64 libgccjit exports this
+# symbol erroneously
+# <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=45303#83>.
+ac_cv_func_strsignal=no

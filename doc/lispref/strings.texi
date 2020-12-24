@@ -381,6 +381,56 @@ The default value of @var{separators} for @code{split-string}.  Its
 usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
 @end defvar
 
+@defun string-slice string regexp
+Split @var{string} into a list of strings on @var{regexp} boundaries.
+As opposed to @code{split-string}, the boundaries are included in the
+result set:
+
+@example
+(string-slice "  two words " " +")
+     @result{} ("  two" " words" " ")
+@end example
+@end defun
+
+@defun string-clean-whitespace string
+Clean up the whitespace in @var{string} by collapsing stretches of
+whitespace to a single space character, as well as removing all
+whitespace from the start and the end of @var{string}.
+@end defun
+
+@defun string-fill string length
+Attempt to Word-wrap @var{string} so that no lines are longer than
+@var{length}.  Filling is done on whitespace boundaries only.  If
+there are individual words that are longer than @var{length}, these
+will not be shortened.
+@end defun
+
+@defun string-limit string length &optional end
+If @var{string} is shorter than @var{length}, @var{string} is returned
+as is.  Otherwise, return a substring of @var{string} consisting of
+the first @var{length} characters.  If the optional @var{end}
+parameter is given, return a string of the @var{length} last
+characters instead.
+@end defun
+
+@defun string-lines string &optional omit-nulls
+Split @var{string} into a list of strings on newline boundaries.  If
+@var{omit-nulls}, remove empty lines from the results.
+@end defun
+
+@defun string-pad string length &optional padding start
+Pad @var{string} to the be of @var{length} using @var{padding} as the
+padding character (defaulting to the space character).  If
+@var{string} is shorter than @var{length}, no padding is done.  If
+@var{start} is @code{nil} (or not present), the padding is done to the
+end of the string, and if it's non-@code{nil}, to the start of the
+string.
+@end defun
+
+@defun string-chop-newline string
+Remove the final newline, if any, from @var{string}.
+@end defun
+
 @node Modifying Strings
 @section Modifying Strings
 @cindex modifying strings

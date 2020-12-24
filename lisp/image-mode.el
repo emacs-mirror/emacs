@@ -667,6 +667,9 @@ Key bindings:
   (when image-auto-resize-on-window-resize
     (add-hook 'window-state-change-functions #'image--window-state-change nil t))
 
+  (add-function :before-while (local 'isearch-filter-predicate)
+                #'image-mode-isearch-filter)
+
   (run-mode-hooks 'image-mode-hook)
   (let ((image (image-get-display-property))
 	(msg1 (substitute-command-keys
@@ -781,6 +784,14 @@ Remove text properties that display the image."
     (set-buffer-modified-p modified)
     (if (called-interactively-p 'any)
 	(message "Repeat this command to go back to displaying the image"))))
+
+(defun image-mode-isearch-filter (_beg _end)
+  "Show image as text when trying to search/replace in the image buffer."
+  (save-match-data
+    (when (and (derived-mode-p 'image-mode)
+               (image-get-display-property))
+      (image-mode-as-text)))
+  t)
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)

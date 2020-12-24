@@ -1009,13 +1009,14 @@ profiling, so we don't recommend leaving it active except when you are
 actually running the code you want to examine).
 
 The profiler report buffer shows, on each line, a function that was
-called, followed by how much resources (cpu or memory) it used in
+called, preceded by how much resources (cpu or memory) it used in
 absolute and percentage terms since profiling started.  If a given
-line has a @samp{+} symbol at the left-hand side, you can expand that
-line by typing @kbd{@key{RET}}, in order to see the function(s) called
-by the higher-level function.  Use a prefix argument (@kbd{C-u
-@key{RET}}) to see the whole call tree below a function.  Pressing
-@kbd{@key{RET}} again will collapse back to the original state.
+line has a @samp{+} symbol to the left of the function name, you can
+expand that line by typing @kbd{@key{RET}}, in order to see the
+function(s) called by the higher-level function.  Use a prefix
+argument (@kbd{C-u @key{RET}}) to see the whole call tree below a
+function.  Pressing @kbd{@key{RET}} again will collapse back to the
+original state.
 
 Press @kbd{j} or @kbd{mouse-2} to jump to the definition of a function
 at point.  Press @kbd{d} to view a function's documentation.  You can

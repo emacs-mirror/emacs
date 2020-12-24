@@ -409,6 +409,14 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "Broken call args assumptions lead to infinite loop."
   (should (equal (comp-test-assume-in-loop-1-f "cd") '("cd"))))
 
+(comp-deftest bug-45376-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01883.html>"
+  (should (equal (comp-test-45376-1-f) '(1 0))))
+
+(comp-deftest bug-45376-2 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01883.html>"
+  (should (equal (comp-test-45376-2-f) '(0 2 1 0 1 0 1 0 0 0 0 0))))
+
 (defvar comp-test-primitive-advice)
 (comp-deftest primitive-advice ()
   "Test effectiveness of primitive advicing."

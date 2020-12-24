@@ -582,5 +582,46 @@
   (should (equal (string-remove-suffix "a" "aa") "a"))
   (should (equal (string-remove-suffix "a" "ba") "b")))
 
+(ert-deftest subr-clean-whitespace ()
+  (should (equal (string-clean-whitespace " foo ") "foo"))
+  (should (equal (string-clean-whitespace " foo   \r\n\t  Bar") "foo Bar")))
+
+(ert-deftest subr-string-fill ()
+  (should (equal (string-fill "foo" 10) "foo"))
+  (should (equal (string-fill "foobar" 5) "foobar"))
+  (should (equal (string-fill "foo bar zot" 5) "foo\nbar\nzot"))
+  (should (equal (string-fill "foo bar zot" 7) "foo bar\nzot")))
+
+(ert-deftest subr-string-limit ()
+  (should (equal (string-limit "foo" 10) "foo"))
+  (should (equal (string-limit "foo" 2) "fo"))
+  (should (equal (string-limit "foo" 2 t) "oo"))
+  (should (equal (string-limit "abc" 10 t) "abc"))
+  (should (equal (string-limit "foo" 0) ""))
+  (should-error (string-limit "foo" -1)))
+
+(ert-deftest subr-string-lines ()
+  (should (equal (string-lines "foo") '("foo")))
+  (should (equal (string-lines "foo \nbar") '("foo " "bar"))))
+
+(ert-deftest subr-string-slice ()
+  (should (equal (string-slice "foo-bar" "-") '("foo" "-bar")))
+  (should (equal (string-slice "foo-bar-" "-") '("foo" "-bar" "-")))
+  (should (equal (string-slice "-foo-bar-" "-") '("-foo" "-bar" "-")))
+  (should (equal (string-slice "ooo" "lala") '("ooo")))
+  (should (equal (string-slice "foo bar" "\\b") '("foo" " " "bar" "")))
+  (should (equal (string-slice "foo bar" "\\b\\|a") '("foo" " " "b" "ar" ""))))
+
+(ert-deftest subr-string-pad ()
+  (should (equal (string-pad "foo" 5) "foo  "))
+  (should (equal (string-pad "foo" 5 ?-) "foo--"))
+  (should (equal (string-pad "foo" 5 ?- t) "--foo"))
+  (should (equal (string-pad "foo" 2 ?-) "foo")))
+
+(ert-deftest subr-string-chop-newline ()
+  (should (equal (string-chop-newline "foo\n") "foo"))
+  (should (equal (string-chop-newline "foo\nbar\n") "foo\nbar"))
+  (should (equal (string-chop-newline "foo\nbar") "foo\nbar")))
+
 (provide 'subr-x-tests)
 ;;; subr-x-tests.el ends here

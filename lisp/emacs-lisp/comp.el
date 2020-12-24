@@ -2534,15 +2534,18 @@ Fold the call in case."
        (not
         ;; Prevent double negation!
         (unless (comp-cstr-neg (car operands))
-          (comp-cstr-negation lval (car operands))))))
+          (comp-cstr-value-negation lval (car operands))))))
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
      (let* ((from-latch (cl-some
                          (lambda (x)
-                           (comp-latch-p
-                            (gethash (cdr x)
-                                     (comp-func-blocks comp-func))))
+                           (let* ((bb-name (cadr x))
+                                  (bb (gethash bb-name
+                                               (comp-func-blocks comp-func))))
+                             (or (comp-latch-p bb)
+                                 (when (comp-block-cstr-p bb)
+                                   (comp-latch-p (car (comp-block-preds bb)))))))
                          rest))
             (prop-fn (if from-latch
                          #'comp-cstr-union-no-range

@@ -131,6 +131,10 @@ There can be any number of :example/:result elements."
   (mapconcat
    :eval (mapconcat (lambda (a) (concat "[" a "]"))
                     '("foo" "bar" "zot") " "))
+  (string-pad
+   :eval (string-pad "foo" 5)
+   :eval (string-pad "foobar" 5)
+   :eval (string-pad "foo" 5 ?- t))
   (mapcar
    :eval (mapcar #'identity "123"))
   (format
@@ -139,10 +143,23 @@ There can be any number of :example/:result elements."
   (substring
    :eval (substring "foobar" 0 3)
    :eval (substring "foobar" 3))
+  (string-limit
+   :eval (string-limit "foobar" 3)
+   :eval (string-limit "foobar" 3 t)
+   :eval (string-limit "foobar" 10))
+  (truncate-string-to-width
+   :eval (truncate-string-to-width "foobar" 3)
+   :eval (truncate-string-to-width "你好bar" 5))
   (split-string
    :eval (split-string "foo bar")
    :eval (split-string "|foo|bar|" "|")
    :eval (split-string "|foo|bar|" "|" t))
+  (string-slice
+   :eval (string-slice "foo-bar" "-")
+   :eval (string-slice "foo-bar--zot-" "-+"))
+  (string-lines
+   :eval (string-lines "foo\n\nbar")
+   :eval (string-lines "foo\n\nbar" t))
   (string-replace
    :eval (string-replace "foo" "bar" "foozot"))
   (replace-regexp-in-string
@@ -167,10 +184,19 @@ There can be any number of :example/:result elements."
   (string-remove-prefix
    :no-manual t
    :eval (string-remove-prefix "foo" "foobar"))
+  (string-chop-newline
+   :eval (string-chop-newline "foo\n"))
+  (string-clean-whitespace
+   :eval (string-clean-whitespace " foo   bar   "))
+  (string-fill
+   :eval (string-fill "Three short words" 12)
+   :eval (string-fill "Long-word" 3))
   (reverse
    :eval (reverse "foo"))
   (substring-no-properties
    :eval (substring-no-properties (propertize "foobar" 'face 'bold) 0 3))
+  (try-completion
+   :eval (try-completion "foo" '("foobar" "foozot" "gazonk")))
   "Predicates for Strings"
   (string-equal
    :eval (string-equal "foo" "foo"))

@@ -3658,6 +3658,7 @@ buffer that was in action when the last article was fetched."
               ;; so we don't call gnus-data-<field> accessors on nil.
               (gnus-newsgroup-data gnus--dummy-data-list)
 	      (gnus-newsgroup-downloadable '(0))
+	      (gnus-visual nil)
 	      case-fold-search ignores)
 	  ;; Here, all marks are bound to Z.
 	  (gnus-summary-insert-line gnus--dummy-mail-header

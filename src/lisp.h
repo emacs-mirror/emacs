@@ -4522,7 +4522,9 @@ extern void setup_process_coding_systems (Lisp_Object);
 # define CHILD_SETUP_ERROR_DESC "Doing vfork"
 #endif
 
-extern CHILD_SETUP_TYPE child_setup (int, int, int, char **, bool, Lisp_Object);
+extern CHILD_SETUP_TYPE child_setup (int, int, int, char *const *,
+                                     char *const *, const char *);
+extern char *const *make_environment_block (Lisp_Object);
 extern void init_callproc_1 (void);
 extern void init_callproc (void);
 extern void set_initial_environment (void);

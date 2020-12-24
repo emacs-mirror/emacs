@@ -113,10 +113,10 @@ Integer values are handled in the `range' slot.")
 (defun comp-cstr-copy (cstr)
   "Return a deep copy of CSTR."
   (with-comp-cstr-accessors
-    (make-comp-cstr :typeset (copy-tree (typeset cstr))
-                    :valset (copy-tree (valset cstr))
+    (make-comp-cstr :typeset (copy-sequence (typeset cstr))
+                    :valset (copy-sequence (valset cstr))
                     :range (copy-tree (range cstr))
-                    :neg (copy-tree (neg cstr)))))
+                    :neg (neg cstr))))
 
 (defsubst comp-cstr-empty-p (cstr)
   "Return t if CSTR is equivalent to the `nil' type specifier or nil otherwise."
@@ -383,8 +383,9 @@ All SRCS constraints must be homogeneously negated or non-negated."
 
   dst)
 
-(defun comp-cstr-union-homogeneous (dst &rest srcs)
+(defun comp-cstr-union-homogeneous (range dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
+Do range propagation when RANGE is non-nil.
 All SRCS constraints must be homogeneously negated or non-negated.
 DST is returned."
   (apply #'comp-cstr-union-homogeneous-no-range dst srcs)
@@ -397,9 +398,10 @@ DST is returned."
         (when (cl-notany (lambda (x)
                            (comp-subtype-p 'integer x))
                          (comp-cstr-typeset dst))
-          ;; TODO memoize?
-          (apply #'comp-range-union
-                 (mapcar #'comp-cstr-range srcs))))
+          (if range
+              (apply #'comp-range-union
+                     (mapcar #'comp-cstr-range srcs))
+            '((- . +)))))
   dst)
 
 (cl-defun comp-cstr-union-1-no-mem (range &rest srcs)
@@ -419,17 +421,17 @@ DST is returned."
         ;; Check first if we are in the simple case of all input non-negate
         ;; or negated so we don't have to cons.
         (when-let ((res (comp-cstrs-homogeneous srcs)))
-          (apply #'comp-cstr-union-homogeneous dst srcs)
+          (apply #'comp-cstr-union-homogeneous range dst srcs)
           (cl-return-from comp-cstr-union-1-no-mem dst))
 
         ;; Some are negated and some are not
         (cl-multiple-value-bind (positives negatives) (comp-split-pos-neg srcs)
-          (let* ((pos (apply #'comp-cstr-union-homogeneous
+          (let* ((pos (apply #'comp-cstr-union-homogeneous range
                              (make-comp-cstr) positives))
                  ;; We'll always use neg as result as this is almost
                  ;; always necessary for describing open intervals
                  ;; resulting from negated constraints.
-                 (neg (apply #'comp-cstr-union-homogeneous
+                 (neg (apply #'comp-cstr-union-homogeneous range
                              (make-comp-cstr :neg t) negatives)))
             ;; Type propagation.
             (when (and (typeset pos)
@@ -507,7 +509,7 @@ DST is returned."
                     (comp-cstr-ctxt-union-1-mem-no-range comp-ctxt)))
            (res (or (gethash srcs mem-h)
                     (puthash
-                     srcs
+                     (mapcar #'comp-cstr-copy srcs)
                      (apply #'comp-cstr-union-1-no-mem range srcs)
                      mem-h))))
       (setf (typeset dst) (typeset res)
@@ -586,7 +588,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                               (cl-return-from comp-cstr-intersection-no-mem dst)))
         (when-let ((res (comp-cstrs-homogeneous srcs)))
           (if (eq res 'neg)
-              (apply #'comp-cstr-union-homogeneous dst srcs)
+              (apply #'comp-cstr-union-homogeneous t dst srcs)
             (apply #'comp-cstr-intersection-homogeneous dst srcs))
           (cl-return-from comp-cstr-intersection-no-mem dst))
 
@@ -676,7 +678,7 @@ DST is returned."
     (let* ((mem-h (comp-cstr-ctxt-intersection-mem comp-ctxt))
            (res (or (gethash srcs mem-h)
                     (puthash
-                     srcs
+                     (mapcar #'comp-cstr-copy srcs)
                      (apply #'comp-cstr-intersection-no-mem srcs)
                      mem-h))))
       (setf (typeset dst) (typeset res)
@@ -697,6 +699,20 @@ DST is returned."
           (valset dst) (valset src)
           (range dst) (range src)
           (neg dst) (not (neg src)))
+    dst))
+
+(defun comp-cstr-value-negation (dst src)
+  "Negate values in SRC setting the result in DST.
+DST is returned."
+  (with-comp-cstr-accessors
+    (if (or (valset src) (range src))
+        (setf (typeset dst) ()
+              (valset dst) (valset src)
+              (range dst) (range src)
+              (neg dst) (not (neg src)))
+      (setf (typeset dst) (typeset src)
+            (valset dst) ()
+            (range dst) ()))
     dst))
 
 (defun comp-cstr-negation-make (src)
