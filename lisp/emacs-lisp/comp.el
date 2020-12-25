@@ -1390,9 +1390,9 @@ the annotation emission."
 		if body
 		collect `(',op
                           ;; Log all LAP ops except the TAG one.
-                          ,(unless (eq op 'TAG)
-                             `(comp-emit-annotation
-                               ,(concat "LAP op " op-name)))
+                          ;; ,(unless (eq op 'TAG)
+                          ;;    `(comp-emit-annotation
+                          ;;      ,(concat "LAP op " op-name)))
                           ;; Emit the stack adjustment if present.
                           ,(when (and sp-delta (not (eq 0 sp-delta)))
 			     `(cl-incf (comp-sp) ,sp-delta))
@@ -1602,8 +1602,8 @@ the annotation emission."
        ;; Assume to follow the emission of a setimm.
        ;; This is checked into comp-emit-switch.
        (comp-emit-switch (comp-slot+1)
-                         (cl-second (comp-block-insns
-                                     (comp-limplify-curr-block comp-pass)))))
+                         (cl-first (comp-block-insns
+                                    (comp-limplify-curr-block comp-pass)))))
       (byte-constant
        (comp-emit-setimm arg))
       (byte-discardN-preserve-tos
@@ -2002,7 +2002,7 @@ TARGET-BB-SYM is the symbol name of the target block."
     (pcase insn-seq
       (`((set ,(and (pred comp-mvar-p) tmp-mvar)
               ,(and (pred comp-mvar-p) obj1))
-         (comment ,_comment-str)
+         ;; (comment ,_comment-str)
          (cond-jump ,tmp-mvar ,obj2 . ,blocks))
        (cl-loop
         for branch-target-cell on blocks
@@ -2039,7 +2039,7 @@ TARGET-BB-SYM is the symbol name of the target block."
       (`((set ,(and (pred comp-mvar-p) obj1)
               (,(pred comp-call-op-p)
                ,(or 'eq 'eql '= 'equal) ,op1 ,op2))
-	 (comment ,_comment-str)
+	 ;; (comment ,_comment-str)
 	 (cond-jump ,obj1 ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
         with target-mvar1 = (comp-cond-cstrs-target-mvar op1 (car insns-seq) b)
@@ -2856,7 +2856,7 @@ Return the list of m-var ids nuked."
        for insns-seq on (comp-block-insns b)
        do (pcase insns-seq
             (`((set ,l-val (direct-call ,func . ,args))
-               (comment ,_comment)
+               ;; (comment ,_comment)
                (return ,ret-val))
              (when (and (string= func (comp-func-c-name comp-func))
                         (eq l-val ret-val))
