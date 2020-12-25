@@ -4663,7 +4663,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  :tags '(:expensive-test)
+  :tags (if (getenv "EMACS_EMBA_CI")
+	    '(:expensive-test :unstable) '(:expensive-test))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
