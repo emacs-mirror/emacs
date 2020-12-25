@@ -604,14 +604,6 @@
   (should (equal (string-lines "foo") '("foo")))
   (should (equal (string-lines "foo \nbar") '("foo " "bar"))))
 
-(ert-deftest subr-string-slice ()
-  (should (equal (string-slice "foo-bar" "-") '("foo" "-bar")))
-  (should (equal (string-slice "foo-bar-" "-") '("foo" "-bar" "-")))
-  (should (equal (string-slice "-foo-bar-" "-") '("-foo" "-bar" "-")))
-  (should (equal (string-slice "ooo" "lala") '("ooo")))
-  (should (equal (string-slice "foo bar" "\\b") '("foo" " " "bar" "")))
-  (should (equal (string-slice "foo bar" "\\b\\|a") '("foo" " " "b" "ar" ""))))
-
 (ert-deftest subr-string-pad ()
   (should (equal (string-pad "foo" 5) "foo  "))
   (should (equal (string-pad "foo" 5 ?-) "foo--"))

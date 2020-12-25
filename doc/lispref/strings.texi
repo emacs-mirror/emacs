@@ -381,17 +381,6 @@ The default value of @var{separators} for @code{split-string}.  Its
 usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
 @end defvar
 
-@defun string-slice string regexp
-Split @var{string} into a list of strings on @var{regexp} boundaries.
-As opposed to @code{split-string}, the boundaries are included in the
-result set:
-
-@example
-(string-slice "  two words " " +")
-     @result{} ("  two" " words" " ")
-@end example
-@end defun
-
 @defun string-clean-whitespace string
 Clean up the whitespace in @var{string} by collapsing stretches of
 whitespace to a single space character, as well as removing all

@@ -310,19 +310,6 @@ than this function."
 If OMIT-NULLS, empty lines will be removed from the results."
   (split-string string "\n" omit-nulls))
 
-(defun string-slice (string regexp)
-  "Split STRING at REGEXP boundaries and return a list of slices.
-The boundaries that match REGEXP are included in the result.
-
-Also see `split-string'."
-  (if (zerop (length string))
-      (list "")
-    (let ((i (string-match-p regexp string 1)))
-      (if i
-          (cons (substring string 0 i)
-                (string-slice (substring string i) regexp))
-        (list string)))))
-
 (defun string-pad (string length &optional padding start)
   "Pad STRING to LENGTH using PADDING.
 If PADDING is nil, the space character is used.  If not nil, it

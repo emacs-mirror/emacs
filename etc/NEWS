@@ -1467,7 +1467,7 @@ This can be set to nil to inhibit hiding passwords in .authinfo files.
 +++
 *** A number of new string manipulation functions have been added.
 'string-clean-whitespace', 'string-fill', 'string-limit',
-'string-lines', 'string-pad', 'string-chop-newline' and 'string-slice'.
+'string-lines', 'string-pad' and 'string-chop-newline'.
 
 +++
 *** New variable 'current-minibuffer-command'.

@@ -154,9 +154,6 @@ There can be any number of :example/:result elements."
    :eval (split-string "foo bar")
    :eval (split-string "|foo|bar|" "|")
    :eval (split-string "|foo|bar|" "|" t))
-  (string-slice
-   :eval (string-slice "foo-bar" "-")
-   :eval (string-slice "foo-bar--zot-" "-+"))
   (string-lines
    :eval (string-lines "foo\n\nbar")
    :eval (string-lines "foo\n\nbar" t))
