@@ -338,7 +338,7 @@ HAVE_PDUMPER = @HAVE_PDUMPER@
 
 ## ARM Macs require that all code have a valid signature.  Since pump
 ## invalidates the signature, we must re-sign to fix it.
-DO_CODESIGN=$(patsubst aarch64-apple-darwin%,yes,@configuration@)
+DO_CODESIGN=$(patsubst arm-apple-darwin%,yes,@configuration@)
 
 # 'make' verbosity.
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
