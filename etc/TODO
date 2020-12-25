@@ -242,6 +242,36 @@ https://lists.gnu.org/r/emacs-devel/2013-11/msg00515.html
     processing.  That is why we added text properties and variable
     width fonts.  However, more features are still needed to achieve this.
 
+Specifically, a major mode with the following features and abilities
+should be added to Emacs:
+
+ . import / export MS Office documents
+ . import / export Open Document Format (.odt) files
+ . import / export RTF files
+ . export to a PDF file
+ . select a font and its size
+ . apply a bold / italic / underline / strikethrough effect
+ . superscripts / subscripts
+ . apply a left / center / right / justified effect
+ . change the font color and the background color
+ . pixel-level text fill, justification, and indentation (so that
+   variable-pitch fonts could be freely used)
+ . create a list
+ . insert and change a table
+ . insert a picture
+ . define / use / modify styles
+ . print preview / print, in a way that is similar to what's on screen
+   (e.g., wrt the place where lines wrap)
+ . use footnotes
+ . support for "track changes" markings, including those which come
+   from Office documents
+ . multiple columns
+ . change page headers and footers
+ . save all the properties and settings mentioned above with the text
+   to a file, so that they are restored when later visiting that file
+
+The existing Enriched mode can be used as a starting point.
+
 ** Support ligatures out of the box
 For the list of frequently-used typographical ligatures, see
 
