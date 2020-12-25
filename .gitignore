@@ -65,9 +65,7 @@ lib/ieee754.h
 lib/inttypes.h
 lib/libgnu.a
 lib/limits.h
-lib/sched.h
 lib/signal.h
-lib/spawn.h
 lib/std*.h
 !lib/std*.in.h
 !lib/stdio-impl.h
