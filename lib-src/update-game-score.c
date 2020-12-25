@@ -499,9 +499,9 @@ unlock_file (const char *filename, void *state)
   char *lockpath = (char *) state;
   int saved_errno = errno;
   int ret = unlink (lockpath);
-  int unlink_errno = errno;
+  if (0 <= ret)
+    errno = saved_errno;
   free (lockpath);
-  errno = ret < 0 ? unlink_errno : saved_errno;
   return ret;
 }
 
