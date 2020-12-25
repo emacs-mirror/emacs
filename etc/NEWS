@@ -1461,6 +1461,9 @@ that makes it a valid button.
 ** Miscellaneous
 
 ---
+*** 'remove-hook' is now an interactive command.
+
+---
 *** New user option 'authinfo-hide-elements'.
 This can be set to nil to inhibit hiding passwords in .authinfo files.
 
