@@ -86,6 +86,9 @@ Integer values are handled in the `range' slot.")
   (common-supertype-mem (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
 `comp-common-supertype'.")
+  (subtype-p-mem (make-hash-table :test #'equal) :type hash-table
+                 :documentation "Serve memoization for
+`comp-subtype-p-mem'.")
   (union-1-mem-no-range (make-hash-table :test #'equal) :type hash-table
                         :documentation "Serve memoization for
 `comp-cstr-union-1'.")
@@ -215,7 +218,11 @@ Return them as multiple value."
 
 (defsubst comp-subtype-p (type1 type2)
   "Return t if TYPE1 is a subtype of TYPE2 or nil otherwise."
-  (eq (comp-common-supertype-2 type1 type2) type2))
+  (let ((types (cons type1 type2)))
+    (or (gethash types (comp-cstr-ctxt-subtype-p-mem comp-ctxt))
+        (puthash types
+                 (eq (comp-common-supertype-2 type1 type2) type2)
+                 (comp-cstr-ctxt-subtype-p-mem comp-ctxt)))))
 
 (defun comp-union-typesets (&rest typesets)
   "Union types present into TYPESETS."
@@ -695,10 +702,27 @@ DST is returned."
   "Negate SRC setting the result in DST.
 DST is returned."
   (with-comp-cstr-accessors
-    (setf (typeset dst) (typeset src)
-          (valset dst) (valset src)
-          (range dst) (range src)
-          (neg dst) (not (neg src)))
+    (cond
+     ((and (null (valset src))
+           (null (range src))
+           (null (neg src))
+           (equal (typeset src) '(t)))
+      (setf (typeset dst) ()
+            (valset dst) ()
+            (range dst) nil
+            (neg dst) nil))
+     ((and (null (valset src))
+           (null (range src))
+           (null (neg src))
+           (null (typeset src)))
+      (setf (typeset dst) '(t)
+            (valset dst) ()
+            (range dst) nil
+            (neg dst) nil))
+     (t (setf (typeset dst) (typeset src)
+              (valset dst) (valset src)
+              (range dst) (range src)
+              (neg dst) (not (neg src)))))
     dst))
 
 (defun comp-cstr-value-negation (dst src)

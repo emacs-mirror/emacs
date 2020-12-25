@@ -662,7 +662,8 @@ Assume allocation class 'd-default as default."
      (1 font-lock-variable-name-face))
     (,(rx (group-n 1 (or "entry"
                          (seq (or "entry_" "entry_fallback_" "bb_")
-                              (1+ num) (? (or "_latch" "_cstrs"))))))
+                              (1+ num) (? (or "_latch"
+                                              (seq "_cstrs_" (1+ num))))))))
      (1 font-lock-constant-face))
     (,(rx-to-string
        `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
@@ -1229,8 +1230,8 @@ Return value is the fall through block name."
       (when label-sp
         (cl-assert (= (1- label-sp) (+ target-offset (comp-sp)))))
       (comp-emit (if negated
-		     (list 'cond-jump a b eff-target-name bb)
-		   (list 'cond-jump a b bb eff-target-name)))
+                     (list 'cond-jump a b bb eff-target-name)
+		   (list 'cond-jump a b eff-target-name bb)))
       (comp-mark-curr-bb-closed)
       bb)))
 
@@ -1321,7 +1322,7 @@ Return value is the fall through block name."
                                             (comp-new-block-sym)))
         for ff-bb-name = (comp-block-name ff-bb)
         if (eq test-func 'eq)
-          do (comp-emit (list 'cond-jump var m-test ff-bb-name target-name))
+          do (comp-emit (list 'cond-jump var m-test target-name ff-bb-name))
         else
         ;; Store the result of the comparison into the scratch slot before
         ;; emitting the conditional jump.
@@ -1330,7 +1331,7 @@ Return value is the fall through block name."
              (comp-emit (list 'cond-jump
                               (make-comp-mvar :slot 'scratch)
                               (make-comp-mvar :constant nil)
-                              target-name ff-bb-name))
+                              ff-bb-name target-name))
         unless last
         ;; All fall through are artificially created here except the last one.
           do (puthash ff-bb-name ff-bb (comp-func-blocks comp-func))
@@ -1389,9 +1390,9 @@ the annotation emission."
 		if body
 		collect `(',op
                           ;; Log all LAP ops except the TAG one.
-                          ,(unless (eq op 'TAG)
-                             `(comp-emit-annotation
-                               ,(concat "LAP op " op-name)))
+                          ;; ,(unless (eq op 'TAG)
+                          ;;    `(comp-emit-annotation
+                          ;;      ,(concat "LAP op " op-name)))
                           ;; Emit the stack adjustment if present.
                           ,(when (and sp-delta (not (eq 0 sp-delta)))
 			     `(cl-incf (comp-sp) ,sp-delta))
@@ -1446,7 +1447,9 @@ the annotation emission."
       (byte-listp auto)
       (byte-eq auto)
       (byte-memq auto)
-      (byte-not null)
+      (byte-not
+       (comp-emit-set-call (comp-call 'eq (comp-slot-n (comp-sp))
+                                      (make-comp-mvar :constant nil))))
       (byte-car auto)
       (byte-cdr auto)
       (byte-cons auto)
@@ -1599,8 +1602,8 @@ the annotation emission."
        ;; Assume to follow the emission of a setimm.
        ;; This is checked into comp-emit-switch.
        (comp-emit-switch (comp-slot+1)
-                         (cl-second (comp-block-insns
-                                     (comp-limplify-curr-block comp-pass)))))
+                         (cl-first (comp-block-insns
+                                    (comp-limplify-curr-block comp-pass)))))
       (byte-constant
        (comp-emit-setimm arg))
       (byte-discardN-preserve-tos
@@ -1615,7 +1618,7 @@ the annotation emission."
   (cl-loop for i from minarg below nonrest
            for bb = (intern (format "entry_%s" i))
            for fallback = (intern (format "entry_fallback_%s" i))
-           do (comp-emit `(cond-jump-narg-leq ,i ,bb ,fallback))
+           do (comp-emit `(cond-jump-narg-leq ,i ,fallback ,bb))
               (comp-make-curr-block bb (comp-sp))
               (comp-emit `(set-args-to-local ,(comp-slot-n i)))
               (comp-emit '(inc-args))
@@ -1881,22 +1884,51 @@ into the C code forwarding the compilation unit."
 ;;    afterwards both x and y must satisfy the (or number marker)
 ;;    type specifier.
 
-(defun comp-emit-assume (target rhs bb negated)
-  "Emit an assume for mvar TARGET being RHS.
+
+(defsubst comp-mvar-used-p (mvar)
+  "Non-nil when MVAR is used as lhs in the current funciton."
+  (declare (gv-setter (lambda (val)
+			`(puthash ,mvar ,val comp-pass))))
+  (gethash mvar comp-pass))
+
+(defun comp-collect-mvars (form)
+  "Add rhs m-var present in FORM into `comp-pass'."
+  (cl-loop for x in form
+           if (consp x)
+             do (comp-collect-mvars x)
+           else
+             when (comp-mvar-p x)
+               do (setf (comp-mvar-used-p x) t)))
+
+(defun comp-collect-rhs ()
+  "Collect all lhs mvars into `comp-pass'."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do (cl-loop
+       for insn in (comp-block-insns b)
+       for (op . args) = insn
+       if  (comp-set-op-p op)
+         do (comp-collect-mvars (cdr args))
+       else
+         do (comp-collect-mvars args))))
+
+(defun comp-emit-assume (lhs rhs bb negated)
+  "Emit an assume for mvar LHS being RHS.
 When NEGATED is non-nil the assumption is negated.
 The assume is emitted at the beginning of the block BB."
-  (let ((target-slot (comp-mvar-slot target))
+  (let ((lhs-slot (comp-mvar-slot lhs))
         (tmp-mvar (if negated
                       (make-comp-mvar :slot (comp-mvar-slot rhs))
                     rhs)))
-    (push `(assume ,(make-comp-mvar :slot target-slot) (and ,target ,tmp-mvar))
+    (cl-assert lhs-slot)
+    (push `(assume ,(make-comp-mvar :slot lhs-slot) (and ,lhs ,tmp-mvar))
 	  (comp-block-insns bb))
     (if negated
         (push `(assume ,tmp-mvar (not ,rhs))
 	      (comp-block-insns bb)))
     (setf (comp-func-ssa-status comp-func) 'dirty)))
 
-(defun comp-add-new-block-beetween (bb-symbol bb-a bb-b)
+(defun comp-add-new-block-between (bb-symbol bb-a bb-b)
   "Create a new basic-block named BB-SYMBOL and add it between BB-A and BB-B."
   (cl-loop
    with new-bb = (make-comp-block-cstr :name bb-symbol
@@ -1911,8 +1943,8 @@ The assume is emitted at the beginning of the block BB."
          (comp-block-out-edges bb-a) (delq ed (comp-block-out-edges bb-a)))
    (push ed (comp-block-out-edges new-bb))
    ;; Connect `bb-a' `new-bb' with `new-edge'.
-   (push (comp-block-out-edges bb-a) new-edge)
-   (push (comp-block-in-edges new-bb) new-edge)
+   (push new-edge (comp-block-out-edges bb-a))
+   (push new-edge (comp-block-in-edges new-bb))
    (setf (comp-func-ssa-status comp-func) 'dirty)
    ;; Add `new-edge' to the current function and return it.
    (cl-return (puthash bb-symbol new-bb (comp-func-blocks comp-func)))
@@ -1940,15 +1972,59 @@ Keep on searching till EXIT-INSN is encountered."
   "Return the appropriate basic block to add constraint assumptions into.
 CURR-BB is the current basic block.
 TARGET-BB-SYM is the symbol name of the target block."
-  (let ((target-bb (gethash target-bb-sym
-                            (comp-func-blocks comp-func))))
-    (if (= (length (comp-block-in-edges target-bb)) 1)
+  (let* ((target-bb (gethash target-bb-sym
+                             (comp-func-blocks comp-func)))
+         (target-bb-in-edges (comp-block-in-edges target-bb)))
+    (cl-assert target-bb-in-edges)
+    (if (= (length target-bb-in-edges) 1)
         ;; If block has only one predecessor is already suitable for
         ;; adding constraint assumptions.
         target-bb
-      (comp-add-new-block-beetween (intern (concat (symbol-name target-bb-sym)
-                                                   "_cstrs"))
-                                   curr-bb target-bb))))
+      (cl-loop
+       ;; Search for the first suitable basic block name.
+       for i from 0
+       for new-name = (intern (format "%s_cstrs_%d" (symbol-name target-bb-sym)
+                                      i))
+       until (null (gethash new-name (comp-func-blocks comp-func)))
+       finally
+       ;; Add it.
+       (cl-return (comp-add-new-block-between new-name curr-bb target-bb))))))
+
+(defun comp-add-cond-cstrs-simple ()
+  "`comp-add-cstrs' worker function for each selected function."
+  (cl-loop
+   for b being each hash-value of (comp-func-blocks comp-func)
+   do
+   (cl-loop
+    named in-the-basic-block
+    for insn-seq on (comp-block-insns b)
+    do
+    (pcase insn-seq
+      (`((set ,(and (pred comp-mvar-p) tmp-mvar)
+              ,(and (pred comp-mvar-p) obj1))
+         ;; (comment ,_comment-str)
+         (cond-jump ,tmp-mvar ,obj2 . ,blocks))
+       (cl-loop
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for negated in '(nil t)
+	when (comp-mvar-used-p tmp-mvar)
+        do
+	(let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (comp-emit-assume tmp-mvar obj2 block-target negated))
+        finally (cl-return-from in-the-basic-block)))
+      (`((cond-jump ,obj1 ,obj2 . ,blocks))
+       (cl-loop
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for negated in '(nil t)
+	when (comp-mvar-used-p obj1)
+        do
+	(let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (comp-emit-assume obj1 obj2 block-target negated))
+        finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-add-cond-cstrs ()
   "`comp-add-cstrs' worker function for each selected function."
@@ -1960,23 +2036,26 @@ TARGET-BB-SYM is the symbol name of the target block."
     for insns-seq on (comp-block-insns b)
     do
     (pcase insns-seq
-      (`((set ,(and (pred comp-mvar-p) cond)
+      (`((set ,(and (pred comp-mvar-p) obj1)
               (,(pred comp-call-op-p)
                ,(or 'eq 'eql '= 'equal) ,op1 ,op2))
-	 (comment ,_comment-str)
-	 (cond-jump ,cond ,(pred comp-mvar-p) . ,blocks))
+	 ;; (comment ,_comment-str)
+	 (cond-jump ,obj1 ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
         with target-mvar1 = (comp-cond-cstrs-target-mvar op1 (car insns-seq) b)
         with target-mvar2 = (comp-cond-cstrs-target-mvar op2 (car insns-seq) b)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
-        for assume-target = (comp-add-cond-cstrs-target-block b branch-target)
-        for negated in '(nil t)
-        do (setf (car branch-target-cell) (comp-block-name assume-target))
-        when target-mvar1
-          do (comp-emit-assume target-mvar1 op2 assume-target negated)
-        when target-mvar2
-          do (comp-emit-assume target-mvar2 op1 assume-target negated)
+        for negated in '(t nil)
+        when (or (comp-mvar-used-p target-mvar1)
+                 (comp-mvar-used-p target-mvar2))
+        do
+        (let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (when (comp-mvar-used-p target-mvar1)
+            (comp-emit-assume target-mvar1 op2 block-target negated))
+          (when (comp-mvar-used-p target-mvar2)
+            (comp-emit-assume target-mvar2 op1 block-target negated)))
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-emit-call-cstr (mvar call-cell cstr)
@@ -2047,7 +2126,10 @@ blocks."
                         ;; variables.
 			(comp-func-l-p f)
                         (not (comp-func-has-non-local f)))
-               (let ((comp-func f))
+               (let ((comp-func f)
+                     (comp-pass (make-hash-table :test #'eq)))
+                 (comp-collect-rhs)
+		 (comp-add-cond-cstrs-simple)
                  (comp-add-cond-cstrs)
                  (comp-add-call-cstr)
                  (comp-log-func comp-func 3))))
@@ -2714,7 +2796,7 @@ Return the list of m-var ids nuked."
      do (cl-loop
          for insn in (comp-block-insns b)
          for (op arg0 . rest) = insn
-         if (comp-set-op-p op)
+         if (comp-assign-op-p op)
            do (push (comp-mvar-id arg0) l-vals)
               (setf r-vals (nconc (comp-collect-mvar-ids rest) r-vals))
          else
@@ -2732,7 +2814,7 @@ Return the list of m-var ids nuked."
        for b being each hash-value of (comp-func-blocks comp-func)
        do (comp-loop-insn-in-block b
             (cl-destructuring-bind (op &optional arg0 arg1 &rest rest) insn
-              (when (and (comp-set-op-p op)
+              (when (and (comp-assign-op-p op)
                          (memq (comp-mvar-id arg0) nuke-list))
                 (setf insn
                       (if (comp-limple-insn-call-p arg1)
@@ -2774,7 +2856,7 @@ Return the list of m-var ids nuked."
        for insns-seq on (comp-block-insns b)
        do (pcase insns-seq
             (`((set ,l-val (direct-call ,func . ,args))
-               (comment ,_comment)
+               ;; (comment ,_comment)
                (return ,ret-val))
              (when (and (string= func (comp-func-c-name comp-func))
                         (eq l-val ret-val))

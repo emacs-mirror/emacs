@@ -935,7 +935,19 @@ Return a list of results."
       ;; 19
       ((defun comp-tests-ret-type-spec-f (x y)
          (eq x y))
-       boolean)))
+       boolean)
+
+      ;; 20
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when x
+           'foo))
+       (or (member foo) null))
+
+      ;; 21
+      ((defun comp-tests-ret-type-spec-f (x)
+         (unless x
+           'foo))
+       (or (member foo) null))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()
