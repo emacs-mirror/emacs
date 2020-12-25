@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <sys/file.h>
 #include <fcntl.h>
-#include <spawn.h>
 
 #include "lisp.h"
 
@@ -1229,155 +1228,11 @@ int
 emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
              char **argv, char **envp, const char *cwd, const char *pty)
 {
-  /* `posix_spawn' is available on all Unix systems, either natively
-     or through Gnulib.  Gnulib defines `posix_spawn' on Windows as
-     well, but doesn't implement it yet.  So we fall back to our own
-     code on Windows.  Because Gnulib always defines `posix_spawn', we
-     don't need to use conditional compilation here.  */
-
-#ifdef DOS_NT
-  enum { can_use_posix_spawn = false };
-#else
-  enum { can_use_posix_spawn = true };
-#endif
-
-  /* `posix_spawn' doesn't yet support setting up pseudoterminals, so
-     we fall back to `vfork' if we're supposed to use a
-     pseudoterminal.  */
-
-  bool use_posix_spawn = can_use_posix_spawn && pty == NULL;
-
-  posix_spawn_file_actions_t actions;
-  posix_spawnattr_t attributes;
-
-  if (use_posix_spawn)
-    {
-      /* Initialize optional attributes before blocking. */
-      bool destroy_actions = false;
-      bool destroy_attributes = false;
-
-      int error = posix_spawn_file_actions_init (&actions);
-      if (error != 0)
-        goto posix_spawn_init_failed;
-      destroy_actions = true;
-
-      error = posix_spawnattr_init (&attributes);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-      destroy_attributes = true;
-
-      error = posix_spawn_file_actions_adddup2 (&actions, std_in,
-                                                STDIN_FILENO);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      error = posix_spawn_file_actions_adddup2 (&actions, std_out,
-                                                STDOUT_FILENO);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      error = posix_spawn_file_actions_adddup2 (&actions,
-                                                std_err < 0 ? std_out
-                                                            : std_err,
-                                                STDERR_FILENO);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      error = posix_spawn_file_actions_addchdir (&actions, cwd);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      error = posix_spawnattr_setflags (&attributes,
-                                        POSIX_SPAWN_SETPGROUP
-                                          | POSIX_SPAWN_SETSIGDEF
-                                          | POSIX_SPAWN_SETSIGMASK);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      error = posix_spawnattr_setpgroup (&attributes, 0);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      sigset_t sigdefault;
-      sigemptyset (&sigdefault);
-
-#ifdef DARWIN_OS
-      /* Work around a macOS bug, where SIGCHLD is apparently
-	 delivered to a vforked child instead of to its parent.  See:
-	 https://lists.gnu.org/r/emacs-devel/2017-05/msg00342.html
-      */
-      sigaddset (&sigdefault, SIGCHLD);
-#endif
-
-      sigaddset (&sigdefault, SIGINT);
-      sigaddset (&sigdefault, SIGQUIT);
-#ifdef SIGPROF
-      sigaddset (&sigdefault, SIGPROF);
-#endif
-
-      /* Emacs ignores SIGPIPE, but the child should not.  */
-      sigaddset (&sigdefault, SIGPIPE);
-      /* Likewise for SIGPROF.  */
-#ifdef SIGPROF
-      sigaddset (&sigdefault, SIGPROF);
-#endif
-
-      error
-        = posix_spawnattr_setsigdefault (&attributes, &sigdefault);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      /* Stop blocking SIGCHLD in the child.  */
-      sigset_t oldset;
-      error = pthread_sigmask (SIG_SETMASK, NULL, &oldset);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-      error = posix_spawnattr_setsigmask (&attributes, &oldset);
-      if (error != 0)
-	goto posix_spawn_init_failed;
-
-      goto next;
-
-    posix_spawn_init_failed:
-      if (destroy_actions)
-	posix_spawn_file_actions_destroy (&actions);
-      if (destroy_attributes)
-	posix_spawnattr_destroy (&attributes);
-      eassert (0 < error);
-      return error;
-    }
-
   sigset_t oldset;
   int pid;
-  int vfork_error;
 
- next:
   block_input ();
   block_child_signal (&oldset);
-
-  if (use_posix_spawn)
-    {
-      vfork_error = posix_spawn (&pid, argv[0], &actions, &attributes,
-                                 argv, envp);
-      if (vfork_error != 0)
-	pid = -1;
-
-      int error = posix_spawn_file_actions_destroy (&actions);
-      if (error != 0)
-	{
-	  errno = error;
-	  emacs_perror ("posix_spawn_file_actions_destroy");
-	}
-
-      error = posix_spawnattr_destroy (&attributes);
-      if (error != 0)
-	{
-	  errno = error;
-	  emacs_perror ("posix_spawnattr_destroy");
-	}
-
-      goto fork_done;
-    }
 
 #ifndef WINDOWSNT
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -1520,9 +1375,8 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
 
   /* Back in the parent process.  */
 
-  vfork_error = pid < 0 ? errno : 0;
+  int vfork_error = pid < 0 ? errno : 0;
 
- fork_done:
   /* Stop blocking in the parent.  */
   unblock_child_signal (&oldset);
   unblock_input ();
