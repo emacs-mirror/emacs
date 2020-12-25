@@ -830,7 +830,7 @@ correspond to previously loaded files (those returned by
         (mapcar (lambda (x)
                   (let ((f (car x)))
                     (and (stringp f)
-                         (file-name-sans-extension f))))
+                         (file-name-sans-extension (file-truename f)))))
                 load-history)))
 
 (defun package--list-of-conflicts (dir history)
