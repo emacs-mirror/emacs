@@ -883,7 +883,8 @@ So the second decryption fails."
                  (equal (cdr (assq 'comm atts)) "gpg-agent")
                  (string-match
                   (concat "homedir.*"
-                          (regexp-quote (ert-resource-directory)))
+                          (regexp-quote (directory-file-name
+                                         (ert-resource-directory))))
                   (cdr (assq 'args atts))))
         (call-process "kill" nil nil nil (format "%d" pid))))))
 
