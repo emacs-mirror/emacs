@@ -103,6 +103,7 @@
 #  filevercmp \
 #  flexmember \
 #  fpieee \
+#  free-posix \
 #  fstatat \
 #  fsusage \
 #  fsync \
@@ -1528,6 +1529,17 @@ EXTRA_libgnu_a_SOURCES += dup2.c
 endif
 ## end   gnulib module dup2
 
+## begin gnulib module eloop-threshold
+ifeq (,$(OMIT_GNULIB_MODULE_eloop-threshold))
+
+ifneq (,$(gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c))
+
+endif
+EXTRA_DIST += eloop-threshold.h
+
+endif
+## end   gnulib module eloop-threshold
+
 ## begin gnulib module errno
 ifeq (,$(OMIT_GNULIB_MODULE_errno))
 
@@ -1750,9 +1762,7 @@ endif
 ## begin gnulib module free-posix
 ifeq (,$(OMIT_GNULIB_MODULE_free-posix))
 
-ifneq (,$(gl_GNULIB_ENABLED_ef07dc4b3077c11ea9cef586db4e5955))
 
-endif
 EXTRA_DIST += free.c
 
 EXTRA_libgnu_a_SOURCES += free.c

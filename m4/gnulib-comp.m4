@@ -75,6 +75,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module dtoastr:
   # Code from module dtotimespec:
   # Code from module dup2:
+  # Code from module eloop-threshold:
   # Code from module environ:
   # Code from module errno:
   # Code from module euidaccess:
@@ -291,6 +292,12 @@ AC_DEFUN([gl_INIT],
   if test $gl_cv_func___fpending = no; then
     AC_LIBOBJ([fpending])
   fi
+  gl_FUNC_FREE
+  if test $REPLACE_FREE = 1; then
+    AC_LIBOBJ([free])
+    gl_PREREQ_FREE
+  fi
+  gl_STDLIB_MODULE_INDICATOR([free-posix])
   gl_FUNC_FSTATAT
   if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
     AC_LIBOBJ([fstatat])
@@ -510,8 +517,8 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b=false
   gl_gnulib_enabled_cloexec=false
   gl_gnulib_enabled_dirfd=false
+  gl_gnulib_enabled_925677f0343de64b89a9f0c790b4104c=false
   gl_gnulib_enabled_euidaccess=false
-  gl_gnulib_enabled_ef07dc4b3077c11ea9cef586db4e5955=false
   gl_gnulib_enabled_getdtablesize=false
   gl_gnulib_enabled_getgroups=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
@@ -557,6 +564,12 @@ AC_DEFUN([gl_INIT],
       gl_gnulib_enabled_dirfd=true
     fi
   }
+  func_gl_gnulib_m4code_925677f0343de64b89a9f0c790b4104c ()
+  {
+    if ! $gl_gnulib_enabled_925677f0343de64b89a9f0c790b4104c; then
+      gl_gnulib_enabled_925677f0343de64b89a9f0c790b4104c=true
+    fi
+  }
   func_gl_gnulib_m4code_euidaccess ()
   {
     if ! $gl_gnulib_enabled_euidaccess; then
@@ -571,18 +584,6 @@ AC_DEFUN([gl_INIT],
         func_gl_gnulib_m4code_a9786850e999ae65a836a6041e8e5ed1
       fi
       func_gl_gnulib_m4code_6099e9737f757db36c47fa9d9f02e88c
-    fi
-  }
-  func_gl_gnulib_m4code_ef07dc4b3077c11ea9cef586db4e5955 ()
-  {
-    if ! $gl_gnulib_enabled_ef07dc4b3077c11ea9cef586db4e5955; then
-      gl_FUNC_FREE
-      if test $REPLACE_FREE = 1; then
-        AC_LIBOBJ([free])
-        gl_PREREQ_FREE
-      fi
-      gl_STDLIB_MODULE_INDICATOR([free-posix])
-      gl_gnulib_enabled_ef07dc4b3077c11ea9cef586db4e5955=true
     fi
   }
   func_gl_gnulib_m4code_getdtablesize ()
@@ -734,7 +735,7 @@ AC_DEFUN([gl_INIT],
     fi
   }
   if test $HAVE_CANONICALIZE_FILE_NAME = 0 || test $REPLACE_CANONICALIZE_FILE_NAME = 1; then
-    func_gl_gnulib_m4code_ef07dc4b3077c11ea9cef586db4e5955
+    func_gl_gnulib_m4code_925677f0343de64b89a9f0c790b4104c
   fi
   if test $HAVE_CANONICALIZE_FILE_NAME = 0 || test $REPLACE_CANONICALIZE_FILE_NAME = 1; then
     func_gl_gnulib_m4code_idx
@@ -818,8 +819,8 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b], [$gl_gnulib_enabled_260941c0e5dc67ec9e87d1fb321c300b])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_cloexec], [$gl_gnulib_enabled_cloexec])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dirfd], [$gl_gnulib_enabled_dirfd])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_925677f0343de64b89a9f0c790b4104c], [$gl_gnulib_enabled_925677f0343de64b89a9f0c790b4104c])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_euidaccess], [$gl_gnulib_enabled_euidaccess])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_ef07dc4b3077c11ea9cef586db4e5955], [$gl_gnulib_enabled_ef07dc4b3077c11ea9cef586db4e5955])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getdtablesize], [$gl_gnulib_enabled_getdtablesize])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_getgroups], [$gl_gnulib_enabled_getgroups])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
@@ -1020,6 +1021,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/dtoastr.c
   lib/dtotimespec.c
   lib/dup2.c
+  lib/eloop-threshold.h
   lib/errno.in.h
   lib/euidaccess.c
   lib/execinfo.c

@@ -29,6 +29,7 @@
 #include <stdlib.h>
 
 #include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -36,23 +37,26 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <eloop-threshold.h>
+#include <filename.h>
+#include <idx.h>
 #include <scratch_buffer.h>
 
 #ifdef _LIBC
-# include <eloop-threshold.h>
 # include <shlib-compat.h>
-typedef ptrdiff_t idx_t;
-# define IDX_MAX PTRDIFF_MAX
-# define FILE_SYSTEM_PREFIX_LEN(name) 0
-# define IS_ABSOLUTE_FILE_NAME(name) ISSLASH(*(name))
-# define ISSLASH(c) ((c) == '/')
-# define freea(p) ((void) (p))
+# include <sysdep.h>
+# ifdef __ASSUME_FACCESSAT2
+#  define FACCESSAT_NEVER_EOVERFLOWS __ASSUME_FACCESSAT2
+# else
+#  define FACCESSAT_NEVER_EOVERFLOWS true
+# endif
+# define GCC_LINT 1
+# define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
 #else
 # define __canonicalize_file_name canonicalize_file_name
 # define __realpath realpath
-# include "idx.h"
 # include "pathmax.h"
-# include "filename.h"
+# define __faccessat faccessat
 # if defined _WIN32 && !defined __CYGWIN__
 #  define __getcwd _getcwd
 # elif HAVE_GETCWD
@@ -77,21 +81,94 @@ typedef ptrdiff_t idx_t;
 # define __pathconf pathconf
 # define __rawmemchr rawmemchr
 # define __readlink readlink
-# ifndef MAXSYMLINKS
-#  ifdef SYMLOOP_MAX
-#   define MAXSYMLINKS SYMLOOP_MAX
-#  else
-#   define MAXSYMLINKS 20
-#  endif
-# endif
-# define __eloop_threshold() MAXSYMLINKS
+# define __stat stat
+#endif
+
+/* Suppress bogus GCC -Wmaybe-uninitialized warnings.  */
+#if defined GCC_LINT || defined lint
+# define IF_LINT(Code) Code
+#else
+# define IF_LINT(Code) /* empty */
 #endif
 
 #ifndef DOUBLE_SLASH_IS_DISTINCT_ROOT
-# define DOUBLE_SLASH_IS_DISTINCT_ROOT 0
+# define DOUBLE_SLASH_IS_DISTINCT_ROOT false
+#endif
+#ifndef FACCESSAT_NEVER_EOVERFLOWS
+# define FACCESSAT_NEVER_EOVERFLOWS false
 #endif
 
 #if !FUNC_REALPATH_WORKS || defined _LIBC
+
+/* Return true if FILE's existence can be shown, false (setting errno)
+   otherwise.  Follow symbolic links.  */
+static bool
+file_accessible (char const *file)
+{
+# if defined _LIBC || HAVE_FACCESSAT
+  int r = __faccessat (AT_FDCWD, file, F_OK, AT_EACCESS);
+# else
+  struct stat st;
+  int r = __stat (file, &st);
+# endif
+
+  return ((!FACCESSAT_NEVER_EOVERFLOWS && r < 0 && errno == EOVERFLOW)
+          || r == 0);
+}
+
+/* True if concatenating END as a suffix to a file name means that the
+   code needs to check that the file name is that of a searchable
+   directory, since the canonicalize_filename_mode_stk code won't
+   check this later anyway when it checks an ordinary file name
+   component within END.  END must either be empty, or start with a
+   slash.  */
+
+static bool _GL_ATTRIBUTE_PURE
+suffix_requires_dir_check (char const *end)
+{
+  /* If END does not start with a slash, the suffix is OK.  */
+  while (ISSLASH (*end))
+    {
+      /* Two or more slashes act like a single slash.  */
+      do
+        end++;
+      while (ISSLASH (*end));
+
+      switch (*end++)
+        {
+        default: return false;  /* An ordinary file name component is OK.  */
+        case '\0': return true; /* Trailing "/" is trouble.  */
+        case '.': break;        /* Possibly "." or "..".  */
+        }
+      /* Trailing "/.", or "/.." even if not trailing, is trouble.  */
+      if (!*end || (*end == '.' && (!end[1] || ISSLASH (end[1]))))
+        return true;
+    }
+
+  return false;
+}
+
+/* Append this to a file name to test whether it is a searchable directory.
+   On POSIX platforms "/" suffices, but "/./" is sometimes needed on
+   macOS 10.13 <https://bugs.gnu.org/30350>, and should also work on
+   platforms like AIX 7.2 that need at least "/.".  */
+
+#if defined _LIBC || defined LSTAT_FOLLOWS_SLASHED_SYMLINK
+static char const dir_suffix[] = "/";
+#else
+static char const dir_suffix[] = "/./";
+#endif
+
+/* Return true if DIR is a searchable dir, false (setting errno) otherwise.
+   DIREND points to the NUL byte at the end of the DIR string.
+   Store garbage into DIREND[0 .. strlen (dir_suffix)].  */
+
+static bool
+dir_check (char *dir, char *dirend)
+{
+  strcpy (dirend, dir_suffix);
+  return file_accessible (dir);
+}
 
 static idx_t
 get_path_max (void)
@@ -111,19 +188,27 @@ get_path_max (void)
   return path_max < 0 ? 1024 : path_max <= IDX_MAX ? path_max : IDX_MAX;
 }
 
-/* Return the canonical absolute name of file NAME.  A canonical name
-   does not contain any ".", ".." components nor any repeated file name
-   separators ('/') or symlinks.  All file name components must exist.  If
-   RESOLVED is null, the result is malloc'd; otherwise, if the
-   canonical name is PATH_MAX chars or more, returns null with 'errno'
-   set to ENAMETOOLONG; if the name fits in fewer than PATH_MAX chars,
-   returns the name in RESOLVED.  If the name cannot be resolved and
-   RESOLVED is non-NULL, it contains the name of the first component
-   that cannot be resolved.  If the name can be resolved, RESOLVED
-   holds the same value as the value returned.  */
+/* Act like __realpath (see below), with an additional argument
+   rname_buf that can be used as temporary storage.
 
-char *
-__realpath (const char *name, char *resolved)
+   If GCC_LINT is defined, do not inline this function with GCC 10.1
+   and later, to avoid creating a pointer to the stack that GCC
+   -Wreturn-local-addr incorrectly complains about.  See:
+   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93644
+   Although the noinline attribute can hurt performance a bit, no better way
+   to pacify GCC is known; even an explicit #pragma does not pacify GCC.
+   When the GCC bug is fixed this workaround should be limited to the
+   broken GCC versions.  */
+#if __GNUC_PREREQ (10, 1)
+# if defined GCC_LINT || defined lint
+__attribute__ ((__noinline__))
+# elif __OPTIMIZE__ && !__NO_INLINE__
+#  define GCC_BOGUS_WRETURN_LOCAL_ADDR
+# endif
+#endif
+static char *
+realpath_stk (const char *name, char *resolved,
+              struct scratch_buffer *rname_buf)
 {
   char *dest;
   char const *start;
@@ -149,8 +234,6 @@ __realpath (const char *name, char *resolved)
     }
 
   struct scratch_buffer extra_buffer, link_buffer;
-  struct scratch_buffer rname_buffer;
-  struct scratch_buffer *rname_buf = &rname_buffer;
   scratch_buffer_init (&extra_buffer);
   scratch_buffer_init (&link_buffer);
   scratch_buffer_init (rname_buf);
@@ -208,7 +291,9 @@ __realpath (const char *name, char *resolved)
          name ends in '/'.  */
       idx_t startlen = end - start;
 
-      if (startlen == 1 && start[0] == '.')
+      if (startlen == 0)
+        break;
+      else if (startlen == 1 && start[0] == '.')
         /* nothing */;
       else if (startlen == 2 && start[0] == '.' && start[1] == '.')
         {
@@ -226,7 +311,8 @@ __realpath (const char *name, char *resolved)
           if (!ISSLASH (dest[-1]))
             *dest++ = '/';
 
-          while (rname + rname_buf->length - dest <= startlen)
+          while (rname + rname_buf->length - dest
+                 < startlen + sizeof dir_suffix)
             {
               idx_t dest_offset = dest - rname;
               if (!scratch_buffer_grow_preserve (rname_buf))
@@ -238,28 +324,19 @@ __realpath (const char *name, char *resolved)
           dest = __mempcpy (dest, start, startlen);
           *dest = '\0';
 
-          /* If STARTLEN == 0, RNAME ends in '/'; use stat rather than
-             readlink, because readlink might fail with EINVAL without
-             checking whether RNAME sans '/' is valid.  */
-          struct stat st;
-          char *buf = NULL;
+          char *buf;
           ssize_t n;
-          if (startlen != 0)
+          while (true)
             {
-              while (true)
-                {
-                  buf = link_buffer.data;
-                  idx_t bufsize = link_buffer.length;
-                  n = __readlink (rname, buf, bufsize - 1);
-                  if (n < bufsize - 1)
-                    break;
-                  if (!scratch_buffer_grow (&link_buffer))
-                    goto error_nomem;
-                }
-              if (n < 0)
-                buf = NULL;
+              buf = link_buffer.data;
+              idx_t bufsize = link_buffer.length;
+              n = __readlink (rname, buf, bufsize - 1);
+              if (n < bufsize - 1)
+                break;
+              if (!scratch_buffer_grow (&link_buffer))
+                goto error_nomem;
             }
-          if (buf)
+          if (0 <= n)
             {
               if (++num_links > __eloop_threshold ())
                 {
@@ -270,7 +347,7 @@ __realpath (const char *name, char *resolved)
               buf[n] = '\0';
 
               char *extra_buf = extra_buffer.data;
-              idx_t end_idx;
+              idx_t end_idx IF_LINT (= 0);
               if (end_in_extra_buffer)
                 end_idx = end - extra_buf;
               idx_t len = strlen (end);
@@ -315,8 +392,8 @@ __realpath (const char *name, char *resolved)
                     dest++;
                 }
             }
-          else if (! (startlen == 0
-                      ? stat (rname, &st) == 0 || errno == EOVERFLOW
+          else if (! (suffix_requires_dir_check (end)
+                      ? dir_check (rname, dest)
                       : errno == EINVAL))
             goto error;
         }
@@ -354,6 +431,28 @@ error_nomem:
     }
   char *result = realloc (rname, rname_size);
   return result != NULL ? result : rname;
+}
+
+/* Return the canonical absolute name of file NAME.  A canonical name
+   does not contain any ".", ".." components nor any repeated file name
+   separators ('/') or symlinks.  All file name components must exist.  If
+   RESOLVED is null, the result is malloc'd; otherwise, if the
+   canonical name is PATH_MAX chars or more, returns null with 'errno'
+   set to ENAMETOOLONG; if the name fits in fewer than PATH_MAX chars,
+   returns the name in RESOLVED.  If the name cannot be resolved and
+   RESOLVED is non-NULL, it contains the name of the first component
+   that cannot be resolved.  If the name can be resolved, RESOLVED
+   holds the same value as the value returned.  */
+
+char *
+__realpath (const char *name, char *resolved)
+{
+  #ifdef GCC_BOGUS_WRETURN_LOCAL_ADDR
+   #warning "GCC might issue a bogus -Wreturn-local-addr warning here."
+   #warning "See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93644>."
+  #endif
+  struct scratch_buffer rname_buffer;
+  return realpath_stk (name, resolved, &rname_buffer);
 }
 libc_hidden_def (__realpath)
 versioned_symbol (libc, __realpath, realpath, GLIBC_2_3);

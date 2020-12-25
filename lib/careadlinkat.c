@@ -55,8 +55,7 @@ enum { STACK_BUF_SIZE = 1024 };
 # if defined GCC_LINT || defined lint
 __attribute__ ((__noinline__))
 # elif __OPTIMIZE__ && !__NO_INLINE__
-#  warning "GCC might issue a bogus -Wreturn-local-addr warning here."
-#  warning "See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93644>."
+#  define GCC_BOGUS_WRETURN_LOCAL_ADDR
 # endif
 #endif
 static char *
@@ -180,10 +179,11 @@ careadlinkat (int fd, char const *filename,
   /* Allocate the initial buffer on the stack.  This way, in the
      common case of a symlink of small size, we get away with a
      single small malloc instead of a big malloc followed by a
-     shrinking realloc.
-
-     If GCC -Wreturn-local-addr warns about this buffer, the warning
-     is bogus; see readlink_stk.  */
+     shrinking realloc.  */
+  #ifdef GCC_BOGUS_WRETURN_LOCAL_ADDR
+   #warning "GCC might issue a bogus -Wreturn-local-addr warning here."
+   #warning "See <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=93644>."
+  #endif
   char stack_buf[STACK_BUF_SIZE];
   return readlink_stk (fd, filename, buffer, buffer_size, alloc,
                        preadlinkat, stack_buf);
