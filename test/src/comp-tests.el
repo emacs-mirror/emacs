@@ -947,7 +947,82 @@ Return a list of results."
       ((defun comp-tests-ret-type-spec-f (x)
          (unless x
            'foo))
-       (or (member foo) null))))
+       (or (member foo) null))
+
+      ;; 22
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (> x 3)
+	    x))
+       (or null (integer 4 *)))
+
+      ;; 23
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (>= x 3)
+	    x))
+       (or null (integer 3 *)))
+
+      ;; 24
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (< x 3)
+	    x))
+       (or null (integer * 2)))
+
+      ;; 25
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (<= x 3)
+	    x))
+       (or null (integer * 3)))
+
+      ;; 26
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (> 3 x)
+	    x))
+       (or null (integer * 2)))
+
+      ;; 27
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (>= 3 x)
+	    x))
+       (or null (integer * 3)))
+
+      ;; 28
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (< 3 x)
+	    x))
+       (or null (integer 4 *)))
+
+      ;; 29
+      ((defun comp-tests-ret-type-spec-f (x)
+	  (when (<= 3 x)
+	    x))
+       (or null (integer 3 *)))
+
+      ;; 30
+      ((defun comp-tests-ret-type-spec-f (x)
+         (let ((y 3))
+	   (when (> x y)
+	     x)))
+       (or null (integer 4 *)))
+
+      ;; 31
+      ((defun comp-tests-ret-type-spec-f (x)
+         (let ((y 3))
+	   (when (> y x)
+	     x)))
+       (or null (integer * 2)))
+
+      ;; 32
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (and (> x 3)
+		    (< x 10))
+	   x))
+       (or null (integer 4 9)))
+
+      ;; 33 No float range support.
+      ((defun comp-tests-ret-type-spec-f (x)
+	       (when (> x 1.0)
+	         x))
+       (or null marker number))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

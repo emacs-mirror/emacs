@@ -597,6 +597,14 @@ To be used by all entry points."
    ((null (native-comp-available-p))
     (error "Cannot find libgccjit"))))
 
+(defun comp-equality-fun-p (function)
+  "Equality functions predicate for FUNCTION."
+  (when (memq function '(eq eql = equal)) t))
+
+(defun comp-range-cmp-fun-p (function)
+  "Predicate for range comparision functions."
+  (when (memq function '(> < >= <=)) t))
+
 (defun comp-set-op-p (op)
   "Assignment predicate for OP."
   (when (memq op comp-limple-sets) t))
@@ -1876,7 +1884,10 @@ into the C code forwarding the compilation unit."
 ;; generated from:
 ;;
 ;;  - Conditional branches: each branch taken or non taken can be used
-;;    in the CFG to infer infomations on the tested variables.
+;;    in the CFG to infer information on the tested variables.
+;;
+;;  - Range propagation under test and branch (when the test is an
+;;    arithmetic comparison.)
 ;;
 ;;  - Function calls: function calls to function assumed to be not
 ;;    redefinable can be used to add constrains on the function
@@ -1907,25 +1918,58 @@ into the C code forwarding the compilation unit."
    do (cl-loop
        for insn in (comp-block-insns b)
        for (op . args) = insn
-       if  (comp-set-op-p op)
+       if (comp-assign-op-p op)
          do (comp-collect-mvars (cdr args))
        else
          do (comp-collect-mvars args))))
 
-(defun comp-emit-assume (lhs rhs bb negated)
-  "Emit an assume for mvar LHS being RHS.
+(defun comp-negate-range-cmp-fun (function)
+  "Negate FUNCTION."
+  (cl-ecase function
+    (> '<=)
+    (< '>=)
+    (>= '<)
+    (<= '>)))
+
+(defun comp-reverse-cmp-fun (function)
+  "Reverse FUNCTION."
+  (cl-case function
+    (> '<)
+    (< '>)
+    (>= '<=)
+    (<= '>=)
+    (t function)))
+
+(defun comp-emit-assume (kind lhs rhs bb negated)
+  "Emit an assume of kind KIND for mvar LHS being RHS.
 When NEGATED is non-nil the assumption is negated.
 The assume is emitted at the beginning of the block BB."
-  (let ((lhs-slot (comp-mvar-slot lhs))
-        (tmp-mvar (if negated
-                      (make-comp-mvar :slot (comp-mvar-slot rhs))
-                    rhs)))
+  (let ((lhs-slot (comp-mvar-slot lhs)))
     (cl-assert lhs-slot)
-    (push `(assume ,(make-comp-mvar :slot lhs-slot) (and ,lhs ,tmp-mvar))
-	  (comp-block-insns bb))
-    (if negated
-        (push `(assume ,tmp-mvar (not ,rhs))
-	      (comp-block-insns bb)))
+    (pcase kind
+      ('and
+       (let ((tmp-mvar (if negated
+                          (make-comp-mvar :slot (comp-mvar-slot rhs))
+                        rhs)))
+         (push `(assume ,(make-comp-mvar :slot lhs-slot)
+                        (and ,lhs ,tmp-mvar))
+	       (comp-block-insns bb))
+         (if negated
+             (push `(assume ,tmp-mvar (not ,rhs))
+	           (comp-block-insns bb)))))
+      ((pred comp-range-cmp-fun-p)
+       (let ((kind (if negated
+                       (comp-negate-range-cmp-fun kind)
+                     kind)))
+         (push `(assume ,(make-comp-mvar :slot lhs-slot)
+                        (,kind ,lhs
+                               ,(if-let* ((vld (comp-mvar-value-vld-p rhs))
+                                          (val (comp-mvar-value rhs))
+                                          (ok (integerp val)))
+                                    val
+                                  (make-comp-mvar :slot (comp-mvar-slot rhs)))))
+	       (comp-block-insns bb))))
+      (_ (cl-assert nil)))
     (setf (comp-func-ssa-status comp-func) 'dirty)))
 
 (defun comp-add-new-block-between (bb-symbol bb-a bb-b)
@@ -2012,7 +2056,7 @@ TARGET-BB-SYM is the symbol name of the target block."
         do
 	(let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
-          (comp-emit-assume tmp-mvar obj2 block-target negated))
+          (comp-emit-assume 'and tmp-mvar obj2 block-target negated))
         finally (cl-return-from in-the-basic-block)))
       (`((cond-jump ,obj1 ,obj2 . ,blocks))
        (cl-loop
@@ -2023,7 +2067,7 @@ TARGET-BB-SYM is the symbol name of the target block."
         do
 	(let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
-          (comp-emit-assume obj1 obj2 block-target negated))
+          (comp-emit-assume 'and obj1 obj2 block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-add-cond-cstrs ()
@@ -2036,26 +2080,32 @@ TARGET-BB-SYM is the symbol name of the target block."
     for insns-seq on (comp-block-insns b)
     do
     (pcase insns-seq
-      (`((set ,(and (pred comp-mvar-p) obj1)
+      (`((set ,(and (pred comp-mvar-p) cmp-res)
               (,(pred comp-call-op-p)
-               ,(or 'eq 'eql '= 'equal) ,op1 ,op2))
+               ,(and (or (pred comp-equality-fun-p)
+                         (pred comp-range-cmp-fun-p))
+                     fun)
+               ,op1 ,op2))
 	 ;; (comment ,_comment-str)
-	 (cond-jump ,obj1 ,(pred comp-mvar-p) . ,blocks))
+	 (cond-jump ,cmp-res ,(pred comp-mvar-p) . ,blocks))
        (cl-loop
         with target-mvar1 = (comp-cond-cstrs-target-mvar op1 (car insns-seq) b)
         with target-mvar2 = (comp-cond-cstrs-target-mvar op2 (car insns-seq) b)
+        with equality = (comp-equality-fun-p fun)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for negated in '(t nil)
+        for kind = (if equality 'and fun)
         when (or (comp-mvar-used-p target-mvar1)
                  (comp-mvar-used-p target-mvar2))
         do
         (let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
           (when (comp-mvar-used-p target-mvar1)
-            (comp-emit-assume target-mvar1 op2 block-target negated))
+            (comp-emit-assume kind target-mvar1 op2 block-target negated))
           (when (comp-mvar-used-p target-mvar2)
-            (comp-emit-assume target-mvar2 op1 block-target negated)))
+            (comp-emit-assume (comp-reverse-cmp-fun kind)
+                              target-mvar2 op1 block-target negated)))
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-emit-call-cstr (mvar call-cell cstr)
@@ -2610,13 +2660,21 @@ Fold the call in case."
        (_
         (comp-mvar-propagate lval rval))))
     (`(assume ,lval (,kind . ,operands))
-     (cl-ecase kind
+     (cl-case kind
        (and
         (apply #'comp-cstr-intersection lval operands))
        (not
         ;; Prevent double negation!
         (unless (comp-cstr-neg (car operands))
-          (comp-cstr-value-negation lval (car operands))))))
+          (comp-cstr-value-negation lval (car operands))))
+       (>
+        (comp-cstr-> lval (car operands) (cadr operands)))
+       (>=
+        (comp-cstr->= lval (car operands) (cadr operands)))
+       (<
+        (comp-cstr-< lval (car operands) (cadr operands)))
+       (<=
+        (comp-cstr-<= lval (car operands) (cadr operands)))))
     (`(setimm ,lval ,v)
      (setf (comp-mvar-value lval) v))
     (`(phi ,lval . ,rest)
