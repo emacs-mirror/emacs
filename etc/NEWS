@@ -2235,6 +2235,15 @@ do not support the old calling conventions any longer.
 don't contain any NUL bytes.  This avoids subtle bugs caused by
 silently using only the part of the filename until the first NUL byte.
 
+** New coding-systems for EBCDIC variants.
+New coding-systems 'ibm256', 'ibm273', 'ibm274', 'ibm277', 'ibm278',
+'ibm280', 'ibm281', 'ibm284', 'ibm285', 'ibm290', 'ibm297'.  These are
+variants of the EBCDIC encoding tailored to some European and Japanese
+locales.  They are also available as aliases 'ebcdic-cp-*' (e.g.,
+'ebcdic-cp-fi' for the Finnish variant 'ibm278'), and 'cp2xx' (e.g.,
+'cp278' for 'ibm278').  There are also new charsets 'ibm2xx' to
+support these coding-systems.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
