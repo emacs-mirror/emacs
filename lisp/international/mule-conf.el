@@ -1081,8 +1081,6 @@
   :code-space [0 255]
   :mime-charset 'ibm256
   :map "IBM256")
-(define-charset-alias 'ebcdic-int1 'ibm256)
-(define-charset-alias 'cp256 'ibm256)
 
 (define-charset 'ibm273
   "Austrian / German version of EBCDIC"
@@ -1090,7 +1088,6 @@
   :code-space [0 255]
   :mime-charset 'ibm273
   :map "IBM273")
-(define-charset-alias 'cp273 'ibm273)
 
 (define-charset 'ibm274
   "Belgian version of EBCDIC"
@@ -1098,8 +1095,6 @@
   :code-space [0 255]
   :mime-charset 'ibm274
   :map "IBM274")
-(define-charset-alias 'ebcdic-be 'ibm274)
-(define-charset-alias 'cp274 'ibm274)
 
 (define-charset 'ibm275
   "Brazilian version of EBCDIC"
@@ -1107,8 +1102,6 @@
   :code-space [0 255]
   :mime-charset 'ibm275
   :map "IBM275")
-(define-charset-alias 'ebcdic-br 'ibm275)
-(define-charset-alias 'cp275 'ibm275)
 
 (define-charset 'ibm277
   "Danish / Norwegian version of EBCDIC"
@@ -1116,9 +1109,6 @@
   :code-space [0 255]
   :mime-charset 'ibm277
   :map "IBM277")
-(define-charset-alias 'ebcdic-cp-dk 'ibm277)
-(define-charset-alias 'ebcdic-cp-no 'ibm277)
-(define-charset-alias 'cp277 'ibm277)
 
 (define-charset 'ibm278
   "Finnish / Swedish version of EBCDIC"
@@ -1126,9 +1116,6 @@
   :code-space [0 255]
   :mime-charset 'ibm278
   :map "IBM278")
-(define-charset-alias 'ebcdic-cp-fi 'ibm278)
-(define-charset-alias 'ebcdic-cp-se 'ibm278)
-(define-charset-alias 'cp278 'ibm278)
 
 (define-charset 'ibm280
   "Italian version of EBCDIC"
@@ -1136,8 +1123,6 @@
   :code-space [0 255]
   :mime-charset 'ibm270
   :map "IBM280")
-(define-charset-alias 'ebcdic-cp-it 'ibm280)
-(define-charset-alias 'cp280 'ibm280)
 
 (define-charset 'ibm281
   "Japanese-E version of EBCDIC"
@@ -1145,8 +1130,6 @@
   :code-space [0 255]
   :mime-charset 'ibm281
   :map "IBM281")
-(define-charset-alias 'ebcdic-jp-e 'ibm281)
-(define-charset-alias 'cp281 'ibm281)
 
 (define-charset 'ibm284
   "Spanish version of EBCDIC"
@@ -1154,8 +1137,6 @@
   :code-space [0 255]
   :mime-charset 'ibm284
   :map "IBM284")
-(define-charset-alias 'ebcdic-cp-es 'ibm284)
-(define-charset-alias 'cp284 'ibm284)
 
 (define-charset 'ibm285
   "UK english version of EBCDIC"
@@ -1163,8 +1144,6 @@
   :code-space [0 255]
   :mime-charset 'ibm285
   :map "IBM285")
-(define-charset-alias 'ebcdic-cp-gb 'ibm285) ;; how this differs from ebcdic-uk?
-(define-charset-alias 'cp285 'ibm285)
 
 (define-charset 'ibm290
   "Japanese katakana version of EBCDIC"
@@ -1172,8 +1151,6 @@
   :code-space [0 255]
   :mime-charset 'ibm290
   :map "IBM290")
-(define-charset-alias 'ebcdic-jp-kana 'ibm290)
-(define-charset-alias 'cp290 'ibm290)
 
 (define-charset 'ibm297
   "French version of EBCDIC"
@@ -1181,8 +1158,6 @@
   :code-space [0 255]
   :mime-charset 'ibm297
   :map "IBM297")
-(define-charset-alias 'ebcdic-cp-fr 'ibm297)
-(define-charset-alias 'cp297 'ibm297)
 
 (define-charset 'ibm1047
   ;; Says groff:

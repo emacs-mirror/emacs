@@ -347,6 +347,14 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
 (define-coding-system-alias 'ebcdic-be 'ibm274)
 (define-coding-system-alias 'cp274 'ibm274)
 
+(define-coding-system 'ibm275
+  "Brazilian version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm275)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-br 'ibm275)
+(define-coding-system-alias 'cp275 'ibm275)
+
 (define-coding-system 'ibm277
   "Danish / Norwegian version of EBCDIC"
   :coding-type 'charset
