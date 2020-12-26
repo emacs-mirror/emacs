@@ -2474,7 +2474,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
       (pcase insn
         (`(,(pred comp-assign-op-p) ,(pred targetp) . ,_)
          (let ((mvar (aref frame slot-n)))
-           (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn))))
+           (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))
          (new-lvalue))
         (`(fetch-handler . ,_)
          ;; Clobber all no matter what!
