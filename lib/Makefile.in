@@ -67,7 +67,7 @@ endif
 
 DEPDIR = deps
 ifeq ($(AUTO_DEPEND),yes)
-  DEPFLAGS = -MMD -MF $(DEPDIR)/$(*F).d -MP
+  DEPFLAGS = -MMD -MF $(DEPDIR)/$*.d -MP
   -include $(ALLOBJS:%.o=$(DEPDIR)/%.d)
 else
   DEPFLAGS =
@@ -118,7 +118,7 @@ TAGS: $(ETAGS) $(tagsfiles)
 .PHONY: $(ETAGS) tags
 
 clean:
-	rm -f ./*.[ao] ./*-t \#* $(DEPDIR)/*
+	rm -f ./*.[ao] ./*/*.o ./*-t \#* $(DEPDIR)/*.d $(DEPDIR)/*/*.d
 mostlyclean: clean
 	rm -f $(filter-out %-t,$(MOSTLYCLEANFILES))
 distclean bootstrap-clean: mostlyclean
@@ -127,7 +127,7 @@ distclean bootstrap-clean: mostlyclean
 maintainer-clean: distclean
 	rm -f TAGS gnulib.mk
 extraclean: distclean
-	-rmdir sys 2>/dev/null
+	-rmdir malloc sys 2>/dev/null
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
