@@ -901,6 +901,7 @@ status of its latest version.
 @menu
 * Origin of the term Emacs::
 * Latest version of Emacs::
+* New in Emacs 27::
 * New in Emacs 26::
 * New in Emacs 25::
 * New in Emacs 24::
@@ -951,7 +952,7 @@ conventions}).
 Emacs @value{EMACSVER} is the current version as of this writing.  A version
 number with two components (e.g., @samp{24.5}) indicates a released
 version; three components indicate a development
-version (e.g., @samp{27.0.50} is what will eventually become @samp{27.1}).
+version (e.g., @samp{28.0.50} is what will eventually become @samp{28.1}).
 
 Emacs is under active development, hosted at
 @uref{https://savannah.gnu.org/projects/emacs/, Savannah}.
@@ -969,6 +970,63 @@ few Emacs releases.  For full details of the changes in any version of
 Emacs, type @kbd{C-h C-n} (@kbd{M-x view-emacs-news}).  You can give
 this command a prefix argument to read about which features were new
 in older versions.
+
+@node New in Emacs 27
+@section What is different about Emacs 27?
+@cindex Differences between Emacs 26 and Emacs 27
+@cindex Emacs 27, new features in
+
+@itemize
+@cindex bignum support
+@item
+Emacs now uses the GNU Multiple Precision (@acronym{GMP}) library to
+support integers whose size is too large to support natively.  The
+integers supported natively are known as ``fixnums'', while the larger
+ones are ``bignums''.  All the arithmetic, comparison, and logical
+(also known as ``bitwise'') operations where bignums make sense now
+support both fixnums and bignums.
+
+@cindex HarfBuzz
+@item
+Emacs now uses HarfBuzz as its default shaping engine.
+
+@cindex JSON, native parsing
+@item
+Native support for @acronym{JSON} parsing that is much faster than
+@file{json.el}.
+
+@item
+Cairo drawing is no longer experimental.
+
+@cindex portable dumper
+@item
+Emacs now uses a ``portable dumper'' instead of unexec.  This improves
+compatibility with memory allocation on modern systems, and in
+particular better supports the Address Space Layout Randomization
+(@acronym{ASLR}) feature, a security technique used by most modern
+operating systems.
+
+@cindex XDG convention
+@item
+Emacs can now use the @acronym{XDG} convention for init files.
+
+@cindex early init file
+@item
+Emacs can now be configured using an early init file.  The primary
+purpose is to allow customizing how the package system is initialized
+given that initialization now happens before loading the regular init
+file.
+
+@cindex tabs
+@item
+Built-in support for tabs (tab bar and tab line).
+
+@item
+Support for resizing and rotating of images without ImageMagick.
+@end itemize
+
+Consult the Emacs @file{NEWS} file (@kbd{C-h n}) for the full list of
+changes in Emacs 27.
 
 @node New in Emacs 26
 @section What is different about Emacs 26?

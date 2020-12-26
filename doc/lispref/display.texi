@@ -5904,7 +5904,13 @@ string containing the image data as raw bytes.  @var{image-type} should be a
 To @var{svg} add an embedded (raster) image placed at
 @var{relative-filename}.  @var{relative-filename} is searched inside
 @code{file-name-directory} of the @code{:base-uri} svg image property.
-This improves the performance of embedding large images.
+@code{:base-uri} specifies a (possibly non-existing) file name of the
+svg image to be created, thus all the embedded files are searched
+relatively to the @code{:base-uri} filename's directory.  If
+@code{:base-uri} is ommited, then filename from where svg image is
+loaded is used.  Using @code{:base-uri} improves the performance of
+embedding large images, comparing to @code{svg-embed}, because all the
+work is done directly by librsvg.
 
 @lisp
 ;; Embeding /tmp/subdir/rms.jpg and /tmp/another/rms.jpg

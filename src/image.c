@@ -1904,37 +1904,61 @@ which is then usually a filename.  */)
 }
 
 static size_t
+image_size_in_bytes (struct image *img)
+{
+  size_t size = 0;
+
+#if defined USE_CAIRO
+  Emacs_Pixmap pm = img->pixmap;
+  if (pm)
+    size += pm->height * pm->bytes_per_line;
+  Emacs_Pixmap msk = img->mask;
+  if (msk)
+    size += msk->height * msk->bytes_per_line;
+
+#elif defined HAVE_X_WINDOWS
+  /* Use a nominal depth of 24 bpp for pixmap and 1 bpp for mask,
+     to avoid having to query the server. */
+  if (img->pixmap != NO_PIXMAP)
+    size += img->width * img->height * 3;
+  if (img->mask != NO_PIXMAP)
+    size += img->width * img->height / 8;
+
+  if (img->ximg && img->ximg->data)
+    size += img->ximg->bytes_per_line * img->ximg->height;
+  if (img->mask_img && img->mask_img->data)
+    size += img->mask_img->bytes_per_line * img->mask_img->height;
+
+#elif defined HAVE_NS
+  if (img->pixmap)
+    size += ns_image_size_in_bytes (img->pixmap);
+  if (img->mask)
+    size += ns_image_size_in_bytes (img->mask);
+
+#elif defined HAVE_NTGUI
+  if (img->pixmap)
+    size += w32_image_size (img->pixmap);
+  if (img->mask)
+    size += w32_image_size (img->mask);
+
+#endif
+
+  return size;
+}
+
+static size_t
 image_frame_cache_size (struct frame *f)
 {
+  struct image_cache *c = FRAME_IMAGE_CACHE (f);
+  if (!c)
+    return 0;
+
   size_t total = 0;
-#if defined USE_CAIRO
-  struct image_cache *c = FRAME_IMAGE_CACHE (f);
-
-  if (!c)
-    return 0;
-
   for (ptrdiff_t i = 0; i < c->used; ++i)
     {
       struct image *img = c->images[i];
-
-      if (img && img->pixmap && img->pixmap != NO_PIXMAP)
-	total += img->pixmap->width * img->pixmap->height  *
-	  img->pixmap->bits_per_pixel / 8;
+      total += img ? image_size_in_bytes (img) : 0;
     }
-#elif defined HAVE_NTGUI
-  struct image_cache *c = FRAME_IMAGE_CACHE (f);
-
-  if (!c)
-    return 0;
-
-  for (ptrdiff_t i = 0; i < c->used; ++i)
-    {
-      struct image *img = c->images[i];
-
-      if (img && img->pixmap && img->pixmap != NO_PIXMAP)
-	total += w32_image_size (img);
-    }
-#endif
   return total;
 }
 
@@ -2501,7 +2525,7 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec);
-  img = search_image_cache (f, spec, hash, foreground, background, true);
+  img = search_image_cache (f, spec, hash, foreground, background, false);
   if (img && img->load_failed_p)
     {
       free_image (f, img);
@@ -9897,8 +9921,9 @@ svg_load (struct frame *f, struct image *img)
 	}
       /* If the file was slurped into memory properly, parse it.  */
       if (!STRINGP (base_uri))
-        base_uri = ENCODE_FILE (file);
-      success_p = svg_load_image (f, img, contents, size, SSDATA (base_uri));
+        base_uri = file;
+      success_p = svg_load_image (f, img, contents, size,
+                                  SSDATA (ENCODE_FILE (base_uri)));
       xfree (contents);
     }
   /* Else it's not a file, it's a Lisp object.  Load the image from a
@@ -9916,7 +9941,8 @@ svg_load (struct frame *f, struct image *img)
       if (!STRINGP (base_uri))
         base_uri = BVAR (current_buffer, filename);
       success_p = svg_load_image (f, img, SSDATA (data), SBYTES (data),
-                                  (NILP (base_uri) ? NULL : SSDATA (base_uri)));
+                                  (STRINGP (base_uri) ?
+                                   SSDATA (ENCODE_FILE (base_uri)) : NULL));
     }
 
   return success_p;

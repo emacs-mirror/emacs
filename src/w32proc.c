@@ -3019,9 +3019,9 @@ reset_standard_handles (int in, int out, int err, HANDLE handles[3])
 }
 
 void
-set_process_dir (char * dir)
+set_process_dir (const char * dir)
 {
-  process_dir = dir;
+  process_dir = (char *) dir;
 }
 
 /* To avoid problems with winsock implementations that work over dial-up

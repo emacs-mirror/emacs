@@ -825,40 +825,45 @@ correspond to previously loaded files (those returned by
 
 (declare-function find-library-name "find-func" (library))
 
+(defun package--files-load-history ()
+  (delq nil
+        (mapcar (lambda (x)
+                  (let ((f (car x)))
+                    (and (stringp f)
+                         (file-name-sans-extension (file-truename f)))))
+                load-history)))
+
+(defun package--list-of-conflicts (dir history)
+   (delq
+    nil
+    (mapcar
+     (lambda (x) (let* ((file (file-relative-name x dir))
+                        ;; Previously loaded file, if any.
+                        (previous
+                         (ignore-errors
+                           (file-name-sans-extension
+                            (file-truename (find-library-name file)))))
+                        (pos (when previous (member previous history))))
+                   ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
+                   (when pos
+                     (cons (file-name-sans-extension file) (length pos)))))
+     (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))))
+
 (defun package--list-loaded-files (dir)
   "Recursively list all files in DIR which correspond to loaded features.
 Returns the `file-name-sans-extension' of each file, relative to
 DIR, sorted by most recently loaded last."
-  (let* ((history (delq nil
-                        (mapcar (lambda (x)
-                                  (let ((f (car x)))
-                                    (and (stringp f)
-                                         (file-name-sans-extension f))))
-                                load-history)))
+  (let* ((history (package--files-load-history))
          (dir (file-truename dir))
          ;; List all files that have already been loaded.
-         (list-of-conflicts
-          (delq
-           nil
-           (mapcar
-               (lambda (x) (let* ((file (file-relative-name x dir))
-                             ;; Previously loaded file, if any.
-                             (previous
-                              (ignore-errors
-                                (file-name-sans-extension
-                                 (file-truename (find-library-name file)))))
-                             (pos (when previous (member previous history))))
-                        ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
-                        (when pos
-                          (cons (file-name-sans-extension file) (length pos)))))
-             (directory-files-recursively dir "\\`[^\\.].*\\.el\\'")))))
+         (list-of-conflicts (package--list-of-conflicts dir history)))
     ;; Turn the list of (FILENAME . POS) back into a list of features.  Files in
     ;; subdirectories are returned relative to DIR (so not actually features).
     (let ((default-directory (file-name-as-directory dir)))
       (mapcar (lambda (x) (file-truename (car x)))
-        (sort list-of-conflicts
-              ;; Sort the files by ascending HISTORY-POSITION.
-              (lambda (x y) (< (cdr x) (cdr y))))))))
+              (sort list-of-conflicts
+                    ;; Sort the files by ascending HISTORY-POSITION.
+                    (lambda (x y) (< (cdr x) (cdr y))))))))
 
 ;;;; `package-activate'
 ;; This function activates a newer version of a package if an older

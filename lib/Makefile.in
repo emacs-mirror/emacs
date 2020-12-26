@@ -92,7 +92,7 @@ libegnu_a_OBJECTS = $(patsubst %.o,e-%.o,$(for_emacs_OBJECTS))
 $(libegnu_a_OBJECTS) $(libgnu_a_OBJECTS): $(BUILT_SOURCES)
 
 .c.o:
-	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
+	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -o $@ $<
 e-%.o: %.c
 	$(AM_V_CC)$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -Demacs -o $@ $<
 
@@ -118,7 +118,7 @@ TAGS: $(ETAGS) $(tagsfiles)
 .PHONY: $(ETAGS) tags
 
 clean:
-	rm -f ./*.[ao] ./*-t \#* $(DEPDIR)/*
+	rm -f ./*.[ao] ./*/*.o ./*-t \#* $(DEPDIR)/*.d $(DEPDIR)/*/*.d
 mostlyclean: clean
 	rm -f $(filter-out %-t,$(MOSTLYCLEANFILES))
 distclean bootstrap-clean: mostlyclean
@@ -127,7 +127,7 @@ distclean bootstrap-clean: mostlyclean
 maintainer-clean: distclean
 	rm -f TAGS gnulib.mk
 extraclean: distclean
-	-rmdir sys 2>/dev/null
+	-rmdir malloc sys 2>/dev/null
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 

@@ -1033,8 +1033,7 @@ necessary.  If nil, the buffer name is generated."
 	    (when (funcall (nth 1 (assq stream imap-stream-alist)) buffer)
 	      ;; Stream changed?
 	      (if (not (eq imap-default-stream stream))
-		  (with-current-buffer (get-buffer-create
-					(generate-new-buffer-name " *temp*"))
+                  (with-current-buffer (generate-new-buffer " *temp*")
 		    (mapc 'make-local-variable imap-local-variables)
 		    (set-buffer-multibyte nil)
 		    (buffer-disable-undo)

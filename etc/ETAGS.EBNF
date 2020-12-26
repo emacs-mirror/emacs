@@ -52,7 +52,7 @@ pattern ::= regstring			   /* a tag pattern */
 
 tagname ::= regchar regstring		   /* a tag name */
 
-position ::= realposition | "," 	   /* charpos,linepos */
+position ::= realposition | "," 	   /* linepos,charpos */
 
 realposition ::= "," unsint | unsint "," | unsint "," unsint
 

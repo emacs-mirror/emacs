@@ -303,6 +303,14 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
++++
+** profiler.el
+The results displayed by 'profiler-report' now have the usage figures
+at the left hand side followed by the function name.  This is intended
+to make better use of the horizontal space, in particular eliminating
+the truncation of function names.  There is no way to get the former
+layout back.
+
 ** Loading dunnet.el in batch mode doesn't start the game any more.
 Instead you need to do "emacs -f dun-batch" to start the game in
 batch mode.
@@ -374,6 +382,18 @@ value of 'tab-bar-show'.
 *** The tabs in the tab line can now be scrolled using horizontal scroll.
 If your mouse or trackpad supports it, you can now scroll tabs when
 the mouse pointer is in the tab line by scrolling left or right.
+
+---
+*** New tab-line faces and options.
+The face 'tab-line-tab-special' is used for tabs whose buffers are
+special, i.e. not file-backed.  The face
+'tab-line-tab-inactive-alternate' is used to display inactive tabs
+with an alternating background color, making them easier to
+distinguish between, especially if the face 'tab-line-tab' is
+configured to not display with a box; this alternate face is only
+applied when the option 'tab-line-tab-face-functions' is
+so-configured.  That option may also be used to customize tab-line
+faces in other ways.
 
 ** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
@@ -870,7 +890,7 @@ preferred over the eudcb-mab.el backend.
 ** Tramp
 
 +++
-*** New connection method "media", which allows accessing media devices
+*** New connection method "mtp", which allows accessing media devices
 like cell phones, tablets or cameras.
 
 +++
@@ -1440,6 +1460,18 @@ that makes it a valid button.
 
 ** Miscellaneous
 
+---
+*** 'remove-hook' is now an interactive command.
+
+---
+*** New user option 'authinfo-hide-elements'.
+This can be set to nil to inhibit hiding passwords in ".authinfo" files.
+
++++
+*** A number of new string manipulation functions have been added.
+'string-clean-whitespace', 'string-fill', 'string-limit',
+'string-lines', 'string-pad' and 'string-chop-newline'.
+
 +++
 *** New variable 'current-minibuffer-command'.
 This is like 'this-command', but it is bound recursively when entering
@@ -1482,7 +1514,7 @@ This new option allows the user to customize how case is converted
 when unifying entries.
 
 ---
-*** The user option `bibtex-maintain-sorted-entries' now permits
+*** The user option 'bibtex-maintain-sorted-entries' now permits
 user-defined sorting schemes.
 
 +++
@@ -1821,6 +1853,13 @@ modifies the string's text properties; instead, it uses and returns
 a copy of the string.  This helps avoid trouble when strings are
 shared or constants.
 
++++
+** Temporary buffers no longer run certain buffer hooks.
+The macros 'with-temp-buffer' and 'with-temp-file' no longer run the
+hooks 'kill-buffer-hook', 'kill-buffer-query-functions', and
+'buffer-list-update-hook' for the temporary buffers they create.  This
+avoids slowing them down when a lot of these hooks are defined.
+
 ---
 ** The obsolete function 'thread-alive-p' has been removed.
 
@@ -1970,7 +2009,7 @@ used in.
 +++
 ** 'truncate-string-ellipsis' now uses '…' by default.
 Modes that use 'truncate-string-to-width' with non-nil, non-string
-argument 'ellipsis', will now indicate truncation using '…' when
+argument ELLIPSIS, will now indicate truncation using '…' when
 the selected frame can display it, and using "..." otherwise.
 
 +++
@@ -2007,7 +2046,7 @@ of its file argument.
 
 +++
 ** New utility function 'directory-empty-p'.
-This predicate tests whether a given filename is an accessible
+This predicate tests whether a given file name is an accessible
 directory and whether it contains no other directories or files.
 
 +++
@@ -2163,6 +2202,7 @@ and 'play-sound-file'.
 If this variable is non-nil, character syntax is used for printing
 numbers when this makes sense, such as '?A' for 65.
 
++++
 ** New error 'remote-file-error', a subcategory of 'file-error'.
 It is signaled if a remote file operation fails due to internal
 reasons, and could block Emacs.  It does not replace 'file-error'
@@ -2175,7 +2215,34 @@ Until it is solved you could ignore such errors by performing
 
     (setq debug-ignored-errors (cons 'remote-file-error debug-ignored-errors))
 
++++
 ** The error 'ftp-error' belongs also to category 'remote-file-error'.
+
++++
+** Buffers can now be created with certain hooks disabled.
+The functions 'get-buffer-create' and 'generate-new-buffer' accept a
+new optional argument INHIBIT-BUFFER-HOOKS.  If non-nil, the new
+buffer does not run the hooks 'kill-buffer-hook',
+'kill-buffer-query-functions', and 'buffer-list-update-hook'.  This
+avoids slowing down internal or temporary buffers that are never
+presented to users or passed on to other applications.
+
+---
+** 'start-process-shell-command' and 'start-file-process-shell-command'
+do not support the old calling conventions any longer.
+
+** Functions operating on local file names now check that the file names
+don't contain any NUL bytes.  This avoids subtle bugs caused by
+silently using only the part of the file name until the first NUL byte.
+
+** New coding-systems for EBCDIC variants.
+New coding-systems 'ibm256', 'ibm273', 'ibm274', 'ibm277', 'ibm278',
+'ibm280', 'ibm281', 'ibm284', 'ibm285', 'ibm290', 'ibm297'.  These are
+variants of the EBCDIC encoding tailored to some European and Japanese
+locales.  They are also available as aliases 'ebcdic-cp-*' (e.g.,
+'ebcdic-cp-fi' for the Finnish variant 'ibm278'), and 'cp2xx' (e.g.,
+'cp278' for 'ibm278').  There are also new charsets 'ibm2xx' to
+support these coding-systems.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

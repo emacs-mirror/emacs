@@ -3050,7 +3050,6 @@ file_accessible_directory_p (Lisp_Object file)
   ptrdiff_t len = SBYTES (file);
   char const *dir;
   bool ok;
-  int saved_errno;
   USE_SAFE_ALLOCA;
 
   /* Normally a file "FOO" is an accessible directory if "FOO/." exists.
@@ -3075,9 +3074,7 @@ file_accessible_directory_p (Lisp_Object file)
     }
 
   ok = file_access_p (dir, F_OK);
-  saved_errno = errno;
   SAFE_FREE ();
-  errno = saved_errno;
   return ok;
 #endif	/* !DOS_NT */
 }
@@ -4004,7 +4001,7 @@ by calling `format-decode', which see.  */)
 
 		  record_unwind_current_buffer ();
 
-		  workbuf = Fget_buffer_create (name);
+		  workbuf = Fget_buffer_create (name, Qt);
 		  buf = XBUFFER (workbuf);
 
 		  delete_all_overlays (buf);
@@ -5752,7 +5749,7 @@ auto_save_error (Lisp_Object error_val)
   Lisp_Object msg = CALLN (Fformat, format, BVAR (current_buffer, name),
 			   Ferror_message_string (error_val));
   call3 (intern ("display-warning"),
-         intern ("auto-save"), msg, intern ("error"));
+         intern ("auto-save"), msg, intern (":error"));
 
   return Qnil;
 }

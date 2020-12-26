@@ -5541,9 +5541,8 @@ ns_term_init (Lisp_Object display_name)
     /* There are 752 colors defined in rgb.txt.  */
     if ( cl == nil || [[cl allKeys] count] < 752)
       {
-        Lisp_Object color_file, color_map, color;
+        Lisp_Object color_file, color_map, color, name;
         unsigned long c;
-        char *name;
 
         color_file = Fexpand_file_name (build_string ("rgb.txt"),
                          Fsymbol_value (intern ("data-directory")));
@@ -5556,14 +5555,14 @@ ns_term_init (Lisp_Object display_name)
         for ( ; CONSP (color_map); color_map = XCDR (color_map))
           {
             color = XCAR (color_map);
-            name = SSDATA (XCAR (color));
+            name = XCAR (color);
             c = XFIXNUM (XCDR (color));
             [cl setColor:
                   [NSColor colorForEmacsRed: RED_FROM_ULONG (c) / 255.0
                                       green: GREEN_FROM_ULONG (c) / 255.0
                                        blue: BLUE_FROM_ULONG (c) / 255.0
                                       alpha: 1.0]
-                  forKey: [NSString stringWithUTF8String: name]];
+                  forKey: [NSString stringWithLispString: name]];
           }
 
         /* FIXME: Report any errors writing the color file below.  */
@@ -7619,8 +7618,7 @@ not_in_argv (NSString *arg)
     [self registerForDraggedTypes: ns_drag_types];
 
   tem = f->name;
-  name = [NSString stringWithUTF8String:
-                   NILP (tem) ? "Emacs" : SSDATA (tem)];
+  name = NILP (tem) ? @"Emacs" : [NSString stringWithLispString:tem];
   [win setTitle: name];
 
   /* toolbar support */

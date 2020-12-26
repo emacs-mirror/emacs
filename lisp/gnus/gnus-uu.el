@@ -1587,8 +1587,7 @@ Gnus might fail to display all of it.")
 	  (save-excursion
 	    (switch-to-buffer (current-buffer))
 	    (delete-other-windows)
-	    (let ((buffer (get-buffer-create (generate-new-buffer-name
-					      "*Warning*"))))
+            (let ((buffer (generate-new-buffer "*Warning*")))
 	      (unless
 		  (unwind-protect
 		      (with-current-buffer buffer

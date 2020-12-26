@@ -77,6 +77,14 @@
 # define isblank(ch) ((ch) == ' ' || (ch) == '\t')
 #endif
 
+/* regex code assumes isascii has its usual numeric meaning,
+   even if the portable character set uses EBCDIC encoding,
+   and even if wint_t is wider than int.  */
+#ifndef _LIBC
+# undef isascii
+# define isascii(c) (((c) & ~0x7f) == 0)
+#endif
+
 #ifdef _LIBC
 # ifndef _RE_DEFINE_LOCALE_FUNCTIONS
 #  define _RE_DEFINE_LOCALE_FUNCTIONS 1

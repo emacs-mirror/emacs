@@ -34,7 +34,8 @@ GNULIB_MODULES='
   d-type diffseq double-slash-root dtoastr dtotimespec dup2
   environ execinfo explicit_bzero faccessat
   fchmodat fcntl fcntl-h fdopendir
-  filemode filename filevercmp flexmember fpieee fstatat fsusage fsync futimens
+  filemode filename filevercmp flexmember fpieee
+  free-posix fstatat fsusage fsync futimens
   getloadavg getopt-gnu getrandom gettime gettimeofday gitlog-to-changelog
   ieee754-h ignore-value intprops largefile libgmp lstat
   manywarnings memmem-simple mempcpy memrchr minmax mkostemp mktime nstrftime

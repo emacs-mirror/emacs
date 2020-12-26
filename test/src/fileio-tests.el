@@ -155,3 +155,9 @@ Also check that an encoding error can appear in a symlink."
     (write-region "hello\n" nil f nil 'silent)
     (should-error (insert-file-contents f) :type 'circular-list)
     (delete-file f)))
+
+(ert-deftest fileio-tests/null-character ()
+  (should-error (file-exists-p "/foo\0bar")
+                :type 'wrong-type-argument))
+
+;;; fileio-tests.el ends here

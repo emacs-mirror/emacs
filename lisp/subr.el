@@ -1742,7 +1742,32 @@ FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
 list of hooks to run in HOOK, then nothing is done.  See `add-hook'.
 
 The optional third argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value."
+the hook's buffer-local value rather than its default value.
+
+Interactively, prompt for the various arguments (skipping local
+unless HOOK has both local and global functions).  If multiple
+functions have the same representation under `princ', the first
+one will be removed."
+  (interactive
+   (let* ((hook (intern (completing-read "Hook variable: " obarray #'boundp t)))
+          (local
+           (and
+            (local-variable-p hook)
+            (symbol-value hook)
+            ;; No need to prompt if there's nothing global
+            (or (not (default-value hook))
+                (y-or-n-p (format "%s has a buffer-local binding, use that? "
+                                  hook)))))
+          (fn-alist (mapcar
+                     (lambda (x) (cons (with-output-to-string (prin1 x)) x))
+                     (if local (symbol-value hook) (default-value hook))))
+          (function (alist-get (completing-read
+                                (format "%s hook to remove: "
+                                        (if local "Buffer-local" "Global"))
+                                fn-alist
+                                nil t)
+                               fn-alist nil nil 'string=)))
+     (list hook function local)))
   (or (boundp hook) (set hook nil))
   (or (default-boundp hook) (set-default hook nil))
   ;; Do nothing if LOCAL is t but this hook has no local binding.
@@ -2719,6 +2744,15 @@ floating point support."
 	    (push (cons t read) unread-command-events)
 	    nil))))))
 
+(defun goto-char--read-natnum-interactive (prompt)
+  "Get a natural number argument, optionally prompting with PROMPT.
+If there is a natural number at point, use it as default."
+  (if (and current-prefix-arg (not (consp current-prefix-arg)))
+      (list (prefix-numeric-value current-prefix-arg))
+    (let* ((number (number-at-point))
+           (default (and (natnump number) number)))
+      (list (read-number prompt (list default (point)))))))
+
 
 (defvar read-char-history nil
   "The default history for the `read-char-from-minibuffer' function.")
@@ -2819,15 +2853,6 @@ There is no need to explicitly add `help-char' to CHARS;
     ;; Display the question with the answer.
     (message "%s%s" prompt (char-to-string char))
     char))
-
-(defun goto-char--read-natnum-interactive (prompt)
-  "Get a natural number argument, optionally prompting with PROMPT.
-If there is a natural number at point, use it as default."
-  (if (and current-prefix-arg (not (consp current-prefix-arg)))
-      (list (prefix-numeric-value current-prefix-arg))
-    (let* ((number (number-at-point))
-           (default (and (natnump number) number)))
-      (list (read-number prompt default)))))
 
 
 ;; Behind display-popup-menus-p test.
@@ -3560,7 +3585,7 @@ Do nothing if FACE is nil."
 
 ;;;; Synchronous shell commands.
 
-(defun start-process-shell-command (name buffer &rest args)
+(defun start-process-shell-command (name buffer command)
   "Start a program in a subprocess.  Return the process object for it.
 NAME is name for process.  It is modified if necessary to make it unique.
 BUFFER is the buffer (or buffer name) to associate with the process.
@@ -3568,27 +3593,18 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-COMMAND is the shell command to run.
-
-An old calling convention accepted any number of arguments after COMMAND,
-which were just concatenated to COMMAND.  This is still supported but strongly
-discouraged."
-  (declare (advertised-calling-convention (name buffer command) "23.1"))
+COMMAND is the shell command to run."
   ;; We used to use `exec' to replace the shell with the command,
   ;; but that failed to handle (...) and semicolon, etc.
-  (start-process name buffer shell-file-name shell-command-switch
-		 (mapconcat 'identity args " ")))
+  (start-process name buffer shell-file-name shell-command-switch command))
 
-(defun start-file-process-shell-command (name buffer &rest args)
+(defun start-file-process-shell-command (name buffer command)
   "Start a program in a subprocess.  Return the process object for it.
 Similar to `start-process-shell-command', but calls `start-file-process'."
-  (declare (advertised-calling-convention (name buffer command) "23.1"))
   ;; On remote hosts, the local `shell-file-name' might be useless.
   (with-connection-local-variables
    (start-file-process
-    name buffer
-    shell-file-name shell-command-switch
-    (mapconcat 'identity args " "))))
+    name buffer shell-file-name shell-command-switch command)))
 
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -3701,10 +3717,11 @@ also `with-temp-buffer'."
   (when (window-live-p (nth 1 state))
     (select-window (nth 1 state) 'norecord)))
 
-(defun generate-new-buffer (name)
+(defun generate-new-buffer (name &optional inhibit-buffer-hooks)
   "Create and return a buffer with a name based on NAME.
-Choose the buffer's name using `generate-new-buffer-name'."
-  (get-buffer-create (generate-new-buffer-name name)))
+Choose the buffer's name using `generate-new-buffer-name'.
+See `get-buffer-create' for the meaning of INHIBIT-BUFFER-HOOKS."
+  (get-buffer-create (generate-new-buffer-name name) inhibit-buffer-hooks))
 
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.
@@ -3866,12 +3883,14 @@ See the related form `with-temp-buffer-window'."
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.
+The buffer does not run the hooks `kill-buffer-hook',
+`kill-buffer-query-functions', and `buffer-list-update-hook'.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
   (let ((temp-file (make-symbol "temp-file"))
 	(temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-file ,file)
-	   (,temp-buffer (generate-new-buffer " *temp file*")))
+           (,temp-buffer (generate-new-buffer " *temp file*" t)))
        (unwind-protect
 	   (prog1
 	       (with-current-buffer ,temp-buffer
@@ -3906,10 +3925,12 @@ Use a MESSAGE of \"\" to temporarily clear the echo area."
 
 (defmacro with-temp-buffer (&rest body)
   "Create a temporary buffer, and evaluate BODY there like `progn'.
+The buffer does not run the hooks `kill-buffer-hook',
+`kill-buffer-query-functions', and `buffer-list-update-hook'.
 See also `with-temp-file' and `with-output-to-string'."
   (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
-    `(let ((,temp-buffer (generate-new-buffer " *temp*")))
+    `(let ((,temp-buffer (generate-new-buffer " *temp*" t)))
        ;; `kill-buffer' can change current-buffer in some odd cases.
        (with-current-buffer ,temp-buffer
          (unwind-protect
@@ -3944,7 +3965,7 @@ of that nature."
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
   (declare (indent 0) (debug t))
-  `(let ((standard-output (generate-new-buffer " *string-output*")))
+  `(let ((standard-output (generate-new-buffer " *string-output*" t)))
      (unwind-protect
 	 (progn
 	   (let ((standard-output standard-output))

@@ -2391,6 +2391,15 @@ This flag indicates that narrowing has changed in the buffer.
 This flag indicates that redisplay optimizations should not be used to
 display this buffer.
 
+@item inhibit_buffer_hooks
+This flag indicates that the buffer should not run the hooks
+@code{kill-buffer-hook}, @code{kill-buffer-query-functions}
+(@pxref{Killing Buffers}), and @code{buffer-list-update-hook}
+(@pxref{Buffer List}).  It is set at buffer creation (@pxref{Creating
+Buffers}), and avoids slowing down internal or temporary buffers, such
+as those created by @code{with-temp-buffer} (@pxref{Definition of
+with-temp-buffer,, Current Buffer}).
+
 @item overlay_center
 This field holds the current overlay center position.  @xref{Managing
 Overlays}.
@@ -2403,8 +2412,6 @@ after the current overlay center.  @xref{Managing Overlays}.
 @code{overlays_before} is sorted in order of decreasing end position,
 and @code{overlays_after} is sorted in order of increasing beginning
 position.
-
-@c FIXME? the following are now all Lisp_Object BUFFER_INTERNAL_FIELD (foo).
 
 @item name
 A Lisp string that names the buffer.  It is guaranteed to be unique.

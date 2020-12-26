@@ -1731,7 +1731,7 @@ usage: (make-process &rest ARGS)  */)
 
   buffer = Fplist_get (contact, QCbuffer);
   if (!NILP (buffer))
-    buffer = Fget_buffer_create (buffer);
+    buffer = Fget_buffer_create (buffer, Qnil);
 
   /* Make sure that the child will be able to chdir to the current
      buffer's current directory, or its unhandled equivalent.  We
@@ -1768,7 +1768,7 @@ usage: (make-process &rest ARGS)  */)
 			  QCname,
 			  concat2 (name, build_string (" stderr")),
 			  QCbuffer,
-			  Fget_buffer_create (xstderr),
+			  Fget_buffer_create (xstderr, Qnil),
 			  QCnoquery,
 			  query_on_exit ? Qnil : Qt);
     }
@@ -2047,13 +2047,12 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
   struct Lisp_Process *p = XPROCESS (process);
   int inchannel, outchannel;
-  pid_t pid;
+  pid_t pid = -1;
   int vfork_errno;
   int forkin, forkout, forkerr = -1;
   bool pty_flag = 0;
   char pty_name[PTY_NAME_SIZE];
   Lisp_Object lisp_pty_name = Qnil;
-  sigset_t oldset;
 
   inchannel = outchannel = -1;
 
@@ -2124,152 +2123,28 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   if (!EQ (p->command, Qt))
     add_process_read_fd (inchannel);
 
+  ptrdiff_t count = SPECPDL_INDEX ();
+
   /* This may signal an error.  */
   setup_process_coding_systems (process);
-
-  block_input ();
-  block_child_signal (&oldset);
-
-#ifndef WINDOWSNT
-  /* vfork, and prevent local vars from being clobbered by the vfork.  */
-  Lisp_Object volatile current_dir_volatile = current_dir;
-  Lisp_Object volatile lisp_pty_name_volatile = lisp_pty_name;
-  char **volatile new_argv_volatile = new_argv;
-  int volatile forkin_volatile = forkin;
-  int volatile forkout_volatile = forkout;
-  int volatile forkerr_volatile = forkerr;
-  struct Lisp_Process *p_volatile = p;
-
-#ifdef DARWIN_OS
-  /* Darwin doesn't let us run setsid after a vfork, so use fork when
-     necessary.  Also, reset SIGCHLD handling after a vfork, as
-     apparently macOS can mistakenly deliver SIGCHLD to the child.  */
-  if (pty_flag)
-    pid = fork ();
-  else
-    {
-      pid = vfork ();
-      if (pid == 0)
-	signal (SIGCHLD, SIG_DFL);
-    }
-#else
-  pid = vfork ();
-#endif
-
-  current_dir = current_dir_volatile;
-  lisp_pty_name = lisp_pty_name_volatile;
-  new_argv = new_argv_volatile;
-  forkin = forkin_volatile;
-  forkout = forkout_volatile;
-  forkerr = forkerr_volatile;
-  p = p_volatile;
+  char **env = make_environment_block (current_dir);
 
   pty_flag = p->pty_flag;
+  eassert (pty_flag == ! NILP (lisp_pty_name));
 
-  if (pid == 0)
-#endif /* not WINDOWSNT */
-    {
-      /* Make the pty be the controlling terminal of the process.  */
-#ifdef HAVE_PTYS
-      dissociate_controlling_tty ();
+  vfork_errno
+    = emacs_spawn (&pid, forkin, forkout, forkerr, new_argv, env,
+                   SSDATA (current_dir),
+                   pty_flag ? SSDATA (lisp_pty_name) : NULL);
 
-      /* Make the pty's terminal the controlling terminal.  */
-      if (pty_flag && forkin >= 0)
-	{
-#ifdef TIOCSCTTY
-	  /* We ignore the return value
-	     because faith@cs.unc.edu says that is necessary on Linux.  */
-	  ioctl (forkin, TIOCSCTTY, 0);
-#endif
-	}
-#if defined (LDISC1)
-      if (pty_flag && forkin >= 0)
-	{
-	  struct termios t;
-	  tcgetattr (forkin, &t);
-	  t.c_lflag = LDISC1;
-	  if (tcsetattr (forkin, TCSANOW, &t) < 0)
-	    emacs_perror ("create_process/tcsetattr LDISC1");
-	}
-#else
-#if defined (NTTYDISC) && defined (TIOCSETD)
-      if (pty_flag && forkin >= 0)
-	{
-	  /* Use new line discipline.  */
-	  int ldisc = NTTYDISC;
-	  ioctl (forkin, TIOCSETD, &ldisc);
-	}
-#endif
-#endif
+  eassert ((vfork_errno == 0) == (0 < pid));
 
-#if !defined (DONT_REOPEN_PTY)
-/*** There is a suggestion that this ought to be a
-     conditional on TIOCSPGRP, or !defined TIOCSCTTY.
-     Trying the latter gave the wrong results on Debian GNU/Linux 1.1;
-     that system does seem to need this code, even though
-     both TIOCSCTTY is defined.  */
-	/* Now close the pty (if we had it open) and reopen it.
-	   This makes the pty the controlling terminal of the subprocess.  */
-      if (pty_flag)
-	{
-
-	  /* I wonder if emacs_close (emacs_open (SSDATA (lisp_pty_name), ...))
-	     would work?  */
-	  if (forkin >= 0)
-	    emacs_close (forkin);
-	  forkout = forkin = emacs_open (SSDATA (lisp_pty_name), O_RDWR, 0);
-
-	  if (forkin < 0)
-	    {
-	      emacs_perror (SSDATA (lisp_pty_name));
-	      _exit (EXIT_CANCELED);
-	    }
-
-	}
-#endif /* not DONT_REOPEN_PTY */
-
-#ifdef SETUP_SLAVE_PTY
-      if (pty_flag)
-	{
-	  SETUP_SLAVE_PTY;
-	}
-#endif /* SETUP_SLAVE_PTY */
-#endif /* HAVE_PTYS */
-
-      signal (SIGINT, SIG_DFL);
-      signal (SIGQUIT, SIG_DFL);
-#ifdef SIGPROF
-      signal (SIGPROF, SIG_DFL);
-#endif
-
-      /* Emacs ignores SIGPIPE, but the child should not.  */
-      signal (SIGPIPE, SIG_DFL);
-
-      /* Stop blocking SIGCHLD in the child.  */
-      unblock_child_signal (&oldset);
-
-      if (pty_flag)
-	child_setup_tty (forkout);
-
-      if (forkerr < 0)
-	forkerr = forkout;
-#ifdef WINDOWSNT
-      pid = child_setup (forkin, forkout, forkerr, new_argv, 1, current_dir);
-#else  /* not WINDOWSNT */
-      child_setup (forkin, forkout, forkerr, new_argv, 1, current_dir);
-#endif /* not WINDOWSNT */
-    }
-
-  /* Back in the parent process.  */
-
-  vfork_errno = errno;
   p->pid = pid;
   if (pid >= 0)
     p->alive = 1;
 
-  /* Stop blocking in the parent.  */
-  unblock_child_signal (&oldset);
-  unblock_input ();
+  /* Environment block no longer needed.  */
+  unbind_to (count, Qnil);
 
   if (pid < 0)
     report_file_errno (CHILD_SETUP_ERROR_DESC, Qnil, vfork_errno);
@@ -2443,7 +2318,7 @@ usage:  (make-pipe-process &rest ARGS)  */)
   buffer = Fplist_get (contact, QCbuffer);
   if (NILP (buffer))
     buffer = name;
-  buffer = Fget_buffer_create (buffer);
+  buffer = Fget_buffer_create (buffer, Qnil);
   pset_buffer (p, buffer);
 
   pset_childp (p, contact);
@@ -3173,7 +3048,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   buffer = Fplist_get (contact, QCbuffer);
   if (NILP (buffer))
     buffer = name;
-  buffer = Fget_buffer_create (buffer);
+  buffer = Fget_buffer_create (buffer, Qnil);
   pset_buffer (p, buffer);
 
   pset_childp (p, contact);
@@ -4188,7 +4063,7 @@ usage: (make-network-process &rest ARGS)  */)
  open_socket:
 
   if (!NILP (buffer))
-    buffer = Fget_buffer_create (buffer);
+    buffer = Fget_buffer_create (buffer, Qnil);
 
   /* Unwind bind_polling_period.  */
   unbind_to (count, Qnil);
@@ -4637,6 +4512,12 @@ network_lookup_address_info_1 (Lisp_Object host, const char *service,
   if (STRING_MULTIBYTE (host) && SBYTES (host) != SCHARS (host))
     error ("Non-ASCII hostname %s detected, please use puny-encode-domain",
            SSDATA (host));
+
+#ifdef WINDOWSNT
+  /* Ensure socket support is loaded if available.  */
+  init_winsock (TRUE);
+#endif
+
   ret = getaddrinfo (SSDATA (host), service, hints, res);
   if (ret)
     {
@@ -4961,7 +4842,7 @@ server_accept_connection (Lisp_Object server, int channel)
       if (!NILP (buffer))
 	{
 	  args[1] = buffer;
-	  buffer = Fget_buffer_create (Fformat (nargs, args));
+	  buffer = Fget_buffer_create (Fformat (nargs, args), Qnil);
 	}
     }
 

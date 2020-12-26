@@ -208,6 +208,7 @@ a section."
     (when start
       (save-excursion
         (goto-char start)
+        (looking-at outline-regexp)
         (let ((level (lisp-outline-level))
               (case-fold-search t)
               next-section-found)
@@ -218,6 +219,7 @@ a section."
                              nil t))
                       (> (save-excursion
                            (beginning-of-line)
+                           (looking-at outline-regexp)
                            (lisp-outline-level))
                          level)))
 	  (min (if next-section-found

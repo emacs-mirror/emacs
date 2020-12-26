@@ -10752,8 +10752,4 @@ when defining today."
 
 (provide 'org-agenda)
 
-;; Local variables:
-;; generated-autoload-file: "org-loaddefs.el"
-;; End:
-
 ;;; org-agenda.el ends here

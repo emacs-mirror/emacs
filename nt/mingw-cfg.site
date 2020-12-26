@@ -83,6 +83,8 @@ ac_cv_func_readlink=yes
 ac_cv_func_symlink=yes
 # Avoid run-time tests of readlink and symlink, which will fail
 gl_cv_func_readlink_works=yes
+gl_cv_func_readlink_trailing_slash=yes
+gl_cv_func_readlink_truncate=yes
 gl_cv_func_symlink_works=yes
 ac_cv_func_readlinkat=yes
 ac_cv_func_faccessat=yes
@@ -156,3 +158,7 @@ gl_cv_func_copy_file_range=yes
 # We don't want to build Emacs so it depends on bcrypt.dll, since then
 # it will refuse to start on systems where that DLL is absent.
 gl_cv_lib_assume_bcrypt=no
+# Don't build the Gnulib free.c: it is not needed, since the w32
+# implementation of 'free' doesn't touch errno, and it emits a
+# compilation warning.
+gl_cv_func_free_preserves_errno=yes
