@@ -130,6 +130,17 @@
 #  nstrftime \
 #  pathmax \
 #  pipe2 \
+#  posix_spawn \
+#  posix_spawn_file_actions_addchdir \
+#  posix_spawn_file_actions_adddup2 \
+#  posix_spawn_file_actions_destroy \
+#  posix_spawn_file_actions_init \
+#  posix_spawnattr_destroy \
+#  posix_spawnattr_init \
+#  posix_spawnattr_setflags \
+#  posix_spawnattr_setpgroup \
+#  posix_spawnattr_setsigdefault \
+#  posix_spawnattr_setsigmask \
 #  pselect \
 #  pthread_sigmask \
 #  qcopy-acl \
@@ -393,6 +404,29 @@ GNULIB_PIPE2 = @GNULIB_PIPE2@
 GNULIB_POPEN = @GNULIB_POPEN@
 GNULIB_POSIX_MEMALIGN = @GNULIB_POSIX_MEMALIGN@
 GNULIB_POSIX_OPENPT = @GNULIB_POSIX_OPENPT@
+GNULIB_POSIX_SPAWN = @GNULIB_POSIX_SPAWN@
+GNULIB_POSIX_SPAWNATTR_DESTROY = @GNULIB_POSIX_SPAWNATTR_DESTROY@
+GNULIB_POSIX_SPAWNATTR_GETFLAGS = @GNULIB_POSIX_SPAWNATTR_GETFLAGS@
+GNULIB_POSIX_SPAWNATTR_GETPGROUP = @GNULIB_POSIX_SPAWNATTR_GETPGROUP@
+GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM = @GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM@
+GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY = @GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY@
+GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT = @GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT@
+GNULIB_POSIX_SPAWNATTR_GETSIGMASK = @GNULIB_POSIX_SPAWNATTR_GETSIGMASK@
+GNULIB_POSIX_SPAWNATTR_INIT = @GNULIB_POSIX_SPAWNATTR_INIT@
+GNULIB_POSIX_SPAWNATTR_SETFLAGS = @GNULIB_POSIX_SPAWNATTR_SETFLAGS@
+GNULIB_POSIX_SPAWNATTR_SETPGROUP = @GNULIB_POSIX_SPAWNATTR_SETPGROUP@
+GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM = @GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM@
+GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY = @GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY@
+GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT = @GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT@
+GNULIB_POSIX_SPAWNATTR_SETSIGMASK = @GNULIB_POSIX_SPAWNATTR_SETSIGMASK@
+GNULIB_POSIX_SPAWNP = @GNULIB_POSIX_SPAWNP@
+GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR = @GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR@
+GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE = @GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE@
+GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2 = @GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2@
+GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR = @GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR@
+GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN = @GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN@
+GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY = @GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY@
+GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT = @GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT@
 GNULIB_PREAD = @GNULIB_PREAD@
 GNULIB_PRINTF = @GNULIB_PRINTF@
 GNULIB_PRINTF_POSIX = @GNULIB_PRINTF_POSIX@
@@ -425,6 +459,7 @@ GNULIB_RMDIR = @GNULIB_RMDIR@
 GNULIB_RPMATCH = @GNULIB_RPMATCH@
 GNULIB_SCANDIR = @GNULIB_SCANDIR@
 GNULIB_SCANF = @GNULIB_SCANF@
+GNULIB_SCHED_YIELD = @GNULIB_SCHED_YIELD@
 GNULIB_SECURE_GETENV = @GNULIB_SECURE_GETENV@
 GNULIB_SELECT = @GNULIB_SELECT@
 GNULIB_SETENV = @GNULIB_SETENV@
@@ -634,6 +669,11 @@ HAVE_POPEN = @HAVE_POPEN@
 HAVE_POSIX_MEMALIGN = @HAVE_POSIX_MEMALIGN@
 HAVE_POSIX_OPENPT = @HAVE_POSIX_OPENPT@
 HAVE_POSIX_SIGNALBLOCKING = @HAVE_POSIX_SIGNALBLOCKING@
+HAVE_POSIX_SPAWN = @HAVE_POSIX_SPAWN@
+HAVE_POSIX_SPAWNATTR_T = @HAVE_POSIX_SPAWNATTR_T@
+HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR = @HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR@
+HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR = @HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR@
+HAVE_POSIX_SPAWN_FILE_ACTIONS_T = @HAVE_POSIX_SPAWN_FILE_ACTIONS_T@
 HAVE_PREAD = @HAVE_PREAD@
 HAVE_PSELECT = @HAVE_PSELECT@
 HAVE_PTHREAD_SIGMASK = @HAVE_PTHREAD_SIGMASK@
@@ -655,6 +695,8 @@ HAVE_RENAMEAT = @HAVE_RENAMEAT@
 HAVE_REWINDDIR = @HAVE_REWINDDIR@
 HAVE_RPMATCH = @HAVE_RPMATCH@
 HAVE_SCANDIR = @HAVE_SCANDIR@
+HAVE_SCHED_H = @HAVE_SCHED_H@
+HAVE_SCHED_YIELD = @HAVE_SCHED_YIELD@
 HAVE_SECURE_GETENV = @HAVE_SECURE_GETENV@
 HAVE_SETENV = @HAVE_SETENV@
 HAVE_SETHOSTNAME = @HAVE_SETHOSTNAME@
@@ -669,6 +711,7 @@ HAVE_SIGNED_WCHAR_T = @HAVE_SIGNED_WCHAR_T@
 HAVE_SIGNED_WINT_T = @HAVE_SIGNED_WINT_T@
 HAVE_SIGSET_T = @HAVE_SIGSET_T@
 HAVE_SLEEP = @HAVE_SLEEP@
+HAVE_SPAWN_H = @HAVE_SPAWN_H@
 HAVE_STDINT_H = @HAVE_STDINT_H@
 HAVE_STPCPY = @HAVE_STPCPY@
 HAVE_STPNCPY = @HAVE_STPNCPY@
@@ -683,6 +726,7 @@ HAVE_STRTOLD = @HAVE_STRTOLD@
 HAVE_STRTOLL = @HAVE_STRTOLL@
 HAVE_STRTOULL = @HAVE_STRTOULL@
 HAVE_STRUCT_RANDOM_DATA = @HAVE_STRUCT_RANDOM_DATA@
+HAVE_STRUCT_SCHED_PARAM = @HAVE_STRUCT_SCHED_PARAM@
 HAVE_STRUCT_SIGACTION_SA_SIGACTION = @HAVE_STRUCT_SIGACTION_SA_SIGACTION@
 HAVE_STRUCT_TIMEVAL = @HAVE_STRUCT_TIMEVAL@
 HAVE_STRVERSCMP = @HAVE_STRVERSCMP@
@@ -782,6 +826,7 @@ LIB_EACCESS = @LIB_EACCESS@
 LIB_EXECINFO = @LIB_EXECINFO@
 LIB_GETRANDOM = @LIB_GETRANDOM@
 LIB_MATH = @LIB_MATH@
+LIB_POSIX_SPAWN = @LIB_POSIX_SPAWN@
 LIB_PTHREAD = @LIB_PTHREAD@
 LIB_PTHREAD_SIGMASK = @LIB_PTHREAD_SIGMASK@
 LIB_TIMER_TIME = @LIB_TIMER_TIME@
@@ -805,7 +850,9 @@ NEXT_AS_FIRST_DIRECTIVE_FCNTL_H = @NEXT_AS_FIRST_DIRECTIVE_FCNTL_H@
 NEXT_AS_FIRST_DIRECTIVE_GETOPT_H = @NEXT_AS_FIRST_DIRECTIVE_GETOPT_H@
 NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H = @NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H@
 NEXT_AS_FIRST_DIRECTIVE_LIMITS_H = @NEXT_AS_FIRST_DIRECTIVE_LIMITS_H@
+NEXT_AS_FIRST_DIRECTIVE_SCHED_H = @NEXT_AS_FIRST_DIRECTIVE_SCHED_H@
 NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H = @NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H@
+NEXT_AS_FIRST_DIRECTIVE_SPAWN_H = @NEXT_AS_FIRST_DIRECTIVE_SPAWN_H@
 NEXT_AS_FIRST_DIRECTIVE_STDDEF_H = @NEXT_AS_FIRST_DIRECTIVE_STDDEF_H@
 NEXT_AS_FIRST_DIRECTIVE_STDINT_H = @NEXT_AS_FIRST_DIRECTIVE_STDINT_H@
 NEXT_AS_FIRST_DIRECTIVE_STDIO_H = @NEXT_AS_FIRST_DIRECTIVE_STDIO_H@
@@ -824,7 +871,9 @@ NEXT_FCNTL_H = @NEXT_FCNTL_H@
 NEXT_GETOPT_H = @NEXT_GETOPT_H@
 NEXT_INTTYPES_H = @NEXT_INTTYPES_H@
 NEXT_LIMITS_H = @NEXT_LIMITS_H@
+NEXT_SCHED_H = @NEXT_SCHED_H@
 NEXT_SIGNAL_H = @NEXT_SIGNAL_H@
+NEXT_SPAWN_H = @NEXT_SPAWN_H@
 NEXT_STDDEF_H = @NEXT_STDDEF_H@
 NEXT_STDINT_H = @NEXT_STDINT_H@
 NEXT_STDIO_H = @NEXT_STDIO_H@
@@ -946,6 +995,12 @@ REPLACE_OPENDIR = @REPLACE_OPENDIR@
 REPLACE_PERROR = @REPLACE_PERROR@
 REPLACE_POPEN = @REPLACE_POPEN@
 REPLACE_POSIX_MEMALIGN = @REPLACE_POSIX_MEMALIGN@
+REPLACE_POSIX_SPAWN = @REPLACE_POSIX_SPAWN@
+REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR = @REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR@
+REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE = @REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE@
+REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2 = @REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2@
+REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR = @REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR@
+REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN = @REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN@
 REPLACE_PREAD = @REPLACE_PREAD@
 REPLACE_PRINTF = @REPLACE_PRINTF@
 REPLACE_PSELECT = @REPLACE_PSELECT@
@@ -967,6 +1022,7 @@ REPLACE_REMOVE = @REPLACE_REMOVE@
 REPLACE_RENAME = @REPLACE_RENAME@
 REPLACE_RENAMEAT = @REPLACE_RENAMEAT@
 REPLACE_RMDIR = @REPLACE_RMDIR@
+REPLACE_SCHED_YIELD = @REPLACE_SCHED_YIELD@
 REPLACE_SELECT = @REPLACE_SELECT@
 REPLACE_SETENV = @REPLACE_SETENV@
 REPLACE_SETSTATE = @REPLACE_SETSTATE@
@@ -1108,11 +1164,13 @@ gamegroup = @gamegroup@
 gameuser = @gameuser@
 gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7 = @gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7@
 gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b = @gl_GNULIB_ENABLED_260941c0e5dc67ec9e87d1fb321c300b@
+gl_GNULIB_ENABLED_332607f759618fb73dfc3076748afea7 = @gl_GNULIB_ENABLED_332607f759618fb73dfc3076748afea7@
 gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31 = @gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31@
 gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c = @gl_GNULIB_ENABLED_6099e9737f757db36c47fa9d9f02e88c@
 gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec = @gl_GNULIB_ENABLED_682e609604ccaac6be382e4ee3a4eaec@
 gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1 = @gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1@
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36 = @gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36@
+gl_GNULIB_ENABLED_cdeb0f2aaf9d280baa6526bfa1b07f70 = @gl_GNULIB_ENABLED_cdeb0f2aaf9d280baa6526bfa1b07f70@
 gl_GNULIB_ENABLED_cloexec = @gl_GNULIB_ENABLED_cloexec@
 gl_GNULIB_ENABLED_dirfd = @gl_GNULIB_ENABLED_dirfd@
 gl_GNULIB_ENABLED_ef07dc4b3077c11ea9cef586db4e5955 = @gl_GNULIB_ENABLED_ef07dc4b3077c11ea9cef586db4e5955@
@@ -1124,6 +1182,7 @@ gl_GNULIB_ENABLED_lchmod = @gl_GNULIB_ENABLED_lchmod@
 gl_GNULIB_ENABLED_open = @gl_GNULIB_ENABLED_open@
 gl_GNULIB_ENABLED_rawmemchr = @gl_GNULIB_ENABLED_rawmemchr@
 gl_GNULIB_ENABLED_scratch_buffer = @gl_GNULIB_ENABLED_scratch_buffer@
+gl_GNULIB_ENABLED_strchrnul = @gl_GNULIB_ENABLED_strchrnul@
 gl_GNULIB_ENABLED_strtoll = @gl_GNULIB_ENABLED_strtoll@
 gl_GNULIB_ENABLED_utimens = @gl_GNULIB_ENABLED_utimens@
 gl_LIBOBJS = @gl_LIBOBJS@
@@ -2270,6 +2329,140 @@ libgnu_a_SOURCES += pipe2.c
 endif
 ## end   gnulib module pipe2
 
+## begin gnulib module posix_spawn
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawn))
+
+
+EXTRA_DIST += spawn.c
+
+EXTRA_libgnu_a_SOURCES += spawn.c
+
+endif
+## end   gnulib module posix_spawn
+
+## begin gnulib module posix_spawn-internal
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawn-internal))
+
+ifneq (,$(gl_GNULIB_ENABLED_332607f759618fb73dfc3076748afea7))
+
+endif
+EXTRA_DIST += spawn_int.h spawni.c
+
+EXTRA_libgnu_a_SOURCES += spawni.c
+
+endif
+## end   gnulib module posix_spawn-internal
+
+## begin gnulib module posix_spawn_file_actions_addchdir
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawn_file_actions_addchdir))
+
+
+EXTRA_DIST += spawn_faction_addchdir.c spawn_int.h
+
+EXTRA_libgnu_a_SOURCES += spawn_faction_addchdir.c
+
+endif
+## end   gnulib module posix_spawn_file_actions_addchdir
+
+## begin gnulib module posix_spawn_file_actions_adddup2
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawn_file_actions_adddup2))
+
+
+EXTRA_DIST += spawn_faction_adddup2.c spawn_int.h
+
+EXTRA_libgnu_a_SOURCES += spawn_faction_adddup2.c
+
+endif
+## end   gnulib module posix_spawn_file_actions_adddup2
+
+## begin gnulib module posix_spawn_file_actions_destroy
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawn_file_actions_destroy))
+
+
+EXTRA_DIST += spawn_faction_destroy.c
+
+EXTRA_libgnu_a_SOURCES += spawn_faction_destroy.c
+
+endif
+## end   gnulib module posix_spawn_file_actions_destroy
+
+## begin gnulib module posix_spawn_file_actions_init
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawn_file_actions_init))
+
+
+EXTRA_DIST += spawn_faction_init.c spawn_int.h
+
+EXTRA_libgnu_a_SOURCES += spawn_faction_init.c
+
+endif
+## end   gnulib module posix_spawn_file_actions_init
+
+## begin gnulib module posix_spawnattr_destroy
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawnattr_destroy))
+
+
+EXTRA_DIST += spawnattr_destroy.c
+
+EXTRA_libgnu_a_SOURCES += spawnattr_destroy.c
+
+endif
+## end   gnulib module posix_spawnattr_destroy
+
+## begin gnulib module posix_spawnattr_init
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawnattr_init))
+
+
+EXTRA_DIST += spawnattr_init.c
+
+EXTRA_libgnu_a_SOURCES += spawnattr_init.c
+
+endif
+## end   gnulib module posix_spawnattr_init
+
+## begin gnulib module posix_spawnattr_setflags
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawnattr_setflags))
+
+
+EXTRA_DIST += spawnattr_setflags.c
+
+EXTRA_libgnu_a_SOURCES += spawnattr_setflags.c
+
+endif
+## end   gnulib module posix_spawnattr_setflags
+
+## begin gnulib module posix_spawnattr_setpgroup
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawnattr_setpgroup))
+
+
+EXTRA_DIST += spawnattr_setpgroup.c
+
+EXTRA_libgnu_a_SOURCES += spawnattr_setpgroup.c
+
+endif
+## end   gnulib module posix_spawnattr_setpgroup
+
+## begin gnulib module posix_spawnattr_setsigdefault
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawnattr_setsigdefault))
+
+
+EXTRA_DIST += spawnattr_setdefault.c
+
+EXTRA_libgnu_a_SOURCES += spawnattr_setdefault.c
+
+endif
+## end   gnulib module posix_spawnattr_setsigdefault
+
+## begin gnulib module posix_spawnattr_setsigmask
+ifeq (,$(OMIT_GNULIB_MODULE_posix_spawnattr_setsigmask))
+
+
+EXTRA_DIST += spawnattr_setsigmask.c
+
+EXTRA_libgnu_a_SOURCES += spawnattr_setsigmask.c
+
+endif
+## end   gnulib module posix_spawnattr_setsigmask
+
 ## begin gnulib module pselect
 ifeq (,$(OMIT_GNULIB_MODULE_pselect))
 
@@ -2356,6 +2549,39 @@ EXTRA_DIST += root-uid.h
 
 endif
 ## end   gnulib module root-uid
+
+## begin gnulib module sched
+ifeq (,$(OMIT_GNULIB_MODULE_sched))
+
+BUILT_SOURCES += sched.h
+
+# We need the following in order to create a replacement for <sched.h> when
+# the system doesn't have one.
+sched.h: sched.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(WARN_ON_USE_H)
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
+	      -e 's|@''HAVE_SCHED_H''@|$(HAVE_SCHED_H)|g' \
+	      -e 's|@''HAVE_SYS_CDEFS_H''@|$(HAVE_SYS_CDEFS_H)|g' \
+	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
+	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
+	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
+	      -e 's|@''NEXT_SCHED_H''@|$(NEXT_SCHED_H)|g' \
+	      -e 's|@''HAVE_STRUCT_SCHED_PARAM''@|$(HAVE_STRUCT_SCHED_PARAM)|g' \
+	      -e 's/@''GNULIB_SCHED_YIELD''@/$(GNULIB_SCHED_YIELD)/g' \
+	      -e 's|@''HAVE_SCHED_YIELD''@|$(HAVE_SCHED_YIELD)|g' \
+	      -e 's|@''REPLACE_SCHED_YIELD''@|$(REPLACE_SCHED_YIELD)|g' \
+	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
+	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
+	      < $(srcdir)/sched.in.h; \
+	} > $@-t && \
+	mv $@-t $@
+MOSTLYCLEANFILES += sched.h sched.h-t
+
+EXTRA_DIST += sched.in.h
+
+endif
+## end   gnulib module sched
 
 ## begin gnulib module scratch_buffer
 ifeq (,$(OMIT_GNULIB_MODULE_scratch_buffer))
@@ -2490,6 +2716,69 @@ EXTRA_DIST += warn-on-use.h
 
 endif
 ## end   gnulib module snippet/warn-on-use
+
+## begin gnulib module spawn
+ifeq (,$(OMIT_GNULIB_MODULE_spawn))
+
+BUILT_SOURCES += spawn.h
+
+# We need the following in order to create a replacement for <spawn.h> when
+# the system doesn't have one.
+spawn.h: spawn.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
+	      -e 's|@''HAVE_SPAWN_H''@|$(HAVE_SPAWN_H)|g' \
+	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
+	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
+	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
+	      -e 's|@''NEXT_SPAWN_H''@|$(NEXT_SPAWN_H)|g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN''@/$(GNULIB_POSIX_SPAWN)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNP''@/$(GNULIB_POSIX_SPAWNP)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_INIT)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY''@/$(GNULIB_POSIX_SPAWN_FILE_ACTIONS_DESTROY)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_INIT''@/$(GNULIB_POSIX_SPAWNATTR_INIT)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETFLAGS''@/$(GNULIB_POSIX_SPAWNATTR_GETFLAGS)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETFLAGS''@/$(GNULIB_POSIX_SPAWNATTR_SETFLAGS)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETPGROUP''@/$(GNULIB_POSIX_SPAWNATTR_GETPGROUP)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETPGROUP''@/$(GNULIB_POSIX_SPAWNATTR_SETPGROUP)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM''@/$(GNULIB_POSIX_SPAWNATTR_GETSCHEDPARAM)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM''@/$(GNULIB_POSIX_SPAWNATTR_SETSCHEDPARAM)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY''@/$(GNULIB_POSIX_SPAWNATTR_GETSCHEDPOLICY)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY''@/$(GNULIB_POSIX_SPAWNATTR_SETSCHEDPOLICY)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT''@/$(GNULIB_POSIX_SPAWNATTR_GETSIGDEFAULT)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT''@/$(GNULIB_POSIX_SPAWNATTR_SETSIGDEFAULT)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_GETSIGMASK''@/$(GNULIB_POSIX_SPAWNATTR_GETSIGMASK)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_SETSIGMASK''@/$(GNULIB_POSIX_SPAWNATTR_SETSIGMASK)/g' \
+	      -e 's/@''GNULIB_POSIX_SPAWNATTR_DESTROY''@/$(GNULIB_POSIX_SPAWNATTR_DESTROY)/g' \
+	      -e 's|@''HAVE_POSIX_SPAWN''@|$(HAVE_POSIX_SPAWN)|g' \
+	      -e 's|@''HAVE_POSIX_SPAWNATTR_T''@|$(HAVE_POSIX_SPAWNATTR_T)|g' \
+	      -e 's|@''HAVE_POSIX_SPAWN_FILE_ACTIONS_T''@|$(HAVE_POSIX_SPAWN_FILE_ACTIONS_T)|g' \
+	      -e 's|@''HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR''@|$(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)|g' \
+	      -e 's|@''HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR''@|$(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR)|g' \
+	      -e 's|@''REPLACE_POSIX_SPAWN''@|$(REPLACE_POSIX_SPAWN)|g' \
+	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)|g' \
+	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDCLOSE)|g' \
+	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDDUP2)|g' \
+	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDFCHDIR)|g' \
+	      -e 's|@''REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN''@|$(REPLACE_POSIX_SPAWN_FILE_ACTIONS_ADDOPEN)|g' \
+	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
+	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
+	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
+	      < $(srcdir)/spawn.in.h; \
+	} > $@-t && \
+	mv $@-t $@
+MOSTLYCLEANFILES += spawn.h spawn.h-t
+
+EXTRA_DIST += spawn.in.h
+
+endif
+## end   gnulib module spawn
 
 ## begin gnulib module stat-time
 ifeq (,$(OMIT_GNULIB_MODULE_stat-time))
@@ -2884,6 +3173,19 @@ EXTRA_libgnu_a_SOURCES += stpcpy.c
 
 endif
 ## end   gnulib module stpcpy
+
+## begin gnulib module strchrnul
+ifeq (,$(OMIT_GNULIB_MODULE_strchrnul))
+
+ifneq (,$(gl_GNULIB_ENABLED_strchrnul))
+
+endif
+EXTRA_DIST += strchrnul.c strchrnul.valgrind
+
+EXTRA_libgnu_a_SOURCES += strchrnul.c
+
+endif
+## end   gnulib module strchrnul
 
 ## begin gnulib module string
 ifeq (,$(OMIT_GNULIB_MODULE_string))
