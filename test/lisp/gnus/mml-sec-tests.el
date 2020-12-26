@@ -884,7 +884,8 @@ So the second decryption fails."
   (dolist (pid (list-system-processes))
     (let ((atts (process-attributes pid)))
       (when (and (equal (cdr (assq 'user atts)) (user-login-name))
-                 (equal (cdr (assq 'comm atts)) "gpg-agent")
+                 (or (equal (cdr (assq 'comm atts)) "gpg-agent")
+		     (equal (cdr (assq 'comm atts)) "scdaemon"))
                  (string-match
                   (concat "homedir.*"
                           (regexp-quote (directory-file-name
