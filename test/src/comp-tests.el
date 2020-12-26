@@ -1018,7 +1018,21 @@ Return a list of results."
 	   x))
        (or null (integer 4 9)))
 
-      ;; 33 No float range support.
+      ;; 33
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (or (> x 3)
+                   (< x 10))
+	   x))
+       (or null integer))
+
+      ;; 34
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (or (< x 3)
+                   (> x 10))
+	   x))
+       (or null (integer * 2) (integer 11 *)))
+
+      ;; 35 No float range support.
       ((defun comp-tests-ret-type-spec-f (x)
 	       (when (> x 1.0)
 	         x))
