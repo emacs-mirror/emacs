@@ -264,7 +264,10 @@ Useful to hook into pass checkers.")
     (zerop (function (number) boolean))
     ;; Type hints
     (comp-hint-fixnum (function (t) fixnum))
-    (comp-hint-cons (function (t) cons)))
+    (comp-hint-cons (function (t) cons))
+    ;; Non returning functions
+    (error (function (string &rest t) nil))
+    (signal (function (symbol t) nil)))
   "Alist used for type propagation.")
 
 (defconst comp-known-func-cstr-h
