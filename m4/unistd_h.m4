@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 83
+# unistd_h.m4 serial 84
 dnl Copyright (C) 2006-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -123,6 +123,28 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   GNULIB_UNLINKAT=0;             AC_SUBST([GNULIB_UNLINKAT])
   GNULIB_USLEEP=0;               AC_SUBST([GNULIB_USLEEP])
   GNULIB_WRITE=0;                AC_SUBST([GNULIB_WRITE])
+  dnl Support Microsoft deprecated alias function names by default.
+  GNULIB_MDA_ACCESS=1;           AC_SUBST([GNULIB_MDA_ACCESS])
+  GNULIB_MDA_CHDIR=1;            AC_SUBST([GNULIB_MDA_CHDIR])
+  GNULIB_MDA_CLOSE=1;            AC_SUBST([GNULIB_MDA_CLOSE])
+  GNULIB_MDA_DUP=1;              AC_SUBST([GNULIB_MDA_DUP])
+  GNULIB_MDA_DUP2=1;             AC_SUBST([GNULIB_MDA_DUP2])
+  GNULIB_MDA_EXECL=1;            AC_SUBST([GNULIB_MDA_EXECL])
+  GNULIB_MDA_EXECLE=1;           AC_SUBST([GNULIB_MDA_EXECLE])
+  GNULIB_MDA_EXECLP=1;           AC_SUBST([GNULIB_MDA_EXECLP])
+  GNULIB_MDA_EXECV=1;            AC_SUBST([GNULIB_MDA_EXECV])
+  GNULIB_MDA_EXECVE=1;           AC_SUBST([GNULIB_MDA_EXECVE])
+  GNULIB_MDA_EXECVP=1;           AC_SUBST([GNULIB_MDA_EXECVP])
+  GNULIB_MDA_EXECVPE=1;          AC_SUBST([GNULIB_MDA_EXECVPE])
+  GNULIB_MDA_GETCWD=1;           AC_SUBST([GNULIB_MDA_GETCWD])
+  GNULIB_MDA_GETPID=1;           AC_SUBST([GNULIB_MDA_GETPID])
+  GNULIB_MDA_ISATTY=1;           AC_SUBST([GNULIB_MDA_ISATTY])
+  GNULIB_MDA_LSEEK=1;            AC_SUBST([GNULIB_MDA_LSEEK])
+  GNULIB_MDA_READ=1;             AC_SUBST([GNULIB_MDA_READ])
+  GNULIB_MDA_RMDIR=1;            AC_SUBST([GNULIB_MDA_RMDIR])
+  GNULIB_MDA_SWAB=1;             AC_SUBST([GNULIB_MDA_SWAB])
+  GNULIB_MDA_UNLINK=1;           AC_SUBST([GNULIB_MDA_UNLINK])
+  GNULIB_MDA_WRITE=1;            AC_SUBST([GNULIB_MDA_WRITE])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_CHOWN=1;           AC_SUBST([HAVE_CHOWN])
   HAVE_COPY_FILE_RANGE=1; AC_SUBST([HAVE_COPY_FILE_RANGE])

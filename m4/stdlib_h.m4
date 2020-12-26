@@ -1,4 +1,4 @@
-# stdlib_h.m4 serial 54
+# stdlib_h.m4 serial 55
 dnl Copyright (C) 2007-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -95,6 +95,12 @@ AC_DEFUN([gl_STDLIB_H_DEFAULTS],
   GNULIB_UNLOCKPT=0;      AC_SUBST([GNULIB_UNLOCKPT])
   GNULIB_UNSETENV=0;      AC_SUBST([GNULIB_UNSETENV])
   GNULIB_WCTOMB=0;        AC_SUBST([GNULIB_WCTOMB])
+  dnl Support Microsoft deprecated alias function names by default.
+  GNULIB_MDA_ECVT=1;      AC_SUBST([GNULIB_MDA_ECVT])
+  GNULIB_MDA_FCVT=1;      AC_SUBST([GNULIB_MDA_FCVT])
+  GNULIB_MDA_GCVT=1;      AC_SUBST([GNULIB_MDA_GCVT])
+  GNULIB_MDA_MKTEMP=1;    AC_SUBST([GNULIB_MDA_MKTEMP])
+  GNULIB_MDA_PUTENV=1;    AC_SUBST([GNULIB_MDA_PUTENV])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE__EXIT=1;              AC_SUBST([HAVE__EXIT])
   HAVE_ALIGNED_ALLOC=1;      AC_SUBST([HAVE_ALIGNED_ALLOC])

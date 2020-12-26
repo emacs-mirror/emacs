@@ -242,46 +242,50 @@ _GL_WARN_ON_USE (canonicalize_file_name,
 # endif
 #endif
 
+#if @GNULIB_MDA_ECVT@
 /* On native Windows, map 'ecvt' to '_ecvt', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::ecvt on all platforms that have
    it.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef ecvt
-#  define ecvt _ecvt
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef ecvt
+#   define ecvt _ecvt
+#  endif
 _GL_CXXALIAS_MDA (ecvt, char *,
                   (double number, int ndigits, int *decptp, int *signp));
-#else
-# if @HAVE_DECL_ECVT@
+# else
+#  if @HAVE_DECL_ECVT@
 _GL_CXXALIAS_SYS (ecvt, char *,
                   (double number, int ndigits, int *decptp, int *signp));
+#  endif
+# endif
+# if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_ECVT@
+_GL_CXXALIASWARN (ecvt);
 # endif
 #endif
-#if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_ECVT@
-_GL_CXXALIASWARN (ecvt);
-#endif
 
+#if @GNULIB_MDA_FCVT@
 /* On native Windows, map 'fcvt' to '_fcvt', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::fcvt on all platforms that have
    it.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef fcvt
-#  define fcvt _fcvt
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fcvt
+#   define fcvt _fcvt
+#  endif
 _GL_CXXALIAS_MDA (fcvt, char *,
                   (double number, int ndigits, int *decptp, int *signp));
-#else
-# if @HAVE_DECL_FCVT@
+# else
+#  if @HAVE_DECL_FCVT@
 _GL_CXXALIAS_SYS (fcvt, char *,
                   (double number, int ndigits, int *decptp, int *signp));
+#  endif
 # endif
-#endif
-#if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_FCVT@
+# if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_FCVT@
 _GL_CXXALIASWARN (fcvt);
+# endif
 #endif
 
 #if @GNULIB_FREE_POSIX@
@@ -305,23 +309,25 @@ _GL_WARN_ON_USE (free, "free is not future POSIX compliant everywhere - "
                  "use gnulib module free for portability");
 #endif
 
+#if @GNULIB_MDA_GCVT@
 /* On native Windows, map 'gcvt' to '_gcvt', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::gcvt on all platforms that have
    it.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef gcvt
-#  define gcvt _gcvt
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef gcvt
+#   define gcvt _gcvt
+#  endif
 _GL_CXXALIAS_MDA (gcvt, char *, (double number, int ndigits, char *buf));
-#else
-# if @HAVE_DECL_GCVT@
+# else
+#  if @HAVE_DECL_GCVT@
 _GL_CXXALIAS_SYS (gcvt, char *, (double number, int ndigits, char *buf));
+#  endif
 # endif
-#endif
-#if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_GCVT@
+# if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_GCVT@
 _GL_CXXALIASWARN (gcvt);
+# endif
 #endif
 
 #if @GNULIB_GETLOADAVG@
@@ -575,19 +581,21 @@ _GL_WARN_ON_USE (mkstemps, "mkstemps is unportable - "
 # endif
 #endif
 
+#if @GNULIB_MDA_MKTEMP@
 /* On native Windows, map 'mktemp' to '_mktemp', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::mktemp always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef mktemp
-#  define mktemp _mktemp
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mktemp
+#   define mktemp _mktemp
+#  endif
 _GL_CXXALIAS_MDA (mktemp, char *, (char * /*template*/));
-#else
+# else
 _GL_CXXALIAS_SYS (mktemp, char *, (char * /*template*/));
-#endif
+# endif
 _GL_CXXALIASWARN (mktemp);
+#endif
 
 /* Allocate memory with indefinite extent and specified alignment.  */
 #if @GNULIB_POSIX_MEMALIGN@
@@ -706,7 +714,7 @@ _GL_CXXALIAS_MDA (putenv, int, (char *string));
 _GL_CXXALIAS_SYS (putenv, int, (char *string));
 # endif
 _GL_CXXALIASWARN (putenv);
-#else
+#elif @GNULIB_MDA_PUTENV@
 /* On native Windows, map 'putenv' to '_putenv', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::putenv always.  */

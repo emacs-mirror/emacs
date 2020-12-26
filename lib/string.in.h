@@ -123,21 +123,23 @@ _GL_WARN_ON_USE (ffsll, "ffsll is not portable - use the ffsll module");
 #endif
 
 
+#if @GNULIB_MDA_MEMCCPY@
 /* On native Windows, map 'memccpy' to '_memccpy', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::memccpy always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef memccpy
-#  define memccpy _memccpy
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef memccpy
+#   define memccpy _memccpy
+#  endif
 _GL_CXXALIAS_MDA (memccpy, void *,
                   (void *dest, const void *src, int c, size_t n));
-#else
+# else
 _GL_CXXALIAS_SYS (memccpy, void *,
                   (void *dest, const void *src, int c, size_t n));
-#endif
+# endif
 _GL_CXXALIASWARN (memccpy);
+#endif
 
 
 /* Return the first instance of C within N bytes of S, or NULL.  */
@@ -425,7 +427,7 @@ _GL_CXXALIASWARN (strdup);
 _GL_WARN_ON_USE (strdup, "strdup is unportable - "
                  "use gnulib module strdup for portability");
 # endif
-#else
+#elif @GNULIB_MDA_STRDUP@
 /* On native Windows, map 'creat' to '_creat', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::creat always.  */

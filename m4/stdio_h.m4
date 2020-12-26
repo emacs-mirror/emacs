@@ -1,4 +1,4 @@
-# stdio_h.m4 serial 51
+# stdio_h.m4 serial 52
 dnl Copyright (C) 2007-2020 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -180,6 +180,13 @@ AC_DEFUN([gl_STDIO_H_DEFAULTS],
   GNULIB_VPRINTF_POSIX=0;        AC_SUBST([GNULIB_VPRINTF_POSIX])
   GNULIB_VSNPRINTF=0;            AC_SUBST([GNULIB_VSNPRINTF])
   GNULIB_VSPRINTF_POSIX=0;       AC_SUBST([GNULIB_VSPRINTF_POSIX])
+  dnl Support Microsoft deprecated alias function names by default.
+  GNULIB_MDA_FCLOSEALL=1;        AC_SUBST([GNULIB_MDA_FCLOSEALL])
+  GNULIB_MDA_FDOPEN=1;           AC_SUBST([GNULIB_MDA_FDOPEN])
+  GNULIB_MDA_FILENO=1;           AC_SUBST([GNULIB_MDA_FILENO])
+  GNULIB_MDA_GETW=1;             AC_SUBST([GNULIB_MDA_GETW])
+  GNULIB_MDA_PUTW=1;             AC_SUBST([GNULIB_MDA_PUTW])
+  GNULIB_MDA_TEMPNAM=1;          AC_SUBST([GNULIB_MDA_TEMPNAM])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_DECL_FCLOSEALL=1;         AC_SUBST([HAVE_DECL_FCLOSEALL])
   HAVE_DECL_FPURGE=1;            AC_SUBST([HAVE_DECL_FPURGE])

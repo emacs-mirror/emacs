@@ -2,7 +2,7 @@
 
 # Copyright (C) 2000-2001, 2003-2007, 2009-2020 Free Software Foundation, Inc.
 
-# serial 12
+# serial 13
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -116,6 +116,8 @@ AC_DEFUN([gl_HEADER_TIME_H_DEFAULTS],
   GNULIB_TIME_R=0;                       AC_SUBST([GNULIB_TIME_R])
   GNULIB_TIME_RZ=0;                      AC_SUBST([GNULIB_TIME_RZ])
   GNULIB_TZSET=0;                        AC_SUBST([GNULIB_TZSET])
+  dnl Support Microsoft deprecated alias function names by default.
+  GNULIB_MDA_TZSET=1;                    AC_SUBST([GNULIB_MDA_TZSET])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_DECL_LOCALTIME_R=1;               AC_SUBST([HAVE_DECL_LOCALTIME_R])
   HAVE_NANOSLEEP=1;                      AC_SUBST([HAVE_NANOSLEEP])
