@@ -4512,6 +4512,12 @@ network_lookup_address_info_1 (Lisp_Object host, const char *service,
   if (STRING_MULTIBYTE (host) && SBYTES (host) != SCHARS (host))
     error ("Non-ASCII hostname %s detected, please use puny-encode-domain",
            SSDATA (host));
+
+#ifdef WINDOWSNT
+  /* Ensure socket support is loaded if available.  */
+  init_winsock (TRUE);
+#endif
+
   ret = getaddrinfo (SSDATA (host), service, hints, res);
   if (ret)
     {
