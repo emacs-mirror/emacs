@@ -366,7 +366,7 @@ Return them as multiple value."
   "Support range comparison functions."
   (with-comp-cstr-accessors
     (if ext-range
-        (setf (typeset dst) ()
+        (setf (typeset dst) (and (typeset old-dst) '(float))
               (valset dst) ()
               (range dst) (if (range old-dst)
                               (comp-range-intersection (range old-dst)
