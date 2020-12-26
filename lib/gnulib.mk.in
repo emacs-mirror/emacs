@@ -133,6 +133,7 @@
 #  pselect \
 #  pthread_sigmask \
 #  qcopy-acl \
+#  read-file \
 #  readlink \
 #  readlinkat \
 #  regex \
@@ -1792,6 +1793,28 @@ EXTRA_DIST += flexmember.h
 endif
 ## end   gnulib module flexmember
 
+## begin gnulib module fopen
+ifeq (,$(OMIT_GNULIB_MODULE_fopen))
+
+
+EXTRA_DIST += fopen.c
+
+EXTRA_libgnu_a_SOURCES += fopen.c
+
+endif
+## end   gnulib module fopen
+
+## begin gnulib module fopen-gnu
+ifeq (,$(OMIT_GNULIB_MODULE_fopen-gnu))
+
+
+EXTRA_DIST += fopen.c
+
+EXTRA_libgnu_a_SOURCES += fopen.c
+
+endif
+## end   gnulib module fopen-gnu
+
 ## begin gnulib module fpending
 ifeq (,$(OMIT_GNULIB_MODULE_fpending))
 
@@ -1846,6 +1869,28 @@ EXTRA_libgnu_a_SOURCES += fsync.c
 
 endif
 ## end   gnulib module fsync
+
+## begin gnulib module ftell
+ifeq (,$(OMIT_GNULIB_MODULE_ftell))
+
+
+EXTRA_DIST += ftell.c
+
+EXTRA_libgnu_a_SOURCES += ftell.c
+
+endif
+## end   gnulib module ftell
+
+## begin gnulib module ftello
+ifeq (,$(OMIT_GNULIB_MODULE_ftello))
+
+
+EXTRA_DIST += ftello.c stdio-impl.h
+
+EXTRA_libgnu_a_SOURCES += ftello.c
+
+endif
+## end   gnulib module ftello
 
 ## begin gnulib module futimens
 ifeq (,$(OMIT_GNULIB_MODULE_futimens))
@@ -2176,6 +2221,19 @@ EXTRA_DIST += limits.in.h
 endif
 ## end   gnulib module limits-h
 
+## begin gnulib module lseek
+ifeq (,$(OMIT_GNULIB_MODULE_lseek))
+
+ifneq (,$(gl_GNULIB_ENABLED_lseek))
+
+endif
+EXTRA_DIST += lseek.c
+
+EXTRA_libgnu_a_SOURCES += lseek.c
+
+endif
+## end   gnulib module lseek
+
 ## begin gnulib module lstat
 ifeq (,$(OMIT_GNULIB_MODULE_lstat))
 
@@ -2357,6 +2415,16 @@ EXTRA_libgnu_a_SOURCES += rawmemchr.c
 endif
 ## end   gnulib module rawmemchr
 
+## begin gnulib module read-file
+ifeq (,$(OMIT_GNULIB_MODULE_read-file))
+
+libgnu_a_SOURCES += read-file.c
+
+EXTRA_DIST += read-file.h
+
+endif
+## end   gnulib module read-file
+
 ## begin gnulib module readlink
 ifeq (,$(OMIT_GNULIB_MODULE_readlink))
 
@@ -2378,6 +2446,17 @@ EXTRA_libgnu_a_SOURCES += at-func.c readlinkat.c
 
 endif
 ## end   gnulib module readlinkat
+
+## begin gnulib module realloc-posix
+ifeq (,$(OMIT_GNULIB_MODULE_realloc-posix))
+
+
+EXTRA_DIST += realloc.c
+
+EXTRA_libgnu_a_SOURCES += realloc.c
+
+endif
+## end   gnulib module realloc-posix
 
 ## begin gnulib module regex
 ifeq (,$(OMIT_GNULIB_MODULE_regex))

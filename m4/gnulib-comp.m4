@@ -92,6 +92,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module filename:
   # Code from module filevercmp:
   # Code from module flexmember:
+  # Code from module fopen:
+  # Code from module fopen-gnu:
   # Code from module fpending:
   # Code from module fpieee:
   AC_REQUIRE([gl_FP_IEEE])
@@ -99,6 +101,9 @@ AC_DEFUN([gl_EARLY],
   # Code from module fstatat:
   # Code from module fsusage:
   # Code from module fsync:
+  # Code from module ftell:
+  # Code from module ftello:
+  AC_REQUIRE([gl_SET_LARGEFILE_SOURCE])
   # Code from module futimens:
   # Code from module getdtablesize:
   # Code from module getgroups:
@@ -123,6 +128,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module libc-config:
   # Code from module libgmp:
   # Code from module limits-h:
+  # Code from module lseek:
   # Code from module lstat:
   # Code from module manywarnings:
   # Code from module memmem-simple:
@@ -143,8 +149,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module pthread_sigmask:
   # Code from module qcopy-acl:
   # Code from module rawmemchr:
+  # Code from module read-file:
   # Code from module readlink:
   # Code from module readlinkat:
+  # Code from module realloc-posix:
   # Code from module regex:
   # Code from module root-uid:
   # Code from module scratch_buffer:
@@ -288,6 +296,18 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([fdopendir])
   gl_FILEMODE
   AC_C_FLEXIBLE_ARRAY_MEMBER
+  gl_FUNC_FOPEN
+  if test $REPLACE_FOPEN = 1; then
+    AC_LIBOBJ([fopen])
+    gl_PREREQ_FOPEN
+  fi
+  gl_STDIO_MODULE_INDICATOR([fopen])
+  gl_FUNC_FOPEN_GNU
+  if test $REPLACE_FOPEN = 1; then
+    AC_LIBOBJ([fopen])
+    gl_PREREQ_FOPEN
+  fi
+  gl_MODULE_INDICATOR([fopen-gnu])
   gl_FUNC_FPENDING
   if test $gl_cv_func___fpending = no; then
     AC_LIBOBJ([fpending])
@@ -314,6 +334,17 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_FSYNC
   fi
   gl_UNISTD_MODULE_INDICATOR([fsync])
+  gl_FUNC_FTELL
+  if test $REPLACE_FTELL = 1; then
+    AC_LIBOBJ([ftell])
+  fi
+  gl_STDIO_MODULE_INDICATOR([ftell])
+  gl_FUNC_FTELLO
+  if test $HAVE_FTELLO = 0 || test $REPLACE_FTELLO = 1; then
+    AC_LIBOBJ([ftello])
+    gl_PREREQ_FTELLO
+  fi
+  gl_STDIO_MODULE_INDICATOR([ftello])
   gl_FUNC_FUTIMENS
   if test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1; then
     AC_LIBOBJ([futimens])
@@ -414,6 +445,7 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_PTHREAD_SIGMASK
   fi
   gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
+  gl_PREREQ_READ_FILE
   gl_FUNC_READLINK
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     AC_LIBOBJ([readlink])
@@ -425,6 +457,11 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([readlinkat])
   fi
   gl_UNISTD_MODULE_INDICATOR([readlinkat])
+  gl_FUNC_REALLOC_POSIX
+  if test $REPLACE_REALLOC = 1; then
+    AC_LIBOBJ([realloc])
+  fi
+  gl_STDLIB_MODULE_INDICATOR([realloc-posix])
   gl_REGEX
   if test $ac_use_included_regex = yes; then
     AC_LIBOBJ([regex])
@@ -525,6 +562,7 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1=false
   gl_gnulib_enabled_idx=false
   gl_gnulib_enabled_lchmod=false
+  gl_gnulib_enabled_lseek=false
   gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31=false
   gl_gnulib_enabled_open=false
   gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7=false
@@ -653,6 +691,17 @@ AC_DEFUN([gl_INIT],
       gl_gnulib_enabled_lchmod=true
     fi
   }
+  func_gl_gnulib_m4code_lseek ()
+  {
+    if ! $gl_gnulib_enabled_lseek; then
+      gl_FUNC_LSEEK
+      if test $REPLACE_LSEEK = 1; then
+        AC_LIBOBJ([lseek])
+      fi
+      gl_UNISTD_MODULE_INDICATOR([lseek])
+      gl_gnulib_enabled_lseek=true
+    fi
+  }
   func_gl_gnulib_m4code_5264294aa0a5557541b53c8c741f7f31 ()
   {
     if ! $gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31; then
@@ -773,11 +822,17 @@ AC_DEFUN([gl_INIT],
   if test $HAVE_FDOPENDIR = 0; then
     func_gl_gnulib_m4code_dirfd
   fi
+  if test $REPLACE_FOPEN = 1; then
+    func_gl_gnulib_m4code_open
+  fi
   if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
     func_gl_gnulib_m4code_260941c0e5dc67ec9e87d1fb321c300b
   fi
   if test $HAVE_FSTATAT = 0 || test $REPLACE_FSTATAT = 1; then
     func_gl_gnulib_m4code_03e0aaad4cb89ca757653bd367a6ccb7
+  fi
+  if test $HAVE_FTELLO = 0 || test $REPLACE_FTELLO = 1; then
+    func_gl_gnulib_m4code_lseek
   fi
   if test $HAVE_FUTIMENS = 0 || test $REPLACE_FUTIMENS = 1; then
     func_gl_gnulib_m4code_utimens
@@ -827,6 +882,7 @@ AC_DEFUN([gl_INIT],
   AM_CONDITIONAL([gl_GNULIB_ENABLED_a9786850e999ae65a836a6041e8e5ed1], [$gl_gnulib_enabled_a9786850e999ae65a836a6041e8e5ed1])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_idx], [$gl_gnulib_enabled_idx])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_lchmod], [$gl_gnulib_enabled_lchmod])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_lseek], [$gl_gnulib_enabled_lseek])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_5264294aa0a5557541b53c8c741f7f31], [$gl_gnulib_enabled_5264294aa0a5557541b53c8c741f7f31])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_open], [$gl_gnulib_enabled_open])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_03e0aaad4cb89ca757653bd367a6ccb7], [$gl_gnulib_enabled_03e0aaad4cb89ca757653bd367a6ccb7])
@@ -1038,6 +1094,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/filevercmp.c
   lib/filevercmp.h
   lib/flexmember.h
+  lib/fopen.c
   lib/fpending.c
   lib/fpending.h
   lib/free.c
@@ -1045,6 +1102,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fsusage.c
   lib/fsusage.h
   lib/fsync.c
+  lib/ftell.c
+  lib/ftello.c
   lib/ftoastr.c
   lib/ftoastr.h
   lib/futimens.c
@@ -1075,6 +1134,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/lchmod.c
   lib/libc-config.h
   lib/limits.in.h
+  lib/lseek.c
   lib/lstat.c
   lib/malloc/scratch_buffer.h
   lib/malloc/scratch_buffer_grow.c
@@ -1104,8 +1164,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/qcopy-acl.c
   lib/rawmemchr.c
   lib/rawmemchr.valgrind
+  lib/read-file.c
+  lib/read-file.h
   lib/readlink.c
   lib/readlinkat.c
+  lib/realloc.c
   lib/regcomp.c
   lib/regex.c
   lib/regex.h
@@ -1201,12 +1264,16 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/fdopendir.m4
   m4/filemode.m4
   m4/flexmember.m4
+  m4/fopen.m4
   m4/fpending.m4
   m4/fpieee.m4
   m4/free.m4
+  m4/fseeko.m4
   m4/fstatat.m4
   m4/fsusage.m4
   m4/fsync.m4
+  m4/ftell.m4
+  m4/ftello.m4
   m4/futimens.m4
   m4/getdtablesize.m4
   m4/getgroups.m4
@@ -1226,7 +1293,9 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lchmod.m4
   m4/libgmp.m4
   m4/limits-h.m4
+  m4/lseek.m4
   m4/lstat.m4
+  m4/malloc.m4
   m4/manywarnings-c++.m4
   m4/manywarnings.m4
   m4/mbstate_t.m4
@@ -1251,8 +1320,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/pselect.m4
   m4/pthread_sigmask.m4
   m4/rawmemchr.m4
+  m4/read-file.m4
   m4/readlink.m4
   m4/readlinkat.m4
+  m4/realloc.m4
   m4/regex.m4
   m4/sha1.m4
   m4/sha256.m4
