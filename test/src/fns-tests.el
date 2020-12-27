@@ -999,3 +999,44 @@
              (object-intervals (current-buffer)))
            '((0 1 (foo 1)) (1 2 (zot 3 foo 1)) (2 4 (zot 3 bar 2))
              (4 5 (bar 2)) (5 6 nil)))))
+
+(ert-deftest length-equals-tests ()
+  (should-not (length< (list 1 2 3) 2))
+  (should-not (length< (list 1 2 3) 3))
+  (should (length< (list 1 2 3) 4))
+
+  (should-not (length< "abc" 2))
+  (should-not (length< "abc" 3))
+  (should (length< "abc" 4))
+
+  (should (length> (list 1 2 3) 2))
+  (should-not (length> (list 1 2 3) 3))
+  (should-not (length> (list 1 2 3) 4))
+
+  (should (length> "abc" 2))
+  (should-not (length> "abc" 3))
+  (should-not (length> "abc" 4))
+
+  (should-not (length= (list 1 2 3) 2))
+  (should (length= (list 1 2 3) 3))
+  (should-not (length= (list 1 2 3) 4))
+
+  (should-not (length= "abc" 2))
+  (should (length= "abc" 3))
+  (should-not (length= "abc" 4))
+
+  (should-not (length< (list 1 2 3) -1))
+  (should-not (length< (list 1 2 3) 0))
+  (should-not (length< (list 1 2 3) -10))
+
+  (should (length> (list 1 2 3) -1))
+  (should (length> (list 1 2 3) 0))
+
+  (should-not (length= (list 1 2 3) -1))
+  (should-not (length= (list 1 2 3) 0))
+  (should-not (length= (list 1 2 3) 1))
+
+  (should-error
+   (let ((list (list 1)))
+     (setcdr list list)
+     (length< list #x1fffe))))

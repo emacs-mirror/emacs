@@ -324,6 +324,87 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
   :mime-charset 'windows-1257)
 (define-coding-system-alias 'cp1257 'windows-1257)
 
+(define-coding-system 'ibm256
+  "Netherlands version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm256)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-int1 'ibm256)
+(define-coding-system-alias 'cp256 'ibm256)
+
+(define-coding-system 'ibm273
+  "Austrian / German version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm273)
+  :mnemonic ?*)
+(define-coding-system-alias 'cp273 'ibm273)
+
+(define-coding-system 'ibm274
+  "Belgian version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm274)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-be 'ibm274)
+(define-coding-system-alias 'cp274 'ibm274)
+
+(define-coding-system 'ibm275
+  "Brazilian version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm275)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-br 'ibm275)
+(define-coding-system-alias 'cp275 'ibm275)
+
+(define-coding-system 'ibm277
+  "Danish / Norwegian version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm277)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-cp-dk 'ibm277)
+(define-coding-system-alias 'ebcdic-cp-no 'ibm277)
+(define-coding-system-alias 'cp277 'ibm277)
+
+(define-coding-system 'ibm278
+  "Finnish / Swedish version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm278)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-cp-fi 'ibm278)
+(define-coding-system-alias 'ebcdic-cp-se 'ibm278)
+(define-coding-system-alias 'cp278 'ibm278)
+
+(define-coding-system 'ibm280
+  "Italian version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm280)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-cp-it 'ibm280)
+(define-coding-system-alias 'cp280 'ibm280)
+
+(define-coding-system 'ibm284
+  "Spanish version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm284)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-cp-es 'ibm284)
+(define-coding-system-alias 'cp284 'ibm284)
+
+(define-coding-system 'ibm285
+  "UK english version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm285)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-cp-gb 'ibm285)
+(define-coding-system-alias 'cp285 'ibm285)
+
+(define-coding-system 'ibm297
+  "French version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm297)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-cp-fr 'ibm297)
+(define-coding-system-alias 'cp297 'ibm297)
+
 (define-coding-system 'cp775
   "DOS codepage 775 (PC Baltic, MS-DOS Baltic Rim)"
   :coding-type 'charset

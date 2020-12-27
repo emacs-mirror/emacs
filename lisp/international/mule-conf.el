@@ -1075,6 +1075,90 @@
 (define-charset-alias 'ebcdic-int 'ibm038)
 (define-charset-alias 'cp038 'ibm038)
 
+(define-charset 'ibm256
+  "Netherlands version of EBCDIC"
+  :short-name "IBM256"
+  :code-space [0 255]
+  :mime-charset 'ibm256
+  :map "IBM256")
+
+(define-charset 'ibm273
+  "Austrian / German version of EBCDIC"
+  :short-name "IBM273"
+  :code-space [0 255]
+  :mime-charset 'ibm273
+  :map "IBM273")
+
+(define-charset 'ibm274
+  "Belgian version of EBCDIC"
+  :short-name "IBM274"
+  :code-space [0 255]
+  :mime-charset 'ibm274
+  :map "IBM274")
+
+(define-charset 'ibm275
+  "Brazilian version of EBCDIC"
+  :short-name "IBM275"
+  :code-space [0 255]
+  :mime-charset 'ibm275
+  :map "IBM275")
+
+(define-charset 'ibm277
+  "Danish / Norwegian version of EBCDIC"
+  :short-name "IBM277"
+  :code-space [0 255]
+  :mime-charset 'ibm277
+  :map "IBM277")
+
+(define-charset 'ibm278
+  "Finnish / Swedish version of EBCDIC"
+  :short-name "IBM278"
+  :code-space [0 255]
+  :mime-charset 'ibm278
+  :map "IBM278")
+
+(define-charset 'ibm280
+  "Italian version of EBCDIC"
+  :short-name "IBM280"
+  :code-space [0 255]
+  :mime-charset 'ibm270
+  :map "IBM280")
+
+(define-charset 'ibm281
+  "Japanese-E version of EBCDIC"
+  :short-name "IBM281"
+  :code-space [0 255]
+  :mime-charset 'ibm281
+  :map "IBM281")
+
+(define-charset 'ibm284
+  "Spanish version of EBCDIC"
+  :short-name "IBM284"
+  :code-space [0 255]
+  :mime-charset 'ibm284
+  :map "IBM284")
+
+(define-charset 'ibm285
+  "UK english version of EBCDIC"
+  :short-name "IBM285"
+  :code-space [0 255]
+  :mime-charset 'ibm285
+  :map "IBM285")
+
+(define-charset 'ibm290
+  "Japanese katakana version of EBCDIC"
+  :short-name "IBM290"
+  :code-space [0 255]
+  :mime-charset 'ibm290
+  :map "IBM290")
+
+(define-charset 'ibm297
+  "French version of EBCDIC"
+  :short-name "IBM297"
+  :code-space [0 255]
+  :mime-charset 'ibm297
+  :map "IBM297")
+
 (define-charset 'ibm1047
   ;; Says groff:
   "IBM1047, `EBCDIC Latin 1/Open Systems' used by OS/390 Unix."

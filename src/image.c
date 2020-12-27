@@ -9803,8 +9803,9 @@ svg_load (struct frame *f, struct image *img)
 	}
       /* If the file was slurped into memory properly, parse it.  */
       if (!STRINGP (base_uri))
-        base_uri = ENCODE_FILE (file);
-      success_p = svg_load_image (f, img, contents, size, SSDATA (base_uri));
+        base_uri = file;
+      success_p = svg_load_image (f, img, contents, size,
+                                  SSDATA (ENCODE_FILE (base_uri)));
       xfree (contents);
     }
   /* Else it's not a file, it's a Lisp object.  Load the image from a
@@ -9822,7 +9823,8 @@ svg_load (struct frame *f, struct image *img)
       if (!STRINGP (base_uri))
         base_uri = BVAR (current_buffer, filename);
       success_p = svg_load_image (f, img, SSDATA (data), SBYTES (data),
-                                  (NILP (base_uri) ? NULL : SSDATA (base_uri)));
+                                  (STRINGP (base_uri) ?
+                                   SSDATA (ENCODE_FILE (base_uri)) : NULL));
     }
 
   return success_p;

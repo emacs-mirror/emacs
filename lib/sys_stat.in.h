@@ -375,11 +375,11 @@ struct stat
 # define S_IRWXO (S_IROTH | S_IWOTH | S_IXOTH)
 #endif
 
-/* S_IXUGO is a common extension to POSIX.  */
+/* Although S_IXUGO and S_IRWXUGO are not specified by POSIX and are
+   not implemented in GNU/Linux, some Gnulib-using apps use the macros.  */
 #if !S_IXUGO
 # define S_IXUGO (S_IXUSR | S_IXGRP | S_IXOTH)
 #endif
-
 #ifndef S_IRWXUGO
 # define S_IRWXUGO (S_IRWXU | S_IRWXG | S_IRWXO)
 #endif
@@ -391,10 +391,20 @@ struct stat
 #endif
 
 
+/* On native Windows, map 'chmod' to '_chmod', so that -loldnames is not
+   required.  In C++ with GNULIB_NAMESPACE, avoid differences between
+   platforms by defining GNULIB_NAMESPACE::chmod always.  */
 #if defined _WIN32 && !defined __CYGWIN__
-# undef chmod
-# define chmod _chmod
+# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  undef chmod
+#  define chmod _chmod
+# endif
+/* Need to cast, because in mingw the last argument is 'int mode'.  */
+_GL_CXXALIAS_MDA_CAST (chmod, int, (const char *filename, mode_t mode));
+#else
+_GL_CXXALIAS_SYS (chmod, int, (const char *filename, mode_t mode));
 #endif
+_GL_CXXALIASWARN (chmod);
 
 
 #if @GNULIB_FCHMODAT@
@@ -808,10 +818,20 @@ _GL_WARN_ON_USE (stat, "stat is unportable - "
 #endif
 
 
+/* On native Windows, map 'umask' to '_umask', so that -loldnames is not
+   required.  In C++ with GNULIB_NAMESPACE, avoid differences between
+   platforms by defining GNULIB_NAMESPACE::umask always.  */
 #if defined _WIN32 && !defined __CYGWIN__
-# undef umask
-# define umask _umask
+# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#  undef umask
+#  define umask _umask
+# endif
+/* Need to cast, because in mingw the last argument is 'int mode'.  */
+_GL_CXXALIAS_MDA_CAST (umask, mode_t, (mode_t mask));
+#else
+_GL_CXXALIAS_SYS (umask, mode_t, (mode_t mask));
 #endif
+_GL_CXXALIASWARN (umask);
 
 
 #if @GNULIB_UTIMENSAT@

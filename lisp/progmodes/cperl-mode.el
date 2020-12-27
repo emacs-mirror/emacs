@@ -5666,7 +5666,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		  'cperl-hash-face
 		'cperl-array-face)
 	      nil)			; arrays and hashes
-	     ("\\(\\([$@]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)"
+	     ("\\(\\([$@%]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)"
 	      1
 	      (if (= (- (match-end 2) (match-beginning 2)) 1)
 		  (if (eq (char-after (match-beginning 3)) ?{)

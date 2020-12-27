@@ -491,7 +491,9 @@ rpl_fcntl_DUPFD_CLOEXEC (int fd, int target)
 #if !HAVE_FCNTL
   result = dupfd (fd, target, O_CLOEXEC);
 #else /* HAVE_FCNTL */
-# if defined __HAIKU__
+# if defined __NetBSD__ || defined __HAIKU__
+  /* On NetBSD 9.0, the system fcntl (fd, F_DUPFD_CLOEXEC, target)
+     has only the same effect as fcntl (fd, F_DUPFD, target).  */
   /* On Haiku, the system fcntl (fd, F_DUPFD_CLOEXEC, target) sets
      the FD_CLOEXEC flag on fd, not on target.  Therefore avoid the
      system fcntl in this case.  */
