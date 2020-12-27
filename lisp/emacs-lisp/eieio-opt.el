@@ -136,9 +136,9 @@ are not abstract."
 	  (def (symbol-function ctr)))
       (goto-char (point-min))
       (prin1 ctr)
-      (insert (format " is an %s object constructor function"
+      (insert (format " is an %sobject constructor function"
 		      (if (autoloadp def)
-			  "autoloaded"
+			  "autoloaded "
 			"")))
       (when (and (autoloadp def)
 		 (null location))
