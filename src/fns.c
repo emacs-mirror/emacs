@@ -111,7 +111,7 @@ the number of bytes in the string; it is the number of characters.
 To get the number of bytes, use `string-bytes'.
 
 If the length of a list is being computed to compare to a (small)
-number, the `string<', `string>' and `string=' functions may be more
+number, the `length<', `length>' and `length=' functions may be more
 efficient.  */)
   (Lisp_Object sequence)
 {
