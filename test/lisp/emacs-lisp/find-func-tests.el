@@ -43,5 +43,15 @@
                      (concat data-directory (kbd "n x / TAB RET"))
                    (read-library-name)))))
 
+;; Avoid a byte-compilation warning that may confuse people reading
+;; the result of the following test.
+(declare-function compilation--message->loc nil "compile")
+
+(ert-deftest find-func-tests--locate-macro-generated-symbols () ;bug#45443
+  (should (cdr (find-function-search-for-symbol
+                #'compilation--message->loc nil "compile")))
+  (should (cdr (find-function-search-for-symbol
+                'c-mode-hook 'defvar "cc-mode"))))
+
 (provide 'find-func-tests)
 ;;; find-func-tests.el ends here
