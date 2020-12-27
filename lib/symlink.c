@@ -36,7 +36,7 @@ rpl_symlink (char const *contents, char const *name)
   if (len && name[len - 1] == '/')
     {
       struct stat st;
-      if (lstat (name, &st) == 0)
+      if (lstat (name, &st) == 0 || errno == EOVERFLOW)
         errno = EEXIST;
       return -1;
     }

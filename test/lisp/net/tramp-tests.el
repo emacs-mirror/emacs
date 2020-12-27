@@ -4663,7 +4663,8 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 
 (ert-deftest tramp-test31-interrupt-process ()
   "Check `interrupt-process'."
-  :tags '(:expensive-test)
+  :tags (if (getenv "EMACS_EMBA_CI")
+	    '(:expensive-test :unstable) '(:expensive-test))
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -6254,7 +6255,8 @@ This is needed in timer functions as well as process filters and sentinels."
   "Check parallel asynchronous requests.
 Such requests could arrive from timers, process filters and
 process sentinels.  They shall not disturb each other."
-  :tags '(:expensive-test)
+  :tags (if (getenv "EMACS_EMBA_CI")
+	    '(:expensive-test :unstable) '(:expensive-test))
   (skip-unless (tramp--test-enabled))
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.

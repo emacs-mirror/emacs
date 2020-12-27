@@ -32,7 +32,7 @@ see https://www.gnu.org/licenses/.  */
 
 /* NOTE: All functions in this file which are not declared in
    mini-gmp.h are internal, and are not intended to be compatible
-   neither with GMP nor with future versions of mini-gmp. */
+   with GMP or with future versions of mini-gmp. */
 
 /* Much of the material copied from GMP files, including: gmp-impl.h,
    longlong.h, mpn/generic/add_n.c, mpn/generic/addmul_1.c,
@@ -1331,29 +1331,26 @@ mpn_set_str_bits (mp_ptr rp, const unsigned char *sp, size_t sn,
 		  unsigned bits)
 {
   mp_size_t rn;
-  size_t j;
+  mp_limb_t limb;
   unsigned shift;
 
-  for (j = sn, rn = 0, shift = 0; j-- > 0; )
+  for (limb = 0, rn = 0, shift = 0; sn-- > 0; )
     {
-      if (shift == 0)
+      limb |= (mp_limb_t) sp[sn] << shift;
+      shift += bits;
+      if (shift >= GMP_LIMB_BITS)
 	{
-	  rp[rn++] = sp[j];
-	  shift += bits;
-	}
-      else
-	{
-	  rp[rn-1] |= (mp_limb_t) sp[j] << shift;
-	  shift += bits;
-	  if (shift >= GMP_LIMB_BITS)
-	    {
-	      shift -= GMP_LIMB_BITS;
-	      if (shift > 0)
-		rp[rn++] = (mp_limb_t) sp[j] >> (bits - shift);
-	    }
+	  shift -= GMP_LIMB_BITS;
+	  rp[rn++] = limb;
+	  /* Next line is correct also if shift == 0,
+	     bits == 8, and mp_limb_t == unsigned char. */
+	  limb = (unsigned int) sp[sn] >> (bits - shift);
 	}
     }
-  rn = mpn_normalized_size (rp, rn);
+  if (limb != 0)
+    rp[rn++] = limb;
+  else
+    rn = mpn_normalized_size (rp, rn);
   return rn;
 }
 
@@ -2723,7 +2720,7 @@ mpz_make_odd (mpz_t r)
 
   assert (r->_mp_size > 0);
   /* Count trailing zeros, equivalent to mpn_scan1, because we know that there is a 1 */
-  shift = mpn_common_scan (r->_mp_d[0], 0, r->_mp_d, 0, 0);
+  shift = mpn_scan1 (r->_mp_d, 0);
   mpz_tdiv_q_2exp (r, r, shift);
 
   return shift;
@@ -2780,9 +2777,13 @@ mpz_gcd (mpz_t g, const mpz_t u, const mpz_t v)
 
 	if (tv->_mp_size == 1)
 	  {
-	    mp_limb_t vl = tv->_mp_d[0];
-	    mp_limb_t ul = mpz_tdiv_ui (tu, vl);
-	    mpz_set_ui (g, mpn_gcd_11 (ul, vl));
+	    mp_limb_t *gp;
+
+	    mpz_tdiv_r (tu, tu, tv);
+	    gp = MPZ_REALLOC (g, 1); /* gp = mpz_limbs_modify (g, 1); */
+	    *gp = mpn_gcd_11 (tu->_mp_d[0], tv->_mp_d[0]);
+
+	    g->_mp_size = *gp != 0; /* mpz_limbs_finish (g, 1); */
 	    break;
 	  }
 	mpz_sub (tu, tu, tv);
@@ -2871,7 +2872,6 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
    * s0 = 0,    s1 = 2^vz
    */
 
-  mpz_setbit (t0, uz);
   mpz_tdiv_qr (t1, tu, tu, tv);
   mpz_mul_2exp (t1, t1, uz);
 
@@ -2882,8 +2882,7 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
     {
       mp_bitcnt_t shift;
       shift = mpz_make_odd (tu);
-      mpz_mul_2exp (t0, t0, shift);
-      mpz_mul_2exp (s0, s0, shift);
+      mpz_setbit (t0, uz + shift);
       power += shift;
 
       for (;;)
@@ -2921,6 +2920,8 @@ mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, const mpz_t u, const mpz_t v)
 	  power += shift;
 	}
     }
+  else
+    mpz_setbit (t0, uz);
 
   /* Now tv = odd part of gcd, and -s0 and t0 are corresponding
      cofactors. */
@@ -3604,7 +3605,8 @@ mpz_probab_prime_p (const mpz_t n, int reps)
   /* Find q and k, where q is odd and n = 1 + 2**k * q.  */
   mpz_abs (nm1, n);
   nm1->_mp_d[0] -= 1;
-  k = mpz_scan1 (nm1, 0);
+  /* Count trailing zeros, equivalent to mpn_scan1, because we know that there is a 1 */
+  k = mpn_scan1 (nm1->_mp_d, 0);
   mpz_tdiv_q_2exp (q, nm1, k);
 
   /* BPSW test */
@@ -4301,7 +4303,7 @@ mpz_get_str (char *sp, int base, const mpz_t u)
 ret:
   sp[sn] = '\0';
   if (osn && osn != sn + 1)
-    sp = gmp_realloc(sp, osn, sn + 1);
+    sp = (char*) gmp_realloc (sp, osn, sn + 1);
   return sp;
 }
 
@@ -4425,6 +4427,8 @@ mpz_out_str (FILE *stream, int base, const mpz_t x)
   size_t len, n;
 
   str = mpz_get_str (NULL, base, x);
+  if (!str)
+    return 0;
   len = strlen (str);
   n = fwrite (str, 1, len, stream);
   gmp_free (str, len + 1);

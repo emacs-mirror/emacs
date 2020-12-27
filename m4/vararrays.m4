@@ -1,6 +1,6 @@
 # Check for variable-length arrays.
 
-# serial 5
+# serial 6
 
 # From Paul Eggert
 
@@ -9,9 +9,11 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# This is a copy of AC_C_VARARRAYS from a recent development version
-# of Autoconf.  It replaces Autoconf's version, or for pre-2.61 autoconf
-# it defines the macro that Autoconf lacks.
+m4_version_prereq([2.70], [], [
+
+# AC_C_VARARRAYS
+# --------------
+# Check whether the C compiler supports variable-length arrays.
 AC_DEFUN([AC_C_VARARRAYS],
 [
   AC_CACHE_CHECK([for variable-length arrays],
@@ -27,7 +29,7 @@ AC_DEFUN([AC_C_VARARRAYS],
              [[/* Test for VLA support.  This test is partly inspired
                   from examples in the C standard.  Use at least two VLA
                   functions to detect the GCC 3.4.3 bug described in:
-                  https://lists.gnu.org/r/bug-gnulib/2014-08/msg00014.html
+                  https://lists.gnu.org/archive/html/bug-gnulib/2014-08/msg00014.html
                   */
                #ifdef __STDC_NO_VLA__
                 syntax error;
@@ -65,4 +67,6 @@ AC_DEFUN([AC_C_VARARRAYS],
       [Define to 1 if C does not support variable-length arrays, and
        if the compiler does not already define this.])
   fi
+])
+
 ])

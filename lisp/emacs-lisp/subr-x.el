@@ -286,7 +286,7 @@ result will have lines that are longer than LENGTH."
       (fill-region (point-min) (point-max)))
     (buffer-string)))
 
-(defun string-limit (string length &optional end)
+(defun string-limit (string length &optional end coding-system)
   "Return (up to) a LENGTH substring of STRING.
 If STRING is shorter than or equal to LENGTH, the entire string
 is returned unchanged.
@@ -295,33 +295,44 @@ If STRING is longer than LENGTH, return a substring consisting of
 the first LENGTH characters of STRING.  If END is non-nil, return
 the last LENGTH characters instead.
 
+If CODING-SYSTEM is non-nil, STRING will be encoded before
+limiting, and LENGTH is interpreted as the number of bytes to
+limit the string to.  The result will be a unibyte string that is
+shorter than LENGTH, but will not contain \"partial\" characters,
+even if CODING-SYSTEM encodes characters with several bytes per
+character.
+
 When shortening strings for display purposes,
 `truncate-string-to-width' is almost always a better alternative
 than this function."
   (unless (natnump length)
     (signal 'wrong-type-argument (list 'natnump length)))
-  (cond
-   ((<= (length string) length) string)
-   (end (substring string (- (length string) length)))
-   (t (substring string 0 length))))
+  (if coding-system
+      (let ((result nil)
+            (result-length 0)
+            (index (if end (1- (length string)) 0)))
+        (while (let ((encoded (encode-coding-char
+                               (aref string index) coding-system)))
+                 (and (<= (+ (length encoded) result-length) length)
+                      (progn
+                        (push encoded result)
+                        (cl-incf result-length (length encoded))
+                        (setq index (if end (1- index)
+                                      (1+ index))))
+                      (if end (> index -1)
+                        (< index (length string)))))
+          ;; No body.
+          )
+        (apply #'concat (if end result (nreverse result))))
+    (cond
+     ((<= (length string) length) string)
+     (end (substring string (- (length string) length)))
+     (t (substring string 0 length)))))
 
 (defun string-lines (string &optional omit-nulls)
   "Split STRING into a list of lines.
 If OMIT-NULLS, empty lines will be removed from the results."
   (split-string string "\n" omit-nulls))
-
-(defun string-slice (string regexp)
-  "Split STRING at REGEXP boundaries and return a list of slices.
-The boundaries that match REGEXP are included in the result.
-
-Also see `split-string'."
-  (if (zerop (length string))
-      (list "")
-    (let ((i (string-match-p regexp string 1)))
-      (if i
-          (cons (substring string 0 i)
-                (string-slice (substring string i) regexp))
-        (list string)))))
 
 (defun string-pad (string length &optional padding start)
   "Pad STRING to LENGTH using PADDING.
