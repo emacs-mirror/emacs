@@ -2651,7 +2651,9 @@ Fold the call in case."
               (comp-mvar-neg lval) (comp-cstr-neg cstr))))
     (cl-case f
       (+ (comp-cstr-add lval args))
-      (- (comp-cstr-sub lval args)))))
+      (- (comp-cstr-sub lval args))
+      (1+ (comp-cstr-add lval `(,(car args) ,comp-cstr-one)))
+      (1- (comp-cstr-sub lval `(,(car args) ,comp-cstr-one))))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."

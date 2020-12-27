@@ -1125,7 +1125,19 @@ Return a list of results."
 	            (< 1 j 5)
 	            (< 1 k 5))
            (+ x y z i j k)))
-       (or null float (integer 12 24)))))
+       (or null float (integer 12 24)))
+
+      ;; 45
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (<= 1 x 5)
+           (1+ x)))
+       (or null float (integer 2 6)))
+
+      ;;46
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (<= 1 x 5)
+           (1- x)))
+       (or null float (integer 0 4)))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

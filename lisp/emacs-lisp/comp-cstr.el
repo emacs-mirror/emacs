@@ -154,6 +154,10 @@ Return them as multiple value."
      collect cstr into positives
    finally return (cl-values positives negatives)))
 
+(defvar comp-cstr-one (make-comp-cstr :typeset ()
+                                      :range '((1 . 1)))
+  "Represent the integer immediate one (1).")
+
 
 ;;; Value handling.
 
