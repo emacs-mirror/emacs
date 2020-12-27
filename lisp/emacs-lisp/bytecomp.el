@@ -2020,16 +2020,16 @@ See also `emacs-lisp-byte-compile-and-load'."
 	  (insert "\n")			; aaah, unix.
 	  (cond
 	   ((null target-file) nil)     ;We only wanted the warnings!
-	   ((and (or (file-writable-p target-file)
-		     byte-native-compiling)
-                 ;; We attempt to create a temporary file in the
-                 ;; target directory, so the target directory must be
-                 ;; writable.
-                 (file-writable-p
-                  (file-name-directory
-                   ;; Need to expand in case TARGET-FILE doesn't
-                   ;; include a directory (Bug#45287).
-                   (expand-file-name target-file))))
+	   ((or byte-native-compiling
+		(and (file-writable-p target-file)
+		     ;; We attempt to create a temporary file in the
+		     ;; target directory, so the target directory must be
+		     ;; writable.
+		     (file-writable-p
+		      (file-name-directory
+		       ;; Need to expand in case TARGET-FILE doesn't
+		       ;; include a directory (Bug#45287).
+		       (expand-file-name target-file)))))
 	    ;; We must disable any code conversion here.
 	    (let* ((coding-system-for-write 'no-conversion)
 		   ;; Write to a tempfile so that if another Emacs
@@ -2037,7 +2037,8 @@ See also `emacs-lisp-byte-compile-and-load'."
 		   ;; parallel bootstrap), it does not risk getting a
 		   ;; half-finished file.  (Bug#4196)
 		   (tempfile
-		    (make-temp-file (expand-file-name target-file)))
+		    (make-temp-file (when (file-writable-p target-file)
+                                      (expand-file-name target-file))))
 		   (default-modes (default-file-modes))
 		   (temp-modes (logand default-modes #o600))
 		   (desired-modes (logand default-modes #o666))

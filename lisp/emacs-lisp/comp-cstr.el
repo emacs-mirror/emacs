@@ -362,6 +362,22 @@ Return them as multiple value."
        (push `(,(1+ last-h) . +) res))
      (cl-return (reverse res)))))
 
+(defsubst comp-cstr-set-cmp-range (dst old-dst ext-range)
+  "Support range comparison functions."
+  (with-comp-cstr-accessors
+    (if ext-range
+        (setf (typeset dst) (and (typeset old-dst) '(float))
+              (valset dst) ()
+              (range dst) (if (range old-dst)
+                              (comp-range-intersection (range old-dst)
+                                                       ext-range)
+                            ext-range)
+              (neg dst) nil)
+      (setf (typeset dst) (typeset old-dst)
+            (valset dst) (valset old-dst)
+            (range dst) (range old-dst)
+            (neg dst) (neg old-dst)))))
+
 
 ;;; Union specific code.
 
@@ -662,6 +678,58 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 
 
 ;;; Entry points.
+
+(defun comp-cstr-> (dst old-dst src)
+  "Constraint DST being > than SRC.
+SRC can be either a comp-cstr or an integer."
+  (with-comp-cstr-accessors
+    (let ((ext-range
+           (if (integerp src)
+               `((,(1+ src) . +))
+             (when-let* ((range (range src))
+                         (low (cdar (last range)))
+                         (okay (integerp low)))
+               `((,(1+ low) . +))))))
+      (comp-cstr-set-cmp-range dst old-dst ext-range))))
+
+(defun comp-cstr->= (dst old-dst src)
+  "Constraint DST being >= than SRC.
+SRC can be either a comp-cstr or an integer."
+  (with-comp-cstr-accessors
+    (let ((ext-range
+           (if (integerp src)
+               `((,src . +))
+             (when-let* ((range (range src))
+                         (low (cdar (last range)))
+                         (okay (integerp low)))
+               `((,low . +))))))
+      (comp-cstr-set-cmp-range dst old-dst ext-range))))
+
+(defun comp-cstr-< (dst old-dst src)
+  "Constraint DST being < than SRC.
+SRC can be either a comp-cstr or an integer."
+  (with-comp-cstr-accessors
+    (let ((ext-range
+           (if (integerp src)
+               `((- . ,(1- src)))
+             (when-let* ((range (range src))
+                         (low (caar (last range)))
+                         (okay (integerp low)))
+               `((- . ,(1- low)))))))
+      (comp-cstr-set-cmp-range dst old-dst ext-range))))
+
+(defun comp-cstr-<= (dst old-dst src)
+  "Constraint DST being > than SRC.
+SRC can be either a comp-cstr or an integer."
+  (with-comp-cstr-accessors
+    (let ((ext-range
+           (if (integerp src)
+               `((- . ,src))
+             (when-let* ((range (range src))
+                         (low (caar (last range)))
+                         (okay (integerp low)))
+               `((- . ,low))))))
+      (comp-cstr-set-cmp-range dst old-dst ext-range))))
 
 (defun comp-cstr-union-no-range (dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
