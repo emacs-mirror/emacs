@@ -1025,6 +1025,17 @@
   (should (length= "abc" 3))
   (should-not (length= "abc" 4))
 
+  (should-not (length< (list 1 2 3) -1))
+  (should-not (length< (list 1 2 3) 0))
+  (should-not (length< (list 1 2 3) -10))
+
+  (should (length> (list 1 2 3) -1))
+  (should (length> (list 1 2 3) 0))
+
+  (should-not (length= (list 1 2 3) -1))
+  (should-not (length= (list 1 2 3) 0))
+  (should-not (length= (list 1 2 3) 1))
+
   (should-error
    (let ((list (list 1)))
      (setcdr list list)

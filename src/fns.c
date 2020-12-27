@@ -159,14 +159,14 @@ EMACS_INT length_internal (Lisp_Object sequence, int len)
   if (len < 0xffff)
     while (CONSP (sequence))
       {
-	if (--len == 0)
+	if (--len <= 0)
 	  return -1;
 	sequence = XCDR (sequence);
       }
   /* Signal an error on circular lists. */
   else
     FOR_EACH_TAIL (sequence)
-      if (--len == 0)
+      if (--len <= 0)
 	return -1;
   return len;
 }
@@ -209,6 +209,9 @@ counted.  */)
 {
   CHECK_FIXNUM (length);
   EMACS_INT len = XFIXNUM (length);
+
+  if (len < 0)
+    return Qnil;
 
   if (CONSP (sequence))
     return length_internal (sequence, len + 1) == 1? Qt: Qnil;
