@@ -288,6 +288,14 @@ Return them as multiple value."
    ((eq y '-) nil)
    (t (< x y))))
 
+(defsubst comp-cstr-smallest-in-range (range)
+  "Smallest entry in RANGE."
+  (caar range))
+
+(defsubst comp-cstr-greatest-in-range (range)
+  "Greater entry in RANGE."
+  (cdar (last range)))
+
 (defun comp-range-union (&rest ranges)
   "Combine integer intervals RANGES by union set operation."
   (cl-loop
@@ -687,7 +695,7 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((,(1+ src) . +))
              (when-let* ((range (range src))
-                         (low (cdar (last range)))
+                         (low (comp-cstr-greatest-in-range range))
                          (okay (integerp low)))
                `((,(1+ low) . +))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
@@ -700,7 +708,7 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((,src . +))
              (when-let* ((range (range src))
-                         (low (cdar (last range)))
+                         (low (comp-cstr-greatest-in-range range))
                          (okay (integerp low)))
                `((,low . +))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
@@ -713,7 +721,7 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((- . ,(1- src)))
              (when-let* ((range (range src))
-                         (low (caar (last range)))
+                         (low (comp-cstr-smallest-in-range range))
                          (okay (integerp low)))
                `((- . ,(1- low)))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
@@ -726,7 +734,7 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((- . ,src))
              (when-let* ((range (range src))
-                         (low (caar (last range)))
+                         (low (comp-cstr-smallest-in-range range))
                          (okay (integerp low)))
                `((- . ,low))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
