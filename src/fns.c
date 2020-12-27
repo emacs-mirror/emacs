@@ -105,9 +105,14 @@ list_length (Lisp_Object list)
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
 A byte-code function object is also allowed.
+
 If the string contains multibyte characters, this is not necessarily
 the number of bytes in the string; it is the number of characters.
-To get the number of bytes, use `string-bytes'.  */)
+To get the number of bytes, use `string-bytes'.
+
+If the length of a list is being computed to compare to a (small)
+number, the `length<', `length>' and `length=' functions may be more
+efficient.  */)
   (Lisp_Object sequence)
 {
   EMACS_INT val;
@@ -143,6 +148,75 @@ least the number of distinct elements.  */)
   FOR_EACH_TAIL_SAFE (list)
     len++;
   return make_fixnum (len);
+}
+
+static inline
+EMACS_INT length_internal (Lisp_Object sequence, int len)
+{
+  /* If LENGTH is short (arbitrarily chosen cut-off point), use a
+     fast loop that doesn't care about whether SEQUENCE is
+     circular or not. */
+  if (len < 0xffff)
+    while (CONSP (sequence))
+      {
+	if (--len <= 0)
+	  return -1;
+	sequence = XCDR (sequence);
+      }
+  /* Signal an error on circular lists. */
+  else
+    FOR_EACH_TAIL (sequence)
+      if (--len <= 0)
+	return -1;
+  return len;
+}
+
+DEFUN ("length<", Flength_less, Slength_less, 2, 2, 0,
+       doc: /* Return non-nil if SEQUENCE is shorter than LENGTH.
+See `length' for allowed values of SEQUENCE and how elements are
+counted.  */)
+  (Lisp_Object sequence, Lisp_Object length)
+{
+  CHECK_FIXNUM (length);
+  EMACS_INT len = XFIXNUM (length);
+
+  if (CONSP (sequence))
+    return length_internal (sequence, len) == -1? Qnil: Qt;
+  else
+    return XFIXNUM (Flength (sequence)) < len? Qt: Qnil;
+}
+
+DEFUN ("length>", Flength_greater, Slength_greater, 2, 2, 0,
+       doc: /* Return non-nil if SEQUENCE is longer than LENGTH.
+See `length' for allowed values of SEQUENCE and how elements are
+counted.  */)
+  (Lisp_Object sequence, Lisp_Object length)
+{
+  CHECK_FIXNUM (length);
+  EMACS_INT len = XFIXNUM (length);
+
+  if (CONSP (sequence))
+    return length_internal (sequence, len + 1) == -1? Qt: Qnil;
+  else
+    return XFIXNUM (Flength (sequence)) > len? Qt: Qnil;
+}
+
+DEFUN ("length=", Flength_equal, Slength_equal, 2, 2, 0,
+       doc: /* Return non-nil if SEQUENCE has length equal to LENGTH.
+See `length' for allowed values of SEQUENCE and how elements are
+counted.  */)
+  (Lisp_Object sequence, Lisp_Object length)
+{
+  CHECK_FIXNUM (length);
+  EMACS_INT len = XFIXNUM (length);
+
+  if (len < 0)
+    return Qnil;
+
+  if (CONSP (sequence))
+    return length_internal (sequence, len + 1) == 1? Qt: Qnil;
+  else
+    return XFIXNUM (Flength (sequence)) == len? Qt: Qnil;
 }
 
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
@@ -5721,6 +5795,9 @@ this variable.  */);
   defsubr (&Srandom);
   defsubr (&Slength);
   defsubr (&Ssafe_length);
+  defsubr (&Slength_less);
+  defsubr (&Slength_greater);
+  defsubr (&Slength_equal);
   defsubr (&Sproper_list_p);
   defsubr (&Sstring_bytes);
   defsubr (&Sstring_distance);

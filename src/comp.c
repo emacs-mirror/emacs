@@ -4085,7 +4085,8 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
     base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
 
   return Fexpand_file_name (filename,
-			    concat2 (base_dir, Vcomp_native_version_dir));
+			    concat2 (Ffile_name_as_directory (base_dir),
+				     Vcomp_native_version_dir));
 }
 
 DEFUN ("comp--install-trampoline", Fcomp__install_trampoline,

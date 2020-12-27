@@ -154,6 +154,10 @@ Return them as multiple value."
      collect cstr into positives
    finally return (cl-values positives negatives)))
 
+(defvar comp-cstr-one (make-comp-cstr :typeset ()
+                                      :range '((1 . 1)))
+  "Represent the integer immediate one (1).")
+
 
 ;;; Value handling.
 
@@ -280,6 +284,22 @@ Return them as multiple value."
       x
     (1- x)))
 
+(defsubst comp-range-+ (x y)
+  (pcase (cons x y)
+    ((or '(+ . -) '(- . +)) '??)
+    ((or `(- . ,_) `(,_ . -)) '-)
+    ((or `(+ . ,_) `(,_ . +)) '+)
+    (_ (+ x y))))
+
+(defsubst comp-range-- (x y)
+  (pcase (cons x y)
+    ((or '(+ . +) '(- . -)) '??)
+    ('(+ . -) '+)
+    ('(- . +) '-)
+    ((or `(+ . ,_) `(,_ . -)) '+)
+    ((or `(- . ,_) `(,_ . +)) '-)
+    (_ (- x y))))
+
 (defsubst comp-range-< (x y)
   (cond
    ((eq x '+) nil)
@@ -287,6 +307,14 @@ Return them as multiple value."
    ((eq y '+) t)
    ((eq y '-) nil)
    (t (< x y))))
+
+(defsubst comp-cstr-smallest-in-range (range)
+  "Smallest entry in RANGE."
+  (caar range))
+
+(defsubst comp-cstr-greatest-in-range (range)
+  "Greater entry in RANGE."
+  (cdar (last range)))
 
 (defun comp-range-union (&rest ranges)
   "Combine integer intervals RANGES by union set operation."
@@ -366,7 +394,10 @@ Return them as multiple value."
   "Support range comparison functions."
   (with-comp-cstr-accessors
     (if ext-range
-        (setf (typeset dst) (and (typeset old-dst) '(float))
+        (setf (typeset dst) (when (cl-some (lambda (x)
+                                             (comp-subtype-p 'float x))
+                                           (typeset old-dst))
+                                '(float))
               (valset dst) ()
               (range dst) (if (range old-dst)
                               (comp-range-intersection (range old-dst)
@@ -377,6 +408,39 @@ Return them as multiple value."
             (valset dst) (valset old-dst)
             (range dst) (range old-dst)
             (neg dst) (neg old-dst)))))
+
+(defmacro comp-cstr-set-range-for-arithm (dst src1 src2 &rest range-body)
+  ;; Prevent some code duplication for `comp-cstr-add-2'
+  ;; `comp-cstr-sub-2'.
+  (declare (debug (range-body))
+           (indent defun))
+  `(with-comp-cstr-accessors
+     (when-let ((r1 (range ,src1))
+                (r2 (range ,src2)))
+       (let* ((l1 (comp-cstr-smallest-in-range r1))
+              (l2 (comp-cstr-smallest-in-range r2))
+              (h1 (comp-cstr-greatest-in-range r1))
+              (h2 (comp-cstr-greatest-in-range r2)))
+         (setf (typeset ,dst) (when (cl-some (lambda (x)
+                                               (comp-subtype-p 'float x))
+                                             (append (typeset src1)
+                                                     (typeset src2)))
+                                '(float))
+               (range ,dst) ,@range-body)))))
+
+(defun comp-cstr-add-2 (dst src1 src2)
+  "Sum SRC1 and SRC2 into DST."
+  (comp-cstr-set-range-for-arithm dst src1 src2
+    `((,(comp-range-+ l1 l2) . ,(comp-range-+ h1 h2)))))
+
+(defun comp-cstr-sub-2 (dst src1 src2)
+  "Subtract SRC1 and SRC2 into DST."
+  (comp-cstr-set-range-for-arithm dst src1 src2
+    (let ((l (comp-range-- l1 h2))
+          (h (comp-range-- h1 l2)))
+      (if (or (eq l '??) (eq h '??))
+          '((- . +))
+        `((,l . ,h))))))
 
 
 ;;; Union specific code.
@@ -687,7 +751,7 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((,(1+ src) . +))
              (when-let* ((range (range src))
-                         (low (cdar (last range)))
+                         (low (comp-cstr-greatest-in-range range))
                          (okay (integerp low)))
                `((,(1+ low) . +))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
@@ -700,7 +764,7 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((,src . +))
              (when-let* ((range (range src))
-                         (low (cdar (last range)))
+                         (low (comp-cstr-greatest-in-range range))
                          (okay (integerp low)))
                `((,low . +))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
@@ -713,7 +777,7 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((- . ,(1- src)))
              (when-let* ((range (range src))
-                         (low (caar (last range)))
+                         (low (comp-cstr-smallest-in-range range))
                          (okay (integerp low)))
                `((- . ,(1- low)))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
@@ -726,10 +790,24 @@ SRC can be either a comp-cstr or an integer."
            (if (integerp src)
                `((- . ,src))
              (when-let* ((range (range src))
-                         (low (caar (last range)))
+                         (low (comp-cstr-smallest-in-range range))
                          (okay (integerp low)))
                `((- . ,low))))))
       (comp-cstr-set-cmp-range dst old-dst ext-range))))
+
+(defun comp-cstr-add (dst srcs)
+  "Sum SRCS into DST."
+  (comp-cstr-add-2 dst (cl-first srcs) (cl-second srcs))
+  (cl-loop
+   for src in (nthcdr 2 srcs)
+   do (comp-cstr-add-2 dst dst src)))
+
+(defun comp-cstr-sub (dst srcs)
+  "Subtract SRCS into DST."
+  (comp-cstr-sub-2 dst (cl-first srcs) (cl-second srcs))
+  (cl-loop
+   for src in (nthcdr 2 srcs)
+   do (comp-cstr-sub-2 dst dst src)))
 
 (defun comp-cstr-union-no-range (dst &rest srcs)
   "Combine SRCS by union set operation setting the result in DST.
