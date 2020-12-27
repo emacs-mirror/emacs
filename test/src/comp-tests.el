@@ -1036,7 +1036,96 @@ Return a list of results."
       ((defun comp-tests-ret-type-spec-f (x)
 	       (when (> x 1.0)
 	         x))
-       (or null marker number))))
+       (or null marker number))
+
+      ;; 36
+      ;; SBCL: (OR (RATIONAL (5)) (SINGLE-FLOAT 5.0)
+      ;;           (DOUBLE-FLOAT 5.0d0) NULL) !?
+      ((defun comp-tests-ret-type-spec-f (x y)
+         (when (and (> x 3)
+                    (> y 2))
+           (+ x y)))
+       (or null float (integer 7 *)))
+
+      ;; 37
+      ;; SBCL: (OR REAL NULL)
+      ((defun comp-tests-ret-type-spec-f (x y)
+         (when (and (<= x 3)
+                    (<= y 2))
+           (+ x y)))
+       (or null float (integer * 5)))
+
+      ;; 38 SBCL gives: (OR (RATIONAL (2) (10)) (SINGLE-FLOAT 2.0 10.0)
+      ;;                    (DOUBLE-FLOAT 2.0d0 10.0d0) NULL)!?
+      ((defun comp-tests-ret-type-spec-f (x y)
+         (when (and (< 1 x 5)
+	            (< 1 y 5))
+           (+ x y)))
+       (or null float (integer 4 8)))
+
+      ;; 37
+      ;; SBCL gives: (OR REAL NULL)
+      ((defun comp-tests-ret-type-spec-f (x y)
+		    (when (and (<= 1 x 10)
+			       (<= 2 y 3))
+		      (+ x y)))
+       (or null float (integer 3 13)))
+
+      ;; 38
+      ;; SBCL: (OR REAL NULL)
+      ((defun comp-tests-ret-type-spec-f (x y)
+		    (when (and (<= 1 x 10)
+			       (<= 2 y 3))
+		      (- x y)))
+       (or null float (integer -2 8)))
+
+      ;; 39
+      ((defun comp-tests-ret-type-spec-f (x y)
+         (when (and (<= 1 x)
+                    (<= 2 y 3))
+           (- x y)))
+       (or null float (integer -2 *)))
+
+      ;; 40
+      ((defun comp-tests-ret-type-spec-f (x y)
+         (when (and (<= 1 x 10)
+                    (<= 2 y))
+           (- x y)))
+       (or null float (integer * 8)))
+
+      ;; 41
+      ((defun comp-tests-ret-type-spec-f (x y)
+		    (when (and (<= x 10)
+			       (<= 2 y))
+		      (- x y)))
+       (or null float (integer * 8)))
+
+      ;; 42
+      ((defun comp-tests-ret-type-spec-f (x y)
+          (when (and (<= x 10)
+                     (<= y 3))
+            (- x y)))
+       (or null float integer))
+
+      ;; 43
+      ((defun comp-tests-ret-type-spec-f (x y)
+          (when (and (<= 2 x)
+                     (<= 3 y))
+            (- x y)))
+       (or null float integer))
+
+      ;; 44
+      ;; SBCL: (OR (RATIONAL (6) (30)) (SINGLE-FLOAT 6.0 30.0)
+      ;;           (DOUBLE-FLOAT 6.0d0 30.0d0) NULL)
+      ((defun comp-tests-ret-type-spec-f (x y z i j k)
+         (when (and (< 1 x 5)
+	            (< 1 y 5)
+	            (< 1 z 5)
+	            (< 1 i 5)
+	            (< 1 j 5)
+	            (< 1 k 5))
+           (+ x y z i j k)))
+       (or null float (integer 12 24)))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

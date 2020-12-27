@@ -2648,7 +2648,10 @@ Fold the call in case."
         (setf (comp-mvar-range lval) (comp-cstr-range cstr)
               (comp-mvar-valset lval) (comp-cstr-valset cstr)
               (comp-mvar-typeset lval) (comp-cstr-typeset cstr)
-              (comp-mvar-neg lval) (comp-cstr-neg cstr))))))
+              (comp-mvar-neg lval) (comp-cstr-neg cstr))))
+    (cl-case f
+      (+ (comp-cstr-add lval args))
+      (- (comp-cstr-sub lval args)))))
 
 (defun comp-fwprop-insn (insn)
   "Propagate within INSN."
