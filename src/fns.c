@@ -202,7 +202,7 @@ counted.  */)
 }
 
 DEFUN ("length=", Flength_equal, Slength_equal, 2, 2, 0,
-       doc: /* Return non-nil if SEQUENCE is equal to LENGTH.
+       doc: /* Return non-nil if SEQUENCE has length equal to LENGTH.
 See `length' for allowed values of SEQUENCE and how elements are
 counted.  */)
   (Lisp_Object sequence, Lisp_Object length)

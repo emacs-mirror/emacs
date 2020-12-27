@@ -619,11 +619,11 @@ There can be any number of :example/:result elements."
   (length
    :eval (length '(a b c)))
   (length<
-   :eval (lenth< '(a b c) 1))
+   :eval (length< '(a b c) 1))
   (length>
-   :eval (lenth> '(a b c) 1))
+   :eval (length> '(a b c) 1))
   (length=
-   :eval (lenth> '(a b c) 3))
+   :eval (length> '(a b c) 3))
   (safe-length
    :eval (safe-length '(a b c))))
 
