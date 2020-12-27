@@ -203,6 +203,9 @@ If VERSION is nil, the package is not made available (it is \"disabled\")."
 
 (defcustom package-archives `(("gnu" .
                                ,(format "http%s://elpa.gnu.org/packages/"
+                                        (if (gnutls-available-p) "s" "")))
+                              ("nongnu" .
+                               ,(format "http%s://elpa.nongnu.org/nongnu/"
                                         (if (gnutls-available-p) "s" ""))))
   "An alist of archives from which to fetch.
 The default value points to the GNU Emacs package repository.
