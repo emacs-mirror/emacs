@@ -568,9 +568,7 @@ After interpretation of ARGS the results are concatenated as for
 		(regexp-quote (char-to-string re)))
 	       ((listp re)
 		(let ((nested
-		       (mapcar (lambda (elt)
-				 (rst-re elt))
-			       (cdr re))))
+		       (mapcar #'rst-re (cdr re))))
 		  (cond
 		   ((eq (car re) :seq)
 		    (mapconcat #'identity nested ""))
@@ -1398,7 +1396,8 @@ highlighting.
 		t nil nil nil
 		(font-lock-multiline . t)
 		(font-lock-mark-block-function . mark-paragraph)))
-  (add-hook 'font-lock-extend-region-functions #'rst-font-lock-extend-region t)
+  (add-hook 'font-lock-extend-region-functions
+            #'rst-font-lock-extend-region nil t)
 
   ;; Text after a changed line may need new fontification.
   (setq-local jit-lock-contextually t)
