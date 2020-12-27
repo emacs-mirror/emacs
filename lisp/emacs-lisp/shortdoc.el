@@ -618,6 +618,12 @@ There can be any number of :example/:result elements."
   "Data About Lists"
   (length
    :eval (length '(a b c)))
+  (length<
+   :eval (lenth< '(a b c) 1))
+  (length>
+   :eval (lenth> '(a b c) 1))
+  (length=
+   :eval (lenth> '(a b c) 3))
   (safe-length
    :eval (safe-length '(a b c))))
 
