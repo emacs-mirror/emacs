@@ -411,7 +411,7 @@ The possible settings for `align-region-separate' are:
      (modes    . align-c++-modes))
 
     (c-variable-declaration
-     (regexp   . ,(concat "[*&0-9A-Za-z_]>?[&*]*\\(\\s-+[*&]*\\)"
+     (regexp   . ,(concat "[*&0-9A-Za-z_]>?[][&*]*\\(\\s-+[*&]*\\)"
 			  "[A-Za-z_][][0-9A-Za-z:_]*\\s-*\\(\\()\\|"
 			  "=[^=\n].*\\|(.*)\\|\\(\\[.*\\]\\)*\\)"
 			  "\\s-*[;,]\\|)\\s-*$\\)"))
