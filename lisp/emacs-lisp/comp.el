@@ -2642,6 +2642,10 @@ Return non-nil if the function is folded successfully."
 F is the function being called with arguments ARGS.
 Fold the call in case."
   (unless (comp-function-call-maybe-fold insn f args)
+    (when (and (eq 'funcall f)
+               (comp-mvar-value-vld-p (car args)))
+      (setf f (comp-mvar-value (car args))
+            args (cdr args)))
     (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
       (let ((cstr (comp-cstr-f-ret cstr-f)))
         (setf (comp-mvar-range lval) (comp-cstr-range cstr)
