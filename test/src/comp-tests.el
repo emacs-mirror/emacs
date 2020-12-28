@@ -800,7 +800,7 @@ Return a list of results."
             ,(lambda (_)
                (let ((f (gethash (comp-c-func-name (cadr func-form) "F" t)
                                  (comp-ctxt-funcs-h comp-ctxt))))
-                 (should (equal (comp-func-ret-type-specifier f)
+                 (should (equal (cl-third (comp-func-type f))
                                 type-specifier))))))))
     (eval func-form t)
     (native-compile (cadr func-form))))

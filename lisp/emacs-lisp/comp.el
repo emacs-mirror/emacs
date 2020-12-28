@@ -497,8 +497,8 @@ CFG is mutated by a pass.")
          :documentation "Optimization level (see `comp-speed').")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
-  (ret-type-specifier '(t) :type list
-                      :documentation "Derived return type specifier."))
+  (type nil :type list
+        :documentation "Derived return type."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexically-scoped function."
@@ -2970,26 +2970,53 @@ These are substituted with a normal 'set' op."
 
 ;;; Final pass specific code.
 
-(defun comp-ret-type-spec (_ func)
+(defun comp-args-to-lambda-list (args)
+  "Return a lambda list for args."
+  (cl-loop
+   with res
+   repeat (comp-args-base-min args)
+   do (push t res)
+   finally
+   (if (comp-args-p args)
+       (cl-loop
+        with n = (- (comp-args-max args) (comp-args-min args))
+        initially (unless (zerop n)
+                    (push '&optional res))
+        repeat n
+        do (push t res))
+     (cl-loop
+      with n = (- (comp-nargs-nonrest args) (comp-nargs-min args))
+      initially (unless (zerop n)
+                  (push '&optional res))
+      repeat n
+      do (push t res)
+      finally (when (comp-nargs-rest args)
+                (push '&rest res)
+                (push 't res))))
+   (cl-return (reverse res))))
+
+(defun comp-compute-function-type (_ func)
   "Compute type specifier for `comp-func' FUNC.
-Set it into the `ret-type-specifier' slot."
-  (let* ((comp-func (make-comp-func))
-         (res-mvar (apply #'comp-cstr-union
-                          (make-comp-cstr)
-                          (cl-loop
-                           with res = nil
-                           for bb being the hash-value in (comp-func-blocks
-                                                           func)
-                           do (cl-loop
-                               for insn in (comp-block-insns bb)
-                               ;; Collect over every exit point the returned
-                               ;; mvars and union results.
-                               do (pcase insn
-                                    (`(return ,mvar)
-                                     (push mvar res))))
-                           finally return res))))
-    (setf (comp-func-ret-type-specifier func)
-          (comp-cstr-to-type-spec res-mvar))))
+Set it into the `type' slot."
+  (when (comp-func-l-p func)
+    (let* ((comp-func (make-comp-func))
+           (res-mvar (apply #'comp-cstr-union
+                            (make-comp-cstr)
+                            (cl-loop
+                             with res = nil
+                             for bb being the hash-value in (comp-func-blocks
+                                                             func)
+                             do (cl-loop
+                                 for insn in (comp-block-insns bb)
+                                 ;; Collect over every exit point the returned
+                                 ;; mvars and union results.
+                                 do (pcase insn
+                                      (`(return ,mvar)
+                                       (push mvar res))))
+                             finally return res))))
+      (setf (comp-func-type func)
+            `(function ,(comp-args-to-lambda-list (comp-func-l-args func))
+                       ,(comp-cstr-to-type-spec res-mvar))))))
 
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."
@@ -3093,7 +3120,7 @@ Prepare every function for final compilation and drive the C back-end."
 
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
-  (maphash #'comp-ret-type-spec (comp-ctxt-funcs-h comp-ctxt))
+  (maphash #'comp-compute-function-type (comp-ctxt-funcs-h comp-ctxt))
   (unless comp-dry-run
     ;; Always run the C side of the compilation as a sub-process
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
