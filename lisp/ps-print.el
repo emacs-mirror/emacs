@@ -4114,7 +4114,6 @@ If EXTENSION is any other symbol, it is ignored."
 
 (defun ps-message-log-max ()
   (and (not (string= (buffer-name) "*Messages*"))
-       (boundp 'message-log-max)
        message-log-max))
 
 
