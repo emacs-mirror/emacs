@@ -941,7 +941,10 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
            'face 'error))))
       (goto-char (point-min)))))
 
-(defun xref--show-defs-buffer (fetcher alist)
+(defun xref-show-definitions-buffer (fetcher alist)
+  "Show the definitions list in a regular window.
+
+When only one definition found, jump to it right away instead."
   (let ((xrefs (funcall fetcher)))
     (cond
      ((not (cdr xrefs))
@@ -952,8 +955,12 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
                               (cons (cons 'fetched-xrefs xrefs)
                                     alist))))))
 
-(defun xref--show-defs-buffer-at-bottom (fetcher alist)
-  "Show definitions list in a window at the bottom.
+(define-obsolete-function-alias
+  'xref--show-defs-buffer #'xref-show-definitions-buffer "28.1")
+
+(defun xref-show-definitions-buffer-at-bottom (fetcher alist)
+  "Show the definitions list in a window at the bottom.
+
 When there is more than one definition, split the selected window
 and show the list in a small window at the bottom.  And use a
 local keymap that binds `RET' to `xref-quit-and-goto-xref'."
@@ -970,7 +977,14 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
                        '(display-buffer-in-direction . ((direction . below))))
         (current-buffer))))))
 
-(defun xref--show-defs-minibuffer (fetcher alist)
+(define-obsolete-function-alias
+  'xref--show-defs-buffer-at-bottom #'xref-show-definitions-buffer-at-bottom)
+
+(defun xref-show-definitions-completing-read (fetcher alist)
+  "Let the user choose the target definition with completion.
+
+When there is more than one definition, let the user choose
+between them by typing in the minibuffer with completion."
   (let* ((xrefs (funcall fetcher))
          (xref-alist (xref--analyze xrefs))
          xref-alist-with-line-info
@@ -1010,6 +1024,10 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
 
     (xref-pop-to-location xref (assoc-default 'display-action alist))))
 
+;; TODO: Can delete this alias before Emacs 28's release.
+(define-obsolete-function-alias
+  'xref--show-defs-minibuffer #'xref-show-definitions-completing-read "28.1")
+
 
 (defcustom xref-show-xrefs-function 'xref--show-xref-buffer
   "Function to display a list of search results.
@@ -1030,11 +1048,22 @@ displayed.  The possible values are nil, `window' meaning the
 other window, or `frame' meaning the other frame."
   :type 'function)
 
-(defcustom xref-show-definitions-function 'xref--show-defs-buffer
-  "Function to display a list of definitions.
+(defcustom xref-show-definitions-function 'xref-show-definitions-buffer
+  "Function to handle the definition search results.
 
-Accepts the same arguments as `xref-show-xrefs-function'."
-  :type 'function)
+Accepts the same arguments as `xref-show-xrefs-function'.
+
+Generally, it is expected to jump to the definition if there's
+only one, and otherwise provide some way to choose among the
+definitions."
+  :type '(choice
+          (const :tag "Show a regular list of locations"
+                 xref-show-definitions-buffer)
+          (const :tag "Show a \"transient\" list at the bottom of the window"
+                 xref-show-definitions-buffer-at-bottom)
+          (const :tag "Choose the definition with completion"
+                 xref-show-definitions-completing-read)
+          (function :tag "Custom function")))
 
 (defvar xref--read-identifier-history nil)
 
