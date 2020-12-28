@@ -457,33 +457,16 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 }
 
 
-/* Parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
-   into an accelerator string.  We are only able to display a single character
-   for an accelerator, together with an optional modifier combination.  (Under
-   Carbon more control was possible, but in Cocoa multi-char strings passed to
-   NSMenuItem get ignored.  For now we try to display a super-single letter
-   combo, and return the others as strings to be appended to the item title.
-   (This is signaled by setting keyEquivModMask to 0 for now.) */
--(NSString *)parseKeyEquiv: (const char *)key
+static const char *
+skipspc (const char *s)
 {
-  const char *tpos = key;
-  keyEquivModMask = NSEventModifierFlagCommand;
-
-  if (!key || !*key)
-    return @"";
-
-  while (*tpos == ' ' || *tpos == '(')
-    tpos++;
-  if ((*tpos == 's') && (*(tpos+1) == '-'))
-    {
-      return [NSString stringWithFormat: @"%c", tpos[2]];
-    }
-  keyEquivModMask = 0; /* signal */
-  return [NSString stringWithUTF8String: tpos];
+  while (*s == ' ')
+    s++;
+  return s;
 }
 
-
 - (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
+                            attributes: (NSDictionary *)attributes
 {
   NSMenuItem *item;
   widget_value *wv = (widget_value *)wvptr;
@@ -491,36 +474,32 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
   if (menu_separator_name_p (wv->name))
     {
       item = [NSMenuItem separatorItem];
-      [self addItem: item];
     }
   else
     {
-      NSString *title, *keyEq;
-      title = [NSString stringWithUTF8String: wv->name];
+      NSString *title = [NSString stringWithUTF8String: wv->name];
       if (title == nil)
         title = @"< ? >";  /* (get out in the open so we know about it) */
 
-      keyEq = [self parseKeyEquiv: wv->key];
-#ifdef NS_IMPL_COCOA
-      /* macOS mangles modifier strings longer than one character.  */
-      if (keyEquivModMask == 0)
+      item = [[NSMenuItem alloc] init];
+      if (wv->key)
         {
-          title = [title stringByAppendingFormat: @" (%@)", keyEq];
-          item = [self addItemWithTitle: (NSString *)title
-                                 action: @selector (menuDown:)
-                          keyEquivalent: @""];
-        }
-      else
-        {
-#endif
-          item = [self addItemWithTitle: (NSString *)title
-                                 action: @selector (menuDown:)
-                          keyEquivalent: keyEq];
+          NSString *key = [NSString stringWithUTF8String: skipspc (wv->key)];
 #ifdef NS_IMPL_COCOA
-        }
+          /* Cocoa only permits a single key (with modifiers) as
+             keyEquivalent, so we put them in the title string
+             in a tab-separated column. */
+          title = [title stringByAppendingFormat: @"\t%@", key];
+#else
+          [item setKeyEquivalent: key];
 #endif
-      [item setKeyEquivalentModifierMask: keyEquivModMask];
+        }
 
+      NSAttributedString *atitle = [[NSAttributedString alloc]
+                                         initWithString: title
+                                             attributes: attributes];
+      [item setAction: @selector (menuDown:)];
+      [item setAttributedTitle: atitle];
       [item setEnabled: wv->enabled];
 
       /* Draw radio buttons and tickboxes.  */
@@ -533,6 +512,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
       [item setTag: (NSInteger)wv->call_data];
     }
 
+  [self addItem: item];
   return item;
 }
 
@@ -557,15 +537,48 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 
 - (void)fillWithWidgetValue: (void *)wvptr
 {
-  widget_value *wv = (widget_value *)wvptr;
+  widget_value *first_wv = (widget_value *)wvptr;
+  NSFont *menuFont = [NSFont menuFontOfSize:0];
+  NSDictionary *font_attribs = @{NSFontAttributeName: menuFont};
+  CGFloat maxNameWidth = 0;
+  CGFloat maxKeyWidth = 0;
+
+  /* Determine the maximum width of all menu items. */
+  for (widget_value *wv = first_wv; wv != NULL; wv = wv->next)
+    if (!menu_separator_name_p (wv->name))
+      {
+        NSString *name = [NSString stringWithUTF8String: wv->name];
+        NSSize nameSize = [name sizeWithAttributes: font_attribs];
+        maxNameWidth = MAX(maxNameWidth, nameSize.width);
+        if (wv->key)
+          {
+            NSString *key = [NSString stringWithUTF8String: skipspc (wv->key)];
+            NSSize keySize = [key sizeWithAttributes: font_attribs];
+            maxKeyWidth = MAX(maxKeyWidth, keySize.width);
+          }
+      }
+
+  /* Put some space between the names and keys. */
+  CGFloat maxWidth = maxNameWidth + maxKeyWidth + 40;
+
+  /* Set a right-aligned tab stop at the maximum width, so that the
+     key will appear immediately to the left of it. */
+  NSTextTab *tab =
+    [[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentRight
+                                    location: maxWidth
+                                     options: @{}];
+  NSMutableParagraphStyle *pstyle = [[NSMutableParagraphStyle alloc] init];
+  [pstyle setTabStops: @[tab]];
+  NSDictionary *attributes = @{NSParagraphStyleAttributeName: pstyle};
 
   /* clear existing contents */
   [self removeAllItems];
 
   /* add new contents */
-  for (; wv != NULL; wv = wv->next)
+  for (widget_value *wv = first_wv; wv != NULL; wv = wv->next)
     {
-      NSMenuItem *item = [self addItemWithWidgetValue: wv];
+      NSMenuItem *item = [self addItemWithWidgetValue: wv
+                                           attributes: attributes];
 
       if (wv->contents)
         {

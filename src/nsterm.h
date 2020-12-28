@@ -515,13 +515,12 @@ typedef id instancetype;
 
 @interface EmacsMenu : NSMenu  <NSMenuDelegate>
 {
-  unsigned long keyEquivModMask;
   BOOL needsUpdate;
 }
 
 - (void)menuNeedsUpdate: (NSMenu *)menu; /* (delegate method) */
-- (NSString *)parseKeyEquiv: (const char *)key;
-- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr;
+- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
+                            attributes: (NSDictionary *)attributes;
 - (void)fillWithWidgetValue: (void *)wvptr;
 - (EmacsMenu *)addSubmenuWithTitle: (const char *)title;
 - (void) removeAllItems;
