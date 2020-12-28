@@ -3245,6 +3245,13 @@ than the latter (which has two \"holes\" and three
 one-letter-long matches).")
 
 (defun completion-pcm--hilit-commonality (pattern completions)
+  "Show where and how well PATTERN matches COMPLETIONS.
+PATTERN, a list of symbols and strings as seen
+`completion-pcm--merge-completions', is assumed to match every
+string in COMPLETIONS.  Return a deep copy of COMPLETIONS where
+each string is propertized with `completion-score', a number
+between 0 and 1, and with faces `completions-common-part',
+`completions-first-difference' in the relevant segments."
   (when completions
     (let* ((re (completion-pcm--pattern->regex pattern 'group))
            (point-idx (completion-pcm--pattern-point-idx pattern))
@@ -3256,12 +3263,12 @@ one-letter-long matches).")
          (unless (string-match re str)
            (error "Internal error: %s does not match %s" re str))
          (let* ((pos (if point-idx (match-beginning point-idx) (match-end 0)))
-                (md (match-data))
-                (start (pop md))
-                (end (pop md))
-                (len (length str))
-                ;; To understand how this works, consider these bad
-                ;; ascii(tm) diagrams showing how the pattern "foo"
+                (match-end (match-end 0))
+                (md (cddr (match-data)))
+                (from 0)
+                (end (length str))
+                ;; To understand how this works, consider these simple
+                ;; ascii diagrams showing how the pattern "foo"
                 ;; flex-matches "fabrobazo", "fbarbazoo" and
                 ;; "barfoobaz":
 
@@ -3297,9 +3304,12 @@ one-letter-long matches).")
                 (score-numerator 0)
                 (score-denominator 0)
                 (last-b 0)
-                (update-score
+                (update-score-and-face
                  (lambda (a b)
-                   "Update score variables given match range (A B)."
+                   "Update score and face given match range (A B)."
+                   (add-face-text-property a b
+                                           'completions-common-part
+                                           nil str)
                    (setq
                     score-numerator   (+ score-numerator (- b a)))
                    (unless (or (= a last-b)
@@ -3313,19 +3323,15 @@ one-letter-long matches).")
                                                     flex-score-match-tightness)))))
                    (setq
                     last-b              b))))
-           (funcall update-score start start)
            (while md
-             (funcall update-score start (car md))
-             (add-face-text-property
-              start (pop md)
-              'completions-common-part
-              nil str)
-             (setq start (pop md)))
-           (funcall update-score len len)
-           (add-face-text-property
-            start end
-            'completions-common-part
-            nil str)
+             (funcall update-score-and-face from (pop md))
+             (setq from (pop md)))
+           ;; If `pattern' doesn't have an explicit trailing any, the
+           ;; regex `re' won't produce match data representing the
+           ;; region after the match.  We need to account to account
+           ;; for that extra bit of match (bug#42149).
+           (unless (= from match-end)
+             (funcall update-score-and-face from match-end))
            (if (> (length str) pos)
                (add-face-text-property
                 pos (1+ pos)
@@ -3334,7 +3340,7 @@ one-letter-long matches).")
            (unless (zerop (length str))
              (put-text-property
               0 1 'completion-score
-              (/ score-numerator (* len (1+ score-denominator)) 1.0) str)))
+              (/ score-numerator (* end (1+ score-denominator)) 1.0) str)))
          str)
        completions))))
 
