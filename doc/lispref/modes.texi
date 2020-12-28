@@ -1982,9 +1982,15 @@ variables without prompting the user.)
 
 @item (@var{string} @var{rest}@dots{})
 @itemx (@var{list} @var{rest}@dots{})
-A list whose first element is a string or list means to process all the
-elements recursively and concatenate the results.  This is the most
-common form of mode line construct.
+A list whose first element is a string or list means to process all
+the elements recursively and concatenate the results.  This is the
+most common form of mode line construct.  (Note that text properties
+are handled specially (for reasons of efficiency) when displaying
+strings in the mode line: Only the text property on the first
+character of the string are considered, and they are then used over
+the entire string.  If you need a string with different text
+properties, you have to use the special @code{:propertize} mode line
+construct.)
 
 @item (:eval @var{form})
 A list whose first element is the symbol @code{:eval} says to evaluate
@@ -2439,7 +2445,7 @@ line:
 @enumerate
 @item
 Put a string with a text property directly into the mode line data
-structure.
+structure, but see @ref{Mode Line Data} for caveats for that.
 
 @item
 Put a text property on a mode line %-construct such as @samp{%12b}; then
