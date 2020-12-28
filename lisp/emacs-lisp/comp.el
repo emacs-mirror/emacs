@@ -497,8 +497,8 @@ CFG is mutated by a pass.")
          :documentation "Optimization level (see `comp-speed').")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
-  (type nil :type list
-        :documentation "Derived return type."))
+  (type nil :type (or null comp-mvar)
+        :documentation "Mvar holding the derived return type."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexically-scoped function."
@@ -1696,6 +1696,8 @@ the annotation emission."
                        (make-comp-mvar :constant c-name)
                        (car args)
                        (cdr args)
+                       (setf (comp-func-type f)
+                             (make-comp-mvar :constant nil))
                        (make-comp-mvar
                         :constant
                         (list
@@ -1737,6 +1739,8 @@ These are stored in the reloc data array."
                 (make-comp-mvar :constant (comp-func-c-name func))
                 (car args)
                 (cdr args)
+                (setf (comp-func-type func)
+                      (make-comp-mvar :constant nil))
                 (make-comp-mvar
                  :constant
                  (list
@@ -3004,7 +3008,8 @@ These are substituted with a normal 'set' op."
 (defun comp-compute-function-type (_ func)
   "Compute type specifier for `comp-func' FUNC.
 Set it into the `type' slot."
-  (when (comp-func-l-p func)
+  (when (and (comp-func-l-p func)
+             (comp-mvar-p (comp-func-type func)))
     (let* ((comp-func (make-comp-func))
            (res-mvar (apply #'comp-cstr-union
                             (make-comp-cstr)
@@ -3019,10 +3024,12 @@ Set it into the `type' slot."
                                  do (pcase insn
                                       (`(return ,mvar)
                                        (push mvar res))))
-                             finally return res))))
-      (setf (comp-func-type func)
-            `(function ,(comp-args-to-lambda-list (comp-func-l-args func))
-                       ,(comp-cstr-to-type-spec res-mvar))))))
+                             finally return res)))
+           (type `(function ,(comp-args-to-lambda-list (comp-func-l-args func))
+                            ,(comp-cstr-to-type-spec res-mvar))))
+      (comp-add-const-to-relocs type)
+      ;; Fix it up.
+      (setf (comp-mvar-value (comp-func-type func)) type))))
 
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."

@@ -792,18 +792,14 @@ Return a list of results."
     (should (subr-native-elisp-p (symbol-function #'comp-tests-fw-prop-1-f)))
     (should (= (comp-tests-fw-prop-1-f) 6))))
 
-(defun comp-tests-check-ret-type-spec (func-form type-specifier)
+(defun comp-tests-check-ret-type-spec (func-form ret-type)
   (let ((lexical-binding t)
-        (speed 2)
-        (comp-post-pass-hooks
-         `((comp-final
-            ,(lambda (_)
-               (let ((f (gethash (comp-c-func-name (cadr func-form) "F" t)
-                                 (comp-ctxt-funcs-h comp-ctxt))))
-                 (should (equal (cl-third (comp-func-type f))
-                                type-specifier))))))))
+        (comp-speed 2)
+        (f-name (cl-second func-form)))
     (eval func-form t)
-    (native-compile (cadr func-form))))
+    (native-compile f-name)
+    (should (equal (cl-third (subr-type (symbol-function f-name)))
+                   ret-type))))
 
 (cl-eval-when (compile eval load)
   (defconst comp-tests-type-spec-tests
