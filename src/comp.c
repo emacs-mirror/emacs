@@ -411,7 +411,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "0"
+#define ABI_VERSION "1"
 
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
@@ -4886,8 +4886,8 @@ native_function_doc (Lisp_Object function)
 
 static Lisp_Object
 make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
-	   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
-	   Lisp_Object comp_u)
+	   Lisp_Object c_name, Lisp_Object type, Lisp_Object doc_idx,
+	   Lisp_Object intspec, Lisp_Object comp_u)
 {
   struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (comp_u);
   dynlib_handle_ptr handle = cu->handle;
@@ -4918,6 +4918,7 @@ make_subr (Lisp_Object symbol_name, Lisp_Object minarg, Lisp_Object maxarg,
   x->s.doc = XFIXNUM (doc_idx);
   x->s.native_comp_u[0] = comp_u;
   x->s.native_c_name[0] = xstrdup (SSDATA (c_name));
+  x->s.type[0] = type;
   Lisp_Object tem;
   XSETSUBR (tem, &x->s);
 
@@ -4928,16 +4929,18 @@ DEFUN ("comp--register-lambda", Fcomp__register_lambda, Scomp__register_lambda,
        7, 7, 0,
        doc: /* Register anonymous lambda.
 This gets called by top_level_run during the load phase.  */)
-  (Lisp_Object reloc_idx, Lisp_Object minarg, Lisp_Object maxarg,
-   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
+  (Lisp_Object reloc_idx, Lisp_Object c_name, Lisp_Object minarg,
+   Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
    Lisp_Object comp_u)
 {
+  Lisp_Object doc_idx = FIRST (rest);
+  Lisp_Object intspec = SECOND (rest);
   struct Lisp_Native_Comp_Unit *cu = XNATIVE_COMP_UNIT (comp_u);
   if (cu->loaded_once)
     return Qnil;
 
   Lisp_Object tem =
-    make_subr (c_name, minarg, maxarg, c_name, doc_idx, intspec, comp_u);
+    make_subr (c_name, minarg, maxarg, c_name, type, doc_idx, intspec, comp_u);
 
   /* We must protect it against GC because the function is not
      reachable through symbols.  */
@@ -4956,13 +4959,15 @@ DEFUN ("comp--register-subr", Fcomp__register_subr, Scomp__register_subr,
        7, 7, 0,
        doc: /* Register exported subr.
 This gets called by top_level_run during the load phase.  */)
-  (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-   Lisp_Object c_name, Lisp_Object doc_idx, Lisp_Object intspec,
+  (Lisp_Object name, Lisp_Object c_name, Lisp_Object minarg,
+   Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
    Lisp_Object comp_u)
 {
+  Lisp_Object doc_idx = FIRST (rest);
+  Lisp_Object intspec = SECOND (rest);
   Lisp_Object tem =
-    make_subr (SYMBOL_NAME (name), minarg, maxarg, c_name, doc_idx, intspec,
-	       comp_u);
+    make_subr (SYMBOL_NAME (name), minarg, maxarg, c_name, type, doc_idx,
+	       intspec, comp_u);
 
   if (AUTOLOADP (XSYMBOL (name)->u.s.function))
     /* Remember that the function was already an autoload.  */
@@ -4985,13 +4990,13 @@ DEFUN ("comp--late-register-subr", Fcomp__late_register_subr,
        Scomp__late_register_subr, 7, 7, 0,
        doc: /* Register exported subr.
 This gets called by late_top_level_run during the load phase.  */)
-  (Lisp_Object name, Lisp_Object minarg, Lisp_Object maxarg,
-   Lisp_Object c_name, Lisp_Object doc, Lisp_Object intspec,
+  (Lisp_Object name, Lisp_Object c_name, Lisp_Object minarg,
+   Lisp_Object maxarg, Lisp_Object type, Lisp_Object rest,
    Lisp_Object comp_u)
 {
   if (!NILP (Fequal (Fsymbol_function (name),
 		     Fgethash (name, Vcomp_deferred_pending_h, Qnil))))
-    Fcomp__register_subr (name, minarg, maxarg, c_name, doc, intspec, comp_u);
+    Fcomp__register_subr (name, c_name, minarg, maxarg, type, rest, comp_u);
   Fremhash (name, Vcomp_deferred_pending_h);
   return Qnil;
 }

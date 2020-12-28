@@ -6722,6 +6722,7 @@ mark_object (Lisp_Object arg)
 		mark_object (subr->native_intspec);
 		mark_object (subr->native_comp_u[0]);
 		mark_object (subr->lambda_list[0]);
+		mark_object (subr->type[0]);
 	      }
 	    break;
 

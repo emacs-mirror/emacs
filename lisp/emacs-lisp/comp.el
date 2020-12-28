@@ -375,18 +375,17 @@ This is typically for top-level forms other than defun.")
                   :documentation "When non-nil support late load."))
 
 (cl-defstruct comp-args-base
-  (min nil :type number
+  (min nil :type integer
        :documentation "Minimum number of arguments allowed."))
 
 (cl-defstruct (comp-args (:include comp-args-base))
-  (max nil :type number
-       :documentation "Maximum number of arguments allowed.
-To be used when ncall-conv is nil."))
+  (max nil :type integer
+       :documentation "Maximum number of arguments allowed."))
 
 (cl-defstruct (comp-nargs (:include comp-args-base))
   "Describe args when the function signature is of kind:
 (ptrdiff_t nargs, Lisp_Object *args)."
-  (nonrest nil :type number
+  (nonrest nil :type integer
            :documentation "Number of non rest arguments.")
   (rest nil :type boolean
         :documentation "t if rest argument is present."))
@@ -479,7 +478,7 @@ into it.")
        :documentation "SSA status either: 'nil', 'dirty' or 't'.
 Once in SSA form this *must* be set to 'dirty' every time the topology of the
 CFG is mutated by a pass.")
-  (frame-size nil :type number)
+  (frame-size nil :type integer)
   (blocks (make-hash-table :test #'eq) :type hash-table
           :documentation "Basic block symbol -> basic block.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
@@ -498,8 +497,8 @@ CFG is mutated by a pass.")
          :documentation "Optimization level (see `comp-speed').")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
-  (ret-type-specifier '(t) :type list
-                      :documentation "Derived return type specifier."))
+  (type nil :type (or null comp-mvar)
+        :documentation "Mvar holding the derived return type."))
 
 (cl-defstruct (comp-func-l (:include comp-func))
   "Lexically-scoped function."
@@ -1634,7 +1633,7 @@ the annotation emission."
               (comp-emit `(set-args-to-local ,(comp-slot-n i)))
               (comp-emit '(inc-args))
               finally (comp-emit '(jump entry_rest_args)))
-  (when (not (= minarg nonrest))
+  (when (/= minarg nonrest)
     (cl-loop for i from minarg below nonrest
              for bb = (intern (format "entry_fallback_%s" i))
              for next-bb = (if (= (1+ i) nonrest)
@@ -1694,17 +1693,19 @@ the annotation emission."
                            'comp--late-register-subr
                          'comp--register-subr)
                        (make-comp-mvar :constant name)
+                       (make-comp-mvar :constant c-name)
                        (car args)
                        (cdr args)
-                       (make-comp-mvar :constant c-name)
+                       (setf (comp-func-type f)
+                             (make-comp-mvar :constant nil))
                        (make-comp-mvar
                         :constant
-                        (let* ((h (comp-ctxt-function-docs comp-ctxt))
-                               (i (hash-table-count h)))
-                          (puthash i (comp-func-doc f) h)
-                          i))
-                       (make-comp-mvar :constant
-                                       (comp-func-int-spec f))
+                        (list
+                         (let* ((h (comp-ctxt-function-docs comp-ctxt))
+                                (i (hash-table-count h)))
+                           (puthash i (comp-func-doc f) h)
+                           i)
+                         (comp-func-int-spec f)))
                        ;; This is the compilation unit it-self passed as
                        ;; parameter.
                        (make-comp-mvar :slot 0))))))
@@ -1735,15 +1736,19 @@ These are stored in the reloc data array."
                     (puthash (comp-func-byte-func func)
                              (make-comp-mvar :constant nil)
                              (comp-ctxt-lambda-fixups-h comp-ctxt)))
+                (make-comp-mvar :constant (comp-func-c-name func))
                 (car args)
                 (cdr args)
-                (make-comp-mvar :constant (comp-func-c-name func))
+                (setf (comp-func-type func)
+                      (make-comp-mvar :constant nil))
                 (make-comp-mvar
-                 :constant (let* ((h (comp-ctxt-function-docs comp-ctxt))
-                                  (i (hash-table-count h)))
-                             (puthash i (comp-func-doc func) h)
-                             i))
-                (make-comp-mvar :constant (comp-func-int-spec func))
+                 :constant
+                 (list
+                  (let* ((h (comp-ctxt-function-docs comp-ctxt))
+                         (i (hash-table-count h)))
+                    (puthash i (comp-func-doc func) h)
+                    i)
+                  (comp-func-int-spec func)))
                 ;; This is the compilation unit it-self passed as
                 ;; parameter.
                 (make-comp-mvar :slot 0)))))
@@ -2643,6 +2648,10 @@ Return non-nil if the function is folded successfully."
 F is the function being called with arguments ARGS.
 Fold the call in case."
   (unless (comp-function-call-maybe-fold insn f args)
+    (when (and (eq 'funcall f)
+               (comp-mvar-value-vld-p (car args)))
+      (setf f (comp-mvar-value (car args))
+            args (cdr args)))
     (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
       (let ((cstr (comp-cstr-f-ret cstr-f)))
         (setf (comp-mvar-range lval) (comp-cstr-range cstr)
@@ -2971,26 +2980,56 @@ These are substituted with a normal 'set' op."
 
 ;;; Final pass specific code.
 
-(defun comp-ret-type-spec (_ func)
+(defun comp-args-to-lambda-list (args)
+  "Return a lambda list for args."
+  (cl-loop
+   with res
+   repeat (comp-args-base-min args)
+   do (push t res)
+   finally
+   (if (comp-args-p args)
+       (cl-loop
+        with n = (- (comp-args-max args) (comp-args-min args))
+        initially (unless (zerop n)
+                    (push '&optional res))
+        repeat n
+        do (push t res))
+     (cl-loop
+      with n = (- (comp-nargs-nonrest args) (comp-nargs-min args))
+      initially (unless (zerop n)
+                  (push '&optional res))
+      repeat n
+      do (push t res)
+      finally (when (comp-nargs-rest args)
+                (push '&rest res)
+                (push 't res))))
+   (cl-return (reverse res))))
+
+(defun comp-compute-function-type (_ func)
   "Compute type specifier for `comp-func' FUNC.
-Set it into the `ret-type-specifier' slot."
-  (let* ((comp-func (make-comp-func))
-         (res-mvar (apply #'comp-cstr-union
-                          (make-comp-cstr)
-                          (cl-loop
-                           with res = nil
-                           for bb being the hash-value in (comp-func-blocks
-                                                           func)
-                           do (cl-loop
-                               for insn in (comp-block-insns bb)
-                               ;; Collect over every exit point the returned
-                               ;; mvars and union results.
-                               do (pcase insn
-                                    (`(return ,mvar)
-                                     (push mvar res))))
-                           finally return res))))
-    (setf (comp-func-ret-type-specifier func)
-          (comp-cstr-to-type-spec res-mvar))))
+Set it into the `type' slot."
+  (when (and (comp-func-l-p func)
+             (comp-mvar-p (comp-func-type func)))
+    (let* ((comp-func (make-comp-func))
+           (res-mvar (apply #'comp-cstr-union
+                            (make-comp-cstr)
+                            (cl-loop
+                             with res = nil
+                             for bb being the hash-value in (comp-func-blocks
+                                                             func)
+                             do (cl-loop
+                                 for insn in (comp-block-insns bb)
+                                 ;; Collect over every exit point the returned
+                                 ;; mvars and union results.
+                                 do (pcase insn
+                                      (`(return ,mvar)
+                                       (push mvar res))))
+                             finally return res)))
+           (type `(function ,(comp-args-to-lambda-list (comp-func-l-args func))
+                            ,(comp-cstr-to-type-spec res-mvar))))
+      (comp-add-const-to-relocs type)
+      ;; Fix it up.
+      (setf (comp-mvar-value (comp-func-type func)) type))))
 
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."
@@ -3094,7 +3133,7 @@ Prepare every function for final compilation and drive the C back-end."
 
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
-  (maphash #'comp-ret-type-spec (comp-ctxt-funcs-h comp-ctxt))
+  (maphash #'comp-compute-function-type (comp-ctxt-funcs-h comp-ctxt))
   (unless comp-dry-run
     ;; Always run the C side of the compilation as a sub-process
     ;; unless during bootstrap or async compilation (bug#45056).  GCC
