@@ -1633,7 +1633,7 @@ the annotation emission."
               (comp-emit `(set-args-to-local ,(comp-slot-n i)))
               (comp-emit '(inc-args))
               finally (comp-emit '(jump entry_rest_args)))
-  (when (not (= minarg nonrest))
+  (when (/= minarg nonrest)
     (cl-loop for i from minarg below nonrest
              for bb = (intern (format "entry_fallback_%s" i))
              for next-bb = (if (= (1+ i) nonrest)
