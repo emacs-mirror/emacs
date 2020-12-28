@@ -375,18 +375,17 @@ This is typically for top-level forms other than defun.")
                   :documentation "When non-nil support late load."))
 
 (cl-defstruct comp-args-base
-  (min nil :type number
+  (min nil :type integer
        :documentation "Minimum number of arguments allowed."))
 
 (cl-defstruct (comp-args (:include comp-args-base))
-  (max nil :type number
-       :documentation "Maximum number of arguments allowed.
-To be used when ncall-conv is nil."))
+  (max nil :type integer
+       :documentation "Maximum number of arguments allowed."))
 
 (cl-defstruct (comp-nargs (:include comp-args-base))
   "Describe args when the function signature is of kind:
 (ptrdiff_t nargs, Lisp_Object *args)."
-  (nonrest nil :type number
+  (nonrest nil :type integer
            :documentation "Number of non rest arguments.")
   (rest nil :type boolean
         :documentation "t if rest argument is present."))
@@ -479,7 +478,7 @@ into it.")
        :documentation "SSA status either: 'nil', 'dirty' or 't'.
 Once in SSA form this *must* be set to 'dirty' every time the topology of the
 CFG is mutated by a pass.")
-  (frame-size nil :type number)
+  (frame-size nil :type integer)
   (blocks (make-hash-table :test #'eq) :type hash-table
           :documentation "Basic block symbol -> basic block.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
