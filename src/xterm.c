@@ -9706,7 +9706,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 
 #ifdef HAVE_X_I18N
       if (w == XWINDOW (f->selected_window))
-	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
+	if (FRAME_XIC (f))
 	  xic_set_preeditarea (w, x, y);
 #endif
     }
@@ -10389,11 +10389,8 @@ xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_
 		create_frame_xic (f);
 		if (FRAME_XIC_STYLE (f) & XIMStatusArea)
 		  xic_set_statusarea (f);
-		if (FRAME_XIC_STYLE (f) & XIMPreeditPosition)
-		  {
-		    struct window *w = XWINDOW (f->selected_window);
-		    xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
-		  }
+		struct window *w = XWINDOW (f->selected_window);
+		xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
 	      }
 	}
 

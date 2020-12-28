@@ -2321,24 +2321,6 @@ hack_wm_protocols (struct frame *f, Widget widget)
 static XFontSet xic_create_xfontset (struct frame *);
 static XIMStyle best_xim_style (XIMStyles *);
 
-
-/* Supported XIM styles, ordered by preference.  */
-
-static const XIMStyle supported_xim_styles[] =
-{
-  XIMPreeditPosition | XIMStatusArea,
-  XIMPreeditPosition | XIMStatusNothing,
-  XIMPreeditPosition | XIMStatusNone,
-  XIMPreeditNothing | XIMStatusArea,
-  XIMPreeditNothing | XIMStatusNothing,
-  XIMPreeditNothing | XIMStatusNone,
-  XIMPreeditNone | XIMStatusArea,
-  XIMPreeditNone | XIMStatusNothing,
-  XIMPreeditNone | XIMStatusNone,
-  0,
-};
-
-
 #if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
@@ -2622,15 +2604,8 @@ xic_free_xfontset (struct frame *f)
 static XIMStyle
 best_xim_style (XIMStyles *xim)
 {
-  int i, j;
-  int nr_supported = ARRAYELTS (supported_xim_styles);
-
-  for (i = 0; i < nr_supported; ++i)
-    for (j = 0; j < xim->count_styles; ++j)
-      if (supported_xim_styles[i] == xim->supported_styles[j])
-	return supported_xim_styles[i];
-
-  /* Return the default style.  */
+  /* Return the default style. This is what GTK3 uses and
+     should work fine with all modern input methods.  */
   return XIMPreeditNothing | XIMStatusNothing;
 }
 
