@@ -2847,7 +2847,9 @@ need this when pasting multiple lines of text."
   (if (string-match "^\\s-*$" line)
       nil
     (string-match "^ ?\\(.*\\)" line)
-    (erc-process-input-line (match-string 1 line) nil t)))
+    (let ((msg (match-string 1 line)))
+      (erc-display-msg msg)
+      (erc-process-input-line msg nil t))))
 (put 'erc-cmd-SAY 'do-not-parse-args t)
 
 (defun erc-cmd-SET (line)
