@@ -1693,17 +1693,17 @@ the annotation emission."
                            'comp--late-register-subr
                          'comp--register-subr)
                        (make-comp-mvar :constant name)
+                       (make-comp-mvar :constant c-name)
                        (car args)
                        (cdr args)
-                       (make-comp-mvar :constant c-name)
                        (make-comp-mvar
                         :constant
-                        (let* ((h (comp-ctxt-function-docs comp-ctxt))
-                               (i (hash-table-count h)))
-                          (puthash i (comp-func-doc f) h)
-                          i))
-                       (make-comp-mvar :constant
-                                       (comp-func-int-spec f))
+                        (list
+                         (let* ((h (comp-ctxt-function-docs comp-ctxt))
+                                (i (hash-table-count h)))
+                           (puthash i (comp-func-doc f) h)
+                           i)
+                         (comp-func-int-spec f)))
                        ;; This is the compilation unit it-self passed as
                        ;; parameter.
                        (make-comp-mvar :slot 0))))))
@@ -1734,15 +1734,17 @@ These are stored in the reloc data array."
                     (puthash (comp-func-byte-func func)
                              (make-comp-mvar :constant nil)
                              (comp-ctxt-lambda-fixups-h comp-ctxt)))
+                (make-comp-mvar :constant (comp-func-c-name func))
                 (car args)
                 (cdr args)
-                (make-comp-mvar :constant (comp-func-c-name func))
                 (make-comp-mvar
-                 :constant (let* ((h (comp-ctxt-function-docs comp-ctxt))
-                                  (i (hash-table-count h)))
-                             (puthash i (comp-func-doc func) h)
-                             i))
-                (make-comp-mvar :constant (comp-func-int-spec func))
+                 :constant
+                 (list
+                  (let* ((h (comp-ctxt-function-docs comp-ctxt))
+                         (i (hash-table-count h)))
+                    (puthash i (comp-func-doc func) h)
+                    i)
+                  (comp-func-int-spec func)))
                 ;; This is the compilation unit it-self passed as
                 ;; parameter.
                 (make-comp-mvar :slot 0)))))
