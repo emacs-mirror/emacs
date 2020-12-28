@@ -65,11 +65,22 @@ static int popup_activated_flag;
 
 /* Supposed to discard menubar and free storage.  Since we share the
    menubar among frames and update its context for the focused window,
-   there is nothing to do here.  */
+   we do not discard the menu.  We do, however, want to remove any
+   existing menu items.  */
 void
 free_frame_menubar (struct frame *f)
 {
-  return;
+  id menu = [NSApp mainMenu];
+  for (int i = [menu numberOfItems] - 1 ; i >= 0; i--)
+    {
+      NSMenuItem *item = [menu itemAtIndex:i];
+      NSString *title = [item title];
+
+      if ([ns_app_name isEqualToString:title])
+        continue;
+
+      [menu removeItemAtIndex:i];
+    }
 }
 
 
@@ -108,7 +119,7 @@ ns_update_menubar (struct frame *f, bool deep_p)
 
   NSTRACE ("ns_update_menubar");
 
-  if (f != SELECTED_FRAME ())
+  if (f != SELECTED_FRAME () || FRAME_EXTERNAL_MENU_BAR (f) == 0)
       return;
   XSETFRAME (Vmenu_updating_frame, f);
 /*fprintf (stderr, "ns_update_menubar: frame: %p\tdeep: %d\tsub: %p\n", f, deep_p, submenu); */
@@ -317,57 +328,44 @@ ns_update_menubar (struct frame *f, bool deep_p)
     }
 
   /* Now, update the NS menu.  */
-  if (deep_p)
-    {
-      /* This path is typically used when a menu has been clicked.  I
-         think Apple expect us to only update that one menu, however
-         to update one we need to do the hard work of parsing the
-         whole tree, so we may as well update them all.  */
-#ifdef NS_IMPL_COCOA
-      int i = 1;
-#else
-      int i = 0;
-#endif
-      for (wv = first_wv->contents; wv; wv = wv->next)
-        {
-          /* The contents of wv should match the top level menu.  */
-          EmacsMenu *submenu = (EmacsMenu*)[[menu itemAtIndex:i++] submenu];
+  i = 0;
 
-          [submenu fillWithWidgetValue: wv->contents];
-        }
+  /* Make sure we skip the "application" menu, which is always the
+     first entry in our top-level menu.  */
+  if (i < [menu numberOfItems])
+    {
+      NSString *title = [[menu itemAtIndex:i] title];
+      if ([ns_app_name isEqualToString:title])
+        i += 1;
     }
-  else
+
+  for (wv = first_wv->contents; wv; wv = wv->next)
     {
-      /* Make sure we skip the "application" menu, which is always the
-         first entry in our top-level menu.  */
-#ifdef NS_IMPL_COCOA
-      int i = 1;
-#else
-      int i = 0;
-#endif
-      for (wv = first_wv->contents; wv; wv = wv->next)
+      EmacsMenu *submenu;
+
+      if (i < [menu numberOfItems])
         {
-          if (i < [menu numberOfItems])
-            {
-              NSString *titleStr = [NSString stringWithUTF8String: wv->name];
-              NSMenuItem *item = [menu itemAtIndex:i];
-              EmacsMenu *submenu = (EmacsMenu*)[item submenu];
+          NSString *titleStr = [NSString stringWithUTF8String: wv->name];
+          NSMenuItem *item = [menu itemAtIndex:i];
+          submenu = (EmacsMenu*)[item submenu];
 
-              [item setTitle:titleStr];
-              [submenu setTitle:titleStr];
-              [submenu removeAllItems];
-            }
-          else
-            [menu addSubmenuWithTitle: wv->name];
-
-          i += 1;
+          [item setTitle:titleStr];
+          [submenu setTitle:titleStr];
+          [submenu removeAllItems];
         }
+      else
+        submenu = [menu addSubmenuWithTitle: wv->name];
 
-      while (i < [menu numberOfItems])
-        {
-          /* Remove any extra items.  */
-          [menu removeItemAtIndex:i];
-        }
+      if (deep_p)
+        [submenu fillWithWidgetValue: wv->contents];
+
+      i += 1;
+    }
+
+  while (i < [menu numberOfItems])
+    {
+      /* Remove any extra items.  */
+      [menu removeItemAtIndex:i];
     }
 
 
@@ -541,14 +539,7 @@ set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
   int n;
 
   for (n = [self numberOfItems]-1; n >= 0; n--)
-    {
-      NSMenuItem *item = [self itemAtIndex: n];
-      NSString *title = [item title];
-      if ([ns_app_name isEqualToString: title]
-          && ![item isSeparatorItem])
-        continue;
-      [self removeItemAtIndex: n];
-    }
+    [self removeItemAtIndex: n];
 #endif
 
   needsUpdate = YES;
