@@ -638,9 +638,14 @@ to turn the *scratch* buffer into your notes buffer."
   (interactive "p")
   (let ((buf (or (find-buffer-visiting remember-data-file)
                  (with-current-buffer (find-file-noselect remember-data-file)
-                   (and remember-notes-buffer-name
-                        (not (get-buffer remember-notes-buffer-name))
-                        (rename-buffer remember-notes-buffer-name))
+                   (when remember-notes-buffer-name
+                     (when (and (get-buffer remember-notes-buffer-name)
+                                (equal remember-notes-buffer-name "*scratch*"))
+                       (kill-buffer remember-notes-buffer-name))
+                     ;; Rename the buffer to the requested name (if
+                     ;; it's not already in use).
+                     (unless (get-buffer remember-notes-buffer-name)
+                       (rename-buffer remember-notes-buffer-name)))
                    (funcall (or remember-notes-initial-major-mode
                                 initial-major-mode))
                    (remember-notes-mode 1)
