@@ -112,11 +112,14 @@
   (get-text-property 0 'completion-score comp))
 
 (defun completion--pcm-first-difference-pos (comp)
-  (cl-loop for pos = (next-single-property-change 0 'face comp)
+  (cl-loop with faces
+           for pos = (next-single-property-change 0 'face comp)
            then (next-single-property-change pos 'face comp)
            while pos
-           when (eq (get-text-property pos 'face comp)
-                    'completions-first-difference)
+           when (or (eq (setq faces (get-text-property pos 'face comp))
+                        'completions-first-difference)
+                    (and (listp faces)
+                         (memq 'completions-first-difference faces)))
            return pos))
 
 (ert-deftest completion-pcm-test-1 ()
