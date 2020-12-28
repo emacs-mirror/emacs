@@ -76,9 +76,6 @@
 (cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
 (cc-require 'cc-engine)
-(cc-require-when-compile 'cc-awk) ; Change from cc-require, 2003/6/18 to
-;; prevent cc-awk being loaded when it's not needed.  There is now a (require
-;; 'cc-awk) in (defun awk-mode ..).
 
 ;; Avoid repeated loading through the eval-after-load directive in
 ;; cc-mode.el.

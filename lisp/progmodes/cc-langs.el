@@ -549,7 +549,7 @@ parameters (point-min), (point-max) and <buffer size>.")
 
 (c-lang-defconst c-before-context-fontification-functions
   t 'c-context-expand-fl-region
-  awk nil)
+  awk 'c-awk-context-expand-fl-region)
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
 (c-lang-defvar c-before-context-fontification-functions

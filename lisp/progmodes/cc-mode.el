@@ -113,6 +113,7 @@
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
+(cc-bytecomp-defvar awk-mode-syntax-table)
 
 ;; We set this variable during mode init, yet we don't require
 ;; font-lock.
