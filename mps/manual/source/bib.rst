@@ -1633,7 +1633,7 @@ Bibliography
     A new algorithm is introduced for garbage collecting a heap which
     contains shared data structures accessed from a scatter table. The
     scheme provides for the purging of useless entries from the
-    scatter table with no traverslas beyond the two required by
+    scatter table with no traversals beyond the two required by
     classic collection schemes. For languages which use scatter tables
     to sustain unique existence of complex structures, like natural
     variables of SNOBOL, it indirectly allows liberal use of a single
