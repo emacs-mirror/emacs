@@ -49,7 +49,16 @@
   "Likewise like `cl--all-builtin-types' but with t as common supertype.")
 
 (cl-defstruct (comp-cstr (:constructor comp-type-to-cstr
-                                       (type &aux (typeset (list type))))
+                                       (type &aux
+					     (null (eq type 'null))
+                                             (integer (eq type 'integer))
+					     (typeset (if (or null integer)
+							  nil
+							(list type)))
+					     (valset (when null
+						       '(nil)))
+                                             (range (when integer
+                                                      '((- . +))))))
                          (:constructor comp-value-to-cstr
                                        (value &aux
                                               (valset (list value))
