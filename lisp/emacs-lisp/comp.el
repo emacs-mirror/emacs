@@ -1895,7 +1895,10 @@ into the C code forwarding the compilation unit."
 ;;    in the CFG to infer information on the tested variables.
 ;;
 ;;  - Range propagation under test and branch (when the test is an
-;;    arithmetic comparison.)
+;;    arithmetic comparison).
+;;
+;;  - Type constraint under test and branch (when the test is a
+;;    known predicate).
 ;;
 ;;  - Function calls: function calls to function assumed to be not
 ;;    redefinable can be used to add constrains on the function
@@ -1956,15 +1959,22 @@ The assume is emitted at the beginning of the block BB."
     (cl-assert lhs-slot)
     (pcase kind
       ('and
-       (let ((tmp-mvar (if negated
-                          (make-comp-mvar :slot (comp-mvar-slot rhs))
-                        rhs)))
+       (if (comp-mvar-p rhs)
+           (let ((tmp-mvar (if negated
+                               (make-comp-mvar :slot (comp-mvar-slot rhs))
+                             rhs)))
+             (push `(assume ,(make-comp-mvar :slot lhs-slot)
+                            (and ,lhs ,tmp-mvar))
+	           (comp-block-insns bb))
+             (if negated
+                 (push `(assume ,tmp-mvar (not ,rhs))
+	               (comp-block-insns bb))))
+         ;; If is only a constraint we can negate it directly.
          (push `(assume ,(make-comp-mvar :slot lhs-slot)
-                        (and ,lhs ,tmp-mvar))
-	       (comp-block-insns bb))
-         (if negated
-             (push `(assume ,tmp-mvar (not ,rhs))
-	           (comp-block-insns bb)))))
+                        (and ,lhs ,(if negated
+                                       (comp-cstr-negation-make rhs)
+                                     rhs)))
+	       (comp-block-insns bb))))
       ((pred comp-range-cmp-fun-p)
        (let ((kind (if negated
                        (comp-negate-range-cmp-fun kind)
@@ -2078,6 +2088,10 @@ TARGET-BB-SYM is the symbol name of the target block."
           (comp-emit-assume 'and obj1 obj2 block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
 
+(defun comp-known-predicate-p (pred)
+  (when (symbolp pred)
+    (get pred 'cl-satisfies-deftype)))
+
 (defun comp-add-cond-cstrs ()
   "`comp-add-cstrs' worker function for each selected function."
   (cl-loop
@@ -2114,6 +2128,43 @@ TARGET-BB-SYM is the symbol name of the target block."
           (when (comp-mvar-used-p target-mvar2)
             (comp-emit-assume (comp-reverse-cmp-fun kind)
                               target-mvar2 op1 block-target negated)))
+        finally (cl-return-from in-the-basic-block)))
+      (`((set ,(and (pred comp-mvar-p) cmp-res)
+              (,(pred comp-call-op-p)
+               ,(and (pred comp-known-predicate-p) fun)
+               ,op))
+	 ;; (comment ,_comment-str)
+	 (cond-jump ,cmp-res ,(pred comp-mvar-p) . ,blocks))
+       (cl-loop
+        with target-mvar = (comp-cond-cstrs-target-mvar op (car insns-seq) b)
+        with cstr = (comp-pred-to-cstr fun)
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for negated in '(t nil)
+        when (comp-mvar-used-p target-mvar)
+        do
+        (let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (comp-emit-assume 'and target-mvar cstr block-target negated))
+        finally (cl-return-from in-the-basic-block)))
+      ;; Match predicate on the negated branch (unless).
+      (`((set ,(and (pred comp-mvar-p) cmp-res)
+              (,(pred comp-call-op-p)
+               ,(and (pred comp-known-predicate-p) fun)
+               ,op))
+         (set ,neg-cmp-res (call eq ,cmp-res ,(pred comp-cstr-null-p)))
+	 (cond-jump ,neg-cmp-res ,(pred comp-mvar-p) . ,blocks))
+       (cl-loop
+        with target-mvar = (comp-cond-cstrs-target-mvar op (car insns-seq) b)
+        with cstr = (comp-pred-to-cstr fun)
+        for branch-target-cell on blocks
+        for branch-target = (car branch-target-cell)
+        for negated in '(nil t)
+        when (comp-mvar-used-p target-mvar)
+        do
+        (let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
+          (setf (car branch-target-cell) (comp-block-name block-target))
+          (comp-emit-assume 'and target-mvar cstr block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
 
 (defun comp-emit-call-cstr (mvar call-cell cstr)

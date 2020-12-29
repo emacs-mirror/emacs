@@ -837,7 +837,6 @@ Return a list of results."
            y))
        (or (integer 1 1) (integer 3 3)))
 
-
       ;; 6
       ((defun comp-tests-ret-type-spec-f (x)
          (if x
@@ -1035,8 +1034,6 @@ Return a list of results."
        (or null marker number))
 
       ;; 36
-      ;; SBCL: (OR (RATIONAL (5)) (SINGLE-FLOAT 5.0)
-      ;;           (DOUBLE-FLOAT 5.0d0) NULL) !?
       ((defun comp-tests-ret-type-spec-f (x y)
          (when (and (> x 3)
                     (> y 2))
@@ -1051,15 +1048,14 @@ Return a list of results."
            (+ x y)))
        (or null float (integer * 5)))
 
-      ;; 38 SBCL gives: (OR (RATIONAL (2) (10)) (SINGLE-FLOAT 2.0 10.0)
-      ;;                    (DOUBLE-FLOAT 2.0d0 10.0d0) NULL)!?
+      ;; 38
       ((defun comp-tests-ret-type-spec-f (x y)
          (when (and (< 1 x 5)
 	            (< 1 y 5))
            (+ x y)))
        (or null float (integer 4 8)))
 
-      ;; 37
+      ;; 39
       ;; SBCL gives: (OR REAL NULL)
       ((defun comp-tests-ret-type-spec-f (x y)
 		    (when (and (<= 1 x 10)
@@ -1067,7 +1063,7 @@ Return a list of results."
 		      (+ x y)))
        (or null float (integer 3 13)))
 
-      ;; 38
+      ;; 40
       ;; SBCL: (OR REAL NULL)
       ((defun comp-tests-ret-type-spec-f (x y)
 		    (when (and (<= 1 x 10)
@@ -1075,42 +1071,42 @@ Return a list of results."
 		      (- x y)))
        (or null float (integer -2 8)))
 
-      ;; 39
+      ;; 41
       ((defun comp-tests-ret-type-spec-f (x y)
          (when (and (<= 1 x)
                     (<= 2 y 3))
            (- x y)))
        (or null float (integer -2 *)))
 
-      ;; 40
+      ;; 42
       ((defun comp-tests-ret-type-spec-f (x y)
          (when (and (<= 1 x 10)
                     (<= 2 y))
            (- x y)))
        (or null float (integer * 8)))
 
-      ;; 41
+      ;; 43
       ((defun comp-tests-ret-type-spec-f (x y)
 		    (when (and (<= x 10)
 			       (<= 2 y))
 		      (- x y)))
        (or null float (integer * 8)))
 
-      ;; 42
+      ;; 44
       ((defun comp-tests-ret-type-spec-f (x y)
           (when (and (<= x 10)
                      (<= y 3))
             (- x y)))
        (or null float integer))
 
-      ;; 43
+      ;; 45
       ((defun comp-tests-ret-type-spec-f (x y)
           (when (and (<= 2 x)
                      (<= 3 y))
             (- x y)))
        (or null float integer))
 
-      ;; 44
+      ;; 46
       ;; SBCL: (OR (RATIONAL (6) (30)) (SINGLE-FLOAT 6.0 30.0)
       ;;           (DOUBLE-FLOAT 6.0d0 30.0d0) NULL)
       ((defun comp-tests-ret-type-spec-f (x y z i j k)
@@ -1123,22 +1119,61 @@ Return a list of results."
            (+ x y z i j k)))
        (or null float (integer 12 24)))
 
-      ;; 45
+      ;; 47
       ((defun comp-tests-ret-type-spec-f (x)
          (when (<= 1 x 5)
            (1+ x)))
        (or null float (integer 2 6)))
 
-      ;;46
+      ;;48
       ((defun comp-tests-ret-type-spec-f (x)
          (when (<= 1 x 5)
            (1- x)))
        (or null float (integer 0 4)))
 
-      ;; 47
+      ;; 49
       ((defun comp-tests-ret-type-spec-f ()
          (error "foo"))
-       nil)))
+       nil)
+
+      ;; 50
+      ((defun comp-tests-ret-type-spec-f (x)
+         (if (stringp x)
+	     x
+           'bar))
+       (or (member bar) string))
+
+      ;; 51
+      ((defun comp-tests-ret-type-spec-f (x)
+         (if (stringp x)
+             'bar
+           x))
+       (not string))
+
+      ;; 52
+      ((defun comp-tests-ret-type-spec-f (x)
+         (if (integerp x)
+             x
+           'bar))
+       (or (member bar) integer))
+
+      ;; 53
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (integerp x)
+           x))
+       (or null integer))
+
+      ;; 54
+      ((defun comp-tests-ret-type-spec-f (x)
+         (unless (symbolp x)
+           x))
+       (not symbol))
+
+      ;; 55
+      ((defun comp-tests-ret-type-spec-f (x)
+         (unless (integerp x)
+           x))
+       (not integer))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

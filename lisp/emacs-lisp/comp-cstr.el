@@ -137,6 +137,13 @@ Integer values are handled in the `range' slot.")
          (null (valset cstr))
          (null (range cstr)))))
 
+(defsubst comp-cstr-null-p (x)
+  "Return t if CSTR is equivalent to the `null' type specifier, nil otherwise."
+  (with-comp-cstr-accessors
+    (and (null (typeset x))
+         (null (range x))
+         (equal (valset x) '(nil)))))
+
 (defun comp-cstrs-homogeneous (cstrs)
   "Check if constraints CSTRS are all homogeneously negated or non-negated.
 Return `pos' if they are all positive, `neg' if they are all
@@ -166,6 +173,10 @@ Return them as multiple value."
 (defvar comp-cstr-one (make-comp-cstr :typeset ()
                                       :range '((1 . 1)))
   "Represent the integer immediate one (1).")
+
+(defun comp-pred-to-cstr (predicate)
+  "Given PREDICATE return the correspondig constraint."
+  (comp-type-to-cstr (get predicate 'cl-satisfies-deftype)))
 
 
 ;;; Value handling.
