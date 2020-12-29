@@ -389,6 +389,7 @@ See Bug#30460."
 (ert-deftest process-tests/fd-setsize-no-crash ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
+  (skip-unless (not (eq system-type 'windows-nt)))
   (with-timeout (60)
   (let ((sleep (executable-find "sleep"))
         ;; FD_SETSIZE is typically 1024 on Unix-like systems.
