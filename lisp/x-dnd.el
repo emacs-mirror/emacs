@@ -411,8 +411,10 @@ Coordinates are required to be absolute.
 FRAME is the frame and W is the window where the drop happened.
 If W is a window, return its absolute coordinates,
 otherwise return the frame coordinates."
-  (let* ((frame-left (frame-parameter frame 'left))
-	 (frame-top (frame-parameter frame 'top)))
+  (let* ((frame-left (or (car-safe (cdr-safe (frame-parameter frame 'left)))
+			 (frame-parameter frame 'left)))
+	 (frame-top (or (car-safe (cdr-safe (frame-parameter frame 'top)))
+			(frame-parameter frame 'top))))
     (if (windowp w)
 	(let ((edges (window-inside-pixel-edges w)))
 	  (cons
