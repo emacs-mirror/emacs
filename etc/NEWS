@@ -1738,11 +1738,6 @@ height of lines or width of chars.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
 
-** Flymake mode
-
-+++
-*** New user option 'flymake-mode-line-indicator-format'.
-
 ** Flyspell mode
 
 +++
