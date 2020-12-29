@@ -368,5 +368,40 @@ See Bug#30460."
   "Check that looking up non-existent domain returns nil"
   (should (eq nil (network-lookup-address-info "emacs.invalid"))))
 
+(ert-deftest process-tests/fd-setsize-no-crash ()
+  "Check that Emacs doesn't crash when trying to use more than
+FD_SETSIZE file descriptors (Bug#24325)."
+  (let ((sleep (executable-find "sleep"))
+        ;; FD_SETSIZE is typically 1024 on Unix-like systems.
+        (fd-setsize 1024)
+        ;; `make-process' allocates at least four file descriptors per process
+        ;; when using the pipe communication method.  However, it closes two of
+        ;; them in the parent process, so we end up with only two new
+        ;; descriptors per process.
+        (fds-per-process 2)
+        (processes ()))
+    (skip-unless sleep)
+    ;; Start processes until we exhaust the file descriptor set size.
+    (dotimes (i (1+ (/ fd-setsize fds-per-process)))
+      (let ((process
+             ;; Failure to allocate more file descriptors should signal
+             ;; `file-error', but not crash.  Since we don't know the exact
+             ;; limit, we ignore `file-error'.
+             (ignore-error 'file-error
+               (make-process :name (format "test %d" i)
+                             :buffer nil
+                             :command (list sleep "5")
+                             :coding 'no-conversion
+                             :noquery t
+                             :connection-type 'pipe))))
+        (when process (push process processes))))
+    ;; We should have managed to start at least one process.
+    (should processes)
+    (dolist (process processes)
+      (while (accept-process-output process))
+      (should (eq (process-status process) 'exit))
+      (should (eql (process-exit-status process) 0))
+      (delete-process process))))
+
 (provide 'process-tests)
 ;; process-tests.el ends here.
