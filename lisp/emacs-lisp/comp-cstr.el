@@ -61,7 +61,11 @@
                                                       '((- . +))))))
                          (:constructor comp-value-to-cstr
                                        (value &aux
-                                              (valset (list value))
+                                              (integer (integerp value))
+                                              (valset (unless integer
+                                                        (list value)))
+                                              (range (when integer
+                                                       `((,value . ,value))))
                                               (typeset ())))
                          (:constructor comp-irange-to-cstr
                                        (irange &aux
@@ -170,9 +174,8 @@ Return them as multiple value."
      collect cstr into positives
    finally return (cl-values positives negatives)))
 
-(defvar comp-cstr-one (make-comp-cstr :typeset ()
-                                      :range '((1 . 1)))
-  "Represent the integer immediate one (1).")
+(defvar comp-cstr-one (comp-value-to-cstr 1)
+  "Represent the integer immediate one.")
 
 (defun comp-pred-to-cstr (predicate)
   "Given PREDICATE return the correspondig constraint."
