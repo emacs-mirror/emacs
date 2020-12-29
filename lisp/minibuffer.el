@@ -3332,11 +3332,12 @@ between 0 and 1, and with faces `completions-common-part',
            ;; for that extra bit of match (bug#42149).
            (unless (= from match-end)
              (funcall update-score-and-face from match-end))
-           (if (> (length str) pos)
-               (add-face-text-property
-                pos (1+ pos)
-                'completions-first-difference
-                nil str))
+           (cl-loop for p from pos below (length str)
+                    unless (eq (get-text-property p 'face str)
+                               'completions-common-part)
+                    return (add-face-text-property p (1+ p)
+                                                   'completions-first-difference
+                                                   nil str))
            (unless (zerop (length str))
              (put-text-property
               0 1 'completion-score
