@@ -25451,14 +25451,49 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 			 format_mode_line_unwind_data (NULL, NULL,
 						       Qnil, false));
 
-  mode_line_target = MODE_LINE_DISPLAY;
-
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
   push_kboard (FRAME_KBOARD (it.f));
   record_unwind_save_match_data ();
-  display_mode_element (&it, 0, 0, 0, format, Qnil, false);
+
+  if (NILP (Vmode_line_compact))
+    {
+      mode_line_target = MODE_LINE_DISPLAY;
+      display_mode_element (&it, 0, 0, 0, format, Qnil, false);
+    }
+  else
+    {
+      Lisp_Object mode_string = Fformat_mode_line (format, Qnil, Qnil, Qnil);
+      if (EQ (Vmode_line_compact, Qlong)
+	  && window_body_width (XWINDOW (selected_window), FALSE) >=
+	  SCHARS (mode_string))
+	{
+	  display_string (SSDATA (mode_string), Qnil, Qnil, 0, 0, &it, 0, 0, 0,
+			  STRING_MULTIBYTE (mode_string));
+	}
+      else
+	{
+	  char *string = xmalloc (SBYTES (mode_string) + 1),
+	    *ostring = SSDATA (mode_string);
+	  char *s = string, prev = 0;
+
+	  /* Copy over the data from the mode line string, but ignore
+	     repeating spaces.  This should be safe even for multibyte
+	     strings, since this is UTF-8. */
+	  for (int i = 0; i < SBYTES (mode_string); i++)
+	    {
+	      char c = ostring[i];
+	      if (!(c == ' ' && prev == ' '))
+		prev = *s++ = c;
+	    }
+	  *s = 0;
+
+	  display_string (string, Qnil, Qnil, 0, 0, &it, 0, 0, 0,
+			  STRING_MULTIBYTE (mode_string));
+	  xfree (string);
+	}
+    }
   pop_kboard ();
 
   unbind_to (count, Qnil);
@@ -34804,6 +34839,14 @@ wide as that tab on the display.  */);
     doc: /* Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
+
+  DEFVAR_LISP ("mode-line-compact", Vmode_line_compact,
+    doc: /* Non-nil means that mode lines should be compact.
+This means that repeating spaces will be replaced with a single space.
+If this variable is `long', only mode lines that are wider than the
+currently selected window are compressed. */);
+  Vmode_line_compact = Qnil;
+  DEFSYM (Qlong, "long");
 
   DEFVAR_LISP ("nobreak-char-display", Vnobreak_char_display,
     doc: /* Control highlighting of non-ASCII space and hyphen chars.

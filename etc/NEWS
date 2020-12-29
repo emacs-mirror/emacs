@@ -1615,6 +1615,12 @@ the column number format (when 'column-number-mode' is on), and
 both modes are on).
 
 +++
+*** New user option 'mode-line-compact'.
+If non-nil, repeating spaces are compressed into a single space.  If
+'long', this is only done when the mode line is longer than the
+current window width (in characters).
+
++++
 *** New command 'submit-emacs-patch'.
 This works like 'report-emacs-bug', but is more geared towards sending
 patches to the Emacs issue tracker.
