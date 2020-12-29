@@ -104,6 +104,7 @@ ns_update_menubar (struct frame *f, bool deep_p)
   NSAutoreleasePool *pool;
   BOOL needsSet = NO;
   id menu = [NSApp mainMenu];
+  bool owfi;
 
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
@@ -171,6 +172,13 @@ ns_update_menubar (struct frame *f, bool deep_p)
 
       set_buffer_internal_1 (XBUFFER (buffer));
 
+      /* TODO: for some reason this is not needed in other terms, but
+	 some menu updates call Info-extract-pointer which causes
+	 abort-on-error if waiting-for-input.  Needs further
+	 investigation.  */
+      owfi = waiting_for_input;
+      waiting_for_input = 0;
+
       /* Run the Lucid hook.  */
       safe_run_hooks (Qactivate_menubar_hook);
 
@@ -223,6 +231,7 @@ ns_update_menubar (struct frame *f, bool deep_p)
 
       submenu_start[i] = -1;
       finish_menu_items ();
+      waiting_for_input = owfi;
 
       /* Convert menu_items into widget_value trees
 	 to display the menu.  This cannot evaluate Lisp code.  */
