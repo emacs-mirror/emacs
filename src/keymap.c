@@ -2188,11 +2188,21 @@ See `text-char-description' for describing character codes.  */)
     {
       if (NILP (no_angles))
 	{
-	  Lisp_Object result;
-	  char *buffer = SAFE_ALLOCA (sizeof "<>"
-				      + SBYTES (SYMBOL_NAME (key)));
-	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
-	  result = build_string (buffer);
+	  Lisp_Object namestr = SYMBOL_NAME (key);
+	  const char *sym = SSDATA (namestr);
+	  ptrdiff_t len = SBYTES (namestr);
+	  /* Find the extent of the modifier prefix, like "C-M-". */
+	  int i = 0;
+	  while (i < len - 3 && sym[i + 1] == '-' && strchr ("CMSsHA", sym[i]))
+	    i += 2;
+	  /* First I bytes of SYM are modifiers; put <> around the rest. */
+	  char *buffer = SAFE_ALLOCA (len + 3);
+	  memcpy (buffer, sym, i);
+	  buffer[i] = '<';
+	  memcpy (buffer + i + 1, sym + i, len - i);
+	  buffer [len + 1] = '>';
+	  buffer [len + 2] = '\0';
+	  Lisp_Object result = build_string (buffer);
 	  SAFE_FREE ();
 	  return result;
 	}

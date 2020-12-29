@@ -218,6 +218,13 @@ and other "slow scrolling" situations.  It is hoped it behaves better
 than 'fast-but-imprecise-scrolling' and 'jit-lock-defer-time'.
 It is not enabled by default.
 
++++
+** Modifiers now go outside angle brackets in pretty-printed key bindings.
+For example, <return> with Control and Meta modifiers is now shown as
+C-M-<return> instead of <C-M-return>.  Either variant can be used as
+input; functions such as 'kbd' and 'read-kbd-macro' accept both styles
+as equivalent (they have done so for a long time).
+
 
 * Editing Changes in Emacs 28.1
 

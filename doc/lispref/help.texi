@@ -545,7 +545,7 @@ brackets.
 @end group
 @group
 (single-key-description 'C-mouse-1)
-     @result{} "<C-mouse-1>"
+     @result{} "C-<mouse-1>"
 @end group
 @group
 (single-key-description 'C-mouse-1 t)

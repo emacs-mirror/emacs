@@ -630,5 +630,13 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (>= (length (apropos-internal "^help" #'commandp)) 15))
   (should-not (apropos-internal "^next-line$" #'keymapp)))
 
+(ert-deftest subr--kbd ()
+  ;; Check that kbd handles both new and old style key descriptions
+  ;; (bug#45536).
+  (should (equal (kbd "s-<return>") [s-return]))
+  (should (equal (kbd "<s-return>") [s-return]))
+  (should (equal (kbd "C-M-<return>") [C-M-return]))
+  (should (equal (kbd "<C-M-return>") [C-M-return])))
+
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
