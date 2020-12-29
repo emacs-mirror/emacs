@@ -3198,7 +3198,8 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  ;; FIXME: Do we really want to consider this a type?
                  (integer-or-marker . integer-or-marker-p)
                  ))
-  (put type 'cl-deftype-satisfies pred))
+  (put type 'cl-deftype-satisfies pred)
+  (put pred 'cl-satisfies-deftype type))
 
 ;;;###autoload
 (define-inline cl-typep (val type)

@@ -49,10 +49,23 @@
   "Likewise like `cl--all-builtin-types' but with t as common supertype.")
 
 (cl-defstruct (comp-cstr (:constructor comp-type-to-cstr
-                                       (type &aux (typeset (list type))))
+                                       (type &aux
+					     (null (eq type 'null))
+                                             (integer (eq type 'integer))
+					     (typeset (if (or null integer)
+							  nil
+							(list type)))
+					     (valset (when null
+						       '(nil)))
+                                             (range (when integer
+                                                      '((- . +))))))
                          (:constructor comp-value-to-cstr
                                        (value &aux
-                                              (valset (list value))
+                                              (integer (integerp value))
+                                              (valset (unless integer
+                                                        (list value)))
+                                              (range (when integer
+                                                       `((,value . ,value))))
                                               (typeset ())))
                          (:constructor comp-irange-to-cstr
                                        (irange &aux
@@ -128,6 +141,13 @@ Integer values are handled in the `range' slot.")
          (null (valset cstr))
          (null (range cstr)))))
 
+(defsubst comp-cstr-null-p (x)
+  "Return t if CSTR is equivalent to the `null' type specifier, nil otherwise."
+  (with-comp-cstr-accessors
+    (and (null (typeset x))
+         (null (range x))
+         (equal (valset x) '(nil)))))
+
 (defun comp-cstrs-homogeneous (cstrs)
   "Check if constraints CSTRS are all homogeneously negated or non-negated.
 Return `pos' if they are all positive, `neg' if they are all
@@ -154,9 +174,12 @@ Return them as multiple value."
      collect cstr into positives
    finally return (cl-values positives negatives)))
 
-(defvar comp-cstr-one (make-comp-cstr :typeset ()
-                                      :range '((1 . 1)))
-  "Represent the integer immediate one (1).")
+(defvar comp-cstr-one (comp-value-to-cstr 1)
+  "Represent the integer immediate one.")
+
+(defun comp-pred-to-cstr (predicate)
+  "Given PREDICATE return the correspondig constraint."
+  (comp-type-to-cstr (get predicate 'cl-satisfies-deftype)))
 
 
 ;;; Value handling.
