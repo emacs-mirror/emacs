@@ -178,4 +178,14 @@
   (should (equal (format-spec "foo %>4b zot" '((?b . "longbar")))
                  "foo long zot")))
 
+(ert-deftest format-spec-split ()
+  (should (equal (format-spec "foo %b bar" '((?b . "zot")) nil t)
+                 '("foo " "zot" " bar")))
+  (should (equal (format-spec "%b bar" '((?b . "zot")) nil t)
+                 '("zot" " bar")))
+  (should (equal (format-spec "%b" '((?b . "zot")) nil t)
+                 '("zot")))
+  (should (equal (format-spec "foo %b" '((?b . "zot")) nil t)
+                 '("foo " "zot"))))
+
 ;;; format-spec-tests.el ends here
