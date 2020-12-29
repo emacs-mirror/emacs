@@ -25473,30 +25473,43 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	  && window_body_width (XWINDOW (selected_window), FALSE) >=
 	  SCHARS (mode_string))
 	{
+	  /* The window is wide enough; just display the mode line we
+	     just computed. */
 	  display_string (SSDATA (mode_string), mode_string, Qnil,
 			  0, 0, &it, 0, 0, 0,
 			  STRING_MULTIBYTE (mode_string), FALSE);
 	}
       else
 	{
-	  char *string = xmalloc (SBYTES (mode_string) + 1),
-	    *ostring = SSDATA (mode_string);
-	  char *s = string, prev = 0;
+	  /* Compress the mode line. */
+	  ptrdiff_t i = 0, i_byte = 0, start = 0;
+	  int prev = 0;
 
-	  /* Copy over the data from the mode line string, but ignore
-	     repeating spaces.  This should be safe even for multibyte
-	     strings, since this is UTF-8. */
-	  for (int i = 0; i < SBYTES (mode_string); i++)
+	  while (i < SCHARS (mode_string))
 	    {
-	      char c = ostring[i];
-	      if (!(c == ' ' && prev == ' '))
-		prev = *s++ = c;
+	      int c = fetch_string_char_advance (mode_string, &i, &i_byte);
+	      if (c == ' ' && prev == ' ')
+		{
+		  display_string (NULL,
+				  Fsubstring (mode_string, make_fixnum (start),
+					      make_fixnum (i - 1)),
+				  Qnil, 0, 0, &it, 0, 0, 0,
+				  STRING_MULTIBYTE (mode_string), FALSE);
+		  /* Skip past the rest of the space characters. */
+		  while (c == ' ' && i < SCHARS (mode_string))
+		      c = fetch_string_char_advance (mode_string, &i, &i_byte);
+		  start = i - 1;
+		}
+	      prev = c;
 	    }
-	  *s = 0;
 
-	  display_string (string, Qnil, Qnil, 0, 0, &it, 0, 0, 0,
-			  STRING_MULTIBYTE (mode_string), TRUE);
-	  xfree (string);
+	  /* Display the final bit. */
+	  if (start < i)
+	    display_string (NULL,
+			    Fsubstring (mode_string, make_fixnum (start),
+					make_fixnum (i - 1)),
+			    Qnil, 0, 0, &it, 0, 0, 0,
+			    STRING_MULTIBYTE (mode_string), FALSE);
 	}
     }
   pop_kboard ();
