@@ -4475,23 +4475,30 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
   "Define ert test `TEST-direct-async' for direct async processes.
 If UNSTABLE is non-nil, the test is tagged as `:unstable'."
   (declare (indent 1))
-  `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
-     ,docstring
-     :tags (if ,unstable '(:expensive-test :unstable) '(:expensive-test))
-     (skip-unless (tramp--test-enabled))
-     (let ((default-directory  tramp-test-temporary-file-directory)
-	   (ert-test (ert-get-test ',test))
-	   (tramp-connection-properties
-	    (cons '(nil "direct-async-process" t) tramp-connection-properties)))
-       (skip-unless (tramp-direct-async-process-p))
-       ;; For whatever reason, it doesn't cooperate with the "mock" method.
-       (skip-unless (not (tramp--test-mock-p)))
-       ;; We do expect an established connection already,
-       ;; `file-truename' does it by side-effect.  Suppress
-       ;; `tramp--test-enabled', in order to keep the connection.
-       (cl-letf (((symbol-function #'tramp--test-enabled) (lambda nil t)))
-	 (file-truename tramp-test-temporary-file-directory)
-	 (funcall (ert-test-body ert-test))))))
+  ;; `make-process' supports file name handlers since Emacs 27.
+  (when (let ((file-name-handler-alist '(("" . (lambda (&rest _) t)))))
+	  (ignore-errors (make-process :file-handler t)))
+    `(ert-deftest ,(intern (concat (symbol-name test) "-direct-async")) ()
+       ,docstring
+       :tags (if ,unstable '(:expensive-test :unstable) '(:expensive-test))
+       (skip-unless (tramp--test-enabled))
+       (let ((default-directory tramp-test-temporary-file-directory)
+	     (ert-test (ert-get-test ',test))
+	     (tramp-connection-properties
+	      (cons '(nil "direct-async-process" t)
+		    tramp-connection-properties)))
+	 (skip-unless (tramp-direct-async-process-p))
+	 ;; For whatever reason, it doesn't cooperate with the "mock" method.
+	 (skip-unless (not (tramp--test-mock-p)))
+	 ;; We do expect an established connection already,
+	 ;; `file-truename' does it by side-effect.  Suppress
+	 ;; `tramp--test-enabled', in order to keep the connection.
+	 ;; Suppress "Process ... finished" messages.
+	 (cl-letf (((symbol-function #'tramp--test-enabled) (lambda nil t))
+		   ((symbol-function #'internal-default-process-sentinel)
+		    #'ignore))
+	   (file-truename tramp-test-temporary-file-directory)
+	   (funcall (ert-test-body ert-test)))))))
 
 (tramp--test--deftest-direct-async-process tramp-test29-start-file-process
   "Check direct async `start-file-process'.")
@@ -4704,8 +4711,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
     (command output-buffer &optional error-buffer input)
   "Like `async-shell-command', reading the output.
 INPUT, if non-nil, is a string sent to the process."
-  (async-shell-command command output-buffer error-buffer)
-  (let ((proc (get-buffer-process output-buffer))
+  (let ((proc (async-shell-command command output-buffer error-buffer))
 	(delete-exited-processes t))
     (cl-letf (((symbol-function #'shell-command-sentinel) #'ignore))
       (when (stringp input)
@@ -4818,7 +4824,7 @@ INPUT, if non-nil, is a string sent to the process."
 	(should (= cols async-shell-command-width))))))
 
 (tramp--test--deftest-direct-async-process tramp-test32-shell-command
-  "Check direct async `shell-command'.")
+  "Check direct async `shell-command'." 'unstable)
 
 ;; This test is inspired by Bug#39067.
 (ert-deftest tramp-test32-shell-command-dont-erase-buffer ()
@@ -6452,7 +6458,7 @@ process sentinels.  They shall not disturb each other."
         (ignore-errors (delete-directory tmp-name 'recursive))))))
 
 ;; (tramp--test--deftest-direct-async-process tramp-test43-asynchronous-requests
-;;   "Check parallel direct asynchronous requests.")
+;;   "Check parallel direct asynchronous requests." 'unstable)
 
 ;; This test is inspired by Bug#29163.
 (ert-deftest tramp-test44-auto-load ()
