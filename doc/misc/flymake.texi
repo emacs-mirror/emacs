@@ -213,6 +213,9 @@ This section summarizes customization variables used for the
 configuration of the Flymake user interface.
 
 @vtable @code
+@item flymake-mode-line-indicator-format
+Format to use for the Flymake mode line indicator.
+
 @item flymake-no-changes-timeout
 If any changes are made to the buffer, syntax check is automatically
 started after this many seconds, unless the user makes another change,

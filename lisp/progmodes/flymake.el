@@ -1190,6 +1190,16 @@ default) no filter is applied."
 
 (put 'flymake--mode-line-format 'risky-local-variable t)
 
+(defcustom flymake-mode-line-indicator-format " Flymake%s[%e %w %n]"
+  "Format to use for the Flymake mode line indicator.
+The following format characters can be used:
+
+%s: The status.
+%e: The number of errors.
+%w: The number of warnings.
+%n: The number of notes."
+  :version "28.1"
+  :type 'string)
 
 (defun flymake--mode-line-format ()
   "Produce a pretty minor mode indicator."
@@ -1207,102 +1217,97 @@ default) no filter is applied."
                                       diags-by-type)))
                      (flymake--backend-state-diags state)))
              flymake--backend-state)
-    `((:propertize " Flymake"
-                   mouse-face mode-line-highlight
-                   help-echo
-                   ,(concat (format "%s known backends\n" (length known))
-                            (format "%s running\n" (length running))
-                            (format "%s disabled\n" (length disabled))
-                            "mouse-1: Display minor mode menu\n"
-                            "mouse-2: Show help for minor mode")
-                   keymap
-                   ,(let ((map (make-sparse-keymap)))
-                      (define-key map [mode-line down-mouse-1]
-                        flymake-menu)
-                      (define-key map [mode-line mouse-2]
-                        (lambda ()
-                          (interactive)
-                          (describe-function 'flymake-mode)))
-                      map))
-      ,@(pcase-let ((`(,ind ,face ,explain)
-                     (cond ((null known)
-                            '("?" nil "No known backends"))
-                           (some-waiting
-                            `("Wait" compilation-mode-line-run
-                              ,(format "Waiting for %s running backend(s)"
-                                       (length some-waiting))))
-                           (all-disabled
-                            '("!" compilation-mode-line-run
-                              "All backends disabled"))
-                           (t
-                            '(nil nil nil)))))
-          (when ind
-            `((":"
-               (:propertize ,ind
-                            face ,face
-                            help-echo ,explain
-                            keymap
-                            ,(let ((map (make-sparse-keymap)))
-                               (define-key map [mode-line mouse-1]
-                                 'flymake-switch-to-log-buffer)
-                               map))))))
-      ,@(unless (or all-disabled
-                    (null known))
-          (cl-loop
-           with types = (hash-table-keys diags-by-type)
-           with _augmented = (cl-loop for extra in '(:error :warning)
-                                      do (cl-pushnew extra types
-                                                     :key #'flymake--severity))
-           for type in (cl-sort types #'> :key #'flymake--severity)
-           for diags = (gethash type diags-by-type)
-           for face = (flymake--lookup-type-property type
-                                                     'mode-line-face
-                                                     'compilation-error)
-           when (or diags
-                    (cond ((eq flymake-suppress-zero-counters t)
-                           nil)
-                          (flymake-suppress-zero-counters
-                           (>= (flymake--severity type)
-                               (warning-numeric-level
-                                flymake-suppress-zero-counters)))
-                          (t t)))
-           collect `(:propertize
-                     ,(format "%d" (length diags))
-                     face ,face
-                     mouse-face mode-line-highlight
-                     keymap
-                     ,(let ((map (make-sparse-keymap))
-                            (type type))
-                        (define-key map (vector 'mode-line
-                                                mouse-wheel-down-event)
-                          (lambda (event)
-                            (interactive "e")
-                            (with-selected-window (posn-window (event-start event))
-                              (flymake-goto-prev-error 1 (list type) t))))
-                        (define-key map (vector 'mode-line
-                                                mouse-wheel-up-event)
-                          (lambda (event)
-                            (interactive "e")
-                            (with-selected-window (posn-window (event-start event))
-                              (flymake-goto-next-error 1 (list type) t))))
-                        map)
-                     help-echo
-                     ,(concat (format "%s diagnostics of type %s\n"
-                                      (propertize (format "%d"
-                                                          (length diags))
-                                                  'face face)
-                                      (propertize (format "%s" type)
-                                                  'face face))
-                              (format "%s/%s: previous/next of this type"
-                                      mouse-wheel-down-event
-                                      mouse-wheel-up-event)))
-           into forms
-           finally return
-           `((:propertize "[")
-             ,@(cl-loop for (a . rest) on forms by #'cdr
-                        collect a when rest collect
-                        '(:propertize " "))
-             (:propertize "]")))))))
+    (format-spec
+     (propertize
+      flymake-mode-line-indicator-format
+      'mouse-face 'mode-line-highlight
+      'help-echo (concat (format "%s known backends\n" (length known))
+                         (format "%s running\n" (length running))
+                         (format "%s disabled\n" (length disabled))
+                         "mouse-1: Display minor mode menu\n"
+                         "mouse-2: Show help for minor mode")
+      'keymap (let ((map (make-sparse-keymap)))
+                (define-key map [mode-line down-mouse-1]
+                  flymake-menu)
+                (define-key map [mode-line mouse-2]
+                  (lambda ()
+                    (interactive)
+                    (describe-function 'flymake-mode)))
+                map))
+     (cons
+      (cons
+       ?s (pcase-let ((`(,ind ,face ,explain)
+                       (cond ((null known)
+                              '("?" nil "No known backends"))
+                             (some-waiting
+                              `("Wait" compilation-mode-line-run
+                                ,(format "Waiting for %s running backend(s)"
+                                         (length some-waiting))))
+                             (all-disabled
+                              '("!" compilation-mode-line-run
+                                "All backends disabled"))
+                             (t
+                              '(nil nil nil)))))
+            (if (not ind)
+                ""
+              (concat
+               ":" (propertize ind
+                               'face face
+                               'help-echo explain
+                               'keymap (let ((map (make-sparse-keymap)))
+                                         (define-key map [mode-line mouse-1]
+                                           'flymake-switch-to-log-buffer)
+                                         map))))))
+      (cl-loop
+       with types = (hash-table-keys diags-by-type)
+       with _augmented = (cl-loop for extra in '(:error :warning)
+                                  do (cl-pushnew extra types
+                                                 :key #'flymake--severity))
+       for type in (cl-sort types #'> :key #'flymake--severity)
+       for diags = (gethash type diags-by-type)
+       for face = (flymake--lookup-type-property
+                   type 'mode-line-face 'compilation-error)
+       when (or diags
+                (cond ((eq flymake-suppress-zero-counters t)
+                       nil)
+                      (flymake-suppress-zero-counters
+                       (>= (flymake--severity type)
+                           (warning-numeric-level
+                            flymake-suppress-zero-counters)))
+                      (t t)))
+       collect (cons
+                (elt (format "%s" type) 1)
+                (propertize
+                 (format "%d" (length diags))
+                 'face face
+                 'mouse-face 'mode-line-highlight
+                 'keymap
+                 (let ((map (make-sparse-keymap))
+                       (type type))
+                   (define-key map (vector 'mode-line
+                                           mouse-wheel-down-event)
+                     (lambda (event)
+                       (interactive "e")
+                       (with-selected-window (posn-window (event-start event))
+                         (flymake-goto-prev-error 1 (list type) t))))
+                   (define-key map (vector 'mode-line
+                                           mouse-wheel-up-event)
+                     (lambda (event)
+                       (interactive "e")
+                       (with-selected-window (posn-window (event-start event))
+                         (flymake-goto-next-error 1 (list type) t))))
+                   map)
+                 'help-echo
+                 (concat (format "%s diagnostics of type %s\n"
+                                 (propertize (format "%d"
+                                                     (length diags))
+                                             'face face)
+                                 (propertize (format "%s" type)
+                                             'face face))
+                         (format "%s/%s: previous/next of this type"
+                                 mouse-wheel-down-event
+                                 mouse-wheel-up-event))))))
+     nil t)))
 
 ;;; Diagnostics buffer
 
