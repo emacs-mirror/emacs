@@ -539,6 +539,12 @@ skipspc (const char *s)
 {
   widget_value *first_wv = (widget_value *)wvptr;
   NSFont *menuFont = [NSFont menuFontOfSize:0];
+  NSDictionary *attributes = nil;
+
+#ifdef NS_IMPL_COCOA
+  /* Cocoa doesn't allow multi-key chording in its menu display, so
+     work around it by using tabs to split the title into two
+     columns.  */
   NSDictionary *font_attribs = @{NSFontAttributeName: menuFont};
   CGFloat maxNameWidth = 0;
   CGFloat maxKeyWidth = 0;
@@ -564,12 +570,14 @@ skipspc (const char *s)
   /* Set a right-aligned tab stop at the maximum width, so that the
      key will appear immediately to the left of it. */
   NSTextTab *tab =
-    [[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentRight
-                                    location: maxWidth
-                                     options: @{}];
-  NSMutableParagraphStyle *pstyle = [[NSMutableParagraphStyle alloc] init];
+    [[[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentRight
+                                     location: maxWidth
+                                      options: @{}] autorelease];
+  NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init]
+                                      autorelease];
   [pstyle setTabStops: @[tab]];
-  NSDictionary *attributes = @{NSParagraphStyleAttributeName: pstyle};
+  attributes = @{NSParagraphStyleAttributeName: pstyle};
+#endif
 
   /* clear existing contents */
   [self removeAllItems];
