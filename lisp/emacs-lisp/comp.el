@@ -538,6 +538,8 @@ CFG is mutated by a pass.")
                  (integerp high)
                  (= low high))))))))
 
+;; FIXME move these into cstr?
+
 (defun comp-mvar-value (mvar)
   "Return the constant value of MVAR.
 `comp-mvar-value-vld-p' *must* be satisfied before calling
@@ -556,18 +558,20 @@ CFG is mutated by a pass.")
 
 (defun comp-mvar-fixnum-p (mvar)
   "Return t if MVAR is certainly a fixnum."
-  (when-let (range (comp-mvar-range mvar))
-    (let* ((low (caar range))
-           (high (cdar (last range))))
-      (unless (or (eq low '-)
-                  (< low most-negative-fixnum)
-                  (eq high '+)
-                  (> high most-positive-fixnum))
-        t))))
+  (when (null (comp-mvar-neg mvar))
+    (when-let (range (comp-mvar-range mvar))
+      (let* ((low (caar range))
+             (high (cdar (last range))))
+        (unless (or (eq low '-)
+                    (< low most-negative-fixnum)
+                    (eq high '+)
+                    (> high most-positive-fixnum))
+          t)))))
 
 (defun comp-mvar-symbol-p (mvar)
   "Return t if MVAR is certainly a symbol."
   (and (null (comp-mvar-range mvar))
+       (null (comp-mvar-neg mvar))
        (or (and (null (comp-mvar-valset mvar))
                 (equal (comp-mvar-typeset mvar) '(symbol)))
            (and (or (null (comp-mvar-typeset mvar))
@@ -578,6 +582,7 @@ CFG is mutated by a pass.")
   "Return t if MVAR is certainly a cons."
   (and (null (comp-mvar-valset mvar))
        (null (comp-mvar-range mvar))
+       (null (comp-mvar-neg mvar))
        (equal (comp-mvar-typeset mvar) '(cons))))
 
 (defun comp-mvar-type-hint-match-p (mvar type-hint)

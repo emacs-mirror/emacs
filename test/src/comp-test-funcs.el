@@ -449,6 +449,12 @@
 	  (setq x (1+ x)))))
     res))
 
+(defun comp-test-not-cons-f (x)
+  ;; Reduced from `cl-copy-list'.
+  (if (consp x)
+      (print x)
+    (car x)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

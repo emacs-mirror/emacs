@@ -479,6 +479,9 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "Check cond-rw does not break target blocks with multiple predecessor."
   (should (null (comp-test-cond-rw-1-2-f))))
 
+(comp-deftest comp-test-not-cons ()
+  (should-not (comp-test-not-cons-f nil)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
