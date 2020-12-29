@@ -1115,7 +1115,7 @@ static void pint2str (register char *, register int, register ptrdiff_t);
 
 static int display_string (const char *, Lisp_Object, Lisp_Object,
                            ptrdiff_t, ptrdiff_t, struct it *, int, int, int,
-			   int, bool);
+			   int);
 static void compute_line_metrics (struct it *);
 static void run_redisplay_end_trigger_hook (struct it *);
 static bool get_overlay_strings (struct it *, ptrdiff_t);
@@ -13155,13 +13155,12 @@ display_tab_bar (struct window *w)
 
       if (it.current_x < it.last_visible_x)
 	display_string (NULL, string, Qnil, 0, 0, &it,
-			SCHARS (string), 0, 0, STRING_MULTIBYTE (string),
-			TRUE);
+			SCHARS (string), 0, 0, STRING_MULTIBYTE (string));
     }
 
   /* Fill out the line with spaces.  */
   if (it.current_x < it.last_visible_x)
-    display_string ("", Qnil, Qnil, 0, 0, &it, -1, 0, 0, -1, TRUE);
+    display_string ("", Qnil, Qnil, 0, 0, &it, -1, 0, 0, -1);
 
   /* Compute the total height of the lines.  */
   compute_line_metrics (&it);
@@ -25138,13 +25137,12 @@ display_menu_bar (struct window *w)
       /* Display the item, pad with one space.  */
       if (it.current_x < it.last_visible_x)
 	display_string (NULL, string, Qnil, 0, 0, &it,
-			SCHARS (string) + 1, 0, 0, STRING_MULTIBYTE (string),
-			TRUE);
+			SCHARS (string) + 1, 0, 0, STRING_MULTIBYTE (string));
     }
 
   /* Fill out the line with spaces.  */
   if (it.current_x < it.last_visible_x)
-    display_string ("", Qnil, Qnil, 0, 0, &it, -1, 0, 0, -1, TRUE);
+    display_string ("", Qnil, Qnil, 0, 0, &it, -1, 0, 0, -1);
 
   /* Compute the total height of the lines.  */
   compute_line_metrics (&it);
@@ -25248,22 +25246,21 @@ display_tty_menu_item (const char *item_text, int width, int face_id,
   it.paragraph_embedding = L2R;
 
   /* Pad with a space on the left.  */
-  display_string (" ", Qnil, Qnil, 0, 0, &it, 1, 0, FRAME_COLS (f) - 1, -1,
-		  TRUE);
+  display_string (" ", Qnil, Qnil, 0, 0, &it, 1, 0, FRAME_COLS (f) - 1, -1);
   width--;
   /* Display the menu item, pad with spaces to WIDTH.  */
   if (submenu)
     {
       display_string (item_text, Qnil, Qnil, 0, 0, &it,
-		      item_len, 0, FRAME_COLS (f) - 1, -1, TRUE);
+		      item_len, 0, FRAME_COLS (f) - 1, -1);
       width -= item_len;
       /* Indicate with " >" that there's a submenu.  */
       display_string (" >", Qnil, Qnil, 0, 0, &it, width, 0,
-		      FRAME_COLS (f) - 1, -1, TRUE);
+		      FRAME_COLS (f) - 1, -1);
     }
   else
     display_string (item_text, Qnil, Qnil, 0, 0, &it,
-		    width, 0, FRAME_COLS (f) - 1, -1, TRUE);
+		    width, 0, FRAME_COLS (f) - 1, -1);
 
   row->used[TEXT_AREA] = max (saved_used, row->used[TEXT_AREA]);
   row->truncated_on_right_p = saved_truncated;
@@ -25475,9 +25472,9 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	{
 	  /* The window is wide enough; just display the mode line we
 	     just computed. */
-	  display_string (SSDATA (mode_string), mode_string, Qnil,
+	  display_string (NULL, mode_string, Qnil,
 			  0, 0, &it, 0, 0, 0,
-			  STRING_MULTIBYTE (mode_string), FALSE);
+			  STRING_MULTIBYTE (mode_string));
 	}
       else
 	{
@@ -25494,7 +25491,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 				  Fsubstring (mode_string, make_fixnum (start),
 					      make_fixnum (i - 1)),
 				  Qnil, 0, 0, &it, 0, 0, 0,
-				  STRING_MULTIBYTE (mode_string), FALSE);
+				  STRING_MULTIBYTE (mode_string));
 		  /* Skip past the rest of the space characters. */
 		  while (c == ' ' && i < SCHARS (mode_string))
 		      c = fetch_string_char_advance (mode_string, &i, &i_byte);
@@ -25509,7 +25506,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 			    Fsubstring (mode_string, make_fixnum (start),
 					make_fixnum (i - 1)),
 			    Qnil, 0, 0, &it, 0, 0, 0,
-			    STRING_MULTIBYTE (mode_string), FALSE);
+			    STRING_MULTIBYTE (mode_string));
 	}
     }
   pop_kboard ();
@@ -25517,7 +25514,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
   unbind_to (count, Qnil);
 
   /* Fill up with spaces.  */
-  display_string (" ", Qnil, Qnil, 0, 0, &it, 10000, -1, -1, 0, TRUE);
+  display_string (" ", Qnil, Qnil, 0, 0, &it, 10000, -1, -1, 0);
 
   compute_line_metrics (&it);
   it.glyph_row->full_width_p = true;
@@ -25721,7 +25718,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		break;
 	      case MODE_LINE_DISPLAY:
 		n += display_string (NULL, elt, Qnil, 0, 0, it,
-				     0, prec, 0, STRING_MULTIBYTE (elt), TRUE);
+				     0, prec, 0, STRING_MULTIBYTE (elt));
 		break;
 	      }
 
@@ -25783,7 +25780,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 			nchars = string_byte_to_char (elt, offset) - charpos;
 		      n += display_string (NULL, elt, Qnil, 0, charpos,
 					   it, 0, nchars, 0,
-					   STRING_MULTIBYTE (elt), TRUE);
+					   STRING_MULTIBYTE (elt));
 		    }
 		    break;
 		  }
@@ -25855,7 +25852,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 			  nwritten = display_string (spec, string, elt,
 						     charpos, 0, it,
 						     field, prec, 0,
-						     multibyte, TRUE);
+						     multibyte);
 
 			  /* Assign to the glyphs written above the
 			     string where the `%x' came from, position
@@ -26062,7 +26059,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 	  break;
 	case MODE_LINE_DISPLAY:
 	  n += display_string ("", Qnil, Qnil, 0, 0, it, field_width - n,
-			       0, 0, 0, TRUE);
+			       0, 0, 0);
 	  break;
 	}
     }
@@ -27132,8 +27129,7 @@ display_count_lines (ptrdiff_t start_byte,
 static int
 display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_string,
 		ptrdiff_t face_string_pos, ptrdiff_t start, struct it *it,
-		int field_width, int precision, int max_x, int multibyte,
-		bool ignore_text_properties)
+		int field_width, int precision, int max_x, int multibyte)
 {
   int hpos_at_start = it->hpos;
   int saved_face_id = it->face_id;
@@ -27145,7 +27141,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
   reseat_to_string (it, NILP (lisp_string) ? string : NULL, lisp_string,
                     start, precision, field_width, multibyte);
 
-  if (string && STRINGP (lisp_string) && ignore_text_properties)
+  if (string && STRINGP (lisp_string))
     /* LISP_STRING is the one returned by decode_mode_spec.  We should
        ignore its text properties.  */
     it->stop_charpos = it->end_charpos;
