@@ -1018,9 +1018,17 @@ between them by typing in the minibuffer with completion."
 
     (setq xref (if (not (cdr xrefs))
                    (car xrefs)
-                 (cdr (assoc (completing-read "Jump to definition: "
-                                              (reverse xref-alist-with-line-info))
-                             xref-alist-with-line-info))))
+                 (let* ((collection (reverse xref-alist-with-line-info))
+                        (ctable
+                         (lambda (string pred action)
+                           (cond
+                            ((eq action 'metadata)
+                             '(metadata . ((category . xref-location))))
+                            (t
+                             (complete-with-action action collection string pred))))))
+                   (cdr (assoc (completing-read "Choose definition: "
+                                                ctable nil t)
+                               collection)))))
 
     (xref-pop-to-location xref (assoc-default 'display-action alist))))
 
