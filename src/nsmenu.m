@@ -365,6 +365,9 @@ ns_update_menubar (struct frame *f, bool deep_p)
       else
         submenu = [menu addSubmenuWithTitle: wv->name];
 
+      if ([[submenu title] isEqualToString:@"Help"])
+        [NSApp setHelpMenu:submenu];
+
       if (deep_p)
         [submenu fillWithWidgetValue: wv->contents];
 
