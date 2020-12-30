@@ -1973,7 +1973,7 @@ can do the job."
 
 (defun add-to-ordered-list (list-var element &optional order)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
-The test for presence of ELEMENT is done with `eql'.
+The test for presence of ELEMENT is done with `eq'.
 
 The resulting list is reordered so that the elements are in the
 order given by each element's numeric list order.  Elements
@@ -1993,7 +1993,7 @@ The return value is the new value of LIST-VAR."
   (let ((ordering (get list-var 'list-order)))
     (unless ordering
       (put list-var 'list-order
-           (setq ordering (make-hash-table :weakness 'key))))
+           (setq ordering (make-hash-table :weakness 'key :test 'eq))))
     (when order
       (puthash element (and (numberp order) order) ordering))
     (unless (memq element (symbol-value list-var))

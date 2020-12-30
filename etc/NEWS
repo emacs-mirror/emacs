@@ -1861,8 +1861,6 @@ directory instead of the default directory.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
-** 'add-to-ordered-list' now uses 'eql' instead of 'eq'.
-
 ** 'set-process-buffer' now updates the process mark.
 The mark will be set to point to the end of the new buffer.
 
