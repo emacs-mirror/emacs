@@ -3068,7 +3068,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   fd = serial_open (port);
   p->open_fd[SUBPROCESS_STDIN] = fd;
   if (FD_SETSIZE <= fd)
-    report_file_errno ("Opening serial port", Qnil, EMFILE);
+    report_file_errno ("Opening serial port", port, EMFILE);
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_desc)
@@ -3332,6 +3332,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	      xerrno = errno;
 	      continue;
 	    }
+	  /* Reject file descriptors that would be too large.  */
 	  if (FD_SETSIZE <= s)
 	    {
 	      emacs_close (s);
