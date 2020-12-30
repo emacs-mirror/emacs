@@ -48,6 +48,7 @@ by counted more than once."
   (message "Gathering data...")
   (let ((reports (append (memory-report--garbage-collect)
                          (memory-report--image-cache)
+                         (memory-report--symbol-plist)
                          (memory-report--buffers)
                          (memory-report--largest-variables)))
         (inhibit-read-only t)
@@ -158,6 +159,17 @@ by counted more than once."
                            (symbol-name symbol)
                            "\n"))
        (buffer-string)))))
+
+(defun memory-report--symbol-plist ()
+  (let ((counted (make-hash-table :test #'eq))
+        (total 0))
+    (mapatoms
+     (lambda (symbol)
+       (cl-incf total (memory-report--object-size
+                       counted (symbol-plist symbol))))
+     obarray)
+    (list
+     (cons "Memory Used By Symbol Plists" total))))
 
 (defun memory-report--object-size (counted value)
   (if (gethash value counted)
