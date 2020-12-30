@@ -2114,6 +2114,9 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	}
     }
 
+  if (FD_SETSIZE <= inchannel || FD_SETSIZE <= outchannel)
+    report_file_errno ("Creating pipe", Qnil, EMFILE);
+
 #ifndef WINDOWSNT
   if (emacs_pipe (p->open_fd + READ_FROM_EXEC_MONITOR) != 0)
     report_file_error ("Creating pipe", Qnil);
@@ -2210,6 +2213,8 @@ create_pty (Lisp_Object process)
   if (pty_fd >= 0)
     {
       p->open_fd[SUBPROCESS_STDIN] = pty_fd;
+      if (FD_SETSIZE <= pty_fd)
+	report_file_errno ("Opening pty", Qnil, EMFILE);
 #if ! defined (USG) || defined (USG_SUBTTY_WORKS)
       /* On most USG systems it does not work to open the pty's tty here,
 	 then close it and reopen it in the child.  */
@@ -2316,6 +2321,9 @@ usage:  (make-pipe-process &rest ARGS)  */)
     report_file_error ("Creating pipe", Qnil);
   outchannel = p->open_fd[WRITE_TO_SUBPROCESS];
   inchannel = p->open_fd[READ_FROM_SUBPROCESS];
+
+  if (FD_SETSIZE <= inchannel || FD_SETSIZE <= outchannel)
+    report_file_errno ("Creating pipe", Qnil, EMFILE);
 
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
   fcntl (outchannel, F_SETFL, O_NONBLOCK);
@@ -3059,6 +3067,8 @@ usage:  (make-serial-process &rest ARGS)  */)
 
   fd = serial_open (port);
   p->open_fd[SUBPROCESS_STDIN] = fd;
+  if (FD_SETSIZE <= fd)
+    report_file_errno ("Opening serial port", Qnil, EMFILE);
   p->infd = fd;
   p->outfd = fd;
   if (fd > max_desc)
@@ -3280,6 +3290,7 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
   if (!NILP (use_external_socket_p))
     {
       socket_to_use = external_sock_fd;
+      eassert (socket_to_use < FD_SETSIZE);
 
       /* Ensure we don't consume the external socket twice.  */
       external_sock_fd = -1;
@@ -3319,6 +3330,13 @@ connect_network_socket (Lisp_Object proc, Lisp_Object addrinfos,
 	  if (s < 0)
 	    {
 	      xerrno = errno;
+	      continue;
+	    }
+	  if (FD_SETSIZE <= s)
+	    {
+	      emacs_close (s);
+	      s = -1;
+	      xerrno = EMFILE;
 	      continue;
 	    }
 	}
@@ -4781,6 +4799,13 @@ server_accept_connection (Lisp_Object server, int channel)
   ptrdiff_t count;
 
   s = accept4 (channel, &saddr.sa, &len, SOCK_CLOEXEC);
+
+  if (FD_SETSIZE <= s)
+    {
+      emacs_close (s);
+      s = -1;
+      errno = EMFILE;
+    }
 
   if (s < 0)
     {

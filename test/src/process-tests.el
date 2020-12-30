@@ -426,11 +426,52 @@ add some process objects to VAR."
          ,(macroexp-progn body)
        (mapc #'delete-process ,var))))
 
-(defmacro process-tests--with-many-pipes (&rest body)
-  "Generate lots of pipe processes.
+(defmacro process-tests--with-raised-rlimit (&rest body)
+  "Evaluate BODY using a higher limit for the number of open files.
+Attempt to set the resource limit for the number of open files
+temporarily to the highest possible value."
+  (declare (indent 0) (debug t))
+  (let ((prlimit (make-symbol "prlimit"))
+        (soft (make-symbol "soft"))
+        (hard (make-symbol "hard"))
+        (pid-arg (make-symbol "pid-arg")))
+    `(let ((,prlimit (executable-find "prlimit"))
+           (,pid-arg (format "--pid=%d" (emacs-pid)))
+           (,soft nil) (,hard nil))
+       (cl-flet ((set-limit
+                  (value)
+                  (cl-check-type value natnum)
+                  (when ,prlimit
+                    (call-process ,prlimit nil nil nil
+                                  ,pid-arg
+                                  (format "--nofile=%d:" value)))))
+         (when ,prlimit
+           (with-temp-buffer
+             (when (eql (call-process ,prlimit nil t nil
+                                      ,pid-arg "--nofile"
+                                      "--raw" "--noheadings"
+                                      "--output=SOFT,HARD")
+                        0)
+               (goto-char (point-min))
+               (when (looking-at (rx (group (+ digit)) (+ blank)
+                                     (group (+ digit)) ?\n))
+                 (setq ,soft (string-to-number
+                              (match-string-no-properties 1))
+                       ,hard (string-to-number
+                              (match-string-no-properties 2))))))
+           (and ,soft ,hard (< ,soft ,hard)
+                (set-limit ,hard)))
+         (unwind-protect
+             ,(macroexp-progn body)
+           (when ,soft (set-limit ,soft)))))))
+
+(defmacro process-tests--fd-setsize-test (&rest body)
+  "Run BODY as a test for FD_SETSIZE overflow.
 Try to generate pipe processes until we are close to the
 FD_SETSIZE limit.  Within BODY, only a small number of file
-descriptors should still be available."
+descriptors should still be available.  Furthermore, raise the
+maximum number of open files in the Emacs process above
+FD_SETSIZE."
   (declare (indent 0) (debug t))
   (let ((process (make-symbol "process"))
         (processes (make-symbol "processes"))
@@ -440,28 +481,29 @@ descriptors should still be available."
         ;; MS-Windows we artificially limit FD_SETSIZE to 64, see the
         ;; commentary in w32proc.c.
         (fd-setsize (if (eq system-type 'windows-nt) 64 1024)))
-    `(process-tests--with-buffers ,buffers
-       (process-tests--with-processes ,processes
-         ;; First, allocate enough pipes to definitely exceed the
-         ;; FD_SETSIZE limit.
-         (cl-loop for i from 1 to ,(1+ fd-setsize)
-                  for ,buffer = (generate-new-buffer
-                                 (format " *pipe %d*" i))
-                  do (push ,buffer ,buffers)
-                  for ,process = (process-tests--ignore-EMFILE
-                                   (make-pipe-process
-                                    :name (format "pipe %d" i)
-                                    :buffer ,buffer
-                                    :coding 'no-conversion
-                                    :noquery t))
-                  while ,process
-                  do (push ,process ,processes))
-         (unless (cddr ,processes)
-           (ert-fail "Couldn't allocate enough pipes"))
-         ;; Delete two pipes to test more edge cases.
-         (delete-process (pop ,processes))
-         (delete-process (pop ,processes))
-         ,@body))))
+    `(process-tests--with-raised-rlimit
+       (process-tests--with-buffers ,buffers
+         (process-tests--with-processes ,processes
+           ;; First, allocate enough pipes to definitely exceed the
+           ;; FD_SETSIZE limit.
+           (cl-loop for i from 1 to ,(1+ fd-setsize)
+                    for ,buffer = (generate-new-buffer
+                                   (format " *pipe %d*" i))
+                    do (push ,buffer ,buffers)
+                    for ,process = (process-tests--ignore-EMFILE
+                                     (make-pipe-process
+                                      :name (format "pipe %d" i)
+                                      :buffer ,buffer
+                                      :coding 'no-conversion
+                                      :noquery t))
+                    while ,process
+                    do (push ,process ,processes))
+           (unless (cddr ,processes)
+             (ert-fail "Couldn't allocate enough pipes"))
+           ;; Delete two pipes to test more edge cases.
+           (delete-process (pop ,processes))
+           (delete-process (pop ,processes))
+           ,@body)))))
 
 (defmacro process-tests--with-temp-file (var &rest body)
   "Bind VAR to the name of a new regular file and evaluate BODY.
@@ -502,7 +544,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
       (skip-unless sleep)
       (dolist (conn-type '(pipe pty))
         (ert-info ((format "Connection type `%s'" conn-type))
-          (process-tests--with-many-pipes
+          (process-tests--fd-setsize-test
             (process-tests--with-processes processes
               ;; Start processes until we exhaust the file descriptor
               ;; set size.  We assume that each process requires at
@@ -538,7 +580,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
   (with-timeout (60 (ert-fail "Test timed out"))
-    (process-tests--with-many-pipes
+    (process-tests--fd-setsize-test
       (process-tests--with-buffers buffers
         (process-tests--with-processes processes
           ;; Start processes until we exhaust the file descriptor set
@@ -580,7 +622,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
                                              :coding 'no-conversion
                                              :noquery t)))
           (push server processes)
-          (process-tests--with-many-pipes
+          (process-tests--fd-setsize-test
             ;; Start processes until we exhaust the file descriptor
             ;; set size.  We assume that each process requires at
             ;; least one file descriptor.
@@ -627,7 +669,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
             (should tty-name)
             (should (file-exists-p tty-name))
             (push tty-name tty-names)))
-        (process-tests--with-many-pipes
+        (process-tests--fd-setsize-test
           (process-tests--with-processes processes
             (process-tests--with-buffers buffers
               (dolist (tty-name tty-names)
