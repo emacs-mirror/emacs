@@ -571,8 +571,8 @@ skipspc (const char *s)
   /* Set a right-aligned tab stop at the maximum width, so that the
      key will appear immediately to the left of it. */
   NSTextTab *tab =
-    [[[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentLeft
-                                     location: maxWidth - maxKeyWidth
+    [[[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentRight
+                                     location: maxWidth
                                       options: @{}] autorelease];
   NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init]
                                       autorelease];
