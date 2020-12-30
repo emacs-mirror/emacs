@@ -25467,8 +25467,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
     {
       Lisp_Object mode_string = Fformat_mode_line (format, Qnil, Qnil, Qnil);
       if (EQ (Vmode_line_compact, Qlong)
-	  && window_body_width (XWINDOW (selected_window), false) >=
-	  SCHARS (mode_string))
+	  && WINDOW_TOTAL_COLS (w) >= SCHARS (mode_string))
 	{
 	  /* The window is wide enough; just display the mode line we
 	     just computed. */
