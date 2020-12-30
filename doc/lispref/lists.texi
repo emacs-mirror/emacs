@@ -812,7 +812,7 @@ This function sets the variable @var{symbol} by inserting
 @var{element} into the old value, which must be a list, at the
 position specified by @var{order}.  If @var{element} is already a
 member of the list, its position in the list is adjusted according
-to @var{order}.  Membership is tested using @code{eq}.
+to @var{order}.  Membership is tested using @code{eql}.
 This function returns the resulting list, whether updated or not.
 
 The @var{order} is typically a number (integer or float), and the
