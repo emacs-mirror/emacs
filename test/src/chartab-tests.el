@@ -49,5 +49,25 @@
           (#xe0e00 . #xe0ef6)
           )))
 
+(ert-deftest chartab-test-char-table-p ()
+  (should (char-table-p (make-char-table 'foo)))
+  (should (not (char-table-p (make-hash-table)))))
+
+(ert-deftest chartab-test-char-table-subtype ()
+  (should (eq (char-table-subtype (make-char-table 'foo)) 'foo)))
+
+(ert-deftest chartab-test-char-table-parent ()
+  (should (eq (char-table-parent (make-char-table 'foo)) nil))
+  (let ((parent (make-char-table 'foo))
+        (child (make-char-table 'bar)))
+    (set-char-table-parent child parent)
+    (should (eq (char-table-parent child) parent))))
+
+(ert-deftest chartab-test-char-table-extra-slot ()
+  ;; Use any type with extra slots, e.g. 'case-table.
+  (let ((tbl (make-char-table 'case-table)))
+    (set-char-table-extra-slot tbl 1 'bar)
+    (char-table-extra-slot tbl 1)))
+
 (provide 'chartab-tests)
 ;;; chartab-tests.el ends here
