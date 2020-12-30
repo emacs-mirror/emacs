@@ -600,7 +600,7 @@ retried once before actually displaying the error report."
     nil)))
 
 (defun nntp-with-open-group-function (group server connectionless bodyfun)
-  "Protect against servers that don't like clients that keep idle connections opens.
+  "Protect against servers that don't like clients that keep idle connections open.
 The problem being that these servers may either close a connection or
 simply ignore any further requests on a connection.  Closed
 connections are not detected until `accept-process-output' has updated
@@ -651,7 +651,7 @@ command whose response triggered the error."
     nntp-with-open-group-internal))
 
 (defmacro nntp-with-open-group (group server &optional connectionless &rest forms)
-  "Protect against servers that don't like clients that keep idle connections opens.
+  "Protect against servers that don't like clients that keep idle connections open.
 The problem being that these servers may either close a connection or
 simply ignore any further requests on a connection.  Closed
 connections are not detected until `accept-process-output' has updated

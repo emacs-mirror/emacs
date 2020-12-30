@@ -1901,7 +1901,8 @@ article numbers will be returned."
     articles))
 
 (defsubst gnus-agent-read-article-number ()
-  "Reads the article number at point.  Returns nil when a valid article number can not be read."
+  "Read the article number at point.
+Return nil when a valid article number can not be read."
 
   (when (looking-at "[0-9]+\t")
     (read (current-buffer))))

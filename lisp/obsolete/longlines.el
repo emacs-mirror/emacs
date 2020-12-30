@@ -407,7 +407,8 @@ Hard newlines are left intact."
 
 (defun longlines-auto-wrap (&optional arg)
   "Toggle automatic line wrapping.
-With optional argument ARG, turn on line wrapping if and only if ARG is positive.
+With optional argument ARG, turn on line wrapping if and only if
+ARG is positive.
 If automatic line wrapping is turned on, wrap the entire buffer."
   (interactive "P")
   (setq arg (if arg

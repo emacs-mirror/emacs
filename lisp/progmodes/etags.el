@@ -1814,8 +1814,8 @@ argument is passed to `next-file', which see)."
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue].
 
-If FILES if non-nil should be a list or an iterator returning the files to search.
-The search will be restricted to these files.
+If FILES if non-nil should be a list or an iterator returning the
+files to search.  The search will be restricted to these files.
 
 Also see the documentation of the `tags-file-name' variable."
   (interactive "sTags search (regexp): ")

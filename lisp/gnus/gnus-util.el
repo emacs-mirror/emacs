@@ -785,7 +785,7 @@ If there's no subdirectory, delete DIRECTORY as well."
   string)
 
 (defsubst gnus-put-text-property-excluding-newlines (beg end prop val)
-  "The same as `put-text-property', but don't put this prop on any newlines in the region."
+  "Like `put-text-property', but don't put this prop on any newlines in the region."
   (save-match-data
     (save-excursion
       (save-restriction
@@ -796,7 +796,7 @@ If there's no subdirectory, delete DIRECTORY as well."
 	(put-text-property beg (point) prop val)))))
 
 (defsubst gnus-put-overlay-excluding-newlines (beg end prop val)
-  "The same as `put-text-property', but don't put this prop on any newlines in the region."
+  "Like `put-text-property', but don't put this prop on any newlines in the region."
   (save-match-data
     (save-excursion
       (save-restriction

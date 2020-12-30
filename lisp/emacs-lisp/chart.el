@@ -333,7 +333,8 @@ Automatically compensates for direction."
 (cl-defmethod chart-axis-draw ((a chart-axis-names) &optional dir margin zone _start _end)
   "Draw axis information based upon A range to be spread along the edge.
 Optional argument DIR is the direction of the chart.
-Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing."
+Optional arguments MARGIN, ZONE, START and END specify boundaries
+of the drawing."
   (cl-call-next-method)
   ;; We prefer about 5 spaces between each value
   (let* ((i 0)

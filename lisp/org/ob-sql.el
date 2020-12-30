@@ -164,7 +164,8 @@ SQL Server on Windows and Linux platform."
              " "))
 
 (defun org-babel-sql-dbstring-vertica (host port user password database)
-  "Make Vertica command line args for database connection. Pass nil to omit that arg."
+  "Make Vertica command line args for database connection.
+Pass nil to omit that arg."
   (mapconcat #'identity
 	      (delq nil
 		    (list (when host     (format "-h %s" host))

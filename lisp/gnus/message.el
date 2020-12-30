@@ -2669,7 +2669,7 @@ Point is left at the beginning of the narrowed-to region."
 	 10000))))
 
 (defun message-sort-headers ()
-  "Sort the headers of the current message according to `message-header-format-alist'."
+  "Sort headers of the current message according to `message-header-format-alist'."
   (interactive)
   (save-excursion
     (save-restriction

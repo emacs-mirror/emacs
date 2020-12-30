@@ -851,7 +851,8 @@ if these sets are sorted blocks in the alist."
   "Make sure all files of the document are being visited by buffers,
 and that the scanning info is absolutely up to date.
 We do this by rescanning with `reftex-keep-temporary-buffers' bound to t.
-The variable `reftex--pro-or-de' is assumed to be dynamically scoped into this function.
+The variable `reftex--pro-or-de' is assumed to be dynamically
+scoped into this function.
 When finished, we exit with an error message."
   (let ((reftex-keep-temporary-buffers t))
     (reftex-toc-Rescan)
