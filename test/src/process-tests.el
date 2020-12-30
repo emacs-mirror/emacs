@@ -23,8 +23,11 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'ert)
 (require 'puny)
+(require 'rx)
+(require 'subr-x)
 
 ;; Timeout in seconds; the test fails if the timeout is reached.
 (defvar process-test-sentinel-wait-timeout 2.0)
@@ -386,43 +389,312 @@ See Bug#30460."
   "Check that looking up non-existent domain returns nil"
   (should (eq nil (network-lookup-address-info "emacs.invalid")))))
 
-(ert-deftest process-tests/fd-setsize-no-crash ()
+(defmacro process-tests--ignore-EMFILE (&rest body)
+  "Evaluate BODY, ignoring EMFILE errors."
+  (declare (indent 0) (debug t))
+  (let ((err (make-symbol "err"))
+        (message (make-symbol "message")))
+    `(let ((,message (process-tests--EMFILE-message)))
+       (condition-case ,err
+           ,(macroexp-progn body)
+         (file-error
+          ;; If we couldn't determine the EMFILE message, just ignore
+          ;; all `file-error' signals.
+          (and ,message
+               (not (string-equal (caddr ,err) ,message))
+               (signal (car ,err) (cdr ,err))))))))
+
+(defmacro process-tests--with-buffers (var &rest body)
+  "Bind VAR to nil and evaluate BODY.
+Afterwards, kill all buffers in the list VAR.  BODY should add
+some buffer objects to VAR."
+  (declare (indent 1) (debug (symbolp body)))
+  (cl-check-type var symbol)
+  `(let ((,var nil))
+     (unwind-protect
+         ,(macroexp-progn body)
+       (mapc #'kill-buffer ,var))))
+
+(defmacro process-tests--with-processes (var &rest body)
+  "Bind VAR to nil and evaluate BODY.
+Afterwards, delete all processes in the list VAR.  BODY should
+add some process objects to VAR."
+  (declare (indent 1) (debug (symbolp body)))
+  (cl-check-type var symbol)
+  `(let ((,var nil))
+     (unwind-protect
+         ,(macroexp-progn body)
+       (mapc #'delete-process ,var))))
+
+(defmacro process-tests--with-many-pipes (&rest body)
+  "Generate lots of pipe processes.
+Try to generate pipe processes until we are close to the
+FD_SETSIZE limit.  Within BODY, only a small number of file
+descriptors should still be available."
+  (declare (indent 0) (debug (symbolp symbolp body)))
+  (let ((process (make-symbol "process"))
+        (processes (make-symbol "processes"))
+        (buffer (make-symbol "buffer"))
+        (buffers (make-symbol "buffers"))
+        ;; FD_SETSIZE is typically 1024 on Unix-like systems.  On
+        ;; MS-Windows we artificially limit FD_SETSIZE to 64, see the
+        ;; commentary in w32proc.c.
+        (fd-setsize (if (eq system-type 'windows-nt) 64 1024)))
+    `(process-tests--with-buffers ,buffers
+       (process-tests--with-processes ,processes
+         ;; First, allocate enough pipes to definitely exceed the
+         ;; FD_SETSIZE limit.
+         (cl-loop for i from 1 to ,(1+ fd-setsize)
+                  for ,buffer = (generate-new-buffer
+                                 (format " *pipe %d*" i))
+                  do (push ,buffer ,buffers)
+                  for ,process = (process-tests--ignore-EMFILE
+                                   (make-pipe-process
+                                    :name (format "pipe %d" i)
+                                    :buffer ,buffer
+                                    :coding 'no-conversion
+                                    :noquery t))
+                  while ,process
+                  do (push ,process ,processes))
+         (unless (cddr ,processes)
+           (ert-fail "Couldn't allocate enough pipes"))
+         ;; Delete two pipes to test more edge cases.
+         (delete-process (pop ,processes))
+         (delete-process (pop ,processes))
+         ,@body))))
+
+(defmacro process-tests--with-temp-file (var &rest body)
+  "Bind VAR to the name of a new regular file and evaluate BODY.
+Afterwards, delete the file."
+  (declare (indent 1) (debug (symbolp body)))
+  (cl-check-type var symbol)
+  (let ((file (make-symbol "file")))
+    `(let ((,file (make-temp-file "emacs-test-")))
+       (unwind-protect
+           (let ((,var ,file))
+             ,@body)
+         (delete-file ,file)))))
+
+(defmacro process-tests--with-temp-directory (var &rest body)
+  "Bind VAR to the name of a new directory and evaluate BODY.
+Afterwards, delete the directory."
+  (declare (indent 1) (debug (symbolp body)))
+  (cl-check-type var symbol)
+  (let ((dir (make-symbol "dir")))
+    `(let ((,dir (make-temp-file "emacs-test-" :dir)))
+       (unwind-protect
+           (let ((,var ,dir))
+             ,@body)
+         (delete-directory ,dir :recursive)))))
+
+;; Tests for FD_SETSIZE overflow (Bug#24325).  The following tests
+;; generate lots of process objects of the various kinds.  Running the
+;; tests with assertions enabled should not result in any crashes due
+;; to file descriptor set overflow.  These tests first generate lots
+;; of unused pipe processes to fill up the file descriptor space.
+;; Then, they create a few instances of the process type under test.
+
+(ert-deftest process-tests/fd-setsize-no-crash/make-process ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
-  (with-timeout (60)
-  (let ((sleep (executable-find "sleep"))
-        ;; FD_SETSIZE is typically 1024 on Unix-like systems.
-        ;; On MS-Windows we artificially limit FD_SETSIZE to 64,
-        ;; see the commentary in w32proc.c.
-        (fd-setsize (if (eq system-type 'windows-nt) 64 1024))
-        ;; `make-process' allocates at least four file descriptors per process
-        ;; when using the pipe communication method.  However, it closes two of
-        ;; them in the parent process, so we end up with only two new
-        ;; descriptors per process.
-        (fds-per-process 2)
-        (processes ()))
-    (skip-unless sleep)
-    ;; Start processes until we exhaust the file descriptor set size.
-    (dotimes (i (1+ (/ fd-setsize fds-per-process)))
-      (let ((process
-             ;; Failure to allocate more file descriptors should signal
-             ;; `file-error', but not crash.  Since we don't know the exact
-             ;; limit, we ignore `file-error'.
-             (ignore-error 'file-error
-               (make-process :name (format "test %d" i)
-                             :buffer nil
-                             :command (list sleep "5")
-                             :coding 'no-conversion
-                             :noquery t
-                             :connection-type 'pipe))))
-        (when process (push process processes))))
-    ;; We should have managed to start at least one process.
-    (should processes)
-    (dolist (process processes)
-      (while (accept-process-output process))
-      (should (eq (process-status process) 'exit))
-      (should (eql (process-exit-status process) 0))
-      (delete-process process)))))
+  (with-timeout (60 (ert-fail "Test timed out"))
+    (let ((sleep (executable-find "sleep")))
+      (skip-unless sleep)
+      (dolist (conn-type '(pipe pty))
+        (ert-info ((format "Connection type `%s'" conn-type))
+          (process-tests--with-many-pipes
+            (process-tests--with-processes processes
+              ;; Start processes until we exhaust the file descriptor
+              ;; set size.  We assume that each process requires at
+              ;; least one file descriptor.
+              (dotimes (i 10)
+                (let ((process
+                       ;; Failure to allocate more file descriptors
+                       ;; should signal `file-error', but not crash.
+                       ;; Since we don't know the exact limit, we
+                       ;; ignore `file-error'.
+                       (process-tests--ignore-EMFILE
+                         (make-process :name (format "test %d" i)
+                                       :command (list sleep "5")
+                                       :connection-type conn-type
+                                       :coding 'no-conversion
+                                       :noquery t))))
+                  (when process (push process processes))))
+              ;; We should have managed to start at least one process.
+              (should processes)
+              (dolist (process processes)
+                (while (accept-process-output process))
+                (should (eq (process-status process) 'exit))
+                (should (eql (process-exit-status process) 0))))))))))
+
+(ert-deftest process-tests/fd-setsize-no-crash/make-pipe-process ()
+  "Check that Emacs doesn't crash when trying to use more than
+FD_SETSIZE file descriptors (Bug#24325)."
+  (with-timeout (60 (ert-fail "Test timed out"))
+    (process-tests--with-many-pipes
+      (process-tests--with-buffers buffers
+        (process-tests--with-processes processes
+          ;; Start processes until we exhaust the file descriptor set
+          ;; size.  We assume that each process requires at least one
+          ;; file descriptor.
+          (dotimes (i 10)
+            (let ((buffer (generate-new-buffer (format " *%d*" i))))
+              (push buffer buffers)
+              (let ((process
+                     ;; Failure to allocate more file descriptors
+                     ;; should signal `file-error', but not crash.
+                     ;; Since we don't know the exact limit, we ignore
+                     ;; `file-error'.
+                     (process-tests--ignore-EMFILE
+                       (make-pipe-process :name (format "test %d" i)
+                                          :buffer buffer
+                                          :coding 'no-conversion
+                                          :noquery t))))
+                (when process (push process processes)))))
+          ;; We should have managed to start at least one process.
+          (should processes))))))
+
+(ert-deftest process-tests/fd-setsize-no-crash/make-network-process ()
+  "Check that Emacs doesn't crash when trying to use more than
+FD_SETSIZE file descriptors (Bug#24325)."
+  (skip-unless (featurep 'make-network-process '(:server t)))
+  (skip-unless (featurep 'make-network-process '(:family local)))
+  (with-timeout (60 (ert-fail "Test timed out"))
+    (process-tests--with-temp-directory directory
+      (process-tests--with-processes processes
+        (let* ((num-clients 10)
+               (socket-name (expand-file-name "socket" directory))
+               ;; Run a UNIX server to connect to.
+               (server (make-network-process :name "server"
+                                             :server num-clients
+                                             :buffer nil
+                                             :service socket-name
+                                             :family 'local
+                                             :coding 'no-conversion
+                                             :noquery t)))
+          (push server processes)
+          (process-tests--with-many-pipes
+            ;; Start processes until we exhaust the file descriptor
+            ;; set size.  We assume that each process requires at
+            ;; least one file descriptor.
+            (dotimes (i num-clients)
+              (let ((client
+                     ;; Failure to allocate more file descriptors
+                     ;; should signal `file-error', but not crash.
+                     ;; Since we don't know the exact limit, we ignore
+                     ;; `file-error'.
+                     (process-tests--ignore-EMFILE
+                       (make-network-process
+                        :name (format "client %d" i)
+                        :service socket-name
+                        :family 'local
+                        :coding 'no-conversion
+                        :noquery t))))
+                (when client (push client processes))))
+            ;; We should have managed to start at least one process.
+            (should processes)))))))
+
+(ert-deftest process-tests/fd-setsize-no-crash/make-serial-process ()
+  "Check that Emacs doesn't crash when trying to use more than
+FD_SETSIZE file descriptors (Bug#24325)."
+  (with-timeout (60 (ert-fail "Test timed out"))
+    (skip-unless (file-executable-p shell-file-name))
+    (skip-unless (executable-find "tty"))
+    (skip-unless (executable-find "sleep"))
+    ;; `process-tests--new-pty' probably only works with GNU Bash.
+    (skip-unless (string-equal
+                  (file-name-nondirectory shell-file-name) "bash"))
+    (process-tests--with-processes processes
+      ;; In order to use `make-serial-process', we need to create some
+      ;; pseudoterminals.  The easiest way to do that is to start a
+      ;; normal process using the `pty' connection type.  We need to
+      ;; ensure that the terminal stays around while we connect to it.
+      ;; Create the host processes before the dummy pipes so we have a
+      ;; high chance of succeeding here.
+      (let ((tty-names ()))
+        (dotimes (_ 10)
+          (cl-destructuring-bind
+              (host tty-name) (process-tests--new-pty)
+            (should (processp host))
+            (push host processes)
+            (should tty-name)
+            (should (file-exists-p tty-name))
+            (push tty-name tty-names)))
+        (process-tests--with-many-pipes
+          (process-tests--with-processes processes
+            (process-tests--with-buffers buffers
+              (dolist (tty-name tty-names)
+                (let ((buffer (generate-new-buffer
+                               (format " *%s*" tty-name))))
+                  (push buffer buffers)
+                  ;; Failure to allocate more file descriptors should
+                  ;; signal `file-error', but not crash.  Since we
+                  ;; don't know the exact limit, we ignore
+                  ;; `file-error'.
+                  (let ((process (process-tests--ignore-EMFILE
+                                   (make-serial-process
+                                    :name (format "test %s" tty-name)
+                                    :port tty-name
+                                    :speed 9600
+                                    :buffer buffer
+                                    :coding 'no-conversion
+                                    :noquery t))))
+                    (when process (push process processes))))))
+            ;; We should have managed to start at least one process.
+            (should processes)))))))
+
+(defvar process-tests--EMFILE-message :unknown
+  "Cached result of the function `process-tests--EMFILE-message'.")
+
+(defun process-tests--EMFILE-message ()
+  "Return the error message for the EMFILE POSIX error.
+Return nil if that can't be determined."
+  (when (eq process-tests--EMFILE-message :unknown)
+    (setq process-tests--EMFILE-message
+          (with-temp-buffer
+            (when (eql (call-process "errno" nil t nil "EMFILE") 0)
+              (goto-char (point-min))
+              (when (looking-at (rx "EMFILE" (+ blank) (+ digit)
+                                    (+ blank) (group (+ nonl))))
+                (match-string-no-properties 1))))))
+  process-tests--EMFILE-message)
+
+(defun process-tests--new-pty ()
+  "Allocate a new pseudoterminal.
+Return a list (PROCESS TTY-NAME)."
+  ;; The command below will typically only work with GNU Bash.
+  (should (string-equal (file-name-nondirectory shell-file-name)
+                        "bash"))
+  (process-tests--with-temp-file temp-file
+    (should-not (file-remote-p temp-file))
+    (let* ((command (list shell-file-name shell-command-switch
+                          (format "tty > %s && sleep 60"
+                                  (shell-quote-argument
+                                   (file-name-unquote temp-file)))))
+           (process (make-process :name "tty host"
+                                  :command command
+                                  :buffer nil
+                                  :coding 'utf-8-unix
+                                  :connection-type 'pty
+                                  :noquery t))
+           (tty-name nil)
+           (coding-system-for-read 'utf-8-unix)
+           (coding-system-for-write 'utf-8-unix))
+      ;; Wait until TTY name has arrived.
+      (with-timeout (2 (message "Timed out waiting for TTY name"))
+        (while (and (process-live-p process) (not tty-name))
+          (sleep-for 0.1)
+          (when-let ((attributes (file-attributes temp-file)))
+            (when (cl-plusp (file-attribute-size attributes))
+              (with-temp-buffer
+                (insert-file-contents temp-file)
+                (goto-char (point-max))
+                ;; `tty' has printed a trailing newline.
+                (skip-chars-backward "\n")
+                (unless (bobp)
+                  (setq tty-name (buffer-substring-no-properties
+                                  (point-min) (point)))))))))
+      (list process tty-name))))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here
