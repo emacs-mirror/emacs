@@ -525,7 +525,14 @@ FD_SETSIZE file descriptors (Bug#24325)."
               (dolist (process processes)
                 (while (accept-process-output process))
                 (should (eq (process-status process) 'exit))
-                (should (eql (process-exit-status process) 0))))))))))
+                ;; If there's an error between fork and exec, Emacs
+                ;; will use exit statuses between 125 and 127, see
+                ;; process.h.  This can happen if the child process
+                ;; tries to set up terminal device but fails due to
+                ;; file number limits.  We don't treat this as an
+                ;; error.
+                (should (memql (process-exit-status process)
+                               '(0 125 126 127)))))))))))
 
 (ert-deftest process-tests/fd-setsize-no-crash/make-pipe-process ()
   "Check that Emacs doesn't crash when trying to use more than
