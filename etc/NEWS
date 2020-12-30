@@ -2020,6 +2020,11 @@ If you bind 'help-form' to a non-nil value while calling these functions,
 then pressing 'C-h' ('help-char') causes the function to evaluate 'help-form'
 and display the result.
 
+---
+** New variables 'read-char-choice-use-read-key' and 'y-or-n-p-use-read-key'.
+When non-nil, then functions 'read-char-choice' and 'y-or-n-p' (respectively)
+use the function 'read-key' to read a character instead of using the minibuffer.
+
 +++
 ** 'set-window-configuration' now takes an optional 'dont-set-frame'
 parameter which, when non-nil, instructs the function not to select

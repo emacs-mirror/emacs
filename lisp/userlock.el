@@ -159,7 +159,7 @@ really edit the buffer? (y, n, r or C-h) "
 	(message "%s" prompt)
 	(error "Cannot resolve conflict in batch mode"))
       (while (null answer)
-	(setq answer (read-char-from-minibuffer prompt choices))
+	(setq answer (read-char-choice prompt choices))
 	(cond ((memq answer '(?? ?\C-h))
 	       (ask-user-about-supersession-help)
 	       (setq answer nil))

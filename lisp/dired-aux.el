@@ -145,7 +145,7 @@ substituted, and will be passed through normally to the shell.
 (defun dired--no-subst-ask (char nb-occur details)
   (let ((hilit-char (propertize (string char) 'face 'warning))
         (choices `(?y ?n ?? ,@(when details '(?^)))))
-    (read-char-from-minibuffer
+    (read-char-choice
      (format-message
       (ngettext
        "%d occurrence of `%s' will not be substituted.  Proceed? (%s) "
@@ -1380,7 +1380,7 @@ return t; if SYM is q or ESC, return nil."
 			     (format " [Type yn!q or %s] "
 				     (key-description (vector help-char)))
 			   " [Type y, n, q or !] ")))
-	   (set sym (setq char (read-char-from-minibuffer prompt char-choices)))
+	   (set sym (setq char (read-char-choice prompt char-choices)))
 	   (if (memq char '(?y ?\s ?!)) t)))))
 
 

@@ -2626,6 +2626,10 @@ This function is used by the `interactive' code letter `n'."
 	    t)))
     n))
 
+(defvar read-char-choice-use-read-key nil
+  "Prefer `read-key' when reading a character by `read-char-choice'.
+Otherwise, use the minibuffer.")
+
 (defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
   "Read and return one of CHARS, prompting for PROMPT.
 Any input that is not one of CHARS is ignored.
@@ -2636,44 +2640,46 @@ keyboard-quit events while waiting for a valid input.
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
 causes it to evaluate `help-form' and display the result."
-  (unless (consp chars)
-    (error "Called `read-char-choice' without valid char choices"))
-  (let (char done show-help (helpbuf " *Char Help*"))
-    (let ((cursor-in-echo-area t)
-          (executing-kbd-macro executing-kbd-macro)
-	  (esc-flag nil))
-      (save-window-excursion	      ; in case we call help-form-show
-	(while (not done)
-	  (unless (get-text-property 0 'face prompt)
-	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		       (read-key prompt)))
-	  (and show-help (buffer-live-p (get-buffer helpbuf))
-	       (kill-buffer helpbuf))
-	  (cond
-	   ((not (numberp char)))
-	   ;; If caller has set help-form, that's enough.
-	   ;; They don't explicitly have to add help-char to chars.
-	   ((and help-form
-		 (eq char help-char)
-		 (setq show-help t)
-		 (help-form-show)))
-	   ((memq char chars)
-	    (setq done t))
-	   ((and executing-kbd-macro (= char -1))
-	    ;; read-event returns -1 if we are in a kbd macro and
-	    ;; there are no more events in the macro.  Attempt to
-	    ;; get an event interactively.
-	    (setq executing-kbd-macro nil))
-	   ((not inhibit-keyboard-quit)
-	    (cond
-	     ((and (null esc-flag) (eq char ?\e))
-	      (setq esc-flag t))
-	     ((memq char '(?\C-g ?\e))
-	      (keyboard-quit))))))))
-    ;; Display the question with the answer.  But without cursor-in-echo-area.
-    (message "%s%s" prompt (char-to-string char))
-    char))
+  (if (not read-char-choice-use-read-key)
+      (read-char-from-minibuffer prompt chars)
+    (unless (consp chars)
+      (error "Called `read-char-choice' without valid char choices"))
+    (let (char done show-help (helpbuf " *Char Help*"))
+      (let ((cursor-in-echo-area t)
+            (executing-kbd-macro executing-kbd-macro)
+            (esc-flag nil))
+        (save-window-excursion        ; in case we call help-form-show
+          (while (not done)
+            (unless (get-text-property 0 'face prompt)
+              (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+            (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+                         (read-key prompt)))
+            (and show-help (buffer-live-p (get-buffer helpbuf))
+                 (kill-buffer helpbuf))
+            (cond
+             ((not (numberp char)))
+             ;; If caller has set help-form, that's enough.
+             ;; They don't explicitly have to add help-char to chars.
+             ((and help-form
+                   (eq char help-char)
+                   (setq show-help t)
+                   (help-form-show)))
+             ((memq char chars)
+              (setq done t))
+             ((and executing-kbd-macro (= char -1))
+              ;; read-event returns -1 if we are in a kbd macro and
+              ;; there are no more events in the macro.  Attempt to
+              ;; get an event interactively.
+              (setq executing-kbd-macro nil))
+             ((not inhibit-keyboard-quit)
+              (cond
+               ((and (null esc-flag) (eq char ?\e))
+                (setq esc-flag t))
+               ((memq char '(?\C-g ?\e))
+                (keyboard-quit))))))))
+      ;; Display the question with the answer.  But without cursor-in-echo-area.
+      (message "%s%s" prompt (char-to-string char))
+      char)))
 
 (defun sit-for (seconds &optional nodisp obsolete)
   "Redisplay, then wait for SECONDS seconds.  Stop when input is available.
@@ -2920,6 +2926,10 @@ Also discard all previous input in the minibuffer."
     (minibuffer-message "Please answer y or n")
     (sit-for 2)))
 
+(defvar y-or-n-p-use-read-key nil
+  "Prefer `read-key' when answering a \"y or n\" question by `y-or-n-p'.
+Otherwise, use the minibuffer.")
+
 (defvar empty-history)
 
 (defun y-or-n-p (prompt)
@@ -2980,6 +2990,41 @@ is nil and `use-dialog-box' is non-nil."
 	   use-dialog-box)
       (setq prompt (funcall padded prompt t)
 	    answer (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
+     (y-or-n-p-use-read-key
+      ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
+      ;; where all the keys were unbound (i.e. it somehow got triggered
+      ;; within read-key, apparently).  I had to kill it.
+      (setq prompt (funcall padded prompt))
+      (while
+          (let* ((scroll-actions '(recenter scroll-up scroll-down
+                                            scroll-other-window scroll-other-window-down))
+                 (key
+                  (let ((cursor-in-echo-area t))
+                    (when minibuffer-auto-raise
+                      (raise-frame (window-frame (minibuffer-window))))
+                    (read-key (propertize (if (memq answer scroll-actions)
+                                              prompt
+                                            (concat "Please answer y or n.  "
+                                                    prompt))
+                                          'face 'minibuffer-prompt)))))
+            (setq answer (lookup-key query-replace-map (vector key) t))
+            (cond
+             ((memq answer '(skip act)) nil)
+             ((eq answer 'recenter)
+              (recenter) t)
+             ((eq answer 'scroll-up)
+              (ignore-errors (scroll-up-command)) t)
+             ((eq answer 'scroll-down)
+              (ignore-errors (scroll-down-command)) t)
+             ((eq answer 'scroll-other-window)
+              (ignore-errors (scroll-other-window)) t)
+             ((eq answer 'scroll-other-window-down)
+              (ignore-errors (scroll-other-window-down)) t)
+             ((or (memq answer '(exit-prefix quit)) (eq key ?\e))
+              (signal 'quit nil) t)
+             (t t)))
+        (ding)
+        (discard-input)))
      (t
       (setq prompt (funcall padded prompt))
       (let* ((empty-history '())
