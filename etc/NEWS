@@ -1302,6 +1302,11 @@ have been renamed to have "proper" public names and documented
 ('xref-show-definitions-buffer' and
 'xref-show-definitions-buffer-at-bottom').
 
+---
+*** New value 'project-relative' for 'xref-file-name-display'
+If chosen, file names in *xref* buffers will be displayed relative
+to the 'project-root' of the current project, when available.
+
 ** json.el
 
 ---

@@ -109,12 +109,20 @@ This is typically the filename.")
 
 (defcustom xref-file-name-display 'abs
   "Style of file name display in *xref* buffers.
+
 If the value is the symbol `abs', the default, show the file names
 in their full absolute form.
+
 If `nondirectory', show only the nondirectory (a.k.a. \"base name\")
-part of the file name."
+part of the file name.
+
+If `project-relative', show only the file name relative to the
+current project root.  If there is no current project, or if the
+file resides outside of its root, show that particular file name
+in its full absolute form."
   :type '(choice (const :tag "absolute file name" abs)
-                 (const :tag "nondirectory file name" nondirectory))
+                 (const :tag "nondirectory file name" nondirectory)
+                 (const :tag "relative to project root" project-relative))
   :version "27.1")
 
 ;; FIXME: might be useful to have an optional "hint" i.e. a string to
@@ -149,10 +157,31 @@ Line numbers start from 1 and columns from 0.")
             (forward-char column))
           (point-marker))))))
 
+(defvar xref--project-root-memo nil
+  "Cons mapping `default-directory' value to the search root.")
+
 (cl-defmethod xref-location-group ((l xref-file-location))
   (cl-ecase xref-file-name-display
-    (abs (oref l file))
-    (nondirectory (file-name-nondirectory (oref l file)))))
+    (abs
+     (oref l file))
+    (nondirectory
+     (file-name-nondirectory (oref l file)))
+    (project-relative
+     (unless (and xref--project-root-memo
+                  (equal (car xref--project-root-memo)
+                         default-directory))
+       (setq xref--project-root-memo
+             (cons default-directory
+                   (let ((root
+                          (let ((pr (project-current)))
+                            (and pr (xref--project-root pr)))))
+                     (and root (expand-file-name root))))))
+     (let ((file (oref l file))
+           (search-root (cdr xref--project-root-memo)))
+       (if (and search-root
+                (string-prefix-p search-root file))
+           (substring file (length search-root))
+         file)))))
 
 (defclass xref-buffer-location (xref-location)
   ((buffer :type buffer :initarg :buffer)
@@ -273,10 +302,7 @@ current project's main and external roots."
      (xref-references-in-directory identifier dir))
    (let ((pr (project-current t)))
      (cons
-      (if (fboundp 'project-root)
-          (project-root pr)
-        (with-no-warnings
-          (project-roots pr)))
+      (xref--project-root pr)
       (project-external-roots pr)))))
 
 (cl-defgeneric xref-backend-apropos (backend pattern)
@@ -912,6 +938,12 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
       (xref--show-common-initialize xref-alist fetcher alist)
       (pop-to-buffer (current-buffer))
       (current-buffer))))
+
+(defun xref--project-root (project)
+  (if (fboundp 'project-root)
+      (project-root project)
+    (with-no-warnings
+      (car (project-roots project)))))
 
 (defun xref--show-common-initialize (xref-alist fetcher alist)
   (setq buffer-undo-list nil)
