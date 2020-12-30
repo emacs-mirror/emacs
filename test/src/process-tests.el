@@ -431,7 +431,7 @@ add some process objects to VAR."
 Try to generate pipe processes until we are close to the
 FD_SETSIZE limit.  Within BODY, only a small number of file
 descriptors should still be available."
-  (declare (indent 0) (debug (symbolp symbolp body)))
+  (declare (indent 0) (debug t))
   (let ((process (make-symbol "process"))
         (processes (make-symbol "processes"))
         (buffer (make-symbol "buffer"))
