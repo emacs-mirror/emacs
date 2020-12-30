@@ -4771,6 +4771,23 @@ dnl AC_CHECK_FUNCS_ONCE wouldn’t be right for snprintf, which needs
 dnl the current CFLAGS etc.
 AC_CHECK_FUNCS(snprintf)
 
+dnl posix_spawn.  The chdir and setsid functionality is relatively
+dnl recent, so we check for it specifically.
+AC_CHECK_HEADERS([spawn.h])
+AC_SUBST([HAVE_SPAWN_H])
+AC_CHECK_FUNCS([posix_spawn \
+                posix_spawn_file_actions_addchdir \
+                posix_spawn_file_actions_addchdir_np \
+                posix_spawnattr_setflags])
+AC_SUBST([HAVE_POSIX_SPAWN])
+AC_SUBST([HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR])
+AC_SUBST([HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP])
+AC_SUBST([HAVE_POSIX_SPAWNATTR_SETFLAGS])
+AC_CHECK_DECLS([POSIX_SPAWN_SETSID], [], [], [[
+               #include <spawn.h>
+               ]])
+AC_SUBST([HAVE_DECL_POSIX_SPAWN_SETSID])
+
 dnl Check for glib.  This differs from other library checks in that
 dnl Emacs need not link to glib unless some other library is already
 dnl linking to glib.  Although glib provides no facilities that Emacs
