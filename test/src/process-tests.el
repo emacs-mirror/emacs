@@ -425,4 +425,4 @@ FD_SETSIZE file descriptors (Bug#24325)."
       (delete-process process)))))
 
 (provide 'process-tests)
-;; process-tests.el ends here.
+;;; process-tests.el ends here
