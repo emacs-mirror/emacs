@@ -4697,7 +4697,8 @@ ns_select (int nfds, fd_set *readfds, fd_set *writefds,
       return -1;
     }
 
-  for (k = 0; k < nfds+1; k++)
+  eassert (nfds <= FD_SETSIZE);
+  for (k = 0; k < nfds; k++)
     {
       if (readfds && FD_ISSET(k, readfds)) ++nr;
       if (writefds && FD_ISSET(k, writefds)) ++nr;
