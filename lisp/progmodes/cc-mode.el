@@ -2065,7 +2065,11 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
     ;; The following must be done here rather than in `c-after-change'
     ;; because newly inserted parens would foul up the invalidation
     ;; algorithm.
-    (c-invalidate-state-cache beg)))
+    (c-invalidate-state-cache beg)
+    ;; The following must happen after the previous, which likely alters
+    ;; the macro cache.
+    (when c-opt-cpp-symbol
+      (c-invalidate-macro-cache beg end))))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)

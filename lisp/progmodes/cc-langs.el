@@ -457,13 +457,11 @@ so that all identifiers are recognized as words.")
 	c-before-change-check-raw-strings
 	c-before-change-check-<>-operators
 	c-depropertize-CPP
-	c-invalidate-macro-cache
 	c-truncate-bs-cache
 	c-before-change-check-unbalanced-strings
 	c-parse-quotes-before-change)
   (c objc) '(c-extend-region-for-CPP
 	     c-depropertize-CPP
-	     c-invalidate-macro-cache
 	     c-truncate-bs-cache
 	     c-before-change-check-unbalanced-strings
 	     c-parse-quotes-before-change)
