@@ -481,7 +481,7 @@ skipspc (const char *s)
       if (title == nil)
         title = @"< ? >";  /* (get out in the open so we know about it) */
 
-      item = [[NSMenuItem alloc] init];
+      item = [[[NSMenuItem alloc] init] autorelease];
       if (wv->key)
         {
           NSString *key = [NSString stringWithUTF8String: skipspc (wv->key)];
@@ -495,9 +495,10 @@ skipspc (const char *s)
 #endif
         }
 
-      NSAttributedString *atitle = [[NSAttributedString alloc]
+      NSAttributedString *atitle = [[[NSAttributedString alloc]
                                          initWithString: title
-                                             attributes: attributes];
+                                             attributes: attributes]
+                                     autorelease];
       [item setAction: @selector (menuDown:)];
       [item setAttributedTitle: atitle];
       [item setEnabled: wv->enabled];
@@ -542,7 +543,7 @@ skipspc (const char *s)
   NSDictionary *attributes = nil;
 
 #ifdef NS_IMPL_COCOA
-  /* Cocoa doesn't allow multi-key chording in its menu display, so
+  /* Cocoa doesn't allow multi-key sequences in its menu display, so
      work around it by using tabs to split the title into two
      columns.  */
   NSDictionary *font_attribs = @{NSFontAttributeName: menuFont};
@@ -570,8 +571,8 @@ skipspc (const char *s)
   /* Set a right-aligned tab stop at the maximum width, so that the
      key will appear immediately to the left of it. */
   NSTextTab *tab =
-    [[[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentRight
-                                     location: maxWidth
+    [[[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentLeft
+                                     location: maxWidth - maxKeyWidth
                                       options: @{}] autorelease];
   NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init]
                                       autorelease];
