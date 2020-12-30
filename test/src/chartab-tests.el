@@ -67,7 +67,7 @@
   ;; Use any type with extra slots, e.g. 'case-table.
   (let ((tbl (make-char-table 'case-table)))
     (set-char-table-extra-slot tbl 1 'bar)
-    (char-table-extra-slot tbl 1)))
+    (should (eq (char-table-extra-slot tbl 1) 'bar))))
 
 (provide 'chartab-tests)
 ;;; chartab-tests.el ends here
