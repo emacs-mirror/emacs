@@ -1720,7 +1720,8 @@ Calls REPORT-FN directly."
                       collect
                       (flymake-make-diagnostic
                        (current-buffer)
-                       start end :note text)))
+                       (or start 1) (or end (1+ (or start 1)))
+                       :note text)))
     collected))
 
 (defun elisp-flymake--byte-compile-done (report-fn
