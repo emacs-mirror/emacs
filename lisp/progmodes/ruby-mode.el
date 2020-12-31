@@ -1864,8 +1864,10 @@ It will be properly highlighted even when the call omits parens.")
                                'syntax-table (string-to-syntax "_"))
             (string-to-syntax "'"))))
       ;; Symbols with special characters.
-      ("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\)\\)"
-       (3 (unless (nth 8 (syntax-ppss (match-beginning 3)))
+      (":\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\)"
+       (1 (unless (or
+                   (eq (char-before (match-beginning 0)) ?:)
+                   (nth 8 (syntax-ppss (match-beginning 1))))
             (goto-char (match-end 0))
             (string-to-syntax "_"))))
       ;; Symbols ending with '=' (bug#42846).
@@ -1888,9 +1890,14 @@ It will be properly highlighted even when the call omits parens.")
       ;; (semi-important for indentation).
       ("\\(:\\)\\(?:[({]\\|\\[[^]]\\)"
        (1 (string-to-syntax ".")))
-      ;; Regular expressions.  Start with matching unescaped slash.
-      ("\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(/\\)"
-       (1 (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
+      ;; Regular expressions.
+      ("\\(/\\)"
+       (1
+        ;; No unescaped slashes in front.
+        (when (save-excursion
+                (forward-char -1)
+                (cl-evenp (skip-chars-backward "\\\\")))
+          (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
             (when (or
                    ;; Beginning of a regexp.
                    (and (null (nth 8 state))
@@ -1903,7 +1910,7 @@ It will be properly highlighted even when the call omits parens.")
                    ;; string interpolation inside, or span
                    ;; several lines.
                    (eq ?/ (nth 3 state)))
-              (string-to-syntax "\"/")))))
+              (string-to-syntax "\"/"))))))
       ;; Expression expansions in strings.  We're handling them
       ;; here, so that the regexp rule never matches inside them.
       (ruby-expression-expansion-re
