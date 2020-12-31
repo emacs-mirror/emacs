@@ -401,7 +401,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
                   (or (and (bolp)
                            ;; Newline is escaped.
                            (not (eq (char-before (1- (point))) ?\\)))
-                      (memq (char-before) '(?\; ?=)))))
+                      (eq (char-before) ?\;)
+                      (and (eq (char-before) ?=)
+                           (eq (syntax-after (1- (point)))
+                               (string-to-syntax "."))))))
 
 (defun ruby-smie--implicit-semi-p ()
   (save-excursion
@@ -1865,6 +1868,12 @@ It will be properly highlighted even when the call omits parens.")
        (3 (unless (nth 8 (syntax-ppss (match-beginning 3)))
             (goto-char (match-end 0))
             (string-to-syntax "_"))))
+      ;; Symbols ending with '=' (bug#42846).
+      (":[[:alpha:]][[:alnum:]_]*\\(=\\)"
+       (1 (unless (or (nth 8 (syntax-ppss))
+                      (eq (char-before (match-beginning 0)) ?:)
+                      (eq (char-after (match-end 3)) ?>))
+            (string-to-syntax "_"))))
       ;; Part of method name when at the end of it.
       ("[!?]"
        (0 (unless (save-excursion
@@ -2181,12 +2190,7 @@ It will be properly highlighted even when the call omits parens.")
      (0 font-lock-builtin-face))
     ;; Symbols.
     ("\\(^\\|[^:]\\)\\(:@\\{0,2\\}\\(?:\\sw\\|\\s_\\)+\\)"
-     (2 font-lock-constant-face)
-     (3 (unless (and (eq (char-before (match-end 3)) ?=)
-                     (eq (char-after (match-end 3)) ?>))
-          ;; bug#18644
-          font-lock-constant-face)
-        nil t))
+     (2 font-lock-constant-face))
     ;; Special globals.
     (,(concat "\\$\\(?:[:\"!@;,/._><\\$?~=*&`'+0-9]\\|-[0adFiIlpvw]\\|"
               (regexp-opt '("LOAD_PATH" "LOADED_FEATURES" "PROGRAM_NAME"
