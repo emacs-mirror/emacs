@@ -24,9 +24,9 @@ SHA1=$3
 
 # Prefer gawk if available, as it handles NUL bytes properly.
 if type gawk >/dev/null 2>&1; then
-  awk=gawk
+  awk="gawk"
 else
-  awk=awk
+  awk="awk"
 fi
 
 exec $awk '

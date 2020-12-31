@@ -53,7 +53,7 @@ repo_files=$(git ls-files) &&
 # . They are GMP files, maintained by the GMP project, with their own dates.
 # . Their format cannot withstand changing the contents of copyright strings.
 
-updatable_files=$(find $repo_files \
+updatable_files=$(find "$repo_files" \
   ! -name COPYING \
   ! -name doclicense.texi \
   ! -name gpl.texi \
@@ -74,4 +74,4 @@ updatable_files=$(find $repo_files \
   ! -name 'mini-gmp.[ch]' \
   -print) &&
 
-build-aux/update-copyright $updatable_files
+build-aux/update-copyright "$updatable_files"
