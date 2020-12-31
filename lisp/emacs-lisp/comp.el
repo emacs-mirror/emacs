@@ -537,6 +537,9 @@ Useful to hook into pass checkers.")
 (defvar comp-func nil
   "Bound to the current function by most passes.")
 
+(defvar comp-block nil
+  "Bound to the current basic block by some pass.")
+
 (define-error 'native-compiler-error-dyn-func
   "can't native compile a non-lexically-scoped function"
   'native-compiler-error)
@@ -637,13 +640,17 @@ Is in use to help the SSA rename pass."))
                               (:include comp-block)
                               (:constructor make--comp-block-lap
                                             (addr sp name))) ; Positional
-  "A basic block created from lap."
+  "A basic block created from lap (real code)."
   ;; These two slots are used during limplification.
   (sp nil :type number
       :documentation "When non-nil indicates the sp value while entering
 into it.")
   (addr nil :type number
-        :documentation "Start block LAP address."))
+        :documentation "Start block LAP address.")
+  (non-ret-insn nil :type list
+                :documentation "Non returning basic blocks.
+`comp-fwprop' may identify and store here basic blocks performing
+non local exits."))
 
 (cl-defstruct (comp-latch (:copier nil)
                           (:include comp-block))
@@ -843,6 +850,10 @@ To be used by all entry points."
   "Call predicate for OP."
   (when (memq op comp-limple-calls) t))
 
+(defun comp-branch-op-p (op)
+  "Branch predicate for OP."
+  (when (memq op comp-limple-branches) t))
+
 (defsubst comp-limple-insn-call-p (insn)
   "Limple INSN call predicate."
   (comp-call-op-p (car-safe insn)))
@@ -894,7 +905,7 @@ Assume allocation class 'd-default as default."
      (1 font-lock-function-name-face))
     (,(rx bol "(" (group-n 1 "phi"))
      (1 font-lock-variable-name-face))
-    (,(rx bol "(" (group-n 1 "return"))
+    (,(rx bol "(" (group-n 1 (or "return" "unreachable")))
      (1 font-lock-warning-face))
     (,(rx (group-n 1 (or "entry"
                          (seq (or "entry_" "entry_fallback_" "bb_")
@@ -2581,6 +2592,7 @@ blocks."
                  (make-comp-edge :src bb :dst (gethash third blocks))
                  (make-comp-edge :src bb :dst (gethash forth blocks)))
                 (return)
+                (unreachable)
                 (otherwise
                  (signal 'native-ice
                          (list "block does not end with a branch"
@@ -2936,6 +2948,9 @@ Fold the call in case."
             args (cdr args)))
     (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
       (let ((cstr (comp-cstr-f-ret cstr-f)))
+        (when (comp-cstr-empty-p cstr)
+          ;; Store it to be rewrittein as non local exit.
+          (setf (comp-block-lap-non-ret-insn comp-block) insn))
         (setf (comp-mvar-range lval) (comp-cstr-range cstr)
               (comp-mvar-valset lval) (comp-cstr-valset cstr)
               (comp-mvar-typeset lval) (comp-cstr-typeset cstr)
@@ -2997,14 +3012,60 @@ Fold the call in case."
 Return t if something was changed."
   (cl-loop with modified = nil
            for b being each hash-value of (comp-func-blocks comp-func)
-           do (cl-loop for insn in (comp-block-insns b)
-                       for orig-insn = (unless modified
-                                         ;; Save consing after 1th change.
-                                         (comp-copy-insn insn))
-                       do (comp-fwprop-insn insn)
-                       when (and (null modified) (not (equal insn orig-insn)))
-                         do (setf modified t))
+           do (cl-loop
+               with comp-block = b
+               for insn in (comp-block-insns b)
+               for orig-insn = (unless modified
+                                 ;; Save consing after 1th change.
+                                 (comp-copy-insn insn))
+               do (comp-fwprop-insn insn)
+               when (and (null modified) (not (equal insn orig-insn)))
+                 do (setf modified t))
            finally return modified))
+
+(defun comp-clean-orphan-blocks (block)
+  "Iterativelly remove all non reachable blocks orphaned by BLOCK."
+  (while
+   (cl-loop
+    with repeat = nil
+    with blocks = (comp-func-blocks comp-func)
+    for bb being each hash-value of blocks
+    when (and (not (eq (comp-block-name bb) 'entry))
+              (cl-notany (lambda (ed)
+                           (and (gethash (comp-block-name (comp-edge-src ed))
+                                         blocks)
+                                (not (eq (comp-edge-src ed) block))))
+                         (comp-block-in-edges bb)))
+    do
+    (comp-log (format "Removing block: %s" (comp-block-name bb)) 1)
+    (remhash (comp-block-name bb) blocks)
+    (setf repeat t)
+    finally return repeat)))
+
+(defun comp-rewrite-non-locals ()
+  "Make explicit in LIMPLE non-local exits if identified."
+  (cl-loop
+   for bb being each hash-value of (comp-func-blocks comp-func)
+   for non-local-insn = (and (comp-block-lap-p bb)
+                             (comp-block-lap-non-ret-insn bb))
+   when non-local-insn
+   do
+   (cl-loop
+    for ed in (comp-block-out-edges bb)
+    for dst-bb = (comp-edge-dst ed)
+    ;; Remove one or more block if necessary.
+    when (length= (comp-block-in-edges dst-bb) 1)
+    do
+    (comp-log (format "Removing block: %s" (comp-block-name dst-bb)) 1)
+    (remhash (comp-block-name dst-bb) (comp-func-blocks comp-func))
+    (comp-clean-orphan-blocks bb))
+   ;; Rework the current block.
+   (let* ((insn-seq (memq non-local-insn (comp-block-insns bb))))
+     (setf (comp-block-lap-non-ret-insn bb) ()
+           (comp-block-out-edges bb) ()
+           ;; Prune unnecessary insns!
+           (cdr insn-seq) '((unreachable))
+           (comp-func-ssa-status comp-func) 'dirty))))
 
 (defun comp-fwprop (_)
   "Forward propagate types and consts within the lattice."
@@ -3024,6 +3085,7 @@ Return t if something was changed."
                      'comp
                      (format "fwprop pass jammed into %s?" (comp-func-name f))))
                   (comp-log (format "Propagation run %d times\n" i) 2))
+                 (comp-rewrite-non-locals)
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 
