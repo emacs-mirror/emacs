@@ -894,6 +894,8 @@ Assume allocation class 'd-default as default."
      (1 font-lock-function-name-face))
     (,(rx bol "(" (group-n 1 "phi"))
      (1 font-lock-variable-name-face))
+    (,(rx bol "(" (group-n 1 "return"))
+     (1 font-lock-warning-face))
     (,(rx (group-n 1 (or "entry"
                          (seq (or "entry_" "entry_fallback_" "bb_")
                               (1+ num) (? (or "_latch"
