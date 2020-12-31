@@ -1971,13 +1971,13 @@ can do the job."
 	   (cons element (symbol-value list-var))))))
 
 
-(defun add-to-ordered-list (list-var element &optional order)
+(defun add-to-ordered-list (list-var element &optional order test-function)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
-The test for presence of ELEMENT is done with `eq'.
+TEST-FUNCTION is used to test for the presence of ELEMENT, and
+defaults to `eq'.
 
-The resulting list is reordered so that the elements are in the
-order given by each element's numeric list order.  Elements
-without a numeric list order are placed at the end of the list.
+The value of LIST-VAR is kept ordered based on the ORDER
+parameter.
 
 If the third optional argument ORDER is a number (integer or
 float), set the element's list order to the given value.  If
@@ -1990,21 +1990,30 @@ The list order for each element is stored in LIST-VAR's
 LIST-VAR cannot refer to a lexical variable.
 
 The return value is the new value of LIST-VAR."
-  (let ((ordering (get list-var 'list-order)))
+  (let ((ordering (get list-var 'list-order))
+        missing)
+    ;; Make a hash table for storing the ordering.
     (unless ordering
       (put list-var 'list-order
-           (setq ordering (make-hash-table :weakness 'key :test 'eq))))
-    (when order
-      (puthash element (and (numberp order) order) ordering))
-    (unless (memq element (symbol-value list-var))
+           (setq ordering (make-hash-table :weakness 'key
+                                           :test (or test-function #'eq)))))
+    (when (and test-function
+               (not (eq test-function (hash-table-test ordering))))
+      (error "Conflicting test functions given"))
+    ;; Add new values.
+    (when (setq missing (eq (gethash element ordering 'missing) 'missing))
       (set list-var (cons element (symbol-value list-var))))
-    (set list-var (sort (symbol-value list-var)
-			(lambda (a b)
-			  (let ((oa (gethash a ordering))
-				(ob (gethash b ordering)))
-			    (if (and oa ob)
-				(< oa ob)
-			      oa)))))))
+    ;; Set/change the order.
+    (when (or order missing)
+      (setf (gethash element ordering) (and (numberp order) order)))
+    (set list-var
+         (sort (symbol-value list-var)
+	       (lambda (a b)
+		 (let ((oa (gethash a ordering))
+		       (ob (gethash b ordering)))
+		   (if (and oa ob)
+		       (< oa ob)
+		     oa)))))))
 
 (defun add-to-history (history-var newelt &optional maxelt keep-all)
   "Add NEWELT to the history list stored in the variable HISTORY-VAR.

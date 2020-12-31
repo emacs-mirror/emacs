@@ -807,13 +807,14 @@ foo                       ;; @r{@code{foo} was changed.}
   (setq @var{var} (cons @var{value} @var{var})))
 @end example
 
-@defun add-to-ordered-list symbol element &optional order
+@defun add-to-ordered-list symbol element &optional order test-function
 This function sets the variable @var{symbol} by inserting
 @var{element} into the old value, which must be a list, at the
 position specified by @var{order}.  If @var{element} is already a
-member of the list, its position in the list is adjusted according
-to @var{order}.  Membership is tested using @code{eq}.
-This function returns the resulting list, whether updated or not.
+member of the list, its position in the list is adjusted according to
+@var{order}.  Membership is tested using @var{test-function},
+defaulting to @code{eq} if @var{test-function} isn't present.  This
+function returns the resulting list, whether updated or not.
 
 The @var{order} is typically a number (integer or float), and the
 elements of the list are sorted in non-decreasing numerical order.

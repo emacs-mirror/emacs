@@ -1483,6 +1483,9 @@ that makes it a valid button.
 ** Miscellaneous
 
 +++
+*** 'add-to-ordered-list' can now take a test predicate.
+
++++
 *** New predicate functions 'length<', 'length>' and 'length='.
 Using these functions may be more efficient than using 'length' (if
 the length of a (long) list is being computed just to compare this
