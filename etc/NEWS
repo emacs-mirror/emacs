@@ -1747,6 +1747,19 @@ height of lines or width of chars.
 When non-nil, use a new xwidget webkit session after bookmark jump.
 Otherwise, it will use 'xwidget-webkit-last-session'.
 
+** Flymake mode
+
++++
+*** New user options to customize Flymake's mode-line.
+
+The new customization variable 'flymake-mode-line-format' is a mix of
+strings and symbols like 'flymake-mode-line-title' ,
+'flymake-mode-line-exception' and 'flymake-mode-line-counters'.  The
+new customization variable 'flymake-mode-line-counter-format' is a mix
+of strings and symbols like 'flymake-mode-line-error-counter',
+'flymake-mode-line-warning-counter' and
+'flymake-mode-line-note-counter'.
+
 ** Flyspell mode
 
 +++
