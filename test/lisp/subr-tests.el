@@ -597,6 +597,22 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
     (undo-boundary)
     (undo)
     (should (equal (buffer-string) ""))))
+
+(defvar subr--ordered nil)
+
+(ert-deftest subr--add-to-ordered-list ()
+  (setq subr--ordered nil)
+  (add-to-ordered-list 'subr--ordered 'b 2)
+  (should (equal subr--ordered '(b)))
+  (add-to-ordered-list 'subr--ordered 'c 3)
+  (should (equal subr--ordered '(b c)))
+  (add-to-ordered-list 'subr--ordered 'a 1)
+  (should (equal subr--ordered '(a b c)))
+  (add-to-ordered-list 'subr--ordered 'e)
+  (should (equal subr--ordered '(a b c e)))
+  (add-to-ordered-list 'subr--ordered 'd 4)
+  (should (equal subr--ordered '(a b c d e))))
+
 
 ;;; Apropos.
 
