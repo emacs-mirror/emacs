@@ -1037,7 +1037,7 @@ std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
 	       0 c-preprocessor-face-name))
 
      ;; Directives
-     '("@\\(include\\|load\\|namespace\\)\\>" 0 c-preprocessor-face-name)
+     `(eval . '("@\\(include\\|load\\|namespace\\)\\>" 0 ,c-preprocessor-face-name))
 
      ;; gawk debugging keywords.  (acm, 2002/7/21)
      ;; (Removed, 2003/6/6.  These functions are now fontified as built-ins)
