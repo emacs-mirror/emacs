@@ -50,13 +50,13 @@
 
 (ert-deftest process-test-sentinel-accept-process-output ()
   (skip-unless (executable-find "bash"))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (should (process-test-sentinel-wait-function-working-p
            #'accept-process-output))))
 
 (ert-deftest process-test-sentinel-sit-for ()
   (skip-unless (executable-find "bash"))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (should
    (process-test-sentinel-wait-function-working-p (lambda () (sit-for 0.01 t))))))
 
@@ -84,7 +84,7 @@
 
 (ert-deftest process-test-stderr-buffer ()
   (skip-unless (executable-find "bash"))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let* ((stdout-buffer (generate-new-buffer "*stdout*"))
 	 (stderr-buffer (generate-new-buffer "*stderr*"))
 	 (proc (make-process :name "test"
@@ -113,7 +113,7 @@
 
 (ert-deftest process-test-stderr-filter ()
   (skip-unless (executable-find "bash"))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let* ((sentinel-called nil)
 	 (stderr-sentinel-called nil)
 	 (stdout-output nil)
@@ -156,7 +156,7 @@
 
 (ert-deftest set-process-filter-t ()
   "Test setting process filter to t and back." ;; Bug#36591
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (with-temp-buffer
     (let* ((print-level nil)
            (print-length nil)
@@ -193,7 +193,7 @@
 (ert-deftest start-process-should-not-modify-arguments ()
   "`start-process' must not modify its arguments in-place."
   ;; See bug#21831.
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let* ((path (pcase system-type
                  ((or 'windows-nt 'ms-dos)
                   ;; Make sure the file name uses forward slashes.
@@ -212,7 +212,7 @@
 (ert-deftest make-process/noquery-stderr ()
   "Checks that Bug#30031 is fixed."
   (skip-unless (executable-find "sleep"))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (with-temp-buffer
     (let* ((previous-processes (process-list))
            (process (make-process :name "sleep"
@@ -243,7 +243,7 @@
 (ert-deftest make-process/mix-stderr ()
   "Check that `make-process' mixes the output streams if STDERR is nil."
   (skip-unless (executable-find "bash"))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   ;; Frequent random (?) failures on hydra.nixos.org, with no process output.
   ;; Maybe this test should be tagged unstable?  See bug#31214.
   (skip-unless (not (getenv "EMACS_HYDRA_CI")))
@@ -267,7 +267,7 @@
 (ert-deftest make-process-w32-debug-spawn-error ()
   "Check that debugger runs on `make-process' failure (Bug#33016)."
   (skip-unless (eq system-type 'windows-nt))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let* ((debug-on-error t)
          (have-called-debugger nil)
          (debugger (lambda (&rest _)
@@ -286,9 +286,9 @@
     (should have-called-debugger))))
 
 (ert-deftest make-process/file-handler/found ()
-  "Check that the ‘:file-handler’ argument of ‘make-process’
+  "Check that the `:file-handler’ argument of `make-process’
 works as expected if a file name handler is found."
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let ((file-handler-calls 0))
     (cl-flet ((file-handler
                (&rest args)
@@ -308,9 +308,9 @@ works as expected if a file name handler is found."
         (should (= file-handler-calls 1)))))))
 
 (ert-deftest make-process/file-handler/not-found ()
-  "Check that the ‘:file-handler’ argument of ‘make-process’
+  "Check that the `:file-handler’ argument of `make-process’
 works as expected if no file name handler is found."
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let ((file-name-handler-alist ())
         (default-directory invocation-directory)
         (program (expand-file-name invocation-name invocation-directory)))
@@ -319,9 +319,9 @@ works as expected if no file name handler is found."
                                     :file-handler t))))))
 
 (ert-deftest make-process/file-handler/disable ()
-  "Check ‘make-process’ works as expected if it shouldn’t use the
+  "Check `make-process’ works as expected if it shouldn’t use the
 file name handler."
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let ((file-name-handler-alist (list (cons (rx bos "test-handler:")
                                              #'process-tests--file-handler)))
         (default-directory "test-handler:/dir/")
@@ -340,7 +340,7 @@ file name handler."
 (ert-deftest make-process/stop ()
   "Check that `make-process' doesn't accept a `:stop' key.
 See Bug#30460."
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (should-error
    (make-process :name "test"
                  :command (list (expand-file-name invocation-name
@@ -351,31 +351,31 @@ See Bug#30460."
 ;; be the case for hydra.nixos.org, so disable them there for now.
 
 (ert-deftest lookup-family-specification ()
-  "network-lookup-address-info should only accept valid family symbols."
+  "`network-lookup-address-info' should only accept valid family symbols."
   (skip-unless (not (getenv "EMACS_HYDRA_CI")))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (should-error (network-lookup-address-info "google.com" 'both))
   (should (network-lookup-address-info "google.com" 'ipv4))
   (when (featurep 'make-network-process '(:family ipv6))
     (should (network-lookup-address-info "google.com" 'ipv6)))))
 
 (ert-deftest lookup-unicode-domains ()
-  "Unicode domains should fail"
+  "Unicode domains should fail."
   (skip-unless (not (getenv "EMACS_HYDRA_CI")))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (should-error (network-lookup-address-info "faß.de"))
   (should (network-lookup-address-info (puny-encode-domain "faß.de")))))
 
 (ert-deftest unibyte-domain-name ()
-  "Unibyte domain names should work"
+  "Unibyte domain names should work."
   (skip-unless (not (getenv "EMACS_HYDRA_CI")))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (should (network-lookup-address-info (string-to-unibyte "google.com")))))
 
 (ert-deftest lookup-google ()
-  "Check that we can look up google IP addresses"
+  "Check that we can look up google IP addresses."
   (skip-unless (not (getenv "EMACS_HYDRA_CI")))
-  (with-timeout (60)
+  (with-timeout (60 (ert-fail "Test timed out"))
   (let ((addresses-both (network-lookup-address-info "google.com"))
         (addresses-v4 (network-lookup-address-info "google.com" 'ipv4)))
     (should addresses-both)
@@ -384,9 +384,9 @@ See Bug#30460."
     (should (network-lookup-address-info "google.com" 'ipv6)))))
 
 (ert-deftest non-existent-lookup-failure ()
+  "Check that looking up non-existent domain returns nil."
   (skip-unless (not (getenv "EMACS_HYDRA_CI")))
-  (with-timeout (60)
-  "Check that looking up non-existent domain returns nil"
+  (with-timeout (60 (ert-fail "Test timed out"))
   (should (eq nil (network-lookup-address-info "emacs.invalid")))))
 
 (defmacro process-tests--ignore-EMFILE (&rest body)
