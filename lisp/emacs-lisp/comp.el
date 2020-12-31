@@ -2391,16 +2391,21 @@ TARGET-BB-SYM is the symbol name of the target block."
           (comp-emit-assume 'and target-mvar cstr block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
 
-(defun comp-emit-call-cstr (mvar call-cell cstr)
-  "Emit a constraint CSTR for MVAR after CALL-CELL."
-  (let* ((next-cell (cdr call-cell))
-         (new-mvar (make-comp-mvar :slot (comp-mvar-slot mvar)))
-         ;; Have new-mvar as LHS *and* RHS to ensure monotonicity and
-         ;; fwprop convergence!!
-         (new-cell `((assume ,new-mvar (and ,new-mvar ,mvar ,cstr)))))
-    (setf (cdr call-cell) new-cell
+(defsubst comp-insert-insn (insn insn-cell)
+  "Insert INSN as second insn of INSN-CELL."
+  (let ((next-cell (cdr insn-cell))
+        (new-cell `(,insn)))
+    (setf (cdr insn-cell) new-cell
           (cdr new-cell) next-cell
           (comp-func-ssa-status comp-func) 'dirty)))
+
+(defun comp-emit-call-cstr (mvar call-cell cstr)
+  "Emit a constraint CSTR for MVAR after CALL-CELL."
+  (let* ((new-mvar (make-comp-mvar :slot (comp-mvar-slot mvar)))
+         ;; Have new-mvar as LHS *and* RHS to ensure monotonicity and
+         ;; fwprop convergence!!
+         (insn `(assume ,new-mvar (and ,new-mvar ,mvar ,cstr))))
+    (comp-insert-insn insn call-cell)))
 
 (defun comp-lambda-list-gen (lambda-list)
   "Return a generator to iterate over LAMBDA-LIST."
