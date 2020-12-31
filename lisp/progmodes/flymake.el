@@ -1301,7 +1301,7 @@ correctly.")
                          (warning-numeric-level
                           flymake-suppress-zero-counters)))
                     (t t)))
-      `(,(if no-space "" " ")
+      `(,(if no-space "" '(:propertize " "))
         (:propertize
          ,(format "%d" count)
          face ,face
