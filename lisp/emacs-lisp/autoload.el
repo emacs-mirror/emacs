@@ -368,7 +368,8 @@ FILE's name."
   (let ((basename (file-name-nondirectory file))
 	(lp (if (equal type "package") (setq type "autoloads"))))
     (concat ";;; " basename
-	    " --- automatically extracted " (or type "autoloads") "\n"
+            " --- automatically extracted " (or type "autoloads")
+            "  -*- lexical-binding: t -*-\n"
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    (if lp
