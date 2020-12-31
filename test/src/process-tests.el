@@ -701,7 +701,9 @@ Return nil if that can't be determined."
   (when (eq process-tests--EMFILE-message :unknown)
     (setq process-tests--EMFILE-message
           (with-temp-buffer
-            (when (eql (call-process "errno" nil t nil "EMFILE") 0)
+            (when (eql (ignore-error 'file-error
+                         (call-process "errno" nil t nil "EMFILE"))
+                       0)
               (goto-char (point-min))
               (when (looking-at (rx "EMFILE" (+ blank) (+ digit)
                                     (+ blank) (group (+ nonl))))
