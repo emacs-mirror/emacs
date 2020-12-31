@@ -139,14 +139,16 @@ Integer values are handled in the `range' slot.")
   (with-comp-cstr-accessors
     (and (null (typeset cstr))
          (null (valset cstr))
-         (null (range cstr)))))
+         (null (range cstr))
+         (null (neg cstr)))))
 
-(defsubst comp-cstr-null-p (x)
+(defsubst comp-cstr-null-p (cstr)
   "Return t if CSTR is equivalent to the `null' type specifier, nil otherwise."
   (with-comp-cstr-accessors
-    (and (null (typeset x))
-         (null (range x))
-         (equal (valset x) '(nil)))))
+    (and (null (typeset cstr))
+         (null (range cstr))
+         (null (neg cstr))
+         (equal (valset cstr) '(nil)))))
 
 (defun comp-cstrs-homogeneous (cstrs)
   "Check if constraints CSTRS are all homogeneously negated or non-negated.
