@@ -101,7 +101,7 @@
   "Regexp to match the beginning of a heredoc.")
 
   (defconst ruby-expression-expansion-re
-    "\\(?:[^\\]\\|\\=\\)\\(\\\\\\\\\\)*\\(#\\({[^}\n\\]*\\(\\\\.[^}\n\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\|\\$[^a-zA-Z \n]\\)\\)"))
+    "#\\({[^}\n\\]*\\(\\\\.[^}\n\\]*\\)*}\\|\\(?:\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\|\\$[^a-zA-Z \n]\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -1914,7 +1914,13 @@ It will be properly highlighted even when the call omits parens.")
       ;; Expression expansions in strings.  We're handling them
       ;; here, so that the regexp rule never matches inside them.
       (ruby-expression-expansion-re
-       (0 (ignore (ruby-syntax-propertize-expansion))))
+       (0 (ignore
+           (if (save-excursion
+                 (goto-char (match-beginning 0))
+                 ;; The hash character is not escaped.
+                 (cl-evenp (skip-chars-backward "\\\\")))
+               (ruby-syntax-propertize-expansion)
+             (goto-char (match-beginning 1))))))
       ("^=en\\(d\\)\\_>" (1 "!"))
       ("^\\(=\\)begin\\_>" (1 "!"))
       ;; Handle here documents.
@@ -2004,8 +2010,8 @@ It will be properly highlighted even when the call omits parens.")
 (defun ruby-syntax-propertize-expansion ()
   ;; Save the match data to a text property, for font-locking later.
   ;; Set the syntax of all double quotes and backticks to punctuation.
-  (let* ((beg (match-beginning 2))
-         (end (match-end 2))
+  (let* ((beg (match-beginning 0))
+         (end (match-end 0))
          (state (and beg (save-excursion (syntax-ppss beg)))))
     (when (ruby-syntax-expansion-allowed-p state)
       (put-text-property beg (1+ beg) 'ruby-expansion-match-data
@@ -2232,7 +2238,7 @@ It will be properly highlighted even when the call omits parens.")
      (1 font-lock-builtin-face))
     ;; Expression expansion.
     (ruby-match-expression-expansion
-     2 font-lock-variable-name-face t)
+     0 font-lock-variable-name-face t)
     ;; Negation char.
     ("\\(?:^\\|[^[:alnum:]_]\\)\\(!+\\)[^=~]"
      1 font-lock-negation-char-face)
