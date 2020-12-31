@@ -493,6 +493,13 @@ FD_SETSIZE."
                     for ,process = (process-tests--ignore-EMFILE
                                      (make-pipe-process
                                       :name (format "pipe %d" i)
+                                      ;; Prevent delete-process from
+                                      ;; trying to read from pipe
+                                      ;; processes that didn't exit
+                                      ;; yet, because no one is
+                                      ;; writing to those pipes, and
+                                      ;; the read will stall.
+                                      :stop (eq system-type 'windows-nt)
                                       :buffer ,buffer
                                       :coding 'no-conversion
                                       :noquery t))
