@@ -1057,9 +1057,12 @@ between them by typing in the minibuffer with completion."
                             ((eq action 'metadata)
                              '(metadata . ((category . xref-location))))
                             (t
-                             (complete-with-action action collection string pred))))))
+                             (complete-with-action action collection string pred)))))
+                        (def (caar collection)))
                    (cdr (assoc (completing-read "Choose definition: "
-                                                ctable nil t)
+                                                ctable nil t
+                                                nil nil
+                                                def)
                                collection)))))
 
     (xref-pop-to-location xref (assoc-default 'display-action alist))))
