@@ -4413,12 +4413,14 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   struct Lisp_Hash_Table *func_h =
     XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
-  for (ptrdiff_t i = 0; i < func_h->count; i++)
-    declare_function (HASH_VALUE (func_h, i));
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
+    if (!EQ (HASH_VALUE (func_h, i), Qunbound))
+      declare_function (HASH_VALUE (func_h, i));
   /* Compile all functions. Can't be done before because the
      relocation structs has to be already defined.  */
-  for (ptrdiff_t i = 0; i < func_h->count; i++)
-    compile_function (HASH_VALUE (func_h, i));
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
+    if (!EQ (HASH_VALUE (func_h, i), Qunbound))
+      compile_function (HASH_VALUE (func_h, i));
 
   add_driver_options ();
 
