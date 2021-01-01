@@ -391,20 +391,22 @@ struct stat
 #endif
 
 
+#if @GNULIB_MDA_CHMOD@
 /* On native Windows, map 'chmod' to '_chmod', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::chmod always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef chmod
-#  define chmod _chmod
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef chmod
+#   define chmod _chmod
+#  endif
 /* Need to cast, because in mingw the last argument is 'int mode'.  */
 _GL_CXXALIAS_MDA_CAST (chmod, int, (const char *filename, mode_t mode));
-#else
+# else
 _GL_CXXALIAS_SYS (chmod, int, (const char *filename, mode_t mode));
-#endif
+# endif
 _GL_CXXALIASWARN (chmod);
+#endif
 
 
 #if @GNULIB_FCHMODAT@
@@ -606,21 +608,20 @@ _GL_WARN_ON_USE (lstat, "lstat is unportable - "
 #endif
 
 
-#if @REPLACE_MKDIR@
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef mkdir
-#  define mkdir rpl_mkdir
-# endif
+#if @GNULIB_MKDIR@
+# if @REPLACE_MKDIR@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mkdir
+#   define mkdir rpl_mkdir
+#  endif
 _GL_FUNCDECL_RPL (mkdir, int, (char const *name, mode_t mode)
-                              _GL_ARG_NONNULL ((1)));
+                               _GL_ARG_NONNULL ((1)));
 _GL_CXXALIAS_RPL (mkdir, int, (char const *name, mode_t mode));
-#else
+# elif defined _WIN32 && !defined __CYGWIN__
 /* mingw's _mkdir() function has 1 argument, but we pass 2 arguments.
    Additionally, it declares _mkdir (and depending on compile flags, an
    alias mkdir), only in the nonstandard includes <direct.h> and <io.h>,
    which are included above.  */
-# if defined _WIN32 && ! defined __CYGWIN__
-
 #  if !GNULIB_defined_rpl_mkdir
 static int
 rpl_mkdir (char const *name, mode_t mode)
@@ -629,16 +630,44 @@ rpl_mkdir (char const *name, mode_t mode)
 }
 #   define GNULIB_defined_rpl_mkdir 1
 #  endif
-
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mkdir
 #   define mkdir rpl_mkdir
 #  endif
 _GL_CXXALIAS_RPL (mkdir, int, (char const *name, mode_t mode));
 # else
 _GL_CXXALIAS_SYS (mkdir, int, (char const *name, mode_t mode));
 # endif
-#endif
 _GL_CXXALIASWARN (mkdir);
+#elif defined GNULIB_POSIXCHECK
+# undef mkdir
+# if HAVE_RAW_DECL_MKDIR
+_GL_WARN_ON_USE (mkdir, "mkdir does not always support two parameters - "
+                 "use gnulib module mkdir for portability");
+# endif
+#elif @GNULIB_MDA_MKDIR@
+/* On native Windows, map 'mkdir' to '_mkdir', so that -loldnames is not
+   required.  In C++ with GNULIB_NAMESPACE, avoid differences between
+   platforms by defining GNULIB_NAMESPACE::mkdir always.  */
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !GNULIB_defined_rpl_mkdir
+static int
+rpl_mkdir (char const *name, mode_t mode)
+{
+  return _mkdir (name);
+}
+#   define GNULIB_defined_rpl_mkdir 1
+#  endif
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mkdir
+#   define mkdir rpl_mkdir
+#  endif
+_GL_CXXALIAS_RPL (mkdir, int, (char const *name, mode_t mode));
+# else
+_GL_CXXALIAS_SYS (mkdir, int, (char const *name, mode_t mode));
+# endif
+_GL_CXXALIASWARN (mkdir);
+#endif
 
 
 #if @GNULIB_MKDIRAT@
@@ -818,20 +847,22 @@ _GL_WARN_ON_USE (stat, "stat is unportable - "
 #endif
 
 
+#if @GNULIB_MDA_UMASK@
 /* On native Windows, map 'umask' to '_umask', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::umask always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef umask
-#  define umask _umask
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef umask
+#   define umask _umask
+#  endif
 /* Need to cast, because in mingw the last argument is 'int mode'.  */
 _GL_CXXALIAS_MDA_CAST (umask, mode_t, (mode_t mask));
-#else
+# else
 _GL_CXXALIAS_SYS (umask, mode_t, (mode_t mask));
-#endif
+# endif
 _GL_CXXALIASWARN (umask);
+#endif
 
 
 #if @GNULIB_UTIMENSAT@

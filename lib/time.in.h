@@ -145,7 +145,7 @@ _GL_CXXALIAS_MDA (tzset, void, (void));
 _GL_CXXALIAS_SYS (tzset, void, (void));
 #  endif
 _GL_CXXALIASWARN (tzset);
-# else
+# elif @GNULIB_MDA_TZSET@
 /* On native Windows, map 'tzset' to '_tzset', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::tzset always.  */

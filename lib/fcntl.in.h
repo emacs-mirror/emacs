@@ -112,7 +112,7 @@ _GL_CXXALIASWARN (creat);
 /* Assume creat is always declared.  */
 _GL_WARN_ON_USE (creat, "creat is not always POSIX compliant - "
                  "use gnulib module creat for portability");
-#else
+#elif @GNULIB_MDA_CREAT@
 /* On native Windows, map 'creat' to '_creat', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::creat always.  */
@@ -186,7 +186,7 @@ _GL_CXXALIASWARN (open);
 /* Assume open is always declared.  */
 _GL_WARN_ON_USE (open, "open is not always POSIX compliant - "
                  "use gnulib module open for portability");
-#else
+#elif @GNULIB_MDA_OPEN@
 /* On native Windows, map 'open' to '_open', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::open always.  */

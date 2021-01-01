@@ -229,27 +229,29 @@ _GL_WARN_ON_USE (fclose, "fclose is not always POSIX compliant - "
                  "use gnulib module fclose for portable POSIX compliance");
 #endif
 
+#if @GNULIB_MDA_FCLOSEALL@
 /* On native Windows, map 'fcloseall' to '_fcloseall', so that -loldnames is
    not required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::fcloseall on all platforms that have
    it.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef fcloseall
-#  define fcloseall _fcloseall
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fcloseall
+#   define fcloseall _fcloseall
+#  endif
 _GL_CXXALIAS_MDA (fcloseall, int, (void));
-#else
-# if @HAVE_DECL_FCLOSEALL@
-#  if defined __FreeBSD__
+# else
+#  if @HAVE_DECL_FCLOSEALL@
+#   if defined __FreeBSD__
 _GL_CXXALIAS_SYS (fcloseall, void, (void));
-#  else
+#   else
 _GL_CXXALIAS_SYS (fcloseall, int, (void));
+#   endif
 #  endif
 # endif
-#endif
-#if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_FCLOSEALL@
+# if (defined _WIN32 && !defined __CYGWIN__) || @HAVE_DECL_FCLOSEALL@
 _GL_CXXALIASWARN (fcloseall);
+# endif
 #endif
 
 #if @GNULIB_FDOPEN@
@@ -276,7 +278,7 @@ _GL_CXXALIASWARN (fdopen);
 /* Assume fdopen is always declared.  */
 _GL_WARN_ON_USE (fdopen, "fdopen on native Windows platforms is not POSIX compliant - "
                  "use gnulib module fdopen for portability");
-#else
+#elif @GNULIB_MDA_FDOPEN@
 /* On native Windows, map 'fdopen' to '_fdopen', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::fdopen always.  */
@@ -354,19 +356,21 @@ _GL_CXXALIASWARN (fgets);
 # endif
 #endif
 
+#if @GNULIB_MDA_FILENO@
 /* On native Windows, map 'fileno' to '_fileno', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::fileno always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef fileno
-#  define fileno _fileno
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fileno
+#   define fileno _fileno
+#  endif
 _GL_CXXALIAS_MDA (fileno, int, (FILE *restrict stream));
-#else
+# else
 _GL_CXXALIAS_SYS (fileno, int, (FILE *restrict stream));
-#endif
+# endif
 _GL_CXXALIASWARN (fileno);
+#endif
 
 #if @GNULIB_FOPEN@
 # if @REPLACE_FOPEN@
@@ -895,19 +899,21 @@ _GL_WARN_ON_USE (getline, "getline is unportable - "
 _GL_WARN_ON_USE (gets, "gets is a security hole - use fgets instead");
 #endif
 
+#if @GNULIB_MDA_GETW@
 /* On native Windows, map 'getw' to '_getw', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::getw always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef getw
-#  define getw _getw
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef getw
+#   define getw _getw
+#  endif
 _GL_CXXALIAS_MDA (getw, int, (FILE *restrict stream));
-#else
+# else
 _GL_CXXALIAS_SYS (getw, int, (FILE *restrict stream));
-#endif
+# endif
 _GL_CXXALIASWARN (getw);
+#endif
 
 #if @GNULIB_OBSTACK_PRINTF@ || @GNULIB_OBSTACK_PRINTF_POSIX@
 struct obstack;
@@ -1122,19 +1128,21 @@ _GL_CXXALIASWARN (puts);
 # endif
 #endif
 
+#if @GNULIB_MDA_PUTW@
 /* On native Windows, map 'putw' to '_putw', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::putw always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef putw
-#  define putw _putw
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef putw
+#   define putw _putw
+#  endif
 _GL_CXXALIAS_MDA (putw, int, (int w, FILE *restrict stream));
-#else
+# else
 _GL_CXXALIAS_SYS (putw, int, (int w, FILE *restrict stream));
-#endif
+# endif
 _GL_CXXALIASWARN (putw);
+#endif
 
 #if @GNULIB_REMOVE@
 # if @REPLACE_REMOVE@
@@ -1315,19 +1323,21 @@ _GL_WARN_ON_USE (sprintf, "sprintf is not always POSIX compliant - "
                  "POSIX compliance");
 #endif
 
+#if @GNULIB_MDA_TEMPNAM@
 /* On native Windows, map 'tempnam' to '_tempnam', so that -loldnames is not
    required.  In C++ with GNULIB_NAMESPACE, avoid differences between
    platforms by defining GNULIB_NAMESPACE::tempnam always.  */
-#if defined _WIN32 && !defined __CYGWIN__
-# if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#  undef tempnam
-#  define tempnam _tempnam
-# endif
+# if defined _WIN32 && !defined __CYGWIN__
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef tempnam
+#   define tempnam _tempnam
+#  endif
 _GL_CXXALIAS_MDA (tempnam, char *, (const char *dir, const char *prefix));
-#else
+# else
 _GL_CXXALIAS_SYS (tempnam, char *, (const char *dir, const char *prefix));
-#endif
+# endif
 _GL_CXXALIASWARN (tempnam);
+#endif
 
 #if @GNULIB_TMPFILE@
 # if @REPLACE_TMPFILE@

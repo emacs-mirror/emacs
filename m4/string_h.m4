@@ -5,7 +5,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 27
+# serial 28
 
 # Written by Paul Eggert.
 
@@ -86,6 +86,9 @@ AC_DEFUN([gl_HEADER_STRING_H_DEFAULTS],
   GNULIB_STRSIGNAL=0;        AC_SUBST([GNULIB_STRSIGNAL])
   GNULIB_STRVERSCMP=0;       AC_SUBST([GNULIB_STRVERSCMP])
   HAVE_MBSLEN=0;             AC_SUBST([HAVE_MBSLEN])
+  dnl Support Microsoft deprecated alias function names by default.
+  GNULIB_MDA_MEMCCPY=1;      AC_SUBST([GNULIB_MDA_MEMCCPY])
+  GNULIB_MDA_STRDUP=1;       AC_SUBST([GNULIB_MDA_STRDUP])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_EXPLICIT_BZERO=1;        AC_SUBST([HAVE_EXPLICIT_BZERO])
   HAVE_FFSL=1;                  AC_SUBST([HAVE_FFSL])
