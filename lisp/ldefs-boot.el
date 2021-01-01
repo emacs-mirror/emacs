@@ -12098,13 +12098,13 @@ Set the base remapping of FACE in the current buffer to SPECS.
 This causes the remappings specified by `face-remap-add-relative'
 to apply on top of the face specification given by SPECS.
 
-The remaining arguments, SPECS, should form a list of faces.
-Each list element should be either a face name or a property list
+The remaining arguments, SPECS, specify the base of the remapping.
+Each one of SPECS should be either a face name or a property list
 of face attribute/value pairs, like in a `face' text property.
 
-If SPECS is empty, call `face-remap-reset-base' to use the normal
-definition of FACE as the base remapping; note that this is
-different from SPECS containing a single value nil, which means
+If SPECS is empty or a single face `eq' to FACE, call `face-remap-reset-base'
+to use the normal definition of FACE as the base remapping; note that
+this is different from SPECS containing a single value nil, which means
 not to inherit from the global definition of FACE at all.
 
 \(fn FACE &rest SPECS)" nil nil)
@@ -23319,7 +23319,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 4 3)) package--builtin-versions)
+(push (purecopy '(org 9 4 4)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -23517,9 +23517,277 @@ Call the customize function with org as argument." t nil)
 
 ;;;***
 
-;;;### (autoloads "actual autoloads are elsewhere" "org-agenda" "org/org-agenda.el"
-;;;;;;  (0 0 0 0))
+;;;### (autoloads nil "org-agenda" "org/org-agenda.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-agenda.el
+
+(autoload 'org-toggle-sticky-agenda "org-agenda" "\
+Toggle `org-agenda-sticky'.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'org-agenda "org-agenda" "\
+Dispatch agenda commands to collect entries to the agenda buffer.
+Prompts for a command to execute.  Any prefix arg will be passed
+on to the selected command.  The default selections are:
+
+a     Call `org-agenda-list' to display the agenda for current day or week.
+t     Call `org-todo-list' to display the global todo list.
+T     Call `org-todo-list' to display the global todo list, select only
+      entries with a specific TODO keyword (the user gets a prompt).
+m     Call `org-tags-view' to display headlines with tags matching
+      a condition  (the user is prompted for the condition).
+M     Like `m', but select only TODO entries, no ordinary headlines.
+e     Export views to associated files.
+s     Search entries for keywords.
+S     Search entries for keywords, only with TODO keywords.
+/     Multi occur across all agenda files and also files listed
+      in `org-agenda-text-search-extra-files'.
+<     Restrict agenda commands to buffer, subtree, or region.
+      Press several times to get the desired effect.
+>     Remove a previous restriction.
+#     List \"stuck\" projects.
+!     Configure what \"stuck\" means.
+C     Configure custom agenda commands.
+
+More commands can be added by configuring the variable
+`org-agenda-custom-commands'.  In particular, specific tags and TODO keyword
+searches can be pre-defined in this way.
+
+If the current buffer is in Org mode and visiting a file, you can also
+first press `<' once to indicate that the agenda should be temporarily
+\(until the next use of `\\[org-agenda]') restricted to the current file.
+Pressing `<' twice means to restrict to the current subtree or region
+\(if active).
+
+\(fn &optional ARG ORG-KEYS RESTRICTION)" t nil)
+
+(autoload 'org-batch-agenda "org-agenda" "\
+Run an agenda command in batch mode and send the result to STDOUT.
+If CMD-KEY is a string of length 1, it is used as a key in
+`org-agenda-custom-commands' and triggers this command.  If it is a
+longer string it is used as a tags/todo match string.
+Parameters are alternating variable names and values that will be bound
+before running the agenda command.
+
+\(fn CMD-KEY &rest PARAMETERS)" nil t)
+
+(autoload 'org-batch-agenda-csv "org-agenda" "\
+Run an agenda command in batch mode and send the result to STDOUT.
+If CMD-KEY is a string of length 1, it is used as a key in
+`org-agenda-custom-commands' and triggers this command.  If it is a
+longer string it is used as a tags/todo match string.
+Parameters are alternating variable names and values that will be bound
+before running the agenda command.
+
+The output gives a line for each selected agenda item.  Each
+item is a list of comma-separated values, like this:
+
+category,head,type,todo,tags,date,time,extra,priority-l,priority-n
+
+category     The category of the item
+head         The headline, without TODO kwd, TAGS and PRIORITY
+type         The type of the agenda entry, can be
+                todo               selected in TODO match
+                tagsmatch          selected in tags match
+                diary              imported from diary
+                deadline           a deadline on given date
+                scheduled          scheduled on given date
+                timestamp          entry has timestamp on given date
+                closed             entry was closed on given date
+                upcoming-deadline  warning about deadline
+                past-scheduled     forwarded scheduled item
+                block              entry has date block including g. date
+todo         The todo keyword, if any
+tags         All tags including inherited ones, separated by colons
+date         The relevant date, like 2007-2-14
+time         The time, like 15:00-16:50
+extra        String with extra planning info
+priority-l   The priority letter if any was given
+priority-n   The computed numerical priority
+agenda-day   The day in the agenda where this is listed
+
+\(fn CMD-KEY &rest PARAMETERS)" nil t)
+
+(autoload 'org-store-agenda-views "org-agenda" "\
+Store agenda views.
+
+\(fn &rest PARAMETERS)" t nil)
+
+(autoload 'org-batch-store-agenda-views "org-agenda" "\
+Run all custom agenda commands that have a file argument.
+
+\(fn &rest PARAMETERS)" nil t)
+
+(autoload 'org-agenda-list "org-agenda" "\
+Produce a daily/weekly view from all files in variable `org-agenda-files'.
+The view will be for the current day or week, but from the overview buffer
+you will be able to go to other days/weeks.
+
+With a numeric prefix argument in an interactive call, the agenda will
+span ARG days.  Lisp programs should instead specify SPAN to change
+the number of days.  SPAN defaults to `org-agenda-span'.
+
+START-DAY defaults to TODAY, or to the most recent match for the weekday
+given in `org-agenda-start-on-weekday'.
+
+When WITH-HOUR is non-nil, only include scheduled and deadline
+items if they have an hour specification like [h]h:mm.
+
+\(fn &optional ARG START-DAY SPAN WITH-HOUR)" t nil)
+
+(autoload 'org-search-view "org-agenda" "\
+Show all entries that contain a phrase or words or regular expressions.
+
+With optional prefix argument TODO-ONLY, only consider entries that are
+TODO entries.  The argument STRING can be used to pass a default search
+string into this function.  If EDIT-AT is non-nil, it means that the
+user should get a chance to edit this string, with cursor at position
+EDIT-AT.
+
+The search string can be viewed either as a phrase that should be found as
+is, or it can be broken into a number of snippets, each of which must match
+in a Boolean way to select an entry.  The default depends on the variable
+`org-agenda-search-view-always-boolean'.
+Even if this is turned off (the default) you can always switch to
+Boolean search dynamically by preceding the first word with  \"+\" or \"-\".
+
+The default is a direct search of the whole phrase, where each space in
+the search string can expand to an arbitrary amount of whitespace,
+including newlines.
+
+If using a Boolean search, the search string is split on whitespace and
+each snippet is searched separately, with logical AND to select an entry.
+Words prefixed with a minus must *not* occur in the entry.  Words without
+a prefix or prefixed with a plus must occur in the entry.  Matching is
+case-insensitive.  Words are enclosed by word delimiters (i.e. they must
+match whole words, not parts of a word) if
+`org-agenda-search-view-force-full-words' is set (default is nil).
+
+Boolean search snippets enclosed by curly braces are interpreted as
+regular expressions that must or (when preceded with \"-\") must not
+match in the entry.  Snippets enclosed into double quotes will be taken
+as a whole, to include whitespace.
+
+- If the search string starts with an asterisk, search only in headlines.
+- If (possibly after the leading star) the search string starts with an
+  exclamation mark, this also means to look at TODO entries only, an effect
+  that can also be achieved with a prefix argument.
+- If (possibly after star and exclamation mark) the search string starts
+  with a colon, this will mean that the (non-regexp) snippets of the
+  Boolean search must match as full words.
+
+This command searches the agenda files, and in addition the files
+listed in `org-agenda-text-search-extra-files' unless a restriction lock
+is active.
+
+\(fn &optional TODO-ONLY STRING EDIT-AT)" t nil)
+
+(autoload 'org-todo-list "org-agenda" "\
+Show all (not done) TODO entries from all agenda file in a single list.
+The prefix arg can be used to select a specific TODO keyword and limit
+the list to these.  When using `\\[universal-argument]', you will be prompted
+for a keyword.  A numeric prefix directly selects the Nth keyword in
+`org-todo-keywords-1'.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'org-tags-view "org-agenda" "\
+Show all headlines for all `org-agenda-files' matching a TAGS criterion.
+The prefix arg TODO-ONLY limits the search to TODO entries.
+
+\(fn &optional TODO-ONLY MATCH)" t nil)
+
+(autoload 'org-agenda-list-stuck-projects "org-agenda" "\
+Create agenda view for projects that are stuck.
+Stuck projects are project that have no next actions.  For the definitions
+of what a project is and how to check if it stuck, customize the variable
+`org-stuck-projects'.
+
+\(fn &rest IGNORE)" t nil)
+
+(autoload 'org-diary "org-agenda" "\
+Return diary information from org files.
+This function can be used in a \"sexp\" diary entry in the Emacs calendar.
+It accesses org files and extracts information from those files to be
+listed in the diary.  The function accepts arguments specifying what
+items should be listed.  For a list of arguments allowed here, see the
+variable `org-agenda-entry-types'.
+
+The call in the diary file should look like this:
+
+   &%%(org-diary) ~/path/to/some/orgfile.org
+
+Use a separate line for each org file to check.  Or, if you omit the file name,
+all files listed in `org-agenda-files' will be checked automatically:
+
+   &%%(org-diary)
+
+If you don't give any arguments (as in the example above), the default value
+of `org-agenda-entry-types' is used: (:deadline :scheduled :timestamp :sexp).
+So the example above may also be written as
+
+   &%%(org-diary :deadline :timestamp :sexp :scheduled)
+
+The function expects the lisp variables `entry' and `date' to be provided
+by the caller, because this is how the calendar works.  Don't use this
+function from a program - use `org-agenda-get-day-entries' instead.
+
+\(fn &rest ARGS)" nil nil)
+
+(autoload 'org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item "org-agenda" "\
+Do we have a reason to ignore this TODO entry because it has a time stamp?
+
+\(fn &optional END)" nil nil)
+
+(autoload 'org-agenda-set-restriction-lock "org-agenda" "\
+Set restriction lock for agenda to current subtree or file.
+When in a restricted subtree, remove it.
+
+The restriction will span over the entire file if TYPE is `file',
+or if type is '(4), or if the cursor is before the first headline
+in the file. Otherwise, only apply the restriction to the current
+subtree.
+
+\(fn &optional TYPE)" t nil)
+
+(autoload 'org-calendar-goto-agenda "org-agenda" "\
+Compute the Org agenda for the calendar date displayed at the cursor.
+This is a command that has to be installed in `calendar-mode-map'." t nil)
+
+(autoload 'org-agenda-to-appt "org-agenda" "\
+Activate appointments found in `org-agenda-files'.
+
+With a `\\[universal-argument]' prefix, refresh the list of appointments.
+
+If FILTER is t, interactively prompt the user for a regular
+expression, and filter out entries that don't match it.
+
+If FILTER is a string, use this string as a regular expression
+for filtering entries out.
+
+If FILTER is a function, filter out entries against which
+calling the function returns nil.  This function takes one
+argument: an entry from `org-agenda-get-day-entries'.
+
+FILTER can also be an alist with the car of each cell being
+either `headline' or `category'.  For example:
+
+  \\='((headline \"IMPORTANT\")
+    (category \"Work\"))
+
+will only add headlines containing IMPORTANT or headlines
+belonging to the \"Work\" category.
+
+ARGS are symbols indicating what kind of entries to consider.
+By default `org-agenda-to-appt' will use :deadline*, :scheduled*
+\(i.e., deadlines and scheduled items with a hh:mm specification)
+and :timestamp entries.  See the docstring of `org-diary' for
+details and examples.
+
+If an entry has a APPT_WARNTIME property, its value will be used
+to override `appt-message-warning-time'.
+
+\(fn &optional REFRESH FILTER &rest ARGS)" t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-agenda" '("org-")))
 
@@ -23549,9 +23817,47 @@ Call the customize function with org as argument." t nil)
 
 ;;;***
 
-;;;### (autoloads "actual autoloads are elsewhere" "org-capture"
-;;;;;;  "org/org-capture.el" (0 0 0 0))
+;;;### (autoloads nil "org-capture" "org/org-capture.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-capture.el
+
+(autoload 'org-capture-string "org-capture" "\
+Capture STRING with the template selected by KEYS.
+
+\(fn STRING &optional KEYS)" t nil)
+
+(autoload 'org-capture "org-capture" "\
+Capture something.
+\\<org-capture-mode-map>
+This will let you select a template from `org-capture-templates', and
+then file the newly captured information.  The text is immediately
+inserted at the target location, and an indirect buffer is shown where
+you can edit it.  Pressing `\\[org-capture-finalize]' brings you back to the previous
+state of Emacs, so that you can continue your work.
+
+When called interactively with a `\\[universal-argument]' prefix argument GOTO, don't
+capture anything, just go to the file/headline where the selected
+template stores its notes.
+
+With a `\\[universal-argument] \\[universal-argument]' prefix argument, go to the last note stored.
+
+When called with a `C-0' (zero) prefix, insert a template at point.
+
+When called with a `C-1' (one) prefix, force prompting for a date when
+a datetree entry is made.
+
+ELisp programs can set KEYS to a string associated with a template
+in `org-capture-templates'.  In this case, interactive selection
+will be bypassed.
+
+If `org-capture-use-agenda-date' is non-nil, capturing from the
+agenda will use the date at point as the default date.  Then, a
+`C-1' prefix will tell the capture process to use the HH:MM time
+of the day at point (if any) or the current HH:MM time.
+
+\(fn &optional GOTO KEYS)" t nil)
+
+(autoload 'org-capture-import-remember-templates "org-capture" "\
+Set `org-capture-templates' to be similar to `org-remember-templates'." t nil)
 
 (if (fboundp 'register-definition-prefixes) (register-definition-prefixes "org-capture" '("org-capture-")))
 
@@ -38331,19 +38637,10 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-unix.el" "eshell/em-xtra.el" "facemenu.el" "faces.el"
 ;;;;;;  "files.el" "font-core.el" "font-lock.el" "format.el" "frame.el"
 ;;;;;;  "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el" "international/characters.el"
-;;;;;;  "international/charprop.el" "international/charscript.el"
-;;;;;;  "international/cp51932.el" "international/eucjp-ms.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
-;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
-;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
-;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
-;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
-;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
-;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
-;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
-;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
-;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
-;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "international/charscript.el" "international/cp51932.el"
+;;;;;;  "international/eucjp-ms.el" "international/mule-cmds.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
+;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
 ;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
 ;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
@@ -38376,26 +38673,25 @@ Zone out, completely." t nil)
 ;;;;;;  "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el" "newcomment.el"
 ;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
 ;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
-;;;;;;  "org/ol.el" "org/org-agenda.el" "org/org-archive.el" "org/org-attach.el"
-;;;;;;  "org/org-capture.el" "org/org-clock.el" "org/org-colview.el"
-;;;;;;  "org/org-compat.el" "org/org-datetree.el" "org/org-duration.el"
-;;;;;;  "org/org-element.el" "org/org-feed.el" "org/org-footnote.el"
-;;;;;;  "org/org-goto.el" "org/org-id.el" "org/org-indent.el" "org/org-install.el"
-;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
-;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
-;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
-;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
-;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
-;;;;;;  "org/ox-texinfo.el" "org/ox.el" "progmodes/elisp-mode.el"
-;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
-;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
-;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/page.el"
-;;;;;;  "textmodes/paragraphs.el" "textmodes/reftex-auc.el" "textmodes/reftex-cite.el"
-;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-global.el" "textmodes/reftex-index.el"
-;;;;;;  "textmodes/reftex-parse.el" "textmodes/reftex-ref.el" "textmodes/reftex-sel.el"
-;;;;;;  "textmodes/reftex-toc.el" "textmodes/text-mode.el" "uniquify.el"
-;;;;;;  "vc/ediff-hook.el" "vc/vc-hooks.el" "version.el" "widget.el"
-;;;;;;  "window.el") (0 0 0 0))
+;;;;;;  "org/ol.el" "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
+;;;;;;  "org/org-colview.el" "org/org-compat.el" "org/org-datetree.el"
+;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
+;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
+;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
+;;;;;;  "org/org-list.el" "org/org-macs.el" "org/org-mobile.el" "org/org-num.el"
+;;;;;;  "org/org-plot.el" "org/org-refile.el" "org/org-table.el"
+;;;;;;  "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el" "org/ox-html.el"
+;;;;;;  "org/ox-icalendar.el" "org/ox-latex.el" "org/ox-md.el" "org/ox-odt.el"
+;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
+;;;;;;  "progmodes/elisp-mode.el" "progmodes/prog-mode.el" "ps-mule.el"
+;;;;;;  "register.el" "replace.el" "rfn-eshadow.el" "select.el" "simple.el"
+;;;;;;  "startup.el" "subdirs.el" "subr.el" "tab-bar.el" "textmodes/fill.el"
+;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
+;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
+;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
+;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/text-mode.el"
+;;;;;;  "uniquify.el" "vc/ediff-hook.el" "vc/vc-hooks.el" "version.el"
+;;;;;;  "widget.el" "window.el") (0 0 0 0))
 
 ;;;***
 
