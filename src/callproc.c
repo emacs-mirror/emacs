@@ -30,6 +30,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
+#ifdef SETUP_SLAVE_PTY
+# include <sys/stream.h>
+# include <sys/stropts.h>
+#endif
+
 #ifdef WINDOWSNT
 #include <sys/socket.h>	/* for fcntl */
 #include <windows.h>

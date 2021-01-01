@@ -80,15 +80,6 @@ static struct rlimit nofile_limit;
 
 #endif
 
-#ifdef NEED_BSDTTY
-#include <bsdtty.h>
-#endif
-
-#ifdef USG5_4
-# include <sys/stream.h>
-# include <sys/stropts.h>
-#endif
-
 #ifdef HAVE_UTIL_H
 #include <util.h>
 #endif
