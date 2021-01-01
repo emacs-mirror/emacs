@@ -4587,12 +4587,13 @@ network_lookup_address_info_1 (Lisp_Object host, const char *service,
 
 DEFUN ("network-lookup-address-info", Fnetwork_lookup_address_info,
        Snetwork_lookup_address_info, 1, 2, 0,
-       doc: /* Look up ip address info of NAME.
+       doc: /* Look up Internet Protocol (IP) address info of NAME.
 Optional parameter FAMILY controls whether to look up IPv4 or IPv6
 addresses.  The default of nil means both, symbol `ipv4' means IPv4
 only, symbol `ipv6' means IPv6 only.  Returns a list of addresses, or
 nil if none were found.  Each address is a vector of integers, as per
-the description of ADDRESS in `make-network-process'.  */)
+the description of ADDRESS in `make-network-process'.  In case of
+error displays the error message.  */)
      (Lisp_Object name, Lisp_Object family)
 {
   Lisp_Object addresses = Qnil;
