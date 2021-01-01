@@ -1,6 +1,6 @@
 ;;; srecode/test-getset.el --- Test the getset inserter.
 
-;; Copyright (C) 2008, 2009, 2011, 2019-2020 Free Software Foundation, Inc
+;; Copyright (C) 2008, 2009, 2011, 2019-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
