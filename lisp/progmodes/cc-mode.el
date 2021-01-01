@@ -731,8 +731,8 @@ that requires a literal mode spec at compile time."
 ;;   ;; Put submode indicators onto minor-mode-alist, but only once.
 ;;   (or (assq 'c-submode-indicators minor-mode-alist)
 ;;       (setq minor-mode-alist
-;; 	    (cons '(c-submode-indicators c-submode-indicators)
-;; 		  minor-mode-alist)))
+;;	    (cons '(c-submode-indicators c-submode-indicators)
+;;		  minor-mode-alist)))
   (c-update-modeline)
 
   ;; Install the functions that ensure that various internal caches
@@ -1258,7 +1258,7 @@ Note that the style variables are always made local to the buffer."
   ;; Set both the syntax-table and the c-fl-syn-tab text properties at POS to
   ;; VALUE (which should not be nil).
   ;; `(let ((-pos- ,pos)
-  ;; 	 (-value- ,value))
+  ;;	 (-value- ,value))
   (c-put-char-property pos 'syntax-table value)
   (c-put-char-property pos 'c-fl-syn-tab value)
   (cond
@@ -1488,7 +1488,7 @@ Note that the style variables are always made local to the buffer."
 	   ((and
 	     (c-is-escaped end)
 	     (or (eq beg end) ; .... by inserting stuff between \ and \n?
-	      	 (c-will-be-unescaped beg))) ;  ... by removing an odd number of \s?
+		 (c-will-be-unescaped beg))) ;  ... by removing an odd number of \s?
 	    (goto-char (1+ end))) ; To after the NL which is being unescaped.
 	   (t
 	    (goto-char end)))

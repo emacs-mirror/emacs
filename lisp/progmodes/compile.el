@@ -1577,10 +1577,10 @@ to `compilation-error-regexp-alist' if RULES is nil."
                       (put-text-property
                        (match-beginning mn) (match-end mn)
                        'font-lock-face face))
-      	             ((and (listp face)
-      		           (eq (car face) 'face)
-      		           (or (symbolp (cadr face))
-      		               (stringp (cadr face))))
+		     ((and (listp face)
+			   (eq (car face) 'face)
+			   (or (symbolp (cadr face))
+			       (stringp (cadr face))))
                       (compilation--put-prop mn 'font-lock-face (cadr face))
                       (add-text-properties
                        (match-beginning mn) (match-end mn)
