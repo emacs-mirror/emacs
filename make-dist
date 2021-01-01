@@ -407,7 +407,7 @@ if ( [ $update = yes ] || [ ! -f $manifest ] ) && [ -r .git ]; then
   else
     git ls-files | grep -v '^test' >$manifest
   fi || exit
-  printf '%s\n' "$possibly_non_vc_files" "$info_files" >>$manifest || exit
+  printf '%s\n' $possibly_non_vc_files $info_files >>$manifest || exit
   sort -u -o $manifest $manifest || exit
 fi
 
@@ -460,7 +460,7 @@ MANIFEST_subdir_sed='
   s,^,'$tempdir'/,
 '
 tempsubdirs=$(sed "$MANIFEST_subdir_sed" $manifest | sort -u)
-$mkdir_verbose -p "$tempsubdirs" || exit
+$mkdir_verbose -p $tempsubdirs || exit
 
 echo "Making links to files"
 while read file; do
@@ -508,13 +508,13 @@ if [ "${make_tar}" = yes ]; then
 
   (cd $tempparent &&
    case $default_gzip in
-     cat) tar "$taropt" -cf - $emacsname;;
-     *) if tar "$taropt" -cf /dev/null --use-compress-program="$default_gzip" \
+     cat) tar $taropt -cf - $emacsname;;
+     *) if tar $taropt -cf /dev/null --use-compress-program="$default_gzip" \
 	       $emacsname/src/lisp.h > /dev/null 2>&1
 	then
-          tar "$taropt" -cf - --use-compress-program="$default_gzip" $emacsname
+	  tar $taropt -cf - --use-compress-program="$default_gzip" $emacsname
 	else
-          tar "$taropt" -cf $emacsname.tar $emacsname &&
+	  tar $taropt -cf $emacsname.tar $emacsname &&
 	  $default_gzip <$emacsname.tar
         fi;;
    esac
