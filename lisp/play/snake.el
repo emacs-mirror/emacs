@@ -1,6 +1,6 @@
 ;;; snake.el --- implementation of Snake for Emacs
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Created: 1997-09-10

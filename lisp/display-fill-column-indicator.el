@@ -1,6 +1,6 @@
 ;;; display-fill-column-indicator.el --- interface for display-fill-column-indicator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience

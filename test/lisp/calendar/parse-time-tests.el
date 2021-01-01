@@ -1,6 +1,6 @@
 ;; parse-time-tests.el --- Test suite for parse-time.el
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 

@@ -1,6 +1,6 @@
 ;;; faceup-test-files.el --- Self test of `faceup' using dummy major mode.
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: languages, faces

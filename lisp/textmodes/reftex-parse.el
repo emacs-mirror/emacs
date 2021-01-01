@@ -1,6 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org

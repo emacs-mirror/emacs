@@ -1,6 +1,6 @@
 ;;; tabify.el --- tab conversion commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2001-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs

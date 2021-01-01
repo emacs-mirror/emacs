@@ -1,6 +1,6 @@
 ;;; org-id.el --- Global identifiers for Org entries -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp

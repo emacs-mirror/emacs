@@ -1,6 +1,6 @@
 ;;; float-sup.el --- define some constants useful for floating point numbers.
 
-;; Copyright (C) 1985-1987, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 2001-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal

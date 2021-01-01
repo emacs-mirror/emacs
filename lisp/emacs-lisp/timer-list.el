@@ -1,6 +1,6 @@
 ;;; timer-list.el --- list active timers in a buffer  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs

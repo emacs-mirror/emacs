@@ -1,6 +1,6 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools

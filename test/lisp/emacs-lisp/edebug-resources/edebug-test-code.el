@@ -1,6 +1,6 @@
 ;;; edebug-test-code.el --- Sample code for the Edebug test suite
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 

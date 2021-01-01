@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988-1995, 1997, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>

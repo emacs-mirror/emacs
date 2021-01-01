@@ -1,6 +1,6 @@
 ;;; cedet-utests.el --- Run all unit tests in the CEDET suite.
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

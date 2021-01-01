@@ -1,6 +1,6 @@
 ;;; timezone.el --- time zone package for GNU Emacs  -- lexical-binding: t -*-
 
-;; Copyright (C) 1990-1993, 1996, 1999, 2001-2020 Free Software
+;; Copyright (C) 1990-1993, 1996, 1999, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu Umeda <umerin@mse.kyutech.ac.jp>

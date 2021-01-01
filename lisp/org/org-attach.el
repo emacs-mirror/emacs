@@ -1,6 +1,6 @@
 ;;; org-attach.el --- Manage file attachments to Org outlines -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data attachment

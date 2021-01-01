@@ -1,6 +1,6 @@
 ;;; mixal-mode.el --- Major mode for the mix asm language.
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Pieter E.J. Pareit <pieter.pareit@gmail.com>
 ;; Maintainer: emacs-devel@gnu.org

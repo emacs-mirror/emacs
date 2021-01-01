@@ -1,6 +1,6 @@
 ;;; animate.el --- make text dance
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: Richard Stallman <rms@gnu.org>
 ;; Keywords: games

@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.01

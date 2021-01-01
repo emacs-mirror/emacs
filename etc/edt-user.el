@@ -1,6 +1,6 @@
 ;;; edt-user.el --- Sample user customizations for Emacs EDT emulation
 
-;; Copyright (C) 1986, 1992-1993, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1986, 1992-1993, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Kevin Gallagher <kevin.gal@verizon.net>

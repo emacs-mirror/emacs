@@ -1,6 +1,6 @@
 ;;; ffap.el --- find file (or url) at point
 
-;; Copyright (C) 1995-1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: emacs-devel@gnu.org

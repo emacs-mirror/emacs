@@ -1,6 +1,6 @@
 ;;; fringe.el --- fringe setup and control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: emacs-devel@gnu.org

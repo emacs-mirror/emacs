@@ -1,6 +1,6 @@
 ;;; cedet-cscope.el --- CScope support for CEDET
 
-;;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Package: cedet

@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

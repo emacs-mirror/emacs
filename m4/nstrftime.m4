@@ -1,6 +1,6 @@
 # serial 34
 
-# Copyright (C) 1996-1997, 1999-2007, 2009-2020 Free Software
+# Copyright (C) 1996-1997, 1999-2007, 2009-2021 Free Software
 # Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation

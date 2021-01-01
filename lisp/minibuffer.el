@@ -1,6 +1,6 @@
 ;;; minibuffer.el --- Minibuffer completion functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Package: emacs

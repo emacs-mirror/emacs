@@ -1,6 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: cp850 -*-
 
-Copyright (C) 1993-1997, 1999-2020 Free Software Foundation, Inc.
+Copyright (C) 1993-1997, 1999-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999, 2001, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

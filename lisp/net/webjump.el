@@ -1,6 +1,6 @@
 ;;; webjump.el --- programmable Web hotlist
 
-;; Copyright (C) 1996-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author:    Neil W. Van Dyke <nwv@acm.org>
 ;; Created:   09-Aug-1996

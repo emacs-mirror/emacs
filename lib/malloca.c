@@ -1,5 +1,5 @@
 /* Safe automatic memory allocation.
-   Copyright (C) 2003, 2006-2007, 2009-2020 Free Software Foundation,
+   Copyright (C) 2003, 2006-2007, 2009-2021 Free Software Foundation,
    Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2003, 2018.
 

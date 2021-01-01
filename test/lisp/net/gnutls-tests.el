@@ -1,6 +1,6 @@
 ;;; gnutls-tests.el --- Test suite for gnutls.el
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 

@@ -1,6 +1,6 @@
 ;;; syntax.el --- helper functions to find syntactic context  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal

@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993-1995, 1997-2020 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>

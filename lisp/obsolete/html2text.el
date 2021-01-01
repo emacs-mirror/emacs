@@ -1,6 +1,6 @@
 ;;; html2text.el --- a simple html to plain text converter -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Joakim Hove <hove@phys.ntnu.no>
 ;; Obsolete-since: 26.1

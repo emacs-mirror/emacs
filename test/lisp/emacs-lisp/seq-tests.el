@@ -1,6 +1,6 @@
 ;;; seq-tests.el --- Tests for sequences.el
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,5 +1,5 @@
 /* Binary mode I/O.
-   Copyright (C) 2001, 2003, 2005, 2008-2020 Free Software Foundation,
+   Copyright (C) 2001, 2003, 2005, 2008-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify

@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2021 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages

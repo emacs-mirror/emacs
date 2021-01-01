@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs support programs on NT.
 
-Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
 
 Author: Geoff Voelker (voelker@cs.washington.edu)
 Created: 10-8-94

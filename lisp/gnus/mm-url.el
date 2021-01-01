@@ -1,6 +1,6 @@
 ;;; mm-url.el --- a wrapper of url functions/commands for Gnus
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 

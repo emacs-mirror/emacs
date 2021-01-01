@@ -1,6 +1,6 @@
 ;;; vip.el --- a VI Package for GNU Emacs
 
-;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2020 Free Software
+;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masahiko Sato <ms@sail.stanford.edu>

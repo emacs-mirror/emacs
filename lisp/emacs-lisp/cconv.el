@@ -1,6 +1,6 @@
 ;;; cconv.el --- Closure conversion for statically scoped Emacs lisp. -*- lexical-binding: t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Igor Kuzmin <kzuminig@iro.umontreal.ca>
 ;; Maintainer: emacs-devel@gnu.org

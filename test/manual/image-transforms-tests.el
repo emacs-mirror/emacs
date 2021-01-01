@@ -1,6 +1,6 @@
 ;;; image-transform-tests.el --- Test suite for image transforms.
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Alan Third <alan@idiocy.org>
 ;; Keywords:       internal

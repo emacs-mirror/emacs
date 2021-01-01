@@ -1,6 +1,6 @@
 ;;; xdg.el --- XDG specification and standard support -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 
 ;; Author: Mark Oteiza <mvoteiza@udel.edu>
 ;; Created: 27 January 2017

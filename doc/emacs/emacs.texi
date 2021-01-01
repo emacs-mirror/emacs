@@ -20,7 +20,7 @@ This is the @cite{GNU Emacs Manual},
 @end ifclear
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985--1987, 1993--2020 Free Software Foundation,
+Copyright @copyright{} 1985--1987, 1993--2021 Free Software Foundation,
 Inc.
 
 @quotation

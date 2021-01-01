@@ -1,6 +1,6 @@
 ;;; org-compat.el --- Compatibility Code for Older Emacsen -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp

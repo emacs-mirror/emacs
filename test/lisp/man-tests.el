@@ -1,6 +1,6 @@
 ;;; man-tests.el --- Test suite for man.
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Jenkner <wjenkner@inode.at>
 ;; Keywords: help, internal, unix

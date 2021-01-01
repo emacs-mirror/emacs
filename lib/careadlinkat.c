@@ -1,6 +1,6 @@
 /* Read symbolic links into a buffer without size limitation, relative to fd.
 
-   Copyright (C) 2001, 2003-2004, 2007, 2009-2020 Free Software
+   Copyright (C) 2001, 2003-2004, 2007, 2009-2021 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify

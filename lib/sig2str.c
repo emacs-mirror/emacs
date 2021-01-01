@@ -1,6 +1,6 @@
 /* sig2str.c -- convert between signal names and numbers
 
-   Copyright (C) 2002, 2004, 2006, 2009-2020 Free Software Foundation,
+   Copyright (C) 2002, 2004, 2006, 2009-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify

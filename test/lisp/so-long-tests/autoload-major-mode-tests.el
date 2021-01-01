@@ -1,6 +1,6 @@
 ;;; autoload-major-mode-tests.el --- Test suite for so-long.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Phil Sainty <psainty@orcon.net.nz>
 ;; Keywords: convenience

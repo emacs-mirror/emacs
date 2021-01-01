@@ -1,6 +1,6 @@
 /* Font back-end driver for the NeXT/Open/GNUstep and macOS window system.
    See font.h
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -117,7 +117,7 @@ Edition @value{edition-number}, @value{update-date}
 @sp 1
 Distributed with Emacs version @value{EMACSVER}.
 @sp 1
-Copyright @copyright{} 1990--1995, 1997, 2001--2020 Free Software
+Copyright @copyright{} 1990--1995, 1997, 2001--2021 Free Software
 Foundation, Inc.
 @sp 1
 

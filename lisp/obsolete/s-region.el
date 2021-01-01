@@ -1,6 +1,6 @@
 ;;; s-region.el --- set region using shift key
 
-;; Copyright (C) 1994-1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: terminals

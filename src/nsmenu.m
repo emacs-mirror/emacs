@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep and macOS Cocoa menu and toolbar module.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

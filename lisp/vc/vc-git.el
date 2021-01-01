@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools

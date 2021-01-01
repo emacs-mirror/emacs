@@ -1,6 +1,6 @@
 ;;; cedet/semantic-utest-fmt.el --- Parsing / Formatting tests
 
-;;; Copyright (C) 2003-2004, 2007-2020 Free Software Foundation, Inc.
+;;; Copyright (C) 2003-2004, 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

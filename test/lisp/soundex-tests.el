@@ -1,6 +1,6 @@
 ;;; soundex-tests.el --- tests for soundex.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 

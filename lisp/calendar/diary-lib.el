@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2020 Free Software
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>

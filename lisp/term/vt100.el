@@ -1,6 +1,6 @@
 ;;; vt100.el --- define VT100 function key sequences in function-key-map
 
-;; Copyright (C) 1989, 1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals

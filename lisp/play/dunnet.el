@@ -1,6 +1,6 @@
 ;;; dunnet.el --- text adventure for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992

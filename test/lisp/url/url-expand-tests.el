@@ -1,6 +1,6 @@
 ;;; url-expand-tests.el --- Test suite for relative URI/URL resolution.
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
 ;; Author: Alain Schneble <a.s@realize.ch>
 ;; Version: 1.0

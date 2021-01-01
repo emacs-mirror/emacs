@@ -1,6 +1,6 @@
 ;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder
 
-;; Copyright (C) 2007, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;;         Jan Moringen <scymtym@users.sourceforge.net>

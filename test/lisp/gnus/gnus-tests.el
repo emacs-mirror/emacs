@@ -1,6 +1,6 @@
 ;;; gnus-tests.el --- Wrapper for the Gnus tests
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 

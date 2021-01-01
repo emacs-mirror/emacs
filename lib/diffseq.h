@@ -1,6 +1,6 @@
 /* Analyze differences between two vectors.
 
-   Copyright (C) 1988-1989, 1992-1995, 2001-2004, 2006-2020 Free
+   Copyright (C) 1988-1989, 1992-1995, 2001-2004, 2006-2021 Free
    Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify

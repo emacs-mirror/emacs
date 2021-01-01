@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2020 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

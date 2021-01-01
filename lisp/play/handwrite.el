@@ -1,6 +1,6 @@
 ;;; handwrite.el --- turns your emacs buffer into a handwritten document
 
-;; Copyright (C) 1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
 ;; Created: October 21 1996

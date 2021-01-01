@@ -1,6 +1,6 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: emacs-devel@gnu.org

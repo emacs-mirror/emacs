@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: Stefan Merten <stefan at merten-home dot de>
 ;; Author: Stefan Merten <stefan at merten-home dot de>,

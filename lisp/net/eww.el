@@ -1,6 +1,6 @@
 ;;; eww.el --- Emacs Web Wowser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: html

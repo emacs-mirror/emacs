@@ -1,6 +1,6 @@
 ;;; erc-sound.el --- CTCP SOUND support for ERC
 
-;; Copyright (C) 2002-2003, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2006-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; URL: https://www.emacswiki.org/emacs/ErcSound

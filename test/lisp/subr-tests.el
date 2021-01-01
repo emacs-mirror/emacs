@@ -1,6 +1,6 @@
 ;;; subr-tests.el --- Tests for subr.el
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Oleh Krehel <ohwoeowho@gmail.com>,
 ;;         Nicolas Petton <nicolas@petton.fr>

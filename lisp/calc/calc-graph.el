@@ -1,6 +1,6 @@
 ;;; calc-graph.el --- graph output functions for Calc
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 

@@ -1,5 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft Windows API.
-   Copyright (C) 1992, 1999, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

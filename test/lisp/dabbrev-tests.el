@@ -1,6 +1,6 @@
 ;;; dabbrev-tests.el --- Test suite for dabbrev.
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Author: Alan Third <alan@idiocy.org>
 ;; Keywords: dabbrev

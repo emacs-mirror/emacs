@@ -1,6 +1,6 @@
 ;;; descr-text.el --- describe text mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

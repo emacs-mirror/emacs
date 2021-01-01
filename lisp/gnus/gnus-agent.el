@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.

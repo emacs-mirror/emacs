@@ -1,6 +1,6 @@
 ;;; replace-tests.el --- tests for replace.el.
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Richard <youngfrog@members.fsf.org>
 ;; Author: Juri Linkov <juri@jurta.org>

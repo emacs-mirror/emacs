@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0

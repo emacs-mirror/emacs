@@ -1,6 +1,6 @@
 ;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

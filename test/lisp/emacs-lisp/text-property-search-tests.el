@@ -1,6 +1,6 @@
 ;;; text-property-search-tests.el --- Testing text-property-search
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 ;; Keywords:

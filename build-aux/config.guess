@@ -1,6 +1,6 @@
 #! /bin/sh
 # Attempt to guess a canonical system name.
-#   Copyright 1992-2020 Free Software Foundation, Inc.
+#   Copyright 1992-2021 Free Software Foundation, Inc.
 
 timestamp='2019-09-10'
 

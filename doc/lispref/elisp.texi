@@ -99,7 +99,7 @@ This is the @cite{GNU Emacs Lisp Reference Manual}
 @end ifclear
 corresponding to Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1990--1996, 1998--2020 Free Software Foundation,
+Copyright @copyright{} 1990--1996, 1998--2021 Free Software Foundation,
 Inc.
 
 @quotation

@@ -1,6 +1,6 @@
 ;;; sieve-manage.el --- Implementation of the managesieve protocol in elisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;;         Albert Krewinkel <tarleb@moltkeplatz.de>

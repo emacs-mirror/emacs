@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>

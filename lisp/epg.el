@@ -1,5 +1,5 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
-;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG

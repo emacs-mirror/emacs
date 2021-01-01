@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1994, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

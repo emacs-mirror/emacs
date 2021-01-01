@@ -1,6 +1,6 @@
 ;;; let-alist.el --- Easily let-bind values of an assoc-list by their names -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; Package-Requires: ((emacs "24.1"))

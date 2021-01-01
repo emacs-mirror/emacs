@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ### update_autogen - update some auto-generated files in the Emacs tree
 
-## Copyright (C) 2011-2020 Free Software Foundation, Inc.
+## Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ## Author: Glenn Morris <rgm@gnu.org>
 

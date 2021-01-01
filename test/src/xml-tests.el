@@ -1,6 +1,6 @@
 ;;; libxml-parse-tests.el --- Test suite for libxml parsing.
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Ulf Jasper <ulf.jasper@web.de>
 ;; Keywords:       internal

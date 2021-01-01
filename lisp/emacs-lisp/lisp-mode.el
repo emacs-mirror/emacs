@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages

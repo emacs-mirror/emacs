@@ -1,6 +1,6 @@
 ;;; eieio-test-persist.el --- Tests for eieio-persistent class
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

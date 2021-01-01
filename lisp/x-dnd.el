@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org

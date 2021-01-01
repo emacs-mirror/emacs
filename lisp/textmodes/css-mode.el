@@ -1,6 +1,6 @@
 ;;; css-mode.el --- Major mode to edit CSS files  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Maintainer: Simen Heggestøyl <simenheg@gmail.com>

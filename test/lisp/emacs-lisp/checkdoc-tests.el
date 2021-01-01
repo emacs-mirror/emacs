@@ -1,6 +1,6 @@
 ;;; checkdoc-tests.el --- unit tests for checkdoc.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 

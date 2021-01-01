@@ -1,6 +1,6 @@
 ;;; dichromacy-theme.el --- color theme suitable for color-blind users
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken>
 

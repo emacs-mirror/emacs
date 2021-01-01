@@ -1,6 +1,6 @@
 ;;; eudc-bob.el --- Binary Objects Support for EUDC
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;;         Pavel Janík <Pavel@Janik.cz>

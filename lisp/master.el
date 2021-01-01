@@ -1,6 +1,6 @@
 ;;; master.el --- make a buffer the master over another buffer
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Version: 1.0.2

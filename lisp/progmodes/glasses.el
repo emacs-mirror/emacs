@@ -1,6 +1,6 @@
 ;;; glasses.el --- make cantReadThis readable
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 ;; Keywords: tools

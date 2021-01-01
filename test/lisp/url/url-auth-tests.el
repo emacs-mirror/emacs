@@ -1,6 +1,6 @@
 ;;; url-auth-tests.el --- Test suite for url-auth.
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Jarno Malmari <jarno@malmari.fi>
 

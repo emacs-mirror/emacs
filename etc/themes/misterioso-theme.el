@@ -1,6 +1,6 @@
 ;;; misterioso-theme.el --- Custom face theme for Emacs
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Hermida
 

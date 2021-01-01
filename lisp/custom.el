@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1996-1997, 1999, 2001-2021 Free Software Foundation,
 ;; Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>

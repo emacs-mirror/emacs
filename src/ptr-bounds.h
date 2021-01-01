@@ -1,6 +1,6 @@
 /* Pointer bounds checking for GNU Emacs
 
-Copyright 2017-2020 Free Software Foundation, Inc.
+Copyright 2017-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

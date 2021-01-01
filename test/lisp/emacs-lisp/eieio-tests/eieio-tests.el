@@ -1,6 +1,6 @@
 ;;; eieio-tests.el -- eieio tests routines
 
-;; Copyright (C) 1999-2003, 2005-2010, 2012-2020 Free Software
+;; Copyright (C) 1999-2003, 2005-2010, 2012-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

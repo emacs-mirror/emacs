@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2020 Free Software
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>

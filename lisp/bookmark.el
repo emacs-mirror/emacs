@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993

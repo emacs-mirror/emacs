@@ -1,7 +1,7 @@
 #!/bin/sh
 # Check file names in git commits for GNU Emacs.
 
-# Copyright 2014-2020 Free Software Foundation, Inc.
+# Copyright 2014-2021 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 

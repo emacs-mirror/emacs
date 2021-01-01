@@ -1,6 +1,6 @@
 # Check for getloadavg.
 
-# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2020 Free
+# Copyright (C) 1992-1996, 1999-2000, 2002-2003, 2006, 2008-2021 Free
 # Software Foundation, Inc.
 
 # This file is free software; the Free Software Foundation

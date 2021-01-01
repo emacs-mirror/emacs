@@ -1,6 +1,6 @@
 ;;; ediff-hook.el --- setup for Ediff's menus and autoloads  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff

@@ -1,6 +1,6 @@
 ;;; ol.el --- Org links library                      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp

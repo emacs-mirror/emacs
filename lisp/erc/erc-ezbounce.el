@@ -1,6 +1,6 @@
 ;;; erc-ezbounce.el ---  Handle EZBounce bouncer commands
 
-;; Copyright (C) 2002, 2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>

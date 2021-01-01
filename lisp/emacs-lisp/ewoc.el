@@ -1,6 +1,6 @@
 ;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2021 Free Software Foundation, Inc.
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;	Inge Wallin <inge@lysator.liu.se>

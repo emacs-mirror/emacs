@@ -1,6 +1,6 @@
 /* Tailor mini-gmp.c for GNU Emacs
 
-Copyright 2018-2020 Free Software Foundation, Inc.
+Copyright 2018-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

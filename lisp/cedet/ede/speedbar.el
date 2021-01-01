@@ -1,6 +1,6 @@
 ;;; ede/speedbar.el --- Speedbar viewing of EDE projects
 
-;; Copyright (C) 1998-2001, 2003, 2005, 2007-2020 Free Software
+;; Copyright (C) 1998-2001, 2003, 2005, 2007-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

@@ -1,6 +1,6 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Keywords:     mouse

@@ -1,6 +1,6 @@
 ;;; image-file.el --- support for visiting image files
 ;;
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: multimedia

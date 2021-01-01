@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1995, 1997, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1993-1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>

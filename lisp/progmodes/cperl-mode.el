@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1991-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2021 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson

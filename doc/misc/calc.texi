@@ -95,7 +95,7 @@ This file documents Calc, the GNU Emacs calculator, included with
 GNU Emacs @value{EMACSVER}.
 @end ifnotinfo
 
-Copyright @copyright{} 1990--1991, 2001--2020 Free Software Foundation,
+Copyright @copyright{} 1990--1991, 2001--2021 Free Software Foundation,
 Inc.
 
 @quotation

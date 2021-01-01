@@ -1,6 +1,6 @@
 ;;; vt-control.el --- Common VTxxx control functions
 
-;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Keywords: terminals

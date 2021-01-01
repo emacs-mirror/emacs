@@ -1,7 +1,7 @@
 # serial 34
 # Obtaining file system usage information.
 
-# Copyright (C) 1997-1998, 2000-2001, 2003-2020 Free Software
+# Copyright (C) 1997-1998, 2000-2001, 2003-2021 Free Software
 # Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation

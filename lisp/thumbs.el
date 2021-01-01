@@ -1,6 +1,6 @@
 ;;; thumbs.el --- Thumbnails previewer for images files
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
 ;; Maintainer: emacs-devel@gnu.org

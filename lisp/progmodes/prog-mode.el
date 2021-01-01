@@ -1,6 +1,6 @@
 ;;; prog-mode.el --- Generic major mode for programming  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal

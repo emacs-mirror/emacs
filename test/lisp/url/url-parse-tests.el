@@ -1,6 +1,6 @@
 ;;; url-parse-tests.el --- Test suite for URI/URL parsing.
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
 ;; Author: Alain Schneble <a.s@realize.ch>
 ;; Version: 1.0

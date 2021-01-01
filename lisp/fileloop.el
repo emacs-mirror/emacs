@@ -1,6 +1,6 @@
 ;;; fileloop.el --- Operations on multiple files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 

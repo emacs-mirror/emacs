@@ -1,6 +1,6 @@
 ;;; org-element.el --- Parser for Org Syntax         -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <n.goaziou at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp

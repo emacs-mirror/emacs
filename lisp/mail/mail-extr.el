@@ -1,6 +1,6 @@
 ;;; mail-extr.el --- extract full name and address from email header
 
-;; Copyright (C) 1991-1994, 1997, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1991-1994, 1997, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Joe Wells <jbw@cs.bu.edu>

@@ -1,6 +1,6 @@
 ;;; files-x-tests.el --- tests for files-x.el.
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 

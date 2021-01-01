@@ -1,6 +1,6 @@
 ;;; package-test.el --- Tests for the Emacs package system
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Daniel Hackney <dan@haxney.org>
 ;; Version: 1.0

@@ -1,6 +1,6 @@
 ;;; dos-vars.el --- MS-Dos specific user options
 
-;; Copyright (C) 1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal

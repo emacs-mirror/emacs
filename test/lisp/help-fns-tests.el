@@ -1,6 +1,6 @@
 ;;; help-fns-tests.el --- tests for help-fns.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 

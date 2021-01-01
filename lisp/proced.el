@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
