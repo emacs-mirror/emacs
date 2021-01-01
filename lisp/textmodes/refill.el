@@ -1,6 +1,6 @@
 ;;; refill.el --- `auto-fill' by refilling paragraphs on changes
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Miles Bader <miles@gnu.org>

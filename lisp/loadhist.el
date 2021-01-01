@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups
 
-;; Copyright (C) 1995, 1998, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: emacs-devel@gnu.org

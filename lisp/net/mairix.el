@@ -1,6 +1,6 @@
 ;;; mairix.el --- Mairix interface for Emacs
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: David Engster <dengste@eml.cc>
 ;; Keywords: mail searching

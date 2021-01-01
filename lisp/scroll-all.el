@@ -1,6 +1,6 @@
 ;;; scroll-all.el --- scroll all buffers together minor mode
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@corp.sun.com>
 ;; Keywords: convenience scroll lock

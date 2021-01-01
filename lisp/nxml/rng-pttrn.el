@@ -1,6 +1,6 @@
 ;;; rng-pttrn.el --- RELAX NG patterns  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML, RelaxNG

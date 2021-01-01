@@ -1,6 +1,6 @@
 ;;; savehist.el --- Save minibuffer history  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005-2021 Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Nikšić <hrvoje.niksic@avl.com>
 ;; Maintainer: emacs-devel@gnu.org

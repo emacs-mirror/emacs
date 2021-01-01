@@ -1,6 +1,6 @@
 ;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: conf ini windows java

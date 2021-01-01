@@ -1,6 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>

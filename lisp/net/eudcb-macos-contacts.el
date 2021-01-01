@@ -1,6 +1,6 @@
 ;;; eudcb-macos-contacts.el --- EUDC - macOS Contacts backend
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Alexander Adolf
 

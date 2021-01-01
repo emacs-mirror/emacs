@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dancol@dancol.org>

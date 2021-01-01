@@ -1,5 +1,5 @@
 /* The emacs frame widget public header file.
-   Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

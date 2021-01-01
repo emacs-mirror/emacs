@@ -1,5 +1,5 @@
 ;;; gnus-util-tests.el --- Selectived tests only.  -*- lexical-binding:t -*-
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Jens Lechtenbörger <jens.lechtenboerger@fsfe.org>
 

@@ -1,6 +1,6 @@
 ;;; cperl-mode-tests --- Test for cperl-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Harald Jörg <haj@posteo.de>
 ;; Maintainer: Harald Jörg

@@ -1,6 +1,6 @@
 ;;; cc-align.el --- custom indentation functions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm

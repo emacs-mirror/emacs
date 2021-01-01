@@ -320,7 +320,7 @@ static const short yycheck[] =
 #line 3 "/usr/share/bison/bison.simple"
 
 /* Skeleton output parser for bison,
-   Copyright (C) 1984, 1989-1990, 2000-2001, 2016-2020 Free Software
+   Copyright (C) 1984, 1989-1990, 2000-2001, 2016-2021 Free Software
    Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify

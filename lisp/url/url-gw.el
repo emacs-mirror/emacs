@@ -1,6 +1,6 @@
 ;;; url-gw.el --- Gateway munging for URL loading
 
-;; Copyright (C) 1997-1998, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; vc-src.el --- support for SRC version-control  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021 Free Software Foundation, Inc.
 
 ;; Author: FSF (see vc.el for full credits)
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; conf-mode-tests.el --- Test suite for conf mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Author: J. Alexander Branham <alex.branham@gmail.com>
 ;; Keywords: internal

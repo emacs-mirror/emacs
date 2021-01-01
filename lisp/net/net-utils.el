@@ -1,6 +1,6 @@
 ;;; net-utils.el --- network functions
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997

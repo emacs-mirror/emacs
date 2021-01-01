@@ -1,6 +1,6 @@
 ;;; cc-bytecomp.el --- compile time setup for proper compilation
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Author:     Martin Stjernholm
 ;; Maintainer: bug-cc-mode@gnu.org

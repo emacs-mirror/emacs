@@ -1,6 +1,6 @@
 ;;; erc-backend.el --- Backend network communication for ERC  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Filename: erc-backend.el
 ;; Author: Lawrence Mitchell <wence@gmx.li>

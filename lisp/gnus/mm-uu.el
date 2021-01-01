@@ -1,6 +1,6 @@
 ;;; mm-uu.el --- Return uu stuff as mm handles  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: postscript uudecode binhex shar forward gnatsweb pgp

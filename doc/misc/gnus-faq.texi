@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001--2020 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001--2021 Free Software Foundation, Inc.
 @c
 @c @setfilename gnus-faq.info
 @c @settitle Frequently Asked Questions

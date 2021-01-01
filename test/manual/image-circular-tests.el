@@ -1,6 +1,6 @@
 ;;; image-tests.el --- Test suite for image-related functions.
 
-;; Copyright (C) 2019 Free Software Foundation, Inc.
+;; Copyright (C) 2019, 2021 Free Software Foundation, Inc.
 
 ;; Author: Pip Cet <pipcet@gmail.com>
 ;; Keywords:       internal

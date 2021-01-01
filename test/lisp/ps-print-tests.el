@@ -1,6 +1,6 @@
 ;;; ps-print-tests.el --- Test suite for ps-print.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Phillip Lord <phillip.lord@russet.org.uk>
 

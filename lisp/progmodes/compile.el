@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2020 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,

@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals

@@ -1,6 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985-1987, 1994, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1994, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

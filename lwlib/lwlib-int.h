@@ -1,6 +1,6 @@
 /*
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 2000-2020 Free Software Foundation, Inc.
+Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 

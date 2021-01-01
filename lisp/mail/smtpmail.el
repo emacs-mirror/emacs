@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: emacs-devel@gnu.org

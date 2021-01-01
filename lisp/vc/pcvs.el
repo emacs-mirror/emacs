@@ -1,6 +1,6 @@
 ;;; pcvs.el --- a front-end to CVS  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991-2021 Free Software Foundation, Inc.
 
 ;; Author: The PCL-CVS Trust <pcl-cvs@cyclic.com>
 ;;	Per Cederqvist <ceder@lysator.liu.se>

@@ -1,6 +1,6 @@
 /* MS-DOS specific Lisp utilities.  Coded by Manabu Higashida, 1991.
    Major changes May-July 1993 Morten Welinder (only 10% original code left)
-   Copyright (C) 1991, 1993, 1996-1998, 2001-2020 Free Software
+   Copyright (C) 1991, 1993, 1996-1998, 2001-2021 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

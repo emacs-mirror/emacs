@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2020 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

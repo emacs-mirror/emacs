@@ -1,6 +1,6 @@
 ;;; ws-mode.el --- WordStar emulation mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Version: 0.7

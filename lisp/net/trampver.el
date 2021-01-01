@@ -1,7 +1,7 @@
 ;;; trampver.el --- Transparent Remote Access, Multiple Protocol  -*- lexical-binding:t -*-
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>

@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 

@@ -1,6 +1,6 @@
 ;;; hierarchy.el --- Library to create and display hierarchy structures  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>
 ;; Maintainer: emacs-devel@gnu.org

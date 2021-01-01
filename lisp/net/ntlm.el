@@ -1,6 +1,6 @@
 ;;; ntlm.el --- NTLM (NT LanManager) authentication support  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2001, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Taro Kawagishi <tarok@transpulse.org>
 ;; Maintainer: Thomas Fitzsimmons <fitzsim@fitzsim.org>

@@ -1,6 +1,6 @@
 ;;; url-about.el --- Show internal URLs
 
-;; Copyright (C) 2001, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2021 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

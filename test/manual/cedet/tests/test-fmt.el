@@ -1,6 +1,6 @@
 ;;; test-fmt.el --- test semantic tag formatting
 
-;;; Copyright (C) 2012, 2019-2020 Free Software Foundation, Inc.
+;;; Copyright (C) 2012, 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

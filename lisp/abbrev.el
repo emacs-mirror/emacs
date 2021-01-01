@@ -1,6 +1,6 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

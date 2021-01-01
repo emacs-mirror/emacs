@@ -1,6 +1,6 @@
 ;;; env.el --- functions to manipulate environment variables  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: processes, unix

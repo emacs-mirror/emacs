@@ -1,6 +1,6 @@
 ;;; url-dav.el --- WebDAV support
 
-;; Copyright (C) 2001, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

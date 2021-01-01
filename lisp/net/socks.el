@@ -1,6 +1,6 @@
 ;;; socks.el --- A Socks v5 Client for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2000, 2002, 2007-2020 Free Software Foundation,
+;; Copyright (C) 1996-2000, 2002, 2007-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: William M. Perry <wmperry@gnu.org>

@@ -167,7 +167,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2021 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

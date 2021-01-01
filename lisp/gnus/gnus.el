@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2020 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>

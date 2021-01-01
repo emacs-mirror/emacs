@@ -1,6 +1,6 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 ;; Version: 1.0.4
 ;; Package-Requires: ((emacs "26.3"))
 

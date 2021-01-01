@@ -1,6 +1,6 @@
 ;;; ansi-color.el --- translate ANSI escape sequences into faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Version: 3.4.2

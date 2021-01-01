@@ -1,6 +1,6 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
-;; Copyright (C) 1993, 1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail

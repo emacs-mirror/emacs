@@ -1,6 +1,6 @@
 ;;; info-xref.el --- check external references in an Info document -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Kevin Ryde <user42@zip.com.au>
 ;; Keywords: docs

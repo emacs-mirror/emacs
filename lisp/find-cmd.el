@@ -1,6 +1,6 @@
 ;;; find-cmd.el --- Build a valid find(1) command with sexps
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Philip Jackson <phil@shellarchive.co.uk>
 ;; Version: 0.6

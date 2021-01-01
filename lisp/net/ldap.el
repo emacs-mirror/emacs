@@ -1,6 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: emacs-devel@gnu.org

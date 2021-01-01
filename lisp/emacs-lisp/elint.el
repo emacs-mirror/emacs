@@ -1,6 +1,6 @@
 ;;; elint.el --- Lint Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997

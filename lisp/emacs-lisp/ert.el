@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools

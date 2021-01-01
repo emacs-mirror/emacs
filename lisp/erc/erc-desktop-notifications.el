@@ -1,6 +1,6 @@
 ;; erc-desktop-notifications.el -- Send notification on PRIVMSG or mentions -*- lexical-binding:t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>

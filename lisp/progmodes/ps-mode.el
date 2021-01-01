@@ -1,6 +1,6 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Created:    20 Aug 1997

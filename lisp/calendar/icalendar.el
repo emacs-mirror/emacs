@@ -1,6 +1,6 @@
 ;;; icalendar.el --- iCalendar implementation -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002

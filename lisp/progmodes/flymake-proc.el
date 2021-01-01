@@ -1,6 +1,6 @@
 ;;; flymake-proc.el --- Flymake backend for external tools  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>

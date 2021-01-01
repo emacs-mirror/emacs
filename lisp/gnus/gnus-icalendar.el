@@ -1,6 +1,6 @@
 ;;; gnus-icalendar.el --- reply to iCalendar meeting requests  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Jan Tatarik <Jan.Tatarik@gmail.com>
 ;; Keywords: mail, icalendar, org

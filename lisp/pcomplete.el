@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev

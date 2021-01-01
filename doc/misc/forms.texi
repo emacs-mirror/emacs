@@ -19,7 +19,7 @@
 @copying
 This file documents Forms mode, a form-editing major mode for GNU Emacs.
 
-Copyright @copyright{} 1989, 1997, 2001--2020 Free Software Foundation,
+Copyright @copyright{} 1989, 1997, 2001--2021 Free Software Foundation,
 Inc.
 
 @quotation

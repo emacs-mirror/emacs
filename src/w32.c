@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2020 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

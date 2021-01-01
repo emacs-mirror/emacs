@@ -1,6 +1,6 @@
 ;;; url-tramp.el --- file-name-handler magic invoking Tramp for some protocols
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, data, processes, hypermedia

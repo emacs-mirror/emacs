@@ -1,6 +1,6 @@
 ;;; edebug-tests.el --- Edebug test suite   -*- lexical-binding:t -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 
 ;; Author: Gemini Lasswell
 

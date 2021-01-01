@@ -1,6 +1,6 @@
 ;;; jsonrpc-tests.el --- tests for jsonrpc.el        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
 ;; Author: João Távora <joaotavora@gmail.com>
 ;; Keywords: tests

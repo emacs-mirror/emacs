@@ -1,6 +1,6 @@
 { GPC demo program for the CRT unit.
 
-Copyright (C) 1999-2006, 2013-2020 Free Software Foundation, Inc.
+Copyright (C) 1999-2006, 2013-2021 Free Software Foundation, Inc.
 
 Author: Frank Heckenbach <frank@pascal.gnu.de>
 

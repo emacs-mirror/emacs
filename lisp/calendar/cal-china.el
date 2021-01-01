@@ -1,6 +1,6 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar
 
-;; Copyright (C) 1995, 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org

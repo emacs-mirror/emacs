@@ -1,6 +1,6 @@
 ;;; org-tempo.el --- Template expansion for Org structures -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Rasmus Pank Roulund <emacs at pank dot eu>
 ;; Keywords: outlines, hypermedia, calendar, wp

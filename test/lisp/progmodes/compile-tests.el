@@ -1,6 +1,6 @@
 ;;; compile-tests.el --- Test suite for compile.el.  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal

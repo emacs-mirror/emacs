@@ -1,6 +1,6 @@
 ;;; verilog-mode.el --- major mode for editing verilog source in Emacs
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara <mac@verilog.com>
 ;;    Wilson Snyder <wsnyder@wsnyder.org>

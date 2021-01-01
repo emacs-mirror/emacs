@@ -1,6 +1,6 @@
 ;;; auto-revert-tests.el --- Tests of auto-revert   -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
