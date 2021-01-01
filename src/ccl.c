@@ -1151,7 +1151,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      if (!INT_DIVIDE_OVERFLOW (reg[rrr], i))
 		reg[rrr] /= i;
 	      break;
-	    case CCL_MOD: reg[rrr] %= i; break;
+	    case CCL_MOD:
 	      if (!i)
 		CCL_INVALID_CMD;
 	      reg[rrr] = i == -1 ? 0 : reg[rrr] % i;
