@@ -2480,7 +2480,7 @@ ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
   id view;
   NSPoint view_position;
   Lisp_Object frame, tail;
-  struct frame *f;
+  struct frame *f = NULL;
   struct ns_display_info *dpyinfo;
 
   NSTRACE ("ns_mouse_position");
