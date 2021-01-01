@@ -2650,7 +2650,7 @@ blocks."
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))
                ;; No point to go on if the only bb is 'entry'.
-               (bb1 (gethash 'bb_1 blocks)))
+               (bb0 (gethash 'bb_0 blocks)))
       (cl-loop with rev-bb-list = (comp-collect-rev-post-order entry)
                with changed = t
                while changed
