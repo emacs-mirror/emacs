@@ -2,7 +2,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.com>
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Keywords: lisp
 ;; Package: emacs
@@ -485,6 +485,7 @@ Useful to hook into pass checkers.")
     (comp-hint-fixnum (function (t) fixnum))
     (comp-hint-cons (function (t) cons))
     ;; Non returning functions
+    (throw (function (t t) nil))
     (error (function (string &rest t) nil))
     (signal (function (symbol t) nil)))
   "Alist used for type propagation.")
