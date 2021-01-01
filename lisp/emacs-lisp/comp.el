@@ -2651,31 +2651,33 @@ blocks."
                (entry (gethash 'entry blocks))
                ;; No point to go on if the only bb is 'entry'.
                (bb0 (gethash 'bb_0 blocks)))
-      (cl-loop with rev-bb-list = (comp-collect-rev-post-order entry)
-               with changed = t
-               while changed
-               initially (progn
-                           (comp-log "Computing dominator tree...\n" 2)
-                           (setf (comp-block-dom entry) entry)
-                           ;; Set the post order number.
-                           (cl-loop for name in (reverse rev-bb-list)
-                                    for b = (gethash name blocks)
-                                    for i from 0
-                                    do (setf (comp-block-post-num b) i)))
-               do (cl-loop
-                   for name in (cdr rev-bb-list)
-                   for b = (gethash name blocks)
-                   for preds = (comp-block-preds b)
-                   for new-idom = (first-processed preds)
-                   initially (setf changed nil)
-                   do (cl-loop for p in (delq new-idom preds)
-                               when (comp-block-dom p)
-                                 do (setf new-idom (intersect p new-idom)))
-                   unless (eq (comp-block-dom b) new-idom)
-                   do (setf (comp-block-dom b) (unless (and (comp-block-lap-p new-idom)
-                                                            (comp-block-lap-no-ret new-idom))
-                                                 new-idom)
-                            changed t))))))
+      (cl-loop
+       with rev-bb-list = (comp-collect-rev-post-order entry)
+       with changed = t
+       while changed
+       initially (progn
+                   (comp-log "Computing dominator tree...\n" 2)
+                   (setf (comp-block-dom entry) entry)
+                   ;; Set the post order number.
+                   (cl-loop for name in (reverse rev-bb-list)
+                            for b = (gethash name blocks)
+                            for i from 0
+                            do (setf (comp-block-post-num b) i)))
+       do (cl-loop
+           for name in (cdr rev-bb-list)
+           for b = (gethash name blocks)
+           for preds = (comp-block-preds b)
+           for new-idom = (first-processed preds)
+           initially (setf changed nil)
+           do (cl-loop for p in (delq new-idom preds)
+                       when (comp-block-dom p)
+                       do (setf new-idom (intersect p new-idom)))
+           unless (eq (comp-block-dom b) new-idom)
+           do (setf (comp-block-dom b) (unless (and (comp-block-lap-p new-idom)
+                                                    (comp-block-lap-no-ret
+                                                     new-idom))
+                                         new-idom)
+                    changed t))))))
 
 (defun comp-compute-dominator-frontiers ()
   "Compute the dominator frontier for each basic block in `comp-func'."
