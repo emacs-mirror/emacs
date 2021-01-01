@@ -403,8 +403,8 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
                            (not (eq (char-before (1- (point))) ?\\)))
                       (eq (char-before) ?\;)
                       (and (eq (char-before) ?=)
-                           (eq (syntax-after (1- (point)))
-                               (string-to-syntax "."))))))
+                           (equal (syntax-after (1- (point)))
+                                  (string-to-syntax "."))))))
 
 (defun ruby-smie--implicit-semi-p ()
   (save-excursion
