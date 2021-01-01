@@ -648,9 +648,12 @@ into it.")
   (addr nil :type number
         :documentation "Start block LAP address.")
   (non-ret-insn nil :type list
-                :documentation "Non returning basic blocks.
+                :documentation "Insn known to perform a non local exit.
 `comp-fwprop' may identify and store here basic blocks performing
-non local exits."))
+non local exits and mark it rewrite it later.")
+  (no-ret nil :type boolean
+         :documentation "t when the block is known to perform a
+non local exit (ends with an `unreachable' insn)."))
 
 (cl-defstruct (comp-latch (:copier nil)
                           (:include comp-block))
@@ -2669,7 +2672,9 @@ blocks."
                                when (comp-block-dom p)
                                  do (setf new-idom (intersect p new-idom)))
                    unless (eq (comp-block-dom b) new-idom)
-                   do (setf (comp-block-dom b) new-idom
+                   do (setf (comp-block-dom b) (unless (and (comp-block-lap-p new-idom)
+                                                            (comp-block-lap-no-ret new-idom))
+                                                 new-idom)
                             changed t))))))
 
 (defun comp-compute-dominator-frontiers ()
@@ -2824,16 +2829,34 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                          when (eq op 'phi)
                            do (finalize-phi args b)))))
 
+(defun comp-remove-unreachable-blocks ()
+  "Remove unreachable basic blocks.
+Return t when one or more block was removed, nil otherwise."
+  (cl-loop
+   with ret
+   for bb being each hash-value of (comp-func-blocks comp-func)
+   for bb-name = (comp-block-name bb)
+   when (and (not (eq 'entry bb-name))
+             (null (comp-block-dom bb)))
+   do
+   (comp-log (format "Removing block: %s" bb-name) 1)
+   (remhash bb-name (comp-func-blocks comp-func))
+   (setf (comp-func-ssa-status comp-func) t
+              ret t)
+   finally return ret))
+
 (defun comp-ssa ()
   "Port all functions into minimal SSA form."
   (maphash (lambda (_ f)
              (let* ((comp-func f)
                     (ssa-status (comp-func-ssa-status f)))
                (unless (eq ssa-status t)
-                 (when (eq ssa-status 'dirty)
-                   (comp-clean-ssa f))
-                 (comp-compute-edges)
-                 (comp-compute-dominator-tree)
+                 (cl-loop
+                  when (eq ssa-status 'dirty)
+                    do (comp-clean-ssa f)
+                  do (comp-compute-edges)
+                     (comp-compute-dominator-tree)
+                 until (null (comp-remove-unreachable-blocks)))
                  (comp-compute-dominator-frontiers)
                  (comp-log-block-info)
                  (comp-place-phis)
@@ -3023,25 +3046,6 @@ Return t if something was changed."
                  do (setf modified t))
            finally return modified))
 
-(defun comp-clean-orphan-blocks (block)
-  "Iterativelly remove all non reachable blocks orphaned by BLOCK."
-  (while
-   (cl-loop
-    with repeat = nil
-    with blocks = (comp-func-blocks comp-func)
-    for bb being each hash-value of blocks
-    when (and (not (eq (comp-block-name bb) 'entry))
-              (cl-notany (lambda (ed)
-                           (and (gethash (comp-block-name (comp-edge-src ed))
-                                         blocks)
-                                (not (eq (comp-edge-src ed) block))))
-                         (comp-block-in-edges bb)))
-    do
-    (comp-log (format "Removing block: %s" (comp-block-name bb)) 1)
-    (remhash (comp-block-name bb) blocks)
-    (setf repeat t)
-    finally return repeat)))
-
 (defun comp-rewrite-non-locals ()
   "Make explicit in LIMPLE non-local exits if identified."
   (cl-loop
@@ -3050,18 +3054,10 @@ Return t if something was changed."
                              (comp-block-lap-non-ret-insn bb))
    when non-local-insn
    do
-   (cl-loop
-    for ed in (comp-block-out-edges bb)
-    for dst-bb = (comp-edge-dst ed)
-    ;; Remove one or more block if necessary.
-    when (length= (comp-block-in-edges dst-bb) 1)
-    do
-    (comp-log (format "Removing block: %s" (comp-block-name dst-bb)) 1)
-    (remhash (comp-block-name dst-bb) (comp-func-blocks comp-func))
-    (comp-clean-orphan-blocks bb))
    ;; Rework the current block.
    (let* ((insn-seq (memq non-local-insn (comp-block-insns bb))))
      (setf (comp-block-lap-non-ret-insn bb) ()
+           (comp-block-lap-no-ret bb) t
            (comp-block-out-edges bb) ()
            ;; Prune unnecessary insns!
            (cdr insn-seq) '((unreachable))
