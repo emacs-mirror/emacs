@@ -1,6 +1,6 @@
 ;;; button.el --- clickable buttons -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions, hypermedia
@@ -612,6 +612,20 @@ button at point is the button to describe."
     (when props
       (button--describe props)
       t)))
+
+(defun button-buttonize (string callback &optional data)
+  "Make STRING into a button and return it.
+When clicked, CALLBACK will be called with the DATA as the
+function argument.  If DATA isn't present (or is nil), the button
+itself will be used instead as the function argument."
+  (propertize string
+              'face 'button
+              'button t
+              'follow-link t
+              'category t
+              'button-data data
+              'keymap button-map
+              'action callback))
 
 (provide 'button)
 

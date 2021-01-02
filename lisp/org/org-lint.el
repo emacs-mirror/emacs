@@ -1,6 +1,6 @@
 ;;; org-lint.el --- Linting for Org documents        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -108,6 +108,7 @@
 (require 'cl-lib)
 (require 'ob)
 (require 'ol)
+(require 'org-attach)
 (require 'org-macro)
 (require 'ox)
 
@@ -423,8 +424,10 @@ instead"
 
 (defun org-lint-deprecated-header-syntax (ast)
   (let* ((deprecated-babel-properties
-	  (mapcar (lambda (arg) (symbol-name (car arg)))
-		  org-babel-common-header-args-w-values))
+	  ;; DIR is also used for attachments.
+	  (delete "dir"
+		  (mapcar (lambda (arg) (downcase (symbol-name (car arg))))
+			  org-babel-common-header-args-w-values)))
 	 (deprecated-re
 	  (format "\\`%s[ \t]" (regexp-opt deprecated-babel-properties t))))
     (org-element-map ast '(keyword node-property)
@@ -541,15 +544,16 @@ Use :header-args: instead"
   (org-element-map ast 'drawer
     (lambda (d)
       (when (equal (org-element-property :drawer-name d) "PROPERTIES")
-	(let ((section (org-element-lineage d '(section))))
-	  (unless (org-element-map section 'property-drawer #'identity nil t)
-	    (list (org-element-property :post-affiliated d)
-		  (if (save-excursion
-			(goto-char (org-element-property :post-affiliated d))
-			(forward-line -1)
-			(or (org-at-heading-p) (org-at-planning-p)))
-		      "Incorrect contents for PROPERTIES drawer"
-		    "Incorrect location for PROPERTIES drawer"))))))))
+	(let ((headline? (org-element-lineage d '(headline)))
+	      (before
+	       (mapcar #'org-element-type
+		       (assq d (reverse (org-element-contents
+					 (org-element-property :parent d)))))))
+	  (list (org-element-property :post-affiliated d)
+		(if (or (and headline? (member before '(nil (planning))))
+			(and (null headline?) (member before '(nil (comment)))))
+		    "Incorrect contents for PROPERTIES drawer"
+		  "Incorrect location for PROPERTIES drawer")))))))
 
 (defun org-lint-invalid-effort-property (ast)
   (org-element-map ast 'node-property
@@ -564,16 +568,23 @@ Use :header-args: instead"
 (defun org-lint-link-to-local-file (ast)
   (org-element-map ast 'link
     (lambda (l)
-      (when (equal "file" (org-element-property :type l))
-	(let ((file (org-element-property :path l)))
-	  (and (not (file-remote-p file))
-	       (not (file-exists-p file))
-	       (list (org-element-property :begin l)
-		     (format (if (org-element-lineage l '(link))
-				 "Link to non-existent image file \"%s\"\
- in link description"
-			       "Link to non-existent local file \"%s\"")
-			     file))))))))
+      (let ((type (org-element-property :type l)))
+	(pcase type
+	  ((or "attachment" "file")
+	   (let* ((path (org-element-property :path l))
+		  (file (if (string= type "file")
+			    path
+                          (org-with-point-at (org-element-property :begin l)
+			    (org-attach-expand path)))))
+	     (and (not (file-remote-p file))
+		  (not (file-exists-p file))
+		  (list (org-element-property :begin l)
+			(format (if (org-element-lineage l '(link))
+				    "Link to non-existent image file %S \
+in description"
+				  "Link to non-existent local file %S")
+                                file)))))
+	  (_ nil))))))
 
 (defun org-lint-non-existent-setupfile-parameter (ast)
   (org-element-map ast 'keyword
@@ -793,15 +804,25 @@ Use \"export %s\" instead"
       (let ((name (org-trim (match-string-no-properties 0)))
 	    (element (org-element-at-point)))
 	(pcase (org-element-type element)
-	  ((or `drawer `property-drawer)
-	   (goto-char (org-element-property :end element))
-	   nil)
+	  (`drawer
+	   ;; Find drawer opening lines within non-empty drawers.
+	   (let ((end (org-element-property :contents-end element)))
+	     (when end
+	       (while (re-search-forward org-drawer-regexp end t)
+		 (let ((n (org-trim (match-string-no-properties 0))))
+		   (push (list (line-beginning-position)
+			       (format "Possible misleading drawer entry %S" n))
+			 reports))))
+	     (goto-char (org-element-property :end element))))
+	  (`property-drawer
+	   (goto-char (org-element-property :end element)))
 	  ((or `comment-block `example-block `export-block `src-block
 	       `verse-block)
 	   nil)
 	  (_
+	   ;; Find drawer opening lines outside of any drawer.
 	   (push (list (line-beginning-position)
-		       (format "Possible incomplete drawer \"%s\"" name))
+		       (format "Possible incomplete drawer %S" name))
 		 reports)))))
     reports))
 
@@ -1257,6 +1278,10 @@ ARG can also be a list of checker names, as symbols, to run."
       (org-lint--display-reports (current-buffer) checkers)
       (message "Org linting process completed"))))
 
-
 (provide 'org-lint)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-lint.el ends here

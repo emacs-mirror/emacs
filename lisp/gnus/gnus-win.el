@@ -1,6 +1,6 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -68,7 +68,7 @@ used to display Gnus windows."
   :type 'boolean)
 
 (defvar gnus-buffer-configuration
-  '((group
+  `((group
      (vertical 1.0
 	       (group 1.0 point)))
     (summary
@@ -142,7 +142,7 @@ used to display Gnus windows."
     (pipe
      (vertical 1.0
 	       (summary 0.25 point)
-	       (shell-command-buffer-name 1.0)))
+               (,shell-command-buffer-name 1.0)))
     (bug
      (vertical 1.0
 	       (if gnus-bug-create-help-buffer '("*Gnus Help Bug*" 0.5))

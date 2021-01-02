@@ -1,6 +1,6 @@
 ;;; ol-irc.el --- Links to IRC Sessions              -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
@@ -78,7 +78,7 @@
 			 :store #'org-irc-store-link
 			 :export #'org-irc-export)
 
-(defun org-irc-visit (link)
+(defun org-irc-visit (link _)
   "Parse LINK and dispatch to the correct function based on the client found."
   (let ((link (org-irc-parse-link link)))
     (cond

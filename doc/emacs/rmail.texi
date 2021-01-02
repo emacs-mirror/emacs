@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2001--2021 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail
@@ -1273,9 +1273,9 @@ temporary buffer to display the current @acronym{MIME} message.
 
 @findex rmail-epa-decrypt
 @cindex encrypted mails (reading in Rmail)
-  If the current message is an encrypted one, use the command @kbd{M-x
-rmail-epa-decrypt} to decrypt it, using the EasyPG library
-(@pxref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}).
+  If the current message is an encrypted one, use the command
+@kbd{C-c C-d} (@code{rmail-epa-decrypt}) to decrypt it, using the
+EasyPG library (@pxref{Top,, EasyPG, epa, EasyPG Assistant User's Manual}).
 
   You can highlight and activate URLs in the Rmail buffer using Goto
 Address mode:
@@ -1590,6 +1590,14 @@ value is used.
 @item
 Otherwise, Rmail will ask you for the password to use.
 @end enumerate
+
+On some mail servers the usernames include domain information, which
+can mean they contain the @samp{@@} character.  The inbox specifier
+string uses @samp{@@} to signal the start of the mailserver name.
+This creates confusion for movemail.  If your username contains
+@samp{@@} and you're using Mailutils @command{movemail} then you can
+fix this: Replace @code{@@} in the user name with its @acronym{URL}
+encoding @samp{%40}.
 
 @vindex rmail-movemail-flags
   If you need to pass additional command-line flags to @command{movemail},

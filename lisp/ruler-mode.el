@@ -1,6 +1,6 @@
 ;;; ruler-mode.el --- display a ruler in the header line
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 24 Mar 2001
@@ -584,8 +584,8 @@ format first."
   (when (and (not ruler-mode)
 	     (local-variable-p 'header-line-format)
 	     (not (local-variable-p 'ruler-mode-header-line-format-old)))
-    (set (make-local-variable 'ruler-mode-header-line-format-old)
-	 header-line-format))
+    (setq-local ruler-mode-header-line-format-old
+                header-line-format))
   (setq header-line-format ruler-mode-header-line-format))
 
 ;;;###autoload

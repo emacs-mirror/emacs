@@ -1,5 +1,5 @@
-# stdint.m4 serial 56
-dnl Copyright (C) 2001-2020 Free Software Foundation, Inc.
+# stdint.m4 serial 58
+dnl Copyright (C) 2001-2021 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -34,7 +34,7 @@ AC_DEFUN_ONCE([gl_STDINT_H],
   AC_SUBST([HAVE_WCHAR_H])
 
   dnl Check for <inttypes.h>.
-  dnl AC_INCLUDES_DEFAULT defines $ac_cv_header_inttypes_h.
+  AC_CHECK_HEADERS_ONCE([inttypes.h])
   if test $ac_cv_header_inttypes_h = yes; then
     HAVE_INTTYPES_H=1
   else
@@ -43,7 +43,7 @@ AC_DEFUN_ONCE([gl_STDINT_H],
   AC_SUBST([HAVE_INTTYPES_H])
 
   dnl Check for <sys/types.h>.
-  dnl AC_INCLUDES_DEFAULT defines $ac_cv_header_sys_types_h.
+  AC_CHECK_HEADERS_ONCE([sys/types.h])
   if test $ac_cv_header_sys_types_h = yes; then
     HAVE_SYS_TYPES_H=1
   else
@@ -493,13 +493,9 @@ AC_DEFUN([gl_INTEGER_TYPE_SUFFIX],
 dnl gl_STDINT_INCLUDES
 AC_DEFUN([gl_STDINT_INCLUDES],
 [[
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
   #include <stddef.h>
   #include <signal.h>
   #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
   # include <wchar.h>
   #endif
 ]])

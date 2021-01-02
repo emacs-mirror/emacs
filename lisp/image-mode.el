@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -667,6 +667,9 @@ Key bindings:
   (when image-auto-resize-on-window-resize
     (add-hook 'window-state-change-functions #'image--window-state-change nil t))
 
+  (add-function :before-while (local 'isearch-filter-predicate)
+                #'image-mode-isearch-filter)
+
   (run-mode-hooks 'image-mode-hook)
   (let ((image (image-get-display-property))
 	(msg1 (substitute-command-keys
@@ -781,6 +784,14 @@ Remove text properties that display the image."
     (set-buffer-modified-p modified)
     (if (called-interactively-p 'any)
 	(message "Repeat this command to go back to displaying the image"))))
+
+(defun image-mode-isearch-filter (_beg _end)
+  "Show image as text when trying to search/replace in the image buffer."
+  (save-match-data
+    (when (and (derived-mode-p 'image-mode)
+               (image-get-display-property))
+      (image-mode-as-text)))
+  t)
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
@@ -942,6 +953,9 @@ Otherwise, display the image by calling `image-mode'."
           (get-buffer-window-list (current-buffer) 'nomini 'visible))
     (image-toggle-display-image)))
 
+(defvar image-auto-resize-timer nil
+  "Timer for `image-auto-resize-on-window-resize' option.")
+
 (defun image--window-state-change (window)
   ;; Wait for a bit of idle-time before actually performing the change,
   ;; so as to batch together sequences of closely consecutive size changes.
@@ -950,8 +964,14 @@ Otherwise, display the image by calling `image-mode'."
   ;; consecutive calls happen without any redisplay between them,
   ;; the costly operation of image resizing should happen only once.
   (when (numberp image-auto-resize-on-window-resize)
-    (run-with-idle-timer image-auto-resize-on-window-resize nil
-                         #'image-fit-to-window window)))
+    (when image-auto-resize-timer
+      (cancel-timer image-auto-resize-timer))
+    (setq image-auto-resize-timer
+          (run-with-idle-timer image-auto-resize-on-window-resize nil
+                               #'image-fit-to-window window))))
+
+(defvar image-fit-to-window-lock nil
+  "Lock for `image-fit-to-window' timer function.")
 
 (defun image-fit-to-window (window)
   "Adjust size of image to display it exactly in WINDOW boundaries."
@@ -968,7 +988,13 @@ Otherwise, display the image by calling `image-mode'."
               (when (and image-width image-height
                          (or (not (= image-width  window-width))
                              (not (= image-height window-height))))
-                (image-toggle-display-image)))))))))
+                (unless image-fit-to-window-lock
+                  (unwind-protect
+                      (progn
+                        (setq-local image-fit-to-window-lock t)
+                        (ignore-error 'remote-file-error
+                          (image-toggle-display-image)))
+                    (setq image-fit-to-window-lock nil)))))))))))
 
 
 ;;; Animated images

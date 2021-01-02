@@ -1,6 +1,6 @@
 ;;; mh-xface.el --- MH-E X-Face and Face header field display
 
-;; Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Keywords: mail
@@ -425,8 +425,7 @@ After the image is fetched, it is stored in CACHE-FILE. It will
 be displayed in a buffer and position specified by MARKER. The
 actual display is carried out by the SENTINEL function."
   (if mh-wget-executable
-      (let ((buffer (get-buffer-create (generate-new-buffer-name
-                                        mh-temp-fetch-buffer)))
+      (let ((buffer (generate-new-buffer mh-temp-fetch-buffer))
             (filename (or (mh-funcall-if-exists make-temp-file "mhe-fetch")
                           (expand-file-name (make-temp-name "~/mhe-fetch")))))
         (with-current-buffer buffer

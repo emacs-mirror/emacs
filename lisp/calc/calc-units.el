@@ -1,6 +1,6 @@
 ;;; calc-units.el --- unit conversion functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -2157,7 +2157,7 @@ If non-nil, return a list consisting of the note and the cents coefficient."
    (calc-unary-op "midi" 'calcFunc-midi arg)))
 
 (defun calc-spn (arg)
-  "Return the scientific pitch notation corresponding to the expression on the stack."
+  "Return scientific pitch notation corresponding to the expression on the stack."
   (interactive "P")
   (calc-slow-wrapper
    (calc-unary-op "spn" 'calcFunc-spn arg)))

@@ -1,6 +1,6 @@
 ;;; rcirc-tests.el --- Tests for rcirc -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -50,5 +50,17 @@
   (rcirc-tests--server-response-parse-should-be
     "MODE #cchan +kl :a:b"
     nil "MODE" '("#cchan" "+kl" "a:b")))
+
+(ert-deftest rcirc-rename-nicks ()
+  (should (equal (rcirc--make-new-nick "foo" 16)
+                 "foo`"))
+  (should (equal (rcirc--make-new-nick "123456789012345" 16)
+                 "123456789012345`"))
+  (should (equal (rcirc--make-new-nick "1234567890123456" 16)
+                 "123456789012345`"))
+  (should (equal (rcirc--make-new-nick "123456789012345`" 16)
+                 "12345678901234``"))
+  (should (equal (rcirc--make-new-nick "123456789012````" 16)
+                 "12345678901`````")))
 
 ;;; rcirc-tests.el ends here

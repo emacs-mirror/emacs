@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2020 Free
+;; Copyright (C) 1985-1986, 1992, 1994, 1996-1997, 2000-2021 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -45,7 +45,7 @@
 ;; dabbrev-case-replace		nil		t
 ;;
 ;; Set the variables you want special for your mode like this:
-;; (set (make-local-variable 'dabbrev-case-replace) nil)
+;; (setq-local dabbrev-case-replace nil)
 ;; Then you don't interfere with other modes.
 ;;
 ;; If your mode handles buffers that refers to other buffers
@@ -59,10 +59,10 @@
 
 ;; Example for GNUS (when we write a reply, we want dabbrev to look in
 ;; the article for expansion):
-;; (set (make-local-variable 'dabbrev-friend-buffer-function)
-;;      (lambda (buffer)
-;;         (with-current-buffer buffer
-;;           (memq major-mode '(news-reply-mode gnus-article-mode)))))
+;; (setq-local dabbrev-friend-buffer-function
+;;             (lambda (buffer)
+;;                (with-current-buffer buffer
+;;                  (memq major-mode '(news-reply-mode gnus-article-mode)))))
 
 
 ;; Known bugs and limitations.

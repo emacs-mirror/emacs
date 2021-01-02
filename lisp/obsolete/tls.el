@@ -1,6 +1,6 @@
 ;;; tls.el --- TLS/SSL support via wrapper around GnuTLS
 
-;; Copyright (C) 1996-1999, 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: comm, tls, gnutls, ssl
@@ -130,8 +130,10 @@ the external program knows about the root certificates you
 consider trustworthy, e.g.:
 
 \(setq tls-program
-      \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
-	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"))"
+      \\='(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt \\
+-p %p %h\"
+        \"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt \\
+-p %p %h --protocols ssl3\"))"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))

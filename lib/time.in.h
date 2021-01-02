@@ -1,6 +1,6 @@
 /* A more-standard <time.h>.
 
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -145,9 +145,20 @@ _GL_CXXALIAS_MDA (tzset, void, (void));
 _GL_CXXALIAS_SYS (tzset, void, (void));
 #  endif
 _GL_CXXALIASWARN (tzset);
-# elif defined _WIN32 && !defined __CYGWIN__
-#  undef tzset
-#  define tzset _tzset
+# elif @GNULIB_MDA_TZSET@
+/* On native Windows, map 'tzset' to '_tzset', so that -loldnames is not
+   required.  In C++ with GNULIB_NAMESPACE, avoid differences between
+   platforms by defining GNULIB_NAMESPACE::tzset always.  */
+#  if defined _WIN32 && !defined __CYGWIN__
+#   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#    undef tzset
+#    define tzset _tzset
+#   endif
+_GL_CXXALIAS_MDA (tzset, void, (void));
+#  else
+_GL_CXXALIAS_SYS (tzset, void, (void));
+#  endif
+_GL_CXXALIASWARN (tzset);
 # endif
 
 /* Return the 'time_t' representation of TP and normalize TP.  */
@@ -356,17 +367,17 @@ _GL_WARN_ON_USE (asctime, "asctime can overrun buffers in some cases - "
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef asctime_r
-_GL_WARN_ON_USE (asctime, "asctime_r can overrun buffers in some cases - "
+_GL_WARN_ON_USE (asctime_r, "asctime_r can overrun buffers in some cases - "
                  "better use strftime (or even sprintf) instead");
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef ctime
-_GL_WARN_ON_USE (asctime, "ctime can overrun buffers in some cases - "
+_GL_WARN_ON_USE (ctime, "ctime can overrun buffers in some cases - "
                  "better use strftime (or even sprintf) instead");
 # endif
 # if defined GNULIB_POSIXCHECK
 #  undef ctime_r
-_GL_WARN_ON_USE (asctime, "ctime_r can overrun buffers in some cases - "
+_GL_WARN_ON_USE (ctime_r, "ctime_r can overrun buffers in some cases - "
                  "better use strftime (or even sprintf) instead");
 # endif
 

@@ -1,6 +1,6 @@
 ;;; eieio-opt.el -- eieio optional functions (debug, printing, speedbar)
 
-;; Copyright (C) 1996, 1998-2003, 2005, 2008-2020 Free Software
+;; Copyright (C) 1996, 1998-2003, 2005, 2008-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -136,9 +136,9 @@ are not abstract."
 	  (def (symbol-function ctr)))
       (goto-char (point-min))
       (prin1 ctr)
-      (insert (format " is an %s object constructor function"
+      (insert (format " is an %sobject constructor function"
 		      (if (autoloadp def)
-			  "autoloaded"
+			  "autoloaded "
 			"")))
       (when (and (autoloadp def)
 		 (null location))

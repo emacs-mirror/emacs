@@ -1,6 +1,6 @@
 ;;; thunk.el --- Lazy form evaluation  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
 ;; Keywords: sequences
@@ -122,7 +122,7 @@ Using `thunk-let' and `thunk-let*' requires `lexical-binding'."
   (declare (indent 1) (debug let))
   (cl-reduce
    (lambda (expr binding) `(thunk-let (,binding) ,expr))
-   (nreverse bindings)
+   (reverse bindings)
    :initial-value (macroexp-progn body)))
 
 ;; (defalias 'lazy-let  #'thunk-let)

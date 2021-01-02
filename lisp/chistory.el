@@ -1,6 +1,6 @@
 ;;; chistory.el --- list command history
 
-;; Copyright (C) 1985, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: emacs-devel@gnu.org
@@ -140,7 +140,7 @@ The buffer is left in Command History mode."
 Keybindings:
 \\{command-history-mode-map}"
   (lisp-mode-variables nil)
-  (set (make-local-variable 'revert-buffer-function) 'command-history-revert)
+  (setq-local revert-buffer-function 'command-history-revert)
   (set-syntax-table emacs-lisp-mode-syntax-table))
 
 (defcustom command-history-hook nil

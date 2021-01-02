@@ -1,6 +1,6 @@
 ;;; flymake-proc.el --- Flymake backend for external tools  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
@@ -120,8 +120,10 @@ This is an alist with elements of the form:
   REGEXP INIT [CLEANUP [NAME]]
 REGEXP is a regular expression that matches a file name.
 INIT is the init function to use.
-CLEANUP is the cleanup function to use, default `flymake-proc-simple-cleanup'.
-NAME is the file name function to use, default `flymake-proc-get-real-file-name'."
+CLEANUP is the cleanup function to use, default
+  `flymake-proc-simple-cleanup'.
+NAME is the file name function to use, default
+  `flymake-proc-get-real-file-name'."
   :group 'flymake
   :type '(alist :key-type (regexp :tag "File regexp")
                 :value-type
@@ -429,16 +431,15 @@ instead of reading master file from disk."
 
 (defun flymake-proc--read-file-to-temp-buffer (file-name)
   "Insert contents of FILE-NAME into newly created temp buffer."
-  (let* ((temp-buffer (get-buffer-create (generate-new-buffer-name (concat "flymake:" (file-name-nondirectory file-name))))))
-    (with-current-buffer temp-buffer
-      (insert-file-contents file-name))
-    temp-buffer))
+  (with-current-buffer (generate-new-buffer
+                        (concat "flymake:" (file-name-nondirectory file-name)))
+    (insert-file-contents file-name)
+    (current-buffer)))
 
 (defun flymake-proc--copy-buffer-to-temp-buffer (buffer)
   "Copy contents of BUFFER into newly created temp buffer."
-  (with-current-buffer
-      (get-buffer-create (generate-new-buffer-name
-                          (concat "flymake:" (buffer-name buffer))))
+  (with-current-buffer (generate-new-buffer
+                        (concat "flymake:" (buffer-name buffer)))
     (insert-buffer-substring buffer)
     (current-buffer)))
 

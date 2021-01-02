@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -432,7 +432,7 @@ Can be used to move the frame where it is desired."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-startup-hook nil
-  "Hooks to run in the control buffer after Ediff has been set up and is ready for the job."
+  "Hooks to run in the control buffer after Ediff has been set up and is ready."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-select-hook nil
@@ -480,7 +480,7 @@ set local variables that determine how the display looks like."
   :type 'hook
   :group 'ediff-hook)
 (defcustom ediff-cleanup-hook nil
-  "Hooks to run on exiting Ediff but before killing the control and variant buffers."
+  "Hooks to run on exiting Ediff, before killing the control and variant buffers."
   :type 'hook
   :group 'ediff-hook)
 
@@ -554,19 +554,19 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 
 ;; Highlighting
 (defcustom ediff-before-flag-bol "->>"
-  "Flag placed before a highlighted block of differences, if block starts at beginning of a line."
+  "Flag placed before highlighted block of differences at beginning of a line."
   :type 'string
   :tag  "Region before-flag at beginning of line"
   :group 'ediff)
 
 (defcustom ediff-after-flag-eol "<<-"
-  "Flag placed after a highlighted block of differences, if block ends at end of a line."
+  "Flag placed after highlighted block of differences that ends at end of line."
   :type 'string
   :tag  "Region after-flag at end of line"
   :group 'ediff)
 
 (defcustom ediff-before-flag-mol "->>"
-  "Flag placed before a highlighted block of differences, if block starts in mid-line."
+  "Flag placed before highlighted block of differences that starts mid-line."
   :type 'string
   :tag  "Region before-flag in the middle of line"
   :group 'ediff)
@@ -1268,7 +1268,7 @@ Instead, C-h would jump to previous difference."
 ;; Metacharacters that have to be protected from the shell when executing
 ;; a diff/diff3 command.
 (defcustom ediff-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
-  "Regexp that matches characters that must be quoted with `\\' in shell command line.
+  "Regexp matching characters that must be quoted with `\\' in shell command line.
 This default should work without changes."
   :type 'regexp
   :group 'ediff)

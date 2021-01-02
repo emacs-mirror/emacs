@@ -1,4 +1,4 @@
-/* Copyright (C) 1992-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1992-2021 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -75,11 +75,11 @@
 
 /* GCC can always grok prototypes.  For C++ programs we add throw()
    to help it optimize the function calls.  But this works only with
-   gcc 2.8.x and egcs.  For gcc 3.2 and up we even mark C functions
+   gcc 2.8.x and egcs.  For gcc 3.4 and up we even mark C functions
    as non-throwing using a function attribute since programs can use
    the -fexceptions options for C code as well.  */
 # if !defined __cplusplus \
-     && (__GNUC_PREREQ (3, 3) || __glibc_clang_has_attribute (__nothrow__))
+     && (__GNUC_PREREQ (3, 4) || __glibc_clang_has_attribute (__nothrow__))
 #  define __THROW	__attribute__ ((__nothrow__ __LEAF))
 #  define __THROWNL	__attribute__ ((__nothrow__))
 #  define __NTH(fct)	__attribute__ ((__nothrow__ __LEAF)) fct

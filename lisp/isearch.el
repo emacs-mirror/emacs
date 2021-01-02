@@ -1,6 +1,6 @@
 ;;; isearch.el --- incremental search minor mode -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1997, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1997, 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -519,7 +519,7 @@ This is like `describe-bindings', but displays only Isearch keys."
 (defvar isearch-menu-bar-yank-map
   (let ((map (make-sparse-keymap)))
     (define-key map [isearch-yank-pop]
-      '(menu-item "Previous kill" isearch-yank-pop
+      '(menu-item "Previous kill" isearch-yank-pop-only
                   :help "Replace previous yanked kill on search string"))
     (define-key map [isearch-yank-kill]
       '(menu-item "Current kill" isearch-yank-kill
@@ -734,7 +734,7 @@ This is like `describe-bindings', but displays only Isearch keys."
 
     (define-key map "\M-n" 'isearch-ring-advance)
     (define-key map "\M-p" 'isearch-ring-retreat)
-    (define-key map "\M-y" 'isearch-yank-pop)
+    (define-key map "\M-y" 'isearch-yank-pop-only)
 
     (define-key map "\M-\t" 'isearch-complete)
 
@@ -965,10 +965,6 @@ Each element is an `isearch--state' struct where the slots are
 ;; The value of input-method-function when isearch is invoked.
 (defvar isearch-input-method-function nil)
 
-;; A flag to tell if input-method-function is locally bound when
-;; isearch is invoked.
-(defvar isearch-input-method-local-p nil)
-
 (defvar isearch--saved-overriding-local-map nil)
 
 ;; Minor-mode-alist changes - kind of redundant with the
@@ -1023,7 +1019,7 @@ Type \\[isearch-yank-until-char] to yank from point until the next instance of a
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
 Type \\[isearch-yank-kill] to yank the last string of killed text.
-Type \\[isearch-yank-pop] to replace string just yanked into search prompt
+Type \\[isearch-yank-pop-only] to replace string just yanked into search prompt
  with string killed before it.
 Type \\[isearch-quote-char] to quote control character to search for it.
 Type \\[isearch-char-by-name] to add a character to search by Unicode name,\
@@ -1238,7 +1234,6 @@ used to set the value of `isearch-regexp-function'."
 	search-ring-yank-pointer nil
 	isearch-opened-overlays nil
 	isearch-input-method-function input-method-function
-	isearch-input-method-local-p (local-variable-p 'input-method-function)
 	regexp-search-ring-yank-pointer nil
 
 	isearch-pre-scroll-point nil
@@ -1259,9 +1254,7 @@ used to set the value of `isearch-regexp-function'."
   ;; We must bypass input method while reading key.  When a user type
   ;; printable character, appropriate input method is turned on in
   ;; minibuffer to read multibyte characters.
-  (or isearch-input-method-local-p
-      (make-local-variable 'input-method-function))
-  (setq input-method-function nil)
+  (setq-local input-method-function nil)
 
   (looking-at "")
   (setq isearch-window-configuration
@@ -1418,8 +1411,8 @@ NOPUSH is t and EDIT is t."
 	(set-window-group-start (selected-window) found-start t))))
 
   (setq isearch-mode nil)
-  (if isearch-input-method-local-p
-      (setq input-method-function isearch-input-method-function)
+  (if isearch-input-method-function
+      (setq-local input-method-function isearch-input-method-function)
     (kill-local-variable 'input-method-function))
 
   (if isearch-tool-bar-old-map
@@ -1610,7 +1603,8 @@ If this is set inside code wrapped by the macro
   "Exit Isearch mode, run BODY, and reinvoke the pending search.
 You can update the global isearch variables by setting new values to
 `isearch-new-string', `isearch-new-message', `isearch-new-forward',
-`isearch-new-regexp-function', `isearch-new-case-fold', `isearch-new-nonincremental'."
+`isearch-new-regexp-function', `isearch-new-case-fold',
+`isearch-new-nonincremental'."
   ;; This code is very hairy for several reasons, explained in the code.
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
   ;; If there were a way to catch any change of buffer from the minibuffer,
@@ -2497,9 +2491,13 @@ If search string is empty, just beep."
   (isearch-yank-string (current-kill 0)))
 
 (defun isearch-yank-pop ()
-  "Replace just-yanked search string with previously killed string."
+  "Replace just-yanked search string with previously killed string.
+Unlike `isearch-yank-pop-only', when this command is called not immediately
+after a `isearch-yank-kill' or a `isearch-yank-pop', it activates the
+minibuffer to read a string from the `kill-ring' as `yank-pop' does."
   (interactive)
-  (if (not (memq last-command '(isearch-yank-kill isearch-yank-pop)))
+  (if (not (memq last-command '(isearch-yank-kill
+                                isearch-yank-pop isearch-yank-pop-only)))
       ;; Yank string from kill-ring-browser.
       (with-isearch-suspended
        (let ((string (read-from-kill-ring)))
@@ -2512,6 +2510,23 @@ If search string is empty, just beep."
                isearch-new-message (concat isearch-message
                                            (mapconcat 'isearch-text-char-description
                                                       string "")))))
+    (isearch-pop-state)
+    (isearch-yank-string (current-kill 1))))
+
+(defun isearch-yank-pop-only ()
+  "Replace just-yanked search string with previously killed string.
+Unlike `isearch-yank-pop', when this command is called not immediately
+after a `isearch-yank-kill' or a `isearch-yank-pop-only', it only pops
+the last killed string instead of activating the minibuffer to read
+a string from the `kill-ring' as `yank-pop' does."
+  (interactive)
+  (if (not (memq last-command '(isearch-yank-kill
+                                isearch-yank-pop isearch-yank-pop-only)))
+      ;; Fall back on `isearch-yank-kill' for the benefits of people
+      ;; who are used to the old behavior of `M-y' in isearch mode.
+      ;; In future, `M-y' could be changed from `isearch-yank-pop-only'
+      ;; to `isearch-yank-pop' that uses the kill-ring-browser.
+      (isearch-yank-kill)
     (isearch-pop-state)
     (isearch-yank-string (current-kill 1))))
 

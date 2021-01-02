@@ -1,6 +1,6 @@
 ;;; json.el --- JavaScript Object Notation parser / generator -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Theresa O'Connor <ted@oconnor.cx>
 ;; Version: 1.5
@@ -435,7 +435,7 @@ Initialized lazily by `json-encode-string'.")
       (concat "\"" (substring-no-properties string) "\"")
     (with-current-buffer
         (or json--string-buffer
-            (with-current-buffer (generate-new-buffer " *json-string*")
+            (with-current-buffer (generate-new-buffer " *json-string*" t)
               ;; This seems to afford decent performance gains.
               (setq-local inhibit-modification-hooks t)
               (setq json--string-buffer (current-buffer))))

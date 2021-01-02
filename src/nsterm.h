@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with NeXT/Open/GNUstep API.
-   Copyright (C) 1989, 1993, 2005, 2008-2020 Free Software Foundation,
+   Copyright (C) 1989, 1993, 2005, 2008-2021 Free Software Foundation,
    Inc.
 
 This file is part of GNU Emacs.
@@ -414,6 +414,7 @@ typedef id instancetype;
    ========================================================================== */
 
 @class EmacsToolbar;
+@class EmacsSurface;
 
 #ifdef NS_IMPL_COCOA
 @interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
@@ -435,7 +436,7 @@ typedef id instancetype;
    BOOL fs_is_native;
    BOOL in_fullscreen_transition;
 #ifdef NS_DRAW_TO_BUFFER
-   CGContextRef drawingBuffer;
+   EmacsSurface *surface;
 #endif
 @public
    struct frame *emacsframe;
@@ -478,7 +479,7 @@ typedef id instancetype;
 
 #ifdef NS_DRAW_TO_BUFFER
 - (void)focusOnDrawingBuffer;
-- (void)createDrawingBuffer;
+- (void)unfocusDrawingBuffer;
 #endif
 - (void)copyRect:(NSRect)srcRect to:(NSRect)dstRect;
 
@@ -513,25 +514,17 @@ typedef id instancetype;
 
    ========================================================================== */
 
-#ifdef NS_IMPL_COCOA
 @interface EmacsMenu : NSMenu  <NSMenuDelegate>
-#else
-@interface EmacsMenu : NSMenu
-#endif
 {
-  struct frame *frame;
-  unsigned long keyEquivModMask;
+  BOOL needsUpdate;
 }
 
-- (instancetype)initWithTitle: (NSString *)title frame: (struct frame *)f;
-- (void)setFrame: (struct frame *)f;
 - (void)menuNeedsUpdate: (NSMenu *)menu; /* (delegate method) */
-- (NSString *)parseKeyEquiv: (const char *)key;
-- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr;
+- (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
+                            attributes: (NSDictionary *)attributes;
 - (void)fillWithWidgetValue: (void *)wvptr;
-- (void)fillWithWidgetValue: (void *)wvptr frame: (struct frame *)f;
-- (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f;
-- (void) clear;
+- (EmacsMenu *)addSubmenuWithTitle: (const char *)title;
+- (void) removeAllItems;
 - (Lisp_Object)runMenuAt: (NSPoint)p forFrame: (struct frame *)f
                  keymaps: (bool)keymaps;
 @end
@@ -666,6 +659,7 @@ typedef id instancetype;
 - (BOOL)setFrame: (unsigned int) index;
 - (void)setTransform: (double[3][3]) m;
 - (void)setSmoothing: (BOOL)s;
+- (size_t)sizeInBytes;
 @end
 
 
@@ -710,6 +704,25 @@ typedef id instancetype;
 - (bool)judge;
 + (CGFloat)scrollerWidth;
 @end
+
+#ifdef NS_DRAW_TO_BUFFER
+@interface EmacsSurface : NSObject
+{
+  NSMutableArray *cache;
+  NSSize size;
+  CGColorSpaceRef colorSpace;
+  IOSurfaceRef currentSurface;
+  IOSurfaceRef lastSurface;
+  CGContextRef context;
+}
+- (id) initWithSize: (NSSize)s ColorSpace: (CGColorSpaceRef)cs;
+- (void) dealloc;
+- (NSSize) getSize;
+- (CGContextRef) getContext;
+- (void) releaseContext;
+- (IOSurfaceRef) getSurface;
+@end
+#endif
 
 
 /* ==========================================================================
@@ -1129,8 +1142,6 @@ extern int ns_lisp_to_color (Lisp_Object color, NSColor **col);
 extern NSColor *ns_lookup_indexed_color (unsigned long idx, struct frame *f);
 extern unsigned long ns_index_color (NSColor *color, struct frame *f);
 extern const char *ns_get_pending_menu_title (void);
-extern void ns_check_menu_open (NSMenu *menu);
-extern void ns_check_pending_open_menu (void);
 #endif
 
 /* Implemented in nsfns, published in nsterm.  */
@@ -1195,6 +1206,7 @@ extern void ns_set_alpha (void *img, int x, int y, unsigned char a);
 
 extern int ns_display_pixel_height (struct ns_display_info *);
 extern int ns_display_pixel_width (struct ns_display_info *);
+extern size_t ns_image_size_in_bytes (void *img);
 
 /* This in nsterm.m */
 extern float ns_antialias_threshold;

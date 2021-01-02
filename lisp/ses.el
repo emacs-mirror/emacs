@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Vincent Belaïche <vincentb1@users.sourceforge.net>
@@ -430,7 +430,8 @@ when to emit a progress message.")
   local-printer-list)
 
 (defmacro ses-cell-symbol (row &optional col)
-  "From a CELL or a pair (ROW,COL), get the symbol that names the local-variable holding its value.  (0,0) => A1."
+  "Return symbol of the local-variable holding value of CELL or pair (ROW,COL).
+For example, (0,0) => A1."
   (declare (debug t))
   `(ses-cell--symbol ,(if col `(ses-get-cell ,row ,col) row)))
 (put 'ses-cell-symbol 'safe-function t)

@@ -1,5 +1,5 @@
 /* Functions taken directly from X sources for use with the Microsoft Windows API.
-   Copyright (C) 1989, 1992-1995, 1999, 2001-2020 Free Software
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2021 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.

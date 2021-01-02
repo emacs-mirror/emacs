@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <sanobast-emacs@yahoo.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -1336,8 +1336,7 @@ Use the viewer defined in EV-ENTRY (a valid element of
 	      (progn
 		(switch-to-buffer (format "Filesets: %s %s" vwr file))
 		(insert output)
-		(make-local-variable 'filesets-output-buffer-flag)
-		(setq filesets-output-buffer-flag t)
+                (setq-local filesets-output-buffer-flag t)
 		(set-visited-file-name file t)
 		(when oh
 		  (run-hooks 'oh))

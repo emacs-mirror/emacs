@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -597,7 +597,7 @@ settings being applied, but still respect file-local ones.")
 
 ;; This is an odd variable IMO.
 ;; You might wonder why it is needed, when we could just do:
-;; (set (make-local-variable 'enable-local-variables) nil)
+;; (setq-local enable-local-variables nil)
 ;; These two are not precisely the same.
 ;; Setting this variable does not cause -*- mode settings to be
 ;; ignored, whereas setting enable-local-variables does.
@@ -1850,6 +1850,10 @@ expand wildcards (if any) and replace the file with multiple files."
 The buffer being killed is current while the hook is running.
 See `kill-buffer'.
 
+This hook is not run for internal or temporary buffers created by
+`get-buffer-create' or `generate-new-buffer' with argument
+INHIBIT-BUFFER-HOOKS non-nil.
+
 Note: Be careful with let-binding this hook considering it is
 frequently used for cleanup.")
 
@@ -1951,7 +1955,7 @@ this function prepends a \"|\" to the final result if necessary."
   (let ((lastname (file-name-nondirectory filename)))
     (if (string= lastname "")
 	(setq lastname filename))
-    (generate-new-buffer (if (string-match-p "\\` " lastname)
+    (generate-new-buffer (if (string-prefix-p " " lastname)
 			     (concat "|" lastname)
 			   lastname))))
 
@@ -2137,7 +2141,7 @@ think it does, because \"free\" is pretty hard to define in practice."
                                       ("Yes" . ?y)
                                       ("No" . ?n)
                                       ("Open literally" . ?l)))
-                (read-char-from-minibuffer
+                (read-char-choice
                  (concat prompt " (y)es or (n)o or (l)iterally ")
                  '(?y ?Y ?n ?N ?l ?L)))))
         (cond ((memq choice '(?y ?Y)) nil)
@@ -2419,9 +2423,7 @@ Do you want to revisit the file normally now? ")))
       ;; this is a permanent local, the major mode won't eliminate it.
       (and backup-enable-predicate
 	   (not (funcall backup-enable-predicate buffer-file-name))
-	   (progn
-	     (make-local-variable 'backup-inhibited)
-	     (setq backup-inhibited t)))
+           (setq-local backup-inhibited t))
       (if rawfile
 	  (progn
 	    (set-buffer-multibyte nil)
@@ -3520,7 +3522,7 @@ n  -- to ignore the local variables list.")
 	  (let ((print-escape-newlines t))
 	    (prin1 (cdr elt) buf))
 	  (insert "\n"))
-	(set (make-local-variable 'cursor-type) nil)
+        (setq-local cursor-type nil)
 	(set-buffer-modified-p nil)
 	(goto-char (point-min)))
 
@@ -3536,7 +3538,7 @@ n  -- to ignore the local variables list.")
 				 ", or C-v/M-v to scroll")))
 	       char)
 	  (if offer-save (push ?! exit-chars))
-	  (setq char (read-char-from-minibuffer prompt exit-chars))
+	  (setq char (read-char-choice prompt exit-chars))
 	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (customize-push-and-save 'safe-local-variable-values unsafe-vars))
 	  (prog1 (memq char '(?! ?\s ?y))
@@ -4492,9 +4494,7 @@ the old visited file has been renamed to the new name FILENAME."
     (and buffer-file-name
 	 backup-enable-predicate
 	 (not (funcall backup-enable-predicate buffer-file-name))
-	 (progn
-	   (make-local-variable 'backup-inhibited)
-	   (setq backup-inhibited t)))
+         (setq-local backup-inhibited t))
     (let ((oauto buffer-auto-save-file-name))
       (cond ((null filename)
 	     (setq buffer-auto-save-file-name nil))
@@ -6123,6 +6123,9 @@ This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
 
+Reverting a buffer will try to preserve markers in the buffer;
+see the Info node `(elisp)Reverting' for details.
+
 This command also implements an interface for special buffers
 that contain text that doesn't come from a file, but reflects
 some other data instead (e.g. Dired buffers, `buffer-list'
@@ -6219,7 +6222,7 @@ Non-file buffers need a custom function."
                ;; Run after-revert-hook as it was before we reverted.
                (setq-default revert-buffer-internal-hook global-hook)
                (if local-hook
-                   (set (make-local-variable 'revert-buffer-internal-hook)
+                   (setq-local revert-buffer-internal-hook
                         local-hook)
                  (kill-local-variable 'revert-buffer-internal-hook))
                (run-hooks 'revert-buffer-internal-hook))

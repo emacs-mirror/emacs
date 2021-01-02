@@ -1,6 +1,6 @@
 ;;; tree-widget.el --- Tree widget  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: 16 Feb 2001
@@ -260,10 +260,9 @@ Typically it should contain something like this:
      \\='(:ascent center :mask (heuristic t)))"
   (or name (setq name (or tree-widget-theme "default")))
   (unless (string-equal name (tree-widget-theme-name))
-    (set (make-local-variable 'tree-widget--theme)
-         (make-vector 4 nil))
-      (tree-widget-set-parent-theme name)
-      (tree-widget-set-parent-theme "default")))
+    (setq-local tree-widget--theme (make-vector 4 nil))
+    (tree-widget-set-parent-theme name)
+    (tree-widget-set-parent-theme "default")))
 
 (defun tree-widget--locate-sub-directory (name path)
   "Locate all occurrences of the sub-directory NAME in PATH.

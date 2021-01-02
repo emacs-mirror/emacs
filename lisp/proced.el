@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -664,9 +664,9 @@ After displaying or updating a Proced buffer, Proced runs the normal hook
         truncate-lines t
         header-line-format '(:eval (proced-header-line)))
   (add-hook 'post-command-hook #'force-mode-line-update nil t)  ;; FIXME: Why?
-  (set (make-local-variable 'revert-buffer-function) #'proced-revert)
-  (set (make-local-variable 'font-lock-defaults)
-       '(proced-font-lock-keywords t nil nil beginning-of-line))
+  (setq-local revert-buffer-function #'proced-revert)
+  (setq-local font-lock-defaults
+              '(proced-font-lock-keywords t nil nil beginning-of-line))
   (if (and (not proced-auto-update-timer) proced-auto-update-interval)
       (setq proced-auto-update-timer
             (run-at-time t proced-auto-update-interval

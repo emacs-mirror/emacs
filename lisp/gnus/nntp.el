@@ -1,6 +1,6 @@
 ;;; nntp.el --- nntp access for Gnus  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1992-1998, 2000-2020 Free Software
+;; Copyright (C) 1987-1990, 1992-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -600,7 +600,7 @@ retried once before actually displaying the error report."
     nil)))
 
 (defun nntp-with-open-group-function (group server connectionless bodyfun)
-  "Protect against servers that don't like clients that keep idle connections opens.
+  "Protect against servers that don't like clients that keep idle connections open.
 The problem being that these servers may either close a connection or
 simply ignore any further requests on a connection.  Closed
 connections are not detected until `accept-process-output' has updated
@@ -651,7 +651,7 @@ command whose response triggered the error."
     nntp-with-open-group-internal))
 
 (defmacro nntp-with-open-group (group server &optional connectionless &rest forms)
-  "Protect against servers that don't like clients that keep idle connections opens.
+  "Protect against servers that don't like clients that keep idle connections open.
 The problem being that these servers may either close a connection or
 simply ignore any further requests on a connection.  Closed
 connections are not detected until `accept-process-output' has updated
@@ -1751,7 +1751,8 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 ;; ==========================================================================
 
 (defvoo nntp-open-telnet-envuser nil
-  "If non-nil, telnet session (client and server both) will support the ENVIRON option and not prompt for login name.")
+  "If non-nil, telnet session supports the ENVIRON option.
+Don't prompt for login name.  This applies to both client and server.")
 
 (defvoo nntp-telnet-shell-prompt "bash\\|[$>] *\r?$"
   "Regular expression to match the shell prompt on the remote machine.")

@@ -1,6 +1,6 @@
 ;;; eldoc.el --- Show function arglist or variable docstring in echo area  -*- lexical-binding:t; -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Keywords: extensions
@@ -467,7 +467,6 @@ This holds the results of the last documentation request."
 
 (defun eldoc--format-doc-buffer (docs)
   "Ensure DOCS are displayed in an *eldoc* buffer."
-  (interactive (list t))
   (with-current-buffer (if (buffer-live-p eldoc--doc-buffer)
                            eldoc--doc-buffer
                          (setq eldoc--doc-buffer
@@ -868,11 +867,7 @@ the docstrings eventually produced, using
                        eldoc--last-request-state))
            (let ((non-essential t))
              (setq eldoc--last-request-state token)
-             ;; Only keep looking for the info as long as the user hasn't
-             ;; requested our attention.  This also locally disables
-             ;; inhibit-quit.
-             (while-no-input
-               (eldoc--invoke-strategy nil)))))))
+             (eldoc--invoke-strategy nil))))))
 
 
 ;; This section only affects ElDoc output to the echo area, as in

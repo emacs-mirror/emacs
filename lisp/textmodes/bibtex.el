@@ -1,6 +1,6 @@
 ;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1999, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1999, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
@@ -39,6 +39,8 @@
 ;;  Distribute texinfo file.
 
 ;;; Code:
+
+(require 'iso8601)
 
 
 ;; User Options:
@@ -202,20 +204,34 @@ narrowed to just the entry."
 (defcustom bibtex-maintain-sorted-entries nil
   "If non-nil, BibTeX mode maintains all entries in sorted order.
 Allowed non-nil values are:
-plain or t   All entries are sorted alphabetically.
-crossref     All entries are sorted alphabetically unless an entry has a
+plain or t   Sort entries alphabetically by keys.
+crossref     Sort entries alphabetically by keys unless an entry has a
              crossref field.  These crossrefed entries are placed in
              alphabetical order immediately preceding the main entry.
 entry-class  The entries are divided into classes according to their
              entry type, see `bibtex-sort-entry-class'.  Within each class
-             the entries are sorted alphabetically.
+             sort entries alphabetically by keys.
+(INDEX-FUN PREDICATE)
+(INDEX-FUN PREDICATE INIT-FUN)  Sort entries using INDEX-FUN and PREDICATE.
+             Function INDEX-FUN is called for each entry with point at the
+             end of the head of the entry.  Its return values are used to
+             sort the entries using PREDICATE.  Function PREDICATE takes two
+             arguments INDEX1 and INDEX2 as returned by INDEX-FUN.
+             It should return non-nil if INDEX1 should sort before INDEX2.
+             If INIT-FUN is non-nil, it should be a function that is called
+             with no arguments to initialize the sorting.
 See also `bibtex-sort-ignore-string-entries'."
   :group 'bibtex
+  :version "28.1"
   :type '(choice (const nil)
+                 (const t)
                  (const plain)
                  (const crossref)
                  (const entry-class)
-                 (const t))
+                 (group :tag "Custom scheme"
+                        (function :tag "Index-Fun")
+                        (function :tag "Predicate")
+                        (option (function :tag "Init-Fun"))))
   :safe (lambda (a) (memq a '(nil t plain crossref entry-class))))
 
 (defcustom bibtex-sort-entry-class
@@ -296,7 +312,9 @@ If parsing fails, try to set this variable to nil."
                                        (option (choice :tag "Comment" :value nil
                                                        (const nil) string))
                                        (option (choice :tag "Init" :value nil
-                                                       (const nil) string function)))))))
+                                                       (const nil) string function))
+                                       (option (choice :tag "Alternative" :value nil
+                                                       (const nil) integer)))))))
 
 (define-obsolete-variable-alias 'bibtex-entry-field-alist
   'bibtex-BibTeX-entry-alist "24.1")
@@ -461,280 +479,376 @@ COMMENT is the comment string that appears in the echo area.
 If COMMENT is nil use `bibtex-BibTeX-field-alist' if possible.
 INIT is either the initial content of the field or a function,
 which is called to determine the initial content of the field.
-ALTERNATIVE if non-nil is an integer that numbers sets of
-alternatives, starting from zero."
+ALTERNATIVE if non-nil is an integer N that numbers sets of
+alternatives.  A negative integer -N indicates an alias for the
+field +N.  Such aliases are ignored by `bibtex-entry' in the template
+for a new entry."
   :group 'bibtex
-  :version "26.1"                       ; add Conference
+  :version "28.1"                       ; extend alternatives
   :type 'bibtex-entry-alist
   :risky t)
 
 (defcustom bibtex-biblatex-entry-alist
   ;; Compare in biblatex documentation:
   ;; Sec. 2.1.1  Regular types (required and optional fields)
+  ;; Sec. 2.2.5  Field Aliases
   ;; Appendix A  Default Crossref setup
   '(("Article" "Article in Journal"
-     (("author") ("title") ("journaltitle")
-      ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title")
+      ("journaltitle" nil nil 3) ("journal" nil nil -3)
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("translator") ("annotator") ("commentator") ("subtitle") ("titleaddon")
       ("editor") ("editora") ("editorb") ("editorc") ("journalsubtitle")
       ("journaltitleaddon") ("issuetitle") ("issuesubtitle") ("issuetitleaddon")
       ("language") ("origlanguage") ("series") ("volume") ("number") ("eid")
       ("issue") ("month") ("pages") ("version") ("note") ("issn")
-      ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
-      ("eprinttype") ("url") ("urldate")))
+      ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Book" "Single-Volume Book"
-     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editor") ("editora") ("editorb") ("editorc")
       ("translator") ("annotator") ("commentator")
       ("introduction") ("foreword") ("afterword") ("subtitle") ("titleaddon")
       ("maintitle") ("mainsubtitle") ("maintitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
+      ("series") ("number") ("note") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2) ("isbn") ("eid")
       ("chapter") ("pages") ("pagetotal") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("MVBook" "Multi-Volume Book"
-     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editor") ("editora") ("editorb") ("editorc")
       ("translator") ("annotator") ("commentator")
       ("introduction") ("foreword") ("afterword") ("subtitle")
       ("titleaddon") ("language") ("origlanguage") ("edition") ("volumes")
       ("series") ("number") ("note") ("publisher")
-      ("location") ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("InBook" "Chapter or Pages in a Book"
-     (("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("title") ("date" nil nil 1) ("year" nil nil -1))
      (("author") ("booktitle"))
      (("bookauthor") ("editor") ("editora") ("editorb") ("editorc")
       ("translator") ("annotator") ("commentator") ("introduction") ("foreword")
       ("afterword") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
-      ("chapter") ("pages") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("series") ("number") ("note") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2) ("isbn") ("eid")
+      ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("BookInBook" "Book in Collection" ; same as @inbook
-     (("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("title") ("date" nil nil 1) ("year" nil nil -1))
      (("author") ("booktitle"))
      (("bookauthor") ("editor") ("editora") ("editorb") ("editorc")
       ("translator") ("annotator") ("commentator") ("introduction") ("foreword")
       ("afterword") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
-      ("chapter") ("pages") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("series") ("number") ("note") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2) ("isbn") ("eid")
+      ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("SuppBook" "Supplemental Material in a Book" ; same as @inbook
-     (("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("title") ("date" nil nil 1) ("year" nil nil -1))
      (("author") ("booktitle"))
      (("bookauthor") ("editor") ("editora") ("editorb") ("editorc")
       ("translator") ("annotator") ("commentator") ("introduction") ("foreword")
       ("afterword") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition") ("volumes")
-      ("series") ("number") ("note") ("publisher") ("location") ("isbn") ("eid")
-      ("chapter") ("pages") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("series") ("number") ("note") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2) ("isbn") ("eid")
+      ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
+      ("eprint")("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Booklet" "Booklet (Bound, but no Publisher)"
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
-      ("year" nil nil 1) ("date" nil nil 1))
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("language") ("howpublished") ("type")
-      ("note") ("location") ("eid") ("chapter") ("pages") ("pagetotal")
-      ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
-      ("eprinttype") ("url") ("urldate")))
+      ("note") ("location" nil nil 2) ("address" nil nil -2)
+      ("eid") ("chapter") ("pages") ("pagetotal")
+      ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Collection" "Single-Volume Collection"
-     (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("editor") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editora") ("editorb") ("editorc") ("translator") ("annotator")
       ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("language") ("origlanguage") ("volume")
       ("part") ("edition") ("volumes") ("series") ("number") ("note")
-      ("publisher") ("location") ("isbn") ("eid") ("chapter") ("pages")
-      ("pagetotal") ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
-      ("eprinttype") ("url") ("urldate")))
+      ("publisher") ("location" nil nil 2) ("address" nil nil -2)
+      ("isbn") ("eid") ("chapter") ("pages")
+      ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("MVCollection" "Multi-Volume Collection"
-     (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("editor") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editora") ("editorb") ("editorc") ("translator") ("annotator")
       ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("language") ("origlanguage") ("edition")
       ("volumes") ("series") ("number") ("note") ("publisher")
-      ("location") ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("InCollection" "Article in a Collection"
-     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      (("booktitle"))
      (("editor") ("editora") ("editorb") ("editorc") ("translator")
       ("annotator") ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition")
-      ("volumes") ("series") ("number") ("note") ("publisher") ("location")
+      ("volumes") ("series") ("number") ("note") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2)
       ("isbn") ("eid") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("SuppCollection" "Supplemental Material in a Collection" ; same as @incollection
-     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      (("booktitle"))
      (("editor") ("editora") ("editorb") ("editorc") ("translator")
       ("annotator") ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition")
-      ("volumes") ("series") ("number") ("note") ("publisher") ("location")
+      ("volumes") ("series") ("number") ("note") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2)
       ("isbn") ("eid") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Dataset" "Data Set"
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
-      ("year" nil nil 1) ("date" nil nil 1))
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("language") ("edition") ("type") ("series")
       ("number") ("version") ("note") ("organization") ("publisher")
-      ("location") ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
-      ("eprinttype") ("url") ("urldate")))
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Manual" "Technical Manual"
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
-      ("year" nil nil 1) ("date" nil nil 1))
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("language") ("edition")
       ("type") ("series") ("number") ("version") ("note")
-      ("organization") ("publisher") ("location") ("isbn") ("eid") ("chapter")
-      ("pages") ("pagetotal") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("organization") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("isbn") ("eid") ("chapter")
+      ("pages") ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Misc" "Miscellaneous"
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
-      ("year" nil nil 1) ("date" nil nil 1))
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("language") ("howpublished") ("type")
-      ("version") ("note") ("organization") ("location")
-      ("month") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("version") ("note") ("organization")
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("month") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Online" "Online Resource"
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
-      ("year" nil nil 1) ("date" nil nil 1)
+      ("date" nil nil 1) ("year" nil nil -1)
       ("doi" nil nil 2) ("eprint" nil nil 2) ("url" nil nil 2))
      nil
      (("subtitle") ("titleaddon") ("language") ("version") ("note")
       ("organization") ("month") ("addendum")
-      ("pubstate") ("eprintclass") ("eprinttype") ("urldate")))
+      ("pubstate") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5) ("urldate")))
     ("Patent" "Patent"
-     (("author") ("title") ("number") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("number")
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
-     (("holder") ("subtitle") ("titleaddon") ("type") ("version") ("location")
-      ("note") ("month") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+     (("holder") ("subtitle") ("titleaddon") ("type") ("version")
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("note") ("month") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Periodical" "Complete Issue of a Periodical"
-     (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("editor") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editora") ("editorb") ("editorc") ("subtitle") ("titleaddon")
       ("issuetitle") ("issuesubtitle") ("issuetitleaddon") ("language")
       ("series") ("volume") ("number") ("issue")
-      ("month") ("note") ("issn") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("month") ("note") ("issn") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("SuppPeriodical" "Supplemental Material in a Periodical" ; same as @article
-     (("author") ("title") ("journaltitle")
-      ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title")
+      ("journaltitle" nil nil 3) ("journal" nil nil -3)
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("translator") ("annotator") ("commentator") ("subtitle") ("titleaddon")
       ("editor") ("editora") ("editorb") ("editorc") ("journalsubtitle")
       ("journaltitleaddon") ("issuetitle") ("issuesubtitle") ("issuetitleaddon")
       ("language") ("origlanguage") ("series") ("volume") ("number") ("eid")
       ("issue") ("month") ("pages") ("version") ("note") ("issn")
-      ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
-      ("eprinttype") ("url") ("urldate")))
+      ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Proceedings" "Single-Volume Conference Proceedings"
-     (("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editor") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("eventtitle") ("eventtitleaddon") ("eventdate")
       ("venue") ("language") ("volume") ("part") ("volumes") ("series")
-      ("number") ("note") ("organization") ("publisher") ("location") ("month")
+      ("number") ("note") ("organization") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2) ("month")
       ("isbn") ("eid") ("chapter") ("pages") ("pagetotal") ("addendum")
-      ("pubstate") ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url")
-      ("urldate")))
+      ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("MVProceedings" "Multi-Volume Conference Proceedings"
-     (("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editor") ("subtitle") ("titleaddon") ("eventtitle") ("eventtitleaddon")
       ("eventdate") ("venue") ("language") ("volumes") ("series") ("number")
-      ("note") ("organization") ("publisher") ("location") ("month")
-      ("isbn") ("pagetotal") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("note") ("organization") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2) ("month")
+      ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("InProceedings" "Article in Conference Proceedings"
-     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title")
+      ("date" nil nil 1) ("year" nil nil -1))
      (("booktitle"))
      (("editor") ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("eventtitle") ("eventtitleaddon") ("eventdate") ("venue") ("language")
       ("volume") ("part") ("volumes") ("series") ("number") ("note")
-      ("organization") ("publisher") ("location") ("month") ("isbn") ("eid")
-      ("chapter") ("pages") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("organization") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2) ("month") ("isbn") ("eid")
+      ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Reference" "Single-Volume Work of Reference" ; same as @collection
-     (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("editor") ("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editora") ("editorb") ("editorc") ("translator") ("annotator")
       ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("language") ("origlanguage") ("volume")
       ("part") ("edition") ("volumes") ("series") ("number") ("note")
-      ("publisher") ("location") ("isbn") ("eid") ("chapter") ("pages")
-      ("pagetotal") ("addendum") ("pubstate") ("doi") ("eprint") ("eprintclass")
-      ("eprinttype") ("url") ("urldate")))
+      ("publisher") ("location" nil nil 2) ("address" nil nil -2)
+      ("isbn") ("eid") ("chapter") ("pages")
+      ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("MVReference" "Multi-Volume Work of Reference" ; same as @mvcollection
-     (("editor") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("editor") ("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("editora") ("editorb") ("editorc") ("translator") ("annotator")
       ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("language") ("origlanguage") ("edition")
       ("volumes") ("series") ("number") ("note") ("publisher")
-      ("location") ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("isbn") ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("InReference" "Article in a Work of Reference" ; same as @incollection
-     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("date" nil nil 1) ("year" nil nil -1))
      (("booktitle"))
      (("editor") ("editora") ("editorb") ("editorc") ("translator")
       ("annotator") ("commentator") ("introduction") ("foreword") ("afterword")
       ("subtitle") ("titleaddon") ("maintitle") ("mainsubtitle")
       ("maintitleaddon") ("booksubtitle") ("booktitleaddon")
       ("language") ("origlanguage") ("volume") ("part") ("edition")
-      ("volumes") ("series") ("number") ("note") ("publisher") ("location")
+      ("volumes") ("series") ("number") ("note") ("publisher")
+      ("location" nil nil 2) ("address" nil nil -2)
       ("isbn") ("eid") ("chapter") ("pages") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Report" "Technical or Research Report"
-     (("author") ("title") ("type") ("institution")
-      ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("type")
+      ("institution" nil nil 6) ("school" nil nil -6)
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("language") ("number") ("version") ("note")
-      ("location") ("month") ("isrn") ("eid") ("chapter") ("pages")
-      ("pagetotal") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("month") ("isrn") ("eid") ("chapter") ("pages")
+      ("pagetotal") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Software" "Computer Software" ; Same as @misc.
      (("author" nil nil 0) ("editor" nil nil 0) ("title")
-      ("year" nil nil 1) ("date" nil nil 1))
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("language") ("howpublished") ("type")
-      ("version") ("note") ("organization") ("location")
-      ("month") ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("version") ("note") ("organization")
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("month") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Thesis" "PhD or Master's Thesis"
-     (("author") ("title") ("type") ("institution")
-      ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("type")
+      ("institution" nil nil 6) ("school" nil nil -6)
+      ("date" nil nil 1) ("year" nil nil -1))
      nil
-     (("subtitle") ("titleaddon") ("language") ("note") ("location")
+     (("subtitle") ("titleaddon") ("language") ("note")
+      ("location" nil nil 2) ("address" nil nil -2)
       ("month") ("isbn") ("eid") ("chapter") ("pages") ("pagetotal")
-      ("addendum") ("pubstate")
-      ("doi") ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate")))
+      ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate")))
     ("Unpublished" "Unpublished"
-     (("author") ("title") ("year" nil nil 0) ("date" nil nil 0))
+     (("author") ("title") ("date" nil nil 1) ("year" nil nil -1))
      nil
      (("subtitle") ("titleaddon") ("type") ("eventtitle") ("eventtitleaddon")
       ("eventdate") ("venue") ("language") ("howpublished") ("note")
-      ("location") ("isbn") ("month") ("addendum") ("pubstate") ("doi")
-      ("eprint") ("eprintclass") ("eprinttype") ("url") ("urldate"))))
+      ("location" nil nil 2) ("address" nil nil -2)
+      ("isbn") ("month") ("addendum") ("pubstate") ("doi")
+      ("eprint") ("eprintclass" nil nil 4) ("primaryclass" nil nil -4)
+      ("eprinttype" nil nil 5) ("archiveprefix" nil nil -5)
+      ("url") ("urldate"))))
   "Alist of biblatex entry types and their associated fields.
 It has the same format as `bibtex-BibTeX-entry-alist'."
   :group 'bibtex
@@ -2312,10 +2426,6 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
   "Add NEWELT to the list stored in VEC at index IDX."
   (aset vec idx (cons newelt (aref vec idx))))
 
-(defsubst bibtex-vec-incr (vec idx)
-  "Increment by 1 the counter which is stored in VEC at index IDX."
-  (aset vec idx (1+ (aref vec idx))))
-
 (defun bibtex-format-entry ()
   "Helper function for `bibtex-clean-entry'.
 Formats current entry according to variable `bibtex-entry-format'."
@@ -2336,7 +2446,8 @@ Formats current entry according to variable `bibtex-entry-format'."
                               strings sort-fields)
                   bibtex-entry-format))
         (left-delim-re (regexp-quote (bibtex-field-left-delimiter)))
-        bounds crossref-key req-field-list default-field-list field-list
+        bounds crossref-key req-field-list opt-field-list
+        default-field-list field-list
         num-alt alt-fields idx error-field-name)
     (unwind-protect
         ;; formatting (undone if error occurs)
@@ -2383,16 +2494,22 @@ Formats current entry according to variable `bibtex-entry-format'."
 
                 ;; list of required fields appropriate for an entry with
                 ;; or without crossref key.
-                (setq req-field-list (if crossref-key (nth 2 entry-list)
-                                       (append (nth 2 entry-list) (nth 3 entry-list)))
+                (setq req-field-list (append (nth 2 entry-list)
+                                             (unless crossref-key
+                                               (nth 3 entry-list)))
+                      opt-field-list (append (if crossref-key
+                                               (nth 3 entry-list))
+                                             (nth 4 entry-list)
+                                             bibtex-user-optional-fields)
                       ;; default list of fields that may appear in this entry
-                      default-field-list (append (nth 2 entry-list) (nth 3 entry-list)
-                                                 (nth 4 entry-list)
-                                                 bibtex-user-optional-fields)
-                      ;; number of ALT fields we expect to find
-                      num-alt (length (delq nil (delete-dups
-                                                 (mapcar (lambda (x) (nth 3 x))
-                                                         req-field-list))))
+                      default-field-list (append req-field-list opt-field-list)
+                      ;; number of ALT fields we may find
+                      num-alt (let ((n 0))
+                                (mapc (lambda (x)
+                                        (if (nth 3 x)
+                                            (setq n (max n (abs (nth 3 x))))))
+                                      default-field-list)
+                                (1+ n))
                       ;; ALT fields of respective groups
                       alt-fields (make-vector num-alt nil))
 
@@ -2431,8 +2548,9 @@ Formats current entry according to variable `bibtex-entry-format'."
                   (if opt-alt (setq field-name (substring field-name 3)))
 
                   ;; keep track of alternatives
-                  (if (setq idx (nth 3 (assoc-string field-name req-field-list t)))
-                      (bibtex-vec-push alt-fields idx field-name))
+                  (if (and (not empty-field)
+                           (setq idx (nth 3 (assoc-string field-name default-field-list t))))
+                      (bibtex-vec-push alt-fields (abs idx) field-name))
 
                   (if (memq 'opts-or-alts format)
                       ;; delete empty optional and alternative fields
@@ -2581,34 +2699,34 @@ Formats current entry according to variable `bibtex-entry-format'."
 
               ;; check whether all required fields are present
               (when (memq 'required-fields format)
-		(let ((alt-expect (make-vector num-alt nil))
-		      (alt-found (make-vector num-alt 0)))
+		(let ((alt-expect (make-vector num-alt nil)))
 		  (dolist (fname req-field-list)
-		    (cond ((setq idx (nth 3 fname))
-			   ;; t if field has alternative flag
-			   (bibtex-vec-push alt-expect idx (car fname))
-			   (if (member-ignore-case (car fname) field-list)
-			       (bibtex-vec-incr alt-found idx)))
+		    (cond ((nth 3 fname)
+                           ;; t if required field has alternative flag
+                           (setq idx (abs (nth 3 fname)))
+			   (bibtex-vec-push alt-expect idx (car fname)))
 			  ((not (member-ignore-case (car fname) field-list))
-			   ;; If we use the crossref field, a required field
-			   ;; can have the OPT prefix.  So if it was empty,
-			   ;; we have deleted by now.  Nonetheless we can
-			   ;; move point on this empty field.
-			   (setq error-field-name (car fname))
+                           (setq error-field-name (car fname))
 			   (user-error "Mandatory field `%s' is missing"
                                        (car fname)))))
 		  (dotimes (idx num-alt)
-		    (cond ((= 0 (aref alt-found idx))
+		    (cond ((and (aref alt-expect idx)
+                                (not (aref alt-fields idx)))
 			   (setq error-field-name
                                  (car (last (aref alt-fields idx))))
-			   (user-error "Alternative mandatory field `%s' is missing"
-                                       (aref alt-expect idx)))
-			  ((< 1 (aref alt-found idx))
+			   (user-error "Alternative mandatory fields `%s' are missing"
+                                       (mapconcat 'identity
+                                                  (reverse
+                                                   (aref alt-expect idx))
+                                                  ", ")))
+			  ((nth 1 (aref alt-fields idx))
 			   (setq error-field-name
                                  (car (last (aref alt-fields idx))))
-			   (user-error "Alternative fields `%s' are defined %s times"
-                                       (aref alt-expect idx)
-                                       (length (aref alt-fields idx))))))))
+			   (user-error "Fields `%s' are alternatives"
+                                       (mapconcat 'identity
+                                                  (reverse
+                                                   (aref alt-fields idx))
+                                                  ", ")))))))
 
               ;; update comma after last field
               (if (memq 'last-comma format)
@@ -2761,12 +2879,16 @@ and `bibtex-autokey-names-stretch'."
 
 (defun bibtex-autokey-get-year ()
   "Return year field contents as a string obeying `bibtex-autokey-year-length'."
-  (let ((yearfield (bibtex-autokey-get-field '("year" "date"))))
-    ;; biblatex date field has format yyyy-mm-dd
-    (if (< 4 (length yearfield))
-        (setq yearfield (substring yearfield 0 4)))
-    (substring yearfield (max 0 (- (length yearfield)
-                                   bibtex-autokey-year-length)))))
+  (let* ((str (bibtex-autokey-get-field '("date" "year"))) ; possibly ""
+         (year (or (and (iso8601-valid-p str)
+                        (let ((year (decoded-time-year (iso8601-parse str))))
+                          (and year (number-to-string year))))
+                   ;; BibTeX permits a year field "(about 1984)", where only
+                   ;; the last four nonpunctuation characters must be numerals.
+                   (and (string-match "\\([0-9][0-9][0-9][0-9]\\)[^[:alnum:]]*\\'" str)
+                        (match-string 1 str))
+                   (user-error "Year or date field `%s' invalid" str))))
+    (substring year (max 0 (- (length year) bibtex-autokey-year-length)))))
 
 (defun bibtex-autokey-get-title ()
   "Get title field contents up to a terminator.
@@ -2849,12 +2971,12 @@ The name part:
 
 The year part:
  1. Build the year part of the key by truncating the content of the year
-    field to the rightmost `bibtex-autokey-year-length' digits (useful
-    values are 2 and 4).
- 2. If the year field (or any other field required to generate the key)
-    is absent, but the entry has a valid crossref field and
-    `bibtex-autokey-use-crossref' is non-nil, use the field of the
-    crossreferenced entry instead.
+    component of the date or year field to the rightmost
+    `bibtex-autokey-year-length' digits (useful values are 2 and 4).
+ 2. If both the year and date fields are absent, but the entry has a
+    valid crossref field and `bibtex-autokey-use-crossref' is
+    non-nil, use the date or year field of the crossreferenced entry
+    instead.
 
 The title part
  1. Change the content of the title field according to
@@ -3633,8 +3755,7 @@ and `bibtex-user-optional-fields'."
       (setq required  (append (nth 2 e-list) (nth 3 e-list))
             optional (nth 4 e-list)))
     (if bibtex-include-OPTkey
-        (push (list "key"
-                    "Crossref key"
+        (push (list "key" "Used as label with certain BibTeX styles"
                     (if (or (stringp bibtex-include-OPTkey)
                             (functionp bibtex-include-OPTkey))
                         bibtex-include-OPTkey))
@@ -3643,7 +3764,41 @@ and `bibtex-user-optional-fields'."
         (push '("crossref" "Reference key of the cross-referenced entry")
               optional))
     (setq optional (append optional bibtex-user-optional-fields))
-    (cons required optional)))
+    (cons (bibtex--skip-field-aliases required)
+          (bibtex--skip-field-aliases optional))))
+
+(defun bibtex--skip-field-aliases (list)
+  "Skip fields in LIST that are aliases, return the shortened list.
+Aliases are fields for which the element ALTERNATIVE is a negative number,
+see `bibtex-BibTeX-entry-alist'.  The shortened field list is used
+for the templates of `bibtex-entry', whereas entry validation performed by
+`bibtex-format-entry' uses the full list of fields for an entry."
+  ;; FIXME: `bibtex-entry' and `bibtex-format-entry' handle aliases
+  ;; under the hood in a manner that is largely invisible to users.
+  ;; If instead one wanted to display the aliases as alternatives
+  ;; in the usual way, field names may get both the ALT and the OPT prefix.
+  ;; That gets rather clumsy.  Also, the code currently assumes that
+  ;; field names have either the ALT or the OPT prefix, but not both.
+  ;; Are there scenarios when it would be useful to display both?
+  (let (alt-list new-list)
+    (dolist (elt list) ; identify alternatives
+      (if (and (nth 3 elt)
+               (<= 0 (nth 3 elt)))
+          (push (nth 3 elt) alt-list)))
+    (setq alt-list (sort alt-list '<))
+    ;; Skip aliases.  If ELT is marked as "proper alternative", but all
+    ;; alternatives for field ELT are aliases, we do not label ELT
+    ;; as an alternative either.
+    (dolist (elt list)
+      (let ((alt (nth 3 elt)))
+        (if alt
+            (if (<= 0 alt)
+                (push (if (eq alt (cadr (memq alt alt-list)))
+                          elt ; ELT has proper alternatives
+                        (butlast elt)) ; alternatives of ELT are alias
+                      new-list))
+          (push elt new-list))))
+    (reverse new-list)))
 
 (defun bibtex-entry (entry-type)
   "Insert a template for a BibTeX entry of type ENTRY-TYPE.
@@ -3992,28 +4147,15 @@ If mark is active count entries in region, if not in whole buffer."
     (narrow-to-region (bibtex-beginning-of-entry)
                       (bibtex-end-of-entry))))
 
-(defun bibtex-entry-index ()
-  "Return index of BibTeX entry head at or past position of point.
-The index is a list (KEY CROSSREF-KEY ENTRY-TYPE) that is used for sorting
-the entries of the BibTeX buffer.  CROSSREF-KEY is nil unless the value
-of `bibtex-maintain-sorted-entries' is `crossref'.  Move point to the end
-of the head of the entry found.  Return nil if no entry found."
-  (let ((case-fold-search t))
-    (if (re-search-forward bibtex-entry-maybe-empty-head nil t)
-        (let ((key (bibtex-key-in-head))
-              ;; all entry types should be downcase (for ease of comparison)
-              (entry-type (downcase (bibtex-type-in-head))))
-          ;; Don't search CROSSREF-KEY if we don't need it.
-          (if (eq bibtex-maintain-sorted-entries 'crossref)
-              (let ((bounds (bibtex-search-forward-field
-                             "\\(OPT\\)?crossref" t)))
-                (list key
-                      (if bounds (bibtex-text-in-field-bounds bounds t))
-                      entry-type))
-            (list key nil entry-type))))))
-
-(defun bibtex-init-sort-entry-class-alist ()
-  "Initialize `bibtex-sort-entry-class-alist' (buffer-local)."
+(define-obsolete-function-alias 'bibtex-init-sort-entry-class-alist
+  #'bibtex-init-sort "28.1")
+(defun bibtex-init-sort (&optional parse)
+  "Initialize sorting of BibTeX entries.
+If PARSE is non-nil, also parse BibTeX keys."
+  (if (or parse
+          (and (eq bibtex-maintain-sorted-entries 'crossref)
+               (functionp bibtex-reference-keys)))
+      (bibtex-parse-keys))
   (unless (local-variable-p 'bibtex-sort-entry-class-alist)
     (setq-local bibtex-sort-entry-class-alist
                 (let ((i -1) alist)
@@ -4023,7 +4165,36 @@ of the head of the entry found.  Return nil if no entry found."
                       ;; All entry types should be downcase (for ease of comparison).
                       (push (cons (if (stringp entry) (downcase entry) entry) i)
                             alist)))
-                  alist))))
+                  alist)))
+  ;; Custom sorting scheme
+  (if (and (consp bibtex-maintain-sorted-entries)
+           (nth 2 bibtex-maintain-sorted-entries))
+      (funcall (nth 2 bibtex-maintain-sorted-entries))))
+
+(defun bibtex-entry-index ()
+  "Return index of BibTeX entry head at or past position of point.
+The index is a list (KEY CROSSREF-KEY ENTRY-TYPE) that is used for sorting
+the entries of the BibTeX buffer.  CROSSREF-KEY is nil unless the value of
+`bibtex-maintain-sorted-entries' is `crossref'.
+If `bibtex-maintain-sorted-entries' is (INDEX-FUN ...), the index is the return
+value of INDEX-FUN.  Return nil if no entry found.
+Move point to the end of the head of the entry found."
+  (let ((case-fold-search t))
+    (if (re-search-forward bibtex-entry-maybe-empty-head nil t)
+        (if (consp bibtex-maintain-sorted-entries)
+            ;; Custom sorting scheme
+            (funcall (car bibtex-maintain-sorted-entries))
+          (let ((key (bibtex-key-in-head))
+                ;; ENTRY-TYPE should be downcase (for ease of comparison)
+                (entry-type (downcase (bibtex-type-in-head)))
+                bounds)
+            (list key
+                  ;; Don't search CROSSREF-KEY if we don't need it.
+                  (and (eq bibtex-maintain-sorted-entries 'crossref)
+                       (setq bounds (bibtex-search-forward-field
+                                      "\\(OPT\\)?crossref" t))
+                       (bibtex-text-in-field-bounds bounds t))
+                  entry-type))))))
 
 (defun bibtex-lessp (index1 index2)
   "Predicate for sorting BibTeX entries with indices INDEX1 and INDEX2.
@@ -4032,6 +4203,8 @@ The predicate depends on the variable `bibtex-maintain-sorted-entries'.
 If its value is nil use plain sorting."
   (cond ((not index1) (not index2)) ; indices can be nil
         ((not index2) nil)
+        ((consp bibtex-maintain-sorted-entries)
+         (funcall (cadr bibtex-maintain-sorted-entries) index1 index2))
         ((eq bibtex-maintain-sorted-entries 'crossref)
          ;; CROSSREF-KEY may be nil or it can point to an entry
          ;; in another BibTeX file.  In both cases we ignore CROSSREF-KEY.
@@ -4068,10 +4241,7 @@ affected.  If `bibtex-sort-ignore-string-entries' is non-nil, @String entries
 are ignored."
   (interactive)
   (bibtex-beginning-of-first-entry)     ; Needed by `sort-subr'
-  (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
-  (if (and (eq bibtex-maintain-sorted-entries 'crossref)
-           (functionp bibtex-reference-keys))
-      (bibtex-parse-keys))              ; Needed by `bibtex-lessp'.
+  (bibtex-init-sort)                    ; Needed by `bibtex-lessp'.
   (sort-subr nil
              'bibtex-skip-to-valid-entry   ; NEXTREC function
              'bibtex-end-of-entry          ; ENDREC function
@@ -4222,10 +4392,7 @@ If `bibtex-maintain-sorted-entries' is non-nil, perform a binary
 search to look for place for KEY.  This requires that buffer is sorted,
 see `bibtex-validate'.
 Return t if preparation was successful or nil if entry KEY already exists."
-  (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
-  (if (and (eq bibtex-maintain-sorted-entries 'crossref)
-           (functionp bibtex-reference-keys))
-      (bibtex-parse-keys))              ; Needed by `bibtex-lessp'.
+  (bibtex-init-sort)  ; Needed by `bibtex-lessp'.
   (let ((key (nth 0 index))
         key-exist)
     (cond ((or (null key)
@@ -4316,9 +4483,7 @@ Return t if test was successful, nil otherwise."
             (setq syntax-error t)
 
           ;; Check for duplicate keys and correct sort order
-          (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
-          (bibtex-parse-keys) ; Possibly needed by `bibtex-lessp'.
-                              ; Always needed by subsequent global key check.
+          (bibtex-init-sort t) ; Needed by `bibtex-lessp' and global key check.
           (let (previous current key-list)
             (bibtex-progress-message "Checking for duplicate keys")
             (bibtex-map-entries
@@ -4369,12 +4534,19 @@ Return t if test was successful, nil otherwise."
                         (entry-list (assoc-string (bibtex-type-in-head)
                                                   bibtex-entry-alist t))
                         (crossref (bibtex-search-forward-field "crossref" end))
-                        (req (if crossref (copy-sequence (nth 2 entry-list))
-                               (append (nth 2 entry-list)
+                        (req (append (nth 2 entry-list)
+                                     (unless crossref
                                        (copy-sequence (nth 3 entry-list)))))
-                        (num-alt (length (delq nil (delete-dups
-                                                    (mapcar (lambda (x) (nth 3 x))
-                                                            req)))))
+                        (opt (append (if crossref (nth 3 entry-list))
+                                     (nth 4 entry-list)
+                                     bibtex-user-optional-fields))
+                        (default (append req opt))
+                        (num-alt (let ((n 0))
+                                   (mapc (lambda (x)
+                                           (if (nth 3 x)
+                                               (setq n (max n (abs (nth 3 x))))))
+                                         default)
+                                   (1+ n)))
                         (alt-fields (make-vector num-alt nil))
                         bounds field idx)
                    (while (setq bounds (bibtex-parse-field))
@@ -4389,7 +4561,7 @@ Return t if test was successful, nil otherwise."
                            (push (cons (bibtex-current-line)
                                        "Questionable month field")
                                  error-list))
-                       (setq field (assoc-string field-name req t)
+                       (setq field (assoc-string field-name default t)
                              req (delete field req))
                        (if (setq idx (nth 3 field))
                            (if (aref alt-fields idx)
@@ -4408,12 +4580,13 @@ Return t if test was successful, nil otherwise."
 				      (car field)))
                                error-list)))
                      (dotimes (idx num-alt)
-                       (unless (aref alt-fields idx)
-                         (push (cons beg-line
-                                     (format-message
-				      "Alternative fields `%s' missing"
-				      (aref alt-expect idx)))
-                               error-list))))))))
+                       (if (and (aref alt-expect idx)
+                                (not (aref alt-fields idx)))
+                           (push (cons beg-line
+                                       (format-message
+                                        "Alternative fields `%s' missing"
+                                        (aref alt-expect idx)))
+                                 error-list))))))))
             (bibtex-progress-message 'done)))))
 
     (if error-list

@@ -1,6 +1,6 @@
 /* Font back-end driver for the NeXT/Open/GNUstep and macOS window system.
    See font.h
-   Copyright (C) 2006-2020 Free Software Foundation, Inc.
+   Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -329,7 +329,7 @@ static NSString
 {
     Lisp_Object script = assq_no_quit (XCAR (otf), Votf_script_alist);
     return CONSP (script)
-	? [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (XCDR ((script))))]
+	? [NSString stringWithLispString: SYMBOL_NAME (XCDR ((script)))]
 	: @"";
 }
 
@@ -345,7 +345,7 @@ static NSString
         if (!strncmp (SSDATA (r), reg, SBYTES (r)))
           {
             script = XCDR (XCAR (rts));
-            return [NSString stringWithUTF8String: SSDATA (SYMBOL_NAME (script))];
+            return [NSString stringWithLispString: SYMBOL_NAME (script)];
           }
         rts = XCDR (rts);
       }
@@ -370,8 +370,7 @@ static NSString
 	  {
 	    Lisp_Object key = XCAR (tmp), val = XCDR (tmp);
 	    if (EQ (key, QCscript) && SYMBOLP (val))
-		return [NSString stringWithUTF8String:
-		            SSDATA (SYMBOL_NAME (val))];
+		return [NSString stringWithLispString: SYMBOL_NAME (val)];
 	    if (EQ (key, QClang) && SYMBOLP (val))
 		return ns_lang_to_script (val);
 	    if (EQ (key, QCotf) && CONSP (val) && SYMBOLP (XCAR (val)))

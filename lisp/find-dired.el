@@ -1,6 +1,6 @@
 ;;; find-dired.el --- run a `find' command and dired the output  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992, 1994-1995, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1992, 1994-1995, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>,
@@ -223,11 +223,10 @@ it finishes, type \\[kill-find]."
       (set-keymap-parent map (current-local-map))
       (define-key map "\C-c\C-k" 'kill-find)
       (use-local-map map))
-    (make-local-variable 'dired-sort-inhibit)
-    (setq dired-sort-inhibit t)
-    (set (make-local-variable 'revert-buffer-function)
-	 `(lambda (ignore-auto noconfirm)
-	    (find-dired ,dir ,find-args)))
+    (setq-local dired-sort-inhibit t)
+    (setq-local revert-buffer-function
+                `(lambda (ignore-auto noconfirm)
+                   (find-dired ,dir ,find-args)))
     ;; Set subdir-alist so that Tree Dired will work:
     (if (fboundp 'dired-simple-subdir-alist)
 	;; will work even with nested dired format (dired-nstd.el,v 1.15
@@ -235,9 +234,9 @@ it finishes, type \\[kill-find]."
 	(dired-simple-subdir-alist)
       ;; else we have an ancient tree dired (or classic dired, where
       ;; this does no harm)
-      (set (make-local-variable 'dired-subdir-alist)
-	   (list (cons default-directory (point-min-marker)))))
-    (set (make-local-variable 'dired-subdir-switches) find-ls-subdir-switches)
+      (setq-local dired-subdir-alist
+                  (list (cons default-directory (point-min-marker)))))
+    (setq-local dired-subdir-switches find-ls-subdir-switches)
     (setq buffer-read-only nil)
     ;; Subdir headlerline must come first because the first marker in
     ;; subdir-alist points there.

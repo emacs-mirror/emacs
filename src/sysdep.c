@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985-1988, 1993-1995, 1999-2020 Free Software
+   Copyright (C) 1985-1988, 1993-1995, 1999-2021 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -314,33 +314,21 @@ get_current_dir_name_or_unreachable (void)
       && emacs_fstatat (AT_FDCWD, ".", &dotstat, 0) == 0
       && dotstat.st_ino == pwdstat.st_ino
       && dotstat.st_dev == pwdstat.st_dev)
-    {
-      char *buf = malloc (pwdlen + 1);
-      if (!buf)
-        return NULL;
-      return memcpy (buf, pwd, pwdlen + 1);
-    }
+    return strdup (pwd);
   else
     {
       ptrdiff_t buf_size = min (bufsize_max, 1024);
-      char *buf = malloc (buf_size);
-      if (!buf)
-        return NULL;
       for (;;)
         {
+	  char *buf = malloc (buf_size);
+	  if (!buf)
+	    return NULL;
           if (getcwd (buf, buf_size) == buf)
 	    return buf;
-	  int getcwd_errno = errno;
-	  if (getcwd_errno != ERANGE || buf_size == bufsize_max)
-            {
-              free (buf);
-	      errno = getcwd_errno;
-              return NULL;
-            }
+	  free (buf);
+	  if (errno != ERANGE || buf_size == bufsize_max)
+	    return NULL;
 	  buf_size = buf_size <= bufsize_max / 2 ? 2 * buf_size : bufsize_max;
-          buf = realloc (buf, buf_size);
-          if (!buf)
-            return NULL;
         }
     }
 }

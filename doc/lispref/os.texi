@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node System Interface
@@ -2106,6 +2106,19 @@ run while waiting.  If a timer function needs to perform an action
 after a certain time has elapsed, it can do this by scheduling a new
 timer.
 
+  If a timer function performs a remote file operation, it can be in
+conflict with an already running remote file operation of the same
+connection.  Such conflicts are detected, and they result in a
+@code{remote-file-error} error (@pxref{Standard Errors}).  This should
+be protected by wrapping the timer function body with
+
+@lisp
+@group
+(ignore-error 'remote-file-error
+  @dots{})
+@end group
+@end lisp
+
   If a timer function calls functions that can change the match data,
 it should save and restore the match data.  @xref{Saving Match Data}.
 
@@ -2633,14 +2646,14 @@ calls @var{function} with no arguments, or @samp{--eval=@var{form}}.
 
   Any Lisp program output that would normally go to the echo area,
 either using @code{message}, or using @code{prin1}, etc., with
-@code{t} as the stream, goes instead to Emacs's standard descriptors
-when in batch mode: @code{message} writes to the standard error
-descriptor, while @code{prin1} and other print functions write to the
-standard output.  Similarly, input that would normally come from the
-minibuffer is read from the standard input descriptor.  Thus, Emacs
-behaves much like a noninteractive application program.  (The echo
-area output that Emacs itself normally generates, such as command
-echoing, is suppressed entirely.)
+@code{t} as the stream (@pxref{Output Streams}), goes instead to
+Emacs's standard descriptors when in batch mode: @code{message} writes
+to the standard error descriptor, while @code{prin1} and other print
+functions write to the standard output.  Similarly, input that would
+normally come from the minibuffer is read from the standard input
+descriptor.  Thus, Emacs behaves much like a noninteractive
+application program.  (The echo area output that Emacs itself normally
+generates, such as command echoing, is suppressed entirely.)
 
 Non-ASCII text written to the standard output or error descriptors is
 by default encoded using @code{locale-coding-system} (@pxref{Locales})

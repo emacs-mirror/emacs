@@ -1,5 +1,5 @@
 ;;; mml-sec-tests.el --- Tests mml-sec.el, see README-mml-secure.txt.  -*- lexical-binding:t -*-
-;; Copyright (C) 2015, 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Jens Lechtenbörger <jens.lechtenboerger@fsfe.org>
 
@@ -432,6 +432,7 @@ In both cases, the first key is customized for signing and encryption."
 (ert-deftest mml-secure-select-preferred-keys-4 ()
   "Multiple keys can be recorded per recipient or signature."
   (skip-unless (test-conf))
+  (skip-unless (ignore-errors (epg-find-configuration 'CMS)))
   (mml-secure-test-fixture
    (lambda ()
      (let ((pcontext (epg-make-context 'OpenPGP))
@@ -590,6 +591,7 @@ In this test, the single matching key is chosen automatically."
   "Encrypt message; then decrypt and test for expected result.
 In this test, the encryption key needs to fixed among multiple ones."
   (skip-unless (test-conf))
+  (skip-unless (ignore-errors (epg-find-configuration 'CMS)))
   ;; sub@example.org with multiple candidate keys,
   ;; fixture customizes preferred ones.
   (mml-secure-test-key-fixture
@@ -603,6 +605,7 @@ In this test, the encryption key needs to fixed among multiple ones."
   "Encrypt message; then decrypt and test for expected result.
 In this test, encrypt-to-self variables are set to t."
   (skip-unless (test-conf))
+  (skip-unless (ignore-errors (epg-find-configuration 'CMS)))
   ;; sub@example.org with multiple candidate keys,
   ;; fixture customizes preferred ones.
   (mml-secure-test-key-fixture
@@ -745,6 +748,7 @@ Use sign-with-sender and encrypt-to-self."
 (ert-deftest mml-secure-sign-verify-1 ()
   "Sign message with sender; then verify and test for expected result."
   (skip-unless (test-conf))
+  (skip-unless (ignore-errors (epg-find-configuration 'CMS)))
   (mml-secure-test-key-fixture
    (lambda ()
      (dolist (method (sign-standards) nil)
@@ -880,10 +884,12 @@ So the second decryption fails."
   (dolist (pid (list-system-processes))
     (let ((atts (process-attributes pid)))
       (when (and (equal (cdr (assq 'user atts)) (user-login-name))
-                 (equal (cdr (assq 'comm atts)) "gpg-agent")
+                 (or (equal (cdr (assq 'comm atts)) "gpg-agent")
+		     (equal (cdr (assq 'comm atts)) "scdaemon"))
                  (string-match
                   (concat "homedir.*"
-                          (regexp-quote (ert-resource-directory)))
+                          (regexp-quote (directory-file-name
+                                         (ert-resource-directory))))
                   (cdr (assq 'args atts))))
         (call-process "kill" nil nil nil (format "%d" pid))))))
 

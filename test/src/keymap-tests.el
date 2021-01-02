@@ -1,6 +1,6 @@
 ;;; keymap-tests.el --- Test suite for src/keymap.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Juanma Barranquero <lekktu@gmail.com>
 ;;         Stefan Kangas <stefankangas@gmail.com>
@@ -247,19 +247,6 @@ g .. h		foo
                     "
 0 .. 3		foo
 ")))))
-
-
-;;;; apropos-internal
-
-(ert-deftest keymap-apropos-internal ()
-  (should (equal (apropos-internal "^next-line$") '(next-line)))
-  (should (>= (length (apropos-internal "^help")) 100))
-  (should-not (apropos-internal "^test-a-missing-symbol-foo-bar-zut$")))
-
-(ert-deftest keymap-apropos-internal/predicate ()
-  (should (equal (apropos-internal "^next-line$" #'commandp) '(next-line)))
-  (should (>= (length (apropos-internal "^help" #'commandp)) 15))
-  (should-not (apropos-internal "^next-line$" #'keymapp)))
 
 (provide 'keymap-tests)
 

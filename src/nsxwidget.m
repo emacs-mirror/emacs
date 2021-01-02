@@ -1,6 +1,6 @@
 /* NS Cocoa part implementation of xwidget and webkit widget.
 
-Copyright (C) 2019-2020 Free Software Foundation, Inc.
+Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -296,8 +296,6 @@ static NSString *xwScript;
 
 /* Xwidget webkit commands.  */
 
-static Lisp_Object build_string_with_nsstr (NSString *nsstr);
-
 bool
 nsxwidget_is_web_view (struct xwidget *xw)
 {
@@ -309,14 +307,14 @@ Lisp_Object
 nsxwidget_webkit_uri (struct xwidget *xw)
 {
   XwWebView *xwWebView = (XwWebView *) xw->xwWidget;
-  return build_string_with_nsstr (xwWebView.URL.absoluteString);
+  return [xwWebView.URL.absoluteString lispString];
 }
 
 Lisp_Object
 nsxwidget_webkit_title (struct xwidget *xw)
 {
   XwWebView *xwWebView = (XwWebView *) xw->xwWidget;
-  return build_string_with_nsstr (xwWebView.title);
+  return [xwWebView.title lispString];
 }
 
 /* @Note ATS - Need application transport security in 'Info.plist' or
@@ -350,15 +348,6 @@ nsxwidget_webkit_zoom (struct xwidget *xw, double zoom_change)
   /* TODO: setMagnification:centeredAtPoint.  */
 }
 
-/* Build lisp string */
-static Lisp_Object
-build_string_with_nsstr (NSString *nsstr)
-{
-  const char *utfstr = [nsstr UTF8String];
-  NSUInteger bytes = [nsstr lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-  return make_string (utfstr, bytes);
-}
-
 /* Recursively convert an objc native type JavaScript value to a Lisp
    value.  Mostly copied from GTK xwidget 'webkit_js_to_lisp'.  */
 static Lisp_Object
@@ -367,7 +356,7 @@ js_to_lisp (id value)
   if (value == nil || [value isKindOfClass:NSNull.class])
     return Qnil;
   else if ([value isKindOfClass:NSString.class])
-    return build_string_with_nsstr ((NSString *) value);
+    return [(NSString *) value lispString];
   else if ([value isKindOfClass:NSNumber.class])
     {
       NSNumber *nsnum = (NSNumber *) value;
@@ -407,7 +396,7 @@ js_to_lisp (id value)
         {
           NSString *prop_key = (NSString *) [keys objectAtIndex:i];
           id prop_value = [nsdict valueForKey:prop_key];
-          p->contents[i] = Fcons (build_string_with_nsstr (prop_key),
+          p->contents[i] = Fcons ([prop_key lispString],
                                   js_to_lisp (prop_value));
         }
       XSETVECTOR (obj, p);

@@ -1,7 +1,7 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
-;; Version: 0.5.2
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
+;; Version: 0.5.3
 ;; Package-Requires: ((emacs "26.3") (xref "1.0.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
@@ -631,6 +631,7 @@ DIRS must contain directory names."
     (define-key map "g" 'project-find-regexp)
     (define-key map "G" 'project-or-external-find-regexp)
     (define-key map "r" 'project-query-replace-regexp)
+    (define-key map "x" 'project-execute-extended-command)
     map)
   "Keymap for project commands.")
 
@@ -1246,48 +1247,104 @@ It's also possible to enter an arbitrary directory not in the list."
   (project--ensure-read-project-list)
   (mapcar #'car project--list))
 
+;;;###autoload
+(defun project-execute-extended-command ()
+  "Execute an extended command in project root."
+  (declare (interactive-only command-execute))
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    (call-interactively #'execute-extended-command)))
+
 
 ;;; Project switching
 
 ;;;###autoload
-(defvar project-switch-commands
-  '((?f "Find file" project-find-file)
-    (?g "Find regexp" project-find-regexp)
-    (?d "Dired" project-dired)
-    (?v "VC-Dir" project-vc-dir)
-    (?e "Eshell" project-eshell))
-  "Alist mapping keys to project switching menu entries.
+(defcustom project-switch-commands
+  '((project-find-file "Find file")
+    (project-find-regexp "Find regexp")
+    (project-dired "Dired")
+    (project-vc-dir "VC-Dir")
+    (project-eshell "Eshell"))
+  "Alist mapping commands to descriptions.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
 
-Each element is of the form (KEY LABEL COMMAND), where COMMAND is the
-command to run when KEY is pressed.  LABEL is used to distinguish
-the menu entries in the dispatch menu.")
+Each element is of the form (COMMAND LABEL &optional KEY) where
+COMMAND is the command to run when KEY is pressed.  LABEL is used
+to distinguish the menu entries in the dispatch menu.  If KEY is
+absent, COMMAND must be bound in `project-prefix-map', and the
+key is looked up in that map."
+  :version "28.1"
+  :package-version '(project . "0.6.0")
+  :type '(repeat
+          (list
+           (symbol :tag "Command")
+           (string :tag "Label")
+           (choice :tag "Key to press"
+            (const :tag "Infer from the keymap" nil)
+            (character :tag "Explicit key")))))
+
+(defcustom project-switch-use-entire-map nil
+  "Make `project-switch-project' use entire `project-prefix-map'.
+If nil, `project-switch-project' will only recognize commands
+listed in `project-switch-commands' and signal an error when
+others are invoked.  Otherwise, all keys in `project-prefix-map'
+are legal even if they aren't listed in the dispatch menu."
+  :type 'boolean
+  :version "28.1")
 
 (defun project--keymap-prompt ()
   "Return a prompt for the project switching dispatch menu."
   (mapconcat
-   (pcase-lambda (`(,key ,label))
-     (format "[%s] %s"
-             (propertize (key-description `(,key)) 'face 'bold)
-             label))
+   (pcase-lambda (`(,cmd ,label ,key))
+     (when (characterp cmd) ; Old format, apparently user-customized.
+       (let ((tmp cmd))
+         ;; TODO: Add a deprecation warning, probably.
+         (setq cmd key
+               key tmp)))
+     (let ((key (if key
+                    (vector key)
+                  (where-is-internal cmd project-prefix-map t))))
+       (format "[%s] %s"
+               (propertize (key-description key) 'face 'bold)
+               label)))
    project-switch-commands
    "  "))
 
 ;;;###autoload
-(defun project-switch-project ()
+(defun project-switch-project (dir)
   "\"Switch\" to another project by running an Emacs command.
 The available commands are presented as a dispatch menu
-made from `project-switch-commands'."
-  (interactive)
-  (let ((dir (project-prompt-project-dir))
-        (choice nil))
-    (while (not choice)
-      (setq choice (assq (read-event (project--keymap-prompt))
-                         project-switch-commands)))
+made from `project-switch-commands'.
+
+When called in a program, it will use the project corresponding
+to directory DIR."
+  (interactive (list (project-prompt-project-dir)))
+  (let ((commands-menu
+         (mapcar
+          (lambda (row)
+            (if (characterp (car row))
+                ;; Deprecated format.
+                ;; XXX: Add a warning about it?
+                (reverse row)
+              row))
+          project-switch-commands))
+        command)
+    (while (not command)
+      (let ((choice (read-event (project--keymap-prompt))))
+        (when (setq command
+                    (or (car
+                         (seq-find (lambda (row) (equal choice (nth 2 row)))
+                                   commands-menu))
+                        (lookup-key project-prefix-map (vector choice))))
+          (unless (or project-switch-use-entire-map
+                      (assq command commands-menu))
+            ;; TODO: Add some hint to the prompt, like "key not
+            ;; recognized" or something.
+            (setq command nil)))))
     (let ((default-directory dir)
           (project-current-inhibit-prompt t))
-      (call-interactively (nth 2 choice)))))
+      (call-interactively command))))
 
 (provide 'project)
 ;;; project.el ends here

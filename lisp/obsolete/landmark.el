@@ -1,6 +1,6 @@
 ;;; landmark.el --- Neural-network robot that learns landmarks  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon <metaperl@gmail.com>
 ;; Created: December 16, 1996 - first release to usenet
@@ -1278,7 +1278,8 @@ Used to move the robot when he is stuck in a rut for some reason."
   :group 'landmark)
 (defcustom landmark-max-stall-time 2
   "The maximum number of cycles that the robot can remain stuck in a place.
-After this limit is reached, landmark-random-move is called to push him out of it."
+After this limit is reached, landmark-random-move is called to
+push him out of it."
   :type 'integer
   :group 'landmark)
 

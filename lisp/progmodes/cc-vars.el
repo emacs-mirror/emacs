@@ -1,6 +1,6 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -575,7 +575,8 @@ comment styles:
 
  javadoc -- Javadoc style for \"/** ... */\" comments (default in Java mode).
  autodoc -- Pike autodoc style for \"//! ...\" comments (default in Pike mode).
- gtkdoc  -- GtkDoc style for \"/** ... **/\" comments (default in C and C++ modes).
+ gtkdoc  -- GtkDoc style for \"/** ... **/\" comments
+						   (default in C and C++ modes).
  doxygen -- Doxygen style.
 
 The value may also be a list of doc comment styles, in which case all

@@ -1,6 +1,6 @@
 ;;; ob-sqlite.el --- Babel Functions for SQLite Databases -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -133,11 +133,12 @@ This function is called by `org-babel-execute-src-block'."
   "If RESULT looks like a trivial table, then unwrap it."
   (if (and (equal 1 (length result))
 	   (equal 1 (length (car result))))
-      (org-babel-read (caar result))
+      (org-babel-read (caar result) t)
     (mapcar (lambda (row)
 	      (if (eq 'hline row)
 		  'hline
-		(mapcar #'org-babel-string-read row))) result)))
+		(mapcar #'org-babel-string-read row)))
+	    result)))
 
 (defun org-babel-sqlite-offset-colnames (table headers-p)
   "If HEADERS-P is non-nil then offset the first row as column names."
@@ -151,7 +152,5 @@ Prepare SESSION according to the header arguments specified in PARAMS."
   (error "SQLite sessions not yet implemented"))
 
 (provide 'ob-sqlite)
-
-
 
 ;;; ob-sqlite.el ends here

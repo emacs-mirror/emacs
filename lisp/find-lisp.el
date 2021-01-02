@@ -4,7 +4,7 @@
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -212,21 +212,17 @@ It is a function which takes two arguments, the directory and its parent."
 
     (use-local-map (append (make-sparse-keymap) (current-local-map)))
 
-    (make-local-variable 'find-lisp-file-predicate)
-    (setq find-lisp-file-predicate file-predicate)
-    (make-local-variable 'find-lisp-directory-predicate)
-    (setq find-lisp-directory-predicate directory-predicate)
-    (make-local-variable 'find-lisp-regexp)
-    (setq find-lisp-regexp regexp)
+    (setq-local find-lisp-file-predicate file-predicate)
+    (setq-local find-lisp-directory-predicate directory-predicate)
+    (setq-local find-lisp-regexp regexp)
 
-    (make-local-variable 'revert-buffer-function)
-    (setq revert-buffer-function
-          (lambda (_ignore1 _ignore2)
-            (find-lisp-insert-directory
-             default-directory
-             find-lisp-file-predicate
-             find-lisp-directory-predicate
-             'ignore)))
+    (setq-local revert-buffer-function
+                (lambda (_ignore1 _ignore2)
+                  (find-lisp-insert-directory
+                   default-directory
+                   find-lisp-file-predicate
+                   find-lisp-directory-predicate
+                   'ignore)))
 
     ;; Set subdir-alist so that Tree Dired will work:
     (if (fboundp 'dired-simple-subdir-alist)
@@ -235,8 +231,8 @@ It is a function which takes two arguments, the directory and its parent."
 	(dired-simple-subdir-alist)
       ;; else we have an ancient tree dired (or classic dired, where
       ;; this does no harm)
-      (set (make-local-variable 'dired-subdir-alist)
-	   (list (cons default-directory (point-min-marker)))))
+      (setq-local dired-subdir-alist
+                  (list (cons default-directory (point-min-marker)))))
     (find-lisp-insert-directory
      dir file-predicate directory-predicate 'ignore)
     (goto-char (point-min))

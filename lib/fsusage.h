@@ -1,6 +1,6 @@
 /* fsusage.h -- declarations for file system space usage info
 
-   Copyright (C) 1991-1992, 1997, 2003-2006, 2009-2020 Free Software
+   Copyright (C) 1991-1992, 1997, 2003-2006, 2009-2021 Free Software
    Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify

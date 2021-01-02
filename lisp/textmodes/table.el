@@ -1,6 +1,6 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
@@ -853,10 +853,12 @@ simply by any key input."
   "Timer id for deferred cell update.")
 (defvar table-inhibit-update nil
   "Non-nil inhibits implicit cell and cache updates.
-It inhibits `table-with-cache-buffer' to update data in both direction, cell to cache and cache to cell.")
+It inhibits `table-with-cache-buffer' to update data in both directions,
+cell to cache and cache to cell.")
 (defvar table-inhibit-auto-fill-paragraph nil
   "Non-nil inhibits auto fill paragraph when `table-with-cache-buffer' exits.
-This is always set to nil at the entry to `table-with-cache-buffer' before executing body forms.")
+This is always set to nil at the entry to `table-with-cache-buffer' before
+executing body forms.")
 (defvar table-mode-indicator nil
   "For mode line indicator")
 ;; This is not a real minor-mode but placed in the minor-mode-alist
@@ -957,7 +959,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
     (describe-bindings . *table--cell-describe-bindings)
     (dabbrev-expand . *table--cell-dabbrev-expand)
     (dabbrev-completion . *table--cell-dabbrev-completion))
-  "List of cons cells consisting of (ORIGINAL-COMMAND . TABLE-VERSION-OF-THE-COMMAND).")
+  "List of the form (ORIGINAL-COMMAND . TABLE-VERSION-OF-THE-COMMAND).")
 
 (defvar table-command-list
   ;; Construct the real contents of the `table-command-list'.
@@ -2649,7 +2651,8 @@ Creates a cell above and a cell below the current point location."
 ;;;###autoload
 (defun table-split-cell-horizontally ()
   "Split current cell horizontally.
-Creates a cell on the left and a cell on the right of the current point location."
+Creates a cell on the left and a cell on the right of the current
+point location."
   (interactive "*")
   (table-recognize-cell 'force)
   (let* ((o-coordinate (table--get-coordinate))
@@ -4073,10 +4076,12 @@ cache buffer into the designated cell in the table buffer."
       (set-buffer table-cell-buffer)
       (let ((cache-buffer (get-buffer-create table-cache-buffer-name))
 	    (org-coord (table--get-coordinate))
+            (fixed table-fixed-width-mode)
 	    (in-cell (equal (table--cell-to-coord (table--probe-cell))
 			    (cons table-cell-info-lu-coordinate table-cell-info-rb-coordinate)))
 	    rectangle)
 	(set-buffer cache-buffer)
+        (setq-local table-fixed-width-mode fixed)
 	(setq rectangle
 	      (extract-rectangle
 	       1
@@ -4193,21 +4198,21 @@ cache buffer into the designated cell in the table buffer."
     (1- (cdr (table--get-coordinate (car (table--vertical-cell-list t t))))))))
 
 (defun table-goto-top-right-corner ()
-  "Move point to top right corner of the current table and return the char position."
+  "Move point to top right corner of the current table and return char position."
   (table--goto-coordinate
    (cons
     (car (table--get-coordinate (cdr (table--horizontal-cell-list nil t))))
     (1- (cdr (table--get-coordinate (car (table--vertical-cell-list t t))))))))
 
 (defun table-goto-bottom-left-corner ()
-  "Move point to bottom left corner of the current table and return the char position."
+  "Move point to bottom left corner of the current table and return char position."
   (table--goto-coordinate
    (cons
     (1- (car (table--get-coordinate (car (table--horizontal-cell-list t t)))))
     (1+ (cdr (table--get-coordinate (cdr (table--vertical-cell-list nil t))))))))
 
 (defun table-goto-bottom-right-corner ()
-  "Move point to bottom right corner of the current table and return the char position."
+  "Move point to bottom right corner of the current table and return char position."
   (table--goto-coordinate
    (cons
     (car (table--get-coordinate (cdr (table--horizontal-cell-list nil t))))
@@ -4921,7 +4926,7 @@ When optional LOCATION is provided the test is performed at that location."
        t))
 
 (defun table--region-in-cell-p (beg end)
-  "Return t when location BEG and END are in a valid table cell in the current buffer."
+  "Return t when location BEG and END are in a valid table cell in current buffer."
   (and (table--at-cell-p (min beg end))
        (save-excursion
 	 (let ((cell-beg (progn (goto-char beg) (table--probe-cell))))
@@ -5241,7 +5246,7 @@ works better than the previous versions however not fully compatible.
     str))
 
 (defun table--remove-eol-spaces (beg end &optional bol force)
-  "Remove spaces at the end of each line in the BEG END region of the current buffer.
+  "Remove spaces at the end of each line in the BEG END region of current buffer.
 When optional BOL is non-nil spaces at the beginning of line are
 removed.  When optional FORCE is non-nil removal operation is enforced
 even when point is within the removal area."
@@ -5382,7 +5387,8 @@ point"
 
 (defun table--transcoord-table-to-cache (&optional coordinate)
   "Transpose COORDINATE from table coordinate system to cache coordinate system.
-When COORDINATE is omitted or nil the point in current buffer is assumed in place."
+When COORDINATE is omitted or nil the point in current buffer is
+assumed in place."
   (table--offset-coordinate
    (or coordinate (table--get-coordinate))
    table-cell-info-lu-coordinate
@@ -5390,7 +5396,8 @@ When COORDINATE is omitted or nil the point in current buffer is assumed in plac
 
 (defun table--transcoord-cache-to-table (&optional coordinate)
   "Transpose COORDINATE from cache coordinate system to table coordinate system.
-When COORDINATE is omitted or nil the point in current buffer is assumed in place."
+When COORDINATE is omitted or nil the point in current buffer is
+assumed in place."
   (table--offset-coordinate
    (or coordinate (table--get-coordinate))
    table-cell-info-lu-coordinate))

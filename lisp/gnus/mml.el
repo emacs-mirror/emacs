@@ -1,6 +1,6 @@
 ;;; mml.el --- A package for parsing and validating MML documents
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -1266,8 +1266,8 @@ See Info node `(emacs-mime)Composing'.
   :lighter " MML" :keymap mml-mode-map
   (when mml-mode
     (when (boundp 'dnd-protocol-alist)
-      (set (make-local-variable 'dnd-protocol-alist)
-	   (append mml-dnd-protocol-alist dnd-protocol-alist)))))
+      (setq-local dnd-protocol-alist
+                  (append mml-dnd-protocol-alist dnd-protocol-alist)))))
 
 ;;;
 ;;; Helper functions for reading MIME stuff from the minibuffer and

@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience cua
@@ -375,11 +375,11 @@ managers, so try setting this to nil, if prefix override doesn't work."
 
 (defcustom cua-paste-pop-rotate-temporarily nil
   "If non-nil, \\[cua-paste-pop] only rotates the kill-ring temporarily.
-This means that both \\[yank] and the first \\[yank-pop] in a sequence always insert
-the most recently killed text.  Each immediately following \\[cua-paste-pop] replaces
-the previous text with the next older element on the `kill-ring'.
-With prefix arg, \\[universal-argument] \\[yank-pop] inserts the same text as the most
-recent \\[yank-pop] (or \\[yank]) command."
+This means that both \\[yank] and the first \\[yank-pop] in a sequence always
+insert the most recently killed text.  Each immediately following \\[cua-paste-pop]
+replaces the previous text with the next older element on the `kill-ring'.
+With prefix arg, \\[universal-argument] \\[yank-pop] inserts the same text as the
+most recent \\[yank-pop] (or \\[yank]) command."
   :type 'boolean
   :group 'cua)
 

@@ -1,6 +1,6 @@
 ;;; ol-mhe.el --- Links to MH-E Messages             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -96,7 +96,7 @@ supported by MH-E."
 	(org-link-add-props :link link :description desc)
 	link))))
 
-(defun org-mhe-open (path)
+(defun org-mhe-open (path _)
   "Follow an MH-E message link specified by PATH."
   (let (folder article)
     (if (not (string-match "\\`\\([^#]+\\)\\(#\\(.*\\)\\)?" path))

@@ -1,7 +1,7 @@
 ;;; nnregistry.el --- access to articles via Gnus' message-id registry
 ;;; -*- coding: utf-8 -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Ludovic Courtès <ludo@gnu.org>
 ;; Keywords: news, mail

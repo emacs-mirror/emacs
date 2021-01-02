@@ -1,6 +1,6 @@
 ;;; gnus-registry.el --- article registry for Gnus  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news registry
@@ -53,6 +53,9 @@
 ;; Then use this in your fancy-split:
 
 ;; (: gnus-registry-split-fancy-with-parent)
+
+;; This won't work as expected unless `gnus-registry-register-all'
+;; is set to t.
 
 ;; You should also consider using the nnregistry backend to look up
 ;; articles.  See the Gnus manual for more information.
@@ -159,6 +162,11 @@ nnmairix groups are specifically excluded because they are ephemeral."
   :type '(choice (const :tag "Never Install" nil)
                  (const :tag "Always Install" t)
                  (const :tag "Ask Me" ask)))
+
+(defcustom gnus-registry-register-all t
+  "If non-nil, register all articles in the registry."
+  :type 'boolean
+  :version "28.1")
 
 (defvar gnus-registry-enabled nil)
 
@@ -478,8 +486,8 @@ This is not required after changing `gnus-registry-cache-file'."
   (let ((db gnus-registry-db)
         ;; if the group is ignored, set the destination to nil (same as delete)
         (to (if (gnus-registry-ignore-group-p to) nil to))
-        ;; safe if not found
-        (entry (gnus-registry-get-or-make-entry id))
+        ;; Only retrieve an existing entry, don't create a new one.
+        (entry (gnus-registry-get-or-make-entry id t))
         (subject (gnus-string-remove-all-properties
                   (gnus-registry-simplify-subject subject)))
         (sender (gnus-string-remove-all-properties sender)))
@@ -488,29 +496,30 @@ This is not required after changing `gnus-registry-cache-file'."
     ;; several times but it's better to bunch the transactions
     ;; together
 
-    (registry-delete db (list id) nil)
-    (when from
-      (setq entry (cons (delete from (assoc 'group entry))
-                        (assq-delete-all 'group entry))))
-    ;; Only keep the entry if the message is going to a new group, or
-    ;; it's still in some previous group.
-    (when (or to (alist-get 'group entry))
-      (dolist (kv `((group ,to)
-                    (sender ,sender)
-                    (recipient ,@recipients)
-                    (subject ,subject)))
-	(when (cadr kv)
-          (let ((new (or (assq (car kv) entry)
-			 (list (car kv)))))
-            (dolist (toadd (cdr kv))
-              (unless (member toadd new)
-		(setq new (append new (list toadd)))))
-            (setq entry (cons new
-                              (assq-delete-all (car kv) entry))))))
-      (gnus-message 10 "Gnus registry: new entry for %s is %S"
-                    id
-                    entry)
-      (gnus-registry-insert db id entry))))
+    (when entry
+      (registry-delete db (list id) nil)
+      (when from
+	(setq entry (cons (delete from (assoc 'group entry))
+                          (assq-delete-all 'group entry))))
+      ;; Only keep the entry if the message is going to a new group, or
+      ;; it's still in some previous group.
+      (when (or to (alist-get 'group entry))
+	(dolist (kv `((group ,to)
+                      (sender ,sender)
+                      (recipient ,@recipients)
+                      (subject ,subject)))
+	  (when (cadr kv)
+            (let ((new (or (assq (car kv) entry)
+			   (list (car kv)))))
+              (dolist (toadd (cdr kv))
+		(unless (member toadd new)
+		  (setq new (append new (list toadd)))))
+              (setq entry (cons new
+				(assq-delete-all (car kv) entry))))))
+	(gnus-message 10 "Gnus registry: new entry for %s is %S"
+                      id
+                      entry)
+	(gnus-registry-insert db id entry)))))
 
 ;; Function for nn{mail|imap}-split-fancy: look up all references in
 ;; the cache and if a match is found, return that group.
@@ -846,7 +855,8 @@ Overrides existing keywords with FORCE set non-nil."
 
 (defun gnus-registry-register-message-ids ()
   "Register the Message-ID of every article in the group."
-  (unless (gnus-parameter-registry-ignore gnus-newsgroup-name)
+  (unless (or (gnus-parameter-registry-ignore gnus-newsgroup-name)
+	      (null gnus-registry-register-all))
     (dolist (article gnus-newsgroup-articles)
       (let* ((id (gnus-registry-fetch-message-id-fast article))
              (groups (gnus-registry-get-id-key id 'group)))
@@ -1082,12 +1092,15 @@ only the last one's marks are returned."
   "Get the number of groups of a message, based on the message ID."
   (length (gnus-registry-get-id-key id 'group)))
 
-(defun gnus-registry-get-or-make-entry (id)
+(defun gnus-registry-get-or-make-entry (id &optional no-create)
+  "Return registry entry for ID.
+If entry is not found, create a new one, unless NO-CREATE is
+non-nil."
   (let* ((db gnus-registry-db)
          ;; safe if not found
          (entries (registry-lookup db (list id))))
 
-    (when (null entries)
+    (unless (or entries no-create)
       (gnus-registry-insert db id (list (list 'creation-time (current-time))
                                         '(group) '(sender) '(subject)))
       (setq entries (registry-lookup db (list id))))
@@ -1098,7 +1111,8 @@ only the last one's marks are returned."
   (registry-delete gnus-registry-db idlist nil))
 
 (defun gnus-registry-get-id-key (id key)
-  (cdr-safe (assq key (gnus-registry-get-or-make-entry id))))
+  (cdr-safe (assq key (gnus-registry-get-or-make-entry
+		       id (null gnus-registry-register-all)))))
 
 (defun gnus-registry-set-id-key (id key vals)
   (let* ((db gnus-registry-db)

@@ -1,6 +1,6 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1998, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1998, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>

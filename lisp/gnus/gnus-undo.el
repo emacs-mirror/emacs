@@ -1,6 +1,6 @@
 ;;; gnus-undo.el --- minor mode for undoing in Gnus
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -100,8 +100,8 @@
 
 \\{gnus-undo-mode-map}"
   :keymap gnus-undo-mode-map
-  (set (make-local-variable 'gnus-undo-actions) nil)
-  (set (make-local-variable 'gnus-undo-boundary) t)
+  (setq-local gnus-undo-actions nil)
+  (setq-local gnus-undo-boundary t)
   (when gnus-undo-mode
     ;; Set up the menu.
     (when (gnus-visual-p 'undo-menu 'menu)

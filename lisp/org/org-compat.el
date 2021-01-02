@@ -1,6 +1,6 @@
 ;;; org-compat.el --- Compatibility Code for Older Emacsen -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -34,7 +34,9 @@
 
 (declare-function org-agenda-diary-entry "org-agenda")
 (declare-function org-agenda-maybe-redo "org-agenda" ())
+(declare-function org-agenda-set-restriction-lock "org-agenda" (&optional type))
 (declare-function org-agenda-remove-restriction-lock "org-agenda" (&optional noupdate))
+(declare-function org-calendar-goto-agenda "org-agenda" ())
 (declare-function org-align-tags "org" (&optional all))
 (declare-function org-at-heading-p "org" (&optional ignored))
 (declare-function org-at-table.el-p "org" ())
@@ -46,11 +48,13 @@
 (declare-function org-end-of-subtree "org" (&optional invisible-ok to-heading))
 (declare-function org-get-heading "org" (&optional no-tags no-todo no-priority no-comment))
 (declare-function org-get-tags "org" (&optional pos local))
+(declare-function org-hide-block-toggle "org" (&optional force no-error element))
 (declare-function org-link-display-format "ol" (s))
 (declare-function org-link-set-parameters "ol" (type &rest rest))
 (declare-function org-log-into-drawer "org" ())
 (declare-function org-make-tag-string "org" (tags))
 (declare-function org-reduced-level "org" (l))
+(declare-function org-return "org" (&optional indent arg interactive))
 (declare-function org-show-context "org" (&optional key))
 (declare-function org-table-end "org-table" (&optional table-type))
 (declare-function outline-next-heading "outline" ())
@@ -100,6 +104,20 @@ is nil)."
     (floor (float-time time)))
   (defun org-time-convert-to-list (time)
     (seconds-to-time (float-time time))))
+
+;; `newline-and-indent' did not take a numeric argument before 27.1.
+(if (version< emacs-version "27")
+    (defsubst org-newline-and-indent (&optional _arg)
+      (newline-and-indent))
+  (defalias 'org-newline-and-indent #'newline-and-indent))
+
+(defun org--set-faces-extend (faces extend-p)
+  "Set the :extend attribute of FACES to EXTEND-P.
+
+This is a no-op for Emacs versions lower than 27, since face
+extension beyond end of line was not controllable."
+  (when (fboundp 'set-face-extend)
+    (mapc (lambda (f) (set-face-extend f extend-p)) faces)))
 
 
 ;;; Emacs < 26.1 compatibility
@@ -314,6 +332,8 @@ Counting starts at 1."
 
 (define-obsolete-variable-alias 'org-attach-directory
   'org-attach-id-dir "Org 9.3")
+(make-obsolete 'org-attach-store-link "No longer used" "Org 9.4")
+(make-obsolete 'org-attach-expand-link "No longer used" "Org 9.4")
 
 (defun org-in-fixed-width-region-p ()
   "Non-nil if point in a fixed-width region."
@@ -556,6 +576,11 @@ use of this function is for the stuck project list."
 (define-obsolete-function-alias 'org-make-link-regexps
   'org-link-make-regexps "Org 9.3")
 
+(define-obsolete-function-alias 'org-property-global-value
+  'org-property-global-or-keyword-value "Org 9.3")
+
+(make-obsolete-variable 'org-file-properties 'org-keyword-properties "Org 9.3")
+
 (define-obsolete-variable-alias 'org-angle-link-re
   'org-link-angle-re "Org 9.3")
 
@@ -616,6 +641,72 @@ use of this function is for the stuck project list."
   (declare (obsolete "use `org-align-tags' instead." "Org 9.2"))
   (org-align-tags t))
 
+(define-obsolete-function-alias
+  'org-at-property-block-p 'org-at-property-drawer-p "Org 9.4")
+
+(defun org-flag-drawer (flag &optional element beg end)
+  "When FLAG is non-nil, hide the drawer we are at.
+Otherwise make it visible.
+
+When optional argument ELEMENT is a parsed drawer, as returned by
+`org-element-at-point', hide or show that drawer instead.
+
+When buffer positions BEG and END are provided, hide or show that
+region as a drawer without further ado."
+  (declare (obsolete "use `org-hide-drawer-toggle' instead." "Org 9.4"))
+  (if (and beg end) (org-flag-region beg end flag 'outline)
+    (let ((drawer
+	   (or element
+	       (and (save-excursion
+		      (beginning-of-line)
+		      (looking-at-p "^[ \t]*:\\(\\(?:\\w\\|[-_]\\)+\\):[ \t]*$"))
+		    (org-element-at-point)))))
+      (when (memq (org-element-type drawer) '(drawer property-drawer))
+	(let ((post (org-element-property :post-affiliated drawer)))
+	  (org-flag-region
+	   (save-excursion (goto-char post) (line-end-position))
+	   (save-excursion (goto-char (org-element-property :end drawer))
+			   (skip-chars-backward " \t\n")
+			   (line-end-position))
+	   flag 'outline)
+	  ;; When the drawer is hidden away, make sure point lies in
+	  ;; a visible part of the buffer.
+	  (when (invisible-p (max (1- (point)) (point-min)))
+	    (goto-char post)))))))
+
+(defun org-hide-block-toggle-maybe ()
+  "Toggle visibility of block at point.
+Unlike to `org-hide-block-toggle', this function does not throw
+an error.  Return a non-nil value when toggling is successful."
+  (declare (obsolete "use `org-hide-block-toggle' instead." "Org 9.4"))
+  (interactive)
+  (org-hide-block-toggle nil t))
+
+(defun org-hide-block-toggle-all ()
+  "Toggle the visibility of all blocks in the current buffer."
+  (declare (obsolete "please notify Org mailing list if you use this function."
+		     "Org 9.4"))
+  (let ((start (point-min))
+        (end (point-max)))
+    (save-excursion
+      (goto-char start)
+      (while (and (< (point) end)
+		  (re-search-forward "^[ \t]*#\\+begin_?\
+\\([^ \n]+\\)\\(\\([^\n]+\\)\\)?\n\\([^\000]+?\\)#\\+end_?\\1[ \t]*$" end t))
+	(save-excursion
+	  (save-match-data
+            (goto-char (match-beginning 0))
+            (org-hide-block-toggle)))))))
+
+(defun org-return-indent ()
+  "Goto next table row or insert a newline and indent.
+Calls `org-table-next-row' or `newline-and-indent', depending on
+context.  See the individual commands for more information."
+  (declare (obsolete "use `org-return' with INDENT set to t instead."
+		     "Org 9.4"))
+  (interactive)
+  (org-return t))
+
 (defmacro org-with-silent-modifications (&rest body)
   (declare (obsolete "use `with-silent-modifications' instead." "Org 9.2")
 	   (debug (body)))
@@ -623,6 +714,23 @@ use of this function is for the stuck project list."
 
 (define-obsolete-function-alias 'org-babel-strip-quotes
   'org-strip-quotes "Org 9.2")
+
+(define-obsolete-variable-alias 'org-sort-agenda-notime-is-late
+  'org-agenda-sort-notime-is-late "9.4")
+
+(define-obsolete-variable-alias 'org-sort-agenda-noeffort-is-high
+  'org-agenda-sort-noeffort-is-high "9.4")
+
+(defconst org-maybe-keyword-time-regexp
+  (concat "\\(\\<\\(\\(?:CLO\\(?:CK\\|SED\\)\\|DEADLINE\\|SCHEDULED\\):\\)\\)?"
+	  " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} [^]\r\n>]*[]>]"
+	  "\\|"
+	  "<%%([^\r\n>]*>\\)")
+  "Matches a timestamp, possibly preceded by a keyword.")
+(make-obsolete-variable
+ 'org-maybe-keyword-time-regexp
+ "use `org-planning-line-re', followed by `org-ts-regexp-both' instead."
+ "Org 9.4")
 
 ;;;; Obsolete link types
 
@@ -808,7 +916,7 @@ This also applied for speedbar access."
 	     (setq last-level level)))))
      (aref subs 1))))
 
-(eval-after-load "imenu"
+(eval-after-load 'imenu
   '(progn
      (add-hook 'imenu-after-jump-hook
 	       (lambda ()
@@ -870,7 +978,7 @@ To get rid of the restriction, use `\\[org-agenda-remove-restriction-lock]'."
 
 (defvar speedbar-file-key-map)
 (declare-function speedbar-add-supported-extension "speedbar" (extension))
-(eval-after-load "speedbar"
+(eval-after-load 'speedbar
   '(progn
      (speedbar-add-supported-extension ".org")
      (define-key speedbar-file-key-map "<" 'org-speedbar-set-agenda-restriction)
@@ -980,7 +1088,7 @@ ELEMENT is the element at point."
        (flyspell-delete-region-overlays beg end)))
 
 (defvar flyspell-delayed-commands)
-(eval-after-load "flyspell"
+(eval-after-load 'flyspell
   '(add-to-list 'flyspell-delayed-commands 'org-self-insert-command))
 
 ;;;; Bookmark
@@ -994,7 +1102,7 @@ ELEMENT is the element at point."
        (org-show-context 'bookmark-jump)))
 
 ;; Make `bookmark-jump' shows the jump location if it was hidden.
-(eval-after-load "bookmark"
+(eval-after-load 'bookmark
   '(if (boundp 'bookmark-after-jump-hook)
        ;; We can use the hook
        (add-hook 'bookmark-after-jump-hook 'org-bookmark-jump-unhide)
@@ -1043,17 +1151,18 @@ key."
     ((guard (not (lookup-key calendar-mode-map "c")))
      (local-set-key "c" #'org-calendar-goto-agenda))
     (_ nil))
-  (unless (eq org-agenda-diary-file 'diary-file)
+  (unless (and (boundp 'org-agenda-diary-file)
+	       (eq org-agenda-diary-file 'diary-file))
     (local-set-key org-calendar-insert-diary-entry-key
 		   #'org-agenda-diary-entry)))
 
-(eval-after-load "calendar"
+(eval-after-load 'calendar
   '(add-hook 'calendar-mode-hook #'org--setup-calendar-bindings))
 
 ;;;; Saveplace
 
 ;; Make sure saveplace shows the location if it was hidden
-(eval-after-load "saveplace"
+(eval-after-load 'saveplace
   '(defadvice save-place-find-file-hook (after org-make-visible activate)
      "Make the position visible."
      (org-bookmark-jump-unhide)))
@@ -1061,7 +1170,7 @@ key."
 ;;;; Ecb
 
 ;; Make sure ecb shows the location if it was hidden
-(eval-after-load "ecb"
+(eval-after-load 'ecb
   '(defadvice ecb-method-clicked (after esf/org-show-context activate)
      "Make hierarchy visible when jumping into location from ECB tree buffer."
      (when (derived-mode-p 'org-mode)
@@ -1075,17 +1184,17 @@ key."
 	     (org-invisible-p))
     (org-show-context 'mark-goto)))
 
-(eval-after-load "simple"
+(eval-after-load 'simple
   '(defadvice pop-to-mark-command (after org-make-visible activate)
      "Make the point visible with `org-show-context'."
      (org-mark-jump-unhide)))
 
-(eval-after-load "simple"
+(eval-after-load 'simple
   '(defadvice exchange-point-and-mark (after org-make-visible activate)
      "Make the point visible with `org-show-context'."
      (org-mark-jump-unhide)))
 
-(eval-after-load "simple"
+(eval-after-load 'simple
   '(defadvice pop-global-mark (after org-make-visible activate)
      "Make the point visible with `org-show-context'."
      (org-mark-jump-unhide)))
@@ -1094,9 +1203,13 @@ key."
 
 ;; Make "session.el" ignore our circular variable.
 (defvar session-globals-exclude)
-(eval-after-load "session"
+(eval-after-load 'session
   '(add-to-list 'session-globals-exclude 'org-mark-ring))
 
 (provide 'org-compat)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-compat.el ends here

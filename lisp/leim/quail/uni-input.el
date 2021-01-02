@@ -1,6 +1,6 @@
 ;;; uni-input.el --- Hex Unicode input method
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
@@ -105,8 +105,7 @@ While this input method is active, the variable
     (quail-delete-overlays)
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-    (set (make-local-variable 'input-method-function)
-	 'ucs-input-method)))
+    (setq-local input-method-function 'ucs-input-method)))
 
 (defun ucs-input-deactivate ()
   "Deactivate UCS input method."

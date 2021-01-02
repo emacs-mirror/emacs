@@ -1,6 +1,6 @@
 ;;; ob-dot.el --- Babel Functions for dot            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -86,7 +86,5 @@ This function is called by `org-babel-execute-src-block'."
   (error "Dot does not support sessions"))
 
 (provide 'ob-dot)
-
-
 
 ;;; ob-dot.el ends here

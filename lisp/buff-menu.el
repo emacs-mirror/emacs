@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- Interface for viewing and manipulating buffers -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1993-1995, 2000-2020 Free Software
+;; Copyright (C) 1985-1987, 1993-1995, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -269,8 +269,8 @@ In Buffer Menu mode, the following commands are defined:
 \\[revert-buffer]    Update the list of buffers.
 \\[Buffer-menu-toggle-files-only]    Toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury]    Bury the buffer listed on this line."
-  (set (make-local-variable 'buffer-stale-function)
-       (lambda (&optional _noconfirm) 'fast))
+  (setq-local buffer-stale-function
+              (lambda (&optional _noconfirm) 'fast))
   (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
 
 (defun buffer-menu (&optional arg)

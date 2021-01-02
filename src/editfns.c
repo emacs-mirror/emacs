@@ -1,6 +1,6 @@
 /* Lisp functions pertaining to editing.                 -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1987, 1989, 1993-2020 Free Software Foundation, Inc.
+Copyright (C) 1985-1987, 1989, 1993-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -188,11 +188,16 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
   return build_marker (current_buffer, PT, PT_BYTE);
 }
 
-DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1, "NGoto char: ",
+DEFUN ("goto-char", Fgoto_char, Sgoto_char, 1, 1,
+         "(goto-char--read-natnum-interactive \"Go to char: \")",
        doc: /* Set point to POSITION, a number or marker.
 Beginning of buffer is position (point-min), end is (point-max).
 
-The return value is POSITION.  */)
+The return value is POSITION.
+
+If called interactively, a numeric prefix argument specifies
+POSITION; without a numeric prefix argument, read POSITION from the
+minibuffer.  The default value is the number at point (if any).  */)
   (register Lisp_Object position)
 {
   if (MARKERP (position))

@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -343,8 +343,9 @@ not be enclosed in { } or ( )."
   "List of keywords understood by gmake.")
 
 (defconst makefile-bsdmake-statements
-  '(".elif" ".elifdef" ".elifmake" ".elifndef" ".elifnmake" ".else" ".endfor"
-    ".endif" ".for" ".if" ".ifdef" ".ifmake" ".ifndef" ".ifnmake" ".undef")
+  '("elif" "elifdef" "elifmake" "elifndef" "elifnmake" "else" "endfor"
+    "endif" "for" "if" "ifdef" "ifmake" "ifndef" "ifnmake" "poison"
+    "undef" "include")
   "List of keywords understood by BSD make.")
 
 (defun makefile-make-font-lock-keywords (var keywords space
@@ -376,8 +377,9 @@ not be enclosed in { } or ( )."
     ("[^$]\\(\\$[@%*]\\)"
      1 'makefile-targets append)
 
-    ;; Fontify conditionals and includes.
-    (,(concat "^\\(?: [ \t]*\\)?"
+    ,@(if keywords
+          ;; Fontify conditionals and includes.
+          `((,(concat "^\\(?: [ \t]*\\)?"
 	      (replace-regexp-in-string
 	       " " "[ \t]+"
 	       (if (eq (car keywords) t)
@@ -385,7 +387,7 @@ not be enclosed in { } or ( )."
                                              (regexp-opt (cdr keywords) t))
 		 (regexp-opt keywords t)))
 	      "\\>[ \t]*\\([^: \t\n#]*\\)")
-     (1 font-lock-keyword-face) (2 font-lock-variable-name-face))
+             (1 font-lock-keyword-face) (2 font-lock-variable-name-face))))
 
     ,@(if negation
 	  `((,negation (1 font-lock-negation-char-face prepend)
@@ -493,13 +495,17 @@ not be enclosed in { } or ( )."
      1 'makefile-makepp-perl t)))
 
 (defconst makefile-bsdmake-font-lock-keywords
-  (makefile-make-font-lock-keywords
-   ;; A lot more could be done for variables here:
-   makefile-var-use-regex
-   makefile-bsdmake-statements
-   t
-   "^\\(?: [ \t]*\\)?\\.\\(?:el\\)?if\\(n?\\)\\(?:def\\|make\\)?\\>[ \t]*\\(!?\\)"
-   '("^[ \t]*\\.for[ \t].+[ \t]\\(in\\)\\>" 1 font-lock-keyword-face)))
+  (append
+   (makefile-make-font-lock-keywords
+    ;; A lot more could be done for variables here:
+    makefile-var-use-regex
+    nil
+    t
+    "^\\(?: [ \t]*\\)?\\.\\(?:el\\)?if\\(n?\\)\\(?:def\\|make\\)?\\>[ \t]*\\(!?\\)"
+    '("^[ \t]*\\.for[ \t].+[ \t]\\(in\\)\\>" 1 font-lock-keyword-face))
+   `((,(concat "^\\. *" (regexp-opt makefile-bsdmake-statements) "\\>") 0
+      font-lock-keyword-face))))
+
 
 (defconst makefile-imake-font-lock-keywords
   (append

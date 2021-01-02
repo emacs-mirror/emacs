@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992-1997, 2000-2020 Free Software
+;; Copyright (C) 1985-1986, 1992-1997, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -2419,6 +2419,10 @@ If the current buffer can be edited with Wdired, (i.e. the major
 mode is `dired-mode'), call `wdired-change-to-wdired-mode'.
 Otherwise, toggle `read-only-mode'."
   (interactive)
+  (when (and (not (file-writable-p default-directory))
+             (not (y-or-n-p
+                   "Directory isn't writable; edit anyway? ")))
+    (user-error "Directory %s isn't writable" default-directory))
   (if (derived-mode-p 'dired-mode)
       (wdired-change-to-wdired-mode)
     (read-only-mode 'toggle)))
@@ -2499,6 +2503,10 @@ directory in another window."
 (defun dired-find-file ()
   "In Dired, visit the file or directory named on this line."
   (interactive)
+  (dired--find-file #'find-file (dired-get-file-for-visit)))
+
+(defun dired--find-file (find-file-function file)
+  "Call FIND-FILE-FUNCTION on FILE, but bind some relevant variables."
   ;; Bind `find-file-run-dired' so that the command works on directories
   ;; too, independent of the user's setting.
   (let ((find-file-run-dired t)
@@ -2511,7 +2519,7 @@ directory in another window."
          (if dired-auto-revert-buffer
              nil
            switch-to-buffer-preserve-window-point)))
-    (find-file (dired-get-file-for-visit))))
+    (funcall find-file-function file)))
 
 (defun dired-find-alternate-file ()
   "In Dired, visit file or directory on current line via `find-alternate-file'.
@@ -2547,7 +2555,7 @@ respectively."
 	      (select-window window)
               (funcall find-dir-func file)))
       (select-window window)
-      (funcall find-file-func (file-name-sans-versions file t)))))
+      (dired--find-file find-file-func (file-name-sans-versions file t)))))
 
 (defun dired-mouse-find-file-other-window (event)
   "In Dired, visit the file or directory name you click on in another window."
@@ -2574,7 +2582,7 @@ Otherwise, display it in another buffer."
 (defun dired-find-file-other-window ()
   "In Dired, visit this file or directory in another window."
   (interactive)
-  (find-file-other-window (dired-get-file-for-visit)))
+  (dired--find-file #'find-file-other-window (dired-get-file-for-visit)))
 
 (defun dired-display-file ()
   "In Dired, display this file or directory in another window."

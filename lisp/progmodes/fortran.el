@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1986, 1993-1995, 1997-2020 Free Software Foundation,
+;; Copyright (C) 1986, 1993-1995, 1997-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
@@ -1218,25 +1218,32 @@ Auto-indent does not happen if a numeric ARG is used."
 ;; Note that unlike the latter, we don't have to worry about nested
 ;; subprograms (?).
 ;; FIXME push-mark?
-(defun fortran-beginning-of-subprogram ()
-  "Move point to the beginning of the current Fortran subprogram."
+(defun fortran-beginning-of-subprogram (&optional arg)
+  "Move point to the beginning of the current Fortran subprogram.
+If ARG is negative, and point is between subprograms, the
+\"current\" subprogram is the next one."
   (interactive)
-  (let ((case-fold-search t))
-    ;; If called already at the start of subprogram, go to the previous.
-    (beginning-of-line (if (bolp) 0 1))
-    (save-match-data
-      (or (looking-at fortran-start-prog-re)
-          ;; This leaves us at bob if before the first subprogram.
-          (eq (fortran-previous-statement) 'first-statement)
-          (if (or (catch 'ok
-                    (while (re-search-backward fortran-end-prog-re nil 'move)
-                      (if (fortran-check-end-prog-re) (throw 'ok t))))
-                  ;; If the search failed, must be at bob.
-                  ;; First code line is the start of the subprogram.
-                  ;; FIXME use a more rigorous test, cf fortran-next-statement?
-                  ;; Though that needs to handle continuations too.
-                  (not (looking-at "^\\([ \t]*[0-9]\\|[ \t]+[^!#]\\)")))
-              (fortran-next-statement))))))
+  (if (and arg
+           (< arg 0))
+      (progn
+        (fortran-end-of-subprogram)
+        (fortran-beginning-of-subprogram))
+    (let ((case-fold-search t))
+      ;; If called already at the start of subprogram, go to the previous.
+      (beginning-of-line (if (bolp) 0 1))
+      (save-match-data
+        (or (looking-at fortran-start-prog-re)
+            ;; This leaves us at bob if before the first subprogram.
+            (eq (fortran-previous-statement) 'first-statement)
+            (if (or (catch 'ok
+                      (while (re-search-backward fortran-end-prog-re nil 'move)
+                        (if (fortran-check-end-prog-re) (throw 'ok t))))
+                    ;; If the search failed, must be at bob.
+                    ;; First code line is the start of the subprogram.
+                    ;; FIXME use a more rigorous test, cf fortran-next-statement?
+                    ;; Though that needs to handle continuations too.
+                    (not (looking-at "^\\([ \t]*[0-9]\\|[ \t]+[^!#]\\)")))
+                (fortran-next-statement)))))))
 
 ;; This is simpler than f-beginning-of-s because the end of a
 ;; subprogram is never implicit.

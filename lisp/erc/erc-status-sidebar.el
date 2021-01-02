@@ -1,6 +1,6 @@
 ;;; erc-status-sidebar.el --- HexChat-like activity overview for ERC
 
-;; Copyright (C) 2017, 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017, 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Andrew Barbarello
 ;; Maintainer: Amin Bandali <bandali@gnu.org>

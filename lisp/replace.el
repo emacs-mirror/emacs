@@ -1,6 +1,6 @@
 ;;; replace.el --- replace commands for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2020 Free
+;; Copyright (C) 1985-1987, 1992, 1994, 1996-1997, 2000-2021 Free
 ;; Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -1706,7 +1706,7 @@ See also `multi-occur'."
 	    (buffer-undo-list t)
 	    (occur--final-pos nil))
 	(erase-buffer)
-        (set (make-local-variable 'occur-highlight-regexp) regexp)
+        (setq-local occur-highlight-regexp regexp)
 	(let ((count
 	       (if (stringp nlines)
                    ;; Treat nlines as a regexp to collect.

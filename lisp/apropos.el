@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994-1995, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1989, 1994-1995, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
@@ -1225,8 +1225,8 @@ as a heading."
 	  (apropos-print-doc 6 'apropos-face t)
 	  (apropos-print-doc 5 'apropos-widget t)
 	  (apropos-print-doc 4 'apropos-plist nil))
-        (set (make-local-variable 'truncate-partial-width-windows) t)
-        (set (make-local-variable 'truncate-lines) t))))
+        (setq-local truncate-partial-width-windows t)
+        (setq-local truncate-lines t))))
   (prog1 apropos-accumulator
     (setq apropos-accumulator ())))	; permit gc
 

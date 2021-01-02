@@ -1,6 +1,6 @@
 ;;; semantic/symref.el --- Symbol Reference API
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -511,9 +511,10 @@ Optional OPEN-BUFFERS, when nil will use a faster version of
 `find-file' when a file needs to be opened.  If non-nil, then
 normal buffer initialization will be used.
 This function will leave buffers loaded from a file open, but
-will add buffers that must be opened to `semantic-symref-recently-opened-buffers'.
-Any caller MUST deal with that variable, either clearing it, or deleting the
-buffers that were opened."
+will add buffers that must be opened to
+`semantic-symref-recently-opened-buffers'.
+Any caller MUST deal with that variable, either clearing it, or
+deleting the buffers that were opened."
   (let* ((line (car hit))
 	 (file (cdr hit))
 	 (buff (find-buffer-visiting file))

@@ -1,6 +1,6 @@
 ;;; package.el --- Simple package system for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;         Daniel Hackney <dan@haxney.org>
@@ -203,6 +203,9 @@ If VERSION is nil, the package is not made available (it is \"disabled\")."
 
 (defcustom package-archives `(("gnu" .
                                ,(format "http%s://elpa.gnu.org/packages/"
+                                        (if (gnutls-available-p) "s" "")))
+                              ("nongnu" .
+                               ,(format "http%s://elpa.nongnu.org/nongnu/"
                                         (if (gnutls-available-p) "s" ""))))
   "An alist of archives from which to fetch.
 The default value points to the GNU Emacs package repository.
@@ -825,40 +828,45 @@ correspond to previously loaded files (those returned by
 
 (declare-function find-library-name "find-func" (library))
 
+(defun package--files-load-history ()
+  (delq nil
+        (mapcar (lambda (x)
+                  (let ((f (car x)))
+                    (and (stringp f)
+                         (file-name-sans-extension (file-truename f)))))
+                load-history)))
+
+(defun package--list-of-conflicts (dir history)
+   (delq
+    nil
+    (mapcar
+     (lambda (x) (let* ((file (file-relative-name x dir))
+                        ;; Previously loaded file, if any.
+                        (previous
+                         (ignore-errors
+                           (file-name-sans-extension
+                            (file-truename (find-library-name file)))))
+                        (pos (when previous (member previous history))))
+                   ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
+                   (when pos
+                     (cons (file-name-sans-extension file) (length pos)))))
+     (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))))
+
 (defun package--list-loaded-files (dir)
   "Recursively list all files in DIR which correspond to loaded features.
 Returns the `file-name-sans-extension' of each file, relative to
 DIR, sorted by most recently loaded last."
-  (let* ((history (delq nil
-                        (mapcar (lambda (x)
-                                  (let ((f (car x)))
-                                    (and (stringp f)
-                                         (file-name-sans-extension f))))
-                                load-history)))
+  (let* ((history (package--files-load-history))
          (dir (file-truename dir))
          ;; List all files that have already been loaded.
-         (list-of-conflicts
-          (delq
-           nil
-           (mapcar
-               (lambda (x) (let* ((file (file-relative-name x dir))
-                             ;; Previously loaded file, if any.
-                             (previous
-                              (ignore-errors
-                                (file-name-sans-extension
-                                 (file-truename (find-library-name file)))))
-                             (pos (when previous (member previous history))))
-                        ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
-                        (when pos
-                          (cons (file-name-sans-extension file) (length pos)))))
-             (directory-files-recursively dir "\\`[^\\.].*\\.el\\'")))))
+         (list-of-conflicts (package--list-of-conflicts dir history)))
     ;; Turn the list of (FILENAME . POS) back into a list of features.  Files in
     ;; subdirectories are returned relative to DIR (so not actually features).
     (let ((default-directory (file-name-as-directory dir)))
       (mapcar (lambda (x) (file-truename (car x)))
-        (sort list-of-conflicts
-              ;; Sort the files by ascending HISTORY-POSITION.
-              (lambda (x y) (< (cdr x) (cdr y))))))))
+              (sort list-of-conflicts
+                    ;; Sort the files by ascending HISTORY-POSITION.
+                    (lambda (x y) (< (cdr x) (cdr y))))))))
 
 ;;;; `package-activate'
 ;; This function activates a newer version of a package if an older
@@ -1115,14 +1123,15 @@ boundaries."
     ;; Use some headers we've invented to drive the process.
     (let* (;; Prefer Package-Version; if defined, the package author
            ;; probably wants us to use it.  Otherwise try Version.
-           (pkg-version
-            (or (package-strip-rcs-id (lm-header "package-version"))
-                (package-strip-rcs-id (lm-header "version"))))
+           (version-info
+            (or (lm-header "package-version") (lm-header "version")))
+           (pkg-version (package-strip-rcs-id version-info))
            (keywords (lm-keywords-list))
            (homepage (lm-homepage)))
       (unless pkg-version
-        (error
-            "Package lacks a \"Version\" or \"Package-Version\" header"))
+         (if version-info
+             (error "Unrecognized package version: %s" version-info)
+           (error "Package lacks a \"Version\" or \"Package-Version\" header")))
       (package-desc-from-define
        file-name pkg-version desc
        (and-let* ((require-lines (lm-header-multiline "package-requires")))
@@ -1614,18 +1623,22 @@ that code in the early init-file."
   "Activate all installed packages.
 The variable `package-load-list' controls which packages to load."
   (setq package--activated t)
-  (if (file-readable-p package-quickstart-file)
-      ;; Skip load-source-file-function which would slow us down by a factor
-      ;; 2 (this assumes we were careful to save this file so it doesn't need
-      ;; any decoding).
-      (let ((load-source-file-function nil))
-        (load package-quickstart-file nil 'nomessage))
-    (dolist (elt (package--alist))
-      (condition-case err
-          (package-activate (car elt))
-        ;; Don't let failure of activation of a package arbitrarily stop
-        ;; activation of further packages.
-        (error (message "%s" (error-message-string err)))))))
+  (let* ((elc (concat package-quickstart-file "c"))
+         (qs (if (file-readable-p elc) elc
+               (if (file-readable-p package-quickstart-file)
+                   package-quickstart-file))))
+    (if qs
+        ;; Skip load-source-file-function which would slow us down by a factor
+        ;; 2 when loading the .el file (this assumes we were careful to
+        ;; save this file so it doesn't need any decoding).
+        (let ((load-source-file-function nil))
+          (load qs nil 'nomessage))
+      (dolist (elt (package--alist))
+        (condition-case err
+            (package-activate (car elt))
+          ;; Don't let failure of activation of a package arbitrarily stop
+          ;; activation of further packages.
+          (error (message "%s" (error-message-string err))))))))
 
 ;;;; Populating `package-archive-contents' from archives
 ;; This subsection populates the variables listed above from the
@@ -2112,7 +2125,10 @@ Otherwise return nil."
   (when str
     (when (string-match "\\`[ \t]*[$]Revision:[ \t]+" str)
       (setq str (substring str (match-end 0))))
-    (if (version-to-list str) str)))
+    (let ((l (version-to-list str)))
+      ;; Don't return `str' but (package-version-join (version-to-list str))
+      ;; to make sure we use a "canonical name"!
+      (if l (package-version-join l)))))
 
 (declare-function lm-homepage "lisp-mnt" (&optional file))
 
@@ -4037,6 +4053,7 @@ activations need to be changed, such as when `package-load-list' is modified."
       ;; FIXME: Delay refresh in case we're installing/deleting
       ;; several packages!
       (package-quickstart-refresh)
+    (delete-file (concat package-quickstart-file "c"))
     (delete-file package-quickstart-file)))
 
 (defun package-quickstart-refresh ()
@@ -4091,10 +4108,10 @@ activations need to be changed, such as when `package-load-list' is modified."
       (insert "
 ;; Local\sVariables:
 ;; version-control: never
-;;\sno-byte-compile: t
 ;; no-update-autoloads: t
 ;; End:
-"))))
+"))
+    (byte-compile-file package-quickstart-file)))
 
 (defun package--imenu-prev-index-position-function ()
   "Move point to previous line in package-menu buffer.

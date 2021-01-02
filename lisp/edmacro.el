@@ -1,6 +1,6 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993-1994, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev
@@ -151,9 +151,9 @@ With a prefix argument, format the macro in a more concise way."
 	(setq buffer-read-only nil)
 	(setq major-mode 'edmacro-mode)
 	(setq mode-name "Edit Macro")
-	(set (make-local-variable 'edmacro-original-buffer) oldbuf)
-	(set (make-local-variable 'edmacro-finish-hook) finish-hook)
-	(set (make-local-variable 'edmacro-store-hook) store-hook)
+        (setq-local edmacro-original-buffer oldbuf)
+        (setq-local edmacro-finish-hook finish-hook)
+        (setq-local edmacro-store-hook store-hook)
 	(erase-buffer)
 	(insert ";; Keyboard Macro Editor.  Press C-c C-c to finish; "
 		"press C-x k RET to cancel.\n")

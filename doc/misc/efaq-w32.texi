@@ -15,7 +15,7 @@ Answers to Frequently asked Questions about using Emacs on Microsoft Windows.
 @include emacsver.texi
 
 @copying
-Copyright @copyright{} 2008, 2010--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2008, 2010--2021 Free Software Foundation, Inc.
 
 @quotation
 This list of frequently asked questions about GNU Emacs on MS Windows

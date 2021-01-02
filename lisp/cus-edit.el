@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1996-1997, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: emacs-devel@gnu.org
@@ -2734,11 +2734,15 @@ try matching its doc string against `custom-guess-doc-alist'."
 		 buttons)
 	   (insert " ")
 	   (let* ((format (widget-get type :format))
-		  tag-format value-format)
-	     (unless (string-match ":" format)
+                  tag-format)
+             ;; We used to drop the widget tag when creating TYPE, passing
+             ;; everything after the colon (including whitespace characters
+             ;; after it) as the :format for TYPE.  We don't drop the tag
+             ;; anymore, but we should keep an immediate whitespace character,
+             ;; if present, and it's easier to do it here.
+             (unless (string-match ":\\s-?" format)
 	       (error "Bad format"))
 	     (setq tag-format (substring format 0 (match-end 0)))
-	     (setq value-format (substring format (match-end 0)))
 	     (push (widget-create-child-and-convert
 		    widget 'item
 		    :format tag-format
@@ -2753,7 +2757,6 @@ try matching its doc string against `custom-guess-doc-alist'."
 		   buttons)
 	     (push (widget-create-child-and-convert
 		    widget type
-		    :format value-format
 		    :value value)
 		   children))))
     (unless (eq custom-buffer-style 'tree)

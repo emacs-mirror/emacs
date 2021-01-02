@@ -1,6 +1,6 @@
 ;;; erc-tests.el --- Tests for erc.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Ingebrigtsen <larsi@gnus.org>
 

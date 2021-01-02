@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-2020 Free Software Foundation, Inc.
+/* Copyright (C) 1991-2021 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -47,9 +47,11 @@
 #include <string.h>
 
 #include <fcntl.h>
+#include <stdalign.h>
 #include <stdint.h>
 #include <sys/random.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #if _LIBC
 # define struct_stat64 struct stat64
@@ -60,27 +62,33 @@
 # define __mkdir mkdir
 # define __open open
 # define __lxstat64(version, file, buf) lstat (file, buf)
+# define __getrandom getrandom
+# define __clock_gettime64 clock_gettime
+# define __timespec64 timespec
 #endif
 
-#ifdef _LIBC
-# include <random-bits.h>
-# define RANDOM_BITS(Var) ((Var) = random_bits ())
-typedef uint32_t random_value;
-# define RANDOM_VALUE_MAX UINT32_MAX
-# define BASE_62_DIGITS 5 /* 62**5 < UINT32_MAX */
-# define BASE_62_POWER (62 * 62 * 62 * 62 * 62) /* 2**BASE_62_DIGITS */
-#else
 /* Use getrandom if it works, falling back on a 64-bit linear
-   congruential generator that starts with whatever Var's value
-   happens to be.  */
-# define RANDOM_BITS(Var) \
-    ((void) (getrandom (&(Var), sizeof (Var), 0) == sizeof (Var) \
-             || ((Var) = 2862933555777941757 * (Var) + 3037000493)))
+   congruential generator that starts with Var's value
+   mixed in with a clock's low-order bits if available.  */
 typedef uint_fast64_t random_value;
-# define RANDOM_VALUE_MAX UINT_FAST64_MAX
-# define BASE_62_DIGITS 10 /* 62**10 < UINT_FAST64_MAX */
-# define BASE_62_POWER (62LL * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62)
+#define RANDOM_VALUE_MAX UINT_FAST64_MAX
+#define BASE_62_DIGITS 10 /* 62**10 < UINT_FAST64_MAX */
+#define BASE_62_POWER (62LL * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62)
+
+static random_value
+random_bits (random_value var)
+{
+  random_value r;
+  if (__getrandom (&r, sizeof r, 0) == sizeof r)
+    return r;
+#if _LIBC || (defined CLOCK_MONOTONIC && HAVE_CLOCK_GETTIME)
+  /* Add entropy if getrandom is not supported.  */
+  struct __timespec64 tv;
+  __clock_gettime64 (CLOCK_MONOTONIC, &tv);
+  var ^= tv.tv_nsec;
 #endif
+  return 2862933555777941757 * var + 3037000493;
+}
 
 #if _LIBC
 /* Return nonzero if DIR is an existent directory.  */
@@ -250,8 +258,11 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
   unsigned int attempts = ATTEMPTS_MIN;
 #endif
 
-  /* A random variable.  */
-  random_value v;
+  /* A random variable.  The initial value is used only the for fallback path
+     on 'random_bits' on 'getrandom' failure.  Its initial value tries to use
+     some entropy from the ASLR and ignore possible bits from the stack
+     alignment.  */
+  random_value v = ((uintptr_t) &v) / alignof (max_align_t);
 
   /* How many random base-62 digits can currently be extracted from V.  */
   int vdigits = 0;
@@ -279,7 +290,7 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
           if (vdigits == 0)
             {
               do
-                RANDOM_BITS (v);
+                v = random_bits (v);
               while (unfair_min <= v);
 
               vdigits = BASE_62_DIGITS;

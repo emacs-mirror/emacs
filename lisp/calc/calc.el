@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Keywords: convenience, extensions
@@ -266,18 +266,18 @@
     (sgml-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
     (xml-mode     . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
     (texinfo-mode . "@c Embed\n\\(@c .*\n\\)*"))
-  "Alist of major modes with appropriate values for `calc-embedded-announce-formula'."
+  "Alist of major modes for `calc-embedded-announce-formula'."
   :type '(alist :key-type (symbol :tag "Major mode")
                 :value-type (regexp :tag "Regexp to announce formula")))
 
 (defcustom calc-embedded-open-formula
   "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
-  "A regular expression for the opening delimiter of a formula used by calc-embedded."
+  "Regexp for the opening delimiter of a formula used by `calc-embedded'."
   :type '(regexp))
 
 (defcustom calc-embedded-close-formula
   "\\'\\|\n$\\|\\$\\$?\\|\\\\]\\|^\\\\end[^{].*\n\\|^\\\\end{.*[^x]}.*\n\\|^@.*\n\\|^\\.EN.*\n\\|\\\\)\\|\n%\n\\|^\\.\\\\\"\n"
-  "A regular expression for the closing delimiter of a formula used by calc-embedded."
+  "Regexp for the closing delimiter of a formula used by calc-embedded."
   :type '(regexp))
 
 (defcustom calc-embedded-open-close-formula-alist
@@ -721,7 +721,8 @@ If nil, computations on numbers always yield numbers where possible.")
 (defcalcmodevar calc-matrix-mode nil
   "If `matrix', variables are assumed to be matrix-valued.
 If a number, variables are assumed to be NxN matrices.
-If `sqmatrix', variables are assumed to be square matrices of an unspecified size.
+If `sqmatrix', variables are assumed to be square matrices of an
+  unspecified size.
 If `scalar', variables are assumed to be scalar-valued.
 If nil, symbolic math routines make no assumptions about variables.")
 
@@ -2100,7 +2101,7 @@ the United States."
 	   (set-buffer calc-trail-buffer)
 	   (unless (derived-mode-p 'calc-trail-mode)
              (calc-trail-mode)
-             (set (make-local-variable 'calc-main-buffer) buf)))))
+             (setq-local calc-main-buffer buf)))))
   (or (and calc-trail-pointer
 	   (eq (marker-buffer calc-trail-pointer) calc-trail-buffer))
       (with-current-buffer calc-trail-buffer

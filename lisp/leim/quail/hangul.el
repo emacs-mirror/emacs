@@ -1,6 +1,6 @@
 ;;; hangul.el --- Korean Hangul input method
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Jihyun Cho <jihyun.jo@gmail.com>
 ;; Keywords: multilingual, input method, Korean, Hangul
@@ -525,7 +525,7 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
   (quail-delete-overlays)
   (if (eq (selected-window) (minibuffer-window))
       (add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-  (set (make-local-variable 'input-method-function) func))
+  (setq-local input-method-function func))
 
 (defun hangul-input-method-deactivate ()
   "Deactivate the current Hangul input method."

@@ -1,6 +1,6 @@
 /* emacs-module.c - Module loading and runtime implementation
 
-Copyright (C) 2015-2020 Free Software Foundation, Inc.
+Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -784,7 +784,8 @@ module_make_string (emacs_env *env, const char *str, ptrdiff_t len)
   MODULE_FUNCTION_BEGIN (NULL);
   if (! (0 <= len && len <= STRING_BYTES_BOUND))
     overflow_error ();
-  Lisp_Object lstr = module_decode_utf_8 (str, len);
+  Lisp_Object lstr
+    = len == 0 ? empty_multibyte_string : module_decode_utf_8 (str, len);
   return lisp_to_value (env, lstr);
 }
 
@@ -794,9 +795,8 @@ module_make_unibyte_string (emacs_env *env, const char *str, ptrdiff_t length)
   MODULE_FUNCTION_BEGIN (NULL);
   if (! (0 <= length && length <= STRING_BYTES_BOUND))
     overflow_error ();
-  Lisp_Object lstr = make_uninit_string (length);
-  memcpy (SDATA (lstr), str, length);
-  SDATA (lstr)[length] = 0;
+  Lisp_Object lstr
+    = length == 0 ? empty_unibyte_string : make_unibyte_string (str, length);
   return lisp_to_value (env, lstr);
 }
 

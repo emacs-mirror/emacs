@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter -*- lexical-binding: t -*-
 
-;; Copyright (C) 1989, 1994, 1998, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1989, 1994, 1998, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
@@ -722,7 +722,10 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
   "Scroll hexl buffer window upward ARG lines; or near full window if no ARG."
   (interactive "P")
   (setq arg (if (null arg)
-                (1- (window-height))
+                (- (window-height)
+                   1
+                   (if ruler-mode 1 0)
+                   next-screen-context-lines)
               (prefix-numeric-value arg)))
   (hexl-scroll-up (- arg)))
 
@@ -731,7 +734,10 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
 If there's no byte at the target address, move to the first or last line."
   (interactive "P")
   (setq arg (if (null arg)
-                (1- (window-height))
+                (- (window-height)
+                   1
+                   (if ruler-mode 1 0)
+                   next-screen-context-lines)
               (prefix-numeric-value arg)))
   (let* ((movement (* arg 16))
 	 (address (hexl-current-address))

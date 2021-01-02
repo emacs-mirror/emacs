@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988-1995, 1997, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -1788,7 +1788,7 @@ For a complete description, see the info node `Calendar/Diary'.
   (setq buffer-read-only t
         buffer-undo-list t
         indent-tabs-mode nil)
-  (set (make-local-variable 'scroll-margin) 0) ; bug#10379
+  (setq-local scroll-margin 0) ; bug#10379
   (calendar-update-mode-line)
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month) ; month in middle of window

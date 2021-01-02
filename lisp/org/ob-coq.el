@@ -1,6 +1,6 @@
 ;;; ob-coq.el --- Babel Functions for Coq            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -76,3 +76,5 @@ create one.  Return the initialized session."
   (get-buffer org-babel-coq-buffer))
 
 (provide 'ob-coq)
+
+;;; ob-coq.el ends here

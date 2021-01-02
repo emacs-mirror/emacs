@@ -1,6 +1,6 @@
 ;;; cl-generic.el --- CLOS-style generic functions for Elisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Version: 1.0
@@ -410,8 +410,18 @@ the specializer used will be the one returned by BODY."
 ;;;###autoload
 (defmacro cl-defmethod (name args &rest body)
   "Define a new method for generic function NAME.
-I.e. it defines the implementation of NAME to use for invocations where the
-values of the dispatch arguments match the specified TYPEs.
+This it defines an implementation of NAME to use for invocations
+of specific types of arguments.
+
+ARGS is a list of dispatch arguments (see `cl-defun'), but where
+each variable element is either just a single variable name VAR,
+or a list on the form (VAR TYPE).
+
+For instance:
+
+  (cl-defmethod foo (bar (format-string string) &optional zot)
+    (format format-string bar))
+
 The dispatch arguments have to be among the mandatory arguments, and
 all methods of NAME have to use the same set of arguments for dispatch.
 Each dispatch argument and TYPE are specified in ARGS where the corresponding
@@ -801,8 +811,8 @@ It should return a function that expects the same arguments as the methods, and
 GENERIC is the generic function (mostly used for its name).
 METHODS is the list of the selected methods.
 The METHODS list is sorted from most specific first to most generic last.
-The function can use `cl-generic-call-method' to create functions that call those
-methods.")
+The function can use `cl-generic-call-method' to create functions that call
+those methods.")
 
 (unless (ignore-errors (cl-generic-generalizers t))
   ;; Temporary definition to let the next defmethod succeed.

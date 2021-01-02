@@ -1,6 +1,6 @@
 ;;; cperl-mode-tests --- Test for cperl-mode  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Harald Jörg <haj@posteo.de>
 ;; Maintainer: Harald Jörg
@@ -311,5 +311,13 @@ have a face property."
     (should (equal (nth 8 (cperl-test-ppss code "/")) 7)))
   (let ((code "{ $a- / $b } # /"))
     (should (equal (nth 8 (cperl-test-ppss code "/")) 7))))
+
+(ert-deftest cperl-test-bug-45255 ()
+  "Verify that \"<<>>\" is recognized as not starting a HERE-doc."
+  (let ((code (concat "while (<<>>) {\n"
+                      "   ...;\n"
+                      "}\n")))
+    ;; The yadda-yadda operator should not be in a string.
+    (should (equal (nth 8 (cperl-test-ppss code "\\.")) nil))))
 
 ;;; cperl-mode-tests.el ends here

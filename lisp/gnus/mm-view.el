@@ -1,6 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -486,7 +486,7 @@ If MODE is not set, try to find mode automatically."
         ;; support modes, but now that we use font-lock-ensure, support modes
         ;; aren't a problem any more.  So we could probably get rid of this
         ;; setting now, but it seems harmless and potentially still useful.
-	(set (make-local-variable 'font-lock-mode-hook) nil)
+	(setq-local font-lock-mode-hook nil)
         (setq buffer-file-name (mm-handle-filename handle))
 	(with-demoted-errors
 	    (if mode

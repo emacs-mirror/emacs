@@ -1,6 +1,6 @@
 ;;; elisp-mode.el --- Emacs Lisp mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -38,9 +38,10 @@ It has `lisp-mode-abbrev-table' as its parent."
   :parents (list lisp-mode-abbrev-table))
 
 (defvar emacs-lisp-mode-syntax-table
-  (let ((table (make-syntax-table lisp--mode-syntax-table)))
-    (modify-syntax-entry ?\[ "(]  " table)
-    (modify-syntax-entry ?\] ")[  " table)
+  (let ((table (make-syntax-table lisp-data-mode-syntax-table)))
+    ;; These are redundant, now.
+    ;;(modify-syntax-entry ?\[ "(]  " table)
+    ;;(modify-syntax-entry ?\] ")[  " table)
     table)
   "Syntax table used in `emacs-lisp-mode'.")
 
@@ -681,7 +682,7 @@ otherwise build the summary from TYPE and SYMBOL."
 	     (xref-make-elisp-location symbol type file)))
 
 (defvar elisp-xref-find-def-functions nil
-  "List of functions to be run from `elisp--xref-find-definitions' to add additional xrefs.
+  "List of functions run from `elisp--xref-find-definitions' to add more xrefs.
 Called with one arg; the symbol whose definition is desired.
 Each function should return a list of xrefs, or nil; the first
 non-nil result supersedes the xrefs produced by
@@ -1719,7 +1720,8 @@ Calls REPORT-FN directly."
                       collect
                       (flymake-make-diagnostic
                        (current-buffer)
-                       start end :note text)))
+                       (or start 1) (or end (1+ (or start 1)))
+                       :note text)))
     collected))
 
 (defun elisp-flymake--byte-compile-done (report-fn
@@ -1826,12 +1828,9 @@ Runs in a batch-mode Emacs.  Interactively use variable
   (interactive (list buffer-file-name))
   (let* ((file (or file
                    (car command-line-args-left)))
-         (dummy-elc-file)
          (byte-compile-log-buffer
           (generate-new-buffer " *dummy-byte-compile-log-buffer*"))
-         (byte-compile-dest-file-function
-          (lambda (source)
-            (setq dummy-elc-file (make-temp-file (file-name-nondirectory source)))))
+         (byte-compile-dest-file-function #'ignore)
          (collected)
          (byte-compile-log-warning-function
           (lambda (string &optional position fill level)
@@ -1841,7 +1840,6 @@ Runs in a batch-mode Emacs.  Interactively use variable
     (unwind-protect
         (byte-compile-file file)
       (ignore-errors
-        (delete-file dummy-elc-file)
         (kill-buffer byte-compile-log-buffer)))
     (prin1 :elisp-flymake-output-start)
     (terpri)

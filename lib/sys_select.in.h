@@ -1,5 +1,5 @@
 /* Substitute for <sys/select.h>.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -103,9 +103,16 @@
 /* Get definition of 'sigset_t'.
    But avoid namespace pollution on glibc systems and "unknown type
    name" problems on Cygwin.
+   On OS/2 kLIBC, sigset_t is defined in <sys/select.h>, too. In addition,
+   if <sys/param.h> is included, <types.h> -> <sys/types.h> -> <sys/select.h>
+   are included. Then <signal.h> -> <pthread.h> are included by GNULIB. By the
+   way, <pthread.h> requires PAGE_SIZE defined in <sys/param.h>. However,
+   <sys/param.h> has not been processed, yet. As a result, 'PAGE_SIZE'
+   undeclared error occurs in <pthread.h>.
    Do this after the include_next (for the sake of OpenBSD 5.0) but before
    the split double-inclusion guard (for the sake of Solaris).  */
-#if !((defined __GLIBC__ || defined __CYGWIN__) && !defined __UCLIBC__)
+#if !((defined __GLIBC__ || defined __CYGWIN__ || defined __KLIBC__) \
+      && !defined __UCLIBC__)
 # include <signal.h>
 #endif
 

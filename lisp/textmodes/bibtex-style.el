@@ -1,6 +1,6 @@
 ;;; bibtex-style.el --- Major mode for BibTeX Style files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tex
@@ -66,12 +66,12 @@
 ;;;###autoload
 (define-derived-mode bibtex-style-mode nil "BibStyle"
   "Major mode for editing BibTeX style files."
-  (set (make-local-variable 'comment-start) "%")
-  (set (make-local-variable 'outline-regexp) "^[a-z]")
-  (set (make-local-variable 'imenu-generic-expression)
-       '((nil "\\<\\(FUNCTION\\|MACRO\\)\\s-+{\\([^}\n]+\\)}" 2)))
-  (set (make-local-variable 'indent-line-function) 'bibtex-style-indent-line)
-  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (setq-local comment-start "%")
+  (setq-local outline-regexp "^[a-z]")
+  (setq-local imenu-generic-expression
+              '((nil "\\<\\(FUNCTION\\|MACRO\\)\\s-+{\\([^}\n]+\\)}" 2)))
+  (setq-local indent-line-function 'bibtex-style-indent-line)
+  (setq-local parse-sexp-ignore-comments t)
   (setq font-lock-defaults
 	'(bibtex-style-font-lock-keywords nil t
 	  ((?. . "w")))))

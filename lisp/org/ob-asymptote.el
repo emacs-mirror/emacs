@@ -1,6 +1,6 @@
 ;;; ob-asymptote.el --- Babel Functions for Asymptote -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -133,7 +133,5 @@ Otherwise, it is either `real', if some elements are floats, or
     (catch 'exit (funcall find-type data)) type))
 
 (provide 'ob-asymptote)
-
-
 
 ;;; ob-asymptote.el ends here

@@ -7,7 +7,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001--2021 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1097,10 +1097,9 @@ by @var{x} if specified.
 
 @defmac cl-pushnew x place @t{&key :test :test-not :key}
 This macro inserts @var{x} at the front of the list stored in
-@var{place}, but only if @var{x} was not @code{eql} to any
-existing element of the list.  The optional keyword arguments
-are interpreted in the same way as for @code{cl-adjoin}.
-@xref{Lists as Sets}.
+@var{place}, but only if @var{x} isn't present in the list already.
+The optional keyword arguments are interpreted in the same way as for
+@code{cl-adjoin}.  @xref{Lists as Sets}.
 @end defmac
 
 @defmac cl-shiftf place@dots{} newvalue
@@ -3796,8 +3795,10 @@ This is a destructive version of @code{cl-sublis}.
 @section Lists as Sets
 
 @noindent
-These functions perform operations on lists that represent sets
-of elements.
+These functions perform operations on lists that represent sets of
+elements.  All these functions (unless otherwise specified) default to
+using @code{eql} as the test function, but that can be modified by the
+@code{:test} parameter.
 
 @defun cl-member item list @t{&key :test :test-not :key}
 This function searches @var{list} for an element matching @var{item}.

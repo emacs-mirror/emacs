@@ -1,6 +1,6 @@
 ;;; erc-dcc.el --- CTCP DCC module for ERC
 
-;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2020 Free Software
+;; Copyright (C) 1993-1995, 1998, 2002-2004, 2006-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ben A. Mesander <ben@gnu.ai.mit.edu>
@@ -83,7 +83,8 @@ All values of the list must be uppercase strings.")
 
 (defvar erc-dcc-list nil
   "List of DCC connections. Looks like:
-  ((:nick \"nick!user@host\" :type GET :peer proc :parent proc :size size :file file)
+  ((:nick \"nick!user@host\" :type GET :peer proc
+    :parent proc :size size :file file)
    (:nick \"nick!user@host\" :type CHAT :peer proc :parent proc)
    (:nick \"nick\" :type SEND :peer server-proc :parent parent-proc :file
    file :sent <marker> :confirmed <marker>))

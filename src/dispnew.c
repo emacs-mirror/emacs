@@ -1,6 +1,6 @@
 /* Updating of data structures for redisplay.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -6057,6 +6057,8 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
   intmax_t sec;
   int nsec;
   bool do_display = display_option > 0;
+  bool curbuf_eq_winbuf
+    = (current_buffer == XBUFFER (XWINDOW (selected_window)->contents));
 
   swallow_events (do_display);
 
@@ -6110,6 +6112,13 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
 
   wait_reading_process_output (sec, nsec, reading ? -1 : 1, do_display,
 			       Qnil, NULL, 0);
+
+  if (reading && curbuf_eq_winbuf)
+    /* Timers and process filters/sentinels may have changed the selected
+       window (e.g. in response to a connection from emacsclient), in which
+       case we should follow it (unless we weren't in the selected-window's
+       buffer to start with).  */
+    set_buffer_internal (XBUFFER (XWINDOW (selected_window)->contents));
 
   return detect_input_pending () ? Qnil : Qt;
 }

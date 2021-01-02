@@ -1,6 +1,6 @@
 ;;; imap.el --- imap library  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: mail
@@ -190,7 +190,7 @@ until a successful connection is made."
   :type '(repeat string))
 
 (defcustom imap-process-connection-type nil
-  "Value for `process-connection-type' to use for Kerberos4, GSSAPI, shell, and SSL.
+  "Value for `process-connection-type' to use for Kerberos4, GSSAPI, shell and SSL.
 The `process-connection-type' variable controls the type of device
 used to communicate with subprocesses.  Values are nil to use a
 pipe, or t or `pty' to use a pty.  The value has no effect if the
@@ -1033,8 +1033,7 @@ necessary.  If nil, the buffer name is generated."
 	    (when (funcall (nth 1 (assq stream imap-stream-alist)) buffer)
 	      ;; Stream changed?
 	      (if (not (eq imap-default-stream stream))
-		  (with-current-buffer (get-buffer-create
-					(generate-new-buffer-name " *temp*"))
+                  (with-current-buffer (generate-new-buffer " *temp*")
 		    (mapc 'make-local-variable imap-local-variables)
 		    (set-buffer-multibyte nil)
 		    (buffer-disable-undo)

@@ -2,13 +2,13 @@
 @c texi/trampver.texi.  Generated from trampver.texi.in by configure.
 
 @c This is part of the Emacs manual.
-@c Copyright (C) 2003--2020 Free Software Foundation, Inc.
+@c Copyright (C) 2003--2021 Free Software Foundation, Inc.
 @c See file doclicense.texi for copying conditions.
 
 @c In the Tramp GIT, the version numbers are auto-frobbed from
 @c tramp.el, and the bug report address is auto-frobbed from
 @c configure.ac.
-@set trampver 2.5.0-pre
+@set trampver 2.5.0
 @set trampurl https://www.gnu.org/software/tramp/
 @set tramp-bug-report-address tramp-devel@@gnu.org
 @set emacsver 25.1

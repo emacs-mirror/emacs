@@ -1,6 +1,6 @@
 ;;; ob-fortran.el --- Babel Functions for Fortran    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Authors: Sergey Litvinov
 ;;       Eric Schulte
@@ -101,7 +101,8 @@ its header arguments."
 		     (concat
 		      ;; variables
 		      (mapconcat 'org-babel-fortran-var-to-fortran vars "\n")
-		      body) params)
+		      body)
+		     params)
 		  body) "\n") "\n")))
 
 (defun org-babel-fortran-ensure-main-wrap (body params)

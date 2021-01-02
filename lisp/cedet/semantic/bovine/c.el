@@ -1,6 +1,6 @@
 ;;; semantic/bovine/c.el --- Semantic details for C
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -368,7 +368,8 @@ Take the first interesting thing and convert it."
 
 (defun semantic-c-evaluate-symbol-for-hideif (spp-symbol)
   "Lookup the symbol SPP-SYMBOL (a string) to something hideif can use.
-Pulls out the symbol list, and call `semantic-c-convert-spp-value-to-hideif-value'."
+Pull out the symbol list, and call
+`semantic-c-convert-spp-value-to-hideif-value'."
   (interactive "sSymbol name: ")
   (when (symbolp spp-symbol) (setq spp-symbol (symbol-name spp-symbol)))
 

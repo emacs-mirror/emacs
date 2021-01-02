@@ -1,6 +1,6 @@
 ;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
@@ -242,7 +242,6 @@ global-level ERC button keys yet.")
 
 (defun erc-button-setup ()
   "Add ERC mode-level button movement keys.  This is only done once."
-  ;; Make XEmacs use `erc-button-face'.
   ;; Add keys.
   (unless erc-button-keys-added
     (define-key erc-mode-map (kbd "<backtab>") 'erc-button-previous)

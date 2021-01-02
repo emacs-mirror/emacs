@@ -1,6 +1,6 @@
 /* filemode.c -- make a string describing file modes
 
-   Copyright (C) 1985, 1990, 1993, 1998-2000, 2004, 2006, 2009-2020 Free
+   Copyright (C) 1985, 1990, 1993, 1998-2000, 2004, 2006, 2009-2021 Free
    Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -19,17 +19,6 @@
 #include <config.h>
 
 #include "filemode.h"
-
-/* The following is for Cray DMF (Data Migration Facility), which is a
-   HSM file system.  A migrated file has a 'st_dm_mode' that is
-   different from the normal 'st_mode', so any tests for migrated
-   files should use the former.  */
-#if HAVE_ST_DM_MODE
-# define IS_MIGRATED_FILE(statp) \
-    (S_ISOFD (statp->st_dm_mode) || S_ISOFL (statp->st_dm_mode))
-#else
-# define IS_MIGRATED_FILE(statp) 0
-#endif
 
 #if ! HAVE_DECL_STRMODE
 
@@ -126,7 +115,6 @@ strmode (mode_t mode, char *str)
         for files whose type cannot be determined solely from st_mode:
 
             'F' semaphore
-            'M' migrated file (Cray DMF)
             'Q' message queue
             'S' shared memory object
             'T' typed memory object
@@ -169,8 +157,6 @@ filemodestring (struct stat const *statp, char *str)
 
   if (S_TYPEISSEM (statp))
     str[0] = 'F';
-  else if (IS_MIGRATED_FILE (statp))
-    str[0] = 'M';
   else if (S_TYPEISMQ (statp))
     str[0] = 'Q';
   else if (S_TYPEISSHM (statp))

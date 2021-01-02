@@ -1,6 +1,6 @@
 ;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help
@@ -2473,7 +2473,7 @@ Table of contents is created from the tree structure of menus."
               (setq bound (or (and (equal nodename "Top")
                                    (save-excursion
                                      (re-search-forward
-                                      "^[ \t-]*The Detailed Node Listing" nil t)))
+                                      "^[ \t—-]*The Detailed Node Listing" nil t)))
                               bound))
               (while (< (point) bound)
                 (cond
@@ -3105,9 +3105,11 @@ See `Info-scroll-down'."
 (defun Info-next-reference-or-link (pat prop)
   "Move point to the next pattern-based cross-reference or property-based link.
 The next cross-reference is searched using the regexp PAT, and the next link
-is searched using the text property PROP.  Move point to the closest found position
-of either a cross-reference found by `re-search-forward' or a link found by
-`next-single-char-property-change'.  Return the new position of point, or nil."
+is searched using the text property PROP.  Move point to the closest found
+position of either a cross-reference found by `re-search-forward' or a link
+found by `next-single-char-property-change'.
+
+Return the new position of point, or nil."
   (let ((pxref (save-excursion (re-search-forward pat nil t)))
 	(plink (next-single-char-property-change (point) prop)))
     (when (and (< plink (point-max)) (not (get-char-property plink prop)))
@@ -3120,10 +3122,12 @@ of either a cross-reference found by `re-search-forward' or a link found by
 
 (defun Info-prev-reference-or-link (pat prop)
   "Move point to the previous pattern-based cross-reference or property-based link.
-The previous cross-reference is searched using the regexp PAT, and the previous link
-is searched using the text property PROP.  Move point to the closest found position
-of either a cross-reference found by `re-search-backward' or a link found by
-`previous-single-char-property-change'.  Return the new position of point, or nil."
+The previous cross-reference is searched using the regexp PAT, and the previous
+link is searched using the text property PROP.  Move point to the closest found
+position of either a cross-reference found by `re-search-backward' or a link
+found by `previous-single-char-property-change'.
+
+Return the new position of point, or nil."
   (let ((pxref (save-excursion (re-search-backward pat nil t)))
 	(plink (previous-single-char-property-change (point) prop)))
     (when (and (> plink (point-min)) (not (get-char-property plink prop)))
@@ -4790,10 +4794,10 @@ first line or header line, and for breadcrumb links.")
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-			(cond ((save-match-data (looking-back "\\<see"
+			(cond ((save-match-data (looking-back "\\(^\\| \\)see"
                                                               (- (point) 3)))
 			       "")
-			      ((save-match-data (looking-back "\\<in"
+			      ((save-match-data (looking-back "\\(^\\| \\)in"
                                                               (- (point) 2)))
 			       "")
 			      ((memq (char-before) '(nil ?\. ?! ??))

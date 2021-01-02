@@ -1,6 +1,6 @@
 ;;; exif.el --- parsing Exif data in JPEG images -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: images
@@ -165,7 +165,7 @@ If the orientation isn't present in the data, return nil."
       ;; Another magical number.
       (unless (= (exif--read-number 2 le) #x002a)
         (signal 'exif-error "Invalid TIFF header length"))
-      (let ((offset (exif--read-number 2 le)))
+      (let ((offset (exif--read-number 4 le)))
         ;; Jump to where the IFD (directory) starts and parse it.
         (when (> (1+ offset) (point-max))
           (signal 'exif-error "Invalid IFD (directory) offset"))

@@ -1,6 +1,6 @@
 /* Test GNU Emacs modules.
 
-Copyright 2015-2020 Free Software Foundation, Inc.
+Copyright 2015-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -699,6 +700,34 @@ Fmod_test_funcall (emacs_env *env, ptrdiff_t nargs, emacs_value *args,
   return env->funcall (env, args[0], nargs - 1, args + 1);
 }
 
+static emacs_value
+Fmod_test_make_string (emacs_env *env, ptrdiff_t nargs,
+                       emacs_value *args, void *data)
+{
+  assert (nargs == 2);
+  intmax_t length_arg = env->extract_integer (env, args[0]);
+  if (env->non_local_exit_check (env) != emacs_funcall_exit_return)
+    return args[0];
+  if (length_arg < 0 || SIZE_MAX < length_arg)
+    {
+      signal_error (env, "Invalid string length");
+      return args[0];
+    }
+  size_t length = (size_t) length_arg;
+  bool multibyte = env->is_not_nil (env, args[1]);
+  char *buffer = length == 0 ? NULL : malloc (length);
+  if (buffer == NULL && length != 0)
+    {
+      memory_full (env);
+      return args[0];
+    }
+  memset (buffer, 'a', length);
+  emacs_value ret = multibyte ? env->make_string (env, buffer, length)
+                              : env->make_unibyte_string (env, buffer, length);
+  free (buffer);
+  return ret;
+}
+
 /* Lisp utilities for easier readability (simple wrappers).  */
 
 /* Provide FEATURE to Emacs.  */
@@ -790,6 +819,7 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN ("mod-test-async-pipe", Fmod_test_async_pipe, 1, 1, NULL, NULL);
   DEFUN ("mod-test-funcall", Fmod_test_funcall, 1, emacs_variadic_function,
          NULL, NULL);
+  DEFUN ("mod-test-make-string", Fmod_test_make_string, 2, 2, NULL, NULL);
 
 #undef DEFUN
 

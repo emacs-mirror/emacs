@@ -1,11 +1,10 @@
 ;;; ob-abc.el --- Org Babel Functions for ABC -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: William Waites
 ;; Keywords: literate programming, music
-;; Homepage: http://www.tardis.ed.ac.uk/wwaites
-;; Version: 0.01
+;; Homepage: https://www.tardis.ed.ac.uk/~wwaites
 
 ;; This file is part of GNU Emacs.
 
@@ -87,4 +86,5 @@
   (error "ABC does not support sessions"))
 
 (provide 'ob-abc)
+
 ;;; ob-abc.el ends here

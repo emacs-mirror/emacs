@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Sequences Arrays Vectors
@@ -115,6 +115,21 @@ If you need to compute the width of a string on display, you should use
 @code{string-width} (@pxref{Size of Displayed Text}), not @code{length},
 since @code{length} only counts the number of characters, but does not
 account for the display width of each character.
+
+@defun length< sequence length
+Return non-@code{nil} if @var{sequence} is shorter than @var{length}.
+This may be more efficient than computing the length of @var{sequence}
+if @var{sequence} is a long list.
+@end defun
+
+@defun length> sequence length
+Return non-@code{nil} if @var{sequence} is longer than @var{length}.
+@end defun
+
+@defun length= sequence length
+Return non-@code{nil} if the length of @var{sequence} is equal to
+@var{length}.
+@end defun
 
 @defun elt sequence index
 @anchor{Definition of elt}

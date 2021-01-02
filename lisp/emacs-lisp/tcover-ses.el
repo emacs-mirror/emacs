@@ -1,6 +1,6 @@
 ;;;; testcover-ses.el -- Example use of `testcover' to test "SES"
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Keywords: spreadsheet lisp utility

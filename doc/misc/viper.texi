@@ -8,7 +8,7 @@
 @include docstyle.texi
 
 @copying
-Copyright @copyright{} 1995--1997, 2001--2020 Free Software Foundation,
+Copyright @copyright{} 1995--1997, 2001--2021 Free Software Foundation,
 Inc.
 
 @quotation

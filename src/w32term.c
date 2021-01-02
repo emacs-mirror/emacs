@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft Windows API.
 
-Copyright (C) 1989, 1993-2020 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1989,6 +1989,17 @@ w32_draw_image_foreground (struct glyph_string *s)
 			s->slice.width - 1, s->slice.height - 1);
 
   RestoreDC (s->hdc ,-1);
+}
+
+size_t
+w32_image_size (Emacs_Pixmap pixmap)
+{
+  BITMAP bm_info;
+  size_t rv = 0;
+
+  if (GetObject (pixmap, sizeof (BITMAP), &bm_info))
+    rv = bm_info.bmWidth * bm_info.bmHeight * bm_info.bmBitsPixel / 8;
+  return rv;
 }
 
 
@@ -4847,10 +4858,6 @@ w32_read_socket (struct terminal *terminal,
 		      inev.kind = DEICONIFY_EVENT;
 		      XSETFRAME (inev.frame_or_window, f);
 		    }
-		  else if (!NILP (Vframe_list) && !NILP (XCDR (Vframe_list)))
-		    /* Force a redisplay sooner or later to update the
-		       frame titles in case this is the second frame.  */
-		    record_asynch_buffer_change ();
 		}
 	      else
 		{
@@ -5468,12 +5475,6 @@ w32_read_socket (struct terminal *terminal,
 			inev.kind = DEICONIFY_EVENT;
 			XSETFRAME (inev.frame_or_window, f);
 		      }
-		    else if (! NILP (Vframe_list)
-			     && ! NILP (XCDR (Vframe_list)))
-		      /* Force a redisplay sooner or later
-			 to update the frame titles
-			 in case this is the second frame.  */
-		      record_asynch_buffer_change ();
 
 		  /* Windows can send us a SIZE_MAXIMIZED message even
 		     when fullscreen is fullboth.  The following is a
@@ -5521,12 +5522,6 @@ w32_read_socket (struct terminal *terminal,
 			inev.kind = DEICONIFY_EVENT;
 			XSETFRAME (inev.frame_or_window, f);
 		      }
-		    else if (! NILP (Vframe_list)
-			     && ! NILP (XCDR (Vframe_list)))
-		      /* Force a redisplay sooner or later
-			 to update the frame titles
-			 in case this is the second frame.  */
-		      record_asynch_buffer_change ();
 		  }
 
 		  if (EQ (get_frame_param (f, Qfullscreen), Qmaximized))
@@ -5818,9 +5813,6 @@ w32_read_socket (struct terminal *terminal,
 		    SET_FRAME_GARBAGED (f);
 		    DebPrint (("obscured frame %p (%s) found to be visible\n",
 			       f, SDATA (f->name)));
-
-		    /* Force a redisplay sooner or later.  */
-		    record_asynch_buffer_change ();
 		  }
 	      }
 	  }

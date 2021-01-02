@@ -1,6 +1,6 @@
 ;;; ox-beamer.el --- Beamer Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;;         Nicolas Goaziou <n.goaziou AT gmail DOT com>
@@ -731,7 +731,7 @@ channel."
   "Transcode a LINK object into Beamer code.
 CONTENTS is the description part of the link.  INFO is a plist
 used as a communication channel."
-  (or (org-export-custom-protocol-maybe link contents 'beamer)
+  (or (org-export-custom-protocol-maybe link contents 'beamer info)
       ;; Fall-back to LaTeX export.  However, prefer "\hyperlink" over
       ;; "\hyperref" since the former handles overlay specifications.
       (let ((latex-link (org-export-with-backend 'latex link contents info)))

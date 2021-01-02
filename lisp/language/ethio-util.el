@@ -1,6 +1,6 @@
 ;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8-emacs; -*-
 
-;; Copyright (C) 1997-1998, 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2002-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -113,17 +113,21 @@ vertically stacked dots.  All SERA <--> FIDEL converters refer this
 variable.")
 
 (defvar ethio-use-three-dot-question nil
-  "Non-nil means associate ASCII question mark with Ethiopic old style question mark (three vertically stacked dots).
+  "If non-nil, associate ASCII question mark with Ethiopic question mark.
+The Ethiopic old style question mark is three vertically stacked dots.
 If nil, associate ASCII question mark with Ethiopic stylized question
 mark.  All SERA <--> FIDEL converters refer this variable.")
 
 (defvar ethio-quote-vowel-always nil
-  "Non-nil means always put an apostrophe before an isolated vowel (except at word initial) in FIDEL --> SERA conversion.
+  "Non-nil means always put an apostrophe before an isolated vowel.
+This happens in FIDEL --> SERA conversions.  Isolated vowels at
+word beginning do not get an apostrophe put before them.
 If nil, put an apostrophe only between a 6th-form consonant and an
 isolated vowel.")
 
 (defvar ethio-W-sixth-always nil
-  "Non-nil means convert the Wu-form of a 12-form consonant to \"W'\" instead of \"Wu\" in FIDEL --> SERA conversion.")
+  "Non-nil means convert the Wu-form of a 12-form consonant to \"W'\".
+This is instead of \"Wu\" in FIDEL --> SERA conversion.")
 
 (defvar ethio-numeric-reduction 0
   "Degree of reduction in converting Ethiopic digits into Arabic digits.

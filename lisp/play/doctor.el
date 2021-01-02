@@ -1,6 +1,6 @@
 ;;; doctor.el --- psychological help for frustrated users
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2020 Free Software
+;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

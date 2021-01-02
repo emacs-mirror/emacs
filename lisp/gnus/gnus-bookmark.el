@@ -1,6 +1,6 @@
 ;;; gnus-bookmark.el --- Bookmarks in Gnus
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Keywords: news

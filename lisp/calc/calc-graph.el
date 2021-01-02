@@ -1,6 +1,6 @@
 ;;; calc-graph.el --- graph output functions for Calc  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1990-1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 
@@ -351,7 +351,7 @@
 	 (if (>= ver 3)
 	     (insert "set surface\nset nocontour\n"
 		     "set " (if calc-graph-is-splot "" "no") "parametric\n"
-		     "set notime\nset border\nset ztics\nset zeroaxis\n"
+		     "set notimestamp\nset border\nset ztics\nset zeroaxis\n"
 		     "set view 60,30,1,1\nset offsets 0,0,0,0\n"))
 	 (setq samples-pos (point))
 	 (insert "\n\n" str))

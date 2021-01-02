@@ -6,8 +6,10 @@
 # This implementation will be obsolete once we can assume Autoconf 2.70
 # or later is installed everywhere a Gnulib program might be developed.
 
+m4_version_prereq([2.70], [], [
 
-# Copyright (C) 2001-2020 Free Software Foundation, Inc.
+
+# Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -822,3 +824,6 @@ dnl Tru64	N/A (no support)
 dnl with extended modes being tried first.
 [[-std=gnu++11 -std=c++11 -std=gnu++0x -std=c++0x -qlanglvl=extended0x -AA]], [$1], [$2])[]dnl
 ])# _AC_PROG_CXX_CXX11
+
+
+])# m4_version_prereq

@@ -1000,10 +1000,10 @@ map_sub_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
    "mapping table" or a "deunifier table" of a certain charset.
 
    If CHARSET is not NULL (this is the case that `map-charset-chars'
-   is called with non-nil FROM-CODE and TO-CODE), it is a charset who
-   owns TABLE, and the function is called only on a character in the
+   is called with non-nil FROM-CODE and TO-CODE), it is a charset that
+   owns TABLE, and the function is called only for characters in the
    range FROM and TO.  FROM and TO are not character codes, but code
-   points of a character in CHARSET.
+   points of characters in CHARSET (see 'decode-char').
 
    This function is called in these two cases:
 

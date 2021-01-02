@@ -2,7 +2,7 @@
 #define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
-   Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -216,7 +216,7 @@ extern int sys_rename_replace (char const *, char const *, BOOL);
 extern int pipe2 (int *, int);
 extern void register_aux_fd (int);
 
-extern void set_process_dir (char *);
+extern void set_process_dir (const char *);
 extern int sys_spawnve (int, char *, char **, char **);
 extern void register_child (pid_t, int);
 

@@ -1,6 +1,6 @@
 ;;; battery.el --- display battery status information  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997-1998, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@ralph-schleicher.de>
 ;; Maintainer: emacs-devel@gnu.org
@@ -661,10 +661,12 @@ Intended as a UPower PropertiesChanged signal handler."
   (cond ((stringp battery-upower-device)
          (list battery-upower-device))
         (battery-upower-device)
-        ((dbus-call-method :system battery-upower-service
-                           battery-upower-path
-                           battery-upower-interface
-                           "EnumerateDevices"))))
+        ((dbus-ignore-errors
+           (dbus-call-method :system battery-upower-service
+                             battery-upower-path
+                             battery-upower-interface
+                             "EnumerateDevices"
+                             :timeout 1000)))))
 
 (defun battery--upower-state (props state)
   "Merge the UPower battery state in PROPS with STATE.

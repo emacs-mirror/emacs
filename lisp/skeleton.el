@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1996, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -312,10 +312,15 @@ automatically, and you are prompted to fill in the variable parts.")))
         (save-excursion (insert "\n")))
     (unwind-protect
 	(setq prompt (cond ((stringp prompt)
-                            (read-string (format prompt skeleton-subprompt)
-                                         (setq initial-input
-                                               (or initial-input
-                                                   (symbol-value 'input)))))
+                            ;; The user may issue commands to move
+                            ;; around (like `C-M-v').  Ensure that we
+                            ;; insert the skeleton at the correct
+                            ;; (initial) point.
+                            (save-excursion
+                              (read-string (format prompt skeleton-subprompt)
+                                           (setq initial-input
+                                                 (or initial-input
+                                                     (symbol-value 'input))))))
                            ((functionp prompt)
                             (funcall prompt))
                            (t (eval prompt))))

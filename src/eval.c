@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1987, 1993-1995, 1999-2020 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1999-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1731,11 +1731,16 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	return Qnil;
     }
 
-  /* If we're in batch mode, print a backtrace unconditionally to help with
-     debugging.  Make sure to use `debug' unconditionally to not interfere with
-     ERT or other packages that install custom debuggers.  */
+  /* If we're in batch mode, print a backtrace unconditionally to help
+     with debugging.  Make sure to use `debug' unconditionally to not
+     interfere with ERT or other packages that install custom
+     debuggers.  Don't try to call the debugger while dumping or
+     bootstrapping, it wouldn't work anyway.  */
   if (!debugger_called && !NILP (error_symbol)
-      && (NILP (clause) || EQ (h->tag_or_ch, Qerror)) && noninteractive)
+      && (NILP (clause) || EQ (h->tag_or_ch, Qerror))
+      && noninteractive && backtrace_on_error_noninteractive
+      && !will_dump_p () && !will_bootstrap_p ()
+      && NILP (Vinhibit_debugger))
     {
       ptrdiff_t count = SPECPDL_INDEX ();
       specbind (Vdebugger, Qdebug);
@@ -4263,6 +4268,14 @@ The Edebug package uses this to regain control.  */);
 Note that `debug-on-error', `debug-on-quit' and friends
 still determine whether to handle the particular condition.  */);
   Vdebug_on_signal = Qnil;
+
+  DEFVAR_BOOL ("backtrace-on-error-noninteractive",
+               backtrace_on_error_noninteractive,
+               doc: /* Non-nil means print backtrace on error in batch mode.
+If this is nil, errors in batch mode will just print the error
+message upon encountering an unhandled error, without showing
+the Lisp backtrace.  */);
+  backtrace_on_error_noninteractive = true;
 
   /* The value of num_nonmacro_input_events as of the last time we
    started to enter the debugger.  If we decide to enter the debugger

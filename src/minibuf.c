@@ -1,6 +1,6 @@
 /* Minibuffer input and completion.
 
-Copyright (C) 1985-1986, 1993-2020 Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1993-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -809,7 +809,7 @@ get_minibuffer (EMACS_INT depth)
       static char const name_fmt[] = " *Minibuf-%"pI"d*";
       char name[sizeof name_fmt + INT_STRLEN_BOUND (EMACS_INT)];
       AUTO_STRING_WITH_LEN (lname, name, sprintf (name, name_fmt, depth));
-      buf = Fget_buffer_create (lname);
+      buf = Fget_buffer_create (lname, Qnil);
 
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */

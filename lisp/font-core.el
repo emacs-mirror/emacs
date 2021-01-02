@@ -1,6 +1,6 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: languages, faces
@@ -160,8 +160,8 @@ this function onto `change-major-mode-hook'."
 (defun font-lock-default-function (mode)
   ;; Turn on Font Lock mode.
   (when mode
-    (set (make-local-variable 'char-property-alias-alist)
-	 (copy-tree char-property-alias-alist))
+    (setq-local char-property-alias-alist
+                (copy-tree char-property-alias-alist))
     ;; Add `font-lock-face' as an alias for the `face' property.
     (let ((elt (assq 'face char-property-alias-alist)))
       (if elt
@@ -171,8 +171,8 @@ this function onto `change-major-mode-hook'."
   ;; Turn off Font Lock mode.
   (unless mode
     ;; Remove `font-lock-face' as an alias for the `face' property.
-    (set (make-local-variable 'char-property-alias-alist)
-	 (copy-tree char-property-alias-alist))
+    (setq-local char-property-alias-alist
+                (copy-tree char-property-alias-alist))
     (let ((elt (assq 'face char-property-alias-alist)))
       (when elt
 	(setcdr elt (remq 'font-lock-face (cdr elt)))

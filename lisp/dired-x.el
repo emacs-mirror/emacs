@@ -1,6 +1,6 @@
 ;;; dired-x.el --- extra Dired functionality  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1993-1994, 1997, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1993-1994, 1997, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -636,7 +636,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   (dired-mode dirname (or switches dired-listing-switches))
   (setq mode-name "Virtual Dired"
         revert-buffer-function 'dired-virtual-revert)
-  (set (make-local-variable 'dired-subdir-alist) nil)
+  (setq-local dired-subdir-alist nil)
   (dired-build-subdir-alist)
   (goto-char (point-min))
   (dired-initial-position dirname))
@@ -1226,7 +1226,7 @@ Otherwise obeys the value of `dired-vm-read-only-folders'."
                              (and dired-vm-read-only-folders
                                   (not (file-writable-p fil)))))
     ;; So that pressing `v' inside VM does prompt within current directory:
-    (set (make-local-variable 'vm-folder-directory) dir)))
+    (setq-local vm-folder-directory dir)))
 
 (defun dired-rmail ()
   "Run RMAIL on this file."

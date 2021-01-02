@@ -1,6 +1,6 @@
 ;;; chartab-tests.el --- Tests for char-tab.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 
@@ -48,6 +48,26 @@
           (#x20000 . #x30000)
           (#xe0e00 . #xe0ef6)
           )))
+
+(ert-deftest chartab-test-char-table-p ()
+  (should (char-table-p (make-char-table 'foo)))
+  (should (not (char-table-p (make-hash-table)))))
+
+(ert-deftest chartab-test-char-table-subtype ()
+  (should (eq (char-table-subtype (make-char-table 'foo)) 'foo)))
+
+(ert-deftest chartab-test-char-table-parent ()
+  (should (eq (char-table-parent (make-char-table 'foo)) nil))
+  (let ((parent (make-char-table 'foo))
+        (child (make-char-table 'bar)))
+    (set-char-table-parent child parent)
+    (should (eq (char-table-parent child) parent))))
+
+(ert-deftest chartab-test-char-table-extra-slot ()
+  ;; Use any type with extra slots, e.g. 'case-table.
+  (let ((tbl (make-char-table 'case-table)))
+    (set-char-table-extra-slot tbl 1 'bar)
+    (should (eq (char-table-extra-slot tbl 1) 'bar))))
 
 (provide 'chartab-tests)
 ;;; chartab-tests.el ends here

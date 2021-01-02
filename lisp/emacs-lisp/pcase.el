@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -409,7 +409,8 @@ of the elements of LIST is performed as if by `pcase-let'.
       (dolist (case cases)
         (unless (or (memq case used-cases)
                     (memq (car case) pcase--dontwarn-upats))
-          (message "Redundant pcase pattern: %S" (car case))))
+          (message "pcase pattern %S shadowed by previous pcase pattern"
+                   (car case))))
       (macroexp-let* defs main))))
 
 (defun pcase--macroexpand (pat)

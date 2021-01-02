@@ -1,6 +1,6 @@
 /* Basic character set support.
 
-Copyright (C) 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
 Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
   2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -800,7 +800,9 @@ RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
 characters contained in CHARSET.
 
 The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
-range of code points (in CHARSET) of target characters.  */)
+range of code points (in CHARSET) of target characters.  Note that
+these are not character codes, but code points in CHARSET; for the
+difference see `decode-char' and `list-charset-chars'.  */)
   (Lisp_Object function, Lisp_Object charset, Lisp_Object arg, Lisp_Object from_code, Lisp_Object to_code)
 {
   struct charset *cs;

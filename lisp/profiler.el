@@ -1,6 +1,6 @@
 ;;; profiler.el --- UI and helper functions for Emacs's native profiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
 ;; Author: Tomohiro Matsuyama <tomo@cx4a.org>
 ;; Keywords: lisp
@@ -34,7 +34,7 @@
   :version "24.3"
   :prefix "profiler-")
 
-(defconst profiler-version "24.3")
+(defconst profiler-version "28.1")
 
 (defcustom profiler-sampling-interval 1000000
   "Default sampling interval in nanoseconds."
@@ -85,6 +85,9 @@
 		      (t
 		       (profiler-ensure-string arg)))
 	   for len = (length str)
+           if (zerop width)
+           collect str into frags
+           else
 	   if (< width len)
            collect (progn (put-text-property (max 0 (- width 2)) len
                                              'invisible 'profiler str)
@@ -445,14 +448,16 @@ Optional argument MODE means only check for the specified mode (cpu or mem)."
   :group 'profiler)
 
 (defvar profiler-report-cpu-line-format
-  '((50 left)
-    (24 right ((19 right)
-	       (5 right)))))
+  '((17 right ((12 right)
+	       (5 right)))
+    (1 left "%s")
+    (0 left)))
 
 (defvar profiler-report-memory-line-format
-  '((55 left)
-    (19 right ((14 right profiler-format-number)
-	       (5 right)))))
+  '((20 right ((15 right profiler-format-number)
+	       (5 right)))
+    (1 left "%s")
+    (0 left)))
 
 (defvar-local profiler-report-profile nil
   "The current profile.")
@@ -495,7 +500,11 @@ RET: expand or collapse"))
 (defun profiler-report-header-line-format (fmt &rest args)
   (let* ((header (apply #'profiler-format fmt args))
 	 (escaped (replace-regexp-in-string "%" "%%" header)))
-    (concat " " escaped)))
+    (concat
+     (propertize " "
+                 'display '(space :align-to 0)
+		 'face 'fixed-pitch)
+     escaped)))
 
 (defun profiler-report-line-format (tree)
   (let ((diff-p (profiler-profile-diff-p profiler-report-profile))
@@ -505,13 +514,14 @@ RET: expand or collapse"))
     (profiler-format (cl-ecase (profiler-profile-type profiler-report-profile)
 		       (cpu profiler-report-cpu-line-format)
 		       (memory profiler-report-memory-line-format))
-		     name-part
 		     (if diff-p
 			 (list (if (> count 0)
 				   (format "+%s" count)
 				 count)
 			       "")
-		       (list count count-percent)))))
+		       (list count count-percent))
+                     " "
+                     name-part)))
 
 (defun profiler-report-insert-calltree (tree)
   (let ((line (profiler-report-line-format tree)))
@@ -735,11 +745,11 @@ below entry at point."
 	    (cpu
 	     (profiler-report-header-line-format
 	      profiler-report-cpu-line-format
-	      "Function" (list "CPU samples" "%")))
+	      (list "Samples" "%") " " "  Function"))
 	    (memory
 	     (profiler-report-header-line-format
 	      profiler-report-memory-line-format
-	      "Function" (list "Bytes" "%")))))
+	      (list "Bytes" "%") " " "  Function"))))
     (let ((predicate (cl-ecase order
 		       (ascending #'profiler-calltree-count<)
 		       (descending #'profiler-calltree-count>))))

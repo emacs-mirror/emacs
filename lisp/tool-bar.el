@@ -1,6 +1,6 @@
 ;;; tool-bar.el --- setting up the tool bar  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -159,7 +159,8 @@ To define items in any other map, use `tool-bar-local-item'."
 		       ((< (display-color-cells) 256)
 			',(list xpm-lo-spec xpm-spec pbm-spec xbm-spec))
 		       (t
-			',(list xpm-spec pbm-spec xbm-spec))))))
+			',(list xpm-spec pbm-spec xbm-spec)))
+                 t)))
 
 ;;;###autoload
 (defun tool-bar-local-item (icon def key map &rest props)

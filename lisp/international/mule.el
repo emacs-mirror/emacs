@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for multilingual environment
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -307,12 +307,9 @@ Return t if file exists."
       (and (null noerror)
 	   (signal 'file-error (list "Cannot open load file" file)))
     ;; Read file with code conversion, and then eval.
-    (let* ((buffer
-            ;; We can't use `generate-new-buffer' because files.el
-            ;; is not yet loaded.
-            (get-buffer-create (generate-new-buffer-name " *load*")))
-	   (load-in-progress t)
-	   (source (save-match-data (string-match "\\.el\\'" fullname))))
+    (let ((buffer (generate-new-buffer " *load*"))
+          (load-in-progress t)
+          (source (string-suffix-p ".el" fullname)))
       (unless nomessage
 	(if source
 	    (message "Loading %s (source)..." file)

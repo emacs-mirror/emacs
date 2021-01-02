@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2020 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -251,7 +251,6 @@ get_current_dir_name (void)
   bufsize_max = min (bufsize_max, PATH_MAX);
 #endif
 
-  char *buf;
   struct stat dotstat, pwdstat;
   size_t pwdlen;
   /* If PWD is accurate, use it instead of calling getcwd.  PWD is
@@ -265,37 +264,23 @@ get_current_dir_name (void)
       && stat (".", &dotstat) == 0
       && dotstat.st_ino == pwdstat.st_ino
       && dotstat.st_dev == pwdstat.st_dev)
-    {
-      buf = xmalloc (strlen (pwd) + 1);
-      strcpy (buf, pwd);
-    }
+    return strdup (pwd);
   else
     {
-      size_t buf_size = 1024;
+      ptrdiff_t buf_size = min (bufsize_max, 1024);
       for (;;)
-        {
-	  int tmp_errno;
-	  buf = malloc (buf_size);
-	  if (! buf)
-	    break;
-          if (getcwd (buf, buf_size) == buf)
-            break;
-	  tmp_errno = errno;
+	{
+	  char *buf = malloc (buf_size);
+	  if (!buf)
+	    return NULL;
+	  if (getcwd (buf, buf_size) == buf)
+	    return buf;
 	  free (buf);
-	  if (tmp_errno != ERANGE)
-            {
-              errno = tmp_errno;
-              return NULL;
-            }
-          buf_size *= 2;
-	  if (! buf_size)
-	    {
-	      errno = ENOMEM;
-	      return NULL;
-	    }
-        }
+	  if (errno != ERANGE || buf_size == bufsize_max)
+	    return NULL;
+	  buf_size = buf_size <= bufsize_max / 2 ? 2 * buf_size : bufsize_max;
+	}
     }
-  return buf;
 }
 #endif
 

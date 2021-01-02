@@ -1,6 +1,6 @@
 ;;; cc-cmds.el --- user level commands for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -2357,7 +2357,7 @@ With a prefix arg, push the name onto the kill ring too."
 (put 'c-display-defun-name 'isearch-scroll t)
 
 (defun c-mark-function ()
-  "Put mark at end of the current top-level declaration or macro, point at beginning.
+  "Put mark at end of current top-level declaration or macro, point at beginning.
 If point is not inside any then the closest following one is
 chosen.  Each successive call of this command extends the marked
 region by one function.

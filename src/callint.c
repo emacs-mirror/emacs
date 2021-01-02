@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2020 Free Software
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2021 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -282,6 +282,11 @@ invoke it (via an `interactive' spec that contains, for instance, an
   Lisp_Object save_this_original_command = Vthis_original_command;
   Lisp_Object save_real_this_command = Vreal_this_command;
   Lisp_Object save_last_command = KVAR (current_kboard, Vlast_command);
+
+  /* Bound recursively so that code can check the current command from
+     code running from minibuffer hooks (and the like), without being
+     overwritten by subsequent minibuffer calls.  */
+  specbind (Qcurrent_minibuffer_command, Vthis_command);
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;

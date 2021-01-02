@@ -1,6 +1,6 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
-;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2020 Free Software
+;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

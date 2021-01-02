@@ -1,6 +1,6 @@
 ;;; org-colview.el --- Column View in Org            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -44,6 +44,8 @@
 (declare-function org-dynamic-block-define "org" (type func))
 (declare-function org-link-display-format "ol" (s))
 (declare-function org-link-open-from-string "ol" (s &optional arg))
+(declare-function face-remap-remove-relative "face-remap" (cookie))
+(declare-function face-remap-add-relative "face-remap" (face &rest specs))
 
 (defvar org-agenda-columns-add-appointments-to-effort-sum)
 (defvar org-agenda-columns-compute-summary-properties)
@@ -164,7 +166,7 @@ See `org-columns-summary-types' for details.")
 (org-defkey org-columns-map "o" 'org-overview)
 (org-defkey org-columns-map "e" 'org-columns-edit-value)
 (org-defkey org-columns-map "\C-c\C-t" 'org-columns-todo)
-(org-defkey org-columns-map "\C-c\C-c" 'org-columns-set-tags-or-toggle)
+(org-defkey org-columns-map "\C-c\C-c" 'org-columns-toggle-or-columns-quit)
 (org-defkey org-columns-map "\C-c\C-o" 'org-columns-open-link)
 (org-defkey org-columns-map "v" 'org-columns-show-value)
 (org-defkey org-columns-map "q" 'org-columns-quit)
@@ -257,6 +259,8 @@ value for ITEM property."
 					  (if org-hide-leading-stars ?\s ?*))
 			     "* "))))
 	   (concat stars (org-link-display-format value))))
+	(`(,(or "DEADLINE" "SCHEDULED" "TIMESTAMP") . ,_)
+	 (replace-regexp-in-string org-ts-regexp "[\\1]" value))
 	(`(,_ ,_ ,_ ,_ nil) value)
 	;; If PRINTF is set, assume we are displaying a number and
 	;; obey to the format string.
@@ -364,11 +368,18 @@ ORIGINAL is the real string, i.e., before it is modified by
               ("TODO" (propertize v 'face (org-get-todo-face original)))
               (_ v)))))
 
+(defvar org-columns-header-line-remap nil
+  "Store the relative remapping of column header-line.
+This is needed to later remove this relative remapping.")
+
 (defun org-columns--display-here (columns &optional dateline)
   "Overlay the current line with column display.
 COLUMNS is an alist (SPEC VALUE DISPLAYED).  Optional argument
 DATELINE is non-nil when the face used should be
 `org-agenda-column-dateline'."
+  (when (ignore-errors (require 'face-remap))
+    (setq org-columns-header-line-remap
+	  (face-remap-add-relative 'header-line '(:inherit default))))
   (save-excursion
     (beginning-of-line)
     (let* ((level-face (and (looking-at "\\(\\**\\)\\(\\* \\)")
@@ -378,8 +389,7 @@ DATELINE is non-nil when the face used should be
 			      (org-get-at-bol 'face))
 			 'default))
 	   (color (list :foreground (face-attribute ref-face :foreground)))
-	   (font (list :height (face-attribute 'default :height)
-		       :family (face-attribute 'default :family)))
+	   (font (list :family (face-attribute 'default :family)))
 	   (face (list color font 'org-column ref-face))
 	   (face1 (list color font 'org-agenda-column-dateline ref-face)))
       ;; Each column is an overlay on top of a character.  So there has
@@ -502,6 +512,9 @@ for the duration of the command.")
 (defun org-columns-remove-overlays ()
   "Remove all currently active column overlays."
   (interactive)
+  (when (and (fboundp 'face-remap-remove-relative)
+	     org-columns-header-line-remap)
+    (face-remap-remove-relative org-columns-header-line-remap))
   (when org-columns-overlays
     (when (local-variable-p 'org-previous-header-line-format)
       (setq header-line-format org-previous-header-line-format)
@@ -554,13 +567,19 @@ for the duration of the command.")
   (interactive "P")
   (org-columns-edit-value "TODO"))
 
-(defun org-columns-set-tags-or-toggle (&optional _arg)
-  "Toggle checkbox at point, or set tags for current headline."
-  (interactive "P")
-  (if (string-match "\\`\\[[ xX-]\\]\\'"
-		    (get-char-property (point) 'org-columns-value))
-      (org-columns-next-allowed-value)
-    (org-columns-edit-value "TAGS")))
+(defun org-columns-toggle-or-columns-quit ()
+  "Toggle checkbox at point, or quit column view."
+  (interactive)
+  (or (org-columns--toggle)
+      (org-columns-quit)))
+
+(defun org-columns--toggle ()
+  "Toggle checkbox at point.  Return non-nil if toggle happened, else nil.
+See info documentation about realizing a suitable checkbox."
+  (when (string-match "\\`\\[[ xX-]\\]\\'"
+		      (get-char-property (point) 'org-columns-value))
+    (org-columns-next-allowed-value)
+    t))
 
 (defvar org-overriding-columns-format nil
   "When set, overrides any other format definition for the agenda.
@@ -1550,7 +1569,10 @@ PARAMS is a property list of parameters:
 		     (id)))))
   (org-update-dblock))
 
-(org-dynamic-block-define "columnview" #'org-columns-insert-dblock)
+;;;###autoload
+(eval-after-load 'org
+  '(progn
+     (org-dynamic-block-define "columnview" #'org-columns-insert-dblock)))
 
 
 ;;; Column view in the agenda
@@ -1564,6 +1586,7 @@ PARAMS is a property list of parameters:
       (move-marker org-columns-begin-marker (point))
     (setq org-columns-begin-marker (point-marker)))
   (let* ((org-columns--time (float-time))
+	 (org-done-keywords org-done-keywords-for-agenda)
 	 (fmt
 	  (cond
 	   ((bound-and-true-p org-overriding-columns-format))
@@ -1613,6 +1636,7 @@ PARAMS is a property list of parameters:
 	  (dolist (entry cache)
 	    (goto-char (car entry))
 	    (org-columns--display-here (cdr entry)))
+	  (setq-local org-agenda-columns-active t)
 	  (when org-agenda-columns-show-summaries
 	    (org-agenda-colview-summarize cache)))))))
 
@@ -1677,8 +1701,7 @@ This will add overlays to the date lines, to show the summary for each day."
 					      'face 'bold final))
 			 (list spec final final)))))
 		  fmt)
-		 'dateline)
-		(setq-local org-agenda-columns-active t))))
+		 'dateline))))
 	  (if (bobp) (throw :complete t) (forward-line -1)))))))
 
 (defun org-agenda-colview-compute (fmt)
@@ -1703,5 +1726,9 @@ This will add overlays to the date lines, to show the summary for each day."
 
 
 (provide 'org-colview)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
 
 ;;; org-colview.el ends here

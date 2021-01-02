@@ -1,6 +1,6 @@
 ;;; url-proxy.el --- Proxy server support
 
-;; Copyright (C) 1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2021 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -59,7 +59,7 @@
      ((string-match "^socks +" proxy)
       (concat "socks://" (substring proxy (match-end 0))))
      (t
-      (display-warning 'url (format "Unknown proxy directive: %s" proxy) 'critical)
+      (display-warning 'url (format "Unknown proxy directive: %s" proxy) :error)
       nil))))
 
 (autoload 'url-http "url-http")

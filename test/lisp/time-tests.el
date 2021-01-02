@@ -1,6 +1,6 @@
 ;;; time-tests.el --- Tests for time.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Kangas <stefankangas@gmail.com>
 

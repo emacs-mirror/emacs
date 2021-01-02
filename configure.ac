@@ -4,7 +4,7 @@ dnl	autoconf
 dnl in the directory containing this script.
 dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl Copyright (C) 1994-1996, 1999-2020 Free Software Foundation, Inc.
+dnl Copyright (C) 1994-1996, 1999-2021 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -3291,7 +3291,12 @@ fi
 # Check for XRender
 HAVE_XRENDER=no
 if test "${HAVE_X11}" = "yes"; then
-  AC_CHECK_HEADER([X11/extensions/Xrender.h],
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM(
+       [[#include <X11/Intrinsic.h>
+	 #include <X11/extensions/Xrender.h>
+       ]],
+       [[return !XRenderQueryExtension;]])],
     [AC_CHECK_LIB([Xrender], [XRenderQueryExtension], [HAVE_XRENDER=yes])])
   if test $HAVE_XRENDER = yes; then
     XRENDER_LIBS="-lXrender"
@@ -4926,7 +4931,7 @@ case $opsys in
     AC_DEFINE(FIRST_PTY_LETTER, ['z'])
     AC_DEFINE(PTY_NAME_SPRINTF, [strcpy (pty_name, "/dev/ptmx");])
     dnl Push various streams modules onto a PTY channel.  Used in process.c.
-    AC_DEFINE(SETUP_SLAVE_PTY, [if (ioctl (forkin, I_PUSH, "ptem") == -1) fatal ("ioctl I_PUSH ptem"); if (ioctl (forkin, I_PUSH, "ldterm") == -1) fatal ("ioctl I_PUSH ldterm"); if (ioctl (forkin, I_PUSH, "ttcompat") == -1) fatal ("ioctl I_PUSH ttcompat");], [How to set up a slave PTY, if needed.])
+    AC_DEFINE(SETUP_SLAVE_PTY, [if (ioctl (std_in, I_PUSH, "ptem") == -1) fatal ("ioctl I_PUSH ptem"); if (ioctl (std_in, I_PUSH, "ldterm") == -1) fatal ("ioctl I_PUSH ldterm"); if (ioctl (std_in, I_PUSH, "ttcompat") == -1) fatal ("ioctl I_PUSH ttcompat");], [How to set up a slave PTY, if needed.])
     ;;
 esac
 
@@ -5215,7 +5220,7 @@ fi
 
 version=$PACKAGE_VERSION
 
-copyright="Copyright (C) 2020 Free Software Foundation, Inc."
+copyright="Copyright (C) 2021 Free Software Foundation, Inc."
 AC_DEFINE_UNQUOTED(COPYRIGHT, ["$copyright"],
   [Short copyright string for this version of Emacs.])
 AC_SUBST(copyright)
@@ -5491,7 +5496,7 @@ case "$opsys" in
    if test "$HAVE_NS" = "yes"; then
      libs_nsgui="-framework AppKit"
      if test "$NS_IMPL_COCOA" = "yes"; then
-        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon"
+        libs_nsgui="$libs_nsgui -framework IOKit -framework Carbon -framework IOSurface"
      fi
    else
      libs_nsgui=
@@ -5589,7 +5594,7 @@ AC_SUBST(WINDOW_SYSTEM_OBJ)
 
 AH_TOP([/* GNU Emacs site configuration template file.
 
-Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2020
+Copyright (C) 1988, 1993-1994, 1999-2002, 2004-2021
   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5877,6 +5882,12 @@ if test $AUTO_DEPEND = yes; then
    for dir in $AUTODEPEND_PARENTS; do
      AS_MKDIR_P([$dir/deps])
    done
+fi
+if $gl_gnulib_enabled_scratch_buffer; then
+  AS_MKDIR_P([lib/malloc])
+  if test $AUTO_DEPEND = yes; then
+    AS_MKDIR_P([lib/deps/malloc])
+  fi
 fi
 
 AC_OUTPUT

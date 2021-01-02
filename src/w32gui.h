@@ -1,5 +1,5 @@
 /* Definitions and headers for communication on the Microsoft Windows API.
-   Copyright (C) 1995, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -46,6 +46,7 @@ extern int w32_load_image (struct frame *f, struct image *img,
                            Lisp_Object spec_file, Lisp_Object spec_data);
 extern bool w32_can_use_native_image_api (Lisp_Object);
 extern void w32_gdiplus_shutdown (void);
+extern size_t w32_image_size (Emacs_Pixmap);
 
 #define FACE_DEFAULT (~0)
 

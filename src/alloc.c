@@ -1,6 +1,6 @@
 /* Storage allocation and gc for GNU Emacs Lisp interpreter.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2020 Free Software
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2021 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -664,7 +664,7 @@ display_malloc_warning (void)
   call3 (intern ("display-warning"),
 	 intern ("alloc"),
 	 build_string (pending_malloc_warning),
-	 intern ("emergency"));
+	 intern (":emergency"));
   pending_malloc_warning = 0;
 }
 
@@ -732,7 +732,11 @@ static void
 malloc_unblock_input (void)
 {
   if (block_input_in_memory_allocators)
-    unblock_input ();
+    {
+      int err = errno;
+      unblock_input ();
+      errno = err;
+    }
 }
 # define MALLOC_BLOCK_INPUT malloc_block_input ()
 # define MALLOC_UNBLOCK_INPUT malloc_unblock_input ()

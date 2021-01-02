@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: lisp, languages
@@ -38,7 +38,7 @@
 (define-abbrev-table 'lisp-mode-abbrev-table ()
   "Abbrev table for Lisp mode.")
 
-(defvar lisp--mode-syntax-table
+(defvar lisp-data-mode-syntax-table
   (let ((table (make-syntax-table))
         (i 0))
     (while (< i ?0)
@@ -77,11 +77,13 @@
     (modify-syntax-entry ?\\ "\\   " table)
     (modify-syntax-entry ?\( "()  " table)
     (modify-syntax-entry ?\) ")(  " table)
+    (modify-syntax-entry ?\[ "(]" table)
+    (modify-syntax-entry ?\] ")[" table)
     table)
   "Parent syntax table used in Lisp modes.")
 
 (defvar lisp-mode-syntax-table
-  (let ((table (make-syntax-table lisp--mode-syntax-table)))
+  (let ((table (make-syntax-table lisp-data-mode-syntax-table)))
     (modify-syntax-entry ?\[ "_   " table)
     (modify-syntax-entry ?\] "_   " table)
     (modify-syntax-entry ?# "' 14" table)
@@ -669,7 +671,7 @@ font-lock keywords will not be case sensitive."
 (define-derived-mode lisp-data-mode prog-mode "Lisp-Data"
   "Major mode for buffers holding data written in Lisp syntax."
   :group 'lisp
-  (lisp-mode-variables t t nil)
+  (lisp-mode-variables nil t nil)
   (setq-local electric-quote-string t)
   (setq imenu-case-fold-search nil))
 

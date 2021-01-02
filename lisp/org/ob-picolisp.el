@@ -1,6 +1,6 @@
 ;;; ob-picolisp.el --- Babel Functions for Picolisp  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Authors: Thorsten Jolitz
 ;;	 Eric Schulte
@@ -181,7 +181,5 @@ then create.  Return the initialized session."
           (current-buffer))))))
 
 (provide 'ob-picolisp)
-
-
 
 ;;; ob-picolisp.el ends here

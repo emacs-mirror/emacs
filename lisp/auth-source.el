@@ -1,6 +1,6 @@
 ;;; auth-source.el --- authentication sources for Gnus and Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news
@@ -2408,23 +2408,51 @@ MODE can be \"login\" or \"password\"."
     (list user password auth-info)))
 
 ;;; Tiny mode for editing .netrc/.authinfo modes (that basically just
-;;; hides passwords).
+;;; hides passwords and adds basic syntax highlighting).
 
 (defcustom authinfo-hidden "password"
   "Regexp matching elements in .authinfo/.netrc files that should be hidden."
   :type 'regexp
   :version "27.1")
 
+(defcustom authinfo-hide-elements t
+  "Whether to use `authinfo-hidden' to hide elements in authinfo files."
+  :type 'boolean
+  :version "28.1")
+
+(defvar authinfo--keywords
+  '(("^#.*" . font-lock-comment-face)
+    ("^\\(machine\\)[ \t]+\\([^ \t\n]+\\)"
+     (1 font-lock-variable-name-face)
+     (2 font-lock-builtin-face))
+    ("\\(login\\)[ \t]+\\([^ \t\n]+\\)"
+     (1 font-lock-comment-delimiter-face)
+     (2 font-lock-keyword-face))
+    ("\\(password\\)[ \t]+\\([^ \t\n]+\\)"
+     (1 font-lock-comment-delimiter-face)
+     (2 font-lock-doc-face))
+    ("\\(port\\)[ \t]+\\([^ \t\n]+\\)"
+     (1 font-lock-comment-delimiter-face)
+     (2 font-lock-type-face))
+    ("\\([^ \t\n]+\\)[, \t]+\\([^ \t\n]+\\)"
+     (1 font-lock-constant-face)
+     (2 nil))))
+
 ;;;###autoload
 (define-derived-mode authinfo-mode fundamental-mode "Authinfo"
   "Mode for editing .authinfo/.netrc files.
 
-This is just like `fundamental-mode', but hides passwords.  The
-passwords are revealed when point moved into the password.
+This is just like `fundamental-mode', but has basic syntax
+highlighting and hides passwords.  Passwords are revealed when
+point is moved into the passwords (see `authinfo-hide-elements').
 
 \\{authinfo-mode-map}"
-  (authinfo--hide-passwords (point-min) (point-max))
-  (reveal-mode))
+  (font-lock-add-keywords nil authinfo--keywords)
+  (setq-local comment-start "#")
+  (setq-local comment-end "")
+  (when authinfo-hide-elements
+    (authinfo--hide-passwords (point-min) (point-max))
+    (reveal-mode)))
 
 (defun authinfo--hide-passwords (start end)
   (save-excursion
@@ -2436,14 +2464,15 @@ passwords are revealed when point moved into the password.
                                 nil t)
         (when (auth-source-netrc-looking-at-token)
           (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
-            (overlay-put overlay 'display (propertize "****"
-                                                      'face 'warning))
+            (overlay-put overlay 'display
+                         (propertize "****" 'face 'font-lock-doc-face))
             (overlay-put overlay 'reveal-toggle-invisible
                          #'authinfo--toggle-display)))))))
 
 (defun authinfo--toggle-display (overlay hide)
   (if hide
-      (overlay-put overlay 'display (propertize "****" 'face 'warning))
+      (overlay-put overlay 'display
+                   (propertize "****" 'face 'font-lock-doc-face))
     (overlay-put overlay 'display nil)))
 
 (provide 'auth-source)

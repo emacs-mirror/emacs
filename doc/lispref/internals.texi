@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1993, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1993, 1998--1999, 2001--2021 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node GNU Emacs Internals
@@ -614,6 +614,19 @@ This variable contains the total number of seconds of elapsed time
 during garbage collection so far in this Emacs session, as a
 floating-point number.
 @end defvar
+
+@defun memory-report
+It can sometimes be useful to see where Emacs is using memory (in
+various variables, buffers, and caches).  This command will open a new
+buffer (called @samp{"*Memory Report*"}) that will give an overview,
+in addition to listing the ``largest'' buffers and variables.
+
+All the data here is approximate, because there's really no consistent
+way to compute the size of a variable.  For instance, two variables
+may share parts of a data structure, and this will be counted twice,
+but this command may still give a useful high-level overview of which
+parts of Emacs are using memory.
+@end defun
 
 @node Stack-allocated Objects
 @section Stack-allocated Objects
@@ -1851,7 +1864,10 @@ byte, is @var{len}.  The original string in @var{str} can be either an
 it can include embedded null bytes, and doesn't have to end in a
 terminating null byte at @code{@var{str}[@var{len}]}.  The function
 raises the @code{overflow-error} error condition if @var{len} is
-negative or exceeds the maximum length of an Emacs string.
+negative or exceeds the maximum length of an Emacs string.  If
+@var{len} is zero, then @var{str} can be @code{NULL}, otherwise it
+must point to valid memory.  For nonzero @var{len}, @code{make_string}
+returns unique mutable string objects.
 @end deftypefn
 
 @deftypefn Function emacs_value make_unibyte_string (emacs_env *@var{env}, const char *@var{str}, ptrdiff_t @var{len})
@@ -2375,6 +2391,15 @@ This flag indicates that narrowing has changed in the buffer.
 This flag indicates that redisplay optimizations should not be used to
 display this buffer.
 
+@item inhibit_buffer_hooks
+This flag indicates that the buffer should not run the hooks
+@code{kill-buffer-hook}, @code{kill-buffer-query-functions}
+(@pxref{Killing Buffers}), and @code{buffer-list-update-hook}
+(@pxref{Buffer List}).  It is set at buffer creation (@pxref{Creating
+Buffers}), and avoids slowing down internal or temporary buffers, such
+as those created by @code{with-temp-buffer} (@pxref{Definition of
+with-temp-buffer,, Current Buffer}).
+
 @item overlay_center
 This field holds the current overlay center position.  @xref{Managing
 Overlays}.
@@ -2387,8 +2412,6 @@ after the current overlay center.  @xref{Managing Overlays}.
 @code{overlays_before} is sorted in order of decreasing end position,
 and @code{overlays_after} is sorted in order of increasing beginning
 position.
-
-@c FIXME? the following are now all Lisp_Object BUFFER_INTERNAL_FIELD (foo).
 
 @item name
 A Lisp string that names the buffer.  It is guaranteed to be unique.

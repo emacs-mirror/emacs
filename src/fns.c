@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
 
-Copyright (C) 1985-1987, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1987, 1993-1995, 1997-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -105,9 +105,14 @@ list_length (Lisp_Object list)
 DEFUN ("length", Flength, Slength, 1, 1, 0,
        doc: /* Return the length of vector, list or string SEQUENCE.
 A byte-code function object is also allowed.
+
 If the string contains multibyte characters, this is not necessarily
 the number of bytes in the string; it is the number of characters.
-To get the number of bytes, use `string-bytes'.  */)
+To get the number of bytes, use `string-bytes'.
+
+If the length of a list is being computed to compare to a (small)
+number, the `length<', `length>' and `length=' functions may be more
+efficient.  */)
   (Lisp_Object sequence)
 {
   EMACS_INT val;
@@ -143,6 +148,75 @@ least the number of distinct elements.  */)
   FOR_EACH_TAIL_SAFE (list)
     len++;
   return make_fixnum (len);
+}
+
+static inline
+EMACS_INT length_internal (Lisp_Object sequence, int len)
+{
+  /* If LENGTH is short (arbitrarily chosen cut-off point), use a
+     fast loop that doesn't care about whether SEQUENCE is
+     circular or not. */
+  if (len < 0xffff)
+    while (CONSP (sequence))
+      {
+	if (--len <= 0)
+	  return -1;
+	sequence = XCDR (sequence);
+      }
+  /* Signal an error on circular lists. */
+  else
+    FOR_EACH_TAIL (sequence)
+      if (--len <= 0)
+	return -1;
+  return len;
+}
+
+DEFUN ("length<", Flength_less, Slength_less, 2, 2, 0,
+       doc: /* Return non-nil if SEQUENCE is shorter than LENGTH.
+See `length' for allowed values of SEQUENCE and how elements are
+counted.  */)
+  (Lisp_Object sequence, Lisp_Object length)
+{
+  CHECK_FIXNUM (length);
+  EMACS_INT len = XFIXNUM (length);
+
+  if (CONSP (sequence))
+    return length_internal (sequence, len) == -1? Qnil: Qt;
+  else
+    return XFIXNUM (Flength (sequence)) < len? Qt: Qnil;
+}
+
+DEFUN ("length>", Flength_greater, Slength_greater, 2, 2, 0,
+       doc: /* Return non-nil if SEQUENCE is longer than LENGTH.
+See `length' for allowed values of SEQUENCE and how elements are
+counted.  */)
+  (Lisp_Object sequence, Lisp_Object length)
+{
+  CHECK_FIXNUM (length);
+  EMACS_INT len = XFIXNUM (length);
+
+  if (CONSP (sequence))
+    return length_internal (sequence, len + 1) == -1? Qt: Qnil;
+  else
+    return XFIXNUM (Flength (sequence)) > len? Qt: Qnil;
+}
+
+DEFUN ("length=", Flength_equal, Slength_equal, 2, 2, 0,
+       doc: /* Return non-nil if SEQUENCE has length equal to LENGTH.
+See `length' for allowed values of SEQUENCE and how elements are
+counted.  */)
+  (Lisp_Object sequence, Lisp_Object length)
+{
+  CHECK_FIXNUM (length);
+  EMACS_INT len = XFIXNUM (length);
+
+  if (len < 0)
+    return Qnil;
+
+  if (CONSP (sequence))
+    return length_internal (sequence, len + 1) == 1? Qt: Qnil;
+  else
+    return XFIXNUM (Flength (sequence)) == len? Qt: Qnil;
 }
 
 DEFUN ("proper-list-p", Fproper_list_p, Sproper_list_p, 1, 1, 0,
@@ -4525,15 +4599,33 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 EMACS_UINT
 hash_string (char const *ptr, ptrdiff_t len)
 {
-  char const *p = ptr;
-  char const *end = p + len;
-  unsigned char c;
-  EMACS_UINT hash = 0;
+  EMACS_UINT const *p   = (EMACS_UINT const *) ptr;
+  EMACS_UINT const *end = (EMACS_UINT const *) (ptr + len);
+  EMACS_UINT hash = len;
+  /* At most 8 steps.  We could reuse SXHASH_MAX_LEN, of course,
+   * but dividing by 8 is cheaper.  */
+  ptrdiff_t step = 1 + ((end - p) >> 3);
 
-  while (p != end)
+  /* Beware: `end` might be unaligned, so `p < end` is not always the same
+   * as `p <= end - 1`.  */
+  while (p <= end - 1)
     {
-      c = *p++;
+      EMACS_UINT c = *p;
+      p += step;
       hash = sxhash_combine (hash, c);
+    }
+  if (p < end)
+    { /* A few last bytes remain (smaller than an EMACS_UINT).  */
+      /* FIXME: We could do this without a loop, but it'd require
+         endian-dependent code :-(  */
+      char const *p1 = (char const *)p;
+      char const *end1 = (char const *)end;
+      do
+        {
+          unsigned char c = *p1++;
+          hash = sxhash_combine (hash, c);
+        }
+      while (p1 < end1);
     }
 
   return hash;
@@ -5418,7 +5510,8 @@ disregarding any coding systems.  If nil, use the current buffer.
 
 This function is useful for comparing two buffers running in the same
 Emacs, but is not guaranteed to return the same hash between different
-Emacs versions.
+Emacs versions.  It should be somewhat more efficient on larger
+buffers than `secure-hash' is, and should not allocate more memory.
 
 It should not be used for anything security-related.  See
 `secure-hash' for these applications.  */ )
@@ -5551,6 +5644,40 @@ Case is always significant and text properties are ignored. */)
 
   return make_int (string_byte_to_char (haystack, res - SSDATA (haystack)));
 }
+
+static void
+collect_interval (INTERVAL interval, Lisp_Object collector)
+{
+  nconc2 (collector,
+	  list1(list3 (make_fixnum (interval->position),
+		       make_fixnum (interval->position + LENGTH (interval)),
+		       interval->plist)));
+}
+
+DEFUN ("object-intervals", Fobject_intervals, Sobject_intervals, 1, 1, 0,
+       doc: /* Return a copy of the text properties of OBJECT.
+OBJECT must be a buffer or a string.
+
+Altering this copy does not change the layout of the text properties
+in OBJECT.  */)
+  (register Lisp_Object object)
+{
+  Lisp_Object collector = Fcons (Qnil, Qnil);
+  INTERVAL intervals;
+
+  if (STRINGP (object))
+    intervals = string_intervals (object);
+  else if (BUFFERP (object))
+    intervals = buffer_intervals (XBUFFER (object));
+  else
+    wrong_type_argument (Qbuffer_or_string_p, object);
+
+  if (! intervals)
+    return Qnil;
+
+  traverse_intervals (intervals, 0, collect_interval, collector);
+  return CDR (collector);
+}
 
 
 void
@@ -5592,6 +5719,7 @@ syms_of_fns (void)
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
   defsubr (&Sstring_search);
+  defsubr (&Sobject_intervals);
 
   /* Crypto and hashing stuff.  */
   DEFSYM (Qiv_auto, "iv-auto");
@@ -5667,6 +5795,9 @@ this variable.  */);
   defsubr (&Srandom);
   defsubr (&Slength);
   defsubr (&Ssafe_length);
+  defsubr (&Slength_less);
+  defsubr (&Slength_greater);
+  defsubr (&Slength_equal);
   defsubr (&Sproper_list_p);
   defsubr (&Sstring_bytes);
   defsubr (&Sstring_distance);

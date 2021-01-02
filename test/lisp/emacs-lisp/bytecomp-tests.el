@@ -1,6 +1,6 @@
 ;;; bytecomp-tests.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Shigeru Fukaya <shigeru.fukaya@gmail.com>
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
@@ -540,6 +540,16 @@ Subtests signal errors if something goes wrong."
   (bytecomp--with-warning-test "foo.*lacks a prefix"
     '(defvar foo nil)))
 
+(defvar bytecomp-tests--docstring (make-string 100 ?x))
+
+(ert-deftest bytecomp-warn-wide-docstring/defconst ()
+  (bytecomp--with-warning-test "defconst.*foo.*wider than.*characters"
+    `(defconst foo t ,bytecomp-tests--docstring)))
+
+(ert-deftest bytecomp-warn-wide-docstring/defvar ()
+  (bytecomp--with-warning-test "defvar.*foo.*wider than.*characters"
+    `(defvar foo t ,bytecomp-tests--docstring)))
+
 (defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
   `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()
      :expected-result ,(if reverse :failed :passed)
@@ -638,6 +648,67 @@ Subtests signal errors if something goes wrong."
 
 (bytecomp--define-warning-file-test "warn-variable-set-nonvariable.el"
                             "variable reference to nonvariable")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-autoload.el"
+ "autoload.*foox.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-custom-declare-variable.el"
+ "custom-declare-variable.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defalias.el"
+ "defalias.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defconst.el"
+ "defconst.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-define-abbrev-table.el"
+ "define-abbrev.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-define-obsolete-function-alias.el"
+ "defalias.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-define-obsolete-variable-alias.el"
+ "defvaralias.*foo.*wider than.*characters")
+
+;; TODO: We don't yet issue warnings for defuns.
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defun.el"
+ "wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defvar.el"
+ "defvar.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-defvaralias.el"
+ "defvaralias.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-ignore-fill-column.el"
+ "defvar.*foo.*wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-ignore-override.el"
+ "defvar.*foo.*wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-ignore.el"
+ "defvar.*foo.*wider than.*characters" 'reverse)
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-multiline-first.el"
+ "defvar.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "warn-wide-docstring-multiline.el"
+ "defvar.*foo.*wider than.*characters")
 
 
 ;;;; Macro expansion.
@@ -946,6 +1017,90 @@ literals (Bug#20852)."
         nil))
    '((suspicious set-buffer))
    "Warning: Use .with-current-buffer. rather than"))
+
+(ert-deftest bytecomp-tests--not-writable-directory ()
+  "Test that byte compilation works if the output directory isn't
+writable (Bug#44631)."
+  (let ((directory (make-temp-file "bytecomp-tests-" :directory)))
+    (unwind-protect
+        (let* ((input-file (expand-file-name "test.el" directory))
+               (output-file (expand-file-name "test.elc" directory))
+               (byte-compile-dest-file-function
+                (lambda (_) output-file))
+               (byte-compile-error-on-warn t))
+          (write-region "" nil input-file nil nil nil 'excl)
+          (write-region "" nil output-file nil nil nil 'excl)
+          (set-file-modes input-file #o400)
+          (set-file-modes output-file #o200)
+          (set-file-modes directory #o500)
+          (should (byte-compile-file input-file))
+          (should (file-regular-p output-file))
+          (should (cl-plusp (file-attribute-size
+                             (file-attributes output-file)))))
+      (with-demoted-errors "Error cleaning up directory: %s"
+        (set-file-modes directory #o700)
+        (delete-directory directory :recursive)))))
+
+(ert-deftest bytecomp-tests--dest-mountpoint ()
+  "Test that byte compilation works if the destination file is a
+mountpoint (Bug#44631)."
+  (let ((bwrap (executable-find "bwrap"))
+        (emacs (expand-file-name invocation-name invocation-directory)))
+    (skip-unless bwrap)
+    (skip-unless (file-executable-p bwrap))
+    (skip-unless (not (file-remote-p bwrap)))
+    (skip-unless (file-executable-p emacs))
+    (skip-unless (not (file-remote-p emacs)))
+    (let ((directory (make-temp-file "bytecomp-tests-" :directory)))
+      (unwind-protect
+          (let* ((input-file (expand-file-name "test.el" directory))
+                 (output-file (expand-file-name "test.elc" directory))
+                 (unquoted-file (file-name-unquote output-file))
+                 (byte-compile-dest-file-function
+                  (lambda (_) output-file))
+                 (byte-compile-error-on-warn t))
+            (should-not (file-remote-p input-file))
+            (should-not (file-remote-p output-file))
+            (write-region "" nil input-file nil nil nil 'excl)
+            (write-region "" nil output-file nil nil nil 'excl)
+            (set-file-modes input-file #o400)
+            (set-file-modes output-file #o200)
+            (set-file-modes directory #o500)
+            (with-temp-buffer
+              (let ((status (call-process
+                             bwrap nil t nil
+                             "--ro-bind" "/" "/"
+                             "--bind" unquoted-file unquoted-file
+                             emacs "--quick" "--batch" "--load=bytecomp"
+                             (format "--eval=%S"
+                                     `(setq byte-compile-dest-file-function
+                                            (lambda (_) ,output-file)
+                                            byte-compile-error-on-warn t))
+                             "--funcall=batch-byte-compile" input-file)))
+                (unless (eql status 0)
+                  (ert-fail `((status . ,status)
+                              (output . ,(buffer-string)))))))
+            (should (file-regular-p output-file))
+            (should (cl-plusp (file-attribute-size
+                               (file-attributes output-file)))))
+        (with-demoted-errors "Error cleaning up directory: %s"
+          (set-file-modes directory #o700)
+          (delete-directory directory :recursive))))))
+
+(ert-deftest bytecomp-tests--target-file-no-directory ()
+  "Check that Bug#45287 is fixed."
+  (let ((directory (make-temp-file "bytecomp-tests-" :directory)))
+    (unwind-protect
+        (let* ((default-directory directory)
+               (byte-compile-dest-file-function (lambda (_) "test.elc"))
+               (byte-compile-error-on-warn t))
+          (write-region "" nil "test.el" nil nil nil 'excl)
+          (should (byte-compile-file "test.el"))
+          (should (file-regular-p "test.elc"))
+          (should (cl-plusp (file-attribute-size
+                             (file-attributes "test.elc")))))
+      (with-demoted-errors "Error cleaning up directory: %s"
+        (delete-directory directory :recursive)))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

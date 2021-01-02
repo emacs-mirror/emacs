@@ -1,6 +1,6 @@
 ;;; korea-util.el --- utilities for Korean
 
-;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
 ;;   2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -70,27 +70,24 @@
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (toggle-korean-input-method))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
   (isearch-update))
 
 (defun isearch-hangul-switch-symbol-ksc ()
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (quail-hangul-switch-symbol-ksc))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
   (isearch-update))
 
 (defun isearch-hangul-switch-hanja ()
   (interactive)
   (let ((overriding-terminal-local-map nil))
     (quail-hangul-switch-hanja))
-  (setq isearch-input-method-function input-method-function
-	isearch-input-method-local-p t)
-  (setq input-method-function nil)
+  (setq isearch-input-method-function input-method-function)
+  (setq-local input-method-function nil)
   (isearch-update))
 
 ;; Information for setting and exiting Korean environment.

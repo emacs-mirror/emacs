@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -158,9 +158,6 @@ When called interactively, a Tramp connection has to be selected."
   "Flush all Tramp internal objects.
 This includes password cache, file cache, connection cache, buffers."
   (interactive)
-
-  ;; Unlock Tramp.
-  (setq tramp-locked nil)
 
   ;; Flush password cache.
   (password-reset)

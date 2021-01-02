@@ -1,6 +1,6 @@
 ;;; check-declare.el --- Check declare-function statements  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Glenn Morris <rgm@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

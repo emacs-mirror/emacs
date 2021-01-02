@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2020 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1994, 2001-2021 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -204,14 +204,19 @@ LIBRESOLV=@LIBRESOLV@
 LIBS_MAIL=@LIBS_MAIL@
 ## empty or -lrt or -lposix4 if HAVE_CLOCK_GETTIME
 LIB_CLOCK_GETTIME = @LIB_CLOCK_GETTIME@
+## empty or -lbcrypt or -ladvapi32
+LIB_GETRANDOM = @LIB_GETRANDOM@
 ## Whatever libraries are needed for euidaccess
 LIB_EACCESS=@LIB_EACCESS@
 ## empty or -lwsock2 for MinGW
 LIB_WSOCK32=@LIB_WSOCK32@
 
+## Extra libraries for etags
+LIBS_ETAGS = $(LIB_CLOCK_GETTIME) $(LIB_GETRANDOM)
+
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
-            $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV) $(LIB_WSOCK32)
+  $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV) $(LIB_WSOCK32) $(LIBS_ETAGS)
 
 ## Extra libraries when linking emacsclient
 ## (empty or -lcomctl32 for MinGW)
@@ -360,7 +365,7 @@ TAGS: etags${EXEEXT} ${tagsfiles}
 	$(MAKE) -C ../lib all
 
 etags_deps = ${srcdir}/etags.c $(NTLIB) $(config_h)
-etags_libs = $(NTLIB) $(LOADLIBES)
+etags_libs = $(NTLIB) $(LOADLIBES) $(LIBS_ETAGS)
 
 etags${EXEEXT}: ${etags_deps}
 	$(AM_V_CCLD)$(CC) ${ALL_CFLAGS} -o $@ $< $(etags_libs)

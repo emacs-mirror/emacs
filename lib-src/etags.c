@@ -28,7 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2020 Free Software
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2021 Free Software
 Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -1643,19 +1643,10 @@ process_file_name (char *file, language *lang)
 	  char *cmd = concat (cmd1, "' > ", tmp_name);
 #endif
 	  free (cmd1);
-	  int tmp_errno;
-	  if (system (cmd) == -1)
-	    {
-	      inf = NULL;
-	      tmp_errno = EINVAL;
-	    }
-	  else
-	    {
-	      inf = fopen (tmp_name, "r" FOPEN_BINARY);
-	      tmp_errno = errno;
-	    }
+	  inf = (system (cmd) == -1
+		 ? NULL
+		 : fopen (tmp_name, "r" FOPEN_BINARY));
 	  free (cmd);
-	  errno = tmp_errno;
 	}
 
       if (!inf)
@@ -6063,6 +6054,7 @@ Erlang_functions (FILE *inf)
 	    {
 	      free (last);
 	      last = NULL;
+	      allocated = lastlen = 0;
 	    }
 	}
       else
@@ -7067,9 +7059,7 @@ etags_mktmp (void)
   int fd = mkostemp (templt, O_CLOEXEC);
   if (fd < 0 || close (fd) != 0)
     {
-      int temp_errno = errno;
       free (templt);
-      errno = temp_errno;
       templt = NULL;
     }
 #if defined (DOS_NT)

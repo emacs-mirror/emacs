@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1988, 1994, 1996, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1988, 1994, 1996, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>

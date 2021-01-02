@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1114,7 +1114,8 @@ static ptrdiff_t display_count_lines (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 static void pint2str (register char *, register int, register ptrdiff_t);
 
 static int display_string (const char *, Lisp_Object, Lisp_Object,
-                           ptrdiff_t, ptrdiff_t, struct it *, int, int, int, int);
+                           ptrdiff_t, ptrdiff_t, struct it *, int, int, int,
+			   int);
 static void compute_line_metrics (struct it *);
 static void run_redisplay_end_trigger_hook (struct it *);
 static bool get_overlay_strings (struct it *, ptrdiff_t);
@@ -1925,12 +1926,12 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  /* If it3_moved stays false after the 'while' loop
 		     below, that means we already were at a newline
 		     before the loop (e.g., the display string begins
-		     with a newline), so we don't need to (and cannot)
-		     inspect the glyphs of it3.glyph_row, because
-		     PRODUCE_GLYPHS will not produce anything for a
-		     newline, and thus it3.glyph_row stays at its
-		     stale content it got at top of the window.  */
+		     with a newline), so we don't need to return to
+		     the last position before the display string,
+		     because PRODUCE_GLYPHS will not produce anything
+		     for a newline.  */
 		  bool it3_moved = false;
+		  int top_x_before_string = it3.current_x;
 		  /* Finally, advance the iterator until we hit the
 		     first display element whose character position is
 		     CHARPOS, or until the first newline from the
@@ -1938,6 +1939,8 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		     display line.  */
 		  while (get_next_display_element (&it3))
 		    {
+		      if (!EQ (it3.object, string))
+			top_x_before_string = it3.current_x;
 		      PRODUCE_GLYPHS (&it3);
 		      if (IT_CHARPOS (it3) == charpos
 			  || ITERATOR_AT_END_OF_LINE_P (&it3))
@@ -1952,32 +1955,26 @@ pos_visible_p (struct window *w, ptrdiff_t charpos, int *x, int *y,
 		  if (!it3.line_number_produced_p)
 		    {
 		      if (it3.lnum_pixel_width > 0)
-			top_x += it3.lnum_pixel_width;
+			{
+			  top_x += it3.lnum_pixel_width;
+			  top_x_before_string += it3.lnum_pixel_width;
+			}
 		      else if (it.line_number_produced_p)
-			top_x += it.lnum_pixel_width;
+			{
+			  top_x += it.lnum_pixel_width;
+			  top_x_before_string += it3.lnum_pixel_width;
+			}
 		    }
 		  /* Normally, we would exit the above loop because we
 		     found the display element whose character
 		     position is CHARPOS.  For the contingency that we
 		     didn't, and stopped at the first newline from the
-		     display string, move back over the glyphs
-		     produced from the string, until we find the
-		     rightmost glyph not from the string.  */
+		     display string, reset top_x to the coordinate of
+		     the rightmost glyph not from the string.  */
 		  if (it3_moved
 		      && newline_in_string
 		      && IT_CHARPOS (it3) != charpos && EQ (it3.object, string))
-		    {
-		      struct glyph *g = it3.glyph_row->glyphs[TEXT_AREA]
-					+ it3.glyph_row->used[TEXT_AREA];
-
-		      while (EQ ((g - 1)->object, string))
-			{
-			  --g;
-			  top_x -= g->pixel_width;
-			}
-		      eassert (g < it3.glyph_row->glyphs[TEXT_AREA]
-				    + it3.glyph_row->used[TEXT_AREA]);
-		    }
+		    top_x = top_x_before_string;
 		}
 	    }
 
@@ -9961,7 +9958,27 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 		{
 		  skip = skip2;
 		  if (skip == MOVE_POS_MATCH_OR_ZV)
-		    reached = 7;
+		    {
+		      reached = 7;
+		      /* If the last move_it_in_display_line_to call
+			 took us away from TO_CHARPOS, back up to the
+			 previous position, as it is a better
+			 approximation of TO_CHARPOS.  (Note that we
+			 could have both positions after TO_CHARPOS or
+			 both positions before it, due to bidi
+			 reordering.)  */
+		      if (IT_CHARPOS (*it) != to_charpos
+			  && ((IT_CHARPOS (it_backup) > to_charpos)
+			      == (IT_CHARPOS (*it) > to_charpos)))
+			{
+			  int max_ascent = it->max_ascent;
+			  int max_descent = it->max_descent;
+
+			  RESTORE_IT (it, &it_backup, backup_data);
+			  it->max_ascent = max_ascent;
+			  it->max_descent = max_descent;
+			}
+		    }
 		}
 	    }
 	  else
@@ -10305,11 +10322,22 @@ move_it_vertically_backward (struct it *it, int dy)
 	    move_it_vertically (it, target_y - it->current_y);
 	  else
 	    {
+	      struct text_pos last_pos;
+	      int last_y, last_vpos;
 	      do
 		{
+		  last_pos = it->current.pos;
+		  last_y = it->current_y;
+		  last_vpos = it->vpos;
 		  move_it_by_lines (it, 1);
 		}
-	      while (target_y >= line_bottom_y (it) && IT_CHARPOS (*it) < ZV);
+	      while (target_y > it->current_y && IT_CHARPOS (*it) < ZV);
+	      if (it->current_y > target_y)
+		{
+		  reseat (it, last_pos, true);
+		  it->current_y = last_y;
+		  it->vpos = last_vpos;
+		}
 	    }
 	}
     }
@@ -10853,7 +10881,7 @@ message_dolog (const char *m, ptrdiff_t nbytes, bool nlflag, bool multibyte)
       /* Ensure the Messages buffer exists, and switch to it.
          If we created it, set the major-mode.  */
       bool newbuffer = NILP (Fget_buffer (Vmessages_buffer_name));
-      Fset_buffer (Fget_buffer_create (Vmessages_buffer_name));
+      Fset_buffer (Fget_buffer_create (Vmessages_buffer_name, Qnil));
       if (newbuffer
 	  && !NILP (Ffboundp (intern ("messages-buffer-mode"))))
 	call0 (intern ("messages-buffer-mode"));
@@ -11339,7 +11367,7 @@ ensure_echo_area_buffers (void)
 	static char const name_fmt[] = " *Echo Area %d*";
 	char name[sizeof name_fmt + INT_STRLEN_BOUND (int)];
 	AUTO_STRING_WITH_LEN (lname, name, sprintf (name, name_fmt, i));
-	echo_buffer[i] = Fget_buffer_create (lname);
+	echo_buffer[i] = Fget_buffer_create (lname, Qnil);
 	bset_truncate_lines (XBUFFER (echo_buffer[i]), Qnil);
 	/* to force word wrap in echo area -
 	   it was decided to postpone this*/
@@ -11755,9 +11783,10 @@ resize_mini_window (struct window *w, bool exact_p)
     return false;
 
   /* By default, start display at the beginning.  */
-  set_marker_both (w->start, w->contents,
-		   BUF_BEGV (XBUFFER (w->contents)),
-		   BUF_BEGV_BYTE (XBUFFER (w->contents)));
+  if (redisplay_adhoc_scroll_in_resize_mini_windows)
+    set_marker_both (w->start, w->contents,
+		     BUF_BEGV (XBUFFER (w->contents)),
+		     BUF_BEGV_BYTE (XBUFFER (w->contents)));
 
   /* Nil means don't try to resize.  */
   if ((NILP (Vresize_mini_windows)
@@ -11816,27 +11845,32 @@ resize_mini_window (struct window *w, bool exact_p)
       if (height > max_height)
 	{
 	  height = (max_height / unit) * unit;
-	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
-	  move_it_vertically_backward (&it, height - unit);
-	  /* The following move is usually a no-op when the stuff
-	     displayed in the mini-window comes entirely from buffer
-	     text, but it is needed when some of it comes from overlay
-	     strings, especially when there's an after-string at ZV.
-	     This happens with some completion packages, like
-	     icomplete, ido-vertical, etc.  With those packages, if we
-	     don't force w->start to be at the beginning of a screen
-	     line, important parts of the stuff in the mini-window,
-	     such as user prompt, will be hidden from view.  */
-	  move_it_by_lines (&it, 0);
-	  start = it.current.pos;
-	  /* Prevent redisplay_window from recentering, and thus from
-	     overriding the window-start point we computed here.  */
-	  w->start_at_line_beg = false;
+	  if (redisplay_adhoc_scroll_in_resize_mini_windows)
+	    {
+	      init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
+	      move_it_vertically_backward (&it, height - unit);
+              /* The following move is usually a no-op when the stuff
+                 displayed in the mini-window comes entirely from buffer
+                 text, but it is needed when some of it comes from overlay
+                 strings, especially when there's an after-string at ZV.
+                 This happens with some completion packages, like
+                 icomplete, ido-vertical, etc.  With those packages, if we
+                 don't force w->start to be at the beginning of a screen
+                 line, important parts of the stuff in the mini-window,
+                 such as user prompt, will be hidden from view.  */
+              move_it_by_lines (&it, 0);
+              start = it.current.pos;
+              /* Prevent redisplay_window from recentering, and thus from
+                 overriding the window-start point we computed here.  */
+              w->start_at_line_beg = false;
+              SET_MARKER_FROM_TEXT_POS (w->start, start);
+            }
 	}
       else
-	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
-
-      SET_MARKER_FROM_TEXT_POS (w->start, start);
+	{
+	  SET_TEXT_POS (start, BEGV, BEGV_BYTE);
+          SET_MARKER_FROM_TEXT_POS (w->start, start);
+        }
 
       if (EQ (Vresize_mini_windows, Qgrow_only))
 	{
@@ -25418,14 +25452,62 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 			 format_mode_line_unwind_data (NULL, NULL,
 						       Qnil, false));
 
-  mode_line_target = MODE_LINE_DISPLAY;
-
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
   push_kboard (FRAME_KBOARD (it.f));
   record_unwind_save_match_data ();
-  display_mode_element (&it, 0, 0, 0, format, Qnil, false);
+
+  if (NILP (Vmode_line_compact))
+    {
+      mode_line_target = MODE_LINE_DISPLAY;
+      display_mode_element (&it, 0, 0, 0, format, Qnil, false);
+    }
+  else
+    {
+      Lisp_Object mode_string = Fformat_mode_line (format, Qnil, Qnil, Qnil);
+      if (EQ (Vmode_line_compact, Qlong)
+	  && WINDOW_TOTAL_COLS (w) >= SCHARS (mode_string))
+	{
+	  /* The window is wide enough; just display the mode line we
+	     just computed. */
+	  display_string (NULL, mode_string, Qnil,
+			  0, 0, &it, 0, 0, 0,
+			  STRING_MULTIBYTE (mode_string));
+	}
+      else
+	{
+	  /* Compress the mode line. */
+	  ptrdiff_t i = 0, i_byte = 0, start = 0;
+	  int prev = 0;
+
+	  while (i < SCHARS (mode_string))
+	    {
+	      int c = fetch_string_char_advance (mode_string, &i, &i_byte);
+	      if (c == ' ' && prev == ' ')
+		{
+		  display_string (NULL,
+				  Fsubstring (mode_string, make_fixnum (start),
+					      make_fixnum (i - 1)),
+				  Qnil, 0, 0, &it, 0, 0, 0,
+				  STRING_MULTIBYTE (mode_string));
+		  /* Skip past the rest of the space characters. */
+		  while (c == ' ' && i < SCHARS (mode_string))
+		      c = fetch_string_char_advance (mode_string, &i, &i_byte);
+		  start = i - 1;
+		}
+	      prev = c;
+	    }
+
+	  /* Display the final bit. */
+	  if (start < i)
+	    display_string (NULL,
+			    Fsubstring (mode_string, make_fixnum (start),
+					make_fixnum (i - 1)),
+			    Qnil, 0, 0, &it, 0, 0, 0,
+			    STRING_MULTIBYTE (mode_string));
+	}
+    }
   pop_kboard ();
 
   unbind_to (count, Qnil);
@@ -27057,6 +27139,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
      with index START.  */
   reseat_to_string (it, NILP (lisp_string) ? string : NULL, lisp_string,
                     start, precision, field_width, multibyte);
+
   if (string && STRINGP (lisp_string))
     /* LISP_STRING is the one returned by decode_mode_spec.  We should
        ignore its text properties.  */
@@ -34772,6 +34855,14 @@ wide as that tab on the display.  */);
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
+  DEFVAR_LISP ("mode-line-compact", Vmode_line_compact,
+    doc: /* Non-nil means that mode lines should be compact.
+This means that repeating spaces will be replaced with a single space.
+If this variable is `long', only mode lines that are wider than the
+currently selected window are compressed. */);
+  Vmode_line_compact = Qnil;
+  DEFSYM (Qlong, "long");
+
   DEFVAR_LISP ("nobreak-char-display", Vnobreak_char_display,
     doc: /* Control highlighting of non-ASCII space and hyphen chars.
 If the value is t, Emacs highlights non-ASCII chars which have the
@@ -35490,7 +35581,7 @@ message displayed by its counterpart function specified by
 
   DEFVAR_BOOL ("display-raw-bytes-as-hex", display_raw_bytes_as_hex,
     doc: /* Non-nil means display raw bytes in hexadecimal format.
-The default is to use octal format (\200) whereas hexadecimal (\x80)
+The default is to use octal format (\\200) whereas hexadecimal (\\x80)
 may be more familiar to users.  */);
   display_raw_bytes_as_hex = false;
 
@@ -35506,6 +35597,14 @@ The initial frame is not displayed anywhere, so skipping it is
 best except in special circumstances such as running redisplay tests
 in batch mode.   */);
   redisplay_skip_initial_frame = true;
+
+  DEFVAR_BOOL ("redisplay-adhoc-scroll-in-resize-mini-windows",
+               redisplay_adhoc_scroll_in_resize_mini_windows,
+    doc: /* If nil always use normal scrolling in minibuffer windows.
+Otherwise, use custom-tailored code after resizing minibuffer windows to try
+and display the most important part of the minibuffer.   */);
+  /* See bug#43519 for some discussion around this.  */
+  redisplay_adhoc_scroll_in_resize_mini_windows = true;
 }
 
 

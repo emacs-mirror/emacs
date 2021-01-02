@@ -1,6 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -152,8 +152,8 @@
 ;;
 ;;  (add-hook 'foo-mode-hook
 ;;   (lambda ()
-;;     (set (make-local-variable 'font-lock-defaults)
-;;          '(foo-font-lock-keywords t))))
+;;     (setq-local font-lock-defaults
+;;                 '(foo-font-lock-keywords t))))
 
 ;;;; Adding Font Lock support for modes:
 
@@ -173,8 +173,8 @@
 ;;
 ;; and within `bar-mode' there could be:
 ;;
-;;  (set (make-local-variable 'font-lock-defaults)
-;;       '(bar-font-lock-keywords nil t))
+;;  (setq-local font-lock-defaults
+;;              '(bar-font-lock-keywords nil t))
 
 ;; What is fontification for?  You might say, "It's to make my code look nice."
 ;; I think it should be for adding information in the form of cues.  These cues
@@ -733,7 +733,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
            ;; font-lock-mode it only enabled the font-core.el part, not the
            ;; font-lock-mode-internal.  Try again.
            (font-lock-mode -1)
-           (set (make-local-variable 'font-lock-defaults) '(nil t))
+           (setq-local font-lock-defaults '(nil t))
            (font-lock-mode 1))
 	 ;; Otherwise set or add the keywords now.
 	 ;; This is a no-op if it has been done already in this buffer
@@ -933,18 +933,15 @@ The value of this variable is used when Font Lock mode is turned on."
      ;; Prepare for jit-lock
      (remove-hook 'after-change-functions
                   #'font-lock-after-change-function t)
-     (set (make-local-variable 'font-lock-flush-function)
-          #'jit-lock-refontify)
-     (set (make-local-variable 'font-lock-ensure-function)
-          #'jit-lock-fontify-now)
+     (setq-local font-lock-flush-function #'jit-lock-refontify)
+     (setq-local font-lock-ensure-function #'jit-lock-fontify-now)
      ;; Prevent font-lock-fontify-buffer from fontifying eagerly the whole
      ;; buffer.  This is important for things like CWarn mode which
      ;; adds/removes a few keywords and does a refontify (which takes ages on
      ;; large files).
-     (set (make-local-variable 'font-lock-fontify-buffer-function)
-          #'jit-lock-refontify)
+     (setq-local font-lock-fontify-buffer-function #'jit-lock-refontify)
      ;; Don't fontify eagerly (and don't abort if the buffer is large).
-     (set (make-local-variable 'font-lock-fontified) t)
+     (setq-local font-lock-fontified t)
      ;; Use jit-lock.
      (jit-lock-register #'font-lock-fontify-region
                         (not font-lock-keywords-only))
@@ -1558,7 +1555,7 @@ START should be at the beginning of a line."
   (unless parse-sexp-lookup-properties
     ;; We wouldn't go through so much trouble if we didn't intend to use those
     ;; properties, would we?
-    (set (make-local-variable 'parse-sexp-lookup-properties) t))
+    (setq-local parse-sexp-lookup-properties t))
   ;; If `font-lock-syntactic-keywords' is a symbol, get the real keywords.
   (when (symbolp font-lock-syntactic-keywords)
     (setq font-lock-syntactic-keywords (font-lock-eval-keywords
@@ -1942,8 +1939,8 @@ Sets various variables using `font-lock-defaults' and
 	(set (make-local-variable (car x)) (cdr x)))
       ;; Set up `font-lock-keywords' last because its value might depend
       ;; on other settings.
-      (set (make-local-variable 'font-lock-keywords)
-	   (font-lock-eval-keywords keywords))
+      (setq-local font-lock-keywords
+                  (font-lock-eval-keywords keywords))
       ;; Local fontification?
       (while local
 	(font-lock-add-keywords nil (car (car local)) (cdr (car local)))
@@ -2283,8 +2280,8 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;;			 "ifndef" "import" "include" "line" "pragma" "undef" "warning")))
 ;;
 (defconst cpp-font-lock-keywords-source-depth 0
-  "An integer representing regular expression depth of `cpp-font-lock-keywords-source-directives'.
-Used in `cpp-font-lock-keywords'.")
+  "Regular expression depth of `cpp-font-lock-keywords-source-directives'.
+This should be an integer.  Used in `cpp-font-lock-keywords'.")
 
 (defconst cpp-font-lock-keywords
   (let* ((directives cpp-font-lock-keywords-source-directives)

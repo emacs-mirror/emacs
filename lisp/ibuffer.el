@@ -1,6 +1,6 @@
 ;;; ibuffer.el --- operate on buffers like dired  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -2464,7 +2464,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 	  (require 'ibuf-ext)
 	  (setq ibuffer-filter-groups filter-groups))
 	(when formats
-	  (set (make-local-variable 'ibuffer-formats) formats))
+	  (setq-local ibuffer-formats formats))
 	(ibuffer-update nil)
 	;; Skip the group name by default.
 	(ibuffer-forward-line 0 t)
@@ -2683,7 +2683,7 @@ You may rearrange filter groups by using the usual pair
 `\\[ibuffer-kill-line]' and `\\[ibuffer-yank]'.  Yanked groups
 will be inserted before the group at point."
   ;; Include state info next to the mode name.
-  (set (make-local-variable 'mode-line-process)
+  (setq-local mode-line-process
         '(" by "
           (ibuffer-sorting-mode (:eval (symbol-name ibuffer-sorting-mode))
                                 "view time")
@@ -2712,28 +2712,27 @@ will be inserted before the group at point."
   (setq show-trailing-whitespace nil)
   ;; disable `show-paren-mode' buffer-locally
   (if (bound-and-true-p show-paren-mode)
-      (set (make-local-variable 'show-paren-mode) nil))
-  (set (make-local-variable 'revert-buffer-function)
-       #'ibuffer-update)
-  (set (make-local-variable 'ibuffer-sorting-mode)
-       ibuffer-default-sorting-mode)
-  (set (make-local-variable 'ibuffer-sorting-reversep)
-       ibuffer-default-sorting-reversep)
-  (set (make-local-variable 'ibuffer-shrink-to-minimum-size)
-       ibuffer-default-shrink-to-minimum-size)
-  (set (make-local-variable 'ibuffer-display-maybe-show-predicates)
-       ibuffer-default-display-maybe-show-predicates)
-  (set (make-local-variable 'ibuffer-filtering-qualifiers) nil)
-  (set (make-local-variable 'ibuffer-filter-groups) nil)
-  (set (make-local-variable 'ibuffer-filter-group-kill-ring) nil)
-  (set (make-local-variable 'ibuffer-hidden-filter-groups) nil)
-  (set (make-local-variable 'ibuffer-compiled-formats) nil)
-  (set (make-local-variable 'ibuffer-cached-formats) nil)
-  (set (make-local-variable 'ibuffer-cached-eliding-string) nil)
-  (set (make-local-variable 'ibuffer-current-format) nil)
-  (set (make-local-variable 'ibuffer-did-modification) nil)
-  (set (make-local-variable 'ibuffer-tmp-hide-regexps) nil)
-  (set (make-local-variable 'ibuffer-tmp-show-regexps) nil)
+      (setq-local show-paren-mode nil))
+  (setq-local revert-buffer-function #'ibuffer-update)
+  (setq-local ibuffer-sorting-mode
+              ibuffer-default-sorting-mode)
+  (setq-local ibuffer-sorting-reversep
+              ibuffer-default-sorting-reversep)
+  (setq-local ibuffer-shrink-to-minimum-size
+              ibuffer-default-shrink-to-minimum-size)
+  (setq-local ibuffer-display-maybe-show-predicates
+              ibuffer-default-display-maybe-show-predicates)
+  (setq-local ibuffer-filtering-qualifiers nil)
+  (setq-local ibuffer-filter-groups nil)
+  (setq-local ibuffer-filter-group-kill-ring nil)
+  (setq-local ibuffer-hidden-filter-groups nil)
+  (setq-local ibuffer-compiled-formats nil)
+  (setq-local ibuffer-cached-formats nil)
+  (setq-local ibuffer-cached-eliding-string nil)
+  (setq-local ibuffer-current-format nil)
+  (setq-local ibuffer-did-modification nil)
+  (setq-local ibuffer-tmp-hide-regexps nil)
+  (setq-local ibuffer-tmp-show-regexps nil)
   (define-key ibuffer-mode-map [menu-bar edit] 'undefined)
   (define-key ibuffer-mode-map [menu-bar operate] (cons "Operate" ibuffer-mode-operate-map))
   (ibuffer-update-format)

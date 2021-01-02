@@ -1,6 +1,6 @@
 ;;; so-long.el --- Say farewell to performance problems with minified code.  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2015-2016, 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016, 2018-2021 Free Software Foundation, Inc.
 
 ;; Author: Phil Sainty <psainty@orcon.net.nz>
 ;; Maintainer: Phil Sainty <psainty@orcon.net.nz>
@@ -41,9 +41,9 @@
 ;; simply aren't optimised (remotely) for this scenario, so performance can
 ;; suffer significantly.
 ;;
-;; When such files are detected, the command `so-long' is automatically called,
-;; overriding certain minor modes and variables with performance implications
-;; (all configurable), in order to enhance performance in the buffer.
+;; When so-long detects such a file, it calls the command `so-long', which
+;; overrides certain minor modes and variables (you can configure the details)
+;; to improve performance in the buffer.
 ;;
 ;; The default action enables the major mode `so-long-mode' in place of the mode
 ;; that Emacs selected.  This ensures that the original major mode cannot affect

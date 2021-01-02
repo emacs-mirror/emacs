@@ -1,6 +1,6 @@
 ;;; gud.el --- Grand Unified Debugger mode for running GDB and other debuggers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992-1996, 1998, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1992-1996, 1998, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -1683,7 +1683,7 @@ and source-file directory for your debugger."
 
 ;;;###autoload
 (defun pdb (command-line)
-  "Run COMMAND-LINE in the `*gud-FILE*' buffer.
+  "Run COMMAND-LINE in the `*gud-FILE*' buffer to debug Python programs.
 
 COMMAND-LINE should include the pdb executable
 name (`gud-pdb-command-name') and the file to be debugged.
@@ -2566,7 +2566,11 @@ You may use the `gud-def' macro in the initialization hook to define other
 commands.
 
 Other commands for interacting with the debugger process are inherited from
-comint mode, which see."
+`comint-mode', which see.
+
+Commands:
+
+\\{gud-mode-map}"
   (setq mode-line-process '(":%s"))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
   (setq-local gud-last-frame nil)

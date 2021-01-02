@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--2020 Free Software Foundation, Inc.
+@c Copyright (C) 1990--1995, 1998--2021 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Variables
 @chapter Variables
@@ -481,10 +481,12 @@ form occurs in a @code{let} form with lexical binding enabled), then
 effect until its binding construct exits.  @xref{Variable Scoping}.
 
 @cindex @code{eval-defun}, and @code{defvar} forms
-When you evaluate a top-level @code{defvar} form with @kbd{C-M-x} in
-Emacs Lisp mode (@code{eval-defun}), a special feature of
-@code{eval-defun} arranges to set the variable unconditionally, without
-testing whether its value is void.
+@cindex @code{eval-last-sexp}, and @code{defvar} forms
+When you evaluate a top-level @code{defvar} form with @kbd{C-M-x}
+(@code{eval-defun}) or with @kbd{C-x C-e} (@code{eval-last-sexp}) in
+Emacs Lisp mode, a special feature of these two commands arranges to
+set the variable unconditionally, without testing whether its value is
+void.
 
 If the @var{doc-string} argument is supplied, it specifies the
 documentation string for the variable (stored in the symbol's
@@ -1285,7 +1287,7 @@ be used.)
 
 @subsubheading Cross-file variable checking
 
-@strong{Note:} This is an experimental feature that may change or
+@strong{Caution:} This is an experimental feature that may change or
 disappear without prior notice.
 
 The byte-compiler can also warn about lexical variables that are

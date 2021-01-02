@@ -1,6 +1,6 @@
 ;;; data-tests.el --- tests for src/data.c  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -324,7 +324,7 @@ comparing the subr with a much slower lisp implementation."
 
 (defvar binding-test-some-local 'some)
 (with-current-buffer binding-test-buffer-A
-  (set (make-local-variable 'binding-test-some-local) 'local))
+  (setq-local binding-test-some-local 'local))
 
 (ert-deftest binding-test-manual ()
   "A test case from the elisp manual."

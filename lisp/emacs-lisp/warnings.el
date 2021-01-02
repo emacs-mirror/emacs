@@ -1,6 +1,6 @@
 ;;; warnings.el --- log and display warnings  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -67,6 +67,7 @@ Level :debug is ignored by default (see `warning-minimum-level').")
 Each element looks like (ALIAS . LEVEL) and defines ALIAS as
 equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
+(make-obsolete-variable 'warning-level-aliases 'warning-levels "28.1")
 
 (define-obsolete-variable-alias 'display-warning-minimum-level
   'warning-minimum-level "28.1")
@@ -256,8 +257,10 @@ entirely by setting `warning-suppress-types' or
       (setq level :warning))
     (unless buffer-name
       (setq buffer-name "*Warnings*"))
-    (if (assq level warning-level-aliases)
-	(setq level (cdr (assq level warning-level-aliases))))
+    (with-suppressed-warnings ((obsolete warning-level-aliases))
+      (when-let ((new (cdr (assq level warning-level-aliases))))
+        (warn "Warning level `%s' is obsolete; use `%s' instead" level new)
+        (setq level new)))
     (or (< (warning-numeric-level level)
 	   (warning-numeric-level warning-minimum-log-level))
 	(warning-suppress-p type warning-suppress-log-types)

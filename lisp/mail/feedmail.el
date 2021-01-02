@@ -622,22 +622,25 @@ to arrange for the message to get a From: line."
 
 
 (defcustom feedmail-sendmail-f-doesnt-sell-me-out nil
-  "Says whether the sendmail program issues a warning header if called with \"-f\".
+  "Whether sendmail should issue a warning header if called with \"-f\".
 The sendmail program has a useful feature to let you set the envelope FROM
 address via a command line option, \"-f\".  Unfortunately, it also has a widely
 disliked default behavior of selling you out if you do that by inserting
 an unattractive warning in the headers.  It looks something like this:
 
-  X-Authentication-Warning: u1.example.com: niceguy set sender to niceguy@example.com using -f
+  X-Authentication-Warning: u1.example.com: niceguy set
+      sender to niceguy@example.com using -f
 
-It is possible to configure sendmail to not do this, but such a reconfiguration
-is not an option for many users.  As this is the default behavior of most
-sendmail installations, one can mostly only wish it were otherwise.  If feedmail
-believes the sendmail program will sell you out this way, it won't use the \"-f\"
-option when calling sendmail.  If it doesn't think sendmail will sell you out,
-it will use the \"-f\" \(since it is a handy feature).  You control what
-feedmail thinks with this variable.  The default is nil, meaning that feedmail
-will believe that sendmail will sell you out."
+It is possible to configure sendmail to not do this, but such a
+reconfiguration is not an option for many users.  As this is the
+default behavior of most sendmail installations, one can mostly
+only wish it were otherwise.  If feedmail believes the sendmail
+program will sell you out this way, it won't use the \"-f\"
+option when calling sendmail.  If it doesn't think sendmail will
+sell you out, it will use the \"-f\" \(since it is a handy
+feature).  You control what feedmail thinks with this variable.
+The default is nil, meaning that feedmail will believe that
+sendmail will sell you out."
   :version "24.1"
   :group 'feedmail-headers
   :type 'boolean
@@ -807,7 +810,8 @@ fiddle-plex.
 
 feedmail will use this list of fiddle-plexes to manipulate user-specified
 message header fields.  It does this after it has completed all normal
-message header field manipulation and before calling `feedmail-last-chance-hook'.
+message header field manipulation and before calling
+`feedmail-last-chance-hook'.
 
 For an explanation of fiddle-plexes, see the documentation for the
 variable `feedmail-fiddle-plex-blurb'.  In contrast to some other fiddle-plex
@@ -889,13 +893,14 @@ called and will consult `feedmail-spray-this-address' to find the
 stripped envelope email address (no comments or angle brackets).  The
 function should return an embellished form of the address.
 
-The recipe for sending form letters is:  (1) create a message with all
-addressees on Bcc: headers; (2) tell feedmail to remove Bcc: headers
-before sending the message; (3) create a function which will embellish
-stripped addresses, if desired; (4) define `feedmail-spray-address-fiddle-plex-list'
-appropriately; (5) send the message with `feedmail-enable-spray' set
-non-nil; (6) stand back and watch co-workers wonder at how efficient
-you are at accomplishing inherently inefficient things."
+The recipe for sending form letters is: (1) create a message with
+all addressees on Bcc: headers; (2) tell feedmail to remove Bcc:
+headers before sending the message; (3) create a function which
+will embellish stripped addresses, if desired; (4) define
+`feedmail-spray-address-fiddle-plex-list' appropriately; (5) send
+the message with `feedmail-enable-spray' set non-nil; (6) stand
+back and watch co-workers wonder at how efficient you are at
+accomplishing inherently inefficient things."
   :group 'feedmail-spray
   :type 'sexp ; too complex to be described accurately
   )
@@ -1336,19 +1341,22 @@ variable, but may depend on its value as described here.")
 
 (defun feedmail-mail-send-hook-splitter ()
   "Facilitate dividing `mail-send-hook' things into queued and immediate cases.
-If you have `mail-send-hook' functions that should only be called for sending/
-queueing messages or only be called for the sending of queued messages, this is
-for you.  Add this function to `mail-send-hook' with something like this:
+If you have `mail-send-hook' functions that should only be called
+for sending/ queueing messages or only be called for the sending
+of queued messages, this is for you.  Add this function to
+`mail-send-hook' with something like this:
 
 	(add-hook \\='mail-send-hook \\='feedmail-mail-send-hook-splitter)
 
-Then add the functions you want called to either `feedmail-mail-send-hook-queued'
-or `feedmail-mail-send-hook', as appropriate.  The distinction is that
-`feedmail-mail-send-hook' will be called when you send mail from a composition
-buffer (typically by typing C-c C-c), whether the message is sent immediately
-or placed in the queue or drafts directory.  `feedmail-mail-send-hook-queued' is
-called when messages are being sent from the queue directory, typically via a
-call to `feedmail-run-the-queue'."
+Then add the functions you want called to either
+`feedmail-mail-send-hook-queued' or `feedmail-mail-send-hook', as
+appropriate.  The distinction is that `feedmail-mail-send-hook'
+will be called when you send mail from a composition
+buffer (typically by typing C-c C-c), whether the message is sent
+immediately or placed in the queue or drafts directory.
+`feedmail-mail-send-hook-queued' is called when messages are
+being sent from the queue directory, typically via a call to
+`feedmail-run-the-queue'."
   (feedmail-say-debug ">in-> feedmail-mail-send-hook-splitter %s" feedmail-queue-runner-is-active)
   (if feedmail-queue-runner-is-active
       (run-hooks 'feedmail-mail-send-hook-queued)
@@ -2067,10 +2075,10 @@ internally by feedmail):
    after-run            (the queue has just been run, possibly sending messages)
 
 WHAT-EVENT is used as a key into the table `feedmail-queue-reminder-alist'.  If
-the associated value is a function, it is called without arguments and is expected
-to perform the reminder activity.  You can supply your own reminder functions
-by redefining `feedmail-queue-reminder-alist'.  If you don't want any reminders,
-you can set `feedmail-queue-reminder-alist' to nil."
+the associated value is a function, it is called without arguments and is
+expected to perform the reminder activity.  You can supply your own reminder
+functions by redefining `feedmail-queue-reminder-alist'.  If you don't want any
+reminders, you can set `feedmail-queue-reminder-alist' to nil."
   (interactive "p")
   (feedmail-say-debug ">in-> feedmail-queue-reminder %s" what-event)
   (let ((key (if (and what-event (symbolp what-event)) what-event 'on-demand)) entry reminder)
@@ -2965,7 +2973,8 @@ probably not appropriate for you."
 
 
 (defun feedmail-fiddle-list-of-fiddle-plexes (list-of-fiddle-plexes)
-  "Fiddling based on a list of fiddle-plexes.  Values t, nil, and string are pointless."
+  "Fiddling based on a list of fiddle-plexes.
+Values t, nil, and string are pointless."
   (feedmail-say-debug ">in-> feedmail-fiddle-list-of-fiddle-plexes")
   ;; default is to fall off the end of the list and do nothing
   (let ((lofp list-of-fiddle-plexes) fp)

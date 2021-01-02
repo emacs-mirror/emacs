@@ -1,5 +1,5 @@
 ;;; org-mobile.el --- Code for Asymmetric Sync With a Mobile Device -*- lexical-binding: t; -*-
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -257,6 +257,17 @@ the old and new values for the entry.")
 
 (defvar org-mobile-files-alist nil)
 (defvar org-mobile-checksum-files nil)
+
+;; Add org mobile commands to the main org menu
+(easy-menu-add-item
+ org-org-menu
+ nil
+ '("MobileOrg"
+   ["Push Files and Views" org-mobile-push t]
+   ["Get Captured and Flagged" org-mobile-pull t]
+   ["Find FLAGGED Tasks" (org-agenda nil "?") :active t :keys "\\[org-agenda] ?"]
+   "--"
+   ["Setup" (customize-group 'org-mobile) t]))
 
 (defun org-mobile-prepare-file-lists ()
   (setq org-mobile-files-alist (org-mobile-files-alist))

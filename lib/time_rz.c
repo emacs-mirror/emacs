@@ -1,6 +1,6 @@
 /* Time zone functions such as tzalloc and localtime_rz
 
-   Copyright 2015-2020 Free Software Foundation, Inc.
+   Copyright 2015-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,18 +27,14 @@
 #include <time.h>
 
 #include <errno.h>
-#include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "flexmember.h"
+#include "idx.h"
 #include "time-internal.h"
-
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
 
 /* The approximate size to use for small allocation requests.  This is
    the largest "small" request for the GNU C library malloc.  */
@@ -125,14 +121,8 @@ save_abbr (timezone_t tz, struct tm *tm)
         {
           if (! (*zone_copy || (zone_copy == tz->abbrs && tz->tz_is_set)))
             {
-              size_t zone_size = strlen (zone) + 1;
-              size_t zone_used = zone_copy - tz->abbrs;
-              if (SIZE_MAX - zone_used < zone_size)
-                {
-                  errno = ENOMEM;
-                  return false;
-                }
-              if (zone_used + zone_size < ABBR_SIZE_MIN)
+              idx_t zone_size = strlen (zone) + 1;
+              if (zone_size < tz->abbrs + ABBR_SIZE_MIN - zone_copy)
                 extend_abbrs (zone_copy, zone, zone_size);
               else
                 {

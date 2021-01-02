@@ -1,5 +1,5 @@
 /* Flags and parameters describing terminal's characteristics.
-   Copyright (C) 1985-1986, 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 1985-1986, 2001-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

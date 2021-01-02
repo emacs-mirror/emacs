@@ -1,4 +1,4 @@
-Copyright (C) 2008-2020 Free Software Foundation, Inc.
+Copyright (C) 2008-2021 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 This directory contains files intended to test various aspects of
@@ -113,7 +113,8 @@ $EMACS_HYDRA_CI indicates the hydra environment, and $EMACS_EMBA_CI
 indicates the emba environment, respectively.
 
 
-(Also, see etc/compilation.txt for compilation mode font lock tests.)
+(Also, see etc/compilation.txt for compilation mode font lock tests
+and etc/grep.txt for grep mode font lock tests.)
 
 
 This file is part of GNU Emacs.

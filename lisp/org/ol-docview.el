@@ -1,6 +1,6 @@
 ;;; ol-docview.el --- Links to Docview mode buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Jan Böcker <jan.boecker at jboecker dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -68,7 +68,7 @@
        ((eq format 'ascii) (format "%s (%s)" desc path))
        (t path)))))
 
-(defun org-docview-open (link)
+(defun org-docview-open (link _)
   (string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
   (let ((path (match-string 1 link))
 	(page (and (match-beginning 2)
@@ -97,7 +97,6 @@ and append it."
   (concat (replace-regexp-in-string "^file:" "docview:" (org-link-complete-file))
 	  "::"
 	  (read-from-minibuffer "Page:" "1")))
-
 
 (provide 'ol-docview)
 

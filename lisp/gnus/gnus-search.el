@@ -1,6 +1,6 @@
 ;;; gnus-search.el --- Search facilities for Gnus    -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020  Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
@@ -104,6 +104,8 @@
 (gnus-add-shutdown #'gnus-search-shutdown 'gnus)
 
 (define-error 'gnus-search-parse-error "Gnus search parsing error")
+
+(define-error 'gnus-search-config-error "Gnus search configuration error")
 
 ;;; User Customizable Variables:
 
@@ -1048,6 +1050,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 	  (grouplist (or groups (gnus-search-get-active srv)))
 	  q-string artlist group)
       (message "Opening server %s" server)
+      (gnus-open-server srv)
       ;; We should only be doing this once, in
       ;; `nnimap-open-connection', but it's too frustrating to try to
       ;; get to the server from the process buffer.
@@ -1069,7 +1072,7 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (and (string-match "\\`[[:word:]]+" q-string)
+      (unless (and (string-match "\\`[^[:blank:]]+" q-string)
 		   (memql (intern-soft (downcase
 					(match-string 0 q-string)))
 			  gnus-search-imap-search-keys))
@@ -1250,44 +1253,41 @@ means (usually the \"mark\" keyword)."
 		    (gnus-search-imap-handle-string engine (cdr expr))))))))))
 
 (cl-defmethod gnus-search-imap-handle-date ((_engine gnus-search-imap)
-				     (date list))
+					    (date list))
   "Turn DATE into a date string recognizable by IMAP.
 While other search engines can interpret partially-qualified
 dates such as a plain \"January\", IMAP requires an absolute
 date.
 
 DATE is a list of (dd mm yyyy), any element of which could be
-nil.  Massage those numbers into the most recent past occurrence
-of whichever date elements are present."
-  (let ((now (decode-time (current-time))))
-    ;; Set nil values to 1, current-month, current-year, or else 1, 1,
-    ;; current-year, depending on what we think the user meant.
-    (unless (seq-elt date 1)
-      (setf (seq-elt date 1)
-	    (if (seq-elt date 0)
-		(seq-elt now 4)
-	      1)))
-    (unless (seq-elt date 0)
-      (setf (seq-elt date 0) 1))
-    (unless (seq-elt date 2)
-      (setf (seq-elt date 2)
-	    (seq-elt now 5)))
-    ;; Fiddle with the date until it's in the past.  There
-    ;; must be a way to combine all these steps.
-    (unless (< (seq-elt date 2)
-	       (seq-elt now 5))
-      (when (< (seq-elt now 3)
-	       (seq-elt date 0))
-	(cl-decf (seq-elt date 1)))
-      (cond ((zerop (seq-elt date 1))
-	     (setf (seq-elt date 1) 1)
-	     (cl-decf (seq-elt date 2)))
-	    ((< (seq-elt now 4)
-		(seq-elt date 1))
-	     (cl-decf (seq-elt date 2))))))
-  (format-time-string "%e-%b-%Y" (apply #'encode-time
-					(append '(0 0 0)
-						date))))
+nil (except that (dd nil yyyy) is not allowed).  Massage those
+numbers into the most recent past occurrence of whichever date
+elements are present."
+  (pcase-let ((`(,nday ,nmonth ,nyear)
+	       (seq-subseq (decode-time (current-time))
+			   3 6))
+	      (`(,dday ,dmonth ,dyear) date))
+    (unless (and dday dmonth dyear)
+      (unless dday (setq dday 1))
+      (if dyear
+	  ;; If we have a year, then leave everything else as is or set
+	  ;; to 1.
+	  (setq dmonth (or dmonth 1))
+	(if dmonth
+	    (setq dyear
+		  (if (or (> dmonth nmonth)
+			  (and (= dmonth nmonth)
+			       (> dday nday)))
+		      ;; If our day/month combo is ahead of "now",
+		      ;; move the year back.
+		      (1- nyear)
+		    nyear))
+	  (setq dmonth 1))))
+    (format-time-string
+     "%e-%b-%Y"
+     (apply #'encode-time
+	    (append '(0 0 0)
+		    (list dday dmonth dyear))))))
 
 (cl-defmethod gnus-search-imap-handle-string ((engine gnus-search-imap)
 					      (str string))
@@ -1425,7 +1425,7 @@ Returns a list of [group article score] vectors."
 			(string-to-number article)
 		      (nnmaildir-base-name-to-article-number
 		       (substring article 0 (string-match ":" article))
-		       group nil))
+		       group (string-remove-prefix "nnmaildir:" server)))
 		    (if (numberp score)
 			score
 		      (string-to-number score)))
@@ -1852,8 +1852,10 @@ Assume \"size\" key is equal to \"larger\"."
 	 (grouplist (or groups (gnus-search-get-active server)))
 	 (buffer (slot-value engine 'proc-buffer)))
     (unless directory
-      (error "No directory found in method specification of server %s"
-	     server))
+      (signal 'gnus-search-config-error
+	      (list (format-message
+		     "No directory found in definition of server %s"
+		     server))))
     (apply
      'vconcat
      (mapcar (lambda (x)
@@ -1885,7 +1887,9 @@ Assume \"size\" key is equal to \"larger\"."
 					    group nil t)))
 				    group))))))
 		     (unless group
-		       (error "Cannot locate directory for group"))
+		       (signal 'gnus-search-config-error
+			       (list
+				"Cannot locate directory for group")))
 		     (save-excursion
 		       (apply
 			'call-process "find" nil t
@@ -1934,12 +1938,19 @@ Assume \"size\" key is equal to \"larger\"."
 	 (limit (alist-get 'limit prepared-query)))
     (mapc
      (pcase-lambda (`(,server . ,groups))
-       (let ((search-engine (gnus-search-server-to-engine server)))
-	 (setq results
-	       (vconcat
-		(gnus-search-run-search
-		 search-engine server prepared-query groups)
-		results))))
+       (condition-case err
+	   (let ((search-engine (gnus-search-server-to-engine server)))
+	     (setq results
+		   (vconcat
+		    (gnus-search-run-search
+		     search-engine server prepared-query groups)
+		    results)))
+	 (gnus-search-config-error
+	  (if (< 1 (length (alist-get 'search-group-spec specs)))
+	      (apply #'nnheader-message 4
+		     "Search engine for %s improperly configured: %s"
+		     server (cdr err))
+	    (signal 'gnus-search-config-error err)))))
      (alist-get 'search-group-spec specs))
     ;; Some search engines do their own limiting, but some don't, so
     ;; do it again here.  This is bad because, if the user is
@@ -1949,7 +1960,7 @@ Assume \"size\" key is equal to \"larger\"."
     ;; from a later group entirely.
     (if limit
 	(seq-subseq results 0 (min limit (length results)))
-     results)))
+      results)))
 
 (defun gnus-search-prepare-query (query-spec)
   "Accept a search query in raw format, and prepare it.
@@ -2023,11 +2034,13 @@ remaining string, then adds all that to the top-level spec."
 	      (condition-case nil
 		  (setf (slot-value inst key) value)
 		((invalid-slot-name invalid-slot-type)
-		 (nnheader-message
-		  5 "Invalid search engine parameter: (%s %s)"
+		 (nnheader-report 'search
+		  "Invalid search engine parameter: (%s %s)"
 		  key value)))))
 	  (push (cons srv inst) gnus-search-engine-instance-alist))
-      (error "No search engine defined for %s" srv))
+      (signal 'gnus-search-config-error
+	      (list (format-message
+		     "No search engine configured for %s" srv))))
     inst))
 
 (declare-function gnus-registry-get-id-key "gnus-registry" (id key))

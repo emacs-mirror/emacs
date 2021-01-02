@@ -1,6 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2020 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -1742,7 +1742,32 @@ FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
 list of hooks to run in HOOK, then nothing is done.  See `add-hook'.
 
 The optional third argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value."
+the hook's buffer-local value rather than its default value.
+
+Interactively, prompt for the various arguments (skipping local
+unless HOOK has both local and global functions).  If multiple
+functions have the same representation under `princ', the first
+one will be removed."
+  (interactive
+   (let* ((hook (intern (completing-read "Hook variable: " obarray #'boundp t)))
+          (local
+           (and
+            (local-variable-p hook)
+            (symbol-value hook)
+            ;; No need to prompt if there's nothing global
+            (or (not (default-value hook))
+                (y-or-n-p (format "%s has a buffer-local binding, use that? "
+                                  hook)))))
+          (fn-alist (mapcar
+                     (lambda (x) (cons (with-output-to-string (prin1 x)) x))
+                     (if local (symbol-value hook) (default-value hook))))
+          (function (alist-get (completing-read
+                                (format "%s hook to remove: "
+                                        (if local "Buffer-local" "Global"))
+                                fn-alist
+                                nil t)
+                               fn-alist nil nil 'string=)))
+     (list hook function local)))
   (or (boundp hook) (set hook nil))
   (or (default-boundp hook) (set-default hook nil))
   ;; Do nothing if LOCAL is t but this hook has no local binding.
@@ -1950,9 +1975,8 @@ can do the job."
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
 The test for presence of ELEMENT is done with `eq'.
 
-The resulting list is reordered so that the elements are in the
-order given by each element's numeric list order.  Elements
-without a numeric list order are placed at the end of the list.
+The value of LIST-VAR is kept ordered based on the ORDER
+parameter.
 
 If the third optional argument ORDER is a number (integer or
 float), set the element's list order to the given value.  If
@@ -2601,6 +2625,10 @@ This function is used by the `interactive' code letter `n'."
 	    t)))
     n))
 
+(defvar read-char-choice-use-read-key nil
+  "Prefer `read-key' when reading a character by `read-char-choice'.
+Otherwise, use the minibuffer.")
+
 (defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
   "Read and return one of CHARS, prompting for PROMPT.
 Any input that is not one of CHARS is ignored.
@@ -2611,44 +2639,46 @@ keyboard-quit events while waiting for a valid input.
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
 causes it to evaluate `help-form' and display the result."
-  (unless (consp chars)
-    (error "Called `read-char-choice' without valid char choices"))
-  (let (char done show-help (helpbuf " *Char Help*"))
-    (let ((cursor-in-echo-area t)
-          (executing-kbd-macro executing-kbd-macro)
-	  (esc-flag nil))
-      (save-window-excursion	      ; in case we call help-form-show
-	(while (not done)
-	  (unless (get-text-property 0 'face prompt)
-	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-		       (read-key prompt)))
-	  (and show-help (buffer-live-p (get-buffer helpbuf))
-	       (kill-buffer helpbuf))
-	  (cond
-	   ((not (numberp char)))
-	   ;; If caller has set help-form, that's enough.
-	   ;; They don't explicitly have to add help-char to chars.
-	   ((and help-form
-		 (eq char help-char)
-		 (setq show-help t)
-		 (help-form-show)))
-	   ((memq char chars)
-	    (setq done t))
-	   ((and executing-kbd-macro (= char -1))
-	    ;; read-event returns -1 if we are in a kbd macro and
-	    ;; there are no more events in the macro.  Attempt to
-	    ;; get an event interactively.
-	    (setq executing-kbd-macro nil))
-	   ((not inhibit-keyboard-quit)
-	    (cond
-	     ((and (null esc-flag) (eq char ?\e))
-	      (setq esc-flag t))
-	     ((memq char '(?\C-g ?\e))
-	      (keyboard-quit))))))))
-    ;; Display the question with the answer.  But without cursor-in-echo-area.
-    (message "%s%s" prompt (char-to-string char))
-    char))
+  (if (not read-char-choice-use-read-key)
+      (read-char-from-minibuffer prompt chars)
+    (unless (consp chars)
+      (error "Called `read-char-choice' without valid char choices"))
+    (let (char done show-help (helpbuf " *Char Help*"))
+      (let ((cursor-in-echo-area t)
+            (executing-kbd-macro executing-kbd-macro)
+            (esc-flag nil))
+        (save-window-excursion        ; in case we call help-form-show
+          (while (not done)
+            (unless (get-text-property 0 'face prompt)
+              (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+            (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+                         (read-key prompt)))
+            (and show-help (buffer-live-p (get-buffer helpbuf))
+                 (kill-buffer helpbuf))
+            (cond
+             ((not (numberp char)))
+             ;; If caller has set help-form, that's enough.
+             ;; They don't explicitly have to add help-char to chars.
+             ((and help-form
+                   (eq char help-char)
+                   (setq show-help t)
+                   (help-form-show)))
+             ((memq char chars)
+              (setq done t))
+             ((and executing-kbd-macro (= char -1))
+              ;; read-event returns -1 if we are in a kbd macro and
+              ;; there are no more events in the macro.  Attempt to
+              ;; get an event interactively.
+              (setq executing-kbd-macro nil))
+             ((not inhibit-keyboard-quit)
+              (cond
+               ((and (null esc-flag) (eq char ?\e))
+                (setq esc-flag t))
+               ((memq char '(?\C-g ?\e))
+                (keyboard-quit))))))))
+      ;; Display the question with the answer.  But without cursor-in-echo-area.
+      (message "%s%s" prompt (char-to-string char))
+      char)))
 
 (defun sit-for (seconds &optional nodisp obsolete)
   "Redisplay, then wait for SECONDS seconds.  Stop when input is available.
@@ -2718,6 +2748,15 @@ floating point support."
             ;; this-command-keys.
 	    (push (cons t read) unread-command-events)
 	    nil))))))
+
+(defun goto-char--read-natnum-interactive (prompt)
+  "Get a natural number argument, optionally prompting with PROMPT.
+If there is a natural number at point, use it as default."
+  (if (and current-prefix-arg (not (consp current-prefix-arg)))
+      (list (prefix-numeric-value current-prefix-arg))
+    (let* ((number (number-at-point))
+           (default (and (natnump number) number)))
+      (list (read-number prompt (list default (point)))))))
 
 
 (defvar read-char-history nil
@@ -2886,6 +2925,10 @@ Also discard all previous input in the minibuffer."
     (minibuffer-message "Please answer y or n")
     (sit-for 2)))
 
+(defvar y-or-n-p-use-read-key nil
+  "Prefer `read-key' when answering a \"y or n\" question by `y-or-n-p'.
+Otherwise, use the minibuffer.")
+
 (defvar empty-history)
 
 (defun y-or-n-p (prompt)
@@ -2946,6 +2989,41 @@ is nil and `use-dialog-box' is non-nil."
 	   use-dialog-box)
       (setq prompt (funcall padded prompt t)
 	    answer (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip)))))
+     (y-or-n-p-use-read-key
+      ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
+      ;; where all the keys were unbound (i.e. it somehow got triggered
+      ;; within read-key, apparently).  I had to kill it.
+      (setq prompt (funcall padded prompt))
+      (while
+          (let* ((scroll-actions '(recenter scroll-up scroll-down
+                                            scroll-other-window scroll-other-window-down))
+                 (key
+                  (let ((cursor-in-echo-area t))
+                    (when minibuffer-auto-raise
+                      (raise-frame (window-frame (minibuffer-window))))
+                    (read-key (propertize (if (memq answer scroll-actions)
+                                              prompt
+                                            (concat "Please answer y or n.  "
+                                                    prompt))
+                                          'face 'minibuffer-prompt)))))
+            (setq answer (lookup-key query-replace-map (vector key) t))
+            (cond
+             ((memq answer '(skip act)) nil)
+             ((eq answer 'recenter)
+              (recenter) t)
+             ((eq answer 'scroll-up)
+              (ignore-errors (scroll-up-command)) t)
+             ((eq answer 'scroll-down)
+              (ignore-errors (scroll-down-command)) t)
+             ((eq answer 'scroll-other-window)
+              (ignore-errors (scroll-other-window)) t)
+             ((eq answer 'scroll-other-window-down)
+              (ignore-errors (scroll-other-window-down)) t)
+             ((or (memq answer '(exit-prefix quit)) (eq key ?\e))
+              (signal 'quit nil) t)
+             (t t)))
+        (ding)
+        (discard-input)))
      (t
       (setq prompt (funcall padded prompt))
       (let* ((empty-history '())
@@ -3551,7 +3629,7 @@ Do nothing if FACE is nil."
 
 ;;;; Synchronous shell commands.
 
-(defun start-process-shell-command (name buffer &rest args)
+(defun start-process-shell-command (name buffer command)
   "Start a program in a subprocess.  Return the process object for it.
 NAME is name for process.  It is modified if necessary to make it unique.
 BUFFER is the buffer (or buffer name) to associate with the process.
@@ -3559,27 +3637,18 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-COMMAND is the shell command to run.
-
-An old calling convention accepted any number of arguments after COMMAND,
-which were just concatenated to COMMAND.  This is still supported but strongly
-discouraged."
-  (declare (advertised-calling-convention (name buffer command) "23.1"))
+COMMAND is the shell command to run."
   ;; We used to use `exec' to replace the shell with the command,
   ;; but that failed to handle (...) and semicolon, etc.
-  (start-process name buffer shell-file-name shell-command-switch
-		 (mapconcat 'identity args " ")))
+  (start-process name buffer shell-file-name shell-command-switch command))
 
-(defun start-file-process-shell-command (name buffer &rest args)
+(defun start-file-process-shell-command (name buffer command)
   "Start a program in a subprocess.  Return the process object for it.
 Similar to `start-process-shell-command', but calls `start-file-process'."
-  (declare (advertised-calling-convention (name buffer command) "23.1"))
   ;; On remote hosts, the local `shell-file-name' might be useless.
   (with-connection-local-variables
    (start-file-process
-    name buffer
-    shell-file-name shell-command-switch
-    (mapconcat 'identity args " "))))
+    name buffer shell-file-name shell-command-switch command)))
 
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -3692,10 +3761,11 @@ also `with-temp-buffer'."
   (when (window-live-p (nth 1 state))
     (select-window (nth 1 state) 'norecord)))
 
-(defun generate-new-buffer (name)
+(defun generate-new-buffer (name &optional inhibit-buffer-hooks)
   "Create and return a buffer with a name based on NAME.
-Choose the buffer's name using `generate-new-buffer-name'."
-  (get-buffer-create (generate-new-buffer-name name)))
+Choose the buffer's name using `generate-new-buffer-name'.
+See `get-buffer-create' for the meaning of INHIBIT-BUFFER-HOOKS."
+  (get-buffer-create (generate-new-buffer-name name) inhibit-buffer-hooks))
 
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.
@@ -3857,12 +3927,14 @@ See the related form `with-temp-buffer-window'."
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.
+The buffer does not run the hooks `kill-buffer-hook',
+`kill-buffer-query-functions', and `buffer-list-update-hook'.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
   (let ((temp-file (make-symbol "temp-file"))
 	(temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-file ,file)
-	   (,temp-buffer (generate-new-buffer " *temp file*")))
+           (,temp-buffer (generate-new-buffer " *temp file*" t)))
        (unwind-protect
 	   (prog1
 	       (with-current-buffer ,temp-buffer
@@ -3897,10 +3969,12 @@ Use a MESSAGE of \"\" to temporarily clear the echo area."
 
 (defmacro with-temp-buffer (&rest body)
   "Create a temporary buffer, and evaluate BODY there like `progn'.
+The buffer does not run the hooks `kill-buffer-hook',
+`kill-buffer-query-functions', and `buffer-list-update-hook'.
 See also `with-temp-file' and `with-output-to-string'."
   (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
-    `(let ((,temp-buffer (generate-new-buffer " *temp*")))
+    `(let ((,temp-buffer (generate-new-buffer " *temp*" t)))
        ;; `kill-buffer' can change current-buffer in some odd cases.
        (with-current-buffer ,temp-buffer
          (unwind-protect
@@ -3935,7 +4009,7 @@ of that nature."
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
   (declare (indent 0) (debug t))
-  `(let ((standard-output (generate-new-buffer " *string-output*")))
+  `(let ((standard-output (generate-new-buffer " *string-output*" t)))
      (unwind-protect
 	 (progn
 	   (let ((standard-output standard-output))
@@ -3964,7 +4038,7 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
 ;; Don't throw `throw-on-input' on those events by default.
 (setq while-no-input-ignore-events
       '(focus-in focus-out help-echo iconify-frame
-        make-frame-visible selection-request buffer-switch))
+        make-frame-visible selection-request))
 
 (defmacro while-no-input (&rest body)
   "Execute BODY only as long as there's no pending input.
@@ -5837,6 +5911,22 @@ This is the simplest safe way to acquire and release a mutex."
 	 (mutex-unlock ,sym)))))
 
 
+;;; Apropos.
+
+(defun apropos-internal (regexp &optional predicate)
+  "Show all symbols whose names contain match for REGEXP.
+If optional 2nd arg PREDICATE is non-nil, (funcall PREDICATE SYMBOL) is done
+for each symbol and a symbol is mentioned only if that returns non-nil.
+Return list of symbols found."
+  (let (found)
+    (mapatoms (lambda (symbol)
+                (when (and (string-match regexp (symbol-name symbol))
+                           (or (not predicate)
+                               (funcall predicate symbol)))
+                  (push symbol found))))
+    (sort found #'string-lessp)))
+
+
 ;;; Misc.
 
 (defvar definition-prefixes (make-hash-table :test 'equal)
@@ -5908,5 +5998,41 @@ returned list are in the same order as in TREE.
 ;; The initial anchoring is for better performance in searching matches.
 (defconst regexp-unmatchable "\\`a\\`"
   "Standard regexp guaranteed not to match any string at all.")
+
+(defun run-hook-query-error-with-timeout (hook)
+  "Run HOOK, catching errors, and querying the user about whether to continue.
+If a function in HOOK signals an error, the user will be prompted
+whether to continue or not.  If the user doesn't respond,
+evaluation will continue if the user doesn't respond within five
+seconds."
+  (run-hook-wrapped
+   hook
+   (lambda (fun)
+     (condition-case err
+         (funcall fun)
+       (error
+        (unless (y-or-n-p-with-timeout (format "Error %s; continue?" err)
+                                       5 t)
+          (error err))))
+     ;; Continue running.
+     nil)))
+
+(defun internal--fill-string-single-line (str)
+  "Fill string STR to `fill-column'.
+This is intended for very simple filling while bootstrapping
+Emacs itself, and does not support all the customization options
+of fill.el (for example `fill-region')."
+  (if (< (string-width str) fill-column)
+      str
+    (let ((fst (substring str 0 fill-column))
+          (lst (substring str fill-column)))
+      (if (string-match ".*\\( \\(.+\\)\\)$" fst)
+          (setq fst (replace-match "\n\\2" nil nil fst 1)))
+      (concat fst (internal--fill-string-single-line lst)))))
+
+(defun internal--format-docstring-line (string &rest objects)
+  "Format a documentation string out of STRING and OBJECTS.
+This is intended for internal use only."
+  (internal--fill-string-single-line (apply #'format string objects)))
 
 ;;; subr.el ends here

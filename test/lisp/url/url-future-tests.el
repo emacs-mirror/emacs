@@ -1,6 +1,6 @@
 ;;; url-future-tests.el --- Test suite for url-future.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: data
@@ -31,13 +31,13 @@
   (let* (url-future-tests--saver
          (text "running future")
          (good (make-url-future :value (lambda () (format text))
-                                :callback (lambda (f) (set 'url-future-tests--saver f))))
+                                :callback (lambda (f) (setq url-future-tests--saver f))))
          (bad (make-url-future :value (lambda () (/ 1 0))
-                               :errorback (lambda (&rest d) (set 'url-future-tests--saver d))))
+                               :errorback (lambda (&rest d) (setq url-future-tests--saver d))))
          (tocancel (make-url-future :value (lambda () (/ 1 0))
-                                    :callback (lambda (f) (set 'url-future-tests--saver f))
+                                    :callback (lambda (f) (setq url-future-tests--saver f))
                                     :errorback (lambda (&rest d)
-                                                 (set 'url-future-tests--saver d)))))
+                                                 (setq url-future-tests--saver d)))))
     (should (equal good (url-future-call good)))
     (should (equal good url-future-tests--saver))
     (should (equal text (url-future-value good)))

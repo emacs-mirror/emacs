@@ -1,6 +1,6 @@
 /* Support for embedding graphical components in a buffer.
 
-Copyright (C) 2011-2020 Free Software Foundation, Inc.
+Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -100,7 +100,8 @@ Returns the newly constructed xwidget, or nil if construction fails.  */)
   Lisp_Object val;
   xw->type = type;
   xw->title = title;
-  xw->buffer = NILP (buffer) ? Fcurrent_buffer () : Fget_buffer_create (buffer);
+  xw->buffer = (NILP (buffer) ? Fcurrent_buffer ()
+		: Fget_buffer_create (buffer, Qnil));
   xw->height = XFIXNAT (height);
   xw->width = XFIXNAT (width);
   xw->kill_without_query = false;

@@ -1,6 +1,6 @@
 ;;; nnml.el --- mail spool access for Gnus
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
 ;; Authors: Didier Verna <didier@didierverna.net> (adding compaction)
 ;;	Simon Josefsson <simon@josefsson.org>
@@ -778,8 +778,8 @@ article number.  This function is called narrowed to an article."
 			 group)))
 	 (file-name-coding-system nnmail-pathname-coding-system))
     (with-current-buffer buffer
-      (set (make-local-variable 'nnml-nov-buffer-file-name)
-	   (nnmail-group-pathname group nnml-directory nnml-nov-file-name))
+      (setq-local nnml-nov-buffer-file-name
+                  (nnmail-group-pathname group nnml-directory nnml-nov-file-name))
       (erase-buffer)
       (when (and (not incrementalp)
 		 (file-exists-p nnml-nov-buffer-file-name))

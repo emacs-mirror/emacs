@@ -1,16 +1,12 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Maintainer: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 ;; Package: tramp
-;; Version: 2.5.0-pre
-;; Package-Requires: ((emacs "25.1"))
-;; Package-Type: multi
-;; URL: https://savannah.gnu.org/projects/tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -1022,8 +1018,8 @@ See `tramp-file-name-structure'."
    5 6 7 8 1))
 
 (defvar tramp-file-name-structure nil ;Initialized when defining `tramp-syntax'!
-  "List of six elements (REGEXP METHOD USER HOST FILE HOP), detailing \
-the Tramp file name structure.
+  "List detailing the Tramp file name structure.
+This is a list of six elements (REGEXP METHOD USER HOST FILE HOP).
 
 The first element REGEXP is a regular expression matching a Tramp file
 name.  The regex should contain parentheses around the method name,
@@ -2349,33 +2345,6 @@ Must be handled by the callers."
 		res (cdr elt))))
       res)))
 
-;; In Emacs, there is some concurrency due to timers.  If a timer
-;; interrupts Tramp and wishes to use the same connection buffer as
-;; the "main" Emacs, then garbage might occur in the connection
-;; buffer.  Therefore, we need to make sure that a timer does not use
-;; the same connection buffer as the "main" Emacs.  We implement a
-;; cheap global lock, instead of locking each connection buffer
-;; separately.  The global lock is based on two variables,
-;; `tramp-locked' and `tramp-locker'.  `tramp-locked' is set to true
-;; (with setq) to indicate a lock.  But Tramp also calls itself during
-;; processing of a single file operation, so we need to allow
-;; recursive calls.  That's where the `tramp-locker' variable comes in
-;; -- it is let-bound to t during the execution of the current
-;; handler.  So if `tramp-locked' is t and `tramp-locker' is also t,
-;; then we should just proceed because we have been called
-;; recursively.  But if `tramp-locker' is nil, then we are a timer
-;; interrupting the "main" Emacs, and then we signal an error.
-
-(defvar tramp-locked nil
-  "If non-nil, then Tramp is currently busy.
-Together with `tramp-locker', this implements a locking mechanism
-preventing reentrant calls of Tramp.")
-
-(defvar tramp-locker nil
-  "If non-nil, then a caller has locked Tramp.
-Together with `tramp-locked', this implements a locking mechanism
-preventing reentrant calls of Tramp.")
-
 ;; Main function.
 (defun tramp-file-name-handler (operation &rest args)
   "Invoke Tramp file name handler for OPERATION and ARGS.
@@ -2429,17 +2398,7 @@ Fall back to normal file name handler if no Tramp file name handler exists."
 		        (setq result
 			      (catch 'non-essential
 			        (catch 'suppress
-				  (when (and tramp-locked (not tramp-locker))
-				    (setq tramp-locked nil)
-				    (tramp-error
-				     v 'file-error
-				     "Forbidden reentrant call of Tramp"))
-				  (let ((tl tramp-locked))
-				    (setq tramp-locked t)
-				    (unwind-protect
-				        (let ((tramp-locker t))
-					  (apply foreign operation args))
-				      (setq tramp-locked tl))))))
+				  (apply foreign operation args))))
                         ;; (tramp-message
                         ;;  v 4 "Running `%s'...`%s'" (cons operation args) result)
 		        (cond
@@ -3825,16 +3784,33 @@ It does not support `:stderr'."
 	(unless (or (null sentinel) (functionp sentinel))
 	  (signal 'wrong-type-argument (list #'functionp sentinel)))
 	(unless (or (null stderr) (bufferp stderr))
-	  (signal 'wrong-type-argument (list #'stringp stderr)))
+	  (signal 'wrong-type-argument (list #'bufferp stderr)))
 
 	(let* ((buffer
 		(if buffer
 		    (get-buffer-create buffer)
 		  ;; BUFFER can be nil.  We use a temporary buffer.
 		  (generate-new-buffer tramp-temp-buffer-name)))
+	       ;; We use as environment the difference to toplevel
+	       ;; `process-environment'.
+	       (env (mapcar
+		     (lambda (elt)
+		       (unless
+			   (member
+			    elt (default-toplevel-value 'process-environment))
+			 (when (string-match-p "=" elt) elt)))
+		     process-environment))
+	       (env (setenv-internal
+		     env "INSIDE_EMACS"
+		     (concat (or (getenv "INSIDE_EMACS") emacs-version)
+			     ",tramp:" tramp-version)
+		     'keep))
+	       (env (mapcar #'tramp-shell-quote-argument (delq nil env)))
+	       ;; Quote command.
+	       (command (mapconcat #'tramp-shell-quote-argument command " "))
+	       ;; Set cwd and environment variables.
 	       (command
-		(mapconcat
-		 #'identity (append `("cd" ,localname "&&") command) " ")))
+	        (append `("cd" ,localname "&&" "(" "env") env `(,command ")"))))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
 	  ;; is different between tramp-adb.el and tramp-sh.el.
@@ -3889,7 +3865,7 @@ It does not support `:stderr'."
 	      (mapcar (lambda (x) (split-string x " ")) login-args))
 	     p (make-process
 		:name name :buffer buffer
-		:command (append `(,login-program) login-args `(,command))
+		:command (append `(,login-program) login-args command)
 		:coding coding :noquery noquery :connection-type connection-type
 		:filter filter :sentinel sentinel :stderr stderr))
 
@@ -4499,6 +4475,32 @@ performed successfully.  Any other value means an error."
 
 ;;; Utility functions:
 
+;; In Emacs, there is some concurrency due to timers.  If a timer
+;; interrupts Tramp and wishes to use the same connection buffer as
+;; the "main" Emacs, then garbage might occur in the connection
+;; buffer.  Therefore, we need to make sure that a timer does not use
+;; the same connection buffer as the "main" Emacs.  We lock each
+;; connection process separately by a connection property.
+
+(defmacro with-tramp-locked-connection (proc &rest body)
+  "Lock PROC for other communication, and run BODY.
+Mostly useful to protect BODY from being interrupted by timers."
+  (declare (indent 1) (debug t))
+  `(if (tramp-get-connection-property ,proc "locked" nil)
+       ;; Be kind for older Emacsen.
+       (if (member 'remote-file-error debug-ignored-errors)
+	   (throw 'non-essential 'non-essential)
+	 (tramp-error
+	  ,proc 'remote-file-error "Forbidden reentrant call of Tramp"))
+     (unwind-protect
+	 (progn
+	   (tramp-set-connection-property ,proc "locked" t)
+	   ,@body)
+       (tramp-flush-connection-property ,proc "locked"))))
+
+(font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-tramp-locked-connection\\>"))
+
 (defun tramp-accept-process-output (proc &optional timeout)
   "Like `accept-process-output' for Tramp processes.
 This is needed in order to hide `last-coding-system-used', which is set
@@ -4508,15 +4510,17 @@ If the user quits via `C-g', it is propagated up to `tramp-file-name-handler'."
     (let ((inhibit-read-only t)
 	  last-coding-system-used
 	  result)
-      ;; JUST-THIS-ONE is set due to Bug#12145.  `with-local-quit'
-      ;; returns t in order to report success.
-      (if (with-local-quit
-	    (setq result (accept-process-output proc timeout nil t)) t)
-	  (tramp-message
-	   proc 10 "%s %s %s %s\n%s"
-	   proc timeout (process-status proc) result (buffer-string))
-	;; Propagate quit.
-	(keyboard-quit))
+      ;; This must be protected by the "locked" property.
+      (with-tramp-locked-connection proc
+	;; JUST-THIS-ONE is set due to Bug#12145.  `with-local-quit'
+	;; returns t in order to report success.
+	(if (with-local-quit
+	      (setq result (accept-process-output proc timeout nil t)) t)
+	    (tramp-message
+	     proc 10 "%s %s %s %s\n%s"
+	     proc timeout (process-status proc) result (buffer-string))
+	  ;; Propagate quit.
+	  (keyboard-quit)))
       result)))
 
 (defun tramp-search-regexp (regexp)
@@ -4633,19 +4637,21 @@ the remote host use line-endings as defined in the variable
       (unless (or (string-empty-p string)
 		  (string-equal (substring string -1) tramp-rsh-end-of-line))
 	(setq string (concat string tramp-rsh-end-of-line)))
-      ;; Send the string.
-      (with-local-quit
-	(if (and chunksize (not (zerop chunksize)))
-	    (let ((pos 0)
-		  (end (length string)))
-	      (while (< pos end)
-		(tramp-message
-		 vec 10 "Sending chunk from %s to %s"
-		 pos (min (+ pos chunksize) end))
-		(process-send-string
-		 p (substring string pos (min (+ pos chunksize) end)))
-		(setq pos (+ pos chunksize))))
-	  (process-send-string p string))))))
+      ;; This must be protected by the "locked" property.
+      (with-tramp-locked-connection p
+	;; Send the string.
+	(with-local-quit
+	  (if (and chunksize (not (zerop chunksize)))
+	      (let ((pos 0)
+		    (end (length string)))
+		(while (< pos end)
+		  (tramp-message
+		   vec 10 "Sending chunk from %s to %s"
+		   pos (min (+ pos chunksize) end))
+		  (process-send-string
+		   p (substring string pos (min (+ pos chunksize) end)))
+		  (setq pos (+ pos chunksize))))
+	    (process-send-string p string)))))))
 
 (defun tramp-process-sentinel (proc event)
   "Flush file caches and remove shell prompt."
@@ -5210,6 +5216,8 @@ Invokes `password-read' if available, `read-passwd' else."
 		(tramp-check-for-regexp proc tramp-password-prompt-regexp)
 		(format "%s for %s " (capitalize (match-string 1)) key))))
 	 (auth-source-creation-prompts `((secret . ,pw-prompt)))
+	 ;; Use connection-local value.
+	 (auth-sources (with-current-buffer (process-buffer proc) auth-sources))
 	 ;; We suspend the timers while reading the password.
          (stimers (with-timeout-suspend))
 	 auth-info auth-passwd)
@@ -5250,7 +5258,7 @@ Invokes `password-read' if available, `read-passwd' else."
 		   (setq auth-passwd (funcall auth-passwd)))
 		 auth-passwd)
 
-	       ;; Try the password cache.
+	       ;; Try the password cache.  Exists since Emacs 26.1.
 	       (progn
 		 (setq auth-passwd (password-read pw-prompt key)
 		       tramp-password-save-function

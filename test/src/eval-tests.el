@@ -1,6 +1,6 @@
 ;;; eval-tests.el --- unit tests for src/eval.c      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2016-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 
 ;; Author: Philipp Stephani <phst@google.com>
 
@@ -194,6 +194,23 @@ expressions works for identifiers starting with period."
       (ert-info ((concat "Process output:\n" (buffer-string)))
         (search-forward "  foo()")
         (search-forward "  normal-top-level()")))))
+
+(ert-deftest eval-tests/backtrace-in-batch-mode/inhibit ()
+  (let ((emacs (expand-file-name invocation-name invocation-directory)))
+    (skip-unless (file-executable-p emacs))
+    (with-temp-buffer
+      (let ((status (call-process
+                     emacs nil t nil
+                     "--quick" "--batch"
+                     (concat "--eval="
+                             (prin1-to-string
+                              '(progn
+                                 (defun foo () (error "Boo"))
+                                 (let ((backtrace-on-error-noninteractive nil))
+                                   (foo))))))))
+        (should (natnump status))
+        (should-not (eql status 0)))
+      (should (equal (string-trim (buffer-string)) "Boo")))))
 
 (ert-deftest eval-tests/backtrace-in-batch-mode/demoted-errors ()
   (let ((emacs (expand-file-name invocation-name invocation-directory)))

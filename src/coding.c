@@ -1,5 +1,5 @@
 /* Coding system handler (conversion, detection, etc).
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2021 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -7821,7 +7821,7 @@ encode_coding (struct coding_system *coding)
 
 /* A string that serves as name of the reusable work buffer, and as base
    name of temporary work buffers used for code-conversion operations.  */
-Lisp_Object Vcode_conversion_workbuf_name;
+static Lisp_Object Vcode_conversion_workbuf_name;
 
 /* The reusable working buffer, created once and never killed.  */
 static Lisp_Object Vcode_conversion_reused_workbuf;
@@ -7839,7 +7839,7 @@ code_conversion_restore (Lisp_Object arg)
   if (! NILP (workbuf))
     {
       if (EQ (workbuf, Vcode_conversion_reused_workbuf))
-	reused_workbuf_in_use = 0;
+	reused_workbuf_in_use = false;
       else
 	Fkill_buffer (workbuf);
     }
@@ -7857,13 +7857,13 @@ code_conversion_save (bool with_work_buf, bool multibyte)
 	{
 	  Lisp_Object name
 	    = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
-	  workbuf = Fget_buffer_create (name);
+	  workbuf = Fget_buffer_create (name, Qt);
 	}
       else
 	{
 	  if (NILP (Fbuffer_live_p (Vcode_conversion_reused_workbuf)))
 	    Vcode_conversion_reused_workbuf
-	      = Fget_buffer_create (Vcode_conversion_workbuf_name);
+	      = Fget_buffer_create (Vcode_conversion_workbuf_name, Qt);
 	  workbuf = Vcode_conversion_reused_workbuf;
 	}
     }
@@ -7881,7 +7881,7 @@ code_conversion_save (bool with_work_buf, bool multibyte)
       bset_undo_list (current_buffer, Qt);
       bset_enable_multibyte_characters (current_buffer, multibyte ? Qt : Qnil);
       if (EQ (workbuf, Vcode_conversion_reused_workbuf))
-	reused_workbuf_in_use = 1;
+	reused_workbuf_in_use = true;
       set_buffer_internal (current);
     }
 
@@ -10354,8 +10354,8 @@ decode_file_name (Lisp_Object fname)
 #endif
 }
 
-Lisp_Object
-encode_file_name (Lisp_Object fname)
+static Lisp_Object
+encode_file_name_1 (Lisp_Object fname)
 {
   /* This is especially important during bootstrap and dumping, when
      file-name encoding is not yet known, and therefore any non-ASCII
@@ -10378,6 +10378,19 @@ encode_file_name (Lisp_Object fname)
   else
     return fname;
 #endif
+}
+
+Lisp_Object
+encode_file_name (Lisp_Object fname)
+{
+  Lisp_Object encoded = encode_file_name_1 (fname);
+  /* No system accepts NUL bytes in filenames.  Allowing them can
+     cause subtle bugs because the system would silently use a
+     different filename than expected.  Perform this check after
+     encoding to not miss NUL bytes introduced through encoding.  */
+  CHECK_TYPE (memchr (SSDATA (encoded), '\0', SBYTES (encoded)) == NULL,
+              Qfilenamep, fname);
+  return encoded;
 }
 
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
@@ -11639,7 +11652,7 @@ syms_of_coding (void)
   staticpro (&Vcode_conversion_workbuf_name);
   Vcode_conversion_workbuf_name = build_pure_c_string (" *code-conversion-work*");
 
-  reused_workbuf_in_use = 0;
+  reused_workbuf_in_use = false;
   PDUMPER_REMEMBER_SCALAR (reused_workbuf_in_use);
 
   DEFSYM (Qcharset, "charset");
@@ -11780,6 +11793,7 @@ syms_of_coding (void)
   DEFSYM (Qignored, "ignored");
 
   DEFSYM (Qutf_8_string_p, "utf-8-string-p");
+  DEFSYM (Qfilenamep, "filenamep");
 
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);

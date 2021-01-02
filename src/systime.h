@@ -1,5 +1,5 @@
 /* systime.h - System-dependent definitions for time manipulations.
-   Copyright (C) 1993-1994, 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2002-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

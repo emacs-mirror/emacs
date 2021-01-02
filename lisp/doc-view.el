@@ -1,6 +1,6 @@
 ;;; doc-view.el --- Document viewer for Emacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tsdh@gnu.org>
 ;; Keywords: files, pdf, ps, dvi
@@ -432,6 +432,7 @@ Typically \"page-%s.png\".")
     (define-key map "P"               'doc-view-fit-page-to-window)
     (define-key map "F"               'doc-view-fit-window-to-page) ;F = frame
     ;; Killing the buffer (and the process)
+    (define-key map (kbd "k")         'image-kill-buffer)
     (define-key map (kbd "K")         'doc-view-kill-proc)
     ;; Slicing the image
     (define-key map (kbd "c s")       'doc-view-set-slice)
@@ -2055,7 +2056,7 @@ See the command `doc-view-mode' for more information on this mode."
   :init-value nil :keymap doc-view-presentation-mode-map
   (if doc-view-presentation-mode
       (progn
-        (set (make-local-variable 'mode-line-format) nil)
+        (setq-local mode-line-format nil)
         (doc-view-fit-page-to-window)
         ;; (doc-view-convert-all-pages)
         )

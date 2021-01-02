@@ -1,6 +1,6 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1997, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1992, 1994, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -208,6 +208,7 @@ a section."
     (when start
       (save-excursion
         (goto-char start)
+        (looking-at outline-regexp)
         (let ((level (lisp-outline-level))
               (case-fold-search t)
               next-section-found)
@@ -218,6 +219,7 @@ a section."
                              nil t))
                       (> (save-excursion
                            (beginning-of-line)
+                           (looking-at outline-regexp)
                            (lisp-outline-level))
                          level)))
 	  (min (if next-section-found

@@ -1,6 +1,6 @@
 ;;; epg.el --- the EasyPG Library -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2000, 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2000, 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
@@ -1381,6 +1381,13 @@ NAME is either a string or a list of strings."
 	(setq pointer-1 (cdr pointer-1)))
       (setq pointer (cdr pointer)))
     keys))
+
+(defun epg--filter-revoked-keys (keys)
+  (seq-remove (lambda (key)
+                (seq-find (lambda (user)
+                            (eq (epg-user-id-validity user) 'revoked))
+                          (epg-key-user-id-list key)))
+              keys))
 
 (defun epg--args-from-sig-notations (notations)
   (apply #'nconc

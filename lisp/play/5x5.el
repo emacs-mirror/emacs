@@ -1,6 +1,6 @@
 ;;; 5x5.el --- simple little puzzle game
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Created: 1998-10-03
@@ -31,7 +31,7 @@
 ;; o The code for updating the grid needs to be re-done.  At the moment it
 ;;   simply re-draws the grid every time a move is made.
 ;;
-;; o Look into tarting up the display with color.  gamegrid.el looks
+;; o Look into improving the display with color.  gamegrid.el looks
 ;;   interesting, perhaps that is the way to go?
 
 ;;; Thanks:
@@ -47,8 +47,6 @@
 
 ;;; Code:
 
-;; Things we need.
-
 (eval-when-compile (require 'cl-lib))
 
 ;; Customize options.
@@ -60,33 +58,27 @@
 
 (defcustom 5x5-grid-size 5
   "Size of the playing area."
-  :type  'integer
-  :group '5x5)
+  :type  'integer)
 
 (defcustom 5x5-x-scale 4
   "X scaling factor for drawing the grid."
-  :type  'integer
-  :group '5x5)
+  :type  'integer)
 
 (defcustom 5x5-y-scale 3
   "Y scaling factor for drawing the grid."
-  :type  'integer
-  :group '5x5)
+  :type  'integer)
 
 (defcustom 5x5-animate-delay .01
   "Delay in seconds when animating a solution crack."
-  :type  'number
-  :group '5x5)
+  :type  'number)
 
 (defcustom 5x5-hassle-me t
   "Should 5x5 ask you when you want to do a destructive operation?"
-  :type  'boolean
-  :group '5x5)
+  :type  'boolean)
 
 (defcustom 5x5-mode-hook nil
   "Hook run on starting 5x5."
-  :type  'hook
-  :group '5x5)
+  :type  'hook)
 
 ;; Non-customize variables.
 

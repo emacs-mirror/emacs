@@ -1,6 +1,6 @@
 ;;; emacs-module-tests --- Test GNU Emacs modules.  -*- lexical-binding: t; -*-
 
-;; Copyright 2015-2020 Free Software Foundation, Inc.
+;; Copyright 2015-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,7 @@
 (require 'ert)
 (require 'ert-x)
 (require 'help-fns)
+(require 'subr-x)
 
 (defconst mod-test-emacs
   (expand-file-name invocation-name invocation-directory)
@@ -555,5 +556,24 @@ See Bug#36226."
            "thread 2")))
     (thread-join thread-1)
     (thread-join thread-2)))
+
+(ert-deftest mod-test-make-string/empty ()
+  (dolist (multibyte '(nil t))
+    (ert-info ((format "Multibyte: %s" multibyte))
+      (let ((got (mod-test-make-string 0 multibyte)))
+        (should (stringp got))
+        (should (string-empty-p got))
+        (should (eq (multibyte-string-p got) multibyte))))))
+
+(ert-deftest mod-test-make-string/nonempty ()
+  (dolist (multibyte '(nil t))
+    (ert-info ((format "Multibyte: %s" multibyte))
+      (let ((first (mod-test-make-string 1 multibyte))
+            (second (mod-test-make-string 1 multibyte)))
+        (should (stringp first))
+        (should (eql (length first) 1))
+        (should (eq (multibyte-string-p first) multibyte))
+        (should (string-equal first second))
+        (should-not (eq first second))))))
 
 ;;; emacs-module-tests.el ends here

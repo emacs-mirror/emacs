@@ -1,6 +1,6 @@
 ;;; ob-forth.el --- Babel Functions for Forth        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, forth
@@ -76,7 +76,8 @@ This function is called by `org-babel-execute-src-block'."
 		    ;; Report errors.
 		    (org-babel-eval-error-notify 1
 		     (buffer-substring
-		      (+ (match-beginning 0) 1) (point-max))) nil))))
+		      (+ (match-beginning 0) 1) (point-max)))
+		    nil))))
 	      (split-string (org-trim
 			     (org-babel-expand-body:generic body params))
 			    "\n"

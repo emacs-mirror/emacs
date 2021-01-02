@@ -1,6 +1,6 @@
 ;;; japanese.el --- support for Japanese
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -187,6 +187,22 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
                         japanese-jisx0213.2004-1 japanese-jisx0213-2))
 
 (define-coding-system-alias 'shift_jis-2004 'japanese-shift-jis-2004)
+
+(define-coding-system 'ibm281
+  "Japanese-E version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm281)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-jp-e 'ibm281)
+(define-coding-system-alias 'cp281 'ibm281)
+
+(define-coding-system 'ibm290
+  "Japanese katakana version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ibm290)
+  :mnemonic ?*)
+(define-coding-system-alias 'ebcdic-jp-kana 'ibm290)
+(define-coding-system-alias 'cp290 'ibm290)
 
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)

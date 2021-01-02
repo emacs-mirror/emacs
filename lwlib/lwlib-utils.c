@@ -1,7 +1,7 @@
 /* Defines some widget utility functions.
 
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994, 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -148,6 +148,7 @@ XftFont *
 crxft_font_open_name (Display *dpy, int screen, const char *name)
 {
   XftFont *pub = NULL;
+  FcPattern *match = NULL;
   FcPattern *pattern = FcNameParse ((FcChar8 *) name);
   if (pattern)
     {
@@ -162,12 +163,18 @@ crxft_font_open_name (Display *dpy, int screen, const char *name)
 	  FcPatternAddDouble (pattern, FC_DPI, dpi);
 	}
       FcDefaultSubstitute (pattern);
+      FcResult result;
+      match = FcFontMatch (NULL, pattern, &result);
+      FcPatternDestroy (pattern);
+    }
+  if (match)
+    {
       cairo_font_face_t *font_face
-	= cairo_ft_font_face_create_for_pattern (pattern);
+	= cairo_ft_font_face_create_for_pattern (match);
       if (font_face)
 	{
 	  double pixel_size;
-	  if ((FcPatternGetDouble (pattern, FC_PIXEL_SIZE, 0, &pixel_size)
+	  if ((FcPatternGetDouble (match, FC_PIXEL_SIZE, 0, &pixel_size)
 	       != FcResultMatch)
 	      || pixel_size < 1)
 	    pixel_size = 10;
@@ -177,7 +184,7 @@ crxft_font_open_name (Display *dpy, int screen, const char *name)
 	  cairo_matrix_init_scale (&font_matrix, pixel_size, pixel_size);
 	  cairo_matrix_init_identity (&ctm);
 	  cairo_font_options_t *options = cairo_font_options_create ();
-	  cairo_ft_font_options_substitute (options, pattern);
+	  cairo_ft_font_options_substitute (options, match);
 	  pub->scaled_font = cairo_scaled_font_create (font_face, &font_matrix,
 						       &ctm, options);
 	  cairo_font_face_destroy (font_face);
@@ -190,7 +197,7 @@ crxft_font_open_name (Display *dpy, int screen, const char *name)
 	  pub->height = lround (extents.height);
 	  pub->max_advance_width = lround (extents.max_x_advance);
 	}
-      FcPatternDestroy (pattern);
+      FcPatternDestroy (match);
     }
   if (pub && pub->height <= 0)
     {

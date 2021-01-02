@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: July, 1993
@@ -26,7 +26,8 @@
 ;; This package is for setting "bookmarks" in files.  A bookmark
 ;; associates a string with a location in a certain file.  Thus, you
 ;; can navigate your way to that location by providing the string.
-;; See the "User Variables" section for customizations.
+;;
+;; Type `M-x customize-group RET boomark RET' for user options.
 
 
 ;;; Code:

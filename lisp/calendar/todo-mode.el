@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- facilities for making and maintaining todo lists  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <privat@os10000.net>
 ;;	Stephen Berman <stephen.berman@gmx.net>
@@ -2745,9 +2745,10 @@ section in the category moved to."
 		(setq ov (make-overlay (save-excursion (todo-item-start))
 				       (save-excursion (todo-item-end))))
 		(overlay-put ov 'face 'todo-search))
-	      (let* ((pl (if (and marked (> (cdr marked) 1)) "s" ""))
-		     (cat+file (todo-read-category (concat "Move item" pl
-							    " to category: ")
+	      (let* ((num (if (not marked) 1 (cdr marked)))
+		     (cat+file (todo-read-category
+                                (ngettext "Move item to category: "
+                                          "Move items to category: " num)
 						    nil file)))
 		(while (and (equal (car cat+file) cat1)
 			    (equal (cdr cat+file) file1))
@@ -2974,7 +2975,7 @@ comments without asking."
   (interactive)
   (let* ((cat (todo-current-category))
 	 (marked (assoc cat todo-categories-with-marks))
-	 (pl (if (and marked (> (cdr marked) 1)) "s" "")))
+	 (num (if (not marked) 1 (cdr marked))))
     (when (or marked (todo-done-item-p))
       (let ((buffer-read-only)
 	    (opoint (point))
@@ -2982,6 +2983,9 @@ comments without asking."
 	    (first 'first)
 	    (item-count 0)
 	    (diary-count 0)
+            (omit-prompt (ngettext "Omit comment from restored item? "
+                                   "Omit comments from restored items? "
+                           num))
 	    start end item ov npoint undone)
 	(and marked (goto-char (point-min)))
 	(catch 'done
@@ -3013,10 +3017,7 @@ comments without asking."
 		      (if (eq first 'first)
 			  (setq first
 				(if (eq todo-undo-item-omit-comment 'ask)
-				    (when (todo-y-or-n-p
-					   (concat "Omit comment" pl
-						   " from restored item"
-						   pl "? "))
+				    (when (todo-y-or-n-p omit-prompt)
 				      'omit)
 				  (when todo-undo-item-omit-comment 'omit)))
 			t)
@@ -5782,11 +5783,13 @@ have been removed."
 	      (delete f todo-category-completions-files))
 	(push f deleted)))
     (when deleted
-      (let ((pl (> (length deleted) 1))
+      (let ((ndeleted (length deleted))
 	    (names (mapconcat (lambda (f) (concat "\"" f "\"")) deleted ", ")))
-	(message (concat "File" (if pl "s" "") " %s ha" (if pl "ve" "s")
-			 " been deleted and removed from\n"
-			 "the list of category completion files")
+	(message (concat
+                  (ngettext "File %s has been deleted and removed from\n"
+                            "Files %s have been deleted and removed from\n"
+                            ndeleted)
+		  "the list of category completion files")
 		 names))
       (put 'todo-category-completions-files 'custom-type
            `(set ,@(todo--files-type-list)))

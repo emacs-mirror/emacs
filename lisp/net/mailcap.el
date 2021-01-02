@@ -1,6 +1,6 @@
 ;;; mailcap.el --- MIME media types configuration -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -386,8 +386,7 @@ Gnus might fail to display all of it.")
     (when
 	(save-window-excursion
 	  (delete-other-windows)
-	  (let ((buffer (get-buffer-create (generate-new-buffer-name
-					    "*Warning*"))))
+          (let ((buffer (generate-new-buffer "*Warning*")))
 	    (unwind-protect
 		(with-current-buffer buffer
 		  (insert (substitute-command-keys

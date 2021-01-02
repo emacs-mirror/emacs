@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988-1995, 1997, 1999-2020 Free Software Foundation,
+;; Copyright (C) 1988-1995, 1997, 1999-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -592,7 +592,7 @@ already is one.)"
   "A list of entries associating symbols with buffer regions.
 Each entry is an `edebug--form-data' struct with fields:
 SYMBOL, BEGIN-MARKER, and END-MARKER.  The markers
-are at the beginning and end of an entry level form and SYMBOL is
+are at the beginning and end of an instrumented form and SYMBOL is
 a symbol that holds all edebug related information for the form on its
 property list.
 

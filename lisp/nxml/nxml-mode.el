@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2004, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2004, 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: wp, hypermedia, languages, XML
@@ -107,8 +107,10 @@ and when the encoding declaration specifies `UTF-16'."
 
 (defcustom nxml-default-buffer-file-coding-system nil
   "Default value for `buffer-file-coding-system' for a buffer for a new file.
-A value of nil means use the default value of `buffer-file-coding-system' as normal.
-A buffer's `buffer-file-coding-system' affects what \\[nxml-insert-xml-declaration] inserts."
+A value of nil means use the default value of
+`buffer-file-coding-system' as normal.
+A buffer's `buffer-file-coding-system' affects what
+\\[nxml-insert-xml-declaration] inserts."
   :group 'nxml
   :type 'coding-system)
 

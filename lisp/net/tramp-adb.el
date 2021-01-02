@@ -1,6 +1,6 @@
 ;;; tramp-adb.el --- Functions for calling Android Debug Bridge from Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Jürgen Hötzel <juergen@archlinux.org>
 ;; Keywords: comm, processes
@@ -929,7 +929,7 @@ alternative implementation will be used."
 	  (unless (or (null sentinel) (functionp sentinel))
 	    (signal 'wrong-type-argument (list #'functionp sentinel)))
 	  (unless (or (null stderr) (bufferp stderr) (stringp stderr))
-	    (signal 'wrong-type-argument (list #'stringp stderr)))
+	    (signal 'wrong-type-argument (list #'bufferp stderr)))
 	  (when (and (stringp stderr) (tramp-tramp-file-p stderr)
 		     (not (tramp-equal-remote default-directory stderr)))
 	    (signal 'file-error (list "Wrong stderr" stderr)))
@@ -981,7 +981,11 @@ alternative implementation will be used."
 		      ;; otherwise we might be interrupted by
 		      ;; `verify-visited-file-modtime'.
 		      (let ((buffer-undo-list t)
-			    (inhibit-read-only t))
+			    (inhibit-read-only t)
+			    (coding-system-for-write
+			     (if (symbolp coding) coding (car coding)))
+			    (coding-system-for-read
+			     (if (symbolp coding) coding (cdr coding))))
 			(clear-visited-file-modtime)
 			(narrow-to-region (point-max) (point-max))
 			;; We call `tramp-adb-maybe-open-connection',
@@ -1127,6 +1131,13 @@ This happens for Android >= 4.0."
   (if (string-match-p "[[:multibyte:]]" command)
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
+
+      ;; <https://android.stackexchange.com/questions/226638/how-to-use-multibyte-file-names-in-adb-shell/232379#232379>
+      ;; mksh uses UTF-8 internally, but is currently limited to the
+      ;; BMP (basic multilingua plane), which means U+0000 to
+      ;; U+FFFD. If you want to use SMP codepoints (U-00010000 to
+      ;; U-0010FFFD) on the input line, you currently have to disable
+      ;; the UTF-8 mode (sorry).
       (tramp-adb-execute-adb-command vec "shell" command)
 
     (unless neveropen (tramp-adb-maybe-open-connection vec))
@@ -1260,6 +1271,9 @@ connection if a previous connection has died for some reason."
 	    (process-put p 'adjust-window-size-function #'ignore)
 	    (set-process-query-on-exit-flag p nil)
 
+	    ;; Set connection-local variables.
+	    (tramp-set-connection-local-variables vec)
+
 	    ;; Change prompt.
 	    (tramp-set-connection-property
 	     p "prompt" (regexp-quote (format "///%s#$" prompt)))
@@ -1311,9 +1325,6 @@ connection if a previous connection has died for some reason."
 		(tramp-set-file-property vec "" "su-command-p" nil)
 		(tramp-error
 		 vec 'file-error "Cannot switch to user `%s'" user)))
-
-	    ;; Set connection-local variables.
-	    (tramp-set-connection-local-variables vec)
 
 	    ;; Mark it as connected.
 	    (tramp-set-connection-property p "connected" t)))))))

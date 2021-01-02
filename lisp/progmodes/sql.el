@@ -1,12 +1,11 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <michael@mauger.com>
 ;; Version: 3.6
 ;; Keywords: comm languages processes
-;; URL: https://savannah.gnu.org/projects/emacs/
 
 ;; This file is part of GNU Emacs.
 
@@ -1725,7 +1724,7 @@ to add functions and PL/SQL keywords.")
                            "ORDER BY 2 DESC, 3 DESC, 4 DESC, 5 DESC, 6 DESC, 1;")
                    nil nil)
       (with-current-buffer b
-        (set (make-local-variable 'sql-product) 'oracle)
+        (setq-local sql-product 'oracle)
         (sql-product-font-lock t nil)
         (font-lock-mode +1)))))
 
@@ -2812,7 +2811,7 @@ configured."
       ((syntax-alist (sql-product-font-lock-syntax-alist)))
 
     ;; Get the product-specific keywords.
-    (set (make-local-variable 'sql-mode-font-lock-keywords)
+    (setq-local sql-mode-font-lock-keywords
          (append
           (unless (eq sql-product 'ansi)
             (sql-get-product-feature sql-product :font-lock))
@@ -2824,7 +2823,7 @@ configured."
 
     ;; Setup font-lock.  Force re-parsing of `font-lock-defaults'.
     (kill-local-variable 'font-lock-set-defaults)
-    (set (make-local-variable 'font-lock-defaults)
+    (setq-local font-lock-defaults
          (list 'sql-mode-font-lock-keywords
                keywords-only t syntax-alist))
 
@@ -4134,8 +4133,8 @@ details or extends the listing to include other schemas objects."
     (sql-execute-feature sqlbuf "*List All*" :list-all enhanced nil)
     (with-current-buffer sqlbuf
       ;; Contains the name of database objects
-      (set (make-local-variable 'sql-contains-names) t)
-      (set (make-local-variable 'sql-buffer) sqlbuf))))
+      (setq-local sql-contains-names t)
+      (setq-local sql-buffer sqlbuf))))
 
 (defun sql-list-table (name &optional enhanced)
   "List the details of a database table named NAME.
@@ -4190,7 +4189,7 @@ must tell Emacs.  Here's how to do that in your init file:
       (easy-menu-add sql-mode-menu))
 
   ;; (smie-setup sql-smie-grammar #'sql-smie-rules)
-  (set (make-local-variable 'comment-start) "--")
+  (setq-local comment-start "--")
   ;; Make each buffer in sql-mode remember the "current" SQLi buffer.
   (make-local-variable 'sql-buffer)
   ;; Add imenu support for sql-mode.  Note that imenu-generic-expression
@@ -4200,12 +4199,12 @@ must tell Emacs.  Here's how to do that in your init file:
 	imenu-case-fold-search t)
   ;; Make `sql-send-paragraph' work on paragraphs that contain indented
   ;; lines.
-  (set (make-local-variable 'paragraph-separate) "[\f]*$")
-  (set (make-local-variable 'paragraph-start) "[\n\f]")
+  (setq-local paragraph-separate "[\f]*$")
+  (setq-local paragraph-start "[\n\f]")
   ;; Abbrevs
   (setq-local abbrev-all-caps 1)
   ;; Contains the name of database objects
-  (set (make-local-variable 'sql-contains-names) t)
+  (setq-local sql-contains-names t)
   (setq-local syntax-propertize-function
               (syntax-propertize-rules
                ;; Handle escaped apostrophes within strings.
@@ -4304,9 +4303,8 @@ you entered, right above the output it created.
   :after-hook (sql--adjust-interactive-setup)
 
   ;; Get the `sql-product' for this interactive session.
-  (set (make-local-variable 'sql-product)
-       (or sql-interactive-product
-	   sql-product))
+  (setq-local sql-product (or sql-interactive-product
+                           sql-product))
 
   ;; Setup the mode.
   (setq mode-name
@@ -4323,7 +4321,7 @@ you entered, right above the output it created.
   (sql-product-font-lock t nil)
 
   ;; Enable commenting and uncommenting of the region.
-  (set (make-local-variable 'comment-start) "--")
+  (setq-local comment-start "--")
   ;; Abbreviation table init and case-insensitive.  It is not activated
   ;; by default.
   (setq local-abbrev-table sql-mode-abbrev-table)
@@ -4332,27 +4330,27 @@ you entered, right above the output it created.
   (let ((proc (get-buffer-process (current-buffer))))
     (when proc (set-process-sentinel proc #'sql-stop)))
   ;; Save the connection and login params
-  (set (make-local-variable 'sql-user)       sql-user)
-  (set (make-local-variable 'sql-database)   sql-database)
-  (set (make-local-variable 'sql-server)     sql-server)
-  (set (make-local-variable 'sql-port)       sql-port)
-  (set (make-local-variable 'sql-connection) sql-connection)
+  (setq-local sql-user       sql-user)
+  (setq-local sql-database   sql-database)
+  (setq-local sql-server     sql-server)
+  (setq-local sql-port       sql-port)
+  (setq-local sql-connection sql-connection)
   (setq-default sql-connection nil)
   ;; Contains the name of database objects
-  (set (make-local-variable 'sql-contains-names) t)
+  (setq-local sql-contains-names t)
   ;; Keep track of existing object names
-  (set (make-local-variable 'sql-completion-object) nil)
-  (set (make-local-variable 'sql-completion-column) nil)
+  (setq-local sql-completion-object nil)
+  (setq-local sql-completion-column nil)
   ;; Create a useful name for renaming this buffer later.
-  (set (make-local-variable 'sql-alternate-buffer-name)
-       (sql-make-alternate-buffer-name))
+  (setq-local sql-alternate-buffer-name
+              (sql-make-alternate-buffer-name))
   ;; User stuff.  Initialize before the hook.
-  (set (make-local-variable 'sql-prompt-regexp)
-       (or (sql-get-product-feature sql-product :prompt-regexp) "^"))
-  (set (make-local-variable 'sql-prompt-length)
-       (sql-get-product-feature sql-product :prompt-length))
-  (set (make-local-variable 'sql-prompt-cont-regexp)
-       (sql-get-product-feature sql-product :prompt-cont-regexp))
+  (setq-local sql-prompt-regexp
+              (or (sql-get-product-feature sql-product :prompt-regexp) "^"))
+  (setq-local sql-prompt-length
+              (sql-get-product-feature sql-product :prompt-length))
+  (setq-local sql-prompt-cont-regexp
+              (sql-get-product-feature sql-product :prompt-cont-regexp))
   (make-local-variable 'sql-output-newline-count)
   (make-local-variable 'sql-preoutput-hold)
   (add-hook 'comint-preoutput-filter-functions
@@ -4370,7 +4368,7 @@ you entered, right above the output it created.
           sql-prompt-regexp))
   (setq left-margin (or sql-prompt-length 0))
   ;; Install input sender
-  (set (make-local-variable 'comint-input-sender) #'sql-input-sender)
+  (setq-local comint-input-sender #'sql-input-sender)
   ;; People wanting a different history file for each
   ;; buffer/process/client/whatever can change separator and file-name
   ;; on the sql-interactive-mode-hook.
@@ -4651,8 +4649,7 @@ the call to \\[sql-product-interactive] with
 
               ;; Set the new buffer name
               (setq new-sqli-buffer (current-buffer))
-              (set (make-local-variable 'sql-buffer)
-                   (buffer-name new-sqli-buffer))
+              (setq-local sql-buffer (buffer-name new-sqli-buffer))
 
               ;; Set `sql-buffer' in the start buffer
               (with-current-buffer start-buffer

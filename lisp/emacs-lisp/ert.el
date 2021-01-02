@@ -1,6 +1,6 @@
 ;;; ert.el --- Emacs Lisp Regression Testing  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2008, 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2008, 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Christian Ohler <ohler@gnu.org>
 ;; Keywords: lisp, tools
@@ -274,7 +274,7 @@ DATA is displayed to the user and should state the reason for skipping."
 It should only be stopped when ran from inside ert--run-test-internal."
   (when (and (not (symbolp debugger))   ; only run on anonymous debugger
              (memq error-symbol '(ert-test-failed ert-test-skipped)))
-    (funcall debugger 'error data)))
+    (funcall debugger 'error (list error-symbol data))))
 
 (defun ert--special-operator-p (thing)
   "Return non-nil if THING is a symbol naming a special operator."

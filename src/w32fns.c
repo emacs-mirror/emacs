@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft Windows API.
 
-Copyright (C) 1989, 1992-2020 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7372,7 +7372,7 @@ DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);
-  tip_buf = Fget_buffer_create (tip);
+  tip_buf = Fget_buffer_create (tip, Qnil);
   /* We will mark the tip window a "pseudo-window" below, and such
      windows cannot have display margins.  */
   bset_left_margin_cols (XBUFFER (tip_buf), make_fixnum (0));

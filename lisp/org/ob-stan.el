@@ -1,6 +1,6 @@
 ;;; ob-stan.el --- Babel Functions for Stan          -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Kyle Meyer
 ;; Keywords: literate programming, reproducible research
@@ -82,4 +82,5 @@ Otherwise, write the Stan code directly to the named file."
   (user-error "Stan does not support sessions"))
 
 (provide 'ob-stan)
+
 ;;; ob-stan.el ends here

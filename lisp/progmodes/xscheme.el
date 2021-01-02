@@ -1,6 +1,6 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs        -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1986-1987, 1989-1990, 2001-2020 Free Software
+;; Copyright (C) 1986-1987, 1989-1990, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -173,7 +173,7 @@ With argument, asks for a command line."
   (setq-default xscheme-process-command-line command-line)
   (switch-to-buffer
    (xscheme-start-process command-line process-name buffer-name))
-  (set (make-local-variable 'xscheme-process-command-line) command-line))
+  (setq-local xscheme-process-command-line command-line))
 
 (defun xscheme-read-command-line (arg)
   (let ((default
@@ -264,11 +264,11 @@ With argument, asks for a command line."
 		      xscheme-buffer-name
 		      t)))
   (let ((process-name (verify-xscheme-buffer buffer-name t)))
-    (set (make-local-variable 'xscheme-buffer-name) buffer-name)
-    (set (make-local-variable 'xscheme-process-name) process-name)
-    (set (make-local-variable 'xscheme-runlight)
-         (with-current-buffer buffer-name
-           xscheme-runlight))))
+    (setq-local xscheme-buffer-name buffer-name)
+    (setq-local xscheme-process-name process-name)
+    (setq-local xscheme-runlight
+                (with-current-buffer buffer-name
+                  xscheme-runlight))))
 
 (defun local-clear-scheme-interaction-buffer ()
   "Make the current buffer use the default scheme interaction buffer."
@@ -375,10 +375,10 @@ Entry to this mode runs `scheme-mode-hook' and then
         (kill-all-local-variables)
         (make-local-variable 'xscheme-runlight-string)
         (make-local-variable 'xscheme-runlight)
-        (set (make-local-variable 'xscheme-previous-mode) previous-mode)
+        (setq-local xscheme-previous-mode previous-mode)
         (let ((buffer (current-buffer)))
-          (set (make-local-variable 'xscheme-buffer-name) (buffer-name buffer))
-          (set (make-local-variable 'xscheme-last-input-end) (make-marker))
+          (setq-local xscheme-buffer-name (buffer-name buffer))
+          (setq-local xscheme-last-input-end (make-marker))
           (let ((process (get-buffer-process buffer)))
             (when process
               (setq-local xscheme-process-name (process-name process))

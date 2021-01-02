@@ -1,6 +1,6 @@
 ;;; text-mode.el --- text mode, and its idiosyncratic commands  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1992, 1994, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1985, 1992, 1994, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org

@@ -1,6 +1,6 @@
 ;;; etags.el --- etags facility for Emacs  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2020 Free
+;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2021 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -258,9 +258,9 @@ One argument, the tag info returned by `snarf-tag-function'.")
 Return non-nil if it is a valid tags table, and
 in that case, also make the tags table state variables
 buffer-local and set them to nil."
-  (set (make-local-variable 'tags-table-files) nil)
-  (set (make-local-variable 'tags-completion-table) nil)
-  (set (make-local-variable 'tags-included-tables) nil)
+  (setq-local tags-table-files nil)
+  (setq-local tags-completion-table nil)
+  (setq-local tags-included-tables nil)
   ;; We used to initialize find-tag-marker-ring and tags-location-ring
   ;; here, to new empty rings.  But that is wrong, because those
   ;; are global.
@@ -1234,34 +1234,29 @@ error message."
   "If `etags-verify-tags-table', make buffer-local format variables.
 If current buffer is a valid etags TAGS file, then give it
 buffer-local values of tags table format variables."
-  (and (etags-verify-tags-table)
-       ;; It is annoying to flash messages on the screen briefly,
-       ;; and this message is not useful.  -- rms
-       ;; (message "%s is an `etags' TAGS file" buffer-file-name)
-       (mapc (lambda (elt) (set (make-local-variable (car elt)) (cdr elt)))
-	     '((file-of-tag-function . etags-file-of-tag)
-	       (tags-table-files-function . etags-tags-table-files)
-	       (tags-completion-table-function . etags-tags-completion-table)
-	       (snarf-tag-function . etags-snarf-tag)
-	       (goto-tag-location-function . etags-goto-tag-location)
-	       (find-tag-regexp-search-function . re-search-forward)
-	       (find-tag-regexp-tag-order . (tag-re-match-p))
-	       (find-tag-regexp-next-line-after-failure-p . t)
-	       (find-tag-search-function . search-forward)
-	       (find-tag-tag-order . (tag-exact-file-name-match-p
-                                      tag-file-name-match-p
-				      tag-exact-match-p
-				      tag-implicit-name-match-p
-				      tag-symbol-match-p
-				      tag-word-match-p
-				      tag-partial-file-name-match-p
-				      tag-any-match-p))
-	       (find-tag-next-line-after-failure-p . nil)
-	       (list-tags-function . etags-list-tags)
-	       (tags-apropos-function . etags-tags-apropos)
-	       (tags-included-tables-function . etags-tags-included-tables)
-	       (verify-tags-table-function . etags-verify-tags-table)
-	       ))))
+  (when (etags-verify-tags-table)
+    (setq-local file-of-tag-function 'etags-file-of-tag)
+    (setq-local tags-table-files-function 'etags-tags-table-files)
+    (setq-local tags-completion-table-function 'etags-tags-completion-table)
+    (setq-local snarf-tag-function 'etags-snarf-tag)
+    (setq-local goto-tag-location-function 'etags-goto-tag-location)
+    (setq-local find-tag-regexp-search-function 're-search-forward)
+    (setq-local find-tag-regexp-tag-order '(tag-re-match-p))
+    (setq-local find-tag-regexp-next-line-after-failure-p t)
+    (setq-local find-tag-search-function 'search-forward)
+    (setq-local find-tag-tag-order '(tag-exact-file-name-match-p
+                                     tag-file-name-match-p
+                                     tag-exact-match-p
+                                     tag-implicit-name-match-p
+                                     tag-symbol-match-p
+                                     tag-word-match-p
+                                     tag-partial-file-name-match-p
+                                     tag-any-match-p))
+    (setq-local find-tag-next-line-after-failure-p nil)
+    (setq-local list-tags-function 'etags-list-tags)
+    (setq-local tags-apropos-function 'etags-tags-apropos)
+    (setq-local tags-included-tables-function 'etags-tags-included-tables)
+    (setq-local verify-tags-table-function 'etags-verify-tags-table)))
 
 (defun etags-verify-tags-table ()
   "Return non-nil if the current buffer is a valid etags TAGS file."
@@ -1593,16 +1588,16 @@ hits the start of file."
   "Return non-nil if current buffer is empty.
 If empty, make buffer-local values of the tags table format variables
 that do nothing."
-  (and (zerop (buffer-size))
-       (mapc (lambda (sym) (set (make-local-variable sym) 'ignore))
-	     '(tags-table-files-function
-	       tags-completion-table-function
-	       find-tag-regexp-search-function
-	       find-tag-search-function
-	       tags-apropos-function
-	       tags-included-tables-function))
-       (set (make-local-variable 'verify-tags-table-function)
-            (lambda () (zerop (buffer-size))))))
+  (when (zerop (buffer-size))
+    (setq-local tags-table-files-function #'ignore)
+    (setq-local tags-completion-table-function #'ignore)
+    (setq-local find-tag-regexp-search-function #'ignore)
+    (setq-local find-tag-search-function #'ignore)
+    (setq-local tags-apropos-function #'ignore)
+    (setq-local tags-included-tables-function #'ignore)
+    (setq-local verify-tags-table-function
+                (lambda () (zerop (buffer-size))))))
+
 
 ;; Match qualifier functions for tagnames.
 ;; These functions assume the etags file format defined in etc/ETAGS.EBNF.
@@ -1819,8 +1814,8 @@ argument is passed to `next-file', which see)."
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue].
 
-If FILES if non-nil should be a list or an iterator returning the files to search.
-The search will be restricted to these files.
+If FILES if non-nil should be a list or an iterator returning the
+files to search.  The search will be restricted to these files.
 
 Also see the documentation of the `tags-file-name' variable."
   (interactive "sTags search (regexp): ")

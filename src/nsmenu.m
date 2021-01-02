@@ -1,5 +1,5 @@
 /* NeXT/Open/GNUstep and macOS Cocoa menu and toolbar module.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -47,20 +47,10 @@ Carbon version by Yamamoto Mitsuharu. */
 #endif
 
 
-#if 0
-/* Include lisp -> C common menu parsing code.  */
-#define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
-#include "nsmenu_common.c"
-#endif
-
 extern long context_menu_value;
 EmacsMenu *svcsMenu;
 /* Nonzero means a menu is currently active.  */
 static int popup_activated_flag;
-
-/* Nonzero means we are tracking and updating menus.  */
-static int trackingMenu;
-
 
 /* NOTE: toolbar implementation is at end,
    following complete menu implementation.  */
@@ -75,11 +65,22 @@ static int trackingMenu;
 
 /* Supposed to discard menubar and free storage.  Since we share the
    menubar among frames and update its context for the focused window,
-   there is nothing to do here.  */
+   we do not discard the menu.  We do, however, want to remove any
+   existing menu items.  */
 void
 free_frame_menubar (struct frame *f)
 {
-  return;
+  id menu = [NSApp mainMenu];
+  for (int i = [menu numberOfItems] - 1 ; i >= 0; i--)
+    {
+      NSMenuItem *item = [menu itemAtIndex:i];
+      NSString *title = [item title];
+
+      if ([ns_app_name isEqualToString:title])
+        continue;
+
+      [menu removeItemAtIndex:i];
+    }
 }
 
 
@@ -98,16 +99,19 @@ popup_activated (void)
     3) deep_p, submenu = non-nil: Update contents of a single submenu.
    -------------------------------------------------------------------------- */
 static void
-ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
+ns_update_menubar (struct frame *f, bool deep_p)
 {
   NSAutoreleasePool *pool;
-  id menu = [NSApp mainMenu];
-  static EmacsMenu *last_submenu = nil;
   BOOL needsSet = NO;
+  id menu = [NSApp mainMenu];
   bool owfi;
+
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
+  int *submenu_start, *submenu_end;
+  bool *submenu_top_level_items;
+  int *submenu_n_panes;
 
 #if NSMENUPROFILE
   struct timeb tb;
@@ -116,7 +120,7 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 
   NSTRACE ("ns_update_menubar");
 
-  if (f != SELECTED_FRAME ())
+  if (f != SELECTED_FRAME () || FRAME_EXTERNAL_MENU_BAR (f) == 0)
       return;
   XSETFRAME (Vmenu_updating_frame, f);
 /*fprintf (stderr, "ns_update_menubar: frame: %p\tdeep: %d\tsub: %p\n", f, deep_p, submenu); */
@@ -141,115 +145,102 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
   t = -(1000*tb.time+tb.millitm);
 #endif
 
-#ifdef NS_IMPL_GNUSTEP
-  deep_p = 1; /* until GNUstep NSMenu implements the Panther delegation model */
-#endif
-
   if (deep_p)
     {
-      /* Fully parse one or more of the submenus.  */
-      int n = 0;
-      int *submenu_start, *submenu_end;
-      bool *submenu_top_level_items;
-      int *submenu_n_panes;
+      /* Make a widget-value tree representing the entire menu trees.  */
+
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
       ptrdiff_t specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= alloca (previous_menu_items_used * sizeof *previous_items);
+      int subitems;
 
-      /* lisp preliminaries */
       buffer = XWINDOW (FRAME_SELECTED_WINDOW (f))->contents;
       specbind (Qinhibit_quit, Qt);
+      /* Don't let the debugger step into this code
+	 because it is not reentrant.  */
       specbind (Qdebug_on_next_call, Qnil);
+
       record_unwind_save_match_data ();
       if (NILP (Voverriding_local_map_menu_flag))
 	{
 	  specbind (Qoverriding_terminal_local_map, Qnil);
 	  specbind (Qoverriding_local_map, Qnil);
 	}
+
       set_buffer_internal_1 (XBUFFER (buffer));
 
-      /* TODO: for some reason this is not needed in other terms,
-	 but some menu updates call Info-extract-pointer which causes
-	 abort-on-error if waiting-for-input.  Needs further investigation.  */
+      /* TODO: for some reason this is not needed in other terms, but
+	 some menu updates call Info-extract-pointer which causes
+	 abort-on-error if waiting-for-input.  Needs further
+	 investigation.  */
       owfi = waiting_for_input;
       waiting_for_input = 0;
 
-      /* lucid hook and possible reset */
+      /* Run the Lucid hook.  */
       safe_run_hooks (Qactivate_menubar_hook);
+
+      /* If it has changed current-menubar from previous value,
+	 really recompute the menubar from the value.  */
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
       fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
 
-      /* Now ready to go */
       items = FRAME_MENU_BAR_ITEMS (f);
 
-      /* Save the frame's previous menu bar contents data */
+      /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	memcpy (previous_items, aref_addr (f->menu_bar_vector, 0),
-		previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, xvector_contents (f->menu_bar_vector),
+		previous_menu_items_used * word_size);
 
-      /* parse stage 1: extract from lisp */
+      /* Fill in menu_items with the current menu bar contents.
+	 This can evaluate Lisp code.  */
       save_menu_items ();
 
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
-      submenu_start = alloca (ASIZE (items) * sizeof *submenu_start);
-      submenu_end = alloca (ASIZE (items) * sizeof *submenu_end);
-      submenu_n_panes = alloca (ASIZE (items) * sizeof *submenu_n_panes);
-      submenu_top_level_items = alloca (ASIZE (items)
+      subitems = ASIZE (items) / 4;
+      submenu_start = alloca ((subitems + 1) * sizeof *submenu_start);
+      submenu_end = alloca (subitems * sizeof *submenu_end);
+      submenu_n_panes = alloca (subitems * sizeof *submenu_n_panes);
+      submenu_top_level_items = alloca (subitems
 					* sizeof *submenu_top_level_items);
       init_menu_items ();
-      for (i = 0; i < ASIZE (items); i += 4)
+      for (i = 0; i < subitems; i++)
 	{
 	  Lisp_Object key, string, maps;
 
-	  key = AREF (items, i);
-	  string = AREF (items, i + 1);
-	  maps = AREF (items, i + 2);
+	  key = AREF (items, 4 * i);
+	  string = AREF (items, 4 * i + 1);
+	  maps = AREF (items, 4 * i + 2);
 	  if (NILP (string))
 	    break;
-
-          /* FIXME: we'd like to only parse the needed submenu, but this
-	     was causing crashes in the _common parsing code: need to make
-	     sure proper initialization done.  */
-	  /* if (submenu && strcmp ([[submenu title] UTF8String], SSDATA (string)))
-               continue; */
 
 	  submenu_start[i] = menu_items_used;
 
 	  menu_items_n_panes = 0;
-	  submenu_top_level_items[i] = parse_single_submenu (key, string, maps);
+	  submenu_top_level_items[i]
+	    = parse_single_submenu (key, string, maps);
 	  submenu_n_panes[i] = menu_items_n_panes;
+
 	  submenu_end[i] = menu_items_used;
-          n++;
 	}
 
+      submenu_start[i] = -1;
       finish_menu_items ();
       waiting_for_input = owfi;
 
+      /* Convert menu_items into widget_value trees
+	 to display the menu.  This cannot evaluate Lisp code.  */
 
-      if (submenu && n == 0)
-        {
-          /* should have found a menu for this one but didn't */
-          fprintf (stderr, "ERROR: did not find lisp menu for submenu '%s'.\n",
-                  [[submenu title] UTF8String]);
-	  discard_menu_items ();
-	  unbind_to (specpdl_count, Qnil);
-          unblock_input ();
-	  return;
-        }
-
-      /* parse stage 2: insert into lucid 'widget_value' structures
-         [comments in other terms say not to evaluate lisp code here] */
       wv = make_widget_value ("menubar", NULL, true, Qnil);
       wv->button_type = BUTTON_TYPE_NONE;
       first_wv = wv;
 
-      for (i = 0; i < 4*n; i += 4)
+      for (i = 0; submenu_start[i] >= 0; i++)
 	{
 	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
@@ -259,168 +250,78 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 	  else
 	    first_wv->contents = wv;
 	  /* Don't set wv->name here; GC during the loop might relocate it.  */
-	  wv->enabled = 1;
+	  wv->enabled = true;
 	  wv->button_type = BUTTON_TYPE_NONE;
 	  prev_wv = wv;
 	}
 
       set_buffer_internal_1 (prev);
 
-      /* Compare the new menu items with previous, and leave off if no change.  */
-      /* FIXME: following other terms here, but seems like this should be
-	 done before parse stage 2 above, since its results aren't used.  */
-      if (previous_menu_items_used
-          && (!submenu || (submenu && submenu == last_submenu))
-          && menu_items_used == previous_menu_items_used)
-        {
-          for (i = 0; i < previous_menu_items_used; i++)
-            /* FIXME: this ALWAYS fails on Buffers menu items.. something
-	       about their strings causes them to change every time, so we
-	       double-check failures.  */
-            if (!EQ (previous_items[i], AREF (menu_items, i)))
-              if (!(STRINGP (previous_items[i])
-                    && STRINGP (AREF (menu_items, i))
-                    && !strcmp (SSDATA (previous_items[i]),
-				SSDATA (AREF (menu_items, i)))))
-                  break;
-          if (i == previous_menu_items_used)
-            {
-              /* No change.  */
+      /* If there has been no change in the Lisp-level contents
+	 of the menu bar, skip redisplaying it.  Just exit.  */
 
-#if NSMENUPROFILE
-              ftime (&tb);
-              t += 1000*tb.time+tb.millitm;
-              fprintf (stderr, "NO CHANGE!  CUTTING OUT after %ld msec.\n", t);
-#endif
+      /* Compare the new menu items with the ones computed last time.  */
+      for (i = 0; i < previous_menu_items_used; i++)
+	if (menu_items_used == i
+	    || (!EQ (previous_items[i], AREF (menu_items, i))))
+	  break;
+      if (i == menu_items_used && i == previous_menu_items_used && i != 0)
+	{
+	  /* The menu items have not changed.  Don't bother updating
+	     the menus in any form, since it would be a no-op.  */
+	  free_menubar_widget_value_tree (first_wv);
+	  discard_menu_items ();
+	  unbind_to (specpdl_count, Qnil);
+	  return;
+	}
 
-              free_menubar_widget_value_tree (first_wv);
-              discard_menu_items ();
-              unbind_to (specpdl_count, Qnil);
-              unblock_input ();
-              return;
-            }
-        }
       /* The menu items are different, so store them in the frame.  */
-      /* FIXME: this is not correct for single-submenu case.  */
       fset_menu_bar_vector (f, menu_items);
       f->menu_bar_items_used = menu_items_used;
 
-      /* Calls restore_menu_items, etc., as they were outside.  */
+      /* This undoes save_menu_items.  */
       unbind_to (specpdl_count, Qnil);
 
-      /* Parse stage 2a: now GC cannot happen during the lifetime of the
-         widget_value, so it's safe to store data from a Lisp_String.  */
+      /* Now GC cannot happen during the lifetime of the widget_value,
+	 so it's safe to store data from a Lisp_String.  */
       wv = first_wv->contents;
       for (i = 0; i < ASIZE (items); i += 4)
 	{
 	  Lisp_Object string;
 	  string = AREF (items, i + 1);
 	  if (NILP (string))
-	    break;
-
-	  wv->name = SSDATA (string);
+            break;
+          wv->name = SSDATA (string);
           update_submenu_strings (wv->contents);
-	  wv = wv->next;
+          wv = wv->next;
 	}
-
-      /* Now, update the NS menu; if we have a submenu, use that, otherwise
-         create a new menu for each sub and fill it.  */
-      if (submenu)
-        {
-          const char *submenuTitle = [[submenu title] UTF8String];
-          for (wv = first_wv->contents; wv; wv = wv->next)
-            {
-              if (!strcmp (submenuTitle, wv->name))
-                {
-                  [submenu fillWithWidgetValue: wv->contents];
-                  last_submenu = submenu;
-                  break;
-                }
-            }
-        }
-      else
-        {
-          [menu fillWithWidgetValue: first_wv->contents frame: f];
-        }
 
     }
   else
     {
-      static int n_previous_strings = 0;
-      static char previous_strings[100][10];
-      static struct frame *last_f = NULL;
-      int n;
-      Lisp_Object string;
+      /* Make a widget-value tree containing
+	 just the top level menu bar strings.  */
 
       wv = make_widget_value ("menubar", NULL, true, Qnil);
       wv->button_type = BUTTON_TYPE_NONE;
       first_wv = wv;
 
-      /* Make widget-value tree with just the top level menu bar strings.  */
       items = FRAME_MENU_BAR_ITEMS (f);
-      if (NILP (items))
-        {
-          free_menubar_widget_value_tree (first_wv);
-          unblock_input ();
-          return;
-        }
-
-
-      /* Check if no change: this mechanism is a bit rough, but ready.  */
-      n = ASIZE (items) / 4;
-      if (f == last_f && n_previous_strings == n)
-        {
-          for (i = 0; i<n; i++)
-            {
-	      string = AREF (items, 4*i+1);
-
-              if (EQ (string, make_fixnum (0))) // FIXME: Why???  --Stef
-                continue;
-              if (NILP (string))
-                {
-                  if (previous_strings[i][0])
-                    break;
-                  else
-                    continue;
-                }
-              else if (memcmp (previous_strings[i], SDATA (string),
-			  min (10, SBYTES (string) + 1)))
-                break;
-            }
-
-          if (i == n)
-            {
-              free_menubar_widget_value_tree (first_wv);
-              unblock_input ();
-              return;
-            }
-        }
-
-      [menu clear];
       for (i = 0; i < ASIZE (items); i += 4)
 	{
+	  Lisp_Object string;
+
 	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
 
-          if (n < 100)
-	    memcpy (previous_strings[i/4], SDATA (string),
-                    min (10, SBYTES (string) + 1));
-
 	  wv = make_widget_value (SSDATA (string), NULL, true, Qnil);
 	  wv->button_type = BUTTON_TYPE_NONE;
+	  /* This prevents lwlib from assuming this
+	     menu item is really supposed to be empty.  */
+	  /* The intptr_t cast avoids a warning.
+	     This value just has to be different from small integers.  */
 	  wv->call_data = (void *) (intptr_t) (-1);
-
-#ifdef NS_IMPL_COCOA
-          /* We'll update the real copy under app menu when time comes.  */
-          if (!strcmp ("Services", wv->name))
-            {
-              /* But we need to make sure it will update on demand.  */
-              [svcsMenu setFrame: f];
-            }
-          else
-#endif
-          [menu addSubmenuWithTitle: wv->name forFrame: f];
 
 	  if (prev_wv)
 	    prev_wv->next = wv;
@@ -429,15 +330,58 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 	  prev_wv = wv;
 	}
 
-      last_f = f;
-      if (n < 100)
-        n_previous_strings = n;
-      else
-        n_previous_strings = 0;
-
+      /* Forget what we thought we knew about what is in the
+	 detailed contents of the menu bar menus.
+	 Changing the top level always destroys the contents.  */
+      f->menu_bar_items_used = 0;
     }
-  free_menubar_widget_value_tree (first_wv);
 
+  /* Now, update the NS menu.  */
+  i = 0;
+
+  /* Make sure we skip the "application" menu, which is always the
+     first entry in our top-level menu.  */
+  if (i < [menu numberOfItems])
+    {
+      NSString *title = [[menu itemAtIndex:i] title];
+      if ([ns_app_name isEqualToString:title])
+        i += 1;
+    }
+
+  for (wv = first_wv->contents; wv; wv = wv->next)
+    {
+      EmacsMenu *submenu;
+
+      if (i < [menu numberOfItems])
+        {
+          NSString *titleStr = [NSString stringWithUTF8String: wv->name];
+          NSMenuItem *item = [menu itemAtIndex:i];
+          submenu = (EmacsMenu*)[item submenu];
+
+          [item setTitle:titleStr];
+          [submenu setTitle:titleStr];
+          [submenu removeAllItems];
+        }
+      else
+        submenu = [menu addSubmenuWithTitle: wv->name];
+
+      if ([[submenu title] isEqualToString:@"Help"])
+        [NSApp setHelpMenu:submenu];
+
+      if (deep_p)
+        [submenu fillWithWidgetValue: wv->contents];
+
+      i += 1;
+    }
+
+  while (i < [menu numberOfItems])
+    {
+      /* Remove any extra items.  */
+      [menu removeItemAtIndex:i];
+    }
+
+
+  free_menubar_widget_value_tree (first_wv);
 
 #if NSMENUPROFILE
   ftime (&tb);
@@ -460,19 +404,8 @@ ns_update_menubar (struct frame *f, bool deep_p, EmacsMenu *submenu)
 void
 set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
 {
-  ns_update_menubar (f, deep_p, nil);
+  ns_update_menubar (f, deep_p);
 }
-
-void
-ns_activate_menubar (struct frame *f)
-{
-#ifdef NS_IMPL_COCOA
-  ns_update_menubar (f, true, nil);
-  ns_check_pending_open_menu ();
-#endif
-}
-
-
 
 
 /* ==========================================================================
@@ -490,97 +423,31 @@ ns_activate_menubar (struct frame *f)
 /* override designated initializer */
 - (instancetype)initWithTitle: (NSString *)title
 {
-  frame = 0;
   if ((self = [super initWithTitle: title]))
     [self setAutoenablesItems: NO];
-  return self;
-}
-
-
-/* used for top-level */
-- (instancetype)initWithTitle: (NSString *)title frame: (struct frame *)f
-{
-  [self initWithTitle: title];
-  frame = f;
-#ifdef NS_IMPL_COCOA
   [self setDelegate: self];
-#endif
+
+  needsUpdate = YES;
+
   return self;
 }
 
-
-- (void)setFrame: (struct frame *)f
-{
-  frame = f;
-}
-
-#ifdef NS_IMPL_COCOA
--(void)trackingNotification:(NSNotification *)notification
-{
-  /* Update menu in menuNeedsUpdate only while tracking menus.  */
-  trackingMenu = ([notification name] == NSMenuDidBeginTrackingNotification
-                  ? 1 : 0);
-  if (! trackingMenu) ns_check_menu_open (nil);
-}
-
-- (void)menuWillOpen:(NSMenu *)menu
-{
-  ++trackingMenu;
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-  // On 10.6 we get repeated calls, only the one for NSSystemDefined is "real".
-  if (
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
-      NSAppKitVersionNumber < NSAppKitVersionNumber10_7 &&
-#endif
-      [[NSApp currentEvent] type] != NSEventTypeSystemDefined)
-    return;
-#endif
-
-  /* When dragging from one menu to another, we get willOpen followed by didClose,
-     i.e. trackingMenu == 3 in willOpen and then 2 after didClose.
-     We have updated all menus, so avoid doing it when trackingMenu == 3.  */
-  if (trackingMenu == 2)
-    ns_check_menu_open (menu);
-}
-
-- (void)menuDidClose:(NSMenu *)menu
-{
-  --trackingMenu;
-}
-
-#endif /* NS_IMPL_COCOA */
 
 /* Delegate method called when a submenu is being opened: run a 'deep' call
    to set_frame_menubar.  */
+
+/* TODO: GNUstep calls this method when the menu is still being built
+   which throws it into an infinite loop.  One possible solution is to
+   use menuWillOpen instead, but the Apple docs explicitly warn
+   against changing the contents of the menu in it.  I don't know what
+   the right thing to do for GNUstep is.  */
 - (void)menuNeedsUpdate: (NSMenu *)menu
 {
-  if (!FRAME_LIVE_P (frame))
+  if (!FRAME_LIVE_P (SELECTED_FRAME ()))
     return;
 
-  /* Cocoa/Carbon will request update on every keystroke
-     via IsMenuKeyEvent -> CheckMenusForKeyEvent.  These are not needed
-     since key equivalents are handled through emacs.
-     On Leopard, even keystroke events generate SystemDefined event.
-     Third-party applications that enhance mouse / trackpad
-     interaction, or also VNC/Remote Desktop will send events
-     of type AppDefined rather than SysDefined.
-     Menus will fail to show up if they haven't been initialized.
-     AppDefined events may lack timing data.
-
-     Thus, we rely on the didBeginTrackingNotification notification
-     as above to indicate the need for updates.
-     From 10.6 on, we could also use -[NSMenu propertiesToUpdate]: In the
-     key press case, NSMenuPropertyItemImage (e.g.) won't be set.
-  */
-  if (trackingMenu == 0)
-    return;
-/*fprintf (stderr, "Updating menu '%s'\n", [[self title] UTF8String]); NSLog (@"%@\n", event); */
-#ifdef NS_IMPL_GNUSTEP
-  /* Don't know how to do this for anything other than Mac OS X 10.5 and later.
-     This is wrong, as it might run Lisp code in the event loop.  */
-  ns_update_menubar (frame, true, self);
-#endif
+  if (needsUpdate)
+    ns_update_menubar (SELECTED_FRAME (), true);
 }
 
 
@@ -593,33 +460,8 @@ ns_activate_menubar (struct frame *f)
 }
 
 
-/* Parse a widget_value's key rep (examples: 's-p', 's-S', '(C-x C-s)', '<f13>')
-   into an accelerator string.  We are only able to display a single character
-   for an accelerator, together with an optional modifier combination.  (Under
-   Carbon more control was possible, but in Cocoa multi-char strings passed to
-   NSMenuItem get ignored.  For now we try to display a super-single letter
-   combo, and return the others as strings to be appended to the item title.
-   (This is signaled by setting keyEquivModMask to 0 for now.) */
--(NSString *)parseKeyEquiv: (const char *)key
-{
-  const char *tpos = key;
-  keyEquivModMask = NSEventModifierFlagCommand;
-
-  if (!key || !*key)
-    return @"";
-
-  while (*tpos == ' ' || *tpos == '(')
-    tpos++;
-  if ((*tpos == 's') && (*(tpos+1) == '-'))
-    {
-      return [NSString stringWithFormat: @"%c", tpos[2]];
-    }
-  keyEquivModMask = 0; /* signal */
-  return [NSString stringWithUTF8String: tpos];
-}
-
-
 - (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr
+                            attributes: (NSDictionary *)attributes
 {
   NSMenuItem *item;
   widget_value *wv = (widget_value *)wvptr;
@@ -627,36 +469,33 @@ ns_activate_menubar (struct frame *f)
   if (menu_separator_name_p (wv->name))
     {
       item = [NSMenuItem separatorItem];
-      [self addItem: item];
     }
   else
     {
-      NSString *title, *keyEq;
-      title = [NSString stringWithUTF8String: wv->name];
+      NSString *title = [NSString stringWithUTF8String: wv->name];
       if (title == nil)
         title = @"< ? >";  /* (get out in the open so we know about it) */
 
-      keyEq = [self parseKeyEquiv: wv->key];
-#ifdef NS_IMPL_COCOA
-      /* macOS mangles modifier strings longer than one character.  */
-      if (keyEquivModMask == 0)
+      item = [[[NSMenuItem alloc] init] autorelease];
+      if (wv->key)
         {
-          title = [title stringByAppendingFormat: @" (%@)", keyEq];
-          item = [self addItemWithTitle: (NSString *)title
-                                 action: @selector (menuDown:)
-                          keyEquivalent: @""];
-        }
-      else
-        {
-#endif
-          item = [self addItemWithTitle: (NSString *)title
-                                 action: @selector (menuDown:)
-                          keyEquivalent: keyEq];
+          NSString *key = [NSString stringWithUTF8String: wv->key];
 #ifdef NS_IMPL_COCOA
-        }
+          /* Cocoa only permits a single key (with modifiers) as
+             keyEquivalent, so we put them in the title string
+             in a tab-separated column. */
+          title = [title stringByAppendingFormat: @"\t%@", key];
+#else
+          [item setKeyEquivalent: key];
 #endif
-      [item setKeyEquivalentModifierMask: keyEquivModMask];
+        }
 
+      NSAttributedString *atitle = [[[NSAttributedString alloc]
+                                         initWithString: title
+                                             attributes: attributes]
+                                     autorelease];
+      [item setAction: @selector (menuDown:)];
+      [item setAttributedTitle: atitle];
       [item setEnabled: wv->enabled];
 
       /* Draw radio buttons and tickboxes.  */
@@ -669,52 +508,145 @@ ns_activate_menubar (struct frame *f)
       [item setTag: (NSInteger)wv->call_data];
     }
 
+  [self addItem: item];
   return item;
 }
 
 
 /* convenience */
--(void)clear
+-(void)removeAllItems
 {
+#ifdef NS_IMPL_COCOA
+  [super removeAllItems];
+#else
+  /* GNUstep doesn't have removeAllItems yet, so do it
+     manually.  */
   int n;
 
   for (n = [self numberOfItems]-1; n >= 0; n--)
-    {
-      NSMenuItem *item = [self itemAtIndex: n];
-      NSString *title = [item title];
-      if ([ns_app_name isEqualToString: title]
-          && ![item isSeparatorItem])
-        continue;
-      [self removeItemAtIndex: n];
-    }
+    [self removeItemAtIndex: n];
+#endif
+
+  needsUpdate = YES;
 }
 
+
+typedef struct {
+  const char *from, *to;
+} subst_t;
+
+/* Standard keyboard symbols used in menus. */
+static const subst_t key_symbols[] = {
+  {"<backspace>",  "⌫"},
+  {"DEL",          "⌫"},
+  {"<deletechar>", "⌦"},
+  {"<return>",     "↩"},
+  {"RET",          "↩"},
+  {"<left>",       "←"},
+  {"<right>",      "→"},
+  {"<up>",         "↑"},
+  {"<down>",       "↓"},
+  {"<prior>",      "⇞"},
+  {"<next>",       "⇟"},
+  {"<home>",       "↖"},
+  {"<end>",        "↘"},
+  {"<tab>",        "⇥"},
+  {"TAB",          "⇥"},
+  {"<backtab>",    "⇤"},
+};
+
+/* Transform the key sequence KEY into something prettier by
+   substituting keyboard symbols. */
+static char *
+prettify_key (const char *key)
+{
+  while (*key == ' ') key++;
+
+  int len = strlen (key);
+  char *buf = xmalloc (len + 1);
+  memcpy (buf, key, len + 1);
+  for (int i = 0; i < ARRAYELTS (key_symbols); i++)
+    {
+      ptrdiff_t fromlen = strlen (key_symbols[i].from);
+      char *p = buf;
+      while (p < buf + len)
+        {
+          char *match = memmem (buf, len, key_symbols[i].from, fromlen);
+          if (!match)
+            break;
+          ptrdiff_t tolen = strlen (key_symbols[i].to);
+          eassert (tolen <= fromlen);
+          memcpy (match, key_symbols[i].to, tolen);
+          memmove (match + tolen, match + fromlen,
+                   len - (match + fromlen - buf) + 1);
+          len -= fromlen - tolen;
+          p = match + tolen;
+        }
+    }
+  Lisp_Object result = build_string (buf);
+  xfree (buf);
+  return SSDATA (result);
+}
 
 - (void)fillWithWidgetValue: (void *)wvptr
 {
-  [self fillWithWidgetValue: wvptr frame: (struct frame *)nil];
-}
+  widget_value *first_wv = (widget_value *)wvptr;
+  NSFont *menuFont = [NSFont menuFontOfSize:0];
+  NSDictionary *attributes = nil;
 
-- (void)fillWithWidgetValue: (void *)wvptr frame: (struct frame *)f
-{
-  widget_value *wv = (widget_value *)wvptr;
+#ifdef NS_IMPL_COCOA
+  /* Cocoa doesn't allow multi-key sequences in its menu display, so
+     work around it by using tabs to split the title into two
+     columns.  */
+  NSDictionary *font_attribs = @{NSFontAttributeName: menuFont};
+  CGFloat maxNameWidth = 0;
+  CGFloat maxKeyWidth = 0;
+
+  /* Determine the maximum width of all menu items. */
+  for (widget_value *wv = first_wv; wv != NULL; wv = wv->next)
+    if (!menu_separator_name_p (wv->name))
+      {
+        NSString *name = [NSString stringWithUTF8String: wv->name];
+        NSSize nameSize = [name sizeWithAttributes: font_attribs];
+        maxNameWidth = MAX(maxNameWidth, nameSize.width);
+        if (wv->key)
+          {
+            wv->key = prettify_key (wv->key);
+            NSString *key = [NSString stringWithUTF8String: wv->key];
+            NSSize keySize = [key sizeWithAttributes: font_attribs];
+            maxKeyWidth = MAX(maxKeyWidth, keySize.width);
+          }
+      }
+
+  /* Put some space between the names and keys. */
+  CGFloat maxWidth = maxNameWidth + maxKeyWidth + 40;
+
+  /* Set a right-aligned tab stop at the maximum width, so that the
+     key will appear immediately to the left of it. */
+  NSTextTab *tab =
+    [[[NSTextTab alloc] initWithTextAlignment: NSTextAlignmentRight
+                                     location: maxWidth
+                                      options: @{}] autorelease];
+  NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init]
+                                      autorelease];
+  [pstyle setTabStops: @[tab]];
+  attributes = @{NSParagraphStyleAttributeName: pstyle};
+#endif
 
   /* clear existing contents */
-  [self clear];
+  [self removeAllItems];
 
   /* add new contents */
-  for (; wv != NULL; wv = wv->next)
+  for (widget_value *wv = first_wv; wv != NULL; wv = wv->next)
     {
-      NSMenuItem *item = [self addItemWithWidgetValue: wv];
+      NSMenuItem *item = [self addItemWithWidgetValue: wv
+                                           attributes: attributes];
 
       if (wv->contents)
         {
           EmacsMenu *submenu;
 
-          if (f)
-            submenu = [[EmacsMenu alloc] initWithTitle: [item title] frame:f];
-          else
-            submenu = [[EmacsMenu alloc] initWithTitle: [item title]];
+          submenu = [[EmacsMenu alloc] initWithTitle: [item title]];
 
           [self setSubmenu: submenu forItem: item];
           [submenu fillWithWidgetValue: wv->contents];
@@ -722,6 +654,8 @@ ns_activate_menubar (struct frame *f)
           [item setAction: (SEL)nil];
         }
     }
+
+  needsUpdate = NO;
 
 #ifdef NS_IMPL_GNUSTEP
   if ([[self window] isVisible])
@@ -731,13 +665,13 @@ ns_activate_menubar (struct frame *f)
 
 
 /* Adds an empty submenu and returns it.  */
-- (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f
+- (EmacsMenu *)addSubmenuWithTitle: (const char *)title
 {
   NSString *titleStr = [NSString stringWithUTF8String: title];
   NSMenuItem *item = [self addItemWithTitle: titleStr
                                      action: (SEL)nil /*@selector (menuDown:) */
                               keyEquivalent: @""];
-  EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: titleStr frame: f];
+  EmacsMenu *submenu = [[EmacsMenu alloc] initWithTitle: titleStr];
   [self setSubmenu: submenu forItem: item];
   [submenu release];
   return submenu;
@@ -970,7 +904,7 @@ ns_menu_show (struct frame *f, int x, int y, int menuflags,
     }
 
   pmenu = [[EmacsMenu alloc] initWithTitle:
-                               [NSString stringWithUTF8String: SSDATA (title)]];
+                               [NSString stringWithLispString: title]];
   [pmenu fillWithWidgetValue: first_wv->contents];
   free_menubar_widget_value_tree (first_wv);
   unbind_to (specpdl_count, Qnil);
@@ -1022,14 +956,11 @@ update_frame_tool_bar (struct frame *f)
   int i, k = 0;
   EmacsView *view = FRAME_NS_VIEW (f);
   EmacsToolbar *toolbar = [view toolbar];
-  int oldh;
 
   NSTRACE ("update_frame_tool_bar");
 
   if (view == nil || toolbar == nil) return;
   block_input ();
-
-  oldh = FRAME_TOOLBAR_HEIGHT (f);
 
 #ifdef NS_IMPL_COCOA
   [toolbar clearActive];
@@ -1881,12 +1812,6 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 void
 syms_of_nsmenu (void)
 {
-#ifndef NS_IMPL_COCOA
-  /* Don't know how to keep track of this in Next/Open/GNUstep.  Always
-     update menus there.  */
-  trackingMenu = 1;
-  PDUMPER_REMEMBER_SCALAR (trackingMenu);
-#endif
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);
 

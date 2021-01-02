@@ -1,6 +1,6 @@
 ;;; ediff-merg.el --- merging utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -70,7 +70,7 @@ STRING4
   :group 'ediff-merge)
 
 (defcustom ediff-show-clashes-only nil
-  "If t, show only those diff regions where both buffers disagree with the ancestor.
+  "If t, show only diff regions where both buffers disagree with the ancestor.
 This means that regions that have status prefer-A or prefer-B will be
 skipped over.  A value of nil means show all regions."
   :type 'boolean

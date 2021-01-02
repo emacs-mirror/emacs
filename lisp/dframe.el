@@ -1,6 +1,6 @@
 ;;; dframe --- dedicate frame support modes  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
@@ -280,7 +280,7 @@ CREATE-HOOK is a hook to run after creating a frame."
 
       ;; Enable mouse tracking in emacs
       (if dframe-track-mouse-function
-	  (set (make-local-variable 'track-mouse) t)) ;this could be messy.
+          (setq-local track-mouse t)) ;this could be messy.
 
       ;; Override `temp-buffer-show-hook' so that help and such
       ;; put their stuff into a frame other than our own.
@@ -290,10 +290,8 @@ CREATE-HOOK is a hook to run after creating a frame."
 	  ;; FIXME: Doesn't this get us into an inf-loop when the
           ;; `temp-buffer-show-function' runs `temp-buffer-show-hook'
           ;; (as is normally the case)?
-	  (progn (make-local-variable 'temp-buffer-show-hook)
-		 (setq temp-buffer-show-hook temp-buffer-show-function)))
-      (make-local-variable 'temp-buffer-show-function)
-      (setq temp-buffer-show-function 'dframe-temp-buffer-show-function)
+          (setq-local temp-buffer-show-hook temp-buffer-show-function))
+      (setq-local temp-buffer-show-function 'dframe-temp-buffer-show-function)
       ;; If this buffer is killed, we must make sure that we destroy
       ;; the frame the dedicated window is in.
       (add-hook 'kill-buffer-hook (lambda ()

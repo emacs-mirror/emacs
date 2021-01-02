@@ -1,6 +1,6 @@
 ;;; auth-source-pass.el --- Integrate auth-source with password-store -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015, 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015, 2017-2021 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien@cassou.me>,
 ;;         Nicolas Petton <nicolas@petton.fr>

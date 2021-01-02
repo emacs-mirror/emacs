@@ -1,6 +1,6 @@
 ;;; recentf.el --- setup a menu of recently opened files
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
@@ -1127,7 +1127,7 @@ IGNORE arguments."
   (unless recentf-list
     (error "The list of recent files is empty"))
   (recentf-dialog (format "*%s - Edit list*" recentf-menu-title)
-    (set (make-local-variable 'recentf-edit-list) nil)
+    (setq-local recentf-edit-list nil)
     (widget-insert
      (format-message
       "Click on OK to delete selected files from the recent list.
@@ -1196,8 +1196,8 @@ IGNORE other arguments."
 
 (defun recentf-open-files-items (files)
   "Return a list of widgets to display FILES in a dialog buffer."
-  (set (make-local-variable 'recentf--files-with-key)
-       (recentf-trunc-list files 10))
+  (setq-local recentf--files-with-key
+              (recentf-trunc-list files 10))
   (mapcar 'recentf-open-files-item
           (append
            ;; When requested group the files with shortcuts together

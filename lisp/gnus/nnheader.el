@@ -1,6 +1,6 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2020 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -568,7 +568,7 @@ the line could be found."
     (mm-enable-multibyte)
     (kill-all-local-variables)
     (setq case-fold-search t)		;Should ignore case.
-    (set (make-local-variable 'nntp-process-response) nil)
+    (setq-local nntp-process-response nil)
     t))
 
 ;;; Various functions the backends use.

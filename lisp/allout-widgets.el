@@ -1,6 +1,6 @@
 ;; allout-widgets.el --- Visually highlight allout outline structure.
 
-;; Copyright (C) 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Version: 1.0
@@ -254,7 +254,7 @@ or deleted while this variable is nil.")
 (defvar allout-widgets-mode-inhibit)    ; defined below
 ;;;_   > allout-widgets-tally-string
 (defun allout-widgets-tally-string ()
-  "Return a string giving the number of tracked widgets, or empty string if not tracking.
+  "Return a string with number of tracked widgets, or empty string if not tracking.
 
 The string is formed for appending to the allout-mode mode-line lighter.
 

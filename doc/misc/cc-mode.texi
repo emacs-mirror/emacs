@@ -167,7 +167,7 @@ CC Mode
 @copying
 This manual is for CC Mode in Emacs.
 
-Copyright @copyright{} 1995--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2021 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -197,7 +197,7 @@ modify this GNU manual.''
 @titlepage
 @sp 10
 
-@center @titlefont{CC Mode 5.34}
+@center @titlefont{CC Mode 5.35}
 @sp 2
 @center A GNU Emacs mode for editing C and C-like languages
 @sp 2
@@ -388,7 +388,7 @@ was added in version 5.30.
 
 This manual describes @ccmode{}
 @comment The following line must appear on its own, so that the
-version 5.34.
+version 5.35.
 @comment Release.py script can update the version number automatically
 
 @ccmode{} supports the editing of C, C++, Objective-C,

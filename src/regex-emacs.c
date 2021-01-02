@@ -1,6 +1,6 @@
 /* Emacs regular expression matching and search
 
-   Copyright (C) 1993-2020 Free Software Foundation, Inc.
+   Copyright (C) 1993-2021 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -3575,9 +3575,11 @@ skip_noops (re_char *p, re_char *pend)
    opcode.  When the function finishes, *PP will be advanced past that opcode.
    C is character to test (possibly after translations) and CORIG is original
    character (i.e. without any translations).  UNIBYTE denotes whether c is
-   unibyte or multibyte character. */
+   unibyte or multibyte character.
+   CANON_TABLE is the canonicalisation table for case folding or Qnil.  */
 static bool
-execute_charset (re_char **pp, int c, int corig, bool unibyte)
+execute_charset (re_char **pp, int c, int corig, bool unibyte,
+                 Lisp_Object canon_table)
 {
   eassume (0 <= c && 0 <= corig);
   re_char *p = *pp, *rtp = NULL;
@@ -3617,11 +3619,9 @@ execute_charset (re_char **pp, int c, int corig, bool unibyte)
           (class_bits & BIT_BLANK && ISBLANK (c)) ||
 	  (class_bits & BIT_WORD  && ISWORD  (c)) ||
 	  ((class_bits & BIT_UPPER) &&
-	   (ISUPPER (c) || (corig != c &&
-			    c == downcase (corig) && ISLOWER (c)))) ||
+	   (ISUPPER (corig) || (!NILP (canon_table) && ISLOWER (corig)))) ||
 	  ((class_bits & BIT_LOWER) &&
-	   (ISLOWER (c) || (corig != c &&
-			    c == upcase (corig) && ISUPPER(c)))) ||
+	   (ISLOWER (corig) || (!NILP (canon_table) && ISUPPER (corig)))) ||
 	  (class_bits & BIT_PUNCT && ISPUNCT (c)) ||
 	  (class_bits & BIT_GRAPH && ISGRAPH (c)) ||
 	  (class_bits & BIT_PRINT && ISPRINT (c)))
@@ -3696,7 +3696,8 @@ mutually_exclusive_p (struct re_pattern_buffer *bufp, re_char *p1,
 	else if ((re_opcode_t) *p1 == charset
 		 || (re_opcode_t) *p1 == charset_not)
 	  {
-	    if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c)))
+	    if (!execute_charset (&p1, c, c, !multibyte || ASCII_CHAR_P (c),
+                                  Qnil))
 	      {
 		DEBUG_PRINT ("	 No match => fast loop.\n");
 		return true;
@@ -4367,7 +4368,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp,
 	      }
 
 	    p -= 1;
-	    if (!execute_charset (&p, c, corig, unibyte_char))
+	    if (!execute_charset (&p, c, corig, unibyte_char, translate))
 	      goto fail;
 
 	    d += len;

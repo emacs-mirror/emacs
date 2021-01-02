@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2020 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -79,7 +79,7 @@ This option sets the environment variable GREP_COLORS to specify
 markers for highlighting and adds the --color option in front of
 any explicit grep options before starting the grep.
 
-When this option is `auto', grep uses `--color' to highlight
+When this option is `auto', grep uses `--color=auto' to highlight
 matches only when it outputs to a terminal (when `grep' is the last
 command in the pipe), thus avoiding the use of any potentially-harmful
 escape sequences when standard output goes to a file or pipe.
@@ -95,12 +95,12 @@ To change the default value, use \\[customize] or call the function
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
 		 (const :tag "Use --color=always" always)
-		 (const :tag "Use --color" auto)
+		 (const :tag "Use --color=auto" auto)
 		 (other :tag "Not Set" auto-detect))
   :set #'grep-apply-setting
   :version "22.1")
 
-(defcustom grep-match-regexp "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m"
+(defcustom grep-match-regexp "\033\\[\\(?:0?1;\\)?31m\\(.*?\\)\033\\[[0-9]*m"
   "Regular expression matching grep markers to highlight.
 It matches SGR ANSI escape sequences which are emitted by grep to
 color its output.  This variable is used in `grep-filter'."
@@ -412,7 +412,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
                (- mend beg))))))
      nil nil
      (3 '(face nil display ":")))
-    ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1))
+    ("^Binary file \\(.+\\) matches" 1 nil nil 0 1))
   "Regexp used to match grep hits.
 See `compilation-error-regexp-alist' for format details.")
 
@@ -568,8 +568,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     ;; GREP_COLORS is used in GNU grep 2.5.2 and later versions
     (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:sl=:cx=:ne"))
   (setq-local grep-num-matches-found 0)
-  (set (make-local-variable 'compilation-exit-message-function)
-       #'grep-exit-message)
+  (setq-local compilation-exit-message-function #'grep-exit-message)
   (run-hooks 'grep-setup-hook))
 
 (defun grep-exit-message (status code msg)
@@ -744,7 +743,7 @@ The value depends on `grep-command', `grep-template',
                                `(nil nil nil "--color" "x" ,(null-device))
                                nil 1)
                               (if (eq grep-highlight-matches 'always)
-                                  "--color=always" "--color"))
+                                  "--color=always" "--color=auto"))
                          "")
                         grep-options)))
 	(unless grep-template
@@ -880,22 +879,22 @@ The value depends on `grep-command', `grep-template',
 (define-compilation-mode grep-mode "Grep"
   "Sets `grep-last-buffer' and `compilation-window-height'."
   (setq grep-last-buffer (current-buffer))
-  (set (make-local-variable 'tool-bar-map) grep-mode-tool-bar-map)
-  (set (make-local-variable 'compilation-error-face)
-       grep-hit-face)
-  (set (make-local-variable 'compilation-error-regexp-alist)
-       grep-regexp-alist)
-  (set (make-local-variable 'compilation-mode-line-errors)
-       grep-mode-line-matches)
+  (setq-local tool-bar-map grep-mode-tool-bar-map)
+  (setq-local compilation-error-face
+              grep-hit-face)
+  (setq-local compilation-error-regexp-alist
+              grep-regexp-alist)
+  (setq-local compilation-mode-line-errors
+              grep-mode-line-matches)
   ;; compilation-directory-matcher can't be nil, so we set it to a regexp that
   ;; can never match.
-  (set (make-local-variable 'compilation-directory-matcher)
-       (list regexp-unmatchable))
-  (set (make-local-variable 'compilation-process-setup-function)
-       #'grep-process-setup)
-  (set (make-local-variable 'compilation-disable-input) t)
-  (set (make-local-variable 'compilation-error-screen-columns)
-       grep-error-screen-columns)
+  (setq-local compilation-directory-matcher
+              (list regexp-unmatchable))
+  (setq-local compilation-process-setup-function
+              #'grep-process-setup)
+  (setq-local compilation-disable-input t)
+  (setq-local compilation-error-screen-columns
+              grep-error-screen-columns)
   (add-hook 'compilation-filter-hook #'grep-filter nil t))
 
 (defun grep--save-buffers ()
@@ -1001,7 +1000,7 @@ these include `opts', `dir', `files', `null-device', `excl' and
                             ((eq grep-highlight-matches 'always)
                              (push "--color=always" opts))
                             ((eq grep-highlight-matches 'auto)
-                             (push "--color" opts)))
+                             (push "--color=auto" opts)))
                            opts))
                 (excl . ,excl)
                 (dir . ,dir)

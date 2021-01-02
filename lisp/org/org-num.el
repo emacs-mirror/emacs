@@ -1,6 +1,6 @@
 ;;; org-num.el --- Dynamic Headlines Numbering  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Goaziou <mail@nicolasgoaziou.fr>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -254,6 +254,7 @@ otherwise."
              org-footnote-section
              (equal title org-footnote-section))
         (and org-num-skip-commented
+	     title
              (let ((case-fold-search nil))
                (string-match org-num--comment-re title))
              t)
@@ -466,6 +467,10 @@ NUMBERING is a list of numbers."
     (remove-hook 'after-change-functions #'org-num--verify t)
     (remove-hook 'change-major-mode-hook #'org-num--clear t))))
 
-
 (provide 'org-num)
+
+;; Local variables:
+;; generated-autoload-file: "org-loaddefs.el"
+;; End:
+
 ;;; org-num.el ends here

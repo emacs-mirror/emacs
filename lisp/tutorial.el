@@ -1,6 +1,6 @@
 ;;; tutorial.el --- tutorial for Emacs
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: help, internal
@@ -49,6 +49,9 @@
 (defvar tutorial--lang nil
   "Tutorial language.")
 (make-variable-buffer-local 'tutorial--lang)
+
+(defvar tutorial--buffer nil
+  "The selected tutorial buffer.")
 
 (defun tutorial--describe-nonstandard-key (value)
   "Give more information about a changed key binding.
@@ -655,6 +658,15 @@ with some explanatory links."
         (unless (eq prop-val 'key-sequence)
 	  (delete-region prop-start prop-end))))))
 
+(defun tutorial--save-on-kill ()
+  "Query the user about saving the tutorial when killing Emacs."
+  (when (buffer-live-p tutorial--buffer)
+    (with-current-buffer tutorial--buffer
+      (if (y-or-n-p "Save your position in the tutorial? ")
+	  (tutorial--save-tutorial-to (tutorial--saved-file))
+	(message "Tutorial position not saved"))))
+  t)
+
 (defun tutorial--save-tutorial ()
   "Save the tutorial buffer.
 This saves the part of the tutorial before and after the area
@@ -802,6 +814,7 @@ Run the Viper tutorial? "))
       ;; (Re)build the tutorial buffer if it is not ok
       (unless old-tut-is-ok
         (switch-to-buffer (get-buffer-create tut-buf-name))
+        (setq tutorial--buffer (current-buffer))
         ;; (unless old-tut-buf (text-mode))
         (unless lang (error "Variable lang is nil"))
         (setq tutorial--lang lang)
@@ -814,6 +827,7 @@ Run the Viper tutorial? "))
         ;; a hook to save it when the buffer is killed.
         (setq buffer-auto-save-file-name nil)
         (add-hook 'kill-buffer-hook 'tutorial--save-tutorial nil t)
+        (add-hook 'kill-emacs-query-functions 'tutorial--save-on-kill)
 
         ;; Insert the tutorial. First offer to resume last tutorial
         ;; editing session.

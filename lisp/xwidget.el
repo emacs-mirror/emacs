@@ -1,6 +1,6 @@
 ;;; xwidget.el --- api functions for xwidgets  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Joakim Verona (joakim@verona.se)
 ;;
@@ -451,7 +451,7 @@ function findactiveelement(doc){
 XW is the xwidget identifier, TEXT is retrieved from the webkit."
   (switch-to-buffer
    (generate-new-buffer "textarea"))
-  (set (make-local-variable 'xwidget-xwbl) xw)
+  (setq-local xwidget-xwbl xw)
   (insert text))
 
 (defun xwidget-webkit-end-edit-textarea ()

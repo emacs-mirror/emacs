@@ -1,6 +1,6 @@
 ;;; ol-bibtex.el --- Links to BibTeX entries        -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 ;;
 ;; Authors: Bastien Guerry <bzg@gnu.org>
 ;;       Carsten Dominik <carsten dot dominik at gmail dot com>
@@ -95,7 +95,7 @@
 ;; The link creation part has been part of Org for a long time.
 ;;
 ;; Creating better capture template information was inspired by a request
-;; of Austin Frank: http://article.gmane.org/gmane.emacs.orgmode/4112
+;; of Austin Frank: https://orgmode.org/list/m0myu03vbx.fsf@gmail.com
 ;; and then implemented by Bastien Guerry.
 ;;
 ;; Eric Schulte eventually added the functions for translating between
@@ -134,9 +134,10 @@
 (declare-function org-insert-heading "org" (&optional arg invisible-ok top))
 (declare-function org-map-entries "org" (func &optional match scope &rest skip))
 (declare-function org-narrow-to-subtree "org" ())
-(declare-function org-open-file "org" (path &optional in-emacs line search))
 (declare-function org-set-property "org" (property value))
 (declare-function org-toggle-tag "org" (tag &optional onoff))
+
+(declare-function org-search-view "org-agenda" (&optional todo-only string edit-at))
 
 
 ;;; Bibtex data
@@ -483,12 +484,11 @@ With optional argument OPTIONAL, also prompt for optional fields."
 			 :follow #'org-bibtex-open
 			 :store #'org-bibtex-store-link)
 
-(defun org-bibtex-open (path)
-  "Visit the bibliography entry on PATH."
-  (let* ((search (when (string-match "::\\(.+\\)\\'" path)
-		   (match-string 1 path)))
-	 (path (substring path 0 (match-beginning 0))))
-    (org-open-file path t nil search)))
+(defun org-bibtex-open (path arg)
+  "Visit the bibliography entry on PATH.
+ARG, when non-nil, is a universal prefix argument.  See
+`org-open-file' for details."
+  (org-link-open-as-file path arg))
 
 (defun org-bibtex-store-link ()
   "Store a link to a BibTeX entry."
@@ -556,7 +556,8 @@ With optional argument OPTIONAL, also prompt for optional fields."
     ;; We construct a regexp that searches for "@entrytype{" followed by the key
     (goto-char (point-min))
     (and (re-search-forward (concat "@[a-zA-Z]+[ \t\n]*{[ \t\n]*"
-				    (regexp-quote s) "[ \t\n]*,") nil t)
+				    (regexp-quote s) "[ \t\n]*,")
+			    nil t)
 	 (goto-char (match-beginning 0)))
     (if (and (match-beginning 0) (equal current-prefix-arg '(16)))
 	;; Use double prefix to indicate that any web link should be browsed
@@ -596,7 +597,8 @@ Headlines are exported using `org-bibtex-headline'."
              (with-temp-file filename
                (insert (mapconcat #'identity bibtex-entries "\n")))
              (message "Successfully exported %d BibTeX entries to %s"
-                      (length bibtex-entries) filename) nil))))
+                      (length bibtex-entries) filename)
+	     nil))))
     (when error-point
       (goto-char error-point)
       (message "Bibtex error at %S" (nth 4 (org-heading-components))))))
@@ -661,7 +663,8 @@ This uses `bibtex-parse-entry'."
 	     (when (and (> (length str) 1)
 			(= (aref str 0) (car pair))
 			(= (aref str (1- (length str))) (cdr pair)))
-	       (setf str (substring str 1 (1- (length str)))))) str)))
+	       (setf str (substring str 1 (1- (length str))))))
+	   str)))
     (push (mapcar
            (lambda (pair)
              (cons (let ((field (funcall keyword (car pair))))

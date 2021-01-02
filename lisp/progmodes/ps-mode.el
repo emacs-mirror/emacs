@@ -1,6 +1,6 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Created:    20 Aug 1997
@@ -501,18 +501,18 @@ point to the corresponding spot in the PostScript window, if input
 to the interpreter was sent from that window.
 Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number has the same effect."
   (setq-local syntax-propertize-function #'ps-mode-syntax-propertize)
-  (set (make-local-variable 'font-lock-defaults)
-       '((ps-mode-font-lock-keywords
- 	  ps-mode-font-lock-keywords-1
- 	  ps-mode-font-lock-keywords-2
- 	  ps-mode-font-lock-keywords-3)
-	 nil))
+  (setq-local font-lock-defaults
+              '((ps-mode-font-lock-keywords
+                 ps-mode-font-lock-keywords-1
+                 ps-mode-font-lock-keywords-2
+                 ps-mode-font-lock-keywords-3)
+                nil))
   (smie-setup nil #'ps-mode-smie-rules)
   (setq-local electric-indent-chars
               (append '(?> ?\] ?\}) electric-indent-chars))
-  (set (make-local-variable 'comment-start) "%")
+  (setq-local comment-start "%")
   ;; NOTE: `\' has a special meaning in strings only
-  (set (make-local-variable 'comment-start-skip) "%+[ \t]*")
+  (setq-local comment-start-skip "%+[ \t]*")
   ;; enable doc-view-minor-mode => C-c C-c starts viewing the current ps file
   ;; with doc-view-mode.
   (doc-view-minor-mode 1))
@@ -910,11 +910,11 @@ plus the usually uncoded characters inserted on positions 1 through 28."
 (define-derived-mode ps-run-mode comint-mode "Interactive PS"
   "Major mode in interactive PostScript window.
 This mode is invoked from `ps-mode' and should not be called directly."
-  (set (make-local-variable 'font-lock-defaults)
-       '((ps-run-font-lock-keywords
-	  ps-run-font-lock-keywords-1
-	  ps-run-font-lock-keywords-2)
-	 t))
+  (setq-local font-lock-defaults
+              '((ps-run-font-lock-keywords
+                 ps-run-font-lock-keywords-1
+                 ps-run-font-lock-keywords-2)
+                t))
   (setq mode-line-process '(":%s")))
 
 (defun ps-run-running ()

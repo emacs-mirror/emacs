@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Maintainer: emacs-devel@gnu.org
@@ -276,13 +276,12 @@ If `ask', you will be prompted for a branch type."
 	 ((eq state ?C) 'up-to-date) ;; Older mercurial versions use this.
 	 (t 'up-to-date))))))
 
-(defun vc-hg-working-revision (file)
+(defun vc-hg-working-revision (_file)
   "Hg-specific version of `vc-working-revision'."
-  (or (ignore-errors
-        (with-output-to-string
-          (vc-hg-command standard-output 0 file
-                         "parent" "--template" "{rev}")))
-      "0"))
+  (ignore-errors
+    (with-output-to-string
+      (vc-hg-command standard-output 0 nil
+                     "log" "-r" "." "--template" "{rev}"))))
 
 (defcustom vc-hg-symbolic-revision-styles
   '(builtin-active-bookmark

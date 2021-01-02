@@ -1,6 +1,6 @@
 ;;; chart.el --- Draw charts (bar charts, etc)  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2020 Free
+;; Copyright (C) 1996, 1998-1999, 2001, 2004-2005, 2007-2021 Free
 ;; Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -333,7 +333,8 @@ Automatically compensates for direction."
 (cl-defmethod chart-axis-draw ((a chart-axis-names) &optional dir margin zone _start _end)
   "Draw axis information based upon A range to be spread along the edge.
 Optional argument DIR is the direction of the chart.
-Optional arguments MARGIN, ZONE, START and END specify boundaries of the drawing."
+Optional arguments MARGIN, ZONE, START and END specify boundaries
+of the drawing."
   (cl-call-next-method)
   ;; We prefer about 5 spaces between each value
   (let* ((i 0)

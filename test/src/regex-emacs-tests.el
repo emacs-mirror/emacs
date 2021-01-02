@@ -1,6 +1,6 @@
 ;;; regex-emacs-tests.el --- tests for regex-emacs.c -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -802,5 +802,69 @@ This evaluates the TESTS test cases from glibc."
   ;; No equivalence between raw bytes and latin-1
   (should-not (string-match "å" "\xe5"))
   (should-not (string-match "[å]" "\xe5")))
+
+(ert-deftest regexp-case-fold ()
+  "Test case-sensitive and case-insensitive matching."
+  (let ((case-fold-search nil))
+    (should (equal (string-match "aB" "ABaB") 2))
+    (should (equal (string-match "åÄ" "ÅäåäÅÄåÄ") 6))
+    (should (equal (string-match "λΛ" "lΛλλΛ") 3))
+    (should (equal (string-match "шШ" "zШшшШ") 3))
+    (should (equal (string-match "[[:alpha:]]+" ".3aBåÄßλΛшШ中﷽") 2))
+    (should (equal (match-end 0) 12))
+    (should (equal (string-match "[[:alnum:]]+" ".3aBåÄßλΛшШ中﷽") 1))
+    (should (equal (match-end 0) 12))
+    (should (equal (string-match "[[:upper:]]+" ".3aåλшBÄΛШ中﷽") 6))
+    (should (equal (match-end 0) 10))
+    (should (equal (string-match "[[:lower:]]+" ".3BÄΛШaåλш中﷽") 6))
+    (should (equal (match-end 0) 10)))
+  (let ((case-fold-search t))
+    (should (equal (string-match "aB" "ABaB") 0))
+    (should (equal (string-match "åÄ" "ÅäåäÅÄåÄ") 0))
+    (should (equal (string-match "λΛ" "lΛλλΛ") 1))
+    (should (equal (string-match "шШ" "zШшшШ") 1))
+    (should (equal (string-match "[[:alpha:]]+" ".3aBåÄßλΛшШ中﷽") 2))
+    (should (equal (match-end 0) 12))
+    (should (equal (string-match "[[:alnum:]]+" ".3aBåÄßλΛшШ中﷽") 1))
+    (should (equal (match-end 0) 12))
+    (should (equal (string-match "[[:upper:]]+" ".3aåλшBÄΛШ中﷽") 2))
+    (should (equal (match-end 0) 10))
+    (should (equal (string-match "[[:lower:]]+" ".3BÄΛШaåλш中﷽") 2))
+    (should (equal (match-end 0) 10))))
+
+(ert-deftest regexp-eszett ()
+  "Test matching of ß and ẞ."
+  ;; Sanity checks.
+  (should (equal (upcase "ß") "SS"))
+  (should (equal (downcase "ß") "ß"))
+  (should (equal (capitalize "ß") "Ss"))  ; undeutsch...
+  (should (equal (upcase "ẞ") "ẞ"))
+  (should (equal (downcase "ẞ") "ß"))
+  (should (equal (capitalize "ẞ") "ẞ"))
+  ;; ß is a lower-case letter (Ll); ẞ is an upper-case letter (Lu).
+  (let ((case-fold-search nil))
+    (should (equal (string-match "ß" "ß") 0))
+    (should (equal (string-match "ß" "ẞ") nil))
+    (should (equal (string-match "ẞ" "ß") nil))
+    (should (equal (string-match "ẞ" "ẞ") 0))
+    (should (equal (string-match "[[:alpha:]]" "ß") 0))
+    ;; bug#11309
+    (should (equal (string-match "[[:lower:]]" "ß") 0))
+    (should (equal (string-match "[[:upper:]]" "ß") nil))
+    (should (equal (string-match "[[:alpha:]]" "ẞ") 0))
+    (should (equal (string-match "[[:lower:]]" "ẞ") nil))
+    (should (equal (string-match "[[:upper:]]" "ẞ") 0)))
+  (let ((case-fold-search t))
+    (should (equal (string-match "ß" "ß") 0))
+    (should (equal (string-match "ß" "ẞ") 0))
+    (should (equal (string-match "ẞ" "ß") 0))
+    (should (equal (string-match "ẞ" "ẞ") 0))
+    (should (equal (string-match "[[:alpha:]]" "ß") 0))
+    ;; bug#11309
+    (should (equal (string-match "[[:lower:]]" "ß") 0))
+    (should (equal (string-match "[[:upper:]]" "ß") 0))
+    (should (equal (string-match "[[:alpha:]]" "ẞ") 0))
+    (should (equal (string-match "[[:lower:]]" "ẞ") 0))
+    (should (equal (string-match "[[:upper:]]" "ẞ") 0))))
 
 ;;; regex-emacs-tests.el ends here

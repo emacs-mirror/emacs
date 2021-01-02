@@ -1,6 +1,6 @@
-# canonicalize.m4 serial 33
+# canonicalize.m4 serial 35
 
-dnl Copyright (C) 2003-2007, 2009-2020 Free Software Foundation, Inc.
+dnl Copyright (C) 2003-2007, 2009-2021 Free Software Foundation, Inc.
 
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -11,7 +11,8 @@ dnl with or without modifications, as long as this notice is preserved.
 AC_DEFUN([gl_FUNC_CANONICALIZE_FILENAME_MODE],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_CHECK_FUNCS_ONCE([canonicalize_file_name])
+  AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
+  AC_CHECK_FUNCS_ONCE([canonicalize_file_name faccessat])
   AC_REQUIRE([gl_DOUBLE_SLASH_ROOT])
   AC_REQUIRE([gl_FUNC_REALPATH_WORKS])
   if test $ac_cv_func_canonicalize_file_name = no; then
@@ -56,7 +57,8 @@ AC_DEFUN([gl_CANONICALIZE_LGPL],
 AC_DEFUN([gl_CANONICALIZE_LGPL_SEPARATE],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_CHECK_FUNCS_ONCE([canonicalize_file_name readlink])
+  AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
+  AC_CHECK_FUNCS_ONCE([canonicalize_file_name faccessat])
 
   dnl On native Windows, we use _getcwd(), regardless whether getcwd() is
   dnl available through the linker option '-loldnames'.

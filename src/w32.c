@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft Windows API.
 
-Copyright (C) 1994-1995, 2000-2020 Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 2000-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -8667,6 +8667,11 @@ pipe2 (int * phandles, int pipe2_flags)
 	{
 	  _close (phandles[0]);
 	  _close (phandles[1]);
+	  /* Since we close the handles, set them to -1, so as to
+	     avoid an assertion violation if the caller then tries to
+	     close the handle again (emacs_close will abort otherwise
+	     if errno is EBADF).  */
+	  phandles[0] = phandles[1] = -1;
 	  errno = EMFILE;
 	  rc = -1;
 	}

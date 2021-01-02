@@ -1,6 +1,6 @@
 ;;; ol-eshell.el - Links to Working Directories in Eshell -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Konrad Hinsen <konrad.hinsen AT fastmail.net>
 
@@ -33,7 +33,7 @@
 			 :follow #'org-eshell-open
 			 :store #'org-eshell-store-link)
 
-(defun org-eshell-open (link)
+(defun org-eshell-open (link _)
   "Switch to an eshell buffer and execute a command line.
    The link can be just a command line (executed in the default
    eshell buffer) or a command line prefixed by a buffer name

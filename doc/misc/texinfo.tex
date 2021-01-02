@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2020-06-25.17}
+\def\texinfoversion{2020-10-24.12}
 %
 % Copyright 1985, 1986, 1988, 1990-2020 Free Software Foundation, Inc.
 %
@@ -1088,7 +1088,7 @@ where each line of input produces a line of output.}
     }
     % The -2 in the arguments here gives all the input to TeX catcode 12
     % (other) or 10 (space), preventing undefined control sequence errors. See
-    % https://lists.gnu.org/r/bug-texinfo/2019-08/msg00031.html
+    % https://lists.gnu.org/archive/html/bug-texinfo/2019-08/msg00031.html
     %
   \endgroup
   \def\pdfescapestring#1{\directlua{PDFescstr('\luaescapestring{#1}')}}
@@ -3038,10 +3038,18 @@ end
 % arg (if given), and not the url (which is then just the link target).
 \newif\ifurefurlonlylink
 
+% The default \pretolerance setting stops the penalty inserted in
+% \urefallowbreak being a discouragement to line breaking.  Set it to
+% a negative value for this paragraph only.  Hopefully this does not
+% conflict with redefinitions of \par done elsewhere.
+\def\nopretolerance{%
+\pretolerance=-1
+\def\par{\endgraf\pretolerance=100 \let\par\endgraf}%
+}
+
 % The main macro is \urefbreak, which allows breaking at expected
-% places within the url.  (There used to be another version, which
-% didn't support automatic breaking.)
-\def\urefbreak{\begingroup \urefcatcodes \dourefbreak}
+% places within the url.
+\def\urefbreak{\nopretolerance \begingroup \urefcatcodes \dourefbreak}
 \let\uref=\urefbreak
 %
 \def\dourefbreak#1{\urefbreakfinish #1,,,\finish}
@@ -3152,14 +3160,14 @@ end
 
 % Allow a ragged right output to aid breaking long URL's.  There can
 % be a break at the \allowbreak with no extra glue (if the existing stretch in
-% the line is sufficient), a break at the \penalty100 with extra glue added
+% the line is sufficient), a break at the \penalty with extra glue added
 % at the end of the line, or no break at all here.
 %   Changing the value of the penalty and/or the amount of stretch affects how
 % preferable one choice is over the other.
 \def\urefallowbreak{%
-  \allowbreak
+  \penalty0\relax
   \hskip 0pt plus 2 em\relax
-  \penalty300
+  \penalty1000\relax
   \hskip 0pt plus -2 em\relax
 }
 
@@ -3355,6 +3363,25 @@ end
 %
 \def\sup{\ifmmode \expandafter\ptexsp \else \expandafter\finishsup\fi}
 \def\finishsup#1{$\ptexsp{\hbox{\switchtolllsize #1}}$}%
+
+% provide this command from LaTeX as it is very common
+\def\frac#1#2{{{#1}\over{#2}}}
+
+% @displaymath.
+% \globaldefs is needed to recognize the end lines in \tex and
+% \end tex.  Set \thisenv as @end displaymath is seen before @end tex.
+{\obeylines
+\globaldefs=1
+\envdef\displaymath{%
+\tex
+\def\thisenv{\displaymath}%
+$$%
+}
+
+\def\Edisplaymath{$$
+\def\thisenv{\tex}%
+\end tex
+}}
 
 % @inlinefmt{FMTNAME,PROCESSED-TEXT} and @inlineraw{FMTNAME,RAW-TEXT}.
 % Ignore unless FMTNAME == tex; then it is like @iftex and @tex,
@@ -7639,7 +7666,7 @@ might help (with 'rm \jobname.?? \jobname.??s')%
 \endgroup
 %
 \envdef\verbatim{%
-    \setupverbatim\doverbatim
+    \setnormaldispenv\setupverbatim\doverbatim
 }
 \let\Everbatim = \afterenvbreak
 
@@ -11459,6 +11486,18 @@ directory should work if nowhere else does.}
   \globaldefs = 0
 }}
 
+\def\bsixpaper{{\globaldefs = 1
+  \afourpaper
+  \internalpagesizes{140mm}{100mm}%
+                    {-6.35mm}{-12.7mm}%
+                    {\bindingoffset}{14pt}%
+                    {176mm}{125mm}%
+  \let\SETdispenvsize=\smallword
+  \lispnarrowing = 0.2in
+  \globaldefs = 0
+}}
+
+
 % @pagesizes TEXTHEIGHT[,TEXTWIDTH]
 % Perhaps we should allow setting the margins, \topskip, \parskip,
 % and/or leading, also. Or perhaps we should compute them somehow.
@@ -11472,12 +11511,12 @@ directory should work if nowhere else does.}
   \setleading{\textleading}%
   %
   \dimen0 = #1\relax
-  \advance\dimen0 by \voffset
-  \advance\dimen0 by 1in % reference point for DVI is 1 inch from top of page
+  \advance\dimen0 by 2.5in % default 1in margin above heading line
+                           % and 1.5in to include heading, footing and
+                           % bottom margin
   %
   \dimen2 = \hsize
-  \advance\dimen2 by \normaloffset
-  \advance\dimen2 by 1in % reference point is 1 inch from left edge of page
+  \advance\dimen2 by 2in % default to 1 inch margin on each side
   %
   \internalpagesizes{#1}{\hsize}%
                     {\voffset}{\normaloffset}%

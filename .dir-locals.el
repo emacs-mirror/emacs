@@ -9,6 +9,7 @@
             (c-noise-macro-names . ("INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED" "UNINIT" "CALLBACK" "ALIGN_STACK"))
             (electric-quote-comment . nil)
             (electric-quote-string . nil)
+            (indent-tabs-mode . t)
 	    (mode . bug-reference-prog)))
  (objc-mode . ((c-file-style . "GNU")
                (electric-quote-comment . nil)

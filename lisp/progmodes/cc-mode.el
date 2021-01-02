@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -113,6 +113,7 @@
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 (cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
+(cc-bytecomp-defvar awk-mode-syntax-table)
 
 ;; We set this variable during mode init, yet we don't require
 ;; font-lock.
@@ -499,11 +500,14 @@ preferably use the `c-mode-menu' language constant directly."
   (save-excursion
     (when (< beg end)
       (goto-char beg)
+      (let ((lim (c-determine-limit 1000))
+	    (lim+ (c-determine-+ve-limit 1000 end)))
       (when
 	  (and (not (bobp))
-	       (progn (c-backward-syntactic-ws) (eq (point) beg))
+	       (progn (c-backward-syntactic-ws lim) (eq (point) beg))
 	       (/= (skip-chars-backward c-symbol-chars (1- (point))) 0)
-	       (progn (goto-char beg) (c-forward-syntactic-ws) (<= (point) end))
+	       (progn (goto-char beg) (c-forward-syntactic-ws lim+)
+		      (<= (point) end))
 	       (> (point) beg)
 	       (goto-char end)
 	       (looking-at c-symbol-char-key))
@@ -514,14 +518,14 @@ preferably use the `c-mode-menu' language constant directly."
       (goto-char end)
       (when
 	  (and (not (eobp))
-	       (progn (c-forward-syntactic-ws) (eq (point) end))
+	       (progn (c-forward-syntactic-ws lim+) (eq (point) end))
 	       (looking-at c-symbol-char-key)
-	       (progn (c-backward-syntactic-ws) (>= (point) beg))
+	       (progn (c-backward-syntactic-ws lim) (>= (point) beg))
 	       (< (point) end)
 	       (/= (skip-chars-backward c-symbol-chars (1- (point))) 0))
 	(goto-char (1+ end))
 	(c-end-of-current-token)
-	(c-unfind-type (buffer-substring-no-properties end (point)))))))
+	(c-unfind-type (buffer-substring-no-properties end (point))))))))
 
 ;; c-maybe-stale-found-type records a place near the region being
 ;; changed where an element of `found-types' might become stale.  It
@@ -636,6 +640,8 @@ that requires a literal mode spec at compile time."
   ;; doesn't work with filladapt but it's better than nothing.
   (set (make-local-variable 'fill-paragraph-function) 'c-fill-paragraph)
 
+  ;; Initialize the cache for `c-looking-at-or-maybe-in-bracelist'.
+  (setq c-laomib-cache nil)
   ;; Initialize the three literal sub-caches.
   (c-truncate-lit-pos-cache 1)
   ;; Initialize the cache of brace pairs, and opening braces/brackets/parens.
@@ -725,8 +731,8 @@ that requires a literal mode spec at compile time."
 ;;   ;; Put submode indicators onto minor-mode-alist, but only once.
 ;;   (or (assq 'c-submode-indicators minor-mode-alist)
 ;;       (setq minor-mode-alist
-;; 	    (cons '(c-submode-indicators c-submode-indicators)
-;; 		  minor-mode-alist)))
+;;	    (cons '(c-submode-indicators c-submode-indicators)
+;;		  minor-mode-alist)))
   (c-update-modeline)
 
   ;; Install the functions that ensure that various internal caches
@@ -1252,7 +1258,7 @@ Note that the style variables are always made local to the buffer."
   ;; Set both the syntax-table and the c-fl-syn-tab text properties at POS to
   ;; VALUE (which should not be nil).
   ;; `(let ((-pos- ,pos)
-  ;; 	 (-value- ,value))
+  ;;	 (-value- ,value))
   (c-put-char-property pos 'syntax-table value)
   (c-put-char-property pos 'c-fl-syn-tab value)
   (cond
@@ -1482,7 +1488,7 @@ Note that the style variables are always made local to the buffer."
 	   ((and
 	     (c-is-escaped end)
 	     (or (eq beg end) ; .... by inserting stuff between \ and \n?
-	      	 (c-will-be-unescaped beg))) ;  ... by removing an odd number of \s?
+		 (c-will-be-unescaped beg))) ;  ... by removing an odd number of \s?
 	    (goto-char (1+ end))) ; To after the NL which is being unescaped.
 	   (t
 	    (goto-char end)))
@@ -1996,7 +2002,7 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		;; We search for appropriate c-type properties "near"
 		;; the change.  First, find an appropriate boundary
 		;; for this property search.
-		(let (lim
+		(let (lim lim-2
 		      type type-pos
 		      marked-id term-pos
 		      (end1
@@ -2007,8 +2013,11 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		  (when (>= end1 beg) ; Don't hassle about changes entirely in
 					; comments.
 		    ;; Find a limit for the search for a `c-type' property
+		    ;; Point is currently undefined.  A `goto-char' somewhere is needed.  (2020-12-06).
+		    (setq lim-2 (c-determine-limit 1000 (point) ; that is wrong.  FIXME!!!  (2020-12-06)
+						   ))
 		    (while
-			(and (/= (skip-chars-backward "^;{}") 0)
+			(and (/= (skip-chars-backward "^;{}" lim-2) 0)
 			     (> (point) (point-min))
 			     (memq (c-get-char-property (1- (point)) 'face)
 				   '(font-lock-comment-face font-lock-string-face))))
@@ -2032,7 +2041,8 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 				(buffer-substring-no-properties (point) type-pos)))
 
 			(goto-char end1)
-			(skip-chars-forward "^;{}") ; FIXME!!!  loop for
+			(setq lim-2 (c-determine-+ve-limit 1000))
+			(skip-chars-forward "^;{}" lim-2) ; FIXME!!!  loop for
 					; comment, maybe
 			(setq lim (point))
 			(setq term-pos
@@ -2047,13 +2057,19 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		(if c-get-state-before-change-functions
 		    (mapc (lambda (fn)
 			    (funcall fn beg end))
-			  c-get-state-before-change-functions))))
+			  c-get-state-before-change-functions))
+
+		(c-laomib-invalidate-cache beg end)))
 	  (c-clear-string-fences))))
     (c-truncate-lit-pos-cache beg)
     ;; The following must be done here rather than in `c-after-change'
     ;; because newly inserted parens would foul up the invalidation
     ;; algorithm.
-    (c-invalidate-state-cache beg)))
+    (c-invalidate-state-cache beg)
+    ;; The following must happen after the previous, which likely alters
+    ;; the macro cache.
+    (when c-opt-cpp-symbol
+      (c-invalidate-macro-cache beg end))))
 
 (defvar c-in-after-change-fontification nil)
 (make-variable-buffer-local 'c-in-after-change-fontification)
@@ -2198,7 +2214,8 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	old-pos
 	(new-pos pos)
 	capture-opener
-	bod-lim bo-decl)
+	bod-lim bo-decl
+	paren-state containing-brace)
     (goto-char (c-point 'bol new-pos))
     (unless lit-start
       (setq bod-lim (c-determine-limit 500))
@@ -2217,12 +2234,16 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 	   (setq old-pos (point))
 	   (let (pseudo)
 	     (while
-		 (progn
-		   (c-syntactic-skip-backward "^;{}" bod-lim t)
-		   (and (eq (char-before) ?})
-			(save-excursion
-			  (backward-char)
-			  (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state))))))
+		 (and
+		  ;; N.B. `c-syntactic-skip-backward' doesn't check (> (point)
+		  ;; lim) and can loop if that's not the case.
+		  (> (point) bod-lim)
+		  (progn
+		    (c-syntactic-skip-backward "^;{}" bod-lim t)
+		    (and (eq (char-before) ?})
+			 (save-excursion
+			   (backward-char)
+			   (setq pseudo (c-cheap-inside-bracelist-p (c-parse-state)))))))
 	       (goto-char pseudo))
 	     t)
 	   (> (point) bod-lim)
@@ -2255,7 +2276,14 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 		      (and (eq (char-before) ?{)
 			   (save-excursion
 			     (backward-char)
-			     (consp (c-looking-at-or-maybe-in-bracelist))))
+			     (setq paren-state (c-parse-state))
+			     (while
+				 (and
+				  (setq containing-brace
+					(c-pull-open-brace paren-state))
+				  (not (eq (char-after containing-brace) ?{))))
+			     (consp (c-looking-at-or-maybe-in-bracelist
+				     containing-brace containing-brace))))
 		      )))
 	   (not (bobp)))
 	(backward-char))		; back over (, [, <.
@@ -2270,9 +2298,11 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
   ;; preserved.
   (goto-char pos)
   (let ((lit-start (c-literal-start))
+	(lim (c-determine-limit 1000))
 	enclosing-attribute pos1)
     (unless lit-start
-      (c-backward-syntactic-ws)
+      (c-backward-syntactic-ws
+       lim)
       (when (setq enclosing-attribute (c-enclosing-c++-attribute))
 	(goto-char (car enclosing-attribute))) ; Only happens in C++ Mode.
       (when (setq pos1 (c-on-identifier))
@@ -2296,14 +2326,14 @@ Note that this is a strict tail, so won't match, e.g. \"0x....\".")
 			   (setq pos1 (c-on-identifier))
 			   (goto-char pos1)
 			   (progn
-			     (c-backward-syntactic-ws)
+			     (c-backward-syntactic-ws lim)
 			     (eq (char-before) ?\())
 			   (c-fl-decl-end (1- (point))))
-			(c-backward-syntactic-ws)
+			(c-backward-syntactic-ws lim)
 			(point))))
 		 (and (progn (c-forward-syntactic-ws lim)
 			     (not (eobp)))
-		      (c-backward-syntactic-ws)
+		      (c-backward-syntactic-ws lim)
 		      (point)))))))))
 
 (defun c-change-expand-fl-region (_beg _end _old-len)

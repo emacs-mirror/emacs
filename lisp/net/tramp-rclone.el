@@ -1,6 +1,6 @@
 ;;; tramp-rclone.el --- Tramp access functions to cloud storages  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2018-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes

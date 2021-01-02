@@ -52,7 +52,7 @@ pattern ::= regstring			   /* a tag pattern */
 
 tagname ::= regchar regstring		   /* a tag name */
 
-position ::= realposition | "," 	   /* charpos,linepos */
+position ::= realposition | "," 	   /* linepos,charpos */
 
 realposition ::= "," unsint | unsint "," | unsint "," unsint
 
@@ -94,7 +94,7 @@ those.
 
 ===================== end of discussion of tag names =====================
 
-Copyright (C) 2002-2020 Free Software Foundation, Inc.
+Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

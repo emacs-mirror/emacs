@@ -1,6 +1,6 @@
 ;;; nndiary.el --- A diary back end for Gnus
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author:        Didier Verna <didier@didierverna.net>
 ;; Created:       Fri Jul 16 18:55:42 1999
@@ -1002,10 +1002,10 @@ all.  This may very well take some time.")
       (let ((buffer (gnus-get-buffer-create
                      (format " *nndiary overview %s*" group))))
 	(with-current-buffer buffer
-	  (set (make-local-variable 'nndiary-nov-buffer-file-name)
-	       (expand-file-name
-		nndiary-nov-file-name
-		(nnmail-group-pathname group nndiary-directory)))
+	  (setq-local nndiary-nov-buffer-file-name
+	              (expand-file-name
+		       nndiary-nov-file-name
+		       (nnmail-group-pathname group nndiary-directory)))
 	  (erase-buffer)
 	  (when (file-exists-p nndiary-nov-buffer-file-name)
 	    (nnheader-insert-file-contents nndiary-nov-buffer-file-name)))

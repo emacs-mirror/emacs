@@ -1,6 +1,6 @@
 ;;; buffer-tests.el --- tests for buffer.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,9 +19,7 @@
 
 ;;; Code:
 
-(require 'ert)
-(require 'seq)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (ert-deftest overlay-modification-hooks-message-other-buf ()
   "Test for bug#21824.
@@ -1333,5 +1331,34 @@ with parameters from the *Messages* buffer modification."
   "Test that `buffer-undo-list' appears in `buffer-local-variables'."
   (with-temp-buffer
     (should (assq 'buffer-undo-list (buffer-local-variables)))))
+
+(ert-deftest buffer-tests-inhibit-buffer-hooks ()
+  "Test `get-buffer-create' argument INHIBIT-BUFFER-HOOKS."
+  (let* (run-bluh (bluh (lambda () (setq run-bluh t))))
+    (unwind-protect
+        (let* ( run-kbh  (kbh  (lambda () (setq run-kbh  t)))
+                run-kbqf (kbqf (lambda () (setq run-kbqf t))) )
+
+          ;; Inhibited.
+          (add-hook 'buffer-list-update-hook bluh)
+          (with-current-buffer (generate-new-buffer " foo" t)
+            (add-hook 'kill-buffer-hook kbh nil t)
+            (add-hook 'kill-buffer-query-functions kbqf nil t)
+            (kill-buffer))
+          (with-temp-buffer)
+          (with-output-to-string)
+          (should-not run-bluh)
+          (should-not run-kbh)
+          (should-not run-kbqf)
+
+          ;; Not inhibited.
+          (with-current-buffer (generate-new-buffer " foo")
+            (should run-bluh)
+            (add-hook 'kill-buffer-hook kbh nil t)
+            (add-hook 'kill-buffer-query-functions kbqf nil t)
+            (kill-buffer))
+          (should run-kbh)
+          (should run-kbqf))
+      (remove-hook 'buffer-list-update-hook bluh))))
 
 ;;; buffer-tests.el ends here

@@ -1,6 +1,6 @@
 ;;; page-tests.el --- Tests for page.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Simen Heggestøyl <simenheg@gmail.com>
 ;; Keywords:

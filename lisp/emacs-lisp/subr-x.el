@@ -1,6 +1,6 @@
 ;;; subr-x.el --- extra Lisp functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: convenience
@@ -263,6 +263,102 @@ carriage return."
   (if (string-suffix-p suffix string)
       (substring string 0 (- (length string) (length suffix)))
     string))
+
+(defun string-clean-whitespace (string)
+  "Clean up whitespace in STRING.
+All sequences of whitespaces in STRING are collapsed into a
+single space character, and leading/trailing whitespace is
+removed."
+  (let ((blank "[[:blank:]\r\n]+"))
+    (string-trim (replace-regexp-in-string blank " " string t t)
+                 blank blank)))
+
+(defun string-fill (string length)
+  "Try to word-wrap STRING so that no lines are longer than LENGTH.
+Wrapping is done where there is whitespace.  If there are
+individual words in STRING that are longer than LENGTH, the
+result will have lines that are longer than LENGTH."
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (let ((fill-column length)
+          (adaptive-fill-mode nil))
+      (fill-region (point-min) (point-max)))
+    (buffer-string)))
+
+(defun string-limit (string length &optional end coding-system)
+  "Return (up to) a LENGTH substring of STRING.
+If STRING is shorter than or equal to LENGTH, the entire string
+is returned unchanged.
+
+If STRING is longer than LENGTH, return a substring consisting of
+the first LENGTH characters of STRING.  If END is non-nil, return
+the last LENGTH characters instead.
+
+If CODING-SYSTEM is non-nil, STRING will be encoded before
+limiting, and LENGTH is interpreted as the number of bytes to
+limit the string to.  The result will be a unibyte string that is
+shorter than LENGTH, but will not contain \"partial\" characters,
+even if CODING-SYSTEM encodes characters with several bytes per
+character.
+
+When shortening strings for display purposes,
+`truncate-string-to-width' is almost always a better alternative
+than this function."
+  (unless (natnump length)
+    (signal 'wrong-type-argument (list 'natnump length)))
+  (if coding-system
+      (let ((result nil)
+            (result-length 0)
+            (index (if end (1- (length string)) 0)))
+        (while (let ((encoded (encode-coding-char
+                               (aref string index) coding-system)))
+                 (and (<= (+ (length encoded) result-length) length)
+                      (progn
+                        (push encoded result)
+                        (cl-incf result-length (length encoded))
+                        (setq index (if end (1- index)
+                                      (1+ index))))
+                      (if end (> index -1)
+                        (< index (length string)))))
+          ;; No body.
+          )
+        (apply #'concat (if end result (nreverse result))))
+    (cond
+     ((<= (length string) length) string)
+     (end (substring string (- (length string) length)))
+     (t (substring string 0 length)))))
+
+(defun string-lines (string &optional omit-nulls)
+  "Split STRING into a list of lines.
+If OMIT-NULLS, empty lines will be removed from the results."
+  (split-string string "\n" omit-nulls))
+
+(defun string-pad (string length &optional padding start)
+  "Pad STRING to LENGTH using PADDING.
+If PADDING is nil, the space character is used.  If not nil, it
+should be a character.
+
+If STRING is longer than the absolute value of LENGTH, no padding
+is done.
+
+If START is nil (or not present), the padding is done to the end
+of the string, and if non-nil, padding is done to the start of
+the string."
+  (unless (natnump length)
+    (signal 'wrong-type-argument (list 'natnump length)))
+  (let ((pad-length (- length (length string))))
+    (if (< pad-length 0)
+        string
+      (concat (and start
+                   (make-string pad-length (or padding ?\s)))
+              string
+              (and (not start)
+                   (make-string pad-length (or padding ?\s)))))))
+
+(defun string-chop-newline (string)
+  "Remove the final newline (if any) from STRING."
+  (string-remove-suffix "\n" string))
 
 (defun replace-region-contents (beg end replace-fn
                                     &optional max-secs max-costs)

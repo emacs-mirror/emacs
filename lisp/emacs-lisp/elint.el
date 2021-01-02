@@ -1,6 +1,6 @@
 ;;; elint.el --- Lint Emacs Lisp -*- lexical-binding: t -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Peter Liljenberg <petli@lysator.liu.se>
 ;; Created: May 1997
@@ -521,7 +521,7 @@ Return nil if there are no more forms, t otherwise."
   "The currently linted top form, or nil.")
 
 (defvar elint-top-form-logged nil
-  "The value t if the currently linted top form has been mentioned in the log buffer.")
+  "Non-nil if the currently linted top form has been mentioned in the log buffer.")
 
 (defun elint-top-form (form)
   "Lint a top FORM."
@@ -558,7 +558,8 @@ Return nil if there are no more forms, t otherwise."
     (when . elint-check-conditional-form)
     (unless . elint-check-conditional-form)
     (and . elint-check-conditional-form)
-    (or . elint-check-conditional-form))
+    (or . elint-check-conditional-form)
+    (require . elint-require-form))
   "Functions to call when some special form should be linted.")
 
 (defun elint-form (form env &optional nohandler)
@@ -952,6 +953,13 @@ Does basic handling of `featurep' tests."
 	  (t
 	   (elint-form form env t))))
   env)
+
+(defun elint-require-form (form _env)
+  "Load `require'd files."
+  (pcase form
+    (`(require ',x)
+     (require x)))
+  nil)
 
 ;;;
 ;;; Message functions

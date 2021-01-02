@@ -1,6 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -60,7 +60,7 @@
   :type 'string)
 
 (defcustom gnus-keep-same-level nil
-  "Non-nil means that the next newsgroup after the current will be on the same level.
+  "Non-nil means that the newsgroup after this one will be on the same level.
 When you type, for instance, `n' after reading the last article in the
 current newsgroup, you will go to the next newsgroup.  If this variable
 is nil, the next newsgroup will be the next from the group
@@ -1098,7 +1098,7 @@ When FORCE, rebuild the tool bar."
 					gnus-group-tool-bar-zap-list
 					'gnus-group-mode-map)))
       (if map
-	  (set (make-local-variable 'tool-bar-map) map))))
+	  (setq-local tool-bar-map map))))
   gnus-group-tool-bar-map)
 
 (define-derived-mode gnus-group-mode gnus-mode "Group"
@@ -1745,7 +1745,8 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 	(prog1
 	    (setq mode-line-buffer-identification
 		  (gnus-mode-line-buffer-identification
-		   (list mode-string)))
+		   (list (propertize mode-string
+				     'face 'mode-line-buffer-id))))
 	  (set-buffer-modified-p modified))))))
 
 (defun gnus-group-group-name ()

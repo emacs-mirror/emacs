@@ -1,6 +1,6 @@
 ;;; semantic/senator.el --- SEmantic NAvigaTOR
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: emacs-devel@gnu.org
@@ -810,7 +810,7 @@ if available."
 (defun senator-lazy-highlight-update ()
   "Force lazy highlight update."
   (lazy-highlight-cleanup t)
-  (set 'isearch-lazy-highlight-last-string nil)
+  (setq isearch-lazy-highlight-last-string nil)
   (setq isearch-adjusted t)
   (isearch-update))
 

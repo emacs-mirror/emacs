@@ -1,5 +1,5 @@
-# readlink.m4 serial 15
-dnl Copyright (C) 2003, 2007, 2009-2020 Free Software Foundation, Inc.
+# readlink.m4 serial 16
+dnl Copyright (C) 2003, 2007, 2009-2021 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -23,7 +23,7 @@ AC_DEFUN([gl_FUNC_READLINK],
     dnl Solaris 9 ignores trailing slash.
     dnl FreeBSD 7.2 dereferences only one level of links with trailing slash.
     AC_CACHE_CHECK([whether readlink handles trailing slash correctly],
-      [gl_cv_func_readlink_works],
+      [gl_cv_func_readlink_trailing_slash],
       [# We have readlink, so assume ln -s works.
        ln -s conftest.no-such conftest.link
        ln -s conftest.link conftest.lnk2
@@ -32,18 +32,22 @@ AC_DEFUN([gl_FUNC_READLINK],
            [[#include <unistd.h>
 ]], [[char buf[20];
       return readlink ("conftest.lnk2/", buf, sizeof buf) != -1;]])],
-         [gl_cv_func_readlink_works=yes], [gl_cv_func_readlink_works=no],
+         [gl_cv_func_readlink_trailing_slash=yes],
+         [gl_cv_func_readlink_trailing_slash=no],
          [case "$host_os" in
-                             # Guess yes on Linux systems.
-            linux-* | linux) gl_cv_func_readlink_works="guessing yes" ;;
-                             # Guess yes on glibc systems.
-            *-gnu* | gnu*)   gl_cv_func_readlink_works="guessing yes" ;;
-                             # If we don't know, obey --enable-cross-guesses.
-            *)               gl_cv_func_readlink_works="$gl_cross_guess_normal" ;;
+            # Guess yes on Linux or glibc systems.
+            linux-* | linux | *-gnu* | gnu*)
+              gl_cv_func_readlink_trailing_slash="guessing yes" ;;
+            # Guess no on AIX or HP-UX.
+            aix* | hpux*)
+              gl_cv_func_readlink_trailing_slash="guessing no" ;;
+            # If we don't know, obey --enable-cross-guesses.
+            *)
+              gl_cv_func_readlink_trailing_slash="$gl_cross_guess_normal" ;;
           esac
          ])
       rm -f conftest.link conftest.lnk2])
-    case "$gl_cv_func_readlink_works" in
+    case "$gl_cv_func_readlink_trailing_slash" in
       *yes)
         if test "$gl_cv_decl_readlink_works" != yes; then
           REPLACE_READLINK=1
@@ -52,6 +56,43 @@ AC_DEFUN([gl_FUNC_READLINK],
       *)
         AC_DEFINE([READLINK_TRAILING_SLASH_BUG], [1], [Define to 1 if readlink
           fails to recognize a trailing slash.])
+        REPLACE_READLINK=1
+        ;;
+    esac
+
+    AC_CACHE_CHECK([whether readlink truncates results correctly],
+      [gl_cv_func_readlink_truncate],
+      [# We have readlink, so assume ln -s works.
+       ln -s ab conftest.link
+       AC_RUN_IFELSE(
+         [AC_LANG_PROGRAM(
+           [[#include <unistd.h>
+]], [[char c;
+      return readlink ("conftest.link", &c, 1) != 1;]])],
+         [gl_cv_func_readlink_truncate=yes],
+         [gl_cv_func_readlink_truncate=no],
+         [case "$host_os" in
+            # Guess yes on Linux or glibc systems.
+            linux-* | linux | *-gnu* | gnu*)
+              gl_cv_func_readlink_truncate="guessing yes" ;;
+            # Guess no on AIX or HP-UX.
+            aix* | hpux*)
+              gl_cv_func_readlink_truncate="guessing no" ;;
+            # If we don't know, obey --enable-cross-guesses.
+            *)
+              gl_cv_func_readlink_truncate="$gl_cross_guess_normal" ;;
+          esac
+         ])
+      rm -f conftest.link conftest.lnk2])
+    case $gl_cv_func_readlink_truncate in
+      *yes)
+        if test "$gl_cv_decl_readlink_works" != yes; then
+          REPLACE_READLINK=1
+        fi
+        ;;
+      *)
+        AC_DEFINE([READLINK_TRUNCATE_BUG], [1], [Define to 1 if readlink
+          sets errno instead of truncating a too-long link.])
         REPLACE_READLINK=1
         ;;
     esac

@@ -1,6 +1,6 @@
 ;;; gnus-sum.el --- summary mode commands for Gnus  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -744,7 +744,8 @@ string with the suggested prefix."
   :type '(repeat character))
 
 (defcustom gnus-inhibit-user-auto-expire t
-  "If non-nil, user marking commands will not mark an article as expirable, even if the group has auto-expire turned on."
+  "If non-nil, user marking commands will not mark an article as expirable.
+This is true even if the group has auto-expire turned on."
   :version "21.1"
   :group 'gnus-summary
   :type 'boolean)
@@ -1399,7 +1400,7 @@ the normal Gnus MIME machinery."
 (defvar gnus-thread-indent-array nil)
 (defvar gnus-thread-indent-array-level gnus-thread-indent-level)
 (defvar gnus-sort-gathered-threads-function #'gnus-thread-sort-by-number
-  "Function called to sort the articles within a thread after it has been gathered together.")
+  "Function to sort articles within a thread after it has been gathered together.")
 
 (defvar gnus-summary-save-parts-type-history nil)
 (defvar gnus-summary-save-parts-last-directory mm-default-directory)
@@ -1460,8 +1461,8 @@ the normal Gnus MIME machinery."
     (?I gnus-tmp-indentation ?s)
     (?T (if (= gnus-tmp-level 0) "" (make-string (frame-width) ? )) ?s)
     (?R gnus-tmp-replied ?c)
-    (?\[ gnus-tmp-opening-bracket ?c)
-    (?\] gnus-tmp-closing-bracket ?c)
+    (?\[ gnus-tmp-opening-bracket ?s)
+    (?\] gnus-tmp-closing-bracket ?s)
     (?\> (make-string gnus-tmp-level ? ) ?s)
     (?\< (make-string (max 0 (- 20 gnus-tmp-level)) ? ) ?s)
     (?i gnus-tmp-score ?d)
@@ -1525,7 +1526,7 @@ the type of the variable (string, integer, character, etc).")
   "Default shell command on article.")
 
 (defvar gnus-newsgroup-agentized nil
-  "Locally bound in each summary buffer to indicate whether the server has been agentized.")
+  "Locally bound in each summary buffer to indicate if server has been agentized.")
 (defvar gnus-newsgroup-begin nil)
 (defvar gnus-newsgroup-end nil)
 (defvar gnus-newsgroup-last-rmail nil)
@@ -1555,7 +1556,7 @@ the type of the variable (string, integer, character, etc).")
 (defvar gnus-newsgroup-expunged-tally nil)
 
 (defvar gnus-newsgroup-marked nil
-  "Sorted list of ticked articles in the current newsgroup (a subset of unread art).")
+  "Sorted list of ticked articles in current newsgroup (a subset of unread art).")
 
 (defvar gnus-newsgroup-spam-marked nil
   "List of ranges of articles that have been marked as spam.")
@@ -3038,7 +3039,7 @@ When FORCE, rebuild the tool bar."
 	;; Need to set `gnus-summary-tool-bar-map' because `gnus-article-mode'
 	;; uses its value.
 	(setq gnus-summary-tool-bar-map map))))
-  (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map))
+  (setq-local tool-bar-map gnus-summary-tool-bar-map))
 
 (defun gnus-make-score-map (type)
   "Make a summary score map of type TYPE."
@@ -3174,8 +3175,8 @@ The following commands are available:
   (make-local-variable 'gnus-original-article-buffer)
   (add-hook 'pre-command-hook #'gnus-set-global-variables nil t)
   (mm-enable-multibyte)
-  (set (make-local-variable 'bookmark-make-record-function)
-       #'gnus-summary-bookmark-make-record))
+  (setq-local bookmark-make-record-function
+              #'gnus-summary-bookmark-make-record))
 
 (defun gnus-summary-make-local-variables ()
   "Make all the local summary buffer variables."
@@ -3547,7 +3548,7 @@ Returns non-nil if the setup was successful."
       (let ((gnus-summary-mode-group group))
        (gnus-summary-mode))
       (when (gnus-group-quit-config group)
-	(set (make-local-variable 'gnus-single-article-buffer) nil))
+        (setq-local gnus-single-article-buffer nil))
       (turn-on-gnus-mailing-list-mode)
       ;; These functions don't currently depend on GROUP, but might in
       ;; the future.
@@ -3657,6 +3658,7 @@ buffer that was in action when the last article was fetched."
               ;; so we don't call gnus-data-<field> accessors on nil.
               (gnus-newsgroup-data gnus--dummy-data-list)
 	      (gnus-newsgroup-downloadable '(0))
+	      (gnus-visual nil)
 	      case-fold-search ignores)
 	  ;; Here, all marks are bound to Z.
 	  (gnus-summary-insert-line gnus--dummy-mail-header
@@ -3748,6 +3750,30 @@ buffer that was in action when the last article was fetched."
       (inline
 	(gnus-summary-extract-address-component gnus-tmp-from))))))
 
+(defcustom gnus-sum-opening-bracket "["
+  "With %[ spec, used to identify normal (non-adopted) articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
+(defcustom gnus-sum-closing-bracket "]"
+  "With %] spec, used to identify normal (non-adopted) articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
+(defcustom gnus-sum-opening-bracket-adopted "<"
+  "With %[ spec, used to identify adopted articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
+(defcustom gnus-sum-closing-bracket-adopted ">"
+  "With %] spec, used to identify adopted articles."
+  :version "28.1"
+  :type 'string
+  :group 'gnus-summary-format)
+
 (defun gnus-summary-insert-line (header level current undownloaded
                                  unread replied expirable subject-or-nil
 				 &optional dummy score process)
@@ -3805,8 +3831,14 @@ buffer that was in action when the last article was fetched."
 		       (1+ (match-beginning 0)) (1- (match-end 0))))
 	   (t gnus-tmp-from)))
 	 (gnus-tmp-subject (mail-header-subject gnus-tmp-header))
-	 (gnus-tmp-opening-bracket (if gnus-tmp-dummy ?\< ?\[))
-	 (gnus-tmp-closing-bracket (if gnus-tmp-dummy ?\> ?\]))
+	 (gnus-tmp-opening-bracket
+	  (if gnus-tmp-dummy
+	      gnus-sum-opening-bracket-adopted
+	    gnus-sum-opening-bracket))
+	 (gnus-tmp-closing-bracket
+	  (if gnus-tmp-dummy
+	      gnus-sum-closing-bracket-adopted
+	    gnus-sum-closing-bracket))
 	 (inhibit-read-only t))
     (when (string= gnus-tmp-name "")
       (setq gnus-tmp-name gnus-tmp-from))
@@ -4070,8 +4102,6 @@ If SELECT-ARTICLES, only select those articles from GROUP."
      ;; The group was successfully selected.
      (t
       (gnus-set-global-variables)
-      (when (boundp 'gnus-pick-line-number)
-	(setq gnus-pick-line-number 0))
       (when (boundp 'spam-install-hooks)
 	(spam-initialize))
       ;; Save the active value in effect when the group was entered.
@@ -4196,6 +4226,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	  gnus-newsgroup-data-reverse nil)
     (gnus-run-hooks 'gnus-summary-generate-hook)
     ;; Generate the buffer, either with threads or without.
+    (when (boundp 'gnus-pick-line-number)
+      (setq gnus-pick-line-number 0))
     (when gnus-newsgroup-headers
       (gnus-summary-prepare-threads
        (if gnus-show-threads
@@ -5439,10 +5471,10 @@ or a straight list of headers."
 	    (if (and (eq gnus-summary-make-false-root 'adopt)
 		     (= gnus-tmp-level 1)
 		     (memq number gnus-tmp-gathered))
-		(setq gnus-tmp-opening-bracket ?\<
-		      gnus-tmp-closing-bracket ?\>)
-	      (setq gnus-tmp-opening-bracket ?\[
-		    gnus-tmp-closing-bracket ?\]))
+		(setq gnus-tmp-opening-bracket gnus-sum-opening-bracket-adopted
+		      gnus-tmp-closing-bracket gnus-sum-closing-bracket-adopted)
+	      (setq gnus-tmp-opening-bracket gnus-sum-opening-bracket
+		    gnus-tmp-closing-bracket gnus-sum-closing-bracket))
 	    (if (>= gnus-tmp-level (length gnus-thread-indent-array))
 		(gnus-make-thread-indent-array
 		 (max (* 2 (length gnus-thread-indent-array))
@@ -5670,8 +5702,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	 articles fetched-articles cached)
 
     (unless (gnus-check-server
-	     (set (make-local-variable 'gnus-current-select-method)
-		  (gnus-find-method-for-group group)))
+             (setq-local gnus-current-select-method
+                         (gnus-find-method-for-group group)))
       (error "Couldn't open server"))
 
     (or (and entry (not (eq (car entry) t))) ; Either it's active...
@@ -6254,7 +6286,9 @@ If WHERE is `summary', the summary mode line format will be used."
 		   mode-string (- max-len 3) nil nil t)))))
       ;; Update the mode line.
       (setq mode-line-buffer-identification
-	    (gnus-mode-line-buffer-identification (list mode-string)))
+	    (gnus-mode-line-buffer-identification
+	     (list (propertize mode-string
+			       'face 'mode-line-buffer-id))))
       (set-buffer-modified-p t))))
 
 (defun gnus-create-xref-hashtb (from-newsgroup headers unreads)
@@ -10638,7 +10672,7 @@ groups."
 		 (mime-to-mml current-handles))
 	       (let ((mbl1 mml-buffer-list))
 		 (setq mml-buffer-list mbl)
-		 (set (make-local-variable 'mml-buffer-list) mbl1))
+                 (setq-local mml-buffer-list mbl1))
 	       (add-hook 'kill-buffer-hook #'mml-destroy-buffers t t))))
 	 `(lambda (no-highlight)
 	    (let ((mail-parse-charset ',gnus-newsgroup-charset)
@@ -12846,8 +12880,7 @@ UNREAD is a sorted list."
 		(and gnus-newsgroup-name
 		     (gnus-parameter-charset gnus-newsgroup-name))
 		gnus-default-charset))
-      (set (make-local-variable 'gnus-newsgroup-ignored-charsets)
-	   ignored-charsets))))
+      (setq-local gnus-newsgroup-ignored-charsets ignored-charsets))))
 
 ;;;
 ;;; Mime Commands

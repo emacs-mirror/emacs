@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2020 Free Software
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -73,18 +73,18 @@ are holidays."
 ;; follows: the first line matching "^# [tag:value]" defines the value
 ;; for that particular tag.
 (defcustom diary-face-attrs
-  '((" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
-    (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
-    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
-    (" *\\[height:\\([.0-9]+\\)\\]$" 1 :height int)
-    (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
-    (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
-    (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
-    (" *\\[overline:\\([-a-z]+\\)\\]$" 1 :overline stringtnil)
-    (" *\\[strike-through:\\([-a-z]+\\)\\]$" 1 :strike-through stringtnil)
-    (" *\\[inverse-video:\\([-a-z]+\\)\\]$" 1 :inverse-video tnil)
-    (" *\\[face:\\([-0-9a-z]+\\)\\]$" 1 :face string)
-    (" *\\[font:\\([-a-z0-9]+\\)\\]$" 1 :font string)
+  '((" *\\[foreground:\\([-a-z]+\\)\\] *" 1 :foreground string)
+    (" *\\[background:\\([-a-z]+\\)\\] *" 1 :background string)
+    (" *\\[width:\\([-a-z]+\\)\\] *" 1 :width symbol)
+    (" *\\[height:\\([.0-9]+\\)\\] *" 1 :height int)
+    (" *\\[weight:\\([-a-z]+\\)\\] *" 1 :weight symbol)
+    (" *\\[slant:\\([-a-z]+\\)\\] *" 1 :slant symbol)
+    (" *\\[underline:\\([-a-z]+\\)\\] *" 1 :underline stringtnil)
+    (" *\\[overline:\\([-a-z]+\\)\\] *" 1 :overline stringtnil)
+    (" *\\[strike-through:\\([-a-z]+\\)\\] *" 1 :strike-through stringtnil)
+    (" *\\[inverse-video:\\([-a-z]+\\)\\] *" 1 :inverse-video tnil)
+    (" *\\[face:\\([-0-9a-z]+\\)\\] *" 1 :face string)
+    (" *\\[font:\\([-a-z0-9]+\\)\\] *" 1 :font string)
     ;; Unsupported.
 ;;;    (" *\\[box:\\([-a-z]+\\)\\]$" 1 :box)
 ;;;    (" *\\[stipple:\\([-a-z]+\\)\\]$" 1 :stipple)
@@ -839,7 +839,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                     (goto-char (point-min))
                     (unless list-only
                       (let ((ol (make-overlay (point-min) (point-max) nil t nil)))
-                        (set (make-local-variable 'diary-selective-display) t)
+                        (setq-local diary-selective-display t)
                         (overlay-put ol 'invisible 'diary)
                         (overlay-put ol 'evaporate t)))
                     (dotimes (_ number)
@@ -2381,10 +2381,9 @@ return a font-lock pattern matching array of MONTHS and marking SYMBOL."
 ;;;###autoload
 (define-derived-mode diary-mode fundamental-mode "Diary"
   "Major mode for editing the diary file."
-  (set (make-local-variable 'font-lock-defaults)
-       '(diary-font-lock-keywords t))
-  (set (make-local-variable 'comment-start) diary-comment-start)
-  (set (make-local-variable 'comment-end) diary-comment-end)
+  (setq-local font-lock-defaults '(diary-font-lock-keywords t))
+  (setq-local comment-start diary-comment-start)
+  (setq-local comment-end diary-comment-end)
   (add-to-invisibility-spec '(diary . nil))
   (add-hook 'after-save-hook #'diary-redraw-calendar nil t)
   ;; In case the file was modified externally, refresh the calendar
@@ -2465,13 +2464,13 @@ Fontify the region between BEG and END, quietly unless VERBOSE is non-nil."
 (define-derived-mode diary-fancy-display-mode special-mode
   "Diary"
   "Major mode used while displaying diary entries using Fancy Display."
-  (set (make-local-variable 'font-lock-defaults)
-       '(diary-fancy-font-lock-keywords
-         t nil nil nil
-         (font-lock-fontify-region-function
-          . diary-fancy-font-lock-fontify-region-function)))
-  (set (make-local-variable 'minor-mode-overriding-map-alist)
-       (list (cons t diary-fancy-overriding-map)))
+  (setq-local font-lock-defaults
+              '(diary-fancy-font-lock-keywords
+                t nil nil nil
+                (font-lock-fontify-region-function
+                 . diary-fancy-font-lock-fontify-region-function)))
+  (setq-local minor-mode-overriding-map-alist
+              (list (cons t diary-fancy-overriding-map)))
   (view-mode 1))
 
 ;; Following code from Dave Love <fx@gnu.org>.

@@ -1,6 +1,6 @@
 ;;; ol-eww.el --- Store URL and kill from Eww mode    -*- lexical-binding: t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Marco Wahl <marcowahlsoft>a<gmailcom>
 ;; Keywords: link, eww
@@ -46,17 +46,22 @@
 ;;; Code:
 (require 'ol)
 (require 'cl-lib)
+(require 'eww)
 
+;; For Emacsen < 25.
 (defvar eww-current-title)
 (defvar eww-current-url)
-(defvar eww-data)
-(defvar eww-mode-map)
-
-(declare-function eww-current-url "eww")
 
 
 ;; Store Org link in Eww mode buffer
-(org-link-set-parameters "eww" :follow #'eww :store #'org-eww-store-link)
+(org-link-set-parameters "eww"
+			 :follow #'org-eww-open
+			 :store #'org-eww-store-link)
+
+(defun org-eww-open (url _)
+  "Open URL with Eww in the current buffer."
+  (eww url))
+
 (defun org-eww-store-link ()
   "Store a link to the url of an EWW buffer."
   (when (eq major-mode 'eww-mode)

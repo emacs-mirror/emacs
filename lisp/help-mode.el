@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1985-1986, 1993-1994, 1998-2020 Free Software
+;; Copyright (C) 1985-1986, 1993-1994, 1998-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -319,10 +319,10 @@ The format is (FUNCTION ARGS...).")
 Entry to this mode runs the normal hook `help-mode-hook'.
 Commands:
 \\{help-mode-map}"
-  (set (make-local-variable 'revert-buffer-function)
-       'help-mode-revert-buffer)
-  (set (make-local-variable 'bookmark-make-record-function)
-       'help-bookmark-make-record))
+  (setq-local revert-buffer-function
+              #'help-mode-revert-buffer)
+  (setq-local bookmark-make-record-function
+              #'help-bookmark-make-record))
 
 ;;;###autoload
 (defun help-mode-setup ()

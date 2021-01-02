@@ -1,6 +1,6 @@
 ;;; ob-groovy.el --- Babel Functions for Groovy      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Miro Bezjak
 ;; Keywords: literate programming, reproducible research
@@ -65,7 +65,6 @@ This function is called by `org-babel-execute-src-block'."
       (cdr (assq :rowname-names params)) (cdr (assq :rownames params))))))
 
 (defvar org-babel-groovy-wrapper-method
-
   "class Runner extends Script {
     def out = new PrintWriter(new ByteArrayOutputStream())
     def run() { %s }
@@ -73,7 +72,6 @@ This function is called by `org-babel-execute-src-block'."
 
 println(new Runner().run())
 ")
-
 
 (defun org-babel-groovy-evaluate
     (session body &optional result-type result-params)
@@ -110,7 +108,5 @@ supported in Groovy."
   nil)
 
 (provide 'ob-groovy)
-
-
 
 ;;; ob-groovy.el ends here

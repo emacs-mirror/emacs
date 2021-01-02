@@ -1,6 +1,6 @@
 ;;; gdb-mi.el --- User Interface for running GDB  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Nick Roberts <nickrob@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -744,7 +744,7 @@ NOARG must be t when this macro is used outside `gud-def'."
       ;; Use the old gud-gbd filter, not because it works, but because it
       ;; will properly display GDB's answers rather than hanging waiting for
       ;; answers that aren't coming.
-      (set (make-local-variable 'gud-marker-filter) #'gud-gdb-marker-filter))
+      (setq-local gud-marker-filter #'gud-gdb-marker-filter))
     (funcall filter proc string)))
 
 (defvar gdb-control-level 0)
@@ -831,8 +831,8 @@ detailed description of this mode.
   (let ((proc (get-buffer-process gud-comint-buffer)))
     (add-function :around (process-filter proc) #'gdb--check-interpreter))
 
-  (set (make-local-variable 'gud-minor-mode) 'gdbmi)
-  (set (make-local-variable 'gdb-control-level) 0)
+  (setq-local gud-minor-mode 'gdbmi)
+  (setq-local gdb-control-level 0)
   (setq comint-input-sender 'gdb-send)
   (when (ring-empty-p comint-input-ring) ; cf shell-mode
     (let ((hfile (expand-file-name (or (getenv "GDBHISTFILE")
@@ -861,9 +861,9 @@ detailed description of this mode.
       (and (stringp hsize)
 	   (integerp (setq hsize (string-to-number hsize)))
 	   (> hsize 0)
-	   (set (make-local-variable 'comint-input-ring-size) hsize))
+           (setq-local comint-input-ring-size hsize))
       (if (stringp hfile)
-	  (set (make-local-variable 'comint-input-ring-file-name) hfile))
+          (setq-local comint-input-ring-file-name hfile))
       (comint-read-input-ring t)))
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
 	   "Set temporary breakpoint at current line.")
@@ -966,8 +966,7 @@ detailed description of this mode.
   (define-key gud-minor-mode-map [left-margin C-mouse-3]
     'gdb-mouse-jump)
 
-  (set (make-local-variable 'gud-gdb-completion-function)
-       'gud-gdbmi-completions)
+  (setq-local gud-gdb-completion-function 'gud-gdbmi-completions)
 
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
             nil 'local)
@@ -1141,8 +1140,8 @@ no input, and GDB is waiting for input."
 		     (lambda () (gdb-tooltip-print expr)))))))
 
 (defun gdb-init-buffer ()
-  (set (make-local-variable 'gud-minor-mode) 'gdbmi)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+  (setq-local gud-minor-mode 'gdbmi)
+  (setq-local tool-bar-map gud-tool-bar-map)
   (when gud-tooltip-mode
     (make-local-variable 'gdb-define-alist)
     (gdb-create-define-alist)
@@ -1558,10 +1557,10 @@ this trigger is subscribed to `gdb-buf-publisher' and called with
 	    (when mode (funcall mode))
 	    (setq gdb-buffer-type buffer-type)
             (when thread
-              (set (make-local-variable 'gdb-thread-number) thread))
-	    (set (make-local-variable 'gud-minor-mode)
-		 (buffer-local-value 'gud-minor-mode gud-comint-buffer))
-	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+              (setq-local gdb-thread-number thread))
+            (setq-local gud-minor-mode
+                        (buffer-local-value 'gud-minor-mode gud-comint-buffer))
+            (setq-local tool-bar-map gud-tool-bar-map)
             (rename-buffer (funcall (gdb-rules-name-maker rules)))
 	    (when trigger
               (gdb-add-subscriber gdb-buf-publisher
@@ -3010,7 +3009,7 @@ If NOPRESERVE is non-nil, window point is not restored after CUSTOM-DEFUN."
        (,custom-defun)
        (gdb-update-buffer-name)
        ,@(when (not nopreserve)
-          '((set-window-start window start)
+          '((set-window-start window start t)
             (set-window-point window p))))))
 
 (defmacro def-gdb-trigger-and-handler (trigger-name gdb-command
@@ -3128,24 +3127,27 @@ See `def-gdb-auto-update-handler'."
   (concat "fullname=\\(" gdb--string-regexp "\\)"))
 
 (defun gdb-get-location (bptno line flag)
-  "Find the directory containing the relevant source file.
-Put in buffer and place breakpoint icon."
+  "Glean name of source file using `gdb-source-file-regexp', and visit it.
+Place breakpoint icon in its buffer."
   (goto-char (point-min))
   (catch 'file-not-found
-    (if (re-search-forward gdb-source-file-regexp nil t)
-	(delete (cons bptno "File not found") gdb-location-alist)
-      ;; FIXME: Why/how do we use (match-string 1) when the search failed?
-      (push (cons bptno (match-string 1)) gdb-location-alist)
-      (gdb-resync)
-      (unless (assoc bptno gdb-location-alist)
-	(push (cons bptno "File not found") gdb-location-alist)
-	(message-box "Cannot find source file for breakpoint location.
+    (let (source-file)
+      (if (re-search-forward gdb-source-file-regexp nil t)
+          (progn
+            (setq source-file (gdb-mi--c-string-from-string (match-string 1)))
+            (delete (cons bptno "File not found") gdb-location-alist)
+            (push (cons bptno source-file) gdb-location-alist))
+        (gdb-resync)
+        (unless (assoc bptno gdb-location-alist)
+	  (push (cons bptno "File not found") gdb-location-alist)
+	  (message-box "Cannot find source file for breakpoint location.
 Add directory to search path for source files using the GDB command, dir."))
-      (throw 'file-not-found nil))
-    (with-current-buffer (find-file-noselect (match-string 1))
-      (gdb-init-buffer)
-      ;; only want one breakpoint icon at each location
-      (gdb-put-breakpoint-icon (eq flag ?y) bptno (string-to-number line)))))
+        (throw 'file-not-found nil))
+      (with-current-buffer (find-file-noselect source-file)
+        (gdb-init-buffer)
+        ;; Only want one breakpoint icon at each location.
+        (gdb-put-breakpoint-icon (string-equal flag "y") bptno
+                                 (string-to-number line))))))
 
 (add-hook 'find-file-hook 'gdb-find-file-hook)
 
@@ -3364,8 +3366,7 @@ corresponding to the mode line clicked."
   (setq gdb-thread-position (make-marker))
   (add-to-list 'overlay-arrow-variable-list 'gdb-thread-position)
   (setq header-line-format gdb-threads-header)
-  (set (make-local-variable 'font-lock-defaults)
-       '(gdb-threads-font-lock-keywords))
+  (setq-local font-lock-defaults '(gdb-threads-font-lock-keywords))
   'gdb-invalidate-threads)
 
 (defun gdb-thread-list-handler-custom ()
@@ -3920,8 +3921,7 @@ DOC is an optional documentation string."
 (define-derived-mode gdb-memory-mode gdb-parent-mode "Memory"
   "Major mode for examining memory."
   (setq header-line-format gdb-memory-header)
-  (set (make-local-variable 'font-lock-defaults)
-       '(gdb-memory-font-lock-keywords))
+  (setq-local font-lock-defaults '(gdb-memory-font-lock-keywords))
   'gdb-invalidate-memory)
 
 (defun gdb-memory-buffer-name ()
@@ -4013,9 +4013,8 @@ DOC is an optional documentation string."
   ;; TODO Rename overlay variable for disassembly mode
   (add-to-list 'overlay-arrow-variable-list 'gdb-disassembly-position)
   (setq fringes-outside-margins t)
-  (set (make-local-variable 'gdb-disassembly-position) (make-marker))
-  (set (make-local-variable 'font-lock-defaults)
-       '(gdb-disassembly-font-lock-keywords))
+  (setq-local gdb-disassembly-position (make-marker))
+  (setq-local font-lock-defaults '(gdb-disassembly-font-lock-keywords))
   'gdb-invalidate-disassembly)
 
 (defun gdb-disassembly-handler-custom ()
@@ -4222,8 +4221,7 @@ member."
   (setq gdb-stack-position (make-marker))
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
   (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
-  (set (make-local-variable 'font-lock-defaults)
-       '(gdb-frames-font-lock-keywords))
+  (setq-local font-lock-defaults '(gdb-frames-font-lock-keywords))
   'gdb-invalidate-frames)
 
 (defun gdb-select-frame (&optional event)

@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
 
-Copyright (C) 1985-1989, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1995, 1997-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -3438,7 +3438,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 
 		/* Any modifiers remaining are invalid.  */
 		if (modifiers)
-		  error ("Invalid modifier in string");
+		  invalid_syntax ("Invalid modifier in string");
 		p += CHAR_STRING (ch, (unsigned char *) p);
 	      }
 	    else

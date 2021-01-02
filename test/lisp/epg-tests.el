@@ -1,6 +1,6 @@
 ;;; epg-tests.el --- Test suite for epg.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -96,8 +96,7 @@
 		  context
                   (ert-resource-file "seckey.asc")))
 	   (with-temp-buffer
-	     (make-local-variable 'epg-tests-context)
-	     (setq epg-tests-context context)
+             (setq-local epg-tests-context context)
 	     ,@body))
        (when (file-directory-p epg-tests-home-directory)
 	 (delete-directory epg-tests-home-directory t)))))

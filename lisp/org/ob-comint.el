@@ -1,6 +1,6 @@
 ;;; ob-comint.el --- Babel Functions for Interaction with Comint Buffers -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
@@ -150,7 +150,5 @@ FILE exists at end of evaluation."
   (while (not (file-exists-p file)) (sit-for (or period 0.25))))
 
 (provide 'ob-comint)
-
-
 
 ;;; ob-comint.el ends here

@@ -1,6 +1,6 @@
 ;;; pc-win.el --- setup support for `PC windows' (whatever that is)  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1996-1997, 1999, 2001-2020 Free Software
+;; Copyright (C) 1994, 1996-1997, 1999, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>

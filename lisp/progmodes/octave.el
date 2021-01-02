@@ -1,6 +1,6 @@
 ;;; octave.el --- editing octave source files under emacs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;;	   John Eaton <jwe@octave.org>
@@ -1512,28 +1512,12 @@ current buffer file unless called with a prefix arg \\[universal-argument]."
   (interactive "r")
   (inferior-octave t)
   (let ((proc inferior-octave-process)
-        (string (buffer-substring-no-properties beg end))
-        line)
+        (string (buffer-substring-no-properties beg end)))
     (with-current-buffer inferior-octave-buffer
       ;; https://lists.gnu.org/r/emacs-devel/2013-10/msg00095.html
       (compilation-forget-errors)
-      (setq inferior-octave-output-list nil)
-      (while (not (string-equal string ""))
-        (if (string-match "\n" string)
-            (setq line (substring string 0 (match-beginning 0))
-                  string (substring string (match-end 0)))
-          (setq line string string ""))
-        (setq inferior-octave-receive-in-progress t)
-        (inferior-octave-send-list-and-digest (list (concat line "\n")))
-        (while inferior-octave-receive-in-progress
-          (accept-process-output proc))
-        (insert-before-markers
-         (mapconcat 'identity
-                    (append
-                     (if octave-send-echo-input (list line) (list ""))
-                     inferior-octave-output-list
-                     (list inferior-octave-output-string))
-                    "\n")))))
+      (insert-before-markers string "\n")
+      (comint-send-string proc (concat string "\n"))))
   (if octave-send-show-buffer
       (display-buffer inferior-octave-buffer)))
 
@@ -1605,8 +1589,9 @@ code line."
 
 (defun octave-eldoc-function-signatures (fn)
   (unless (equal fn (car octave-eldoc-cache))
-    (inferior-octave-send-list-and-digest
-     (list (format "print_usage ('%s');\n" fn)))
+    (while-no-input
+      (inferior-octave-send-list-and-digest
+       (list (format "print_usage ('%s');\n" fn))))
     (let (result)
       (dolist (line inferior-octave-output-list)
         ;; The help output has changed a few times in GNU Octave.

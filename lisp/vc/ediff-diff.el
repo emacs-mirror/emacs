@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -149,7 +149,7 @@ This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-ignore-similar-regions nil
-  "If t, skip over difference regions that differ only in the white space and line breaks.
+  "If t, skip difference regions that differ only in white space and line breaks.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 

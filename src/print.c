@@ -1,6 +1,6 @@
 /* Lisp object printing and output streams.
 
-Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2020 Free Software
+Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2021 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -562,7 +562,7 @@ temp_output_buffer_setup (const char *bufname)
 
   record_unwind_current_buffer ();
 
-  Fset_buffer (Fget_buffer_create (build_string (bufname)));
+  Fset_buffer (Fget_buffer_create (build_string (bufname), Qnil));
 
   Fkill_all_local_variables ();
   delete_all_overlays (current_buffer);

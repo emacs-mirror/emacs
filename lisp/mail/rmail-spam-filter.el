@@ -1,6 +1,6 @@
 ;;; rmail-spam-filter.el --- spam filter for Rmail, the Emacs mail reader
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
 ;; Package: rmail
@@ -214,6 +214,16 @@ the cdr is set to t.  Else, the car is set to nil."
           ;; rule means this cannot be spam.
           (setcar result nil)))))
 
+;; Don't spuriously advance to the next unseen message while
+;; prompting, because that causes it to then be missed while actually
+;; reading mail afterwards!  Call this instead of
+;; rmail-first-unseen-message.
+(defun rsf--rmail-last-seen-message ()
+  (max 1
+       ;; 'rmail-first-unseen-message' can return nil in a completely
+       ;; empty buffer.
+       (1- (or (rmail-first-unseen-message) 1))))
+
 (defun rmail-spam-filter (msg)
   "Return nil if message number MSG is spam based on `rsf-definitions-alist'.
 If spam, optionally output message to a file `rsf-file' and delete
@@ -327,8 +337,7 @@ it from rmail file.  Called for each new message retrieved by
       (if (and (car maybe-spam) (cdr maybe-spam))
           ;; Temporarily set rmail-current-message in order to output
           ;; and delete the spam msg if needed:
-          (let ((rmail-current-message msg) ; FIXME does this do anything?
-                (action (cdr (assq 'action
+          (let ((action (cdr (assq 'action
                                    (nth num-element rsf-definitions-alist))))
                 (newfile (not (file-exists-p rsf-file))))
             ;; Check action item in rsf-definitions-alist and do it.
@@ -337,7 +346,7 @@ it from rmail file.  Called for each new message retrieved by
               ;; Else the prompt to write a new file leaves the raw
               ;; mbox buffer visible.
               (and newfile
-                   (rmail-show-message (rmail-first-unseen-message) t))
+                   (rmail-show-message (rsf--rmail-last-seen-message) t))
               (rmail-output rsf-file)
               ;; Swap back, else rmail-get-new-mail-1 gets confused.
               (when newfile
@@ -377,7 +386,7 @@ This is called at the end of `rmail-get-new-mail-1' if there is new mail."
 	      (sleep-for rsf-sleep-after-message))
 	  (when (> nspam 0)
 	    ;; Otherwise sleep or expunge prompt leaves raw mbox buffer showing.
-	    (rmail-show-message (or (rmail-first-unseen-message) 1) t)
+	    (rmail-show-message (or (rsf--rmail-last-seen-message) 1) t)
 	    (unwind-protect
 		(progn
 		  (if rsf-beep (ding t))

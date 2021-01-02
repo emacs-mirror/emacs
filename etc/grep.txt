@@ -85,6 +85,12 @@ git --no-pager grep -inH -p -e "org-element-map"
 lisp/org/org.el[36m=[m20969[36m=[m(defun org-fill-paragraph (&optional justify)
 lisp/org/org.el[36m:[m21047[36m:[m		      ([1;31morg-element-map[m
 
+* ripgrep
+
+rg -nH --color always --no-heading -e grep-match-regexp
+[0m[35mlisp/progmodes/grep.el[0m:[0m[32m608[0m:        (while (re-search-forward [0m[1m[31mgrep-match-regexp[0m end 1)
+Binary file emacs.info matches (found "\u{0}" byte around offset 2222525)
+
 * unknown greps
 
 grep -nH -e "xyzxyz" ../info/*
@@ -97,7 +103,7 @@ grep -nH -e "xyzxyz" ../info/*
 
 
 
-Copyright (C) 2005-2020 Free Software Foundation, Inc.
+Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
 

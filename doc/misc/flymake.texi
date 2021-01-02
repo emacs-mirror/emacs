@@ -14,7 +14,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 2004--2021 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -213,6 +213,13 @@ This section summarizes customization variables used for the
 configuration of the Flymake user interface.
 
 @vtable @code
+@item flymake-mode-line-format
+Format to use for the Flymake mode line indicator.
+
+@item flymake-mode-line-counter-format
+Mode-line construct for formatting Flymake diagnostic counters inside
+the Flymake mode line indicator.
+
 @item flymake-no-changes-timeout
 If any changes are made to the buffer, syntax check is automatically
 started after this many seconds, unless the user makes another change,
@@ -581,7 +588,8 @@ can use the following function:
 Compute @var{buffer}'s region (@var{beg} .  @var{end}) corresponding
 to @var{line} and @var{col}.  If @var{col} is @code{nil}, return a
 region just for @var{line}.  Return @code{nil} if the region is
-invalid.
+invalid.  This function saves match data (@pxref{Saving Match Data,,,
+elisp, The Emacs Lisp Reference Manual}).
 @end deffn
 
 @cindex add a log message

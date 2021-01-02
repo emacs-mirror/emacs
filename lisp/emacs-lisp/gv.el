@@ -1,6 +1,6 @@
 ;;; gv.el --- generalized variables  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: extensions
@@ -503,6 +503,11 @@ The return value is the last VAL in the list.
                        branches))
              (funcall do `(funcall (car ,gv))
                       (lambda (v) `(funcall (cdr ,gv) ,v))))))))
+
+(put 'error 'gv-expander
+     (lambda (do &rest args)
+       (funcall do `(error . ,args)
+                (lambda (v) `(progn ,v (error . ,args))))))
 
 (defmacro gv-synthetic-place (getter setter)
   "Special place described by its setter and getter.

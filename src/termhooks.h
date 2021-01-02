@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2020 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1994, 2001-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -159,7 +159,6 @@ enum event_kind
   SELECTION_REQUEST_EVENT,	/* Another X client wants a selection from us.
 				   See `struct selection_input_event'.  */
   SELECTION_CLEAR_EVENT,	/* Another X client cleared our selection.  */
-  BUFFER_SWITCH_EVENT,		/* A process filter has switched buffers.  */
   DELETE_WINDOW_EVENT,		/* An X client said "delete this window".  */
 #ifdef HAVE_NTGUI
   END_SESSION_EVENT,		/* The user is logging out or shutting down.  */

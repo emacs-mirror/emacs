@@ -1,6 +1,6 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -475,7 +475,8 @@ text."
 
 ;; Fast keyseq and ESC keyseq timeouts
 (defcustom viper-fast-keyseq-timeout 200
-  "Key sequence separated by no more than this many milliseconds is viewed as a Vi-style macro, if such a macro is defined.
+  "Max milliseconds for a key sequence to be regarded as a Vi-style macro.
+Only regard key sequence as a macro if it is defined.
 Setting this too high may slow down your typing.  Setting this value too low
 will make it hard to use Vi-style timeout macros."
   :type 'integer
@@ -705,7 +706,7 @@ If nil, the cursor will move backwards without deleting anything."
 
 (viper-deflocalvar viper-related-files-and-buffers-ring nil "")
 (defcustom viper-related-files-and-buffers-ring nil
-  "List of file and buffer names that are considered to be related to the current buffer.
+  "List of file and buffer names to consider related to the current buffer.
 Related buffers can be cycled through via :R and :P commands."
   :type 'boolean
   :group 'viper-misc)

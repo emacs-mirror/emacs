@@ -1,6 +1,6 @@
 ;;; gnus-uu.el --- extract (uu)encoded files in Gnus
 
-;; Copyright (C) 1985-1987, 1993-1998, 2000-2020 Free Software
+;; Copyright (C) 1985-1987, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -162,7 +162,7 @@ Note that this variable can be used in conjunction with the
 		 (regexp :format "%v")))
 
 (defcustom gnus-uu-ignore-files-by-type nil
-  "A regular expression saying what files that shouldn't be viewed, based on MIME file type.
+  "Regexp matching files that shouldn't be viewed, based on MIME file type.
 If, for instance, you want gnus-uu to ignore all audio files and all mpegs,
 you could say something like
 
@@ -224,7 +224,7 @@ Default is \"/tmp/\"."
   :type 'directory)
 
 (defcustom gnus-uu-do-not-unpack-archives nil
-  "Non-nil means that gnus-uu won't peek inside archives looking for files to display.
+  "If non-nil, gnus-uu won't peek inside archives looking for files to display.
 Default is nil."
   :group 'gnus-extract-archive
   :type 'boolean)
@@ -265,19 +265,19 @@ it nil."
   :type 'boolean)
 
 (defcustom gnus-uu-unmark-articles-not-decoded nil
-  "Non-nil means that gnus-uu will mark articles that were unsuccessfully decoded as unread.
+  "If non-nil, gnus-uu will mark unsuccessfully decoded articles as unread.
 Default is nil."
   :group 'gnus-extract
   :type 'boolean)
 
 (defcustom gnus-uu-correct-stripped-uucode nil
-  "Non-nil means that gnus-uu will *try* to fix uuencoded files that have had trailing spaces deleted.
+  "If non-nil, *try* to fix uuencoded files that have had trailing spaces deleted.
 Default is nil."
   :group 'gnus-extract
   :type 'boolean)
 
 (defcustom gnus-uu-save-in-digest nil
-  "Non-nil means that gnus-uu, when asked to save without decoding, will save in digests.
+  "If non-nil, gnus-uu, when asked to save without decoding, will save in digests.
 If this variable is nil, gnus-uu will just save everything in a
 file without any embellishments.  The digesting almost conforms to RFC1153 -
 no easy way to specify any meaningful volume and issue numbers were found,
@@ -1587,8 +1587,7 @@ Gnus might fail to display all of it.")
 	  (save-excursion
 	    (switch-to-buffer (current-buffer))
 	    (delete-other-windows)
-	    (let ((buffer (get-buffer-create (generate-new-buffer-name
-					      "*Warning*"))))
+            (let ((buffer (generate-new-buffer "*Warning*")))
 	      (unless
 		  (unwind-protect
 		      (with-current-buffer buffer
@@ -1858,7 +1857,7 @@ uuencode and adds MIME headers."
 		(function :tag "Other")))
 
 (defcustom gnus-uu-post-include-before-composing nil
-  "Non-nil means that gnus-uu will ask for a file to encode before you compose the article.
+  "If non-nil, gnus-uu asks for a file to encode before you compose the article.
 If this variable is t, you can either include an encoded file with
 \\[gnus-uu-post-insert-binary-in-article] or have one included for you when you post the article."
   :group 'gnus-extract-post

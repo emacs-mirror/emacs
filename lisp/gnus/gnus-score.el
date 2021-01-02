@@ -1,6 +1,6 @@
 ;;; gnus-score.el --- scoring code for Gnus
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
 ;; Author: Per Abrahamsen <amanda@iesd.auc.dk>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -248,7 +248,7 @@ If you use score decays, you might want to set values higher than
 				     (integer :tag "Score"))))))
 
 (defcustom gnus-adaptive-word-length-limit nil
-  "Words of a length lesser than this limit will be ignored when doing adaptive scoring."
+  "Words shorter than this limit will be ignored when doing adaptive scoring."
   :version "22.1"
   :group 'gnus-score-adapt
   :type '(radio (const :format "Unlimited " nil)
@@ -1117,8 +1117,7 @@ EXTRA is the possible non-standard header."
       (gnus-configure-windows 'edit-score)
       (gnus-score-mode)
       (setq gnus-score-edit-exit-function 'gnus-score-edit-done)
-      (make-local-variable 'gnus-prev-winconf)
-      (setq gnus-prev-winconf winconf))
+      (setq-local gnus-prev-winconf winconf))
     (gnus-message
      4 "%s" (substitute-command-keys
 	     "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits"))))
@@ -1145,8 +1144,7 @@ EXTRA is the possible non-standard header."
     (gnus-configure-windows 'edit-score)
     (gnus-score-mode)
     (setq gnus-score-edit-exit-function 'gnus-score-edit-done)
-    (make-local-variable 'gnus-prev-winconf)
-    (setq gnus-prev-winconf winconf))
+    (setq-local gnus-prev-winconf winconf))
   (gnus-message
    4 "%s" (substitute-command-keys
 	   "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits")))

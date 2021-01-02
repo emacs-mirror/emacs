@@ -1,6 +1,6 @@
 ;;; semantic/bovine/make.el --- Makefile parsing rules.
 
-;; Copyright (C) 2000-2004, 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2004, 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -50,7 +50,8 @@
    nil)
 
 (define-lex-regex-analyzer semantic-lex-make-command
-  "A command in a Makefile consists of a line starting with TAB, and ending at the newline."
+  "Regexp for a command in a Makefile.
+It consists of a line starting with TAB, and ending at the newline."
   "^\\(\t\\)"
   (let ((start (match-end 0)))
     (while (progn (end-of-line)

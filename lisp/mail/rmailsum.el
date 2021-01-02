@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1993-1996, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1996, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -121,6 +121,7 @@ Setting this option to nil might speed up the generation of summaries."
     (define-key map [?\S-\ ] 'rmail-summary-scroll-msg-down)
     (define-key map "\177"   'rmail-summary-scroll-msg-down)
     (define-key map "?"      'describe-mode)
+    (define-key map "\C-c\C-d"      'rmail-summary-epa-decrypt)
     (define-key map "\C-c\C-n" 'rmail-summary-next-same-subject)
     (define-key map "\C-c\C-p" 'rmail-summary-previous-same-subject)
     (define-key map "\C-c\C-s\C-d" 'rmail-summary-sort-by-date)
@@ -785,6 +786,11 @@ the message being processed."
 		 ;; To: =?UTF-8?Q?=C5=A0t=C4=9Bp=C3=A1n_?= =?UTF-8?Q?N=C4=9Bmec?=
 		 ;; <stepnem@gmail.com>
 		 (setq from (rfc2047-decode-string from))
+                 ;; We cannot tolerate any leftover newlines in From,
+                 ;; as that disrupts the rmail-summary display.
+                 ;; Newlines can be left in From if it was malformed,
+                 ;; e.g. had unbalanced quotes.
+                 (setq from (replace-regexp-in-string "\n+" " " from))
 		 (setq len (length from))
 		 (setq mch (string-match "[@%]" from))
 		 (format "%25s"
@@ -1481,6 +1487,12 @@ argument says to read a file name and use that file as the inbox."
   (rmail-pop-to-buffer rmail-buffer)
   (rmail-edit-current-message)
   (use-local-map rmail-summary-edit-map))
+
+(defun rmail-summary-epa-decrypt ()
+  "Decrypt this message."
+  (interactive)
+  (rmail-pop-to-buffer rmail-buffer)
+  (rmail-epa-decrypt))
 
 (defun rmail-summary-cease-edit ()
   "Finish editing message, then go back to Rmail summary buffer."

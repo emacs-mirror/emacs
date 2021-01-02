@@ -1,6 +1,6 @@
 ;;; semantic-utest-ia.el --- Analyzer unit tests  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2008-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -86,6 +86,7 @@
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-nsp.cpp ()
+  (skip-unless (executable-find "g++"))
   (let ((tst (expand-file-name "testnsp.cpp" semantic-utest-test-directory)))
     (should (file-exists-p tst))
     (should-not (semantic-ia-utest tst))))
@@ -96,6 +97,7 @@
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-namespace.cpp ()
+  (skip-unless (executable-find "g++"))
   (let ((tst (expand-file-name "testnsp.cpp" semantic-utest-test-directory)))
     (should (file-exists-p tst))
     (should-not (semantic-ia-utest tst))))

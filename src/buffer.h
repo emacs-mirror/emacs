@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -663,11 +663,11 @@ struct buffer
   /* Non-zero whenever the narrowing is changed in this buffer.  */
   bool_bf clip_changed : 1;
 
-  /* Non-zero for internally used temporary buffers that don't need to
-     run hooks kill-buffer-hook, buffer-list-update-hook, and
-     kill-buffer-query-functions.  This is used in coding.c to avoid
-     slowing down en/decoding when there are a lot of these hooks
-     defined.  */
+  /* Non-zero for internal or temporary buffers that don't need to
+     run hooks kill-buffer-hook, kill-buffer-query-functions, and
+     buffer-list-update-hook.  This is used in coding.c to avoid
+     slowing down en/decoding when a lot of these hooks are
+     defined, as well as by with-temp-buffer, for example.  */
   bool_bf inhibit_buffer_hooks : 1;
 
   /* List of overlays that end at or before the current center,

@@ -1,6 +1,6 @@
 ;;; cc-fonts.el --- font lock support for CC Mode
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -76,9 +76,6 @@
 (cc-require-when-compile 'cc-langs)
 (cc-require 'cc-vars)
 (cc-require 'cc-engine)
-(cc-require-when-compile 'cc-awk) ; Change from cc-require, 2003/6/18 to
-;; prevent cc-awk being loaded when it's not needed.  There is now a (require
-;; 'cc-awk) in (defun awk-mode ..).
 
 ;; Avoid repeated loading through the eval-after-load directive in
 ;; cc-mode.el.
@@ -947,7 +944,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
     ;; closest token before the region.
     (save-excursion
       (let ((pos (point)))
-	(c-backward-syntactic-ws)
+	(c-backward-syntactic-ws (max (- (point) 500) (point-min)))
 	(c-clear-char-properties
 	 (if (and (not (bobp))
 		  (memq (c-get-char-property (1- (point)) 'c-type)
@@ -969,7 +966,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
     ;; The declared identifiers are font-locked correctly as types, if
     ;; that is what they are.
     (let ((prop (save-excursion
-		  (c-backward-syntactic-ws)
+		  (c-backward-syntactic-ws (max (- (point) 500) (point-min)))
 		  (unless (bobp)
 		    (c-get-char-property (1- (point)) 'c-type)))))
       (when (memq prop '(c-decl-id-start c-decl-type-start))
@@ -1008,66 +1005,75 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     (boundp 'parse-sexp-lookup-properties)))
 	  (c-parse-and-markup-<>-arglists t)
 	  c-restricted-<>-arglists
-	  id-start id-end id-face pos kwd-sym)
+	  id-start id-end id-face pos kwd-sym
+	  old-pos)
 
       (while (and (< (point) limit)
-		  (re-search-forward c-opt-<>-arglist-start limit t))
+		  (setq old-pos (point))
+		  (c-syntactic-re-search-forward "<" limit t nil t))
+	(setq pos (point))
+	(save-excursion
+	  (backward-char)
+	  (c-backward-syntactic-ws old-pos)
+	  (if (re-search-backward
+	       (concat "\\(\\`\\|" c-nonsymbol-key "\\)\\(" c-symbol-key"\\)\\=")
+	       old-pos t)
+	      (setq id-start (match-beginning 2)
+		    id-end (match-end 2))
+	    (setq id-start nil id-end nil)))
 
-	(setq id-start (match-beginning 1)
-	      id-end (match-end 1)
-	      pos (point))
+	(when id-start
+	  (goto-char id-start)
+	  (unless (c-skip-comments-and-strings limit)
+	    (setq kwd-sym nil
+		  c-restricted-<>-arglists nil
+		  id-face (get-text-property id-start 'face))
 
-	(goto-char id-start)
-	(unless (c-skip-comments-and-strings limit)
-	  (setq kwd-sym nil
-		c-restricted-<>-arglists nil
-		id-face (get-text-property id-start 'face))
+	    (if (cond
+		 ((eq id-face 'font-lock-type-face)
+		  ;; The identifier got the type face so it has already been
+		  ;; handled in `c-font-lock-declarations'.
+		  nil)
 
-	  (if (cond
-	       ((eq id-face 'font-lock-type-face)
-		;; The identifier got the type face so it has already been
-		;; handled in `c-font-lock-declarations'.
-		nil)
+		 ((eq id-face 'font-lock-keyword-face)
+		  (when (looking-at c-opt-<>-sexp-key)
+		    ;; There's a special keyword before the "<" that tells
+		    ;; that it's an angle bracket arglist.
+		    (setq kwd-sym (c-keyword-sym (match-string 2)))))
 
-	       ((eq id-face 'font-lock-keyword-face)
-		(when (looking-at c-opt-<>-sexp-key)
-		  ;; There's a special keyword before the "<" that tells
-		  ;; that it's an angle bracket arglist.
-		  (setq kwd-sym (c-keyword-sym (match-string 1)))))
+		 (t
+		  ;; There's a normal identifier before the "<".  If we're not in
+		  ;; a declaration context then we set `c-restricted-<>-arglists'
+		  ;; to avoid recognizing templates in function calls like "foo (a
+		  ;; < b, c > d)".
+		  (c-backward-syntactic-ws)
+		  (when (and (memq (char-before) '(?\( ?,))
+			     (not (eq (get-text-property (1- (point)) 'c-type)
+				      'c-decl-arg-start)))
+		    (setq c-restricted-<>-arglists t))
+		  t))
 
-	       (t
-		;; There's a normal identifier before the "<".  If we're not in
-		;; a declaration context then we set `c-restricted-<>-arglists'
-		;; to avoid recognizing templates in function calls like "foo (a
-		;; < b, c > d)".
-		(c-backward-syntactic-ws)
-		(when (and (memq (char-before) '(?\( ?,))
-			   (not (eq (get-text-property (1- (point)) 'c-type)
-				    'c-decl-arg-start)))
-		  (setq c-restricted-<>-arglists t))
-		t))
+		(progn
+		  (goto-char (1- pos))
+		  ;; Check for comment/string both at the identifier and
+		  ;; at the "<".
+		  (unless (c-skip-comments-and-strings limit)
 
-	      (progn
-		(goto-char (1- pos))
-		;; Check for comment/string both at the identifier and
-		;; at the "<".
-		(unless (c-skip-comments-and-strings limit)
+		    (c-fontify-types-and-refs ()
+		      (when (c-forward-<>-arglist (c-keyword-member
+						   kwd-sym 'c-<>-type-kwds))
+			(when (and c-opt-identifier-concat-key
+				   (not (get-text-property id-start 'face)))
+			  (c-forward-syntactic-ws)
+			  (cond ((looking-at c-opt-identifier-concat-key)
+				 (c-put-font-lock-face id-start id-end
+						       c-reference-face-name))
+				((eq (char-after) ?\())
+				(t (c-put-font-lock-face id-start id-end
+							 'font-lock-type-face))))))
 
-		  (c-fontify-types-and-refs ()
-		    (when (c-forward-<>-arglist (c-keyword-member
-						 kwd-sym 'c-<>-type-kwds))
-		      (when (and c-opt-identifier-concat-key
-				 (not (get-text-property id-start 'face)))
-			(c-forward-syntactic-ws)
-			(cond ((looking-at c-opt-identifier-concat-key)
-			       (c-put-font-lock-face id-start id-end
-						     c-reference-face-name))
-			      ((eq (char-after) ?\())
-			      (t (c-put-font-lock-face id-start id-end
-						       'font-lock-type-face))))))
-
-		  (goto-char pos)))
-	    (goto-char pos))))))
+		    (goto-char pos)))
+	      (goto-char pos)))))))
   nil)
 
 (defun c-font-lock-declarators (limit list types not-top
@@ -1496,7 +1502,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
 		 ;; Check we haven't missed a preceding "typedef".
 		 (when (not (looking-at c-typedef-key))
-		   (c-backward-syntactic-ws)
+		   (c-backward-syntactic-ws
+		    (max (- (point) 1000) (point-min)))
 		   (c-backward-token-2)
 		   (or (looking-at c-typedef-key)
 		       (goto-char start-pos)))
@@ -1536,8 +1543,10 @@ casts and declarations are fontified.  Used on level 2 and higher."
 				     (c-backward-token-2)
 				     (and
 				      (not (looking-at c-opt-<>-sexp-key))
-				      (progn (c-backward-syntactic-ws)
-					     (memq (char-before) '(?\( ?,)))
+				      (progn
+					(c-backward-syntactic-ws
+					 (max (- (point) 1000) (point-min)))
+					(memq (char-before) '(?\( ?,)))
 				      (not (eq (c-get-char-property (1- (point))
 								    'c-type)
 					       'c-decl-arg-start))))))
@@ -2295,7 +2304,8 @@ need for `c-font-lock-extra-types'.")
 		  (and c-colon-type-list-re
 		       (c-go-up-list-backward)
 		       (eq (char-after) ?{)
-		       (eq (car (c-beginning-of-decl-1)) 'same)
+		       (eq (car (c-beginning-of-decl-1
+				 (c-determine-limit 1000))) 'same)
 		       (looking-at c-colon-type-list-re)))
 		;; Inherited protected member: leave unfontified
 		)

@@ -1,6 +1,6 @@
 ;;; ediff-wind.el --- window manipulation utilities  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -182,7 +182,7 @@ Used internally---not a user option.")
 
 ;; not used for now
 (defvar ediff-mouse-pixel-threshold 30
-  "If the user moves mouse more than this many pixels, Ediff won't warp mouse into control window.")
+  "If mouse moved more than this many pixels, don't warp mouse into control window.")
 
 (defcustom ediff-grab-mouse t
   "If t, Ediff will always grab the mouse and put it in the control frame.

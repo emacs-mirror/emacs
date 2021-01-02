@@ -1,6 +1,6 @@
 ;;; faceup-test-mode.el --- Dummy major mode for testing `faceup'.  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren
 ;; Keywords: languages, faces
@@ -67,8 +67,8 @@ If `prog-mode' is defined, inherit from it."
 
 (faceup-test-define-prog-mode faceup-test-mode "faceup-test"
   "Dummy major mode for testing `faceup', a test system for font-lock."
-  (set (make-local-variable 'syntax-propertize-function)
-       #'faceup-test-syntax-propertize)
+  (setq-local syntax-propertize-function
+              #'faceup-test-syntax-propertize)
   (setq font-lock-defaults '(faceup-test-font-lock-keywords nil)))
 
 (provide 'faceup-test-mode)

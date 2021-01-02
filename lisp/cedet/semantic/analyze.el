@@ -1,6 +1,6 @@
 ;;; semantic/analyze.el --- Analyze semantic tags against local context
 
-;; Copyright (C) 2000-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -235,7 +235,8 @@ scoped.  These are not local variables, but symbols available in a structure
 which doesn't need to be dereferenced.
 Optional argument TYPERETURN is a symbol in which the types of all found
 will be stored.  If nil, that data is thrown away.
-Optional argument THROWSYM specifies a symbol the throw on non-recoverable error.
+Optional argument THROWSYM specifies a symbol the throw on non-recoverable
+error.
 Remaining arguments FLAGS are additional flags to apply when searching.")
 
 (defun semantic-analyze-find-tag-sequence-default
@@ -246,7 +247,8 @@ Remaining arguments FLAGS are additional flags to apply when searching.")
 SCOPE are extra tags which are in scope.
 TYPERETURN is a symbol in which to place a list of tag classes that
 are found in SEQUENCE.
-Optional argument THROWSYM specifies a symbol the throw on non-recoverable error.
+Optional argument THROWSYM specifies a symbol the throw on non-recoverable
+error.
 Remaining arguments FLAGS are additional flags to apply when searching.
 This function knows of flags:
   `mustbeclassvariable'"

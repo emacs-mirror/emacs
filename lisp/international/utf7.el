@@ -1,6 +1,6 @@
 ;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Jon K Hellan <hellan@acm.org>
 ;; Maintainer: emacs-devel@gnu.org

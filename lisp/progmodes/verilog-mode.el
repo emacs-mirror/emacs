@@ -1,6 +1,6 @@
 ;;; verilog-mode.el --- major mode for editing verilog source in Emacs
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara <mac@verilog.com>
 ;;    Wilson Snyder <wsnyder@wsnyder.org>
@@ -5193,7 +5193,7 @@ Useful for creating tri's and other expanded fields."
   (verilog-expand-vector-internal "[" "]"))
 
 (defun verilog-expand-vector-internal (bra ket)
-  "Given BRA, the start brace and KET, the end brace, expand one line into many lines."
+  "Given start brace BRA, and end brace KET, expand one line into many lines."
   (save-excursion
     (forward-line 0)
     (let ((signal-string (buffer-substring (point)
@@ -10112,7 +10112,8 @@ variables to build the path."
 ;; A modi is:  [module-name-string file-name begin-point]
 
 (defvar verilog-cache-enabled t
-  "Non-nil enables caching of signals, etc.  Set to nil for debugging to make things SLOW!")
+  "Non-nil enables caching of signals, etc.
+Set to nil for debugging to make things SLOW!")
 
 (defvar verilog-modi-cache-list nil
   "Cache of ((Module Function) Buf-Tick Buf-Modtime Func-Returns)...
@@ -10449,7 +10450,7 @@ if non-nil."
 ;;
 
 (defun verilog-auto-re-search-do (search-for func)
-  "Search for the given auto text regexp SEARCH-FOR, and perform FUNC where it occurs."
+  "Search for given auto text regexp SEARCH-FOR, and perform FUNC where it occurs."
   (goto-char (point-min))
   (while (verilog-re-search-forward-quick search-for nil t)
     (funcall func)))
@@ -10861,7 +10862,8 @@ removed."
 
 (defun verilog-delete-auto-buffer ()
   "Perform `verilog-delete-auto' on the current buffer.
-Intended for internal use inside a `verilog-save-font-no-change-functions' block."
+Intended for internal use inside a
+`verilog-save-font-no-change-functions' block."
   ;; Allow user to customize
   (verilog-run-hooks 'verilog-before-delete-auto-hook)
 

@@ -1,6 +1,6 @@
 ;;; ob-awk.el --- Babel Functions for Awk            -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -105,7 +105,5 @@ This function is called by `org-babel-execute-src-block'."
      (t (funcall echo-var var)))))
 
 (provide 'ob-awk)
-
-
 
 ;;; ob-awk.el ends here

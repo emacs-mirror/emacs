@@ -1,6 +1,6 @@
 ;;; abbrev-tests.el --- Test suite for abbrevs  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii <eliz@gnu.org>
 ;; Keywords: abbrevs
@@ -69,8 +69,9 @@
     (define-abbrev ert-test-abbrevs "sys" "system abbrev" nil :system t)
     (should (equal (mapcar #'symbol-name (abbrev--table-symbols 'ert-test-abbrevs))
                    '("a-e-t")))
-    (should (equal (mapcar #'symbol-name (abbrev--table-symbols 'ert-test-abbrevs t))
-                   '("a-e-t" "sys")))))
+    (let ((syms (abbrev--table-symbols 'ert-test-abbrevs t)))
+      (should (equal (sort (mapcar #'symbol-name syms) #'string<)
+                     '("a-e-t" "sys"))))))
 
 (ert-deftest abbrev-table-get-put-test ()
   (let ((table (make-abbrev-table)))

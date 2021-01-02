@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992-2021 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -1224,7 +1224,7 @@ Moves relative to START, or `comint-input-ring-index'."
 	(process-mark (get-buffer-process (current-buffer))))
    (point-max)))
 
-(defun comint-previous-matching-input (regexp n)
+(defun comint-previous-matching-input (regexp n &optional restore)
   "Search backwards through input history for match for REGEXP.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
@@ -1235,16 +1235,24 @@ If N is negative, find the next or Nth next match."
     ;; Has a match been found?
     (if (null pos)
 	(user-error "Not found")
-      ;; If leaving the edit line, save partial input
-      (if (null comint-input-ring-index)	;not yet on ring
-	  (setq comint-stored-incomplete-input
-		(funcall comint-get-old-input)))
-      (setq comint-input-ring-index pos)
-      (unless isearch-mode
-	(let ((message-log-max nil))	; Do not write to *Messages*.
-	  (message "History item: %d" (1+ pos))))
-      (comint-delete-input)
-      (insert (ring-ref comint-input-ring pos)))))
+      (if (and comint-input-ring-index
+               restore
+               (or (and (< n 0)
+                        (< comint-input-ring-index pos))
+                   (and (> n 0)
+                        (> comint-input-ring-index pos))))
+          ;; We have a wrap; restore contents.
+          (comint-restore-input)
+        ;; If leaving the edit line, save partial input
+        (if (null comint-input-ring-index) ;not yet on ring
+	    (setq comint-stored-incomplete-input
+		  (funcall comint-get-old-input)))
+        (setq comint-input-ring-index pos)
+        (unless isearch-mode
+	  (let ((message-log-max nil))	; Do not write to *Messages*.
+	    (message "History item: %d" (1+ pos))))
+        (comint-delete-input)
+        (insert (ring-ref comint-input-ring pos))))))
 
 (defun comint-next-matching-input (regexp n)
   "Search forwards through input history for match for REGEXP.
@@ -1272,7 +1280,7 @@ If N is negative, search forwards for the -Nth following match."
 	    comint-input-ring-index nil))
     (comint-previous-matching-input
      (concat "^" (regexp-quote comint-matching-input-from-input-string))
-     n)
+     n t)
     (when (eq comint-move-point-for-matching-input 'after-input)
       (goto-char opoint))))
 

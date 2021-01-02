@@ -1,6 +1,6 @@
 ;;; reveal.el --- Automatically reveal hidden text at point -*- lexical-binding: t -*-
 
-;; Copyright (C) 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: outlines
@@ -233,7 +233,7 @@ Also see the `reveal-auto-hide' variable."
   :keymap reveal-mode-map
   (if reveal-mode
       (progn
-	(set (make-local-variable 'search-invisible) t)
+        (setq-local search-invisible t)
 	(add-hook 'post-command-hook 'reveal-post-command nil t))
     (kill-local-variable 'search-invisible)
     (remove-hook 'post-command-hook 'reveal-post-command t)))

@@ -1,6 +1,6 @@
 ;;; semantic/tag-ls.el --- Language Specific override functions for tags
 
-;; Copyright (C) 1999-2004, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2004, 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -93,8 +93,9 @@ for a given mode at a more granular level.
 Note that :type, :name, and anything in IGNORABLE-ATTRIBUTES will
 not be passed to this function.
 
-Modes that override this function can call `semantic--tag-attribute-similar-p-default'
-to do the default equality tests if ATTR is not special for that mode.")
+Modes that override this function can call
+`semantic--tag-attribute-similar-p-default' to do the default equality tests if
+ATTR is not special for that mode.")
 
 (defun semantic--tag-attribute-similar-p-default (attr value1 value2 ignorable-attributes)
   "For ATTR, VALUE1, VALUE2 and IGNORABLE-ATTRIBUTES, test for similarity."

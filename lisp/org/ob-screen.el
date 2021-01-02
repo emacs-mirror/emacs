@@ -1,6 +1,6 @@
 ;;; ob-screen.el --- Babel Support for Interactive Terminal -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell
@@ -40,7 +40,8 @@
 In case you want to use a different screen than one selected by your $PATH")
 
 (defvar org-babel-default-header-args:screen
-  '((:results . "silent") (:session . "default") (:cmd . "sh") (:terminal . "xterm"))
+  `((:results . "silent") (:session . "default") (:cmd . "sh")
+    (:terminal . "xterm") (:screenrc . ,null-device))
   "Default arguments to use when running screen source blocks.")
 
 (defun org-babel-execute:screen (body params)
@@ -59,11 +60,11 @@ In case you want to use a different screen than one selected by your $PATH")
   (let* ((session (cdr (assq :session params)))
          (cmd (cdr (assq :cmd params)))
          (terminal (cdr (assq :terminal params)))
+         (screenrc (cdr (assq :screenrc params)))
          (process-name (concat "org-babel: terminal (" session ")")))
     (apply 'start-process process-name "*Messages*"
            terminal `("-T" ,(concat "org-babel: " session) "-e" ,org-babel-screen-location
-		      "-c" ,null-device "-mS" ,(concat "org-babel-session-" session)
-		      ,cmd))
+		      "-c" ,screenrc "-mS" ,session ,cmd))
     ;; XXX: Is there a better way than the following?
     (while (not (org-babel-screen-session-socketname session))
       ;; wait until screen session is available before returning
@@ -97,9 +98,8 @@ In case you want to use a different screen than one selected by your $PATH")
 			 nil
 			 (mapcar
 			  (lambda (x)
-			    (when (string-match
-				   (concat "org-babel-session-" session) x)
-			      x))
+			    (and (string-match-p (regexp-quote session) x)
+				 x))
 			  sockets)))))
     (when match-socket (car (split-string match-socket)))))
 
@@ -108,6 +108,7 @@ In case you want to use a different screen than one selected by your $PATH")
   (let ((tmpfile (org-babel-temp-file "screen-")))
     (with-temp-file tmpfile
       (insert body)
+      (insert "\n")
 
       ;; org-babel has superfluous spaces
       (goto-char (point-min))
@@ -137,7 +138,5 @@ The terminal should shortly flicker."
 		       "DOESN'T work.")))))
 
 (provide 'ob-screen)
-
-
 
 ;;; ob-screen.el ends here

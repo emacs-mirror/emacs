@@ -1,6 +1,6 @@
 ;;; org-ctags.el - Integrate Emacs "tags" Facility with Org -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
 
@@ -165,7 +165,7 @@ See the ctags documentation for more information.")
   '(org-ctags-find-tag
     org-ctags-ask-rebuild-tags-file-then-find-tag
     org-ctags-ask-append-topic)
-  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS when ORG-CTAGS is active."
+  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS by ORG-CTAGS."
   :group 'org-ctags
   :version "24.1"
   :type 'hook

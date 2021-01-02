@@ -1,6 +1,6 @@
 ;;; term.el --- general command interpreter in a window stuff -*- lexical-binding: t -*-
 
-;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2020 Free Software
+;; Copyright (C) 1988, 1990, 1992, 1994-1995, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
@@ -264,7 +264,7 @@
 ;; M-p     term-previous-input           Cycle backwards in input history
 ;; M-n     term-next-input               Cycle forwards
 ;; M-r     term-previous-matching-input  Previous input matching a regexp
-;; M-s     comint-next-matching-input    Next input that matches
+;; M-s     term-next-matching-input      Next input that matches
 ;; return  term-send-input
 ;; C-c C-a term-bol                      Beginning of line; skip prompt.
 ;; C-d     term-delchar-or-maybe-eof     Delete char unless at end of buff.
@@ -365,8 +365,8 @@ not allowed.")
 (defvar-local term-scroll-end nil
   "Bottom-most line (inclusive) of the scrolling region.
 `term-scroll-end' must be in the range [0,term-height).  In addition, its
-value has to be greater than `term-scroll-start', i.e. one line scroll regions are
-not allowed.")
+value has to be greater than `term-scroll-start', i.e. one line scroll regions
+are not allowed.")
 (defvar term-pager-count nil
   "Number of lines before we need to page; if nil, paging is disabled.")
 (defvar term-saved-cursor nil)
@@ -1005,12 +1005,12 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   ;; we do not want indent to sneak in any tabs
   (setq indent-tabs-mode nil)
   (setq buffer-display-table term-display-table)
-  (set (make-local-variable 'term-home-marker) (copy-marker 0))
-  (set (make-local-variable 'term-height) (floor (window-screen-lines)))
-  (set (make-local-variable 'term-width) (window-max-chars-per-line))
-  (set (make-local-variable 'term-last-input-start) (make-marker))
-  (set (make-local-variable 'term-last-input-end) (make-marker))
-  (set (make-local-variable 'term-last-input-match) "")
+  (setq-local term-home-marker (copy-marker 0))
+  (setq-local term-height (floor (window-screen-lines)))
+  (setq-local term-width (window-max-chars-per-line))
+  (setq-local term-last-input-start (make-marker))
+  (setq-local term-last-input-end (make-marker))
+  (setq-local term-last-input-match "")
 
   ;; These local variables are set to their local values:
   (make-local-variable 'term-saved-home-marker)
@@ -1028,9 +1028,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   ;; a properly configured ange-ftp, I've decided to be conservative
   ;; and put them in. -mm
 
-  (set (make-local-variable 'term-ansi-at-host) (system-name))
-  (set (make-local-variable 'term-ansi-at-dir) default-directory)
-  (set (make-local-variable 'term-ansi-at-message) nil)
+  (setq-local term-ansi-at-host (system-name))
+  (setq-local term-ansi-at-dir default-directory)
+  (setq-local term-ansi-at-message nil)
 
   ;; For user tracking purposes -mm
   (make-local-variable 'ange-ftp-default-user)
@@ -1073,15 +1073,15 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-scroll-to-bottom-on-output)
   (make-local-variable 'term-scroll-show-maximum-output)
   (make-local-variable 'term-ptyp)
-  (set (make-local-variable 'term-vertical-motion) 'vertical-motion)
-  (set (make-local-variable 'term-pending-delete-marker) (make-marker))
+  (setq-local term-vertical-motion 'vertical-motion)
+  (setq-local term-pending-delete-marker (make-marker))
   (make-local-variable 'term-current-face)
   (term-ansi-reset)
-  (set (make-local-variable 'term-pending-frame) nil)
+  (setq-local term-pending-frame nil)
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it.
-  (set (make-local-variable 'cua-mode) nil)
+  (setq-local cua-mode nil)
 
-  (set (make-local-variable 'font-lock-defaults) '(nil t))
+  (setq-local font-lock-defaults '(nil t))
 
   (add-function :filter-return
                 (local 'filter-buffer-substring-function)
@@ -1423,8 +1423,7 @@ buffer.  The hook `term-exec-hook' is run after each exec."
       (when proc (delete-process proc)))
     ;; Crank up a new process
     (let ((proc (term-exec-1 name buffer command switches)))
-      (make-local-variable 'term-ptyp)
-      (setq term-ptyp process-connection-type) ; t if pty, nil if pipe.
+      (setq-local term-ptyp process-connection-type) ; t if pty, nil if pipe.
       ;; Jump to the end, and set the process mark.
       (goto-char (point-max))
       (set-marker (process-mark proc) (point))
@@ -3067,8 +3066,7 @@ See `term-prompt-regexp'."
                         (aset term-terminal-undecoded-bytes 0 ?\r))
                       (goto-char (point-max)))
                     ;; FIXME: Use (add-function :override (process-filter proc)
-                    (make-local-variable 'term-pager-old-filter)
-                    (setq term-pager-old-filter (process-filter proc))
+                    (setq-local term-pager-old-filter (process-filter proc))
                     ;; FIXME: Where is `term-pager-filter' set to a function?!
                     (set-process-filter proc term-pager-filter)
                     (setq i str-length))
@@ -3537,8 +3535,7 @@ The top-most line is line 0."
   ;;   (stop-process process))
   (setq term-pager-old-local-map (current-local-map))
   (use-local-map term-pager-break-map)
-  (make-local-variable 'term-old-mode-line-format)
-  (setq term-old-mode-line-format mode-line-format)
+  (setq-local term-old-mode-line-format mode-line-format)
   (setq mode-line-format
 	(list "--  **MORE**  "
 	      mode-line-buffer-identification

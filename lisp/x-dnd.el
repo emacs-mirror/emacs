@@ -1,6 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: emacs-devel@gnu.org
@@ -411,8 +411,10 @@ Coordinates are required to be absolute.
 FRAME is the frame and W is the window where the drop happened.
 If W is a window, return its absolute coordinates,
 otherwise return the frame coordinates."
-  (let* ((frame-left (frame-parameter frame 'left))
-	 (frame-top (frame-parameter frame 'top)))
+  (let* ((frame-left (or (car-safe (cdr-safe (frame-parameter frame 'left)))
+			 (frame-parameter frame 'left)))
+	 (frame-top (or (car-safe (cdr-safe (frame-parameter frame 'top)))
+			(frame-parameter frame 'top))))
     (if (windowp w)
 	(let ((edges (window-inside-pixel-edges w)))
 	  (cons

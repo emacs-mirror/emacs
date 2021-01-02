@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2020 Free Software
+@c Copyright (C) 1985--1987, 1993--1995, 1997, 2000--2021 Free Software
 @c Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -1709,6 +1709,7 @@ connections.  A setup to use this functionality could be:
 @example
 [Socket]
 ListenStream=/path/to/.emacs.socket
+DirectoryMode=0700
 
 [Install]
 WantedBy=sockets.target
@@ -1892,6 +1893,12 @@ with @kbd{C-x #}.  But @kbd{C-x #} is the way to tell
   If you set the value of the variable @code{server-window} to a
 window or a frame, @kbd{C-x #} always displays the next server buffer
 in that window or in that frame.
+
+@vindex server-client-instructions
+  When @command{emacsclient} connects, the server will normally output
+a message that says how to exit the client frame.  If
+@code{server-client-instructions} is set to @code{nil}, this message
+is inhibited.
 
 @node emacsclient Options
 @subsection @code{emacsclient} Options
@@ -2255,13 +2262,18 @@ off.
 @vindex ps-print-color-p
   If your printer doesn't support colors, you should turn off color
 processing by setting @code{ps-print-color-p} to @code{nil}.  By
-default, if the display supports colors, Emacs produces hardcopy output
-with color information; on black-and-white printers, colors are emulated
-with shades of gray.  This might produce illegible output, even if your
-screen colors only use shades of gray.
+default, if the display supports colors, Emacs produces hardcopy
+output with color information; on black-and-white printers, colors are
+emulated with shades of gray.  This might produce barely-readable or
+even illegible output, even if your screen colors only use shades of
+gray.
 
-  Alternatively, you can set @code{ps-print-color-p} to @code{black-white} to
-print colors on black/white printers.
+@vindex ps-black-white-faces
+  Alternatively, you can set @code{ps-print-color-p} to @code{black-white}
+to have colors display better on black/white printers.  This works by
+using information in @code{ps-black-white-faces} to express colors by
+customizable list of shades of gray, augmented by bold and italic
+face attributes.
 
 @vindex ps-use-face-background
   By default, PostScript printing ignores the background colors of the

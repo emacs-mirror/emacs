@@ -1,6 +1,6 @@
 ;;; rst.el --- Mode for viewing and editing reStructuredText-documents  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: Stefan Merten <stefan at merten-home dot de>
 ;; Author: Stefan Merten <stefan at merten-home dot de>,
@@ -568,9 +568,7 @@ After interpretation of ARGS the results are concatenated as for
 		(regexp-quote (char-to-string re)))
 	       ((listp re)
 		(let ((nested
-		       (mapcar (lambda (elt)
-				 (rst-re elt))
-			       (cdr re))))
+		       (mapcar #'rst-re (cdr re))))
 		  (cond
 		   ((eq (car re) :seq)
 		    (mapconcat #'identity nested ""))
@@ -1302,7 +1300,8 @@ This inherits from Text mode.")
     (modify-syntax-entry ?% "." st)
     (modify-syntax-entry ?& "." st)
     (modify-syntax-entry ?' "." st)
-    (modify-syntax-entry ?* "." st)
+    (modify-syntax-entry ?` "\"`  " st)
+    (modify-syntax-entry ?* "\"*  " st)
     (modify-syntax-entry ?+ "." st)
     (modify-syntax-entry ?- "." st)
     (modify-syntax-entry ?/ "." st)
@@ -1330,7 +1329,6 @@ The hook for `text-mode' is run before this one."
 ;; Pull in variable definitions silencing byte-compiler.
 (require 'newcomment)
 
-(defvar electric-pair-pairs)
 (defvar electric-indent-inhibit)
 
 ;; Use rst-mode for *.rst and *.rest files.  Many ReStructured-Text files
@@ -1387,8 +1385,6 @@ highlighting.
   (setq-local comment-region-function #'rst-comment-region)
   (setq-local uncomment-region-function #'rst-uncomment-region)
 
-  (setq-local electric-pair-pairs '((?\" . ?\") (?\* . ?\*) (?\` . ?\`)))
-
   ;; Imenu and which function.
   ;; FIXME: Check documentation of `which-function' for alternative ways to
   ;;        determine the current function name.
@@ -1400,7 +1396,8 @@ highlighting.
 		t nil nil nil
 		(font-lock-multiline . t)
 		(font-lock-mark-block-function . mark-paragraph)))
-  (add-hook 'font-lock-extend-region-functions #'rst-font-lock-extend-region t)
+  (add-hook 'font-lock-extend-region-functions
+            #'rst-font-lock-extend-region nil t)
 
   ;; Text after a changed line may need new fontification.
   (setq-local jit-lock-contextually t)

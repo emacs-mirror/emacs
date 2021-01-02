@@ -1,6 +1,6 @@
 ;;; tramp-gvfs.el --- Tramp access functions for GVFS daemon  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -49,12 +49,12 @@
 
 ;; The user option `tramp-gvfs-methods' contains the list of supported
 ;; connection methods.  Per default, these are "afp", "dav", "davs",
-;; "gdrive", "media", "nextcloud" and "sftp".
+;; "gdrive", "mtp", "nextcloud" and "sftp".
 
 ;; "gdrive" and "nextcloud" connection methods require a respective
 ;; account in GNOME Online Accounts, with enabled "Files" service.
 
-;; The "media" connection method is responsible for media devices,
+;; The "mtp" connection method is responsible for media devices,
 ;; like cell phones, tablets, cameras etc.  The device must already be
 ;; connected via USB, before accessing it.
 
@@ -131,7 +131,7 @@
 
 ;;;###tramp-autoload
 (defcustom tramp-gvfs-methods
-  '("afp" "dav" "davs" "gdrive" "media" "nextcloud" "sftp")
+  '("afp" "dav" "davs" "gdrive" "mtp" "nextcloud" "sftp")
   "List of methods for remote files, accessed with GVFS."
   :group 'tramp
   :version "28.1"
@@ -142,7 +142,7 @@
 			 (const "gdrive")
 			 (const "http")
 			 (const "https")
-			 (const "media")
+			 (const "mtp")
 			 (const "nextcloud")
 			 (const "sftp")
 			 (const "smb"))))
@@ -159,7 +159,7 @@
 
 ;;;###tramp-autoload
 (defvar tramp-media-methods '("afc" "gphoto2" "mtp")
-  "List of GVFS methods which are covered by the \"media\" method.
+  "List of GVFS methods which are covered by the \"mtp\" method.
 They are checked during start up via
 `tramp-gvfs-interface-remotevolumemonitor'.")
 
@@ -1434,6 +1434,9 @@ If FILE-SYSTEM is non-nil, return file system attributes."
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
+	;; Set "gio-file-monitor" property.  We believe, that "gio
+	;; monitor" uses polling when applied for mounted files.
+	(tramp-set-connection-property p "gio-file-monitor" 'GPollFileMonitor)
 	p))))
 
 (defun tramp-gvfs-monitor-process-filter (proc string)
@@ -1636,7 +1639,7 @@ ID-FORMAT valid values are `string' and `integer'."
   (if (tramp-tramp-file-p filename)
       (with-parsed-tramp-file-name filename nil
 	;; Ensure that media devices are cached.
-	(when (string-equal method "media")
+	(when (string-equal method "mtp")
 	  (tramp-get-media-device v))
 	(with-tramp-connection-property v "activation-uri"
 	  (setq localname "/")
@@ -1646,7 +1649,7 @@ ID-FORMAT valid values are `string' and `integer'."
 	    (setq method "davs"
 		  localname
 		  (concat (tramp-gvfs-get-remote-prefix v) localname)))
-	  (when (string-equal "media" method)
+	  (when (string-equal "mtp" method)
 	    (when-let
 		((media (tramp-get-connection-property v "media-device" nil)))
 	      (setq method (tramp-media-device-method media)
@@ -2055,7 +2058,7 @@ and \"org.gtk.Private.RemoteVolumeMonitor.VolumeRemoved\" signals."
 	   (uri (url-generic-parse-url (nth 5 volume)))
 	   (method (url-type uri))
 	   (vec (make-tramp-file-name
-		 :method "media"
+		 :method "mtp"
 		 ;; A host name cannot contain spaces.
 		 :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
 	   (media (make-tramp-media-device
@@ -2112,7 +2115,10 @@ connection if a previous connection has died for some reason."
 	      :buffer (tramp-get-connection-buffer vec)
 	      :server t :host 'local :service t :noquery t)))
       (process-put p 'vector vec)
-      (set-process-query-on-exit-flag p nil)))
+      (set-process-query-on-exit-flag p nil)
+
+      ;; Set connection-local variables.
+      (tramp-set-connection-local-variables vec)))
 
   (unless (tramp-gvfs-connection-mounted-p vec)
     (let ((method (tramp-file-name-method vec))
@@ -2215,9 +2221,6 @@ connection if a previous connection has died for some reason."
 	(ignore-errors
 	  (and (functionp tramp-password-save-function)
 	       (funcall tramp-password-save-function)))
-
-	;; Set connection-local variables.
-	(tramp-set-connection-local-variables vec)
 
 	;; Mark it as connected.
 	(tramp-set-connection-property
@@ -2360,7 +2363,7 @@ VEC is used only for traces."
 			      tramp-gvfs-interface-remotevolumemonitor "List")))
 	(let* ((uri (url-generic-parse-url (nth 5 volume)))
 	       (vec (make-tramp-file-name
-		     :method "media"
+		     :method "mtp"
 		     ;; A host name cannot contain spaces.
 		     :host (tramp-compat-string-replace " " "_" (nth 1 volume))))
 	       (media (make-tramp-media-device
@@ -2373,12 +2376,12 @@ VEC is used only for traces."
 	  (tramp-set-connection-property vec "media-device" media)
 	  (tramp-set-connection-property media "vector" vec))))
 
-    ;; Adapt default host name, supporting /media:: when possible.
+    ;; Adapt default host name, supporting /mtp:: when possible.
     (setq tramp-default-host-alist
 	  (append
-	   `(("media" nil ,(if (= (length devices) 1) (car devices) "")))
+	   `(("mtp" nil ,(if (= (length devices) 1) (car devices) "")))
 	   (delete
-	    (assoc "media" tramp-default-host-alist)
+	    (assoc "mtp" tramp-default-host-alist)
 	    tramp-default-host-alist)))))
 
 (defun tramp-parse-media-names (service)
@@ -2495,7 +2498,7 @@ This uses \"avahi-browse\" in case D-Bus is not enabled in Avahi."
     ;; Add completion functions for media devices.
     (tramp-get-media-devices nil)
     (tramp-set-completion-function
-     "media"
+     "mtp"
      (mapcar
       (lambda (method) `(tramp-parse-media-names ,(format "_%s._tcp" method)))
       tramp-media-methods))))

@@ -1,6 +1,6 @@
 ;;; vc-tests.el --- Tests of different backends of vc.el  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 
@@ -439,8 +439,9 @@ This checks also `vc-backend' and `vc-responsible-backend'."
 	    ;; nil: Git Mtn
 	    ;; "0": Bzr CVS Hg SRC SVN
 	    ;; "1.1": RCS SCCS
+            ;; "-1": Hg versions before 5 (probably)
             (message "vc-working-revision4 %s" (vc-working-revision tmp-name))
-            (should (member (vc-working-revision tmp-name) '(nil "0" "1.1")))
+            (should (member (vc-working-revision tmp-name) '(nil "0" "1.1" "-1")))
 
             ;; TODO: Call `vc-checkin', and check the resulting
             ;; working revision.  None of the return values should be

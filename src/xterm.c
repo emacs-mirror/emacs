@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
 
-Copyright (C) 1989, 1993-2020 Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -8383,10 +8383,6 @@ handle_one_xevent (struct x_display_info *dpyinfo,
               inev.ie.kind = DEICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
             }
-          else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
-            /* Force a redisplay sooner or later to update the
-	       frame titles in case this is the second frame.  */
-            record_asynch_buffer_change ();
         }
       goto OTHER;
 
@@ -8951,7 +8947,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (!f
 	  && (f = any)
 	  && configureEvent.xconfigure.window == FRAME_X_WINDOW (f)
-	  && FRAME_VISIBLE_P(f))
+	  && (FRAME_VISIBLE_P(f)
+	      || !(configureEvent.xconfigure.width <= 1
+		   && configureEvent.xconfigure.height <= 1)))
         {
           block_input ();
           if (FRAME_X_DOUBLE_BUFFERED_P (f))
@@ -8966,7 +8964,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
           f = 0;
 	}
 #endif
-      if (f && FRAME_VISIBLE_P(f))
+      if (f
+	  && (FRAME_VISIBLE_P(f)
+	      || !(configureEvent.xconfigure.width <= 1
+		   && configureEvent.xconfigure.height <= 1)))
 	{
 #ifdef USE_GTK
 	  /* For GTK+ don't call x_net_wm_state for the scroll bar
@@ -9705,7 +9706,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 
 #ifdef HAVE_X_I18N
       if (w == XWINDOW (f->selected_window))
-	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
+	if (FRAME_XIC (f))
 	  xic_set_preeditarea (w, x, y);
 #endif
     }
@@ -10388,11 +10389,8 @@ xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_
 		create_frame_xic (f);
 		if (FRAME_XIC_STYLE (f) & XIMStatusArea)
 		  xic_set_statusarea (f);
-		if (FRAME_XIC_STYLE (f) & XIMPreeditPosition)
-		  {
-		    struct window *w = XWINDOW (f->selected_window);
-		    xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
-		  }
+		struct window *w = XWINDOW (f->selected_window);
+		xic_set_preeditarea (w, w->cursor.x, w->cursor.y);
 	      }
 	}
 

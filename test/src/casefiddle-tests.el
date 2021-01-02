@@ -1,6 +1,6 @@
 ;;; casefiddle-tests.el --- tests for casefiddle.c functions -*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2016, 2018-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2015-2016, 2018-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -247,7 +247,8 @@
   ;;             input upcase downcase [titlecase]
   (dolist (test '((?a ?A ?a) (?A ?A ?a)
                   (?ł ?Ł ?ł) (?Ł ?Ł ?ł)
-                  (?ß ?ß ?ß) (?ẞ ?ẞ ?ß)
+                  ;; We char-upcase ß to ẞ; see bug #11309.
+                  (?ß ?ẞ ?ß) (?ẞ ?ẞ ?ß)
                   (?ⅷ ?Ⅷ ?ⅷ) (?Ⅷ ?Ⅷ ?ⅷ)
                   (?Ǆ ?Ǆ ?ǆ ?ǅ) (?ǅ ?Ǆ ?ǆ ?ǅ) (?ǆ ?Ǆ ?ǆ ?ǅ)))
     (let ((ch (car test))

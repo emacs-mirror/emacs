@@ -1,6 +1,6 @@
 ;;; auth-source-pass-tests.el --- Tests for auth-source-pass.el  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2013, 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2017-2021 Free Software Foundation, Inc.
 
 ;; Author: Damien Cassou <damien.cassou@gmail.com>
 

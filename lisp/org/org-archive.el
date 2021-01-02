@@ -1,6 +1,6 @@
 ;;; org-archive.el --- Archiving for Org             -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -24,7 +24,7 @@
 ;;
 ;;; Commentary:
 
-;; This file contains the face definitions for Org.
+;; This file contains the archive functionality for Org.
 
 ;;; Code:
 
@@ -90,6 +90,25 @@ When a string, a %s formatter will be replaced by the file name."
 	  (const :tag "Never" nil)
 	  (const :tag "When archiving a subtree to the same file" infile)
 	  (const :tag "Always" t)))
+
+(defcustom org-archive-subtree-save-file-p 'from-org
+  "Conditionally save the archive file after archiving a subtree.
+This variable can be any of the following symbols:
+
+t              saves in all cases.
+`from-org'     prevents saving from an agenda-view.
+`from-agenda'  saves only when the archive is initiated from an agenda-view.
+nil            prevents saving in all cases.
+
+Note that, regardless of this value, the archive buffer is never
+saved when archiving into a location in the current buffer."
+  :group 'org-archive
+  :package-version '(Org . "9.4")
+  :type '(choice
+	  (const :tag "Save archive buffer" t)
+	  (const :tag "Save when archiving from agenda" from-agenda)
+	  (const :tag "Save when archiving from an Org buffer" from-org)
+	  (const :tag "Do not save")))
 
 (defcustom org-archive-save-context-info '(time file olpath category todo itags)
   "Parts of context info that should be stored as properties when archiving.
@@ -230,12 +249,20 @@ direct children of this heading."
 			   ((find-buffer-visiting afile))
 			   ((find-file-noselect afile))
 			   (t (error "Cannot access file \"%s\"" afile))))
+	     (org-odd-levels-only
+	      (if (local-variable-p 'org-odd-levels-only (current-buffer))
+		  org-odd-levels-only
+		tr-org-odd-levels-only))
 	     level datetree-date datetree-subheading-p)
-	(when (string-match "\\`datetree/" heading)
-	  ;; Replace with ***, to represent the 3 levels of headings the
-	  ;; datetree has.
-	  (setq heading (replace-regexp-in-string "\\`datetree/" "***" heading))
-	  (setq datetree-subheading-p (> (length heading) 3))
+	(when (string-match "\\`datetree/\\(\\**\\)" heading)
+	  ;; "datetree/" corresponds to 3 levels of headings.
+	  (let ((nsub (length (match-string 1 heading))))
+	    (setq heading (concat (make-string
+				   (+ (if org-odd-levels-only 5 3)
+				      (* (org-level-increment) nsub))
+				   ?*)
+				  (substring heading (match-end 0))))
+	    (setq datetree-subheading-p (> nsub 0)))
 	  (setq datetree-date (org-date-to-gregorian
 			       (or (org-entry-get nil "CLOSED" t) time))))
 	(if (and (> (length heading) 0)
@@ -290,11 +317,7 @@ direct children of this heading."
 		  (org-todo-kwd-alist tr-org-todo-kwd-alist)
 		  (org-done-keywords tr-org-done-keywords)
 		  (org-todo-regexp tr-org-todo-regexp)
-		  (org-todo-line-regexp tr-org-todo-line-regexp)
-		  (org-odd-levels-only
-		   (if (local-variable-p 'org-odd-levels-only (current-buffer))
-		       org-odd-levels-only
-		     tr-org-odd-levels-only)))
+		  (org-todo-line-regexp tr-org-todo-line-regexp))
 	      (goto-char (point-min))
 	      (org-show-all '(headings blocks))
 	      (if (and heading (not (and datetree-date (not datetree-subheading-p))))
@@ -361,6 +384,15 @@ direct children of this heading."
 		     (point)
 		     (concat "ARCHIVE_" (upcase (symbol-name item)))
 		     value))))
+	      ;; Save the buffer, if it is not the same buffer and
+	      ;; depending on `org-archive-subtree-save-file-p'.
+	      (unless (eq this-buffer buffer)
+		(when (or (eq org-archive-subtree-save-file-p t)
+			  (eq org-archive-subtree-save-file-p
+			      (if (boundp 'org-archive-from-agenda)
+				  'from-agenda
+				'from-org)))
+		  (save-buffer)))
 	      (widen))))
 	;; Here we are back in the original buffer.  Everything seems
 	;; to have worked.  So now run hooks, cut the tree and finish

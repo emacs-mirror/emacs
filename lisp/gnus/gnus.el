@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987-1990, 1993-1998, 2000-2020 Free Software
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -309,34 +309,29 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
-(defvar gnus-mode-line-image-cache t)
-
-(eval-and-compile
-  (if (fboundp 'find-image)
-      (defun gnus-mode-line-buffer-identification (line)
-	(let ((str (car-safe line))
-	      (load-path (append (mm-image-load-path) load-path)))
-	  (if (and (display-graphic-p)
-		   (stringp str)
-		   (string-match "^Gnus:" str))
-	      (progn (add-text-properties
-		      0 5
-		      (list 'display
-			    (if (eq t gnus-mode-line-image-cache)
-				(setq gnus-mode-line-image-cache
-				      (find-image
-				       '((:type xpm :file "gnus-pointer.xpm"
-						:ascent center)
-					 (:type xbm :file "gnus-pointer.xbm"
-						:ascent center))))
-			      gnus-mode-line-image-cache)
-			    'help-echo (format
-					"This is %s, %s."
-					gnus-version (gnus-emacs-version)))
-		      str)
-		     (list str))
-	    line)))
-    (defalias 'gnus-mode-line-buffer-identification 'identity)))
+(defun gnus-mode-line-buffer-identification (line)
+  (let ((str (car-safe line)))
+    (if (or (not (fboundp 'find-image))
+	    (not (display-graphic-p))
+	    (not (stringp str))
+	    (not (string-match "^Gnus:" str)))
+	line
+      (let ((load-path (append (mm-image-load-path) load-path)))
+	;; Add the Gnus logo.
+	(add-text-properties
+	 0 5
+	 (list 'display
+	       (find-image
+		'((:type xpm :file "gnus-pointer.xpm"
+			 :ascent center)
+		  (:type xbm :file "gnus-pointer.xbm"
+			 :ascent center))
+		t)
+	       'help-echo (format
+			   "This is %s, %s."
+			   gnus-version (gnus-emacs-version)))
+	 str)
+	(list str)))))
 
 ;; We define these group faces here to avoid the display
 ;; update forced when creating new faces.
@@ -1200,7 +1195,7 @@ Also see `gnus-large-ephemeral-newsgroup'."
 		 integer))
 
 (defcustom gnus-use-long-file-name (not (memq system-type '(usg-unix-v)))
-  "Non-nil means that the default name of a file to save articles in is the group name.
+  "Non-nil means that the default file name to save articles in is the group name.
 If it's nil, the directory form of the group name is used instead.
 
 If this variable is a list, and the list contains the element
@@ -1550,7 +1545,7 @@ Use with caution.")
    ("\\(^\\|:\\)soc.culture.vietnamese\\>" vietnamese-viqr)
    ("\\(^\\|:\\)\\(comp\\|rec\\|alt\\|sci\\|soc\\|news\\|gnu\\|bofh\\)\\>" iso-8859-1))
  :variable-document
- "Alist of regexps (to match group names) and default charsets to be used when reading."
+ "Alist of regexps (to match group names) and charsets to be used when reading."
  :variable-group gnus-charset
  :variable-type '(repeat (list (regexp :tag "Group")
 			       (symbol :tag "Charset")))
@@ -1623,7 +1618,8 @@ total number of articles in the group.")
 ;; group parameters for spam processing added by Ted Zlatanov <tzz@lifelogs.com>
 (defcustom gnus-install-group-spam-parameters t
   "Disable the group parameters for spam detection.
-Enable if `G c' in XEmacs is giving you trouble, and make sure to submit a bug report."
+Enable if `G c' in XEmacs is giving you trouble, and make sure to
+submit a bug report."
   :version "22.1"
   :type 'boolean
   :group 'gnus-start)
@@ -3175,8 +3171,7 @@ that that variable is buffer-local to the summary buffers."
   "Make mode lines a bit simpler."
   (setq mode-line-modified "--")
   (when (listp mode-line-format)
-    (make-local-variable 'mode-line-format)
-    (setq mode-line-format (copy-sequence mode-line-format))
+    (setq-local mode-line-format (copy-sequence mode-line-format))
     (when (equal (nth 3 mode-line-format) "   ")
       (setcar (nthcdr 3 mode-line-format) " "))))
 

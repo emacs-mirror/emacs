@@ -1,6 +1,6 @@
 ;;; ido.el --- interactively do things with buffers and files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -842,7 +842,7 @@ variables:
   max-width - the max width of the resulting dirname; nil means no limit
   prompt    - the basic prompt (e.g. \"Find File: \")
   literal   - the string shown if doing \"literal\" find; set to nil to omit
-  vc-off    - the string shown if version control is inhibited; set to nil to omit
+  vc-off    - the string shown if version control is inhibited; use nil to omit
   prefix    - either nil or a fixed prefix for the dirname
 
 The following variables are available, but should not be changed:
@@ -2367,7 +2367,16 @@ If cursor is not at the end of the user input, move to end of input."
 	      (read-file-name-function nil))
 	  (setq this-command (or ido-fallback fallback 'find-file))
 	  (run-hook-with-args 'ido-before-fallback-functions this-command)
-	  (call-interactively this-command)))
+          (if (eq this-command 'write-file)
+              (write-file (read-file-name
+                           "Write file: "
+                           default-directory
+                           (and buffer-file-name
+                                (expand-file-name
+                                 (file-name-nondirectory buffer-file-name)
+                                 default-directory)))
+                          t)
+	    (call-interactively this-command))))
 
        ((eq ido-exit 'switch-to-buffer)
 	(ido-buffer-internal
@@ -3966,7 +3975,7 @@ If `ido-change-word-sub' cannot be found in WORD, return nil."
 		      (boundp 'ido-completion-buffer-full))
 		  (set-window-start win (point-min))
 		(with-no-warnings
-		  (set (make-local-variable 'ido-completion-buffer-full) t))
+                  (setq-local ido-completion-buffer-full t))
 		(setq full-list t
 		      display-it t))
 	    (scroll-other-window))
@@ -4810,8 +4819,7 @@ Modified from `icomplete-completions'."
 	    (delete-region ido-eoinput (point-max))))
 
       ;; Reestablish the local variable 'cause minibuffer-setup is weird:
-      (make-local-variable 'ido-eoinput)
-      (setq ido-eoinput 1))))
+      (setq-local ido-eoinput 1))))
 
 (defun ido-summary-buffers-to-end ()
   ;; Move the summaries to the end of the buffer list.

@@ -1,6 +1,6 @@
 ;;; ede-proj-elisp.el --- EDE Generic Project Emacs Lisp support
 
-;; Copyright (C) 1998-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -36,7 +36,7 @@
    (keybindings :initform nil)
    (phony :initform t)
    (sourcetype :initform '(ede-source-emacs))
-   (availablecompilers :initform '(ede-emacs-compiler ede-xemacs-compiler))
+   (availablecompilers :initform '(ede-emacs-compiler))
    (aux-packages :initarg :aux-packages
 		 :initform nil
 		 :type list
@@ -104,6 +104,7 @@ For Emacs Lisp, return addsuffix command on source files."
 	 :name "xemacs"
 	 :variables '(("EMACS" . "xemacs")))
   "Compile Emacs Lisp programs with XEmacs.")
+(make-obsolete-variable 'ede-xemacs-compiler 'ede-emacs-compiler "28.1")
 
 ;;; Claiming files
 (cl-defmethod ede-buffer-mine ((this ede-proj-target-elisp) buffer)

@@ -1,6 +1,6 @@
 ;;; nnimap.el --- IMAP interface for Gnus
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;         Simon Josefsson <simon@josefsson.org>
@@ -376,10 +376,10 @@ during splitting, which may be slow."
     (mm-disable-multibyte)
     (buffer-disable-undo)
     (gnus-add-buffer)
-    (set (make-local-variable 'after-change-functions) nil) ;FIXME: Why?
-    (set (make-local-variable 'nnimap-object)
-	 (make-nnimap :server (nnoo-current-server 'nnimap)
-		      :initial-resync 0))
+    (setq-local after-change-functions nil) ;FIXME: Why?
+    (setq-local nnimap-object
+                (make-nnimap :server (nnoo-current-server 'nnimap)
+                             :initial-resync 0))
     (push (list buffer (current-buffer)) nnimap-connection-alist)
     (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))

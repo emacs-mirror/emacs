@@ -1,6 +1,6 @@
 ;;; ob-eval.el --- Babel Functions for External Code Evaluation -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
@@ -143,7 +143,5 @@ This buffer is named by `org-babel-error-buffer-name'."
       (delete-region (point-min) (point-max)))))
 
 (provide 'ob-eval)
-
-
 
 ;;; ob-eval.el ends here

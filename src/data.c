@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2020 Free Software
+   Copyright (C) 1985-1986, 1988, 1993-1995, 1997-2021 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1639,8 +1639,9 @@ default_value (Lisp_Object symbol)
 
 DEFUN ("default-boundp", Fdefault_boundp, Sdefault_boundp, 1, 1, 0,
        doc: /* Return t if SYMBOL has a non-void default value.
-This is the value that is seen in buffers that do not have their own values
-for this variable.  */)
+A variable may have a buffer-local or a `let'-bound local value.  This
+function says whether the variable has a non-void value outside of the
+current context.  Also see `default-value'.  */)
   (Lisp_Object symbol)
 {
   register Lisp_Object value;

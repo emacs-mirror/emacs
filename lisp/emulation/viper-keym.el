@@ -1,6 +1,6 @@
 ;;; viper-keym.el --- Viper keymaps  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -69,7 +69,7 @@ major mode in effect."
   :group 'viper)
 
 (defcustom viper-want-ctl-h-help nil
-  "If non-nil, C-h gets bound to help-command; otherwise, C-h gets the usual Vi bindings."
+  "If non-nil, bind C-h to help-command; otherwise, C-h gets the usual Vi bindings."
   :type 'boolean
   :group 'viper)
 

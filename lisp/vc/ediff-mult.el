@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -181,7 +181,7 @@ directories.")
 (defvar ediff-filtering-regexp-history nil "")
 
 (defcustom ediff-default-filtering-regexp nil
-  "The default regular expression used as a filename filter in multifile comparisons.
+  "Default regular expression used as a filename filter in multifile comparisons.
 Should be a sexp.  For instance (car ediff-filtering-regexp-history) or nil."
   :type 'sexp                           ; yuck - why not just a regexp?
   :risky t)

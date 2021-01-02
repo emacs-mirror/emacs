@@ -1,6 +1,6 @@
 ;;; log-edit.el --- Major mode for editing CVS commit messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs cvs commit log vc
@@ -387,7 +387,8 @@ The first subexpression is the actual text of the field.")
          nil lax))
      ("^\n"
       (progn (goto-char (match-end 0)) (1+ (match-end 0))) nil
-      (0 '(:height 0.1 :inverse-video t :extend t))))
+      (0 '(face (:height 0.1 :inverse-video t :extend t)
+           display-line-numbers-disable t rear-nonsticky t))))
     (log-edit--match-first-line (0 'log-edit-summary))))
 
 (defvar log-edit-font-lock-gnu-style nil
@@ -490,6 +491,9 @@ commands (under C-x v for VC, for example).
 
 \\{log-edit-mode-map}"
   (setq-local font-lock-defaults '(log-edit-font-lock-keywords t))
+  (make-local-variable 'font-lock-extra-managed-props)
+  (cl-pushnew 'rear-nonsticky font-lock-extra-managed-props)
+  (cl-pushnew 'display-line-numbers-disable font-lock-extra-managed-props)
   (setq-local jit-lock-contextually t)  ;For the "first line is summary".
   (setq-local fill-paragraph-function #'log-edit-fill-entry)
   (make-local-variable 'log-edit-comment-ring-index)
@@ -983,16 +987,17 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
                (visiting-buffer (find-buffer-visiting file)))
            ;; If there is a buffer visiting FILE, and it has a local
            ;; value for `change-log-default-name', use that.
-           (if (and visiting-buffer
+           (or (and visiting-buffer
                     (local-variable-p 'change-log-default-name
-                                      visiting-buffer))
-               (with-current-buffer visiting-buffer
-                 change-log-default-name)
-             ;; `find-change-log' uses `change-log-default-name' if set
-             ;; and sets it before exiting, so we need to work around
-             ;; that memoizing which is undesired here.
-             (setq change-log-default-name nil)
-             (find-change-log)))))
+                                      visiting-buffer)
+                    (with-current-buffer visiting-buffer
+                      change-log-default-name))
+               ;; `find-change-log' uses `change-log-default-name' if set
+               ;; and sets it before exiting, so we need to work around
+               ;; that memoizing which is undesired here.
+               (progn
+                 (setq change-log-default-name nil)
+                 (find-change-log))))))
     (when (or (find-buffer-visiting changelog-file-name)
               (file-exists-p changelog-file-name)
               add-log-dont-create-changelog-file)

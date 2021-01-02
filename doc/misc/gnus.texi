@@ -8,7 +8,7 @@
 @syncodeindex pg cp
 
 @copying
-Copyright @copyright{} 1995--2020 Free Software Foundation, Inc.
+Copyright @copyright{} 1995--2021 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -5028,10 +5028,37 @@ Nothing if the article is a root and lots of spaces if it isn't (it
 pushes everything after it off the screen).
 @item [
 Opening bracket, which is normally @samp{[}, but can also be @samp{<}
-for adopted articles (@pxref{Customizing Threading}).
+for adopted articles (@pxref{Customizing Threading}).  This can be
+customized using following settings:
+
+@table @code
+@item gnus-sum-opening-bracket
+@vindex gnus-sum-opening-bracket
+Opening bracket for normal (non-adopted) articles.  The default is
+@samp{[}.
+
+@item gnus-sum-opening-bracket-adopted
+@vindex gnus-sum-opening-bracket-adopted
+Opening bracket for adopted articles.  The default is @samp{<}.
+
+@end table
+
 @item ]
 Closing bracket, which is normally @samp{]}, but can also be @samp{>}
-for adopted articles.
+for adopted articles.  This can be customised using following settings:
+
+@table @code
+@item gnus-sum-closing-bracket
+@vindex gnus-sum-closing-bracket
+Closing bracket for normal (non-adopted) articles.  The default is
+@samp{]}.
+
+@item gnus-sum-closing-bracket-adopted
+@vindex gnus-sum-opening-bracket-adopted
+Closing bracket for adopted articles.  The default is @samp{>}.
+
+@end table
+
 @item >
 One space for each thread level.
 @item <
@@ -26260,6 +26287,16 @@ registry will keep.  If the registry has reached or exceeded this
 size, it will reject insertion of new entries.
 @end defvar
 
+@defvar gnus-registry-register-all
+If this option is non-nil, the registry will register all messages, as
+you see them.  This is important to making split-to-parent and
+Message-ID references work correctly, as the registry needs to know
+where all messages are, but it can slow down group opening and the
+saving of Gnus.  If this option is nil, entries must be created
+manually, for instance by storing a custom flag or keyword for the
+message.
+@end defvar
+
 @defvar gnus-registry-prune-factor
 This option (a float between 0 and 1) controls how much the registry
 is cut back during pruning.  In order to prevent constant pruning, the
@@ -26349,8 +26386,14 @@ have to put a rule like this:
       "mail")
 @end lisp
 
-in your fancy split setup.  In addition, you may want to customize the
-following variables.
+in your fancy split setup.
+
+If @code{gnus-registry-register-all} is non-nil (the default), the
+registry will perform splitting for all messages.  If it is nil,
+splitting will only happen for children of messages you've explicitly
+registered.
+
+In addition, you may want to customize the following variables.
 
 @defvar gnus-registry-track-extra
 This is a list of symbols, so it's best to change it from the
@@ -26423,7 +26466,9 @@ Store @code{value} under @code{key} for message @code{id}.
 @end defun
 
 @defun gnus-registry-get-id-key (id key)
-Get the data under @code{key} for message @code{id}.
+Get the data under @code{key} for message @code{id}.  If the option
+@code{gnus-registry-register-all} is non-nil, this function will also
+create an entry for @code{id} if one doesn't exist.
 @end defun
 
 @defvar gnus-registry-extra-entries-precious

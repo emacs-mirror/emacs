@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -289,7 +289,8 @@ the last increment."
 
 (defun kmacro-set-counter (arg)
   "Set the value of `kmacro-counter' to ARG, or prompt for value if no argument.
-With \\[universal-argument] prefix, reset counter to its value prior to this iteration of the macro."
+With \\[universal-argument] prefix, reset counter to its value prior to this iteration of the
+macro."
   (interactive "NMacro counter value: ")
   (if (not (or defining-kbd-macro executing-kbd-macro))
       (kmacro-display-counter (setq kmacro-initial-counter-value arg))
@@ -1272,7 +1273,8 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 (defun kmacro-step-edit-macro ()
   "Step edit and execute last keyboard macro.
 
-To customize possible responses, change the \"bindings\" in `kmacro-step-edit-map'."
+To customize possible responses, change the \"bindings\" in
+`kmacro-step-edit-map'."
   (interactive)
   (let ((kmacro-step-edit-active t)
 	(kmacro-step-edit-new-macro "")

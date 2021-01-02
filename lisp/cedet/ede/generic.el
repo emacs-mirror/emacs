@@ -1,6 +1,6 @@
 ;;; ede/generic.el --- Base Support for generic build systems
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -258,8 +258,8 @@ If one doesn't exist, create a new one for this directory."
 INTERNAL-NAME is obsolete and ignored.
 EXTERNAL-NAME is a human readable name to describe the project; it
 must be unique among all autoloaded projects.
-PROJECTFILE is a file name that identifies a project of this type to EDE, such as
-a Makefile, or SConstruct file.
+PROJECTFILE is a file name that identifies a project of this type to EDE, such
+as a Makefile, or SConstruct file.
 CLASS is the EIEIO class that is used to track this project.  It should subclass
 `ede-generic-project'."
   (ede-add-project-autoload

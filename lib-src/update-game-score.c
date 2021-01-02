@@ -1,6 +1,6 @@
 /* update-game-score.c --- Update a score file
 
-Copyright (C) 2002-2020 Free Software Foundation, Inc.
+Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 Author: Colin Walters <walters@debian.org>
 
@@ -499,9 +499,9 @@ unlock_file (const char *filename, void *state)
   char *lockpath = (char *) state;
   int saved_errno = errno;
   int ret = unlink (lockpath);
-  int unlink_errno = errno;
+  if (0 <= ret)
+    errno = saved_errno;
   free (lockpath);
-  errno = ret < 0 ? unlink_errno : saved_errno;
   return ret;
 }
 

@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1996, 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: internal
@@ -272,7 +272,7 @@ of a face name is the same for all frames."
 (defun face-equal (face1 face2 &optional frame)
   "Non-nil if faces FACE1 and FACE2 are equal.
 Faces are considered equal if all their attributes are equal.
-If the optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
+If optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
 If FRAME is t, report on the defaults for FACE1 and FACE2 (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (internal-lisp-face-equal-p face1 face2 frame))
@@ -484,7 +484,7 @@ FACES may be either a single face or a list of faces.
 
 
 (defmacro face-attribute-specified-or (value &rest body)
-  "Return VALUE, unless it's `unspecified', in which case evaluate BODY and return the result."
+  "Return VALUE or, if it's `unspecified', the result of evaluating BODY."
   (let ((temp (make-symbol "value")))
     `(let ((,temp ,value))
        (if (not (eq ,temp 'unspecified))

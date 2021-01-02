@@ -1,6 +1,6 @@
 ;;; semantic/util-modes.el --- Semantic minor modes
 
-;; Copyright (C) 2000-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2021 Free Software Foundation, Inc.
 
 ;; Authors: Eric M. Ludlam <zappo@gnu.org>
 ;;          David Ponce <david@dponce.com>
@@ -837,7 +837,8 @@ Argument EVENT describes the event that caused this function to be called."
   "Keymap for highlight-func minor mode.")
 
 (defvar semantic-highlight-func-popup-menu nil
-  "Menu used if the user clicks on the header line used by `semantic-highlight-func-mode'.")
+  "Menu used if the user clicks on the header line.
+Used by `semantic-highlight-func-mode'.")
 
 (easy-menu-define
   semantic-highlight-func-popup-menu

@@ -1,6 +1,6 @@
 ;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs
 
-;; Copyright (C) 1986, 1992-1995, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1986, 1992-1995, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Kevin Gallagher <kevin.gal@verizon.net>
@@ -691,7 +691,7 @@ Optional argument FIND is t if this function is called from `edt-find'."
 (defun edt-find ()
   "Find first occurrence of string in current direction and save it."
   (interactive)
-  (set 'edt-find-last-text (read-string "Search: "))
+  (setq edt-find-last-text (read-string "Search: "))
   (if (equal edt-direction-string edt-forward-string)
       (edt-find-forward t)
       (edt-find-backward t)))
@@ -1321,8 +1321,8 @@ Definition is stored in `edt-last-replaced-key-definition'."
   (if edt-last-replaced-key-definition
       (progn
         (let (edt-key-definition)
-          (set 'edt-key-definition
-               (read-key-sequence "Press the key to be restored: "))
+          (setq edt-key-definition
+                (read-key-sequence "Press the key to be restored: "))
           (if (string-equal "\C-m" edt-key-definition)
               (message "Key not restored")
 	    (progn
@@ -1639,12 +1639,12 @@ Argument NUM is the number of times to duplicate the line."
     (progn
       (end-kbd-macro nil)
       (let (edt-key-definition)
-	(set 'edt-key-definition
-	     (read-key-sequence "Enter key for binding: "))
+        (setq edt-key-definition
+              (read-key-sequence "Enter key for binding: "))
 	(if (string-equal "\C-m" edt-key-definition)
 	    (message "Key sequence not remembered")
 	  (progn
-	    (set 'edt-learn-macro-count (+ edt-learn-macro-count 1))
+            (setq edt-learn-macro-count (+ edt-learn-macro-count 1))
 	    (setq edt-last-replaced-key-definition
 		  (lookup-key (current-global-map)
 			      edt-key-definition))

@@ -1,6 +1,6 @@
 /* Functions for the X Window System.
 
-Copyright (C) 1989, 1992-2020 Free Software Foundation, Inc.
+Copyright (C) 1989, 1992-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2321,24 +2321,6 @@ hack_wm_protocols (struct frame *f, Widget widget)
 static XFontSet xic_create_xfontset (struct frame *);
 static XIMStyle best_xim_style (XIMStyles *);
 
-
-/* Supported XIM styles, ordered by preference.  */
-
-static const XIMStyle supported_xim_styles[] =
-{
-  XIMPreeditPosition | XIMStatusArea,
-  XIMPreeditPosition | XIMStatusNothing,
-  XIMPreeditPosition | XIMStatusNone,
-  XIMPreeditNothing | XIMStatusArea,
-  XIMPreeditNothing | XIMStatusNothing,
-  XIMPreeditNothing | XIMStatusNone,
-  XIMPreeditNone | XIMStatusArea,
-  XIMPreeditNone | XIMStatusNothing,
-  XIMPreeditNone | XIMStatusNone,
-  0,
-};
-
-
 #if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
@@ -2622,15 +2604,8 @@ xic_free_xfontset (struct frame *f)
 static XIMStyle
 best_xim_style (XIMStyles *xim)
 {
-  int i, j;
-  int nr_supported = ARRAYELTS (supported_xim_styles);
-
-  for (i = 0; i < nr_supported; ++i)
-    for (j = 0; j < xim->count_styles; ++j)
-      if (supported_xim_styles[i] == xim->supported_styles[j])
-	return supported_xim_styles[i];
-
-  /* Return the default style.  */
+  /* Return the default style. This is what GTK3 uses and
+     should work fine with all modern input methods.  */
   return XIMPreeditNothing | XIMStatusNothing;
 }
 
@@ -7041,7 +7016,7 @@ Text larger than the specified size is clipped.  */)
 
   tip_f = XFRAME (tip_frame);
   window = FRAME_ROOT_WINDOW (tip_f);
-  tip_buf = Fget_buffer_create (tip);
+  tip_buf = Fget_buffer_create (tip, Qnil);
   /* We will mark the tip window a "pseudo-window" below, and such
      windows cannot have display margins.  */
   bset_left_margin_cols (XBUFFER (tip_buf), make_fixnum (0));

@@ -1,6 +1,6 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985-1986, 1994, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1985-1986, 1994, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
@@ -202,8 +202,7 @@ Electric Buffer Menu mode is a minor mode which is automatically
 enabled and disabled by the \\[electric-buffer-list] command.
 See the documentation of `electric-buffer-list' for details."
   (setq mode-line-buffer-identification "Electric Buffer List")
-  (set (make-local-variable 'Helper-return-blurb)
-       "return to buffer editing"))
+  (setq-local Helper-return-blurb "return to buffer editing"))
 
 (define-obsolete-function-alias 'Electric-buffer-menu-mode
   'electric-buffer-menu-mode "24.3")
@@ -270,8 +269,8 @@ Return to Electric Buffer Menu when done."
   (when (derived-mode-p 'electric-buffer-menu-mode)
     ;; Make sure we have an overlay to use.
     (or electric-buffer-overlay
-	(set (make-local-variable 'electric-buffer-overlay)
-	     (make-overlay (point) (point))))
+        (setq-local electric-buffer-overlay
+                    (make-overlay (point) (point))))
     (move-overlay electric-buffer-overlay
 		  (line-beginning-position)
 		  (line-end-position))

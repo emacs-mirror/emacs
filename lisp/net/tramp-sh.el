@@ -1,6 +1,6 @@
 ;;; tramp-sh.el --- Tramp access functions for (s)sh-like connections  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; (copyright statements below in code to be updated with the above notice)
 
@@ -58,8 +58,7 @@ If it is nil, no compression at all will be applied."
 
 ;;;###tramp-autoload
 (defcustom tramp-copy-size-limit 10240
-  "The maximum file size where inline copying is preferred over an \
-out-of-the-band copy.
+  "Maximum file size where inline copying is preferred to an out-of-the-band copy.
 If it is nil, out-of-the-band copy will be used without a check."
   :group 'tramp
   :type '(choice (const nil) integer))
@@ -782,7 +781,7 @@ characters need to be doubled.")
 (defconst tramp-perl-encode
   "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2020 Free Software Foundation, Inc.
+# Copyright (C) 2002-2021 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -821,7 +820,7 @@ characters need to be doubled.")
 (defconst tramp-perl-decode
   "%p -e '
 # This script contributed by Juanma Barranquero <lektu@terra.es>.
-# Copyright (C) 2002-2020 Free Software Foundation, Inc.
+# Copyright (C) 2002-2021 Free Software Foundation, Inc.
 use strict;
 
 my %%trans = do {
@@ -2235,7 +2234,7 @@ the uid and gid from FILENAME."
 		     (file-writable-p (concat prefix localname2))))
 	    (tramp-do-copy-or-rename-file-directly
 	     op (concat prefix localname1) (concat prefix localname2)
-	     ok-if-already-exists keep-date t)
+	     ok-if-already-exists keep-date preserve-uid-gid)
 	    ;; We must change the ownership to the local user.
 	    (tramp-set-file-uid-gid
 	     (concat prefix localname2)
@@ -2871,7 +2870,7 @@ implementation will be used."
 	  (unless (or (null sentinel) (functionp sentinel))
 	    (signal 'wrong-type-argument (list #'functionp sentinel)))
 	  (unless (or (null stderr) (bufferp stderr) (stringp stderr))
-	    (signal 'wrong-type-argument (list #'stringp stderr)))
+	    (signal 'wrong-type-argument (list #'bufferp stderr)))
 	  (when (and (stringp stderr) (tramp-tramp-file-p stderr)
 		     (not (tramp-equal-remote default-directory stderr)))
 	    (signal 'file-error (list "Wrong stderr" stderr)))
@@ -2944,7 +2943,8 @@ implementation will be used."
 				 (mapconcat
 				  #'tramp-shell-quote-argument uenv " "))
 			      "")
-			    (if heredoc (format "<<'%s'" tramp-end-of-heredoc) "")
+			    (if heredoc
+				(format "<<'%s'" tramp-end-of-heredoc) "")
 			    (if tmpstderr (format "2>'%s'" tmpstderr) "")
 			    (mapconcat #'tramp-shell-quote-argument env " ")
 			    (if heredoc
@@ -2984,7 +2984,11 @@ implementation will be used."
 		      ;; `verify-visited-file-modtime'.
 		      (let ((buffer-undo-list t)
 			    (inhibit-read-only t)
-			    (mark (point-max)))
+			    (mark (point-max))
+			    (coding-system-for-write
+			     (if (symbolp coding) coding (car coding)))
+			    (coding-system-for-read
+			     (if (symbolp coding) coding (cdr coding))))
 			(clear-visited-file-modtime)
 			(narrow-to-region (point-max) (point-max))
 			;; We call `tramp-maybe-open-connection', in
@@ -3562,7 +3566,7 @@ implementation will be used."
 
 	  ;; Make `last-coding-system-used' have the right value.
 	  (when coding-system-used
-	    (set 'last-coding-system-used coding-system-used))))
+            (setq last-coding-system-used coding-system-used))))
 
       (tramp-flush-file-properties v localname)
 
@@ -3834,6 +3838,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
+	;; Set "gio-file-monitor" property if needed.
+	(when (string-equal (file-name-nondirectory command) "gio")
+	  (tramp-set-connection-property
+	   p "gio-file-monitor" (tramp-get-remote-gio-file-monitor v)))
 	p))))
 
 (defun tramp-sh-gio-monitor-process-filter (proc string)
@@ -4910,7 +4918,8 @@ Goes through the list `tramp-inline-compress-commands'."
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
 If there is just some editing, retry it after 5 seconds."
-  (if (and tramp-locked tramp-locker
+  (if (and (tramp-get-connection-property
+	    (tramp-get-connection-process vec) "locked" nil)
 	   (tramp-file-name-equal-p vec (car tramp-current-connection)))
       (progn
 	(tramp-message
@@ -5030,6 +5039,9 @@ connection if a previous connection has died for some reason."
 
 		(tramp-message vec 6 "%s" (string-join (process-command p) " "))
 
+		;; Set connection-local variables.
+		(tramp-set-connection-local-variables vec)
+
 		;; Check whether process is alive.
 		(tramp-barf-if-no-shell-prompt
 		 p 10
@@ -5138,9 +5150,6 @@ connection if a previous connection has died for some reason."
 		  ;; Next hop.
 		  (setq options ""
 			target-alist (cdr target-alist)))
-
-		;; Set connection-local variables.
-		(tramp-set-connection-local-variables vec)
 
 		;; Activate session timeout.
 		(when (tramp-get-connection-property p "session-timeout" nil)
@@ -5753,6 +5762,30 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
     (tramp-message vec 5 "Finding a suitable `gio-monitor' command")
     (tramp-find-executable vec "gio" (tramp-get-remote-path vec) t t)))
 
+(defun tramp-get-remote-gio-file-monitor (vec)
+  "Determine remote GFileMonitor."
+  (with-tramp-connection-property vec "gio-file-monitor"
+    (with-current-buffer (tramp-get-connection-buffer vec)
+      (tramp-message vec 5 "Finding the used GFileMonitor")
+      (when-let ((gio (tramp-get-remote-gio-monitor vec)))
+	;; Search for the used FileMonitor.  There is no known way to
+	;; get this information directly from gio, so we check for
+	;; linked libraries of libgio.
+	(when (tramp-send-command-and-check vec (concat "ldd " gio))
+	  (goto-char (point-min))
+	  (when (re-search-forward "\\S-+/libgio\\S-+")
+	    (when (tramp-send-command-and-check
+		   vec (concat "strings " (match-string 0)))
+	      (goto-char (point-min))
+	      (re-search-forward
+	       (format
+		"^%s$"
+		(regexp-opt
+		 '("GFamFileMonitor" "GFenFileMonitor"
+		   "GInotifyFileMonitor" "GKqueueFileMonitor")))
+	       nil 'noerror)
+	      (intern (match-string 0)))))))))
+
 (defun tramp-get-remote-gvfs-monitor-dir (vec)
   "Determine remote `gvfs-monitor-dir' command."
   (with-tramp-connection-property vec "gvfs-monitor-dir"
@@ -6108,5 +6141,10 @@ function cell is returned to be applied on a buffer."
 ;;   screen, or tmux, or mosh.
 ;;
 ;; * Implement `:stderr' of `make-process' as pipe process.
+
+;; * One interesting solution (with other applications as well) would
+;;   be to stipulate, as a directory or connection-local variable, an
+;;   additional rc file on the remote machine that is sourced every
+;;   time Tramp connects.  <https://emacs.stackexchange.com/questions/62306>
 
 ;;; tramp-sh.el ends here

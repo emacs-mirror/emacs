@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994-1997, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1991, 1994-1997, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
@@ -436,6 +436,14 @@ Also, initial position is at last record."
 
 (defvar read-file-filter) ; bound in forms--intuit-from-file
 
+;; The code used to use `run-hooks' but in a way that's actually
+;; incompatible with hooks (and with lexical scoping), so this function
+;; approximates the actual behavior that `run-hooks' provided.
+(defun forms--run-functions (functions)
+  (if (functionp functions)
+      (funcall functions)
+    (mapc #'funcall functions)))
+
 ;;;###autoload
 (defun forms-mode (&optional primary)
   ;; FIXME: use define-derived-mode
@@ -547,8 +555,6 @@ Commands:                        Equivalent keys in read-only mode:
 				   "`forms-multi-line' is equal to `forms-field-sep'")))
 	      (error (concat "Forms control file error: "
 			     "`forms-multi-line' must be nil or a one-character string"))))
-	(or (fboundp 'set-text-properties)
-	    (setq forms-use-text-properties nil))
 
 	;; Validate and process forms-format-list.
 	;;(message "forms: pre-processing format list...")
@@ -568,12 +574,12 @@ Commands:                        Equivalent keys in read-only mode:
 
 	;; Check if record filters are defined.
 	(if (and forms-new-record-filter
-		 (not (fboundp forms-new-record-filter)))
+		 (not (functionp forms-new-record-filter)))
 	    (error (concat "Forms control file error: "
 			   "`forms-new-record-filter' is not a function")))
 
 	(if (and forms-modified-record-filter
-		 (not (fboundp forms-modified-record-filter)))
+		 (not (functionp forms-modified-record-filter)))
 	    (error (concat "Forms control file error: "
 			   "`forms-modified-record-filter' is not a function")))
 
@@ -647,7 +653,7 @@ Commands:                        Equivalent keys in read-only mode:
 	(with-current-buffer forms--file-buffer
 	  (let ((inhibit-read-only t)
 		(file-modified (buffer-modified-p)))
-	    (mapc #'funcall read-file-filter)
+	    (forms--run-functions read-file-filter)
 	    (if (not file-modified) (set-buffer-modified-p nil)))
 	  (if write-file-filter
 	      (add-hook 'write-file-functions write-file-filter nil t)))
@@ -875,8 +881,7 @@ Commands:                        Equivalent keys in read-only mode:
 	   (list 'face forms--rw-face 'front-sticky '(face))))
 
 	;; Enable `post-command-hook' to restore the properties.
-	(setq post-command-hook
-	      (append (list 'forms--iif-post-command-hook) post-command-hook)))
+	(add-hook 'post-command-hook #'forms--iif-post-command-hook))
 
     ;; No action needed.  Clear marker.
     (setq forms--iif-start nil)))
@@ -885,8 +890,7 @@ Commands:                        Equivalent keys in read-only mode:
   "`post-command-hook' function for read-only segments."
 
   ;; Disable `post-command-hook'.
-  (setq post-command-hook
-	(delq 'forms--iif-hook-post-command-hook post-command-hook))
+  (remove-hook 'post-command-hook #'forms--iif-post-command-hook)
 
   ;; Restore properties.
   (if forms--iif-start
@@ -916,7 +920,7 @@ Commands:                        Equivalent keys in read-only mode:
      (if forms-use-text-properties
 	 `(lambda (arg)
 	    (let ((inhibit-read-only t))
-	      ,@(apply 'append
+	      ,@(apply #'append
 		       (mapcar #'forms--make-format-elt-using-text-properties
 			       forms-format-list))
 	      ;; Prevent insertion before the first text.
@@ -929,7 +933,7 @@ Commands:                        Equivalent keys in read-only mode:
                                       '(rear-nonsticky nil)))
 	    (setq forms--iif-start nil))
        `(lambda (arg)
-	  ,@(apply 'append
+	  ,@(apply #'append
 		   (mapcar #'forms--make-format-elt forms-format-list)))))
 
     ;; We have tallied the number of markers and dynamic texts,
@@ -1100,7 +1104,7 @@ Commands:                        Equivalent keys in read-only mode:
        `(lambda nil
 	  (let (here)
 	    (goto-char (point-min))
-	    ,@(apply 'append
+	    ,@(apply #'append
 		     (mapcar
 		      #'forms--make-parser-elt
 		      (append forms-format-list (list nil)))))))))
@@ -1219,7 +1223,7 @@ Commands:                        Equivalent keys in read-only mode:
 	  (setq the-record
 		(with-current-buffer forms--file-buffer
 		  (let ((inhibit-read-only t))
-		    (run-hooks 'read-file-filter))
+		    (forms--run-functions read-file-filter))
 		  (goto-char (point-min))
 		  (forms--get-record)))
 
@@ -1427,7 +1431,7 @@ Commands:                        Equivalent keys in read-only mode:
   ;;
   ;; We have our own revert function - use it.
   (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'forms--revert-buffer)
+  (setq revert-buffer-function #'forms--revert-buffer)
 
   t)
 
@@ -1900,7 +1904,7 @@ after writing out the data."
 	;; Write file hooks are run via write-file-functions.
 	;; (if write-file-filter
 	;;  (save-excursion
-	;;   (run-hooks 'write-file-filter)))
+	;;   (forms--run-functions write-file-filter)))
 
 	;; If they have a write-file-filter, force the buffer to be
 	;; saved even if it doesn't seem to be changed.  First, they
@@ -1912,7 +1916,7 @@ after writing out the data."
 	(save-buffer args)
 	(if read-file-filter
 	   (save-excursion
-	     (run-hooks 'read-file-filter)))
+	     (forms--run-functions read-file-filter)))
 	(set-buffer-modified-p nil)))
     ;; Make sure we end up with the same record number as we started.
     ;; Since read-file-filter may perform arbitrary transformations on
@@ -2037,20 +2041,19 @@ Usage: (setq forms-number-of-fields
 (defun forms--debug (&rest args)
   "Internal debugging routine."
   (if forms--debug
-      (let ((ret nil))
-	(while args
-	  (let ((el (car-safe args)))
-	    (setq args (cdr-safe args))
-	    (if (stringp el)
-		(setq ret (concat ret el))
-	      (setq ret (concat ret (prin1-to-string el) " = "))
-	      (if (boundp el)
-		  (let ((vel (eval el)))
-		    (setq ret (concat ret (prin1-to-string vel) "\n")))
-		(setq ret (concat ret "<unbound>" "\n")))
-	      (if (fboundp el)
-		  (setq ret (concat ret (prin1-to-string (symbol-function el))
-				    "\n"))))))
+      (let ((ret
+	     (mapconcat
+	      (lambda (el)
+		(if (stringp el) el
+		  (concat (prin1-to-string el) " = "
+		          (if (boundp el)
+		              (prin1-to-string (eval el))
+		            "<unbound>")
+		          "\n"
+		          (if (fboundp el)
+		              (concat (prin1-to-string (symbol-function el))
+				      "\n")))))
+	      args "")))
 	(with-current-buffer (get-buffer-create "*forms-mode debug*")
 	  (if (zerop (buffer-size))
 	      (emacs-lisp-mode))

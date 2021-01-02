@@ -1,6 +1,6 @@
 ;;; image.el --- image API  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: multimedia
@@ -679,8 +679,10 @@ BUFFER nil or omitted means use the current buffer."
       (setq path (cdr path)))
     (if found filename)))
 
+(defvar find-image--cache (make-hash-table :test #'equal))
+
 ;;;###autoload
-(defun find-image (specs)
+(defun find-image (specs &optional cache)
   "Find an image, choosing one of a list of image specifications.
 
 SPECS is a list of image specifications.
@@ -695,26 +697,33 @@ is supported, and FILE exists, is used to construct the image
 specification to be returned.  Return nil if no specification is
 satisfied.
 
+If CACHE is non-nil, results are cached and returned on subsequent calls.
+
 The image is looked for in `image-load-path'.
 
 Image files should not be larger than specified by `max-image-size'."
-  (let (image)
-    (while (and specs (null image))
-      (let* ((spec (car specs))
-	     (type (plist-get spec :type))
-	     (data (plist-get spec :data))
-	     (file (plist-get spec :file))
-	     found)
-	(when (image-type-available-p type)
-	  (cond ((stringp file)
-		 (if (setq found (image-search-load-path file))
-		     (setq image
-			   (cons 'image (plist-put (copy-sequence spec)
-						   :file found)))))
-		((not (null data))
-		 (setq image (cons 'image spec)))))
-	(setq specs (cdr specs))))
-    image))
+  (or (and cache
+           (gethash specs find-image--cache))
+      (let ((orig-specs specs)
+            image)
+        (while (and specs (null image))
+          (let* ((spec (car specs))
+	         (type (plist-get spec :type))
+	         (data (plist-get spec :data))
+	         (file (plist-get spec :file))
+	         found)
+	    (when (image-type-available-p type)
+	      (cond ((stringp file)
+		     (if (setq found (image-search-load-path file))
+		         (setq image
+			       (cons 'image (plist-put (copy-sequence spec)
+						       :file found)))))
+		    ((not (null data))
+		     (setq image (cons 'image spec)))))
+	    (setq specs (cdr specs))))
+        (when cache
+          (setf (gethash orig-specs find-image--cache) image))
+        image)))
 
 
 ;;;###autoload

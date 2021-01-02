@@ -1,6 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -457,13 +457,11 @@ so that all identifiers are recognized as words.")
 	c-before-change-check-raw-strings
 	c-before-change-check-<>-operators
 	c-depropertize-CPP
-	c-invalidate-macro-cache
 	c-truncate-bs-cache
 	c-before-change-check-unbalanced-strings
 	c-parse-quotes-before-change)
   (c objc) '(c-extend-region-for-CPP
 	     c-depropertize-CPP
-	     c-invalidate-macro-cache
 	     c-truncate-bs-cache
 	     c-before-change-check-unbalanced-strings
 	     c-parse-quotes-before-change)
@@ -549,7 +547,7 @@ parameters (point-min), (point-max) and <buffer size>.")
 
 (c-lang-defconst c-before-context-fontification-functions
   t 'c-context-expand-fl-region
-  awk nil)
+  awk 'c-awk-context-expand-fl-region)
   ;; For documentation see the following c-lang-defvar of the same name.
   ;; The value here may be a list of functions or a single function.
 (c-lang-defvar c-before-context-fontification-functions
@@ -581,12 +579,14 @@ don't have EOL terminated statements. "
 (c-lang-defvar c-at-vsemi-p-fn (c-lang-const c-at-vsemi-p-fn))
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
-  "Contains a function \"are we unsure whether there is a virtual semicolon on this line?\".
-The (admittedly kludgy) purpose of such a function is to prevent an infinite
-recursion in c-beginning-of-statement-1 when point starts at a `while' token.
-The function MUST NOT UNDER ANY CIRCUMSTANCES call c-beginning-of-statement-1,
-even indirectly.  This variable contains nil for languages which don't have
-EOL terminated statements."
+  "Contains a predicate regarding the presence of virtual semicolons.
+More precisely, the function answers the question, \"are we unsure whether a
+virtual semicolon exists on this line?\".  The (admittedly kludgy) purpose of
+such a function is to prevent an infinite recursion in
+`c-beginning-of-statement-1' when point starts at a `while' token.  The function
+MUST NOT UNDER ANY CIRCUMSTANCES call `c-beginning-of-statement-1', even
+indirectly.  This variable contains nil for languages which don't have EOL
+terminated statements."
   t nil
   (c c++ objc) 'c-macro-vsemi-status-unknown-p
   awk 'c-awk-vsemi-status-unknown-p)
@@ -699,6 +699,7 @@ It's assumed to not contain any submatchers."
   ;; The same thing regarding Unicode identifiers applies here as to
   ;; `c-symbol-key'.
   t (concat "[" (c-lang-const c-nonsymbol-chars) "]"))
+(c-lang-defvar c-nonsymbol-key (c-lang-const c-nonsymbol-key))
 
 (c-lang-defconst c-identifier-ops
   "The operators that make up fully qualified identifiers.  nil in

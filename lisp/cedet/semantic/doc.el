@@ -1,6 +1,6 @@
 ;;; semantic/doc.el --- Routines for documentation strings
 
-;; Copyright (C) 1999-2003, 2005, 2008-2020 Free Software Foundation,
+;; Copyright (C) 1999-2003, 2005, 2008-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -40,7 +40,7 @@ TAG might have DOCUMENTATION set in it already.  If not, there may be
 some documentation in a comment preceding TAG's definition which we
 can look for.  When appropriate, this can be overridden by a language specific
 enhancement.
-Optional argument NOSNARF means to only return the lexical analyzer token for it.
+Optional argument NOSNARF means return only the lexical analyzer token for it.
 If NOSNARF is `lex', then only return the lex token."
   (if (not tag) (setq tag (semantic-current-tag)))
   (save-excursion
