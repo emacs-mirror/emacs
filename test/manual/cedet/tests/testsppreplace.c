@@ -1,5 +1,5 @@
 /* testsppreplace.c --- unit test for CPP/SPP Replacement
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <zappo@gnu.org>
 

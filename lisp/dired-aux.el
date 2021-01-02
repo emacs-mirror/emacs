@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2020 Free Software
+;; Copyright (C) 1985-1986, 1992, 1994, 1998, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -145,7 +145,7 @@ substituted, and will be passed through normally to the shell.
 (defun dired--no-subst-ask (char nb-occur details)
   (let ((hilit-char (propertize (string char) 'face 'warning))
         (choices `(?y ?n ?? ,@(when details '(?^)))))
-    (read-char-from-minibuffer
+    (read-char-choice
      (format-message
       (ngettext
        "%d occurrence of `%s' will not be substituted.  Proceed? (%s) "
@@ -1380,7 +1380,7 @@ return t; if SYM is q or ESC, return nil."
 			     (format " [Type yn!q or %s] "
 				     (key-description (vector help-char)))
 			   " [Type y, n, q or !] ")))
-	   (set sym (setq char (read-char-from-minibuffer prompt char-choices)))
+	   (set sym (setq char (read-char-choice prompt char-choices)))
 	   (if (memq char '(?y ?\s ?!)) t)))))
 
 

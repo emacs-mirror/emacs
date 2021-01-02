@@ -1,6 +1,6 @@
 ;;; semantic/bovine/debug.el --- Debugger support for bovinator
 
-;; Copyright (C) 2003, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 

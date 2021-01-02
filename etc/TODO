@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001-2020 Free Software Foundation, Inc.
+Copyright (C) 2001-2021 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -637,8 +637,6 @@ Do this for some or all errors associated with using subprocesses.
 
 ** Maybe reinterpret 'parse-error' as a category of errors
 Put some other errors under it.
-
-** Make byte-compiler warn when a doc string is too wide
 
 ** Make byte-optimization warnings issue accurate line numbers
 

@@ -1,6 +1,6 @@
 ### @configure_input@
 
-# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2020 Free Software
+# Copyright (C) 1985, 1987-1988, 1993-1995, 1999-2021 Free Software
 # Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -346,7 +346,7 @@ HAVE_PDUMPER = @HAVE_PDUMPER@
 
 ## ARM Macs require that all code have a valid signature.  Since pump
 ## invalidates the signature, we must re-sign to fix it.
-DO_CODESIGN=$(patsubst arm-apple-darwin%,yes,@configuration@)
+DO_CODESIGN=$(patsubst aarch64-apple-darwin%,yes,@configuration@)
 
 # 'make' verbosity.
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@

@@ -1,6 +1,6 @@
 ;;; tramp-adb.el --- Functions for calling Android Debug Bridge from Tramp  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2011-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Jürgen Hötzel <juergen@archlinux.org>
 ;; Keywords: comm, processes
@@ -1131,6 +1131,13 @@ This happens for Android >= 4.0."
   (if (string-match-p "[[:multibyte:]]" command)
       ;; Multibyte codepoints with four bytes are not supported at
       ;; least by toybox.
+
+      ;; <https://android.stackexchange.com/questions/226638/how-to-use-multibyte-file-names-in-adb-shell/232379#232379>
+      ;; mksh uses UTF-8 internally, but is currently limited to the
+      ;; BMP (basic multilingua plane), which means U+0000 to
+      ;; U+FFFD. If you want to use SMP codepoints (U-00010000 to
+      ;; U-0010FFFD) on the input line, you currently have to disable
+      ;; the UTF-8 mode (sorry).
       (tramp-adb-execute-adb-command vec "shell" command)
 
     (unless neveropen (tramp-adb-maybe-open-connection vec))

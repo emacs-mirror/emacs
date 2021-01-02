@@ -1,5 +1,5 @@
 /* Check the access rights of a file relative to an open directory.
-   Copyright (C) 2009-2020 Free Software Foundation, Inc.
+   Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,13 +32,6 @@
 #include <sys/stat.h>
 #undef _GL_INCLUDING_UNISTD_H
 
-#ifndef FACCESSAT_NEVER_EOVERFLOWS
-# define FACCESSAT_NEVER_EOVERFLOWS 0
-#endif
-#ifndef LSTAT_FOLLOWS_SLASHED_SYMLINK
-# define LSTAT_FOLLOWS_SLASHED_SYMLINK 0
-#endif
-
 #if HAVE_FACCESSAT
 static int
 orig_faccessat (int fd, char const *name, int mode, int flag)
@@ -66,12 +59,7 @@ rpl_faccessat (int fd, char const *file, int mode, int flag)
 {
   int result = orig_faccessat (fd, file, mode, flag);
 
-  if (result != 0)
-    {
-      if (!FACCESSAT_NEVER_EOVERFLOWS && mode == F_OK && errno == EOVERFLOW)
-        return 0;
-    }
-  else if (!LSTAT_FOLLOWS_SLASHED_SYMLINK && file[strlen (file) - 1] == '/')
+  if (result == 0 && file[strlen (file) - 1] == '/')
     {
       struct stat st;
       result = fstatat (fd, file, &st, 0);

@@ -1029,7 +1029,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 				'dictionary-display-match-result)))
 
 (defun dictionary-do-matching (word dictionary strategy function)
-  "Find matches for WORD with STRATEGY in DICTIONARY and displays them with FUNCTION."
+  "Find matches for WORD with STRATEGY in DICTIONARY and display them with FUNCTION."
 
   (message "Lookup matching words for %s in %s using %s"
 	   word dictionary strategy)

@@ -1,6 +1,6 @@
 /* Record indices of function doc strings stored in a file. -*- coding: utf-8 -*-
 
-Copyright (C) 1985-1986, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1995, 1997-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -82,10 +82,7 @@ Lisp_Object
 get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
 {
   char *from, *to, *name, *p, *p1;
-  int fd;
-  int offset;
-  EMACS_INT position;
-  Lisp_Object file, tem, pos;
+  Lisp_Object file, pos;
   ptrdiff_t count = SPECPDL_INDEX ();
   USE_SAFE_ALLOCA;
 
@@ -102,7 +99,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   else
     return Qnil;
 
-  position = eabs (XFIXNUM (pos));
+  EMACS_INT position = eabs (XFIXNUM (pos));
 
   if (!STRINGP (Vdoc_directory))
     return Qnil;
@@ -113,7 +110,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   /* Put the file name in NAME as a C string.
      If it is relative, combine it with Vdoc_directory.  */
 
-  tem = Ffile_name_absolute_p (file);
+  Lisp_Object tem = Ffile_name_absolute_p (file);
   file = ENCODE_FILE (file);
   Lisp_Object docdir
     = NILP (tem) ? ENCODE_FILE (Vdoc_directory) : empty_unibyte_string;
@@ -123,7 +120,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   name = SAFE_ALLOCA (docdir_sizemax + SBYTES (file));
   lispstpcpy (lispstpcpy (name, docdir), file);
 
-  fd = emacs_open (name, O_RDONLY, 0);
+  int fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
     {
       if (will_dump_p ())
@@ -150,7 +147,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
   /* Seek only to beginning of disk block.  */
   /* Make sure we read at least 1024 bytes before `position'
      so we can check the leading text for consistency.  */
-  offset = min (position, max (1024, position % (8 * 1024)));
+  int offset = min (position, max (1024, position % (8 * 1024)));
   if (TYPE_MAXIMUM (off_t) < position
       || lseek (fd, position - offset, 0) < 0)
     error ("Position %"pI"d out of range in doc string file \"%s\"",
@@ -164,7 +161,6 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
     {
       ptrdiff_t space_left = (get_doc_string_buffer_size - 1
 			      - (p - get_doc_string_buffer));
-      int nread;
 
       /* Allocate or grow the buffer if we need to.  */
       if (space_left <= 0)
@@ -182,7 +178,7 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
          If we read the same block last time, maybe skip this?  */
       if (space_left > 1024 * 8)
 	space_left = 1024 * 8;
-      nread = emacs_read_quit (fd, p, space_left);
+      int nread = emacs_read_quit (fd, p, space_left);
       if (nread < 0)
 	report_file_error ("Read error on documentation file", file);
       p[nread] = 0;
@@ -240,10 +236,8 @@ get_doc_string (Lisp_Object filepos, bool unibyte, bool definition)
     {
       if (*from == 1)
 	{
-	  int c;
-
 	  from++;
-	  c = *from++;
+	  int c = *from++;
 	  if (c == 1)
 	    *to++ = c;
 	  else if (c == '0')
@@ -313,10 +307,8 @@ Unless a non-nil second argument RAW is given, the
 string is passed through `substitute-command-keys'.  */)
   (Lisp_Object function, Lisp_Object raw)
 {
-  Lisp_Object fun;
-  Lisp_Object funcar;
   Lisp_Object doc;
-  bool try_reload = 1;
+  bool try_reload = true;
 
  documentation:
 
@@ -330,7 +322,7 @@ string is passed through `substitute-command-keys'.  */)
 					raw);
     }
 
-  fun = Findirect_function (function, Qnil);
+  Lisp_Object fun = Findirect_function (function, Qnil);
   if (NILP (fun))
     xsignal1 (Qvoid_function, function);
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
@@ -367,7 +359,7 @@ string is passed through `substitute-command-keys'.  */)
     }
   else if (CONSP (fun))
     {
-      funcar = XCAR (fun);
+      Lisp_Object funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, fun);
       else if (EQ (funcar, Qkeymap))
@@ -411,7 +403,7 @@ string is passed through `substitute-command-keys'.  */)
 	  try_reload = reread_doc_file (Fcar_safe (doc));
 	  if (try_reload)
 	    {
-	      try_reload = 0;
+	      try_reload = false;
 	      goto documentation;
 	    }
 	}
@@ -435,7 +427,7 @@ This differs from `get' in that it can refer to strings stored in the
 aren't strings.  */)
   (Lisp_Object symbol, Lisp_Object prop, Lisp_Object raw)
 {
-  bool try_reload = 1;
+  bool try_reload = true;
   Lisp_Object tem;
 
  documentation_property:
@@ -467,7 +459,7 @@ aren't strings.  */)
 	  try_reload = reread_doc_file (Fcar_safe (doc));
 	  if (try_reload)
 	    {
-	      try_reload = 0;
+	      try_reload = false;
 	      goto documentation_property;
 	    }
 	}
@@ -497,9 +489,7 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
     fun = XCDR (fun);
   if (CONSP (fun))
     {
-      Lisp_Object tem;
-
-      tem = XCAR (fun);
+      Lisp_Object tem = XCAR (fun);
       if (EQ (tem, Qlambda) || EQ (tem, Qautoload)
 	  || (EQ (tem, Qclosure) && (fun = XCDR (fun), 1)))
 	{

@@ -1,6 +1,6 @@
 ;;; elp.el --- Emacs Lisp Profiler  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997-1998, 2001-2020 Free Software
+;; Copyright (C) 1994-1995, 1997-1998, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Barry A. Warsaw

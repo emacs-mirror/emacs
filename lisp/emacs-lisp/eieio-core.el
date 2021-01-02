@@ -1,6 +1,6 @@
 ;;; eieio-core.el --- Core implementation for eieio  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1996, 1998-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.4
@@ -587,8 +587,8 @@ If SKIPNIL is non-nil, then if default value is nil return t instead."
 (defun eieio--add-new-slot (newc slot init alloc
 				 &optional defaultoverride skipnil)
   "Add into NEWC attribute SLOT.
-If a slot of that name already exists in NEWC, then do nothing.  If it doesn't exist,
-INIT is the initarg, if any.
+If a slot of that name already exists in NEWC, then do nothing.
+If it doesn't exist, INIT is the initarg, if any.
 Argument ALLOC specifies if the slot is allocated per instance, or per class.
 If optional DEFAULTOVERRIDE is non-nil, then if A exists in NEWC,
 we must override its value for a default.

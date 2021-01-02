@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
 
-Copyright (C) 1985-1988, 1993-1995, 1997-2020 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1997-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -1114,7 +1114,8 @@ static ptrdiff_t display_count_lines (ptrdiff_t, ptrdiff_t, ptrdiff_t,
 static void pint2str (register char *, register int, register ptrdiff_t);
 
 static int display_string (const char *, Lisp_Object, Lisp_Object,
-                           ptrdiff_t, ptrdiff_t, struct it *, int, int, int, int);
+                           ptrdiff_t, ptrdiff_t, struct it *, int, int, int,
+			   int);
 static void compute_line_metrics (struct it *);
 static void run_redisplay_end_trigger_hook (struct it *);
 static bool get_overlay_strings (struct it *, ptrdiff_t);
@@ -25456,14 +25457,62 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 			 format_mode_line_unwind_data (NULL, NULL,
 						       Qnil, false));
 
-  mode_line_target = MODE_LINE_DISPLAY;
-
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
   push_kboard (FRAME_KBOARD (it.f));
   record_unwind_save_match_data ();
-  display_mode_element (&it, 0, 0, 0, format, Qnil, false);
+
+  if (NILP (Vmode_line_compact))
+    {
+      mode_line_target = MODE_LINE_DISPLAY;
+      display_mode_element (&it, 0, 0, 0, format, Qnil, false);
+    }
+  else
+    {
+      Lisp_Object mode_string = Fformat_mode_line (format, Qnil, Qnil, Qnil);
+      if (EQ (Vmode_line_compact, Qlong)
+	  && WINDOW_TOTAL_COLS (w) >= SCHARS (mode_string))
+	{
+	  /* The window is wide enough; just display the mode line we
+	     just computed. */
+	  display_string (NULL, mode_string, Qnil,
+			  0, 0, &it, 0, 0, 0,
+			  STRING_MULTIBYTE (mode_string));
+	}
+      else
+	{
+	  /* Compress the mode line. */
+	  ptrdiff_t i = 0, i_byte = 0, start = 0;
+	  int prev = 0;
+
+	  while (i < SCHARS (mode_string))
+	    {
+	      int c = fetch_string_char_advance (mode_string, &i, &i_byte);
+	      if (c == ' ' && prev == ' ')
+		{
+		  display_string (NULL,
+				  Fsubstring (mode_string, make_fixnum (start),
+					      make_fixnum (i - 1)),
+				  Qnil, 0, 0, &it, 0, 0, 0,
+				  STRING_MULTIBYTE (mode_string));
+		  /* Skip past the rest of the space characters. */
+		  while (c == ' ' && i < SCHARS (mode_string))
+		      c = fetch_string_char_advance (mode_string, &i, &i_byte);
+		  start = i - 1;
+		}
+	      prev = c;
+	    }
+
+	  /* Display the final bit. */
+	  if (start < i)
+	    display_string (NULL,
+			    Fsubstring (mode_string, make_fixnum (start),
+					make_fixnum (i - 1)),
+			    Qnil, 0, 0, &it, 0, 0, 0,
+			    STRING_MULTIBYTE (mode_string));
+	}
+    }
   pop_kboard ();
 
   unbind_to (count, Qnil);
@@ -27095,6 +27144,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
      with index START.  */
   reseat_to_string (it, NILP (lisp_string) ? string : NULL, lisp_string,
                     start, precision, field_width, multibyte);
+
   if (string && STRINGP (lisp_string))
     /* LISP_STRING is the one returned by decode_mode_spec.  We should
        ignore its text properties.  */
@@ -34819,6 +34869,14 @@ wide as that tab on the display.  */);
     doc: /* Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
+
+  DEFVAR_LISP ("mode-line-compact", Vmode_line_compact,
+    doc: /* Non-nil means that mode lines should be compact.
+This means that repeating spaces will be replaced with a single space.
+If this variable is `long', only mode lines that are wider than the
+currently selected window are compressed. */);
+  Vmode_line_compact = Qnil;
+  DEFSYM (Qlong, "long");
 
   DEFVAR_LISP ("nobreak-char-display", Vnobreak_char_display,
     doc: /* Control highlighting of non-ASCII space and hyphen chars.

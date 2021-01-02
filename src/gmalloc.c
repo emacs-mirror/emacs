@@ -1,5 +1,5 @@
 /* Declarations for `malloc' and friends.
-   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2020 Free
+   Copyright (C) 1990-1993, 1995-1996, 1999, 2002-2007, 2013-2021 Free
    Software Foundation, Inc.
 		  Written May 1989 by Mike Haertel.
 

@@ -1,5 +1,5 @@
 @c This is part of the Semantic manual.
-@c Copyright (C) 1999--2005, 2007, 2009--2020 Free Software Foundation,
+@c Copyright (C) 1999--2005, 2007, 2009--2021 Free Software Foundation,
 @c Inc.
 @c See file semantic.texi for copying conditions.
 

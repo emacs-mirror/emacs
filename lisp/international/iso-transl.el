@@ -1,6 +1,6 @@
 ;;; iso-transl.el --- keyboard input for ISO 10646 chars -*- coding: utf-8 -*-
 
-;; Copyright (C) 1987, 1993-1999, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1987, 1993-1999, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Howard Gayle

@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
 
-;; Copyright (C) 2000-2001, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2004-2021 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
@@ -407,7 +407,8 @@ Hard newlines are left intact."
 
 (defun longlines-auto-wrap (&optional arg)
   "Toggle automatic line wrapping.
-With optional argument ARG, turn on line wrapping if and only if ARG is positive.
+With optional argument ARG, turn on line wrapping if and only if
+ARG is positive.
 If automatic line wrapping is turned on, wrap the entire buffer."
   (interactive "P")
   (setq arg (if arg

@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Old-Version: 2.02
@@ -900,7 +900,8 @@ This is compatible with Common Lisp, but note that `defun' and
   "The Common Lisp `loop' macro.
 Valid clauses include:
   For clauses:
-    for VAR from/upfrom/downfrom EXPR1 to/upto/downto/above/below EXPR2 [by EXPR3]
+    for VAR from/upfrom/downfrom EXPR1 to/upto/downto/above/below EXPR2
+        [by EXPR3]
     for VAR = EXPR1 then EXPR2
     for VAR in/on/in-ref LIST [by FUNC]
     for VAR across/across-ref ARRAY
@@ -2728,7 +2729,7 @@ Each SLOT may instead take the form (SNAME SDEFAULT SOPTIONS...), where
 SDEFAULT is the default value of that slot and SOPTIONS are keyword-value
 pairs for that slot.
 Supported keywords for slots are:
-- `:read-only':  If this has a non-nil value, that slot cannot be set via `setf'.
+- `:read-only': If this has a non-nil value, that slot cannot be set via `setf'.
 - `:documentation': this is a docstring describing the slot.
 - `:type': the type of the field; currently only used for documentation.
 
@@ -3198,8 +3199,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
                  ;; FIXME: Do we really want to consider this a type?
                  (integer-or-marker . integer-or-marker-p)
                  ))
-  (put type 'cl-deftype-satisfies pred)
-  (put pred 'cl-satisfies-deftype type))
+  (put type 'cl-deftype-satisfies pred))
 
 ;;;###autoload
 (define-inline cl-typep (val type)

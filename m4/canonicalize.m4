@@ -1,6 +1,6 @@
-# canonicalize.m4 serial 34
+# canonicalize.m4 serial 35
 
-dnl Copyright (C) 2003-2007, 2009-2020 Free Software Foundation, Inc.
+dnl Copyright (C) 2003-2007, 2009-2021 Free Software Foundation, Inc.
 
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -11,7 +11,6 @@ dnl with or without modifications, as long as this notice is preserved.
 AC_DEFUN([gl_FUNC_CANONICALIZE_FILENAME_MODE],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_REQUIRE([gl_FUNC_FACCESSAT_EOVERFLOW])
   AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
   AC_CHECK_FUNCS_ONCE([canonicalize_file_name faccessat])
   AC_REQUIRE([gl_DOUBLE_SLASH_ROOT])
@@ -58,7 +57,6 @@ AC_DEFUN([gl_CANONICALIZE_LGPL],
 AC_DEFUN([gl_CANONICALIZE_LGPL_SEPARATE],
 [
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
-  AC_REQUIRE([gl_FUNC_FACCESSAT_EOVERFLOW])
   AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
   AC_CHECK_FUNCS_ONCE([canonicalize_file_name faccessat])
 

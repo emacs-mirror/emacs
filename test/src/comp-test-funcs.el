@@ -455,6 +455,14 @@
       (print x)
     (car x)))
 
+(defun comp-test-45576-f ()
+  ;; Reduced from `eshell-find-alias-function'.
+  (let ((sym (intern-soft "eval")))
+    (if (and (functionp sym)
+	     '(eshell-ls eshell-pred eshell-prompt eshell-script
+			 eshell-term eshell-unix))
+	sym)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

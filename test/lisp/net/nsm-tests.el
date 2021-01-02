@@ -1,6 +1,6 @@
 ;;; network-stream-tests.el --- tests for network security manager -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Robert Pluim <rpluim@gmail.com>
 

@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2020 Free Software
+;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Robert J. Chassell

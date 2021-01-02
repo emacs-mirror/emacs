@@ -1,6 +1,6 @@
 ;;; deuglify.el --- deuglify broken Outlook (Express) articles
 
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Raymond Scholz <rscholz@zonix.de>
 ;;         Thomas Steffen
@@ -342,7 +342,7 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
   (unless nodisplay (gnus-outlook-display-article-buffer)))
 
 (defun gnus-outlook-rearrange-article (attr-start)
-  "Put the text from ATTR-START to the end of buffer at the top of the article buffer."
+  "Put text from ATTR-START to the end of buffer at the top of the article buffer."
   ;; FIXME: 1.  (*) text/plain          ( ) text/html
   (let ((inhibit-read-only t)
 	(cite-marks gnus-outlook-deuglify-cite-marks))

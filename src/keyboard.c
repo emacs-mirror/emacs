@@ -1,6 +1,6 @@
 /* Keyboard and mouse input; editor command loop.
 
-Copyright (C) 1985-1989, 1993-1997, 1999-2020 Free Software Foundation,
+Copyright (C) 1985-1989, 1993-1997, 1999-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -3647,7 +3647,8 @@ kbd_buffer_unget_event (struct selection_input_event *event)
 #define INPUT_EVENT_POS_MAX \
   ((ptrdiff_t) min (PTRDIFF_MAX, min (TYPE_MAXIMUM (Time) / 2, \
 				      MOST_POSITIVE_FIXNUM)))
-#define INPUT_EVENT_POS_MIN (-1 - INPUT_EVENT_POS_MAX)
+#define INPUT_EVENT_POS_MIN (PTRDIFF_MIN < -INPUT_EVENT_POS_MAX \
+			     ? -1 - INPUT_EVENT_POS_MAX : PTRDIFF_MIN)
 
 /* Return a Time that encodes position POS.  POS must be in range.  */
 

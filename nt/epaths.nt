@@ -12,7 +12,7 @@
    the host system (e.g., i686-pc-mingw32), and @SRC@ by the root of
    the Emacs source tree used to build Emacs.  */
 /*
-Copyright (C) 1993, 1995, 1997, 1999, 2001-2020 Free Software
+Copyright (C) 1993, 1995, 1997, 1999, 2001-2021 Free Software
 Foundation, Inc.
 
 This file is part of GNU Emacs.

@@ -6,7 +6,7 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998--2001, 2004--2005, 2008--2020 Free Software
+Copyright @copyright{} 1998--2001, 2004--2005, 2008--2021 Free Software
 Foundation, Inc.
 
 @quotation

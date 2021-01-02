@@ -1,6 +1,6 @@
 ;;; gnus-gravatar.el --- Gnus Gravatar support -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: multimedia, news

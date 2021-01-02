@@ -1,7 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997-1998, 2000-2020 Free Software Foundation,
+## Copyright (C) 1995, 1997-1998, 2000-2021 Free Software Foundation,
 ## Inc.
 
 ## This file is part of GNU Emacs.
@@ -190,7 +190,7 @@ if [ ! "${version}" ]; then
   exit 1
 fi
 
-echo Version number is $version
+echo Version number is "$version"
 
 if [ $update = yes ]; then
   if ! grep -q "tree holds version  *${version}" README; then
@@ -257,8 +257,8 @@ if [ $check = yes ]; then
   bogosities=
   while read elc; do
       el=`echo $elc | sed 's/c$//'`
-      [ -r $el ] || continue
-      [ $elc -nt $el ] || bogosities="$bogosities $elc"
+      [ -r "$el" ] || continue
+      [ "$elc" -nt "$el" ] || bogosities="$bogosities $elc"
   done < $temp_elc
 
   if [ x"${bogosities}" != x"" ]; then
@@ -271,7 +271,7 @@ if [ $check = yes ]; then
 
   bogosities=
   for file in $losers; do
-    grep -q "^;.*no-byte-compile: t" $file && continue
+    grep -q "^;.*no-byte-compile: t" "$file" && continue
     case $file in
       site-init.el | site-load.el | site-start.el | default.el) continue ;;
     esac
@@ -295,8 +295,8 @@ if [ $check = yes ]; then
       info=`sed -n 's/^@setfilename //p' $texi | sed 's|.*info/||'`
       [ x"${info}" != x"" ] || continue
       info=info/$info
-      [ -r $info ] || continue
-      [ $info -nt $texi ] || bogosities="$bogosities $info"
+      [ -r "$info" ] || continue
+      [ "$info" -nt "$texi" ] || bogosities="$bogosities $info"
   done < $temp_el
 
   rm -f $temp_el
@@ -424,7 +424,7 @@ if [ $verbose = yes ] && (mkdir --verbose ${tempdir}) >/dev/null 2>&1; then
   mkdir_verbose='mkdir --verbose'
 else
   mkdir $tempdir || exit
-  mkdir_verbose=mkdir
+  mkdir_verbose="mkdir"
 fi
 
 # file_to_skip is normally empty to link every file,
@@ -467,7 +467,7 @@ while read file; do
   case $file in
     MANIFEST) ln $manifest $tempdir/MANIFEST || exit ;;
     $file_to_skip) continue ;;
-    *) ln $file $tempdir/$file || exit ;;
+    *) ln "$file" $tempdir/"$file" || exit ;;
   esac
 done <$manifest
 
@@ -476,7 +476,7 @@ if [ "${newer}" ]; then
   ## We remove .elc files unconditionally, on the theory that anyone picking
   ## up an incremental distribution already has a running Emacs to byte-compile
   ## them with.
-  find ${tempdir} \( -name '*.elc' -o ! -newer ${newer} \) \
+  find ${tempdir} \( -name '*.elc' -o ! -newer "${newer}" \) \
     -exec rm -f {} \; || exit
 fi
 
@@ -487,12 +487,12 @@ if [ "${make_tar}" = yes ]; then
     sed -e 's/^:/.:/' -e 's/::/:.:/g' -e 's/:$/:./' -e 's/:/ /g'
   `
   for dir in ${temppath}; do
-    [ -x ${dir}/$default_gzip ] || continue
+    [ -x "${dir}"/$default_gzip ] || continue
     found=1; break
   done
   if [ "$found" = "0" ]; then
     echo "WARNING: '$default_gzip' not found, will not compress" >&2
-    default_gzip=cat
+    default_gzip="cat"
   fi
   case "${default_gzip}" in
     bzip2) gzip_extension=.bz2 ;;
@@ -518,7 +518,7 @@ if [ "${make_tar}" = yes ]; then
 	  $default_gzip <$emacsname.tar
         fi;;
    esac
-  ) >$emacsname.tar$gzip_extension || exit
+  ) >$emacsname.tar"$gzip_extension" || exit
 fi
 
 ## Why are we deleting the staging directory if clean_up is no?

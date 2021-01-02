@@ -1,6 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2003-2005, 2007-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2003-2005, 2007-2021 Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: emacs-devel@gnu.org

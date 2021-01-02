@@ -1,6 +1,6 @@
 ;;; dns-mode-tests.el --- Test suite for dns-mode  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2017-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 
 ;; Author: Peder O. Klingenberg <peder@klingenberg.no>
 ;; Keywords: dns zone

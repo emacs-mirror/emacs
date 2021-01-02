@@ -1,6 +1,6 @@
 ;;; align.el --- align text to a specific column, by regexp -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org
@@ -397,13 +397,12 @@ The possible settings for `align-region-separate' are:
      (modes    . align-lisp-modes))
 
     (open-comment
-     (regexp   . ,(function
-		   (lambda (end reverse)
-		     (funcall (if reverse 're-search-backward
-				're-search-forward)
-			      (concat "[^ \t\n\\]"
-				      (regexp-quote comment-start)
-				      "\\(.+\\)$") end t))))
+     (regexp   . ,(lambda (end reverse)
+                    (funcall (if reverse 're-search-backward
+                               're-search-forward)
+                             (concat "[^ \t\n\\]"
+                                     (regexp-quote comment-start)
+                                     "\\(.+\\)$") end t)))
      (modes    . align-open-comment-modes))
 
     (c-macro-definition
@@ -411,7 +410,7 @@ The possible settings for `align-region-separate' are:
      (modes    . align-c++-modes))
 
     (c-variable-declaration
-     (regexp   . ,(concat "[*&0-9A-Za-z_]>?[&*]*\\(\\s-+[*&]*\\)"
+     (regexp   . ,(concat "[*&0-9A-Za-z_]>?[][&*]*\\(\\s-+[*&]*\\)"
 			  "[A-Za-z_][][0-9A-Za-z:_]*\\s-*\\(\\()\\|"
 			  "=[^=\n].*\\|(.*)\\|\\(\\[.*\\]\\)*\\)"
 			  "\\s-*[;,]\\|)\\s-*$\\)"))
@@ -419,17 +418,16 @@ The possible settings for `align-region-separate' are:
      (modes    . align-c++-modes)
      (justify  . t)
      (valid
-      . ,(function
-	  (lambda ()
-	    (not (or (save-excursion
-		       (goto-char (match-beginning 1))
-		       (backward-word 1)
-		       (looking-at
-			"\\(goto\\|return\\|new\\|delete\\|throw\\)"))
-		     (if (and (boundp 'font-lock-mode) font-lock-mode)
-			 (eq (get-text-property (point) 'face)
-			     'font-lock-comment-face)
-		       (eq (caar (c-guess-basic-syntax)) 'c))))))))
+      . ,(lambda ()
+           (not (or (save-excursion
+                      (goto-char (match-beginning 1))
+                      (backward-word 1)
+                      (looking-at
+                       "\\(goto\\|return\\|new\\|delete\\|throw\\)"))
+                    (if (and (boundp 'font-lock-mode) font-lock-mode)
+                        (eq (get-text-property (point) 'face)
+                            'font-lock-comment-face)
+                      (eq (caar (c-guess-basic-syntax)) 'c)))))))
 
     (c-assignment
      (regexp   . ,(concat "[^-=!^&*+<>/| \t\n]\\(\\s-*[-=!^&*+<>/|]*\\)"
@@ -465,12 +463,11 @@ The possible settings for `align-region-separate' are:
      (modes    . align-c++-modes)
      (run-if   . ,(lambda () current-prefix-arg)))
 					;      (valid
-					;       . ,(function
-					;	  (lambda ()
+                                        ;       . ,(lambda ()
 					;	    (memq (caar (c-guess-basic-syntax))
 					;		  '(brace-list-intro
 					;		    brace-list-entry
-					;		    brace-entry-open))))))
+                                        ;		    brace-entry-open)))))
 
     ;; With a prefix argument, comma delimiter will be aligned.  Since
     ;; perl-mode doesn't give us enough syntactic information (and we
@@ -486,71 +483,63 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\(\\s-*\\)\\(//.*\\|/\\*.*\\*/\\s-*\\)$")
      (modes    . align-c++-modes)
      (column   . comment-column)
-     (valid    . ,(function
-		   (lambda ()
-		     (save-excursion
-		       (goto-char (match-beginning 1))
-		       (not (bolp)))))))
+     (valid    . ,(lambda ()
+                    (save-excursion
+                      (goto-char (match-beginning 1))
+                      (not (bolp))))))
 
     (c-chain-logic
      (regexp   . "\\(\\s-*\\)\\(&&\\|||\\|\\<and\\>\\|\\<or\\>\\)")
      (modes    . align-c++-modes)
-     (valid    . ,(function
-		   (lambda ()
-		     (save-excursion
-		       (goto-char (match-end 2))
-		       (looking-at "\\s-*\\(/[*/]\\|$\\)"))))))
+     (valid    . ,(lambda ()
+                    (save-excursion
+                      (goto-char (match-end 2))
+                      (looking-at "\\s-*\\(/[*/]\\|$\\)")))))
 
     (perl-chain-logic
      (regexp   . "\\(\\s-*\\)\\(&&\\|||\\|\\<and\\>\\|\\<or\\>\\)")
      (modes    . align-perl-modes)
-     (valid    . ,(function
-		   (lambda ()
-		     (save-excursion
-		       (goto-char (match-end 2))
-		       (looking-at "\\s-*\\(#\\|$\\)"))))))
+     (valid    . ,(lambda ()
+                    (save-excursion
+                      (goto-char (match-end 2))
+                      (looking-at "\\s-*\\(#\\|$\\)")))))
 
     (python-chain-logic
      (regexp   . "\\(\\s-*\\)\\(\\<and\\>\\|\\<or\\>\\)")
      (modes    . '(python-mode))
-     (valid    . ,(function
-		   (lambda ()
-		     (save-excursion
-		       (goto-char (match-end 2))
-		       (looking-at "\\s-*\\(#\\|$\\|\\\\\\)"))))))
+     (valid    . ,(lambda ()
+                    (save-excursion
+                      (goto-char (match-end 2))
+                      (looking-at "\\s-*\\(#\\|$\\|\\\\\\)")))))
 
     (c-macro-line-continuation
      (regexp   . "\\(\\s-*\\)\\\\$")
      (modes    . align-c++-modes)
      (column   . c-backslash-column))
 					;      (valid
-					;       . ,(function
-					;	  (lambda ()
+                                        ;       . ,(lambda ()
 					;	    (memq (caar (c-guess-basic-syntax))
-					;		  '(cpp-macro cpp-macro-cont))))))
+                                        ;		  '(cpp-macro cpp-macro-cont)))))
 
     (basic-line-continuation
      (regexp   . "\\(\\s-*\\)\\\\$")
      (modes    . '(python-mode makefile-mode)))
 
     (tex-record-separator
-     (regexp . ,(function
-		 (lambda (end reverse)
-		   (align-match-tex-pattern "&" end reverse))))
+     (regexp . ,(lambda (end reverse)
+                  (align-match-tex-pattern "&" end reverse)))
      (group    . (1 2))
      (modes    . align-tex-modes)
      (repeat   . t))
 
     (tex-tabbing-separator
-     (regexp   . ,(function
-		   (lambda (end reverse)
-		     (align-match-tex-pattern "\\\\[=>]" end reverse))))
+     (regexp   . ,(lambda (end reverse)
+                    (align-match-tex-pattern "\\\\[=>]" end reverse)))
      (group    . (1 2))
      (modes    . align-tex-modes)
      (repeat   . t)
-     (run-if   . ,(function
-		   (lambda ()
-		     (eq major-mode 'latex-mode)))))
+     (run-if   . ,(lambda ()
+                    (eq major-mode 'latex-mode))))
 
     (tex-record-break
      (regexp   . "\\(\\s-*\\)\\\\\\\\")
@@ -563,10 +552,9 @@ The possible settings for `align-region-separate' are:
      (group    . 2)
      (modes    . align-text-modes)
      (repeat   . t)
-     (run-if   . ,(function
-		   (lambda ()
-		     (and current-prefix-arg
-			  (not (eq '- current-prefix-arg)))))))
+     (run-if   . ,(lambda ()
+                    (and current-prefix-arg
+                         (not (eq '- current-prefix-arg))))))
 
     ;; With a negative prefix argument, lists of dollar figures will
     ;; be aligned.
@@ -574,9 +562,8 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\$?\\(\\s-+[0-9]+\\)\\.")
      (modes    . align-text-modes)
      (justify  . t)
-     (run-if   . ,(function
-		   (lambda ()
-		     (eq '- current-prefix-arg)))))
+     (run-if   . ,(lambda ()
+                    (eq '- current-prefix-arg))))
 
     (css-declaration
      (regexp . "^\\s-*\\(?:\\w-?\\)+:\\(\\s-*\\).*;")
@@ -757,13 +744,12 @@ The following attributes are meaningful:
 
     (exc-open-comment
      (regexp
-      . ,(function
-	  (lambda (end reverse)
-	    (funcall (if reverse 're-search-backward
-		       're-search-forward)
-		     (concat "[^ \t\n\\]"
-			     (regexp-quote comment-start)
-			     "\\(.+\\)$") end t))))
+      . ,(lambda (end reverse)
+           (funcall (if reverse 're-search-backward
+                      're-search-forward)
+                    (concat "[^ \t\n\\]"
+                            (regexp-quote comment-start)
+                            "\\(.+\\)$") end t)))
      (modes  . align-open-comment-modes))
 
     (exc-c-comment
@@ -817,10 +803,9 @@ See the variable `align-exclude-rules-list' for more details.")
      (regexp   . "\\(others\\|[^ \t\n=<]\\)\\(\\s-*\\)=>\\(\\s-*\\)\\S-")
      (group    . (2 3))
      (valid
-      . ,(function
-	  (lambda ()
-	    (not (string= (downcase (match-string 1))
-			  "others"))))))
+      . ,(lambda ()
+           (not (string= (downcase (match-string 1))
+                         "others")))))
 
     (vhdl-colon
      (regexp   . "[^ \t\n:]\\(\\s-*\\):\\(\\s-*\\)[^=\n]")
@@ -1022,21 +1007,20 @@ to be colored."
 		 (or align-mode-rules-list align-rules-list)))
      (unless ex-rule (or exclude-rules align-mode-exclude-rules-list
 			 align-exclude-rules-list))
-     (function
-      (lambda (b e mode)
-	(if (and mode (listp mode))
-	    (if (equal (symbol-name (car mode)) title)
-		(setq face (cons align-highlight-change-face
-				 align-highlight-nochange-face))
-	      (setq face nil))
-	  (when face
-	    (let ((overlay (make-overlay b e)))
-	      (setq align-highlight-overlays
-		    (cons overlay align-highlight-overlays))
-	      (overlay-put overlay 'face
-			   (if mode
-			       (car face)
-			     (cdr face)))))))))))
+     (lambda (b e mode)
+       (if (and mode (listp mode))
+           (if (equal (symbol-name (car mode)) title)
+               (setq face (cons align-highlight-change-face
+                                align-highlight-nochange-face))
+             (setq face nil))
+         (when face
+           (let ((overlay (make-overlay b e)))
+             (setq align-highlight-overlays
+                   (cons overlay align-highlight-overlays))
+             (overlay-put overlay 'face
+                          (if mode
+                              (car face)
+                            (cdr face))))))))))
 
 ;;;###autoload
 (defun align-unhighlight-rule ()

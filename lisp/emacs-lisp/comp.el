@@ -500,6 +500,51 @@ Useful to hook into pass checkers.")
    finally return h)
   "Hash table function -> `comp-constraint'")
 
+(defconst comp-known-predicates
+  '((arrayp              . array)
+    (atom		 . atom)
+    (characterp          . fixnum)
+    (booleanp            . boolean)
+    (bool-vector-p       . bool-vector)
+    (bufferp             . buffer)
+    (natnump             . (integer 0 *))
+    (char-table-p	 . char-table)
+    (hash-table-p	 . hash-table)
+    (consp               . cons)
+    (integerp            . integer)
+    (floatp              . float)
+    (functionp           . (or function symbol))
+    (integerp            . integer)
+    (keywordp            . keyword)
+    (listp               . list)
+    (numberp             . number)
+    (null		 . null)
+    (numberp             . number)
+    (sequencep           . sequence)
+    (stringp             . string)
+    (symbolp             . symbol)
+    (vectorp             . vector)
+    (integer-or-marker-p . integer-or-marker))
+  "Alist predicate -> matched type specifier.")
+
+(defconst comp-known-predicates-h
+  (cl-loop
+   with comp-ctxt = (make-comp-cstr-ctxt)
+   with h = (make-hash-table :test #'eq)
+   for (pred . type-spec) in comp-known-predicates
+   for cstr = (comp-type-spec-to-cstr type-spec)
+   do (puthash pred cstr h)
+   finally return h)
+  "Hash table function -> `comp-constraint'")
+
+(defun comp-known-predicate-p (predicate)
+  "Predicate matching if PREDICATE is known."
+  (when (gethash predicate comp-known-predicates-h) t))
+
+(defun comp-pred-to-cstr (predicate)
+  "Given PREDICATE return the correspondig constraint."
+  (gethash predicate comp-known-predicates-h))
+
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
                                            most-negative-fixnum)
   "Symbol values we can resolve in the compile-time.")
@@ -627,7 +672,7 @@ This is typically for top-level forms other than defun.")
             :documentation "List of incoming edges.")
   (out-edges () :type list
              :documentation "List of out-coming edges.")
-  (dom nil :type (or null comp-block)
+  (idom nil :type (or null comp-block)
         :documentation "Immediate dominator.")
   (df (make-hash-table) :type (or null hash-table)
       :documentation "Dominance frontier set. Block-name -> block")
@@ -2329,10 +2374,6 @@ TARGET-BB-SYM is the symbol name of the target block."
           (comp-emit-assume 'and obj1 obj2 block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
 
-(defun comp-known-predicate-p (pred)
-  (when (symbolp pred)
-    (get pred 'cl-satisfies-deftype)))
-
 (defun comp-add-cond-cstrs ()
   "`comp-add-cstrs' worker function for each selected function."
   (cl-loop
@@ -2568,7 +2609,7 @@ blocks."
    for b being each hash-value of (comp-func-blocks f)
    do (setf (comp-block-in-edges b) ()
             (comp-block-out-edges b) ()
-            (comp-block-dom b) nil
+            (comp-block-idom b) nil
             (comp-block-df b) (make-hash-table)
             (comp-block-post-num b) nil
             (comp-block-final-frame b) nil
@@ -2637,14 +2678,14 @@ blocks."
                     (finger2 (comp-block-post-num b2)))
                 (while (not (= finger1 finger2))
                   (while (< finger1 finger2)
-                    (setf b1 (comp-block-dom b1)
+                    (setf b1 (comp-block-idom b1)
                           finger1 (comp-block-post-num b1)))
                   (while (< finger2 finger1)
-                    (setf b2 (comp-block-dom b2)
+                    (setf b2 (comp-block-idom b2)
                           finger2 (comp-block-post-num b2))))
                 b1))
             (first-processed (l)
-              (if-let ((p (cl-find-if (lambda (p) (comp-block-dom p)) l)))
+              (if-let ((p (cl-find-if (lambda (p) (comp-block-idom p)) l)))
                   p
                 (signal 'native-ice "cant't find first preprocessed"))))
 
@@ -2658,7 +2699,7 @@ blocks."
        while changed
        initially (progn
                    (comp-log "Computing dominator tree...\n" 2)
-                   (setf (comp-block-dom entry) entry)
+                   (setf (comp-block-idom entry) entry)
                    ;; Set the post order number.
                    (cl-loop for name in (reverse rev-bb-list)
                             for b = (gethash name blocks)
@@ -2671,10 +2712,10 @@ blocks."
            for new-idom = (first-processed preds)
            initially (setf changed nil)
            do (cl-loop for p in (delq new-idom preds)
-                       when (comp-block-dom p)
+                       when (comp-block-idom p)
                        do (setf new-idom (intersect p new-idom)))
-           unless (eq (comp-block-dom b) new-idom)
-           do (setf (comp-block-dom b) (unless (and (comp-block-lap-p new-idom)
+           unless (eq (comp-block-idom b) new-idom)
+           do (setf (comp-block-idom b) (unless (and (comp-block-lap-p new-idom)
                                                     (comp-block-lap-no-ret
                                                      new-idom))
                                          new-idom)
@@ -2691,14 +2732,14 @@ blocks."
            when (>= (length preds) 2) ; All joins
            do (cl-loop for p in preds
                        for runner = p
-                       do (while (not (eq runner (comp-block-dom b)))
+                       do (while (not (eq runner (comp-block-idom b)))
                             (puthash b-name b (comp-block-df runner))
-                            (setf runner (comp-block-dom runner))))))
+                            (setf runner (comp-block-idom runner))))))
 
 (defun comp-log-block-info ()
   "Log basic blocks info for the current function."
   (maphash (lambda (name bb)
-             (let ((dom (comp-block-dom bb))
+             (let ((dom (comp-block-idom bb))
                    (df (comp-block-df bb)))
                (comp-log (format "block: %s idom: %s DF %s\n"
                                  name
@@ -2756,7 +2797,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
   (when-let ((out-edges (comp-block-out-edges bb)))
     (cl-loop for ed in out-edges
              for child = (comp-edge-dst ed)
-             when (eq bb (comp-block-dom child))
+             when (eq bb (comp-block-idom child))
              ;; Current block is the immediate dominator then recur.
              do (comp-dom-tree-walker child pre-lambda post-lambda)))
   (when post-lambda
@@ -2840,7 +2881,7 @@ Return t when one or more block was removed, nil otherwise."
    for bb being each hash-value of (comp-func-blocks comp-func)
    for bb-name = (comp-block-name bb)
    when (and (not (eq 'entry bb-name))
-             (null (comp-block-dom bb)))
+             (null (comp-block-idom bb)))
    do
    (comp-log (format "Removing block: %s" bb-name) 1)
    (remhash bb-name (comp-func-blocks comp-func))

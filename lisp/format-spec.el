@@ -1,6 +1,6 @@
 ;;; format-spec.el --- format arbitrary formatting strings -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: tools
@@ -25,7 +25,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defun format-spec (format specification &optional ignore-missing)
+(defun format-spec (format specification &optional ignore-missing split)
   "Return a string based on FORMAT and SPECIFICATION.
 FORMAT is a string containing `format'-like specs like \"su - %u %k\".
 SPECIFICATION is an alist mapping format specification characters
@@ -68,50 +68,65 @@ error; if it is the symbol `ignore', leave those %-specs verbatim
 in the result, including their text properties, if any; if it is
 the symbol `delete', remove those %-specs from the result;
 otherwise do the same as for the symbol `ignore', but also leave
-any occurrences of \"%%\" in FORMAT verbatim in the result."
+any occurrences of \"%%\" in FORMAT verbatim in the result.
+
+If SPLIT, instead of returning a single string, a list of strings
+is returned, where each format spec is its own element."
   (with-temp-buffer
-    (insert format)
-    (goto-char (point-min))
-    (while (search-forward "%" nil t)
-      (cond
-       ;; Quoted percent sign.
-       ((= (following-char) ?%)
-        (when (memq ignore-missing '(nil ignore delete))
-          (delete-char 1)))
-       ;; Valid format spec.
-       ((looking-at (rx (? (group (+ (in " 0<>^_-"))))
-                        (? (group (+ digit)))
-                        (? (group ?. (+ digit)))
-                        (group alpha)))
-        (let* ((beg (point))
-               (end (match-end 0))
-               (flags (match-string 1))
-               (width (match-string 2))
-               (trunc (match-string 3))
-               (char (string-to-char (match-string 4)))
-               (text (assq char specification)))
-          (cond (text
-                 ;; Handle flags.
-                 (setq text (format-spec--do-flags
-                             (format "%s" (cdr text))
-                             (format-spec--parse-flags flags)
-                             (and width (string-to-number width))
-                             (and trunc (car (read-from-string trunc 1)))))
-                 ;; Insert first, to preserve text properties.
-                 (insert-and-inherit text)
-                 ;; Delete the specifier body.
-                 (delete-region (point) (+ end (length text)))
-                 ;; Delete the percent sign.
-                 (delete-region (1- beg) beg))
-                ((eq ignore-missing 'delete)
-                 ;; Delete the whole format spec.
-                 (delete-region (1- beg) end))
-                ((not ignore-missing)
-                 (error "Invalid format character: `%%%c'" char)))))
-       ;; Signal an error on bogus format strings.
-       ((not ignore-missing)
-        (error "Invalid format string"))))
-    (buffer-string)))
+    (let ((split-start (point-min))
+          (split-result nil))
+      (insert format)
+      (goto-char (point-min))
+      (while (search-forward "%" nil t)
+        (cond
+         ;; Quoted percent sign.
+         ((= (following-char) ?%)
+          (when (memq ignore-missing '(nil ignore delete))
+            (delete-char 1)))
+         ;; Valid format spec.
+         ((looking-at (rx (? (group (+ (in " 0<>^_-"))))
+                          (? (group (+ digit)))
+                          (? (group ?. (+ digit)))
+                          (group alpha)))
+          (let* ((beg (point))
+                 (end (match-end 0))
+                 (flags (match-string 1))
+                 (width (match-string 2))
+                 (trunc (match-string 3))
+                 (char (string-to-char (match-string 4)))
+                 (text (assq char specification)))
+            (when (and split
+                       (not (= (1- beg) split-start)))
+              (push (buffer-substring split-start (1- beg)) split-result))
+            (cond (text
+                   ;; Handle flags.
+                   (setq text (format-spec--do-flags
+                               (format "%s" (cdr text))
+                               (format-spec--parse-flags flags)
+                               (and width (string-to-number width))
+                               (and trunc (car (read-from-string trunc 1)))))
+                   ;; Insert first, to preserve text properties.
+                   (insert-and-inherit text)
+                   ;; Delete the specifier body.
+                   (delete-region (point) (+ end (length text)))
+                   ;; Delete the percent sign.
+                   (delete-region (1- beg) beg))
+                  ((eq ignore-missing 'delete)
+                   ;; Delete the whole format spec.
+                   (delete-region (1- beg) end))
+                  ((not ignore-missing)
+                   (error "Invalid format character: `%%%c'" char)))
+            (when split
+              (push (buffer-substring (1- beg) (point)) split-result)
+              (setq split-start (point)))))
+         ;; Signal an error on bogus format strings.
+         ((not ignore-missing)
+          (error "Invalid format string"))))
+      (if (not split)
+          (buffer-string)
+        (unless (= split-start (point-max))
+          (push (buffer-substring split-start (point-max)) split-result))
+        (nreverse split-result)))))
 
 (defun format-spec--do-flags (str flags width trunc)
   "Return STR formatted according to FLAGS, WIDTH, and TRUNC.

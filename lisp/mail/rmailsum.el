@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985, 1993-1996, 2000-2020 Free Software Foundation,
+;; Copyright (C) 1985, 1993-1996, 2000-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
@@ -786,6 +786,11 @@ the message being processed."
 		 ;; To: =?UTF-8?Q?=C5=A0t=C4=9Bp=C3=A1n_?= =?UTF-8?Q?N=C4=9Bmec?=
 		 ;; <stepnem@gmail.com>
 		 (setq from (rfc2047-decode-string from))
+                 ;; We cannot tolerate any leftover newlines in From,
+                 ;; as that disrupts the rmail-summary display.
+                 ;; Newlines can be left in From if it was malformed,
+                 ;; e.g. had unbalanced quotes.
+                 (setq from (replace-regexp-in-string "\n+" " " from))
 		 (setq len (length from))
 		 (setq mch (string-match "[@%]" from))
 		 (format "%25s"

@@ -1,6 +1,6 @@
 ;; erc-replace.el -- wash and massage messages inserted into the buffer
 
-;; Copyright (C) 2001-2002, 2004, 2006-2020 Free Software Foundation,
+;; Copyright (C) 2001-2002, 2004, 2006-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>

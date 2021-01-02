@@ -1,5 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993-1994, 2000-2020 Free Software Foundation,
+   Copyright (C) 1990, 1993-1994, 2000-2021 Free Software Foundation,
    Inc.
 
 Author: Joseph Arceneaux

@@ -1,6 +1,6 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1991-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1991-2021 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -6533,7 +6533,7 @@ Does not move point."
 (defun cperl-add-tags-recurse-noxs ()
   "Add to TAGS data for \"pure\" Perl files in the current directory and kids.
 Use as
-  emacs -batch -q -no-site-file -l emacs/cperl-mode.el \
+  emacs -batch -q -no-site-file -l emacs/cperl-mode.el \\
         -f cperl-add-tags-recurse-noxs
 "
   (cperl-write-tags nil nil t t nil t))
@@ -6542,7 +6542,7 @@ Use as
   "Add to TAGS data for \"pure\" Perl in the current directory and kids.
 Writes down fullpath, so TAGS is relocatable (but if the build directory
 is relocated, the file TAGS inside it breaks). Use as
-  emacs -batch -q -no-site-file -l emacs/cperl-mode.el \
+  emacs -batch -q -no-site-file -l emacs/cperl-mode.el \\
         -f cperl-add-tags-recurse-noxs-fullpath
 "
   (cperl-write-tags nil nil t t nil t ""))
@@ -6550,7 +6550,7 @@ is relocated, the file TAGS inside it breaks). Use as
 (defun cperl-add-tags-recurse ()
   "Add to TAGS file data for Perl files in the current directory and kids.
 Use as
-  emacs -batch -q -no-site-file -l emacs/cperl-mode.el \
+  emacs -batch -q -no-site-file -l emacs/cperl-mode.el \\
         -f cperl-add-tags-recurse
 "
   (cperl-write-tags nil nil t t))

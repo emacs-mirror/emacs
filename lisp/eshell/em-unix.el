@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1999-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -169,7 +169,8 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   `info'           => goes to top info window
   `info arg1'      => IF arg1 is a file, then visits arg1
   `info arg1'      => OTHERWISE goes to top info window and then menu item arg1
-  `info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and then menu item arg2
+  `info arg1 arg2' => does action for arg1 (either visit-file or menu-item) and
+                      then menu item arg2
   etc."
   (eval-and-compile (require 'info))
   (let ((file (cond
