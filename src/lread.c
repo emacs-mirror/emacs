@@ -2958,8 +2958,8 @@ read_integer (Lisp_Object readcharfun, int radix,
 
 Lisp_Object oblookup_considering_shorthand
 (Lisp_Object obarray,
- register const char  *in,  ptrdiff_t  size,     ptrdiff_t  size_byte,
-                char **out, ptrdiff_t *size_out, ptrdiff_t *size_byte_out);
+ const char *in, ptrdiff_t size, ptrdiff_t size_byte,
+ char **out, ptrdiff_t *size_out, ptrdiff_t *size_byte_out);
 
 /* If the next token is ')' or ']' or '.', we store that character
    in *PCH and the return value is not interesting.  Else, we store
@@ -3807,7 +3807,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		  = make_specified_string (longhand, longhand_chars,
 					   longhand_bytes,
 					   multibyte);
-		free(longhand);
+		xfree (longhand);
 		result = intern_driver (name, obarray, tem);
 	      } else {
 		Lisp_Object name
@@ -4439,7 +4439,7 @@ it defaults to the value of `obarray'.  */)
 	  tem = intern_driver (make_specified_string (longhand, longhand_chars,
 						      longhand_bytes, true),
 			       obarray, tem);
-	  xfree(longhand);
+	  xfree (longhand);
 	}
       else
 	{
@@ -4474,7 +4474,7 @@ it defaults to the value of `obarray'.  */)
       tem = oblookup_considering_shorthand
 	(obarray, SSDATA (string), SCHARS (string), SBYTES (string),
 	 &longhand, &longhand_chars, &longhand_bytes);
-      if (longhand) free(longhand);
+      if (longhand) xfree (longhand);
       if (FIXNUMP (tem)) return Qnil; else return tem;
     }
   else
@@ -4609,45 +4609,62 @@ oblookup (Lisp_Object obarray, register const char *ptr, ptrdiff_t size, ptrdiff
 
 /* Like oblookup, but considers Velisp_shorthands, potentially
    transforming the symbol name coded in IN into a longhand version
-   that is potentially placed in OUT.  If a shorthand-to-longhand
-   substitution occurs, memory is malloc'ed for OUT (which the caller
-   must free) while SIZE_OUT and SIZE_BYTE_OUT respectively hold the
-   character and byte sizes of the transformed symbol name. */
+   that is placed in OUT.  It no such substitution occurs, OUT is set
+   to point to NULL.  Else, memory is malloc'ed for OUT (which the
+   caller must free) while SIZE_OUT and SIZE_BYTE_OUT respectively
+   hold the character and byte sizes of the transformed symbol
+   name. */
 
 Lisp_Object
 oblookup_considering_shorthand
 (Lisp_Object obarray,
- register const char  *in,  ptrdiff_t  size,     ptrdiff_t  size_byte,
-                char **out, ptrdiff_t *size_out, ptrdiff_t *size_byte_out)
+ const char *in, ptrdiff_t size, ptrdiff_t size_byte,
+ char **out, ptrdiff_t *size_out, ptrdiff_t *size_byte_out)
 {
+  // First, assume no transformation will take place.
   *out = NULL;
   Lisp_Object tail = Velisp_shorthands;
-  FOR_EACH_TAIL_SAFE(tail)
+  // Then, iterate each pair in Velisp_shorthands.
+  FOR_EACH_TAIL_SAFE (tail)
     {
       Lisp_Object pair = XCAR (tail);
+      // Be lenient to Velisp_shorthands: if some element isn't a cons
+      // or some member of that cons isn't a string, just skip to the
+      // next element.
       if (!CONSP (pair)) continue;
       Lisp_Object sh_prefix = XCAR (pair);
       Lisp_Object lh_prefix = XCDR (pair);
       if (!STRINGP (sh_prefix) || !STRINGP (lh_prefix)) continue;
-      ptrdiff_t sh_prefix_size = SBYTES(sh_prefix);
+      ptrdiff_t sh_prefix_size = SBYTES (sh_prefix);
 
+      // Compare the prefix of the transformation pair to the symbol
+      // name.  If a match occurs, do the renaming and exit the loop.
+      // In other words, only one such transformation may take place.
+      // Calculate the amount of memory to allocate for the longhand
+      // version of the symbol name with realloc().  This isn't
+      // strictly needed, but it could later be used as a way for
+      // multiple transformations on a single symbol name.
       if (sh_prefix_size <= size_byte &&
 	  memcmp(SSDATA(sh_prefix), in, sh_prefix_size) == 0)
 	{
-	  ptrdiff_t lh_prefix_size = SBYTES(lh_prefix);
+	  ptrdiff_t lh_prefix_size = SBYTES (lh_prefix);
 	  ptrdiff_t suffix_size = size_byte - sh_prefix_size;
-	  *out = xrealloc(*out, lh_prefix_size + suffix_size);
-	  memcpy(*out, SSDATA(lh_prefix), lh_prefix_size);
-	  memcpy(*out + lh_prefix_size, in + sh_prefix_size, suffix_size);
-	  *size_out = SCHARS (lh_prefix) - SCHARS(sh_prefix) + size;
+	  *out = xrealloc (*out, lh_prefix_size + suffix_size);
+	  memcpy (*out, SSDATA(lh_prefix), lh_prefix_size);
+	  memcpy (*out + lh_prefix_size, in + sh_prefix_size, suffix_size);
+	  *size_out = SCHARS (lh_prefix) - SCHARS (sh_prefix) + size;
 	  *size_byte_out = lh_prefix_size + suffix_size;
 	  break;
 	}
     }
+  // Now, as promised, call oblookup() with the "final" symbol name to
+  // lookup.  That function remains oblivious to whether a
+  // transformation happened here or not, but the caller of this
+  // function can tell by inspecting the OUT parameter.
   if (*out)
-    return oblookup(obarray, *out, *size_out, *size_byte_out);
+    return oblookup (obarray, *out, *size_out, *size_byte_out);
   else
-    return oblookup(obarray, in, size, size_byte);
+    return oblookup (obarray, in, size, size_byte);
 }
 
 
