@@ -2569,23 +2569,52 @@ It can be retrieved with `(process-get PROCESS PROPNAME)'."
 
 ;;;; Input and display facilities.
 
-(defconst read-key-empty-map (make-sparse-keymap))
+;; The following maps are used by `read-key' to remove all key
+;; bindings while calling `read-key-sequence'.  This way the keys
+;; returned are independent of the key binding state.
+
+(defconst read-key-empty-map (make-sparse-keymap)
+  "Used internally by `read-key'.")
+
+(defconst read-key-full-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [t] 'dummy)
+
+    ;; ESC needs to be unbound so that escape sequences in
+    ;; `input-decode-map' are still processed by `read-key-sequence'.
+    (define-key map [?\e] nil)
+    map)
+  "Used internally by `read-key'.")
 
 (defvar read-key-delay 0.01) ;Fast enough for 100Hz repeat rate, hopefully.
 
-(defun read-key (&optional prompt)
+(defun read-key (&optional prompt disable-fallbacks)
   "Read a key from the keyboard.
 Contrary to `read-event' this will not return a raw event but instead will
 obey the input decoding and translations usually done by `read-key-sequence'.
 So escape sequences and keyboard encoding are taken into account.
 When there's an ambiguity because the key looks like the prefix of
-some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
+some sort of escape sequence, the ambiguity is resolved via `read-key-delay'.
+
+If the optional argument PROMPT is non-nil, display that as a
+prompt.
+
+If the optional argument DISABLE-FALLBACKS is non-nil, all
+unbound fallbacks usually done by `read-key-sequence' are
+disabled such as discarding mouse down events.  This is generally
+what you want as `read-key' temporarily removes all bindings
+while calling `read-key-sequence'.  If nil or unspecified, the
+only unbound fallback disabled is downcasing of the last event."
   ;; This overriding-terminal-local-map binding also happens to
   ;; disable quail's input methods, so although read-key-sequence
   ;; always inherits the input method, in practice read-key does not
   ;; inherit the input method (at least not if it's based on quail).
   (let ((overriding-terminal-local-map nil)
-	(overriding-local-map read-key-empty-map)
+	(overriding-local-map
+         ;; FIXME: Audit existing uses of `read-key' to see if they
+         ;; should always specify disable-fallbacks to be more in line
+         ;; with `read-event'.
+         (if disable-fallbacks read-key-full-map read-key-empty-map))
         (echo-keystrokes 0)
 	(old-global-map (current-global-map))
         (timer (run-with-idle-timer
@@ -2638,6 +2667,23 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
       ;; (bug#22714).  So, let's mimic the behavior of `read-event'.
       (message nil)
       (use-global-map old-global-map))))
+
+;; FIXME: Once there's a safe way to transition away from read-event,
+;; callers to this function should be updated to that way and this
+;; function should be deleted.
+(defun read--potential-mouse-event ()
+    "Read an event that might be a mouse event.
+
+This function exists for backward compatibility in code packaged
+with Emacs.  Do not call it directly in your own packages."
+    ;; `xterm-mouse-mode' events must go through `read-key' as they
+    ;; are decoded via `input-decode-map'.
+    (if xterm-mouse-mode
+        (read-key nil
+                  ;; Normally `read-key' discards all mouse button
+                  ;; down events.  However, we want them here.
+                  t)
+      (read-event)))
 
 (defvar read-passwd-map
   ;; BEWARE: `defconst' would purecopy it, breaking the sharing with

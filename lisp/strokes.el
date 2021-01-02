@@ -756,12 +756,12 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	      (strokes-fill-current-buffer-with-whitespace))
 	    (when prompt
 	      (message "%s" prompt)
-	      (setq event (read-event))
+	      (setq event (read--potential-mouse-event))
 	      (or (strokes-button-press-event-p event)
 		  (error "You must draw with the mouse")))
 	    (unwind-protect
 		(track-mouse
-		  (or event (setq event (read-event)
+		  (or event (setq event (read--potential-mouse-event)
 				  safe-to-draw-p t))
 		  (while (not (strokes-button-release-event-p event))
 		    (if (strokes-mouse-event-p event)
@@ -776,7 +776,7 @@ Optional EVENT is acceptable as the starting event of the stroke."
 			    (setq safe-to-draw-p t))
 			  (push (cdr (mouse-pixel-position))
 				pix-locs)))
-		    (setq event (read-event)))))
+		    (setq event (read--potential-mouse-event)))))
 	    ;; protected
 	    ;; clean up strokes buffer and then bury it.
 	    (when (equal (buffer-name) strokes-buffer-name)
@@ -787,16 +787,16 @@ Optional EVENT is acceptable as the starting event of the stroke."
       ;; Otherwise, don't use strokes buffer and read stroke silently
       (when prompt
 	(message "%s" prompt)
-	(setq event (read-event))
+	(setq event (read--potential-mouse-event))
 	(or (strokes-button-press-event-p event)
 	    (error "You must draw with the mouse")))
       (track-mouse
-	(or event (setq event (read-event)))
+	(or event (setq event (read--potential-mouse-event)))
 	(while (not (strokes-button-release-event-p event))
 	  (if (strokes-mouse-event-p event)
 	      (push (cdr (mouse-pixel-position))
 		    pix-locs))
-	  (setq event (read-event))))
+	  (setq event (read--potential-mouse-event))))
       (setq grid-locs (strokes-renormalize-to-grid (nreverse pix-locs)))
       (strokes-fill-stroke
        (strokes-eliminate-consecutive-redundancies grid-locs)))))
@@ -817,10 +817,10 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	(if prompt
 	    (while (not (strokes-button-press-event-p event))
 	      (message "%s" prompt)
-	      (setq event (read-event))))
+	      (setq event (read--potential-mouse-event))))
 	(unwind-protect
 	    (track-mouse
-	      (or event (setq event (read-event)))
+	      (or event (setq event (read--potential-mouse-event)))
 	      (while (not (and (strokes-button-press-event-p event)
 			       (eq 'mouse-3
 				   (car (get (car event)
@@ -834,14 +834,15 @@ Optional EVENT is acceptable as the starting event of the stroke."
 						?\s strokes-character))
 			(push (cdr (mouse-pixel-position))
 			      pix-locs)))
-		  (setq event (read-event)))
+		  (setq event (read--potential-mouse-event)))
 		(push strokes-lift pix-locs)
 		(while (not (strokes-button-press-event-p event))
-		  (setq event (read-event))))
+		  (setq event (read--potential-mouse-event))))
 	      ;; ### KLUDGE! ### sit and wait
 	      ;; for some useless event to
 	      ;; happen to fix the minibuffer bug.
-	      (while (not (strokes-button-release-event-p (read-event))))
+	      (while (not (strokes-button-release-event-p
+                           (read--potential-mouse-event))))
 	      (setq pix-locs (nreverse (cdr pix-locs))
 		    grid-locs (strokes-renormalize-to-grid pix-locs))
 	      (strokes-fill-stroke

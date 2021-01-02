@@ -3002,7 +3002,7 @@ See more for options in `search-exit-option'."
      ((and (eq (car-safe main-event) 'down-mouse-1)
 	   (window-minibuffer-p (posn-window (event-start main-event))))
       ;; Swallow the up-event.
-      (read-event)
+      (read--potential-mouse-event)
       (setq this-command 'isearch-edit-string))
      ;; Don't terminate the search for motion commands.
      ((and isearch-yank-on-move

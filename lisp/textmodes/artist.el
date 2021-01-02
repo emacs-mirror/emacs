@@ -5004,7 +5004,7 @@ The event, EV, is the mouse event."
                   (setq timer (run-at-time interval interval draw-fn x1 y1))))
 
             ;; Read next event
-            (setq ev (read-event))))
+            (setq ev (read--potential-mouse-event))))
       ;; Cleanup: get rid of any active timer.
       (if timer
           (cancel-timer timer)))
@@ -5212,7 +5212,7 @@ The event, EV, is the mouse event."
 
 	;; Read next event (only if we should not stop)
 	(if (not done)
-	    (setq ev (read-event)))))
+	    (setq ev (read--potential-mouse-event)))))
 
     ;; Reverse point-list (last points are cond'ed first)
     (setq point-list (reverse point-list))
@@ -5339,7 +5339,7 @@ The event, EV, is the mouse event."
 
 
 	;; Read next event
-	(setq ev (read-event))))
+	(setq ev (read--potential-mouse-event))))
 
     ;; If we are not rubber-banding (that is, we were moving around the `2')
     ;; draw the shape
