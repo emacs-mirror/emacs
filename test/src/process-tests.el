@@ -535,8 +535,8 @@ Afterwards, delete the directory."
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
   (with-timeout (60 (ert-fail "Test timed out"))
-    (let ((sleep (executable-find "sleep")))
-      (skip-unless sleep)
+    (let ((cat (executable-find "cat")))
+      (skip-unless cat)
       (dolist (conn-type '(pipe pty))
         (ert-info ((format "Connection type `%s'" conn-type))
           (process-tests--fd-setsize-test
@@ -552,7 +552,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
                        ;; ignore `file-error'.
                        (process-tests--ignore-EMFILE
                          (make-process :name (format "test %d" i)
-                                       :command (list sleep "5")
+                                       :command (list cat)
                                        :connection-type conn-type
                                        :coding 'no-conversion
                                        :noquery t))))
@@ -560,6 +560,8 @@ FD_SETSIZE file descriptors (Bug#24325)."
               ;; We should have managed to start at least one process.
               (should processes)
               (dolist (process processes)
+                (should (process-live-p process))
+                (process-send-eof process)
                 (while (accept-process-output process))
                 (should (eq (process-status process) 'exit))
                 ;; If there's an error between fork and exec, Emacs
