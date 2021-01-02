@@ -2,7 +2,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.com>
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Keywords: lisp
 ;; Package: emacs
@@ -178,10 +178,6 @@ Return them as multiple value."
 
 (defvar comp-cstr-one (comp-value-to-cstr 1)
   "Represent the integer immediate one.")
-
-(defun comp-pred-to-cstr (predicate)
-  "Given PREDICATE return the correspondig constraint."
-  (comp-type-to-cstr (get predicate 'cl-satisfies-deftype)))
 
 
 ;;; Value handling.

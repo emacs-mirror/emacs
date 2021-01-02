@@ -500,6 +500,51 @@ Useful to hook into pass checkers.")
    finally return h)
   "Hash table function -> `comp-constraint'")
 
+(defconst comp-known-predicates
+  '((arrayp              . array)
+    (atom		 . atom)
+    (characterp          . base-char)
+    (booleanp            . boolean)
+    (bool-vector-p       . bool-vector)
+    (bufferp             . buffer)
+    (natnump             . character)
+    (char-table-p	 . char-table)
+    (hash-table-p	 . hash-table)
+    (consp               . cons)
+    (integerp            . fixnum)
+    (floatp              . float)
+    (functionp           . (or function symbol))
+    (integerp            . integer)
+    (keywordp            . keyword)
+    (listp               . list)
+    (numberp             . number)
+    (null		 . null)
+    (numberp             . real)
+    (sequencep           . sequence)
+    (stringp             . string)
+    (symbolp             . symbol)
+    (vectorp             . vector)
+    (integer-or-marker-p . integer-or-marker))
+  "Alist predicate -> matched type specifier.")
+
+(defconst comp-known-predicates-h
+  (cl-loop
+   with comp-ctxt = (make-comp-cstr-ctxt)
+   with h = (make-hash-table :test #'eq)
+   for (pred . type-spec) in comp-known-predicates
+   for cstr = (comp-type-spec-to-cstr type-spec)
+   do (puthash pred cstr h)
+   finally return h)
+  "Hash table function -> `comp-constraint'")
+
+(defun comp-known-predicate-p (predicate)
+  "Predicate matching if PREDICATE is known."
+  (when (gethash predicate comp-known-predicates-h) t))
+
+(defun comp-pred-to-cstr (predicate)
+  "Given PREDICATE return the correspondig constraint."
+  (gethash predicate comp-known-predicates-h))
+
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
                                            most-negative-fixnum)
   "Symbol values we can resolve in the compile-time.")
@@ -2328,10 +2373,6 @@ TARGET-BB-SYM is the symbol name of the target block."
           (setf (car branch-target-cell) (comp-block-name block-target))
           (comp-emit-assume 'and obj1 obj2 block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
-
-(defun comp-known-predicate-p (pred)
-  (when (symbolp pred)
-    (get pred 'cl-satisfies-deftype)))
 
 (defun comp-add-cond-cstrs ()
   "`comp-add-cstrs' worker function for each selected function."
