@@ -547,8 +547,7 @@ If SELECT is non-nil, select the target window."
   "Goto and display position POS of buffer BUF in a window.
 Honor `xref--original-window-intent', run `xref-after-jump-hook'
 and finally return the window."
-  (let* ((xref-buf (current-buffer))
-         (pop-up-frames
+  (let* ((pop-up-frames
           (or (eq xref--original-window-intent 'frame)
               pop-up-frames))
          (action
@@ -566,9 +565,6 @@ and finally return the window."
     (with-selected-window (display-buffer buf action)
       (xref--goto-char pos)
       (run-hooks 'xref-after-jump-hook)
-      (let ((buf (current-buffer)))
-        (with-current-buffer xref-buf
-          (setq-local other-window-scroll-buffer buf)))
       (selected-window))))
 
 (defun xref--display-buffer-in-other-window (buffer alist)
