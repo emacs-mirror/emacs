@@ -120,9 +120,9 @@ character (i.e., an integer), @code{nil} otherwise.
 @cindex string creation
 
   The following functions create strings, either from scratch, or by
-putting strings together, or by taking them apart.  (For functions that
-create strings based on searching the contents of other strings (like
-@code{string-replace} and @code{replace-regexp-in-string}), see
+putting strings together, or by taking them apart.  (For functions
+that create strings based on the modified contents of other strings,
+like @code{string-replace} and @code{replace-regexp-in-string}, see
 @ref{Search and Replace}.)
 
 @defun make-string count character &optional multibyte
