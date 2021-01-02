@@ -512,18 +512,6 @@ FD_SETSIZE."
            (delete-process (pop ,processes))
            ,@body)))))
 
-(defmacro process-tests--with-temp-file (var &rest body)
-  "Bind VAR to the name of a new regular file and evaluate BODY.
-Afterwards, delete the file."
-  (declare (indent 1) (debug (symbolp body)))
-  (cl-check-type var symbol)
-  (let ((file (make-symbol "file")))
-    `(let ((,file (make-temp-file "emacs-test-")))
-       (unwind-protect
-           (let ((,var ,file))
-             ,@body)
-         (delete-file ,file)))))
-
 (defmacro process-tests--with-temp-directory (var &rest body)
   "Bind VAR to the name of a new directory and evaluate BODY.
 Afterwards, delete the directory."
@@ -654,12 +642,6 @@ FD_SETSIZE file descriptors (Bug#24325)."
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
   (with-timeout (60 (ert-fail "Test timed out"))
-    (skip-unless (file-executable-p shell-file-name))
-    (skip-unless (executable-find "tty"))
-    (skip-unless (executable-find "sleep"))
-    ;; `process-tests--new-pty' probably only works with GNU Bash.
-    (skip-unless (string-equal
-                  (file-name-nondirectory shell-file-name) "bash"))
     (process-tests--with-processes processes
       ;; In order to use `make-serial-process', we need to create some
       ;; pseudoterminals.  The easiest way to do that is to start a
@@ -667,14 +649,22 @@ FD_SETSIZE file descriptors (Bug#24325)."
       ;; ensure that the terminal stays around while we connect to it.
       ;; Create the host processes before the dummy pipes so we have a
       ;; high chance of succeeding here.
-      (let ((tty-names ()))
-        (dotimes (_ 10)
-          (cl-destructuring-bind
-              (host tty-name) (process-tests--new-pty)
+      (let ((sleep (executable-find "sleep"))
+            (tty-names ()))
+        (skip-unless sleep)
+        (dotimes (i 10)
+          (let* ((host (make-process :name (format "tty host %d" i)
+                                     :command (list sleep "60")
+                                     :buffer nil
+                                     :coding 'utf-8-unix
+                                     :connection-type 'pty
+                                     :noquery t))
+                 (tty-name (process-tty-name host)))
             (should (processp host))
             (push host processes)
             (should tty-name)
             (should (file-exists-p tty-name))
+            (should-not (member tty-name tty-names))
             (push tty-name tty-names)))
         (process-tests--fd-setsize-test
           (process-tests--with-processes processes
@@ -716,43 +706,6 @@ Return nil if that can't be determined."
                                     (+ blank) (group (+ nonl))))
                 (match-string-no-properties 1))))))
   process-tests--EMFILE-message)
-
-(defun process-tests--new-pty ()
-  "Allocate a new pseudoterminal.
-Return a list (PROCESS TTY-NAME)."
-  ;; The command below will typically only work with GNU Bash.
-  (should (string-equal (file-name-nondirectory shell-file-name)
-                        "bash"))
-  (process-tests--with-temp-file temp-file
-    (should-not (file-remote-p temp-file))
-    (let* ((command (list shell-file-name shell-command-switch
-                          (format "tty > %s && sleep 60"
-                                  (shell-quote-argument
-                                   (file-name-unquote temp-file)))))
-           (process (make-process :name "tty host"
-                                  :command command
-                                  :buffer nil
-                                  :coding 'utf-8-unix
-                                  :connection-type 'pty
-                                  :noquery t))
-           (tty-name nil)
-           (coding-system-for-read 'utf-8-unix)
-           (coding-system-for-write 'utf-8-unix))
-      ;; Wait until TTY name has arrived.
-      (with-timeout (2 (message "Timed out waiting for TTY name"))
-        (while (and (process-live-p process) (not tty-name))
-          (sleep-for 0.1)
-          (when-let ((attributes (file-attributes temp-file)))
-            (when (cl-plusp (file-attribute-size attributes))
-              (with-temp-buffer
-                (insert-file-contents temp-file)
-                (goto-char (point-max))
-                ;; `tty' has printed a trailing newline.
-                (skip-chars-backward "\n")
-                (unless (bobp)
-                  (setq tty-name (buffer-substring-no-properties
-                                  (point-min) (point)))))))))
-      (list process tty-name))))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here
