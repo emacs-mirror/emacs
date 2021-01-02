@@ -598,7 +598,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
     (`(:before . ,(or "(" "[" "{"))
      (cond
       ((and (equal token "{")
-            (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";"))
+            (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";" "do"))
             (save-excursion
               (forward-comment -1)
               (not (eq (preceding-char) ?:))))
