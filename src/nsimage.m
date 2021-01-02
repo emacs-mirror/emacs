@@ -293,6 +293,18 @@ ns_image_size_in_bytes (void *img)
 }
 
 
+- (id)copyWithZone:(NSZone *)zone
+{
+  EmacsImage *copy = [super copyWithZone:zone];
+
+  copy->stippleMask = [stippleMask copyWithZone:zone];
+  copy->bmRep = [bmRep copyWithZone:zone];
+  copy->transform = [transform copyWithZone:zone];
+
+  return copy;
+}
+
+
 /* Create image from monochrome bitmap. If both FG and BG are 0
    (black), set the background to white and make it transparent.  */
 - (instancetype)initFromXBM: (unsigned char *)bits width: (int)w height: (int)h
