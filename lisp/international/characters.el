@@ -226,6 +226,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 
 ;; JISX0208
+;; Note: Some of these have their syntax updated later below.
 (map-charset-chars #'modify-syntax-entry 'japanese-jisx0208 "_" #x2121 #x227E)
 (map-charset-chars #'modify-syntax-entry 'japanese-jisx0208 "_" #x2821 #x287E)
 (let ((chars '(?ー ?゛ ?゜ ?ヽ ?ヾ ?ゝ ?ゞ ?〃 ?仝 ?々 ?〆 ?〇)))
@@ -681,6 +682,13 @@ with L, LRE, or LRO Unicode bidi character type.")
     (set-case-syntax c "." tbl)
     (setq c (1+ c)))
 
+  ;; Ideographic punctuation
+  (setq c #x3001)
+  (while (<= c #x3003)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (set-case-syntax #x30FB "." tbl)
+
   ;; Symbols for Legacy Computing
   (setq c #x1FB00)
   (while (<= c #x1FBCA)
@@ -698,6 +706,10 @@ with L, LRE, or LRO Unicode bidi character type.")
     (setq c (1+ c)))
   (set-case-syntax #xFF04 "_" tbl)
   (set-case-syntax #xFF0B "_" tbl)
+  (set-case-syntax #xFF1A "." tbl)
+  (set-case-syntax #xFF1B "." tbl)
+  (set-case-syntax #xFF1F "." tbl)
+  (set-case-syntax #xFF20 "." tbl)
   (setq c #xFF21)
   (while (<= c #xFF3A)
     (modify-category-entry c ?l)
