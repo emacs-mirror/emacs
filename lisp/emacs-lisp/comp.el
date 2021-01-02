@@ -2,7 +2,7 @@
 
 ;; Author: Andrea Corallo <akrl@sdf.com>
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Keywords: lisp
 ;; Package: emacs
@@ -485,6 +485,7 @@ Useful to hook into pass checkers.")
     (comp-hint-fixnum (function (t) fixnum))
     (comp-hint-cons (function (t) cons))
     ;; Non returning functions
+    (throw (function (t t) nil))
     (error (function (string &rest t) nil))
     (signal (function (symbol t) nil)))
   "Alist used for type propagation.")
@@ -536,6 +537,9 @@ Useful to hook into pass checkers.")
 
 (defvar comp-func nil
   "Bound to the current function by most passes.")
+
+(defvar comp-block nil
+  "Bound to the current basic block by some pass.")
 
 (define-error 'native-compiler-error-dyn-func
   "can't native compile a non-lexically-scoped function"
@@ -637,13 +641,20 @@ Is in use to help the SSA rename pass."))
                               (:include comp-block)
                               (:constructor make--comp-block-lap
                                             (addr sp name))) ; Positional
-  "A basic block created from lap."
+  "A basic block created from lap (real code)."
   ;; These two slots are used during limplification.
   (sp nil :type number
       :documentation "When non-nil indicates the sp value while entering
 into it.")
   (addr nil :type number
-        :documentation "Start block LAP address."))
+        :documentation "Start block LAP address.")
+  (non-ret-insn nil :type list
+                :documentation "Insn known to perform a non local exit.
+`comp-fwprop' may identify and store here basic blocks performing
+non local exits and mark it rewrite it later.")
+  (no-ret nil :type boolean
+         :documentation "t when the block is known to perform a
+non local exit (ends with an `unreachable' insn)."))
 
 (cl-defstruct (comp-latch (:copier nil)
                           (:include comp-block))
@@ -843,6 +854,10 @@ To be used by all entry points."
   "Call predicate for OP."
   (when (memq op comp-limple-calls) t))
 
+(defun comp-branch-op-p (op)
+  "Branch predicate for OP."
+  (when (memq op comp-limple-branches) t))
+
 (defsubst comp-limple-insn-call-p (insn)
   "Limple INSN call predicate."
   (comp-call-op-p (car-safe insn)))
@@ -894,6 +909,8 @@ Assume allocation class 'd-default as default."
      (1 font-lock-function-name-face))
     (,(rx bol "(" (group-n 1 "phi"))
      (1 font-lock-variable-name-face))
+    (,(rx bol "(" (group-n 1 (or "return" "unreachable")))
+     (1 font-lock-warning-face))
     (,(rx (group-n 1 (or "entry"
                          (seq (or "entry_" "entry_fallback_" "bb_")
                               (1+ num) (? (or "_latch"
@@ -2391,16 +2408,21 @@ TARGET-BB-SYM is the symbol name of the target block."
           (comp-emit-assume 'and target-mvar cstr block-target negated))
         finally (cl-return-from in-the-basic-block)))))))
 
-(defun comp-emit-call-cstr (mvar call-cell cstr)
-  "Emit a constraint CSTR for MVAR after CALL-CELL."
-  (let* ((next-cell (cdr call-cell))
-         (new-mvar (make-comp-mvar :slot (comp-mvar-slot mvar)))
-         ;; Have new-mvar as LHS *and* RHS to ensure monotonicity and
-         ;; fwprop convergence!!
-         (new-cell `((assume ,new-mvar (and ,new-mvar ,mvar ,cstr)))))
-    (setf (cdr call-cell) new-cell
+(defsubst comp-insert-insn (insn insn-cell)
+  "Insert INSN as second insn of INSN-CELL."
+  (let ((next-cell (cdr insn-cell))
+        (new-cell `(,insn)))
+    (setf (cdr insn-cell) new-cell
           (cdr new-cell) next-cell
           (comp-func-ssa-status comp-func) 'dirty)))
+
+(defun comp-emit-call-cstr (mvar call-cell cstr)
+  "Emit a constraint CSTR for MVAR after CALL-CELL."
+  (let* ((new-mvar (make-comp-mvar :slot (comp-mvar-slot mvar)))
+         ;; Have new-mvar as LHS *and* RHS to ensure monotonicity and
+         ;; fwprop convergence!!
+         (insn `(assume ,new-mvar (and ,new-mvar ,mvar ,cstr))))
+    (comp-insert-insn insn call-cell)))
 
 (defun comp-lambda-list-gen (lambda-list)
   "Return a generator to iterate over LAMBDA-LIST."
@@ -2574,6 +2596,7 @@ blocks."
                  (make-comp-edge :src bb :dst (gethash third blocks))
                  (make-comp-edge :src bb :dst (gethash forth blocks)))
                 (return)
+                (unreachable)
                 (otherwise
                  (signal 'native-ice
                          (list "block does not end with a branch"
@@ -2628,30 +2651,34 @@ blocks."
     (when-let ((blocks (comp-func-blocks comp-func))
                (entry (gethash 'entry blocks))
                ;; No point to go on if the only bb is 'entry'.
-               (bb1 (gethash 'bb_1 blocks)))
-      (cl-loop with rev-bb-list = (comp-collect-rev-post-order entry)
-               with changed = t
-               while changed
-               initially (progn
-                           (comp-log "Computing dominator tree...\n" 2)
-                           (setf (comp-block-dom entry) entry)
-                           ;; Set the post order number.
-                           (cl-loop for name in (reverse rev-bb-list)
-                                    for b = (gethash name blocks)
-                                    for i from 0
-                                    do (setf (comp-block-post-num b) i)))
-               do (cl-loop
-                   for name in (cdr rev-bb-list)
-                   for b = (gethash name blocks)
-                   for preds = (comp-block-preds b)
-                   for new-idom = (first-processed preds)
-                   initially (setf changed nil)
-                   do (cl-loop for p in (delq new-idom preds)
-                               when (comp-block-dom p)
-                                 do (setf new-idom (intersect p new-idom)))
-                   unless (eq (comp-block-dom b) new-idom)
-                   do (setf (comp-block-dom b) new-idom
-                            changed t))))))
+               (bb0 (gethash 'bb_0 blocks)))
+      (cl-loop
+       with rev-bb-list = (comp-collect-rev-post-order entry)
+       with changed = t
+       while changed
+       initially (progn
+                   (comp-log "Computing dominator tree...\n" 2)
+                   (setf (comp-block-dom entry) entry)
+                   ;; Set the post order number.
+                   (cl-loop for name in (reverse rev-bb-list)
+                            for b = (gethash name blocks)
+                            for i from 0
+                            do (setf (comp-block-post-num b) i)))
+       do (cl-loop
+           for name in (cdr rev-bb-list)
+           for b = (gethash name blocks)
+           for preds = (comp-block-preds b)
+           for new-idom = (first-processed preds)
+           initially (setf changed nil)
+           do (cl-loop for p in (delq new-idom preds)
+                       when (comp-block-dom p)
+                       do (setf new-idom (intersect p new-idom)))
+           unless (eq (comp-block-dom b) new-idom)
+           do (setf (comp-block-dom b) (unless (and (comp-block-lap-p new-idom)
+                                                    (comp-block-lap-no-ret
+                                                     new-idom))
+                                         new-idom)
+                    changed t))))))
 
 (defun comp-compute-dominator-frontiers ()
   "Compute the dominator frontier for each basic block in `comp-func'."
@@ -2805,16 +2832,34 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                          when (eq op 'phi)
                            do (finalize-phi args b)))))
 
+(defun comp-remove-unreachable-blocks ()
+  "Remove unreachable basic blocks.
+Return t when one or more block was removed, nil otherwise."
+  (cl-loop
+   with ret
+   for bb being each hash-value of (comp-func-blocks comp-func)
+   for bb-name = (comp-block-name bb)
+   when (and (not (eq 'entry bb-name))
+             (null (comp-block-dom bb)))
+   do
+   (comp-log (format "Removing block: %s" bb-name) 1)
+   (remhash bb-name (comp-func-blocks comp-func))
+   (setf (comp-func-ssa-status comp-func) t
+              ret t)
+   finally return ret))
+
 (defun comp-ssa ()
   "Port all functions into minimal SSA form."
   (maphash (lambda (_ f)
              (let* ((comp-func f)
                     (ssa-status (comp-func-ssa-status f)))
                (unless (eq ssa-status t)
-                 (when (eq ssa-status 'dirty)
-                   (comp-clean-ssa f))
-                 (comp-compute-edges)
-                 (comp-compute-dominator-tree)
+                 (cl-loop
+                  when (eq ssa-status 'dirty)
+                    do (comp-clean-ssa f)
+                  do (comp-compute-edges)
+                     (comp-compute-dominator-tree)
+                 until (null (comp-remove-unreachable-blocks)))
                  (comp-compute-dominator-frontiers)
                  (comp-log-block-info)
                  (comp-place-phis)
@@ -2929,6 +2974,9 @@ Fold the call in case."
             args (cdr args)))
     (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
       (let ((cstr (comp-cstr-f-ret cstr-f)))
+        (when (comp-cstr-empty-p cstr)
+          ;; Store it to be rewrittein as non local exit.
+          (setf (comp-block-lap-non-ret-insn comp-block) insn))
         (setf (comp-mvar-range lval) (comp-cstr-range cstr)
               (comp-mvar-valset lval) (comp-cstr-valset cstr)
               (comp-mvar-typeset lval) (comp-cstr-typeset cstr)
@@ -2990,14 +3038,33 @@ Fold the call in case."
 Return t if something was changed."
   (cl-loop with modified = nil
            for b being each hash-value of (comp-func-blocks comp-func)
-           do (cl-loop for insn in (comp-block-insns b)
-                       for orig-insn = (unless modified
-                                         ;; Save consing after 1th change.
-                                         (comp-copy-insn insn))
-                       do (comp-fwprop-insn insn)
-                       when (and (null modified) (not (equal insn orig-insn)))
-                         do (setf modified t))
+           do (cl-loop
+               with comp-block = b
+               for insn in (comp-block-insns b)
+               for orig-insn = (unless modified
+                                 ;; Save consing after 1th change.
+                                 (comp-copy-insn insn))
+               do (comp-fwprop-insn insn)
+               when (and (null modified) (not (equal insn orig-insn)))
+                 do (setf modified t))
            finally return modified))
+
+(defun comp-rewrite-non-locals ()
+  "Make explicit in LIMPLE non-local exits if identified."
+  (cl-loop
+   for bb being each hash-value of (comp-func-blocks comp-func)
+   for non-local-insn = (and (comp-block-lap-p bb)
+                             (comp-block-lap-non-ret-insn bb))
+   when non-local-insn
+   do
+   ;; Rework the current block.
+   (let* ((insn-seq (memq non-local-insn (comp-block-insns bb))))
+     (setf (comp-block-lap-non-ret-insn bb) ()
+           (comp-block-lap-no-ret bb) t
+           (comp-block-out-edges bb) ()
+           ;; Prune unnecessary insns!
+           (cdr insn-seq) '((unreachable))
+           (comp-func-ssa-status comp-func) 'dirty))))
 
 (defun comp-fwprop (_)
   "Forward propagate types and consts within the lattice."
@@ -3017,6 +3084,7 @@ Return t if something was changed."
                      'comp
                      (format "fwprop pass jammed into %s?" (comp-func-name f))))
                   (comp-log (format "Propagation run %d times\n" i) 2))
+                 (comp-rewrite-non-locals)
                  (comp-log-func comp-func 3))))
            (comp-ctxt-funcs-h comp-ctxt)))
 

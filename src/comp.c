@@ -753,7 +753,7 @@ retrive_block (Lisp_Object block_name)
   Lisp_Object value = Fgethash (block_name, comp.func_blocks_h, Qnil);
 
   if (NILP (value))
-    xsignal1 (Qnative_ice, build_string ("missing basic block"));
+    xsignal2 (Qnative_ice, build_string ("missing basic block"), block_name);
 
   return (gcc_jit_block *) xmint_pointer (value);
 }
@@ -2281,6 +2281,13 @@ emit_limple_insn (Lisp_Object insn)
       gcc_jit_block_end_with_return (comp.block,
 				     NULL,
 				     emit_mvar_rval (arg[0]));
+    }
+  else if (EQ (op, Qunreachable))
+    {
+      /* Libgccjit has no __builtin_unreachable.  */
+      gcc_jit_block_end_with_return (comp.block,
+				     NULL,
+				     emit_lisp_obj_rval (Qnil));
     }
   else
     {
@@ -3910,13 +3917,13 @@ compile_function (Lisp_Object func)
      The "entry" block must be declared as first.  */
   declare_block (Qentry);
   Lisp_Object blocks = CALL1I (comp-func-blocks, func);
-  Lisp_Object entry_block = Fgethash (Qentry, blocks, Qnil);
   struct Lisp_Hash_Table *ht = XHASH_TABLE (blocks);
-  for (ptrdiff_t i = 0; i < ht->count; i++)
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (ht); i++)
     {
-      Lisp_Object block = HASH_VALUE (ht, i);
-      if (!EQ (block, entry_block))
-	declare_block (HASH_KEY (ht, i));
+      Lisp_Object block_name = HASH_KEY (ht, i);
+      if (!EQ (block_name, Qentry)
+	  && !EQ (block_name, Qunbound))
+	declare_block (block_name);
     }
 
   gcc_jit_block_add_assignment (retrive_block (Qentry),
@@ -3925,21 +3932,24 @@ compile_function (Lisp_Object func)
 				gcc_jit_lvalue_as_rvalue (comp.func_relocs));
 
 
-  for (ptrdiff_t i = 0; i < ht->count; i++)
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (ht); i++)
     {
       Lisp_Object block_name = HASH_KEY (ht, i);
-      Lisp_Object block = HASH_VALUE (ht, i);
-      Lisp_Object insns = CALL1I (comp-block-insns, block);
-      if (NILP (block) || NILP (insns))
-	xsignal1 (Qnative_ice,
-		  build_string ("basic block is missing or empty"));
-
-      comp.block = retrive_block (block_name);
-      while (CONSP (insns))
+      if (!EQ (block_name, Qunbound))
 	{
-	  Lisp_Object insn = XCAR (insns);
-	  emit_limple_insn (insn);
-	  insns = XCDR (insns);
+	  Lisp_Object block = HASH_VALUE (ht, i);
+	  Lisp_Object insns = CALL1I (comp-block-insns, block);
+	  if (NILP (block) || NILP (insns))
+	    xsignal1 (Qnative_ice,
+		      build_string ("basic block is missing or empty"));
+
+	  comp.block = retrive_block (block_name);
+	  while (CONSP (insns))
+	    {
+	      Lisp_Object insn = XCAR (insns);
+	      emit_limple_insn (insn);
+	      insns = XCDR (insns);
+	    }
 	}
     }
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
@@ -4403,12 +4413,14 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   struct Lisp_Hash_Table *func_h =
     XHASH_TABLE (CALL1I (comp-ctxt-funcs-h, Vcomp_ctxt));
-  for (ptrdiff_t i = 0; i < func_h->count; i++)
-    declare_function (HASH_VALUE (func_h, i));
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
+    if (!EQ (HASH_VALUE (func_h, i), Qunbound))
+      declare_function (HASH_VALUE (func_h, i));
   /* Compile all functions. Can't be done before because the
      relocation structs has to be already defined.  */
-  for (ptrdiff_t i = 0; i < func_h->count; i++)
-    compile_function (HASH_VALUE (func_h, i));
+  for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
+    if (!EQ (HASH_VALUE (func_h, i), Qunbound))
+      compile_function (HASH_VALUE (func_h, i));
 
   add_driver_options ();
 
@@ -5098,6 +5110,7 @@ compiled one.  */);
   DEFSYM (Qassume, "assume");
   DEFSYM (Qsetimm, "setimm");
   DEFSYM (Qreturn, "return");
+  DEFSYM (Qunreachable, "unreachable");
   DEFSYM (Qcomp_mvar, "comp-mvar");
   DEFSYM (Qcond_jump, "cond-jump");
   DEFSYM (Qphi, "phi");

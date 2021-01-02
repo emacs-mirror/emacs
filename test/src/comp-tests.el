@@ -949,50 +949,50 @@ Return a list of results."
 
       ;; 22
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (> x 3)
-	    x))
+	 (when (> x 3)
+	   x))
        (or null float (integer 4 *)))
 
       ;; 23
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (>= x 3)
-	    x))
+	 (when (>= x 3)
+	   x))
        (or null float (integer 3 *)))
 
       ;; 24
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (< x 3)
-	    x))
+	 (when (< x 3)
+	   x))
        (or null float (integer * 2)))
 
       ;; 25
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (<= x 3)
-	    x))
+	 (when (<= x 3)
+	   x))
        (or null float (integer * 3)))
 
       ;; 26
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (> 3 x)
-	    x))
+	 (when (> 3 x)
+	   x))
        (or null float (integer * 2)))
 
       ;; 27
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (>= 3 x)
-	    x))
+	 (when (>= 3 x)
+	   x))
        (or null float (integer * 3)))
 
       ;; 28
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (< 3 x)
-	    x))
+	 (when (< 3 x)
+	   x))
        (or null float (integer 4 *)))
 
       ;; 29
       ((defun comp-tests-ret-type-spec-f (x)
-	  (when (<= 3 x)
-	    x))
+	 (when (<= 3 x)
+	   x))
        (or null float (integer 3 *)))
 
       ;; 30
@@ -1032,8 +1032,8 @@ Return a list of results."
 
       ;; 35 No float range support.
       ((defun comp-tests-ret-type-spec-f (x)
-	       (when (> x 1.0)
-	         x))
+	 (when (> x 1.0)
+	   x))
        (or null marker number))
 
       ;; 36
@@ -1061,17 +1061,17 @@ Return a list of results."
       ;; 39
       ;; SBCL gives: (OR REAL NULL)
       ((defun comp-tests-ret-type-spec-f (x y)
-		    (when (and (<= 1 x 10)
-			       (<= 2 y 3))
-		      (+ x y)))
+	 (when (and (<= 1 x 10)
+		    (<= 2 y 3))
+	   (+ x y)))
        (or null float (integer 3 13)))
 
       ;; 40
       ;; SBCL: (OR REAL NULL)
       ((defun comp-tests-ret-type-spec-f (x y)
-		    (when (and (<= 1 x 10)
-			       (<= 2 y 3))
-		      (- x y)))
+	 (when (and (<= 1 x 10)
+		    (<= 2 y 3))
+	   (- x y)))
        (or null float (integer -2 8)))
 
       ;; 41
@@ -1090,23 +1090,23 @@ Return a list of results."
 
       ;; 43
       ((defun comp-tests-ret-type-spec-f (x y)
-		    (when (and (<= x 10)
-			       (<= 2 y))
-		      (- x y)))
+	 (when (and (<= x 10)
+		    (<= 2 y))
+	   (- x y)))
        (or null float (integer * 8)))
 
       ;; 44
       ((defun comp-tests-ret-type-spec-f (x y)
-          (when (and (<= x 10)
-                     (<= y 3))
-            (- x y)))
+         (when (and (<= x 10)
+                    (<= y 3))
+           (- x y)))
        (or null float integer))
 
       ;; 45
       ((defun comp-tests-ret-type-spec-f (x y)
-          (when (and (<= 2 x)
-                     (<= 3 y))
-            (- x y)))
+         (when (and (<= 2 x)
+                    (<= 3 y))
+           (- x y)))
        (or null float integer))
 
       ;; 46
@@ -1176,7 +1176,27 @@ Return a list of results."
       ((defun comp-tests-ret-type-spec-f (x)
          (unless (integerp x)
            x))
-       (not integer))))
+       (not integer))
+
+      ;; 56
+      ((defun comp-tests-ret-type-spec-f (x)
+         (cl-ecase x
+           (1 (message "one"))
+           (5 (message "five")))
+         x)
+       t
+       ;; FIXME improve `comp-cond-cstrs-target-mvar' to cross block
+       ;; boundary if necessary as this should return:
+       ;; (or (integer 1 1) (integer 5 5))
+       )
+
+      ;; 57
+      ((defun comp-tests-ret-type-spec-f (x)
+         (unless (or (eq x 'foo)
+	             (= x 3))
+           (error "Not foo or 3"))
+         x)
+       (or (member foo) (integer 3 3)))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

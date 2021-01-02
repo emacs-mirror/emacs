@@ -621,6 +621,22 @@
 	(load (if (file-exists-p dest) dest filename)))
       'no-byte-compile)))
 
+(defun comp-test-no-return-1 (x)
+  (while x
+   (error "foo")))
+
+(defun comp-test-no-return-2 (x)
+  (cond
+   ((eql x '2) t)
+   ((error "bar") nil)))
+
+(defun comp-test-no-return-3 ())
+(defun comp-test-no-return-4 (x)
+  (when x
+    (error "foo")
+    (while (comp-test-no-return-3)
+      (comp-test-no-return-3))))
+
 (provide 'comp-test-funcs)
 
 ;;; comp-test-funcs.el ends here
