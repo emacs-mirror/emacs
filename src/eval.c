@@ -1731,12 +1731,16 @@ signal_or_quit (Lisp_Object error_symbol, Lisp_Object data, bool keyboard_quit)
 	return Qnil;
     }
 
-  /* If we're in batch mode, print a backtrace unconditionally to help with
-     debugging.  Make sure to use `debug' unconditionally to not interfere with
-     ERT or other packages that install custom debuggers.  */
+  /* If we're in batch mode, print a backtrace unconditionally to help
+     with debugging.  Make sure to use `debug' unconditionally to not
+     interfere with ERT or other packages that install custom
+     debuggers.  Don't try to call the debugger while dumping or
+     bootstrapping, it wouldn't work anyway.  */
   if (!debugger_called && !NILP (error_symbol)
-      && (NILP (clause) || EQ (h->tag_or_ch, Qerror)) && noninteractive
-      && backtrace_on_error_noninteractive)
+      && (NILP (clause) || EQ (h->tag_or_ch, Qerror))
+      && noninteractive && backtrace_on_error_noninteractive
+      && !will_dump_p () && !will_bootstrap_p ()
+      && NILP (Vinhibit_debugger))
     {
       ptrdiff_t count = SPECPDL_INDEX ();
       specbind (Vdebugger, Qdebug);
