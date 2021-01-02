@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -278,8 +278,10 @@ For example, you could write
          ((not globalp)
           `(progn
              :autoload-end
-             (defvar ,mode ,init-value ,(format "Non-nil if %s is enabled.
-Use the command `%s' to change this variable." pretty-name mode))
+             (defvar ,mode ,init-value
+               ,(concat (format "Non-nil if %s is enabled.\n" pretty-name)
+                        (internal--format-docstring-line
+                         "Use the command `%s' to change this variable." mode)))
              (make-variable-buffer-local ',mode)))
          (t
 	  (let ((base-doc-string
@@ -455,24 +457,23 @@ on if the hook has explicitly disabled it.
          (make-variable-buffer-local ',MODE-major-mode))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
-	 ;; Very short lines to avoid too long lines in the generated
-	 ;; doc string.
-	 ,(format "Toggle %s in all buffers.
-With prefix ARG, enable %s if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
-
-%s is enabled in all buffers where
-`%s' would do it.
-
-See `%s' for more information on
-%s.%s"
-		  pretty-name pretty-global-name
-		  pretty-name turn-on mode pretty-name
+         ,(concat (format "Toggle %s in all buffers.\n" pretty-name)
+                  (internal--format-docstring-line
+                   "With prefix ARG, enable %s if ARG is positive; otherwise, \
+disable it.  If called from Lisp, enable the mode if ARG is omitted or nil.\n\n"
+                   pretty-global-name)
+                  (internal--format-docstring-line
+                   "%s is enabled in all buffers where `%s' would do it.\n\n"
+                   pretty-name turn-on)
+                  (internal--format-docstring-line
+                   "See `%s' for more information on %s."
+                   mode pretty-name)
                   (if predicate
-                      (format "\n\n`%s' is used to control which modes
-this minor mode is used in."
-                              MODE-predicate)
+                      (concat
+                       "\n\n"
+                       (internal--format-docstring-line
+                        "`%s' is used to control which modes this minor mode is used in."
+                        MODE-predicate))
                     ""))
          :global t ,@group ,@(nreverse extra-keywords)
 

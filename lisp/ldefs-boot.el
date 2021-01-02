@@ -1,4 +1,4 @@
-;;; loaddefs.el --- automatically extracted autoloads
+;;; loaddefs.el --- automatically extracted autoloads  -*- lexical-binding: t -*-
 ;;
 ;;; Code:
 
@@ -1202,14 +1202,16 @@ The variables are:
 Variables you assign:
      array-max-row:          The number of rows in the array.
      array-max-column:       The number of columns in the array.
-     array-columns-per-line: The number of columns in the array per line of buffer.
+     array-columns-per-line: The number of columns in the array
+                             per line of buffer.
      array-field-width:      The width of each field, in characters.
      array-rows-numbered:    A logical variable describing whether to ignore
-                       row numbers in the buffer.
+                             row numbers in the buffer.
 
 Variables which are calculated:
      array-line-length:      The number of characters in a buffer line.
-     array-lines-per-row:    The number of buffer lines used to display each row.
+     array-lines-per-row:    The number of buffer lines used to
+                             display each row.
 
   The following commands are available (an asterisk indicates it may
 take a numeric prefix argument):
@@ -1219,17 +1221,17 @@ take a numeric prefix argument):
     *  	\\[array-next-row]	  Move down one row.
     *  	\\[array-previous-row]	  Move up one row.
 
-    *   \\[array-copy-forward]	  Copy the current field into the column to the right.
-    *   \\[array-copy-backward]	  Copy the current field into the column to the left.
-    *   \\[array-copy-down]	  Copy the current field into the row below.
-    *   \\[array-copy-up]	  Copy the current field into the row above.
+    *   \\[array-copy-forward]	  Copy current field into the column to the right.
+    *   \\[array-copy-backward]	  Copy current field into the column to the left.
+    *   \\[array-copy-down]	  Copy current field into the row below.
+    *   \\[array-copy-up]	  Copy current field into the row above.
 
-    *   \\[array-copy-column-forward]   Copy the current column into the column to the right.
-    *   \\[array-copy-column-backward]   Copy the current column into the column to the left.
+    *   \\[array-copy-column-forward]   Copy current column into the column to the right.
+    *   \\[array-copy-column-backward]   Copy current column into the column to the left.
     *   \\[array-copy-row-down]   Copy the current row into the row below.
     *   \\[array-copy-row-up]   Copy the current row into the row above.
 
-        \\[array-fill-rectangle]   Copy the field at mark into every cell with row and column
+        \\[array-fill-rectangle]   Copy field at mark into every cell with row and column
                   between that of point and mark.
 
 	\\[array-what-position]	  Display the current array row and column.
@@ -1240,7 +1242,7 @@ take a numeric prefix argument):
         \\[array-expand-rows]   Expand the array (remove row numbers and
                   newlines inside rows)
 
-        \\[array-display-local-variables]   Display the current values of local variables.
+        \\[array-display-local-variables]   Display current values of local variables.
 
 Entering array mode calls the function `array-mode-hook'.
 
@@ -1510,8 +1512,9 @@ let-binding.")
 (autoload 'authinfo-mode "auth-source" "\
 Mode for editing .authinfo/.netrc files.
 
-This is just like `fundamental-mode', but hides passwords.  The
-passwords are revealed when point moved into the password.
+This is just like `fundamental-mode', but has basic syntax
+highlighting and hides passwords.  Passwords are revealed when
+point is moved into the passwords (see `authinfo-hide-elements').
 
 \\{authinfo-mode-map}
 
@@ -4877,8 +4880,18 @@ DEFAULT-BODY, if present, is used as the body of a default method.
 
 (autoload 'cl-defmethod "cl-generic" "\
 Define a new method for generic function NAME.
-I.e. it defines the implementation of NAME to use for invocations where the
-values of the dispatch arguments match the specified TYPEs.
+This it defines an implementation of NAME to use for invocations
+of specific types of arguments.
+
+ARGS is a list of dispatch arguments (see `cl-defun'), but where
+each variable element is either just a single variable name VAR,
+or a list on the form (VAR TYPE).
+
+For instance:
+
+  (cl-defmethod foo (bar (format-string string) &optional zot)
+    (format format-string bar))
+
 The dispatch arguments have to be among the mandatory arguments, and
 all methods of NAME have to use the same set of arguments for dispatch.
 Each dispatch argument and TYPE are specified in ARGS where the corresponding
@@ -5399,7 +5412,7 @@ You might also use mode hooks to specify it in certain modes, like this:
        (lambda ()
 	 (unless (or (file-exists-p \"makefile\")
 		     (file-exists-p \"Makefile\"))
-	   (set (make-local-variable \\='compile-command)
+           (setq-local compile-command
 		(concat \"make -k \"
 			(if buffer-file-name
 			  (shell-quote-argument
@@ -6643,14 +6656,13 @@ or call the function `global-cwarn-mode'.")
 (autoload 'global-cwarn-mode "cwarn" "\
 Toggle Cwarn mode in all buffers.
 With prefix ARG, enable Global Cwarn mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+otherwise, disable it.  If called from Lisp, enable the mode if ARG is
+omitted or nil.
 
 Cwarn mode is enabled in all buffers where
 `turn-on-cwarn-mode-if-enabled' would do it.
 
-See `cwarn-mode' for more information on
-Cwarn mode.
+See `cwarn-mode' for more information on Cwarn mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -7538,6 +7550,90 @@ Major mode for editing the diary file.
 
 ;;;***
 
+;;;### (autoloads nil "dictionary" "net/dictionary.el" (0 0 0 0))
+;;; Generated autoloads from net/dictionary.el
+
+(autoload 'dictionary-mode "dictionary" "\
+Mode for searching a dictionary.
+This is a mode for searching a dictionary server implementing the
+protocol defined in RFC 2229.
+
+This is a quick reference to this mode describing the default key bindings:
+
+* q close the dictionary buffer
+* h display this help information
+* s ask for a new word to search
+* d search the word at point
+* n or Tab place point to the next link
+* p or S-Tab place point to the prev link
+
+* m ask for a pattern and list all matching words.
+* D select the default dictionary
+* M select the default search strategy
+
+* Return or Button2 visit that link
+" nil nil)
+
+(autoload 'dictionary "dictionary" "\
+Create a new dictonary buffer and install dictionary-mode." t nil)
+
+(autoload 'dictionary-search "dictionary" "\
+Search the WORD in DICTIONARY if given or in all if nil.
+It presents the selection or word at point as default input and
+allows editing it.
+
+\(fn WORD &optional DICTIONARY)" t nil)
+
+(autoload 'dictionary-lookup-definition "dictionary" "\
+Unconditionally lookup the word at point." t nil)
+
+(autoload 'dictionary-match-words "dictionary" "\
+Search PATTERN in current default dictionary using default strategy.
+
+\(fn &optional PATTERN &rest IGNORED)" t nil)
+
+(autoload 'dictionary-mouse-popup-matching-words "dictionary" "\
+Display entries matching the word at the cursor retrieved using EVENT.
+
+\(fn EVENT)" t nil)
+
+(autoload 'dictionary-popup-matching-words "dictionary" "\
+Display entries matching WORD or the current word if not given.
+
+\(fn &optional WORD)" t nil)
+
+(autoload 'dictionary-tooltip-mode "dictionary" "\
+Display tooltips for the current word.
+
+This function can be used to enable or disable the tooltip mode
+for the current buffer (based on ARG). If global-tooltip-mode is
+active it will overwrite that mode for the current buffer.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'global-dictionary-tooltip-mode "dictionary" "\
+Enable/disable dictionary-tooltip-mode for all buffers.
+
+Internally it provides a default for the dictionary-tooltip-mode.
+It can be overwritten for each buffer using dictionary-tooltip-mode.
+
+Note: (global-dictionary-tooltip-mode 0) will not disable the mode
+any buffer where (dictionary-tooltip-mode 1) has been called.
+
+\(fn &optional ARG)" t nil)
+
+(register-definition-prefixes "dictionary" '("dictionary-" "global-dictionary-tooltip-mode"))
+
+;;;***
+
+;;;### (autoloads nil "dictionary-connection" "net/dictionary-connection.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from net/dictionary-connection.el
+
+(register-definition-prefixes "dictionary-connection" '("dictionary-connection-"))
+
+;;;***
+
 ;;;### (autoloads nil "diff" "vc/diff.el" (0 0 0 0))
 ;;; Generated autoloads from vc/diff.el
 
@@ -8039,9 +8135,9 @@ or call the function `global-display-fill-column-indicator-mode'.")
 
 (autoload 'global-display-fill-column-indicator-mode "display-fill-column-indicator" "\
 Toggle Display-Fill-Column-Indicator mode in all buffers.
-With prefix ARG, enable Global Display-Fill-Column-Indicator mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+With prefix ARG, enable Global Display-Fill-Column-Indicator mode if
+ARG is positive; otherwise, disable it.  If called from Lisp, enable
+the mode if ARG is omitted or nil.
 
 Display-Fill-Column-Indicator mode is enabled in all buffers where
 `display-fill-column-indicator--turn-on' would do it.
@@ -8049,8 +8145,8 @@ Display-Fill-Column-Indicator mode is enabled in all buffers where
 See `display-fill-column-indicator-mode' for more information on
 Display-Fill-Column-Indicator mode.
 
-`global-display-fill-column-indicator-modes' is used to control which modes
-this minor mode is used in.
+`global-display-fill-column-indicator-modes' is used to control
+which modes this minor mode is used in.
 
 \(fn &optional ARG)" t nil)
 
@@ -8113,9 +8209,9 @@ or call the function `global-display-line-numbers-mode'.")
 
 (autoload 'global-display-line-numbers-mode "display-line-numbers" "\
 Toggle Display-Line-Numbers mode in all buffers.
-With prefix ARG, enable Global Display-Line-Numbers mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+With prefix ARG, enable Global Display-Line-Numbers mode if ARG is
+positive; otherwise, disable it.  If called from Lisp, enable the mode
+if ARG is omitted or nil.
 
 Display-Line-Numbers mode is enabled in all buffers where
 `display-line-numbers--turn-on' would do it.
@@ -8318,6 +8414,9 @@ strings when pressed twice.  See `double-map' for details.
 
 (autoload 'dunnet "dunnet" "\
 Switch to *dungeon* buffer and start game." t nil)
+
+(autoload 'dun-batch "dunnet" "\
+Start `dunnet' in batch mode." nil nil)
 
 (register-definition-prefixes "dunnet" '("dun" "obj-special"))
 
@@ -11204,8 +11303,8 @@ Search through all files listed in tags table for match for REGEXP.
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue].
 
-If FILES if non-nil should be a list or an iterator returning the files to search.
-The search will be restricted to these files.
+If FILES if non-nil should be a list or an iterator returning the
+files to search.  The search will be restricted to these files.
 
 Also see the documentation of the `tags-file-name' variable.
 
@@ -11887,13 +11986,13 @@ Set the base remapping of FACE in the current buffer to SPECS.
 This causes the remappings specified by `face-remap-add-relative'
 to apply on top of the face specification given by SPECS.
 
-The remaining arguments, SPECS, should form a list of faces.
-Each list element should be either a face name or a property list
+The remaining arguments, SPECS, specify the base of the remapping.
+Each one of SPECS should be either a face name or a property list
 of face attribute/value pairs, like in a `face' text property.
 
-If SPECS is empty, call `face-remap-reset-base' to use the normal
-definition of FACE as the base remapping; note that this is
-different from SPECS containing a single value nil, which means
+If SPECS is empty or a single face `eq' to FACE, call `face-remap-reset-base'
+to use the normal definition of FACE as the base remapping; note that
+this is different from SPECS containing a single value nil, which means
 not to inherit from the global definition of FACE at all.
 
 \(fn FACE &rest SPECS)" nil nil)
@@ -12101,10 +12200,10 @@ internally by feedmail):
    after-run            (the queue has just been run, possibly sending messages)
 
 WHAT-EVENT is used as a key into the table `feedmail-queue-reminder-alist'.  If
-the associated value is a function, it is called without arguments and is expected
-to perform the reminder activity.  You can supply your own reminder functions
-by redefining `feedmail-queue-reminder-alist'.  If you don't want any reminders,
-you can set `feedmail-queue-reminder-alist' to nil.
+the associated value is a function, it is called without arguments and is
+expected to perform the reminder activity.  You can supply your own reminder
+functions by redefining `feedmail-queue-reminder-alist'.  If you don't want any
+reminders, you can set `feedmail-queue-reminder-alist' to nil.
 
 \(fn &optional WHAT-EVENT)" t nil)
 
@@ -12883,7 +12982,7 @@ diagnostics at BEG.
 (autoload 'flymake-diag-region "flymake" "\
 Compute BUFFER's region (BEG . END) corresponding to LINE and COL.
 If COL is nil, return a region just for LINE.  Return nil if the
-region is invalid.
+region is invalid.  This function saves match data.
 
 \(fn BUFFER LINE &optional COL)" nil nil)
 
@@ -13261,7 +13360,10 @@ the symbol `delete', remove those %-specs from the result;
 otherwise do the same as for the symbol `ignore', but also leave
 any occurrences of \"%%\" in FORMAT verbatim in the result.
 
-\(fn FORMAT SPECIFICATION &optional IGNORE-MISSING)" nil nil)
+If SPLIT, instead of returning a single string, a list of strings
+is returned, where each format spec is its own element.
+
+\(fn FORMAT SPECIFICATION &optional IGNORE-MISSING SPLIT)" nil nil)
 
 (register-definition-prefixes "format-spec" '("format-spec-"))
 
@@ -14950,14 +15052,13 @@ or call the function `global-goto-address-mode'.")
 (autoload 'global-goto-address-mode "goto-addr" "\
 Toggle Goto-Address mode in all buffers.
 With prefix ARG, enable Global Goto-Address mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+otherwise, disable it.  If called from Lisp, enable the mode if ARG
+is omitted or nil.
 
 Goto-Address mode is enabled in all buffers where
 `goto-addr-mode--turn-on' would do it.
 
-See `goto-address-mode' for more information on
-Goto-Address mode.
+See `goto-address-mode' for more information on Goto-Address mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -15041,7 +15142,7 @@ List of hook functions run by `grep-process-setup' (see `run-hooks').")
 
 (custom-autoload 'grep-setup-hook "grep" t)
 
-(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1)) "\
+(defconst grep-regexp-alist `((,(concat "^\\(?:" "\\(?1:[^\0\n]+\\)\\(?3:\0\\)\\(?2:[0-9]+\\):" "\\|" "\\(?1:" "\\(?:[a-zA-Z]:\\)?" "[^\n:]+?[^\n/:]\\):[\11 ]*\\(?2:[1-9][0-9]*\\)[\11 ]*:" "\\)") 1 2 (,(lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face))) (when mbeg (- mbeg beg))))) \, (lambda nil (when grep-highlight-matches (let* ((beg (match-end 0)) (end (save-excursion (goto-char beg) (line-end-position))) (mbeg (text-property-any beg end 'font-lock-face grep-match-face)) (mend (and mbeg (next-single-property-change mbeg 'font-lock-face nil end)))) (when mend (- mend beg)))))) nil nil (3 '(face nil display ":"))) ("^Binary file \\(.+\\) matches" 1 nil nil 0 1)) "\
 Regexp used to match grep hits.
 See `compilation-error-regexp-alist' for format details.")
 
@@ -15251,7 +15352,7 @@ and source-file directory for your debugger.
 \(fn COMMAND-LINE)" t nil)
 
 (autoload 'pdb "gud" "\
-Run COMMAND-LINE in the `*gud-FILE*' buffer.
+Run COMMAND-LINE in the `*gud-FILE*' buffer to debug Python programs.
 
 COMMAND-LINE should include the pdb executable
 name (`gud-pdb-command-name') and the file to be debugged.
@@ -16113,14 +16214,13 @@ or call the function `global-hi-lock-mode'.")
 (autoload 'global-hi-lock-mode "hi-lock" "\
 Toggle Hi-Lock mode in all buffers.
 With prefix ARG, enable Global Hi-Lock mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+otherwise, disable it.  If called from Lisp, enable the mode if ARG is
+omitted or nil.
 
 Hi-Lock mode is enabled in all buffers where
 `turn-on-hi-lock-if-enabled' would do it.
 
-See `hi-lock-mode' for more information on
-Hi-Lock mode.
+See `hi-lock-mode' for more information on Hi-Lock mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -16498,8 +16598,8 @@ or call the function `global-highlight-changes-mode'.")
 
 (autoload 'global-highlight-changes-mode "hilit-chg" "\
 Toggle Highlight-Changes mode in all buffers.
-With prefix ARG, enable Global Highlight-Changes mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
+With prefix ARG, enable Global Highlight-Changes mode if ARG is
+positive; otherwise, disable it.  If called from Lisp, enable the mode if
 ARG is omitted or nil.
 
 Highlight-Changes mode is enabled in all buffers where
@@ -17759,11 +17859,13 @@ is supported, and FILE exists, is used to construct the image
 specification to be returned.  Return nil if no specification is
 satisfied.
 
+If CACHE is non-nil, results are cached and returned on subsequent calls.
+
 The image is looked for in `image-load-path'.
 
 Image files should not be larger than specified by `max-image-size'.
 
-\(fn SPECS)" nil nil)
+\(fn SPECS &optional CACHE)" nil nil)
 
 (autoload 'defimage "image" "\
 Define SYMBOL as an image, and return SYMBOL.
@@ -17801,7 +17903,7 @@ recognizes these files as having image type `imagemagick'.
 
 If Emacs is compiled without ImageMagick support, this does nothing." nil nil)
 
-(register-definition-prefixes "image" '("image" "unknown-image-type"))
+(register-definition-prefixes "image" '("find-image--cache" "image" "unknown-image-type"))
 
 ;;;***
 
@@ -18812,16 +18914,6 @@ Add submenus to the File menu, to convert to and from various formats." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "iso-transl" "international/iso-transl.el"
-;;;;;;  (0 0 0 0))
-;;; Generated autoloads from international/iso-transl.el
- (define-key key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
- (autoload 'iso-transl-ctl-x-8-map "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
-
-(register-definition-prefixes "iso-transl" '("iso-transl-"))
-
-;;;***
-
 ;;;### (autoloads nil "iso8601" "calendar/iso8601.el" (0 0 0 0))
 ;;; Generated autoloads from calendar/iso8601.el
 
@@ -19731,14 +19823,12 @@ or call the function `global-linum-mode'.")
 (autoload 'global-linum-mode "linum" "\
 Toggle Linum mode in all buffers.
 With prefix ARG, enable Global Linum mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+otherwise, disable it.  If called from Lisp, enable the mode if ARG is
+omitted or nil.
 
-Linum mode is enabled in all buffers where
-`linum-on' would do it.
+Linum mode is enabled in all buffers where `linum-on' would do it.
 
-See `linum-mode' for more information on
-Linum mode.
+See `linum-mode' for more information on Linum mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -20691,6 +20781,21 @@ recursion depth in the minibuffer prompt.  This is only useful if
 ;;; Generated autoloads from md4.el
 
 (register-definition-prefixes "md4" '("md4"))
+
+;;;***
+
+;;;### (autoloads nil "memory-report" "emacs-lisp/memory-report.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from emacs-lisp/memory-report.el
+
+(autoload 'memory-report "memory-report" "\
+Generate a report of how Emacs is using memory.
+
+This report is approximate, and will commonly over-count memory
+usage by variables, because shared data structures will usually
+by counted more than once." t nil)
+
+(register-definition-prefixes "memory-report" '("memory-report-"))
 
 ;;;***
 
@@ -22898,7 +23003,6 @@ Many aspects this mode can be customized using
 
 ;;;### (autoloads nil "ob-abc" "org/ob-abc.el" (0 0 0 0))
 ;;; Generated autoloads from org/ob-abc.el
-(push (purecopy '(ob-abc 0 1)) package--builtin-versions)
 
 (register-definition-prefixes "ob-abc" '("org-babel-"))
 
@@ -22929,7 +23033,7 @@ Many aspects this mode can be customized using
 ;;;### (autoloads nil "ob-clojure" "org/ob-clojure.el" (0 0 0 0))
 ;;; Generated autoloads from org/ob-clojure.el
 
-(register-definition-prefixes "ob-clojure" '("org-babel-"))
+(register-definition-prefixes "ob-clojure" '("ob-clojure-" "org-babel-"))
 
 ;;;***
 
@@ -22970,7 +23074,6 @@ Many aspects this mode can be customized using
 
 ;;;### (autoloads nil "ob-ebnf" "org/ob-ebnf.el" (0 0 0 0))
 ;;; Generated autoloads from org/ob-ebnf.el
-(push (purecopy '(ob-ebnf 1 0)) package--builtin-versions)
 
 (register-definition-prefixes "ob-ebnf" '("org-babel-"))
 
@@ -23218,7 +23321,6 @@ Many aspects this mode can be customized using
 
 ;;;### (autoloads nil "ob-sed" "org/ob-sed.el" (0 0 0 0))
 ;;; Generated autoloads from org/ob-sed.el
-(push (purecopy '(ob-sed 0 1 1)) package--builtin-versions)
 
 (register-definition-prefixes "ob-sed" '("org-babel-"))
 
@@ -23320,110 +23422,6 @@ startup file, `~/.emacs-octave'.
 ;;; Generated autoloads from international/ogonek.el
 
 (register-definition-prefixes "ogonek" '("ogonek-"))
-
-;;;***
-
-;;;### (autoloads nil "ol" "org/ol.el" (0 0 0 0))
-;;; Generated autoloads from org/ol.el
-
-(autoload 'org-next-link "ol" "\
-Move forward to the next link.
-If the link is in hidden text, expose it.  When SEARCH-BACKWARD
-is non-nil, move backward.
-
-\(fn &optional SEARCH-BACKWARD)" t nil)
-
-(autoload 'org-previous-link "ol" "\
-Move backward to the previous link.
-If the link is in hidden text, expose it." t nil)
-
-(autoload 'org-toggle-link-display "ol" "\
-Toggle the literal or descriptive display of links." t nil)
-
-(autoload 'org-store-link "ol" "\
-Store a link to the current location.
-\\<org-mode-map>
-This link is added to `org-stored-links' and can later be inserted
-into an Org buffer with `org-insert-link' (`\\[org-insert-link]').
-
-For some link types, a `\\[universal-argument]' prefix ARG is interpreted.  A single
-`\\[universal-argument]' negates `org-context-in-file-links' for file links or
-`org-gnus-prefer-web-links' for links to Usenet articles.
-
-A `\\[universal-argument] \\[universal-argument]' prefix ARG forces skipping storing functions that are not
-part of Org core.
-
-A `\\[universal-argument] \\[universal-argument] \\[universal-argument]' prefix ARG forces storing a link for each line in the
-active region.
-
-Assume the function is called interactively if INTERACTIVE? is
-non-nil.
-
-\(fn ARG &optional INTERACTIVE\\=\\?)" t nil)
-
-(autoload 'org-insert-link "ol" "\
-Insert a link.  At the prompt, enter the link.
-
-Completion can be used to insert any of the link protocol prefixes in use.
-
-The history can be used to select a link previously stored with
-`org-store-link'.  When the empty string is entered (i.e. if you just
-press `RET' at the prompt), the link defaults to the most recently
-stored link.  As `SPC' triggers completion in the minibuffer, you need to
-use `M-SPC' or `C-q SPC' to force the insertion of a space character.
-
-You will also be prompted for a description, and if one is given, it will
-be displayed in the buffer instead of the link.
-
-If there is already a link at point, this command will allow you to edit
-link and description parts.
-
-With a `\\[universal-argument]' prefix, prompts for a file to link to.  The file name can be
-selected using completion.  The path to the file will be relative to the
-current directory if the file is in the current directory or a subdirectory.
-Otherwise, the link will be the absolute path as completed in the minibuffer
-\(i.e. normally ~/path/to/file).  You can configure this behavior using the
-option `org-link-file-path-type'.
-
-With a `\\[universal-argument] \\[universal-argument]' prefix, enforce an absolute path even if the file is in
-the current directory or below.
-
-A `\\[universal-argument] \\[universal-argument] \\[universal-argument]' prefix negates `org-link-keep-stored-after-insertion'.
-
-If the LINK-LOCATION parameter is non-nil, this value will be used as
-the link location instead of reading one interactively.
-
-If the DESCRIPTION parameter is non-nil, this value will be used as the
-default description.  Otherwise, if `org-link-make-description-function'
-is non-nil, this function will be called with the link target, and the
-result will be the default link description.  When called non-interactively,
-don't allow to edit the default description.
-
-\(fn &optional COMPLETE-FILE LINK-LOCATION DESCRIPTION)" t nil)
-
-(autoload 'org-insert-all-links "ol" "\
-Insert all links in `org-stored-links'.
-When a universal prefix, do not delete the links from `org-stored-links'.
-When `ARG' is a number, insert the last N link(s).
-`PRE' and `POST' are optional arguments to define a string to
-prepend or to append.
-
-\(fn ARG &optional PRE POST)" t nil)
-
-(autoload 'org-insert-last-stored-link "ol" "\
-Insert the last link stored in `org-stored-links'.
-
-\(fn ARG)" t nil)
-
-(autoload 'org-insert-link-global "ol" "\
-Insert a link like Org mode does.
-This command can be called in any mode to insert a link in Org syntax." t nil)
-
-(autoload 'org-update-radio-target-regexp "ol" "\
-Find all radio targets in this file and update the regular expression.
-Also refresh fontification if needed." t nil)
-
-(register-definition-prefixes "ol" '("org-"))
 
 ;;;***
 
@@ -23529,7 +23527,7 @@ Coloring:
 
 ;;;### (autoloads nil "org" "org/org.el" (0 0 0 0))
 ;;; Generated autoloads from org/org.el
-(push (purecopy '(org 9 3)) package--builtin-versions)
+(push (purecopy '(org 9 4 4)) package--builtin-versions)
 
 (autoload 'org-babel-do-load-languages "org" "\
 Load the languages defined in `org-babel-load-languages'.
@@ -23553,6 +23551,11 @@ In non-interactive uses, a reduced version string is output unless
 FULL is given.
 
 \(fn &optional HERE FULL MESSAGE)" t nil)
+
+(autoload 'org-load-modules-maybe "org" "\
+Load all extensions listed in `org-modules'.
+
+\(fn &optional FORCE)" nil nil)
 
 (autoload 'org-clock-persistence-insinuate "org" "\
 Set up hooks for clock persistence." nil nil)
@@ -23623,10 +23626,10 @@ When point is not at the beginning of a headline, execute the global
 binding for `TAB', which is re-indenting the line.  See the option
 `org-cycle-emulate-tab' for details.
 
-As a special case, if point is at the beginning of the buffer and there is
-no headline in line 1, this function will act as if called with prefix arg
-\(`\\[universal-argument] TAB', same as `S-TAB') also when called without prefix arg, but only
-if the variable `org-cycle-global-at-bob' is t.
+As a special case, if point is at the very beginning of the buffer, if
+there is no headline there, and if the variable `org-cycle-global-at-bob'
+is non-nil, this function acts as if called with prefix argument (`\\[universal-argument] TAB',
+same as `S-TAB') also when called without prefix argument.
 
 \(fn &optional ARG)" t nil)
 
@@ -24052,109 +24055,23 @@ Set `org-capture-templates' to be similar to `org-remember-templates'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "org-colview" "org/org-colview.el" (0 0 0 0))
-;;; Generated autoloads from org/org-colview.el
-
-(autoload 'org-columns-remove-overlays "org-colview" "\
-Remove all currently active column overlays." t nil)
-
-(autoload 'org-columns-get-format-and-top-level "org-colview" nil nil nil)
-
-(autoload 'org-columns "org-colview" "\
-Turn on column view on an Org mode file.
-
-Column view applies to the whole buffer if point is before the
-first headline.  Otherwise, it applies to the first ancestor
-setting \"COLUMNS\" property.  If there is none, it defaults to
-the current headline.  With a `\\[universal-argument]' prefix argument, turn on column
-view for the whole buffer unconditionally.
-
-When COLUMNS-FMT-STRING is non-nil, use it as the column format.
-
-\(fn &optional GLOBAL COLUMNS-FMT-STRING)" t nil)
-
-(autoload 'org-columns-compute "org-colview" "\
-Summarize the values of PROPERTY hierarchically.
-Also update existing values for PROPERTY according to the first
-column specification.
-
-\(fn PROPERTY)" t nil)
-
-(autoload 'org-dblock-write:columnview "org-colview" "\
-Write the column view table.
-
-PARAMS is a property list of parameters:
-
-`:id' (mandatory)
-
-    The ID property of the entry where the columns view should be
-    built.  When the symbol `local', call locally.  When `global'
-    call column view with the cursor at the beginning of the
-    buffer (usually this means that the whole buffer switches to
-    column view).  When \"file:path/to/file.org\", invoke column
-    view at the start of that file.  Otherwise, the ID is located
-    using `org-id-find'.
-
-`:exclude-tags'
-
-    List of tags to exclude from column view table.
-
-`:format'
-
-    When non-nil, specify the column view format to use.
-
-`:hlines'
-
-    When non-nil, insert a hline before each item.  When
-    a number, insert a hline before each level inferior or equal
-    to that number.
-
-`:indent'
-
-    When non-nil, indent each ITEM field according to its level.
-
-`:match'
-
-    When set to a string, use this as a tags/property match filter.
-
-`:maxlevel'
-
-    When set to a number, don't capture headlines below this level.
-
-`:skip-empty-rows'
-
-    When non-nil, skip rows where all specifiers other than ITEM
-    are empty.
-
-`:vlines'
-
-    When non-nil, make each column a column group to enforce
-    vertical lines.
-
-\(fn PARAMS)" nil nil)
-
-(autoload 'org-columns-insert-dblock "org-colview" "\
-Create a dynamic block capturing a column view table." t nil)
-
-(autoload 'org-agenda-columns "org-colview" "\
-Turn on or update column view in the agenda." t nil)
-
-(register-definition-prefixes "org-colview" '("org-"))
-
-;;;***
-
-;;;### (autoloads nil "org-compat" "org/org-compat.el" (0 0 0 0))
-;;; Generated autoloads from org/org-compat.el
-
-(autoload 'org-check-version "org-compat" "\
-Try very hard to provide sensible version strings." nil t)
-
-(register-definition-prefixes "org-compat" '("org-"))
-
-;;;***
-
 ;;;### (autoloads nil "org-crypt" "org/org-crypt.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-crypt.el
+
+(autoload 'org-encrypt-entry "org-crypt" "\
+Encrypt the content of the current headline." t nil)
+
+(autoload 'org-decrypt-entry "org-crypt" "\
+Decrypt the content of the current headline." t nil)
+
+(autoload 'org-encrypt-entries "org-crypt" "\
+Encrypt all top-level entries in the current buffer." t nil)
+
+(autoload 'org-decrypt-entries "org-crypt" "\
+Decrypt all entries in the current buffer." t nil)
+
+(autoload 'org-crypt-use-before-save-magic "org-crypt" "\
+Add a hook to automatically encrypt entries before a file is saved to disk." nil nil)
 
 (register-definition-prefixes "org-crypt" '("org-"))
 
@@ -24164,61 +24081,6 @@ Try very hard to provide sensible version strings." nil t)
 ;;; Generated autoloads from org/org-ctags.el
 
 (register-definition-prefixes "org-ctags" '("org-ctags-"))
-
-;;;***
-
-;;;### (autoloads nil "org-duration" "org/org-duration.el" (0 0 0
-;;;;;;  0))
-;;; Generated autoloads from org/org-duration.el
-
-(autoload 'org-duration-set-regexps "org-duration" "\
-Set duration related regexps." t nil)
-
-(autoload 'org-duration-p "org-duration" "\
-Non-nil when string S is a time duration.
-
-\(fn S)" nil nil)
-
-(autoload 'org-duration-to-minutes "org-duration" "\
-Return number of minutes of DURATION string.
-
-When optional argument CANONICAL is non-nil, ignore
-`org-duration-units' and use standard time units value.
-
-A bare number is translated into minutes.  The empty string is
-translated into 0.0.
-
-Return value as a float.  Raise an error if duration format is
-not recognized.
-
-\(fn DURATION &optional CANONICAL)" nil nil)
-
-(autoload 'org-duration-from-minutes "org-duration" "\
-Return duration string for a given number of MINUTES.
-
-Format duration according to `org-duration-format' or FMT, when
-non-nil.
-
-When optional argument CANONICAL is non-nil, ignore
-`org-duration-units' and use standard time units value.
-
-Raise an error if expected format is unknown.
-
-\(fn MINUTES &optional FMT CANONICAL)" nil nil)
-
-(autoload 'org-duration-h:mm-only-p "org-duration" "\
-Non-nil when every duration in TIMES has \"H:MM\" or \"H:MM:SS\" format.
-
-TIMES is a list of duration strings.
-
-Return nil if any duration is expressed with units, as defined in
-`org-duration-units'.  Otherwise, if any duration is expressed
-with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
-`h:mm'.
-
-\(fn TIMES)" nil nil)
-
-(register-definition-prefixes "org-duration" '("org-duration-"))
 
 ;;;***
 
@@ -24237,42 +24099,6 @@ with \"H:MM:SS\" format, return `h:mm:ss'.  Otherwise, return
 
 ;;;***
 
-;;;### (autoloads nil "org-goto" "org/org-goto.el" (0 0 0 0))
-;;; Generated autoloads from org/org-goto.el
-
-(autoload 'org-goto-location "org-goto" "\
-Let the user select a location in current buffer.
-This function uses a recursive edit.  It returns the selected
-position or nil.
-
-\(fn &optional BUF HELP)" nil nil)
-
-(autoload 'org-goto "org-goto" "\
-Look up a different location in the current file, keeping current visibility.
-
-When you want look-up or go to a different location in a
-document, the fastest way is often to fold the entire buffer and
-then dive into the tree.  This method has the disadvantage, that
-the previous location will be folded, which may not be what you
-want.
-
-This command works around this by showing a copy of the current
-buffer in an indirect buffer, in overview mode.  You can dive
-into the tree in that copy, use org-occur and incremental search
-to find a location.  When pressing RET or `Q', the command
-returns to the original buffer in which the visibility is still
-unchanged.  After RET it will also jump to the location selected
-in the indirect buffer and expose the headline hierarchy above.
-
-With a prefix argument, use the alternative interface: e.g., if
-`org-goto-interface' is `outline' use `outline-path-completion'.
-
-\(fn &optional ALTERNATIVE-INTERFACE)" t nil)
-
-(register-definition-prefixes "org-goto" '("org-goto-"))
-
-;;;***
-
 ;;;### (autoloads nil "org-habit" "org/org-habit.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-habit.el
 
@@ -24288,41 +24114,6 @@ With a prefix argument, use the alternative interface: e.g., if
 
 ;;;***
 
-;;;### (autoloads nil "org-keys" "org/org-keys.el" (0 0 0 0))
-;;; Generated autoloads from org/org-keys.el
-
-(autoload 'org-babel-describe-bindings "org-keys" "\
-Describe all keybindings behind `org-babel-key-prefix'." t nil)
-
-(register-definition-prefixes "org-keys" '("org-"))
-
-;;;***
-
-;;;### (autoloads nil "org-lint" "org/org-lint.el" (0 0 0 0))
-;;; Generated autoloads from org/org-lint.el
-
-(autoload 'org-lint "org-lint" "\
-Check current Org buffer for syntax mistakes.
-
-By default, run all checkers.  With a `\\[universal-argument]' prefix ARG, select one
-category of checkers only.  With a `\\[universal-argument] \\[universal-argument]' prefix, run one precise
-checker by its name.
-
-ARG can also be a list of checker names, as symbols, to run.
-
-\(fn &optional ARG)" t nil)
-
-(register-definition-prefixes "org-lint" '("org-lint-"))
-
-;;;***
-
-;;;### (autoloads nil "org-list" "org/org-list.el" (0 0 0 0))
-;;; Generated autoloads from org/org-list.el
-
-(register-definition-prefixes "org-list" '("org-"))
-
-;;;***
-
 ;;;### (autoloads nil "org-macro" "org/org-macro.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-macro.el
 
@@ -24330,51 +24121,10 @@ ARG can also be a list of checker names, as symbols, to run.
 
 ;;;***
 
-;;;### (autoloads nil "org-macs" "org/org-macs.el" (0 0 0 0))
-;;; Generated autoloads from org/org-macs.el
-
-(autoload 'org-load-noerror-mustsuffix "org-macs" "\
-Load FILE with optional arguments NOERROR and MUSTSUFFIX.
-
-\(fn FILE)" nil t)
-
-(register-definition-prefixes "org-macs" '("org-"))
-
-;;;***
-
 ;;;### (autoloads nil "org-mouse" "org/org-mouse.el" (0 0 0 0))
 ;;; Generated autoloads from org/org-mouse.el
 
 (register-definition-prefixes "org-mouse" '("org-mouse-"))
-
-;;;***
-
-;;;### (autoloads nil "org-num" "org/org-num.el" (0 0 0 0))
-;;; Generated autoloads from org/org-num.el
-
-(autoload 'org-num-default-format "org-num" "\
-Default numbering display function.
-NUMBERING is a list of numbers.
-
-\(fn NUMBERING)" nil nil)
-
-(autoload 'org-num-mode "org-num" "\
-Dynamic numbering of headlines in an Org buffer.
-
-If called interactively, toggle `Org-Num mode'.  If the prefix
-argument is positive, enable the mode, and if it is zero or negative,
-disable the mode.
-
-If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
-mode if ARG is nil, omitted, or is a positive number.  Disable the
-mode if ARG is a negative number.
-
-The mode's hook is called both when the mode is enabled and when it is
-disabled.
-
-\(fn &optional ARG)" t nil)
-
-(register-definition-prefixes "org-num" '("org-num-"))
 
 ;;;***
 
@@ -24471,6 +24221,13 @@ See the command `outline-mode' for more information on this mode.
 \(fn &optional ARG)" t nil)
 
 (register-definition-prefixes "outline" '("outline-"))
+
+;;;***
+
+;;;### (autoloads nil "ox-man" "org/ox-man.el" (0 0 0 0))
+;;; Generated autoloads from org/ox-man.el
+
+(register-definition-prefixes "ox-man" '("org-man-"))
 
 ;;;***
 
@@ -26094,7 +25851,7 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 5 2)) package--builtin-versions)
+(push (purecopy '(project 0 5 3)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
@@ -26115,7 +25872,7 @@ of the project instance object.
 
 \(fn &optional MAYBE-PROMPT DIRECTORY)" nil nil)
 
-(defvar project-prefix-map (let ((map (make-sparse-keymap))) (define-key map "!" 'project-shell-command) (define-key map "&" 'project-async-shell-command) (define-key map "f" 'project-find-file) (define-key map "F" 'project-or-external-find-file) (define-key map "b" 'project-switch-to-buffer) (define-key map "s" 'project-shell) (define-key map "d" 'project-dired) (define-key map "v" 'project-vc-dir) (define-key map "c" 'project-compile) (define-key map "e" 'project-eshell) (define-key map "k" 'project-kill-buffers) (define-key map "p" 'project-switch-project) (define-key map "g" 'project-find-regexp) (define-key map "G" 'project-or-external-find-regexp) (define-key map "r" 'project-query-replace-regexp) map) "\
+(defvar project-prefix-map (let ((map (make-sparse-keymap))) (define-key map "!" 'project-shell-command) (define-key map "&" 'project-async-shell-command) (define-key map "f" 'project-find-file) (define-key map "F" 'project-or-external-find-file) (define-key map "b" 'project-switch-to-buffer) (define-key map "s" 'project-shell) (define-key map "d" 'project-dired) (define-key map "v" 'project-vc-dir) (define-key map "c" 'project-compile) (define-key map "e" 'project-eshell) (define-key map "k" 'project-kill-buffers) (define-key map "p" 'project-switch-project) (define-key map "g" 'project-find-regexp) (define-key map "G" 'project-or-external-find-regexp) (define-key map "r" 'project-query-replace-regexp) (define-key map "x" 'project-execute-extended-command) map) "\
 Keymap for project commands.")
  (define-key ctl-x-map "p" project-prefix-map)
 
@@ -26279,19 +26036,33 @@ Save the result in `project-list-file' if the list of projects has changed.
 (autoload 'project-known-project-roots "project" "\
 Return the list of root directories of all known projects." nil nil)
 
-(defvar project-switch-commands '((102 "Find file" project-find-file) (103 "Find regexp" project-find-regexp) (100 "Dired" project-dired) (118 "VC-Dir" project-vc-dir) (101 "Eshell" project-eshell)) "\
-Alist mapping keys to project switching menu entries.
+(autoload 'project-execute-extended-command "project" "\
+Execute an extended command in project root." t nil)
+
+(function-put 'project-execute-extended-command 'interactive-only 'command-execute)
+
+(defvar project-switch-commands '((project-find-file "Find file") (project-find-regexp "Find regexp") (project-dired "Dired") (project-vc-dir "VC-Dir") (project-eshell "Eshell")) "\
+Alist mapping commands to descriptions.
 Used by `project-switch-project' to construct a dispatch menu of
 commands available upon \"switching\" to another project.
 
-Each element is of the form (KEY LABEL COMMAND), where COMMAND is the
-command to run when KEY is pressed.  LABEL is used to distinguish
-the menu entries in the dispatch menu.")
+Each element is of the form (COMMAND LABEL &optional KEY) where
+COMMAND is the command to run when KEY is pressed.  LABEL is used
+to distinguish the menu entries in the dispatch menu.  If KEY is
+absent, COMMAND must be bound in `project-prefix-map', and the
+key is looked up in that map.")
+
+(custom-autoload 'project-switch-commands "project" t)
 
 (autoload 'project-switch-project "project" "\
 \"Switch\" to another project by running an Emacs command.
 The available commands are presented as a dispatch menu
-made from `project-switch-commands'." t nil)
+made from `project-switch-commands'.
+
+When called in a program, it will use the project corresponding
+to directory DIR.
+
+\(fn DIR)" t nil)
 
 (register-definition-prefixes "project" '("project-"))
 
@@ -26625,7 +26396,7 @@ Optional argument FACE specifies the face to do the highlighting.
 
 ;;;### (autoloads nil "python" "progmodes/python.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/python.el
-(push (purecopy '(python 0 27)) package--builtin-versions)
+(push (purecopy '(python 0 27 1)) package--builtin-versions)
 
 (add-to-list 'auto-mode-alist (cons (purecopy "\\.py[iw]?\\'") 'python-mode))
 
@@ -28013,6 +27784,7 @@ Instead, these commands are available:
 \\[rmail-undelete-previous-message]	Undelete message.  Tries current message, then earlier messages
 	till a deleted message is found.
 \\[rmail-edit-current-message]	Edit the current message.  \\[rmail-cease-edit] to return to Rmail.
+\\[rmail-epa-decrypt]	Decrypt the current message.
 \\[rmail-expunge]	Expunge deleted messages.
 \\[rmail-expunge-and-save]	Expunge and save the file.
 \\[rmail-quit]       Quit Rmail: expunge, save, then switch to another buffer.
@@ -29574,7 +29346,7 @@ sorted.  FUNCTION must be a function of one argument.
 \(fn FUNCTION PRED SEQUENCE)" nil nil)
 
 (autoload 'seq-filter "seq" "\
-Return a list of all the elements for which (PRED element) is non-nil in SEQUENCE.
+Return a list of all elements for which (PRED element) is non-nil in SEQUENCE.
 
 \(fn PRED SEQUENCE)" nil nil)
 
@@ -29811,8 +29583,8 @@ have <h1>Very Major Headlines</h1> through <h6>Very Minor Headlines</h6>
 
 <p>Paragraphs only need an opening tag.  Line breaks and multiple spaces are
 ignored unless the text is <pre>preformatted.</pre>  Text can be marked as
-<strong>bold</strong>, <em>italic</em> or <u>underlined</u> using the normal M-o or
-Edit/Text Properties/Face commands.
+<strong>bold</strong>, <em>italic</em> or <u>underlined</u> using the normal M-o
+or Edit/Text Properties/Face commands.
 
 Pages can have <a name=\"SOMENAME\">named points</a> and can link other points
 to them with <a href=\"#SOMENAME\">see also somename</a>.  In the same way <a
@@ -31818,14 +31590,13 @@ or call the function `global-subword-mode'.")
 (autoload 'global-subword-mode "subword" "\
 Toggle Subword mode in all buffers.
 With prefix ARG, enable Global Subword mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+otherwise, disable it.  If called from Lisp, enable the mode if ARG is
+omitted or nil.
 
-Subword mode is enabled in all buffers where
-`(lambda nil (subword-mode 1))' would do it.
+Subword mode is enabled in all buffers where `(lambda nil
+\(subword-mode 1))' would do it.
 
-See `subword-mode' for more information on
-Subword mode.
+See `subword-mode' for more information on Subword mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -31867,14 +31638,13 @@ or call the function `global-superword-mode'.")
 (autoload 'global-superword-mode "subword" "\
 Toggle Superword mode in all buffers.
 With prefix ARG, enable Global Superword mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+otherwise, disable it.  If called from Lisp, enable the mode if ARG is
+omitted or nil.
 
-Superword mode is enabled in all buffers where
-`(lambda nil (superword-mode 1))' would do it.
+Superword mode is enabled in all buffers where `(lambda nil
+\(superword-mode 1))' would do it.
 
-See `superword-mode' for more information on
-Superword mode.
+See `superword-mode' for more information on Superword mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -32001,14 +31771,13 @@ or call the function `global-tab-line-mode'.")
 (autoload 'global-tab-line-mode "tab-line" "\
 Toggle Tab-Line mode in all buffers.
 With prefix ARG, enable Global Tab-Line mode if ARG is positive;
-otherwise, disable it.  If called from Lisp, enable the mode if
-ARG is omitted or nil.
+otherwise, disable it.  If called from Lisp, enable the mode if ARG is
+omitted or nil.
 
 Tab-Line mode is enabled in all buffers where
 `tab-line-mode--turn-on' would do it.
 
-See `tab-line-mode' for more information on
-Tab-Line mode.
+See `tab-line-mode' for more information on Tab-Line mode.
 
 \(fn &optional ARG)" t nil)
 
@@ -32337,7 +32106,8 @@ Creates a cell above and a cell below the current point location." t nil)
 
 (autoload 'table-split-cell-horizontally "table" "\
 Split current cell horizontally.
-Creates a cell on the left and a cell on the right of the current point location." t nil)
+Creates a cell on the left and a cell on the right of the current
+point location." t nil)
 
 (autoload 'table-split-cell "table" "\
 Split current cell in ORIENTATION.
@@ -32805,7 +32575,7 @@ use in that buffer.
 
 \(fn PORT SPEED &optional LINE-MODE)" t nil)
 
-(register-definition-prefixes "term" '("ansi-term-color-vector" "explicit-shell-file-name" "serial-" "term-"))
+(register-definition-prefixes "term" '("ansi-term-color-vector" "serial-" "term-"))
 
 ;;;***
 
@@ -32828,7 +32598,6 @@ Start coverage on function under point." t nil)
 
 ;;;### (autoloads nil "tetris" "play/tetris.el" (0 0 0 0))
 ;;; Generated autoloads from play/tetris.el
-(push (purecopy '(tetris 2 1)) package--builtin-versions)
 
 (autoload 'tetris "tetris" "\
 Play the Tetris game.
@@ -32837,17 +32606,15 @@ rotate the shape to fit in with those at the bottom of the screen so
 as to form complete rows.
 
 tetris-mode keybindings:
-   \\<tetris-mode-map>
-\\[tetris-start-game]	Starts a new game of Tetris
-\\[tetris-end-game]	Terminates the current game
-\\[tetris-pause-game]	Pauses (or resumes) the current game
-\\[tetris-move-left]	Moves the shape one square to the left
-\\[tetris-move-right]	Moves the shape one square to the right
-\\[tetris-rotate-prev]	Rotates the shape clockwise
-\\[tetris-rotate-next]	Rotates the shape anticlockwise
-\\[tetris-move-bottom]	Drops the shape to the bottom of the playing area
-
-" t nil)
+\\<tetris-mode-map>
+\\[tetris-start-game]	Start a new game of Tetris
+\\[tetris-end-game]	Terminate the current game
+\\[tetris-pause-game]	Pause (or resume) the current game
+\\[tetris-move-left]	Move the shape one square to the left
+\\[tetris-move-right]	Move the shape one square to the right
+\\[tetris-rotate-prev]	Rotate the shape clockwise
+\\[tetris-rotate-next]	Rotate the shape anticlockwise
+\\[tetris-move-bottom]	Drop the shape to the bottom of the playing area" t nil)
 
 (register-definition-prefixes "tetris" '("tetris-"))
 
@@ -34234,7 +34001,6 @@ the output buffer or changing the window configuration.
 
 ;;;### (autoloads nil "tramp" "net/tramp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp.el
-(push (purecopy '(tramp 2 5 0 -1)) package--builtin-versions)
 
 (defvar tramp-mode t "\
 Whether Tramp is enabled.
@@ -34408,6 +34174,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
+(push (purecopy '(tramp 2 5 0)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
@@ -38445,7 +38212,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;;### (autoloads nil "xref" "progmodes/xref.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/xref.el
-(push (purecopy '(xref 1 0 3)) package--builtin-versions)
+(push (purecopy '(xref 1 0 4)) package--builtin-versions)
 
 (autoload 'xref-find-backend "xref" nil nil nil)
 
@@ -38699,39 +38466,39 @@ Zone out, completely." t nil)
 ;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
 ;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charprop.el"
 ;;;;;;  "international/charscript.el" "international/cp51932.el"
-;;;;;;  "international/eucjp-ms.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
-;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
-;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
-;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
-;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
-;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
-;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
-;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
-;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
-;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
-;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
-;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
-;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
-;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"
-;;;;;;  "language/indian.el" "language/japanese.el" "language/khmer.el"
-;;;;;;  "language/korean.el" "language/lao.el" "language/misc-lang.el"
-;;;;;;  "language/romanian.el" "language/sinhala.el" "language/slovak.el"
-;;;;;;  "language/tai-viet.el" "language/thai.el" "language/tibetan.el"
-;;;;;;  "language/utf-8-lang.el" "language/vietnamese.el" "ldefs-boot.el"
-;;;;;;  "leim/ja-dic/ja-dic.el" "leim/leim-list.el" "leim/quail/4Corner.el"
-;;;;;;  "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el"
-;;;;;;  "leim/quail/CTLau.el" "leim/quail/ECDICT.el" "leim/quail/ETZY.el"
-;;;;;;  "leim/quail/PY-b5.el" "leim/quail/PY.el" "leim/quail/Punct-b5.el"
-;;;;;;  "leim/quail/Punct.el" "leim/quail/QJ-b5.el" "leim/quail/QJ.el"
-;;;;;;  "leim/quail/SW.el" "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el"
-;;;;;;  "leim/quail/ZOZY.el" "leim/quail/arabic.el" "leim/quail/compose.el"
-;;;;;;  "leim/quail/croatian.el" "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el"
-;;;;;;  "leim/quail/czech.el" "leim/quail/georgian.el" "leim/quail/greek.el"
-;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
-;;;;;;  "leim/quail/hebrew.el" "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el"
-;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
-;;;;;;  "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
+;;;;;;  "international/eucjp-ms.el" "international/iso-transl.el"
+;;;;;;  "international/mule-cmds.el" "international/mule-conf.el"
+;;;;;;  "international/mule.el" "international/uni-bidi.el" "international/uni-brackets.el"
+;;;;;;  "international/uni-category.el" "international/uni-combining.el"
+;;;;;;  "international/uni-comment.el" "international/uni-decimal.el"
+;;;;;;  "international/uni-decomposition.el" "international/uni-digit.el"
+;;;;;;  "international/uni-lowercase.el" "international/uni-mirrored.el"
+;;;;;;  "international/uni-name.el" "international/uni-numeric.el"
+;;;;;;  "international/uni-old-name.el" "international/uni-special-lowercase.el"
+;;;;;;  "international/uni-special-titlecase.el" "international/uni-special-uppercase.el"
+;;;;;;  "international/uni-titlecase.el" "international/uni-uppercase.el"
+;;;;;;  "isearch.el" "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el"
+;;;;;;  "language/cham.el" "language/chinese.el" "language/cyrillic.el"
+;;;;;;  "language/czech.el" "language/english.el" "language/ethiopic.el"
+;;;;;;  "language/european.el" "language/georgian.el" "language/greek.el"
+;;;;;;  "language/hebrew.el" "language/indian.el" "language/japanese.el"
+;;;;;;  "language/khmer.el" "language/korean.el" "language/lao.el"
+;;;;;;  "language/misc-lang.el" "language/romanian.el" "language/sinhala.el"
+;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
+;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
+;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
+;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
+;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
+;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
+;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
+;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
+;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
+;;;;;;  "leim/quail/compose.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
+;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/georgian.el"
+;;;;;;  "leim/quail/greek.el" "leim/quail/hanja-jis.el" "leim/quail/hanja.el"
+;;;;;;  "leim/quail/hanja3.el" "leim/quail/hebrew.el" "leim/quail/ipa-praat.el"
+;;;;;;  "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el" "leim/quail/latin-post.el"
+;;;;;;  "leim/quail/latin-pre.el" "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
 ;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
 ;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
 ;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
@@ -38743,14 +38510,17 @@ Zone out, completely." t nil)
 ;;;;;;  "mh-e/mh-loaddefs.el" "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el"
 ;;;;;;  "newcomment.el" "obarray.el" "org/ob-core.el" "org/ob-lob.el"
 ;;;;;;  "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el"
-;;;;;;  "org/ol-irc.el" "org/org-archive.el" "org/org-attach.el"
-;;;;;;  "org/org-clock.el" "org/org-datetree.el" "org/org-element.el"
-;;;;;;  "org/org-feed.el" "org/org-footnote.el" "org/org-id.el" "org/org-indent.el"
-;;;;;;  "org/org-install.el" "org/org-mobile.el" "org/org-plot.el"
+;;;;;;  "org/ol-irc.el" "org/ol.el" "org/org-archive.el" "org/org-attach.el"
+;;;;;;  "org/org-clock.el" "org/org-colview.el" "org/org-compat.el"
+;;;;;;  "org/org-datetree.el" "org/org-duration.el" "org/org-element.el"
+;;;;;;  "org/org-feed.el" "org/org-footnote.el" "org/org-goto.el"
+;;;;;;  "org/org-id.el" "org/org-indent.el" "org/org-install.el"
+;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
+;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
 ;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
 ;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
-;;;;;;  "org/ox-man.el" "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el"
-;;;;;;  "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el" "progmodes/elisp-mode.el"
+;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
+;;;;;;  "org/ox-texinfo.el" "org/ox.el" "progmodes/elisp-mode.el"
 ;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
 ;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
 ;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/page.el"

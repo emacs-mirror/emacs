@@ -1,6 +1,6 @@
 ;;; unit tests for src/fileio.c      -*- lexical-binding: t; -*-
 
-;; Copyright 2017-2020 Free Software Foundation, Inc.
+;; Copyright 2017-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

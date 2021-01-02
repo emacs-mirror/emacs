@@ -4,7 +4,7 @@
 #
 #	admin/merge-pkg-config
 
-# Copyright 2014-2020 Free Software Foundation, Inc.
+# Copyright 2014-2021 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -60,4 +60,4 @@ test -d m4 || {
 
 printf >&2 '%s\n' "$0: copying $dir/pkg.m4 to m4/pkg.m4"
 
-cp $dir/pkg.m4 m4
+cp "$dir"/pkg.m4 m4

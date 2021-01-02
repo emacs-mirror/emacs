@@ -1,6 +1,6 @@
 @c -*- mode: texinfo; coding: utf-8 -*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Strings and Characters
@@ -120,7 +120,10 @@ character (i.e., an integer), @code{nil} otherwise.
 @cindex string creation
 
   The following functions create strings, either from scratch, or by
-putting strings together, or by taking them apart.
+putting strings together, or by taking them apart.  (For functions that
+create strings based on searching the contents of other strings (like
+@code{string-replace} and @code{replace-regexp-in-string}), see
+@ref{Search and Replace}.)
 
 @defun make-string count character &optional multibyte
 This function returns a string made up of @var{count} repetitions of
@@ -1213,7 +1216,7 @@ The function @code{format-spec} described in this section performs a
 similar function to @code{format}, except it operates on format
 control strings that use arbitrary specification characters.
 
-@defun format-spec template spec-alist &optional ignore-missing
+@defun format-spec template spec-alist &optional ignore-missing split
 This function returns a string produced from the format string
 @var{template} according to conversions specified in @var{spec-alist},
 which is an alist (@pxref{Association Lists}) of the form
@@ -1255,6 +1258,16 @@ any; if it is @code{delete}, those format specifications are removed
 from the output; any other non-@code{nil} value is handled like
 @code{ignore}, but any occurrences of @samp{%%} are also left verbatim
 in the output.
+
+If the optional argument @var{split} is non-@code{nil}, instead of
+returning a single string, @code{format-spec} will split the result
+into a list of strings, based on where the substitutions were
+performed.  For instance:
+
+@example
+(format-spec "foo %b bar" '((?b . "zot")) nil t)
+     @result{} ("foo " "zot" " bar")
+@end example
 @end defun
 
 The syntax of format specifications accepted by @code{format-spec} is

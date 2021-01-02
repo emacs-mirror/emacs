@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1996-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -299,8 +299,8 @@ BUFFER should be a complete URL buffer as returned by `url-retrieve'.
 If the headers specify a coding-system (and current buffer is multibyte),
 it is applied to the body before it is inserted.
 Returns a list of the form (SIZE CHARSET), where SIZE is the size in bytes
-of the inserted text and CHARSET is the charset that was specified in the header,
-or nil if none was found.
+of the inserted text and CHARSET is the charset that was specified in the
+header, or nil if none was found.
 BEG and END can be used to only insert a subpart of the body.
 They count bytes from the beginning of the body."
   (let* ((handle (with-current-buffer buffer (mm-dissect-buffer t)))

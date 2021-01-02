@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (C) 2014-2020 Free Software Foundation, Inc. -->
+<!-- Copyright (C) 2014-2021 Free Software Foundation, Inc. -->
 <component type="desktop-application">
  <id>org.gnu.emacs</id>
  <metadata_license>GFDL-1.3+</metadata_license>

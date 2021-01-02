@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007-2020 Free Software Foundation, Inc.
+   Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -132,23 +132,36 @@ static bool xd_in_read_queued_messages = 0;
 #define XD_BASIC_DBUS_TYPE(type)					\
   (dbus_type_is_valid (type) && dbus_type_is_basic (type))
 #else
-#define XD_BASIC_DBUS_TYPE(type)					\
-  ((type == DBUS_TYPE_BYTE)						\
-   || (type == DBUS_TYPE_BOOLEAN)					\
-   || (type == DBUS_TYPE_INT16)						\
-   || (type == DBUS_TYPE_UINT16)					\
-   || (type == DBUS_TYPE_INT32)						\
-   || (type == DBUS_TYPE_UINT32)					\
-   || (type == DBUS_TYPE_INT64)						\
-   || (type == DBUS_TYPE_UINT64)					\
-   || (type == DBUS_TYPE_DOUBLE)					\
-   || (type == DBUS_TYPE_STRING)					\
-   || (type == DBUS_TYPE_OBJECT_PATH)					\
-   || (type == DBUS_TYPE_SIGNATURE)					\
 #ifdef DBUS_TYPE_UNIX_FD
-   || (type == DBUS_TYPE_UNIX_FD)					\
+#define XD_BASIC_DBUS_TYPE(type)					\
+  ((type ==  DBUS_TYPE_BYTE)						\
+   || (type ==  DBUS_TYPE_BOOLEAN)					\
+   || (type ==  DBUS_TYPE_INT16)					\
+   || (type ==  DBUS_TYPE_UINT16)					\
+   || (type ==  DBUS_TYPE_INT32)					\
+   || (type ==  DBUS_TYPE_UINT32)					\
+   || (type ==  DBUS_TYPE_INT64)					\
+   || (type ==  DBUS_TYPE_UINT64)					\
+   || (type ==  DBUS_TYPE_DOUBLE)					\
+   || (type ==  DBUS_TYPE_STRING)					\
+   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
+   || (type ==  DBUS_TYPE_SIGNATURE)					\
+   || (type ==  DBUS_TYPE_UNIX_FD))
+#else
+#define XD_BASIC_DBUS_TYPE(type)					\
+  ((type ==  DBUS_TYPE_BYTE)						\
+   || (type ==  DBUS_TYPE_BOOLEAN)					\
+   || (type ==  DBUS_TYPE_INT16)					\
+   || (type ==  DBUS_TYPE_UINT16)					\
+   || (type ==  DBUS_TYPE_INT32)					\
+   || (type ==  DBUS_TYPE_UINT32)					\
+   || (type ==  DBUS_TYPE_INT64)					\
+   || (type ==  DBUS_TYPE_UINT64)					\
+   || (type ==  DBUS_TYPE_DOUBLE)					\
+   || (type ==  DBUS_TYPE_STRING)					\
+   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
+   || (type ==  DBUS_TYPE_SIGNATURE))
 #endif
-   )
 #endif
 
 /* This was a macro.  On Solaris 2.11 it was said to compile for

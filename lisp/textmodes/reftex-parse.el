@@ -1,6 +1,6 @@
 ;;; reftex-parse.el --- parser functions for RefTeX
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -1046,7 +1046,7 @@ When point is just after a { or [, limit string to matching parenthesis."
 
 ;;;###autoload
 (defun reftex-init-section-numbers (&optional toc-entry appendix)
-  "Initialize the section numbers with zeros or with what is found in the TOC-ENTRY."
+  "Initialize section numbers with zeros or with what is found in the TOC-ENTRY."
   (let* ((level  (or (nth 5 toc-entry) -1))
          (numbers (nreverse (split-string (or (nth 6 toc-entry) "") "\\.")))
          (depth (1- (length reftex-section-numbers)))

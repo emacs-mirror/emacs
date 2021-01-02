@@ -1,6 +1,6 @@
 /* Hash inputs and generate C file with the digest.
 
-Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2016, 2018-2020 Free
+Copyright (C) 1985-1986, 1992-1994, 1997, 1999-2016, 2018-2021 Free
 Software Foundation, Inc.
 
 This file is part of GNU Emacs.

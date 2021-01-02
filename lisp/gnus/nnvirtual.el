@@ -1,6 +1,6 @@
 ;;; nnvirtual.el --- virtual newsgroups access for Gnus
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Author: David Moore <dmoore@ucsd.edu>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -667,7 +667,7 @@ the result."
 
 
 (defun nnvirtual-create-mapping (dont-check)
-  "Build the tables necessary to map between component (group, article) to virtual article.
+  "Build tables to map between component (group, article) to virtual article.
 Generate the set of read messages and marks for the virtual group
 based on the marks on the component groups."
   (let ((cnt 0)

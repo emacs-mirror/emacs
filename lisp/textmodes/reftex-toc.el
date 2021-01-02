@@ -1,6 +1,6 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 
-;; Copyright (C) 1997-2000, 2003-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2000, 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -851,7 +851,8 @@ if these sets are sorted blocks in the alist."
   "Make sure all files of the document are being visited by buffers,
 and that the scanning info is absolutely up to date.
 We do this by rescanning with `reftex-keep-temporary-buffers' bound to t.
-The variable `reftex--pro-or-de' is assumed to be dynamically scoped into this function.
+The variable `reftex--pro-or-de' is assumed to be dynamically
+scoped into this function.
 When finished, we exit with an error message."
   (let ((reftex-keep-temporary-buffers t))
     (reftex-toc-Rescan)

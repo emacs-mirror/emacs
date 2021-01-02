@@ -1,7 +1,7 @@
 #!/bin/sh
 # Check the format of GNU Emacs change log entries.
 
-# Copyright 2019-2020 Free Software Foundation, Inc.
+# Copyright 2019-2021 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -24,9 +24,9 @@ SHA1=$3
 
 # Prefer gawk if available, as it handles NUL bytes properly.
 if type gawk >/dev/null 2>&1; then
-  awk=gawk
+  awk="gawk"
 else
-  awk=awk
+  awk="awk"
 fi
 
 exec $awk '

@@ -1,6 +1,6 @@
 ;;; metamail.el --- Metamail interface for GNU Emacs
 
-;; Copyright (C) 1993, 1996, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: mail, news, mime, multimedia

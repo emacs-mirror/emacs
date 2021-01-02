@@ -33,7 +33,7 @@ released on 2020-10-08.  Any reference to a newer feature which does
 not yet form part of the latest tagged commit, is explicitly marked as
 such.
 
-Copyright (C) 2020 Free Software Foundation, Inc.
+Copyright (C) 2020--2021 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this

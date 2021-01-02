@@ -1,6 +1,6 @@
 ;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -243,7 +243,7 @@ If no one is selected, symmetric encryption will be performed.  "
       (setq epa-last-coding-system-specified
 	    (or coding-system-for-write
 		(select-safe-coding-system (point) (point-max)))))
- 
+
     ;; Insert contents of requested attachments, if any.
     (when (and (eq major-mode 'mail-mode) mail-encode-mml)
       (mml-to-mime)

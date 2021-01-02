@@ -1,6 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: emacs-devel@gnu.org

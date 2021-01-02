@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -3443,8 +3443,8 @@ Without an argument, it saves customized diff argument, if available
 
 (defun ediff-inferior-compare-regions ()
   "Compare regions in an active Ediff session.
-Like `ediff-regions-linewise' but is called from under an active Ediff session on
-the files that belong to that session.
+Like `ediff-regions-linewise' but is called from under an active Ediff session
+on the files that belong to that session.
 
 After quitting the session invoked via this function, type C-l to the parent
 Ediff Control Panel to restore highlighting."

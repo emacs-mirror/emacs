@@ -1,6 +1,6 @@
 ;;; package-tests.el --- Tests for the Emacs package system  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
 ;; Author: Daniel Hackney <dan@haxney.org>
 ;; Version: 1.0
@@ -405,9 +405,9 @@ Must called from within a `tar-mode' buffer."
 (ert-deftest package-test-list-filter-by-name ()
   "Ensure package list is filtered correctly by package name."
   (with-package-menu-test ()
-    (package-menu-filter-by-name "tetris")
+    (package-menu-filter-by-name "ansi-color")
     (goto-char (point-min))
-    (should (re-search-forward "^\\s-+tetris" nil t))
+    (should (re-search-forward "^\\s-+ansi-color" nil t))
     (should (= (count-lines (point-min) (point-max)) 1))))
 
 (ert-deftest package-test-list-filter-by-status ()
@@ -463,7 +463,7 @@ Must called from within a `tar-mode' buffer."
   "Ensure package list filter is cleared correctly."
   (with-package-menu-test
     (let ((num-packages (count-lines (point-min) (point-max))))
-      (package-menu-filter-by-name "tetris")
+      (package-menu-filter-by-name "ansi-color")
       (should (= (count-lines (point-min) (point-max)) 1))
       (package-menu-clear-filter)
       (should (= (count-lines (point-min) (point-max)) num-packages)))))

@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1989-1990, 1992-1995, 2001-2020 Free Software
+;; Copyright (C) 1989-1990, 1992-1995, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -73,18 +73,18 @@ are holidays."
 ;; follows: the first line matching "^# [tag:value]" defines the value
 ;; for that particular tag.
 (defcustom diary-face-attrs
-  '((" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
-    (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
-    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
-    (" *\\[height:\\([.0-9]+\\)\\]$" 1 :height int)
-    (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
-    (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
-    (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
-    (" *\\[overline:\\([-a-z]+\\)\\]$" 1 :overline stringtnil)
-    (" *\\[strike-through:\\([-a-z]+\\)\\]$" 1 :strike-through stringtnil)
-    (" *\\[inverse-video:\\([-a-z]+\\)\\]$" 1 :inverse-video tnil)
-    (" *\\[face:\\([-0-9a-z]+\\)\\]$" 1 :face string)
-    (" *\\[font:\\([-a-z0-9]+\\)\\]$" 1 :font string)
+  '((" *\\[foreground:\\([-a-z]+\\)\\] *" 1 :foreground string)
+    (" *\\[background:\\([-a-z]+\\)\\] *" 1 :background string)
+    (" *\\[width:\\([-a-z]+\\)\\] *" 1 :width symbol)
+    (" *\\[height:\\([.0-9]+\\)\\] *" 1 :height int)
+    (" *\\[weight:\\([-a-z]+\\)\\] *" 1 :weight symbol)
+    (" *\\[slant:\\([-a-z]+\\)\\] *" 1 :slant symbol)
+    (" *\\[underline:\\([-a-z]+\\)\\] *" 1 :underline stringtnil)
+    (" *\\[overline:\\([-a-z]+\\)\\] *" 1 :overline stringtnil)
+    (" *\\[strike-through:\\([-a-z]+\\)\\] *" 1 :strike-through stringtnil)
+    (" *\\[inverse-video:\\([-a-z]+\\)\\] *" 1 :inverse-video tnil)
+    (" *\\[face:\\([-0-9a-z]+\\)\\] *" 1 :face string)
+    (" *\\[font:\\([-a-z0-9]+\\)\\] *" 1 :font string)
     ;; Unsupported.
 ;;;    (" *\\[box:\\([-a-z]+\\)\\]$" 1 :box)
 ;;;    (" *\\[stipple:\\([-a-z]+\\)\\]$" 1 :stipple)

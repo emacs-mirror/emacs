@@ -1,6 +1,6 @@
 ;;; profiler.el --- UI and helper functions for Emacs's native profiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
 ;; Author: Tomohiro Matsuyama <tomo@cx4a.org>
 ;; Keywords: lisp
@@ -500,10 +500,10 @@ RET: expand or collapse"))
 (defun profiler-report-header-line-format (fmt &rest args)
   (let* ((header (apply #'profiler-format fmt args))
 	 (escaped (replace-regexp-in-string "%" "%%" header)))
-    (concat 
-     (propertize " " 
+    (concat
+     (propertize " "
                  'display '(space :align-to 0)
-                 'face 'fixed-pitch)            
+		 'face 'fixed-pitch)
      escaped)))
 
 (defun profiler-report-line-format (tree)
