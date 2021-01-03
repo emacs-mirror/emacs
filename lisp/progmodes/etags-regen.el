@@ -43,6 +43,11 @@
   ;; always rely on it being installed.  So it might be ctags's etags.
   :type 'file)
 
+(defcustom etags-regen-program-options nil
+  "List of additional options to pass to the etags program."
+  ;; FIXME: How to implement the safety predicate?
+  :type '(repeat string))
+
 (defun etags-regen--maybe-generate ()
   (let (proj)
     (when (and etags-regen--tags-root
@@ -70,20 +75,23 @@
          (extensions '("rb" "js" "py" "pl" "el" "c" "cpp" "cc" "h" "hh" "hpp"
                        "java" "go" "cl" "lisp" "prolog" "php" "erl" "hrl"
                        "F" "f" "f90" "for" "cs" "a" "asm" "ads" "adb" "ada"))
-         (file-regexp (format "\\.%s\\'" (regexp-opt extensions t))))
-    (setq etags-regen--tags-file (make-temp-file "emacs-project-tags-")
+         (file-regexp (format "\\.%s\\'" (regexp-opt extensions t)))
+         (tags-file (make-temp-file "emacs-project-tags-"))
+         ;; ctags's etags requires '-L -' for stdin input.
+         ;; It looks half-broken here (indexes only some of the input files),
+         ;; but better-maintained versions of it exist (like universal-ctags).
+         (command (format "%s %s -L - -o %s"
+                          etags-regen-program
+                          (mapconcat #'identity etags-regen-program-options " ")
+                          tags-file)))
+    (setq etags-regen--tags-file tags-file
           etags-regen--tags-root root)
     (with-temp-buffer
       (mapc (lambda (f)
               (when (string-match-p file-regexp f)
                 (insert f "\n")))
             files)
-      (shell-command-on-region
-       (point-min) (point-max)
-       ;; ctags's etags requires '-L -' for stdin input.
-       ;; It looks half-broken here (indexes only some of the input files),
-       ;; but better-maintained versions of it exist (like universal-ctags).
-       (format "%s -L - -o %s" etags-regen-program etags-regen--tags-file)
+      (shell-command-on-region (point-min) (point-max) command
        nil nil "*etags-project-tags-errors*" t))))
 
 (defun etags-regen--update-file ()
