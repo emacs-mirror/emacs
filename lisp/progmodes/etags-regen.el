@@ -92,11 +92,12 @@
                 (insert f "\n")))
             files)
       (shell-command-on-region (point-min) (point-max) command
-       nil nil "*etags-project-tags-errors*" t))))
+                               nil nil "*etags-project-tags-errors*" t))))
 
 (defun etags-regen--update-file ()
   ;; TODO: Maybe only do this when Emacs is idle for a bit.
   (let ((file-name buffer-file-name)
+        (options etags-regen-program-options)
         (tags-file-buf (get-file-buffer etags-regen--tags-file))
         pr should-scan)
     (save-excursion
@@ -127,15 +128,13 @@
         (goto-char (point-max))
         (let ((inhibit-read-only t)
               (current-end (point)))
-          (call-process
-           etags-regen-program
-           nil
-           '(t "*etags-project-tags-errors*")
-           nil
-           file-name
-           "--append"
-           "-o"
-           "-")
+          ;; FIXME: call-process is significantly faster, though.
+          ;; Like 10ms vs 20ms here.
+          (shell-command
+           (format "%s %s %s -o -"
+                   etags-regen-program (mapconcat #'identity options " ")
+                   file-name)
+           t "*etags-project-tags-errors*")
           ;; XXX: When the project is big (tags file in 10s of megabytes),
           ;; this is much faster than revert-buffer.  Or even using
           ;; write-region without APPEND.
