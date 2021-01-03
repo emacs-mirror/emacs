@@ -312,7 +312,9 @@ If parsing fails, try to set this variable to nil."
                                        (option (choice :tag "Comment" :value nil
                                                        (const nil) string))
                                        (option (choice :tag "Init" :value nil
-                                                       (const nil) string function)))))))
+                                                       (const nil) string function))
+                                       (option (choice :tag "Alternative" :value nil
+                                                       (const nil) integer)))))))
 
 (define-obsolete-variable-alias 'bibtex-entry-field-alist
   'bibtex-BibTeX-entry-alist "24.1")

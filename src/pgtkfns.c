@@ -2047,9 +2047,32 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object terminal)
 {
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
-  GdkDisplay *gdpy = dpyinfo->gdpy;
-  GdkMonitor *gmon = gdk_display_get_monitor_at_point (gdpy, 0, 0);
-  return make_fixnum (gdk_monitor_get_height_mm (gmon));
+  GdkDisplay *gdpy;
+  gint n_monitors, i;
+  int height_mm_at_0 = 0, height_mm_at_other = 0;
+
+  block_input ();
+  gdpy = dpyinfo->gdpy;
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      GdkRectangle rec;
+
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      gdk_monitor_get_geometry (monitor, &rec);
+
+      int mm = gdk_monitor_get_height_mm (monitor);
+
+      if (rec.y == 0)
+	height_mm_at_0 = max(height_mm_at_0, mm);
+      else
+	height_mm_at_other += mm;
+    }
+
+  unblock_input ();
+
+  return make_fixnum (height_mm_at_0 + height_mm_at_other);
 }
 
 
@@ -2065,9 +2088,32 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object terminal)
 {
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
-  GdkDisplay *gdpy = dpyinfo->gdpy;
-  GdkMonitor *gmon = gdk_display_get_monitor_at_point (gdpy, 0, 0);
-  return make_fixnum (gdk_monitor_get_width_mm (gmon));
+  GdkDisplay *gdpy;
+  gint n_monitors, i;
+  int width_mm_at_0 = 0, width_mm_at_other = 0;
+
+  block_input ();
+  gdpy = dpyinfo->gdpy;
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      GdkRectangle rec;
+
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      gdk_monitor_get_geometry (monitor, &rec);
+
+      int mm = gdk_monitor_get_width_mm (monitor);
+
+      if (rec.x == 0)
+	width_mm_at_0 = max(width_mm_at_0, mm);
+      else
+	width_mm_at_other += mm;
+    }
+
+  unblock_input ();
+
+  return make_fixnum (width_mm_at_0 + width_mm_at_other);
 }
 
 
@@ -2362,8 +2408,35 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object terminal)
 {
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
+  GdkDisplay *gdpy;
+  gint n_monitors, i;
+  int width = 0;
 
-  return make_fixnum (x_display_pixel_width (dpyinfo));
+  block_input ();
+  gdpy = dpyinfo->gdpy;
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      GdkRectangle rec;
+      int scale = 1;
+
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      gdk_monitor_get_geometry (monitor, &rec);
+
+      /* GTK returns scaled sizes for the workareas.  */
+      scale = gdk_monitor_get_scale_factor (monitor);
+      rec.x *= scale;
+      rec.y *= scale;
+      rec.width *= scale;
+      rec.height *= scale;
+
+      width = max(width, rec.x + rec.width);
+    }
+
+  unblock_input ();
+
+  return make_fixnum (width);
 }
 
 
@@ -2379,113 +2452,139 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object terminal)
 {
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
+  GdkDisplay *gdpy;
+  gint n_monitors, i;
+  int height = 0;
 
-  return make_fixnum (x_display_pixel_height (dpyinfo));
+  block_input ();
+  gdpy = dpyinfo->gdpy;
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      GdkRectangle rec;
+      int scale = 1;
+
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      gdk_monitor_get_geometry (monitor, &rec);
+
+      /* GTK returns scaled sizes for the workareas.  */
+      scale = gdk_monitor_get_scale_factor (monitor);
+      rec.x *= scale;
+      rec.y *= scale;
+      rec.width *= scale;
+      rec.height *= scale;
+
+      height = max(height, rec.y + rec.height);
+    }
+
+  unblock_input ();
+
+  return make_fixnum (height);
 }
 
-DEFUN ("pgtk-display-monitor-attributes-list", Fpgtk_display_monitor_attributes_list, Spgtk_display_monitor_attributes_list, 0, 1, 0,
+DEFUN ("pgtk-display-monitor-attributes-list", Fpgtk_display_monitor_attributes_list,
+       Spgtk_display_monitor_attributes_list,
+       0, 1, 0,
        doc: /* Return a list of physical monitor attributes on the X display TERMINAL.
 
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.
 
+In addition to the standard attribute keys listed in
+`display-monitor-attributes-list', the following keys are contained in
+the attributes:
+
+ source -- String describing the source from which multi-monitor
+	   information is obtained, \"Gdk\"
+
 Internal use only, use `display-monitor-attributes-list' instead.  */)
   (Lisp_Object terminal)
 {
-  struct terminal *term = decode_live_terminal (terminal);
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
-  GdkDisplay *gdpy = dpyinfo->gdpy;
-  GdkMonitor **gmons;
-  int i, n_monitors, primary_index;
+  Lisp_Object attributes_list = Qnil;
+
+  GdkDisplay *gdpy;
+  gint primary_monitor = 0, n_monitors, i;
+  Lisp_Object monitor_frames, rest, frame;
+  static const char *source = "Gdk";
   struct MonitorInfo *monitors;
-  Lisp_Object monitor_frames = Qnil;
-  Lisp_Object frame = Qnil, rest = Qnil;
-  Lisp_Object rv = Qnil;
 
-  if (term->type != output_pgtk)
-    return Qnil;
-
+  block_input ();
+  gdpy = dpyinfo->gdpy;
   n_monitors = gdk_display_get_n_monitors (gdpy);
-  if (n_monitors == 0)
-    return Qnil;
-
-  gmons = xmalloc (sizeof *gmons * n_monitors);
-  for (i = 0; i < n_monitors; i++)
-    gmons[i] = gdk_display_get_monitor (gdpy, i);
-
+  monitor_frames = make_nil_vector (n_monitors);
   monitors = xzalloc (n_monitors * sizeof *monitors);
-  for (i = 0; i < n_monitors; i++)
-    {
-      struct MonitorInfo *mon = &monitors[i];
-      GdkMonitor *gmon = gmons[i];
-      if (gmon != NULL)
-	{
-	  GdkRectangle geom;
-	  gdk_monitor_get_geometry (gmon, &geom);
-	  mon->geom.x = geom.x;
-	  mon->geom.y = geom.y;
-	  mon->geom.width = geom.width;
-	  mon->geom.height = geom.height;
 
-	  gdk_monitor_get_workarea (gmon, &geom);
-	  mon->work.x = geom.x;
-	  mon->work.y = geom.y;
-	  mon->work.width = geom.width;
-	  mon->work.height = geom.height;
-
-	  mon->mm_width = gdk_monitor_get_width_mm (gmon);
-	  mon->mm_height = gdk_monitor_get_height_mm (gmon);
-
-	  mon->name = xstrdup (gdk_monitor_get_model (gmon));
-	}
-    }
-
-  monitor_frames = Fmake_vector (make_fixnum (n_monitors), Qnil);
   FOR_EACH_FRAME (rest, frame)
-  {
-    struct frame *f = XFRAME (frame);
-
-    if (FRAME_PGTK_P (f))
-      {
-	GtkWidget *widget = FRAME_GTK_WIDGET (f);
-	GdkMonitor *gmon =
-	  gdk_display_get_monitor_at_window (gdpy,
-					     gtk_widget_get_window (widget));
-
-	if (gmon != NULL)
-	  {
-	    for (i = 0; i < n_monitors; i++)
-	      {
-		if (gmons[i] == gmon)
-		  {
-		    ASET (monitor_frames, i,
-			  Fcons (frame, AREF (monitor_frames, i)));
-		    break;
-		  }
-	      }
-	  }
-      }
-  }
-
-  primary_index = -1;
-  for (i = 0; i < n_monitors; i++)
     {
-      if (gmons[i] != NULL && gdk_monitor_is_primary (gmons[i]))
+      struct frame *f = XFRAME (frame);
+
+      if (FRAME_PGTK_P (f)
+	  && FRAME_DISPLAY_INFO (f) == dpyinfo
+	  && !FRAME_TOOLTIP_P (f))
 	{
-	  primary_index = i;
-	  break;
+	  GdkWindow *gwin = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
+
+          for (i = 0; i < n_monitors; i++)
+            if (gdk_display_get_monitor_at_window (gdpy, gwin)
+                == gdk_display_get_monitor (gdpy, i))
+              break;
+	  ASET (monitor_frames, i, Fcons (frame, AREF (monitor_frames, i)));
 	}
     }
 
-  rv =
-    make_monitor_attribute_list (monitors, n_monitors, primary_index,
-				 monitor_frames, "Gdk");
+  for (i = 0; i < n_monitors; ++i)
+    {
+      gint width_mm, height_mm;
+      GdkRectangle rec, work;
+      struct MonitorInfo *mi = &monitors[i];
+      int scale = 1;
 
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      if (gdk_monitor_is_primary (monitor))
+        primary_monitor = i;
+      gdk_monitor_get_geometry (monitor, &rec);
+
+      width_mm = gdk_monitor_get_width_mm (monitor);
+      height_mm = gdk_monitor_get_height_mm (monitor);
+      gdk_monitor_get_workarea (monitor, &work);
+
+      /* GTK returns scaled sizes for the workareas.  */
+      scale = gdk_monitor_get_scale_factor (monitor);
+      rec.x *= scale;
+      rec.y *= scale;
+      rec.width *= scale;
+      rec.height *= scale;
+      work.x *= scale;
+      work.y *= scale;
+      work.width *= scale;
+      work.height *= scale;
+
+      mi->geom.x = rec.x;
+      mi->geom.y = rec.y;
+      mi->geom.width = rec.width;
+      mi->geom.height = rec.height;
+      mi->work.x = work.x;
+      mi->work.y = work.y;
+      mi->work.width = work.width;
+      mi->work.height = work.height;
+      mi->mm_width = width_mm;
+      mi->mm_height = height_mm;
+
+      dupstring (&mi->name, (gdk_monitor_get_model (monitor)));
+    }
+
+  attributes_list = make_monitor_attribute_list (monitors,
+                                                 n_monitors,
+                                                 primary_monitor,
+                                                 monitor_frames,
+                                                 source);
   free_monitors (monitors, n_monitors);
-  xfree (gmons);
+  unblock_input ();
 
-  return rv;
+  return attributes_list;
 }
 
 
