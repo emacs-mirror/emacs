@@ -112,6 +112,10 @@
           (setq should-scan t))
          ((progn (set-buffer tags-file-buf)
                  (goto-char (point-min))
+                 ;; FIXME: With a big enough TAGS, even this can be
+                 ;; slow (and, unfortunately, synchronous).  Using the
+                 ;; project-relative name here speeds it up, but only
+                 ;; by ~30%.  Some indexing could help.
                  (re-search-forward (format "^%s," (regexp-quote file-name)) nil t))
           (let ((start (line-beginning-position)))
             (re-search-forward "\f\n" nil 'move)
@@ -163,6 +167,7 @@
   (remove-hook 'after-save-hook #'etags-regen--update-file)
   (remove-hook 'before-save-hook #'etags-regen--mark-as-new))
 
+;;;###autoload
 (define-minor-mode etags-regen-mode
   "Generate tags automatically."
   :global t
@@ -175,5 +180,7 @@
     (advice-remove 'etags--xref-backend #'etags-regen--maybe-generate)
     (advice-remove 'tags-completion-at-point-function #'etags-regen--maybe-generate)
     (etags-regen--tags-cleanup)))
+
+(provide 'etags-regen)
 
 ;;; etags-regen.el ends here
