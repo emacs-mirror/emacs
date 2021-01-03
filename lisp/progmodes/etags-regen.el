@@ -41,10 +41,6 @@
   ;; How do we get the correct etags here?
   ;; E.g. "~/vc/emacs-master/lib-src/etags"
   ;;
-  ;; ctags's etags requires '-L -' for stdin input.
-  ;; It also looks broken here (indexes only some of the input files).
-  ;;
-  ;; If our etags supported '-L', we could use any version of etags.
   )
 
 (defun etags-regen--maybe-generate ()
@@ -84,7 +80,10 @@
             files)
       (shell-command-on-region
        (point-min) (point-max)
-       (format "%s - -o %s" etags-regen-program etags-regen--tags-file)
+       ;; ctags's etags requires '-L -' for stdin input.
+       ;; It looks half-broken here (indexes only some of the input files),
+       ;; but better-maintained versions of it exist (like universal-ctags).
+       (format "%s -L - -o %s" etags-regen-program etags-regen--tags-file)
        nil nil "*etags-project-tags-errors*" t))))
 
 (defun etags-regen--update-file ()
@@ -167,6 +166,7 @@
         (advice-add 'tags-completion-at-point-function :before
                     #'etags-regen--maybe-generate))
     (advice-remove 'etags--xref-backend #'etags-regen--maybe-generate)
-    (advice-remove 'tags-completion-at-point-function #'etags-regen--maybe-generate)))
+    (advice-remove 'tags-completion-at-point-function #'etags-regen--maybe-generate)
+    (etags-regen--tags-cleanup)))
 
 ;;; etags-regen.el ends here

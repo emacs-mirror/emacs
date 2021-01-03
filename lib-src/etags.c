@@ -1112,7 +1112,7 @@ main (int argc, char **argv)
   /* When the optstring begins with a '-' getopt_long does not rearrange the
      non-options arguments to be at the end, but leaves them alone. */
   optstring = concat ("-ac:Cf:Il:o:Qr:RSVhH",
-		      (CTAGS) ? "BxdtTuvw" : "Di:",
+		      (CTAGS) ? "BxdtTuvw" : "Di:L:",
 		      "");
 
   while ((opt = getopt_long (argc, argv, optstring, longopts, NULL)) != EOF)
@@ -1124,6 +1124,7 @@ main (int argc, char **argv)
 	break;
 
       case 1:
+      case 'L':
 	/* This means that a file name has been seen.  Record it. */
 	argbuffer[current_arg].arg_type = at_filename;
 	argbuffer[current_arg].what     = optarg;
