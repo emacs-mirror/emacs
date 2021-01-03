@@ -141,7 +141,7 @@
           ;; write-region without APPEND.
           ;; We could also keep TAGS strictly as a buffer, with no
           ;; backing on disk.
-          (write-region current-end (point-max) etags-regen--tags-file t))
+          (write-region current-end (point-max) etags-regen--tags-file t 'silent))
         (set-visited-file-modtime)
         (set-buffer-modified-p nil)
         ;; FIXME: Is there a better way to do this?
