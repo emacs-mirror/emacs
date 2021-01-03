@@ -1,6 +1,6 @@
 ;;; mh-tool-bar.el --- MH-E tool bar support
 
-;; Copyright (C) 2002-2003, 2005-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

@@ -1,6 +1,6 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -10893,7 +10893,7 @@ comment at the start of cc-engine.el for more info."
 	     (pp-count-out 20)	 ; Max number of paren/brace constructs before
 					; we give up
 	     ids	      ; List of identifiers in the parenthesized list.
-	     id-start after-prec-token decl-or-cast decl-res
+	     id-start after-prec-token decl-or-cast
 	     c-last-identifier-range semi-position+1)
 	(narrow-to-region low-lim (or macro-end (point-max)))
 
@@ -11735,7 +11735,7 @@ comment at the start of cc-engine.el for more info."
 	  (new-elt (list lim start end result))
 	  big-ptr
 	  (cur-ptr c-laomib-cache)
-	  togo togo-ptr (size 0) cur-size
+	  togo (size 0) cur-size
 	  )
       (if old-elt (setq c-laomib-cache (delq old-elt c-laomib-cache)))
 
@@ -11776,27 +11776,26 @@ comment at the start of cc-engine.el for more info."
    ((<= lwm (nth 2 elt))
     nil)
    (t
-    (let (cur-brace)
-      ;; Search for the last brace in `paren-state' before (car `lim').  This
-      ;; brace will become our new 2nd element of `elt'.
-      (while
-	  ;; Search one brace level per iteration.
-	  (and paren-state
-	       (progn
-		 ;; (setq cur-brace (c-laomib-next-BRACE paren-state))
-		 (while
-		     ;; Go past non-brace levels, one per iteration.
-		     (and paren-state
-			  (not (eq (char-after
-				    (c-state-cache-top-lparen paren-state))
-				   ?{)))
-		   (setq paren-state (cdr paren-state)))
-		 (cadr paren-state))
-	       (> (c-state-cache-top-lparen (cdr paren-state)) (car elt)))
-	(setq paren-state (cdr paren-state)))
-      (when (cadr paren-state)
-	(setcar (cdr elt) (c-state-cache-top-lparen paren-state))
-	elt)))))
+    ;; Search for the last brace in `paren-state' before (car `lim').  This
+    ;; brace will become our new 2nd element of `elt'.
+    (while
+	;; Search one brace level per iteration.
+	(and paren-state
+	     (progn
+	       ;; (setq cur-brace (c-laomib-next-BRACE paren-state))
+	       (while
+		   ;; Go past non-brace levels, one per iteration.
+		   (and paren-state
+			(not (eq (char-after
+				  (c-state-cache-top-lparen paren-state))
+				 ?{)))
+		 (setq paren-state (cdr paren-state)))
+	       (cadr paren-state))
+	     (> (c-state-cache-top-lparen (cdr paren-state)) (car elt)))
+      (setq paren-state (cdr paren-state)))
+    (when (cadr paren-state)
+      (setcar (cdr elt) (c-state-cache-top-lparen paren-state))
+      elt))))
 
 (defun c-laomib-invalidate-cache (beg _end)
   ;; Called from late in c-before-change.  Amend `c-laomib-cache' to remove

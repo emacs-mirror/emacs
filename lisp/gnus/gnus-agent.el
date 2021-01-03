@@ -1,6 +1,6 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
 
-;; Copyright (C) 1997-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -1901,7 +1901,8 @@ article numbers will be returned."
     articles))
 
 (defsubst gnus-agent-read-article-number ()
-  "Reads the article number at point.  Returns nil when a valid article number can not be read."
+  "Read the article number at point.
+Return nil when a valid article number can not be read."
 
   (when (looking-at "[0-9]+\t")
     (read (current-buffer))))

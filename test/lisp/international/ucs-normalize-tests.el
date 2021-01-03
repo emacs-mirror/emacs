@@ -1,6 +1,6 @@
 ;;; ucs-normalize --- tests for international/ucs-normalize.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2002-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

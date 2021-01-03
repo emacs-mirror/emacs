@@ -1,6 +1,6 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985-1986, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Richard King
 ;; (according to authors.el)
@@ -159,7 +159,7 @@ really edit the buffer? (y, n, r or C-h) "
 	(message "%s" prompt)
 	(error "Cannot resolve conflict in batch mode"))
       (while (null answer)
-	(setq answer (read-char-from-minibuffer prompt choices))
+	(setq answer (read-char-choice prompt choices))
 	(cond ((memq answer '(?? ?\C-h))
 	       (ask-user-about-supersession-help)
 	       (setq answer nil))

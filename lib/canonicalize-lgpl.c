@@ -1,5 +1,5 @@
 /* Return the canonical absolute name of a given file.
-   Copyright (C) 1996-2020 Free Software Foundation, Inc.
+   Copyright (C) 1996-2021 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -32,7 +32,6 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -40,16 +39,11 @@
 #include <eloop-threshold.h>
 #include <filename.h>
 #include <idx.h>
+#include <intprops.h>
 #include <scratch_buffer.h>
 
 #ifdef _LIBC
 # include <shlib-compat.h>
-# include <sysdep.h>
-# ifdef __ASSUME_FACCESSAT2
-#  define FACCESSAT_NEVER_EOVERFLOWS __ASSUME_FACCESSAT2
-# else
-#  define FACCESSAT_NEVER_EOVERFLOWS true
-# endif
 # define GCC_LINT 1
 # define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
 #else
@@ -91,14 +85,15 @@
 # define IF_LINT(Code) /* empty */
 #endif
 
+/* True if adding two valid object sizes might overflow idx_t.
+   As a practical matter, this cannot happen on 64-bit machines.  */
+enum { NARROW_ADDRESSES = IDX_MAX >> 31 >> 31 == 0 };
+
 #ifndef DOUBLE_SLASH_IS_DISTINCT_ROOT
 # define DOUBLE_SLASH_IS_DISTINCT_ROOT false
 #endif
-#ifndef FACCESSAT_NEVER_EOVERFLOWS
-# define FACCESSAT_NEVER_EOVERFLOWS false
-#endif
 
-#if !FUNC_REALPATH_WORKS || defined _LIBC
+#if defined _LIBC || !FUNC_REALPATH_WORKS
 
 /* Return true if FILE's existence can be shown, false (setting errno)
    otherwise.  Follow symbolic links.  */
@@ -106,14 +101,11 @@ static bool
 file_accessible (char const *file)
 {
 # if defined _LIBC || HAVE_FACCESSAT
-  int r = __faccessat (AT_FDCWD, file, F_OK, AT_EACCESS);
+  return __faccessat (AT_FDCWD, file, F_OK, AT_EACCESS) == 0;
 # else
   struct stat st;
-  int r = __stat (file, &st);
+  return __stat (file, &st) == 0 || errno == EOVERFLOW;
 # endif
-
-  return ((!FACCESSAT_NEVER_EOVERFLOWS && r < 0 && errno == EOVERFLOW)
-          || r == 0);
 }
 
 /* True if concatenating END as a suffix to a file name means that the
@@ -350,7 +342,12 @@ realpath_stk (const char *name, char *resolved,
               idx_t end_idx IF_LINT (= 0);
               if (end_in_extra_buffer)
                 end_idx = end - extra_buf;
-              idx_t len = strlen (end);
+              size_t len = strlen (end);
+              if (NARROW_ADDRESSES && INT_ADD_OVERFLOW (len, n))
+                {
+                  __set_errno (ENOMEM);
+                  goto error_nomem;
+                }
               while (extra_buffer.length <= len + n)
                 {
                   if (!scratch_buffer_grow_preserve (&extra_buffer))
@@ -413,24 +410,14 @@ error:
 error_nomem:
   scratch_buffer_free (&extra_buffer);
   scratch_buffer_free (&link_buffer);
+
   if (failed || rname == resolved)
-    scratch_buffer_free (rname_buf);
-
-  if (failed)
-    return NULL;
-
-  if (rname == resolved)
-    return rname;
-  idx_t rname_size = dest - rname;
-  if (rname == rname_on_stack)
     {
-      rname = malloc (rname_size);
-      if (rname == NULL)
-        return NULL;
-      return memcpy (rname, rname_on_stack, rname_size);
+      scratch_buffer_free (rname_buf);
+      return failed ? NULL : resolved;
     }
-  char *result = realloc (rname, rname_size);
-  return result != NULL ? result : rname;
+
+  return scratch_buffer_dupfree (rname_buf, dest - rname);
 }
 
 /* Return the canonical absolute name of file NAME.  A canonical name

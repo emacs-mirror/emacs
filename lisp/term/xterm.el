@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1995, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -710,15 +710,18 @@ Return the pasted text as a string."
     (while (and (setq chr (xterm--read-event-for-query)) (not (equal chr ?c)))
       (setq str (concat str (string chr))))
     ;; Since xterm-280, the terminal type (NUMBER1) is now 41 instead of 0.
-    (when (string-match "\\([0-9]+\\);\\([0-9]+\\);0" str)
+    (when (string-match "\\([0-9]+\\);\\([0-9]+\\);[01]" str)
       (let ((version (string-to-number (match-string 2 str))))
-        (when (and (> version 2000) (equal (match-string 1 str) "1"))
+        (when (and (> version 2000)
+                   (or (equal (match-string 1 str) "1")
+                       (equal (match-string 1 str) "65")))
           ;; Hack attack!  bug#16988: gnome-terminal reports "1;NNNN;0"
           ;; with a large NNNN but is based on a rather old xterm code.
           ;; Gnome terminal 2.32.1 reports 1;2802;0
           ;; Gnome terminal 3.6.1 reports 1;3406;0
           ;; Gnome terminal 3.22.2 reports 1;4601;0 and *does* support
           ;; background color querying (Bug#29716).
+          ;; Gnome terminal 3.38.0 reports 65;6200;1.
           (when (> version 4000)
             (xterm--query "\e]11;?\e\\"
                           '(("\e]11;" .  xterm--report-background-handler))))

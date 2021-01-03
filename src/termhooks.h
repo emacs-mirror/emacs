@@ -1,6 +1,6 @@
 /* Parameters and display hooks for terminal devices.
 
-Copyright (C) 1985-1986, 1993-1994, 2001-2020 Free Software Foundation,
+Copyright (C) 1985-1986, 1993-1994, 2001-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.

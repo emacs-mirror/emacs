@@ -1,6 +1,6 @@
 ;;; ediff-vers.el --- version control interface to Ediff  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1995-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff

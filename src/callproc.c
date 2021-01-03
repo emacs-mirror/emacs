@@ -1,6 +1,6 @@
 /* Synchronous subprocess invocation for GNU Emacs.
 
-Copyright (C) 1985-1988, 1993-1995, 1999-2020 Free Software Foundation,
+Copyright (C) 1985-1988, 1993-1995, 1999-2021 Free Software Foundation,
 Inc.
 
 This file is part of GNU Emacs.
@@ -29,6 +29,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 
 #include "lisp.h"
+
+#ifdef SETUP_SLAVE_PTY
+# include <sys/stream.h>
+# include <sys/stropts.h>
+#endif
 
 #ifdef WINDOWSNT
 #include <sys/socket.h>	/* for fcntl */

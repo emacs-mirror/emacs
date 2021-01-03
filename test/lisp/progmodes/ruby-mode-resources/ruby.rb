@@ -475,3 +475,11 @@ top test(
 foo bar, {
       tee: qux
     }
+
+# Bug#42846, bug#18644
+
+:foo=
+# indent here
+2 = 3
+:foo= if true
+{:abc=>4} # not indented, and '=' is not highlighted

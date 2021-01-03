@@ -1,6 +1,6 @@
 /* Client process that communicates with GNU Emacs acting as server.
 
-Copyright (C) 1986-1987, 1994, 1999-2020 Free Software Foundation, Inc.
+Copyright (C) 1986-1987, 1994, 1999-2021 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 ;;; message.el --- composing mail and news messages -*- lexical-binding: t -*-
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -2669,7 +2669,7 @@ Point is left at the beginning of the narrowed-to region."
 	 10000))))
 
 (defun message-sort-headers ()
-  "Sort the headers of the current message according to `message-header-format-alist'."
+  "Sort headers of the current message according to `message-header-format-alist'."
   (interactive)
   (save-excursion
     (save-restriction

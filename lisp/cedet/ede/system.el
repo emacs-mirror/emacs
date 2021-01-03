@@ -1,6 +1,6 @@
 ;;; ede-system.el --- EDE working with the system (VC, FTP, ETC)
 
-;; Copyright (C) 2001-2003, 2009-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make, vc

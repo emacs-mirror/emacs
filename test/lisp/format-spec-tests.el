@@ -1,6 +1,6 @@
 ;;; format-spec-tests.el --- tests for format-spec.el -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -177,5 +177,15 @@
                  "foo gbar zot"))
   (should (equal (format-spec "foo %>4b zot" '((?b . "longbar")))
                  "foo long zot")))
+
+(ert-deftest format-spec-split ()
+  (should (equal (format-spec "foo %b bar" '((?b . "zot")) nil t)
+                 '("foo " "zot" " bar")))
+  (should (equal (format-spec "%b bar" '((?b . "zot")) nil t)
+                 '("zot" " bar")))
+  (should (equal (format-spec "%b" '((?b . "zot")) nil t)
+                 '("zot")))
+  (should (equal (format-spec "foo %b" '((?b . "zot")) nil t)
+                 '("foo " "zot"))))
 
 ;;; format-spec-tests.el ends here

@@ -1,9 +1,9 @@
 ;;; tetris.el --- implementation of Tetris for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
-;; Version: 2.01
+;; Old-Version: 2.01
 ;; Created: 1997-08-13
 ;; Keywords: games
 
@@ -39,22 +39,18 @@
 
 (defcustom tetris-use-glyphs t
   "Non-nil means use glyphs when available."
-  :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-use-color t
   "Non-nil means use color when available."
-  :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-draw-border-with-glyphs t
   "Non-nil means draw a border even when using glyphs."
-  :group 'tetris
   :type 'boolean)
 
 (defcustom tetris-default-tick-period 0.3
   "The default time taken for a shape to drop one row."
-  :group 'tetris
   :type 'number)
 
 (defcustom tetris-update-speed-function
@@ -65,18 +61,15 @@ SHAPES is the number of shapes which have been dropped.
 ROWS is the number of rows which have been completed.
 
 If the return value is a number, it is used as the timer period."
-  :group 'tetris
   :type 'function)
 
 (defcustom tetris-mode-hook nil
   "Hook run upon starting Tetris."
-  :group 'tetris
   :type 'hook)
 
 (defcustom tetris-tty-colors
   ["blue" "white" "yellow" "magenta" "cyan" "green" "red"]
   "Vector of colors of the various shapes in text mode."
-  :group 'tetris
   :type '(vector (color :tag "Shape 1")
 		 (color :tag "Shape 2")
 		 (color :tag "Shape 3")
@@ -88,7 +81,6 @@ If the return value is a number, it is used as the timer period."
 (defcustom tetris-x-colors
   [[0 0 1] [0.7 0 1] [1 1 0] [1 0 1] [0 1 1] [0 1 0] [1 0 0]]
   "Vector of RGB colors of the various shapes."
-  :group 'tetris
   :type '(vector (vector :tag "Shape 1" number number number)
                  (vector :tag "Shape 2" number number number)
                  (vector :tag "Shape 3" number number number)
@@ -99,37 +91,30 @@ If the return value is a number, it is used as the timer period."
 
 (defcustom tetris-buffer-name "*Tetris*"
   "Name used for Tetris buffer."
-  :group 'tetris
   :type 'string)
 
 (defcustom tetris-buffer-width 30
   "Width of used portion of buffer."
-  :group 'tetris
   :type 'number)
 
 (defcustom tetris-buffer-height 22
   "Height of used portion of buffer."
-  :group 'tetris
   :type 'number)
 
 (defcustom tetris-width 10
   "Width of playing area."
-  :group 'tetris
   :type 'number)
 
 (defcustom tetris-height 20
   "Height of playing area."
-  :group 'tetris
   :type 'number)
 
 (defcustom tetris-top-left-x 3
   "X position of top left of playing area."
-  :group 'tetris
   :type 'number)
 
 (defcustom tetris-top-left-y 1
   "Y position of top left of playing area."
-  :group 'tetris
   :type 'number)
 
 (defvar tetris-next-x (+ (* 2 tetris-top-left-x) tetris-width)
@@ -335,11 +320,10 @@ each one of its four blocks.")
     options))
 
 (defun tetris-get-tick-period ()
-  (if (boundp 'tetris-update-speed-function)
-      (let ((period (apply tetris-update-speed-function
-			   tetris-n-shapes
-			   tetris-n-rows nil)))
-	(and (numberp period) period))))
+  (let ((period (apply tetris-update-speed-function
+                       tetris-n-shapes
+                       tetris-n-rows nil)))
+    (and (numberp period) period)))
 
 (defun tetris-get-shape-cell (block)
   (aref (aref  (aref tetris-shapes
@@ -646,17 +630,15 @@ rotate the shape to fit in with those at the bottom of the screen so
 as to form complete rows.
 
 tetris-mode keybindings:
-   \\<tetris-mode-map>
-\\[tetris-start-game]	Starts a new game of Tetris
-\\[tetris-end-game]	Terminates the current game
-\\[tetris-pause-game]	Pauses (or resumes) the current game
-\\[tetris-move-left]	Moves the shape one square to the left
-\\[tetris-move-right]	Moves the shape one square to the right
-\\[tetris-rotate-prev]	Rotates the shape clockwise
-\\[tetris-rotate-next]	Rotates the shape anticlockwise
-\\[tetris-move-bottom]	Drops the shape to the bottom of the playing area
-
-"
+\\<tetris-mode-map>
+\\[tetris-start-game]	Start a new game of Tetris
+\\[tetris-end-game]	Terminate the current game
+\\[tetris-pause-game]	Pause (or resume) the current game
+\\[tetris-move-left]	Move the shape one square to the left
+\\[tetris-move-right]	Move the shape one square to the right
+\\[tetris-rotate-prev]	Rotate the shape clockwise
+\\[tetris-rotate-next]	Rotate the shape anticlockwise
+\\[tetris-move-bottom]	Drop the shape to the bottom of the playing area"
   (interactive)
 
   (select-window (or (get-buffer-window tetris-buffer-name)

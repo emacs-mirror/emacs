@@ -24,7 +24,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 1999--2004, 2012--2020 Free Software Foundation,
+Copyright @copyright{} 1999--2004, 2012--2021 Free Software Foundation,
 Inc.
 
 @quotation

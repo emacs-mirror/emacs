@@ -1,6 +1,6 @@
 ;;; shortdoc.el --- Short function summaries  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; Keywords: lisp, help
 ;; Package: emacs
@@ -618,6 +618,12 @@ There can be any number of :example/:result elements."
   "Data About Lists"
   (length
    :eval (length '(a b c)))
+  (length<
+   :eval (length< '(a b c) 1))
+  (length>
+   :eval (length> '(a b c) 1))
+  (length=
+   :eval (length> '(a b c) 3))
   (safe-length
    :eval (safe-length '(a b c))))
 

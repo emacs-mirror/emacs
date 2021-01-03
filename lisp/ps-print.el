@@ -1,6 +1,6 @@
 ;;; ps-print.el --- print text from the buffer as PostScript -*- lexical-binding: t -*-
 
-;; Copyright (C) 1993-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2021 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -4114,7 +4114,6 @@ If EXTENSION is any other symbol, it is ignored."
 
 (defun ps-message-log-max ()
   (and (not (string= (buffer-name) "*Messages*"))
-       (boundp 'message-log-max)
        message-log-max))
 
 

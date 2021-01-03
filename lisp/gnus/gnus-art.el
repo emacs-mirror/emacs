@@ -1,6 +1,6 @@
 ;;; gnus-art.el --- article mode commands for Gnus
 
-;; Copyright (C) 1996-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -1061,7 +1061,7 @@ used."
     ("view the part" . gnus-mime-view-part)
     ("pipe to command" . gnus-mime-pipe-part)
     ("toggle display" . gnus-article-press-button)
-    ("toggle display" . gnus-article-view-part-as-charset)
+    ("view as charset" . gnus-mime-view-part-as-charset)
     ("view as type" . gnus-mime-view-part-as-type)
     ("view internally" . gnus-mime-view-part-internally)
     ("view externally" . gnus-mime-view-part-externally))

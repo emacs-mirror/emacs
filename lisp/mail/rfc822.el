@@ -1,6 +1,6 @@
 ;;; rfc822.el --- hairy RFC 822 (or later) parser for mail, news, etc.
 
-;; Copyright (C) 1986-1987, 1990, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1986-1987, 1990, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>

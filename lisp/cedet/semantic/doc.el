@@ -1,6 +1,6 @@
 ;;; semantic/doc.el --- Routines for documentation strings
 
-;; Copyright (C) 1999-2003, 2005, 2008-2020 Free Software Foundation,
+;; Copyright (C) 1999-2003, 2005, 2008-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>

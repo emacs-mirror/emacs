@@ -1,6 +1,6 @@
 ;;; ecomplete.el --- electric completion of addresses and the like  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail

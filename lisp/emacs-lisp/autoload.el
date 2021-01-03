@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991-1997, 2001-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -368,7 +368,8 @@ FILE's name."
   (let ((basename (file-name-nondirectory file))
 	(lp (if (equal type "package") (setq type "autoloads"))))
     (concat ";;; " basename
-	    " --- automatically extracted " (or type "autoloads") "\n"
+            " --- automatically extracted " (or type "autoloads")
+            "  -*- lexical-binding: t -*-\n"
 	    ";;\n"
 	    ";;; Code:\n\n"
 	    (if lp

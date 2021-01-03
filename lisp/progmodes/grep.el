@@ -1,6 +1,6 @@
 ;;; grep.el --- run `grep' and display the results  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1993-1999, 2001-2020 Free Software
+;; Copyright (C) 1985-1987, 1993-1999, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -79,7 +79,7 @@ This option sets the environment variable GREP_COLORS to specify
 markers for highlighting and adds the --color option in front of
 any explicit grep options before starting the grep.
 
-When this option is `auto', grep uses `--color' to highlight
+When this option is `auto', grep uses `--color=auto' to highlight
 matches only when it outputs to a terminal (when `grep' is the last
 command in the pipe), thus avoiding the use of any potentially-harmful
 escape sequences when standard output goes to a file or pipe.
@@ -95,7 +95,7 @@ To change the default value, use \\[customize] or call the function
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
 		 (const :tag "Use --color=always" always)
-		 (const :tag "Use --color" auto)
+		 (const :tag "Use --color=auto" auto)
 		 (other :tag "Not Set" auto-detect))
   :set #'grep-apply-setting
   :version "22.1")
@@ -743,7 +743,7 @@ The value depends on `grep-command', `grep-template',
                                `(nil nil nil "--color" "x" ,(null-device))
                                nil 1)
                               (if (eq grep-highlight-matches 'always)
-                                  "--color=always" "--color"))
+                                  "--color=always" "--color=auto"))
                          "")
                         grep-options)))
 	(unless grep-template
@@ -1000,7 +1000,7 @@ these include `opts', `dir', `files', `null-device', `excl' and
                             ((eq grep-highlight-matches 'always)
                              (push "--color=always" opts))
                             ((eq grep-highlight-matches 'auto)
-                             (push "--color" opts)))
+                             (push "--color=auto" opts)))
                            opts))
                 (excl . ,excl)
                 (dir . ,dir)

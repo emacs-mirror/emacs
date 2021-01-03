@@ -1,6 +1,6 @@
 ;;; mh-limit.el --- MH-E display limits
 
-;; Copyright (C) 2001-2003, 2006-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Keywords: mail

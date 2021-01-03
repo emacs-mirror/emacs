@@ -1,5 +1,5 @@
 /* Image support for the NeXT/Open/GNUstep and macOS window system.
-   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2020 Free Software
+   Copyright (C) 1989, 1992-1994, 2005-2006, 2008-2021 Free Software
    Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -290,6 +290,18 @@ ns_image_size_in_bytes (void *img)
   [bmRep release];
   [transform release];
   [super dealloc];
+}
+
+
+- (id)copyWithZone:(NSZone *)zone
+{
+  EmacsImage *copy = [super copyWithZone:zone];
+
+  copy->stippleMask = [stippleMask copyWithZone:zone];
+  copy->bmRep = [bmRep copyWithZone:zone];
+  copy->transform = [transform copyWithZone:zone];
+
+  return copy;
 }
 
 

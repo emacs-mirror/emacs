@@ -1,5 +1,5 @@
 /* CCL (Code Conversion Language) interpreter.
-   Copyright (C) 2001-2020 Free Software Foundation, Inc.
+   Copyright (C) 2001-2021 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
@@ -1151,7 +1151,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      if (!INT_DIVIDE_OVERFLOW (reg[rrr], i))
 		reg[rrr] /= i;
 	      break;
-	    case CCL_MOD: reg[rrr] %= i; break;
+	    case CCL_MOD:
 	      if (!i)
 		CCL_INVALID_CMD;
 	      reg[rrr] = i == -1 ? 0 : reg[rrr] % i;

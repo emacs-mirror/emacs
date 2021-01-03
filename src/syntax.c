@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2020 Free
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2021 Free
    Software Foundation, Inc.
 
 This file is part of GNU Emacs.

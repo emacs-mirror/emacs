@@ -1,6 +1,6 @@
 ;;; ruby-mode.el --- Major mode for editing Ruby files -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Authors: Yukihiro Matsumoto
 ;;	Nobuyoshi Nakada
@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 (defgroup ruby nil
   "Major mode for editing Ruby code."
@@ -101,7 +101,7 @@
   "Regexp to match the beginning of a heredoc.")
 
   (defconst ruby-expression-expansion-re
-    "\\(?:[^\\]\\|\\=\\)\\(\\\\\\\\\\)*\\(#\\({[^}\n\\]*\\(\\\\.[^}\n\\]*\\)*}\\|\\(\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\|\\$[^a-zA-Z \n]\\)\\)"))
+    "#\\({[^}\n\\]*\\(\\\\.[^}\n\\]*\\)*}\\|\\(?:\\$\\|@\\|@@\\)\\(\\w\\|_\\)+\\|\\$[^a-zA-Z \n]\\)"))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -401,7 +401,10 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
                   (or (and (bolp)
                            ;; Newline is escaped.
                            (not (eq (char-before (1- (point))) ?\\)))
-                      (memq (char-before) '(?\; ?=)))))
+                      (eq (char-before) ?\;)
+                      (and (eq (char-before) ?=)
+                           (equal (syntax-after (1- (point)))
+                                  (string-to-syntax "."))))))
 
 (defun ruby-smie--implicit-semi-p ()
   (save-excursion
@@ -595,7 +598,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
     (`(:before . ,(or "(" "[" "{"))
      (cond
       ((and (equal token "{")
-            (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";"))
+            (not (smie-rule-prev-p "(" "{" "[" "," "=>" "=" "return" ";" "do"))
             (save-excursion
               (forward-comment -1)
               (not (eq (preceding-char) ?:))))
@@ -1861,9 +1864,17 @@ It will be properly highlighted even when the call omits parens.")
                                'syntax-table (string-to-syntax "_"))
             (string-to-syntax "'"))))
       ;; Symbols with special characters.
-      ("\\(^\\|[^:]\\)\\(:\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\)\\)"
-       (3 (unless (nth 8 (syntax-ppss (match-beginning 3)))
+      (":\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\)"
+       (1 (unless (or
+                   (eq (char-before (match-beginning 0)) ?:)
+                   (nth 8 (syntax-ppss (match-beginning 1))))
             (goto-char (match-end 0))
+            (string-to-syntax "_"))))
+      ;; Symbols ending with '=' (bug#42846).
+      (":[[:alpha:]][[:alnum:]_]*\\(=\\)"
+       (1 (unless (or (nth 8 (syntax-ppss))
+                      (eq (char-before (match-beginning 0)) ?:)
+                      (eq (char-after (match-end 3)) ?>))
             (string-to-syntax "_"))))
       ;; Part of method name when at the end of it.
       ("[!?]"
@@ -1879,9 +1890,14 @@ It will be properly highlighted even when the call omits parens.")
       ;; (semi-important for indentation).
       ("\\(:\\)\\(?:[({]\\|\\[[^]]\\)"
        (1 (string-to-syntax ".")))
-      ;; Regular expressions.  Start with matching unescaped slash.
-      ("\\(?:\\=\\|[^\\]\\)\\(?:\\\\\\\\\\)*\\(/\\)"
-       (1 (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
+      ;; Regular expressions.
+      ("\\(/\\)"
+       (1
+        ;; No unescaped slashes in front.
+        (when (save-excursion
+                (forward-char -1)
+                (cl-evenp (skip-chars-backward "\\\\")))
+          (let ((state (save-excursion (syntax-ppss (match-beginning 1)))))
             (when (or
                    ;; Beginning of a regexp.
                    (and (null (nth 8 state))
@@ -1894,11 +1910,17 @@ It will be properly highlighted even when the call omits parens.")
                    ;; string interpolation inside, or span
                    ;; several lines.
                    (eq ?/ (nth 3 state)))
-              (string-to-syntax "\"/")))))
+              (string-to-syntax "\"/"))))))
       ;; Expression expansions in strings.  We're handling them
       ;; here, so that the regexp rule never matches inside them.
       (ruby-expression-expansion-re
-       (0 (ignore (ruby-syntax-propertize-expansion))))
+       (0 (ignore
+           (if (save-excursion
+                 (goto-char (match-beginning 0))
+                 ;; The hash character is not escaped.
+                 (cl-evenp (skip-chars-backward "\\\\")))
+               (ruby-syntax-propertize-expansion)
+             (goto-char (match-beginning 1))))))
       ("^=en\\(d\\)\\_>" (1 "!"))
       ("^\\(=\\)begin\\_>" (1 "!"))
       ;; Handle here documents.
@@ -1988,8 +2010,8 @@ It will be properly highlighted even when the call omits parens.")
 (defun ruby-syntax-propertize-expansion ()
   ;; Save the match data to a text property, for font-locking later.
   ;; Set the syntax of all double quotes and backticks to punctuation.
-  (let* ((beg (match-beginning 2))
-         (end (match-end 2))
+  (let* ((beg (match-beginning 0))
+         (end (match-end 0))
          (state (and beg (save-excursion (syntax-ppss beg)))))
     (when (ruby-syntax-expansion-allowed-p state)
       (put-text-property beg (1+ beg) 'ruby-expansion-match-data
@@ -2181,12 +2203,7 @@ It will be properly highlighted even when the call omits parens.")
      (0 font-lock-builtin-face))
     ;; Symbols.
     ("\\(^\\|[^:]\\)\\(:@\\{0,2\\}\\(?:\\sw\\|\\s_\\)+\\)"
-     (2 font-lock-constant-face)
-     (3 (unless (and (eq (char-before (match-end 3)) ?=)
-                     (eq (char-after (match-end 3)) ?>))
-          ;; bug#18644
-          font-lock-constant-face)
-        nil t))
+     (2 font-lock-constant-face))
     ;; Special globals.
     (,(concat "\\$\\(?:[:\"!@;,/._><\\$?~=*&`'+0-9]\\|-[0adFiIlpvw]\\|"
               (regexp-opt '("LOAD_PATH" "LOADED_FEATURES" "PROGRAM_NAME"
@@ -2221,7 +2238,7 @@ It will be properly highlighted even when the call omits parens.")
      (1 font-lock-builtin-face))
     ;; Expression expansion.
     (ruby-match-expression-expansion
-     2 font-lock-variable-name-face t)
+     0 font-lock-variable-name-face t)
     ;; Negation char.
     ("\\(?:^\\|[^[:alnum:]_]\\)\\(!+\\)[^=~]"
      1 font-lock-negation-char-face)

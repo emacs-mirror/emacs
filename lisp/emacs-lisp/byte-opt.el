@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler -*- lexical-binding: t -*-
 
-;; Copyright (C) 1991, 1994, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000-2021 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1169,7 +1169,9 @@
 	 hash-table-count
 	 int-to-string intern-soft isnan
 	 keymap-parent
-         lax-plist-get ldexp length line-beginning-position line-end-position
+         lax-plist-get ldexp
+         length length< length> length=
+         line-beginning-position line-end-position
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
 	 make-byte-code make-list make-string make-symbol marker-buffer max

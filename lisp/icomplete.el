@@ -1,6 +1,6 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback -*- lexical-binding: t -*-
 
-;; Copyright (C) 1992-1994, 1997, 1999, 2001-2020 Free Software
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2021 Free Software
 ;; Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>

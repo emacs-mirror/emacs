@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Modes
@@ -1930,6 +1930,17 @@ This function also forces an update of the menu bar and frame title.
 color using the face @code{mode-line}.  Other windows' mode lines appear
 in the face @code{mode-line-inactive} instead.  @xref{Faces}.
 
+@vindex mode-line-compact
+  Some modes put a lot of data in the mode line, pushing elements at
+the end of the mode line off to the right.  Emacs can ``compress'' the
+mode line if the @code{mode-line-compact} variable is non-@code{nil}
+by turning stretches of spaces into a single space.  If this variable
+is @code{long}, this is only done when the mode line is wider than the
+currently selected window.  (This computation is approximate, based on
+the number of characters, and not their displayed width.)  This
+variable can be buffer-local to only compress mode-lines in certain
+buffers.
+
 @node Mode Line Data
 @subsection The Data Structure of the Mode Line
 @cindex mode line construct
@@ -1982,9 +1993,15 @@ variables without prompting the user.)
 
 @item (@var{string} @var{rest}@dots{})
 @itemx (@var{list} @var{rest}@dots{})
-A list whose first element is a string or list means to process all the
-elements recursively and concatenate the results.  This is the most
-common form of mode line construct.
+A list whose first element is a string or list means to process all
+the elements recursively and concatenate the results.  This is the
+most common form of mode line construct.  (Note that text properties
+are handled specially (for reasons of efficiency) when displaying
+strings in the mode line: Only the text property on the first
+character of the string are considered, and they are then used over
+the entire string.  If you need a string with different text
+properties, you have to use the special @code{:propertize} mode line
+construct.)
 
 @item (:eval @var{form})
 A list whose first element is the symbol @code{:eval} says to evaluate
@@ -2439,7 +2456,7 @@ line:
 @enumerate
 @item
 Put a string with a text property directly into the mode line data
-structure.
+structure, but see @ref{Mode Line Data} for caveats for that.
 
 @item
 Put a text property on a mode line %-construct such as @samp{%12b}; then

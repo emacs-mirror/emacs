@@ -1,6 +1,6 @@
 ;;; url-cid.el --- Content-ID URL loader
 
-;; Copyright (C) 1998-1999, 2004-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1998-1999, 2004-2021 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 

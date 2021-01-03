@@ -1,6 +1,6 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1997, 2000-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -226,6 +226,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 
 
 ;; JISX0208
+;; Note: Some of these have their syntax updated later below.
 (map-charset-chars #'modify-syntax-entry 'japanese-jisx0208 "_" #x2121 #x227E)
 (map-charset-chars #'modify-syntax-entry 'japanese-jisx0208 "_" #x2821 #x287E)
 (let ((chars '(?ー ?゛ ?゜ ?ヽ ?ヾ ?ゝ ?ゞ ?〃 ?仝 ?々 ?〆 ?〇)))
@@ -317,6 +318,7 @@ with L, LRE, or LRO Unicode bidi character type.")
 (modify-syntax-entry #x5be ".") ; MAQAF
 (modify-syntax-entry #x5c0 ".") ; PASEQ
 (modify-syntax-entry #x5c3 ".") ; SOF PASUQ
+(modify-syntax-entry #x5c6 ".") ; NUN HAFUKHA
 (modify-syntax-entry #x5f3 ".") ; GERESH
 (modify-syntax-entry #x5f4 ".") ; GERSHAYIM
 
@@ -521,6 +523,9 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; syntax: ¢£¤¥¨ª¯²³´¶¸¹º.)  There should be a well-defined way of
   ;; relating Unicode categories to Emacs syntax codes.
 
+  ;; FIXME: We should probably just use the Unicode properties to set
+  ;; up the syntax table.
+
   ;; NBSP isn't semantically interchangeable with other whitespace chars,
   ;; so it's more like punctuation.
   (set-case-syntax ?  "." tbl)
@@ -558,7 +563,7 @@ with L, LRE, or LRO Unicode bidi character type.")
     (setq c (1+ c)))
 
   ;; Latin Extended Additional
-  (modify-category-entry '(#x1e00 . #x1ef9) ?l)
+  (modify-category-entry '(#x1E00 . #x1EF9) ?l)
 
   ;; Latin Extended-C
   (setq c #x2C60)
@@ -579,13 +584,13 @@ with L, LRE, or LRO Unicode bidi character type.")
     (setq c (1+ c)))
 
   ;; Greek
-  (modify-category-entry '(#x0370 . #x03ff) ?g)
+  (modify-category-entry '(#x0370 . #x03FF) ?g)
 
   ;; Armenian
   (setq c #x531)
 
   ;; Greek Extended
-  (modify-category-entry '(#x1f00 . #x1fff) ?g)
+  (modify-category-entry '(#x1F00 . #x1FFF) ?g)
 
   ;; cyrillic
   (modify-category-entry '(#x0400 . #x04FF) ?y)
@@ -605,40 +610,43 @@ with L, LRE, or LRO Unicode bidi character type.")
   (while (<= c #x200F)
     (set-case-syntax c "." tbl)
     (setq c (1+ c)))
-  ;; Fixme: These aren't all right:
   (setq c #x2010)
-  (while (<= c #x2016)
-    (set-case-syntax c "_" tbl)
-    (setq c (1+ c)))
-  ;; Punctuation syntax for quotation marks (like `)
-  (while (<= c #x201f)
-    (set-case-syntax  c "." tbl)
-    (setq c (1+ c)))
-  ;; Fixme: These aren't all right:
-  (while (<= c #x2027)
-    (set-case-syntax c "_" tbl)
-    (setq c (1+ c)))
-  (while (<= c #x206F)
+  ;; Fixme: What to do with characters that have Pi and Pf
+  ;; Unicode properties?
+  (while (<= c #x2017)
     (set-case-syntax c "." tbl)
     (setq c (1+ c)))
+  ;; Punctuation syntax for quotation marks (like `)
+  (while (<= c #x201F)
+    (set-case-syntax  c "." tbl)
+    (setq c (1+ c)))
+  (while (<= c #x2027)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (setq c #x2030)
+  (while (<= c #x205E)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (let ((chars '(?‹ ?› ?⁄ ?⁒)))
+    (while chars
+      (modify-syntax-entry (car chars) "_")
+      (setq chars (cdr chars))))
 
-  ;; Fixme: The following blocks might be better as symbol rather than
-  ;; punctuation.
   ;; Arrows
   (setq c #x2190)
   (while (<= c #x21FF)
-    (set-case-syntax c "." tbl)
+    (set-case-syntax c "_" tbl)
     (setq c (1+ c)))
   ;; Mathematical Operators
   (while (<= c #x22FF)
-    (set-case-syntax c "." tbl)
+    (set-case-syntax c "_" tbl)
     (setq c (1+ c)))
   ;; Miscellaneous Technical
   (while (<= c #x23FF)
-    (set-case-syntax c "." tbl)
+    (set-case-syntax c "_" tbl)
     (setq c (1+ c)))
   ;; Control Pictures
-  (while (<= c #x243F)
+  (while (<= c #x244F)
     (set-case-syntax c "_" tbl)
     (setq c (1+ c)))
 
@@ -652,13 +660,13 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; Supplemental Mathematical Operators
   (setq c #x2A00)
   (while (<= c #x2AFF)
-    (set-case-syntax c "." tbl)
+    (set-case-syntax c "_" tbl)
     (setq c (1+ c)))
 
   ;; Miscellaneous Symbols and Arrows
   (setq c #x2B00)
   (while (<= c #x2BFF)
-    (set-case-syntax c "." tbl)
+    (set-case-syntax c "_" tbl)
     (setq c (1+ c)))
 
   ;; Coptic
@@ -674,18 +682,46 @@ with L, LRE, or LRO Unicode bidi character type.")
     (set-case-syntax c "." tbl)
     (setq c (1+ c)))
 
+  ;; Ideographic punctuation
+  (setq c #x3001)
+  (while (<= c #x3003)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (set-case-syntax #x30FB "." tbl)
+
   ;; Symbols for Legacy Computing
   (setq c #x1FB00)
+  (while (<= c #x1FBCA)
+    (set-case-syntax c "_" tbl)
+    (setq c (1+ c)))
+  ;; FIXME: Should these be digits?
   (while (<= c #x1FBFF)
     (set-case-syntax c "." tbl)
     (setq c (1+ c)))
 
   ;; Fullwidth Latin
-  (setq c #xff21)
-  (while (<= c #xff3a)
+  (setq c #xFF01)
+  (while (<= c #xFF0F)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (set-case-syntax #xFF04 "_" tbl)
+  (set-case-syntax #xFF0B "_" tbl)
+  (set-case-syntax #xFF1A "." tbl)
+  (set-case-syntax #xFF1B "." tbl)
+  (set-case-syntax #xFF1F "." tbl)
+  (set-case-syntax #xFF20 "." tbl)
+  (setq c #xFF21)
+  (while (<= c #xFF3A)
     (modify-category-entry c ?l)
     (modify-category-entry (+ c #x20) ?l)
     (setq c (1+ c)))
+
+  ;; Halfwidth Latin
+  (setq c #xFF64)
+  (while (<= c #xFF65)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  (set-case-syntax #xFF61 "." tbl)
 
   ;; Combining diacritics
   (modify-category-entry '(#x300 . #x362) ?^)

@@ -1,6 +1,6 @@
 ;;; tq.el --- utility to maintain a transaction queue  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992, 2001-2020 Free Software Foundation,
+;; Copyright (C) 1985-1987, 1992, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Scott Draves <spot@cs.cmu.edu>

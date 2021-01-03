@@ -1,6 +1,6 @@
 ;;; xfaces-tests.el --- tests for xfaces.c           -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

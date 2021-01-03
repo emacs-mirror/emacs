@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1985-1987, 1992-2020 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 1992-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Package: emacs
@@ -2141,7 +2141,7 @@ think it does, because \"free\" is pretty hard to define in practice."
                                       ("Yes" . ?y)
                                       ("No" . ?n)
                                       ("Open literally" . ?l)))
-                (read-char-from-minibuffer
+                (read-char-choice
                  (concat prompt " (y)es or (n)o or (l)iterally ")
                  '(?y ?Y ?n ?N ?l ?L)))))
         (cond ((memq choice '(?y ?Y)) nil)
@@ -3538,7 +3538,7 @@ n  -- to ignore the local variables list.")
 				 ", or C-v/M-v to scroll")))
 	       char)
 	  (if offer-save (push ?! exit-chars))
-	  (setq char (read-char-from-minibuffer prompt exit-chars))
+	  (setq char (read-char-choice prompt exit-chars))
 	  (when (and offer-save (= char ?!) unsafe-vars)
 	    (customize-push-and-save 'safe-local-variable-values unsafe-vars))
 	  (prog1 (memq char '(?! ?\s ?y))

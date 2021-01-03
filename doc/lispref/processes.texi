@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990--1995, 1998--1999, 2001--2020 Free Software
+@c Copyright (C) 1990--1995, 1998--1999, 2001--2021 Free Software
 @c Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Processes
@@ -3111,7 +3111,8 @@ signaled. Call @code{puny-encode-domain} on @var{name}
 first if you wish to lookup internationalized hostnames.
 
 If successful it returns a list of Lisp representations of network
-addresses, otherwise it returns @code{nil}.
+addresses, otherwise it returns @code{nil}.  In the latter case, it
+also displays the error message hopefully explaining what went wrong.
 
 By default both IPv4 and IPv6 lookups are attempted.  The optional
 argument @var{family} controls this behavior, specifying the symbol
