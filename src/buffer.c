@@ -2602,8 +2602,6 @@ current buffer is cleared.  */)
 	      p += bytes, pos += bytes;
 	    }
 	}
-      if (narrowed)
-	Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv));
     }
   else
     {
@@ -2681,9 +2679,6 @@ current buffer is cleared.  */)
 
       if (pt != PT)
 	TEMP_SET_PT (pt);
-
-      if (narrowed)
-	Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv));
 
       /* Do this first, so that chars_in_text asks the right question.
 	 set_intervals_multibyte needs it too.  */
