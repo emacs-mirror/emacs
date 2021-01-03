@@ -2065,7 +2065,6 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
 
 ;;;###autoload
 (defun etags--xref-backend ()
-  (etags--maybe-use-project-tags)
   'etags)
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql etags)))
@@ -2139,133 +2138,6 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
 (cl-defmethod xref-location-line ((l xref-etags-location))
   (with-slots (tag-info) l
     (nth 1 tag-info)))
-
-
-;;; Simple tags generation, with automatic invalidation
-
-(defvar etags--project-tags-file nil)
-(defvar etags--project-tags-root nil)
-(defvar etags--project-new-file nil)
-
-(defvar etags--command (executable-find "etags")
-  ;; How do we get the correct etags here?
-  ;; E.g. "~/vc/emacs-master/lib-src/etags"
-  ;;
-  ;; ctags's etags requires '-L -' for stdin input.
-  ;; It also looks broken here (indexes only some of the input files).
-  ;;
-  ;; If our etags supported '-L', we could use any version of etags.
-  )
-
-(defun etags--maybe-use-project-tags ()
-  (let (proj)
-    (when (and etags--project-tags-root
-               (not (file-in-directory-p default-directory
-                                         etags--project-tags-root)))
-      (etags--project-tags-cleanup))
-    (when (and (not (or tags-file-name
-                        tags-table-list))
-               (setq proj (project-current)))
-      (message "Generating new tags table...")
-      (let ((start (time-to-seconds)))
-        (etags--project-tags-generate proj)
-        (message "...done (%.2f s)" (- (time-to-seconds) start)))
-      ;; Invalidate the scanned tags after any change is written to disk.
-      (add-hook 'after-save-hook #'etags--project-update-file)
-      (add-hook 'before-save-hook #'etags--project-mark-as-new)
-      (visit-tags-table etags--project-tags-file))))
-
-(defun etags--project-tags-generate (proj)
-  (let* ((root (project-root proj))
-         (default-directory root)
-         (files (project-files proj))
-         ;; FIXME: List all extensions, or wait for etags fix.
-         ;; http://lists.gnu.org/archive/html/emacs-devel/2018-01/msg00323.html
-         (extensions '("rb" "js" "py" "pl" "el" "c" "cpp" "cc" "h" "hh" "hpp"
-                       "java" "go" "cl" "lisp" "prolog" "php" "erl" "hrl"
-                       "F" "f" "f90" "for" "cs" "a" "asm" "ads" "adb" "ada"))
-         (file-regexp (format "\\.%s\\'" (regexp-opt extensions t))))
-    (setq etags--project-tags-file (make-temp-file "emacs-project-tags-")
-          etags--project-tags-root root)
-    (with-temp-buffer
-      (mapc (lambda (f)
-              (when (string-match-p file-regexp f)
-                (insert f "\n")))
-            files)
-      (shell-command-on-region
-       (point-min) (point-max)
-       (format "%s - -o %s" etags--command etags--project-tags-file)
-       nil nil "*etags-project-tags-errors*" t))))
-
-(defun etags--project-update-file ()
-  ;; TODO: Maybe only do this when Emacs is idle for a bit.
-  (let ((file-name buffer-file-name)
-        (tags-file-buf (get-file-buffer etags--project-tags-file))
-        pr should-scan)
-    (save-excursion
-      (when tags-file-buf
-        (cond
-         ((and etags--project-new-file
-               (kill-local-variable 'etags--project-new-file)
-               (setq pr (project-current))
-               (equal (project-root pr) etags--project-tags-root)
-               (member file-name (project-files pr)))
-          (set-buffer tags-file-buf)
-          (setq should-scan t))
-         ((progn (set-buffer tags-file-buf)
-                 (goto-char (point-min))
-                 (re-search-forward (format "^%s," (regexp-quote file-name)) nil t))
-          (let ((start (line-beginning-position)))
-            (re-search-forward "\f\n" nil 'move)
-            (let ((inhibit-read-only t)
-                  (save-silently t))
-              (delete-region (- start 2)
-                             (if (eobp)
-                                 (point)
-                               (- (point) 2)))
-              (write-region (point-min) (point-max) buffer-file-name nil 'silent)
-              (set-visited-file-modtime)))
-          (setq should-scan t))))
-      (when should-scan
-        (goto-char (point-max))
-        (let ((inhibit-read-only t)
-              (current-end (point)))
-          (call-process
-           etags--command
-           nil
-           '(t "*etags-project-tags-errors*")
-           nil
-           file-name
-           "--append"
-           "-o"
-           "-")
-          ;; XXX: When the project is big (tags file in 10s of megabytes),
-          ;; this is much faster than revert-buffer.  Or even using
-          ;; write-region without APPEND.
-          ;; We could also keep TAGS strictly as a buffer, with no
-          ;; backing on disk.
-          (write-region current-end (point-max) etags--project-tags-file t))
-        (set-visited-file-modtime)
-        (set-buffer-modified-p nil)
-        ;; FIXME: Is there a better way to do this?
-        ;; Completion table is the only remaining place where the
-        ;; update is not incremental.
-        (setq-default tags-completion-table nil)
-        ))))
-
-(defun etags--project-mark-as-new ()
-  (unless buffer-file-number
-    (setq-local etags--project-new-file t)))
-
-(defun etags--project-tags-cleanup ()
-  (when etags--project-tags-file
-    (delete-file etags--project-tags-file)
-    (setq tags-file-name nil
-          tags-table-list nil
-          etags--project-tags-file nil
-          etags--project-tags-root nil))
-  (remove-hook 'after-save-hook #'etags--project-update-file)
-  (remove-hook 'before-save-hook #'etags--project-mark-as-new))
 
 (provide 'etags)
 
