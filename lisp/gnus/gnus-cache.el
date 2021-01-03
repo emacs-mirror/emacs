@@ -312,11 +312,7 @@ it's not cached."
 	  (when uncached-articles
 	    (setq headers (and articles
 			       (gnus-fetch-headers uncached-articles)))))
-	(when (and headers gnus-cache-buffer)
-	  (with-current-buffer (cdr gnus-cache-buffer)
-	    (goto-char (point-min))
-	    (mapc #'nnheader-insert-nov headers)
-	    (gnus-cache-save-buffers)))
+	(gnus-cache-save-buffers)
 	;; Then we include the cached headers.
 	(when (file-exists-p cache-file)
 	  (setq headers
