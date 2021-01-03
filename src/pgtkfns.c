@@ -2047,9 +2047,32 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object terminal)
 {
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
-  GdkDisplay *gdpy = dpyinfo->gdpy;
-  GdkMonitor *gmon = gdk_display_get_monitor_at_point (gdpy, 0, 0);
-  return make_fixnum (gdk_monitor_get_height_mm (gmon));
+  GdkDisplay *gdpy;
+  gint n_monitors, i;
+  int height_mm_at_0 = 0, height_mm_at_other = 0;
+
+  block_input ();
+  gdpy = dpyinfo->gdpy;
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      GdkRectangle rec;
+
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      gdk_monitor_get_geometry (monitor, &rec);
+
+      int mm = gdk_monitor_get_height_mm (monitor);
+
+      if (rec.y == 0)
+	height_mm_at_0 = max(height_mm_at_0, mm);
+      else
+	height_mm_at_other += mm;
+    }
+
+  unblock_input ();
+
+  return make_fixnum (height_mm_at_0 + height_mm_at_other);
 }
 
 
@@ -2065,9 +2088,32 @@ for each physical monitor, use `display-monitor-attributes-list'.  */)
   (Lisp_Object terminal)
 {
   struct pgtk_display_info *dpyinfo = check_pgtk_display_info (terminal);
-  GdkDisplay *gdpy = dpyinfo->gdpy;
-  GdkMonitor *gmon = gdk_display_get_monitor_at_point (gdpy, 0, 0);
-  return make_fixnum (gdk_monitor_get_width_mm (gmon));
+  GdkDisplay *gdpy;
+  gint n_monitors, i;
+  int width_mm_at_0 = 0, width_mm_at_other = 0;
+
+  block_input ();
+  gdpy = dpyinfo->gdpy;
+  n_monitors = gdk_display_get_n_monitors (gdpy);
+
+  for (i = 0; i < n_monitors; ++i)
+    {
+      GdkRectangle rec;
+
+      GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
+      gdk_monitor_get_geometry (monitor, &rec);
+
+      int mm = gdk_monitor_get_width_mm (monitor);
+
+      if (rec.x == 0)
+	width_mm_at_0 = max(width_mm_at_0, mm);
+      else
+	width_mm_at_other += mm;
+    }
+
+  unblock_input ();
+
+  return make_fixnum (width_mm_at_0 + width_mm_at_other);
 }
 
 
