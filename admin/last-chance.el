@@ -105,18 +105,14 @@ defaulting to the one at point."
                               "Symbol: " obarray
                               nil nil
                               one nil one)))))
-  (let ((default-directory (or (vc-root-dir)
-                               default-directory)))
-    (grep (format "%s %s"
-                  last-chance-grep-command
-                  symbol)))
-  (setf (buffer-local-value 'last-chance-symbol
-                            (process-buffer
-                             (car compilation-in-progress)))
-        symbol))
-
-(add-to-list 'compilation-finish-functions
-             'last-chance-cleanup)
+  (with-current-buffer
+      (let ((default-directory (or (vc-root-dir)
+                                   default-directory)))
+        (grep (format "%s %s"
+                      last-chance-grep-command
+                      symbol)))
+    (add-hook 'compilation-finish-functions #'last-chance-cleanup nil t)
+    (setq-local last-chance-symbol symbol)))
 
 (provide 'last-chance)
 
