@@ -2879,6 +2879,19 @@ A solution is to link with GCC, like this:
 Since the .o object files already exist, this will not recompile Emacs
 with GCC, but just restart by trying again to link temacs.
 
+*** Building Emacs with -lcurses fails with undefined symbols like BC.
+
+The 'configure' script attempts to use several terminal libraries,
+including tinfo, ncurses, and terminfo, and curses (in that order).
+If it happens to choose the long-obsolete curses library, Emacs will
+not link correctly.  Emacs 28 is expected to work around this problem;
+in the meantime you can work around it by installing tinfo, ncurses or
+terminfo instead.
+
+This problem can happen on AIX 7.2 if you build with IBM's compiler XLC,
+as AIX's ncurses library suffers from the libgcc problem mentioned above.
+To work around this, configure and build with GCC.
+
 *** Sun with acc: Link failure when using acc on a Sun.
 
 To use acc, you need additional options just before the libraries, such as
