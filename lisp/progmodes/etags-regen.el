@@ -37,11 +37,11 @@
 (declare-function project-root "project")
 (declare-function project-files "project")
 
-(defvar etags-regen-program (executable-find "etags")
-  ;; How do we get the correct etags here?
-  ;; E.g. "~/vc/emacs-master/lib-src/etags"
-  ;;
-  )
+(defcustom etags-regen-program (executable-find "etags")
+  "Name of the etags executable."
+  ;; Always having our 'etags' here would be easier, but we can't
+  ;; always rely on it being installed.  So it might be ctags's etags.
+  :type 'file)
 
 (defun etags-regen--maybe-generate ()
   (let (proj)
