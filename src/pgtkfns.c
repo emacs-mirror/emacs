@@ -54,11 +54,36 @@ static struct pgtk_display_info *pgtk_display_info_for_name (Lisp_Object);
 
 static const char *pgtk_app_name = "Emacs";
 
+/* scale factor manually set per monitor */
+static Lisp_Object monitor_scale_factor_alist;
+
 /* ==========================================================================
 
     Internal utility functions
 
    ========================================================================== */
+
+static double
+pgtk_get_monitor_scale_factor (const char *model)
+{
+  Lisp_Object mdl = build_string (model);
+  Lisp_Object tem = Fassoc(mdl, monitor_scale_factor_alist, Qnil);
+  if (NILP (tem))
+    return 0;
+  Lisp_Object cdr = Fcdr (tem);
+  if (NILP (cdr))
+    return 0;
+  if (FIXNUMP (cdr))
+    {
+      return XFIXNUM (cdr);
+    }
+  else if (FLOATP (cdr))
+    {
+      return XFLOAT_DATA (cdr);
+    }
+  else
+    error ("unknown type of scale-factor");
+}
 
 struct pgtk_display_info *
 check_pgtk_display_info (Lisp_Object object)
@@ -1114,6 +1139,50 @@ pgtk_default_font_parameter (struct frame *f, Lisp_Object parms)
     Lisp definitions
 
    ========================================================================== */
+
+DEFUN ("pgtk-set-monitor-scale-factor", Fpgtk_set_monitor_scale_factor,
+       Spgtk_set_monitor_scale_factor, 2, 2, 0,
+       doc: /* Set monitor MONITOR-MODEL's scale factor to SCALE-FACTOR.
+Since Gdk's scale factor is integer, physical pixel width/height is
+incorrect when you specify fractional scale factor in compositor.
+If you set scale factor by this function, it is used instead of Gdk's one.
+
+Pass nil as SCALE-FACTOR if you want to reset the specified monitor's
+scale factor. */ )
+  (Lisp_Object monitor_model, Lisp_Object scale_factor)
+{
+  CHECK_STRING (monitor_model);
+  if (!NILP (scale_factor))
+    {
+      CHECK_NUMBER (scale_factor);
+      if (FIXNUMP (scale_factor))
+	{
+	  if (XFIXNUM (scale_factor) <= 0)
+	    error ("scale factor must be > 0.");
+	}
+      else if (FLOATP (scale_factor))
+	{
+	  if (XFLOAT_DATA (scale_factor) <= 0.0)
+	    error ("scale factor must be > 0.");
+	}
+      else
+	error ("unknown type of scale-factor");
+    }
+
+  Lisp_Object tem = Fassoc (monitor_model, monitor_scale_factor_alist, Qnil);
+  if (NILP (tem))
+    {
+      if (!NILP (scale_factor))
+	monitor_scale_factor_alist = Fcons (Fcons (monitor_model, scale_factor),
+					    monitor_scale_factor_alist);
+    }
+  else
+    {
+      Fsetcdr (tem, scale_factor);
+    }
+
+  return scale_factor;
+}
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame, 1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
@@ -2419,17 +2488,19 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
   for (i = 0; i < n_monitors; ++i)
     {
       GdkRectangle rec;
-      int scale = 1;
+      double scale = 1;
 
       GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
       gdk_monitor_get_geometry (monitor, &rec);
 
       /* GTK returns scaled sizes for the workareas.  */
-      scale = gdk_monitor_get_scale_factor (monitor);
-      rec.x *= scale;
-      rec.y *= scale;
-      rec.width *= scale;
-      rec.height *= scale;
+      scale = pgtk_get_monitor_scale_factor (gdk_monitor_get_model (monitor));
+      if (scale == 0.0)
+	scale = gdk_monitor_get_scale_factor (monitor);
+      rec.x = rec.x * scale + 0.5;
+      rec.y = rec.y * scale + 0.5;
+      rec.width = rec.width * scale + 0.5;
+      rec.height = rec.height * scale + 0.5;
 
       width = max(width, rec.x + rec.width);
     }
@@ -2463,17 +2534,19 @@ each physical monitor, use `display-monitor-attributes-list'.  */)
   for (i = 0; i < n_monitors; ++i)
     {
       GdkRectangle rec;
-      int scale = 1;
+      double scale = 1;
 
       GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
       gdk_monitor_get_geometry (monitor, &rec);
 
       /* GTK returns scaled sizes for the workareas.  */
-      scale = gdk_monitor_get_scale_factor (monitor);
-      rec.x *= scale;
-      rec.y *= scale;
-      rec.width *= scale;
-      rec.height *= scale;
+      scale = pgtk_get_monitor_scale_factor (gdk_monitor_get_model (monitor));
+      if (scale == 0.0)
+	scale = gdk_monitor_get_scale_factor (monitor);
+      rec.x = rec.x * scale + 0.5;
+      rec.y = rec.y * scale + 0.5;
+      rec.width = rec.width * scale + 0.5;
+      rec.height = rec.height * scale + 0.5;
 
       height = max(height, rec.y + rec.height);
     }
@@ -2540,7 +2613,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       gint width_mm, height_mm;
       GdkRectangle rec, work;
       struct MonitorInfo *mi = &monitors[i];
-      int scale = 1;
+      double scale = 1;
 
       GdkMonitor *monitor = gdk_display_get_monitor (gdpy, i);
       if (gdk_monitor_is_primary (monitor))
@@ -2552,15 +2625,17 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       gdk_monitor_get_workarea (monitor, &work);
 
       /* GTK returns scaled sizes for the workareas.  */
-      scale = gdk_monitor_get_scale_factor (monitor);
-      rec.x *= scale;
-      rec.y *= scale;
-      rec.width *= scale;
-      rec.height *= scale;
-      work.x *= scale;
-      work.y *= scale;
-      work.width *= scale;
-      work.height *= scale;
+      scale = pgtk_get_monitor_scale_factor (gdk_monitor_get_model (monitor));
+      if (scale == 0.0)
+	scale = gdk_monitor_get_scale_factor (monitor);
+      rec.x = rec.x * scale + 0.5;
+      rec.y = rec.y * scale + 0.5;
+      rec.width = rec.width * scale + 0.5;
+      rec.height = rec.height * scale + 0.5;
+      work.x = work.x * scale + 0.5;
+      work.y = work.y * scale + 0.5;
+      work.width = work.width * scale + 0.5;
+      work.height = work.height * scale + 0.5;
 
       mi->geom.x = rec.x;
       mi->geom.y = rec.y;
@@ -3885,11 +3960,16 @@ be used as the image of the icon representing the frame.  */);
   defsubr (&Spgtk_print_frames_dialog);
   defsubr (&Spgtk_backend_display_class);
 
+  defsubr (&Spgtk_set_monitor_scale_factor);
+
   defsubr (&Sx_file_dialog);
 
   as_status = 0;
   as_script = Qnil;
   as_result = 0;
+
+  monitor_scale_factor_alist = Qnil;
+  staticpro (&monitor_scale_factor_alist);
 
   tip_timer = Qnil;
   staticpro (&tip_timer);
