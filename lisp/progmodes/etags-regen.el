@@ -48,6 +48,8 @@
   ;; FIXME: How to implement the safety predicate?
   :type '(repeat string))
 
+(defvar etags-regen--errors-buffer-name "*etags-regen-tags-errors*")
+
 (defun etags-regen--maybe-generate ()
   (let (proj)
     (when (and etags-regen--tags-root
@@ -76,7 +78,7 @@
                        "java" "go" "cl" "lisp" "prolog" "php" "erl" "hrl"
                        "F" "f" "f90" "for" "cs" "a" "asm" "ads" "adb" "ada"))
          (file-regexp (format "\\.%s\\'" (regexp-opt extensions t)))
-         (tags-file (make-temp-file "emacs-project-tags-"))
+         (tags-file (make-temp-file "emacs-regen-tags-"))
          ;; ctags's etags requires '-L -' for stdin input.
          ;; It looks half-broken here (indexes only some of the input files),
          ;; but better-maintained versions of it exist (like universal-ctags).
@@ -92,7 +94,7 @@
                 (insert f "\n")))
             files)
       (shell-command-on-region (point-min) (point-max) command
-                               nil nil "*etags-project-tags-errors*" t))))
+                               nil nil etags-regen--errors-buffer-name t))))
 
 (defun etags-regen--update-file ()
   ;; TODO: Maybe only do this when Emacs is idle for a bit.
@@ -138,7 +140,7 @@
            (format "%s %s %s -o -"
                    etags-regen-program (mapconcat #'identity options " ")
                    file-name)
-           t "*etags-project-tags-errors*")
+           t etags-regen--errors-buffer-name)
           ;; XXX: When the project is big (tags file in 10s of megabytes),
           ;; this is much faster than revert-buffer.  Or even using
           ;; write-region without APPEND.
