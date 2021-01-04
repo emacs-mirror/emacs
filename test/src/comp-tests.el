@@ -487,6 +487,11 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 <https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-01/msg00029.html>."
   (should (eq (comp-test-45576-f) 'eval)))
 
+(comp-deftest 45635-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-01/msg00158.html>."
+  (should (string= (comp-test-45635-f :height 180 :family "PragmataPro Liga")
+                   "PragmataPro Liga")))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

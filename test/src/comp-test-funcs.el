@@ -463,6 +463,21 @@
 			 eshell-term eshell-unix))
 	sym)))
 
+(defun comp-test-45635-f (&rest args)
+  ;; Reduced from `set-face-attribute'.
+  (let ((spec args)
+	family)
+    (while spec
+      (cond ((eq (car spec) :family)
+	     (setq family (cadr spec))))
+      (setq spec (cddr spec)))
+    (when (and (stringp family)
+	       (string-match "\\([^-]*\\)-\\([^-]*\\)" family))
+      (setq family (match-string 2 family)))
+    (when (or (stringp family)
+	      (eq family 'unspecified))
+      family)))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

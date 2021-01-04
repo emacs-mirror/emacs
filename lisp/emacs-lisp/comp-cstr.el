@@ -558,6 +558,22 @@ DST is returned."
               ;; "simple" for now.
               (give-up))
 
+            ;; When every neg type is a subtype of some pos one.
+            ;; In case return pos.
+            (when (and (typeset neg)
+                       (cl-every (lambda (x)
+                                   (cl-some (lambda (y)
+                                              (comp-subtype-p x y))
+                                            (append (typeset pos)
+                                                    (when (range pos)
+                                                      '(integer)))))
+                                 (typeset neg)))
+              (setf (typeset dst) (typeset pos)
+                    (valset dst) (valset pos)
+                    (range dst) (range pos)
+                    (neg dst) nil)
+              (cl-return-from comp-cstr-union-1-no-mem dst))
+
             ;; Verify disjoint condition between positive types and
             ;; negative types coming from values, in case give-up.
             (let ((neg-value-types (nconc (mapcar #'type-of (valset neg))

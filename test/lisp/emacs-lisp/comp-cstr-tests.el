@@ -207,7 +207,9 @@
       ;; 83
       ((not t) . nil)
       ;; 84
-      ((not nil) . t))
+      ((not nil) . t)
+      ;; 85
+      ((or (not string) t) . t))
     "Alist type specifier -> expected type specifier."))
 
 (defmacro comp-cstr-synthesize-tests ()
