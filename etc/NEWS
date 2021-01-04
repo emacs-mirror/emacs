@@ -212,6 +212,12 @@ This makes debugging Emacs Lisp scripts run in batch mode easier.  To
 get back the old behavior, set the new variable
 'backtrace-on-error-noninteractive' to a nil value.
 
+** 'redisplay-skip-fontification-on-input' helps Emacs keep up with fast input.
+This is another attempt to solve the problem of handling high key repeat rate
+and other "slow scrolling" situations.  It is hoped it behaves better
+than 'fast-but-imprecise-scrolling' and 'jit-lock-defer-time'.
+It is not enabled by default.
+
 
 * Editing Changes in Emacs 28.1
 
