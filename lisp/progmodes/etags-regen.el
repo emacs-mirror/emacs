@@ -45,8 +45,36 @@
 
 (defcustom etags-regen-program-options nil
   "List of additional options to pass to the etags program."
-  ;; FIXME: How to implement the safety predicate?
   :type '(repeat string))
+
+(defcustom etags-regen-lang-regexp-alist nil
+  "Mapping of languages to additional regexps for tags.
+
+Each language should be one of the recognized by etags, see
+'etags --help'.  Each tag regexp should be a string in the format
+as documented for the '--regex' arguments, except for
+the (optional) language prefix."
+  :type '(repeat
+          (cons
+           :tag "Languages group"
+           (repeat (string :tag "Language name"))
+           (repeat (string :tag "Tag Regexp"))))
+  :safe 'etags-regen--safe-regexp-alist-p)
+
+(defun etags-regen--safe-regexp-alist-p (value)
+  (and (listp value)
+       (seq-every-p
+        (lambda (group)
+          (and (consp group)
+               (listp (car group))
+               (listp (cdr group))
+               (seq-every-p
+                (lambda (lang)
+                  (and (stringp lang)
+                       (string-match-p "\\`[a-z*+]+\\'" lang)))
+                (car group))
+               (seq-every-p #'stringp (cdr group))))
+        value)))
 
 (defvar etags-regen--errors-buffer-name "*etags-regen-tags-errors*")
 
@@ -84,7 +112,7 @@
          ;; but better-maintained versions of it exist (like universal-ctags).
          (command (format "%s %s -L - -o %s"
                           etags-regen-program
-                          (mapconcat #'identity etags-regen-program-options " ")
+                          (mapconcat #'identity (etags-regen--build-program-options) " ")
                           tags-file)))
     (setq etags-regen--tags-file tags-file
           etags-regen--tags-root root)
@@ -96,10 +124,25 @@
       (shell-command-on-region (point-min) (point-max) command
                                nil nil etags-regen--errors-buffer-name t))))
 
+(defun etags-regen--build-program-options ()
+  (nconc
+   (mapcan
+    (lambda (group)
+      (mapcan
+       (lambda (lang)
+         (mapcar (lambda (regexp)
+                   (concat "--regex="
+                           (shell-quote-argument
+                            (format "{%s}%s" lang regexp))))
+                 (cdr group)))
+       (car group)))
+    etags-regen-lang-regexp-alist)
+   etags-regen-program-options))
+
 (defun etags-regen--update-file ()
   ;; TODO: Maybe only do this when Emacs is idle for a bit.
   (let ((file-name buffer-file-name)
-        (options etags-regen-program-options)
+        (options (etags-regen--build-program-options))
         (tags-file-buf (get-file-buffer etags-regen--tags-file))
         pr should-scan)
     (save-excursion

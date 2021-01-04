@@ -5,13 +5,11 @@
          (sentence-end-double-space . t)
          (fill-column . 70)
          (bug-reference-url-format . "https://debbugs.gnu.org/%s")
-         (etags-regen-program-options
+         (etags-regen-lang-regexp-alist
           .
-          ("--regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+\"\\([^\"]+\\)\"/\\1/'"
-           "--regex='{c}/[ 	]*DEFVAR_[A-Z_ 	(]+\"[^\"]+\",[ 	]\\([A-Za-z0-9_]+\\)/\\1/'"
-           "--regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+\"\\([^\"]+\\)\"/\\1/'"
-           "--regex='{objc}/[ 	]*DEFVAR_[A-Z_ 	(]+\"[^\"]+\",[ 	]\\([A-Za-z0-9_]+\\)/\\1/'")
-          )))
+          ((("c" "objc") .
+            ("/[ \t]*DEFVAR_[A-Z_ \t(]+\"\\([^\"]+\\)\"/\\1/"
+             "/[ \t]*DEFVAR_[A-Z_ \t(]+\"[^\"]+\",[ \t]\\([A-Za-z0-9_]+\\)/\\1/"))))))
  (c-mode . ((c-file-style . "GNU")
             (c-noise-macro-names . ("INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED" "UNINIT" "CALLBACK" "ALIGN_STACK"))
             (electric-quote-comment . nil)
