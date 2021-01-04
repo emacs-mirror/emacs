@@ -1598,13 +1598,16 @@ See `add-log-current-defun-function'."
         (let* ((indent 0) mname mlist
                (start (point))
                (make-definition-re
-                (lambda (re)
+                (lambda (re &optional method-name?)
                   (concat "^[ \t]*" re "[ \t]+"
                           "\\("
                           ;; \\. and :: for class methods
-                          "\\([A-Za-z_]" ruby-symbol-re "*[?!]?\\|\\.\\|::" "\\)"
+                          "\\([A-Za-z_]" ruby-symbol-re "*[?!]?"
+                          (when method-name? "\\|")
+                          (when method-name? ruby-operator-re)
+                          "\\|\\.\\|::" "\\)"
                           "+\\)")))
-               (definition-re (funcall make-definition-re ruby-defun-beg-re))
+               (definition-re (funcall make-definition-re ruby-defun-beg-re t))
                (module-re (funcall make-definition-re "\\(class\\|module\\)")))
           ;; Get the current method definition (or class/module).
           (when (re-search-backward definition-re nil t)
