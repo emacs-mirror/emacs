@@ -2821,9 +2821,9 @@ this function from interpreting the line as a command."
         (let* ((cmd  (nth 0 command-list))
                (args (nth 1 command-list)))
           (condition-case nil
-              (if (functionp args)
-                  (funcall cmd args)
-                (apply cmd args))
+              (if (listp args)
+                  (apply cmd args)
+                (funcall cmd args))
             (wrong-number-of-arguments
              (erc-display-message nil 'error (current-buffer) 'incorrect-args
                                   ?c (erc-command-name cmd)
