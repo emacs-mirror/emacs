@@ -4165,7 +4165,7 @@ Here is an example of an indentation function:
     (`(,_ . ",") (smie-rule-separator kind))
     (`(:after . ":=") sample-indent-basic)
     (`(:before . ,(or `"begin" `"(" `"@{")))
-     (if (smie-rule-hanging-p) (smie-rule-parent)))
+     (if (smie-rule-hanging-p) (smie-rule-parent))
     (`(:before . "if")
      (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
           (smie-rule-parent)))))
