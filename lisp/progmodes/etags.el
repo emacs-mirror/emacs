@@ -2064,8 +2064,7 @@ If you want `xref-find-definitions' to find the tagged files by their
 file name, add `tag-partial-file-name-match-p' to the list value.")
 
 ;;;###autoload
-(defun etags--xref-backend ()
-  'etags)
+(defun etags--xref-backend () 'etags)
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql etags)))
   (find-tag--default))
@@ -2139,6 +2138,7 @@ file name, add `tag-partial-file-name-match-p' to the list value.")
   (with-slots (tag-info) l
     (nth 1 tag-info)))
 
+
 (provide 'etags)
 
 ;;; etags.el ends here
