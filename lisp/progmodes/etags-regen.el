@@ -63,20 +63,22 @@ We support only Emacs's etags program with this option."
            (repeat (string :tag "Tag Regexp"))))
   :safe 'etags-regen--safe-regexp-alist-p)
 
-(defun etags-regen--safe-regexp-alist-p (value)
-  (and (listp value)
-       (seq-every-p
-        (lambda (group)
-          (and (consp group)
-               (listp (car group))
-               (listp (cdr group))
-               (seq-every-p
-                (lambda (lang)
-                  (and (stringp lang)
-                       (string-match-p "\\`[a-z*+]+\\'" lang)))
-                (car group))
-               (seq-every-p #'stringp (cdr group))))
-        value)))
+;;;###autoload
+(put 'etags-regen-lang-regexp-alist 'safe-local-variable
+     (lambda (value)
+       (and (listp value)
+            (seq-every-p
+             (lambda (group)
+               (and (consp group)
+                    (listp (car group))
+                    (listp (cdr group))
+                    (seq-every-p
+                     (lambda (lang)
+                       (and (stringp lang)
+                            (string-match-p "\\`[a-z*+]+\\'" lang)))
+                     (car group))
+                    (seq-every-p #'stringp (cdr group))))
+             value))))
 
 (defvar etags-regen--errors-buffer-name "*etags-regen-tags-errors*")
 
