@@ -103,7 +103,7 @@
       ;; 30
       ((and (member foo) (integer 1 2)) . nil)
       ;; 31
-      ((and (member 1 2) (member 3 2)) . (member 2))
+      ((and (member 1 2) (member 3 2)) . (integer 2 2))
       ;; 32
       ((and number (integer 1 2)) . (integer 1 2))
       ;; 33
@@ -207,7 +207,9 @@
       ;; 83
       ((not t) . nil)
       ;; 84
-      ((not nil) . t))
+      ((not nil) . t)
+      ;; 85
+      ((or (not string) t) . t))
     "Alist type specifier -> expected type specifier."))
 
 (defmacro comp-cstr-synthesize-tests ()
