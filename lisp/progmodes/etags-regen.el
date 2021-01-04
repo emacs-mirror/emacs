@@ -53,7 +53,9 @@
 Each language should be one of the recognized by etags, see
 'etags --help'.  Each tag regexp should be a string in the format
 as documented for the '--regex' arguments, except for
-the (optional) language prefix."
+the (optional) language prefix.
+
+We support only Emacs's etags program with this option."
   :type '(repeat
           (cons
            :tag "Languages group"
