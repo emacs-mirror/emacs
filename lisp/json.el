@@ -654,7 +654,9 @@ become JSON objects."
 (defun json-encode-array (array)
   "Return a JSON representation of ARRAY."
   (if (and json-encoding-pretty-print
-           (/= 0 (length array)))
+           (if (listp array)
+               array
+             (> (length array) 0)))
       (concat
        "["
        (json--with-indentation
