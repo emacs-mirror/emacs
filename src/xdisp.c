@@ -25504,7 +25504,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	  if (start < i)
 	    display_string (NULL,
 			    Fsubstring (mode_string, make_fixnum (start),
-					make_fixnum (i - 1)),
+					make_fixnum (i)),
 			    Qnil, 0, 0, &it, 0, 0, 0,
 			    STRING_MULTIBYTE (mode_string));
 	}
