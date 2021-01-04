@@ -969,6 +969,10 @@ else
 	@echo "Maybe you used a release tarfile that lacks tests."
 endif
 
+test/%:
+	$(MAKE) -C test $*
+
+
 dist:
 	cd ${srcdir}; ./make-dist
 
