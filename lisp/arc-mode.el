@@ -2237,8 +2237,6 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;; not the GNU nor the BSD extensions.  As it turns out, this is sufficient
 ;; for .deb packages.
 
-(autoload 'tar-grind-file-mode "tar-mode")
-
 (defconst archive-ar-file-header-re
   "\\(.\\{16\\}\\)\\([ 0-9]\\{12\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-9]\\{6\\}\\)\\([ 0-7]\\{8\\}\\)\\([ 0-9]\\{10\\}\\)`\n")
 
