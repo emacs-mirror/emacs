@@ -301,4 +301,25 @@ return nil, even with a non-nil bubblep argument."
       (should child)
       (should (equal (widget-value widget) '((1 "One")))))))
 
+(ert-deftest widget-test-widget-move ()
+  "Test moving with `widget-forward' and `widget-backward'."
+  (with-temp-buffer
+    (dolist (el '("First" "Second" "Third"))
+      (widget-create 'push-button el))
+    (widget-insert "\n")
+    (use-local-map widget-keymap)
+    (widget-setup)
+    (goto-char (point-min))
+    ;; Check that moving from the widget's start works.
+    (widget-forward 2)
+    (should (string= "Third" (widget-value (widget-at))))
+    (widget-backward 1)
+    (should (string= "Second" (widget-value (widget-at))))
+    ;; Check that moving from inside the widget works.
+    (goto-char (point-min))
+    (widget-forward 2)
+    (forward-char)
+    (widget-backward 1)
+    (should (string= "Second" (widget-value (widget-at))))))
+
 ;;; wid-edit-tests.el ends here
