@@ -692,14 +692,14 @@ arguments, which will be used when creating the @code{radio-button} or
 
 @end table
 
-@deffn {User Option} widget-glyph-directory
-Directory where glyphs are found.
+@deffn {User Option} widget-image-directory
+Directory where Widget should look for images.
 Widget will look here for a file with the same name as specified for the
 image, with either a @file{.xpm} (if supported) or @file{.xbm} extension.
 @end deffn
 
-@deffn{User Option} widget-glyph-enable
-If non-@code{nil}, allow glyphs to appear on displays where they are supported.
+@deffn{User Option} widget-image-enable
+If non-@code{nil}, allow images to appear on displays where they are supported.
 @end deffn
 
 
