@@ -560,8 +560,11 @@ FD_SETSIZE file descriptors (Bug#24325)."
               ;; We should have managed to start at least one process.
               (should processes)
               (dolist (process processes)
-                (should (process-live-p process))
-                (process-send-eof process)
+                ;; The process now should either be running, or have
+                ;; already failed before `exec'.
+                (should (memq (process-status process) '(run exit)))
+                (when (process-live-p process)
+                  (process-send-eof process))
                 (while (accept-process-output process))
                 (should (eq (process-status process) 'exit))
                 ;; If there's an error between fork and exec, Emacs
