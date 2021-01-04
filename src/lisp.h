@@ -1478,8 +1478,8 @@ struct Lisp_String
   {
     struct
     {
-      ptrdiff_t size;
-      ptrdiff_t size_byte;
+      ptrdiff_t size;           /* MSB is used as the markbit.  */
+      ptrdiff_t size_byte;      /* Set to -1 for unibyte strings.  */
       INTERVAL intervals;	/* Text properties in this string.  */
       unsigned char *data;
     } s;
