@@ -221,12 +221,18 @@ expression, in which case we want to handle forms differently."
      ;; Convert defcustom to less space-consuming data.
      ((eq car 'defcustom)
       (let ((varname (car-safe (cdr-safe form)))
+	    (initializer (plist-get (nthcdr 4 form) :initialize))
 	    (init (car-safe (cdr-safe (cdr-safe form))))
 	    (doc (car-safe (cdr-safe (cdr-safe (cdr-safe form)))))
 	    ;; (rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form)))))
 	    )
 	`(progn
-	   (defvar ,varname ,init ,doc)
+	   ,(if (null initializer)
+	        `(defvar ,varname ,init ,doc)
+	      `(progn (defvar ,varname nil ,doc)
+	              (let ((exp ',init))
+	                (put ',varname 'standard-value (list exp))
+	                (,(eval initializer t) ',varname exp))))
 	   (custom-autoload ',varname ,file
                             ,(condition-case nil
                                  (null (cadr (memq :set form)))
