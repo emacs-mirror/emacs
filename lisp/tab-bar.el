@@ -196,6 +196,18 @@ See `tab-bar-mode' for more information."
       (tab-bar-mode (if (> (frame-parameter nil 'tab-bar-lines) 0) 0 1))
     (tab-bar-mode arg)))
 
+(defun toggle-frame-tab-bar (&optional frame)
+  "Toggle tab bar of FRAME.
+This is useful when you want to enable the tab bar individually
+on each new frame when the global `tab-bar-mode' is disabled,
+or when you want to disable the tab bar individually on each
+new frame when the global `tab-bar-mode' is enabled, by using
+
+  (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
+  (interactive)
+  (set-frame-parameter frame 'tab-bar-lines
+                       (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1)))
+
 (defvar tab-bar-map (make-sparse-keymap)
   "Keymap for the tab bar.
 Define this locally to override the global tab bar.")
