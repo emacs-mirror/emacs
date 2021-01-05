@@ -8583,10 +8583,3 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Swindow_parameter);
   defsubr (&Sset_window_parameter);
 }
-
-void
-keys_of_window (void)
-{
-  initial_define_key (meta_map, Ctl ('V'), "scroll-other-window");
-  initial_define_key (meta_map, 'v', "scroll-down-command");
-}

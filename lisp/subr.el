@@ -1242,9 +1242,17 @@ in a cleaner way with command remapping, like this:
 ;; global-map, esc-map, and ctl-x-map have their values set up in
 ;; keymap.c; we just give them docstrings here.
 
-(defvar esc-map nil
+(defvar esc-map
+  (let ((map (make-keymap)))
+    (define-key map "u" #'upcase-word)
+    (define-key map "l" #'downcase-word)
+    (define-key map "c" #'capitalize-word)
+    (define-key map "x" #'execute-extended-command)
+    map)
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")
+(fset 'ESC-prefix esc-map)
+(make-obsolete 'ESC-prefix 'esc-map "28.1")
 
 (defvar ctl-x-4-map (make-sparse-keymap)
   "Keymap for subcommands of C-x 4.")
@@ -1273,7 +1281,7 @@ The normal global definition of the character ESC indirects to this keymap.")
   "Default keymap for C-x commands.
 The normal global definition of the character C-x indirects to this keymap.")
 (fset 'Control-X-prefix ctl-x-map)
-(make-obsolete 'Control-X-prefix 'ctl-x-map  "28.1")
+(make-obsolete 'Control-X-prefix 'ctl-x-map "28.1")
 
 (defvar global-map
   (let ((map (make-keymap)))
@@ -1296,10 +1304,16 @@ The normal global definition of the character C-x indirects to this keymap.")
     (define-key map "\C-b" #'backward-char)
     (define-key map "\C-e" #'end-of-line)
     (define-key map "\C-f" #'forward-char)
+
     (define-key map "\C-z"     #'suspend-emacs) ;FIXME: Re-bound later!
     (define-key map "\C-x\C-z" #'suspend-emacs) ;FIXME: Re-bound later!
-    (define-key map "\C-v" #'scroll-up-command)
-    (define-key map "\C-]" #'abort-recursive-edit)
+
+    (define-key map "\C-v"    #'scroll-up-command)
+    (define-key map "\M-v"    #'scroll-down-command)
+    (define-key map "\M-\C-v" #'scroll-other-window)
+
+    (define-key map "\M-\C-c" #'exit-recursive-edit)
+    (define-key map "\C-]"    #'abort-recursive-edit)
     map)
   "Default global keymap mapping Emacs keyboard input into commands.
 The value is a keymap that is usually (but not necessarily) Emacs's

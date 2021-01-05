@@ -682,11 +682,3 @@ Called with one argument METHOD which can be:
   defsubr (&Sdowncase_word);
   defsubr (&Scapitalize_word);
 }
-
-void
-keys_of_casefiddle (void)
-{
-  initial_define_key (meta_map, 'u', "upcase-word");
-  initial_define_key (meta_map, 'l', "downcase-word");
-  initial_define_key (meta_map, 'c', "capitalize-word");
-}
