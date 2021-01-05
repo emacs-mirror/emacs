@@ -1272,7 +1272,7 @@ The normal global definition of the character ESC indirects to this keymap.")
     (define-key map "t" tab-prefix-map)
 
     (define-key map "b" #'switch-to-buffer)
-    (define-key map "l" #'kill-buffer)
+    (define-key map "k" #'kill-buffer)
     (define-key map "\C-u" #'upcase-region)   (put 'upcase-region   'disabled t)
     (define-key map "\C-l" #'downcase-region) (put 'downcase-region 'disabled t)
     (define-key map "<" #'scroll-left)
