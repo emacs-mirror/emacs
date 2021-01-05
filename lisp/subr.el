@@ -1242,11 +1242,6 @@ in a cleaner way with command remapping, like this:
 ;; global-map, esc-map, and ctl-x-map have their values set up in
 ;; keymap.c; we just give them docstrings here.
 
-(defvar global-map nil
-  "Default global keymap mapping Emacs keyboard input into commands.
-The value is a keymap that is usually (but not necessarily) Emacs's
-global map.")
-
 (defvar esc-map nil
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")
@@ -1268,6 +1263,37 @@ The normal global definition of the character C-x indirects to this keymap.")
 (defvar tab-prefix-map (make-sparse-keymap)
   "Keymap for tab-bar related commands.")
 (define-key ctl-x-map "t" tab-prefix-map)
+
+(defvar global-map
+  (let ((map (make-keymap)))
+    (define-key map "\C-[" 'ESC-prefix)
+    (define-key map "\C-x" 'Control-X-prefix)
+
+    (define-key map "\C-i" #'self-insert-command)
+    (let* ((vec1 (make-vector 1 nil))
+           (f (lambda (from to)
+                (while (< from to)
+                  (aset vec1 0 from)
+                  (define-key map vec1 #'self-insert-command)
+                  (setq from (1+ from))))))
+      (funcall f #o040 #o0177)
+      (when (eq system-type 'ms-dos)      ;FIXME: Why?
+        (funcall f #o0200 #o0240))
+      (funcall f #o0240 #o0400))
+
+    (define-key map "\C-a" #'beginning-of-line)
+    (define-key map "\C-b" #'backward-char)
+    (define-key map "\C-e" #'end-of-line)
+    (define-key map "\C-f" #'forward-char)
+    (define-key map "\C-z" #'suspend-emacs) ;FIXME: Re-bound later!
+
+    (define-key map "\C-v" #'scroll-up-command)
+    (define-key map "\C-]" #'abort-recursive-edit)
+    map)
+  "Default global keymap mapping Emacs keyboard input into commands.
+The value is a keymap that is usually (but not necessarily) Emacs's
+global map.")
+(use-global-map global-map)
 
 
 ;;;; Event manipulation functions.

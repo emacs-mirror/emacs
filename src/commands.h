@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    calls to initial_define_key.  These should *not* be used after
    initialization; use-global-map doesn't affect these; it sets
    current_global_map instead.  */
-extern Lisp_Object global_map;
 extern Lisp_Object meta_map;
 extern Lisp_Object control_x_map;
 

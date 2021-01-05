@@ -40,7 +40,6 @@ extern ptrdiff_t current_minor_maps (Lisp_Object **, Lisp_Object **);
 extern void initial_define_key (Lisp_Object, int, const char *);
 extern void initial_define_lispy_key (Lisp_Object, const char *, const char *);
 extern void syms_of_keymap (void);
-extern void keys_of_keymap (void);
 
 typedef void (*map_keymap_function_t)
      (Lisp_Object key, Lisp_Object val, Lisp_Object args, void *data);

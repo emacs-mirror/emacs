@@ -12388,10 +12388,8 @@ syms_of_keyboard_for_pdumper (void)
 void
 keys_of_keyboard (void)
 {
-  initial_define_key (global_map, Ctl ('Z'), "suspend-emacs");
   initial_define_key (control_x_map, Ctl ('Z'), "suspend-emacs");
   initial_define_key (meta_map, Ctl ('C'), "exit-recursive-edit");
-  initial_define_key (global_map, Ctl (']'), "abort-recursive-edit");
   initial_define_key (meta_map, 'x', "execute-extended-command");
 
   initial_define_lispy_key (Vspecial_event_map, "delete-frame",

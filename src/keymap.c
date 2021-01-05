@@ -59,8 +59,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 Lisp_Object current_global_map;	/* Current global keymap.  */
 
-Lisp_Object global_map;		/* Default global key bindings.  */
-
 Lisp_Object meta_map;		/* The keymap used for globally bound
 				   ESC-prefixed default commands.  */
 
@@ -3195,11 +3193,7 @@ syms_of_keymap (void)
      Each one is the value of a Lisp variable, and is also
      pointed to by a C variable */
 
-  global_map = Fmake_keymap (Qnil);
-  Fset (intern_c_string ("global-map"), global_map);
-
-  current_global_map = global_map;
-  staticpro (&global_map);
+  current_global_map = Qnil;
   staticpro (&current_global_map);
 
   meta_map = Fmake_keymap (Qnil);
@@ -3327,11 +3321,4 @@ be preferred.  */);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
   defsubr (&Sdescribe_buffer_bindings);
-}
-
-void
-keys_of_keymap (void)
-{
-  initial_define_key (global_map, 033, "ESC-prefix");
-  initial_define_key (global_map, Ctl ('X'), "Control-X-prefix");
 }

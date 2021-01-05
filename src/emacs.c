@@ -1957,10 +1957,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #endif
 
       keys_of_casefiddle ();
-      keys_of_cmds ();
       keys_of_buffer ();
       keys_of_keyboard ();
-      keys_of_keymap ();
       keys_of_window ();
     }
   else
