@@ -1603,9 +1603,9 @@ See `add-log-current-defun-function'."
                           "\\("
                           ;; \\. and :: for class methods
                           "\\([A-Za-z_]" ruby-symbol-re "*[?!]?"
-                          (when method-name? "\\|")
-                          (when method-name? ruby-operator-re)
-                          "\\|\\.\\|::" "\\)"
+                          "\\|"
+                          (if method-name? ruby-operator-re "\\.")
+                          "\\|::" "\\)"
                           "+\\)")))
                (definition-re (funcall make-definition-re ruby-defun-beg-re t))
                (module-re (funcall make-definition-re "\\(class\\|module\\)")))
