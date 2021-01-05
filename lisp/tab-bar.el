@@ -95,6 +95,45 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   :version "27.1")
 
 
+(defun tab-bar--define-keys ()
+  "Install key bindings for switching between tabs if the user has configured them."
+  (when tab-bar-select-tab-modifiers
+    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
+                    'tab-bar-switch-to-recent-tab)
+    (dotimes (i 9)
+      (global-set-key (vector (append tab-bar-select-tab-modifiers
+                                      (list (+ i 1 ?0))))
+                      'tab-bar-select-tab)))
+  ;; Don't override user customized key bindings
+  (unless (global-key-binding [(control tab)])
+    (global-set-key [(control tab)] 'tab-next))
+  (unless (global-key-binding [(control shift tab)])
+    (global-set-key [(control shift tab)] 'tab-previous))
+  (unless (global-key-binding [(control shift iso-lefttab)])
+    (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
+
+(defun tab-bar--load-buttons ()
+  "Load the icons for the tab buttons."
+  (when (and tab-bar-new-button
+             (not (get-text-property 0 'display tab-bar-new-button)))
+    ;; This file is pre-loaded so only here we can use the right data-directory:
+    (add-text-properties 0 (length tab-bar-new-button)
+                         `(display (image :type xpm
+                                          :file "tabs/new.xpm"
+                                          :margin (2 . 0)
+                                          :ascent center))
+                         tab-bar-new-button))
+
+  (when (and tab-bar-close-button
+             (not (get-text-property 0 'display tab-bar-close-button)))
+    ;; This file is pre-loaded so only here we can use the right data-directory:
+    (add-text-properties 0 (length tab-bar-close-button)
+                         `(display (image :type xpm
+                                          :file "tabs/close.xpm"
+                                          :margin (2 . 0)
+                                          :ascent center))
+                         tab-bar-close-button)))
+
 (define-minor-mode tab-bar-mode
   "Toggle the tab bar in all graphical frames (Tab Bar mode)."
   :global t
@@ -110,43 +149,10 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
               (cons (cons 'tab-bar-lines val)
                     (assq-delete-all 'tab-bar-lines
                                      default-frame-alist)))))
-
-  (when (and tab-bar-mode tab-bar-new-button
-             (not (get-text-property 0 'display tab-bar-new-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-new-button)
-                         `(display (image :type xpm
-                                          :file "tabs/new.xpm"
-                                          :margin (2 . 0)
-                                          :ascent center))
-                         tab-bar-new-button))
-
-  (when (and tab-bar-mode tab-bar-close-button
-             (not (get-text-property 0 'display tab-bar-close-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-close-button)
-                         `(display (image :type xpm
-                                          :file "tabs/close.xpm"
-                                          :margin (2 . 0)
-                                          :ascent center))
-                         tab-bar-close-button))
-
+  (when tab-bar-mode
+    (tab-bar--load-buttons))
   (if tab-bar-mode
-      (progn
-        (when tab-bar-select-tab-modifiers
-          (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
-                          'tab-bar-switch-to-recent-tab)
-          (dotimes (i 9)
-            (global-set-key (vector (append tab-bar-select-tab-modifiers
-                                            (list (+ i 1 ?0))))
-                            'tab-bar-select-tab)))
-        ;; Don't override user customized key bindings
-        (unless (global-key-binding [(control tab)])
-          (global-set-key [(control tab)] 'tab-next))
-        (unless (global-key-binding [(control shift tab)])
-          (global-set-key [(control shift tab)] 'tab-previous))
-        (unless (global-key-binding [(control shift iso-lefttab)])
-          (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
+      (tab-bar--define-keys)
     ;; Unset only keys bound by tab-bar
     (when (eq (global-key-binding [(control tab)]) 'tab-next)
       (global-unset-key [(control tab)]))
@@ -815,7 +821,10 @@ After the tab is created, the hooks in
      ((and (natnump tab-bar-show)
            (> (length (funcall tab-bar-tabs-function)) tab-bar-show)
            (zerop (frame-parameter nil 'tab-bar-lines)))
-      (set-frame-parameter nil 'tab-bar-lines 1)))
+      (progn
+        (tab-bar--load-buttons)
+        (tab-bar--define-keys)
+        (set-frame-parameter nil 'tab-bar-lines 1))))
 
     (force-mode-line-update)
     (unless tab-bar-mode
