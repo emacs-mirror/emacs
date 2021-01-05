@@ -324,13 +324,33 @@
         ;; disambiguate with the left-bitshift operator.
         "\\|" perl--syntax-exp-intro-regexp "<<\\(?2:\\sw+\\)\\)"
         ".*\\(\n\\)")
-       (4 (let* ((st (get-text-property (match-beginning 4) 'syntax-table))
+       (4 (let* ((eol (match-beginning 4))
+                 (st (get-text-property eol 'syntax-table))
                  (name (match-string 2))
                  (indented (match-beginning 1)))
             (goto-char (match-end 2))
             (if (save-excursion (nth 8 (syntax-ppss (match-beginning 0))))
+                ;; '<<' occurred in a string, or in a comment.
                 ;; Leave the property of the newline unchanged.
                 st
+              ;; Beware of `foo <<'BAR' #baz` because
+              ;; the newline needs to start the here-doc
+              ;; and can't be used to close the comment.
+              (let ((eol-state (save-excursion (syntax-ppss eol))))
+                (when (nth 4 eol-state)
+                  (if (/= (1- eol) (nth 8 eol-state))
+                      ;; make the last char of the comment closing it
+                      (put-text-property (1- eol) eol
+                                         'syntax-table (string-to-syntax ">"))
+                    ;; In `foo <<'BAR' #` the # is the last character
+                    ;; before eol and can't both open and close the
+                    ;; comment.  Workaround: disguise the "#" as
+                    ;; whitespace and fontify it as a comment.
+                    (put-text-property (1- eol) eol
+                                       'syntax-table (string-to-syntax "-"))
+                    (put-text-property (1- eol) eol
+                                       'font-lock-face
+                                       'font-lock-comment-face))))
               (cons (car (string-to-syntax "< c"))
                     ;; Remember the names of heredocs found on this line.
                     (cons (cons (pcase (aref name 0)
@@ -483,8 +503,15 @@
 	      ;; as twoarg).
 	      (perl-syntax-propertize-special-constructs limit)))))))))
 
+(defface perl-heredoc
+  '((t (:inherit font-lock-string-face)))
+  "The face for here-documents.  Inherits from font-lock-string-face.")
+
 (defun perl-font-lock-syntactic-face-function (state)
   (cond
+   ((and (eq 2 (nth 7 state)) ; c-style comment
+         (cdr-safe (get-text-property (nth 8 state) 'syntax-table))) ; HERE doc
+    'perl-heredoc)
    ((and (nth 3 state)
          (eq ?e (cdr-safe (get-text-property (nth 8 state) 'syntax-table)))
          ;; This is a second-arg of s{..}{...} form; let's check if this second

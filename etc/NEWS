@@ -1834,6 +1834,9 @@ also keep the type information of their arguments. Use the
 ** CPerl Mode
 
 ---
+*** New face 'perl-heredoc', used for heredoc elements.
+
+---
 *** The command 'cperl-set-style' offers the new value "PBP".
 This value customizes Emacs to use the style recommended in Damian
 Conway's book "Perl Best Practices" for indentation and formatting
