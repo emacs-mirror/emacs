@@ -6380,10 +6380,3 @@ nil NORECORD argument since it may lead to infinite recursion.  */);
 
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
 }
-
-void
-keys_of_buffer (void)
-{
-  initial_define_key (control_x_map, 'b', "switch-to-buffer");
-  initial_define_key (control_x_map, 'k', "kill-buffer");
-}

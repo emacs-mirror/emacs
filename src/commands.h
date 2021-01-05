@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    initialization; use-global-map doesn't affect these; it sets
    current_global_map instead.  */
 extern Lisp_Object meta_map;
-extern Lisp_Object control_x_map;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the

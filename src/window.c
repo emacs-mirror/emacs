@@ -8587,9 +8587,6 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
 void
 keys_of_window (void)
 {
-  initial_define_key (control_x_map, '<', "scroll-left");
-  initial_define_key (control_x_map, '>', "scroll-right");
-
   initial_define_key (meta_map, Ctl ('V'), "scroll-other-window");
   initial_define_key (meta_map, 'v', "scroll-down-command");
 }

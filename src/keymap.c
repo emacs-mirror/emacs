@@ -62,9 +62,6 @@ Lisp_Object current_global_map;	/* Current global keymap.  */
 Lisp_Object meta_map;		/* The keymap used for globally bound
 				   ESC-prefixed default commands.  */
 
-Lisp_Object control_x_map;	/* The keymap used for globally bound
-				   C-x-prefixed default commands.  */
-
 				/* The keymap used by the minibuf for local
 				   bindings when spaces are allowed in the
 				   minibuf.  */
@@ -3199,10 +3196,6 @@ syms_of_keymap (void)
   meta_map = Fmake_keymap (Qnil);
   Fset (intern_c_string ("esc-map"), meta_map);
   Ffset (intern_c_string ("ESC-prefix"), meta_map);
-
-  control_x_map = Fmake_keymap (Qnil);
-  Fset (intern_c_string ("ctl-x-map"), control_x_map);
-  Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
   exclude_keys = pure_list
     (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),

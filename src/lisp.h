@@ -4261,7 +4261,6 @@ extern Lisp_Object get_truename_buffer (Lisp_Object);
 extern void init_buffer_once (void);
 extern void init_buffer (void);
 extern void syms_of_buffer (void);
-extern void keys_of_buffer (void);
 
 /* Defined in marker.c.  */
 

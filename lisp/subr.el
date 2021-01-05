@@ -1246,23 +1246,34 @@ in a cleaner way with command remapping, like this:
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")
 
-(defvar ctl-x-map nil
-  "Default keymap for C-x commands.
-The normal global definition of the character C-x indirects to this keymap.")
-
 (defvar ctl-x-4-map (make-sparse-keymap)
   "Keymap for subcommands of C-x 4.")
 (defalias 'ctl-x-4-prefix ctl-x-4-map)
-(define-key ctl-x-map "4" 'ctl-x-4-prefix)
 
 (defvar ctl-x-5-map (make-sparse-keymap)
   "Keymap for frame commands.")
 (defalias 'ctl-x-5-prefix ctl-x-5-map)
-(define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
 (defvar tab-prefix-map (make-sparse-keymap)
   "Keymap for tab-bar related commands.")
-(define-key ctl-x-map "t" tab-prefix-map)
+
+(defvar ctl-x-map
+  (let ((map (make-keymap)))
+    (define-key map "4" 'ctl-x-4-prefix)
+    (define-key map "5" 'ctl-x-5-prefix)
+    (define-key map "t" tab-prefix-map)
+
+    (define-key map "b" #'switch-to-buffer)
+    (define-key map "l" #'kill-buffer)
+    (define-key map "\C-u" #'upcase-region)   (put 'upcase-region   'disabled t)
+    (define-key map "\C-l" #'downcase-region) (put 'downcase-region 'disabled t)
+    (define-key map "<" #'scroll-left)
+    (define-key map ">" #'scroll-right)
+    map)
+  "Default keymap for C-x commands.
+The normal global definition of the character C-x indirects to this keymap.")
+(fset 'Control-X-prefix ctl-x-map)
+(make-obsolete 'Control-X-prefix 'ctl-x-map  "28.1")
 
 (defvar global-map
   (let ((map (make-keymap)))
@@ -1285,8 +1296,8 @@ The normal global definition of the character C-x indirects to this keymap.")
     (define-key map "\C-b" #'backward-char)
     (define-key map "\C-e" #'end-of-line)
     (define-key map "\C-f" #'forward-char)
-    (define-key map "\C-z" #'suspend-emacs) ;FIXME: Re-bound later!
-
+    (define-key map "\C-z"     #'suspend-emacs) ;FIXME: Re-bound later!
+    (define-key map "\C-x\C-z" #'suspend-emacs) ;FIXME: Re-bound later!
     (define-key map "\C-v" #'scroll-up-command)
     (define-key map "\C-]" #'abort-recursive-edit)
     map)
