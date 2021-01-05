@@ -442,7 +442,7 @@ are optional, in case of a missing part a default value is assumed.
 The default value for an empty local file name part is the remote
 user's home directory.  The shortest remote file name is
 @file{@trampfn{-,,}}, therefore.  The @samp{-} notation for the
-default host is used for syntactical reasons, @ref{Default Host}.
+default method is used for syntactical reasons, @ref{Default Method}.
 
 The @code{method} part describes the connection method used to reach
 the remote host, see below.
