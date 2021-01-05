@@ -1,4 +1,4 @@
-;;; font-core.el --- Core interface to font-lock
+;;; font-core.el --- Core interface to font-lock  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992-2021 Free Software Foundation, Inc.
 

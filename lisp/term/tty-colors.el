@@ -1,4 +1,4 @@
-;;; tty-colors.el --- color support for character terminals
+;;; tty-colors.el --- color support for character terminals  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
