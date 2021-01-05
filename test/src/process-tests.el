@@ -646,6 +646,8 @@ FD_SETSIZE file descriptors (Bug#24325)."
 (ert-deftest process-tests/fd-setsize-no-crash/make-serial-process ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
+  ;; This test cannot be run if PTYs aren't supported.
+  (skip-unless (not (eq system-type 'windows-nt)))
   (with-timeout (60 (ert-fail "Test timed out"))
     (process-tests--with-processes processes
       ;; In order to use `make-serial-process', we need to create some
@@ -667,6 +669,15 @@ FD_SETSIZE file descriptors (Bug#24325)."
                  (tty-name (process-tty-name host)))
             (should (processp host))
             (push host processes)
+            ;; FIXME: The assumption below that using :connection 'pty
+            ;; in make-process necessarily produces a process with PTY
+            ;; connection is unreliable and non-portable.
+            ;; make-process can legitimately and silently fall back on
+            ;; pipes if allocating a PTY fails (and on MS-Windows it
+            ;; always fails).  The following code also assumes that
+            ;; process-tty-name produces a file name that can be
+            ;; passed to 'stat' and to make-serial-process, which is
+            ;; also non-portable.
             (should tty-name)
             (should (file-exists-p tty-name))
             (should-not (member tty-name tty-names))
