@@ -588,7 +588,7 @@ the filename."
 	(:ignore-on-read-text t)
 	;; (:constraintp ,pdf-cmd)
 	))
-      (".\\.e?ps\\(.gz\\)?\\'" ,ps-cmd
+      (".\\.e?ps\\(?:\\.gz\\)?\\'" ,ps-cmd
        ((:ignore-on-open-all t)
 	(:ignore-on-read-text t)
 	;; (:constraintp ,ps-cmd)
