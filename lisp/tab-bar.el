@@ -436,6 +436,30 @@ Return its existing value or a new value."
     tabs))
 
 
+(defcustom tab-bar-tab-name-format-function #'tab-bar-tab-name-format-default
+  "Function to format a tab name.
+Function gets two arguments, the tab and its number, and should return
+the formatted tab name to display in the tab bar."
+  :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-name-format-default (tab i)
+  (let ((current-p (eq (car tab) 'current-tab)))
+    (propertize
+     (concat (if tab-bar-tab-hints (format "%d " i) "")
+             (alist-get 'name tab)
+             (or (and tab-bar-close-button-show
+                      (not (eq tab-bar-close-button-show
+                               (if current-p 'non-selected 'selected)))
+                      tab-bar-close-button)
+                 ""))
+     'face (if current-p 'tab-bar-tab 'tab-bar-tab-inactive))))
+
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
   (let* ((separator (or tab-bar-separator (if window-system " " "|")))
@@ -461,25 +485,13 @@ Return its existing value or a new value."
           ((eq (car tab) 'current-tab)
            `((current-tab
               menu-item
-              ,(propertize (concat (if tab-bar-tab-hints (format "%d " i) "")
-                                   (alist-get 'name tab)
-                                   (or (and tab-bar-close-button-show
-                                            (not (eq tab-bar-close-button-show
-                                                     'non-selected))
-                                            tab-bar-close-button) ""))
-                           'face 'tab-bar-tab)
+              ,(funcall tab-bar-tab-name-format-function tab i)
               ignore
               :help "Current tab")))
           (t
            `((,(intern (format "tab-%i" i))
               menu-item
-              ,(propertize (concat (if tab-bar-tab-hints (format "%d " i) "")
-                                   (alist-get 'name tab)
-                                   (or (and tab-bar-close-button-show
-                                            (not (eq tab-bar-close-button-show
-                                                     'selected))
-                                            tab-bar-close-button) ""))
-                           'face 'tab-bar-tab-inactive)
+              ,(funcall tab-bar-tab-name-format-function tab i)
               ,(or
                 (alist-get 'binding tab)
                 `(lambda ()

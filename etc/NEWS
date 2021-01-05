@@ -396,9 +396,18 @@ of the next command to be displayed in a new tab.
 +++
 *** New command 'C-x t C-r' to open file read-only in other tab.
 
+---
 *** The tab bar is frame-local when 'tab-bar-show' is a number.
 Show/hide the tab bar independently for each frame, according to the
 value of 'tab-bar-show'.
+
+---
+*** New command 'toggle-frame-tab-bar'.
+It can be used to enable/disable the tab bar individually
+on each frame independently from the state of `tab-bar-mode'.
+
+---
+*** New user option 'tab-bar-tab-name-format-function'.
 
 ---
 *** The tabs in the tab line can now be scrolled using horizontal scroll.
