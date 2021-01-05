@@ -1800,7 +1800,11 @@ unless HOOK has both local and global functions).  If multiple
 functions have the same representation under `princ', the first
 one will be removed."
   (interactive
-   (let* ((hook (intern (completing-read "Hook variable: " obarray #'boundp t)))
+   (let* ((default (and (symbolp (variable-at-point))
+                        (symbol-name (variable-at-point))))
+          (hook (intern (completing-read
+                         (format-prompt "Hook variable" default)
+                         obarray #'boundp t nil nil default)))
           (local
            (and
             (local-variable-p hook)
