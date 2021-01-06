@@ -1640,6 +1640,8 @@ The variable `package-load-list' controls which packages to load."
         ;; 2 when loading the .el file (this assumes we were careful to
         ;; save this file so it doesn't need any decoding).
         (let ((load-source-file-function nil))
+          (unless (boundp 'package-activated-list)
+            (setq package-activated-list nil))
           (load qs nil 'nomessage))
       (require 'package)
       (package--activate-all)))))
