@@ -43,6 +43,11 @@
 (require 'cl-lib)
 (require 'tabulated-list)
 
+;; Declare a synthetic theme for :custom variables.
+;; Necessary in order to avoid having those variables saved by custom.el.
+(deftheme use-package)
+(enable-theme 'use-package)
+
 (if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
     (defsubst hash-table-keys (hash-table)
       "Return a list of keys in HASH-TABLE."
@@ -1394,9 +1399,9 @@ no keyword implies `:all'."
               (comment (nth 2 def)))
           (unless (and comment (stringp comment))
             (setq comment (format "Customized with use-package %s" name)))
-          `(funcall (or (get (quote ,variable) 'custom-set) #'set-default)
-                    (quote ,variable)
-                    ,value)))
+          `(let ((custom--inhibit-theme-enable nil))
+             (custom-theme-set-variables 'use-package
+			                 '(,variable ,value nil () ,comment)))))
     args)
    (use-package-process-keywords name rest state)))
 
