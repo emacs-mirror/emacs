@@ -3550,6 +3550,7 @@ Prepare every function for final compilation and drive the C back-end."
 				 (file-name-base output) "-")
 			 nil ".el")))
 	(with-temp-file temp-file
+          (insert ";; -*-coding: nil; -*-\n")
           (insert (prin1-to-string expr)))
 	(with-temp-buffer
           (unwind-protect
