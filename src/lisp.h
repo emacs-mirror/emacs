@@ -1478,8 +1478,8 @@ struct Lisp_String
   {
     struct
     {
-      ptrdiff_t size;
-      ptrdiff_t size_byte;
+      ptrdiff_t size;           /* MSB is used as the markbit.  */
+      ptrdiff_t size_byte;      /* Set to -1 for unibyte strings.  */
       INTERVAL intervals;	/* Text properties in this string.  */
       unsigned char *data;
     } s;
@@ -3561,7 +3561,6 @@ extern void swap_in_global_binding (struct Lisp_Symbol *);
 
 /* Defined in cmds.c */
 extern void syms_of_cmds (void);
-extern void keys_of_cmds (void);
 
 /* Defined in coding.c.  */
 extern Lisp_Object detect_coding_system (const unsigned char *, ptrdiff_t,
@@ -4262,7 +4261,6 @@ extern Lisp_Object get_truename_buffer (Lisp_Object);
 extern void init_buffer_once (void);
 extern void init_buffer (void);
 extern void syms_of_buffer (void);
-extern void keys_of_buffer (void);
 
 /* Defined in marker.c.  */
 
@@ -4359,7 +4357,6 @@ extern void syms_of_callint (void);
 /* Defined in casefiddle.c.  */
 
 extern void syms_of_casefiddle (void);
-extern void keys_of_casefiddle (void);
 
 /* Defined in casetab.c.  */
 

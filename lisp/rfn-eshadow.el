@@ -1,4 +1,4 @@
-;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text
+;;; rfn-eshadow.el --- Highlight `shadowed' part of read-file-name input text  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 ;;

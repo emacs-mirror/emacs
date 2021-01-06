@@ -13035,13 +13035,13 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
        or larger than other for other applications, even if it is the same
        font name (monospace-10 for example).  */
 
+# ifdef HAVE_XRENDER
     int event_base, error_base;
-    char *v;
-    double d;
-
     XRenderQueryExtension (dpyinfo->display, &event_base, &error_base);
+# endif
 
-    v = XGetDefault (dpyinfo->display, "Xft", "dpi");
+    char *v = XGetDefault (dpyinfo->display, "Xft", "dpi");
+    double d;
     if (v != NULL && sscanf (v, "%lf", &d) == 1)
       dpyinfo->resy = dpyinfo->resx = d;
   }

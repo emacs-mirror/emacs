@@ -2602,8 +2602,6 @@ current buffer is cleared.  */)
 	      p += bytes, pos += bytes;
 	    }
 	}
-      if (narrowed)
-	Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv));
     }
   else
     {
@@ -2681,9 +2679,6 @@ current buffer is cleared.  */)
 
       if (pt != PT)
 	TEMP_SET_PT (pt);
-
-      if (narrowed)
-	Fnarrow_to_region (make_fixnum (begv), make_fixnum (zv));
 
       /* Do this first, so that chars_in_text asks the right question.
 	 set_intervals_multibyte needs it too.  */
@@ -6384,11 +6379,4 @@ nil NORECORD argument since it may lead to infinite recursion.  */);
   defsubr (&Srestore_buffer_modified_p);
 
   Fput (intern_c_string ("erase-buffer"), Qdisabled, Qt);
-}
-
-void
-keys_of_buffer (void)
-{
-  initial_define_key (control_x_map, 'b', "switch-to-buffer");
-  initial_define_key (control_x_map, 'k', "kill-buffer");
 }

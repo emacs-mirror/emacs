@@ -4393,6 +4393,18 @@ TERMCAP_OBJ=tparam.o
 if test $TERMINFO = yes; then
   AC_DEFINE(TERMINFO, 1, [Define to 1 if you use terminfo instead of termcap.])
   TERMCAP_OBJ=terminfo.o
+  AC_CACHE_CHECK([whether $LIBS_TERMCAP library defines BC],
+    [emacs_cv_terminfo_defines_BC],
+    [OLD_LIBS=$LIBS
+     LIBS="$LIBS $LIBS_TERMCAP"
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern char *BC;]], [[return !*BC;]])],
+       [emacs_cv_terminfo_defines_BC=yes],
+       [emacs_cv_terminfo_defines_BC=no])
+     LIBS=$OLD_LIBS])
+  if test "$emacs_cv_terminfo_defines_BC" = yes; then
+    AC_DEFINE([TERMINFO_DEFINES_BC], 1, [Define to 1 if the
+      terminfo library defines the variables BC, PC, and UP.])
+  fi
 fi
 if test "X$LIBS_TERMCAP" = "X-lncurses"; then
   AC_DEFINE(USE_NCURSES, 1, [Define to 1 if you use ncurses.])

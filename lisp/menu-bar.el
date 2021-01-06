@@ -1,4 +1,4 @@
-;;; menu-bar.el --- define a default menu bar
+;;; menu-bar.el --- define a default menu bar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 2000-2021 Free Software Foundation, Inc.
 
@@ -229,7 +229,8 @@
 	 (filename (car (find-file-read-args "Find file: " mustmatch))))
     (if mustmatch
 	(find-file-existing filename)
-      (find-file filename))))
+      (with-suppressed-warnings ((interactive-only find-file))
+        (find-file filename)))))
 
 ;; The "Edit->Search" submenu
 (defvar menu-bar-last-search-type nil

@@ -1005,8 +1005,8 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
                        '(display-buffer-in-direction . ((direction . below))))
         (current-buffer))))))
 
-(define-obsolete-function-alias
-  'xref--show-defs-buffer-at-bottom #'xref-show-definitions-buffer-at-bottom)
+(define-obsolete-function-alias 'xref--show-defs-buffer-at-bottom
+  #'xref-show-definitions-buffer-at-bottom "28.1")
 
 (defun xref-show-definitions-completing-read (fetcher alist)
   "Let the user choose the target definition with completion.
@@ -1374,7 +1374,8 @@ IGNORES is a list of glob patterns for files to ignore."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (file-local-name (expand-file-name dir))
+                                     (file-name-as-directory
+                                      (file-local-name (expand-file-name dir)))
                                      ignores))
        (def default-directory)
        (buf (get-buffer-create " *xref-grep*"))

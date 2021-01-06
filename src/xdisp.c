@@ -4262,6 +4262,7 @@ handle_fontified_prop (struct it *it)
   if (!STRINGP (it->string)
       && it->s == NULL
       && !NILP (Vfontification_functions)
+      && !(input_was_pending && redisplay_skip_fontification_on_input)
       && !NILP (Vrun_hooks)
       && (pos = make_fixnum (IT_CHARPOS (*it)),
 	  prop = Fget_char_property (pos, Qfontified, Qnil),
@@ -25503,7 +25504,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 	  if (start < i)
 	    display_string (NULL,
 			    Fsubstring (mode_string, make_fixnum (start),
-					make_fixnum (i - 1)),
+					make_fixnum (i)),
 			    Qnil, 0, 0, &it, 0, 0, 0,
 			    STRING_MULTIBYTE (mode_string));
 	}
@@ -35597,6 +35598,19 @@ The initial frame is not displayed anywhere, so skipping it is
 best except in special circumstances such as running redisplay tests
 in batch mode.   */);
   redisplay_skip_initial_frame = true;
+
+  DEFVAR_BOOL ("redisplay-skip-fontification-on-input",
+               redisplay_skip_fontification_on_input,
+    doc: /* Skip `fontification_functions` when there is input pending.
+If non-nil and there was input pending at the beginning of the command,
+the `fontification_functions` hook is not run.  This usually does not
+affect the display because redisplay is completely skipped anyway if input
+was pending, but it can make scrolling smoother by avoiding
+unnecessary fontification.
+It is similar to `fast-but-imprecise-scrolling' with similar tradeoffs,
+but with the advantage that it should only affect the behavior when Emacs
+has trouble keeping up with the incoming input rate.  */);
+  redisplay_skip_fontification_on_input = false;
 
   DEFVAR_BOOL ("redisplay-adhoc-scroll-in-resize-mini-windows",
                redisplay_adhoc_scroll_in_resize_mini_windows,

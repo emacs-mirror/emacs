@@ -348,7 +348,7 @@ default, it makes the following bindings:
 @item @key{RET}
 @code{exit-minibuffer}
 
-@item @key{M-<}
+@item @kbd{M-<}
 @code{minibuffer-beginning-of-buffer}
 
 @item @kbd{C-g}

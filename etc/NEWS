@@ -212,6 +212,19 @@ This makes debugging Emacs Lisp scripts run in batch mode easier.  To
 get back the old behavior, set the new variable
 'backtrace-on-error-noninteractive' to a nil value.
 
+** 'redisplay-skip-fontification-on-input' helps Emacs keep up with fast input.
+This is another attempt to solve the problem of handling high key repeat rate
+and other "slow scrolling" situations.  It is hoped it behaves better
+than 'fast-but-imprecise-scrolling' and 'jit-lock-defer-time'.
+It is not enabled by default.
+
++++
+** Modifiers now go outside angle brackets in pretty-printed key bindings.
+For example, <return> with Control and Meta modifiers is now shown as
+C-M-<return> instead of <C-M-return>.  Either variant can be used as
+input; functions such as 'kbd' and 'read-kbd-macro' accept both styles
+as equivalent (they have done so for a long time).
+
 
 * Editing Changes in Emacs 28.1
 
@@ -383,9 +396,18 @@ of the next command to be displayed in a new tab.
 +++
 *** New command 'C-x t C-r' to open file read-only in other tab.
 
+---
 *** The tab bar is frame-local when 'tab-bar-show' is a number.
 Show/hide the tab bar independently for each frame, according to the
 value of 'tab-bar-show'.
+
+---
+*** New command 'toggle-frame-tab-bar'.
+It can be used to enable/disable the tab bar individually
+on each frame independently from the state of `tab-bar-mode'.
+
+---
+*** New user option 'tab-bar-tab-name-format-function'.
 
 ---
 *** The tabs in the tab line can now be scrolled using horizontal scroll.
@@ -1828,6 +1850,9 @@ also keep the type information of their arguments. Use the
 ** CPerl Mode
 
 ---
+*** New face 'perl-heredoc', used for heredoc elements.
+
+---
 *** The command 'cperl-set-style' offers the new value "PBP".
 This value customizes Emacs to use the style recommended in Damian
 Conway's book "Perl Best Practices" for indentation and formatting
@@ -2018,6 +2043,12 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'vc-mtn-command', 'vc-revert-buffer', 'vc-workfile-version',
 'vcursor-toggle-vcursor-map', 'w32-focus-frame', 'w32-select-font',
 'wisent-lex-make-token-table'.
+
+** The 'when' argument of `make-obsolete` and related functions is mandatory.
+The use of those functions without a 'when' argument was marked
+obsolete back in Emacs-23.1.  The affected functions are:
+make-obsolete, define-obsolete-function-alias, make-obsolete-variable,
+define-obsolete-variable-alias.
 
 
 * Lisp Changes in Emacs 28.1

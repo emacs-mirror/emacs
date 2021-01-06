@@ -215,7 +215,8 @@ It creates an autoload function for CNAME's constructor."
       ;; turn this into a usable self-pointing symbol
       (when eieio-backward-compatibility
         (set cname cname)
-        (make-obsolete-variable cname (format "use \\='%s instead" cname)
+        (make-obsolete-variable cname (format "\
+use \\='%s or turn off `eieio-backward-compatibility' instead" cname)
                                 "25.1"))
 
       (setf (cl--find-class cname) newc)

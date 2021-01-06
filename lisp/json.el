@@ -55,7 +55,6 @@
 ;;; Code:
 
 (require 'map)
-(require 'seq)
 (require 'subr-x)
 
 ;; Parameters
@@ -655,7 +654,9 @@ become JSON objects."
 (defun json-encode-array (array)
   "Return a JSON representation of ARRAY."
   (if (and json-encoding-pretty-print
-           (not (seq-empty-p array)))
+           (if (listp array)
+               array
+             (> (length array) 0)))
       (concat
        "["
        (json--with-indentation

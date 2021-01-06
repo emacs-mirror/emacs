@@ -248,6 +248,18 @@ g .. h		foo
 0 .. 3		foo
 ")))))
 
+(ert-deftest keymap--key-description ()
+  (should (equal (key-description [right] [?\C-x])
+                 "C-x <right>"))
+  (should (equal (key-description [M-H-right] [?\C-x])
+                 "C-x M-H-<right>"))
+  (should (equal (single-key-description 'home)
+                 "<home>"))
+  (should (equal (single-key-description 'home t)
+                 "home"))
+  (should (equal (single-key-description 'C-s-home)
+                 "C-s-<home>")))
+
 (provide 'keymap-tests)
 
 ;;; keymap-tests.el ends here

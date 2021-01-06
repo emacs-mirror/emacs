@@ -2672,7 +2672,8 @@ The method used must be an out-of-band method."
                  (tramp-get-remote-null-device v))))
 
       (save-restriction
-	(let ((beg (point)))
+	(let ((beg (point))
+	      (emc enable-multibyte-characters))
 	  (narrow-to-region (point) (point))
 	  ;; We cannot use `insert-buffer-substring' because the Tramp
 	  ;; buffer changes its contents before insertion due to calling
@@ -2681,7 +2682,9 @@ The method used must be an out-of-band method."
 	   (with-current-buffer (tramp-get-buffer v)
 	     (buffer-string)))
 
-	  ;; Check for "--dired" output.
+	  ;; Check for "--dired" output.  We must enable unibyte
+	  ;; strings, because the "--dired" output counts in bytes.
+	  (set-buffer-multibyte nil)
 	  (forward-line -2)
 	  (when (looking-at-p "//SUBDIRED//")
 	    (forward-line -1))
@@ -2701,6 +2704,8 @@ The method used must be an out-of-band method."
 	  (while (looking-at "//")
 	    (forward-line 1)
 	    (delete-region (match-beginning 0) (point)))
+	  ;; Reset multibyte if needed.
+	  (set-buffer-multibyte emc)
 
 	  ;; Some busyboxes are reluctant to discard colors.
 	  (unless

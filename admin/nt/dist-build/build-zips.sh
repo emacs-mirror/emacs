@@ -20,7 +20,7 @@
 
 function git_up {
     echo [build] Making git worktree for Emacs $VERSION
-    cd $HOME/emacs-build/git/emacs-$MAJOR_VERSION
+    cd $REPO_DIR/emacs-$MAJOR_VERSION
     git pull
     git worktree add ../$BRANCH $BRANCH
 
@@ -54,7 +54,7 @@ function build_zip {
     if [ ! -f Makefile ] || (($CONFIG))
     then
         echo [build] Configuring Emacs $ARCH
-        ../../../git/$BRANCH/configure \
+        $REPO_DIR/$BRANCH/configure \
             --without-dbus \
             --host=$HOST --without-compress-install \
             $CACHE \
@@ -88,7 +88,7 @@ function build_installer {
     ARCH=$1
     cd $HOME/emacs-build/install/emacs-$VERSION
     echo [build] Calling makensis in `pwd`
-    cp ../../git/$BRANCH/admin/nt/dist-build/emacs.nsi .
+    cp $REPO_DIR/$BRANCH/admin/nt/dist-build/emacs.nsi .
 
     makensis -v4 \
              -DARCH=$ARCH -DEMACS_VERSION=$ACTUAL_VERSION \
@@ -109,6 +109,10 @@ GIT_UP=0
 CONFIG=1
 CFLAGS="-O2 -static"
 INSTALL_TARGET="install-strip"
+
+## The location of the git repo
+REPO_DIR=$HOME/emacs-build/git/
+
 
 while getopts "36gb:hnsiV:" opt; do
   case $opt in

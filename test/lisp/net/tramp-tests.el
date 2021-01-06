@@ -5787,7 +5787,8 @@ This requires restrictions of file name syntax."
 	   (tmp-name2 (tramp--test-make-temp-name 'local quoted))
 	   (files (delq nil files))
 	   (process-environment process-environment)
-	   (sorted-files (sort (copy-sequence files) #'string-lessp)))
+	   (sorted-files (sort (copy-sequence files) #'string-lessp))
+	   buffer)
       (unwind-protect
 	  (progn
 	    (make-directory tmp-name1)
@@ -5848,6 +5849,18 @@ This requires restrictions of file name syntax."
 			    (directory-files-and-attributes
 			     tmp-name2 nil directory-files-no-dot-files-regexp))
 			   sorted-files))
+
+	    ;; Check, that `insert-directory' works properly.
+	    (with-current-buffer
+		(setq buffer (dired-noselect tmp-name1 "--dired -al"))
+	      (goto-char (point-min))
+	      (while (not (eobp))
+		(when-let ((name (dired-get-filename 'localp 'no-error)))
+		  (unless
+		      (string-match-p name directory-files-no-dot-files-regexp)
+		    (should (member name files))))
+		(forward-line 1)))
+	    (kill-buffer buffer)
 
 	    ;; `substitute-in-file-name' could return different
 	    ;; values.  For `adb', there could be strange file
@@ -5944,6 +5957,7 @@ This requires restrictions of file name syntax."
 		       (regexp-quote (getenv envvar))))))))))
 
 	;; Cleanup.
+	(ignore-errors (kill-buffer buffer))
 	(ignore-errors (delete-directory tmp-name1 'recursive))
 	(ignore-errors (delete-directory tmp-name2 'recursive))))))
 

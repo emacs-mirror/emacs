@@ -1,4 +1,4 @@
-;;; fill.el --- fill commands for Emacs
+;;; fill.el --- fill commands for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2021 Free
 ;; Software Foundation, Inc.
@@ -40,13 +40,11 @@ Non-nil means changing indent doesn't end a paragraph.
 That mode can handle paragraphs with extra indentation on the first line,
 but it requires separator lines between paragraphs.
 A value of nil means that any change in indentation starts a new paragraph."
-  :type 'boolean
-  :group 'fill)
+  :type 'boolean)
 
 (defcustom colon-double-space nil
   "Non-nil means put two spaces after a colon when filling."
-  :type 'boolean
-  :group 'fill)
+  :type 'boolean)
 (put 'colon-double-space 'safe-local-variable 'booleanp)
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
@@ -56,7 +54,6 @@ the beginning of the next line when concatenating them for
 filling those lines.  Whether to use a space depends on how the
 words are categorized."
   :type 'boolean
-  :group 'fill
   :version "26.1")
 
 (defvar fill-paragraph-function nil
@@ -75,8 +72,7 @@ such as `fill-forward-paragraph-function'.")
 Kinsoku processing is designed to prevent certain characters from being
 placed at the beginning or end of a line by filling.
 See the documentation of `kinsoku' for more information."
-  :type 'boolean
-  :group 'fill)
+  :type 'boolean)
 
 (defun set-fill-prefix ()
   "Set the fill prefix to the current line up to point.
@@ -96,8 +92,7 @@ reinserts the fill prefix in each resulting line."
 
 (defcustom adaptive-fill-mode t
   "Non-nil means determine a paragraph's fill prefix from its text."
-  :type 'boolean
-  :group 'fill)
+  :type 'boolean)
 
 (defcustom adaptive-fill-regexp
   ;; Added `!' for doxygen comments starting with `//!' or `/*!'.
@@ -113,8 +108,7 @@ standard indentation for the whole paragraph.
 If the paragraph has just one line, the indentation is taken from that
 line, but in that case `adaptive-fill-first-line-regexp' also plays
 a role."
-  :type 'regexp
-  :group 'fill)
+  :type 'regexp)
 
 (defcustom adaptive-fill-first-line-regexp (purecopy "\\`[ \t]*\\'")
   "Regexp specifying whether to set fill prefix from a one-line paragraph.
@@ -126,15 +120,13 @@ By default, this regexp matches sequences of just spaces and tabs.
 
 However, we never use a prefix from a one-line paragraph
 if it would act as a paragraph-starter on the second line."
-  :type 'regexp
-  :group 'fill)
+  :type 'regexp)
 
 (defcustom adaptive-fill-function #'ignore
   "Function to call to choose a fill prefix for a paragraph.
 A nil return value means the function has not determined the fill prefix."
   :version "27.1"
-  :type 'function
-  :group 'fill)
+  :type 'function)
 
 (defvar fill-indent-according-to-mode nil ;Screws up CC-mode's filling tricks.
   "Whether or not filling should try to use the major mode's indentation.")
@@ -367,15 +359,13 @@ which is an error according to some typographical conventions."
 The predicates are called with no arguments, with point at the place to
 be tested.  If it returns a non-nil value, fill commands do not break
 the line there."
-  :group 'fill
   :type 'hook
   :options '(fill-french-nobreak-p fill-single-word-nobreak-p
              fill-single-char-nobreak-p))
 
 (defcustom fill-nobreak-invisible nil
   "Non-nil means that fill commands do not break lines in invisible text."
-  :type 'boolean
-  :group 'fill)
+  :type 'boolean)
 
 (defun fill-nobreak-p ()
   "Return nil if breaking the line at point is allowed.
@@ -1110,8 +1100,7 @@ The `justification' text-property can locally override this variable."
 		 (const full)
 		 (const center)
 		 (const none))
-  :safe 'symbolp
-  :group 'fill)
+  :safe 'symbolp)
 (make-variable-buffer-local 'default-justification)
 
 (defun current-justification ()

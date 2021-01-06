@@ -1046,8 +1046,8 @@ anyway."
 (make-obsolete-variable 'erc-send-pre-hook 'erc-pre-send-functions "27.1")
 
 (defcustom erc-pre-send-functions nil
-  "List of functions called to possibly alter the string that is sent.
-The functions are called with one argument, a `erc-input' struct,
+  "Special hook run to possibly alter the string that is sent.
+The functions are called with one argument, an `erc-input' struct,
 and should alter that struct.
 
 The struct has three slots:
@@ -1056,7 +1056,7 @@ The struct has three slots:
   `insertp': Whether the string should be inserted into the erc buffer.
   `sendp': Whether the string should be sent to the irc server."
   :group 'erc
-  :type '(repeat function)
+  :type 'hook
   :version "27.1")
 
 (defvar erc-insert-this t
@@ -1295,9 +1295,9 @@ Example:
   (define-erc-module replace nil
     \"This mode replaces incoming text according to `erc-replace-alist'.\"
     ((add-hook \\='erc-insert-modify-hook
-               \\='erc-replace-insert))
+               #\\='erc-replace-insert))
     ((remove-hook \\='erc-insert-modify-hook
-                  \\='erc-replace-insert)))"
+                  #\\='erc-replace-insert)))"
   (declare (doc-string 3))
   (let* ((sn (symbol-name name))
          (mode (intern (format "erc-%s-mode" (downcase sn))))
@@ -1495,7 +1495,7 @@ Defaults to the server buffer."
   (setq-local paragraph-start
               (concat "\\(" (regexp-quote (erc-prompt)) "\\)"))
   (setq-local completion-ignore-case t)
-  (add-hook 'completion-at-point-functions 'erc-complete-word-at-point nil t))
+  (add-hook 'completion-at-point-functions #'erc-complete-word-at-point nil t))
 
 ;; activation
 
@@ -2585,7 +2585,7 @@ This function adds `erc-lurker-update-status' to
 most recent PRIVMSG as well as initializing the state variable
 storing this information."
   (setq erc-lurker-state (make-hash-table :test 'equal))
-  (add-hook 'erc-insert-pre-hook 'erc-lurker-update-status))
+  (add-hook 'erc-insert-pre-hook #'erc-lurker-update-status))
 
 (defun erc-lurker-cleanup ()
   "Remove all last PRIVMSG state older than `erc-lurker-threshold-time'.
@@ -2694,7 +2694,7 @@ otherwise `erc-server-announced-name'.  SERVER is matched against
 (defun erc-add-targets (scope target-list)
   (let ((targets
 	 (mapcar (lambda (targets) (member scope targets)) target-list)))
-    (cdr (apply 'append (delete nil targets)))))
+    (cdr (apply #'append (delete nil targets)))))
 
 (defun erc-hide-current-message-p (parsed)
   "Predicate indicating whether the parsed ERC response PARSED should be hidden.
@@ -3038,7 +3038,7 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
         (erc-display-message
          nil 'notice (current-buffer) 'ops
          ?i (length ops) ?s (if (> (length ops) 1) "s" "")
-         ?o (mapconcat 'identity ops " "))
+         ?o (mapconcat #'identity ops " "))
       (erc-display-message nil 'notice (current-buffer) 'ops-none)))
   t)
 
@@ -3209,7 +3209,7 @@ command."
 (defun erc-cmd-KICK (target &optional reason-or-nick &rest reasonwords)
   "Kick the user indicated in LINE from the current channel.
 LINE has the format: \"#CHANNEL NICK REASON\" or \"NICK REASON\"."
-  (let ((reasonstring (mapconcat 'identity reasonwords " ")))
+  (let ((reasonstring (mapconcat #'identity reasonwords " ")))
     (if (string= "" reasonstring)
         (setq reasonstring (format "Kicked by %s" (erc-current-nick))))
     (if (erc-channel-p target)
@@ -3744,7 +3744,7 @@ the message given by REASON."
                              " -"
                              (make-string (length people) ?o)
                              " "
-                             (mapconcat 'identity people " ")))
+                             (mapconcat #'identity people " ")))
     t))
 
 (defun erc-cmd-OP (&rest people)
@@ -3754,7 +3754,7 @@ the message given by REASON."
                              " +"
                              (make-string (length people) ?o)
                              " "
-                             (mapconcat 'identity people " ")))
+                             (mapconcat #'identity people " ")))
     t))
 
 (defun erc-cmd-TIME (&optional line)
@@ -3952,7 +3952,7 @@ Unban all currently banned users in the current channel."
                (erc-server-send
                 (format "MODE %s -%s %s" (erc-default-target)
                         (make-string (length x) ?b)
-                        (mapconcat 'identity x " "))))
+                        (mapconcat #'identity x " "))))
              (erc-group-list bans 3))))
         t))))
 
@@ -4183,7 +4183,7 @@ Displays PROC and PARSED appropriately using `erc-display-message'."
   (erc-display-message
    parsed 'notice proc
    (mapconcat
-    'identity
+    #'identity
     (let (res)
       (mapc #'(lambda (x)
                 (if (stringp x)
@@ -5553,12 +5553,10 @@ This returns non-nil only if we actually send anything."
       ;; Instead `erc-pre-send-functions' is used as a filter to do
       ;; allow both changing and suppressing the string.
       (run-hook-with-args 'erc-send-pre-hook input)
-      (setq state (make-erc-input :string str
+      (setq state (make-erc-input :string str ;May be != from `input' now!
 				  :insertp erc-insert-this
 				  :sendp erc-send-this))
-      (dolist (func erc-pre-send-functions)
-	;; The functions can return nil to inhibit sending.
-	(funcall func state))
+      (run-hook-with-args 'erc-pre-send-functions state)
       (when (and (erc-input-sendp state)
 		 erc-send-this)
 	(let ((string (erc-input-string state)))
@@ -5579,26 +5577,26 @@ This returns non-nil only if we actually send anything."
             (erc-process-input-line (concat string "\n") t nil))
           t))))))
 
-(defun erc-display-command (line)
-  (when erc-insert-this
-    (let ((insert-position (point)))
-      (unless erc-hide-prompt
-        (erc-display-prompt nil nil (erc-command-indicator)
-                            (and (erc-command-indicator)
-                                 'erc-command-indicator-face)))
-      (let ((beg (point)))
-        (insert line)
-        (erc-put-text-property beg (point)
-                               'font-lock-face 'erc-command-indicator-face)
-        (insert "\n"))
-      (when (processp erc-server-process)
-        (set-marker (process-mark erc-server-process) (point)))
-      (set-marker erc-insert-marker (point))
-      (save-excursion
-        (save-restriction
-          (narrow-to-region insert-position (point))
-          (run-hooks 'erc-send-modify-hook)
-          (run-hooks 'erc-send-post-hook))))))
+;; (defun erc-display-command (line)
+;;   (when erc-insert-this
+;;     (let ((insert-position (point)))
+;;       (unless erc-hide-prompt
+;;         (erc-display-prompt nil nil (erc-command-indicator)
+;;                             (and (erc-command-indicator)
+;;                                  'erc-command-indicator-face)))
+;;       (let ((beg (point)))
+;;         (insert line)
+;;         (erc-put-text-property beg (point)
+;;                                'font-lock-face 'erc-command-indicator-face)
+;;         (insert "\n"))
+;;       (when (processp erc-server-process)
+;;         (set-marker (process-mark erc-server-process) (point)))
+;;       (set-marker erc-insert-marker (point))
+;;       (save-excursion
+;;         (save-restriction
+;;           (narrow-to-region insert-position (point))
+;;           (run-hooks 'erc-send-modify-hook)
+;;           (run-hooks 'erc-send-post-hook))))))
 
 (defun erc-display-msg (line)
   "Display LINE as a message of the user to the current target at the
@@ -6563,7 +6561,7 @@ If optional argument HERE is non-nil, insert version number at point."
 If optional argument HERE is non-nil, insert version number at point."
   (interactive "P")
   (let ((string
-         (mapconcat 'identity
+         (mapconcat #'identity
                     (let (modes (case-fold-search nil))
                       (dolist (var (apropos-internal "^erc-.*mode$"))
                         (when (and (boundp var)
@@ -6817,7 +6815,8 @@ See also `format-spec'."
 
 ;;; Various hook functions
 
-(add-hook 'kill-buffer-hook 'erc-kill-buffer-function)
+;; FIXME: Don't set the hook globally!
+(add-hook 'kill-buffer-hook #'erc-kill-buffer-function)
 
 (defcustom erc-kill-server-hook '(erc-kill-server)
   "Invoked whenever a server buffer is killed via `kill-buffer'."

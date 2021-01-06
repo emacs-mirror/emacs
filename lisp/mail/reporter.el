@@ -1,4 +1,4 @@
-;;; reporter.el --- customizable bug reporting of lisp programs
+;;; reporter.el --- customizable bug reporting of lisp programs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1998, 2001-2021 Free Software Foundation, Inc.
 
@@ -158,7 +158,7 @@ composed.")
 	  t)
       (error indent-enclosing-p))))
 
-(defun reporter-lisp-indent (indent-point state)
+(defun reporter-lisp-indent (_indent-point state)
   "A better lisp indentation style for bug reporting."
   (save-excursion
     (goto-char (1+ (nth 1 state)))
@@ -193,7 +193,7 @@ MAILBUF is the mail buffer being composed."
 		 (<= maxwidth (current-column)))
 	    (save-excursion
 	      (let ((compact-p (not (memq varsym reporter-dont-compact-list)))
-		    (lisp-indent-function 'reporter-lisp-indent))
+		    (lisp-indent-function #'reporter-lisp-indent))
 		(goto-char here)
 		(reporter-beautify-list maxwidth compact-p))))
 	(insert "\n"))
@@ -205,6 +205,11 @@ MAILBUF is the mail buffer being composed."
 	 (insert (symbol-name varsym) " "))))
     (error
      (error ""))))
+
+(defun reporter--run-functions (funs)
+  (if (functionp funs)
+      (funcall funs)
+    (mapc #'funcall funs)))
 
 (defun reporter-dump-state (pkgname varlist pre-hooks post-hooks)
   "Dump the state of the mode specific variables.
@@ -230,42 +235,39 @@ properly.
 PRE-HOOKS is run after the Emacs version and PKGNAME are inserted, but
 before the VARLIST is dumped.  POST-HOOKS is run after the VARLIST is
 dumped."
-  (let ((buffer (current-buffer)))
-    (set-buffer buffer)
-    (insert "Emacs  : " (emacs-version) "\n")
-    (and pkgname
-	 (insert "Package: " pkgname "\n"))
-    (run-hooks 'pre-hooks)
-    (if (not varlist)
-	nil
-      (insert "\ncurrent state:\n==============\n")
-      ;; create an emacs-lisp-mode buffer to contain the output, which
-      ;; we'll later insert into the mail buffer
-      (condition-case fault
-	  (let ((mailbuf (current-buffer))
-		(elbuf (get-buffer-create " *tmp-reporter-buffer*")))
-	    (with-current-buffer elbuf
-	      (emacs-lisp-mode)
-	      (erase-buffer)
-	      (insert "(setq\n")
-	      (lisp-indent-line)
-	      (mapc
-               (lambda (varsym-or-cons-cell)
-                 (let ((varsym (or (car-safe varsym-or-cons-cell)
-                                   varsym-or-cons-cell))
-                       (printer (or (cdr-safe varsym-or-cons-cell)
-                                    'reporter-dump-variable)))
-                   (funcall printer varsym mailbuf)))
-	       varlist)
-	      (lisp-indent-line)
-	      (insert ")\n"))
-	    (insert-buffer-substring elbuf))
-	(error
-	 (insert "State could not be dumped due to the following error:\n\n"
-		 (format "%s" fault)
-		 "\n\nYou should still send this bug report."))))
-    (run-hooks 'post-hooks)
-    ))
+  (insert "Emacs  : " (emacs-version) "\n")
+  (and pkgname
+       (insert "Package: " pkgname "\n"))
+  (reporter--run-functions pre-hooks)
+  (if (not varlist)
+      nil
+    (insert "\ncurrent state:\n==============\n")
+    ;; create an emacs-lisp-mode buffer to contain the output, which
+    ;; we'll later insert into the mail buffer
+    (condition-case fault
+	(let ((mailbuf (current-buffer))
+	      (elbuf (get-buffer-create " *tmp-reporter-buffer*")))
+	  (with-current-buffer elbuf
+	    (emacs-lisp-mode)
+	    (erase-buffer)
+	    (insert "(setq\n")
+	    (lisp-indent-line)
+	    (mapc
+             (lambda (varsym-or-cons-cell)
+               (let ((varsym (or (car-safe varsym-or-cons-cell)
+                                 varsym-or-cons-cell))
+                     (printer (or (cdr-safe varsym-or-cons-cell)
+                                  'reporter-dump-variable)))
+                 (funcall printer varsym mailbuf)))
+	     varlist)
+	    (lisp-indent-line)
+	    (insert ")\n"))
+	  (insert-buffer-substring elbuf))
+      (error
+       (insert "State could not be dumped due to the following error:\n\n"
+	       (format "%s" fault)
+	       "\n\nYou should still send this bug report."))))
+  (reporter--run-functions post-hooks))
 
 
 (defun reporter-compose-outgoing ()
@@ -365,7 +367,7 @@ mail-sending package is used for editing and sending the message."
       (skip-chars-backward " \t\n")
       (setq reporter-initial-text (buffer-substring after-sep-pos (point))))
     (if (setq hookvar (get agent 'hookvar))
-	(add-hook hookvar 'reporter-bug-hook nil t))
+	(add-hook hookvar #'reporter-bug-hook nil t))
 
     ;; compose the minibuf message and display this.
     (let* ((sendkey-whereis (where-is-internal

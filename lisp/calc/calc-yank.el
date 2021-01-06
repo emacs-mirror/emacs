@@ -651,14 +651,14 @@ Interactively, reads the register using `register-read-with-preview'."
 			 (if (> n 0)
 			     (calc-top-list n)
 			   (calc-top-list 1 (- n)))))))
-     (calc-edit-mode (list 'calc-finish-stack-edit (or flag n)) allow-ret)
+     (calc--edit-mode (lambda () (calc-finish-stack-edit (or flag n))) allow-ret)
      (while list
        (insert (car list) "\n")
        (setq list (cdr list)))))
   (calc-show-edit-buffer))
 
 (defun calc-alg-edit (str)
-  (calc-edit-mode '(calc-finish-stack-edit 0))
+  (calc--edit-mode (lambda () (calc-finish-stack-edit 0)))
   (calc-show-edit-buffer)
   (insert str "\n")
   (backward-char 1)
@@ -666,54 +666,47 @@ Interactively, reads the register using `register-read-with-preview'."
 
 (defvar calc-edit-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\n" 'calc-edit-finish)
-    (define-key map "\r" 'calc-edit-return)
-    (define-key map "\C-c\C-c" 'calc-edit-finish)
+    (define-key map "\n" #'calc-edit-finish)
+    (define-key map "\r" #'calc-edit-return)
+    (define-key map "\C-c\C-c" #'calc-edit-finish)
     map)
-  "Keymap for use by the calc-edit command.")
+  "Keymap for use by the `calc-edit' command.")
 
-(defvar calc-original-buffer)
-(defvar calc-return-buffer)
-(defvar calc-one-window)
-(defvar calc-edit-handler)
-(defvar calc-restore-trail)
-(defvar calc-allow-ret)
-(defvar calc-edit-top)
+(defvar calc-original-buffer nil)
+(defvar calc-return-buffer nil)
+(defvar calc-one-window nil)
+(defvar calc-edit-handler nil)
+(defvar calc-restore-trail nil)
+(defvar calc-allow-ret nil)
+(defvar calc-edit-top nil)
 
-(defun calc-edit-mode (&optional handler allow-ret title)
+(put 'calc-edit-mode 'mode-class 'special)
+(define-derived-mode calc-edit-mode nil "Calc Edit"
   "Calculator editing mode.  Press RET, LFD, or C-c C-c to finish.
 To cancel the edit, simply kill the *Calc Edit* buffer."
-  (interactive)
+  (setq-local buffer-read-only nil)
+  (setq-local truncate-lines nil))
+
+(defun calc--edit-mode (handler &optional allow-ret title)
   (unless handler
     (error "This command can be used only indirectly through calc-edit"))
   (let ((oldbuf (current-buffer))
 	(buf (get-buffer-create "*Calc Edit*")))
     (set-buffer buf)
-    (kill-all-local-variables)
-    (use-local-map calc-edit-mode-map)
-    (setq buffer-read-only nil)
-    (setq truncate-lines nil)
-    (setq major-mode 'calc-edit-mode)
-    (setq mode-name "Calc Edit")
-    (run-mode-hooks 'calc-edit-mode-hook)
-    (make-local-variable 'calc-original-buffer)
-    (setq calc-original-buffer oldbuf)
-    (make-local-variable 'calc-return-buffer)
-    (setq calc-return-buffer oldbuf)
-    (make-local-variable 'calc-one-window)
-    (setq calc-one-window (and (one-window-p t) pop-up-windows))
-    (make-local-variable 'calc-edit-handler)
-    (setq calc-edit-handler handler)
-    (make-local-variable 'calc-restore-trail)
-    (setq calc-restore-trail (get-buffer-window (calc-trail-buffer)))
-    (make-local-variable 'calc-allow-ret)
-    (setq calc-allow-ret allow-ret)
+    (calc-edit-mode)
+    (setq-local calc-original-buffer oldbuf)
+    (setq-local calc-return-buffer oldbuf)
+    (setq-local calc-one-window (and (one-window-p t) pop-up-windows))
+    (setq-local calc-edit-handler handler)
+    (setq-local calc-restore-trail (get-buffer-window (calc-trail-buffer)))
+    (setq-local calc-allow-ret allow-ret)
     (let ((inhibit-read-only t))
       (erase-buffer))
     (add-hook 'kill-buffer-hook (lambda ()
                                   (let ((calc-edit-handler nil))
                                     (calc-edit-finish t))
-                                  (message "(Canceled)")) t t)
+                                  (message "(Canceled)"))
+              t t)
     (insert (propertize
              (concat
               (or title title "Calc Edit Mode. ")
@@ -721,9 +714,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
               (if allow-ret "" " or RET")
               (format-message " to finish, `C-x k RET' to cancel.\n\n"))
              'font-lock-face 'italic 'read-only t 'rear-nonsticky t 'front-sticky t))
-    (make-local-variable 'calc-edit-top)
-    (setq calc-edit-top (point))))
-(put 'calc-edit-mode 'mode-class 'special)
+    (setq-local calc-edit-top (point))))
 
 (defun calc-show-edit-buffer ()
   (let ((buf (current-buffer)))
@@ -743,24 +734,19 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 
 (defun calc-edit-return ()
   (interactive)
-  (if (and (boundp 'calc-allow-ret) calc-allow-ret)
+  (if calc-allow-ret
       (newline)
     (calc-edit-finish)))
 
-;; The variable calc-edit-disp-trail is local to calc-edit finish, but
-;; is used by calc-finish-selection-edit and calc-finish-stack-edit.
+;; The variable `calc-edit-disp-trail' is local to `calc-edit-finish', but
+;; is used by `calc-finish-selection-edit' and `calc-finish-stack-edit'.
 (defvar calc-edit-disp-trail)
 
 (defun calc-edit-finish (&optional keep)
-  "Finish calc-edit mode.  Parse buffer contents and push them on the stack."
+  "Finish `calc-edit' mode.  Parse buffer contents and push them on the stack."
   (interactive "P")
   (message "Working...")
-  (or (and (boundp 'calc-original-buffer)
-	   (boundp 'calc-return-buffer)
-	   (boundp 'calc-one-window)
-	   (boundp 'calc-edit-handler)
-	   (boundp 'calc-restore-trail)
-	   (eq major-mode 'calc-edit-mode))
+  (or (derived-mode-p 'calc-edit-mode)
       (error "This command is valid only in buffers created by calc-edit"))
   (let ((buf (current-buffer))
 	(original calc-original-buffer)
@@ -775,7 +761,11 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	(error "Original calculator buffer has been corrupted")))
     (goto-char calc-edit-top)
     (if (buffer-modified-p)
-	(eval calc-edit-handler t))
+	(if (functionp calc-edit-handler)
+	    (funcall calc-edit-handler)
+	  (message "Deprecated handler expression in calc-edit-handler: %S"
+	           calc-edit-handler)
+	  (eval calc-edit-handler t)))
     (if (and one-window (not (one-window-p t)))
 	(delete-window))
     (if (get-buffer-window return)
