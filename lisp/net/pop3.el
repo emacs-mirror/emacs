@@ -463,7 +463,7 @@ Return non-nil if it is necessary to update the local UIDL file."
 		(when (cdr elt)
 		  (insert "(\"" (pop elt) "\"\n   ")
 		  (while elt
-		    (insert (format "\"%s\" %s\n   " (pop elt) (pop elt))))
+		    (insert (format "%S %s\n   " (pop elt) (pop elt))))
 		  (delete-char -4)
 		  (insert ")\n  ")))
 	      (delete-char -3)

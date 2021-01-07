@@ -8100,6 +8100,18 @@ and scrolling positions.  */)
     return Qt;
   return Qnil;
 }
+
+DEFUN ("window-bump-use-time", Fwindow_bump_use_time,
+       Swindow_bump_use_time, 1, 1, 0,
+       doc: /* Mark WINDOW as having been recently used.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_valid_window (window);
+
+  w->use_time = ++window_select_count;
+  return Qnil;
+}
+
 
 
 static void init_window_once_for_pdumper (void);
@@ -8573,6 +8585,7 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Swindow_vscroll);
   defsubr (&Sset_window_vscroll);
   defsubr (&Scompare_window_configurations);
+  defsubr (&Swindow_bump_use_time);
   defsubr (&Swindow_list);
   defsubr (&Swindow_list_1);
   defsubr (&Swindow_prev_buffers);
