@@ -7379,8 +7379,8 @@ fails, call `display-buffer-pop-up-frame'.")
 
 (defun display-buffer (buffer-or-name &optional action frame)
   "Display BUFFER-OR-NAME in some window, without selecting it.
-To change which window is used, set `display-buffer-base-action'
-to a list containing one of these \"action\" functions:
+To change which window is used, set `display-buffer-alist'
+to an expression containing one of these \"action\" functions:
 
  `display-buffer-same-window' -- Use the selected window.
  `display-buffer-reuse-window' -- Use a window already showing
@@ -7403,7 +7403,7 @@ to a list containing one of these \"action\" functions:
 
 For instance:
 
-   (setq display-buffer-base-action '(display-buffer-at-bottom))
+   (setq display-buffer-alist '((\".*\" display-buffer-at-bottom)))
 
 Buffer display can be further customized to a very high degree;
 the rest of this docstring explains some of the many
