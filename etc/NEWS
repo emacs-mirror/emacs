@@ -412,8 +412,8 @@ value of 'tab-bar-show'.
 
 ---
 *** New command 'toggle-frame-tab-bar'.
-It can be used to enable/disable the tab bar individually
-on each frame independently from the state of `tab-bar-mode'.
+It can be used to enable/disable the tab bar individually on each frame
+independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 
 ---
 *** New user option 'tab-bar-tab-name-format-function'.
