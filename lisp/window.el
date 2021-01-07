@@ -7243,6 +7243,7 @@ The actual non-nil value of this variable will be copied to the
 	   (const display-buffer-below-selected)
 	   (const display-buffer-at-bottom)
 	   (const display-buffer-in-previous-window)
+	   (const display-buffer-use-least-recent-window)
 	   (const display-buffer-use-some-window)
 	   (const display-buffer-use-some-frame)
 	   (function :tag "Other function"))
@@ -7387,6 +7388,8 @@ to a list containing one of these \"action\" functions:
  `display-buffer-in-previous-window' -- Use a window that did
     show the buffer before.
  `display-buffer-use-some-window' -- Use some existing window.
+ `display-buffer-use-least-recent-window' -- Try to avoid re-using
+    windows that have recently been switched to.
  `display-buffer-pop-up-window' -- Pop up a new window.
  `display-buffer-below-selected' -- Use or pop up a window below
     the selected one.
@@ -8255,6 +8258,16 @@ indirectly called by the latter."
     ;; Return best or second best window found.
     (when (setq window (or best-window second-best-window))
       (window--display-buffer buffer window 'reuse alist))))
+
+(defun display-buffer-use-least-recent-window (buffer alist)
+  "Display BUFFER in an existing window, but that hasn't been used lately.
+This `display-buffer' action function is like
+`display-buffer-use-some-window', but will cycle through windows
+when displaying buffers repeatedly, and if there's only a single
+window, it will split the window."
+  (when-let ((window (display-buffer-use-some-window
+                      buffer (cons (cons 'inhibit-same-window t) alist))))
+    (window-bump-use-time window)))
 
 (defun display-buffer-use-some-window (buffer alist)
   "Display BUFFER in an existing window.

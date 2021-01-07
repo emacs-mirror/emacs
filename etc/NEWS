@@ -373,6 +373,15 @@ disabled entirely.
 
 ** Windows
 
++++
+*** New 'display-buffer' function 'display-buffer-use-least-recent-window'
+This is like 'display-buffer-use-some-window', but won't reuse the
+current window, and when called repeatedly will try not to reuse a
+previously selected window.
+
+*** New function 'window-bump-use-time'.
+This updates the use time of a window.
+
 *** The key prefix 'C-x 4 1' displays next command buffer in the same window.
 It's bound to the command 'same-window-prefix' that requests the buffer
 of the next command to be displayed in the same window.
