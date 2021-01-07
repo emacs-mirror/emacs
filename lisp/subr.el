@@ -1239,9 +1239,6 @@ in a cleaner way with command remapping, like this:
 
 ;;;; The global keymap tree.
 
-;; global-map, esc-map, and ctl-x-map have their values set up in
-;; keymap.c; we just give them docstrings here.
-
 (defvar esc-map
   (let ((map (make-keymap)))
     (define-key map "u" #'upcase-word)
