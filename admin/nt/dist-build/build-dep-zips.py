@@ -40,9 +40,76 @@ mingw-w64-x86_64-libtiff
 mingw-w64-x86_64-libxml2
 mingw-w64-x86_64-xpm-nox'''.split()
 
+DLL_REQ='''libgif
+libgnutls
+libharfbuzz
+libjansson
+liblcms2
+libturbojpeg
+libpng
+librsvg
+libtiff
+libxml
+libXpm'''.split()
+
 
 ## Options
 DRY_RUN=False
+
+
+def check_output_maybe(*args,**kwargs):
+    if(DRY_RUN):
+        print("Calling: {}{}".format(args,kwargs))
+    else:
+        return check_output(*args,**kwargs)
+
+## DLL Capture
+def gather_deps(arch, directory):
+    os.mkdir(arch)
+    os.chdir(arch)
+
+    for dep in full_dll_dependency(directory):
+        check_output_maybe(["cp /{}/bin/{}*.dll .".format(directory, dep)],
+                           shell=True)
+
+    ## And package them up
+    ## os.chdir(arch)
+    print("Zipping: {}".format(arch))
+    check_output_maybe("zip -9r ../emacs-{}-{}{}-deps.zip *"
+                       .format(EMACS_MAJOR_VERSION, DATE, arch),
+                       shell=True)
+    os.chdir("../")
+
+## Return all Emacs dependencies
+def full_dll_dependency(directory):
+    deps = [dll_dependency(dep, directory) for dep in DLL_REQ]
+    return set(sum(deps, []) + DLL_REQ)
+
+## Dependencies for a given DLL
+def dll_dependency(dll, directory):
+    output = check_output(["/mingw64/bin/ntldd", "--recursive",
+                           "/{}/bin/{}*.dll".format(directory, dll)]).decode("utf-8")
+    ## munge output
+    return ntldd_munge(output)
+
+def ntldd_munge(out):
+    deps = out.splitlines()
+    rtn = []
+    for dep in deps:
+        ## Output looks something like this
+
+        ## KERNEL32.dll => C:\Windows\SYSTEM32\KERNEL32.dll (0x0000000002a30000)
+        ## libwinpthread-1.dll => C:\msys64\mingw64\bin\libwinpthread-1.dll (0x0000000000090000)
+
+        ## if it's the former, we want it, if its the later we don't
+        splt = dep.split()
+        if len(splt) > 2 and "msys64" in splt[2]:
+            print("Adding dep", splt[0])
+            rtn.append(splt[0].split(".")[0])
+
+    return rtn
+
+#### Source Capture
 
 ## Packages to fiddle with
 ## Source for gcc-libs is part of gcc
@@ -61,12 +128,6 @@ MUNGE_DEP_PKGS={
 ARCH_PKGS=[]
 SRC_REPO="https://sourceforge.net/projects/msys2/files/REPOS/MINGW/Sources"
 
-
-def check_output_maybe(*args,**kwargs):
-    if(DRY_RUN):
-        print("Calling: {}{}".format(args,kwargs))
-    else:
-        return check_output(*args,**kwargs)
 
 def immediate_deps(pkg):
     package_info = check_output(["pacman", "-Si", pkg]).decode("utf-8").split("\n")
@@ -87,6 +148,7 @@ def immediate_deps(pkg):
     return dependencies
 
 
+## Extract all the msys2 packages that are dependencies of our direct dependencies
 def extract_deps():
 
     print( "Extracting deps" )
@@ -105,44 +167,6 @@ def extract_deps():
 
     return sorted(pkgs)
 
-def gather_deps(deps, arch, directory):
-
-    os.mkdir(arch)
-    os.chdir(arch)
-
-    ## Replace the architecture with the correct one
-    deps = [re.sub(r"x86_64",arch,x) for x in deps]
-
-    ## find all files the transitive dependencies
-    deps_files = check_output(
-        ["pacman", "-Ql"] + deps
-    ).decode("utf-8").split("\n")
-
-    ## Produces output like
-    ## mingw-w64-x86_64-zlib /mingw64/lib/libminizip.a
-
-    ## drop the package name
-    tmp = deps_files.copy()
-    deps_files=[]
-    for d in tmp:
-        slt = d.split()
-        if(not slt==[]):
-            deps_files.append(slt[1])
-
-    ## sort uniq
-    deps_files = sorted(list(set(deps_files)))
-    ## copy all files into local
-    print("Copying dependencies: {}".format(arch))
-    check_output_maybe(["rsync", "-R"] + deps_files + ["."])
-
-    ## And package them up
-    os.chdir(directory)
-    print("Zipping: {}".format(arch))
-    check_output_maybe("zip -9r ../../emacs-{}-{}{}-deps.zip *"
-                       .format(EMACS_MAJOR_VERSION, DATE, arch),
-                       shell=True)
-    os.chdir("../../")
-
 
 def download_source(tarball):
     print("Acquiring {}...".format(tarball))
@@ -160,6 +184,7 @@ def download_source(tarball):
         )
         print("Downloading {}... done".format(tarball))
 
+## Fetch all the source code
 def gather_source(deps):
 
 
@@ -206,7 +231,7 @@ def gather_source(deps):
             to_download.append(tarball)
 
     ## Download in parallel or it is just too slow
-    p = mp.Pool(16)
+    p = mp.Pool(1)
     p.map(download_source,to_download)
 
     print("Zipping")
@@ -255,7 +280,7 @@ parser.add_argument("-l", help="list dependencies only",
 args = parser.parse_args()
 do_all=not (args.c or args.r or args.f or args.t)
 
-deps=extract_deps()
+
 
 DRY_RUN=args.d
 
@@ -270,12 +295,13 @@ else:
     DATE=""
 
 if( do_all or args.t ):
-    gather_deps(deps,"i686","mingw32")
+    gather_deps("i686","mingw32")
 
 if( do_all or args.f ):
-    gather_deps(deps,"x86_64","mingw64")
+    gather_deps("x86_64","mingw64")
 
 if( do_all or args.r ):
+    deps=extract_deps()
     gather_source(deps)
 
 if( args.c ):
