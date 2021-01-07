@@ -7400,7 +7400,7 @@ to a list containing one of these \"action\" functions:
 
 For instance:
 
-   (setq display-buffer-below-selected '(display-buffer-at-bottom))
+   (setq display-buffer-base-action '(display-buffer-at-bottom))
 
 Buffer display can be further customized to a very high degree;
 the rest of this docstring explains some of the many
