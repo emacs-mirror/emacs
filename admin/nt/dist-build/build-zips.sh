@@ -64,10 +64,8 @@ function build_zip {
     make -j 4 $INSTALL_TARGET \
          prefix=$HOME/emacs-build/install/emacs-$VERSION/$ARCH
     cd $HOME/emacs-build/install/emacs-$VERSION/$ARCH
-    cp $HOME/emacs-build/deps/libXpm/$ARCH/libXpm-noX4.dll bin
     zip -r -9 emacs-$OF_VERSION-$ARCH-no-deps.zip *
     mv emacs-$OF_VERSION-$ARCH-no-deps.zip $HOME/emacs-upload
-    rm bin/libXpm-noX4.dll
 
     if [ -z $SNAPSHOT ];
     then
@@ -78,7 +76,7 @@ function build_zip {
     fi
 
     echo [build] Using $DEPS_FILE
-    unzip $DEPS_FILE
+    unzip -d bin $DEPS_FILE
 
     zip -r -9 emacs-$OF_VERSION-$ARCH.zip *
     mv emacs-$OF_VERSION-$ARCH.zip ~/emacs-upload
@@ -208,7 +206,7 @@ then
 else
     BRANCH=$REQUIRED_BRANCH
     echo [build] Building from Branch $BRANCH
-    VERSION=$VERSION-$BRANCH
+    VERSION=$VERSION-${BRANCH/\//_}
     OF_VERSION="$VERSION-`date +%Y-%m-%d`"
     ## Use snapshot dependencies
     SNAPSHOT=1
