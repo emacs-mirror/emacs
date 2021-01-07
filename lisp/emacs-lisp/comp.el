@@ -136,6 +136,12 @@ Passing these options is only available in libgccjit version 9
 and above."
   :type 'list)
 
+(defcustom comp-libgccjit-reproducer nil
+  "When non-nil produce a libgccjit reproducer.
+The reproducer is a file comp_SRCNAME_repro.c deposed in the .eln
+output directory."
+  :type 'boolean)
+
 (defvar comp-dry-run nil
   "If non-nil, run everything but the C back-end.")
 
