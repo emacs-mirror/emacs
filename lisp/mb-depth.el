@@ -37,6 +37,7 @@ and must return a string.")
 
 (defface minibuffer-depth-indicator '((t :inherit highlight))
   "Face to use for minibuffer depth indicator."
+  :group 'minibuffer
   :version "28.1")
 
 ;; An overlay covering the prompt.  This is a buffer-local variable in
