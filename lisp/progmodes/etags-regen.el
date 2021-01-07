@@ -60,8 +60,7 @@ We support only Emacs's etags program with this option."
           (cons
            :tag "Languages group"
            (repeat (string :tag "Language name"))
-           (repeat (string :tag "Tag Regexp"))))
-  :safe 'etags-regen--safe-regexp-alist-p)
+           (repeat (string :tag "Tag Regexp")))))
 
 ;;;###autoload
 (put 'etags-regen-lang-regexp-alist 'safe-local-variable
