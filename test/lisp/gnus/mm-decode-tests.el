@@ -54,10 +54,26 @@
                                                          'charset)))
                          "<!doctype html><html><head><meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\"></head><body>ääää</body></html>\n")))))))
 
-(ert-deftest test-mm-with-part ()
+(ert-deftest test-mm-with-part-unibyte ()
   (with-temp-buffer
     (set-buffer-multibyte nil)
     (insert-file-contents-literally (ert-resource-file "8bit-multipart.bin"))
+    (while (search-forward "\r\n" nil t)
+      (replace-match "\n"))
+    (let ((handle (mm-dissect-buffer)))
+      (pop handle)
+      (let ((part (pop handle)))
+        (should (equal (decode-coding-string
+                        (mm-with-part part
+                          (buffer-string))
+                        (intern (mail-content-type-get (mm-handle-type part)
+                                                       'charset)))
+                       "ääää\n"))))))
+
+(ert-deftest test-mm-with-part-multibyte ()
+  (with-temp-buffer
+    (set-buffer-multibyte t)
+    (nnheader-insert-file-contents (ert-resource-file "8bit-multipart.bin"))
     (while (search-forward "\r\n" nil t)
       (replace-match "\n"))
     (let ((handle (mm-dissect-buffer)))
