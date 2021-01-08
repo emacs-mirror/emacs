@@ -70,6 +70,17 @@
   (should (equal (kbd "RET") "\C-m"))
   (should (equal (kbd "C-x a") "\C-xa")))
 
+(ert-deftest subr-test-define-prefix-command ()
+  (define-prefix-command 'foo-prefix-map)
+  (should (keymapp foo-prefix-map))
+  (should (fboundp #'foo-prefix-map))
+  ;; With optional argument.
+  (define-prefix-command 'bar-prefix 'bar-prefix-map)
+  (should (keymapp bar-prefix-map))
+  (should (fboundp #'bar-prefix))
+  ;; Returns the symbol.
+  (should (eq (define-prefix-command 'foo-bar) 'foo-bar)))
+
 
 ;;;; Mode hooks.
 
