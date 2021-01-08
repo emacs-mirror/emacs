@@ -2766,7 +2766,7 @@ GnuTLS MACs             : the list will contain `macs'.
 GnuTLS digests          : the list will contain `digests'.
 GnuTLS symmetric ciphers: the list will contain `ciphers'.
 GnuTLS AEAD ciphers     : the list will contain `AEAD-ciphers'.
-%DUMBFW                 : the list will contain `ClientHello\ Padding'.
+%DUMBFW                 : the list will contain `ClientHello\\ Padding'.
 Any GnuTLS extension with ID up to 100
                         : the list will contain its name.  */)
   (void)

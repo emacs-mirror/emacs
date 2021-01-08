@@ -1,4 +1,4 @@
-;;; dos-fns.el --- MS-Dos specific functions
+;;; dos-fns.el --- MS-Dos specific functions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1991, 1993, 1995-1996, 2001-2021 Free Software
 ;; Foundation, Inc.

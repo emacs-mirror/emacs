@@ -7243,6 +7243,7 @@ The actual non-nil value of this variable will be copied to the
 	   (const display-buffer-below-selected)
 	   (const display-buffer-at-bottom)
 	   (const display-buffer-in-previous-window)
+	   (const display-buffer-use-least-recent-window)
 	   (const display-buffer-use-some-window)
 	   (const display-buffer-use-some-frame)
 	   (function :tag "Other function"))
@@ -7378,6 +7379,37 @@ fails, call `display-buffer-pop-up-frame'.")
 
 (defun display-buffer (buffer-or-name &optional action frame)
   "Display BUFFER-OR-NAME in some window, without selecting it.
+To change which window is used, set `display-buffer-alist'
+to an expression containing one of these \"action\" functions:
+
+ `display-buffer-same-window' -- Use the selected window.
+ `display-buffer-reuse-window' -- Use a window already showing
+    the buffer.
+ `display-buffer-in-previous-window' -- Use a window that did
+    show the buffer before.
+ `display-buffer-use-some-window' -- Use some existing window.
+ `display-buffer-use-least-recent-window' -- Try to avoid re-using
+    windows that have recently been switched to.
+ `display-buffer-pop-up-window' -- Pop up a new window.
+ `display-buffer-below-selected' -- Use or pop up a window below
+    the selected one.
+ `display-buffer-at-bottom' -- Use or pop up a window at the
+    bottom of the selected frame.
+ `display-buffer-pop-up-frame' -- Show the buffer on a new frame.
+ `display-buffer-in-child-frame' -- Show the buffer in a
+    child frame.
+ `display-buffer-no-window' -- Do not display the buffer and
+    have `display-buffer' return nil immediately.
+
+For instance:
+
+   (setq display-buffer-alist '((\".*\" display-buffer-at-bottom)))
+
+Buffer display can be further customized to a very high degree;
+the rest of this docstring explains some of the many
+possibilities, and also see `(emacs)Window Choice' for more
+information.
+
 BUFFER-OR-NAME must be a buffer or a string naming a live buffer.
 Return the window chosen for displaying that buffer, or nil if no
 such window is found.
@@ -7403,23 +7435,8 @@ function in the combined function list in turn, passing the
 buffer as the first argument and the combined action alist as the
 second argument, until one of the functions returns non-nil.
 
-Action functions and the action they try to perform are:
- `display-buffer-same-window' -- Use the selected window.
- `display-buffer-reuse-window' -- Use a window already showing
-    the buffer.
- `display-buffer-in-previous-window' -- Use a window that did
-    show the buffer before.
- `display-buffer-use-some-window' -- Use some existing window.
- `display-buffer-pop-up-window' -- Pop up a new window.
- `display-buffer-below-selected' -- Use or pop up a window below
-    the selected one.
- `display-buffer-at-bottom' -- Use or pop up a window at the
-    bottom of the selected frame.
- `display-buffer-pop-up-frame' -- Show the buffer on a new frame.
- `display-buffer-in-child-frame' -- Show the buffer in a
-    child frame.
- `display-buffer-no-window' -- Do not display the buffer and
-    have `display-buffer' return nil immediately.
+See above for the action functions and the action they try to
+perform.
 
 Action alist entries are:
  `inhibit-same-window' -- A non-nil value prevents the same
@@ -8241,6 +8258,16 @@ indirectly called by the latter."
     ;; Return best or second best window found.
     (when (setq window (or best-window second-best-window))
       (window--display-buffer buffer window 'reuse alist))))
+
+(defun display-buffer-use-least-recent-window (buffer alist)
+  "Display BUFFER in an existing window, but that hasn't been used lately.
+This `display-buffer' action function is like
+`display-buffer-use-some-window', but will cycle through windows
+when displaying buffers repeatedly, and if there's only a single
+window, it will split the window."
+  (when-let ((window (display-buffer-use-some-window
+                      buffer (cons (cons 'inhibit-same-window t) alist))))
+    (window-bump-use-time window)))
 
 (defun display-buffer-use-some-window (buffer alist)
   "Display BUFFER in an existing window.

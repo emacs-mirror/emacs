@@ -1,4 +1,4 @@
-;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
+;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -154,13 +154,15 @@ when writing the file."
   ;; FIXME: Can't we use find-file-literally for the same purposes?
   (interactive "FFind file binary: ")
   (let ((coding-system-for-read 'no-conversion))  ;; FIXME: undecided-unix?
-    (find-file filename)))
+    (with-suppressed-warnings ((interactive-only find-file))
+      (find-file filename))))
 
 (defun find-file-text (filename)
   "Visit file FILENAME and treat it as a text file."
   (interactive "FFind file text: ")
   (let ((coding-system-for-read 'undecided-dos))
-    (find-file filename)))
+    (with-suppressed-warnings ((interactive-only find-file))
+      (find-file filename))))
 
 (defun w32-find-file-not-found-set-buffer-file-coding-system ()
   (with-current-buffer (current-buffer)
@@ -260,6 +262,8 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
   :type 'boolean
   :group 'dos-fns
   :group 'w32)
+
+(defvar w32-quote-process-args)
 
 ;; Function to actually send data to the printer port.
 ;; Supports writing directly, and using various programs.

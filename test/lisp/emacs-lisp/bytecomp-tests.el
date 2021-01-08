@@ -625,6 +625,9 @@ Subtests signal errors if something goes wrong."
 (bytecomp--define-warning-file-test "warn-obsolete-variable.el"
                             "bytecomp--tests-obs.*obsolete.*99.99")
 
+(bytecomp--define-warning-file-test "warn-obsolete-variable-bound.el"
+                            "bytecomp--tests-obs.*obsolete.*99.99" t)
+
 (bytecomp--define-warning-file-test "warn-redefine-defun-as-macro.el"
                             "as both function and macro")
 

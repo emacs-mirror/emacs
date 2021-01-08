@@ -516,7 +516,7 @@ The connection takes the proxy setting in customization group
 ;; Dealing with closing the buffer
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun dictionary-close ()
+(defun dictionary-close (&rest ignored)
   "Close the current dictionary buffer and its connection."
   (interactive)
   (if (eq major-mode 'dictionary-mode)

@@ -424,7 +424,7 @@ move to it and type @key{RET}, to visit the source code.  You can also
 type @key{RET} while point is on any name of a function or variable
 which is not underlined, to see help information for that symbol in a
 help buffer, if any exists.  The @code{xref-find-definitions} command,
-bound to @key{M-.}, can also be used on any identifier in a backtrace
+bound to @kbd{M-.}, can also be used on any identifier in a backtrace
 (@pxref{Looking Up Identifiers,,,emacs, The GNU Emacs Manual}).
 
 In backtraces, the tails of long lists and the ends of long strings,

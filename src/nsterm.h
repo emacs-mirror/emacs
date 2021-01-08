@@ -498,6 +498,7 @@ typedef id instancetype;
   NSPoint grabOffset;
 }
 
+- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above;
 - (void)setAppearance;
 @end
 

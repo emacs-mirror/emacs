@@ -512,18 +512,6 @@ FD_SETSIZE."
            (delete-process (pop ,processes))
            ,@body)))))
 
-(defmacro process-tests--with-temp-file (var &rest body)
-  "Bind VAR to the name of a new regular file and evaluate BODY.
-Afterwards, delete the file."
-  (declare (indent 1) (debug (symbolp body)))
-  (cl-check-type var symbol)
-  (let ((file (make-symbol "file")))
-    `(let ((,file (make-temp-file "emacs-test-")))
-       (unwind-protect
-           (let ((,var ,file))
-             ,@body)
-         (delete-file ,file)))))
-
 (defmacro process-tests--with-temp-directory (var &rest body)
   "Bind VAR to the name of a new directory and evaluate BODY.
 Afterwards, delete the directory."
@@ -547,8 +535,8 @@ Afterwards, delete the directory."
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
   (with-timeout (60 (ert-fail "Test timed out"))
-    (let ((sleep (executable-find "sleep")))
-      (skip-unless sleep)
+    (let ((cat (executable-find "cat")))
+      (skip-unless cat)
       (dolist (conn-type '(pipe pty))
         (ert-info ((format "Connection type `%s'" conn-type))
           (process-tests--fd-setsize-test
@@ -564,7 +552,7 @@ FD_SETSIZE file descriptors (Bug#24325)."
                        ;; ignore `file-error'.
                        (process-tests--ignore-EMFILE
                          (make-process :name (format "test %d" i)
-                                       :command (list sleep "5")
+                                       :command (list cat)
                                        :connection-type conn-type
                                        :coding 'no-conversion
                                        :noquery t))))
@@ -572,6 +560,11 @@ FD_SETSIZE file descriptors (Bug#24325)."
               ;; We should have managed to start at least one process.
               (should processes)
               (dolist (process processes)
+                ;; The process now should either be running, or have
+                ;; already failed before `exec'.
+                (should (memq (process-status process) '(run exit)))
+                (when (process-live-p process)
+                  (process-send-eof process))
                 (while (accept-process-output process))
                 (should (eq (process-status process) 'exit))
                 ;; If there's an error between fork and exec, Emacs
@@ -653,13 +646,9 @@ FD_SETSIZE file descriptors (Bug#24325)."
 (ert-deftest process-tests/fd-setsize-no-crash/make-serial-process ()
   "Check that Emacs doesn't crash when trying to use more than
 FD_SETSIZE file descriptors (Bug#24325)."
+  ;; This test cannot be run if PTYs aren't supported.
+  (skip-unless (not (eq system-type 'windows-nt)))
   (with-timeout (60 (ert-fail "Test timed out"))
-    (skip-unless (file-executable-p shell-file-name))
-    (skip-unless (executable-find "tty"))
-    (skip-unless (executable-find "sleep"))
-    ;; `process-tests--new-pty' probably only works with GNU Bash.
-    (skip-unless (string-equal
-                  (file-name-nondirectory shell-file-name) "bash"))
     (process-tests--with-processes processes
       ;; In order to use `make-serial-process', we need to create some
       ;; pseudoterminals.  The easiest way to do that is to start a
@@ -667,14 +656,31 @@ FD_SETSIZE file descriptors (Bug#24325)."
       ;; ensure that the terminal stays around while we connect to it.
       ;; Create the host processes before the dummy pipes so we have a
       ;; high chance of succeeding here.
-      (let ((tty-names ()))
-        (dotimes (_ 10)
-          (cl-destructuring-bind
-              (host tty-name) (process-tests--new-pty)
+      (let ((sleep (executable-find "sleep"))
+            (tty-names ()))
+        (skip-unless sleep)
+        (dotimes (i 10)
+          (let* ((host (make-process :name (format "tty host %d" i)
+                                     :command (list sleep "60")
+                                     :buffer nil
+                                     :coding 'utf-8-unix
+                                     :connection-type 'pty
+                                     :noquery t))
+                 (tty-name (process-tty-name host)))
             (should (processp host))
             (push host processes)
+            ;; FIXME: The assumption below that using :connection 'pty
+            ;; in make-process necessarily produces a process with PTY
+            ;; connection is unreliable and non-portable.
+            ;; make-process can legitimately and silently fall back on
+            ;; pipes if allocating a PTY fails (and on MS-Windows it
+            ;; always fails).  The following code also assumes that
+            ;; process-tty-name produces a file name that can be
+            ;; passed to 'stat' and to make-serial-process, which is
+            ;; also non-portable.
             (should tty-name)
             (should (file-exists-p tty-name))
+            (should-not (member tty-name tty-names))
             (push tty-name tty-names)))
         (process-tests--fd-setsize-test
           (process-tests--with-processes processes
@@ -716,43 +722,6 @@ Return nil if that can't be determined."
                                     (+ blank) (group (+ nonl))))
                 (match-string-no-properties 1))))))
   process-tests--EMFILE-message)
-
-(defun process-tests--new-pty ()
-  "Allocate a new pseudoterminal.
-Return a list (PROCESS TTY-NAME)."
-  ;; The command below will typically only work with GNU Bash.
-  (should (string-equal (file-name-nondirectory shell-file-name)
-                        "bash"))
-  (process-tests--with-temp-file temp-file
-    (should-not (file-remote-p temp-file))
-    (let* ((command (list shell-file-name shell-command-switch
-                          (format "tty > %s && sleep 60"
-                                  (shell-quote-argument
-                                   (file-name-unquote temp-file)))))
-           (process (make-process :name "tty host"
-                                  :command command
-                                  :buffer nil
-                                  :coding 'utf-8-unix
-                                  :connection-type 'pty
-                                  :noquery t))
-           (tty-name nil)
-           (coding-system-for-read 'utf-8-unix)
-           (coding-system-for-write 'utf-8-unix))
-      ;; Wait until TTY name has arrived.
-      (with-timeout (2 (message "Timed out waiting for TTY name"))
-        (while (and (process-live-p process) (not tty-name))
-          (sleep-for 0.1)
-          (when-let ((attributes (file-attributes temp-file)))
-            (when (cl-plusp (file-attribute-size attributes))
-              (with-temp-buffer
-                (insert-file-contents temp-file)
-                (goto-char (point-max))
-                ;; `tty' has printed a trailing newline.
-                (skip-chars-backward "\n")
-                (unless (bobp)
-                  (setq tty-name (buffer-substring-no-properties
-                                  (point-min) (point)))))))))
-      (list process tty-name))))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here

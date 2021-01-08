@@ -168,7 +168,8 @@ This shell should support pipe redirect syntax."
       (erase-buffer)
       (setq default-directory rootdir)
       (let ((cmd (semantic-symref-grep-use-template
-                  (file-local-name rootdir) filepattern grepflags greppat)))
+                  (file-name-as-directory (file-local-name rootdir))
+                  filepattern grepflags greppat)))
         (process-file semantic-symref-grep-shell nil b nil
                       shell-command-switch cmd)))
     (setq ans (semantic-symref-parse-tool-output tool b))

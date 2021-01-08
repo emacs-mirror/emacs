@@ -102,7 +102,7 @@ RET		minibuffer-complete-and-exit
 ESC		Prefix Command
 SPC		minibuffer-complete-word
 ?		minibuffer-completion-help
-<C-tab>		file-cache-minibuffer-complete
+C-<tab>		file-cache-minibuffer-complete
 <XF86Back>	previous-history-element
 <XF86Forward>	next-history-element
 <down>		next-line-or-history-element

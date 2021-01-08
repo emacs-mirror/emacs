@@ -1000,6 +1000,22 @@ a menu, so this function is not useful for non-menu keymaps."
 	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
+(defun define-prefix-command (command &optional mapvar name)
+  "Define COMMAND as a prefix command.  COMMAND should be a symbol.
+A new sparse keymap is stored as COMMAND's function definition and its
+value.
+This prepares COMMAND for use as a prefix key's binding.
+If a second optional argument MAPVAR is given, it should be a symbol.
+The map is then stored as MAPVAR's value instead of as COMMAND's
+value; but COMMAND is still defined as a function.
+The third optional argument NAME, if given, supplies a menu name
+string for the map.  This is required to use the keymap as a menu.
+This function returns COMMAND."
+  (let ((map (make-sparse-keymap name)))
+    (fset command map)
+    (set (or mapvar command) map)
+    command))
+
 (defun map-keymap-sorted (function keymap)
   "Implement `map-keymap' with sorting.
 Don't call this function; it is for internal use only."
@@ -1244,35 +1260,83 @@ in a cleaner way with command remapping, like this:
 
 ;;;; The global keymap tree.
 
-;; global-map, esc-map, and ctl-x-map have their values set up in
-;; keymap.c; we just give them docstrings here.
-
-(defvar global-map nil
-  "Default global keymap mapping Emacs keyboard input into commands.
-The value is a keymap that is usually (but not necessarily) Emacs's
-global map.")
-
-(defvar esc-map nil
+(defvar esc-map
+  (let ((map (make-keymap)))
+    (define-key map "u" #'upcase-word)
+    (define-key map "l" #'downcase-word)
+    (define-key map "c" #'capitalize-word)
+    (define-key map "x" #'execute-extended-command)
+    map)
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")
-
-(defvar ctl-x-map nil
-  "Default keymap for C-x commands.
-The normal global definition of the character C-x indirects to this keymap.")
+(fset 'ESC-prefix esc-map)
+(make-obsolete 'ESC-prefix 'esc-map "28.1")
 
 (defvar ctl-x-4-map (make-sparse-keymap)
   "Keymap for subcommands of C-x 4.")
 (defalias 'ctl-x-4-prefix ctl-x-4-map)
-(define-key ctl-x-map "4" 'ctl-x-4-prefix)
 
 (defvar ctl-x-5-map (make-sparse-keymap)
   "Keymap for frame commands.")
 (defalias 'ctl-x-5-prefix ctl-x-5-map)
-(define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
 (defvar tab-prefix-map (make-sparse-keymap)
   "Keymap for tab-bar related commands.")
-(define-key ctl-x-map "t" tab-prefix-map)
+
+(defvar ctl-x-map
+  (let ((map (make-keymap)))
+    (define-key map "4" 'ctl-x-4-prefix)
+    (define-key map "5" 'ctl-x-5-prefix)
+    (define-key map "t" tab-prefix-map)
+
+    (define-key map "b" #'switch-to-buffer)
+    (define-key map "k" #'kill-buffer)
+    (define-key map "\C-u" #'upcase-region)   (put 'upcase-region   'disabled t)
+    (define-key map "\C-l" #'downcase-region) (put 'downcase-region 'disabled t)
+    (define-key map "<" #'scroll-left)
+    (define-key map ">" #'scroll-right)
+    map)
+  "Default keymap for C-x commands.
+The normal global definition of the character C-x indirects to this keymap.")
+(fset 'Control-X-prefix ctl-x-map)
+(make-obsolete 'Control-X-prefix 'ctl-x-map "28.1")
+
+(defvar global-map
+  (let ((map (make-keymap)))
+    (define-key map "\C-[" 'ESC-prefix)
+    (define-key map "\C-x" 'Control-X-prefix)
+
+    (define-key map "\C-i" #'self-insert-command)
+    (let* ((vec1 (make-vector 1 nil))
+           (f (lambda (from to)
+                (while (< from to)
+                  (aset vec1 0 from)
+                  (define-key map vec1 #'self-insert-command)
+                  (setq from (1+ from))))))
+      (funcall f #o040 #o0177)
+      (when (eq system-type 'ms-dos)      ;FIXME: Why?
+        (funcall f #o0200 #o0240))
+      (funcall f #o0240 #o0400))
+
+    (define-key map "\C-a" #'beginning-of-line)
+    (define-key map "\C-b" #'backward-char)
+    (define-key map "\C-e" #'end-of-line)
+    (define-key map "\C-f" #'forward-char)
+
+    (define-key map "\C-z"     #'suspend-emacs) ;FIXME: Re-bound later!
+    (define-key map "\C-x\C-z" #'suspend-emacs) ;FIXME: Re-bound later!
+
+    (define-key map "\C-v"    #'scroll-up-command)
+    (define-key map "\M-v"    #'scroll-down-command)
+    (define-key map "\M-\C-v" #'scroll-other-window)
+
+    (define-key map "\M-\C-c" #'exit-recursive-edit)
+    (define-key map "\C-]"    #'abort-recursive-edit)
+    map)
+  "Default global keymap mapping Emacs keyboard input into commands.
+The value is a keymap that is usually (but not necessarily) Emacs's
+global map.")
+(use-global-map global-map)
 
 
 ;;;; Event manipulation functions.
@@ -1754,7 +1818,11 @@ unless HOOK has both local and global functions).  If multiple
 functions have the same representation under `princ', the first
 one will be removed."
   (interactive
-   (let* ((hook (intern (completing-read "Hook variable: " obarray #'boundp t)))
+   (let* ((default (and (symbolp (variable-at-point))
+                        (symbol-name (variable-at-point))))
+          (hook (intern (completing-read
+                         (format-prompt "Hook variable" default)
+                         obarray #'boundp t nil nil default)))
           (local
            (and
             (local-variable-p hook)

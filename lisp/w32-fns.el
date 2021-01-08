@@ -1,4 +1,4 @@
-;;; w32-fns.el --- Lisp routines for 32-bit Windows
+;;; w32-fns.el --- Lisp routines for 32-bit Windows  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
 
@@ -383,10 +383,10 @@ for any permissions.
 
 This is required because the Windows build environment is not required
 to include Sed, which is used by leim/Makefile.in to do the job."
-  (find-file orig)
-  (goto-char (point-max))
-  (insert-file-contents extra)
-  (delete-matching-lines "^$\\|^;")
-  (save-buffers-kill-emacs t))
+  (with-current-buffer (find-file-noselect orig)
+    (goto-char (point-max))
+    (insert-file-contents extra)
+    (delete-matching-lines "^$\\|^;")
+    (save-buffers-kill-emacs t)))
 
 ;;; w32-fns.el ends here

@@ -669,6 +669,10 @@ This is like `describe-bindings', but displays only Isearch keys."
                              (if isearch-success 'isearch-abort binding))))
     map))
 
+;; Note: Before adding more key bindings to this map, please keep in
+;; mind that any unbound key exits Isearch and runs the command bound
+;; to it in the local or global map.  So in effect every key unbound
+;; in this map is implicitly bound.
 (defvar isearch-mode-map
   (let ((i 0)
 	(map (make-keymap)))
@@ -834,6 +838,10 @@ This is like `describe-bindings', but displays only Isearch keys."
             :image '(isearch-tool-bar-image "left-arrow")))
     map))
 
+;; Note: Before adding more key bindings to this map, please keep in
+;; mind that any unbound key exits Isearch and runs the command bound
+;; to it in the local or global map.  So in effect every key unbound
+;; in this map is implicitly bound.
 (defvar minibuffer-local-isearch-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
