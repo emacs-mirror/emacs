@@ -370,7 +370,7 @@ the specializer used will be the one returned by BODY."
            (cons (not (not uses-cnm))
                  `#'(lambda (,@(if uses-cnm (list cnm)) ,@args)
                       ,@(car parsed-body)
-                      ,(if (not (memq nmp uses-cnm))
+                      ,(if (not (assq nmp uses-cnm))
                            nbody
                          `(let ((,nmp (lambda ()
                                         (cl--generic-isnot-nnm-p ,cnm))))
