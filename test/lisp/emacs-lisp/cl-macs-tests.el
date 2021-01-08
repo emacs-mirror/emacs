@@ -610,4 +610,12 @@ collection clause."
     ;; Just make sure the function can be instrumented.
     (edebug-defun)))
 
+;;; cl-labels
+
+(ert-deftest cl-macs--labels ()
+  ;; Simple recursive function.
+  (cl-labels ((len (xs) (if xs (1+ (len (cdr xs))) 0)))
+    (should (equal (len (make-list 42 t)) 42)))
+  )
+
 ;;; cl-macs-tests.el ends here
