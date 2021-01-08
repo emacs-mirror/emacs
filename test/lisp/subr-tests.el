@@ -61,6 +61,18 @@
                      (quote
                       (0 font-lock-keyword-face))))))))
 
+
+;;;; Keymap support.
+
+(ert-deftest subr-test-kbd ()
+  (should (equal (kbd "f") "f"))
+  (should (equal (kbd "F1") "F1"))
+  (should (equal (kbd "RET") "\C-m"))
+  (should (equal (kbd "C-x a") "\C-xa")))
+
+
+;;;; Mode hooks.
+
 (defalias 'subr-tests--parent-mode
   (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
 
