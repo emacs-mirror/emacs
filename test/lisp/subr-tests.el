@@ -66,9 +66,15 @@
 
 (ert-deftest subr-test-kbd ()
   (should (equal (kbd "f") "f"))
-  (should (equal (kbd "F1") "F1"))
+  (should (equal (kbd "<f1>") [f1]))
   (should (equal (kbd "RET") "\C-m"))
-  (should (equal (kbd "C-x a") "\C-xa")))
+  (should (equal (kbd "C-x a") "\C-xa"))
+  ;; Check that kbd handles both new and old style key descriptions
+  ;; (bug#45536).
+  (should (equal (kbd "s-<return>") [s-return]))
+  (should (equal (kbd "<s-return>") [s-return]))
+  (should (equal (kbd "C-M-<return>") [C-M-return]))
+  (should (equal (kbd "<C-M-return>") [C-M-return])))
 
 (ert-deftest subr-test-define-prefix-command ()
   (define-prefix-command 'foo-prefix-map)
@@ -652,14 +658,6 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (apropos-internal "^next-line$" #'commandp) '(next-line)))
   (should (>= (length (apropos-internal "^help" #'commandp)) 15))
   (should-not (apropos-internal "^next-line$" #'keymapp)))
-
-(ert-deftest subr--kbd ()
-  ;; Check that kbd handles both new and old style key descriptions
-  ;; (bug#45536).
-  (should (equal (kbd "s-<return>") [s-return]))
-  (should (equal (kbd "<s-return>") [s-return]))
-  (should (equal (kbd "C-M-<return>") [C-M-return]))
-  (should (equal (kbd "<C-M-return>") [C-M-return])))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here
