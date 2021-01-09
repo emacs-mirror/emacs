@@ -284,6 +284,9 @@ sorted.  FUNCTION must be a function of one argument."
 (cl-defmethod seq-reverse ((sequence sequence))
   (reverse sequence))
 
+;; We are autoloading seq-concatenate because cl-concatenate needs
+;; that when it's inlined, per the cl-proclaim in cl-macs.el.
+;;;###autoload
 (cl-defgeneric seq-concatenate (type &rest sequences)
   "Concatenate SEQUENCES into a single sequence of type TYPE.
 TYPE must be one of following symbols: vector, string or list.
