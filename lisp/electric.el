@@ -1,4 +1,4 @@
-;;; electric.el --- window maker and Command loop for `electric' modes
+;;; electric.el --- window maker and Command loop for `electric' modes  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 1995, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -384,6 +384,8 @@ If multiple rules match, only first one is executed.")
 (defun electric-layout-post-self-insert-function ()
   (when electric-layout-mode
     (electric-layout-post-self-insert-function-1)))
+
+(defvar electric-pair-open-newline-between-pairs)
 
 ;; for edebug's sake, a separate function
 (defun electric-layout-post-self-insert-function-1 ()

@@ -8693,6 +8693,112 @@ not_in_argv (NSString *arg)
 
 @implementation EmacsWindow
 
+/* It seems the only way to reorder child frames is by removing them
+   from the parent and then reattaching them in the correct order.  */
+
+- (void)orderFront:(id)sender
+{
+  NSTRACE ("[EmacsWindow orderFront:]");
+
+  NSWindow *parent = [self parentWindow];
+  if (parent)
+    {
+      [parent removeChildWindow:self];
+      [parent addChildWindow:self ordered:NSWindowAbove];
+    }
+  else
+    [super orderFront:sender];
+}
+
+- (void)makeKeyAndOrderFront:(id)sender
+{
+  NSTRACE ("[EmacsWindow makeKeyAndOrderFront:]");
+
+  if ([self parentWindow])
+    {
+      [self orderFront:sender];
+      [self makeKeyWindow];
+    }
+  else
+    [super makeKeyAndOrderFront:sender];
+}
+
+
+/* The array returned by [NSWindow parentWindow] may already be
+   sorted, but the documentation doesn't tell us whether or not it is,
+   so to be safe we'll sort it.  */
+NSInteger nswindow_orderedIndex_sort (id w1, id w2, void *c)
+{
+  NSInteger i1 = [w1 orderedIndex];
+  NSInteger i2 = [w2 orderedIndex];
+
+  if (i1 > i2)
+    return NSOrderedAscending;
+  if (i1 < i2)
+    return NSOrderedDescending;
+
+  return NSOrderedSame;
+}
+
+- (void)orderBack:(id)sender
+{
+  NSTRACE ("[EmacsWindow orderBack:]");
+
+  NSWindow *parent = [self parentWindow];
+  if (parent)
+    {
+      NSArray *children = [[parent childWindows]
+                            sortedArrayUsingFunction:nswindow_orderedIndex_sort
+                                              context:nil];
+      [parent removeChildWindow:self];
+      [parent addChildWindow:self ordered:NSWindowAbove];
+
+      for (NSWindow *win in children)
+        {
+          if (win != self)
+            {
+              [parent removeChildWindow:win];
+              [parent addChildWindow:win ordered:NSWindowAbove];
+            }
+        }
+    }
+  else
+    [super orderBack:sender];
+}
+
+- (BOOL)restackWindow:(NSWindow *)win above:(BOOL)above
+{
+  NSTRACE ("[EmacsWindow restackWindow:above:]");
+
+  /* If parent windows don't match we can't restack these frames
+     without changing the parents.  */
+  if ([self parentWindow] != [win parentWindow])
+    return NO;
+  else if (![self parentWindow])
+    [self orderWindow:(above ? NSWindowAbove : NSWindowBelow)
+           relativeTo:[win windowNumber]];
+  else
+    {
+      NSInteger index;
+      NSWindow *parent = [self parentWindow];
+      NSMutableArray *children = [[[parent childWindows]
+                                   sortedArrayUsingFunction:nswindow_orderedIndex_sort
+                                                    context:nil]
+                                   mutableCopy];
+      [children removeObject:self];
+      index = [children indexOfObject:win];
+      [children insertObject:self atIndex:(above ? index+1 : index)];
+
+      for (NSWindow *w in children)
+        {
+          [parent removeChildWindow:w];
+          [parent addChildWindow:w ordered:NSWindowAbove];
+        }
+    }
+
+  return YES;
+}
+
 #ifdef NS_IMPL_COCOA
 - (id)accessibilityAttributeValue:(NSString *)attribute
 {

@@ -382,7 +382,7 @@ convention was modified."
   (puthash (indirect-function function) signature
            advertised-signature-table))
 
-(defun make-obsolete (obsolete-name current-name &optional when)
+(defun make-obsolete (obsolete-name current-name when)
   "Make the byte-compiler warn that function OBSOLETE-NAME is obsolete.
 OBSOLETE-NAME should be a function name or macro name (a symbol).
 
@@ -391,17 +391,14 @@ If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).
 WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
-  (declare (advertised-calling-convention
-            ;; New code should always provide the `when' argument.
-            (obsolete-name current-name when) "23.1"))
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
        ;; is not used any more nowadays.
        (purecopy (list current-name nil when)))
   obsolete-name)
 
-(defmacro define-obsolete-function-alias (obsolete-name current-name
-						   &optional when docstring)
+(defmacro define-obsolete-function-alias ( obsolete-name current-name when
+                                           &optional docstring)
   "Set OBSOLETE-NAME's function definition to CURRENT-NAME and mark it obsolete.
 
 \(define-obsolete-function-alias \\='old-fun \\='new-fun \"22.1\" \"old-fun's doc.\")
@@ -415,15 +412,13 @@ WHEN should be a string indicating when the function was first
 made obsolete, for example a date or a release number.
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
-  (declare (doc-string 4)
-           (advertised-calling-convention
-            ;; New code should always provide the `when' argument.
-            (obsolete-name current-name when &optional docstring) "23.1"))
+  (declare (doc-string 4))
   `(progn
      (defalias ,obsolete-name ,current-name ,docstring)
      (make-obsolete ,obsolete-name ,current-name ,when)))
 
-(defun make-obsolete-variable (obsolete-name current-name &optional when access-type)
+(defun make-obsolete-variable ( obsolete-name current-name when
+                                &optional access-type)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
 The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message.
@@ -431,16 +426,13 @@ WHEN should be a string indicating when the variable
 was first made obsolete, for example a date or a release number.
 ACCESS-TYPE if non-nil should specify the kind of access that will trigger
   obsolescence warnings; it can be either `get' or `set'."
-  (declare (advertised-calling-convention
-            ;; New code should always provide the `when' argument.
-            (obsolete-name current-name when &optional access-type) "23.1"))
   (put obsolete-name 'byte-obsolete-variable
        (purecopy (list current-name access-type when)))
   obsolete-name)
 
 
-(defmacro define-obsolete-variable-alias (obsolete-name current-name
-						 &optional when docstring)
+(defmacro define-obsolete-variable-alias ( obsolete-name current-name when
+                                           &optional docstring)
   "Make OBSOLETE-NAME a variable alias for CURRENT-NAME and mark it obsolete.
 
 WHEN should be a string indicating when the variable was first
@@ -469,10 +461,7 @@ For the benefit of Customize, if OBSOLETE-NAME has
 any of the following properties, they are copied to
 CURRENT-NAME, if it does not already have them:
 `saved-value', `saved-variable-comment'."
-  (declare (doc-string 4)
-           (advertised-calling-convention
-            ;; New code should always provide the `when' argument.
-            (obsolete-name current-name when &optional docstring) "23.1"))
+  (declare (doc-string 4))
   `(progn
      (defvaralias ,obsolete-name ,current-name ,docstring)
      ;; See Bug#4706.

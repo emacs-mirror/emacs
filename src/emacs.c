@@ -1997,12 +1997,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
       syms_of_json ();
 #endif
 
-      keys_of_casefiddle ();
-      keys_of_cmds ();
-      keys_of_buffer ();
       keys_of_keyboard ();
-      keys_of_keymap ();
-      keys_of_window ();
 
 #ifdef HAVE_NATIVE_COMP
       /* Must be after the last defsubr has run.  */

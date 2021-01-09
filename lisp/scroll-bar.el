@@ -1,4 +1,4 @@
-;;; scroll-bar.el --- window system-independent scroll bar support
+;;; scroll-bar.el --- window system-independent scroll bar support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 1999-2021 Free Software Foundation, Inc.
 

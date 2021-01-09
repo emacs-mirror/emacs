@@ -160,17 +160,14 @@ A header-line does not scroll with the rest of the buffer."
   :version "24.4")
 
 ;; This is a defcustom largely so that we can get the benefit
-;; of custom-initialize-delay.  Perhaps it would work to make it a
-;; defvar and explicitly give it a standard-value property, and
-;; call custom-initialize-delay on it.
-;; The progn forces the autoloader to include the whole thing, not
-;; just an abbreviated version.  The value is initialized at startup
-;; time, when command-line calls custom-reevaluate-setting on all
-;; the defcustoms in custom-delayed-init-variables.  This is
-;; somewhat sub-optimal, as ideally this should be done when Info
-;; mode is first invoked.
+;; of `custom-initialize-delay'.  Perhaps it would work to make it a
+;; `defvar' and explicitly give it a `standard-value' property, and
+;; call `custom-initialize-delay' on it.
+;; The value is initialized at startup time, when command-line calls
+;; `custom-reevaluate-setting' on all the defcustoms in
+;; `custom-delayed-init-variables'.  This is somewhat sub-optimal, as ideally
+;; this should be done when Info mode is first invoked.
 ;;;###autoload
-(progn
 (defcustom Info-default-directory-list
   (let* ((config-dir
 	  (file-name-as-directory
@@ -232,8 +229,8 @@ the environment variable INFOPATH is set.
 Although this is a customizable variable, that is mainly for technical
 reasons.  Normally, you should either set INFOPATH or customize
 `Info-additional-directory-list', rather than changing this variable."
-  :initialize 'custom-initialize-delay
-  :type '(repeat directory)))
+  :initialize #'custom-initialize-delay
+  :type '(repeat directory))
 
 (defvar Info-directory-list nil
   "List of directories to search for Info documentation files.

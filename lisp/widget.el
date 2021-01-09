@@ -1,4 +1,4 @@
-;;; widget.el --- a library of user interface components
+;;; widget.el --- a library of user interface components  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 1996-1997, 2001-2021 Free Software Foundation, Inc.
 ;;

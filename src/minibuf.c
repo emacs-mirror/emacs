@@ -2013,9 +2013,6 @@ syms_of_minibuf (void)
   DEFSYM (Qminibuffer_setup_hook, "minibuffer-setup-hook");
   DEFSYM (Qminibuffer_exit_hook, "minibuffer-exit-hook");
 
-  /* The maximum length of a minibuffer history.  */
-  DEFSYM (Qhistory_length, "history-length");
-
   DEFSYM (Qcurrent_input_method, "current-input-method");
   DEFSYM (Qactivate_input_method, "activate-input-method");
   DEFSYM (Qcase_fold_search, "case-fold-search");

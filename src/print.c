@@ -1557,7 +1557,8 @@ print_vectorlike (Lisp_Object obj, Lisp_Object printcharfun, bool escapeflag,
 	/* Implement a readable output, e.g.:
 	  #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	/* Always print the size.  */
-	int len = sprintf (buf, "#s(hash-table size %"pD"d", ASIZE (h->next));
+	int len = sprintf (buf, "#s(hash-table size %"pD"d",
+                           HASH_TABLE_SIZE (h));
 	strout (buf, len, len, printcharfun);
 
 	if (!NILP (h->test.name))

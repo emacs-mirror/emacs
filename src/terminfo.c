@@ -23,10 +23,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* Define these variables that serve as global parameters to termcap,
    so that we do not need to conditionalize the places in Emacs
-   that set them.  But don't do that for terminfo, as that could
-   cause link errors when using -fno-common.  */
+   that set them.  But don't do that if terminfo defines them, as that
+   could cause link errors when using -fno-common.  */
 
-#if !TERMINFO
+#ifndef TERMINFO_DEFINES_BC
 char *UP, *BC, PC;
 #endif
 

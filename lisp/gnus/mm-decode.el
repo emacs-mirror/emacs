@@ -1264,11 +1264,20 @@ in HANDLE."
      (when (and (mm-handle-buffer handle)
 		(buffer-name (mm-handle-buffer handle)))
        (with-temp-buffer
-	 (mm-disable-multibyte)
-	 (insert-buffer-substring (mm-handle-buffer handle))
-	 (mm-decode-content-transfer-encoding
-	  (mm-handle-encoding handle)
-	  (mm-handle-media-type handle))
+	 (if (and (eq (mm-handle-encoding handle) '8bit)
+		  (with-current-buffer (mm-handle-buffer handle)
+		    enable-multibyte-characters))
+	     ;; Due to unfortunate historical reasons, we may have a
+	     ;; multibyte buffer here, but if it's using an 8bit
+	     ;; Content-Transfer-Encoding, then work around that by
+	     ;; just ignoring the situation.
+	     (insert-buffer-substring (mm-handle-buffer handle))
+	   ;; Do the decoding.
+	   (mm-disable-multibyte)
+	   (insert-buffer-substring (mm-handle-buffer handle))
+	   (mm-decode-content-transfer-encoding
+	    (mm-handle-encoding handle)
+	    (mm-handle-media-type handle)))
 	 ,@forms))))
 (put 'mm-with-part 'lisp-indent-function 1)
 (put 'mm-with-part 'edebug-form-spec '(body))

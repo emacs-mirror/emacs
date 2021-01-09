@@ -1204,7 +1204,6 @@ This is much faster.")
 ARG may be negative to move backward.
 When the second optional argument is non-nil,
 nothing is shown in the echo area."
-  (or (bobp) (> arg 0) (backward-char))
   (let ((wrapped 0)
 	(number arg)
 	(old (widget-tabable-at)))

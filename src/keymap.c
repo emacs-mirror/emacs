@@ -59,22 +59,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 Lisp_Object current_global_map;	/* Current global keymap.  */
 
-Lisp_Object global_map;		/* Default global key bindings.  */
-
-Lisp_Object meta_map;		/* The keymap used for globally bound
-				   ESC-prefixed default commands.  */
-
-Lisp_Object control_x_map;	/* The keymap used for globally bound
-				   C-x-prefixed default commands.  */
-
-				/* The keymap used by the minibuf for local
-				   bindings when spaces are allowed in the
-				   minibuf.  */
-
-				/* The keymap used by the minibuf for local
-				   bindings when spaces are not encouraged
-				   in the minibuf.  */
-
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
 
@@ -138,19 +122,6 @@ in case you use it as a menu with `x-popup-menu'.  */)
       return list2 (Qkeymap, string);
     }
   return list1 (Qkeymap);
-}
-
-/* This function is used for installing the standard key bindings
-   at initialization time.
-
-   For example:
-
-   initial_define_key (control_x_map, Ctl('X'), "exchange-point-and-mark");  */
-
-void
-initial_define_key (Lisp_Object keymap, int key, const char *defname)
-{
-  store_in_keymap (keymap, make_fixnum (key), intern_c_string (defname));
 }
 
 void
@@ -1741,28 +1712,6 @@ bindings; see the description of `lookup-key' for more details about this.  */)
   return Flist (j, maps);
 }
 
-DEFUN ("define-prefix-command", Fdefine_prefix_command, Sdefine_prefix_command, 1, 3, 0,
-       doc: /* Define COMMAND as a prefix command.  COMMAND should be a symbol.
-A new sparse keymap is stored as COMMAND's function definition and its
-value.
-This prepares COMMAND for use as a prefix key's binding.
-If a second optional argument MAPVAR is given, it should be a symbol.
-The map is then stored as MAPVAR's value instead of as COMMAND's
-value; but COMMAND is still defined as a function.
-The third optional argument NAME, if given, supplies a menu name
-string for the map.  This is required to use the keymap as a menu.
-This function returns COMMAND.  */)
-  (Lisp_Object command, Lisp_Object mapvar, Lisp_Object name)
-{
-  Lisp_Object map = Fmake_sparse_keymap (name);
-  Ffset (command, map);
-  if (!NILP (mapvar))
-    Fset (mapvar, map);
-  else
-    Fset (command, map);
-  return command;
-}
-
 DEFUN ("use-global-map", Fuse_global_map, Suse_global_map, 1, 1, 0,
        doc: /* Select KEYMAP as the global keymap.  */)
   (Lisp_Object keymap)
@@ -2217,11 +2166,21 @@ See `text-char-description' for describing character codes.  */)
     {
       if (NILP (no_angles))
 	{
-	  Lisp_Object result;
-	  char *buffer = SAFE_ALLOCA (sizeof "<>"
-				      + SBYTES (SYMBOL_NAME (key)));
-	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
-	  result = build_string (buffer);
+	  Lisp_Object namestr = SYMBOL_NAME (key);
+	  const char *sym = SSDATA (namestr);
+	  ptrdiff_t len = SBYTES (namestr);
+	  /* Find the extent of the modifier prefix, like "C-M-". */
+	  int i = 0;
+	  while (i < len - 3 && sym[i + 1] == '-' && strchr ("CMSsHA", sym[i]))
+	    i += 2;
+	  /* First I bytes of SYM are modifiers; put <> around the rest. */
+	  char *buffer = SAFE_ALLOCA (len + 3);
+	  memcpy (buffer, sym, i);
+	  buffer[i] = '<';
+	  memcpy (buffer + i + 1, sym + i, len - i);
+	  buffer [len + 1] = '>';
+	  buffer [len + 2] = '\0';
+	  Lisp_Object result = build_string (buffer);
 	  SAFE_FREE ();
 	  return result;
 	}
@@ -3195,20 +3154,8 @@ syms_of_keymap (void)
      Each one is the value of a Lisp variable, and is also
      pointed to by a C variable */
 
-  global_map = Fmake_keymap (Qnil);
-  Fset (intern_c_string ("global-map"), global_map);
-
-  current_global_map = global_map;
-  staticpro (&global_map);
+  current_global_map = Qnil;
   staticpro (&current_global_map);
-
-  meta_map = Fmake_keymap (Qnil);
-  Fset (intern_c_string ("esc-map"), meta_map);
-  Ffset (intern_c_string ("ESC-prefix"), meta_map);
-
-  control_x_map = Fmake_keymap (Qnil);
-  Fset (intern_c_string ("ctl-x-map"), control_x_map);
-  Ffset (intern_c_string ("Control-X-prefix"), control_x_map);
 
   exclude_keys = pure_list
     (pure_cons (build_pure_c_string ("DEL"), build_pure_c_string ("\\d")),
@@ -3311,7 +3258,6 @@ be preferred.  */);
   defsubr (&Sminor_mode_key_binding);
   defsubr (&Sdefine_key);
   defsubr (&Slookup_key);
-  defsubr (&Sdefine_prefix_command);
   defsubr (&Suse_global_map);
   defsubr (&Suse_local_map);
   defsubr (&Scurrent_local_map);
@@ -3327,11 +3273,4 @@ be preferred.  */);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
   defsubr (&Sdescribe_buffer_bindings);
-}
-
-void
-keys_of_keymap (void)
-{
-  initial_define_key (global_map, 033, "ESC-prefix");
-  initial_define_key (global_map, Ctl ('X'), "Control-X-prefix");
 }

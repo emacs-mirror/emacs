@@ -483,13 +483,13 @@
   (interactive)
   (calc-wrapper
    (let ((lang calc-language))
-     (calc-edit-mode (list 'calc-finish-user-syntax-edit (list 'quote lang))
-		     t
-		     (format "Editing %s-Mode Syntax Table. "
-			     (cond ((null lang) "Normal")
-				   ((eq lang 'tex) "TeX")
-                                   ((eq lang 'latex) "LaTeX")
-				   (t (capitalize (symbol-name lang))))))
+     (calc--edit-mode (lambda () (calc-finish-user-syntax-edit lang))
+		      t
+		      (format "Editing %s-Mode Syntax Table. "
+			      (cond ((null lang) "Normal")
+				    ((eq lang 'tex) "TeX")
+                                    ((eq lang 'latex) "LaTeX")
+				    (t (capitalize (symbol-name lang))))))
      (calc-write-parse-table (cdr (assq lang calc-user-parse-tables))
 			     lang)))
   (calc-show-edit-buffer))
@@ -696,12 +696,13 @@
       (setq cmd (symbol-function cmd)))
     (cond ((or (stringp cmd)
 	       (and (consp cmd)
-		    (eq (car-safe (nth 3 cmd)) 'calc-execute-kbd-macro)))
+		    (eq (car-safe (nth 3 cmd)) #'calc-execute-kbd-macro)))
+           ;; FIXME: Won't (nth 3 cmd) fail when (stringp cmd)?
            (let* ((mac (elt (nth 1 (nth 3 cmd)) 1))
                   (str (edmacro-format-keys mac t))
                   (kys (nth 3 (nth 3 cmd))))
-             (calc-edit-mode
-              (list 'calc-edit-macro-finish-edit cmdname kys)
+             (calc--edit-mode
+              (lambda () (calc-edit-macro-finish-edit cmdname kys))
               t (format (concat
                          "Editing keyboard macro (%s, bound to %s).\n"
                          "Original keys: %s \n")
@@ -719,8 +720,8 @@
 	       (if (and defn (calc-valid-formula-func func))
 		   (let ((niceexpr (math-format-nice-expr defn (frame-width))))
 		     (calc-wrapper
-		      (calc-edit-mode
-                       (list 'calc-finish-formula-edit (list 'quote func))
+		      (calc--edit-mode
+                       (lambda () (calc-finish-formula-edit func))
                        nil
                        (format (concat
                                 "Editing formula (%s, %s, bound to %s).\n"

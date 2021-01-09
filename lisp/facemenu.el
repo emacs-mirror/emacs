@@ -1,4 +1,4 @@
-;;; facemenu.el --- create a face menu for interactively adding fonts to text
+;;; facemenu.el --- create a face menu for interactively adding fonts to text  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1996, 2001-2021 Free Software Foundation, Inc.
 
