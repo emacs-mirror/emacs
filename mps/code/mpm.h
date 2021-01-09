@@ -341,8 +341,8 @@ extern const char *MessageNoGCStartWhy(Message message);
 #define TraceSetComp(ts)            BS_COMP(ts)
 
 #define TRACE_SET_ITER(ti, trace, ts, arena) \
-  for(ti = 0, trace = ArenaTrace(arena, ti); ti < TraceLIMIT; \
-      ++ti, trace = ArenaTrace(arena, ti)) BEGIN \
+  for ((void)(ti = 0), trace = ArenaTrace(arena, ti); ti < TraceLIMIT; \
+       (void)(++ti), trace = ArenaTrace(arena, ti)) BEGIN \
     if (TraceSetIsMember(ts, trace)) {
 
 #define TRACE_SET_ITER_END(ti, trace, ts, arena) } END

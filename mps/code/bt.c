@@ -1005,9 +1005,10 @@ void BTCopyOffsetRange(BT fromBT, BT toBT,
   AVER(toBase < toLimit);
   AVER((fromLimit - fromBase) == (toLimit - toBase));
 
-  for (fromBit = fromBase, toBit = toBase;
+  for ((void)(fromBit = fromBase), toBit = toBase;
        fromBit < fromLimit;
-       ++fromBit, ++toBit) {
+       (void)(++fromBit), ++toBit)
+  {
     if (BTGet(fromBT, fromBit))
       BTSet(toBT, toBit);
     else

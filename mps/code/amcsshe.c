@@ -192,7 +192,7 @@ static void *test(mps_arena_t arena, mps_pool_class_t pool_class,
       if (exactRoots[r] != objNULL) {
         char *p = (char*)exactRoots[r];
 
-        for(i = 0; i < bogusRootsCOUNT; ++i, ++p)
+        for(i = 0; i < bogusRootsCOUNT; (void)(++i), ++p)
           bogusRoots[i] = (mps_addr_t)p;
       }
     }

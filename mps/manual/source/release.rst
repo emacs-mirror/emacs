@@ -95,6 +95,10 @@ Other changes
 
    .. _GitHub issue #51: https://github.com/Ravenbrook/mps/issues/51
 
+#. The MPS now builds with ``clang -Wcomma``. See `GitHub issue #47`_.
+
+   .. _GitHub issue #47: https://github.com/Ravenbrook/mps/issues/47
+
 
 .. _release-notes-1.117:
 
