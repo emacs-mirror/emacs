@@ -4431,7 +4431,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   if (!NILP (Fsymbol_value (Qcomp_libgccjit_reproducer)))
     gcc_jit_context_dump_reproducer_to_file (
       comp.ctxt,
-      format_string ("comp_%s_repro.c", SSDATA (base_name)));
+      format_string ("%s_libgccjit_repro.c", SSDATA (base_name)));
 
   Lisp_Object tmp_file =
     Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);

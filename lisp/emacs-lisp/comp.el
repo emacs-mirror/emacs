@@ -138,8 +138,8 @@ and above."
 
 (defcustom comp-libgccjit-reproducer nil
   "When non-nil produce a libgccjit reproducer.
-The reproducer is a file comp_SRCNAME_repro.c deposed in the .eln
-output directory."
+The reproducer is a file ELNFILENAME_libgccjit_repro.c deposed in
+the .eln output directory."
   :type 'boolean)
 
 (defvar comp-dry-run nil
@@ -3543,6 +3543,7 @@ Prepare every function for final compilation and drive the C back-end."
              (expr `(progn
                       (require 'comp)
                       (setf comp-verbose ,comp-verbose
+                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                             comp-ctxt ,comp-ctxt
                             comp-eln-load-path ',comp-eln-load-path
                             comp-native-driver-options
@@ -3795,6 +3796,7 @@ display a message."
                             (setf comp-speed ,comp-speed
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
+                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                                   comp-async-compilation t
                                   comp-eln-load-path ',comp-eln-load-path
                                   comp-native-driver-options
