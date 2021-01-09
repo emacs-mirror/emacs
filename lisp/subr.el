@@ -1893,9 +1893,14 @@ all symbols are bound before any of the VALUEFORMs are evalled."
                    `(let ,(mapcar #'car binders)
                       ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
                       ,@body))))
-      (if seqbinds
-          `(let* ,(nreverse seqbinds) ,nbody)
-        nbody))))
+      (cond
+       ;; All bindings are recursive.
+       ((null seqbinds) nbody)
+       ;; Special case for trivial uses.
+       ((and (symbolp nbody) (null (cdr seqbinds)) (eq nbody (caar seqbinds)))
+        (nth 1 (car seqbinds)))
+       ;; General case.
+       (t `(let* ,(nreverse seqbinds) ,nbody))))))
 
 (defmacro dlet (binders &rest body)
   "Like `let*' but using dynamic scoping."
