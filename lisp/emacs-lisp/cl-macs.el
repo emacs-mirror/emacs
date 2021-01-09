@@ -3487,8 +3487,8 @@ macro that returns its `&whole' argument."
   (put y 'side-effect-free t))
 
 ;;; Things that are inline.
-(cl-proclaim '(inline cl-acons cl-map cl-concatenate cl-notany
-               cl-notevery cl-revappend cl-nreconc gethash))
+(cl-proclaim '(inline cl-acons cl-map cl-notany cl-notevery cl-revappend
+                      cl-nreconc gethash))
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (function-put x 'side-effect-free t))
