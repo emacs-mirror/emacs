@@ -2121,7 +2121,8 @@ Like `cl-flet' but the definitions can refer to previous ones.
                    ;; Note: it's OK for this `let' to shadow any
                    ;; of the formal arguments since we will only
                    ;; setq the fresh new `ofargs' vars instead ;-)
-                   (let ((shadowings (mapcar #'car bindings)))
+                   (let ((shadowings
+                          (mapcar (lambda (b) (if (consp b) (car b) b)) bindings)))
                      ;; If `var' is shadowed, then it clearly can't be
                      ;; tail-called any more.
                      (not (memq var shadowings)))))
