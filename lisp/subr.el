@@ -1330,7 +1330,9 @@ The normal global definition of the character C-x indirects to this keymap.")
     map)
   "Default global keymap mapping Emacs keyboard input into commands.
 The value is a keymap that is usually (but not necessarily) Emacs's
-global map.")
+global map.
+
+See also `current-global-map'.")
 (use-global-map global-map)
 
 
