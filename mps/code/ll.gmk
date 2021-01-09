@@ -18,6 +18,7 @@ CFLAGSCOMPILER := \
 	-Waggregate-return \
 	-Wall \
 	-Wcast-qual \
+	-Wcomma \
 	-Wconversion \
 	-Wduplicate-enum \
 	-Werror \
