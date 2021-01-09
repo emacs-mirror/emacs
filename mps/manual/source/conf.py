@@ -259,7 +259,7 @@ texinfo_documents = [
 epub_title = u'Memory Pool System'
 epub_author = u'Ravenbrook Limited'
 epub_publisher = u'Ravenbrook Limited'
-epub_copyright = u'2012, Ravenbrook Limited'
+epub_copyright = date.today().strftime(u'%Y, Ravenbrook Limited')
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
