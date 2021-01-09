@@ -774,10 +774,14 @@ Res MRGDeregister(Pool pool, Ref obj)
     AVERT(MRGRefSeg, refSeg);
     linkSeg = refSeg->linkSeg;
     /* map over each guardian in the segment */
-    for(i = 0, link = (Link)SegBase(MustBeA(Seg, linkSeg)),
-          refPart = (RefPart)SegBase(MustBeA(Seg, refSeg));
-        i < nGuardians;
-        ++i, ++link, ++refPart) {
+    for ((void)(i = 0),
+         (void)(link = (Link)SegBase(MustBeA(Seg, linkSeg))),
+         refPart = (RefPart)SegBase(MustBeA(Seg, refSeg));
+         i < nGuardians;
+         (void)(++i),
+         (void)(++link),
+         ++refPart)
+    {
       /* check if it's allocated and points to obj */
       if (link->state == MRGGuardianPREFINAL
           && MRGRefPartRef(arena, refPart) == obj) {

@@ -209,8 +209,8 @@ mps_addr_t rnd_addr(void)
   mps_word_t res;
   unsigned bits;
 
-  for (bits = 0, res = 0; bits < ADDR_BITS;
-       bits += 31, res = res << 31 | (mps_word_t)rnd())
+  for ((void)(bits = 0), res = 0; bits < ADDR_BITS;
+       (void)(bits += 31), res = res << 31 | (mps_word_t)rnd())
     NOOP;
   return (mps_addr_t)res;
 }
