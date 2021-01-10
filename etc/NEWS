@@ -1513,6 +1513,9 @@ that makes it a valid button.
 
 ** Miscellaneous
 
+---
+*** 'process-attributes' now works under OpenBSD, too.
+
 +++
 *** New button face 'flat-button'.
 This is a plain 2D button, but uses the background color instead of
