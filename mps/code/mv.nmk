@@ -20,6 +20,8 @@ LINKER = link
 # /Gs appears to be necessary to suppress stack checks.  Stack checks
 # (if not suppressed) generate a dependency on the C library, __chkesp,
 # which causes the linker step to fail when building the DLL, mpsdy.dll.
+#
+# /W4 /WX might be enabled by clients <design/config/#.warning.impl>.
 CFLAGSCOMMONPRE = $(CFLAGSCOMMONPRE) /D_CRT_SECURE_NO_WARNINGS /W4 /WX /Gs /Fd$(PFM)\$(VARIETY)
 LIBFLAGSCOMMON = $(LIBFLAGSCOMMON) /nologo
 
