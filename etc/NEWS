@@ -1514,7 +1514,9 @@ that makes it a valid button.
 ** Miscellaneous
 
 +++
-*** 'add-to-ordered-list' can now take a test predicate.
+*** New button face 'flat-button'.
+This is a plain 2D button, but uses the background color instead of
+the foreground color.
 
 +++
 *** New predicate functions 'length<', 'length>' and 'length='.
