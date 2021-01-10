@@ -141,8 +141,8 @@ choose_minibuf_frame (void)
       if (!EQ (frame, selected_frame)
           && minibuf_level > 1
 	  /* The frame's minibuffer can be on a different frame.  */
-	  && XWINDOW ((of = XFRAME (frame))->minibuffer_window)->frame
-	  != selected_frame)
+	  && ! EQ (XWINDOW ((of = XFRAME (frame))->minibuffer_window)->frame,
+		   selected_frame))
         {
           if (MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (of))))
             Fset_frame_selected_window (frame, Fframe_first_window (frame),
