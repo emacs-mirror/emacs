@@ -8,7 +8,7 @@
 ;; Keywords: convenience
 ;; Created: 23 Dec 2015
 ;; Package-Requires: ((emacs "24.4"))
-;; Version: 1.0
+;; Version: 1.1
 
 ;; This file is part of GNU Emacs.
 
@@ -391,6 +391,7 @@
 
 ;; * Change Log:
 ;;
+;; 1.1   - ?
 ;; 1.0   - Included in Emacs 27.1, and in GNU ELPA for prior versions of Emacs.
 ;;       - New global mode `global-so-long-mode' to enable/disable the library.
 ;;       - New user option `so-long-action'.
@@ -447,9 +448,10 @@
 ;; (This eliminates the need for explicit :version keywords on the
 ;; custom definitions.)
 (add-to-list 'customize-package-emacs-version-alist
-             '(so-long ("1.0" . "27.1")))
+             '(so-long ("1.0" . "27.1")
+                       ("1.1" . "28.1")))
 
-(defconst so-long--latest-version "1.0")
+(defconst so-long--latest-version "1.1")
 
 (declare-function longlines-mode "longlines")
 (defvar longlines-mode)
