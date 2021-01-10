@@ -286,6 +286,42 @@ this kind is considerable. Such efforts failed in the Electronic
 Publishing division of Harlequin.
 
 
+Warnings and errors
+...................
+
+_`.warning.free`: A consequence of `.import.source`_ is that the MPS
+needs to compile in the context of the client's build system, with
+*whatever compilation and warning options* the client has enabled in
+that system, and this might include options causing warnings to be
+treated as errors. Accordingly, the MPS should compile without
+warnings when enabling the compiler options most likely to be employed
+by clients.
+
+_`.warning.impl`: In order to ensure that the MPS meets the
+requirement in `.warning.free`_, during development and testing of the
+MPS we compile with a large selection of warning options for each
+supported compiler, and with warnings treated as errors so that
+developers do not get into the habit of ignoring warning messages.
+These are enabled in the compiler makefile fragments for each
+compiler, for example ll.gmk_ for Clang/LLVM.
+
+.. _ll.gmk: ../code/ll.gmk
+
+_`.warning.benefit`: The implementation in `.warning.impl`_ also helps
+us keep the code free of subtle compiler issues that break memory
+managers, and free of constructs which might be accidentally
+mis-interpreted by other developers.
+
+_`.warning.silence`: When code needs to be modified, for example by
+adding a cast, to silence a warning that has been analyzed and turned
+out to be harmless, it is best practice to introduce a macro that
+expresses the intention, and cross-reference this paragraph from the
+macro's comment. If the macro is general-purpose then misc.h_ is a
+good place to put it.
+
+.. _misc.h: ../code/misc.h
+
+
 Implementation
 --------------
 
@@ -607,6 +643,8 @@ Document History
   selected).
 
 - 2013-06-06 GDR_ Removed reference to obsolete DIAG variety.
+
+- 2021-01-10 GDR_ Added section on warnings and errors.
 
 .. _RB: https://www.ravenbrook.com/consultants/rb/
 .. _NB: https://www.ravenbrook.com/consultants/nb/
