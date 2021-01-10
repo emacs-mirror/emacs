@@ -70,22 +70,6 @@
                                                        'charset)))
                        "ääää\n"))))))
 
-(ert-deftest test-mm-with-part-multibyte ()
-  (with-temp-buffer
-    (set-buffer-multibyte t)
-    (nnheader-insert-file-contents (ert-resource-file "8bit-multipart.bin"))
-    (while (search-forward "\r\n" nil t)
-      (replace-match "\n"))
-    (let ((handle (mm-dissect-buffer)))
-      (pop handle)
-      (let ((part (pop handle)))
-        (should (equal (decode-coding-string
-                        (mm-with-part part
-                          (buffer-string))
-                        (intern (mail-content-type-get (mm-handle-type part)
-                                                       'charset)))
-                       "ääää\n"))))))
-
 (ert-deftest test-mm-dissect-buffer-win1252 ()
   (with-temp-buffer
     (set-buffer-multibyte nil)
