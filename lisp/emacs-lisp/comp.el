@@ -142,6 +142,9 @@ The reproducer is a file ELNFILENAME_libgccjit_repro.c deposed in
 the .eln output directory."
   :type 'boolean)
 
+(defvar comp-log-time-report nil
+  "If non-nil, log a time report for each pass.")
+
 (defvar comp-dry-run nil
   "If non-nil, run everything but the C back-end.")
 
@@ -3869,15 +3872,24 @@ load once finished compiling."
                                     :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
-        (mapc (lambda (pass)
-                (unless (memq pass comp-disabled-passes)
-                  (comp-log (format "(%s) Running pass %s:\n"
-                                    function-or-file pass)
-                            2)
-                  (setf data (funcall pass data))
-                  (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                           do (funcall f data))))
-              comp-passes)
+        (cl-loop
+         with report = nil
+         for t0 = (current-time)
+         for pass in comp-passes
+         unless (memq pass comp-disabled-passes)
+         do
+         (comp-log (format "(%s) Running pass %s:\n"
+                           function-or-file pass)
+                   2)
+         (setf data (funcall pass data))
+         (push (cons pass (float-time (time-since t0))) report)
+         (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                  do (funcall f data))
+         finally
+         (when comp-log-time-report
+           (comp-log (format "Done compiling %s" data) 0)
+           (cl-loop for (pass . time) in (reverse report)
+                    do (comp-log (format "Pass %s took: %fs." pass time) 0))))
       (native-compiler-error
        ;; Add source input.
        (let ((err-val (cdr err)))
