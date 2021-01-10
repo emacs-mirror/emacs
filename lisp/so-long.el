@@ -50,16 +50,17 @@
 ;; performance further, as well as making the so-long activity more obvious to
 ;; the user.  These kinds of minified files are typically not intended to be
 ;; edited, so not providing the usual editing mode in such cases will rarely be
-;; an issue.  However, you can reinstate the original state of the buffer by
-;; calling `so-long-revert' (the key binding of which is advertised when the major
-;; mode change occurs).  If you prefer that the major mode not be changed, you
-;; can customize the `so-long-minor-mode' action.
+;; an issue; however you can restore the buffer to its original state by calling
+;; `so-long-revert' (the key binding of which is advertised when the major mode
+;; change occurs).  If you prefer that the major mode not be changed in the
+;; first place, there is a `so-long-minor-mode' action available, which you can
+;; select by customizing the `so-long-action' user option.
 ;;
 ;; The user options `so-long-action' and `so-long-action-alist' determine what
-;; actions `so-long' and `so-long-revert' will take.  This allows you to configure
-;; alternative actions (including custom actions).  As well as
-;; the major and minor mode actions provided by this library, `longlines-mode'
-;; is also supported by default as an alternative action.
+;; `so-long' and `so-long-revert' will do, enabling you to configure alternative
+;; actions (including custom actions).  As well as the major and minor mode
+;; actions provided by this library, `longlines-mode' is also supported by
+;; default as an alternative action.
 ;;
 ;; Note that while the measures taken can improve performance dramatically when
 ;; dealing with such files, this library does not have any effect on the
@@ -152,7 +153,7 @@
 ;; * Files with a file-local 'mode'
 ;; --------------------------------
 ;; A file-local major mode is likely to be safe even if long lines are detected
-;; (as the author of the file would otherwise be unlikely to have set that mode),
+;; (the author of the file would otherwise be unlikely to have set that mode),
 ;; and so these files are treated as special cases.  When a file-local 'mode' is
 ;; present, the function defined by the `so-long-file-local-mode-function' user
 ;; option is called.  The default value will cause the `so-long-minor-mode'
@@ -442,6 +443,9 @@
 
 (require 'cl-lib)
 
+;; Map each :package-version to the associated Emacs version.
+;; (This eliminates the need for explicit :version keywords on the
+;; custom definitions.)
 (add-to-list 'customize-package-emacs-version-alist
              '(so-long ("1.0" . "27.1")))
 
@@ -1191,7 +1195,8 @@ This minor mode is a standard `so-long-action' option."
         ;; Housekeeping.  `so-long-minor-mode' might be invoked directly rather
         ;; than via `so-long', so replicate the necessary behaviours.  The minor
         ;; mode also cares about whether `so-long' was already active, as we do
-        ;; not want to remember values which were potentially overridden already.
+        ;; not want to remember values which were (potentially) overridden
+        ;; already.
         (unless (or so-long--calling so-long--active)
           (so-long--ensure-enabled)
           (setq so-long--active t
@@ -1896,7 +1901,7 @@ If it appears in `%s', you should remove it."
       (unless global-so-long-mode
         (global-so-long-mode 1)))
     (makunbound 'so-long-mode-enabled))
-  ;; Update to version 1.N:
+  ;; Update to version 1.N from earlier versions:
   ;; (when (version< so-long-version "1.N") ...)
   ;;
   ;; All updates completed.
