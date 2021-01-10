@@ -1201,7 +1201,9 @@ Commands:
 (define-derived-mode mercury-mode prolog-mode "Prolog[Mercury]"
   "Major mode for editing Mercury programs.
 Actually this is just customized `prolog-mode'."
-  (setq-local prolog-system 'mercury))
+  (setq-local prolog-system 'mercury)
+  ;; Run once more to set up based on `prolog-system'
+  (prolog-mode-variables))
 
 
 ;;-------------------------------------------------------------------
@@ -2082,7 +2084,7 @@ Argument BOUND is a buffer position limiting searching."
     (delq
      nil
      (cond
-      ((eq major-mode 'prolog-mode)
+      ((derived-mode-p 'prolog-mode)
        (list
         head-predicates
         head-predicates-1
