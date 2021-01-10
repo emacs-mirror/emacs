@@ -347,6 +347,8 @@ is set to nil, this message is inhibited.
 
 ** Python mode
 
+*** 'python-shell-interpreter' now defaults to python3 on systems with python3.
+
 *** 'C-c C-r' can now be used on arbitrary regions.
 The command previously extended the start of the region to the start
 of the line, but will now actually send the marked region, as
