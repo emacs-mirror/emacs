@@ -393,6 +393,7 @@
 ;;
 ;; 1.1   - Increase `so-long-threshold' from 250 to 10,000.
 ;;       - Increase `so-long-max-lines' from 5 to 500.
+;;       - Include `fundamental-mode' in `so-long-target-modes'.
 ;; 1.0   - Included in Emacs 27.1, and in GNU ELPA for prior versions of Emacs.
 ;;       - New global mode `global-so-long-mode' to enable/disable the library.
 ;;       - New user option `so-long-action'.
@@ -528,7 +529,7 @@ See `so-long-detected-long-line-p' for details."
   :package-version '(so-long . "1.0"))
 
 (defcustom so-long-target-modes
-  '(prog-mode css-mode sgml-mode nxml-mode)
+  '(prog-mode css-mode sgml-mode nxml-mode fundamental-mode)
   "`so-long' affects only these modes and their derivatives.
 
 Our primary use-case is minified programming code, so `prog-mode' covers
@@ -541,7 +542,7 @@ files would prevent Emacs from handling them correctly."
   ;; Use 'symbol', as 'function' may be unknown => mismatch.
   :type '(choice (repeat :tag "Specified modes" symbol)
                  (const :tag "All modes" t))
-  :package-version '(so-long . "1.0"))
+  :package-version '(so-long . "1.1"))
 
 (defcustom so-long-invisible-buffer-function #'so-long-deferred
   "Function called in place of `so-long' when the buffer is not displayed.
