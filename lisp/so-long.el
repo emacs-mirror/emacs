@@ -391,7 +391,8 @@
 
 ;; * Change Log:
 ;;
-;; 1.1   - ?
+;; 1.1   - Increase `so-long-threshold' from 250 to 10,000.
+;;       - Increase `so-long-max-lines' from 5 to 500.
 ;; 1.0   - Included in Emacs 27.1, and in GNU ELPA for prior versions of Emacs.
 ;;       - New global mode `global-so-long-mode' to enable/disable the library.
 ;;       - New user option `so-long-action'.
@@ -494,14 +495,14 @@
   :prefix "so-long"
   :group 'convenience)
 
-(defcustom so-long-threshold 250
+(defcustom so-long-threshold 10000
   "Maximum line length permitted before invoking `so-long-function'.
 
 See `so-long-detected-long-line-p' for details."
   :type 'integer
-  :package-version '(so-long . "1.0"))
+  :package-version '(so-long . "1.1"))
 
-(defcustom so-long-max-lines 5
+(defcustom so-long-max-lines 500
   "Number of non-blank, non-comment lines to test for excessive length.
 
 If nil then all lines will be tested, until either a long line is detected,
@@ -513,7 +514,7 @@ be counted.
 See `so-long-detected-long-line-p' for details."
   :type '(choice (integer :tag "Limit")
                  (const :tag "Unlimited" nil))
-  :package-version '(so-long . "1.0"))
+  :package-version '(so-long . "1.1"))
 
 (defcustom so-long-skip-leading-comments t
   "Non-nil to ignore all leading comments and whitespace.

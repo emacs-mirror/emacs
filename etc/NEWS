@@ -2854,6 +2854,13 @@ GPG key servers can now be queried for keys with the
 'M-x epa-search-keys' command.  Keys can then be added to your
 personal key ring.
 
+** So Long
+
+---
+*** 'so-long-threshold' and 'so-long-max-lines' have been raised to
+10000 characters and 500 lines respectively, to reduce the likelihood
+of false-positives when 'global-so-long-mode' is enabled.
+
 
 * New Modes and Packages in Emacs 28.1
 
