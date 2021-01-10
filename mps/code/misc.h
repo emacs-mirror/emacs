@@ -245,6 +245,13 @@ typedef const struct SrcIdStruct {
 #define ERRNO_RESTORE END; errno = _saved_errno; END
 
 
+/* Iterate over two expressions in parallel, avoiding warnings from
+ * clang -Wcomma -std=c89.
+ */
+
+#define ITER_PARALLEL(expr1, expr2) ((void)(expr1), expr2)
+
+
 #endif /* misc_h */
 
 
