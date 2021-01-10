@@ -331,7 +331,7 @@ static void arena_commit_test(mps_arena_t arena)
   reserved = mps_arena_reserved(arena);
   Insist(0.0 <= spare);
   Insist(spare <= 1.0);
-  Insist(spare_committed <= spare * committed);
+  Insist((double)spare_committed <= spare * (double)committed);
   Insist(spare_committed < committed);
   Insist(committed <= reserved);
   Insist(committed <= limit);
