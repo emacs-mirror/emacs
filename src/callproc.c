@@ -1336,7 +1336,7 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
 	     would work?  */
 	  if (std_in >= 0)
 	    emacs_close (std_in);
-	  std_out = std_in = emacs_open (pty, O_RDWR, 0);
+          std_out = std_in = emacs_open_noquit (pty, O_RDWR, 0);
 
 	  if (std_in < 0)
 	    {

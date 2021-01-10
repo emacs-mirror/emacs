@@ -2320,6 +2320,28 @@ emacs_open (char const *file, int oflags, int mode)
   return emacs_openat (AT_FDCWD, file, oflags, mode);
 }
 
+/* Same as above, but doesn't allow the user to quit.  */
+
+static int
+emacs_openat_noquit (int dirfd, const char *file, int oflags,
+                     int mode)
+{
+  int fd;
+  if (! (oflags & O_TEXT))
+    oflags |= O_BINARY;
+  oflags |= O_CLOEXEC;
+  do
+    fd = openat (dirfd, file, oflags, mode);
+  while (fd < 0 && errno == EINTR);
+  return fd;
+}
+
+int
+emacs_open_noquit (char const *file, int oflags, int mode)
+{
+  return emacs_openat_noquit (AT_FDCWD, file, oflags, mode);
+}
+
 /* Open FILE as a stream for Emacs use, with mode MODE.
    Act like emacs_open with respect to threads, signals, and quits.  */
 
