@@ -58,7 +58,7 @@
 (declare-function so-long-tests-assert-reverted "so-long-tests-helpers")
 (declare-function so-long-tests-assert-and-revert "so-long-tests-helpers")
 
-;; Enable the automated behavior for all tests.
+;; Enable the automated behaviour for all tests.
 (global-so-long-mode 1)
 
 (ert-deftest so-long-tests-threshold-under ()
@@ -180,7 +180,7 @@
       ;; From Emacs 27 the `display-buffer' call is insufficient.
       ;; The various 'window change functions' are now invoked by the
       ;; redisplay, and redisplay does nothing at all in batch mode,
-      ;; so we cannot test under this revised behavior.  Refer to:
+      ;; so we cannot test under this revised behaviour.  Refer to:
       ;; https://lists.gnu.org/r/emacs-devel/2019-10/msg00971.html
       ;; For interactive (non-batch) test runs, calling `redisplay'
       ;; does do the trick; so do that first.
@@ -405,7 +405,10 @@
          (insert ,local-vars)
          (normal-mode)
          ;; Remember the `emacs-lisp-mode' state.  The other cases
-         ;; will validate the 'reverted' state against this.
+         ;; will validate the 'reverted' state against this.  (Note
+         ;; that we haven't displayed the buffer, and therefore only
+         ;; `so-long-invisible-buffer-function' has acted, so we are
+         ;; still remembering the 'before' state.)
          (so-long-tests-remember)
          (should (eq major-mode 'emacs-lisp-mode)))
        ;; Downgrade the action from major mode to minor mode.

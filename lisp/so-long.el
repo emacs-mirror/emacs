@@ -1346,14 +1346,15 @@ Calls `so-long-disable-minor-modes' and `so-long-override-variables'."
 (defun so-long-disable-minor-modes ()
   "Disable any active minor modes listed in `so-long-minor-modes'."
   (dolist (mode (so-long-original 'so-long-minor-modes))
-    (when (and (boundp mode) mode)
+    (when (and (boundp mode)
+               (symbol-value mode))
       (funcall mode 0))))
 
 (defun so-long-restore-minor-modes ()
   "Restore the minor modes which were disabled.
 
 The modes are enabled in accordance with what was remembered in `so-long'."
-  (dolist (mode so-long-minor-modes)
+  (dolist (mode (so-long-original 'so-long-minor-modes))
     (when (and (so-long-original mode)
                (boundp mode)
                (not (symbol-value mode)))
@@ -1368,7 +1369,7 @@ The modes are enabled in accordance with what was remembered in `so-long'."
   "Restore the remembered values for the overridden variables.
 
 The variables are set in accordance with what was remembered in `so-long'."
-  (dolist (ovar so-long-variable-overrides)
+  (dolist (ovar (so-long-original 'so-long-variable-overrides))
     (so-long-restore-variable (car ovar))))
 
 (defun so-long-restore-variable (variable)
