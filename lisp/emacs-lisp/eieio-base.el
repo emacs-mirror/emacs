@@ -264,12 +264,17 @@ objects found there."
   (:method
    ((objclass (subclass eieio-default-superclass)) inputlist)
 
-   (let ((slots (if (stringp (car inputlist))
-                    ;; Earlier versions of `object-write' added a
-                    ;; string name for the object, now obsolete.
-                    (cdr inputlist)
-                  inputlist))
-         (createslots nil))
+   (let* ((name nil)
+          (slots (if (stringp (car inputlist))
+                     (progn
+                       ;; Earlier versions of `object-write' added a
+                       ;; string name for the object, now obsolete.
+                       ;; Save as 'name' in case this object is subclass
+                       ;; of eieio-named with no :object-name slot specified.
+                       (setq name (car inputlist))
+                       (cdr inputlist))
+                   inputlist))
+          (createslots nil))
      ;; If OBJCLASS is an eieio autoload object, then we need to
      ;; load it (we don't need the return value).
      (eieio--full-class-object objclass)
@@ -286,7 +291,17 @@ objects found there."
 
        (setq slots (cdr (cdr slots))))
 
-     (apply #'make-instance objclass (nreverse createslots)))))
+     (let ((newobj (apply #'make-instance objclass (nreverse createslots))))
+
+       ;; Check for special case of subclass of `eieio-named', and do
+       ;; name assignment.
+       (when (and eieio-backward-compatibility
+                  (object-of-class-p newobj eieio-named)
+                  (not (oref newobj object-name))
+                  name)
+         (oset newobj object-name name))
+
+       newobj))))
 
 (defun eieio-persistent-fix-value (proposed-value)
   "Fix PROPOSED-VALUE.
