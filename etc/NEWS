@@ -701,6 +701,13 @@ not.
 
 ** Message
 
+---
+*** Respect 'message-forward-ignored-headers' more.
+Previously, this variable would not be consulted if
+'message-forward-show-mml' was nil.  It's now always used, except if
+'message-forward-show-mml' is 'best', and we're forwarding an
+encrypted/signed message.
+
 +++
 *** Message now supports the OpenPGP header.
 To generate these headers, add the new function
