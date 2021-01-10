@@ -692,8 +692,7 @@ status_convert (int w)
   if (WIFSTOPPED (w))
     return Fcons (Qstop, Fcons (make_fixnum (WSTOPSIG (w)), Qnil));
   else if (WIFEXITED (w))
-    return Fcons (Qexit, Fcons (make_fixnum (WEXITSTATUS (w)),
-				WCOREDUMP (w) ? Qt : Qnil));
+    return Fcons (Qexit, Fcons (make_fixnum (WEXITSTATUS (w)), Qnil));
   else if (WIFSIGNALED (w))
     return Fcons (Qsignal, Fcons (make_fixnum (WTERMSIG (w)),
 				  WCOREDUMP (w) ? Qt : Qnil));
