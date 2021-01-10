@@ -1,4 +1,4 @@
-;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
+;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 1997, 1999-2000, 2002-2021 Free Software
 ;; Foundation, Inc.
@@ -93,6 +93,7 @@ Otherwise, it is nil.")
       "\\)" file-name-version-regexp "?\\'"))))
 
 ;; Functions for accessing the return value of jka-compr-get-compression-info
+;; FIXME: Use cl-defstruct!
 (defun jka-compr-info-regexp               (info)  (aref info 0))
 (defun jka-compr-info-compress-message     (info)  (aref info 1))
 (defun jka-compr-info-compress-program     (info)  (aref info 2))

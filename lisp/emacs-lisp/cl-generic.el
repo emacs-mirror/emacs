@@ -304,15 +304,6 @@ the specializer used will be the one returned by BODY."
           (lambda ,args ,@body))))
 
 (eval-and-compile         ;Needed while compiling the cl-defmethod calls below!
-  (defun cl--generic-fgrep (vars sexp)    ;Copied from pcase.el.
-    "Check which of the symbols VARS appear in SEXP."
-    (let ((res '()))
-      (while (consp sexp)
-        (dolist (var (cl--generic-fgrep vars (pop sexp)))
-          (unless (memq var res) (push var res))))
-      (and (memq sexp vars) (not (memq sexp res)) (push sexp res))
-      res))
-
   (defun cl--generic-split-args (args)
     "Return (SPEC-ARGS . PLAIN-ARGS)."
     (let ((plain-args ())
@@ -375,11 +366,11 @@ the specializer used will be the one returned by BODY."
                 ;; is used.
                 ;; FIXME: Also, optimize the case where call-next-method is
                 ;; only called with explicit arguments.
-                (uses-cnm (cl--generic-fgrep (list cnm nmp) nbody)))
+                (uses-cnm (macroexp--fgrep `((,cnm) (,nmp)) nbody)))
            (cons (not (not uses-cnm))
                  `#'(lambda (,@(if uses-cnm (list cnm)) ,@args)
                       ,@(car parsed-body)
-                      ,(if (not (memq nmp uses-cnm))
+                      ,(if (not (assq nmp uses-cnm))
                            nbody
                          `(let ((,nmp (lambda ()
                                         (cl--generic-isnot-nnm-p ,cnm))))
@@ -617,11 +608,11 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
             (lambda (,@fixedargs &rest args)
               (let ,bindings
                 (apply (cl--generic-with-memoization
-                        (gethash ,tag-exp method-cache)
-                        (cl--generic-cache-miss
-                         generic ',dispatch-arg dispatches-left methods
-                         ,(if (cdr typescodes)
-                              `(append ,@typescodes) (car typescodes))))
+                           (gethash ,tag-exp method-cache)
+                         (cl--generic-cache-miss
+                          generic ',dispatch-arg dispatches-left methods
+                          ,(if (cdr typescodes)
+                               `(append ,@typescodes) (car typescodes))))
                        ,@fixedargs args)))))))))
 
 (defun cl--generic-make-function (generic)
@@ -1110,7 +1101,8 @@ These match if the argument is a cons cell whose car is `eql' to VAL."
   (if (not (eq (car-safe specializer) 'head))
       (cl-call-next-method)
     (cl--generic-with-memoization
-        (gethash (cadr specializer) cl--generic-head-used) specializer)
+        (gethash (cadr specializer) cl--generic-head-used)
+      specializer)
     (list cl--generic-head-generalizer)))
 
 (cl--generic-prefill-dispatchers 0 (head eql))

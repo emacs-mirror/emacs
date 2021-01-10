@@ -1265,7 +1265,7 @@ delivered."
 ;; Unpredictable failures, eg https://hydra.nixos.org/build/86016286
 (file-notify--deftest-remote file-notify-test07-many-events
   "Check that events are not dropped for remote directories."
-  (getenv "EMACS_HYDRA_CI"))
+  (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI")))
 
 (ert-deftest file-notify-test08-backup ()
   "Check that backup keeps file notification."

@@ -928,8 +928,10 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
           (or
            (assoc-default 'fetched-xrefs alist)
            (funcall fetcher)))
-         (xref-alist (xref--analyze xrefs)))
+         (xref-alist (xref--analyze xrefs))
+         (dd default-directory))
     (with-current-buffer (get-buffer-create xref-buffer-name)
+      (setq default-directory dd)
       (xref--xref-buffer-mode)
       (xref--show-common-initialize xref-alist fetcher alist)
       (pop-to-buffer (current-buffer))
@@ -992,13 +994,15 @@ When only one definition found, jump to it right away instead."
 When there is more than one definition, split the selected window
 and show the list in a small window at the bottom.  And use a
 local keymap that binds `RET' to `xref-quit-and-goto-xref'."
-  (let ((xrefs (funcall fetcher)))
+  (let ((xrefs (funcall fetcher))
+        (dd default-directory))
     (cond
      ((not (cdr xrefs))
       (xref-pop-to-location (car xrefs)
                             (assoc-default 'display-action alist)))
      (t
       (with-current-buffer (get-buffer-create xref-buffer-name)
+        (setq default-directory dd)
         (xref--transient-buffer-mode)
         (xref--show-common-initialize (xref--analyze xrefs) fetcher alist)
         (pop-to-buffer (current-buffer)
@@ -1374,7 +1378,8 @@ IGNORES is a list of glob patterns for files to ignore."
        ;; do that reliably enough, without creating false negatives?
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
-                                     (file-local-name (expand-file-name dir))
+                                     (file-name-as-directory
+                                      (file-local-name (expand-file-name dir)))
                                      ignores))
        (def default-directory)
        (buf (get-buffer-create " *xref-grep*"))

@@ -35,6 +35,11 @@
 It is called with one argument, the minibuffer depth,
 and must return a string.")
 
+(defface minibuffer-depth-indicator '((t :inherit highlight))
+  "Face to use for minibuffer depth indicator."
+  :group 'minibuffer
+  :version "28.1")
+
 ;; An overlay covering the prompt.  This is a buffer-local variable in
 ;; each affected minibuffer.
 ;;
@@ -52,7 +57,10 @@ The prompt should already have been inserted."
       (overlay-put minibuffer-depth-overlay 'before-string
                    (if minibuffer-depth-indicator-function
                        (funcall minibuffer-depth-indicator-function depth)
-                     (propertize (format "[%d]" depth) 'face 'highlight)))
+                     (concat (propertize (format "[%d]" depth)
+                                         'face
+                                         'minibuffer-depth-indicator)
+                             " ")))
       (overlay-put minibuffer-depth-overlay 'evaporate t))))
 
 ;;;###autoload

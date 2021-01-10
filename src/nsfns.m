@@ -1485,14 +1485,14 @@ Some window managers may refuse to restack windows.  */)
 
   if (FRAME_NS_VIEW (f1) && FRAME_NS_VIEW (f2))
     {
-      NSWindow *window = [FRAME_NS_VIEW (f1) window];
-      NSInteger window2 = [[FRAME_NS_VIEW (f2) window] windowNumber];
-      NSWindowOrderingMode flag = NILP (above) ? NSWindowBelow : NSWindowAbove;
+      EmacsWindow *window = (EmacsWindow *)[FRAME_NS_VIEW (f1) window];
+      NSWindow *window2 = [FRAME_NS_VIEW (f2) window];
+      BOOL flag = !NILP (above);
 
-      [window orderWindow: flag
-               relativeTo: window2];
-
-      return Qt;
+      if ([window restackWindow:window2 above:!NILP (above)])
+        return Qt;
+      else
+        return Qnil;
     }
   else
     {

@@ -1,4 +1,4 @@
-;;; characters.el --- set syntax and category for multibyte characters
+;;; characters.el --- set syntax and category for multibyte characters  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2000-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -526,9 +526,6 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; FIXME: We should probably just use the Unicode properties to set
   ;; up the syntax table.
 
-  ;; NBSP isn't semantically interchangeable with other whitespace chars,
-  ;; so it's more like punctuation.
-  (set-case-syntax ?  "." tbl)
   (set-case-syntax ?¡ "." tbl)
   (set-case-syntax ?¦ "_" tbl)
   (set-case-syntax ?§ "." tbl)
@@ -602,11 +599,17 @@ with L, LRE, or LRO Unicode bidi character type.")
   ;; Cyrillic Extended-C
   (modify-category-entry '(#x1C80 . #x1C8F) ?y)
 
-  ;; general punctuation
+  ;; space characters (see section 6.2 in the Unicode Standard)
+  (set-case-syntax ?  " " tbl)
   (setq c #x2000)
   (while (<= c #x200b)
     (set-case-syntax c " " tbl)
     (setq c (1+ c)))
+  (let ((chars '(#x202F #x205F #x3000)))
+    (while chars
+      (set-case-syntax (car chars) " " tbl)
+      (setq chars (cdr chars))))
+  ;; general punctuation
   (while (<= c #x200F)
     (set-case-syntax c "." tbl)
     (setq c (1+ c)))

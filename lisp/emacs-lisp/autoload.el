@@ -220,16 +220,27 @@ expression, in which case we want to handle forms differently."
 
      ;; Convert defcustom to less space-consuming data.
      ((eq car 'defcustom)
-      (let ((varname (car-safe (cdr-safe form)))
-	    (init (car-safe (cdr-safe (cdr-safe form))))
-	    (doc (car-safe (cdr-safe (cdr-safe (cdr-safe form)))))
-	    ;; (rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form)))))
-	    )
+      (let* ((varname (car-safe (cdr-safe form)))
+	     (props (nthcdr 4 form))
+	     (initializer (plist-get props :initialize))
+	     (init (car-safe (cdr-safe (cdr-safe form))))
+	     (doc (car-safe (cdr-safe (cdr-safe (cdr-safe form)))))
+	     ;; (rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form)))))
+	     )
 	`(progn
-	   (defvar ,varname ,init ,doc)
+	   ,(if (not (member initializer '(nil 'custom-initialize-default
+	                                   #'custom-initialize-default
+	                                   'custom-initialize-reset
+	                                   #'custom-initialize-reset)))
+	        form
+	      `(defvar ,varname ,init ,doc))
+	   ;; When we include the complete `form', this `custom-autoload'
+           ;; is not indispensable, but it still helps in case the `defcustom'
+           ;; doesn't specify its group explicitly, and probably in a few other
+           ;; corner cases.
 	   (custom-autoload ',varname ,file
                             ,(condition-case nil
-                                 (null (cadr (memq :set form)))
+                                 (null (plist-get props :set))
                                (error nil))))))
 
      ((eq car 'defgroup)

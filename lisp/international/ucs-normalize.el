@@ -1,4 +1,4 @@
-;;; ucs-normalize.el --- Unicode normalization NFC/NFD/NFKD/NFKC
+;;; ucs-normalize.el --- Unicode normalization NFC/NFD/NFKD/NFKC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
@@ -185,7 +185,7 @@
   ;; always returns nil, something the code here doesn't like.
   (define-char-code-property 'decomposition "uni-decomposition.el")
   (define-char-code-property 'canonical-combining-class "uni-combining.el")
-  (let ((char 0) ccc decomposition)
+  (let (ccc decomposition)
     (mapc
      (lambda (start-end)
        (cl-do ((char (car start-end) (+ char 1))) ((> char (cdr start-end)))

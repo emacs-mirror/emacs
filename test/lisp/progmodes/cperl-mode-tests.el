@@ -135,6 +135,37 @@ point in the distant past, and is still broken in perl-mode. "
         (should (equal (nth 3 (syntax-ppss)) nil))
         (should (equal (nth 4 (syntax-ppss)) t))))))
 
+(ert-deftest cperl-test-heredocs ()
+  "Test that HERE-docs are fontified with the appropriate face."
+  (require 'perl-mode)
+  (let ((file (ert-resource-file "here-docs.pl"))
+        (cperl-continued-statement-offset perl-continued-statement-offset)
+        (target-font (if (equal cperl-test-mode 'perl-mode) 'perl-heredoc
+                       'font-lock-string-face))
+        (case-fold-search nil))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (funcall cperl-test-mode)
+      (indent-region (point-min) (point-max))
+      (font-lock-ensure (point-min) (point-max))
+      (while (search-forward "## test case" nil t)
+        (save-excursion
+          (while (search-forward "look-here" nil t)
+            (should (equal
+                     (get-text-property (match-beginning 0) 'face)
+                     target-font))
+            (beginning-of-line)
+            (should (null (looking-at "[ \t]")))
+            (forward-line 1)))
+        (should (re-search-forward
+                 (concat "^\\([ \t]*\\)" ; the actual indentation amount
+                         "\\([^ \t\n].*?\\)\\(no\\)?indent")
+                 nil t))
+        (should (equal (- (match-end 1) (match-beginning 1))
+                       (if (match-beginning 3) 0
+                         perl-indent-level)))))))
+
 ;;; Tests for issues reported in the Bug Tracker
 
 (defun cperl-test--run-bug-10483 ()
@@ -164,6 +195,7 @@ under timeout control."
   (interactive)
   (skip-unless (not (getenv "EMACS_HYDRA_CI"))) ; FIXME times out
   (skip-unless (not (< emacs-major-version 28))) ; times out in older Emacsen
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
   (let* ((emacs (concat invocation-directory invocation-name))
          (test-function 'cperl-test--run-bug-10483)
          (test-function-name (symbol-name test-function))

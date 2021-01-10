@@ -25,7 +25,8 @@
 ;;; Commentary:
 
 ;; This game can be run in batch mode.  To do this, use:
-;;    emacs -batch -l dunnet
+;;
+;;    emacs --batch -f dunnet
 
 ;;; Code:
 
@@ -1170,11 +1171,13 @@ treasures for points?" "4" "four")
 (defun dunnet ()
   "Switch to *dungeon* buffer and start game."
   (interactive)
-  (pop-to-buffer-same-window "*dungeon*")
-  (dun-mode)
-  (setq dun-dead nil)
-  (setq dun-room 0)
-  (dun-messages))
+  (if noninteractive
+      (dun--batch)
+    (pop-to-buffer-same-window "*dungeon*")
+    (dun-mode)
+    (setq dun-dead nil)
+    (setq dun-room 0)
+    (dun-messages)))
 
 ;;;;
 ;;;; This section contains all of the verbs and commands.
@@ -3126,8 +3129,7 @@ File not found")))
   (dun-mprinc "\n")
   (dun-batch-loop))
 
-;;;###autoload
-(defun dun-batch ()
+(defun dun--batch ()
   "Start `dunnet' in batch mode."
   (fset 'dun-mprinc #'dun-batch-mprinc)
   (fset 'dun-mprincl #'dun-batch-mprincl)
@@ -3139,6 +3141,17 @@ File not found")))
   (dun-mprinc "\n")
   (setq dun-batch-mode t)
   (dun-batch-loop))
+
+;; Apparently, there are many references out there to running us via
+;;
+;;     emacs --batch -l dunnet
+;;
+;; So try and accommodate those without interfering with other cases
+;; where `dunnet.el' might be loaded in batch mode with no intention
+;; to run the game.
+(when (and noninteractive
+           (equal '("-l" "dunnet") (member "-l" command-line-args)))
+  (dun--batch))
 
 (provide 'dunnet)
 

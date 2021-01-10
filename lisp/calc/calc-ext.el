@@ -1195,7 +1195,7 @@ calc-set-xor calc-sort calc-subvector calc-tail calc-transpose
 calc-unpack calc-unpack-bits calc-vector-find calc-vlength)
 
  ("calc-yank" calc-copy-as-kill calc-copy-region-as-kill
-calc-copy-to-buffer calc-edit calc-edit-cancel calc-edit-mode
+calc-copy-to-buffer calc-edit calc-edit-cancel calc--edit-mode
 calc-kill calc-kill-region calc-yank))))
 
 (defun calc-init-prefixes ()

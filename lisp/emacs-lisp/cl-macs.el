@@ -2060,10 +2060,99 @@ Like `cl-flet' but the definitions can refer to previous ones.
    ((null (cdr bindings)) `(cl-flet ,bindings ,@body))
    (t `(cl-flet (,(pop bindings)) (cl-flet* ,bindings ,@body)))))
 
+(defun cl--self-tco (var fargs body)
+  ;; This tries to "optimize" tail calls for the specific case
+  ;; of recursive self-calls by replacing them with a `while' loop.
+  ;; It is quite far from a general tail-call optimization, since it doesn't
+  ;; even handle mutually recursive functions.
+  (letrec
+      ((done nil) ;; Non-nil if some TCO happened.
+       (retvar (make-symbol "retval"))
+       (ofargs (mapcar (lambda (s) (if (memq s cl--lambda-list-keywords) s
+                                (make-symbol (symbol-name s))))
+                       fargs))
+       (opt-exps (lambda (exps) ;; `exps' is in tail position!
+                   (append (butlast exps)
+                           (list (funcall opt (car (last exps)))))))
+       (opt
+        (lambda (exp) ;; `exp' is in tail position!
+          (pcase exp
+            ;; FIXME: Optimize `apply'?
+            (`(funcall ,(pred (eq var)) . ,aargs)
+             ;; This is a self-recursive call in tail position.
+             (let ((sets nil)
+                   (fargs ofargs))
+               (while fargs
+                 (pcase (pop fargs)
+                   ('&rest
+                    (push (pop fargs) sets)
+                    (push `(list . ,aargs) sets)
+                    ;; (cl-assert (null fargs))
+                    )
+                   ('&optional nil)
+                   (farg
+                    (push farg sets)
+                    (push (pop aargs) sets))))
+               (setq done t)
+               `(progn (setq . ,(nreverse sets))
+                       :recurse)))
+            (`(progn . ,exps) `(progn . ,(funcall opt-exps exps)))
+            (`(if ,cond ,then . ,else)
+             `(if ,cond ,(funcall opt then) . ,(funcall opt-exps else)))
+            (`(cond . ,conds)
+             (let ((cs '()))
+               (while conds
+                 (pcase (pop conds)
+                   (`(,exp)
+                    (push (if conds
+                              ;; This returns the value of `exp' but it's
+                              ;; only in tail position if it's the
+                              ;; last condition.
+                              `((setq ,retvar ,exp) nil)
+                            `(,(funcall opt exp)))
+                          cs))
+                   (exps
+                    (push (funcall opt-exps exps) cs))))
+               (if (eq t (caar cs))
+                   `(cond . ,(nreverse cs))
+                 `(cond ,@(nreverse cs) (t (setq ,retvar nil))))))
+            ((and `(,(or 'let 'let*) ,bindings . ,exps)
+                  (guard
+                   ;; Note: it's OK for this `let' to shadow any
+                   ;; of the formal arguments since we will only
+                   ;; setq the fresh new `ofargs' vars instead ;-)
+                   (let ((shadowings
+                          (mapcar (lambda (b) (if (consp b) (car b) b)) bindings)))
+                     ;; If `var' is shadowed, then it clearly can't be
+                     ;; tail-called any more.
+                     (not (memq var shadowings)))))
+             `(,(car exp) ,bindings . ,(funcall opt-exps exps)))
+            (_
+             `(progn (setq ,retvar ,exp) nil))))))
+
+    (let ((optimized-body (funcall opt-exps body)))
+      (if (not done)
+          (cons fargs body)
+        ;; We use two sets of vars: `ofargs' and `fargs' because we need
+        ;; to be careful that if a closure captures a formal argument
+        ;; in one iteration, it needs to capture a different binding
+        ;; then that of other iterations, e.g.
+        (cons
+         ofargs
+         `((let (,retvar)
+             (while (let ,(delq nil
+                                (cl-mapcar
+                                 (lambda (a oa)
+                                   (unless (memq a cl--lambda-list-keywords)
+                                     (list a oa)))
+                                 fargs ofargs))
+                      . ,optimized-body))
+             ,retvar)))))))
+
 ;;;###autoload
 (defmacro cl-labels (bindings &rest body)
-    "Make local (recursive) function definitions.
-Each definition can take the form (FUNC ARGLIST BODY...) where
+  "Make local (recursive) function definitions.
++BINDINGS is a list of definitions of the form (FUNC ARGLIST BODY...) where
 FUNC is the function name, ARGLIST its arguments, and BODY the
 forms of the function body.  FUNC is defined in any BODY, as well
 as FORM, so you can write recursive and mutually recursive
@@ -2075,17 +2164,33 @@ details.
   (let ((binds ()) (newenv macroexpand-all-environment))
     (dolist (binding bindings)
       (let ((var (make-symbol (format "--cl-%s--" (car binding)))))
-	(push (list var `(cl-function (lambda . ,(cdr binding)))) binds)
+	(push (cons var (cdr binding)) binds)
 	(push (cons (car binding)
                     (lambda (&rest args)
                       (if (eq (car args) cl--labels-magic)
                           (list cl--labels-magic var)
                         (cl-list* 'funcall var args))))
               newenv)))
-    (macroexpand-all `(letrec ,(nreverse binds) ,@body)
-                     ;; Don't override lexical-let's macro-expander.
-                     (if (assq 'function newenv) newenv
-                       (cons (cons 'function #'cl--labels-convert) newenv)))))
+    ;; Don't override lexical-let's macro-expander.
+    (unless (assq 'function newenv)
+      (push (cons 'function #'cl--labels-convert) newenv))
+    ;; Perform self-tail call elimination.
+    (setq binds (mapcar
+                 (lambda (bind)
+                   (pcase-let*
+                       ((`(,var ,sargs . ,sbody) bind)
+                        (`(function (lambda ,fargs . ,ebody))
+                         (macroexpand-all `(cl-function (lambda ,sargs . ,sbody))
+                                          newenv))
+                        (`(,ofargs . ,obody)
+                         (cl--self-tco var fargs ebody)))
+                     `(,var (function (lambda ,ofargs . ,obody)))))
+                 (nreverse binds)))
+    `(letrec ,binds
+       . ,(macroexp-unprogn
+           (macroexpand-all
+            (macroexp-progn body)
+            newenv)))))
 
 ;; The following ought to have a better definition for use with newer
 ;; byte compilers.
@@ -3383,8 +3488,8 @@ macro that returns its `&whole' argument."
   (put y 'side-effect-free t))
 
 ;;; Things that are inline.
-(cl-proclaim '(inline cl-acons cl-map cl-concatenate cl-notany
-               cl-notevery cl-revappend cl-nreconc gethash))
+(cl-proclaim '(inline cl-acons cl-map cl-notany cl-notevery cl-revappend
+                      cl-nreconc gethash))
 
 ;;; Things that are side-effect-free.
 (mapc (lambda (x) (function-put x 'side-effect-free t))

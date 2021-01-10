@@ -1,4 +1,4 @@
-;;; disp-table.el --- functions for dealing with char tables
+;;; disp-table.el --- functions for dealing with char tables  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1987, 1994-1995, 1999, 2001-2021 Free Software
 ;; Foundation, Inc.

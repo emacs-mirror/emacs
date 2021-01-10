@@ -396,7 +396,7 @@
     (calc-wrapper
      (setq str (math-showing-full-precision
 		(math-format-nice-expr (aref info 8) (frame-width))))
-     (calc-edit-mode (list 'calc-embedded-finish-edit info))
+     (calc--edit-mode (lambda () (calc-embedded-finish-edit info)))
      (insert str "\n")))
   (calc-show-edit-buffer)))
 

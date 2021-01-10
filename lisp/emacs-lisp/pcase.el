@@ -344,7 +344,7 @@ of the elements of LIST is performed as if by `pcase-let'.
            (seen '())
            (codegen
             (lambda (code vars)
-              (let ((vars (pcase--fgrep vars code))
+              (let ((vars (macroexp--fgrep vars code))
                     (prev (assq code seen)))
                 (if (not prev)
                     (let ((res (pcase-codegen code vars)))
@@ -401,7 +401,7 @@ of the elements of LIST is performed as if by `pcase-let'.
                                  ;; occurrences of this leaf since it's small.
                                  (lambda (code vars)
                                    (pcase-codegen code
-                                                  (pcase--fgrep vars code)))
+                                                  (macroexp--fgrep vars code)))
                                codegen)
                              (cdr case)
                              vars))))
@@ -668,7 +668,7 @@ MATCH is the pattern that needs to be matched, of the form:
                ;; run, but we don't have the environment in which `pat' will
                ;; run, so we can't do a reliable verification.  But let's try
                ;; and catch at least the easy cases such as (bug#14773).
-               (not (pcase--fgrep (mapcar #'car vars) (cadr upat)))))
+               (not (macroexp--fgrep (mapcar #'car vars) (cadr upat)))))
       '(:pcase--succeed . :pcase--fail))
      ((and (eq 'pred (car upat))
            (let ((otherpred
@@ -691,23 +691,6 @@ MATCH is the pattern that needs to be matched, of the form:
       (if (car test)
           '(nil . :pcase--fail)
         '(:pcase--fail . nil))))))
-
-(defun pcase--fgrep (bindings sexp)
-  "Return those of the BINDINGS which might be used in SEXP."
-  (let ((res '()))
-    (while (and (consp sexp) bindings)
-      (dolist (binding (pcase--fgrep bindings (pop sexp)))
-        (push binding res)
-        (setq bindings (remove binding bindings))))
-    (if (vectorp sexp)
-        ;; With backquote, code can appear within vectors as well.
-        ;; This wouldn't be needed if we `macroexpand-all' before
-        ;; calling pcase--fgrep, OTOH.
-        (pcase--fgrep bindings (mapcar #'identity sexp))
-      (let ((tmp (assq sexp bindings)))
-        (if tmp
-            (cons tmp res)
-          res)))))
 
 (defun pcase--self-quoting-p (upat)
   (or (keywordp upat) (integerp upat) (stringp upat)))
@@ -749,7 +732,7 @@ MATCH is the pattern that needs to be matched, of the form:
       `(,fun ,arg)
     (let* (;; `env' is an upper bound on the bindings we need.
            (env (mapcar (lambda (x) (list (car x) (cdr x)))
-                        (pcase--fgrep vars fun)))
+                        (macroexp--fgrep vars fun)))
            (call (progn
                    (when (assq arg env)
                      ;; `arg' is shadowed by `env'.
@@ -770,7 +753,7 @@ MATCH is the pattern that needs to be matched, of the form:
   "Build an expression that will evaluate EXP."
   (let* ((found (assq exp vars)))
     (if found (cdr found)
-      (let* ((env (pcase--fgrep vars exp)))
+      (let* ((env (macroexp--fgrep vars exp)))
         (if env
             (macroexp-let* (mapcar (lambda (x) (list (car x) (cdr x)))
                                    env)

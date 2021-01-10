@@ -173,12 +173,12 @@ with \"-q\").
 
 Even if the value is nil, you can type \\[package-initialize] to
 make installed packages available at any time, or you can
-call (package-initialize) in your init-file."
+call (package-activate-all) in your init-file."
   :type 'boolean
   :version "24.1")
 
 (defcustom package-load-list '(all)
-  "List of packages for `package-initialize' to make available.
+  "List of packages for `package-activate-all' to make available.
 Each element in this list should be a list (NAME VERSION), or the
 symbol `all'.  The symbol `all' says to make available the latest
 installed versions of all packages not specified by other
@@ -292,15 +292,18 @@ the package will be unavailable."
   :risky t
   :version "24.4")
 
+;;;###autoload
 (defcustom package-user-dir (locate-user-emacs-file "elpa")
   "Directory containing the user's Emacs Lisp packages.
 The directory name should be absolute.
 Apart from this directory, Emacs also looks for system-wide
 packages in `package-directory-list'."
   :type 'directory
+  :initialize #'custom-initialize-delay
   :risky t
   :version "24.1")
 
+;;;###autoload
 (defcustom package-directory-list
   ;; Defaults are subdirs named "elpa" in the site-lisp dirs.
   (let (result)
@@ -315,6 +318,7 @@ Each directory name should be absolute.
 These directories contain packages intended for system-wide; in
 contrast, `package-user-dir' contains packages for personal use."
   :type '(repeat directory)
+  :initialize #'custom-initialize-delay
   :risky t
   :version "24.1")
 
@@ -587,9 +591,8 @@ package."
 ;;; Installed packages
 ;; The following variables store information about packages present in
 ;; the system.  The most important of these is `package-alist'.  The
-;; command `package-initialize' is also closely related to this
-;; section, but it is left for a later section because it also affects
-;; other stuff.
+;; command `package-activate-all' is also closely related to this
+;; section.
 
 (defvar package--builtins nil
   "Alist of built-in packages.
@@ -608,7 +611,7 @@ name (a symbol) and DESCS is a non-empty list of `package-desc'
 structures, sorted by decreasing versions.
 
 This variable is set automatically by `package-load-descriptor',
-called via `package-initialize'.  To change which packages are
+called via `package-activate-all'.  To change which packages are
 loaded and/or activated, customize `package-load-list'.")
 (put 'package-alist 'risky-local-variable t)
 
@@ -869,6 +872,20 @@ DIR, sorted by most recently loaded last."
                     (lambda (x y) (< (cdr x) (cdr y))))))))
 
 ;;;; `package-activate'
+
+(defun package--get-activatable-pkg (pkg-name)
+  ;; Is "activatable" a word?
+  (let ((pkg-descs (cdr (assq pkg-name package-alist))))
+    ;; Check if PACKAGE is available in `package-alist'.
+    (while
+        (when pkg-descs
+          (let ((available-version (package-desc-version (car pkg-descs))))
+            (or (package-disabled-p pkg-name available-version)
+                ;; Prefer a builtin package.
+                (package-built-in-p pkg-name available-version))))
+      (setq pkg-descs (cdr pkg-descs)))
+    (car pkg-descs)))
+
 ;; This function activates a newer version of a package if an older
 ;; one was already activated.  It also loads a features of this
 ;; package which were already loaded.
@@ -876,24 +893,16 @@ DIR, sorted by most recently loaded last."
   "Activate the package named PACKAGE.
 If FORCE is true, (re-)activate it if it's already activated.
 Newer versions are always activated, regardless of FORCE."
-  (let ((pkg-descs (cdr (assq package package-alist))))
-    ;; Check if PACKAGE is available in `package-alist'.
-    (while
-        (when pkg-descs
-          (let ((available-version (package-desc-version (car pkg-descs))))
-            (or (package-disabled-p package available-version)
-                ;; Prefer a builtin package.
-                (package-built-in-p package available-version))))
-      (setq pkg-descs (cdr pkg-descs)))
+  (let ((pkg-desc (package--get-activatable-pkg package)))
     (cond
      ;; If no such package is found, maybe it's built-in.
-     ((null pkg-descs)
+     ((null pkg-desc)
       (package-built-in-p package))
      ;; If the package is already activated, just return t.
      ((and (memq package package-activated-list) (not force))
       t)
      ;; Otherwise, proceed with activation.
-     (t (package-activate-1 (car pkg-descs) nil 'deps)))))
+     (t (package-activate-1 pkg-desc nil 'deps)))))
 
 
 ;;; Installation -- Local operations
@@ -1616,9 +1625,8 @@ that code in the early init-file."
   ;; `package--initialized' is t.
   (package--build-compatibility-table))
 
-(defvar package-quickstart-file)
-
 ;;;###autoload
+(progn ;; Make the function usable without loading `package.el'.
 (defun package-activate-all ()
   "Activate all installed packages.
 The variable `package-load-list' controls which packages to load."
@@ -1632,13 +1640,19 @@ The variable `package-load-list' controls which packages to load."
         ;; 2 when loading the .el file (this assumes we were careful to
         ;; save this file so it doesn't need any decoding).
         (let ((load-source-file-function nil))
+          (unless (boundp 'package-activated-list)
+            (setq package-activated-list nil))
           (load qs nil 'nomessage))
-      (dolist (elt (package--alist))
-        (condition-case err
-            (package-activate (car elt))
-          ;; Don't let failure of activation of a package arbitrarily stop
-          ;; activation of further packages.
-          (error (message "%s" (error-message-string err))))))))
+      (require 'package)
+      (package--activate-all)))))
+
+(defun package--activate-all ()
+  (dolist (elt (package--alist))
+    (condition-case err
+        (package-activate (car elt))
+      ;; Don't let failure of activation of a package arbitrarily stop
+      ;; activation of further packages.
+      (error (message "%s" (error-message-string err))))))
 
 ;;;; Populating `package-archive-contents' from archives
 ;; This subsection populates the variables listed above from the
@@ -2066,6 +2080,13 @@ PACKAGES are satisfied, i.e. that PACKAGES is computed
 using `package-compute-transaction'."
   (mapc #'package-install-from-archive packages))
 
+(defun package--archives-initialize ()
+  "Make sure the list of installed and remote packages are initialized."
+  (unless package--initialized
+    (package-initialize t))
+  (unless package-archive-contents
+    (package-refresh-contents)))
+
 ;;;###autoload
 (defun package-install (pkg &optional dont-select)
   "Install the package PKG.
@@ -2086,10 +2107,7 @@ to install it but still mark it as selected."
    (progn
      ;; Initialize the package system to get the list of package
      ;; symbols for completion.
-     (unless package--initialized
-       (package-initialize t))
-     (unless package-archive-contents
-       (package-refresh-contents))
+     (package--archives-initialize)
      (list (intern (completing-read
                     "Install package: "
                     (delq nil
@@ -2099,6 +2117,7 @@ to install it but still mark it as selected."
                                   package-archive-contents))
                     nil t))
            nil)))
+  (package--archives-initialize)
   (add-hook 'post-command-hook #'package-menu--post-refresh)
   (let ((name (if (package-desc-p pkg)
                   (package-desc-name pkg)
@@ -3714,7 +3733,7 @@ short description."
         (package-menu--generate nil t)))
     ;; The package menu buffer has keybindings.  If the user types
     ;; `M-x list-packages', that suggests it should become current.
-    (switch-to-buffer buf)))
+    (pop-to-buffer-same-window buf)))
 
 ;;;###autoload
 (defalias 'package-list-packages 'list-packages)
@@ -4042,10 +4061,12 @@ activations need to be changed, such as when `package-load-list' is modified."
   :type 'boolean
   :version "27.1")
 
+;;;###autoload
 (defcustom package-quickstart-file
   (locate-user-emacs-file "package-quickstart.el")
   "Location of the file used to speed up activation of packages at startup."
   :type 'file
+  :initialize #'custom-initialize-delay
   :version "27.1")
 
 (defun package--quickstart-maybe-refresh ()
@@ -4111,6 +4132,8 @@ activations need to be changed, such as when `package-load-list' is modified."
 ;; no-update-autoloads: t
 ;; End:
 "))
+    ;; FIXME: Do it asynchronously in an Emacs subprocess, and
+    ;; don't show the byte-compiler warnings.
     (byte-compile-file package-quickstart-file)))
 
 (defun package--imenu-prev-index-position-function ()
@@ -4130,6 +4153,15 @@ beginning of the line."
             (package-desc-name package-desc)
             (package-version-join (package-desc-version package-desc))
             (package-desc-summary package-desc))))
+
+;;;; Introspection
+
+(defun package-get-descriptor (pkg-name)
+  "Return the `package-desc' of PKG-NAME."
+  (unless package--initialized (package-initialize 'no-activate))
+  (or (package--get-activatable-pkg pkg-name)
+      (cadr (assq pkg-name package-alist))
+      (cadr (assq pkg-name package-archive-contents))))
 
 (provide 'package)
 

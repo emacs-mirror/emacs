@@ -2634,6 +2634,12 @@ window and displaying the buffer in that window.  It can fail if all
 windows are dedicated to other buffers (@pxref{Dedicated Windows}).
 @end defun
 
+@defun display-buffer-use-least-recent-window buffer alist
+This function is like @code{display-buffer-use-some-window}, but will
+not reuse the current window, and will use the least recently
+switched-to window.
+@end defun
+
 @defun display-buffer-in-direction buffer alist
 This function tries to display @var{buffer} at a location specified by
 @var{alist}.  For this purpose, @var{alist} should contain a

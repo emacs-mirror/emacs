@@ -203,7 +203,7 @@ function name2alias(name   , w, w2) {
 }
 
 END {
-    print ";;; charscript.el --- character script table"
+    print ";;; charscript.el --- character script table  -*- lexical-binding:t -*-"
     print ";;; Automatically generated from admin/unidata/Blocks.txt"
     print "(let (script-list)"
     print "  (dolist (elt '("

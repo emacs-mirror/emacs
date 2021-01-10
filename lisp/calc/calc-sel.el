@@ -675,12 +675,12 @@
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) expr))
-	  ) ;; alg
-     (let ((str (math-showing-full-precision
-		 (math-format-nice-expr sel (frame-width)))))
-       (calc-edit-mode (list 'calc-finish-selection-edit
-			     num (list 'quote sel) calc-sel-reselect))
-       (insert str "\n"))))
+	  ;; alg
+	  (str (math-showing-full-precision
+		(math-format-nice-expr sel (frame-width))))
+	  (csr calc-sel-reselect))
+     (calc--edit-mode (lambda () (calc-finish-selection-edit num sel csr)))
+     (insert str "\n")))
   (calc-show-edit-buffer))
 
 (defvar calc-original-buffer)

@@ -252,7 +252,7 @@ comment and a newline or formfeed ends one.
 
 @item Inherit standard syntax: @samp{@@}
 This syntax class does not specify a particular syntax.  It says to
-look in the standard syntax table to find the syntax of this
+look in the parent syntax table to find the syntax of this
 character.
 
 @item Generic comment delimiters: @samp{!}

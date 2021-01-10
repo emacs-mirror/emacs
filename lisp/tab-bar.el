@@ -95,6 +95,45 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   :version "27.1")
 
 
+(defun tab-bar--define-keys ()
+  "Install key bindings for switching between tabs if the user has configured them."
+  (when tab-bar-select-tab-modifiers
+    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
+                    'tab-bar-switch-to-recent-tab)
+    (dotimes (i 9)
+      (global-set-key (vector (append tab-bar-select-tab-modifiers
+                                      (list (+ i 1 ?0))))
+                      'tab-bar-select-tab)))
+  ;; Don't override user customized key bindings
+  (unless (global-key-binding [(control tab)])
+    (global-set-key [(control tab)] 'tab-next))
+  (unless (global-key-binding [(control shift tab)])
+    (global-set-key [(control shift tab)] 'tab-previous))
+  (unless (global-key-binding [(control shift iso-lefttab)])
+    (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
+
+(defun tab-bar--load-buttons ()
+  "Load the icons for the tab buttons."
+  (when (and tab-bar-new-button
+             (not (get-text-property 0 'display tab-bar-new-button)))
+    ;; This file is pre-loaded so only here we can use the right data-directory:
+    (add-text-properties 0 (length tab-bar-new-button)
+                         `(display (image :type xpm
+                                          :file "tabs/new.xpm"
+                                          :margin (2 . 0)
+                                          :ascent center))
+                         tab-bar-new-button))
+
+  (when (and tab-bar-close-button
+             (not (get-text-property 0 'display tab-bar-close-button)))
+    ;; This file is pre-loaded so only here we can use the right data-directory:
+    (add-text-properties 0 (length tab-bar-close-button)
+                         `(display (image :type xpm
+                                          :file "tabs/close.xpm"
+                                          :margin (2 . 0)
+                                          :ascent center))
+                         tab-bar-close-button)))
+
 (define-minor-mode tab-bar-mode
   "Toggle the tab bar in all graphical frames (Tab Bar mode)."
   :global t
@@ -110,43 +149,10 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
               (cons (cons 'tab-bar-lines val)
                     (assq-delete-all 'tab-bar-lines
                                      default-frame-alist)))))
-
-  (when (and tab-bar-mode tab-bar-new-button
-             (not (get-text-property 0 'display tab-bar-new-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-new-button)
-                         `(display (image :type xpm
-                                          :file "tabs/new.xpm"
-                                          :margin (2 . 0)
-                                          :ascent center))
-                         tab-bar-new-button))
-
-  (when (and tab-bar-mode tab-bar-close-button
-             (not (get-text-property 0 'display tab-bar-close-button)))
-    ;; This file is pre-loaded so only here we can use the right data-directory:
-    (add-text-properties 0 (length tab-bar-close-button)
-                         `(display (image :type xpm
-                                          :file "tabs/close.xpm"
-                                          :margin (2 . 0)
-                                          :ascent center))
-                         tab-bar-close-button))
-
+  (when tab-bar-mode
+    (tab-bar--load-buttons))
   (if tab-bar-mode
-      (progn
-        (when tab-bar-select-tab-modifiers
-          (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
-                          'tab-bar-switch-to-recent-tab)
-          (dotimes (i 9)
-            (global-set-key (vector (append tab-bar-select-tab-modifiers
-                                            (list (+ i 1 ?0))))
-                            'tab-bar-select-tab)))
-        ;; Don't override user customized key bindings
-        (unless (global-key-binding [(control tab)])
-          (global-set-key [(control tab)] 'tab-next))
-        (unless (global-key-binding [(control shift tab)])
-          (global-set-key [(control shift tab)] 'tab-previous))
-        (unless (global-key-binding [(control shift iso-lefttab)])
-          (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
+      (tab-bar--define-keys)
     ;; Unset only keys bound by tab-bar
     (when (eq (global-key-binding [(control tab)]) 'tab-next)
       (global-unset-key [(control tab)]))
@@ -181,14 +187,26 @@ on a console which has no window system but does have a mouse."
         ;; Clicking anywhere outside existing tabs will add a new tab
         (tab-bar-new-tab)))))
 
-;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
 (defun toggle-tab-bar-mode-from-frame (&optional arg)
   "Toggle tab bar on or off, based on the status of the current frame.
+Used in the Show/Hide menu, to have the toggle reflect the current frame.
 See `tab-bar-mode' for more information."
   (interactive (list (or current-prefix-arg 'toggle)))
   (if (eq arg 'toggle)
       (tab-bar-mode (if (> (frame-parameter nil 'tab-bar-lines) 0) 0 1))
     (tab-bar-mode arg)))
+
+(defun toggle-frame-tab-bar (&optional frame)
+  "Toggle tab bar of FRAME.
+This is useful when you want to enable the tab bar individually
+on each new frame when the global `tab-bar-mode' is disabled,
+or when you want to disable the tab bar individually on each
+new frame when the global `tab-bar-mode' is enabled, by using
+
+  (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
+  (interactive)
+  (set-frame-parameter frame 'tab-bar-lines
+                       (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1)))
 
 (defvar tab-bar-map (make-sparse-keymap)
   "Keymap for the tab bar.
@@ -218,18 +236,31 @@ If the value is `1', then hide the tab bar when it has only one tab,
 and show it again once more tabs are created.
 If nil, always keep the tab bar hidden.  In this case it's still
 possible to use persistent named window configurations by relying on
-keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc."
+keyboard commands `tab-new', `tab-close', `tab-next', `tab-switcher', etc.
+
+Setting this variable directly does not take effect; please customize
+it (see the info node `Easy Customization'), then it will automatically
+update the tab bar on all frames according to the new value.
+
+To enable or disable the tab bar individually on each frame,
+you can use the command `toggle-frame-tab-bar'."
   :type '(choice (const :tag "Always" t)
                  (const :tag "When more than one tab" 1)
                  (const :tag "Never" nil))
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         (tab-bar-mode
-          (if (or (eq val t)
-                  (and (natnump val)
-                       (> (length (funcall tab-bar-tabs-function)) val)))
-              1 -1)))
+         ;; Preload button images
+         (tab-bar-mode 1)
+         ;; Then handle each frame individually
+         (dolist (frame (frame-list))
+           (set-frame-parameter
+            frame 'tab-bar-lines
+            (if (or (eq val t)
+                    (and (natnump val)
+                         (> (length (funcall tab-bar-tabs-function frame))
+                            val)))
+                1 0))))
   :group 'tab-bar
   :version "27.1")
 
@@ -418,6 +449,30 @@ Return its existing value or a new value."
     tabs))
 
 
+(defcustom tab-bar-tab-name-format-function #'tab-bar-tab-name-format-default
+  "Function to format a tab name.
+Function gets two arguments, the tab and its number, and should return
+the formatted tab name to display in the tab bar."
+  :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-name-format-default (tab i)
+  (let ((current-p (eq (car tab) 'current-tab)))
+    (propertize
+     (concat (if tab-bar-tab-hints (format "%d " i) "")
+             (alist-get 'name tab)
+             (or (and tab-bar-close-button-show
+                      (not (eq tab-bar-close-button-show
+                               (if current-p 'non-selected 'selected)))
+                      tab-bar-close-button)
+                 ""))
+     'face (if current-p 'tab-bar-tab 'tab-bar-tab-inactive))))
+
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
   (let* ((separator (or tab-bar-separator (if window-system " " "|")))
@@ -443,25 +498,13 @@ Return its existing value or a new value."
           ((eq (car tab) 'current-tab)
            `((current-tab
               menu-item
-              ,(propertize (concat (if tab-bar-tab-hints (format "%d " i) "")
-                                   (alist-get 'name tab)
-                                   (or (and tab-bar-close-button-show
-                                            (not (eq tab-bar-close-button-show
-                                                     'non-selected))
-                                            tab-bar-close-button) ""))
-                           'face 'tab-bar-tab)
+              ,(funcall tab-bar-tab-name-format-function tab i)
               ignore
               :help "Current tab")))
           (t
            `((,(intern (format "tab-%i" i))
               menu-item
-              ,(propertize (concat (if tab-bar-tab-hints (format "%d " i) "")
-                                   (alist-get 'name tab)
-                                   (or (and tab-bar-close-button-show
-                                            (not (eq tab-bar-close-button-show
-                                                     'selected))
-                                            tab-bar-close-button) ""))
-                           'face 'tab-bar-tab-inactive)
+              ,(funcall tab-bar-tab-name-format-function tab i)
               ,(or
                 (alist-get 'binding tab)
                 `(lambda ()
@@ -815,7 +858,10 @@ After the tab is created, the hooks in
      ((and (natnump tab-bar-show)
            (> (length (funcall tab-bar-tabs-function)) tab-bar-show)
            (zerop (frame-parameter nil 'tab-bar-lines)))
-      (set-frame-parameter nil 'tab-bar-lines 1)))
+      (progn
+        (tab-bar--load-buttons)
+        (tab-bar--define-keys)
+        (set-frame-parameter nil 'tab-bar-lines 1))))
 
     (force-mode-line-update)
     (unless tab-bar-mode

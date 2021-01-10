@@ -1,4 +1,4 @@
-;;; bindings.el --- define standard key bindings and some variables
+;;; bindings.el --- define standard key bindings and some variables  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1987, 1992-1996, 1999-2021 Free Software
 ;; Foundation, Inc.
@@ -856,7 +856,7 @@ in contrast with \\[forward-char] and \\[backward-char], which
 see."
   (interactive "^p")
   (if visual-order-cursor-movement
-      (dotimes (i (if (numberp n) (abs n) 1))
+      (dotimes (_ (if (numberp n) (abs n) 1))
 	(move-point-visually (if (and (numberp n) (< n 0)) -1 1)))
     (if (eq (current-bidi-paragraph-direction) 'left-to-right)
 	(forward-char n)
@@ -874,7 +874,7 @@ in contrast with \\[forward-char] and \\[backward-char], which
 see."
   (interactive "^p")
   (if visual-order-cursor-movement
-      (dotimes (i (if (numberp n) (abs n) 1))
+      (dotimes (_ (if (numberp n) (abs n) 1))
 	(move-point-visually (if (and (numberp n) (< n 0)) 1 -1)))
     (if (eq (current-bidi-paragraph-direction) 'left-to-right)
 	(backward-char n)
