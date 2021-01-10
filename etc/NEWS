@@ -1343,6 +1343,11 @@ have been renamed to have "proper" public names and documented
 ('xref-show-definitions-buffer' and
 'xref-show-definitions-buffer-at-bottom').
 
+*** New command 'xref-quit-and-pop-marker-stack' and a binding for it
+in Xref buffers ('M-,'). This combination is easy to press
+semi-accidentally if the user wants to go back in the middle of
+choosing the exact definition to go to, and this should do TRT.
+
 ---
 *** New value 'project-relative' for 'xref-file-name-display'
 If chosen, file names in *xref* buffers will be displayed relative

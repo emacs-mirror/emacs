@@ -663,6 +663,12 @@ means to first quit the *xref* buffer."
   (interactive)
   (xref-goto-xref t))
 
+(defun xref-quit-and-pop-marker-stack ()
+  "Quit *xref* buffer, then pop the xref marker stack."
+  (interactive)
+  (quit-window)
+  (xref-pop-marker-stack))
+
 (defun xref-query-replace-in-results (from to)
   "Perform interactive replacement of FROM with TO in all displayed xrefs.
 
@@ -793,6 +799,7 @@ references displayed in the current *xref* buffer."
     (define-key map (kbd ".") #'xref-next-line)
     (define-key map (kbd ",") #'xref-prev-line)
     (define-key map (kbd "g") #'xref-revert-buffer)
+    (define-key map (kbd "M-,") #'xref-quit-and-pop-marker-stack)
     map))
 
 (define-derived-mode xref--xref-buffer-mode special-mode "XREF"
