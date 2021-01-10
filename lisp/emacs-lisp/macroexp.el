@@ -480,6 +480,35 @@ itself or not."
       v
     (list 'quote v)))
 
+(defun macroexp--fgrep (bindings sexp)
+  "Return those of the BINDINGS which might be used in SEXP.
+It is used as a poor-man's \"free variables\" test.  It differs from a true
+test of free variables in the following ways:
+- It does not distinguish variables from functions, so it can be used
+  both to detect whether a given variable is used by SEXP and to
+  detect whether a given function is used by SEXP.
+- It does not actually know ELisp syntax, so it only looks for the presence
+  of symbols in SEXP and can't distinguish if those symbols are truly
+  references to the given variable (or function).  That can make the result
+  include bindings which actually aren't used.
+- For the same reason it may cause the result to fail to include bindings
+  which will be used if SEXP is not yet fully macro-expanded and the
+  use of the binding will only be revealed by macro expansion."
+  (let ((res '()))
+    (while (and (consp sexp) bindings)
+      (dolist (binding (macroexp--fgrep bindings (pop sexp)))
+        (push binding res)
+        (setq bindings (remove binding bindings))))
+    (if (or (vectorp sexp) (byte-code-function-p sexp))
+        ;; With backquote, code can appear within vectors as well.
+        ;; This wouldn't be needed if we `macroexpand-all' before
+        ;; calling macroexp--fgrep, OTOH.
+        (macroexp--fgrep bindings (mapcar #'identity sexp))
+      (let ((tmp (assq sexp bindings)))
+        (if tmp
+            (cons tmp res)
+          res)))))
+
 ;;; Load-time macro-expansion.
 
 ;; Because macro-expansion used to be more lazy, eager macro-expansion

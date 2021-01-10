@@ -7233,7 +7233,6 @@ consuming frame position adjustments.  In newer versions of GTK, Emacs
 always uses gtk_window_move and ignores the value of this variable.  */);
   x_gtk_use_window_move = true;
 
-  DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
 
   DEFVAR_LISP ("pgtk-wait-for-event-timeout", Vpgtk_wait_for_event_timeout,
 	       doc: /* How long to wait for X events.

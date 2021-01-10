@@ -565,6 +565,11 @@ FD_SETSIZE file descriptors (Bug#24325)."
                 (should (memq (process-status process) '(run exit)))
                 (when (process-live-p process)
                   (process-send-eof process))
+                ;; FIXME: This `sleep-for' shouldn't be needed.  It
+                ;; indicates a bug in Emacs; perhaps SIGCHLD is
+                ;; received in parallel with `accept-process-output',
+                ;; causing the latter to hang.
+                (sleep-for 0.1)
                 (while (accept-process-output process))
                 (should (eq (process-status process) 'exit))
                 ;; If there's an error between fork and exec, Emacs
