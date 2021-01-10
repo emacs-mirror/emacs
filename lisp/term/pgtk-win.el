@@ -428,6 +428,140 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
                (pgtk-use-im-context pgtk-use-im-context-on-new-connection)))))
 
 
+;;;
+
+(defcustom x-gtk-stock-map
+  (mapcar (lambda (arg)
+	    (cons (purecopy (car arg)) (purecopy (cdr arg))))
+  '(
+    ("etc/images/new" . ("document-new" "gtk-new"))
+    ("etc/images/open" . ("document-open" "gtk-open"))
+    ("etc/images/diropen" . "n:system-file-manager")
+    ("etc/images/close" . ("window-close" "gtk-close"))
+    ("etc/images/save" . ("document-save" "gtk-save"))
+    ("etc/images/saveas" . ("document-save-as" "gtk-save-as"))
+    ("etc/images/undo" . ("edit-undo" "gtk-undo"))
+    ("etc/images/cut" . ("edit-cut" "gtk-cut"))
+    ("etc/images/copy" . ("edit-copy" "gtk-copy"))
+    ("etc/images/paste" . ("edit-paste" "gtk-paste"))
+    ("etc/images/search" . ("edit-find" "gtk-find"))
+    ("etc/images/print" . ("document-print" "gtk-print"))
+    ("etc/images/preferences" . ("preferences-system" "gtk-preferences"))
+    ("etc/images/help" . ("help-browser" "gtk-help"))
+    ("etc/images/left-arrow" . ("go-previous" "gtk-go-back"))
+    ("etc/images/right-arrow" . ("go-next" "gtk-go-forward"))
+    ("etc/images/home" . ("go-home" "gtk-home"))
+    ("etc/images/jump-to" . ("go-jump" "gtk-jump-to"))
+    ("etc/images/index" . ("gtk-search" "gtk-index"))
+    ("etc/images/exit" . ("application-exit" "gtk-quit"))
+    ("etc/images/cancel" . "gtk-cancel")
+    ("etc/images/info" . ("dialog-information" "gtk-info"))
+    ("etc/images/bookmark_add" . "n:bookmark_add")
+    ;; Used in Gnus and/or MH-E:
+    ("etc/images/attach" . ("mail-attachment" "gtk-attach"))
+    ("etc/images/connect" . "gtk-connect")
+    ("etc/images/contact" . "gtk-contact")
+    ("etc/images/delete" . ("edit-delete" "gtk-delete"))
+    ("etc/images/describe" . ("document-properties" "gtk-properties"))
+    ("etc/images/disconnect" . "gtk-disconnect")
+    ;; ("etc/images/exit" . "gtk-exit")
+    ("etc/images/lock-broken" . "gtk-lock_broken")
+    ("etc/images/lock-ok" . "gtk-lock_ok")
+    ("etc/images/lock" . "gtk-lock")
+    ("etc/images/next-page" . "gtk-next-page")
+    ("etc/images/refresh" . ("view-refresh" "gtk-refresh"))
+    ("etc/images/search-replace" . "edit-find-replace")
+    ("etc/images/sort-ascending" . ("view-sort-ascending" "gtk-sort-ascending"))
+    ("etc/images/sort-column-ascending" . "gtk-sort-column-ascending")
+    ("etc/images/sort-criteria" . "gtk-sort-criteria")
+    ("etc/images/sort-descending" . ("view-sort-descending"
+				     "gtk-sort-descending"))
+    ("etc/images/sort-row-ascending" . "gtk-sort-row-ascending")
+    ("etc/images/spell" . ("tools-check-spelling" "gtk-spell-check"))
+    ("images/gnus/toggle-subscription" . "gtk-task-recurring")
+    ("images/mail/compose" . ("mail-message-new" "gtk-mail-compose"))
+    ("images/mail/copy" . "gtk-mail-copy")
+    ("images/mail/forward" . "gtk-mail-forward")
+    ("images/mail/inbox" . "gtk-inbox")
+    ("images/mail/move" . "gtk-mail-move")
+    ("images/mail/not-spam" . "gtk-not-spam")
+    ("images/mail/outbox" . "gtk-outbox")
+    ("images/mail/reply-all" . "gtk-mail-reply-to-all")
+    ("images/mail/reply" . "gtk-mail-reply")
+    ("images/mail/save-draft" . "gtk-mail-handling")
+    ("images/mail/send" . ("mail-send" "gtk-mail-send"))
+    ("images/mail/spam" . "gtk-spam")
+    ;; Used for GDB Graphical Interface
+    ("images/gud/break" . "gtk-no")
+    ("images/gud/recstart" . ("media-record" "gtk-media-record"))
+    ("images/gud/recstop" . ("media-playback-stop" "gtk-media-stop"))
+    ;; No themed versions available:
+    ;; mail/preview (combining stock_mail and stock_zoom)
+    ;; mail/save    (combining stock_mail, stock_save and stock_convert)
+    ))
+  "How icons for tool bars are mapped to Gtk+ stock items.
+Emacs must be compiled with the Gtk+ toolkit for this to have any effect.
+A value that begins with n: denotes a named icon instead of a stock icon."
+  :version "22.2"
+  :type '(choice (repeat
+		  (choice symbol
+			  (cons (string :tag "Emacs icon")
+				(choice (group (string :tag "Named")
+					       (string :tag "Stock"))
+					(string :tag "Stock/named"))))))
+  :group 'pgtk)
+
+(defcustom icon-map-list '(x-gtk-stock-map)
+  "A list of alists that map icon file names to stock/named icons.
+The alists are searched in the order they appear.  The first match is used.
+The keys in the alists are file names without extension and with two directory
+components.  For example, to map /usr/share/emacs/22.1.1/etc/images/open.xpm
+to stock item gtk-open, use:
+
+  (\"etc/images/open\" . \"gtk-open\")
+
+Themes also have named icons.  To map to one of those, use n: before the name:
+
+  (\"etc/images/diropen\" . \"n:system-file-manager\")
+
+The list elements are either the symbol name for the alist or the
+alist itself.
+
+If you don't want stock icons, set the variable to nil."
+  :version "22.2"
+  :type '(choice (const :tag "Don't use stock icons" nil)
+		 (repeat (choice symbol
+				 (cons (string :tag "Emacs icon")
+				       (string :tag "Stock/named")))))
+  :group 'pgtk)
+
+(defconst x-gtk-stock-cache (make-hash-table :weakness t :test 'equal))
+
+(defun x-gtk-map-stock (file)
+  "Map icon with file name FILE to a Gtk+ stock name.
+This uses `icon-map-list' to map icon file names to stock icon names."
+  (when (stringp file)
+    (or (gethash file x-gtk-stock-cache)
+	(puthash
+	 file
+	 (save-match-data
+	   (let* ((file-sans (file-name-sans-extension file))
+		  (key (and (string-match "/\\([^/]+/[^/]+/[^/]+$\\)"
+					  file-sans)
+			    (match-string 1 file-sans)))
+		  (icon-map icon-map-list)
+		  elem value)
+	     (while (and (null value) icon-map)
+	       (setq elem (car icon-map)
+		     value (assoc-string (or key file-sans)
+					 (if (symbolp elem)
+					     (symbol-value elem)
+					   elem))
+		     icon-map (cdr icon-map)))
+	     (and value (cdr value))))
+	 x-gtk-stock-cache))))
+
+
 (provide 'pgtk-win)
 (provide 'term/pgtk-win)
 
