@@ -12,6 +12,8 @@
 CC = gcc
 CFLAGSDEBUG = -O -g3
 CFLAGSOPT = -O2 -g3
+
+# Warnings that might be enabled by clients <design/config/#.warning.impl>.
 CFLAGSCOMPILER := \
 -Waggregate-return \
 -Wall \
