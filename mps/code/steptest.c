@@ -120,10 +120,8 @@ static double my_clock(void)
     struct rusage ru;
     getrusage(RUSAGE_SELF, &ru);
     ++ clock_reads;
-    return ((ru.ru_utime.tv_sec +
-             ru.ru_stime.tv_sec) * 1000000.0 +
-            (ru.ru_utime.tv_usec +
-             ru.ru_stime.tv_usec));
+    return (double)(ru.ru_utime.tv_sec + ru.ru_stime.tv_sec) * 1000000.0
+      + (double)(ru.ru_utime.tv_usec + ru.ru_stime.tv_usec);
 }
 #endif
 
@@ -143,7 +141,7 @@ static double clock_time;      /* current estimate of time to read the clock */
 
 static void set_clock_timing(void)
 {
-    long i;
+    double i;
     double t1, t2, t3;
 
     t2 = 0.0;
@@ -402,9 +400,9 @@ static void test(mps_arena_t arena, unsigned long step_period)
     printf("  %"PRIuLONGEST" bytes survived.\n", (ulongest_t)live);
     if (condemned) {
         printf("  Mortality %5.2f%%.\n",
-               (1.0 - ((double)live)/condemned) * 100.0);
+               (1.0 - (double)live/(double)condemned) * 100.0);
         printf("  Condemned fraction %5.2f%%.\n",
-               ((double)condemned/(condemned + not_condemned)) * 100.0);
+               ((double)condemned/(double)(condemned + not_condemned)) * 100.0);
     }
     if (collections) {
         printf("  Condemned per collection %"PRIuLONGEST" bytes.\n",
@@ -420,18 +418,18 @@ static void test(mps_arena_t arena, unsigned long step_period)
 
     printf("Timings:\n");
     print_time("  Allocation took ", alloc_time, "");
-    print_time(", mean ", alloc_time / objs, "");
+    print_time(", mean ", alloc_time / (double)objs, "");
     print_time(", max ", max_alloc_time, ".\n");
     if (steps) {
         printf("  %ld steps took ", steps);
         print_time("", step_time, "");
-        print_time(", mean ", step_time/steps, "");
+        print_time(", mean ", step_time / (double)steps, "");
         print_time(", max ", max_step_time, ".\n");
     }
     if (no_steps) {
         printf("  %ld non-steps took ", no_steps);
         print_time("", no_step_time, "");
-        print_time(", mean ", no_step_time / no_steps, "");
+        print_time(", mean ", no_step_time / (double)no_steps, "");
         print_time(", max ", max_no_step_time, ".\n");
     }
     if (alloc_time > 0.0)
@@ -441,20 +439,20 @@ static void test(mps_arena_t arena, unsigned long step_period)
         printf("  Reclaimed %.2f bytes per us of step.\n",
                (double)(condemned - live)/step_time);
         if (collections > 0) {
-            printf("  Took %.2f steps ", (double)steps/collections);
-            print_time("(", step_time / collections, ") per collection.\n");
+            printf("  Took %.2f steps ", (double)steps / (double)collections);
+            print_time("(", step_time / (double)collections, ") per collection.\n");
         }
     }
     print_time("  Total time ", total_time, ".\n");
     print_time("  Total MPS time ", total_mps_time, "");
     printf(" (%5.2f%%, ", total_mps_time * 100.0 / total_time);
-    print_time("", total_mps_time/alloc_bytes, " per byte, ");
-    print_time("", total_mps_time/objs, " per object)\n");
+    print_time("", total_mps_time / (double)alloc_bytes, " per byte, ");
+    print_time("", total_mps_time / (double)objs, " per object)\n");
     print_time("  (adjusted for clock timing: ",
                total_clock_time,
                " spent reading the clock;\n");
     printf("   %"PRIuLONGEST" clock reads; ", (ulongest_t)clock_reads);
-    print_time("", total_clock_time / clock_reads, " per read;");
+    print_time("", total_clock_time / (double)clock_reads, " per read;");
     print_time(" recently measured as ", clock_time, ").\n");
 
     mps_arena_park(arena);

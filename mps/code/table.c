@@ -160,7 +160,7 @@ Res TableGrow(Table table, Count extraCapacity)
 
   /* Calculate the minimum table length that would allow for the required
      capacity without growing again. */
-  minimum = (Count)(required / SPACEFRACTION);
+  minimum = (Count)((double)required / SPACEFRACTION);
   if (minimum < required)       /* overflow? */
     return ResLIMIT;
 
@@ -295,7 +295,7 @@ Res TableDefine(Table table, TableKey key, TableValue value)
   AVER(key != table->unusedKey);
   AVER(key != table->deletedKey);
 
-  if (table->count >= table->length * SPACEFRACTION) {
+  if ((double)table->count >= (double)table->length * SPACEFRACTION) {
     Res res = TableGrow(table, 1);
     if (res != ResOK)
       return res;

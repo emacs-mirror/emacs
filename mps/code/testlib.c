@@ -217,7 +217,7 @@ mps_addr_t rnd_addr(void)
 
 double rnd_double(void)
 {
-  return rnd() / R_m_float;
+  return (double)rnd() / R_m_float;
 }
 
 static unsigned sizelog2(size_t size)

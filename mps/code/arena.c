@@ -1313,7 +1313,7 @@ void ArenaAccumulateTime(Arena arena, Clock start, Clock end)
 {
   AVERT(Arena, arena);
   AVER(start <= end);
-  arena->tracedTime += (end - start) / (double) ClocksPerSec();
+  arena->tracedTime += (double)(end - start) / (double)ClocksPerSec();
 }
 
 
