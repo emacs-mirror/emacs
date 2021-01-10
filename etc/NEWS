@@ -102,12 +102,13 @@ effect should be negligible in the vast majority of cases anyway.
 By default, when you switch to another frame, an active minibuffer now
 moves to the newly selected frame.  Nevertheless, the effect of what
 you type in the minibuffer happens in the frame where the minibuffer
-was first activated, even if it moved to another frame.  An
-alternative behavior is available by customizing
-'minibuffer-follows-selected-frame' to nil.  Here, the minibuffer
-stays in the frame where you first opened it, and you must switch back
-to this frame to continue or abort its command.  The old, somewhat
-unsystematic behavior, which mixed these two is no longer available.
+was first activated.  An alternative behavior is available by
+customizing 'minibuffer-follows-selected-frame' to nil.  Here, the
+minibuffer stays in the frame where you first opened it, and you must
+switch back to this frame to continue or abort its command.  The old
+behavior, which mixed these two, can be approximated by customizing
+'minibuffer-follows-selected-frame' to a value which is neither nil
+nor t.
 
 +++
 ** New system for displaying documentation for groups of functions.

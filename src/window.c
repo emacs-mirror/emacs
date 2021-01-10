@@ -2663,12 +2663,15 @@ static void
 decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object *all_frames)
 {
   struct window *w = decode_live_window (*window);
+  Lisp_Object miniwin = XFRAME (w->frame)->minibuffer_window;
 
   XSETWINDOW (*window, w);
   /* MINIBUF nil may or may not include minibuffers.  Decide if it
      does.  */
   if (NILP (*minibuf))
-    *minibuf = minibuf_level ? minibuf_window : Qlambda;
+    *minibuf = this_minibuffer_depth (XWINDOW (miniwin)->contents)
+      ? miniwin
+      : Qlambda;
   else if (!EQ (*minibuf, Qt))
     *minibuf = Qlambda;
 

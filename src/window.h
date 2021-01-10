@@ -1124,10 +1124,6 @@ extern Lisp_Object echo_area_window;
 
 extern EMACS_INT command_loop_level;
 
-/* Depth in minibuffer invocations.  */
-
-extern EMACS_INT minibuf_level;
-
 /* Non-zero if we should redraw the mode lines on the next redisplay.
    Usually set to a unique small integer so we can track the main causes of
    full redisplays in `redisplay--mode-lines-cause'.  */
