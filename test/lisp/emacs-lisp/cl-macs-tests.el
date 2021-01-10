@@ -610,4 +610,27 @@ collection clause."
     ;; Just make sure the function can be instrumented.
     (edebug-defun)))
 
+;;; cl-labels
+
+(ert-deftest cl-macs--labels ()
+  ;; Simple recursive function.
+  (cl-labels ((len (xs) (if xs (1+ (len (cdr xs))) 0)))
+    (should (equal (len (make-list 42 t)) 42)))
+
+  ;; Simple tail-recursive function.
+  (cl-labels ((len (xs n) (if xs (len (cdr xs) (1+ n)) n)))
+    (should (equal (len (make-list 42 t) 0) 42))
+    ;; Should not bump into stack depth limits.
+    (should (equal (len (make-list 42000 t) 0) 42000)))
+
+  ;; Check that non-recursive functions are handled more efficiently.
+  (should (pcase (macroexpand '(cl-labels ((f (x) (+ x 1))) (f 5)))
+            (`(let* ,_ (funcall ,_ 5)) t)))
+
+  ;; Case of "tail-recursive lambdas".
+  (should (pcase (macroexpand
+                  '(cl-labels ((len (xs n) (if xs (len (cdr xs) (1+ n)) n)))
+                     #'len))
+            (`(function (lambda (,_ ,_) . ,_)) t))))
+
 ;;; cl-macs-tests.el ends here

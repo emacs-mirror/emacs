@@ -82,10 +82,12 @@ there is an active minibuffer; such a minibuffer is called a
 incrementing the number at the end of the name.  (The names begin with
 a space so that they won't show up in normal buffer lists.)  Of
 several recursive minibuffers, the innermost (or most recently
-entered) is the active minibuffer.  We usually call this @emph{the}
-minibuffer.  You can permit or forbid recursive minibuffers by setting
-the variable @code{enable-recursive-minibuffers}, or by putting
-properties of that name on command symbols (@xref{Recursive Mini}.)
+entered) is the @dfn{active minibuffer}--it is the one you can
+terminate by typing @key{RET} (@code{exit-minibuffer}) in.  We usually
+call this @emph{the} minibuffer.  You can permit or forbid recursive
+minibuffers by setting the variable
+@code{enable-recursive-minibuffers}, or by putting properties of that
+name on command symbols (@xref{Recursive Mini}.)
 
   Like other buffers, a minibuffer uses a local keymap
 (@pxref{Keymaps}) to specify special key bindings.  The function that
@@ -2380,7 +2382,8 @@ minibuffer.
 
 @deffn Command exit-minibuffer
 This command exits the active minibuffer.  It is normally bound to
-keys in minibuffer local keymaps.
+keys in minibuffer local keymaps.  The command throws an error if the
+current buffer is not the active minibuffer.
 @end deffn
 
 @deffn Command self-insert-and-exit
@@ -2594,8 +2597,11 @@ returns zero.
 If this variable is non-@code{nil}, you can invoke commands (such as
 @code{find-file}) that use minibuffers even while the minibuffer is
 active.  Such invocation produces a recursive editing level for a new
-minibuffer.  The outer-level minibuffer is invisible while you are
-editing the inner one.
+minibuffer.  By default, the outer-level minibuffer is invisible while
+you are editing the inner one.  If you have
+@code{minibuffer-follows-selected-frame} set to @code{nil}, you can
+have minibuffers visible on several frames at the same time.
+@xref{Basic Minibuffer,,, emacs}.
 
 If this variable is @code{nil}, you cannot invoke minibuffer commands
 when the minibuffer is active, not even if you switch to another window
@@ -2623,7 +2629,7 @@ active minibuffer.
 @end defun
 
 @defvar minibuffer-setup-hook
-This is a normal hook that is run whenever the minibuffer is entered.
+This is a normal hook that is run whenever a minibuffer is entered.
 @xref{Hooks}.
 @end defvar
 
@@ -2641,7 +2647,7 @@ called once, for the outermost use of the minibuffer.
 @end defmac
 
 @defvar minibuffer-exit-hook
-This is a normal hook that is run whenever the minibuffer is exited.
+This is a normal hook that is run whenever a minibuffer is exited.
 @xref{Hooks}.
 @end defvar
 

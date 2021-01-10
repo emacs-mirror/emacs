@@ -2125,8 +2125,10 @@ variables.")
   ;; A better solution would be to make deactivate-mark buffer-local
   ;; (or to turn it into a list of buffers, ...), but in the mean time,
   ;; this should do the trick in most cases.
-  (setq deactivate-mark nil)
-  (throw 'exit nil))
+  (when (innermost-minibuffer-p)
+    (setq deactivate-mark nil)
+    (throw 'exit nil))
+  (error "%s" "Not in most nested minibuffer"))
 
 (defun self-insert-and-exit ()
   "Terminate minibuffer input."
@@ -2394,7 +2396,7 @@ The completion method is determined by `completion-at-point-functions'."
 ;;; Key bindings.
 
 (let ((map minibuffer-local-map))
-  (define-key map "\C-g" 'abort-recursive-edit)
+  (define-key map "\C-g" 'abort-minibuffers)
   (define-key map "\M-<" 'minibuffer-beginning-of-buffer)
 
   (define-key map "\r" 'exit-minibuffer)

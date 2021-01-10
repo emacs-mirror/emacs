@@ -76,9 +76,13 @@ default, the active minibuffer moves to this new frame.  If you set
 the user option @code{minibuffer-follows-selected-frame} to
 @code{nil}, then the minibuffer stays in the frame where you opened
 it, and you must switch back to that frame in order to complete (or
-abort) the current command.  Note that the effect of the command, when
-you finally finish using the minibuffer, always takes place in the
-frame where you first opened it.
+abort) the current command.  If you set that option to a value which
+is neither @code{nil} nor @code{t}, the minibuffer moves frame only
+after a recursive minibuffer has been opened in the current command
+(@pxref{Recursive Mini,,, elisp}).  This option is mainly to retain
+(approximately) the behavior prior to Emacs 28.1.  Note that the
+effect of the command, when you finally finish using the minibuffer,
+always takes place in the frame where you first opened it.
 
 @node Minibuffer File
 @section Minibuffers for File Names

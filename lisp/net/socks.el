@@ -385,6 +385,7 @@
 	  )
 	 )
 	(process-put proc 'socks-state socks-state-authenticated)
+	(process-put proc 'socks-scratch "")
 	(set-process-filter proc #'socks-filter)))
       proc)))
 

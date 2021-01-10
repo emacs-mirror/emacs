@@ -145,7 +145,6 @@ used to display Gnus windows."
                (,shell-command-buffer-name 1.0)))
     (bug
      (vertical 1.0
-	       (if gnus-bug-create-help-buffer '("*Gnus Help Bug*" 0.5))
 	       ("*Gnus Bug*" 1.0 point)))
     (score-trace
      (vertical 1.0

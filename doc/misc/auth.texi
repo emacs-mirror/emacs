@@ -107,6 +107,18 @@ The @code{user} is the user name.  It's known as @var{:user} in
 @code{auth-source-search} queries.  You can also use @code{login} and
 @code{account}.
 
+Matching entries are usually used in the order they appear, so placing
+the most specific entries first in the file is a good idea.  For
+instance:
+
+@example
+machine example.com login foobar password geheimnis port smtp
+machine example.com login foobar password hemmelig
+@end example
+
+Here we're using one password for the @code{smtp} service, and a
+different one for all the other services.
+
 You can also use this file to specify client certificates to use when
 setting up TLS connections.  The format is:
 

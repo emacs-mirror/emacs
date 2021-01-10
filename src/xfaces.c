@@ -3293,7 +3293,8 @@ FRAME 0 means change the face on all frames, and change the default
 		}
 	      else if (EQ (k, QCstyle))
 		{
-		  if (!EQ (v, Qpressed_button) && !EQ (v, Qreleased_button))
+		  if (!EQ (v, Qpressed_button) && !EQ (v, Qreleased_button)
+		      && !EQ(v, Qflat_button))
 		    break;
 		}
 	      else
@@ -6031,6 +6032,10 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 		face->box = FACE_RAISED_BOX;
 	      else if (EQ (value, Qpressed_button))
 		face->box = FACE_SUNKEN_BOX;
+	      else if (EQ (value, Qflat_button)) {
+		face->box = FACE_SIMPLE_BOX;
+		face->box_color = face->background;
+	      }
 	    }
 	}
     }
@@ -6919,6 +6924,7 @@ syms_of_xfaces (void)
   DEFSYM (Qwave, "wave");
   DEFSYM (Qreleased_button, "released-button");
   DEFSYM (Qpressed_button, "pressed-button");
+  DEFSYM (Qflat_button, "flat-button");
   DEFSYM (Qnormal, "normal");
   DEFSYM (Qextra_light, "extra-light");
   DEFSYM (Qlight, "light");

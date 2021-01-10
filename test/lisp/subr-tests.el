@@ -61,6 +61,35 @@
                      (quote
                       (0 font-lock-keyword-face))))))))
 
+
+;;;; Keymap support.
+
+(ert-deftest subr-test-kbd ()
+  (should (equal (kbd "f") "f"))
+  (should (equal (kbd "<f1>") [f1]))
+  (should (equal (kbd "RET") "\C-m"))
+  (should (equal (kbd "C-x a") "\C-xa"))
+  ;; Check that kbd handles both new and old style key descriptions
+  ;; (bug#45536).
+  (should (equal (kbd "s-<return>") [s-return]))
+  (should (equal (kbd "<s-return>") [s-return]))
+  (should (equal (kbd "C-M-<return>") [C-M-return]))
+  (should (equal (kbd "<C-M-return>") [C-M-return])))
+
+(ert-deftest subr-test-define-prefix-command ()
+  (define-prefix-command 'foo-prefix-map)
+  (should (keymapp foo-prefix-map))
+  (should (fboundp #'foo-prefix-map))
+  ;; With optional argument.
+  (define-prefix-command 'bar-prefix 'bar-prefix-map)
+  (should (keymapp bar-prefix-map))
+  (should (fboundp #'bar-prefix))
+  ;; Returns the symbol.
+  (should (eq (define-prefix-command 'foo-bar) 'foo-bar)))
+
+
+;;;; Mode hooks.
+
 (defalias 'subr-tests--parent-mode
   (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
 
@@ -404,6 +433,15 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (flatten-tree '(1 ("foo" "bar") 2))
                  '(1 "foo" "bar" 2))))
 
+(ert-deftest subr--tests-letrec ()
+  ;; Test that simple cases of `letrec' get optimized back to `let*'.
+  (should (equal (macroexpand '(letrec ((subr-tests-var1 1)
+                                        (subr-tests-var2 subr-tests-var1))
+                                 (+ subr-tests-var1 subr-tests-var2)))
+                 '(let* ((subr-tests-var1 1)
+                         (subr-tests-var2 subr-tests-var1))
+                    (+ subr-tests-var1 subr-tests-var2)))))
+
 (defvar subr-tests--hook nil)
 
 (ert-deftest subr-tests-add-hook-depth ()
@@ -629,14 +667,6 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (apropos-internal "^next-line$" #'commandp) '(next-line)))
   (should (>= (length (apropos-internal "^help" #'commandp)) 15))
   (should-not (apropos-internal "^next-line$" #'keymapp)))
-
-(ert-deftest subr--kbd ()
-  ;; Check that kbd handles both new and old style key descriptions
-  ;; (bug#45536).
-  (should (equal (kbd "s-<return>") [s-return]))
-  (should (equal (kbd "<s-return>") [s-return]))
-  (should (equal (kbd "C-M-<return>") [C-M-return]))
-  (should (equal (kbd "<C-M-return>") [C-M-return])))
 
 (provide 'subr-tests)
 ;;; subr-tests.el ends here

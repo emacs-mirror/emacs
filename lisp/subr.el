@@ -995,6 +995,22 @@ a menu, so this function is not useful for non-menu keymaps."
 	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
+(defun define-prefix-command (command &optional mapvar name)
+  "Define COMMAND as a prefix command.  COMMAND should be a symbol.
+A new sparse keymap is stored as COMMAND's function definition and its
+value.
+This prepares COMMAND for use as a prefix key's binding.
+If a second optional argument MAPVAR is given, it should be a symbol.
+The map is then stored as MAPVAR's value instead of as COMMAND's
+value; but COMMAND is still defined as a function.
+The third optional argument NAME, if given, supplies a menu name
+string for the map.  This is required to use the keymap as a menu.
+This function returns COMMAND."
+  (let ((map (make-sparse-keymap name)))
+    (fset command map)
+    (set (or mapvar command) map)
+    command))
+
 (defun map-keymap-sorted (function keymap)
   "Implement `map-keymap' with sorting.
 Don't call this function; it is for internal use only."
@@ -1239,9 +1255,6 @@ in a cleaner way with command remapping, like this:
 
 ;;;; The global keymap tree.
 
-;; global-map, esc-map, and ctl-x-map have their values set up in
-;; keymap.c; we just give them docstrings here.
-
 (defvar esc-map
   (let ((map (make-keymap)))
     (define-key map "u" #'upcase-word)
@@ -1317,7 +1330,9 @@ The normal global definition of the character C-x indirects to this keymap.")
     map)
   "Default global keymap mapping Emacs keyboard input into commands.
 The value is a keymap that is usually (but not necessarily) Emacs's
-global map.")
+global map.
+
+See also `current-global-map'.")
 (use-global-map global-map)
 
 
@@ -1861,9 +1876,33 @@ all symbols are bound before any of the VALUEFORMs are evalled."
   ;; As a special-form, we could implement it more efficiently (and cleanly,
   ;; making the vars actually unbound during evaluation of the binders).
   (declare (debug let) (indent 1))
-  `(let ,(mapcar #'car binders)
-     ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
-     ,@body))
+  ;; Use plain `let*' for the non-recursive definitions.
+  ;; This only handles the case where the first few definitions are not
+  ;; recursive.  Nothing as fancy as an SCC analysis.
+  (let ((seqbinds nil))
+    ;; Our args haven't yet been macro-expanded, so `macroexp--fgrep'
+    ;; may fail to see references that will be introduced later by
+    ;; macroexpansion.  We could call `macroexpand-all' to avoid that,
+    ;; but in order to avoid that, we instead check to see if the binders
+    ;; appear in the macroexp environment, since that's how references can be
+    ;; introduced later on.
+    (unless (macroexp--fgrep binders macroexpand-all-environment)
+      (while (and binders
+                  (null (macroexp--fgrep binders (nth 1 (car binders)))))
+        (push (pop binders) seqbinds)))
+    (let ((nbody (if (null binders)
+                     (macroexp-progn body)
+                   `(let ,(mapcar #'car binders)
+                      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
+                      ,@body))))
+      (cond
+       ;; All bindings are recursive.
+       ((null seqbinds) nbody)
+       ;; Special case for trivial uses.
+       ((and (symbolp nbody) (null (cdr seqbinds)) (eq nbody (caar seqbinds)))
+        (nth 1 (car seqbinds)))
+       ;; General case.
+       (t `(let* ,(nreverse seqbinds) ,nbody))))))
 
 (defmacro dlet (binders &rest body)
   "Like `let*' but using dynamic scoping."

@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 ;; (require 'paragraphs) ; loaded by default
 
 (ert-deftest paragraphs-tests-sentence-end ()
@@ -160,6 +161,28 @@
     (transpose-sentences 2)
     (should (equal (buffer-string)
                    "First sentence.  Third sentence.  Second sentence."))))
+
+(ert-deftest test-mark-paragraphs ()
+  (with-current-buffer
+      (find-file-noselect (ert-resource-file "mark-paragraph.bin"))
+    (goto-char (point-max))
+    ;; Just a sanity check that the file hasn't changed.
+    (should (= (point) 54))
+    (mark-paragraph)
+    (should (= (point) 42))
+    (should (= (mark) 54))
+    ;; Doesn't move.
+    (mark-paragraph)
+    (should (= (point) 42))
+    (should (= (mark) 54))
+    (forward-line -1)
+    (mark-paragraph)
+    (should (= (point) 25))
+    (should (= (mark) 42))
+    (goto-char (point-min))
+    (mark-paragraph)
+    (should (= (point) 1))
+    (should (= (mark) 17))))
 
 (provide 'paragraphs-tests)
 ;;; paragraphs-tests.el ends here

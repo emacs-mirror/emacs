@@ -314,6 +314,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   char *tempfile = NULL;
 #else
+  sigset_t oldset;
   pid_t pid = -1;
 #endif
   int child_errno;
@@ -601,9 +602,12 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 
 #ifndef MSDOS
 
+  block_input ();
+  block_child_signal (&oldset);
+
   child_errno
     = emacs_spawn (&pid, filefd, fd_output, fd_error, new_argv, env,
-                   SSDATA (current_dir), NULL);
+                   SSDATA (current_dir), NULL, &oldset);
   eassert ((child_errno == 0) == (0 < pid));
 
   if (pid > 0)
@@ -623,6 +627,9 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
 	  synch_process_pid = 0;
 	}
     }
+
+  unblock_child_signal (&oldset);
+  unblock_input ();
 
   if (pid < 0)
     report_file_errno (CHILD_SETUP_ERROR_DESC, Qnil, child_errno);
@@ -1227,17 +1234,21 @@ child_setup (int in, int out, int err, char **new_argv, char **env,
    process image file ARGV[0].  Use ENVP for the environment block for
    the new process.  Use CWD as working directory for the new process.
    If PTY is not NULL, it must be a pseudoterminal device.  If PTY is
-   NULL, don't perform any terminal setup.  */
+   NULL, don't perform any terminal setup.  OLDSET must be a pointer
+   to a signal set initialized by `block_child_signal'.  Before
+   calling this function, call `block_input' and `block_child_signal';
+   afterwards, call `unblock_input' and `unblock_child_signal'.  Be
+   sure to call `unblock_child_signal' only after registering NEWPID
+   in a list where `handle_child_signal' can find it!  */
 
 int
 emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
-             char **argv, char **envp, const char *cwd, const char *pty)
+             char **argv, char **envp, const char *cwd,
+             const char *pty, const sigset_t *oldset)
 {
-  sigset_t oldset;
   int pid;
 
-  block_input ();
-  block_child_signal (&oldset);
+  eassert (input_blocked_p ());
 
 #ifndef WINDOWSNT
   /* vfork, and prevent local vars from being clobbered by the vfork.  */
@@ -1249,6 +1260,7 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   int volatile stdout_volatile = std_out;
   int volatile stderr_volatile = std_err;
   char **volatile envp_volatile = envp;
+  const sigset_t *volatile oldset_volatile = oldset;
 
 #ifdef DARWIN_OS
   /* Darwin doesn't let us run setsid after a vfork, so use fork when
@@ -1270,6 +1282,7 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   std_out = stdout_volatile;
   std_err = stderr_volatile;
   envp = envp_volatile;
+  oldset = oldset_volatile;
 
   if (pid == 0)
 #endif /* not WINDOWSNT */
@@ -1323,7 +1336,7 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
 	     would work?  */
 	  if (std_in >= 0)
 	    emacs_close (std_in);
-	  std_out = std_in = emacs_open (pty, O_RDWR, 0);
+          std_out = std_in = emacs_open_noquit (pty, O_RDWR, 0);
 
 	  if (std_in < 0)
 	    {
@@ -1364,7 +1377,7 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
 #endif
 
       /* Stop blocking SIGCHLD in the child.  */
-      unblock_child_signal (&oldset);
+      unblock_child_signal (oldset);
 
       if (pty_flag)
 	child_setup_tty (std_out);
@@ -1381,10 +1394,6 @@ emacs_spawn (pid_t *newpid, int std_in, int std_out, int std_err,
   /* Back in the parent process.  */
 
   int vfork_error = pid < 0 ? errno : 0;
-
-  /* Stop blocking in the parent.  */
-  unblock_child_signal (&oldset);
-  unblock_input ();
 
   if (pid < 0)
     {

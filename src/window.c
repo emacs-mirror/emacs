@@ -2663,12 +2663,15 @@ static void
 decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object *all_frames)
 {
   struct window *w = decode_live_window (*window);
+  Lisp_Object miniwin = XFRAME (w->frame)->minibuffer_window;
 
   XSETWINDOW (*window, w);
   /* MINIBUF nil may or may not include minibuffers.  Decide if it
      does.  */
   if (NILP (*minibuf))
-    *minibuf = minibuf_level ? minibuf_window : Qlambda;
+    *minibuf = this_minibuffer_depth (XWINDOW (miniwin)->contents)
+      ? miniwin
+      : Qlambda;
   else if (!EQ (*minibuf, Qt))
     *minibuf = Qlambda;
 
@@ -8100,6 +8103,18 @@ and scrolling positions.  */)
     return Qt;
   return Qnil;
 }
+
+DEFUN ("window-bump-use-time", Fwindow_bump_use_time,
+       Swindow_bump_use_time, 1, 1, 0,
+       doc: /* Mark WINDOW as having been recently used.  */)
+  (Lisp_Object window)
+{
+  struct window *w = decode_valid_window (window);
+
+  w->use_time = ++window_select_count;
+  return Qnil;
+}
+
 
 
 static void init_window_once_for_pdumper (void);
@@ -8573,6 +8588,7 @@ displayed after a scrolling operation to be somewhat inaccurate.  */);
   defsubr (&Swindow_vscroll);
   defsubr (&Sset_window_vscroll);
   defsubr (&Scompare_window_configurations);
+  defsubr (&Swindow_bump_use_time);
   defsubr (&Swindow_list);
   defsubr (&Swindow_list_1);
   defsubr (&Swindow_prev_buffers);

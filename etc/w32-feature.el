@@ -25,8 +25,20 @@
 ;; designed to check whether bundled binary distributions of Emacs on
 ;; windows are fully functional.
 
+;; By default is checks whether the features that we are expect to be
+;; available on Emacs for Windows are reported to be available. It
+;; should be possible to run these tests from a distributed version of
+;; Emacs.
+
+;; In addition, it provides a single command
+;; `w32-feature-load-tests'. If the full source repository of Emacs is
+;; available, this will load selected files from the repository which
+;; test these features.
+
 ;;; Code:
 (require 'ert)
+
+(defvar w32-feature-core-tests nil)
 
 (ert-deftest feature-optimization ()
   (should
@@ -41,15 +53,23 @@
 (ert-deftest feature-gnutls ()
   (should (gnutls-available-p)))
 
+(add-to-list 'w32-feature-core-tests "lisp/net/gnutls-tests.el")
+
 (ert-deftest feature-zlib ()
   (should (zlib-available-p)))
+
+(add-to-list 'w32-feature-core-tests "src/decompress-tests.el")
 
 (ert-deftest feature-thread ()
   (should (fboundp 'make-thread)))
 
+(add-to-list 'w32-feature-core-tests "lisp/thread-tests.el")
+
 (ert-deftest feature-json ()
   (should
    (fboundp 'json-serialize)))
+
+(add-to-list 'w32-feature-core-tests "src/json-tests.el")
 
 (ert-deftest feature-gmp ()
   (should
@@ -61,8 +81,12 @@
 (ert-deftest feature-libxml ()
   (should (libxml-available-p)))
 
+(add-to-list 'w32-feature-core-tests "src/xml-tests.el")
+
 (ert-deftest feature-lcms2 ()
   (should (lcms2-available-p)))
+
+(add-to-list 'w32-feature-core-tests "src/lcms-tests.el")
 
 (ert-deftest feature-xpm ()
   (should (image-type-available-p 'xpm)))
@@ -73,8 +97,7 @@
 (ert-deftest feature-png ()
   (should (image-type-available-p 'png)))
 
-(ert-deftest feature-xpm ()
-  (should (image-type-available-p 'xpm)))
+(add-to-list 'w32-feature-core-tests "lisp/image-file-tests.el")
 
 (ert-deftest feature-jpeg ()
   (should (image-type-available-p 'jpeg)))
@@ -84,4 +107,12 @@
 
 (ert-deftest feature-svg ()
   (should (image-type-available-p 'svg)))
+
+(defun w32-feature-load-tests (dir)
+  (interactive "D")
+  (mapc
+   (lambda(f)
+     (load-file (concat dir "test/" f)))
+   w32-feature-core-tests))
+
 ;;; feature.el ends here

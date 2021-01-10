@@ -906,7 +906,8 @@ DOWNCASE    t:   Downcase words before using them."
         ;; begin, optional spaces and opening brace
         "begin[[:space:]]*{"
         ;; Build a regexp for env names
-        (regexp-opt '("lstlisting" "dmath" "dseries" "dgroup" "darray"))
+        (regexp-opt '("lstlisting" "dmath" "dseries" "dgroup"
+                      "darray" "frame"))
         ;; closing brace, optional spaces
         "}[[:space:]]*"
         ;; Now for macros
@@ -919,9 +920,9 @@ DOWNCASE    t:   Downcase words before using them."
         "\\[[^][]*"
         ;; Allow nested levels of chars enclosed in braces
         "\\(?:{[^}{]*"
-          "\\(?:{[^}{]*"
-            "\\(?:{[^}{]*}[^}{]*\\)*"
-          "}[^}{]*\\)*"
+        "\\(?:{[^}{]*"
+        "\\(?:{[^}{]*}[^}{]*\\)*"
+        "}[^}{]*\\)*"
         "}[^][]*\\)*"
         ;; Match the label key
         "\\<label[[:space:]]*=[[:space:]]*"
@@ -944,7 +945,7 @@ you have to define it using \\(?1:...\\) when adding new regexps.
 When changed from Lisp, make sure to call
 `reftex-compile-variables' afterwards to make the change
 effective."
-    :version "27.1"
+    :version "28.1"
     :set (lambda (symbol value)
 	   (set symbol value)
 	   (when (fboundp 'reftex-compile-variables)

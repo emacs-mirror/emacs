@@ -4,7 +4,7 @@
 
 ;; Author: Pavel Kobyakov <pk_at_work@yahoo.com>
 ;; Maintainer: João Távora <joaotavora@gmail.com>
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Keywords: c languages tools
 ;; Package-Requires: ((emacs "26.1") (eldoc "1.1.0"))
 
@@ -1283,6 +1283,8 @@ correctly.")
   (when (flymake-running-backends) flymake-mode-line-counter-format))
 
 (defun flymake--mode-line-counter (type &optional no-space)
+  "Compute number of diagnostics in buffer with TYPE's severity.
+TYPE is usually keyword `:error', `:warning' or `:note'."
   (let ((count 0)
         (face (flymake--lookup-type-property type
                                              'mode-line-face
@@ -1290,7 +1292,8 @@ correctly.")
     (maphash (lambda
                (_b state)
                (dolist (d (flymake--backend-state-diags state))
-                 (when (eq type (flymake--diag-type d))
+                 (when (= (flymake--severity type)
+                          (flymake--severity (flymake--diag-type d)))
                    (cl-incf count))))
              flymake--backend-state)
     (when (or (cl-plusp count)

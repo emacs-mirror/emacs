@@ -2601,7 +2601,7 @@ The method used must be an out-of-band method."
 		       (t nil)))))))))
 
 (defun tramp-sh-handle-insert-directory
-  (filename switches &optional wildcard full-directory-p)
+    (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
   (setq filename (expand-file-name filename))
   (unless switches (setq switches ""))
@@ -2636,66 +2636,65 @@ The method used must be an out-of-band method."
        v 4 "Inserting directory `ls %s %s', wildcard %s, fulldir %s"
        switches filename (if wildcard "yes" "no")
        (if full-directory-p "yes" "no"))
-      ;; If `full-directory-p', we just say `ls -l FILENAME'.
-      ;; Else we chdir to the parent directory, then say `ls -ld BASENAME'.
+      ;; If `full-directory-p', we just say `ls -l FILENAME'.  Else we
+      ;; chdir to the parent directory, then say `ls -ld BASENAME'.
       (if full-directory-p
 	  (tramp-send-command
-	   v
-	   (format "%s %s %s 2>%s"
-		   (tramp-get-ls-command v)
-		   switches
-		   (if wildcard
-		       localname
-		     (tramp-shell-quote-argument (concat localname ".")))
-                   (tramp-get-remote-null-device v)))
+	   v (format "%s %s %s 2>%s"
+		     (tramp-get-ls-command v)
+		     switches
+		     (if wildcard
+			 localname
+		       (tramp-shell-quote-argument (concat localname ".")))
+                     (tramp-get-remote-null-device v)))
 	(tramp-barf-unless-okay
-	 v
-	 (format "cd %s" (tramp-shell-quote-argument
-			  (tramp-run-real-handler
-			   #'file-name-directory (list localname))))
+	 v (format "cd %s" (tramp-shell-quote-argument
+			    (tramp-run-real-handler
+			     #'file-name-directory (list localname))))
 	 "Couldn't `cd %s'"
 	 (tramp-shell-quote-argument
 	  (tramp-run-real-handler #'file-name-directory (list localname))))
 	(tramp-send-command
-	 v
-	 (format "%s %s %s 2>%s"
-		 (tramp-get-ls-command v)
-		 switches
-		 (if (or wildcard
-			 (zerop (length
-				 (tramp-run-real-handler
-				  #'file-name-nondirectory (list localname)))))
-		     ""
-		   (tramp-shell-quote-argument
-		    (tramp-run-real-handler
-                     #'file-name-nondirectory (list localname))))
-                 (tramp-get-remote-null-device v))))
+	 v (format "%s %s %s 2>%s"
+		   (tramp-get-ls-command v)
+		   switches
+		   (if (or wildcard
+			   (zerop (length
+				   (tramp-run-real-handler
+				    #'file-name-nondirectory (list localname)))))
+		       ""
+		     (tramp-shell-quote-argument
+		      (tramp-run-real-handler
+                       #'file-name-nondirectory (list localname))))
+                   (tramp-get-remote-null-device v))))
 
-      (save-restriction
-	(let ((beg (point))
-	      (emc enable-multibyte-characters))
-	  (narrow-to-region (point) (point))
-	  ;; We cannot use `insert-buffer-substring' because the Tramp
-	  ;; buffer changes its contents before insertion due to calling
-	  ;; `expand-file-name' and alike.
-	  (insert
-	   (with-current-buffer (tramp-get-buffer v)
-	     (buffer-string)))
+      (let ((beg-marker (point-marker))
+	    (end-marker (point-marker))
+	    (emc enable-multibyte-characters))
+	(set-marker-insertion-type beg-marker nil)
+	(set-marker-insertion-type end-marker t)
+	;; We cannot use `insert-buffer-substring' because the Tramp
+	;; buffer changes its contents before insertion due to calling
+	;; `expand-file-name' and alike.
+	(insert (with-current-buffer (tramp-get-buffer v) (buffer-string)))
 
-	  ;; Check for "--dired" output.  We must enable unibyte
-	  ;; strings, because the "--dired" output counts in bytes.
-	  (set-buffer-multibyte nil)
+	;; We must enable unibyte strings, because the "--dired"
+	;; output counts in bytes.
+	(set-buffer-multibyte nil)
+	(save-restriction
+	  (narrow-to-region beg-marker end-marker)
+	  ;; Check for "--dired" output.
 	  (forward-line -2)
 	  (when (looking-at-p "//SUBDIRED//")
 	    (forward-line -1))
 	  (when (looking-at "//DIRED//\\s-+")
-	    (let ((databeg (match-end 0))
+	    (let ((beg (match-end 0))
 		  (end (point-at-eol)))
 	      ;; Now read the numeric positions of file names.
-	      (goto-char databeg)
+	      (goto-char beg)
 	      (while (< (point) end)
-		(let ((start (+ beg (read (current-buffer))))
-		      (end (+ beg (read (current-buffer)))))
+		(let ((start (+ (point-min) (read (current-buffer))))
+		      (end (+ (point-min) (read (current-buffer)))))
 		  (if (memq (char-after end) '(?\n ?\ ))
 		      ;; End is followed by \n or by " -> ".
 		      (put-text-property start end 'dired-filename t))))))
@@ -2703,18 +2702,18 @@ The method used must be an out-of-band method."
 	  (goto-char (point-at-bol))
 	  (while (looking-at "//")
 	    (forward-line 1)
-	    (delete-region (match-beginning 0) (point)))
-	  ;; Reset multibyte if needed.
-	  (set-buffer-multibyte emc)
+	    (delete-region (match-beginning 0) (point))))
+	;; Reset multibyte if needed.
+	(set-buffer-multibyte emc)
 
+	(save-restriction
+	  (narrow-to-region beg-marker end-marker)
 	  ;; Some busyboxes are reluctant to discard colors.
 	  (unless
 	      (string-match-p "color" (tramp-get-connection-property v "ls" ""))
-            (save-excursion
-	      (goto-char beg)
-	      (while
-		  (re-search-forward tramp-display-escape-sequence-regexp nil t)
-	        (replace-match ""))))
+	    (goto-char (point-min))
+	    (while (re-search-forward tramp-display-escape-sequence-regexp nil t)
+	      (replace-match "")))
 
           ;; Now decode what read if necessary.  Stolen from `insert-directory'.
 	  (let ((coding (or coding-system-for-read
@@ -2729,36 +2728,32 @@ The method used must be an out-of-band method."
 	      ;; If no coding system is specified or detection is
 	      ;; requested, detect the coding.
 	      (if (eq (coding-system-base coding) 'undecided)
-		  (setq coding (detect-coding-region beg (point) t)))
-	      (if (not (eq (coding-system-base coding) 'undecided))
-		  (save-restriction
-		    (setq coding-no-eol
-			  (coding-system-change-eol-conversion coding 'unix))
-		    (narrow-to-region beg (point))
-		    (goto-char (point-min))
-		    (while (not (eobp))
-		      (setq pos (point)
-			    val (get-text-property (point) 'dired-filename))
-		      (goto-char (next-single-property-change
-				  (point) 'dired-filename nil (point-max)))
-		      ;; Force no eol conversion on a file name, so
-		      ;; that CR is preserved.
-		      (decode-coding-region pos (point)
-					    (if val coding-no-eol coding))
-		      (if val
-			  (put-text-property pos (point)
-					     'dired-filename t)))))))
+		  (setq coding (detect-coding-region (point-min) (point) t)))
+	      (unless (eq (coding-system-base coding) 'undecided)
+		(setq coding-no-eol
+		      (coding-system-change-eol-conversion coding 'unix))
+		(goto-char (point-min))
+		(while (not (eobp))
+		  (setq pos (point)
+			val (get-text-property (point) 'dired-filename))
+		  (goto-char (next-single-property-change
+			      (point) 'dired-filename nil (point-max)))
+		  ;; Force no eol conversion on a file name, so that
+		  ;; CR is preserved.
+		  (decode-coding-region
+		   pos (point) (if val coding-no-eol coding))
+		  (if val (put-text-property pos (point) 'dired-filename t))))))
 
 	  ;; The inserted file could be from somewhere else.
 	  (when (and (not wildcard) (not full-directory-p))
 	    (goto-char (point-max))
 	    (when (file-symlink-p filename)
-	      (goto-char (search-backward "->" beg 'noerror)))
+	      (goto-char (search-backward "->" (point-min) 'noerror)))
 	    (search-backward
 	     (if (directory-name-p filename)
 		 "."
 	       (file-name-nondirectory filename))
-	     beg 'noerror)
+	     (point-min) 'noerror)
 	    (replace-match (file-relative-name filename) t))
 
 	  ;; Try to insert the amount of free space.
@@ -2769,9 +2764,11 @@ The method used must be an out-of-band method."
 	      ;; Replace "total" with "total used", to avoid confusion.
 	      (replace-match "\\1 used in directory")
 	      (end-of-line)
-	      (insert " available " available)))
+	      (insert " available " available))))
 
-	  (goto-char (point-max)))))))
+	(prog1 (goto-char end-marker)
+	  (set-marker beg-marker nil)
+	  (set-marker end-marker nil))))))
 
 ;; Canonicalization of file names.
 
