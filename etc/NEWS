@@ -2868,6 +2868,12 @@ not recognised.  (This only has an effect if 'set-auto-mode' chooses
 'fundamental-mode'; buffers which are simply in 'fundamental-mode' by
 default are unaffected.)
 
+---
+*** New user options 'so-long-mode-preserved-minor-modes' and
+'so-long-mode-preserved-variables' allow specified mode and variable
+states to be maintained if 'so-long-mode' replaces the original major
+mode.  By default, these new options support 'view-mode'.
+
 
 * New Modes and Packages in Emacs 28.1
 

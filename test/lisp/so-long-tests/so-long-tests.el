@@ -327,6 +327,58 @@
       (normal-mode)
       (should (eq major-mode 'so-long-mode)))))
 
+(ert-deftest so-long-tests-preserved-variables-and-modes ()
+  "Preserved variables and minor modes when using `so-long-mode'."
+  ;; Test the user options `so-long-mode-preserved-variables' and
+  ;; `so-long-mode-preserved-minor-modes'.  The minor mode `view-mode'
+  ;; is 'preserved' by default (using both options).
+  (with-temp-buffer
+    (display-buffer (current-buffer))
+    (insert "#!emacs\n")
+    (normal-mode)
+    ;; We enable `view-mode' before triggering `so-long'.
+    (insert (make-string (1+ so-long-threshold) ?x))
+    (view-mode 1)
+    (should (eq view-mode t))
+    (should (eq buffer-read-only t))
+    (so-long-tests-remember)
+    (let ((so-long-action 'so-long-mode)
+          (menu (so-long-menu)))
+      (so-long)
+      (so-long-tests-assert-active 'so-long-mode)
+      (should (eq view-mode t))
+      (should (eq buffer-read-only t))
+      ;; Revert.
+      (funcall (lookup-key menu [so-long-revert]))
+      (so-long-tests-assert-reverted 'so-long-mode)
+      (should (eq view-mode t))
+      (should (eq buffer-read-only t))
+      ;; Disable `view-mode'.  Note that without the preserved
+      ;; variables, the conflict between how `view-mode' and `so-long'
+      ;; each deal with the buffer's original `buffer-read-only' value
+      ;; would lead to a situation whereby the buffer would still be
+      ;; read-only after `view-mode' had been disabled.
+      (view-mode 0)
+      (should (eq view-mode nil))
+      (should (eq buffer-read-only nil))))
+  ;; Without `view-mode'.
+  (with-temp-buffer
+    (display-buffer (current-buffer))
+    (insert "#!emacs\n")
+    (normal-mode)
+    (insert (make-string (1+ so-long-threshold) ?x))
+    (should (eq view-mode nil))
+    (so-long-tests-remember)
+    (let ((so-long-action 'so-long-mode)
+          (menu (so-long-menu)))
+      (so-long)
+      (so-long-tests-assert-active 'so-long-mode)
+      (should (eq view-mode nil))
+      ;; Revert.
+      (funcall (lookup-key menu [so-long-revert]))
+      (so-long-tests-assert-reverted 'so-long-mode)
+      (should (eq view-mode nil)))))
+
 (ert-deftest so-long-tests-predicate ()
   "Custom predicate function."
   ;; Test the `so-long-predicate' user option.

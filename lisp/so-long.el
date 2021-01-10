@@ -214,6 +214,24 @@
 ;; performance or otherwise avoid undesirable behaviours.  If `so-long-revert'
 ;; is called, then the original values are restored.
 
+;; * Retaining minor modes and settings when switching to `so-long-mode'
+;; ---------------------------------------------------------------------
+;; A consequence of switching to a new major mode is that many buffer-local
+;; minor modes and variables from the original major mode will be disabled.
+;; For performance purposes this is a desirable trait of `so-long-mode', but
+;; specified modes and variables can also be preserved across the major mode
+;; transition by customizing the `so-long-mode-preserved-minor-modes' and
+;; `so-long-mode-preserved-variables' user options.
+;;
+;; When `so-long-mode' is called, the states of any modes and variables
+;; configured by these options are remembered in the original major mode, and
+;; reinstated after switching to `so-long-mode'.  Likewise, if `so-long-revert'
+;; is used to switch back to the original major mode, these modes and variables
+;; are again set to the same states.
+;;
+;; The default values for these options ensure that if `view-mode' was active
+;; in the original mode, then it will also be active in `so-long-mode'.
+
 ;; * Hooks
 ;; -------
 ;; `so-long-hook' runs at the end of the `so-long' command, after the configured
@@ -394,6 +412,8 @@
 ;; 1.1   - Increase `so-long-threshold' from 250 to 10,000.
 ;;       - Increase `so-long-max-lines' from 5 to 500.
 ;;       - Include `fundamental-mode' in `so-long-target-modes'.
+;;       - New user option `so-long-mode-preserved-minor-modes'.
+;;       - New user option `so-long-mode-preserved-variables'.
 ;; 1.0   - Included in Emacs 27.1, and in GNU ELPA for prior versions of Emacs.
 ;;       - New global mode `global-so-long-mode' to enable/disable the library.
 ;;       - New user option `so-long-action'.
@@ -859,6 +879,44 @@ intended to be edited manually."
              (which-func-mode boolean))
   :package-version '(so-long . "1.0"))
 
+(defcustom so-long-mode-preserved-minor-modes
+  '(view-mode)
+  "List of buffer-local minor modes to preserve in `so-long-mode'.
+
+These will be enabled or disabled after switching to `so-long-mode' (by calling
+them with the numeric argument 1 or 0) in accordance with their state in the
+buffer's original major mode.  Unknown modes, and modes which are already in the
+desired state, are ignored.
+
+This happens before `so-long-variable-overrides' and `so-long-minor-modes'
+have been processed.
+
+By default this happens only if `so-long-action' is set to `so-long-mode'.
+If `so-long-revert' is subsequently invoked, then the modes are again set
+to their original state after the original major mode has been called.
+
+See also `so-long-mode-preserved-variables' (processed after this)."
+  :type '(repeat symbol) ;; not function, as may be unknown => mismatch.
+  :package-version '(so-long . "1.1"))
+
+(defcustom so-long-mode-preserved-variables
+  '(view-old-buffer-read-only)
+  "List of buffer-local variables to preserve in `so-long-mode'.
+
+The original value of each variable will be maintained after switching to
+`so-long-mode'.  Unknown variables are ignored.
+
+This happens before `so-long-variable-overrides' and `so-long-minor-modes'
+have been processed.
+
+By default this happens only if `so-long-action' is set to `so-long-mode'.
+If `so-long-revert' is subsequently invoked, then the variables are again
+set to their original values after the original major mode has been called.
+
+See also `so-long-mode-preserved-minor-modes' (processed before this)."
+  :type '(repeat variable)
+  :package-version '(so-long . "1.1"))
+
 (defcustom so-long-hook nil
   "List of functions to call after `so-long' is called.
 
@@ -945,9 +1003,16 @@ If RESET is non-nil, remove any existing values before storing the new ones."
     (setq so-long-original-values nil))
   (so-long-remember 'so-long-variable-overrides)
   (so-long-remember 'so-long-minor-modes)
+  (so-long-remember 'so-long-mode-preserved-variables)
+  (so-long-remember 'so-long-mode-preserved-minor-modes)
   (dolist (ovar so-long-variable-overrides)
     (so-long-remember (car ovar)))
   (dolist (mode so-long-minor-modes)
+    (when (and (boundp mode) mode)
+      (so-long-remember mode)))
+  (dolist (var so-long-mode-preserved-variables)
+    (so-long-remember var))
+  (dolist (mode so-long-mode-preserved-minor-modes)
     (when (and (boundp mode) mode)
       (so-long-remember mode))))
 
@@ -1333,6 +1398,16 @@ This advice acts before `so-long-mode', with the previous mode still active."
   "Run by `so-long-mode' in `after-change-major-mode-hook'.
 
 Calls `so-long-disable-minor-modes' and `so-long-override-variables'."
+  ;; Check/set the state of 'preserved' variables and minor modes.
+  ;; (See also `so-long-mode-revert'.)
+  ;; The "modes before variables" sequence is important for the default
+  ;; preserved mode `view-mode' which remembers the `buffer-read-only' state
+  ;; (which is also permanent-local).  That causes problems unless we restore
+  ;; the original value of `view-old-buffer-read-only' after; otherwise the
+  ;; sequence `view-mode' -> `so-long' -> `so-long-revert' -> `view-mode'
+  ;; results in `view-mode' being disabled but the buffer still read-only.
+  (so-long-mode-maintain-preserved-minor-modes)
+  (so-long-mode-maintain-preserved-variables)
   ;; Disable minor modes.
   (so-long-disable-minor-modes)
   ;; Override variables (again).  We already did this in `so-long-mode' in
@@ -1377,7 +1452,7 @@ The variables are set in accordance with what was remembered in `so-long'."
   ;; In the instance where `so-long-mode-revert' has just reverted the major
   ;; mode, note that `kill-all-local-variables' was already called by the
   ;; original mode function, and so these 'overridden' variables may now have
-  ;; global rather than buffer-local values.
+  ;; global rather than buffer-local values (if they are not permanent-local).
   (let* ((remembered (so-long-original variable :exists))
          (originally-local (nth 2 remembered)))
     (if originally-local
@@ -1392,6 +1467,24 @@ The variables are set in accordance with what was remembered in `so-long'."
       ;; we can't know whether it's best to use the new global value, or retain
       ;; the old value as a buffer-local value, so we keep it simple.
       (kill-local-variable variable))))
+
+(defun so-long-mode-maintain-preserved-variables ()
+  "Set any 'preserved' variables.
+
+The variables are set in accordance with what was remembered in `so-long'."
+  (dolist (var (so-long-original 'so-long-mode-preserved-variables))
+    (so-long-restore-variable var)))
+
+(defun so-long-mode-maintain-preserved-minor-modes ()
+  "Enable or disable 'preserved' minor modes.
+
+The modes are set in accordance with what was remembered in `so-long'."
+  (dolist (mode (so-long-original 'so-long-mode-preserved-minor-modes))
+    (when (boundp mode)
+      (let ((original (so-long-original mode))
+            (current (symbol-value mode)))
+        (unless (equal current original)
+          (funcall mode (if original 1 0)))))))
 
 (defun so-long-mode-revert ()
   "Call the `major-mode' which was selected before `so-long-mode' replaced it.
@@ -1420,6 +1513,10 @@ This is the `so-long-revert-function' for `so-long-mode'."
     ;; `kill-all-local-variables' was already called by the original mode
     ;; function, so we may be seeing global values.
     (so-long-restore-variables)
+    ;; Check/set the state of 'preserved' variables and minor modes.
+    ;; (Refer to `so-long-after-change-major-mode' regarding the sequence.)
+    (so-long-mode-maintain-preserved-minor-modes)
+    (so-long-mode-maintain-preserved-variables)
     ;; Restore the mode line construct.
     (unless (derived-mode-p 'so-long-mode)
       (setq so-long-mode-line-info (so-long-mode-line-info)))))
