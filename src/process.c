@@ -5413,9 +5413,9 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
 	 an asynchronous process.  Otherwise this might deadlock if we
 	 receive a SIGCHLD during `pselect'.  */
       int child_fd = child_signal_read_fd;
-      eassert (0 <= child_fd);
       eassert (child_fd < FD_SETSIZE);
-      FD_SET (child_fd, &Available);
+      if (0 <= child_fd)
+        FD_SET (child_fd, &Available);
 
       /* If frame size has changed or the window is newly mapped,
 	 redisplay now, before we start to wait.  There is a race
