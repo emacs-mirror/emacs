@@ -8314,6 +8314,7 @@ indirectly called by the latter."
       (when (and (listp quad)
 		 (integerp (nth 3 quad))
 		 (> (nth 3 quad) (window-total-height window)))
+        (message "foo")
 	(condition-case nil
 	    (window-resize window (- (nth 3 quad) (window-total-height window)))
 	  (error nil)))
