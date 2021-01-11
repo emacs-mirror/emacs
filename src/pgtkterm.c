@@ -3770,6 +3770,8 @@ pgtk_flash (struct frame *f)
 
 #undef XFillRectangle
     }
+
+    cairo_destroy (cr);
   }
 
   unblock_input ();
