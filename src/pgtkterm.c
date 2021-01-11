@@ -3706,8 +3706,8 @@ pgtk_flash (struct frame *f)
   {
     cairo_surface_t *surface_orig = FRAME_CR_SURFACE (f);
 
-    int width = cairo_image_surface_get_width (surface_orig);
-    int height = cairo_image_surface_get_height (surface_orig);
+    int width = FRAME_CR_SURFACE_DESIRED_WIDTH (f);
+    int height = FRAME_CR_SURFACE_DESIRED_HEIGHT (f);
     cairo_surface_t *surface =
       cairo_surface_create_similar (surface_orig, CAIRO_CONTENT_COLOR_ALPHA,
 				    width, height);
