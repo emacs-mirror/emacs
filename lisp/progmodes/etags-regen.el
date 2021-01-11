@@ -209,7 +209,7 @@ We support only Emacs's etags program with this option."
   (when etags-regen--tags-file
     (delete-file etags-regen--tags-file)
     (let ((buffer (get-file-buffer etags-regen--tags-file)))
-      (kill-buffer buffer))
+      (and buffer (kill-buffer buffer)))
     (setq tags-file-name nil
           tags-table-list nil
           etags-regen--tags-file nil
