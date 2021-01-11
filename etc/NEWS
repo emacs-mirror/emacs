@@ -1371,6 +1371,7 @@ https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
 ** erc
 
+---
 *** erc-services.el now supports NickServ passwords from auth-source.
 The 'erc-use-auth-source-for-nickserv-password' variable enables querying
 auth-source for NickServ passwords.  To enable this, add the following
