@@ -208,6 +208,8 @@ We support only Emacs's etags program with this option."
 (defun etags-regen--tags-cleanup ()
   (when etags-regen--tags-file
     (delete-file etags-regen--tags-file)
+    (let ((buffer (get-file-buffer etags-regen--tags-file)))
+      (kill-buffer buffer))
     (setq tags-file-name nil
           tags-table-list nil
           etags-regen--tags-file nil
