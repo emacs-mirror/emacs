@@ -79,6 +79,27 @@ We support only Emacs's etags program with this option."
                     (seq-every-p #'stringp (cdr group))))
              value))))
 
+;; XXX: We have to list all extensions: etags falls back to Fortran.
+;; http://lists.gnu.org/archive/html/emacs-devel/2018-01/msg00323.html
+(defcustom etags-regen-file-extensions
+  '("rb" "js" "py" "pl" "el" "c" "cpp" "cc" "h" "hh" "hpp"
+    "java" "go" "cl" "lisp" "prolog" "php" "erl" "hrl"
+    "F" "f" "f90" "for" "cs" "a" "asm" "ads" "adb" "ada")
+  "Code file extensions.
+
+File extensions to generate the tags for."
+  :type '(repeat (string :tag "File extension")))
+
+;;;###autoload
+(put 'etags-regen-file-extensions 'safe-local-variable
+     (lambda (value)
+       (and (listp value)
+            (seq-every-p
+             (lambda (ext)
+               (and (stringp ext)
+                    (string-match-p "\\`[a-zA-Z0-9]+\\'" ext)))
+             value))))
+
 (defvar etags-regen--errors-buffer-name "*etags-regen-tags-errors*")
 
 (defun etags-regen--maybe-generate ()
@@ -103,11 +124,8 @@ We support only Emacs's etags program with this option."
   (let* ((root (project-root proj))
          (default-directory root)
          (files (project-files proj))
-         ;; FIXME: List all extensions, or wait for etags fix.
-         ;; http://lists.gnu.org/archive/html/emacs-devel/2018-01/msg00323.html
-         (extensions '("rb" "js" "py" "pl" "el" "c" "cpp" "cc" "h" "hh" "hpp"
-                       "java" "go" "cl" "lisp" "prolog" "php" "erl" "hrl"
-                       "F" "f" "f90" "for" "cs" "a" "asm" "ads" "adb" "ada"))
+         (extensions etags-regen-file-extensions)
+         ;; FIXME: Try to do the filtering inside project.el already.
          (file-regexp (format "\\.%s\\'" (regexp-opt extensions t)))
          (tags-file (make-temp-file "emacs-regen-tags-"))
          ;; ctags's etags requires '-L -' for stdin input.
