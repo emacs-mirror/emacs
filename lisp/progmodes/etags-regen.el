@@ -190,29 +190,18 @@ File extensions to generate the tags for."
               (delete-region (- start 2)
                              (if (eobp)
                                  (point)
-                               (- (point) 2)))
-              (write-region (point-min) (point-max) buffer-file-name nil 'silent)
-              (set-visited-file-modtime)))
+                               (- (point) 2)))))
           (setq should-scan t))))
       (when should-scan
         (goto-char (point-max))
-        (let ((inhibit-read-only t)
-              (current-end (point)))
+        (let ((inhibit-read-only t))
           ;; FIXME: call-process is significantly faster, though.
           ;; Like 10ms vs 20ms here.
           (shell-command
            (format "%s %s %s -o -"
                    etags-regen-program (mapconcat #'identity options " ")
                    file-name)
-           t etags-regen--errors-buffer-name)
-          ;; XXX: When the project is big (tags file in 10s of megabytes),
-          ;; this is much faster than revert-buffer.  Or even using
-          ;; write-region without APPEND.
-          ;; We could also keep TAGS strictly as a buffer, with no
-          ;; backing on disk.
-          (write-region current-end (point-max) etags-regen--tags-file t 'silent))
-        (set-visited-file-modtime)
-        (set-buffer-modified-p nil)
+           t etags-regen--errors-buffer-name))
         ;; FIXME: Is there a better way to do this?
         ;; Completion table is the only remaining place where the
         ;; update is not incremental.
@@ -225,9 +214,14 @@ File extensions to generate the tags for."
 
 (defun etags-regen--tags-cleanup ()
   (when etags-regen--tags-file
+    ;; TODO: Maybe keep the generated files around, after we learn to
+    ;; update them for the whole project quickly, so opening one
+    ;; created in a previous session makes sense.
     (delete-file etags-regen--tags-file)
     (let ((buffer (get-file-buffer etags-regen--tags-file)))
-      (and buffer (kill-buffer buffer)))
+      (and buffer
+           (with-current-buffer buffer (set-buffer-modified-p nil))
+           (kill-buffer buffer)))
     (setq tags-file-name nil
           tags-table-list nil
           etags-regen--tags-file nil
