@@ -5548,6 +5548,90 @@ It should not be used for anything security-related.  See
   return make_digest_string (digest, SHA1_DIGEST_SIZE);
 }
 
+DEFUN ("buffer-line-statistics", Fbuffer_line_statistics,
+       Sbuffer_line_statistics, 0, 1, 0,
+       doc: /* Return data about lines in BUFFER.
+The data is returned as a list, and the first element is the number of
+lines in the buffer, the second is the length of the longest line, and
+the third is the mean line length.  The lengths returned are in bytes, not
+characters.  */ )
+  (Lisp_Object buffer_or_name)
+{
+  Lisp_Object buffer;
+  ptrdiff_t lines = 0, longest = 0;
+  double mean = 0;
+  struct buffer *b;
+
+  if (NILP (buffer_or_name))
+    buffer = Fcurrent_buffer ();
+  else
+    buffer = Fget_buffer (buffer_or_name);
+  if (NILP (buffer))
+    nsberror (buffer_or_name);
+
+  b = XBUFFER (buffer);
+
+  unsigned char *start = BUF_BEG_ADDR (b);
+  ptrdiff_t area = BUF_GPT_BYTE (b) - BUF_BEG_BYTE (b), pre_gap = 0;
+
+  /* Process the first part of the buffer. */
+  while (area > 0)
+    {
+      unsigned char *n = memchr (start, '\n', area);
+
+      if (n)
+	{
+	  ptrdiff_t this_line = n - start;
+	  if (this_line > longest)
+	    longest = this_line;
+	  lines++;
+	  /* Blame Knuth. */
+	  mean = mean + (this_line - mean) / lines;
+	  area = area - this_line - 1;
+	  start += this_line + 1;
+	}
+      else
+	{
+	  /* Didn't have a newline here, so save the rest for the
+	     post-gap calculation. */
+	  pre_gap = area;
+	  area = 0;
+	}
+    }
+
+  /* If the gap is before the end of the buffer, process the last half
+     of the buffer. */
+  if (BUF_GPT_BYTE (b) < BUF_Z_BYTE (b))
+    {
+      start = BUF_GAP_END_ADDR (b);
+      area = BUF_Z_ADDR (b) - BUF_GAP_END_ADDR (b);
+
+      while (area > 0)
+	{
+	  unsigned char *n = memchr (start, '\n', area);
+	  ptrdiff_t this_line = n? n - start + pre_gap: area + pre_gap;
+
+	  if (this_line > longest)
+	    longest = this_line;
+	  lines++;
+	  /* Blame Knuth again. */
+	  mean = mean + (this_line - mean) / lines;
+	  area = area - this_line - 1;
+	  start += this_line + 1;
+	  pre_gap = 0;
+	}
+    }
+  else if (pre_gap > 0)
+    {
+      if (pre_gap > longest)
+	longest = pre_gap;
+      lines++;
+      mean = mean + (pre_gap - mean) / lines;
+    }
+
+  return list3 (make_int (lines), make_int (longest), make_float (mean));
+}
+
 static bool
 string_ascii_p (Lisp_Object string)
 {
@@ -5871,4 +5955,5 @@ this variable.  */);
   defsubr (&Ssecure_hash);
   defsubr (&Sbuffer_hash);
   defsubr (&Slocale_info);
+  defsubr (&Sbuffer_line_statistics);
 }

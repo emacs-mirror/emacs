@@ -1537,6 +1537,9 @@ that makes it a valid button.
 
 ** Miscellaneous
 
+*** New function 'buffer-line-statistics'.
+This function returns some statistics about the line lengths in a buffer.
+
 +++
 *** New variable 'inhibit-interaction' to make user prompts signal an error.
 If this is bound to something non-nil, functions like
