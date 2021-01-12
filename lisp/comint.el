@@ -1000,7 +1000,6 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                    (goto-char (match-end 0)))
                  (setq start (point))
                  (setq history (buffer-substring start end))
-                 (goto-char start)
                  (when (and (not (string-match history-ignore history))
 			    (or (null ignoredups)
 				(ring-empty-p ring)
