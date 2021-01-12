@@ -900,7 +900,7 @@ DOWNCASE    t:   Downcase words before using them."
       ,(concat
         ;; Make sure we search only for optional arguments of
         ;; environments/macros and don't match any other [.  ctable
-        ;; provides a macro called \ctable, listings/breqn have
+        ;; provides a macro called \ctable, beamer/breqn/listings have
         ;; environments.  Start with a backslash and a group for names
         "\\\\\\(?:"
         ;; begin, optional spaces and opening brace
@@ -936,8 +936,9 @@ The default value matches usual \\label{...} definitions and
 keyval style [..., label = {...}, ...] label definitions.  The
 regexp for keyval style explicitly looks for environments
 provided by the packages \"listings\" (\"lstlisting\"),
-\"breqn\" (\"dmath\", \"dseries\", \"dgroup\", \"darray\") and
-the macro \"\\ctable\" provided by the package of the same name.
+\"beamer\" (\"frame\"), \"breqn\" (\"dmath\", \"dseries\",
+\"dgroup\", \"darray\") and the macro \"\\ctable\" provided by
+the package of the same name.
 
 It is assumed that the regexp group 1 matches the label text, so
 you have to define it using \\(?1:...\\) when adding new regexps.
