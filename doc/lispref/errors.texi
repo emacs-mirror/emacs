@@ -230,6 +230,11 @@ The message is @samp{Wrong type argument}.  @xref{Type Predicates}.
 
 @item unknown-image-type
 The message is @samp{Cannot determine image type}.  @xref{Images}.
+
+@item inhibited-interaction
+The message is @samp{User interaction while inhibited}.  This error is
+signalled when @code{inhibit-interaction} is non-@code{nil} and a user
+interaction function (like @code{read-from-minibuffer}) is called.
 @end table
 
 @ignore    The following seem to be unused now.

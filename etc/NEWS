@@ -1537,6 +1537,12 @@ that makes it a valid button.
 
 ** Miscellaneous
 
++++
+*** New variable 'inhibit-interaction' to make user prompts signal an error.
+If this is bound to something non-nil, functions like
+`read-from-minibuffer', `read-char' (and related) will signal an
+`inhibited-interaction' error.
+
 ---
 *** 'process-attributes' now works under OpenBSD, too.
 

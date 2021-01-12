@@ -767,10 +767,15 @@ is used for reading a character.
 If the optional argument SECONDS is non-nil, it should be a number
 specifying the maximum number of seconds to wait for input.  If no
 input arrives in that time, return nil.  SECONDS may be a
-floating-point value.  */)
+floating-point value.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error.  */)
   (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
 {
   Lisp_Object val;
+
+  barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
@@ -793,9 +798,14 @@ is used for reading a character.
 If the optional argument SECONDS is non-nil, it should be a number
 specifying the maximum number of seconds to wait for input.  If no
 input arrives in that time, return nil.  SECONDS may be a
-floating-point value.  */)
+floating-point value.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error.  */)
   (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
 {
+  barf_if_interaction_inhibited ();
+
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
   return read_filtered_event (0, 0, 0, ! NILP (inherit_input_method), seconds);
@@ -822,10 +832,15 @@ is used for reading a character.
 If the optional argument SECONDS is non-nil, it should be a number
 specifying the maximum number of seconds to wait for input.  If no
 input arrives in that time, return nil.  SECONDS may be a
-floating-point value.  */)
-  (Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
+floating-point value.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error.  */)
+(Lisp_Object prompt, Lisp_Object inherit_input_method, Lisp_Object seconds)
 {
   Lisp_Object val;
+
+  barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
