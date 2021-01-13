@@ -198,6 +198,8 @@ File extensions to generate the tags for."
                    etags-regen-program (mapconcat #'identity options " ")
                    file-name)
            t etags-regen--errors-buffer-name))
+        ;; We don't want Emacs to ask us to save the buffer when exiting.
+        (set-buffer-modified-p nil)
         ;; FIXME: Is there a better way to do this?
         ;; Completion table is the only remaining place where the
         ;; update is not incremental.
@@ -216,7 +218,6 @@ File extensions to generate the tags for."
     (delete-file etags-regen--tags-file)
     (let ((buffer (get-file-buffer etags-regen--tags-file)))
       (and buffer
-           (with-current-buffer buffer (set-buffer-modified-p nil))
            (kill-buffer buffer)))
     (setq tags-file-name nil
           tags-table-list nil
