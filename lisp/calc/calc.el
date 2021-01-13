@@ -1095,15 +1095,7 @@ Used by `calc-user-invocation'.")
         (ignore-errors
           (define-key calc-digit-map x 'calcDigit-delchar)
           (define-key calc-mode-map x 'calc-pop)
-          (define-key calc-mode-map
-            (if (and (vectorp x) (featurep 'xemacs))
-                (if (= (length x) 1)
-                    (vector (if (consp (aref x 0))
-                                (cons 'meta (aref x 0))
-                              (list 'meta (aref x 0))))
-                  "\e\C-d")
-              (vconcat "\e" x))
-            'calc-pop-above)))
+          (define-key calc-mode-map (vconcat "\e" x) 'calc-pop-above)))
       (if calc-scan-for-dels
           (append (where-is-internal 'delete-forward-char global-map)
                   '("\C-d"))
