@@ -1178,6 +1178,30 @@ KEY is a string or vector representing a sequence of keystrokes."
   (if (current-local-map)
       (local-set-key key nil))
   nil)
+
+(defun local-key-binding (keys &optional accept-default)
+  "Return the binding for command KEYS in current local keymap only.
+KEYS is a string or vector, a sequence of keystrokes.
+The binding is probably a symbol with a function definition.
+
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default
+bindings; see the description of `lookup-key' for more details
+about this."
+  (let ((map (current-local-map)))
+    (when map (lookup-key map keys accept-default))))
+
+(defun global-key-binding (keys &optional accept-default)
+  "Return the binding for command KEYS in current global keymap only.
+KEYS is a string or vector, a sequence of keystrokes.
+The binding is probably a symbol with a function definition.
+This function's return values are the same as those of `lookup-key'
+\(which see).
+
+If optional argument ACCEPT-DEFAULT is non-nil, recognize default
+bindings; see the description of `lookup-key' for more details
+about this."
+  (lookup-key (current-global-map) keys accept-default))
+
 
 ;;;; substitute-key-definition and its subroutines.
 
