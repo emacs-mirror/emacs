@@ -166,6 +166,10 @@ of those modes.  CONTACT can be:
   should not ask the user for any input, and return nil or signal
   an error if it can't produce a valid CONTACT.")
 
+(defface eglot-highlight-symbol-face
+  '((t (:inherit bold)))
+  "Face used to highlight the symbol at point.")
+
 (defface eglot-mode-line
   '((t (:inherit font-lock-constant-face :weight bold)))
   "Face for package-name in EGLOT's mode line.")
@@ -2367,7 +2371,7 @@ is not active."
                     (pcase-let ((`(,beg . ,end)
                                  (eglot--range-region range)))
                       (let ((ov (make-overlay beg end)))
-                        (overlay-put ov 'face 'highlight)
+                        (overlay-put ov 'face 'eglot-highlight-symbol-face)
                         (overlay-put ov 'evaporate t)
                         ov)))
                   highlights))))
