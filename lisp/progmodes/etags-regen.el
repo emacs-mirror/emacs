@@ -178,16 +178,12 @@ File extensions to generate the tags for."
           (setq should-scan t))
          ((progn (set-buffer tags-file-buf)
                  (goto-char (point-min))
-                 ;; FIXME: With a big enough TAGS, even this can be
-                 ;; slow (and, unfortunately, synchronous).  Using the
-                 ;; project-relative name here speeds it up, but only
-                 ;; by ~30%.  Some indexing could help.
-                 (re-search-forward (format "^%s," (regexp-quote file-name)) nil t))
-          (let ((start (line-beginning-position)))
-            (re-search-forward "\f\n" nil 'move)
+                 (search-forward (format "\f\n%s," file-name) nil t))
+          (let ((start (match-beginning 0)))
+            (search-forward "\f\n" nil 'move)
             (let ((inhibit-read-only t)
                   (save-silently t))
-              (delete-region (- start 2)
+              (delete-region start
                              (if (eobp)
                                  (point)
                                (- (point) 2)))))
