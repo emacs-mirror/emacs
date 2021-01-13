@@ -307,13 +307,9 @@ INSIDE SECTION: ARG HANDLER ONE")
       (should (srecode-table major-mode))
 
       ;; Loop over the output testpoints.
-
       (dolist (p srecode-utest-output-entries)
-	(set-buffer testbuff) ;; XEmacs causes a buffer switch.  I don't know why
-	(should-not (srecode-utest-test p))
-	)
+        (should-not (srecode-utest-test p)))))
 
-      ))
   (when (file-exists-p srecode-utest-testfile)
     (delete-file srecode-utest-testfile)))
 
