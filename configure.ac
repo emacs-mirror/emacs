@@ -3900,10 +3900,15 @@ if test "${with_nativecomp}" != "no"; then
     AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
     LIBS=$emacs_save_LIBS
     HAVE_NATIVE_COMP=yes
-    # mingw32 loads the library dynamically.
-    if test "${opsys}" != "mingw32"; then
-      LIBGCCJIT_LIB="-lgccjit -ldl"
-    fi
+    case "${opsys}" in
+      # mingw32 loads the library dynamically.
+      mingw32) ;;
+      # OpenBSD doesn't have libdl, all the functions are in libc
+      openbsd)
+        LIBGCCJIT_LIB="-lgccjit" ;;
+      *)
+        LIBGCCJIT_LIB="-lgccjit -ldl" ;;
+    esac
     NEED_DYNLIB=yes
     AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if native compiler is available.])
 fi
