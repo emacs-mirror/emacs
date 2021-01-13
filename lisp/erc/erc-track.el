@@ -281,14 +281,17 @@ nil            - don't add to mode line."
 
 (defvar erc-modified-channels-alist nil
   "An ALIST used for tracking channel modification activity.
-Each element looks like (BUFFER COUNT FACE) where BUFFER is a buffer
-object of the channel the entry corresponds to, COUNT is a number
-indicating how often activity was noticed, and FACE is the face to use
-when displaying the buffer's name.  See `erc-track-faces-priority-list',
-and `erc-track-showcount'.
+Each element is a list of the form (BUFFER COUNT . FACE) where
+BUFFER is a buffer object of the channel the entry corresponds
+to, COUNT is a number indicating how often activity was noticed,
+and FACE is a face (or a list of faces) to use when displaying the
+buffer's name.
 
 Entries in this list should only happen for buffers where activity occurred
-while the buffer was not visible.")
+while the buffer was not visible.
+
+See also `erc-track-faces-priority-list',
+`erc-track-faces-normal-list' and `erc-track-showcount'.")
 
 (defcustom erc-track-showcount nil
   "If non-nil, count of unseen messages will be shown for each channel."
