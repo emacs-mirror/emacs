@@ -44,12 +44,12 @@
 
 (ert-deftest libxml-tests ()
   "Test libxml."
-  (when (fboundp 'libxml-parse-xml-region)
-    (with-temp-buffer
-      (dolist (test libxml-tests--data-comments-preserved)
-        (erase-buffer)
-        (insert (car test))
-        (should (equal (cdr test)
-                       (libxml-parse-xml-region (point-min) (point-max))))))))
+  (skip-unless (fboundp 'libxml-parse-xml-region))
+  (with-temp-buffer
+    (dolist (test libxml-tests--data-comments-preserved)
+      (erase-buffer)
+      (insert (car test))
+      (should (equal (cdr test)
+                     (libxml-parse-xml-region (point-min) (point-max)))))))
 
 ;;; libxml-tests.el ends here
