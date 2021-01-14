@@ -9,7 +9,8 @@
           .
           ((("c" "objc") .
             ("/[ \t]*DEFVAR_[A-Z_ \t(]+\"\\([^\"]+\\)\"/\\1/"
-             "/[ \t]*DEFVAR_[A-Z_ \t(]+\"[^\"]+\",[ \t]\\([A-Za-z0-9_]+\\)/\\1/"))))))
+             "/[ \t]*DEFVAR_[A-Z_ \t(]+\"[^\"]+\",[ \t]\\([A-Za-z0-9_]+\\)/\\1/"))))
+         (etags-regen-ignores . ("test/manual/etags/"))))
  (c-mode . ((c-file-style . "GNU")
             (c-noise-macro-names . ("INLINE" "ATTRIBUTE_NO_SANITIZE_UNDEFINED" "UNINIT" "CALLBACK" "ALIGN_STACK"))
             (electric-quote-comment . nil)

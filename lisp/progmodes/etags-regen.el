@@ -100,6 +100,17 @@ File extensions to generate the tags for."
                     (string-match-p "\\`[a-zA-Z0-9]+\\'" ext)))
              value))))
 
+(defcustom etags-regen-ignores nil
+  "Additional ignore rules, in the format of `project-ignores'."
+  :type '(repeat
+          (string :tag "Glob to ignore")))
+
+;;;###autoload
+(put 'etags-regen-ignores 'safe-local-variable
+     (lambda (value)
+       (and (listp value)
+            (seq-every-p #'stringp value))))
+
 (defvar etags-regen--errors-buffer-name "*etags-regen-tags-errors*")
 
 (defun etags-regen--maybe-generate ()
@@ -120,13 +131,28 @@ File extensions to generate the tags for."
       (add-hook 'before-save-hook #'etags-regen--mark-as-new)
       (visit-tags-table etags-regen--tags-file))))
 
+(declare-function dired-glob-regexp "dired")
+
 (defun etags-regen--tags-generate (proj)
+  (require 'dired)
   (let* ((root (project-root proj))
          (default-directory root)
          (files (project-files proj))
          (extensions etags-regen-file-extensions)
          ;; FIXME: Try to do the filtering inside project.el already.
          (file-regexp (format "\\.%s\\'" (regexp-opt extensions t)))
+         (ignore-regexps (mapcar
+                          (lambda (i)
+                            (if (string-match "\\./" i)
+                                ;; ./abc -> abc
+                                (setq i (substring i 2))
+                              ;; abc -> */abc
+                              (setq i (concat "*/" i))
+                              (if (string-match "/\\'" i)
+                                  ;; abc/ -> abc/*
+                                  (setq i (concat i "*"))))
+                            (dired-glob-regexp i))
+                          etags-regen-ignores))
          (tags-file (make-temp-file "emacs-regen-tags-"))
          ;; ctags's etags requires '-L -' for stdin input.
          ;; It looks half-broken here (indexes only some of the input files),
@@ -139,7 +165,10 @@ File extensions to generate the tags for."
           etags-regen--tags-root root)
     (with-temp-buffer
       (mapc (lambda (f)
-              (when (string-match-p file-regexp f)
+              (when (and (string-match-p file-regexp f)
+                         (not (seq-some
+                               (lambda (re) (string-match-p re f))
+                               ignore-regexps)))
                 (insert f "\n")))
             files)
       (shell-command-on-region (point-min) (point-max) command
