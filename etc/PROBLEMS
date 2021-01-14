@@ -746,6 +746,11 @@ versions of gnutls-cli, or use Emacs's built-in gnutls support.
 
 ** Characters are displayed as empty boxes or with wrong font under X.
 
+*** This may be due to your local fontconfig customization.
+Try removing or moving aside "$XDG_CONFIG_HOME/fontconfig/conf.d" and
+"$XDG_CONFIG_HOME/fontconfig/fonts.conf"
+($XDG_CONFIG_HOME is treated as "~/.config" if not set)
+
 *** This can occur when two different versions of FontConfig are used.
 For example, XFree86 4.3.0 has one version and Gnome usually comes
 with a newer version.  Emacs compiled with Gtk+ will then use the
