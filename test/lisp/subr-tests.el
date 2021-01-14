@@ -433,15 +433,6 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (flatten-tree '(1 ("foo" "bar") 2))
                  '(1 "foo" "bar" 2))))
 
-(ert-deftest subr--tests-letrec ()
-  ;; Test that simple cases of `letrec' get optimized back to `let*'.
-  (should (equal (macroexpand '(letrec ((subr-tests-var1 1)
-                                        (subr-tests-var2 subr-tests-var1))
-                                 (+ subr-tests-var1 subr-tests-var2)))
-                 '(let* ((subr-tests-var1 1)
-                         (subr-tests-var2 subr-tests-var1))
-                    (+ subr-tests-var1 subr-tests-var2)))))
-
 (defvar subr-tests--hook nil)
 
 (ert-deftest subr-tests-add-hook-depth ()

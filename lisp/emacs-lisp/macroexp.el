@@ -499,7 +499,7 @@ test of free variables in the following ways:
       (dolist (binding (macroexp--fgrep bindings (pop sexp)))
         (push binding res)
         (setq bindings (remove binding bindings))))
-    (if (or (vectorp sexp) (byte-code-function-p sexp))
+    (if (vectorp sexp)
         ;; With backquote, code can appear within vectors as well.
         ;; This wouldn't be needed if we `macroexpand-all' before
         ;; calling macroexp--fgrep, OTOH.

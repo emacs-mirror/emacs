@@ -1879,33 +1879,9 @@ all symbols are bound before any of the VALUEFORMs are evalled."
   ;; As a special-form, we could implement it more efficiently (and cleanly,
   ;; making the vars actually unbound during evaluation of the binders).
   (declare (debug let) (indent 1))
-  ;; Use plain `let*' for the non-recursive definitions.
-  ;; This only handles the case where the first few definitions are not
-  ;; recursive.  Nothing as fancy as an SCC analysis.
-  (let ((seqbinds nil))
-    ;; Our args haven't yet been macro-expanded, so `macroexp--fgrep'
-    ;; may fail to see references that will be introduced later by
-    ;; macroexpansion.  We could call `macroexpand-all' to avoid that,
-    ;; but in order to avoid that, we instead check to see if the binders
-    ;; appear in the macroexp environment, since that's how references can be
-    ;; introduced later on.
-    (unless (macroexp--fgrep binders macroexpand-all-environment)
-      (while (and binders
-                  (null (macroexp--fgrep binders (nth 1 (car binders)))))
-        (push (pop binders) seqbinds)))
-    (let ((nbody (if (null binders)
-                     (macroexp-progn body)
-                   `(let ,(mapcar #'car binders)
-                      ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
-                      ,@body))))
-      (cond
-       ;; All bindings are recursive.
-       ((null seqbinds) nbody)
-       ;; Special case for trivial uses.
-       ((and (symbolp nbody) (null (cdr seqbinds)) (eq nbody (caar seqbinds)))
-        (nth 1 (car seqbinds)))
-       ;; General case.
-       (t `(let* ,(nreverse seqbinds) ,nbody))))))
+  `(let ,(mapcar #'car binders)
+     ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
+     ,@body))
 
 (defmacro dlet (binders &rest body)
   "Like `let*' but using dynamic scoping."
