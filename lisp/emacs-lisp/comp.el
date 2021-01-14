@@ -3592,6 +3592,15 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Primitive function advice machinery
 
+(defun comp-eln-load-path-eff ()
+  "Return a list of effective eln load directories.
+Account for `comp-load-path' and `comp-native-version-dir'."
+  (mapcar (lambda (dir)
+            (concat (file-name-as-directory
+                     (expand-file-name dir invocation-directory))
+                    comp-native-version-dir))
+          comp-eln-load-path))
+
 (defun comp-trampoline-filename (subr-name)
   "Given SUBR-NAME return the filename containing the trampoline."
   (concat (comp-c-func-name subr-name "subr--trampoline-" t) ".eln"))
@@ -3616,9 +3625,8 @@ Prepare every function for final compilation and drive the C back-end."
 Return the trampoline if found or nil otherwise."
   (cl-loop
    with rel-filename = (comp-trampoline-filename subr-name)
-   for dir in comp-eln-load-path
-   for filename = (expand-file-name rel-filename
-                                    (concat dir comp-native-version-dir))
+   for dir in (comp-eln-load-path-eff)
+   for filename = (expand-file-name rel-filename dir)
    when (file-exists-p filename)
      do (cl-return (native-elisp-load filename))))
 
@@ -3644,8 +3652,7 @@ Return the trampoline if found or nil otherwise."
     (comp--native-compile
      form nil
      (cl-loop
-      for load-dir in comp-eln-load-path
-      for dir = (concat load-dir comp-native-version-dir)
+      for dir in (comp-eln-load-path-eff)
       for f = (expand-file-name
                (comp-trampoline-filename subr-name)
                dir)
@@ -3684,11 +3691,10 @@ sharing the original source filename (including FILE)."
      with filename-hash = (match-string 1 file)
      with regexp = (rx-to-string
                     `(seq "-" ,filename-hash "-" (1+ hex) ".eln" eos))
-     for dir in (butlast comp-eln-load-path) ; Skip last dir.
+     for dir in (butlast (comp-eln-load-path-eff)) ; Skip last dir.
      do (cl-loop
-         with full-dir = (concat dir comp-native-version-dir)
-         for f in (when (file-exists-p full-dir)
-		    (directory-files full-dir t regexp t))
+         for f in (when (file-exists-p dir)
+		    (directory-files dir t regexp t))
          do (comp-delete-or-replace-file f)))))
 
 (defun comp-delete-or-replace-file (oldfile &optional newfile)
@@ -3877,14 +3883,14 @@ load once finished compiling."
          for t0 = (current-time)
          for pass in comp-passes
          unless (memq pass comp-disabled-passes)
-         do
-         (comp-log (format "(%s) Running pass %s:\n"
+           do
+           (comp-log (format "(%s) Running pass %s:\n"
                            function-or-file pass)
                    2)
-         (setf data (funcall pass data))
-         (push (cons pass (float-time (time-since t0))) report)
-         (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                  do (funcall f data))
+           (setf data (funcall pass data))
+           (push (cons pass (float-time (time-since t0))) report)
+           (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                    do (funcall f data))
          finally
          (when comp-log-time-report
            (comp-log (format "Done compiling %s" data) 0)
