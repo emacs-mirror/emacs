@@ -142,6 +142,9 @@ The reproducer is a file ELNFILENAME_libgccjit_repro.c deposed in
 the .eln output directory."
   :type 'boolean)
 
+(defvar comp-log-time-report nil
+  "If non-nil, log a time report for each pass.")
+
 (defvar comp-dry-run nil
   "If non-nil, run everything but the C back-end.")
 
@@ -3589,6 +3592,15 @@ Prepare every function for final compilation and drive the C back-end."
 
 ;; Primitive function advice machinery
 
+(defun comp-eln-load-path-eff ()
+  "Return a list of effective eln load directories.
+Account for `comp-load-path' and `comp-native-version-dir'."
+  (mapcar (lambda (dir)
+            (concat (file-name-as-directory
+                     (expand-file-name dir invocation-directory))
+                    comp-native-version-dir))
+          comp-eln-load-path))
+
 (defun comp-trampoline-filename (subr-name)
   "Given SUBR-NAME return the filename containing the trampoline."
   (concat (comp-c-func-name subr-name "subr--trampoline-" t) ".eln"))
@@ -3613,9 +3625,8 @@ Prepare every function for final compilation and drive the C back-end."
 Return the trampoline if found or nil otherwise."
   (cl-loop
    with rel-filename = (comp-trampoline-filename subr-name)
-   for dir in comp-eln-load-path
-   for filename = (expand-file-name rel-filename
-                                    (concat dir comp-native-version-dir))
+   for dir in (comp-eln-load-path-eff)
+   for filename = (expand-file-name rel-filename dir)
    when (file-exists-p filename)
      do (cl-return (native-elisp-load filename))))
 
@@ -3641,8 +3652,7 @@ Return the trampoline if found or nil otherwise."
     (comp--native-compile
      form nil
      (cl-loop
-      for load-dir in comp-eln-load-path
-      for dir = (concat load-dir comp-native-version-dir)
+      for dir in (comp-eln-load-path-eff)
       for f = (expand-file-name
                (comp-trampoline-filename subr-name)
                dir)
@@ -3681,11 +3691,10 @@ sharing the original source filename (including FILE)."
      with filename-hash = (match-string 1 file)
      with regexp = (rx-to-string
                     `(seq "-" ,filename-hash "-" (1+ hex) ".eln" eos))
-     for dir in (butlast comp-eln-load-path) ; Skip last dir.
+     for dir in (butlast (comp-eln-load-path-eff)) ; Skip last dir.
      do (cl-loop
-         with full-dir = (concat dir comp-native-version-dir)
-         for f in (when (file-exists-p full-dir)
-		    (directory-files full-dir t regexp t))
+         for f in (when (file-exists-p dir)
+		    (directory-files dir t regexp t))
          do (comp-delete-or-replace-file f)))))
 
 (defun comp-delete-or-replace-file (oldfile &optional newfile)
@@ -3869,15 +3878,24 @@ load once finished compiling."
                                     :with-late-load with-late-load)))
     (comp-log "\n\n" 1)
     (condition-case err
-        (mapc (lambda (pass)
-                (unless (memq pass comp-disabled-passes)
-                  (comp-log (format "(%s) Running pass %s:\n"
-                                    function-or-file pass)
-                            2)
-                  (setf data (funcall pass data))
-                  (cl-loop for f in (alist-get pass comp-post-pass-hooks)
-                           do (funcall f data))))
-              comp-passes)
+        (cl-loop
+         with report = nil
+         for t0 = (current-time)
+         for pass in comp-passes
+         unless (memq pass comp-disabled-passes)
+           do
+           (comp-log (format "(%s) Running pass %s:\n"
+                           function-or-file pass)
+                   2)
+           (setf data (funcall pass data))
+           (push (cons pass (float-time (time-since t0))) report)
+           (cl-loop for f in (alist-get pass comp-post-pass-hooks)
+                    do (funcall f data))
+         finally
+         (when comp-log-time-report
+           (comp-log (format "Done compiling %s" data) 0)
+           (cl-loop for (pass . time) in (reverse report)
+                    do (comp-log (format "Pass %s took: %fs." pass time) 0))))
       (native-compiler-error
        ;; Add source input.
        (let ((err-val (cdr err)))
