@@ -2653,6 +2653,13 @@ node "(erc) Connecting" in the ERC manual for more details and
 examples on how to specify and use TLS client certificates with
 'erc-tls'.
 
+---
+*** Add 'erc-track-select-mode-line-face' (obsoletes 'erc-track-find-face').
+The 'erc-track-find-face' function of the erc-track module has been
+declared obsolete and rewritten as 'erc-track-select-mode-line-face',
+with different expected arguments (the current and old faces are now
+separated) and clearer documentation.
+
 ** xwidget-webkit mode
 
 *** New xwidget commands.
