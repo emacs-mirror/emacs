@@ -2926,6 +2926,11 @@ Return t when one or more block was removed, nil otherwise."
 ;; This is also responsible for removing function calls to pure functions if
 ;; possible.
 
+(defconst comp-fwprop-max-insns-scan 4500
+  ;; Choosen as ~ the greatest required value for full convergence
+  ;; native compiling all Emacs codebase.
+  "Max number of scanned insn before giving-up.")
+
 (defun comp-copy-insn (insn)
   "Deep copy INSN."
   ;; Adapted from `copy-tree'.
@@ -3086,7 +3091,9 @@ Fold the call in case."
 (defun comp-fwprop* ()
   "Propagate for set* and phi operands.
 Return t if something was changed."
-  (cl-loop with modified = nil
+  (cl-loop named outer
+           with modified = nil
+           with i = 0
            for b being each hash-value of (comp-func-blocks comp-func)
            do (cl-loop
                with comp-block = b
@@ -3094,9 +3101,13 @@ Return t if something was changed."
                for orig-insn = (unless modified
                                  ;; Save consing after 1th change.
                                  (comp-copy-insn insn))
-               do (comp-fwprop-insn insn)
+               do
+               (comp-fwprop-insn insn)
+               (cl-incf i)
                when (and (null modified) (not (equal insn orig-insn)))
                  do (setf modified t))
+               when (> i comp-fwprop-max-insns-scan)
+                 do (cl-return-from outer nil)
            finally return modified))
 
 (defun comp-rewrite-non-locals ()
