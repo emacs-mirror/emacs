@@ -17,7 +17,6 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 import argparse
-import multiprocessing as mp
 import os
 import shutil
 import re
@@ -64,31 +63,30 @@ def check_output_maybe(*args,**kwargs):
         return check_output(*args,**kwargs)
 
 ## DLL Capture
-def gather_deps(arch, directory):
-    os.mkdir(arch)
-    os.chdir(arch)
+def gather_deps():
 
-    for dep in full_dll_dependency(directory):
-        check_output_maybe(["cp /{}/bin/{}*.dll .".format(directory, dep)],
+    os.mkdir("x86_64")
+    os.chdir("x86_64")
+
+    for dep in full_dll_dependency():
+        check_output_maybe(["cp /mingw64/bin/{}*.dll .".format(dep)],
                            shell=True)
 
-    ## And package them up
-    ## os.chdir(arch)
-    print("Zipping: {}".format(arch))
-    check_output_maybe("zip -9r ../emacs-{}-{}{}-deps.zip *"
-                       .format(EMACS_MAJOR_VERSION, DATE, arch),
+    print("Zipping")
+    check_output_maybe("zip -9r ../emacs-{}-{}deps.zip *"
+                       .format(EMACS_MAJOR_VERSION, DATE),
                        shell=True)
     os.chdir("../")
 
 ## Return all Emacs dependencies
-def full_dll_dependency(directory):
-    deps = [dll_dependency(dep, directory) for dep in DLL_REQ]
+def full_dll_dependency():
+    deps = [dll_dependency(dep) for dep in DLL_REQ]
     return set(sum(deps, []) + DLL_REQ)
 
 ## Dependencies for a given DLL
-def dll_dependency(dll, directory):
+def dll_dependency(dll):
     output = check_output(["/mingw64/bin/ntldd", "--recursive",
-                           "/{}/bin/{}*.dll".format(directory, dll)]).decode("utf-8")
+                           "/mingw64/bin/{}*.dll".format(dll)]).decode("utf-8")
     ## munge output
     return ntldd_munge(output)
 
@@ -114,14 +112,11 @@ def ntldd_munge(out):
 ## Packages to fiddle with
 ## Source for gcc-libs is part of gcc
 SKIP_SRC_PKGS=["mingw-w64-gcc-libs"]
-SKIP_DEP_PKGS=["mingw-w64-x86_64-glib2"]
+SKIP_DEP_PKGS=["mingw-w64-glib2"]
 MUNGE_SRC_PKGS={"mingw-w64-libwinpthread-git":"mingw-w64-winpthreads-git"}
 MUNGE_DEP_PKGS={
-    "mingw-w64-i686-libwinpthread":"mingw-w64-i686-libwinpthread-git",
     "mingw-w64-x86_64-libwinpthread":"mingw-w64-x86_64-libwinpthread-git",
-
     "mingw-w64-x86_64-libtre": "mingw-w64-x86_64-libtre-git",
-    "mingw-w64-i686-libtre": "mingw-w64-i686-libtre-git"
 }
 
 ## Currently no packages seem to require this!
@@ -155,13 +150,11 @@ def extract_deps():
 
     # Get a list of all dependencies needed for packages mentioned above.
     pkgs = PKG_REQ[:]
-    print("Initial pkgs", pkgs)
     n = 0
     while n < len(pkgs):
         subdeps = immediate_deps(pkgs[n])
         for p in subdeps:
             if not (p in pkgs or p in SKIP_DEP_PKGS):
-                print("adding", p)
                 pkgs.append(p)
         n = n + 1
 
@@ -171,33 +164,29 @@ def extract_deps():
 def download_source(tarball):
     print("Acquiring {}...".format(tarball))
 
-    if os.path.exists("../emacs-src-cache/{}".format(tarball)):
-        print("Copying {} from local".format(tarball))
-        shutil.copyfile("../emacs-src-cache/{}".format(tarball),
-                        "{}".format(tarball))
-    else:
+    if not os.path.exists("../emacs-src-cache/{}".format(tarball)):
         print("Downloading {}...".format(tarball))
         check_output_maybe(
-            "wget -a ../download.log -O {} {}/{}/download"
+            "wget -a ../download.log -O ../emacs-src-cache/{} {}/{}/download"
             .format(tarball, SRC_REPO, tarball),
             shell=True
         )
         print("Downloading {}... done".format(tarball))
 
+    print("Copying {} from local".format(tarball))
+    shutil.copyfile("../emacs-src-cache/{}".format(tarball),
+                    "{}".format(tarball))
+
+
 ## Fetch all the source code
 def gather_source(deps):
 
+    if not os.path.exists("emacs-src-cache"):
+        os.mkdir("emacs-src-cache")
 
-    ## Source for gcc-libs is part of gcc
-    ## Source for libwinpthread is in libwinpthreads
-    ## mpc, termcap, xpm -- has x86_64, and i686 versions
-
-    ## This needs to have been run first at the same time as the
-    ## system was updated.
     os.mkdir("emacs-src")
     os.chdir("emacs-src")
 
-    to_download = []
     for pkg in deps:
         pkg_name_and_version= \
             check_output(["pacman","-Q", pkg]).decode("utf-8").strip()
@@ -208,31 +197,18 @@ def gather_source(deps):
         pkg_name=pkg_name_components[0]
         pkg_version=pkg_name_components[1]
 
-        ## make a simple name to make lookup easier
-        simple_pkg_name = re.sub(r"x86_64-","",pkg_name)
+        ## source pkgs don't have an architecture in them
+        pkg_name = re.sub(r"x86_64-","",pkg_name)
 
-        if(simple_pkg_name in SKIP_SRC_PKGS):
+        if(pkg_name in SKIP_SRC_PKGS):
             continue
 
-        ## Some packages have different source files for different
-        ## architectures. For these we need two downloads.
-        if(simple_pkg_name in ARCH_PKGS):
-            downloads = [pkg_name,
-                         re.sub(r"x86_64","i686",pkg_name)]
-        else:
-            downloads = [simple_pkg_name]
+        ## Switch names if necessary
+        pkg_name = MUNGE_SRC_PKGS.get(pkg_name,pkg_name)
 
-        for d in downloads:
-            ## Switch names if necessary
-            d = MUNGE_SRC_PKGS.get(d,d)
+        tarball = "{}-{}.src.tar.gz".format(pkg_name,pkg_version)
 
-            tarball = "{}-{}.src.tar.gz".format(d,pkg_version)
-
-            to_download.append(tarball)
-
-    ## Download in parallel or it is just too slow
-    p = mp.Pool(1)
-    p.map(download_source,to_download)
+        download_source(tarball)
 
     print("Zipping")
     check_output_maybe("zip -9 ../emacs-{}-{}deps-mingw-w64-src.zip *"
@@ -245,7 +221,6 @@ def gather_source(deps):
 def clean():
     print("Cleaning")
     os.path.isdir("emacs-src") and shutil.rmtree("emacs-src")
-    os.path.isdir("i686") and shutil.rmtree("i686")
     os.path.isdir("x86_64") and shutil.rmtree("x86_64")
     os.path.isfile("download.log") and os.remove("download.log")
 
@@ -257,12 +232,6 @@ if(os.environ["MSYSTEM"] != "MSYS"):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", help="snapshot build",
-                    action="store_true")
-
-parser.add_argument("-t", help="32 bit deps only",
-                    action="store_true")
-
-parser.add_argument("-f", help="64 bit deps only",
                     action="store_true")
 
 parser.add_argument("-r", help="source code only",
@@ -278,7 +247,7 @@ parser.add_argument("-l", help="list dependencies only",
                     action="store_true")
 
 args = parser.parse_args()
-do_all=not (args.c or args.r or args.f or args.t)
+do_all=not (args.c or args.r)
 
 
 
@@ -294,11 +263,8 @@ if args.s:
 else:
     DATE=""
 
-if( do_all or args.t ):
-    gather_deps("i686","mingw32")
-
-if( do_all or args.f ):
-    gather_deps("x86_64","mingw64")
+if( do_all):
+    gather_deps()
 
 if( do_all or args.r ):
     deps=extract_deps()
