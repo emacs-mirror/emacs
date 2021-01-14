@@ -132,8 +132,10 @@ This is an alternative of `scroll-up'.  Scope moves downward."
                    (pixel-line-height))))
         (if (pixel-eob-at-top-p)      ; when end-of-the-buffer is close
             (scroll-up 1)             ; relay on robust method
-          (while (pixel-point-at-top-p amt) ; prevent too late (multi tries)
-            (vertical-motion 1))            ; move point downward
+          (catch 'no-movement
+            (while (pixel-point-at-top-p amt) ; prevent too late (multi tries)
+              (unless (>= (vertical-motion 1) 1) ; move point downward
+                (throw 'no-movement nil)))) ; exit loop when point did not move
           (pixel-scroll-pixel-up amt))))))  ; move scope downward
 
 (defun pixel-scroll-down (&optional arg)
@@ -149,8 +151,10 @@ This is and alternative of `scroll-down'.  Scope moves upward."
                          pixel-resolution-fine-flag
                        (frame-char-height))
                    (pixel-line-height -1))))
-        (while (pixel-point-at-bottom-p amt) ; prevent too late (multi tries)
-          (vertical-motion -1))              ; move point upward
+        (catch 'no-movement
+          (while (pixel-point-at-bottom-p amt) ; prevent too late (multi tries)
+            (unless (<= (vertical-motion -1) -1) ; move point upward
+              (throw 'no-movement nil)))) ; exit loop when point did not move
         (if (or (pixel-bob-at-top-p amt) ; when beginning-of-the-buffer is seen
                 (pixel-eob-at-top-p))    ; for file with a long line
             (scroll-down 1)              ; relay on robust method

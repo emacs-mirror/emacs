@@ -921,7 +921,8 @@ the name of the init-file to load.  If this file cannot be
 loaded, and ALTERNATE-FILENAME-FUNCTION is non-nil, then it is
 called with no arguments and should return the name of an
 alternate init-file to load.  If LOAD-DEFAULTS is non-nil, then
-load default.el after the init-file.
+load default.el after the init-file, unless `inhibit-default-init'
+is non-nil.
 
 This function sets `user-init-file' to the name of the loaded
 init-file, or to a default value if loading is not possible."
@@ -977,8 +978,8 @@ init-file, or to a default value if loading is not possible."
                     (sit-for 1))
                   (setq user-init-file source))))
 
-            (when load-defaults
-
+            (when (and load-defaults
+                       (not inhibit-default-init))
               ;; Prevent default.el from changing the value of
               ;; `inhibit-startup-screen'.
               (let ((inhibit-startup-screen nil))
@@ -1374,7 +1375,7 @@ please check its value")
        (expand-file-name
         "init.el"
         startup-init-directory))
-     (not inhibit-default-init))
+     t)
 
     (when (and deactivate-mark transient-mark-mode)
       (with-current-buffer (window-buffer)
