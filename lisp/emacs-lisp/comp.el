@@ -3802,6 +3802,8 @@ display a message."
                    source-file (comp-el-to-eln-filename source-file)))
          do (let* ((expr `(progn
                             (require 'comp)
+                            ,(when (boundp 'backtrace-line-length)
+                               `(setf backtrace-line-length ,backtrace-line-length))
                             (setf comp-speed ,comp-speed
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose
