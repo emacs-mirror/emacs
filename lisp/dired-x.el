@@ -1483,7 +1483,7 @@ a prefix argument, when it offers the filename near point as a default."
 ;;; Internal functions.
 
 ;; Fixme: This should probably use `thing-at-point'.  -- fx
-(define-obsolete-function-alias 'dired-filename-at-point
+(define-obsolete-function-alias 'dired-file-name-at-point
   #'dired-x-guess-file-name-at-point "28.1")
 (defun dired-x-guess-file-name-at-point ()
   "Return the filename closest to point, expanded.
