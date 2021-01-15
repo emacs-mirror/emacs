@@ -168,6 +168,7 @@ The string is used in `tramp-methods'.")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				             ("-e" "none") ("%h")))
                 (tramp-async-args           (("-q")))
+                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -183,6 +184,7 @@ The string is used in `tramp-methods'.")
 				             ("-e" "none") ("-t" "-t") ("%h")
 					     ("%l")))
                 (tramp-async-args           (("-q")))
+                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -197,6 +199,7 @@ The string is used in `tramp-methods'.")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				             ("-e" "none") ("%h")))
                 (tramp-async-args           (("-q")))
+                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -227,6 +230,7 @@ The string is used in `tramp-methods'.")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				             ("-e" "none") ("%h")))
                 (tramp-async-args           (("-q")))
+                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
@@ -237,6 +241,7 @@ The string is used in `tramp-methods'.")
 				             ("-e" "none") ("-t" "-t") ("%h")
 					     ("%l")))
                 (tramp-async-args           (("-q")))
+                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
@@ -2668,11 +2673,9 @@ The method used must be an out-of-band method."
                        #'file-name-nondirectory (list localname))))
                    (tramp-get-remote-null-device v))))
 
-      (let ((beg-marker (point-marker))
-	    (end-marker (point-marker))
+      (let ((beg-marker (copy-marker (point) nil))
+	    (end-marker (copy-marker (point) t))
 	    (emc enable-multibyte-characters))
-	(set-marker-insertion-type beg-marker nil)
-	(set-marker-insertion-type end-marker t)
 	;; We cannot use `insert-buffer-substring' because the Tramp
 	;; buffer changes its contents before insertion due to calling
 	;; `expand-file-name' and alike.
@@ -2837,9 +2840,9 @@ the result will be a local, non-Tramp, file name."
 ;; terminated.
 (defun tramp-sh-handle-make-process (&rest args)
   "Like `make-process' for Tramp files.
-STDERR can also be a file name.  If connection property
-\"direct-async-process\" is non-nil, an alternative
-implementation will be used."
+STDERR can also be a file name.  If method parameter `tramp-direct-async'
+and connection property \"direct-async-process\" are non-nil, an
+alternative implementation will be used."
   (if (tramp-direct-async-process-p args)
       (apply #'tramp-handle-make-process args)
     (when args

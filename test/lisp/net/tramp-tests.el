@@ -78,6 +78,8 @@
 ;; Needed for Emacs 27.
 (defvar process-file-return-signal-string)
 (defvar shell-command-dont-erase-buffer)
+;; Needed for Emacs 28.
+(defvar dired-copy-dereference)
 
 ;; Beautify batch mode.
 (when noninteractive
@@ -98,7 +100,6 @@
        '("mock"
 	 (tramp-login-program        "sh")
 	 (tramp-login-args           (("-i")))
-	 (tramp-direct-async-args    (("-c")))
 	 (tramp-remote-shell         "/bin/sh")
 	 (tramp-remote-shell-args    ("-c"))
 	 (tramp-connection-timeout   10)))
@@ -2438,7 +2439,7 @@ This checks also `file-name-as-directory', `file-name-directory',
 		      ;; We must check the last line.  There could be
 		      ;; other messages from the progress reporter.
 		      (should
-		       (string-match
+		       (string-match-p
 			(if (and (null noninteractive)
 				 (or (eq visit t) (null visit) (stringp visit)))
 			    (format "^Wrote %s\n\\'" (regexp-quote tmp-name))
@@ -2833,6 +2834,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test15-copy-directory ()
   "Check `copy-directory'."
   (skip-unless (tramp--test-enabled))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let* ((tmp-name1 (tramp--test-make-temp-name nil quoted))
@@ -3612,8 +3614,8 @@ This tests also `file-executable-p', `file-writable-p' and `set-file-modes'."
   `(condition-case err
        (progn ,@body)
      (file-error
-      (unless (string-match "^error with add-name-to-file"
-			    (error-message-string err))
+      (unless (string-match-p "^error with add-name-to-file"
+			      (error-message-string err))
 	(signal (car err) (cdr err))))))
 
 (ert-deftest tramp-test21-file-links ()
@@ -4388,7 +4390,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    ;; there's an indication for a signal describing string.
 	    (let ((process-file-return-signal-string t))
 	      (should
-	       (string-match
+	       (string-match-p
 		"Interrupt\\|Signal 2"
 		(process-file
 		 (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh")
@@ -4456,7 +4458,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match "foo" (buffer-string))))
+	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4475,7 +4477,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match "foo" (buffer-string))))
+	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors
@@ -4497,7 +4499,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match "foo" (buffer-string))))
+	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4539,8 +4541,6 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	      (cons '(nil "direct-async-process" t)
 		    tramp-connection-properties)))
 	 (skip-unless (tramp-direct-async-process-p))
-	 ;; For whatever reason, it doesn't cooperate with the "mock" method.
-	 (skip-unless (not (tramp--test-mock-p)))
 	 ;; We do expect an established connection already,
 	 ;; `file-truename' does it by side-effect.  Suppress
 	 ;; `tramp--test-enabled', in order to keep the connection.
@@ -4586,7 +4586,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match "foo" (buffer-string))))
+	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4607,7 +4607,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (< (- (point-max) (point-min)) (length "foo"))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match "foo" (buffer-string))))
+	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors
@@ -4631,9 +4631,9 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (process-send-eof proc)
 	    ;; Read output.
 	    (with-timeout (10 (tramp--test-timeout-handler))
-	      (while (not (string-match "foo" (buffer-string)))
+	      (while (not (string-match-p "foo" (buffer-string)))
 		(while (accept-process-output proc 0 nil t))))
-	    (should (string-match "foo" (buffer-string))))
+	    (should (string-match-p "foo" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4658,7 +4658,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 	    (with-timeout (10 (tramp--test-timeout-handler))
 	      (while (accept-process-output proc 0 nil t)))
 	    ;; On some MS Windows systems, it returns "unknown signal".
-	    (should (string-match "unknown signal\\|killed" (buffer-string))))
+	    (should (string-match-p "unknown signal\\|killed" (buffer-string))))
 
 	;; Cleanup.
 	(ignore-errors (delete-process proc)))
@@ -4682,7 +4682,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		(delete-process proc)
 		(with-current-buffer stderr
 		  (should
-		   (string-match
+		   (string-match-p
 		    "cat:.* No such file or directory" (buffer-string)))))
 
 	    ;; Cleanup.
@@ -4709,7 +4709,7 @@ If UNSTABLE is non-nil, the test is tagged as `:unstable'."
 		(with-temp-buffer
 		  (insert-file-contents tmpfile)
 		  (should
-		   (string-match
+		   (string-match-p
 		    "cat:.* No such file or directory" (buffer-string)))))
 
 	    ;; Cleanup.
@@ -4852,7 +4852,7 @@ INPUT, if non-nil, is a string sent to the process."
 	    (should
 	     (string-equal
 	      ;; tramp-adb.el echoes, so we must add the string.
-	      (if (tramp--test-adb-p)
+	      (if (and (tramp--test-adb-p) (not (tramp-direct-async-process-p)))
 		  (format
 		   "%s\n%s\n"
 		   (file-name-nondirectory tmp-name)
@@ -5043,7 +5043,7 @@ INPUT, if non-nil, is a string sent to the process."
 	     (cons (concat envvar "=foo") process-environment)))
 	;; Default value.
 	(should
-	 (string-match
+	 (string-match-p
 	  "foo"
 	  (funcall
 	   this-shell-command-to-string
@@ -5054,13 +5054,13 @@ INPUT, if non-nil, is a string sent to the process."
 	     (cons (concat envvar "=") process-environment)))
 	;; Value is null.
 	(should
-	 (string-match
+	 (string-match-p
 	  "bla"
 	  (funcall
 	   this-shell-command-to-string (format "echo \"${%s:-bla}\"" envvar))))
 	;; Variable is set.
 	(should
-	 (string-match
+	 (string-match-p
 	  (regexp-quote envvar)
 	  (funcall this-shell-command-to-string "set"))))
 
@@ -5072,7 +5072,7 @@ INPUT, if non-nil, is a string sent to the process."
 	       (cons (concat envvar "=foo") tramp-remote-process-environment)))
 	  ;; Set the initial value, we want to unset below.
 	  (should
-	   (string-match
+	   (string-match-p
 	    "foo"
 	    (funcall
 	     this-shell-command-to-string
@@ -5080,14 +5080,14 @@ INPUT, if non-nil, is a string sent to the process."
 	  (let ((process-environment (cons envvar process-environment)))
 	    ;; Variable is unset.
 	    (should
-	     (string-match
+	     (string-match-p
 	      "bla"
 	      (funcall
 	       this-shell-command-to-string
 	       (format "echo \"${%s:-bla}\"" envvar))))
 	    ;; Variable is unset.
 	    (should-not
-	     (string-match
+	     (string-match-p
 	      (regexp-quote envvar)
 	      ;; We must remove PS1, the output is truncated otherwise.
 	      (funcall
@@ -5125,7 +5125,7 @@ Use direct async.")
 		 (format "%s=%d" envvar port)
 		 tramp-remote-process-environment)))
 	  (should
-	   (string-match
+	   (string-match-p
 	    (number-to-string port)
 	    (shell-command-to-string (format "echo $%s" envvar))))))
 
@@ -5253,7 +5253,7 @@ Use direct async.")
 	    (with-timeout (10)
 	      (while (accept-process-output
 		      (get-buffer-process (current-buffer)) nil nil t)))
-	    (should (string-match "^foo$" (buffer-string)))))
+	    (should (string-match-p "^foo$" (buffer-string)))))
 
       ;; Cleanup.
       (put 'explicit-shell-file-name 'permanent-local nil)
@@ -5388,25 +5388,27 @@ Use direct async.")
 	   (tramp-remote-process-environment tramp-remote-process-environment)
            (inhibit-message t)
 	   (vc-handled-backends
-	    (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
-	      (cond
-	       ((tramp-find-executable
-		 v vc-git-program (tramp-get-remote-path v))
-		'(Git))
-	       ((tramp-find-executable
-		 v vc-hg-program (tramp-get-remote-path v))
-		'(Hg))
-	       ((tramp-find-executable
-		 v vc-bzr-program (tramp-get-remote-path v))
-		(setq tramp-remote-process-environment
-		      (cons (format "BZR_HOME=%s"
-				    (file-remote-p tmp-name1 'localname))
-			    tramp-remote-process-environment))
-		;; We must force a reconnect, in order to activate $BZR_HOME.
-		(tramp-cleanup-connection
-		 tramp-test-vec 'keep-debug 'keep-password)
-		'(Bzr))
-	       (t nil))))
+	    (cond
+	     ((tramp-find-executable
+	       tramp-test-vec vc-git-program
+	       (tramp-get-remote-path tramp-test-vec))
+	      '(Git))
+	     ((tramp-find-executable
+	       tramp-test-vec vc-hg-program
+	       (tramp-get-remote-path tramp-test-vec))
+	      '(Hg))
+	     ((tramp-find-executable
+	       tramp-test-vec vc-bzr-program
+	       (tramp-get-remote-path tramp-test-vec))
+	      (setq tramp-remote-process-environment
+		    (cons (format "BZR_HOME=%s"
+				  (file-remote-p tmp-name1 'localname))
+			  tramp-remote-process-environment))
+	      ;; We must force a reconnect, in order to activate $BZR_HOME.
+	      (tramp-cleanup-connection
+	       tramp-test-vec 'keep-debug 'keep-password)
+	      '(Bzr))
+	     (t nil)))
 	   ;; Suppress nasty messages.
 	   (inhibit-message t))
       (skip-unless vc-handled-backends)
@@ -5732,7 +5734,7 @@ This does not support some special file names."
   "Check, whether an FTP-like method is used.
 This does not support globbing characters in file names (yet)."
   ;; Globbing characters are ??, ?* and ?\[.
-  (string-match
+  (string-match-p
    "ftp$" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
 (defun tramp--test-gvfs-p (&optional method)
@@ -5746,18 +5748,18 @@ If optional METHOD is given, it is checked first."
   "Check, whether the remote host runs HP-UX.
 Several special characters do not work properly there."
   ;; We must refill the cache.  `file-truename' does it.
-  (with-parsed-tramp-file-name
-      (file-truename tramp-test-temporary-file-directory) nil
-    (string-match "^HP-UX" (tramp-get-connection-property v "uname" ""))))
+  (file-truename tramp-test-temporary-file-directory) nil
+  (string-match-p
+   "^HP-UX" (tramp-get-connection-property tramp-test-vec "uname" "")))
 
 (defun tramp--test-ksh-p ()
   "Check, whether the remote shell is ksh.
 ksh93 makes some strange conversions of non-latin characters into
 a $'' syntax."
   ;; We must refill the cache.  `file-truename' does it.
-  (with-parsed-tramp-file-name
-      (file-truename tramp-test-temporary-file-directory) nil
-    (string-match "ksh$" (tramp-get-connection-property v "remote-shell" ""))))
+  (file-truename tramp-test-temporary-file-directory) nil
+  (string-match-p
+   "ksh$" (tramp-get-connection-property tramp-test-vec "remote-shell" "")))
 
 (defun tramp--test-mock-p ()
   "Check, whether the mock method is used.
@@ -5809,7 +5811,7 @@ This does not support special characters."
   "Check, whether the locale host runs MS Windows, and ps{cp,ftp} is used.
 This does not support utf8 based file transfer."
   (and (eq system-type 'windows-nt)
-       (string-match
+       (string-match-p
 	(regexp-opt '("pscp" "psftp"))
 	(file-remote-p tramp-test-temporary-file-directory 'method))))
 
@@ -6072,6 +6074,7 @@ This requires restrictions of file name syntax."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
   (tramp--test-special-characters))
 
@@ -6083,6 +6086,8 @@ Use the `stat' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
+  ;; We cannot use `tramp-test-vec', because this fails during compilation.
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-stat v)))
 
@@ -6101,6 +6106,8 @@ Use the `perl' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
+  ;; We cannot use `tramp-test-vec', because this fails during compilation.
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-perl v)))
 
@@ -6123,6 +6130,7 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-rsync-p)))
   (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
   (let ((tramp-connection-properties
 	 (append
@@ -6191,6 +6199,7 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
   (tramp--test-utf8))
 
@@ -6206,6 +6215,8 @@ Use the `stat' command."
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
+  ;; We cannot use `tramp-test-vec', because this fails during compilation.
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-stat v)))
 
@@ -6228,6 +6239,8 @@ Use the `perl' command."
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
+  ;; We cannot use `tramp-test-vec', because this fails during compilation.
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-perl v)))
 
@@ -6253,6 +6266,7 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
+  (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
   (let ((tramp-connection-properties
 	 (append
@@ -6541,7 +6555,7 @@ process sentinels.  They shall not disturb each other."
              (message \"Tramp loaded: %%s\" (and (file-remote-p %S) t)))"
 	  tramp-test-temporary-file-directory)))
     (should
-     (string-match
+     (string-match-p
       "Tramp loaded: t[\n\r]+"
       (shell-command-to-string
        (format
@@ -6572,7 +6586,7 @@ process sentinels.  They shall not disturb each other."
     ;; Tramp doesn't load when `tramp-mode' is nil.
     (dolist (tm '(t nil))
       (should
-       (string-match
+       (string-match-p
 	(format
        "Tramp loaded: nil[\n\r]+Tramp loaded: nil[\n\r]+Tramp loaded: %s[\n\r]+"
 	 tm)
@@ -6598,7 +6612,7 @@ process sentinels.  They shall not disturb each other."
 	       tramp-test-temporary-file-directory
 	       temporary-file-directory)))
       (should-not
-       (string-match
+       (string-match-p
 	"Recursive load"
 	(shell-command-to-string
 	 (format
@@ -6623,7 +6637,7 @@ process sentinels.  They shall not disturb each other."
 		(load-path (cons \"/foo:bar:\" load-path))) \
 	    (tramp-cleanup-all-connections))"))
     (should
-     (string-match
+     (string-match-p
       (format
        "Loading %s"
        (regexp-quote
@@ -6670,11 +6684,11 @@ Since it unloads Tramp, it shall be the last test to run."
    (lambda (x)
      (and (or (and (boundp x) (null (local-variable-if-set-p x)))
 	      (and (functionp x) (null (autoloadp (symbol-function x)))))
-	  (string-match "^tramp" (symbol-name x))
+	  (string-match-p "^tramp" (symbol-name x))
 	  ;; `tramp-completion-mode' is autoloaded in Emacs < 28.1.
 	  (not (eq 'tramp-completion-mode x))
-	  (not (string-match "^tramp\\(-archive\\)?--?test" (symbol-name x)))
-	  (not (string-match "unload-hook$" (symbol-name x)))
+	  (not (string-match-p "^tramp\\(-archive\\)?--?test" (symbol-name x)))
+	  (not (string-match-p "unload-hook$" (symbol-name x)))
 	  (ert-fail (format "`%s' still bound" x)))))
   ;; The defstruct `tramp-file-name' and all its internal functions
   ;; shall be purged.
@@ -6682,15 +6696,15 @@ Since it unloads Tramp, it shall be the last test to run."
   (mapatoms
    (lambda (x)
      (and (functionp x)
-          (string-match "tramp-file-name" (symbol-name x))
+          (string-match-p "tramp-file-name" (symbol-name x))
           (ert-fail (format "Structure function `%s' still exists" x)))))
   ;; There shouldn't be left a hook function containing a Tramp
   ;; function.  We do not regard the Tramp unload hooks.
   (mapatoms
    (lambda (x)
      (and (boundp x)
-	  (string-match "-\\(hook\\|function\\)s?$" (symbol-name x))
-	  (not (string-match "unload-hook$" (symbol-name x)))
+	  (string-match-p "-\\(hook\\|function\\)s?$" (symbol-name x))
+	  (not (string-match-p "unload-hook$" (symbol-name x)))
 	  (consp (symbol-value x))
 	  (ignore-errors (all-completions "tramp" (symbol-value x)))
 	  (ert-fail (format "Hook `%s' still contains Tramp function" x))))))
