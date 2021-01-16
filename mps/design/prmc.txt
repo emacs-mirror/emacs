@@ -178,8 +178,8 @@ Posix implementation
 
 _`.impl.ix`: In ``prmcix.c`` and ``protsgix.c``, with
 processor-specific parts in ``prmci3.c`` and ``prmci6.c``, and other
-platform-specific parts in ``prmcfri3.c``, ``prmclii3.c``,
-``prmcfri6.c``, and ``prmclii6.c``.
+platform-specific parts in ``prmcfri3.c``, ``prmcfri6.c``,
+``prmclia6.c``, ``prmclii3.c``, and ``prmclii6.c``.
 
 _`.impl.ix.context`: The context consists of the |siginfo_t|_ and
 |ucontext_t|_ structures. POSIX specifies some of the fields in

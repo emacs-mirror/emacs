@@ -3454,6 +3454,14 @@ CLEAN_TARGET=clean-make-build
 INSTALL_TARGET=install-make-build
 TEST_TARGET=test-make-build
 case $host/$CLANG in
+  aarch64-*-linux*/yes)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux ARM64" >&5
+$as_echo "Linux ARM64" >&6; }
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=a6
+      MPS_BUILD_NAME=ll
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
   i*86-*-linux*/no)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Linux x86" >&5
 $as_echo "Linux x86" >&6; }
