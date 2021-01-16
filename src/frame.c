@@ -2579,13 +2579,13 @@ before calling this function on it, like this.
       frame_set_mouse_position (XFRAME (frame), xval, yval);
 #endif /* HAVE_WINDOW_SYSTEM */
     }
+#ifdef MSDOS
   else if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
-#ifdef MSDOS
       mouse_moveto (xval, yval);
-#endif /* MSDOS */
     }
+#endif /* MSDOS */
   else
     {
       Fselect_frame (frame, Qnil);
@@ -2624,13 +2624,13 @@ before calling this function on it, like this.
       frame_set_mouse_pixel_position (XFRAME (frame), xval, yval);
 #endif /* HAVE_WINDOW_SYSTEM */
     }
+#ifdef MSDOS
   else if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
-#ifdef MSDOS
       mouse_moveto (xval, yval);
-#endif /* MSDOS */
     }
+#endif /* MSDOS */
   else
     {
       Fselect_frame (frame, Qnil);
