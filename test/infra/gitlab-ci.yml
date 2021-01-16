@@ -1,0 +1,208 @@
+# Copyright (C) 2017-2021 Free Software Foundation, Inc.
+#
+#  This file is part of GNU Emacs.
+#
+#  GNU Emacs is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  GNU Emacs is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+
+# GNU Emacs support for the GitLab protocol for CI
+
+# The presence of this file does not imply any FSF/GNU endorsement of
+# any particular service that uses that protocol.  Also, it is intended for
+# evaluation purposes, thus possibly temporary.
+
+# Maintainer: Ted Zlatanov <tzz@lifelogs.com>
+# URL: https://emba.gnu.org/emacs/emacs
+
+# Never run merge request pipelines, they usually duplicate push pipelines
+# see https://docs.gitlab.com/ee/ci/yaml/README.html#common-if-clauses-for-rules
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - when: always
+
+variables:
+  GIT_STRATEGY: fetch
+  EMACS_EMBA_CI: 1
+  # # Use TLS https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#tls-enabled
+  # DOCKER_HOST: tcp://docker:2376
+  # DOCKER_TLS_CERTDIR: "/certs"
+  # Put the configuration for each run in a separate directory to avoid conflicts
+  DOCKER_CONFIG: "/.docker-config-${CI_COMMIT_SHA}"
+
+default:
+  image: docker:19.03.12
+  timeout: 3 hours
+  before_script:
+    - docker info
+    - echo "docker registry is ${CI_REGISTRY}"
+    - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+
+.job-template:
+  # these will be cached across builds
+  cache:
+    key: ${CI_COMMIT_SHA}
+    paths: []
+    policy: pull-push
+  # these will be saved for followup builds
+  artifacts:
+    expire_in: 24 hrs
+    paths: []
+      # - "test/**/*.log"
+      # - "**/*.log"
+
+.build-template:
+  script:
+    - docker build --pull --target ${target} -t ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA} -f test/infra/Dockerfile.emba .
+    - docker push ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA}
+
+.gnustep-template:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      changes:
+        - "**/Makefile.in"
+        - .gitlab-ci.yml
+        - configure.ac
+        - src/ns*.{h,m}
+        - src/macfont.{h,m}
+        - lisp/term/ns-win.el
+        - nextstep/**/*
+        - test/infra/*
+
+.filenotify-gio-template:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      changes:
+        - "**/Makefile.in"
+        - .gitlab-ci.yml
+        - lisp/autorevert.el
+        - lisp/filenotify.el
+        - lisp/net/tramp-sh.el
+        - src/gfilenotify.c
+        - test/infra/*
+        - test/lisp/autorevert-tests.el
+        - test/lisp/filenotify-tests.el
+
+.test-template:
+  rules:
+    - changes:
+        - "**/Makefile.in"
+        - .gitlab-ci.yml
+        - aclocal.m4
+        - autogen.sh
+        - configure.ac
+        - lib/*.{h,c}
+        - lisp/**/*.el
+        - src/*.{h,c}
+        - test/infra/*
+        - test/lisp/**/*.el
+        - test/src/*.el
+    - changes:
+        # gfilemonitor, kqueue
+        - src/gfilenotify.c
+        - src/kqueue.c
+        # MS Windows
+        - "**/w32*"
+        # GNUstep
+        - lisp/term/ns-win.el
+        - src/ns*.{h,m}
+        - src/macfont.{h,m}
+      when: never
+
+  # using the variables for each job
+  script:
+    - docker pull ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA}
+    # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
+    - docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA} make ${make_params}
+
+stages:
+  - prep-images
+  - build-images
+  - fast
+  - normal
+  - platform-images
+  - platforms
+  - slow
+
+prep-image-base:
+  stage: prep-images
+  extends: [.job-template, .build-template]
+  variables:
+    target: emacs-base
+
+build-image-inotify:
+  stage: build-images
+  extends: [.job-template, .build-template]
+  variables:
+    target: emacs-inotify
+
+test-fast-inotify:
+  stage: fast
+  extends: [.job-template, .test-template]
+  variables:
+    target: emacs-inotify
+    make_params: "-C test check"
+
+build-image-filenotify-gio:
+  stage: platform-images
+  extends: [.job-template, .build-template, .filenotify-gio-template]
+  variables:
+    target: emacs-filenotify-gio
+
+build-image-gnustep:
+  stage: platform-images
+  extends: [.job-template, .build-template, .gnustep-template]
+  variables:
+    target: emacs-gnustep
+
+test-lisp-inotify:
+  stage: normal
+  extends: [.job-template, .test-template]
+  variables:
+    target: emacs-inotify
+    make_params: "-C test check-lisp"
+
+test-net-inotify:
+  stage: normal
+  extends: [.job-template, .test-template]
+  variables:
+    target: emacs-inotify
+    make_params: "-C test check-net"
+
+test-filenotify-gio:
+  # This tests file monitor libraries gfilemonitor and gio.
+  stage: platforms
+  extends: [.job-template, .test-template, .filenotify-gio-template]
+  variables:
+    target: emacs-filenotify-gio
+    make_params: "-k -C test autorevert-tests filenotify-tests"
+
+test-gnustep:
+  # This tests the GNUstep build process
+  stage: platforms
+  extends: [.job-template, .test-template, .gnustep-template]
+  variables:
+    target: emacs-gnustep
+    make_params: install
+
+test-all-inotify:
+  # This tests also file monitor libraries inotify and inotifywatch.
+  stage: slow
+  extends: [.job-template, .test-template]
+  rules:
+    # note there's no "changes" section, so this always runs on a schedule
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  variables:
+    target: emacs-inotify
+    make_params: check-expensive

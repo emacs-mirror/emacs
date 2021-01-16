@@ -41,7 +41,7 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --without-makeinfo
-RUN make bootstrap
+RUN make -j4 bootstrap
 RUN make -j4
 
 FROM emacs-base as emacs-filenotify-gio
