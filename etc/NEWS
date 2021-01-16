@@ -326,6 +326,12 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** pcase
++++
+*** The `pred` pattern can now take the form (pred (not FUN)).
+This is like (pred (lambda (x) (not (FUN x)))) but results
+in better code.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
