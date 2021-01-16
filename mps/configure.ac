@@ -45,6 +45,13 @@ CLEAN_TARGET=clean-make-build
 INSTALL_TARGET=install-make-build
 TEST_TARGET=test-make-build
 case $host/$CLANG in
+  aarch64-*-linux*/yes)
+      AC_MSG_RESULT([Linux ARM64])
+      MPS_OS_NAME=li
+      MPS_ARCH_NAME=a6
+      MPS_BUILD_NAME=ll
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
   i*86-*-linux*/no)
       AC_MSG_RESULT([Linux x86])
       MPS_OS_NAME=li

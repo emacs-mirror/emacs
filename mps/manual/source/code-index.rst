@@ -175,6 +175,7 @@ prmci6.c      Mutator context implementation for x86-64.
 prmci6.h      Mutator context interface for x86-64.
 prmcix.c      Mutator context implementation for POSIX.
 prmcix.h      Mutator context interface for POSIX.
+prmclia6.c    Mutator context implementation for Linux, ARM64.
 prmclii3.c    Mutator context implementation for Linux, IA-32.
 prmclii6.c    Mutator context implementation for Linux, x86-64.
 prmcw3.c      Mutator context implementation for Windows.
@@ -384,6 +385,7 @@ fri6gc.gmk     GNU makefile for platform FRI6GC.
 fri6ll.gmk     GNU makefile for platform FRI6LL.
 gc.gmk         GNU make fragment for GCC.
 gp.gmk         GNU make fragment for GCC/GProf (broken).
+lia6ll.gmk     GNU makefile for platform LIA6LL.
 lii3gc.gmk     GNU makefile for platform LII3GC.
 lii6gc.gmk     GNU makefile for platform LII6GC.
 lii6ll.gmk     GNU makefile for platform LII6LL.

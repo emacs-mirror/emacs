@@ -5,12 +5,19 @@ language: c
 os:
   - linux
   - osx
+arch:
+  - amd64
+  - arm64
 compiler:
   - clang
   - gcc
 matrix:
   exclude:
     - os: osx
+      compiler: gcc
+  exclude:
+    - os: linux
+      arch: arm64
       compiler: gcc
 notifications:
   email:
