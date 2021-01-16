@@ -90,6 +90,11 @@ Other changes
 
    .. _GitHub issue #10: https://github.com/Ravenbrook/mps/issues/10
 
+#. The MPS now builds with Clang 10 and
+   ``-Wimplicit-int-float-conversion``. See `GitHub issue #51`_.
+
+   .. _GitHub issue #51: https://github.com/Ravenbrook/mps/issues/51
+
 
 .. _release-notes-1.117:
 

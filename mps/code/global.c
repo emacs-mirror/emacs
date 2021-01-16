@@ -777,9 +777,9 @@ Bool ArenaStep(Globals globals, double interval, double multiplier)
   clocks_per_sec = ClocksPerSec();
 
   start = now = ClockNow();
-  intervalEnd = start + (Clock)(interval * clocks_per_sec);
+  intervalEnd = start + (Clock)(interval * (double)clocks_per_sec);
   AVER(intervalEnd >= start);
-  availableEnd = start + (Clock)(interval * multiplier * clocks_per_sec);
+  availableEnd = start + (Clock)(interval * multiplier * (double)clocks_per_sec);
   AVER(availableEnd >= start);
 
   /* loop while there is work to do and time on the clock. */
