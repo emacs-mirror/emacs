@@ -27,39 +27,37 @@
 (defmacro with-lunar-test (&rest body)
   `(let ((calendar-latitude 40.1)
          (calendar-longitude -88.2)
-         (calendar-location-name "Urbana, IL")
-         (calendar-time-zone -360)
-         (calendar-standard-time-zone-name "CST")
-         (calendar-time-display-form '(12-hours ":" minutes am-pm)))
+         (calendar-location-name "Paris")
+         (calendar-time-zone 0)
+         (calendar-standard-time-zone-name "UTC")
+         ;; Make sure daylight saving is disabled to avoid interference
+         ;; from the system settings (see bug#45818).
+         (calendar-daylight-savings-starts nil)
+         (calendar-time-display-form '(24-hours ":" minutes)))
      ,@body))
 
 (ert-deftest lunar-test-phase ()
   (with-lunar-test
    (should (equal (lunar-phase 1)
-                  '((1 7 1900) "11:40pm" 1 "")))))
+                  '((1 8 1900) "05:40" 1 "")))))
 
 (ert-deftest lunar-test-eclipse-check ()
   (with-lunar-test
    (should (equal (eclipse-check 1 1) "**  Eclipse **"))))
 
-;; This fails in certain time zones.
-;; Eg TZ=America/Phoenix make lisp/calendar/lunar-tests
-;; Similarly with TZ=UTC.
-;; Daylight saving related?
 (ert-deftest lunar-test-phase-list ()
-  :tags '(:unstable)
   (with-lunar-test
    (should (equal  (lunar-phase-list 3 1871)
-                   '(((3 20 1871) "11:03pm" 0 "")
-                     ((3 29 1871) "1:46am" 1 "**  Eclipse **")
-                     ((4 5 1871) "9:20am" 2 "")
-                     ((4 12 1871) "12:57am" 3 "**  Eclipse possible **")
-                     ((4 19 1871) "2:06pm" 0 "")
-                     ((4 27 1871) "6:49pm" 1 "")
-                     ((5 4 1871) "5:57pm" 2 "")
-                     ((5 11 1871) "9:29am" 3 "")
-                     ((5 19 1871) "5:46am" 0 "")
-                     ((5 27 1871) "8:02am" 1 ""))))))
+                   '(((3 21 1871) "04:03" 0 "")
+                     ((3 29 1871) "06:46" 1 "**  Eclipse **")
+                     ((4 5 1871) "14:20" 2 "")
+                     ((4 12 1871) "05:57" 3 "**  Eclipse possible **")
+                     ((4 19 1871) "19:06" 0 "")
+                     ((4 27 1871) "23:49" 1 "")
+                     ((5 4 1871) "22:57" 2 "")
+                     ((5 11 1871) "14:29" 3 "")
+                     ((5 19 1871) "10:46" 0 "")
+                     ((5 27 1871) "13:02" 1 ""))))))
 
 (ert-deftest lunar-test-new-moon-time ()
   (with-lunar-test

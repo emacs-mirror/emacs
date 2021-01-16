@@ -314,7 +314,19 @@
     (let* ((xref (pop xrefs))
            (expected (pop expected-xrefs))
            (expected-xref (or (when (consp expected) (car expected)) expected))
-           (expected-source (when (consp expected) (cdr expected))))
+           (expected-source (when (consp expected) (cdr expected)))
+           (xref-file (xref-elisp-location-file (oref xref location)))
+           (expected-file (xref-elisp-location-file
+                           (oref expected-xref location))))
+
+      ;; Make sure file names compare as strings.
+      (when (file-name-absolute-p xref-file)
+        (setf (xref-elisp-location-file (oref xref location))
+              (file-truename (xref-elisp-location-file (oref xref location)))))
+      (when (file-name-absolute-p expected-file)
+        (setf (xref-elisp-location-file (oref expected-xref location))
+              (file-truename (xref-elisp-location-file
+                              (oref expected-xref location)))))
 
       ;; Downcase the filenames for case-insensitive file systems.
       (when xref--case-insensitive

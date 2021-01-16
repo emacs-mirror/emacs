@@ -51,10 +51,10 @@ Setting this option to nil might speed up the generation of summaries."
   :group 'rmail-summary)
 
 (defvar rmail-summary-font-lock-keywords
-  '(("^.....D.*" . font-lock-string-face)			; Deleted.
-    ("^.....-.*" . font-lock-type-face)				; Unread.
+  '(("^ *[0-9]+D.*" . font-lock-string-face)			; Deleted.
+    ("^ *[0-9]+-.*" . font-lock-type-face)			; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
-    ("^.....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
+    ("^ *[0-9]+[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
     ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 

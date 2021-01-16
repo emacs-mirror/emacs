@@ -366,9 +366,7 @@ enum {
 #ifdef HAVE_GPM
 #include <gpm.h>
 extern int handle_one_term_event (struct tty_display_info *, Gpm_Event *);
-#ifndef HAVE_WINDOW_SYSTEM
 extern void term_mouse_moveto (int, int);
-#endif
 
 /* The device for which we have enabled gpm support.  */
 extern struct tty_display_info *gpm_tty;

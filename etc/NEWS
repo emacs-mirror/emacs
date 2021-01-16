@@ -326,6 +326,12 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** pcase
++++
+*** The `pred` pattern can now take the form (pred (not FUN)).
+This is like (pred (lambda (x) (not (FUN x)))) but results
+in better code.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
@@ -1372,6 +1378,15 @@ https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 ** erc
 
 ---
+*** erc-services.el now supports NickServ passwords from auth-source.
+The 'erc-use-auth-source-for-nickserv-password' variable enables querying
+auth-source for NickServ passwords.  To enable this, add the following
+to your init file:
+
+    (setq erc-prompt-for-nickserv-password nil
+          erc-use-auth-source-for-nickserv-password t)
+
+---
 *** The '/ignore' command will now ask for a timeout to stop ignoring the user.
 Allowed inputs are seconds or ISO8601-like periods like "1h" or "4h30m".
 
@@ -1527,6 +1542,15 @@ that makes it a valid button.
 
 
 ** Miscellaneous
+
+*** New function 'buffer-line-statistics'.
+This function returns some statistics about the line lengths in a buffer.
+
++++
+*** New variable 'inhibit-interaction' to make user prompts signal an error.
+If this is bound to something non-nil, functions like
+`read-from-minibuffer', `read-char' (and related) will signal an
+`inhibited-interaction' error.
 
 ---
 *** 'process-attributes' now works under OpenBSD, too.

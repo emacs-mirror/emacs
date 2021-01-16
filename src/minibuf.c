@@ -1075,6 +1075,13 @@ read_minibuf_unwind (void)
 }
 
 
+void
+barf_if_interaction_inhibited (void)
+{
+  if (inhibit_interaction)
+    xsignal0 (Qinhibited_interaction);
+}
+
 DEFUN ("read-from-minibuffer", Fread_from_minibuffer,
        Sread_from_minibuffer, 1, 7, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
@@ -1119,6 +1126,9 @@ If the variable `minibuffer-allow-text-properties' is non-nil,
  then the string which is returned includes whatever text properties
  were present in the minibuffer.  Otherwise the value has no text properties.
 
+If `inhibit-interaction' is non-nil, this function will signal an
+  `inhibited-interaction' error.
+
 The remainder of this documentation string describes the
 INITIAL-CONTENTS argument in more detail.  It is only relevant when
 studying existing code, or when HIST is a cons.  If non-nil,
@@ -1133,6 +1143,8 @@ and some related functions, which use zero-indexing for POSITION.  */)
   (Lisp_Object prompt, Lisp_Object initial_contents, Lisp_Object keymap, Lisp_Object read, Lisp_Object hist, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object histvar, histpos, val;
+
+  barf_if_interaction_inhibited ();
 
   CHECK_STRING (prompt);
   if (NILP (keymap))
@@ -1207,11 +1219,17 @@ point positioned at the end, so that SPACE will accept the input.
 \(Actually, INITIAL can also be a cons of a string and an integer.
 Such values are treated as in `read-from-minibuffer', but are normally
 not useful in this function.)
+
 Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
-the current input method and the setting of`enable-multibyte-characters'.  */)
+the current input method and the setting of`enable-multibyte-characters'.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error.  */)
   (Lisp_Object prompt, Lisp_Object initial, Lisp_Object inherit_input_method)
 {
   CHECK_STRING (prompt);
+  barf_if_interaction_inhibited ();
+
   return read_minibuf (Vminibuffer_local_ns_map, initial, prompt,
 		       0, Qminibuffer_history, make_fixnum (0), Qnil, 0,
 		       !NILP (inherit_input_method));
@@ -2320,6 +2338,15 @@ input characters.  This variable should never be set globally.
 This variable also overrides the default character that `read-passwd'
 uses to hide passwords.  */);
   Vread_hide_char = Qnil;
+
+  DEFVAR_BOOL ("inhibit-interaction",
+	       inhibit_interaction,
+	       doc: /* Non-nil means any user interaction will signal an error.
+This variable can be bound when user interaction can't be performed,
+for instance when running a headless Emacs server.  Functions like
+`read-from-minibuffer' (and the like) will signal `inhibited-interaction'
+instead. */);
+  inhibit_interaction = 0;
 
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);

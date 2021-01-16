@@ -2382,7 +2382,6 @@ frame's terminal). */)
 
 #ifdef HAVE_GPM
 
-#ifndef HAVE_WINDOW_SYSTEM
 void
 term_mouse_moveto (int x, int y)
 {
@@ -2396,7 +2395,6 @@ term_mouse_moveto (int x, int y)
   last_mouse_x = x;
   last_mouse_y = y;  */
 }
-#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Implementation of draw_row_with_mouse_face for TTY/GPM.  */
 void
@@ -4246,8 +4244,8 @@ use the Bourne shell command 'TERM=...; export TERM' (C-shell:\n\
 
 #ifdef HAVE_GPM
   terminal->mouse_position_hook = term_mouse_position;
-  tty->mouse_highlight.mouse_face_window = Qnil;
 #endif
+  tty->mouse_highlight.mouse_face_window = Qnil;
 
   terminal->kboard = allocate_kboard (Qnil);
   terminal->kboard->reference_count++;

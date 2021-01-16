@@ -32,6 +32,7 @@ argument.
 * Minibuffer Windows::        Operating on the special minibuffer windows.
 * Minibuffer Contents::       How such commands access the minibuffer text.
 * Recursive Mini::            Whether recursive entry to minibuffer is allowed.
+* Inhibiting Interaction::    Running Emacs when no interaction is possible.
 * Minibuffer Misc::           Various customization hooks and variables.
 @end menu
 
@@ -2616,6 +2617,38 @@ also achieve this by binding @code{enable-recursive-minibuffers}
 to @code{t} in the interactive declaration (@pxref{Using Interactive}).
 The minibuffer command @code{next-matching-history-element} (normally
 @kbd{M-s} in the minibuffer) does the latter.
+
+@node Inhibiting Interaction
+@section Inhibiting Interaction
+
+It's sometimes useful to be able to run Emacs as a headless server
+process that responds to commands given over a network connection.
+However, Emacs is primarily a platform for interactive usage, so many
+commands prompt the user for feedback in certain anomalous situations.
+This makes this use case more difficult, since the server process will
+just hang waiting for user input.
+
+@vindex inhibit-interaction
+Binding the @code{inhibit-interaction} variable to something
+non-@code{nil} makes Emacs signal a @code{inhibited-interaction} error
+instead of prompting, which can then be used by the server process to
+handle these situations.
+
+Here's a typical use case:
+
+@lisp
+(let ((inhibit-interaction t))
+  (respond-to-client
+   (condition-case err
+       (my-client-handling-function)
+     (inhibited-interaction err))))
+@end lisp
+
+If @code{my-client-handling-function} ends up calling something that
+asks the user for something (via @code{y-or-n-p} or
+@code{read-from-minibuffer} or the like), an
+@code{inhibited-interaction} error is signalled instead.  The server
+code then catches that error and reports it to the client.
 
 @node Minibuffer Misc
 @section Minibuffer Miscellany

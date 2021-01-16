@@ -970,20 +970,11 @@ loop using the command \\[fileloop-continue]."
 (declare-function compilation-read-command "compile")
 
 ;;;###autoload
-(defun project-compile (command &optional comint)
-  "Run `compile' in the project root.
-Arguments the same as in `compile'."
-  (interactive
-   (list
-    (let ((command (eval compile-command)))
-      (require 'compile)
-      (if (or compilation-read-command current-prefix-arg)
-	  (compilation-read-command command)
-	command))
-    (consp current-prefix-arg)))
-  (let* ((pr (project-current t))
-         (default-directory (project-root pr)))
-    (compile command comint)))
+(defun project-compile ()
+  "Run `compile' in the project root."
+  (interactive)
+  (let ((default-directory (project-root (project-current t))))
+    (call-interactively #'compile)))
 
 (defun project--read-project-buffer ()
   (let* ((pr (project-current t))

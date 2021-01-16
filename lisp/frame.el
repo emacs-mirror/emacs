@@ -2557,7 +2557,7 @@ command starts, by installing a pre-command hook."
     ;; blink-cursor-end is not added to pre-command-hook.
     (setq blink-cursor-blinks-done 1)
     (blink-cursor--start-timer)
-    (add-hook 'pre-command-hook 'blink-cursor-end)
+    (add-hook 'pre-command-hook #'blink-cursor-end)
     (internal-show-cursor nil nil)))
 
 (defun blink-cursor-timer-function ()
@@ -2572,14 +2572,14 @@ command starts, by installing a pre-command hook."
   (when (and (> blink-cursor-blinks 0)
              (<= (* 2 blink-cursor-blinks) blink-cursor-blinks-done))
     (blink-cursor-suspend)
-    (add-hook 'post-command-hook 'blink-cursor-check)))
+    (add-hook 'post-command-hook #'blink-cursor-check)))
 
 (defun blink-cursor-end ()
   "Stop cursor blinking.
 This is installed as a pre-command hook by `blink-cursor-start'.
 When run, it cancels the timer `blink-cursor-timer' and removes
 itself as a pre-command hook."
-  (remove-hook 'pre-command-hook 'blink-cursor-end)
+  (remove-hook 'pre-command-hook #'blink-cursor-end)
   (internal-show-cursor nil t)
   (when blink-cursor-timer
     (cancel-timer blink-cursor-timer)
@@ -2648,7 +2648,7 @@ terminals, cursor blinking is controlled by the terminal."
   (when blink-cursor-mode
     (add-function :after after-focus-change-function #'blink-cursor--rescan-frames)
     (add-hook 'after-delete-frame-functions #'blink-cursor--rescan-frames)
-    (blink-cursor--start-idle-timer)))
+    (blink-cursor-check)))
 
 
 ;; Frame maximization/fullscreen

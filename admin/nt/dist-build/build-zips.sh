@@ -29,72 +29,62 @@ function git_up {
 }
 
 function build_zip {
-
-    ARCH=$1
-    PKG=$2
-    HOST=$3
-
-    echo [build] Building Emacs-$VERSION for $ARCH
-    if [ $ARCH == "i686" ]
-    then
-        PATH=/mingw32/bin:$PATH
-        MSYSTEM=MINGW32
-    fi
+    echo [build] Building Emacs-$VERSION
 
     ## Clean the install location because we use it twice
-    rm -rf $HOME/emacs-build/install/emacs-$VERSION/$ARCH
-    mkdir --parents $HOME/emacs-build/build/emacs-$VERSION/$ARCH
-    cd $HOME/emacs-build/build/emacs-$VERSION/$ARCH
+    rm -rf $HOME/emacs-build/install/emacs-$VERSION
+    mkdir --parents $HOME/emacs-build/build/emacs-$VERSION
+    cd $HOME/emacs-build/build/emacs-$VERSION
 
-    export PKG_CONFIG_PATH=$PKG
+    ## Do we need this or is it the default?
+    export PKG_CONFIG_PATH=/mingw64/lib/pkgconfig
+
 
     ## Running configure forces a rebuild of the C core which takes
     ## time that is not always needed, so do not do it unless we have
     ## to.
     if [ ! -f Makefile ] || (($CONFIG))
     then
-        echo [build] Configuring Emacs $ARCH
+        echo [build] Configuring Emacs
         $REPO_DIR/$BRANCH/configure \
             --without-dbus \
-            --host=$HOST --without-compress-install \
+            --without-compress-install \
             $CACHE \
             CFLAGS="$CFLAGS"
     fi
 
     make -j 4 $INSTALL_TARGET \
-         prefix=$HOME/emacs-build/install/emacs-$VERSION/$ARCH
-    cd $HOME/emacs-build/install/emacs-$VERSION/$ARCH
-    cp $HOME/emacs-build/deps/libXpm/$ARCH/libXpm-noX4.dll bin
-    zip -r -9 emacs-$OF_VERSION-$ARCH-no-deps.zip *
-    mv emacs-$OF_VERSION-$ARCH-no-deps.zip $HOME/emacs-upload
-    rm bin/libXpm-noX4.dll
+         prefix=$HOME/emacs-build/install/emacs-$VERSION
+    cd $HOME/emacs-build/install/emacs-$VERSION
+    zip -r -9 emacs-$OF_VERSION-no-deps.zip *
+    mv emacs-$OF_VERSION-no-deps.zip $HOME/emacs-upload
 
     if [ -z $SNAPSHOT ];
     then
-        DEPS_FILE=$HOME/emacs-build/deps/emacs-$MAJOR_VERSION-$ARCH-deps.zip
+        DEPS_FILE=$HOME/emacs-build/deps/emacs-$MAJOR_VERSION-deps.zip
     else
         ## Pick the most recent snapshot whatever that is
-        DEPS_FILE=`ls $HOME/emacs-build/deps/emacs-$MAJOR_VERSION-*-$ARCH-deps.zip | tail -n 1`
+        DEPS_FILE=`ls $HOME/emacs-build/deps/emacs-$MAJOR_VERSION-*-deps.zip | tail -n 1`
     fi
 
     echo [build] Using $DEPS_FILE
-    unzip $DEPS_FILE
+    unzip -d bin $DEPS_FILE
 
-    zip -r -9 emacs-$OF_VERSION-$ARCH.zip *
-    mv emacs-$OF_VERSION-$ARCH.zip ~/emacs-upload
+    zip -r -9 emacs-$OF_VERSION.zip *
+    mv emacs-$OF_VERSION.zip ~/emacs-upload
 }
 
 function build_installer {
-    ARCH=$1
-    cd $HOME/emacs-build/install/emacs-$VERSION
+    cd $HOME/emacs-build/install/
     echo [build] Calling makensis in `pwd`
     cp $REPO_DIR/$BRANCH/admin/nt/dist-build/emacs.nsi .
 
     makensis -v4 \
-             -DARCH=$ARCH -DEMACS_VERSION=$ACTUAL_VERSION \
+             -DEMACS_VERSION=$ACTUAL_VERSION \
+             -DVERSION_BRANCH=$VERSION \
              -DOUT_VERSION=$OF_VERSION emacs.nsi
     rm emacs.nsi
-    mv emacs-$OF_VERSION-$ARCH-installer.exe ~/emacs-upload
+    mv emacs-$OF_VERSION-installer.exe ~/emacs-upload
 }
 
 set -o errexit
@@ -103,7 +93,6 @@ SNAPSHOT=
 CACHE=
 
 BUILD=1
-BUILD_32=1
 BUILD_64=1
 GIT_UP=0
 CONFIG=1
@@ -114,19 +103,8 @@ INSTALL_TARGET="install-strip"
 REPO_DIR=$HOME/emacs-build/git/
 
 
-while getopts "36gb:hnsiV:" opt; do
+while getopts "gb:hnsiV:" opt; do
   case $opt in
-    3)
-        BUILD_32=1
-        BUILD_64=0
-        GIT_UP=0
-        ;;
-    6)
-        BUILD_32=0
-        BUILD_64=1
-        GIT_UP=0
-        ;;
-
     g)
         BUILD_32=0
         BUILD_64=0
@@ -152,10 +130,11 @@ while getopts "36gb:hnsiV:" opt; do
         ;;
     h)
         echo "build-zips.sh"
-        echo "  -3 32 bit build only"
-        echo "  -6 64 bit build only"
+        echo "  -b args -- build args branch"
         echo "  -g git update and worktree only"
         echo "  -i build installer only"
+        echo "  -n do not configure"
+        echo "  -s snaphot build"
         exit 0
         ;;
     \?)
@@ -208,7 +187,7 @@ then
 else
     BRANCH=$REQUIRED_BRANCH
     echo [build] Building from Branch $BRANCH
-    VERSION=$VERSION-$BRANCH
+    VERSION=$VERSION-${BRANCH/\//_}
     OF_VERSION="$VERSION-`date +%Y-%m-%d`"
     ## Use snapshot dependencies
     SNAPSHOT=1
@@ -225,18 +204,7 @@ if (($BUILD_64))
 then
     if (($BUILD))
     then
-        build_zip x86_64 /mingw64/lib/pkgconfig x86_64-w64-mingw32
+        build_zip
     fi
-    build_installer x86_64
-fi
-
-## Do the 64 bit build first, because we reset some environment
-## variables during the 32 bit which will break the build.
-if (($BUILD_32))
-then
-    if (($BUILD))
-    then
-        build_zip i686 /mingw32/lib/pkgconfig i686-w64-mingw32
-    fi
-    build_installer i686
+    build_installer
 fi

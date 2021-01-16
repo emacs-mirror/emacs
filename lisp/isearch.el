@@ -838,10 +838,6 @@ This is like `describe-bindings', but displays only Isearch keys."
             :image '(isearch-tool-bar-image "left-arrow")))
     map))
 
-;; Note: Before adding more key bindings to this map, please keep in
-;; mind that any unbound key exits Isearch and runs the command bound
-;; to it in the local or global map.  So in effect every key unbound
-;; in this map is implicitly bound.
 (defvar minibuffer-local-isearch-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
@@ -2498,6 +2494,21 @@ If search string is empty, just beep."
   (unless isearch-mode (isearch-mode t))
   (isearch-yank-string (current-kill 0)))
 
+(defun isearch-yank-from-kill-ring ()
+  "Read a string from the `kill-ring' and append it to the search string."
+  (interactive)
+  (with-isearch-suspended
+   (let ((string (read-from-kill-ring)))
+     (if (and isearch-case-fold-search
+              (eq 'not-yanks search-upper-case))
+         (setq string (downcase string)))
+     (if isearch-regexp (setq string (regexp-quote string)))
+     (setq isearch-yank-flag t)
+     (setq isearch-new-string (concat isearch-string string)
+           isearch-new-message (concat isearch-message
+                                       (mapconcat 'isearch-text-char-description
+                                                  string ""))))))
+
 (defun isearch-yank-pop ()
   "Replace just-yanked search string with previously killed string.
 Unlike `isearch-yank-pop-only', when this command is called not immediately
@@ -2506,37 +2517,31 @@ minibuffer to read a string from the `kill-ring' as `yank-pop' does."
   (interactive)
   (if (not (memq last-command '(isearch-yank-kill
                                 isearch-yank-pop isearch-yank-pop-only)))
-      ;; Yank string from kill-ring-browser.
-      (with-isearch-suspended
-       (let ((string (read-from-kill-ring)))
-         (if (and isearch-case-fold-search
-                  (eq 'not-yanks search-upper-case))
-             (setq string (downcase string)))
-         (if isearch-regexp (setq string (regexp-quote string)))
-         (setq isearch-yank-flag t)
-         (setq isearch-new-string (concat isearch-string string)
-               isearch-new-message (concat isearch-message
-                                           (mapconcat 'isearch-text-char-description
-                                                      string "")))))
+      (isearch-yank-from-kill-ring)
     (isearch-pop-state)
     (isearch-yank-string (current-kill 1))))
 
-(defun isearch-yank-pop-only ()
+(defun isearch-yank-pop-only (&optional arg)
   "Replace just-yanked search string with previously killed string.
 Unlike `isearch-yank-pop', when this command is called not immediately
 after a `isearch-yank-kill' or a `isearch-yank-pop-only', it only pops
 the last killed string instead of activating the minibuffer to read
-a string from the `kill-ring' as `yank-pop' does."
-  (interactive)
-  (if (not (memq last-command '(isearch-yank-kill
-                                isearch-yank-pop isearch-yank-pop-only)))
-      ;; Fall back on `isearch-yank-kill' for the benefits of people
-      ;; who are used to the old behavior of `M-y' in isearch mode.
-      ;; In future, `M-y' could be changed from `isearch-yank-pop-only'
-      ;; to `isearch-yank-pop' that uses the kill-ring-browser.
-      (isearch-yank-kill)
+a string from the `kill-ring' as `yank-pop' does.  The prefix arg C-u
+always reads a string from the `kill-ring' using the minibuffer."
+  (interactive "P")
+  (cond
+   ((equal arg '(4))
+    (isearch-yank-from-kill-ring))
+   ((not (memq last-command '(isearch-yank-kill
+                              isearch-yank-pop isearch-yank-pop-only)))
+    ;; Fall back on `isearch-yank-kill' for the benefits of people
+    ;; who are used to the old behavior of `M-y' in isearch mode.
+    ;; In future, `M-y' could be changed from `isearch-yank-pop-only'
+    ;; to `isearch-yank-pop' that uses the kill-ring-browser.
+    (isearch-yank-kill))
+   (t
     (isearch-pop-state)
-    (isearch-yank-string (current-kill 1))))
+    (isearch-yank-string (current-kill 1)))))
 
 (defun isearch-yank-x-selection ()
   "Pull current X selection into search string."
@@ -2997,7 +3002,7 @@ See more for options in `search-exit-option'."
      ((and (eq (car-safe main-event) 'down-mouse-1)
 	   (window-minibuffer-p (posn-window (event-start main-event))))
       ;; Swallow the up-event.
-      (read-event)
+      (read--potential-mouse-event)
       (setq this-command 'isearch-edit-string))
      ;; Don't terminate the search for motion commands.
      ((and isearch-yank-on-move

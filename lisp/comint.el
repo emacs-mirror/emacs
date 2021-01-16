@@ -979,6 +979,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		(ring (make-ring ring-size))
                 ;; Use possibly buffer-local values of these variables.
                 (ring-separator comint-input-ring-separator)
+                (ring-file-prefix comint-input-ring-file-prefix)
                 (history-ignore comint-input-history-ignore)
                 (ignoredups comint-input-ignoredups))
 	   (with-temp-buffer
@@ -990,24 +991,15 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                (while (and (< count comint-input-ring-size)
                            (re-search-backward ring-separator nil t)
                            (setq end (match-beginning 0)))
-                 (setq start
-                       (if (re-search-backward ring-separator nil t)
-                           (progn
-                             (when (and comint-input-ring-file-prefix
-                                        (looking-at
-                                         comint-input-ring-file-prefix))
-                               ;; Skip zsh extended_history stamps
-                               (goto-char (match-end 0)))
-                             (match-end 0))
-                         (progn
-                           (goto-char (point-min))
-                           (when (and comint-input-ring-file-prefix
-                                      (looking-at
-                                       comint-input-ring-file-prefix))
-                             (goto-char (match-end 0)))
-                           (point))))
+                 (goto-char (if (re-search-backward ring-separator nil t)
+                                (match-end 0)
+                              (point-min)))
+                 (when (and ring-file-prefix
+                            (looking-at ring-file-prefix))
+                   ;; Skip zsh extended_history stamps
+                   (goto-char (match-end 0)))
+                 (setq start (point))
                  (setq history (buffer-substring start end))
-                 (goto-char start)
                  (when (and (not (string-match history-ignore history))
 			    (or (null ignoredups)
 				(ring-empty-p ring)

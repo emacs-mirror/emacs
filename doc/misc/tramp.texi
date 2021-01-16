@@ -443,7 +443,7 @@ are optional, in case of a missing part a default value is assumed.
 The default value for an empty local file name part is the remote
 user's home directory.  The shortest remote file name is
 @file{@trampfn{-,,}}, therefore.  The @samp{-} notation for the
-default host is used for syntactical reasons, @ref{Default Host}.
+default method is used for syntactical reasons, @ref{Default Method}.
 
 The @code{method} part describes the connection method used to reach
 the remote host, see below.
@@ -1622,6 +1622,7 @@ support this command.
 
 @subsection Tunneling with ssh
 
+@vindex ProxyCommand@r{, ssh option}
 With @command{ssh}, you could use the @option{ProxyCommand} entry in
 @file{~/.ssh/config}:
 
@@ -2056,9 +2057,11 @@ default value is @t{"/data/local/tmp"} for the @option{adb} method,
 @item @t{"direct-async-process"}
 
 When this property is non-@code{nil}, an alternative, more performant
-implementation of @code{make-process} and
-@code{start-file-process} is applied.  @ref{Improving performance of
-asynchronous remote processes} for a discussion of constraints.
+implementation of @code{make-process} and @code{start-file-process} is
+applied.  The connection method must also be marked with a
+non-@code{nil} @code{tramp-direct-async} parameter in
+@code{tramp-methods}.  @ref{Improving performance of asynchronous
+remote processes} for a discussion of constraints.
 
 @item @t{"posix"}
 
@@ -2213,6 +2216,11 @@ overwrite this, you might apply
 @end lisp
 
 This uses also the settings in @code{tramp-sh-extra-args}.
+
+@vindex RemoteCommand@r{, ssh option}
+@strong{Note}: If you use an @option{ssh}-based method for connection,
+do @emph{not} set the @option{RemoteCommand} option in your
+@command{ssh} configuration, for example to @command{screen}.
 
 
 @subsection Other remote shell setup hints
@@ -3304,6 +3312,8 @@ whatever reason, then replace @code{(getenv "DISPLAY")} with a
 hard-coded, fixed name.  Note that using @code{:0} for X11 display name
 here will not work as expected.
 
+@vindex ForwardX11@r{, ssh option}
+@vindex ForwardX11Trusted@r{, ssh option}
 An alternate approach is specify @option{ForwardX11 yes} or
 @option{ForwardX11Trusted yes} in @file{~/.ssh/config} on the local
 host.
@@ -3566,6 +3576,7 @@ Furthermore, this approach has the following limitations:
 It works only for connection methods defined in @file{tramp-sh.el} and
 @file{tramp-adb.el}.
 
+@vindex ControlMaster@r{, ssh option}
 @item
 It does not support interactive user authentication.  With
 @option{ssh}-based methods, this can be avoided by using a password
@@ -4269,6 +4280,7 @@ In order to disable those optimizations, set user option
 @item
 @value{tramp} does not recognize if a @command{ssh} session hangs
 
+@vindex ServerAliveInterval@r{, ssh option}
 @command{ssh} sessions on the local host hang when the network is
 down.  @value{tramp} cannot safely detect such hangs.  The network
 configuration for @command{ssh} can be configured to kill such hangs
@@ -4285,6 +4297,8 @@ Host *
 @item
 @value{tramp} does not use default @command{ssh} @option{ControlPath}
 
+@vindex ControlPath@r{, ssh option}
+@vindex ControlPersist@r{, ssh option}
 @value{tramp} overwrites @option{ControlPath} settings when initiating
 @command{ssh} sessions.  @value{tramp} does this to fend off a stall
 if a master session opened outside the Emacs session is no longer
@@ -4306,8 +4320,8 @@ which allows you to set the @option{ControlPath} provided the variable
 @end group
 @end lisp
 
-Note how "%r", "%h" and "%p" must be encoded as "%%r", "%%h" and
-"%%p".
+Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
+@samp{%%r}, @samp{%%h} and @samp{%%p}.
 
 @vindex tramp-use-ssh-controlmaster-options
 If the @file{~/.ssh/config} is configured appropriately for the above
@@ -4318,6 +4332,8 @@ this @code{nil} setting:
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
 @end lisp
 
+@vindex ProxyCommand@r{, ssh option}
+@vindex ProxyJump@r{, ssh option}
 This shall also be set to @code{nil} if you use the
 @option{ProxyCommand} or @option{ProxyJump} options in your
 @command{ssh} configuration.

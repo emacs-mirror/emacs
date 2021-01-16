@@ -246,6 +246,12 @@ endef
 
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
+# Get the tests for only a specific directory
+NET_TESTS := $(patsubst %.el,%,$(wildcard lisp/net/*.el))
+LISP_TESTS := $(patsubst %.el,%,$(wildcard lisp/*.el))
+check-net: ${NET_TESTS}
+check-lisp: ${LISP_TESTS}
+
 ifeq (@HAVE_MODULES@, yes)
 # -fPIC is a no-op on Windows, but causes a compiler warning
 ifeq ($(SO),.dll)

@@ -162,6 +162,59 @@ only one object ever exists."
       old)))
 
 
+;;; Named object
+
+(defclass eieio-named ()
+  ((object-name :initarg :object-name :initform nil))
+  "Object with a name."
+  :abstract t)
+
+(cl-defmethod eieio-object-name-string ((obj eieio-named))
+  "Return a string which is OBJ's name."
+  (or (slot-value obj 'object-name)
+      (cl-call-next-method)))
+
+(cl-defgeneric eieio-object-set-name-string (obj name)
+  "Set the string which is OBJ's NAME."
+  (declare (obsolete "inherit from `eieio-named' and use (setf (slot-value OBJ \\='object-name) NAME) instead" "25.1"))
+  (cl-check-type name string)
+  (setf (gethash obj eieio--object-names) name))
+(define-obsolete-function-alias
+  'object-set-name-string 'eieio-object-set-name-string "24.4")
+
+(with-suppressed-warnings ((obsolete eieio-object-set-name-string))
+  (cl-defmethod eieio-object-set-name-string ((obj eieio-named) name)
+    "Set the string which is OBJ's NAME."
+    (cl-check-type name string)
+    (eieio-oset obj 'object-name name)))
+
+(cl-defmethod clone ((obj eieio-named) &rest params)
+  "Clone OBJ, initializing `:parent' to OBJ.
+All slots are unbound, except those initialized with PARAMS."
+  (let* ((newname (and (stringp (car params)) (pop params)))
+         (nobj (apply #'cl-call-next-method obj params))
+         (nm (slot-value nobj 'object-name)))
+    (eieio-oset nobj 'object-name
+                (or newname
+                    (if (equal nm (slot-value obj 'object-name))
+                        (save-match-data
+                          (if (and nm (string-match "-\\([0-9]+\\)" nm))
+                              (let ((num (1+ (string-to-number
+                                              (match-string 1 nm)))))
+                                (concat (substring nm 0 (match-beginning 0))
+                                        "-" (int-to-string num)))
+                            (concat nm "-1")))
+                      nm)))
+    nobj))
+
+(cl-defmethod make-instance ((class (subclass eieio-named)) &rest args)
+  (if (not (stringp (car args)))
+      (cl-call-next-method)
+    (funcall (if eieio-backward-compatibility #'ignore #'message)
+             "Obsolete: name passed without :object-name to %S constructor"
+             class)
+    (apply #'cl-call-next-method class :object-name args)))
+
 ;;; eieio-persistent
 ;;
 ;; For objects which must save themselves to disk.  Provides an
@@ -264,12 +317,17 @@ objects found there."
   (:method
    ((objclass (subclass eieio-default-superclass)) inputlist)
 
-   (let ((slots (if (stringp (car inputlist))
-                    ;; Earlier versions of `object-write' added a
-                    ;; string name for the object, now obsolete.
-                    (cdr inputlist)
-                  inputlist))
-         (createslots nil))
+   (let* ((name nil)
+          (slots (if (stringp (car inputlist))
+                     (progn
+                       ;; Earlier versions of `object-write' added a
+                       ;; string name for the object, now obsolete.
+                       ;; Save as 'name' in case this object is subclass
+                       ;; of eieio-named with no :object-name slot specified.
+                       (setq name (car inputlist))
+                       (cdr inputlist))
+                   inputlist))
+          (createslots nil))
      ;; If OBJCLASS is an eieio autoload object, then we need to
      ;; load it (we don't need the return value).
      (eieio--full-class-object objclass)
@@ -286,7 +344,17 @@ objects found there."
 
        (setq slots (cdr (cdr slots))))
 
-     (apply #'make-instance objclass (nreverse createslots)))))
+     (let ((newobj (apply #'make-instance objclass (nreverse createslots))))
+
+       ;; Check for special case of subclass of `eieio-named', and do
+       ;; name assignment.
+       (when (and eieio-backward-compatibility
+                  (object-of-class-p newobj 'eieio-named)
+                  (not (oref newobj object-name))
+                  name)
+         (oset newobj object-name name))
+
+       newobj))))
 
 (defun eieio-persistent-fix-value (proposed-value)
   "Fix PROPOSED-VALUE.
@@ -408,59 +476,6 @@ instance."
 ;; It should also set up some hooks to help it keep itself up to date.
 
 
-;;; Named object
-
-(defclass eieio-named ()
-  ((object-name :initarg :object-name :initform nil))
-  "Object with a name."
-  :abstract t)
-
-(cl-defmethod eieio-object-name-string ((obj eieio-named))
-  "Return a string which is OBJ's name."
-  (or (slot-value obj 'object-name)
-      (cl-call-next-method)))
-
-(cl-defgeneric eieio-object-set-name-string (obj name)
-  "Set the string which is OBJ's NAME."
-  (declare (obsolete "inherit from `eieio-named' and use (setf (slot-value OBJ \\='object-name) NAME) instead" "25.1"))
-  (cl-check-type name string)
-  (setf (gethash obj eieio--object-names) name))
-(define-obsolete-function-alias
-  'object-set-name-string 'eieio-object-set-name-string "24.4")
-
-(with-suppressed-warnings ((obsolete eieio-object-set-name-string))
-  (cl-defmethod eieio-object-set-name-string ((obj eieio-named) name)
-    "Set the string which is OBJ's NAME."
-    (cl-check-type name string)
-    (eieio-oset obj 'object-name name)))
-
-(cl-defmethod clone ((obj eieio-named) &rest params)
-  "Clone OBJ, initializing `:parent' to OBJ.
-All slots are unbound, except those initialized with PARAMS."
-  (let* ((newname (and (stringp (car params)) (pop params)))
-         (nobj (apply #'cl-call-next-method obj params))
-         (nm (slot-value nobj 'object-name)))
-    (eieio-oset nobj 'object-name
-                (or newname
-                    (if (equal nm (slot-value obj 'object-name))
-                        (save-match-data
-                          (if (and nm (string-match "-\\([0-9]+\\)" nm))
-                              (let ((num (1+ (string-to-number
-                                              (match-string 1 nm)))))
-                                (concat (substring nm 0 (match-beginning 0))
-                                        "-" (int-to-string num)))
-                            (concat nm "-1")))
-                      nm)))
-    nobj))
-
-(cl-defmethod make-instance ((class (subclass eieio-named)) &rest args)
-  (if (not (stringp (car args)))
-      (cl-call-next-method)
-    (funcall (if eieio-backward-compatibility #'ignore #'message)
-             "Obsolete: name passed without :object-name to %S constructor"
-             class)
-    (apply #'cl-call-next-method class :object-name args)))
-
 
 (provide 'eieio-base)
 

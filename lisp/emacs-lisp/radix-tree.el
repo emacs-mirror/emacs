@@ -198,9 +198,10 @@ If not found, return nil."
   (pcase-defmacro radix-tree-leaf (vpat)
     "Pattern which matches a radix-tree leaf.
 The pattern VPAT is matched against the leaf's carried value."
-    ;; FIXME: We'd like to use a negative pattern (not consp), but pcase
-    ;; doesn't support it.  Using `atom' works but generates sub-optimal code.
-    `(or `(t . ,,vpat) (and (pred atom) ,vpat))))
+    ;; We used to use `(pred atom)', but `pcase' doesn't understand that
+    ;; `atom' is equivalent to the negation of `consp' and hence generates
+    ;; suboptimal code.
+    `(or `(t . ,,vpat) (and (pred (not consp)) ,vpat))))
 
 (defun radix-tree-iter-subtrees (tree fun)
   "Apply FUN to every immediate subtree of radix TREE.

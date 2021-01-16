@@ -1973,7 +1973,6 @@ If DIRECTION is `backward', search in the reverse direction."
                        "Regexp search%s" (car Info-search-history)
 		       (if case-fold-search "" " case-sensitively"))
 		      nil 'Info-search-history)))
-  (deactivate-mark)
   (when (equal regexp "")
     (setq regexp (car Info-search-history)))
   (when regexp
@@ -2066,6 +2065,7 @@ If DIRECTION is `backward', search in the reverse direction."
                (< found opoint-max))
           ;; Search landed in the same node
           (goto-char found)
+        (deactivate-mark)
         (widen)
         (goto-char found)
         (save-match-data (Info-select-node)))

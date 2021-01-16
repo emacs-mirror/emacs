@@ -1040,3 +1040,61 @@
    (let ((list (list 1)))
      (setcdr list list)
      (length< list #x1fffe))))
+
+(defun approx-equal (list1 list2)
+  (and (equal (length list1) (length list2))
+       (cl-loop for v1 in list1
+                for v2 in list2
+                when (not (or (= v1 v2)
+                              (< (abs (- v1 v2)) 0.1)))
+                return nil
+                finally return t)))
+
+(ert-deftest test-buffer-line-stats-nogap ()
+  (with-temp-buffer
+    (insert "")
+    (should (approx-equal (buffer-line-statistics) '(0 0 0))))
+  (with-temp-buffer
+    (insert "123\n")
+    (should (approx-equal (buffer-line-statistics) '(1 3 3))))
+  (with-temp-buffer
+    (insert "123\n12345\n123\n")
+    (should (approx-equal (buffer-line-statistics) '(3 5 3.66))))
+  (with-temp-buffer
+    (insert "123\n12345\n123")
+    (should (approx-equal (buffer-line-statistics) '(3 5 3.66))))
+  (with-temp-buffer
+    (insert "123\n12345")
+    (should (approx-equal (buffer-line-statistics) '(2 5 4))))
+
+  (with-temp-buffer
+    (insert "123\n12é45\n123\n")
+    (should (approx-equal (buffer-line-statistics) '(3 6 4))))
+
+  (with-temp-buffer
+    (insert "\n\n\n")
+    (should (approx-equal (buffer-line-statistics) '(3 0 0)))))
+
+(ert-deftest test-buffer-line-stats-gap ()
+  (with-temp-buffer
+    (dotimes (_ 1000)
+      (insert "12345678901234567890123456789012345678901234567890\n"))
+    (goto-char (point-min))
+    ;; This should make a gap appear.
+    (insert "123\n")
+    (delete-region (point-min) (point))
+    (should (approx-equal (buffer-line-statistics) '(1000 50 50.0))))
+  (with-temp-buffer
+    (dotimes (_ 1000)
+      (insert "12345678901234567890123456789012345678901234567890\n"))
+    (goto-char (point-min))
+    (insert "123\n")
+    (should (approx-equal (buffer-line-statistics) '(1001 50 49.9))))
+  (with-temp-buffer
+    (dotimes (_ 1000)
+      (insert "12345678901234567890123456789012345678901234567890\n"))
+    (goto-char (point-min))
+    (insert "123\n")
+    (goto-char (point-max))
+    (insert "fóo")
+    (should (approx-equal (buffer-line-statistics) '(1002 50 49.9)))))

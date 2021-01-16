@@ -5657,6 +5657,12 @@ else
   ACL_SUMMARY=no
 fi
 
+if test -z "$GMP_H"; then
+  HAVE_GMP=yes
+else
+  HAVE_GMP=no
+fi
+
 emacs_standard_dirs='Standard dirs'
 AS_ECHO(["
 Configured for '${canonical}'.
@@ -5671,12 +5677,14 @@ Configured for '${canonical}'.
   Where do we find X Windows header files?                ${x_includes:-$emacs_standard_dirs}
   Where do we find X Windows libraries?                   ${x_libraries:-$emacs_standard_dirs}"])
 
+#### Please respect alphabetical ordering when making additions.
 optsep=
 emacs_config_features=
-for opt in XAW3D XPM JPEG TIFF GIF PNG RSVG CAIRO IMAGEMAGICK SOUND GPM DBUS \
-  GCONF GSETTINGS GLIB NOTIFY ACL LIBSELINUX GNUTLS LIBXML2 FREETYPE HARFBUZZ M17N_FLT \
-  LIBOTF XFT ZLIB TOOLKIT_SCROLL_BARS X_TOOLKIT OLDXMENU X11 XDBE XIM \
-  NS MODULES THREADS XWIDGETS LIBSYSTEMD JSON PDUMPER UNEXEC LCMS2 GMP; do
+for opt in ACL CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
+ HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
+ M17N_FLT MODULES NOTIFY NS OLDXMENU PDUMPER PNG RSVG SOUND THREADS TIFF \
+ TOOLKIT_SCROLL_BARS UNEXEC X11 XAW3D XDBE XFT XIM XPM XWIDGETS X_TOOLKIT \
+ ZLIB; do
 
     case $opt in
       PDUMPER) val=${with_pdumper} ;;
@@ -5713,11 +5721,6 @@ done
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_FEATURES, "${emacs_config_features}",
   [Summary of some of the main features enabled by configure.])
 
-if test -z "$GMP_H"; then
-  HAVE_GMP=yes
-else
-  HAVE_GMP=no
-fi
 AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D}
   Does Emacs use -lXpm?                                   ${HAVE_XPM}
   Does Emacs use -ljpeg?                                  ${HAVE_JPEG}
