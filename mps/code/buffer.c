@@ -292,13 +292,13 @@ void BufferDetach(Buffer buffer, Pool pool)
     init = BufferGetInit(buffer);
     limit = BufferLimit(buffer);
     spare = AddrOffset(init, limit);
-    buffer->emptySize += spare;
+    buffer->emptySize += (double)spare;
     if (buffer->isMutator) {
-      ArenaGlobals(buffer->arena)->emptyMutatorSize += spare;
-      ArenaGlobals(buffer->arena)->allocMutatorSize +=
-        AddrOffset(buffer->base, init);
+      ArenaGlobals(buffer->arena)->emptyMutatorSize += (double)spare;
+      ArenaGlobals(buffer->arena)->allocMutatorSize
+        += (double)AddrOffset(buffer->base, init);
     } else {
-      ArenaGlobals(buffer->arena)->emptyInternalSize += spare;
+      ArenaGlobals(buffer->arena)->emptyInternalSize += (double)spare;
     }
 
     /* Reset the buffer. */
@@ -541,15 +541,15 @@ void BufferAttach(Buffer buffer, Addr base, Addr limit,
   buffer->poolLimit = limit;
 
   filled = AddrOffset(init, limit);
-  buffer->fillSize += filled;
+  buffer->fillSize += (double)filled;
   if (buffer->isMutator) {
     if (base != init) { /* see <design/buffer#.count.alloc.how> */
       Size prealloc = AddrOffset(base, init);
-      ArenaGlobals(buffer->arena)->allocMutatorSize -= prealloc;
+      ArenaGlobals(buffer->arena)->allocMutatorSize -= (double)prealloc;
     }
-    ArenaGlobals(buffer->arena)->fillMutatorSize += filled;
+    ArenaGlobals(buffer->arena)->fillMutatorSize += (double)filled;
   } else {
-    ArenaGlobals(buffer->arena)->fillInternalSize += filled;
+    ArenaGlobals(buffer->arena)->fillInternalSize += (double)filled;
   }
 
   /* run any class-specific attachment method */
