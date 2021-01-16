@@ -1,10 +1,7 @@
 Copyright
 *********
 
-The copyright in The Memory Management Reference is owned by
-`Ravenbrook Limited`_.
-
-.. _Ravenbrook Limited: https://www.ravenbrook.com/
+Copyright © 2001-2020 `Ravenbrook Limited <https://www.ravenbrook.com/>`_.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
