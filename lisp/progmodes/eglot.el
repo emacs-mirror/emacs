@@ -2203,54 +2203,58 @@ is not active."
              (cl-coerce (cl-getf completion-capability :triggerCharacters) 'list))
             (line-beginning-position))))
        :exit-function
-       (lambda (proxy _status)
-         ;; To assist in using this whole `completion-at-point'
-         ;; function inside `completion-in-region', ensure the exit
-         ;; function runs in the buffer where the completion was
-         ;; triggered from.  This should probably be in Emacs itself.
-         ;; (github#505)
-         (with-current-buffer (if (minibufferp)
-                                  (window-buffer (minibuffer-selected-window))
-                                (current-buffer))
-           (eglot--dbind ((CompletionItem) insertTextFormat
-                          insertText textEdit additionalTextEdits label)
-               (funcall
-                resolve-maybe
-                (or (get-text-property 0 'eglot--lsp-item proxy)
-                    ;; When selecting from the *Completions*
-                    ;; buffer, `proxy' won't have any properties.
-                    ;; A lookup should fix that (github#148)
-                    (get-text-property
-                     0 'eglot--lsp-item
-                     (cl-find proxy (funcall proxies) :test #'string=))))
-             (let ((snippet-fn (and (eql insertTextFormat 2)
-                                    (eglot--snippet-expansion-fn))))
-               (cond (textEdit
-                      ;; Undo (yes, undo) the newly inserted completion.
-                      ;; If before completion the buffer was "foo.b" and
-                      ;; now is "foo.bar", `proxy' will be "bar".  We
-                      ;; want to delete only "ar" (`proxy' minus the
-                      ;; symbol whose bounds we've calculated before)
-                      ;; (github#160).
-                      (delete-region (+ (- (point) (length proxy))
-                                        (if bounds (- (cdr bounds) (car bounds)) 0))
-                                     (point))
-                      (eglot--dbind ((TextEdit) range newText) textEdit
-                        (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
-                          (delete-region beg end)
-                          (goto-char beg)
-                          (funcall (or snippet-fn #'insert) newText)))
-                      (when (cl-plusp (length additionalTextEdits))
-                        (eglot--apply-text-edits additionalTextEdits)))
-                     (snippet-fn
-                      ;; A snippet should be inserted, but using plain
-                      ;; `insertText'.  This requires us to delete the
-                      ;; whole completion, since `insertText' is the full
-                      ;; completion's text.
-                      (delete-region (- (point) (length proxy)) (point))
-                      (funcall snippet-fn (or insertText label)))))
-             (eglot--signal-textDocument/didChange)
-             (eldoc))))))))
+       (lambda (proxy status)
+         (when (eq status 'finished)
+           ;; To assist in using this whole `completion-at-point'
+           ;; function inside `completion-in-region', ensure the exit
+           ;; function runs in the buffer where the completion was
+           ;; triggered from.  This should probably be in Emacs itself.
+           ;; (github#505)
+           (with-current-buffer (if (minibufferp)
+                                    (window-buffer (minibuffer-selected-window))
+                                  (current-buffer))
+             (eglot--dbind ((CompletionItem) insertTextFormat
+                            insertText textEdit additionalTextEdits label)
+                 (funcall
+                  resolve-maybe
+                  (or (get-text-property 0 'eglot--lsp-item proxy)
+                      ;; When selecting from the *Completions*
+                      ;; buffer, `proxy' won't have any properties.
+                      ;; A lookup should fix that (github#148)
+                      (get-text-property
+                       0 'eglot--lsp-item
+                       (cl-find proxy (funcall proxies) :test #'string=))))
+               (let ((snippet-fn (and (eql insertTextFormat 2)
+                                      (eglot--snippet-expansion-fn))))
+                 (cond (textEdit
+                        ;; Undo (yes, undo) the newly inserted completion.
+                        ;; If before completion the buffer was "foo.b" and
+                        ;; now is "foo.bar", `proxy' will be "bar".  We
+                        ;; want to delete only "ar" (`proxy' minus the
+                        ;; symbol whose bounds we've calculated before)
+                        ;; (github#160).
+                        (delete-region (+ (- (point) (length proxy))
+                                          (if bounds
+                                              (- (cdr bounds) (car bounds))
+                                            0))
+                                       (point))
+                        (eglot--dbind ((TextEdit) range newText) textEdit
+                          (pcase-let ((`(,beg . ,end)
+                                       (eglot--range-region range)))
+                            (delete-region beg end)
+                            (goto-char beg)
+                            (funcall (or snippet-fn #'insert) newText)))
+                        (when (cl-plusp (length additionalTextEdits))
+                          (eglot--apply-text-edits additionalTextEdits)))
+                       (snippet-fn
+                        ;; A snippet should be inserted, but using plain
+                        ;; `insertText'.  This requires us to delete the
+                        ;; whole completion, since `insertText' is the full
+                        ;; completion's text.
+                        (delete-region (- (point) (length proxy)) (point))
+                        (funcall snippet-fn (or insertText label)))))
+               (eglot--signal-textDocument/didChange)
+               (eldoc)))))))))
 
 (defun eglot--hover-info (contents &optional range)
   (let ((heading (and range (pcase-let ((`(,beg . ,end) (eglot--range-region range)))
