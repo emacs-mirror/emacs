@@ -1,44 +1,35 @@
-/* prmcxc.h: MUTATOR CONTEXT (macOS)
+/* prmcxca6.c: MUTATOR CONTEXT ARM64 (macOS)
  *
  * $Id$
- * Copyright (c) 2001-2020 Ravenbrook Limited.  See end of file for license.
+ * Copyright (c) 2001-2021 Ravenbrook Limited.  See end of file for license.
  *
- * .readership: MPS developers.
+ * .purpose: Implement the mutator context module. <design/prmc>.
+ *
+ *
+ * ASSUMPTIONS
+ *
+ * .sp: The stack pointer in the context is SP.
  */
 
-#ifndef prmcxc_h
-#define prmcxc_h
+#include "prmcxc.h"
 
-#include "mpm.h"
+SRCID(prmcxca6, "$Id$");
 
-#include <mach/mach_types.h>
-#if defined(MPS_ARCH_A6)
-#include <mach/arm/thread_status.h>
-#elif defined(MPS_ARCH_I3) || defined(MPS_ARCH_I6)
-#include <mach/i386/thread_status.h>
-#else
-#error "Unknown macOS architecture"
+#if !defined(MPS_OS_XC) || !defined(MPS_ARCH_A6)
+#error "prmcxca6.c is specific to MPS_OS_XC and MPS_ARCH_A6"
 #endif
 
-typedef struct MutatorContextStruct {
-  Sig sig;                      /* <design/sig> */
-  MutatorContextVar var;        /* Discriminator. */
-  Addr address;                 /* Fault address, if stopped by protection
-                                 * fault; NULL if stopped by thread manager. */
-  THREAD_STATE_S *threadState;
-  /* FIXME: Might need to get the floats in case the compiler stashes
-     intermediate values in them. */
-} MutatorContextStruct;
 
-extern void MutatorContextInitFault(MutatorContext context, Addr address, THREAD_STATE_S *threadState);
-extern void MutatorContextInitThread(MutatorContext context, THREAD_STATE_S *threadState);
-
-#endif /* prmcxc_h */
+Addr MutatorContextSP(MutatorContext context)
+{
+  AVERT(MutatorContext, context);
+  return (Addr)arm_thread_state64_get_sp(*(context->threadState));   /* .sp */
+}
 
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2020 Ravenbrook Limited <https://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2021 Ravenbrook Limited <https://www.ravenbrook.com/>.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are

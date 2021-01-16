@@ -28,6 +28,7 @@ The second pair of characters names the processor architecture:
 ======  ======================  ======================
 ``AR``  Processor architecture  Constant
 ======  ======================  ======================
+``a6``  ARM64                   :c:macro:`MPS_ARCH_A6`
 ``i3``  Intel/AMD IA-32         :c:macro:`MPS_ARCH_I3`
 ``i6``  Intel/AMD x86-64        :c:macro:`MPS_ARCH_I6`
 ======  ======================  ======================
@@ -64,6 +65,13 @@ Platform interface
 ::
 
     #include "mpstd.h"
+
+
+.. c:macro:: MPS_ARCH_A6
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the target processor architecture of the compilation is a member
+    of the ARM64 family of 64-bit processors.
 
 
 .. c:macro:: MPS_ARCH_I3
@@ -204,6 +212,13 @@ Platform interface
     the :term:`platform` consists of the Windows operating system, the
     x86-64 processor architecture, and the Microsoft Visual C/C++
     compiler.
+
+
+.. c:macro:: MPS_PF_XCA6LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the macOS operating system, the
+    ARM64 processor architecture, and the Clang/LLVM compiler.
 
 
 .. c:macro:: MPS_PF_XCI3GC
@@ -378,6 +393,7 @@ Platform    Status
 ``w3i6mv``  Supported
 ``w3i6pc``  *Not supported*
 ``w3ppmv``  *Not supported*
+``xca6ll``  Supported
 ``xci3gc``  *Not supported*
 ``xci3ll``  Supported
 ``xci6gc``  *Not supported*
