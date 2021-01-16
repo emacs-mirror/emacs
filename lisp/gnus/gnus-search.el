@@ -1036,7 +1036,7 @@ Responsible for handling and, or, and parenthetical expressions.")
   '(body cc bcc from header keyword larger smaller subject text to uid x-gm-raw
 	 answered before deleted draft flagged on since recent seen sentbefore
 	 senton sentsince unanswered undeleted undraft unflagged unkeyword
-	 unseen all)
+	 unseen all old new or not)
   "Known IMAP search keys.")
 
 ;; imap interface
@@ -1072,10 +1072,11 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (and (string-match "\\`[^[:blank:]]+" q-string)
-		   (memql (intern-soft (downcase
-					(match-string 0 q-string)))
-			  gnus-search-imap-search-keys))
+      (unless (or (looking-at "(")
+		  (and (string-match "\\`[^[:blank:]]+" q-string)
+		       (memql (intern-soft (downcase
+					    (match-string 0 q-string)))
+			      gnus-search-imap-search-keys)))
 	(setq q-string (concat "TEXT " q-string)))
 
       ;; If it's a thread query, make sure that all message-id

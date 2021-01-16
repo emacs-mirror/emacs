@@ -2485,15 +2485,16 @@ avoiding any increase in the character height or width. For simplification
 the width could be specified with only a single number @var{n} instead
 of a list, such case is equivalent to @code{((abs @var{n}) . @var{n})}.
 
-The value @var{color} specifies the color to draw with.  The default is
-the foreground color of the face for simple boxes, and the background
-color of the face for 3D boxes.
-
 The value @var{style} specifies whether to draw a 3D box.  If it is
-@code{released-button}, the box looks like a 3D button that is not being
-pressed.  If it is @code{pressed-button}, the box looks like a 3D button
-that is being pressed.  If it is @code{nil} or omitted, a plain 2D box
-is used.
+@code{released-button}, the box looks like a 3D button that is not
+being pressed.  If it is @code{pressed-button}, the box looks like a
+3D button that is being pressed.  If it is @code{nil},
+@code{flat-button} or omitted, a plain 2D box is used.
+
+The value @var{color} specifies the color to draw with.  The default
+is the background color of the face for 3D boxes and
+@code{flat-button}, and the foreground color of the face for other
+boxes.
 @end table
 
 @item :inverse-video

@@ -175,6 +175,7 @@
 		   (choice :tag "Style"
 			   (const :tag "Raised" released-button)
 			   (const :tag "Sunken" pressed-button)
+			   (const :tag "Flat"   flat-button)
 			   (const :tag "None" nil))))
      ;; filter to make value suitable for customize
      (lambda (real-value)

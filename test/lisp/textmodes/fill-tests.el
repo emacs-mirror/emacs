@@ -44,6 +44,37 @@
     (fill-paragraph)
     (should (string= (buffer-string) "Abc\nd efg\n(h ijk)."))))
 
+(ert-deftest fill-test-unbreakable-paragraph ()
+  (with-temp-buffer
+    (let ((string "aaa =   baaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"))
+      (insert string)
+      (goto-char (point-min))
+      (search-forward "b")
+      (let* ((pos (point))
+             (beg (line-beginning-position))
+             (end (line-end-position))
+             (fill-prefix (make-string (- pos beg) ?\s))
+             ;; `fill-column' is too small to accomodate the current line
+             (fill-column (- end beg 10)))
+        (fill-region-as-paragraph beg end nil nil pos))
+      (should (equal (buffer-string) string)))))
+
+(ert-deftest fill-test-breakable-paragraph ()
+  (with-temp-buffer
+    (let ((string "aaa =   baaaaaaaa aaaaaaaaaa aaaaaaaaaa\n"))
+      (insert string)
+      (goto-char (point-min))
+      (search-forward "b")
+      (let* ((pos (point))
+             (beg (line-beginning-position))
+             (end (line-end-position))
+             (fill-prefix (make-string (- pos beg) ?\s))
+             ;; `fill-column' is too small to accomodate the current line
+             (fill-column (- end beg 10)))
+        (fill-region-as-paragraph beg end nil nil pos))
+      (should (equal
+               (buffer-string)
+               "aaa =   baaaaaaaa aaaaaaaaaa\n         aaaaaaaaaa\n")))))
 
 (provide 'fill-tests)
 

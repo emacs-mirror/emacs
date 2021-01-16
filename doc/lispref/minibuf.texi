@@ -32,6 +32,7 @@ argument.
 * Minibuffer Windows::        Operating on the special minibuffer windows.
 * Minibuffer Contents::       How such commands access the minibuffer text.
 * Recursive Mini::            Whether recursive entry to minibuffer is allowed.
+* Inhibiting Interaction::    Running Emacs when no interaction is possible.
 * Minibuffer Misc::           Various customization hooks and variables.
 @end menu
 
@@ -82,10 +83,12 @@ there is an active minibuffer; such a minibuffer is called a
 incrementing the number at the end of the name.  (The names begin with
 a space so that they won't show up in normal buffer lists.)  Of
 several recursive minibuffers, the innermost (or most recently
-entered) is the active minibuffer.  We usually call this @emph{the}
-minibuffer.  You can permit or forbid recursive minibuffers by setting
-the variable @code{enable-recursive-minibuffers}, or by putting
-properties of that name on command symbols (@xref{Recursive Mini}.)
+entered) is the @dfn{active minibuffer}--it is the one you can
+terminate by typing @key{RET} (@code{exit-minibuffer}) in.  We usually
+call this @emph{the} minibuffer.  You can permit or forbid recursive
+minibuffers by setting the variable
+@code{enable-recursive-minibuffers}, or by putting properties of that
+name on command symbols (@xref{Recursive Mini}.)
 
   Like other buffers, a minibuffer uses a local keymap
 (@pxref{Keymaps}) to specify special key bindings.  The function that
@@ -2380,7 +2383,8 @@ minibuffer.
 
 @deffn Command exit-minibuffer
 This command exits the active minibuffer.  It is normally bound to
-keys in minibuffer local keymaps.
+keys in minibuffer local keymaps.  The command throws an error if the
+current buffer is not the active minibuffer.
 @end deffn
 
 @deffn Command self-insert-and-exit
@@ -2594,8 +2598,11 @@ returns zero.
 If this variable is non-@code{nil}, you can invoke commands (such as
 @code{find-file}) that use minibuffers even while the minibuffer is
 active.  Such invocation produces a recursive editing level for a new
-minibuffer.  The outer-level minibuffer is invisible while you are
-editing the inner one.
+minibuffer.  By default, the outer-level minibuffer is invisible while
+you are editing the inner one.  If you have
+@code{minibuffer-follows-selected-frame} set to @code{nil}, you can
+have minibuffers visible on several frames at the same time.
+@xref{Basic Minibuffer,,, emacs}.
 
 If this variable is @code{nil}, you cannot invoke minibuffer commands
 when the minibuffer is active, not even if you switch to another window
@@ -2611,6 +2618,38 @@ to @code{t} in the interactive declaration (@pxref{Using Interactive}).
 The minibuffer command @code{next-matching-history-element} (normally
 @kbd{M-s} in the minibuffer) does the latter.
 
+@node Inhibiting Interaction
+@section Inhibiting Interaction
+
+It's sometimes useful to be able to run Emacs as a headless server
+process that responds to commands given over a network connection.
+However, Emacs is primarily a platform for interactive usage, so many
+commands prompt the user for feedback in certain anomalous situations.
+This makes this use case more difficult, since the server process will
+just hang waiting for user input.
+
+@vindex inhibit-interaction
+Binding the @code{inhibit-interaction} variable to something
+non-@code{nil} makes Emacs signal a @code{inhibited-interaction} error
+instead of prompting, which can then be used by the server process to
+handle these situations.
+
+Here's a typical use case:
+
+@lisp
+(let ((inhibit-interaction t))
+  (respond-to-client
+   (condition-case err
+       (my-client-handling-function)
+     (inhibited-interaction err))))
+@end lisp
+
+If @code{my-client-handling-function} ends up calling something that
+asks the user for something (via @code{y-or-n-p} or
+@code{read-from-minibuffer} or the like), an
+@code{inhibited-interaction} error is signalled instead.  The server
+code then catches that error and reports it to the client.
+
 @node Minibuffer Misc
 @section Minibuffer Miscellany
 
@@ -2623,7 +2662,7 @@ active minibuffer.
 @end defun
 
 @defvar minibuffer-setup-hook
-This is a normal hook that is run whenever the minibuffer is entered.
+This is a normal hook that is run whenever a minibuffer is entered.
 @xref{Hooks}.
 @end defvar
 
@@ -2641,7 +2680,7 @@ called once, for the outermost use of the minibuffer.
 @end defmac
 
 @defvar minibuffer-exit-hook
-This is a normal hook that is run whenever the minibuffer is exited.
+This is a normal hook that is run whenever a minibuffer is exited.
 @xref{Hooks}.
 @end defvar
 

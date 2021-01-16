@@ -939,7 +939,7 @@ arguments after setting up the Ediff buffers."
 ;; If WIND-A is nil, use selected window.
 ;; If WIND-B is nil, use window next to WIND-A.
 (defun ediff-windows (dumb-mode wind-A wind-B startup-hooks job-name word-mode)
-  (if (or dumb-mode (not (ediff-window-display-p)))
+  (if (or dumb-mode (not (display-mouse-p)))
       (setq wind-A (ediff-get-next-window wind-A nil)
 	    wind-B (ediff-get-next-window wind-B wind-A))
     (setq wind-A (ediff-get-window-by-clicking wind-A nil 1)

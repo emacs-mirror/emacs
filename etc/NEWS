@@ -102,12 +102,13 @@ effect should be negligible in the vast majority of cases anyway.
 By default, when you switch to another frame, an active minibuffer now
 moves to the newly selected frame.  Nevertheless, the effect of what
 you type in the minibuffer happens in the frame where the minibuffer
-was first activated, even if it moved to another frame.  An
-alternative behavior is available by customizing
-'minibuffer-follows-selected-frame' to nil.  Here, the minibuffer
-stays in the frame where you first opened it, and you must switch back
-to this frame to continue or abort its command.  The old, somewhat
-unsystematic behavior, which mixed these two is no longer available.
+was first activated.  An alternative behavior is available by
+customizing 'minibuffer-follows-selected-frame' to nil.  Here, the
+minibuffer stays in the frame where you first opened it, and you must
+switch back to this frame to continue or abort its command.  The old
+behavior, which mixed these two, can be approximated by customizing
+'minibuffer-follows-selected-frame' to a value which is neither nil
+nor t.
 
 +++
 ** New system for displaying documentation for groups of functions.
@@ -346,6 +347,8 @@ about how to exit the client frame.  If 'server-client-instructions'
 is set to nil, this message is inhibited.
 
 ** Python mode
+
+*** 'python-shell-interpreter' now defaults to python3 on systems with python3.
 
 *** 'C-c C-r' can now be used on arbitrary regions.
 The command previously extended the start of the region to the start
@@ -698,6 +701,13 @@ inline MIME parts (that support it) are supposed to be font-locked or
 not.
 
 ** Message
+
+---
+*** Respect 'message-forward-ignored-headers' more.
+Previously, this variable would not be consulted if
+'message-forward-show-mml' was nil.  It's now always used, except if
+'message-forward-show-mml' is 'best', and we're forwarding an
+encrypted/signed message.
 
 +++
 *** Message now supports the OpenPGP header.
@@ -1337,6 +1347,11 @@ have been renamed to have "proper" public names and documented
 ('xref-show-definitions-buffer' and
 'xref-show-definitions-buffer-at-bottom').
 
+*** New command 'xref-quit-and-pop-marker-stack' and a binding for it
+in Xref buffers ('M-,'). This combination is easy to press
+semi-accidentally if the user wants to go back in the middle of
+choosing the exact definition to go to, and this should do TRT.
+
 ---
 *** New value 'project-relative' for 'xref-file-name-display'
 If chosen, file names in *xref* buffers will be displayed relative
@@ -1359,6 +1374,15 @@ with characters that are not valid in XML (see
 https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
 ** erc
+
+---
+*** erc-services.el now supports NickServ passwords from auth-source.
+The 'erc-use-auth-source-for-nickserv-password' variable enables querying
+auth-source for NickServ passwords.  To enable this, add the following
+to your init file:
+
+    (setq erc-prompt-for-nickserv-password nil
+          erc-use-auth-source-for-nickserv-password t)
 
 ---
 *** The '/ignore' command will now ask for a timeout to stop ignoring the user.
@@ -1517,8 +1541,22 @@ that makes it a valid button.
 
 ** Miscellaneous
 
+*** New function 'buffer-line-statistics'.
+This function returns some statistics about the line lengths in a buffer.
+
 +++
-*** 'add-to-ordered-list' can now take a test predicate.
+*** New variable 'inhibit-interaction' to make user prompts signal an error.
+If this is bound to something non-nil, functions like
+`read-from-minibuffer', `read-char' (and related) will signal an
+`inhibited-interaction' error.
+
+---
+*** 'process-attributes' now works under OpenBSD, too.
+
++++
+*** New button face 'flat-button'.
+This is a plain 2D button, but uses the background color instead of
+the foreground color.
 
 +++
 *** New predicate functions 'length<', 'length>' and 'length='.

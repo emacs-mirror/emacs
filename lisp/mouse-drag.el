@@ -225,7 +225,7 @@ To test this function, evaluate:
       ;; Don't change the mouse pointer shape while we drag.
       (setq track-mouse 'dragging)
       (while (progn
-	       (setq event (read-event)
+	       (setq event (read--potential-mouse-event)
 		     end (event-end event)
 		     row (cdr (posn-col-row end))
 		     col (car (posn-col-row end)))
@@ -286,7 +286,7 @@ To test this function, evaluate:
 	  window-last-col (- (window-width) 2))
     (track-mouse
       (while (progn
-	       (setq event (read-event)
+	       (setq event (read--potential-mouse-event)
 		     end (event-end event)
 		     row (cdr (posn-col-row end))
 		     col (car (posn-col-row end)))

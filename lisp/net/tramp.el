@@ -259,9 +259,9 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     parameters to suppress diagnostic messages, in order not to
     tamper the process output.
 
-  * `tramp-direct-async-args'
-    An additional argument when a direct asynchronous process is
-    started.  Used so far only in the \"mock\" method of tramp-tests.el.
+  * `tramp-direct-async'
+    Whether the method supports direct asynchronous processes.
+    Until now, just \"ssh\"-based and \"adb\"-based methods do.
 
   * `tramp-copy-program'
     This specifies the name of the program to use for remotely copying
@@ -1755,7 +1755,8 @@ The outline level is equal to the verbosity of the Tramp message."
 Message is formatted with FMT-STRING as control string and the remaining
 ARGUMENTS to actually emit the message (if applicable)."
   (let ((inhibit-message t)
-	file-name-handler-alist message-log-max signal-hook-function)
+	create-lockfiles file-name-handler-alist message-log-max
+	signal-hook-function)
     (with-current-buffer (tramp-get-debug-buffer vec)
       (goto-char (point-max))
       (let ((point (point)))
@@ -1981,6 +1982,13 @@ the resulting error message."
        (error (tramp-message ,vec-or-proc 3 ,format ,err) nil))))
 
 (put #'tramp-with-demoted-errors 'tramp-suppress-trace t)
+
+(defun tramp-test-message (fmt-string &rest arguments)
+  "Emit a Tramp message according `default-directory'."
+  (if (tramp-tramp-file-p default-directory)
+      (apply #'tramp-message
+	     (tramp-dissect-file-name default-directory) 0 fmt-string arguments)
+    (apply #'message fmt-string arguments)))
 
 ;; This function provides traces in case of errors not triggered by
 ;; Tramp functions.
@@ -3741,7 +3749,9 @@ User is always nil."
   (let ((v (tramp-dissect-file-name default-directory))
 	(buffer (plist-get args :buffer))
 	(stderr (plist-get args :stderr)))
-    (and ;; It has been indicated.
+    (and ;; The method supports it.
+         (tramp-get-method-parameter v 'tramp-direct-async)
+	 ;; It has been indicated.
          (tramp-get-connection-property v "direct-async-process" nil)
 	 ;; There's no multi-hop.
 	 (or (not (tramp-multi-hop-p v))
@@ -3821,8 +3831,6 @@ It does not support `:stderr'."
 		  (tramp-get-method-parameter v 'tramp-login-args))
 		 (async-args
 		  (tramp-get-method-parameter v 'tramp-async-args))
-		 (direct-async-args
-		  (tramp-get-method-parameter v 'tramp-direct-async-args))
 		 ;; We don't create the temporary file.  In fact, it
 		 ;; is just a prefix for the ControlPath option of
 		 ;; ssh; the real temporary file has another name, and
@@ -3850,7 +3858,7 @@ It does not support `:stderr'."
 		   ?h (or host "") ?u (or user "") ?p (or port "")
 		   ?c options ?l "")
 	     ;; Add arguments for asynchronous processes.
-	     login-args (append async-args direct-async-args login-args)
+	     login-args (append async-args login-args)
 	     ;; Expand format spec.
 	     login-args
 	     (tramp-compat-flatten-tree

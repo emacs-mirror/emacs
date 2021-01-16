@@ -2027,8 +2027,12 @@ position, else returns nil."
   :group 'python
   :safe 'stringp)
 
-(defcustom python-shell-interpreter "python"
+(defcustom python-shell-interpreter
+  (cond ((executable-find "python3") "python3")
+        ((executable-find "python") "python")
+        (t "python3"))
   "Default Python interpreter for shell."
+  :version "28.1"
   :type 'string
   :group 'python)
 

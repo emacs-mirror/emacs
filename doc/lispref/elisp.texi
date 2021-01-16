@@ -739,6 +739,7 @@ Minibuffers
 * Minibuffer Windows::      Operating on the special minibuffer windows.
 * Minibuffer Contents::     How such commands access the minibuffer text.
 * Recursive Mini::          Whether recursive entry to minibuffer is allowed.
+* Inhibiting Interaction::  Running Emacs when no interaction is possible.
 * Minibuffer Misc::         Various customization hooks and variables.
 
 Completion

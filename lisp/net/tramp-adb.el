@@ -98,6 +98,7 @@ It is used for TCP/IP devices."
 	      `(,tramp-adb-method
                 (tramp-login-program ,tramp-adb-program)
                 (tramp-login-args    (("shell")))
+                (tramp-direct-async  t)
 	        (tramp-tmpdir        "/data/local/tmp")
                 (tramp-default-port  5555)))
 
@@ -895,8 +896,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 ;; terminated.
 (defun tramp-adb-handle-make-process (&rest args)
   "Like `make-process' for Tramp files.
-If connection property \"direct-async-process\" is non-nil, an
-alternative implementation will be used."
+If method parameter `tramp-direct-async' and connection property
+\"direct-async-process\" are non-nil, an alternative
+implementation will be used."
   (if (tramp-direct-async-process-p args)
       (apply #'tramp-handle-make-process args)
     (when args
