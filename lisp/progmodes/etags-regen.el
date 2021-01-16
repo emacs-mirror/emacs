@@ -152,7 +152,7 @@ File extensions to generate the tags for."
                                   ;; abc/ -> abc/*
                                   (setq i (concat i "*"))))
                             (dired-glob-regexp i))
-                          etags-regen-ignores))
+                          (cons ".#*" etags-regen-ignores)))
          (tags-file (make-temp-file "emacs-regen-tags-"))
          ;; ctags's etags requires '-L -' for stdin input.
          ;; It looks half-broken here (indexes only some of the input files),
