@@ -171,6 +171,13 @@ Platform interface
     x86-64 processor architecture, and the Clang/LLVM compiler.
 
 
+.. c:macro:: MPS_PF_LIA6LL
+
+    A :term:`C` preprocessor macro that indicates, if defined, that
+    the :term:`platform` consists of the Linux operating system, the
+    ARM64 processor architecture, and the Clang/LLVM compiler.
+
+
 .. c:macro:: MPS_PF_LII3GC
 
     A :term:`C` preprocessor macro that indicates, if defined, that
@@ -370,6 +377,7 @@ Platform    Status
 ``fri6ll``  Supported
 ``i5m2cc``  *Not supported*
 ``iam4cc``  *Not supported*
+``lia6ll``  Supported
 ``lii3eg``  *Not supported*
 ``lii3gc``  Supported
 ``lii4gc``  Corrected to ``lii3gc``
