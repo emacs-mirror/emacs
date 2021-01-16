@@ -26,9 +26,18 @@
 
 # Never run merge request pipelines, they usually duplicate push pipelines
 # see https://docs.gitlab.com/ee/ci/yaml/README.html#common-if-clauses-for-rules
+
+# Rules: always run tags and branches named master*, emacs*, feature*, fix*
+# Test that it triggers by pushing a tag: `git tag mytag; git push origin mytag`
+# Test that it triggers by pushing to: feature/emba, feature1, master, master-2, fix/emba, emacs-299, fix-2
+# Test that it doesn't trigger by pushing to: scratch-2, scratch/emba, oldbranch, dev
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - if: '$CI_COMMIT_BRANCH !~ /^(master|emacs|feature|fix)/'
       when: never
     - when: always
 
