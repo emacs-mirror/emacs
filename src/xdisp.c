@@ -31927,9 +31927,8 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
       return;
     }
 #endif
-#if defined (HAVE_GPM) || defined (MSDOS) || defined (WINDOWSNT)
+
   tty_draw_row_with_mouse_face (w, row, start_hpos, end_hpos, draw);
-#endif
 }
 
 /* Display the active region described by mouse_face_* according to DRAW.  */

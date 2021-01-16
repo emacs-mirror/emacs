@@ -790,8 +790,6 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
   cmcheckmagic (tty);
 }
 
-#ifdef HAVE_GPM			/* Only used by GPM code.  */
-
 static void
 tty_write_glyphs_with_face (register struct frame *f, register struct glyph *string,
 			    register int len, register int face_id)
@@ -847,7 +845,6 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
 
   cmcheckmagic (tty);
 }
-#endif
 
 /* An implementation of insert_glyphs for termcap frames. */
 
@@ -2380,22 +2377,6 @@ frame's terminal). */)
 			       Mouse
  ***********************************************************************/
 
-#ifdef HAVE_GPM
-
-void
-term_mouse_moveto (int x, int y)
-{
-  /* TODO: how to set mouse position?
-  const char *name;
-  int fd;
-  name = (const char *) ttyname (0);
-  fd = emacs_open (name, O_WRONLY, 0);
-     SOME_FUNCTION (x, y, fd);
-  emacs_close (fd);
-  last_mouse_x = x;
-  last_mouse_y = y;  */
-}
-
 /* Implementation of draw_row_with_mouse_face for TTY/GPM.  */
 void
 tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
@@ -2426,6 +2407,22 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
     write_glyphs (f, row->glyphs[TEXT_AREA] + start_hpos, nglyphs);
 
   cursor_to (f, save_y, save_x);
+}
+
+#ifdef HAVE_GPM
+
+void
+term_mouse_moveto (int x, int y)
+{
+  /* TODO: how to set mouse position?
+  const char *name;
+  int fd;
+  name = (const char *) ttyname (0);
+  fd = emacs_open (name, O_WRONLY, 0);
+     SOME_FUNCTION (x, y, fd);
+  emacs_close (fd);
+  last_mouse_x = x;
+  last_mouse_y = y;  */
 }
 
 /* Return the current time, as a Time value.  Wrap around on overflow.  */
