@@ -183,6 +183,7 @@ prmcw3i3.c    Mutator context implementation for Windows, IA-32.
 prmcw3i6.c    Mutator context implementation for Windows, x86-64.
 prmcxc.c      Mutator context implementation for macOS.
 prmcxc.h      Mutator context interface for macOS.
+prmcxca6.c    Mutator context implementation for macOS, ARM64.
 prmcxci3.c    Mutator context implementation for macOS, IA-32.
 prmcxci6.c    Mutator context implementation for macOS, x86-64.
 prot.h        Protection interface. See design.mps.prot_.
@@ -393,6 +394,7 @@ w3i3mv.nmk     NMAKE file for platform W3I3MV.
 w3i3pc.nmk     NMAKE file for platform W3I3PC.
 w3i6mv.nmk     NMAKE file for platform W3I6MV.
 w3i6pc.nmk     NMAKE file for platform W3I6PC.
+xca6ll.gmk     GNU makefile for platform XCA6LL.
 xci3gc.gmk     GNU makefile for platform XCI3GC.
 xci3ll.gmk     GNU makefile for platform XCI3LL.
 xci6gc.gmk     GNU makefile for platform XCI6GC.

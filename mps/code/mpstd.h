@@ -165,6 +165,25 @@
 #define MPS_PF_ALIGN    8
 
 
+/* Apple clang version 12.0, clang -E -dM */
+
+#elif defined(__APPLE__) && defined(__arm64__) && defined(__MACH__) \
+      && defined(__clang__)
+#if defined(CONFIG_PF_STRING) && ! defined(CONFIG_PF_XCA6LL)
+#error "specified CONFIG_PF_... inconsistent with detected xca6ll"
+#endif
+#define MPS_PF_XCA6LL
+#define MPS_PF_STRING   "xca6ll"
+#define MPS_OS_XC
+#define MPS_ARCH_A6
+#define MPS_BUILD_LL
+#define MPS_T_WORD      unsigned long
+#define MPS_T_ULONGEST  unsigned long
+#define MPS_WORD_WIDTH  64
+#define MPS_WORD_SHIFT  6
+#define MPS_PF_ALIGN    8
+
+
 /* Apple clang version 3.1, clang -E -dM */
 
 #elif defined(__APPLE__) && defined(__i386__) && defined(__MACH__) \

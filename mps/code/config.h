@@ -576,7 +576,13 @@
    things like thread states.  These definitions fix that. */
 
 #if defined(MPS_OS_XC)
-#if defined(MPS_ARCH_I6)
+#if defined(MPS_ARCH_A6)
+
+#define THREAD_STATE_COUNT ARM_THREAD_STATE64_COUNT
+#define THREAD_STATE_FLAVOR ARM_THREAD_STATE64
+#define THREAD_STATE_S arm_thread_state64_t
+
+#elif defined(MPS_ARCH_I6)
 
 #define THREAD_STATE_COUNT x86_THREAD_STATE64_COUNT
 #define THREAD_STATE_FLAVOR x86_THREAD_STATE64

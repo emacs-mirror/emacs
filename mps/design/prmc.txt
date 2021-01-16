@@ -268,13 +268,14 @@ macOS implementation
 
 _`.impl.xc`: In ``prmcix.c`` and ``prmcxc.c``, with processor-specific
 parts in ``prmci3.c`` and ``prmci6.c``, and other platform-specific
-parts in ``prmcxci3.c`` and ``prmcxci6.c``.
+parts in ``prmcxca6.c``, ``prmcxci3.c`` and ``prmcxci6.c``.
 
 _`.impl.xc.context`: The context consists of the
 ``__Request__mach_exception_raise_state_identity_t`` and
-``x86_thread_state32_t`` or ``x86_thread_state64_t`` structures. There
-doesn't seem to be any documentation for these structures, but they
-are defined in the Mach headers.
+``arm_thread_state_t``, ``x86_thread_state32_t`` or
+``x86_thread_state64_t`` structures. There doesn't seem to be any
+documentation for these structures, but they are defined in the Mach
+headers.
 
 _`.impl.xc.fault.addr`: ``__Request__mach_exception_raise_state_identity_t.code[1]`` is the
 address that the faulting instruction was trying to access.
@@ -292,9 +293,11 @@ calling |thread_get_state|_.
 .. _thread_get_state: https://www.gnu.org/software/hurd/gnumach-doc/Thread-Execution.html
 
 _`.impl.xc.context.scan`: The thread's registers are found in the
-``x86_thread_state32_t`` or ``x86_thread_state64_t`` structure.
+``arm_thread_state64_t``, ``x86_thread_state32_t`` or
+``x86_thread_state64_t`` structure.
 
-_`.impl.xc.context.sp`: The stack pointer is obtained from
+_`.impl.xc.context.sp`: The stack pointer is obtained using the
+``arm_thread_state64_get_sp()`` macro (on ARM64), or from
 ``x86_thread_state32_t.__esp`` (on IA-32) or
 ``x86_thread_state64_t.__rsp`` (on x86-64).
 
