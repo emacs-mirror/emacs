@@ -130,5 +130,12 @@ state against this remembered state."
       (push (cons mode (symbol-value mode))
             so-long-tests-memory))))
 
+(defun so-long-tests-predicates ()
+  "Return the list of testable predicate functions."
+  (if (fboundp 'buffer-line-statistics)
+      '(so-long-statistics-excessive-p
+        so-long-detected-long-line-p)
+    '(so-long-detected-long-line-p)))
+
 (provide 'so-long-tests-helpers)
 ;;; so-long-tests-helpers.el ends here

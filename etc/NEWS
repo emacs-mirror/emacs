@@ -2857,9 +2857,17 @@ personal key ring.
 ** So Long
 
 ---
+*** New 'so-long-predicate' function 'so-long-statistics-excessive-p'
+efficiently detects the presence of a long line anywhere in the buffer
+using 'buffer-line-statistics' (see above).  This is now the default
+predicate (replacing 'so-long-detected-long-line-p').
+
+---
 *** 'so-long-threshold' and 'so-long-max-lines' have been raised to
-10000 characters and 500 lines respectively, to reduce the likelihood
-of false-positives when 'global-so-long-mode' is enabled.
+10000 bytes and 500 lines respectively, to reduce the likelihood of
+false-positives when 'global-so-long-mode' is enabled.  The latter
+value is now only used by the old predicate, as the new predicate
+knows the longest line in the entire buffer.
 
 ---
 *** 'so-long-target-modes' now includes 'fundamental-mode' by default,

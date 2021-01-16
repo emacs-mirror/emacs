@@ -128,9 +128,9 @@
 ;; Use M-x customize-group RET so-long RET
 ;; (or M-x so-long-customize RET)
 ;;
-;; The user options `so-long-target-modes', `so-long-threshold', and
-;; `so-long-max-lines' determine whether action will be taken automatically when
-;; visiting a file, and `so-long-action' determines what will be done.
+;; The user options `so-long-target-modes' and `so-long-threshold' determine
+;; whether action will be taken automatically when visiting a file, and
+;; `so-long-action' determines what will be done.
 
 ;; * Actions and menus
 ;; -------------------
@@ -306,8 +306,9 @@
 ;; the criteria for calling `so-long' in any given mode (plus its derivatives)
 ;; by setting buffer-local values for the variables in question.  This includes
 ;; `so-long-predicate' itself, as well as any variables used by the predicate
-;; when determining the result.  By default this means `so-long-max-lines',
-;; `so-long-skip-leading-comments', and `so-long-threshold'.  E.g.:
+;; when determining the result.  By default this means `so-long-threshold' and
+;; possibly also `so-long-max-lines' and `so-long-skip-leading-comments' (these
+;; latter two are not used by default starting from Emacs 28.1).  E.g.:
 ;;
 ;;   (add-hook 'js-mode-hook 'my-js-mode-hook)
 ;;
@@ -409,7 +410,9 @@
 
 ;; * Change Log:
 ;;
-;; 1.1   - Increase `so-long-threshold' from 250 to 10,000.
+;; 1.1   - Utilise `buffer-line-statistics' in Emacs 28+, with the new
+;;         `so-long-predicate' function `so-long-statistics-excessive-p'.
+;;       - Increase `so-long-threshold' from 250 to 10,000.
 ;;       - Increase `so-long-max-lines' from 5 to 500.
 ;;       - Include `fundamental-mode' in `so-long-target-modes'.
 ;;       - New user option `so-long-mode-preserved-minor-modes'.
@@ -475,8 +478,10 @@
 
 (defconst so-long--latest-version "1.1")
 
+(declare-function buffer-line-statistics "fns.c" t t) ;; Emacs 28+
 (declare-function longlines-mode "longlines")
 (defvar longlines-mode)
+
 (defvar so-long-enabled nil
   ;; This was initially a renaming of the old `so-long-mode-enabled' and
   ;; documented as "Set to nil to prevent `so-long' from being triggered
@@ -519,12 +524,20 @@
 (defcustom so-long-threshold 10000
   "Maximum line length permitted before invoking `so-long-function'.
 
-See `so-long-detected-long-line-p' for details."
+Line length is counted in either bytes or characters, depending on
+`so-long-predicate'.
+
+This is the only variable used to determine the presence of long lines if
+the `so-long-predicate' function is `so-long-statistics-excessive-p'."
   :type 'integer
   :package-version '(so-long . "1.1"))
 
 (defcustom so-long-max-lines 500
   "Number of non-blank, non-comment lines to test for excessive length.
+
+This option normally has no effect in Emacs versions >= 28.1, as the default
+`so-long-predicate' sees the entire buffer.  Older versions of Emacs still make
+use of this option.
 
 If nil then all lines will be tested, until either a long line is detected,
 or the end of the buffer is reached.
@@ -539,6 +552,10 @@ See `so-long-detected-long-line-p' for details."
 
 (defcustom so-long-skip-leading-comments t
   "Non-nil to ignore all leading comments and whitespace.
+
+This option normally has no effect in Emacs versions >= 28.1, as the default
+`so-long-predicate' sees the entire buffer.  Older versions of Emacs still make
+use of this option.
 
 If the file begins with a shebang (#!), this option also causes that line to be
 ignored even if it doesn't match the buffer's comment syntax, to ensure that
@@ -594,7 +611,9 @@ the mentioned options might interfere with some intended processing."
                 (function :tag "Custom function"))
   :package-version '(so-long . "1.0"))
 
-(defcustom so-long-predicate 'so-long-detected-long-line-p
+(defcustom so-long-predicate (if (fboundp 'buffer-line-statistics)
+                                 'so-long-statistics-excessive-p
+                               'so-long-detected-long-line-p)
   "Function, called after `set-auto-mode' to decide whether action is needed.
 
 Only called if the major mode is a member of `so-long-target-modes'.
@@ -602,10 +621,14 @@ Only called if the major mode is a member of `so-long-target-modes'.
 The specified function will be called with no arguments.  If it returns non-nil
 then `so-long' will be invoked.
 
-Defaults to `so-long-detected-long-line-p'."
-  :type '(radio (const so-long-detected-long-line-p)
+Defaults to `so-long-statistics-excessive-p' starting from Emacs 28.1, or
+`so-long-detected-long-line-p' in earlier versions.
+
+Note that `so-long-statistics-excessive-p' requires Emacs 28.1 or later."
+  :type '(radio (const so-long-statistics-excessive-p)
+                (const so-long-detected-long-line-p)
                 (function :tag "Custom function"))
-  :package-version '(so-long . "1.0"))
+  :package-version '(so-long . "1.1"))
 
 ;; Silence byte-compiler warning.  `so-long-action-alist' is defined below
 ;; as a user option; but the definition sequence required for its setter
@@ -1153,12 +1176,23 @@ serves the same purpose.")
 ;; We change automatically to faster code
 ;; And then I won't feel so mad
 
+(defun so-long-statistics-excessive-p ()
+  "Non-nil if the buffer contains a line longer than `so-long-threshold' bytes.
+
+This uses `buffer-line-statistics' (available from Emacs 28.1) to establish the
+longest line in the buffer (counted in bytes rather than characters).
+
+This is the default value of `so-long-predicate' in Emacs versions >= 28.1.
+\(In earlier versions `so-long-detected-long-line-p' is used by default.)"
+  (> (cadr (buffer-line-statistics))
+     so-long-threshold))
+
 (defun so-long-detected-long-line-p ()
   "Determine whether the current buffer contains long lines.
 
 Following any initial comments and blank lines, the next N lines of the buffer
-will be tested for excessive length (where \"excessive\" means above
-`so-long-threshold', and N is `so-long-max-lines').
+will be tested for excessive length (where \"excessive\" means greater than
+`so-long-threshold' characters, and N is `so-long-max-lines').
 
 Returns non-nil if any such excessive-length line is detected.
 
@@ -1166,7 +1200,9 @@ If `so-long-skip-leading-comments' is nil then the N lines will be counted
 starting from the first line of the buffer.  In this instance you will likely
 want to increase `so-long-max-lines' to allow for possible comments.
 
-This is the default value of `so-long-predicate'."
+This is the default `so-long-predicate' function in Emacs versions < 28.1.
+\(Starting from 28.1, the default and recommended predicate function is
+`so-long-statistics-excessive-p', which is faster and sees the entire buffer.)"
   (let ((count 0) start)
     (save-excursion
       (goto-char (point-min))

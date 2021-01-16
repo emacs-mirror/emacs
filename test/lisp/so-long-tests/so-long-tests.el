@@ -57,101 +57,131 @@
 (declare-function so-long-tests-assert-active "so-long-tests-helpers")
 (declare-function so-long-tests-assert-reverted "so-long-tests-helpers")
 (declare-function so-long-tests-assert-and-revert "so-long-tests-helpers")
+(declare-function so-long-tests-predicates "so-long-tests-helpers")
 
 ;; Enable the automated behaviour for all tests.
 (global-so-long-mode 1)
 
 (ert-deftest so-long-tests-threshold-under ()
   "Under line length threshold."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1- so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode))))
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1- so-long-threshold) ?x))
+      (normal-mode)
+      (should (eq major-mode 'emacs-lisp-mode)))))
 
 (ert-deftest so-long-tests-threshold-at ()
   "At line length threshold."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1- so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode))))
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1- so-long-threshold) ?x))
+      (normal-mode)
+      (should (eq major-mode 'emacs-lisp-mode)))))
 
 (ert-deftest so-long-tests-threshold-over ()
   "Over line length threshold."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (normal-mode)
-    (so-long-tests-remember)
-    (insert (make-string (1+ so-long-threshold) ?x))
-    (normal-mode)
-    (so-long-tests-assert-and-revert 'so-long-mode)))
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (normal-mode)
+      (so-long-tests-remember)
+      (insert (make-string (1+ so-long-threshold) ?x))
+      (normal-mode)
+      (so-long-tests-assert-and-revert 'so-long-mode))))
 
 (ert-deftest so-long-tests-skip-comments ()
   "Skip leading shebang, whitespace, and comments."
-  ;; Long comment, no newline.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode)))
-  ;; Long comment, with newline.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (insert "\n")
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode)))
-  ;; Long comment, with short text following.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (insert "\n")
-    (insert (make-string so-long-threshold ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode)))
-  ;; Long comment, with long text following.
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    (insert (make-string (1+ so-long-threshold) ?\;))
-    (insert "\n")
-    (insert (make-string (1+ so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'so-long-mode))))
+  ;; Only for `so-long-detected-long-line-p' -- comments are not
+  ;; treated differently when using `so-long-statistics-excessive-p'.
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    ;; Long comment, no newline.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (normal-mode)
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode)))))
+    ;; Long comment, with newline.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (insert "\n")
+      (normal-mode)
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode)))))
+    ;; Long comment, with short text following.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (insert "\n")
+      (insert (make-string so-long-threshold ?x))
+      (normal-mode)
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode)))))
+    ;; Long comment, with long text following.
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      (insert (make-string (1+ so-long-threshold) ?\;))
+      (insert "\n")
+      (insert (make-string (1+ so-long-threshold) ?x))
+      (normal-mode)
+      (should (eq major-mode 'so-long-mode)))))
 
 (ert-deftest so-long-tests-max-lines ()
   "Give up after `so-long-max-lines'."
-  (with-temp-buffer
-    (display-buffer (current-buffer))
-    (insert "#!emacs\n")
-    ;; Insert exactly `so-long-max-lines' non-comment lines, followed
-    ;; by a long line.
-    (dotimes (_ so-long-max-lines)
-      (insert "x\n"))
-    (insert (make-string (1+ so-long-threshold) ?x))
-    (normal-mode)
-    (should (eq major-mode 'emacs-lisp-mode))
-    ;; If `so-long-max-lines' is nil, don't give up the search.
-    (let ((so-long-max-lines nil))
+  ;; Only for `so-long-detected-long-line-p' -- the whole buffer is
+  ;; 'seen' when using `so-long-statistics-excessive-p'.
+  (dolist (so-long-predicate (so-long-tests-predicates))
+    (with-temp-buffer
+      (display-buffer (current-buffer))
+      (insert "#!emacs\n")
+      ;; Insert exactly `so-long-max-lines' non-comment lines, followed
+      ;; by a long line.
+      (dotimes (_ so-long-max-lines)
+        (insert "x\n"))
+      (insert (make-string (1+ so-long-threshold) ?x))
       (normal-mode)
-      (should (eq major-mode 'so-long-mode)))
-    ;; If `so-long-skip-leading-comments' is nil, all lines are
-    ;; counted, and so the shebang line counts, which makes the
-    ;; long line one line further away.
-    (let ((so-long-skip-leading-comments nil)
-          (so-long-max-lines (1+ so-long-max-lines)))
-      (normal-mode)
-      (should (eq major-mode 'emacs-lisp-mode))
-      (let ((so-long-max-lines (1+ so-long-max-lines)))
+      (should (eq major-mode
+                  (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                         'emacs-lisp-mode)
+                        ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                         'so-long-mode))))
+      ;; If `so-long-max-lines' is nil, don't give up the search.
+      (let ((so-long-max-lines nil))
         (normal-mode)
-        (should (eq major-mode 'so-long-mode))))))
+        (should (eq major-mode 'so-long-mode)))
+      ;; If `so-long-skip-leading-comments' is nil, all lines are
+      ;; counted, and so the shebang line counts, which makes the
+      ;; long line one line further away.
+      (let ((so-long-skip-leading-comments nil)
+            (so-long-max-lines (1+ so-long-max-lines)))
+        (normal-mode)
+        (should (eq major-mode
+                    (cond ((eq so-long-predicate #'so-long-detected-long-line-p)
+                           'emacs-lisp-mode)
+                          ((eq so-long-predicate #'so-long-statistics-excessive-p)
+                           'so-long-mode))))
+        (let ((so-long-max-lines (1+ so-long-max-lines)))
+          (normal-mode)
+          (should (eq major-mode 'so-long-mode)))))))
 
 (ert-deftest so-long-tests-invisible-buffer-function ()
   "Call `so-long-invisible-buffer-function' in invisible buffers."
@@ -382,17 +412,21 @@
 (ert-deftest so-long-tests-predicate ()
   "Custom predicate function."
   ;; Test the `so-long-predicate' user option.
+  ;; Always true.  Trigger when we normally wouldn't.
   (with-temp-buffer
     (display-buffer (current-buffer))
     (insert "#!emacs\n")
-    ;; Always false.
-    (let ((so-long-predicate #'ignore))
-      (normal-mode)
-      (should (eq major-mode 'emacs-lisp-mode)))
-    ;; Always true.
     (let ((so-long-predicate (lambda () t)))
       (normal-mode)
-      (should (eq major-mode 'so-long-mode)))))
+      (should (eq major-mode 'so-long-mode))))
+  ;; Always false.  Don't trigger when we normally would.
+  (with-temp-buffer
+    (display-buffer (current-buffer))
+    (insert "#!emacs\n")
+    (insert (make-string (1+ so-long-threshold) ?x))
+    (let ((so-long-predicate #'ignore))
+      (normal-mode)
+      (should (eq major-mode 'emacs-lisp-mode)))))
 
 (ert-deftest so-long-tests-file-local-action ()
   "File-local action."
