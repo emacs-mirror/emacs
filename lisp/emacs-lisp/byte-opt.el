@@ -374,185 +374,184 @@
   ;; the important aspect is that they are subrs that don't evaluate all of
   ;; their args.)
   ;;
-  (let ((fn (car-safe form))
-	tmp)
-    (cond ((not (consp form))
-	   (if (not (and for-effect
-			 (or byte-compile-delete-errors
-			     (not (symbolp form))
-			     (eq form t))))
-	     form))
-	  ((eq fn 'quote)
-	   (if (cdr (cdr form))
-	       (byte-compile-warn "malformed quote form: `%s'"
-				  (prin1-to-string form)))
-	   ;; map (quote nil) to nil to simplify optimizer logic.
-	   ;; map quoted constants to nil if for-effect (just because).
-	   (and (nth 1 form)
-		(not for-effect)
-		form))
-	  ((memq fn '(let let*))
-	   ;; recursively enter the optimizer for the bindings and body
-	   ;; of a let or let*.  This for depth-firstness: forms that
-	   ;; are more deeply nested are optimized first.
-	   (cons fn
+  ;; FIXME: There are a bunch of `byte-compile-warn' here which arguably
+  ;; have no place in an optimizer: the corresponding tests should be
+  ;; performed in `macroexpand-all', or in `cconv', or in `bytecomp'.
+  (let ((fn (car-safe form)))
+    (pcase form
+      ((pred (not consp))
+       (if (not (and for-effect
+		     (or byte-compile-delete-errors
+			 (not (symbolp form))
+			 (eq form t))))
+	   form))
+      (`(quote . ,v)
+       (if (cdr v)
+	   (byte-compile-warn "malformed quote form: `%s'"
+			      (prin1-to-string form)))
+       ;; Map (quote nil) to nil to simplify optimizer logic.
+       ;; Map quoted constants to nil if for-effect (just because).
+       (and (car v)
+	    (not for-effect)
+	    form))
+      (`(,(or 'let 'let*) . ,(or `(,bindings . ,exps) pcase--dontcare))
+       ;; Recursively enter the optimizer for the bindings and body
+       ;; of a let or let*.  This for depth-firstness: forms that
+       ;; are more deeply nested are optimized first.
+       (cons fn
 	     (cons
 	      (mapcar (lambda (binding)
-			 (if (symbolp binding)
-			     binding
-			   (if (cdr (cdr binding))
-			       (byte-compile-warn "malformed let binding: `%s'"
-						  (prin1-to-string binding)))
-			   (list (car binding)
-				 (byte-optimize-form (nth 1 binding) nil))))
-		      (nth 1 form))
-	      (byte-optimize-body (cdr (cdr form)) for-effect))))
-	  ((eq fn 'cond)
-	   (cons fn
-		 (mapcar (lambda (clause)
-			    (if (consp clause)
-				(cons
-				 (byte-optimize-form (car clause) nil)
-				 (byte-optimize-body (cdr clause) for-effect))
-			      (byte-compile-warn "malformed cond form: `%s'"
-						 (prin1-to-string clause))
-			      clause))
-			 (cdr form))))
-	  ((eq fn 'progn)
-	   ;; As an extra added bonus, this simplifies (progn <x>) --> <x>.
-	   (if (cdr (cdr form))
-               (macroexp-progn (byte-optimize-body (cdr form) for-effect))
-	     (byte-optimize-form (nth 1 form) for-effect)))
-	  ((eq fn 'prog1)
-	   (if (cdr (cdr form))
-	       (cons 'prog1
-		     (cons (byte-optimize-form (nth 1 form) for-effect)
-			   (byte-optimize-body (cdr (cdr form)) t)))
-	     (byte-optimize-form (nth 1 form) for-effect)))
+			(if (symbolp binding)
+			    binding
+			  (if (cdr (cdr binding))
+			      (byte-compile-warn "malformed let binding: `%s'"
+						 (prin1-to-string binding)))
+			  (list (car binding)
+				(byte-optimize-form (nth 1 binding) nil))))
+		      bindings)
+	      (byte-optimize-body exps for-effect))))
+      (`(cond . ,clauses)
+       (cons fn
+	     (mapcar (lambda (clause)
+		       (if (consp clause)
+			   (cons
+			    (byte-optimize-form (car clause) nil)
+			    (byte-optimize-body (cdr clause) for-effect))
+			 (byte-compile-warn "malformed cond form: `%s'"
+					    (prin1-to-string clause))
+			 clause))
+		     clauses)))
+      (`(progn . ,exps)
+       ;; As an extra added bonus, this simplifies (progn <x>) --> <x>.
+       (if (cdr exps)
+           (macroexp-progn (byte-optimize-body exps for-effect))
+	 (byte-optimize-form (car exps) for-effect)))
+      (`(prog1 . ,(or `(,exp . ,exps) pcase--dontcare))
+       (if exps
+	   `(prog1 ,(byte-optimize-form exp for-effect)
+	      . ,(byte-optimize-body exps t))
+	 (byte-optimize-form exp for-effect)))
 
-	  ((memq fn '(save-excursion save-restriction save-current-buffer))
-	   ;; those subrs which have an implicit progn; it's not quite good
-	   ;; enough to treat these like normal function calls.
-	   ;; This can turn (save-excursion ...) into (save-excursion) which
-	   ;; will be optimized away in the lap-optimize pass.
-	   (cons fn (byte-optimize-body (cdr form) for-effect)))
+      (`(,(or `save-excursion `save-restriction `save-current-buffer) . ,exps)
+       ;; Those subrs which have an implicit progn; it's not quite good
+       ;; enough to treat these like normal function calls.
+       ;; This can turn (save-excursion ...) into (save-excursion) which
+       ;; will be optimized away in the lap-optimize pass.
+       (cons fn (byte-optimize-body exps for-effect)))
 
-	  ((eq fn 'if)
-	   (when (< (length form) 3)
-	     (byte-compile-warn "too few arguments for `if'"))
-	   (cons fn
-	     (cons (byte-optimize-form (nth 1 form) nil)
-	       (cons
-		(byte-optimize-form (nth 2 form) for-effect)
-		(byte-optimize-body (nthcdr 3 form) for-effect)))))
+      (`(if ,test ,then . ,else)
+       `(if ,(byte-optimize-form test nil)
+	    ,(byte-optimize-form then for-effect)
+	  . ,(byte-optimize-body else for-effect)))
+      (`(if . ,_)
+       (byte-compile-warn "too few arguments for `if'"))
 
-	  ((memq fn '(and or))  ; Remember, and/or are control structures.
-	   ;; Take forms off the back until we can't any more.
-	   ;; In the future it could conceivably be a problem that the
-	   ;; subexpressions of these forms are optimized in the reverse
-	   ;; order, but it's ok for now.
-	   (if for-effect
-	       (let ((backwards (reverse (cdr form))))
-		 (while (and backwards
-			     (null (setcar backwards
-					   (byte-optimize-form (car backwards)
-							       for-effect))))
-		   (setq backwards (cdr backwards)))
-		 (if (and (cdr form) (null backwards))
-		     (byte-compile-log
-		      "  all subforms of %s called for effect; deleted" form))
-		 (and backwards
-		      (cons fn (nreverse (mapcar 'byte-optimize-form
-                                                 backwards)))))
-	     (cons fn (mapcar 'byte-optimize-form (cdr form)))))
+      (`(,(or 'and 'or) . ,exps) ; Remember, and/or are control structures.
+       ;; Take forms off the back until we can't any more.
+       ;; In the future it could conceivably be a problem that the
+       ;; subexpressions of these forms are optimized in the reverse
+       ;; order, but it's ok for now.
+       (if for-effect
+	   (let ((backwards (reverse exps)))
+	     (while (and backwards
+			 (null (setcar backwards
+				       (byte-optimize-form (car backwards)
+							   for-effect))))
+	       (setq backwards (cdr backwards)))
+	     (if (and exps (null backwards))
+		 (byte-compile-log
+		  "  all subforms of %s called for effect; deleted" form))
+	     (and backwards
+		  (cons fn (nreverse (mapcar #'byte-optimize-form
+                                             backwards)))))
+	 (cons fn (mapcar #'byte-optimize-form exps))))
 
-	  ((eq fn 'while)
-           (unless (consp (cdr form))
-	     (byte-compile-warn "too few arguments for `while'"))
-           (cons fn
-                 (cons (byte-optimize-form (cadr form) nil)
-                       (byte-optimize-body (cddr form) t))))
+      (`(while ,exp . ,exps)
+       `(while ,(byte-optimize-form exp nil)
+          . ,(byte-optimize-body exps t)))
+      (`(while . ,_)
+       (byte-compile-warn "too few arguments for `while'"))
 
-	  ((eq fn 'interactive)
-	   (byte-compile-warn "misplaced interactive spec: `%s'"
-			      (prin1-to-string form))
-	   nil)
+      (`(interactive . ,_)
+       (byte-compile-warn "misplaced interactive spec: `%s'"
+			  (prin1-to-string form))
+       nil)
 
-	  ((eq fn 'function)
-	   ;; This forms is compiled as constant or by breaking out
-	   ;; all the subexpressions and compiling them separately.
-	   form)
+      (`(function . ,_)
+       ;; This forms is compiled as constant or by breaking out
+       ;; all the subexpressions and compiling them separately.
+       form)
 
-	  ((eq fn 'condition-case)
-           `(condition-case ,(nth 1 form) ;Not evaluated.
-                ,(byte-optimize-form (nth 2 form) for-effect)
-              ,@(mapcar (lambda (clause)
-                          `(,(car clause)
-                            ,@(byte-optimize-body (cdr clause) for-effect)))
-                        (nthcdr 3 form))))
+      (`(condition-case . ,(or `(,var ,exp . ,clauses) pcase--dontcare))
+       `(condition-case ,var            ;Not evaluated.
+            ,(byte-optimize-form exp for-effect)
+          ,@(mapcar (lambda (clause)
+                      `(,(car clause)
+                        ,@(byte-optimize-body (cdr clause) for-effect)))
+                    clauses)))
 
-	  ((eq fn 'unwind-protect)
-	   ;; the "protected" part of an unwind-protect is compiled (and thus
-	   ;; optimized) as a top-level form, so don't do it here.  But the
-	   ;; non-protected part has the same for-effect status as the
-	   ;; unwind-protect itself.  (The protected part is always for effect,
-	   ;; but that isn't handled properly yet.)
-	   (cons fn
-		 (cons (byte-optimize-form (nth 1 form) for-effect)
-		       (cdr (cdr form)))))
+      (`(unwind-protect . ,(or `(,exp . ,exps) pcase--dontcare))
+       ;; The "protected" part of an unwind-protect is compiled (and thus
+       ;; optimized) as a top-level form, so don't do it here.  But the
+       ;; non-protected part has the same for-effect status as the
+       ;; unwind-protect itself.  (The protected part is always for effect,
+       ;; but that isn't handled properly yet.)
+       `(unwind-protect ,(byte-optimize-form exp for-effect) . ,exps))
 
-	  ((eq fn 'catch)
-	   (cons fn
-		 (cons (byte-optimize-form (nth 1 form) nil)
-                       (byte-optimize-body (cdr form) for-effect))))
+      (`(catch . ,(or `(,tag . ,exps) pcase--dontcare))
+       `(catch ,(byte-optimize-form tag nil)
+          . ,(byte-optimize-body exps for-effect)))
 
-	  ((eq fn 'ignore)
-	   ;; Don't treat the args to `ignore' as being
-	   ;; computed for effect.  We want to avoid the warnings
-	   ;; that might occur if they were treated that way.
-	   ;; However, don't actually bother calling `ignore'.
-	   `(prog1 nil . ,(mapcar 'byte-optimize-form (cdr form))))
+      (`(ignore . ,exps)
+       ;; Don't treat the args to `ignore' as being
+       ;; computed for effect.  We want to avoid the warnings
+       ;; that might occur if they were treated that way.
+       ;; However, don't actually bother calling `ignore'.
+       `(prog1 nil . ,(mapcar #'byte-optimize-form exps)))
 
-          ;; Needed as long as we run byte-optimize-form after cconv.
-          ((eq fn 'internal-make-closure) form)
+      ;; Needed as long as we run byte-optimize-form after cconv.
+      (`(internal-make-closure . ,_) form)
 
-	  ((eq (car-safe fn) 'lambda)
-	   (let ((newform (byte-compile-unfold-lambda form)))
-	     (if (eq newform form)
-		 ;; Some error occurred, avoid infinite recursion
-		 form
-	       (byte-optimize-form newform for-effect))))
+      (`((lambda . ,_) . ,_)
+       (let ((newform (byte-compile-unfold-lambda form)))
+	 (if (eq newform form)
+	     ;; Some error occurred, avoid infinite recursion.
+	     form
+	   (byte-optimize-form newform for-effect))))
 
-	  ((eq (car-safe fn) 'closure) form)
+      ;; FIXME: Strictly speaking, I think this is a bug: (closure...)
+      ;; is a *value* and shouldn't appear in the car.
+      (`((closure . ,_) . ,_) form)
 
-          ((byte-code-function-p fn)
-           (cons fn (mapcar #'byte-optimize-form (cdr form))))
+      (`(,(pred byte-code-function-p) . ,exps)
+       (cons fn (mapcar #'byte-optimize-form exps)))
 
-	  ((not (symbolp fn))
-	   (byte-compile-warn "`%s' is a malformed function"
-			      (prin1-to-string fn))
-	   form)
+      (`(,(pred (not symbolp)) . ,_)
+       (byte-compile-warn "`%s' is a malformed function"
+			  (prin1-to-string fn))
+       form)
 
-	  ((and for-effect (setq tmp (get fn 'side-effect-free))
-		(or byte-compile-delete-errors
-		    (eq tmp 'error-free)
-		    (progn
-		      (byte-compile-warn "value returned from %s is unused"
-					 (prin1-to-string form))
-		      nil)))
-	   (byte-compile-log "  %s called for effect; deleted" fn)
-	   ;; appending a nil here might not be necessary, but it can't hurt.
-	   (byte-optimize-form
-	    (cons 'progn (append (cdr form) '(nil))) t))
+      ((guard (when for-effect
+		(if-let ((tmp (get fn 'side-effect-free)))
+		    (or byte-compile-delete-errors
+		        (eq tmp 'error-free)
+		        (progn
+			  (byte-compile-warn "value returned from %s is unused"
+					     (prin1-to-string form))
+			  nil)))))
+       (byte-compile-log "  %s called for effect; deleted" fn)
+       ;; appending a nil here might not be necessary, but it can't hurt.
+       (byte-optimize-form
+	(cons 'progn (append (cdr form) '(nil))) t))
 
-	  (t
-	   ;; Otherwise, no args can be considered to be for-effect,
-	   ;; even if the called function is for-effect, because we
-	   ;; don't know anything about that function.
-	   (let ((form (cons fn (mapcar #'byte-optimize-form (cdr form)))))
-	     (if (get fn 'pure)
-		 (byte-optimize-constant-args form)
-	       form))))))
+      (_
+       ;; Otherwise, no args can be considered to be for-effect,
+       ;; even if the called function is for-effect, because we
+       ;; don't know anything about that function.
+       (let ((form (cons fn (mapcar #'byte-optimize-form (cdr form)))))
+	 (if (get fn 'pure)
+	     (byte-optimize-constant-args form)
+	   form))))))
 
 (defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
