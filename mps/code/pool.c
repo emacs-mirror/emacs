@@ -232,7 +232,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
 
   /* All PoolAllocs should advance the allocation clock, so we count */
   /* it all in the fillMutatorSize field. */
-  ArenaGlobals(PoolArena(pool))->fillMutatorSize += size;
+  ArenaGlobals(PoolArena(pool))->fillMutatorSize += (double)size;
 
   EVENT_CRITICAL3(PoolAlloc, pool, *pReturn, size);
 

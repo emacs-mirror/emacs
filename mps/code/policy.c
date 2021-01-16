@@ -148,7 +148,7 @@ static double policyCollectionTime(Arena arena)
     collectionRate = arena->tracedWork / arena->tracedTime;
   else
     collectionRate = ARENA_DEFAULT_COLLECTION_RATE;
-  collectionTime = collectableSize / collectionRate;
+  collectionTime = (double)collectableSize / collectionRate;
   collectionTime += ARENA_DEFAULT_COLLECTION_OVERHEAD;
 
   return collectionTime;
@@ -189,8 +189,8 @@ Bool PolicyShouldCollectWorld(Arena arena, double availableTime,
   collectionTime = policyCollectionTime(arena);
 
   /* How long since we last collected the world? */
-  sinceLastWorldCollect = ((now - arena->lastWorldCollect) /
-                           (double) clocks_per_sec);
+  sinceLastWorldCollect = (double)(now - arena->lastWorldCollect) /
+    (double)clocks_per_sec;
 
   /* Offered enough time, and long enough since we last did it? */
   return availableTime > collectionTime
@@ -285,11 +285,13 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
     sFoundation = (Size)0; /* condemning everything, only roots @@@@ */
     /* @@@@ sCondemned should be scannable only */
     sCondemned = ArenaCommitted(arena) - ArenaSpareCommitted(arena);
-    sSurvivors = (Size)(sCondemned * (1 - TraceWorldMortality));
-    tTracePerScan = sFoundation + (sSurvivors * (1 + TraceCopyScanRATIO));
+    sSurvivors = (Size)((double)sCondemned * (1 - TraceWorldMortality));
+    tTracePerScan = (double)sFoundation
+      + ((double)sSurvivors * (1 + TraceCopyScanRATIO));
     AVER(TraceWorkFactor >= 0);
-    AVER(sSurvivors + tTracePerScan * TraceWorkFactor <= (double)SizeMAX);
-    sConsTrace = (Size)(sSurvivors + tTracePerScan * TraceWorkFactor);
+    AVER((double)sSurvivors + tTracePerScan * TraceWorkFactor
+         <= (double)SizeMAX);
+    sConsTrace = (Size)((double)sSurvivors + tTracePerScan * TraceWorkFactor);
     dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
 
     if (dynamicDeferral < 0.0) {
@@ -330,7 +332,8 @@ Bool PolicyStartTrace(Trace *traceReturn, Bool *collectWorldReturn,
         goto failCondemn;
       if (TraceIsEmpty(trace))
         goto nothingCondemned;
-      res = TraceStart(trace, mortality, trace->condemned * TraceWorkFactor);
+      res = TraceStart(trace, mortality,
+                       (double)trace->condemned * TraceWorkFactor);
       /* We don't expect normal GC traces to fail to start. */
       AVER(res == ResOK);
       *traceReturn = trace;
@@ -384,7 +387,8 @@ Bool PolicyPollAgain(Arena arena, Clock start, Bool moreWork, Work tracedWork)
     return TRUE;
 
   /* Is there more work to do and more time to do it in? */
-  moreTime = (ClockNow() - start) < ArenaPauseTime(arena) * ClocksPerSec();
+  moreTime = (double)(ClockNow() - start)
+    < ArenaPauseTime(arena) * (double)ClocksPerSec();
   if (moreWork && moreTime)
     return TRUE;
 

@@ -45,10 +45,10 @@ void MeterAccumulate(Meter meter, Size amount)
     .stddev: stddev = sqrt(meanSquared - mean^2).
    */
   meter->count = count;
-  meter->total = total + amount;
+  meter->total = total + (double)amount;
   meter->meanSquared =
     meanSquared / dcount * (dcount - 1.0)
-    + amount / dcount * amount;
+    + (double)amount / dcount * (double)amount;
   if (amount > meter->max)
     meter->max = amount;
   if (amount < meter->min)
