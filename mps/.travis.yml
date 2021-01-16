@@ -15,10 +15,6 @@ matrix:
   exclude:
     - os: osx
       compiler: gcc
-  exclude:
-    - os: linux
-      arch: arm64
-      compiler: gcc
 notifications:
   email:
     - mps-travis@ravenbrook.com

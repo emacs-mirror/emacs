@@ -14,6 +14,7 @@ New features
 
 #. New supported platforms:
 
+   * ``lia6gc`` (Linux, ARM64, GCC).
    * ``lia6ll`` (Linux, ARM64, Clang/LLVM).
    * ``xca6ll`` (macOS, ARM64, Clang/LLVM).
 

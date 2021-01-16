@@ -385,6 +385,7 @@ fri6gc.gmk     GNU makefile for platform FRI6GC.
 fri6ll.gmk     GNU makefile for platform FRI6LL.
 gc.gmk         GNU make fragment for GCC.
 gp.gmk         GNU make fragment for GCC/GProf (broken).
+lia6gc.gmk     GNU makefile for platform LIA6GC.
 lia6ll.gmk     GNU makefile for platform LIA6LL.
 lii3gc.gmk     GNU makefile for platform LII3GC.
 lii6gc.gmk     GNU makefile for platform LII6GC.

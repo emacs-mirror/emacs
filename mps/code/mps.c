@@ -182,9 +182,9 @@
 #include "prmcfri6.c"   /* x86-64 for FreeBSD mutator context */
 #include "span.c"       /* generic stack probe */
 
-/* Linux on ARM64 with Clang */
+/* Linux on ARM64 with GCC or Clang */
 
-#elif defined(MPS_PF_LIA6LL)
+#elif defined(MPS_PF_LIA6GC) || defined(MPS_PF_LIA6LL)
 
 #include "lockix.c"     /* Posix locks */
 #include "thix.c"       /* Posix threading */
