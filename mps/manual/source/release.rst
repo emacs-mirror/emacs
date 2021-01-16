@@ -12,6 +12,8 @@ Release 1.118.0
 New features
 ............
 
+#. New supported platform ``xca6ll`` (macOS, ARM64, Clang/LLVM).
+
 #. The MPS no longer supports building for the xci3ll platform (macOS,
    IA-32, Clang/LLVM) using Xcode. This is because Xcode 10.0 no
    longer supports this platform. The platform is still supported via

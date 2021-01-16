@@ -3478,6 +3478,18 @@ $as_echo "Linux x86_64" >&6; }
       MPS_BUILD_NAME=ll
       PFMCFLAGS="$CFLAGS_LL"
     ;;
+  aarch64-*-darwin*/*)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X ARM64" >&5
+$as_echo "Mac OS X ARM64" >&6; }
+      MPS_OS_NAME=xc
+      MPS_ARCH_NAME=a6
+      MPS_BUILD_NAME=ll
+      BUILD_TARGET=build-via-xcode
+      CLEAN_TARGET=clean-xcode-build
+      INSTALL_TARGET=install-xcode-build
+      TEST_TARGET=test-xcode-build
+      PFMCFLAGS="$CFLAGS_LL"
+    ;;
   i*86-*-darwin*/*)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: Mac OS X x86" >&5
 $as_echo "Mac OS X x86" >&6; }

@@ -110,6 +110,20 @@
 #include "prmcanan.c"   /* generic architecture mutator context */
 #include "span.c"       /* generic stack probe */
 
+/* macOS on ARM64 built with Clang */
+
+#elif defined(MPS_PF_XCA6LL)
+
+#include "lockix.c"     /* Posix locks */
+#include "thxc.c"       /* macOS Mach threading */
+#include "vmix.c"       /* Posix virtual memory */
+#include "protix.c"     /* Posix protection */
+#include "protxc.c"     /* macOS Mach exception handling */
+#include "prmcanan.c"   /* generic architecture mutator context */
+#include "prmcxc.c"     /* macOS mutator context */
+#include "prmcxca6.c"   /* ARM64 for macOS mutator context */
+#include "span.c"       /* generic stack probe */
+
 /* macOS on IA-32 built with Clang or GCC */
 
 #elif defined(MPS_PF_XCI3LL) || defined(MPS_PF_XCI3GC)

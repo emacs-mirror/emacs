@@ -144,6 +144,7 @@ Platform     OS          Architecture    Compiler      Makefile
 ``lii6ll``   Linux       x86-64          Clang         ``lii6ll.gmk``
 ``w3i3mv``   Windows     IA-32           Microsoft C   ``w3i3mv.nmk``
 ``w3i6mv``   Windows     x86-64          Microsoft C   ``w3i6mv.nmk``
+``xca6ll``   macOS       ARM64           Clang         ``mps.xcodeproj``
 ``xci3ll``   macOS       IA-32           Clang         ``mps.xcodeproj``
 ``xci6ll``   macOS       x86-64          Clang         ``mps.xcodeproj``
 ==========   =========   =============   ============  =================
