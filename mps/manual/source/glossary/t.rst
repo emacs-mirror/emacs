@@ -101,8 +101,9 @@ Memory Management Glossary: T
         .. mps:specific::
 
             A :term:`bitmap` indicating which events the MPS should
-            include in the :term:`telemetry stream`. It can be read or
-            changed by calling :c:func:`mps_telemetry_control`.
+            include in the :term:`telemetry stream`. It can be read by
+            calling :c:func:`mps_telemetry_get` or changed by calling
+            :c:func:`mps_telemetry_set` or :c:func:`mps_telemetry_reset`.
 
     telemetry label
 

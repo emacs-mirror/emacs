@@ -1908,11 +1908,6 @@ const char *mps_message_gc_start_why(mps_arena_t arena,
 
 /* TODO: need to consider locking. See job003387, job003388. */
 
-mps_word_t mps_telemetry_control(mps_word_t resetMask, mps_word_t flipMask)
-{
-  return EventControl((Word)resetMask, (Word)flipMask);
-}
-
 void mps_telemetry_set(mps_word_t setMask)
 {
   (void)EventControl((Word)setMask, (Word)setMask);
