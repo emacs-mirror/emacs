@@ -35,6 +35,7 @@
  "Cham" '((charset unicode)
 	      (coding-system utf-8)
 	      (coding-priority utf-8)
+              (input-method . "cham")
               (sample-text . "Cham (ꨌꩌ)\tꨦꨤꩌ ꨦꨰꨁ")
               (documentation . "\
 The Cham script is a Brahmic script used to write Cham,
