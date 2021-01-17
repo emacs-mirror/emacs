@@ -94,6 +94,11 @@ default:
     paths: []
       # - "test/**/*.log"
       # - "**/*.log"
+  # using the variables for each job
+  script:
+    - docker pull ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA}
+    # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
+    - docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA} make ${make_params}
 
 .build-template:
   script:
@@ -126,12 +131,6 @@ default:
         - test/infra/*
         - test/lisp/autorevert-tests.el
         - test/lisp/filenotify-tests.el
-
-  # using the variables for each job
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA}
-    # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
-    - docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA} make ${make_params}
 
 stages:
   - prep-images
