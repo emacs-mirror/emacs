@@ -246,11 +246,17 @@ endef
 
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
-# Get the tests for only a specific directory
-NET_TESTS := $(patsubst %.el,%,$(wildcard lisp/net/*.el))
-LISP_TESTS := $(patsubst %.el,%,$(wildcard lisp/*.el))
-check-net: ${NET_TESTS}
-check-lisp: ${LISP_TESTS}
+## Get the tests for only a specific directory.
+SUBDIRS = $(sort $(shell find lisp src -type d ! -path "*resources*" -print))
+
+define subdir_template
+  .PHONY: check-$(subst /,-,$(1))
+  check-$(subst /,-,$(1)):
+	@${MAKE} check LOGFILES="$(patsubst %.el,%.log, \
+		$(patsubst $(srcdir)/%,%,$(wildcard $(1)/*.el)))"
+endef
+
+$(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
 
 ifeq (@HAVE_MODULES@, yes)
 # -fPIC is a no-op on Windows, but causes a compiler warning
@@ -318,10 +324,10 @@ check-doit:
 ifeq ($(TEST_INTERACTIVE), yes)
 	HOME=$(TEST_HOME) $(emacs) \
 	  -l ert ${ert_opts} \
-	  $(patsubst %,-l %,$(if $(findstring $(TEST_LOAD_EL),yes),$ELFILES,$(ELFILES:.el=)))  \
+	  $(patsubst %,-l %,$(if $(findstring $(TEST_LOAD_EL),yes),$ELFILES,$(ELFILES:.el=))) \
 	  $(TEST_RUN_ERT)
 else
-	-@${MAKE} -k  ${LOGFILES}
+	-@${MAKE} -k ${LOGFILES}
 	@$(emacs) --batch -l ert --eval \
 	"(ert-summarize-tests-batch-and-exit ${SUMMARIZE_TESTS})" ${LOGFILES}
 endif

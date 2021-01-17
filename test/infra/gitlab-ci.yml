@@ -182,12 +182,12 @@ test-lisp-inotify:
     target: emacs-inotify
     make_params: "-C test check-lisp"
 
-test-net-inotify:
+test-lisp-net-inotify:
   stage: normal
   extends: [.job-template, .test-template]
   variables:
     target: emacs-inotify
-    make_params: "-C test check-net"
+    make_params: "-C test check-lisp-net"
 
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
