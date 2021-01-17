@@ -3668,7 +3668,8 @@ Return the trampoline if found or nil otherwise."
 ;;;###autoload
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
-  (unless (or (memq subr-name comp-never-optimize-functions)
+  (unless (or (null comp-enable-subr-trampolines)
+              (memq subr-name comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
     (comp--install-trampoline
