@@ -734,5 +734,58 @@ Return nil if that can't be determined."
                 (match-string-no-properties 1))))))
   process-tests--EMFILE-message)
 
+(ert-deftest process-tests/sentinel-called ()
+  "Check that sentinels are called after processes finish"
+  (let ((echo (executable-find "echo")))
+    (skip-unless echo)
+    (dolist (conn-type '(pipe pty))
+      (ert-info ((format "Connection type: %s" conn-type))
+        (process-tests--with-processes processes
+          (let* ((calls ())
+                 (process (make-process
+                           :name "echo"
+                           :command (list echo "first")
+                           :noquery t
+                           :connection-type conn-type
+                           :coding 'utf-8-unix
+                           :sentinel (lambda (process message)
+                                       (push (list process message)
+                                             calls)))))
+            (push process processes)
+            (while (accept-process-output process))
+            (should (equal calls
+                           (list (list process "finished\n"))))))))))
+
+(ert-deftest process-tests/sentinel-with-multiple-processes ()
+  "Check that sentinels are called in time even when other processes
+have written output."
+  (let ((echo (executable-find "echo"))
+        (bash (executable-find "bash")))
+    (skip-unless echo)
+    (skip-unless bash)
+    (dolist (conn-type '(pipe pty))
+      (ert-info ((format "Connection type: %s" conn-type))
+        (process-tests--with-processes processes
+          (let* ((calls ())
+                 (process (make-process
+                           :name "echo"
+                           :command (list echo "first")
+                           :noquery t
+                           :connection-type conn-type
+                           :coding 'utf-8-unix
+                           :sentinel (lambda (process message)
+                                       (push (list process message)
+                                             calls)))))
+            (push process processes)
+            (push (make-process
+                   :name "bash"
+                   :command (list bash "-c" "sleep 10 && echo second")
+                   :noquery t
+                   :connection-type conn-type)
+                  processes)
+            (while (accept-process-output process))
+            (should (equal calls
+                           (list (list process "finished\n"))))))))))
+
 (provide 'process-tests)
 ;;; process-tests.el ends here
