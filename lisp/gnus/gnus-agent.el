@@ -3627,7 +3627,7 @@ has been fetched."
 	  (when fetched-headers
 	    (setq headers
 		  (delete-dups
-		   (sort (append headers fetched-headers)
+		   (sort (append headers (copy-sequence fetched-headers))
 			 (lambda (l r)
 			   (< (mail-header-number l)
 			      (mail-header-number r))))))
@@ -3636,8 +3636,14 @@ has been fetched."
 	    (let ((coding-system-for-write
 		   gnus-agent-file-coding-system))
 	      (with-current-buffer gnus-agent-overview-buffer
+		;; We stick the new headers in at the end, then
+		;; re-sort the whole buffer with
+		;; `sort-numeric-fields'.  If this turns out to be
+		;; slow, we could consider a loop to add the headers
+		;; in sorted order to begin with.
 		(goto-char (point-max))
 		(mapc #'nnheader-insert-nov fetched-headers)
+		(sort-numeric-fields 1 (point-min) (point-max))
 		(gnus-agent-check-overview-buffer)
 		(write-region (point-min) (point-max) file nil 'silent)
 		(gnus-agent-update-view-total-fetched-for group t)
