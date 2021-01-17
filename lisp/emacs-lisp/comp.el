@@ -175,7 +175,6 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-ipa-pure
                         comp-add-cstrs
                         comp-fwprop
-                        comp-dead-code
                         comp-tco
                         comp-fwprop
                         comp-remove-type-hints
@@ -3130,6 +3129,7 @@ Return t if something was changed."
 (defun comp-fwprop (_)
   "Forward propagate types and consts within the lattice."
   (comp-ssa)
+  (comp-dead-code)
   (maphash (lambda (_ f)
              (when (and (>= (comp-func-speed f) 2)
                         ;; FIXME remove the following condition when tested.
@@ -3302,7 +3302,7 @@ Return the list of m-var ids nuked."
                                            insn))))))))
       nuke-list)))
 
-(defun comp-dead-code (_)
+(defun comp-dead-code ()
   "Dead code elimination."
   (maphash (lambda (_ f)
              (when (and (>= (comp-func-speed f) 2)
