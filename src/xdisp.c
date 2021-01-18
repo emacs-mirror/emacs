@@ -9285,8 +9285,8 @@ move_it_in_display_line_to (struct it *it,
 	      if (may_wrap && char_can_wrap_before (it))
 		{
 		  /* We have reached a glyph that follows one or more
-		     whitespace characters or a character that allows
-		     wrapping after it.  If this character allows
+		     whitespace characters or characters that allow
+		     wrapping after them.  If this character allows
 		     wrapping before it, save this position as a
 		     wrapping point.  */
 		  if (atpos_it.sp >= 0)
@@ -9303,7 +9303,6 @@ move_it_in_display_line_to (struct it *it,
 		    }
 		  /* Otherwise, we can wrap here.  */
 		  SAVE_IT (wrap_it, *it, wrap_data);
-                  next_may_wrap = false;
 		}
               /* Update may_wrap for the next iteration.  */
               may_wrap = next_may_wrap;
@@ -10650,9 +10649,10 @@ include the height of both, if present, in the return value.  */)
       bpos = BEGV_BYTE;
       while (bpos < ZV_BYTE)
 	{
-	  c = fetch_char_advance (&start, &bpos);
+	  c = FETCH_BYTE (bpos);
 	  if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
 	    break;
+	  inc_both (&start, &bpos);
 	}
       while (bpos > BEGV_BYTE)
 	{
@@ -10681,7 +10681,10 @@ include the height of both, if present, in the return value.  */)
 	  dec_both (&end, &bpos);
 	  c = FETCH_BYTE (bpos);
 	  if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r'))
-	    break;
+            {
+	      inc_both (&end, &bpos);
+	      break;
+            }
 	}
       while (bpos < ZV_BYTE)
 	{

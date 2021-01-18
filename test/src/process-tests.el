@@ -28,6 +28,7 @@
 (require 'puny)
 (require 'rx)
 (require 'subr-x)
+(require 'dns)
 
 ;; Timeout in seconds; the test fails if the timeout is reached.
 (defvar process-test-sentinel-wait-timeout 2.0)
@@ -350,14 +351,23 @@ See Bug#30460."
 ;; All the following tests require working DNS, which appears not to
 ;; be the case for hydra.nixos.org, so disable them there for now.
 
+;; This will need updating when IANA assign more IPv6 global ranges.
+(defun ipv6-is-available ()
+  (and (featurep 'make-network-process '(:family ipv6))
+       (cl-rassoc-if
+        (lambda (elt)
+          (and (eq 9 (length elt))
+               (= (logand (aref elt 0) #xe000) #x2000)))
+        (network-interface-list))))
+
 (ert-deftest lookup-family-specification ()
   "`network-lookup-address-info' should only accept valid family symbols."
   (skip-unless (not (getenv "EMACS_HYDRA_CI")))
   (with-timeout (60 (ert-fail "Test timed out"))
-  (should-error (network-lookup-address-info "google.com" 'both))
-  (should (network-lookup-address-info "google.com" 'ipv4))
-  (when (featurep 'make-network-process '(:family ipv6))
-    (should (network-lookup-address-info "google.com" 'ipv6)))))
+  (should-error (network-lookup-address-info "localhost" 'both))
+  (should (network-lookup-address-info "localhost" 'ipv4))
+  (when (ipv6-is-available)
+    (should (network-lookup-address-info "localhost" 'ipv6)))))
 
 (ert-deftest lookup-unicode-domains ()
   "Unicode domains should fail."
@@ -380,7 +390,8 @@ See Bug#30460."
         (addresses-v4 (network-lookup-address-info "google.com" 'ipv4)))
     (should addresses-both)
     (should addresses-v4))
-  (when (featurep 'make-network-process '(:family ipv6))
+  (when (and (ipv6-is-available)
+             (dns-query "google.com" 'AAAA))
     (should (network-lookup-address-info "google.com" 'ipv6)))))
 
 (ert-deftest non-existent-lookup-failure ()

@@ -620,8 +620,8 @@ Done before generating the new subject of a forward."
 
 (defcustom message-forward-ignored-headers "^Content-Transfer-Encoding:\\|^X-Gnus"
   "All headers that match this regexp will be deleted when forwarding a message.
-This variable is only consulted when forwarding \"normally\", not
-when forwarding as MIME or the like.
+This variable is not consulted when forwarding encrypted messages
+and `message-forward-show-mml' is `best'.
 
 This may also be a list of regexps."
   :version "21.1"
@@ -7638,7 +7638,8 @@ Optional DIGEST will use digest to forward."
 	   message-forward-included-headers)
 	 t nil t)))))
 
-(defun message-forward-make-body-mime (forward-buffer &optional beg end)
+(defun message-forward-make-body-mime (forward-buffer &optional beg end
+						      remove-headers)
   (let ((b (point)))
     (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")
     (save-restriction
@@ -7648,6 +7649,8 @@ Optional DIGEST will use digest to forward."
       (goto-char (point-min))
       (when (looking-at "From ")
 	(replace-match "X-From-Line: "))
+      (when remove-headers
+	(message-remove-ignored-headers (point-min) (point-max)))
       (goto-char (point-max)))
     (insert "<#/part>\n")
     ;; Consider there is no illegible text.
@@ -7786,7 +7789,8 @@ is for the internal use."
 				 (message-signed-or-encrypted-p)
 			       (error t))))))
 	    (message-forward-make-body-mml forward-buffer)
-	  (message-forward-make-body-mime forward-buffer))
+	  (message-forward-make-body-mime
+	   forward-buffer nil nil (not (eq message-forward-show-mml 'best))))
       (message-forward-make-body-plain forward-buffer)))
   (message-position-point))
 

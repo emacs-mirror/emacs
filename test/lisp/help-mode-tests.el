@@ -72,14 +72,19 @@ Lisp concepts such as car, cdr, cons cell and list.")
                   #'info)))))
 
 (ert-deftest help-mode-tests-xref-button ()
-  (with-temp-buffer
-    (insert "See also the function ‘interactive’.")
-    (string-match help-xref-symbol-regexp (buffer-string))
-    (help-xref-button 8 'help-function)
-    (should-not (button-at 22))
-    (should-not (button-at 35))
-    (let ((button (button-at 30)))
-      (should (eq (button-type button) 'help-function)))))
+  (let* ((fmt "See also the function ‘%s’.")
+         ;; 1+ translates string index to buffer position.
+         (beg (1+ (string-search "%" fmt))))
+    (with-temp-buffer
+      (dolist (fn '(interactive \` = + - * / %))
+        (erase-buffer)
+        (insert (format fmt fn))
+        (goto-char (point-min))
+        (re-search-forward help-xref-symbol-regexp)
+        (help-xref-button 8 'help-function)
+        (should-not (button-at (1- beg)))
+        (should-not (button-at (+ beg (length (symbol-name fn)))))
+        (should (eq (button-type (button-at beg)) 'help-function))))))
 
 (ert-deftest help-mode-tests-insert-xref-button ()
   (with-temp-buffer

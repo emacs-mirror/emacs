@@ -487,7 +487,7 @@ What happens depends on the number of mouse clicks:-
 Signal an error if the final event isn't the same type as the first one."
   (let ((initial-event-type (event-basic-type event)))
     (while (null (sit-for (/ double-click-time 1000.0) 'nodisplay))
-      (setq event (read-event)))
+      (setq event (read--potential-mouse-event)))
     (or (eq initial-event-type (event-basic-type event))
 	(error "")))
   event)

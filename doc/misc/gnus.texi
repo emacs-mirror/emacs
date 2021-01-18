@@ -20195,7 +20195,7 @@ Phu.
 For example, to do hierarchical scoring but use a non-server-specific
 overall score file, you could use the value
 @example
-(list (lambda (group) ("all.SCORE"))
+(list (lambda (group) (list "all.SCORE"))
       'gnus-score-find-hierarchical)
 @end example
 

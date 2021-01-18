@@ -1,5 +1,5 @@
 /* Compile elisp into native code.
-   Copyright (C) 2019-2020 Free Software Foundation, Inc.
+   Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 Author: Andrea Corallo <akrl@sdf.org>
 
@@ -5269,8 +5269,8 @@ The last directory of this list is assumed to be the system one.  */);
   Vcomp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
   DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
-	       doc: /* If non-nil, enable trampoline synthesis triggered by `fset'.
-This makes primitives redefinable effectively.  */);
+	       doc: /* If non-nil enable primitive trampoline synthesis.
+This makes primitive functions redefinable or advisable effectively.  */);
 
   DEFVAR_LISP ("comp-installed-trampolines-h", Vcomp_installed_trampolines_h,
 	       doc: /* Hash table subr-name -> installed trampoline.

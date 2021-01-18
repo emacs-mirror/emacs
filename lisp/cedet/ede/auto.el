@@ -64,24 +64,22 @@ location is varied dependent on other complex criteria, this class
 can be used to define that match without loading the specific project
 into memory.")
 
+(cl-defmethod ede-calc-fromconfig ((dirmatch ede-project-autoload-dirmatch))
+  "Calculate the value of :fromconfig from DIRMATCH."
+  (let* ((fc (oref dirmatch fromconfig))
+	 (found (cond ((stringp fc) fc)
+		      ((functionp fc) (funcall fc))
+		      (t (error "Unknown dirmatch object match style.")))))
+    (expand-file-name found)
+    ))
+
 (cl-defmethod ede-dirmatch-installed ((dirmatch ede-project-autoload-dirmatch))
   "Return non-nil if the tool DIRMATCH might match is installed on the system."
-  (let ((fc (oref dirmatch fromconfig)))
-
-    (cond
-     ;; If the thing to match is stored in a config file.
-     ((stringp fc)
-      (file-exists-p fc))
-
-     ;; Add new types of dirmatches here.
-
-     ;; Error for weird stuff
-     (t (error "Unknown dirmatch type.")))))
-
+  (file-exists-p (ede-calc-fromconfig dirmatch)))
 
 (cl-defmethod ede-do-dirmatch ((dirmatch ede-project-autoload-dirmatch) file)
   "Does DIRMATCH match the filename FILE."
-  (let ((fc (oref dirmatch fromconfig)))
+  (let ((fc (ede-calc-fromconfig dirmatch)))
 
     (cond
      ;; If the thing to match is stored in a config file.

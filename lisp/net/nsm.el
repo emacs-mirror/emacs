@@ -239,7 +239,7 @@ otherwise."
         (mapc
          (lambda (info)
            (let ((local-ip (nth 1 info))
-                 (mask (nth 2 info)))
+                 (mask (nth 3 info)))
              (when
                  (nsm-network-same-subnet (substring local-ip 0 -1)
                                           (substring mask 0 -1)

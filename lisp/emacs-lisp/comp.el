@@ -175,7 +175,6 @@ Can be one of: 'd-default', 'd-impure' or 'd-ephemeral'.  See `comp-ctxt'.")
                         comp-ipa-pure
                         comp-add-cstrs
                         comp-fwprop
-                        comp-dead-code
                         comp-tco
                         comp-fwprop
                         comp-remove-type-hints
@@ -2926,6 +2925,11 @@ Return t when one or more block was removed, nil otherwise."
 ;; This is also responsible for removing function calls to pure functions if
 ;; possible.
 
+(defconst comp-fwprop-max-insns-scan 4500
+  ;; Choosen as ~ the greatest required value for full convergence
+  ;; native compiling all Emacs codebase.
+  "Max number of scanned insn before giving-up.")
+
 (defun comp-copy-insn (insn)
   "Deep copy INSN."
   ;; Adapted from `copy-tree'.
@@ -3086,7 +3090,9 @@ Fold the call in case."
 (defun comp-fwprop* ()
   "Propagate for set* and phi operands.
 Return t if something was changed."
-  (cl-loop with modified = nil
+  (cl-loop named outer
+           with modified = nil
+           with i = 0
            for b being each hash-value of (comp-func-blocks comp-func)
            do (cl-loop
                with comp-block = b
@@ -3094,9 +3100,13 @@ Return t if something was changed."
                for orig-insn = (unless modified
                                  ;; Save consing after 1th change.
                                  (comp-copy-insn insn))
-               do (comp-fwprop-insn insn)
+               do
+               (comp-fwprop-insn insn)
+               (cl-incf i)
                when (and (null modified) (not (equal insn orig-insn)))
                  do (setf modified t))
+               when (> i comp-fwprop-max-insns-scan)
+                 do (cl-return-from outer nil)
            finally return modified))
 
 (defun comp-rewrite-non-locals ()
@@ -3119,6 +3129,7 @@ Return t if something was changed."
 (defun comp-fwprop (_)
   "Forward propagate types and consts within the lattice."
   (comp-ssa)
+  (comp-dead-code)
   (maphash (lambda (_ f)
              (when (and (>= (comp-func-speed f) 2)
                         ;; FIXME remove the following condition when tested.
@@ -3291,7 +3302,7 @@ Return the list of m-var ids nuked."
                                            insn))))))))
       nuke-list)))
 
-(defun comp-dead-code (_)
+(defun comp-dead-code ()
   "Dead code elimination."
   (maphash (lambda (_ f)
              (when (and (>= (comp-func-speed f) 2)
@@ -3668,7 +3679,8 @@ Return the trampoline if found or nil otherwise."
 ;;;###autoload
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
-  (unless (or (memq subr-name comp-never-optimize-functions)
+  (unless (or (null comp-enable-subr-trampolines)
+              (memq subr-name comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
     (comp--install-trampoline
@@ -3802,6 +3814,8 @@ display a message."
                    source-file (comp-el-to-eln-filename source-file)))
          do (let* ((expr `(progn
                             (require 'comp)
+                            ,(when (boundp 'backtrace-line-length)
+                               `(setf backtrace-line-length ,backtrace-line-length))
                             (setf comp-speed ,comp-speed
                                   comp-debug ,comp-debug
                                   comp-verbose ,comp-verbose

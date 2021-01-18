@@ -929,7 +929,8 @@ the name of the init-file to load.  If this file cannot be
 loaded, and ALTERNATE-FILENAME-FUNCTION is non-nil, then it is
 called with no arguments and should return the name of an
 alternate init-file to load.  If LOAD-DEFAULTS is non-nil, then
-load default.el after the init-file.
+load default.el after the init-file, unless `inhibit-default-init'
+is non-nil.
 
 This function sets `user-init-file' to the name of the loaded
 init-file, or to a default value if loading is not possible."
@@ -985,8 +986,8 @@ init-file, or to a default value if loading is not possible."
                     (sit-for 1))
                   (setq user-init-file source))))
 
-            (when load-defaults
-
+            (when (and load-defaults
+                       (not inhibit-default-init))
               ;; Prevent default.el from changing the value of
               ;; `inhibit-startup-screen'.
               (let ((inhibit-startup-screen nil))
@@ -1174,12 +1175,11 @@ please check its value")
 
   ;; Re-evaluate predefined variables whose initial value depends on
   ;; the runtime context.
-  (let (current-load-list) ; c-r-s may call defvar, and hence LOADHIST_ATTACH
-    (setq custom-delayed-init-variables
-          ;; Initialize them in the same order they were loaded, in case there
-          ;; are dependencies between them.
-          (nreverse custom-delayed-init-variables))
-    (mapc 'custom-reevaluate-setting custom-delayed-init-variables))
+  (setq custom-delayed-init-variables
+        ;; Initialize them in the same order they were loaded, in case there
+        ;; are dependencies between them.
+        (nreverse custom-delayed-init-variables))
+  (mapc #'custom-reevaluate-setting custom-delayed-init-variables)
 
   ;; Warn for invalid user name.
   (when init-file-user
@@ -1296,8 +1296,7 @@ please check its value")
     (if (or noninteractive emacs-basic-display)
 	(setq menu-bar-mode nil
 	      tab-bar-mode nil
-	      tool-bar-mode nil
-	      no-blinking-cursor t))
+	      tool-bar-mode nil))
     (frame-initialize))
 
   (when (fboundp 'x-create-frame)
@@ -1306,15 +1305,6 @@ please check its value")
     (unless noninteractive
       (tool-bar-setup)))
 
-  ;; Turn off blinking cursor if so specified in X resources.  This is here
-  ;; only because all other settings of no-blinking-cursor are here.
-  (unless (or noninteractive
-	      emacs-basic-display
-	      (and (memq window-system '(x w32 ns pgtk))
-		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
-				'("no" "off" "false" "0")))))
-    (setq no-blinking-cursor t))
-
   (unless noninteractive
     (startup--setup-quote-display)
     (setq internal--text-quoting-flag t))
@@ -1322,9 +1312,8 @@ please check its value")
   ;; Re-evaluate again the predefined variables whose initial value
   ;; depends on the runtime context, in case some of them depend on
   ;; the window-system features.  Example: blink-cursor-mode.
-  (let (current-load-list) ; c-r-s may call defvar, and hence LOADHIST_ATTACH
-    (mapc 'custom-reevaluate-setting custom-delayed-init-variables)
-    (setq custom-delayed-init-variables nil))
+  (mapc #'custom-reevaluate-setting custom-delayed-init-variables)
+  (setq custom-delayed-init-variables nil)
 
   (normal-erase-is-backspace-setup-frame)
 
@@ -1382,7 +1371,7 @@ please check its value")
        (expand-file-name
         "init.el"
         startup-init-directory))
-     (not inhibit-default-init))
+     t)
 
     (when (and deactivate-mark transient-mark-mode)
       (with-current-buffer (window-buffer)

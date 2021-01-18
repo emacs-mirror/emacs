@@ -33,26 +33,21 @@ build-zips.sh file will create this for you.
 A location for the dependencies. This needs to contain two zip files
 with the dependencies. build-dep-zips.py will create these files for you.
 
-~/emacs-build/deps/libXpm/i686
-~/emacs-build/deps/libXpm/x86_64
+~/emacs-build/deps/libXpm
 
 Contain libXpm-noX4.dll. This file is used to load images for the
 splash screen, menu items and so on. Emacs runs without it, but looks
-horrible. The x86_64 comes from msys2, while the i686 comes from
-ezwinports because it itself has no dependencies. These have to be
-placed manually (but probably never need updating).
+horrible. The files came original from msys2, and contains no
+dependencies. It has to be placed manually (but probably never
+need updating).
 
-
-~/emacs-build/build/$version/i686
-~/emacs-build/build/$version/x86_64
+~/emacs-build/build/$version
 
 We build Emacs out-of-source here. This directory is created by
 build-zips.sh. This directory can be freely deleted after zips have
 been created
 
-
-~/emacs-build/install/$version/i686
-~/emacs-build/install/$version/x86_64
+~/emacs-build/install/$version
 
 We install Emacs here. This directory is created by build-zips.sh.
 This directory can and *should* be deleted after zips have been
@@ -79,9 +74,9 @@ To do this:
 
 Update msys to the latest version with `pacman -Syu`.
 
-Then run build-dep-zips.py, in the ~/emacs-build/deps directory. Three
-zips will be created, containing the 64bit and 32bit dependencies, as
-well as the source for these.
+Then run build-dep-zips.py, in the ~/emacs-build/deps directory. Two
+zips will be created, containing the dependencies, as well as the
+source for these.
 
 For emacs release or pre-test version:
 
@@ -105,12 +100,12 @@ To do this:
 
 Update msys to the latest version with `pacman -Syu`.
 
-Then run build-dep-zips.py, in ~/emacs-build/deps directory. Three
-zips will be created, containing the 64bit and 32bit dependencies, as
-well as the source for these. These deps files contain the date of
-creation in their name. The deps file can be reused as desired, or a
-new version created. Where multiple deps files exist, the most
-recent will be used.
+Then run build-dep-zips.py, in ~/emacs-build/deps directory. Two zips
+will be created, containing the dependencies, as well as the source
+for these. These deps files contain the date of creation in their
+name. The deps file can be reused as desired, or a new version
+created. Where multiple deps files exist, the most recent will be
+used.
 
 Now, run `build-zips.sh -s` to build a snapshot release.
 
@@ -134,4 +129,5 @@ For snapshots from another branch
 Snapshots can be build from any other branch.  There is rarely a need
 to do this, except where some significant, wide-ranging feature is
 being added on a feature branch.  In this case, the branch can be
-given using `build-zips.sh -b pdumper -s` for example.
+given using `build-zips.sh -b pdumper -s` for example. Any "/"
+characters in the branch title are replaced.

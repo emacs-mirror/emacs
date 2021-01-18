@@ -262,11 +262,12 @@ keyboard input to go into icons."
   (let (event)
     (message
      "Select windows by clicking.  Please click on Window %d " wind-number)
-    (while (not (ediff-mouse-event-p (setq event (read-event))))
+    (while (not (ediff-mouse-event-p (setq event
+                                           (read--potential-mouse-event))))
       (if (sit-for 1) ; if sequence of events, wait till the final word
 	  (beep 1))
       (message "Please click on Window %d " wind-number))
-    (read-event) ; discard event
+    (read--potential-mouse-event) ; discard event
     (posn-window (event-start event))))
 
 

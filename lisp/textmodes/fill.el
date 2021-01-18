@@ -743,9 +743,16 @@ space does not end a sentence, so don't break a line there."
 
 	;; This is the actual filling loop.
 	(goto-char from)
-	(let (linebeg)
+	(let ((first t)
+              linebeg)
 	  (while (< (point) to)
-	    (setq linebeg (point))
+            ;; On the first line, there may be text in the fill prefix
+            ;; zone.  In that case, don't consider that area when
+            ;; trying to find a place to put a line break (bug#45720).
+            (if (not first)
+	        (setq linebeg (point))
+              (setq first nil
+                    linebeg (+ (point) (length fill-prefix))))
 	    (move-to-column (current-fill-column))
 	    (if (when (< (point) to)
 		  ;; Find the position where we'll break the line.

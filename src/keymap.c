@@ -1646,39 +1646,6 @@ specified buffer position instead of point are used.
 
 /* GC is possible in this function if it autoloads a keymap.  */
 
-DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 2, 0,
-       doc: /* Return the binding for command KEYS in current local keymap only.
-KEYS is a string or vector, a sequence of keystrokes.
-The binding is probably a symbol with a function definition.
-
-If optional argument ACCEPT-DEFAULT is non-nil, recognize default
-bindings; see the description of `lookup-key' for more details about this.  */)
-  (Lisp_Object keys, Lisp_Object accept_default)
-{
-  register Lisp_Object map = BVAR (current_buffer, keymap);
-  if (NILP (map))
-    return Qnil;
-  return Flookup_key (map, keys, accept_default);
-}
-
-/* GC is possible in this function if it autoloads a keymap.  */
-
-DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
-       doc: /* Return the binding for command KEYS in current global keymap only.
-KEYS is a string or vector, a sequence of keystrokes.
-The binding is probably a symbol with a function definition.
-This function's return values are the same as those of `lookup-key'
-\(which see).
-
-If optional argument ACCEPT-DEFAULT is non-nil, recognize default
-bindings; see the description of `lookup-key' for more details about this.  */)
-  (Lisp_Object keys, Lisp_Object accept_default)
-{
-  return Flookup_key (current_global_map, keys, accept_default);
-}
-
-/* GC is possible in this function if it autoloads a keymap.  */
-
 DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 2, 0,
        doc: /* Find the visible minor mode bindings of KEY.
 Return an alist of pairs (MODENAME . BINDING), where MODENAME is
@@ -3253,8 +3220,6 @@ be preferred.  */);
   defsubr (&Scopy_keymap);
   defsubr (&Scommand_remapping);
   defsubr (&Skey_binding);
-  defsubr (&Slocal_key_binding);
-  defsubr (&Sglobal_key_binding);
   defsubr (&Sminor_mode_key_binding);
   defsubr (&Sdefine_key);
   defsubr (&Slookup_key);

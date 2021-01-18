@@ -1104,7 +1104,7 @@ If nothing was called, return non-nil."
 		  (unless (widget-apply button :mouse-down-action event)
 		    (let ((track-mouse t))
 		      (while (not (widget-button-release-event-p event))
-		        (setq event (read-event))
+                        (setq event (read--potential-mouse-event))
 		        (when (and mouse-1 (mouse-movement-p event))
 			  (push event unread-command-events)
 			  (setq event oevent)
@@ -1169,7 +1169,7 @@ If nothing was called, return non-nil."
 	    (when up
 	      ;; Don't execute up events twice.
 	      (while (not (widget-button-release-event-p event))
-		(setq event (read-event))))
+		(setq event (read--potential-mouse-event))))
 	    (when command
 	      (call-interactively command)))))
     (message "You clicked somewhere weird.")))
@@ -3486,14 +3486,16 @@ It reads a directory name from an editable text field."
   :help-echo "C-q: insert KEY, EVENT, or CODE; RET: enter value"
   :tag "Key sequence")
 
+;; FIXME: Consider combining this with help--read-key-sequence which
+;; can also read double and triple mouse events.
 (defun widget-key-sequence-read-event (ev)
   (interactive (list
 		(let ((inhibit-quit t) quit-flag)
-		  (read-event "Insert KEY, EVENT, or CODE: "))))
+		  (read-key "Insert KEY, EVENT, or CODE: " t))))
   (let ((ev2 (and (memq 'down (event-modifiers ev))
-		  (read-event)))
-	(tr (and (keymapp function-key-map)
-		 (lookup-key function-key-map (vector ev)))))
+		  (read-key nil t)))
+	(tr (and (keymapp local-function-key-map)
+		 (lookup-key local-function-key-map (vector ev)))))
     (when (and (integerp ev)
 	       (or (and (<= ?0 ev) (< ev (+ ?0 (min 10 read-quoted-char-radix))))
 		   (and (<= ?a (downcase ev))

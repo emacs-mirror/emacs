@@ -50,14 +50,14 @@
     (insert "proc notinthis {} {\n  # nothing\n}\n\n")
     (should-not (add-log-current-defun))))
 
-(ert-deftest tcl-mode-function-name ()
+(ert-deftest tcl-mode-function-name-2 ()
   (with-temp-buffer
     (tcl-mode)
     (insert "proc simple {} {\n  # nothing\n}")
     (backward-char 3)
     (should (equal "simple" (add-log-current-defun)))))
 
-(ert-deftest tcl-mode-function-name ()
+(ert-deftest tcl-mode-function-name-3 ()
   (with-temp-buffer
     (tcl-mode)
     (insert "proc inthis {} {\n  # nothing\n")
@@ -68,6 +68,16 @@
   (with-temp-buffer
     (tcl-mode)
     (let ((text "namespace eval Foo {\n    variable foo\n}\n"))
+      (insert text)
+      (indent-region (point-min) (point-max))
+      (should (equal (buffer-string) text)))))
+
+;; From bug#44834
+(ert-deftest tcl-mode-namespace-indent-2 ()
+  :expected-result :failed
+  (with-temp-buffer
+    (tcl-mode)
+    (let ((text "namespace eval Foo {\n    proc foo {} {}\n\n    proc bar {}{}}\n"))
       (insert text)
       (indent-region (point-min) (point-max))
       (should (equal (buffer-string) text)))))

@@ -57,6 +57,13 @@ incremental search, @kbd{C-g} behaves specially; it may take two
 successive @kbd{C-g} characters to get out of a search.
 @xref{Incremental Search}, for details.
 
+  If you type @kbd{C-g} in a minibuffer, this quits the command that
+opened that minibuffer, closing it.  If that minibuffer is not the
+most recently opened one (which can happen when
+@code{minibuffer-follows-selected-frame} is @code{nil} (@pxref{Basic
+Minibuffer})), @kbd{C-g} also closes the more recently opened ones,
+quitting their associated commands, after asking you for confirmation.
+
   On MS-DOS, the character @kbd{C-@key{Break}} serves as a quit character
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
 recognize @kbd{C-g} while a command is running, between interactions

@@ -5460,7 +5460,7 @@ pdumper_load (const char *dump_filename, char *argv0, char const *original_pwd)
   eassert (!dump_loaded_p ());
 
   int err;
-  int dump_fd = emacs_open (dump_filename, O_RDONLY, 0);
+  int dump_fd = emacs_open_noquit (dump_filename, O_RDONLY, 0);
   if (dump_fd < 0)
     {
       err = (errno == ENOENT || errno == ENOTDIR

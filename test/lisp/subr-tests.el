@@ -87,6 +87,17 @@
   ;; Returns the symbol.
   (should (eq (define-prefix-command 'foo-bar) 'foo-bar)))
 
+(ert-deftest subr-test-local-key-binding ()
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (should (keymapp (local-key-binding [menu-bar])))
+    (should-not (local-key-binding [f12]))))
+
+(ert-deftest subr-test-global-key-binding ()
+  (should (eq (global-key-binding [f1]) 'help-command))
+  (should (eq (global-key-binding "x") 'self-insert-command))
+  (should-not (global-key-binding [f12])))
+
 
 ;;;; Mode hooks.
 

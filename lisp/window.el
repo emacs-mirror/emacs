@@ -1736,9 +1736,11 @@ interpret DELTA as pixels."
   (setq window (window-normalize-window window))
   (cond
    ((< delta 0)
-    (max (- (window-min-size window horizontal ignore pixelwise)
-	    (window-size window horizontal pixelwise))
-	 delta))
+    (let ((min-size (window-min-size window horizontal ignore pixelwise))
+          (size (window-size window horizontal pixelwise)))
+      (if (<= size min-size)
+          0
+        (max (- min-size size) delta))))
    ((> delta 0)
     (if (window-size-fixed-p window horizontal ignore)
 	0
@@ -4116,7 +4118,10 @@ frame can be safely deleted."
 				     frame))
 			(throw 'other t))))
 		  (let ((minibuf (active-minibuffer-window)))
-		    (and minibuf (eq frame (window-frame minibuf)))))
+		    (and minibuf (eq frame (window-frame minibuf))
+                         (not (eq (default-toplevel-value
+                                    minibuffer-follows-selected-frame)
+                                  t)))))
 	'frame))
      ((window-minibuffer-p window)
       ;; If WINDOW is the minibuffer window of a non-minibuffer-only

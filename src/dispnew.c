@@ -6049,7 +6049,14 @@ additional wait period, in milliseconds; this is for backwards compatibility.
    READING is true if reading input.
    If DISPLAY_OPTION is >0 display process output while waiting.
    If DISPLAY_OPTION is >1 perform an initial redisplay before waiting.
-*/
+
+   Returns a boolean Qt if we waited the full time and returns Qnil if the
+   wait was interrupted by incoming process output or keyboard events.
+
+   FIXME: When `wait_reading_process_output` returns early because of
+   process output, instead of returning nil we should loop and wait some
+   more (i.e. until either there's pending input events or the timeout
+   expired).  */
 
 Lisp_Object
 sit_for (Lisp_Object timeout, bool reading, int display_option)
@@ -6110,8 +6117,9 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
   gobble_input ();
 #endif
 
-  wait_reading_process_output (sec, nsec, reading ? -1 : 1, do_display,
-			       Qnil, NULL, 0);
+  int nbytes
+    = wait_reading_process_output (sec, nsec, reading ? -1 : 1, do_display,
+			           Qnil, NULL, 0);
 
   if (reading && curbuf_eq_winbuf)
     /* Timers and process filters/sentinels may have changed the selected
@@ -6120,7 +6128,7 @@ sit_for (Lisp_Object timeout, bool reading, int display_option)
        buffer to start with).  */
     set_buffer_internal (XBUFFER (XWINDOW (selected_window)->contents));
 
-  return detect_input_pending () ? Qnil : Qt;
+  return (nbytes > 0 || detect_input_pending ()) ? Qnil : Qt;
 }
 
 
