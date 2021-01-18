@@ -374,7 +374,7 @@ DOC is documentation text to insert at the start."
     ;; Now delete the key description text, if any.
     (when point
       (delete-region point
-		     (or (next-single-property-change point 'epa-key)
+		     (or (next-single-property-change point 'epa-list-keys)
 			 (point-max)))
       (goto-char point))
 
