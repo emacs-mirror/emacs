@@ -359,8 +359,8 @@ DOC is documentation text to insert at the start."
 
     ;; Find the end of the documentation text at the start.
     ;; Set POINT to where it ends, or nil if ends at eob.
-    (unless (get-text-property point 'epa-list-keys)
-      (setq point (next-single-property-change point 'epa-list-keys)))
+    (unless (get-text-property point 'epa-key)
+      (setq point (next-single-property-change point 'epa-key)))
 
     ;; If caller specified documentation text for that, replace the old
     ;; documentation text (if any) with what was specified.
@@ -374,7 +374,7 @@ DOC is documentation text to insert at the start."
     ;; Now delete the key description text, if any.
     (when point
       (delete-region point
-		     (or (next-single-property-change point 'epa-list-keys)
+		     (or (next-single-property-change point 'epa-key)
 			 (point-max)))
       (goto-char point))
 
