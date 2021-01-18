@@ -2513,6 +2513,9 @@ TARGET-BB-SYM is the symbol name of the target block."
             do (signal 'native-ice
                        (list "Incoherent type specifier for function" f))
           when (and target
+                    ;; No need to add call constraints if this is t
+                    ;; (bug#45812 bug#45705 bug#45751).
+                    (not (equal comp-cstr-t cstr))
                     (or (null lhs)
                         (not (eql (comp-mvar-slot lhs)
                                   (comp-mvar-slot target)))))
