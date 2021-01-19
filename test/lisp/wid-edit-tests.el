@@ -322,4 +322,15 @@ return nil, even with a non-nil bubblep argument."
     (widget-backward 1)
     (should (string= "Second" (widget-value (widget-at))))))
 
+(ert-deftest widget-test-color-match ()
+  "Test that the :match function for the color widget works."
+  (let ((widget (widget-convert 'color)))
+    (should (widget-apply widget :match "red"))
+    (should (widget-apply widget :match "#fa3"))
+    (should (widget-apply widget :match "#ff0000"))
+    (should (widget-apply widget :match "#111222333"))
+    (should (widget-apply widget :match "#111122223333"))
+    (should-not (widget-apply widget :match "someundefinedcolorihope"))
+    (should-not (widget-apply widget :match "#11223"))))
+
 ;;; wid-edit-tests.el ends here
