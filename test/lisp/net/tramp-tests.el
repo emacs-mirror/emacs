@@ -2272,8 +2272,8 @@ This checks also `file-name-as-directory', `file-name-directory',
       (delete-file tmp-name)
       (should-not (file-exists-p tmp-name))
 
-      ;; Trashing files doesn't work for crypted remote files.
-      (unless (tramp--test-crypt-p)
+      ;; Trashing files doesn't work on MS Windows, and for crypted remote files.
+      (unless (or (tramp--test-windows-nt-p) (tramp--test-crypt-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -2786,9 +2786,9 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
       (should-not (file-directory-p tmp-name1))
 
       ;; Trashing directories works only since Emacs 27.1.  It doesn't
-      ;; work for crypted remote directories and for ange-ftp.
-      (when (and (not (tramp--test-crypt-p)) (not (tramp--test-ftp-p))
-		 (tramp--test-emacs27-p))
+      ;; work on MS Windows, for crypted remote directories and for ange-ftp.
+      (when (and (not  (tramp--test-windows-nt-p)) (not (tramp--test-crypt-p))
+		 (not (tramp--test-ftp-p)) (tramp--test-emacs27-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -6349,6 +6349,7 @@ process sentinels.  They shall not disturb each other."
 		   (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-docker-p)))
+  (skip-unless (not (tramp--test-windows-nt-p)))
 
   (with-timeout
       (tramp--test-asynchronous-requests-timeout (tramp--test-timeout-handler))
@@ -6358,12 +6359,11 @@ process sentinels.  They shall not disturb each other."
 	   (shell-file-name (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
 	   ;; It doesn't work on w32 systems.
 	   (watchdog
-	    (unless (tramp--test-windows-nt-p)
-              (start-process-shell-command
-               "*watchdog*" nil
-               (format
-		"sleep %d; kill -USR1 %d"
-		tramp--test-asynchronous-requests-timeout (emacs-pid)))))
+            (start-process-shell-command
+             "*watchdog*" nil
+             (format
+	      "sleep %d; kill -USR1 %d"
+	      tramp--test-asynchronous-requests-timeout (emacs-pid))))
            (tmp-name (tramp--test-make-temp-name))
            (default-directory tmp-name)
            ;; Do not cache Tramp properties.
