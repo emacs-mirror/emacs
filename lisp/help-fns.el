@@ -76,6 +76,9 @@ frame.")
   ;; costly, really).
   "Radix-tree representation replacing `definition-prefixes'.")
 
+(defvar keymap-name-history nil
+  "History for input to `describe-keymap'.")
+
 (defun help-definition-prefixes ()
   "Return the up-to-date radix-tree form of `definition-prefixes'."
   (when (> (hash-table-count definition-prefixes) 0)
