@@ -719,6 +719,7 @@
 		    georgian
 		    cherokee
 		    canadian-aboriginal
+                    cham
 		    ogham
 		    runic
 		    symbol

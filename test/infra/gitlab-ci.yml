@@ -59,6 +59,30 @@ default:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
 
 .job-template:
+  rules:
+    - changes:
+        - "**/Makefile.in"
+        - .gitlab-ci.yml
+        - aclocal.m4
+        - autogen.sh
+        - configure.ac
+        - lib/*.{h,c}
+        - lisp/**/*.el
+        - src/*.{h,c}
+        - test/infra/*
+        - test/lisp/**/*.el
+        - test/src/*.el
+    - changes:
+        # gfilemonitor, kqueue
+        - src/gfilenotify.c
+        - src/kqueue.c
+        # MS Windows
+        - "**/w32*"
+        # GNUstep
+        - lisp/term/ns-win.el
+        - src/ns*.{h,m}
+        - src/macfont.{h,m}
+      when: never
   # these will be cached across builds
   cache:
     key: ${CI_COMMIT_SHA}
@@ -70,6 +94,11 @@ default:
     paths: []
       # - "test/**/*.log"
       # - "**/*.log"
+  # using the variables for each job
+  script:
+    - docker pull ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA}
+    # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
+    - docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA} make ${make_params}
 
 .build-template:
   script:
@@ -103,38 +132,6 @@ default:
         - test/lisp/autorevert-tests.el
         - test/lisp/filenotify-tests.el
 
-.test-template:
-  rules:
-    - changes:
-        - "**/Makefile.in"
-        - .gitlab-ci.yml
-        - aclocal.m4
-        - autogen.sh
-        - configure.ac
-        - lib/*.{h,c}
-        - lisp/**/*.el
-        - src/*.{h,c}
-        - test/infra/*
-        - test/lisp/**/*.el
-        - test/src/*.el
-    - changes:
-        # gfilemonitor, kqueue
-        - src/gfilenotify.c
-        - src/kqueue.c
-        # MS Windows
-        - "**/w32*"
-        # GNUstep
-        - lisp/term/ns-win.el
-        - src/ns*.{h,m}
-        - src/macfont.{h,m}
-      when: never
-
-  # using the variables for each job
-  script:
-    - docker pull ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA}
-    # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
-    - docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} ${CI_REGISTRY_IMAGE}:${target}-${CI_COMMIT_SHA} make ${make_params}
-
 stages:
   - prep-images
   - build-images
@@ -158,7 +155,7 @@ build-image-inotify:
 
 test-fast-inotify:
   stage: fast
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
   variables:
     target: emacs-inotify
     make_params: "-C test check"
@@ -177,22 +174,22 @@ build-image-gnustep:
 
 test-lisp-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp"
 
-test-net-inotify:
+test-lisp-net-inotify:
   stage: normal
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
   variables:
     target: emacs-inotify
-    make_params: "-C test check-net"
+    make_params: "-C test check-lisp-net"
 
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
   stage: platforms
-  extends: [.job-template, .test-template, .filenotify-gio-template]
+  extends: [.job-template, .filenotify-gio-template]
   variables:
     target: emacs-filenotify-gio
     make_params: "-k -C test autorevert-tests filenotify-tests"
@@ -200,7 +197,7 @@ test-filenotify-gio:
 test-gnustep:
   # This tests the GNUstep build process
   stage: platforms
-  extends: [.job-template, .test-template, .gnustep-template]
+  extends: [.job-template, .gnustep-template]
   variables:
     target: emacs-gnustep
     make_params: install
@@ -208,7 +205,7 @@ test-gnustep:
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
   stage: slow
-  extends: [.job-template, .test-template]
+  extends: [.job-template]
   rules:
     # note there's no "changes" section, so this always runs on a schedule
     - if: '$CI_PIPELINE_SOURCE == "schedule"'

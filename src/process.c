@@ -5323,6 +5323,15 @@ wait_reading_process_output (intmax_t time_limit, int nsecs, int read_kbd,
             compute_input_wait_mask (&Atemp);
 	  compute_write_mask (&Ctemp);
 
+	  /* If a process status has changed, the child signal pipe
+	     will likely be readable.  We want to ignore it for now,
+	     because otherwise we wouldn't run into a timeout
+	     below.  */
+	  int fd = child_signal_read_fd;
+	  eassert (fd < FD_SETSIZE);
+	  if (0 <= fd)
+	    FD_CLR (fd, &Atemp);
+
 	  timeout = make_timespec (0, 0);
 	  if ((thread_select (pselect, max_desc + 1,
 			      &Atemp,

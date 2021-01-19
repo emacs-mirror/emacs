@@ -2388,7 +2388,14 @@ Typical marks are those that make no sense in a standalone back end,
 such as a mark that says whether an article is stored in the cache
 \(which doesn't make sense in a standalone back end).")
 
-(defvar gnus-headers-retrieved-by nil)
+(defvar gnus-headers-retrieved-by nil
+  "Holds the return value of `gnus-retrieve-headers'.
+This is either the symbol `nov' or the symbol `headers'.  This
+value is checked during the summary creation process, when
+building threads.  A value of `nov' indicates that header
+retrieval is relatively cheap and threading is encouraged to
+include more old articles.  A value of `headers' indicates that
+retrieval is expensive and should be minimized.")
 (defvar gnus-article-reply nil)
 (defvar gnus-override-method nil)
 (defvar gnus-opened-servers nil)

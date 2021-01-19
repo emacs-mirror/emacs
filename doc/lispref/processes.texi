@@ -729,7 +729,9 @@ coding systems (@pxref{Default Coding Systems}).  On the other hand,
 it will use @var{query-flag} as its query-on-exit flag (@pxref{Query
 Before Exit}).  It will be associated with the @var{stderr} buffer
 (@pxref{Process Buffers}) and send its output (which is the standard
-error of the main process) there.
+error of the main process) there.  To get the process object for the
+standard error process, pass the @var{stderr} buffer to
+@code{get-buffer-process}.
 
 If @var{stderr} is a pipe process, Emacs will use it as standard error
 process for the new process.
@@ -1941,6 +1943,29 @@ code:
 (while (accept-process-output process))
 (while (accept-process-output stderr-process))
 @end example
+
+If you passed a buffer to the @var{stderr} argument of
+@code{make-process}, you still have to wait for the standard error
+process, like so:
+
+@example
+(let* ((stdout (generate-new-buffer "stdout"))
+       (stderr (generate-new-buffer "stderr"))
+       (process (make-process :name "test"
+                              :command '("my-program")
+                              :buffer stdout
+                              :stderr stderr))
+       (stderr-process (get-buffer-process stderr)))
+  (unless (and process stderr-process)
+    (error "Process unexpectedly nil"))
+  (while (accept-process-output process))
+  (while (accept-process-output stderr-process)))
+@end example
+
+@noindent
+Only when both @code{accept-process-output} forms return @code{nil},
+you can be sure that the process has exited and Emacs has read all its
+output.
 
 Reading pending standard error from a process running on a remote host
 is not possible this way.

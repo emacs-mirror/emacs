@@ -827,6 +827,10 @@ so e.g. like 'C-x 8 [' inserts a left single quotation mark,
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
 deprecated.  Errors in the Inscript method were corrected.
 
+---
+*** New input method 'cham'.
+There's also a Cham greeting in 'etc/HELLO'.
+
 ** Ispell
 
 +++

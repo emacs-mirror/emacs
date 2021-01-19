@@ -866,13 +866,10 @@ If nil, uses `regexp-history'."
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
 	 (input (read-from-minibuffer
-		 (cond ((string-match-p ":[ \t]*\\'" prompt)
-			prompt)
-		       ((and default (> (length default) 0))
-			 (format "%s (default %s): " prompt
-				 (query-replace-descr default)))
-		       (t
-			(format "%s: " prompt)))
+                 (if (string-match-p ":[ \t]*\\'" prompt)
+                     prompt
+                   (format-prompt prompt (and (length> default 0)
+                                              (query-replace-descr default))))
 		 nil nil nil (or history 'regexp-history) suggestions t)))
     (if (equal input "")
 	;; Return the default value when the user enters empty input.
