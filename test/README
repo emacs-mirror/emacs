@@ -60,7 +60,9 @@ https://www.gnu.org/software/emacs/manual/html_node/ert/Test-Selectors.html
 
 You could use predefined selectors of the Makefile.  "make <filename>
 SELECTOR='$(SELECTOR_DEFAULT)'" runs all tests for <filename>.el
-except the tests tagged as expensive or unstable.
+except the tests tagged as expensive or unstable.  Other predefined
+selectors are $(SELECTOR_EXPENSIVE) (run all tests except unstable
+ones) and $(SELECTOR_ALL) (run all tests).
 
 If your test file contains the tests "test-foo", "test2-foo" and
 "test-foo-remote", and you want to run only the former two tests, you
