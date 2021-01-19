@@ -1001,8 +1001,12 @@ When only one definition found, jump to it right away instead."
 When there is more than one definition, split the selected window
 and show the list in a small window at the bottom.  And use a
 local keymap that binds `RET' to `xref-quit-and-goto-xref'."
-  (let ((xrefs (funcall fetcher))
-        (dd default-directory))
+  (let* ((xrefs (funcall fetcher))
+         (dd default-directory)
+         ;; XXX: Make percentage customizable maybe?
+         (max-height (/ (window-height) 2))
+         (size-fun (lambda (window)
+                     (fit-window-to-buffer window max-height))))
     (cond
      ((not (cdr xrefs))
       (xref-pop-to-location (car xrefs)
@@ -1013,7 +1017,8 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
         (xref--transient-buffer-mode)
         (xref--show-common-initialize (xref--analyze xrefs) fetcher alist)
         (pop-to-buffer (current-buffer)
-                       '(display-buffer-in-direction . ((direction . below))))
+                       `(display-buffer-in-direction . ((direction . below)
+                                                        (window-height . ,size-fun))))
         (current-buffer))))))
 
 (define-obsolete-function-alias 'xref--show-defs-buffer-at-bottom
