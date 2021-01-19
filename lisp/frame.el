@@ -2552,13 +2552,15 @@ Use 0 or negative value to blink forever."
 This starts the timer `blink-cursor-timer', which makes the cursor blink
 if appropriate.  It also arranges to cancel that timer when the next
 command starts, by installing a pre-command hook."
-  (when (null blink-cursor-timer)
+  (cond
+   ((null blink-cursor-mode) (blink-cursor-mode -1))
+   ((null blink-cursor-timer)
     ;; Set up the timer first, so that if this signals an error,
     ;; blink-cursor-end is not added to pre-command-hook.
     (setq blink-cursor-blinks-done 1)
     (blink-cursor--start-timer)
     (add-hook 'pre-command-hook #'blink-cursor-end)
-    (internal-show-cursor nil nil)))
+    (internal-show-cursor nil nil))))
 
 (defun blink-cursor-timer-function ()
   "Timer function of timer `blink-cursor-timer'."
@@ -2615,7 +2617,7 @@ stopped by `blink-cursor-suspend'.  Internally calls
 `blink-cursor--should-blink' and returns its result."
   (let ((should-blink (blink-cursor--should-blink)))
     (when (and should-blink (not blink-cursor-idle-timer))
-      (remove-hook 'post-command-hook 'blink-cursor-check)
+      (remove-hook 'post-command-hook #'blink-cursor-check)
       (blink-cursor--start-idle-timer))
     should-blink))
 
@@ -2637,16 +2639,16 @@ This command is effective only on graphical frames.  On text-only
 terminals, cursor blinking is controlled by the terminal."
   :init-value (not (or noninteractive
 		       no-blinking-cursor
-		       (eq system-type 'ms-dos)
-		       (not (display-blink-cursor-p))))
-  :initialize 'custom-initialize-delay
+		       (eq system-type 'ms-dos)))
+  :initialize #'custom-initialize-delay
   :group 'cursor
   :global t
   (blink-cursor-suspend)
   (remove-hook 'after-delete-frame-functions #'blink-cursor--rescan-frames)
   (remove-function after-focus-change-function #'blink-cursor--rescan-frames)
   (when blink-cursor-mode
-    (add-function :after after-focus-change-function #'blink-cursor--rescan-frames)
+    (add-function :after after-focus-change-function
+                  #'blink-cursor--rescan-frames)
     (add-hook 'after-delete-frame-functions #'blink-cursor--rescan-frames)
     (blink-cursor-check)))
 
