@@ -352,6 +352,12 @@ When emacsclient connects, Emacs will (by default) output a message
 about how to exit the client frame.  If 'server-client-instructions'
 is set to nil, this message is inhibited.
 
+** Perl mode
+
+---
+*** New face 'perl-non-scalar-variable'.
+This is used to fontify non-scalar variables.
+
 ** Python mode
 
 *** 'python-shell-interpreter' now defaults to python3 on systems with python3.
