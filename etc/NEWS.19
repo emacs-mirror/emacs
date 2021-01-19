@@ -2824,6 +2824,8 @@ the text of the region according to the new value.
 the fill-column has been exceeded; the function can determine on its
 own whether filling (or justification) is necessary.
 
+**** New helper function 'indent-line-to'
+
 ** Processes
 
 *** process-tty-name is a new function that returns the name of the

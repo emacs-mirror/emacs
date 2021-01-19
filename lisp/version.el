@@ -29,14 +29,12 @@
 (defconst emacs-major-version
   (progn (string-match "^[0-9]+" emacs-version)
          (string-to-number (match-string 0 emacs-version)))
-  "Major version number of this version of Emacs.
-This variable first existed in version 19.23.")
+  "Major version number of this version of Emacs.")
 
 (defconst emacs-minor-version
   (progn (string-match "^[0-9]+\\.\\([0-9]+\\)" emacs-version)
          (string-to-number (match-string 1 emacs-version)))
-  "Minor version number of this version of Emacs.
-This variable first existed in version 19.23.")
+  "Minor version number of this version of Emacs.")
 
 (defconst emacs-build-system (system-name)
   "Name of the system on which Emacs was built, or nil if not available.")
