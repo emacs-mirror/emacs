@@ -2144,7 +2144,7 @@ the United States."
                 (let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
                   (set-window-buffer w calc-trail-buffer)
                   (and calc-make-windows-dedicated
-                       (set-window-dedicated-p nil t))))
+                       (set-window-dedicated-p w t))))
               (calc-wrapper
                (setq overlay-arrow-string calc-trail-overlay
                      overlay-arrow-position calc-trail-pointer)
