@@ -549,6 +549,8 @@ If this is nil, then `diary-file' will be used instead."
   :type 'regexp
   :version "28.1")
 
+(defvar diary-file)
+
 ;;;###autoload
 (defun remember-diary-extract-entries ()
   "Extract diary entries from the region based on `remember-diary-regexp'."
@@ -561,7 +563,8 @@ If this is nil, then `diary-file' will be used instead."
         (diary-make-entry (mapconcat 'identity list "\n")
                           nil remember-diary-file)
         (when remember-save-after-remembering
-          (with-current-buffer (find-buffer-visiting diary-file)
+          (with-current-buffer (find-buffer-visiting (or remember-diary-file
+                                                         diary-file))
             (save-buffer))))
       nil))) ;; Continue processing
 
