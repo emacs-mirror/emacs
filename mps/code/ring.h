@@ -106,9 +106,9 @@ extern Ring (RingPrev)(Ring ring);
 
 /* .ring.for: <design/ring#.for> */
 #define RING_FOR(node, ring, next) \
-  for(node = RingNext(ring), next = RingNext(node); \
-      node != (ring); \
-      node = (next), next = RingNext(node))
+  for (ITER_PARALLEL(node = RingNext(ring), next = RingNext(node)); \
+       node != (ring); \
+       ITER_PARALLEL(node = (next), next = RingNext(node)))
 
 
 #endif /* ring_h */
