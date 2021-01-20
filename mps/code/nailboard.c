@@ -370,7 +370,9 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
                 || BTGet(board->level[i], ilimit - 1));
 
   /* Left splinter */
-  for (j = i, jbase = ibase;;) {
+  j = i;
+  jbase = ibase;
+  for (;;) {
     leftLimit = nailboardAddr(board, j, jbase + 1);
     AVER_CRITICAL(base < leftLimit);
     AVER_CRITICAL(leftLimit < limit);
@@ -385,7 +387,9 @@ Bool NailboardIsResRange(Nailboard board, Addr base, Addr limit)
   }
 
   /* Right splinter */
-  for (j = i, jlimit = ilimit;;) {
+  j = i;
+  jlimit = ilimit;
+  for (;;) {
     rightBase = nailboardAddr(board, j, jlimit - 1);
     AVER_CRITICAL(base < rightBase);
     AVER_CRITICAL(rightBase < limit);

@@ -341,11 +341,15 @@ extern const char *MessageNoGCStartWhy(Message message);
 #define TraceSetComp(ts)            BS_COMP(ts)
 
 #define TRACE_SET_ITER(ti, trace, ts, arena) \
-  for(ti = 0, trace = ArenaTrace(arena, ti); ti < TraceLIMIT; \
-      ++ti, trace = ArenaTrace(arena, ti)) BEGIN \
-    if (TraceSetIsMember(ts, trace)) {
+  BEGIN \
+    for (ti = 0; ti < TraceLIMIT; ++ti) { \
+      trace = ArenaTrace(arena, ti); \
+      if (TraceSetIsMember(ts, trace)) {
 
-#define TRACE_SET_ITER_END(ti, trace, ts, arena) } END
+#define TRACE_SET_ITER_END(ti, trace, ts, arena) \
+      } \
+    } \
+  END
 
 
 extern void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,

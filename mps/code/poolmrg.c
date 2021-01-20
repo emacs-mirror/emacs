@@ -768,16 +768,17 @@ Res MRGDeregister(Pool pool, Ref obj)
     MRGRefSeg refSeg = RING_ELT(MRGRefSeg, mrgRing, node);
     MRGLinkSeg linkSeg;
     Count i;
-    Link link;
-    RefPart refPart;
+    Link linkBase;
+    RefPart refPartBase;
 
     AVERT(MRGRefSeg, refSeg);
     linkSeg = refSeg->linkSeg;
+    linkBase = (Link)SegBase(MustBeA(Seg, linkSeg));
+    refPartBase = (RefPart)SegBase(MustBeA(Seg, refSeg));
     /* map over each guardian in the segment */
-    for(i = 0, link = (Link)SegBase(MustBeA(Seg, linkSeg)),
-          refPart = (RefPart)SegBase(MustBeA(Seg, refSeg));
-        i < nGuardians;
-        ++i, ++link, ++refPart) {
+    for (i = 0; i < nGuardians; ++i) {
+      Link link = linkBase + i;
+      RefPart refPart = refPartBase + i;
       /* check if it's allocated and points to obj */
       if (link->state == MRGGuardianPREFINAL
           && MRGRefPartRef(arena, refPart) == obj) {
