@@ -559,7 +559,10 @@ If this is nil, then `diary-file' will be used instead."
         (push (remember-diary-convert-entry (match-string 1)) list))
       (when list
         (diary-make-entry (mapconcat 'identity list "\n")
-                          nil remember-diary-file))
+                          nil remember-diary-file)
+        (when remember-save-after-remembering
+          (with-current-buffer (find-buffer-visiting diary-file)
+            (save-buffer))))
       nil))) ;; Continue processing
 
 ;;; Internal Functions:
