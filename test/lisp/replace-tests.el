@@ -587,5 +587,18 @@ bound to HIGHLIGHT-LOCUS."
                               (get-text-property (point) 'occur-target))
           (should (funcall check-overlays has-overlay)))))))
 
+(ert-deftest replace-regexp-bug45973 ()
+  "Test for https://debbugs.gnu.org/45973 ."
+  (let ((before "1RB 1LC 1RC 1RB 1RD 0LE 1LA 1LD 1RH 0LA")
+        (after  "1LB 1RC 1LC 1LB 1LD 0RE 1RA 1RD 1LH 0RA"))
+    (with-temp-buffer
+      (insert before)
+      (goto-char (point-min))
+      (replace-regexp
+       "\\(\\(L\\)\\|\\(R\\)\\)"
+       '(replace-eval-replacement
+         replace-quote
+         (if (match-string 2) "R" "L")))
+      (should (equal (buffer-string) after)))))
 
 ;;; replace-tests.el ends here
