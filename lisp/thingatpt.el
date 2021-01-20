@@ -218,14 +218,6 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (put 'sexp 'beginning-op 'thing-at-point--beginning-of-sexp)
 
-;; Symbols
-
-(put 'symbol 'end-op 'thing-at-point--end-of-symbol)
-
-(defun thing-at-point--end-of-symbol ()
-  "Move point to the end of the current symbol."
-  (re-search-forward "\\(\\sw\\|\\s_\\)+"))
-
 ;;  Lists
 
 (put 'list 'bounds-of-thing-at-point 'thing-at-point-bounds-of-list-at-point)
