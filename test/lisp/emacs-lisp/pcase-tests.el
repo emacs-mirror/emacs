@@ -32,6 +32,10 @@
   (should (equal (pcase '(2 . 3)        ;bug#18554
                    (`(,hd . ,(and (pred atom) tl)) (list hd tl))
                    ((pred consp) nil))
+                 '(2 3)))
+  (should (equal (pcase '(2 . 3)
+                   (`(,hd . ,(and (pred (not consp)) tl)) (list hd tl))
+                   ((pred consp) nil))
                  '(2 3))))
 
 (pcase-defmacro pcase-tests-plus (pat n)

@@ -326,6 +326,16 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** 'blink-cursor-mode' is now enabled by default regardless of the UI.
+It used to be enabled when Emacs is started in GUI mode but not when started
+in text mode.  The cursor still only actually blinks in GUI frames.
+
+** pcase
++++
+*** The `pred` pattern can now take the form (pred (not FUN)).
+This is like (pred (lambda (x) (not (FUN x)))) but results
+in better code.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
@@ -345,6 +355,12 @@ batch mode.
 When emacsclient connects, Emacs will (by default) output a message
 about how to exit the client frame.  If 'server-client-instructions'
 is set to nil, this message is inhibited.
+
+** Perl mode
+
+---
+*** New face 'perl-non-scalar-variable'.
+This is used to fontify non-scalar variables.
 
 ** Python mode
 
@@ -820,6 +836,10 @@ so e.g. like 'C-x 8 [' inserts a left single quotation mark,
 *** Improved language transliteration in Malayalam input methods.
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
 deprecated.  Errors in the Inscript method were corrected.
+
+---
+*** New input method 'cham'.
+There's also a Cham greeting in 'etc/HELLO'.
 
 ** Ispell
 

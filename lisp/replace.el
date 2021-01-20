@@ -866,13 +866,10 @@ If nil, uses `regexp-history'."
 	 ;; Do not automatically add default to the history for empty input.
 	 (history-add-new-input nil)
 	 (input (read-from-minibuffer
-		 (cond ((string-match-p ":[ \t]*\\'" prompt)
-			prompt)
-		       ((and default (> (length default) 0))
-			 (format "%s (default %s): " prompt
-				 (query-replace-descr default)))
-		       (t
-			(format "%s: " prompt)))
+                 (if (string-match-p ":[ \t]*\\'" prompt)
+                     prompt
+                   (format-prompt prompt (and (length> default 0)
+                                              (query-replace-descr default))))
 		 nil nil nil (or history 'regexp-history) suggestions t)))
     (if (equal input "")
 	;; Return the default value when the user enters empty input.
@@ -2428,23 +2425,27 @@ It is called with three arguments, as if it were
 	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
 	(overlay-put replace-overlay 'face 'query-replace)))
 
-  (when (and query-replace-highlight-submatches
-	     regexp-flag)
+  (when (and query-replace-highlight-submatches regexp-flag)
     (mapc 'delete-overlay replace-submatches-overlays)
     (setq replace-submatches-overlays nil)
-    (let ((submatch-data (cddr (butlast (match-data t))))
+    ;; 'cddr' removes whole expression match from match-data
+    (let ((submatch-data (cddr (match-data t)))
           (group 0)
-          ov face)
+          b e ov face)
       (while submatch-data
-        (setq group (1+ group))
-        (setq ov (make-overlay (pop submatch-data) (pop submatch-data))
-              face (intern-soft (format "isearch-group-%d" group)))
-        ;; Recycle faces from beginning.
-        (unless (facep face)
-          (setq group 1 face 'isearch-group-1))
-        (overlay-put ov 'face face)
-        (overlay-put ov 'priority 1002)
-        (push ov replace-submatches-overlays))))
+        (setq b (pop submatch-data)
+              e (pop submatch-data))
+        (when (and (integer-or-marker-p b)
+                   (integer-or-marker-p e))
+          (setq ov (make-overlay b e)
+                group (1+ group)
+                face (intern-soft (format "isearch-group-%d" group)))
+          ;; Recycle faces from beginning
+          (unless (facep face)
+            (setq group 1 face 'isearch-group-1))
+          (overlay-put ov 'face face)
+          (overlay-put ov 'priority 1002)
+          (push ov replace-submatches-overlays)))))
 
   (if query-replace-lazy-highlight
       (let ((isearch-string search-string)

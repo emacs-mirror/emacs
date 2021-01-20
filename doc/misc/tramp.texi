@@ -2369,8 +2369,7 @@ that can identify such questions using
 @lisp
 @group
 (defconst my-tramp-prompt-regexp
-  (concat (regexp-opt '("Enter the birth date of your mother:") t)
-          "\\s-*")
+  "Enter the birth date of your mother:\\s-*"
   "Regular expression matching my login prompt question.")
 @end group
 
@@ -2388,6 +2387,11 @@ that can identify such questions using
              '(my-tramp-prompt-regexp my-tramp-action))
 @end group
 @end lisp
+
+The regular expressions used in @code{tramp-actions-before-shell} must
+match the end of the connection buffer.  Due to performance reasons,
+this search starts at the end of the buffer, and it is limited to 256
+characters backwards.
 
 
 @item Conflicting names for users and variables in @file{.profile}

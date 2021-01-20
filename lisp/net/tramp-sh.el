@@ -2608,12 +2608,11 @@ The method used must be an out-of-band method."
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (setq filename (expand-file-name filename))
   (unless switches (setq switches ""))
   ;; Check, whether directory is accessible.
   (unless wildcard
     (access-file filename "Reading directory"))
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (if (and (featurep 'ls-lisp)
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
 	(tramp-handle-insert-directory
@@ -4306,11 +4305,14 @@ file exists and nonzero exit status otherwise."
     ;; ensure they have the correct values when the shell starts, not
     ;; just processes run within the shell.  (Which processes include
     ;; our initial probes to ensure the remote shell is usable.)
+    ;; For the time being, we assume that all shells interpret -i as
+    ;; interactive shell.  Must be the last argument, because (for
+    ;; example) bash expects long options first.
     (tramp-send-command
      vec (format
 	  (concat
 	   "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
-	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s")
+	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
           tramp-terminal-type
           (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")

@@ -1308,6 +1308,11 @@ a new window in the current frame, splitting vertically."
                           (car dired-directory)))))
 	(and dirname (expand-file-name dirname))))))
 
+(defun ibuffer--abbreviate-file-name (filename)
+  "Abbreviate FILENAME using `ibuffer-directory-abbrev-alist'."
+  (let ((directory-abbrev-alist ibuffer-directory-abbrev-alist))
+    (abbreviate-file-name filename)))
+
 (define-ibuffer-op ibuffer-do-save ()
   "Save marked buffers as with `save-buffer'."
   (:complex t
@@ -1885,9 +1890,7 @@ If point is on a group name, this function operates on that group."
        (cond ((zerop total) "No files")
 	     ((= 1 total) "1 file")
 	     (t (format "%d files" total))))))
-  (let ((directory-abbrev-alist ibuffer-directory-abbrev-alist))
-    (abbreviate-file-name
-     (or (ibuffer-buffer-file-name) ""))))
+  (ibuffer--abbreviate-file-name (or (ibuffer-buffer-file-name) "")))
 
 (define-ibuffer-column filename-and-process
   (:name "Filename/Process"

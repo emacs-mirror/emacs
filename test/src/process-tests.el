@@ -576,11 +576,6 @@ FD_SETSIZE file descriptors (Bug#24325)."
                 (should (memq (process-status process) '(run exit)))
                 (when (process-live-p process)
                   (process-send-eof process))
-                ;; FIXME: This `sleep-for' shouldn't be needed.  It
-                ;; indicates a bug in Emacs; perhaps SIGCHLD is
-                ;; received in parallel with `accept-process-output',
-                ;; causing the latter to hang.
-                (sleep-for 0.1)
                 (while (accept-process-output process))
                 (should (eq (process-status process) 'exit))
                 ;; If there's an error between fork and exec, Emacs
@@ -738,6 +733,121 @@ Return nil if that can't be determined."
                                     (+ blank) (group (+ nonl))))
                 (match-string-no-properties 1))))))
   process-tests--EMFILE-message)
+
+(ert-deftest process-tests/sentinel-called ()
+  "Check that sentinels are called after processes finish"
+  (let ((command (process-tests--emacs-command)))
+    (skip-unless command)
+    (dolist (conn-type '(pipe pty))
+      (ert-info ((format "Connection type: %s" conn-type))
+        (process-tests--with-processes processes
+          (let* ((calls ())
+                 (process (make-process
+                           :name "echo"
+                           :command (process-tests--eval
+                                     command '(print "first"))
+                           :noquery t
+                           :connection-type conn-type
+                           :coding 'utf-8-unix
+                           :sentinel (lambda (process message)
+                                       (push (list process message)
+                                             calls)))))
+            (push process processes)
+            (while (accept-process-output process))
+            (should (equal calls
+                           (list (list process "finished\n"))))))))))
+
+(ert-deftest process-tests/sentinel-with-multiple-processes ()
+  "Check that sentinels are called in time even when other processes
+have written output."
+  (let ((command (process-tests--emacs-command)))
+    (skip-unless command)
+    (dolist (conn-type '(pipe pty))
+      (ert-info ((format "Connection type: %s" conn-type))
+        (process-tests--with-processes processes
+          (let* ((calls ())
+                 (process (make-process
+                           :name "echo"
+                           :command (process-tests--eval
+                                     command '(print "first"))
+                           :noquery t
+                           :connection-type conn-type
+                           :coding 'utf-8-unix
+                           :sentinel (lambda (process message)
+                                       (push (list process message)
+                                             calls)))))
+            (push process processes)
+            (push (make-process
+                   :name "bash"
+                   :command (process-tests--eval
+                             command
+                             '(progn (sleep-for 10) (print "second")))
+                   :noquery t
+                   :connection-type conn-type)
+                  processes)
+            (while (accept-process-output process))
+            (should (equal calls
+                           (list (list process "finished\n"))))))))))
+
+(defun process-tests--eval (command form)
+  "Return a command that evaluates FORM in an Emacs subprocess.
+COMMAND must be a list returned by
+`process-tests--emacs-command'."
+  (let ((print-gensym t)
+        (print-circle t)
+        (print-length nil)
+        (print-level nil)
+        (print-escape-control-characters t)
+        (print-escape-newlines t)
+        (print-escape-multibyte t)
+        (print-escape-nonascii t))
+    `(,@command "--quick" "--batch" ,(format "--eval=%S" form))))
+
+(defun process-tests--emacs-command ()
+  "Return a command to reinvoke the current Emacs instance.
+Return nil if that doesn't appear to be possible."
+  (when-let ((binary (process-tests--emacs-binary))
+             (dump (process-tests--dump-file)))
+    (cons binary
+          (unless (eq dump :not-needed)
+            (list (concat "--dump-file="
+                          (file-name-unquote dump)))))))
+
+(defun process-tests--emacs-binary ()
+  "Return the filename of the currently running Emacs binary.
+Return nil if that can't be determined."
+  (and (stringp invocation-name)
+       (not (file-remote-p invocation-name))
+       (not (file-name-absolute-p invocation-name))
+       (stringp invocation-directory)
+       (not (file-remote-p invocation-directory))
+       (file-name-absolute-p invocation-directory)
+       (when-let ((file (process-tests--usable-file-for-reinvoke
+                         (expand-file-name invocation-name
+                                           invocation-directory))))
+         (and (file-executable-p file) file))))
+
+(defun process-tests--dump-file ()
+  "Return the filename of the dump file used to start Emacs.
+Return nil if that can't be determined.  Return `:not-needed' if
+Emacs wasn't started with a dump file."
+  (if-let ((stats (and (fboundp 'pdumper-stats) (pdumper-stats))))
+      (when-let ((file (process-tests--usable-file-for-reinvoke
+                        (cdr (assq 'dump-file-name stats)))))
+        (and (file-readable-p file) file))
+    :not-needed))
+
+(defun process-tests--usable-file-for-reinvoke (filename)
+  "Return a version of FILENAME that can be used to reinvoke Emacs.
+Return nil if FILENAME doesn't exist."
+  (when (and (stringp filename)
+             (not (file-remote-p filename)))
+    (cl-callf file-truename filename)
+    (and (stringp filename)
+         (not (file-remote-p filename))
+         (file-name-absolute-p filename)
+         (file-regular-p filename)
+         filename)))
 
 (provide 'process-tests)
 ;;; process-tests.el ends here

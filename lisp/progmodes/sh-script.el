@@ -1556,7 +1556,7 @@ with your script for an edit-interpret-debug cycle."
   (sh-set-shell
    (cond ((save-excursion
             (goto-char (point-min))
-            (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)"))
+            (looking-at auto-mode-interpreter-regexp))
           (match-string 2))
          ((not buffer-file-name) sh-shell-file)
          ;; Checks that use `buffer-file-name' follow.

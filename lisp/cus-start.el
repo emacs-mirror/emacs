@@ -880,7 +880,7 @@ since it could result in memory overflow and make Emacs crash."
       ;; Don't re-add to custom-delayed-init-variables post-startup.
       (unless after-init-time
 	;; Note this is the _only_ initialize property we handle.
-	(if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
+	(if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
 	    ;; These vars are defined early and should hence be initialized
 	    ;; early, even if this file happens to be loaded late.  so add them
 	    ;; to the end of custom-delayed-init-variables.  Otherwise,
