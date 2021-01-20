@@ -2199,7 +2199,7 @@ the above example."
 		(not (funcall pred type)))
       ;; Strip off last hyphen and what follows, then try again
       (setq type
-	    (if (setq hyphend (string-match-p "[-_][^-_]+$" type))
+	    (if (setq hyphend (string-match-p "[-_.][^-_.]+$" type))
 		(substring type 0 hyphend)
 	      nil))))
   type)
