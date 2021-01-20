@@ -2106,12 +2106,14 @@ nil."
   (unless ispell-process
     (condition-case nil
 	(progn
-          (ispell-set-spellchecker-params)    ; Initialize variables and dict alists.
-          (ispell-accept-buffer-local-defs)   ; Use the correct dictionary.
-	  ;; This code copied in part from ispell.el Emacs 19.34
-	  (dolist (w checkdoc-ispell-lisp-words)
-	    (process-send-string ispell-process (concat "@" w "\n"))))
-      (error (setq checkdoc-spellcheck-documentation-flag nil)))))
+          ;; Initialize variables and dict alists.
+          (ispell-set-spellchecker-params)
+          ;; Use the correct dictionary.
+          (ispell-accept-buffer-local-defs))
+      (error (setq checkdoc-spellcheck-documentation-flag nil))))
+  ;; This code copied in part from ispell.el Emacs 19.34
+  (dolist (w checkdoc-ispell-lisp-words)
+    (process-send-string ispell-process (concat "@" w "\n"))))
 
 (defun checkdoc-ispell-docstring-engine (end &optional take-notes)
   "Run the Ispell tools on the doc string between point and END.
