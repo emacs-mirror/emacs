@@ -1554,6 +1554,13 @@ buttons in it.
 This function takes a string and returns a string propertized in a way
 that makes it a valid button.
 
+** subr-x
++++
+*** A number of new string manipulation functions have been added.
+'string-clean-whitespace', 'string-fill', 'string-limit',
+'string-lines', 'string-pad' and 'string-chop-newline'.
+
+*** New macro `named-let` that provides Scheme's "named let" looping construct
 
 ** Miscellaneous
 
@@ -1592,11 +1599,6 @@ length to a number).
 ---
 *** New user option 'authinfo-hide-elements'.
 This can be set to nil to inhibit hiding passwords in ".authinfo" files.
-
-+++
-*** A number of new string manipulation functions have been added.
-'string-clean-whitespace', 'string-fill', 'string-limit',
-'string-lines', 'string-pad' and 'string-chop-newline'.
 
 +++
 *** New variable 'current-minibuffer-command'.
