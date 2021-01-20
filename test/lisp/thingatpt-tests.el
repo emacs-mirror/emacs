@@ -185,7 +185,6 @@ position to retrieve THING.")
     (should (eq (symbol-at-point) 'bar))))
 
 (ert-deftest test-symbol-thing-3 ()
-  :expected-result :failed ; FIXME bug#14234
   (with-temp-buffer
     (insert "`[[`(")
     (goto-char 2)
