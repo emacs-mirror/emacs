@@ -2056,6 +2056,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	  (setcdr (cdr rest) tmp)
 	  (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"
 	                        lap0 lap1))
+
 	 ;;
 	 ;; discardN-preserve-tos return  -->  return
 	 ;; dup return  -->  return
@@ -2071,6 +2072,36 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	  (setq lap (delq lap0 lap))
 	  (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
 
+	 ;;
+	 ;; goto-X ... X: discard  ==>  discard goto-Y ... X: discard Y:
+	 ;;
+	 ((and (eq (car lap0) 'byte-goto)
+	       (setq tmp (cdr (memq (cdr lap0) lap)))
+	       (memq (caar tmp) '(byte-discard byte-discardN
+	                          byte-discardN-preserve-tos)))
+	  (byte-compile-log-lap
+	   "  goto-X .. X: \t-->\t%s goto-X.. X: %s Y:"
+	   (car tmp) (car tmp))
+	  (setq keep-going t)
+	  (let* ((newtag (byte-compile-make-tag))
+	         ;; Make a copy, since we sometimes modify insts in-place!
+	         (newdiscard (cons (caar tmp) (cdar tmp)))
+	         (newjmp (cons (car lap0) newtag)))
+	    (push newtag (cdr tmp))     ;Push new tag after the discard.
+	    (setcar rest newdiscard)
+	    (push newjmp (cdr rest))))
+
+	 ;;
+	 ;; const discardN-preserve-tos ==> discardN const
+	 ;;
+	 ((and (eq (car lap0) 'byte-constant)
+	       (eq (car lap1) 'byte-discardN-preserve-tos))
+	  (setq keep-going t)
+	  (let ((newdiscard (cons 'byte-discardN (cdr lap1))))
+	    (byte-compile-log-lap
+	     "  %s %s\t-->\t%s %s" lap0 lap1 newdiscard lap0)
+	    (setf (car rest) newdiscard)
+	    (setf (cadr rest) lap0)))
 	 )
 	(setq rest (cdr rest)))
       )
