@@ -2927,8 +2927,8 @@ option followed by a colon `:' if the option accepts an argument."
 (put 'sh-assignment 'delete-selection t)
 (defun sh-assignment (arg)
   "Remember preceding identifier for future completion and do self-insert."
-  (interactive "p")
   (declare (obsolete nil "27.1"))
+  (interactive "p")
   (self-insert-command arg)
   (sh--assignment-collect))
 
