@@ -620,8 +620,8 @@ Done before generating the new subject of a forward."
 
 (defcustom message-forward-ignored-headers "^Content-Transfer-Encoding:\\|^X-Gnus"
   "All headers that match this regexp will be deleted when forwarding a message.
-This variable is only consulted when forwarding \"normally\", not
-when forwarding as MIME or the like.
+This variable is not consulted when forwarding encrypted messages
+and `message-forward-show-mml' is `best'.
 
 This may also be a list of regexps."
   :version "21.1"
@@ -3057,22 +3057,23 @@ See also `message-forbidden-properties'."
 
 (defun message--syntax-propertize (beg end)
   "Syntax-propertize certain message text specially."
-  (let ((citation-regexp (concat "^" message-cite-prefix-regexp ".*$"))
-        (smiley-regexp (regexp-opt message-smileys)))
-    (goto-char beg)
-    (while (search-forward-regexp citation-regexp
-                                  end 'noerror)
-      (let ((start (match-beginning 0))
-            (end (match-end 0)))
-        (add-text-properties start (1+ start)
-                             `(syntax-table ,(string-to-syntax "<")))
-        (add-text-properties end (min (1+ end) (point-max))
-                             `(syntax-table ,(string-to-syntax ">")))))
-    (goto-char beg)
-    (while (search-forward-regexp smiley-regexp
-            end 'noerror)
-      (add-text-properties (match-beginning 0) (match-end 0)
-                           `(syntax-table ,(string-to-syntax "."))))))
+  (with-syntax-table message-mode-syntax-table
+    (let ((citation-regexp (concat "^" message-cite-prefix-regexp ".*$"))
+          (smiley-regexp (regexp-opt message-smileys)))
+      (goto-char beg)
+      (while (search-forward-regexp citation-regexp
+                                    end 'noerror)
+	(let ((start (match-beginning 0))
+              (end (match-end 0)))
+          (add-text-properties start (1+ start)
+                               `(syntax-table ,(string-to-syntax "<")))
+          (add-text-properties end (min (1+ end) (point-max))
+                               `(syntax-table ,(string-to-syntax ">")))))
+      (goto-char beg)
+      (while (search-forward-regexp smiley-regexp
+				    end 'noerror)
+	(add-text-properties (match-beginning 0) (match-end 0)
+                             `(syntax-table ,(string-to-syntax ".")))))))
 
 ;;;###autoload
 (define-derived-mode message-mode text-mode "Message"
@@ -7638,7 +7639,8 @@ Optional DIGEST will use digest to forward."
 	   message-forward-included-headers)
 	 t nil t)))))
 
-(defun message-forward-make-body-mime (forward-buffer &optional beg end)
+(defun message-forward-make-body-mime (forward-buffer &optional beg end
+						      remove-headers)
   (let ((b (point)))
     (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")
     (save-restriction
@@ -7648,6 +7650,8 @@ Optional DIGEST will use digest to forward."
       (goto-char (point-min))
       (when (looking-at "From ")
 	(replace-match "X-From-Line: "))
+      (when remove-headers
+	(message-remove-ignored-headers (point-min) (point-max)))
       (goto-char (point-max)))
     (insert "<#/part>\n")
     ;; Consider there is no illegible text.
@@ -7786,7 +7790,8 @@ is for the internal use."
 				 (message-signed-or-encrypted-p)
 			       (error t))))))
 	    (message-forward-make-body-mml forward-buffer)
-	  (message-forward-make-body-mime forward-buffer))
+	  (message-forward-make-body-mime
+	   forward-buffer nil nil (not (eq message-forward-show-mml 'best))))
       (message-forward-make-body-plain forward-buffer)))
   (message-position-point))
 

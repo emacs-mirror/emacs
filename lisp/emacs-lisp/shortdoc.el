@@ -1126,12 +1126,21 @@ There can be any number of :example/:result elements."
     (insert (propertize "("
                         'shortdoc-function t))
     (if (plist-get data :no-manual)
-        (insert (symbol-name function))
+        (insert-text-button
+         (symbol-name function)
+         'face 'button
+         'action (lambda (_)
+                   (describe-function function))
+         'follow-link t
+         'help-echo (purecopy "mouse-1, RET: describe function"))
       (insert-text-button
        (symbol-name function)
        'face 'button
        'action (lambda (_)
-                 (info-lookup-symbol function 'emacs-lisp-mode))))
+                 (info-lookup-symbol function 'emacs-lisp-mode))
+       'follow-link t
+       'help-echo (purecopy "mouse-1, RET: show \
+function's documentation in the Info manual")))
     (setq arglist-start (point))
     (insert ")\n")
     ;; Doc string.

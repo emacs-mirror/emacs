@@ -979,6 +979,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		(ring (make-ring ring-size))
                 ;; Use possibly buffer-local values of these variables.
                 (ring-separator comint-input-ring-separator)
+                (ring-file-prefix comint-input-ring-file-prefix)
                 (history-ignore comint-input-history-ignore)
                 (ignoredups comint-input-ignoredups))
 	   (with-temp-buffer
@@ -990,24 +991,15 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
                (while (and (< count comint-input-ring-size)
                            (re-search-backward ring-separator nil t)
                            (setq end (match-beginning 0)))
-                 (setq start
-                       (if (re-search-backward ring-separator nil t)
-                           (progn
-                             (when (and comint-input-ring-file-prefix
-                                        (looking-at
-                                         comint-input-ring-file-prefix))
-                               ;; Skip zsh extended_history stamps
-                               (goto-char (match-end 0)))
-                             (match-end 0))
-                         (progn
-                           (goto-char (point-min))
-                           (when (and comint-input-ring-file-prefix
-                                      (looking-at
-                                       comint-input-ring-file-prefix))
-                             (goto-char (match-end 0)))
-                           (point))))
+                 (goto-char (if (re-search-backward ring-separator nil t)
+                                (match-end 0)
+                              (point-min)))
+                 (when (and ring-file-prefix
+                            (looking-at ring-file-prefix))
+                   ;; Skip zsh extended_history stamps
+                   (goto-char (match-end 0)))
+                 (setq start (point))
                  (setq history (buffer-substring start end))
-                 (goto-char start)
                  (when (and (not (string-match history-ignore history))
 			    (or (null ignoredups)
 				(ring-empty-p ring)
@@ -3871,7 +3863,11 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 	(push (buffer-substring-no-properties
                (match-beginning regexp-group)
                (match-end regexp-group))
-              results))
+              results)
+        (when (zerop (length (match-string 0)))
+          ;; If the regexp can be empty (for instance, "^.*$"), we
+          ;; don't advance, so ensure forward progress.
+	  (forward-line 1)))
       (nreverse results))))
 
 ;; Converting process modes to use comint mode

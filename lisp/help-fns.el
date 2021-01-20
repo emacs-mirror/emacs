@@ -713,7 +713,9 @@ FILE is the file where FUNCTION was probably defined."
            (insert-text-button
             (symbol-name group)
             'action (lambda (_)
-                      (shortdoc-display-group group))))
+                      (shortdoc-display-group group))
+            'follow-link t
+            'help-echo (purecopy "mouse-1, RET: show documentation group")))
          groups)
         (insert (if (= (length groups) 1)
                     " group.\n"
@@ -1650,6 +1652,9 @@ in `describe-keymap'.  See also `Searching the Active Keymaps'."
                          (if (get-text-property (point) 'local-map)
                              (get-char-property (point) 'local-map)
                            (current-local-map)))))
+
+(defvar keymap-name-history nil
+  "History for input to `describe-keymap'.")
 
 ;;;###autoload
 (defun describe-keymap (keymap)

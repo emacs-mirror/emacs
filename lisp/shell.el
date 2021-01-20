@@ -603,6 +603,7 @@ buffer."
 	     (or hfile
 		 (cond ((string-equal shell "bash") "~/.bash_history")
 		       ((string-equal shell "ksh") "~/.sh_history")
+		       ((string-equal shell "zsh") "~/.zsh_history")
 		       (t "~/.history")))))
       (if (or (equal comint-input-ring-file-name "")
 	      (equal (file-truename comint-input-ring-file-name)

@@ -78,7 +78,13 @@ ns_string_to_symbol (NSString *t)
     return QSECONDARY;
   if ([t isEqualToString: NSPasteboardTypeString])
     return QTEXT;
-  if ([t isEqualToString: NSFilenamesPboardType])
+  if ([t isEqualToString:
+#if NS_USE_NSPasteboardTypeFileURL != 0
+           NSPasteboardTypeFileURL
+#else
+           NSFilenamesPboardType
+#endif
+       ])
     return QFILE_NAME;
   if ([t isEqualToString: NSPasteboardTypeTabularText])
     return QTEXT;
@@ -467,7 +473,12 @@ nxatoms_of_nsselect (void)
 	     [NSNumber numberWithLong:0], NXPrimaryPboard,
 	     [NSNumber numberWithLong:0], NXSecondaryPboard,
 	     [NSNumber numberWithLong:0], NSPasteboardTypeString,
-	     [NSNumber numberWithLong:0], NSFilenamesPboardType,
+	     [NSNumber numberWithLong:0],
+#if NS_USE_NSPasteboardTypeFileURL != 0
+                                          NSPasteboardTypeFileURL,
+#else
+                                          NSFilenamesPboardType,
+#endif
 	     [NSNumber numberWithLong:0], NSPasteboardTypeTabularText,
 	 nil] retain];
 }

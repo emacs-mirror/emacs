@@ -1,0 +1,44 @@
+To: example <example@example.org>
+From: example <example@example.org>
+Date: Tue, 5 Jan 2021 10:30:34 +0100
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="------------FB569A4368539497CC91D1DC"
+Content-Language: fr
+Subject: test
+
+--------------FB569A4368539497CC91D1DC
+Content-Type: multipart/alternative;
+ boundary="------------61C81A7DC7592E4C6F856A85"
+
+
+--------------61C81A7DC7592E4C6F856A85
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+
+déjà raté
+
+--------------61C81A7DC7592E4C6F856A85
+Content-Type: text/html; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=windows-1252">
+  </head>
+  <body>
+    déjà raté
+  </body>
+</html>
+
+--------------61C81A7DC7592E4C6F856A85--
+
+--------------FB569A4368539497CC91D1DC
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+mailing list signature
+
+--------------FB569A4368539497CC91D1DC--
+

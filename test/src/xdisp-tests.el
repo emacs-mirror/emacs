@@ -72,4 +72,31 @@
     (should (equal (nth 0 posns) (nth 1 posns)))
     (should (equal (nth 1 posns) (nth 2 posns)))))
 
+(ert-deftest xdisp-tests--window-text-pixel-size () ;; bug#45748
+  (with-temp-buffer
+    (insert "xxx")
+    (switch-to-buffer (current-buffer))
+    (let* ((char-width (frame-char-width))
+           (size (window-text-pixel-size nil t t))
+           (width-in-chars (/ (car size) char-width)))
+      (should (equal width-in-chars 3)))))
+
+(ert-deftest xdisp-tests--window-text-pixel-size-leading-space () ;; bug#45748
+  (with-temp-buffer
+    (insert " xx")
+    (switch-to-buffer (current-buffer))
+    (let* ((char-width (frame-char-width))
+           (size (window-text-pixel-size nil t t))
+           (width-in-chars (/ (car size) char-width)))
+      (should (equal width-in-chars 3)))))
+
+(ert-deftest xdisp-tests--window-text-pixel-size-trailing-space () ;; bug#45748
+  (with-temp-buffer
+    (insert "xx ")
+    (switch-to-buffer (current-buffer))
+    (let* ((char-width (frame-char-width))
+           (size (window-text-pixel-size nil t t))
+           (width-in-chars (/ (car size) char-width)))
+      (should (equal width-in-chars 3)))))
+
 ;;; xdisp-tests.el ends here

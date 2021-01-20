@@ -53,6 +53,10 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <sys/sysctl.h>
 #endif
 
+#if defined __OpenBSD__
+# include <sys/proc.h>
+#endif
+
 #ifdef DARWIN_OS
 # include <libproc.h>
 #endif
@@ -2316,6 +2320,28 @@ emacs_open (char const *file, int oflags, int mode)
   return emacs_openat (AT_FDCWD, file, oflags, mode);
 }
 
+/* Same as above, but doesn't allow the user to quit.  */
+
+static int
+emacs_openat_noquit (int dirfd, const char *file, int oflags,
+                     int mode)
+{
+  int fd;
+  if (! (oflags & O_TEXT))
+    oflags |= O_BINARY;
+  oflags |= O_CLOEXEC;
+  do
+    fd = openat (dirfd, file, oflags, mode);
+  while (fd < 0 && errno == EINTR);
+  return fd;
+}
+
+int
+emacs_open_noquit (char const *file, int oflags, int mode)
+{
+  return emacs_openat_noquit (AT_FDCWD, file, oflags, mode);
+}
+
 /* Open FILE as a stream for Emacs use, with mode MODE.
    Act like emacs_open with respect to threads, signals, and quits.  */
 
@@ -2970,6 +2996,14 @@ static Lisp_Object
 make_lisp_timeval (struct timeval t)
 {
   return make_lisp_time (timeval_to_timespec (t));
+}
+
+#elif defined __OpenBSD__
+
+static Lisp_Object
+make_lisp_timeval (long sec, long usec)
+{
+  return make_lisp_time(make_timespec(sec, usec * 1000));
 }
 
 #endif
@@ -3655,6 +3689,189 @@ system_process_attributes (Lisp_Object pid)
       decoded_comm = code_convert_string_norecord (comm,
 						   Vlocale_coding_system, 0);
 
+      attrs = Fcons (Fcons (Qargs, decoded_comm), attrs);
+    }
+
+  return attrs;
+}
+
+#elif defined __OpenBSD__
+
+Lisp_Object
+system_process_attributes (Lisp_Object pid)
+{
+  int proc_id, nentries, fscale, i;
+  int pagesize = getpagesize ();
+  int mib[6];
+  size_t len;
+  double pct;
+  char *ttyname, args[ARG_MAX];
+  struct kinfo_proc proc;
+  struct passwd *pw;
+  struct group *gr;
+  struct timespec t;
+  struct uvmexp uvmexp;
+
+  Lisp_Object attrs = Qnil;
+  Lisp_Object decoded_comm;
+
+  CHECK_NUMBER (pid);
+  CONS_TO_INTEGER (pid, int, proc_id);
+
+  len = sizeof proc;
+  mib[0] = CTL_KERN;
+  mib[1] = KERN_PROC;
+  mib[2] = KERN_PROC_PID;
+  mib[3] = proc_id;
+  mib[4] = len;
+  mib[5] = 1;
+  if (sysctl (mib, 6, &proc, &len, NULL, 0) != 0)
+    return attrs;
+
+  attrs = Fcons (Fcons (Qeuid, INT_TO_INTEGER (proc.p_uid)), attrs);
+
+  block_input ();
+  pw = getpwuid (proc.p_uid);
+  unblock_input ();
+  if (pw)
+    attrs = Fcons (Fcons (Quser, build_string(pw->pw_name)), attrs);
+
+  attrs = Fcons (Fcons (Qegid, INT_TO_INTEGER(proc.p_svgid)), attrs);
+
+  block_input ();
+  gr = getgrgid (proc.p_svgid);
+  unblock_input ();
+  if (gr)
+    attrs = Fcons (Fcons (Qgroup, build_string (gr->gr_name)), attrs);
+
+  AUTO_STRING (comm, proc.p_comm);
+  decoded_comm = code_convert_string_norecord (comm, Vlocale_coding_system, 0);
+  attrs = Fcons (Fcons (Qcomm, decoded_comm), attrs);
+
+  {
+    char state[2] = {'\0', '\0'};
+    switch (proc.p_stat) {
+    case SIDL:
+      state[0] = 'I';
+      break;
+    case SRUN:
+      state[0] = 'R';
+      break;
+    case SSLEEP:
+      state[0] = 'S';
+      break;
+    case SSTOP:
+      state[0] = 'T';
+      break;
+    case SZOMB:
+      state[0] = 'Z';
+      break;
+    case SDEAD:
+      state[0] = 'D';
+      break;
+    }
+    attrs = Fcons (Fcons (Qstate, build_string (state)), attrs);
+  }
+
+  attrs = Fcons (Fcons (Qppid, INT_TO_INTEGER (proc.p_ppid)), attrs);
+  attrs = Fcons (Fcons (Qpgrp, INT_TO_INTEGER (proc.p_gid)), attrs);
+  attrs = Fcons (Fcons (Qsess, INT_TO_INTEGER (proc.p_sid)),  attrs);
+
+  block_input ();
+  ttyname = proc.p_tdev == NODEV ? NULL : devname (proc.p_tdev, S_IFCHR);
+  unblock_input ();
+  if (ttyname)
+    attrs = Fcons (Fcons (Qttname, build_string (ttyname)), attrs);
+
+  attrs = Fcons (Fcons (Qtpgid,   INT_TO_INTEGER (proc.p_tpgid)), attrs);
+  attrs = Fcons (Fcons (Qminflt,  INT_TO_INTEGER (proc.p_uru_minflt)),
+		 attrs);
+  attrs = Fcons (Fcons (Qmajflt,  INT_TO_INTEGER (proc.p_uru_majflt)),
+		 attrs);
+
+  /* FIXME: missing cminflt, cmajflt. */
+
+  attrs = Fcons (Fcons (Qutime, make_lisp_timeval (proc.p_uutime_sec,
+						   proc.p_uutime_usec)),
+		 attrs);
+  attrs = Fcons (Fcons (Qstime, make_lisp_timeval (proc.p_ustime_sec,
+						   proc.p_ustime_usec)),
+		 attrs);
+  t = timespec_add (make_timespec (proc.p_uutime_sec,
+				   proc.p_uutime_usec * 1000),
+		    make_timespec (proc.p_ustime_sec,
+				   proc.p_ustime_usec * 1000));
+  attrs = Fcons (Fcons (Qtime, make_lisp_time (t)), attrs);
+
+  attrs = Fcons (Fcons (Qcutime, make_lisp_timeval (proc.p_uctime_sec,
+						    proc.p_uctime_usec)),
+		 attrs);
+
+  /* FIXME: missing cstime and thus ctime. */
+
+  attrs = Fcons (Fcons (Qpri,   make_fixnum (proc.p_priority)), attrs);
+  attrs = Fcons (Fcons (Qnice,  make_fixnum (proc.p_nice)), attrs);
+
+  /* FIXME: missing thcount (thread count) */
+
+  attrs = Fcons (Fcons (Qstart, make_lisp_timeval (proc.p_ustart_sec,
+						   proc.p_ustart_usec)),
+		 attrs);
+
+  len = (proc.p_vm_tsize + proc.p_vm_dsize + proc.p_vm_ssize) * pagesize >> 10;
+  attrs = Fcons (Fcons (Qvsize, make_fixnum (len)), attrs);
+
+  attrs = Fcons (Fcons (Qrss,   make_fixnum (proc.p_vm_rssize * pagesize >> 10)),
+		 attrs);
+
+  t = make_timespec (proc.p_ustart_sec,
+		     proc.p_ustart_usec * 1000);
+  t = timespec_sub (current_timespec (), t);
+  attrs = Fcons (Fcons (Qetime, make_lisp_time (t)), attrs);
+
+  len = sizeof (fscale);
+  mib[0] = CTL_KERN;
+  mib[1] = KERN_FSCALE;
+  if (sysctl (mib, 2, &fscale, &len, NULL, 0) != -1)
+    {
+      pct = (double)proc.p_pctcpu / fscale * 100.0;
+      attrs = Fcons (Fcons (Qpcpu, make_float (pct)), attrs);
+    }
+
+  len = sizeof (uvmexp);
+  mib[0] = CTL_VM;
+  mib[1] = VM_UVMEXP;
+  if (sysctl (mib, 2, &uvmexp, &len, NULL, 0) != -1)
+    {
+      pct = (100.0 * (double)proc.p_vm_rssize / uvmexp.npages);
+      attrs = Fcons (Fcons (Qpmem, make_float (pct)), attrs);
+    }
+
+  len = sizeof args;
+  mib[0] = CTL_KERN;
+  mib[1] = KERN_PROC_ARGS;
+  mib[2] = proc_id;
+  mib[3] = KERN_PROC_ARGV;
+  if (sysctl (mib, 4, &args, &len, NULL, 0) == 0 && len != 0)
+    {
+      char **argv = (char**)args;
+
+      /* concatenate argv reusing the existing storage storage.
+	 sysctl(8) guarantees that "the buffer pointed to by oldp is
+	 filled with an array of char pointers followed by the strings
+	 themselves." */
+      for (i = 0; argv[i] != NULL; ++i)
+	{
+	  if (argv[i+1] != NULL)
+	    {
+	      len = strlen (argv[i]);
+	      argv[i][len] = ' ';
+	    }
+	}
+
+      AUTO_STRING (comm, *argv);
+      decoded_comm = code_convert_string_norecord (comm,
+						   Vlocale_coding_system, 0);
       attrs = Fcons (Fcons (Qargs, decoded_comm), attrs);
     }
 

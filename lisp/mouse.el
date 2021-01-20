@@ -1792,7 +1792,7 @@ The function returns a non-nil value if it creates a secondary selection."
       (let (event end end-point)
 	(track-mouse
 	  (while (progn
-		   (setq event (read-event))
+		   (setq event (read--potential-mouse-event))
 		   (or (mouse-movement-p event)
 		       (memq (car-safe event) '(switch-frame select-window))))
 

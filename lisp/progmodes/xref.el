@@ -663,6 +663,12 @@ means to first quit the *xref* buffer."
   (interactive)
   (xref-goto-xref t))
 
+(defun xref-quit-and-pop-marker-stack ()
+  "Quit *xref* buffer, then pop the xref marker stack."
+  (interactive)
+  (quit-window)
+  (xref-pop-marker-stack))
+
 (defun xref-query-replace-in-results (from to)
   "Perform interactive replacement of FROM with TO in all displayed xrefs.
 
@@ -793,6 +799,7 @@ references displayed in the current *xref* buffer."
     (define-key map (kbd ".") #'xref-next-line)
     (define-key map (kbd ",") #'xref-prev-line)
     (define-key map (kbd "g") #'xref-revert-buffer)
+    (define-key map (kbd "M-,") #'xref-quit-and-pop-marker-stack)
     map))
 
 (define-derived-mode xref--xref-buffer-mode special-mode "XREF"
@@ -994,8 +1001,12 @@ When only one definition found, jump to it right away instead."
 When there is more than one definition, split the selected window
 and show the list in a small window at the bottom.  And use a
 local keymap that binds `RET' to `xref-quit-and-goto-xref'."
-  (let ((xrefs (funcall fetcher))
-        (dd default-directory))
+  (let* ((xrefs (funcall fetcher))
+         (dd default-directory)
+         ;; XXX: Make percentage customizable maybe?
+         (max-height (/ (window-height) 2))
+         (size-fun (lambda (window)
+                     (fit-window-to-buffer window max-height))))
     (cond
      ((not (cdr xrefs))
       (xref-pop-to-location (car xrefs)
@@ -1006,7 +1017,8 @@ local keymap that binds `RET' to `xref-quit-and-goto-xref'."
         (xref--transient-buffer-mode)
         (xref--show-common-initialize (xref--analyze xrefs) fetcher alist)
         (pop-to-buffer (current-buffer)
-                       '(display-buffer-in-direction . ((direction . below))))
+                       `(display-buffer-in-direction . ((direction . below)
+                                                        (window-height . ,size-fun))))
         (current-buffer))))))
 
 (define-obsolete-function-alias 'xref--show-defs-buffer-at-bottom

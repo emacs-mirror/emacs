@@ -39,6 +39,15 @@ typedef CGFloat EmacsCGFloat;
 typedef float EmacsCGFloat;
 #endif
 
+/* NSFilenamesPboardType is deprecated in macOS 10.14, but
+   NSPasteboardTypeFileURL is only available in 10.13 (and GNUstep
+   probably lacks it too). */
+#if defined NS_IMPL_COCOA && MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+#define NS_USE_NSPasteboardTypeFileURL 1
+#else
+#define NS_USE_NSPasteboardTypeFileURL 0
+#endif
+
 /* ==========================================================================
 
    Trace support

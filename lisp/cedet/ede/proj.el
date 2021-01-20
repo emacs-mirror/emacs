@@ -184,7 +184,7 @@ Target variables are always renamed such as foo_CFLAGS, then included into
 commands where the variable would usually appear.")
    (rules :initarg :rules
 	  :initform nil
-	  :type list
+	  :type (list-of ede-makefile-rule)
 	  :custom (repeat (object :objecttype ede-makefile-rule))
 	  :label "Additional Rules"
 	  :group (make)

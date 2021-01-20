@@ -125,16 +125,9 @@ This is used in files that are preloaded (or for autoloaded
 variables), so that the initialization is done in the run-time
 context rather than the build-time context.  This also has the
 side-effect that the (delayed) initialization is performed with
-the :set function.
-
-For variables in preloaded files, you can simply use this
-function for the :initialize property.  For autoloaded variables,
-you will also need to add an autoload stanza calling this
-function, and another one setting the standard-value property.
-Or you can wrap the defcustom in a progn, to force the autoloader
-to include all of it."		   ; see eg vc-sccs-search-project-dir
-  ;; No longer true:
-  ;; "See `send-mail-function' in sendmail.el for an example."
+the :set function."
+  ;; Defvar it so as to mark it special, etc (bug#25770).
+  (internal--define-uninitialized-variable symbol)
 
   ;; Until the var is actually initialized, it is kept unbound.
   ;; This seemed to be at least as good as setting it to an arbitrary
@@ -237,6 +230,8 @@ The following keywords are meaningful:
 
 :type	VALUE should be a widget type for editing the symbol's value.
 	Every `defcustom' should specify a value for this keyword.
+        See Info node `(elisp) Customization Types' for a list of
+        base types and useful composite types.
 :options VALUE should be a list of valid members of the widget type.
 :initialize
 	VALUE should be a function used to initialize the
@@ -778,8 +773,7 @@ Return non-nil if the `customized-value' property actually changed."
 Use the :set function to do so.  This is useful for customizable options
 that are defined before their standard value can really be computed.
 E.g. dumped variables whose default depends on run-time information."
-  ;; If it has never been set at all, defvar it so as to mark it
-  ;; special, etc (bug#25770).  This means we are initializing
+  ;; We are initializing
   ;; the variable, and normally any :set function would not apply.
   ;; For custom-initialize-delay, however, it is documented that "the
   ;; (delayed) initialization is performed with the :set function".
@@ -787,11 +781,10 @@ E.g. dumped variables whose default depends on run-time information."
   ;; custom-initialize-delay but needs the :set function custom-set-minor-mode
   ;; to also run during initialization.  So, long story short, we
   ;; always do the funcall step, even if symbol was not bound before.
-  (or (default-boundp symbol)
-      (eval `(defvar ,symbol nil))) ; reset below, so any value is fine
   (funcall (or (get symbol 'custom-set) #'set-default)
 	   symbol
-	   (eval (car (or (get symbol 'saved-value) (get symbol 'standard-value))))))
+	   (eval (car (or (get symbol 'saved-value)
+	                  (get symbol 'standard-value))))))
 
 
 ;;; Custom Themes

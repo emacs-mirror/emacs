@@ -651,6 +651,8 @@ The command \\[yank] can retrieve it from there."
 (defvar calc-embed-prev-modes)
 
 (defun calc-embedded-set-modes (gmodes modes local-modes &optional temp)
+  (defvar the-language)
+  (defvar the-display-just)
   (let ((the-language (calc-embedded-language))
 	(the-display-just (calc-embedded-justify))
 	(v gmodes)

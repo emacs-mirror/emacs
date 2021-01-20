@@ -26,7 +26,9 @@
         (calendar-longitude 75.8)
         (calendar-time-zone +330)
         (calendar-standard-time-zone-name "IST")
-        (calendar-daylight-time-zone-name "IST")
+        ;; Make sure our clockwork isn't confused by daylight saving rules
+        ;; in effect for any other time zone (bug#45818).
+        (calendar-daylight-savings-starts nil)
         (epsilon (/ 60.0)))             ; Minute accuracy is good enough.
     (let* ((sunrise-sunset (solar-sunrise-sunset '(12 30 2020)))
            (sunrise (car (nth 0 sunrise-sunset)))

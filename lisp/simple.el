@@ -5606,7 +5606,9 @@ See also `zap-up-to-char'."
 ;; kill-line and its subroutines.
 
 (defcustom kill-whole-line nil
-  "If non-nil, `kill-line' with no arg at start of line kills the whole line."
+  "If non-nil, `kill-line' with no arg at start of line kills the whole line.
+This variable also affects `kill-visual-line' in the same way as
+it does `kill-line'."
   :type 'boolean
   :group 'killing)
 
@@ -7319,6 +7321,10 @@ If ARG is negative, kill visual lines backward.
 If ARG is zero, kill the text before point on the current visual
 line.
 
+If the variable `kill-whole-line' is non-nil, and this command is
+invoked at start of a line that ends in a newline, kill the newline
+as well.
+
 If you want to append the killed line to the last killed text,
 use \\[append-next-kill] before \\[kill-line].
 
@@ -7331,18 +7337,30 @@ even beep.)"
   ;; Like in `kill-line', it's better to move point to the other end
   ;; of the kill before killing.
   (let ((opoint (point))
-	(kill-whole-line (and kill-whole-line (bolp))))
+        (kill-whole-line (and kill-whole-line (bolp)))
+        (orig-y (cdr (nth 2 (posn-at-point))))
+        ;; FIXME: This tolerance should be zero!  It isn't due to a
+        ;; bug in posn-at-point, see bug#45837.
+        (tol (/ (line-pixel-height) 2)))
     (if arg
 	(vertical-motion (prefix-numeric-value arg))
       (end-of-visual-line 1)
       (if (= (point) opoint)
 	  (vertical-motion 1)
-	;; Skip any trailing whitespace at the end of the visual line.
-	;; We used to do this only if `show-trailing-whitespace' is
-	;; nil, but that's wrong; the correct thing would be to check
-	;; whether the trailing whitespace is highlighted.  But, it's
-	;; OK to just do this unconditionally.
-	(skip-chars-forward " \t")))
+        ;; The first condition below verifies we are still on the same
+        ;; screen line, i.e. that the line isn't continued, and that
+        ;; end-of-visual-line didn't overshoot due to complications
+        ;; like display or overlay strings, intangible text, etc.:
+        ;; otherwise, we don't want to kill a character that's
+        ;; unrelated to the place where the visual line wrapped.
+        (and (< (abs (- (cdr (nth 2 (posn-at-point))) orig-y)) tol)
+             ;; Make sure we delete the character where the line wraps
+             ;; under visual-line-mode, be it whitespace or a
+             ;; character whose category set allows to wrap at it.
+             (or (looking-at-p "[ \t]")
+                 (and word-wrap-by-category
+                      (aref (char-category-set (following-char)) ?\|)))
+             (forward-char))))
     (kill-region opoint (if (and kill-whole-line (= (following-char) ?\n))
 			    (1+ (point))
 			  (point)))))

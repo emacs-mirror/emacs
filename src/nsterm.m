@@ -5602,7 +5602,11 @@ ns_term_init (Lisp_Object display_name)
   ns_drag_types = [[NSArray arrayWithObjects:
                             NSPasteboardTypeString,
                             NSPasteboardTypeTabularText,
+#if NS_USE_NSPasteboardTypeFileURL != 0
+                            NSPasteboardTypeFileURL,
+#else
                             NSFilenamesPboardType,
+#endif
                             NSPasteboardTypeURL, nil] retain];
 
   /* If fullscreen is in init/default-frame-alist, focus isn't set
@@ -8533,9 +8537,19 @@ not_in_argv (NSString *arg)
     {
       return NO;
     }
-  /* FIXME: NSFilenamesPboardType is deprecated in 10.14, but the
-     NSURL method can only handle one file at a time.  Stick with the
-     existing code at the moment.  */
+#if NS_USE_NSPasteboardTypeFileURL != 0
+  else if ([type isEqualToString: NSPasteboardTypeFileURL])
+    {
+      type_sym = Qfile;
+
+      NSArray *urls = [pb readObjectsForClasses: @[[NSURL self]]
+                                        options: nil];
+      NSEnumerator *uenum = [urls objectEnumerator];
+      NSURL *url;
+      while ((url = [uenum nextObject]))
+        strings = Fcons ([[url path] lispString], strings);
+    }
+#else  // !NS_USE_NSPasteboardTypeFileURL
   else if ([type isEqualToString: NSFilenamesPboardType])
     {
       NSArray *files;
@@ -8551,6 +8565,7 @@ not_in_argv (NSString *arg)
       while ( (file = [fenum nextObject]) )
         strings = Fcons ([file lispString], strings);
     }
+#endif   // !NS_USE_NSPasteboardTypeFileURL
   else if ([type isEqualToString: NSPasteboardTypeURL])
     {
       NSURL *url = [NSURL URLFromPasteboard: pb];

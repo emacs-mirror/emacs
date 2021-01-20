@@ -394,7 +394,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;;    			(directory :format "%v"))))
 	     (load-prefer-newer lisp boolean "24.4")
 	     ;; minibuf.c
-             (minibuffer-follows-selected-frame minibuffer boolean "28.1")
+	     (minibuffer-follows-selected-frame
+              minibuffer (choice (const :tag "Always" t)
+                                 (const :tag "When used" hybrid)
+                                 (const :tag "Never" nil))
+              "28.1")
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
 			     (choice (const :tag "Infinite" t) integer)
@@ -876,7 +880,7 @@ since it could result in memory overflow and make Emacs crash."
       ;; Don't re-add to custom-delayed-init-variables post-startup.
       (unless after-init-time
 	;; Note this is the _only_ initialize property we handle.
-	(if (eq (cadr (memq :initialize rest)) 'custom-initialize-delay)
+	(if (eq (cadr (memq :initialize rest)) #'custom-initialize-delay)
 	    ;; These vars are defined early and should hence be initialized
 	    ;; early, even if this file happens to be loaded late.  so add them
 	    ;; to the end of custom-delayed-init-variables.  Otherwise,

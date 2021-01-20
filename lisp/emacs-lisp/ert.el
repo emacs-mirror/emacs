@@ -487,7 +487,7 @@ Errors during evaluation are caught and handled like nil."
 Returns nil if they are."
   (if (not (eq (type-of a) (type-of b)))
       `(different-types ,a ,b)
-    (pcase-exhaustive a
+    (pcase a
       ((pred consp)
        (let ((a-length (proper-list-p a))
              (b-length (proper-list-p b)))
@@ -538,7 +538,7 @@ Returns nil if they are."
                   for xi = (ert--explain-equal-rec ai bi)
                   do (when xi (cl-return `(array-elt ,i ,xi)))
                   finally (cl-assert (equal a b) t))))
-      ((pred atom)
+      (_
        (if (not (equal a b))
            (if (and (symbolp a) (symbolp b) (string= a b))
                `(different-symbols-with-the-same-name ,a ,b)

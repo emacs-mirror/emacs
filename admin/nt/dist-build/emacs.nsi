@@ -2,7 +2,7 @@
 !include LogicLib.nsh
 !include x64.nsh
 
-Outfile "emacs-${OUT_VERSION}-${ARCH}-installer.exe"
+Outfile "emacs-${OUT_VERSION}-installer.exe"
 
 
 SetCompressor /solid lzma
@@ -14,15 +14,15 @@ Var StartMenuFolder
 !define MUI_WELCOMEPAGE_TITLE_3LINES
 !define MUI_WELCOMEPAGE_TEXT "Welcome to Emacs -- the editor of a lifetime."
 
-!define MUI_WELCOMEFINISHPAGE_BITMAP "${ARCH}\share\emacs\${EMACS_VERSION}\etc\images\splash.bmp"
-!define MUI_ICON "${ARCH}\share\emacs\${EMACS_VERSION}\etc\images\icons\hicolor\scalable\apps\emacs.ico"
-!define MUI_UNICON "${ARCH}\share\emacs\${EMACS_VERSION}\etc\images\icons\hicolor\scalable\apps\emacs.ico"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "emacs-${VERSION_BRANCH}\share\emacs\${EMACS_VERSION}\etc\images\splash.bmp"
+!define MUI_ICON "emacs-${VERSION_BRANCH}\share\emacs\${EMACS_VERSION}\etc\images\icons\hicolor\scalable\apps\emacs.ico"
+!define MUI_UNICON "emacs-${VERSION_BRANCH}\share\emacs\${EMACS_VERSION}\etc\images\icons\hicolor\scalable\apps\emacs.ico"
 
 !insertmacro MUI_PAGE_WELCOME
 
 
 !define MUI_LICENSEPAGE_TEXT_TOP "The GNU General Public License"
-!insertmacro MUI_PAGE_LICENSE "${ARCH}\share\emacs\${EMACS_VERSION}\lisp\COPYING"
+!insertmacro MUI_PAGE_LICENSE "emacs-${VERSION_BRANCH}\share\emacs\${EMACS_VERSION}\lisp\COPYING"
 
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -36,19 +36,7 @@ Var StartMenuFolder
 Name Emacs-${EMACS_VERSION}
 
 function .onInit
-  ${If} ${RunningX64}
-    ${If} ${ARCH} == "x86_64"
-      StrCpy $INSTDIR "$PROGRAMFILES64\Emacs"
-    ${Else}
-      StrCpy $INSTDIR "$PROGRAMFILES32\Emacs"
-    ${Endif}
-  ${Else}
-    ${If} ${ARCH} == "x86_64"
-      Quit
-    ${Else}
-      StrCpy $INSTDIR "$PROGRAMFILES\Emacs"
-    ${Endif}
-  ${EndIf}
+    StrCpy $INSTDIR "$PROGRAMFILES64\Emacs"
 functionend
 
 
@@ -56,7 +44,8 @@ Section
 
   SetOutPath $INSTDIR
 
-  File /r ${ARCH}
+  File /r emacs-${VERSION_BRANCH}
+
   # define uninstaller name
   WriteUninstaller $INSTDIR\Uninstall.exe
 
@@ -66,7 +55,7 @@ Section
   CreateShortcut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
 
   !insertmacro MUI_STARTMENU_WRITE_END
-  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Emacs.lnk" "$INSTDIR\${ARCH}\bin\runemacs.exe"
+  CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Emacs.lnk" "$INSTDIR\emacs-${VERSION_BRANCH}\bin\runemacs.exe"
 SectionEnd
 
 
@@ -78,7 +67,7 @@ Section "Uninstall"
   Delete "$INSTDIR\Uninstall.exe"
 
   # now delete installed directory
-  RMDir /r "$INSTDIR\${ARCH}"
+  RMDir /r "$INSTDIR"
   RMDir "$INSTDIR"
 
   !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder
