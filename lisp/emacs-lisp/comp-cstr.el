@@ -179,6 +179,9 @@ Return them as multiple value."
 (defvar comp-cstr-one (comp-value-to-cstr 1)
   "Represent the integer immediate one.")
 
+(defvar comp-cstr-t (comp-type-to-cstr t)
+  "Represent the superclass t.")
+
 
 ;;; Value handling.
 
