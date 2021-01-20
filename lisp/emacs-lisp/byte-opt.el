@@ -2021,6 +2021,56 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 					byte-goto byte-goto))))
 	    )
 	  (setq keep-going t))
+
+	 ;;
+	 ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
+	 ;; stack-set-M [discard/discardN ...]  -->  discardN
+	 ;;
+	 ((and (eq (car lap0) 'byte-stack-set)
+	       (memq (car lap1) '(byte-discard byte-discardN))
+	       (progn
+	         ;; See if enough discard operations follow to expose or
+	         ;; destroy the value stored by the stack-set.
+	         (setq tmp (cdr rest))
+	         (setq tmp2 (1- (cdr lap0)))
+	         (setq tmp3 0)
+	         (while (memq (car (car tmp)) '(byte-discard byte-discardN))
+	           (setq tmp3
+                         (+ tmp3 (if (eq (car (car tmp)) 'byte-discard)
+                                     1
+                                   (cdr (car tmp)))))
+	           (setq tmp (cdr tmp)))
+	         (>= tmp3 tmp2)))
+	  ;; Do the optimization.
+	  (setq lap (delq lap0 lap))
+          (setcar lap1
+                  (if (= tmp2 tmp3)
+                      ;; The value stored is the new TOS, so pop one more
+                      ;; value (to get rid of the old value) using the
+                      ;; TOS-preserving discard operator.
+                      'byte-discardN-preserve-tos
+                    ;; Otherwise, the value stored is lost, so just use a
+                    ;; normal discard.
+                    'byte-discardN))
+          (setcdr lap1 (1+ tmp3))
+	  (setcdr (cdr rest) tmp)
+	  (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"
+	                        lap0 lap1))
+	 ;;
+	 ;; discardN-preserve-tos return  -->  return
+	 ;; dup return  -->  return
+	 ;; stack-set-N return  -->  return     ; where N is TOS-1
+	 ;;
+	 ((and (eq (car lap1) 'byte-return)
+	       (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
+	           (and (eq (car lap0) 'byte-stack-set)
+	                (= (cdr lap0) 1))))
+	  (setq keep-going t)
+	  ;; The byte-code interpreter will pop the stack for us, so
+	  ;; we can just leave stuff on it.
+	  (setq lap (delq lap0 lap))
+	  (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
+
 	 )
 	(setq rest (cdr rest)))
       )
@@ -2085,41 +2135,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     (setcdr lap1 (+ (cdr lap1) (cdr lap0))))
 
 	    ;;
-	    ;; stack-set-M [discard/discardN ...]  -->  discardN-preserve-tos
-	    ;; stack-set-M [discard/discardN ...]  -->  discardN
-	    ;;
-	    ((and (eq (car lap0) 'byte-stack-set)
-	          (memq (car lap1) '(byte-discard byte-discardN))
-	          (progn
-	            ;; See if enough discard operations follow to expose or
-	            ;; destroy the value stored by the stack-set.
-	            (setq tmp (cdr rest))
-	            (setq tmp2 (1- (cdr lap0)))
-	            (setq tmp3 0)
-	            (while (memq (car (car tmp)) '(byte-discard byte-discardN))
-	              (setq tmp3
-                            (+ tmp3 (if (eq (car (car tmp)) 'byte-discard)
-                                        1
-                                      (cdr (car tmp)))))
-	              (setq tmp (cdr tmp)))
-	            (>= tmp3 tmp2)))
-	     ;; Do the optimization.
-	     (setq lap (delq lap0 lap))
-             (setcar lap1
-                     (if (= tmp2 tmp3)
-                         ;; The value stored is the new TOS, so pop one more
-                         ;; value (to get rid of the old value) using the
-                         ;; TOS-preserving discard operator.
-                         'byte-discardN-preserve-tos
-                       ;; Otherwise, the value stored is lost, so just use a
-                       ;; normal discard.
-                       'byte-discardN))
-             (setcdr lap1 (1+ tmp3))
-	     (setcdr (cdr rest) tmp)
-	     (byte-compile-log-lap "  %s [discard/discardN]...\t-->\t%s"
-	        		   lap0 lap1))
-
-	    ;;
 	    ;; discard/discardN/discardN-preserve-tos-X discard/discardN-Y  -->
 	    ;; discardN-(X+Y)
 	    ;;
@@ -2146,20 +2161,6 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 	     (setq lap (delq lap0 lap))
 	     (setcdr lap1 (+ (cdr lap0) (cdr lap1)))
 	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 (car rest)))
-
-	    ;;
-	    ;; discardN-preserve-tos return  -->  return
-	    ;; dup return  -->  return
-	    ;; stack-set-N return  -->  return     ; where N is TOS-1
-	    ;;
-	    ((and (eq (car lap1) 'byte-return)
-	          (or (memq (car lap0) '(byte-discardN-preserve-tos byte-dup))
-	              (and (eq (car lap0) 'byte-stack-set)
-	        	   (= (cdr lap0) 1))))
-	     ;; The byte-code interpreter will pop the stack for us, so
-	     ;; we can just leave stuff on it.
-	     (setq lap (delq lap0 lap))
-	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 lap1))
             )
       (setq rest (cdr rest)))
     (setq byte-compile-maxdepth (+ byte-compile-maxdepth add-depth)))
