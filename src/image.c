@@ -99,6 +99,17 @@ static unsigned long image_alloc_image_color (struct frame *, struct image *,
 					      Lisp_Object, unsigned long);
 #endif	/* USE_CAIRO */
 
+#ifdef HAVE_PGTK
+/* On pgtk, we don't want to create scaled image.
+ * If we create scaled image on scale=2.0 environment,
+ * the created image is half size and Gdk scales it back,
+ * and the result is blurry.
+ * To avoid this, we hold original size image as far as
+ * we can, and let Gdk to scale it when it is shown.
+ */
+# define DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
+#endif
+
 #ifdef HAVE_NTGUI
 
 /* We need (or want) w32.h only when we're _not_ compiling for Cygwin.  */
@@ -2297,9 +2308,11 @@ static void
 image_set_transform (struct frame *f, struct image *img)
 {
 # ifdef HAVE_IMAGEMAGICK
+#  ifndef DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
   /* ImageMagick images already have the correct transform.  */
   if (EQ (image_spec_value (img->spec, QCtype, NULL), Qimagemagick))
     return;
+#  endif
 # endif
 
 # if !defined USE_CAIRO && defined HAVE_XRENDER
@@ -9189,11 +9202,15 @@ imagemagick_load_image (struct frame *f, struct image *img,
   PixelWand **pixels, *bg_wand = NULL;
   MagickPixelPacket  pixel;
   Lisp_Object image;
+#ifndef DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
   Lisp_Object value;
+#endif
   Lisp_Object crop;
   EMACS_INT ino;
   int desired_width, desired_height;
+#ifndef DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
   double rotation;
+#endif
   char hint_buffer[MaxTextExtent];
   char *filename_hint = NULL;
   imagemagick_initialize ();
@@ -9310,9 +9327,13 @@ imagemagick_load_image (struct frame *f, struct image *img,
     PixelSetBlue  (bg_wand, (double) bgcolor.blue  / 65535);
   }
 
+#ifndef DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
   compute_image_size (MagickGetImageWidth (image_wand),
 		      MagickGetImageHeight (image_wand),
 		      img->spec, &desired_width, &desired_height);
+#else
+  desired_width = desired_height = -1;
+#endif
 
   if (desired_width != -1 && desired_height != -1)
     {
@@ -9356,6 +9377,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 	}
     }
 
+#ifndef DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
   /* Furthermore :rotation. we need background color and angle for
      rotation.  */
   /*
@@ -9374,6 +9396,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
           goto imagemagick_error;
         }
     }
+#endif
 
   /* Set the canvas background color to the frame or specified
      background, and flatten the image.  Note: as of ImageMagick
