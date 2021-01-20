@@ -411,13 +411,24 @@ The default emulates `current-time-string' for backward compatibility."
   :group 'remember
   :version "27.1")
 
+(defcustom remember-text-format-function nil
+  "The function to format the remembered text.
+The function receives the remembered text as argument and should
+return the text to be remembered."
+  :type 'function
+  :group 'remember
+  :version "28.1")
+
 (defun remember-append-to-file ()
   "Remember, with description DESC, the given TEXT."
   (let* ((text (buffer-string))
          (desc (remember-buffer-desc))
-         (remember-text (concat "\n" remember-leader-text
-                                (format-time-string remember-time-format)
-                                " (" desc ")\n\n" text
+         (remember-text (concat "\n"
+                                (if remember-text-format-function
+                                    (funcall remember-text-format-function text)
+                                  (concat remember-leader-text
+                                          (format-time-string remember-time-format)
+                                          " (" desc ")\n\n" text))
                                 (save-excursion (goto-char (point-max))
                                                 (if (bolp) nil "\n"))))
          (buf (find-buffer-visiting remember-data-file)))
