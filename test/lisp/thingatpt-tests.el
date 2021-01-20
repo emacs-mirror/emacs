@@ -146,4 +146,18 @@ position to retrieve THING.")
       (should (thing-at-point-looking-at "2abcd"))
       (should (equal (match-data) m2)))))
 
+(ert-deftest test-narrow-buffer-symbol ()
+  (with-temp-buffer
+    (insert "foo bar zot")
+    (goto-char 5)
+    (should (equal (symbol-at-point) 'bar)))
+  (with-temp-buffer
+    (insert "`[[`(")
+    (goto-char 2)
+    (should (equal (symbol-at-point) nil)))
+  (with-temp-buffer
+    (insert "aa `[[`(")
+    (goto-char 4)
+    (should (equal (symbol-at-point) nil))))
+
 ;;; thingatpt.el ends here
