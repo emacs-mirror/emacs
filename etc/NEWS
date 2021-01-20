@@ -1557,6 +1557,9 @@ that makes it a valid button.
 
 ** Miscellaneous
 
+---
+*** New user option 'remember-diary-regexp'.
+
 *** New function 'buffer-line-statistics'.
 This function returns some statistics about the line lengths in a buffer.
 

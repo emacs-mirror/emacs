@@ -159,7 +159,8 @@
 ;;   ;; This should be before other entries that may return t
 ;;   (add-to-list 'remember-handler-functions 'remember-diary-extract-entries)
 ;;
-;; This module recognizes entries of the form
+;; This module recognizes entries of the form (defined by
+;; `remember-diary-regexp')
 ;;
 ;;   DIARY: ....
 ;;
@@ -532,13 +533,18 @@ If this is nil, then `diary-file' will be used instead."
 
 (autoload 'diary-make-entry "diary-lib")
 
+(defcustom remember-diary-regexp "^DIARY:\\s-*\\(.+\\)"
+  "Regexp to extract diary entries."
+  :type 'regexp
+  :version "28.1")
+
 ;;;###autoload
 (defun remember-diary-extract-entries ()
-  "Extract diary entries from the region."
+  "Extract diary entries from the region based on `remember-diary-regexp'."
   (save-excursion
     (goto-char (point-min))
     (let (list)
-      (while (re-search-forward "^DIARY:\\s-*\\(.+\\)" nil t)
+      (while (re-search-forward remember-diary-regexp nil t)
         (push (remember-diary-convert-entry (match-string 1)) list))
       (when list
         (diary-make-entry (mapconcat 'identity list "\n")
