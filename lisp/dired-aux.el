@@ -1168,7 +1168,8 @@ ARGS are command switches passed to PROGRAM.")
     ("\\.tar\\.bz2\\'" . "tar -cf - %i | bzip2 -c9 > %o")
     ("\\.tar\\.xz\\'" . "tar -cf - %i | xz -c9 > %o")
     ("\\.tar\\.zst\\'" . "tar -cf - %i | zstd -19 -o %o")
-    ("\\.zip\\'" . "zip %o -r --filesync %i"))
+    ("\\.zip\\'" . "zip %o -r --filesync %i")
+    ("\\.pax\\'" . "pax -wf %o %i"))
   "Control the compression shell command for `dired-do-compress-to'.
 
 Each element is (REGEXP . CMD), where REGEXP is the name of the
