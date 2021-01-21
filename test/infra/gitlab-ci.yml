@@ -104,8 +104,6 @@ default:
 
 .build-template:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-      when: always
     - changes:
         - "**/Makefile.in"
         - .gitlab-ci.yml
@@ -113,9 +111,11 @@ default:
         - autogen.sh
         - configure.ac
         - lib/*.{h,c}
-        - lisp/emacs-lisp/*.el
+        - lisp/**/*.el
         - src/*.{h,c}
         - test/infra/*
+        - test/lisp/**/*.el
+        - test/src/*.el
     - changes:
         # gfilemonitor, kqueue
         - src/gfilenotify.c
