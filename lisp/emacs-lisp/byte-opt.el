@@ -284,8 +284,10 @@
                           ;; If `fn' is from the same file, it has already
                           ;; been preprocessed!
                           `(function ,fn)
-                        (byte-compile-preprocess
-                         (byte-compile--reify-function fn)))))
+                        ;; Try and process it "in its original environment".
+                        (let ((byte-compile-bound-variables nil))
+                          (byte-compile-preprocess
+                           (byte-compile--reify-function fn))))))
            (if (eq (car-safe newfn) 'function)
                (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
              ;; This can happen because of macroexp-warn-and-return &co.

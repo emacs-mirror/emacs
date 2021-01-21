@@ -713,6 +713,10 @@ Subtests signal errors if something goes wrong."
  "warn-wide-docstring-multiline.el"
  "defvar.*foo.*wider than.*characters")
 
+(bytecomp--define-warning-file-test
+ "nowarn-inline-after-defvar.el"
+ "Lexical argument shadows" 'reverse)
+
 
 ;;;; Macro expansion.
 
