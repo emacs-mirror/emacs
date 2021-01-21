@@ -602,14 +602,14 @@ Echo Chinese date unless NOECHO is non-nil."
   (interactive
    (let* ((c (calendar-chinese-from-absolute
               (calendar-absolute-from-gregorian (calendar-current-date))))
-          (cycle (calendar-read
-                  "Chinese calendar cycle number (>44): "
+          (cycle (calendar-read-sexp
+                  "Chinese calendar cycle number (>44)"
                   (lambda (x) (> x 44))
-                  (number-to-string (car c))))
-          (year (calendar-read
-                 "Year in Chinese cycle (1..60): "
+                  (car c)))
+          (year (calendar-read-sexp
+                 "Year in Chinese cycle (1..60)"
                  (lambda (x) (and (<= 1 x) (<= x 60)))
-                 (number-to-string (cadr c))))
+                 (cadr c)))
           (month-list (calendar-chinese-months-to-alist
                        (calendar-chinese-months cycle year)))
           (month (cdr (assoc
@@ -624,9 +624,11 @@ Echo Chinese date unless NOECHO is non-nil."
                                  (list cycle year month 1))))))
                     30
                   29))
-          (day (calendar-read
-                (format "Chinese calendar day (1-%d): " last)
-                (lambda (x) (and (<= 1 x) (<= x last))))))
+          (day (calendar-read-sexp
+                "Chinese calendar day (1-%d)"
+                (lambda (x) (and (<= 1 x) (<= x last)))
+                nil
+                last)))
      (list (list cycle year month day))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-chinese-to-absolute date)))

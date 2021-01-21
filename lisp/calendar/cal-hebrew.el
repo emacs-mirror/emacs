@@ -225,13 +225,12 @@ Driven by the variable `calendar-date-display-form'."
   "Interactively read the arguments for a Hebrew date command.
 Reads a year, month, and day."
   (let* ((today (calendar-current-date))
-         (year (calendar-read
-                "Hebrew calendar year (>3760): "
+         (year (calendar-read-sexp
+                "Hebrew calendar year (>3760)"
                 (lambda (x) (> x 3760))
-                (number-to-string
-                 (calendar-extract-year
-                  (calendar-hebrew-from-absolute
-                   (calendar-absolute-from-gregorian today))))))
+                (calendar-extract-year
+                 (calendar-hebrew-from-absolute
+                  (calendar-absolute-from-gregorian today)))))
          (month-array (if (calendar-hebrew-leap-year-p year)
                           calendar-hebrew-month-name-array-leap-year
                         calendar-hebrew-month-name-array-common-year))
@@ -258,10 +257,11 @@ Reads a year, month, and day."
          (last (calendar-hebrew-last-day-of-month month year))
          (first (if (and (= year 3761) (= month 10))
                     18 1))
-         (day (calendar-read
-               (format "Hebrew calendar day (%d-%d): "
-                       first last)
-               (lambda (x) (and (<= first x) (<= x last))))))
+         (day (calendar-read-sexp
+               "Hebrew calendar day (%d-%d)"
+               (lambda (x) (and (<= first x) (<= x last)))
+               nil
+               first last)))
     (list (list month day year))))
 
 ;;;###cal-autoload
@@ -681,10 +681,10 @@ from the cursor position."
            (if (equal (current-buffer) (get-buffer calendar-buffer))
                (calendar-cursor-to-date t)
              (let* ((today (calendar-current-date))
-                    (year (calendar-read
-                           "Year of death (>0): "
+                    (year (calendar-read-sexp
+                           "Year of death (>0)"
                            (lambda (x) (> x 0))
-                           (number-to-string (calendar-extract-year today))))
+                           (calendar-extract-year today)))
                     (month-array calendar-month-name-array)
                     (completion-ignore-case t)
                     (month (cdr (assoc-string
@@ -694,20 +694,23 @@ from the cursor position."
                                   nil t)
                                  (calendar-make-alist month-array 1) t)))
                     (last (calendar-last-day-of-month month year))
-                    (day (calendar-read
-                          (format "Day of death (1-%d): " last)
-                          (lambda (x) (and (< 0 x) (<= x last))))))
+                    (day (calendar-read-sexp
+                          "Day of death (1-%d)"
+                          (lambda (x) (and (< 0 x) (<= x last)))
+                          nil
+                          last)))
                (list month day year))))
           (death-year (calendar-extract-year death-date))
-          (start-year (calendar-read
-                       (format "Starting year of Yahrzeit table (>%d): "
-                               death-year)
+          (start-year (calendar-read-sexp
+                       "Starting year of Yahrzeit table (>%d)"
                        (lambda (x) (> x death-year))
-                       (number-to-string (1+ death-year))))
-          (end-year (calendar-read
-                     (format "Ending year of Yahrzeit table (>=%d): "
-                             start-year)
-                     (lambda (x) (>= x start-year)))))
+                       (1+ death-year)
+                       death-year))
+          (end-year (calendar-read-sexp
+                     "Ending year of Yahrzeit table (>=%d)"
+                     (lambda (x) (>= x start-year))
+                     nil
+                     start-year)))
      (list death-date start-year end-year)))
   (message "Computing Yahrzeits...")
   (let* ((h-date (calendar-hebrew-from-absolute

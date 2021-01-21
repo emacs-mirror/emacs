@@ -153,13 +153,12 @@ Defaults to today's date if DATE is not given."
  "Interactively read the arguments for a Bahá’í date command.
 Reads a year, month and day."
   (let* ((today (calendar-current-date))
-         (year (calendar-read
-                "Bahá’í calendar year (not 0): "
+         (year (calendar-read-sexp
+                "Bahá’í calendar year (not 0)"
                 (lambda (x) (not (zerop x)))
-                (number-to-string
-                 (calendar-extract-year
-                  (calendar-bahai-from-absolute
-                   (calendar-absolute-from-gregorian today))))))
+                (calendar-extract-year
+                 (calendar-bahai-from-absolute
+                  (calendar-absolute-from-gregorian today)))))
          (completion-ignore-case t)
          (month (cdr (assoc
                       (completing-read
@@ -169,8 +168,8 @@ Reads a year, month and day."
                        nil t)
                       (calendar-make-alist calendar-bahai-month-name-array
                                            1))))
-         (day (calendar-read "Bahá’í calendar day (1-19): "
-                             (lambda (x) (and (< 0 x) (<= x 19))))))
+         (day (calendar-read-sexp "Bahá’í calendar day (1-19)"
+                                  (lambda (x) (and (< 0 x) (<= x 19))))))
     (list (list month day year))))
 
 ;;;###cal-autoload

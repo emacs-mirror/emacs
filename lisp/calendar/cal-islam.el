@@ -143,13 +143,12 @@ Driven by the variable `calendar-date-display-form'."
   "Interactively read the arguments for an Islamic date command.
 Reads a year, month, and day."
   (let* ((today (calendar-current-date))
-         (year (calendar-read
-                "Islamic calendar year (>0): "
+         (year (calendar-read-sexp
+                "Islamic calendar year (>0)"
                 (lambda (x) (> x 0))
-                (number-to-string
-                 (calendar-extract-year
-                  (calendar-islamic-from-absolute
-                   (calendar-absolute-from-gregorian today))))))
+                (calendar-extract-year
+                 (calendar-islamic-from-absolute
+                  (calendar-absolute-from-gregorian today)))))
          (month-array calendar-islamic-month-name-array)
          (completion-ignore-case t)
          (month (cdr (assoc-string
@@ -159,9 +158,11 @@ Reads a year, month, and day."
                        nil t)
                       (calendar-make-alist month-array 1) t)))
          (last (calendar-islamic-last-day-of-month month year))
-         (day (calendar-read
-               (format "Islamic calendar day (1-%d): " last)
-               (lambda (x) (and (< 0 x) (<= x last))))))
+         (day (calendar-read-sexp
+               "Islamic calendar day (1-%d)"
+               (lambda (x) (and (< 0 x) (<= x last)))
+               nil
+               last)))
     (list (list month day year))))
 
 ;;;###cal-autoload

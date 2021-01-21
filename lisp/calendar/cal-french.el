@@ -188,14 +188,13 @@ Echo French Revolutionary date unless NOECHO is non-nil."
    (let* ((months calendar-french-month-name-array)
           (special-days calendar-french-special-days-array)
           (year (progn
-                  (calendar-read
-                   "Année de la Révolution (>0): "
+                  (calendar-read-sexp
+                   "Année de la Révolution (>0)"
                    (lambda (x) (> x 0))
-                   (number-to-string
-                    (calendar-extract-year
-                     (calendar-french-from-absolute
-                      (calendar-absolute-from-gregorian
-                       (calendar-current-date))))))))
+                   (calendar-extract-year
+                    (calendar-french-from-absolute
+                     (calendar-absolute-from-gregorian
+                      (calendar-current-date)))))))
           (month-list
            (mapcar 'list
                    (append months
@@ -219,8 +218,8 @@ Echo French Revolutionary date unless NOECHO is non-nil."
                        (calendar-make-alist month-list 1 'car) t)))
           (day (if (> month 12)
                    (- month 12)
-                 (calendar-read
-                  "Jour (1-30): "
+                 (calendar-read-sexp
+                  "Jour (1-30)"
                   (lambda (x) (and (<= 1 x) (<= x 30))))))
           (month (if (> month 12) 13 month)))
      (list (list month day year))))

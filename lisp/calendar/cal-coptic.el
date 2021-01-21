@@ -136,13 +136,13 @@ Defaults to today's date if DATE is not given."
   "Interactively read the arguments for a Coptic date command.
 Reads a year, month, and day."
   (let* ((today (calendar-current-date))
-         (year (calendar-read
-                (format "%s calendar year (>0): " calendar-coptic-name)
+         (year (calendar-read-sexp
+                "%s calendar year (>0)"
                 (lambda (x) (> x 0))
-                (number-to-string
-                 (calendar-extract-year
-                  (calendar-coptic-from-absolute
-                   (calendar-absolute-from-gregorian today))))))
+                (calendar-extract-year
+                 (calendar-coptic-from-absolute
+                  (calendar-absolute-from-gregorian today)))
+                calendar-coptic-name))
          (completion-ignore-case t)
          (month (cdr (assoc-string
                       (completing-read
@@ -151,11 +151,14 @@ Reads a year, month, and day."
                                (append calendar-coptic-month-name-array nil))
                        nil t)
                       (calendar-make-alist calendar-coptic-month-name-array
-                                           1) t)))
+                                           1)
+                      t)))
          (last (calendar-coptic-last-day-of-month month year))
-         (day (calendar-read
-               (format "%s calendar day (1-%d): " calendar-coptic-name last)
-               (lambda (x) (and (< 0 x) (<= x last))))))
+         (day (calendar-read-sexp
+               "%s calendar day (1-%d)"
+               (lambda (x) (and (< 0 x) (<= x last)))
+               nil
+               calendar-coptic-name last)))
     (list (list month day year))))
 
 ;;;###cal-autoload
