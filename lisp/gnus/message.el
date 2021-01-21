@@ -655,7 +655,7 @@ When forwarding messages as MIME, but when
 		 regexp))
 
 (defcustom message-forward-included-mime-headers
-  '("^Content-Type:" "^MIME-Version:" "^Content-Transfer-Encoding:")
+  '("^Content-Type:" "^MIME-Version:")
   "When forwarding as MIME, but not using MML, don't delete these headers.
 Also see `message-forward-ignored-headers' and
 `message-forward-ignored-headers'.
