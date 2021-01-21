@@ -100,10 +100,13 @@ default:
   script:
     - docker pull ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
     # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
-    - docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} make ${make_params}
+    - 'export PWD=$(pwd)'
+    - 'docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
 
 .build-template:
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: always
     - changes:
         - "**/Makefile.in"
         - .gitlab-ci.yml
@@ -111,11 +114,9 @@ default:
         - autogen.sh
         - configure.ac
         - lib/*.{h,c}
-        - lisp/**/*.el
+        - lisp/emacs-lisp/*.el
         - src/*.{h,c}
         - test/infra/*
-        - test/lisp/**/*.el
-        - test/src/*.el
     - changes:
         # gfilemonitor, kqueue
         - src/gfilenotify.c
