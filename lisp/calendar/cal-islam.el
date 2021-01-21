@@ -1,4 +1,4 @@
-;;; cal-islam.el --- calendar functions for the Islamic calendar
+;;; cal-islam.el --- calendar functions for the Islamic calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -67,8 +67,8 @@
   "Absolute date of Islamic DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (calendar-extract-month date))
-         (day (calendar-extract-day date))
+  (let* (;;(month (calendar-extract-month date))
+         ;;(day (calendar-extract-day date))
          (year (calendar-extract-year date))
          (y (% year 30))
          (leap-years-in-cycle (cond ((< y 3) 0)

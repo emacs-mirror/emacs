@@ -1,4 +1,4 @@
-;;; cal-hebrew.el --- calendar functions for the Hebrew calendar
+;;; cal-hebrew.el --- calendar functions for the Hebrew calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -399,19 +399,20 @@ is non-nil."
                      (list m (calendar-last-day-of-month m y) y))))))
            (abs-h (calendar-hebrew-to-absolute (list 9 25 h-y)))
            (ord ["first" "second" "third" "fourth" "fifth" "sixth"
-                 "seventh" "eighth"])
-           han)
+                 "seventh" "eighth"]))
       (holiday-filter-visible-calendar
        (if (or all calendar-hebrew-all-holidays-flag)
            (append
             (list
              (list (calendar-gregorian-from-absolute (1- abs-h))
                    "Erev Hanukkah"))
-            (dotimes (i 8 (nreverse han))
-              (push (list
-                     (calendar-gregorian-from-absolute (+ abs-h i))
-                     (format "Hanukkah (%s day)" (aref ord i)))
-                    han)))
+            (let (han)
+              (dotimes (i 8)
+                (push (list
+                       (calendar-gregorian-from-absolute (+ abs-h i))
+                       (format "Hanukkah (%s day)" (aref ord i)))
+                      han))
+              (nreverse han)))
          (list (list (calendar-gregorian-from-absolute abs-h) "Hanukkah")))))))
 
 ;;;###holiday-autoload

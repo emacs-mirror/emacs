@@ -1,4 +1,4 @@
-;;; cal-move.el --- calendar functions for movement in the calendar
+;;; cal-move.el --- calendar functions for movement in the calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 

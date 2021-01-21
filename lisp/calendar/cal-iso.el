@@ -1,4 +1,4 @@
-;;; cal-iso.el --- calendar functions for the ISO calendar
+;;; cal-iso.el --- calendar functions for the ISO calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1997, 2001-2021 Free Software Foundation, Inc.
 

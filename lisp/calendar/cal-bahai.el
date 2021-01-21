@@ -1,4 +1,4 @@
-;;; cal-bahai.el --- calendar functions for the Bahá’í calendar.
+;;; cal-bahai.el --- calendar functions for the Bahá’í calendar.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -124,9 +124,10 @@ Defaults to today's date if DATE is not given."
          (y (calendar-extract-year bahai-date)))
     (if (< y 1)
         ""                              ; pre-Bahai
-      (let* ((m (calendar-extract-month bahai-date))
-             (d (calendar-extract-day bahai-date))
-             (monthname (if (and (= m 19)
+      (let ((m (calendar-extract-month bahai-date))
+            (d (calendar-extract-day bahai-date)))
+        (calendar-dlet*
+            ((monthname (if (and (= m 19)
                                  (<= d 0))
                             "Ayyám-i-Há"
                           (aref calendar-bahai-month-name-array (1- m))))
@@ -137,8 +138,8 @@ Defaults to today's date if DATE is not given."
              (year (number-to-string y))
              (month (number-to-string m))
              dayname)
-        ;; Can't call calendar-date-string because of monthname oddity.
-        (mapconcat 'eval calendar-date-display-form "")))))
+          ;; Can't call calendar-date-string because of monthname oddity.
+          (mapconcat #'eval calendar-date-display-form ""))))))
 
 ;;;###cal-autoload
 (defun calendar-bahai-print-date ()
