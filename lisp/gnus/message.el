@@ -47,7 +47,7 @@
 (require 'rfc2047)
 (require 'puny)
 (require 'rmc)                          ; read-multiple-choice
-(eval-when-compile (require 'subr-x))
+(require 'subr-x)
 
 (autoload 'mailclient-send-it "mailclient")
 
