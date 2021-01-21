@@ -916,8 +916,7 @@ play around with the following keys:
 (defun footnote--regenerate-alist ()
   (save-excursion
     (goto-char (point-min))
-    (if (not (re-search-forward footnote-section-tag-regexp nil t))
-        (error "No footnote section in this buffer")
+    (when (re-search-forward footnote-section-tag-regexp nil t)
       (setq footnote--markers-alist
             (cl-loop
              with start-of-footnotes = (match-beginning 0)
