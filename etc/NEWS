@@ -721,9 +721,11 @@ not.
 ---
 *** Respect 'message-forward-ignored-headers' more.
 Previously, this variable would not be consulted if
-'message-forward-show-mml' was nil.  It's now always used, except if
-'message-forward-show-mml' is 'best', and we're forwarding an
-encrypted/signed message.
+'message-forward-show-mml' was nil and forwarding as MIME.
+
++++
+*** New user option 'message-forward-included-mime-headers'.
+This is used when forwarding messages as MIME, but not using MML.
 
 +++
 *** Message now supports the OpenPGP header.
