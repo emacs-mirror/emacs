@@ -790,6 +790,8 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
   cmcheckmagic (tty);
 }
 
+#ifndef DOS_NT
+
 static void
 tty_write_glyphs_with_face (register struct frame *f, register struct glyph *string,
 			    register int len, register int face_id)
@@ -845,6 +847,8 @@ tty_write_glyphs_with_face (register struct frame *f, register struct glyph *str
 
   cmcheckmagic (tty);
 }
+
+#endif
 
 /* An implementation of insert_glyphs for termcap frames. */
 
@@ -2377,7 +2381,9 @@ frame's terminal). */)
 			       Mouse
  ***********************************************************************/
 
-/* Implementation of draw_row_with_mouse_face for TTY/GPM.  */
+#ifndef DOS_NT
+
+/* Implementation of draw_row_with_mouse_face for TTY/GPM and macOS.  */
 void
 tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 			      int start_hpos, int end_hpos,
@@ -2408,6 +2414,8 @@ tty_draw_row_with_mouse_face (struct window *w, struct glyph_row *row,
 
   cursor_to (f, save_y, save_x);
 }
+
+#endif
 
 #ifdef HAVE_GPM
 
