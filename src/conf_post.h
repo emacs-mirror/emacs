@@ -71,7 +71,9 @@ typedef bool bool_bf;
    It is used only on arguments like cleanup that are handled here.
    This macro should be used only in #if expressions, as Oracle
    Studio 12.5's __has_attribute does not work in plain code.  */
-#ifdef __has_attribute
+#if (defined __has_attribute \
+     && (!defined __clang_minor__ \
+         || 3 < __clang_major__ + (5 <= __clang_minor__)))
 # define HAS_ATTRIBUTE(a) __has_attribute (__##a##__)
 #else
 # define HAS_ATTRIBUTE(a) HAS_ATTR_##a
