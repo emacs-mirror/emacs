@@ -120,6 +120,15 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-d] 'isearch-repeat-backward)
 (define-key global-map [?\s-e] 'isearch-yank-kill)
 (define-key global-map [?\s-f] 'isearch-forward)
+(define-key esc-map [?\s-f] 'isearch-forward-regexp)
+(define-key minibuffer-local-isearch-map [?\s-f]
+  'isearch-forward-exit-minibuffer)
+(define-key isearch-mode-map [?\s-f] 'isearch-repeat-forward)
+(define-key global-map [?\s-F] 'isearch-backward)
+(define-key esc-map [?\s-F] 'isearch-backward-regexp)
+(define-key minibuffer-local-isearch-map [?\s-F]
+  'isearch-reverse-exit-minibuffer)
+(define-key isearch-mode-map [?\s-F] 'isearch-repeat-backward)
 (define-key global-map [?\s-g] 'isearch-repeat-forward)
 (define-key global-map [?\s-h] 'ns-do-hide-emacs)
 (define-key global-map [?\s-H] 'ns-do-hide-others)
