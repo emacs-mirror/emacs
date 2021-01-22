@@ -2181,7 +2181,7 @@ order to Calc's."
 		   v math-read-big-baseline))
 
 	    ;; Small radical sign.
-	    ((and (= other-char ?V)
+	    ((and (memq other-char '(?V ?√))
 		  (= (math-read-big-char (1+ math-rb-h1) (1- v)) ?\_))
 	     (setq h (1+ math-rb-h1))
 	     (math-read-big-emptyp math-rb-h1 math-rb-v1 h (1- v) nil t)

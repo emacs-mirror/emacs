@@ -1,4 +1,4 @@
-;;; cal-coptic.el --- calendar functions for the Coptic/Ethiopic calendars
+;;; cal-coptic.el --- calendar functions for the Coptic/Ethiopic calendars  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -116,12 +116,13 @@ Defaults to today's date if DATE is not given."
          (m (calendar-extract-month coptic-date)))
     (if (< y 1)
         ""
-      (let ((monthname (aref calendar-coptic-month-name-array (1- m)))
-            (day (number-to-string (calendar-extract-day coptic-date)))
-            (dayname nil)
-            (month (number-to-string m))
-            (year (number-to-string y)))
-        (mapconcat 'eval calendar-date-display-form "")))))
+      (calendar-dlet*
+          ((monthname (aref calendar-coptic-month-name-array (1- m)))
+           (day (number-to-string (calendar-extract-day coptic-date)))
+           (dayname nil)
+           (month (number-to-string m))
+           (year (number-to-string y)))
+        (mapconcat #'eval calendar-date-display-form "")))))
 
 ;;;###cal-autoload
 (defun calendar-coptic-print-date ()
@@ -136,13 +137,13 @@ Defaults to today's date if DATE is not given."
   "Interactively read the arguments for a Coptic date command.
 Reads a year, month, and day."
   (let* ((today (calendar-current-date))
-         (year (calendar-read
-                (format "%s calendar year (>0): " calendar-coptic-name)
+         (year (calendar-read-sexp
+                "%s calendar year (>0)"
                 (lambda (x) (> x 0))
-                (number-to-string
-                 (calendar-extract-year
-                  (calendar-coptic-from-absolute
-                   (calendar-absolute-from-gregorian today))))))
+                (calendar-extract-year
+                 (calendar-coptic-from-absolute
+                  (calendar-absolute-from-gregorian today)))
+                calendar-coptic-name))
          (completion-ignore-case t)
          (month (cdr (assoc-string
                       (completing-read
@@ -151,11 +152,14 @@ Reads a year, month, and day."
                                (append calendar-coptic-month-name-array nil))
                        nil t)
                       (calendar-make-alist calendar-coptic-month-name-array
-                                           1) t)))
+                                           1)
+                      t)))
          (last (calendar-coptic-last-day-of-month month year))
-         (day (calendar-read
-               (format "%s calendar day (1-%d): " calendar-coptic-name last)
-               (lambda (x) (and (< 0 x) (<= x last))))))
+         (day (calendar-read-sexp
+               "%s calendar day (1-%d)"
+               (lambda (x) (and (< 0 x) (<= x last)))
+               nil
+               calendar-coptic-name last)))
     (list (list month day year))))
 
 ;;;###cal-autoload
@@ -194,30 +198,30 @@ Echo Coptic date unless NOECHO is t."
 (defconst calendar-ethiopic-name "Ethiopic"
   "Used in some message strings.")
 
-(defun calendar-ethiopic-to-absolute (date)
+(defun calendar-ethiopic-to-absolute (thedate)
   "Compute absolute date from Ethiopic date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (let ((calendar-coptic-epoch calendar-ethiopic-epoch))
-    (calendar-coptic-to-absolute date)))
+    (calendar-coptic-to-absolute thedate)))
 
-(defun calendar-ethiopic-from-absolute (date)
+(defun calendar-ethiopic-from-absolute (thedate)
   "Compute the Ethiopic equivalent for absolute date DATE.
 The result is a list of the form (MONTH DAY YEAR).
 The absolute date is the number of days elapsed since the imaginary
 Gregorian date Sunday, December 31, 1 BC."
   (let ((calendar-coptic-epoch calendar-ethiopic-epoch))
-    (calendar-coptic-from-absolute date)))
+    (calendar-coptic-from-absolute thedate)))
 
 ;;;###cal-autoload
-(defun calendar-ethiopic-date-string (&optional date)
+(defun calendar-ethiopic-date-string (&optional thedate)
   "String of Ethiopic date of Gregorian DATE.
 Returns the empty string if DATE is pre-Ethiopic calendar.
 Defaults to today's date if DATE is not given."
   (let ((calendar-coptic-epoch calendar-ethiopic-epoch)
         (calendar-coptic-name calendar-ethiopic-name)
         (calendar-coptic-month-name-array calendar-ethiopic-month-name-array))
-    (calendar-coptic-date-string date)))
+    (calendar-coptic-date-string thedate)))
 
 ;;;###cal-autoload
 (defun calendar-ethiopic-print-date ()
@@ -229,8 +233,8 @@ Defaults to today's date if DATE is not given."
     (call-interactively 'calendar-coptic-print-date)))
 
 ;;;###cal-autoload
-(defun calendar-ethiopic-goto-date (date &optional noecho)
-  "Move cursor to Ethiopic date DATE.
+(defun calendar-ethiopic-goto-date (thedate &optional noecho)
+  "Move cursor to Ethiopic date THEDATE.
 Echo Ethiopic date unless NOECHO is t."
   (interactive
    (let ((calendar-coptic-epoch calendar-ethiopic-epoch)
@@ -238,7 +242,7 @@ Echo Ethiopic date unless NOECHO is t."
          (calendar-coptic-month-name-array calendar-ethiopic-month-name-array))
      (calendar-coptic-read-date)))
   (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-ethiopic-to-absolute date)))
+                       (calendar-ethiopic-to-absolute thedate)))
   (or noecho (calendar-ethiopic-print-date)))
 
 ;; To be called from diary-list-sexp-entries, where DATE is bound.

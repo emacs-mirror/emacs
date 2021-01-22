@@ -218,6 +218,15 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
 
 (put 'sexp 'beginning-op 'thing-at-point--beginning-of-sexp)
 
+;; Symbols
+
+(put 'symbol 'beginning-op 'thing-at-point--beginning-of-symbol)
+
+(defun thing-at-point--beginning-of-symbol ()
+  "Move point to the beginning of the current symbol."
+  (and (re-search-backward "\\(\\sw\\|\\s_\\)+")
+       (skip-syntax-backward "w_")))
+
 ;;  Lists
 
 (put 'list 'bounds-of-thing-at-point 'thing-at-point-bounds-of-list-at-point)

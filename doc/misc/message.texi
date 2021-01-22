@@ -317,6 +317,12 @@ when forwarding a message.
 In non-@code{nil}, only headers that match this regexp will be kept
 when forwarding a message.  This can also be a list of regexps.
 
+@item message-forward-included-mime-headers
+@vindex message-forward-included-mime-headers
+In non-@code{nil}, headers that match this regexp will be kept when
+forwarding a message as @acronym{MIME}, but @acronym{MML} isn't used.
+This can also be a list of regexps.
+
 @item message-make-forward-subject-function
 @vindex message-make-forward-subject-function
 A list of functions that are called to generate a subject header for

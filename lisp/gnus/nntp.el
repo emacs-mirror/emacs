@@ -1209,7 +1209,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
 			  (read-passwd (format "NNTP (%s@%s) password: "
 					       user nntp-address)))))))
 	  (if (not result)
-	      (signal 'nntp-authinfo-rejected "Password rejected")
+	      (error "Password rejected")
 	    result))))))
 
 ;;; Internal functions.

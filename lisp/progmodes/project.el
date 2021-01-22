@@ -928,6 +928,7 @@ if one already exists."
 ;;;###autoload
 (defun project-async-shell-command ()
   "Run `async-shell-command' in the current project's root directory."
+  (declare (interactive-only async-shell-command))
   (interactive)
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'async-shell-command)))
@@ -935,6 +936,7 @@ if one already exists."
 ;;;###autoload
 (defun project-shell-command ()
   "Run `shell-command' in the current project's root directory."
+  (declare (interactive-only shell-command))
   (interactive)
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'shell-command)))
@@ -972,6 +974,7 @@ loop using the command \\[fileloop-continue]."
 ;;;###autoload
 (defun project-compile ()
   "Run `compile' in the project root."
+  (declare (interactive-only compile))
   (interactive)
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'compile)))

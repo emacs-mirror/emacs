@@ -3260,9 +3260,9 @@ To unhide a package, type
 `\\[customize-variable] RET package-hidden-regexps'.
 
 Type \\[package-menu-toggle-hiding] to toggle package hiding."
+  (declare (interactive-only "change `package-hidden-regexps' instead."))
   (interactive)
   (package--ensure-package-menu-mode)
-  (declare (interactive-only "change `package-hidden-regexps' instead."))
   (let* ((name (when (derived-mode-p 'package-menu-mode)
                  (concat "\\`" (regexp-quote (symbol-name (package-desc-name
                                                            (tabulated-list-get-id))))

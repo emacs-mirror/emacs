@@ -1990,6 +1990,8 @@ the resulting error message."
 	     (tramp-dissect-file-name default-directory) 0 fmt-string arguments)
     (apply #'message fmt-string arguments)))
 
+(put #'tramp-test-message 'tramp-suppress-trace t)
+
 ;; This function provides traces in case of errors not triggered by
 ;; Tramp functions.
 (defun tramp-signal-hook-function (error-symbol data)
@@ -3801,15 +3803,20 @@ It does not support `:stderr'."
 		    (get-buffer-create buffer)
 		  ;; BUFFER can be nil.  We use a temporary buffer.
 		  (generate-new-buffer tramp-temp-buffer-name)))
-	       ;; We use as environment the difference to toplevel
-	       ;; `process-environment'.
 	       (env (mapcar
 		     (lambda (elt)
-		       (unless
-			   (member
-			    elt (default-toplevel-value 'process-environment))
-			 (when (string-match-p "=" elt) elt)))
-		     process-environment))
+		       (when (string-match-p "=" elt) elt))
+		     tramp-remote-process-environment))
+	       ;; We use as environment the difference to toplevel
+	       ;; `process-environment'.
+	       (env (dolist (elt process-environment env)
+		      (when
+			  (and
+			   (string-match-p "=" elt)
+			   (not
+			    (member
+			     elt (default-toplevel-value 'process-environment))))
+			(setq env (cons elt env)))))
 	       (env (setenv-internal
 		     env "INSIDE_EMACS"
 		     (concat (or (getenv "INSIDE_EMACS") emacs-version)

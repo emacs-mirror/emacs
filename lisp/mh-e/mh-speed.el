@@ -128,8 +128,8 @@ With non-nil FORCE, the update is always carried out."
 (defun mh-speed-toggle (&rest ignored)
   "Toggle the display of child folders in the speedbar.
 The optional arguments from speedbar are IGNORED."
-  (interactive)
   (declare (ignore args))
+  (interactive)
   (beginning-of-line)
   (let ((parent (get-text-property (point) 'mh-folder))
         (kids-p (get-text-property (point) 'mh-children-p))
@@ -167,8 +167,8 @@ The optional arguments from speedbar are IGNORED."
 (defun mh-speed-view (&rest ignored)
   "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
 The optional arguments from speedbar are IGNORED."
-  (interactive)
   (declare (ignore args))
+  (interactive)
   (let* ((folder (get-text-property (mh-line-beginning-position) 'mh-folder))
          (range (and (stringp folder)
                      (mh-read-range "Scan" folder t nil nil

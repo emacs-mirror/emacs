@@ -1172,6 +1172,7 @@ please check its value")
         ;; are dependencies between them.
         (nreverse custom-delayed-init-variables))
   (mapc #'custom-reevaluate-setting custom-delayed-init-variables)
+  (setq custom-delayed-init-variables nil)
 
   ;; Warn for invalid user name.
   (when init-file-user
@@ -1300,12 +1301,6 @@ please check its value")
   (unless noninteractive
     (startup--setup-quote-display)
     (setq internal--text-quoting-flag t))
-
-  ;; Re-evaluate again the predefined variables whose initial value
-  ;; depends on the runtime context, in case some of them depend on
-  ;; the window-system features.  Example: blink-cursor-mode.
-  (mapc #'custom-reevaluate-setting custom-delayed-init-variables)
-  (setq custom-delayed-init-variables nil)
 
   (normal-erase-is-backspace-setup-frame)
 
@@ -1487,13 +1482,13 @@ to reading the init file), or afterwards when the user first
 opens a graphical frame.
 
 This can set the values of `menu-bar-mode', `tool-bar-mode',
-`tab-bar-mode', and `no-blinking-cursor', as well as the `cursor' face.
+`tab-bar-mode', and `blink-cursor-mode', as well as the `cursor' face.
 Changed settings will be marked as \"CHANGED outside of Customize\"."
   (let ((no-vals  '("no" "off" "false" "0"))
 	(settings '(("menuBar" "MenuBar" menu-bar-mode nil)
 		    ("toolBar" "ToolBar" tool-bar-mode nil)
 		    ("scrollBar" "ScrollBar" scroll-bar-mode nil)
-		    ("cursorBlink" "CursorBlink" no-blinking-cursor t))))
+		    ("cursorBlink" "CursorBlink" blink-cursor-mode nil))))
     (dolist (x settings)
       (if (member (x-get-resource (nth 0 x) (nth 1 x)) no-vals)
 	  (set (nth 2 x) (nth 3 x)))))

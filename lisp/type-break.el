@@ -487,7 +487,7 @@ Return nil if the file is missing or if the time is not a Lisp time value."
 		 (goto-char (point-min))
 		 (read (current-buffer)))
 	     (end-of-file
-	      (error "End of file in `%s'" file))))))))
+	      (warn "End of file in `%s'" file))))))))
 
 (defun type-break-get-previous-count ()
   "Get previous keystroke count from `type-break-file-name'.
@@ -505,7 +505,7 @@ integer."
                           (forward-line 1)
                           (read (current-buffer)))
                       (end-of-file
-                       (error "End of file in `%s'" file)))))))
+                       (warn "End of file in `%s'" file)))))))
         file
       0)))
 

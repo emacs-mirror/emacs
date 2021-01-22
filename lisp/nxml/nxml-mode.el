@@ -54,26 +54,30 @@
   "Non-nil means display glyph following character reference.
 The glyph is displayed in face `nxml-glyph'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-sexp-element-flag t
   "Non-nil means sexp commands treat an element as a single expression."
   :version "27.1"                       ; nil -> t
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-slash-auto-complete-flag nil
   "Non-nil means typing a slash automatically completes the end-tag.
 This is used by `nxml-electric-slash'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-child-indent 2
   "Indentation for the children of an element relative to the start-tag.
 This only applies when the line or lines containing the start-tag contains
 nothing else other than that start-tag."
   :group 'nxml
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom nxml-attribute-indent 4
   "Indentation for the attributes of an element relative to the start-tag.
@@ -81,12 +85,14 @@ This only applies when the first attribute of a tag starts a line.
 In other cases, the first attribute on one line is indented the same
 as the first attribute on the previous line."
   :group 'nxml
-  :type 'integer)
+  :type 'integer
+  :safe #'integerp)
 
 (defcustom nxml-bind-meta-tab-to-complete-flag t
   "Non-nil means to use nXML completion in \\[completion-at-point]."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-prefer-utf-16-to-utf-8-flag nil
   "Non-nil means prefer UTF-16 to UTF-8 when saving a buffer.
@@ -94,7 +100,8 @@ This is used only when a buffer does not contain an encoding declaration
 and when its current `buffer-file-coding-system' specifies neither UTF-16
 nor UTF-8."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-prefer-utf-16-little-to-big-endian-flag (eq system-type
 							    'windows-nt)
@@ -103,7 +110,8 @@ This is used only for saving a buffer; when reading the byte-order is
 auto-detected. It may be relevant both when there is no encoding declaration
 and when the encoding declaration specifies `UTF-16'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom nxml-default-buffer-file-coding-system nil
   "Default value for `buffer-file-coding-system' for a buffer for a new file.
@@ -112,13 +120,15 @@ A value of nil means use the default value of
 A buffer's `buffer-file-coding-system' affects what
 \\[nxml-insert-xml-declaration] inserts."
   :group 'nxml
-  :type 'coding-system)
+  :type 'coding-system
+  :safe #'coding-system-p)
 
 (defcustom nxml-auto-insert-xml-declaration-flag nil
   "Non-nil means automatically insert an XML declaration in a new file.
 The XML declaration is inserted using `nxml-insert-xml-declaration'."
   :group 'nxml
-  :type 'boolean)
+  :type 'boolean
+  :safe #'booleanp)
 
 (defface nxml-delimited-data
   '((t (:inherit font-lock-doc-face)))

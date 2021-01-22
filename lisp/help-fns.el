@@ -1653,6 +1653,9 @@ in `describe-keymap'.  See also `Searching the Active Keymaps'."
                              (get-char-property (point) 'local-map)
                            (current-local-map)))))
 
+(defvar keymap-name-history nil
+  "History for input to `describe-keymap'.")
+
 ;;;###autoload
 (defun describe-keymap (keymap)
   "Describe key bindings in KEYMAP.

@@ -1104,8 +1104,8 @@ Called with two arguments BEG and END.")
   "Reinitialize the font-lock machinery and (re-)fontify the buffer.
 This functions is a convenience functions when developing font
 locking for a mode, and is not meant to be called from lisp functions."
-  (interactive)
   (declare (interactive-only t))
+  (interactive)
   ;; Make font-lock recalculate all the mode-specific data.
   (setq font-lock-major-mode nil)
   ;; Make the syntax machinery discard all information.

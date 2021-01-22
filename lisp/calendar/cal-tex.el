@@ -1,4 +1,4 @@
-;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
+;;; cal-tex.el --- calendar functions for printing calendars with LaTeX  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -247,6 +247,8 @@ This definition is the heart of the calendar!")
 (autoload 'holiday-in-range "holidays")
 
 (autoload 'diary-list-entries "diary-lib")
+
+(defvar diary-list-include-blanks)
 
 (defun cal-tex-list-diary-entries (d1 d2)
   "Generate a list of all diary-entries from absolute date D1 to D2."
@@ -591,6 +593,8 @@ indicates a buffer position to use instead of point."
 LaTeX commands are inserted for the days of the MONTH in YEAR.
 Diary entries on DIARY-LIST are included.  Holidays on HOLIDAYS
 are included.  Each day is formatted using format DAY-FORMAT."
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))                      ;For `cal-tex-daily-string'.
   (let ((blank-days                     ; at start of month
          (mod
           (- (calendar-day-of-week (list month 1 year))
@@ -605,7 +609,7 @@ are included.  Each day is formatted using format DAY-FORMAT."
         (insert (format day-format (cal-tex-month-name month) j))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
+        (cal-tex-arg (eval cal-tex-daily-string t))
         (cal-tex-arg)
         (cal-tex-comment))
       (when (and (zerop (mod (+ j blank-days) 7))
@@ -885,13 +889,15 @@ argument EVENT specifies a different buffer position."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (or n (setq n 1))
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))                      ;For `cal-tex-daily-string'.
   (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  1
                  (calendar-absolute-from-gregorian
                   (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
-         (year (calendar-extract-year date))
+         ;; (year (calendar-extract-year date))
          (day (calendar-extract-day date))
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
@@ -932,7 +938,7 @@ argument EVENT specifies a different buffer position."
           (insert ": ")
           (cal-tex-large-bf s))
         (cal-tex-hfill)
-        (insert " " (eval cal-tex-daily-string))
+        (insert " " (eval cal-tex-daily-string t))
         (cal-tex-e-parbox)
         (cal-tex-nl)
         (cal-tex-noindent)
@@ -951,7 +957,8 @@ argument EVENT specifies a different buffer position."
         (cal-tex-e-parbox "2cm")
         (cal-tex-nl)
         (setq month (calendar-extract-month date)
-              year (calendar-extract-year date)))
+              ;; year (calendar-extract-year date)
+              ))
       (cal-tex-e-parbox)
       (unless (= i (1- n))
         (run-hooks 'cal-tex-week-hook)
@@ -961,13 +968,16 @@ argument EVENT specifies a different buffer position."
 
 ;; TODO respect cal-tex-daily-start,end?
 ;; Using different numbers of hours will probably break some layouts.
-(defun cal-tex-week-hours (date holidays height)
-  "Insert hourly entries for DATE with HOLIDAYS, with line height HEIGHT.
+(defun cal-tex-week-hours (thedate holidays height)
+  "Insert hourly entries for THEDATE with HOLIDAYS, with line height HEIGHT.
 Uses the 24-hour clock if `cal-tex-24' is non-nil.  Note that the hours
 shown are hard-coded to 8-12, 13-17."
-  (let ((month (calendar-extract-month date))
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))                      ;For `cal-tex-daily-string'.
+  (let ((date thedate)
+        (month (calendar-extract-month date))
         (day (calendar-extract-day date))
-        (year (calendar-extract-year date))
+        ;; (year (calendar-extract-year date))
         morning afternoon s)
   (cal-tex-comment "begin cal-tex-week-hours")
   (cal-tex-cmd  "\\ \\\\[-.2cm]")
@@ -983,7 +993,7 @@ shown are hard-coded to 8-12, 13-17."
     (insert ": ")
     (cal-tex-large-bf s))
   (cal-tex-hfill)
-  (insert " " (eval cal-tex-daily-string))
+  (insert " " (eval cal-tex-daily-string t))
   (cal-tex-e-parbox)
   (cal-tex-nl "-.3cm")
   (cal-tex-rule "0pt" "6.8in" ".2mm")
@@ -1088,14 +1098,16 @@ shown are hard-coded to 8-12, 13-17."
 (defun cal-tex-weekly-common (n event &optional filofax)
   "Common code for weekly calendars."
   (or n (setq n 1))
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))                      ;For `cal-tex-daily-string'.
   (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  1
                  (calendar-absolute-from-gregorian
                   (calendar-cursor-to-date t event)))))
-         (month (calendar-extract-month date))
-         (year (calendar-extract-year date))
-         (day (calendar-extract-day date))
+         ;; (month (calendar-extract-month date))
+         ;; (year (calendar-extract-year date))
+         ;; (day (calendar-extract-day date))
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
@@ -1161,7 +1173,7 @@ shown are hard-coded to 8-12, 13-17."
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
+        (cal-tex-arg (eval cal-tex-daily-string t))
         (insert "%\n")
         (setq date (cal-tex-incr-date date)))
       (insert "\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n")
@@ -1258,14 +1270,16 @@ Optional EVENT indicates a buffer position to use instead of point."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (or n (setq n 1))
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))                      ;For `cal-tex-daily-string'.
   (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  calendar-week-start-day
                  (calendar-absolute-from-gregorian
                   (calendar-cursor-to-date t event)))))
-         (month (calendar-extract-month date))
-         (year (calendar-extract-year date))
-         (day (calendar-extract-day date))
+         ;; (month (calendar-extract-month date))
+         ;; (year (calendar-extract-year date))
+         ;; (day (calendar-extract-day date))
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
@@ -1311,7 +1325,7 @@ Optional EVENT indicates a buffer position to use instead of point."
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date))
-        (cal-tex-arg (eval cal-tex-daily-string))
+        (cal-tex-arg (eval cal-tex-daily-string t))
         (insert "%\n")
         (setq date (cal-tex-incr-date date)))
       (unless (= i (1- n))
@@ -1342,14 +1356,16 @@ Optional EVENT indicates a buffer position to use instead of point."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (or n (setq n 1))
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))                      ;For `cal-tex-daily-string'.
   (let* ((date (calendar-gregorian-from-absolute
                 (calendar-dayname-on-or-before
                  1
                  (calendar-absolute-from-gregorian
                   (calendar-cursor-to-date t event)))))
-         (month (calendar-extract-month date))
-         (year (calendar-extract-year date))
-         (day (calendar-extract-day date))
+         ;; (month (calendar-extract-month date))
+         ;; (year (calendar-extract-year date))
+         ;; (day (calendar-extract-day date))
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
@@ -1383,11 +1399,11 @@ Optional EVENT indicates a buffer position to use instead of point."
                     "\\leftday")))
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date "\\\\" t))
-        (cal-tex-arg (eval cal-tex-daily-string))
+        (cal-tex-arg (eval cal-tex-daily-string t))
         (insert "%\n")
-        (if cal-tex-rules
-            (insert "\\linesfill\n")
-          (insert "\\vfill\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n"))
+        (insert (if cal-tex-rules
+                    "\\linesfill\n"
+                  "\\vfill\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n"))
         (cal-tex-newpage)
         (setq date (cal-tex-incr-date date)))
       (insert "%\n")
@@ -1397,11 +1413,11 @@ Optional EVENT indicates a buffer position to use instead of point."
         (insert "\\weekend")
         (cal-tex-arg (cal-tex-latexify-list diary-list date))
         (cal-tex-arg (cal-tex-latexify-list holidays date "\\\\" t))
-        (cal-tex-arg (eval cal-tex-daily-string))
+        (cal-tex-arg (eval cal-tex-daily-string t))
         (insert "%\n")
-        (if cal-tex-rules
-            (insert "\\linesfill\n")
-          (insert "\\vfill"))
+        (insert (if cal-tex-rules
+                    "\\linesfill\n"
+                  "\\vfill"))
         (setq date (cal-tex-incr-date date)))
       (or cal-tex-rules
           (insert "\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n"))
@@ -1442,12 +1458,15 @@ a buffer position to use instead of point."
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
-(defun cal-tex-daily-page (date)
-  "Make a calendar page for Gregorian DATE on 8.5 by 11 paper.
+(defun cal-tex-daily-page (thedate)
+  "Make a calendar page for Gregorian THEDATE on 8.5 by 11 paper.
 Uses the 24-hour clock if `cal-tex-24' is non-nil.  Produces
 hourly sections for the period specified by `cal-tex-daily-start'
 and `cal-tex-daily-end'."
-  (let ((month-name (cal-tex-month-name (calendar-extract-month date)))
+  (with-suppressed-warnings ((lexical date))
+    (defvar date))                      ;For `cal-tex-daily-string'.
+  (let ((date thedate)
+        (month-name (cal-tex-month-name (calendar-extract-month date)))
         (i (1- cal-tex-daily-start))
         hour)
     (cal-tex-banner "cal-tex-daily-page")
@@ -1459,7 +1478,7 @@ and `cal-tex-daily-end'."
     (cal-tex-bf month-name )
     (cal-tex-e-parbox)
     (cal-tex-hspace "1cm")
-    (cal-tex-scriptsize (eval cal-tex-daily-string))
+    (cal-tex-scriptsize (eval cal-tex-daily-string t))
     (cal-tex-hspace "3.5cm")
     (cal-tex-e-makebox)
     (cal-tex-hfill)

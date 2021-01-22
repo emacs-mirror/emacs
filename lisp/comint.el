@@ -3863,7 +3863,11 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 	(push (buffer-substring-no-properties
                (match-beginning regexp-group)
                (match-end regexp-group))
-              results))
+              results)
+        (when (zerop (length (match-string 0)))
+          ;; If the regexp can be empty (for instance, "^.*$"), we
+          ;; don't advance, so ensure forward progress.
+	  (forward-line 1)))
       (nreverse results))))
 
 ;; Converting process modes to use comint mode
