@@ -820,9 +820,10 @@ With ARG, perform this action that many times."
   (delete-horizontal-space t)
   (unless arg
     (setq arg 1))
-  (dotimes (_ arg)
-    (newline nil t)
-    (indent-according-to-mode)))
+  (let ((electric-indent-mode nil))
+    (dotimes (_ arg)
+      (newline nil t)
+      (indent-according-to-mode))))
 
 (defun reindent-then-newline-and-indent ()
   "Reindent current line, insert newline, then indent the new line.
@@ -832,7 +833,8 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
-  (let ((pos (point)))
+  (let ((pos (point))
+        (electric-indent-mode nil))
     ;; Be careful to insert the newline before indenting the line.
     ;; Otherwise, the indentation might be wrong.
     (newline)
