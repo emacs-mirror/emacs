@@ -5610,6 +5610,11 @@ This function cancels and undoes all the changes in the change group
 specified by @var{handle}.
 @end defun
 
+@defun undo-amalgamate-change-group
+Amalgamate changes in change-group since @var{handle}.  I.e., remove
+all undo boundaries between the state of @var{handle} and now.
+@end defun
+
   Your code should use @code{unwind-protect} to make sure the group is
 always finished.  The call to @code{activate-change-group} should be
 inside the @code{unwind-protect}, in case the user types @kbd{C-g}
