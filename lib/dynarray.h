@@ -1,5 +1,5 @@
-/* Variable-sized buffer with on-stack default allocation.
-   Copyright (C) 2017-2021 Free Software Foundation, Inc.
+/* Type-safe arrays which grow dynamically.
+   Copyright 2021 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,17 +14,18 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
-/* Written by Paul Eggert, 2017.  */
+/* Written by Paul Eggert, 2021.  */
 
-#ifndef _GL_SCRATCH_BUFFER_H
-#define _GL_SCRATCH_BUFFER_H
+#ifndef _GL_DYNARRAY_H
+#define _GL_DYNARRAY_H
 
 #include <libc-config.h>
 
-#define __libc_scratch_buffer_dupfree gl_scratch_buffer_dupfree
-#define __libc_scratch_buffer_grow gl_scratch_buffer_grow
-#define __libc_scratch_buffer_grow_preserve gl_scratch_buffer_grow_preserve
-#define __libc_scratch_buffer_set_array_size gl_scratch_buffer_set_array_size
-#include <malloc/scratch_buffer.h>
+#define __libc_dynarray_at_failure gl_dynarray_at_failure
+#define __libc_dynarray_emplace_enlarge gl_dynarray_emplace_enlarge
+#define __libc_dynarray_finalize gl_dynarray_finalize
+#define __libc_dynarray_resize_clear gl_dynarray_resize_clear
+#define __libc_dynarray_resize gl_dynarray_resize
+#include <malloc/dynarray.h>
 
-#endif /* _GL_SCRATCH_BUFFER_H */
+#endif /* _GL_DYNARRAY_H */

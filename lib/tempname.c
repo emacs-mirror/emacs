@@ -22,6 +22,7 @@
 
 #include <sys/types.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include <errno.h>
 
@@ -61,7 +62,8 @@
 # define __gen_tempname gen_tempname
 # define __mkdir mkdir
 # define __open open
-# define __lxstat64(version, file, buf) lstat (file, buf)
+# define __lstat64(file, buf) lstat (file, buf)
+# define __stat64(file, buf) stat (file, buf)
 # define __getrandom getrandom
 # define __clock_gettime64 clock_gettime
 # define __timespec64 timespec
@@ -76,13 +78,14 @@ typedef uint_fast64_t random_value;
 #define BASE_62_POWER (62LL * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62 * 62)
 
 static random_value
-random_bits (random_value var)
+random_bits (random_value var, bool use_getrandom)
 {
   random_value r;
-  if (__getrandom (&r, sizeof r, 0) == sizeof r)
+  /* Without GRND_NONBLOCK it can be blocked for minutes on some systems.  */
+  if (use_getrandom && __getrandom (&r, sizeof r, GRND_NONBLOCK) == sizeof r)
     return r;
 #if _LIBC || (defined CLOCK_MONOTONIC && HAVE_CLOCK_GETTIME)
-  /* Add entropy if getrandom is not supported.  */
+  /* Add entropy if getrandom did not work.  */
   struct __timespec64 tv;
   __clock_gettime64 (CLOCK_MONOTONIC, &tv);
   var ^= tv.tv_nsec;
@@ -96,7 +99,7 @@ static int
 direxists (const char *dir)
 {
   struct_stat64 buf;
-  return __xstat64 (_STAT_VER, dir, &buf) == 0 && S_ISDIR (buf.st_mode);
+  return __stat64 (dir, &buf) == 0 && S_ISDIR (buf.st_mode);
 }
 
 /* Path search algorithm, for tmpnam, tmpfile, etc.  If DIR is
@@ -188,7 +191,7 @@ try_nocreate (char *tmpl, void *flags _GL_UNUSED)
 {
   struct_stat64 st;
 
-  if (__lxstat64 (_STAT_VER, tmpl, &st) == 0 || errno == EOVERFLOW)
+  if (__lstat64 (tmpl, &st) == 0 || errno == EOVERFLOW)
     __set_errno (EEXIST);
   return errno == ENOENT ? 0 : -1;
 }
@@ -267,6 +270,13 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
   /* How many random base-62 digits can currently be extracted from V.  */
   int vdigits = 0;
 
+  /* Whether to consume entropy when acquiring random bits.  On the
+     first try it's worth the entropy cost with __GT_NOCREATE, which
+     is inherently insecure and can use the entropy to make it a bit
+     less secure.  On the (rare) second and later attempts it might
+     help against DoS attacks.  */
+  bool use_getrandom = tryfunc == try_nocreate;
+
   /* Least unfair value for V.  If V is less than this, V can generate
      BASE_62_DIGITS digits fairly.  Otherwise it might be biased.  */
   random_value const unfair_min
@@ -290,7 +300,10 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
           if (vdigits == 0)
             {
               do
-                v = random_bits (v);
+                {
+                  v = random_bits (v, use_getrandom);
+                  use_getrandom = true;
+                }
               while (unfair_min <= v);
 
               vdigits = BASE_62_DIGITS;

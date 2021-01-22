@@ -1,6 +1,5 @@
-/* Convert UTC calendar time to simple time.  Like mktime but assumes UTC.
-
-   Copyright (C) 1994-2021 Free Software Foundation, Inc.
+/* Report an dynamic array index out of bounds condition.
+   Copyright (C) 2017-2021 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -17,42 +16,20 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _LIBC
-# include <libc-config.h>
-#endif
+#include <dynarray.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include <time.h>
-#include <errno.h>
-
-#include "mktime-internal.h"
-
-__time64_t
-__timegm64 (struct tm *tmp)
+void
+__libc_dynarray_at_failure (size_t size, size_t index)
 {
-  static mktime_offset_t gmtime_offset;
-  tmp->tm_isdst = 0;
-  return __mktime_internal (tmp, __gmtime64_r, &gmtime_offset);
-}
-
-#if defined _LIBC && __TIMESIZE != 64
-
-libc_hidden_def (__timegm64)
-
-time_t
-timegm (struct tm *tmp)
-{
-  struct tm tm = *tmp;
-  __time64_t t = __timegm64 (&tm);
-  if (in_time_t_range (t))
-    {
-      *tmp = tm;
-      return t;
-    }
-  else
-    {
-      __set_errno (EOVERFLOW);
-      return -1;
-    }
-}
-
+#ifdef _LIBC
+  char buf[200];
+  __snprintf (buf, sizeof (buf), "Fatal glibc error: "
+              "array index %zu not less than array length %zu\n",
+              index, size);
+#else
+ abort ();
 #endif
+}
+libc_hidden_def (__libc_dynarray_at_failure)
