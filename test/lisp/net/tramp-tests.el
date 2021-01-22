@@ -5247,7 +5247,7 @@ Use direct async.")
 	  ;; order to avoid a question.  `explicit-sh-args' echoes the
 	  ;; test data.
 	  (with-current-buffer (get-buffer-create "*shell*")
-	    (ignore-errors (kill-process (current-buffer)))
+	    (ignore-errors (kill-process (get-buffer-process (current-buffer))))
 	    (should-not explicit-shell-file-name)
 	    (call-interactively #'shell)
 	    (with-timeout (10)

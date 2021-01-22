@@ -181,10 +181,9 @@ The string is used in `tramp-methods'.")
               `("scpx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t") ("%h")
-					     ("%l")))
+				             ("-e" "none") ("-t" "-t")
+					     ("-o" "RemoteCommand='%l'") ("%h")))
                 (tramp-async-args           (("-q")))
-                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -238,10 +237,9 @@ The string is used in `tramp-methods'.")
               `("sshx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t") ("%h")
-					     ("%l")))
+				             ("-e" "none") ("-t" "-t")
+					     ("-o" "RemoteCommand='%l'") ("%h")))
                 (tramp-async-args           (("-q")))
-                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
@@ -5124,7 +5122,7 @@ connection if a previous connection has died for some reason."
 		     options (format-spec options spec)
 		     spec (format-spec-make
 			   ?h l-host ?u l-user ?p l-port ?c options
-			   ?l (concat remote-shell " " extra-args))
+			   ?l (concat remote-shell " " extra-args " -i"))
 		     command
 		     (concat
 		      ;; We do not want to see the trailing local
