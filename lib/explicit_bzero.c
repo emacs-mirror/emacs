@@ -54,11 +54,21 @@ explicit_bzero (void *s, size_t len)
   explicit_memset (s, '\0', len);
 #elif HAVE_MEMSET_S
   (void) memset_s (s, len, '\0', len);
-#else
+#elif defined __GNUC__ && !defined __clang__
   memset (s, '\0', len);
-# if defined __GNUC__ && !defined __clang__
   /* Compiler barrier.  */
   asm volatile ("" ::: "memory");
-# endif
+#elif defined __clang__
+  memset (s, '\0', len);
+  /* Compiler barrier.  */
+  /* With asm ("" ::: "memory") LLVM analyzes uses of 's' and finds that the
+     whole thing is dead and eliminates it.  Use 'g' to work around this
+     problem.  See <https://bugs.llvm.org/show_bug.cgi?id=15495#c11>.  */
+  __asm__ volatile ("" : : "g"(s) : "memory");
+#else
+  /* Invoke memset through a volatile function pointer.  This defeats compiler
+     optimizations.  */
+  void * (* const volatile volatile_memset) (void *, int, size_t) = memset;
+  (void) volatile_memset (s, '\0', len);
 #endif
 }
