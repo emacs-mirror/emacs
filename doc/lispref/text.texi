@@ -334,6 +334,25 @@ but there is no peace.
 (thing-at-point 'whitespace)
      @result{} nil
 @end example
+
+@defvar thing-at-point-provider-alist
+This variable allows users and modes to tweak how
+@code{thing-at-point} works.  It's an association list of @var{thing}s
+and functions (called with zero parameters) to return that thing.
+Entries for @var{thing} will be evaluated in turn until a
+non-@code{nil} result is returned.
+
+For instance, a major mode could say:
+
+@lisp
+(setq-local thing-at-point-provider-alist
+            (append thing-at-point-provider-alist
+                    '((url . my-mode--url-at-point))))
+@end lisp
+
+If no providers have a non-@code{nil} return, the @var{thing} will be
+computed the standard way.
+@end defvar
 @end defun
 
 @node Comparing Text

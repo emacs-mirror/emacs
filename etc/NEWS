@@ -1564,6 +1564,12 @@ that makes it a valid button.
 
 *** New macro `named-let` that provides Scheme's "named let" looping construct
 
+** thingatpt
+
++++
+*** New variable 'thing-at-point-provider-alist'.
+This allows mode-specific alterations to how `thing-at-point' works.
+
 ** Miscellaneous
 
 ---
