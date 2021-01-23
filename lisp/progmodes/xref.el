@@ -884,8 +884,7 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
          (insert
           (propertize
            (error-message-string err)
-           'face 'error))))
-      (goto-char (point-min)))))
+           'face 'error)))))))
 
 (defun xref--show-defs-buffer (fetcher alist)
   (let ((xrefs (funcall fetcher)))
