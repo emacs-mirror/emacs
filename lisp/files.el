@@ -4062,7 +4062,7 @@ Return the new variables list."
                      (subdirs (assq 'subdirs alist)))
                 (if (or (not subdirs)
                         (progn
-                          (setq alist (delq subdirs alist))
+                          (setq alist (remq subdirs alist))
                           (cdr-safe subdirs))
                         ;; TODO someone might want to extend this to allow
                         ;; integer values for subdir, where N means
