@@ -127,7 +127,7 @@ and also to avoid outputting the warning during normal execution."
     (cond
      ((null msg) form)
      ((macroexp--compiling-p)
-      (if (gethash form macroexp--warned)
+      (if (and (consp form) (gethash form macroexp--warned))
           ;; Already wrapped this exp with a warning: avoid inf-looping
           ;; where we keep adding the same warning onto `form' because
           ;; macroexpand-all gets right back to macroexpanding `form'.
@@ -138,9 +138,10 @@ and also to avoid outputting the warning during normal execution."
            ,form)))
      (t
       (unless compile-only
-        (message "%s%s" (if (stringp load-file-name)
-                            (concat (file-relative-name load-file-name) ": ")
-                          "")
+        (message "%sWarning: %s"
+                 (if (stringp load-file-name)
+                     (concat (file-relative-name load-file-name) ": ")
+                   "")
                  msg))
       form))))
 
@@ -180,8 +181,9 @@ and also to avoid outputting the warning during normal execution."
 
 (defun macroexp-macroexpand (form env)
   "Like `macroexpand' but checking obsolescence."
-  (let ((new-form
-         (macroexpand form env)))
+  (let* ((macroexpand-all-environment env)
+         (new-form
+          (macroexpand form env)))
     (if (and (not (eq form new-form))   ;It was a macro call.
              (car-safe form)
              (symbolp (car form))

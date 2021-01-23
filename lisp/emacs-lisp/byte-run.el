@@ -232,8 +232,11 @@ The return value is undefined.
 		  #'(lambda (x)
 		      (let ((f (cdr (assq (car x) macro-declarations-alist))))
 			(if f (apply (car f) name arglist (cdr x))
-			  (message "Warning: Unknown macro property %S in %S"
-				   (car x) name))))
+			  (macroexp--warn-and-return
+			   (format-message
+			    "Unknown macro property %S in %S"
+			    (car x) name)
+			   nil))))
 		  decls)))
 	   ;; Refresh font-lock if this is a new macro, or it is an
 	   ;; existing macro whose 'no-font-lock-keyword declaration
@@ -301,9 +304,12 @@ The return value is undefined.
                                 (cdr body)
                               body)))
                     nil)
-                   (t (message "Warning: Unknown defun property `%S' in %S"
-                               (car x) name)))))
-                   decls))
+                   (t
+                    (macroexp--warn-and-return
+                     (format-message "Unknown defun property `%S' in %S"
+                                     (car x) name)
+                     nil)))))
+            decls))
           (def (list 'defalias
                      (list 'quote name)
                      (list 'function
