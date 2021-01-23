@@ -291,7 +291,6 @@ static int child_signal_read_fd = -1;
 static int child_signal_write_fd = -1;
 static void child_signal_init (void);
 #ifndef WINDOWSNT
-/* FIXME: This is never used, on all platforms.  */
 static void child_signal_read (int, void *);
 #endif
 static void child_signal_notify (void);
