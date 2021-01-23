@@ -7195,6 +7195,8 @@ child_signal_init (void)
   eassert (0 <= fds[1]);
   if (fcntl (fds[0], F_SETFL, O_NONBLOCK) != 0)
     emacs_perror ("fcntl");
+  if (fcntl (fds[1], F_SETFL, O_NONBLOCK) != 0)
+    emacs_perror ("fcntl");
   add_read_fd (fds[0], child_signal_read, NULL);
   fd_callback_info[fds[0]].flags &= ~KEYBOARD_FD;
   child_signal_read_fd = fds[0];
