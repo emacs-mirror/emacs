@@ -609,11 +609,12 @@ This expects `auto-revert--messages' to be bound by
              (should auto-revert-mode))
 
            (dotimes (i num-buffers)
-             (add-to-list
-              'buffers
-              (make-indirect-buffer
-               (car buffers) (format "%s-%d" (buffer-file-name (car buffers)) i) 'clone)
-              'append))
+             (push (make-indirect-buffer
+                    (car buffers)
+                    (format "%s-%d" (buffer-file-name (car buffers)) i)
+                    'clone)
+                   buffers))
+           (setq buffers (nreverse buffers))
            (dolist (buf buffers)
              (with-current-buffer buf
                (should (string-equal (buffer-string) "any text"))
@@ -640,10 +641,10 @@ This expects `auto-revert--messages' to be bound by
            (auto-revert-tests--write-file "any text" tmpfile (pop times))
 
            (dotimes (i num-buffers)
-             (add-to-list
-              'buffers
-              (generate-new-buffer (format "%s-%d" (file-name-nondirectory tmpfile) i))
-              'append))
+             (push (generate-new-buffer
+                    (format "%s-%d" (file-name-nondirectory tmpfile) i))
+                   buffers))
+           (setq buffers (nreverse buffers))
            (dolist (buf buffers)
              (with-current-buffer buf
                (insert-file-contents tmpfile 'visit)
