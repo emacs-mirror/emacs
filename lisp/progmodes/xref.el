@@ -876,10 +876,10 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
   (let ((inhibit-read-only t)
         (buffer-undo-list t))
     (save-excursion
-      (erase-buffer)
       (condition-case err
-          (xref--insert-xrefs
-           (xref--analyze (funcall xref--fetcher)))
+          (let ((alist (xref--analyze (funcall xref--fetcher))))
+            (erase-buffer)
+            (xref--insert-xrefs alist))
         (user-error
          (insert
           (propertize
