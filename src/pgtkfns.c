@@ -2647,6 +2647,7 @@ Internal use only, use `display-monitor-attributes-list' instead.  */)
       mi->work.height = work.height;
       mi->mm_width = width_mm;
       mi->mm_height = height_mm;
+      mi->scale_factor = scale;
 
       dupstring (&mi->name, (gdk_monitor_get_model (monitor)));
     }
