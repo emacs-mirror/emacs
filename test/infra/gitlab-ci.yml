@@ -72,6 +72,7 @@ default:
         - lisp/**/*.el
         - src/*.{h,c}
         - test/infra/*
+        - test/lib-src/*.el
         - test/lisp/**/*.el
         - test/src/*.el
     - changes:
