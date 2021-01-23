@@ -975,8 +975,7 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
          (insert
           (propertize
            (error-message-string err)
-           'face 'error))))
-      (goto-char (point-min)))))
+           'face 'error)))))))
 
 (defun xref-show-definitions-buffer (fetcher alist)
   "Show the definitions list in a regular window.
