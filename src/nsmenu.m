@@ -101,7 +101,6 @@ popup_activated (void)
 static void
 ns_update_menubar (struct frame *f, bool deep_p)
 {
-  NSAutoreleasePool *pool;
   BOOL needsSet = NO;
   id menu = [NSApp mainMenu];
   bool owfi;

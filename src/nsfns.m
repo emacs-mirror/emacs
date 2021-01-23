@@ -1487,7 +1487,6 @@ Some window managers may refuse to restack windows.  */)
     {
       EmacsWindow *window = (EmacsWindow *)[FRAME_NS_VIEW (f1) window];
       NSWindow *window2 = [FRAME_NS_VIEW (f2) window];
-      BOOL flag = !NILP (above);
 
       if ([window restackWindow:window2 above:!NILP (above)])
         return Qt;
