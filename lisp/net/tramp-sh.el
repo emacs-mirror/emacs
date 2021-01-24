@@ -2617,11 +2617,8 @@ The method used must be an out-of-band method."
 	 filename switches wildcard full-directory-p)
       (when (stringp switches)
         (setq switches (split-string switches)))
-      (when (tramp-get-ls-command-with ;FIXME: tramp-sh--quoting-style-options?
-	     v "--quoting-style=literal --show-control-chars")
-	(setq switches
-	      (append
-	       switches '("--quoting-style=literal" "--show-control-chars"))))
+      (setq switches
+	    (append switches (split-string (tramp-sh--quoting-style-options v))))
       (unless (tramp-get-ls-command-with v "--dired")
 	(setq switches (delete "--dired" switches)))
       (when wildcard
