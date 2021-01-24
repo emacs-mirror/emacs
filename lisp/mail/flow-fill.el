@@ -174,8 +174,8 @@ lines."
 (defvar fill-flowed-encode-tests)
 
 (defun fill-flowed-test ()
-  (interactive "")
   (declare (obsolete nil "27.1"))
+  (interactive "")
   (user-error (concat "This function is obsolete.  Please see "
                       "test/lisp/mail/flow-fill-tests.el "
                       "in the Emacs source tree")))

@@ -820,9 +820,10 @@ With ARG, perform this action that many times."
   (delete-horizontal-space t)
   (unless arg
     (setq arg 1))
-  (dotimes (_ arg)
-    (newline nil t)
-    (indent-according-to-mode)))
+  (let ((electric-indent-mode nil))
+    (dotimes (_ arg)
+      (newline nil t)
+      (indent-according-to-mode))))
 
 (defun reindent-then-newline-and-indent ()
   "Reindent current line, insert newline, then indent the new line.
@@ -832,7 +833,8 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
-  (let ((pos (point)))
+  (let ((pos (point))
+        (electric-indent-mode nil))
     ;; Be careful to insert the newline before indenting the line.
     ;; Otherwise, the indentation might be wrong.
     (newline)
@@ -7338,10 +7340,7 @@ even beep.)"
   ;; of the kill before killing.
   (let ((opoint (point))
         (kill-whole-line (and kill-whole-line (bolp)))
-        (orig-y (cdr (nth 2 (posn-at-point))))
-        ;; FIXME: This tolerance should be zero!  It isn't due to a
-        ;; bug in posn-at-point, see bug#45837.
-        (tol (/ (line-pixel-height) 2)))
+        (orig-vlnum (cdr (nth 6 (posn-at-point)))))
     (if arg
 	(vertical-motion (prefix-numeric-value arg))
       (end-of-visual-line 1)
@@ -7352,8 +7351,8 @@ even beep.)"
         ;; end-of-visual-line didn't overshoot due to complications
         ;; like display or overlay strings, intangible text, etc.:
         ;; otherwise, we don't want to kill a character that's
-        ;; unrelated to the place where the visual line wrapped.
-        (and (< (abs (- (cdr (nth 2 (posn-at-point))) orig-y)) tol)
+        ;; unrelated to the place where the visual line wraps.
+        (and (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
              ;; Make sure we delete the character where the line wraps
              ;; under visual-line-mode, be it whitespace or a
              ;; character whose category set allows to wrap at it.

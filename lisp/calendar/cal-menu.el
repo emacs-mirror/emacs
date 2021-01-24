@@ -1,4 +1,4 @@
-;;; cal-menu.el --- calendar functions for menu bar and popup menu support
+;;; cal-menu.el --- calendar functions for menu bar and popup menu support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -182,6 +182,8 @@ Signals an error if popups are unavailable."
 (autoload 'diary-list-entries "diary-lib")
 ;; Autoloaded in diary-lib.
 (declare-function calendar-check-holidays "holidays" (date))
+
+(defvar diary-list-include-blanks)
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.

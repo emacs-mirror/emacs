@@ -49,6 +49,23 @@
 
 # ifndef _@GUARD_PREFIX@_STDDEF_H
 
+/* On AIX 7.2, with xlc in 64-bit mode, <stddef.h> defines max_align_t to a
+   type with alignment 4, but 'long' has alignment 8.  */
+#  if defined _AIX && defined _ARCH_PPC64
+#   if !GNULIB_defined_max_align_t
+#    ifdef _MAX_ALIGN_T
+/* /usr/include/stddef.h has already defined max_align_t.  Override it.  */
+typedef long rpl_max_align_t;
+#     define max_align_t rpl_max_align_t
+#    else
+/* Prevent /usr/include/stddef.h from defining max_align_t.  */
+typedef long max_align_t;
+#     define _MAX_ALIGN_T
+#    endif
+#    define GNULIB_defined_max_align_t 1
+#   endif
+#  endif
+
 /* The include_next requires a split double-inclusion guard.  */
 
 #  @INCLUDE_NEXT@ @NEXT_STDDEF_H@
@@ -86,8 +103,10 @@
    we are currently compiling with gcc.
    On MSVC, max_align_t is defined only in C++ mode, after <cstddef> was
    included.  Its definition is good since it has an alignment of 8 (on x86
-   and x86_64).  */
-#if defined _MSC_VER && defined __cplusplus
+   and x86_64).
+   Similarly on OS/2 kLIBC.  */
+#if (defined _MSC_VER || (defined __KLIBC__ && !defined __LIBCN__)) \
+    && defined __cplusplus
 # include <cstddef>
 #else
 # if ! (@HAVE_MAX_ALIGN_T@ || defined _GCC_MAX_ALIGN_T)

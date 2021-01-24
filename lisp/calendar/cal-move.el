@@ -1,4 +1,4 @@
-;;; cal-move.el --- calendar functions for movement in the calendar
+;;; cal-move.el --- calendar functions for movement in the calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -386,15 +386,16 @@ Moves forward if ARG is negative."
   "Move cursor to YEAR, DAY number; echo DAY/YEAR unless NOECHO is non-nil.
 Negative DAY counts backward from end of year."
   (interactive
-   (let* ((year (calendar-read
-                 "Year (>0): "
+   (let* ((year (calendar-read-sexp
+                 "Year (>0)"
                  (lambda (x) (> x 0))
-                 (number-to-string (calendar-extract-year
-                                 (calendar-current-date)))))
+                 (calendar-extract-year (calendar-current-date))))
           (last (if (calendar-leap-year-p year) 366 365))
-          (day (calendar-read
-                (format "Day number (+/- 1-%d): " last)
-                (lambda (x) (and (<= 1 (abs x)) (<= (abs x) last))))))
+          (day (calendar-read-sexp
+                "Day number (+/- 1-%d)"
+                (lambda (x) (and (<= 1 (abs x)) (<= (abs x) last)))
+                nil
+                last)))
      (list year day)))
   (calendar-goto-date
    (calendar-gregorian-from-absolute

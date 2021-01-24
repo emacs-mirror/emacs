@@ -1,4 +1,4 @@
-;;; cal-x.el --- calendar windows in dedicated frames
+;;; cal-x.el --- calendar windows in dedicated frames  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1995, 2001-2021 Free Software Foundation, Inc.
 

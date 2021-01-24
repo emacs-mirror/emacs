@@ -19,7 +19,7 @@
 # define USE_IN_EXTENDED_LOCALE_MODEL 1
 # define HAVE_STRUCT_ERA_ENTRY 1
 # define HAVE_TM_GMTOFF 1
-# define HAVE_TM_ZONE 1
+# define HAVE_STRUCT_TM_TM_ZONE 1
 # define HAVE_TZNAME 1
 # include "../locale/localeinfo.h"
 #else
@@ -499,7 +499,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
 #endif
 
   zone = NULL;
-#if HAVE_TM_ZONE
+#if HAVE_STRUCT_TM_TM_ZONE
   /* The POSIX test suite assumes that setting
      the environment variable TZ to a new value before calling strftime()
      will influence the result (the %Z format) even if the information in
@@ -516,7 +516,7 @@ __strftime_internal (STREAM_OR_CHAR_T *s, STRFTIME_ARG (size_t maxsize)
     }
   else
     {
-# if !HAVE_TM_ZONE
+# if !HAVE_STRUCT_TM_TM_ZONE
       /* Infer the zone name from *TZ instead of from TZNAME.  */
       tzname_vec = tz->tzname_copy;
 # endif

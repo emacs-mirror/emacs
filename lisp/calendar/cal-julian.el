@@ -95,14 +95,13 @@ Driven by the variable `calendar-date-display-form'."
   "Move cursor to Julian DATE; echo Julian date unless NOECHO is non-nil."
   (interactive
    (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "Julian calendar year (>0): "
+          (year (calendar-read-sexp
+                 "Julian calendar year (>0)"
                  (lambda (x) (> x 0))
-                 (number-to-string
-                  (calendar-extract-year
-                   (calendar-julian-from-absolute
-                    (calendar-absolute-from-gregorian
-                     today))))))
+                 (calendar-extract-year
+                  (calendar-julian-from-absolute
+                   (calendar-absolute-from-gregorian
+                    today)))))
           (month-array calendar-month-name-array)
           (completion-ignore-case t)
           (month (cdr (assoc-string
@@ -115,12 +114,13 @@ Driven by the variable `calendar-date-display-form'."
            (if (and (zerop (% year 4)) (= month 2))
                29
              (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
-          (day (calendar-read
-                (format "Julian calendar day (%d-%d): "
-                        (if (and (= year 1) (= month 1)) 3 1) last)
+          (day (calendar-read-sexp
+                "Julian calendar day (%d-%d)"
                 (lambda (x)
                   (and (< (if (and (= year 1) (= month 1)) 2 0) x)
-                       (<= x last))))))
+                       (<= x last)))
+                nil
+                (if (and (= year 1) (= month 1)) 3 1) last)))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-julian-to-absolute date)))
@@ -173,8 +173,8 @@ Defaults to today's date if DATE is not given."
 (defun calendar-astro-goto-day-number (daynumber &optional noecho)
   "Move cursor to astronomical (Julian) DAYNUMBER.
 Echo astronomical (Julian) day number unless NOECHO is non-nil."
-  (interactive (list (calendar-read
-                      "Astronomical (Julian) day number (>1721425): "
+  (interactive (list (calendar-read-sexp
+                      "Astronomical (Julian) day number (>1721425)"
                       (lambda (x) (> x 1721425)))))
   (calendar-goto-date
    (calendar-gregorian-from-absolute

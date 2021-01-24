@@ -423,16 +423,15 @@ of a holiday list.
 
 The optional LABEL is used to label the buffer created."
   (interactive
-   (let* ((start-year (calendar-read
-                       "Starting year of holidays (>0): "
+   (let* ((start-year (calendar-read-sexp
+                       "Starting year of holidays (>0)"
                        (lambda (x) (> x 0))
-                       (number-to-string (calendar-extract-year
-                                       (calendar-current-date)))))
-          (end-year (calendar-read
-                     (format "Ending year (inclusive) of holidays (>=%s): "
-                             start-year)
+                       (calendar-extract-year (calendar-current-date))))
+          (end-year (calendar-read-sexp
+                     "Ending year (inclusive) of holidays (>=%s)"
                      (lambda (x) (>= x start-year))
-                     (number-to-string start-year)))
+                     start-year
+                     start-year))
           (completion-ignore-case t)
           (lists
            (list

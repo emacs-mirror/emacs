@@ -769,7 +769,23 @@ article number.  This function is called narrowed to an article."
       (let ((headers (nnheader-parse-head t)))
 	(setf (mail-header-chars  headers) chars)
 	(setf (mail-header-number headers) number)
+	;; If there's non-ASCII raw characters in the data,
+	;; RFC2047-encode them to avoid having arbitrary data in the
+	;; .overview file.
+	(nnml--encode-headers headers)
 	headers))))
+
+(defun nnml--encode-headers (headers)
+  (let ((subject (mail-header-subject headers))
+	(rfc2047-encoding-type 'mime))
+    (unless (string-match "\\`[[:ascii:]]*\\'" subject)
+      (setf (mail-header-subject headers)
+	    (mail-encode-encoded-word-string subject t))))
+  (let ((from (mail-header-from headers))
+	(rfc2047-encoding-type 'address-mime))
+    (unless (string-match "\\`[[:ascii:]]*\\'" from)
+      (setf (mail-header-from headers)
+	    (rfc2047-encode-string from t)))))
 
 (defun nnml-get-nov-buffer (group &optional incrementalp)
   (let ((buffer (gnus-get-buffer-create

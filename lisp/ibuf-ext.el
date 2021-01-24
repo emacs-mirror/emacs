@@ -1497,10 +1497,10 @@ Ordering is lexicographic."
   (string-lessp
    ;; FIXME: For now just compare the file name and the process name
    ;; (if it exists).  Is there a better way to do this?
-   (or (buffer-file-name (car a))
+   (or (with-current-buffer (car a) (ibuffer-buffer-file-name))
        (let ((pr-a (get-buffer-process (car a))))
 	 (and (processp pr-a) (process-name pr-a))))
-   (or (buffer-file-name (car b))
+   (or (with-current-buffer (car b) (ibuffer-buffer-file-name))
        (let ((pr-b (get-buffer-process (car b))))
 	 (and (processp pr-b) (process-name pr-b))))))
 

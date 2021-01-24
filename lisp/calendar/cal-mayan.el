@@ -1,4 +1,4 @@
-;;; cal-mayan.el --- calendar functions for the Mayan calendars
+;;; cal-mayan.el --- calendar functions for the Mayan calendars  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992-1993, 1995, 1997, 2001-2021 Free Software
 ;; Foundation, Inc.
@@ -135,8 +135,8 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
 (defun calendar-mayan-read-haab-date ()
   "Prompt for a Mayan haab date."
   (let* ((completion-ignore-case t)
-         (haab-day (calendar-read
-                    "Haab kin (0-19): "
+         (haab-day (calendar-read-sexp
+                    "Haab kin (0-19)"
                     (lambda (x) (and (>= x 0) (< x 20)))))
          (haab-month-list (append calendar-mayan-haab-month-name-array
                                   (and (< haab-day 5) '("Uayeb"))))
@@ -151,8 +151,8 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
 (defun calendar-mayan-read-tzolkin-date ()
   "Prompt for a Mayan tzolkin date."
   (let* ((completion-ignore-case t)
-         (tzolkin-count (calendar-read
-                         "Tzolkin kin (1-13): "
+         (tzolkin-count (calendar-read-sexp
+                         "Tzolkin kin (1-13)"
                          (lambda (x) (and (> x 0) (< x 14)))))
          (tzolkin-name-list (append calendar-mayan-tzolkin-names-array nil))
          (tzolkin-name (cdr

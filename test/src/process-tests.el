@@ -789,6 +789,36 @@ have written output."
             (should (equal calls
                            (list (list process "finished\n"))))))))))
 
+(ert-deftest process-tests/multiple-threads-waiting ()
+  (skip-unless (fboundp 'make-thread))
+  (with-timeout (60 (ert-fail "Test timed out"))
+    (process-tests--with-processes processes
+      (let ((threads ())
+            (cat (executable-find "cat")))
+        (skip-unless cat)
+        (dotimes (i 10)
+          (let* ((name (format "test %d" i))
+                 (process (make-process :name name
+                                        :command (list cat)
+                                        :coding 'no-conversion
+                                        :noquery t
+                                        :connection-type 'pipe)))
+            (push process processes)
+            (set-process-thread process nil)
+            (push (make-thread
+                   (lambda ()
+                     (while (accept-process-output process)))
+                   name)
+                  threads)))
+        (mapc #'process-send-eof processes)
+        (cl-loop for process in processes
+                 and thread in threads
+                 do
+                 (should-not (thread-join thread))
+                 (should-not (thread-last-error))
+                 (should (eq (process-status process) 'exit))
+                 (should (eql (process-exit-status process) 0)))))))
+
 (defun process-tests--eval (command form)
   "Return a command that evaluates FORM in an Emacs subprocess.
 COMMAND must be a list returned by

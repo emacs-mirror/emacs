@@ -2,9 +2,10 @@
 
 ;; Copyright (C) 1996-1997, 2001-2021 Free Software Foundation, Inc.
 
-;; Author:    Neil W. Van Dyke <nwv@acm.org>
-;; Created:   09-Aug-1996
-;; Keywords:  comm www
+;; Author:     Neil W. Van Dyke <nwv@acm.org>
+;; Maintainer: emacs-devel@gnu.org
+;; Created:    09-Aug-1996
+;; Keywords:   comm www
 
 ;; This file is part of GNU Emacs.
 

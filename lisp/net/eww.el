@@ -1050,8 +1050,15 @@ the like."
   ;; multi-page isearch support
   (setq-local multi-isearch-next-buffer-function #'eww-isearch-next-buffer)
   (setq truncate-lines t)
+  (setq-local thing-at-point-provider-alist
+              (append thing-at-point-provider-alist
+                      '((url . eww--url-at-point))))
   (buffer-disable-undo)
   (setq buffer-read-only t))
+
+(defun eww--url-at-point ()
+  "`thing-at-point' provider function."
+  (get-text-property (point) 'shr-url))
 
 ;;;###autoload
 (defun eww-browse-url (url &optional new-window)
