@@ -864,7 +864,6 @@ to (xref-elisp-test-descr-to-target xref)."
               'nil)))
 
 (ert-deftest test-elisp-font-keywords-2 ()
-  :expected-result :failed ; FIXME bug#43265
   (should (eq (test--font '(condition-case nil
                                (foo)
                              (error (when a b)))
