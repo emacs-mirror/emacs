@@ -637,7 +637,7 @@ the first newsgroup."
     ;; We subscribe the group by changing its level to `subscribed'.
     (gnus-group-change-level
      newsgroup gnus-level-default-subscribed
-     gnus-level-killed (or next "dummy.group"))
+     gnus-level-killed next)
     (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
     (run-hook-with-args 'gnus-subscribe-newsgroup-functions newsgroup)
@@ -1282,7 +1282,8 @@ string name) to insert this group before."
 	(gnus-dribble-enter
 	 (format "(gnus-group-change-level %S %S %S %S %S)"
 		 group level oldlevel
-		 (cadr (member previous gnus-group-list))
+		 (when previous
+		   (cadr (member previous gnus-group-list)))
 		 fromkilled)))
 
       ;; Then we remove the newgroup from any old structures, if needed.
@@ -1341,9 +1342,10 @@ string name) to insert this group before."
 	  ;; at the head of `gnus-newsrc-alist'.
 	  (push info (cdr gnus-newsrc-alist))
 	  (puthash group (list num info) gnus-newsrc-hashtb)
-	  (when (stringp previous)
+	  (when (and previous (stringp previous))
 	    (setq previous (gnus-group-entry previous)))
-	  (let ((idx (or (seq-position gnus-group-list (caadr previous))
+	  (let ((idx (or (and previous
+			      (seq-position gnus-group-list (caadr previous)))
 			 (length gnus-group-list))))
 	    (push group (nthcdr idx gnus-group-list)))
 	  (gnus-dribble-enter
