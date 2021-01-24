@@ -2253,6 +2253,7 @@ of attribute keys and values as follows:
  mm-size  -- Width and height in millimeters in the form of
  	     (WIDTH HEIGHT)
  frames   -- List of frames dominated by the physical monitor
+ scale-factor (*) -- Scale factor (float)
  name (*) -- Name of the physical monitor as a string
  source (*) -- Source of multi-monitor information as a string
 

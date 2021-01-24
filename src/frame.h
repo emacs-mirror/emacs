@@ -1746,6 +1746,9 @@ struct MonitorInfo {
   Emacs_Rectangle geom, work;
   int mm_width, mm_height;
   char *name;
+#ifdef HAVE_PGTK
+  double scale_factor;
+#endif
 };
 
 extern void free_monitors (struct MonitorInfo *monitors, int n_monitors);
