@@ -814,7 +814,8 @@ have written output."
         (cl-loop for process in processes
                  and thread in threads
                  do
-                 (thread-join thread)
+                 (should-not (thread-join thread))
+                 (should-not (thread-last-error))
                  (should (eq (process-status process) 'exit))
                  (should (eql (process-exit-status process) 0)))))))
 
