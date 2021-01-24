@@ -201,47 +201,53 @@
 
 (defun lisp--el-non-funcall-position-p (pos)
   "Heuristically determine whether POS is an evaluated position."
+  (declare (obsolete lisp--el-funcall-position-p "28.1"))
+  (not (lisp--el-funcall-position-p pos)))
+
+(defun lisp--el-funcall-position-p (pos)
+  "Heuristically determine whether POS is an evaluated position."
   (save-match-data
     (save-excursion
       (ignore-errors
         (goto-char pos)
         ;; '(lambda ..) is not a funcall position, but #'(lambda ...) is.
-        (or (and (eql (char-before) ?\')
-                 (not (eql (char-before (1- (point))) ?#)))
-            (let* ((ppss (syntax-ppss))
-                   (paren-posns (nth 9 ppss))
-                   (parent
-                    (when paren-posns
-                      (goto-char (car (last paren-posns))) ;(up-list -1)
-                      (cond
-                       ((ignore-errors
-                          (and (eql (char-after) ?\()
-                               (when (cdr paren-posns)
-                                 (goto-char (car (last paren-posns 2)))
-                                 (looking-at "(\\_<let\\*?\\_>"))))
-                        (goto-char (match-end 0))
-                        'let)
-                       ((looking-at
-                         (rx "("
-                             (group-n 1 (+ (or (syntax w) (syntax _))))
-                             symbol-end))
-                        (prog1 (intern-soft (match-string-no-properties 1))
-                          (goto-char (match-end 1))))))))
-              (or (eq parent 'declare)
-                  (and (eq parent 'let)
-                       (progn
-                         (forward-sexp 1)
-                         (< pos (point))))
-                  (and (eq parent 'condition-case)
-                       ;; If (cdr paren-posns), then we're in the BODY
-                       ;; of HANDLERS.
-                       (and (not (cdr paren-posns))
-                            (progn
-                              (forward-sexp 1)
-                              ;; If we're in the second form, then we're in
-                              ;; a funcall position.
-                              (not (< (point) pos (progn (forward-sexp 1)
-                                                         (point))))))))))))))
+        (if (eql (char-before) ?\')
+            (eql (char-before (1- (point))) ?#)
+          (let* ((ppss (syntax-ppss))
+                 (paren-posns (nth 9 ppss))
+                 (parent
+                  (when paren-posns
+                    (goto-char (car (last paren-posns))) ;(up-list -1)
+                    (cond
+                     ((ignore-errors
+                        (and (eql (char-after) ?\()
+                             (when (cdr paren-posns)
+                               (goto-char (car (last paren-posns 2)))
+                               (looking-at "(\\_<let\\*?\\_>"))))
+                      (goto-char (match-end 0))
+                      'let)
+                     ((looking-at
+                       (rx "("
+                           (group-n 1 (+ (or (syntax w) (syntax _))))
+                           symbol-end))
+                      (prog1 (intern-soft (match-string-no-properties 1))
+                        (goto-char (match-end 1))))))))
+            (pcase parent
+              ('declare nil)
+              ('let
+                (forward-sexp 1)
+                (>= pos (point)))
+              ('condition-case
+                  ;; If (cdr paren-posns), then we're in the BODY
+                  ;; of HANDLERS.
+                  (or (cdr paren-posns)
+                      (progn
+                        (forward-sexp 1)
+                        ;; If we're in the second form, then we're in
+                        ;; a funcall position.
+                        (< (point) pos (progn (forward-sexp 1)
+                                              (point))))))
+              (_ t))))))))
 
 (defun lisp--el-match-keyword (limit)
   ;; FIXME: Move to elisp-mode.el.
@@ -254,8 +260,7 @@
 	(when (or (special-form-p sym)
 		  (and (macrop sym)
                        (not (get sym 'no-font-lock-keyword))
-                       (not (lisp--el-non-funcall-position-p
-                             (match-beginning 0)))))
+                       (lisp--el-funcall-position-p (match-beginning 0))))
 	  (throw 'found t))))))
 
 (defmacro let-when-compile (bindings &rest body)
