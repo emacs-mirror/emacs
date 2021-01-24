@@ -234,8 +234,11 @@
                          (< pos (point))))
                   (and (eq parent 'condition-case)
                        (progn
-                         (forward-sexp 2)
-                         (< (point) pos))))))))))
+                         (forward-sexp 1)
+                         ;; If we're in the second form, then we're in
+                         ;; a funcall position.
+                         (not (< (point) pos (progn (forward-sexp 1)
+                                                    (point)))))))))))))
 
 (defun lisp--el-match-keyword (limit)
   ;; FIXME: Move to elisp-mode.el.
