@@ -2572,23 +2572,30 @@ before calling this function on it, like this.
   int yval = check_integer_range (y, INT_MIN, INT_MAX);
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
-    /* Warping the mouse will cause enternotify and focus events.  */
-    frame_set_mouse_position (XFRAME (frame), xval, yval);
-#elif defined MSDOS
-  if (FRAME_MSDOS_P (XFRAME (frame)))
+    {
+#ifdef HAVE_WINDOW_SYSTEM
+      /* Warping the mouse will cause enternotify and focus events.  */
+      frame_set_mouse_position (XFRAME (frame), xval, yval);
+#endif /* HAVE_WINDOW_SYSTEM */
+    }
+#ifdef MSDOS
+  else if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
       mouse_moveto (xval, yval);
     }
-#elif defined HAVE_GPM
-  Fselect_frame (frame, Qnil);
-  term_mouse_moveto (xval, yval);
+#endif /* MSDOS */
+  else
+    {
+      Fselect_frame (frame, Qnil);
+#ifdef HAVE_GPM
+      term_mouse_moveto (xval, yval);
 #else
-  (void) xval;
-  (void) yval;
-#endif
+      (void) xval;
+      (void) yval;
+#endif /* HAVE_GPM */
+    }
 
   return Qnil;
 }
@@ -2610,23 +2617,31 @@ before calling this function on it, like this.
   int yval = check_integer_range (y, INT_MIN, INT_MAX);
 
   /* I think this should be done with a hook.  */
-#ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
-    /* Warping the mouse will cause enternotify and focus events.  */
-    frame_set_mouse_pixel_position (XFRAME (frame), xval, yval);
-#elif defined MSDOS
-  if (FRAME_MSDOS_P (XFRAME (frame)))
+    {
+      /* Warping the mouse will cause enternotify and focus events.  */
+#ifdef HAVE_WINDOW_SYSTEM
+      frame_set_mouse_pixel_position (XFRAME (frame), xval, yval);
+#endif /* HAVE_WINDOW_SYSTEM */
+    }
+#ifdef MSDOS
+  else if (FRAME_MSDOS_P (XFRAME (frame)))
     {
       Fselect_frame (frame, Qnil);
       mouse_moveto (xval, yval);
     }
-#elif defined HAVE_GPM
-  Fselect_frame (frame, Qnil);
-  term_mouse_moveto (xval, yval);
+#endif /* MSDOS */
+  else
+    {
+      Fselect_frame (frame, Qnil);
+#ifdef HAVE_GPM
+      term_mouse_moveto (xval, yval);
 #else
-  (void) xval;
-  (void) yval;
-#endif
+      (void) xval;
+      (void) yval;
+#endif /* HAVE_GPM */
+
+    }
 
   return Qnil;
 }

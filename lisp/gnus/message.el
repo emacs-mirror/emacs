@@ -47,7 +47,7 @@
 (require 'rfc2047)
 (require 'puny)
 (require 'rmc)                          ; read-multiple-choice
-(eval-when-compile (require 'subr-x))
+(require 'subr-x)
 
 (autoload 'mailclient-send-it "mailclient")
 
@@ -620,8 +620,8 @@ Done before generating the new subject of a forward."
 
 (defcustom message-forward-ignored-headers "^Content-Transfer-Encoding:\\|^X-Gnus"
   "All headers that match this regexp will be deleted when forwarding a message.
-This variable is not consulted when forwarding encrypted messages
-and `message-forward-show-mml' is `best'.
+Also see `message-forward-included-headers' -- both variables are applied.
+In addition, see `message-forward-included-mime-headers'.
 
 This may also be a list of regexps."
   :version "21.1"
@@ -637,8 +637,33 @@ This may also be a list of regexps."
   '("^From:" "^Subject:" "^Date:" "^To:" "^Cc:")
   "If non-nil, delete non-matching headers when forwarding a message.
 Only headers that match this regexp will be included.  This
-variable should be a regexp or a list of regexps."
+variable should be a regexp or a list of regexps.
+
+Also see `message-forward-ignored-headers' -- both variables are applied.
+In addition, see `message-forward-included-mime-headers'.
+
+When forwarding messages as MIME, but when
+`message-forward-show-mml' results in MML not being used,
+`message-forward-included-mime-headers' take precedence."
   :version "27.1"
+  :group 'message-forwarding
+  :type '(repeat :value-to-internal (lambda (widget value)
+				      (custom-split-regexp-maybe value))
+		 :match (lambda (widget value)
+			  (or (stringp value)
+			      (widget-editable-list-match widget value)))
+		 regexp))
+
+(defcustom message-forward-included-mime-headers
+  '("^Content-Type:" "^MIME-Version:")
+  "When forwarding as MIME, but not using MML, don't delete these headers.
+Also see `message-forward-ignored-headers' and
+`message-forward-ignored-headers'.
+
+When forwarding messages as MIME, but when
+`message-forward-show-mml' results in MML not being used,
+`message-forward-included-mime-headers' take precedence."
+  :version "28.1"
   :group 'message-forwarding
   :type '(repeat :value-to-internal (lambda (widget value)
 				      (custom-split-regexp-maybe value))
@@ -3057,22 +3082,23 @@ See also `message-forbidden-properties'."
 
 (defun message--syntax-propertize (beg end)
   "Syntax-propertize certain message text specially."
-  (let ((citation-regexp (concat "^" message-cite-prefix-regexp ".*$"))
-        (smiley-regexp (regexp-opt message-smileys)))
-    (goto-char beg)
-    (while (search-forward-regexp citation-regexp
-                                  end 'noerror)
-      (let ((start (match-beginning 0))
-            (end (match-end 0)))
-        (add-text-properties start (1+ start)
-                             `(syntax-table ,(string-to-syntax "<")))
-        (add-text-properties end (min (1+ end) (point-max))
-                             `(syntax-table ,(string-to-syntax ">")))))
-    (goto-char beg)
-    (while (search-forward-regexp smiley-regexp
-            end 'noerror)
-      (add-text-properties (match-beginning 0) (match-end 0)
-                           `(syntax-table ,(string-to-syntax "."))))))
+  (with-syntax-table message-mode-syntax-table
+    (let ((citation-regexp (concat "^" message-cite-prefix-regexp ".*$"))
+          (smiley-regexp (regexp-opt message-smileys)))
+      (goto-char beg)
+      (while (search-forward-regexp citation-regexp
+                                    end 'noerror)
+	(let ((start (match-beginning 0))
+              (end (match-end 0)))
+          (add-text-properties start (1+ start)
+                               `(syntax-table ,(string-to-syntax "<")))
+          (add-text-properties end (min (1+ end) (point-max))
+                               `(syntax-table ,(string-to-syntax ">")))))
+      (goto-char beg)
+      (while (search-forward-regexp smiley-regexp
+				    end 'noerror)
+	(add-text-properties (match-beginning 0) (match-end 0)
+                             `(syntax-table ,(string-to-syntax ".")))))))
 
 ;;;###autoload
 (define-derived-mode message-mode text-mode "Message"
@@ -7616,14 +7642,28 @@ Optional DIGEST will use digest to forward."
      "-------------------- End of forwarded message --------------------\n")
     (message-remove-ignored-headers b e)))
 
-(defun message-remove-ignored-headers (b e)
+(defun message-remove-ignored-headers (b e &optional preserve-mime)
   (when (or message-forward-ignored-headers
 	    message-forward-included-headers)
+    (let ((saved-headers nil))
     (save-restriction
       (narrow-to-region b e)
       (goto-char b)
       (narrow-to-region (point)
 			(or (search-forward "\n\n" nil t) (point)))
+      ;; When forwarding as MIME, preserve some MIME headers.
+      (when preserve-mime
+	(let ((headers (buffer-string)))
+	  (with-temp-buffer
+	    (insert headers)
+	    (message-remove-header
+	     (if (listp message-forward-included-mime-headers)
+		 (mapconcat
+		  #'identity (cons "^$" message-forward-included-mime-headers)
+		  "\\|")
+	       message-forward-included-mime-headers)
+	     t nil t)
+	    (setq saved-headers (string-lines (buffer-string) t)))))
       (when message-forward-ignored-headers
 	(let ((ignored (if (stringp message-forward-ignored-headers)
 			   (list message-forward-ignored-headers)
@@ -7636,10 +7676,14 @@ Optional DIGEST will use digest to forward."
 	     (mapconcat #'identity (cons "^$" message-forward-included-headers)
 			"\\|")
 	   message-forward-included-headers)
-	 t nil t)))))
+	 t nil t))
+      ;; Insert the MIME headers, if any.
+      (goto-char (point-max))
+      (forward-line -1)
+      (dolist (header saved-headers)
+	(insert header "\n"))))))
 
-(defun message-forward-make-body-mime (forward-buffer &optional beg end
-						      remove-headers)
+(defun message-forward-make-body-mime (forward-buffer &optional beg end)
   (let ((b (point)))
     (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")
     (save-restriction
@@ -7649,8 +7693,7 @@ Optional DIGEST will use digest to forward."
       (goto-char (point-min))
       (when (looking-at "From ")
 	(replace-match "X-From-Line: "))
-      (when remove-headers
-	(message-remove-ignored-headers (point-min) (point-max)))
+      (message-remove-ignored-headers (point-min) (point-max) t)
       (goto-char (point-max)))
     (insert "<#/part>\n")
     ;; Consider there is no illegible text.
@@ -7789,8 +7832,7 @@ is for the internal use."
 				 (message-signed-or-encrypted-p)
 			       (error t))))))
 	    (message-forward-make-body-mml forward-buffer)
-	  (message-forward-make-body-mime
-	   forward-buffer nil nil (not (eq message-forward-show-mml 'best))))
+	  (message-forward-make-body-mime forward-buffer))
       (message-forward-make-body-plain forward-buffer)))
   (message-position-point))
 

@@ -389,6 +389,28 @@ it makes no sense to convert it to a string using
 		(set-buffer source-buffer)
 		(replace-buffer-contents tmp-buffer max-secs max-costs)))))))))
 
+(defmacro named-let (name bindings &rest body)
+  "Looping construct taken from Scheme.
+Like `let', bind variables in BINDINGS and then evaluate BODY,
+but with the twist that BODY can evaluate itself recursively by
+calling NAME, where the arguments passed to NAME are used
+as the new values of the bound variables in the recursive invocation."
+  (declare (indent 2) (debug (symbolp (&rest (symbolp form)) body)))
+  (require 'cl-lib)
+  (let ((fargs (mapcar (lambda (b) (if (consp b) (car b) b)) bindings))
+        (aargs (mapcar (lambda (b) (if (consp b) (cadr b))) bindings)))
+    ;; According to the Scheme semantics of named let, `name' is not in scope
+    ;; while evaluating the expressions in `bindings', and for this reason, the
+    ;; "initial" function call below needs to be outside of the `cl-labels'.
+    ;; When the "self-tco" eliminates all recursive calls, the `cl-labels'
+    ;; expands to a lambda which the byte-compiler then combines with the
+    ;; funcall to make a `let' so we end up with a plain `while' loop and no
+    ;; remaining `lambda' at all.
+    `(funcall
+      (cl-labels ((,name ,fargs . ,body)) #',name)
+      . ,aargs)))
+
+
 (provide 'subr-x)
 
 ;;; subr-x.el ends here

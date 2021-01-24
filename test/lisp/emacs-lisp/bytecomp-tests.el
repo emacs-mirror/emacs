@@ -617,13 +617,13 @@ Subtests signal errors if something goes wrong."
 (make-obsolete-variable 'bytecomp--tests-obsolete-var nil "99.99")
 
 (bytecomp--define-warning-file-test "warn-obsolete-hook.el"
-                            "bytecomp--tests-obs.*obsolete.*99.99")
+                            "bytecomp--tests-obs.*obsolete[^z-a]*99.99")
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable-same-file.el"
                             "foo-obs.*obsolete.*99.99" t)
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable.el"
-                            "bytecomp--tests-obs.*obsolete.*99.99")
+                            "bytecomp--tests-obs.*obsolete[^z-a]*99.99")
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable-bound.el"
                             "bytecomp--tests-obs.*obsolete.*99.99" t)
@@ -712,6 +712,10 @@ Subtests signal errors if something goes wrong."
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-multiline.el"
  "defvar.*foo.*wider than.*characters")
+
+(bytecomp--define-warning-file-test
+ "nowarn-inline-after-defvar.el"
+ "Lexical argument shadows" 'reverse)
 
 
 ;;;; Macro expansion.

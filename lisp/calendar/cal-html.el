@@ -1,4 +1,4 @@
-;;; cal-html.el --- functions for printing HTML calendars
+;;; cal-html.el --- functions for printing HTML calendars  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -250,7 +250,7 @@ Contains links to previous and next month and year, and current minical."
                        calendar-week-start-day))
                7))
          (monthpage-name (cal-html-monthpage-name month year))
-         date)
+         ) ;; date
     ;; Start writing table.
     (insert (cal-html-comment "MINICAL")
             (cal-html-b-table "class=minical border=1 align=center"))
@@ -276,7 +276,7 @@ Contains links to previous and next month and year, and current minical."
           (insert cal-html-e-tablerow-string
                   cal-html-b-tablerow-string)))
     ;; End empty slots (for some browsers like konqueror).
-    (dotimes (i end-blank-days)
+    (dotimes (_ end-blank-days)
       (insert
        cal-html-b-tabledata-string
        cal-html-e-tabledata-string)))
@@ -431,12 +431,11 @@ holidays in HOLIDAY-LIST."
 ;;; User commands.
 
 ;;;###cal-autoload
-(defun cal-html-cursor-month (month year dir &optional event)
+(defun cal-html-cursor-month (month year dir &optional _event)
   "Write an HTML calendar file for numeric MONTH of four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
-MONTH and YEAR are taken from the calendar cursor position, or from
-the position specified by EVENT.  Note that any existing output files
-are overwritten."
+MONTH and YEAR are taken from the calendar cursor position.
+Note that any existing output files are overwritten."
   (interactive (let* ((event last-nonmenu-event)
                       (date (calendar-cursor-to-date t event))
                       (month (calendar-extract-month date))
@@ -446,11 +445,11 @@ are overwritten."
   (cal-html-one-month month year dir))
 
 ;;;###cal-autoload
-(defun cal-html-cursor-year (year dir &optional event)
+(defun cal-html-cursor-year (year dir &optional _event)
   "Write HTML calendar files (index and monthly pages) for four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
-YEAR is taken from the calendar cursor position, or from the position
-specified by EVENT.  Note that any existing output files are overwritten."
+YEAR is taken from the calendar cursor position.
+Note that any existing output files are overwritten."
   (interactive (let* ((event last-nonmenu-event)
                       (year (calendar-extract-year
                              (calendar-cursor-to-date t event))))

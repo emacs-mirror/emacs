@@ -3757,23 +3757,27 @@ since they have special meaning in a regexp."
 	(overlay-put isearch-overlay 'priority 1001)
 	(overlay-put isearch-overlay 'face isearch-face)))
 
-  (when (and search-highlight-submatches
-	     isearch-regexp)
+  (when (and search-highlight-submatches isearch-regexp)
     (mapc 'delete-overlay isearch-submatches-overlays)
     (setq isearch-submatches-overlays nil)
-    (let ((submatch-data (cddr (butlast match-data)))
+    ;; 'cddr' removes whole expression match from match-data
+    (let ((submatch-data (cddr match-data))
           (group 0)
-          ov face)
+          b e ov face)
       (while submatch-data
-        (setq group (1+ group))
-        (setq ov (make-overlay (pop submatch-data) (pop submatch-data))
-              face (intern-soft (format "isearch-group-%d" group)))
-        ;; Recycle faces from beginning.
-        (unless (facep face)
-          (setq group 1 face 'isearch-group-1))
-        (overlay-put ov 'face face)
-        (overlay-put ov 'priority 1002)
-        (push ov isearch-submatches-overlays)))))
+        (setq b (pop submatch-data)
+              e (pop submatch-data))
+        (when (and (integer-or-marker-p b)
+                   (integer-or-marker-p e))
+          (setq ov (make-overlay b e)
+                group (1+ group)
+                face (intern-soft (format "isearch-group-%d" group)))
+          ;; Recycle faces from beginning
+          (unless (facep face)
+            (setq group 1 face 'isearch-group-1))
+          (overlay-put ov 'face face)
+          (overlay-put ov 'priority 1002)
+          (push ov isearch-submatches-overlays))))))
 
 (defun isearch-dehighlight ()
   (when isearch-overlay

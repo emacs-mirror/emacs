@@ -125,17 +125,7 @@ This is used in files that are preloaded (or for autoloaded
 variables), so that the initialization is done in the run-time
 context rather than the build-time context.  This also has the
 side-effect that the (delayed) initialization is performed with
-the :set function.
-
-For variables in preloaded files, you can simply use this
-function for the :initialize property.  For autoloaded variables,
-you will also need to add an autoload stanza calling this
-function, and another one setting the standard-value property.
-Or you can wrap the defcustom in a progn, to force the autoloader
-to include all of it."		   ; see eg vc-sccs-search-project-dir
-  ;; No longer true:
-  ;; "See `send-mail-function' in sendmail.el for an example."
-
+the :set function."
   ;; Defvar it so as to mark it special, etc (bug#25770).
   (internal--define-uninitialized-variable symbol)
 

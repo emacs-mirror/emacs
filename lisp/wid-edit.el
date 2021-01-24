@@ -4026,17 +4026,19 @@ is inline."
 
 ;;; The `color' Widget.
 
-;; Fixme: match
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
   :format "%{%t%}: %v (%{sample%})\n"
   :value-create 'widget-color-value-create
-  :size 10
+  :size (1+ (apply #'max 13 ; Longest RGB hex string.
+                   (mapcar #'length (defined-colors))))
   :tag "Color"
   :value "black"
   :completions (or facemenu-color-alist (defined-colors))
   :sample-face-get 'widget-color-sample-face-get
   :notify 'widget-color-notify
+  :match #'widget-color-match
+  :validate #'widget-color-validate
   :action 'widget-color-action)
 
 (defun widget-color-value-create (widget)
@@ -4085,6 +4087,19 @@ is inline."
   (overlay-put (widget-get widget :sample-overlay)
 	       'face (widget-apply widget :sample-face-get))
   (widget-default-notify widget child event))
+
+(defun widget-color-match (_widget value)
+  "Non-nil if VALUE is a defined color or a RGB hex string."
+  (and (stringp value)
+       (or (color-defined-p value)
+           (string-match-p "^#\\(?:[[:xdigit:]]\\{3\\}\\)\\{1,4\\}$" value))))
+
+(defun widget-color-validate (widget)
+  "Check that WIDGET's value is a valid color."
+  (let ((value (widget-value widget)))
+    (unless (widget-color-match widget value)
+      (widget-put widget :error (format "Invalid color: %S" value))
+      widget)))
 
 ;;; The Help Echo
 

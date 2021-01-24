@@ -2272,8 +2272,8 @@ This checks also `file-name-as-directory', `file-name-directory',
       (delete-file tmp-name)
       (should-not (file-exists-p tmp-name))
 
-      ;; Trashing files doesn't work for crypted remote files.
-      (unless (tramp--test-crypt-p)
+      ;; Trashing files doesn't work on MS Windows, and for crypted remote files.
+      (unless (or (tramp--test-windows-nt-p) (tramp--test-crypt-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -2786,9 +2786,9 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
       (should-not (file-directory-p tmp-name1))
 
       ;; Trashing directories works only since Emacs 27.1.  It doesn't
-      ;; work for crypted remote directories and for ange-ftp.
-      (when (and (not (tramp--test-crypt-p)) (not (tramp--test-ftp-p))
-		 (tramp--test-emacs27-p))
+      ;; work on MS Windows, for crypted remote directories and for ange-ftp.
+      (when (and (not  (tramp--test-windows-nt-p)) (not (tramp--test-crypt-p))
+		 (not (tramp--test-ftp-p)) (tramp--test-emacs27-p))
 	(let ((trash-directory (tramp--test-make-temp-name 'local quoted))
 	      (delete-by-moving-to-trash t))
 	  (make-directory trash-directory)
@@ -5247,7 +5247,7 @@ Use direct async.")
 	  ;; order to avoid a question.  `explicit-sh-args' echoes the
 	  ;; test data.
 	  (with-current-buffer (get-buffer-create "*shell*")
-	    (ignore-errors (kill-process (current-buffer)))
+	    (ignore-errors (kill-process (get-buffer-process (current-buffer))))
 	    (should-not explicit-shell-file-name)
 	    (call-interactively #'shell)
 	    (with-timeout (10)
@@ -5720,15 +5720,15 @@ This requires restrictions of file name syntax."
    (tramp-find-foreign-file-name-handler tramp-test-temporary-file-directory)
    'tramp-ftp-file-name-handler))
 
+(defun tramp--test-crypt-p ()
+  "Check, whether the remote directory is crypted"
+  (tramp-crypt-file-name-p tramp-test-temporary-file-directory))
+
 (defun tramp--test-docker-p ()
   "Check, whether the docker method is used.
 This does not support some special file names."
   (string-equal
    "docker" (file-remote-p tramp-test-temporary-file-directory 'method)))
-
-(defun tramp--test-crypt-p ()
-  "Check, whether the remote directory is crypted"
-  (tramp-crypt-file-name-p tramp-test-temporary-file-directory))
 
 (defun tramp--test-ftp-p ()
   "Check, whether an FTP-like method is used.
@@ -5748,7 +5748,7 @@ If optional METHOD is given, it is checked first."
   "Check, whether the remote host runs HP-UX.
 Several special characters do not work properly there."
   ;; We must refill the cache.  `file-truename' does it.
-  (file-truename tramp-test-temporary-file-directory) nil
+  (file-truename tramp-test-temporary-file-directory)
   (string-match-p
    "^HP-UX" (tramp-get-connection-property tramp-test-vec "uname" "")))
 
@@ -5757,7 +5757,7 @@ Several special characters do not work properly there."
 ksh93 makes some strange conversions of non-latin characters into
 a $'' syntax."
   ;; We must refill the cache.  `file-truename' does it.
-  (file-truename tramp-test-temporary-file-directory) nil
+  (file-truename tramp-test-temporary-file-directory)
   (string-match-p
    "ksh$" (tramp-get-connection-property tramp-test-vec "remote-shell" "")))
 
@@ -5786,6 +5786,15 @@ This does not support special file names."
 (defun tramp--test-sh-p ()
   "Check, whether the remote host runs a based method from tramp-sh.el."
   (tramp-sh-file-name-handler-p tramp-test-vec))
+
+(defun tramp--test-sh-no-ls--dired-p ()
+  "Check, whether the remote host runs a based method from tramp-sh.el.
+Additionally, ls does not support \"--dired\"."
+  (and (tramp--test-sh-p)
+       (with-temp-buffer
+	 ;; We must refill the cache.  `insert-directory' does it.
+	 (insert-directory tramp-test-temporary-file-directory "-al")
+	 (not (tramp-get-connection-property tramp-test-vec "ls--dired" nil)))))
 
 (defun tramp--test-share-p ()
   "Check, whether the method needs a share."
@@ -6023,17 +6032,20 @@ This requires restrictions of file name syntax."
   ;; expanded to <TAB>.
   (let ((files
 	 (list
-	  (if (or (tramp--test-ange-ftp-p)
-		  (tramp--test-gvfs-p)
-		  (tramp--test-rclone-p)
-		  (tramp--test-sudoedit-p)
-		  (tramp--test-windows-nt-or-smb-p))
-	      "foo bar baz"
-	    (if (or (tramp--test-adb-p)
-		    (tramp--test-docker-p)
-		    (eq system-type 'cygwin))
-		" foo bar baz "
-	      " foo\tbar baz\t"))
+	  (cond ((or (tramp--test-ange-ftp-p)
+		     (tramp--test-gvfs-p)
+		     (tramp--test-rclone-p)
+		     (tramp--test-sudoedit-p)
+		     (tramp--test-windows-nt-or-smb-p))
+		 "foo bar baz")
+		((or (tramp--test-adb-p)
+		     (tramp--test-docker-p)
+		     (eq system-type 'cygwin))
+		 " foo bar baz ")
+		((tramp--test-sh-no-ls--dired-p)
+		 "\tfoo bar baz\t")
+		(t " foo\tbar baz\t"))
+	  "@foo@bar@baz@"
 	  "$foo$bar$$baz$"
 	  "-foo-bar-baz-"
 	  "%foo%bar%baz%"
@@ -6349,6 +6361,7 @@ process sentinels.  They shall not disturb each other."
 		   (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-docker-p)))
+  (skip-unless (not (tramp--test-windows-nt-p)))
 
   (with-timeout
       (tramp--test-asynchronous-requests-timeout (tramp--test-timeout-handler))
@@ -6358,12 +6371,11 @@ process sentinels.  They shall not disturb each other."
 	   (shell-file-name (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
 	   ;; It doesn't work on w32 systems.
 	   (watchdog
-	    (unless (tramp--test-windows-nt-p)
-              (start-process-shell-command
-               "*watchdog*" nil
-               (format
-		"sleep %d; kill -USR1 %d"
-		tramp--test-asynchronous-requests-timeout (emacs-pid)))))
+            (start-process-shell-command
+             "*watchdog*" nil
+             (format
+	      "sleep %d; kill -USR1 %d"
+	      tramp--test-asynchronous-requests-timeout (emacs-pid))))
            (tmp-name (tramp--test-make-temp-name))
            (default-directory tmp-name)
            ;; Do not cache Tramp properties.

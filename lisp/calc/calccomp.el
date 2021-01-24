@@ -138,19 +138,19 @@
 				      (math-format-number (nth 2 aa))))))
 		  (if (= calc-number-radix 10)
 		      c
-		    (list 'horiz "(" c
-			  (list 'subscr ")"
-				(int-to-string calc-number-radix)))))
+                    (list 'subscr (math--comp-round-bracket c)
+			  (int-to-string calc-number-radix))))
 	      (math-format-number a)))
 	(if (not (eq calc-language 'big))
 	    (math-format-number a prec)
 	  (if (memq (car-safe a) '(cplx polar))
 	      (if (math-zerop (nth 2 a))
 		  (math-compose-expr (nth 1 a) prec)
-		(list 'horiz "("
-		      (math-compose-expr (nth 1 a) 0)
-		      (if (eq (car a) 'cplx) ", " "; ")
-		      (math-compose-expr (nth 2 a) 0) ")"))
+                (math--comp-round-bracket
+		 (list 'horiz
+		       (math-compose-expr (nth 1 a) 0)
+		       (if (eq (car a) 'cplx) ", " "; ")
+		       (math-compose-expr (nth 2 a) 0))))
 	    (if (or (= calc-number-radix 10)
 		    (not (Math-realp a))
 		    (and calc-group-digits
@@ -340,12 +340,13 @@
               (funcall spfn a prec)
             (math-compose-var a)))))
      ((eq (car a) 'intv)
-      (list 'horiz
-            (if (memq (nth 1 a) '(0 1)) "(" "[")
-	    (math-compose-expr (nth 2 a) 0)
-            " .. "
-	    (math-compose-expr (nth 3 a) 0)
-            (if (memq (nth 1 a) '(0 2)) ")" "]")))
+      (math--comp-bracket
+       (if (memq (nth 1 a) '(0 1)) ?\( ?\[)
+       (if (memq (nth 1 a) '(0 2)) ?\) ?\])
+       (list 'horiz
+	     (math-compose-expr (nth 2 a) 0)
+             " .. "
+	     (math-compose-expr (nth 3 a) 0))))
      ((eq (car a) 'date)
       (if (eq (car calc-date-format) 'X)
 	  (math-format-date a)
@@ -377,7 +378,7 @@
 		    (and (eq (car-safe (nth 1 a)) 'cplx)
 			 (math-negp (nth 1 (nth 1 a)))
 			 (eq (nth 2 (nth 1 a)) 0)))
-		(list 'horiz "(" (math-compose-expr (nth 1 a) 0) ")")
+                (math--comp-round-bracket (math-compose-expr (nth 1 a) 0))
 	      (math-compose-expr (nth 1 a) 201))
 	    (let ((calc-language 'flat)
 		  (calc-number-radix 10)
@@ -444,7 +445,7 @@
 	(if (> prec (nth 2 a))
             (if (setq spfn (get calc-language 'math-big-parens))
                 (list 'horiz (car spfn) c (cdr spfn))
-              (list 'horiz "(" c ")"))
+              (math--comp-round-bracket c))
 	  c)))
      ((and (eq (car a) 'calcFunc-choriz)
 	   (not (eq calc-language 'unform))
@@ -612,7 +613,7 @@
 			   (list 'horiz "{left ( "
 				 (math-compose-expr a -1)
 				 " right )}")))
-		     (list 'horiz "(" (math-compose-expr a 0) ")"))))
+                     (math--comp-round-bracket (math-compose-expr a 0)))))
 		((and (memq calc-language '(tex latex))
 		      (memq (car a) '(/ calcFunc-choose calcFunc-evalto))
 		      (>= prec 0))
@@ -638,7 +639,7 @@
 			(rhs (math-compose-expr (nth 2 a) (nth 3 op) (eq (nth 1 op) '/))))
 		   (and (equal (car op) "^")
 			(eq (math-comp-first-char lhs) ?-)
-			(setq lhs (list 'horiz "(" lhs ")")))
+			(setq lhs (math--comp-round-bracket lhs)))
 		   (and (memq calc-language '(tex latex))
 			(or (equal (car op) "^") (equal (car op) "_"))
 			(not (and (stringp rhs) (= (length rhs) 1)))
@@ -721,7 +722,7 @@
 			   (list 'horiz "{left ( "
 				 (math-compose-expr a -1)
 				 " right )}")))
-		     (list 'horiz "(" (math-compose-expr a 0) ")"))))
+		     (math--comp-round-bracket (math-compose-expr a 0)))))
 		(t
 		 (let ((lhs (math-compose-expr (nth 1 a) (nth 2 op))))
 		 (list 'horiz
@@ -759,7 +760,7 @@
 			   (list 'horiz "{left ( "
 				 (math-compose-expr a -1)
 				 " right )}")))
-		     (list 'horiz "(" (math-compose-expr a 0) ")"))))
+		     (math--comp-round-bracket (math-compose-expr a 0)))))
 		(t
 		 (let ((rhs (math-compose-expr (nth 1 a) (nth 3 op))))
 		   (list 'horiz
@@ -821,9 +822,16 @@
                  (if (setq spfn (get calc-language 'math-func-formatter))
                      (funcall spfn func a)
 
-                   (list 'horiz func calc-function-open
-		       (math-compose-vector (cdr a) ", " 0)
-		       calc-function-close))))))))))
+                   (let ((args (math-compose-vector (cdr a) ", " 0)))
+                     (if (and (member calc-function-open '("(" "[" "{"))
+                              (member calc-function-close '(")" "]" "}")))
+                         (list 'horiz func
+                               (math--comp-bracket
+                                (string-to-char calc-function-open)
+                                (string-to-char calc-function-close)
+                                args))
+                       (list 'horiz func calc-function-open
+		             args calc-function-close))))))))))))
 
 
 (defun math-prod-first-term (x)
@@ -966,6 +974,69 @@
       (and (memq (car a) '(^ calcFunc-subscr))
 	   (math-tex-expr-is-flat (nth 1 a)))))
 
+;; FIXME: maybe try box drawing chars if big bracket chars are unavailable,
+;; like  ┌     ┐n
+;;       │a + b│     ┌ a + b ┐n
+;;       │-----│  or │ ----- │    ?
+;;       │  c  │     └   c   ┘
+;;       └     ┘
+;; They are more common than the chars below, but look a bit square.
+;; Rounded corners exist but are less commonly available.
+
+(defconst math--big-bracket-alist
+  '((?\( . (?⎛ ?⎝ ?⎜))
+    (?\) . (?⎞ ?⎠ ?⎟))
+    (?\[ . (?⎡ ?⎣ ?⎢))
+    (?\] . (?⎤ ?⎦ ?⎥))
+    (?\{ . (?⎧ ?⎩ ?⎪ ?⎨))
+    (?\} . (?⎫ ?⎭ ?⎪ ?⎬)))
+  "Alist mapping bracket chars to (UPPER LOWER EXTENSION MIDPIECE).
+Not all brackets have midpieces.")
+
+(defun math--big-bracket (bracket-char height baseline)
+  "Composition for BRACKET-CHAR of HEIGHT with BASELINE."
+  (if (<= height 1)
+      (char-to-string bracket-char)
+    (let ((pieces (cdr (assq bracket-char math--big-bracket-alist))))
+      (if (memq nil (mapcar #'char-displayable-p pieces))
+          (char-to-string bracket-char)
+        (let* ((upper (nth 0 pieces))
+               (lower (nth 1 pieces))
+               (extension (nth 2 pieces))
+               (midpiece (nth 3 pieces)))
+          (cons 'vleft        ; alignment doesn't matter; width is 1 char
+                (cons baseline
+                      (mapcar
+                       #'char-to-string
+                       (append
+                        (list upper)
+                        (if midpiece
+                            (let ((lower-ext (/ (- height 3) 2)))
+                              (append
+                               (make-list (- height 3 lower-ext) extension)
+                               (list midpiece)
+                               (make-list lower-ext extension)))
+                          (make-list (- height 2) extension))
+                        (list lower))))))))))
+
+(defun math--comp-bracket (left-bracket right-bracket comp)
+  "Put the composition COMP inside LEFT-BRACKET and RIGHT-BRACKET."
+  (if (eq calc-language 'big)
+      (let ((height (math-comp-height comp))
+            (baseline (1- (math-comp-ascent comp))))
+        (list 'horiz
+              (math--big-bracket left-bracket height baseline)
+              comp
+              (math--big-bracket right-bracket height baseline)))
+    (list 'horiz
+          (char-to-string left-bracket)
+          comp
+          (char-to-string right-bracket))))
+
+(defun math--comp-round-bracket (comp)
+  "Put the composition COMP inside plain brackets."
+  (math--comp-bracket ?\( ?\) comp))
+
 (put 'calcFunc-log 'math-compose-big #'math-compose-log)
 (defun math-compose-log (a _prec)
   (and (= (length a) 3)
@@ -973,18 +1044,14 @@
 	     (list 'subscr "log"
 		   (let ((calc-language 'flat))
 		     (math-compose-expr (nth 2 a) 1000)))
-	     "("
-	     (math-compose-expr (nth 1 a) 1000)
-	     ")")))
+             (math--comp-round-bracket (math-compose-expr (nth 1 a) 1000)))))
 
 (put 'calcFunc-log10 'math-compose-big #'math-compose-log10)
 (defun math-compose-log10 (a _prec)
   (and (= (length a) 2)
        (list 'horiz
-	     (list 'subscr "log" "10")
-	     "("
-	     (math-compose-expr (nth 1 a) 1000)
-	     ")")))
+             (list 'subscr "log" "10")
+             (math--comp-round-bracket (math-compose-expr (nth 1 a) 1000)))))
 
 (put 'calcFunc-deriv 'math-compose-big #'math-compose-deriv)
 (put 'calcFunc-tderiv 'math-compose-big #'math-compose-deriv)
@@ -1027,12 +1094,9 @@
 (defun math-compose-choose (a _prec)
   (let ((a1 (math-compose-expr (nth 1 a) 0))
 	(a2 (math-compose-expr (nth 2 a) 0)))
-    (list 'horiz
-	  "("
-	  (list 'vcent
-		(math-comp-height a1)
-		a1 " " a2)
-	  ")")))
+    (math--comp-round-bracket (list 'vcent
+		                    (+ (math-comp-height a1))
+		                    a1 " " a2))))
 
 (put 'calcFunc-integ 'math-compose-big #'math-compose-integ)
 (defun math-compose-integ (a prec)
@@ -1052,9 +1116,12 @@
 						       "d%s"
 						       (nth 1 (nth 2 a)))))
 					 (nth 1 a)) 185))
-	      (calc-language 'flat)
-	      (low (and (nth 3 a) (math-compose-expr (nth 3 a) 0)))
-	      (high (and (nth 4 a) (math-compose-expr (nth 4 a) 0)))
+	      (low (and (nth 3 a)
+	                (let ((calc-language 'flat))
+                          (math-compose-expr (nth 3 a) 0))))
+	      (high (and (nth 4 a)
+	                 (let ((calc-language 'flat))
+                           (math-compose-expr (nth 4 a) 0))))
               ;; Check if we have Unicode integral top/bottom parts.
               (fancy (and (char-displayable-p ?⌠)
                           (char-displayable-p ?⌡)))
@@ -1066,40 +1133,47 @@
                                 ((char-displayable-p ?│) "│ ")
                                 ;; U+007C VERTICAL LINE
                                 (t "| "))))
-	 (list 'horiz
-	       (if parens "(" "")
-	       (append (list 'vcent (if fancy
-                                        (if high 2 1)
-                                      (if high 3 2)))
-		       (and high (list (if fancy
-                                           (list 'horiz high " ")
-                                         (list 'horiz "  " high))))
-                       (if fancy
-                           (list "⌠ " fancy-stem "⌡ ")
-		         '("  /"
-			   " | "
-			   " | "
-			   " | "
-			   "/  "))
-		       (and low (list (if fancy
-                                          (list 'horiz low " ")
-                                        (list 'horiz low "  ")))))
-	       expr
-	       (if over
-		   ""
-		 (list 'horiz " d" var))
-	       (if parens ")" "")))))
+         (let ((comp
+	        (list 'horiz
+	              (append (list 'vcent (if fancy
+                                               (if high 2 1)
+                                             (if high 3 2)))
+		              (and high (list (if fancy
+                                                  (list 'horiz high " ")
+                                                (list 'horiz "  " high))))
+                              (if fancy
+                                  (list "⌠ " fancy-stem "⌡ ")
+		                '("  /"
+			          " | "
+			          " | "
+			          " | "
+			          "/  "))
+		              (and low (list (if fancy
+                                                 (list 'horiz low " ")
+                                               (list 'horiz low "  ")))))
+	              expr
+	              (if over
+		          ""
+		        (list 'horiz " d" var)))))
+           (if parens
+               (math--comp-round-bracket comp)
+             comp)))))
 
 (put 'calcFunc-sum 'math-compose-big #'math-compose-sum)
 (defun math-compose-sum (a prec)
   (and (memq (length a) '(3 5 6))
        (let* ((expr (math-compose-expr (nth 1 a) 185))
-	      (calc-language 'flat)
-	      (var (math-compose-expr (nth 2 a) 0))
-	      (low (and (nth 3 a) (math-compose-expr (nth 3 a) 0)))
-	      (high (and (nth 4 a) (math-compose-vector (nthcdr 4 a) ", " 0))))
-	 (list 'horiz
-	       (if (memq prec '(180 201)) "(" "")
+	      (var
+	       (let ((calc-language 'flat))
+                 (math-compose-expr (nth 2 a) 0)))
+	      (low (and (nth 3 a)
+	                (let ((calc-language 'flat))
+                          (math-compose-expr (nth 3 a) 0))))
+	      (high (and (nth 4 a)
+	                 (let ((calc-language 'flat))
+                           (math-compose-vector (nthcdr 4 a) ", " 0))))
+              (comp
+	       (list 'horiz
 	       (append (list 'vcent (if high 3 2))
 		       (and high (list high))
 		       '("---- "
@@ -1112,32 +1186,42 @@
 			 (list var)))
 	       (if (memq (car-safe (nth 1 a)) '(calcFunc-sum calcFunc-prod))
 		   " " "")
-	       expr
-	       (if (memq prec '(180 201)) ")" "")))))
+	       expr)))
+	 (if (memq prec '(180 201))
+             (math--comp-round-bracket comp)
+           comp))))
 
 (put 'calcFunc-prod 'math-compose-big #'math-compose-prod)
 (defun math-compose-prod (a prec)
   (and (memq (length a) '(3 5 6))
        (let* ((expr (math-compose-expr (nth 1 a) 198))
-	      (calc-language 'flat)
-	      (var (math-compose-expr (nth 2 a) 0))
-	      (low (and (nth 3 a) (math-compose-expr (nth 3 a) 0)))
-	      (high (and (nth 4 a) (math-compose-vector (nthcdr 4 a) ", " 0))))
-	 (list 'horiz
-	       (if (memq prec '(196 201)) "(" "")
-	       (append (list 'vcent (if high 3 2))
-		       (and high (list high))
-		       '("----- "
-			 " | |  "
-			 " | |  "
-			 " | |  ")
-		       (if low
-			   (list (list 'horiz var " = " low))
-			 (list var)))
-	       (if (memq (car-safe (nth 1 a)) '(calcFunc-sum calcFunc-prod))
-		   " " "")
-	       expr
-	       (if (memq prec '(196 201)) ")" "")))))
+	      (var
+               (let ((calc-language 'flat))
+                 (math-compose-expr (nth 2 a) 0)))
+	      (low (and (nth 3 a)
+                        (let ((calc-language 'flat))
+                          (math-compose-expr (nth 3 a) 0))))
+	      (high (and (nth 4 a)
+                         (let ((calc-language 'flat))
+                           (math-compose-vector (nthcdr 4 a) ", " 0))))
+              (comp
+	       (list 'horiz
+	             (append (list 'vcent (if high 3 2))
+		             (and high (list high))
+		             '("----- "
+			       " | |  "
+			       " | |  "
+			       " | |  ")
+		             (if low
+			         (list (list 'horiz var " = " low))
+			       (list var)))
+	             (if (memq (car-safe (nth 1 a))
+                               '(calcFunc-sum calcFunc-prod))
+		         " " "")
+	             expr)))
+         (if (memq prec '(196 201))
+             (math--comp-round-bracket comp)
+           comp))))
 
 ;; The variables math-svo-c, math-svo-wid and math-svo-off are local
 ;; to math-stack-value-offset in calc.el, but are used by

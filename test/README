@@ -39,11 +39,10 @@ The Makefile in this directory supports the following targets:
 * make check-all
   Like "make check", but run all tests.
 
-* make check-lisp
-  Like "make check", but run only the tests in test/lisp/*.el
-
-* make check-net
-  Like "make check", but run only the tests in test/lisp/net/*.el
+* make check-<dirname>
+  Like "make check", but run only the tests in test/<dirname>/*.el.
+  <dirname> is a relative directory path, which has replaced "/" by "-",
+  like in "check-src" or "check-lisp-net".
 
 * make <filename>  -or-  make <filename>.log
   Run all tests declared in <filename>.el.  This includes expensive
@@ -61,7 +60,9 @@ https://www.gnu.org/software/emacs/manual/html_node/ert/Test-Selectors.html
 
 You could use predefined selectors of the Makefile.  "make <filename>
 SELECTOR='$(SELECTOR_DEFAULT)'" runs all tests for <filename>.el
-except the tests tagged as expensive or unstable.
+except the tests tagged as expensive or unstable.  Other predefined
+selectors are $(SELECTOR_EXPENSIVE) (run all tests except unstable
+ones) and $(SELECTOR_ALL) (run all tests).
 
 If your test file contains the tests "test-foo", "test2-foo" and
 "test-foo-remote", and you want to run only the former two tests, you

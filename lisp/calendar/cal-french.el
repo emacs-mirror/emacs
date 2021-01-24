@@ -1,4 +1,4 @@
-;;; cal-french.el --- calendar functions for the French Revolutionary calendar
+;;; cal-french.el --- calendar functions for the French Revolutionary calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1988-1989, 1992, 1994-1995, 1997, 2001-2021 Free
 ;; Software Foundation, Inc.
@@ -35,54 +35,45 @@
 (defconst calendar-french-epoch (calendar-absolute-from-gregorian '(9 22 1792))
   "Absolute date of start of French Revolutionary calendar = Sept 22, 1792.")
 
-(defconst calendar-french-month-name-array
-  ["Vende'miaire" "Brumaire" "Frimaire" "Nivo^se" "Pluvio^se" "Vento^se"
-   "Germinal" "Flore'al" "Prairial" "Messidor" "Thermidor" "Fructidor"]
-  "Array of month names in the French calendar.")
+(define-obsolete-variable-alias 'calendar-french-multibyte-month-name-array
+  'calendar-french-month-name-array "28.1")
 
-(defconst calendar-french-multibyte-month-name-array
+(defconst calendar-french-month-name-array
   ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
    "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"]
-  "Array of multibyte month names in the French calendar.")
+  "Array of month names in the French calendar.")
 
 (defconst calendar-french-day-name-array
   ["Primidi" "Duodi" "Tridi" "Quartidi" "Quintidi" "Sextidi" "Septidi"
    "Octidi" "Nonidi" "Decadi"]
   "Array of day names in the French calendar.")
 
-(defconst calendar-french-special-days-array
-  ["de la Vertu" "du Ge'nie" "du Travail" "de la Raison" "des Re'compenses"
-   "de la Re'volution"]
-  "Array of special day names in the French calendar.")
+(define-obsolete-variable-alias 'calendar-french-multibyte-special-days-array
+  'calendar-french-special-days-array "28.1")
 
-(defconst calendar-french-multibyte-special-days-array
+(defconst calendar-french-special-days-array
   ["de la Vertu" "du Génie" "du Travail" "de la Raison" "des Récompenses"
    "de la Révolution"]
-  "Array of multibyte special day names in the French calendar.")
+  "Array of special day names in the French calendar.")
 
 (defun calendar-french-accents-p ()
-  "Return non-nil if diacritical marks are available."
-  (and (or window-system
-           (terminal-coding-system))
-       (or enable-multibyte-characters
-           (and (char-table-p standard-display-table)
-                (equal (aref standard-display-table 161) [161])))))
+  (declare (obsolete nil "28.1"))
+  t)
 
 (defun calendar-french-month-name-array ()
   "Return the array of month names, depending on whether accents are available."
-  (if (calendar-french-accents-p)
-      calendar-french-multibyte-month-name-array
-    calendar-french-month-name-array))
+  (declare (obsolete "use the variable of the same name instead" "28.1"))
+  calendar-french-month-name-array)
 
 (defun calendar-french-day-name-array ()
   "Return the array of day names."
+  (declare (obsolete "use the variable of the same name instead" "28.1"))
   calendar-french-day-name-array)
 
 (defun calendar-french-special-days-array ()
   "Return the special day names, depending on whether accents are available."
-  (if (calendar-french-accents-p)
-      calendar-french-multibyte-special-days-array
-    calendar-french-special-days-array))
+  (declare (obsolete "use the variable of the same name instead" "28.1"))
+  calendar-french-special-days-array)
 
 (defun calendar-french-leap-year-p (year)
   "True if YEAR is a leap year on the French Revolutionary calendar.
@@ -171,17 +162,13 @@ Defaults to today's date if DATE is not given."
          (d (calendar-extract-day french-date)))
     (cond
      ((< y 1) "")
-     ((= m 13) (format (if (calendar-french-accents-p)
-                           "Jour %s de l'Année %d de la Révolution"
-                         "Jour %s de l'Anne'e %d de la Re'volution")
-                       (aref (calendar-french-special-days-array) (1- d))
+     ((= m 13) (format "Jour %s de l'Année %d de la Révolution"
+                       (aref calendar-french-special-days-array (1- d))
                        y))
      (t (format
-         (if (calendar-french-accents-p)
-             "%d %s an %d de la Révolution"
-           "%d %s an %d de la Re'volution")
+         "%d %s an %d de la Révolution"
          d
-         (aref (calendar-french-month-name-array) (1- m))
+         (aref calendar-french-month-name-array (1- m))
          y)))))
 
 ;;;###cal-autoload
@@ -198,19 +185,16 @@ Defaults to today's date if DATE is not given."
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is non-nil."
   (interactive
-   (let* ((months (calendar-french-month-name-array))
-          (special-days (calendar-french-special-days-array))
+   (let* ((months calendar-french-month-name-array)
+          (special-days calendar-french-special-days-array)
           (year (progn
-                  (calendar-read
-                   (if (calendar-french-accents-p)
-                       "Année de la Révolution (>0): "
-                     "Anne'e de la Re'volution (>0): ")
+                  (calendar-read-sexp
+                   "Année de la Révolution (>0)"
                    (lambda (x) (> x 0))
-                   (number-to-string
-                    (calendar-extract-year
-                     (calendar-french-from-absolute
-                      (calendar-absolute-from-gregorian
-                       (calendar-current-date))))))))
+                   (calendar-extract-year
+                    (calendar-french-from-absolute
+                     (calendar-absolute-from-gregorian
+                      (calendar-current-date)))))))
           (month-list
            (mapcar 'list
                    (append months
@@ -234,8 +218,8 @@ Echo French Revolutionary date unless NOECHO is non-nil."
                        (calendar-make-alist month-list 1 'car) t)))
           (day (if (> month 12)
                    (- month 12)
-                 (calendar-read
-                  "Jour (1-30): "
+                 (calendar-read-sexp
+                  "Jour (1-30)"
                   (lambda (x) (and (<= 1 x) (<= x 30))))))
           (month (if (> month 12) 13 month)))
      (list (list month day year))))

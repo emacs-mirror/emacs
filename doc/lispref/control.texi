@@ -557,8 +557,9 @@ Likewise, it makes no sense to bind keyword symbols
 
 @item (pred @var{function})
 Matches if the predicate @var{function} returns non-@code{nil}
-when called on @var{expval}.
-the predicate @var{function} can have one of the following forms:
+when called on @var{expval}.  The test can be negated with the syntax
+@code{(pred (not @var{function}))}.
+The predicate @var{function} can have one of the following forms:
 
 @table @asis
 @item function name (a symbol)

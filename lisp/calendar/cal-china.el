@@ -1,4 +1,4 @@
-;;; cal-china.el --- calendar functions for the Chinese calendar
+;;; cal-china.el --- calendar functions for the Chinese calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -185,7 +185,9 @@ N congruent to 1 gives the first name, N congruent to 2 gives the second name,
 (defun calendar-chinese-zodiac-sign-on-or-after (d)
   "Absolute date of first new Zodiac sign on or after absolute date D.
 The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
- (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
+  (with-suppressed-warnings ((lexical year))
+    (defvar year))
+  (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
          (calendar-time-zone (eval calendar-chinese-time-zone)) ; uses year
          (calendar-daylight-time-offset
           calendar-chinese-daylight-time-offset)
@@ -207,6 +209,8 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
 
 (defun calendar-chinese-new-moon-on-or-after (d)
   "Absolute date of first new moon on or after absolute date D."
+  (with-suppressed-warnings ((lexical year))
+    (defvar year))
   (let* ((year (calendar-extract-year (calendar-gregorian-from-absolute d)))
          (calendar-time-zone (eval calendar-chinese-time-zone))
          (calendar-daylight-time-offset
@@ -602,14 +606,14 @@ Echo Chinese date unless NOECHO is non-nil."
   (interactive
    (let* ((c (calendar-chinese-from-absolute
               (calendar-absolute-from-gregorian (calendar-current-date))))
-          (cycle (calendar-read
-                  "Chinese calendar cycle number (>44): "
+          (cycle (calendar-read-sexp
+                  "Chinese calendar cycle number (>44)"
                   (lambda (x) (> x 44))
-                  (number-to-string (car c))))
-          (year (calendar-read
-                 "Year in Chinese cycle (1..60): "
+                  (car c)))
+          (year (calendar-read-sexp
+                 "Year in Chinese cycle (1..60)"
                  (lambda (x) (and (<= 1 x) (<= x 60)))
-                 (number-to-string (cadr c))))
+                 (cadr c)))
           (month-list (calendar-chinese-months-to-alist
                        (calendar-chinese-months cycle year)))
           (month (cdr (assoc
@@ -624,9 +628,11 @@ Echo Chinese date unless NOECHO is non-nil."
                                  (list cycle year month 1))))))
                     30
                   29))
-          (day (calendar-read
-                (format "Chinese calendar day (1-%d): " last)
-                (lambda (x) (and (<= 1 x) (<= x last))))))
+          (day (calendar-read-sexp
+                "Chinese calendar day (1-%d)"
+                (lambda (x) (and (<= 1 x) (<= x last)))
+                nil
+                last)))
      (list (list cycle year month day))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-chinese-to-absolute date)))
@@ -663,17 +669,17 @@ Echo Chinese date unless NOECHO is non-nil."
   ["正月" "二月" "三月" "四月" "五月" "六月"
    "七月" "八月" "九月" "十月" "冬月" "臘月"])
 
-;;; NOTE: In the diary the cycle and year of a Chinese date is
-;;; combined using this formula: (+ (* cycle 100) year).
+;; NOTE: In the diary the cycle and year of a Chinese date is
+;; combined using this formula: (+ (* cycle 100) year).
 ;;;
-;;; These two functions convert to and back from this representation.
-(defun calendar-chinese-from-absolute-for-diary (date)
-  (pcase-let ((`(,c ,y ,m ,d) (calendar-chinese-from-absolute date)))
+;; These two functions convert to and back from this representation.
+(defun calendar-chinese-from-absolute-for-diary (thedate)
+  (pcase-let ((`(,c ,y ,m ,d) (calendar-chinese-from-absolute thedate)))
     ;; Note: For leap months M is a float.
     (list (floor m) d (+ (* c 100) y))))
 
-(defun calendar-chinese-to-absolute-for-diary (date &optional prefer-leap)
-  (pcase-let* ((`(,m ,d ,y) date)
+(defun calendar-chinese-to-absolute-for-diary (thedate &optional prefer-leap)
+  (pcase-let* ((`(,m ,d ,y) thedate)
                (cycle (floor y 100))
                (year (mod y 100))
                (months (calendar-chinese-months cycle year))
@@ -691,7 +697,8 @@ Echo Chinese date unless NOECHO is non-nil."
   (unless (zerop month)
     (calendar-mark-1 month day year
                      #'calendar-chinese-from-absolute-for-diary
-                     (lambda (date) (calendar-chinese-to-absolute-for-diary date t))
+                     (lambda (thedate)
+                       (calendar-chinese-to-absolute-for-diary thedate t))
                      color)))
 
 ;;;###cal-autoload

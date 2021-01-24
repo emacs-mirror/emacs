@@ -1497,10 +1497,10 @@ Ordering is lexicographic."
   (string-lessp
    ;; FIXME: For now just compare the file name and the process name
    ;; (if it exists).  Is there a better way to do this?
-   (or (buffer-file-name (car a))
+   (or (with-current-buffer (car a) (ibuffer-buffer-file-name))
        (let ((pr-a (get-buffer-process (car a))))
 	 (and (processp pr-a) (process-name pr-a))))
-   (or (buffer-file-name (car b))
+   (or (with-current-buffer (car b) (ibuffer-buffer-file-name))
        (let ((pr-b (get-buffer-process (car b))))
 	 (and (processp pr-b) (process-name pr-b))))))
 
@@ -1823,18 +1823,12 @@ When BUF nil, default to the buffer at current line."
 ;;;###autoload
 (defun ibuffer-mark-by-file-name-regexp (regexp)
   "Mark all buffers whose file name matches REGEXP."
-  (interactive "sMark by file name (regexp): ")
+  (interactive (list (read-regexp "Mark by file name (regexp)")))
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (let ((name (or (buffer-file-name buf)
-		       (with-current-buffer buf
-			 (and
-			  (boundp 'dired-directory)
-			  (stringp dired-directory)
-			  dired-directory)))))
-	 (when name
-           ;; Match on the displayed file name (which is abbreviated).
-	   (string-match regexp (abbreviate-file-name name)))))))
+   (lambda (buf)
+     (when-let ((name (with-current-buffer buf (ibuffer-buffer-file-name))))
+       ;; Match on the displayed file name (which is abbreviated).
+       (string-match-p regexp (ibuffer--abbreviate-file-name name))))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-content-regexp (regexp &optional all-buffers)

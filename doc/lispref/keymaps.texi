@@ -2852,9 +2852,8 @@ Here is how to insert an item called @samp{Work} in the @samp{Signals}
 menu of Shell mode, after the item @code{break}:
 
 @example
-(define-key-after
-  (lookup-key shell-mode-map [menu-bar signals])
-  [work] '("Work" . work-command) 'break)
+(define-key-after shell-mode-map [menu-bar signals work]
+  '("Work" . work-command) 'break)
 @end example
 @end defun
 

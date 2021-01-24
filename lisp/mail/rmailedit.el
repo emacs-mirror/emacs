@@ -145,8 +145,9 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 (declare-function rmail-summary-enable "rmailsum" ())
 (declare-function rmail-summary-update-line "rmailsum" (n))
 
-(defun rmail-cease-edit ()
-  "Finish editing message; switch back to Rmail proper."
+(defun rmail-cease-edit (&optional abort)
+  "Finish editing message; switch back to Rmail proper.
+If ABORT, this is the result of aborting an edit."
   (interactive)
   (if (rmail-summary-exists)
       (with-current-buffer rmail-summary-buffer
@@ -271,6 +272,8 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
 	   ;; No match for rmail-mime-charset-pattern, but there was some
 	   ;; other Content-Type.  We should not insert another.  (Bug#4624)
 	   (content-type)
+           ;; Don't insert anything if aborting.
+           (abort)
 	   ((null old-coding)
 	    ;; If there was no charset= spec, insert one.
 	    (backward-char 1)
@@ -352,7 +355,7 @@ This function runs the hooks `text-mode-hook' and `rmail-edit-mode-hook'.
   (widen)
   (delete-region (point-min) (point-max))
   (insert rmail-old-text)
-  (rmail-cease-edit)
+  (rmail-cease-edit t)
   (rmail-highlight-headers))
 
 (defun rmail-edit-headers-alist (&optional widen markers)

@@ -181,10 +181,9 @@ The string is used in `tramp-methods'.")
               `("scpx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t") ("%h")
-					     ("%l")))
+				             ("-e" "none") ("-t" "-t")
+					     ("-o" "RemoteCommand='%l'") ("%h")))
                 (tramp-async-args           (("-q")))
-                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -238,10 +237,9 @@ The string is used in `tramp-methods'.")
               `("sshx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t") ("%h")
-					     ("%l")))
+				             ("-e" "none") ("-t" "-t")
+					     ("-o" "RemoteCommand='%l'") ("%h")))
                 (tramp-async-args           (("-q")))
-                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
@@ -2608,23 +2606,19 @@ The method used must be an out-of-band method."
 (defun tramp-sh-handle-insert-directory
     (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for Tramp files."
-  (setq filename (expand-file-name filename))
   (unless switches (setq switches ""))
   ;; Check, whether directory is accessible.
   (unless wildcard
     (access-file filename "Reading directory"))
-  (with-parsed-tramp-file-name filename nil
+  (with-parsed-tramp-file-name (expand-file-name filename) nil
     (if (and (featurep 'ls-lisp)
 	     (not (symbol-value 'ls-lisp-use-insert-directory-program)))
 	(tramp-handle-insert-directory
 	 filename switches wildcard full-directory-p)
       (when (stringp switches)
         (setq switches (split-string switches)))
-      (when (tramp-get-ls-command-with ;FIXME: tramp-sh--quoting-style-options?
-	     v "--quoting-style=literal --show-control-chars")
-	(setq switches
-	      (append
-	       switches '("--quoting-style=literal" "--show-control-chars"))))
+      (setq switches
+	    (append switches (split-string (tramp-sh--quoting-style-options v))))
       (unless (tramp-get-ls-command-with v "--dired")
 	(setq switches (delete "--dired" switches)))
       (when wildcard
@@ -4306,11 +4300,14 @@ file exists and nonzero exit status otherwise."
     ;; ensure they have the correct values when the shell starts, not
     ;; just processes run within the shell.  (Which processes include
     ;; our initial probes to ensure the remote shell is usable.)
+    ;; For the time being, we assume that all shells interpret -i as
+    ;; interactive shell.  Must be the last argument, because (for
+    ;; example) bash expects long options first.
     (tramp-send-command
      vec (format
 	  (concat
 	   "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
-	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s")
+	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
           tramp-terminal-type
           (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")
@@ -5122,7 +5119,7 @@ connection if a previous connection has died for some reason."
 		     options (format-spec options spec)
 		     spec (format-spec-make
 			   ?h l-host ?u l-user ?p l-port ?c options
-			   ?l (concat remote-shell " " extra-args))
+			   ?l (concat remote-shell " " extra-args " -i"))
 		     command
 		     (concat
 		      ;; We do not want to see the trailing local

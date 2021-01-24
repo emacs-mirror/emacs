@@ -1,4 +1,4 @@
-# fchmodat.m4 serial 5
+# fchmodat.m4 serial 6
 dnl Copyright (C) 2004-2021 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -16,11 +16,9 @@ AC_DEFUN([gl_FUNC_FCHMODAT],
     HAVE_FCHMODAT=0
   else
     AC_CACHE_CHECK(
-      [whether fchmodat+AT_SYMLINK_NOFOLLOW works on non-symlinks],
+      [whether fchmodat works],
       [gl_cv_func_fchmodat_works],
-      [dnl This test fails on GNU/Linux with glibc 2.31 (but not on
-       dnl GNU/kFreeBSD nor GNU/Hurd) and Cygwin 2.9.
-       AC_RUN_IFELSE(
+      [AC_RUN_IFELSE(
          [AC_LANG_PROGRAM(
             [
               AC_INCLUDES_DEFAULT[
@@ -44,27 +42,49 @@ AC_DEFUN([gl_FUNC_FCHMODAT],
             [[
               int permissive = S_IRWXU | S_IRWXG | S_IRWXO;
               int desired = S_IRUSR | S_IWUSR;
-              static char const f[] = "conftest.fchmodat";
+              int result = 0;
+              #define file "conftest.fchmodat"
               struct stat st;
-              if (creat (f, permissive) < 0)
+              if (creat (file, permissive) < 0)
                 return 1;
-              if (fchmodat (AT_FDCWD, f, desired, AT_SYMLINK_NOFOLLOW) != 0)
+              /* Test whether fchmodat rejects a trailing slash on a non-directory.
+                 This test fails on AIX 7.2.  */
+              if (fchmodat (AT_FDCWD, file "/", desired, 0) == 0)
+                result |= 2;
+              /* Test whether fchmodat+AT_SYMLINK_NOFOLLOW works on non-symlinks.
+                 This test fails on GNU/Linux with glibc 2.31 (but not on
+                 GNU/kFreeBSD nor GNU/Hurd) and Cygwin 2.9.  */
+              if (fchmodat (AT_FDCWD, file, desired, AT_SYMLINK_NOFOLLOW) != 0)
+                result |= 4;
+              if (stat (file, &st) != 0)
                 return 1;
-              if (stat (f, &st) != 0)
-                return 1;
-              return ! ((st.st_mode & permissive) == desired);
+              if ((st.st_mode & permissive) != desired)
+                result |= 4;
+              return result;
             ]])],
          [gl_cv_func_fchmodat_works=yes],
-         [gl_cv_func_fchmodat_works=no],
+         [case $? in
+            2) gl_cv_func_fchmodat_works='nearly' ;;
+            *) gl_cv_func_fchmodat_works=no ;;
+          esac
+         ],
          [case "$host_os" in
-            dnl Guess no on Linux with glibc and Cygwin, yes otherwise.
+                                  # Guess no on Linux with glibc and Cygwin.
             linux-gnu* | cygwin*) gl_cv_func_fchmodat_works="guessing no" ;;
+                                  # Guess 'nearly' on AIX.
+            aix*)                 gl_cv_func_fchmodat_works="guessing nearly" ;;
+                                  # If we don't know, obey --enable-cross-guesses.
             *)                    gl_cv_func_fchmodat_works="$gl_cross_guess_normal" ;;
           esac
          ])
        rm -f conftest.fchmodat])
-    case $gl_cv_func_fchmodat_works in
+    case "$gl_cv_func_fchmodat_works" in
       *yes) ;;
+      *nearly)
+        AC_DEFINE([HAVE_NEARLY_WORKING_FCHMODAT], [1],
+          [Define to 1 if fchmodat works, except for the trailing slash handling.])
+        REPLACE_FCHMODAT=1
+        ;;
       *)
         AC_DEFINE([NEED_FCHMODAT_NONSYMLINK_FIX], [1],
           [Define to 1 if fchmodat+AT_SYMLINK_NOFOLLOW does not work right on non-symlinks.])

@@ -1,4 +1,4 @@
-;;; cal-persia.el --- calendar functions for the Persian calendar
+;;; cal-persia.el --- calendar functions for the Persian calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -139,13 +139,14 @@ Gregorian date Sunday, December 31, 1 BC."
                         (calendar-absolute-from-gregorian
                          (or date (calendar-current-date)))))
          (y (calendar-extract-year persian-date))
-         (m (calendar-extract-month persian-date))
-         (monthname (aref calendar-persian-month-name-array (1- m)))
+         (m (calendar-extract-month persian-date)))
+    (calendar-dlet*
+        ((monthname (aref calendar-persian-month-name-array (1- m)))
          (day (number-to-string (calendar-extract-day persian-date)))
          (year (number-to-string y))
          (month (number-to-string m))
          dayname)
-    (mapconcat 'eval calendar-date-display-form "")))
+      (mapconcat #'eval calendar-date-display-form ""))))
 
 ;;;###cal-autoload
 (defun calendar-persian-print-date ()
@@ -157,14 +158,13 @@ Gregorian date Sunday, December 31, 1 BC."
 (defun calendar-persian-read-date ()
   "Interactively read the arguments for a Persian date command.
 Reads a year, month, and day."
-  (let* ((year (calendar-read
-                "Persian calendar year (not 0): "
+  (let* ((year (calendar-read-sexp
+                "Persian calendar year (not 0)"
                 (lambda (x) (not (zerop x)))
-                (number-to-string
-                 (calendar-extract-year
-                  (calendar-persian-from-absolute
-                   (calendar-absolute-from-gregorian
-                    (calendar-current-date)))))))
+                (calendar-extract-year
+                 (calendar-persian-from-absolute
+                  (calendar-absolute-from-gregorian
+                   (calendar-current-date))))))
          (completion-ignore-case t)
          (month (cdr (assoc
                       (completing-read
@@ -175,9 +175,11 @@ Reads a year, month, and day."
                       (calendar-make-alist calendar-persian-month-name-array
                                            1))))
          (last (calendar-persian-last-day-of-month month year))
-         (day (calendar-read
-               (format "Persian calendar day (1-%d): " last)
-               (lambda (x) (and (< 0 x) (<= x last))))))
+         (day (calendar-read-sexp
+               "Persian calendar day (1-%d)"
+               (lambda (x) (and (< 0 x) (<= x last)))
+               nil
+               last)))
     (list (list month day year))))
 
 ;;;###cal-autoload

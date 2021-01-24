@@ -2221,8 +2221,8 @@ Prefix argument ARG makes the entry nonmarking."
     (diary-make-entry
      (format "%s(diary-cyclic %d %s)"
              diary-sexp-entry-symbol
-             (calendar-read "Repeat every how many days: "
-                            (lambda (x) (> x 0)))
+             (calendar-read-sexp "Repeat every how many days"
+                                 (lambda (x) (> x 0)))
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
 

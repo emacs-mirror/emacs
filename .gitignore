@@ -299,4 +299,3 @@ nt/emacs.rc
 nt/emacsclient.rc
 src/gdb.ini
 /var/
-src/fingerprint.c

@@ -95,6 +95,12 @@
   :prefix "perl-"
   :group 'languages)
 
+(defface perl-non-scalar-variable
+  '((t :inherit font-lock-variable-name-face :underline t))
+  "Face used for non-scalar variables."
+  :version "28.1"
+  :group 'perl)
+
 (defvar perl-mode-abbrev-table nil
   "Abbrev table in use in perl-mode buffers.")
 (define-abbrev-table 'perl-mode-abbrev-table ())
@@ -187,11 +193,12 @@
      ;;
      ;; Fontify function, variable and file name references.
      ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)
-     ;; Additionally underline non-scalar variables.  Maybe this is a bad idea.
+     ;; Additionally fontify non-scalar variables.  `perl-non-scalar-variable'
+     ;; will underline them by default.
      ;;'("[$@%*][#{]?\\(\\sw+\\)" 1 font-lock-variable-name-face)
      ("[$*]{?\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-variable-name-face)
      ("\\([@%]\\|\\$#\\)\\(\\sw+\\(::\\sw+\\)*\\)"
-      (2 (cons font-lock-variable-name-face '(underline))))
+      (2 'perl-non-scalar-variable))
      ("<\\(\\sw+\\)>" 1 font-lock-constant-face)
      ;;
      ;; Fontify keywords with/and labels as we do in `c++-font-lock-keywords'.

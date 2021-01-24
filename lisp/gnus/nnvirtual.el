@@ -101,15 +101,10 @@ It is computed from the marks of individual component groups.")
       (erase-buffer)
       (if (stringp (car articles))
 	  'headers
-	(let ((vbuf (nnheader-set-temp-buffer
-		     (gnus-get-buffer-create " *virtual headers*")))
-	      (carticles (nnvirtual-partition-sequence articles))
+	(let ((carticles (nnvirtual-partition-sequence articles))
 	      (sysname (system-name))
-	      cgroup carticle article result prefix)
-	  (while carticles
-	    (setq cgroup (caar carticles))
-	    (setq articles (cdar carticles))
-	    (pop carticles)
+	      cgroup headers all-headers article prefix)
+	  (pcase-dolist (`(,cgroup . ,articles) carticles)
 	    (when (and articles
 		       (gnus-check-server
 			(gnus-find-method-for-group cgroup) t)
@@ -119,69 +114,37 @@ It is computed from the marks of individual component groups.")
 		       ;; This is probably evil if people have set
 		       ;; gnus-use-cache to nil themselves, but I
 		       ;; have no way of finding the true value of it.
-		       (let ((gnus-use-cache t))
-			 (setq result (gnus-retrieve-headers
-				       articles cgroup nil))))
-	      (set-buffer nntp-server-buffer)
-	      ;; If we got HEAD headers, we convert them into NOV
-	      ;; headers.  This is slow, inefficient and, come to think
-	      ;; of it, downright evil.  So sue me.  I couldn't be
-	      ;; bothered to write a header parse routine that could
-	      ;; parse a mixed HEAD/NOV buffer.
-	      (when (eq result 'headers)
-		(nnvirtual-convert-headers))
-	      (goto-char (point-min))
-	      (while (not (eobp))
-		(delete-region (point)
-			       (progn
-				 (setq carticle (read nntp-server-buffer))
-				 (point)))
+		       (let ((gnus-use-cache t)
+			     (gnus-newsgroup-name cgroup)
+			     (gnus-fetch-old-headers nil))
+			 (setq headers (gnus-fetch-headers articles))))
+	      (erase-buffer)
+	      ;; Remove all header article numbers from `articles'.
+	      ;; If there's anything left, those are expired or
+	      ;; canceled articles, so we update the component group
+	      ;; below.
+	      (dolist (h headers)
+		(setq articles (delq (mail-header-number h) articles)
+		      article (nnvirtual-reverse-map-article
+			       cgroup (mail-header-number h)))
+		;; Update all the header numbers according to their
+		;; reverse mapping, and drop any with no such mapping.
+		(when article
+		  ;; Do this first, before we re-set the header's
+		  ;; article number.
+		  (nnvirtual-update-xref-header
+		   h cgroup prefix sysname)
+		  (setf (mail-header-number h) article)
+		  (push h all-headers)))
+	      ;; Anything left in articles is expired or canceled.
+	      ;; Could be smart and not tell it about articles already
+	      ;; known?
+	      (when articles
+		(gnus-group-make-articles-read cgroup articles))))
 
-		;; We remove this article from the articles list, if
-		;; anything is left in the articles list after going through
-		;; the entire buffer, then those articles have been
-		;; expired or canceled, so we appropriately update the
-		;; component group below.  They should be coming up
-		;; generally in order, so this shouldn't be slow.
-		(setq articles (delq carticle articles))
-
-		(setq article (nnvirtual-reverse-map-article cgroup carticle))
-		(if (null article)
-		    ;; This line has no reverse mapping, that means it
-		    ;; was an extra article reference returned by nntp.
-		    (progn
-		      (beginning-of-line)
-		      (delete-region (point) (progn (forward-line 1) (point))))
-		  ;; Otherwise insert the virtual article number,
-		  ;; and clean up the xrefs.
-		  (princ article nntp-server-buffer)
-		  (nnvirtual-update-xref-header cgroup carticle
-						prefix sysname)
-		  (forward-line 1))
-		)
-
-	      (set-buffer vbuf)
-	      (goto-char (point-max))
-	      (insert-buffer-substring nntp-server-buffer))
-	    ;; Anything left in articles is expired or canceled.
-	    ;; Could be smart and not tell it about articles already known?
-	    (when articles
-	      (gnus-group-make-articles-read cgroup articles))
-	    )
-
-	  ;; The headers are ready for reading, so they are inserted into
-	  ;; the nntp-server-buffer, which is where Gnus expects to find
-	  ;; them.
-	  (prog1
-	      (with-current-buffer nntp-server-buffer
-		(erase-buffer)
-		(insert-buffer-substring vbuf)
-		;; FIX FIX FIX, we should be able to sort faster than
-		;; this if needed, since each cgroup is sorted, we just
-		;; need to merge
-		(sort-numeric-fields 1 (point-min) (point-max))
-		'nov)
-	    (kill-buffer vbuf)))))))
+	  (sort all-headers (lambda (h1 h2)
+			      (< (mail-header-number h1)
+				 (mail-header-number h2)))))))))
 
 
 (defvoo nnvirtual-last-accessed-component-group nil)
@@ -372,61 +335,18 @@ It is computed from the marks of individual component groups.")
 
 ;;; Internal functions.
 
-(defun nnvirtual-convert-headers ()
-  "Convert HEAD headers into NOV headers."
-  (with-current-buffer nntp-server-buffer
-    (let* ((dependencies (make-hash-table :test #'equal))
-	   (headers (gnus-get-newsgroup-headers dependencies)))
-      (erase-buffer)
-      (mapc 'nnheader-insert-nov headers))))
-
-
-(defun nnvirtual-update-xref-header (group article prefix sysname)
-  "Edit current NOV header in current buffer to have an xref to the component group, and also server prefix any existing xref lines."
-  ;; Move to beginning of Xref field, creating a slot if needed.
-  (beginning-of-line)
-  (looking-at
-   "[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t")
-  (goto-char (match-end 0))
-  (unless (search-forward "\t" (point-at-eol) 'move)
-    (insert "\t"))
-
-  ;; Remove any spaces at the beginning of the Xref field.
-  (while (eq (char-after (1- (point))) ? )
-    (forward-char -1)
-    (delete-char 1))
-
-  (insert "Xref: " sysname " " group ":")
-  (princ article (current-buffer))
-  (insert " ")
-
-  ;; If there were existing xref lines, clean them up to have the correct
-  ;; component server prefix.
-  (save-restriction
-    (narrow-to-region (point)
-		      (or (search-forward "\t" (point-at-eol) t)
-			  (point-at-eol)))
-    (goto-char (point-min))
-    (when (re-search-forward "Xref: *[^\n:0-9 ]+ *" nil t)
-      (replace-match "" t t))
-    (goto-char (point-min))
-    (when (re-search-forward
-	   (concat (regexp-quote (gnus-group-real-name group)) ":[0-9]+")
-	   nil t)
-      (replace-match "" t t))
-    (unless (eobp)
-      (insert " ")
-      (when (not (string= "" prefix))
-	(while (re-search-forward "[^ ]+:[0-9]+" nil t)
-	  (save-excursion
-	    (goto-char (match-beginning 0))
-	    (insert prefix))))))
-
-  ;; Ensure a trailing \t.
-  (end-of-line)
-  (or (eq (char-after (1- (point))) ?\t)
-      (insert ?\t)))
-
+(defun nnvirtual-update-xref-header (header group prefix sysname)
+  "Add xref to component GROUP to HEADER.
+Also add a server PREFIX any existing xref lines."
+  (let ((bits (split-string (mail-header-xref header)
+			    nil t "[[:blank:]]"))
+	(art-no (mail-header-number header)))
+    (setf (mail-header-xref header)
+	  (concat
+	   (format "%s %s:%d " sysname group art-no)
+	   (mapconcat (lambda (bit)
+			(concat prefix bit))
+		      bits " ")))))
 
 (defun nnvirtual-possibly-change-server (server)
   (or (not server)

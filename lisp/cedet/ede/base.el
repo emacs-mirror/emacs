@@ -160,16 +160,13 @@ and querying them will cause the actual project to get loaded.")
 ;; Projects can also affect how EDE works, by changing what appears in
 ;; the EDE menu, or how some keys are bound.
 ;;
-(unless (fboundp 'ede-target-list-p)
-  (cl-deftype ede-target-list () '(list-of ede-target)))
-
 (defclass ede-project (ede-project-placeholder)
   ((subproj :initform nil
 	    :type list
 	    :documentation "Sub projects controlled by this project.
 For Automake based projects, each directory is treated as a project.")
    (targets :initarg :targets
-	    :type ede-target-list
+	    :type (list-of ede-target)
 	    :custom (repeat (object :objectcreatefcn ede-new-target-custom))
 	    :label "Local Targets"
 	    :group (targets)

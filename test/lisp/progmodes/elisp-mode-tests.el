@@ -314,7 +314,19 @@
     (let* ((xref (pop xrefs))
            (expected (pop expected-xrefs))
            (expected-xref (or (when (consp expected) (car expected)) expected))
-           (expected-source (when (consp expected) (cdr expected))))
+           (expected-source (when (consp expected) (cdr expected)))
+           (xref-file (xref-elisp-location-file (oref xref location)))
+           (expected-file (xref-elisp-location-file
+                           (oref expected-xref location))))
+
+      ;; Make sure file names compare as strings.
+      (when (file-name-absolute-p xref-file)
+        (setf (xref-elisp-location-file (oref xref location))
+              (file-truename (xref-elisp-location-file (oref xref location)))))
+      (when (file-name-absolute-p expected-file)
+        (setf (xref-elisp-location-file (oref expected-xref location))
+              (file-truename (xref-elisp-location-file
+                              (oref expected-xref location)))))
 
       ;; Downcase the filenames for case-insensitive file systems.
       (when xref--case-insensitive
@@ -821,6 +833,57 @@ to (xref-elisp-test-descr-to-target xref)."
       (insert orig)
       (indent-region (point-min) (point-max))
       (should (equal (buffer-string) orig)))))
+
+(defun test--font (form search)
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (if (stringp form)
+        (insert form)
+      (pp form (current-buffer)))
+    (font-lock-debug-fontify)
+    (goto-char (point-min))
+    (and (re-search-forward search nil t)
+         (get-text-property (match-beginning 1) 'face))))
+
+(ert-deftest test-elisp-font-keywords-1 ()
+  ;; Special form.
+  (should (eq (test--font '(if foo bar) "(\\(if\\)")
+              'font-lock-keyword-face))
+  ;; Macro.
+  (should (eq (test--font '(when foo bar) "(\\(when\\)")
+              'font-lock-keyword-face))
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             (error (if a b)))
+                          "(\\(if\\)")
+              'font-lock-keyword-face))
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             (when (if a b)))
+                          "(\\(when\\)")
+              'nil)))
+
+(ert-deftest test-elisp-font-keywords-2 ()
+  :expected-result :failed ; FIXME bug#43265
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             (error (when a b)))
+                          "(\\(when\\)")
+              'font-lock-keyword-face)))
+
+(ert-deftest test-elisp-font-keywords-3 ()
+  :expected-result :failed ; FIXME bug#43265
+  (should (eq (test--font '(setq a '(if when zot))
+                          "(\\(if\\)")
+              nil)))
+
+(ert-deftest test-elisp-font-keywords-if ()
+  :expected-result :failed ; FIXME bug#43265
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             ((if foo) (when a b)))
+                          "(\\(if\\)")
+              nil)))
 
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

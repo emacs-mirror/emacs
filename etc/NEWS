@@ -326,6 +326,16 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** 'blink-cursor-mode' is now enabled by default regardless of the UI.
+It used to be enabled when Emacs is started in GUI mode but not when started
+in text mode.  The cursor still only actually blinks in GUI frames.
+
+** pcase
++++
+*** The `pred` pattern can now take the form (pred (not FUN)).
+This is like (pred (lambda (x) (not (FUN x)))) but results
+in better code.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
@@ -345,6 +355,12 @@ batch mode.
 When emacsclient connects, Emacs will (by default) output a message
 about how to exit the client frame.  If 'server-client-instructions'
 is set to nil, this message is inhibited.
+
+** Perl mode
+
+---
+*** New face 'perl-non-scalar-variable'.
+This is used to fontify non-scalar variables.
 
 ** Python mode
 
@@ -705,9 +721,11 @@ not.
 ---
 *** Respect 'message-forward-ignored-headers' more.
 Previously, this variable would not be consulted if
-'message-forward-show-mml' was nil.  It's now always used, except if
-'message-forward-show-mml' is 'best', and we're forwarding an
-encrypted/signed message.
+'message-forward-show-mml' was nil and forwarding as MIME.
+
++++
+*** New user option 'message-forward-included-mime-headers'.
+This is used when forwarding messages as MIME, but not using MML.
 
 +++
 *** Message now supports the OpenPGP header.
@@ -820,6 +838,10 @@ so e.g. like 'C-x 8 [' inserts a left single quotation mark,
 *** Improved language transliteration in Malayalam input methods.
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
 deprecated.  Errors in the Inscript method were corrected.
+
+---
+*** New input method 'cham'.
+There's also a Cham greeting in 'etc/HELLO'.
 
 ** Ispell
 
@@ -1538,8 +1560,27 @@ buttons in it.
 This function takes a string and returns a string propertized in a way
 that makes it a valid button.
 
+** subr-x
++++
+*** A number of new string manipulation functions have been added.
+'string-clean-whitespace', 'string-fill', 'string-limit',
+'string-lines', 'string-pad' and 'string-chop-newline'.
+
+*** New macro `named-let` that provides Scheme's "named let" looping construct
+
+** thingatpt
+
++++
+*** New variable 'thing-at-point-provider-alist'.
+This allows mode-specific alterations to how `thing-at-point' works.
 
 ** Miscellaneous
+
+---
+*** New user option 'remember-diary-regexp'.
+
+---
+*** New user option 'remember-text-format-function'.
 
 *** New function 'buffer-line-statistics'.
 This function returns some statistics about the line lengths in a buffer.
@@ -1570,11 +1611,6 @@ length to a number).
 ---
 *** New user option 'authinfo-hide-elements'.
 This can be set to nil to inhibit hiding passwords in ".authinfo" files.
-
-+++
-*** A number of new string manipulation functions have been added.
-'string-clean-whitespace', 'string-fill', 'string-limit',
-'string-lines', 'string-pad' and 'string-chop-newline'.
 
 +++
 *** New variable 'current-minibuffer-command'.

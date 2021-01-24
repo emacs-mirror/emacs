@@ -713,11 +713,21 @@ _GL_WARN_ON_USE (mkfifo, "mkfifo is not portable - "
 
 
 #if @GNULIB_MKFIFOAT@
-# if !@HAVE_MKFIFOAT@
+# if @REPLACE_MKFIFOAT@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mkfifoat
+#   define mkfifoat rpl_mkfifoat
+#  endif
+_GL_FUNCDECL_RPL (mkfifoat, int, (int fd, char const *file, mode_t mode)
+                                 _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (mkfifoat, int, (int fd, char const *file, mode_t mode));
+# else
+#  if !@HAVE_MKFIFOAT@
 _GL_FUNCDECL_SYS (mkfifoat, int, (int fd, char const *file, mode_t mode)
                                  _GL_ARG_NONNULL ((2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (mkfifoat, int, (int fd, char const *file, mode_t mode));
+# endif
 _GL_CXXALIASWARN (mkfifoat);
 #elif defined GNULIB_POSIXCHECK
 # undef mkfifoat
@@ -756,13 +766,25 @@ _GL_WARN_ON_USE (mknod, "mknod is not portable - "
 
 
 #if @GNULIB_MKNODAT@
-# if !@HAVE_MKNODAT@
+# if @REPLACE_MKNODAT@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef mknodat
+#   define mknodat rpl_mknodat
+#  endif
+_GL_FUNCDECL_RPL (mknodat, int,
+                  (int fd, char const *file, mode_t mode, dev_t dev)
+                  _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (mknodat, int,
+                  (int fd, char const *file, mode_t mode, dev_t dev));
+# else
+#  if !@HAVE_MKNODAT@
 _GL_FUNCDECL_SYS (mknodat, int,
                   (int fd, char const *file, mode_t mode, dev_t dev)
                   _GL_ARG_NONNULL ((2)));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (mknodat, int,
                   (int fd, char const *file, mode_t mode, dev_t dev));
+# endif
 _GL_CXXALIASWARN (mknodat);
 #elif defined GNULIB_POSIXCHECK
 # undef mknodat

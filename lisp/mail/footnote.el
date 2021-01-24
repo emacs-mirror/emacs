@@ -910,7 +910,31 @@ play around with the following keys:
 	(unless (assoc bullet-regexp filladapt-token-table)
 	  (setq filladapt-token-table
 		(append filladapt-token-table
-			(list (list bullet-regexp 'bullet)))))))))
+			(list (list bullet-regexp 'bullet)))))))
+    (footnote--regenerate-alist)))
+
+(defun footnote--regenerate-alist ()
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward footnote-section-tag-regexp nil t)
+      (setq footnote--markers-alist
+            (cl-loop
+             with start-of-footnotes = (match-beginning 0)
+             with regexp = (footnote--current-regexp)
+             for (note text) in
+             (cl-loop for pos = (re-search-forward regexp nil t)
+                      while pos
+                      collect (list (match-string 1)
+                                    (copy-marker (match-beginning 0) t)))
+             do (goto-char (point-min))
+             collect (cl-list*
+                      (string-to-number note)
+                      text
+                      (cl-loop
+                       for pos = (re-search-forward regexp start-of-footnotes t)
+                       while pos
+                       when (equal note (match-string 1))
+                       collect (copy-marker (match-beginning 0) t))))))))
 
 (provide 'footnote)
 
