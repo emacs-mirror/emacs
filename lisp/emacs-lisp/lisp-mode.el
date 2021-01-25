@@ -257,10 +257,9 @@
               (concat "(\\(" lisp-mode-symbol-regexp "\\)\\_>"))
             limit t)
       (let ((sym (intern-soft (match-string 1))))
-	(when (or (special-form-p sym)
-		  (and (macrop sym)
-                       (not (get sym 'no-font-lock-keyword))
-                       (lisp--el-funcall-position-p (match-beginning 0))))
+	(when (and (or (special-form-p sym) (macrop sym))
+                   (not (get sym 'no-font-lock-keyword))
+                   (lisp--el-funcall-position-p (match-beginning 0)))
 	  (throw 'found t))))))
 
 (defmacro let-when-compile (bindings &rest body)
