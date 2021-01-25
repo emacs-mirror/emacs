@@ -2476,7 +2476,10 @@ previous element of the minibuffer history in the minibuffer."
 			 (current-column)))))
     (condition-case nil
 	(with-no-warnings
-	  (previous-line arg))
+	  (previous-line arg)
+          ;; Avoid moving point to the prompt
+          (when (< (point) (minibuffer-prompt-end))
+            (signal 'beginning-of-buffer nil)))
       (beginning-of-buffer
        ;; Restore old position since `line-move-visual' moves point to
        ;; the beginning of the line when it fails to go to the previous line.
