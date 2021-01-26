@@ -1,4 +1,4 @@
-;;; url-nfs.el --- NFS URL interface
+;;; url-nfs.el --- NFS URL interface  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 
