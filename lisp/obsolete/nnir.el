@@ -504,6 +504,7 @@ Add an entry here when adding a new search engine.")
 			,@(mapcar (lambda (elem) (list 'const (car elem)))
 				  nnir-engines)))))
 
+
 (defmacro nnir-add-result (dirnam artno score prefix server artlist)
   "Construct a result vector and add it to ARTLIST.
 DIRNAM, ARTNO, SCORE, PREFIX and SERVER are passed to
