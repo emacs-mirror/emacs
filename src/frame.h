@@ -534,7 +534,7 @@ struct frame
   /* Border width of the frame window as known by the (X) window system.  */
   int border_width;
 
-  /* Width of child frames' internal border. Acts as
+  /* Width of child frames' internal border.  Acts as
      internal_border_width for child frames.  */
   int child_frame_border_width;
 
@@ -1443,7 +1443,7 @@ FRAME_CHILD_FRAME_BORDER_WIDTH (struct frame *f)
 }
 
 /* Pixel-width of internal border.  Uses child_frame_border_width for
-   child frames if possible and falls back on internal_border_width
+   child frames if possible, and falls back on internal_border_width
    otherwise.  */
 INLINE int
 FRAME_INTERNAL_BORDER_WIDTH (struct frame *f)

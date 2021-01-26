@@ -694,16 +694,16 @@ parameter (@pxref{Management Parameters}).
 
 @item Internal Border
 The internal border is a border drawn by Emacs around the inner frame
-(see below). The specification of its appearance depends on whether
-the given frame is a child frame (@pxref{Child Frames}) or not.
+(see below).  The specification of its appearance depends on whether
+or not the given frame is a child frame (@pxref{Child Frames}).
 
 For normal frames its width is specified by the @code{internal-border-width}
-frame parameter (@pxref{Layout Parameters}) and its color is specified by the
+frame parameter (@pxref{Layout Parameters}), and its color is specified by the
 background of the @code{internal-border} face.
 
 For child frames its width is specified by the @code{child-frame-border-width}
-frame parameter (but will use the the @code{internal-border-width} parameter as
-a fallback) and its color is specified by the background of the
+frame parameter (but will use the @code{internal-border-width} parameter as
+fallback), and its color is specified by the background of the
 @code{child-frame-border} face.
 
 @item Inner Frame

@@ -1556,7 +1556,7 @@ w32_clear_under_internal_border (struct frame *f)
  * w32_set_child_frame_border_width:
  *
  * Set width of child frame F's internal border to ARG pixels.
- * ARG < 0 is * treated like ARG = 0.
+ * ARG < 0 is treated like ARG = 0.
  */
 static void
 w32_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
