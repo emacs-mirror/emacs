@@ -1455,7 +1455,7 @@ FRAME_INTERNAL_BORDER_WIDTH (struct frame *f)
        : frame_dimension (f->internal_border_width))
     : frame_dimension (f->internal_border_width);
 #else
-  return frame_dimension (f->internal_border_width)
+  return frame_dimension (f->internal_border_width);
 #endif
 }
 
