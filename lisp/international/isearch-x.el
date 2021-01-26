@@ -1,4 +1,4 @@
-;;; isearch-x.el --- extended isearch handling commands
+;;; isearch-x.el --- extended isearch handling commands  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -67,7 +67,7 @@
 
 ;; Exit from recursive edit safely.  Set in `after-change-functions'
 ;; by isearch-with-keyboard-coding.
-(defun isearch-exit-recursive-edit (start end length)
+(defun isearch-exit-recursive-edit (_start _end _length)
   (interactive)
   (throw 'exit nil))
 
@@ -102,6 +102,7 @@
 
 ;;;###autoload
 (defun isearch-process-search-multibyte-characters (last-char &optional count)
+  (defvar junk-hist)
   (if (eq this-command 'isearch-printing-char)
       (let ((overriding-terminal-local-map nil)
 	    (prompt (isearch-message-prefix))

@@ -1,4 +1,4 @@
-;;; ogonek.el --- change the encoding of Polish diacritics
+;;; ogonek.el --- change the encoding of Polish diacritics  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1998, 2001-2021 Free Software Foundation, Inc.
 

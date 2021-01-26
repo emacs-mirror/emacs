@@ -1,4 +1,4 @@
-;;; latexenc.el --- guess correct coding system in LaTeX files -*-coding: utf-8 -*-
+;;; latexenc.el --- guess correct coding system in LaTeX files -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
@@ -108,6 +108,8 @@ Return nil if no matching input encoding can be found."
 
 (defvar latexenc-dont-use-tex-guess-main-file-flag nil
   "Non-nil means don't use tex-guessmain-file to find the coding system.")
+
+(defvar tex-start-of-header)
 
 ;;;###autoload
 (defun latexenc-find-file-coding-system (arg-list)
