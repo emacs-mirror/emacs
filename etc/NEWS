@@ -2018,6 +2018,14 @@ hooks 'kill-buffer-hook', 'kill-buffer-query-functions', and
 'buffer-list-update-hook' for the temporary buffers they create.  This
 avoids slowing them down when a lot of these hooks are defined.
 
+** New face 'child-frame-border' and frame parameter 'child-frame-border-width'.
+The face and width of child frames borders can no be determined
+separately from thos of normal frames.  To minimize backwards
+incompatibility, child frames without a 'child-frame-border-width'
+parameter will fall back to using 'internal-border-width'.  However the
+new 'child-frame-border' face does constitute a breaking change since
+child frames' borders no longer use the 'internal-border' face.
+
 ---
 ** The obsolete function 'thread-alive-p' has been removed.
 

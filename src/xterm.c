@@ -1293,9 +1293,13 @@ x_clear_under_internal_border (struct frame *f)
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
       int face_id =
-	!NILP (Vface_remapping_alist)
-	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	: INTERNAL_BORDER_FACE_ID;
+	(FRAME_PARENT_FRAME (f)
+	 ? (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+	    : CHILD_FRAME_BORDER_FACE_ID)
+	 : (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	    : INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
@@ -1360,9 +1364,13 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
       {
 	int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 	int face_id =
-	  !NILP (Vface_remapping_alist)
-	  ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	  : INTERNAL_BORDER_FACE_ID;
+	  (FRAME_PARENT_FRAME (f)
+	   ? (!NILP (Vface_remapping_alist)
+	      ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+	      : CHILD_FRAME_BORDER_FACE_ID)
+	   : (!NILP (Vface_remapping_alist)
+	      ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	      : INTERNAL_BORDER_FACE_ID));
 	struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
 	block_input ();

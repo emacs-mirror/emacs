@@ -694,9 +694,17 @@ parameter (@pxref{Management Parameters}).
 
 @item Internal Border
 The internal border is a border drawn by Emacs around the inner frame
-(see below).  Its width is specified by the @code{internal-border-width}
-frame parameter (@pxref{Layout Parameters}).  Its color is specified by
-the background of the @code{internal-border} face.
+(see below). The specification of its appearance depends on whether
+the given frame is a child frame (@pxref{Child Frames}) or not.
+
+For normal frames its width is specified by the @code{internal-border-width}
+frame parameter (@pxref{Layout Parameters}) and its color is specified by the
+background of the @code{internal-border} face.
+
+For child frames its width is specified by the @code{child-frame-border-width}
+frame parameter (but will use the the @code{internal-border-width} parameter as
+a fallback) and its color is specified by the background of the
+@code{child-frame-border} face.
 
 @item Inner Frame
 @cindex inner frame
@@ -1789,6 +1797,11 @@ The width in pixels of the frame's outer border (@pxref{Frame Geometry}).
 @item internal-border-width
 The width in pixels of the frame's internal border (@pxref{Frame
 Geometry}).
+
+@vindex child-frame-border-width@r{, a frame parameter}
+@item child-frame-border-width
+The width in pixels of the frame's internal border (@pxref{Frame
+Geometry}) if the given frame is a child frame (@pxref{Child Frames}).
 
 @vindex vertical-scroll-bars@r{, a frame parameter}
 @item vertical-scroll-bars
