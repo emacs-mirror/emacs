@@ -186,6 +186,21 @@ See `replace-regexp' and `query-replace-regexp-eval'.")
                         length)
              length)))))
 
+(defun query-replace-read-from-suggestions ()
+  "Return a list of standard suggestions for `query-replace-read-from'.
+By default, the list includes the active region, the identifier
+(a.k.a. \"tag\") at point (see Info node `(emacs) Identifier Search'),
+the last isearch string, and the last replacement regexp.
+`query-replace-read-from' appends the list returned
+by this function to the end of values available via
+\\<minibuffer-local-map>\\[next-history-element]."
+  (delq nil (list (when (use-region-p)
+                    (buffer-substring-no-properties
+                     (region-beginning) (region-end)))
+                  (find-tag-default)
+                  (car search-ring)
+                  (car (symbol-value query-replace-from-history-variable)))))
+
 (defun query-replace-read-from (prompt regexp-flag)
   "Query and return the `from' argument of a query-replace operation.
 Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should be a regexp.
@@ -242,7 +257,8 @@ wants to replace FROM with TO."
                 (if regexp-flag
                     (read-regexp prompt nil 'minibuffer-history)
                   (read-from-minibuffer
-                   prompt nil nil nil nil (car search-ring) t)))))
+                   prompt nil nil nil nil
+                   (query-replace-read-from-suggestions) t)))))
            (to))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (caar query-replace-defaults)
@@ -808,13 +824,16 @@ the function that you set this to can check `this-command'."
 
 (defun read-regexp-suggestions ()
   "Return a list of standard suggestions for `read-regexp'.
-By default, the list includes the identifier (a.k.a. \"tag\")
-at point (see Info node `(emacs) Identifier Search'), the last
-isearch regexp, the last isearch string, and the last
+By default, the list includes the active region, the identifier
+(a.k.a. \"tag\") at point (see Info node `(emacs) Identifier Search'),
+the last isearch regexp, the last isearch string, and the last
 replacement regexp.  `read-regexp' appends the list returned
 by this function to the end of values available via
 \\<minibuffer-local-map>\\[next-history-element]."
   (list
+   (when (use-region-p)
+     (buffer-substring-no-properties
+      (region-beginning) (region-end)))
    (find-tag-default-as-regexp)
    (find-tag-default-as-symbol-regexp)
    (car regexp-search-ring)
