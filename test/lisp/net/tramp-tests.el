@@ -3192,6 +3192,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 (ert-deftest tramp-test17-insert-directory-one-file ()
   "Check `insert-directory' inside directory listing."
   (skip-unless (tramp--test-enabled))
+  ;; Relative file names in dired are not supported in tramp-crypt.el.
+  (skip-unless (not (tramp--test-crypt-p)))
 
   (dolist (quoted (if (tramp--test-expensive-test) '(nil t) '(nil)))
     (let* ((tmp-name1
@@ -5793,7 +5795,9 @@ Additionally, ls does not support \"--dired\"."
   (and (tramp--test-sh-p)
        (with-temp-buffer
 	 ;; We must refill the cache.  `insert-directory' does it.
-	 (insert-directory tramp-test-temporary-file-directory "-al")
+	 ;; This fails for tramp-crypt.el, so we ignore that.
+	 (ignore-errors
+	   (insert-directory tramp-test-temporary-file-directory "-al"))
 	 (not (tramp-get-connection-property tramp-test-vec "ls--dired" nil)))))
 
 (defun tramp--test-share-p ()

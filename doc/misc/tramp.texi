@@ -1286,6 +1286,9 @@ This method uses @command{sftp} in order to securely access remote
 hosts.  @command{sftp} is a more secure option for connecting to hosts
 that for security reasons refuse @command{ssh} connections.
 
+When there is a respective entry in your @command{ssh} configuration,
+do @emph{not} set the @option{RemoteCommand} option.
+
 @end table
 
 @defopt tramp-gvfs-methods
