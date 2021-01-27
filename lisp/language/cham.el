@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; Tai Viet is being included in the Unicode at the range U+AA80..U+AADF.
+;; Cham script is included in the Unicode at the range U+AA00..U+AA5F.
 
 ;;; Code:
 
