@@ -786,11 +786,11 @@ the function that you set this to can check `this-command'."
 
 (defun read-regexp-suggestions ()
   "Return a list of standard suggestions for `read-regexp'.
-By default, the list includes the \"tag\" at point (see Info
-node `(emacs) Identifier Search'), the last isearch regexp, the
-last isearch string, and the last replacement regexp.
-`read-regexp' appends the list returned by this function to the
-end of values available via
+By default, the list includes the identifier (a.k.a. \"tag\")
+at point (see Info node `(emacs) Identifier Search'), the last
+isearch regexp, the last isearch string, and the last
+replacement regexp.  `read-regexp' appends the list returned
+by this function to the end of values available via
 \\<minibuffer-local-map>\\[next-history-element]."
   (list
    (find-tag-default-as-regexp)
@@ -805,33 +805,35 @@ Prompt with the string PROMPT.  If PROMPT ends in \":\" (followed by
 optional whitespace), use it as-is.  Otherwise, add \": \" to the end,
 possibly preceded by the default result (see below).
 
-The optional argument DEFAULTS can be either: nil, a string, a list
-of strings, or a symbol.  We use DEFAULTS to construct the default
-return value in case of empty input.
+The optional argument DEFAULTS is used to construct the default
+return value in case of empty input.  DEFAULTS can be nil, a string,
+a list of strings, or a symbol.
 
-If DEFAULTS is a string, we use it as-is.
+If DEFAULTS is a string, the function uses it as-is.
 
 If DEFAULTS is a list of strings, the first element is the
 default return value, but all the elements are accessible
 using the history command \\<minibuffer-local-map>\\[next-history-element].
 
-DEFAULTS can be a symbol.  If DEFAULTS is the symbol
-`regexp-history-last', we use the first element of HISTORY (if
-specified) or `regexp-history'.  If DEFAULTS is a symbol with a
-function definition, we call it with no arguments and use what it
-returns, which should be either nil, a string, or a list of
-strings.  Other symbol values for DEFAULTS are ignored.  If
-`read-regexp-defaults-function' is non-nil, its value is used
-instead of DEFAULTS in the two cases described in this paragraph.
+If DEFAULTS is the symbol `regexp-history-last', the default return
+value will be the first element of HISTORY.  If HISTORY is omitted or
+nil, `regexp-history' is used instead.
+If DEFAULTS is a symbol with a function definition, it is called with
+no arguments and should return either nil, a string, or a list of
+strings, which will be used as above.
+Other symbol values for DEFAULTS are ignored.
 
-We append the standard values from `read-regexp-suggestions' to DEFAULTS
-before using it.
+If `read-regexp-defaults-function' is non-nil, its value is used
+instead of DEFAULTS in the two cases described in the last paragraph.
+
+Before using whatever value DEFAULTS yields, the function appends the
+standard values from `read-regexp-suggestions' to that value.
 
 If the first element of DEFAULTS is non-nil (and if PROMPT does not end
-in \":\", followed by optional whitespace), we add it to the prompt.
+in \":\", followed by optional whitespace), DEFAULT is added to the prompt.
 
 The optional argument HISTORY is a symbol to use for the history list.
-If nil, uses `regexp-history'."
+If nil, use `regexp-history'."
   (let* ((defaults
 	   (if (and defaults (symbolp defaults))
 	       (cond
