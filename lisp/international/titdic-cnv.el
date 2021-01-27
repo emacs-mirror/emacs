@@ -375,7 +375,7 @@ SPC, 6, 3, 4, or 7 specifying a tone (SPC:陰平, 6:陽平, 3:上聲, 4:去聲,
     ;; Arg DOCSTRING
     (let ((doc (concat tit-prompt "\n"))
 	  (comments (if tit-comments
-			(mapconcat 'identity (nreverse tit-comments) "\n")))
+			(mapconcat #'identity (nreverse tit-comments) "\n")))
 	  (doc-ext (nth 2 (assoc package quail-cxterm-package-ext-info))))
       (if comments
 	  (setq doc (concat doc "\n" comments "\n")))
@@ -737,12 +737,10 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; method is for inputting CNS characters.
 
 (defun tsang-quick-converter (dicbuf tsang-p big5-p)
-  (let ((fulltitle (if tsang-p (if big5-p "倉頡" "倉頡")
-		     (if big5-p "簡易" "簡易")))
+  (let ((fulltitle (if tsang-p "倉頡" "簡易"))
 	dic)
     (goto-char (point-max))
-    (if big5-p
-	(insert (format "\"中文輸入【%s】BIG5
+    (insert (format "\"中文輸入【%s】%s
 
 	漢語%s輸入鍵盤
 
@@ -753,19 +751,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
       [Z  ] [X 難] [C 金] [V 女] [B 月] [N 弓] [M 一]
 
 \\\\<quail-translation-docstring>\"\n"
-			fulltitle fulltitle))
-      (insert (format "\"中文輸入【%s】CNS
-
-	漢語%s輸入鍵盤
-
-   [Q 手] [W 田] [E 水] [R 口] [T 廿] [Y 卜] [U 山] [I 戈] [O 人] [P 心]
-
-    [A 日] [S 尸] [D 木] [F 火] [G 土] [H 竹] [J 十] [L 中]
-
-      [Z  ] [X 難] [C 金] [V 女] [B 月] [N 弓] [M 一]
-
-\\\\<quail-translation-docstring>\"\n"
-		      fulltitle fulltitle)))
+		    fulltitle (if big5-p "BIG5" "CNS") fulltitle))
     (insert "  '((\".\" . quail-next-translation-block)
    (\",\" . quail-prev-translation-block))
   nil nil)\n\n")
@@ -953,7 +939,7 @@ method `chinese-tonepy' with which you must specify tones by digits
 				     (= (length (aref trans i)) 1))
 			   (setq i (1+ i)))
 			 (if (= i len)
-			     (setq trans (mapconcat 'identity trans "")))))
+			     (setq trans (mapconcat #'identity trans "")))))
 		     (setq dic (cons (cons key trans) dic)))
 		 table)))
     (setq dic (sort dic (lambda (x y) (string< (car x) (car y)))))
