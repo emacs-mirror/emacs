@@ -124,7 +124,8 @@ language-server/bin/php-language-server.php"))
                                  . ("digestif"))
                                 (erlang-mode . ("erlang_ls" "--transport" "stdio"))
                                 (nix-mode . ("rnix-lsp"))
-                                (gdscript-mode . ("localhost" 6008)))
+                                (gdscript-mode . ("localhost" 6008))
+                                (f90-mode . ("fortls")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
 is a mode symbol, or a list of mode symbols.  The associated
