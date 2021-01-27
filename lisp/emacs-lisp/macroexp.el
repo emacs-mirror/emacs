@@ -377,7 +377,7 @@ Never returns an empty list."
      (t
       `(cond (,test ,@(macroexp-unprogn then))
              (,(nth 1 else) ,@(macroexp-unprogn (nth 2 else)))
-             ,@(let ((def (nthcdr 3 else))) (if def '((t ,@def))))))))
+             ,@(let ((def (nthcdr 3 else))) (if def `((t ,@def))))))))
    ((eq (car-safe else) 'cond)
     `(cond (,test ,@(macroexp-unprogn then)) ,@(cdr else)))
    ;; Invert the test if that lets us reduce the depth of the tree.
