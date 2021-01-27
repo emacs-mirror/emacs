@@ -1441,6 +1441,11 @@ the @code{amalgamating-undo-limit} variable.  If this variable is 1,
 no changes are amalgamated.
 @end defun
 
+A Lisp program can amalgamate a series of changes into a single change
+group by calling @code{undo-amalgamate-change-group} (@pxref{Atomic
+Changes}).  Note that @code{amalgamating-undo-limit} has no effect on
+the groups produced by that function.
+
 @defvar undo-auto-current-boundary-timer
 Some buffers, such as process buffers, can change even when no
 commands are executing.  In these cases, @code{undo-boundary} is
@@ -5629,9 +5634,17 @@ This function cancels and undoes all the changes in the change group
 specified by @var{handle}.
 @end defun
 
+  You can cause some or all of the changes in a change group to be
+considered as a single unit for the purposes of the @code{undo}
+commands (@pxref{Undo}) by using @code{undo-amalgamate-change-group}.
+
 @defun undo-amalgamate-change-group
-Amalgamate changes in change-group since @var{handle}.  I.e., remove
-all undo boundaries between the state of @var{handle} and now.
+Amalgamate all the changes made in the change-group since the state
+identified by @var{handle}.  This function removes all undo boundaries
+between undo records of changes since the state described by
+@var{handle}.  Usually, @var{handle} is the handle returned by
+@code{prepare-change-group}, in which case all the changes since the
+beginning of the change-group are amalgamated into a single undo unit.
 @end defun
 
   Your code should use @code{unwind-protect} to make sure the group is
