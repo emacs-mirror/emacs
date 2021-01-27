@@ -786,10 +786,12 @@ the function that you set this to can check `this-command'."
 
 (defun read-regexp-suggestions ()
   "Return a list of standard suggestions for `read-regexp'.
-By default, the list includes the tag at point, the last isearch regexp,
-the last isearch string, and the last replacement regexp.  `read-regexp'
-appends the list returned by this function to the end of values available
-via \\<minibuffer-local-map>\\[next-history-element]."
+By default, the list includes the \"tag\" at point (see Info
+node `(emacs) Identifier Search'), the last isearch regexp, the
+last isearch string, and the last replacement regexp.
+`read-regexp' appends the list returned by this function to the
+end of values available via
+\\<minibuffer-local-map>\\[next-history-element]."
   (list
    (find-tag-default-as-regexp)
    (find-tag-default-as-symbol-regexp)
