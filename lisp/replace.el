@@ -835,12 +835,14 @@ If DEFAULTS is a list of strings, the first element is the
 default return value, but all the elements are accessible
 using the history command \\<minibuffer-local-map>\\[next-history-element].
 
-If DEFAULTS is a non-nil symbol, then if `read-regexp-defaults-function'
-is non-nil, we use that in place of DEFAULTS in the following:
-  If DEFAULTS is the symbol `regexp-history-last', we use the first
-  element of HISTORY (if specified) or `regexp-history'.
-  If DEFAULTS is a function, we call it with no arguments and use
-  what it returns, which should be either nil, a string, or a list of strings.
+DEFAULTS can be a symbol.  If DEFAULTS is the symbol
+`regexp-history-last', we use the first element of HISTORY (if
+specified) or `regexp-history'.  If DEFAULTS is a symbol with a
+function definition, we call it with no arguments and use what it
+returns, which should be either nil, a string, or a list of
+strings.  Other symbol values for DEFAULTS are ignored.  If
+`read-regexp-defaults-function' is non-nil, its value is used
+instead of DEFAULTS in the two cases described in this paragraph.
 
 We append the standard values from `read-regexp-suggestions' to DEFAULTS
 before using it.
