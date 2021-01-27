@@ -2027,6 +2027,13 @@ highlighting:
 @item lazy-highlight-initial-delay
 @vindex lazy-highlight-initial-delay
 Time in seconds to wait before highlighting visible matches.
+Applies only if the search string is less than
+@code{lazy-highlight-no-delay-length} characters long.
+
+@item lazy-highlight-no-delay-length
+@vindex lazy-highlight-no-delay-length
+For search strings at least as long as the value of this variable,
+lazy highlighting of matches starts immediately.
 
 @item lazy-highlight-interval
 @vindex lazy-highlight-interval

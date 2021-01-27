@@ -226,6 +226,13 @@ C-M-<return> instead of <C-M-return>.  Either variant can be used as
 input; functions such as 'kbd' and 'read-kbd-macro' accept both styles
 as equivalent (they have done so for a long time).
 
++++
+** New user option 'lazy-highlight-no-delay-length'.
+Lazy highlighting of matches in Isearch now starts immediately if the
+search string is at least this long.  'lazy-highlight-initial-delay'
+still applies for shorter search strings, which avoids flicker in the
+search buffer due to too many matches being highlighted.
+
 
 * Editing Changes in Emacs 28.1
 
