@@ -29,7 +29,7 @@
 
 (set-char-table-range composition-function-table
 		      '(#xAA00 . #xAA5F)
-		      (list (vector "[\xAA00-\xAA5F]+" 0 'font-shape-gstring)))
+		      (list (vector "[\xAA00-\xAA5F]+" 0 #'font-shape-gstring)))
 
 (set-language-info-alist
  "Cham" '((charset unicode)

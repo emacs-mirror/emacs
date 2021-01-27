@@ -1,4 +1,4 @@
-;;; lao-util.el --- utilities for Lao -*- coding: utf-8; -*-
+;;; lao-util.el --- utilities for Lao -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -498,10 +498,10 @@ syllable.  In that case, FROM and TO are indexes to STR."
       (compose-gstring-for-graphic gstring direction)
     (or (font-shape-gstring gstring direction)
 	(let ((glyph-len (lgstring-glyph-len gstring))
-	      (i 0)
-	      glyph)
+	      (i 0)) ;; glyph
 	  (while (and (< i glyph-len)
-		      (setq glyph (lgstring-glyph gstring i)))
+		      ;; (setq glyph
+		      (lgstring-glyph gstring i)) ;;)
 	    (setq i (1+ i)))
 	  (compose-glyph-string-relative gstring 0 i 0.1)))))
 

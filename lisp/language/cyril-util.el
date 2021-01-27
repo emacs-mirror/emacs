@@ -1,4 +1,4 @@
-;;; cyril-util.el --- utilities for Cyrillic scripts
+;;; cyril-util.el --- utilities for Cyrillic scripts  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1998, 2001-2021 Free Software Foundation, Inc.
 

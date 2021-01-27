@@ -51,7 +51,7 @@
 					       regexp t t))))
     regexp))
 
-(let ((elt (list (vector burmese-composable-pattern 0 'font-shape-gstring)
-		 (vector "." 0 'font-shape-gstring))))
+(let ((elt (list (vector burmese-composable-pattern 0 #'font-shape-gstring)
+		 (vector "." 0 #'font-shape-gstring))))
   (set-char-table-range composition-function-table '(#x1000 . #x107F) elt)
   (set-char-table-range composition-function-table '(#xAA60 . #xAA7B) elt))

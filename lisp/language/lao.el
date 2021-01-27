@@ -66,7 +66,7 @@
 					(t (string c))))
 			      (cdr l) ""))
 	   ;; Element of composition-function-table.
-	   (elt (list (vector regexp 1 'lao-composition-function)
+	   (elt (list (vector regexp 1 #'lao-composition-function)
 		      fallback-rule))
 	   ch)
       (dotimes (i len)

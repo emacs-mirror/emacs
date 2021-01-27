@@ -1,4 +1,4 @@
-;;; thai-util.el --- utilities for Thai -*- coding: utf-8; -*-
+;;; thai-util.el --- utilities for Thai -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -232,10 +232,10 @@ positions (integers or markers) specifying the region."
 	(let ((glyph-len (lgstring-glyph-len gstring))
 	      (last-char (lgstring-char gstring
 					(1- (lgstring-char-len gstring))))
-	      (i 0)
-	      glyph)
+	      (i 0)) ;; glyph
 	  (while (and (< i glyph-len)
-		      (setq glyph (lgstring-glyph gstring i)))
+		      ;; (setq glyph
+		      (lgstring-glyph gstring i)) ;; )
 	    (setq i (1+ i)))
 	  (if (= last-char ?ำ)
 	      (setq i (1- i)))

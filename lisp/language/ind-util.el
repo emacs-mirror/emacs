@@ -1,4 +1,4 @@
-;;; ind-util.el --- Transliteration and Misc. Tools for Indian Languages -*- coding: utf-8-emacs; -*-
+;;; ind-util.el --- Transliteration and Misc. Tools for Indian Languages -*- coding: utf-8-emacs; lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -40,7 +40,7 @@
 (defun indian-regexp-of-hashtbl-keys (hashtbl)
   "Return the regular expression of hash table keys."
   (let (keys)
-    (maphash (lambda (key val) (push key keys)) hashtbl)
+    (maphash (lambda (key _val) (push key keys)) hashtbl)
     (regexp-opt keys)))
 
 (defvar indian-dev-base-table
@@ -565,7 +565,7 @@
        (let ((regexp ,(indian-regexp-of-hashtbl-keys
 		       (if encode-p (car (eval hashtable))
 			 (cdr (eval hashtable))))))
-	 (narrow-to-region from to)
+	 (narrow-to-region ,from ,to)
 	 (goto-char (point-min))
 	 (while (re-search-forward regexp nil t)
 	   (let ((matchstr (gethash (match-string 0)
@@ -613,7 +613,7 @@
 
 ;; The followings provide conversion between IS 13194 (ISCII) and UCS.
 
-(let
+(dlet
     ;;Unicode vs IS13194  ;; only Devanagari is supported now.
     ((ucs-devanagari-to-is13194-alist
       '((?\x0900 . "[U+0900]")
@@ -820,11 +820,11 @@ Returns new end position."
     (save-restriction
       (narrow-to-region from to)
       (goto-char (point-min))
-      (let* ((current-repertory is13194-default-repertory))
+      ;; (let* ((current-repertory is13194-default-repertory))
 	(while (re-search-forward indian-ucs-to-is13194-regexp nil t)
 	  (replace-match
 	   (get-char-code-property (string-to-char (match-string 0))
-				   'iscii))))
+				   'iscii)));; )
       (point-max))))
 
 (defun indian-iscii-to-ucs-region (from to)
@@ -1246,7 +1246,7 @@ Returns new end position."
   (interactive "r")
   (save-excursion
     (save-restriction
-      (let ((pos from)
+      (let (;; (pos from)
 	    (alist (char-table-extra-slot indian-2-column-to-ucs-chartable 0)))
 	(narrow-to-region from to)
 	(decompose-region from to)

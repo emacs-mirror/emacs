@@ -30,7 +30,7 @@
 
 (set-char-table-range composition-function-table
 		      '(#xAA80 . #xAADF)
-		      'tai-viet-composition-function)
+		      #'tai-viet-composition-function)
 
 (set-language-info-alist
  "TaiViet" '((charset unicode)

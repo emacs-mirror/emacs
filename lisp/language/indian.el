@@ -381,7 +381,7 @@ South Indian language Malayalam is supported in this language environment."))
 	 (if slot
 	     (set-char-table-range
 	      composition-function-table key
-	      (list (vector (cdr slot) 0 'font-shape-gstring))))))
+	      (list (vector (cdr slot) 0 #'font-shape-gstring))))))
    char-script-table))
 
 (provide 'indian)
