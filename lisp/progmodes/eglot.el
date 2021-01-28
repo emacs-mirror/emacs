@@ -780,13 +780,13 @@ be guessed."
 (defun eglot (managed-major-mode project class contact &optional interactive)
   "Manage a project with a Language Server Protocol (LSP) server.
 
-The LSP server of CLASS started (or contacted) via CONTACT.  If
-this operation is successful, current *and future* file buffers
-of MANAGED-MAJOR-MODE inside PROJECT automatically become
-\"managed\" by the LSP server, meaning information about their
-contents is exchanged periodically to provide enhanced
-code-analysis via `xref-find-definitions', `flymake-mode',
-`eldoc-mode', `completion-at-point', among others.
+The LSP server of CLASS is started (or contacted) via CONTACT.
+If this operation is successful, current *and future* file
+buffers of MANAGED-MAJOR-MODE inside PROJECT become \"managed\"
+by the LSP server, meaning information about their contents is
+exchanged periodically to provide enhanced code-analysis via
+`xref-find-definitions', `flymake-mode', `eldoc-mode',
+`completion-at-point', among others.
 
 Interactively, the command attempts to guess MANAGED-MAJOR-MODE
 from current buffer, CLASS and CONTACT from
@@ -798,7 +798,7 @@ MANAGED-MAJOR-MODE.
 
 PROJECT is a project instance as returned by `project-current'.
 
-CLASS is a subclass of symbol `eglot-lsp-server'.
+CLASS is a subclass of `eglot-lsp-server'.
 
 CONTACT specifies how to contact the server.  It is a
 keyword-value plist used to initialize CLASS or a plain list as
