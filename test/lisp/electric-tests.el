@@ -1,4 +1,4 @@
-;;; electric-tests.el --- tests for electric.el
+;;; electric-tests.el --- tests for electric.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 

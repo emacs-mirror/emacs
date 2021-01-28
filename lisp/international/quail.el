@@ -3013,7 +3013,7 @@ of each directory."
 
     ;; At first, clean up the file.
     (with-current-buffer list-buf
-      (goto-char 1)
+      (goto-char (point-min))
 
       ;; Insert the correct header.
       (if (looking-at (regexp-quote leim-list-header))

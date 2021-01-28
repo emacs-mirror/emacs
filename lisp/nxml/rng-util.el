@@ -1,4 +1,4 @@
-;;; rng-util.el --- utility functions for RELAX NG library
+;;; rng-util.el --- utility functions for RELAX NG library  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003, 2007-2021 Free Software Foundation, Inc.
 
