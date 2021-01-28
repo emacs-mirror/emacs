@@ -160,12 +160,16 @@ to track whether you're reading a specific mail."
                 (cond
                  ((and
                    result               ;there is a result
-                   (let* ((data (mapcar (lambda (record)
+                   (let* ((answers (dns-get 'answers result))
+                          (data (mapcar (lambda (record)
                                           (dns-get 'data (cdr record)))
-                                        (dns-get 'answers result)))
-                          (priorities (mapcar (lambda (r)
-                                                (dns-get 'priority r))
-                                              data))
+                                        ;; We may get junk data back (or CNAME;
+                                        ;; ignore).
+                                        (and (eq (dns-get 'type answers) 'SRV)
+                                             answers)))
+                          (priorities (and (mapcar (lambda (r)
+                                                     (dns-get 'priority r))
+                                                   data)))
                           (max-priority (if priorities
                                             (apply #'max priorities)
                                           0))
