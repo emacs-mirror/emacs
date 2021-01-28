@@ -2523,14 +2523,21 @@ is not active."
                                            :newName ,newname))
    current-prefix-arg))
 
+(defun eglot--region-bounds () "Region bounds if active, else point and nil."
+  (if (use-region-p) `(,(region-beginning) ,(region-end)) `(,(point) nil)))
 
-(defun eglot-code-actions (beg &optional end)
-  "Offer to execute code actions between BEG and END.
-Interactively, if a region is active, BEG and END are its bounds,
-else BEG is point and END is nil, which results in a request for
-code actions at point"
+(defun eglot-code-actions (beg &optional end action-kind)
+  "Offer to execute actions of ACTION-KIND between BEG and END.
+If ACTION-KIND is nil, consider all kinds of actions.
+Interactively, default BEG and END to region's bounds else BEG is
+point and END is nil, which results in a request for code actions
+at point.  With prefix argument, prompt for ACTION-KIND."
   (interactive
-   (if (region-active-p) `(,(region-beginning) ,(region-end)) `(,(point) nil)))
+   `(,@(eglot--region-bounds)
+     ,(and current-prefix-arg
+           (completing-read "[eglot] Action kind: "
+                            '("quickfix" "refactor.extract" "refactor.inline"
+                              "refactor.rewrite" "source.organizeImports")))))
   (unless (eglot--server-capable :codeActionProvider)
     (eglot--error "Server can't execute code actions!"))
   (let* ((server (eglot--current-server-or-lose))
@@ -2544,27 +2551,35 @@ code actions at point"
                  :context
                  `(:diagnostics
                    [,@(cl-loop for diag in (flymake-diagnostics beg end)
-                               when (cdr (assoc 'eglot-lsp-diag (eglot--diag-data diag)))
-                               collect it)]))))
+                               when (cdr (assoc 'eglot-lsp-diag
+                                                (eglot--diag-data diag)))
+                               collect it)]
+                   ,@(when action-kind `(:only ,action-kind))))))
          (menu-items
-          (or (mapcar (jsonrpc-lambda (&rest all &key title &allow-other-keys)
-                        (cons title all))
-                      actions)
-              (eglot--error "No code actions here")))
+          (or (cl-loop for action across actions
+                       ;; Do filtering ourselves, in case the `:only'
+                       ;; didn't go through.
+                       when (or (not action-kind)
+                                (equal action-kind (plist-get action :kind)))
+                       collect (cons (plist-get action :title) action))
+              (apply #'eglot--error
+                     (if action-kind `("No \"%s\" code actions here" ,action-kind)
+                       `("No code actions here")))))
          (preferred-action (cl-find-if
-                            (jsonrpc-lambda (&key isPreferred &allow-other-keys)
-                              isPreferred)
-                            actions))
-         (menu `("Eglot code actions:" ("dummy" ,@menu-items)))
-         (action (if (listp last-nonmenu-event)
-                     (x-popup-menu last-nonmenu-event menu)
-                   (cdr (assoc (completing-read "[eglot] Pick an action: "
-                                                menu-items nil t
-                                                nil nil (or (plist-get
-                                                             preferred-action
-                                                             :title)
-                                                            (car menu-items)))
-                               menu-items)))))
+                            (lambda (menu-item)
+                              (plist-get (cdr menu-item) :isPreferred))
+                            menu-items))
+         (default-action (car (or preferred-action (car menu-items))))
+         (action (if (and action-kind (null (cadr menu-items)))
+                     (cdr (car menu-items))
+                   (if (listp last-nonmenu-event)
+                       (x-popup-menu last-nonmenu-event `("Eglot code actions:"
+                                                          ("dummy" ,@menu-items)))
+                     (cdr (assoc (completing-read
+                                  (format "[eglot] Pick an action (default %s): "
+                                          default-action)
+                                  menu-items nil t nil nil default-action)
+                                 menu-items))))))
     (eglot--dcase action
       (((Command) command arguments)
        (eglot-execute-command server (intern command) arguments))
@@ -2574,6 +2589,18 @@ code actions at point"
          (eglot--dbind ((Command) command arguments) command
            (eglot-execute-command server (intern command) arguments)))))))
 
+(defmacro eglot--code-action (name kind)
+  "Define NAME to execute KIND code action."
+  `(defun ,name (beg &optional end)
+     ,(format "Execute '%s' code actions between BEG and END." kind)
+     (interactive (eglot--region-bounds))
+     (eglot-code-actions beg end ,kind)))
+
+(eglot--code-action eglot-code-action-organize-imports "source.organizeImports")
+(eglot--code-action eglot-code-action-extract "refactor.extract")
+(eglot--code-action eglot-code-action-inline "refactor.inline")
+(eglot--code-action eglot-code-action-rewrite "refactor.rewrite")
+(eglot--code-action eglot-code-action-quickfix "quickfix")
 
 
 ;;; Dynamic registration
