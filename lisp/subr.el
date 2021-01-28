@@ -4921,7 +4921,9 @@ file, FORM is evaluated immediately after the provide statement.
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like `font-lock'.
 
-This function makes or adds to an entry on `after-load-alist'."
+This function makes or adds to an entry on `after-load-alist'.
+
+See also `with-eval-after-load'."
   (declare (compiler-macro
             (lambda (whole)
               (if (eq 'quote (car-safe form))
