@@ -267,6 +267,7 @@ nontrivial changes to the build process.
 	lisp/language/tibetan.el
 	lisp/leim/quail/ethiopic.el
 	lisp/leim/quail/tibetan.el
+	lisp/international/titdic-cnv.el
 
  * binary files
 

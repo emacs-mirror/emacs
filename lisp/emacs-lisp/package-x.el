@@ -1,4 +1,4 @@
-;;; package-x.el --- Package extras
+;;; package-x.el --- Package extras  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
