@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 ;; Version: 1.0.4
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
