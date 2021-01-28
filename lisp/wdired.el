@@ -68,8 +68,8 @@
 
 ;;; Change Log:
 
-;; Google is your friend (previous versions with complete changelogs
-;; were posted to gnu.emacs.sources)
+;; Previous versions with complete changelogs were posted to
+;; gnu.emacs.sources.
 
 ;;; Code:
 
