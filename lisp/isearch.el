@@ -513,7 +513,7 @@ This is like `describe-bindings', but displays only Isearch keys."
     (call-interactively command)))
 
 (defvar isearch-menu-bar-commands
-  '(isearch-tmm-menubar menu-bar-open mouse-minor-mode-menu)
+  '(isearch-tmm-menubar tmm-menubar menu-bar-open mouse-minor-mode-menu)
   "List of commands that can open a menu during Isearch.")
 
 (defvar isearch-menu-bar-yank-map
@@ -787,7 +787,6 @@ This is like `describe-bindings', but displays only Isearch keys."
 
     (define-key map [menu-bar search-menu]
       (list 'menu-item "Isearch" isearch-menu-bar-map))
-    (define-key map [remap tmm-menubar] 'isearch-tmm-menubar)
 
     map)
   "Keymap for `isearch-mode'.")
