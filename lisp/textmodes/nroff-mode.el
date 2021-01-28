@@ -1,4 +1,4 @@
-;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
+;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2021 Free Software
 ;; Foundation, Inc.
@@ -43,7 +43,6 @@
 
 (defcustom nroff-electric-mode nil
   "Non-nil means automatically closing requests when you insert an open."
-  :group 'nroff
   :type 'boolean)
 
 (defvar nroff-mode-map
@@ -111,7 +110,7 @@
    ;; arguments in common cases, like \f.
    (concat "\\\\"		      ; backslash
 	 "\\("			      ; followed by various possibilities
-	 (mapconcat 'identity
+         (mapconcat #'identity
 		    '("[f*n]*\\[.+?]" ; some groff extensions
 		      "(.."	      ; two chars after (
 		      "[^(\"#]"	      ; single char escape
@@ -119,13 +118,11 @@
 	 "\\)")
    )
   "Font-lock highlighting control in `nroff-mode'."
-  :group 'nroff
   :type '(repeat regexp))
 
 (defcustom nroff-mode-hook nil
   "Hook run by function `nroff-mode'."
-  :type 'hook
-  :group 'nroff)
+  :type 'hook)
 
 ;;;###autoload
 (define-derived-mode nroff-mode text-mode "Nroff"
