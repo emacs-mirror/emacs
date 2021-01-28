@@ -365,7 +365,8 @@ your changes into effect."
 (define-generic-mode hosts-generic-mode
   '(?#)
   '("localhost")
-  '(("\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" 1 font-lock-constant-face))
+  '(("\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)" 1 font-lock-constant-face)
+    ("\\<\\([0-9A-Fa-f:]+\\)\\>" 1 font-lock-constant-face))
   '("[hH][oO][sS][tT][sS]\\'")
   nil
   "Generic mode for HOSTS files."))
