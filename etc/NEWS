@@ -1098,6 +1098,11 @@ If present in 'whitespace-style' (as it is by default), the final
 character in the buffer will be highlighted if the buffer doesn't end
 with a newline.
 
+---
+*** The default 'whitespace-enable-predicate' predicate has changed.
+It used to check elements in the list version of
+'whitespace-global-modes' with 'eq', but now uses 'derived-mode-p'.
+
 ** Texinfo
 
 ---
