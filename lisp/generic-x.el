@@ -412,7 +412,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
 	 (and (looking-at "^\\s-*\\[.*\\]")
 	      (ini-generic-mode)))))
 (define-obsolete-function-alias 'generic-mode-ini-file-find-file-hook
-  #'ini-generic-mode-find-file-hook "28.1"))
+  'ini-generic-mode-find-file-hook "28.1"))
 
 ;;; Windows REG files
 ;;; Unfortunately, Windows 95 and Windows NT have different REG file syntax!
