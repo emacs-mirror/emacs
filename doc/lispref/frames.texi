@@ -3761,10 +3761,31 @@ for instance using the window manager, then this produces a quit and
   You can specify the mouse pointer style for particular text or
 images using the @code{pointer} text property, and for images with the
 @code{:pointer} and @code{:map} image properties.  The values you can
-use in these properties are @code{text} (or @code{nil}), @code{arrow},
-@code{hand}, @code{vdrag}, @code{hdrag}, @code{modeline}, and
-@code{hourglass}.  @code{text} stands for the usual mouse pointer
-style used over text.
+use in these properties are in the table below.  The actual shapes
+may vary between systems; the descriptions are examples.
+
+@table @code
+@item text
+@itemx nil
+The usual mouse pointer style used over text (an ``I''-like shape).
+
+@item arrow
+@itemx vdrag
+@itemx modeline
+An arrow that points north-west.
+
+@item hand
+A hand that points upwards.
+
+@item hdrag
+A right-left arrow.
+
+@item nhdrag
+An up-down arrow.
+
+@item hourglass
+A rotating ring.
+@end table
 
   Over void parts of the window (parts that do not correspond to any
 of the buffer contents), the mouse pointer usually uses the
