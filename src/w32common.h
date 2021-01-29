@@ -50,6 +50,11 @@ extern int os_subtype;
 /* Cache system info, e.g., the NT page size.  */
 extern void cache_system_info (void);
 
+#ifdef WINDOWSNT
+/* Return a static buffer with the MS-Windows version string.  */
+extern char * w32_version_string (void);
+#endif
+
 typedef void (* VOIDFNPTR) (void);
 
 /* Load a function address from a DLL.  Cast the result via VOIDFNPTR

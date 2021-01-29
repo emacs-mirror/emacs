@@ -52,6 +52,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "blockinput.h"
 
+#ifdef WINDOWSNT
+# include "w32common.h"
+#endif
 static void update_buffer_properties (ptrdiff_t, ptrdiff_t);
 static Lisp_Object styled_format (ptrdiff_t, Lisp_Object *, bool);
 
@@ -121,12 +124,14 @@ init_editfns (void)
   else if (NILP (Vuser_full_name))
     Vuser_full_name = build_string ("unknown");
 
-#ifdef HAVE_SYS_UTSNAME_H
+#if defined HAVE_SYS_UTSNAME_H
   {
     struct utsname uts;
     uname (&uts);
     Voperating_system_release = build_string (uts.release);
   }
+#elif defined WINDOWSNT
+  Voperating_system_release = build_string (w32_version_string ());
 #else
   Voperating_system_release = Qnil;
 #endif
