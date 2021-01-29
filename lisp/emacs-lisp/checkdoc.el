@@ -2362,7 +2362,9 @@ Code:, and others referenced in the style guide."
 		(checkdoc-create-error
 		 (format "The footer should be: (provide '%s)\\n;;; %s%s ends here"
 			 fn fn fe)
-		 (1- (point-max)) (point-max)))))
+                 ;; The buffer may be empty.
+		 (max (point-min) (1- (point-max)))
+                 (point-max)))))
 	err))
       ;; The below checks will not return errors if the user says NO
 
