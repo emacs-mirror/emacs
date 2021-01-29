@@ -3991,6 +3991,9 @@ impose the use of a shell (with its need to quote arguments)."
 			  (start-process-shell-command "Shell" buffer command)))
 		  (setq mode-line-process '(":%s"))
                   (shell-mode)
+                  (setq revert-buffer-function
+                        (lambda (&rest _)
+                          (async-shell-command command (current-buffer))))
                   (set-process-sentinel proc #'shell-command-sentinel)
 		  ;; Use the comint filter for proper handling of
 		  ;; carriage motion (see comint-inhibit-carriage-motion).
@@ -4257,6 +4260,9 @@ characters."
                                              buffer))))
             ;; Report the output.
             (with-current-buffer buffer
+              (setq revert-buffer-function
+                    (lambda (&rest _)
+                      (shell-command command)))
               (setq mode-line-process
                     (cond ((null exit-status)
                            " - Error")
