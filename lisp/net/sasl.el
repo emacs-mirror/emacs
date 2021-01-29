@@ -161,15 +161,8 @@ the current challenge.  At the first time STEP should be set to nil."
     (if function
 	(vector function (funcall function client step)))))
 
-(defvar sasl-read-passphrase nil)
+(defvar sasl-read-passphrase 'read-passwd)
 (defun sasl-read-passphrase (prompt)
-  (if (not sasl-read-passphrase)
-      (if (functionp 'read-passwd)
-	  (setq sasl-read-passphrase 'read-passwd)
-	(if (load "passwd" t)
-	    (setq sasl-read-passphrase 'read-passwd)
-	  (autoload 'ange-ftp-read-passwd "ange-ftp")
-	  (setq sasl-read-passphrase 'ange-ftp-read-passwd))))
   (funcall sasl-read-passphrase prompt))
 
 (defun sasl-unique-id ()
