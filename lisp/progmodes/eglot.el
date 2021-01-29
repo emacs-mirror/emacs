@@ -2554,7 +2554,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                                when (cdr (assoc 'eglot-lsp-diag
                                                 (eglot--diag-data diag)))
                                collect it)]
-                   ,@(when action-kind `(:only ,action-kind))))))
+                   ,@(when action-kind `(:only [,action-kind]))))))
          (menu-items
           (or (cl-loop for action across actions
                        ;; Do filtering ourselves, in case the `:only'
