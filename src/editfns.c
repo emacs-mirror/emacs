@@ -4479,7 +4479,9 @@ functions if all the text being accessed has this property.  */);
 	       doc: /* The user's name, based upon the real uid only.  */);
 
   DEFVAR_LISP ("operating-system-release", Voperating_system_release,
-	       doc: /* The operating system kernel version Emacs is running on.  */);
+	       doc: /* The kernel version of the operating system on which Emacs is running.
+The value is a string.  It can also be nil if Emacs doesn't
+know how to get the kernel version on the underlying OS.  */);
 
   DEFVAR_BOOL ("binary-as-unsigned",
 	       binary_as_unsigned,
