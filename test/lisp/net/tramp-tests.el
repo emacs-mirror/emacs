@@ -6037,13 +6037,13 @@ This requires restrictions of file name syntax."
   (let ((files
 	 (list
 	  (cond ((or (tramp--test-ange-ftp-p)
+		     (tramp--test-docker-p)
 		     (tramp--test-gvfs-p)
 		     (tramp--test-rclone-p)
 		     (tramp--test-sudoedit-p)
 		     (tramp--test-windows-nt-or-smb-p))
 		 "foo bar baz")
 		((or (tramp--test-adb-p)
-		     (tramp--test-docker-p)
 		     (eq system-type 'cygwin))
 		 " foo bar baz ")
 		((tramp--test-sh-no-ls--dired-p)
