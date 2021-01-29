@@ -343,14 +343,15 @@ Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should a regexp."
 (defun query-replace-read-args (prompt regexp-flag &optional noerror)
   (unless noerror
     (barf-if-buffer-read-only))
-  (let* ((from (query-replace-read-from prompt regexp-flag))
-	 (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
-	       (query-replace-read-to from prompt regexp-flag))))
-    (list from to
-	  (or (and current-prefix-arg (not (eq current-prefix-arg '-)))
-              (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
-                   (get-text-property 0 'isearch-regexp-function from)))
-	  (and current-prefix-arg (eq current-prefix-arg '-)))))
+  (save-mark-and-excursion
+    (let* ((from (query-replace-read-from prompt regexp-flag))
+           (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
+                 (query-replace-read-to from prompt regexp-flag))))
+      (list from to
+            (or (and current-prefix-arg (not (eq current-prefix-arg '-)))
+                (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
+                     (get-text-property 0 'isearch-regexp-function from)))
+            (and current-prefix-arg (eq current-prefix-arg '-))))))
 
 (defun query-replace (from-string to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some occurrences of FROM-STRING with TO-STRING.
