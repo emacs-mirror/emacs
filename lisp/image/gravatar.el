@@ -167,13 +167,12 @@ to track whether you're reading a specific mail."
                                         ;; ignore).
                                         (and (eq (dns-get 'type answers) 'SRV)
                                              answers)))
-                          (priorities (and (mapcar (lambda (r)
-                                                     (dns-get 'priority r))
-                                                   data)))
-                          (max-priority (if priorities
-                                            (apply #'max priorities)
-                                          0))
-                          (sum 0) top)
+                          (priorities (mapcar (lambda (r)
+                                                (dns-get 'priority r))
+                                              data))
+                          (max-priority (apply #'max 0 priorities))
+                          (sum 0)
+                          top)
                      ;; Attempt to find all records with the same maximal
                      ;; priority, and calculate the sum of their weights.
                      (dolist (ent data)
