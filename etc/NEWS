@@ -1577,6 +1577,9 @@ This allows mode-specific alterations to how `thing-at-point' works.
 
 ** Miscellaneous
 
++++
+*** New command `C-x C-k Q' to force redisplay in keyboard macros.
+
 ---
 *** New user option 'remember-diary-regexp'.
 
