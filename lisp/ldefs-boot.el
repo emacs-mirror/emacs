@@ -29364,7 +29364,9 @@ variable `feedmail-deduce-envelope-from'.")
 (defvar mail-self-blind nil "\
 Non-nil means insert Bcc to self in messages to be sent.
 This is done when the message is initialized,
-so you can remove or alter the Bcc field to override the default.")
+so you can remove or alter the Bcc field to override the default.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-self-blind "sendmail" t)
 
@@ -29392,14 +29394,18 @@ Line used to separate headers from text in messages being composed.")
 (defvar mail-archive-file-name nil "\
 Name of file to write all outgoing messages in, or nil for none.
 This is normally an mbox file, but for backwards compatibility may also
-be a Babyl file.")
+be a Babyl file.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-archive-file-name "sendmail" t)
 
 (defvar mail-default-reply-to nil "\
 Address to insert as default Reply-To field of outgoing messages.
 If nil, it will be initialized from the REPLYTO environment variable
-when you first send mail.")
+when you first send mail.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-default-reply-to "sendmail" t)
 
@@ -29486,7 +29492,9 @@ in `message-auto-save-directory'.")
 (defvar mail-default-headers nil "\
 A string containing header lines, to be inserted in outgoing messages.
 It can contain newlines, and should end in one.  It is inserted
-before you edit the message, so you can edit or delete the lines.")
+before you edit the message, so you can edit or delete the lines.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-default-headers "sendmail" t)
 
@@ -29632,6 +29640,13 @@ Elements of SEQUENCE are transformed by FUNCTION before being
 sorted.  FUNCTION must be a function of one argument.
 
 \(fn FUNCTION PRED SEQUENCE)" nil nil)
+
+(autoload 'seq-concatenate "seq" "\
+Concatenate SEQUENCES into a single sequence of type TYPE.
+TYPE must be one of following symbols: vector, string or list.
+
+
+\(fn TYPE SEQUENCE...)" nil nil)
 
 (autoload 'seq-filter "seq" "\
 Return a list of all the elements for which (PRED element) is non-nil in SEQUENCE.
@@ -38637,10 +38652,19 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-unix.el" "eshell/em-xtra.el" "facemenu.el" "faces.el"
 ;;;;;;  "files.el" "font-core.el" "font-lock.el" "format.el" "frame.el"
 ;;;;;;  "help.el" "hfy-cmap.el" "ibuf-ext.el" "indent.el" "international/characters.el"
-;;;;;;  "international/charscript.el" "international/cp51932.el"
-;;;;;;  "international/eucjp-ms.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "isearch.el"
-;;;;;;  "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
+;;;;;;  "international/charprop.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/eucjp-ms.el" "international/mule-cmds.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "international/uni-bidi.el"
+;;;;;;  "international/uni-brackets.el" "international/uni-category.el"
+;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
+;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
+;;;;;;  "international/uni-digit.el" "international/uni-lowercase.el"
+;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
+;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
+;;;;;;  "international/uni-special-lowercase.el" "international/uni-special-titlecase.el"
+;;;;;;  "international/uni-special-uppercase.el" "international/uni-titlecase.el"
+;;;;;;  "international/uni-uppercase.el" "isearch.el" "jit-lock.el"
+;;;;;;  "jka-cmpr-hook.el" "language/burmese.el" "language/cham.el"
 ;;;;;;  "language/chinese.el" "language/cyrillic.el" "language/czech.el"
 ;;;;;;  "language/english.el" "language/ethiopic.el" "language/european.el"
 ;;;;;;  "language/georgian.el" "language/greek.el" "language/hebrew.el"

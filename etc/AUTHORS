@@ -1454,9 +1454,9 @@ Eli Zaretskii: wrote [bidirectional display in xdisp.c]
   chartab-tests.el coding-tests.el doc-tests.el etags-tests.el rxvt.el
   tty-colors.el
 and changed xdisp.c msdos.c w32.c display.texi w32fns.c simple.el
-  files.el fileio.c keyboard.c w32term.c emacs.c w32proc.c text.texi
-  dispnew.c files.texi frames.texi lisp.h dispextern.h window.c term.c
-  process.c and 1192 other files
+  files.el fileio.c keyboard.c emacs.c w32term.c text.texi w32proc.c
+  dispnew.c files.texi frames.texi lisp.h dispextern.h window.c process.c
+  term.c and 1193 other files
 
 Emanuele Giaquinta: changed configure.ac rxvt.el charset.c etags.c
   fontset.c frame.el gnus-faq.texi loadup.el lread.c sh-script.el
@@ -2108,6 +2108,8 @@ Irie Tetsuya: changed gnus.texi message.texi
 Ismail S: changed org-capture.el
 
 Istvan Marko: changed gnus-agent.el xfns.c
+
+Itai Seggev: changed src/Makefile.in
 
 Itai Zukerman: changed mm-decode.el
 
@@ -3075,7 +3077,7 @@ and co-wrote gnus-kill.el gnus-mh.el gnus-msg.el gnus-score.el
   rfc2047.el svg.el time-date.el
 and changed gnus.texi process.c subr.el simple.el files.el gnutls.c
   gnus-ems.el smtpmail.el display.texi url-http.el auth-source.el
-  gnus-cite.el pop3.el dired.el edebug.el gnus-xmas.el text.texi image.el
+  gnus-cite.el pop3.el dired.el edebug.el text.texi gnus-xmas.el image.el
   image.c gnutls.el nnrss.el and 658 other files
 
 Lars Rasmusson: changed ebrowse.c
@@ -3493,10 +3495,10 @@ Matt Swift: changed dired.el editfns.c lisp-mode.el mm-decode.el
   outline.el progmodes/compile.el rx.el simple.el startup.el
 
 Mauro Aranda: changed wid-edit.el cus-edit.el gnus.texi octave.el pong.el
-  autorevert.el cc-mode.texi control.texi custom-tests.el custom.el
-  dbus.texi dired-x.texi elisp-mode.el epa.el esh-mode.el
+  widget.texi autorevert.el cc-mode.texi control.texi custom-tests.el
+  custom.el dbus.texi dired-x.texi elisp-mode.el epa.el esh-mode.el
   eshell/eshell.el eudc.texi files.texi functions.texi gnus-faq.texi
-  info.el and 15 other files
+  and 15 other files
 
 Maxime Edouard Robert Froumentin: changed gnus-art.el mml.el
 
@@ -4745,7 +4747,7 @@ and changed css-mode.el css-mode.css json-tests.el json.el sgml-mode.el
   scss-mode.scss page.el ring.el rot13.el scheme.el sql.el asm-mode.el
   autoinsert.el color.el files.el js.el less-css-mode.el
   less-css-mode.less maintaining.texi makesum.el midnight.el
-  and 5 other files
+  and 6 other files
 
 Simona Arizanova: changed help.el
 
@@ -4808,7 +4810,7 @@ and changed bookmark.el package.el efaq.texi package.texi ibuffer.el
   mwheel.el cperl-mode.el fns.c gud.el simple.el subr.el tips.texi
   autoinsert.el comint-tests.el control.texi cus-edit.el delim-col.el
   dired-aux.el dired-x.el em-term.el emacs-lisp-intro.texi
-  and 157 other files
+  and 158 other files
 
 Stefan Merten: co-wrote rst.el
 
@@ -5337,7 +5339,7 @@ Valery Alexeev: changed cyril-util.el cyrillic.el
 
 Van L: changed subr.el
 
-Vasilij Schneidermann: changed cus-start.el eww.el cc-mode.el
+Vasilij Schneidermann: changed cus-start.el eww.el ETAGS.EBNF cc-mode.el
   debugging.texi display.texi edebug.el emacs-lisp/debug.el eval.c
   ielm.el os.texi profiler.el redisplay-testsuite.el shr.el snake.el
   term.el tetris.el xdisp.c xterm.c
