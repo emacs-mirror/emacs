@@ -798,7 +798,7 @@ It is useful when `(setq nnrss-use-local t)'."
 
 (defun nnrss-node-just-text (node)
   (if (and node (listp node))
-      (mapconcat 'nnrss-node-just-text (cddr node) " ")
+      (mapconcat #'nnrss-node-just-text (cddr node) " ")
     node))
 
 (defun nnrss-find-el (tag data &optional found-list)

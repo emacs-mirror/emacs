@@ -206,8 +206,8 @@ part.  This is for the internal use, you should never modify the value.")
 
 (defun mml-destroy-buffers ()
   (let (kill-buffer-hook)
-    (mapc 'kill-buffer mml-buffer-list)
-    (setq mml-buffer-list nil)))
+    (mapc #'kill-buffer (prog1 mml-buffer-list
+                          (setq mml-buffer-list nil)))))
 
 (defun mml-parse ()
   "Parse the current buffer as an MML document."
@@ -499,7 +499,7 @@ type detected."
 		 content-type)
 	(setcdr (assq 'type (cdr (car cont))) content-type))
       (when (fboundp 'libxml-parse-html-region)
-	(setq cont (mapcar 'mml-expand-all-html-into-multipart-related cont)))
+	(setq cont (mapcar #'mml-expand-all-html-into-multipart-related cont)))
       (prog1
 	  (with-temp-buffer
 	    (set-buffer-multibyte nil)
@@ -862,7 +862,7 @@ type detected."
 				    (cl-incf mml-multipart-number)))
 	(throw 'not-unique nil))))
    ((eq (car cont) 'multipart)
-    (mapc 'mml-compute-boundary-1 (cddr cont))))
+    (mapc #'mml-compute-boundary-1 (cddr cont))))
   t)
 
 (defun mml-make-boundary (number)
@@ -1077,7 +1077,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
       (goto-char (point-max))
       (insert "<#/mml>\n"))
      ((stringp (car handle))
-      (mapc 'mml-insert-mime (cdr handle))
+      (mapc #'mml-insert-mime (cdr handle))
       (insert "<#/multipart>\n"))
      (textp
       (let ((charset (mail-content-type-get

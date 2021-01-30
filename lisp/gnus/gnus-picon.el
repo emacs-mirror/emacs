@@ -120,7 +120,7 @@ List of pairs (KEY . GLYPH) where KEY is either a filename or an URL.")
 		base (expand-file-name directory database))
 	  (while address
 	    (when (setq result (gnus-picon-find-image
-				(concat base "/" (mapconcat 'downcase
+				(concat base "/" (mapconcat #'downcase
 							    (reverse address)
 							    "/")
 					"/" (downcase user) "/")))
@@ -158,7 +158,7 @@ replacement is added."
 
 (defun gnus-picon-create-glyph (file)
   (or (cdr (assoc file gnus-picon-glyph-alist))
-      (cdar (push (cons file (apply 'gnus-create-image
+      (cdar (push (cons file (apply #'gnus-create-image
 				    file nil nil
 				    gnus-picon-properties))
 		  gnus-picon-glyph-alist))))
@@ -190,7 +190,7 @@ replacement is added."
 				(gnus-picon-find-face
 				 (concat "unknown@"
 					 (mapconcat
-					  'identity (cdr spec) "."))
+					  #'identity (cdr spec) "."))
 				 gnus-picon-user-directories)))
 	     (setcar spec (cons (gnus-picon-create-glyph file)
 				(car spec))))
@@ -201,7 +201,7 @@ replacement is added."
 	     (when (setq file (gnus-picon-find-face
 			       (concat "unknown@"
 				       (mapconcat
-					'identity (nthcdr (1+ i) spec) "."))
+					#'identity (nthcdr (1+ i) spec) "."))
 			       gnus-picon-domain-directories t))
 	       (setcar (nthcdr (1+ i) spec)
 		       (cons (gnus-picon-create-glyph file)
@@ -214,10 +214,11 @@ replacement is added."
 	 (cl-case gnus-picon-style
 	       (right
 		(when (= (length addresses) 1)
-		  (setq len (apply '+ (mapcar (lambda (x)
-						(condition-case nil
-						    (car (image-size (car x)))
-						  (error 0))) spec)))
+		  (setq len (apply #'+ (mapcar (lambda (x)
+						 (condition-case nil
+						     (car (image-size (car x)))
+						   (error 0)))
+					       spec)))
 		  (when (> len 0)
 		    (goto-char (point-at-eol))
 		    (insert (propertize
@@ -256,7 +257,7 @@ replacement is added."
 	   (when (setq file (gnus-picon-find-face
 			     (concat "unknown@"
 				     (mapconcat
-				      'identity (nthcdr i spec) "."))
+				      #'identity (nthcdr i spec) "."))
 			     gnus-picon-news-directories t))
 	     (setcar (nthcdr i spec)
 		     (cons (gnus-picon-create-glyph file)

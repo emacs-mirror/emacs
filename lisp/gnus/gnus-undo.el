@@ -103,7 +103,7 @@
     ;; Set up the menu.
     (when (gnus-visual-p 'undo-menu 'menu)
       (gnus-undo-make-menu-bar))
-    (add-hook 'post-command-hook 'gnus-undo-boundary nil t)))
+    (add-hook 'post-command-hook #'gnus-undo-boundary nil t)))
 
 ;;; Interface functions.
 
@@ -161,15 +161,15 @@ A numeric argument serves as a repeat count."
   (unless gnus-undo-mode
     (error "Undoing is not enabled in this buffer"))
   (message "%s" last-command)
-  (when (or (not (eq last-command 'gnus-undo))
-	    (not gnus-undo-last))
+  (unless (and (eq last-command 'gnus-undo)
+               gnus-undo-last)
     (setq gnus-undo-last gnus-undo-actions))
   (let ((action (pop gnus-undo-last)))
     (unless action
       (error "Nothing further to undo"))
     (setq gnus-undo-actions (delq action gnus-undo-actions))
     (setq gnus-undo-boundary t)
-    (mapc 'funcall action)))
+    (mapc #'funcall action)))
 
 (provide 'gnus-undo)
 

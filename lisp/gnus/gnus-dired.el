@@ -29,7 +29,7 @@
 ;; following in your ~/.gnus:
 
 ;; (require 'gnus-dired) ;, isn't needed due to autoload cookies
-;; (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
+;; (add-hook 'dired-mode-hook #'turn-on-gnus-dired-mode)
 
 ;; Note that if you visit dired buffers before your ~/.gnus file has
 ;; been read, those dired buffers won't have the keybindings in

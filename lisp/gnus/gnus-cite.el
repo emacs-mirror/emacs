@@ -445,7 +445,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
       (gnus-article-search-signature)
       (push (cons (point-marker) "") marks)
       ;; Sort the marks.
-      (setq marks (sort marks 'car-less-than-car))
+      (setq marks (sort marks #'car-less-than-car))
       (let ((omarks marks))
 	(setq marks nil)
 	(while (cdr omarks)
@@ -999,7 +999,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 		cites (cdr cites)
 		candidate (car cite)
 		numbers (cdr cite)
-		first (apply 'min numbers)
+		first (apply #'min numbers)
 		compare (if size (length candidate) first))
 	  (and (> first limit)
 	       regexp
@@ -1125,7 +1125,7 @@ See also the documentation for `gnus-article-highlight-citation'."
   "Search for a cited line and set match data accordingly.
 Returns nil if there is no such line before LIMIT, t otherwise."
   (when (re-search-forward gnus-message-cite-prefix-regexp limit t)
-    (let ((cdepth (min (length (apply 'concat
+    (let ((cdepth (min (length (apply #'concat
 				      (split-string
 				       (match-string-no-properties 0)
 				       "[\t [:alnum:]]+")))

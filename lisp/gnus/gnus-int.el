@@ -628,7 +628,7 @@ the group's summary.
           article-number)
       ;; Clean up the new summary and propagate the error
       (error (when group-is-new (gnus-summary-exit))
-             (apply 'signal err)))))
+             (apply #'signal err)))))
 
 (defun gnus-simplify-group-name (group)
   "Return the simplest representation of the name of GROUP.

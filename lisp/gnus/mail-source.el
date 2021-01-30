@@ -462,21 +462,23 @@ the `mail-source-keyword-map' variable."
            (cond
             ((and
              (eq keyword :user)
-             (setq user-auth (plist-get
-                              ;; cache the search result in `found'
-                              (or found
-                                  (setq found (nth 0 (apply 'auth-source-search
-                                                            search))))
-                              :user)))
+             (setq user-auth
+                   (plist-get
+                    ;; cache the search result in `found'
+                    (or found
+                        (setq found (nth 0 (apply #'auth-source-search
+                                                  search))))
+                    :user)))
              user-auth)
             ((and
               (eq keyword :password)
-              (setq pass-auth (plist-get
-                               ;; cache the search result in `found'
-                               (or found
-                                   (setq found (nth 0 (apply 'auth-source-search
-                                                             search))))
-                               :secret)))
+              (setq pass-auth
+                    (plist-get
+                     ;; cache the search result in `found'
+                     (or found
+                         (setq found (nth 0 (apply #'auth-source-search
+                                                   search))))
+                     :secret)))
              ;; maybe set the password to the return of the :secret function
              (if (functionp pass-auth)
                  (setq pass-auth (funcall pass-auth))
@@ -685,7 +687,7 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		      ;; find "our" movemail in exec-directory.
 		      ;; Bug#31737
 		      (apply
-		       'call-process
+		       #'call-process
 		       (append
 			(list
 			 mail-source-movemail-program
@@ -1002,11 +1004,11 @@ This only works when `display-time' is enabled."
 		 #'mail-source-start-idle-timer))
 	  ;; When you get new mail, clear "Mail" from the mode line.
 	  (add-hook 'nnmail-post-get-new-mail-hook
-		    'display-time-event-handler)
+		    #'display-time-event-handler)
 	  (message "Mail check enabled"))
       (setq display-time-mail-function nil)
       (remove-hook 'nnmail-post-get-new-mail-hook
-		   'display-time-event-handler)
+		   #'display-time-event-handler)
       (message "Mail check disabled"))))
 
 (defun mail-source-fetch-maildir (source callback)

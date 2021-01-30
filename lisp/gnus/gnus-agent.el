@@ -248,9 +248,9 @@ Actually a hash table holding subjects mapped to t.")
   (gnus-agent-read-servers)
   (gnus-category-read)
   (gnus-agent-create-buffer)
-  (add-hook 'gnus-group-mode-hook 'gnus-agent-mode)
-  (add-hook 'gnus-summary-mode-hook 'gnus-agent-mode)
-  (add-hook 'gnus-server-mode-hook 'gnus-agent-mode))
+  (add-hook 'gnus-group-mode-hook #'gnus-agent-mode)
+  (add-hook 'gnus-summary-mode-hook #'gnus-agent-mode)
+  (add-hook 'gnus-server-mode-hook #'gnus-agent-mode))
 
 (defun gnus-agent-create-buffer ()
   (if (gnus-buffer-live-p gnus-agent-overview-buffer)
@@ -701,7 +701,7 @@ be a select method."
     (message-narrow-to-headers)
     (let* ((gcc (mail-fetch-field "gcc" nil t))
 	   (methods (and gcc
-			 (mapcar 'gnus-inews-group-method
+			 (mapcar #'gnus-inews-group-method
 				 (message-unquote-tokens
 				  (message-tokenize-header
 				   gcc " ,")))))
@@ -1057,7 +1057,8 @@ article's mark is toggled."
       (let* ((alist (gnus-agent-load-alist gnus-newsgroup-name))
              (headers (sort (mapcar (lambda (h)
                                       (mail-header-number h))
-                                    gnus-newsgroup-headers) '<))
+                                    gnus-newsgroup-headers)
+                            #'<))
              (cached (and gnus-use-cache gnus-newsgroup-cached))
              (undownloaded (list nil))
              (tail-undownloaded undownloaded)
@@ -1128,7 +1129,7 @@ downloadable."
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
           (let* ((dl gnus-newsgroup-downloadable)
-		 (processable (sort (copy-tree gnus-newsgroup-processable) '<))
+		 (processable (sort (copy-tree gnus-newsgroup-processable) #'<))
                  (gnus-newsgroup-downloadable processable))
 	    (gnus-agent-summary-fetch-group)
 
@@ -1820,7 +1821,7 @@ article numbers will be returned."
       (dolist (arts (gnus-info-marks (gnus-get-info group)))
         (unless (memq (car arts) '(seen recent killed cache))
           (setq articles (gnus-range-add articles (cdr arts)))))
-      (setq articles (sort (gnus-uncompress-sequence articles) '<)))
+      (setq articles (sort (gnus-uncompress-sequence articles) #'<)))
 
     ;; At this point, I have the list of articles to consider for
     ;; fetching.  This is the list that I'll return to my caller. Some
@@ -2066,7 +2067,7 @@ doesn't exist, to valid the overview buffer."
 			alist (cdr alist))
 		  (while sequence
 		    (push (cons (pop sequence) state) uncomp)))
-		(setq alist (sort uncomp 'car-less-than-car)))
+		(setq alist (sort uncomp #'car-less-than-car)))
 	      (setq changed-version (not (= 2 gnus-agent-article-alist-save-format)))))
 	    (when changed-version
 	      (let ((gnus-agent-article-alist alist))
@@ -2408,13 +2409,13 @@ modified) original contents, they are first saved to their own file."
                 (setq marked-articles (nconc (gnus-uncompress-range arts)
                                              marked-articles))
                 ))))
-        (setq marked-articles (sort marked-articles '<))
+        (setq marked-articles (sort marked-articles #'<))
 
         ;; Fetch any new articles from the server
         (setq articles (gnus-agent-fetch-headers group))
 
         ;; Merge new articles with marked
-        (setq articles (sort (append marked-articles articles) '<))
+        (setq articles (sort (append marked-articles articles) #'<))
 
         (when articles
           ;; Parse them and see which articles we want to fetch.
@@ -3127,7 +3128,7 @@ FORCE is equivalent to setting the expiration predicates to true."
 		       (gnus-uncompress-range
 			(cons (caar alist)
 			      (caar (last alist))))
-		       (sort articles '<)))))
+		       (sort articles #'<)))))
 	      (marked ;; More articles that are excluded from the
 	       ;; expiration process
 	       (cond (gnus-agent-expire-all
@@ -3859,7 +3860,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 							  (string-to-number name)))
 						   (directory-files
                                                     dir nil "\\`[0-9]+\\'" t)))
-				 '>)
+				 #'>)
 			 (progn (gnus-make-directory dir) nil)))
            nov-arts
 	   alist header
@@ -4163,7 +4164,7 @@ modified."
 	   (path (gnus-agent-group-pathname group))
 	   (entry (gethash path gnus-agent-total-fetched-hashtb)))
       (if entry
-	  (apply '+ entry)
+	  (apply #'+ entry)
 	(let ((gnus-agent-inhibit-update-total-fetched-for (not no-inhibit)))
 	  (+
 	   (gnus-agent-update-view-total-fetched-for  group nil method path)

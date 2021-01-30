@@ -179,7 +179,7 @@ Whether the passphrase is cached at all is controlled by
 		(and from (smime-get-key-by-email from)))
 	      (smime-get-key-by-email
 	       (gnus-completing-read "Sign this part with what signature"
-                                     (mapcar 'car smime-keys) nil nil nil
+                                     (mapcar #'car smime-keys) nil nil nil
                                      (and (listp (car-safe smime-keys))
                                           (caar smime-keys))))))))
 
@@ -287,7 +287,7 @@ Whether the passphrase is cached at all is controlled by
 					 (point-min) (point))
 					addresses)))
 	      (delete-region (point-min) (point)))
-	    (setq addresses (mapcar 'downcase addresses))))
+	    (setq addresses (mapcar #'downcase addresses))))
 	(if (not (member (downcase (or (mm-handle-multipart-from ctl) ""))
 			 addresses))
 	    (mm-sec-error 'gnus-info "Sender address forged")
@@ -299,7 +299,7 @@ Whether the passphrase is cached at all is controlled by
 	 (concat "Sender claimed to be: " (mm-handle-multipart-from ctl) "\n"
 		 (if addresses
 		     (concat "Addresses in certificate: "
-			     (mapconcat 'identity addresses ", "))
+			     (mapconcat #'identity addresses ", "))
 		   "No addresses found in certificate. (Requires OpenSSL 0.9.6 or later.)")
 		 "\n" "\n"
 		 "OpenSSL output:\n"

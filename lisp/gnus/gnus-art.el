@@ -1623,7 +1623,7 @@ It is a string, such as \"PGP\".  If nil, ask user."
   :group 'gnus-article
   :type 'boolean)
 
-(defcustom gnus-blocked-images 'gnus-block-private-groups
+(defcustom gnus-blocked-images #'gnus-block-private-groups
   "Images that have URLs matching this regexp will be blocked.
 Note that the main reason external images are included in HTML
 emails (these days) is to allow tracking whether you've read the
@@ -2987,7 +2987,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 	     (when tmp-file
 	       (add-to-list 'gnus-article-browse-html-temp-list tmp-file))
 	     (add-hook 'gnus-summary-prepare-exit-hook
-		       'gnus-article-browse-delete-temp-files)
+		       #'gnus-article-browse-delete-temp-files)
 	     (add-hook 'gnus-exit-gnus-hook
 		       (lambda  ()
 			 (gnus-article-browse-delete-temp-files t)))

@@ -279,7 +279,7 @@ So the cdr of each bookmark is an alist too.")
   (gnus-bookmark-maybe-load-default-file)
   (let* ((bookmark (or bmk-name
                        (gnus-completing-read "Jump to bookmarked article"
-                                             (mapcar 'car gnus-bookmark-alist))))
+                                             (mapcar #'car gnus-bookmark-alist))))
 	 (bmk-record (cadr (assoc bookmark gnus-bookmark-alist)))
 	 (group (cdr (assoc 'group bmk-record)))
 	 (message-id (cdr (assoc 'message-id bmk-record))))

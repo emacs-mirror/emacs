@@ -196,13 +196,13 @@ Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
 			(concat
 			 "\\("
 			 (mapconcat
-			  'identity
+			  #'identity
 			  (append
 			   (and to-address (list (regexp-quote to-address)))
 			   (and to-list (list (regexp-quote to-list)))
 			   (and extra-aliases
 				(if (listp extra-aliases)
-				    (mapcar 'regexp-quote extra-aliases)
+				    (mapcar #'regexp-quote extra-aliases)
 				  (list extra-aliases)))
 			   (and split-regexp (list split-regexp)))
 			  "\\|")

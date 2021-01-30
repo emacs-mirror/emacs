@@ -274,13 +274,13 @@ This is only used if `mm-inline-large-images' is set to
       (write-region (point-min) (point-max) file nil 'silent))
     (delete-region (point-min) (point-max))
     (unwind-protect
-	(apply 'call-process cmd nil t nil (mapcar 'eval args))
+	(apply #'call-process cmd nil t nil (mapcar (lambda (e) (eval e t)) args))
       (delete-file file))
     (and post-func (funcall post-func))))
 
 (defun mm-inline-wash-with-stdin (post-func cmd &rest args)
   (let ((coding-system-for-write 'binary))
-    (apply 'call-process-region (point-min) (point-max)
+    (apply #'call-process-region (point-min) (point-max)
 	   cmd t t nil args))
   (and post-func (funcall post-func)))
 
@@ -290,7 +290,7 @@ This is only used if `mm-inline-large-images' is set to
      handle
      (mm-with-unibyte-buffer
        (insert source)
-       (apply 'mm-inline-wash-with-file post-func cmd args)
+       (apply #'mm-inline-wash-with-file post-func cmd args)
        (buffer-string)))))
 
 (defun mm-inline-render-with-stdin (handle post-func cmd &rest args)
@@ -299,7 +299,7 @@ This is only used if `mm-inline-large-images' is set to
      handle
      (mm-with-unibyte-buffer
        (insert source)
-       (apply 'mm-inline-wash-with-stdin post-func cmd args)
+       (apply #'mm-inline-wash-with-stdin post-func cmd args)
        (buffer-string)))))
 
 (defun mm-inline-render-with-function (handle func &rest args)
@@ -317,7 +317,7 @@ This is only used if `mm-inline-large-images' is set to
 
 (defun mm-inline-text-html (handle)
   (if (stringp (car handle))
-      (mapcar 'mm-inline-text-html (cdr handle))
+      (mapcar #'mm-inline-text-html (cdr handle))
     (let* ((func mm-text-html-renderer)
 	   (entry (assq func mm-text-html-renderer-alist))
 	   (inhibit-read-only t))

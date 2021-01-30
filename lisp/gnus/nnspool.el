@@ -261,7 +261,7 @@ there.")
 	;; Yes, completely empty spool directories *are* possible.
 	;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>
 	(when (setq dir (directory-files pathname nil "\\`[0-9]+\\'" t))
-	  (setq dir (sort (mapcar 'string-to-number dir) '<)))
+	  (setq dir (sort (mapcar #'string-to-number dir) #'<)))
 	(if dir
 	    (nnheader-insert
 	     "211 %d %d %d %s\n" (length dir) (car dir)
@@ -331,7 +331,7 @@ there.")
 	   (buf (current-buffer))
 	   (proc
 	    (condition-case err
-		(apply 'start-process "*nnspool inews*" inews-buffer
+		(apply #'start-process "*nnspool inews*" inews-buffer
 		       nnspool-inews-program nnspool-inews-switches)
 	      (error
 	       (nnheader-report 'nnspool "inews error: %S" err)))))
@@ -409,7 +409,7 @@ there.")
 				(<= last (car arts)))
 		      (pop arts))
 		    ;; The articles in `arts' are missing from the buffer.
-		    (mapc 'nnspool-insert-nov-head arts)
+		    (mapc #'nnspool-insert-nov-head arts)
 		    t))))))))))
 
 (defun nnspool-insert-nov-head (article)

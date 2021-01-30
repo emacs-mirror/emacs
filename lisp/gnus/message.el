@@ -2195,10 +2195,11 @@ see `message-narrow-to-headers-or-head'."
   (require 'gnus-sum)			; for gnus-list-identifiers
   (let ((regexp (if (stringp gnus-list-identifiers)
 		    gnus-list-identifiers
-		  (mapconcat 'identity gnus-list-identifiers " *\\|"))))
+		  (mapconcat #'identity gnus-list-identifiers " *\\|"))))
     (if (and (not (equal regexp ""))
              (string-match (concat "\\(\\(\\(Re: +\\)?\\(" regexp
-                                   " *\\)\\)+\\(Re: +\\)?\\)") subject))
+                                   " *\\)\\)+\\(Re: +\\)?\\)")
+                           subject))
 	(concat (substring subject 0 (match-beginning 1))
 		(or (match-string 3 subject)
 		    (match-string 5 subject))
@@ -3173,7 +3174,7 @@ Like `text-mode', but with these additional commands:
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."
-  (setq-local fill-paragraph-function 'message-fill-paragraph)
+  (setq-local fill-paragraph-function #'message-fill-paragraph)
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (let ((quote-prefix-regexp
 	 ;; User should change message-cite-prefix-regexp if
@@ -3197,7 +3198,7 @@ Like `text-mode', but with these additional commands:
                 (concat quote-prefix-regexp "\\|"
                         adaptive-fill-first-line-regexp)))
   (setq-local auto-fill-inhibit-regexp nil)
-  (setq-local normal-auto-fill-function 'message-do-auto-fill))
+  (setq-local normal-auto-fill-function #'message-do-auto-fill))
 
 
 
@@ -4064,7 +4065,7 @@ This function uses `mail-citation-hook' if that is non-nil."
 	    ;; Insert a blank line if it is peeled off.
 	    (insert "\n"))))
       (goto-char start)
-      (mapc 'funcall functions)
+      (mapc #'funcall functions)
       (when message-citation-line-function
 	(unless (bolp)
 	  (insert "\n"))
@@ -4555,7 +4556,7 @@ An address might be bogus if there's a matching entry in
 		      (and message-bogus-addresses
 			   (let ((re
 				  (if (listp message-bogus-addresses)
-				      (mapconcat 'identity
+				      (mapconcat #'identity
 						 message-bogus-addresses
 						 "\\|")
 				    message-bogus-addresses)))
@@ -4950,7 +4951,7 @@ that instead."
 	  (let* ((default-directory "/")
 		 (coding-system-for-write message-send-coding-system)
 		 (cpr (apply
-		       'call-process-region
+		       #'call-process-region
 		       (append
 			(list (point-min) (point-max) sendmail-program
 			      nil errbuf nil "-oi")
@@ -5002,7 +5003,7 @@ to find out how to use this."
   (pcase
       (let ((coding-system-for-write message-send-coding-system))
 	(apply
-	 'call-process-region (point-min) (point-max)
+	 #'call-process-region (point-min) (point-max)
 	 message-qmail-inject-program nil nil nil
 	 ;; qmail-inject's default behavior is to look for addresses on the
 	 ;; command line; if there're none, it scans the headers.
@@ -5394,7 +5395,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 	   "Really use %s possibly unknown group%s: %s? "
 	   (if (= (length errors) 1) "this" "these")
 	   (if (= (length errors) 1) "" "s")
-	   (mapconcat 'identity errors ", "))))
+	   (mapconcat #'identity errors ", "))))
 	;; There were no errors.
 	((not errors)
 	 t)
@@ -6061,7 +6062,7 @@ subscribed address (and not the additional To and Cc header contents)."
 	 (cc (message-fetch-field "cc"))
 	 (msg-recipients (concat to (and to cc ", ") cc))
 	 (recipients
-	  (mapcar 'mail-strip-quoted-names
+	  (mapcar #'mail-strip-quoted-names
 		  (message-tokenize-header msg-recipients)))
 	 (file-regexps
 	  (if message-subscribed-address-file
@@ -6078,11 +6079,11 @@ subscribed address (and not the additional To and Cc header contents)."
 		      (if re (setq re (concat re "\\|" item))
 			(setq re (concat "\\`\\(" item))))
 		    (and re (list (concat re "\\)\\'"))))))))
-	 (mft-regexps (apply 'append message-subscribed-regexps
-			     (mapcar 'regexp-quote
+	 (mft-regexps (apply #'append message-subscribed-regexps
+			     (mapcar #'regexp-quote
 				     message-subscribed-addresses)
 			     file-regexps
-			     (mapcar 'funcall
+			     (mapcar #'funcall
 				     message-subscribed-address-functions))))
     (save-match-data
       (let ((list
@@ -6103,7 +6104,7 @@ subscribed address (and not the additional To and Cc header contents)."
       (dolist (rhs
 	       (delete-dups
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
-			(mapcar 'downcase
+			(mapcar #'downcase
 				(mapcar
 				 (lambda (elem)
 				   (or (cadr elem)
@@ -6569,7 +6570,7 @@ moved to the beginning "
 	     (if to
 		 (concat " to "
 			 (or (car (mail-extract-address-components to))
-			     to) "")
+			     to))
 	       "")
 	     (if (and group (not (string= group ""))) (concat " on " group) "")
 	     "*")))
@@ -6583,7 +6584,7 @@ moved to the beginning "
 	     (if to
 		 (concat " to "
 			 (or (car (mail-extract-address-components to))
-			     to) "")
+			     to))
 	       "")
 	     (if (and group (not (string= group ""))) (concat " on " group) "")
 	     "*")))
@@ -6612,7 +6613,7 @@ moved to the beginning "
 			(cons (string-to-number (or (match-string 1 b) "1"))
 			      b)))
 		    (buffer-list)))
-	     'car-less-than-car)))
+	     #'car-less-than-car)))
 	  new)))))
 
 (defun message-pop-to-buffer (name &optional switch-function)
@@ -6968,8 +6969,8 @@ The function is called with one parameter, a cons cell ..."
 			(message-fetch-field "original-to")))
 	    cc (message-fetch-field "cc")
 	    extra (when message-extra-wide-headers
-		    (mapconcat 'identity
-			       (mapcar 'message-fetch-field
+		    (mapconcat #'identity
+			       (mapcar #'message-fetch-field
 				       message-extra-wide-headers)
 			       ", "))
 	    mct (message-fetch-field "mail-copies-to")
@@ -7053,7 +7054,7 @@ want to get rid of this query permanently.")))
       (setq recipients
             (cond ((functionp message-dont-reply-to-names)
                    (mapconcat
-                    'identity
+                    #'identity
                     (delq nil
                           (mapcar (lambda (mail)
                                     (unless (funcall message-dont-reply-to-names
@@ -7087,7 +7088,7 @@ want to get rid of this query permanently.")))
       ;; Remove hierarchical lists that are contained within each other,
       ;; if message-hierarchical-addresses is defined.
       (when message-hierarchical-addresses
-	(let ((plain-addrs (mapcar 'car recipients))
+	(let ((plain-addrs (mapcar #'car recipients))
 	      subaddrs recip)
 	  (while plain-addrs
 	    (setq subaddrs (assoc (car plain-addrs)
@@ -8366,7 +8367,7 @@ The following arguments may contain lists of values."
         (with-output-to-temp-buffer " *MESSAGE information message*"
           (with-current-buffer " *MESSAGE information message*"
 	    (fundamental-mode)
-	    (mapc 'princ text)
+	    (mapc #'princ text)
 	    (goto-char (point-min))))
 	(funcall ask question))
     (funcall ask question)))

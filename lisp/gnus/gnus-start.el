@@ -259,7 +259,7 @@ not match this regexp will be removed before saving the list."
 		regexp))
 
 (defcustom gnus-ignored-newsgroups
-  (mapconcat 'identity
+  (mapconcat #'identity
 	     '("^to\\."			; not "real" groups
 	       "^[0-9. \t]+\\( \\|$\\)"	; all digits in name
 	       "^[\"][\"#'()]"	; bogus characters
@@ -518,7 +518,7 @@ Can be used to turn version control on or off."
 ;; For subscribing new newsgroup
 
 (defun gnus-subscribe-hierarchical-interactive (groups)
-  (let ((groups (sort groups 'string<))
+  (let ((groups (sort groups #'string<))
 	prefixes prefix start ans group starts)
     (while groups
       (setq prefixes (list "^"))
@@ -3162,7 +3162,7 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
   "Declare back end NAME with ABILITIES as a Gnus back end."
   (setq gnus-valid-select-methods
 	(nconc gnus-valid-select-methods
-	       (list (apply 'list name abilities))))
+	       (list (apply #'list name abilities))))
   (gnus-redefine-select-method-widget))
 
 (defun gnus-set-default-directory ()

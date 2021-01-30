@@ -427,9 +427,9 @@ from the document.")
 	  (setq result nil))))
     (unless (or result results)
       (error "Document is not of any recognized type"))
-    (if result
-	(car entry)
-      (cadar (last (sort results 'car-less-than-car))))))
+    (car (if result
+	     entry
+	   (cdar (last (sort results #'car-less-than-car)))))))
 
 ;;;
 ;;; Built-in type predicates and functions

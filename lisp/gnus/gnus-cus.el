@@ -417,7 +417,7 @@ category."))
 	  (setq tmp (cdr tmp))))
 
       (setq gnus-custom-params
-            (apply 'widget-create 'group
+            (apply #'widget-create 'group
                    :value values
                    (delq nil
                          (list `(set :inline t

@@ -1361,7 +1361,7 @@ if it is a string, only list groups matching REGEXP."
 	      (and (>= level gnus-level-zombie)
 		   (<= lowest gnus-level-zombie)))
       (gnus-group-prepare-flat-list-dead
-       (setq gnus-zombie-list (sort gnus-zombie-list 'string<))
+       (setq gnus-zombie-list (sort gnus-zombie-list #'string<))
        gnus-level-zombie ?Z
        regexp))
     (when not-in-list
@@ -1372,7 +1372,7 @@ if it is a string, only list groups matching REGEXP."
       (gnus-group-prepare-flat-list-dead
        (cl-union
 	not-in-list
-	(setq gnus-killed-list (sort gnus-killed-list 'string<))
+	(setq gnus-killed-list (sort gnus-killed-list #'string<))
 	:test 'equal)
        gnus-level-killed ?K regexp))
 
@@ -1608,7 +1608,7 @@ Some value are bound so the form can use them."
 	     (cons 'unread (if (numberp (car entry)) (car entry) 0))
 	     (cons 'total (if active (1+ (- (cdr active) (car active))) 0))
 	     (cons 'mailp (apply
-			   'append
+			   #'append
 			   (mapcar
 			    (lambda (x)
 			      (memq x (assoc
@@ -1883,7 +1883,7 @@ If FIRST-TOO, the current line is also eligible as a target."
   "Unmark all groups."
   (interactive)
   (save-excursion
-    (mapc 'gnus-group-remove-mark gnus-group-marked))
+    (mapc #'gnus-group-remove-mark gnus-group-marked))
   (gnus-group-position-point))
 
 (defun gnus-group-mark-region (unmark beg end)
@@ -2985,7 +2985,7 @@ and NEW-NAME will be prompted for."
   "Create one of the groups described in `gnus-useful-groups'."
   (interactive
    (let ((entry (assoc (gnus-completing-read "Create group"
-                                             (mapcar 'car gnus-useful-groups)
+                                             (mapcar #'car gnus-useful-groups)
                                              t)
 		       gnus-useful-groups)))
      (list (cadr entry)
@@ -3118,7 +3118,7 @@ If there is, use Gnus to create an nnrss group"
 		       (read-from-minibuffer "Title: "
 					     (gnus-newsgroup-savable-name
 					      (mapconcat
-					       'identity
+					       #'identity
 					       (split-string
 						(or (cdr (assoc 'title
 								feedinfo))
@@ -3126,7 +3126,7 @@ If there is, use Gnus to create an nnrss group"
 					       " ")))))
 	       (desc  (read-from-minibuffer "Description: "
 					    (mapconcat
-					     'identity
+					     #'identity
 					     (split-string
 					      (or (cdr (assoc 'description
 							      feedinfo))
@@ -4268,7 +4268,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	(pop-to-buffer "*Gnus Help*")
 	(buffer-disable-undo)
 	(erase-buffer)
-	(setq groups (sort groups 'string<))
+	(setq groups (sort groups #'string<))
 	(while groups
 	  ;; Groups may be entered twice into the list of groups.
 	  (when (not (string= (car groups) prev))
@@ -4494,7 +4494,7 @@ and the second element is the address."
   (interactive
    (list (let ((how (gnus-completing-read
 		     "Which back end"
-		     (mapcar 'car (append gnus-valid-select-methods
+		     (mapcar #'car (append gnus-valid-select-methods
 					  gnus-server-alist))
 		     t (cons "nntp" 0) 'gnus-method-history)))
 	   ;; We either got a back end name or a virtual server name.
@@ -4616,7 +4616,9 @@ and the second element is the address."
 	      (setcdr m (gnus-compress-sequence articles t)))
 	  (setcdr m (gnus-compress-sequence
 		     (sort (nconc (gnus-uncompress-range (cdr m))
-				  (copy-sequence articles)) '<) t))))))
+				  (copy-sequence articles))
+			   #'<)
+		     t))))))
 
 (declare-function gnus-summary-add-mark "gnus-sum" (article type))
 
@@ -4684,7 +4686,7 @@ This command may read the active file."
 		   ;; Cache active file might use "."
 		   ;; instead of ":".
 		   (gethash
-		    (mapconcat 'identity
+		    (mapconcat #'identity
 			       (split-string group ":")
 			       ".")
 		    gnus-cache-active-hashtb))))
@@ -4808,7 +4810,7 @@ you the groups that have both dormant articles and cached articles."
 		  (push n gnus-newsgroup-unselected))
 		(setq n (1+ n)))
 	      (setq gnus-newsgroup-unselected
-		    (sort gnus-newsgroup-unselected '<)))))
+		    (sort gnus-newsgroup-unselected #'<)))))
       (gnus-activate-group group)
       (gnus-group-make-articles-read group (list article))
       (when (and (gnus-group-auto-expirable-p group)

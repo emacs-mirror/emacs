@@ -532,8 +532,8 @@ all.  This may very well take some time.")
       (nndiary-possibly-change-directory group server)
       (let ((articles (nnheader-directory-articles nndiary-current-directory)))
 	(when articles
-	  (setcar active (apply 'min articles))
-	  (setcdr active (apply 'max articles))))
+	  (setcar active (apply #'min articles))
+	  (setcdr active (apply #'max articles))))
       (nnmail-save-active nndiary-group-alist nndiary-active-file)
       (run-hook-with-args 'nndiary-request-create-group-functions
 			  (gnus-group-prefixed-name group
@@ -589,7 +589,7 @@ all.  This may very well take some time.")
     (let ((active (nth 1 (assoc group nndiary-group-alist))))
       (when active
 	(setcar active (or (and active-articles
-				(apply 'min active-articles))
+				(apply #'min active-articles))
 			   (1+ (cdr active)))))
       (nnmail-save-active nndiary-group-alist nndiary-active-file))
     (nndiary-save-nov)
@@ -960,7 +960,7 @@ all.  This may very well take some time.")
 	(setq nndiary-article-file-alist
 	      (sort
 	       (nnheader-article-to-file-alist nndiary-current-directory)
-	       'car-less-than-car)))
+	       #'car-less-than-car)))
       (setq active
 	    (if nndiary-article-file-alist
 		(cons (caar nndiary-article-file-alist)
@@ -1055,7 +1055,7 @@ all.  This may very well take some time.")
 	  (nndiary-generate-nov-databases-1 dir seen))))
     ;; Do this directory.
     (let ((nndiary-files (sort (nnheader-article-to-file-alist dir)
-		       'car-less-than-car)))
+		       #'car-less-than-car)))
       (if (not nndiary-files)
 	  (let* ((group (nnheader-file-to-group
 			 (directory-file-name dir) nndiary-directory))
@@ -1245,7 +1245,7 @@ all.  This may very well take some time.")
 
 (defun nndiary-unflatten (spec)
   ;; opposite of flatten: build ranges if possible
-  (setq spec (sort spec '<))
+  (setq spec (sort spec #'<))
   (let (min max res)
     (while (setq min (pop spec))
       (setq max min)
@@ -1300,7 +1300,7 @@ all.  This may very well take some time.")
 	       (apply #'encode-time 0 0 0 1 1 (nthcdr 5 date-elts))
 	       (* (car reminder) 400861056))))
        res))
-    (sort res 'time-less-p)))
+    (sort res #'time-less-p)))
 
 (defun nndiary-last-occurrence (sched)
   ;; Returns the last occurrence of schedule SCHED as an Emacs time struct, or
@@ -1318,8 +1318,8 @@ all.  This may very well take some time.")
       ;; bored in finding a good algorithm for doing that ;-)
       ;; ### FIXME: remove identical entries.
       (let ((dom-list (nth 2 sched))
-	    (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) '>))
-	    (year-list (sort (nndiary-flatten (nth 4 sched) 1971) '>))
+	    (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) #'>))
+	    (year-list (sort (nndiary-flatten (nth 4 sched) 1971) #'>))
 	    (dow-list (nth 5 sched)))
 	;; Special case: an asterisk in one of the days specifications means
 	;; that only the other should be taken into account. If both are
@@ -1370,7 +1370,7 @@ all.  This may very well take some time.")
 		       (setq day (+ 7 day))))
 		   ;; Finally, if we have some days, they are valid
 		   (when days
-		     (sort days '>)
+		     (sort days #'>)
 		     (throw 'found
 			    (encode-time 0 minute hour
 					 (car days) month year time-zone)))
@@ -1396,12 +1396,12 @@ all.  This may very well take some time.")
 	 (this-day (decoded-time-day today))
 	 (this-month (decoded-time-month today))
 	 (this-year (decoded-time-year today))
-	 (minute-list (sort (nndiary-flatten (nth 0 sched) 0 59) '<))
-	 (hour-list (sort (nndiary-flatten (nth 1 sched) 0 23) '<))
+	 (minute-list (sort (nndiary-flatten (nth 0 sched) 0 59) #'<))
+	 (hour-list (sort (nndiary-flatten (nth 1 sched) 0 23) #'<))
 	 (dom-list (nth 2 sched))
-	 (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) '<))
+	 (month-list (sort (nndiary-flatten (nth 3 sched) 1 12) #'<))
 	 (years (if (nth 4 sched)
-		    (sort (nndiary-flatten (nth 4 sched) 1971) '<)
+		    (sort (nndiary-flatten (nth 4 sched) 1971) #'<)
 		  t))
 	 (dow-list (nth 5 sched))
 	 (year (1- this-year))
@@ -1474,7 +1474,7 @@ all.  This may very well take some time.")
 		   ;; Aaaaaaall right. Now we have a valid list of DAYS for
 		   ;; this month and this year.
 		   (when days
-		     (setq days (sort days '<))
+		     (setq days (sort days #'<))
 		     ;; Remove past days for this year and this month.
 		     (and (= year this-year)
 			  (= month this-month)

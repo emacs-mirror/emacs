@@ -380,7 +380,7 @@ like \"&#128;\" to the euro sign, mainly in html messages."
   "Return the MIME charset corresponding to the given Mule CHARSET."
   (let ((css (sort (sort-coding-systems
 		    (find-coding-systems-for-charsets (list charset)))
-		   'mm-sort-coding-systems-predicate))
+		   #'mm-sort-coding-systems-predicate))
 	cs mime)
     (while (and (not mime)
 		css)
@@ -501,7 +501,7 @@ charset, and a longer list means no appropriate charset."
 	     (let ((systems (find-coding-systems-region b e)))
 	       (when mm-coding-system-priorities
 		 (setq systems
-		       (sort systems 'mm-sort-coding-systems-predicate)))
+		       (sort systems #'mm-sort-coding-systems-predicate)))
 	       (setq systems (delq 'compound-text systems))
 	       (unless (equal systems '(undecided))
 		 (while systems
@@ -751,7 +751,7 @@ decompressed data.  The buffer's multibyteness must be turned off."
 	    (insert-buffer-substring cur)
 	    (condition-case err
 		(progn
-		  (unless (memq (apply 'call-process-region
+		  (unless (memq (apply #'call-process-region
 				       (point-min) (point-max)
 				       prog t (list t err-file) nil args)
 				jka-compr-acceptable-retval-list)

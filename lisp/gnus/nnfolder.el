@@ -145,7 +145,7 @@ all.  This may very well take some time.")
 	      'nov
 	    (setq articles (gnus-sorted-intersection
 			    ;; Is ARTICLES sorted?
-			    (sort articles '<)
+			    (sort articles #'<)
 			    (nnfolder-existing-articles)))
 	    (while (setq article (pop articles))
 	      (set-buffer nnfolder-current-buffer)

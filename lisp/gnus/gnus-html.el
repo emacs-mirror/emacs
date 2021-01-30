@@ -329,10 +329,10 @@ Use ALT-TEXT for the image string."
       (replace-match "" t t))
     (mm-url-decode-entities)))
 
-(defun gnus-html-insert-image (&rest args)
+(defun gnus-html-insert-image (&rest _args)
   "Fetch and insert the image under point."
   (interactive)
-  (apply 'gnus-html-display-image (get-text-property (point) 'gnus-image)))
+  (apply #'gnus-html-display-image (get-text-property (point) 'gnus-image)))
 
 (defun gnus-html-show-alt-text ()
   "Show the ALT text of the image under point."

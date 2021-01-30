@@ -581,7 +581,7 @@ The following commands are available:
 (defun gnus-server-add-server (how where)
   (interactive
    (list (intern (gnus-completing-read "Server method"
-                                       (mapcar 'car gnus-valid-select-methods)
+                                       (mapcar #'car gnus-valid-select-methods)
                                        t))
 	 (read-string "Server name: ")))
   (when (assq where gnus-server-alist)
@@ -592,7 +592,8 @@ The following commands are available:
 (defun gnus-server-goto-server (server)
   "Jump to a server line."
   (interactive
-   (list (gnus-completing-read "Goto server" (mapcar 'car gnus-server-alist) t)))
+   (list (gnus-completing-read "Goto server"
+                               (mapcar #'car gnus-server-alist) t)))
   (let ((to (text-property-any (point-min) (point-max)
 			       'gnus-server (intern server))))
     (when to

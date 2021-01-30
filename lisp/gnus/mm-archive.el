@@ -54,10 +54,10 @@
 		  (write-region (point-min) (point-max) file nil 'silent)
 		  (setq decoder (copy-sequence decoder))
 		  (setcar (member "%f" decoder) file)
-		  (apply 'call-process (car decoder) nil nil nil
+		  (apply #'call-process (car decoder) nil nil nil
 			 (append (cdr decoder) (list dir)))
 		  (delete-file file))
-	      (apply 'call-process-region (point-min) (point-max) (car decoder)
+	      (apply #'call-process-region (point-min) (point-max) (car decoder)
 		     nil (gnus-get-buffer-create "*tnef*")
 		     nil (append (cdr decoder) (list dir)))))
 	  `("multipart/mixed"

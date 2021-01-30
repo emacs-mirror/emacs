@@ -282,7 +282,7 @@ key and certificate itself."
 	(setenv "GNUS_SMIME_PASSPHRASE" passphrase))
     (prog1
 	(when (prog1
-		  (apply 'smime-call-openssl-region b e (list buffer tmpfile)
+		  (apply #'smime-call-openssl-region b e (list buffer tmpfile)
 			 "smime" "-sign" "-signer" (expand-file-name keyfile)
 			 (append
 			  (smime-make-certfiles certfiles)
@@ -314,9 +314,9 @@ is expected to contain of a PEM encoded certificate."
 	(tmpfile (make-temp-file "smime")))
     (prog1
 	(when (prog1
-		  (apply 'smime-call-openssl-region b e (list buffer tmpfile)
+		  (apply #'smime-call-openssl-region b e (list buffer tmpfile)
 			 "smime" "-encrypt" smime-encrypt-cipher
-			 (mapcar 'expand-file-name certfiles))
+			 (mapcar #'expand-file-name certfiles))
 		(with-current-buffer smime-details-buffer
 		  (insert-file-contents tmpfile)
 		  (delete-file tmpfile)))
@@ -384,7 +384,7 @@ Any details (stdout and stderr) are left in the buffer specified by
     (with-temp-buffer
       (let ((result-buffer (current-buffer)))
 	(with-current-buffer input-buffer
-	  (if (apply 'smime-call-openssl-region b e (list result-buffer
+	  (if (apply #'smime-call-openssl-region b e (list result-buffer
 							  smime-details-buffer)
 		     "smime" "-verify" "-out" "-" CAs)
 	      (with-current-buffer result-buffer
@@ -397,7 +397,7 @@ Returns non-nil on success.
 Any details (stdout and stderr) are left in the buffer specified by
 `smime-details-buffer'."
   (smime-new-details-buffer)
-  (if (apply 'smime-call-openssl-region b e (list smime-details-buffer t)
+  (if (apply #'smime-call-openssl-region b e (list smime-details-buffer t)
 	     "smime" "-verify" "-noverify" "-out" `(,null-device))
       t
     (insert-buffer-substring smime-details-buffer)
@@ -416,7 +416,7 @@ in the buffer specified by `smime-details-buffer'."
     (if passphrase
 	(setenv "GNUS_SMIME_PASSPHRASE" passphrase))
     (if (prog1
-	    (apply 'smime-call-openssl-region b e
+	    (apply #'smime-call-openssl-region b e
 		   (list buffer tmpfile)
 		   "smime" "-decrypt" "-recip" (expand-file-name keyfile)
 		   (if passphrase

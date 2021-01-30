@@ -204,8 +204,8 @@ are generated if and only if they are also in `message-draft-headers'."
     (setq buffer-file-name (expand-file-name file)
 	  buffer-auto-save-file-name (make-auto-save-file-name))
     (clear-visited-file-modtime)
-    (add-hook 'write-contents-functions 'nndraft-generate-headers nil t)
-    (add-hook 'after-save-hook 'nndraft-update-unread-articles nil t)
+    (add-hook 'write-contents-functions #'nndraft-generate-headers nil t)
+    (add-hook 'after-save-hook #'nndraft-update-unread-articles nil t)
     (message-add-action '(nndraft-update-unread-articles)
 			'exit 'postpone 'kill)
     article))
@@ -316,7 +316,7 @@ are generated if and only if they are also in `message-draft-headers'."
 	  (nnheader-concat nndraft-directory group))))
 
 (defun nndraft-article-filename (article &rest args)
-  (apply 'concat
+  (apply #'concat
 	 (file-name-as-directory nndraft-current-directory)
 	 (int-to-string article)
 	 args))
@@ -334,9 +334,9 @@ are generated if and only if they are also in `message-draft-headers'."
   "Return the list of messages in the group."
   (gnus-make-directory nndraft-current-directory)
   (sort
-   (mapcar 'string-to-number
+   (mapcar #'string-to-number
 	   (directory-files nndraft-current-directory nil "\\`[0-9]+\\'" t))
-   '<))
+   #'<))
 
 (nnoo-import nndraft
   (nnmh

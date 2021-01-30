@@ -40,8 +40,8 @@
 
 (defvar gnus-current-window-configuration)
 
-(add-hook 'gnus-exit-gnus-hook 'mm-destroy-postponed-undisplay-list)
-(add-hook 'gnus-exit-gnus-hook 'mm-temp-files-delete)
+(add-hook 'gnus-exit-gnus-hook #'mm-destroy-postponed-undisplay-list)
+(add-hook 'gnus-exit-gnus-hook #'mm-temp-files-delete)
 
 (defgroup mime-display ()
   "Display of MIME in mail and news articles."
@@ -603,7 +603,7 @@ files left at the next time."
     (if fails
 	;; Schedule the deletion of the files left at the next time.
 	(with-file-modes #o600
-	  (write-region (concat (mapconcat 'identity (nreverse fails) "\n")
+	  (write-region (concat (mapconcat #'identity (nreverse fails) "\n")
 				"\n")
 			nil cache-file nil 'silent))
       (when (file-exists-p cache-file)
@@ -1081,7 +1081,8 @@ external if displayed external."
 	    (string= total "\"%s\""))
 	(setq uses-stdin nil)
 	(push (shell-quote-argument
-	       (gnus-map-function mm-path-name-rewrite-functions file)) out))
+	       (gnus-map-function mm-path-name-rewrite-functions file))
+	      out))
        ((string= total "%t")
 	(push (shell-quote-argument (car type-list)) out))
        (t
@@ -1092,7 +1093,7 @@ external if displayed external."
       (push (shell-quote-argument
 	     (gnus-map-function mm-path-name-rewrite-functions file))
 	    out))
-    (mapconcat 'identity (nreverse out) "")))
+    (mapconcat #'identity (nreverse out) "")))
 
 (defun mm-remove-parts (handles)
   "Remove the displayed MIME parts represented by HANDLES."

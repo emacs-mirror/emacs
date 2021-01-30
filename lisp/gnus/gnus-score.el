@@ -683,7 +683,7 @@ current score file."
 	  (and gnus-extra-headers
 	       (equal (nth 1 entry) "extra")
 	       (intern			; need symbol
-                (let ((collection (mapcar 'symbol-name gnus-extra-headers)))
+                (let ((collection (mapcar #'symbol-name gnus-extra-headers)))
                   (gnus-completing-read
                    "Score extra header"  ; prompt
                    collection            ; completion list
@@ -932,7 +932,7 @@ SCORE is the score to add.
 EXTRA is the possible non-standard header."
   (interactive (list (gnus-completing-read "Header"
                                            (mapcar
-                                            'car
+                                            #'car
                                             (seq-filter
                                              (lambda (x) (fboundp (nth 2 x)))
                                              gnus-header-index))
@@ -1258,8 +1258,8 @@ If FORMAT, also format the current score file."
       ;; We do not respect eval and files atoms from global score
       ;; files.
       (when (and files (not global))
-	(setq lists (apply 'append lists
-			   (mapcar 'gnus-score-load-file
+	(setq lists (apply #'append lists
+			   (mapcar #'gnus-score-load-file
 				   (if adapt-file (cons adapt-file files)
 				     files)))))
       (when (and eval (not global))
@@ -1268,7 +1268,7 @@ If FORMAT, also format the current score file."
       (setq gnus-scores-exclude-files
 	    (nconc
 	     (apply
-	      'nconc
+	      #'nconc
 	      (mapcar
 	       (lambda (sfile)
 		 (list
@@ -1554,10 +1554,10 @@ If FORMAT, also format the current score file."
 	      (setq entry (pop entries)
 		    header (nth 0 entry)
 		    gnus-score-index (nth 1 (assoc header gnus-header-index)))
-	      (when (< 0 (apply 'max (mapcar
-				      (lambda (score)
-					(length (gnus-score-get header score)))
-				      scores)))
+	      (when (< 0 (apply #'max (mapcar
+				       (lambda (score)
+					 (length (gnus-score-get header score)))
+				       scores)))
 		(when (if (and gnus-inhibit-slow-scoring
 			       (or (eq gnus-inhibit-slow-scoring t)
 				   (and (stringp gnus-inhibit-slow-scoring)
@@ -1574,9 +1574,9 @@ If FORMAT, also format the current score file."
 			;; Run score-fn
 			(if (eq header 'score-fn)
 			    (setq new (gnus-score-func scores trace))
-			;; Call the scoring function for this type of "header".
-			(setq new (funcall (nth 2 entry) scores header
-					   now expire trace))))
+			  ;; Call the scoring function for this type of "header".
+			  (setq new (funcall (nth 2 entry) scores header
+					     now expire trace))))
 		  (push new news))))
 
 	    (when (gnus-buffer-live-p gnus-summary-buffer)
@@ -1948,7 +1948,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	      gnus-newsgroup-name gnus-adaptive-file-suffix))))
 
       (setq gnus-scores-articles (sort gnus-scores-articles
-				       'gnus-score-string<)
+				       #'gnus-score-string<)
 	    articles gnus-scores-articles)
 
       (erase-buffer)
@@ -2077,7 +2077,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	  ;; We cannot string-sort the extra headers list.  *sigh*
 	  (if (= gnus-score-index 9)
 	      gnus-scores-articles
-	    (sort gnus-scores-articles 'gnus-score-string<))
+	    (sort gnus-scores-articles #'gnus-score-string<))
 	  articles gnus-scores-articles)
 
     (erase-buffer)
@@ -2550,11 +2550,11 @@ score in `gnus-newsgroup-scored' by SCORE."
 		   (abbreviate-file-name file))))
 	(insert
 	 (format "\nTotal score: %d"
-		 (apply '+ (mapcar
-			    (lambda (s)
-			      (or (caddr s)
-				  gnus-score-interactive-default-score))
-			    trace))))
+		 (apply #'+ (mapcar
+			     (lambda (s)
+			       (or (caddr s)
+				   gnus-score-interactive-default-score))
+			     trace))))
 	(insert
 	 "\n\nQuick help:
 
@@ -2872,7 +2872,7 @@ This includes the score file for the group and all its parents."
 	   (mapcar (lambda (group)
 		     (gnus-score-file-name group gnus-adaptive-file-suffix))
 		   (setq all (nreverse all)))
-	   (mapcar 'gnus-score-file-name all)))
+	   (mapcar #'gnus-score-file-name all)))
     (if (equal prefix "")
 	all
       (mapcar
@@ -2912,7 +2912,7 @@ Destroys the current buffer."
 	    (lambda (file)
 	      (cons (inline (gnus-score-file-rank file)) file))
 	    files)))
-      (mapcar 'cdr (sort alist 'car-less-than-car)))))
+      (mapcar #'cdr (sort alist #'car-less-than-car)))))
 
 (defun gnus-score-find-alist (group)
   "Return list of score files for GROUP.

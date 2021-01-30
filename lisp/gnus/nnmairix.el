@@ -193,8 +193,8 @@
   (define-key gnus-summary-mode-map
     (kbd "G G u") 'nnmairix-remove-tick-mark-original-article))
 
-(add-hook 'gnus-group-mode-hook 'nnmairix-group-mode-hook)
-(add-hook 'gnus-summary-mode-hook 'nnmairix-summary-mode-hook)
+(add-hook 'gnus-group-mode-hook #'nnmairix-group-mode-hook)
+(add-hook 'gnus-summary-mode-hook #'nnmairix-summary-mode-hook)
 
 ;; ;;;###autoload
 ;; (defun nnmairix-initialize (&optional force)
@@ -202,8 +202,8 @@
 ;;   (if (not (or (file-readable-p "~/.mairixrc")
 ;; 	       force))
 ;;       (message "No file `~/.mairixrc', skipping nnmairix setup")
-;;     (add-hook 'gnus-group-mode-hook 'nnmairix-group-mode-hook)
-;;     (add-hook 'gnus-summary-mode-hook 'nnmairix-summary-mode-hook)))
+;;     (add-hook 'gnus-group-mode-hook #'nnmairix-group-mode-hook)
+;;     (add-hook 'gnus-summary-mode-hook #'nnmairix-summary-mode-hook)))
 
 ;; Customizable stuff
 
@@ -783,7 +783,7 @@ called interactively, user will be asked for parameters."
 	(setq finished (not (y-or-n-p "Add another search query? "))
 	      achar nil))
     (nnmairix-search
-     (mapconcat 'identity query " ")
+     (mapconcat #'identity query " ")
      (car (nnmairix-get-server))
      (y-or-n-p "Include whole threads? "))))
 
@@ -824,7 +824,7 @@ called interactively, user will be asked for parameters."
     (setq group (read-string "Group name: "))
     (set-buffer gnus-summary-buffer)
     (message "Creating group %s on server %s with query %s." group
-	     (gnus-method-to-server server) (mapconcat 'identity query " "))
+	     (gnus-method-to-server server) (mapconcat #'identity query " "))
     (nnmairix-create-search-group server group query threads)))
 
 (defun nnmairix-create-server-and-default-group ()
@@ -866,7 +866,7 @@ All necessary information will be queried from the user."
     (if (eq (car method) 'nnmairix)
 	(progn
 	  (when (listp oldquery)
-	    (setq oldquery (mapconcat 'identity oldquery " ")))
+	    (setq oldquery (mapconcat #'identity oldquery " ")))
 	  (setq query (or query
 			  (read-string "New query: " oldquery)))
 	  (when (stringp query)
@@ -1068,7 +1068,7 @@ with `nnmairix-mairix-update-options'."
 	    (if (> (length commandsplit) 1)
 		(setq args (append args (cdr commandsplit) nnmairix-mairix-update-options))
 	      (setq args (append args nnmairix-mairix-update-options)))
-	    (apply 'call-process args)
+	    (apply #'call-process args)
 	    (nnheader-message 7 "Updating mairix database for %s... done" cur))
 	(progn
 	  (setq args (append (list cur (get-buffer nnmairix-mairix-output-buffer)
@@ -1076,7 +1076,7 @@ with `nnmairix-mairix-update-options'."
 	  (if (> (length commandsplit) 1)
 	      (setq args (append args (cdr commandsplit) nnmairix-mairix-update-options))
 	    (setq args (append args nnmairix-mairix-update-options)))
-	  (set-process-sentinel (apply 'start-process args)
+	  (set-process-sentinel (apply #'start-process args)
 				'nnmairix-sentinel-mairix-update-finished))))))
 
 (defun nnmairix-group-delete-recreate-this-group ()
@@ -1260,7 +1260,7 @@ If THREADS is non-nil, enable full threads."
 	(setq args (append args '("-c"))))
       (when threads
 	(setq args (append args '("-t"))))
-      (apply 'call-process
+      (apply #'call-process
 	     (append args (list "-o" folder) searchquery)))))
 
 (defun nnmairix-call-mairix-binary-raw (command query)
@@ -1272,7 +1272,7 @@ If THREADS is non-nil, enable full threads."
       (when (> (length command) 1)
         (setq args (append args (cdr command))))
       (setq args (append args '("-r")))
-      (apply 'call-process
+      (apply #'call-process
              (append args query)))))
 
 (defun nnmairix-get-server ()
@@ -1382,9 +1382,9 @@ This should correct problems of wrong article counts when using
 nnmairix with nnml backends."
   (let* ((files
 	 (sort
-	  (mapcar 'string-to-number
+	  (mapcar #'string-to-number
 		  (directory-files path nil "[0-9]+" t))
-	  '<))
+	  #'<))
 	 (lastplusone (car files))
 	 (path (file-name-as-directory path)))
     (dolist (cur files)
@@ -1774,7 +1774,7 @@ If VERSION is a string: must be contained in mairix version output."
 	      (let* ((commandsplit (split-string nnmairix-mairix-command))
 		     (args (append (list (car commandsplit))
 				   '(nil t nil) (cdr commandsplit) '("-V"))))
-	      (apply 'call-process args)
+	      (apply #'call-process args)
 	      (goto-char (point-min))
 	      (re-search-forward "mairix.*")
 	      (match-string 0))))
@@ -1920,7 +1920,7 @@ If WITHVALUES is t, query is based on current article."
       (when (not (zerop (length flag)))
 	(push (concat "F:" flag) query)))
     ;; return query string
-    (mapconcat 'identity query " ")))
+    (mapconcat #'identity query " ")))
 
 
 (defun nnmairix-widget-create-query (&optional values)
@@ -1997,7 +1997,7 @@ VALUES may contain values for editable fields from current article."
   "Add a widget NAME with optional ARGS."
   (push
    (list name
-	 (apply 'widget-create args))
+	 (apply #'widget-create args))
    nnmairix-widgets))
 
 (defun nnmairix-widget-toggle-activate (widget)

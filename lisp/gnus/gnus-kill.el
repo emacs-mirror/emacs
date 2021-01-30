@@ -641,7 +641,7 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
   (let* ((gnus-newsrc-options-n
 	  (gnus-newsrc-parse-options
 	   (concat "options -n "
-		   (mapconcat 'identity command-line-args-left " "))))
+		   (mapconcat #'identity command-line-args-left " "))))
 	 (gnus-expert-user t)
 	 (mail-sources nil)
 	 (gnus-use-dribble-file nil)

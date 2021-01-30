@@ -155,15 +155,15 @@
 ;; To automatically invoke deuglification on every article you read,
 ;; put something like that in your .gnus:
 ;;
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-unwrap-lines)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-unwrap-lines)
 ;;
 ;; or _one_ of the following lines:
 ;;
 ;; ;; repair broken attribution lines
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-repair-attribution)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-repair-attribution)
 ;;
 ;; ;; repair broken attribution lines and citations
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-rearrange-citation)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-rearrange-citation)
 ;;
 ;; Note that there always may be some false positives, so I suggest
 ;; using the manual invocation.  After deuglification you may want to

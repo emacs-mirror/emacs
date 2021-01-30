@@ -566,13 +566,18 @@ instead."
 			 (symbol-value (car elem))))
 	    (throw 'found (cons (cadr elem) (caddr elem)))))))))
 
+(declare-function gnus-agent-possibly-do-gcc "gnus-agent" ())
+(declare-function gnus-cache-possibly-remove-article "gnus-cache"
+                  (article ticked dormant unread &optional force))
+
 (defun gnus-inews-add-send-actions (winconf buffer article
 					    &optional config yanked
 					    winconf-name)
-  (add-hook 'message-sent-hook (if gnus-agent 'gnus-agent-possibly-do-gcc
-				 'gnus-inews-do-gcc) nil t)
+  (add-hook 'message-sent-hook (if gnus-agent #'gnus-agent-possibly-do-gcc
+				 #'gnus-inews-do-gcc)
+	    nil t)
   (when gnus-agent
-    (add-hook 'message-header-hook 'gnus-agent-possibly-save-gcc nil t))
+    (add-hook 'message-header-hook #'gnus-agent-possibly-save-gcc nil t))
   (setq message-post-method
 	`(lambda (&optional arg)
 	   (gnus-post-method arg ,gnus-newsgroup-name)))
@@ -1038,8 +1043,8 @@ If SILENT, don't prompt the user."
 		     gnus-post-method
 		   (list gnus-post-method)))
 	       gnus-secondary-select-methods
-	       (mapcar 'cdr gnus-server-alist)
-	       (mapcar 'car gnus-opened-servers)
+	       (mapcar #'cdr gnus-server-alist)
+	       (mapcar #'car gnus-opened-servers)
 	       (list gnus-select-method)
 	       (list group-method)))
 	     method-alist post-methods method)
@@ -1067,7 +1072,7 @@ If SILENT, don't prompt the user."
 		    ;; Just use the last value.
 		    gnus-last-posting-server
 		  (gnus-completing-read
-		   "Posting method" (mapcar 'car method-alist) t
+		   "Posting method" (mapcar #'car method-alist) t
 		   (cons (or gnus-last-posting-server "") 0))))
 	  method-alist))))
      ;; Override normal method.
@@ -1341,13 +1346,13 @@ For the \"inline\" alternatives, also see the variable
 					       self))
 		     "\n"))
 	    ((null self)
-	     (insert "Gcc: " (mapconcat 'identity gcc ", ") "\n"))
+	     (insert "Gcc: " (mapconcat #'identity gcc ", ") "\n"))
 	    ((eq self 'no-gcc-self)
 	     (when (setq gcc (delete
 			      gnus-newsgroup-name
 			      (delete (concat "\"" gnus-newsgroup-name "\"")
 				      gcc)))
-	       (insert "Gcc: " (mapconcat 'identity gcc ", ") "\n")))))))
+	       (insert "Gcc: " (mapconcat #'identity gcc ", ") "\n")))))))
 
 (defun gnus-summary-resend-message (address n &optional no-select)
   "Resend the current article to ADDRESS.
@@ -1387,7 +1392,7 @@ the message before resending."
 	  (setq user-mail-address tem))))
     ;; `gnus-summary-resend-message-insert-gcc' must run last.
     (add-hook 'message-header-setup-hook
-	      'gnus-summary-resend-message-insert-gcc t)
+	      #'gnus-summary-resend-message-insert-gcc t)
     (add-hook 'message-sent-hook
 	      `(lambda ()
 		 (let ((rfc2047-encode-encoded-words nil))
@@ -1916,7 +1921,7 @@ this is a reply."
 	(add-hook 'message-setup-hook
 		  (cond
 		   ((eq 'eval (car result))
-		    'ignore)
+		    #'ignore)
 		   ((eq 'body (car result))
 		    `(lambda ()
 		       (save-excursion
@@ -1926,7 +1931,7 @@ this is a reply."
                     (setq-local message-signature nil)
                     (setq-local message-signature-file nil)
 		    (if (not (cdr result))
-			'ignore
+			#'ignore
 		      `(lambda ()
 			 (save-excursion
 			   (let ((message-signature ,(cdr result)))

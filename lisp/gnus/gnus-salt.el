@@ -103,7 +103,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
    ((not (derived-mode-p 'gnus-summary-mode)) (setq gnus-pick-mode nil))
    ((not gnus-pick-mode)
     ;; FIXME: a buffer-local minor mode removing globally from a hook??
-    (remove-hook 'gnus-message-setup-hook 'gnus-pick-setup-message))
+    (remove-hook 'gnus-message-setup-hook #'gnus-pick-setup-message))
    (t
     ;; Make sure that we don't select any articles upon group entry.
     (setq-local gnus-auto-select-first nil)
@@ -113,7 +113,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
     (gnus-update-format-specifications nil 'summary)
     (gnus-update-summary-mark-positions)
     ;; FIXME: a buffer-local minor mode adding globally to a hook??
-    (add-hook 'gnus-message-setup-hook 'gnus-pick-setup-message)
+    (add-hook 'gnus-message-setup-hook #'gnus-pick-setup-message)
     (setq-local gnus-summary-goto-unread 'never)
     ;; Set up the menu.
     (when (gnus-visual-p 'pick-menu 'menu)

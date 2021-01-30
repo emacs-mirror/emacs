@@ -236,7 +236,7 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 		 (re-search-forward
 		  (concat "^" (regexp-quote mail-header-separator) "\n") nil t))
 	     (goto-char (match-end 0))
-	     (apply 'mml-insert-tag 'part (cons (if sign 'sign 'encrypt)
+	     (apply #'mml-insert-tag 'part (cons (if sign 'sign 'encrypt)
 						(cons method tags))))
 	    (t (error "The message is corrupted. No mail header separator"))))))
 
@@ -346,8 +346,8 @@ either an error is raised or not."
 	      (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
 	     (goto-char (setq insert-loc (match-end 0)))
 	     (unless (looking-at "<#secure")
-	       (apply 'mml-insert-tag
-		'secure 'method method 'mode mode tags)))
+	       (apply #'mml-insert-tag
+		      'secure 'method method 'mode mode tags)))
 	    (t (error
 		"The message is corrupted. No mail header separator"))))
     (when (eql insert-loc (point))
@@ -558,7 +558,7 @@ Return keys."
   (cl-assert keys)
   (let* ((usage-prefs (mml-secure-cust-usage-lookup context usage))
 	 (curr-fprs (cdr (assoc name (cdr usage-prefs))))
-	 (key-fprs (mapcar 'mml-secure-fingerprint keys))
+	 (key-fprs (mapcar #'mml-secure-fingerprint keys))
 	 (new-fprs (cl-union curr-fprs key-fprs :test 'equal)))
     (if curr-fprs
 	(setcdr (assoc name (cdr usage-prefs)) new-fprs)
@@ -795,7 +795,7 @@ When `mml-secure-fail-when-key-problem' is t, fail with an error in case of
 outdated or multiple keys."
   (let* ((nname (mml-secure-normalize-cust-name name))
 	 (fprs (mml-secure-cust-fpr-lookup context usage nname))
-	 (usable-fprs (mapcar 'mml-secure-fingerprint keys)))
+	 (usable-fprs (mapcar #'mml-secure-fingerprint keys)))
     (if fprs
 	(if (gnus-subsetp fprs usable-fprs)
 	    (mml-secure-filter-keys keys fprs)

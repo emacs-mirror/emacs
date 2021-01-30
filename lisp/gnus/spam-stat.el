@@ -501,7 +501,7 @@ where DIFF is the difference between SCORE and 0.5."
 Add user supplied modifications if supplied."
   (interactive) ; helps in debugging.
   (setq spam-stat-score-data (spam-stat-buffer-words-with-scores))
-  (let* ((probs (mapcar 'cadr spam-stat-score-data))
+  (let* ((probs (mapcar #'cadr spam-stat-score-data))
 	 (prod (apply #'* probs))
 	 (score0
 	  (/ prod (+ prod (apply #'* (mapcar #'(lambda (x) (- 1 x))
@@ -652,19 +652,19 @@ COUNT defaults to 5"
   "Install the spam-stat function hooks."
   (interactive)
   (add-hook 'nnmail-prepare-incoming-message-hook
-	    'spam-stat-store-current-buffer)
+	    #'spam-stat-store-current-buffer)
   (add-hook 'gnus-select-article-hook
-	    'spam-stat-store-gnus-article-buffer))
+	    #'spam-stat-store-gnus-article-buffer))
 
 (defun spam-stat-unload-hook ()
   "Uninstall the spam-stat function hooks."
   (interactive)
   (remove-hook 'nnmail-prepare-incoming-message-hook
-	       'spam-stat-store-current-buffer)
+	       #'spam-stat-store-current-buffer)
   (remove-hook 'gnus-select-article-hook
-	       'spam-stat-store-gnus-article-buffer))
+	       #'spam-stat-store-gnus-article-buffer))
 
-(add-hook 'spam-stat-unload-hook 'spam-stat-unload-hook)
+(add-hook 'spam-stat-unload-hook #'spam-stat-unload-hook)
 
 (provide 'spam-stat)
 

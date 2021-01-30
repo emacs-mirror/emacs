@@ -345,8 +345,8 @@ Spam reports will be queued with \\[spam-report-url-to-file] when
 the Agent is unplugged, and will be submitted in a batch when the
 Agent is plugged."
   (interactive)
-  (add-hook 'gnus-agent-plugged-hook 'spam-report-plug-agent)
-  (add-hook 'gnus-agent-unplugged-hook 'spam-report-unplug-agent))
+  (add-hook 'gnus-agent-plugged-hook #'spam-report-plug-agent)
+  (add-hook 'gnus-agent-unplugged-hook #'spam-report-unplug-agent))
 
 ;;;###autoload
 (defun spam-report-deagentize ()
@@ -354,8 +354,8 @@ Agent is plugged."
 Spam reports will be queued with the method used when
 \\[spam-report-agentize] was run."
   (interactive)
-  (remove-hook 'gnus-agent-plugged-hook 'spam-report-plug-agent)
-  (remove-hook 'gnus-agent-unplugged-hook 'spam-report-unplug-agent))
+  (remove-hook 'gnus-agent-plugged-hook #'spam-report-plug-agent)
+  (remove-hook 'gnus-agent-unplugged-hook #'spam-report-unplug-agent))
 
 (defun spam-report-plug-agent ()
   "Adjust spam report settings for plugged state.

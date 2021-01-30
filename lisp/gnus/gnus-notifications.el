@@ -24,7 +24,7 @@
 
 ;; This implements notifications using `notifications-notify' on new
 ;; messages received.
-;; Use (add-hook 'gnus-after-getting-new-news-hook 'gnus-notifications)
+;; Use (add-hook 'gnus-after-getting-new-news-hook #'gnus-notifications)
 ;; to get notifications just after getting the new news.
 
 ;;; Code:

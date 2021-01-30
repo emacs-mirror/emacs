@@ -518,7 +518,7 @@ Returns the list of articles removed."
       (setq articles
 	    (sort (mapcar (lambda (name) (string-to-number name))
 			  (directory-files dir nil "\\`[0-9]+\\'" t))
-		  '<))
+		  #'<))
       ;; Update the cache active file, just to synch more.
       (if articles
 	  (progn
@@ -714,7 +714,7 @@ If LOW, update the lower bound instead."
 	  (push (string-to-number (file-name-nondirectory (pop files))) nums)
 	(push (pop files) alphs)))
     ;; If we have nums, then this is probably a valid group.
-    (when (setq nums (sort nums '<))
+    (when (setq nums (sort nums #'<))
       (puthash group
 	       (cons (car nums) (car (last nums)))
 	       gnus-cache-active-hashtb))
@@ -884,7 +884,7 @@ supported."
       (setq gnus-cache-total-fetched-hashtb (gnus-make-hashtable 1000)))
     (let* ((entry (gethash group gnus-cache-total-fetched-hashtb)))
       (if entry
-	  (apply '+ entry)
+	  (apply #'+ entry)
 	(let ((gnus-cache-inhibit-update-total-fetched-for (not no-inhibit)))
 	  (+
 	   (gnus-cache-update-overview-total-fetched-for group nil)

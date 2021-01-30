@@ -276,13 +276,13 @@ Optional prefix (or REVERSE argument) means sort in reverse order."
     (gnus-diary-update-group-parameters group)))
 
 (add-hook 'nndiary-request-create-group-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 ;; Now that we have `gnus-subscribe-newsgroup-functions', this is not needed
 ;; anymore. Maybe I should remove this completely.
 (add-hook 'nndiary-request-update-info-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 (add-hook 'gnus-subscribe-newsgroup-functions
-	  'gnus-diary-maybe-update-group-parameters)
+	  #'gnus-diary-maybe-update-group-parameters)
 
 
 ;; Diary Message Checking ===================================================
@@ -360,7 +360,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 				 header ": ")))
 	     (setq value
 		   (if (listp (nth 1 head))
-		       (gnus-completing-read prompt (cons "*" (mapcar 'car (nth 1 head)))
+		       (gnus-completing-read prompt (cons "*" (mapcar #'car (nth 1 head)))
                                              t value
                                              'gnus-diary-header-value-history)
 		     (read-string prompt value

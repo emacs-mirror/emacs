@@ -367,7 +367,7 @@ It is computed from the marks of individual component groups.")
 				   group article))
 			      (gnus-uncompress-range
 			       (gnus-group-expire-articles-1 group))))))
-    (sort (delq nil unexpired) '<)))
+    (sort (delq nil unexpired) #'<)))
 
 
 ;;; Internal functions.
@@ -378,7 +378,7 @@ It is computed from the marks of individual component groups.")
     (let* ((dependencies (make-hash-table :test #'equal))
 	   (headers (gnus-get-newsgroup-headers dependencies)))
       (erase-buffer)
-      (mapc 'nnheader-insert-nov headers))))
+      (mapc #'nnheader-insert-nov headers))))
 
 
 (defun nnvirtual-update-xref-header (group article prefix sysname)
@@ -502,7 +502,7 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
   "Merge many sorted lists of numbers."
   (if (null (cdr lists))
       (car lists)
-    (sort (apply 'nconc lists) '<)))
+    (sort (apply #'nconc lists) #'<)))
 
 
 ;; We map between virtual articles and real articles in a manner
@@ -648,7 +648,7 @@ numbers has no corresponding component article, then it is left out of
 the result."
   (when (numberp (cdr-safe articles))
     (setq articles (list articles)))
-  (let ((carticles (mapcar 'list nnvirtual-component-groups))
+  (let ((carticles (mapcar #'list nnvirtual-component-groups))
 	a i j article entry)
     (while (setq a (pop articles))
       (if (atom a)
@@ -750,7 +750,7 @@ based on the marks on the component groups."
     ;; Now that the mapping tables are generated, we can convert
     ;; and combine the separate component unreads and marks lists
     ;; into single lists of virtual article numbers.
-    (setq unreads (apply 'nnvirtual-merge-sorted-lists
+    (setq unreads (apply #'nnvirtual-merge-sorted-lists
 			 (mapcar (lambda (x)
 				   (nnvirtual-reverse-map-sequence
 				    (car x) (cdr x)))
@@ -760,7 +760,7 @@ based on the marks on the component groups."
 		   (cons (cdr type)
 			 (gnus-compress-sequence
 			  (apply
-			   'nnvirtual-merge-sorted-lists
+			   #'nnvirtual-merge-sorted-lists
 			   (mapcar (lambda (x)
 				     (nnvirtual-reverse-map-sequence
 				      (car x)

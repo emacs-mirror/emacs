@@ -278,8 +278,8 @@ non-nil.")
       (let* ((file-name-coding-system nnmail-pathname-coding-system)
 	     (articles (nnml-directory-articles nnml-current-directory)))
 	(when articles
-	  (setcar active (apply 'min articles))
-	  (setcdr active (apply 'max articles))))
+	  (setcar active (apply #'min articles))
+	  (setcdr active (apply #'max articles))))
       (nnmail-save-active nnml-group-alist nnml-active-file)
       t))))
 
@@ -307,7 +307,7 @@ non-nil.")
 	 article rest mod-time number target)
     (nnmail-activate 'nnml)
 
-    (setq active-articles (sort active-articles '<))
+    (setq active-articles (sort active-articles #'<))
     ;; Articles not listed in active-articles are already gone,
     ;; so don't try to expire them.
     (setq articles (gnus-sorted-intersection articles active-articles))
@@ -353,7 +353,7 @@ non-nil.")
     (let ((active (nth 1 (assoc-string group nnml-group-alist))))
       (when active
 	(setcar active (or (and active-articles
-				(apply 'min active-articles))
+				(apply #'min active-articles))
 			   (1+ (cdr active)))))
       (nnmail-save-active nnml-group-alist nnml-active-file))
     (nnml-save-nov)
@@ -705,7 +705,7 @@ article number.  This function is called narrowed to an article."
 	(setq nnml-article-file-alist
 	      (sort
 	       (nnml-current-group-article-to-file-alist)
-	       'car-less-than-car)))
+	       #'car-less-than-car)))
       (setq active
 	    (if nnml-article-file-alist
 		(cons (caar nnml-article-file-alist)
@@ -856,7 +856,7 @@ Unless no-active is non-nil, update the active file too."
 	  (nnml-generate-nov-databases-directory dir seen)))
       ;; Do this directory.
       (let ((nnml-files (sort (nnheader-article-to-file-alist dir)
-			 'car-less-than-car)))
+			      #'car-less-than-car)))
 	(if (not nnml-files)
 	    (let* ((group (nnheader-file-to-group
 			   (directory-file-name dir) nnml-directory))
@@ -1010,7 +1010,7 @@ Use the nov database for the current group if available."
   (unless nnml-article-file-alist
     (setq nnml-article-file-alist
 	  (sort (nnml-current-group-article-to-file-alist)
-		'car-less-than-car)))
+		#'car-less-than-car)))
   (if (not nnml-article-file-alist)
       ;; The group is empty: do nothing but return t
       t

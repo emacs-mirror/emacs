@@ -891,7 +891,7 @@ Addresses without a name will say \"noname\"."
 
 (defun gnus-registry-sort-addresses (&rest addresses)
   "Return a normalized and sorted list of ADDRESSES."
-  (sort (mapcan #'gnus-registry-extract-addresses addresses) 'string-lessp))
+  (sort (mapcan #'gnus-registry-extract-addresses addresses) #'string-lessp))
 
 (defun gnus-registry-simplify-subject (subject)
   (if (stringp subject)

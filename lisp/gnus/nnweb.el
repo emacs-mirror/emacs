@@ -411,7 +411,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	  ;; Return the articles in the right order.
 	  (nnheader-message 7 "Searching google...done")
 	  (setq nnweb-articles
-		(sort nnweb-articles 'car-less-than-car))))))
+		(sort nnweb-articles #'car-less-than-car))))))
 
 (defun nnweb-google-search (search)
   (mm-url-insert
@@ -481,7 +481,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	  (forward-line 1)))
       (nnheader-message 7 "Searching Gmane...done")
       (setq nnweb-articles
-	    (sort (nconc nnweb-articles map) 'car-less-than-car)))))
+	    (sort (nconc nnweb-articles map) #'car-less-than-car)))))
 
 (defun nnweb-gmane-wash-article ()
   (let ((case-fold-search t))
@@ -534,7 +534,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	     (nth 1 parse)
 	     " "))
     (insert ">\n")
-    (mapc 'nnweb-insert-html (nth 2 parse))
+    (mapc #'nnweb-insert-html (nth 2 parse))
     (insert "</" (symbol-name (car parse)) ">\n")))
 
 (defun nnweb-parse-find (type parse &optional maxdepth)

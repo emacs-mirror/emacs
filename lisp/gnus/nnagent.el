@@ -138,13 +138,13 @@
 	       group action server)))
   nil)
 
-(deffoo nnagent-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nnagent-retrieve-headers (articles &optional group _server fetch-old)
   (let ((file (gnus-agent-article-name ".overview" group))
 	arts n first)
     (save-excursion
       (gnus-agent-load-alist group)
       (setq arts (gnus-sorted-difference
-		  articles (mapcar 'car gnus-agent-article-alist)))
+		  articles (mapcar #'car gnus-agent-article-alist)))
       ;; Assume that articles with smaller numbers than the first one
       ;; Agent knows are gone.
       (setq first (caar gnus-agent-article-alist))

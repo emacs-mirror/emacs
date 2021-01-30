@@ -30,7 +30,7 @@
 ;; Key) header in a news article by using a hook which will be evaluated
 ;; just before sending an article as follows:
 ;;
-;; (add-hook '*e**a*e-header-hook 'canlock-insert-header t)
+;; (add-hook '*e**a*e-header-hook #'canlock-insert-header t)
 ;;
 ;; Verifying Cancel-Lock is mainly a function of news servers, however,
 ;; you can verify your own article using the command `canlock-verify' in

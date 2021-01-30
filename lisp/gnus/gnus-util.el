@@ -445,7 +445,7 @@ displayed in the echo area."
       `(let (str time)
 	 (cond ((eq gnus-add-timestamp-to-message 'log)
 		(setq str (let (message-log-max)
-			    (apply 'message ,format-string ,args)))
+			    (apply #'message ,format-string ,args)))
 		(when (and message-log-max
 			   (> message-log-max 0)
 			   (/= (length str) 0))
@@ -471,7 +471,7 @@ displayed in the echo area."
 		  (message "%s" (concat ,timestamp str))
 		  str))
 	       (t
-		(apply 'message ,format-string ,args)))))))
+		(apply #'message ,format-string ,args)))))))
 
 (defvar gnus-action-message-log nil)
 
@@ -491,8 +491,8 @@ inside loops."
   (if (<= level gnus-verbose)
       (let ((message
 	     (if gnus-add-timestamp-to-message
-		 (apply 'gnus-message-with-timestamp args)
-	       (apply 'message args))))
+		 (apply #'gnus-message-with-timestamp args)
+	       (apply #'message args))))
 	(when (and (consp gnus-action-message-log)
 		   (<= level 3))
 	  (push message gnus-action-message-log))
@@ -513,7 +513,7 @@ inside loops."
   "Beep an error if LEVEL is equal to or less than `gnus-verbose'.
 ARGS are passed to `message'."
   (when (<= (floor level) gnus-verbose)
-    (apply 'message args)
+    (apply #'message args)
     (ding)
     (let (duration)
       (when (and (floatp level)
@@ -1053,16 +1053,16 @@ ARG is passed to the first function."
 (defun gnus-run-hooks (&rest funcs)
   "Does the same as `run-hooks', but saves the current buffer."
   (save-current-buffer
-    (apply 'run-hooks funcs)))
+    (apply #'run-hooks funcs)))
 
 (defun gnus-run-hook-with-args (hook &rest args)
   "Does the same as `run-hook-with-args', but saves the current buffer."
   (save-current-buffer
-    (apply 'run-hook-with-args hook args)))
+    (apply #'run-hook-with-args hook args)))
 
 (defun gnus-run-mode-hooks (&rest funcs)
   "Run `run-mode-hooks', saving the current buffer."
-  (save-current-buffer (apply 'run-mode-hooks funcs)))
+  (save-current-buffer (apply #'run-mode-hooks funcs)))
 
 ;;; Various
 
@@ -1355,7 +1355,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
     `(,spec elem))
    ((listp spec)
     (if (memq (car spec) '(or and not))
-	`(,(car spec) ,@(mapcar 'gnus-make-predicate-1 (cdr spec)))
+	`(,(car spec) ,@(mapcar #'gnus-make-predicate-1 (cdr spec)))
       (error "Invalid predicate specifier: %s" spec)))))
 
 (defun gnus-completing-read (prompt collection &optional require-match
@@ -1684,7 +1684,7 @@ lists of strings."
       (setq props (plist-put props :foreground (face-foreground face)))
       (setq props (plist-put props :background (face-background face))))
     (ignore-errors
-      (apply 'create-image file type data-p props))))
+      (apply #'create-image file type data-p props))))
 
 (defun gnus-put-image (glyph &optional string category)
   (let ((point (point)))

@@ -171,9 +171,9 @@ as unread by Gnus.")
 	(nnheader-re-read-dir pathname)
 	(setq dir
 	      (sort
-	       (mapcar 'string-to-number
+	       (mapcar #'string-to-number
 		       (directory-files pathname nil "\\`[0-9]+\\'" t))
-	       '<))
+	       #'<))
 	(cond
 	 (dir
 	  (setq nnmh-group-alist
@@ -358,12 +358,12 @@ as unread by Gnus.")
 	    nnmh-group-alist)
       (nnmh-possibly-create-directory group)
       (nnmh-possibly-change-directory group server)
-      (let ((articles (mapcar 'string-to-number
+      (let ((articles (mapcar #'string-to-number
 			      (directory-files
 			       nnmh-current-directory nil "\\`[0-9]+\\'"))))
 	(when articles
-	  (setcar active (apply 'min articles))
-	  (setcdr active (apply 'max articles))))))
+	  (setcar active (apply #'min articles))
+	  (setcdr active (apply #'max articles))))))
   t)
 
 (deffoo nnmh-request-delete-group (group &optional force server)
@@ -484,9 +484,9 @@ as unread by Gnus.")
 	(gnus-make-directory dir))
       ;; Find the highest number in the group.
       (let ((files (sort
-		    (mapcar 'string-to-number
+		    (mapcar #'string-to-number
 			    (directory-files dir nil "\\`[0-9]+\\'"))
-		    '>)))
+		    #'>)))
 	(when files
 	  (setcdr active (car files)))))
     (setcdr active (1+ (cdr active)))
@@ -507,10 +507,10 @@ as unread by Gnus.")
   ;; articles in this folder.  The articles that are "new" will be
   ;; marked as unread by Gnus.
   (let* ((dir nnmh-current-directory)
-	 (files (sort (mapcar 'string-to-number
+	 (files (sort (mapcar #'string-to-number
 			      (directory-files nnmh-current-directory
 					       nil "\\`[0-9]+\\'" t))
-		      '<))
+		      #'<))
 	 (nnmh-file (concat dir ".nnmh-articles"))
 	 new articles)
     ;; Load the .nnmh-articles file.
@@ -557,7 +557,7 @@ as unread by Gnus.")
     (when new
       (gnus-make-articles-unread
        (gnus-group-prefixed-name group (list 'nnmh ""))
-       (setq new (sort new '<))))
+       (setq new (sort new #'<))))
     ;; Sort the article list with highest numbers first.
     (setq articles (sort articles (lambda (art1 art2)
 				    (> (car art1) (car art2)))))

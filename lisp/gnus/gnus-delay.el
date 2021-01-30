@@ -179,7 +179,7 @@ This tells Gnus to look for delayed messages after getting new news.
 The optional arg NO-KEYMAP is ignored.
 Checking delayed messages is skipped if optional arg NO-CHECK is non-nil."
   (unless no-check
-    (add-hook 'gnus-get-new-news-hook 'gnus-delay-send-queue)))
+    (add-hook 'gnus-get-new-news-hook #'gnus-delay-send-queue)))
 
 (provide 'gnus-delay)
 

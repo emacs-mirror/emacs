@@ -1859,7 +1859,7 @@ Assume \"size\" key is equal to \"larger\"."
 		     "No directory found in definition of server %s"
 		     server))))
     (apply
-     'vconcat
+     #'vconcat
      (mapcar (lambda (x)
 	       (let ((group x)
 		     artlist)
@@ -1894,7 +1894,7 @@ Assume \"size\" key is equal to \"larger\"."
 				"Cannot locate directory for group")))
 		     (save-excursion
 		       (apply
-			'call-process "find" nil t
+			#'call-process "find" nil t
 			"find" group "-maxdepth" "1" "-type" "f"
 			"-name" "[0-9]*" "-exec"
 			(slot-value engine 'grep-program)
@@ -1907,7 +1907,8 @@ Assume \"size\" key is equal to \"larger\"."
 		     (let* ((path (split-string
 				   (buffer-substring
 				    (point)
-				    (line-end-position)) "/" t))
+				    (line-end-position))
+				   "/" t))
 			    (art (string-to-number (car (last path)))))
 		       (while (string= "." (car path))
 			 (setq path (cdr path)))

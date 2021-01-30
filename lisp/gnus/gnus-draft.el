@@ -65,7 +65,7 @@
     ;; Set up the menu.
     (when (gnus-visual-p 'draft-menu 'menu)
       (gnus-draft-make-menu-bar))
-    (add-hook 'gnus-summary-prepare-exit-hook 'gnus-draft-clear-marks t t))))
+    (add-hook 'gnus-summary-prepare-exit-hook #'gnus-draft-clear-marks t t))))
 
 ;;; Commands
 

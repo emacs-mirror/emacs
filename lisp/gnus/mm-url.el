@@ -299,7 +299,7 @@ If `mm-url-use-external' is non-nil, use `mm-url-program'."
 		args (append (cdr item) (list url))))
       (setq program mm-url-program
 	    args (append mm-url-arguments (list url))))
-    (unless (eq 0 (apply 'call-process program nil t nil args))
+    (unless (eq 0 (apply #'call-process program nil t nil args))
       (error "Couldn't fetch %s" url))))
 
 (defvar mm-url-timeout 30

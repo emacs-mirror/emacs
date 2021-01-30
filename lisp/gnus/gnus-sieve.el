@@ -140,7 +140,7 @@ For example:
 \(gnus-sieve-string-list \\='(\"to\" \"cc\"))
   => \"[\\\"to\\\", \\\"cc\\\"]\"
 "
-  (concat "[\"" (mapconcat 'identity list "\", \"") "\"]"))
+  (concat "[\"" (mapconcat #'identity list "\", \"") "\"]"))
 
 (defun gnus-sieve-test-list (list)
   "Convert an elisp test list to a Sieve test list.
@@ -148,7 +148,7 @@ For example:
 For example:
 \(gnus-sieve-test-list \\='((address \"sender\" \"boss@company.com\") (size :over 4K)))
   => \"(address \\\"sender\\\" \\\"boss@company.com\\\", size :over 4K)\""
-  (concat "(" (mapconcat 'gnus-sieve-test list ", ") ")"))
+  (concat "(" (mapconcat #'gnus-sieve-test list ", ") ")"))
 
 ;; FIXME: do proper quoting
 (defun gnus-sieve-test-token (token)
@@ -189,7 +189,7 @@ For example:
 			  (size :over 100K))))
   => \"anyof (header :contains [\\\"to\\\", \\\"cc\\\"] \\\"my@address.com\\\",
 	     size :over 100K)\""
-  (mapconcat 'gnus-sieve-test-token test " "))
+  (mapconcat #'gnus-sieve-test-token test " "))
 
 (defun gnus-sieve-script (&optional method crosspost)
   "Generate a Sieve script based on groups with select method METHOD
@@ -228,7 +228,7 @@ This is returned as a string."
 			    "\tstop;\n")
 			  "}")
 		  script)))))
-    (mapconcat 'identity script "\n")))
+    (mapconcat #'identity script "\n")))
 
 (provide 'gnus-sieve)
 

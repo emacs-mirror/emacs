@@ -1281,7 +1281,7 @@ Return the number of characters in the body."
   "Remove list identifiers from Subject headers."
   (let ((regexp
 	 (if (consp nnmail-list-identifiers)
-	     (mapconcat 'identity nnmail-list-identifiers " *\\|")
+	     (mapconcat #'identity nnmail-list-identifiers " *\\|")
 	   nnmail-list-identifiers)))
     (when regexp
       (goto-char (point-min))
@@ -1321,8 +1321,8 @@ Eudora has a broken References line, but an OK In-Reply-To."
     (when (re-search-forward "^\\(In-Reply-To:[^\n]+\\)\n[ \t]+" nil t)
       (replace-match "\\1" t))))
 
-(defalias 'nnmail-fix-eudora-headers 'nnmail-ignore-broken-references)
-(make-obsolete 'nnmail-fix-eudora-headers 'nnmail-ignore-broken-references "Emacs 23.1")
+(defalias 'nnmail-fix-eudora-headers #'nnmail-ignore-broken-references)
+(make-obsolete 'nnmail-fix-eudora-headers #'nnmail-ignore-broken-references "Emacs 23.1")
 
 (custom-add-option 'nnmail-prepare-incoming-header-hook
 		   'nnmail-ignore-broken-references)
@@ -1528,7 +1528,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 		  expanded))))
       (setq pos (1+ pos)))
     (if did-expand
-	(apply 'concat (nreverse expanded))
+	(apply #'concat (nreverse expanded))
       newtext)))
 
 ;; Activate a backend only if it isn't already activated.
@@ -1623,7 +1623,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 		 (gnus-methods-equal-p gnus-command-method
 				       (nnmail-cache-primary-mail-backend)))
 	    (let ((regexp (if (consp nnmail-cache-ignore-groups)
-			      (mapconcat 'identity nnmail-cache-ignore-groups
+			      (mapconcat #'identity nnmail-cache-ignore-groups
 					 "\\|")
 			    nnmail-cache-ignore-groups)))
 	      (unless (and regexp (string-match regexp grp))
@@ -1766,7 +1766,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 (defvar nnmail-fetched-sources nil)
 
 (defun nnmail-get-value (&rest args)
-  (let ((sym (intern (apply 'format args))))
+  (let ((sym (intern (apply #'format args))))
     (when (boundp sym)
       (symbol-value sym))))
 

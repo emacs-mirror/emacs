@@ -3501,7 +3501,7 @@ You should probably use `gnus-find-method-for-group' instead."
     (while (setq info (pop alist))
       (when (gnus-server-equal (gnus-info-method info) server)
 	(push (gnus-info-group info) groups)))
-    (sort groups 'string<)))
+    (sort groups #'string<)))
 
 (defun gnus-group-foreign-p (group)
   "Say whether a group is foreign or not."

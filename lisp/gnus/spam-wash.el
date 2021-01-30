@@ -57,7 +57,7 @@
 
 (defun spam-treat-parts (handle)
   (if (stringp (car handle))
-      (mapcar 'spam-treat-parts (cdr handle))
+      (mapcar #'spam-treat-parts (cdr handle))
     (if (bufferp (car handle))
 	(save-restriction
 	  (narrow-to-region (point) (point))
@@ -65,7 +65,7 @@
 		(string-match "text" (car (mm-handle-type handle))))
 	  (mm-insert-part handle))
 	  (goto-char (point-max)))
-      (mapcar 'spam-treat-parts handle))))
+      (mapcar #'spam-treat-parts handle))))
 
 (provide 'spam-wash)
 
