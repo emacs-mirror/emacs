@@ -2367,14 +2367,29 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
   else if (!s->background_filled_p)
     {
       int background_width = s->background_width;
-      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+      int x = s->x, text_left_x = window_box_left_offset (s->w, TEXT_AREA);
 
-      /* Don't draw into left margin, fringe or scrollbar area
-         except for header line and mode line.  */
-      if (x < left_x && !s->row->mode_line_p)
+      /* Don't draw into left fringe or scrollbar area except for
+         header line and mode line.  */
+      if (x < text_left_x && !s->row->mode_line_p)
 	{
-	  background_width -= left_x - x;
-	  x = left_x;
+	  int left_x = WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (s->w);
+	  int right_x = text_left_x;
+
+	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
+	    left_x += WINDOW_LEFT_FRINGE_WIDTH (s->w);
+	  else
+	    right_x -= WINDOW_LEFT_FRINGE_WIDTH (s->w);
+
+	  /* Adjust X and BACKGROUND_WIDTH to fit inside the space
+	     between LEFT_X and RIGHT_X.  */
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	  if (x + background_width > right_x)
+	    background_width = right_x - x;
 	}
       if (background_width > 0)
 	x_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);
@@ -2878,6 +2893,7 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 			 int y, enum text_cursor_kinds cursor_type,
 			 int cursor_width, bool on_p, bool active_p)
 {
+  struct frame *f = XFRAME (w->frame);
   PGTK_TRACE ("draw_window_cursor: %d, %d, %d, %d, %d, %d.",
 	      x, y, cursor_type, cursor_width, on_p, active_p);
   if (on_p)
@@ -2922,11 +2938,15 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	    }
 	}
 
-#ifdef HAVE_X_I18N
       if (w == XWINDOW (f->selected_window))
-	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
-	  xic_set_preeditarea (w, x, y);
-#endif
+	{
+	  int frame_x =
+	    WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w);
+	  int frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, y);
+	  pgtk_im_set_cursor_location (f, frame_x, frame_y,
+				       w->phys_cursor_width,
+				       w->phys_cursor_height);
+	}
     }
 
 }
@@ -5256,37 +5276,37 @@ pgtk_clear_under_internal_border (struct frame *f)
       int border = FRAME_INTERNAL_BORDER_WIDTH (f);
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
-      int margin = 0;
-      struct face *face = FACE_FROM_ID_OR_NULL (f, INTERNAL_BORDER_FACE_ID);
+      int margin = FRAME_TOP_MARGIN_HEIGHT (f);
+      int face_id =
+	(FRAME_PARENT_FRAME (f)
+	 ? (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+	    : CHILD_FRAME_BORDER_FACE_ID)
+	 : (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	    : INTERNAL_BORDER_FACE_ID));
+      struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
 
-      struct
-      {
-	int x, y, w, h;
-      } rects[] = {
-	{0, margin, width, border},
-	{0, 0, border, height},
-	{width - border, 0, border, height},
-	{0, height - border, width, border},
-      };
-
       if (face)
 	{
-	  for (int i = 0; i < 4; i++)
-	    {
-	      int x = rects[i].x;
-	      int y = rects[i].y;
-	      int w = rects[i].w;
-	      int h = rects[i].h;
-	      fill_background_by_face (f, face, x, y, w, h);
-	    }
+#define x_fill_rectangle(f, gc, x, y, w, h) \
+	    fill_background_by_face (f, face, x, y, w, h)
+	  x_fill_rectangle (f, gc, 0, margin, width, border);
+	  x_fill_rectangle (f, gc, 0, 0, border, height);
+	  x_fill_rectangle (f, gc, width - border, 0, border, height);
+	  x_fill_rectangle (f, gc, 0, height - border, width, border);
+#undef x_fill_rectangle
 	}
       else
 	{
-	  for (int i = 0; i < 4; i++)
-	    pgtk_clear_area (f, rects[i].x, rects[i].y, rects[i].w,
-			     rects[i].h);
+#define x_clear_area(f, x, y, w, h)  pgtk_clear_area (f, x, y, w, h)
+	  x_clear_area (f, 0, 0, border, height);
+	  x_clear_area (f, 0, margin, width, border);
+	  x_clear_area (f, width - border, 0, border, height);
+	  x_clear_area (f, 0, height - border, width, border);
+#undef x_clear_area
 	}
 
       unblock_input ();

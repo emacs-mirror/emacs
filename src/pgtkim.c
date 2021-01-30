@@ -210,6 +210,18 @@ pgtk_im_filter_keypress (struct frame *f, GdkEventKey * ev)
   return false;
 }
 
+void
+pgtk_im_set_cursor_location (struct frame *f, int x, int y, int width,
+			     int height)
+{
+  struct pgtk_display_info *dpyinfo = FRAME_DISPLAY_INFO (f);
+  if (dpyinfo->im.context != NULL && dpyinfo->im.focused_frame == f)
+    {
+      GdkRectangle area = { x, y, width, height };
+      gtk_im_context_set_cursor_location (dpyinfo->im.context, &area);
+    }
+}
+
 static void
 pgtk_im_use_context (struct pgtk_display_info *dpyinfo, bool use_p)
 {

@@ -653,6 +653,8 @@ extern void pgtk_enqueue_preedit (struct frame *f, Lisp_Object image_data);
 extern void pgtk_im_focus_in (struct frame *f);
 extern void pgtk_im_focus_out (struct frame *f);
 extern bool pgtk_im_filter_keypress (struct frame *f, GdkEventKey * ev);
+extern void pgtk_im_set_cursor_location (struct frame *f, int x, int y,
+					 int width, int height);
 extern void pgtk_im_init (struct pgtk_display_info *dpyinfo);
 extern void pgtk_im_finish (struct pgtk_display_info *dpyinfo);
 
