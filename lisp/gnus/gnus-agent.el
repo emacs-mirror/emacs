@@ -422,14 +422,12 @@ manipulated as follows:
 
 (defmacro gnus-agent-with-fetch (&rest forms)
   "Do FORMS safely."
+  (declare (indent 0) (debug t))
   `(unwind-protect
        (let ((gnus-agent-fetching t))
 	 (gnus-agent-start-fetch)
 	 ,@forms)
      (gnus-agent-stop-fetch)))
-
-(put 'gnus-agent-with-fetch 'lisp-indent-function 0)
-(put 'gnus-agent-with-fetch 'edebug-form-spec '(body))
 
 (defmacro gnus-agent-append-to-list (tail value)
   `(setq ,tail (setcdr ,tail (cons ,value nil))))
@@ -573,14 +571,12 @@ manipulated as follows:
   (set-buffer-modified-p t))
 
 (defmacro gnus-agent-while-plugged (&rest body)
+  (declare (indent 0) (debug t))
   `(let ((original-gnus-plugged gnus-plugged))
-    (unwind-protect
-        (progn (gnus-agent-toggle-plugged t)
-               ,@body)
-      (gnus-agent-toggle-plugged original-gnus-plugged))))
-
-(put 'gnus-agent-while-plugged 'lisp-indent-function 0)
-(put 'gnus-agent-while-plugged 'edebug-form-spec '(body))
+     (unwind-protect
+         (progn (gnus-agent-toggle-plugged t)
+                ,@body)
+       (gnus-agent-toggle-plugged original-gnus-plugged))))
 
 (defun gnus-agent-close-connections ()
   "Close all methods covered by the Gnus agent."

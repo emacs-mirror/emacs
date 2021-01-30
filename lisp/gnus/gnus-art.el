@@ -1738,6 +1738,7 @@ Initialized from `text-mode-syntax-table'.")
 ;;; Macros for dealing with the article buffer.
 
 (defmacro gnus-with-article-headers (&rest forms)
+  (declare (indent 0) (debug t))
   `(with-current-buffer gnus-article-buffer
      (save-restriction
        (let ((inhibit-read-only t)
@@ -1746,17 +1747,12 @@ Initialized from `text-mode-syntax-table'.")
 	 (article-narrow-to-head)
 	 ,@forms))))
 
-(put 'gnus-with-article-headers 'lisp-indent-function 0)
-(put 'gnus-with-article-headers 'edebug-form-spec '(body))
-
 (defmacro gnus-with-article-buffer (&rest forms)
+  (declare (indent 0) (debug t))
   `(when (buffer-live-p (get-buffer gnus-article-buffer))
      (with-current-buffer gnus-article-buffer
        (let ((inhibit-read-only t))
          ,@forms))))
-
-(put 'gnus-with-article-buffer 'lisp-indent-function 0)
-(put 'gnus-with-article-buffer 'edebug-form-spec '(body))
 
 (defun gnus-article-goto-header (header)
   "Go to HEADER, which is a regular expression."
@@ -4326,74 +4322,69 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   (if (gnus-buffer-live-p gnus-original-article-buffer)
       (canlock-verify gnus-original-article-buffer)))
 
-(eval-and-compile
-  (mapc
-   (lambda (func)
-     (let (afunc gfunc)
-       (if (consp func)
-	   (setq afunc (car func)
-		 gfunc (cdr func))
-	 (setq afunc func
-	       gfunc (intern (format "gnus-%s" func))))
-       (defalias gfunc
-	 (when (fboundp afunc)
-	   `(lambda (&optional interactive &rest args)
-	      ,(documentation afunc t)
-	      (interactive (list t))
-	      (with-current-buffer gnus-article-buffer
-		(if interactive
-		    (call-interactively ',afunc)
-		  (apply #',afunc args))))))))
-   '(article-hide-headers
-     article-verify-x-pgp-sig
-     article-verify-cancel-lock
-     article-hide-boring-headers
-     article-treat-overstrike
-     article-treat-ansi-sequences
-     article-fill-long-lines
-     article-capitalize-sentences
-     article-remove-cr
-     article-remove-leading-whitespace
-     article-display-x-face
-     article-display-face
-     article-de-quoted-unreadable
-     article-de-base64-unreadable
-     article-decode-HZ
-     article-wash-html
-     article-unsplit-urls
-     article-hide-list-identifiers
-     article-strip-banner
-     article-babel
-     article-hide-pem
-     article-hide-signature
-     article-strip-headers-in-body
-     article-remove-trailing-blank-lines
-     article-strip-leading-blank-lines
-     article-strip-multiple-blank-lines
-     article-strip-leading-space
-     article-strip-trailing-space
-     article-strip-blank-lines
-     article-strip-all-blank-lines
-     article-date-local
-     article-date-english
-     article-date-iso8601
-     article-date-original
-     article-treat-date
-     article-date-ut
-     article-decode-mime-words
-     article-decode-charset
-     article-decode-encoded-words
-     article-date-user
-     article-date-lapsed
-     article-date-combined-lapsed
-     article-emphasize
-     article-treat-smartquotes
-     ;; Obsolete alias.
-     article-treat-dumbquotes
-     article-treat-non-ascii
-     article-normalize-headers)))
+(defmacro gnus--\,@ (exp)
+  (declare (debug t))
+  `(progn ,@(eval exp t)))
+
+(gnus--\,@
+ (mapcar (lambda (func)
+           `(defun ,(intern (format "gnus-%s" func))
+                (&optional interactive &rest args)
+              ,(format "Run `%s' in the article buffer." func)
+              (interactive (list t))
+              (with-current-buffer gnus-article-buffer
+                (if interactive
+                    (call-interactively #',func)
+                  (apply #',func args)))))
+         '(article-hide-headers
+           article-verify-x-pgp-sig
+           article-verify-cancel-lock
+           article-hide-boring-headers
+           article-treat-overstrike
+           article-treat-ansi-sequences
+           article-fill-long-lines
+           article-capitalize-sentences
+           article-remove-cr
+           article-remove-leading-whitespace
+           article-display-x-face
+           article-display-face
+           article-de-quoted-unreadable
+           article-de-base64-unreadable
+           article-decode-HZ
+           article-wash-html
+           article-unsplit-urls
+           article-hide-list-identifiers
+           article-strip-banner
+           article-babel
+           article-hide-pem
+           article-hide-signature
+           article-strip-headers-in-body
+           article-remove-trailing-blank-lines
+           article-strip-leading-blank-lines
+           article-strip-multiple-blank-lines
+           article-strip-leading-space
+           article-strip-trailing-space
+           article-strip-blank-lines
+           article-strip-all-blank-lines
+           article-date-local
+           article-date-english
+           article-date-iso8601
+           article-date-original
+           article-treat-date
+           article-date-ut
+           article-decode-mime-words
+           article-decode-charset
+           article-decode-encoded-words
+           article-date-user
+           article-date-lapsed
+           article-date-combined-lapsed
+           article-emphasize
+           article-treat-smartquotes
+           ;;article-treat-dumbquotes  ;; Obsolete alias.
+           article-treat-non-ascii
+           article-normalize-headers)))
 (define-obsolete-function-alias 'gnus-article-treat-dumbquotes
-  'gnus-article-treat-smartquotes "27.1")
+  #'gnus-article-treat-smartquotes "27.1")
 
 ;;;
 ;;; Gnus article mode

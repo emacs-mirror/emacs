@@ -1255,6 +1255,7 @@ in HANDLE."
 
 (defmacro mm-with-part (handle &rest forms)
   "Run FORMS in the temp buffer containing the contents of HANDLE."
+  (declare (indent 1) (debug t))
   ;; The handle-buffer's content is a sequence of bytes, not a sequence of
   ;; chars, so the buffer should be unibyte.  It may happen that the
   ;; handle-buffer is multibyte for some reason, in which case now is a good
@@ -1270,8 +1271,6 @@ in HANDLE."
 	  (mm-handle-encoding handle)
 	  (mm-handle-media-type handle))
 	 ,@forms))))
-(put 'mm-with-part 'lisp-indent-function 1)
-(put 'mm-with-part 'edebug-form-spec '(body))
 
 (defun mm-get-part (handle &optional no-cache)
   "Return the contents of HANDLE as a string.

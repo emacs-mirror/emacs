@@ -418,12 +418,11 @@ of the second `let' form.
 
 The variables bound and their default values are described by
 the `mail-source-keyword-map' variable."
+  (declare (indent 1) (debug (sexp body)))
   `(let* ,(mail-source-bind-1 (car type-source))
      (mail-source-set-1 ,(cadr type-source))
      ,@body))
 
-(put 'mail-source-bind 'lisp-indent-function 1)
-(put 'mail-source-bind 'edebug-form-spec '(sexp body))
 
 (defun mail-source-set-1 (source)
   (let* ((type (pop source))
@@ -512,12 +511,10 @@ the `mail-source-keyword-map' variable."
 (defmacro mail-source-bind-common (source &rest body)
   "Return a `let' form that binds all common variables.
 See `mail-source-bind'."
+  (declare (indent 1) (debug (sexp body)))
   `(let ,(mail-source-bind-common-1)
      (mail-source-set-common-1 source)
      ,@body))
-
-(put 'mail-source-bind-common 'lisp-indent-function 1)
-(put 'mail-source-bind-common 'edebug-form-spec '(sexp body))
 
 (defun mail-source-value (value)
   "Return the value of VALUE."

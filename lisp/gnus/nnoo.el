@@ -33,21 +33,21 @@
 
 (defmacro defvoo (var init &optional doc &rest map)
   "The same as `defvar', only takes list of variables to MAP to."
+  (declare (indent 2)
+           (debug (var init &optional doc &rest map)))
   `(prog1
        ,(if doc
 	    `(defvar ,var ,init ,(concat doc "\n\nThis is a Gnus server variable.  See Info node `(gnus)Select Methods'."))
 	  `(defvar ,var ,init))
      (nnoo-define ',var ',map)))
-(put 'defvoo 'lisp-indent-function 2)
-(put 'defvoo 'edebug-form-spec '(var init &optional doc &rest map))
 
 (defmacro deffoo (func args &rest forms)
   "The same as `defun', only register FUNC."
+  (declare (indent 2)
+           (debug (&define name lambda-list def-body)))
   `(prog1
        (defun ,func ,args ,@forms)
      (nnoo-register-function ',func)))
-(put 'deffoo 'lisp-indent-function 2)
-(put 'deffoo 'edebug-form-spec '(&define name lambda-list def-body))
 
 (defun nnoo-register-function (func)
   (let ((funcs (nthcdr 3 (assoc (nnoo-backend func)
@@ -57,18 +57,18 @@
     (setcar funcs (cons func (car funcs)))))
 
 (defmacro nnoo-declare (backend &rest parents)
+  (declare (indent 1))
   `(eval-and-compile
      (if (assq ',backend nnoo-definition-alist)
 	 (setcar (cdr (assq ',backend nnoo-definition-alist))
-		 (mapcar 'list ',parents))
+		 (mapcar #'list ',parents))
        (push (list ',backend
-		   (mapcar 'list ',parents)
+		   (mapcar #'list ',parents)
 		   nil nil)
 	     nnoo-definition-alist))
      (unless (assq ',backend nnoo-state-alist)
        (push (list ',backend "*internal-non-initialized-backend*")
 	     nnoo-state-alist))))
-(put 'nnoo-declare 'lisp-indent-function 1)
 
 (defun nnoo-parents (backend)
   (nth 1 (assoc backend nnoo-definition-alist)))
@@ -80,8 +80,8 @@
   (nth 3 (assoc backend nnoo-definition-alist)))
 
 (defmacro nnoo-import (backend &rest imports)
+  (declare (indent 1))
   `(nnoo-import-1 ',backend ',imports))
-(put 'nnoo-import 'lisp-indent-function 1)
 
 (defun nnoo-import-1 (backend imports)
   (let ((call-function
@@ -130,8 +130,8 @@
 	  (setq vars (cdr vars)))))))
 
 (defmacro nnoo-map-functions (backend &rest maps)
+  (declare (indent 1))
   `(nnoo-map-functions-1 ',backend ',maps))
-(put 'nnoo-map-functions 'lisp-indent-function 1)
 
 (defun nnoo-map-functions-1 (backend maps)
   (let (m margs i)

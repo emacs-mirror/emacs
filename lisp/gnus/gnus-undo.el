@@ -52,8 +52,7 @@
 
 (defcustom gnus-undo-limit 2000
   "The number of undoable actions recorded."
-  :type 'integer
-  :group 'gnus-undo)
+  :type 'integer)
 
 (defcustom gnus-undo-mode nil
   ;; FIXME: This is a buffer-local minor mode which requires running
@@ -61,13 +60,11 @@
   ;; doesn't seem very useful: setting it to non-nil via Customize
   ;; probably won't do the right thing.
   "Minor mode for undoing in Gnus buffers."
-  :type 'boolean
-  :group 'gnus-undo)
+  :type 'boolean)
 
 (defcustom gnus-undo-mode-hook nil
   "Hook called in all `gnus-undo-mode' buffers."
-  :type 'hook
-  :group 'gnus-undo)
+  :type 'hook)
 
 ;;; Internal variables.
 
@@ -130,15 +127,10 @@
 	gnus-undo-boundary t))
 
 (defun gnus-undo-register (form)
-  "Register FORMS as something to be performed to undo a change.
-FORMS may use backtick quote syntax."
+  "Register FORMS as something to be performed to undo a change."
   (when gnus-undo-mode
     (gnus-undo-register-1
-     `(lambda ()
-	,form))))
-
-(put 'gnus-undo-register 'lisp-indent-function 0)
-(put 'gnus-undo-register 'edebug-form-spec '(body))
+     `(lambda () ,form))))
 
 (defun gnus-undo-register-1 (function)
   "Register FUNCTION as something to be performed to undo a change."

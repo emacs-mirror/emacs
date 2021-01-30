@@ -399,6 +399,7 @@ only affect the Gcc copy, but not the original message."
 
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
+  (declare (indent 1) (debug t))
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
 	(winconf-name (make-symbol "gnus-setup-message-winconf-name"))
 	(buffer (make-symbol "gnus-setup-message-buffer"))
@@ -473,8 +474,8 @@ only affect the Gcc copy, but not the original message."
              (let ((mbl1 mml-buffer-list))
                (setq mml-buffer-list mbl)  ;; Global value
                (setq-local mml-buffer-list mbl1) ;; Local value
-               (add-hook 'change-major-mode-hook 'mml-destroy-buffers nil t)
-               (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
+               (add-hook 'change-major-mode-hook #'mml-destroy-buffers nil t)
+               (add-hook 'kill-buffer-hook #'mml-destroy-buffers t t))
            (mml-destroy-buffers)
            (setq mml-buffer-list mbl)))
        (message-hide-headers)
@@ -595,9 +596,6 @@ instead."
 		 `(gnus-summary-mark-article-as-forwarded ',to-be-marked)
 	       `(gnus-summary-mark-article-as-replied ',to-be-marked)))))
      'send)))
-
-(put 'gnus-setup-message 'lisp-indent-function 1)
-(put 'gnus-setup-message 'edebug-form-spec '(form body))
 
 ;;; Post news commands of Gnus group mode and summary mode
 

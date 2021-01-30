@@ -48,16 +48,6 @@
 
 ;;; Code:
 
-;; eval this before editing
-[(progn
-   (put 'nnmaildir--with-nntp-buffer 'lisp-indent-function 0)
-   (put 'nnmaildir--with-work-buffer 'lisp-indent-function 0)
-   (put 'nnmaildir--with-nov-buffer  'lisp-indent-function 0)
-   (put 'nnmaildir--with-move-buffer 'lisp-indent-function 0)
-   (put 'nnmaildir--condcase         'lisp-indent-function 2)
-   )
-]
-
 (require 'nnheader)
 (require 'gnus)
 (require 'gnus-util)
@@ -264,19 +254,19 @@ This variable is set by `nnmaildir-request-article'.")
   (eval param t))
 
 (defmacro nnmaildir--with-nntp-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer nntp-server-buffer
      ,@body))
 (defmacro nnmaildir--with-work-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer (gnus-get-buffer-create " *nnmaildir work*")
      ,@body))
 (defmacro nnmaildir--with-nov-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer (gnus-get-buffer-create " *nnmaildir nov*")
      ,@body))
 (defmacro nnmaildir--with-move-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer (gnus-get-buffer-create " *nnmaildir move*")
      ,@body))
 
@@ -358,7 +348,7 @@ This variable is set by `nnmaildir-request-article'.")
   string)
 
 (defmacro nnmaildir--condcase (errsym body &rest handler)
-  (declare (debug (sexp form body)))
+  (declare (indent 2) (debug (sexp form body)))
   `(condition-case ,errsym
        (let ((system-messages-locale "C")) ,body)
      (error . ,handler)))

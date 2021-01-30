@@ -87,6 +87,7 @@ This is a compatibility function for different Emacsen."
 
 (defmacro gnus-eval-in-buffer-window (buffer &rest forms)
   "Pop to BUFFER, evaluate FORMS, and then return to the original window."
+  (declare (indent 1) (debug t))
   (let ((tempvar (make-symbol "GnusStartBufferWindow"))
 	(w (make-symbol "w"))
 	(buf (make-symbol "buf")))
@@ -102,9 +103,6 @@ This is a compatibility function for different Emacsen."
 	       (pop-to-buffer ,buf))
 	     ,@forms)
 	 (select-window ,tempvar)))))
-
-(put 'gnus-eval-in-buffer-window 'lisp-indent-function 1)
-(put 'gnus-eval-in-buffer-window 'edebug-form-spec '(form body))
 
 (defsubst gnus-goto-char (point)
   (and point (goto-char point)))
@@ -302,31 +300,28 @@ Symbols are also allowed; their print names are used instead."
 
 (defmacro gnus-local-set-keys (&rest plist)
   "Set the keys in PLIST in the current keymap."
+  (declare (indent 1))
   `(gnus-define-keys-1 (current-local-map) ',plist))
 
 (defmacro gnus-define-keys (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
-  `(gnus-define-keys-1 (quote ,keymap) (quote ,plist)))
+  (declare (indent 1))
+  `(gnus-define-keys-1 ,(if (symbolp keymap) keymap `',keymap) (quote ,plist)))
 
 (defmacro gnus-define-keys-safe (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP without overwriting previous definitions."
+  (declare (indent 1))
   `(gnus-define-keys-1 (quote ,keymap) (quote ,plist) t))
-
-(put 'gnus-define-keys 'lisp-indent-function 1)
-(put 'gnus-define-keys-safe 'lisp-indent-function 1)
-(put 'gnus-local-set-keys 'lisp-indent-function 1)
 
 (defmacro gnus-define-keymap (keymap &rest plist)
   "Define all keys in PLIST in KEYMAP."
+  (declare (indent 1))
   `(gnus-define-keys-1 ,keymap (quote ,plist)))
-
-(put 'gnus-define-keymap 'lisp-indent-function 1)
 
 (defun gnus-define-keys-1 (keymap plist &optional safe)
   (when (null keymap)
     (error "Can't set keys in a null keymap"))
-  (cond ((symbolp keymap)
-	 (setq keymap (symbol-value keymap)))
+  (cond ((symbolp keymap) (error "First arg should be a keymap object"))
 	((keymapp keymap))
 	((listp keymap)
 	 (set (car keymap) nil)
@@ -856,63 +851,9 @@ the user are disabled, it is recommended that only the most minimal
 operations are performed by FORMS.  If you wish to assign many
 complicated values atomically, compute the results into temporary
 variables and then do only the assignment atomically."
+  (declare (indent 0) (debug t))
   `(let ((inhibit-quit gnus-atomic-be-safe))
      ,@forms))
-
-(put 'gnus-atomic-progn 'lisp-indent-function 0)
-
-(defmacro gnus-atomic-progn-assign (protect &rest forms)
-  "Evaluate FORMS, but ensure that the variables listed in PROTECT
-are not changed if anything in FORMS signals an error or otherwise
-non-locally exits.  The variables listed in PROTECT are updated atomically.
-It is safe to use gnus-atomic-progn-assign with long computations.
-
-Note that if any of the symbols in PROTECT were unbound, they will be
-set to nil on a successful assignment.  In case of an error or other
-non-local exit, it will still be unbound."
-  (let* ((temp-sym-map (mapcar (lambda (x) (list (make-symbol
-						  (concat (symbol-name x)
-							  "-tmp"))
-						 x))
-			       protect))
-	 (sym-temp-map (mapcar (lambda (x) (list (cadr x) (car x)))
-			       temp-sym-map))
-	 (temp-sym-let (mapcar (lambda (x) (list (car x)
-						 `(and (boundp ',(cadr x))
-						       ,(cadr x))))
-			       temp-sym-map))
-	 (sym-temp-let sym-temp-map)
-	 (temp-sym-assign (apply 'append temp-sym-map))
-	 (sym-temp-assign (apply 'append sym-temp-map))
-	 (result (make-symbol "result-tmp")))
-    `(let (,@temp-sym-let
-	   ,result)
-       (let ,sym-temp-let
-	 (setq ,result (progn ,@forms))
-	 (setq ,@temp-sym-assign))
-       (let ((inhibit-quit gnus-atomic-be-safe))
-	 (setq ,@sym-temp-assign))
-       ,result)))
-
-(put 'gnus-atomic-progn-assign 'lisp-indent-function 1)
-;(put 'gnus-atomic-progn-assign 'edebug-form-spec '(sexp body))
-
-(defmacro gnus-atomic-setq (&rest pairs)
-  "Similar to setq, except that the real symbols are only assigned when
-there are no errors.  And when the real symbols are assigned, they are
-done so atomically.  If other variables might be changed via side-effect,
-see gnus-atomic-progn-assign.  It is safe to use gnus-atomic-setq
-with potentially long computations."
-  (let ((tpairs pairs)
-	syms)
-    (while tpairs
-      (push (car tpairs) syms)
-      (setq tpairs (cddr tpairs)))
-    `(gnus-atomic-progn-assign ,syms
-       (setq ,@pairs))))
-
-;(put 'gnus-atomic-setq 'edebug-form-spec '(body))
-
 
 ;;; Functions for saving to babyl/mail files.
 
@@ -1197,6 +1138,7 @@ ARG is passed to the first function."
 
 ;; Fixme: Why not use `with-output-to-temp-buffer'?
 (defmacro gnus-with-output-to-file (file &rest body)
+  (declare (indent 1) (debug t))
   (let ((buffer (make-symbol "output-buffer"))
         (size (make-symbol "output-buffer-size"))
         (leng (make-symbol "output-buffer-length"))
@@ -1218,9 +1160,6 @@ ARG is passed to the first function."
          (let ((coding-system-for-write 'no-conversion))
 	 (write-region (substring ,buffer 0 ,leng) nil ,file
 		       ,append 'no-msg))))))
-
-(put 'gnus-with-output-to-file 'lisp-indent-function 1)
-(put 'gnus-with-output-to-file 'edebug-form-spec '(form body))
 
 (defun gnus-add-text-properties-when
   (property value start end properties &optional object)
@@ -1358,7 +1297,7 @@ REJECT-NEWLINES is nil, remove them; otherwise raise an error.
 If LINE-LENGTH is set and the string (or any line in the string
 if REJECT-NEWLINES is nil) is longer than that number, raise an
 error.  Common line length for input characters are 76 plus CRLF
-(RFC 2045 MIME), 64 plus CRLF (RFC 1421 PEM), and 1000 including
+\(RFC 2045 MIME), 64 plus CRLF (RFC 1421 PEM), and 1000 including
 CRLF (RFC 5321 SMTP).
 
 If NOCHECK, don't check anything, but just repad."
@@ -1468,16 +1407,14 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
     (unwind-protect
         (progn
           (or iswitchb-mode
-	      (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
+	      (add-hook 'minibuffer-setup-hook #'iswitchb-minibuffer-setup))
           (iswitchb-read-buffer prompt def require-match))
       (or iswitchb-mode
-	  (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
-
-(put 'gnus-parse-without-error 'lisp-indent-function 0)
-(put 'gnus-parse-without-error 'edebug-form-spec '(body))
+	  (remove-hook 'minibuffer-setup-hook #'iswitchb-minibuffer-setup)))))
 
 (defmacro gnus-parse-without-error (&rest body)
   "Allow continuing onto the next line even if an error occurs."
+  (declare (indent 0) (debug t))
   `(while (not (eobp))
      (condition-case ()
 	 (progn
