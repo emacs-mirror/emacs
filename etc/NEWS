@@ -505,7 +505,7 @@ time zones will use a form like "+0100" instead of "CET".
 ** Dired
 
 ---
-*** Behaviour change on 'dired-clean-confirm-killing-deleted-buffers'.
+*** Behavior change on 'dired-clean-confirm-killing-deleted-buffers'.
 Previously, if 'dired-clean-up-buffers-too' was non-nil, and
 'dired-clean-confirm-killing-deleted-buffers' was nil, the buffers
 wouldn't be killed.  This combination will now kill the buffers.
