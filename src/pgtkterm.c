@@ -2878,6 +2878,7 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 			 int y, enum text_cursor_kinds cursor_type,
 			 int cursor_width, bool on_p, bool active_p)
 {
+  struct frame *f = XFRAME (w->frame);
   PGTK_TRACE ("draw_window_cursor: %d, %d, %d, %d, %d, %d.",
 	      x, y, cursor_type, cursor_width, on_p, active_p);
   if (on_p)
@@ -2922,11 +2923,15 @@ pgtk_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x,
 	    }
 	}
 
-#ifdef HAVE_X_I18N
       if (w == XWINDOW (f->selected_window))
-	if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMPreeditPosition))
-	  xic_set_preeditarea (w, x, y);
-#endif
+	{
+	  int frame_x =
+	    WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w);
+	  int frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, y);
+	  pgtk_im_set_cursor_location (f, frame_x, frame_y,
+				       w->phys_cursor_width,
+				       w->phys_cursor_height);
+	}
     }
 
 }
