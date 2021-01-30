@@ -1,4 +1,4 @@
-;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
+;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

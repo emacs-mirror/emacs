@@ -1,4 +1,4 @@
-;;; gnus-srvr.el --- virtual server support for Gnus
+;;; gnus-srvr.el --- virtual server support for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -297,7 +297,7 @@ The following commands are available:
      (point)
      (prog1 (1+ (point))
        ;; Insert the text.
-       (eval gnus-server-line-format-spec))
+       (eval gnus-server-line-format-spec t))
      (list 'gnus-server (intern gnus-tmp-name)
            'gnus-named-server (intern (gnus-method-to-server method t))))))
 
@@ -626,7 +626,7 @@ The following commands are available:
   (let ((info (gnus-server-to-method server)))
     (gnus-edit-form
      info "Showing the server."
-     (lambda (form)
+     (lambda (_form)
        (gnus-server-position-point))
      'edit-server)))
 

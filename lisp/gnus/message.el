@@ -3675,7 +3675,7 @@ are null."
 	     ((functionp message-signature)
 	      (funcall message-signature))
 	     ((listp message-signature)
-	      (eval message-signature))
+	      (eval message-signature t))
 	     (t message-signature)))
 	   signature-file)
       (setq signature
@@ -3992,11 +3992,12 @@ Just \\[universal-argument] as argument means don't indent, insert no
 prefix, and don't delete any headers."
   (interactive "P")
   ;; eval the let forms contained in message-cite-style
-  (eval
-   `(let ,(if (symbolp message-cite-style)
-	      (symbol-value message-cite-style)
-	    message-cite-style)
-      (message--yank-original-internal ',arg))))
+  (let ((bindings (if (symbolp message-cite-style)
+	              (symbol-value message-cite-style)
+	            message-cite-style)))
+    (cl-progv (mapcar #'car bindings)
+        (mapcar (lambda (binding) (eval (cadr binding) t)) bindings)
+      (message--yank-original-internal arg))))
 
 (defun message-yank-buffer (buffer)
   "Insert BUFFER into the current buffer and quote it."
@@ -4627,7 +4628,7 @@ Valid types are `send', `return', `exit', `kill' and `postpone'."
 	(funcall action))
        ;; Something to be evalled.
        (t
-	(eval action))))))
+	(eval action t))))))
 
 (defun message-send-mail-partially ()
   "Send mail as message/partial."
@@ -4943,7 +4944,7 @@ that instead."
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
-	    (when (eval message-mailer-swallows-blank-line)
+	    (when (eval message-mailer-swallows-blank-line t)
 	      (newline))
 	    (when message-interactive
 	      (with-current-buffer errbuf

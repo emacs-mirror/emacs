@@ -1,4 +1,4 @@
-;;; mm-bodies.el --- Functions for decoding MIME things
+;;; mm-bodies.el --- Functions for decoding MIME things  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 

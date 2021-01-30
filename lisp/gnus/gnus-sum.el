@@ -3186,7 +3186,7 @@ The following commands are available:
                           ;; Copy the global value of the variable.
                           (symbol-value (car local))
                         ;; Use the value from the list.
-                        (eval (cdr local)))))
+                        (eval (cdr local) t))))
           (set (make-local-variable (car local)) global))
       ;; Simple nil-valued local variable.
       (set (make-local-variable local) nil))))
@@ -3850,7 +3850,7 @@ buffer that was in action when the last article was fetched."
     (condition-case ()
 	(put-text-property
 	 (point)
-	 (progn (eval gnus-summary-line-format-spec) (point))
+	 (progn (eval gnus-summary-line-format-spec t) (point))
 	 'gnus-number gnus-tmp-number)
       (error (gnus-message 5 "Error updating the summary line")))
     (when (gnus-visual-p 'summary-highlight 'highlight)
@@ -3971,14 +3971,14 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
 	     (my-format "%b %d '%y"))
 	(let* ((difference (time-subtract now messy-date))
 	       (templist gnus-user-date-format-alist)
-	       (top (eval (caar templist))))
+	       (top (eval (caar templist) t)))
 	  (while (if (numberp top) (time-less-p top difference) (not top))
 	    (progn
 	      (setq templist (cdr templist))
-	      (setq top (eval (caar templist)))))
+	      (setq top (eval (caar templist) t))))
 	  (if (stringp (cdr (car templist)))
 	      (setq my-format (cdr (car templist)))))
-	(format-time-string (eval my-format) messy-date))
+	(format-time-string (eval my-format t) messy-date))
     (error "  ?   ")))
 
 (defun gnus-summary-set-local-parameters (group)
@@ -3997,8 +3997,8 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
 	     ;; buffer-local, whereas just parameters like `gcc-self',
 	     ;; `timestamp', etc. should not be bound as variables.
 	     (if (boundp (car elem))
-		 (set (make-local-variable (car elem)) (eval (nth 1 elem)))
-	       (eval (nth 1 elem))))))))
+		 (set (make-local-variable (car elem)) (eval (nth 1 elem) t))
+	       (eval (nth 1 elem) t)))))))
 
 (defun gnus-summary-read-group (group &optional show-all no-article
 				      kill-buffer no-display backward
@@ -5557,7 +5557,7 @@ or a straight list of headers."
             (setq gnus-tmp-thread thread)
 	    (put-text-property
 	     (point)
-	     (progn (eval gnus-summary-line-format-spec) (point))
+	     (progn (eval gnus-summary-line-format-spec t) (point))
 	     'gnus-number number)
 	    (when gnus-visual-p
 	      (forward-line -1)
@@ -6265,7 +6265,7 @@ If WHERE is `summary', the summary mode line format will be used."
 		  ""))
 	       bufname-length max-len
 	       gnus-tmp-header)	;; passed as argument to any user-format-funcs
-	  (setq mode-string (eval mformat))
+	  (setq mode-string (eval mformat t))
 	  (setq bufname-length (if (string-match "%b" mode-string)
 				   (- (length
 				       (buffer-name
@@ -7863,7 +7863,7 @@ If BACKWARD, the previous article is selected instead of the next."
 	  (switch-to-buffer gnus-group-buffer)
 	  (when group
 	    (gnus-group-jump-to-group group))
-	  (eval (cadr (assq key keystrokes)))
+	  (eval (cadr (assq key keystrokes)) t)
 	  (setq group (gnus-group-group-name))
 	  (switch-to-buffer obuf))
 	(setq ended nil))
@@ -10617,6 +10617,8 @@ confirmation before the articles are deleted."
     (gnus-set-mode-line 'summary)
     not-deleted))
 
+(defvar message-options-set-recipient)
+
 (defun gnus-summary-edit-article (&optional arg)
   "Edit the current article.
 This will have permanent effect only in mail groups.
@@ -12366,7 +12368,7 @@ save those articles instead."
 		    ;; Form.
 		    (save-restriction
 		      (widen)
-		      (setq result (eval match)))))
+		      (setq result (eval match t)))))
 	      (setq split-name (cdr method))
 	      (cond ((stringp result)
 		     (push (expand-file-name
@@ -12956,7 +12958,7 @@ treated as multipart/mixed."
 		    (nomove "" nil nil ,keystroke)))
       (let ((func (gnus-summary-make-marking-command-1
 		   mark (car lway) lway name)))
-	(setq func (eval func))
+	(setq func (eval func t))
 	(define-key map (nth 4 lway) func)))))
 
 (defun gnus-summary-make-marking-command-1 (mark way lway name)

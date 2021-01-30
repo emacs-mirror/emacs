@@ -1,4 +1,4 @@
-;;; smiley.el --- displaying smiley faces
+;;; smiley.el --- displaying smiley faces  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; gnus-rfc1843.el --- HZ (rfc1843) decoding interface functions for Gnus
+;;; gnus-rfc1843.el --- HZ (rfc1843) decoding interface functions for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 

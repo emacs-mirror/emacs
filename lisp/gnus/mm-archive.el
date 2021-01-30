@@ -1,4 +1,4 @@
-;;; mm-archive.el --- Functions for parsing archive files as MIME
+;;; mm-archive.el --- Functions for parsing archive files as MIME  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 

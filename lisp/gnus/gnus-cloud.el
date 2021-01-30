@@ -1,4 +1,4 @@
-;;; gnus-cloud.el --- storing and retrieving data via IMAP
+;;; gnus-cloud.el --- storing and retrieving data via IMAP  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
@@ -128,7 +128,7 @@ easy interactive way to set this from the Server buffer."
 
    ((eq gnus-cloud-storage-method 'epg)
     (let ((context (epg-make-context 'OpenPGP))
-          cipher)
+          ) ;; cipher
       (setf (epg-context-armor context) t)
       (setf (epg-context-textmode context) t)
       (let ((data (epg-encrypt-string context
@@ -344,15 +344,15 @@ easy interactive way to set this from the Server buffer."
                   (group &optional previous method))
 
 (defun gnus-cloud-ensure-cloud-group ()
-  (let ((method (if (stringp gnus-cloud-method)
-                    (gnus-server-to-method gnus-cloud-method)
-                  gnus-cloud-method)))
+  ;; (let ((method (if (stringp gnus-cloud-method)
+  ;;                   (gnus-server-to-method gnus-cloud-method)
+  ;;                 gnus-cloud-method)))
     (unless (or (gnus-active gnus-cloud-group-name)
                 (gnus-activate-group gnus-cloud-group-name nil nil
                                      gnus-cloud-method))
       (and (gnus-request-create-group gnus-cloud-group-name gnus-cloud-method)
            (gnus-activate-group gnus-cloud-group-name nil nil gnus-cloud-method)
-           (gnus-subscribe-group gnus-cloud-group-name)))))
+           (gnus-subscribe-group gnus-cloud-group-name)))) ;; )
 
 (defun gnus-cloud-upload-all-data ()
   "Upload all data (newsrc and files) to the Gnus Cloud."

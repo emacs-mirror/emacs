@@ -1,4 +1,4 @@
-;;; gnus-html.el --- Render HTML in a buffer.
+;;; gnus-html.el --- Render HTML in a buffer.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -151,8 +151,8 @@ fit these criteria."
 
 (defun gnus-html-wash-images ()
   "Run through current buffer and replace img tags by images."
-  (let (tag parameters string start end images
-	    inhibit-images blocked-images)
+  (let ( parameters start end ;; tag string images
+	 inhibit-images blocked-images)
     (if (buffer-live-p gnus-summary-buffer)
 	(with-current-buffer gnus-summary-buffer
 	  (setq inhibit-images gnus-inhibit-images
@@ -229,7 +229,7 @@ fit these criteria."
 			       (> width 4)))
 		  (gnus-html-display-image url start end alt-text))))))))))
 
-(defun gnus-html-display-image (url start end &optional alt-text)
+(defun gnus-html-display-image (url _start _end &optional alt-text)
   "Display image at URL on text from START to END.
 Use ALT-TEXT for the image string."
   (or alt-text (setq alt-text "*"))
@@ -248,7 +248,7 @@ Use ALT-TEXT for the image string."
       (gnus-html-put-image (gnus-html-get-image-data url) url alt-text))))
 
 (defun gnus-html-wash-tags ()
-  (let (tag parameters string start end images url)
+  (let (tag parameters start end url) ;; string images
     (gnus-html-pre-wash)
     (gnus-html-wash-images)
 

@@ -1,4 +1,4 @@
-;;; gnus-spec.el --- format spec functions for Gnus
+;;; gnus-spec.el --- format spec functions for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -628,8 +628,8 @@ or to characters when given a pad value."
 If PROPS, insert the result."
   (let ((form (gnus-parse-format format alist props)))
     (if props
-	(add-text-properties (point) (progn (eval form) (point)) props)
-      (eval form))))
+	(add-text-properties (point) (progn (eval form t) (point)) props)
+      (eval form t))))
 
 (defun gnus-set-format (type &optional insertable)
   (set (intern (format "gnus-%s-line-format-spec" type))

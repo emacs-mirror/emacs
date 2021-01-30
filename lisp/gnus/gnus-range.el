@@ -1,4 +1,4 @@
-;;; gnus-range.el --- range and sequence functions for Gnus
+;;; gnus-range.el --- range and sequence functions for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -87,7 +87,7 @@ Both ranges must be in ascending order."
   (setq range2 (gnus-range-normalize range2))
   (let* ((new-range (cons nil (copy-sequence range1)))
          (r new-range)
-         (safe t))
+         ) ;; (safe t)
     (while (cdr r)
       (let* ((r1 (cadr r))
              (r2 (car range2))

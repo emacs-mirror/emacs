@@ -1,4 +1,4 @@
-;;; mm-view.el --- functions for viewing MIME objects
+;;; mm-view.el --- functions for viewing MIME objects  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -137,7 +137,7 @@ This is only used if `mm-inline-large-images' is set to
 		 (equal "multipart" (mm-handle-media-supertype elem)))
 	(mm-w3m-cid-retrieve-1 url elem)))))
 
-(defun mm-w3m-cid-retrieve (url &rest args)
+(defun mm-w3m-cid-retrieve (url &rest _args)
   "Insert a content pointed by URL if it has the cid: scheme."
   (when (string-match "\\`cid:" url)
     (or (catch 'found-handle
@@ -148,6 +148,9 @@ This is only used if `mm-inline-large-images' is set to
 	(prog1
 	    nil
 	  (message "Failed to find \"Content-ID: %s\"" url)))))
+
+(defvar w3m-force-redisplay)
+(defvar w3m-safe-url-regexp)
 
 (defun mm-inline-text-html-render-with-w3m (handle)
   "Render a text/html part using emacs-w3m."
@@ -396,7 +399,7 @@ This is only used if `mm-inline-large-images' is set to
 	  (delete-region ,(copy-marker b t)
 			 ,(point-marker)))))))
 
-(defun mm-inline-audio (handle)
+(defun mm-inline-audio (_handle)
   (message "Not implemented"))
 
 (defun mm-view-message ()
@@ -412,6 +415,10 @@ This is only used if `mm-inline-large-images' is set to
 	    (mm-merge-handles gnus-article-mime-handles handles))))
   (fundamental-mode)
   (goto-char (point-min)))
+
+(defvar gnus-original-article-buffer)
+(defvar gnus-article-prepare-hook)
+(defvar gnus-displaying-mime)
 
 (defun mm-inline-message (handle)
   (let ((b (point))

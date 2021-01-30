@@ -1,4 +1,4 @@
-;;; gnus-bookmark.el --- Bookmarks in Gnus
+;;; gnus-bookmark.el --- Bookmarks in Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
@@ -350,7 +350,7 @@ deletion, or > if it is flagged for displaying."
       (switch-to-buffer (gnus-get-buffer-create "*Gnus Bookmark List*"))
     (set-buffer (gnus-get-buffer-create "*Gnus Bookmark List*")))
   (let ((inhibit-read-only t)
-	alist name start end)
+	alist name) ;; start end
     (erase-buffer)
     (insert "% Gnus Bookmark\n- --------\n")
     (add-text-properties (point-min) (point)

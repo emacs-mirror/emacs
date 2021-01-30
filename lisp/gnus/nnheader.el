@@ -1,4 +1,4 @@
-;;; nnheader.el --- header access macros for Gnus and its backends
+;;; nnheader.el --- header access macros for Gnus and its backends  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1987-1990, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.

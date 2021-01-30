@@ -1,4 +1,4 @@
-;;; nnoo.el --- OO Gnus Backends
+;;; nnoo.el --- OO Gnus Backends  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -257,7 +257,7 @@
 	      nnoo-state-alist))
   t)
 
-(defun nnoo-status-message (backend server)
+(defun nnoo-status-message (backend _server)
   (nnheader-get-report backend))
 
 (defun nnoo-server-opened (backend server)

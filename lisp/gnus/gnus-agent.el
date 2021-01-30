@@ -1,4 +1,4 @@
-;;; gnus-agent.el --- unplugged support for Gnus
+;;; gnus-agent.el --- unplugged support for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -820,7 +820,7 @@ be a select method."
 	     (condition-case err
 		 (while t
 		   (let ((bgn (point)))
-		     (eval (read (current-buffer)))
+		     (eval (read (current-buffer)) t)
 		     (delete-region bgn (point))))
 	       (end-of-file
 		(delete-file (gnus-agent-lib-file "flags")))
@@ -2666,7 +2666,7 @@ The following commands are available:
      (point)
      (prog1 (1+ (point))
        ;; Insert the text.
-       (eval gnus-category-line-format-spec))
+       (eval gnus-category-line-format-spec t))
      (list 'gnus-category gnus-tmp-name))))
 
 (defun gnus-enter-category-buffer ()

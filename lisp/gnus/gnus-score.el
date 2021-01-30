@@ -1,4 +1,4 @@
-;;; gnus-score.el --- scoring code for Gnus
+;;; gnus-score.el --- scoring code for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -1235,7 +1235,7 @@ If FORMAT, also format the current score file."
     (let ((mark (car (gnus-score-get 'mark alist)))
 	  (expunge (car (gnus-score-get 'expunge alist)))
 	  (mark-and-expunge (car (gnus-score-get 'mark-and-expunge alist)))
-	  (score-fn (car (gnus-score-get 'score-fn alist)))
+	  ;; (score-fn (car (gnus-score-get 'score-fn alist)))
 	  (files (gnus-score-get 'files alist))
 	  (exclude-files (gnus-score-get 'exclude-files alist))
 	  (orphan (car (gnus-score-get 'orphan alist)))
@@ -1263,7 +1263,7 @@ If FORMAT, also format the current score file."
 				   (if adapt-file (cons adapt-file files)
 				     files)))))
       (when (and eval (not global))
-	(eval eval))
+	(eval eval t))
       ;; We then expand any exclude-file directives.
       (setq gnus-scores-exclude-files
 	    (nconc
@@ -2698,7 +2698,7 @@ the score file and its full name, including the directory.")
 
 ;;; Finding score files.
 
-(defun gnus-score-score-files (group)
+(defun gnus-score-score-files (_group)
   "Return a list of all possible score files."
   ;; Search and set any global score files.
   (when gnus-global-score-files

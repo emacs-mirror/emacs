@@ -1,4 +1,4 @@
-;;; mm-partial.el --- showing message/partial
+;;; mm-partial.el --- showing message/partial  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -50,6 +50,8 @@
 		  (push nhandles phandles))))))))
     phandles))
 
+(defvar gnus-displaying-mime)
+
 ;;;###autoload
 (defun mm-inline-partial (handle &optional no-display)
   "Show the partial part of HANDLE.
@@ -60,7 +62,7 @@ If NO-DISPLAY is nil, display it.  Otherwise, do nothing after replacing."
 	phandles
 	(b (point)) (n 1) total
 	phandle nn ntotal
-	gnus-displaying-mime handles buffer)
+	gnus-displaying-mime handles) ;; buffer
     (unless (mm-handle-cache handle)
       (unless id
 	(error "Can not find message/partial id"))

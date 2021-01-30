@@ -1,4 +1,4 @@
-;;; gnus-delay.el --- Delayed posting of articles
+;;; gnus-delay.el --- Delayed posting of articles  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -82,7 +82,7 @@ generated when the article is sent."
 	  gnus-delay-default-delay)))
   ;; Allow spell checking etc.
   (run-hooks 'message-send-hook)
-  (let (num unit days year month day hour minute deadline)
+  (let (num unit year month day hour minute deadline) ;; days
     (cond ((string-match
 	    "\\([0-9][0-9][0-9]?[0-9]?\\)-\\([0-9]+\\)-\\([0-9]+\\)"
 	    delay)
@@ -167,7 +167,7 @@ generated when the article is sent."
 	    (message "Delay header missing for article %d" article)))))))
 
 ;;;###autoload
-(defun gnus-delay-initialize (&optional no-keymap no-check)
+(defun gnus-delay-initialize (&optional _no-keymap no-check)
   "Initialize the gnus-delay package.
 This sets up a key binding in `message-mode' to delay a message.
 This tells Gnus to look for delayed messages after getting new news.

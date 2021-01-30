@@ -1,4 +1,4 @@
-;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
+;;; gnus-salt.el --- alternate summary mode interfaces for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2001-2021 Free Software Foundation, Inc.
 
@@ -609,7 +609,7 @@ Two predefined functions are available:
 	 beg end)
     (add-text-properties
      (setq beg (point))
-     (setq end (progn (eval gnus-tree-line-format-spec) (point)))
+     (setq end (progn (eval gnus-tree-line-format-spec t) (point)))
      (list 'gnus-number gnus-tmp-number))
     (when (or t (gnus-visual-p 'tree-highlight 'highlight))
       (gnus-tree-highlight-node gnus-tmp-number beg end))))

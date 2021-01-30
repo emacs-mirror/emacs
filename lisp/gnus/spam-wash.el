@@ -1,4 +1,4 @@
-;;; spam-wash.el --- wash spam before analysis
+;;; spam-wash.el --- wash spam before analysis  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004, 2007-2021 Free Software Foundation, Inc.
 
@@ -43,7 +43,7 @@
 	     (handles (or (mm-dissect-buffer nil gnus-article-loose-mime)
 			  (and gnus-article-emulate-mime
 			       (mm-uu-dissect))))
-	     handle)
+	     ) ;; handle
 	  (when gnus-article-mime-handles
 	    (mm-destroy-parts gnus-article-mime-handles)
 	    (setq gnus-article-mime-handle-alist nil))

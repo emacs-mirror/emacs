@@ -1,4 +1,4 @@
-;;; nnmh.el --- mhspool access for Gnus
+;;; nnmh.el --- mhspool access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -72,7 +72,7 @@ as unread by Gnus.")
 
 (nnoo-define-basics nnmh)
 
-(deffoo nnmh-retrieve-headers (articles &optional newsgroup server fetch-old)
+(deffoo nnmh-retrieve-headers (articles &optional newsgroup server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let* ((file nil)
@@ -147,7 +147,7 @@ as unread by Gnus.")
 	 (save-excursion (nnmail-find-file file))
 	 (string-to-number (file-name-nondirectory file)))))
 
-(deffoo nnmh-request-group (group &optional server dont-check info)
+(deffoo nnmh-request-group (group &optional server dont-check _info)
   (nnheader-init-server-buffer)
   (nnmh-possibly-change-directory group server)
   (let ((pathname (nnmail-group-pathname group nnmh-directory))
@@ -188,8 +188,10 @@ as unread by Gnus.")
 	  (nnheader-report 'nnmh "Empty group %s" group)
 	  (nnheader-insert (format "211 0 1 0 %s\n" group))))))))))
 
-(deffoo nnmh-request-scan (&optional group server)
+(deffoo nnmh-request-scan (&optional group _server)
   (nnmail-get-new-mail 'nnmh nil nnmh-directory group))
+
+(defvar nnmh-toplev)
 
 (deffoo nnmh-request-list (&optional server dir)
   (nnheader-insert "")
@@ -201,13 +203,12 @@ as unread by Gnus.")
   (setq nnmh-group-alist (nnmail-get-active))
   t)
 
-(defvar nnmh-toplev)
 (defun nnmh-request-list-1 (dir)
   (setq dir (expand-file-name dir))
   ;; Recurse down all directories.
   (let ((files (nnheader-directory-files dir t nil t))
 	(max 0)
-	min rdir num subdirectoriesp file)
+	min num subdirectoriesp file) ;; rdir
     ;; Recurse down directories.
     (setq subdirectoriesp
 	  ;; link number always 1 on MS Windows :(
@@ -252,7 +253,7 @@ as unread by Gnus.")
 	  (or min 1))))))
   t)
 
-(deffoo nnmh-request-newgroups (date &optional server)
+(deffoo nnmh-request-newgroups (_date &optional server)
   (nnmh-request-list server))
 
 (deffoo nnmh-request-expire-articles (articles newsgroup
@@ -291,11 +292,11 @@ as unread by Gnus.")
     (nnheader-message 5 "")
     (nconc rest articles)))
 
-(deffoo nnmh-close-group (group &optional server)
+(deffoo nnmh-close-group (_group &optional _server)
   t)
 
-(deffoo nnmh-request-move-article (article group server accept-form
-					   &optional last move-is-internal)
+(deffoo nnmh-request-move-article ( article group server accept-form
+				    &optional _last _move-is-internal)
   (let ((buf (gnus-get-buffer-create " *nnmh move*"))
 	result)
     (and
@@ -304,7 +305,7 @@ as unread by Gnus.")
      (with-current-buffer buf
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
-       (setq result (eval accept-form))
+       (setq result (eval accept-form t))
        (kill-buffer (current-buffer))
        result)
      (progn
@@ -350,7 +351,7 @@ as unread by Gnus.")
        nil (if (nnheader-be-verbose 5) nil 'nomesg))
       t)))
 
-(deffoo nnmh-request-create-group (group &optional server args)
+(deffoo nnmh-request-create-group (group &optional server _args)
   (nnheader-init-server-buffer)
   (unless (assoc group nnmh-group-alist)
     (let (active)

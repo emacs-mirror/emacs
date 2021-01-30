@@ -1,4 +1,4 @@
-;;; canlock.el --- functions for Cancel-Lock feature
+;;; canlock.el --- functions for Cancel-Lock feature  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-1999, 2001-2021 Free Software Foundation, Inc.
 

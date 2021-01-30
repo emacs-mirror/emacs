@@ -1,4 +1,4 @@
-;;; gnus-util.el --- utility functions for Gnus
+;;; gnus-util.el --- utility functions for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -681,6 +681,8 @@ yield \"nnimap:yxa\"."
   (define-key (symbol-value (intern (format "gnus-%s-mode-map" type)))
     [menu-bar edit] 'undefined))
 
+(defvar print-string-length)
+
 (defmacro gnus-bind-print-variables (&rest forms)
   "Bind print-* variables and evaluate FORMS.
 This macro is used with `prin1', `pp', etc. in order to ensure
@@ -1241,7 +1243,7 @@ sure of changing the value of `foo'."
      (setq gnus-info-buffer (current-buffer))
      (gnus-configure-windows 'info)))
 
-(defun gnus-not-ignore (&rest args)
+(defun gnus-not-ignore (&rest _args)
   t)
 
 (defvar gnus-directory-sep-char-regexp "/"
@@ -1381,6 +1383,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 (declare-function iswitchb-minibuffer-setup "iswitchb")
 (defvar iswitchb-temp-buflist)
 (defvar iswitchb-mode)
+(defvar iswitchb-make-buflist-hook)
 
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
@@ -1500,7 +1503,7 @@ Return nil otherwise."
 
 (defvar tool-bar-mode)
 
-(defun gnus-tool-bar-update (&rest ignore)
+(defun gnus-tool-bar-update (&rest _ignore)
   "Update the tool bar."
   (when (and (boundp 'tool-bar-mode)
 	     tool-bar-mode)
@@ -1526,7 +1529,7 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
   (if seqs2_n
       (let* ((seqs (cons seq1 seqs2_n))
 	     (cnt 0)
-	     (heads (mapcar (lambda (seq)
+	     (heads (mapcar (lambda (_seq)
 			      (make-symbol (concat "head"
 						   (int-to-string
 						    (setq cnt (1+ cnt))))))
@@ -1560,7 +1563,7 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
 			 ((memq 'type lst)
 			  (symbol-name system-type))
 			 (t nil)))
-	 codename)
+	 ) ;; codename
     (cond
      ((not (memq 'emacs lst))
       nil)
@@ -1576,9 +1579,9 @@ sequence, this is like `mapcar'.  With several, it is like the Common Lisp
 empty directories from OLD-PATH."
   (when (file-exists-p old-path)
     (let* ((old-dir (file-name-directory old-path))
-	   (old-name (file-name-nondirectory old-path))
+	   ;; (old-name (file-name-nondirectory old-path))
 	   (new-dir (file-name-directory new-path))
-	   (new-name (file-name-nondirectory new-path))
+	   ;; (new-name (file-name-nondirectory new-path))
 	   temp)
       (gnus-make-directory new-dir)
       (rename-file old-path new-path t)

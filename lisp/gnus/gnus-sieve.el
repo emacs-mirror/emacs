@@ -1,4 +1,4 @@
-;;; gnus-sieve.el --- Utilities to manage sieve scripts for Gnus
+;;; gnus-sieve.el --- Utilities to manage sieve scripts for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 

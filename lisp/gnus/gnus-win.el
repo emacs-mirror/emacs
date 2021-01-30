@@ -1,4 +1,4 @@
-;;; gnus-win.el --- window configuration functions for Gnus
+;;; gnus-win.el --- window configuration functions for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -246,7 +246,7 @@ See the Gnus manual for an explanation of the syntax used.")
     ;; return a new SPLIT.
     (while (and (not (assq (car split) gnus-window-to-buffer))
 		(symbolp (car split)) (fboundp (car split)))
-      (setq split (eval split)))
+      (setq split (eval split t)))
     (let* ((type (car split))
 	   (subs (cddr split))
 	   (len (if (eq type 'horizontal) (window-width) (window-height)))
@@ -323,7 +323,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	    (setq sub (append (pop subs) nil))
 	    (while (and (not (assq (car sub) gnus-window-to-buffer))
 			(symbolp (car sub)) (fboundp (car sub)))
-	      (setq sub (eval sub)))
+	      (setq sub (eval sub t)))
 	    (when sub
 	      (push sub comp-subs)
 	      (setq size (cadar comp-subs))
@@ -471,7 +471,7 @@ should have point."
       ;; return a new SPLIT.
       (while (and (not (assq (car split) gnus-window-to-buffer))
 		  (symbolp (car split)) (fboundp (car split)))
-	(setq split (eval split)))
+	(setq split (eval split t)))
 
       (setq type (elt split 0))
       (cond

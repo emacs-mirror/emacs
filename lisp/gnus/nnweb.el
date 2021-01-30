@@ -1,4 +1,4 @@
-;;; nnweb.el --- retrieving articles via web search engines
+;;; nnweb.el --- retrieving articles via web search engines  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -96,7 +96,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (nnoo-define-basics nnweb)
 
-(deffoo nnweb-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nnweb-retrieve-headers (articles &optional group server _fetch-old)
   (nnweb-possibly-change-server group server)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -117,7 +117,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnweb-write-active)
     (nnweb-write-overview group)))
 
-(deffoo nnweb-request-group (group &optional server dont-check info)
+(deffoo nnweb-request-group (group &optional server dont-check _info)
   (nnweb-possibly-change-server group server)
   (unless (or nnweb-ephemeral-p
 	      dont-check
@@ -156,7 +156,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 		     (let ((fetch (nnweb-definition 'id))
 			   (art (when (string-match "^<\\(.*\\)>$" article)
 			          (match-string 1 article)))
-			   active)
+			   ) ;; active
 		       (when (and fetch art)
 			 (setq url (format fetch
 					   (mm-url-form-encode-xwfu art)))
@@ -184,19 +184,19 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnmail-generate-active (list (assoc server nnweb-group-alist)))
     t))
 
-(deffoo nnweb-request-update-info (group info &optional server))
+(deffoo nnweb-request-update-info (_group _info &optional _server))
 
 (deffoo nnweb-asynchronous-p ()
   nil)
 
-(deffoo nnweb-request-create-group (group &optional server args)
+(deffoo nnweb-request-create-group (group &optional server _args)
   (nnweb-possibly-change-server nil server)
   (nnweb-request-delete-group group)
   (push `(,group ,(cons 1 0)) nnweb-group-alist)
   (nnweb-write-active)
   t)
 
-(deffoo nnweb-request-delete-group (group &optional force server)
+(deffoo nnweb-request-delete-group (group &optional _force server)
   (nnweb-possibly-change-server group server)
   (gnus-alist-pull group nnweb-group-alist t)
   (nnweb-write-active)
@@ -317,7 +317,7 @@ Valid types include `google', `dejanews', and `gmane'.")
   (let ((i 0)
 	(case-fold-search t)
 	(active (cadr (assoc nnweb-group nnweb-group-alist)))
-	Subject Score Date Newsgroups From
+	Subject Date Newsgroups From
 	map url mid)
     (unless active
       (push (list nnweb-group (setq active (cons 1 0)))

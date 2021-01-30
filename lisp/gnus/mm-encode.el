@@ -1,4 +1,4 @@
-;;; mm-encode.el --- Functions for encoding MIME things
+;;; mm-encode.el --- Functions for encoding MIME things  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 

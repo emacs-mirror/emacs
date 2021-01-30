@@ -1,4 +1,4 @@
-;;; gnus-eform.el --- a mode for editing forms for Gnus
+;;; gnus-eform.el --- a mode for editing forms for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 

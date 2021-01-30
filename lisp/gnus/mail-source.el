@@ -1,4 +1,4 @@
-;;; mail-source.el --- functions for fetching mail
+;;; mail-source.el --- functions for fetching mail  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -403,16 +403,19 @@ of the second `let' form.
 The variables bound and their default values are described by
 the `mail-source-keyword-map' variable."
   (declare (indent 1) (debug (sexp body)))
-  `(let* ,(mail-source-bind-1 (car type-source))
-     (mail-source-set-1 ,(cadr type-source))
-     ,@body))
-
+  ;; FIXME: Use lexical vars, i.e. don't initialize the vars inside
+  ;; `mail-source-set-1' via `set'.
+  (let ((bindings (mail-source-bind-1 (car type-source))))
+    `(with-suppressed-warnings ((lexical ,@(mapcar #'car bindings)))
+       (dlet ,bindings
+         (mail-source-set-1 ,(cadr type-source))
+         ,@body))))
 
 (defun mail-source-set-1 (source)
   (let* ((type (pop source))
          (defaults (cdr (assq type mail-source-keyword-map)))
          (search '(:max 1))
-         found default value keyword auth-info user-auth pass-auth)
+         found default value keyword user-auth pass-auth) ;; auth-info
 
     ;; append to the search the useful info from the source and the defaults:
     ;; user, host, and port
@@ -494,9 +497,13 @@ the `mail-source-keyword-map' variable."
   "Return a `let' form that binds all common variables.
 See `mail-source-bind'."
   (declare (indent 1) (debug (sexp body)))
-  `(let ,(mail-source-bind-common-1)
-     (mail-source-set-common-1 ,source)
-     ,@body))
+  ;; FIXME: AFAICT this is a Rube Goldberg'esque way to bind and initialize the
+  ;; `plugged` variable.
+  (let ((bindings (mail-source-bind-common-1)))
+    `(with-suppressed-warnings ((lexical ,@(mapcar #'car bindings)))
+       (dlet ,bindings
+         (mail-source-set-common-1 ,source)
+         ,@body))))
 
 (defun mail-source-value (value)
   "Return the value of VALUE."
@@ -506,7 +513,7 @@ See `mail-source-bind'."
     value)
    ;; Function
    ((and (listp value) (symbolp (car value)) (fboundp (car value)))
-    (eval value))
+    (eval value t))
    ;; Just return the value.
    (t
     value)))
@@ -721,12 +728,13 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 (declare-function gnus-get-buffer-create "gnus" (name))
 (defun mail-source-call-script (script)
   (require 'gnus)
-  (let ((background nil)
+  (let (;; (background nil)
 	(stderr (gnus-get-buffer-create " *mail-source-stderr*"))
 	result)
     (when (string-match "& *$" script)
       (setq script (substring script 0 (match-beginning 0))
-	    background 0))
+	    ;; background 0
+	    ))
     (setq result
 	  (call-process shell-file-name nil stderr nil
 			shell-command-switch script))
@@ -810,14 +818,14 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	     ;; The default is to use pop3.el.
 	     (t
 	      (require 'pop3)
-	      (let ((pop3-password password)
-		    (pop3-maildrop user)
-		    (pop3-mailhost server)
-		    (pop3-port port)
-		    (pop3-authentication-scheme
-		     (if (eq authentication 'apop) 'apop 'pass))
-		    (pop3-stream-type stream)
-		    (pop3-leave-mail-on-server leave))
+	      (dlet ((pop3-password password)
+		     (pop3-maildrop user)
+		     (pop3-mailhost server)
+		     (pop3-port port)
+		     (pop3-authentication-scheme
+		      (if (eq authentication 'apop) 'apop 'pass))
+		     (pop3-stream-type stream)
+		     (pop3-leave-mail-on-server leave))
 		(if (or debug-on-quit debug-on-error)
 		    (save-excursion (pop3-movemail mail-source-crash-box))
 		  (condition-case err
@@ -877,12 +885,12 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	     ;; The default is to use pop3.el.
 	     (t
 	      (require 'pop3)
-	      (let ((pop3-password password)
-		    (pop3-maildrop user)
-		    (pop3-mailhost server)
-		    (pop3-port port)
-		    (pop3-authentication-scheme
-		     (if (eq authentication 'apop) 'apop 'pass)))
+	      (dlet ((pop3-password password)
+		     (pop3-maildrop user)
+		     (pop3-mailhost server)
+		     (pop3-port port)
+		     (pop3-authentication-scheme
+		      (if (eq authentication 'apop) 'apop 'pass)))
 		(if (or debug-on-quit debug-on-error)
 		    (save-excursion (pop3-get-message-count))
 		  (condition-case err

@@ -3724,7 +3724,7 @@ just the host name."
 			       depth (+ depth 1)))
 		       depth))))
     ;; Separate foreign select method from group name and collapse.
-   ;; If method contains a server, collapse to non-domain server name,
+    ;; If method contains a server, collapse to non-domain server name,
     ;; otherwise collapse to select method.
     (let* ((colon (string-match ":" group))
 	   (server (and colon (substring group 0 colon)))

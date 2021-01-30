@@ -1,4 +1,4 @@
-;;; spam-stat.el --- detecting spam based on statistics
+;;; spam-stat.el --- detecting spam based on statistics  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -251,9 +251,6 @@ Use `spam-stat-ngood', `spam-stat-nbad', `spam-stat-good',
 (defvar spam-stat-nbad 0
   "The number of bad mails in the dictionary.")
 
-(defvar spam-stat-error-holder nil
-  "A holder for condition-case errors while scoring buffers.")
-
 (defsubst spam-stat-good (entry)
   "Return the number of times this word belongs to good mails."
   (aref entry 0))
@@ -477,8 +474,8 @@ The default score for unknown words is stored in
 These are the words whose spam-stat differs the most from 0.5.
 The list returned contains elements of the form \(WORD SCORE DIFF),
 where DIFF is the difference between SCORE and 0.5."
-  (let (result word score)
-    (maphash (lambda (word ignore)
+  (let (result score) ;; word
+    (maphash (lambda (word _ignore)
 	       (setq score (spam-stat-score-word word)
 		     result (cons (list word score (abs (- score 0.5)))
 				  result)))
@@ -498,8 +495,7 @@ Add user supplied modifications if supplied."
 	  (/ prod (+ prod (apply #'* (mapcar #'(lambda (x) (- 1 x))
 					     probs)))))
 	 (score1s
-	  (condition-case
-	      spam-stat-error-holder
+	  (condition-case nil
 	      (spam-stat-score-buffer-user score0)
 	    (error nil)))
 	 (ans
@@ -522,7 +518,7 @@ Add user supplied modifications if supplied."
 Use this function on `nnmail-split-fancy'.  If you are interested in
 the raw data used for the last run of `spam-stat-score-buffer',
 check the variable `spam-stat-score-data'."
-  (condition-case spam-stat-error-holder
+  (condition-case err
       (progn
 	(set-buffer spam-stat-buffer)
 	(goto-char (point-min))
@@ -532,7 +528,7 @@ check the variable `spam-stat-score-data'."
 		    (push entry nnmail-split-trace))
 		  spam-stat-score-data))
 	  spam-stat-split-fancy-spam-group))
-    (error (message "Error in spam-stat-split-fancy: %S" spam-stat-error-holder)
+    (error (message "Error in spam-stat-split-fancy: %S" err)
 	   nil)))
 
 ;; Testing

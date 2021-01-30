@@ -1,4 +1,4 @@
-;;; spam-report.el --- Reporting spam
+;;; spam-report.el --- Reporting spam  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; nndiary.el --- A diary back end for Gnus
+;;; nndiary.el --- A diary back end for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -469,7 +469,7 @@ all.  This may very well take some time.")
       (cons (if group-num (car group-num) group)
 	    (string-to-number (file-name-nondirectory path)))))))
 
-(deffoo nndiary-request-group (group &optional server dont-check info)
+(deffoo nndiary-request-group (group &optional server dont-check _info)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     (cond
      ((not (nndiary-possibly-change-directory group server))
@@ -503,11 +503,11 @@ all.  This may very well take some time.")
     (nndiary-possibly-change-directory group server)
     (nnmail-get-new-mail 'nndiary 'nndiary-save-nov nndiary-directory group)))
 
-(deffoo nndiary-close-group (group &optional server)
+(deffoo nndiary-close-group (_group &optional _server)
   (setq nndiary-article-file-alist nil)
   t)
 
-(deffoo nndiary-request-create-group (group &optional server args)
+(deffoo nndiary-request-create-group (group &optional server _args)
   (nndiary-possibly-change-directory nil server)
   (nnmail-activate 'nndiary)
   (cond
@@ -535,7 +535,7 @@ all.  This may very well take some time.")
       t))
    ))
 
-(deffoo nndiary-request-list (&optional server)
+(deffoo nndiary-request-list (&optional _server)
   (save-excursion
     (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
 	  (file-name-coding-system nnmail-pathname-coding-system))
@@ -543,10 +543,10 @@ all.  This may very well take some time.")
     (setq nndiary-group-alist (nnmail-get-active))
     t))
 
-(deffoo nndiary-request-newgroups (date &optional server)
+(deffoo nndiary-request-newgroups (_date &optional server)
   (nndiary-request-list server))
 
-(deffoo nndiary-request-list-newsgroups (&optional server)
+(deffoo nndiary-request-list-newsgroups (&optional _server)
   (save-excursion
     (nnmail-find-file nndiary-newsgroups-file)))
 
@@ -590,7 +590,7 @@ all.  This may very well take some time.")
     (nconc rest articles)))
 
 (deffoo nndiary-request-move-article
-    (article group server accept-form &optional last move-is-internal)
+    (article group server accept-form &optional last _move-is-internal)
   (let ((buf (gnus-get-buffer-create " *nndiary move*"))
 	result)
     (nndiary-possibly-change-directory group server)
@@ -603,7 +603,7 @@ all.  This may very well take some time.")
 	   nndiary-article-file-alist)
        (with-current-buffer buf
 	 (insert-buffer-substring nntp-server-buffer)
-	 (setq result (eval accept-form))
+	 (setq result (eval accept-form t))
 	 (kill-buffer (current-buffer))
 	 result))
      (progn
@@ -766,7 +766,7 @@ all.  This may very well take some time.")
 
 ;;; Interface optional functions ============================================
 
-(deffoo nndiary-request-update-info (group info &optional server)
+(deffoo nndiary-request-update-info (group info &optional _server)
   (nndiary-possibly-change-directory group)
   (let ((timestamp (gnus-group-parameter-value (gnus-info-params info)
 					       'timestamp t)))
@@ -1033,6 +1033,8 @@ all.  This may very well take some time.")
   ;; Save the active file.
   (nnmail-save-active nndiary-group-alist nndiary-active-file))
 
+(defvar nndiary-files) ; dynamically bound in nndiary-generate-nov-databases-1
+
 (defun nndiary-generate-nov-databases-1 (dir &optional seen no-active)
   "Regenerate the NOV database in DIR."
   (interactive "DRegenerate NOV in: ")
@@ -1062,7 +1064,6 @@ all.  This may very well take some time.")
 	(unless no-active
 	  (nnmail-save-active nndiary-group-alist nndiary-active-file))))))
 
-(defvar nndiary-files) ; dynamically bound in nndiary-generate-nov-databases-1
 (defun nndiary-generate-active-info (dir)
   ;; Update the active info for this group.
   (let* ((group (nnheader-file-to-group

@@ -1,4 +1,4 @@
-;;; nnml.el --- mail spool access for Gnus
+;;; nnml.el --- mail spool access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -111,7 +111,7 @@ non-nil.")
 
 (nnoo-define-basics nnml)
 
-(defun nnml-group-pathname (group &optional file server)
+(defun nnml-group-pathname (group &optional file _server)
   "Return an absolute file name of FILE for GROUP on SERVER."
   (nnmail-group-pathname group nnml-directory file))
 
@@ -215,7 +215,7 @@ non-nil.")
       (cons (if group-num (car group-num) group)
 	    (string-to-number (file-name-nondirectory path)))))))
 
-(deffoo nnml-request-group (group &optional server dont-check info)
+(deffoo nnml-request-group (group &optional server dont-check _info)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     (cond
      ((not (nnml-possibly-change-directory group server))
@@ -252,11 +252,11 @@ non-nil.")
    (t
     (nnmail-get-new-mail 'nnml 'nnml-save-incremental-nov nnml-directory nil))))
 
-(deffoo nnml-close-group (group &optional server)
+(deffoo nnml-close-group (_group &optional _server)
   (setq nnml-article-file-alist nil)
   t)
 
-(deffoo nnml-request-create-group (group &optional server args)
+(deffoo nnml-request-create-group (group &optional server _args)
   (nnml-possibly-change-directory nil server)
   (nnmail-activate 'nnml)
   (cond
@@ -283,7 +283,7 @@ non-nil.")
       (nnmail-save-active nnml-group-alist nnml-active-file)
       t))))
 
-(deffoo nnml-request-list (&optional server)
+(deffoo nnml-request-list (&optional _server)
   (save-excursion
     (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
 	  (file-name-coding-system nnmail-pathname-coding-system))
@@ -291,10 +291,10 @@ non-nil.")
     (setq nnml-group-alist (nnmail-get-active))
     t))
 
-(deffoo nnml-request-newgroups (date &optional server)
+(deffoo nnml-request-newgroups (_date &optional server)
   (nnml-request-list server))
 
-(deffoo nnml-request-list-newsgroups (&optional server)
+(deffoo nnml-request-list-newsgroups (&optional _server)
   (save-excursion
     (nnmail-find-file nnml-newsgroups-file)))
 
@@ -360,7 +360,7 @@ non-nil.")
     (nconc rest articles)))
 
 (deffoo nnml-request-move-article
-    (article group server accept-form &optional last move-is-internal)
+    (article group server accept-form &optional last _move-is-internal)
   (let ((buf (gnus-get-buffer-create " *nnml move*"))
 	(file-name-coding-system nnmail-pathname-coding-system)
 	result)
@@ -374,7 +374,7 @@ non-nil.")
 	   nnml-article-file-alist)
        (with-current-buffer buf
 	 (insert-buffer-substring nntp-server-buffer)
-	 (setq result (eval accept-form))
+	 (setq result (eval accept-form t))
 	 (kill-buffer (current-buffer))
 	 result))
      (progn
@@ -889,7 +889,7 @@ Unless no-active is non-nil, update the active file too."
   (let* ((dir (file-name-as-directory dir))
 	 (nov (concat dir nnml-nov-file-name))
 	 (nov-buffer (gnus-get-buffer-create " *nov*"))
-	 chars file headers)
+	 chars headers) ;; file
     (with-current-buffer nov-buffer
       ;; Init the nov buffer.
       (buffer-disable-undo)

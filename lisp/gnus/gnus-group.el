@@ -1,4 +1,4 @@
-;;; gnus-group.el --- group mode commands for Gnus
+;;; gnus-group.el --- group mode commands for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -39,8 +39,9 @@
 (eval-when-compile
   (require 'mm-url)
   (require 'subr-x)
-  (let ((features (cons 'gnus-group features)))
-    (require 'gnus-sum)))
+  (with-suppressed-warnings ((lexical features))
+    (dlet ((features (cons 'gnus-group features)))
+      (require 'gnus-sum))))
 
 (defvar gnus-cache-active-hashtb)
 
@@ -476,6 +477,9 @@ simple manner."
 
 (defvar gnus-group-edit-buffer nil)
 
+(defvar gnus-tmp-group)
+(defvar gnus-tmp-level)
+(defvar gnus-tmp-marked)
 (defvar gnus-tmp-news-method)
 (defvar gnus-tmp-colon)
 (defvar gnus-tmp-news-server)
@@ -1499,11 +1503,15 @@ if it is a string, only list groups matching REGEXP."
 	     (gnus-group-get-new-news 0))))
   :type 'boolean)
 
-(defun gnus-group-insert-group-line (gnus-tmp-group gnus-tmp-level
-						    gnus-tmp-marked number
-						    gnus-tmp-method)
+(defun gnus-group-insert-group-line (group level marked number gnus-tmp-method)
   "Insert a group line in the group buffer."
-  (let* ((gnus-tmp-method
+  (with-suppressed-warnings ((lexical number))
+    (defvar number))            ;FIXME: Used in `gnus-group-line-format-alist'.
+  (let* ((number number)
+	 (gnus-tmp-level level)
+	 (gnus-tmp-marked marked)
+	 (gnus-tmp-group group)
+	 (gnus-tmp-method
 	  (gnus-server-get-method gnus-tmp-group gnus-tmp-method))
 	 (gnus-tmp-active (gnus-active gnus-tmp-group))
 	 (gnus-tmp-number-total
@@ -1567,7 +1575,7 @@ if it is a string, only list groups matching REGEXP."
      (point)
      (prog1 (1+ (point))
        ;; Insert the text.
-       (eval gnus-group-line-format-spec))
+       (eval gnus-group-line-format-spec t))
      `(gnus-group ,gnus-tmp-group
 		  gnus-unread ,(if (numberp number)
 				   (string-to-number gnus-tmp-number-of-unread)
@@ -1738,7 +1746,7 @@ already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
 		   (buffer-modified-p gnus-dribble-buffer)
 		   (with-current-buffer gnus-dribble-buffer
 		     (not (zerop (buffer-size))))))
-	     (mode-string (eval gformat)))
+	     (mode-string (eval gformat t)))
 	;; Say whether the dribble buffer has been modified.
 	(setq mode-line-modified
 	      (if modified "**" "--"))
@@ -1934,7 +1942,7 @@ Return nil if the group isn't displayed."
 	(gnus-group-mark-group 1 nil t))
     (setq gnus-group-marked (cons group (delete group gnus-group-marked)))))
 
-(defun gnus-group-universal-argument (arg &optional groups func)
+(defun gnus-group-universal-argument (arg &optional _groups func)
   "Perform any command on all groups according to the process/prefix convention."
   (interactive "P")
   (if (eq (setq func (or func
@@ -1945,7 +1953,7 @@ Return nil if the group isn't displayed."
 	  'undefined)
       (gnus-error 1 "Undefined key")
     (gnus-group-iterate arg
-      (lambda (group)
+      (lambda (_group)
 	(command-execute func))))
   (gnus-group-position-point))
 
@@ -2053,6 +2061,12 @@ articles in the group."
   (when (and (eobp) (not (gnus-group-group-name)))
     (forward-line -1))
   (gnus-group-read-group all t))
+
+(defvar gnus-visual)
+(defvar gnus-score-find-score-files-function)
+(defvar gnus-home-score-file)
+(defvar gnus-apply-kill-hook)
+(defvar gnus-summary-expunge-below)
 
 (defun gnus-group-quick-select-group (&optional all group)
   "Select the GROUP \"quickly\".
@@ -2511,7 +2525,7 @@ The arguments have the same meaning as those of
         (if (stringp id) (setq id (string-to-number id)))
         (setq-local debbugs-gnu-bug-number id)))))
 
-(defun gnus-group-jump-to-group (group &optional prompt)
+(defun gnus-group-jump-to-group (group &optional _prompt)
   "Jump to newsgroup GROUP.
 
 If PROMPT (the prefix) is a number, use the prompt specified in
@@ -2985,7 +2999,7 @@ and NEW-NAME will be prompted for."
   (setq method (copy-tree method))
   (let (entry)
     (while (setq entry (memq (assq 'eval method) method))
-      (setcar entry (eval (cadar entry)))))
+      (setcar entry (eval (cadar entry) t))))
   (gnus-group-make-group group method))
 
 (defun gnus-group-make-help-group (&optional noerror)
@@ -4317,9 +4331,9 @@ If FORCE, force saving whether it is necessary or not."
   (interactive "P")
   (gnus-save-newsrc-file force))
 
-(defun gnus-group-restart (&optional arg)
+(defun gnus-group-restart (&optional _arg)
   "Force Gnus to read the .newsrc file."
-  (interactive "P")
+  (interactive)
   (when (gnus-yes-or-no-p
 	 (format "Are you sure you want to restart Gnus? "))
     (gnus-save-newsrc-file)
@@ -4738,9 +4752,9 @@ This command may read the active file."
       (forward-char 1))
     groups))
 
-(defun gnus-group-list-plus (&optional args)
+(defun gnus-group-list-plus (&optional _args)
   "List groups plus the current selection."
-  (interactive "P")
+  (interactive)
   (let ((gnus-group-listed-groups (gnus-group-listed-groups))
 	(gnus-group-list-mode gnus-group-list-mode) ;; Save it.
 	func)

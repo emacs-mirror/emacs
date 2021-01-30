@@ -1330,7 +1330,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
     (dolist (entry nntp-server-action-alist)
       (when (string-match (car entry) nntp-server-type)
 	(if (not (functionp (cadr entry)))
-	    (eval (cadr entry))
+	    (eval (cadr entry) t)
 	  (funcall (cadr entry)))))))
 
 (defun nntp-async-wait (process wait-for buffer decode callback)

@@ -1,4 +1,4 @@
-;;; nnmairix.el --- Mairix back end for Gnus, the Emacs newsreader
+;;; nnmairix.el --- Mairix back end for Gnus, the Emacs newsreader  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -404,7 +404,7 @@ Other back ends might or might not work.")
   (setq nnmairix-current-server server)
   (nnoo-change-server 'nnmairix server definitions))
 
-(deffoo nnmairix-request-group (group &optional server fast info)
+(deffoo nnmairix-request-group (group &optional server fast _info)
   ;; Call mairix and request group on back end server
   (when server (nnmairix-open-server server))
   (let* ((qualgroup (if server
@@ -417,7 +417,7 @@ Other back ends might or might not work.")
 	 (backendmethod (gnus-server-to-method
 			 (format "%s:%s" (symbol-name nnmairix-backend)
 				 nnmairix-backend-server)))
-	 rval mfolder folderpath args)
+	 rval mfolder folderpath) ;; args
     (cond
      ((not folder)
       ;; No folder parameter -> error
@@ -497,12 +497,12 @@ Other back ends might or might not work.")
 	nil))))))
 
 
-(deffoo nnmairix-request-create-group (group &optional server args)
+(deffoo nnmairix-request-create-group (group &optional server _args)
   (let ((qualgroup (if server (gnus-group-prefixed-name group (list 'nnmairix server))
 		     group))
 	(exist t)
 	(count 0)
-	groupname info)
+	groupname) ;; info
     (when server (nnmairix-open-server server))
     (gnus-group-add-parameter qualgroup '(query . nil))
     (gnus-group-add-parameter qualgroup '(threads . nil))
@@ -561,7 +561,7 @@ Other back ends might or might not work.")
 (deffoo nnmairix-request-list (&optional server)
   (when server (nnmairix-open-server server))
   (if (nnmairix-call-backend "request-list" nnmairix-backend-server)
-      (let (cpoint cur qualgroup folder)
+      (let (cpoint cur qualgroup) ;; folder
 	(with-current-buffer nntp-server-buffer
 	  (goto-char (point-min))
 	  (setq cpoint (point))
@@ -590,7 +590,7 @@ Other back ends might or might not work.")
     (nnmairix-open-server server))
   (let* ((qualgroup (gnus-group-prefixed-name group (list 'nnmairix nnmairix-current-server)))
 	 (propmarks (gnus-group-get-parameter qualgroup 'propmarks))
-	 (propto (gnus-group-get-parameter qualgroup 'propto t))
+	 ;; (propto (gnus-group-get-parameter qualgroup 'propto t))
 	 (corr (nnmairix-get-numcorr group server))
 	 (folder (nnmairix-get-backend-folder group server)))
     (save-excursion
@@ -598,7 +598,7 @@ Other back ends might or might not work.")
 	(let ((type (nth 1 cur))
 	      (cmdmarks (nth 2 cur))
 	      (range (gnus-uncompress-range (nth 0 cur)))
-	      mid ogroup number method temp)
+	      mid ogroup temp) ;; number method
 	  (when (and corr
 		     (not (zerop (cadr corr))))
 	    (setq range (mapcar (lambda (arg)
@@ -661,7 +661,7 @@ Other back ends might or might not work.")
     (nnmairix-open-server server))
   (let* ((qualgroup (gnus-group-prefixed-name group (list 'nnmairix nnmairix-current-server)))
 	 (propmarks (gnus-group-get-parameter qualgroup 'propmarks))
-	 method)
+	 ) ;; method
     (when (and propmarks
 	       nnmairix-marks-cache)
       (when (or (eq nnmairix-propagate-marks-upon-close t)
@@ -690,7 +690,7 @@ Other back ends might or might not work.")
 	 (corr (nnmairix-get-numcorr group server))
 	 (docorr (and corr (not (zerop (cadr corr)))))
 	 (folderinfo `(,group 1 ((1 . 1))))
-	 readrange marks)
+	 ) ;; readrange marks
       (when (and propmarks
 		 nnmairix-propagate-marks-to-nnmairix-groups)
 	;; these groups are not subscribed, so we have to ask the back end directly
@@ -778,7 +778,7 @@ called interactively, user will be asked for parameters."
   (interactive)
   (let ((char-header nnmairix-interactive-query-parameters)
 	(server (nnmairix-backend-to-server gnus-current-select-method))
-	 query achar header finished group threads cq)
+	 query achar header finished group threads) ;; cq
     (when (or (not (gnus-buffer-live-p gnus-article-buffer))
 	      (not (gnus-buffer-live-p gnus-summary-buffer)))
       (error "No article or summary buffer"))
@@ -796,7 +796,8 @@ called interactively, user will be asked for parameters."
 	    (setq achar nil)))
 	(set-buffer gnus-article-buffer)
 	(setq header nil)
-	(when (setq cq (nth 1 (assoc achar char-header)))
+	(when ;; (setq cq
+	    (nth 1 (assoc achar char-header)) ;;)
 	  (setq header
 		(nnmairix-replace-illegal-chars
 		 (gnus-fetch-field (nth 1 (assoc achar char-header))))))
@@ -827,7 +828,7 @@ All necessary information will be queried from the user."
 	(hidden (and (string-match "^nn\\(imap\\|maildir\\)$" backend)
 		     (y-or-n-p
 		      "Does the back end server work with maildir++ (i.e. hidden directories)? ")))
-	create)
+	) ;; create
 
     (apply (intern (format "%s-%s" backend "open-server"))
 	   (list servername))
@@ -1009,7 +1010,7 @@ before deleting a group on the back end.  SERVER specifies nnmairix server."
     (if (nnmairix-open-server (nth 1 server))
 	(when (nnmairix-call-backend
 	       "request-list" nnmairix-backend-server)
-	  (let (cur qualgroup folder)
+	  (let (cur qualgroup) ;; folder
 	    (with-current-buffer nntp-server-buffer
 	      (goto-char (point-min))
 	      (while (re-search-forward nnmairix-group-regexp (point-max) t)
@@ -1172,7 +1173,7 @@ Marks propagation has to be enabled for this to work."
     (error "Not in a nnmairix group"))
   (save-excursion
     (let ((mid (mail-header-message-id (gnus-summary-article-header)))
-	  groups cur)
+	  groups) ;; cur
       (when mid
 	(setq groups (nnmairix-determine-original-group-from-registry mid))
 	(unless (or groups
@@ -1299,7 +1300,7 @@ If ALL is t, return also the unopened/failed ones."
   "Return list of valid back end servers for nnmairix groups."
   (let ((alist gnus-opened-servers)
 	(mairixservers (nnmairix-get-nnmairix-servers t))
-	server mserver openedserver occ cur)
+	server mserver openedserver occ) ;; cur
     ;; Get list of all nnmairix backends (i.e. backends which are
     ;; already occupied)
     (dolist (cur mairixservers)
@@ -1393,7 +1394,7 @@ TYPE is either `nov' or `headers'."
     (let ((buf (gnus-get-buffer-create " *nnmairix buffer*"))
 	  (corr (not (zerop numc)))
 	  (name (buffer-name nntp-server-buffer))
-	  header cur xref)
+	  cur xref) ;; header
       (with-current-buffer buf
 	(erase-buffer)
 	(set-buffer nntp-server-buffer)
@@ -1586,7 +1587,7 @@ search in raw mode."
   (when (not (gnus-buffer-live-p gnus-article-buffer))
     (error "No article buffer available"))
   (let ((server (nth 1 gnus-current-select-method))
-	mid rval group allgroups)
+	mid group allgroups) ;; rval
     ;; get message id
     (with-current-buffer gnus-article-buffer
       (gnus-summary-toggle-header 1)
@@ -1817,10 +1818,10 @@ MVALUES may contain values from current article."
   (widget-create 'push-button
 		 :notify
 		 (if mvalues
-		     (lambda (&rest ignore)
+		     (lambda (&rest _ignore)
 		       (nnmairix-widget-send-query nnmairix-widgets
 						   t))
-		   (lambda (&rest ignore)
+		   (lambda (&rest _ignore)
 		     (nnmairix-widget-send-query nnmairix-widgets
 						 nil)))
 		 "Send Query")
@@ -1828,16 +1829,16 @@ MVALUES may contain values from current article."
   (widget-create 'push-button
 		 :notify
 		 (if mvalues
-		     (lambda (&rest ignore)
+		     (lambda (&rest _ignore)
 		       (nnmairix-widget-create-group nnmairix-widgets
 						     t))
-		   (lambda (&rest ignore)
+		   (lambda (&rest _ignore)
 		     (nnmairix-widget-create-group nnmairix-widgets
 						   nil)))
 		 "Create permanent group")
   (widget-insert "   ")
   (widget-create 'push-button
-		 :notify (lambda (&rest ignore)
+		 :notify (lambda (&rest _ignore)
 			   (kill-buffer nnmairix-customize-query-buffer))
 		 "Cancel")
   (use-local-map widget-keymap)
@@ -1912,7 +1913,7 @@ If WITHVALUES is t, query is based on current article."
 (defun nnmairix-widget-create-query (&optional values)
   "Create widgets for creating mairix queries.
 Fill in VALUES if based on an article."
-  (let (allwidgets)
+  ;;(let (allwidgets)
     (when (get-buffer nnmairix-customize-query-buffer)
       (kill-buffer nnmairix-customize-query-buffer))
     (switch-to-buffer nnmairix-customize-query-buffer)
@@ -1943,7 +1944,7 @@ Fill in VALUES if based on an article."
     (when (member 'threads nnmairix-widget-other)
       (widget-insert "\n")
       (nnmairix-widget-add "Threads" 'checkbox nil))
-      (widget-insert " Show full threads\n\n")))
+      (widget-insert " Show full threads\n\n")) ;; )
 
 (defun nnmairix-widget-build-editable-fields (values)
   "Build editable field widgets in `nnmairix-widget-fields-list'.
@@ -1960,7 +1961,7 @@ VALUES may contain values for editable fields from current article."
                 (concat "c" field)
                 (widget-create 'checkbox
                                :tag field
-                               :notify (lambda (widget &rest ignore)
+                               :notify (lambda (widget &rest _ignore)
                                          (nnmairix-widget-toggle-activate widget))
                                nil)))
               (list

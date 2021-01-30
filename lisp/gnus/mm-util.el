@@ -160,7 +160,7 @@ is not available."
 	   form
 	   (prog2
 	       ;; Avoid errors...
-	       (condition-case nil (eval form) (error nil))
+	       (condition-case nil (eval form t) (error nil))
 	       ;; (message "Failed to eval `%s'" form))
 	       (mm-coding-system-p cs)
 	     (message "Added charset `%s' via `mm-charset-eval-alist'" cs))

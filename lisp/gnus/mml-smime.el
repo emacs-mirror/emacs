@@ -1,4 +1,4 @@
-;;; mml-smime.el --- S/MIME support for MML
+;;; mml-smime.el --- S/MIME support for MML  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -129,7 +129,7 @@ Whether the passphrase is cached at all is controlled by
     (if func
 	(funcall func handle ctl))))
 
-(defun mml-smime-openssl-sign (cont)
+(defun mml-smime-openssl-sign (_cont)
   (when (null smime-keys)
     (customize-variable 'smime-keys)
     (error "No S/MIME keys configured, use customize to add your key"))
@@ -309,7 +309,7 @@ Whether the passphrase is cached at all is controlled by
 		 (buffer-string) "\n")))))
   handle)
 
-(defun mml-smime-openssl-verify-test (handle ctl)
+(defun mml-smime-openssl-verify-test (_handle _ctl)
   smime-openssl-program)
 
 (defvar epg-user-id-alist)
@@ -370,7 +370,7 @@ Content-Disposition: attachment; filename=smime.p7s
 
 (defun mml-smime-epg-encrypt (cont)
   (let* ((inhibit-redisplay t)        ;FIXME: Why?
-	 (boundary (mml-compute-boundary cont))
+	 ;; (boundary (mml-compute-boundary cont))
 	 (cipher (mml-secure-epg-encrypt 'CMS cont)))
     (delete-region (point-min) (point-max))
     (goto-char (point-min))
@@ -388,7 +388,7 @@ Content-Disposition: attachment; filename=smime.p7m
 (defun mml-smime-epg-verify (handle ctl)
   (catch 'error
     (let ((inhibit-redisplay t)
-	  context plain signature-file part signature)
+	  context part signature) ;; plain signature-file
       (when (or (null (setq part (mm-find-raw-part-by-type
 				  ctl (or (mm-handle-multipart-ctl-parameter
 					   ctl 'protocol)
@@ -407,7 +407,8 @@ Content-Disposition: attachment; filename=smime.p7m
       (setq part (replace-regexp-in-string "\n" "\r\n" part)
 	    context (epg-make-context 'CMS))
       (condition-case error
-	  (setq plain (epg-verify-string context (mm-get-part signature) part))
+	  ;; (setq plain
+	  (epg-verify-string context (mm-get-part signature) part) ;;)
 	(error
 	 (mm-sec-error 'gnus-info "Failed")
 	 (mm-sec-status 'gnus-details (if (eq (car error) 'quit)
@@ -419,7 +420,7 @@ Content-Disposition: attachment; filename=smime.p7m
        (epg-verify-result-to-string (epg-context-result-for context 'verify)))
       handle)))
 
-(defun mml-smime-epg-verify-test (handle ctl)
+(defun mml-smime-epg-verify-test (_handle _ctl)
   t)
 
 (provide 'mml-smime)

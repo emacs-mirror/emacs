@@ -1,4 +1,4 @@
-;;; gnus-demon.el --- daemonic Gnus behavior
+;;; gnus-demon.el --- daemonic Gnus behavior  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 

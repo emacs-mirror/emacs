@@ -1,4 +1,4 @@
-;;; mml-sec.el --- A package with security functions for MML documents
+;;; mml-sec.el --- A package with security functions for MML documents  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -622,7 +622,7 @@ Passphrase caching in Emacs is NOT recommended.  Use gpg-agent instead."
 		    mml-smime-passphrase-cache-expiry)
 	       mml-secure-passphrase-cache-expiry))))
 
-(defun mml-secure-passphrase-callback (context key-id standard)
+(defun mml-secure-passphrase-callback (context key-id _standard)
   "Ask for passphrase in CONTEXT for KEY-ID for STANDARD.
 The passphrase is read and cached."
   ;; Based on mml2015-epg-passphrase-callback.
@@ -906,7 +906,7 @@ If no one is selected, symmetric encryption will be performed.  "
 	(error "No recipient specified")))
     recipients))
 
-(defun mml-secure-epg-encrypt (protocol cont &optional sign)
+(defun mml-secure-epg-encrypt (protocol _cont &optional sign)
   ;; Based on code appearing inside mml2015-epg-encrypt.
   (let* ((context (epg-make-context protocol))
 	 (config (epg-find-configuration 'OpenPGP))

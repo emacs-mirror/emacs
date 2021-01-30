@@ -1,4 +1,4 @@
-;;; gnus-picon.el --- displaying pretty icons in Gnus
+;;; gnus-picon.el --- displaying pretty icons in Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -112,7 +112,7 @@ List of pairs (KEY . GLYPH) where KEY is either a filename or an URL.")
   (let* ((address (gnus-picon-split-address address))
 	 (user (pop address))
 	 (faddress address)
-	 database directory result instance base)
+	 result base) ;; database directory instance
     (catch 'found
       (dolist (database gnus-picon-databases)
 	(dolist (directory directories)
@@ -249,7 +249,7 @@ replacement is added."
    (gnus-article-goto-header header)
    (mail-header-narrow-to-field)
    (let ((groups (message-tokenize-header (mail-fetch-field header)))
-	 spec file point)
+	 spec file) ;; point
      (dolist (group groups)
        (unless (setq spec (cdr (assoc group gnus-picon-cache)))
 	 (setq spec (nreverse (split-string group "[.]")))

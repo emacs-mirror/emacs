@@ -1,4 +1,4 @@
-;;; gnus-mlspl.el --- a group params-based mail splitting mechanism
+;;; gnus-mlspl.el --- a group params-based mail splitting mechanism  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 

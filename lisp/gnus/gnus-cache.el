@@ -1,4 +1,4 @@
-;;; gnus-cache.el --- cache interface for Gnus
+;;; gnus-cache.el --- cache interface for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -147,6 +147,8 @@ it's not cached."
       ;; Kill the buffer -- it's either unmodified or saved.
       (gnus-kill-buffer buffer)
       (setq gnus-cache-buffer nil))))
+
+(defvar gnus-article-decode-hook)
 
 (defun gnus-cache-possibly-enter-article
   (group article ticked dormant unread &optional force)
@@ -727,6 +729,8 @@ If LOW, update the lower bound instead."
     (when top
       (gnus-cache-write-active t)
       (gnus-message 5 "Generating the cache active file...done"))))
+
+(defvar nnml-generate-active-function)
 
 ;;;###autoload
 (defun gnus-cache-generate-nov-databases (dir)

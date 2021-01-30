@@ -1,4 +1,4 @@
-;;; gmm-utils.el --- Utility functions for Gnus, Message and MML
+;;; gmm-utils.el --- Utility functions for Gnus, Message and MML  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; spam.el --- Identifying spam
+;;; spam.el --- Identifying spam  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -1387,7 +1387,7 @@ In the case of mover backends, checks the setting of
          (gnus-check-backend-function
           'request-move-article gnus-newsgroup-name))
         (respool-method (gnus-find-method-for-group gnus-newsgroup-name))
-        article mark deletep respool valid-move-destinations)
+        deletep respool valid-move-destinations) ;; article mark
 
     (when (member 'respool groups)
       (setq respool t)                  ; boolean for later
@@ -1807,7 +1807,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
            (log-function (if unregister
                              'spam-log-undo-registration
                            'spam-log-processing-to-registry))
-           article articles)
+           articles) ;; article
 
       (when run-function
         ;; make list of articles, using specific-articles if given
@@ -1910,7 +1910,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 ;; undo a ham- or spam-processor registration (the group is not used)
 (defun spam-log-undo-registration (id type classification backend
-                                      &optional group)
+                                      &optional _group)
   (when (and spam-log-to-registry
              (spam-log-unregistration-needed-p id type classification backend))
     (if (and (stringp id)
@@ -1918,7 +1918,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
              (spam-classification-valid-p classification)
              (spam-backend-valid-p backend))
         (let ((cell-list (gnus-registry-get-id-key id type))
-              new-cell-list found)
+              new-cell-list) ;; found
           (dolist (cell cell-list)
             (unless (and (eq classification (nth 0 cell))
                          (eq backend (nth 1 cell)))
@@ -2050,7 +2050,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 (declare-function bbdb-create-internal "bbdb-com" (&rest spec))
 
 ;; when the BBDB changes, we want to clear out our cache
-(defun spam-clear-cache-BBDB (&rest immaterial)
+(defun spam-clear-cache-BBDB (&rest _immaterial)
   (spam-clear-cache 'spam-use-BBDB))
 
 (when (featurep 'bbdb-com)
@@ -2150,7 +2150,7 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
   (let ((category (or category gnus-newsgroup-name))
         (add-or-delete-option (if unregister "-d" "-i"))
         (db (spam-get-ifile-database-parameter))
-        parameters)
+        ) ;; parameters
     (with-temp-buffer
       (dolist (article articles)
         (let ((article-string (spam-get-article-as-string article)))
@@ -2184,7 +2184,7 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
   "Check the spam-stat backend for the classification of this message."
   (let ((spam-stat-split-fancy-spam-group spam-split-group) ; override
 	(spam-stat-buffer (buffer-name)) ; stat the current buffer
-	category return)
+	) ;; category return
     (spam-stat-split-fancy)))
 
 (defun spam-stat-register-spam-routine (articles &optional unregister)
@@ -2335,7 +2335,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 
 (defun spam-from-listed-p (type)
   (let ((from (message-fetch-field "from"))
-        found)
+        ) ;; found
     (spam-filelist-check-cache type from)))
 
 (defun spam-filelist-register-routine (articles blacklist &optional unregister)
@@ -2345,7 +2345,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
          (if blacklist 'spam-enter-blacklist 'spam-enter-whitelist))
         (remove-function
          (if blacklist 'spam-enter-whitelist 'spam-enter-blacklist))
-        from addresses unregister-list article-unregister-list)
+        addresses unregister-list article-unregister-list) ;; from
     (dolist (article articles)
       (let ((from (spam-fetch-field-from-fast article))
             (id (spam-fetch-field-message-id-fast article))
@@ -2562,13 +2562,13 @@ With a non-nil REMOVE, remove the ADDRESSES."
 (defun spam-spamoracle-learn-ham (articles &optional unregister)
   (spam-spamoracle-learn articles nil unregister))
 
-(defun spam-spamoracle-unlearn-ham (articles &optional unregister)
+(defun spam-spamoracle-unlearn-ham (articles &optional _unregister)
   (spam-spamoracle-learn-ham articles t))
 
 (defun spam-spamoracle-learn-spam (articles &optional unregister)
   (spam-spamoracle-learn articles t unregister))
 
-(defun spam-spamoracle-unlearn-spam (articles &optional unregister)
+(defun spam-spamoracle-unlearn-spam (articles &optional _unregister)
   (spam-spamoracle-learn-spam articles t))
 
 ;;}}}

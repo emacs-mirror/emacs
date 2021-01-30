@@ -1,4 +1,4 @@
-;;; mml.el --- A package for parsing and validating MML documents
+;;; mml.el --- A package for parsing and validating MML documents  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -259,18 +259,19 @@ part.  This is for the internal use, you should never modify the value.")
 		            (list "sign" method "encrypt" method))
 		           (t
 		            (error "Unknown secure mode %s" mode))))
-	  (eval `(mml-insert-tag ,secure-mode
-				 ,@tags
-				 ,(if keyfile "keyfile")
-				 ,keyfile
-				 ,@(apply #'append
-					  (mapcar (lambda (certfile)
-						    (list "certfile" certfile))
-						  certfiles))
-				 ,(if recipients "recipients")
-				 ,recipients
-				 ,(if sender "sender")
-				 ,sender))
+	  (apply #'mml-insert-tag
+		 secure-mode
+		 `(,@tags
+		   ,(if keyfile "keyfile")
+		   ,keyfile
+		   ,@(apply #'append
+			    (mapcar (lambda (certfile)
+				      (list "certfile" certfile))
+				    certfiles))
+		   ,(if recipients "recipients")
+		   ,recipients
+		   ,(if sender "sender")
+		   ,sender))
 	  ;; restart the parse
 	  (goto-char location)))
        ((looking-at "<#multipart")
@@ -1458,7 +1459,7 @@ will be computed and used."
 		 (file-name-nondirectory file)))
       (goto-char head))))
 
-(defun mml-dnd-attach-file (uri action)
+(defun mml-dnd-attach-file (uri _action)
   "Attach a drag and drop file.
 
 Ask for type, description or disposition according to
@@ -1589,6 +1590,16 @@ Should be adopted if code in `message-send-mail' is changed."
 (declare-function message-generate-headers      "message" (headers))
 (declare-function message-sort-headers          "message" ())
 
+(defvar gnus-newsgroup-name)
+(defvar gnus-displaying-mime)
+(defvar gnus-newsgroup-name)
+(defvar gnus-article-prepare-hook)
+(defvar gnus-newsgroup-charset)
+(defvar gnus-original-article-buffer)
+(defvar gnus-message-buffer)
+(defvar message-this-is-news)
+(defvar message-this-is-mail)
+
 (defun mml-preview (&optional raw)
   "Display current buffer with Gnus, in a new buffer.
 If RAW, display a raw encoded MIME message.
@@ -1708,7 +1719,7 @@ or the `pop-to-buffer' function."
       cont)
     (let ((alist mml-tweak-sexp-alist))
       (while alist
-	(if (eval (caar alist))
+	(if (eval (caar alist) t)
 	    (funcall (cdar alist) cont))
 	(setq alist (cdr alist)))))
   cont)

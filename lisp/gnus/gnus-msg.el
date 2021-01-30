@@ -1,4 +1,4 @@
-;;; gnus-msg.el --- mail and post interface for Gnus
+;;; gnus-msg.el --- mail and post interface for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -517,7 +517,7 @@ instead."
                       switch-action yank-action send-actions return-action))
     (let ((buf (current-buffer))
 	  ;; Don't use posting styles corresponding to any existing group.
-	  (group-name gnus-newsgroup-name)
+	  ;; (group-name gnus-newsgroup-name)
 	  mail-buf)
       (let ((gnus-newsgroup-name ""))
 	(gnus-setup-message
@@ -610,10 +610,10 @@ If ARG is 1, prompt for a group name to find the posting style."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let* ((group gnus-newsgroup-name)
+  (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
-	 (buffer (current-buffer))
+	 ;; (buffer (current-buffer))
 	 (gnus-newsgroup-name
 	  (if arg
 	      (if (= 1 (prefix-numeric-value arg))
@@ -635,10 +635,10 @@ network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let* ((group gnus-newsgroup-name)
+  (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
-	 (buffer (current-buffer))
+	 ;; (buffer (current-buffer))
 	 (gnus-newsgroup-name
 	  (if arg
 	      (if (= 1 (prefix-numeric-value arg))
@@ -678,10 +678,10 @@ posting style."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let* ((group gnus-newsgroup-name)
+  (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
-	 (buffer (current-buffer))
+	 ;; (buffer (current-buffer))
 	 (gnus-newsgroup-name
 	  (if arg
 	      (if (= 1 (prefix-numeric-value arg))
@@ -703,10 +703,10 @@ network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let* ((group gnus-newsgroup-name)
+  (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
-	 (buffer (current-buffer))
+	 ;; (buffer (current-buffer))
 	 (gnus-newsgroup-name
 	  (if arg
 	      (if (= 1 (prefix-numeric-value arg))
@@ -930,7 +930,7 @@ header line with the old Message-ID."
 	      (run-hooks 'gnus-article-decode-hook)))))
       gnus-article-copy)))
 
-(defun gnus-post-news (post &optional group header article-buffer yank subject
+(defun gnus-post-news (post &optional group header article-buffer yank _subject
 			    force-news)
   (when article-buffer
     (gnus-copy-article-buffer))
@@ -1732,7 +1732,7 @@ this is a reply."
 				 ;; Function.
 				 (funcall (car var) group))
 				(t
-				 (eval (car var)))))))
+				 (eval (car var) t))))))
 	      (setq var (cdr var)))
 	    result)))
 	 name)
@@ -1789,7 +1789,7 @@ this is a reply."
 		      (with-current-buffer gnus-summary-buffer
 			gnus-posting-styles)
 		    gnus-posting-styles))
-	  style match attribute value v results matched-string
+	  match value v results matched-string ;; style attribute
 	  filep name address element)
       ;; If the group has a posting-style parameter, add it at the end with a
       ;; regexp matching everything, to be sure it takes precedence over all
@@ -1844,7 +1844,7 @@ this is a reply."
 				  (setq matched-string header)))))))
 		 (t
 		  ;; This is a form to be evalled.
-		  (eval match)))))
+		  (eval match t)))))
 	  ;; We have a match, so we set the variables.
 	  (dolist (attribute style)
 	    (setq element (pop attribute)
@@ -1875,7 +1875,7 @@ this is a reply."
 			  ((boundp value)
 			   (symbol-value value))))
 		   ((listp value)
-		    (eval value))))
+		    (eval value t))))
 	    ;; Translate obsolescent value.
 	    (cond
 	     ((eq element 'signature-file)

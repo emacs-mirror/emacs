@@ -1,4 +1,4 @@
-;;; gnus-cite.el --- parse citations in articles for Gnus
+;;; gnus-cite.el --- parse citations in articles for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -524,7 +524,7 @@ text (i.e., computer code and the like) will not be folded."
 	 ;; like code?  Check for ragged edges on the left.
 	 (< (length columns) 3))))
 
-(defun gnus-article-hide-citation (&optional arg force)
+(defun gnus-article-hide-citation (&optional arg _force)
   "Toggle hiding of all cited text except attribution lines.
 See the documentation for `gnus-article-highlight-citation'.
 If given a negative prefix, always show; if given a positive prefix,
@@ -594,7 +594,7 @@ always hide."
              (progn
 	       (gnus-article-add-button
 		(point)
-		(progn (eval gnus-cited-closed-text-button-line-format-spec)
+		(progn (eval gnus-cited-closed-text-button-line-format-spec t)
 		       (point))
 		'gnus-article-toggle-cited-text
 		(list (cons beg end) start))
@@ -644,7 +644,8 @@ means show, nil means toggle."
 	    (progn (eval
 		    (if hidden
 			gnus-cited-opened-text-button-line-format-spec
-		      gnus-cited-closed-text-button-line-format-spec))
+		      gnus-cited-closed-text-button-line-format-spec)
+		    t)
 		   (point))
 	    'gnus-article-toggle-cited-text
 	    args)
@@ -697,7 +698,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 
 ;;; Internal functions:
 
-(defun gnus-cite-parse-maybe (&optional force no-overlay)
+(defun gnus-cite-parse-maybe (&optional _force no-overlay)
   "Always parse the buffer."
   (gnus-cite-localize)
   ;;Reset parser information.
@@ -890,25 +891,25 @@ See also the documentation for `gnus-article-highlight-citation'."
 					    (regexp-quote tag) ">"))))
   ;; Find loose supercite citations after attributions.
   (gnus-cite-match-attributions 'small t
-				(lambda (prefix tag)
+				(lambda (_prefix tag)
 				  (when tag
 				    (concat "\\<"
 					    (regexp-quote tag)
 					    "\\>"))))
   ;; Find loose supercite citations anywhere.
   (gnus-cite-match-attributions 'small nil
-				(lambda (prefix tag)
+				(lambda (_prefix tag)
 				  (when tag
 				    (concat "\\<"
 					    (regexp-quote tag)
 					    "\\>"))))
   ;; Find nested citations after attributions.
   (gnus-cite-match-attributions 'small-if-unique t
-				(lambda (prefix tag)
+				(lambda (prefix _tag)
 				  (concat "\\`" (regexp-quote prefix) ".+")))
   ;; Find nested citations anywhere.
   (gnus-cite-match-attributions 'small nil
-				(lambda (prefix tag)
+				(lambda (prefix _tag)
 				  (concat "\\`" (regexp-quote prefix) ".+")))
   ;; Remove loose prefixes with too few lines.
   (let ((alist gnus-cite-loose-prefix-alist)
@@ -1137,7 +1138,7 @@ When enabled, it automatically turns on `font-lock-mode'."
   (when (derived-mode-p 'message-mode)
     ;; FIXME: Use font-lock-add-keywords!
     (let ((defaults (car font-lock-defaults))
-	  default keywords)
+	  default) ;; keywords
       (while defaults
 	(setq default (if (consp defaults)
 			  (pop defaults)

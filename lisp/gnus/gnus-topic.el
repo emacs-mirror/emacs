@@ -1,4 +1,4 @@
-;;; gnus-topic.el --- a folding minor mode for Gnus group buffers
+;;; gnus-topic.el --- a folding minor mode for Gnus group buffers  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -640,7 +640,14 @@ articles in the topic and its subtopics."
 	(add-text-properties
 	 (point)
 	 (prog1 (1+ (point))
-	   (eval gnus-topic-line-format-spec))
+	   (eval gnus-topic-line-format-spec
+                 `((indentation . ,indentation)
+                   (visible . ,visible)
+                   (name . ,name)
+                   (level . ,level)
+                   (number-of-groups . ,number-of-groups)
+                   (total-number-of-articles . ,total-number-of-articles)
+                   (entries . ,entries))))
 	 (list 'gnus-topic name
 	       'gnus-topic-level level
 	       'gnus-topic-unread unread

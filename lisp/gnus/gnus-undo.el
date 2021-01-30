@@ -1,4 +1,4 @@
-;;; gnus-undo.el --- minor mode for undoing in Gnus
+;;; gnus-undo.el --- minor mode for undoing in Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -153,10 +153,10 @@
     ;; We are not at a boundary...
     (setq gnus-undo-boundary-inhibit t)))
 
-(defun gnus-undo (n)
+(defun gnus-undo (_n)
   "Undo some previous changes in Gnus buffers.
-Repeat this command to undo more changes.
-A numeric argument serves as a repeat count."
+Repeat this command to undo more changes."
+  ;; FIXME: A numeric argument should serve as a repeat count.
   (interactive "p")
   (unless gnus-undo-mode
     (error "Undoing is not enabled in this buffer"))

@@ -1,4 +1,4 @@
-;;; gnus-uu.el --- extract (uu)encoded files in Gnus
+;;; gnus-uu.el --- extract (uu)encoded files in Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1987, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
@@ -977,7 +977,7 @@ When called interactively, prompt for REGEXP."
 (defvar gnus-uu-binhex-end-line
   ":$")
 
-(defun gnus-uu-binhex-article (buffer in-state)
+(defun gnus-uu-binhex-article (buffer _in-state)
   (let (state start-char)
     (with-current-buffer buffer
       (widen)
@@ -1014,11 +1014,11 @@ When called interactively, prompt for REGEXP."
 
 ;; yEnc
 
-(defun gnus-uu-yenc-article (buffer in-state)
+(defun gnus-uu-yenc-article (_buffer _in-state)
   (with-current-buffer gnus-original-article-buffer
     (widen)
     (let ((file-name (yenc-extract-filename))
-	  state start-char)
+	  state) ;; start-char
       (when (not file-name)
 	(setq state (list 'wrong-type)))
 
@@ -1046,7 +1046,7 @@ When called interactively, prompt for REGEXP."
 
 ;; PostScript
 
-(defun gnus-uu-decode-postscript-article (process-buffer in-state)
+(defun gnus-uu-decode-postscript-article (process-buffer _in-state)
   (let ((state (list 'ok))
 	start-char end-char file-name)
     (with-current-buffer process-buffer
@@ -1278,13 +1278,15 @@ When called interactively, prompt for REGEXP."
       (when dont-unmark-last-article
 	(setq gnus-uu-has-been-grabbed (list art))))))
 
+(defvar gnus-asynchronous)
+
 ;; This function takes a list of articles and a function to apply to
 ;; each article grabbed.
 ;;
 ;; This function returns a list of files decoded if the grabbing and
 ;; the process-function has been successful and nil otherwise.
 (defun gnus-uu-grab-articles (articles process-function
-				       &optional sloppy limit no-errors)
+				       &optional sloppy limit _no-errors)
   (require 'gnus-async)
   (let ((state 'first)
 	(gnus-asynchronous nil)
@@ -1452,10 +1454,10 @@ When called interactively, prompt for REGEXP."
 	  (setq subject (substring subject (match-end 0)))))
     (or part "")))
 
-(defun gnus-uu-uudecode-sentinel (process event)
+(defun gnus-uu-uudecode-sentinel (process _event)
   (delete-process (get-process process)))
 
-(defun gnus-uu-uustrip-article (process-buffer in-state)
+(defun gnus-uu-uustrip-article (process-buffer _in-state)
   ;; Uudecodes a file asynchronously.
   (with-current-buffer process-buffer
     (let ((state (list 'wrong-type))
@@ -1576,7 +1578,7 @@ Gnus might fail to display all of it.")
 
 ;; This function is used by `gnus-uu-grab-articles' to treat
 ;; a shared article.
-(defun gnus-uu-unshar-article (process-buffer in-state)
+(defun gnus-uu-unshar-article (process-buffer _in-state)
   (let ((state (list 'ok))
 	start-char)
     (with-current-buffer process-buffer

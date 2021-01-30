@@ -1,4 +1,4 @@
-;;; gnus-art.el --- article mode commands for Gnus
+;;; gnus-art.el --- article mode commands for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -1432,7 +1432,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 		 (message "\
 ** gnus-treat-display-xface is an obsolete variable;\
  use gnus-treat-display-x-face instead")
-		 (eval (car (get 'gnus-treat-display-xface 'saved-value))))
+		 (eval (car (get 'gnus-treat-display-xface 'saved-value)) t))
 		(t
 		 value)))))
 (put 'gnus-treat-display-x-face 'highlight t)
@@ -2161,6 +2161,8 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
 	      (gnus-article-hide-text-type (- (point) 2) (point) 'overstrike)
 	      (put-text-property
 	       (point) (1+ (point)) 'face 'underline)))))))))
+
+(defvar ansi-color-context-region)
 
 (defun article-treat-ansi-sequences ()
   "Translate ANSI SGR control sequences into overlays or extents."
@@ -2893,7 +2895,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 					  (t "<br>\n"))))
 		   (goto-char (point-min))
 		   (while (re-search-forward "^[\t ]+" nil t)
-		     (dotimes (i (prog1
+		     (dotimes (_ (prog1
 				     (current-column)
 				   (delete-region (match-beginning 0)
 						  (match-end 0))))
@@ -3020,6 +3022,8 @@ message header will be added to the bodies of the \"text/html\" parts."
 		     (mm-destroy-parts handle))
 	       (setq showed t)))))
     showed))
+
+(defvar gnus-mime-display-attachment-buttons-in-header)
 
 (defun gnus-article-browse-html-article (&optional arg)
   "View \"text/html\" parts of the current article with a WWW browser.
@@ -4712,8 +4716,6 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	    (gnus-run-hooks 'gnus-article-prepare-hook)
 	    t))))))
 
-(defvar gnus-mime-display-attachment-buttons-in-header)
-
 ;;;###autoload
 (defun gnus-article-prepare-display ()
   "Make the current buffer look like a nice article."
@@ -6149,7 +6151,7 @@ If nil, don't show those extra buttons."
   (let* ((preferred (or preferred (mm-preferred-alternative handles)))
 	 (ihandles handles)
 	 (point (point))
-	 handle (inhibit-read-only t) from begend not-pref)
+	 handle (inhibit-read-only t) begend not-pref) ;; from
     (save-window-excursion
       (save-restriction
 	(when ibegend
@@ -6170,7 +6172,8 @@ If nil, don't show those extra buttons."
 		  (not (gnus-unbuttonized-mime-type-p
 			"multipart/alternative")))
 	  (add-text-properties
-	   (setq from (point))
+	   ;; (setq from
+	   (point);; )
 	   (progn
 	     (insert (format "%d.  " id))
 	     (point))
@@ -6191,7 +6194,8 @@ If nil, don't show those extra buttons."
 	  ;; Do the handles
 	  (while (setq handle (pop handles))
 	    (add-text-properties
-	     (setq from (point))
+	     ;; (setq from
+	     (point) ;; )
 	     (progn
 	       (insert (format "(%c) %-18s"
 			       (if (equal handle preferred) ?* ? )
@@ -7986,13 +7990,13 @@ specified by `gnus-button-alist'."
       (article-goto-body)
       (setq beg (point))
       (while (setq entry (pop alist))
-	(setq regexp (eval (car entry)))
+	(setq regexp (eval (car entry) t))
 	(goto-char beg)
 	(while (re-search-forward regexp nil t)
 	  (let ((start (match-beginning (nth 1 entry)))
 		(end (match-end (nth 1 entry)))
 		(from (match-beginning 0)))
-	    (when (and (eval (nth 2 entry))
+	    (when (and (eval (nth 2 entry) t)
 		       (not (gnus-button-in-region-p
 			     start end 'gnus-callback)))
 	      ;; That optional form returned non-nil, so we add the
@@ -8083,14 +8087,14 @@ url is put as the `gnus-button-url' overlay property on the button."
 			     (match-beginning 0))
 			(point-max)))
 	  (goto-char beg)
-	  (while (re-search-forward (eval (nth 1 entry)) end t)
+	  (while (re-search-forward (eval (nth 1 entry) t) end t)
 	    ;; Each match within a header.
 	    (let* ((entry (cdr entry))
 		   (start (match-beginning (nth 1 entry)))
 		   (end (match-end (nth 1 entry)))
 		   (form (nth 2 entry)))
 	      (goto-char (match-end 0))
-	      (when (eval form)
+	      (when (eval form t)
 		(gnus-article-add-button
 		 start end (nth 3 entry)
 		 (buffer-substring (match-beginning (nth 4 entry))
@@ -8099,7 +8103,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 ;;; External functions:
 
-(defun gnus-article-add-button (from to fun &optional data text)
+(defun gnus-article-add-button (from to fun &optional data _text)
   "Create a button between FROM and TO with callback FUN and data DATA."
   (add-text-properties
    from to
@@ -8312,7 +8316,7 @@ url is put as the `gnus-button-url' overlay property on the button."
       (setq indx  (match-string 1 indx))
       (Info-index indx)
       (when comma
-	(dotimes (i (with-temp-buffer
+	(dotimes (_ (with-temp-buffer
 		      (insert comma)
 		      ;; Note: the XEmacs version of `how-many' takes
 		      ;; no optional argument.

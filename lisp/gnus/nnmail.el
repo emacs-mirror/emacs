@@ -1,4 +1,4 @@
-;;; nnmail.el --- mail support functions for the Gnus mail backends
+;;; nnmail.el --- mail support functions for the Gnus mail backends  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -598,7 +598,7 @@ These will be logged to the \"*nnmail split*\" buffer."
 
 
 
-(defun nnmail-request-post (&optional server)
+(defun nnmail-request-post (&optional _server)
   (mail-send-and-exit nil))
 
 (defvar nnmail-file-coding-system 'raw-text
@@ -664,7 +664,7 @@ nn*-request-list should have been called before calling this function."
   (let ((buffer (current-buffer))
 	group-assoc group max min)
     (while (not (eobp))
-      (condition-case err
+      (condition-case nil
 	  (progn
 	    (narrow-to-region (point) (point-at-eol))
 	    (setq group (read buffer)
@@ -1332,7 +1332,7 @@ Eudora has a broken References line, but an OK In-Reply-To."
 (declare-function gnus-activate-group "gnus-start"
                   (group &optional scan dont-check method dont-sub-check))
 
-(defun nnmail-do-request-post (accept-func &optional server)
+(defun nnmail-do-request-post (accept-func &optional _server)
   "Utility function to directly post a message to an nnmail-derived group.
 Calls ACCEPT-FUNC (which should be `nnchoke-request-accept-article')
 to actually put the message in the right group."
@@ -1397,7 +1397,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
      ;; Builtin : operation.
      ((eq (car split) ':)
       (nnmail-log-split split)
-      (nnmail-split-it (save-excursion (eval (cdr split)))))
+      (nnmail-split-it (save-excursion (eval (cdr split) t))))
 
      ;; Builtin ! operation.
      ((eq (car split) '!)
@@ -1783,7 +1783,7 @@ be called once per group or once for all groups."
       (assq 'directory mail-sources)))
 
 (defun nnmail-get-new-mail-1 (method exit-func temp
-			      group in-group spool-func)
+			      group _in-group spool-func)
   (let* ((sources mail-sources)
 	 fetching-sources
 	 (i 0)
@@ -1918,7 +1918,7 @@ If TIME is nil, then return the cutoff time for oldness instead."
 		     (cdr group-art))
 	    (gnus-group-mark-article-read target (cdr group-art))))))))
 
-(defun nnmail-fancy-expiry-target (group)
+(defun nnmail-fancy-expiry-target (_group)
   "Return a target expiry group determined by `nnmail-fancy-expiry-targets'."
   (let* (header
 	 (case-fold-search nil)

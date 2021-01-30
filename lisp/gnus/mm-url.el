@@ -1,4 +1,4 @@
-;;; mm-url.el --- a wrapper of url functions/commands for Gnus
+;;; mm-url.el --- a wrapper of url functions/commands for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 

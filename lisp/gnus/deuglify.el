@@ -1,4 +1,4 @@
-;;; deuglify.el --- deuglify broken Outlook (Express) articles
+;;; deuglify.el --- deuglify broken Outlook (Express) articles  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -336,7 +336,8 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
   "Put text from ATTR-START to the end of buffer at the top of the article buffer."
   ;; FIXME: 1.  (*) text/plain          ( ) text/html
   (let ((inhibit-read-only t)
-	(cite-marks gnus-outlook-deuglify-cite-marks))
+	;; (cite-marks gnus-outlook-deuglify-cite-marks)
+	)
     (gnus-with-article-buffer
       (article-goto-body)
       ;; article does not start with attribution

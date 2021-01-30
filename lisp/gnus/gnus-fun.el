@@ -1,4 +1,4 @@
-;;; gnus-fun.el --- various frivolous extension functions to Gnus
+;;; gnus-fun.el --- various frivolous extension functions to Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
