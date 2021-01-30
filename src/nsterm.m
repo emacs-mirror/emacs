@@ -272,7 +272,9 @@ long context_menu_value = 0;
 
 /* display update */
 static struct frame *ns_updating_frame;
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
 static NSView *focus_view = NULL;
+#endif
 static int ns_window_num = 0;
 static BOOL gsaved = NO;
 static BOOL ns_fake_keydown = NO;
@@ -1139,7 +1141,9 @@ ns_update_end (struct frame *f)
    external (RIF) call; for whole frame, called after gui_update_window_end
    -------------------------------------------------------------------------- */
 {
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
   EmacsView *view = FRAME_NS_VIEW (f);
+#endif
 
   NSTRACE_WHEN (NSTRACE_GROUP_UPDATES, "ns_update_end");
 
@@ -1449,7 +1453,7 @@ ns_ring_bell (struct frame *f)
     }
 }
 
-
+#if !defined (NS_DRAW_TO_BUFFER) || MAC_OS_X_VERSION_MIN_REQUIRED < 101400
 static void
 hide_bell (void)
 /* --------------------------------------------------------------------------
@@ -1463,6 +1467,7 @@ hide_bell (void)
       [bell_view remove];
     }
 }
+#endif
 
 
 /* ==========================================================================
@@ -2876,6 +2881,8 @@ ns_get_shifted_character (NSEvent *event)
    ========================================================================== */
 
 
+#if 0
+/* FIXME: Remove this function. */
 static void
 ns_redraw_scroll_bars (struct frame *f)
 {
@@ -2890,6 +2897,7 @@ ns_redraw_scroll_bars (struct frame *f)
       [view display];
     }
 }
+#endif
 
 
 void
@@ -3029,9 +3037,13 @@ ns_clear_under_internal_border (struct frame *f)
       NSRectEdge edge[] = {NSMinXEdge, NSMinYEdge, NSMaxXEdge, NSMaxYEdge};
 
       int face_id =
-	!NILP (Vface_remapping_alist)
-	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	: INTERNAL_BORDER_FACE_ID;
+        (FRAME_PARENT_FRAME (f)
+         ? (!NILP (Vface_remapping_alist)
+            ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+            : CHILD_FRAME_BORDER_FACE_ID)
+         : (!NILP (Vface_remapping_alist)
+            ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+            : INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       if (!face)
@@ -8399,21 +8411,23 @@ not_in_argv (NSString *arg)
       void *pixels = CGBitmapContextGetData (context);
       int rowSize = CGBitmapContextGetBytesPerRow (context);
       int srcRowSize = NSWidth (srcRect) * scale * bpp;
-      void *srcPixels = pixels + (int)(NSMinY (srcRect) * scale * rowSize
-                                       + NSMinX (srcRect) * scale * bpp);
-      void *dstPixels = pixels + (int)(NSMinY (dstRect) * scale * rowSize
-                                       + NSMinX (dstRect) * scale * bpp);
+      void *srcPixels = (char *) pixels
+                        + (int) (NSMinY (srcRect) * scale * rowSize
+                                 + NSMinX (srcRect) * scale * bpp);
+      void *dstPixels = (char *) pixels
+                        + (int) (NSMinY (dstRect) * scale * rowSize
+                                 + NSMinX (dstRect) * scale * bpp);
 
       if (NSIntersectsRect (srcRect, dstRect)
           && NSMinY (srcRect) < NSMinY (dstRect))
         for (int y = NSHeight (srcRect) * scale - 1 ; y >= 0 ; y--)
-          memmove (dstPixels + y * rowSize,
-                   srcPixels + y * rowSize,
+          memmove ((char *) dstPixels + y * rowSize,
+                   (char *) srcPixels + y * rowSize,
                    srcRowSize);
       else
         for (int y = 0 ; y < NSHeight (srcRect) * scale ; y++)
-          memmove (dstPixels + y * rowSize,
-                   srcPixels + y * rowSize,
+          memmove ((char *) dstPixels + y * rowSize,
+                   (char *) srcPixels + y * rowSize,
                    srcRowSize);
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101400
@@ -8742,7 +8756,8 @@ not_in_argv (NSString *arg)
 /* The array returned by [NSWindow parentWindow] may already be
    sorted, but the documentation doesn't tell us whether or not it is,
    so to be safe we'll sort it.  */
-NSInteger nswindow_orderedIndex_sort (id w1, id w2, void *c)
+static NSInteger
+nswindow_orderedIndex_sort (id w1, id w2, void *c)
 {
   NSInteger i1 = [w1 orderedIndex];
   NSInteger i2 = [w2 orderedIndex];

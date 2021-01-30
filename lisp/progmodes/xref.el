@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 ;; Version: 1.0.4
-;; Package-Requires: ((emacs "26.3"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
 ;; compatible with the version of Emacs recorded above.
@@ -967,16 +967,16 @@ Return an alist of the form ((FILENAME . (XREF ...)) ...)."
   (let ((inhibit-read-only t)
         (buffer-undo-list t))
     (save-excursion
-      (erase-buffer)
       (condition-case err
-          (xref--insert-xrefs
-           (xref--analyze (funcall xref--fetcher)))
+          (let ((alist (xref--analyze (funcall xref--fetcher))))
+            (erase-buffer)
+            (xref--insert-xrefs alist))
         (user-error
+         (erase-buffer)
          (insert
           (propertize
            (error-message-string err)
-           'face 'error))))
-      (goto-char (point-min)))))
+           'face 'error)))))))
 
 (defun xref-show-definitions-buffer (fetcher alist)
   "Show the definitions list in a regular window.

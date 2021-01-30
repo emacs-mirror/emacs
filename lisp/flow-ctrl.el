@@ -1,4 +1,4 @@
-;;; flow-ctrl.el --- help for lusers on cu(1) or ttys with wired-in ^S/^Q flow control
+;;; flow-ctrl.el --- help for lusers on cu(1) or ttys with wired-in ^S/^Q flow control  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1990-1991, 1994, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -64,12 +64,11 @@ With arg, enable flow control mode if arg is positive, otherwise disable."
       (progn
 	;; Turn flow control off, and stop exchanging chars.
 	(set-input-mode t nil (nth 2 (current-input-mode)))
-	(if keyboard-translate-table
-	    (progn
-	      (aset keyboard-translate-table flow-control-c-s-replacement nil)
-	      (aset keyboard-translate-table ?\^s nil)
-	      (aset keyboard-translate-table flow-control-c-q-replacement nil)
-	      (aset keyboard-translate-table ?\^q nil))))
+        (when keyboard-translate-table
+          (aset keyboard-translate-table flow-control-c-s-replacement nil)
+          (aset keyboard-translate-table ?\^s nil)
+          (aset keyboard-translate-table flow-control-c-q-replacement nil)
+          (aset keyboard-translate-table ?\^q nil)))
     ;; Turn flow control on.
     ;; Tell emacs to pass C-s and C-q to OS.
     (set-input-mode nil t (nth 2 (current-input-mode)))

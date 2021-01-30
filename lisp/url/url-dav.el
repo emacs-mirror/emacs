@@ -1,4 +1,4 @@
-;;; url-dav.el --- WebDAV support
+;;; url-dav.el --- WebDAV support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001, 2004-2021 Free Software Foundation, Inc.
 
@@ -133,7 +133,8 @@ Returns nil if WebDAV is not supported."
 	(node-type nil)
 	(props nil)
 	(value nil)
-	(handler-func nil))
+	;; (handler-func nil)
+	)
     (when (not children)
       (error "No child nodes in DAV:prop"))
 
@@ -453,7 +454,7 @@ FAILURE-RESULTS is a list of (URL STATUS)."
 	   "  </DAV:owner>\n"))
 	 (response nil)		  ; Responses to the LOCK request
 	 (result nil)		  ; For walking thru the response list
-	 (child-url nil)
+	 ;; (child-url nil)
 	 (child-status nil)
 	 (failures nil)		  ; List of failure cases (URL . STATUS)
 	 (successes nil))	  ; List of success cases (URL . STATUS)
@@ -468,7 +469,7 @@ FAILURE-RESULTS is a list of (URL STATUS)."
     ;; status code.
     (while response
       (setq result (pop response)
-	    child-url (url-expand-file-name (pop result) url)
+	    ;; child-url (url-expand-file-name (pop result) url)
 	    child-status (or (plist-get result 'DAV:status) 500))
       (if (url-dav-http-success-p child-status)
 	  (push (list url child-status "huh") successes)
@@ -478,7 +479,7 @@ FAILURE-RESULTS is a list of (URL STATUS)."
 (defun url-dav-active-locks (url &optional depth)
   "Return an assoc list of all active locks on URL."
   (let ((response (url-dav-get-properties url '(DAV:lockdiscovery) depth))
-	(properties nil)
+	;; (properties nil)
 	(child nil)
 	(child-url nil)
 	(child-results nil)
@@ -676,7 +677,6 @@ Use with care, and even then think three times."
 If optional second argument RECURSIVE is non-nil, then delete all
 files in the collection as well."
   (let ((status nil)
-	(props nil)
 	(props nil))
     (setq props (url-dav-delete-something
 		 url lock-token
@@ -769,7 +769,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
     (when (member 'DAV:collection (plist-get properties 'DAV:resourcetype))
       t)))
 
-(defun url-dav-make-directory (url &optional parents)
+(defun url-dav-make-directory (url &optional _parents)
   "Create the directory DIR and any nonexistent parent dirs."
   (let* ((url-request-extra-headers nil)
 	 (url-request-method "MKCOL")
@@ -849,7 +849,9 @@ that start with FILE.
 If there is only one and FILE matches it exactly, returns t.
 Returns nil if URL contains no name starting with FILE."
   (let ((matches (url-dav-file-name-all-completions file url))
-	(result nil))
+	;; (result nil)
+	)
+    ;; FIXME: Use `try-completion'!
     (cond
      ((null matches)
       ;; No matches

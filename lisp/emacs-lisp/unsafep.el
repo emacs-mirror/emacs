@@ -1,4 +1,4 @@
-;;;; unsafep.el -- Determine whether a Lisp form is safe to evaluate
+;;;; unsafep.el -- Determine whether a Lisp form is safe to evaluate  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -129,15 +129,16 @@ in the parse.")
   (put x 'safe-function t))
 
 ;;;###autoload
-(defun unsafep (form &optional unsafep-vars)
+(defun unsafep (form &optional vars)
   "Return nil if evaluating FORM couldn't possibly do any harm.
 Otherwise result is a reason why FORM is unsafe.
-UNSAFEP-VARS is a list of symbols with local bindings."
+VARS is a list of symbols with local bindings like `unsafep-vars'."
   (catch 'unsafep
     (if (or (eq safe-functions t)	    ;User turned off safety-checking
 	    (atom form))		    ;Atoms are never unsafe
 	(throw 'unsafep nil))
-    (let* ((fun    (car form))
+    (let* ((unsafep-vars vars)
+	   (fun    (car form))
 	   (reason (unsafep-function fun))
 	   arg)
       (cond

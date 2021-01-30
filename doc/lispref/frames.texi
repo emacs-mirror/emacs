@@ -694,9 +694,17 @@ parameter (@pxref{Management Parameters}).
 
 @item Internal Border
 The internal border is a border drawn by Emacs around the inner frame
-(see below).  Its width is specified by the @code{internal-border-width}
-frame parameter (@pxref{Layout Parameters}).  Its color is specified by
-the background of the @code{internal-border} face.
+(see below).  The specification of its appearance depends on whether
+or not the given frame is a child frame (@pxref{Child Frames}).
+
+For normal frames its width is specified by the @code{internal-border-width}
+frame parameter (@pxref{Layout Parameters}), and its color is specified by the
+background of the @code{internal-border} face.
+
+For child frames its width is specified by the @code{child-frame-border-width}
+frame parameter (but will use the @code{internal-border-width} parameter as
+fallback), and its color is specified by the background of the
+@code{child-frame-border} face.
 
 @item Inner Frame
 @cindex inner frame
@@ -1789,6 +1797,11 @@ The width in pixels of the frame's outer border (@pxref{Frame Geometry}).
 @item internal-border-width
 The width in pixels of the frame's internal border (@pxref{Frame
 Geometry}).
+
+@vindex child-frame-border-width@r{, a frame parameter}
+@item child-frame-border-width
+The width in pixels of the frame's internal border (@pxref{Frame
+Geometry}) if the given frame is a child frame (@pxref{Child Frames}).
 
 @vindex vertical-scroll-bars@r{, a frame parameter}
 @item vertical-scroll-bars
@@ -3748,10 +3761,31 @@ for instance using the window manager, then this produces a quit and
   You can specify the mouse pointer style for particular text or
 images using the @code{pointer} text property, and for images with the
 @code{:pointer} and @code{:map} image properties.  The values you can
-use in these properties are @code{text} (or @code{nil}), @code{arrow},
-@code{hand}, @code{vdrag}, @code{hdrag}, @code{modeline}, and
-@code{hourglass}.  @code{text} stands for the usual mouse pointer
-style used over text.
+use in these properties are in the table below.  The actual shapes
+may vary between systems; the descriptions are examples.
+
+@table @code
+@item text
+@itemx nil
+The usual mouse pointer style used over text (an ``I''-like shape).
+
+@item arrow
+@itemx vdrag
+@itemx modeline
+An arrow that points north-west.
+
+@item hand
+A hand that points upwards.
+
+@item hdrag
+A right-left arrow.
+
+@item nhdrag
+An up-down arrow.
+
+@item hourglass
+A rotating ring.
+@end table
 
   Over void parts of the window (parts that do not correspond to any
 of the buffer contents), the mouse pointer usually uses the

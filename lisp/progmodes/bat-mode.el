@@ -1,4 +1,4 @@
-;;; bat-mode.el --- Major mode for editing DOS/Windows scripts
+;;; bat-mode.el --- Major mode for editing DOS/Windows scripts  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2003, 2008-2021 Free Software Foundation, Inc.
 

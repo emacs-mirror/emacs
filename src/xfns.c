@@ -1800,6 +1800,28 @@ x_change_tool_bar_height (struct frame *f, int height)
 #endif /* USE_GTK */
 }
 
+static void
+x_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  int border = check_int_nonnegative (arg);
+
+  if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
+    {
+      f->child_frame_border_width = border;
+
+#ifdef USE_X_TOOLKIT
+      if (FRAME_X_OUTPUT (f)->edit_widget)
+	widget_store_internal_border (FRAME_X_OUTPUT (f)->edit_widget);
+#endif
+
+      if (FRAME_X_WINDOW (f))
+	{
+	  adjust_frame_size (f, -1, -1, 3, false, Qchild_frame_border_width);
+	  x_clear_under_internal_border (f);
+	}
+    }
+
+}
 
 static void
 x_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -3897,6 +3919,29 @@ This function is an internal primitive--use `make-frame' instead.  */)
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
+
+  /* Same for child frames.  */
+  if (NILP (Fassq (Qchild_frame_border_width, parms)))
+    {
+      Lisp_Object value;
+
+      value = gui_display_get_arg (dpyinfo, parms, Qchild_frame_border_width,
+                                   "childFrameBorderWidth", "childFrameBorderWidth",
+                                   RES_TYPE_NUMBER);
+      if (! EQ (value, Qunbound))
+	parms = Fcons (Fcons (Qchild_frame_border_width, value),
+		       parms);
+
+    }
+
+  gui_default_parameter (f, parms, Qchild_frame_border_width,
+#ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
+			 make_fixnum (0),
+#else
+			 make_fixnum (1),
+#endif
+			 "childFrameBorderWidth", "childFrameBorderWidth",
+			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qinternal_border_width,
 #ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
                          make_fixnum (0),
@@ -7762,6 +7807,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_foreground_color,
   x_set_icon_name,
   x_set_icon_type,
+  x_set_child_frame_border_width,
   x_set_internal_border_width,
   gui_set_right_divider_width,
   gui_set_bottom_divider_width,

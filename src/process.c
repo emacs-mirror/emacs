@@ -290,7 +290,9 @@ static int child_signal_read_fd = -1;
    status changes.  */
 static int child_signal_write_fd = -1;
 static void child_signal_init (void);
+#ifndef WINDOWSNT
 static void child_signal_read (int, void *);
+#endif
 static void child_signal_notify (void);
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor.  */
@@ -7148,8 +7150,23 @@ process has been transmitted to the serial port.  */)
    have the same process ID.
 
    To avoid a deadlock when receiving SIGCHLD while
-   `wait_reading_process_output' is in `pselect', the SIGCHLD handler
-   will notify the `pselect' using a pipe.  */
+   'wait_reading_process_output' is in 'pselect', the SIGCHLD handler
+   will notify the `pselect' using a self-pipe.  The deadlock could
+   occur if SIGCHLD is delivered outside of the 'pselect' call, in
+   which case 'pselect' will not be interrupted by the signal, and
+   will therefore wait on the process's output descriptor for the
+   output that will never come.
+
+   WINDOWSNT doesn't need this facility because its 'pselect'
+   emulation (see 'sys_select' in w32proc.c) waits on a subprocess
+   handle, which becomes signaled when the process exits, and also
+   because that emulation delays the delivery of the simulated SIGCHLD
+   until all the output from the subprocess has been consumed.  */
+
+/* FIXME: On Unix-like systems that have a proper 'pselect'
+   (HAVE_PSELECT), we should block SIGCHLD in
+   'wait_reading_process_output' and pass a non-NULL signal mask to
+   'pselect' to avoid the need for the self-pipe.  */
 
 /* Set up `child_signal_read_fd' and `child_signal_write_fd'.  */
 
@@ -7159,6 +7176,7 @@ child_signal_init (void)
   /* Either both are initialized, or both are uninitialized.  */
   eassert ((child_signal_read_fd < 0) == (child_signal_write_fd < 0));
 
+#ifndef WINDOWSNT
   if (0 <= child_signal_read_fd)
     return; /* already done */
 
@@ -7181,12 +7199,16 @@ child_signal_init (void)
   eassert (0 <= fds[1]);
   if (fcntl (fds[0], F_SETFL, O_NONBLOCK) != 0)
     emacs_perror ("fcntl");
+  if (fcntl (fds[1], F_SETFL, O_NONBLOCK) != 0)
+    emacs_perror ("fcntl");
   add_read_fd (fds[0], child_signal_read, NULL);
   fd_callback_info[fds[0]].flags &= ~KEYBOARD_FD;
   child_signal_read_fd = fds[0];
   child_signal_write_fd = fds[1];
+#endif	/* !WINDOWSNT */
 }
 
+#ifndef WINDOWSNT
 /* Consume a process status change.  */
 
 static void
@@ -7195,9 +7217,10 @@ child_signal_read (int fd, void *data)
   eassert (0 <= fd);
   eassert (fd == child_signal_read_fd);
   char dummy;
-  if (emacs_read (fd, &dummy, 1) < 0)
+  if (emacs_read (fd, &dummy, 1) < 0 && errno != EAGAIN)
     emacs_perror ("reading from child signal FD");
 }
+#endif	/* !WINDOWSNT */
 
 /* Notify `wait_reading_process_output' of a process status
    change.  */
@@ -7205,11 +7228,13 @@ child_signal_read (int fd, void *data)
 static void
 child_signal_notify (void)
 {
+#ifndef WINDOWSNT
   int fd = child_signal_write_fd;
   eassert (0 <= fd);
   char dummy = 0;
   if (emacs_write (fd, &dummy, 1) != 1)
     emacs_perror ("writing to child signal FD");
+#endif
 }
 
 /* LIB_CHILD_HANDLER is a SIGCHLD handler that Emacs calls while doing

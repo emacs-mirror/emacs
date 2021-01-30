@@ -186,7 +186,8 @@ bool build_details;
 /* Name for the server started by the daemon.*/
 static char *daemon_name;
 
-/* 0 not a daemon, 1 new-style (foreground), 2 old-style (background).  */
+/* 0 not a daemon, 1 new-style (foreground), 2 old-style (background).
+   A negative value means the daemon initialization was already done.  */
 int daemon_type;
 
 #ifndef WINDOWSNT
@@ -2354,7 +2355,10 @@ all of which are called before Emacs is actually killed.  */
   int exit_code;
 
 #ifdef HAVE_LIBSYSTEMD
-  sd_notify(0, "STOPPING=1");
+  /* Notify systemd we are shutting down, but only if we have notified
+     it about startup.  */
+  if (daemon_type == -1)
+    sd_notify(0, "STOPPING=1");
 #endif /* HAVE_LIBSYSTEMD */
 
   /* Fsignal calls emacs_abort () if it sees that waiting_for_input is
@@ -2866,7 +2870,7 @@ from the parent process and its tty file descriptors.  */)
     }
 
   /* Set it to an invalid value so we know we've already run this function.  */
-  daemon_type = -1;
+  daemon_type = -daemon_type;
 
 #else  /* WINDOWSNT */
   /* Signal the waiting emacsclient process.  */

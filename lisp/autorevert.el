@@ -355,10 +355,9 @@ the list of old buffers.")
 (add-hook 'after-set-visited-file-name-hook
           #'auto-revert-set-visited-file-name)
 
-(defvar auto-revert--buffers-by-watch-descriptor
-  (make-hash-table :test 'equal)
-  "A hash table mapping notification descriptors to lists of buffers.
-The buffers use that descriptor for auto-revert notifications.
+(defvar auto-revert--buffer-by-watch-descriptor nil
+  "An association list mapping notification descriptors to buffers.
+The buffer uses that descriptor for auto-revert notifications.
 The key is equal to `auto-revert-notify-watch-descriptor' in each
 buffer.")
 
@@ -630,16 +629,12 @@ will use an up-to-date value of `auto-revert-interval'."
 
 (defun auto-revert-notify-rm-watch ()
   "Disable file notification for current buffer's associated file."
-  (let ((desc auto-revert-notify-watch-descriptor)
-        (table auto-revert--buffers-by-watch-descriptor))
-    (when desc
-      (let ((buffers (delq (current-buffer) (gethash desc table))))
-        (if buffers
-            (puthash desc buffers table)
-          (remhash desc table)))
-      (ignore-errors
-	(file-notify-rm-watch desc))
-      (remove-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch t)))
+  (when-let ((desc auto-revert-notify-watch-descriptor))
+    (setq auto-revert--buffer-by-watch-descriptor
+          (assoc-delete-all desc auto-revert--buffer-by-watch-descriptor))
+    (ignore-errors
+      (file-notify-rm-watch desc))
+    (remove-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch t))
   (setq auto-revert-notify-watch-descriptor nil
 	auto-revert-notify-modified-p nil))
 
@@ -660,13 +655,10 @@ will use an up-to-date value of `auto-revert-interval'."
                (if buffer-file-name '(change attribute-change) '(change))
                'auto-revert-notify-handler))))
       (when auto-revert-notify-watch-descriptor
-        (setq auto-revert-notify-modified-p t)
-        (puthash
-         auto-revert-notify-watch-descriptor
-         (cons (current-buffer)
-	       (gethash auto-revert-notify-watch-descriptor
-		        auto-revert--buffers-by-watch-descriptor))
-         auto-revert--buffers-by-watch-descriptor)
+        (setq auto-revert-notify-modified-p t
+              auto-revert--buffer-by-watch-descriptor
+              (cons (cons auto-revert-notify-watch-descriptor (current-buffer))
+                    auto-revert--buffer-by-watch-descriptor))
         (add-hook 'kill-buffer-hook #'auto-revert-notify-rm-watch nil t))))
 
 ;; If we have file notifications, we want to update the auto-revert buffers
@@ -696,8 +688,8 @@ system.")
 	   (action (nth 1 event))
 	   (file (nth 2 event))
 	   (file1 (nth 3 event)) ;; Target of `renamed'.
-	   (buffers (gethash descriptor
-			     auto-revert--buffers-by-watch-descriptor)))
+	   (buffer (alist-get descriptor auto-revert--buffer-by-watch-descriptor
+                              nil nil #'equal)))
       ;; Check, that event is meant for us.
       (cl-assert descriptor)
       ;; Since we watch a directory, a file name must be returned.
@@ -706,9 +698,9 @@ system.")
       (when auto-revert-debug
         (message "auto-revert-notify-handler %S" event))
 
-      (if (eq action 'stopped)
-          ;; File notification has stopped.  Continue with polling.
-          (cl-dolist (buffer buffers)
+      (when (buffer-live-p buffer)
+        (if (eq action 'stopped)
+            ;; File notification has stopped.  Continue with polling.
             (with-current-buffer buffer
               (when (or
                      ;; A buffer associated with a file.
@@ -721,38 +713,35 @@ system.")
                 (auto-revert-notify-rm-watch)
                 ;; Restart the timer if it wasn't running.
                 (unless auto-revert-timer
-                  (auto-revert-set-timer)))))
+                  (auto-revert-set-timer))))
 
-        ;; Loop over all buffers, in order to find the intended one.
-        (cl-dolist (buffer buffers)
-          (when (buffer-live-p buffer)
-            (with-current-buffer buffer
-              (when (or
-                     ;; A buffer associated with a file.
-                     (and (stringp buffer-file-name)
-                          (or
-                           (and (memq
-                                 action '(attribute-changed changed created))
-                                (string-equal
-                                 (file-name-nondirectory file)
-                                 (file-name-nondirectory buffer-file-name)))
-                           (and (eq action 'renamed)
-                                (string-equal
-                                 (file-name-nondirectory file1)
-                                 (file-name-nondirectory buffer-file-name)))))
-                     ;; A buffer w/o a file, like dired.
-                     (and (null buffer-file-name)
-                          (memq action '(created renamed deleted))))
-                ;; Mark buffer modified.
-                (setq auto-revert-notify-modified-p t)
+          (with-current-buffer buffer
+            (when (or
+                   ;; A buffer associated with a file.
+                   (and (stringp buffer-file-name)
+                        (or
+                         (and (memq
+                               action '(attribute-changed changed created))
+                              (string-equal
+                               (file-name-nondirectory file)
+                               (file-name-nondirectory buffer-file-name)))
+                         (and (eq action 'renamed)
+                              (string-equal
+                               (file-name-nondirectory file1)
+                               (file-name-nondirectory buffer-file-name)))))
+                   ;; A buffer w/o a file, like dired.
+                   (and (null buffer-file-name)
+                        (memq action '(created renamed deleted))))
+              ;; Mark buffer modified.
+              (setq auto-revert-notify-modified-p t)
 
-                ;; Revert the buffer now if we're not locked out.
-                (unless auto-revert--lockout-timer
-                  (auto-revert-handler)
-                  (setq auto-revert--lockout-timer
-                        (run-with-timer
-                         auto-revert--lockout-interval nil
-                         #'auto-revert--end-lockout buffer)))))))))))
+              ;; Revert the buffer now if we're not locked out.
+              (unless auto-revert--lockout-timer
+                (auto-revert-handler)
+                (setq auto-revert--lockout-timer
+                      (run-with-timer
+                       auto-revert--lockout-interval nil
+                       #'auto-revert--end-lockout buffer))))))))))
 
 (defun auto-revert--end-lockout (buffer)
   "End the lockout period after a notification.

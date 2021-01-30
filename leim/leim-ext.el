@@ -1,4 +1,4 @@
-;; leim-ext.el -- extra leim configuration	-*- coding:utf-8; -*-
+;; leim-ext.el -- extra leim configuration	-*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -39,13 +39,13 @@
 (eval-after-load "quail/Punct-b5"
   '(quail-defrule " " ?　 nil t))
 
-(register-input-method "ucs" "UTF-8" 'ucs-input-activate "U+"
+(register-input-method "ucs" "UTF-8" #'ucs-input-activate "U+"
 		       "Unicode input as hex in the form Uxxxx.")
 
 (register-input-method
  "korean-hangul"
  "UTF-8"
- 'hangul-input-method-activate
+ #'hangul-input-method-activate
  "한2"
  "Hangul 2-Bulsik Input"
  'hangul2-input-method
@@ -54,7 +54,7 @@
 (register-input-method
  "korean-hangul3f"
  "UTF-8"
- 'hangul-input-method-activate
+ #'hangul-input-method-activate
  "한3f"
  "Hangul 3-Bulsik final Input"
  'hangul3-input-method
@@ -63,7 +63,7 @@
 (register-input-method
  "korean-hangul390"
  "UTF-8"
- 'hangul-input-method-activate
+ #'hangul-input-method-activate
  "한390"
  "Hangul 3-Bulsik 390 Input"
  'hangul390-input-method
@@ -72,7 +72,7 @@
 (register-input-method
  "korean-hangul3"
  "UTF-8"
- 'hangul-input-method-activate
+ #'hangul-input-method-activate
  "한390"
  "Hangul 3-Bulsik 390 Input"
  'hangul390-input-method

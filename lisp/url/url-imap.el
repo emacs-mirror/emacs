@@ -1,4 +1,4 @@
-;;; url-imap.el --- IMAP retrieval routines
+;;; url-imap.el --- IMAP retrieval routines  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999, 2004-2021 Free Software Foundation, Inc.
 
@@ -36,6 +36,9 @@
 (require 'mm-util)
 
 (defconst url-imap-default-port 143 "Default IMAP port.")
+
+(defvar imap-username)
+(defvar imap-password)
 
 (defun url-imap-open-host (host port user pass)
   ;; xxx use user and password

@@ -128,6 +128,9 @@
     (modify-syntax-entry ?| "." st)
     (modify-syntax-entry ?_ "_" st)
     (modify-syntax-entry ?\' "\"" st)
+    (modify-syntax-entry ?\{ "(}" st)
+    (modify-syntax-entry ?\} "){" st)
+    (modify-syntax-entry ?\" "\"" st)
     st)
   "Syntax table in use in sieve-mode buffers.")
 
@@ -178,12 +181,8 @@
                          'syntax-table (string-to-syntax "|")))))
 
 ;;;###autoload
-(define-derived-mode sieve-mode c-mode "Sieve"
+(define-derived-mode sieve-mode prog-mode "Sieve"
   "Major mode for editing Sieve code.
-This is much like C mode except for the syntax of comments.  Its keymap
-inherits from C mode's and it has the same variables for customizing
-indentation.  It has its own abbrev table and its own syntax table.
-
 Turning on Sieve mode runs `sieve-mode-hook'."
   (setq-local paragraph-start (concat "$\\|" page-delimiter))
   (setq-local paragraph-separate paragraph-start)
@@ -194,7 +193,16 @@ Turning on Sieve mode runs `sieve-mode-hook'."
   (setq-local syntax-propertize-function #'sieve-syntax-propertize)
   (setq-local font-lock-defaults
               '(sieve-font-lock-keywords nil nil ((?_ . "w"))))
+  (setq-local indent-line-function #'sieve-mode-indent-function)
   (easy-menu-add-item nil nil sieve-mode-menu))
+
+(defun sieve-mode-indent-function ()
+  (save-excursion
+    (beginning-of-line)
+    (let ((depth (car (syntax-ppss))))
+      (when (looking-at "[ \t]*}")
+        (setq depth (1- depth)))
+      (indent-line-to (* 2 depth)))))
 
 (provide 'sieve-mode)
 

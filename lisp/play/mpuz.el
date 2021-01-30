@@ -1,4 +1,4 @@
-;;; mpuz.el --- multiplication puzzle for GNU Emacs
+;;; mpuz.el --- multiplication puzzle for GNU Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1990, 2001-2021 Free Software Foundation, Inc.
 
@@ -40,49 +40,41 @@
 The value t means never ding, and `error' means only ding on wrong input."
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
-		 (const :tag "If correct" error))
-  :group 'mpuz)
+                 (const :tag "If correct" error)))
 
 (defcustom mpuz-solve-when-trivial t
   "Solve any row that can be trivially calculated from what you've found."
-  :type 'boolean
-  :group 'mpuz)
+  :type 'boolean)
 
 (defcustom mpuz-allow-double-multiplicator nil
   "Allow 2nd factors like 33 or 77."
-  :type 'boolean
-  :group 'mpuz)
+  :type 'boolean)
 
 (defface mpuz-unsolved
   '((default :weight bold)
     (((class color)) :foreground "red1"))
-  "Face for letters to be solved."
-  :group 'mpuz)
+  "Face for letters to be solved.")
 
 (defface mpuz-solved
   '((default :weight bold)
     (((class color)) :foreground "green1"))
-  "Face for solved digits."
-  :group 'mpuz)
+  "Face for solved digits.")
 
 (defface mpuz-trivial
   '((default :weight bold)
     (((class color)) :foreground "blue"))
-  "Face for trivial digits solved for you."
-  :group 'mpuz)
+  "Face for trivial digits solved for you.")
 
 (defface mpuz-text
   '((t :inherit variable-pitch))
-  "Face for text on right."
-  :group 'mpuz)
+  "Face for text on right.")
 
 
 ;; Mpuz mode and keymaps
 ;;----------------------
 (defcustom mpuz-mode-hook nil
   "Hook to run upon entry to mpuz."
-  :type 'hook
-  :group 'mpuz)
+  :type 'hook)
 
 (defvar mpuz-mode-map
   (let ((map (make-sparse-keymap)))
@@ -341,8 +333,8 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-switch-to-window ()
   "Find or create the Mult-Puzzle buffer, and display it."
-  (let ((buf (mpuz-get-buffer)))
-    (or buf (setq buf (mpuz-create-buffer)))
+  (let ((buf (or (mpuz-get-buffer)
+                 (mpuz-create-buffer))))
     (switch-to-buffer buf)
     (setq buffer-read-only t)
     (mpuz-mode)))

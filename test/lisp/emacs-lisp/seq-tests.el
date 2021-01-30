@@ -29,6 +29,9 @@
 (require 'ert)
 (require 'seq)
 
+(eval-when-compile
+  (require 'cl-lib))
+
 (defmacro with-test-sequences (spec &rest body)
   "Successively bind VAR to a list, vector, and string built from SEQ.
 Evaluate BODY for each created sequence.
@@ -108,16 +111,12 @@ Evaluate BODY for each created sequence.
                  '((a 0) (b 1) (c 2) (d 3)))))
 
 (ert-deftest test-seq-do-indexed ()
-  (let ((result nil))
-    (seq-do-indexed (lambda (elt i)
-                      (add-to-list 'result (list elt i)))
-                    nil)
-    (should (equal result nil)))
+  (let (result)
+    (seq-do-indexed (lambda (elt i) (push (list elt i) result)) ())
+    (should-not result))
   (with-test-sequences (seq '(4 5 6))
-    (let ((result nil))
-      (seq-do-indexed (lambda (elt i)
-                        (add-to-list 'result (list elt i)))
-                      seq)
+    (let (result)
+      (seq-do-indexed (lambda (elt i) (push (list elt i) result)) seq)
       (should (equal (seq-elt result 0) '(6 2)))
       (should (equal (seq-elt result 1) '(5 1)))
       (should (equal (seq-elt result 2) '(4 0))))))
@@ -410,12 +409,10 @@ Evaluate BODY for each created sequence.
 
 (ert-deftest test-seq-random-elt-take-all ()
   (let ((seq '(a b c d e))
-        (elts '()))
-    (should (= 0 (length elts)))
+        elts)
     (dotimes (_ 1000)
       (let ((random-elt (seq-random-elt seq)))
-        (add-to-list 'elts
-                     random-elt)))
+        (cl-pushnew random-elt elts)))
     (should (= 5 (length elts)))))
 
 (ert-deftest test-seq-random-elt-signal-on-empty ()

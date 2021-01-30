@@ -1,4 +1,4 @@
-;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8-emacs; -*-
+;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8-emacs; lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1998, 2002-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
@@ -832,11 +832,12 @@ The 2nd and 3rd arguments BEGIN and END specify the region."
     (set-buffer-modified-p nil)))
 
 ;;;###autoload
-(defun ethio-tex-to-fidel-buffer nil
+(defun ethio-tex-to-fidel-buffer ()
   "Convert fidel-tex commands in the current buffer into fidel chars."
   (interactive)
-  (let ((buffer-read-only nil)
-	(p) (ch))
+  (let ((inhibit-read-only t)
+	;; (p) (ch)
+	)
 
     ;; TeX macros to Ethiopic characters
     (robin-convert-region (point-min) (point-max) "ethiopic-tex")
@@ -1018,7 +1019,7 @@ With ARG, insert that many delimiters."
 ;;
 
 ;;;###autoload
-(defun ethio-composition-function (pos to font-object string _direction)
+(defun ethio-composition-function (pos _to _font-object string _direction)
   (setq pos (1- pos))
   (let ((pattern "\\ce\\(áŸ\\|ö ‡Š\\)"))
     (if string

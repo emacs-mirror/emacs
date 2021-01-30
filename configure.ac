@@ -5898,7 +5898,7 @@ if test $AUTO_DEPEND = yes; then
      AS_MKDIR_P([$dir/deps])
    done
 fi
-if $gl_gnulib_enabled_scratch_buffer; then
+if $gl_gnulib_enabled_dynarray || $gl_gnulib_enabled_scratch_buffer; then
   AS_MKDIR_P([lib/malloc])
   if test $AUTO_DEPEND = yes; then
     AS_MKDIR_P([lib/deps/malloc])

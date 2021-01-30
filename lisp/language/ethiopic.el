@@ -79,8 +79,8 @@
 )))
 
 ;; For automatic composition
-(aset composition-function-table ?ö ‡Š 'ethio-composition-function)
-(aset composition-function-table ?áŸ 'ethio-composition-function)
+(aset composition-function-table ?ö ‡Š #'ethio-composition-function)
+(aset composition-function-table ?áŸ #'ethio-composition-function)
 
 (provide 'ethiopic)
 

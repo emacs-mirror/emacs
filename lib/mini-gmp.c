@@ -4521,7 +4521,7 @@ mpz_export (void *r, size_t *countp, int order, size_t size, int endian,
   mp_size_t un;
 
   if (nails != 0)
-    gmp_die ("mpz_import: Nails not supported.");
+    gmp_die ("mpz_export: Nails not supported.");
 
   assert (order == 1 || order == -1);
   assert (endian >= -1 && endian <= 1);

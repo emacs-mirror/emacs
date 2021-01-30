@@ -4071,7 +4071,7 @@ the link.  Such a function will be called with the tag as the only
 argument.
 
 With the above setting, you could link to a specific bug with
-@samp{[[bugzilla:129]]}, search the web for @samp{OrgMode} with @samp{[[google:OrgMode]]},
+@samp{[[bugzilla:129]]}, search the web for @samp{OrgMode} with @samp{[[duckduckgo:OrgMode]]},
 show the map location of the Free Software Foundation @samp{[[gmap:51
 Franklin Street, Boston]]} or of Carsten office @samp{[[omap:Science Park 904,
 Amsterdam, The Netherlands]]} and find out what the Org author is doing
@@ -4082,8 +4082,8 @@ can define them in the file with
 
 @cindex @samp{LINK}, keyword
 @example
-#+LINK: bugzilla  http://10.1.2.9/bugzilla/show_bug.cgi?id=
-#+LINK: google    http://www.google.com/search?q=%s
+#+LINK: bugzilla   http://10.1.2.9/bugzilla/show_bug.cgi?id=
+#+LINK: duckduckgo https://duckduckgo.com/?q=%s
 @end example
 
 In-buffer completion (see @ref{Completion}) can be used after @samp{[} to

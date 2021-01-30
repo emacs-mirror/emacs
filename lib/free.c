@@ -27,7 +27,21 @@ void
 rpl_free (void *p)
 #undef free
 {
+#if defined __GNUC__ && !defined __clang__
+  /* An invalid GCC optimization
+     <https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98396>
+     would optimize away the assignments in the code below, when link-time
+     optimization (LTO) is enabled.  Make the code more complicated, so that
+     GCC does not grok how to optimize it.  */
+  int err[2];
+  err[0] = errno;
+  err[1] = errno;
+  errno = 0;
+  free (p);
+  errno = err[errno == 0];
+#else
   int err = errno;
   free (p);
   errno = err;
+#endif
 }

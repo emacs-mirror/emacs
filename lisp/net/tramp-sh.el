@@ -181,10 +181,9 @@ The string is used in `tramp-methods'.")
               `("scpx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t") ("%h")
-					     ("%l")))
+				             ("-e" "none") ("-t" "-t")
+					     ("-o" "RemoteCommand='%l'") ("%h")))
                 (tramp-async-args           (("-q")))
-                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
@@ -238,10 +237,9 @@ The string is used in `tramp-methods'.")
               `("sshx"
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
-				             ("-e" "none") ("-t" "-t") ("%h")
-					     ("%l")))
+				             ("-e" "none") ("-t" "-t")
+					     ("-o" "RemoteCommand='%l'") ("%h")))
                 (tramp-async-args           (("-q")))
-                (tramp-direct-async         t)
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))))
@@ -1710,6 +1708,12 @@ ID-FORMAT valid values are `string' and `integer'."
 	     (= (tramp-compat-file-attribute-user-id attributes)
 		(tramp-get-remote-uid v 'integer))
 	     (or (not group)
+		 ;; On BSD-derived systems files always inherit the
+                 ;; parent directory's group, so skip the group-gid
+                 ;; test.
+		 (string-match-p
+		  "BSD\\|DragonFly\\|Darwin"
+		  (tramp-get-connection-property v "uname" ""))
 		 (= (tramp-compat-file-attribute-group-id attributes)
 		    (tramp-get-remote-gid v 'integer)))))))))
 
@@ -2619,11 +2623,8 @@ The method used must be an out-of-band method."
 	 filename switches wildcard full-directory-p)
       (when (stringp switches)
         (setq switches (split-string switches)))
-      (when (tramp-get-ls-command-with ;FIXME: tramp-sh--quoting-style-options?
-	     v "--quoting-style=literal --show-control-chars")
-	(setq switches
-	      (append
-	       switches '("--quoting-style=literal" "--show-control-chars"))))
+      (setq switches
+	    (append switches (split-string (tramp-sh--quoting-style-options v))))
       (unless (tramp-get-ls-command-with v "--dired")
 	(setq switches (delete "--dired" switches)))
       (when wildcard
@@ -5124,7 +5125,7 @@ connection if a previous connection has died for some reason."
 		     options (format-spec options spec)
 		     spec (format-spec-make
 			   ?h l-host ?u l-user ?p l-port ?c options
-			   ?l (concat remote-shell " " extra-args))
+			   ?l (concat remote-shell " " extra-args " -i"))
 		     command
 		     (concat
 		      ;; We do not want to see the trailing local

@@ -154,7 +154,7 @@ to them."
     ;; not the compressed one.
     ;; FIXME should this regexp not include more extensions; basically
     ;; everything that url-file-find-possibly-compressed-file does?
-    (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)$" filename)
+    (setq uncompressed-filename (if (string-match "\\.\\(gz\\|Z\\|z\\)\\'" filename)
 				    (substring filename 0 (match-beginning 0))
 				  filename))
     (setq content-type (mailcap-extension-to-mime

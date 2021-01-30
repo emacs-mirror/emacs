@@ -687,6 +687,21 @@ ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   }
 }
 
+static void
+ns_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  int old_width = FRAME_CHILD_FRAME_BORDER_WIDTH (f);
+  int new_width = check_int_nonnegative (arg);
+
+  if (new_width == old_width)
+    return;
+  f->child_frame_border_width = new_width;
+
+  if (FRAME_NATIVE_WINDOW (f) != 0)
+    adjust_frame_size (f, -1, -1, 3, 0, Qchild_frame_border_width);
+
+  SET_FRAME_GARBAGED (f);
+}
 
 static void
 ns_set_internal_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
@@ -912,6 +927,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
   ns_set_foreground_color,
   ns_set_icon_name,
   ns_set_icon_type,
+  ns_set_child_frame_border_width,
   ns_set_internal_border_width,
   gui_set_right_divider_width, /* generic OK */
   gui_set_bottom_divider_width, /* generic OK */
@@ -1197,6 +1213,9 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   gui_default_parameter (f, parms, Qinternal_border_width, make_fixnum (2),
                          "internalBorderWidth", "InternalBorderWidth",
                          RES_TYPE_NUMBER);
+  gui_default_parameter (f, parms, Qchild_frame_border_width, make_fixnum (2),
+			 "childFrameBorderWidth", "childFrameBorderWidth",
+			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
 		       NULL, NULL, RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
@@ -1487,7 +1506,6 @@ Some window managers may refuse to restack windows.  */)
     {
       EmacsWindow *window = (EmacsWindow *)[FRAME_NS_VIEW (f1) window];
       NSWindow *window2 = [FRAME_NS_VIEW (f2) window];
-      BOOL flag = !NILP (above);
 
       if ([window restackWindow:window2 above:!NILP (above)])
         return Qt;

@@ -415,7 +415,7 @@ The default emulates `current-time-string' for backward compatibility."
   "The function to format the remembered text.
 The function receives the remembered text as argument and should
 return the text to be remembered."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'remember
   :version "28.1")
 

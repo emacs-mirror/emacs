@@ -31,7 +31,7 @@
 	   (documentation . t)))
 
 (let ((val (list (vector "[\x1780-\x17FF\x19E0-\x19FF\x200C\x200D]+"
-			 0 'font-shape-gstring))))
+			 0 #'font-shape-gstring))))
   (set-char-table-range composition-function-table '(#x1780 . #x17FF) val)
   (set-char-table-range composition-function-table '(#x19E0 . #x19FF) val))
 

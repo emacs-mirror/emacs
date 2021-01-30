@@ -376,9 +376,9 @@ changes to the current buffer."
 
 Shell links can be dangerous: just think about a link
 
-     [[shell:rm -rf ~/*][Google Search]]
+     [[shell:rm -rf ~/*][Web Search]]
 
-This link would show up in your Org document as \"Google Search\",
+This link would show up in your Org document as \"Web Search\",
 but really it would remove your entire home directory.
 Therefore we advise against setting this variable to nil.
 Just change it to `y-or-n-p' if you want to confirm with a
@@ -401,9 +401,9 @@ single keystroke rather than having to type \"yes\"."
   "Non-nil means ask for confirmation before executing Emacs Lisp links.
 Elisp links can be dangerous: just think about a link
 
-     [[elisp:(shell-command \"rm -rf ~/*\")][Google Search]]
+     [[elisp:(shell-command \"rm -rf ~/*\")][Web Search]]
 
-This link would show up in your Org document as \"Google Search\",
+This link would show up in your Org document as \"Web Search\",
 but really it would remove your entire home directory.
 Therefore we advise against setting this variable to nil.
 Just change it to `y-or-n-p' if you want to confirm with a

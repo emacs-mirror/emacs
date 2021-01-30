@@ -30,8 +30,6 @@
 
 (require 'parse-time)
 (require 'nnimap)
-(declare-function gnus-fetch-headers "gnus-sum")
-(defvar gnus-alter-header-function)
 
 (eval-when-compile (require 'epg)) ;; setf-method for `epg-context-armor'
 (autoload 'epg-make-context "epg")
@@ -393,6 +391,8 @@ When FULL is t, upload everything, not just a difference from the last full."
             (gnus-group-refresh-group group))
         (gnus-error 2 "Failed to upload Gnus Cloud data to %s" group)))))
 
+(defvar gnus-alter-header-function)
+
 (defun gnus-cloud-add-timestamps (elems)
   (dolist (elem elems)
     (let* ((file-name (plist-get elem :file-name))
@@ -407,10 +407,14 @@ When FULL is t, upload everything, not just a difference from the last full."
   (gnus-activate-group gnus-cloud-group-name nil nil gnus-cloud-method)
   (let* ((group (gnus-group-full-name gnus-cloud-group-name gnus-cloud-method))
          (active (gnus-active group))
-	 (gnus-newsgroup-name group)
-         (headers (gnus-fetch-headers (gnus-uncompress-range active))))
-    (when gnus-alter-header-function
-      (mapc gnus-alter-header-function headers))
+         headers head)
+    (when (gnus-retrieve-headers (gnus-uncompress-range active) group)
+      (with-current-buffer nntp-server-buffer
+        (goto-char (point-min))
+	(while (setq head (nnheader-parse-head))
+          (when gnus-alter-header-function
+            (funcall gnus-alter-header-function head))
+          (push head headers))))
     (sort (nreverse headers)
           (lambda (h1 h2)
             (> (gnus-cloud-chunk-sequence (mail-header-subject h1))

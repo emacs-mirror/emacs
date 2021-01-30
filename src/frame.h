@@ -534,6 +534,10 @@ struct frame
   /* Border width of the frame window as known by the (X) window system.  */
   int border_width;
 
+  /* Width of child frames' internal border.  Acts as
+     internal_border_width for child frames.  */
+  int child_frame_border_width;
+
   /* Width of the internal border.  This is a line of background color
      just inside the window's border.  When the frame is selected,
      a highlighting is displayed inside the internal border.  */
@@ -1432,11 +1436,27 @@ FRAME_TOTAL_FRINGE_WIDTH (struct frame *f)
   return FRAME_LEFT_FRINGE_WIDTH (f) + FRAME_RIGHT_FRINGE_WIDTH (f);
 }
 
-/* Pixel-width of internal border lines.  */
+INLINE int
+FRAME_CHILD_FRAME_BORDER_WIDTH (struct frame *f)
+{
+  return frame_dimension (f->child_frame_border_width);
+}
+
+/* Pixel-width of internal border.  Uses child_frame_border_width for
+   child frames if possible, and falls back on internal_border_width
+   otherwise.  */
 INLINE int
 FRAME_INTERNAL_BORDER_WIDTH (struct frame *f)
 {
+#ifdef HAVE_WINDOW_SYSTEM
+  return FRAME_PARENT_FRAME(f)
+    ? (f->child_frame_border_width
+       ? FRAME_CHILD_FRAME_BORDER_WIDTH(f)
+       : frame_dimension (f->internal_border_width))
+    : frame_dimension (f->internal_border_width);
+#else
   return frame_dimension (f->internal_border_width);
+#endif
 }
 
 /* Pixel-size of window divider lines.  */

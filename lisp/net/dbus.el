@@ -2079,6 +2079,7 @@ daemon, it is rather the timestamp the corresponding D-Bus event
 has been handled by this function."
   (with-current-buffer (get-buffer-create "*D-Bus Monitor*")
     (special-mode)
+    (buffer-disable-undo)
     ;; Move forward and backward between messages.
     (local-set-key [?n] #'forward-paragraph)
     (local-set-key [?p] #'backward-paragraph)

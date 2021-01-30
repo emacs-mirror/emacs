@@ -2965,8 +2965,6 @@ Also discard all previous input in the minibuffer."
     (minibuffer-message "Wrong answer")
     (sit-for 2)))
 
-(defvar empty-history)
-
 (defun read-char-from-minibuffer (prompt &optional chars history)
   "Read a character from the minibuffer, prompting for it with PROMPT.
 Like `read-char', but uses the minibuffer to read and return a character.
@@ -2981,6 +2979,7 @@ while calling this function, then pressing `help-char'
 causes it to evaluate `help-form' and display the result.
 There is no need to explicitly add `help-char' to CHARS;
 `help-char' is bound automatically to `help-form-show'."
+  (defvar empty-history)
   (let* ((empty-history '())
          (map (if (consp chars)
                   (or (gethash (list help-form (cons help-char chars))
@@ -3093,8 +3092,6 @@ Also discard all previous input in the minibuffer."
   "Prefer `read-key' when answering a \"y or n\" question by `y-or-n-p'.
 Otherwise, use the minibuffer.")
 
-(defvar empty-history)
-
 (defun y-or-n-p (prompt)
   "Ask user a \"y or n\" question.
 Return t if answer is \"y\" and nil if it is \"n\".
@@ -3190,6 +3187,7 @@ is nil and `use-dialog-box' is non-nil."
         (discard-input)))
      (t
       (setq prompt (funcall padded prompt))
+      (defvar empty-history)
       (let* ((empty-history '())
              (enable-recursive-minibuffers t)
              (msg help-form)
@@ -4923,7 +4921,9 @@ file, FORM is evaluated immediately after the provide statement.
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like `font-lock'.
 
-This function makes or adds to an entry on `after-load-alist'."
+This function makes or adds to an entry on `after-load-alist'.
+
+See also `with-eval-after-load'."
   (declare (compiler-macro
             (lambda (whole)
               (if (eq 'quote (car-safe form))

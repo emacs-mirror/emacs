@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2020 Free Software Foundation, Inc.
+   Copyright (C) 2002-2021 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -1355,6 +1355,12 @@ pop_fail_stack (struct re_fail_stack_t *fs, Idx *pidx, Idx nregs,
   return fs->stack[num].node;
 }
 
+
+#define DYNARRAY_STRUCT  regmatch_list
+#define DYNARRAY_ELEMENT regmatch_t
+#define DYNARRAY_PREFIX  regmatch_list_
+#include <malloc/dynarray-skeleton.c>
+
 /* Set the positions where the subexpressions are starts/ends to registers
    PMATCH.
    Note: We assume that pmatch[0] is already set, and
@@ -1370,8 +1376,8 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
   re_node_set eps_via_nodes;
   struct re_fail_stack_t *fs;
   struct re_fail_stack_t fs_body = { 0, 2, NULL };
-  regmatch_t *prev_idx_match;
-  bool prev_idx_match_malloced = false;
+  struct regmatch_list prev_match;
+  regmatch_list_init (&prev_match);
 
   DEBUG_ASSERT (nmatch > 1);
   DEBUG_ASSERT (mctx->state_log != NULL);
@@ -1388,18 +1394,13 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
   cur_node = dfa->init_node;
   re_node_set_init_empty (&eps_via_nodes);
 
-  if (__libc_use_alloca (nmatch * sizeof (regmatch_t)))
-    prev_idx_match = (regmatch_t *) alloca (nmatch * sizeof (regmatch_t));
-  else
+  if (!regmatch_list_resize (&prev_match, nmatch))
     {
-      prev_idx_match = re_malloc (regmatch_t, nmatch);
-      if (prev_idx_match == NULL)
-	{
-	  free_fail_stack_return (fs);
-	  return REG_ESPACE;
-	}
-      prev_idx_match_malloced = true;
+      regmatch_list_free (&prev_match);
+      free_fail_stack_return (fs);
+      return REG_ESPACE;
     }
+  regmatch_t *prev_idx_match = regmatch_list_begin (&prev_match);
   memcpy (prev_idx_match, pmatch, sizeof (regmatch_t) * nmatch);
 
   for (idx = pmatch[0].rm_so; idx <= pmatch[0].rm_eo ;)
@@ -1417,8 +1418,7 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
 	      if (reg_idx == nmatch)
 		{
 		  re_node_set_free (&eps_via_nodes);
-		  if (prev_idx_match_malloced)
-		    re_free (prev_idx_match);
+		  regmatch_list_free (&prev_match);
 		  return free_fail_stack_return (fs);
 		}
 	      cur_node = pop_fail_stack (fs, &idx, nmatch, pmatch,
@@ -1427,8 +1427,7 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
 	  else
 	    {
 	      re_node_set_free (&eps_via_nodes);
-	      if (prev_idx_match_malloced)
-		re_free (prev_idx_match);
+	      regmatch_list_free (&prev_match);
 	      return REG_NOERROR;
 	    }
 	}
@@ -1442,8 +1441,7 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
 	  if (__glibc_unlikely (cur_node == -2))
 	    {
 	      re_node_set_free (&eps_via_nodes);
-	      if (prev_idx_match_malloced)
-		re_free (prev_idx_match);
+	      regmatch_list_free (&prev_match);
 	      free_fail_stack_return (fs);
 	      return REG_ESPACE;
 	    }
@@ -1453,15 +1451,13 @@ set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
 	  else
 	    {
 	      re_node_set_free (&eps_via_nodes);
-	      if (prev_idx_match_malloced)
-		re_free (prev_idx_match);
+	      regmatch_list_free (&prev_match);
 	      return REG_NOMATCH;
 	    }
 	}
     }
   re_node_set_free (&eps_via_nodes);
-  if (prev_idx_match_malloced)
-    re_free (prev_idx_match);
+  regmatch_list_free (&prev_match);
   return free_fail_stack_return (fs);
 }
 
@@ -3251,7 +3247,7 @@ expand_bkref_cache (re_match_context_t *mctx, re_node_set *cur_nodes,
 /* Build transition table for the state.
    Return true if successful.  */
 
-static bool
+static bool __attribute_noinline__
 build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
 {
   reg_errcode_t err;
@@ -3259,36 +3255,20 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
   int ch;
   bool need_word_trtable = false;
   bitset_word_t elem, mask;
-  bool dests_node_malloced = false;
-  bool dest_states_malloced = false;
   Idx ndests; /* Number of the destination states from 'state'.  */
   re_dfastate_t **trtable;
-  re_dfastate_t **dest_states = NULL, **dest_states_word, **dest_states_nl;
-  re_node_set follows, *dests_node;
-  bitset_t *dests_ch;
+  re_dfastate_t *dest_states[SBC_MAX];
+  re_dfastate_t *dest_states_word[SBC_MAX];
+  re_dfastate_t *dest_states_nl[SBC_MAX];
+  re_node_set follows;
   bitset_t acceptable;
-
-  struct dests_alloc
-  {
-    re_node_set dests_node[SBC_MAX];
-    bitset_t dests_ch[SBC_MAX];
-  } *dests_alloc;
 
   /* We build DFA states which corresponds to the destination nodes
      from 'state'.  'dests_node[i]' represents the nodes which i-th
      destination state contains, and 'dests_ch[i]' represents the
      characters which i-th destination state accepts.  */
-  if (__libc_use_alloca (sizeof (struct dests_alloc)))
-    dests_alloc = (struct dests_alloc *) alloca (sizeof (struct dests_alloc));
-  else
-    {
-      dests_alloc = re_malloc (struct dests_alloc, 1);
-      if (__glibc_unlikely (dests_alloc == NULL))
-	return false;
-      dests_node_malloced = true;
-    }
-  dests_node = dests_alloc->dests_node;
-  dests_ch = dests_alloc->dests_ch;
+  re_node_set dests_node[SBC_MAX];
+  bitset_t dests_ch[SBC_MAX];
 
   /* Initialize transition table.  */
   state->word_trtable = state->trtable = NULL;
@@ -3298,8 +3278,6 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
   ndests = group_nodes_into_DFAstates (dfa, state, dests_node, dests_ch);
   if (__glibc_unlikely (ndests <= 0))
     {
-      if (dests_node_malloced)
-	re_free (dests_alloc);
       /* Return false in case of an error, true otherwise.  */
       if (ndests == 0)
 	{
@@ -3314,38 +3292,14 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
 
   err = re_node_set_alloc (&follows, ndests + 1);
   if (__glibc_unlikely (err != REG_NOERROR))
-    goto out_free;
-
-  /* Avoid arithmetic overflow in size calculation.  */
-  size_t ndests_max
-    = ((SIZE_MAX - (sizeof (re_node_set) + sizeof (bitset_t)) * SBC_MAX)
-       / (3 * sizeof (re_dfastate_t *)));
-  if (__glibc_unlikely (ndests_max < ndests))
-    goto out_free;
-
-  if (__libc_use_alloca ((sizeof (re_node_set) + sizeof (bitset_t)) * SBC_MAX
-			 + ndests * 3 * sizeof (re_dfastate_t *)))
-    dest_states = (re_dfastate_t **)
-      alloca (ndests * 3 * sizeof (re_dfastate_t *));
-  else
     {
-      dest_states = re_malloc (re_dfastate_t *, ndests * 3);
-      if (__glibc_unlikely (dest_states == NULL))
-	{
-out_free:
-	  if (dest_states_malloced)
-	    re_free (dest_states);
-	  re_node_set_free (&follows);
-	  for (i = 0; i < ndests; ++i)
-	    re_node_set_free (dests_node + i);
-	  if (dests_node_malloced)
-	    re_free (dests_alloc);
-	  return false;
-	}
-      dest_states_malloced = true;
+    out_free:
+      re_node_set_free (&follows);
+      for (i = 0; i < ndests; ++i)
+	re_node_set_free (dests_node + i);
+      return false;
     }
-  dest_states_word = dest_states + ndests;
-  dest_states_nl = dest_states_word + ndests;
+
   bitset_empty (acceptable);
 
   /* Then build the states for all destinations.  */
@@ -3470,16 +3424,9 @@ out_free:
 	  }
     }
 
-  if (dest_states_malloced)
-    re_free (dest_states);
-
   re_node_set_free (&follows);
   for (i = 0; i < ndests; ++i)
     re_node_set_free (dests_node + i);
-
-  if (dests_node_malloced)
-    re_free (dests_alloc);
-
   return true;
 }
 

@@ -822,9 +822,16 @@
                  (if (setq spfn (get calc-language 'math-func-formatter))
                      (funcall spfn func a)
 
-                   (list 'horiz func calc-function-open
-		       (math-compose-vector (cdr a) ", " 0)
-		       calc-function-close))))))))))
+                   (let ((args (math-compose-vector (cdr a) ", " 0)))
+                     (if (and (member calc-function-open '("(" "[" "{"))
+                              (member calc-function-close '(")" "]" "}")))
+                         (list 'horiz func
+                               (math--comp-bracket
+                                (string-to-char calc-function-open)
+                                (string-to-char calc-function-close)
+                                args))
+                       (list 'horiz func calc-function-open
+		             args calc-function-close))))))))))))
 
 
 (defun math-prod-first-term (x)
