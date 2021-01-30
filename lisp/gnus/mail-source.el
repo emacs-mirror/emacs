@@ -515,7 +515,7 @@ the `mail-source-keyword-map' variable."
 See `mail-source-bind'."
   (declare (indent 1) (debug (sexp body)))
   `(let ,(mail-source-bind-common-1)
-     (mail-source-set-common-1 source)
+     (mail-source-set-common-1 ,source)
      ,@body))
 
 (defun mail-source-value (value)

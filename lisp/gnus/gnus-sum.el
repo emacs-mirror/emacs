@@ -3339,18 +3339,18 @@ article number."
 		      ,(or number
                            (inline-quote (gnus-summary-article-number)))))))
 
-(defmacro gnus-summary-thread-level (&optional number)
+(defsubst gnus-summary-thread-level (&optional number)
   "Return the level of thread that starts with article NUMBER."
-  `(if (and (eq gnus-summary-make-false-root 'dummy)
-	    (get-text-property (point) 'gnus-intangible))
-       0
-     (gnus-data-level (gnus-data-find
-		       ,(or number '(gnus-summary-article-number))))))
+  (if (and (eq gnus-summary-make-false-root 'dummy)
+	   (get-text-property (point) 'gnus-intangible))
+      0
+    (gnus-data-level (gnus-data-find
+		      (or number (gnus-summary-article-number))))))
 
-(defmacro gnus-summary-article-mark (&optional number)
+(defsubst gnus-summary-article-mark (&optional number)
   "Return the mark of article NUMBER."
-  `(gnus-data-mark (gnus-data-find
-		    ,(or number '(gnus-summary-article-number)))))
+  (gnus-data-mark (gnus-data-find
+	           (or number (gnus-summary-article-number)))))
 
 (defmacro gnus-summary-article-pos (&optional number)
   "Return the position of the line of article NUMBER."
