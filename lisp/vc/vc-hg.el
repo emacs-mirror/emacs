@@ -1166,7 +1166,8 @@ hg binary."
 ;; Modeled after the similar function in vc-bzr.el
 (defun vc-hg-rename-file (old new)
   "Rename file from OLD to NEW using `hg mv'."
-  (vc-hg-command nil 0 new "mv" old))
+  (vc-hg-command nil 0 (expand-file-name new) "mv"
+                 (expand-file-name old)))
 
 (defun vc-hg-register (files &optional _comment)
   "Register FILES under hg. COMMENT is ignored."
