@@ -1,4 +1,4 @@
-;;; url-cache.el --- Uniform Resource Locator retrieval tool
+;;; url-cache.el --- Uniform Resource Locator retrieval tool  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 

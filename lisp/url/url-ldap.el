@@ -1,4 +1,4 @@
-;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
+;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-1999, 2004-2021 Free Software Foundation, Inc.
 

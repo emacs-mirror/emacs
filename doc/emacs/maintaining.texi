@@ -1994,19 +1994,21 @@ Of course, you should substitute the proper years and copyright holder.
 @section Find Identifier References
 @cindex xref
 
+@cindex tag
   An @dfn{identifier} is a name of a syntactical subunit of the
 program: a function, a subroutine, a method, a class, a data type, a
 macro, etc.  In a programming language, each identifier is a symbol in
-the language's syntax.  Program development and maintenance requires
-capabilities to quickly find where each identifier was defined and
-referenced, to rename identifiers across the entire project, etc.
+the language's syntax.  Identifiers are also known as @dfn{tags}.
 
-These capabilities are also useful for finding references in major
-modes other than those defined to support programming languages.  For
-example, chapters, sections, appendices, etc.@: of a text or a @TeX{}
-document can be treated as subunits as well, and their names can be
-used as identifiers.  In this chapter, we use the term ``identifiers''
-to collectively refer to the names of any kind of subunits, in program
+Program development and maintenance requires capabilities to quickly
+find where each identifier was defined and referenced, to rename
+identifiers across the entire project, etc.  These capabilities are
+also useful for finding references in major modes other than those
+defined to support programming languages.  For example, chapters,
+sections, appendices, etc.@: of a text or a @TeX{} document can be
+treated as subunits as well, and their names can be used as
+identifiers.  In this chapter, we use the term ``identifiers'' to
+collectively refer to the names of any kind of subunits, in program
 source and in other kinds of text alike.
 
 Emacs provides a unified interface to these capabilities, called

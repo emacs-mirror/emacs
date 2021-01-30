@@ -1,4 +1,4 @@
-;;; url-news.el --- News Uniform Resource Locator retrieval code
+;;; url-news.el --- News Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 
@@ -106,7 +106,7 @@
   ;; Find a news reference
   (let* ((host (or (url-host url) url-news-server))
 	 (port (url-port url))
-	 (article-brackets nil)
+	 ;; (article-brackets nil)
 	 (buf nil)
 	 (article (url-unhex-string (url-filename url))))
     (url-news-open-host host port (url-user url) (url-password url))

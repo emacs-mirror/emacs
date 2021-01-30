@@ -2402,9 +2402,9 @@ To work around that, do:
 
   (setq-local sgml-empty-tags
 	      ;; From HTML-4.01's loose.dtd, parsed with
-	      ;; `sgml-parse-dtd', plus manual addition of "wbr".
+              ;; `sgml-parse-dtd', plus manual additions of "source" and "wbr".
 	      '("area" "base" "basefont" "br" "col" "frame" "hr" "img" "input"
-		"isindex" "link" "meta" "param" "wbr"))
+                "isindex" "link" "meta" "source" "param" "wbr"))
   (setq-local sgml-unclosed-tags
 	      ;; From HTML-4.01's loose.dtd, parsed with `sgml-parse-dtd'.
 	      '("body" "colgroup" "dd" "dt" "head" "html" "li" "option"

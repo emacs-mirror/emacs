@@ -23,13 +23,13 @@
 
 ;;; Commentary:
 
-;; Tai Viet is being included in the Unicode at the range U+AA80..U+AADF.
+;; Cham script is included in the Unicode at the range U+AA00..U+AA5F.
 
 ;;; Code:
 
 (set-char-table-range composition-function-table
 		      '(#xAA00 . #xAA5F)
-		      (list (vector "[\xAA00-\xAA5F]+" 0 'font-shape-gstring)))
+		      (list (vector "[\xAA00-\xAA5F]+" 0 #'font-shape-gstring)))
 
 (set-language-info-alist
  "Cham" '((charset unicode)

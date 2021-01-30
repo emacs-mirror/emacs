@@ -1,4 +1,4 @@
-;;; electric-tests.el --- tests for electric.el
+;;; electric-tests.el --- tests for electric.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
@@ -135,9 +135,11 @@ The buffer's contents should %s:
                   (length fixture)
                   fixture
                   (if fixture-fn (format "\nNow call this:\n\n%s"
-                                         (pp-to-string fixture-fn)) "")
+                                         (pp-to-string fixture-fn))
+                    "")
                   (if bindings (format "\nEnsure the following bindings:\n\n%s"
-                                       (pp-to-string bindings)) "")
+                                       (pp-to-string bindings))
+                    "")
                   char
                   (if (string= fixture expected-string) "stay" "become")
                   (replace-regexp-in-string "\n" "\\\\n" expected-string)
@@ -163,8 +165,11 @@ The buffer's contents should %s:
           (test-in-comments t)
           (test-in-strings t)
           (test-in-code t)
-          (fixture-fn #'(lambda ()
-                          (electric-pair-mode 1))))
+          ;; The semantics of CL's defmacro "default values" is subtle:
+          ;; contrary to the actual arguments, these are evaluated (and
+          ;; are expected to return the "default form").
+          ;; `fixture-fn' contains a form whose evaluation returns a function.
+          (fixture-fn '#'electric-pair-mode))
   `(progn
      ,@(cl-loop
         for mode in (eval modes) ;FIXME: avoid `eval'

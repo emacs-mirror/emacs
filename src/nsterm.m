@@ -3037,9 +3037,13 @@ ns_clear_under_internal_border (struct frame *f)
       NSRectEdge edge[] = {NSMinXEdge, NSMinYEdge, NSMaxXEdge, NSMaxYEdge};
 
       int face_id =
-	!NILP (Vface_remapping_alist)
-	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	: INTERNAL_BORDER_FACE_ID;
+        (FRAME_PARENT_FRAME (f)
+         ? (!NILP (Vface_remapping_alist)
+            ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+            : CHILD_FRAME_BORDER_FACE_ID)
+         : (!NILP (Vface_remapping_alist)
+            ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+            : INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       if (!face)

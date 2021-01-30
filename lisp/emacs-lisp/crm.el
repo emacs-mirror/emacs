@@ -1,4 +1,4 @@
-;;; crm.el --- read multiple strings with completion
+;;; crm.el --- read multiple strings with completion  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 1993-2021 Free Software Foundation, Inc.
 

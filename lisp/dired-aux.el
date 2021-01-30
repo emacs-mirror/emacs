@@ -1179,7 +1179,7 @@ archive to which you want to compress, and CMD is the
 corresponding command.
 
 Within CMD, %i denotes the input file(s), and %o denotes the
-output file. %i path(s) are relative, while %o is absolute.")
+output file.  %i path(s) are relative, while %o is absolute.")
 
 ;;;###autoload
 (defun dired-do-compress-to ()

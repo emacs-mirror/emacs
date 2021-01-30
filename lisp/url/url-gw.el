@@ -1,4 +1,4 @@
-;;; url-gw.el --- Gateway munging for URL loading
+;;; url-gw.el --- Gateway munging for URL loading  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1998, 2004-2021 Free Software Foundation, Inc.
 
@@ -222,18 +222,17 @@ overriding the value of `url-gateway-method'."
                                 host))
                           'native
                         gwm))
-	  ;; An attempt to deal with denied connections, and attempt
-	  ;; to reconnect
-	  (cur-retries 0)
-	  (retry t)
-	  (errobj nil)
-	  (conn nil))
+	   ;; An attempt to deal with denied connections, and attempt
+	   ;; to reconnect
+	   ;; (cur-retries 0)
+	   ;; (retry t)
+	   (conn nil))
 
       ;; If the user told us to do DNS for them, do it.
       (if url-gateway-broken-resolution
 	  (setq host (url-gateway-nslookup-host host)))
 
-      (condition-case errobj
+      (condition-case nil
 	  ;; This is a clean way to ensure the new process inherits the
 	  ;; right coding systems in both Emacs and XEmacs.
 	  (let ((coding-system-for-read 'binary)

@@ -1708,6 +1708,12 @@ ID-FORMAT valid values are `string' and `integer'."
 	     (= (tramp-compat-file-attribute-user-id attributes)
 		(tramp-get-remote-uid v 'integer))
 	     (or (not group)
+		 ;; On BSD-derived systems files always inherit the
+                 ;; parent directory's group, so skip the group-gid
+                 ;; test.
+		 (string-match-p
+		  "BSD\\|DragonFly\\|Darwin"
+		  (tramp-get-connection-property v "uname" ""))
 		 (= (tramp-compat-file-attribute-group-id attributes)
 		    (tramp-get-remote-gid v 'integer)))))))))
 

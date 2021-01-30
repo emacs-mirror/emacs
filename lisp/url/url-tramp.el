@@ -1,4 +1,4 @@
-;;; url-tramp.el --- file-name-handler magic invoking Tramp for some protocols
+;;; url-tramp.el --- file-name-handler magic invoking Tramp for some protocols  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 

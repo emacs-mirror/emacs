@@ -832,12 +832,17 @@ Ensure that `comment-normalize-vars' has been called before you use this."
   (when (and (stringp str) (string-match "\\S-" str))
     ;; Separate the actual string from any leading/trailing padding
     (string-match "\\`\\s-*\\(.*?\\)\\s-*\\'" str)
-    (let ((s (match-string 1 str))	;actual string
+    (let ((s (match-string 1 str))                     ;actual string
 	  (lpad (substring str 0 (match-beginning 1))) ;left padding
-	  (rpad (concat (substring str (match-end 1)) ;original right padding
-			(substring comment-padding ;additional right padding
-				   (min (- (match-end 0) (match-end 1))
-					(length comment-padding)))))
+	  (rpad (concat
+                 (substring str (match-end 1)) ;original right padding
+                 (if (numberp comment-padding)
+                     (make-string (min comment-padding
+                                       (- (match-end 0) (match-end 1)))
+                                  ?\s)
+		   (substring comment-padding ;additional right padding
+			      (min (- (match-end 0) (match-end 1))
+				   (length comment-padding))))))
 	  ;; We can only duplicate C if the comment-end has multiple chars
 	  ;; or if comments can be nested, else the comment-end `}' would
 	  ;; be turned into `}}}' where only the first ends the comment
@@ -852,7 +857,7 @@ Ensure that `comment-normalize-vars' has been called before you use this."
 	(concat (mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
 			   lpad "")	;padding is not required
 		(regexp-quote s)
-		(when multi "+")	;the last char of S might be repeated
+		(when multi "+") ;the last char of S might be repeated
 		(mapconcat (lambda (c) (concat (regexp-quote (string c)) "?"))
 			   rpad "")))))) ;padding is not required
 
@@ -1221,21 +1226,33 @@ changed with `comment-style'."
     ;; FIXME: maybe we should call uncomment depending on ARG.
     (funcall comment-region-function beg end arg)))
 
-(defun comment-region-default-1 (beg end &optional arg)
+(defun comment-region-default-1 (beg end &optional arg noadjust)
+  "Comment region between BEG and END.
+See `comment-region' for ARG.  If NOADJUST, do not skip past
+leading/trailing space when determining the region to comment
+out."
   (let* ((numarg (prefix-numeric-value arg))
 	 (style (cdr (assoc comment-style comment-styles)))
 	 (lines (nth 2 style))
 	 (block (nth 1 style))
 	 (multi (nth 0 style)))
 
-    ;; We use `chars' instead of `syntax' because `\n' might be
-    ;; of end-comment syntax rather than of whitespace syntax.
-    ;; sanitize BEG and END
-    (goto-char beg) (skip-chars-forward " \t\n\r") (beginning-of-line)
-    (setq beg (max beg (point)))
-    (goto-char end) (skip-chars-backward " \t\n\r") (end-of-line)
-    (setq end (min end (point)))
-    (if (>= beg end) (error "Nothing to comment"))
+    (if noadjust
+        (when (bolp)
+          (setq end (1- end)))
+      ;; We use `chars' instead of `syntax' because `\n' might be
+      ;; of end-comment syntax rather than of whitespace syntax.
+      ;; sanitize BEG and END
+      (goto-char beg)
+      (skip-chars-forward " \t\n\r")
+      (beginning-of-line)
+      (setq beg (max beg (point)))
+      (goto-char end)
+      (skip-chars-backward " \t\n\r")
+      (end-of-line)
+      (setq end (min end (point)))
+      (when (>= beg end)
+        (error "Nothing to comment")))
 
     ;; sanitize LINES
     (setq lines

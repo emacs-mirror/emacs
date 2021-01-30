@@ -300,7 +300,6 @@ See `run-hooks'."
     (define-key map "\C-o" 'vc-dir-display-file)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
     (define-key map [down-mouse-3] 'vc-dir-menu)
-    (define-key map [mouse-2] 'vc-dir-toggle-mark)
     (define-key map [follow-link] 'mouse-face)
     (define-key map "x" 'vc-dir-hide-up-to-date)
     (define-key map [?\C-k] 'vc-dir-kill-line)
@@ -1085,7 +1084,6 @@ U - if the cursor is on a file: unmark all the files with the same state
       as the current file
   - if the cursor is on a directory: unmark all child files
   - with a prefix argument: unmark all files
-mouse-2  - toggles the mark state
 
 VC commands
 VC commands in the `C-x v' prefix can be used.
@@ -1392,6 +1390,12 @@ These are the commands available for use in the file status buffer:
    (propertize "Please add backend specific headers here.  It's easy!"
 	       'face 'font-lock-warning-face)))
 
+(defvar vc-dir-status-mouse-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'vc-dir-toggle-mark)
+    map)
+  "Local keymap for toggling mark.")
+
 (defvar vc-dir-filename-mouse-map
    (let ((map (make-sparse-keymap)))
      (define-key map [mouse-2] 'vc-dir-find-file-other-window)
@@ -1418,7 +1422,8 @@ These are the commands available for use in the file status buffer:
 		  ((memq state '(missing conflict)) 'font-lock-warning-face)
 		  ((eq state 'edited) 'font-lock-constant-face)
 		  (t 'font-lock-variable-name-face))
-      'mouse-face 'highlight)
+      'mouse-face 'highlight
+      'keymap vc-dir-status-mouse-map)
      " "
      (propertize
       (format "%s" filename)

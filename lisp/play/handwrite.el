@@ -1,8 +1,9 @@
-;;; handwrite.el --- turns your emacs buffer into a handwritten document
+;;; handwrite.el --- turns your emacs buffer into a handwritten document  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
+;; Maintainer: emacs-devel@gnu.org
 ;; Created: October 21 1996
 ;; Keywords: wp, print, postscript, cursive writing
 
@@ -22,11 +23,11 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; The function `handwrite' creates PostScript output containing a
+;; handwritten version of the current buffer.
 ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; The function handwrite creates PostScript output containing a
-;; handwritten version of the current buffer..
-;; Other functions that may be useful are
+;; Other functions that may be useful are:
 ;;
 ;;      handwrite-10pt: sets the font size to 10 and finds corresponding
 ;;                      values for the line spacing and the number of lines
@@ -54,8 +55,6 @@
 ;;              unknown characters.
 ;;
 ;; Thanks to anyone who emailed me suggestions!
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 ;;; Code:
 
@@ -63,7 +62,6 @@
 (defvar ps-printer-name)
 (defvar ps-lpr-command)
 (defvar ps-lpr-switches)
-
 
 ;; Variables
 
@@ -98,44 +96,43 @@
 
 (defcustom handwrite-numlines 60
   "The number of lines on a page of the PostScript output from `handwrite'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-fontsize 11
   "The size of the font for the PostScript output from `handwrite'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-linespace 12
   "The spacing for the PostScript output from `handwrite'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-xstart 30
   "X-axis translation in the PostScript output from `handwrite'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-ystart 810
   "Y-axis translation in the PostScript output from `handwrite'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-pagenumbering nil
   "If non-nil, number each page of the PostScript output from `handwrite'."
-  :type 'boolean
-  :group 'handwrite)
+  :type 'boolean)
+
 (defcustom handwrite-10pt-numlines 65
   "The number of lines on a page for the function `handwrite-10pt'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-11pt-numlines 60
   "The number of lines on a page for the function `handwrite-11pt'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-12pt-numlines 55
   "The number of lines on a page for the function `handwrite-12pt'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
+
 (defcustom handwrite-13pt-numlines 50
   "The number of lines on a page for the function `handwrite-13pt'."
-  :type 'integer
-  :group 'handwrite)
+  :type 'integer)
 
 ;; Interactive functions
 
@@ -150,17 +147,17 @@ Variables: `handwrite-linespace'     (default 12)
            `handwrite-numlines'      (default 60)
            `handwrite-pagenumbering' (default nil)"
   (interactive)
+  (setq handwrite-psindex (1+ handwrite-psindex))
   (let
-      (;(pmin)				; thanks, Havard
-       (cur-buf (current-buffer))
+      ((cur-buf (current-buffer))
        (tpoint (point))
        (ps-ypos 63)
        (lcount 0)
        (ipage 1)
-       (nlan next-line-add-newlines)	;remember the old value
+       (next-line-add-newlines t)
        (buf-name (buffer-name) )
        (textp)
-       (ps-buf-name)			;name of the PostScript buffer
+       (ps-buf-name (format "*handwritten%d.ps*" handwrite-psindex))
        (trans-table
 	'(("ÿ" . "264") ("á" . "207") ("à" . "210") ("â" . "211")
 	  ("ä" . "212") ("ã" . "213") ("å" . "214") ("é" . "216")
@@ -175,10 +172,6 @@ Variables: `handwrite-linespace'     (default 12)
 					; on inserted backslashes
        line)
     (goto-char (point-min))		;start at beginning
-    (setq handwrite-psindex (1+ handwrite-psindex))
-    (setq ps-buf-name
-	  (format "*handwritten%d.ps*" handwrite-psindex))
-    (setq next-line-add-newlines t)
     (switch-to-buffer ps-buf-name)
     (handwrite-insert-header buf-name)
     (insert "%%Creator: GNU Emacs's handwrite version " emacs-version  "\n")
@@ -258,9 +251,7 @@ Variables: `handwrite-linespace'     (default 12)
     (message "")
     (bury-buffer ())
     (switch-to-buffer cur-buf)
-    (goto-char tpoint)
-    (setq next-line-add-newlines nlan)
-    ))
+    (goto-char tpoint)))
 
 
 (defun handwrite-set-pagenumber ()
@@ -279,7 +270,6 @@ values for `handwrite-linespace' and `handwrite-numlines'."
   (setq handwrite-linespace 11)
   (setq handwrite-numlines handwrite-10pt-numlines)
   (message "Handwrite output size set to 10 points"))
-
 
 (defun handwrite-11pt ()
   "Specify 11-point output for `handwrite'.
@@ -1238,28 +1228,16 @@ end
 /Joepie Hwfdict definefont
 %%EndFont Joepie\n\n"))
 
-;;Sets page numbering off
 (defun handwrite-set-pagenumber-off ()
+  "Set page numbering off."
   (setq handwrite-pagenumbering nil)
   (message "page numbering off"))
 
-;;Sets page numbering on
 (defun handwrite-set-pagenumber-on ()
+  "Set page numbering on."
   (setq handwrite-pagenumbering t)
   (message "page numbering on" ))
 
-
-;; Key bindings
-
-;; I'd rather not fill up the menu bar menus with
-;; lots of random miscellaneous features. -- rms.
-;;;(define-key-after
-;;;  (lookup-key global-map [menu-bar edit])
-;;;  [handwrite]
-;;;  '("Write by hand" . menu-bar-handwrite-map)
-;;;  'spell)
-
 (provide 'handwrite)
-
 
 ;;; handwrite.el ends here

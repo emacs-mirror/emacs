@@ -1293,9 +1293,13 @@ x_clear_under_internal_border (struct frame *f)
       int height = FRAME_PIXEL_HEIGHT (f);
       int margin = FRAME_TOP_MARGIN_HEIGHT (f);
       int face_id =
-	!NILP (Vface_remapping_alist)
-	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	: INTERNAL_BORDER_FACE_ID;
+	(FRAME_PARENT_FRAME (f)
+	 ? (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+	    : CHILD_FRAME_BORDER_FACE_ID)
+	 : (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	    : INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
@@ -1360,9 +1364,13 @@ x_after_update_window_line (struct window *w, struct glyph_row *desired_row)
       {
 	int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
 	int face_id =
-	  !NILP (Vface_remapping_alist)
-	  ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	  : INTERNAL_BORDER_FACE_ID;
+	  (FRAME_PARENT_FRAME (f)
+	   ? (!NILP (Vface_remapping_alist)
+	      ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+	      : CHILD_FRAME_BORDER_FACE_ID)
+	   : (!NILP (Vface_remapping_alist)
+	      ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	      : INTERNAL_BORDER_FACE_ID));
 	struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
 	block_input ();
@@ -3577,14 +3585,29 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
   else if (!s->background_filled_p)
     {
       int background_width = s->background_width;
-      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+      int x = s->x, text_left_x = window_box_left_offset (s->w, TEXT_AREA);
 
-      /* Don't draw into left margin, fringe or scrollbar area
-         except for header line and mode line.  */
-      if (x < left_x && !s->row->mode_line_p)
+      /* Don't draw into left fringe or scrollbar area except for
+         header line and mode line.  */
+      if (x < text_left_x && !s->row->mode_line_p)
 	{
-	  background_width -= left_x - x;
-	  x = left_x;
+	  int left_x = WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (s->w);
+	  int right_x = text_left_x;
+
+	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (s->w))
+	    left_x += WINDOW_LEFT_FRINGE_WIDTH (s->w);
+	  else
+	    right_x -= WINDOW_LEFT_FRINGE_WIDTH (s->w);
+
+	  /* Adjust X and BACKGROUND_WIDTH to fit inside the space
+	     between LEFT_X and RIGHT_X.  */
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	  if (x + background_width > right_x)
+	    background_width = right_x - x;
 	}
       if (background_width > 0)
 	x_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);

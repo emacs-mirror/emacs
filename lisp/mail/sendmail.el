@@ -104,7 +104,9 @@ being sent is used), or nil (in which case the value of
 (defcustom mail-self-blind nil
   "Non-nil means insert Bcc to self in messages to be sent.
 This is done when the message is initialized,
-so you can remove or alter the Bcc field to override the default."
+so you can remove or alter the Bcc field to override the default.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead."
   :type 'boolean)
 
 ;;;###autoload
@@ -172,14 +174,18 @@ This is used by the default mail-sending commands.  See also
 (defcustom mail-archive-file-name nil
   "Name of file to write all outgoing messages in, or nil for none.
 This is normally an mbox file, but for backwards compatibility may also
-be a Babyl file."
+be a Babyl file.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead."
   :type '(choice file (const nil)))
 
 ;;;###autoload
 (defcustom mail-default-reply-to nil
   "Address to insert as default Reply-To field of outgoing messages.
 If nil, it will be initialized from the REPLYTO environment variable
-when you first send mail."
+when you first send mail.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead."
   :type '(choice (const nil) string))
 
 (defcustom mail-alias-file nil
@@ -388,7 +394,9 @@ in `message-auto-save-directory'."
 (defcustom mail-default-headers nil
   "A string containing header lines, to be inserted in outgoing messages.
 It can contain newlines, and should end in one.  It is inserted
-before you edit the message, so you can edit or delete the lines."
+before you edit the message, so you can edit or delete the lines.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead."
   :type '(choice (const nil) string))
 
 (defcustom mail-bury-selects-summary t

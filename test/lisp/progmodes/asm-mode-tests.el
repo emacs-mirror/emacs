@@ -69,4 +69,14 @@
     (should (string-match-p ";;; \nlabel:" (buffer-string)))
     (should (= (current-column) 4))))
 
+(ert-deftest asm-mode-tests-fill-comment ()
+  (asm-mode-tests--with-temp-buffer
+    (call-interactively #'comment-dwim)
+    (insert "Pellentesque condimentum, magna ut suscipit hendrerit, \
+ipsum augue ornare nulla, non luctus diam neque sit amet urna.")
+    (call-interactively #'fill-paragraph)
+    (should (equal (buffer-string) "\t;; Pellentesque condimentum, \
+magna ut suscipit hendrerit,\n\t;; ipsum augue ornare nulla, non \
+luctus diam neque sit amet\n\t;; urna."))))
+
 ;;; asm-mode-tests.el ends here

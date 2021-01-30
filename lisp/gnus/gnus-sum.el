@@ -5658,21 +5658,10 @@ or a straight list of headers."
 	  (setf (mail-header-subject header) subject))))))
 
 (defun gnus-fetch-headers (articles &optional limit force-new dependencies)
-  "Fetch headers of ARTICLES.
-This calls the `gnus-retrieve-headers' function of the current
-group's backend server.  The server can do one of two things:
-
-1. Write the headers for ARTICLES into the
-   `nntp-server-buffer' (the current buffer) in a parseable format, or
-2. Return the headers directly as a list of vectors.
-
-In the first case, `gnus-retrieve-headers' returns a symbol
-value, either `nov' or `headers'.  This value determines which
-parsing function is used to read the headers.  It is also stored
-into the variable `gnus-headers-retrieved-by', which is consulted
-later when possibly building full threads."
+  "Fetch headers of ARTICLES."
   (gnus-message 7 "Fetching headers for %s..." gnus-newsgroup-name)
-  (let ((res (setq gnus-headers-retrieved-by
+  (prog1
+      (pcase (setq gnus-headers-retrieved-by
 		   (gnus-retrieve-headers
 		    articles gnus-newsgroup-name
 		    (or limit
@@ -5682,34 +5671,22 @@ later when possibly building full threads."
 				  (not (eq gnus-fetch-old-headers 'some))
 				  (not (numberp gnus-fetch-old-headers)))
 				 (> (length articles) 1))
-			     gnus-fetch-old-headers))))))
-    (prog1
-	(pcase res
-	  ('nov
-	   (gnus-get-newsgroup-headers-xover
-	    articles force-new dependencies gnus-newsgroup-name t))
-	  ;; For now, assume that any backend returning its own
-	  ;; headers takes some effort to do so, so return `headers'.
-	  ((pred listp)
-	   (setq gnus-headers-retrieved-by 'headers)
-	   (let ((dependencies
-		  (or dependencies
-		      (buffer-local-value
-		       'gnus-newsgroup-dependencies gnus-summary-buffer))))
-	     (when (functionp gnus-alter-header-function)
-	       (mapc gnus-alter-header-function res))
-	     (mapc (lambda (header)
-		     ;; The agent or the cache may have already
-		     ;; registered this header in the dependency
-		     ;; table.
-		     (unless (gethash (mail-header-id header) dependencies)
-		       (gnus-dependencies-add-header
-			header dependencies force-new)))
-		   res)
-	     res))
-	  (_ (gnus-get-newsgroup-headers dependencies force-new)))
-      (gnus-message 7 "Fetching headers for %s...done"
-		    gnus-newsgroup-name))))
+			     gnus-fetch-old-headers))))
+    ('nov
+     (gnus-get-newsgroup-headers-xover
+      articles force-new dependencies gnus-newsgroup-name t))
+    ('headers
+     (gnus-get-newsgroup-headers dependencies force-new))
+    ((pred listp)
+     (let ((dependencies
+	    (or dependencies
+		(with-current-buffer gnus-summary-buffer
+		  gnus-newsgroup-dependencies))))
+     (delq nil (mapcar   #'(lambda (header)
+			     (gnus-dependencies-add-header
+			      header dependencies force-new))
+			 gnus-headers-retrieved-by)))))
+  (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
 
 (defun gnus-select-newsgroup (group &optional read-all select-articles)
   "Select newsgroup GROUP.
@@ -6466,10 +6443,6 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	(unless (gnus-ephemeral-group-p group)
 	  (gnus-group-update-group group t))))))
 
-;; FIXME: Refactor this with `gnus-get-newsgroup-headers-xover' and
-;; extract the necessary bits for the direct-header-return case.  Also
-;; look at this and see how similar it is to
-;; `nnheader-parse-naked-head'.
 (defun gnus-get-newsgroup-headers (&optional dependencies force-new)
   (let ((dependencies
 	 (or dependencies

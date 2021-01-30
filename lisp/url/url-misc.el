@@ -1,4 +1,4 @@
-;;; url-misc.el --- Misc Uniform Resource Locator retrieval code
+;;; url-misc.el --- Misc Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2002, 2004-2021 Free Software Foundation,
 ;; Inc.

@@ -1957,12 +1957,18 @@ May return nil if the line should not be treated as continued."
     ('(:after . "case-)") (- (sh-var-value 'sh-indent-for-case-alt)
                              (sh-var-value 'sh-indent-for-case-label)))
     (`(:before . ,(or "(" "{" "[" "while" "if" "for" "case"))
-     (if (not (smie-rule-prev-p "&&" "||" "|"))
-         (when (smie-rule-hanging-p)
-           (smie-rule-parent))
+     (cond
+      ((and (equal token "{") (smie-rule-parent-p "for"))
+       (let ((data (smie-backward-sexp "in")))
+         (when (equal (nth 2 data) "for")
+           `(column . ,(smie-indent-virtual)))))
+      ((not (smie-rule-prev-p "&&" "||" "|"))
+       (when (smie-rule-hanging-p)
+         (smie-rule-parent)))
+      (t
        (unless (smie-rule-bolp)
 	 (while (equal "|" (nth 2 (smie-backward-sexp 'halfexp))))
-	 `(column . ,(smie-indent-virtual)))))
+	 `(column . ,(smie-indent-virtual))))))
     ;; FIXME: Maybe this handling of ;; should be made into
     ;; a smie-rule-terminator function that takes the substitute ";" as arg.
     (`(:before . ,(or ";;" ";&" ";;&"))

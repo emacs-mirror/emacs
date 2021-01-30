@@ -1,4 +1,4 @@
-;;; ezimage --- Generalized Image management
+;;; ezimage.el --- Generalized Image management  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

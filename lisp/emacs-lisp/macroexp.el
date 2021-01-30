@@ -241,9 +241,22 @@ Assumes the caller has bound `macroexpand-all-environment'."
                        form))
       (`(,(and fun `(lambda . ,_)) . ,args)
        ;; Embedded lambda in function position.
-       (macroexp--cons (macroexp--all-forms fun 2)
-                       (macroexp--all-forms args)
-                       form))
+       ;; If the byte-optimizer is loaded, try to unfold this,
+       ;; i.e. rewrite it to (let (<args>) <body>).  We'd do it in the optimizer
+       ;; anyway, but doing it here (i.e. earlier) can sometimes avoid the
+       ;; creation of a closure, thus resulting in much better code.
+       (let ((newform (if (not (fboundp 'byte-compile-unfold-lambda))
+	                  'macroexp--not-unfolded
+	                ;; Don't unfold if byte-opt is not yet loaded.
+	                (byte-compile-unfold-lambda form))))
+	 (if (or (eq newform 'macroexp--not-unfolded)
+	         (eq newform form))
+	     ;; Unfolding failed for some reason, avoid infinite recursion.
+	     (macroexp--cons (macroexp--all-forms fun 2)
+                             (macroexp--all-forms args)
+                             form)
+	   (macroexp--expand-all newform))))
+
       ;; The following few cases are for normal function calls that
       ;; are known to funcall one of their arguments.  The byte
       ;; compiler has traditionally handled these functions specially
@@ -257,17 +270,21 @@ Assumes the caller has bound `macroexpand-all-environment'."
        (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
-        (macroexp--expand-all `(,fun ,f . ,args))))
+        (macroexp--expand-all `(,fun #',f . ,args))))
       ;; Second arg is a function:
       (`(,(and fun (or 'sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
        (macroexp--warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
-        (macroexp--expand-all `(,fun ,arg1 ,f . ,args))))
-      (`(funcall #',(and f (pred symbolp)) . ,args)
-       ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
-       ;; has a compiler-macro.
-       (macroexp--expand-all `(,f . ,args)))
+        (macroexp--expand-all `(,fun ,arg1 #',f . ,args))))
+      (`(funcall ,exp . ,args)
+       (let ((eexp (macroexp--expand-all exp))
+             (eargs (macroexp--all-forms args)))
+         ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
+         ;; has a compiler-macro, or to unfold it.
+         (pcase eexp
+           (`#',f (macroexp--expand-all `(,f . ,eargs)))
+           (_ `(funcall ,eexp . ,eargs)))))
       (`(,func . ,_)
        ;; Macro expand compiler macros.  This cannot be delayed to
        ;; byte-optimize-form because the output of the compiler-macro can
@@ -360,12 +377,12 @@ Never returns an empty list."
      (t
       `(cond (,test ,@(macroexp-unprogn then))
              (,(nth 1 else) ,@(macroexp-unprogn (nth 2 else)))
-             (t ,@(nthcdr 3 else))))))
+             ,@(let ((def (nthcdr 3 else))) (if def `((t ,@def))))))))
    ((eq (car-safe else) 'cond)
     `(cond (,test ,@(macroexp-unprogn then)) ,@(cdr else)))
    ;; Invert the test if that lets us reduce the depth of the tree.
    ((memq (car-safe then) '(if cond)) (macroexp-if `(not ,test) else then))
-   (t `(if ,test ,then ,@(macroexp-unprogn else)))))
+   (t `(if ,test ,then ,@(if else (macroexp-unprogn else))))))
 
 (defmacro macroexp-let2 (test sym exp &rest body)
   "Evaluate BODY with SYM bound to an expression for EXP's value.

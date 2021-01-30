@@ -1,4 +1,4 @@
-;;; url-cid.el --- Content-ID URL loader
+;;; url-cid.el --- Content-ID URL loader  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-1999, 2004-2021 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; url-proxy.el --- Proxy server support
+;;; url-proxy.el --- Proxy server support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999, 2004-2021 Free Software Foundation, Inc.
 

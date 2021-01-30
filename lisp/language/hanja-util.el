@@ -1,4 +1,4 @@
-;;; hanja-util.el --- Korean Hanja util module  -*- coding: utf-8 -*-
+;;; hanja-util.el --- Korean Hanja util module  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 

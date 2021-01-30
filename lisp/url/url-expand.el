@@ -66,7 +66,7 @@ path components followed by `..' are removed, along with the `..' itself."
       ;; Need to nuke newlines and spaces in the URL, or we open
       ;; ourselves up to potential security holes.
       (setq url (mapconcat (lambda (x)
-                             (if (memq x '(?  ?\n ?\r))
+                             (if (memq x '(?\s ?\n ?\r))
                                  ""
                                (char-to-string x)))
 			   url "")))

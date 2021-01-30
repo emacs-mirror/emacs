@@ -186,6 +186,21 @@ See `replace-regexp' and `query-replace-regexp-eval'.")
                         length)
              length)))))
 
+(defun query-replace-read-from-suggestions ()
+  "Return a list of standard suggestions for `query-replace-read-from'.
+By default, the list includes the active region, the identifier
+(a.k.a. \"tag\") at point (see Info node `(emacs) Identifier Search'),
+the last isearch string, and the last replacement regexp.
+`query-replace-read-from' appends the list returned
+by this function to the end of values available via
+\\<minibuffer-local-map>\\[next-history-element]."
+  (delq nil (list (when (use-region-p)
+                    (buffer-substring-no-properties
+                     (region-beginning) (region-end)))
+                  (find-tag-default)
+                  (car search-ring)
+                  (car (symbol-value query-replace-from-history-variable)))))
+
 (defun query-replace-read-from (prompt regexp-flag)
   "Query and return the `from' argument of a query-replace operation.
 Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should be a regexp.
@@ -242,7 +257,8 @@ wants to replace FROM with TO."
                 (if regexp-flag
                     (read-regexp prompt nil 'minibuffer-history)
                   (read-from-minibuffer
-                   prompt nil nil nil nil (car search-ring) t)))))
+                   prompt nil nil nil nil
+                   (query-replace-read-from-suggestions) t)))))
            (to))
       (if (and (zerop (length from)) query-replace-defaults)
 	  (cons (caar query-replace-defaults)
@@ -327,14 +343,15 @@ Prompt with PROMPT.  REGEXP-FLAG non-nil means the response should a regexp."
 (defun query-replace-read-args (prompt regexp-flag &optional noerror)
   (unless noerror
     (barf-if-buffer-read-only))
-  (let* ((from (query-replace-read-from prompt regexp-flag))
-	 (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
-	       (query-replace-read-to from prompt regexp-flag))))
-    (list from to
-	  (or (and current-prefix-arg (not (eq current-prefix-arg '-)))
-              (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
-                   (get-text-property 0 'isearch-regexp-function from)))
-	  (and current-prefix-arg (eq current-prefix-arg '-)))))
+  (save-mark-and-excursion
+    (let* ((from (query-replace-read-from prompt regexp-flag))
+           (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
+                 (query-replace-read-to from prompt regexp-flag))))
+      (list from to
+            (or (and current-prefix-arg (not (eq current-prefix-arg '-)))
+                (and (plist-member (text-properties-at 0 from) 'isearch-regexp-function)
+                     (get-text-property 0 'isearch-regexp-function from)))
+            (and current-prefix-arg (eq current-prefix-arg '-))))))
 
 (defun query-replace (from-string to-string &optional delimited start end backward region-noncontiguous-p)
   "Replace some occurrences of FROM-STRING with TO-STRING.
@@ -808,11 +825,16 @@ the function that you set this to can check `this-command'."
 
 (defun read-regexp-suggestions ()
   "Return a list of standard suggestions for `read-regexp'.
-By default, the list includes the tag at point, the last isearch regexp,
-the last isearch string, and the last replacement regexp.  `read-regexp'
-appends the list returned by this function to the end of values available
-via \\<minibuffer-local-map>\\[next-history-element]."
+By default, the list includes the active region, the identifier
+(a.k.a. \"tag\") at point (see Info node `(emacs) Identifier Search'),
+the last isearch regexp, the last isearch string, and the last
+replacement regexp.  `read-regexp' appends the list returned
+by this function to the end of values available via
+\\<minibuffer-local-map>\\[next-history-element]."
   (list
+   (when (use-region-p)
+     (buffer-substring-no-properties
+      (region-beginning) (region-end)))
    (find-tag-default-as-regexp)
    (find-tag-default-as-symbol-regexp)
    (car regexp-search-ring)
@@ -825,31 +847,35 @@ Prompt with the string PROMPT.  If PROMPT ends in \":\" (followed by
 optional whitespace), use it as-is.  Otherwise, add \": \" to the end,
 possibly preceded by the default result (see below).
 
-The optional argument DEFAULTS can be either: nil, a string, a list
-of strings, or a symbol.  We use DEFAULTS to construct the default
-return value in case of empty input.
+The optional argument DEFAULTS is used to construct the default
+return value in case of empty input.  DEFAULTS can be nil, a string,
+a list of strings, or a symbol.
 
-If DEFAULTS is a string, we use it as-is.
+If DEFAULTS is a string, the function uses it as-is.
 
 If DEFAULTS is a list of strings, the first element is the
 default return value, but all the elements are accessible
 using the history command \\<minibuffer-local-map>\\[next-history-element].
 
-If DEFAULTS is a non-nil symbol, then if `read-regexp-defaults-function'
-is non-nil, we use that in place of DEFAULTS in the following:
-  If DEFAULTS is the symbol `regexp-history-last', we use the first
-  element of HISTORY (if specified) or `regexp-history'.
-  If DEFAULTS is a function, we call it with no arguments and use
-  what it returns, which should be either nil, a string, or a list of strings.
+If DEFAULTS is the symbol `regexp-history-last', the default return
+value will be the first element of HISTORY.  If HISTORY is omitted or
+nil, `regexp-history' is used instead.
+If DEFAULTS is a symbol with a function definition, it is called with
+no arguments and should return either nil, a string, or a list of
+strings, which will be used as above.
+Other symbol values for DEFAULTS are ignored.
 
-We append the standard values from `read-regexp-suggestions' to DEFAULTS
-before using it.
+If `read-regexp-defaults-function' is non-nil, its value is used
+instead of DEFAULTS in the two cases described in the last paragraph.
+
+Before using whatever value DEFAULTS yields, the function appends the
+standard values from `read-regexp-suggestions' to that value.
 
 If the first element of DEFAULTS is non-nil (and if PROMPT does not end
-in \":\", followed by optional whitespace), we add it to the prompt.
+in \":\", followed by optional whitespace), DEFAULT is added to the prompt.
 
 The optional argument HISTORY is a symbol to use for the history list.
-If nil, uses `regexp-history'."
+If nil, use `regexp-history'."
   (let* ((defaults
 	   (if (and defaults (symbolp defaults))
 	       (cond
