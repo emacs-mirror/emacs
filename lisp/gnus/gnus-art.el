@@ -5206,7 +5206,7 @@ Use CMD as the process."
 		(mail-content-type-get (mm-handle-type handle) 'name)
 		;; Content-Disposition: attachment; filename=...
 		(cdr (assq 'filename (cdr (mm-handle-disposition handle))))))
-	 (def-type (and name (mm-default-file-encoding name))))
+	 (def-type (and name (mm-default-file-type name))))
     (or (and def-type (cons def-type 0))
 	(and handle
 	     (equal (mm-handle-media-supertype handle) "text")

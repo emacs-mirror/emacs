@@ -617,7 +617,7 @@ type detected."
 	       (filename (cdr (assq 'filename cont)))
 	       (type (or (cdr (assq 'type cont))
 			 (if filename
-			     (or (mm-default-file-encoding filename)
+			     (or (mm-default-file-type filename)
 				 "application/octet-stream")
 			   "text/plain")))
 	       (charset (cdr (assq 'charset cont)))
@@ -775,7 +775,7 @@ type detected."
 	  (insert "Content-Type: "
 		  (or (cdr (assq 'type cont))
 		      (if name
-			  (or (mm-default-file-encoding name)
+			  (or (mm-default-file-type name)
 			      "application/octet-stream")
 			"text/plain"))
 		  "\n")
@@ -1304,7 +1304,7 @@ If not set, `default-directory' will be used."
   (require 'mailcap)
   (mailcap-parse-mimetypes)
   (let* ((default (or default
-		      (mm-default-file-encoding name)
+		      (mm-default-file-type name)
 		      ;; Perhaps here we should check what the file
 		      ;; looks like, and offer text/plain if it looks
 		      ;; like text/plain.
@@ -1426,7 +1426,7 @@ will be computed and used."
   (interactive
    (let* ((file (mml-minibuffer-read-file "Attach file: "))
 	  (type (if current-prefix-arg
-		    (or (mm-default-file-encoding file)
+		    (or (mm-default-file-type file)
 			"application/octet-stream")
 		  (mml-minibuffer-read-type file)))
 	  (description (if current-prefix-arg

@@ -98,9 +98,12 @@ This variable should never be set directly, but bound before a call to
     boundary))
 
 ;;;###autoload
-(defun mm-default-file-encoding (file)
-  "Return a default encoding for FILE."
-  (if (not (string-match "\\.[^.]+$" file))
+(define-obsolete-function-alias 'mm-default-file-encoding
+  #'mm-default-file-type "future") ;Old bad name.
+;;;###autoload
+(defun mm-default-file-type (file)
+  "Return a default content type for FILE."
+  (if (not (string-match "\\.[^.]+\\'" file))
       "application/octet-stream"
     (mailcap-extension-to-mime (match-string 0 file))))
 
