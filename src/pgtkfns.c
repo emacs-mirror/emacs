@@ -534,6 +534,24 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 }
 
+static void
+x_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  int border = check_int_nonnegative (arg);
+
+  if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
+    {
+      f->child_frame_border_width = border;
+
+      if (FRAME_X_WINDOW (f))
+	{
+	  adjust_frame_size (f, -1, -1, 3, false, Qchild_frame_border_width);
+	  pgtk_clear_under_internal_border (f);
+	}
+    }
+
+}
+
 
 static void
 x_set_internal_border_width (struct frame *f, Lisp_Object arg,
@@ -963,6 +981,7 @@ frame_parm_handler pgtk_frame_parm_handlers[] = {
   x_set_foreground_color,
   x_set_icon_name,
   x_set_icon_type,
+  x_set_child_frame_border_width,
   x_set_internal_border_width,	/* generic OK */
   gui_set_right_divider_width,
   gui_set_bottom_divider_width,
@@ -1422,6 +1441,25 @@ This function is an internal primitive--use `make-frame' instead.  */ )
       if (!EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value), parms);
     }
+
+  /* Same for child frames.  */
+  if (NILP (Fassq (Qchild_frame_border_width, parms)))
+    {
+      Lisp_Object value;
+
+      value = gui_display_get_arg (dpyinfo, parms, Qchild_frame_border_width,
+                                   "childFrameBorderWidth", "childFrameBorderWidth",
+                                   RES_TYPE_NUMBER);
+      if (! EQ (value, Qunbound))
+	parms = Fcons (Fcons (Qchild_frame_border_width, value),
+		       parms);
+
+    }
+
+  gui_default_parameter (f, parms, Qchild_frame_border_width,
+			 make_fixnum (0),
+			 "childFrameBorderWidth", "childFrameBorderWidth",
+			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qinternal_border_width,
 			 make_fixnum (0),
 			 "internalBorderWidth", "internalBorderWidth",
