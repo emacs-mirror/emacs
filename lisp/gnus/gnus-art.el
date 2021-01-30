@@ -2707,7 +2707,7 @@ If READ-CHARSET, ask for a coding system."
   "Format an HTML article."
   (interactive)
   (let ((handles nil)
-	(buffer-read-only nil))
+	(inhibit-read-only t))
     (when (gnus-buffer-live-p gnus-original-article-buffer)
       (with-current-buffer gnus-original-article-buffer
 	(setq handles (mm-dissect-buffer t t))))
@@ -5074,50 +5074,53 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 	   file))
   (gnus-mime-save-part-and-strip file))
 
-(defun gnus-mime-save-part-and-strip (&optional file)
+(defun gnus-mime-save-part-and-strip (&optional file event)
   "Save the MIME part under point then replace it with an external body.
 If FILE is given, use it for the external part."
-  (interactive)
-  (gnus-article-check-buffer)
-  (when (gnus-group-read-only-p)
-    (error "The current group does not support deleting of parts"))
-  (when (mm-complicated-handles gnus-article-mime-handles)
-    (error "\
+  (interactive (list nil last-nonmenu-event))
+  (save-excursion
+    (mouse-set-point event)
+    (gnus-article-check-buffer)
+    (when (gnus-group-read-only-p)
+      (error "The current group does not support deleting of parts"))
+    (when (mm-complicated-handles gnus-article-mime-handles)
+      (error "\
 The current article has a complicated MIME structure, giving up..."))
-  (let* ((data (get-text-property (point) 'gnus-data))
-	 (id (get-text-property (point) 'gnus-part))
-	 (handles gnus-article-mime-handles))
-    (unless file
-      (setq file
-	    (and data (mm-save-part data "Delete MIME part and save to: "))))
-    (when file
-      (with-current-buffer (mm-handle-buffer data)
-	(erase-buffer)
-	(insert "Content-Type: " (mm-handle-media-type data))
-	(mml-insert-parameter-string (cdr (mm-handle-type data))
-				     '(charset))
-	;; Add a filename for the sake of saving the part again.
-	(mml-insert-parameter
-	 (mail-header-encode-parameter "name" (file-name-nondirectory file)))
-	(insert "\n")
-	(insert "Content-ID: " (message-make-message-id) "\n")
-	(insert "Content-Transfer-Encoding: binary\n")
-	(insert "\n"))
-      (setcdr data
-	      (cdr (mm-make-handle nil
-				   `("message/external-body"
-				     (access-type . "LOCAL-FILE")
-				     (name . ,file)))))
-      ;; (set-buffer gnus-summary-buffer)
-      (gnus-article-edit-part handles id))))
+    (let* ((data (get-text-property (point) 'gnus-data))
+	   (id (get-text-property (point) 'gnus-part))
+	   (handles gnus-article-mime-handles))
+      (unless file
+	(setq file
+	      (and data (mm-save-part data "Delete MIME part and save to: "))))
+      (when file
+	(with-current-buffer (mm-handle-buffer data)
+	  (erase-buffer)
+	  (insert "Content-Type: " (mm-handle-media-type data))
+	  (mml-insert-parameter-string (cdr (mm-handle-type data))
+				       '(charset))
+	  ;; Add a filename for the sake of saving the part again.
+	  (mml-insert-parameter
+	   (mail-header-encode-parameter "name" (file-name-nondirectory file)))
+	  (insert "\n")
+	  (insert "Content-ID: " (message-make-message-id) "\n")
+	  (insert "Content-Transfer-Encoding: binary\n")
+	  (insert "\n"))
+	(setcdr data
+		(cdr (mm-make-handle nil
+				     `("message/external-body"
+				       (access-type . "LOCAL-FILE")
+				       (name . ,file)))))
+	;; (set-buffer gnus-summary-buffer)
+	(gnus-article-edit-part handles id)))))
 
 ;; A function like `gnus-summary-save-parts' (`X m', `<MIME> <Extract all
 ;; parts...>') but with stripping would be nice.
 
-(defun gnus-mime-delete-part ()
+(defun gnus-mime-delete-part (&optional event)
   "Delete the MIME part under point.
 Replace it with some information about the removed part."
-  (interactive)
+  (interactive (list last-nonmenu-event))
+  (mouse-set-point event)
   (gnus-article-check-buffer)
   (when (gnus-group-read-only-p)
     (error "The current group does not support deleting of parts"))
@@ -5163,33 +5166,37 @@ Deleting parts may malfunction or destroy the article; continue? "))
       ;; (set-buffer gnus-summary-buffer)
       (gnus-article-edit-part handles id))))
 
-(defun gnus-mime-save-part ()
+(defun gnus-mime-save-part (&optional event)
   "Save the MIME part under point."
-  (interactive)
+  (interactive (list last-nonmenu-event))
+  (mouse-set-point event)
   (gnus-article-check-buffer)
   (let ((data (get-text-property (point) 'gnus-data)))
     (when data
       (mm-save-part data))))
 
-(defun gnus-mime-pipe-part (&optional cmd)
+(defun gnus-mime-pipe-part (&optional cmd event)
   "Pipe the MIME part under point to a process.
 Use CMD as the process."
-  (interactive)
+  (interactive (list nil last-nonmenu-event))
+  (mouse-set-point event)
   (gnus-article-check-buffer)
   (let ((data (get-text-property (point) 'gnus-data)))
     (when data
       (mm-pipe-part data cmd))))
 
-(defun gnus-mime-view-part ()
+(defun gnus-mime-view-part (&optional event)
   "Interactively choose a viewing method for the MIME part under point."
-  (interactive)
-  (gnus-article-check-buffer)
-  (let ((data (get-text-property (point) 'gnus-data)))
-    (when data
-      (setq gnus-article-mime-handles
-	    (mm-merge-handles
-	     gnus-article-mime-handles (setq data (copy-sequence data))))
-      (mm-interactively-view-part data))))
+  (interactive (list last-nonmenu-event))
+  (save-excursion
+    (mouse-set-point event)
+    (gnus-article-check-buffer)
+    (let ((data (get-text-property (point) 'gnus-data)))
+      (when data
+        (setq gnus-article-mime-handles
+              (mm-merge-handles
+               gnus-article-mime-handles (setq data (copy-sequence data))))
+        (mm-interactively-view-part data)))))
 
 (defun gnus-mime-view-part-as-type-internal ()
   (gnus-article-check-buffer)
@@ -5206,48 +5213,51 @@ Use CMD as the process."
 	     '("text/plain" . 0))
 	'("application/octet-stream" . 0))))
 
-(defun gnus-mime-view-part-as-type (&optional mime-type pred)
+(defun gnus-mime-view-part-as-type (&optional mime-type pred event)
   "Choose a MIME media type, and view the part as such.
 If non-nil, PRED is a predicate to use during completion to limit the
 available media-types."
-  (interactive)
-  (unless mime-type
-    (setq mime-type
-	  (let ((default (gnus-mime-view-part-as-type-internal)))
-	    (gnus-completing-read
-	     "View as MIME type"
-	     (if pred
-		 (seq-filter pred (mailcap-mime-types))
-	       (mailcap-mime-types))
-	     nil nil nil
-	     (car default)))))
-  (gnus-article-check-buffer)
-  (let ((handle (get-text-property (point) 'gnus-data)))
-    (when handle
-      (when (equal (mm-handle-media-type handle) "message/external-body")
-	(unless (mm-handle-cache handle)
-	  (mm-extern-cache-contents handle))
-	(setq handle (mm-handle-cache handle)))
-      (setq handle
-	    (mm-make-handle (mm-handle-buffer handle)
-			    (cons mime-type (cdr (mm-handle-type handle)))
-			    (mm-handle-encoding handle)
-			    (mm-handle-undisplayer handle)
-			    (mm-handle-disposition handle)
-			    (mm-handle-description handle)
-			    nil
-			    (mm-handle-id handle)))
-      (setq gnus-article-mime-handles
-	    (mm-merge-handles gnus-article-mime-handles handle))
-      (when (mm-handle-displayed-p handle)
-	(mm-remove-part handle))
-      (gnus-mm-display-part handle))))
+  (interactive (list nil nil last-nonmenu-event))
+  (save-excursion
+    (if event (mouse-set-point event))
+    (unless mime-type
+      (setq mime-type
+	    (let ((default (gnus-mime-view-part-as-type-internal)))
+	      (gnus-completing-read
+	       "View as MIME type"
+	       (if pred
+		   (seq-filter pred (mailcap-mime-types))
+		 (mailcap-mime-types))
+	       nil nil nil
+	       (car default)))))
+    (gnus-article-check-buffer)
+    (let ((handle (get-text-property (point) 'gnus-data)))
+      (when handle
+	(when (equal (mm-handle-media-type handle) "message/external-body")
+	  (unless (mm-handle-cache handle)
+	    (mm-extern-cache-contents handle))
+	  (setq handle (mm-handle-cache handle)))
+	(setq handle
+	      (mm-make-handle (mm-handle-buffer handle)
+			      (cons mime-type (cdr (mm-handle-type handle)))
+			      (mm-handle-encoding handle)
+			      (mm-handle-undisplayer handle)
+			      (mm-handle-disposition handle)
+			      (mm-handle-description handle)
+			      nil
+			      (mm-handle-id handle)))
+	(setq gnus-article-mime-handles
+	      (mm-merge-handles gnus-article-mime-handles handle))
+	(when (mm-handle-displayed-p handle)
+	  (mm-remove-part handle))
+	(gnus-mm-display-part handle)))))
 
-(defun gnus-mime-copy-part (&optional handle arg)
+(defun gnus-mime-copy-part (&optional handle arg event)
   "Put the MIME part under point into a new buffer.
 If `auto-compression-mode' is enabled, compressed files like .gz and .bz2
 are decompressed."
-  (interactive (list nil current-prefix-arg))
+  (interactive (list nil current-prefix-arg last-nonmenu-event))
+  (mouse-set-point event)
   (gnus-article-check-buffer)
   (unless handle
     (setq handle (get-text-property (point) 'gnus-data)))
@@ -5299,15 +5309,18 @@ are decompressed."
 	(setq buffer-file-name nil))
       (goto-char (point-min)))))
 
-(defun gnus-mime-print-part (&optional handle filename)
+(defun gnus-mime-print-part (&optional handle filename event)
   "Print the MIME part under point."
-  (interactive (list nil (ps-print-preprint current-prefix-arg)))
-  (gnus-article-check-buffer)
-  (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
-	 (contents (and handle (mm-get-part handle)))
-	 (file (make-temp-file (expand-file-name "mm." mm-tmp-directory)))
-	 (printer (mailcap-mime-info (mm-handle-media-type handle) "print")))
-    (when contents
+  (interactive
+   (list nil (ps-print-preprint current-prefix-arg) last-nonmenu-event))
+  (save-excursion
+    (mouse-set-point event)
+    (gnus-article-check-buffer)
+    (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
+	   (contents (and handle (mm-get-part handle)))
+	   (file (make-temp-file (expand-file-name "mm." mm-tmp-directory)))
+	   (printer (mailcap-mime-info (mm-handle-media-type handle) "print")))
+      (when contents
 	(if printer
 	    (unwind-protect
 		(progn
@@ -5322,12 +5335,13 @@ are decompressed."
 	  (with-temp-buffer
 	    (insert contents)
 	    (gnus-print-buffer))
-	  (ps-despool filename)))))
+	  (ps-despool filename))))))
 
-(defun gnus-mime-inline-part (&optional handle arg)
+(defun gnus-mime-inline-part (&optional handle arg event)
   "Insert the MIME part under point into the current buffer.
 Compressed files like .gz and .bz2 are decompressed."
-  (interactive (list nil current-prefix-arg))
+  (interactive (list nil current-prefix-arg last-nonmenu-event))
+  (if event (mouse-set-point event))
   (gnus-article-check-buffer)
   (let* ((inhibit-read-only t)
 	 (b (point))
@@ -5421,82 +5435,88 @@ CHARSET may either be a string or a symbol."
 	  (setcdr param charset)
 	(setcdr type (cons (cons 'charset charset) (cdr type)))))))
 
-(defun gnus-mime-view-part-as-charset (&optional handle arg)
+(defun gnus-mime-view-part-as-charset (&optional handle arg event)
   "Insert the MIME part under point into the current buffer using the
 specified charset."
-  (interactive (list nil current-prefix-arg))
-  (gnus-article-check-buffer)
-  (let ((handle (or handle (get-text-property (point) 'gnus-data)))
-	(fun (get-text-property (point) 'gnus-callback))
-	(gnus-newsgroup-ignored-charsets 'gnus-all)
-	charset form preferred parts)
-    (when handle
-      (when (prog1
-		(and fun
-		     (setq charset
-			   (or (cdr (assq
-				     arg
-				     gnus-summary-show-article-charset-alist))
-			       (read-coding-system "Charset: "))))
-	      (if (mm-handle-undisplayer handle)
-		  (mm-remove-part handle)))
-	(gnus-mime-set-charset-parameters handle charset)
-	(when (and (consp (setq form (cdr-safe fun)))
-		   (setq form (ignore-errors
-				(assq 'gnus-mime-display-alternative form)))
-		   (setq preferred (caddr form))
-		   (progn
-		     (when (eq (car preferred) 'quote)
-		       (setq preferred (cadr preferred)))
-		     (not (equal preferred
-				 (get-text-property (point) 'gnus-data))))
-		   (setq parts (get-text-property (point) 'gnus-part))
-		   (setq parts (cdr (assq parts
-					  gnus-article-mime-handle-alist)))
-		   (equal (mm-handle-media-type parts) "multipart/alternative")
-		   (setq parts (reverse (cdr parts))))
-	  (setcar (cddr form)
-		  (list 'quote (or (cadr (member preferred parts))
-				   (car parts)))))
-	(funcall fun handle)))))
-
-(defun gnus-mime-view-part-externally (&optional handle)
-  "View the MIME part under point with an external viewer."
-  (interactive)
-  (gnus-article-check-buffer)
-  (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
-	 (mm-inlined-types nil)
-	 (mail-parse-charset gnus-newsgroup-charset)
-	 (mail-parse-ignored-charsets
-          (with-current-buffer gnus-summary-buffer
-            gnus-newsgroup-ignored-charsets))
-         (type (mm-handle-media-type handle))
-         (method (mailcap-mime-info type))
-         (mm-enable-external t))
-    (if (not (stringp method))
-	(gnus-mime-view-part-as-type
-	 nil (lambda (type) (stringp (mailcap-mime-info type))))
+  (interactive (list nil current-prefix-arg last-nonmenu-event))
+  (save-excursion
+    (mouse-set-point event)
+    (gnus-article-check-buffer)
+    (let ((handle (or handle (get-text-property (point) 'gnus-data)))
+	  (fun (get-text-property (point) 'gnus-callback))
+	  (gnus-newsgroup-ignored-charsets 'gnus-all)
+	  charset form preferred parts)
       (when handle
-	(mm-display-part handle nil t)))))
+	(when (prog1
+		  (and fun
+		       (setq charset
+			     (or (cdr (assq
+				       arg
+				       gnus-summary-show-article-charset-alist))
+				 (read-coding-system "Charset: "))))
+		(if (mm-handle-undisplayer handle)
+		    (mm-remove-part handle)))
+	  (gnus-mime-set-charset-parameters handle charset)
+	  (when (and (consp (setq form (cdr-safe fun)))
+		     (setq form (ignore-errors
+				  (assq 'gnus-mime-display-alternative form)))
+		     (setq preferred (caddr form))
+		     (progn
+		       (when (eq (car preferred) 'quote)
+		         (setq preferred (cadr preferred)))
+		       (not (equal preferred
+				   (get-text-property (point) 'gnus-data))))
+		     (setq parts (get-text-property (point) 'gnus-part))
+		     (setq parts (cdr (assq parts
+					    gnus-article-mime-handle-alist)))
+		     (equal (mm-handle-media-type parts) "multipart/alternative")
+		     (setq parts (reverse (cdr parts))))
+	    (setcar (cddr form)
+		    (list 'quote (or (cadr (member preferred parts))
+				     (car parts)))))
+	  (funcall fun handle))))))
 
-(defun gnus-mime-view-part-internally (&optional handle)
+(defun gnus-mime-view-part-externally (&optional handle event)
+  "View the MIME part under point with an external viewer."
+  (interactive (list nil last-nonmenu-event))
+  (save-excursion
+    (mouse-set-point event)
+    (gnus-article-check-buffer)
+    (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
+	   (mm-inlined-types nil)
+	   (mail-parse-charset gnus-newsgroup-charset)
+	   (mail-parse-ignored-charsets
+            (with-current-buffer gnus-summary-buffer
+              gnus-newsgroup-ignored-charsets))
+           (type (mm-handle-media-type handle))
+           (method (mailcap-mime-info type))
+           (mm-enable-external t))
+      (if (not (stringp method))
+	  (gnus-mime-view-part-as-type
+	   nil (lambda (type) (stringp (mailcap-mime-info type))))
+	(when handle
+	  (mm-display-part handle nil t))))))
+
+(defun gnus-mime-view-part-internally (&optional handle event)
   "View the MIME part under point with an internal viewer.
 If no internal viewer is available, use an external viewer."
-  (interactive)
-  (gnus-article-check-buffer)
-  (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
-	 (mm-inlined-types '(".*"))
-	 (mm-inline-large-images t)
-	 (mail-parse-charset gnus-newsgroup-charset)
-	 (mail-parse-ignored-charsets
-	  (with-current-buffer gnus-summary-buffer
-	    gnus-newsgroup-ignored-charsets))
-	 (inhibit-read-only t))
-    (if (not (mm-inlinable-p handle))
-        (gnus-mime-view-part-as-type
-         nil (lambda (type) (mm-inlinable-p handle type)))
-      (when handle
-	(gnus-bind-mm-vars (mm-display-part handle nil t))))))
+  (interactive (list nil last-nonmenu-event))
+  (save-excursion
+    (mouse-set-point event)
+    (gnus-article-check-buffer)
+    (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
+	   (mm-inlined-types '(".*"))
+	   (mm-inline-large-images t)
+	   (mail-parse-charset gnus-newsgroup-charset)
+	   (mail-parse-ignored-charsets
+	    (with-current-buffer gnus-summary-buffer
+	      gnus-newsgroup-ignored-charsets))
+	   (inhibit-read-only t))
+      (if (not (mm-inlinable-p handle))
+          (gnus-mime-view-part-as-type
+           nil (lambda (type) (mm-inlinable-p handle type)))
+        (when handle
+	  (gnus-bind-mm-vars (mm-display-part handle nil t)))))))
 
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at (point)."
@@ -7866,15 +7886,16 @@ call it with the value of the `gnus-data' text property."
     (when fun
       (funcall fun data))))
 
-(defun gnus-article-press-button ()
+(defun gnus-article-press-button (&optional event)
   "Check text at point for a callback function.
 If the text at point has a `gnus-callback' property,
 call it with the value of the `gnus-data' text property."
-  (interactive)
-  (let ((data (get-text-property (point) 'gnus-data))
-	(fun (get-text-property (point) 'gnus-callback)))
-    (when fun
-      (funcall fun data))))
+  (interactive (list last-nonmenu-event))
+  (save-excursion
+    (mouse-set-point event)
+    (let ((fun (get-text-property (point) 'gnus-callback)))
+      (when fun
+        (funcall fun (get-text-property (point) 'gnus-data))))))
 
 (defun gnus-article-highlight (&optional force)
   "Highlight current article.
