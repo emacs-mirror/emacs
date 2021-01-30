@@ -352,12 +352,20 @@ diagnostics at BEG."
 (flymake--diag-accessor flymake-diagnostic-data flymake--diag-data backend)
 
 (defun flymake-diagnostic-beg (diag)
-  "Get Flymake diagnostic DIAG's start position."
-  (overlay-start (flymake--diag-overlay diag)))
+  "Get Flymake diagnostic DIAG's start position.
+This position only be queried after DIAG has been reported to Flymake."
+  (let ((overlay (flymake--diag-overlay diag)))
+    (unless overlay
+      (error "DIAG %s not reported to Flymake yet" diag))
+    (overlay-start overlay)))
 
 (defun flymake-diagnostic-end (diag)
-  "Get Flymake diagnostic DIAG's end position."
-  (overlay-end (flymake--diag-overlay diag)))
+  "Get Flymake diagnostic DIAG's end position.
+This position only be queried after DIAG has been reported to Flymake."
+  (let ((overlay (flymake--diag-overlay diag)))
+    (unless overlay
+      (error "DIAG %s not reported to Flymake yet" diag))
+    (overlay-end overlay)))
 
 (cl-defun flymake--overlays (&key beg end filter compare key)
   "Get flymake-related overlays.

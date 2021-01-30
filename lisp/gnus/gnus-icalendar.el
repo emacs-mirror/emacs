@@ -835,6 +835,7 @@ These will be used to retrieve the RSVP information from ical events."
        keymap ,gnus-mime-button-map
        face ,gnus-article-button-face
        follow-link t
+       category t
        button t
        gnus-data ,data))))
 

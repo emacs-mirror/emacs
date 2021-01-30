@@ -909,6 +909,7 @@ quirks.")
 (defclass gnus-search-namazu (gnus-search-indexed)
   ((index-directory
     :initarg :index-directory
+    :initform (symbol-value 'gnus-search-namazu-index-directory)
     :type string
     :custom directory)
    (program

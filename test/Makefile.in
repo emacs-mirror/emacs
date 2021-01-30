@@ -122,8 +122,9 @@ MODULES_EMACSOPT :=
 endif
 
 # The actual Emacs command run in the targets below.
-# Prevent any setting of EMACSLOADPATH in user environment causing problems.
-emacs = EMACSLOADPATH= \
+# Prevent any setting of EMACSLOADPATH in user environment causing problems,
+# and prevent locals to influence the text of the errors we expect to receive.
+emacs = LANG=C EMACSLOADPATH= 		   \
  EMACS_TEST_DIRECTORY=$(abspath $(srcdir)) \
  $(GDB) "$(EMACS)" $(MODULES_EMACSOPT) $(EMACSOPT)
 

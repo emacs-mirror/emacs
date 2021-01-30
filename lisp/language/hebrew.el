@@ -245,9 +245,9 @@ Bidirectional editing is supported.")))
        (pattern2 (concat base "\u200D" combining)))
   (set-char-table-range
    composition-function-table '(#x591 . #x5C7)
-   (list (vector pattern2 3 'hebrew-shape-gstring)
-	 (vector pattern2 2 'hebrew-shape-gstring)
-	 (vector pattern1 1 'hebrew-shape-gstring)
+   (list (vector pattern2 3 #'hebrew-shape-gstring)
+	 (vector pattern2 2 #'hebrew-shape-gstring)
+	 (vector pattern1 1 #'hebrew-shape-gstring)
 	 [nil 0 hebrew-shape-gstring]))
   ;; Exclude non-combining characters.
   (set-char-table-range

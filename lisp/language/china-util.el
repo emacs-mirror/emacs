@@ -1,4 +1,4 @@
-;;; china-util.el --- utilities for Chinese  -*- coding: utf-8 -*-
+;;; china-util.el --- utilities for Chinese  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,

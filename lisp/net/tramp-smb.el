@@ -156,6 +156,7 @@ this variable (\"client min protocol=NT1\") ."
 	 "NT_STATUS_NO_SUCH_FILE"
 	 "NT_STATUS_NO_SUCH_USER"
 	 "NT_STATUS_NOT_A_DIRECTORY"
+	 "NT_STATUS_NOT_SUPPORTED"
 	 "NT_STATUS_OBJECT_NAME_COLLISION"
 	 "NT_STATUS_OBJECT_NAME_INVALID"
 	 "NT_STATUS_OBJECT_NAME_NOT_FOUND"
@@ -371,17 +372,17 @@ pass to the OPERATION."
 	(tramp-error
 	 v2 'file-error
 	 "add-name-to-file: %s must not be a directory" filename))
-	;; Do the 'confirm if exists' thing.
-	(when (file-exists-p newname)
-	  ;; What to do?
-	  (if (or (null ok-if-already-exists) ; not allowed to exist
-		  (and (numberp ok-if-already-exists)
-		       (not (yes-or-no-p
-			     (format
-			      "File %s already exists; make it a link anyway? "
-			      v2-localname)))))
-	      (tramp-error v2 'file-already-exists newname)
-	    (delete-file newname)))
+      ;; Do the 'confirm if exists' thing.
+      (when (file-exists-p newname)
+	;; What to do?
+	(if (or (null ok-if-already-exists) ; not allowed to exist
+		(and (numberp ok-if-already-exists)
+		     (not (yes-or-no-p
+			   (format
+			    "File %s already exists; make it a link anyway? "
+			    v2-localname)))))
+	    (tramp-error v2 'file-already-exists newname)
+	  (delete-file newname)))
       ;; We must also flush the cache of the directory, because
       ;; `file-attributes' reads the values from there.
       (tramp-flush-file-properties v2 v2-localname)
@@ -1166,7 +1167,6 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		   (insert " -> " (tramp-compat-file-attribute-type attr))))
 
 	       (insert "\n")
-	       (forward-line)
 	       (beginning-of-line)))
 	   entries))))))
 

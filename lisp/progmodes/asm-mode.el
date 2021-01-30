@@ -141,8 +141,7 @@ Special commands:
   (setq-local comment-add 1)
   (setq-local comment-start-skip "\\(?:\\s<+\\|/[/*]+\\)[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(\\s>\\|\\*+/\\)")
-  (setq-local comment-end "")
-  (setq fill-prefix "\t"))
+  (setq-local comment-end ""))
 
 (defun asm-indent-line ()
   "Auto-indent the current line."

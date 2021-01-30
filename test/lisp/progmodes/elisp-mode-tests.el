@@ -834,5 +834,61 @@ to (xref-elisp-test-descr-to-target xref)."
       (indent-region (point-min) (point-max))
       (should (equal (buffer-string) orig)))))
 
+(defun test--font (form search)
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (if (stringp form)
+        (insert form)
+      (pp form (current-buffer)))
+    (font-lock-debug-fontify)
+    (goto-char (point-min))
+    (and (re-search-forward search nil t)
+         (get-text-property (match-beginning 1) 'face))))
+
+(ert-deftest test-elisp-font-keywords-1 ()
+  ;; Special form.
+  (should (eq (test--font '(if foo bar) "(\\(if\\)")
+              'font-lock-keyword-face))
+  ;; Macro.
+  (should (eq (test--font '(when foo bar) "(\\(when\\)")
+              'font-lock-keyword-face))
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             (error (if a b)))
+                          "(\\(if\\)")
+              'font-lock-keyword-face))
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             (when (if a b)))
+                          "(\\(when\\)")
+              'nil)))
+
+(ert-deftest test-elisp-font-keywords-2 ()
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             (error (when a b)))
+                          "(\\(when\\)")
+              'font-lock-keyword-face)))
+
+(ert-deftest test-elisp-font-keywords-3 ()
+  (should (eq (test--font '(setq a '(if when zot))
+                          "(\\(if\\)")
+              nil)))
+
+(ert-deftest test-elisp-font-keywords-4 ()
+  :expected-result :failed ; FIXME bug#43265
+  (should (eq (test--font '(condition-case nil
+                               (foo)
+                             ((if foo) (when a b)))
+                          "(\\(if\\)")
+              nil)))
+
+(ert-deftest test-elisp-font-keywords-5 ()
+  (should (eq (test--font '(condition-case (when a)
+                               (foo)
+                             (error t))
+                          "(\\(when\\)")
+              nil)))
+
 (provide 'elisp-mode-tests)
 ;;; elisp-mode-tests.el ends here

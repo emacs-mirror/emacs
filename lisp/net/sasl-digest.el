@@ -1,4 +1,4 @@
-;;; sasl-digest.el --- DIGEST-MD5 module for the SASL client framework
+;;; sasl-digest.el --- DIGEST-MD5 module for the SASL client framework  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000, 2007-2021 Free Software Foundation, Inc.
 

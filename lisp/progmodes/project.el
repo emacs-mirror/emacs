@@ -1,8 +1,8 @@
 ;;; project.el --- Operations on the current project  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
-;; Version: 0.5.3
-;; Package-Requires: ((emacs "26.3") (xref "1.0.2"))
+;; Version: 0.5.4
+;; Package-Requires: ((emacs "26.1") (xref "1.0.2"))
 
 ;; This is a GNU ELPA :core package.  Avoid using functionality that
 ;; not compatible with the version of Emacs recorded above.
@@ -928,16 +928,16 @@ if one already exists."
 ;;;###autoload
 (defun project-async-shell-command ()
   "Run `async-shell-command' in the current project's root directory."
-  (interactive)
   (declare (interactive-only async-shell-command))
+  (interactive)
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'async-shell-command)))
 
 ;;;###autoload
 (defun project-shell-command ()
   "Run `shell-command' in the current project's root directory."
-  (interactive)
   (declare (interactive-only shell-command))
+  (interactive)
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'shell-command)))
 
@@ -974,8 +974,8 @@ loop using the command \\[fileloop-continue]."
 ;;;###autoload
 (defun project-compile ()
   "Run `compile' in the project root."
-  (interactive)
   (declare (interactive-only compile))
+  (interactive)
   (let ((default-directory (project-root (project-current t))))
     (call-interactively #'compile)))
 

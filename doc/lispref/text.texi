@@ -334,6 +334,25 @@ but there is no peace.
 (thing-at-point 'whitespace)
      @result{} nil
 @end example
+
+@defvar thing-at-point-provider-alist
+This variable allows users and modes to tweak how
+@code{thing-at-point} works.  It's an association list of @var{thing}s
+and functions (called with zero parameters) to return that thing.
+Entries for @var{thing} will be evaluated in turn until a
+non-@code{nil} result is returned.
+
+For instance, a major mode could say:
+
+@lisp
+(setq-local thing-at-point-provider-alist
+            (append thing-at-point-provider-alist
+                    '((url . my-mode--url-at-point))))
+@end lisp
+
+If no providers have a non-@code{nil} return, the @var{thing} will be
+computed the standard way.
+@end defvar
 @end defun
 
 @node Comparing Text
@@ -1421,6 +1440,11 @@ The maximum number of changes that can be amalgamated is controlled by
 the @code{amalgamating-undo-limit} variable.  If this variable is 1,
 no changes are amalgamated.
 @end defun
+
+A Lisp program can amalgamate a series of changes into a single change
+group by calling @code{undo-amalgamate-change-group} (@pxref{Atomic
+Changes}).  Note that @code{amalgamating-undo-limit} has no effect on
+the groups produced by that function.
 
 @defvar undo-auto-current-boundary-timer
 Some buffers, such as process buffers, can change even when no
@@ -5608,6 +5632,19 @@ This function accepts all the changes in the change group specified by
 @defun cancel-change-group handle
 This function cancels and undoes all the changes in the change group
 specified by @var{handle}.
+@end defun
+
+  You can cause some or all of the changes in a change group to be
+considered as a single unit for the purposes of the @code{undo}
+commands (@pxref{Undo}) by using @code{undo-amalgamate-change-group}.
+
+@defun undo-amalgamate-change-group
+Amalgamate all the changes made in the change-group since the state
+identified by @var{handle}.  This function removes all undo boundaries
+between undo records of changes since the state described by
+@var{handle}.  Usually, @var{handle} is the handle returned by
+@code{prepare-change-group}, in which case all the changes since the
+beginning of the change-group are amalgamated into a single undo unit.
 @end defun
 
   Your code should use @code{unwind-protect} to make sure the group is

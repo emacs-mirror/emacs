@@ -2260,7 +2260,7 @@ return value is a list of elements of the form (PARAMETER . VALUE).  */)
 Lisp_Object
 window_parameter (struct window *w, Lisp_Object parameter)
 {
-  Lisp_Object result = Fassq (parameter, w->window_parameters);
+  Lisp_Object result = assq_no_quit (parameter, w->window_parameters);
 
   return CDR_SAFE (result);
 }

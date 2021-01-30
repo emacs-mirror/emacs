@@ -1,4 +1,4 @@
-;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)
+;;; mule-diag.el --- show diagnosis of multilingual environment (Mule)  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1998, 2000-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -86,8 +86,7 @@ but still shows the full information."
 	(indent-to 48)
 	(insert "| +--CHARS\n")
 	(let ((columns '(("CHARSET-NAME" . name) "\t\t\t\t\t"
-			 ("D CH  FINAL-BYTE" . iso-spec)))
-	      pos)
+			 ("D CH  FINAL-BYTE" . iso-spec))))
 	  (while columns
 	    (if (stringp (car columns))
 		(insert (car columns))
@@ -117,8 +116,8 @@ but still shows the full information."
 SORT-KEY should be `name' or `iso-spec' (default `name')."
   (or sort-key
       (setq sort-key 'name))
-  (let ((tail charset-list)
-	charset-info-list supplementary-list charset sort-func)
+  (let (;; (tail charset-list)
+	charset-info-list supplementary-list sort-func)
     (dolist (charset charset-list)
       ;; Generate a list that contains all information to display.
       (let ((elt (list charset
@@ -273,9 +272,9 @@ meanings of these arguments."
       (setq tab-width 4)
       (set-buffer-multibyte t)
       (let ((dim (charset-dimension charset))
-	    (chars (charset-chars charset))
-	    ;; 	(plane (charset-iso-graphic-plane charset))
-	    (plane 1)
+	    ;; (chars (charset-chars charset))
+	    ;; (plane (charset-iso-graphic-plane charset))
+	    ;; (plane 1)
 	    (range (plist-get (charset-plist charset) :code-space))
 	    min max min2 max2)
 	(if (> dim 2)
@@ -415,7 +414,8 @@ or provided just for backward compatibility." nil)))
       (print-coding-system-briefly coding-system 'doc-string)
       (let ((type (coding-system-type coding-system))
 	    ;; Fixme: use this
-	    (extra-spec (coding-system-plist coding-system)))
+	    ;; (extra-spec (coding-system-plist coding-system))
+	    )
 	(princ "Type: ")
 	(princ type)
 	(cond ((eq type 'undecided)
@@ -858,6 +858,8 @@ The IGNORED argument is ignored."
       (with-output-to-temp-buffer "*Help*"
 	(describe-font-internal font-info)))))
 
+(defvar mule--print-opened)
+
 (defun print-fontset-element (val)
   ;; VAL has this format:
   ;;  ((REQUESTED-FONT-NAME OPENED-FONT-NAME ...) ...)
@@ -915,7 +917,7 @@ The IGNORED argument is ignored."
 			     (or adstyle "*") registry)))))
 
 	;; Insert opened font names (if any).
-	(if (and (boundp 'print-opened) (symbol-value 'print-opened))
+	(if (bound-and-true-p mule--print-opened)
 	    (dolist (opened (cdr elt))
 	      (insert "\n\t[" opened "]")))))))
 
@@ -943,8 +945,9 @@ the current buffer."
 	  " and [" (propertize "OPENED" 'face 'underline) "])")
   (let* ((info (fontset-info fontset))
 	 (default-info (char-table-extra-slot info 0))
+	 (mule--print-opened print-opened)
 	 start1 end1 start2 end2)
-    (describe-vector info 'print-fontset-element)
+    (describe-vector info #'print-fontset-element)
     (when (char-table-range info nil)
       ;; The default of FONTSET is described.
       (setq start1 (re-search-backward "^default"))
@@ -956,7 +959,7 @@ the current buffer."
     (when default-info
       (insert "\n  ---<fallback to the default fontset>---")
       (put-text-property (line-beginning-position) (point) 'face 'highlight)
-      (describe-vector default-info 'print-fontset-element)
+      (describe-vector default-info #'print-fontset-element)
       (when (char-table-range default-info nil)
 	;; The default of the default fontset is described.
 	(setq end2 (re-search-backward "^default"))

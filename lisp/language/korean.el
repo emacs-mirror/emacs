@@ -92,10 +92,10 @@ and the following key bindings are available within Korean input methods:
        (pattern (concat choseong jungseong jongseong)))
   (set-char-table-range composition-function-table
                         '(#x1100 . #x115F)
-                        (list (vector pattern 0 'font-shape-gstring)))
+                        (list (vector pattern 0 #'font-shape-gstring)))
   (set-char-table-range composition-function-table
                         '(#xA960 . #xA97C)
-                        (list (vector pattern 0 'font-shape-gstring))))
+                        (list (vector pattern 0 #'font-shape-gstring))))
 
 (provide 'korean)
 

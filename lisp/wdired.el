@@ -27,26 +27,26 @@
 ;; wdired.el (the "w" is for writable) provides an alternative way of
 ;; renaming files.
 ;;
-;; Have you ever wished to use C-x r t (string-rectangle), M-%
+;; Have you ever wanted to use C-x r t (string-rectangle), M-%
 ;; (query-replace), M-c (capitalize-word), etc... to change the name of
-;; the files in a "dired" buffer? Now you can do this.  All the power
-;; of Emacs commands are available to renaming files!
+;; the files in a "dired" buffer?  Now you can do this.  All the power
+;; of Emacs commands are available when renaming files!
 ;;
 ;; This package provides a function that makes the filenames of a
 ;; dired buffer editable, by changing the buffer mode (which inhibits
-;; all of the commands of dired mode). Here you can edit the names of
+;; all of the commands of dired mode).  Here you can edit the names of
 ;; one or more files and directories, and when you press C-c C-c, the
 ;; renaming takes effect and you are back to dired mode.
 ;;
-;; Another things you can do with WDired:
+;; Other things you can do with WDired:
 ;;
-;; - To move files to another directory (by typing their path,
+;; - Move files to another directory (by typing their path,
 ;;   absolute or relative, as a part of the new filename).
 ;;
-;; - To change the target of symbolic links.
+;; - Change the target of symbolic links.
 ;;
-;; - To change the permission bits of the filenames (in systems with a
-;;   working unix-alike `dired-chmod-program'). See and customize the
+;; - Change the permission bits of the filenames (in systems with a
+;;   working unix-alike `dired-chmod-program').  See and customize the
 ;;   variable `wdired-allow-to-change-permissions'.  To change a single
 ;;   char (toggling between its two more usual values) you can press
 ;;   the space bar over it or left-click the mouse.  To set any char to
@@ -56,7 +56,7 @@
 ;;   the change would affect to their targets, and this would not be
 ;;   WYSIWYG :-).
 ;;
-;; - To mark files for deletion, by deleting their whole filename.
+;; - Mark files for deletion, by deleting their whole filename.
 
 ;;; Usage:
 
@@ -68,8 +68,8 @@
 
 ;;; Change Log:
 
-;; Google is your friend (previous versions with complete changelogs
-;; were posted to gnu.emacs.sources)
+;; Previous versions with complete changelogs were posted to
+;; gnu.emacs.sources.
 
 ;;; Code:
 

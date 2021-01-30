@@ -87,9 +87,11 @@
 
 (defun cua-toggle-global-mark (stay)
   "Set or cancel the global marker.
-When the global marker is set, CUA cut and copy commands will automatically
-insert the deleted or copied text before the global marker, even when the
-global marker is in another buffer.
+When the global marker is set, CUA cut and copy commands will
+automatically insert the inserted, deleted or copied text before
+the global marker, even when the global marker is in another
+buffer.
+
 If the global marker isn't set, set the global marker at point in the current
 buffer.  Otherwise jump to the global marker position and cancel it.
 With prefix argument, don't jump to global mark when canceling it."

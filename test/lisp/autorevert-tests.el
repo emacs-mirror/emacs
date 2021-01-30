@@ -524,8 +524,10 @@ This expects `auto-revert--messages' to be bound by
            (auto-revert-test--write-file "1-b" file-1)
            (auto-revert-test--wait-for-buffer-text
             buf-1 "1-b" (auto-revert--timeout))
-           (should (buffer-local-value
-                    'auto-revert-notify-watch-descriptor buf-1))
+           ;; On emba, `buf-1' is a killed buffer.
+           (when (buffer-live-p buf-1)
+             (should (buffer-local-value
+                      'auto-revert-notify-watch-descriptor buf-1)))
 
            ;; Write a buffer to a new file, then modify the new file on disk.
            (with-current-buffer buf-2
@@ -607,11 +609,12 @@ This expects `auto-revert--messages' to be bound by
              (should auto-revert-mode))
 
            (dotimes (i num-buffers)
-             (add-to-list
-              'buffers
-              (make-indirect-buffer
-               (car buffers) (format "%s-%d" (buffer-file-name (car buffers)) i) 'clone)
-              'append))
+             (push (make-indirect-buffer
+                    (car buffers)
+                    (format "%s-%d" (buffer-file-name (car buffers)) i)
+                    'clone)
+                   buffers))
+           (setq buffers (nreverse buffers))
            (dolist (buf buffers)
              (with-current-buffer buf
                (should (string-equal (buffer-string) "any text"))
@@ -638,10 +641,10 @@ This expects `auto-revert--messages' to be bound by
            (auto-revert-tests--write-file "any text" tmpfile (pop times))
 
            (dotimes (i num-buffers)
-             (add-to-list
-              'buffers
-              (generate-new-buffer (format "%s-%d" (file-name-nondirectory tmpfile) i))
-              'append))
+             (push (generate-new-buffer
+                    (format "%s-%d" (file-name-nondirectory tmpfile) i))
+                   buffers))
+           (setq buffers (nreverse buffers))
            (dolist (buf buffers)
              (with-current-buffer buf
                (insert-file-contents tmpfile 'visit)

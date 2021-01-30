@@ -810,9 +810,10 @@ behavior.
 @cindex @option{sshx} method
 
 Works like @option{ssh} but without the extra authentication prompts.
-@option{sshx} uses @samp{ssh -t -t @var{host} -l @var{user} /bin/sh}
-to open a connection with a ``standard'' login shell.  It supports
-changing the remote login shell @command{/bin/sh}.
+@option{sshx} uses @samp{ssh -t -t -l @var{user} -o
+RemoteCommand='/bin/sh -i' @var{host}} to open a connection with a
+``standard'' login shell.  It supports changing the remote login shell
+@command{/bin/sh}.
 
 @strong{Note} that @option{sshx} does not bypass authentication
 questions.  For example, if the host key of the remote host is not
@@ -935,9 +936,10 @@ This method supports the @samp{-p} argument.
 @cindex @command{ssh} (with @option{scpx} method)
 
 @option{scpx} is useful to avoid login shell questions.  It is similar
-in performance to @option{scp}.  @option{scpx} uses @samp{ssh -t -t
-@var{host} -l @var{user} /bin/sh} to open a connection.  It supports
-changing the remote login shell @command{/bin/sh}.
+in performance to @option{scp}.  @option{scpx} uses @samp{ssh -t -t -l
+@var{user} -o RemoteCommand='/bin/sh -i' @var{host}} to open a
+connection.  It supports changing the remote login shell
+@command{/bin/sh}.
 
 @option{scpx} is useful for MS Windows users when @command{ssh}
 triggers an error about allocating a pseudo tty.  This happens due to
@@ -1283,6 +1285,9 @@ supports port numbers.
 This method uses @command{sftp} in order to securely access remote
 hosts.  @command{sftp} is a more secure option for connecting to hosts
 that for security reasons refuse @command{ssh} connections.
+
+When there is a respective entry in your @command{ssh} configuration,
+do @emph{not} set the @option{RemoteCommand} option.
 
 @end table
 
@@ -2220,7 +2225,10 @@ This uses also the settings in @code{tramp-sh-extra-args}.
 @vindex RemoteCommand@r{, ssh option}
 @strong{Note}: If you use an @option{ssh}-based method for connection,
 do @emph{not} set the @option{RemoteCommand} option in your
-@command{ssh} configuration, for example to @command{screen}.
+@command{ssh} configuration, for example to @command{screen}.  On the
+other hand, some @option{ssh}-based methods, like @option{sshx} or
+@option{scpx}, silently overwrite a @option{RemoteCommand} option of
+the configuration file.
 
 
 @subsection Other remote shell setup hints
@@ -3580,12 +3588,15 @@ Furthermore, this approach has the following limitations:
 It works only for connection methods defined in @file{tramp-sh.el} and
 @file{tramp-adb.el}.
 
-@vindex ControlMaster@r{, ssh option}
 @item
 It does not support interactive user authentication.  With
 @option{ssh}-based methods, this can be avoided by using a password
 agent like @command{ssh-agent}, using public key authentication, or
 using @option{ControlMaster} options.
+
+@item
+It cannot be applied for @option{ssh}-based methods, which use the
+@option{RemoteCommand} option.
 
 @item
 It cannot be killed via @code{interrupt-process}.
@@ -3597,8 +3608,7 @@ It does not report the remote terminal name via @code{process-tty-name}.
 It does not set process property @code{remote-pid}.
 
 @item
-It does not use @code{tramp-remote-path} and
-@code{tramp-remote-process-environment}.
+It does not use @code{tramp-remote-path}.
 @end itemize
 
 In order to gain even more performance, it is recommended to bind

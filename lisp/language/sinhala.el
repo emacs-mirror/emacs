@@ -43,6 +43,6 @@
 	 "[\u0D85-\u0D96][\u0D82-\u0D83]?\\|"
 	 ;; any other singleton characters
 	 "[\u0D80-\u0DFF]")
-	0 'font-shape-gstring)))
+	0 #'font-shape-gstring)))
 
 ;; sinhala.el ends here

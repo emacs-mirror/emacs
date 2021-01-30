@@ -2723,6 +2723,12 @@ See also `unrmail-mbox-format'."
   :version "24.4"
   :group 'rmail-files)
 
+(defcustom rmail-show-message-set-modified nil
+  "If non-nil, displaying an unseen message marks the Rmail buffer as modified."
+  :type 'boolean
+  :group 'rmail
+  :version "28.1")
+
 (defun rmail-show-message-1 (&optional msg)
   "Show message MSG (default: current message) using `rmail-view-buffer'.
 Return text to display in the minibuffer if MSG is out of
@@ -2750,6 +2756,8 @@ The current mail message becomes the message displayed."
 	;; Mark the message as seen, but preserve buffer modified flag.
 	(let ((modiff (buffer-modified-p)))
 	  (rmail-set-attribute rmail-unseen-attr-index nil)
+          (and rmail-show-message-set-modified
+               (setq modiff t))
 	  (unless modiff
 	    (restore-buffer-modified-p modiff)))
 	;; bracket the message in the mail

@@ -1,4 +1,4 @@
-;;; japan-util.el --- utilities for Japanese
+;;; japan-util.el --- utilities for Japanese  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -236,7 +236,7 @@ of which charset is `japanese-jisx0201-kana'."
 	       (composition
 		(and (not hankaku)
 		     (get-char-code-property kana 'kana-composition)))
-	       next slot)
+	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
 	      (japanese-replace-region (match-beginning 0) (1+ (point))
 				       (cdr slot))
@@ -258,7 +258,7 @@ of which charset is `japanese-jisx0201-kana'."
       (while (re-search-forward "\\cK\\|\\ck" nil t)
 	(let* ((kata (preceding-char))
 	       (composition (get-char-code-property kata 'kana-composition))
-	       next slot)
+	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
 	      (japanese-replace-region (match-beginning 0) (1+ (point))
 				       (get-char-code-property
@@ -305,7 +305,7 @@ Optional argument KATAKANA-ONLY non-nil means to convert only KATAKANA char."
 		      (re-search-forward "\\ca\\|\\ck" nil t)))
 	(let* ((hankaku (preceding-char))
 	       (composition (get-char-code-property hankaku 'kana-composition))
-	       next slot)
+	       slot) ;; next
 	  (if (and composition (setq slot (assq (following-char) composition)))
 	      (japanese-replace-region (match-beginning 0) (1+ (point))
 				       (cdr slot))

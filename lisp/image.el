@@ -264,9 +264,9 @@ compatibility with versions of Emacs that lack the variable
 ;; Used to be in image-type-header-regexps, but now not used anywhere
 ;; (since 2009-08-28).
 (defun image-jpeg-p (data)
-  (declare (obsolete "It is unused inside Emacs and will be removed." "27.1"))
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
+  (declare (obsolete "It is unused inside Emacs and will be removed." "27.1"))
   (setq data (ignore-errors (string-to-unibyte data)))
   (when (and data (string-match-p "\\`\xff\xd8" data))
     (catch 'jfif

@@ -52,7 +52,29 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (provide 'thingatpt)
+
+(defvar thing-at-point-provider-alist nil
+  "Alist of providers for returning a \"thing\" at point.
+This variable can be set globally, or appended to buffer-locally
+by modes, to provide functions that will return a \"thing\" at
+point.  The first provider for the \"thing\" that returns a
+non-nil value wins.
+
+For instance, a major mode could say:
+
+\(setq-local thing-at-point-provider-alist
+            (append thing-at-point-provider-alist
+                    \\='((url . my-mode--url-at-point))))
+
+to provide a way to get an `url' at point in that mode.  The
+provider functions are called with no parameters at the point in
+question.
+
+\"things\" include `symbol', `list', `sexp', `defun', `filename',
+`url', `email', `uuid', `word', `sentence', `whitespace', `line',
+and `page'.")
 
 ;; Basic movement
 
@@ -143,11 +165,18 @@ strip text properties from the return value.
 See the file `thingatpt.el' for documentation on how to define
 a symbol as a valid THING."
   (let ((text
-         (if (get thing 'thing-at-point)
-             (funcall (get thing 'thing-at-point))
+         (cond
+          ((cl-loop for (pthing . function) in thing-at-point-provider-alist
+                    when (eq pthing thing)
+                    for result = (funcall function)
+                    when result
+                    return result))
+          ((get thing 'thing-at-point)
+           (funcall (get thing 'thing-at-point)))
+          (t
            (let ((bounds (bounds-of-thing-at-point thing)))
              (when bounds
-               (buffer-substring (car bounds) (cdr bounds)))))))
+               (buffer-substring (car bounds) (cdr bounds))))))))
     (when (and text no-properties (sequencep text))
       (set-text-properties 0 (length text) nil text))
     text))
@@ -217,6 +246,15 @@ The bounds of THING are determined by `bounds-of-thing-at-point'."
   "This is an internal thingatpt function and should not be used.")
 
 (put 'sexp 'beginning-op 'thing-at-point--beginning-of-sexp)
+
+;; Symbols
+
+(put 'symbol 'beginning-op 'thing-at-point--beginning-of-symbol)
+
+(defun thing-at-point--beginning-of-symbol ()
+  "Move point to the beginning of the current symbol."
+  (and (re-search-backward "\\(\\sw\\|\\s_\\)+")
+       (skip-syntax-backward "w_")))
 
 ;;  Lists
 

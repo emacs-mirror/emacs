@@ -241,7 +241,12 @@ system.  Possible values are:
   defun       - Spell-check when style checking a single defun.
   buffer      - Spell-check when style checking the whole buffer.
   interactive - Spell-check during any interactive check.
-  t           - Always spell-check."
+  t           - Always spell-check.
+
+There is a list of Lisp-specific words which checkdoc will
+install into Ispell on the fly, but only if Ispell is not already
+running.  Use `ispell-kill-ispell' to make checkdoc restart it
+with these words enabled."
   :type '(choice (const nil)
           (const defun)
           (const buffer)
@@ -2357,7 +2362,9 @@ Code:, and others referenced in the style guide."
 		(checkdoc-create-error
 		 (format "The footer should be: (provide '%s)\\n;;; %s%s ends here"
 			 fn fn fe)
-		 (1- (point-max)) (point-max)))))
+                 ;; The buffer may be empty.
+		 (max (point-min) (1- (point-max)))
+                 (point-max)))))
 	err))
       ;; The below checks will not return errors if the user says NO
 

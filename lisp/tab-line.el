@@ -651,7 +651,9 @@ corresponding to the switched buffer."
   (if (functionp tab-line-new-tab-choice)
       (funcall tab-line-new-tab-choice)
     (let ((tab-line-tabs-buffer-groups mouse-buffer-menu-mode-groups))
-      (if (and (listp mouse-event) window-system) ; (display-popup-menus-p)
+      (if (and (listp mouse-event)
+               (display-popup-menus-p)
+               (not tty-menu-open-use-tmm))
           (mouse-buffer-menu mouse-event) ; like (buffer-menu-open)
         ;; tty menu doesn't support mouse clicks, so use tmm
         (tmm-prompt (mouse-buffer-menu-keymap))))))

@@ -1,4 +1,4 @@
-;;; cal-iso.el --- calendar functions for the ISO calendar
+;;; cal-iso.el --- calendar functions for the ISO calendar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -92,22 +92,23 @@ date Sunday, December 31, 1 BC."
   "Interactively read the arguments for an ISO date command.
 Reads a year and week, and if DAYFLAG is non-nil a day (otherwise
 taken to be 1)."
-  (let* ((year (calendar-read
-                "ISO calendar year (>0): "
+  (let* ((year (calendar-read-sexp
+                "ISO calendar year (>0)"
                 (lambda (x) (> x 0))
-                (number-to-string (calendar-extract-year
-                                (calendar-current-date)))))
+                (calendar-extract-year (calendar-current-date))))
          (no-weeks (calendar-extract-month
                     (calendar-iso-from-absolute
                      (1-
                       (calendar-dayname-on-or-before
                        1 (calendar-absolute-from-gregorian
                           (list 1 4 (1+ year))))))))
-         (week (calendar-read
-                (format "ISO calendar week (1-%d): " no-weeks)
-                (lambda (x) (and (> x 0) (<= x no-weeks)))))
-         (day (if dayflag (calendar-read
-                           "ISO day (1-7): "
+         (week (calendar-read-sexp
+                "ISO calendar week (1-%d)"
+                (lambda (x) (and (> x 0) (<= x no-weeks)))
+                nil
+                no-weeks))
+         (day (if dayflag (calendar-read-sexp
+                           "ISO day (1-7)"
                            (lambda (x) (and (<= 1 x) (<= x 7))))
                 1)))
     (list (list week day year))))

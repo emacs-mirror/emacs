@@ -1,4 +1,4 @@
-;;; url-methods.el --- Load URL schemes as needed
+;;; url-methods.el --- Load URL schemes as needed  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 
@@ -57,7 +57,7 @@
 	'file-exists-p 'ignore
 	'file-attributes 'ignore))
 
-(defun url-scheme-default-loader (url &optional callback cbargs)
+(defun url-scheme-default-loader (url &optional _callback _cbargs)
   "Signal an error for an unknown URL scheme."
   (error "Unknown URL scheme: %s" (url-type url)))
 

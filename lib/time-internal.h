@@ -24,7 +24,7 @@ struct tm_zone
      members are zero.  */
   struct tm_zone *next;
 
-#if HAVE_TZNAME && !HAVE_TM_ZONE
+#if HAVE_TZNAME && !HAVE_STRUCT_TM_TM_ZONE
   /* Copies of recent strings taken from tzname[0] and tzname[1].
      The copies are in ABBRS, so that they survive tzset.  Null if unknown.  */
   char *tzname_copy[2];

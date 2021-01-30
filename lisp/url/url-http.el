@@ -66,7 +66,7 @@
 
 (defconst url-http-default-port 80 "Default HTTP port.")
 (defconst url-http-asynchronous-p t "HTTP retrievals are asynchronous.")
-(defalias 'url-http-expand-file-name 'url-default-expander)
+(defalias 'url-http-expand-file-name #'url-default-expander)
 
 (defvar url-http-real-basic-auth-storage nil)
 (defvar url-http-proxy-basic-auth-storage nil)
@@ -150,7 +150,7 @@ request.")
 ;; These routines will allow us to implement persistent HTTP
 ;; connections.
 (defsubst url-http-debug (&rest args)
-  (apply 'url-debug 'http args))
+  (apply #'url-debug 'http args))
 
 (defun url-http-mark-connection-as-busy (host port proc)
   (url-http-debug "Marking connection as busy: %s:%d %S" host port proc)
@@ -1203,8 +1203,7 @@ the end of the document."
 	  ;; We got back a headerless malformed response from the
 	  ;; server.
 	  (url-http-activate-callback))
-	 ((or (= url-http-response-status 204)
-	      (= url-http-response-status 205))
+	 ((memq url-http-response-status '(204 205))
 	  (url-http-debug "%d response must have headers only (%s)."
 			  url-http-response-status (buffer-name))
 	  (when (url-http-parse-headers)
@@ -1239,11 +1238,11 @@ the end of the document."
 	  (url-http-debug
 	   "Saw HTTP/0.9 response, connection closed means end of document.")
 	  (setq url-http-after-change-function
-		'url-http-simple-after-change-function))
+		#'url-http-simple-after-change-function))
 	 ((equal url-http-transfer-encoding "chunked")
 	  (url-http-debug "Saw chunked encoding.")
 	  (setq url-http-after-change-function
-		'url-http-chunked-encoding-after-change-function)
+		#'url-http-chunked-encoding-after-change-function)
 	  (when (> nd url-http-end-of-headers)
 	    (url-http-debug
 	     "Calling initial chunked-encoding for extra data at end of headers")
@@ -1254,7 +1253,7 @@ the end of the document."
 	  (url-http-debug
 	   "Got a content-length, being smart about document end.")
 	  (setq url-http-after-change-function
-		'url-http-content-length-after-change-function)
+		#'url-http-content-length-after-change-function)
 	  (cond
 	   ((= 0 url-http-content-length)
 	    ;; We got a NULL body!  Activate the callback
@@ -1275,7 +1274,7 @@ the end of the document."
 	 (t
 	  (url-http-debug "No content-length, being dumb.")
 	  (setq url-http-after-change-function
-		'url-http-simple-after-change-function)))))
+		#'url-http-simple-after-change-function)))))
     ;; We are still at the beginning of the buffer... must just be
     ;; waiting for a response.
     (url-http-debug "Spinning waiting for headers...")
@@ -1374,7 +1373,7 @@ The return value of this function is the retrieval buffer."
               url-http-referer referer)
 
 	(set-process-buffer connection buffer)
-	(set-process-filter connection 'url-http-generic-filter)
+	(set-process-filter connection #'url-http-generic-filter)
 	(pcase (process-status connection)
           ('connect
            ;; Asynchronous connection
@@ -1388,12 +1387,12 @@ The return value of this function is the retrieval buffer."
                                             (url-type url-current-object)))
                (url-https-proxy-connect connection)
              (set-process-sentinel connection
-                                   'url-http-end-of-document-sentinel)
+                                   #'url-http-end-of-document-sentinel)
              (process-send-string connection (url-http-create-request)))))))
     buffer))
 
 (defun url-https-proxy-connect (connection)
-  (setq url-http-after-change-function 'url-https-proxy-after-change-function)
+  (setq url-http-after-change-function #'url-https-proxy-after-change-function)
   (process-send-string
    connection
    (format
@@ -1441,7 +1440,7 @@ The return value of this function is the retrieval buffer."
                   (with-current-buffer process-buffer (erase-buffer))
                   (set-process-buffer tls-connection process-buffer)
                   (setq url-http-after-change-function
-                        'url-http-wait-for-headers-change-function)
+                        #'url-http-wait-for-headers-change-function)
                   (set-process-filter tls-connection 'url-http-generic-filter)
                   (process-send-string tls-connection
                                        (url-http-create-request)))
@@ -1510,7 +1509,7 @@ The return value of this function is the retrieval buffer."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defalias 'url-http-symbol-value-in-buffer
   (if (fboundp 'symbol-value-in-buffer)
-      'symbol-value-in-buffer
+      #'symbol-value-in-buffer
     (lambda (symbol buffer &optional unbound-value)
       "Return the value of SYMBOL in BUFFER, or UNBOUND-VALUE if it is unbound."
       (with-current-buffer buffer

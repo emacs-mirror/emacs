@@ -479,9 +479,10 @@ or an empty string if none."
      (propertize
       (format "%-12s" state)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
-		  ((eq state 'missing) 'font-lock-warning-face)
-		  (t 'font-lock-variable-name-face))
-      'mouse-face 'highlight)
+                  ((eq state '(missing conflict)) 'font-lock-warning-face)
+                  (t 'font-lock-variable-name-face))
+      'mouse-face 'highlight
+      'keymap vc-dir-status-mouse-map)
      "  " (vc-git-permissions-as-string old-perm new-perm)
      "    "
      (propertize (vc-git-escape-file-name (vc-dir-fileinfo->name info))

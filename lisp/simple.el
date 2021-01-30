@@ -820,9 +820,10 @@ With ARG, perform this action that many times."
   (delete-horizontal-space t)
   (unless arg
     (setq arg 1))
-  (dotimes (_ arg)
-    (newline nil t)
-    (indent-according-to-mode)))
+  (let ((electric-indent-mode nil))
+    (dotimes (_ arg)
+      (newline nil t)
+      (indent-according-to-mode))))
 
 (defun reindent-then-newline-and-indent ()
   "Reindent current line, insert newline, then indent the new line.
@@ -832,7 +833,8 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
-  (let ((pos (point)))
+  (let ((pos (point))
+        (electric-indent-mode nil))
     ;; Be careful to insert the newline before indenting the line.
     ;; Otherwise, the indentation might be wrong.
     (newline)
@@ -2470,11 +2472,24 @@ previous element of the minibuffer history in the minibuffer."
 				   (save-excursion
 				     (goto-char (1- prompt-end))
 				     (current-column)))
-				0)
+				1)
 			 (current-column)))))
     (condition-case nil
 	(with-no-warnings
-	  (previous-line arg))
+	  (previous-line arg)
+          ;; Avoid moving point to the prompt
+          (when (< (point) (minibuffer-prompt-end))
+            ;; If there is minibuffer contents on the same line
+            (if (<= (minibuffer-prompt-end)
+                    (save-excursion
+                      (if (or truncate-lines (not line-move-visual))
+                          (end-of-line)
+                        (end-of-visual-line))
+                      (point)))
+                ;; Move to the beginning of minibuffer contents
+                (goto-char (minibuffer-prompt-end))
+              ;; Otherwise, go to the previous history element
+              (signal 'beginning-of-buffer nil))))
       (beginning-of-buffer
        ;; Restore old position since `line-move-visual' moves point to
        ;; the beginning of the line when it fails to go to the previous line.
@@ -3976,6 +3991,9 @@ impose the use of a shell (with its need to quote arguments)."
 			  (start-process-shell-command "Shell" buffer command)))
 		  (setq mode-line-process '(":%s"))
                   (shell-mode)
+                  (setq-local revert-buffer-function
+                              (lambda (&rest _)
+                                (async-shell-command command buffer)))
                   (set-process-sentinel proc #'shell-command-sentinel)
 		  ;; Use the comint filter for proper handling of
 		  ;; carriage motion (see comint-inhibit-carriage-motion).
@@ -4242,6 +4260,9 @@ characters."
                                              buffer))))
             ;; Report the output.
             (with-current-buffer buffer
+              (setq-local revert-buffer-function
+                          (lambda (&rest _)
+                            (shell-command command)))
               (setq mode-line-process
                     (cond ((null exit-status)
                            " - Error")
@@ -7338,10 +7359,7 @@ even beep.)"
   ;; of the kill before killing.
   (let ((opoint (point))
         (kill-whole-line (and kill-whole-line (bolp)))
-        (orig-y (cdr (nth 2 (posn-at-point))))
-        ;; FIXME: This tolerance should be zero!  It isn't due to a
-        ;; bug in posn-at-point, see bug#45837.
-        (tol (/ (line-pixel-height) 2)))
+        (orig-vlnum (cdr (nth 6 (posn-at-point)))))
     (if arg
 	(vertical-motion (prefix-numeric-value arg))
       (end-of-visual-line 1)
@@ -7352,8 +7370,8 @@ even beep.)"
         ;; end-of-visual-line didn't overshoot due to complications
         ;; like display or overlay strings, intangible text, etc.:
         ;; otherwise, we don't want to kill a character that's
-        ;; unrelated to the place where the visual line wrapped.
-        (and (< (abs (- (cdr (nth 2 (posn-at-point))) orig-y)) tol)
+        ;; unrelated to the place where the visual line wraps.
+        (and (= (cdr (nth 6 (posn-at-point))) orig-vlnum)
              ;; Make sure we delete the character where the line wraps
              ;; under visual-line-mode, be it whitespace or a
              ;; character whose category set allows to wrap at it.

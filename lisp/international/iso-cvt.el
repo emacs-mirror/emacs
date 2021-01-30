@@ -1,4 +1,4 @@
-;;; iso-cvt.el --- translate ISO 8859-1 from/to various encodings -*- coding: utf-8 -*-
+;;; iso-cvt.el --- translate ISO 8859-1 from/to various encodings -*- lexical-binding: t; -*-
 ;; This file was formerly called gm-lingo.el.
 
 ;; Copyright (C) 1993-1998, 2000-2021 Free Software Foundation, Inc.
@@ -79,7 +79,7 @@
       (point-max))))
 
 ;;;###autoload
-(defun iso-spanish (from to &optional buffer)
+(defun iso-spanish (from to &optional _buffer)
   "Translate net conventions for Spanish to ISO 8859-1.
 Translate the region between FROM and TO using the table
 `iso-spanish-trans-tab'.
@@ -121,7 +121,7 @@ and may translate too little.")
   "Currently active translation table for German.")
 
 ;;;###autoload
-(defun iso-german (from to &optional buffer)
+(defun iso-german (from to &optional _buffer)
  "Translate net conventions for German to ISO 8859-1.
 Translate the region FROM and TO using the table
 `iso-german-trans-tab'.
@@ -194,7 +194,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
   "Translation table for translating ISO 8859-1 characters to TeX sequences.")
 
 ;;;###autoload
-(defun iso-iso2tex (from to &optional buffer)
+(defun iso-iso2tex (from to &optional _buffer)
  "Translate ISO 8859-1 characters to TeX sequences.
 Translate the region between FROM and TO using the table
 `iso-iso2tex-trans-tab'.
@@ -387,7 +387,7 @@ This table is not exhaustive (and due to TeX's power can never be).
 It only contains commonly used sequences.")
 
 ;;;###autoload
-(defun iso-tex2iso (from to &optional buffer)
+(defun iso-tex2iso (from to &optional _buffer)
  "Translate TeX sequences to ISO 8859-1 characters.
 Translate the region between FROM and TO using the table
 `iso-tex2iso-trans-tab'.
@@ -646,7 +646,7 @@ It only contains commonly used sequences.")
   "Translation table for translating ISO 8859-1 characters to German TeX.")
 
 ;;;###autoload
-(defun iso-gtex2iso (from to &optional buffer)
+(defun iso-gtex2iso (from to &optional _buffer)
  "Translate German TeX sequences to ISO 8859-1 characters.
 Translate the region between FROM and TO using the table
 `iso-gtex2iso-trans-tab'.
@@ -655,7 +655,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
  (iso-translate-conventions from to iso-gtex2iso-trans-tab))
 
 ;;;###autoload
-(defun iso-iso2gtex (from to &optional buffer)
+(defun iso-iso2gtex (from to &optional _buffer)
  "Translate ISO 8859-1 characters to German TeX sequences.
 Translate the region between FROM and TO using the table
 `iso-iso2gtex-trans-tab'.
@@ -674,7 +674,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
     "Translation table for translating ISO 8859-1 characters to Duden sequences.")
 
 ;;;###autoload
-(defun iso-iso2duden (from to &optional buffer)
+(defun iso-iso2duden (from to &optional _buffer)
  "Translate ISO 8859-1 characters to Duden sequences.
 Translate the region between FROM and TO using the table
 `iso-iso2duden-trans-tab'.
@@ -812,7 +812,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
     ("&yuml;" "ÿ")))
 
 ;;;###autoload
-(defun iso-iso2sgml (from to &optional buffer)
+(defun iso-iso2sgml (from to &optional _buffer)
  "Translate ISO 8859-1 characters in the region to SGML entities.
 Use entities from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
 Optional arg BUFFER is ignored (for use in `format-alist')."
@@ -820,7 +820,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
  (iso-translate-conventions from to iso-iso2sgml-trans-tab))
 
 ;;;###autoload
-(defun iso-sgml2iso (from to &optional buffer)
+(defun iso-sgml2iso (from to &optional _buffer)
  "Translate SGML entities in the region to ISO 8859-1 characters.
 Use entities from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
 Optional arg BUFFER is ignored (for use in `format-alist')."
@@ -828,13 +828,13 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
  (iso-translate-conventions from to iso-sgml2iso-trans-tab))
 
 ;;;###autoload
-(defun iso-cvt-read-only (&rest ignore)
+(defun iso-cvt-read-only (&rest _ignore)
   "Warn that format is read-only."
   (interactive)
   (error "This format is read-only; specify another format for writing"))
 
 ;;;###autoload
-(defun iso-cvt-write-only (&rest ignore)
+(defun iso-cvt-write-only (&rest _ignore)
   "Warn that format is write-only."
   (interactive)
   (error "This format is write-only"))

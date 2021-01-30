@@ -2505,7 +2505,8 @@ list that represents a doc string reference.
   (when (memq sym byte-compile-lexical-variables)
     (setq byte-compile-lexical-variables
           (delq sym byte-compile-lexical-variables))
-    (byte-compile-warn "Variable `%S' declared after its first use" sym))
+    (when (byte-compile-warning-enabled-p 'lexical sym)
+      (byte-compile-warn "Variable `%S' declared after its first use" sym)))
   (push sym byte-compile-bound-variables)
   (push sym byte-compile--seen-defvars))
 
