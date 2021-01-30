@@ -155,7 +155,7 @@ w32_popup_dialog (struct frame *f, Lisp_Object header, Lisp_Object contents)
 void
 w32_activate_menubar (struct frame *f)
 {
-  set_frame_menubar (f, false, true);
+  set_frame_menubar (f, true);
 
   /* Lock out further menubar changes while active.  */
   f->output_data.w32->menubar_active = 1;
@@ -258,12 +258,10 @@ menubar_selection_callback (struct frame *f, void * client_data)
 }
 
 
-/* Set the contents of the menubar widgets of frame F.
-   The argument FIRST_TIME is currently ignored;
-   it is set the first time this is called, from initialize_frame_menubar.  */
+/* Set the contents of the menubar widgets of frame F.  */
 
 void
-set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -511,7 +509,7 @@ initialize_frame_menubar (struct frame *f)
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
   fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
-  set_frame_menubar (f, true, true);
+  set_frame_menubar (f, true);
 }
 
 /* Get rid of the menu bar of frame F, and free its storage.

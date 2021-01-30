@@ -1707,7 +1707,7 @@ extern Lisp_Object gui_display_get_resource (Display_Info *,
                                              Lisp_Object component,
                                              Lisp_Object subclass);
 
-extern void set_frame_menubar (struct frame *f, bool first_time, bool deep_p);
+extern void set_frame_menubar (struct frame *f, bool deep_p);
 extern void frame_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y);
 extern void free_frame_menubar (struct frame *);
 extern bool frame_ancestor_p (struct frame *af, struct frame *df);
