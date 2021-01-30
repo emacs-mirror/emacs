@@ -1138,6 +1138,11 @@ bindings, will be aborted, and Emacs will not ask you whether to
 enlarge 'max-specpdl-size' to complete the rendering.  The default is
 t, which preserves the original behavior.
 
+---
+*** New user option 'rmail-show-message-set-modified'.
+If set non-nil, showing an unseen message will set the Rmail buffer's
+modified flag.
+
 ** Apropos
 
 *** New commands 'apropos-next-symbol' and 'apropos-previous-symbol'.
