@@ -154,17 +154,17 @@ Valid types include `google', `dejanews', and `gmane'.")
 		(and (stringp article)
 		     (nnweb-definition 'id t)
 		     (let ((fetch (nnweb-definition 'id))
-			   art active)
-		       (when (string-match "^<\\(.*\\)>$" article)
-			 (setq art (match-string 1 article)))
+			   (art (when (string-match "^<\\(.*\\)>$" article)
+			          (match-string 1 article)))
+			   active)
 		       (when (and fetch art)
 			 (setq url (format fetch
 					   (mm-url-form-encode-xwfu art)))
 			 (mm-url-insert url)
 			 (if (nnweb-definition 'reference t)
 			     (setq article
-				   (funcall (nnweb-definition
-					     'reference) article)))))))
+				   (funcall (nnweb-definition 'reference)
+					    article)))))))
 	(unless nnheader-callback-function
 	  (funcall (nnweb-definition 'article)))
 	(nnheader-report 'nnweb "Fetched article %s" article)

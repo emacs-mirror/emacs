@@ -735,7 +735,7 @@ be a select method."
   (interactive "P")
   (unless gnus-plugged
     (error "Groups can't be fetched when Gnus is unplugged"))
-  (gnus-group-iterate n 'gnus-agent-fetch-group))
+  (gnus-group-iterate n #'gnus-agent-fetch-group))
 
 (defun gnus-agent-fetch-group (&optional group)
   "Put all new articles in GROUP into the Agent."

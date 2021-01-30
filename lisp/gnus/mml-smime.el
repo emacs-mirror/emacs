@@ -369,7 +369,7 @@ Content-Disposition: attachment; filename=smime.p7s
       (goto-char (point-max)))))
 
 (defun mml-smime-epg-encrypt (cont)
-  (let* ((inhibit-redisplay t)
+  (let* ((inhibit-redisplay t)        ;FIXME: Why?
 	 (boundary (mml-compute-boundary cont))
 	 (cipher (mml-secure-epg-encrypt 'CMS cont)))
     (delete-region (point-min) (point-max))
@@ -410,9 +410,9 @@ Content-Disposition: attachment; filename=smime.p7m
 	  (setq plain (epg-verify-string context (mm-get-part signature) part))
 	(error
 	 (mm-sec-error 'gnus-info "Failed")
-	 (if (eq (car error) 'quit)
-	     (mm-sec-status 'gnus-details "Quit.")
-	   (mm-sec-status 'gnus-details (format "%S" error)))
+	 (mm-sec-status 'gnus-details (if (eq (car error) 'quit)
+	                                  "Quit."
+	                                (format "%S" error)))
 	 (throw 'error handle)))
       (mm-sec-status
        'gnus-info

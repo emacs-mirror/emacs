@@ -712,7 +712,7 @@ If SOURCE is a directory spec, try to return the group name component."
   (if (eq (car source) 'directory)
       (let ((file (file-name-nondirectory file)))
 	(mail-source-bind (directory source)
-	  (if (string-match (concat (regexp-quote suffix) "$") file)
+	  (if (string-match (concat (regexp-quote suffix) "\\'") file)
 	      (substring file 0 (match-beginning 0))
 	    nil)))
     nil))
@@ -1339,7 +1339,8 @@ to actually put the message in the right group."
   (let ((success t))
     (dolist (mbx (message-unquote-tokens
 		  (message-tokenize-header
-		   (message-fetch-field "Newsgroups") ", ")) success)
+		   (message-fetch-field "Newsgroups") ", "))
+		 success)
       (let ((to-newsgroup (gnus-group-prefixed-name mbx gnus-command-method)))
 	(or (gnus-active to-newsgroup)
 	    (gnus-activate-group to-newsgroup)
@@ -1433,11 +1434,11 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	      ;; we do not exclude foo.list just because
 	      ;; the header is: ``To: x-foo, foo''
 	      (goto-char end)
-	      (if (and (re-search-backward (cadr split-rest)
-					   after-header-name t)
-		       (> (match-end 0) start-of-value))
-		  (setq split-rest nil)
-		(setq split-rest (cddr split-rest))))
+	      (setq split-rest
+                    (unless (and (re-search-backward (cadr split-rest)
+					             after-header-name t)
+		                 (> (match-end 0) start-of-value))
+                      (cddr split-rest))))
 	    (when split-rest
 	      (goto-char end)
 	      ;; Someone might want to do a \N sub on this match, so

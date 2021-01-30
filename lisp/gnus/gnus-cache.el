@@ -29,9 +29,7 @@
 (require 'gnus)
 (require 'gnus-sum)
 
-(eval-when-compile
-  (unless (fboundp 'gnus-agent-load-alist)
-    (defun gnus-agent-load-alist (group))))
+(declare-function gnus-agent-load-alist "gnus-agent" (group))
 
 (defcustom gnus-cache-active-file
   (expand-file-name "active" gnus-cache-directory)
@@ -55,7 +53,7 @@
 If you only want to cache your nntp groups, you could set this
 variable to \"^nntp\".
 
-If a group matches both gnus-cacheable-groups and gnus-uncacheable-groups
+If a group matches both `gnus-cacheable-groups' and `gnus-uncacheable-groups'
 it's not cached."
   :group 'gnus-cache
   :type '(choice (const :tag "off" nil)

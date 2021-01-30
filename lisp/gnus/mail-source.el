@@ -380,13 +380,10 @@ All keywords that can be used must be listed here."))
 ;; suitable for usage in a `let' form
 (eval-and-compile
   (defun mail-source-bind-1 (type)
-    (let* ((defaults (cdr (assq type mail-source-keyword-map)))
-	   default bind)
-      (while (setq default (pop defaults))
-	(push (list (mail-source-strip-keyword (car default))
-		    nil)
-	      bind))
-      bind)))
+    (mapcar (lambda (default)
+	      (list (mail-source-strip-keyword (car default))
+		    nil))
+	    (cdr (assq type mail-source-keyword-map)))))
 
 (defmacro mail-source-bind (type-source &rest body)
   "Return a `let' form that binds all variables in source TYPE.
@@ -476,20 +473,16 @@ the `mail-source-keyword-map' variable."
 
 (eval-and-compile
   (defun mail-source-bind-common-1 ()
-    (let* ((defaults mail-source-common-keyword-map)
-	   default bind)
-      (while (setq default (pop defaults))
-	(push (list (mail-source-strip-keyword (car default))
-		    nil)
-	      bind))
-      bind)))
+    (mapcar (lambda (default)
+	      (list (mail-source-strip-keyword (car default))
+		    nil))
+	    mail-source-common-keyword-map)))
 
 (defun mail-source-set-common-1 (source)
   (let* ((type (pop source))
-	 (defaults mail-source-common-keyword-map)
 	 (defaults-1 (cdr (assq type mail-source-keyword-map)))
-	 default value keyword)
-    (while (setq default (pop defaults))
+	 value keyword)
+    (dolist (default mail-source-common-keyword-map)
       (set (mail-source-strip-keyword (setq keyword (car default)))
 	   (if (setq value (plist-get source keyword))
 	       (mail-source-value value)
@@ -919,7 +912,7 @@ authentication.  To do that, you need to set the
 `message-send-mail-function' variable as `message-smtpmail-send-it'
 and put the following line in your ~/.gnus.el file:
 
-\(add-hook \\='message-send-mail-hook \\='mail-source-touch-pop)
+\(add-hook \\='message-send-mail-hook #\\='mail-source-touch-pop)
 
 See the Gnus manual for details."
   (let ((sources (if mail-source-primary-source
@@ -962,6 +955,8 @@ See the Gnus manual for details."
     ;; this by being naughty and poking the timer internals directly
     ;; (element 0 of the vector is nil if the timer is active).
     (aset mail-source-report-new-mail-idle-timer 0 nil)))
+
+(declare-function display-time-event-handler "time" ())
 
 (defun mail-source-report-new-mail (arg)
   "Toggle whether to report when new mail is available.
@@ -1075,7 +1070,8 @@ This only works when `display-time' is enabled."
       (if (and (imap-open server port stream authentication buf)
 	       (imap-authenticate
 		user (or (cdr (assoc from mail-source-password-cache))
-                         password) buf))
+                         password)
+                buf))
           (let ((mailbox-list (if (listp mailbox) mailbox (list mailbox))))
             (dolist (mailbox mailbox-list)
               (when (imap-mailbox-select mailbox nil buf)

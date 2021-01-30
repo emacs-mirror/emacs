@@ -610,19 +610,19 @@ If ARG is 1, prompt for a group name to find the posting style."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (let ((gnus-newsgroup-name
-	   (if arg
-	       (if (= 1 (prefix-numeric-value arg))
-		   (gnus-group-completing-read
-		    "Use posting style of group"
-		    nil (gnus-read-active-file-p))
-		 (gnus-group-group-name))
-	     "")))
-      (gnus-setup-message 'message (message-mail)))))
+  (let* ((group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read
+		   "Use posting style of group"
+		   nil (gnus-read-active-file-p))
+		(gnus-group-group-name))
+	    "")))
+    (gnus-setup-message 'message (message-mail))))
 
 (defun gnus-group-news (&optional arg)
   "Start composing a news.
@@ -635,21 +635,21 @@ network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (let ((gnus-newsgroup-name
-	   (if arg
-	       (if (= 1 (prefix-numeric-value arg))
-		   (gnus-group-completing-read "Use group"
-					       nil
-					       (gnus-read-active-file-p))
-		 (gnus-group-group-name))
-	     "")))
-      (gnus-setup-message
-       'message
-       (message-news (gnus-group-real-name gnus-newsgroup-name))))))
+  (let* ((group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read "Use group"
+					      nil
+					      (gnus-read-active-file-p))
+		(gnus-group-group-name))
+	    "")))
+    (gnus-setup-message
+     'message
+     (message-news (gnus-group-real-name gnus-newsgroup-name)))))
 
 (defun gnus-group-post-news (&optional arg)
   "Start composing a message (a news by default).
@@ -678,19 +678,19 @@ posting style."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (let ((gnus-newsgroup-name
-	   (if arg
-	       (if (= 1 (prefix-numeric-value arg))
-		   (gnus-group-completing-read "Use group"
-					       nil
-					       (gnus-read-active-file-p))
-		 "")
-	     gnus-newsgroup-name)))
-      (gnus-setup-message 'message (message-mail)))))
+  (let* ((group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read "Use group"
+					      nil
+					      (gnus-read-active-file-p))
+		"")
+	    gnus-newsgroup-name)))
+    (gnus-setup-message 'message (message-mail))))
 
 (defun gnus-summary-news-other-window (&optional arg)
   "Start composing a news in another window.
@@ -703,26 +703,26 @@ network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (let ((gnus-newsgroup-name
-	   (if arg
-	       (if (= 1 (prefix-numeric-value arg))
-		   (gnus-group-completing-read "Use group"
-					       nil
-					       (gnus-read-active-file-p))
-		 "")
-	     gnus-newsgroup-name)))
-      (gnus-setup-message
-       'message
-       (progn
-	 (message-news (gnus-group-real-name gnus-newsgroup-name))
-	 (setq-local gnus-discouraged-post-methods
-	             (remove
-	              (car (gnus-find-method-for-group gnus-newsgroup-name))
-	              gnus-discouraged-post-methods)))))))
+  (let* ((group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read "Use group"
+					      nil
+					      (gnus-read-active-file-p))
+		"")
+	    gnus-newsgroup-name)))
+    (gnus-setup-message
+     'message
+     (progn
+       (message-news (gnus-group-real-name gnus-newsgroup-name))
+       (setq-local gnus-discouraged-post-methods
+	           (remove
+	            (car (gnus-find-method-for-group gnus-newsgroup-name))
+	            gnus-discouraged-post-methods))))))
 
 (defun gnus-summary-post-news (&optional arg)
   "Start composing a message.  Post to the current group by default.

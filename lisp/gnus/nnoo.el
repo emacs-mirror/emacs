@@ -85,20 +85,14 @@
 
 (defun nnoo-import-1 (backend imports)
   (let ((call-function
-	 (if (symbolp (car imports)) (pop imports) 'nnoo-parent-function))
-	imp functions function)
-    (while (setq imp (pop imports))
-      (setq functions
-	    (or (cdr imp)
-		(nnoo-functions (car imp))))
-      (while functions
-	(unless (fboundp
-		 (setq function
-		       (nnoo-symbol backend
-				    (nnoo-rest-symbol (car functions)))))
-	  (eval `(deffoo ,function (&rest args)
-		   (,call-function ',backend ',(car functions) args))))
-	(pop functions)))))
+	 (if (symbolp (car imports)) (pop imports) #'nnoo-parent-function)))
+    (dolist (imp imports)
+      (dolist (fun (or (cdr imp) (nnoo-functions (car imp))))
+	(let ((function (nnoo-symbol backend (nnoo-rest-symbol fun))))
+	  (unless (fboundp function)
+	    ;; FIXME: Use `defalias' and closures to avoid `eval'.
+	    (eval `(deffoo ,function (&rest args)
+		     (,call-function ',backend ',fun args)))))))))
 
 (defun nnoo-parent-function (backend function args)
   (let ((pbackend (nnoo-backend function))
@@ -131,22 +125,21 @@
 
 (defmacro nnoo-map-functions (backend &rest maps)
   (declare (indent 1))
-  `(nnoo-map-functions-1 ',backend ',maps))
-
-(defun nnoo-map-functions-1 (backend maps)
-  (let (m margs i)
-    (while (setq m (pop maps))
-      (setq i 0
-	    margs nil)
-      (while (< i (length (cdr m)))
-	(if (numberp (nth i (cdr m)))
-	    (push `(nth ,i args) margs)
-	  (push (nth i (cdr m)) margs))
-	(cl-incf i))
-      (eval `(deffoo ,(nnoo-symbol backend (nnoo-rest-symbol (car m)))
+  `(progn
+     ,@(mapcar
+        (lambda (m)
+          (let ((margs nil))
+            (dotimes (i (length (cdr m)))
+	      (push (if (numberp (nth i (cdr m)))
+	                `(nth ,i args)
+	              (nth i (cdr m)))
+	            margs))
+	    `(deffoo ,(nnoo-symbol backend (nnoo-rest-symbol (car m)))
 		 (&rest args)
+	       (ignore args) ;; Not always used!
 	       (nnoo-parent-function ',backend ',(car m)
-				     ,(cons 'list (nreverse margs))))))))
+				     ,(cons 'list (nreverse margs))))))
+	maps)))
 
 (defun nnoo-backend (symbol)
   (string-match "^[^-]+-" (symbol-name symbol))
@@ -273,19 +266,27 @@
 
 (defmacro nnoo-define-basics (backend)
   "Define `close-server', `server-opened' and `status-message'."
-  `(eval-and-compile
-     (nnoo-define-basics-1 ',backend)))
-
-(defun nnoo-define-basics-1 (backend)
-  (dolist (function '(server-opened status-message))
-    (eval `(deffoo ,(nnoo-symbol backend function) (&optional server)
-	     (,(nnoo-symbol 'nnoo function) ',backend server))))
-  (dolist (function '(close-server))
-    (eval `(deffoo ,(nnoo-symbol backend function) (&optional server defs)
-	     (,(nnoo-symbol 'nnoo function) ',backend server))))
-  (eval `(deffoo ,(nnoo-symbol backend 'open-server)
-	     (server &optional defs)
-	   (nnoo-change-server ',backend server defs))))
+  (let ((form
+         ;; We wrap the definitions in `when t' here so that a subsequent
+         ;; "real" definition of one those doesn't trigger a "defined multiple
+         ;; times" warning.
+         `(when t
+            ,@(mapcar (lambda (fun)
+                       `(deffoo ,(nnoo-symbol backend fun) (&optional server)
+	                  (,(nnoo-symbol 'nnoo fun) ',backend server)))
+	             '(server-opened status-message))
+	   (deffoo ,(nnoo-symbol backend 'close-server) (&optional server _defs)
+             (,(nnoo-symbol 'nnoo 'close-server) ',backend server))
+           (deffoo ,(nnoo-symbol backend 'open-server) (server &optional defs)
+             (nnoo-change-server ',backend server defs)))))
+    ;; Wrapping with `when' has the downside that the compiler now doesn't
+    ;; "know" that these functions are defined, so to avoid "not known to be
+    ;; defined" warnings we eagerly define them during the compilation.
+    ;; This is fairly nasty since it will override previous "real" definitions
+    ;; (e.g. when compiling this in an Emacs instance that's running Gnus), but
+    ;; that's also what the previous code did, so it sucks but is not worse.
+    (eval form t)
+    form))
 
 (defmacro nnoo-define-skeleton (backend)
   "Define all required backend functions for BACKEND.
@@ -294,17 +295,17 @@ All functions will return nil and report an error."
      (nnoo-define-skeleton-1 ',backend)))
 
 (defun nnoo-define-skeleton-1 (backend)
-  (let ((functions '(retrieve-headers
-		     request-close request-article
-		     request-group close-group
-		     request-list request-post request-list-newsgroups))
-	function fun)
-    (while (setq function (pop functions))
-      (when (not (fboundp (setq fun (nnoo-symbol backend function))))
+  (dolist (op '(retrieve-headers
+		request-close request-article
+		request-group close-group
+		request-list request-post request-list-newsgroups))
+    (let ((fun (nnoo-symbol backend op)))
+      (unless (fboundp fun)
+	;; FIXME: Use `defalias' and closures to avoid `eval'.
 	(eval `(deffoo ,fun
-		   (&rest args)
-		 (nnheader-report ',backend ,(format "%s-%s not implemented"
-						     backend function))))))))
+	           (&rest _args)
+	         (nnheader-report ',backend ,(format "%s-%s not implemented"
+	                                             backend op))))))))
 
 (defun nnoo-set (server &rest args)
   (let ((parents (nnoo-parents (car server)))

@@ -1203,9 +1203,7 @@ ARG is passed to the first function."
 	   (string-equal (downcase x) (downcase y)))))
 
 (defcustom gnus-use-byte-compile t
-  "If non-nil, byte-compile crucial run-time code.
-Setting it to nil has no effect after the first time `gnus-byte-compile'
-is run."
+  "If non-nil, byte-compile crucial run-time code."
   :type 'boolean
   :version "22.1"
   :group 'gnus-various)
@@ -1213,13 +1211,8 @@ is run."
 (defun gnus-byte-compile (form)
   "Byte-compile FORM if `gnus-use-byte-compile' is non-nil."
   (if gnus-use-byte-compile
-      (progn
-	(require 'bytecomp)
-	(defalias 'gnus-byte-compile
-	  (lambda (form)
-	    (let ((byte-compile-warnings '(unresolved callargs redefine)))
-	      (byte-compile form))))
-	(gnus-byte-compile form))
+      (let ((byte-compile-warnings '(unresolved callargs redefine)))
+	(byte-compile form))
     form))
 
 (defun gnus-remassoc (key alist)
@@ -1385,6 +1378,7 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 (declare-function iswitchb-read-buffer "iswitchb"
 		  (prompt &optional default require-match
 			  _predicate start matches-set))
+(declare-function iswitchb-minibuffer-setup "iswitchb")
 (defvar iswitchb-temp-buflist)
 (defvar iswitchb-mode)
 
@@ -1449,7 +1443,8 @@ CHOICE is a list of the choice char and help message at IDX."
 		   prompt
 		   (concat
 		    (mapconcat (lambda (s) (char-to-string (car s)))
-			       choice ", ") ", ?"))
+			       choice ", ")
+		    ", ?"))
 	  (setq tchar (read-char))
 	  (when (not (assq tchar choice))
 	    (setq tchar nil)

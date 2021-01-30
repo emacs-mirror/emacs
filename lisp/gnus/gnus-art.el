@@ -7617,7 +7617,7 @@ Calls `describe-variable' or `describe-function'."
   "Call `describe-key' when pushing the corresponding URL button."
   (let* ((key-string
 	  (replace-regexp-in-string gnus-button-handle-describe-prefix "" url))
-	 (keys (ignore-errors (eval `(kbd ,key-string)))))
+	 (keys (ignore-errors (kbd key-string))))
     (if keys
 	(describe-key keys)
       (gnus-message 3 "Invalid key sequence in button: %s" key-string))))
@@ -8516,8 +8516,8 @@ For example:
 (defvar gnus-inhibit-article-treatments nil)
 
 ;; Dynamic variables.
-(defvar part-number)                    ;FIXME: Lacks a "gnus-" prefix.
-(defvar total-parts)                    ;FIXME: Lacks a "gnus-" prefix.
+(defvar gnus-treat-part-number)
+(defvar gnus-treat-total-parts)
 (defvar gnus-treat-type)
 (defvar gnus-treat-condition)
 (defvar gnus-treat-length)
@@ -8525,8 +8525,8 @@ For example:
 (defun gnus-treat-article (condition
 			   &optional part-num total type)
   (let ((gnus-treat-condition condition)
-        (part-number part-num)
-        (total-parts total)
+        (gnus-treat-part-number part-num)
+        (gnus-treat-total-parts total)
         (gnus-treat-type type)
         (gnus-treat-length (- (point-max) (point-min)))
 	(alist gnus-treatment-function-alist)
@@ -8586,9 +8586,9 @@ For example:
    ((eq val 'head)
     nil)
    ((eq val 'first)
-    (eq part-number 1))
+    (eq gnus-treat-part-number 1))
    ((eq val 'last)
-    (eq part-number total-parts))
+    (eq gnus-treat-part-number gnus-treat-total-parts))
    ((numberp val)
     (< gnus-treat-length val))
    (t

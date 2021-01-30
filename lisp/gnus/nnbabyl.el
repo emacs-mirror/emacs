@@ -263,7 +263,8 @@
 		    (nnmail-expired-article-p
 		     newsgroup
 		     (buffer-substring
-		      (point) (progn (end-of-line) (point))) force))
+		      (point) (progn (end-of-line) (point)))
+		     force))
 	      (progn
 		(unless (eq nnmail-expiry-target 'delete)
 		  (with-temp-buffer

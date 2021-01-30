@@ -231,7 +231,7 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
 			    props)))
 	      t))
 	  (if (symbolp icon-list)
-	      (eval icon-list)
+	      (symbol-value icon-list)
 	    icon-list))
     map))
 

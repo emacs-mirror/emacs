@@ -1949,6 +1949,7 @@ The user will be asked for a file name."
 		  (gnus-uu-choose-action file-name gnus-uu-ext-to-mime-list)
 		  file-name))
   (insert (format "Content-Transfer-Encoding: %s\n\n" encoding))
+  ;; FIXME: Shouldn't we set-buffer before saving the restriction?  --Stef
   (save-restriction
     (set-buffer gnus-message-buffer)
     (goto-char (point-min))

@@ -2337,7 +2337,7 @@ If FORCE is non-nil, the .newsrc file is read."
 			   gnus-newsrc-file-version gnus-version)))))))
 
 (defun gnus-convert-mark-converter-prompt (converter no-prompt)
-  "Indicate whether CONVERTER requires gnus-convert-old-newsrc to
+  "Indicate whether CONVERTER requires `gnus-convert-old-newsrc' to
   display the conversion prompt.  NO-PROMPT may be nil (prompt),
   t (no prompt), or any form that can be called as a function.
   The form should return either t or nil."
@@ -2989,13 +2989,12 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
 ;;; Child functions.
 ;;;
 
-(defvar gnus-child-mode nil)
+;; (defvar gnus-child-mode nil)
 
 (defun gnus-child-mode ()
   "Minor mode for child Gnusae."
-  ;; FIXME: gnus-child-mode appears to never be set (i.e. it'll always be nil):
-  ;; Remove, or fix and use define-minor-mode.
-  (add-minor-mode 'gnus-child-mode " Child" (make-sparse-keymap))
+  ;; FIXME: gnus-child-mode appears to never be set (i.e. it'll always be nil).
+  ;; (add-minor-mode 'gnus-child-mode " Child" (make-sparse-keymap))
   (gnus-run-hooks 'gnus-child-mode-hook))
 
 (define-obsolete-function-alias 'gnus-slave-mode #'gnus-child-mode "28.1")

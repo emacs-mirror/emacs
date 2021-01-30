@@ -39,7 +39,8 @@
 					    gnus-newsgroup-name)
 	  (when (search-forward id nil t)
 	    (let ((nhandles (mm-dissect-buffer
-			     nil gnus-article-loose-mime)) nid)
+			     nil gnus-article-loose-mime))
+		  nid)
 	      (if (consp (car nhandles))
 		  (mm-destroy-parts nhandles)
 		(setq nid (cdr (assq 'id
@@ -90,7 +91,7 @@ If NO-DISPLAY is nil, display it.  Otherwise, do nothing after replacing."
 	  (if ntotal
 	      (if total
 		  (unless (eq total ntotal)
-		  (error "The numbers of total are different"))
+		    (error "The numbers of total are different"))
 		(setq total ntotal)))
 	  (unless (< nn n)
 	    (unless (eq nn n)

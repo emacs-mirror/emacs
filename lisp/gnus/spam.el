@@ -321,8 +321,8 @@ Default to t if one of the spam-use-* variables is set."
   :type 'string
   :group 'spam)
 
-;;; TODO: deprecate this variable, it's confusing since it's a list of strings,
-;;; not regular expressions
+;; TODO: deprecate this variable, it's confusing since it's a list of strings,
+;; not regular expressions
 (defcustom spam-junk-mailgroups (cons
                                  spam-split-group
                                  '("mail.junk" "poste.pourriel"))
@@ -1836,7 +1836,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       ;; return the number of articles processed
       (length articles))))
 
-;;; log a ham- or spam-processor invocation to the registry
+;; log a ham- or spam-processor invocation to the registry
 (defun spam-log-processing-to-registry (id type classification backend group)
   (when spam-log-to-registry
     (if (and (stringp id)
@@ -1855,7 +1855,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
         "%s call with bad ID, type, classification, spam-backend, or group"
         "spam-log-processing-to-registry")))))
 
-;;; check if a ham- or spam-processor registration has been done
+;; check if a ham- or spam-processor registration has been done
 (defun spam-log-registered-p (id type)
   (when spam-log-to-registry
     (if (and (stringp id)
@@ -1868,8 +1868,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
                  "spam-log-registered-p"))
         nil))))
 
-;;; check what a ham- or spam-processor registration says
-;;; returns nil if conflicting registrations are found
+;; check what a ham- or spam-processor registration says
+;; returns nil if conflicting registrations are found
 (defun spam-log-registration-type (id type)
   (let ((count 0)
         decision)
@@ -1885,7 +1885,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       decision)))
 
 
-;;; check if a ham- or spam-processor registration needs to be undone
+;; check if a ham- or spam-processor registration needs to be undone
 (defun spam-log-unregistration-needed-p (id type classification backend)
   (when spam-log-to-registry
     (if (and (stringp id)
@@ -1908,7 +1908,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
         nil))))
 
 
-;;; undo a ham- or spam-processor registration (the group is not used)
+;; undo a ham- or spam-processor registration (the group is not used)
 (defun spam-log-undo-registration (id type classification backend
                                       &optional group)
   (when (and spam-log-to-registry
@@ -2034,94 +2034,83 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 ;;{{{ BBDB
 
-;;; original idea for spam-check-BBDB from Alexander Kotelnikov
-;;; <sacha@giotto.sj.ru>
+;; original idea for spam-check-BBDB from Alexander Kotelnikov
+;; <sacha@giotto.sj.ru>
 
 ;; all this is done inside a condition-case to trap errors
 
 ;; Autoloaded in message, which we require.
 (declare-function gnus-extract-address-components "gnus-util" (from))
 
-(eval-and-compile
-  (condition-case nil
-      (progn
-	(require 'bbdb)
-	(require 'bbdb-com))
-    (file-error
-     ;; `bbdb-records' should not be bound as an autoload function
-     ;; before loading bbdb because of `bbdb-hashtable-size'.
-     (defalias 'bbdb-buffer 'ignore)
-     (defalias 'bbdb-create-internal 'ignore)
-     (defalias 'bbdb-records 'ignore)
-     (defalias 'spam-BBDB-register-routine 'ignore)
-     (defalias 'spam-enter-ham-BBDB 'ignore)
-     (defalias 'spam-exists-in-BBDB-p 'ignore)
-     (defalias 'bbdb-gethash 'ignore)
-     nil)))
+(require 'bbdb nil 'noerror)
+(require 'bbdb-com nil 'noerror)
 
-(eval-and-compile
-  (when (featurep 'bbdb-com)
-    ;; when the BBDB changes, we want to clear out our cache
-    (defun spam-clear-cache-BBDB (&rest immaterial)
-      (spam-clear-cache 'spam-use-BBDB))
+(declare-function bbdb-records "bbdb" ())
+(declare-function bbdb-gethash "bbdb" (key &optional predicate))
+(declare-function bbdb-create-internal "bbdb-com" (&rest spec))
 
-    (add-hook 'bbdb-change-hook 'spam-clear-cache-BBDB)
+;; when the BBDB changes, we want to clear out our cache
+(defun spam-clear-cache-BBDB (&rest immaterial)
+  (spam-clear-cache 'spam-use-BBDB))
 
-    (defun spam-enter-ham-BBDB (addresses &optional remove)
-      "Enter an address into the BBDB; implies ham (non-spam) sender"
-      (dolist (from addresses)
-        (when (stringp from)
-          (let* ((parsed-address (gnus-extract-address-components from))
-                 (name (or (nth 0 parsed-address) "Ham Sender"))
-                 (remove-function (if remove
-                                      'bbdb-delete-record-internal
-                                    'ignore))
-                 (net-address (nth 1 parsed-address))
-                 (record (and net-address
-                              (spam-exists-in-BBDB-p net-address))))
-            (when net-address
-              (gnus-message 6 "%s address %s %s BBDB"
-                            (if remove "Deleting" "Adding")
-                            from
-                            (if remove "from" "to"))
-              (if record
-                  (funcall remove-function record)
-                (bbdb-create-internal name nil net-address nil nil
-                                      "ham sender added by spam.el")))))))
+(when (featurep 'bbdb-com)
+  (add-hook 'bbdb-change-hook #'spam-clear-cache-BBDB))
 
-    (defun spam-BBDB-register-routine (articles &optional unregister)
-      (let (addresses)
-        (dolist (article articles)
-          (when (stringp (spam-fetch-field-from-fast article))
-            (push (spam-fetch-field-from-fast article) addresses)))
-        ;; now do the register/unregister action
-        (spam-enter-ham-BBDB addresses unregister)))
+(defun spam-enter-ham-BBDB (addresses &optional remove)
+  "Enter an address into the BBDB; implies ham (non-spam) sender"
+  (dolist (from addresses)
+    (when (stringp from)
+      (let* ((parsed-address (gnus-extract-address-components from))
+             (name (or (nth 0 parsed-address) "Ham Sender"))
+             (remove-function (if remove
+                                  'bbdb-delete-record-internal
+                                'ignore))
+             (net-address (nth 1 parsed-address))
+             (record (and net-address
+                          (spam-exists-in-BBDB-p net-address))))
+        (when net-address
+          (gnus-message 6 "%s address %s %s BBDB"
+                        (if remove "Deleting" "Adding")
+                        from
+                        (if remove "from" "to"))
+          (if record
+              (funcall remove-function record)
+            (bbdb-create-internal name nil net-address nil nil
+                                  "ham sender added by spam.el")))))))
 
-    (defun spam-BBDB-unregister-routine (articles)
-      (spam-BBDB-register-routine articles t))
+(defun spam-BBDB-register-routine (articles &optional unregister)
+  (let (addresses)
+    (dolist (article articles)
+      (when (stringp (spam-fetch-field-from-fast article))
+        (push (spam-fetch-field-from-fast article) addresses)))
+    ;; now do the register/unregister action
+    (spam-enter-ham-BBDB addresses unregister)))
 
-    (defsubst spam-exists-in-BBDB-p (net)
-      (when (and (stringp net) (not (zerop (length net))))
-        (bbdb-records)
-        (bbdb-gethash (downcase net))))
+(defun spam-BBDB-unregister-routine (articles)
+  (spam-BBDB-register-routine articles t))
 
-    (defun spam-check-BBDB ()
-      "Mail from people in the BBDB is classified as ham or non-spam"
-      (let ((net (message-fetch-field "from")))
-        (when net
-          (setq net (nth 1 (gnus-extract-address-components net)))
-          (if (spam-exists-in-BBDB-p net)
-              t
-            (if spam-use-BBDB-exclusive
-                spam-split-group
-              nil)))))))
+(defun spam-exists-in-BBDB-p (net)
+  (when (and (stringp net) (not (zerop (length net))))
+    (bbdb-records)
+    (bbdb-gethash (downcase net))))
+
+(defun spam-check-BBDB ()
+  "Mail from people in the BBDB is classified as ham or non-spam"
+  (let ((net (message-fetch-field "from")))
+    (when net
+      (setq net (nth 1 (gnus-extract-address-components net)))
+      (if (spam-exists-in-BBDB-p net)
+          t
+        (if spam-use-BBDB-exclusive
+            spam-split-group
+          nil)))))
 
 ;;}}}
 
 ;;{{{ ifile
 
-;;; check the ifile backend; return nil if the mail was NOT classified
-;;; as spam
+;; check the ifile backend; return nil if the mail was NOT classified
+;; as spam
 
 
 (defun spam-get-ifile-database-parameter ()
@@ -2240,7 +2229,7 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
   (let ((kill-whole-line t))
     (kill-line)))
 
-;;; address can be a list, too
+;; address can be a list, too
 (defun spam-enter-whitelist (address &optional remove)
   "Enter ADDRESS (list or single) into the whitelist.
 With a non-nil REMOVE, remove them."
@@ -2249,7 +2238,7 @@ With a non-nil REMOVE, remove them."
   (setq spam-whitelist-cache nil)
   (spam-clear-cache 'spam-use-whitelist))
 
-;;; address can be a list, too
+;; address can be a list, too
 (defun spam-enter-blacklist (address &optional remove)
   "Enter ADDRESS (list or single) into the blacklist.
 With a non-nil REMOVE, remove them."
@@ -2310,8 +2299,8 @@ With a non-nil REMOVE, remove the ADDRESSES."
           (cl-return)))
       found)))
 
-;;; returns t if the sender is in the whitelist, nil or
-;;; spam-split-group otherwise
+;; returns t if the sender is in the whitelist, nil or
+;; spam-split-group otherwise
 (defun spam-check-whitelist ()
   ;; FIXME!  Should it detect when file timestamps change?
   (unless spam-whitelist-cache

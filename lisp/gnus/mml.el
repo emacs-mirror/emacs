@@ -241,22 +241,24 @@ part.  This is for the internal use, you should never modify the value.")
 	       (method (cdr (assq 'method taginfo)))
 	       tags)
 	  (save-excursion
-	    (if (re-search-forward
-		 "<#/?\\(multipart\\|part\\|external\\|mml\\)." nil t)
-		(setq secure-mode "multipart")
-	      (setq secure-mode "part")))
+	    (setq secure-mode
+		  (if (re-search-forward
+		       "<#/?\\(multipart\\|part\\|external\\|mml\\)."
+		       nil t)
+		      "multipart"
+		    "part")))
 	  (save-excursion
 	    (goto-char location)
 	    (re-search-forward "<#secure[^\n]*>\n"))
 	  (delete-region (match-beginning 0) (match-end 0))
-	  (cond ((string= mode "sign")
-		 (setq tags (list "sign" method)))
-		((string= mode "encrypt")
-		 (setq tags (list "encrypt" method)))
-		((string= mode "signencrypt")
-		 (setq tags (list "sign" method "encrypt" method)))
-		(t
-		 (error "Unknown secure mode %s" mode)))
+	  (setq tags (cond ((string= mode "sign")
+		            (list "sign" method))
+		           ((string= mode "encrypt")
+		            (list "encrypt" method))
+		           ((string= mode "signencrypt")
+		            (list "sign" method "encrypt" method))
+		           (t
+		            (error "Unknown secure mode %s" mode))))
 	  (eval `(mml-insert-tag ,secure-mode
 				 ,@tags
 				 ,(if keyfile "keyfile")
@@ -1598,7 +1600,8 @@ or the `pop-to-buffer' function."
   (interactive "P")
   (setq mml-preview-buffer (generate-new-buffer
 			    (concat (if raw "*Raw MIME preview of "
-				      "*MIME preview of ") (buffer-name))))
+				      "*MIME preview of ")
+				    (buffer-name))))
   (require 'gnus-msg)		      ; for gnus-setup-posting-charset
   (save-excursion
     (let* ((buf (current-buffer))
@@ -1655,7 +1658,8 @@ or the `pop-to-buffer' function."
       (use-local-map nil)
       (add-hook 'kill-buffer-hook
 		(lambda ()
-		  (mm-destroy-parts gnus-article-mime-handles)) nil t)
+		  (mm-destroy-parts gnus-article-mime-handles))
+		nil t)
       (setq buffer-read-only t)
       (local-set-key "q" (lambda () (interactive) (kill-buffer nil)))
       (local-set-key "=" (lambda () (interactive) (delete-other-windows)))

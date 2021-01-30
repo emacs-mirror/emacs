@@ -144,9 +144,9 @@ is not available."
    ;; on there being some coding system matching each `mime-charset'
    ;; property defined, as there should be.)
    ((and (mm-coding-system-p charset)
-;;; Doing this would potentially weed out incorrect charsets.
-;;; 	 charset
-;;; 	 (eq charset (coding-system-get charset 'mime-charset))
+	 ;; Doing this would potentially weed out incorrect charsets.
+	 ;; 	 charset
+	 ;; 	 (eq charset (coding-system-get charset 'mime-charset))
 	 )
     charset)
    ;; Use coding system Emacs knows.

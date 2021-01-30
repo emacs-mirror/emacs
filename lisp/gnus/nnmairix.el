@@ -676,9 +676,9 @@ Other back ends might or might not work.")
 (autoload 'nnimap-request-update-info-internal "nnimap")
 
 (deffoo nnmairix-request-marks (group info &optional server)
-;; propagate info from underlying IMAP folder to nnmairix group
-;; This is currently experimental and must be explicitly activated
-;; with nnmairix-propagate-marks-to-nnmairix-group
+  ;; propagate info from underlying IMAP folder to nnmairix group
+  ;; This is currently experimental and must be explicitly activated
+  ;; with nnmairix-propagate-marks-to-nnmairix-group
   (when server
     (nnmairix-open-server server))
   (let* ((qualgroup (gnus-group-prefixed-name

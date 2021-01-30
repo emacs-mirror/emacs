@@ -869,9 +869,9 @@ If set, it overrides the setting of `mml2015-sign-with-sender'."
 	  (setq plain (epg-verify-string context signature part))
 	(error
 	 (mm-sec-error 'gnus-info "Failed")
-	 (if (eq (car error) 'quit)
-	     (mm-sec-status 'gnus-details "Quit.")
-	   (mm-sec-status 'gnus-details (mml2015-format-error error)))
+	 (mm-sec-status 'gnus-details (if (eq (car error) 'quit)
+	                                  "Quit."
+	                                (mml2015-format-error error)))
 	 (throw 'error handle)))
       (mm-sec-status 'gnus-info
        (mml2015-epg-verify-result-to-string

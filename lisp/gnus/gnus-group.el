@@ -40,9 +40,9 @@
   (require 'mm-url)
   (require 'subr-x)
   (let ((features (cons 'gnus-group features)))
-    (require 'gnus-sum))
-  (unless (boundp 'gnus-cache-active-hashtb)
-    (defvar gnus-cache-active-hashtb nil)))
+    (require 'gnus-sum)))
+
+(defvar gnus-cache-active-hashtb)
 
 (defvar tool-bar-mode)
 
@@ -505,7 +505,8 @@ simple manner."
 		(+ number
 		   (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked)))
 		   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))))
-	      (t number)) ?s)
+	      (t number))
+	?s)
     (?R gnus-tmp-number-of-read ?s)
     (?U (if (gnus-active gnus-tmp-group)
 	    (gnus-number-of-unseen-articles-in-group gnus-tmp-group)
@@ -516,7 +517,8 @@ simple manner."
     (?I (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked))) ?d)
     (?T (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))) ?d)
     (?i (+ (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked)))
-	   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked)))) ?d)
+	   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))
+	?d)
     (?g gnus-tmp-group ?s)
     (?G gnus-tmp-qualified-group ?s)
     (?c (gnus-short-group-name gnus-tmp-group)
@@ -1541,7 +1543,8 @@ if it is a string, only list groups matching REGEXP."
 	 (gnus-tmp-news-method-string
 	  (if gnus-tmp-method
 	      (format "(%s:%s)" (car gnus-tmp-method)
-		      (cadr gnus-tmp-method)) ""))
+		      (cadr gnus-tmp-method))
+	    ""))
 	 (gnus-tmp-marked-mark
 	  (if (and (numberp number)
 		   (zerop number)
@@ -1985,31 +1988,18 @@ Take into consideration N (the prefix) and the list of marked groups."
     (let ((group (gnus-group-group-name)))
       (and group (list group))))))
 
-;;; !!!Surely gnus-group-iterate should be a macro instead?  I can't
-;;; imagine why I went through these contortions...
-(eval-and-compile
-  (let ((function (make-symbol "gnus-group-iterate-function"))
-	(window (make-symbol "gnus-group-iterate-window"))
-	(groups (make-symbol "gnus-group-iterate-groups"))
-	(group (make-symbol "gnus-group-iterate-group")))
-    (eval
-     `(defun gnus-group-iterate (arg ,function)
-	"Iterate FUNCTION over all process/prefixed groups.
+(defun gnus-group-iterate (arg function)
+  "Iterate FUNCTION over all process/prefixed groups.
 FUNCTION will be called with the group name as the parameter
 and with point over the group in question."
-	(let ((,groups (gnus-group-process-prefix arg))
-	      (,window (selected-window))
-	      ,group)
-	  (while ,groups
-	    (setq ,group (car ,groups)
-		  ,groups (cdr ,groups))
-	    (select-window ,window)
-	    (gnus-group-remove-mark ,group)
-	    (save-selected-window
-	      (save-excursion
-		(funcall ,function ,group)))))))))
-
-(put 'gnus-group-iterate 'lisp-indent-function 1)
+  (declare (indent 1))
+  (let ((window (selected-window)))
+    (dolist (group (gnus-group-process-prefix arg))
+      (select-window window)
+      (gnus-group-remove-mark group)
+      (save-selected-window
+	(save-excursion
+	  (funcall function group))))))
 
 ;; Selecting groups.
 
@@ -2807,7 +2797,7 @@ not-expirable articles, too."
 	   (format "Do you really want to delete these %d articles forever? "
 		   (length articles)))
       (gnus-request-expire-articles articles group
-				    (if current-prefix-arg
+				    (if oldp
 					nil
 				      'force)))))
 
