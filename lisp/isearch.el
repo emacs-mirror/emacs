@@ -362,7 +362,7 @@ This setting only has effect when the search string is less than
   "For search strings at least this long, lazy highlight starts immediately.
 For shorter search strings, `lazy-highlight-initial-delay'
 applies."
-  :type 'number
+  :type 'integer
   :group 'lazy-highlight
   :version "28.1")
 
