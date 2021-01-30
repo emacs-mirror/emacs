@@ -99,6 +99,7 @@ DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
 Precisely, if point is on line I, move to the start of line I + N
 \("start of line" in the logical order).
 If there isn't room, go as far as possible (no error).
+Interactively, N is the numeric prefix argument and defaults to 1.
 
 Returns the count of lines left to move.  If moving forward,
 that is N minus number of lines moved; if backward, N plus number

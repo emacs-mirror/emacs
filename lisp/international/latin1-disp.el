@@ -1,4 +1,4 @@
-;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*-coding: utf-8;-*-
+;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -86,8 +86,8 @@ use either \\[customize] or the function `latin1-display'."
   :group 'latin1-display
   :type 'boolean
   :require 'latin1-disp
-  :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
+  :initialize #'custom-initialize-default
+  :set (lambda (_symbol value)
 	 (if value
 	     (apply #'latin1-display latin1-display-sets)
 	   (latin1-display))))
@@ -186,7 +186,7 @@ character set."
 		     'arabic-iso8859-6
 		   (car (remq 'ascii (get-language-info language
 							'charset))))))
-    (map-charset-chars #'(lambda (range arg)
+    (map-charset-chars #'(lambda (range _arg)
 			   (standard-display-default (car range) (cdr range)))
 		       charset))
   (sit-for 0))
@@ -201,11 +201,10 @@ character set: `latin-2', `hebrew' etc."
 	 (char (and info (decode-char (car (remq 'ascii info)) ?\ ))))
     (and char (char-displayable-p char))))
 
-(defun latin1-display-setup (set &optional force)
+(defun latin1-display-setup (set &optional _force)
   "Set up Latin-1 display for characters in the given SET.
 SET must be a member of `latin1-display-sets'.  Normally, check
-whether a font for SET is available and don't set the display if it
-is.  If FORCE is non-nil, set up the display regardless."
+whether a font for SET is available and don't set the display if it is."
   (cond
    ((eq set 'latin-2)
     (latin1-display-identities set)
@@ -735,7 +734,7 @@ is.  If FORCE is non-nil, set up the display regardless."
   (sit-for 0))
 
 ;;;###autoload
-(defcustom latin1-display-ucs-per-lynx nil
+(defcustom latin1-display-ucs-per-lynx nil ;FIXME: Isn't this a minor mode?
   "Set up Latin-1/ASCII display for Unicode characters.
 This uses the transliterations of the Lynx browser.  The display isn't
 changed if the display can render Unicode characters.
@@ -745,8 +744,8 @@ use either \\[customize] or the function `latin1-display'."
   :group 'latin1-display
   :type 'boolean
   :require 'latin1-disp
-  :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
+  :initialize #'custom-initialize-default
+  :set (lambda (_symbol value)
 	 (if value
 	     (latin1-display-ucs-per-lynx 1)
 	   (latin1-display-ucs-per-lynx -1))))

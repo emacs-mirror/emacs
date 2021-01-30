@@ -4599,33 +4599,29 @@ sweep_weak_table (struct Lisp_Hash_Table *h, bool remove_entries_p)
 EMACS_UINT
 hash_string (char const *ptr, ptrdiff_t len)
 {
-  EMACS_UINT const *p   = (EMACS_UINT const *) ptr;
-  EMACS_UINT const *end = (EMACS_UINT const *) (ptr + len);
+  char const *p   = ptr;
+  char const *end = ptr + len;
   EMACS_UINT hash = len;
   /* At most 8 steps.  We could reuse SXHASH_MAX_LEN, of course,
    * but dividing by 8 is cheaper.  */
-  ptrdiff_t step = 1 + ((end - p) >> 3);
+  ptrdiff_t step = sizeof hash + ((end - p) >> 3);
 
-  /* Beware: `end` might be unaligned, so `p < end` is not always the same
-   * as `p <= end - 1`.  */
-  while (p <= end - 1)
+  while (p + sizeof hash <= end)
     {
-      EMACS_UINT c = *p;
+      EMACS_UINT c;
+      /* We presume that the compiler will replace this `memcpy` with
+         a single load/move instruction when applicable.  */
+      memcpy (&c, p, sizeof hash);
       p += step;
       hash = sxhash_combine (hash, c);
     }
-  if (p < end)
-    { /* A few last bytes remain (smaller than an EMACS_UINT).  */
-      /* FIXME: We could do this without a loop, but it'd require
-         endian-dependent code :-(  */
-      char const *p1 = (char const *)p;
-      char const *end1 = (char const *)end;
-      do
-        {
-          unsigned char c = *p1++;
-          hash = sxhash_combine (hash, c);
-        }
-      while (p1 < end1);
+  /* A few last bytes may remain (smaller than an EMACS_UINT).  */
+  /* FIXME: We could do this without a loop, but it'd require
+     endian-dependent code :-(  */
+  while (p < end)
+    {
+      unsigned char c = *p++;
+      hash = sxhash_combine (hash, c);
     }
 
   return hash;

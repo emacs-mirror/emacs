@@ -1,4 +1,4 @@
-;;; utf-7.el --- utf-7 coding system
+;;; utf-7.el --- utf-7 coding system  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 

@@ -7217,7 +7217,7 @@ child_signal_read (int fd, void *data)
   eassert (0 <= fd);
   eassert (fd == child_signal_read_fd);
   char dummy;
-  if (emacs_read (fd, &dummy, 1) < 0)
+  if (emacs_read (fd, &dummy, 1) < 0 && errno != EAGAIN)
     emacs_perror ("reading from child signal FD");
 }
 #endif	/* !WINDOWSNT */

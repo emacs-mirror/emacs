@@ -1789,7 +1789,6 @@ variables.  Returns the first non-nil value found."
                  . gnus-agent-enable-expiration)
                 (agent-predicate . gnus-agent-predicate)))))))
 
-;; FIXME: This looks an awful lot like `gnus-agent-retrieve-headers'.
 (defun gnus-agent-fetch-headers (group)
   "Fetch interesting headers into the agent.  The group's overview
 file will be updated to include the headers while a list of available
@@ -1811,9 +1810,10 @@ article numbers will be returned."
 				    (cdr active))))
 			 (gnus-uncompress-range (gnus-active group)))
                      (gnus-list-of-unread-articles group)))
+         (gnus-decode-encoded-word-function 'identity)
+	 (gnus-decode-encoded-address-function 'identity)
          (file (gnus-agent-article-name ".overview" group))
-	 (file-name-coding-system nnmail-pathname-coding-system)
-	 headers fetched-headers)
+	 (file-name-coding-system nnmail-pathname-coding-system))
 
     (unless fetch-all
       ;; Add articles with marks to the list of article headers we want to
@@ -1824,7 +1824,7 @@ article numbers will be returned."
       (dolist (arts (gnus-info-marks (gnus-get-info group)))
         (unless (memq (car arts) '(seen recent killed cache))
           (setq articles (gnus-range-add articles (cdr arts)))))
-      (setq articles (sort (gnus-uncompress-range articles) '<)))
+      (setq articles (sort (gnus-uncompress-sequence articles) '<)))
 
     ;; At this point, I have the list of articles to consider for
     ;; fetching.  This is the list that I'll return to my caller. Some
@@ -1867,52 +1867,38 @@ article numbers will be returned."
 	 10 "gnus-agent-fetch-headers: undownloaded articles are `%s'"
 	 (gnus-compress-sequence articles t)))
 
-      ;; Parse known headers from FILE.
-      (if (file-exists-p file)
-	  (with-current-buffer gnus-agent-overview-buffer
-	    (erase-buffer)
-	    (let ((nnheader-file-coding-system
-		   gnus-agent-file-coding-system))
-	      (nnheader-insert-nov-file file (car articles))
-	      (with-current-buffer nntp-server-buffer
-		(erase-buffer)
-		(insert-buffer-substring gnus-agent-overview-buffer)
-		(setq headers
-		      (gnus-get-newsgroup-headers-xover
-		       articles nil (buffer-local-value
-				     'gnus-newsgroup-dependencies
-				     gnus-summary-buffer)
-		       gnus-newsgroup-name)))))
-	(gnus-make-directory (nnheader-translate-file-chars
-                              (file-name-directory file) t)))
+      (with-current-buffer nntp-server-buffer
+        (if articles
+            (progn
+	      (gnus-message 8 "Fetching headers for %s..." group)
 
-      ;; Fetch our new headers.
-      (gnus-message 8 "Fetching headers for %s..." group)
-      (if articles
-	  (setq fetched-headers (gnus-fetch-headers articles)))
+              ;; Fetch them.
+              (gnus-make-directory (nnheader-translate-file-chars
+                                    (file-name-directory file) t))
 
-      ;; Merge two sets of headers.
-      (setq headers
-	    (if (and headers fetched-headers)
-		(delete-dups
-		 (sort (append headers (copy-sequence fetched-headers))
-		       (lambda (l r)
-			 (< (mail-header-number l)
-			    (mail-header-number r)))))
-	      (or headers fetched-headers)))
-
-      ;; Save the new set of headers to FILE.
-      (let ((coding-system-for-write
-             gnus-agent-file-coding-system))
-	(with-current-buffer gnus-agent-overview-buffer
-	  (goto-char (point-max))
-	  (mapc #'nnheader-insert-nov fetched-headers)
-	  (sort-numeric-fields 1 (point-min) (point-max))
-          (gnus-agent-check-overview-buffer)
-	  (write-region (point-min) (point-max) file nil 'silent))
-	(gnus-agent-update-view-total-fetched-for group t)
-	(gnus-agent-save-alist group articles nil)))
-    headers))
+              (unless (eq 'nov (gnus-retrieve-headers articles group))
+                (nnvirtual-convert-headers))
+              (gnus-agent-check-overview-buffer)
+              ;; Move these headers to the overview buffer so that
+              ;; gnus-agent-braid-nov can merge them with the contents
+              ;; of FILE.
+              (copy-to-buffer
+	       gnus-agent-overview-buffer (point-min) (point-max))
+	      ;; NOTE: Call g-a-brand-nov even when the file does not
+	      ;; exist.  As a minimum, it will validate the article
+	      ;; numbers already in the buffer.
+	      (gnus-agent-braid-nov articles file)
+              (let ((coding-system-for-write
+                     gnus-agent-file-coding-system))
+                (gnus-agent-check-overview-buffer)
+                (write-region (point-min) (point-max) file nil 'silent))
+	      (gnus-agent-update-view-total-fetched-for group t)
+              (gnus-agent-save-alist group articles nil)
+              articles)
+          (ignore-errors
+            (erase-buffer)
+            (nnheader-insert-file-contents file)))))
+    articles))
 
 (defsubst gnus-agent-read-article-number ()
   "Read the article number at point.
@@ -1937,6 +1923,96 @@ Return nil when a valid article number can not be read."
       (setq e (progn (forward-line 1) (point)))
       (set-buffer nntp-server-buffer)
       (insert-buffer-substring gnus-agent-overview-buffer b e))))
+
+(defun gnus-agent-braid-nov (articles file)
+  "Merge agent overview data with given file.
+Takes unvalidated headers for ARTICLES from
+`gnus-agent-overview-buffer' and validated headers from the given
+FILE and places the combined valid headers into
+`nntp-server-buffer'.  This function can be used, when file
+doesn't exist, to valid the overview buffer."
+  (let (start last)
+    (set-buffer gnus-agent-overview-buffer)
+    (goto-char (point-min))
+    (set-buffer nntp-server-buffer)
+    (erase-buffer)
+    (when (file-exists-p file)
+      (nnheader-insert-file-contents file))
+    (goto-char (point-max))
+    (forward-line -1)
+
+    (unless (or (= (point-min) (point-max))
+		(< (setq last (read (current-buffer))) (car articles)))
+      ;; Old and new overlap -- We do it the hard way.
+      (when (nnheader-find-nov-line (car articles))
+        ;; Replacing existing NOV entry
+        (delete-region (point) (progn (forward-line 1) (point))))
+      (gnus-agent-copy-nov-line (pop articles))
+
+      (ignore-errors
+	(while articles
+	  (while (let ((art (read (current-buffer))))
+		   (cond ((< art (car articles))
+			  (forward-line 1)
+			  t)
+			 ((= art (car articles))
+			  (beginning-of-line)
+			  (delete-region
+			   (point) (progn (forward-line 1) (point)))
+			  nil)
+			 (t
+			  (beginning-of-line)
+			  nil))))
+
+	  (gnus-agent-copy-nov-line (pop articles)))))
+
+    (goto-char (point-max))
+
+    ;; Append the remaining lines
+    (when articles
+      (when last
+	(set-buffer gnus-agent-overview-buffer)
+	(setq start (point))
+	(set-buffer nntp-server-buffer))
+
+      (let ((p (point)))
+	(insert-buffer-substring gnus-agent-overview-buffer start)
+	(goto-char p))
+
+      (setq last (or last -134217728))
+      (while (catch 'problems
+	       (let (sort art)
+		 (while (not (eobp))
+		   (setq art (gnus-agent-read-article-number))
+		   (cond ((not art)
+			  ;; Bad art num - delete this line
+			  (beginning-of-line)
+			  (delete-region (point) (progn (forward-line 1) (point))))
+			 ((< art last)
+			  ;; Art num out of order - enable sort
+			  (setq sort t)
+			  (forward-line 1))
+			 ((= art last)
+			  ;; Bad repeat of art number - delete this line
+			  (beginning-of-line)
+			  (delete-region (point) (progn (forward-line 1) (point))))
+			 (t
+			  ;; Good art num
+			  (setq last art)
+			  (forward-line 1))))
+		 (when sort
+		   ;; something is seriously wrong as we simply shouldn't see out-of-order data.
+		   ;; First, we'll fix the sort.
+		   (sort-numeric-fields 1 (point-min) (point-max))
+
+		   ;; but now we have to consider that we may have duplicate rows...
+		   ;; so reset to beginning of file
+		   (goto-char (point-min))
+		   (setq last -134217728)
+
+		   ;; and throw a code that restarts this scan
+		   (throw 'problems t))
+		 nil))))))
 
 ;; Keeps the compiler from warning about the free variable in
 ;; gnus-agent-read-agentview.
@@ -2310,9 +2386,10 @@ modified) original contents, they are first saved to their own file."
 	(gnus-orphan-score gnus-orphan-score)
 	;; Maybe some other gnus-summary local variables should also
 	;; be put here.
-	fetched-headers
+
         gnus-headers
         gnus-score
+        articles
         predicate info marks
 	)
     (unless (gnus-check-group group)
@@ -2333,35 +2410,38 @@ modified) original contents, they are first saved to their own file."
                                          (setq info (gnus-get-info group)))))))
               (when arts
                 (setq marked-articles (nconc (gnus-uncompress-range arts)
-                                             marked-articles))))))
+                                             marked-articles))
+                ))))
         (setq marked-articles (sort marked-articles '<))
 
-	(setq gnus-newsgroup-dependencies
-              (or gnus-newsgroup-dependencies
-                  (gnus-make-hashtable)))
+        ;; Fetch any new articles from the server
+        (setq articles (gnus-agent-fetch-headers group))
 
-        ;; Fetch headers for any new articles from the server.
-        (setq fetched-headers (gnus-agent-fetch-headers group))
+        ;; Merge new articles with marked
+        (setq articles (sort (append marked-articles articles) '<))
 
-        (when fetched-headers
+        (when articles
+          ;; Parse them and see which articles we want to fetch.
+          (setq gnus-newsgroup-dependencies
+                (or gnus-newsgroup-dependencies
+                    (gnus-make-hashtable (length articles))))
           (setq gnus-newsgroup-headers
-		(or gnus-newsgroup-headers
-                    fetched-headers)))
-	(when marked-articles
-          ;; `gnus-agent-overview-buffer' may be killed for timeout
-          ;; reason.  If so, recreate it.
+                (or gnus-newsgroup-headers
+                    (gnus-get-newsgroup-headers-xover articles nil nil
+                                                      group)))
+          ;; `gnus-agent-overview-buffer' may be killed for
+          ;; timeout reason.  If so, recreate it.
           (gnus-agent-create-buffer)
 
           (setq predicate
-		(gnus-get-predicate
-		 (gnus-agent-find-parameter group 'agent-predicate)))
+                (gnus-get-predicate
+                 (gnus-agent-find-parameter group 'agent-predicate)))
 
-          ;; If the selection predicate requires scoring, score each header.
-
+          ;; If the selection predicate requires scoring, score each header
           (unless (memq predicate '(gnus-agent-true gnus-agent-false))
             (let ((score-param
                    (gnus-agent-find-parameter group 'agent-score-file)))
-              ;; Translate score-param into real one.
+              ;; Translate score-param into real one
               (cond
                ((not score-param))
                ((eq score-param 'file)
@@ -3581,9 +3661,11 @@ has been fetched."
 (defun gnus-agent-retrieve-headers (articles group &optional fetch-old)
   (save-excursion
     (gnus-agent-create-buffer)
-    (let ((file (gnus-agent-article-name ".overview" group))
-	  (file-name-coding-system nnmail-pathname-coding-system)
-	  uncached-articles headers fetched-headers)
+    (let ((gnus-decode-encoded-word-function 'identity)
+	  (gnus-decode-encoded-address-function 'identity)
+	  (file (gnus-agent-article-name ".overview" group))
+          uncached-articles
+	  (file-name-coding-system nnmail-pathname-coding-system))
       (gnus-make-directory (nnheader-translate-file-chars
 			    (file-name-directory file) t))
 
@@ -3594,63 +3676,122 @@ has been fetched."
 				1)
 			      (car (last articles))))))
 
-      ;; See if we've got cached headers for ARTICLES and put them in
-      ;; HEADERS.  Articles with no cached headers go in
-      ;; UNCACHED-ARTICLES to be fetched from the server.
+      ;; Populate temp buffer with known headers
       (when (file-exists-p file)
 	(with-current-buffer gnus-agent-overview-buffer
 	  (erase-buffer)
 	  (let ((nnheader-file-coding-system
 		 gnus-agent-file-coding-system))
-	    (nnheader-insert-nov-file file (car articles))
-	    (with-current-buffer nntp-server-buffer
-	      (erase-buffer)
-	      (insert-buffer-substring gnus-agent-overview-buffer)
-	      (setq headers
-		    (gnus-get-newsgroup-headers-xover
-		     articles nil (buffer-local-value
-				   'gnus-newsgroup-dependencies
-				   gnus-summary-buffer)
-		     gnus-newsgroup-name))))))
+	    (nnheader-insert-nov-file file (car articles)))))
 
-      (setq uncached-articles
-	    (gnus-agent-uncached-articles articles group t))
+      (if (setq uncached-articles (gnus-agent-uncached-articles articles group
+                                                                t))
+	  (progn
+            ;; Populate nntp-server-buffer with uncached headers
+	    (set-buffer nntp-server-buffer)
+	    (erase-buffer)
+            (cond ((not (eq 'nov (let (gnus-agent) ; Turn off agent
+                                   (gnus-retrieve-headers
+                                    uncached-articles group))))
+                   (nnvirtual-convert-headers))
+                  ((eq 'nntp (car gnus-current-select-method))
+                   ;; The author of gnus-get-newsgroup-headers-xover
+                   ;; reports that the XOVER command is commonly
+                   ;; unreliable. The problem is that recently
+                   ;; posted articles may not be entered into the
+                   ;; NOV database in time to respond to my XOVER
+                   ;; query.
+                   ;;
+                   ;; I'm going to use his assumption that the NOV
+                   ;; database is updated in order of ascending
+                   ;; article ID.  Therefore, a response containing
+                   ;; article ID N implies that all articles from 1
+                   ;; to N-1 are up-to-date.  Therefore, missing
+                   ;; articles in that range have expired.
 
-      (when uncached-articles
-	(let ((gnus-newsgroup-name group)
-	      gnus-agent)		; Prevent loop.
-          ;; Fetch additional headers for the uncached articles.
-	  (setq fetched-headers (gnus-fetch-headers uncached-articles))
-	  ;; Merge headers we got from the overview file with our
-	  ;; newly-fetched headers.
-	  (when fetched-headers
-	    (setq headers
-		  (delete-dups
-		   (sort (append headers (copy-sequence fetched-headers))
-			 (lambda (l r)
-			   (< (mail-header-number l)
-			      (mail-header-number r))))))
+                   (set-buffer nntp-server-buffer)
+                   (let* ((fetched-articles (list nil))
+                          (tail-fetched-articles fetched-articles)
+                          (min (car articles))
+                          (max (car (last articles))))
 
-	    ;; Add the new set of known headers to the overview file.
+                     ;; Get the list of articles that were fetched
+                     (goto-char (point-min))
+                     (let ((pm (point-max))
+			   art)
+                       (while (< (point) pm)
+			 (when (setq art (gnus-agent-read-article-number))
+                           (gnus-agent-append-to-list tail-fetched-articles art))
+                         (forward-line 1)))
+
+                     ;; Clip this list to the headers that will
+                     ;; actually be returned
+                     (setq fetched-articles (gnus-list-range-intersection
+                                             (cdr fetched-articles)
+                                             (cons min max)))
+
+                     ;; Clip the uncached articles list to exclude
+                     ;; IDs after the last FETCHED header.  The
+                     ;; excluded IDs may be fetchable using HEAD.
+                     (if (car tail-fetched-articles)
+                         (setq uncached-articles
+                               (gnus-list-range-intersection
+                                uncached-articles
+                                (cons (car uncached-articles)
+                                      (car tail-fetched-articles)))))
+
+                     ;; Create the list of articles that were
+                     ;; "successfully" fetched.  Success, in this
+                     ;; case, means that the ID should not be
+                     ;; fetched again.  In the case of an expired
+                     ;; article, the header will not be fetched.
+                     (setq uncached-articles
+                           (gnus-sorted-nunion fetched-articles
+                                               uncached-articles))
+                     )))
+
+            ;; Erase the temp buffer
+	    (set-buffer gnus-agent-overview-buffer)
+	    (erase-buffer)
+
+            ;; Copy the nntp-server-buffer to the temp buffer
+	    (set-buffer nntp-server-buffer)
+	    (copy-to-buffer gnus-agent-overview-buffer (point-min) (point-max))
+
+	    ;; Merge the temp buffer with the known headers (found on
+	    ;; disk in FILE) into the nntp-server-buffer
+	    (when uncached-articles
+	      (gnus-agent-braid-nov uncached-articles file))
+
+	    ;; Save the new set of known headers to FILE
+	    (set-buffer nntp-server-buffer)
 	    (let ((coding-system-for-write
 		   gnus-agent-file-coding-system))
-	      (with-current-buffer gnus-agent-overview-buffer
-		;; We stick the new headers in at the end, then
-		;; re-sort the whole buffer with
-		;; `sort-numeric-fields'.  If this turns out to be
-		;; slow, we could consider a loop to add the headers
-		;; in sorted order to begin with.
-		(goto-char (point-max))
-		(mapc #'nnheader-insert-nov fetched-headers)
-		(sort-numeric-fields 1 (point-min) (point-max))
-		(gnus-agent-check-overview-buffer)
-		(write-region (point-min) (point-max) file nil 'silent)
-		(gnus-agent-update-view-total-fetched-for group t)
-		;; Update the group's article alist to include the
-		;; newly fetched articles.
-		(gnus-agent-load-alist group)
-		(gnus-agent-save-alist group uncached-articles nil))))))
-      headers)))
+	      (gnus-agent-check-overview-buffer)
+	      (write-region (point-min) (point-max) file nil 'silent))
+
+	    (gnus-agent-update-view-total-fetched-for group t)
+
+            ;; Update the group's article alist to include the newly
+            ;; fetched articles.
+	    (gnus-agent-load-alist group)
+	    (gnus-agent-save-alist group uncached-articles nil)
+            )
+
+        ;; Copy the temp buffer to the nntp-server-buffer
+        (set-buffer nntp-server-buffer)
+	(erase-buffer)
+	(insert-buffer-substring gnus-agent-overview-buffer)))
+
+    (if (and fetch-old
+	     (not (numberp fetch-old)))
+	t				; Don't remove anything.
+      (nnheader-nov-delete-outside-range
+       (car articles)
+       (car (last articles)))
+      t)
+
+    'nov))
 
 (defun gnus-agent-request-article (article group)
   "Retrieve ARTICLE in GROUP from the agent cache."

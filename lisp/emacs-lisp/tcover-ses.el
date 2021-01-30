@@ -1,4 +1,4 @@
-;;;; testcover-ses.el -- Example use of `testcover' to test "SES"
+;;;; testcover-ses.el -- Example use of `testcover' to test "SES"  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -19,21 +19,14 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
+;;; Commentary:
+
+;; FIXME: Convert to ERT and move to `test/'?
+
+;;; Code:
+
 (require 'testcover)
-
-(defvar ses-initial-global-parameters)
-(defvar ses-mode-map)
-
-(declare-function ses-set-curcell "ses")
-(declare-function ses-update-cells "ses")
-(declare-function ses-load "ses")
-(declare-function ses-vector-delete "ses")
-(declare-function ses-create-header-string "ses")
-(declare-function ses-read-cell "ses")
-(declare-function ses-read-symbol "ses")
-(declare-function ses-command-hook "ses")
-(declare-function ses-jump "ses")
-
+(require 'ses)
 
 ;;;Here are some macros that exercise SES.  Set `pause' to t if you want the
 ;;;macros to pause after each step.
@@ -652,6 +645,7 @@ spreadsheet files with invalid formatting."
     (testcover-start "ses.el" t))
   (require 'unsafep)) ;In case user has safe-functions = t!
 
+(defvar ses--curcell-overlay)
 
 ;;;#########################################################################
 (defun ses-exercise ()
@@ -674,8 +668,8 @@ spreadsheet files with invalid formatting."
       (ses-load))
     ;;ses-vector-delete is always called from buffer-undo-list with the same
     ;;symbol as argument.  We'll give it a different one here.
-    (let ((x [1 2 3]))
-      (ses-vector-delete 'x 0 0))
+    (dlet ((tcover-ses--x [1 2 3]))
+      (ses-vector-delete 'tcover-ses--x 0 0))
     ;;ses-create-header-string behaves differently in a non-window environment
     ;;but we always test under windows.
     (let ((window-system (not window-system)))
@@ -704,7 +698,7 @@ spreadsheet files with invalid formatting."
 	  (ses-mode)))))
   ;;Test error-handling in command hook, outside a macro.
   ;;This will ring the bell.
-  (let (curcell-overlay)
+  (let (ses--curcell-overlay)
     (ses-command-hook))
   ;;Due to use of run-with-timer, ses-command-hook sometimes gets called
   ;;after we switch to another buffer.
@@ -720,4 +714,4 @@ spreadsheet files with invalid formatting."
   ;;Could do this here: (testcover-end "ses.el")
   (message "Done"))
 
-;; testcover-ses.el ends here.
+;;; testcover-ses.el ends here.

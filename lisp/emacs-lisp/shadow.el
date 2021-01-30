@@ -1,4 +1,4 @@
-;;; shadow.el --- locate Emacs Lisp file shadowings
+;;; shadow.el --- locate Emacs Lisp file shadowings  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -58,8 +58,7 @@
 (defcustom load-path-shadows-compare-text nil
   "If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."
-  :type 'boolean
-  :group 'lisp-shadow)
+  :type 'boolean)
 
 (defun load-path-shadows-find (&optional path)
   "Return a list of Emacs Lisp files that create shadows.
@@ -78,8 +77,7 @@ See the documentation for `list-load-path-shadows' for further information."
         dir-case-insensitive            ; `file-name-case-insensitive-p' of dir.
 	curr-files			; This dir's Emacs Lisp files.
 	orig-dir			; Where the file was first seen.
-	files-seen-this-dir		; Files seen so far in this dir.
-	file)				; The current file.
+	files-seen-this-dir)		; Files seen so far in this dir.
     (dolist (pp (or path load-path))
       (setq dir (directory-file-name (file-truename (or pp "."))))
       (if (member dir true-names)
@@ -109,7 +107,7 @@ See the documentation for `list-load-path-shadows' for further information."
 
 	(dolist (file curr-files)
 
-	  (if (string-match "\\.gz$" file)
+	  (if (string-match "\\.gz\\'" file)
 	      (setq file (substring file 0 -3)))
 	  (setq file (substring
 		      file 0 (if (string= (substring file -1) "c") -4 -3)))
@@ -125,9 +123,13 @@ See the documentation for `list-load-path-shadows' for further information."
 	    ;; XXX.elc (or vice-versa) when they are in the same directory.
 	    (setq files-seen-this-dir (cons file files-seen-this-dir))
 
-            (if (setq orig-dir (assoc file files
-                                      (when dir-case-insensitive
-                                        (lambda (f1 f2) (eq (compare-strings f1 nil nil f2 nil nil t) t)))))
+            (if (setq orig-dir
+                      (assoc file files
+                             (when dir-case-insensitive
+                               (lambda (f1 f2)
+                                 (eq (compare-strings f1 nil nil
+                                                      f2 nil nil t)
+                                     t)))))
 		;; This file was seen before, we have a shadowing.
 		;; Report it unless the files are identical.
                 (let ((base1 (concat (cdr orig-dir) "/" (car orig-dir)))
@@ -142,7 +144,7 @@ See the documentation for `list-load-path-shadows' for further information."
 			    (append shadows (list base1 base2)))))
 
 	      ;; Not seen before, add it to the list of seen files.
-	      (setq files (cons (cons file dir) files)))))))
+	      (push (cons file dir) files))))))
     ;; Return the list of shadowings.
     shadows))
 

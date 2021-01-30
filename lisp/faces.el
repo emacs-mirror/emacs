@@ -2683,8 +2683,17 @@ the same as `window-divider' face."
 
 (defface internal-border
     '((t nil))
-  "Basic face for the internal border."
+  "Basic face for the internal border.
+For the internal border of child frames see `child-frame-border'."
   :version "26.1"
+  :group 'frames
+  :group 'basic-faces)
+
+(defface child-frame-border
+  '((t nil))
+  "Basic face for the internal border of child frames.
+For the internal border of non-child frames see `internal-border'."
+  :version "28.1"
   :group 'frames
   :group 'basic-faces)
 

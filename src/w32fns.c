@@ -1519,9 +1519,13 @@ w32_clear_under_internal_border (struct frame *f)
       int width = FRAME_PIXEL_WIDTH (f);
       int height = FRAME_PIXEL_HEIGHT (f);
       int face_id =
-	!NILP (Vface_remapping_alist)
-	? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
-	: INTERNAL_BORDER_FACE_ID;
+	(FRAME_PARENT_FRAME (f)
+	 ? (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, CHILD_FRAME_BORDER_FACE_ID)
+	    : CHILD_FRAME_BORDER_FACE_ID)
+	 : (!NILP (Vface_remapping_alist)
+	    ? lookup_basic_face (NULL, f, INTERNAL_BORDER_FACE_ID)
+	    : INTERNAL_BORDER_FACE_ID));
       struct face *face = FACE_FROM_ID_OR_NULL (f, face_id);
 
       block_input ();
@@ -1545,6 +1549,32 @@ w32_clear_under_internal_border (struct frame *f)
 	}
       release_frame_dc (f, hdc);
       unblock_input ();
+    }
+}
+
+/**
+ * w32_set_child_frame_border_width:
+ *
+ * Set width of child frame F's internal border to ARG pixels.
+ * ARG < 0 is treated like ARG = 0.
+ */
+static void
+w32_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
+{
+  int argval = check_integer_range (arg, INT_MIN, INT_MAX);
+  int border = max (argval, 0);
+
+  if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
+    {
+      f->child_frame_border_width = border;
+
+      if (FRAME_NATIVE_WINDOW (f) != 0)
+	{
+	  adjust_frame_size (f, -1, -1, 3, false, Qchild_frame_border_width);
+
+	  if (FRAME_VISIBLE_P (f))
+	    w32_clear_under_internal_border (f);
+	}
     }
 }
 
@@ -5873,6 +5903,28 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 			    parameters);
     }
 
+  /* Same for child frames.  */
+  if (NILP (Fassq (Qchild_frame_border_width, parameters)))
+    {
+      Lisp_Object value;
+
+      value = gui_display_get_arg (dpyinfo, parameters, Qchild_frame_border_width,
+                                   "childFrameBorderWidth", "childFrameBorderWidth",
+                                   RES_TYPE_NUMBER);
+      if (! EQ (value, Qunbound))
+	parameters = Fcons (Fcons (Qchild_frame_border_width, value),
+		       parameters);
+
+    }
+
+  gui_default_parameter (f, parameters, Qchild_frame_border_width,
+#ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
+			 make_fixnum (0),
+#else
+			 make_fixnum (1),
+#endif
+			 "childFrameBorderWidth", "childFrameBorderWidth",
+			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parameters, Qinternal_border_width, make_fixnum (0),
                          "internalBorderWidth", "InternalBorder", RES_TYPE_NUMBER);
   gui_default_parameter (f, parameters, Qright_divider_width, make_fixnum (0),
@@ -9428,6 +9480,18 @@ cache_system_info (void)
   w32_num_mouse_buttons = GetSystemMetrics (SM_CMOUSEBUTTONS);
 }
 
+#ifdef WINDOWSNT
+char *
+w32_version_string (void)
+{
+  /* NNN.NNN.NNNNNNNNNN */
+  static char version_string[3 + 1 + 3 + 1 + 10 + 1];
+  _snprintf (version_string, sizeof version_string, "%d.%d.%d",
+	     w32_major_version, w32_minor_version, w32_build_number);
+  return version_string;
+}
+#endif
+
 #ifdef EMACSDEBUG
 void
 _DebPrint (const char *fmt, ...)
@@ -10232,6 +10296,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   w32_set_foreground_color,
   w32_set_icon_name,
   w32_set_icon_type,
+  w32_set_child_frame_border_width,
   w32_set_internal_border_width,
   gui_set_right_divider_width,
   gui_set_bottom_divider_width,

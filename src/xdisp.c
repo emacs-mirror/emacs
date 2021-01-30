@@ -29813,7 +29813,8 @@ produce_stretch_glyph (struct it *it)
 #endif	/* HAVE_WINDOW_SYSTEM */
     height = 1;
 
-  if (width > 0 && it->line_wrap != TRUNCATE
+  if (width > 0
+      && it->area == TEXT_AREA && it->line_wrap != TRUNCATE
       && it->current_x + width > it->last_visible_x)
     {
       width = it->last_visible_x - it->current_x;

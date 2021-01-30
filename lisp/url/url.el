@@ -156,16 +156,16 @@ If INHIBIT-COOKIES, cookies will neither be stored nor sent to
 the server.
 If URL is a multibyte string, it will be encoded as utf-8 and
 URL-encoded before it's used."
-;;; XXX: There is code in Emacs that does dynamic binding
-;;; of the following variables around url-retrieve:
-;;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
-;;; url-confirmation-func, url-cookie-multiple-line,
-;;; url-cookie-{{,secure-}storage,confirmation}
-;;; url-standalone-mode and url-gateway-unplugged should work as
-;;; usual.  url-confirmation-func is only used in nnwarchive.el and
-;;; webmail.el; the latter should be updated.  Is
-;;; url-cookie-multiple-line needed anymore?  The other url-cookie-*
-;;; are (for now) only used in synchronous retrievals.
+  ;; XXX: There is code in Emacs that does dynamic binding
+  ;; of the following variables around url-retrieve:
+  ;; url-standalone-mode, url-gateway-unplugged, w3-honor-stylesheets,
+  ;; url-confirmation-func, url-cookie-multiple-line,
+  ;; url-cookie-{{,secure-}storage,confirmation}
+  ;; url-standalone-mode and url-gateway-unplugged should work as
+  ;; usual.  url-confirmation-func is only used in nnwarchive.el and
+  ;; webmail.el; the latter should be updated.  Is
+  ;; url-cookie-multiple-line needed anymore?  The other url-cookie-*
+  ;; are (for now) only used in synchronous retrievals.
   (url-retrieve-internal url callback (cons nil cbargs) silent
 			 inhibit-cookies))
 
@@ -210,7 +210,7 @@ URL-encoded before it's used."
 	(asynch (url-scheme-get-property (url-type url) 'asynchronous-p)))
     (if url-using-proxy
 	(setq asynch t
-	      loader 'url-proxy))
+	      loader #'url-proxy))
     (if asynch
 	(let ((url-current-object url))
 	  (setq buffer (funcall loader url callback cbargs)))

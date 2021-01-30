@@ -1,4 +1,4 @@
-;;; url-about.el --- Show internal URLs
+;;; url-about.el --- Show internal URLs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001, 2004-2021 Free Software Foundation, Inc.
 
@@ -44,7 +44,7 @@
 
 (defvar url-scheme-registry)
 
-(defun url-about-protocols (url)
+(defun url-about-protocols (_url)
   (url-probe-protocols)
   (insert "<html>\n"
 	  " <head>\n"
@@ -73,13 +73,15 @@
 		    "ynchronous<br>\n"
 		    (if (url-scheme-get-property k 'default-port)
 			(format "Default Port: %d<br>\n"
-				(url-scheme-get-property k 'default-port)) "")
+				(url-scheme-get-property k 'default-port))
+		      "")
 		    (if (assoc k url-proxy-services)
 			(format "Proxy: %s<br>\n" (assoc k url-proxy-services)) ""))
 	    ;; Now the description...
 	    (insert "    <td valign=top>"
 		    (or (url-scheme-get-property k 'description) "N/A"))))
-	(sort (let (x) (maphash (lambda (k v) (push k x)) url-scheme-registry) x) 'string-lessp))
+	(sort (let (x) (maphash (lambda (k _v) (push k x)) url-scheme-registry) x)
+	      #'string-lessp))
   (insert "  </table>\n"
 	  " </body>\n"
 	  "</html>\n"))

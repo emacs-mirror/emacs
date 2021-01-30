@@ -1,4 +1,4 @@
-;;; helper.el --- utility help package supporting help in electric modes
+;;; helper.el --- utility help package supporting help in electric modes  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 2001-2021 Free Software Foundation, Inc.
 
@@ -39,20 +39,19 @@
 ;; keymap either.
 
 
-(defvar Helper-help-map nil)
-(if Helper-help-map
-    nil
-  (setq Helper-help-map (make-keymap))
-  ;(fillarray Helper-help-map 'undefined)
-  (define-key Helper-help-map "m" 'Helper-describe-mode)
-  (define-key Helper-help-map "b" 'Helper-describe-bindings)
-  (define-key Helper-help-map "c" 'Helper-describe-key-briefly)
-  (define-key Helper-help-map "k" 'Helper-describe-key)
-  ;(define-key Helper-help-map "f" 'Helper-describe-function)
-  ;(define-key Helper-help-map "v" 'Helper-describe-variable)
-  (define-key Helper-help-map "?" 'Helper-help-options)
-  (define-key Helper-help-map (char-to-string help-char) 'Helper-help-options)
-  (fset 'Helper-help-map Helper-help-map))
+(defvar Helper-help-map
+  (let ((map (make-sparse-keymap)))
+  ;(fillarray map 'undefined)
+  (define-key map "m" 'Helper-describe-mode)
+  (define-key map "b" 'Helper-describe-bindings)
+  (define-key map "c" 'Helper-describe-key-briefly)
+  (define-key map "k" 'Helper-describe-key)
+  ;(define-key map "f" 'Helper-describe-function)
+  ;(define-key map "v" 'Helper-describe-variable)
+  (define-key map "?" 'Helper-help-options)
+  (define-key map (char-to-string help-char) 'Helper-help-options)
+  (fset 'Helper-help-map map)
+  map))
 
 (defun Helper-help-scroller ()
   (let ((blurb (or (and (boundp 'Helper-return-blurb)

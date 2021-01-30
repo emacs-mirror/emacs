@@ -1,4 +1,4 @@
-;;; quail.el --- provides simple input method for multilingual text
+;;; quail.el --- provides simple input method for multilingual text  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1998, 2000-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
@@ -1046,7 +1046,7 @@ the following annotation types are supported.
 	   (quail-install-decode-map ',decode-map))))))
 
 ;;;###autoload
-(defun quail-install-map (map &optional name)
+(defun quail-install-map (map &optional _name)
   "Install the Quail map MAP in the current Quail package.
 
 Optional 2nd arg NAME, if non-nil, is a name of Quail package for
@@ -1060,7 +1060,7 @@ The installed map can be referred by the function `quail-map'."
   (setcar (cdr (cdr quail-current-package)) map))
 
 ;;;###autoload
-(defun quail-install-decode-map (decode-map &optional name)
+(defun quail-install-decode-map (decode-map &optional _name)
   "Install the Quail decode map DECODE-MAP in the current Quail package.
 
 Optional 2nd arg NAME, if non-nil, is a name of Quail package for
@@ -1390,7 +1390,7 @@ Return the input string."
       (let* ((echo-keystrokes 0)
 	     (help-char nil)
 	     (overriding-terminal-local-map (quail-translation-keymap))
-	     (generated-events nil)     ;FIXME: What is this?
+	     ;; (generated-events nil)     ;FIXME: What is this?
 	     (input-method-function nil)
 	     (modified-p (buffer-modified-p))
 	     last-command-event last-command this-command inhibit-record)
@@ -1455,7 +1455,7 @@ Return the input string."
       (let* ((echo-keystrokes 0)
 	     (help-char nil)
 	     (overriding-terminal-local-map (quail-conversion-keymap))
-	     (generated-events nil)     ;FIXME: What is this?
+	     ;; (generated-events nil)     ;FIXME: What is this?
 	     (input-method-function nil)
 	     (modified-p (buffer-modified-p))
 	     last-command-event last-command this-command inhibit-record)
@@ -2452,7 +2452,7 @@ should be made by `quail-build-decode-map' (which see)."
               (insert-char ?- single-trans-width)
               (forward-line 1)
               ;; Insert the key-tran pairs.
-              (dotimes (row rows)
+              (dotimes (_ rows)
                 (let ((elt (pop single-list)))
                   (when elt
                     (move-to-column col)
@@ -2625,12 +2625,14 @@ KEY BINDINGS FOR CONVERSION
 	(run-hooks 'temp-buffer-show-hook)))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)
+  (defvar the-keymap)
   (let ((pos1 (point))
+        (the-keymap keymap)
         pos2)
     (if header
 	(insert header))
     (save-excursion
-      (insert (substitute-command-keys "\\{keymap}")))
+      (insert (substitute-command-keys "\\{the-keymap}")))
     ;; Skip headers "key bindings", etc.
     (forward-line 3)
     (setq pos2 (point))
@@ -3011,7 +3013,7 @@ of each directory."
 
     ;; At first, clean up the file.
     (with-current-buffer list-buf
-      (goto-char 1)
+      (goto-char (point-min))
 
       ;; Insert the correct header.
       (if (looking-at (regexp-quote leim-list-header))

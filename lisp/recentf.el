@@ -1352,7 +1352,14 @@ That is, remove duplicates, non-kept, and excluded files."
 
 When Recentf mode is enabled, a \"Open Recent\" submenu is
 displayed in the \"File\" menu, containing a list of files that
-were operated on recently, in the most-recently-used order."
+were operated on recently, in the most-recently-used order.
+
+By default, only operations like opening a file, writing a buffer
+to a file, and killing a buffer is counted as \"operating\" on
+the file.  If instead you want to prioritize files that appear in
+buffers you switch to a lot, you can say something like the following:
+
+  (add-hook 'buffer-list-update-hook 'recentf-track-opened-file)"
   :global t
   :group 'recentf
   :keymap recentf-mode-map

@@ -1,4 +1,4 @@
-;;; compose.el --- Quail package for Multi_key character composition -*-coding: utf-8;-*-
+;;; compose.el --- Quail package for Multi_key character composition -*-coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 

@@ -1136,11 +1136,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
                       (if penbl "linespoints" "lines")
                     (if penbl "points" "dots"))))
         (if (and pstyle (> pstyle 0))
-            (insert " "
+            (insert " ls "
                     (if (and lstyle (> lstyle 0)) (int-to-string lstyle) "1")
-                    " " (int-to-string pstyle))
+                    " ps " (int-to-string pstyle))
           (if (and lstyle (> lstyle 0))
-              (insert " " (int-to-string lstyle)))))))
+              (insert " ls " (int-to-string lstyle)))))))
   (calc-graph-view-commands))
 
 (defun calc-graph-zero-x (flag)

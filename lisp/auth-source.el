@@ -588,7 +588,7 @@ Here's an example:
 \(let ((auth-source-creation-defaults \\='((user . \"defaultUser\")
                                         (A    . \"default A\")))
        (auth-source-creation-prompts
-        \\='((password . \"Enter IMAP password for %h:%p: \"))))
+        \\='((secret . \"Enter IMAP password for %h:%p: \"))))
   (auth-source-search :host \\='(\"nonesuch\" \"twosuch\") :type \\='netrc :max 1
                       :P \"pppp\" :Q \"qqqq\"
                       :create \\='(A B Q)))

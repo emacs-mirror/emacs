@@ -3543,6 +3543,13 @@ DEFUN ("frame-fringe-width", Ffringe_width, Sfringe_width, 0, 1, 0,
   return make_fixnum (FRAME_TOTAL_FRINGE_WIDTH (decode_any_frame (frame)));
 }
 
+DEFUN ("frame-child-frame-border-width", Fframe_child_frame_border_width, Sframe_child_frame_border_width, 0, 1, 0,
+       doc: /* Return width of FRAME's child-frame border in pixels.  */)
+  (Lisp_Object frame)
+{
+  return make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (decode_any_frame (frame)));
+}
+
 DEFUN ("frame-internal-border-width", Fframe_internal_border_width, Sframe_internal_border_width, 0, 1, 0,
        doc: /* Return width of FRAME's internal border in pixels.  */)
   (Lisp_Object frame)
@@ -3759,6 +3766,7 @@ static const struct frame_parm_table frame_parms[] =
   {"foreground-color",		-1},
   {"icon-name",			SYMBOL_INDEX (Qicon_name)},
   {"icon-type",			SYMBOL_INDEX (Qicon_type)},
+  {"child-frame-border-width",	SYMBOL_INDEX (Qchild_frame_border_width)},
   {"internal-border-width",	SYMBOL_INDEX (Qinternal_border_width)},
   {"right-divider-width",	SYMBOL_INDEX (Qright_divider_width)},
   {"bottom-divider-width",	SYMBOL_INDEX (Qbottom_divider_width)},
@@ -4302,6 +4310,8 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 
   store_in_alist (alistptr, Qborder_width,
 		  make_fixnum (f->border_width));
+  store_in_alist (alistptr, Qchild_frame_border_width,
+		  make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (f)));
   store_in_alist (alistptr, Qinternal_border_width,
 		  make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (f)));
   store_in_alist (alistptr, Qright_divider_width,
@@ -5999,6 +6009,7 @@ syms_of_frame (void)
   DEFSYM (Qhorizontal_scroll_bars, "horizontal-scroll-bars");
   DEFSYM (Qicon_name, "icon-name");
   DEFSYM (Qicon_type, "icon-type");
+  DEFSYM (Qchild_frame_border_width, "child-frame-border-width");
   DEFSYM (Qinternal_border_width, "internal-border-width");
   DEFSYM (Qleft_fringe, "left-fringe");
   DEFSYM (Qline_spacing, "line-spacing");
@@ -6423,6 +6434,7 @@ iconify the top level frame instead.  */);
   defsubr (&Sscroll_bar_width);
   defsubr (&Sscroll_bar_height);
   defsubr (&Sfringe_width);
+  defsubr (&Sframe_child_frame_border_width);
   defsubr (&Sframe_internal_border_width);
   defsubr (&Sright_divider_width);
   defsubr (&Sbottom_divider_width);

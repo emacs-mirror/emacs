@@ -56,12 +56,14 @@ to invoke `tmm-menubar' instead, customize the variable
 `tty-menu-open-use-tmm' to a non-nil value."
   (interactive)
   (run-hooks 'menu-bar-update-hook)
-  (let ((menu-bar (menu-bar-keymap))
-        (menu-bar-item-cons (and x-position
-                                 (menu-bar-item-at-x x-position))))
-    (tmm-prompt menu-bar
-                nil
-                (and menu-bar-item-cons (car menu-bar-item-cons)))))
+  (if isearch-mode
+      (isearch-tmm-menubar)
+    (let ((menu-bar (menu-bar-keymap))
+          (menu-bar-item-cons (and x-position
+                                   (menu-bar-item-at-x x-position))))
+      (tmm-prompt menu-bar
+                  nil
+                  (and menu-bar-item-cons (car menu-bar-item-cons))))))
 
 ;;;###autoload
 (defun tmm-menubar-mouse (event)
