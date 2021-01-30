@@ -101,8 +101,7 @@
     (push
      `((lambda ()
          (when (gnus-buffer-live-p ,gnus-summary-buffer)
-	   (save-excursion
-	     (set-buffer ,gnus-summary-buffer)
+	   (with-current-buffer ,gnus-summary-buffer
 	     (gnus-cache-possibly-remove-article ,article nil nil nil t)))))
      message-send-actions)))
 

@@ -383,9 +383,8 @@ all.  This may very well take some time.")
 ;; current folder.
 
 (defun nnfolder-existing-articles ()
-  (save-excursion
-    (when nnfolder-current-buffer
-      (set-buffer nnfolder-current-buffer)
+  (when nnfolder-current-buffer
+    (with-current-buffer nnfolder-current-buffer
       (goto-char (point-min))
       (let ((marker (concat "\n" nnfolder-article-marker))
 	    (number "[0-9]+")

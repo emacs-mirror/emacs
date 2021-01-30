@@ -207,9 +207,8 @@
    (file-name-directory nnmbox-mbox-file)
    group
    (lambda ()
-     (save-excursion
-       (let ((in-buf (current-buffer)))
-	 (set-buffer nnmbox-mbox-buffer)
+     (let ((in-buf (current-buffer)))
+       (with-current-buffer nnmbox-mbox-buffer
 	 (goto-char (point-max))
 	 (insert-buffer-substring in-buf)))
      (nnmbox-save-active nnmbox-group-alist nnmbox-active-file))))
@@ -622,16 +621,15 @@
 	   (with-current-buffer nnmbox-mbox-buffer
 	     (= (buffer-size) (nnheader-file-size nnmbox-mbox-file))))
       ()
-    (save-excursion
-      (let ((delim (concat "^" message-unix-mail-delimiter))
-	    (alist nnmbox-group-alist)
-	    (nnmbox-group-building-active-articles t)
-	    start end end-header number)
-	(set-buffer (setq nnmbox-mbox-buffer
-			  (let ((nnheader-file-coding-system
-				 nnmbox-file-coding-system))
-			    (nnheader-find-file-noselect
-			     nnmbox-mbox-file t t))))
+    (let ((delim (concat "^" message-unix-mail-delimiter))
+          (alist nnmbox-group-alist)
+          (nnmbox-group-building-active-articles t)
+          start end end-header number)
+      (with-current-buffer (setq nnmbox-mbox-buffer
+                                 (let ((nnheader-file-coding-system
+                                        nnmbox-file-coding-system))
+                                   (nnheader-find-file-noselect
+                                    nnmbox-mbox-file t t)))
 	(mm-enable-multibyte)
 	(buffer-disable-undo)
 	(gnus-add-buffer)

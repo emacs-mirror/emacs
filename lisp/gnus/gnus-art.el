@@ -7151,13 +7151,11 @@ If given a prefix, show the hidden text instead."
       (when (and do-update-line
 		 (or (numberp article)
 		     (stringp article)))
-	(let ((buf (current-buffer)))
-	  (set-buffer gnus-summary-buffer)
+	(with-current-buffer gnus-summary-buffer
 	  (gnus-summary-update-article do-update-line sparse-header)
 	  (gnus-summary-goto-subject do-update-line nil t)
 	  (set-window-point (gnus-get-buffer-window (current-buffer) t)
-			    (point))
-	  (set-buffer buf))))))
+			    (point)))))))
 
 (defun gnus-block-private-groups (group)
   "Allows images in newsgroups to be shown, blocks images in all
@@ -7351,8 +7349,7 @@ groups."
 	(gnus-article-mode)
 	(set-window-configuration winconf)
 	;; Tippy-toe some to make sure that point remains where it was.
-	(save-current-buffer
-	  (set-buffer curbuf)
+	(with-current-buffer curbuf
 	  (set-window-start (get-buffer-window (current-buffer)) window-start)
 	  (goto-char p))))
     (gnus-summary-show-article)))

@@ -146,7 +146,7 @@ Return a list of updated types."
     (while (setq type (pop types))
       ;; Jump to the proper buffer to find out the value of the
       ;; variable, if possible.  (It may be buffer-local.)
-      (save-excursion
+      (save-current-buffer
 	(let ((buffer (intern (format "gnus-%s-buffer" type))))
 	  (when (and (boundp buffer)
 		     (setq val (symbol-value buffer))

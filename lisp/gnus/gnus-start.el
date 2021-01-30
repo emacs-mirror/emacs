@@ -843,8 +843,7 @@ prompt the user for the name of an NNTP server to use."
 If REGEXP is given, lines that match it will be deleted."
   (when (and (not gnus-dribble-ignore)
              (buffer-live-p gnus-dribble-buffer))
-    (let ((obuf (current-buffer)))
-      (set-buffer gnus-dribble-buffer)
+    (with-current-buffer gnus-dribble-buffer
       (when regexp
 	(goto-char (point-min))
 	(let (end)
@@ -859,8 +858,7 @@ If REGEXP is given, lines that match it will be deleted."
       (insert (replace-regexp-in-string "\n" "\\\\n" string) "\n")
       (bury-buffer gnus-dribble-buffer)
       (with-current-buffer gnus-group-buffer
-	(gnus-group-set-mode-line))
-      (set-buffer obuf))))
+	(gnus-group-set-mode-line)))))
 
 (defun gnus-dribble-touch ()
   "Touch the dribble buffer."
@@ -916,9 +914,8 @@ If REGEXP is given, lines that match it will be deleted."
 (defun gnus-dribble-eval-file ()
   (when gnus-dribble-eval-file
     (setq gnus-dribble-eval-file nil)
-    (save-excursion
-      (let ((gnus-dribble-ignore t))
-	(set-buffer gnus-dribble-buffer)
+    (let ((gnus-dribble-ignore t))
+      (with-current-buffer gnus-dribble-buffer
 	(eval-buffer (current-buffer))))))
 
 (defun gnus-dribble-delete-file ()
@@ -1187,10 +1184,9 @@ for new groups, and subscribe the new groups as zombies."
 	    gnus-override-subscribe-method method)
       (when (and (gnus-check-server method)
 		 (gnus-request-newgroups date method))
-	(save-excursion
-	  (setq got-new t
-		hashtb (gnus-make-hashtable 100))
-	  (set-buffer nntp-server-buffer)
+        (setq got-new t
+              hashtb (gnus-make-hashtable 100))
+	(with-current-buffer nntp-server-buffer
 	  ;; Enter all the new groups into a hashtable.
 	  (gnus-active-to-gnus-format method hashtb 'ignore))
 	;; Now all new groups from `method' are in `hashtb'.
@@ -2250,9 +2246,8 @@ If FORCE is non-nil, the .newsrc file is read."
 	;; can find there for changing the data already read -
 	;; i. e., reading the .newsrc file will not trash the data
 	;; already read (except for read articles).
-	(save-excursion
-	  (gnus-message 5 "Reading %s..." newsrc-file)
-	  (set-buffer (nnheader-find-file-noselect newsrc-file))
+        (gnus-message 5 "Reading %s..." newsrc-file)
+	(with-current-buffer (nnheader-find-file-noselect newsrc-file)
 	  (buffer-disable-undo)
 	  (gnus-newsrc-to-gnus-format)
 	  (kill-buffer (current-buffer))
@@ -3102,50 +3097,49 @@ SPECIFIC-VARIABLES, or those in `gnus-variable-list'."
       (gnus-message 1 "Couldn't read newsgroups descriptions")
       nil)
      (t
-      (save-excursion
-        ;; FIXME: Shouldn't save-restriction be done after set-buffer?
-	(save-restriction
-	  (set-buffer nntp-server-buffer)
-	  (goto-char (point-min))
-	  (when (or (search-forward "\n.\n" nil t)
-		    (goto-char (point-max)))
-	    (beginning-of-line)
-	    (narrow-to-region (point-min) (point)))
-	  ;; If these are groups from a foreign select method, we insert the
-	  ;; group prefix in front of the group names.
-	  (and method (not (inline
-			     (gnus-server-equal
-			      (gnus-server-get-method nil method)
-			      (gnus-server-get-method
-			       nil gnus-select-method))))
-	       (let ((prefix (gnus-group-prefixed-name "" method)))
-		 (goto-char (point-min))
-		 (while (and (not (eobp))
-			     (progn (insert prefix)
-				    (zerop (forward-line 1)))))))
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (setq group
-		  (condition-case ()
-		      (read nntp-server-buffer)
-		    (error nil)))
-	    (skip-chars-forward " \t")
-	    (when group
-	      (setq group (if (numberp group)
-			      (number-to-string group)
-			    (symbol-name group)))
-	      (let* ((str (buffer-substring
-			   (point) (progn (end-of-line) (point))))
-		     (charset
-		      (or (gnus-group-name-charset method group)
-			  (gnus-parameter-charset group)
-			  gnus-default-charset)))
-		;; Fixme: Don't decode in unibyte mode.
-		;; Double fixme: We're not in unibyte mode, are we?
-		(when (and str charset)
-		  (setq str (decode-coding-string str charset)))
-		(puthash group str gnus-description-hashtb)))
-	    (forward-line 1))))
+      (with-current-buffer nntp-server-buffer
+	(save-excursion ;;FIXME: Not sure if it's needed!
+	  (save-restriction
+	    (goto-char (point-min))
+	    (when (or (search-forward "\n.\n" nil t)
+		      (goto-char (point-max)))
+	      (beginning-of-line)
+	      (narrow-to-region (point-min) (point)))
+	    ;; If these are groups from a foreign select method, we insert the
+	    ;; group prefix in front of the group names.
+	    (and method (not (inline
+			       (gnus-server-equal
+			        (gnus-server-get-method nil method)
+			        (gnus-server-get-method
+			         nil gnus-select-method))))
+		 (let ((prefix (gnus-group-prefixed-name "" method)))
+		   (goto-char (point-min))
+		   (while (and (not (eobp))
+			       (progn (insert prefix)
+				      (zerop (forward-line 1)))))))
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (setq group
+		    (condition-case ()
+		        (read nntp-server-buffer)
+		      (error nil)))
+	      (skip-chars-forward " \t")
+	      (when group
+		(setq group (if (numberp group)
+			        (number-to-string group)
+			      (symbol-name group)))
+		(let* ((str (buffer-substring
+			     (point) (progn (end-of-line) (point))))
+		       (charset
+			(or (gnus-group-name-charset method group)
+			    (gnus-parameter-charset group)
+			    gnus-default-charset)))
+		  ;; Fixme: Don't decode in unibyte mode.
+		  ;; Double fixme: We're not in unibyte mode, are we?
+		  (when (and str charset)
+		    (setq str (decode-coding-string str charset)))
+		  (puthash group str gnus-description-hashtb)))
+	      (forward-line 1)))))
       (gnus-message 5 "Reading descriptions file...done")
       t))))
 

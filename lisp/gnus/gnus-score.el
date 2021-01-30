@@ -1818,45 +1818,44 @@ score in `gnus-newsgroup-scored' by SCORE."
 	handles))))
 
 (defun gnus-score-body (scores header now expire &optional trace)
-    (if gnus-agent-fetching
-       nil
-     (save-excursion
-       (setq gnus-scores-articles
-             (sort gnus-scores-articles
-                   (lambda (a1 a2)
-                     (< (mail-header-number (car a1))
-                        (mail-header-number (car a2))))))
-       (set-buffer nntp-server-buffer)
-       (save-restriction
-         (let* ((buffer-read-only nil)
-                (articles gnus-scores-articles)
-                (all-scores scores)
-                (request-func (cond ((string= "head" header)
-                                     'gnus-request-head)
-                                    ((string= "body" header)
-                                     'gnus-request-body)
-                                    (t 'gnus-request-article)))
-                entries alist ofunc article last)
-           (when articles
-             (setq last (mail-header-number (caar (last articles))))
-             ;; Not all backends support partial fetching.  In that case,
-             ;; we just fetch the entire article.
-             ;; When scoring by body, we need to peek at the headers to detect
-             ;; the content encoding
-             (unless (or (gnus-check-backend-function
-                          (and (string-match "^gnus-" (symbol-name request-func))
-                               (intern (substring (symbol-name request-func)
-                                                  (match-end 0))))
-                          gnus-newsgroup-name)
-                         (string= "body" header))
-               (setq ofunc request-func)
-               (setq request-func 'gnus-request-article))
-             (while articles
-               (setq article (mail-header-number (caar articles)))
-               (gnus-message 7 "Scoring article %s of %s..." article last)
-               (widen)
-               (let (handles)
-                 (when (funcall request-func article gnus-newsgroup-name)
+  (if gnus-agent-fetching
+      nil
+    (setq gnus-scores-articles
+          (sort gnus-scores-articles
+                (lambda (a1 a2)
+                  (< (mail-header-number (car a1))
+                     (mail-header-number (car a2))))))
+    (with-current-buffer nntp-server-buffer
+      (save-restriction
+        (let* ((buffer-read-only nil)
+               (articles gnus-scores-articles)
+               (all-scores scores)
+               (request-func (cond ((string= "head" header)
+                                    'gnus-request-head)
+                                   ((string= "body" header)
+                                    'gnus-request-body)
+                                   (t 'gnus-request-article)))
+               entries alist ofunc article last)
+          (when articles
+            (setq last (mail-header-number (caar (last articles))))
+            ;; Not all backends support partial fetching.  In that case,
+            ;; we just fetch the entire article.
+            ;; When scoring by body, we need to peek at the headers to detect
+            ;; the content encoding
+            (unless (or (gnus-check-backend-function
+                         (and (string-match "^gnus-" (symbol-name request-func))
+                              (intern (substring (symbol-name request-func)
+                                                 (match-end 0))))
+                         gnus-newsgroup-name)
+                        (string= "body" header))
+              (setq ofunc request-func)
+              (setq request-func 'gnus-request-article))
+            (while articles
+              (setq article (mail-header-number (caar articles)))
+              (gnus-message 7 "Scoring article %s of %s..." article last)
+              (widen)
+              (let (handles)
+                (when (funcall request-func article gnus-newsgroup-name)
                   (when (string= "body" header)
                     (setq handles (gnus-score-decode-text-parts)))
                   (goto-char (point-min))
@@ -1921,8 +1920,8 @@ score in `gnus-newsgroup-scored' by SCORE."
                             (setq rest entries))))
                         (setq entries rest))))
                   (when handles (mm-destroy-parts handles))))
-               (setq articles (cdr articles)))))))
-     nil))
+              (setq articles (cdr articles)))))))
+    nil))
 
 (defun gnus-score-thread (scores header now expire &optional trace)
   (gnus-score-followup scores header now expire trace t))

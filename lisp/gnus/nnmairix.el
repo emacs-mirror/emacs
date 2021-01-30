@@ -757,10 +757,9 @@ called interactively, user will be asked for parameters."
   (when (not (listp query))
     (setq query (list query)))
   (when (and server group query)
-    (save-excursion
-      (let ((groupname (gnus-group-prefixed-name group server))
-	    info)
-	(set-buffer gnus-group-buffer)
+    (let ((groupname (gnus-group-prefixed-name group server))
+          ) ;; info
+      (with-current-buffer gnus-group-buffer
 	(gnus-group-make-group group server)
 	(gnus-group-set-parameter groupname 'query  query)
 	(gnus-group-set-parameter groupname 'threads threads)

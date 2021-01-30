@@ -256,11 +256,10 @@ from the document.")
 
 (deffoo nndoc-request-article (article &optional newsgroup server buffer)
   (nndoc-possibly-change-buffer newsgroup server)
-  (save-excursion
-    (let ((buffer (or buffer nntp-server-buffer))
-	  (entry (cdr (assq article nndoc-dissection-alist)))
-	  beg)
-      (set-buffer buffer)
+  (let ((buffer (or buffer nntp-server-buffer))
+        (entry (cdr (assq article nndoc-dissection-alist)))
+        beg)
+    (with-current-buffer buffer
       (erase-buffer)
       (when entry
 	(cond

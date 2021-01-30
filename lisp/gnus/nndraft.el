@@ -322,12 +322,10 @@ are generated if and only if they are also in `message-draft-headers'."
 	 args))
 
 (defun nndraft-auto-save-file-name (file)
-  (save-excursion
+  (with-current-buffer (gnus-get-buffer-create " *draft tmp*")
+    (setq buffer-file-name file)
     (prog1
-	(progn
-	  (set-buffer (gnus-get-buffer-create " *draft tmp*"))
-	  (setq buffer-file-name file)
-	  (make-auto-save-file-name))
+        (make-auto-save-file-name)
       (kill-buffer (current-buffer)))))
 
 (defun nndraft-articles ()

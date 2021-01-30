@@ -554,13 +554,12 @@
 	       (with-current-buffer nnbabyl-mbox-buffer
 		 (= (buffer-size) (nnheader-file-size nnbabyl-mbox-file))))
     ;; This buffer has changed since we read it last.  Possibly.
-    (save-excursion
-      (let ((delim (concat "^" nnbabyl-mail-delimiter))
-	    (alist nnbabyl-group-alist)
-	    start end number)
-	(set-buffer (setq nnbabyl-mbox-buffer
-			  (nnheader-find-file-noselect
-			   nnbabyl-mbox-file nil t)))
+    (let ((delim (concat "^" nnbabyl-mail-delimiter))
+          (alist nnbabyl-group-alist)
+          start end number)
+      (with-current-buffer (setq nnbabyl-mbox-buffer
+                                 (nnheader-find-file-noselect
+                                  nnbabyl-mbox-file nil t))
 	;; Save previous buffer mode.
 	(setq nnbabyl-previous-buffer-mode
 	      (cons (cons (point-min) (point-max))
