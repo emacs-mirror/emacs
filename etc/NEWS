@@ -2017,6 +2017,9 @@ directory instead of the default directory.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+** 'completions-annotations' face is not used when the caller puts own face.
+This affects the suffix specified by completion 'annotation-function'.
+
 ** 'set-process-buffer' now updates the process mark.
 The mark will be set to point to the end of the new buffer.
 
