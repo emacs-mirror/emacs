@@ -135,42 +135,35 @@ whether a buffer contains spam or not."
 (defcustom spam-stat-file "~/.spam-stat.el"
   "File used to save and load the dictionary.
 See `spam-stat-to-hash-table' for the format of the file."
-  :type 'file
-  :group 'spam-stat)
+  :type 'file)
 
 (defcustom spam-stat-unknown-word-score 0.2
   "The score to use for unknown words.
 Also used for words that don't appear often enough."
-  :type 'number
-  :group 'spam-stat)
+  :type 'number)
 
 (defcustom spam-stat-max-word-length 15
   "Only words shorter than this will be considered."
-  :type 'integer
-  :group 'spam-stat)
+  :type 'integer)
 
 (defcustom spam-stat-max-buffer-length 10240
   "Only the beginning of buffers will be analyzed.
 This variable says how many characters this will be."
-  :type 'integer
-  :group 'spam-stat)
+  :type 'integer)
 
 (defcustom spam-stat-split-fancy-spam-group "mail.spam"
   "Name of the group where spam should be stored.
 If `spam-stat-split-fancy' is used in fancy splitting rules.  Has
 no effect when spam-stat is invoked through spam.el."
-  :type 'string
-  :group 'spam-stat)
+  :type 'string)
 
 (defcustom spam-stat-split-fancy-spam-threshold 0.9
   "Spam score threshold in spam-stat-split-fancy."
-  :type 'number
-  :group 'spam-stat)
+  :type 'number)
 
 (defcustom spam-stat-washing-hook nil
   "Hook applied to each message before analysis."
-  :type 'hook
-  :group 'spam-stat)
+  :type 'hook)
 
 (defcustom spam-stat-score-buffer-user-functions nil
   "List of additional scoring functions.
@@ -187,8 +180,7 @@ Also be careful when defining such functions.  If they take a long
 time, they will slow down your mail splitting.  Thus, if the buffer is
 large, don't forget to use smaller regions, by wrapping your work in,
 say, `with-spam-stat-max-buffer-size'."
-  :type '(repeat sexp)
-  :group 'spam-stat)
+  :type '(repeat sexp))
 
 (defcustom spam-stat-process-directory-age 90
   "Max. age of files to be processed in directory, in days.
@@ -197,8 +189,7 @@ When using `spam-stat-process-spam-directory' or
 been touched in this many days will be considered.  Without
 this filter, re-training spam-stat with several thousand messages
 will start to take a very long time."
-  :type 'number
-  :group 'spam-stat)
+  :type 'number)
 
 (defvar spam-stat-last-saved-at nil
   "Time stamp of last change of spam-stat-file on this run")

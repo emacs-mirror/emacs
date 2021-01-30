@@ -56,7 +56,6 @@
   "Where the mail backends will look for incoming mail.
 This variable is a list of mail source specifiers.
 See Info node `(gnus)Mail Source Specifiers'."
-  :group 'mail-source
   :version "24.4"
   :link '(custom-manual "(gnus)Mail Source Specifiers")
   :type `(choice
@@ -230,33 +229,27 @@ Leave mails for this many days" :value 14)))))
 If nil, the user will be prompted when an error occurs.  If non-nil,
 the error will be ignored."
   :version "22.1"
-  :group 'mail-source
   :type 'boolean)
 
 (defcustom mail-source-primary-source nil
   "Primary source for incoming mail.
 If non-nil, this maildrop will be checked periodically for new mail."
-  :group 'mail-source
   :type 'sexp)
 
 (defcustom mail-source-flash t
   "If non-nil, flash periodically when mail is available."
-  :group 'mail-source
   :type 'boolean)
 
 (defcustom mail-source-crash-box "~/.emacs-mail-crash-box"
   "File where mail will be stored while processing it."
-  :group 'mail-source
   :type 'file)
 
 (defcustom mail-source-directory message-directory
   "Directory where incoming mail source files (if any) will be stored."
-  :group 'mail-source
   :type 'directory)
 
 (defcustom mail-source-default-file-modes 384
   "Set the mode bits of all new mail files to this integer."
-  :group 'mail-source
   :type 'integer)
 
 (defcustom mail-source-delete-incoming
@@ -270,7 +263,6 @@ Removing of old files happens in `mail-source-callback', i.e. no
 old incoming files will be deleted unless you receive new mail.
 You may also set this variable to nil and call
 `mail-source-delete-old-incoming' interactively."
-  :group 'mail-source
   :version "22.2" ;; No Gnus / Gnus 5.10.10 (default changed)
   :type '(choice (const :tag "immediately" t)
 		 (const :tag "never" nil)
@@ -281,28 +273,23 @@ You may also set this variable to nil and call
 This variable only applies when `mail-source-delete-incoming' is a positive
 number."
   :version "22.2" ;; No Gnus / Gnus 5.10.10 (default changed)
-  :group 'mail-source
   :type 'boolean)
 
 (defcustom mail-source-incoming-file-prefix "Incoming"
   "Prefix for file name for storing incoming mail."
-  :group 'mail-source
   :type 'string)
 
 (defcustom mail-source-report-new-mail-interval 5
   "Interval in minutes between checks for new mail."
-  :group 'mail-source
   :type 'number)
 
 (defcustom mail-source-idle-time-delay 5
   "Number of idle seconds to wait before checking for new mail."
-  :group 'mail-source
   :type 'number)
 
 (defcustom mail-source-movemail-program "movemail"
   "If non-nil, name of program for fetching new mail."
   :version "26.2"
-  :group 'mail-source
   :type '(choice (const nil) string))
 
 ;;; Internal variables.

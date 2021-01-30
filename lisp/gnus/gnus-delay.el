@@ -44,24 +44,20 @@
 
 (defcustom gnus-delay-group "delayed"
   "Group name for storing delayed articles."
-  :type 'string
-  :group 'gnus-delay)
+  :type 'string)
 
 (defcustom gnus-delay-header "X-Gnus-Delayed"
   "Header name for storing info about delayed articles."
-  :type 'string
-  :group 'gnus-delay)
+  :type 'string)
 
 (defcustom gnus-delay-default-delay "3d"
   "Default length of delay."
-  :type 'string
-  :group 'gnus-delay)
+  :type 'string)
 
 (defcustom gnus-delay-default-hour 8
   "If deadline is given as date, then assume this time of day."
   :version "22.1"
-  :type 'integer
-  :group 'gnus-delay)
+  :type 'integer)
 
 ;;;###autoload
 (defun gnus-delay-article (delay)

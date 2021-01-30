@@ -43,8 +43,7 @@
 
 (defcustom gnus-topic-mode-hook nil
   "Hook run in topic mode buffers."
-  :type 'hook
-  :group 'gnus-topic)
+  :type 'hook)
 
 (defcustom gnus-topic-line-format "%i[ %(%{%n%}%) -- %A ]%v\n"
   "Format of topic lines.
@@ -61,18 +60,15 @@ with some simple extensions.
 General format specifiers can also be used.
 See Info node `(gnus)Formatting Variables'."
   :link '(custom-manual "(gnus)Formatting Variables")
-  :type 'string
-  :group 'gnus-topic)
+  :type 'string)
 
 (defcustom gnus-topic-indent-level 2
   "How much each subtopic should be indented."
-  :type 'integer
-  :group 'gnus-topic)
+  :type 'integer)
 
 (defcustom gnus-topic-display-empty-topics t
   "If non-nil, display the topic lines even of topics that have no unread articles."
-  :type 'boolean
-  :group 'gnus-topic)
+  :type 'boolean)
 
 ;; Internal variables.
 

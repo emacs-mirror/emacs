@@ -143,8 +143,7 @@ textual parts.")
 (defcustom nnimap-request-articles-find-limit nil
   "Limit the number of articles to look for after moving an article."
   :type '(choice (const nil) integer)
-  :version "24.4"
-  :group 'nnimap)
+  :version "24.4")
 
 (define-obsolete-variable-alias
   'nnimap-split-download-body-default 'nnimap-split-download-body

@@ -219,20 +219,17 @@ server will be this prefix plus a random number.  You can delete
 unused nnmairix groups on the back end using
 `nnmairix-purge-old-groups'."
   :version "23.1"
-  :type 'string
-  :group 'nnmairix)
+  :type 'string)
 
 (defcustom nnmairix-mairix-output-buffer "*mairix output*"
   "Buffer used for mairix output."
   :version "23.1"
-  :type 'string
-  :group 'nnmairix)
+  :type 'string)
 
 (defcustom nnmairix-customize-query-buffer "*mairix query*"
   "Name of the buffer for customizing Mairix queries."
   :version "23.1"
-  :type 'string
-  :group 'nnmairix)
+  :type 'string)
 
 (defcustom nnmairix-mairix-update-options '("-F" "-Q")
   "Options when calling mairix for updating the database.
@@ -240,21 +237,18 @@ The default is \"-F\" and \"-Q\" for making updates faster.  You
 should call mairix without these options from time to
 time (e.g. via cron job)."
   :version "23.1"
-  :type '(repeat string)
-  :group 'nnmairix)
+  :type '(repeat string))
 
 (defcustom nnmairix-mairix-search-options '("-Q")
   "Options when calling mairix for searching.
 The default is \"-Q\" for making searching faster."
   :version "23.1"
-  :type '(repeat string)
-  :group 'nnmairix)
+  :type '(repeat string))
 
 (defcustom nnmairix-mairix-synchronous-update nil
   "Set this to t if you want Emacs to wait for mairix updating the database."
   :version "23.1"
-  :type 'boolean
-  :group 'nnmairix)
+  :type 'boolean)
 
 (defcustom nnmairix-rename-files-for-nnml t
   "Rename nnml mail files so that they are consecutively numbered.
@@ -263,8 +257,7 @@ article numbers which will produce wrong article counts by
 Gnus.  This option controls whether nnmairix should rename the
 files consecutively."
   :version "23.1"
-  :type 'boolean
-  :group 'nnmairix)
+  :type 'boolean)
 
 (defcustom nnmairix-widget-fields-list
   '(("from" "f" "From") ("to" "t" "To") ("cc" "c" "Cc")
@@ -288,16 +281,14 @@ nil for disabling this)."
 			  (const :tag "Subject" "subject")
 			  (const :tag "Message ID" "Message-ID"))
 		  (string :tag "Command")
-		  (string :tag "Description")))
-  :group 'nnmairix)
+		  (string :tag "Description"))))
 
 (defcustom nnmairix-widget-select-window-function
   (lambda () (select-window (get-largest-window)))
   "Function for selecting the window for customizing the mairix query.
 The default chooses the largest window in the current frame."
   :version "23.1"
-  :type 'function
-  :group 'nnmairix)
+  :type 'function)
 
 (defcustom nnmairix-propagate-marks-upon-close t
   "Flag if marks should be propagated upon closing a group.
@@ -308,8 +299,7 @@ call `nnmairix-propagate-marks'."
   :version "23.1"
   :type '(choice (const :tag "always" t)
 		 (const :tag "ask" ask)
-		 (const :tag "never" nil))
-  :group 'nnmairix)
+		 (const :tag "never" nil)))
 
 (defcustom nnmairix-propagate-marks-to-nnmairix-groups nil
   "Flag if marks from original articles should be seen in nnmairix groups.
@@ -319,8 +309,7 @@ e.g. an IMAP server (which stores the marks in the maildir file
 name).  You may safely set this to t for testing - the worst that
 can happen are wrong marks in nnmairix groups."
   :version "23.1"
-  :type 'boolean
-  :group 'nnmairix)
+  :type 'boolean)
 
 (defcustom nnmairix-only-use-registry nil
   "Use only the registry for determining original group(s).
@@ -330,16 +319,14 @@ propagating marks).  If set to nil, it will also try to determine
 the group from an additional mairix search which might be slow
 when propagating lots of marks."
   :version "23.1"
-  :type 'boolean
-  :group 'nnmairix)
+  :type 'boolean)
 
 (defcustom nnmairix-allowfast-default nil
   "Whether fast entering should be the default for nnmairix groups.
 You may set this to t to make entering the group faster, but note that
 this might lead to problems, especially when used with marks propagation."
   :version "23.1"
-  :type 'boolean
-  :group 'nnmairix)
+  :type 'boolean)
 
 ;; ==== Other variables
 

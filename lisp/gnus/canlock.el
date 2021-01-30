@@ -52,20 +52,17 @@
 (defcustom canlock-password nil
   "Password to use when signing a Cancel-Lock or a Cancel-Key header."
   :type '(radio (const :format "Not specified " nil)
-		(string :tag "Password"))
-  :group 'canlock)
+		(string :tag "Password")))
 
 (defcustom canlock-password-for-verify canlock-password
   "Password to use when verifying a Cancel-Lock or a Cancel-Key header."
   :type '(radio (const :format "Not specified " nil)
-		(string :tag "Password"))
-  :group 'canlock)
+		(string :tag "Password")))
 
 (defcustom canlock-force-insert-header nil
   "If non-nil, insert a Cancel-Lock or a Cancel-Key header even if the
 buffer does not look like a news message."
-  :type 'boolean
-  :group 'canlock)
+  :type 'boolean)
 
 (defun canlock-sha1 (message)
   "Make a SHA-1 digest of MESSAGE as a unibyte string of length 20 bytes."

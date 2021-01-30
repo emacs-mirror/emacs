@@ -57,8 +57,7 @@
 (defcustom gnus-diary-time-format "%a, %b %e %y, %H:%M"
   "Time format to display appointments in nndiary summary buffers.
 Please refer to `format-time-string' for information on possible values."
-  :type 'string
-  :group 'gnus-diary)
+  :type 'string)
 
 (defcustom gnus-diary-delay-format-function 'gnus-diary-delay-format-english
   "Function called to format a diary delay string.
@@ -73,8 +72,7 @@ There are currently two built-in format functions:
 `gnus-diary-delay-format-french'"
   :type '(choice (const  :tag "english" gnus-diary-delay-format-english)
 		 (const  :tag "french"  gnus-diary-delay-format-french)
-		 (symbol :tag "other"))
-  :group 'gnus-diary)
+		 (symbol :tag "other")))
 
 (defconst gnus-diary-version nndiary-version
   "Current Diary back end version.")

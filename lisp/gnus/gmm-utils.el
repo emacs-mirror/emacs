@@ -42,8 +42,7 @@ The higher the number, the more messages will flash to say what
 it did.  At zero, it will be totally mute; at five, it will
 display most important messages; and at ten, it will keep on
 jabbering all the time."
-  :type 'integer
-  :group 'gmm)
+  :type 'integer)
 
 ;;;###autoload
 (defun gmm-regexp-concat (regexp)
@@ -175,8 +174,7 @@ ARGS are passed to `message'."
     'retro)
   "Preferred tool bar style."
   :type '(choice (const :tag "GNOME style" gnome)
-		 (const :tag "Retro look"  retro))
-  :group 'gmm)
+		 (const :tag "Retro look"  retro)))
 
 (defvar tool-bar-map)
 

@@ -149,7 +149,6 @@ In order to make this clear, here are some examples:
 
 - (360 . minute): for an appointment at 18:30 and 15 seconds, this would
   pop up the appointment message at 12:30."
-  :group 'nndiary
   :type '(repeat (cons :format "%v\n"
 		       (integer :format "%v")
 		       (choice :format "%[%v(s)%] before...\n"
@@ -163,8 +162,7 @@ In order to make this clear, here are some examples:
 
 (defcustom nndiary-week-starts-on-monday nil
   "Whether a week starts on monday (otherwise, sunday)."
-  :type 'boolean
-  :group 'nndiary)
+  :type 'boolean)
 
 
 (define-obsolete-variable-alias 'nndiary-request-create-group-hooks
@@ -172,7 +170,6 @@ In order to make this clear, here are some examples:
 (defcustom nndiary-request-create-group-functions nil
   "Hook run after `nndiary-request-create-group' is executed.
 The hook functions will be called with the full group name as argument."
-  :group 'nndiary
   :type 'hook)
 
 (define-obsolete-variable-alias 'nndiary-request-update-info-hooks
@@ -180,7 +177,6 @@ The hook functions will be called with the full group name as argument."
 (defcustom nndiary-request-update-info-functions nil
   "Hook run after `nndiary-request-update-info' is executed.
 The hook functions will be called with the full group name as argument."
-  :group 'nndiary
   :type 'hook)
 
 (define-obsolete-variable-alias 'nndiary-request-accept-article-hooks
@@ -189,12 +185,10 @@ The hook functions will be called with the full group name as argument."
   "Hook run before accepting an article.
 Executed near the beginning of `nndiary-request-accept-article'.
 The hook functions will be called with the article in the current buffer."
-  :group 'nndiary
   :type 'hook)
 
 (defcustom nndiary-check-directory-twice t
   "If t, check directories twice to avoid NFS failures."
-  :group 'nndiary
   :type 'boolean)
 
 

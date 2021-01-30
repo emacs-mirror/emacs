@@ -100,7 +100,6 @@ Note that you have to regenerate all the nnrss groups if you change
 the value.  Moreover, you should be patient even if you are made to
 read the same articles twice, that arises for the difference of the
 versions of xml.el."
-  :group 'nnrss
   :type 'coding-system)
 
 (defvar nnrss-compatible-encoding-alist
