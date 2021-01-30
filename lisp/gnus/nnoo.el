@@ -49,6 +49,9 @@
        (defun ,func ,args ,@forms)
      (nnoo-register-function ',func)))
 
+(defun noo--defalias (fun val)
+  (prog1 (defalias fun val) (nnoo-register-function fun)))
+
 (defun nnoo-register-function (func)
   (let ((funcs (nthcdr 3 (assoc (nnoo-backend func)
 				nnoo-definition-alist))))
@@ -90,9 +93,9 @@
       (dolist (fun (or (cdr imp) (nnoo-functions (car imp))))
 	(let ((function (nnoo-symbol backend (nnoo-rest-symbol fun))))
 	  (unless (fboundp function)
-	    ;; FIXME: Use `defalias' and closures to avoid `eval'.
-	    (eval `(deffoo ,function (&rest args)
-		     (,call-function ',backend ',fun args)))))))))
+	    (noo--defalias function
+		           (lambda (&rest args)
+		             (funcall call-function backend fun args)))))))))
 
 (defun nnoo-parent-function (backend function args)
   (let ((pbackend (nnoo-backend function))
@@ -301,11 +304,9 @@ All functions will return nil and report an error."
 		request-list request-post request-list-newsgroups))
     (let ((fun (nnoo-symbol backend op)))
       (unless (fboundp fun)
-	;; FIXME: Use `defalias' and closures to avoid `eval'.
-	(eval `(deffoo ,fun
-	           (&rest _args)
-	         (nnheader-report ',backend ,(format "%s-%s not implemented"
-	                                             backend op))))))))
+	(let ((msg (format "%s-%s not implemented" backend op)))
+	  (noo--defalias fun
+	                 (lambda (&rest _args) (nnheader-report backend msg))))))))
 
 (defun nnoo-set (server &rest args)
   (let ((parents (nnoo-parents (car server)))

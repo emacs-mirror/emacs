@@ -389,9 +389,10 @@ only affect the Gcc copy, but not the original message."
 ;;; Internal functions.
 
 (defun gnus-inews-make-draft (articles)
-  `(lambda ()
-     (gnus-inews-make-draft-meta-information
-      ,gnus-newsgroup-name ',articles)))
+  (let ((gn gnus-newsgroup-name))
+    (lambda ()
+      (gnus-inews-make-draft-meta-information
+       gn articles))))
 
 (autoload 'nnselect-article-number "nnselect" nil nil 'macro)
 (autoload 'nnselect-article-group "nnselect" nil nil 'macro)
@@ -578,8 +579,8 @@ instead."
   (when gnus-agent
     (add-hook 'message-header-hook #'gnus-agent-possibly-save-gcc nil t))
   (setq message-post-method
-	`(lambda (&optional arg)
-	   (gnus-post-method arg ,gnus-newsgroup-name)))
+	(let ((gn gnus-newsgroup-name))
+	  (lambda (&optional arg) (gnus-post-method arg gn))))
   (message-add-action
    `(progn
       (setq gnus-current-window-configuration ',winconf-name)
@@ -820,8 +821,8 @@ prefix `a', cancel using the standard posting method; if not
 post using the current select method."
   (interactive (gnus-interactive "P\ny"))
   (let ((message-post-method
-	 `(lambda (arg)
-	    (gnus-post-method (eq ',symp 'a) ,gnus-newsgroup-name)))
+	 (let ((gn gnus-newsgroup-name))
+	   (lambda (_arg) (gnus-post-method (eq symp 'a) gn))))
 	(custom-address user-mail-address))
     (dolist (article (gnus-summary-work-articles n))
       (when (gnus-summary-select-article t nil nil article)
@@ -856,11 +857,12 @@ header line with the old Message-ID."
       (set-buffer gnus-original-article-buffer)
       (message-supersede)
       (push
-       `((lambda ()
-           (when (gnus-buffer-live-p ,gnus-summary-buffer)
-	     (with-current-buffer ,gnus-summary-buffer
-	       (gnus-cache-possibly-remove-article ,article nil nil nil t)
-	       (gnus-summary-mark-as-read ,article gnus-canceled-mark)))))
+       (let ((buf gnus-summary-buffer))
+         (lambda ()
+           (when (gnus-buffer-live-p buf)
+	     (with-current-buffer buf
+	       (gnus-cache-possibly-remove-article article nil nil nil t)
+	       (gnus-summary-mark-as-read article gnus-canceled-mark)))))
        message-send-actions)
       ;; Add Gcc header.
       (gnus-inews-insert-gcc))))
@@ -1387,11 +1389,12 @@ the message before resending."
     (add-hook 'message-header-setup-hook
 	      #'gnus-summary-resend-message-insert-gcc t)
     (add-hook 'message-sent-hook
-	      `(lambda ()
-		 (let ((rfc2047-encode-encoded-words nil))
-		   ,(if gnus-agent
-			'(gnus-agent-possibly-do-gcc)
-		      '(gnus-inews-do-gcc)))))
+	      (let ((agent gnus-agent))
+		(lambda ()
+		  (let ((rfc2047-encode-encoded-words nil))
+		    (if agent
+			(gnus-agent-possibly-do-gcc)
+		      (gnus-inews-do-gcc))))))
     (dolist (article (gnus-summary-work-articles n))
       (if no-select
 	  (with-current-buffer " *nntpd*"
@@ -1916,47 +1919,49 @@ this is a reply."
 		   ((eq 'eval (car result))
 		    #'ignore)
 		   ((eq 'body (car result))
-		    `(lambda ()
-		       (save-excursion
-			 (message-goto-body)
-			 (insert ,(cdr result)))))
+		    (let ((txt (cdr result)))
+		      (lambda ()
+			(save-excursion
+			  (message-goto-body)
+			  (insert txt)))))
 		   ((eq 'signature (car result))
                     (setq-local message-signature nil)
                     (setq-local message-signature-file nil)
-		    (if (not (cdr result))
-			#'ignore
-		      `(lambda ()
-			 (save-excursion
-			   (let ((message-signature ,(cdr result)))
-			     (when message-signature
-			       (message-insert-signature)))))))
+		    (let ((txt (cdr result)))
+		      (if (not txt)
+			  #'ignore
+			(lambda ()
+			  (save-excursion
+			    (let ((message-signature txt))
+			      (when message-signature
+			        (message-insert-signature))))))))
 		   (t
 		    (let ((header
 			   (if (symbolp (car result))
 			       (capitalize (symbol-name (car result)))
-			     (car result))))
-		      `(lambda ()
-			 (save-excursion
-			   (message-remove-header ,header)
-			   (let ((value ,(cdr result)))
-			     (when value
-			       (message-goto-eoh)
-			       (insert ,header ": " value)
-			       (unless (bolp)
-				 (insert "\n")))))))))
+			     (car result)))
+			  (value (cdr result)))
+		      (lambda ()
+			(save-excursion
+			  (message-remove-header header)
+			  (when value
+			    (message-goto-eoh)
+			    (insert header ": " value)
+			    (unless (bolp)
+			      (insert "\n"))))))))
 		  nil 'local))
       (when (or name address)
 	(add-hook 'message-setup-hook
-		  `(lambda ()
-                     (setq-local user-mail-address
-                                 ,(or (cdr address) user-mail-address))
-		     (let ((user-full-name ,(or (cdr name) (user-full-name)))
-			   (user-mail-address
-			    ,(or (cdr address) user-mail-address)))
-		       (save-excursion
-			 (message-remove-header "From")
-			 (message-goto-eoh)
-			 (insert "From: " (message-make-from) "\n"))))
+		  (let ((name (or (cdr name) (user-full-name)))
+		        (email (or (cdr address) user-mail-address)))
+		    (lambda ()
+                      (setq-local user-mail-address email)
+		      (let ((user-full-name name)
+			    (user-mail-address email))
+			(save-excursion
+			  (message-remove-header "From")
+			  (message-goto-eoh)
+			  (insert "From: " (message-make-from) "\n")))))
 		  nil 'local)))))
 
 (defun gnus-summary-attach-article (n)

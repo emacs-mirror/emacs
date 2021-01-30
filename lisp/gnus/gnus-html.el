@@ -177,9 +177,9 @@ fit these criteria."
 	  (add-text-properties
 	   start end
 	   (list 'image-url url
-		 'image-displayer `(lambda (url start end)
-				     (gnus-html-display-image url start end
-							      ,alt-text))
+		 'image-displayer (lambda (url start end)
+				    (gnus-html-display-image url start end
+							     alt-text))
 		 'help-echo alt-text
 		 'button t
 		 'keymap gnus-html-image-map

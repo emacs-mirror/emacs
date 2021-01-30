@@ -411,8 +411,8 @@ non-nil.")
       (and
        (nnmail-activate 'nnml)
        (if (and (not (setq result (nnmail-article-group
-				   `(lambda (group)
-				      (nnml-active-number group ,server)))))
+				   (lambda (group)
+				     (nnml-active-number group server)))))
 		(yes-or-no-p "Moved to `junk' group; delete article? "))
 	   (setq result 'junk)
 	 (setq result (car (nnml-save-mail result server t))))

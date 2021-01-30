@@ -1608,8 +1608,8 @@ If performed on a topic, edit the topic parameters instead."
 	 (gnus-topic-parameters topic)
 	 (format-message "Editing the topic parameters for `%s'."
 			 (or group topic))
-	 `(lambda (form)
-	    (gnus-topic-set-parameters ,topic form)))))))
+	 (lambda (form)
+	   (gnus-topic-set-parameters topic form)))))))
 
 (defun gnus-group-sort-topic (func reverse)
   "Sort groups in the topics according to FUNC and REVERSE."
@@ -1693,9 +1693,8 @@ If REVERSE, sort in reverse order."
 (defun gnus-topic-sort-topics-1 (top reverse)
   (if (cdr top)
       (let ((subtop
-	     (mapcar (gnus-byte-compile
-		      `(lambda (top)
-			 (gnus-topic-sort-topics-1 top ,reverse)))
+	     (mapcar (lambda (top)
+		       (gnus-topic-sort-topics-1 top reverse))
 		     (sort (cdr top)
 			   (lambda (t1 t2)
 			     (string-lessp (caar t1) (caar t2)))))))

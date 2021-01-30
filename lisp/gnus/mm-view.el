@@ -104,11 +104,10 @@ This is only used if `mm-inline-large-images' is set to
     (insert "\n")
     (mm-handle-set-undisplayer
      handle
-     `(lambda ()
-	(let ((b ,b)
-	      (inhibit-read-only t))
-	  (remove-images b b)
-	  (delete-region b (1+ b)))))))
+     (lambda ()
+       (let ((inhibit-read-only t))
+	 (remove-images b b)
+	 (delete-region b (1+ b)))))))
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")
@@ -202,10 +201,11 @@ This is only used if `mm-inline-large-images' is set to
 			       'keymap w3m-minor-mode-map)))
 	(mm-handle-set-undisplayer
 	 handle
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(point-min-marker)
-			     ,(point-max-marker)))))))))
+	 (let ((beg (point-min-marker))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 (defcustom mm-w3m-standalone-supports-m17n-p 'undecided
   "T means the w3m command supports the m17n feature."
@@ -381,10 +381,11 @@ This is only used if `mm-inline-large-images' is set to
        handle
        (if (= (point-min) (point-max))
 	   #'ignore
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(copy-marker (point-min) t)
-			     ,(point-max-marker)))))))))
+	 (let ((beg (copy-marker (point-min) t))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
@@ -394,10 +395,11 @@ This is only used if `mm-inline-large-images' is set to
       (insert "\n"))
     (mm-handle-set-undisplayer
      handle
-     `(lambda ()
-	(let ((inhibit-read-only t))
-	  (delete-region ,(copy-marker b t)
-			 ,(point-marker)))))))
+     (let ((beg (copy-marker b t))
+           (end (point-marker)))
+       (lambda ()
+	 (let ((inhibit-read-only t))
+	   (delete-region beg end)))))))
 
 (defun mm-inline-audio (_handle)
   (message "Not implemented"))
@@ -457,9 +459,11 @@ This is only used if `mm-inline-large-images' is set to
 		(mm-merge-handles gnus-article-mime-handles handles)))
 	(mm-handle-set-undisplayer
 	 handle
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
+	 (let ((beg (point-min-marker))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 ;; Shut up byte-compiler.
 (defvar font-lock-mode-hook)

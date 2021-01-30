@@ -5002,53 +5002,53 @@ General format specifiers can also be used.  See Info node
   "ID of a mime part that should be buttonized.
 `gnus-mime-save-part-and-strip' and `gnus-mime-delete-part' bind it.")
 
+(defvar message-options-set-recipient)
+
 (eval-when-compile
   (defsubst gnus-article-edit-part (handles &optional current-id)
     "Edit an article in order to delete a mime part.
 This function is exclusively used by `gnus-mime-save-part-and-strip'
 and `gnus-mime-delete-part', and not provided at run-time normally."
-    (gnus-article-edit-article
-     `(lambda ()
-	(buffer-disable-undo)
-	(let ((mail-parse-charset (or gnus-article-charset
-				      ',gnus-newsgroup-charset))
-	      (mail-parse-ignored-charsets
-	       (or gnus-article-ignored-charsets
-		   ',gnus-newsgroup-ignored-charsets))
-	      (mbl mml-buffer-list))
-	  (setq mml-buffer-list nil)
-	  ;; A new text must be inserted before deleting existing ones
-	  ;; at the end so as not to move existing markers of which
-	  ;; the insertion type is t.
-	  (delete-region
-	   (point-min)
-	   (prog1
-	       (goto-char (point-max))
-	     (insert-buffer-substring gnus-original-article-buffer)))
-	  (mime-to-mml ',handles)
-	  (setq gnus-article-mime-handles nil)
-	  (let ((mbl1 mml-buffer-list))
-	    (setq mml-buffer-list mbl)
-            (setq-local mml-buffer-list mbl1))
-	  (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t)))
-     `(lambda (no-highlight)
-	(let ((mail-parse-charset (or gnus-article-charset
-				      ',gnus-newsgroup-charset))
-	      (message-options message-options)
-	      (message-options-set-recipient)
-	      (mail-parse-ignored-charsets
-	       (or gnus-article-ignored-charsets
-		   ',gnus-newsgroup-ignored-charsets)))
-	  (mml-to-mime)
-	  (mml-destroy-buffers)
-	  (remove-hook 'kill-buffer-hook
-		       'mml-destroy-buffers t)
-	  (kill-local-variable 'mml-buffer-list))
-	(gnus-summary-edit-article-done
-	 ,(or (mail-header-references gnus-current-headers) "")
-	 ,(gnus-group-read-only-p)
-	 ,gnus-summary-buffer no-highlight))
-     t)
+    (let ((charset gnus-newsgroup-charset)
+          (ign-cs gnus-newsgroup-ignored-charsets)
+          (gch (or (mail-header-references gnus-current-headers) ""))
+          (ro (gnus-group-read-only-p))
+          (buf gnus-summary-buffer))
+      (gnus-article-edit-article
+       (lambda ()
+         (buffer-disable-undo)
+         (let ((mail-parse-charset (or gnus-article-charset charset))
+	       (mail-parse-ignored-charsets
+	        (or gnus-article-ignored-charsets ign-cs))
+	       (mbl mml-buffer-list))
+	   (setq mml-buffer-list nil)
+	   ;; A new text must be inserted before deleting existing ones
+	   ;; at the end so as not to move existing markers of which
+	   ;; the insertion type is t.
+	   (delete-region
+	    (point-min)
+	    (prog1
+	        (goto-char (point-max))
+	      (insert-buffer-substring gnus-original-article-buffer)))
+	   (mime-to-mml handles)
+	   (setq gnus-article-mime-handles nil)
+	   (let ((mbl1 mml-buffer-list))
+	     (setq mml-buffer-list mbl)
+             (setq-local mml-buffer-list mbl1))
+	   (add-hook 'kill-buffer-hook #'mml-destroy-buffers t t)))
+       (lambda (no-highlight)
+	 (let ((mail-parse-charset (or gnus-article-charset charset))
+	       (message-options message-options)
+	       (message-options-set-recipient)
+	       (mail-parse-ignored-charsets
+	        (or gnus-article-ignored-charsets ign-cs)))
+	   (mml-to-mime)
+	   (mml-destroy-buffers)
+	   (remove-hook 'kill-buffer-hook
+		        #'mml-destroy-buffers t)
+	   (kill-local-variable 'mml-buffer-list))
+	 (gnus-summary-edit-article-done gch ro buf no-highlight))
+       t))
     ;; Force buttonizing this part.
     (let ((gnus-mime-buttonized-part-id current-id))
       (gnus-article-edit-done))
@@ -5768,10 +5768,11 @@ all parts."
 					   (mm-handle-media-type handle))
 		       (mm-handle-set-undisplayer
 			handle
-			`(lambda ()
-			   (let ((inhibit-read-only t))
-			     (delete-region ,(copy-marker (point-min) t)
-					    ,(point-max-marker)))))))
+			(let ((beg (copy-marker (point-min) t))
+			      (end (point-max-marker)))
+			  (lambda ()
+			    (let ((inhibit-read-only t))
+			      (delete-region beg end)))))))
 		    (part
 		     (mm-display-inline handle))))))
       (when (markerp point)
@@ -7280,12 +7281,13 @@ groups."
   (gnus-with-article-buffer
     (article-date-original))
   (gnus-article-edit-article
-   'ignore
-   `(lambda (no-highlight)
-      'ignore
-      (gnus-summary-edit-article-done
-       ,(or (mail-header-references gnus-current-headers) "")
-       ,(gnus-group-read-only-p) ,gnus-summary-buffer no-highlight))))
+   #'ignore
+   (let ((gch (or (mail-header-references gnus-current-headers) ""))
+         (ro (gnus-group-read-only-p))
+         (buf gnus-summary-buffer))
+     (lambda (no-highlight)
+       'ignore
+       (gnus-summary-edit-article-done gch ro buf no-highlight)))))
 
 (defun gnus-article-edit-article (start-func exit-func &optional quiet)
   "Start editing the contents of the current article buffer."

@@ -100,11 +100,11 @@
       (goto-char (point-max))
       (mm-handle-set-undisplayer
        handle
-       `(lambda ()
-	  (let ((inhibit-read-only t)
-		(end ,(point-marker)))
-	    (remove-images ,start end)
-	    (delete-region ,start end)))))))
+       (let ((end (point-marker)))
+	 (lambda ()
+	   (let ((inhibit-read-only t))
+	     (remove-images start end)
+	     (delete-region start end))))))))
 
 (provide 'mm-archive)
 

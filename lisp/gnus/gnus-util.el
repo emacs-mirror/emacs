@@ -1234,14 +1234,17 @@ sure of changing the value of `foo'."
       (cons (cons key value) (gnus-remassoc key alist))
     (gnus-remassoc key alist)))
 
+(defvar gnus-info-buffer)
+(declare-function gnus-configure-windows "gnus-win" (setting &optional force))
+
 (defun gnus-create-info-command (node)
   "Create a command that will go to info NODE."
-  `(lambda ()
-     (interactive)
-     ,(concat "Enter the info system at node " node)
-     (Info-goto-node ,node)
-     (setq gnus-info-buffer (current-buffer))
-     (gnus-configure-windows 'info)))
+  (lambda ()
+    (:documentation (format "Enter the info system at node %s." node))
+    (interactive)
+    (info node)
+    (setq gnus-info-buffer (current-buffer))
+    (gnus-configure-windows 'info)))
 
 (defun gnus-not-ignore (&rest _args)
   t)

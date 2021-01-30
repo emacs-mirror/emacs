@@ -606,12 +606,10 @@ marked as read or ticked are ignored."
 					     (downcase (symbol-name header)))
 					   gnus-extra-headers)))
 		 (setq function
-		       `(lambda (h)
-			  (gnus-extra-header
-			   (quote ,(nth (- (length gnus-extra-headers)
-					   (length extras))
-					gnus-extra-headers))
-			   h)))))))
+		       (let ((type (nth (- (length gnus-extra-headers)
+				           (length extras))
+				        gnus-extra-headers)))
+			 (lambda (h) (gnus-extra-header type h))))))))
        ;; Signal error.
        (t
 	(error "Unknown header field: \"%s\"" field)))

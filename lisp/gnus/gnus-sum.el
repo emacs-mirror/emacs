@@ -10676,31 +10676,32 @@ groups."
 		 (setq mml-buffer-list mbl)
                  (setq-local mml-buffer-list mbl1))
 	       (add-hook 'kill-buffer-hook #'mml-destroy-buffers t t))))
-	 `(lambda (no-highlight)
-	    (let ((mail-parse-charset ',gnus-newsgroup-charset)
-		  (message-options message-options)
-		  (message-options-set-recipient)
-		  (mail-parse-ignored-charsets
-		   ',gnus-newsgroup-ignored-charsets)
-		  (rfc2047-header-encoding-alist
-		   ',(let ((charset (gnus-group-name-charset
-				     (gnus-find-method-for-group
-				      gnus-newsgroup-name)
-				     gnus-newsgroup-name)))
-		       (append (list (cons "Newsgroups" charset)
-				     (cons "Followup-To" charset)
-				     (cons "Xref" charset))
-			       rfc2047-header-encoding-alist))))
-	      ,(if (not raw) '(progn
-				(mml-to-mime)
-				(mml-destroy-buffers)
-				(remove-hook 'kill-buffer-hook
-					     #'mml-destroy-buffers t)
-				(kill-local-variable 'mml-buffer-list)))
-	      (gnus-summary-edit-article-done
-	       ,(or (mail-header-references gnus-current-headers) "")
-	       ,(gnus-group-read-only-p)
-	       ,gnus-summary-buffer no-highlight))))))))
+	 (let ((charset gnus-newsgroup-charset)
+	       (ign-cs gnus-newsgroup-ignored-charsets)
+	       (hea (let ((charset (gnus-group-name-charset
+				    (gnus-find-method-for-group
+				     gnus-newsgroup-name)
+				    gnus-newsgroup-name)))
+		      (append (list (cons "Newsgroups" charset)
+				    (cons "Followup-To" charset)
+				    (cons "Xref" charset))
+			      rfc2047-header-encoding-alist)))
+	       (gch (or (mail-header-references gnus-current-headers) ""))
+	       (ro (gnus-group-read-only-p))
+	       (buf gnus-summary-buffer))
+	   (lambda (no-highlight)
+	     (let ((mail-parse-charset charset)
+		   (message-options message-options)
+		   (message-options-set-recipient)
+		   (mail-parse-ignored-charsets ign-cs)
+		   (rfc2047-header-encoding-alist hea))
+	       (unless raw
+		 (mml-to-mime)
+		 (mml-destroy-buffers)
+		 (remove-hook 'kill-buffer-hook
+			      #'mml-destroy-buffers t)
+		 (kill-local-variable 'mml-buffer-list))
+	       (gnus-summary-edit-article-done gch ro buf no-highlight)))))))))
 
 (defalias 'gnus-summary-edit-article-postpone 'gnus-article-edit-exit)
 

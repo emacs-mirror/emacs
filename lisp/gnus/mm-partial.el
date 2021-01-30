@@ -135,9 +135,11 @@ If NO-DISPLAY is nil, display it.  Otherwise, do nothing after replacing."
 		  (mm-merge-handles gnus-article-mime-handles handles)))
 	  (mm-handle-set-undisplayer
 	   handle
-	   `(lambda ()
-	      (let (buffer-read-only)
-		(delete-region ,(point-min-marker) ,(point-max-marker))))))))))
+	   (let ((beg (point-min-marker))
+	         (end (point-max-marker)))
+	     (lambda ()
+	       (let ((inhibit-read-only t))
+		 (delete-region beg end))))))))))
 
 (provide 'mm-partial)
 

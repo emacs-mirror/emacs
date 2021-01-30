@@ -701,8 +701,8 @@ Other back ends might or might not work.")
 	(setf (gnus-info-read info)
 	      (if docorr
 	          (nnmairix-map-range
-		   ;; FIXME: Use lexical-binding.
-	           `(lambda (x) (+ x ,(cadr corr)))
+	           (let ((off (cadr corr)))
+	             (lambda (x) (+ x off)))
 	           (gnus-info-read folderinfo))
 	        (gnus-info-read folderinfo)))
 	;; set other marks
@@ -712,8 +712,8 @@ Other back ends might or might not work.")
 			    (cons
 			     (car cur)
 			     (nnmairix-map-range
-			      ;; FIXME: Use lexical-binding.
-			      `(lambda (x) (+ x ,(cadr corr)))
+			      (let ((off (cadr corr)))
+			        (lambda (x) (+ x off)))
 			      (list (cadr cur)))))
 			  (gnus-info-marks folderinfo))
 		(gnus-info-marks folderinfo))))

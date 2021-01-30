@@ -2930,8 +2930,8 @@ and NEW-NAME will be prompted for."
        ((eq part 'params) "group parameters")
        (t "group info"))
       group)
-     `(lambda (form)
-	(gnus-group-edit-group-done ',part ,group form)))
+     (lambda (form)
+       (gnus-group-edit-group-done part group form)))
     (local-set-key
      "\C-c\C-i"
      (gnus-create-info-command
@@ -3378,9 +3378,9 @@ Editing the access control list for `%s'.
        implementation-defined hierarchy, RENAME or DELETE mailbox)
    d - delete messages (STORE \\DELETED flag, perform EXPUNGE)
    a - administer (perform SETACL)" group)
-		    `(lambda (form)
-		       (nnimap-acl-edit
-			,mailbox ',method ',acl form)))))
+		    (lambda (form)
+		      (nnimap-acl-edit
+		       mailbox method acl form)))))
 
 ;; Group sorting commands
 ;; Suggested by Joe Hildebrand <hildjj@idaho.fuentez.com>.

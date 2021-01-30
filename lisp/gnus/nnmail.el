@@ -1783,7 +1783,7 @@ be called once per group or once for all groups."
       (assq 'directory mail-sources)))
 
 (defun nnmail-get-new-mail-1 (method exit-func temp
-			      group _in-group spool-func)
+			      group in-group spool-func)
   (let* ((sources mail-sources)
 	 fetching-sources
 	 (i 0)
@@ -1812,10 +1812,10 @@ be called once per group or once for all groups."
 	    (setq source (append source
 				 (list
 				  :predicate
-				  (gnus-byte-compile
-				   `(lambda (file)
+				  (let ((str (concat group suffix)))
+				    (lambda (file)
 				      (string-equal
-				       ,(concat group suffix)
+				       str
 				       (file-name-nondirectory file)))))))))
 	(when nnmail-fetched-sources
 	  (if (member source nnmail-fetched-sources)
@@ -1836,17 +1836,19 @@ be called once per group or once for all groups."
 		    (condition-case cond
 			(mail-source-fetch
 			 source
-			 (gnus-byte-compile
-			  `(lambda (file orig-file)
+			 (let ((smsym (intern (format "%s-save-mail" method)))
+			       (ansym (intern (format "%s-active-number" method)))
+			       (src source))
+			   (lambda (file orig-file)
 			     (nnmail-split-incoming
-			      file ',(intern (format "%s-save-mail" method))
-			      ',spool-func
+			      file smsym
+			      spool-func
 			      (or in-group
 				  (if (equal file orig-file)
 				      nil
 				    (nnmail-get-split-group orig-file
-							    ',source)))
-			      ',(intern (format "%s-active-number" method))))))
+							    src)))
+			      ansym))))
 		      ((error quit)
 		       (message "Mail source %s failed: %s" source cond)
 		       0)))

@@ -612,10 +612,10 @@ The following commands are available:
     (gnus-close-server info)
     (gnus-edit-form
      info "Editing the server."
-     `(lambda (form)
-	(gnus-server-set-info ,server form)
-	(gnus-server-list-servers)
-	(gnus-server-position-point))
+     (lambda (form)
+       (gnus-server-set-info server form)
+       (gnus-server-list-servers)
+       (gnus-server-position-point))
      'edit-server)))
 
 (defun gnus-server-show-server (server)
