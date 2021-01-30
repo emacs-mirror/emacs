@@ -493,7 +493,7 @@ ns_set_represented_filename (struct frame *f)
 #if defined (NS_IMPL_COCOA) && defined (MAC_OS_X_VERSION_10_7)
   /* Work around for Mach port leaks on macOS 10.15 (bug#38618).  */
   NSURL *fileURL = [NSURL fileURLWithPath:fstr isDirectory:NO];
-  NSNumber *isUbiquitousItem = @YES;
+  NSNumber *isUbiquitousItem = [NSNumber numberWithBool:YES];
   [fileURL getResourceValue:(id *)&isUbiquitousItem
                      forKey:NSURLIsUbiquitousItemKey
                       error:nil];
