@@ -601,10 +601,9 @@ Makes C/C++ language like assumptions."
 	 )
         (t nil)))
 
-(defvar senator-isearch-semantic-mode nil
+(defvar-local senator-isearch-semantic-mode nil
   "Non-nil if isearch does semantic search.
 This is a buffer local variable.")
-(make-variable-buffer-local 'senator-isearch-semantic-mode)
 
 (defun senator-beginning-of-defun (&optional arg)
   "Move backward to the beginning of a defun.

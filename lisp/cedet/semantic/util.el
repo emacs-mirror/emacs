@@ -39,20 +39,18 @@
 
 ;;; Code:
 
-(defvar semantic-type-relation-separator-character '(".")
+(defvar-local semantic-type-relation-separator-character '(".")
   "Character strings used to separate a parent/child relationship.
 This list of strings are used for displaying or finding separators
 in variable field dereferencing.  The first character will be used for
 display.  In C, a type field is separated like this: \"type.field\"
 thus, the character is a \".\".  In C, and additional value of \"->\"
 would be in the list, so that \"type->field\" could be found.")
-(make-variable-buffer-local 'semantic-type-relation-separator-character)
 
-(defvar semantic-equivalent-major-modes nil
+(defvar-local semantic-equivalent-major-modes nil
   "List of major modes which are considered equivalent.
 Equivalent modes share a parser, and a set of override methods.
 A value of nil means that the current major mode is the only one.")
-(make-variable-buffer-local 'semantic-equivalent-major-modes)
 
 (declare-function semanticdb-file-stream "semantic/db" (file))
 

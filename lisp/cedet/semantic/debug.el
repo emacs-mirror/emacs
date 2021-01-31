@@ -44,24 +44,18 @@
 ;;; Code:
 
 ;;;###autoload
-(defvar semantic-debug-parser-source nil
+(defvar-local semantic-debug-parser-source nil
   "For any buffer, the file name (no path) of the parser.
 This would be a parser for a specific language, not the source
 to one of the parser generators.")
-;;;###autoload
-(make-variable-buffer-local 'semantic-debug-parser-source)
 
 ;;;###autoload
-(defvar semantic-debug-parser-class nil
+(defvar-local semantic-debug-parser-class nil
   "Class to create when building a debug parser object.")
-;;;###autoload
-(make-variable-buffer-local 'semantic-debug-parser-class)
 
 ;;;###autoload
-(defvar semantic-debug-parser-debugger-source nil
+(defvar-local semantic-debug-parser-debugger-source nil
   "Location of the debug parser class.")
-;;;###autoload
-(make-variable-buffer-local 'semantic-debug-parser-source)
 
 (defvar semantic-debug-enabled nil
   "Non-nil when debugging a parser.")
