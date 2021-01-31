@@ -509,9 +509,9 @@ string."
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user configuration variables
 
-(defvar sc-mail-info nil
+(defvar-local sc-mail-info nil
   "Alist of mail header information gleaned from reply buffer.")
-(defvar sc-attributions nil
+(defvar-local sc-attributions nil
   "Alist of attributions for use when citing.")
 
 (defvar sc-tmp-nested-regexp nil
@@ -520,9 +520,6 @@ string."
   "Temporary regexp describing non-nested citations.")
 (defvar sc-tmp-dumb-regexp nil
   "Temp regexp describing non-nested citation cited with a nesting citer.")
-
-(make-variable-buffer-local 'sc-mail-info)
-(make-variable-buffer-local 'sc-attributions)
 
 
 ;; ======================================================================

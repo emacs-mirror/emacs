@@ -58,13 +58,11 @@
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of the bug report.")
 
-(defvar report-emacs-bug-send-command nil
+(defvar-local report-emacs-bug-send-command nil
   "Name of the command to send the bug report, as a string.")
-(make-variable-buffer-local 'report-emacs-bug-send-command)
 
-(defvar report-emacs-bug-send-hook nil
+(defvar-local report-emacs-bug-send-hook nil
   "Hook run before sending the bug report.")
-(make-variable-buffer-local 'report-emacs-bug-send-hook)
 
 (declare-function x-server-vendor "xfns.c" (&optional terminal))
 (declare-function x-server-version "xfns.c" (&optional terminal))
