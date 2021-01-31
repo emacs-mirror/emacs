@@ -336,6 +336,7 @@ let the buffer grow forever."
       (Hover (:contents) (:range))
       (InitializeResult (:capabilities) (:serverInfo))
       (Location (:uri :range))
+      (LocationLink (:targetUri :targetRange :targetSelectionRange) (:originSelectionRange))
       (LogMessageParams (:type :message))
       (MarkupContent (:kind :value))
       (ParameterInformation (:label) (:documentation))
@@ -639,10 +640,14 @@ treated as in `eglot-dbind'."
                                          (:labelOffsetSupport t)
                                          :activeParameterSupport t))
              :references         `(:dynamicRegistration :json-false)
-             :definition         `(:dynamicRegistration :json-false)
-             :declaration        `(:dynamicRegistration :json-false)
-             :implementation     `(:dynamicRegistration :json-false)
-             :typeDefinition     `(:dynamicRegistration :json-false)
+             :definition         (list :dynamicRegistration :json-false
+                                       :linkSupport t)
+             :declaration        (list :dynamicRegistration :json-false
+                                       :linkSupport t)
+             :implementation     (list :dynamicRegistration :json-false
+                                       :linkSupport t)
+             :typeDefinition     (list :dynamicRegistration :json-false
+                                       :linkSupport t)
              :documentSymbol     (list
                                   :dynamicRegistration :json-false
                                   :hierarchicalDocumentSymbolSupport t
@@ -2186,9 +2191,15 @@ Try to visit the target file for a richer summary line."
           method (append (eglot--TextDocumentPositionParams) extra-params))))
     (eglot--collecting-xrefs (collect)
       (mapc
-       (eglot--lambda ((Location) uri range)
-         (collect (eglot--xref-make-match (symbol-name (symbol-at-point))
-                                          uri range)))
+       (lambda (loc-or-loc-link)
+         (let ((sym-name (symbol-name (symbol-at-point))))
+           (eglot--dcase loc-or-loc-link
+             (((LocationLink) targetUri targetSelectionRange)
+              (collect (eglot--xref-make-match sym-name
+                                               targetUri targetSelectionRange)))
+             (((Location) uri range)
+              (collect (eglot--xref-make-match sym-name
+                                               uri range))))))
        (if (vectorp response) response (and response (list response)))))))
 
 (cl-defun eglot--lsp-xref-helper (method &key extra-params capability )
