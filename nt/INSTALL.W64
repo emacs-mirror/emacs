@@ -95,19 +95,19 @@ Savannah Emacs site, https://savannah.gnu.org/projects/emacs.
 The Emacs ftp site is located at https://ftp.gnu.org/gnu/emacs/ - download the
 version you want to build and put the file into a location like C:\emacs\,
 then uncompress it with tar.  This will put the Emacs source into a folder like
-C:\emacs\emacs-24.5:
+C:\emacs\emacs-27.1:
 
   cd /c/emacs
-  tar xJf emacs-24.5.tar.xz
+  tar xJf emacs-27.1.tar.xz
 
 ** From the Git repository
 
 To download the Git repository, do something like the following -- this will
-put the Emacs source into C:\emacs\emacs-26:
+put the Emacs source into C:\emacs\emacs-27:
 
   mkdir /c/emacs
   cd /c/emacs
-  git clone git://git.sv.gnu.org/emacs.git emacs-26
+  git clone git://git.sv.gnu.org/emacs.git emacs-27
 
 (We recommend using the command shown on Savannah Emacs project page.)
 
@@ -120,7 +120,7 @@ First we need to switch to the MinGW-w64 environment.  Exit the MSYS2 BASH
 console and run mingw64.exe in the C:\msys64 folder, then cd back to
 your Emacs source directory, e.g.:
 
-  cd /c/emacs/emacs-26
+  cd /c/emacs/emacs-27
 
 ** Run autogen
 
@@ -137,14 +137,14 @@ that the example given here is just a simple one - for more information
 on the options available please see the INSTALL file in this directory.
 
 The '--prefix' option specifies a location for the resulting binary files,
-which 'make install' will use - in this example we set it to C:\emacs\emacs-26.
+which 'make install' will use - in this example we set it to C:\emacs\emacs-27.
 If a prefix is not specified the files will be put in the standard Unix
 directories located in your C:\msys64 directory, but this is not recommended.
 
 Note also that we need to disable D-Bus because Emacs does not yet
 support them on Windows.
 
-  ./configure --prefix=/c/emacs/emacs-26 --without-dbus
+  ./configure --prefix=/c/emacs/emacs-27 --without-dbus
 
 ** Run make
 

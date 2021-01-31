@@ -126,7 +126,7 @@ If nil, the function `gitmerge-default-branch' guesses.")
     (string-to-number (match-string 1))))
 
 (defun gitmerge-default-branch ()
-  "Default for branch that should be merged; eg \"origin/emacs-26\"."
+  "Default for branch that should be merged; eg \"origin/emacs-27\"."
   (or gitmerge-default-branch
       (format "origin/emacs-%s" (1- (gitmerge-emacs-version)))))
 

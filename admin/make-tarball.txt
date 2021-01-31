@@ -5,7 +5,7 @@ Instructions to create pretest or release tarballs. -*- coding: utf-8 -*-
 
 Steps to take before starting on the first pretest in any release sequence:
 
-0.  The release branch (e.g. emacs-26) should already have been made
+0.  The release branch (e.g. emacs-27) should already have been made
     and you should use it for all that follows.  Diffs from this
     branch should be going to the emacs-diffs mailing list.
 
