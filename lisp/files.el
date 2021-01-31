@@ -191,20 +191,18 @@ if the file has changed on disk and you have not edited the buffer."
   :type '(repeat regexp)
   :group 'find-file)
 
-(defvar buffer-file-number nil
+(defvar-local buffer-file-number nil
   "The device number and file number of the file visited in the current buffer.
 The value is a list of the form (FILENUM DEVNUM).
 This pair of numbers uniquely identifies the file.
 If the buffer is visiting a new file, the value is nil.")
-(make-variable-buffer-local 'buffer-file-number)
 (put 'buffer-file-number 'permanent-local t)
 
 (defvar buffer-file-numbers-unique (not (memq system-type '(windows-nt)))
   "Non-nil means that `buffer-file-number' uniquely identifies files.")
 
-(defvar buffer-file-read-only nil
+(defvar-local buffer-file-read-only nil
   "Non-nil if visited file was read-only when visited.")
-(make-variable-buffer-local 'buffer-file-read-only)
 
 (defcustom small-temporary-file-directory
   (if (eq system-type 'ms-dos) (getenv "TMPDIR"))
@@ -529,15 +527,14 @@ updates before the buffer is saved, use `before-save-hook'.")
 (put 'write-file-functions 'permanent-local t)
 
 ;; I found some files still using the obsolete form in 2018.
-(defvar local-write-file-hooks nil)
-(make-variable-buffer-local 'local-write-file-hooks)
+(defvar-local local-write-file-hooks nil)
 (put 'local-write-file-hooks 'permanent-local t)
 (make-obsolete-variable 'local-write-file-hooks 'write-file-functions "22.1")
 
 ;; I found some files still using the obsolete form in 2018.
 (define-obsolete-variable-alias 'write-contents-hooks
     'write-contents-functions "22.1")
-(defvar write-contents-functions nil
+(defvar-local write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
 
 Used only by `save-buffer'.  If one of them returns non-nil, the
@@ -556,7 +553,6 @@ For hooks that _do_ pertain to the particular visited file, use
 `write-file-functions' relate to how a buffer is saved to file.
 To perform various checks or updates before the buffer is saved,
 use `before-save-hook'.")
-(make-variable-buffer-local 'write-contents-functions)
 
 (defcustom enable-local-variables t
   "Control use of local variables in files you visit.
@@ -3443,23 +3439,21 @@ asking you for confirmation."
 
 (put 'c-set-style 'safe-local-eval-function t)
 
-(defvar file-local-variables-alist nil
+(defvar-local file-local-variables-alist nil
   "Alist of file-local variable settings in the current buffer.
 Each element in this list has the form (VAR . VALUE), where VAR
 is a file-local variable (a symbol) and VALUE is the value
 specified.  The actual value in the buffer may differ from VALUE,
 if it is changed by the major or minor modes, or by the user.")
-(make-variable-buffer-local 'file-local-variables-alist)
 (put 'file-local-variables-alist 'permanent-local t)
 
-(defvar dir-local-variables-alist nil
+(defvar-local dir-local-variables-alist nil
   "Alist of directory-local variable settings in the current buffer.
 Each element in this list has the form (VAR . VALUE), where VAR
 is a directory-local variable (a symbol) and VALUE is the value
 specified in .dir-locals.el.  The actual value in the buffer
 may differ from VALUE, if it is changed by the major or minor modes,
 or by the user.")
-(make-variable-buffer-local 'dir-local-variables-alist)
 
 (defvar before-hack-local-variables-hook nil
   "Normal hook run before setting file-local variables.
@@ -5233,7 +5227,7 @@ Used only by `save-buffer'."
   :type 'hook
   :group 'files)
 
-(defvar save-buffer-coding-system nil
+(defvar-local save-buffer-coding-system nil
   "If non-nil, use this coding system for saving the buffer.
 More precisely, use this coding system in place of the
 value of `buffer-file-coding-system', when saving the buffer.
@@ -5241,7 +5235,6 @@ Calling `write-region' for any purpose other than saving the buffer
 will still use `buffer-file-coding-system'; this variable has no effect
 in such cases.")
 
-(make-variable-buffer-local 'save-buffer-coding-system)
 (put 'save-buffer-coding-system 'permanent-local t)
 
 (defun basic-save-buffer (&optional called-interactively)
@@ -5510,9 +5503,8 @@ Before and after saving the buffer, this function runs
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 (put 'save-some-buffers-action-alist 'risky-local-variable t)
 
-(defvar buffer-save-without-query nil
+(defvar-local buffer-save-without-query nil
   "Non-nil means `save-some-buffers' should save this buffer without asking.")
-(make-variable-buffer-local 'buffer-save-without-query)
 
 (defcustom save-some-buffers-default-predicate nil
   "Default predicate for `save-some-buffers'.

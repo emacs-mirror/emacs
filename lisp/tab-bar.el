@@ -1308,8 +1308,7 @@ For more information, see the function `tab-switcher'."
       (setq buffer-read-only t)
       (current-buffer))))
 
-(defvar tab-switcher-column 3)
-(make-variable-buffer-local 'tab-switcher-column)
+(defvar-local tab-switcher-column 3)
 
 (defvar tab-switcher-mode-map
   (let ((map (make-keymap)))

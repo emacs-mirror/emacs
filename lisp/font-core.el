@@ -26,7 +26,7 @@
 ;; This variable is used by mode packages that support Font Lock mode by
 ;; defining their own keywords to use for `font-lock-keywords'.  (The mode
 ;; command should make it buffer-local and set it to provide the set up.)
-(defvar font-lock-defaults nil
+(defvar-local font-lock-defaults nil
   "Defaults for Font Lock mode specified by the major mode.
 Defaults should be of the form:
 
@@ -66,7 +66,6 @@ functions, `font-lock-fontify-buffer-function',
 `font-lock-unfontify-region-function', and `font-lock-inhibit-thing-lock'.")
 ;;;###autoload
 (put 'font-lock-defaults 'risky-local-variable t)
-(make-variable-buffer-local 'font-lock-defaults)
 
 (defvar font-lock-function 'font-lock-default-function
   "A function which is called when `font-lock-mode' is toggled.
