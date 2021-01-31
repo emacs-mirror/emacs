@@ -310,7 +310,8 @@ matching the current search string is highlighted lazily
 When multiple windows display the current buffer, the
 highlighting is displayed only on the selected window, unless
 this variable is set to the symbol `all-windows'."
-  :type '(choice boolean
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On, and applied to current window" t)
                  (const :tag "On, and applied to all windows" all-windows))
   :group 'lazy-highlight
   :group 'isearch)
