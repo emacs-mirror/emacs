@@ -184,28 +184,24 @@ the tail of the list."
       (cl-incf c))
     (setq decipher-mode-syntax-table table)))
 
-(defvar decipher-alphabet nil)
+(defvar-local decipher-alphabet nil)
 ;; This is an alist containing entries (PLAIN-CHAR . CIPHER-CHAR),
 ;; where PLAIN-CHAR runs from ?a to ?z and CIPHER-CHAR is an uppercase
 ;; letter or space (which means no mapping is known for that letter).
 ;; This *must* contain entries for all lowercase characters.
-(make-variable-buffer-local 'decipher-alphabet)
 
-(defvar decipher-stats-buffer nil
+(defvar-local decipher-stats-buffer nil
   "The buffer which displays statistics for this ciphertext.
 Do not access this variable directly, use the function
 `decipher-stats-buffer' instead.")
-(make-variable-buffer-local 'decipher-stats-buffer)
 
-(defvar decipher-undo-list-size 0
+(defvar-local decipher-undo-list-size 0
   "The number of entries in the undo list.")
-(make-variable-buffer-local 'decipher-undo-list-size)
 
-(defvar decipher-undo-list nil
+(defvar-local decipher-undo-list nil
   "The undo list for this buffer.
 Each element is either a cons cell (PLAIN-CHAR . CIPHER-CHAR) or a
 list of such cons cells.")
-(make-variable-buffer-local 'decipher-undo-list)
 
 (defvar decipher-pending-undo-list nil)
 

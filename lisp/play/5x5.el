@@ -84,23 +84,24 @@
 
 (defmacro 5x5-defvar-local (var value doc)
   "Define VAR to VALUE with documentation DOC and make it buffer local."
+  (declare (obsolete defvar-local "28.1"))
   `(progn
      (defvar ,var ,value ,doc)
      (make-variable-buffer-local (quote ,var))))
 
-(5x5-defvar-local 5x5-grid nil
+(defvar-local 5x5-grid nil
   "5x5 grid contents.")
 
-(5x5-defvar-local 5x5-x-pos 2
+(defvar-local 5x5-x-pos 2
   "X position of cursor.")
 
-(5x5-defvar-local 5x5-y-pos 2
+(defvar-local 5x5-y-pos 2
   "Y position of cursor.")
 
-(5x5-defvar-local 5x5-moves 0
+(defvar-local 5x5-moves 0
   "Moves made.")
 
-(5x5-defvar-local 5x5-cracking nil
+(defvar-local 5x5-cracking nil
   "Are we in cracking mode?")
 
 (defvar 5x5-buffer-name "*5x5*"
