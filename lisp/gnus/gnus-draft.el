@@ -1,4 +1,4 @@
-;;; gnus-draft.el --- draft message support for Gnus
+;;; gnus-draft.el --- draft message support for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -65,7 +65,7 @@
     ;; Set up the menu.
     (when (gnus-visual-p 'draft-menu 'menu)
       (gnus-draft-make-menu-bar))
-    (add-hook 'gnus-summary-prepare-exit-hook 'gnus-draft-clear-marks t t))))
+    (add-hook 'gnus-summary-prepare-exit-hook #'gnus-draft-clear-marks t t))))
 
 ;;; Commands
 
@@ -99,11 +99,11 @@
     (let ((gnus-verbose-backends nil))
       (gnus-request-expire-articles (list article) group t))
     (push
-     `((lambda ()
-         (when (gnus-buffer-live-p ,gnus-summary-buffer)
-	   (save-excursion
-	     (set-buffer ,gnus-summary-buffer)
-	     (gnus-cache-possibly-remove-article ,article nil nil nil t)))))
+     (let ((buf gnus-summary-buffer))
+       (lambda ()
+         (when (gnus-buffer-live-p buf)
+	   (with-current-buffer buf
+	     (gnus-cache-possibly-remove-article article nil nil nil t)))))
      message-send-actions)))
 
 (defun gnus-draft-send-message (&optional n)
@@ -275,8 +275,7 @@ If DONT-POP is nil, display the buffer after setting it up."
       (gnus-configure-posting-styles)
       (setq gnus-message-group-art (cons gnus-newsgroup-name (cadr ga)))
       (setq message-post-method
-            `(lambda (arg)
-               (gnus-post-method arg ,(car ga))))
+            (lambda (arg) (gnus-post-method arg (car ga))))
       (unless (equal (cadr ga) "")
         (dolist (article (cdr ga))
           (message-add-action

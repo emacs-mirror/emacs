@@ -40,17 +40,14 @@
   "If non-nil, save the duplicate list when shutting down Gnus.
 If nil, duplicate suppression will only work on duplicates
 seen in the same session."
-  :group 'gnus-duplicate
   :type 'boolean)
 
 (defcustom gnus-duplicate-list-length 10000
   "The maximum number of duplicate Message-IDs to keep track of."
-  :group 'gnus-duplicate
   :type 'integer)
 
 (defcustom gnus-duplicate-file (nnheader-concat gnus-directory "suppression")
   "The name of the file to store the duplicate suppression list."
-  :group 'gnus-duplicate
   :type 'file)
 
 ;;; Internal variables

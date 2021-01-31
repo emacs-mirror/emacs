@@ -131,7 +131,6 @@ display.")
 
 (defcustom gnus-registry-default-mark 'To-Do
   "The default mark.  Should be a valid key for `gnus-registry-marks'."
-  :group 'gnus-registry
   :type 'symbol)
 
 (defcustom gnus-registry-unfollowed-addresses
@@ -141,7 +140,6 @@ The addresses are matched, they don't have to be fully qualified.
 In the messages, these addresses can be the sender or the
 recipients."
   :version "24.1"
-  :group 'gnus-registry
   :type '(repeat regexp))
 
 (defcustom gnus-registry-unfollowed-groups
@@ -153,12 +151,10 @@ message into a group that matches one of these, regardless of
 references.'
 
 nnmairix groups are specifically excluded because they are ephemeral."
-  :group 'gnus-registry
   :type '(repeat regexp))
 
 (defcustom gnus-registry-install 'ask
   "Whether the registry should be installed."
-  :group 'gnus-registry
   :type '(choice (const :tag "Never Install" nil)
                  (const :tag "Always Install" t)
                  (const :tag "Ask Me" ask)))
@@ -181,7 +177,6 @@ nnmairix groups are specifically excluded because they are ephemeral."
   "Whether the registry should track extra data about a message.
 The subject, recipients (To: and Cc:), and Sender (From:) headers
 are tracked this way by default."
-  :group 'gnus-registry
   :type
   '(set :tag "Tracking choices"
     (const :tag "Track by subject (Subject: header)" subject)
@@ -205,7 +200,6 @@ This is the slowest strategy but also the most accurate one.
 When `first', the first element of G wins.  This is fast and
 should be OK if your senders and subjects don't \"bleed\" across
 groups."
-  :group 'gnus-registry
   :type
   '(choice :tag "Splitting strategy"
            (const :tag "Only use single choices, discard multiple matches" nil)
@@ -214,7 +208,6 @@ groups."
 
 (defcustom gnus-registry-minimum-subject-length 5
   "The minimum length of a subject before it's considered trackable."
-  :group 'gnus-registry
   :type 'integer)
 
 (defcustom gnus-registry-extra-entries-precious '(mark)
@@ -225,20 +218,18 @@ considered precious.
 Before you save the Gnus registry, it's pruned.  Any entries with
 keys in this list will not be pruned.  All other entries go to
 the Bit Bucket."
-  :group 'gnus-registry
   :type '(repeat symbol))
 
 (defcustom gnus-registry-cache-file
+  ;; FIXME: Use `locate-user-emacs-file'!
   (nnheader-concat
    (or gnus-dribble-directory gnus-home-directory "~/")
    ".gnus.registry.eieio")
   "File where the Gnus registry will be stored."
-  :group 'gnus-registry
   :type 'file)
 
 (defcustom gnus-registry-max-entries nil
   "Maximum number of entries in the registry, nil for unlimited."
-  :group 'gnus-registry
   :type '(radio (const :format "Unlimited " nil)
                 (integer :format "Maximum number: %v")))
 
@@ -253,7 +244,6 @@ cut the registry back to \(- 50000 \(* 50000 0.1)) -> 45000
 entries.  The pruning process is constrained by the presence of
 \"precious\" entries."
   :version "25.1"
-  :group 'gnus-registry
   :type 'float)
 
 (defcustom gnus-registry-default-sort-function
@@ -262,7 +252,6 @@ entries.  The pruning process is constrained by the presence of
 Entries that sort to the front of the list are pruned first.
 This can slow pruning down.  Set to nil to perform no sorting."
   :version "25.1"
-  :group 'gnus-registry
   :type '(choice (const :tag "No sorting" nil) function))
 
 (defun gnus-registry-sort-by-creation-time (l r)
@@ -891,7 +880,7 @@ Addresses without a name will say \"noname\"."
 
 (defun gnus-registry-sort-addresses (&rest addresses)
   "Return a normalized and sorted list of ADDRESSES."
-  (sort (mapcan #'gnus-registry-extract-addresses addresses) 'string-lessp))
+  (sort (mapcan #'gnus-registry-extract-addresses addresses) #'string-lessp))
 
 (defun gnus-registry-simplify-subject (subject)
   (if (stringp subject)

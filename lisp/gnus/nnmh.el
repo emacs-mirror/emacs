@@ -1,4 +1,4 @@
-;;; nnmh.el --- mhspool access for Gnus
+;;; nnmh.el --- mhspool access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -72,7 +72,7 @@ as unread by Gnus.")
 
 (nnoo-define-basics nnmh)
 
-(deffoo nnmh-retrieve-headers (articles &optional newsgroup server fetch-old)
+(deffoo nnmh-retrieve-headers (articles &optional newsgroup server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let* ((file nil)
@@ -147,7 +147,7 @@ as unread by Gnus.")
 	 (save-excursion (nnmail-find-file file))
 	 (string-to-number (file-name-nondirectory file)))))
 
-(deffoo nnmh-request-group (group &optional server dont-check info)
+(deffoo nnmh-request-group (group &optional server dont-check _info)
   (nnheader-init-server-buffer)
   (nnmh-possibly-change-directory group server)
   (let ((pathname (nnmail-group-pathname group nnmh-directory))
@@ -171,9 +171,9 @@ as unread by Gnus.")
 	(nnheader-re-read-dir pathname)
 	(setq dir
 	      (sort
-	       (mapcar 'string-to-number
+	       (mapcar #'string-to-number
 		       (directory-files pathname nil "\\`[0-9]+\\'" t))
-	       '<))
+	       #'<))
 	(cond
 	 (dir
 	  (setq nnmh-group-alist
@@ -188,8 +188,10 @@ as unread by Gnus.")
 	  (nnheader-report 'nnmh "Empty group %s" group)
 	  (nnheader-insert (format "211 0 1 0 %s\n" group))))))))))
 
-(deffoo nnmh-request-scan (&optional group server)
+(deffoo nnmh-request-scan (&optional group _server)
   (nnmail-get-new-mail 'nnmh nil nnmh-directory group))
+
+(defvar nnmh-toplev)
 
 (deffoo nnmh-request-list (&optional server dir)
   (nnheader-insert "")
@@ -201,13 +203,12 @@ as unread by Gnus.")
   (setq nnmh-group-alist (nnmail-get-active))
   t)
 
-(defvar nnmh-toplev)
 (defun nnmh-request-list-1 (dir)
   (setq dir (expand-file-name dir))
   ;; Recurse down all directories.
   (let ((files (nnheader-directory-files dir t nil t))
 	(max 0)
-	min rdir num subdirectoriesp file)
+	min num subdirectoriesp file) ;; rdir
     ;; Recurse down directories.
     (setq subdirectoriesp
 	  ;; link number always 1 on MS Windows :(
@@ -252,7 +253,7 @@ as unread by Gnus.")
 	  (or min 1))))))
   t)
 
-(deffoo nnmh-request-newgroups (date &optional server)
+(deffoo nnmh-request-newgroups (_date &optional server)
   (nnmh-request-list server))
 
 (deffoo nnmh-request-expire-articles (articles newsgroup
@@ -291,11 +292,11 @@ as unread by Gnus.")
     (nnheader-message 5 "")
     (nconc rest articles)))
 
-(deffoo nnmh-close-group (group &optional server)
+(deffoo nnmh-close-group (_group &optional _server)
   t)
 
-(deffoo nnmh-request-move-article (article group server accept-form
-					   &optional last move-is-internal)
+(deffoo nnmh-request-move-article ( article group server accept-form
+				    &optional _last _move-is-internal)
   (let ((buf (gnus-get-buffer-create " *nnmh move*"))
 	result)
     (and
@@ -304,7 +305,7 @@ as unread by Gnus.")
      (with-current-buffer buf
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
-       (setq result (eval accept-form))
+       (setq result (eval accept-form t))
        (kill-buffer (current-buffer))
        result)
      (progn
@@ -350,7 +351,7 @@ as unread by Gnus.")
        nil (if (nnheader-be-verbose 5) nil 'nomesg))
       t)))
 
-(deffoo nnmh-request-create-group (group &optional server args)
+(deffoo nnmh-request-create-group (group &optional server _args)
   (nnheader-init-server-buffer)
   (unless (assoc group nnmh-group-alist)
     (let (active)
@@ -358,12 +359,12 @@ as unread by Gnus.")
 	    nnmh-group-alist)
       (nnmh-possibly-create-directory group)
       (nnmh-possibly-change-directory group server)
-      (let ((articles (mapcar 'string-to-number
+      (let ((articles (mapcar #'string-to-number
 			      (directory-files
 			       nnmh-current-directory nil "\\`[0-9]+\\'"))))
 	(when articles
-	  (setcar active (apply 'min articles))
-	  (setcdr active (apply 'max articles))))))
+	  (setcar active (apply #'min articles))
+	  (setcdr active (apply #'max articles))))))
   t)
 
 (deffoo nnmh-request-delete-group (group &optional force server)
@@ -484,9 +485,9 @@ as unread by Gnus.")
 	(gnus-make-directory dir))
       ;; Find the highest number in the group.
       (let ((files (sort
-		    (mapcar 'string-to-number
+		    (mapcar #'string-to-number
 			    (directory-files dir nil "\\`[0-9]+\\'"))
-		    '>)))
+		    #'>)))
 	(when files
 	  (setcdr active (car files)))))
     (setcdr active (1+ (cdr active)))
@@ -507,10 +508,10 @@ as unread by Gnus.")
   ;; articles in this folder.  The articles that are "new" will be
   ;; marked as unread by Gnus.
   (let* ((dir nnmh-current-directory)
-	 (files (sort (mapcar 'string-to-number
+	 (files (sort (mapcar #'string-to-number
 			      (directory-files nnmh-current-directory
 					       nil "\\`[0-9]+\\'" t))
-		      '<))
+		      #'<))
 	 (nnmh-file (concat dir ".nnmh-articles"))
 	 new articles)
     ;; Load the .nnmh-articles file.
@@ -557,7 +558,7 @@ as unread by Gnus.")
     (when new
       (gnus-make-articles-unread
        (gnus-group-prefixed-name group (list 'nnmh ""))
-       (setq new (sort new '<))))
+       (setq new (sort new #'<))))
     ;; Sort the article list with highest numbers first.
     (setq articles (sort articles (lambda (art1 art2)
 				    (> (car art1) (car art2)))))
