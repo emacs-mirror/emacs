@@ -2606,40 +2606,32 @@ at point.  With prefix argument, prompt for ACTION-KIND."
 
 ;;; Dynamic registration
 ;;;
-(defun eglot--wildcard-to-regexp (wildcard)
-  "(Very lame attempt to) convert WILDCARD to a Elisp regexp."
-  (cl-loop
-   with substs = '(("{" . "\\\\(")
-                   ("}" . "\\\\)")
-                   ("," . "\\\\|"))
-   with string = (wildcard-to-regexp wildcard)
-   for (pattern . rep) in substs
-   for target = string then result
-   for result = (replace-regexp-in-string pattern rep target)
-   finally return result))
-
 (cl-defmethod eglot-register-capability
   (server (method (eql workspace/didChangeWatchedFiles)) id &key watchers)
   "Handle dynamic registration of workspace/didChangeWatchedFiles"
   (eglot-unregister-capability server method id)
   (let* (success
-         (globs (mapcar (eglot--lambda ((FileSystemWatcher) globPattern)
-                          globPattern)
-                        watchers))
-         (glob-dirs
-          (delete-dups (mapcar #'file-name-directory
-                               (mapcan #'file-expand-wildcards globs)))))
+         (globs (mapcar
+                 (eglot--lambda ((FileSystemWatcher) globPattern)
+                   (cons
+                    (eglot--glob-compile globPattern t t)
+                    (eglot--glob-compile
+                     (replace-regexp-in-string "/[^/]*$" "/" globPattern) t t)))
+                 watchers))
+         (dirs-to-watch
+          (cl-loop for dir in (eglot--directories-recursively)
+                   when (cl-loop for g in globs
+                                 thereis (ignore-errors (funcall (cdr g) dir)))
+                   collect dir)))
     (cl-labels
         ((handle-event
           (event)
           (pcase-let ((`(,desc ,action ,file ,file1) event))
             (cond
              ((and (memq action '(created changed deleted))
-                   (cl-find file globs
+                   (cl-find file (mapcar #'car globs)
                             :test (lambda (f glob)
-                                    (string-match (eglot--wildcard-to-regexp
-                                                   (expand-file-name glob))
-                                                  f))))
+                                    (funcall glob f))))
               (jsonrpc-notify
                server :workspace/didChangeWatchedFiles
                `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
@@ -2652,13 +2644,13 @@ at point.  With prefix argument, prompt for ACTION-KIND."
               (handle-event `(,desc 'created ,file1)))))))
       (unwind-protect
           (progn
-            (dolist (dir glob-dirs)
+            (dolist (dir dirs-to-watch)
               (push (file-notify-add-watch dir '(change) #'handle-event)
                     (gethash id (eglot--file-watches server))))
             (setq
              success
              `(:message ,(format "OK, watching %s directories in %s watchers"
-                                 (length glob-dirs) (length watchers)))))
+                                 (length dirs-to-watch) (length watchers)))))
         (unless success
           (eglot-unregister-capability server method id))))))
 
@@ -2668,6 +2660,79 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   (mapc #'file-notify-rm-watch (gethash id (eglot--file-watches server)))
   (remhash id (eglot--file-watches server))
   (list t "OK"))
+
+
+;;; Glob heroics
+;;;
+(defun eglot--glob-parse (glob)
+  "Compute list of (STATE-SYM EMITTER-FN PATTERN)."
+  (with-temp-buffer
+    (save-excursion (insert glob))
+    (cl-loop
+     with grammar = '((:**      "\\*\\*/?"              eglot--glob-emit-**)
+                      (:*       "\\*"                   eglot--glob-emit-*)
+                      (:?       "\\?"                   eglot--glob-emit-?)
+                      (:/       "/"                     eglot--glob-emit-self)
+                      (:{}      "{[^][/*{}]+}"          eglot--glob-emit-{})
+                      (:range   "\\[\\^?[^][/,*{}]+\\]" eglot--glob-emit-range)
+                      (:literal "[^][/,*?{}]+"          eglot--glob-emit-self))
+     until (eobp)
+     collect (cl-loop
+              for (_token regexp emitter) in grammar
+              thereis (and (re-search-forward (concat "\\=" regexp) nil t)
+                           (list (cl-gensym "state-") emitter (match-string 0)))
+              finally (error "Glob '%s' invalid at %s" (buffer-string) (point))))))
+
+(defun eglot--glob-compile (glob &optional byte-compile noerror)
+  "Convert GLOB into Elisp function.  Maybe BYTE-COMPILE it.
+If NOERROR, return predicate, else erroring function."
+  (let* ((states (eglot--glob-parse glob))
+         (body `(with-temp-buffer
+                  (save-excursion (insert string))
+                  (cl-labels ,(cl-loop for (this that) on states
+                                       for (self emit text) = this
+                                       for next = (or (car that) 'eobp)
+                                       collect (funcall emit text self next))
+                    (or (,(caar states))
+                        (error "Glob done but more unmatched text: '%s'"
+                               (buffer-substring (point) (point-max)))))))
+         (form `(lambda (string) ,(if noerror `(ignore-errors ,body) body))))
+    (if byte-compile (byte-compile form) form)))
+
+(defun eglot--glob-emit-self (text self next)
+  `(,self () (re-search-forward ,(concat "\\=" (regexp-quote text))) (,next)))
+
+(defun eglot--glob-emit-** (_ self next)
+  `(,self () (or (ignore-errors (save-excursion (,next)))
+                 (and (re-search-forward "\\=/?[^/]+/?") (,self)))))
+
+(defun eglot--glob-emit-* (_ self next)
+  `(,self () (re-search-forward "\\=[^/]")
+          (or (ignore-errors (save-excursion (,next))) (,self))))
+
+(defun eglot--glob-emit-? (_ self next)
+  `(,self () (re-search-forward "\\=[^/]") (,next)))
+
+(defun eglot--glob-emit-{} (arg self next)
+  (let ((alternatives (split-string (substring arg 1 (1- (length arg))) ",")))
+    `(,self ()
+            (or ,@(cl-loop for alt in alternatives
+                           collect `(re-search-forward ,(concat "\\=" alt) nil t))
+                (error "Failed matching any of %s" ',alternatives))
+            (,next))))
+
+(defun eglot--glob-emit-range (arg self next)
+  (when (eq ?! (aref arg 1)) (aset arg 1 ?^))
+  `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
+
+(defun eglot--directories-recursively (&optional dir)
+  "Because `directory-files-recursively' isn't complete in 26.3."
+  (cons (setq dir (expand-file-name (or dir default-directory)))
+        (cl-loop
+         with default-directory = dir
+         with completion-regexp-list = '("^[^.]")
+         for f in (file-name-all-completions "" dir)
+         when (file-directory-p f) append (eglot--directories-recursively f))))
 
 
 ;;; Rust-specific
