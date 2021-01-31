@@ -408,10 +408,6 @@ be in `artist-spray-chars', or spraying will behave strangely.")
 
 ;; Internal variables
 ;;
-(defvar artist-mode nil
-  "Non-nil to enable `artist-mode' and nil to disable.")
-(make-variable-buffer-local 'artist-mode)
-
 (defvar artist-mode-name " Artist"
   "Name of Artist mode beginning with a space (appears in the mode-line).")
 
