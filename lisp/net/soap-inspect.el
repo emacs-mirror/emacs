@@ -206,16 +206,12 @@ This is a specialization of `soap-sample-value' for
 
 ;;; soap-inspect
 
-(defvar soap-inspect-previous-items nil
+(defvar-local soap-inspect-previous-items nil
   "A stack of previously inspected items in the *soap-inspect* buffer.
 Used to implement the BACK button.")
 
-(defvar soap-inspect-current-item nil
+(defvar-local soap-inspect-current-item nil
   "The current item being inspected in the *soap-inspect* buffer.")
-
-(progn
-  (make-variable-buffer-local 'soap-inspect-previous-items)
-  (make-variable-buffer-local 'soap-inspect-current-item))
 
 (defun soap-inspect (element)
   "Inspect a SOAP ELEMENT in the *soap-inspect* buffer.
