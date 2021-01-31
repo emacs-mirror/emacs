@@ -226,6 +226,13 @@ C-M-<return> instead of <C-M-return>.  Either variant can be used as
 input; functions such as 'kbd' and 'read-kbd-macro' accept both styles
 as equivalent (they have done so for a long time).
 
++++
+** New user option 'lazy-highlight-no-delay-length'.
+Lazy highlighting of matches in Isearch now starts immediately if the
+search string is at least this long.  'lazy-highlight-initial-delay'
+still applies for shorter search strings, which avoids flicker in the
+search buffer due to too many matches being highlighted.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -503,6 +510,12 @@ If 'numeric', calendar functions (eg 'calendar-sunrise-sunset') that display
 time zones will use a form like "+0100" instead of "CET".
 
 ** Dired
+
+---
+*** Behavior change on 'dired-clean-confirm-killing-deleted-buffers'.
+Previously, if 'dired-clean-up-buffers-too' was non-nil, and
+'dired-clean-confirm-killing-deleted-buffers' was nil, the buffers
+wouldn't be killed.  This combination will now kill the buffers.
 
 +++
 *** New user option 'dired-switches-in-mode-line'.
@@ -1131,6 +1144,11 @@ requires to enlarge 'max-specpdl-size', the number of Lisp variable
 bindings, will be aborted, and Emacs will not ask you whether to
 enlarge 'max-specpdl-size' to complete the rendering.  The default is
 t, which preserves the original behavior.
+
+---
+*** New user option 'rmail-show-message-set-modified'.
+If set non-nil, showing an unseen message will set the Rmail buffer's
+modified flag.
 
 ** Apropos
 
@@ -1998,6 +2016,9 @@ directory instead of the default directory.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
+** 'completions-annotations' face is not used when the caller puts own face.
+This affects the suffix specified by completion 'annotation-function'.
 
 ** 'set-process-buffer' now updates the process mark.
 The mark will be set to point to the end of the new buffer.

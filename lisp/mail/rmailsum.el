@@ -974,8 +974,9 @@ a negative argument means to delete and move forward."
 	  (delete-char 1)
 	  (insert "D"))
 	;; Discard cached new summary line.
-	(with-current-buffer rmail-buffer
-	  (aset rmail-summary-vector (1- n) nil))))
+        (when n
+	  (with-current-buffer rmail-buffer
+	    (aset rmail-summary-vector (1- n) nil)))))
   (beginning-of-line))
 
 (defun rmail-summary-update-line (n)

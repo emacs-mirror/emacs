@@ -12876,7 +12876,7 @@ update_menu_bar (struct frame *f, bool save_match_data, bool hooks_run)
                  the selected frame should be allowed to set it.  */
               if (f == SELECTED_FRAME ())
 #endif
-		set_frame_menubar (f, false, false);
+		set_frame_menubar (f, false);
 	    }
 	  else
 	    /* On a terminal screen, the menu bar is an ordinary screen

@@ -1799,15 +1799,19 @@ pairs.  The following properties are supported:
 The value should be a function to add annotations in the completions
 buffer.  This function must accept one argument, a completion, and
 should either return @code{nil} or a string to be displayed next to
-the completion.
+the completion.  Unless this function puts own face on the annotation
+suffix string, the @code{completions-annotations} face is added by
+default to that string.
 
 @item :affixation-function
 The value should be a function to add prefixes and suffixes to
 completions.  This function must accept one argument, a list of
 completions, and should return such a list of completions where
 each element contains a list of three elements: a completion,
-a prefix string, and a suffix string.  This function takes priority
-over @code{:annotation-function}.
+a prefix string, and a suffix string.  When this function
+returns a list of two elements, it is interpreted as a list
+of a completion and a suffix string like in @code{:annotation-function}.
+This function takes priority over @code{:annotation-function}.
 
 @item :exit-function
 The value should be a function to run after performing completion.
@@ -1907,6 +1911,9 @@ The value should be a function for @dfn{annotating} completions.  The
 function should take one argument, @var{string}, which is a possible
 completion.  It should return a string, which is displayed after the
 completion @var{string} in the @file{*Completions*} buffer.
+Unless this function puts own face on the annotation suffix string,
+the @code{completions-annotations} face is added by default to
+that string.
 
 @item affixation-function
 The value should be a function for adding prefixes and suffixes to
@@ -1915,8 +1922,10 @@ completions.  The function should take one argument,
 return such a list of @var{completions} where each element contains a list
 of three elements: a completion, a prefix which is displayed before
 the completion string in the @file{*Completions*} buffer, and
-a suffix displayed after the completion string.  This function
-takes priority over @code{annotation-function}.
+a suffix displayed after the completion string.  When this function
+returns a list of two elements, it is interpreted as a list of
+a completion and a suffix string like in @code{annotation-function}.
+This function takes priority over @code{annotation-function}.
 
 @item display-sort-function
 The value should be a function for sorting completions.  The function

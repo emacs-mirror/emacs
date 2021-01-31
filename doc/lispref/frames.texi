@@ -2411,7 +2411,7 @@ attribute of the @code{default} face.
 
 @vindex foreground-color@r{, a frame parameter}
 @item foreground-color
-The color to use for the image of a character.  It is equivalent to
+The color to use for characters.  It is equivalent to
 the @code{:foreground} attribute of the @code{default} face.
 
 @vindex background-color@r{, a frame parameter}
