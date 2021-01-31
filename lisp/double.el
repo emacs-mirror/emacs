@@ -141,12 +141,6 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 
 ;;; Mode
 
-;; This feature seemed useless and it confused describe-mode,
-;; so I deleted it.
-;; (defvar double-mode-name "Double")
-;; ;; Name of current double mode.
-;; (make-variable-buffer-local 'double-mode-name)
-
 ;;;###autoload
 (define-minor-mode double-mode
   "Toggle special insertion on double keypresses (Double mode).
