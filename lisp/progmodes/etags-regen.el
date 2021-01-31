@@ -133,7 +133,7 @@ File extensions to generate the tags for."
 
 (declare-function dired-glob-regexp "dired")
 
-(defun etags-regen--tags-generate (proj)
+(defun etags-regen--all-files (proj)
   (require 'dired)
   (let* ((root (project-root proj))
          (default-directory root)
@@ -152,7 +152,20 @@ File extensions to generate the tags for."
                                   ;; abc/ -> abc/*
                                   (setq i (concat i "*"))))
                             (dired-glob-regexp i))
-                          (cons ".#*" etags-regen-ignores)))
+                          (cons ".#*" etags-regen-ignores))))
+    (cl-delete-if-not
+     (lambda (f)
+       (and (string-match-p file-regexp f)
+            (not (cl-find
+                  (lambda (re) (string-match-p re f))
+                  ignore-regexps))))
+     files)))
+
+(defun etags-regen--tags-generate (proj)
+  (require 'dired)
+  (let* ((root (project-root proj))
+         (default-directory root)
+         (files (etags-regen--all-files proj))
          (tags-file (make-temp-file "emacs-regen-tags-"))
          ;; ctags's etags requires '-L -' for stdin input.
          ;; It looks half-broken here (indexes only some of the input files),
@@ -165,11 +178,7 @@ File extensions to generate the tags for."
           etags-regen--tags-root root)
     (with-temp-buffer
       (mapc (lambda (f)
-              (when (and (string-match-p file-regexp f)
-                         (not (seq-some
-                               (lambda (re) (string-match-p re f))
-                               ignore-regexps)))
-                (insert f "\n")))
+              (insert f "\n"))
             files)
       (shell-command-on-region (point-min) (point-max) command
                                nil nil etags-regen--errors-buffer-name t))))
