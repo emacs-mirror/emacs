@@ -2290,19 +2290,17 @@ This takes effect when first loading the library.")
 	 nil t)
 	(match-string-no-properties 1))))
 
-(defvar html--buffer-classes-cache nil
+(defvar-local html--buffer-classes-cache nil
   "Cache for `html-current-buffer-classes'.
 When set, this should be a cons cell where the CAR is the
 buffer's tick counter (as produced by `buffer-modified-tick'),
 and the CDR is the list of class names found in the buffer.")
-(make-variable-buffer-local 'html--buffer-classes-cache)
 
-(defvar html--buffer-ids-cache nil
+(defvar-local html--buffer-ids-cache nil
   "Cache for `html-current-buffer-ids'.
 When set, this should be a cons cell where the CAR is the
 buffer's tick counter (as produced by `buffer-modified-tick'),
 and the CDR is the list of class names found in the buffer.")
-(make-variable-buffer-local 'html--buffer-ids-cache)
 
 (declare-function libxml-parse-html-region "xml.c"
                   (start end &optional base-url discard-comments))
