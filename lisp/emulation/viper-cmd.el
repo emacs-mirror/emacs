@@ -1624,7 +1624,7 @@ invokes the command before that, etc."
 ;; The following two functions are used to set up undo properly.
 ;; In VI, unlike Emacs, if you open a line, say, and add a bunch of lines,
 ;; they are undone all at once.
-(viper-deflocalvar viper--undo-change-group-handle nil)
+(defvar-local viper--undo-change-group-handle nil)
 (put 'viper--undo-change-group-handle 'permanent-local t)
 
 (defun viper-adjust-undo ()
