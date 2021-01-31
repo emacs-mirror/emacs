@@ -1701,6 +1701,7 @@ be a list of the form returned by `event-start' and `event-end'."
 (make-obsolete-variable 'redisplay-dont-pause nil "24.5")
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
+(make-obsolete-variable 'operating-system-release nil "28.1")
 
 (make-obsolete 'run-window-configuration-change-hook nil "27.1")
 
