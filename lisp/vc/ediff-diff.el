@@ -1230,35 +1230,30 @@ are ignored."
 Used for splitting difference regions into individual words.")
 
 ;; \240 is Unicode symbol for nonbreakable whitespace
-(defvar ediff-whitespace " \n\t\f\r\240"
+(defvar-local ediff-whitespace " \n\t\f\r\240"
   "Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
-(make-variable-buffer-local 'ediff-whitespace)
 
-(defvar ediff-word-1 "-[:word:]_"
+(defvar-local ediff-word-1 "-[:word:]_"
   "Characters that constitute words of type 1.
 More precisely, [ediff-word-1] is a regexp that matches type 1 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-1)
 
-(defvar ediff-word-2 "0-9.,"
+(defvar-local ediff-word-2 "0-9.,"
   "Characters that constitute words of type 2.
 More precisely, [ediff-word-2] is a regexp that matches type 2 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-2)
 
-(defvar ediff-word-3 "`'?!:;\"{}[]()"
+(defvar-local ediff-word-3 "`'?!:;\"{}[]()"
   "Characters that constitute words of type 3.
 More precisely, [ediff-word-3] is a regexp that matches type 3 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-3)
 
-(defvar ediff-word-4
+(defvar-local ediff-word-4
   (concat "^" ediff-word-1 ediff-word-2 ediff-word-3 ediff-whitespace)
   "Characters that constitute words of type 4.
 More precisely, [ediff-word-4] is a regexp that matches type 4 words.
 See `ediff-forward-word' for more details.")
-(make-variable-buffer-local 'ediff-word-4)
 
 ;; Split region along word boundaries. Each word will be on its own line.
 ;; Output to buffer out-buffer.

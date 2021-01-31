@@ -80,13 +80,12 @@ that Ediff doesn't know about.")
 ;; so that `kill-all-local-variables' (called by major-mode setting
 ;; commands) won't destroy Ediff control variables.
 ;;
-;; Plagiarized from `emerge-defvar-local' for XEmacs.
+;; Plagiarized from `emerge-defvar-local'.
 (defmacro ediff-defvar-local (var value doc)
   "Defines VAR as a local variable."
   (declare (indent defun) (doc-string 3))
   `(progn
-     (defvar ,var ,value ,doc)
-     (make-variable-buffer-local ',var)
+     (defvar-local ,var ,value ,doc)
      (put ',var 'permanent-local t)))
 
 

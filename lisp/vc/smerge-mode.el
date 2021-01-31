@@ -173,8 +173,7 @@ Used in `smerge-diff-base-upper' and related functions."
   `((,smerge-command-prefix . ,smerge-basic-map))
   "Keymap for `smerge-mode'.")
 
-(defvar smerge-check-cache nil)
-(make-variable-buffer-local 'smerge-check-cache)
+(defvar-local smerge-check-cache nil)
 (defun smerge-check (n)
   (condition-case nil
       (let ((state (cons (point) (buffer-modified-tick))))
