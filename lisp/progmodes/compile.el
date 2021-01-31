@@ -953,13 +953,11 @@ Faces `compilation-error-face', `compilation-warning-face',
   :type 'boolean
   :version "23.1")
 
-(defvar compilation-auto-jump-to-next nil
+(defvar-local compilation-auto-jump-to-next nil
   "If non-nil, automatically jump to the next error encountered.")
-(make-variable-buffer-local 'compilation-auto-jump-to-next)
 
-;; (defvar compilation-buffer-modtime nil
+;; (defvar-local compilation-buffer-modtime nil
 ;;   "The buffer modification time, for buffers not associated with files.")
-;; (make-variable-buffer-local 'compilation-buffer-modtime)
 
 (defvar compilation-skip-to-next-location t
   "If non-nil, skip multiple error messages for the same source location.")
@@ -1087,13 +1085,12 @@ from a different message."
             (:conc-name compilation--message->))
   loc type end-loc rule)
 
-(defvar compilation--previous-directory-cache nil
+(defvar-local compilation--previous-directory-cache nil
   "A pair (POS . RES) caching the result of previous directory search.
 Basically, this pair says that calling
    (previous-single-property-change POS \\='compilation-directory)
 returned RES, i.e. there is no change of `compilation-directory' between
 POS and RES.")
-(make-variable-buffer-local 'compilation--previous-directory-cache)
 
 (defun compilation--flush-directory-cache (start _end)
   (cond
@@ -1600,8 +1597,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
                (match-beginning mn) (match-end mn)
                'font-lock-face (cadr props)))))))))
 
-(defvar compilation--parsed -1)
-(make-variable-buffer-local 'compilation--parsed)
+(defvar-local compilation--parsed -1)
 
 (defun compilation--ensure-parse (limit)
   "Make sure the text has been parsed up to LIMIT."
@@ -2673,9 +2669,8 @@ This is the value of `next-error-function' in Compilation buffers."
                             (compilation--loc->marker end-loc))
     (setf (compilation--loc->visited loc) t)))
 
-(defvar compilation-gcpro nil
+(defvar-local compilation-gcpro nil
   "Internal variable used to keep some values from being GC'd.")
-(make-variable-buffer-local 'compilation-gcpro)
 
 (defun compilation-fake-loc (marker file &optional line col)
   "Preassociate MARKER with FILE.

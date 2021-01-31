@@ -926,9 +926,8 @@ then the presence of the token here allows a line-break before or
 after the other character, where a break would not normally be
 allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
 
-(defvar f90-cache-position nil
+(defvar-local f90-cache-position nil
   "Temporary position used to speed up region operations.")
-(make-variable-buffer-local 'f90-cache-position)
 
 
 ;; Hideshow support.

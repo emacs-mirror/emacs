@@ -964,8 +964,7 @@ output is passed to the filter `inferior-octave-output-digest'."
 	  (setq list (cdr list)))
       (set-process-filter proc filter))))
 
-(defvar inferior-octave-directory-tracker-resync nil)
-(make-variable-buffer-local 'inferior-octave-directory-tracker-resync)
+(defvar-local inferior-octave-directory-tracker-resync nil)
 
 (defun inferior-octave-directory-tracker (string)
   "Tracks `cd' commands issued to the inferior Octave process.
