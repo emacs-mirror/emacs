@@ -477,23 +477,31 @@ simple manner."
 
 (defvar gnus-group-edit-buffer nil)
 
+(defvar gnus-tmp-active)
+(defvar gnus-tmp-colon)
+(defvar gnus-tmp-comment)
 (defvar gnus-tmp-group)
+(defvar gnus-tmp-group-icon)
+(defvar gnus-tmp-header)
 (defvar gnus-tmp-level)
 (defvar gnus-tmp-marked)
-(defvar gnus-tmp-news-method)
-(defvar gnus-tmp-colon)
-(defvar gnus-tmp-news-server)
-(defvar gnus-tmp-header)
-(defvar gnus-tmp-process-marked)
-(defvar gnus-tmp-summary-live)
-(defvar gnus-tmp-news-method-string)
-(defvar gnus-tmp-group-icon)
+(defvar gnus-tmp-marked-mark)
+(defvar gnus-tmp-method)
+(defvar gnus-tmp-moderated)
 (defvar gnus-tmp-moderated-string)
 (defvar gnus-tmp-newsgroup-description)
-(defvar gnus-tmp-comment)
+(defvar gnus-tmp-news-method)
+(defvar gnus-tmp-news-method-string)
+(defvar gnus-tmp-news-server)
+(defvar gnus-tmp-number-of-read)
+(defvar gnus-tmp-number-of-unread)
+(defvar gnus-tmp-number-total)
+(defvar gnus-tmp-process-marked)
 (defvar gnus-tmp-qualified-group)
 (defvar gnus-tmp-subscribed)
-(defvar gnus-tmp-number-of-read)
+(defvar gnus-tmp-summary-live)
+(defvar gnus-tmp-user-defined)
+
 (defvar gnus-inhibit-demon)
 (defvar gnus-pick-mode)
 (defvar gnus-tmp-marked-mark)
@@ -1503,7 +1511,7 @@ if it is a string, only list groups matching REGEXP."
 	     (gnus-group-get-new-news 0))))
   :type 'boolean)
 
-(defun gnus-group-insert-group-line (group level marked number gnus-tmp-method)
+(defun gnus-group-insert-group-line (group level marked number method)
   "Insert a group line in the group buffer."
   (with-suppressed-warnings ((lexical number))
     (defvar number))            ;FIXME: Used in `gnus-group-line-format-alist'.
@@ -1512,7 +1520,7 @@ if it is a string, only list groups matching REGEXP."
 	 (gnus-tmp-marked marked)
 	 (gnus-tmp-group group)
 	 (gnus-tmp-method
-	  (gnus-server-get-method gnus-tmp-group gnus-tmp-method))
+	  (gnus-server-get-method gnus-tmp-group method))
 	 (gnus-tmp-active (gnus-active gnus-tmp-group))
 	 (gnus-tmp-number-total
 	  (if gnus-tmp-active
