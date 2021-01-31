@@ -278,11 +278,10 @@ For example, you could write
          ((not globalp)
           `(progn
              :autoload-end
-             (defvar ,mode ,init-value
+             (defvar-local ,mode ,init-value
                ,(concat (format "Non-nil if %s is enabled.\n" pretty-name)
                         (internal--format-docstring-line
-                         "Use the command `%s' to change this variable." mode)))
-             (make-variable-buffer-local ',mode)))
+                         "Use the command `%s' to change this variable." mode)))))
          (t
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
@@ -453,8 +452,7 @@ on if the hook has explicitly disabled it.
        (progn
          (put ',global-mode 'globalized-minor-mode t)
          :autoload-end
-         (defvar ,MODE-major-mode nil)
-         (make-variable-buffer-local ',MODE-major-mode))
+         (defvar-local ,MODE-major-mode nil))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
          ,(concat (format "Toggle %s in all buffers.\n" pretty-name)

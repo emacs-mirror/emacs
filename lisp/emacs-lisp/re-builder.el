@@ -187,14 +187,14 @@ Set it to nil if you don't want limits here."
 (defvar reb-target-window nil
   "Window to which the RE is applied to.")
 
-(defvar reb-regexp nil
+(defvar-local reb-regexp nil
   "Last regexp used by RE Builder.")
 
-(defvar reb-regexp-src nil
+(defvar-local reb-regexp-src nil
   "Last regexp used by RE Builder before processing it.
 Except for Lisp syntax this is the same as `reb-regexp'.")
 
-(defvar reb-overlays nil
+(defvar-local reb-overlays nil
   "List of overlays of the RE Builder.")
 
 (defvar reb-window-config nil
@@ -211,10 +211,6 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 (defvar reb-valid-string ""
   "String in mode line showing validity of RE.")
-
-(make-variable-buffer-local 'reb-overlays)
-(make-variable-buffer-local 'reb-regexp)
-(make-variable-buffer-local 'reb-regexp-src)
 
 (defconst reb-buffer "*RE-Builder*"
   "Buffer to use for the RE Builder.")

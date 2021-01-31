@@ -2641,12 +2641,11 @@ See `edebug-behavior-alist' for implementations.")
 
 
 ;; window-start now stored with each function.
-;;(defvar edebug-window-start nil)
+;;(defvar-local edebug-window-start nil)
 ;; Remember where each buffers' window starts between edebug calls.
 ;; This is to avoid spurious recentering.
 ;; Does this still need to be buffer-local??
 ;;(setq-default edebug-window-start nil)
-;;(make-variable-buffer-local 'edebug-window-start)
 
 
 ;; Dynamically declared unbound vars
