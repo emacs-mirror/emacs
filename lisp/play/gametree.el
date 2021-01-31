@@ -79,7 +79,6 @@
 
 ;;; Code:
 
-(require 'derived)
 (require 'outline)
 
 ;;;; Configuration variables
