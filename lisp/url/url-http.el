@@ -461,8 +461,10 @@ Return the number of characters removed."
     ;; headers, then this means that we've already tried sending
     ;; credentials to the server, and they were wrong, so just give
     ;; up.
-    (when (assoc "Authorization" url-http-extra-headers)
-      (error "Wrong authorization used for %s" url))
+    (let ((authorization (assoc "Authorization" url-http-extra-headers)))
+      (when (and authorization
+		 (not (string-match "^NTLM " (cdr authorization))))
+	(error "Wrong authorization used for %s" url)))
 
     ;; find strongest supported auth
     (dolist (this-auth auths)
