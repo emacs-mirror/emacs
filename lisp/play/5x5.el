@@ -141,7 +141,7 @@
     map)
   "Local keymap for the 5x5 game.")
 
-(5x5-defvar-local 5x5-solver-output nil
+(defvar-local 5x5-solver-output nil
   "List that is the output of an arithmetic solver.
 
 This list L is such that

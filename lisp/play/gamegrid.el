@@ -50,7 +50,7 @@
 
 (defvar-local gamegrid-display-mode nil)
 
-(defvar-local gamegrid-display-table)
+(defvar-local gamegrid-display-table nil)
 
 (defvar-local gamegrid-face-table nil)
 
