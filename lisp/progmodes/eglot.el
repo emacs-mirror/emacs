@@ -272,7 +272,6 @@ let the buffer grow forever."
       (Position (:line :character))
       (Range (:start :end))
       (Registration (:id :method) (:registerOptions))
-      (Registration (:id :method) (:registerOptions))
       (ResponseError (:code :message) (:data))
       (ShowMessageParams (:type :message))
       (ShowMessageRequestParams (:type :message) (:actions))
