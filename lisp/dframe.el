@@ -5,10 +5,6 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
 
-(defvar dframe-version "1.3"
-  "The current version of the dedicated frame library.")
-(make-obsolete-variable 'dframe-version nil "28.1")
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -833,6 +829,13 @@ the mode-line."
 	   (scroll-right 2))
 	  (t (dframe-message
 	      "Click on the edge of the mode line to scroll left/right")))))
+
+
+;;; Obsolete
+
+(defvar dframe-version "1.3"
+  "The current version of the dedicated frame library.")
+(make-obsolete-variable 'dframe-version nil "28.1")
 
 (provide 'dframe)
 
