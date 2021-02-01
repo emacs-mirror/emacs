@@ -2231,7 +2231,7 @@ interactive command."
 
 We use a caching strategy, so the caller doesn't need to do so."
   (let* ((types allout-widgets-icon-types)
-         (use-dir (if (equal (allout-frame-property nil 'background-mode)
+         (use-dir (if (equal (frame-parameter nil 'background-mode)
                              'light)
                       allout-widgets-icons-light-subdir
                     allout-widgets-icons-dark-subdir))
@@ -2262,13 +2262,6 @@ We use a caching strategy, so the caller doesn't need to do so."
   "Return seconds between START/END time values."
   (let ((elapsed (time-subtract end start)))
     (float-time elapsed)))
-;;;_  > allout-frame-property (frame property)
-(defalias 'allout-frame-property
-  (cond ((fboundp 'frame-parameter)
-         'frame-parameter)
-        ((fboundp 'frame-property)
-         'frame-property)
-        (t nil)))
 ;;;_  > allout-find-image (specs)
 (define-obsolete-function-alias 'allout-find-image #'find-image "28.1")
 ;;;_  > allout-widgets-copy-list (list)
@@ -2294,6 +2287,8 @@ The elements of LIST are not copied, just the list structure itself."
                                              o))
                                        (overlays-in start end)))))
     (length button-overlays)))
+
+(define-obsolete-function-alias 'allout-frame-property #'frame-parameter "28.1")
 
 ;;;_ : provide
 (provide 'allout-widgets)
