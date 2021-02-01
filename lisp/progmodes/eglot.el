@@ -59,6 +59,7 @@
 (require 'imenu)
 (require 'cl-lib)
 (require 'project)
+(require 'seq)
 (require 'url-parse)
 (require 'url-util)
 (require 'pcase)
