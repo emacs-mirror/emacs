@@ -26969,6 +26969,15 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     return "";
 }
 
+/* Return the number of lines between start_byte and end_byte in the
+   current buffer. */
+
+ptrdiff_t
+count_lines (ptrdiff_t start_byte, ptrdiff_t end_byte)
+{
+  ptrdiff_t ignored;
+  return display_count_lines (start_byte, end_byte, ZV, &ignored);
+}
 
 /* Count up to COUNT lines starting from START_BYTE.  COUNT negative
    means count lines back from START_BYTE.  But don't go beyond
