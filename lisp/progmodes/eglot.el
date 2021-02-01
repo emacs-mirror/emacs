@@ -99,7 +99,7 @@
                                 (python-mode . ("pyls"))
                                 ((js-mode
                                   typescript-mode)
-                                 . ("javascript-typescript-stdio"))
+                                 . ("typescript-language-server" "--stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
                                 (php-mode
                                  . ("php" "vendor/felixfbecker/\
