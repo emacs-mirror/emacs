@@ -43,10 +43,15 @@
 (require 'cl-lib)
 (require 'tabulated-list)
 
-;; Declare a synthetic theme for :custom variables.
-;; Necessary in order to avoid having those variables saved by custom.el.
-(deftheme use-package)
+(eval-and-compile
+  ;; Declare a synthetic theme for :custom variables.
+  ;; Necessary in order to avoid having those variables saved by custom.el.
+  (deftheme use-package))
+
 (enable-theme 'use-package)
+;; Remove the synthetic use-package theme from the enabled themes, so
+;; iterating over them to "disable all themes" won't disable it.
+(setq custom-enabled-themes (remq 'use-package custom-enabled-themes))
 
 (if (and (eq emacs-major-version 24) (eq emacs-minor-version 3))
     (defsubst hash-table-keys (hash-table)
