@@ -211,7 +211,7 @@ to writing a completion function."
 
 (defcustom eshell-command-completion-function
   (lambda ()
-    (pcomplete-here (eshell-complete-commands-list)))
+    (pcomplete-here (eshell--complete-commands-list)))
   (eshell-cmpl--custom-variable-docstring 'pcomplete-command-completion-function)
   :type (get 'pcomplete-command-completion-function 'custom-type)
   :group 'eshell-cmpl)
@@ -403,64 +403,66 @@ to writing a completion function."
 	   args)
 	  posns)))
 
-(defun eshell-complete-commands-list ()
+(defun eshell--complete-commands-list ()
   "Generate list of applicable, visible commands."
-  (let ((filename (pcomplete-arg)) glob-name)
-    (if (file-name-directory filename)
-        (if eshell-force-execution
-            (pcomplete-dirs-or-entries nil #'file-readable-p)
-          (pcomplete-executables))
-      (if (and (> (length filename) 0)
-	       (eq (aref filename 0) eshell-explicit-command-char))
-	  (setq filename (substring filename 1)
-		pcomplete-stub filename
-		glob-name t))
-      (let* ((paths (eshell-get-path))
-	     (cwd (file-name-as-directory
-		   (expand-file-name default-directory)))
-	     (path "") (comps-in-path ())
-	     (file "") (filepath "") (completions ()))
-	;; Go thru each path in the search path, finding completions.
-	(while paths
-	  (setq path (file-name-as-directory
-		      (expand-file-name (or (car paths) ".")))
-		comps-in-path
-		(and (file-accessible-directory-p path)
-		     (file-name-all-completions filename path)))
-	  ;; Go thru each completion found, to see whether it should
-	  ;; be used.
-	  (while comps-in-path
-	    (setq file (car comps-in-path)
-		  filepath (concat path file))
-	    (if (and (not (member file completions)) ;
-		     (or (string-equal path cwd)
-			 (not (file-directory-p filepath)))
-                     (if eshell-force-execution
-                         (file-readable-p filepath)
-                       (file-executable-p filepath)))
-		(setq completions (cons file completions)))
-	    (setq comps-in-path (cdr comps-in-path)))
-	  (setq paths (cdr paths)))
-	;; Add aliases which are currently visible, and Lisp functions.
-	(pcomplete-uniquify-list
-	 (if glob-name
-	     completions
-	   (setq completions
-		 (append (if (fboundp 'eshell-alias-completions)
-			      (eshell-alias-completions filename))
-			 (eshell-winnow-list
-			  (mapcar
-                           (lambda (name)
-                             (substring name 7))
-			   (all-completions (concat "eshell/" filename)
-					    obarray #'functionp))
-			  nil '(eshell-find-alias-function))
-			 completions))
-	   (append (and (or eshell-show-lisp-completions
-			    (and eshell-show-lisp-alternatives
-				 (null completions)))
-			(all-completions filename obarray #'functionp))
-		   completions)))))))
+  ;; Building the commands list can take quite a while, especially over Tramp
+  ;; (bug#41423), so do it lazily.
+  (completion-table-dynamic
+   (lambda (filename)
+     (if (file-name-directory filename)
+         (if eshell-force-execution
+             (pcomplete-dirs-or-entries nil #'file-readable-p)
+           (pcomplete-executables))
+       (let (glob-name)
+         (if (and (> (length filename) 0)
+	          (eq (aref filename 0) eshell-explicit-command-char))
+	     ;; FIXME: Shouldn't we handle this `*' outside of the
+	     ;; `pcomplete-here' in `eshell-command-completion-function'?
+	     (setq filename (substring filename 1)
+		   pcomplete-stub filename
+		   glob-name t))
+	 (let* ((paths (eshell-get-path))
+		(cwd (file-name-as-directory
+		      (expand-file-name default-directory)))
+		(filepath "") (completions ()))
+	   ;; Go thru each path in the search path, finding completions.
+	   (dolist (path paths)
+	     (setq path (file-name-as-directory
+		         (expand-file-name (or path "."))))
+	     ;; Go thru each completion found, to see whether it should
+	     ;; be used.
+	     (dolist (file (and (file-accessible-directory-p path)
+		                (file-name-all-completions filename path)))
+	       (setq filepath (concat path file))
+	       (if (and (not (member file completions)) ;
+			(or (string-equal path cwd)
+			    (not (file-directory-p filepath)))
+			;; FIXME: Those repeated file tests end up
+			;; very costly over Tramp, we should cache the result.
+			(if eshell-force-execution
+                            (file-readable-p filepath)
+                          (file-executable-p filepath)))
+		   (push file completions))))
+	   ;; Add aliases which are currently visible, and Lisp functions.
+	   (pcomplete-uniquify-list
+	    (if glob-name
+	        completions
+	      (setq completions
+		    (append (if (fboundp 'eshell-alias-completions)
+			        (eshell-alias-completions filename))
+			    (eshell-winnow-list
+			     (mapcar
+                              (lambda (name)
+                                (substring name 7))
+			      (all-completions (concat "eshell/" filename)
+					       obarray #'functionp))
+			     nil '(eshell-find-alias-function))
+			    completions))
+	      (append (and (or eshell-show-lisp-completions
+			       (and eshell-show-lisp-alternatives
+				    (null completions)))
+			   (all-completions filename obarray #'functionp))
+		      completions)))))))))
 
 (define-obsolete-function-alias 'eshell-pcomplete #'completion-at-point "27.1")
 
