@@ -91,27 +91,23 @@ variable names, arguments, etc."
 (defcustom eshell-cmpl-load-hook nil
   "A list of functions to run when `eshell-cmpl' is loaded."
   :version "24.1"			; removed eshell-cmpl-initialize
-  :type 'hook
-  :group 'eshell-cmpl)
+  :type 'hook)
 
 (defcustom eshell-show-lisp-completions nil
   "If non-nil, include Lisp functions in the command completion list.
 If this variable is nil, Lisp completion can still be done in command
 position by using M-TAB instead of TAB."
-  :type 'boolean
-  :group 'eshell-cmpl)
+  :type 'boolean)
 
 (defcustom eshell-show-lisp-alternatives t
   "If non-nil, and no other completions found, show Lisp functions.
 Setting this variable means nothing if `eshell-show-lisp-completions'
 is non-nil."
-  :type 'boolean
-  :group 'eshell-cmpl)
+  :type 'boolean)
 
 (defcustom eshell-no-completion-during-jobs t
   "If non-nil, don't allow completion while a process is running."
-  :type 'boolean
-  :group 'eshell-cmpl)
+  :type 'boolean)
 
 (defcustom eshell-command-completions-alist
   '(("acroread" . "\\.pdf\\'")
@@ -136,8 +132,7 @@ is non-nil."
   "An alist that defines simple argument type correlations.
 This is provided for common commands, as a simplistic alternative
 to writing a completion function."
-  :type '(repeat (cons string regexp))
-  :group 'eshell-cmpl)
+  :type '(repeat (cons string regexp)))
 
 (defun eshell-cmpl--custom-variable-docstring (pcomplete-var)
   "Generate the docstring of a variable derived from a pcomplete-* variable."
@@ -148,23 +143,19 @@ to writing a completion function."
 
 (defcustom eshell-cmpl-file-ignore "~\\'"
   (eshell-cmpl--custom-variable-docstring 'pcomplete-file-ignore)
-  :type (get 'pcomplete-file-ignore 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-file-ignore 'custom-type))
 
 (defcustom eshell-cmpl-dir-ignore "\\`\\(\\.\\.?\\|CVS\\)/\\'"
   (eshell-cmpl--custom-variable-docstring 'pcomplete-dir-ignore)
-  :type (get 'pcomplete-dir-ignore 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-dir-ignore 'custom-type))
 
 (defcustom eshell-cmpl-ignore-case (eshell-under-windows-p)
   (eshell-cmpl--custom-variable-docstring 'pcomplete-ignore-case)
-  :type (get 'pcomplete-ignore-case 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-ignore-case 'custom-type))
 
 (defcustom eshell-cmpl-autolist nil
   (eshell-cmpl--custom-variable-docstring 'pcomplete-autolist)
-  :type (get 'pcomplete-autolist 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-autolist 'custom-type))
 
 (defcustom eshell-cmpl-suffix-list (list ?/ ?:)
   (eshell-cmpl--custom-variable-docstring 'pcomplete-suffix-list)
@@ -176,51 +167,42 @@ to writing a completion function."
 
 (defcustom eshell-cmpl-recexact nil
   (eshell-cmpl--custom-variable-docstring 'pcomplete-recexact)
-  :type (get 'pcomplete-recexact 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-recexact 'custom-type))
 
-(defcustom eshell-cmpl-man-function 'man
+(defcustom eshell-cmpl-man-function #'man
   (eshell-cmpl--custom-variable-docstring 'pcomplete-man-function)
-  :type (get 'pcomplete-man-function 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-man-function 'custom-type))
 
-(defcustom eshell-cmpl-compare-entry-function 'file-newer-than-file-p
+(defcustom eshell-cmpl-compare-entry-function #'file-newer-than-file-p
   (eshell-cmpl--custom-variable-docstring 'pcomplete-compare-entry-function)
-  :type (get 'pcomplete-compare-entry-function 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-compare-entry-function 'custom-type))
 
 (defcustom eshell-cmpl-expand-before-complete nil
   (eshell-cmpl--custom-variable-docstring 'pcomplete-expand-before-complete)
-  :type (get 'pcomplete-expand-before-complete 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-expand-before-complete 'custom-type))
 
 (defcustom eshell-cmpl-cycle-completions t
   (eshell-cmpl--custom-variable-docstring 'pcomplete-cycle-completions)
-  :type (get 'pcomplete-cycle-completions 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-cycle-completions 'custom-type))
 
 (defcustom eshell-cmpl-cycle-cutoff-length 5
   (eshell-cmpl--custom-variable-docstring 'pcomplete-cycle-cutoff-length)
-  :type (get 'pcomplete-cycle-cutoff-length 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-cycle-cutoff-length 'custom-type))
 
 (defcustom eshell-cmpl-restore-window-delay 1
   (eshell-cmpl--custom-variable-docstring 'pcomplete-restore-window-delay)
-  :type (get 'pcomplete-restore-window-delay 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-restore-window-delay 'custom-type))
 
 (defcustom eshell-command-completion-function
   (lambda ()
     (pcomplete-here (eshell--complete-commands-list)))
   (eshell-cmpl--custom-variable-docstring 'pcomplete-command-completion-function)
-  :type (get 'pcomplete-command-completion-function 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-command-completion-function 'custom-type))
 
 (defcustom eshell-cmpl-command-name-function
-  'eshell-completion-command-name
+  #'eshell-completion-command-name
   (eshell-cmpl--custom-variable-docstring 'pcomplete-command-name-function)
-  :type (get 'pcomplete-command-name-function 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-command-name-function 'custom-type))
 
 (defcustom eshell-default-completion-function
   (lambda ()
@@ -229,13 +211,11 @@ to writing a completion function."
              (cdr (assoc (funcall eshell-cmpl-command-name-function)
                          eshell-command-completions-alist))))))
   (eshell-cmpl--custom-variable-docstring 'pcomplete-default-completion-function)
-  :type (get 'pcomplete-default-completion-function 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-default-completion-function 'custom-type))
 
 (defcustom eshell-cmpl-use-paring t
   (eshell-cmpl--custom-variable-docstring 'pcomplete-use-paring)
-  :type (get 'pcomplete-use-paring 'custom-type)
-  :group 'eshell-cmpl)
+  :type (get 'pcomplete-use-paring 'custom-type))
 
 ;;; Functions:
 
@@ -274,7 +254,7 @@ to writing a completion function."
   (setq-local pcomplete-default-completion-function
               eshell-default-completion-function)
   (setq-local pcomplete-parse-arguments-function
-              'eshell-complete-parse-arguments)
+              #'eshell-complete-parse-arguments)
   (setq-local pcomplete-file-ignore
               eshell-cmpl-file-ignore)
   (setq-local pcomplete-dir-ignore
@@ -407,20 +387,19 @@ to writing a completion function."
   "Generate list of applicable, visible commands."
   ;; Building the commands list can take quite a while, especially over Tramp
   ;; (bug#41423), so do it lazily.
-  (completion-table-dynamic
-   (lambda (filename)
-     (if (file-name-directory filename)
-         (if eshell-force-execution
-             (pcomplete-dirs-or-entries nil #'file-readable-p)
-           (pcomplete-executables))
-       (let (glob-name)
-         (if (and (> (length filename) 0)
-	          (eq (aref filename 0) eshell-explicit-command-char))
-	     ;; FIXME: Shouldn't we handle this `*' outside of the
-	     ;; `pcomplete-here' in `eshell-command-completion-function'?
-	     (setq filename (substring filename 1)
-		   pcomplete-stub filename
-		   glob-name t))
+  (let ((glob-name
+	 ;; When a command is specified using `eshell-explicit-command-char',
+         ;; that char is not part of the command and hence not part of what
+         ;; we complete.  Adjust `pcomplete-stub' accordingly!
+	 (if (and (> (length pcomplete-stub) 0)
+	          (eq (aref pcomplete-stub 0) eshell-explicit-command-char))
+	     (setq pcomplete-stub (substring pcomplete-stub 1)))))
+    (completion-table-dynamic
+     (lambda (filename)
+       (if (file-name-directory filename)
+           (if eshell-force-execution
+               (pcomplete-dirs-or-entries nil #'file-readable-p)
+             (pcomplete-executables))
 	 (let* ((paths (eshell-get-path))
 		(cwd (file-name-as-directory
 		      (expand-file-name default-directory)))
