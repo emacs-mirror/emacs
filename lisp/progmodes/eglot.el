@@ -276,7 +276,7 @@ let the buffer grow forever."
       (ShowMessageParams (:type :message))
       (ShowMessageRequestParams (:type :message) (:actions))
       (SignatureHelp (:signatures) (:activeSignature :activeParameter))
-      (SignatureInformation (:label) (:documentation :parameters))
+      (SignatureInformation (:label) (:documentation :parameters :activeParameter))
       (SymbolInformation (:name :kind :location)
                          (:deprecated :containerName))
       (DocumentSymbol (:name :range :selectionRange :kind)
@@ -2265,14 +2265,15 @@ is not active."
                          (if (vectorp contents) contents (list contents)) "\n")))
     (when (or heading (cl-plusp (length body))) (concat heading body))))
 
-(defun eglot--sig-info (sigs active-sig active-param)
+(defun eglot--sig-info (sigs active-sig sig-help-active-param)
   (cl-loop
    for (sig . moresigs) on (append sigs nil) for i from 0
    concat
-   (eglot--dbind ((SignatureInformation) label documentation parameters) sig
+   (eglot--dbind ((SignatureInformation) label documentation parameters activeParameter) sig
      (with-temp-buffer
        (save-excursion (insert label))
-       (let (params-start params-end)
+       (let ((active-param (or activeParameter sig-help-active-param))
+             params-start params-end)
          ;; Ad-hoc attempt to parse label as <name>(<params>)
          (when (looking-at "\\([^(]+\\)(\\([^)]+\\))")
            (setq params-start (match-beginning 2) params-end (match-end 2))
