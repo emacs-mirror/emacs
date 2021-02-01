@@ -510,10 +510,12 @@ an optional alist of possible values."
 (with-no-warnings (defvar v2))				; free for skeleton
 
 (defun sgml-comment-indent-new-line (&optional soft)
-  (let ((comment-start "-- ")
-	(comment-start-skip "\\(<!\\)?--[ \t]*")
-	(comment-end " --")
-	(comment-style 'plain))
+  (if (ppss-comment-depth (syntax-ppss))
+      (let ((comment-start "-- ")
+	    (comment-start-skip "\\(<!\\)?--[ \t]*")
+	    (comment-end " --")
+	    (comment-style 'plain))
+        (comment-indent-new-line soft))
     (comment-indent-new-line soft)))
 
 (defun sgml-mode-facemenu-add-face-function (face _end)
