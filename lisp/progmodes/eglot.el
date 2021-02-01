@@ -2672,10 +2672,9 @@ at point.  With prefix argument, prompt for ACTION-KIND."
      with grammar = '((:**      "\\*\\*/?"              eglot--glob-emit-**)
                       (:*       "\\*"                   eglot--glob-emit-*)
                       (:?       "\\?"                   eglot--glob-emit-?)
-                      (:/       "/"                     eglot--glob-emit-self)
                       (:{}      "{[^][/*{}]+}"          eglot--glob-emit-{})
                       (:range   "\\[\\^?[^][/,*{}]+\\]" eglot--glob-emit-range)
-                      (:literal "[^][/,*?{}]+"          eglot--glob-emit-self))
+                      (:literal "[^][,*?{}]+"           eglot--glob-emit-self))
      until (eobp)
      collect (cl-loop
               for (_token regexp emitter) in grammar
@@ -2687,7 +2686,8 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   "Convert GLOB into Elisp function.  Maybe BYTE-COMPILE it.
 If NOERROR, return predicate, else erroring function."
   (let* ((states (eglot--glob-parse glob))
-         (body `(with-temp-buffer
+         (body `(with-current-buffer (get-buffer-create " *eglot-glob-matcher*")
+                  (erase-buffer)
                   (save-excursion (insert string))
                   (cl-labels ,(cl-loop for (this that) on states
                                        for (self emit text) = this
