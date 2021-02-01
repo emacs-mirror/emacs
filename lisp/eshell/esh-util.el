@@ -486,8 +486,6 @@ list."
   "Return the user id for user NAME."
   (car (rassoc name (eshell-read-user-names))))
 
-(defalias 'eshell-user-name 'user-login-name)
-
 (autoload 'pcomplete-read-hosts-file "pcomplete")
 (autoload 'pcomplete-read-hosts "pcomplete")
 (autoload 'pcomplete-read-host-names "pcomplete")
@@ -644,8 +642,6 @@ gid format.  Valid values are `string' and `integer', defaulting to
 	  entry)
       (file-attributes file id-format))))
 
-(defalias 'eshell-copy-tree 'copy-tree)
-
 (defsubst eshell-processp (proc)
   "If the `processp' function does not exist, PROC is not a process."
   (and (fboundp 'processp) (processp proc)))
@@ -714,6 +710,9 @@ gid format.  Valid values are `string' and `integer', defaulting to
 ;		       nil nil nil))))))))
 ;     (or result
 ;	(file-attributes filename))))
+
+(define-obsolete-function-alias 'eshell-copy-tree #'copy-tree "28.1")
+(define-obsolete-function-alias 'eshell-user-name #'user-login-name "28.1")
 
 (provide 'esh-util)
 
