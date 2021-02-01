@@ -686,28 +686,26 @@ Evaluates all cached timer functions in sequence."
 	(funcall (car l)))
       (setq l (cdr l)))))
 
-(defalias 'dframe-popup-kludge
-  (lambda (e)
-    "Pop up a menu related to the clicked on item.
+(defun dframe-popup-kludge (e)
+  "Pop up a menu related to the clicked on item.
 Must be bound to event E."
-    (interactive "e")
-    (save-excursion
-      (mouse-set-point e)
-      ;; This gets the cursor where the user can see it.
-      (if (not (bolp)) (forward-char -1))
-      (sit-for 0)
-      (popup-menu (mouse-menu-major-mode-map) e))))
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point e)
+    ;; This gets the cursor where the user can see it.
+    (if (not (bolp)) (forward-char -1))
+    (sit-for 0)
+    (popup-menu (mouse-menu-major-mode-map) e)))
 
 ;;; Interactive user functions for the mouse
 ;;
-(defalias 'dframe-mouse-event-p
-  (lambda (event)
-    "Return t if the event is a mouse related event."
-    (if (and (listp event)
-             (member (event-basic-type event)
-                     '(mouse-1 mouse-2 mouse-3)))
-        t
-      nil)))
+(defun dframe-mouse-event-p (event)
+  "Return t if the event is a mouse related event."
+  (if (and (listp event)
+           (member (event-basic-type event)
+                   '(mouse-1 mouse-2 mouse-3)))
+      t
+    nil))
 
 (defun dframe-track-mouse (event)
   "For motion EVENT, display info about the current line."
