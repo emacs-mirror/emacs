@@ -775,6 +775,7 @@ or to switch back to an existing one."
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
 	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
+  (setq-local font-lock-comment-end-skip "|#")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()
