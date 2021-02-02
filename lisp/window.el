@@ -9545,13 +9545,16 @@ cycling order is middle -> top -> bottom."
   :group 'windows)
 
 (defun recenter-top-bottom (&optional arg)
-  "Move current buffer line to the specified window line.
-With no prefix argument, successive calls place point according
-to the cycling order defined by `recenter-positions'.
+  "Scroll the window so that current line is in the middle of the window.
+Successive invocations scroll the window in a cyclical order to put
+the current line at certain places within the window, as determined by
+`recenter-positions'.  By default, the second invocation puts the
+current line at the top-most window line, the third invocation puts it
+on the bottom-most window line, and then the order is reused in a
+cyclical manner.
 
-A prefix argument is handled like `recenter':
- With numeric prefix ARG, move current line to window-line ARG.
- With plain `C-u', move current line to window center."
+With numeric prefix ARG, move current line ARG lines below the window top.
+With plain \\[universal-argument], move current line to window center."
   (interactive "P")
   (cond
    (arg (recenter arg t))                 ; Always respect ARG.
