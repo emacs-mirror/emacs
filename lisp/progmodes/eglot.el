@@ -3265,8 +3265,12 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   (eglot-unregister-capability server method id)
   (let* (success
          (globs (mapcar
-                 (eglot--lambda ((FileSystemWatcher) globPattern)
-                   (eglot--glob-compile globPattern t t))
+                 (eglot--lambda ((FileSystemWatcher) globPattern kind)
+                   (cons (eglot--glob-compile globPattern t t)
+                         ;; the default "7" means bitwise OR of
+                         ;; WatchKind.Create (1), WatchKind.Change
+                         ;; (2), WatchKind.Delete (4)
+                         (or kind 7)))
                  watchers))
          (dirs-to-watch
           (delete-dups (mapcar #'file-name-directory
@@ -3275,17 +3279,20 @@ at point.  With prefix argument, prompt for ACTION-KIND."
     (cl-labels
         ((handle-event
           (event)
-          (pcase-let ((`(,desc ,action ,file ,file1) event))
+          (pcase-let* ((`(,desc ,action ,file ,file1) event)
+                       (action-type (cl-case action
+                                      (created 1) (changed 2) (deleted 3)))
+                       (action-bit (when action-type
+                                     (ash 1 (1- action-type)))))
             (cond
              ((and (memq action '(created changed deleted))
-                   (cl-find file globs :test (lambda (f g) (funcall g f))))
+                   (cl-loop for (glob . kind-bitmask) in globs
+                            thereis (and (> (logand kind-bitmask action-bit) 0)
+                                         (funcall glob file))))
               (jsonrpc-notify
                server :workspace/didChangeWatchedFiles
                `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
-                                          :type ,(cl-case action
-                                                   (created 1)
-                                                   (changed 2)
-                                                   (deleted 3)))))))
+                                          :type ,action-type)))))
              ((eq action 'renamed)
               (handle-event `(,desc 'deleted ,file))
               (handle-event `(,desc 'created ,file1)))))))
