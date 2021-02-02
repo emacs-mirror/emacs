@@ -367,13 +367,16 @@ requires an understanding of Lisp expressions.  Hopefully this will
 change in a future release.  For now, you can use the following
 variables in the Lisp expression:
 
-group: The name of the group.
-unread: The number of unread articles in the group.
-method: The select method used.
-mailp: Whether it's a mail group or not.
-level: The level of the group.
-score: The score of the group.
-ticked: The number of ticked articles."
+`group':     The name of the group.
+`unread':    The number of unread articles in the group.
+`method':    The select method used.
+`total':     The total number of articles in the group.
+`mailp':     Whether it's a mail group or not.
+`level':     The level of the group.
+`score':     The score of the group.
+`ticked':    The number of ticked articles.
+`group-age': Time in seconds since the group was last read
+           (see info node `(gnus)Group Timestamp')."
   :group 'gnus-group-visual
   :type '(repeat (cons (sexp :tag "Form") face)))
 (put 'gnus-group-highlight 'risky-local-variable t)
@@ -401,16 +404,8 @@ file.
 
 It is also possible to change and add form fields, but currently that
 requires an understanding of Lisp expressions.  Hopefully this will
-change in a future release.  For now, you can use the following
-variables in the Lisp expression:
-
-group: The name of the group.
-unread: The number of unread articles in the group.
-method: The select method used.
-mailp: Whether it's a mail group or not.
-level: The level of the group.
-score: The score of the group.
-ticked: The number of ticked articles."
+change in a future release.  For now, you can use the same
+variables in the Lisp expression as in `gnus-group-highlight'."
   :group 'gnus-group-icons
   :type '(repeat (cons (sexp :tag "Form") file)))
 (put 'gnus-group-icon-list 'risky-local-variable t)
@@ -1624,7 +1619,9 @@ Some value are bound so the form can use them."
            (marked (gnus-info-marks info))
 	   (env
 	    (list
+	     (cons 'group group)
 	     (cons 'unread (if (numberp (car entry)) (car entry) 0))
+	     (cons 'method method)
 	     (cons 'total (if active (1+ (- (cdr active) (car active))) 0))
 	     (cons 'mailp (apply
 			   #'append
