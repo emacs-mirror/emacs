@@ -545,14 +545,13 @@ invalid_syntax_lisp (Lisp_Object s, Lisp_Object readcharfun)
 {
   if (BUFFERP (readcharfun))
     {
-      xsignal1 (Qinvalid_read_syntax,
-		CALLN (Fformat, build_string ("%s (line %d, column %d)"),
-		       s,
-		       /* We should already be in the readcharfun
-			  buffer when this error is called, so no need
-			  to switch to it first. */
-		       make_fixnum (count_lines (BEGV_BYTE, PT_BYTE) + 1),
-		       make_fixnum (current_column ())));
+      xsignal (Qinvalid_read_syntax,
+	       list3 (s,
+		      /* We should already be in the readcharfun
+			 buffer when this error is called, so no need
+			 to switch to it first. */
+		      make_fixnum (count_lines (BEGV_BYTE, PT_BYTE) + 1),
+		      make_fixnum (current_column ())));
     }
   else
     xsignal1 (Qinvalid_read_syntax, s);
