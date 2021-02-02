@@ -1078,9 +1078,8 @@ Set by `.ns' request; reset by any output or `.rs' request")
   ;; Could end with "\\( +\\|$\\)" instead of " *"
   "Regexp to match a ?roff request plus trailing white space.")
 
-(defvar woman-imenu-done nil
+(defvar-local woman-imenu-done nil
   "Buffer-local: set to true if function `woman-imenu' has been called.")
-(make-variable-buffer-local 'woman-imenu-done)
 
 ;; From imenu.el -- needed when reformatting a file in its old buffer.
 ;; The latest buffer index used to update the menu bar menu.

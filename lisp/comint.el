@@ -2375,12 +2375,11 @@ a buffer local variable."
 ;; saved -- typically passwords to ftp, telnet, or somesuch.
 ;; Just enter m-x comint-send-invisible and type in your line.
 
-(defvar comint-password-function nil
+(defvar-local comint-password-function nil
   "Abnormal hook run when prompted for a password.
 This function gets one argument, a string containing the prompt.
 It may return a string containing the password, or nil if normal
 password prompting should occur.")
-(make-variable-buffer-local 'comint-password-function)
 
 (defun comint-send-invisible (&optional prompt)
   "Read a string without echoing.

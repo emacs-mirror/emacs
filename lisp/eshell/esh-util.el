@@ -235,11 +235,10 @@ If N or M is nil, it means the end of the list."
 	    a (last a)))
     a))
 
-(defvar eshell-path-env (getenv "PATH")
+(defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.
 It might be different from \(getenv \"PATH\"), when
 `default-directory' points to a remote host.")
-(make-variable-buffer-local 'eshell-path-env)
 
 (defun eshell-get-path ()
   "Return $PATH as a list.

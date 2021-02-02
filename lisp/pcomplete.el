@@ -330,19 +330,12 @@ modified to be an empty string, or the desired separation string."
 ;;; Internal Variables:
 
 ;; for cycling completion support
-(defvar pcomplete-current-completions nil)
-(defvar pcomplete-last-completion-length)
-(defvar pcomplete-last-completion-stub)
-(defvar pcomplete-last-completion-raw)
-(defvar pcomplete-last-window-config nil)
-(defvar pcomplete-window-restore-timer nil)
-
-(make-variable-buffer-local 'pcomplete-current-completions)
-(make-variable-buffer-local 'pcomplete-last-completion-length)
-(make-variable-buffer-local 'pcomplete-last-completion-stub)
-(make-variable-buffer-local 'pcomplete-last-completion-raw)
-(make-variable-buffer-local 'pcomplete-last-window-config)
-(make-variable-buffer-local 'pcomplete-window-restore-timer)
+(defvar-local pcomplete-current-completions nil)
+(defvar-local pcomplete-last-completion-length nil)
+(defvar-local pcomplete-last-completion-stub nil)
+(defvar-local pcomplete-last-completion-raw nil)
+(defvar-local pcomplete-last-window-config nil)
+(defvar-local pcomplete-window-restore-timer nil)
 
 ;; used for altering pcomplete's behavior.  These global variables
 ;; should always be nil.

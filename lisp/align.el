@@ -775,17 +775,13 @@ See the documentation for `align-rules-list' for more info."
 
 ;;; Internal Variables:
 
-(defvar align-mode-rules-list nil
+(defvar-local align-mode-rules-list nil
   "Alignment rules specific to the current major mode.
 See the variable `align-rules-list' for more details.")
 
-(make-variable-buffer-local 'align-mode-rules-list)
-
-(defvar align-mode-exclude-rules-list nil
+(defvar-local align-mode-exclude-rules-list nil
   "Alignment exclusion rules specific to the current major mode.
 See the variable `align-exclude-rules-list' for more details.")
-
-(make-variable-buffer-local 'align-mode-exclude-rules-list)
 
 (defvar align-highlight-overlays nil
   "The current overlays highlighting the text matched by a rule.")

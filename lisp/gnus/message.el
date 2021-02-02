@@ -394,9 +394,8 @@ If nil, don't insert any text in the body."
 ;; inspired by JoH-followup-to by Jochem Huhman <joh  at gmx.de>
 ;; new suggestions by R. Weikusat <rw at another.de>
 
-(defvar message-cross-post-old-target nil
+(defvar-local message-cross-post-old-target nil
   "Old target for cross-posts or follow-ups.")
-(make-variable-buffer-local 'message-cross-post-old-target)
 
 (defcustom message-cross-post-default t
   "When non-nil `message-cross-post-followup-to' will perform a crosspost.
@@ -2004,9 +2003,8 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
     (User-Agent))
   "Alist used for formatting headers.")
 
-(defvar	message-options nil
+(defvar-local message-options nil
   "Some saved answers when sending message.")
-(make-variable-buffer-local 'message-options)
 
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")

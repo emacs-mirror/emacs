@@ -399,22 +399,15 @@ Otherwise, the value is whatever the function
 
 
 ;; other variables and keymap initializations
-(defvar Man-original-frame)
-(make-variable-buffer-local 'Man-original-frame)
-(defvar Man-arguments)
-(make-variable-buffer-local 'Man-arguments)
+(defvar-local Man-original-frame nil)
+(defvar-local Man-arguments nil)
 (put 'Man-arguments 'permanent-local t)
 
-(defvar Man--sections nil)
-(make-variable-buffer-local 'Man--sections)
-(defvar Man--refpages nil)
-(make-variable-buffer-local 'Man--refpages)
-(defvar Man-page-list nil)
-(make-variable-buffer-local 'Man-page-list)
-(defvar Man-current-page 0)
-(make-variable-buffer-local 'Man-current-page)
-(defvar Man-page-mode-string "1 of 1")
-(make-variable-buffer-local 'Man-page-mode-string)
+(defvar-local Man--sections nil)
+(defvar-local Man--refpages nil)
+(defvar-local Man-page-list nil)
+(defvar-local Man-current-page 0)
+(defvar-local Man-page-mode-string "1 of 1")
 
 (defconst Man-sysv-sed-script "\
 /\b/ {	s/_\b//g

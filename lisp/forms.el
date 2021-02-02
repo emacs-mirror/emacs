@@ -418,9 +418,8 @@ Also, initial position is at last record."
 (defvar forms--parser nil
   "Forms parser routine.")
 
-(defvar forms--mode-setup nil
+(defvar-local forms--mode-setup nil
   "To keep track of forms-mode being set-up.")
-(make-variable-buffer-local 'forms--mode-setup)
 
 (defvar forms--dynamic-text nil
   "Array that holds dynamic texts to insert between fields.")

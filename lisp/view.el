@@ -96,38 +96,31 @@ interactive command; otherwise the help message is not shown."
   :version "22.1")
 
 ;;;###autoload
-(defvar view-mode nil
+(defvar-local view-mode nil
   "Non-nil if View mode is enabled.
 Don't change this variable directly, you must change it by one of the
 functions that enable or disable view mode.")
-;;;###autoload
-(make-variable-buffer-local 'view-mode)
 
 (defcustom view-mode-hook nil
   "Normal hook run when starting to view a buffer or file."
   :type 'hook
   :group 'view)
 
-(defvar view-old-buffer-read-only nil)
-(make-variable-buffer-local 'view-old-buffer-read-only)
+(defvar-local view-old-buffer-read-only nil)
 
-(defvar view-old-Helper-return-blurb)
-(make-variable-buffer-local 'view-old-Helper-return-blurb)
+(defvar-local view-old-Helper-return-blurb nil)
 
-(defvar view-page-size nil
+(defvar-local view-page-size nil
   "Default number of lines to scroll by View page commands.
 If nil that means use the window size.")
-(make-variable-buffer-local 'view-page-size)
 
-(defvar view-half-page-size nil
+(defvar-local view-half-page-size nil
   "Default number of lines to scroll by View half page commands.
 If nil that means use half the window size.")
-(make-variable-buffer-local 'view-half-page-size)
 
-(defvar view-last-regexp nil)
-(make-variable-buffer-local 'view-last-regexp) ; Global is better???
+(defvar-local view-last-regexp nil) ; Global is better???
 
-(defvar view-return-to-alist nil
+(defvar-local view-return-to-alist nil
   "What to do with used windows and where to go when finished viewing buffer.
 This is local in each buffer being viewed.
 It is added to by `view-mode-enter' when starting to view a buffer and
@@ -136,18 +129,16 @@ subtracted from by `view-mode-exit' when finished viewing the buffer.
 See RETURN-TO-ALIST argument of function `view-mode-exit' for the format of
 `view-return-to-alist'.")
 (make-obsolete-variable
- 'view-return-to-alist "this variable is no more used." "24.1")
-(make-variable-buffer-local 'view-return-to-alist)
+ 'view-return-to-alist "this variable is no longer used." "24.1")
 (put 'view-return-to-alist 'permanent-local t)
 
-(defvar view-exit-action nil
+(defvar-local view-exit-action nil
   "If non-nil, a function called when finished viewing.
 The function should take one argument (a buffer).
 Commands like \\[view-file] and \\[view-file-other-window] may
 set this to bury or kill the viewed buffer.
 Observe that the buffer viewed might not appear in any window at
 the time this function is called.")
-(make-variable-buffer-local 'view-exit-action)
 
 (defvar view-no-disable-on-exit nil
   "If non-nil, View mode \"exit\" commands don't actually disable View mode.
@@ -155,10 +146,9 @@ Instead, these commands just switch buffers or windows.
 This is set in certain buffers by specialized features such as help commands
 that use View mode automatically.")
 
-(defvar view-overlay nil
+(defvar-local view-overlay nil
   "Overlay used to display where a search operation found its match.
 This is local in each buffer, once it is used.")
-(make-variable-buffer-local 'view-overlay)
 
 ;; Define keymap inside defvar to make it easier to load changes.
 ;; Some redundant "less"-like key bindings below have been commented out.

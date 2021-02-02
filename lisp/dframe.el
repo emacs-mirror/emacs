@@ -146,42 +146,35 @@ selected frame and the focus will change to that frame."
   :group 'dframe
   :type 'hook)
 
-(defvar dframe-track-mouse-function nil
+(defvar-local dframe-track-mouse-function nil
   "A function to call when the mouse is moved in the given frame.
 Typically used to display info about the line under the mouse.")
-(make-variable-buffer-local 'dframe-track-mouse-function)
 
-(defvar dframe-help-echo-function nil
+(defvar-local dframe-help-echo-function nil
   "A function to call when help-echo is used in newer versions of Emacs.
 Typically used to display info about the line under the mouse.")
-(make-variable-buffer-local 'dframe-help-echo-function)
 
-(defvar dframe-mouse-click-function nil
+(defvar-local dframe-mouse-click-function nil
   "A function to call when the mouse is clicked.
 Valid clicks are mouse 2, our double mouse 1.")
-(make-variable-buffer-local 'dframe-mouse-click-function)
 
-(defvar dframe-mouse-position-function nil
+(defvar-local dframe-mouse-position-function nil
   "A function to call to position the cursor for a mouse click.")
-(make-variable-buffer-local 'dframe-mouse-position-function)
 
 (defvar dframe-power-click nil
   "Never set this by hand.  Value is t when S-mouse activity occurs.")
 
-(defvar dframe-timer nil
+(defvar-local dframe-timer nil
   "The dframe timer used for updating the buffer.")
-(make-variable-buffer-local 'dframe-timer)
 
-(defvar dframe-attached-frame nil
+(defvar-local dframe-attached-frame nil
   "The frame which started a frame mode.
 This is the frame from which all interesting activities will go
 for the mode using dframe.")
-(make-variable-buffer-local 'dframe-attached-frame)
 
-(defvar dframe-controlled nil
+(defvar-local dframe-controlled nil
   "Is this buffer controlled by a dedicated frame.
 Local to those buffers, as a function called that created it.")
-(make-variable-buffer-local 'dframe-controlled)
 
 (defun dframe-update-keymap (map)
   "Update the keymap MAP for dframe default bindings."
