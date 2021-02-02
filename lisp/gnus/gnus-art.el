@@ -3010,8 +3010,7 @@ message header will be added to the bodies of the \"text/html\" parts."
 	       (when header
 		 (article-decode-encoded-words)
 		 (let ((gnus-visible-headers
-			(or (get 'gnus-visible-headers 'standard-value)
-			    gnus-visible-headers)))
+			(custom--standard-value 'gnus-visible-headers)))
 		   (article-hide-headers))
 		 (goto-char (point-min))
 		 (search-forward "\n\n" nil 'move)
@@ -3045,8 +3044,8 @@ images if any to the browser, and deletes them when exiting the group
   (interactive "P")
   (if arg
       (gnus-summary-show-article)
-    (let ((gnus-visible-headers (or (get 'gnus-visible-headers 'standard-value)
-				    gnus-visible-headers))
+    (let ((gnus-visible-headers
+	   (custom--standard-value 'gnus-visible-headers))
 	  (gnus-mime-display-attachment-buttons-in-header nil)
 	  ;; As we insert a <hr>, there's no need for the body boundary.
 	  (gnus-treat-body-boundary nil))
