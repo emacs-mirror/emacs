@@ -1413,6 +1413,8 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "z" 'repeat)
 
+(define-key ctl-x-map "g" #'revert-buffer)
+
 (define-key esc-map "\C-l" 'reposition-window)
 
 (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
