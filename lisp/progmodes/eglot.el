@@ -2612,25 +2612,20 @@ at point.  With prefix argument, prompt for ACTION-KIND."
   (let* (success
          (globs (mapcar
                  (eglot--lambda ((FileSystemWatcher) globPattern)
-                   (cons
-                    (eglot--glob-compile globPattern t t)
-                    (eglot--glob-compile
-                     (replace-regexp-in-string "/[^/]*$" "/" globPattern) t t)))
+                   (eglot--glob-compile globPattern t t))
                  watchers))
          (dirs-to-watch
-          (cl-loop for dir in (eglot--directories-recursively)
-                   when (cl-loop for g in globs
-                                 thereis (ignore-errors (funcall (cdr g) dir)))
-                   collect dir)))
+          (cl-loop for f in (eglot--files-recursively)
+                   when (cl-loop for g in globs thereis (funcall g f))
+                   collect (file-name-directory f) into dirs
+                   finally (cl-return (delete-dups dirs)))))
     (cl-labels
         ((handle-event
           (event)
           (pcase-let ((`(,desc ,action ,file ,file1) event))
             (cond
              ((and (memq action '(created changed deleted))
-                   (cl-find file (mapcar #'car globs)
-                            :test (lambda (f glob)
-                                    (funcall glob f))))
+                   (cl-find file globs :test (lambda (f g) (funcall g f))))
               (jsonrpc-notify
                server :workspace/didChangeWatchedFiles
                `(:changes ,(vector `(:uri ,(eglot--path-to-uri file)
@@ -2724,14 +2719,14 @@ If NOERROR, return predicate, else erroring function."
   (when (eq ?! (aref arg 1)) (aset arg 1 ?^))
   `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
 
-(defun eglot--directories-recursively (&optional dir)
+(defun eglot--files-recursively (&optional dir)
   "Because `directory-files-recursively' isn't complete in 26.3."
   (cons (setq dir (expand-file-name (or dir default-directory)))
-        (cl-loop
-         with default-directory = dir
-         with completion-regexp-list = '("^[^.]")
-         for f in (file-name-all-completions "" dir)
-         when (file-directory-p f) append (eglot--directories-recursively f))))
+        (cl-loop with default-directory = dir
+                 with completion-regexp-list = '("^[^.]")
+                 for f in (file-name-all-completions "" dir)
+                 if (file-name-directory f) append (eglot--files-recursively f)
+                 else collect (expand-file-name f))))
 
 
 ;;; Rust-specific
