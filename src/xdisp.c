@@ -35110,7 +35110,8 @@ of your window manager.  */);
 This dynamically changes the tab-bar's height to the minimum height
 that is needed to make all tab-bar items visible.
 If value is `grow-only', the tab-bar's height is only increased
-automatically; to decrease the tab-bar height, use \\[recenter].  */);
+automatically; to decrease the tab-bar height, use \\[recenter],
+after setting `recenter-redisplay' to the value of t.  */);
   Vauto_resize_tab_bars = Qt;
 
   DEFVAR_BOOL ("auto-raise-tab-bar-buttons", auto_raise_tab_bar_buttons_p,
@@ -35122,7 +35123,8 @@ automatically; to decrease the tab-bar height, use \\[recenter].  */);
 This dynamically changes the tool-bar's height to the minimum height
 that is needed to make all tool-bar items visible.
 If value is `grow-only', the tool-bar's height is only increased
-automatically; to decrease the tool-bar height, use \\[recenter].  */);
+automatically; to decrease the tool-bar height, use \\[recenter],
+after setting `recenter-redisplay' to the value of t.  */);
   Vauto_resize_tool_bars = Qt;
 
   DEFVAR_BOOL ("auto-raise-tool-bar-buttons", auto_raise_tool_bar_buttons_p,
