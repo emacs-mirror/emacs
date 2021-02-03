@@ -1397,17 +1397,18 @@ no keyword implies `:all'."
 (defun use-package-handler/:custom (name _keyword args rest state)
   "Generate use-package custom keyword code."
   (use-package-concat
-   (mapcar
-    #'(lambda (def)
-        (let ((variable (nth 0 def))
-              (value (nth 1 def))
-              (comment (nth 2 def)))
-          (unless (and comment (stringp comment))
-            (setq comment (format "Customized with use-package %s" name)))
-          `(let ((custom--inhibit-theme-enable nil))
-             (custom-theme-set-variables 'use-package
-			                 '(,variable ,value nil () ,comment)))))
-    args)
+   `((let ((custom--inhibit-theme-enable nil))
+       (custom-theme-set-variables
+        'use-package
+        ,@(mapcar
+           #'(lambda (def)
+               (let ((variable (nth 0 def))
+                     (value (nth 1 def))
+                     (comment (nth 2 def)))
+                 (unless (and comment (stringp comment))
+                   (setq comment (format "Customized with use-package %s" name)))
+                 `'(,variable ,value nil () ,comment)))
+           args))))
    (use-package-process-keywords name rest state)))
 
 ;;;; :custom-face
