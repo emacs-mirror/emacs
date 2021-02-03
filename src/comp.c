@@ -413,6 +413,9 @@ load_gccjit_if_necessary (bool mandatory)
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
 #define ABI_VERSION "1"
 
+/* Length of the hashes used for eln file naming.  */
+#define HASH_LENGTH 8
+
 /* C symbols emitted for the load relocation mechanism.  */
 #define CURRENT_THREAD_RELOC_SYM "current_thread_reloc"
 #define PURE_RELOC_SYM "pure_reloc"
@@ -662,7 +665,7 @@ comp_hash_string (Lisp_Object string)
   md5_buffer (SSDATA (string), SCHARS (string), SSDATA (digest));
   hexbuf_digest (SSDATA (digest), SDATA (digest), MD5_DIGEST_SIZE);
 
-  return digest;
+  return Fsubstring (digest, Qnil, make_fixnum (HASH_LENGTH));
 }
 
 static Lisp_Object
@@ -688,7 +691,7 @@ comp_hash_source_file (Lisp_Object filename)
 
   hexbuf_digest (SSDATA (digest), SSDATA (digest), MD5_DIGEST_SIZE);
 
-  return digest;
+  return Fsubstring (digest, Qnil, make_fixnum (HASH_LENGTH));
 }
 
 /* Produce a key hashing Vcomp_subr_list.  */
@@ -701,16 +704,12 @@ hash_native_abi (void)
 
   Vcomp_abi_hash =
     comp_hash_string (
-      concat2 (build_string (ABI_VERSION),
+      concat3 (build_string (ABI_VERSION),
+	       concat2 (Vemacs_version, Vsystem_configuration),
 	       Fmapconcat (intern_c_string ("subr-name"),
 			   Vcomp_subr_list, build_string (""))));
-  Lisp_Object separator = build_string ("-");
   Vcomp_native_version_dir =
-    concat3 (Vemacs_version,
-	     separator,
-	     concat3 (Vsystem_configuration,
-		      separator,
-		      Vcomp_abi_hash));
+    concat3 (Vemacs_version, build_string ("-"), Vcomp_abi_hash);
 }
 
 static void
