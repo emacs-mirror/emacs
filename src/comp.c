@@ -704,16 +704,12 @@ hash_native_abi (void)
 
   Vcomp_abi_hash =
     comp_hash_string (
-      concat2 (build_string (ABI_VERSION),
+      concat3 (build_string (ABI_VERSION),
+	       concat2 (Vemacs_version, Vsystem_configuration),
 	       Fmapconcat (intern_c_string ("subr-name"),
 			   Vcomp_subr_list, build_string (""))));
-  Lisp_Object separator = build_string ("-");
   Vcomp_native_version_dir =
-    concat3 (Vemacs_version,
-	     separator,
-	     concat3 (Vsystem_configuration,
-		      separator,
-		      Vcomp_abi_hash));
+    concat3 (Vemacs_version, build_string ("-"), Vcomp_abi_hash);
 }
 
 static void
