@@ -718,10 +718,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     (modify-syntax-entry ?*  "."  table)
     (modify-syntax-entry ?/  "."  table)
     (modify-syntax-entry ?%  "."  table) ; bug#8820
-    ;; I think that the f95 standard leaves the behavior of \
-    ;; unspecified, but that f2k will require it to be non-special.
-    ;; Use `f90-backslash-not-special' to change.
-    (modify-syntax-entry ?\\ "\\" table) ; escape chars
+    (modify-syntax-entry ?\\ "."  table)
     table)
   "Syntax table used in F90 mode.")
 
@@ -2395,9 +2392,11 @@ CHANGE-WORD should be one of `upcase-word', `downcase-word', `capitalize-word'."
 
 (defun f90-backslash-not-special (&optional all)
   "Make the backslash character (\\) be non-special in the current buffer.
+This is the default in `f90-mode'.
+
 With optional argument ALL, change the default for all present
-and future F90 buffers.  F90 mode normally treats backslash as an
-escape character."
+and future F90 buffers."
+  (declare (obsolete nil "28.1"))
   (or (derived-mode-p 'f90-mode)
       (user-error "This function should only be used in F90 buffers"))
   (when (equal (char-syntax ?\\ ) ?\\ )

@@ -2010,6 +2010,13 @@ first).
 
 * Incompatible Editing Changes in Emacs 28.1
 
+** In 'f90-mode', the backslash character ('\') no longer escapes.
+For about a decade, the backslash character has no longer had a
+special escape syntax in Fortran F90.  To get the old behaviour back,
+say something like:
+
+    (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
+
 ** In 'nroff-mode', 'center-line' is now bound to 'M-o M-s'.
 The original key binding was 'M-s', which interfered with I-search,
 since the latter uses 'M-s' as a prefix key of the search prefix map.
