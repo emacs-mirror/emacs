@@ -342,8 +342,8 @@ This can be used to disable echo etc."
 ;;;###tramp-autoload
 (defun tramp-smb-file-name-handler (operation &rest args)
   "Invoke the SMB related OPERATION and ARGS.
-First arg specifies the OPERATION, second arg is a list of arguments to
-pass to the OPERATION."
+First arg specifies the OPERATION, second arg is a list of
+arguments to pass to the OPERATION."
   (if-let ((fn (assoc operation tramp-smb-file-name-handler-alist)))
       (save-match-data (apply (cdr fn) args))
     (tramp-run-real-handler operation args)))
@@ -430,9 +430,7 @@ pass to the OPERATION."
 	(with-tramp-progress-reporter
 	    v 0 (format "Copying %s to %s" dirname newname)
 	  (unless (file-exists-p dirname)
-	    (tramp-error
-	     v tramp-file-missing
-	     "Copying directory" "No such file or directory" dirname))
+	    (tramp-compat-file-missing v dirname))
 	  (when (and (file-directory-p newname)
 		     (not (directory-name-p newname)))
 	    (tramp-error v 'file-already-exists newname))
@@ -588,11 +586,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 	(copy-directory filename newname keep-date 'parents 'copy-contents)
 
       (unless (file-exists-p filename)
-	(tramp-error
+	(tramp-compat-file-missing
 	 (tramp-dissect-file-name
 	  (if (tramp-tramp-file-p filename) filename newname))
-	 tramp-file-missing
-	 "Copying file" "No such file or directory" filename))
+	 filename))
 
       (if-let ((tmpfile (file-local-copy filename)))
 	  ;; Remote filename.
@@ -693,9 +690,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
-    (tramp-error
-     (tramp-dissect-file-name directory) tramp-file-missing
-     "No such file or directory" directory))
+    (tramp-compat-file-missing (tramp-dissect-file-name directory) directory))
   (let ((result (mapcar #'directory-file-name
 			(file-name-all-completions "" directory))))
     ;; Discriminate with regexp.
@@ -962,9 +957,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
   "Like `file-local-copy' for Tramp files."
   (with-parsed-tramp-file-name (file-truename filename) nil
     (unless (file-exists-p (file-truename filename))
-      (tramp-error
-       v tramp-file-missing
-       "Cannot make local copy of non-existing file `%s'" filename))
+      (tramp-compat-file-missing v filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
       (with-tramp-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
@@ -1153,12 +1146,10 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
 		 ;; of `default-directory'.
 		 (let ((start (point)))
 		   (insert
-		    (format
-		     "%s"
-		     (file-relative-name
-		      (expand-file-name
-		       (nth 0 x) (file-name-directory filename))
-		      (when full-directory-p (file-name-directory filename)))))
+		    (file-relative-name
+		     (expand-file-name
+		      (nth 0 x) (file-name-directory filename))
+		     (when full-directory-p (file-name-directory filename))))
 		   (put-text-property start (point) 'dired-filename t))
 
 		 ;; Insert symlink.
@@ -1177,7 +1168,7 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
     (setq dir (expand-file-name dir default-directory)))
   (with-parsed-tramp-file-name dir nil
     (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists "Directory already exists %s" dir))
+      (tramp-error v 'file-already-exists dir))
     (let* ((ldir (file-name-directory dir)))
       ;; Make missing directory parts.
       (when (and parents
@@ -1386,9 +1377,7 @@ component is used as the target of the symlink."
   (with-parsed-tramp-file-name
       (if (tramp-tramp-file-p filename) filename newname) nil
     (unless (file-exists-p filename)
-      (tramp-error
-       v tramp-file-missing
-       "Renaming file" "No such file or directory" filename))
+      (tramp-compat-file-missing v filename))
     (when (and (not ok-if-already-exists) (file-exists-p newname))
       (tramp-error v 'file-already-exists newname))
     (when (and (file-directory-p newname)
@@ -2010,10 +1999,8 @@ If ARGUMENT is non-nil, use it as argument for
 	  (when port   (setq args (append args (list "-p" port))))
 	  (when tramp-smb-conf
 	    (setq args (append args (list "-s" tramp-smb-conf))))
-	  (while options
-	    (setq args
-		  (append args `("--option" ,(format "%s" (car options))))
-		  options (cdr options)))
+	  (dolist (option options)
+	    (setq args (append args (list "--option" option))))
 	  (when argument
 	    (setq args (append args (list argument))))
 

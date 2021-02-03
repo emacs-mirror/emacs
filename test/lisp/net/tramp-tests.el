@@ -5739,6 +5739,11 @@ This does not support globbing characters in file names (yet)."
   (string-match-p
    "ftp$" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
+(defun tramp--test-gdrive-p ()
+  "Check, whether the gdrive method is used."
+  (string-equal
+   "gdrive" (file-remote-p tramp-test-temporary-file-directory 'method)))
+
 (defun tramp--test-gvfs-p (&optional method)
   "Check, whether the remote host runs a GVFS based method.
 This requires restrictions of file name syntax.
@@ -5768,11 +5773,6 @@ a $'' syntax."
 This does not support external Emacs calls."
   (string-equal
    "mock" (file-remote-p tramp-test-temporary-file-directory 'method)))
-
-(defun tramp--test-nextcloud-p ()
-  "Check, whether the nextcloud method is used."
-  (string-equal
-   "nextcloud" (file-remote-p tramp-test-temporary-file-directory 'method)))
 
 (defun tramp--test-rclone-p ()
   "Check, whether the remote host is offered by rclone.
@@ -6144,7 +6144,6 @@ Use the `ls' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
@@ -6214,6 +6213,7 @@ Use the `ls' command."
   (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
   (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
   (skip-unless (not (tramp--test-ksh-p)))
+  (skip-unless (not (tramp--test-gdrive-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
@@ -6747,8 +6747,6 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Work on skipped tests.  Make a comment, when it is impossible.
 ;; * Revisit expensive tests, once problems in `tramp-error' are solved.
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
-;; * Investigate, why `tramp-test11-copy-file' and `tramp-test12-rename-file'
-;;   do not work properly for `nextcloud'.
 ;; * Implement `tramp-test31-interrupt-process' for `adb' and for
 ;;   direct async processes.
 ;; * Fix `tramp-test44-threads'.
