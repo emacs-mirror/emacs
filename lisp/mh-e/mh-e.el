@@ -3412,6 +3412,7 @@ sequence."
 ;;; Faces (:group 'mh-faces + group where faces described)
 
 (if (boundp 'facemenu-unlisted-faces)
+    ;; This variable was removed in Emacs 22.1.
     (add-to-list 'facemenu-unlisted-faces "^mh-"))
 
 ;; To add a new face:
