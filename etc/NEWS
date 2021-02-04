@@ -959,6 +959,9 @@ command line under point (and any following output).
 ** Eshell
 
 ---
+*** 'eshell-hist-ignoredups' can now also be used to mimic "erasedups" in bash.
+
+---
 *** Environment variable 'INSIDE_EMACS' is now copied to subprocesses.
 Its value equals the result of evaluating '(format "%s,eshell" emacs-version)'.
 
