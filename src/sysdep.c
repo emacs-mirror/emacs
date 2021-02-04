@@ -1980,7 +1980,8 @@ init_signals (void)
 #endif
 
 #if !HAVE_DECL_SYS_SIGLIST && !defined _sys_siglist
-  if (! initialized)
+  if (! initialized
+      || dumped_with_pdumper_p ())
     {
       sys_siglist[SIGABRT] = "Aborted";
 # ifdef SIGAIO
