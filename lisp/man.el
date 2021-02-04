@@ -97,8 +97,6 @@
   :group 'external
   :group 'help)
 
-(defvar Man-notify)
-
 (defcustom Man-filter-list nil
   "Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
@@ -149,8 +147,7 @@ the manpage buffer."
 			     (ansi-color-make-color-map))
   "The value used here for `ansi-color-map'.")
 
-;; Use the value of the obsolete user option Man-notify, if set.
-(defcustom Man-notify-method (if (boundp 'Man-notify) Man-notify 'friendly)
+(defcustom Man-notify-method 'friendly
   "Selects the behavior when manpage is ready.
 This variable may have one of the following values, where (sf) means
 that the frames are switched, so the manpage is displayed in the frame
