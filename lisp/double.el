@@ -95,8 +95,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 
 (global-set-key [ignore] 'ignore)
 
-(or (boundp 'isearch-mode-map)
-    (load-library "isearch"))
+(require 'isearch)
 
 (define-key isearch-mode-map [ignore]
   (lambda () (interactive) (isearch-update)))
