@@ -10714,8 +10714,23 @@ include the height of both, if present, in the return value.  */)
      same directionality.  */
   it.bidi_p = false;
 
+  /* Start at the beginning of the line containing FROM.  Otherwise
+     IT.current_x will be incorrectly set to zero at some arbitrary
+     non-zero X coordinate.  */
+  reseat_at_previous_visible_line_start (&it);
+  it.current_x = it.hpos = 0;
+  if (IT_CHARPOS (it) != start)
+    move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+
+  /* Now move to TO.  */
+  int start_x = it.current_x;
   int move_op = MOVE_TO_POS | MOVE_TO_Y;
   int to_x = -1;
+  it.current_y = 0;
+  /* If FROM is on a newline, pretend that we start at the beginning
+     of the next line, because the newline takes no place on display.  */
+  if (FETCH_BYTE (start) == '\n')
+    it.current_x = 0;
   if (!NILP (x_limit))
     {
       it.last_visible_x = max_x;
@@ -10758,6 +10773,12 @@ include the height of both, if present, in the return value.  */)
         x = max_x;
     }
 
+  /* If text spans more than one screen line, we don't need to adjust
+     the x-span for start_x, since the second and subsequent lines
+     will begin at zero X coordinate.  */
+  if (it.current_y > 0)
+    start_x = 0;
+
   /* Subtract height of header-line which was counted automatically by
      start_display.  */
   y = it.current_y + it.max_ascent + it.max_descent
@@ -10786,7 +10807,7 @@ include the height of both, if present, in the return value.  */)
   if (old_b)
     set_buffer_internal (old_b);
 
-  return Fcons (make_fixnum (x), make_fixnum (y));
+  return Fcons (make_fixnum (x - start_x), make_fixnum (y));
 }
 
 /***********************************************************************
