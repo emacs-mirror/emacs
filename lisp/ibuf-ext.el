@@ -1446,7 +1446,7 @@ Default sorting modes are:
 	   (if ibuffer-sorting-reversep
 	       "reversed"
 	     "normal"))
-  (ibuffer-update nil t))
+  (ibuffer-redisplay t))
 
 ;;;###autoload (autoload 'ibuffer-do-sort-by-major-mode "ibuf-ext")
 (define-ibuffer-sorter major-mode
