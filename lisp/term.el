@@ -683,8 +683,7 @@ Buffer local variable.")
   "Index of last matched history element.")
 (defvar term-matching-input-from-input-string ""
   "Input previously used to match input history.")
-; This argument to set-process-filter disables reading from the process,
-; assuming this is Emacs 19.20 or newer.
+; This argument to set-process-filter disables reading from the process.
 (defvar term-pager-filter t)
 
 (put 'term-input-ring 'permanent-local t)

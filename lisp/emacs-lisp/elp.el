@@ -110,8 +110,7 @@
 ;; Boy Jim's profiler.el. Both were written for Emacs 18 and both were
 ;; pretty good first shots at profiling, but I found that they didn't
 ;; provide the functionality or interface that I wanted, so I wrote
-;; this.  I've tested elp in XEmacs 19 and Emacs 19.  There's no point
-;; in even trying to make this work with Emacs 18.
+;; this.
 
 ;; Unlike previous profilers, elp uses Emacs 19's built-in function
 ;; current-time to return interval times.  This obviates the need for
