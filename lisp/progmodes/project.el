@@ -441,7 +441,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
   (require 'xref)
   (require 'grep)
   (let* ((pr (project-current t))
-         (default-directory (project-root pr))
+         (default-directory (car (project-roots pr)))
          (files
           (if (not current-prefix-arg)
               (project-files pr (project-roots pr))
@@ -474,7 +474,7 @@ pattern to search for."
   (interactive (list (project--read-regexp)))
   (require 'xref)
   (let* ((pr (project-current t))
-         (default-directory (project-root pr))
+         (default-directory (car (project-roots pr)))
          (files
           (project-files pr (append
                              (project-roots pr)
