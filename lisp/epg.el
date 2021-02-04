@@ -332,7 +332,6 @@ callback data (if any)."
 (cl-defstruct (epg-key
                (:constructor nil)
                (:constructor epg-make-key (owner-trust))
-               (:copier nil)
                (:predicate nil))
   (owner-trust nil :read-only t)
   sub-key-list user-id-list)
@@ -1383,11 +1382,22 @@ NAME is either a string or a list of strings."
     keys))
 
 (defun epg--filter-revoked-keys (keys)
-  (seq-remove (lambda (key)
-                (seq-find (lambda (user)
-                            (eq (epg-user-id-validity user) 'revoked))
-                          (epg-key-user-id-list key)))
-              keys))
+  (mapcar
+   (lambda (key)
+     ;; We have something revoked, so copy the key and remove the
+     ;; revoked bits.
+     (if (seq-find (lambda (user)
+                     (eq (epg-user-id-validity user) 'revoked))
+                   (epg-key-user-id-list key))
+         (let ((copy (copy-epg-key key)))
+           (setf (epg-key-user-id-list copy)
+                 (seq-remove (lambda (user)
+                               (eq (epg-user-id-validity user) 'revoked))
+                             (epg-key-user-id-list copy)))
+           copy)
+       ;; Nothing to delete; return the key.
+       key))
+   keys))
 
 (defun epg--args-from-sig-notations (notations)
   (apply #'nconc
