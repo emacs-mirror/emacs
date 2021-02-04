@@ -219,7 +219,6 @@ view of the buffers."
 		 (const :tag "File name" :value filename/process)
                  (const :tag "Major mode" :value major-mode)))
 (defvar ibuffer-sorting-mode nil)
-(defvar ibuffer-last-sorting-mode nil)
 
 (defcustom ibuffer-default-sorting-reversep nil
   "If non-nil, reverse the default sorting order."
@@ -2129,16 +2128,13 @@ the value of point at the beginning of the line for that buffer."
 	   (and ibuffer-buf
 		(not (eq ibuffer-buf buf))))))
 
-;; This function is a special case; it's not defined by
-;; `define-ibuffer-sorter'.
-(defun ibuffer-do-sort-by-recency ()
-  "Sort the buffers by last view time."
-  (interactive)
-  (setq ibuffer-sorting-mode 'recency)
-  (when (eq ibuffer-last-sorting-mode 'recency)
-    (setq ibuffer-sorting-reversep (not ibuffer-sorting-reversep)))
-  (ibuffer-update nil t)
-  (setq ibuffer-last-sorting-mode 'recency))
+(define-ibuffer-sorter recency
+ "Sort the buffers by how recently they've been used."
+  (:description "recency")
+  (time-less-p (with-current-buffer (car b)
+                 (or buffer-display-time 0))
+               (with-current-buffer (car a)
+                 (or buffer-display-time 0))))
 
 (defun ibuffer-update-format ()
   (when (null ibuffer-current-format)
