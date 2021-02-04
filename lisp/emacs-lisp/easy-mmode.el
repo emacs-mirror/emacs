@@ -418,6 +418,7 @@ on if the hook has explicitly disabled it.
 	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
 	 (group nil)
 	 (extra-keywords nil)
+         (MODE-variable mode)
 	 (MODE-buffers (intern (concat global-mode-name "-buffers")))
 	 (MODE-enable-in-buffers
 	  (intern (concat global-mode-name "-enable-in-buffers")))
@@ -439,6 +440,7 @@ on if the hook has explicitly disabled it.
       (pcase keyw
         (:group (setq group (nconc group (list :group (pop body)))))
         (:global (pop body))
+        (:variable (setq MODE-variable (pop body)))
         (:predicate
          (setq predicate (list (pop body)))
          (setq turn-on-function
@@ -541,7 +543,7 @@ list."
                (with-current-buffer buf
                  (unless ,MODE-set-explicitly
                    (unless (eq ,MODE-major-mode major-mode)
-                     (if ,mode
+                     (if ,MODE-variable
                          (progn
                            (,mode -1)
                            (funcall ,turn-on-function))

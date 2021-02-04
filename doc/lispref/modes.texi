@@ -1826,6 +1826,11 @@ starts, for example by providing a @code{:require} keyword.
 Use @code{:group @var{group}} in @var{keyword-args} to specify the
 custom group for the mode variable of the global minor mode.
 
+By default, the buffer-local minor mode variable that says whether the
+mode is switched on or off is the same as the name of the mode itself.
+Use @code{:variable @var{variable}} if that's not the case--some minor
+modes use a different variable to store this state information.
+
 Generally speaking, when you define a globalized minor mode, you should
 also define a non-globalized version, so that people can use (or
 disable) it in individual buffers.  This also allows them to disable a
