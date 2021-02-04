@@ -1373,7 +1373,24 @@ and initial semicolons."
                                   (derived-mode-p 'emacs-lisp-mode))
                              emacs-lisp-docstring-fill-column
                            fill-column)))
-	(fill-paragraph justify))
+        (save-restriction
+          (save-excursion
+          (let ((ppss (syntax-ppss)))
+            ;; If we're in a string, then narrow (roughly) to that
+            ;; string before filling.  This avoids filling Lisp
+            ;; statements that follow the string.
+            (when (ppss-string-terminator ppss)
+              (goto-char (ppss-comment-or-string-start ppss))
+              (beginning-of-line)
+              ;; The string may be unterminated -- in that case, don't
+              ;; narrow.
+              (when (ignore-errors
+                      (progn
+                        (forward-sexp 1)
+                        t))
+                (narrow-to-region (ppss-comment-or-string-start ppss)
+                                  (point))))
+	    (fill-paragraph justify)))))
       ;; Never return nil.
       t))
 
