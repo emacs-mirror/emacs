@@ -219,6 +219,7 @@ view of the buffers."
 		 (const :tag "File name" :value filename/process)
                  (const :tag "Major mode" :value major-mode)))
 (defvar ibuffer-sorting-mode nil)
+(defvar ibuffer-last-sorting-mode nil)
 
 (defcustom ibuffer-default-sorting-reversep nil
   "If non-nil, reverse the default sorting order."
