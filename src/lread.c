@@ -804,7 +804,10 @@ If `inhibit-interaction' is non-nil, this function will signal an
   barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
-    message_with_string ("%s", prompt, 0);
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
   val = read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
 
   return (NILP (val) ? Qnil
@@ -839,7 +842,10 @@ If `inhibit-interaction' is non-nil, this function will signal an
   barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
-    message_with_string ("%s", prompt, 0);
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
   return read_filtered_event (0, 0, 0, ! NILP (inherit_input_method), seconds);
 }
 
@@ -875,7 +881,10 @@ If `inhibit-interaction' is non-nil, this function will signal an
   barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
-    message_with_string ("%s", prompt, 0);
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
 
   val = read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
 
