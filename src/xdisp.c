@@ -10777,7 +10777,7 @@ include the height of both, if present, in the return value.  */)
   /* If text spans more than one screen line, we don't need to adjust
      the x-span for start_x, since the second and subsequent lines
      will begin at zero X coordinate.  */
-  if (it.current_y > 0)
+  if (it.current_y > start_y)
     start_x = 0;
 
   /* Subtract height of header-line which was counted automatically by
