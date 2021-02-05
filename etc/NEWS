@@ -2189,6 +2189,11 @@ define-obsolete-variable-alias.
 
 * Lisp Changes in Emacs 28.1
 
+---
+** New variable 'indent-line-ignored-functions'.
+This allows modes to cycle through a set of indentation functions
+appropriate for those modes.
+
 ** New function 'garbage-collect-maybe' to trigger GC early.
 
 ---

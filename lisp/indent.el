@@ -83,22 +83,23 @@ This variable has no effect unless `tab-always-indent' is `complete'."
           (const :tag "Unless at a word, parenthesis, or punctuation." 'word-or-paren-or-punct))
   :version "27.1")
 
+(defvar indent-line-ignored-functions '(indent-relative
+                                        indent-relative-maybe
+                                        indent-relative-first-indent-point)
+  "Values that are ignored by `indent-according-to-mode'.")
 
 (defun indent-according-to-mode ()
   "Indent line in proper way for current major mode.
 Normally, this is done by calling the function specified by the
 variable `indent-line-function'.  However, if the value of that
-variable is `indent-relative' or `indent-relative-first-indent-point',
+variable is present in the `indent-line-ignored-functions' variable,
 handle it specially (since those functions are used for tabbing);
 in that case, indent by aligning to the previous non-blank line."
   (interactive)
   (save-restriction
     (widen)
   (syntax-propertize (line-end-position))
-  (if (memq indent-line-function
-            '(indent-relative
-              indent-relative-maybe
-              indent-relative-first-indent-point))
+  (if (memq indent-line-function indent-line-ignored-functions)
       ;; These functions are used for tabbing, but can't be used for
       ;; indenting.  Replace with something ad-hoc.
       (let ((column (save-excursion
