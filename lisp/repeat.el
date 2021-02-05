@@ -239,9 +239,7 @@ recently executed command not bound to an input event\"."
            (car (memq last-command-event
                       (listify-key-sequence
                        repeat-on-final-keystroke))))))
-    (if (memq last-repeatable-command '(exit-minibuffer
-					minibuffer-complete-and-exit
-					self-insert-and-exit))
+    (if (eq last-repeatable-command (caar command-history))
         (let ((repeat-command (car command-history)))
           (repeat-message "Repeating %S" repeat-command)
           (eval repeat-command))
