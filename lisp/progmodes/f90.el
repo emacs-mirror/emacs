@@ -117,11 +117,10 @@
 ;;    correctly, but I imagine them to be rare.
 ;; 3) Regexps for hilit19 are no longer supported.
 ;; 4) For FIXED FORMAT code, use fortran mode.
-;; 5) This mode does not work under emacs-18.x.
-;; 6) Preprocessor directives, i.e., lines starting with # are left-justified
+;; 5) Preprocessor directives, i.e., lines starting with # are left-justified
 ;;    and are untouched by all case-changing commands. There is, at present, no
 ;;    mechanism for treating multi-line directives (continued by \ ).
-;; 7) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
+;; 6) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
 ;;    You are urged to use f90-do loops (with labels if you wish).
 
 ;; List of user commands
