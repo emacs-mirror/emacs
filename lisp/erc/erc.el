@@ -6464,32 +6464,31 @@ if `erc-away' is non-nil."
       (setq mode-line-buffer-identification
             (list (format-spec erc-mode-line-format spec)))
       (setq mode-line-process (list process-status))
-      (when (boundp 'header-line-format)
-        (let ((header (if erc-header-line-format
-                          (format-spec erc-header-line-format spec)
-                        nil)))
-          (cond (erc-header-line-uses-tabbar-p
-                 (setq-local tabbar--local-hlf header-line-format)
-                 (kill-local-variable 'header-line-format))
-                ((null header)
-                 (setq header-line-format nil))
-                (erc-header-line-uses-help-echo-p
-                 (let ((help-echo (with-temp-buffer
-                                    (insert header)
-                                    (fill-region (point-min) (point-max))
-                                    (buffer-string))))
-                   (setq header-line-format
-                         (replace-regexp-in-string
-                          "%"
-                          "%%"
-                          (if face
-                              (propertize header 'help-echo help-echo
-                                          'face face)
-                            (propertize header 'help-echo help-echo))))))
-                (t (setq header-line-format
-                         (if face
-                             (propertize header 'face face)
-                           header)))))))
+      (let ((header (if erc-header-line-format
+                        (format-spec erc-header-line-format spec)
+                      nil)))
+        (cond (erc-header-line-uses-tabbar-p
+               (setq-local tabbar--local-hlf header-line-format)
+               (kill-local-variable 'header-line-format))
+              ((null header)
+               (setq header-line-format nil))
+              (erc-header-line-uses-help-echo-p
+               (let ((help-echo (with-temp-buffer
+                                  (insert header)
+                                  (fill-region (point-min) (point-max))
+                                  (buffer-string))))
+                 (setq header-line-format
+                       (replace-regexp-in-string
+                        "%"
+                        "%%"
+                        (if face
+                            (propertize header 'help-echo help-echo
+                                        'face face)
+                          (propertize header 'help-echo help-echo))))))
+              (t (setq header-line-format
+                       (if face
+                           (propertize header 'face face)
+                         header))))))
     (force-mode-line-update)))
 
 (defun erc-update-mode-line (&optional buffer)

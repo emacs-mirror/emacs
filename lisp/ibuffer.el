@@ -303,7 +303,7 @@ This variable takes precedence over filtering, and even
 in completion lists of the `ibuffer-jump-to-buffer' command."
   :type 'boolean)
 
-(defcustom ibuffer-use-header-line (boundp 'header-line-format)
+(defcustom ibuffer-use-header-line t
   "If non-nil, display a header line containing current filters."
   :type 'boolean)
 
