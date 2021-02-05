@@ -10780,8 +10780,8 @@ include the height of both, if present, in the return value.  */)
   if (it.current_y > start_y)
     start_x = 0;
 
-  /* Subtract height of header-line which was counted automatically by
-     start_display.  */
+  /* Subtract height of header-line and tab-line which was counted
+     automatically by start_display.  */
   y = it.current_y + it.max_ascent + it.max_descent
     - WINDOW_TAB_LINE_HEIGHT (w) - WINDOW_HEADER_LINE_HEIGHT (w);
   /* Don't return more than Y-LIMIT.  */
