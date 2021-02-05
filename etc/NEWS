@@ -2632,13 +2632,22 @@ Interactively, 'C-u C-c C-o' triggers this new optional behavior.
 ** ERC
 
 ---
-*** erc-services.el now supports NickServ passwords from auth-source.
+*** NickServ passwords can now be retrieved from auth-source.
 The 'erc-use-auth-source-for-nickserv-password' user option enables
 querying auth-source for NickServ passwords.  To enable this, add the
 following to your init file:
 
-    (setq erc-prompt-for-nickserv-password nil
-          erc-use-auth-source-for-nickserv-password t)
+    (setq erc-use-auth-source-for-nickserv-password t)
+
+---
+*** NickServ identification now prompts for password last.
+When 'erc-prompt-for-nickserv-password' is non-nil, the user used to
+be unconditionally prompted interactively for a password, regardless
+of the value of 'erc-nickserv-passwords', which was effectively
+ignored (same for the new
+'erc-use-auth-source-for-nickserv-password').  This limitation is now
+lifted, and the user is interactively prompted last, after the other
+identification methods have run.
 
 ---
 *** The '/ignore' command will now ask for a timeout to stop ignoring the user.
