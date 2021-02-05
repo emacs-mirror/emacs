@@ -1516,7 +1516,8 @@ current buffer file unless called with a prefix arg \\[universal-argument]."
       ;; https://lists.gnu.org/r/emacs-devel/2013-10/msg00095.html
       (compilation-forget-errors)
       (insert-before-markers string "\n")
-      (comint-send-string proc (concat string "\n"))))
+      (comint-send-string proc (concat string "\n")))
+    (deactivate-mark))
   (if octave-send-show-buffer
       (display-buffer inferior-octave-buffer)))
 
