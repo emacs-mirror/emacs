@@ -2114,7 +2114,7 @@ No external programs are used."
   (interactive)				; mainly for testing
   (WoMan-log-begin)
   (run-hooks 'woman-pre-format-hook)
-  (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
+  (and font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
   (let ((start-time (current-time))
 	time)

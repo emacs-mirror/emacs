@@ -424,7 +424,7 @@ The possible settings for `align-region-separate' are:
                       (backward-word 1)
                       (looking-at
                        "\\(goto\\|return\\|new\\|delete\\|throw\\)"))
-                    (if (and (boundp 'font-lock-mode) font-lock-mode)
+                    (if font-lock-mode
                         (eq (get-text-property (point) 'face)
                             'font-lock-comment-face)
                       (eq (caar (c-guess-basic-syntax)) 'c)))))))

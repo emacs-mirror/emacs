@@ -716,8 +716,7 @@ specific to a major mode.  For example, in jde mode:
 
 (defun semantic-idle-summary-useful-context-p ()
   "Non-nil if we should show a summary based on context."
-  (if (and (boundp 'font-lock-mode)
-	   font-lock-mode
+  (if (and font-lock-mode
 	   (memq (get-text-property (point) 'face)
 		 semantic-idle-summary-out-of-context-faces))
       ;; The best I can think of at the moment is to disable

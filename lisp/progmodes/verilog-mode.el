@@ -3442,7 +3442,7 @@ For insignificant changes, see instead `verilog-save-buffer-state'."
     (verilog-run-hooks 'verilog-before-save-font-hook)
     (let* ((verilog-save-font-mod-hooked (- (point-max) (point-min)))
            ;; Significant speed savings with no font-lock properties
-           (fontlocked (when (and (boundp 'font-lock-mode) font-lock-mode)
+           (fontlocked (when font-lock-mode
                          (font-lock-mode 0)
                          t)))
       (run-hook-with-args 'before-change-functions (point-min) (point-max))
@@ -5535,7 +5535,7 @@ FILENAME to find directory to run in, or defaults to `buffer-file-name'."
 				 default nil nil
 				 'verilog-preprocess-history default)))))
   (unless command (setq command (verilog-expand-command verilog-preprocessor)))
-  (let* ((fontlocked (and (boundp 'font-lock-mode) font-lock-mode))
+  (let* ((fontlocked font-lock-mode)
 	 (dir (file-name-directory (or filename buffer-file-name)))
 	 (cmd (concat "cd " dir "; " command)))
     (with-output-to-temp-buffer "*Verilog-Preprocessed*"

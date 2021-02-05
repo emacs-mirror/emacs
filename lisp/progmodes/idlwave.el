@@ -6876,7 +6876,6 @@ sort the list before displaying."
   (let ((completion-ignore-case t))	    ; install correct value
     (apply function args))
   (if (and (derived-mode-p 'idlwave-shell-mode)
-	   (boundp 'font-lock-mode)
 	   (not font-lock-mode))
       ;; For the shell, remove the fontification of the word before point
       (let ((beg (save-excursion

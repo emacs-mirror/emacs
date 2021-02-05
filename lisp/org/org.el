@@ -5520,7 +5520,7 @@ highlighting was done, nil otherwise."
 
 (defun org-restart-font-lock ()
   "Restart `font-lock-mode', to force refontification."
-  (when (and (boundp 'font-lock-mode) font-lock-mode)
+  (when font-lock-mode
     (font-lock-mode -1)
     (font-lock-mode 1)))
 

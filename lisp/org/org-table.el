@@ -2008,7 +2008,7 @@ toggle `org-table-follow-field-mode'."
     (let ((b (save-excursion (skip-chars-backward "^|") (point)))
 	  (e (save-excursion (skip-chars-forward "^|\r\n") (point))))
       (remove-text-properties b e '(invisible t intangible t))
-      (if (and (boundp 'font-lock-mode) font-lock-mode)
+      (if font-lock-mode
 	  (font-lock-fontify-block))))
    (t
     (let ((pos (point-marker))

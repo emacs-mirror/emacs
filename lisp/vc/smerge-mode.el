@@ -1410,7 +1410,7 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
 
 \\{smerge-mode-map}"
   :group 'smerge :lighter " SMerge"
-  (when (and (boundp 'font-lock-mode) font-lock-mode)
+  (when font-lock-mode
     (save-excursion
       (if smerge-mode
 	  (font-lock-add-keywords nil smerge-font-lock-keywords 'append)
