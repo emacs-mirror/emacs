@@ -1344,6 +1344,7 @@ FRAME defaults to the selected frame."
 FRAME defaults to the selected frame."
   (setq frame (window-normalize-frame frame))
   (- (frame-native-height frame)
+     (tab-bar-height frame t)
      (* 2 (frame-internal-border-width frame))))
 
 (defun frame-outer-width (&optional frame)

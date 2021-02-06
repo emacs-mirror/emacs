@@ -336,7 +336,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 					    (const :tag "Never" nil)
 					    (const :tag "Always" t)
 					    (repeat (symbol :tag "Parameter")))
-					   "25.1")
+					   "27.1")
 	     (iconify-child-frame frames
 				  (choice
 				   (const :tag "Do nothing" nil)
