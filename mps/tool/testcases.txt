@@ -5,7 +5,7 @@ abqtest
 airtest
 amcss          =P
 amcsshe        =P
-amcssth        =P =T
+amcssth        =P =T =A
 amsss          =P
 amssshe        =P
 apss
@@ -48,6 +48,7 @@ zmess
 Key to flags
 ............
 
+    A -- fails on Arm64 (see GitHub issue #59)
     B -- known Bad
     L -- Long runtime
     N -- Not an automated test case
