@@ -185,6 +185,26 @@ Vectors must match verbatim. Strings are considered regex patterns.")
     (kill-buffer buf)
     (ignore url-gateway-method)))
 
+;; Unlike curl, socks.el includes the ID field (but otherwise matches):
+;; $ curl --proxy socks4://127.0.0.1:1080 example.com
+
+(ert-deftest socks-tests-v4-basic ()
+  "Show correct preparation of SOCKS4 connect command (Bug#46342)."
+  (let ((socks-server '("server" "127.0.0.1" 10079 4))
+        (url-user-agent "Test/4-basic")
+        (socks-tests-canned-server-patterns
+         `(([4 1 0 80 93 184 216 34 ?f ?o ?o 0] . [0 90 0 0 0 0 0 0])
+           ,socks-tests--hello-world-http-request-pattern))
+        socks-nslookup-program)
+    (ert-info ("Make HTTP request over SOCKS4")
+      (cl-letf (((symbol-function 'socks-nslookup-host)
+                 (lambda (host)
+                   (should (equal host "example.com"))
+                   (list 93 184 216 34)))
+                ((symbol-function 'user-full-name)
+                 (lambda () "foo")))
+        (socks-tests-perform-hello-world-http-request)))))
+
 ;; Replace first pattern below with ([5 3 0 1 2] . [5 2]) to validate
 ;; against curl 7.71 with the following options:
 ;; $ curl --verbose -U foo:bar --proxy socks5h://127.0.0.1:10080 example.com

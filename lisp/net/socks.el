@@ -390,6 +390,8 @@
       proc)))
 
 (defun socks-send-command (proc command atype address port)
+  "Send COMMAND to SOCKS service PROC for proxying ADDRESS and PORT.
+When ATYPE indicates an IP, param ADDRESS must be given as raw bytes."
   (let ((addr (cond
 	       ((or (= atype socks-address-type-v4)
 		    (= atype socks-address-type-v6))
@@ -528,7 +530,7 @@
 	        (setq host (socks-nslookup-host host))
 	        (if (not (listp host))
 	            (error "Could not get IP address for: %s" host))
-	        (setq host (apply #'format "%c%c%c%c" host))
+		(setq host (apply #'unibyte-string host))
                 socks-address-type-v4)
                (t
                 socks-address-type-name))))
