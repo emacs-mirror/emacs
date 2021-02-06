@@ -725,7 +725,7 @@ requires quoting, e.g. `\\[quoted-insert]<space>'."
   (require 'xref)
   (require 'grep)
   (let* ((pr (project-current t))
-         (default-directory (car (project-roots pr)))
+         (default-directory (project-root pr))
          (files
           (if (not current-prefix-arg)
               (project-files pr)
@@ -757,7 +757,7 @@ pattern to search for."
   (interactive (list (project--read-regexp)))
   (require 'xref)
   (let* ((pr (project-current t))
-         (default-directory (car (project-roots pr)))
+         (default-directory (project-root pr))
          (files
           (project-files pr (cons
                              (project-root pr)
