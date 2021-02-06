@@ -893,7 +893,7 @@ Return nil if FILENAME doesn't exist."
 
       ;; Capture any incoming events.
       (set-process-sentinel proc
-                            (lambda (proc event)
+                            (lambda (_prc event)
 			      (push event events)))
       ;; Wait for the process to start.
       (sleep-for 2)
