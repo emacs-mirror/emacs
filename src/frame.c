@@ -898,6 +898,7 @@ make_frame (bool mini_p)
   f->no_accept_focus = false;
   f->z_group = z_group_none;
   f->tooltip = false;
+  f->child_frame_border_width = -1;
   f->last_tab_bar_item = -1;
 #ifndef HAVE_EXT_TOOL_BAR
   f->last_tool_bar_item = -1;
@@ -3544,10 +3545,17 @@ DEFUN ("frame-fringe-width", Ffringe_width, Sfringe_width, 0, 1, 0,
 }
 
 DEFUN ("frame-child-frame-border-width", Fframe_child_frame_border_width, Sframe_child_frame_border_width, 0, 1, 0,
-       doc: /* Return width of FRAME's child-frame border in pixels.  */)
+       doc: /* Return width of FRAME's child-frame border in pixels.
+ If FRAME's 'child-frame-border-width' parameter is nil, return FRAME's
+ internal border width instead.  */)
   (Lisp_Object frame)
 {
-  return make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (decode_any_frame (frame)));
+  int width = FRAME_CHILD_FRAME_BORDER_WIDTH (decode_any_frame (frame));
+
+  if (width < 0)
+    return make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (decode_any_frame (frame)));
+  else
+    return make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (decode_any_frame (frame)));
 }
 
 DEFUN ("frame-internal-border-width", Fframe_internal_border_width, Sframe_internal_border_width, 0, 1, 0,
@@ -4311,7 +4319,9 @@ gui_report_frame_params (struct frame *f, Lisp_Object *alistptr)
   store_in_alist (alistptr, Qborder_width,
 		  make_fixnum (f->border_width));
   store_in_alist (alistptr, Qchild_frame_border_width,
-		  make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (f)));
+		  FRAME_CHILD_FRAME_BORDER_WIDTH (f) >= 0
+		  ? make_fixnum (FRAME_CHILD_FRAME_BORDER_WIDTH (f))
+		  : Qnil);
   store_in_alist (alistptr, Qinternal_border_width,
 		  make_fixnum (FRAME_INTERNAL_BORDER_WIDTH (f)));
   store_in_alist (alistptr, Qright_divider_width,
