@@ -325,9 +325,9 @@ INC may be passed as a numeric prefix argument.
 The actual adjustment made depends on the final component of the
 key-binding used to invoke the command, with all modifiers removed:
 
-   +, =   Increase the default face height by one step
-   -      Decrease the default face height by one step
-   0      Reset the default face height to the global default
+   +, =   Increase the height of the default face by one step
+   -      Decrease the height of the default face by one step
+   0      Reset the height of the default face to the global default
 
 After adjusting, continue to read input events and further adjust
 the face height as long as the input event read
