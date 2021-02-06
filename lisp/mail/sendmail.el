@@ -1800,14 +1800,14 @@ If the current line has `mail-yank-prefix', insert it on the new line."
 
 (declare-function mml-attach-file "mml"
 		  (file &optional type description disposition))
-(declare-function mm-default-file-encoding "mm-encode" (file))
 
 (defun mail-add-attachment (file)
   "Add FILE as a MIME attachment to the end of the mail message being composed."
   (interactive "fAttach file: ")
   (mml-attach-file file
-		   (or (mm-default-file-encoding file)
-		       "application/octet-stream") nil)
+		   (or (mm-default-file-type file)
+		       "application/octet-stream")
+		   nil)
   (setq mail-encode-mml t))
 
 

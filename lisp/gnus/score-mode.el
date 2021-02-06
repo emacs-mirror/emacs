@@ -1,4 +1,4 @@
-;;; score-mode.el --- mode for editing Gnus score files
+;;; score-mode.el --- mode for editing Gnus score files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 

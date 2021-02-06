@@ -72,15 +72,12 @@ LOGIN-NAME, which is optional, says what to log in as on that machine.")
 
 (defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
 (defvar telnet-replace-c-g nil)
-(make-variable-buffer-local
- (defvar telnet-remote-echoes t
-   "True if the telnet process will echo input."))
-(make-variable-buffer-local
- (defvar telnet-interrupt-string "\C-c" "String sent by C-c."))
+(defvar-local telnet-remote-echoes t
+  "True if the telnet process will echo input.")
+(defvar-local telnet-interrupt-string "\C-c" "String sent by C-c.")
 
-(defvar telnet-count 0
+(defvar-local telnet-count 0
   "Number of output strings from telnet process while looking for password.")
-(make-variable-buffer-local 'telnet-count)
 
 (defvar telnet-program "telnet"
   "Program to run to open a telnet connection.")

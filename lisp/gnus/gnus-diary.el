@@ -1,4 +1,4 @@
-;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end
+;;; gnus-diary.el --- Wrapper around the NNDiary Gnus back end  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -57,8 +57,7 @@
 (defcustom gnus-diary-time-format "%a, %b %e %y, %H:%M"
   "Time format to display appointments in nndiary summary buffers.
 Please refer to `format-time-string' for information on possible values."
-  :type 'string
-  :group 'gnus-diary)
+  :type 'string)
 
 (defcustom gnus-diary-delay-format-function 'gnus-diary-delay-format-english
   "Function called to format a diary delay string.
@@ -73,8 +72,7 @@ There are currently two built-in format functions:
 `gnus-diary-delay-format-french'"
   :type '(choice (const  :tag "english" gnus-diary-delay-format-english)
 		 (const  :tag "french"  gnus-diary-delay-format-french)
-		 (symbol :tag "other"))
-  :group 'gnus-diary)
+		 (symbol :tag "other")))
 
 (defconst gnus-diary-version nndiary-version
   "Current Diary back end version.")
@@ -276,13 +274,13 @@ Optional prefix (or REVERSE argument) means sort in reverse order."
     (gnus-diary-update-group-parameters group)))
 
 (add-hook 'nndiary-request-create-group-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 ;; Now that we have `gnus-subscribe-newsgroup-functions', this is not needed
 ;; anymore. Maybe I should remove this completely.
 (add-hook 'nndiary-request-update-info-functions
-	  'gnus-diary-update-group-parameters)
+	  #'gnus-diary-update-group-parameters)
 (add-hook 'gnus-subscribe-newsgroup-functions
-	  'gnus-diary-maybe-update-group-parameters)
+	  #'gnus-diary-maybe-update-group-parameters)
 
 
 ;; Diary Message Checking ===================================================
@@ -360,7 +358,7 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 				 header ": ")))
 	     (setq value
 		   (if (listp (nth 1 head))
-		       (gnus-completing-read prompt (cons "*" (mapcar 'car (nth 1 head)))
+		       (gnus-completing-read prompt (cons "*" (mapcar #'car (nth 1 head)))
                                              t value
                                              'gnus-diary-header-value-history)
 		     (read-string prompt value

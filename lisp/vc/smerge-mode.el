@@ -173,8 +173,7 @@ Used in `smerge-diff-base-upper' and related functions."
   `((,smerge-command-prefix . ,smerge-basic-map))
   "Keymap for `smerge-mode'.")
 
-(defvar smerge-check-cache nil)
-(make-variable-buffer-local 'smerge-check-cache)
+(defvar-local smerge-check-cache nil)
 (defun smerge-check (n)
   (condition-case nil
       (let ((state (cons (point) (buffer-modified-tick))))
@@ -1411,7 +1410,7 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
 
 \\{smerge-mode-map}"
   :group 'smerge :lighter " SMerge"
-  (when (and (boundp 'font-lock-mode) font-lock-mode)
+  (when font-lock-mode
     (save-excursion
       (if smerge-mode
 	  (font-lock-add-keywords nil smerge-font-lock-keywords 'append)

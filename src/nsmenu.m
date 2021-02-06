@@ -405,7 +405,7 @@ ns_update_menubar (struct frame *f, bool deep_p)
    frame's menus have changed, and the *step representation should be updated
    from Lisp.  */
 void
-set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool deep_p)
 {
   ns_update_menubar (f, deep_p);
 }
@@ -1795,7 +1795,7 @@ DEFUN ("ns-reset-menu", Fns_reset_menu, Sns_reset_menu, 0, 0, 0,
        doc: /* Cause the NS menu to be re-calculated.  */)
      (void)
 {
-  set_frame_menubar (SELECTED_FRAME (), 1, 0);
+  set_frame_menubar (SELECTED_FRAME (), 0);
   return Qnil;
 }
 

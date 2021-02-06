@@ -1,4 +1,4 @@
-;;; nndir.el --- single directory newsgroup access for Gnus
+;;; nndir.el --- single directory newsgroup access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 

@@ -38,17 +38,14 @@
   "Face used to highlight warnings in the tutorial."
   :group 'help)
 
-(defvar tutorial--point-before-chkeys 0
+(defvar-local tutorial--point-before-chkeys 0
   "Point before display of key changes.")
-(make-variable-buffer-local 'tutorial--point-before-chkeys)
 
-(defvar tutorial--point-after-chkeys 0
+(defvar-local tutorial--point-after-chkeys 0
   "Point after display of key changes.")
-(make-variable-buffer-local 'tutorial--point-after-chkeys)
 
-(defvar tutorial--lang nil
+(defvar-local tutorial--lang nil
   "Tutorial language.")
-(make-variable-buffer-local 'tutorial--lang)
 
 (defvar tutorial--buffer nil
   "The selected tutorial buffer.")

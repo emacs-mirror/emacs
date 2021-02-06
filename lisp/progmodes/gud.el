@@ -638,8 +638,7 @@ The option \"--fullname\" must be included in this value."
 ;; receive a chunk of text which looks like it might contain the
 ;; beginning of a marker, we save it here between calls to the
 ;; filter.
-(defvar gud-marker-acc "")
-(make-variable-buffer-local 'gud-marker-acc)
+(defvar-local gud-marker-acc "")
 
 (defun gud-gdb-marker-filter (string)
   (setq gud-marker-acc (concat gud-marker-acc string))

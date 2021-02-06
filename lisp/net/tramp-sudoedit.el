@@ -153,8 +153,8 @@ See `tramp-actions-before-shell' for more info.")
 ;;;###tramp-autoload
 (defun tramp-sudoedit-file-name-handler (operation &rest args)
   "Invoke the SUDOEDIT handler for OPERATION and ARGS.
-First arg specifies the OPERATION, second arg is a list of arguments to
-pass to the OPERATION."
+First arg specifies the OPERATION, second arg is a list of
+arguments to pass to the OPERATION."
   (if-let ((fn (assoc operation tramp-sudoedit-file-name-handler-alist)))
       (save-match-data (apply (cdr fn) args))
     (tramp-run-real-handler operation args)))
@@ -243,9 +243,7 @@ absolute file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-error
-	   v tramp-file-missing
-	   "%s file" msg-operation "No such file or directory" filename))
+	  (tramp-compat-file-missing v filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)

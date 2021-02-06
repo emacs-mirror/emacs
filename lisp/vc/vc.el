@@ -1549,6 +1549,9 @@ After check-out, runs the normal hook `vc-checkout-hook'."
 	  (vc-call-backend backend 'mark-resolved files)
 	  ;; FIXME: Is this TRTD?  Might not be.
 	  `((vc-state . edited)))
+    ;; Recompute mode lines.
+    (dolist (file files)
+      (vc-mode-line file backend))
     (message
      (substitute-command-keys
       "Conflicts have been resolved in %s.  \

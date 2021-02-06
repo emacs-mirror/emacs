@@ -1,4 +1,4 @@
-;;; nnweb.el --- retrieving articles via web search engines
+;;; nnweb.el --- retrieving articles via web search engines  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -96,7 +96,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (nnoo-define-basics nnweb)
 
-(deffoo nnweb-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nnweb-retrieve-headers (articles &optional group server _fetch-old)
   (nnweb-possibly-change-server group server)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -117,7 +117,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnweb-write-active)
     (nnweb-write-overview group)))
 
-(deffoo nnweb-request-group (group &optional server dont-check info)
+(deffoo nnweb-request-group (group &optional server dont-check _info)
   (nnweb-possibly-change-server group server)
   (unless (or nnweb-ephemeral-p
 	      dont-check
@@ -154,17 +154,17 @@ Valid types include `google', `dejanews', and `gmane'.")
 		(and (stringp article)
 		     (nnweb-definition 'id t)
 		     (let ((fetch (nnweb-definition 'id))
-			   art active)
-		       (when (string-match "^<\\(.*\\)>$" article)
-			 (setq art (match-string 1 article)))
+			   (art (when (string-match "^<\\(.*\\)>$" article)
+			          (match-string 1 article)))
+			   ) ;; active
 		       (when (and fetch art)
 			 (setq url (format fetch
 					   (mm-url-form-encode-xwfu art)))
 			 (mm-url-insert url)
 			 (if (nnweb-definition 'reference t)
 			     (setq article
-				   (funcall (nnweb-definition
-					     'reference) article)))))))
+				   (funcall (nnweb-definition 'reference)
+					    article)))))))
 	(unless nnheader-callback-function
 	  (funcall (nnweb-definition 'article)))
 	(nnheader-report 'nnweb "Fetched article %s" article)
@@ -184,19 +184,19 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnmail-generate-active (list (assoc server nnweb-group-alist)))
     t))
 
-(deffoo nnweb-request-update-info (group info &optional server))
+(deffoo nnweb-request-update-info (_group _info &optional _server))
 
 (deffoo nnweb-asynchronous-p ()
   nil)
 
-(deffoo nnweb-request-create-group (group &optional server args)
+(deffoo nnweb-request-create-group (group &optional server _args)
   (nnweb-possibly-change-server nil server)
   (nnweb-request-delete-group group)
   (push `(,group ,(cons 1 0)) nnweb-group-alist)
   (nnweb-write-active)
   t)
 
-(deffoo nnweb-request-delete-group (group &optional force server)
+(deffoo nnweb-request-delete-group (group &optional _force server)
   (nnweb-possibly-change-server group server)
   (gnus-alist-pull group nnweb-group-alist t)
   (nnweb-write-active)
@@ -317,7 +317,7 @@ Valid types include `google', `dejanews', and `gmane'.")
   (let ((i 0)
 	(case-fold-search t)
 	(active (cadr (assoc nnweb-group nnweb-group-alist)))
-	Subject Score Date Newsgroups From
+	Subject Date Newsgroups From
 	map url mid)
     (unless active
       (push (list nnweb-group (setq active (cons 1 0)))
@@ -411,7 +411,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	  ;; Return the articles in the right order.
 	  (nnheader-message 7 "Searching google...done")
 	  (setq nnweb-articles
-		(sort nnweb-articles 'car-less-than-car))))))
+		(sort nnweb-articles #'car-less-than-car))))))
 
 (defun nnweb-google-search (search)
   (mm-url-insert
@@ -481,7 +481,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	  (forward-line 1)))
       (nnheader-message 7 "Searching Gmane...done")
       (setq nnweb-articles
-	    (sort (nconc nnweb-articles map) 'car-less-than-car)))))
+	    (sort (nconc nnweb-articles map) #'car-less-than-car)))))
 
 (defun nnweb-gmane-wash-article ()
   (let ((case-fold-search t))
@@ -534,7 +534,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	     (nth 1 parse)
 	     " "))
     (insert ">\n")
-    (mapc 'nnweb-insert-html (nth 2 parse))
+    (mapc #'nnweb-insert-html (nth 2 parse))
     (insert "</" (symbol-name (car parse)) ">\n")))
 
 (defun nnweb-parse-find (type parse &optional maxdepth)

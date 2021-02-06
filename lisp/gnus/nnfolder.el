@@ -1,4 +1,4 @@
-;;; nnfolder.el --- mail folder access for Gnus
+;;; nnfolder.el --- mail folder access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -145,7 +145,7 @@ all.  This may very well take some time.")
 	      'nov
 	    (setq articles (gnus-sorted-intersection
 			    ;; Is ARTICLES sorted?
-			    (sort articles '<)
+			    (sort articles #'<)
 			    (nnfolder-existing-articles)))
 	    (while (setq article (pop articles))
 	      (set-buffer nnfolder-current-buffer)
@@ -261,7 +261,7 @@ all.  This may very well take some time.")
 				      (point) (point-at-eol)))
 		    -1))))))))
 
-(deffoo nnfolder-request-group (group &optional server dont-check info)
+(deffoo nnfolder-request-group (group &optional server dont-check _info)
   (nnfolder-possibly-change-group group server t)
   (save-excursion
     (cond ((not (assoc group nnfolder-group-alist))
@@ -314,7 +314,7 @@ all.  This may very well take some time.")
 ;; over the buffer again unless we add new mail to it or modify it in some
 ;; way.
 
-(deffoo nnfolder-close-group (group &optional server force)
+(deffoo nnfolder-close-group (group &optional _server _force)
   ;; Make sure we _had_ the group open.
   (when (or (assoc group nnfolder-buffer-alist)
 	    (equal group nnfolder-current-group))
@@ -342,7 +342,7 @@ all.  This may very well take some time.")
 	nnfolder-current-buffer nil)
   t)
 
-(deffoo nnfolder-request-create-group (group &optional server args)
+(deffoo nnfolder-request-create-group (group &optional server _args)
   (nnfolder-possibly-change-group nil server)
   (nnmail-activate 'nnfolder)
   (cond ((zerop (length group))
@@ -369,7 +369,7 @@ all.  This may very well take some time.")
       (setq nnfolder-group-alist (nnmail-get-active)))
     t))
 
-(deffoo nnfolder-request-newgroups (date &optional server)
+(deffoo nnfolder-request-newgroups (_date &optional server)
   (nnfolder-possibly-change-group nil server)
   (nnfolder-request-list server))
 
@@ -383,9 +383,8 @@ all.  This may very well take some time.")
 ;; current folder.
 
 (defun nnfolder-existing-articles ()
-  (save-excursion
-    (when nnfolder-current-buffer
-      (set-buffer nnfolder-current-buffer)
+  (when nnfolder-current-buffer
+    (with-current-buffer nnfolder-current-buffer
       (goto-char (point-min))
       (let ((marker (concat "\n" nnfolder-article-marker))
 	    (number "[0-9]+")
@@ -395,12 +394,13 @@ all.  This may very well take some time.")
 	  (let ((newnum (string-to-number (match-string 0))))
 	    (if (nnmail-within-headers-p)
 		(push newnum numbers))))
-      ;; The article numbers are increasing, so this result is sorted.
+        ;; The article numbers are increasing, so this result is sorted.
 	(nreverse numbers)))))
 
 (autoload 'gnus-request-group "gnus-int")
 (declare-function gnus-request-create-group "gnus-int"
                   (group &optional gnus-command-method args))
+(defvar nnfolder-current-directory)
 
 (deffoo nnfolder-request-expire-articles (articles newsgroup
 						   &optional server force)
@@ -463,7 +463,7 @@ all.  This may very well take some time.")
       (gnus-sorted-difference articles (nreverse deleted-articles)))))
 
 (deffoo nnfolder-request-move-article (article group server accept-form
-					       &optional last move-is-internal)
+					       &optional last _move-is-internal)
   (save-excursion
     (let ((buf (gnus-get-buffer-create " *nnfolder move*"))
 	  result)
@@ -478,7 +478,7 @@ all.  This may very well take some time.")
 		 (save-excursion (and (search-forward "\n\n" nil t) (point)))
 		 t)
 	   (gnus-delete-line))
-	 (setq result (eval accept-form))
+	 (setq result (eval accept-form t))
 	 (kill-buffer buf)
 	 result)
        (save-excursion
@@ -499,7 +499,7 @@ all.  This may very well take some time.")
   (save-excursion
     (nnfolder-possibly-change-group group server)
     (nnmail-check-syntax)
-    (let ((buf (current-buffer))
+    (let (;; (buf (current-buffer))
 	  result art-group)
       (goto-char (point-min))
       (when (looking-at "X-From-Line: ")

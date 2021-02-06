@@ -1,4 +1,4 @@
-;;; nnnil.el --- empty backend for Gnus
+;;; nnnil.el --- empty backend for Gnus  -*- lexical-binding: t; -*-
 
 ;; This file is in the public domain.
 
@@ -32,31 +32,31 @@
 
 (defvar nnnil-status-string "")
 
-(defun nnnil-retrieve-headers (articles &optional group server fetch-old)
+(defun nnnil-retrieve-headers (_articles &optional _group _server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer))
   'nov)
 
-(defun nnnil-open-server (server &optional definitions)
+(defun nnnil-open-server (_server &optional _definitions)
   t)
 
-(defun nnnil-close-server (&optional server)
+(defun nnnil-close-server (&optional _server)
   t)
 
 (defun nnnil-request-close ()
   t)
 
-(defun nnnil-server-opened (&optional server)
+(defun nnnil-server-opened (&optional _server)
   t)
 
-(defun nnnil-status-message (&optional server)
+(defun nnnil-status-message (&optional _server)
   nnnil-status-string)
 
-(defun nnnil-request-article (article &optional group server to-buffer)
+(defun nnnil-request-article (_article &optional _group _server _to-buffer)
   (setq nnnil-status-string "No such group")
   nil)
 
-(defun nnnil-request-group (group &optional server fast info)
+(defun nnnil-request-group (_group &optional _server _fast _info)
   (let (deactivate-mark)
     (with-current-buffer nntp-server-buffer
       (erase-buffer)
@@ -64,15 +64,15 @@
   (setq nnnil-status-string "No such group")
   nil)
 
-(defun nnnil-close-group (group &optional server)
+(defun nnnil-close-group (_group &optional _server)
   t)
 
-(defun nnnil-request-list (&optional server)
+(defun nnnil-request-list (&optional _server)
   (with-current-buffer nntp-server-buffer
     (erase-buffer))
   t)
 
-(defun nnnil-request-post (&optional server)
+(defun nnnil-request-post (&optional _server)
   (setq nnnil-status-string "Read-only server")
   nil)
 

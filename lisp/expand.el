@@ -289,17 +289,14 @@ If ARG is omitted, point is placed at the end of the expanded text."
 
 (defvar expand-list nil "Temporary variable used by the Expand package.")
 
-(defvar expand-pos nil
+(defvar-local expand-pos nil
   "If non-nil, store a vector with position markers defined by the last expansion.")
-(make-variable-buffer-local 'expand-pos)
 
-(defvar expand-index 0
+(defvar-local expand-index 0
   "Index of the last marker used in `expand-pos'.")
-(make-variable-buffer-local 'expand-index)
 
-(defvar expand-point nil
+(defvar-local expand-point nil
   "End of the expanded region.")
-(make-variable-buffer-local 'expand-point)
 
 (defun expand-add-abbrev (table abbrev expansion arg)
   "Add one abbreviation and provide the hook to move to the specified positions."

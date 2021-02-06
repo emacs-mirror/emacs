@@ -1,4 +1,4 @@
-;;; gnus-dired.el --- utility functions where gnus and dired meet
+;;; gnus-dired.el --- utility functions where gnus and dired meet  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2001-2021 Free Software Foundation, Inc.
 
@@ -29,7 +29,7 @@
 ;; following in your ~/.gnus:
 
 ;; (require 'gnus-dired) ;, isn't needed due to autoload cookies
-;; (add-hook 'dired-mode-hook 'turn-on-gnus-dired-mode)
+;; (add-hook 'dired-mode-hook #'turn-on-gnus-dired-mode)
 
 ;; Note that if you visit dired buffers before your ~/.gnus file has
 ;; been read, those dired buffers won't have the keybindings in
@@ -40,7 +40,6 @@
 
 (require 'dired)
 (autoload 'mml-attach-file "mml")
-(autoload 'mm-default-file-encoding "mm-decode");; Shift this to `mailcap.el'?
 (autoload 'mailcap-extension-to-mime "mailcap")
 (autoload 'mailcap-mime-info "mailcap")
 
@@ -166,8 +165,9 @@ filenames."
       (goto-char (point-max))		;attach at end of buffer
       (while files-to-attach
 	(mml-attach-file (car files-to-attach)
-			 (or (mm-default-file-encoding (car files-to-attach))
-			     "application/octet-stream") nil)
+			 (or (mm-default-file-type (car files-to-attach))
+			     "application/octet-stream")
+			 nil)
 	(setq files-to-attach (cdr files-to-attach)))
       (message "Attached file(s) %s" files-str))))
 

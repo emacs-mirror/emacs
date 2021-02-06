@@ -187,7 +187,7 @@ uses `imenu--generic-function')."
   :version "24.4")
 
 ;;;###autoload
-(defvar imenu-generic-expression nil
+(defvar-local imenu-generic-expression nil
   "List of definition matchers for creating an Imenu index.
 Each element of this list should have the form
 
@@ -223,13 +223,10 @@ characters which normally have \"symbol\" syntax are considered to have
 \"word\" syntax during matching.")
 ;;;###autoload(put 'imenu-generic-expression 'risky-local-variable t)
 
-;;;###autoload
-(make-variable-buffer-local 'imenu-generic-expression)
-
 ;;;; Hooks
 
 ;;;###autoload
-(defvar imenu-create-index-function 'imenu-default-create-index-function
+(defvar-local imenu-create-index-function 'imenu-default-create-index-function
   "The function to use for creating an index alist of the current buffer.
 
 It should be a function that takes no arguments and returns
@@ -237,11 +234,9 @@ an index alist of the current buffer.  The function is
 called within a `save-excursion'.
 
 See `imenu--index-alist' for the format of the buffer index alist.")
-;;;###autoload
-(make-variable-buffer-local 'imenu-create-index-function)
 
 ;;;###autoload
-(defvar imenu-prev-index-position-function 'beginning-of-defun
+(defvar-local imenu-prev-index-position-function 'beginning-of-defun
   "Function for finding the next index position.
 
 If `imenu-create-index-function' is set to
@@ -251,21 +246,17 @@ file.
 
 The function should leave point at the place to be connected to the
 index and it should return nil when it doesn't find another index.")
-;;;###autoload
-(make-variable-buffer-local 'imenu-prev-index-position-function)
 
 ;;;###autoload
-(defvar imenu-extract-index-name-function nil
+(defvar-local imenu-extract-index-name-function nil
   "Function for extracting the index item name, given a position.
 
 This function is called after `imenu-prev-index-position-function'
 finds a position for an index item, with point at that position.
 It should return the name for that index item.")
-;;;###autoload
-(make-variable-buffer-local 'imenu-extract-index-name-function)
 
 ;;;###autoload
-(defvar imenu-name-lookup-function nil
+(defvar-local imenu-name-lookup-function nil
   "Function to compare string with index item.
 
 This function will be called with two strings, and should return
@@ -275,15 +266,11 @@ If nil, comparison is done with `string='.
 Set this to some other function for more advanced comparisons,
 such as \"begins with\" or \"name matches and number of
 arguments match\".")
-;;;###autoload
-(make-variable-buffer-local 'imenu-name-lookup-function)
 
 ;;;###autoload
-(defvar imenu-default-goto-function 'imenu-default-goto-function
+(defvar-local imenu-default-goto-function 'imenu-default-goto-function
   "The default function called when selecting an Imenu item.
 The function in this variable is called when selecting a normal index-item.")
-;;;###autoload
-(make-variable-buffer-local 'imenu-default-goto-function)
 
 
 (defun imenu--subalist-p (item)
@@ -554,7 +541,8 @@ Non-nil arguments are in recursive calls."
 	     (setq alist nil res elt))))
     res))
 
-(defvar imenu-syntax-alist nil
+;;;###autoload
+(defvar-local imenu-syntax-alist nil
   "Alist of syntax table modifiers to use while in `imenu--generic-function'.
 
 The car of the assocs may be either a character or a string and the
@@ -564,8 +552,6 @@ a string, all the characters in the string get the specified syntax.
 This is typically used to give word syntax to characters which
 normally have symbol syntax to simplify `imenu-expression'
 and speed-up matching.")
-;;;###autoload
-(make-variable-buffer-local 'imenu-syntax-alist)
 
 (defun imenu-default-create-index-function ()
   "Default function to create an index alist of the current buffer.
@@ -607,14 +593,13 @@ The alternate method, which is the one most often used, is to call
 ;;; Generic index gathering function.
 ;;;
 
-(defvar imenu-case-fold-search t
+;;;###autoload
+(defvar-local imenu-case-fold-search t
   "Defines whether `imenu--generic-function' should fold case when matching.
 
 This variable should be set (only) by initialization code
 for modes which use `imenu--generic-function'.  If it is not set, but
 `font-lock-defaults' is set, then font-lock's setting is used.")
-;;;###autoload
-(make-variable-buffer-local 'imenu-case-fold-search)
 
 ;; This function can be called with quitting disabled,
 ;; so it needs to be careful never to loop!

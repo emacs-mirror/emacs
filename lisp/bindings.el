@@ -199,7 +199,7 @@ mouse-3: Set coding system"
 		(symbol-name buffer-file-coding-system))
       "Buffer coding system: none specified")))
 
-(defvar mode-line-mule-info
+(defvar-local mode-line-mule-info
   `(""
     (current-input-method
      (:propertize ("" current-input-method-title)
@@ -225,7 +225,6 @@ mnemonics of the following coding systems:
   coding system for terminal output (on a text terminal)")
 ;;;###autoload
 (put 'mode-line-mule-info 'risky-local-variable t)
-(make-variable-buffer-local 'mode-line-mule-info)
 
 (defvar mode-line-client
   `(""
@@ -247,7 +246,7 @@ mnemonics of the following coding systems:
   (format "Buffer is %smodified\nmouse-1: Toggle modification state"
 	  (if (buffer-modified-p (window-buffer window)) "" "not ")))
 
-(defvar mode-line-modified
+(defvar-local mode-line-modified
   (list (propertize
 	 "%1*"
 	 'help-echo 'mode-line-read-only-help-echo
@@ -264,9 +263,8 @@ mnemonics of the following coding systems:
   "Mode line construct for displaying whether current buffer is modified.")
 ;;;###autoload
 (put 'mode-line-modified 'risky-local-variable t)
-(make-variable-buffer-local 'mode-line-modified)
 
-(defvar mode-line-remote
+(defvar-local mode-line-remote
   (list (propertize
 	 "%1@"
 	 'mouse-face 'mode-line-highlight
@@ -283,7 +281,6 @@ mnemonics of the following coding systems:
   "Mode line construct to indicate a remote buffer.")
 ;;;###autoload
 (put 'mode-line-remote 'risky-local-variable t)
-(make-variable-buffer-local 'mode-line-remote)
 
 ;; MSDOS frames have window-system, but want the Fn identification.
 (defun mode-line-frame-control ()
@@ -301,12 +298,11 @@ Value is used for `mode-line-frame-identification', which see."
 ;;;###autoload
 (put 'mode-line-frame-identification 'risky-local-variable t)
 
-(defvar mode-line-process nil
+(defvar-local mode-line-process nil
   "Mode line construct for displaying info on process status.
 Normally nil in most modes, since there is no process to display.")
 ;;;###autoload
 (put 'mode-line-process 'risky-local-variable t)
-(make-variable-buffer-local 'mode-line-process)
 
 (defun bindings--define-key (map key item)
   "Define KEY in keymap MAP according to ITEM from a menu.
@@ -543,7 +539,7 @@ mouse-1: Previous buffer\nmouse-3: Next buffer")
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
-(defvar mode-line-buffer-identification
+(defvar-local mode-line-buffer-identification
   (propertized-buffer-identification "%12b")
   "Mode line construct for identifying the buffer being displayed.
 Its default value is (\"%12b\") with some text properties added.
@@ -551,7 +547,6 @@ Major modes that edit things other than ordinary files may change this
 \(e.g. Info, Dired,...)")
 ;;;###autoload
 (put 'mode-line-buffer-identification 'risky-local-variable t)
-(make-variable-buffer-local 'mode-line-buffer-identification)
 
 (defvar mode-line-misc-info
   '((global-mode-string ("" global-mode-string " ")))
@@ -1417,6 +1412,8 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key ctl-x-4-map "\C-j" 'dired-jump-other-window)
 
 (define-key ctl-x-map "z" 'repeat)
+
+(define-key ctl-x-map "g" #'revert-buffer)
 
 (define-key esc-map "\C-l" 'reposition-window)
 

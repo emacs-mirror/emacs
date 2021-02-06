@@ -1,4 +1,4 @@
-;;; gmm-utils.el --- Utility functions for Gnus, Message and MML
+;;; gmm-utils.el --- Utility functions for Gnus, Message and MML  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
@@ -42,8 +42,7 @@ The higher the number, the more messages will flash to say what
 it did.  At zero, it will be totally mute; at five, it will
 display most important messages; and at ten, it will keep on
 jabbering all the time."
-  :type 'integer
-  :group 'gmm)
+  :type 'integer)
 
 ;;;###autoload
 (defun gmm-regexp-concat (regexp)
@@ -69,18 +68,18 @@ Guideline for numbers:
 7 - not very important messages on stuff
 9 - messages inside loops."
   (if (<= level gmm-verbose)
-      (apply 'message args)
+      (apply #'message args)
     ;; We have to do this format thingy here even if the result isn't
     ;; shown - the return value has to be the same as the return value
     ;; from `message'.
-    (apply 'format args)))
+    (apply #'format args)))
 
 ;;;###autoload
 (defun gmm-error (level &rest args)
   "Beep an error if LEVEL is equal to or less than `gmm-verbose'.
 ARGS are passed to `message'."
   (when (<= (floor level) gmm-verbose)
-    (apply 'message args)
+    (apply #'message args)
     (ding)
     (let (duration)
       (when (and (floatp level)
@@ -175,8 +174,7 @@ ARGS are passed to `message'."
     'retro)
   "Preferred tool bar style."
   :type '(choice (const :tag "GNOME style" gnome)
-		 (const :tag "Retro look"  retro))
-  :group 'gmm)
+		 (const :tag "Retro look"  retro)))
 
 (defvar tool-bar-map)
 
@@ -215,25 +213,25 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
 		     ;; The dummy `gmm-ignore', see `gmm-tool-bar-item'
 		     ;; widget.  Suppress tooltip by adding `:enable nil'.
 		     (if (fboundp 'tool-bar-local-item)
-			 (apply 'tool-bar-local-item icon nil nil
+			 (apply #'tool-bar-local-item icon nil nil
 				map :enable nil props)
 		       ;; (tool-bar-local-item ICON DEF KEY MAP &rest PROPS)
 		       ;; (tool-bar-add-item ICON DEF KEY &rest PROPS)
-		       (apply 'tool-bar-add-item icon nil nil :enable nil props)))
+		       (apply #'tool-bar-add-item icon nil nil :enable nil props)))
 		    ((equal fmap t) ;; Not a menu command
-		     (apply 'tool-bar-local-item
+		     (apply #'tool-bar-local-item
 			    icon command
 			    (intern icon) ;; reuse icon or fmap here?
 			    map props))
 		    (t ;; A menu command
-		     (apply 'tool-bar-local-item-from-menu
+		     (apply #'tool-bar-local-item-from-menu
 			    ;; (apply 'tool-bar-local-item icon def key
 			    ;; tool-bar-map props)
 			    command icon map (symbol-value fmap)
 			    props)))
 	      t))
 	  (if (symbolp icon-list)
-	      (eval icon-list)
+	      (symbol-value icon-list)
 	    icon-list))
     map))
 

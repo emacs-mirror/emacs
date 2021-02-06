@@ -5,15 +5,6 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
 
-(defvar speedbar-version "1.0"
-  "The current version of speedbar.")
-(make-obsolete-variable 'speedbar-version nil "28.1")
-(defvar speedbar-incompatible-version "0.14beta4"
-  "This version of speedbar is incompatible with this version.
-Due to massive API changes (removing the use of the word PATH)
-this version is not backward compatible to 0.14 or earlier.")
-(make-obsolete-variable 'speedbar-incompatible-version nil "28.1")
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -4085,6 +4076,19 @@ See `speedbar-expand-image-button-alist' for details."
 						(length (car (car ia))))
 	    (insert (car (car ia)) "\t" (format "%s" (cdr (car ia))) "\n"))
 	  (setq ia (cdr ia)))))))
+
+
+;; Obsolete
+
+(defvar speedbar-version "1.0"
+  "The current version of speedbar.")
+(make-obsolete-variable 'speedbar-version 'emacs-version "28.1")
+
+(defvar speedbar-incompatible-version "0.14beta4"
+  "This version of speedbar is incompatible with this version.
+Due to massive API changes (removing the use of the word PATH)
+this version is not backward compatible to 0.14 or earlier.")
+(make-obsolete-variable 'speedbar-incompatible-version nil "28.1")
 
 
 (provide 'speedbar)

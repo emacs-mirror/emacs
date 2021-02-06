@@ -209,14 +209,12 @@
 
 (require 'outline)
 
-(defvar foldout-fold-list nil
+(defvar-local foldout-fold-list nil
   "List of start and end markers for the folds currently entered.
 An end marker of nil means the fold ends after (point-max).")
-(make-variable-buffer-local 'foldout-fold-list)
 
-(defvar foldout-mode-line-string nil
+(defvar-local foldout-mode-line-string nil
   "Mode line string announcing that we are in an outline fold.")
-(make-variable-buffer-local 'foldout-mode-line-string)
 
 ;; put our minor mode string immediately following outline-minor-mode's
 (or (assq 'foldout-mode-line-string minor-mode-alist)

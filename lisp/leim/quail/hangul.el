@@ -511,8 +511,7 @@ When a Korean input method is off, convert the following hangul character."
 
 ;; Text shown by describe-input-method.  Set to a proper text by
 ;; hangul-input-method-activate.
-(defvar hangul-input-method-help-text nil)
-(make-variable-buffer-local 'hangul-input-method-help-text)
+(defvar-local hangul-input-method-help-text nil)
 
 ;;;###autoload
 (defun hangul-input-method-activate (input-method func help-text &rest args)

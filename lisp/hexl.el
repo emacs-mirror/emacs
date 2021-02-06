@@ -209,12 +209,10 @@ as that will override any bit grouping options set here."
 (defvar hl-line-face)
 
 ;; Variables where the original values are stored to.
-(defvar hexl-mode--old-var-vals ())
-(make-variable-buffer-local 'hexl-mode--old-var-vals)
+(defvar-local hexl-mode--old-var-vals ())
 
-(defvar hexl-ascii-overlay nil
+(defvar-local hexl-ascii-overlay nil
   "Overlay used to highlight ASCII element corresponding to current point.")
-(make-variable-buffer-local 'hexl-ascii-overlay)
 
 (defvar hexl-font-lock-keywords
   '(("^\\([0-9a-f]+:\\)\\( \\).\\{39\\}\\(  \\)\\(.+$\\)"

@@ -95,8 +95,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 
 (global-set-key [ignore] 'ignore)
 
-(or (boundp 'isearch-mode-map)
-    (load-library "isearch"))
+(require 'isearch)
 
 (define-key isearch-mode-map [ignore]
   (lambda () (interactive) (isearch-update)))
@@ -140,12 +139,6 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 	     (vector (aref exp 0)))))))
 
 ;;; Mode
-
-;; This feature seemed useless and it confused describe-mode,
-;; so I deleted it.
-;; (defvar double-mode-name "Double")
-;; ;; Name of current double mode.
-;; (make-variable-buffer-local 'double-mode-name)
 
 ;;;###autoload
 (define-minor-mode double-mode

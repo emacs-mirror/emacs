@@ -722,9 +722,8 @@ MATCHER is used to find a corresponding network to a server while
 		 (regexp)
 		 (const :tag "Network has no common server ending" nil)))))
 
-(defvar erc-network nil
+(defvar-local erc-network nil
   "The name of the network you are connected to (a symbol).")
-(make-variable-buffer-local 'erc-network)
 
 ;; Functions:
 

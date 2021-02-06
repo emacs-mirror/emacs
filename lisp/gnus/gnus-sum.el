@@ -3186,7 +3186,7 @@ The following commands are available:
                           ;; Copy the global value of the variable.
                           (symbol-value (car local))
                         ;; Use the value from the list.
-                        (eval (cdr local)))))
+                        (eval (cdr local) t))))
           (set (make-local-variable (car local)) global))
       ;; Simple nil-valued local variable.
       (set (make-local-variable local) nil))))
@@ -3339,18 +3339,18 @@ article number."
 		      ,(or number
                            (inline-quote (gnus-summary-article-number)))))))
 
-(defmacro gnus-summary-thread-level (&optional number)
+(defsubst gnus-summary-thread-level (&optional number)
   "Return the level of thread that starts with article NUMBER."
-  `(if (and (eq gnus-summary-make-false-root 'dummy)
-	    (get-text-property (point) 'gnus-intangible))
-       0
-     (gnus-data-level (gnus-data-find
-		       ,(or number '(gnus-summary-article-number))))))
+  (if (and (eq gnus-summary-make-false-root 'dummy)
+	   (get-text-property (point) 'gnus-intangible))
+      0
+    (gnus-data-level (gnus-data-find
+		      (or number (gnus-summary-article-number))))))
 
-(defmacro gnus-summary-article-mark (&optional number)
+(defsubst gnus-summary-article-mark (&optional number)
   "Return the mark of article NUMBER."
-  `(gnus-data-mark (gnus-data-find
-		    ,(or number '(gnus-summary-article-number)))))
+  (gnus-data-mark (gnus-data-find
+	           (or number (gnus-summary-article-number)))))
 
 (defmacro gnus-summary-article-pos (&optional number)
   "Return the position of the line of article NUMBER."
@@ -3850,7 +3850,7 @@ buffer that was in action when the last article was fetched."
     (condition-case ()
 	(put-text-property
 	 (point)
-	 (progn (eval gnus-summary-line-format-spec) (point))
+	 (progn (eval gnus-summary-line-format-spec t) (point))
 	 'gnus-number gnus-tmp-number)
       (error (gnus-message 5 "Error updating the summary line")))
     (when (gnus-visual-p 'summary-highlight 'highlight)
@@ -3971,14 +3971,14 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
 	     (my-format "%b %d '%y"))
 	(let* ((difference (time-subtract now messy-date))
 	       (templist gnus-user-date-format-alist)
-	       (top (eval (caar templist))))
+	       (top (eval (caar templist) t)))
 	  (while (if (numberp top) (time-less-p top difference) (not top))
 	    (progn
 	      (setq templist (cdr templist))
-	      (setq top (eval (caar templist)))))
+	      (setq top (eval (caar templist) t))))
 	  (if (stringp (cdr (car templist)))
 	      (setq my-format (cdr (car templist)))))
-	(format-time-string (eval my-format) messy-date))
+	(format-time-string (eval my-format t) messy-date))
     (error "  ?   ")))
 
 (defun gnus-summary-set-local-parameters (group)
@@ -3997,8 +3997,8 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
 	     ;; buffer-local, whereas just parameters like `gcc-self',
 	     ;; `timestamp', etc. should not be bound as variables.
 	     (if (boundp (car elem))
-		 (set (make-local-variable (car elem)) (eval (nth 1 elem)))
-	       (eval (nth 1 elem))))))))
+		 (set (make-local-variable (car elem)) (eval (nth 1 elem) t))
+	       (eval (nth 1 elem) t)))))))
 
 (defun gnus-summary-read-group (group &optional show-all no-article
 				      kill-buffer no-display backward
@@ -5557,7 +5557,7 @@ or a straight list of headers."
             (setq gnus-tmp-thread thread)
 	    (put-text-property
 	     (point)
-	     (progn (eval gnus-summary-line-format-spec) (point))
+	     (progn (eval gnus-summary-line-format-spec t) (point))
 	     'gnus-number number)
 	    (when gnus-visual-p
 	      (forward-line -1)
@@ -6265,7 +6265,7 @@ If WHERE is `summary', the summary mode line format will be used."
 		  ""))
 	       bufname-length max-len
 	       gnus-tmp-header)	;; passed as argument to any user-format-funcs
-	  (setq mode-string (eval mformat))
+	  (setq mode-string (eval mformat t))
 	  (setq bufname-length (if (string-match "%b" mode-string)
 				   (- (length
 				       (buffer-name
@@ -7863,7 +7863,7 @@ If BACKWARD, the previous article is selected instead of the next."
 	  (switch-to-buffer gnus-group-buffer)
 	  (when group
 	    (gnus-group-jump-to-group group))
-	  (eval (cadr (assq key keystrokes)))
+	  (eval (cadr (assq key keystrokes)) t)
 	  (setq group (gnus-group-group-name))
 	  (switch-to-buffer obuf))
 	(setq ended nil))
@@ -10617,6 +10617,8 @@ confirmation before the articles are deleted."
     (gnus-set-mode-line 'summary)
     not-deleted))
 
+(defvar message-options-set-recipient)
+
 (defun gnus-summary-edit-article (&optional arg)
   "Edit the current article.
 This will have permanent effect only in mail groups.
@@ -10674,31 +10676,32 @@ groups."
 		 (setq mml-buffer-list mbl)
                  (setq-local mml-buffer-list mbl1))
 	       (add-hook 'kill-buffer-hook #'mml-destroy-buffers t t))))
-	 `(lambda (no-highlight)
-	    (let ((mail-parse-charset ',gnus-newsgroup-charset)
-		  (message-options message-options)
-		  (message-options-set-recipient)
-		  (mail-parse-ignored-charsets
-		   ',gnus-newsgroup-ignored-charsets)
-		  (rfc2047-header-encoding-alist
-		   ',(let ((charset (gnus-group-name-charset
-				     (gnus-find-method-for-group
-				      gnus-newsgroup-name)
-				     gnus-newsgroup-name)))
-		       (append (list (cons "Newsgroups" charset)
-				     (cons "Followup-To" charset)
-				     (cons "Xref" charset))
-			       rfc2047-header-encoding-alist))))
-	      ,(if (not raw) '(progn
-				(mml-to-mime)
-				(mml-destroy-buffers)
-				(remove-hook 'kill-buffer-hook
-					     #'mml-destroy-buffers t)
-				(kill-local-variable 'mml-buffer-list)))
-	      (gnus-summary-edit-article-done
-	       ,(or (mail-header-references gnus-current-headers) "")
-	       ,(gnus-group-read-only-p)
-	       ,gnus-summary-buffer no-highlight))))))))
+	 (let ((charset gnus-newsgroup-charset)
+	       (ign-cs gnus-newsgroup-ignored-charsets)
+	       (hea (let ((charset (gnus-group-name-charset
+				    (gnus-find-method-for-group
+				     gnus-newsgroup-name)
+				    gnus-newsgroup-name)))
+		      (append (list (cons "Newsgroups" charset)
+				    (cons "Followup-To" charset)
+				    (cons "Xref" charset))
+			      rfc2047-header-encoding-alist)))
+	       (gch (or (mail-header-references gnus-current-headers) ""))
+	       (ro (gnus-group-read-only-p))
+	       (buf gnus-summary-buffer))
+	   (lambda (no-highlight)
+	     (let ((mail-parse-charset charset)
+		   (message-options message-options)
+		   (message-options-set-recipient)
+		   (mail-parse-ignored-charsets ign-cs)
+		   (rfc2047-header-encoding-alist hea))
+	       (unless raw
+		 (mml-to-mime)
+		 (mml-destroy-buffers)
+		 (remove-hook 'kill-buffer-hook
+			      #'mml-destroy-buffers t)
+		 (kill-local-variable 'mml-buffer-list))
+	       (gnus-summary-edit-article-done gch ro buf no-highlight)))))))))
 
 (defalias 'gnus-summary-edit-article-postpone 'gnus-article-edit-exit)
 
@@ -12366,7 +12369,7 @@ save those articles instead."
 		    ;; Form.
 		    (save-restriction
 		      (widen)
-		      (setq result (eval match)))))
+		      (setq result (eval match t)))))
 	      (setq split-name (cdr method))
 	      (cond ((stringp result)
 		     (push (expand-file-name
@@ -12956,7 +12959,7 @@ treated as multipart/mixed."
 		    (nomove "" nil nil ,keystroke)))
       (let ((func (gnus-summary-make-marking-command-1
 		   mark (car lway) lway name)))
-	(setq func (eval func))
+	(setq func (eval func t))
 	(define-key map (nth 4 lway) func)))))
 
 (defun gnus-summary-make-marking-command-1 (mark way lway name)

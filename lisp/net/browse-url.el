@@ -481,8 +481,7 @@ Used by the `browse-url-of-file' command."
   "Hook run after `browse-url-of-file' has asked a browser to load a file."
   :type 'hook)
 
-(defvar browse-url-temp-file-name nil)
-(make-variable-buffer-local 'browse-url-temp-file-name)
+(defvar-local browse-url-temp-file-name nil)
 
 (defcustom browse-url-xterm-program "xterm"
   "The name of the terminal emulator used by `browse-url-text-xterm'.

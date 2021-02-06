@@ -1065,9 +1065,6 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   if (length == 0)
     return Qnil;
 
-  if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
-    Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
-
   int meta_bit = (VECTORP (key) || (STRINGP (key) && STRING_MULTIBYTE (key))
 		  ? meta_modifier : 0x80);
 
@@ -3131,12 +3128,6 @@ syms_of_keymap (void)
      pure_cons (build_pure_c_string ("ESC"), build_pure_c_string ("\\e")),
      pure_cons (build_pure_c_string ("SPC"), build_pure_c_string (" ")));
   staticpro (&exclude_keys);
-
-  DEFVAR_LISP ("define-key-rebound-commands", Vdefine_key_rebound_commands,
-	       doc: /* List of commands given new key bindings recently.
-This is used for internal purposes during Emacs startup;
-don't alter it yourself.  */);
-  Vdefine_key_rebound_commands = Qt;
 
   DEFVAR_LISP ("minibuffer-local-map", Vminibuffer_local_map,
 	       doc: /* Default keymap to use when reading from the minibuffer.  */);

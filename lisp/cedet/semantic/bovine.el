@@ -41,10 +41,9 @@
 
 ;;; Variables
 ;;
-(defvar semantic-bovinate-nonterminal-check-obarray nil
+(defvar-local semantic-bovinate-nonterminal-check-obarray nil
   "Obarray of streams already parsed for nonterminal symbols.
 Use this to detect infinite recursion during a parse.")
-(make-variable-buffer-local 'semantic-bovinate-nonterminal-check-obarray)
 
 
 

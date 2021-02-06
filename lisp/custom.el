@@ -350,7 +350,7 @@ for more information."
   ;; if you need to recompile all the Lisp files using interpreted code.
   `(custom-declare-variable
     ',symbol
-    ,(if lexical-binding    ;FIXME: This is not reliable, but is all we have.
+    ,(if lexical-binding
          ;; The STANDARD arg should be an expression that evaluates to
          ;; the standard value.  The use of `eval' for it is spread
          ;; over many different places and hence difficult to
@@ -626,6 +626,10 @@ property, or (ii) an alias for another customizable variable."
     (setq variable (indirect-variable variable))
     (or (get variable 'standard-value)
 	(get variable 'custom-autoload))))
+
+(defun custom--standard-value (variable)
+  "Return the standard value of VARIABLE."
+  (eval (car (get variable 'standard-value)) t))
 
 (define-obsolete-function-alias 'user-variable-p 'custom-variable-p "24.3")
 

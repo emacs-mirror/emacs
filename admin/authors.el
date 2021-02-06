@@ -1,4 +1,4 @@
-;;; authors.el --- utility for maintaining Emacs's AUTHORS file
+;;; authors.el --- utility for maintaining Emacs's AUTHORS file  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -1254,7 +1254,7 @@ Additionally, for these logs we apply the `lax' elements of
 (defun authors-disambiguate-file-name (fullname)
   "Convert FULLNAME to an unambiguous relative-name."
   (let ((relname (file-name-nondirectory fullname))
-	dir parent)
+	dir)
     (if (and (member relname authors-ambiguous-files)
 	     ;; Try to identify the top-level directory.
 	     ;; FIXME should really use ROOT from M-x authors.
@@ -1266,8 +1266,8 @@ Additionally, for these logs we apply the `lax' elements of
 	;; I think it looks weird to see eg "lisp/simple.el".
 	;; But for eg Makefile.in, we do want to say "lisp/Makefile.in".
 	(if (and (string-equal "lisp"
-			       (setq parent (file-name-nondirectory
-					     (directory-file-name dir))))
+			       (file-name-nondirectory
+				(directory-file-name dir)))
 		 ;; TODO better to simply have hard-coded list?
 		 ;; Only really Makefile.in where this applies.
 		 (not (file-exists-p
@@ -1569,9 +1569,9 @@ and changed by AUTHOR."
 		       (cons (cons file (cdr (assq :changed actions)))
 			     changed-list))))))
       (if wrote-list
-	  (setq wrote-list (sort wrote-list 'string-lessp)))
+	  (setq wrote-list (sort wrote-list #'string-lessp)))
       (if cowrote-list
-	  (setq cowrote-list (sort cowrote-list 'string-lessp)))
+	  (setq cowrote-list (sort cowrote-list #'string-lessp)))
       (when changed-list
 	(setq changed-list (sort changed-list
 				 (lambda (a b)
@@ -1579,7 +1579,7 @@ and changed by AUTHOR."
 				       (string-lessp (car a) (car b))
 				     (> (cdr a) (cdr b))))))
 	(setq nchanged (length changed-list))
-	(setq changed-list (mapcar 'car changed-list)))
+	(setq changed-list (mapcar #'car changed-list)))
       (if (> (- nchanged authors-many-files) 2)
 	  (setcdr (nthcdr authors-many-files changed-list)
 		  (list (format "and %d other files" (- nchanged authors-many-files)))))
@@ -1688,12 +1688,12 @@ list of their contributions.\n")
 	  (when authors-invalid-file-names
 	    (insert "Unrecognized file entries found:\n\n")
 	    (mapc (lambda (f) (if (not (string-match "^[A-Za-z]+$" f)) (insert f "\n")))
-		  (sort authors-invalid-file-names 'string-lessp)))
+		  (sort authors-invalid-file-names #'string-lessp)))
 	  (when authors-ignored-names
 	    (insert "\n\nThese authors were ignored:\n\n"
 		    (mapconcat
-		     'identity
-		     (sort authors-ignored-names 'string-lessp) "\n")))
+		     #'identity
+		     (sort authors-ignored-names #'string-lessp) "\n")))
 	  (goto-char (point-min))
 	  (compilation-mode)
 	  (message "Errors were found.  See buffer %s" (buffer-name))))

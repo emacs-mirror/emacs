@@ -572,10 +572,9 @@ This variable is expected to be made buffer-local by modes.")
 Call `ruler-mode-ruler-function' to compute the ruler value.")
 
 ;;;###autoload
-(defvar ruler-mode nil
+(defvar-local ruler-mode nil
   "Non-nil if Ruler mode is enabled.
 Use the command `ruler-mode' to change this variable.")
-(make-variable-buffer-local 'ruler-mode)
 
 (defun ruler--save-header-line-format ()
   "Install the header line format for Ruler mode.

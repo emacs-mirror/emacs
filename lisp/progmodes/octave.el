@@ -964,8 +964,7 @@ output is passed to the filter `inferior-octave-output-digest'."
 	  (setq list (cdr list)))
       (set-process-filter proc filter))))
 
-(defvar inferior-octave-directory-tracker-resync nil)
-(make-variable-buffer-local 'inferior-octave-directory-tracker-resync)
+(defvar-local inferior-octave-directory-tracker-resync nil)
 
 (defun inferior-octave-directory-tracker (string)
   "Tracks `cd' commands issued to the inferior Octave process.
@@ -1517,7 +1516,8 @@ current buffer file unless called with a prefix arg \\[universal-argument]."
       ;; https://lists.gnu.org/r/emacs-devel/2013-10/msg00095.html
       (compilation-forget-errors)
       (insert-before-markers string "\n")
-      (comint-send-string proc (concat string "\n"))))
+      (comint-send-string proc (concat string "\n")))
+    (deactivate-mark))
   (if octave-send-show-buffer
       (display-buffer inferior-octave-buffer)))
 

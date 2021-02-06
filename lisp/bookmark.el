@@ -271,12 +271,10 @@ defaults to `bookmark-default-file' and MODTIME is its modification time.")
 (defvar bookmark-file-coding-system nil
   "The coding-system of the last loaded or saved bookmark file.")
 
-(defvar bookmark-current-bookmark nil
+(defvar-local bookmark-current-bookmark nil
   "Name of bookmark most recently used in the current file.
 It is buffer local, used to make moving a bookmark forward
 through a file easier.")
-
-(make-variable-buffer-local 'bookmark-current-bookmark)
 
 
 (defvar bookmark-alist-modification-count 0
@@ -903,13 +901,11 @@ Does not affect the kill ring."
     (when (and newline-too (= (following-char) ?\n))
       (delete-char 1))))
 
-(defvar bookmark-annotation-name nil
+(defvar-local bookmark-annotation-name nil
   "Name of bookmark under edit in `bookmark-edit-annotation-mode'.")
-(make-variable-buffer-local 'bookmark-annotation-name)
 
-(defvar bookmark--annotation-from-bookmark-list nil
+(defvar-local bookmark--annotation-from-bookmark-list nil
   "If non-nil, `bookmark-edit-annotation-mode' should return to bookmark list.")
-(make-variable-buffer-local 'bookmark--annotation-from-bookmark-list)
 
 (defun bookmark-default-annotation-text (bookmark-name)
   "Return default annotation text for BOOKMARK-NAME.

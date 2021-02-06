@@ -170,11 +170,10 @@ definition."
 
 ;;; Core bindings API
 ;;
-(defvar mode-local-symbol-table nil
+(defvar-local mode-local-symbol-table nil
   "Buffer local mode bindings.
 These symbols provide a hook for a `major-mode' to specify specific
 behaviors.  Use the function `mode-local-bind' to define new bindings.")
-(make-variable-buffer-local 'mode-local-symbol-table)
 
 (defvar mode-local-active-mode nil
   "Major mode in which bindings are active.")

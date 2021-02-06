@@ -140,22 +140,19 @@ specified by `ede-project-directories'."
 (defvar ede-projects nil
   "A list of all active projects currently loaded in Emacs.")
 
-(defvar ede-object-root-project nil
+(defvar-local ede-object-root-project nil
   "The current buffer's current root project.
 If a file is under a project, this specifies the project that is at
 the root of a project tree.")
-(make-variable-buffer-local 'ede-object-root-project)
 
-(defvar ede-object-project nil
+(defvar-local ede-object-project nil
   "The current buffer's current project at that level.
 If a file is under a project, this specifies the project that contains the
 current target.")
-(make-variable-buffer-local 'ede-object-project)
 
-(defvar ede-object nil
+(defvar-local ede-object nil
   "The current buffer's target object.
 This object's class determines how to compile and debug from a buffer.")
-(make-variable-buffer-local 'ede-object)
 
 (defvar ede-selected-object nil
   "The currently user-selected project or target.

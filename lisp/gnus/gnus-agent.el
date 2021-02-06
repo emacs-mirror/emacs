@@ -1,4 +1,4 @@
-;;; gnus-agent.el --- unplugged support for Gnus
+;;; gnus-agent.el --- unplugged support for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -248,9 +248,9 @@ Actually a hash table holding subjects mapped to t.")
   (gnus-agent-read-servers)
   (gnus-category-read)
   (gnus-agent-create-buffer)
-  (add-hook 'gnus-group-mode-hook 'gnus-agent-mode)
-  (add-hook 'gnus-summary-mode-hook 'gnus-agent-mode)
-  (add-hook 'gnus-server-mode-hook 'gnus-agent-mode))
+  (add-hook 'gnus-group-mode-hook #'gnus-agent-mode)
+  (add-hook 'gnus-summary-mode-hook #'gnus-agent-mode)
+  (add-hook 'gnus-server-mode-hook #'gnus-agent-mode))
 
 (defun gnus-agent-create-buffer ()
   (if (gnus-buffer-live-p gnus-agent-overview-buffer)
@@ -422,14 +422,12 @@ manipulated as follows:
 
 (defmacro gnus-agent-with-fetch (&rest forms)
   "Do FORMS safely."
+  (declare (indent 0) (debug t))
   `(unwind-protect
        (let ((gnus-agent-fetching t))
 	 (gnus-agent-start-fetch)
 	 ,@forms)
      (gnus-agent-stop-fetch)))
-
-(put 'gnus-agent-with-fetch 'lisp-indent-function 0)
-(put 'gnus-agent-with-fetch 'edebug-form-spec '(body))
 
 (defmacro gnus-agent-append-to-list (tail value)
   `(setq ,tail (setcdr ,tail (cons ,value nil))))
@@ -573,14 +571,12 @@ manipulated as follows:
   (set-buffer-modified-p t))
 
 (defmacro gnus-agent-while-plugged (&rest body)
+  (declare (indent 0) (debug t))
   `(let ((original-gnus-plugged gnus-plugged))
-    (unwind-protect
-        (progn (gnus-agent-toggle-plugged t)
-               ,@body)
-      (gnus-agent-toggle-plugged original-gnus-plugged))))
-
-(put 'gnus-agent-while-plugged 'lisp-indent-function 0)
-(put 'gnus-agent-while-plugged 'edebug-form-spec '(body))
+     (unwind-protect
+         (progn (gnus-agent-toggle-plugged t)
+                ,@body)
+       (gnus-agent-toggle-plugged original-gnus-plugged))))
 
 (defun gnus-agent-close-connections ()
   "Close all methods covered by the Gnus agent."
@@ -705,7 +701,7 @@ be a select method."
     (message-narrow-to-headers)
     (let* ((gcc (mail-fetch-field "gcc" nil t))
 	   (methods (and gcc
-			 (mapcar 'gnus-inews-group-method
+			 (mapcar #'gnus-inews-group-method
 				 (message-unquote-tokens
 				  (message-tokenize-header
 				   gcc " ,")))))
@@ -739,7 +735,7 @@ be a select method."
   (interactive "P")
   (unless gnus-plugged
     (error "Groups can't be fetched when Gnus is unplugged"))
-  (gnus-group-iterate n 'gnus-agent-fetch-group))
+  (gnus-group-iterate n #'gnus-agent-fetch-group))
 
 (defun gnus-agent-fetch-group (&optional group)
   "Put all new articles in GROUP into the Agent."
@@ -824,7 +820,7 @@ be a select method."
 	     (condition-case err
 		 (while t
 		   (let ((bgn (point)))
-		     (eval (read (current-buffer)))
+		     (eval (read (current-buffer)) t)
 		     (delete-region bgn (point))))
 	       (end-of-file
 		(delete-file (gnus-agent-lib-file "flags")))
@@ -1061,7 +1057,8 @@ article's mark is toggled."
       (let* ((alist (gnus-agent-load-alist gnus-newsgroup-name))
              (headers (sort (mapcar (lambda (h)
                                       (mail-header-number h))
-                                    gnus-newsgroup-headers) '<))
+                                    gnus-newsgroup-headers)
+                            #'<))
              (cached (and gnus-use-cache gnus-newsgroup-cached))
              (undownloaded (list nil))
              (tail-undownloaded undownloaded)
@@ -1132,7 +1129,7 @@ downloadable."
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
           (let* ((dl gnus-newsgroup-downloadable)
-		 (processable (sort (copy-tree gnus-newsgroup-processable) '<))
+		 (processable (sort (copy-tree gnus-newsgroup-processable) #'<))
                  (gnus-newsgroup-downloadable processable))
 	    (gnus-agent-summary-fetch-group)
 
@@ -1824,7 +1821,7 @@ article numbers will be returned."
       (dolist (arts (gnus-info-marks (gnus-get-info group)))
         (unless (memq (car arts) '(seen recent killed cache))
           (setq articles (gnus-range-add articles (cdr arts)))))
-      (setq articles (sort (gnus-uncompress-sequence articles) '<)))
+      (setq articles (sort (gnus-uncompress-sequence articles) #'<)))
 
     ;; At this point, I have the list of articles to consider for
     ;; fetching.  This is the list that I'll return to my caller. Some
@@ -2070,7 +2067,7 @@ doesn't exist, to valid the overview buffer."
 			alist (cdr alist))
 		  (while sequence
 		    (push (cons (pop sequence) state) uncomp)))
-		(setq alist (sort uncomp 'car-less-than-car)))
+		(setq alist (sort uncomp #'car-less-than-car)))
 	      (setq changed-version (not (= 2 gnus-agent-article-alist-save-format)))))
 	    (when changed-version
 	      (let ((gnus-agent-article-alist alist))
@@ -2412,13 +2409,13 @@ modified) original contents, they are first saved to their own file."
                 (setq marked-articles (nconc (gnus-uncompress-range arts)
                                              marked-articles))
                 ))))
-        (setq marked-articles (sort marked-articles '<))
+        (setq marked-articles (sort marked-articles #'<))
 
         ;; Fetch any new articles from the server
         (setq articles (gnus-agent-fetch-headers group))
 
         ;; Merge new articles with marked
-        (setq articles (sort (append marked-articles articles) '<))
+        (setq articles (sort (append marked-articles articles) #'<))
 
         (when articles
           ;; Parse them and see which articles we want to fetch.
@@ -2669,7 +2666,7 @@ The following commands are available:
      (point)
      (prog1 (1+ (point))
        ;; Insert the text.
-       (eval gnus-category-line-format-spec))
+       (eval gnus-category-line-format-spec t))
      (list 'gnus-category gnus-tmp-name))))
 
 (defun gnus-enter-category-buffer ()
@@ -2779,16 +2776,15 @@ The following commands are available:
     (gnus-edit-form
      (gnus-agent-cat-predicate info)
      (format "Editing the select predicate for category %s" category)
-     `(lambda (predicate)
-        ;; Avoid run-time execution of setf form
-        ;; (setf (gnus-agent-cat-predicate (assq ',category gnus-category-alist))
-        ;;       predicate)
-        ;; use its expansion instead:
-        (gnus-agent-cat-set-property (assq ',category gnus-category-alist)
-                                     'agent-predicate predicate)
-
-	(gnus-category-write)
-	(gnus-category-list)))))
+     (lambda (predicate)
+       ;; Avoid run-time execution of setf form
+       ;; (setf (gnus-agent-cat-predicate (assq ',category gnus-category-alist))
+       ;;       predicate)
+       ;; use its expansion instead:
+       (gnus-agent-cat-set-property (assq category gnus-category-alist)
+                                    'agent-predicate predicate)
+       (gnus-category-write)
+       (gnus-category-list)))))
 
 (defun gnus-category-edit-score (category)
   "Edit the score expression for CATEGORY."
@@ -2797,16 +2793,15 @@ The following commands are available:
     (gnus-edit-form
      (gnus-agent-cat-score-file info)
      (format "Editing the score expression for category %s" category)
-     `(lambda (score-file)
-        ;; Avoid run-time execution of setf form
-        ;; (setf (gnus-agent-cat-score-file (assq ',category gnus-category-alist))
-        ;;       score-file)
-        ;; use its expansion instead:
-        (gnus-agent-cat-set-property (assq ',category gnus-category-alist)
-                                     'agent-score-file score-file)
-
-	(gnus-category-write)
-	(gnus-category-list)))))
+     (lambda (score-file)
+       ;; Avoid run-time execution of setf form
+       ;; (setf (gnus-agent-cat-score-file (assq ',category gnus-category-alist))
+       ;;       score-file)
+       ;; use its expansion instead:
+       (gnus-agent-cat-set-property (assq category gnus-category-alist)
+                                    'agent-score-file score-file)
+       (gnus-category-write)
+       (gnus-category-list)))))
 
 (defun gnus-category-edit-groups (category)
   "Edit the group list for CATEGORY."
@@ -2815,16 +2810,15 @@ The following commands are available:
     (gnus-edit-form
      (gnus-agent-cat-groups info)
      (format "Editing the group list for category %s" category)
-     `(lambda (groups)
-        ;; Avoid run-time execution of setf form
-        ;; (setf (gnus-agent-cat-groups (assq ',category gnus-category-alist))
-        ;;       groups)
-        ;; use its expansion instead:
-        (gnus-agent-set-cat-groups (assq ',category gnus-category-alist)
-                                   groups)
-
-	(gnus-category-write)
-	(gnus-category-list)))))
+     (lambda (groups)
+       ;; Avoid run-time execution of setf form
+       ;; (setf (gnus-agent-cat-groups (assq category gnus-category-alist))
+       ;;       groups)
+       ;; use its expansion instead:
+       (gnus-agent-set-cat-groups (assq category gnus-category-alist)
+                                  groups)
+       (gnus-category-write)
+       (gnus-category-list)))))
 
 (defun gnus-category-kill (category)
   "Kill the current category."
@@ -3131,7 +3125,7 @@ FORCE is equivalent to setting the expiration predicates to true."
 		       (gnus-uncompress-range
 			(cons (caar alist)
 			      (caar (last alist))))
-		       (sort articles '<)))))
+		       (sort articles #'<)))))
 	      (marked ;; More articles that are excluded from the
 	       ;; expiration process
 	       (cond (gnus-agent-expire-all
@@ -3863,7 +3857,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
 							  (string-to-number name)))
 						   (directory-files
                                                     dir nil "\\`[0-9]+\\'" t)))
-				 '>)
+				 #'>)
 			 (progn (gnus-make-directory dir) nil)))
            nov-arts
 	   alist header
@@ -4167,7 +4161,7 @@ modified."
 	   (path (gnus-agent-group-pathname group))
 	   (entry (gethash path gnus-agent-total-fetched-hashtb)))
       (if entry
-	  (apply '+ entry)
+	  (apply #'+ entry)
 	(let ((gnus-agent-inhibit-update-total-fetched-for (not no-inhibit)))
 	  (+
 	   (gnus-agent-update-view-total-fetched-for  group nil method path)

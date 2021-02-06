@@ -1,4 +1,4 @@
-;;; gnus-mh.el --- mh-e interface for Gnus
+;;; gnus-mh.el --- mh-e interface for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
@@ -95,7 +95,7 @@ Optional argument FOLDER specifies folder name."
 	  (kill-buffer errbuf))))
     (setq gnus-newsgroup-last-folder folder)))
 
-(defun gnus-Folder-save-name (newsgroup headers &optional last-folder)
+(defun gnus-Folder-save-name (newsgroup _headers &optional last-folder)
   "Generate folder name from NEWSGROUP, HEADERS, and optional LAST-FOLDER.
 If variable `gnus-use-long-file-name' is nil, it is +News.group.
 Otherwise, it is like +news/group."
@@ -105,7 +105,7 @@ Otherwise, it is like +news/group."
 		  (gnus-capitalize-newsgroup newsgroup)
 		(gnus-newsgroup-directory-form newsgroup)))))
 
-(defun gnus-folder-save-name (newsgroup headers &optional last-folder)
+(defun gnus-folder-save-name (newsgroup _headers &optional last-folder)
   "Generate folder name from NEWSGROUP, HEADERS, and optional LAST-FOLDER.
 If variable `gnus-use-long-file-name' is nil, it is +news.group.
 Otherwise, it is like +news/group."

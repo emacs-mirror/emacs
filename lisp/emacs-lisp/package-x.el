@@ -182,8 +182,7 @@ if it exists."
     ;; Check if `package-archive-upload-base' is valid.
     (when (or (not (stringp package-archive-upload-base))
 	      (equal package-archive-upload-base
-		     (car-safe
-		      (get 'package-archive-upload-base 'standard-value))))
+		     (custom--standard-value 'package-archive-upload-base)))
       (setq package-archive-upload-base
 	    (read-directory-name
 	     "Base directory for package archive: ")))

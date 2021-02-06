@@ -1,4 +1,4 @@
-;;; gnus-eform.el --- a mode for editing forms for Gnus
+;;; gnus-eform.el --- a mode for editing forms for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -37,12 +37,10 @@
 
 (defcustom gnus-edit-form-mode-hook nil
   "Hook run in `gnus-edit-form-mode' buffers."
-  :group 'gnus-edit-form
   :type 'hook)
 
 (defcustom gnus-edit-form-menu-hook nil
   "Hook run when creating menus in `gnus-edit-form-mode' buffers."
-  :group 'gnus-edit-form
   :type 'hook)
 
 ;;; Internal variables

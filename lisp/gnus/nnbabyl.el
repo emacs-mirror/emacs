@@ -1,4 +1,4 @@
-;;; nnbabyl.el --- rmail mbox access for Gnus
+;;; nnbabyl.el --- rmail mbox access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -70,7 +70,7 @@
 
 (nnoo-define-basics nnbabyl)
 
-(deffoo nnbabyl-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nnbabyl-retrieve-headers (articles &optional group server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let ((number (length articles))
@@ -185,7 +185,7 @@
 	      (cons nnbabyl-current-group article)
 	    (nnbabyl-article-group-number)))))))
 
-(deffoo nnbabyl-request-group (group &optional server dont-check info)
+(deffoo nnbabyl-request-group (group &optional server dont-check _info)
   (let ((active (cadr (assoc group nnbabyl-group-alist))))
     (save-excursion
       (cond
@@ -224,10 +224,10 @@
 	 (insert-buffer-substring in-buf)))
      (nnmail-save-active nnbabyl-group-alist nnbabyl-active-file))))
 
-(deffoo nnbabyl-close-group (group &optional server)
+(deffoo nnbabyl-close-group (_group &optional _server)
   t)
 
-(deffoo nnbabyl-request-create-group (group &optional server args)
+(deffoo nnbabyl-request-create-group (group &optional _server _args)
   (nnmail-activate 'nnbabyl)
   (unless (assoc group nnbabyl-group-alist)
     (push (list group (cons 1 0))
@@ -235,17 +235,19 @@
     (nnmail-save-active nnbabyl-group-alist nnbabyl-active-file))
   t)
 
-(deffoo nnbabyl-request-list (&optional server)
+(deffoo nnbabyl-request-list (&optional _server)
   (save-excursion
     (nnmail-find-file nnbabyl-active-file)
     (setq nnbabyl-group-alist (nnmail-get-active))
     t))
 
-(deffoo nnbabyl-request-newgroups (date &optional server)
+(deffoo nnbabyl-request-newgroups (_date &optional server)
   (nnbabyl-request-list server))
 
-(deffoo nnbabyl-request-list-newsgroups (&optional server)
+(deffoo nnbabyl-request-list-newsgroups (&optional _server)
   (nnheader-report 'nnbabyl "nnbabyl: LIST NEWSGROUPS is not implemented."))
+
+(defvar nnml-current-directory)
 
 (deffoo nnbabyl-request-expire-articles
     (articles newsgroup &optional server force)
@@ -263,7 +265,8 @@
 		    (nnmail-expired-article-p
 		     newsgroup
 		     (buffer-substring
-		      (point) (progn (end-of-line) (point))) force))
+		      (point) (progn (end-of-line) (point)))
+		     force))
 	      (progn
 		(unless (eq nnmail-expiry-target 'delete)
 		  (with-temp-buffer
@@ -292,7 +295,7 @@
       (nconc rest articles))))
 
 (deffoo nnbabyl-request-move-article
-    (article group server accept-form &optional last move-is-internal)
+    (article group server accept-form &optional last _move-is-internal)
   (let ((buf (gnus-get-buffer-create " *nnbabyl move*"))
 	result)
     (and
@@ -304,7 +307,7 @@
 	       "^X-Gnus-Newsgroup:"
 	       (save-excursion (search-forward "\n\n" nil t) (point)) t)
 	 (delete-region (point-at-bol) (progn (forward-line 1) (point))))
-       (setq result (eval accept-form))
+       (setq result (eval accept-form t))
        (kill-buffer (current-buffer))
        result)
      (save-excursion
@@ -554,13 +557,12 @@
 	       (with-current-buffer nnbabyl-mbox-buffer
 		 (= (buffer-size) (nnheader-file-size nnbabyl-mbox-file))))
     ;; This buffer has changed since we read it last.  Possibly.
-    (save-excursion
-      (let ((delim (concat "^" nnbabyl-mail-delimiter))
-	    (alist nnbabyl-group-alist)
-	    start end number)
-	(set-buffer (setq nnbabyl-mbox-buffer
-			  (nnheader-find-file-noselect
-			   nnbabyl-mbox-file nil t)))
+    (let ((delim (concat "^" nnbabyl-mail-delimiter))
+          (alist nnbabyl-group-alist)
+          start end number)
+      (with-current-buffer (setq nnbabyl-mbox-buffer
+                                 (nnheader-find-file-noselect
+                                  nnbabyl-mbox-file nil t))
 	;; Save previous buffer mode.
 	(setq nnbabyl-previous-buffer-mode
 	      (cons (cons (point-min) (point-max))

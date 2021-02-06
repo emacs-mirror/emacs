@@ -113,8 +113,7 @@
     (?h . "japanese")
     (?q . ("japanese-ascii"))))
 
-(defvar quail-japanese-package-saved nil)
-(make-variable-buffer-local 'quail-japanese-package-saved)
+(defvar-local quail-japanese-package-saved nil)
 (put 'quail-japanese-package-saved 'permanent-local t)
 
 (defun quail-japanese-switch-package (key idx)

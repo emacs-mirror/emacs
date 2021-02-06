@@ -270,9 +270,8 @@ A typical value would be \((\"#emacs\" \"QUIT\" \"JOIN\")
   :group 'erc-ignore
   :type 'erc-message-type)
 
-(defvar erc-session-password nil
+(defvar-local erc-session-password nil
   "The password used for the current session.")
-(make-variable-buffer-local 'erc-session-password)
 
 (defcustom erc-disconnected-hook nil
   "Run this hook with arguments (NICK IP REASON) when disconnected.
@@ -337,18 +336,16 @@ Functions are passed a buffer as the first argument."
   :type 'hook)
 
 
-(defvar erc-channel-users nil
+(defvar-local erc-channel-users nil
   "A hash table of members in the current channel, which
 associates nicknames with cons cells of the form:
 \(USER . MEMBER-DATA) where USER is a pointer to an
 erc-server-user struct, and MEMBER-DATA is a pointer to an
 erc-channel-user struct.")
-(make-variable-buffer-local 'erc-channel-users)
 
-(defvar erc-server-users nil
+(defvar-local erc-server-users nil
   "A hash table of users on the current server, which associates
 nicknames with erc-server-user struct instances.")
-(make-variable-buffer-local 'erc-server-users)
 
 (defun erc-downcase (string)
   "Convert STRING to IRC standard conforming downcase."
@@ -632,23 +629,19 @@ See also: `erc-get-channel-user-list'."
                    (or (not nicky)
                        (string-lessp nickx nicky))))))))
 
-(defvar erc-channel-topic nil
+(defvar-local erc-channel-topic nil
   "A topic string for the channel.  Should only be used in channel-buffers.")
-(make-variable-buffer-local 'erc-channel-topic)
 
-(defvar erc-channel-modes nil
+(defvar-local erc-channel-modes nil
   "List of strings representing channel modes.
 E.g. (\"i\" \"m\" \"s\" \"b Quake!*@*\")
 \(not sure the ban list will be here, but why not)")
-(make-variable-buffer-local 'erc-channel-modes)
 
-(defvar erc-insert-marker nil
+(defvar-local erc-insert-marker nil
   "The place where insertion of new text in erc buffers should happen.")
-(make-variable-buffer-local 'erc-insert-marker)
 
-(defvar erc-input-marker nil
+(defvar-local erc-input-marker nil
   "The marker where input should be inserted.")
-(make-variable-buffer-local 'erc-input-marker)
 
 (defun erc-string-no-properties (string)
   "Return a copy of STRING will all text-properties removed."
@@ -900,9 +893,8 @@ directory in the list."
   :group 'erc-scripts
   :type 'boolean)
 
-(defvar erc-last-saved-position nil
+(defvar-local erc-last-saved-position nil
   "A marker containing the position the current buffer was last saved at.")
-(make-variable-buffer-local 'erc-last-saved-position)
 
 (defcustom erc-kill-buffer-on-part nil
   "Kill the channel buffer on PART.
@@ -1271,8 +1263,7 @@ See also `erc-show-my-nick'."
 (defvar erc-debug-log-file (expand-file-name "ERC.debug")
   "Debug log file name.")
 
-(defvar erc-dbuf nil)
-(make-variable-buffer-local 'erc-dbuf)
+(defvar-local erc-dbuf nil)
 
 (defmacro define-erc-module (name alias doc enable-body disable-body
                                   &optional local-p)
@@ -1462,11 +1453,10 @@ If BUFFER is nil, the current buffer is used."
 
 ;; Last active buffer, to print server messages in the right place
 
-(defvar erc-active-buffer nil
+(defvar-local erc-active-buffer nil
   "The current active buffer, the one where the user typed the last command.
 Defaults to the server buffer, and should only be set in the
 server buffer.")
-(make-variable-buffer-local 'erc-active-buffer)
 
 (defun erc-active-buffer ()
   "Return the value of `erc-active-buffer' for the current server.
@@ -1820,52 +1810,41 @@ all channel buffers on all servers."
 
 ;; Some local variables
 
-(defvar erc-default-recipients nil
+(defvar-local erc-default-recipients nil
   "List of default recipients of the current buffer.")
-(make-variable-buffer-local 'erc-default-recipients)
 
-(defvar erc-session-user-full-name nil
+(defvar-local erc-session-user-full-name nil
   "Full name of the user on the current server.")
-(make-variable-buffer-local 'erc-session-user-full-name)
 
-(defvar erc-channel-user-limit nil
+(defvar-local erc-channel-user-limit nil
   "Limit of users per channel.")
-(make-variable-buffer-local 'erc-channel-user-limit)
 
-(defvar erc-channel-key nil
+(defvar-local erc-channel-key nil
   "Key needed to join channel.")
-(make-variable-buffer-local 'erc-channel-key)
 
-(defvar erc-invitation nil
+(defvar-local erc-invitation nil
   "Last invitation channel.")
-(make-variable-buffer-local 'erc-invitation)
 
-(defvar erc-away nil
+(defvar-local erc-away nil
   "Non-nil indicates that we are away.
 
 Use `erc-away-time' to access this if you might be in a channel
 buffer rather than a server buffer.")
-(make-variable-buffer-local 'erc-away)
 
-(defvar erc-channel-list nil
+(defvar-local erc-channel-list nil
   "Server channel list.")
-(make-variable-buffer-local 'erc-channel-list)
 
-(defvar erc-bad-nick nil
+(defvar-local erc-bad-nick nil
   "Non-nil indicates that we got a `nick in use' error while connecting.")
-(make-variable-buffer-local 'erc-bad-nick)
 
-(defvar erc-logged-in nil
+(defvar-local erc-logged-in nil
   "Non-nil indicates that we are logged in.")
-(make-variable-buffer-local 'erc-logged-in)
 
-(defvar erc-default-nicks nil
+(defvar-local erc-default-nicks nil
   "The local copy of `erc-nick' - the list of nicks to choose from.")
-(make-variable-buffer-local 'erc-default-nicks)
 
-(defvar erc-nick-change-attempt-count 0
+(defvar-local erc-nick-change-attempt-count 0
   "Used to keep track of how many times an attempt at changing nick is made.")
-(make-variable-buffer-local 'erc-nick-change-attempt-count)
 
 (defun erc-migrate-modules (mods)
   "Migrate old names of ERC modules to new ones."
@@ -2764,8 +2743,7 @@ present."
   (let ((prop-val (erc-get-parsed-vector position)))
     (and prop-val (member (erc-response.command prop-val) list))))
 
-(defvar erc-send-input-line-function 'erc-send-input-line)
-(make-variable-buffer-local 'erc-send-input-line-function)
+(defvar-local erc-send-input-line-function 'erc-send-input-line)
 
 (defun erc-send-input-line (target line &optional force)
   "Send LINE to TARGET.
@@ -3181,12 +3159,11 @@ were most recently invited.  See also `invitation'."
 (defalias 'erc-cmd-CHANNEL 'erc-cmd-JOIN)
 (defalias 'erc-cmd-J 'erc-cmd-JOIN)
 
-(defvar erc-channel-new-member-names nil
+(defvar-local erc-channel-new-member-names nil
   "If non-nil, a names list is currently being received.
 
 If non-nil, this variable is a hash-table that associates
 received nicks with t.")
-(make-variable-buffer-local 'erc-channel-new-member-names)
 
 (defun erc-cmd-NAMES (&optional channel)
   "Display the users in CHANNEL.
@@ -3833,7 +3810,7 @@ If CHANNEL is not specified, clear the topic for the default channel."
 
 ;;; Banlists
 
-(defvar erc-channel-banlist nil
+(defvar-local erc-channel-banlist nil
   "A list of bans seen for the current channel.
 
 Each ban is an alist of the form:
@@ -3841,7 +3818,6 @@ Each ban is an alist of the form:
 
 The property `received-from-server' indicates whether
 or not the ban list has been requested from the server.")
-(make-variable-buffer-local 'erc-channel-banlist)
 (put 'erc-channel-banlist 'received-from-server nil)
 
 (defun erc-cmd-BANLIST ()
@@ -6488,32 +6464,31 @@ if `erc-away' is non-nil."
       (setq mode-line-buffer-identification
             (list (format-spec erc-mode-line-format spec)))
       (setq mode-line-process (list process-status))
-      (when (boundp 'header-line-format)
-        (let ((header (if erc-header-line-format
-                          (format-spec erc-header-line-format spec)
-                        nil)))
-          (cond (erc-header-line-uses-tabbar-p
-                 (setq-local tabbar--local-hlf header-line-format)
-                 (kill-local-variable 'header-line-format))
-                ((null header)
-                 (setq header-line-format nil))
-                (erc-header-line-uses-help-echo-p
-                 (let ((help-echo (with-temp-buffer
-                                    (insert header)
-                                    (fill-region (point-min) (point-max))
-                                    (buffer-string))))
-                   (setq header-line-format
-                         (replace-regexp-in-string
-                          "%"
-                          "%%"
-                          (if face
-                              (propertize header 'help-echo help-echo
-                                          'face face)
-                            (propertize header 'help-echo help-echo))))))
-                (t (setq header-line-format
-                         (if face
-                             (propertize header 'face face)
-                           header)))))))
+      (let ((header (if erc-header-line-format
+                        (format-spec erc-header-line-format spec)
+                      nil)))
+        (cond (erc-header-line-uses-tabbar-p
+               (setq-local tabbar--local-hlf header-line-format)
+               (kill-local-variable 'header-line-format))
+              ((null header)
+               (setq header-line-format nil))
+              (erc-header-line-uses-help-echo-p
+               (let ((help-echo (with-temp-buffer
+                                  (insert header)
+                                  (fill-region (point-min) (point-max))
+                                  (buffer-string))))
+                 (setq header-line-format
+                       (replace-regexp-in-string
+                        "%"
+                        "%%"
+                        (if face
+                            (propertize header 'help-echo help-echo
+                                        'face face)
+                          (propertize header 'help-echo help-echo))))))
+              (t (setq header-line-format
+                       (if face
+                           (propertize header 'face face)
+                         header))))))
     (force-mode-line-update)))
 
 (defun erc-update-mode-line (&optional buffer)
@@ -6783,8 +6758,7 @@ functions."
                 "")))))
 
 
-(defvar erc-current-message-catalog 'english)
-(make-variable-buffer-local 'erc-current-message-catalog)
+(defvar-local erc-current-message-catalog 'english)
 
 (defun erc-retrieve-catalog-entry (entry &optional catalog)
   "Retrieve ENTRY from CATALOG.

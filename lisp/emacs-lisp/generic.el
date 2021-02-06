@@ -96,9 +96,8 @@
 ;; Internal Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar generic-font-lock-keywords nil
+(defvar-local generic-font-lock-keywords nil
   "Keywords for `font-lock-defaults' in a generic mode.")
-(make-variable-buffer-local 'generic-font-lock-keywords)
 
 ;;;###autoload
 (defvar generic-mode-list nil

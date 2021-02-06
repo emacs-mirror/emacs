@@ -82,7 +82,7 @@ major mode in effect."
 (defvar viper-insert-intercept-map (make-sparse-keymap))
 (defvar viper-emacs-intercept-map (make-sparse-keymap))
 
-(viper-deflocalvar viper-vi-local-user-map (make-sparse-keymap)
+(defvar-local viper-vi-local-user-map (make-sparse-keymap)
   "Keymap for user-defined local bindings.
 Useful for changing bindings such as ZZ in certain major modes.
 For instance, in letter-mode, one may want to bind ZZ to
@@ -106,7 +106,7 @@ This map is global, shared by all buffers.")
 This happens when viper-expert-level is 1 or 2.  See viper-set-expert-level.")
 
 
-(viper-deflocalvar viper-insert-local-user-map (make-sparse-keymap)
+(defvar-local viper-insert-local-user-map (make-sparse-keymap)
   "Auxiliary map for per-buffer user-defined keybindings in Insert state.")
 (put 'viper-insert-local-user-map 'permanent-local t)
 
@@ -133,7 +133,7 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 (defvar  viper-emacs-kbd-map  (make-sparse-keymap)
   "This keymap keeps Vi-style kbd macros for Emacs mode.")
 
-(viper-deflocalvar viper-emacs-local-user-map  (make-sparse-keymap)
+(defvar-local viper-emacs-local-user-map  (make-sparse-keymap)
   "Auxiliary map for local user-defined bindings in Emacs state.")
 (put 'viper-emacs-local-user-map 'permanent-local t)
 
@@ -209,22 +209,22 @@ In insert mode, this key also functions as Meta."
 (defvar viper-emacs-state-modifier-alist nil)
 
 ;; The list of viper keymaps. Set by viper-normalize-minor-mode-map-alist
-(viper-deflocalvar viper--key-maps nil)
-(viper-deflocalvar viper--intercept-key-maps nil)
+(defvar-local viper--key-maps nil)
+(defvar-local viper--intercept-key-maps nil)
 
 ;; Tells viper-add-local-keys to create a new viper-vi-local-user-map for new
 ;; buffers.  Not a user option.
-(viper-deflocalvar viper-need-new-vi-local-map t "")
+(defvar-local viper-need-new-vi-local-map t "")
 (put 'viper-need-new-vi-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-insert-local-user-map for
 ;; new buffers.  Not a user option.
-(viper-deflocalvar viper-need-new-insert-local-map t "")
+(defvar-local viper-need-new-insert-local-map t "")
 (put 'viper-need-new-insert-local-map  'permanent-local t)
 
 ;; Tells viper-add-local-keys to create a new viper-emacs-local-user-map for
 ;; new buffers.  Not a user option.
-(viper-deflocalvar viper-need-new-emacs-local-map t "")
+(defvar-local viper-need-new-emacs-local-map t "")
 (put 'viper-need-new-emacs-local-map  'permanent-local t)
 
 
@@ -653,11 +653,5 @@ form ((key . function) (key . function) ... )."
 
 
 (provide 'viper-keym)
-
-
-;; Local Variables:
-;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;; End:
-
 
 ;;; viper-keym.el ends here

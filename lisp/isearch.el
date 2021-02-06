@@ -320,7 +320,8 @@ matching the current search string is highlighted lazily
 When multiple windows display the current buffer, the
 highlighting is displayed only on the selected window, unless
 this variable is set to the symbol `all-windows'."
-  :type '(choice boolean
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "On, and applied to current window" t)
                  (const :tag "On, and applied to all windows" all-windows))
   :group 'lazy-highlight
   :group 'isearch)
@@ -352,9 +353,19 @@ If this is nil, extra highlighting can be \"manually\" removed with
   :group 'lazy-highlight)
 
 (defcustom lazy-highlight-initial-delay 0.25
-  "Seconds to wait before beginning to lazily highlight all matches."
+  "Seconds to wait before beginning to lazily highlight all matches.
+This setting only has effect when the search string is less than
+`lazy-highlight-no-delay-length' characters long."
   :type 'number
   :group 'lazy-highlight)
+
+(defcustom lazy-highlight-no-delay-length 3
+  "For search strings at least this long, lazy highlight starts immediately.
+For shorter search strings, `lazy-highlight-initial-delay'
+applies."
+  :type 'integer
+  :group 'lazy-highlight
+  :version "28.1")
 
 (defcustom lazy-highlight-interval 0 ; 0.0625
   "Seconds between lazily highlighting successive matches."
@@ -3356,7 +3367,7 @@ isearch-message-suffix prompt.  Otherwise, for isearch-message-prefix."
              (not isearch-error)
              (not isearch-suspended))
         (format format-string
-                (if isearch-forward
+                (if isearch-lazy-highlight-forward
                     isearch-lazy-count-current
                   (if (eq isearch-lazy-count-current 0)
                       0
@@ -3916,7 +3927,8 @@ by other Emacs features."
         (clrhash isearch-lazy-count-hash)
         (setq isearch-lazy-count-current nil
               isearch-lazy-count-total nil)
-        (isearch-message)))
+        ;; Delay updating the message if possible, to avoid flicker
+        (when (string-equal isearch-string "") (isearch-message))))
     (setq isearch-lazy-highlight-window-start-changed nil)
     (setq isearch-lazy-highlight-window-end-changed nil)
     (setq isearch-lazy-highlight-error isearch-error)
@@ -3961,7 +3973,11 @@ by other Emacs features."
 		 (point-min))))
     (unless (equal isearch-string "")
       (setq isearch-lazy-highlight-timer
-            (run-with-idle-timer lazy-highlight-initial-delay nil
+            (run-with-idle-timer (if (>= (length isearch-string)
+                                         lazy-highlight-no-delay-length)
+                                     0
+                                   lazy-highlight-initial-delay)
+                                 nil
                                  'isearch-lazy-highlight-start))))
   ;; Update the current match number only in isearch-mode and
   ;; unless isearch-mode is used specially with isearch-message-function

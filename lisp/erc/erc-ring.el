@@ -53,16 +53,14 @@ be recalled using M-p and M-n."
    (define-key erc-mode-map "\M-p" 'undefined)
    (define-key erc-mode-map "\M-n" 'undefined)))
 
-(defvar erc-input-ring nil "Input ring for erc.")
-(make-variable-buffer-local 'erc-input-ring)
+(defvar-local erc-input-ring nil "Input ring for erc.")
 
-(defvar erc-input-ring-index nil
+(defvar-local erc-input-ring-index nil
   "Position in the input ring for erc.
 If nil, the input line is blank and the user is conceptually after
 the most recently added item in the ring.  If an integer, the input
 line is non-blank and displays the item from the ring indexed by this
 variable.")
-(make-variable-buffer-local 'erc-input-ring-index)
 
 (defun erc-input-ring-setup ()
   "Do the setup required so that we can use comint style input rings.

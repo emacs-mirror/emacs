@@ -1,4 +1,4 @@
-;;; completion-tests.el --- Tests for completion functions  -*- lexical-binding: t; -*-
+;;; minibuffer-tests.el --- Tests for completion functions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
@@ -107,5 +107,23 @@
                                                 nil (length input))
                      (cons output (length output)))))))
 
-(provide 'completion-tests)
-;;; completion-tests.el ends here
+(ert-deftest completion--insert-strings-faces ()
+  (with-temp-buffer
+    (completion--insert-strings
+     '(("completion1" "suffix1")))
+    (should (equal (get-text-property 12 'face) '(completions-annotations))))
+  (with-temp-buffer
+    (completion--insert-strings
+     '(("completion1" #("suffix1" 0 7 (face shadow)))))
+    (should (equal (get-text-property 12 'face) 'shadow)))
+  (with-temp-buffer
+    (completion--insert-strings
+     '(("completion1" "prefix1" "suffix1")))
+    (should (equal (get-text-property 19 'face) nil)))
+  (with-temp-buffer
+    (completion--insert-strings
+     '(("completion1" "prefix1" #("suffix1" 0 7 (face shadow)))))
+    (should (equal (get-text-property 19 'face) 'shadow))))
+
+(provide 'minibuffer-tests)
+;;; minibuffer-tests.el ends here

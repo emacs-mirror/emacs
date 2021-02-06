@@ -1500,7 +1500,7 @@ otherwise."
 	(window-pixel-height window)
       (window-total-height window round))))
 
-(defvar window-size-fixed nil
+(defvar-local window-size-fixed nil
   "Non-nil in a buffer means windows displaying the buffer are fixed-size.
 If the value is `height', then only the window's height is fixed.
 If the value is `width', then only the window's width is fixed.
@@ -1509,7 +1509,6 @@ Any other non-nil value fixes both the width and the height.
 Emacs won't change the size of any window displaying that buffer,
 unless it has no other choice (like when deleting a neighboring
 window).")
-(make-variable-buffer-local 'window-size-fixed)
 
 (defun window--preservable-size (window &optional horizontal)
   "Return height of WINDOW as `window-preserve-size' would preserve it.
@@ -5753,11 +5752,10 @@ nil (i.e. any), `height' or `width'."
 			   '((height . width) (width . height))))))))
 
 ;;; A different solution to balance-windows.
-(defvar window-area-factor 1
+(defvar-local window-area-factor 1
   "Factor by which the window area should be over-estimated.
 This is used by `balance-windows-area'.
 Changing this globally has no effect.")
-(make-variable-buffer-local 'window-area-factor)
 
 (defun balance-windows-area-adjust (window delta horizontal pixelwise)
   "Wrapper around `window-resize' with error checking.
@@ -9580,8 +9578,7 @@ buffers displaying right to left text."
 ;; status is undone only when explicitly programmed, not when a buffer
 ;; is reverted or a mode function is called.
 
-(defvar window-group-start-function nil)
-(make-variable-buffer-local 'window-group-start-function)
+(defvar-local window-group-start-function nil)
 (put 'window-group-start-function 'permanent-local t)
 (defun window-group-start (&optional window)
   "Return position at which display currently starts in the group of
@@ -9594,8 +9591,7 @@ This is updated by redisplay or by calling `set-window*-start'."
       (funcall window-group-start-function window)
     (window-start window)))
 
-(defvar window-group-end-function nil)
-(make-variable-buffer-local 'window-group-end-function)
+(defvar-local window-group-end-function nil)
 (put 'window-group-end-function 'permanent-local t)
 (defun window-group-end (&optional window update)
   "Return position at which display currently ends in the group of
@@ -9614,8 +9610,7 @@ if it isn't already recorded."
       (funcall window-group-end-function window update)
     (window-end window update)))
 
-(defvar set-window-group-start-function nil)
-(make-variable-buffer-local 'set-window-group-start-function)
+(defvar-local set-window-group-start-function nil)
 (put 'set-window-group-start-function 'permanent-local t)
 (defun set-window-group-start (window pos &optional noforce)
   "Make display in the group of windows containing WINDOW start at
@@ -9629,8 +9624,7 @@ overriding motion of point in order to display at this exact start."
       (funcall set-window-group-start-function window pos noforce)
     (set-window-start window pos noforce)))
 
-(defvar recenter-window-group-function nil)
-(make-variable-buffer-local 'recenter-window-group-function)
+(defvar-local recenter-window-group-function nil)
 (put 'recenter-window-group-function 'permanent-local t)
 (defun recenter-window-group (&optional arg)
   "Center point in the group of windows containing the selected window
@@ -9656,8 +9650,7 @@ and redisplay normally--don't erase and redraw the frame."
       (funcall recenter-window-group-function arg)
     (recenter arg)))
 
-(defvar pos-visible-in-window-group-p-function nil)
-(make-variable-buffer-local 'pos-visible-in-window-group-p-function)
+(defvar-local pos-visible-in-window-group-p-function nil)
 (put 'pos-visible-in-window-group-p-function 'permanent-local t)
 (defun pos-visible-in-window-group-p (&optional pos window partially)
   "Return non-nil if position POS is currently on the frame in the
@@ -9687,8 +9680,7 @@ POS, ROWH is the visible height of that row, and VPOS is the row number
       (funcall pos-visible-in-window-group-p-function pos window partially)
     (pos-visible-in-window-p pos window partially)))
 
-(defvar selected-window-group-function nil)
-(make-variable-buffer-local 'selected-window-group-function)
+(defvar-local selected-window-group-function nil)
 (put 'selected-window-group-function 'permanent-local t)
 (defun selected-window-group ()
   "Return the list of windows in the group containing the selected window.
@@ -9698,8 +9690,7 @@ result is a list containing only the selected window."
       (funcall selected-window-group-function)
     (list (selected-window))))
 
-(defvar move-to-window-group-line-function nil)
-(make-variable-buffer-local 'move-to-window-group-line-function)
+(defvar-local move-to-window-group-line-function nil)
 (put 'move-to-window-group-line-function 'permanent-local t)
 (defun move-to-window-group-line (arg)
   "Position point relative to the current group of windows.
@@ -9742,13 +9733,16 @@ cycling order is middle -> top -> bottom."
   :group 'windows)
 
 (defun recenter-top-bottom (&optional arg)
-  "Move current buffer line to the specified window line.
-With no prefix argument, successive calls place point according
-to the cycling order defined by `recenter-positions'.
+  "Scroll the window so that current line is in the middle of the window.
+Successive invocations scroll the window in a cyclical order to put
+the current line at certain places within the window, as determined by
+`recenter-positions'.  By default, the second invocation puts the
+current line at the top-most window line, the third invocation puts it
+on the bottom-most window line, and then the order is reused in a
+cyclical manner.
 
-A prefix argument is handled like `recenter':
- With numeric prefix ARG, move current line to window-line ARG.
- With plain `C-u', move current line to window center."
+With numeric prefix ARG, move current line ARG lines below the window top.
+With plain \\[universal-argument], move current line to window center."
   (interactive "P")
   (cond
    (arg (recenter arg t))                 ; Always respect ARG.

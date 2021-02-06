@@ -278,11 +278,10 @@ For example, you could write
          ((not globalp)
           `(progn
              :autoload-end
-             (defvar ,mode ,init-value
+             (defvar-local ,mode ,init-value
                ,(concat (format "Non-nil if %s is enabled.\n" pretty-name)
                         (internal--format-docstring-line
-                         "Use the command `%s' to change this variable." mode)))
-             (make-variable-buffer-local ',mode)))
+                         "Use the command `%s' to change this variable." mode)))))
          (t
 	  (let ((base-doc-string
                  (concat "Non-nil if %s is enabled.
@@ -419,6 +418,7 @@ on if the hook has explicitly disabled it.
 	 (pretty-global-name (easy-mmode-pretty-mode-name global-mode))
 	 (group nil)
 	 (extra-keywords nil)
+         (MODE-variable mode)
 	 (MODE-buffers (intern (concat global-mode-name "-buffers")))
 	 (MODE-enable-in-buffers
 	  (intern (concat global-mode-name "-enable-in-buffers")))
@@ -440,6 +440,7 @@ on if the hook has explicitly disabled it.
       (pcase keyw
         (:group (setq group (nconc group (list :group (pop body)))))
         (:global (pop body))
+        (:variable (setq MODE-variable (pop body)))
         (:predicate
          (setq predicate (list (pop body)))
          (setq turn-on-function
@@ -453,8 +454,7 @@ on if the hook has explicitly disabled it.
        (progn
          (put ',global-mode 'globalized-minor-mode t)
          :autoload-end
-         (defvar ,MODE-major-mode nil)
-         (make-variable-buffer-local ',MODE-major-mode))
+         (defvar-local ,MODE-major-mode nil))
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
          ,(concat (format "Toggle %s in all buffers.\n" pretty-name)
@@ -543,7 +543,7 @@ list."
                (with-current-buffer buf
                  (unless ,MODE-set-explicitly
                    (unless (eq ,MODE-major-mode major-mode)
-                     (if ,mode
+                     (if ,MODE-variable
                          (progn
                            (,mode -1)
                            (funcall ,turn-on-function))

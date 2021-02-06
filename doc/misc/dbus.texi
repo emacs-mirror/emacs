@@ -2151,6 +2151,11 @@ And this form restricts the monitoring on D-Bus errors:
 @end lisp
 @end defun
 
+@deffn Command dbus-monitor &optional bus
+This command invokes @code{dbus-register-monitor} interactively, and
+switches to the monitor buffer.
+@end deffn
+
 
 @node Index
 @unnumbered Index

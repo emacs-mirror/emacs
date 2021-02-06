@@ -67,13 +67,11 @@ revealed text manually."
   :type 'boolean
   :version "28.1")
 
-(defvar reveal-open-spots nil
+(defvar-local reveal-open-spots nil
   "List of spots in the buffer which are open.
 Each element has the form (WINDOW . OVERLAY).")
-(make-variable-buffer-local 'reveal-open-spots)
 
-(defvar reveal-last-tick nil)
-(make-variable-buffer-local 'reveal-last-tick)
+(defvar-local reveal-last-tick nil)
 
 ;; Actual code
 

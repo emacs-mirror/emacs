@@ -2253,15 +2253,23 @@ This function could be on `comint-output-filter-functions' or bound to a key."
   "Strip trailing `^M' characters from the current output group.
 This function could be on `comint-output-filter-functions' or bound to a key."
   (interactive)
-  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
-    (save-excursion
-      (condition-case nil
-	  (goto-char
-	   (if (called-interactively-p 'interactive)
-	       comint-last-input-end comint-last-output-start))
-	(error nil))
-      (while (re-search-forward "\r+$" pmark t)
-	(replace-match "" t t)))))
+  (let ((process (get-buffer-process (current-buffer))))
+    (if (not process)
+        ;; This function may be used in
+        ;; `comint-output-filter-functions', and in that case, if
+        ;; there's no process, then we should do nothing.  If
+        ;; interactive, report an error.
+        (when (called-interactively-p 'interactive)
+          (error "No process in the current buffer"))
+      (let ((pmark (process-mark process)))
+        (save-excursion
+          (condition-case nil
+	      (goto-char
+	       (if (called-interactively-p 'interactive)
+	           comint-last-input-end comint-last-output-start))
+	    (error nil))
+          (while (re-search-forward "\r+$" pmark t)
+	    (replace-match "" t t)))))))
 (define-obsolete-function-alias 'shell-strip-ctrl-m #'comint-strip-ctrl-m "27.1")
 
 (defun comint-show-maximum-output ()
@@ -2375,12 +2383,11 @@ a buffer local variable."
 ;; saved -- typically passwords to ftp, telnet, or somesuch.
 ;; Just enter m-x comint-send-invisible and type in your line.
 
-(defvar comint-password-function nil
+(defvar-local comint-password-function nil
   "Abnormal hook run when prompted for a password.
 This function gets one argument, a string containing the prompt.
 It may return a string containing the password, or nil if normal
 password prompting should occur.")
-(make-variable-buffer-local 'comint-password-function)
 
 (defun comint-send-invisible (&optional prompt)
   "Read a string without echoing.

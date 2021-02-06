@@ -1037,10 +1037,9 @@ Should never be set permanently.")
 (defvar ido-completion-map nil
   "Currently active keymap for Ido commands.")
 
-(defvar ido-eoinput 1
+(defvar-local ido-eoinput 1
   "Point where minibuffer input ends and completion info begins.
 Copied from `icomplete-eoinput'.")
-(make-variable-buffer-local 'ido-eoinput)
 
 (defvar ido-common-match-string  nil
   "Stores the string that is common to all matching files.")

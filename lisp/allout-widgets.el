@@ -78,9 +78,8 @@
 ;;; during file load, so the involved code must reside above that
 ;;; definition in the file.
 ;;;_  = allout-widgets-mode
-(defvar allout-widgets-mode nil
+(defvar-local allout-widgets-mode nil
   "Allout mode enhanced with graphical widgets.")
-(make-variable-buffer-local 'allout-widgets-mode)
 
 ;;;_ : USER CUSTOMIZATION VARIABLES and incidental functions:
 ;;;_  > defgroup allout-widgets
@@ -243,14 +242,13 @@ decreases as obsolete widgets are garbage collected."
   :version "24.1"
   :type 'boolean
   :group 'allout-widgets-developer)
-(defvar allout-widgets-tally nil
+(defvar-local allout-widgets-tally nil
   "Hash-table of existing allout widgets, for debugging.
 
 Table is maintained only if `allout-widgets-maintain-tally' is non-nil.
 
 The table contents will be out of sync if any widgets are created
 or deleted while this variable is nil.")
-(make-variable-buffer-local 'allout-widgets-tally)
 (defvar allout-widgets-mode-inhibit)    ; defined below
 ;;;_   > allout-widgets-tally-string
 (defun allout-widgets-tally-string ()
@@ -295,7 +293,7 @@ to publicize it by making it a customization variable)."
     (message "%s" msg)
     msg))
 ;;;_    = allout-widgets-mode-inhibit
-(defvar allout-widgets-mode-inhibit nil
+(defvar-local allout-widgets-mode-inhibit nil
   "Inhibit `allout-widgets-mode' from activating widgets.
 
 This also inhibits automatic adjustment of widgets to track allout outline
@@ -310,15 +308,13 @@ buffers where this is set to enable and disable widget
 enhancements, directly.")
 ;;;###autoload
 (put 'allout-widgets-mode-inhibit 'safe-local-variable 'booleanp)
-(make-variable-buffer-local 'allout-widgets-mode-inhibit)
 ;;;_    = allout-inhibit-body-modification-hook
-(defvar allout-inhibit-body-modification-hook nil
+(defvar-local allout-inhibit-body-modification-hook nil
   "Override de-escaping of text-prefixes in item bodies during specific changes.
 
 This is used by `allout-buffer-modification-handler' to signal such changes
 to `allout-body-modification-handler', and is always reset by
 `allout-post-command-business'.")
-(make-variable-buffer-local 'allout-inhibit-body-modification-hook)
 ;;;_    = allout-widgets-icons-cache
 (defvar allout-widgets-icons-cache nil
   "Cache allout icon images, as an association list.
@@ -358,7 +354,7 @@ See \\[describe-mode] for many more options."
 
 The structure includes the guides lines, bullet, and bullet cue.")
 ;;;_    = allout-widgets-changes-record
-(defvar allout-widgets-changes-record nil
+(defvar-local allout-widgets-changes-record nil
   "Record outline changes for processing by post-command hook.
 
 Entries on the list are lists whose first element is a symbol indicating
@@ -369,14 +365,12 @@ type.  For example:
 
 The changes are recorded in reverse order, with new values pushed
 onto the front.")
-(make-variable-buffer-local 'allout-widgets-changes-record)
 ;;;_    = allout-widgets-undo-exposure-record
-(defvar allout-widgets-undo-exposure-record nil
+(defvar-local allout-widgets-undo-exposure-record nil
   "Record outline undo traces for processing by post-command hook.
 
 The changes are recorded in reverse order, with new values pushed
 onto the front.")
-(make-variable-buffer-local 'allout-widgets-undo-exposure-record)
 ;;;_    = allout-widgets-last-hook-error
 (defvar allout-widgets-last-hook-error nil
   "String holding last error string, for debugging purposes.")
@@ -393,13 +387,12 @@ onto the front.")
   "Maintained true during `allout-widgets-exposure-undo-processor'")
 ;;;_   , Widget-specific outline text format
 ;;;_    = allout-escaped-prefix-regexp
-(defvar allout-escaped-prefix-regexp ""
+(defvar-local allout-escaped-prefix-regexp ""
   "Regular expression for body text that would look like an item prefix if
 not altered with an escape sequence.")
-(make-variable-buffer-local 'allout-escaped-prefix-regexp)
 ;;;_   , Widget element formatting
 ;;;_    = allout-item-icon-keymap
-(defvar allout-item-icon-keymap
+(defvar-local allout-item-icon-keymap
   (let ((km (make-sparse-keymap))
         (as-parent (if (current-local-map)
                        (make-composed-keymap (current-local-map)
@@ -420,9 +413,8 @@ not altered with an escape sequence.")
 
     km)
   "General tree-node key bindings.")
-(make-variable-buffer-local 'allout-item-icon-keymap)
 ;;;_    = allout-item-body-keymap
-(defvar allout-item-body-keymap
+(defvar-local allout-item-body-keymap
   (let ((km (make-sparse-keymap))
         (as-parent (if (current-local-map)
                        (make-composed-keymap (current-local-map)
@@ -432,17 +424,15 @@ not altered with an escape sequence.")
     (set-keymap-parent km as-parent)
     km)
   "General key bindings for the text content of outline items.")
-(make-variable-buffer-local 'allout-item-body-keymap)
 ;;;_    = allout-body-span-category
 (defvar allout-body-span-category nil
   "Symbol carrying allout body-text overlay properties.")
 ;;;_    = allout-cue-span-keymap
-(defvar allout-cue-span-keymap
+(defvar-local allout-cue-span-keymap
   (let ((km (make-sparse-keymap)))
     (set-keymap-parent km allout-item-icon-keymap)
     km)
   "Keymap used in the item cue area - the space between the icon and headline.")
-(make-variable-buffer-local 'allout-cue-span-keymap)
 ;;;_    = allout-escapes-category
 (defvar allout-escapes-category nil
   "Symbol for category of text property used to hide escapes of prefix-like
@@ -477,7 +467,7 @@ including things like:
 (defvar allout-trailing-category nil
   "Symbol carrying common properties of an overlay's trailing newline.")
 ;;;_   , Developer
-(defvar allout-widgets-last-decoration-timing nil
+(defvar-local allout-widgets-last-decoration-timing nil
   "Timing details for the last cooperative decoration action.
 
 This is maintained when `allout-widgets-time-decoration-activity' is set.
@@ -488,7 +478,6 @@ The value is a list containing two elements:
 
 When active, the value is revised each time automatic decoration activity
 happens in the buffer.")
-(make-variable-buffer-local 'allout-widgets-last-decoration-timing)
 ;;;_  . mode hookup
 ;;;_   > define-minor-mode allout-widgets-mode (arg)
 ;;;###autoload
@@ -693,12 +682,11 @@ outline hot-spot navigation (see `allout-mode')."
             (allout-get-or-create-item-widget))))))
 ;;;_  . settings context
 ;;;_   = allout-container-item
-(defvar allout-container-item-widget nil
+(defvar-local allout-container-item-widget nil
   "A widget for the current outline's overarching container as an item.
 
 The item has settings (of the file/connection) and maybe a body, but no
 icon/bullet.")
-(make-variable-buffer-local 'allout-container-item-widget)
 ;;;_  . Hooks and hook helpers
 ;;;_   , major command-loop business:
 ;;;_    > allout-widgets-pre-command-business (&optional recursing)
@@ -2243,7 +2231,7 @@ interactive command."
 
 We use a caching strategy, so the caller doesn't need to do so."
   (let* ((types allout-widgets-icon-types)
-         (use-dir (if (equal (allout-frame-property nil 'background-mode)
+         (use-dir (if (equal (frame-parameter nil 'background-mode)
                              'light)
                       allout-widgets-icons-light-subdir
                     allout-widgets-icons-dark-subdir))
@@ -2274,13 +2262,6 @@ We use a caching strategy, so the caller doesn't need to do so."
   "Return seconds between START/END time values."
   (let ((elapsed (time-subtract end start)))
     (float-time elapsed)))
-;;;_  > allout-frame-property (frame property)
-(defalias 'allout-frame-property
-  (cond ((fboundp 'frame-parameter)
-         'frame-parameter)
-        ((fboundp 'frame-property)
-         'frame-property)
-        (t nil)))
 ;;;_  > allout-find-image (specs)
 (define-obsolete-function-alias 'allout-find-image #'find-image "28.1")
 ;;;_  > allout-widgets-copy-list (list)
@@ -2306,6 +2287,8 @@ The elements of LIST are not copied, just the list structure itself."
                                              o))
                                        (overlays-in start end)))))
     (length button-overlays)))
+
+(define-obsolete-function-alias 'allout-frame-property #'frame-parameter "28.1")
 
 ;;;_ : provide
 (provide 'allout-widgets)

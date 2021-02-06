@@ -1,4 +1,4 @@
-;;; gnus-ml.el --- Mailing list minor mode for Gnus
+;;; gnus-ml.el --- Mailing list minor mode for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 

@@ -830,9 +830,8 @@ such topics are encrypted.)"
 
 The value of `buffer-saved-size' at the time of decryption is used,
 for restoring when all encryptions are established.")
-(defvar allout-just-did-undo nil
+(defvar-local allout-just-did-undo nil
   "True just after undo commands, until allout-post-command-business.")
-(make-variable-buffer-local 'allout-just-did-undo)
 
 ;;;_ + Developer
 ;;;_  = allout-developer group
@@ -874,10 +873,10 @@ For details, see `allout-toggle-current-subtree-encryption's docstring."
     msg))
 ;;;_  : Mode activation (defined here because it's referenced early)
 ;;;_   = allout-mode
-(defvar allout-mode nil "Allout outline mode minor-mode flag.")
-(make-variable-buffer-local 'allout-mode)
+(defvar-local allout-mode nil
+  "Allout outline mode minor-mode flag.")
 ;;;_   = allout-layout nil
-(defvar allout-layout nil            ; LEAVE GLOBAL VALUE NIL -- see docstring.
+(defvar-local allout-layout nil            ; LEAVE GLOBAL VALUE NIL -- see docstring.
   "Buffer-specific setting for allout layout.
 
 In buffers where this is non-nil (and if `allout-auto-activation'
@@ -903,34 +902,30 @@ followed by the equivalent of `(allout-expose-topic 0 : -1 -1 0)'.
 `allout-default-layout' describes the specification format.
 `allout-layout' can additionally have the value t, in which
 case the value of `allout-default-layout' is used.")
-(make-variable-buffer-local 'allout-layout)
 ;;;###autoload
 (put 'allout-layout 'safe-local-variable
      (lambda (x) (or (numberp x) (listp x) (memq x '(: * + -)))))
 
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
-(defvar allout-regexp ""
+(defvar-local allout-regexp ""
   "Regular expression to match the beginning of a heading line.
 
 Any line whose beginning matches this regexp is considered a
 heading.  This var is set according to the user configuration vars
 by `allout-set-regexp'.")
-(make-variable-buffer-local 'allout-regexp)
 ;;;_   = allout-bullets-string
-(defvar allout-bullets-string ""
+(defvar-local allout-bullets-string ""
   "A string dictating the valid set of outline topic bullets.
 
 This var should *not* be set by the user -- it is set by `allout-set-regexp',
 and is produced from the elements of `allout-plain-bullets-string'
 and `allout-distinctive-bullets-string'.")
-(make-variable-buffer-local 'allout-bullets-string)
 ;;;_   = allout-bullets-string-len
-(defvar allout-bullets-string-len 0
+(defvar-local allout-bullets-string-len 0
   "Length of current buffers' `allout-plain-bullets-string'.")
-(make-variable-buffer-local 'allout-bullets-string-len)
 ;;;_   = allout-depth-specific-regexp
-(defvar allout-depth-specific-regexp ""
+(defvar-local allout-depth-specific-regexp ""
   "Regular expression to match a heading line prefix for a particular depth.
 
 This expression is used to search for depth-specific topic
@@ -941,34 +936,28 @@ This var is set according to the user configuration vars by
 `allout-set-regexp'.  It is prepared with format strings for two
 decimal numbers, which should each be one less than the depth of the
 topic prefix to be matched.")
-(make-variable-buffer-local 'allout-depth-specific-regexp)
 ;;;_   = allout-depth-one-regexp
-(defvar allout-depth-one-regexp ""
+(defvar-local allout-depth-one-regexp ""
   "Regular expression to match a heading line prefix for depth one.
 
 This var is set according to the user configuration vars by
 `allout-set-regexp'.  It is prepared with format strings for two
 decimal numbers, which should each be one less than the depth of the
 topic prefix to be matched.")
-(make-variable-buffer-local 'allout-depth-one-regexp)
 ;;;_   = allout-line-boundary-regexp
-(defvar allout-line-boundary-regexp ()
+(defvar-local allout-line-boundary-regexp ()
   "`allout-regexp' prepended with a newline for the search target.
 
 This is properly set by `allout-set-regexp'.")
-(make-variable-buffer-local 'allout-line-boundary-regexp)
 ;;;_   = allout-bob-regexp
-(defvar allout-bob-regexp ()
+(defvar-local allout-bob-regexp ()
   "Like `allout-line-boundary-regexp', for headers at beginning of buffer.")
-(make-variable-buffer-local 'allout-bob-regexp)
 ;;;_   = allout-header-subtraction
-(defvar allout-header-subtraction (1- (length allout-header-prefix))
+(defvar-local allout-header-subtraction (1- (length allout-header-prefix))
   "Allout-header prefix length to subtract when computing topic depth.")
-(make-variable-buffer-local 'allout-header-subtraction)
 ;;;_   = allout-plain-bullets-string-len
-(defvar allout-plain-bullets-string-len (length allout-plain-bullets-string)
+(defvar-local allout-plain-bullets-string-len (length allout-plain-bullets-string)
   "Length of `allout-plain-bullets-string', updated by `allout-set-regexp'.")
-(make-variable-buffer-local 'allout-plain-bullets-string-len)
 
 ;;;_   = allout-doublecheck-at-and-shallower
 (defconst allout-doublecheck-at-and-shallower 3
@@ -1279,11 +1268,10 @@ Also refresh various data structures that hinge on the regexp."
 		      ["Set New Exposure" allout-expose-topic t])))
 ;;;_  : Allout Modal-Variables Utilities
 ;;;_   = allout-mode-prior-settings
-(defvar allout-mode-prior-settings nil
+(defvar-local allout-mode-prior-settings nil
   "Internal `allout-mode' use; settings to be resumed on mode deactivation.
 
 See `allout-add-resumptions' and `allout-do-resumptions'.")
-(make-variable-buffer-local 'allout-mode-prior-settings)
 ;;;_   > allout-add-resumptions (&rest pairs)
 (defun allout-add-resumptions (&rest pairs)
   "Set name/value PAIRS.
@@ -1466,16 +1454,15 @@ that was affected by the undo.."
   :version "24.3")
 
 ;;;_   = allout-outside-normal-auto-fill-function
-(defvar allout-outside-normal-auto-fill-function nil
+(defvar-local allout-outside-normal-auto-fill-function nil
   "Value of `normal-auto-fill-function' outside of allout mode.
 
 Used by `allout-auto-fill' to do the mandated `normal-auto-fill-function'
 wrapped within allout's automatic `fill-prefix' setting.")
-(make-variable-buffer-local 'allout-outside-normal-auto-fill-function)
 ;;;_   = prevent redundant activation by desktop mode:
 (add-to-list 'desktop-minor-mode-handlers '(allout-mode . nil))
 ;;;_   = allout-after-save-decrypt
-(defvar allout-after-save-decrypt nil
+(defvar-local allout-after-save-decrypt nil
   "Internal variable, is nil or has the value of two points:
 
  - the location of a topic to be decrypted after saving is done
@@ -1483,9 +1470,8 @@ wrapped within allout's automatic `fill-prefix' setting.")
 
 This is used to decrypt the topic that was currently being edited, if it
 was encrypted automatically as part of a file write or autosave.")
-(make-variable-buffer-local 'allout-after-save-decrypt)
 ;;;_   = allout-encryption-plaintext-sanitization-regexps
-(defvar allout-encryption-plaintext-sanitization-regexps nil
+(defvar-local allout-encryption-plaintext-sanitization-regexps nil
   "List of regexps whose matches are removed from plaintext before encryption.
 
 This is for the sake of removing artifacts, like escapes, that are added on
@@ -1498,9 +1484,8 @@ Each value can be a regexp or a list with a regexp followed by a
 substitution string.  If it's just a regexp, all its matches are removed
 before the text is encrypted.  If it's a regexp and a substitution, the
 substitution is used against the regexp matches, a la `replace-match'.")
-(make-variable-buffer-local 'allout-encryption-plaintext-sanitization-regexps)
 ;;;_   = allout-encryption-ciphertext-rejection-regexps
-(defvar allout-encryption-ciphertext-rejection-regexps nil
+(defvar-local allout-encryption-ciphertext-rejection-regexps nil
   "Variable for regexps matching plaintext to remove before encryption.
 
 This is used to detect strings in encryption results that would
@@ -1513,13 +1498,11 @@ Encryptions that result in matches will be retried, up to
 `allout-encryption-ciphertext-rejection-ceiling' times, after which
 an error is raised.")
 
-(make-variable-buffer-local 'allout-encryption-ciphertext-rejection-regexps)
 ;;;_   = allout-encryption-ciphertext-rejection-ceiling
-(defvar allout-encryption-ciphertext-rejection-ceiling 5
+(defvar-local allout-encryption-ciphertext-rejection-ceiling 5
   "Limit on number of times encryption ciphertext is rejected.
 
 See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
-(make-variable-buffer-local 'allout-encryption-ciphertext-rejection-ceiling)
 ;;;_   > allout-mode-p ()
 ;; Must define this macro above any uses, or byte compilation will lack
 ;; proper def, if file isn't loaded -- eg, during emacs build!
@@ -1607,10 +1590,9 @@ non-nil in a lasting way.")
 
 ;;;_ #2 Mode environment and activation
 ;;;_  = allout-explicitly-deactivated
-(defvar allout-explicitly-deactivated nil
+(defvar-local allout-explicitly-deactivated nil
   "If t, `allout-mode's last deactivation was deliberate.
 So `allout-post-command-business' should not reactivate it...")
-(make-variable-buffer-local 'allout-explicitly-deactivated)
 ;;;_  > allout-setup-menubar ()
 (defun allout-setup-menubar ()
   "Populate the current buffer's menubar with `allout-mode' stuff."
@@ -2119,21 +2101,17 @@ function can also be used as an `isearch-mode-end-hook'."
 ;; for just-established data.  This optimization can provide
 ;; significant speed improvement, but it must be employed carefully.
 ;;;_  = allout-recent-prefix-beginning
-(defvar allout-recent-prefix-beginning 0
+(defvar-local allout-recent-prefix-beginning 0
   "Buffer point of the start of the last topic prefix encountered.")
-(make-variable-buffer-local 'allout-recent-prefix-beginning)
 ;;;_  = allout-recent-prefix-end
-(defvar allout-recent-prefix-end 0
+(defvar-local allout-recent-prefix-end 0
   "Buffer point of the end of the last topic prefix encountered.")
-(make-variable-buffer-local 'allout-recent-prefix-end)
 ;;;_  = allout-recent-depth
-(defvar allout-recent-depth 0
+(defvar-local allout-recent-depth 0
   "Depth of the last topic prefix encountered.")
-(make-variable-buffer-local 'allout-recent-depth)
 ;;;_  = allout-recent-end-of-subtree
-(defvar allout-recent-end-of-subtree 0
+(defvar-local allout-recent-end-of-subtree 0
   "Buffer point last returned by `allout-end-of-current-subtree'.")
-(make-variable-buffer-local 'allout-recent-end-of-subtree)
 ;;;_  > allout-prefix-data ()
 (defsubst allout-prefix-data ()
   "Register allout-prefix state data.
@@ -3213,7 +3191,7 @@ Returns resulting position, else nil if none found."
 
 ;;;_  - Fundamental
 ;;;_   = allout-post-goto-bullet
-(defvar allout-post-goto-bullet nil
+(defvar-local allout-post-goto-bullet nil
   "Outline internal var, for `allout-pre-command-business' hot-spot operation.
 
 When set, tells post-processing to reposition on topic bullet, and
@@ -3221,18 +3199,15 @@ then unset it.  Set by `allout-pre-command-business' when implementing
 hot-spot operation, where literal characters typed over a topic bullet
 are mapped to the command of the corresponding control-key on the
 `allout-mode-map-value'.")
-(make-variable-buffer-local 'allout-post-goto-bullet)
 ;;;_   = allout-command-counter
-(defvar allout-command-counter 0
+(defvar-local allout-command-counter 0
   "Counter that monotonically increases in allout-mode buffers.
 
 Set by `allout-pre-command-business', to support allout addons in
 coordinating with allout activity.")
-(make-variable-buffer-local 'allout-command-counter)
 ;;;_   = allout-this-command-hid-text
-(defvar allout-this-command-hid-text nil
+(defvar-local allout-this-command-hid-text nil
   "True if the most recent allout-mode command hid any text.")
-(make-variable-buffer-local 'allout-this-command-hid-text)
 ;;;_   > allout-post-command-business ()
 (defun allout-post-command-business ()
   "Outline `post-command-hook' function.

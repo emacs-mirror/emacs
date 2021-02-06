@@ -132,36 +132,30 @@ A quick validation validates at most one chunk."
 
 ;; Global variables
 
-(defvar rng-validate-timer nil)
-(make-variable-buffer-local 'rng-validate-timer)
+(defvar-local rng-validate-timer nil)
 ;; ensure that we can cancel the timer even after a kill-all-local-variables
 (put 'rng-validate-timer 'permanent-local t)
 
-(defvar rng-validate-quick-timer nil)
-(make-variable-buffer-local 'rng-validate-quick-timer)
+(defvar-local rng-validate-quick-timer nil)
 ;; ensure that we can cancel the timer even after a kill-all-local-variables
 (put 'rng-validate-quick-timer 'permanent-local t)
 
-(defvar rng-error-count nil
+(defvar-local rng-error-count nil
   "Number of errors in the current buffer.
 Always equal to number of overlays with category `rng-error'.")
-(make-variable-buffer-local 'rng-error-count)
 
-(defvar rng-message-overlay nil
+(defvar-local rng-message-overlay nil
   "Overlay in this buffer whose `help-echo' property was last printed.
 It is nil if none.")
-(make-variable-buffer-local 'rng-message-overlay)
 
-(defvar rng-message-overlay-inhibit-point nil
+(defvar-local rng-message-overlay-inhibit-point nil
   "Position at which message from overlay should be inhibited.
 If point is equal to this and the error overlay around
 point is `rng-message-overlay', then the `help-echo' property
 of the error overlay should not be printed with `message'.")
-(make-variable-buffer-local 'rng-message-overlay-inhibit-point)
 
-(defvar rng-message-overlay-current nil
+(defvar-local rng-message-overlay-current nil
   "Non-nil if `rng-message-overlay' is still the current message.")
-(make-variable-buffer-local 'rng-message-overlay-current)
 
 (defvar rng-open-elements nil
   "Stack of names of open elements represented as a list.
@@ -178,11 +172,10 @@ indicating an unresolvable entity or character reference.")
 
 (defvar rng-collecting-text nil)
 
-(defvar rng-validate-up-to-date-end nil
+(defvar-local rng-validate-up-to-date-end nil
   "Last position where validation is known to be up to date.")
-(make-variable-buffer-local 'rng-validate-up-to-date-end)
 
-(defvar rng-conditional-up-to-date-start nil
+(defvar-local rng-conditional-up-to-date-start nil
   "Marker for the start of the conditionally up-to-date region.
 It is nil if there is no conditionally up-to-date region.  The
 conditionally up-to-date region must be such that for any cached
@@ -191,20 +184,17 @@ if at some point it is determined that S becomes correct for P,
 then all states with position >= P in the conditionally up to
 date region must also then be correct and all errors between P
 and the end of the region must then be correctly marked.")
-(make-variable-buffer-local 'rng-conditional-up-to-date-start)
 
-(defvar rng-conditional-up-to-date-end nil
+(defvar-local rng-conditional-up-to-date-end nil
   "Marker for the end of the conditionally up-to-date region.
 It is nil if there is no conditionally up-to-date region.
 See the variable `rng-conditional-up-to-date-start'.")
-(make-variable-buffer-local 'rng-conditional-up-to-date-end)
 
 (defvar rng-parsing-for-state nil
   "Non-nil means we are currently parsing just to compute the state.
 Should be dynamically bound.")
 
-(defvar rng-dtd nil)
-(make-variable-buffer-local 'rng-dtd)
+(defvar-local rng-dtd nil)
 
 ;;;###autoload
 (define-minor-mode rng-validate-mode

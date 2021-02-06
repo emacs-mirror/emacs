@@ -191,21 +191,18 @@ or `erc-send-modify-hook'."
 				 (list (lambda (_window _before dir)
 					 (erc-echo-timestamp dir ct))))))))
 
-(defvar erc-timestamp-last-inserted nil
+(defvar-local erc-timestamp-last-inserted nil
   "Last timestamp inserted into the buffer.")
-(make-variable-buffer-local 'erc-timestamp-last-inserted)
 
-(defvar erc-timestamp-last-inserted-left nil
+(defvar-local erc-timestamp-last-inserted-left nil
   "Last timestamp inserted into the left side of the buffer.
 This is used when `erc-insert-timestamp-function' is set to
 `erc-timestamp-left-and-right'")
-(make-variable-buffer-local 'erc-timestamp-last-inserted-left)
 
-(defvar erc-timestamp-last-inserted-right nil
+(defvar-local erc-timestamp-last-inserted-right nil
   "Last timestamp inserted into the right side of the buffer.
 This is used when `erc-insert-timestamp-function' is set to
 `erc-timestamp-left-and-right'")
-(make-variable-buffer-local 'erc-timestamp-last-inserted-right)
 
 (defcustom erc-timestamp-only-if-changed-flag t
   "Insert timestamp only if its value changed since last insertion.

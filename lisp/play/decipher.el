@@ -99,8 +99,7 @@
   "Non-nil means to convert ciphertext to uppercase.
 nil means the case of the ciphertext is preserved.
 This variable must be set before typing `\\[decipher]'."
-  :type 'boolean
-  :group 'decipher)
+  :type 'boolean)
 
 
 (defcustom decipher-ignore-spaces nil
@@ -108,21 +107,18 @@ This variable must be set before typing `\\[decipher]'."
 You should set this to nil if the cipher message is divided into words,
 or t if it is not.
 This variable is buffer-local."
-  :type 'boolean
-  :group 'decipher)
+  :type 'boolean)
 (make-variable-buffer-local 'decipher-ignore-spaces)
 
 (defcustom decipher-undo-limit 5000
   "The maximum number of entries in the undo list.
 When the undo list exceeds this number, 100 entries are deleted from
 the tail of the list."
-  :type 'integer
-  :group 'decipher)
+  :type 'integer)
 
 (defcustom decipher-mode-hook nil
   "Hook to run upon entry to decipher."
-  :type 'hook
-  :group 'decipher)
+  :type 'hook)
 
 ;; End of user modifiable variables
 ;;--------------------------------------------------------------------
@@ -184,28 +180,24 @@ the tail of the list."
       (cl-incf c))
     (setq decipher-mode-syntax-table table)))
 
-(defvar decipher-alphabet nil)
+(defvar-local decipher-alphabet nil)
 ;; This is an alist containing entries (PLAIN-CHAR . CIPHER-CHAR),
 ;; where PLAIN-CHAR runs from ?a to ?z and CIPHER-CHAR is an uppercase
 ;; letter or space (which means no mapping is known for that letter).
 ;; This *must* contain entries for all lowercase characters.
-(make-variable-buffer-local 'decipher-alphabet)
 
-(defvar decipher-stats-buffer nil
+(defvar-local decipher-stats-buffer nil
   "The buffer which displays statistics for this ciphertext.
 Do not access this variable directly, use the function
 `decipher-stats-buffer' instead.")
-(make-variable-buffer-local 'decipher-stats-buffer)
 
-(defvar decipher-undo-list-size 0
+(defvar-local decipher-undo-list-size 0
   "The number of entries in the undo list.")
-(make-variable-buffer-local 'decipher-undo-list-size)
 
-(defvar decipher-undo-list nil
+(defvar-local decipher-undo-list nil
   "The undo list for this buffer.
 Each element is either a cons cell (PLAIN-CHAR . CIPHER-CHAR) or a
 list of such cons cells.")
-(make-variable-buffer-local 'decipher-undo-list)
 
 (defvar decipher-pending-undo-list nil)
 

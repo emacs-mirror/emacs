@@ -538,8 +538,7 @@ PROC is the server process."
        nil '(notice error) 'active
        'dcc-get-notfound ?n nick ?f filename))))
 
-(defvar erc-dcc-byte-count nil)
-(make-variable-buffer-local 'erc-dcc-byte-count)
+(defvar-local erc-dcc-byte-count nil)
 
 (defun erc-dcc-do-LIST-command (proc)
   "This is the handler for the /dcc list command.
@@ -751,9 +750,8 @@ the matching regexp, or nil if none found."
        'dcc-malformed ?n nick ?u login ?h host ?q query)))))
 
 
-(defvar erc-dcc-entry-data nil
+(defvar-local erc-dcc-entry-data nil
   "Holds the `erc-dcc-list' entry for this DCC connection.")
-(make-variable-buffer-local 'erc-dcc-entry-data)
 
 ;;; SEND handling
 
@@ -905,8 +903,7 @@ other client."
   :group 'erc-dcc
   :type 'integer)
 
-(defvar erc-dcc-file-name nil)
-(make-variable-buffer-local 'erc-dcc-file-name)
+(defvar-local erc-dcc-file-name nil)
 
 (defun erc-dcc-get-file (entry file parent-proc)
   "Set up a transfer from the remote client to the local over a TCP connection.

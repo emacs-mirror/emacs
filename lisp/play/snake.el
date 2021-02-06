@@ -140,14 +140,14 @@
 
 ;; ;;;;;;;;;;;;; variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar snake-length 0)
-(defvar snake-velocity-x 1)
-(defvar snake-velocity-y 0)
-(defvar snake-positions nil)
-(defvar snake-score 0)
-(defvar snake-paused nil)
-(defvar snake-moved-p nil)
-(defvar snake-velocity-queue nil
+(defvar-local snake-length 0)
+(defvar-local snake-velocity-x 1)
+(defvar-local snake-velocity-y 0)
+(defvar-local snake-positions nil)
+(defvar-local snake-score 0)
+(defvar-local snake-paused nil)
+(defvar-local snake-moved-p nil)
+(defvar-local snake-velocity-queue nil
   "This queue stores the velocities requested too quickly by user.
 They will take effect one at a time at each clock-interval.
 This is necessary for proper behavior.
@@ -157,16 +157,6 @@ want the snake to move up just once before starting to move left.  If
 we implemented all your keystrokes immediately, the snake would
 effectively never move up.  Thus, we need to move it up for one turn
 and then start moving it leftwards.")
-
-
-(make-variable-buffer-local 'snake-length)
-(make-variable-buffer-local 'snake-velocity-x)
-(make-variable-buffer-local 'snake-velocity-y)
-(make-variable-buffer-local 'snake-positions)
-(make-variable-buffer-local 'snake-score)
-(make-variable-buffer-local 'snake-paused)
-(make-variable-buffer-local 'snake-moved-p)
-(make-variable-buffer-local 'snake-velocity-queue)
 
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

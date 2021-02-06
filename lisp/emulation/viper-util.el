@@ -1085,10 +1085,10 @@ the `Local variables' section of a file."
 ;; These are characters that are not to be considered as parts of a word in
 ;; Viper.
 ;; Set each time state changes and at loading time
-(viper-deflocalvar viper-non-word-characters  nil)
+(defvar-local viper-non-word-characters nil)
 
 ;; must be buffer-local
-(viper-deflocalvar viper-ALPHA-char-class "w"
+(defvar-local viper-ALPHA-char-class "w"
   "String of syntax classes characterizing Viper's alphanumeric symbols.
 In addition, the symbol `_' may be considered alphanumeric if
 `viper-syntax-preference' is `strict-vi' or `reformed-vi'.")
@@ -1374,11 +1374,5 @@ This option is appropriate if you like Emacs-style words."
 		 (aset res i (aref seq start))
 		 (setq i (1+ i) start (1+ start)))
 	       res))))))
-
-
-
-;; Local Variables:
-;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;; End:
 
 ;;; viper-util.el ends here
