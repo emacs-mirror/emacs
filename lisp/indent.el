@@ -250,7 +250,8 @@ It is activated by calling `indent-rigidly' interactively.")
 If called interactively with no prefix argument, activate a
 transient mode in which the indentation can be adjusted interactively
 by typing \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop].
-Typing any other key exits this mode.  If `transient-mark-mode' is enabled,
+Typing any other key exits this mode, and this key is then
+acted upon as normally.  If `transient-mark-mode' is enabled,
 exiting also deactivates the mark.
 
 If called from a program, or interactively with prefix ARG,
