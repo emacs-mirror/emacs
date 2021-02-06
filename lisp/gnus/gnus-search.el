@@ -1040,7 +1040,7 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (or (looking-at "(")
+      (unless (or (eql ?\( (aref q-string 0))
 		  (and (string-match "\\`[^[:blank:]]+" q-string)
 		       (memql (intern-soft (downcase
 					    (match-string 0 q-string)))
