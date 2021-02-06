@@ -881,8 +881,7 @@ Return nil if FILENAME doesn't exist."
 
 ;; Bug#46284
 (ert-deftest process-sentinel-interrupt-event ()
-  "Test that interrupting a process on MS-Windows sends the
-  \"interrupt\" event to the process sentinel."
+  "Test that interrupting a process on Windows sends \"interrupt\" to sentinel."
   (skip-unless (eq system-type 'windows-nt))
   (with-temp-buffer
     (let* ((proc-buf (current-buffer))
