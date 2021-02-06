@@ -4315,6 +4315,10 @@ It should typically alter the sending method in some way or other."
   (when message-confirm-send
     (or (y-or-n-p "Send message? ")
 	(keyboard-quit)))
+  (when (and (not (mml-secure-is-encrypted-p))
+	     (mml-secure-is-encrypted-p 'anywhere)
+	     (not (yes-or-no-p "This message has a <#secure tag, but is not going to be encrypted.  Send anyway?")))
+    (error "Aborting sending"))
   (message message-sending-message)
   (let ((alist message-send-method-alist)
 	(success t)
