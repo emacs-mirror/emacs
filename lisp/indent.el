@@ -212,7 +212,8 @@ It is activated by calling `indent-rigidly' interactively.")
 If called interactively with no prefix argument, activate a
 transient mode in which the indentation can be adjusted interactively
 by typing \\<indent-rigidly-map>\\[indent-rigidly-left], \\[indent-rigidly-right], \\[indent-rigidly-left-to-tab-stop], or \\[indent-rigidly-right-to-tab-stop].
-Typing any other key deactivates the transient mode.
+Typing any other key deactivates the transient mode, and this key is then
+acted upon as normally.
 
 If called from a program, or interactively with prefix ARG,
 indent all lines starting in the region forward by ARG columns.
