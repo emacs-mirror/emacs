@@ -516,7 +516,7 @@ form to be treated accordingly."
       (aset testcover-vector before-id 'edebug-ok-coverage))
 
     (setq val (testcover-analyze-coverage-wrapped-form wrapped-form))
-    (when (or (eq wrapper 'testcover-1value) val)
+    (when (or (eq wrapper '1value) val)
       ;; The form is 1-valued or potentially 1-valued.
       (aset testcover-vector after-id (or val 'testcover-1value)))
 
@@ -529,7 +529,7 @@ form to be treated accordingly."
       (aset testcover-vector after-id 'testcover-1value)
       (setq val 'testcover-1value))
 
-     ((eq (car-safe wrapped-form) 'testcover-1value)
+     ((eq (car-safe wrapped-form) '1value)
       ;; This function is always supposed to return the same value.
       (setq val 'testcover-1value)
       (aset testcover-vector after-id 'testcover-1value)))
@@ -586,9 +586,9 @@ FORM is treated as if it will be evaluated."
      ;; depending on the symbol.
      (let ((temp-form (cons func args)))
        (testcover-analyze-coverage-wrapped-form temp-form)))
-    (`(,(and func (or 'testcover-1value 'noreturn)) ,inner-form)
+    (`(,(and func (or '1value 'noreturn)) ,inner-form)
      ;; 1value and noreturn change how the edebug-after they wrap is handled.
-     (let ((val (if (eq func 'testcover-1value) 'testcover-1value 'maybe)))
+     (let ((val (if (eq func '1value) '1value 'maybe)))
        (pcase inner-form
          (`(edebug-after ,(and before-form
                                (or `(edebug-before ,before-id) before-id))
