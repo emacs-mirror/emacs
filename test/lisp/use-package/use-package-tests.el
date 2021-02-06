@@ -1136,6 +1136,10 @@
    `(progn
       (let
           ((custom--inhibit-theme-enable nil))
+        (unless (memq 'use-package custom-known-themes)
+          (deftheme use-package)
+          (enable-theme 'use-package)
+          (setq custom-enabled-themes (remq 'use-package custom-enabled-themes)))
         (custom-theme-set-variables 'use-package
                                     '(foo bar nil nil "Customized with use-package foo")))
       (require 'foo nil nil))))
@@ -1146,6 +1150,10 @@
    `(progn
       (let
           ((custom--inhibit-theme-enable nil))
+        (unless (memq 'use-package custom-known-themes)
+          (deftheme use-package)
+          (enable-theme 'use-package)
+          (setq custom-enabled-themes (remq 'use-package custom-enabled-themes)))
         (custom-theme-set-variables 'use-package
                                     '(foo bar nil nil "commented")))
       (require 'foo nil nil))))

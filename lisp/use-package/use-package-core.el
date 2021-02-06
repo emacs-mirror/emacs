@@ -135,6 +135,13 @@ arguments will be ignored in the `use-package' expansion."
   :type 'boolean
   :group 'use-package)
 
+(defcustom use-package-use-theme t
+  "If non-nil, use a custom theme to avoid saving :custom
+variables twice (once in the Custom file, once in the use-package
+call)."
+  :type 'boolean
+  :group 'use-package)
+
 (defcustom use-package-verbose nil
   "Whether to report about loading and configuration details.
 If you customize this, then you should require the `use-package'
@@ -1397,18 +1404,34 @@ no keyword implies `:all'."
 (defun use-package-handler/:custom (name _keyword args rest state)
   "Generate use-package custom keyword code."
   (use-package-concat
-   `((let ((custom--inhibit-theme-enable nil))
-       (custom-theme-set-variables
-        'use-package
-        ,@(mapcar
-           #'(lambda (def)
-               (let ((variable (nth 0 def))
-                     (value (nth 1 def))
-                     (comment (nth 2 def)))
-                 (unless (and comment (stringp comment))
-                   (setq comment (format "Customized with use-package %s" name)))
-                 `'(,variable ,value nil () ,comment)))
-           args))))
+   (if (bound-and-true-p use-package-use-theme)
+       `((let ((custom--inhibit-theme-enable nil))
+           ;; Declare the theme here so use-package can be required inside
+           ;; eval-and-compile without warnings about unknown theme.
+           (unless (memq 'use-package custom-known-themes)
+             (deftheme use-package)
+             (enable-theme 'use-package)
+             (setq custom-enabled-themes (remq 'use-package custom-enabled-themes)))
+           (custom-theme-set-variables
+            'use-package
+            ,@(mapcar
+               #'(lambda (def)
+                   (let ((variable (nth 0 def))
+                         (value (nth 1 def))
+                         (comment (nth 2 def)))
+                     (unless (and comment (stringp comment))
+                       (setq comment (format "Customized with use-package %s" name)))
+                     `'(,variable ,value nil () ,comment)))
+               args))))
+     (mapcar
+      #'(lambda (def)
+          (let ((variable (nth 0 def))
+                (value (nth 1 def))
+                (comment (nth 2 def)))
+            (unless (and comment (stringp comment))
+              (setq comment (format "Customized with use-package %s" name)))
+            `(customize-set-variable (quote ,variable) ,value ,comment)))
+      args))
    (use-package-process-keywords name rest state)))
 
 ;;;; :custom-face
