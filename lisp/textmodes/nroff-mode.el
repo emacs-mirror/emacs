@@ -316,7 +316,7 @@ otherwise off."
 	 (save-buffer))
     (if viewbuf
 	(kill-buffer viewbuf))
-    (Man-getpage-in-background file)))
+    (Man-getpage-in-background (shell-quote-argument file))))
 
 (provide 'nroff-mode)
 
