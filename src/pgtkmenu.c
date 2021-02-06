@@ -101,7 +101,7 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
   f = decode_window_system_frame (frame);
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
-    set_frame_menubar (f, false, true);
+    set_frame_menubar (f, true);
 
   menubar = FRAME_X_OUTPUT (f)->menubar_widget;
   if (menubar)
@@ -140,7 +140,7 @@ popup_widget_loop (bool do_timers, GtkWidget * widget)
 void
 pgtk_activate_menubar (struct frame *f)
 {
-  set_frame_menubar (f, false, true);
+  set_frame_menubar (f, true);
 
   popup_activated_flag = 1;
 
@@ -262,7 +262,7 @@ update_frame_menubar (struct frame *f)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool deep_p)
 {
   GtkWidget *menubar_widget;
   Lisp_Object items;
@@ -515,7 +515,7 @@ initialize_frame_menubar (struct frame *f)
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
   fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
-  set_frame_menubar (f, true, true);
+  set_frame_menubar (f, true);
 }
 
 
