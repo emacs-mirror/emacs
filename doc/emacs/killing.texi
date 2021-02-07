@@ -703,13 +703,13 @@ copy-to-buffer} is similar, except that any existing text in the other
 buffer is deleted, so the buffer is left containing just the text newly
 copied into it.
 
-  The command @kbd{M-x insert-buffer} can be used to retrieve the
-accumulated text from another buffer.  This prompts for the name of a
-buffer, and inserts a copy of all the text in that buffer into the
-current buffer at point, leaving point at the beginning of the
-inserted text.  It also adds the position of the end of the inserted
-text to the mark ring, without activating the mark.  @xref{Buffers},
-for background information on buffers.
+  The command @kbd{C-x x i} (@code{insert-buffer}) can be used to
+retrieve the accumulated text from another buffer.  This prompts for
+the name of a buffer, and inserts a copy of all the text in that
+buffer into the current buffer at point, leaving point at the
+beginning of the inserted text.  It also adds the position of the end
+of the inserted text to the mark ring, without activating the mark.
+@xref{Buffers}, for background information on buffers.
 
   Instead of accumulating text in a buffer, you can append text
 directly into a file with @kbd{M-x append-to-file}.  This prompts for
