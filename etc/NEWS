@@ -85,11 +85,11 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
+** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
+
 +++
 ** New command 'recenter-other-window', bound to 'S-M-C-l'.
 Like 'recenter-top-bottom' acting in the other window.
-
-** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA
 
 ** Minibuffer scrolling is now conservative by default.
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
