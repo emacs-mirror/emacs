@@ -440,7 +440,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          (let ((lexvar (assq form byte-optimize--lexvars)))
            (if (cddr lexvar)      ; Value available?
                (if (assq form byte-optimize--vars-outside-loop)
-                   ;; Cannot substitute; mark as changed to avoid the
+                   ;; Cannot substitute; mark for retention to avoid the
                    ;; variable being eliminated.
                    (progn
                      (setcar (cdr lexvar) t)
