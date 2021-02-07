@@ -275,10 +275,32 @@ The default implementation uses `find-program'.  PROJECT is used
 to find the list of ignores for each directory."
   (mapcan
    (lambda (dir)
-     (project--files-in-directory dir
-                                  (project--dir-ignores project dir)))
+     (project-files-filtered project nil dir))
    (or dirs
        (list (project-root project)))))
+
+;; XXX: Or INCLUDE-FILES and EXCLUDE-FILES?
+;; TODO: Add tests.
+(cl-defgeneric project-files-filtered ( project &optional files dir
+                                        extra-ignores no-project-ignores)
+  "Return a list of files FILES in directory DIR in PROJECT.
+FILES must a list of file name glob patterns, nil meaning to list
+any files.  DIR must be an absolute name or nil, in which case it
+defaults to the project root.  EXTRA-IGNORES are ignore entries
+to use together with the list of ignores already configured for
+the project.  But if NO-PROJECT-IGNORES is non-nil, only
+EXTRA-IGNORES should be applied.
+
+The default implementation uses `find-program'."
+  (unless dir (setq dir (project-root project)))
+  (project--files-in-directory
+   dir
+   (append
+    (unless no-project-ignores
+      (project--dir-ignores project dir))
+    extra-ignores)
+   (and files
+        (mapconcat #'identity files " "))))
 
 (defun project--files-in-directory (dir ignores &optional files)
   (require 'find-dired)
@@ -432,64 +454,70 @@ backend implementation of `project-external-roots'.")
      (funcall project-vc-external-roots-function)))
    (list (project-root project))))
 
-(cl-defmethod project-files ((project (head vc)) &optional dirs)
-  (mapcan
-   (lambda (dir)
-     (let ((ignores (project--value-in-dir 'project-vc-ignores dir))
-           backend)
-       (if (and (file-equal-p dir (cdr project))
-                (setq backend (vc-responsible-backend dir))
-                (cond
-                 ((eq backend 'Hg))
-                 ((and (eq backend 'Git)
-                       (or
-                        (not ignores)
-                        (version<= "1.9" (vc-git--program-version)))))))
-           (project--vc-list-files dir backend ignores)
-         (project--files-in-directory
-          dir
-          (project--dir-ignores project dir)))))
-   (or dirs
-       (list (project-root project)))))
+;; TODO: Add tests.
+(cl-defmethod project-files-filtered ( (project (head vc)) &optional files dir
+                                       extra-ignores no-project-ignores)
+  (unless dir (setq dir (project-root project)))
+  (let ((ignores (append (unless no-project-ignores
+                           (project--value-in-dir 'project-vc-ignores dir))
+                         extra-ignores))
+        (backend (vc-responsible-backend dir)))
+    (if (cond
+         ((eq backend 'Hg))
+         ((and (eq backend 'Git)
+               (or
+                (not ignores)
+                (version<= "1.9" (vc-git--program-version))))))
+        (project--vc-list-files dir backend ignores files no-project-ignores)
+      (project--files-in-directory
+       dir
+       (project--dir-ignores project dir)
+       (and files
+            (mapconcat #'identity files " "))))))
 
 (declare-function vc-git--program-version "vc-git")
 (declare-function vc-git--run-command-string "vc-git")
 (declare-function vc-hg-command "vc-hg")
 
-(defun project--vc-list-files (dir backend extra-ignores)
+(defun project--vc-git-ignore-to-spec (i)
+  (format
+   ":(exclude,glob,top)%s"
+   (if (string-match "\\*\\*" i)
+       ;; Looks like pathspec glob
+       ;; format already.
+       i
+     (if (string-match "\\./" i)
+         ;; ./abc -> abc
+         (setq i (substring i 2))
+       ;; abc -> **/abc
+       (setq i (concat "**/" i))
+       ;; FIXME: '**/abc' should also
+       ;; match a directory with that
+       ;; name, but doesn't (git 2.25.1).
+       ;; Maybe we should replace
+       ;; such entries with two.
+       (if (string-match "/\\'" i)
+           ;; abc/ -> abc/**
+           (setq i (concat i "**"))))
+     i)))
+
+(defun project--vc-list-files (dir backend extra-ignores &optional names no-gitignore)
   (pcase backend
     (`Git
      (let ((default-directory (expand-file-name (file-name-as-directory dir)))
            (args '("-z"))
            files)
        ;; Include unregistered.
-       (setq args (append args '("-c" "-o" "--exclude-standard")))
-       (when extra-ignores
+       (setq args (append args
+                          '("-c" "-o")
+                          (unless no-gitignore '("--exclude-standard"))))
+       (when (or files extra-ignores)
          (setq args (append args
-                            (cons "--"
-                                  (mapcar
-                                   (lambda (i)
-                                     (format
-                                      ":(exclude,glob,top)%s"
-                                      (if (string-match "\\*\\*" i)
-                                          ;; Looks like pathspec glob
-                                          ;; format already.
-                                          i
-                                        (if (string-match "\\./" i)
-                                            ;; ./abc -> abc
-                                            (setq i (substring i 2))
-                                          ;; abc -> **/abc
-                                          (setq i (concat "**/" i))
-                                          ;; FIXME: '**/abc' should also
-                                          ;; match a directory with that
-                                          ;; name, but doesn't (git 2.25.1).
-                                          ;; Maybe we should replace
-                                          ;; such entries with two.
-                                          (if (string-match "/\\'" i)
-                                              ;; abc/ -> abc/**
-                                              (setq i (concat i "**"))))
-                                        i)))
-                                   extra-ignores)))))
+                            '("--")
+                            names
+                            (mapcar
+                             #'project--vc-git-ignore-to-spec
+                             extra-ignores))))
        (setq files
              (mapcar
               (lambda (file) (concat default-directory file))
@@ -506,7 +534,8 @@ backend implementation of `project-external-roots'.")
                       (project--vc-list-files
                        (concat default-directory module)
                        backend
-                       extra-ignores)))
+                       extra-ignores
+                       names)))
                   submodules)))
            (setq files
                  (apply #'nconc files sub-files))))

@@ -131,35 +131,17 @@ File extensions to generate the tags for."
       (add-hook 'before-save-hook #'etags-regen--mark-as-new)
       (visit-tags-table etags-regen--tags-file))))
 
-(declare-function dired-glob-regexp "dired")
-
 (defun etags-regen--all-files (proj)
-  (require 'dired)
   (let* ((root (project-root proj))
          (default-directory root)
-         (files (project-files proj))
-         (extensions etags-regen-file-extensions)
-         ;; FIXME: Try to do the filtering inside project.el already.
-         (file-regexp (format "\\.%s\\'" (regexp-opt extensions t)))
-         (ignore-regexps (mapcar
-                          (lambda (i)
-                            (if (string-match "\\./" i)
-                                ;; ./abc -> abc
-                                (setq i (substring i 2))
-                              ;; abc -> */abc
-                              (setq i (concat "*/" i))
-                              (if (string-match "/\\'" i)
-                                  ;; abc/ -> abc/*
-                                  (setq i (concat i "*"))))
-                            (dired-glob-regexp i))
-                          (cons ".#*" etags-regen-ignores))))
-    (cl-delete-if-not
-     (lambda (f)
-       (and (string-match-p file-regexp f)
-            (not (cl-find
-                  (lambda (re) (string-match-p re f))
-                  ignore-regexps))))
-     files)))
+         (files (project-files-filtered
+                 proj
+                 ;; FIXME: Extensions in upper case.
+                 (mapcar (lambda (ext) (format "*.%s" ext))
+                         etags-regen-file-extensions)
+                 nil
+                 '(".#*"))))
+    files))
 
 (defun etags-regen--tags-generate (proj)
   (require 'dired)
