@@ -234,7 +234,7 @@ still applies for shorter search strings, which avoids flicker in the
 search buffer due to too many matches being highlighted.
 
 +++
-** 'revert-buffer' is now bound to 'C-x g' globally.
+** 'revert-buffer' is now bound to 'C-x x g' globally.
 
 
 * Editing Changes in Emacs 28.1
