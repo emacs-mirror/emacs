@@ -252,6 +252,7 @@ bit output with no translation."
   (w32-add-charset-info "iso8859-2" 'w32-charset-easteurope 28592)
   (w32-add-charset-info "iso8859-3" 'w32-charset-turkish 28593)
   (w32-add-charset-info "iso8859-4" 'w32-charset-baltic 28594)
+  (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
   (w32-add-charset-info "iso8859-6" 'w32-charset-arabic 28596)
   (w32-add-charset-info "iso8859-7" 'w32-charset-greek 28597)
   (w32-add-charset-info "iso8859-8" 'w32-charset-hebrew 1255)

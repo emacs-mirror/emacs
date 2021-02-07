@@ -346,6 +346,7 @@ static BOOL g_b_init_get_adapters_addresses;
 static BOOL g_b_init_reg_open_key_ex_w;
 static BOOL g_b_init_reg_query_value_ex_w;
 static BOOL g_b_init_expand_environment_strings_w;
+static BOOL g_b_init_get_user_default_ui_language;
 
 BOOL g_b_init_compare_string_w;
 BOOL g_b_init_debug_break_process;
@@ -533,6 +534,7 @@ DWORD multiByteToWideCharFlags;
 typedef LONG (WINAPI *RegOpenKeyExW_Proc) (HKEY,LPCWSTR,DWORD,REGSAM,PHKEY);
 typedef LONG (WINAPI *RegQueryValueExW_Proc) (HKEY,LPCWSTR,LPDWORD,LPDWORD,LPBYTE,LPDWORD);
 typedef DWORD (WINAPI *ExpandEnvironmentStringsW_Proc) (LPCWSTR,LPWSTR,DWORD);
+typedef LANGID (WINAPI *GetUserDefaultUILanguage_Proc) (void);
 
   /* ** A utility function ** */
 static BOOL
@@ -1487,6 +1489,28 @@ expand_environment_strings_w (LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
       return FALSE;
     }
   return s_pfn_Expand_Environment_Strings_w (lpSrc, lpDst, nSize);
+}
+
+static LANGID WINAPI
+get_user_default_ui_language (void)
+{
+  static GetUserDefaultUILanguage_Proc s_pfn_GetUserDefaultUILanguage = NULL;
+  HMODULE hm_kernel32 = NULL;
+
+  if (is_windows_9x () == TRUE)
+    return 0;
+
+  if (g_b_init_get_user_default_ui_language == 0)
+    {
+      g_b_init_get_user_default_ui_language = 1;
+      hm_kernel32 = LoadLibrary ("Kernel32.dll");
+      if (hm_kernel32)
+	s_pfn_GetUserDefaultUILanguage = (GetUserDefaultUILanguage_Proc)
+	  get_proc_addr (hm_kernel32, "GetUserDefaultUILanguage");
+    }
+  if (s_pfn_GetUserDefaultUILanguage == NULL)
+    return 0;
+  return s_pfn_GetUserDefaultUILanguage ();
 }
 
 
@@ -2927,6 +2951,32 @@ init_environment (char ** argv)
                      LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
                      locale_name, sizeof (locale_name)))
     {
+      /* Microsoft are migrating away of locale IDs, replacing them
+	 with locale names, such as "en-US", and are therefore
+	 deprecating the APIs which use LCID etc.  As part of that
+	 deprecation, they don't bother inventing LCID and LANGID
+	 codes for new locales and language/culture combinations;
+	 instead, those get LCID of 0xC000 and LANGID of 0x2000, for
+	 which the LCID/LANGID oriented APIs return "ZZZ" as the
+	 "language name".  Such "language name" is useless for our
+	 purposes.  So we instead use the default UI language, in the
+	 hope of getting something usable.  */
+      if (strcmp (locale_name, "ZZZ") == 0)
+	{
+	  LANGID lang_id = get_user_default_ui_language ();
+
+	  if (lang_id != 0)
+	    {
+	      /* Disregard the sorting order differences between cultures.  */
+	      LCID def_lcid = MAKELCID (lang_id, SORT_DEFAULT);
+	      char locale_name_def[32];
+
+	      if (GetLocaleInfo (def_lcid,
+				 LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
+				 locale_name_def, sizeof (locale_name_def)))
+		strcpy (locale_name, locale_name_def);
+	    }
+	}
       for (i = 0; i < N_ENV_VARS; i++)
         {
           if (strcmp (env_vars[i].name, "LANG") == 0)
@@ -10451,6 +10501,7 @@ globals_of_w32 (void)
   g_b_init_expand_environment_strings_w = 0;
   g_b_init_compare_string_w = 0;
   g_b_init_debug_break_process = 0;
+  g_b_init_get_user_default_ui_language = 0;
   num_of_processors = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
