@@ -1514,6 +1514,7 @@ Namazu provides a little more information, for instance a score."
   (when (re-search-forward
 	 "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
 	 nil t)
+    (forward-line 1)
     (list (match-string 4)
 	  (match-string 3))))
 
