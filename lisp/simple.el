@@ -1472,7 +1472,7 @@ included in the count."
 			        (assq prop buffer-invisibility-spec)))
 			  (setq invisible-count (1+ invisible-count))))
 		    invisible-count))))
-	    (t (- (buffer-size) (forward-line (buffer-size))))))))
+	    (t (1- (line-number-at-position (point-max))))))))
 
 (defun line-number-at-pos (&optional pos absolute)
   "Return buffer line number at position POS.
@@ -1483,16 +1483,11 @@ at (point-min), so the value refers to the contents of the
 accessible portion of the (potentially narrowed) buffer.  If
 ABSOLUTE is non-nil, ignore any narrowing and return the
 absolute line number."
-  (save-restriction
-    (when absolute
-      (widen))
-    (let ((opoint (or pos (point))) start)
-      (save-excursion
-        (goto-char (point-min))
-        (setq start (point))
-        (goto-char opoint)
-        (forward-line 0)
-        (1+ (count-lines start (point)))))))
+  (if absolute
+      (save-restriction
+        (widen)
+        (line-number-at-position (or pos (point))))
+    (line-number-at-position (or pos (point)))))
 
 (defcustom what-cursor-show-names nil
   "Whether to show character names in `what-cursor-position'."

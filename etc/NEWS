@@ -2192,6 +2192,10 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 
 * Lisp Changes in Emacs 28.1
 
++++
+** New function 'line-number-at-position'.
+This returns the line number in the visible portion of the buffer.
+
 ---
 ** New variable 'indent-line-ignored-functions'.
 This allows modes to cycle through a set of indentation functions
