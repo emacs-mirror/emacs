@@ -5771,7 +5771,9 @@ from the absolute start of the buffer.  */)
 {
   ptrdiff_t pos, start = BEGV;
 
-  if (NILP (position))
+  if (MARKERP (position))
+    pos = marker_position (position);
+  else if (NILP (position))
     pos = PT;
   else
     {
