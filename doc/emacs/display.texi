@@ -173,6 +173,10 @@ line; on subsequent consecutive invocations, make the current line the
 top line, the bottom line, and so on in cyclic order.  Possibly
 redisplay the screen too (@code{recenter-top-bottom}).
 
+@item C-M-S-l
+Scroll the other window; this is equivalent to @kbd{C-l} acting on the
+other window.
+
 @item M-x recenter
 Scroll the selected window so the current line is the center-most text
 line.  Possibly redisplay the screen too.

@@ -161,6 +161,8 @@ Select another window (@code{other-window}).
 Scroll the next window upward (@code{scroll-other-window}).
 @item C-M-S-v
 Scroll the next window downward (@code{scroll-other-window-down}).
+@item C-M-S-l
+Recenter the next window (@code{recenter-other-window}).
 @item mouse-1
 @kbd{mouse-1}, in the text area of a window, selects the window and
 moves point to the position clicked.  Clicking in the mode line
@@ -194,6 +196,8 @@ rebind a command.)
 @findex scroll-other-window
 @kindex C-M-S-v
 @findex scroll-other-window-down
+@kindex C-M-S-l
+@findex recenter-other-window
   The usual scrolling commands (@pxref{Display}) apply to the selected
 window only, but there are also commands to scroll the next window.
 @kbd{C-M-v} (@code{scroll-other-window}) scrolls the window that
@@ -203,7 +207,9 @@ take positive and negative arguments.  (In the minibuffer, @kbd{C-M-v}
 scrolls the help window associated with the minibuffer, if any, rather
 than the next window in the standard cyclic order; @pxref{Minibuffer
 Edit}.)  @kbd{C-M-S-v} (@code{scroll-other-window-down}) scrolls the
-next window downward in a similar way.
+next window downward in a similar way.  Likewise, @kbd{C-M-S-l}
+(@code{recenter-other-window}) behaves like @kbd{C-l}
+(@code{recenter-top-bottom}) in the next window.
 
 @vindex mouse-autoselect-window
   If you set @code{mouse-autoselect-window} to a non-@code{nil} value,

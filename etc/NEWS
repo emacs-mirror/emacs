@@ -85,7 +85,11 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
-** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
++++
+** New command 'recenter-other-window', bound to 'S-M-C-l'.
+Like 'recenter-top-bottom' acting in the other window.
+
+** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA
 
 ** Minibuffer scrolling is now conservative by default.
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
@@ -469,8 +473,13 @@ applied when the option 'tab-line-tab-face-functions' is
 so-configured.  That option may also be used to customize tab-line
 faces in other ways.
 
-** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
+** Occur mode
+
+*** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
+
+*** The new command 'recenter-current-error', bound to 'l' in Occur or
+compilation buffers, recenters the current displayed occurrence/error.
 
 ** EIEIO
 

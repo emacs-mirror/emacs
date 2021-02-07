@@ -492,6 +492,16 @@ buffer causes automatic display of the corresponding source code location."
         (overlay-put ol 'window (get-buffer-window))
         (setf next-error--message-highlight-overlay ol)))))
 
+(defun recenter-current-error (&optional arg)
+  "Recenter the current displayed error in the `next-error' buffer."
+  (interactive "P")
+  (save-selected-window
+    (let ((next-error-highlight next-error-highlight-no-select)
+          (display-buffer-overriding-action
+           '(nil (inhibit-same-window . t))))
+      (next-error 0)
+      (set-buffer (window-buffer))
+      (recenter-top-bottom arg))))
 
 ;;;
 

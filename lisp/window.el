@@ -9768,6 +9768,19 @@ With plain \\[universal-argument], move current line to window center."
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
 
+(defun recenter-other-window (&optional arg)
+  "Call `recenter-top-bottom' in the other window.
+
+A prefix argument is handled like `recenter':
+ With numeric prefix ARG, move current line to window-line ARG.
+ With plain `C-u', move current line to window center."
+  (interactive "P")
+  (with-selected-window (other-window-for-scrolling)
+    (recenter-top-bottom arg)
+    (pulse-momentary-highlight-one-line (point))))
+
+(define-key global-map [?\S-\M-\C-l] 'recenter-other-window)
+
 (defun move-to-window-line-top-bottom (&optional arg)
   "Position point relative to window.
 
