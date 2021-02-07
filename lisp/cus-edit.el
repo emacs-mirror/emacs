@@ -1242,10 +1242,11 @@ the user might see the value in an error message, a good choice is
 the official name of the package, such as MH-E or Gnus.")
 
 ;;;###autoload
-(defalias 'customize-changed 'customize-changed-options)
+(define-obsolete-function-alias 'customize-changed-options
+  #'customize-changed "28.1")
 
 ;;;###autoload
-(defun customize-changed-options (&optional since-version)
+(defun customize-changed (&optional since-version)
   "Customize all settings whose meanings have changed in Emacs itself.
 This includes new user options and faces, and new customization
 groups, as well as older options and faces whose meanings or
