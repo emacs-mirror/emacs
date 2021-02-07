@@ -5536,8 +5536,9 @@ START and END specify the portion of the current buffer to be copied."
 
 (defvar activate-mark-hook nil
   "Hook run when the mark becomes active.
-It is also run at the end of a command, if the mark is active and
-it is possible that the region may have changed.")
+It is also run when the region is reactivated, for instance after
+using a command that switches back to a buffer that has an active
+mark.")
 
 (defvar deactivate-mark-hook nil
   "Hook run when the mark becomes inactive.")

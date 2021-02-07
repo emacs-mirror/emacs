@@ -607,8 +607,8 @@ the function @code{use-region-p} for that (@pxref{The Region}).
 @defvarx deactivate-mark-hook
 These normal hooks are run, respectively, when the mark becomes active
 and when it becomes inactive.  The hook @code{activate-mark-hook} is
-also run at the end of the command loop if the mark is active and it
-is possible that the region may have changed.
+also run when the region is reactivated, for instance after using a
+command that switches back to a buffer that has an active mark.
 @ignore
 This piece of command_loop_1, run unless deactivating the mark:
   if (current_buffer != prev_buffer || MODIFF != prev_modiff)
