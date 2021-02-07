@@ -5759,21 +5759,34 @@ in OBJECT.  */)
   return CDR (collector);
 }
 
-DEFUN ("line-number-at-position", Fline_number_at_position,
-       Sline_number_at_position, 1, 1, 0,
+DEFUN ("line-number-at-pos", Fline_number_at_pos,
+       Sline_number_at_pos, 0, 2, 0,
        doc: /* Return the line number at POSITION.
+If POSITION is nil, use the current buffer location.
+
 If the buffer is narrowed, the position returned is the position in the
-visible part of the buffer.  */)
-  (register Lisp_Object position)
+visible part of the buffer.  If ABSOLUTE is non-nil, count the lines
+from the absolute start of the buffer.  */)
+  (register Lisp_Object position, Lisp_Object absolute)
 {
-  CHECK_FIXNUM (position);
-  ptrdiff_t pos = XFIXNUM (position);
+  ptrdiff_t pos, start = BEGV;
+
+  if (NILP (position))
+    pos = PT;
+  else
+    {
+      CHECK_FIXNUM (position);
+      pos = XFIXNUM (position);
+    }
+
+  if (!NILP (absolute))
+    start = BEG_BYTE;
 
   /* Check that POSITION is n the visible range of the buffer. */
   if (pos < BEGV || pos > ZV)
-    args_out_of_range (make_int (BEGV), make_int (ZV));
+    args_out_of_range (make_int (start), make_int (ZV));
 
-  return make_int (count_lines (BEGV_BYTE, CHAR_TO_BYTE (pos)) + 1);
+  return make_int (count_lines (start, CHAR_TO_BYTE (pos)) + 1);
 }
 
 
@@ -5817,7 +5830,7 @@ syms_of_fns (void)
   defsubr (&Sdefine_hash_table_test);
   defsubr (&Sstring_search);
   defsubr (&Sobject_intervals);
-  defsubr (&Sline_number_at_position);
+  defsubr (&Sline_number_at_pos);
 
   /* Crypto and hashing stuff.  */
   DEFSYM (Qiv_auto, "iv-auto");

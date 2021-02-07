@@ -1102,7 +1102,7 @@
 (ert-deftest test-line-number-at-position ()
   (with-temp-buffer
     (insert (make-string 10 ?\n))
-    (should (= (line-number-at-position (point)) 11))
-    (should-error (line-number-at-position nil))
-    (should-error (line-number-at-position -1))
-    (should-error (line-number-at-position 100))))
+    (should (= (line-number-at-pos (point)) 11))
+    (should (= (line-number-at-pos nil) 11))
+    (should-error (line-number-at-pos -1))
+    (should-error (line-number-at-pos 100))))
