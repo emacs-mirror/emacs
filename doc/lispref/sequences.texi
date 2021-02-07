@@ -594,7 +594,7 @@ returned value is a list.
 (seq-map-indexed (lambda (elt idx)
                    (list idx elt))
                  '(a b c))
-@result{} ((0 a) (b 1) (c 2))
+@result{} ((0 a) (1 b) (2 c))
 @end group
 @end example
 @end defun
