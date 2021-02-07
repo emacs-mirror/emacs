@@ -378,16 +378,17 @@ very chatty, but can be useful for debugging.")
 
 (defvar byte-optimize--lexvars nil
   "Lexical variables in scope, in reverse order of declaration.
-Each element is on the form (NAME CHANGED [VALUE]), where:
+Each element is on the form (NAME KEEP [VALUE]), where:
   NAME is the variable name,
-  CHANGED is a boolean indicating whether it's been changed (with setq),
+  KEEP is a boolean indicating whether the binding must be retained,
   VALUE, if present, is a substitutable expression.
 Earlier variables shadow later ones with the same name.")
 
 (defvar byte-optimize--vars-outside-condition nil
   "Alist of variables lexically bound outside conditionally executed code.
-Variables here are sensitive to mutation inside the condition, since such
-changes may not be effective for all code paths.
+Variables here are sensitive to mutation inside the conditional code,
+since their contents in sequentially later code depends on the path taken
+and may no longer be statically known.
 Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
 (defvar byte-optimize--vars-outside-loop nil
@@ -507,7 +508,9 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
       (`(,(or 'and 'or) . ,exps) ; Remember, and/or are control structures.
        ;; FIXME: We have to traverse the expressions in left-to-right
-       ;; order, but doing so we miss some optimisation opportunities:
+       ;; order (because that is the order of evaluation and variable
+       ;; mutations must be found prior to their use), but doing so we miss
+       ;; some optimisation opportunities:
        ;; consider (and A B) in a for-effect context, where B => nil.
        ;; Then A could be optimised in a for-effect context too.
        (let ((tail exps)
@@ -592,7 +595,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
       ;; Needed as long as we run byte-optimize-form after cconv.
       (`(internal-make-closure . ,_)
-       ;; Look up free vars and mark them as changed, so that they
+       ;; Look up free vars and mark them to be kept, so that they
        ;; won't be optimised away.
        (dolist (var (caddr form))
          (let ((lexvar (assq var byte-optimize--lexvars)))
@@ -627,10 +630,11 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
                    ;; We are in conditional code and the variable was
                    ;; bound outside: cancel substitutions.
                    (setcdr (cdr lexvar) nil)
+                 ;; Set a new value (if substitutable).
                  (setcdr (cdr lexvar)
                          (and (byte-optimize--substitutable-p value)
                               (list value))))
-               (setcar (cdr lexvar) t))   ; Mark variable as changed.
+               (setcar (cdr lexvar) t))   ; Mark variable to be kept.
              (push var var-expr-list)
              (push value var-expr-list))
            (setq args (cddr args)))
@@ -735,8 +739,9 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
         (let* ((opt-body (byte-optimize-body (cdr form) for-effect))
                (bindings nil))
           (dolist (var let-vars)
-            ;; VAR is (NAME EXPR [CHANGED [VALUE]])
+            ;; VAR is (NAME EXPR [KEEP [VALUE]])
             (if (and (nthcdr 3 var) (not (nth 2 var)))
+                ;; Value present and not marked to be kept: eliminate.
                 (when byte-optimize-warn-eliminated-variable
                   (byte-compile-warn "eliminating local variable %S" (car var)))
               (push (list (nth 0 var) (nth 1 var)) bindings)))
