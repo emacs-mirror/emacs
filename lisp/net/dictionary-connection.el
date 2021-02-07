@@ -23,14 +23,14 @@
 ;;; Commentary:
 
 ;; dictionary-connection allows to handle TCP-based connections in
-;; client mode where text-based information are exchanged. There is
+;; client mode where text-based information are exchanged.  There is
 ;; special support for handling CR LF (and the usual CR LF . CR LF
 ;; terminater).
 
 ;;; Code:
 
 (defsubst dictionary-connection-p (connection)
-  "Returns non-nil if CONNECTION is a connection object."
+  "Return non-nil if CONNECTION is a connection object."
   (get connection 'connection))
 
 (defsubst dictionary-connection-read-point (connection)
@@ -149,8 +149,7 @@ nil: argument is no connection object
 
 (defun dictionary-connection-read-to-point (connection)
   "Read from CONNECTION until an end of entry is encountered.
-End of entry is a decimal point found on a line by itself.
-"
+End of entry is a decimal point found on a line by itself."
   (dictionary-connection-read connection "\015?\012[.]\015?\012"))
 
 (provide 'dictionary-connection)
