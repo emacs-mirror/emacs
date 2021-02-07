@@ -48,6 +48,26 @@
     (should (= (count-words (point-min) (point-max)) 10))))
 
 
+;;; `count-lines'
+
+(ert-deftest simple-test-count-lines ()
+  (with-temp-buffer
+    (should (= (count-lines (point-min) (point-max)) 0))
+    (insert "foo")
+    (should (= (count-lines (point-min) (point-max)) 1))
+    (insert "\nbar\nbaz\n")
+    (should (= (count-lines (point-min) (point-max)) 3))
+    (insert "r\n")
+    (should (= (count-lines (point-min) (point-max)) 4))))
+
+(ert-deftest simple-test-count-lines/ignore-invisible-lines ()
+  (with-temp-buffer
+    (insert "foo\nbar")
+    (should (= (count-lines (point-min) (point-max) t) 2))
+    (insert (propertize "\nbar\nbaz\nzut" 'invisible t))
+    (should (= (count-lines (point-min) (point-max) t) 2))))
+
+
 ;;; `transpose-sexps'
 (defmacro simple-test--transpositions (&rest body)
   (declare (indent 0)
