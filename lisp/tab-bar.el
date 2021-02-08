@@ -89,8 +89,9 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   :set (lambda (sym val)
          (set-default sym val)
          ;; Reenable the tab-bar with new keybindings
-         (tab-bar-mode -1)
-         (tab-bar-mode 1))
+         (when tab-bar-mode
+           (tab-bar-mode -1)
+           (tab-bar-mode 1)))
   :group 'tab-bar
   :version "27.1")
 
@@ -134,21 +135,47 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
                                           :ascent center))
                          tab-bar-close-button)))
 
+(defun tab-bar--tab-bar-lines-for-frame (frame)
+  "Determine and return the value of `tab-bar-lines' for FRAME.
+Return 0 if `tab-bar-mode' is not enabled.  Otherwise return
+either 1 or 0 depending on the value of the customizable variable
+`tab-bar-show', which see."
+  (cond
+   ((not tab-bar-mode) 0)
+   ((not tab-bar-show) 0)
+   ((eq tab-bar-show t) 1)
+   ((natnump tab-bar-show)
+    (if (> (length (funcall tab-bar-tabs-function frame)) tab-bar-show) 1 0))))
+
+(defun tab-bar--update-tab-bar-lines (&optional frames)
+  "Update the `tab-bar-lines' parameter in frames.
+Update the tab-bar-lines frame parameter. If the optional
+parameter FRAMES is omitted, update only the currently selected
+frame.  If it is `t', update all frames as well as the default
+for new frames.  Otherwise FRAMES should be a list of frames to
+update."
+  (let ((frame-lst (cond ((null frames)
+                          (list (selected-frame)))
+                         ((eq frames t)
+                          (frame-list))
+                         (t frames))))
+    ;; Loop over all frames and update default-frame-alist
+    (dolist (frame frame-lst)
+      (set-frame-parameter frame 'tab-bar-lines (tab-bar--tab-bar-lines-for-frame frame))))
+  (when (eq frames t)
+    (setq default-frame-alist
+          (cons (cons 'tab-bar-lines (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
+                (assq-delete-all 'tab-bar-lines default-frame-alist)))))
+
 (define-minor-mode tab-bar-mode
   "Toggle the tab bar in all graphical frames (Tab Bar mode)."
   :global t
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
-  (let ((val (if tab-bar-mode 1 0)))
-    (dolist (frame (frame-list))
-      (set-frame-parameter frame 'tab-bar-lines val))
-    ;; If the user has given `default-frame-alist' a `tab-bar-lines'
-    ;; parameter, replace it.
-    (if (assq 'tab-bar-lines default-frame-alist)
-        (setq default-frame-alist
-              (cons (cons 'tab-bar-lines val)
-                    (assq-delete-all 'tab-bar-lines
-                                     default-frame-alist)))))
+
+  ;; Recalculate tab-bar-lines for all frames
+  (tab-bar--update-tab-bar-lines t)
+
   (when tab-bar-mode
     (tab-bar--load-buttons))
   (if tab-bar-mode
@@ -250,17 +277,9 @@ you can use the command `toggle-frame-tab-bar'."
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (set-default sym val)
-         ;; Preload button images
-         (tab-bar-mode 1)
-         ;; Then handle each frame individually
-         (dolist (frame (frame-list))
-           (set-frame-parameter
-            frame 'tab-bar-lines
-            (if (or (eq val t)
-                    (and (natnump val)
-                         (> (length (funcall tab-bar-tabs-function frame))
-                            val)))
-                1 0))))
+         (if val
+             (tab-bar-mode 1)
+           (tab-bar--update-tab-bar-lines t)))
   :group 'tab-bar
   :version "27.1")
 
@@ -852,16 +871,12 @@ After the tab is created, the hooks in
       (run-hook-with-args 'tab-bar-tab-post-open-functions
                           (nth to-index tabs)))
 
-    (cond
-     ((eq tab-bar-show t)
-      (tab-bar-mode 1))
-     ((and (natnump tab-bar-show)
-           (> (length (funcall tab-bar-tabs-function)) tab-bar-show)
-           (zerop (frame-parameter nil 'tab-bar-lines)))
-      (progn
-        (tab-bar--load-buttons)
-        (tab-bar--define-keys)
-        (set-frame-parameter nil 'tab-bar-lines 1))))
+    (when tab-bar-show
+      (if (not tab-bar-mode)
+          ;; Switch on tab-bar-mode, since a tab was created
+          ;; Note: This also updates tab-bar-lines
+          (tab-bar-mode 1)
+        (tab-bar--update-tab-bar-lines)))
 
     (force-mode-line-update)
     (unless tab-bar-mode
@@ -996,11 +1011,8 @@ for the last tab on a frame is determined by
                 tab-bar-closed-tabs)
           (set-frame-parameter nil 'tabs (delq close-tab tabs)))
 
-        (when (and (not (zerop (frame-parameter nil 'tab-bar-lines)))
-                   (natnump tab-bar-show)
-                   (<= (length (funcall tab-bar-tabs-function))
-                       tab-bar-show))
-          (set-frame-parameter nil 'tab-bar-lines 0))
+        ;; Recalculate tab-bar-lines and update frames
+        (tab-bar--update-tab-bar-lines)
 
         (force-mode-line-update)
         (unless tab-bar-mode
@@ -1036,11 +1048,8 @@ for the last tab on a frame is determined by
           (run-hook-with-args 'tab-bar-tab-pre-close-functions (nth index tabs) nil)))
       (set-frame-parameter nil 'tabs (list (nth current-index tabs)))
 
-      (when (and (not (zerop (frame-parameter nil 'tab-bar-lines)))
-                 (natnump tab-bar-show)
-                 (<= (length (funcall tab-bar-tabs-function))
-                     tab-bar-show))
-        (set-frame-parameter nil 'tab-bar-lines 0))
+      ;; Recalculate tab-bar-lines and update frames
+      (tab-bar--update-tab-bar-lines)
 
       (force-mode-line-update)
       (unless tab-bar-mode
