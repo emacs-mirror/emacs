@@ -25,8 +25,10 @@
 ;; For those who are annoyed by the mouse pointer obscuring text,
 ;; this mode moves the mouse pointer - either just a little out of
 ;; the way, or all the way to the corner of the frame.
-;; To use, load or evaluate this file and type M-x mouse-avoidance-mode .
-;; To set up permanently, put the following in your .emacs:
+;;
+;; To use, type `M-x mouse-avoidance-mode'.
+;;
+;; To set up permanently, put this in your .emacs:
 ;;
 ;; (if (display-mouse-p) (mouse-avoidance-mode 'animate))
 ;;
@@ -47,11 +49,6 @@
 ;;
 ;; For completely random pointer shape, replace the setq above with:
 ;; (setq x-pointer-shape (mouse-avoidance-random-shape))
-;;
-;; Bugs / Warnings / To-Do:
-;;
-;; - Using this code does slow Emacs down.  "banish" mode shouldn't
-;;   be too bad, and on my workstation even "animate" is reasonable.
 
 ;; Credits:
 ;; This code was helped by all those who contributed suggestions,
@@ -76,7 +73,7 @@
   "Activate Mouse Avoidance mode.
 See function `mouse-avoidance-mode' for possible values.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `mouse-avoidance-mode'."
+use either \\[customize] or \\[mouse-avoidance-mode]."
   :set (lambda (_symbol value)
 	 ;; 'none below prevents toggling when value is nil.
 	 (mouse-avoidance-mode (or value 'none)))
@@ -261,9 +258,9 @@ If you want the mouse banished to a different corner set
 	  (t 0))))
 
 (defun mouse-avoidance-nudge-mouse ()
-  ;; Push the mouse a little way away, possibly animating the move.
-  ;; For these modes, state keeps track of the total offset that we've
-  ;; accumulated, and tries to keep it close to zero.
+  "Push the mouse a little way away, possibly animating the move.
+For these modes, state keeps track of the total offset that we've
+accumulated, and tries to keep it close to zero."
   (let* ((cur (mouse-position))
 	 (cur-pos (cdr cur))
  	 (pos (window-edges))
@@ -375,7 +372,7 @@ redefine this function to suit your own tastes."
 	       (setq mouse-avoidance-state nil))))))
 
 (defun mouse-avoidance-fancy ()
-  ;; Used for the "fancy" modes, ie jump et al.
+  ;; Used for the "fancy" modes, i.e. jump et al.
   (if (and (not mouse-avoidance-animating-pointer)
 	   (not (mouse-avoidance-ignore-p))
 	   (mouse-avoidance-too-close-p (mouse-position)))
