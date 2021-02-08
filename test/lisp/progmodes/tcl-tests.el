@@ -74,7 +74,6 @@
 
 ;; From bug#44834
 (ert-deftest tcl-mode-namespace-indent-2 ()
-  :expected-result :failed
   (with-temp-buffer
     (tcl-mode)
     (let ((text "namespace eval Foo {\n    proc foo {} {}\n\n    proc bar {}{}}\n"))
