@@ -19452,8 +19452,11 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
      'start_display' again.  */
   ptrdiff_t it_charpos = IT_CHARPOS (it);
 
-  /* Don't let the cursor end in the scroll margins.  */
+  /* Don't let the cursor end in the scroll margins.  However, when
+     the window is vscrolled, we leave it to vscroll to handle the
+     margins, see window_scroll_pixel_based.  */
   if ((flags & TRY_WINDOW_CHECK_MARGINS)
+      && w->vscroll == 0
       && !MINI_WINDOW_P (w))
     {
       int top_scroll_margin = window_scroll_margin (w, MARGIN_IN_PIXELS);
@@ -19462,7 +19465,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
 	top_scroll_margin += CURRENT_HEADER_LINE_HEIGHT (w);
       start_display (&it, w, pos);
 
-      if ((w->cursor.y >= 0	/* not vscrolled */
+      if ((w->cursor.y >= 0
 	   && w->cursor.y < top_scroll_margin
 	   && CHARPOS (pos) > BEGV)
 	  /* rms: considering make_cursor_line_fully_visible_p here
