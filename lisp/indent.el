@@ -525,7 +525,7 @@ From the beginning of the line, moves past the left-margin indentation, the
 fill-prefix, and any indentation used for centering or right-justifying the
 line, but does not move past any whitespace that was explicitly inserted
 \(such as a tab used to indent the first line of a paragraph)."
-  (interactive "p")
+  (interactive "^p")
   (beginning-of-line n)
   (skip-chars-forward " \t")
   ;; Skip over fill-prefix.
