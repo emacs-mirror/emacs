@@ -1418,6 +1418,7 @@ if `inhibit-field-text-motion' is non-nil."
     (define-key map "g" #'revert-buffer)
     (define-key map "r" #'rename-buffer)
     (define-key map "u" #'rename-uniquely)
+    (define-key map "n" #'clone-buffer)
     (define-key map "i" #'insert-buffer)
     (define-key map "t" #'toggle-truncate-lines)
     map)

@@ -241,8 +241,9 @@ search buffer due to too many matches being highlighted.
 ** A new keymap for buffer actions has been added.
 The 'C-x x' keymap now holds keystrokes for various buffer-oriented
 commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
-'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'),
-'C-x x i' ('insert-buffer') and 'C-x x t' ('toggle-truncate-lines').
+'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'), 'C-x x n'
+('clone-buffer'), 'C-x x i' ('insert-buffer') and 'C-x x t'
+('toggle-truncate-lines').
 
 
 * Editing Changes in Emacs 28.1
