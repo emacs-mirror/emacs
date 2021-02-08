@@ -7894,7 +7894,8 @@ If the text at point has a `gnus-callback' property,
 call it with the value of the `gnus-data' text property."
   (interactive (list last-nonmenu-event))
   (save-excursion
-    (mouse-set-point event)
+    (when event
+      (mouse-set-point event))
     (let ((fun (get-text-property (point) 'gnus-callback)))
       (when fun
         (funcall fun (get-text-property (point) 'gnus-data))))))
