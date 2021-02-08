@@ -186,7 +186,6 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
 
 (defvar enriched-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap move-beginning-of-line] 'beginning-of-line-text)
     (define-key map "\C-m" 'reindent-then-newline-and-indent)
     (define-key map
       [remap newline-and-indent] 'reindent-then-newline-and-indent)
