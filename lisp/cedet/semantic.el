@@ -77,13 +77,12 @@ introduced."
 
 ;;; Variables and Configuration
 ;;
-(defvar semantic--parse-table nil
+(defvar-local semantic--parse-table nil
   "Variable that defines how to parse top level items in a buffer.
 This variable is for internal use only, and its content depends on the
 external parser used.")
-(make-variable-buffer-local 'semantic--parse-table)
 
-(defvar semantic-symbol->name-assoc-list
+(defvar-local semantic-symbol->name-assoc-list
   '((type     . "Types")
     (variable . "Variables")
     (function . "Functions")
@@ -95,22 +94,19 @@ It is sometimes useful for a language to use a different string
 in place of the default, even though that language will still
 return a symbol.  For example, Java return's includes, but the
 string can be replaced with `Imports'.")
-(make-variable-buffer-local 'semantic-symbol->name-assoc-list)
 
-(defvar semantic-symbol->name-assoc-list-for-type-parts nil
+(defvar-local semantic-symbol->name-assoc-list-for-type-parts nil
   "Like `semantic-symbol->name-assoc-list' for type parts.
 Some tags that have children (see `semantic-tag-children-compatibility')
 will want to define the names of classes of tags differently than at
 the top level.  For example, in C++, a Function may be called a
 Method.  In addition, there may be new types of tags that exist only
 in classes, such as protection labels.")
-(make-variable-buffer-local 'semantic-symbol->name-assoc-list-for-type-parts)
 
-(defvar semantic-case-fold nil
+(defvar-local semantic-case-fold nil
   "Value for `case-fold-search' when parsing.")
-(make-variable-buffer-local 'semantic-case-fold)
 
-(defvar semantic--buffer-cache nil
+(defvar-local semantic--buffer-cache nil
   "A cache of the fully parsed buffer.
 If no significant changes have been made (based on the state) then
 this is returned instead of re-parsing the buffer.
@@ -120,16 +116,13 @@ this is returned instead of re-parsing the buffer.
 If you need a tag list, use `semantic-fetch-tags'.  If you need the
 cached values for some reason, chances are you can add a hook to
 `semantic-after-toplevel-cache-change-hook'.")
-(make-variable-buffer-local 'semantic--buffer-cache)
 
-(defvar semantic-unmatched-syntax-cache nil
+(defvar-local semantic-unmatched-syntax-cache nil
   "A cached copy of unmatched syntax tokens.")
-(make-variable-buffer-local 'semantic-unmatched-syntax-cache)
 
-(defvar semantic-unmatched-syntax-cache-check nil
+(defvar-local semantic-unmatched-syntax-cache-check nil
   "Non-nil if the unmatched syntax cache is out of date.
 This is tracked with `semantic-change-function'.")
-(make-variable-buffer-local 'semantic-unmatched-syntax-cache-check)
 
 (defvar semantic-edits-are-safe nil
   "When non-nil, modifications do not require a reparse.
@@ -180,19 +173,16 @@ during a flush when the cache is given a new value of nil.")
   :group 'semantic
   :type 'boolean)
 
-(defvar semantic-parser-name "LL"
+(defvar-local semantic-parser-name "LL"
   "Optional name of the parser used to parse input stream.")
-(make-variable-buffer-local 'semantic-parser-name)
 
-(defvar semantic--completion-cache nil
+(defvar-local semantic--completion-cache nil
   "Internal variable used by `semantic-complete-symbol'.")
-(make-variable-buffer-local 'semantic--completion-cache)
 
 ;;; Parse tree state management API
 ;;
-(defvar semantic-parse-tree-state 'needs-rebuild
+(defvar-local semantic-parse-tree-state 'needs-rebuild
   "State of the current parse tree.")
-(make-variable-buffer-local 'semantic-parse-tree-state)
 
 (defmacro semantic-parse-tree-unparseable ()
   "Indicate that the current buffer is unparseable.
@@ -268,9 +258,8 @@ These functions are called by `semantic-new-buffer-fcn', before
 (defvar semantic-init-hook nil
   "Hook run when a buffer is initialized with a parsing table.")
 
-(defvar semantic-init-mode-hook nil
+(defvar-local semantic-init-mode-hook nil
   "Hook run when a buffer of a particular mode is initialized.")
-(make-variable-buffer-local 'semantic-init-mode-hook)
 
 (defvar semantic-init-db-hook nil
   "Hook run when a buffer is initialized with a parsing table for DBs.
@@ -729,9 +718,8 @@ This function returns semantic tags without overlays."
 ;;
 ;; Any parser can use this API to provide a list of warnings during a
 ;; parse which a user may want to investigate.
-(defvar semantic-parser-warnings nil
+(defvar-local semantic-parser-warnings nil
   "A list of parser warnings since the last full reparse.")
-(make-variable-buffer-local 'semantic-parser-warnings)
 
 (defun semantic-clear-parser-warnings ()
   "Clear the current list of parser warnings for this buffer."

@@ -860,9 +860,8 @@ If LIMIT is non-nil, show no more than this many entries."
   (vc-bzr-command "mv" nil 0 new old)
   (message "Renamed %s => %s" old new))
 
-(defvar vc-bzr-annotation-table nil
+(defvar-local vc-bzr-annotation-table nil
   "Internal use.")
-(make-variable-buffer-local 'vc-bzr-annotation-table)
 
 (defun vc-bzr-annotate-command (file buffer &optional revision)
   "Prepare BUFFER for `vc-annotate' on FILE.

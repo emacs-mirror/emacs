@@ -3148,7 +3148,7 @@ REGEXP should use constructs supported by your local `grep' command."
   (with-current-buffer
       (let ((xref-show-xrefs-function
              ;; Some future-proofing (bug#44905).
-             (eval (car (get 'xref-show-xrefs-function 'standard-value)))))
+             (custom--standard-value 'xref-show-xrefs-function)))
         (dired-do-find-regexp from))
     (xref-query-replace-in-results from to)))
 

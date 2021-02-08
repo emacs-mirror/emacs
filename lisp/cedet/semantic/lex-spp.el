@@ -73,28 +73,24 @@
 (declare-function c-end-of-macro "cc-engine")
 
 ;;; Code:
-(defvar semantic-lex-spp-macro-symbol-obarray nil
+(defvar-local semantic-lex-spp-macro-symbol-obarray nil
   "Table of macro keywords used by the Semantic Preprocessor.
 These symbols will be used in addition to those in
 `semantic-lex-spp-dynamic-macro-symbol-obarray'.")
-(make-variable-buffer-local 'semantic-lex-spp-macro-symbol-obarray)
 
-(defvar semantic-lex-spp-project-macro-symbol-obarray nil
+(defvar-local semantic-lex-spp-project-macro-symbol-obarray nil
   "Table of macro keywords for this project.
 These symbols will be used in addition to those in
 `semantic-lex-spp-dynamic-macro-symbol-obarray'.")
-(make-variable-buffer-local 'semantic-lex-spp-project-macro-symbol-obarray)
 
-(defvar semantic-lex-spp-dynamic-macro-symbol-obarray nil
+(defvar-local semantic-lex-spp-dynamic-macro-symbol-obarray nil
   "Table of macro keywords used during lexical analysis.
 Macros are lexical symbols which are replaced by other lexical
 tokens during lexical analysis.  During analysis symbols can be
 added and removed from this symbol table.")
-(make-variable-buffer-local 'semantic-lex-spp-dynamic-macro-symbol-obarray)
 
-(defvar semantic-lex-spp-dynamic-macro-symbol-obarray-stack nil
+(defvar-local semantic-lex-spp-dynamic-macro-symbol-obarray-stack nil
   "A stack of obarrays for temporarily scoped macro values.")
-(make-variable-buffer-local 'semantic-lex-spp-dynamic-macro-symbol-obarray-stack)
 
 (defvar semantic-lex-spp-expanded-macro-stack nil
   "The stack of lexical SPP macros we have expanded.")

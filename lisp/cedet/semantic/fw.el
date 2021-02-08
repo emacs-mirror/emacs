@@ -243,9 +243,8 @@ Avoid using a large BODY since it is duplicated."
 ;;; Misc utilities
 ;;
 
-(defvar semantic-new-buffer-fcn-was-run nil
+(defvar-local semantic-new-buffer-fcn-was-run nil
   "Non-nil after `semantic-new-buffer-fcn' has been executed.")
-(make-variable-buffer-local 'semantic-new-buffer-fcn-was-run)
 
 (defsubst semantic-active-p ()
   "Return non-nil if the current buffer was set up for parsing."

@@ -38,21 +38,18 @@
 If nil, default to `gravatar-size'."
   :type '(choice (const :tag "Default" nil)
                  (integer :tag "Pixels"))
-  :version "24.1"
-  :group 'gnus-gravatar)
+  :version "24.1")
 
 (defcustom gnus-gravatar-properties '(:ascent center :relief 1)
   "List of image properties applied to Gravatar images."
   :type 'plist
-  :version "24.1"
-  :group 'gnus-gravatar)
+  :version "24.1")
 
 (defcustom gnus-gravatar-too-ugly gnus-article-x-face-too-ugly
   "Regexp matching posters whose avatar shouldn't be shown automatically.
 If nil, show all avatars."
   :type '(choice regexp (const :tag "Allow all" nil))
-  :version "24.1"
-  :group 'gnus-gravatar)
+  :version "24.1")
 
 (defun gnus-gravatar-transform-address (header category &optional force)
   (gnus-with-article-headers

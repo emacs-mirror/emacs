@@ -30,21 +30,14 @@
 ;; Type `C-h m' when you are editing a .COM file to get more
 ;; information about this mode.
 ;;
-;; To use templates you will need a version of tempo.el that is at
-;; least later than the buggy 1.1.1, which was included with my versions of
-;; Emacs.  I used version 1.2.4.
-;; The latest tempo.el distribution can be fetched from
-;; ftp.lysator.liu.se in the directory /pub/emacs.
+;; Support for templates is based on the built-in tempo.el.
 ;; I recommend setting (setq tempo-interactive t).  This will make
 ;; tempo prompt you for values to put in the blank spots in the templates.
 ;;
-;; There is limited support for imenu.  The limitation is that you need
-;; a version of imenu.el that uses imenu-generic-expression.  I found
-;; the version I use in Emacs 19.30.  (It was *so* much easier to hook
-;; into that version than the one in 19.27...)
+;; There is limited support for imenu.
 ;;
 ;; Any feedback will be welcomed.  If you write functions for
-;; dcl-calc-command-indent-function or dcl-calc-cont-indent-function,
+;; `dcl-calc-command-indent-function' or `dcl-calc-cont-indent-function',
 ;; please send them to the maintainer.
 ;;
 ;;
@@ -349,13 +342,10 @@ See `imenu-generic-expression' for details."
       '("End of statement" . dcl-forward-command))
     (define-key map [menu-bar dcl dcl-backward-command]
       '("Beginning of statement" . dcl-backward-command))
-    ;; imenu is only supported for versions with imenu-generic-expression
-    (if (boundp 'imenu-generic-expression)
-        (progn
-          (define-key map [menu-bar dcl dcl-separator-movement]
-            '("--"))
-          (define-key map [menu-bar dcl imenu]
-            '("Buffer index menu" . imenu))))
+    (define-key map [menu-bar dcl dcl-separator-movement]
+      '("--"))
+    (define-key map [menu-bar dcl imenu]
+      '("Buffer index menu" . imenu))
     map)
   "Keymap used in DCL-mode buffers.")
 
@@ -463,8 +453,7 @@ Preloaded with all known option names from dcl-option-alist")
 
 ;The default includes SUBROUTINE labels in the main listing and
 ;sub-listings for other labels, CALL, GOTO and GOSUB statements.
-;See `imenu-generic-expression' in a recent (e.g. Emacs 19.30) imenu.el
-;for details.")
+;See `imenu-generic-expression' for details.")
 
 
 ;;; *** Mode initialization *************************************************
@@ -600,9 +589,8 @@ There is some minimal font-lock support (see vars
   ;; and something inappropriate might be interpreted as a comment.
   (setq-local comment-start-skip "\\$[ \t]*![ \t]*")
 
-  (if (boundp 'imenu-generic-expression)
-      (progn (setq imenu-generic-expression dcl-imenu-generic-expression)
-             (setq imenu-case-fold-search t)))
+  (setq imenu-generic-expression dcl-imenu-generic-expression)
+  (setq imenu-case-fold-search t)
   (setq imenu-create-index-function 'dcl-imenu-create-index-function)
 
   (make-local-variable 'dcl-comment-line-regexp)

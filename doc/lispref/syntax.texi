@@ -573,10 +573,11 @@ and by Font Lock mode during syntactic fontification (@pxref{Syntactic
 Font Lock}).  It is called with two arguments, @var{start} and
 @var{end}, which are the starting and ending positions of the text on
 which it should act.  It is allowed to call @code{syntax-ppss} on any
-position before @var{end}.  However, it should not call
-@code{syntax-ppss-flush-cache}; so, it is not allowed to call
-@code{syntax-ppss} on some position and later modify the buffer at an
-earlier position.
+position before @var{end}, but if a Lisp program calls
+@code{syntax-ppss} on some position and later modifies the buffer at
+some earlier position, then it is that program's responsibility to
+call @code{syntax-ppss-flush-cache} to flush the now obsolete info
+from the cache.
 
 @strong{Caution:} When this variable is non-@code{nil}, Emacs removes
 @code{syntax-table} text properties arbitrarily and relies on

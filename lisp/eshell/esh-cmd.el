@@ -1001,7 +1001,7 @@ be finished later after the completion of an asynchronous subprocess."
     ;; expand any macros directly into the form.  This is done so that
     ;; we can modify any `let' forms to evaluate only once.
     (if (macrop (car form))
-	(let ((exp (eshell-copy-tree (macroexpand form))))
+        (let ((exp (copy-tree (macroexpand form))))
 	  (eshell-manipulate (format-message "expanding macro `%s'"
 					     (symbol-name (car form)))
 	    (setcar form (car exp))
@@ -1009,7 +1009,7 @@ be finished later after the completion of an asynchronous subprocess."
     (let ((args (cdr form)))
       (cond
        ((eq (car form) 'while)
-	;; `eshell-copy-tree' is needed here so that the test argument
+        ;; `copy-tree' is needed here so that the test argument
 	;; doesn't get modified and thus always yield the same result.
 	(when (car eshell-command-body)
 	  (cl-assert (not synchronous-p))
@@ -1017,27 +1017,27 @@ be finished later after the completion of an asynchronous subprocess."
 	  (setcar eshell-command-body nil)
 	  (setcar eshell-test-body nil))
 	(unless (car eshell-test-body)
-	  (setcar eshell-test-body (eshell-copy-tree (car args))))
+          (setcar eshell-test-body (copy-tree (car args))))
 	(while (cadr (eshell-do-eval (car eshell-test-body)))
 	  (setcar eshell-command-body
                   (if (cddr args)
-                      `(progn ,@(eshell-copy-tree (cdr args)))
-                    (eshell-copy-tree (cadr args))))
+                      `(progn ,@(copy-tree (cdr args)))
+                    (copy-tree (cadr args))))
 	  (eshell-do-eval (car eshell-command-body) synchronous-p)
 	  (setcar eshell-command-body nil)
-	  (setcar eshell-test-body (eshell-copy-tree (car args))))
+          (setcar eshell-test-body (copy-tree (car args))))
 	(setcar eshell-command-body nil))
        ((eq (car form) 'if)
-	;; `eshell-copy-tree' is needed here so that the test argument
+        ;; `copy-tree' is needed here so that the test argument
 	;; doesn't get modified and thus always yield the same result.
 	(if (car eshell-command-body)
 	    (progn
 	      (cl-assert (not synchronous-p))
 	      (eshell-do-eval (car eshell-command-body)))
 	  (unless (car eshell-test-body)
-	    (setcar eshell-test-body (eshell-copy-tree (car args))))
+            (setcar eshell-test-body (copy-tree (car args))))
 	  (setcar eshell-command-body
-                  (eshell-copy-tree
+                  (copy-tree
                    (if (cadr (eshell-do-eval (car eshell-test-body)))
                        (cadr args)
                      (car (cddr args)))))

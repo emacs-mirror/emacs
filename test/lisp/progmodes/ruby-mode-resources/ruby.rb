@@ -108,7 +108,7 @@ foo(                            # ruby-deep-indent-disabled
 # Multiline regexp.
 /bars
  tees # toots
- nfoos/
+ nfoos::/
 
 def test1(arg)
   puts "hello"

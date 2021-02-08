@@ -32,13 +32,15 @@
    (purecopy (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") ""))
       "3"
     ""))
-   "The kind of Korean keyboard for Korean input method.
-\"\" for 2, \"3\" for 3.")
+   "The kind of Korean keyboard for Korean (Hangul) input method.
+\"\" for 2, \"3\" for 3, and \"3f\" for 3f.")
 
 ;; functions useful for Korean text input
 
 (defun toggle-korean-input-method ()
-  "Turn on or off a Korean text input method for the current buffer."
+  "Turn on or off a Korean text input method for the current buffer.
+The keyboard layout variation used is determined by
+`default-korean-keyboard'."
   (interactive)
   (if current-input-method
       (deactivate-input-method)
@@ -46,7 +48,9 @@
      (concat "korean-hangul" default-korean-keyboard))))
 
 (defun quail-hangul-switch-symbol-ksc (&rest _ignore)
-  "Switch to/from Korean symbol package."
+  "Switch to/from Korean symbol package.
+The keyboard layout variation used is determined by
+`default-korean-keyboard'."
   (interactive "i")
   (and current-input-method
        (if (string-equal current-input-method "korean-symbol")
@@ -55,7 +59,9 @@
 	 (activate-input-method "korean-symbol"))))
 
 (defun quail-hangul-switch-hanja (&rest _ignore)
-  "Switch to/from Korean hanja package."
+  "Switch to/from Korean hanja package.
+The keyboard layout variation used is determined by
+`default-korean-keyboard'."
   (interactive "i")
   (and current-input-method
        (if (string-match "korean-hanja" current-input-method)

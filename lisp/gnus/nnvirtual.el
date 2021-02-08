@@ -1,4 +1,4 @@
-;;; nnvirtual.el --- virtual newsgroups access for Gnus
+;;; nnvirtual.el --- virtual newsgroups access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
@@ -94,8 +94,8 @@ It is computed from the marks of individual component groups.")
 (nnoo-define-basics nnvirtual)
 
 
-(deffoo nnvirtual-retrieve-headers (articles &optional newsgroup
-					     server fetch-old)
+(deffoo nnvirtual-retrieve-headers (articles &optional _newsgroup
+					     server _fetch-old)
   (when (nnvirtual-possibly-change-server server)
     (with-current-buffer nntp-server-buffer
       (erase-buffer)
@@ -186,7 +186,7 @@ It is computed from the marks of individual component groups.")
 
 (defvoo nnvirtual-last-accessed-component-group nil)
 
-(deffoo nnvirtual-request-article (article &optional group server buffer)
+(deffoo nnvirtual-request-article (article &optional _group server buffer)
   (when (nnvirtual-possibly-change-server server)
     (if (stringp article)
 	;; This is a fetch by Message-ID.
@@ -250,7 +250,7 @@ It is computed from the marks of individual component groups.")
       t)))
 
 
-(deffoo nnvirtual-request-group (group &optional server dont-check info)
+(deffoo nnvirtual-request-group (group &optional server dont-check _info)
   (nnvirtual-possibly-change-server server)
   (setq nnvirtual-component-groups
 	(delete (nnvirtual-current-group) nnvirtual-component-groups))
@@ -269,7 +269,7 @@ It is computed from the marks of individual component groups.")
 		     nnvirtual-mapping-len nnvirtual-mapping-len group))))
 
 
-(deffoo nnvirtual-request-type (group &optional article)
+(deffoo nnvirtual-request-type (_group &optional article)
   (if (not article)
       'unknown
     (if (numberp article)
@@ -279,7 +279,7 @@ It is computed from the marks of individual component groups.")
       (gnus-request-type
        nnvirtual-last-accessed-component-group nil))))
 
-(deffoo nnvirtual-request-update-mark (group article mark)
+(deffoo nnvirtual-request-update-mark (_group article mark)
   (let* ((nart (nnvirtual-map-article article))
 	 (cgroup (car nart)))
     (when (and nart
@@ -291,22 +291,22 @@ It is computed from the marks of individual component groups.")
   mark)
 
 
-(deffoo nnvirtual-close-group (group &optional server)
+(deffoo nnvirtual-close-group (_group &optional server)
   (when (and (nnvirtual-possibly-change-server server)
 	     (not (gnus-ephemeral-group-p (nnvirtual-current-group))))
     (nnvirtual-update-read-and-marked t t))
   t)
 
 
-(deffoo nnvirtual-request-newgroups (date &optional server)
+(deffoo nnvirtual-request-newgroups (_date &optional _server)
   (nnheader-report 'nnvirtual "NEWGROUPS is not supported."))
 
 
-(deffoo nnvirtual-request-list-newsgroups (&optional server)
+(deffoo nnvirtual-request-list-newsgroups (&optional _server)
   (nnheader-report 'nnvirtual "LIST NEWSGROUPS is not implemented."))
 
 
-(deffoo nnvirtual-request-update-info (group info &optional server)
+(deffoo nnvirtual-request-update-info (_group info &optional server)
   (when (and (nnvirtual-possibly-change-server server)
 	     (not nnvirtual-info-installed))
     ;; Install the precomputed lists atomically, so the virtual group
@@ -321,7 +321,7 @@ It is computed from the marks of individual component groups.")
     t))
 
 
-(deffoo nnvirtual-catchup-group (group &optional server all)
+(deffoo nnvirtual-catchup-group (_group &optional server all)
   (when (and (nnvirtual-possibly-change-server server)
 	     (not (gnus-ephemeral-group-p (nnvirtual-current-group))))
     ;; copy over existing marks first, in case they set anything
@@ -339,12 +339,12 @@ It is computed from the marks of individual component groups.")
 	(gnus-group-catchup-current nil all)))))
 
 
-(deffoo nnvirtual-find-group-art (group article)
+(deffoo nnvirtual-find-group-art (_group article)
   "Return the real group and article for virtual GROUP and ARTICLE."
   (nnvirtual-map-article article))
 
 
-(deffoo nnvirtual-request-post (&optional server)
+(deffoo nnvirtual-request-post (&optional _server)
   (if (not gnus-message-group-art)
       (nnheader-report 'nnvirtual "Can't post to an nnvirtual group")
     (let ((group (car (nnvirtual-find-group-art
@@ -353,8 +353,8 @@ It is computed from the marks of individual component groups.")
       (gnus-request-post (gnus-find-method-for-group group)))))
 
 
-(deffoo nnvirtual-request-expire-articles (articles group
-						    &optional server force)
+(deffoo nnvirtual-request-expire-articles ( _articles _group
+					    &optional server _force)
   (nnvirtual-possibly-change-server server)
   (setq nnvirtual-component-groups
 	(delete (nnvirtual-current-group) nnvirtual-component-groups))
@@ -367,7 +367,7 @@ It is computed from the marks of individual component groups.")
 				   group article))
 			      (gnus-uncompress-range
 			       (gnus-group-expire-articles-1 group))))))
-    (sort (delq nil unexpired) '<)))
+    (sort (delq nil unexpired) #'<)))
 
 
 ;;; Internal functions.
@@ -378,7 +378,7 @@ It is computed from the marks of individual component groups.")
     (let* ((dependencies (make-hash-table :test #'equal))
 	   (headers (gnus-get-newsgroup-headers dependencies)))
       (erase-buffer)
-      (mapc 'nnheader-insert-nov headers))))
+      (mapc #'nnheader-insert-nov headers))))
 
 
 (defun nnvirtual-update-xref-header (group article prefix sysname)
@@ -502,7 +502,7 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
   "Merge many sorted lists of numbers."
   (if (null (cdr lists))
       (car lists)
-    (sort (apply 'nconc lists) '<)))
+    (sort (apply #'nconc lists) #'<)))
 
 
 ;; We map between virtual articles and real articles in a manner
@@ -648,7 +648,7 @@ numbers has no corresponding component article, then it is left out of
 the result."
   (when (numberp (cdr-safe articles))
     (setq articles (list articles)))
-  (let ((carticles (mapcar 'list nnvirtual-component-groups))
+  (let ((carticles (mapcar #'list nnvirtual-component-groups))
 	a i j article entry)
     (while (setq a (pop articles))
       (if (atom a)
@@ -750,7 +750,7 @@ based on the marks on the component groups."
     ;; Now that the mapping tables are generated, we can convert
     ;; and combine the separate component unreads and marks lists
     ;; into single lists of virtual article numbers.
-    (setq unreads (apply 'nnvirtual-merge-sorted-lists
+    (setq unreads (apply #'nnvirtual-merge-sorted-lists
 			 (mapcar (lambda (x)
 				   (nnvirtual-reverse-map-sequence
 				    (car x) (cdr x)))
@@ -760,7 +760,7 @@ based on the marks on the component groups."
 		   (cons (cdr type)
 			 (gnus-compress-sequence
 			  (apply
-			   'nnvirtual-merge-sorted-lists
+			   #'nnvirtual-merge-sorted-lists
 			   (mapcar (lambda (x)
 				     (nnvirtual-reverse-map-sequence
 				      (car x)

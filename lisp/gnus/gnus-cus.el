@@ -1,4 +1,4 @@
-;;; gnus-cus.el --- customization commands for Gnus
+;;; gnus-cus.el --- customization commands for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 1999-2021 Free Software Foundation, Inc.
 
@@ -417,7 +417,7 @@ category."))
 	  (setq tmp (cdr tmp))))
 
       (setq gnus-custom-params
-            (apply 'widget-create 'group
+            (apply #'widget-create 'group
                    :value values
                    (delq nil
                          (list `(set :inline t
@@ -483,7 +483,7 @@ form, but who cares?"
     (buffer-enable-undo)
     (goto-char (point-min))))
 
-(defun gnus-group-customize-done (&rest ignore)
+(defun gnus-group-customize-done (&rest _ignore)
   "Apply changes and bury the buffer."
   (interactive)
   (let ((params (widget-value gnus-custom-params)))
@@ -927,7 +927,7 @@ articles in the thread.
     (use-local-map widget-keymap)
     (widget-setup)))
 
-(defun gnus-score-customize-done (&rest ignore)
+(defun gnus-score-customize-done (&rest _ignore)
   "Reset the score alist with the present value."
   (let ((alist gnus-custom-score-alist)
 	(value (widget-value gnus-custom-scores)))
@@ -1027,14 +1027,15 @@ articles in the thread.
         (widget-create
          'push-button
          :notify
-         (lambda (&rest ignore)
+         (lambda (&rest _ignore)
            (let* ((info (assq gnus-agent-cat-name gnus-category-alist))
                   (widgets category-fields))
              (while widgets
                (let* ((widget (pop widgets))
                       (value (condition-case nil (widget-value widget) (error))))
                  (eval `(setf (,(widget-get widget :accessor) ',info)
-                              ',value)))))
+                              ',value)
+                       t))))
            (gnus-category-write)
            (gnus-kill-buffer (current-buffer))
            (when (get-buffer gnus-category-buffer)

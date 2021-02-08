@@ -1161,6 +1161,7 @@ a previously found match."
     (define-key map "\C-o" 'occur-mode-display-occurrence)
     (define-key map "n" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
+    (define-key map "l" 'recenter-current-error)
     (define-key map "\M-n" 'occur-next)
     (define-key map "\M-p" 'occur-prev)
     (define-key map "r" 'occur-rename-buffer)
@@ -1545,7 +1546,10 @@ You can add this to `occur-hook' if you always want a separate
   (with-current-buffer
       (if (eq major-mode 'occur-mode) (current-buffer) (get-buffer "*Occur*"))
     (rename-buffer (concat "*Occur: "
-                           (mapconcat #'buffer-name
+                           (mapconcat (lambda (boo)
+                                        (buffer-name (if (overlayp boo)
+                                                         (overlay-buffer boo)
+                                                       boo)))
                                       (car (cddr occur-revert-arguments)) "/")
                            "*")
                    (or unique-p (not interactive-p)))))
@@ -1779,7 +1783,8 @@ See also `multi-occur'."
 			       42)
 			    (window-width))
 			 "" (occur-regexp-descr regexp))))
-          (occur--garbage-collect-revert-args)
+          (unless (eq bufs (nth 2 occur-revert-arguments))
+            (occur--garbage-collect-revert-args))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
           (if (= count 0)
               (kill-buffer occur-buf)

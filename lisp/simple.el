@@ -134,10 +134,9 @@ messages are highlighted; this helps to see what messages were visited."
   :group 'next-error
   :version "28.1")
 
-(defvar next-error--message-highlight-overlay
+(defvar-local next-error--message-highlight-overlay
   nil
   "Overlay highlighting the current error message in the `next-error' buffer.")
-(make-variable-buffer-local 'next-error--message-highlight-overlay)
 
 (defcustom next-error-hook nil
   "List of hook functions run by `next-error' after visiting source file."
@@ -165,15 +164,14 @@ A buffer becomes most recent when its compilation, grep, or
 similar mode is started, or when it is used with \\[next-error]
 or \\[compile-goto-error].")
 
-(defvar next-error-buffer nil
+(defvar-local next-error-buffer nil
   "The buffer-local value of the most recent `next-error' buffer.")
 ;; next-error-buffer is made buffer-local to keep the reference
 ;; to the parent buffer used to navigate to the current buffer, so the
 ;; next call of next-buffer will use the same parent buffer to
 ;; continue navigation from it.
-(make-variable-buffer-local 'next-error-buffer)
 
-(defvar next-error-function nil
+(defvar-local next-error-function nil
   "Function to use to find the next error in the current buffer.
 The function is called with 2 parameters:
 ARG is an integer specifying by how many errors to move.
@@ -182,15 +180,13 @@ of the errors before moving.
 Major modes providing compile-like functionality should set this variable
 to indicate to `next-error' that this is a candidate buffer and how
 to navigate in it.")
-(make-variable-buffer-local 'next-error-function)
 
-(defvar next-error-move-function nil
+(defvar-local next-error-move-function nil
   "Function to use to move to an error locus.
 It takes two arguments, a buffer position in the error buffer
 and a buffer position in the error locus buffer.
 The buffer for the error locus should already be current.
 nil means use goto-char using the second argument position.")
-(make-variable-buffer-local 'next-error-move-function)
 
 (defsubst next-error-buffer-p (buffer
 			       &optional avoid-current
@@ -496,6 +492,16 @@ buffer causes automatic display of the corresponding source code location."
         (overlay-put ol 'window (get-buffer-window))
         (setf next-error--message-highlight-overlay ol)))))
 
+(defun recenter-current-error (&optional arg)
+  "Recenter the current displayed error in the `next-error' buffer."
+  (interactive "P")
+  (save-selected-window
+    (let ((next-error-highlight next-error-highlight-no-select)
+          (display-buffer-overriding-action
+           '(nil (inhibit-same-window . t))))
+      (next-error 0)
+      (set-buffer (window-buffer))
+      (recenter-top-bottom arg))))
 
 ;;;
 
@@ -1268,9 +1274,8 @@ that uses or sets the mark."
 
 ;; Counting lines, one way or another.
 
-(defvar goto-line-history nil
+(defvar-local goto-line-history nil
   "History of values entered with `goto-line'.")
-(make-variable-buffer-local 'goto-line-history)
 
 (defun goto-line-read-args (&optional relative)
   "Read arguments for `goto-line' related commands."
@@ -1448,9 +1453,9 @@ included in the count."
   (save-excursion
     (save-restriction
       (narrow-to-region start end)
-      (goto-char (point-min))
       (cond ((and (not ignore-invisible-lines)
                   (eq selective-display t))
+             (goto-char (point-min))
 	     (save-match-data
 	       (let ((done 0))
 		 (while (re-search-forward "\n\\|\r[^\n]" nil t 40)
@@ -1463,6 +1468,7 @@ included in the count."
 		     (1+ done)
 		   done))))
 	    (ignore-invisible-lines
+             (goto-char (point-min))
 	     (save-match-data
 	       (- (buffer-size)
                   (forward-line (buffer-size))
@@ -1477,27 +1483,11 @@ included in the count."
 			        (assq prop buffer-invisibility-spec)))
 			  (setq invisible-count (1+ invisible-count))))
 		    invisible-count))))
-	    (t (- (buffer-size) (forward-line (buffer-size))))))))
-
-(defun line-number-at-pos (&optional pos absolute)
-  "Return buffer line number at position POS.
-If POS is nil, use current buffer location.
-
-If ABSOLUTE is nil, the default, counting starts
-at (point-min), so the value refers to the contents of the
-accessible portion of the (potentially narrowed) buffer.  If
-ABSOLUTE is non-nil, ignore any narrowing and return the
-absolute line number."
-  (save-restriction
-    (when absolute
-      (widen))
-    (let ((opoint (or pos (point))) start)
-      (save-excursion
-        (goto-char (point-min))
-        (setq start (point))
-        (goto-char opoint)
-        (forward-line 0)
-        (1+ (count-lines start (point)))))))
+	    (t
+             (goto-char (point-max))
+             (if (bolp)
+                 (1- (line-number-at-pos))
+               (line-number-at-pos)))))))
 
 (defcustom what-cursor-show-names nil
   "Whether to show character names in `what-cursor-position'."
@@ -2309,13 +2299,11 @@ once.  In special cases, when this function needs to be called more
 than once, it can set `minibuffer-default-add-done' to nil explicitly,
 overriding the setting of this variable to t in `goto-history-element'.")
 
-(defvar minibuffer-default-add-done nil
+(defvar-local minibuffer-default-add-done nil
   "When nil, add more elements to the end of the list of default values.
 The value nil causes `goto-history-element' to add more elements to
 the list of defaults when it reaches the end of this list.  It does
 this by calling a function defined by `minibuffer-default-add-function'.")
-
-(make-variable-buffer-local 'minibuffer-default-add-done)
 
 (defun minibuffer-default-add-completions ()
   "Return a list of all completions without the default value.
@@ -3480,13 +3468,12 @@ excessively long before answering the question."
   :group 'undo
   :version "22.1")
 
-(defvar undo-extra-outer-limit nil
+(defvar-local undo-extra-outer-limit nil
   "If non-nil, an extra level of size that's ok in an undo item.
 We don't ask the user about truncating the undo list until the
 current item gets bigger than this amount.
 
 This variable matters only if `undo-ask-before-discard' is non-nil.")
-(make-variable-buffer-local 'undo-extra-outer-limit)
 
 ;; When the first undo batch in an undo list is longer than
 ;; undo-outer-limit, this function gets called to warn the user that

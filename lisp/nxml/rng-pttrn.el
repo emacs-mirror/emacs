@@ -66,9 +66,8 @@
 (defvar rng-schema-change-hook nil
   "Hook to be run after `rng-current-schema' changes.")
 
-(defvar rng-current-schema nil
+(defvar-local rng-current-schema nil
   "Pattern to be used as schema for the current buffer.")
-(make-variable-buffer-local 'rng-current-schema)
 
 (defun rng-make-ref (name)
   (list 'ref nil name))

@@ -3134,6 +3134,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   char *format_start = SSDATA (args[0]);
   bool multibyte_format = STRING_MULTIBYTE (args[0]);
   ptrdiff_t formatlen = SBYTES (args[0]);
+  bool fmt_props = string_intervals (args[0]);
 
   /* Upper bound on number of format specs.  Each uses at least 2 chars.  */
   ptrdiff_t nspec_bound = SCHARS (args[0]) >> 1;
@@ -3406,13 +3407,20 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      convbytes += padding;
 	      if (convbytes <= buf + bufsize - p)
 		{
+		  /* If the format spec has properties, we should account
+		     for the padding on the left in the info[] array.  */
+		  if (fmt_props)
+		    spec->start = nchars;
 		  if (! minus_flag)
 		    {
 		      memset (p, ' ', padding);
 		      p += padding;
 		      nchars += padding;
 		    }
-		  spec->start = nchars;
+		  /* If the properties will come from the argument, we
+		     don't extend them to the left due to padding.  */
+		  if (!fmt_props)
+		    spec->start = nchars;
 
 		  if (p > buf
 		      && multibyte

@@ -95,8 +95,7 @@
     map)
   "Keymap defining commands available in `electric-help-mode'.")
 
-(defvar electric-help-orig-major-mode nil)
-(make-variable-buffer-local 'electric-help-orig-major-mode)
+(defvar-local electric-help-orig-major-mode nil)
 
 (defun electric-help-mode ()
   "`with-electric-help' temporarily places its buffer in this mode.

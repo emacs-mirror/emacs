@@ -100,9 +100,8 @@ This is necessary to properly support the printing of buffer-local
 variables.  Current buffer will always be the mail buffer being
 composed.")
 
-(defvar reporter-initial-text nil
+(defvar-local reporter-initial-text nil
   "The automatically created initial text of a bug report.")
-(make-variable-buffer-local 'reporter-initial-text)
 
 
 

@@ -1,4 +1,4 @@
-;;; spam-report.el --- Reporting spam
+;;; spam-report.el --- Reporting spam  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -43,8 +43,7 @@ If you are using spam.el, consider setting gnus-spam-process-newsgroups
 or the gnus-group-spam-exit-processor-report-gmane group/topic parameter
 instead."
   :type '(radio (const nil)
-		(regexp :value "^nntp\\+.*:gmane\\."))
-  :group 'spam-report)
+		(regexp :value "^nntp\\+.*:gmane\\.")))
 
 (defcustom spam-report-gmane-use-article-number t
   "Whether the article number (faster!) or the header should be used.
@@ -52,8 +51,7 @@ instead."
 You must set this to nil if you don't read Gmane groups directly
 from news.gmane.org, e.g. when using local newsserver such as
 leafnode."
-  :type 'boolean
-  :group 'spam-report)
+  :type 'boolean)
 
 (defcustom spam-report-url-ping-function
   'spam-report-url-ping-plain
@@ -66,23 +64,20 @@ The function must accept the arguments `host' and `report'."
 		 spam-report-url-ping-mm-url)
 	  (const :tag "Store request URLs in `spam-report-requests-file'"
 		 spam-report-url-to-file)
-	  (function :tag "User defined function" nil))
-  :group 'spam-report)
+	  (function :tag "User defined function" nil)))
 
 (defcustom spam-report-requests-file
   (nnheader-concat gnus-directory "spam/" "spam-report-requests.url")
   ;; Is there a convention for the extension of such a file?
   ;; Should we use `spam-directory'?
   "File where spam report request are stored."
-  :type 'file
-  :group 'spam-report)
+  :type 'file)
 
 (defcustom spam-report-resend-to nil
   "Email address that spam articles are resent to when reporting.
 If not set, the user will be prompted to enter a value which will be
 saved for future use."
-  :type '(choice (const :tag "Prompt" nil) string)
-  :group 'spam-report)
+  :type '(choice (const :tag "Prompt" nil) string))
 
 (defvar spam-report-url-ping-temp-agent-function nil
   "Internal variable for `spam-report-agentize' and `spam-report-deagentize'.
@@ -232,8 +227,7 @@ the function specified by `spam-report-url-ping-function'."
 This is initialized based on `user-mail-address'."
   :type '(choice string
 		 (const :tag "Don't expose address" nil))
-  :version "23.1" ;; No Gnus
-  :group 'spam-report)
+  :version "23.1") ;; No Gnus
 
 (defvar spam-report-user-agent
   (if spam-report-user-mail-address
@@ -345,8 +339,8 @@ Spam reports will be queued with \\[spam-report-url-to-file] when
 the Agent is unplugged, and will be submitted in a batch when the
 Agent is plugged."
   (interactive)
-  (add-hook 'gnus-agent-plugged-hook 'spam-report-plug-agent)
-  (add-hook 'gnus-agent-unplugged-hook 'spam-report-unplug-agent))
+  (add-hook 'gnus-agent-plugged-hook #'spam-report-plug-agent)
+  (add-hook 'gnus-agent-unplugged-hook #'spam-report-unplug-agent))
 
 ;;;###autoload
 (defun spam-report-deagentize ()
@@ -354,8 +348,8 @@ Agent is plugged."
 Spam reports will be queued with the method used when
 \\[spam-report-agentize] was run."
   (interactive)
-  (remove-hook 'gnus-agent-plugged-hook 'spam-report-plug-agent)
-  (remove-hook 'gnus-agent-unplugged-hook 'spam-report-unplug-agent))
+  (remove-hook 'gnus-agent-plugged-hook #'spam-report-plug-agent)
+  (remove-hook 'gnus-agent-unplugged-hook #'spam-report-unplug-agent))
 
 (defun spam-report-plug-agent ()
   "Adjust spam report settings for plugged state.

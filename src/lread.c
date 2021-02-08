@@ -537,6 +537,33 @@ readbyte_from_string (int c, Lisp_Object readcharfun)
 }
 
 
+/* Signal Qinvalid_read_syntax error.
+   S is error string of length N (if > 0)  */
+
+static AVOID
+invalid_syntax_lisp (Lisp_Object s, Lisp_Object readcharfun)
+{
+  if (BUFFERP (readcharfun))
+    {
+      xsignal (Qinvalid_read_syntax,
+	       list3 (s,
+		      /* We should already be in the readcharfun
+			 buffer when this error is called, so no need
+			 to switch to it first. */
+		      make_fixnum (count_lines (BEGV_BYTE, PT_BYTE) + 1),
+		      make_fixnum (current_column ())));
+    }
+  else
+    xsignal1 (Qinvalid_read_syntax, s);
+}
+
+static AVOID
+invalid_syntax (const char *s, Lisp_Object readcharfun)
+{
+  invalid_syntax_lisp (build_string (s), readcharfun);
+}
+
+
 /* Read one non-ASCII character from INFILE.  The character is
    encoded in `emacs-mule' and the first byte is already read in
    C.  */
@@ -594,8 +621,7 @@ read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object rea
     }
   c = DECODE_CHAR (charset, code);
   if (c < 0)
-    Fsignal (Qinvalid_read_syntax,
-	     list1 (build_string ("invalid multibyte form")));
+    invalid_syntax ("invalid multibyte form", readcharfun);
   return c;
 }
 
@@ -778,7 +804,10 @@ If `inhibit-interaction' is non-nil, this function will signal an
   barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
-    message_with_string ("%s", prompt, 0);
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
   val = read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
 
   return (NILP (val) ? Qnil
@@ -813,7 +842,10 @@ If `inhibit-interaction' is non-nil, this function will signal an
   barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
-    message_with_string ("%s", prompt, 0);
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
   return read_filtered_event (0, 0, 0, ! NILP (inherit_input_method), seconds);
 }
 
@@ -849,7 +881,10 @@ If `inhibit-interaction' is non-nil, this function will signal an
   barf_if_interaction_inhibited ();
 
   if (! NILP (prompt))
-    message_with_string ("%s", prompt, 0);
+    {
+      cancel_echoing ();
+      message_with_string ("%s", prompt, 0);
+    }
 
   val = read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
 
@@ -2330,16 +2365,6 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
 }
 
 
-/* Signal Qinvalid_read_syntax error.
-   S is error string of length N (if > 0)  */
-
-static AVOID
-invalid_syntax (const char *s)
-{
-  xsignal1 (Qinvalid_read_syntax, build_string (s));
-}
-
-
 /* Use this for recursive reads, in contexts where internal tokens
    are not allowed.  */
 
@@ -2353,8 +2378,8 @@ read0 (Lisp_Object readcharfun)
   if (!c)
     return val;
 
-  xsignal1 (Qinvalid_read_syntax,
-	    Fmake_string (make_fixnum (1), make_fixnum (c), Qnil));
+  invalid_syntax_lisp (Fmake_string (make_fixnum (1), make_fixnum (c), Qnil),
+		       readcharfun);
 }
 
 /* Grow a read buffer BUF that contains OFFSET useful bytes of data,
@@ -2384,7 +2409,8 @@ grow_read_buffer (char *buf, ptrdiff_t offset,
 /* Return the scalar value that has the Unicode character name NAME.
    Raise 'invalid-read-syntax' if there is no such character.  */
 static int
-character_name_to_code (char const *name, ptrdiff_t name_len)
+character_name_to_code (char const *name, ptrdiff_t name_len,
+			Lisp_Object readcharfun)
 {
   /* For "U+XXXX", pass the leading '+' to string_to_number to reject
      monstrosities like "U+-0000".  */
@@ -2400,7 +2426,7 @@ character_name_to_code (char const *name, ptrdiff_t name_len)
     {
       AUTO_STRING (format, "\\N{%s}");
       AUTO_STRING_WITH_LEN (namestr, name, name_len);
-      xsignal1 (Qinvalid_read_syntax, CALLN (Fformat, format, namestr));
+      invalid_syntax_lisp (CALLN (Fformat, format, namestr), readcharfun);
     }
 
   return XFIXNUM (code);
@@ -2619,7 +2645,7 @@ read_escape (Lisp_Object readcharfun, bool stringp)
       {
         c = READCHAR;
         if (c != '{')
-          invalid_syntax ("Expected opening brace after \\N");
+          invalid_syntax ("Expected opening brace after \\N", readcharfun);
         char name[UNICODE_CHARACTER_NAME_LENGTH_BOUND + 1];
         bool whitespace = false;
         ptrdiff_t length = 0;
@@ -2634,8 +2660,9 @@ read_escape (Lisp_Object readcharfun, bool stringp)
               {
                 AUTO_STRING (format,
                              "Invalid character U+%04X in character name");
-                xsignal1 (Qinvalid_read_syntax,
-                          CALLN (Fformat, format, make_fixed_natnum (c)));
+		invalid_syntax_lisp (CALLN (Fformat, format,
+					    make_fixed_natnum (c)),
+				     readcharfun);
               }
             /* Treat multiple adjacent whitespace characters as a
                single space character.  This makes it easier to use
@@ -2651,15 +2678,15 @@ read_escape (Lisp_Object readcharfun, bool stringp)
               whitespace = false;
             name[length++] = c;
             if (length >= sizeof name)
-              invalid_syntax ("Character name too long");
+              invalid_syntax ("Character name too long", readcharfun);
           }
         if (length == 0)
-          invalid_syntax ("Empty character name");
+          invalid_syntax ("Empty character name", readcharfun);
 	name[length] = '\0';
 
 	/* character_name_to_code can invoke read1, recursively.
 	   This is why read1's buffer is not static.  */
-	return character_name_to_code (name, length);
+	return character_name_to_code (name, length, readcharfun);
       }
 
     default:
@@ -2697,10 +2724,11 @@ enum { stackbufsize = max (64,
 			    + INT_STRLEN_BOUND (EMACS_INT) + 1)) };
 
 static void
-invalid_radix_integer (EMACS_INT radix, char stackbuf[VLA_ELEMS (stackbufsize)])
+invalid_radix_integer (EMACS_INT radix, char stackbuf[VLA_ELEMS (stackbufsize)],
+		       Lisp_Object readcharfun)
 {
   sprintf (stackbuf, invalid_radix_integer_format, radix);
-  invalid_syntax (stackbuf);
+  invalid_syntax (stackbuf, readcharfun);
 }
 
 /* Read an integer in radix RADIX using READCHARFUN to read
@@ -2760,7 +2788,7 @@ read_integer (Lisp_Object readcharfun, int radix,
   UNREAD (c);
 
   if (valid != 1)
-    invalid_radix_integer (radix, stackbuf);
+    invalid_radix_integer (radix, stackbuf, readcharfun);
 
   *p = '\0';
   return unbind_to (count, string_to_number (read_buffer, radix, NULL));
@@ -2896,7 +2924,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      return ht;
 	    }
 	  UNREAD (c);
-	  invalid_syntax ("#");
+	  invalid_syntax ("#", readcharfun);
 	}
       if (c == '^')
 	{
@@ -2948,9 +2976,9 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		    }
 		  return tbl;
 		}
-	      invalid_syntax ("#^^");
+	      invalid_syntax ("#^^", readcharfun);
 	    }
-	  invalid_syntax ("#^");
+	  invalid_syntax ("#^", readcharfun);
 	}
       if (c == '&')
 	{
@@ -2973,7 +3001,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 			 version.  */
 		      && ! (XFIXNAT (length)
 			    == (SCHARS (tmp) - 1) * BOOL_VECTOR_BITS_PER_CHAR)))
-		invalid_syntax ("#&...");
+		invalid_syntax ("#&...", readcharfun);
 
 	      val = make_uninit_bool_vector (XFIXNAT (length));
 	      data = bool_vector_uchar_data (val);
@@ -2984,7 +3012,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		  &= (1 << (XFIXNUM (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	      return val;
 	    }
-	  invalid_syntax ("#&...");
+	  invalid_syntax ("#&...", readcharfun);
 	}
       if (c == '[')
 	{
@@ -3002,7 +3030,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 		      && VECTORP (AREF (tmp, COMPILED_CONSTANTS)))
 		     || CONSP (AREF (tmp, COMPILED_BYTECODE)))
 		 && FIXNATP (AREF (tmp, COMPILED_STACK_DEPTH))))
-	    invalid_syntax ("Invalid byte-code object");
+	    invalid_syntax ("Invalid byte-code object", readcharfun);
 
 	  if (STRINGP (AREF (tmp, COMPILED_BYTECODE))
 	      && STRING_MULTIBYTE (AREF (tmp, COMPILED_BYTECODE)))
@@ -3044,7 +3072,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	  /* Read the string itself.  */
 	  tmp = read1 (readcharfun, &ch, 0);
 	  if (ch != 0 || !STRINGP (tmp))
-	    invalid_syntax ("#");
+	    invalid_syntax ("#", readcharfun);
 	  /* Read the intervals and their properties.  */
 	  while (1)
 	    {
@@ -3059,7 +3087,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      if (ch == 0)
 		plist = read1 (readcharfun, &ch, 0);
 	      if (ch)
-		invalid_syntax ("Invalid string property list");
+		invalid_syntax ("Invalid string property list", readcharfun);
 	      Fset_text_properties (beg, end, plist, tmp);
 	    }
 
@@ -3207,7 +3235,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	      if (c == 'r' || c == 'R')
 		{
 		  if (! (2 <= n && n <= 36))
-		    invalid_radix_integer (n, stackbuf);
+		    invalid_radix_integer (n, stackbuf, readcharfun);
 		  return read_integer (readcharfun, n, stackbuf);
 		}
 
@@ -3301,7 +3329,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	return read_integer (readcharfun, 2, stackbuf);
 
       UNREAD (c);
-      invalid_syntax ("#");
+      invalid_syntax ("#", readcharfun);
 
     case ';':
       while ((c = READCHAR) >= 0 && c != '\n');
@@ -3373,7 +3401,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 	if (ok)
 	  return make_fixnum (c);
 
-	invalid_syntax ("?");
+	invalid_syntax ("?", readcharfun);
       }
 
     case '"':
@@ -3459,7 +3487,7 @@ read1 (Lisp_Object readcharfun, int *pch, bool first_in_list)
 
 		/* Any modifiers remaining are invalid.  */
 		if (modifiers)
-		  invalid_syntax ("Invalid modifier in string");
+		  invalid_syntax ("Invalid modifier in string", readcharfun);
 		p += CHAR_STRING (ch, (unsigned char *) p);
 	      }
 	    else
@@ -3999,7 +4027,7 @@ read_list (bool flag, Lisp_Object readcharfun)
 	    {
 	      if (ch == ']')
 		return val;
-	      invalid_syntax (") or . in a vector");
+	      invalid_syntax (") or . in a vector", readcharfun);
 	    }
 	  if (ch == ')')
 	    return val;
@@ -4079,9 +4107,9 @@ read_list (bool flag, Lisp_Object readcharfun)
 
 		  return val;
 		}
-	      invalid_syntax (". in wrong context");
+	      invalid_syntax (". in wrong context", readcharfun);
 	    }
-	  invalid_syntax ("] in a list");
+	  invalid_syntax ("] in a list", readcharfun);
 	}
       tem = list1 (elt);
       if (!NILP (tail))

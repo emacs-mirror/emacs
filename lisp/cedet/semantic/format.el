@@ -78,13 +78,11 @@ Images can be used as icons instead of some types of text strings."
   :group 'semantic
   :type 'boolean)
 
-(defvar semantic-function-argument-separator ","
+(defvar-local semantic-function-argument-separator ","
   "Text used to separate arguments when creating text from tags.")
-(make-variable-buffer-local 'semantic-function-argument-separator)
 
-(defvar semantic-format-parent-separator "::"
+(defvar-local semantic-format-parent-separator "::"
   "Text used to separate names when between namespaces/classes and functions.")
-(make-variable-buffer-local 'semantic-format-parent-separator)
 
 (defvar semantic-format-face-alist
   `( (function . font-lock-function-name-face)

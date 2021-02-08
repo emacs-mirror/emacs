@@ -26,9 +26,7 @@
 ;;; Commentary:
 
 ;; This file defines a shell-in-a-buffer package (shell mode) built on
-;; top of comint mode.  This is actually cmushell with things renamed
-;; to replace its counterpart in Emacs 18.  cmushell is more
-;; featureful, robust, and uniform than the Emacs 18 version.
+;; top of comint mode.
 
 ;; Since this mode is built on top of the general command-interpreter-in-
 ;; a-buffer mode (comint mode), it shares a common base functionality,
@@ -785,8 +783,7 @@ Make the shell buffer the current buffer, and return it.
 ;; that tracks cd, pushd, and popd commands issued to the shell, and
 ;; changes the current directory of the shell buffer accordingly.
 ;;
-;; This is basically a fragile hack, although it's more accurate than
-;; the version in Emacs 18's shell.el. It has the following failings:
+;; This is basically a fragile hack.  It has the following failings:
 ;; 1. It doesn't know about the cdpath shell variable.
 ;; 2. It cannot infallibly deal with command sequences, though it does well
 ;;    with these and with ignoring commands forked in another shell with ()s.

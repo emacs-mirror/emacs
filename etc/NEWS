@@ -85,7 +85,11 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
-** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA
+** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
+
++++
+** New command 'recenter-other-window', bound to 'S-M-C-l'.
+Like 'recenter-top-bottom' acting in the other window.
 
 ** Minibuffer scrolling is now conservative by default.
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
@@ -221,10 +225,10 @@ It is not enabled by default.
 
 +++
 ** Modifiers now go outside angle brackets in pretty-printed key bindings.
-For example, <return> with Control and Meta modifiers is now shown as
-C-M-<return> instead of <C-M-return>.  Either variant can be used as
-input; functions such as 'kbd' and 'read-kbd-macro' accept both styles
-as equivalent (they have done so for a long time).
+For example, 'RET' with Control and Meta modifiers is now shown as
+'C-M-<return>' instead of '<C-M-return>'.  Either variant can be used
+as input; functions such as 'kbd' and 'read-kbd-macro' accept both
+styles as equivalent (they have done so for a long time).
 
 +++
 ** New user option 'lazy-highlight-no-delay-length'.
@@ -232,6 +236,14 @@ Lazy highlighting of matches in Isearch now starts immediately if the
 search string is at least this long.  'lazy-highlight-initial-delay'
 still applies for shorter search strings, which avoids flicker in the
 search buffer due to too many matches being highlighted.
+
++++
+** A new keymap for buffer actions has been added.
+The 'C-x x' keymap now holds keystrokes for various buffer-oriented
+commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
+'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'), 'C-x x n'
+('clone-buffer'), 'C-x x i' ('insert-buffer') and 'C-x x t'
+('toggle-truncate-lines').
 
 
 * Editing Changes in Emacs 28.1
@@ -254,7 +266,7 @@ forms, but this command has now been changed to work more like
 When 'M-y' is typed not after a yank command, it activates the minibuffer
 where you can browse previous kills using the minibuffer history or
 completion.  In Isearch, you can bind 'C-s M-y' to the command
-`isearch-yank-pop' that uses the minibuffer with completion on
+'isearch-yank-pop' that uses the minibuffer with completion on
 previous kills to read a string and append it to the search string.
 
 ---
@@ -338,9 +350,10 @@ It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
 
 ** pcase
+
 +++
-*** The `pred` pattern can now take the form (pred (not FUN)).
-This is like (pred (lambda (x) (not (FUN x)))) but results
+*** The 'pred' pattern can now take the form '(pred (not FUN))'.
+This is like '(pred (lambda (x) (not (FUN x))))' but results
 in better code.
 
 +++
@@ -400,7 +413,7 @@ disabled entirely.
 ** Windows
 
 +++
-*** New 'display-buffer' function 'display-buffer-use-least-recent-window'
+*** New 'display-buffer' function 'display-buffer-use-least-recent-window'.
 This is like 'display-buffer-use-some-window', but won't reuse the
 current window, and when called repeatedly will try not to reuse a
 previously selected window.
@@ -461,8 +474,13 @@ applied when the option 'tab-line-tab-face-functions' is
 so-configured.  That option may also be used to customize tab-line
 faces in other ways.
 
-** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
+** Occur mode
+
+*** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
+
+*** The new command 'recenter-current-error', bound to 'l' in Occur or
+compilation buffers, recenters the current displayed occurrence/error.
 
 ** EIEIO
 
@@ -582,6 +600,12 @@ their 'default-directory' under VC.
 *** New face 'log-view-commit-body'.
 This is used when expanding commit messages from 'vc-print-root-log'
 and similar commands.
+
+---
+*** New faces for 'vc-dir' buffers and their Git VC backend.
+Those are: 'vc-dir-header', 'vc-dir-header-value', 'vc-dir-directory',
+'vc-dir-file', 'vc-dir-mark-indicator', 'vc-dir-status-warning',
+'vc-dir-status-edited', 'vc-dir-status-up-to-date', 'vc-dir-ignored'.
 
 ---
 *** The responsible VC backend is now the most specific one.
@@ -733,7 +757,7 @@ not.
 
 ---
 *** Respect 'message-forward-ignored-headers' more.
-Previously, this variable would not be consulted if
+Previously, this user option would not be consulted if
 'message-forward-show-mml' was nil and forwarding as MIME.
 
 +++
@@ -854,7 +878,7 @@ deprecated.  Errors in the Inscript method were corrected.
 
 ---
 *** New input method 'cham'.
-There's also a Cham greeting in 'etc/HELLO'.
+There's also a Cham greeting in "etc/HELLO".
 
 ** Ispell
 
@@ -954,6 +978,9 @@ This is bound to 'C-x n d' in 'shell-mode' buffers, and narrows to the
 command line under point (and any following output).
 
 ** Eshell
+
+---
+*** 'eshell-hist-ignoredups' can now also be used to mimic "erasedups" in bash.
 
 ---
 *** Environment variable 'INSIDE_EMACS' is now copied to subprocesses.
@@ -1389,13 +1416,13 @@ have been renamed to have "proper" public names and documented
 'xref-show-definitions-buffer-at-bottom').
 
 *** New command 'xref-quit-and-pop-marker-stack' and a binding for it
-in Xref buffers ('M-,'). This combination is easy to press
+in "*xref*" buffers ('M-,'). This combination is easy to press
 semi-accidentally if the user wants to go back in the middle of
 choosing the exact definition to go to, and this should do TRT.
 
 ---
-*** New value 'project-relative' for 'xref-file-name-display'
-If chosen, file names in *xref* buffers will be displayed relative
+*** New value 'project-relative' for 'xref-file-name-display'.
+If chosen, file names in "*xref*" buffers will be displayed relative
 to the 'project-root' of the current project, when available.
 
 ** json.el
@@ -1418,9 +1445,9 @@ https://www.w3.org/TR/xml/#charsets).  Now it rejects such strings.
 
 ---
 *** erc-services.el now supports NickServ passwords from auth-source.
-The 'erc-use-auth-source-for-nickserv-password' variable enables querying
-auth-source for NickServ passwords.  To enable this, add the following
-to your init file:
+The 'erc-use-auth-source-for-nickserv-password' user option enables
+querying auth-source for NickServ passwords.  To enable this, add the
+following to your init file:
 
     (setq erc-prompt-for-nickserv-password nil
           erc-use-auth-source-for-nickserv-password t)
@@ -1585,18 +1612,25 @@ that makes it a valid button.
 'string-clean-whitespace', 'string-fill', 'string-limit',
 'string-lines', 'string-pad' and 'string-chop-newline'.
 
-*** New macro `named-let` that provides Scheme's "named let" looping construct
+*** New macro 'named-let' that provides Scheme's "named let" looping construct.
 
 ** thingatpt
 
 +++
 *** New variable 'thing-at-point-provider-alist'.
-This allows mode-specific alterations to how `thing-at-point' works.
+This allows mode-specific alterations to how 'thing-at-point' works.
+
+** Enriched mode
+
+---
+*** 'C-a' is by default no longer bound to 'beginning-of-line-text'.
+This is so 'C-a' works as in other modes, and in particular holding
+Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
 
 ** Miscellaneous
 
 +++
-*** New command `C-x C-k Q' to force redisplay in keyboard macros.
+*** New command 'C-x C-k Q' to force redisplay in keyboard macros.
 
 ---
 *** New user option 'remember-diary-regexp'.
@@ -1610,8 +1644,8 @@ This function returns some statistics about the line lengths in a buffer.
 +++
 *** New variable 'inhibit-interaction' to make user prompts signal an error.
 If this is bound to something non-nil, functions like
-`read-from-minibuffer', `read-char' (and related) will signal an
-`inhibited-interaction' error.
+'read-from-minibuffer', 'read-char' (and related) will signal an
+'inhibited-interaction' error.
 
 ---
 *** 'process-attributes' now works under OpenBSD, too.
@@ -1882,14 +1916,12 @@ Otherwise, it will use 'xwidget-webkit-last-session'.
 
 +++
 *** New user options to customize Flymake's mode-line.
-
-The new customization variable 'flymake-mode-line-format' is a mix of
-strings and symbols like 'flymake-mode-line-title' ,
-'flymake-mode-line-exception' and 'flymake-mode-line-counters'.  The
-new customization variable 'flymake-mode-line-counter-format' is a mix
-of strings and symbols like 'flymake-mode-line-error-counter',
-'flymake-mode-line-warning-counter' and
-'flymake-mode-line-note-counter'.
+The new user option 'flymake-mode-line-format' is a mix of strings and
+symbols like 'flymake-mode-line-title', 'flymake-mode-line-exception'
+and 'flymake-mode-line-counters'.  The new user option
+'flymake-mode-line-counter-format' is a mix of strings and symbols
+like 'flymake-mode-line-error-counter',
+'flymake-mode-line-warning-counter' and 'flymake-mode-line-note-counter'.
 
 ** Flyspell mode
 
@@ -1948,7 +1980,7 @@ type symbols.  Both functions propagate D-Bus errors.
 messages, contain the error name of that message now.
 
 +++
-*** D-Bus messages can be monitored with new function 'dbus-register-monitor'.
+*** D-Bus messages can be monitored with the new command 'dbus-monitor'.
 
 +++
 *** D-Bus events have changed their internal structure.
@@ -2006,6 +2038,13 @@ first).
 
 
 * Incompatible Editing Changes in Emacs 28.1
+
+** In 'f90-mode', the backslash character ('\') no longer escapes.
+For about a decade, the backslash character has no longer had a
+special escape syntax in Fortran F90.  To get the old behaviour back,
+say something like:
+
+    (modify-syntax-entry ?\\ "\\" f90-mode-syntax-table)
 
 ** In 'nroff-mode', 'center-line' is now bound to 'M-o M-s'.
 The original key binding was 'M-s', which interfered with I-search,
@@ -2108,8 +2147,9 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'completion-base-size', 'completion-common-substring',
 'crm-minibuffer-complete', 'crm-minibuffer-complete-and-exit',
 'crm-minibuffer-completion-help', 'custom-mode', 'custom-mode-hook',
-'define-mode-overload-implementation', 'detect-coding-with-priority',
-'dirtrack-debug', 'dirtrack-debug-toggle', 'dynamic-completion-table',
+'define-key-rebound-commands', 'define-mode-overload-implementation',
+'detect-coding-with-priority', 'dirtrack-debug',
+'dirtrack-debug-toggle', 'dynamic-completion-table',
 'easy-menu-precalculate-equivalent-keybindings',
 'epa-display-verify-result', 'epg-passphrase-callback-function',
 'eshell-report-bug', 'eval-next-after-load', 'exchange-dot-and-mark',
@@ -2164,16 +2204,21 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'vcursor-toggle-vcursor-map', 'w32-focus-frame', 'w32-select-font',
 'wisent-lex-make-token-table'.
 
-** The 'when' argument of `make-obsolete` and related functions is mandatory.
-The use of those functions without a 'when' argument was marked
-obsolete back in Emacs-23.1.  The affected functions are:
-make-obsolete, define-obsolete-function-alias, make-obsolete-variable,
-define-obsolete-variable-alias.
+** The WHEN argument of 'make-obsolete' and related functions is mandatory.
+The use of those functions without a WHEN argument was marked obsolete
+back in Emacs 23.1.  The affected functions are: 'make-obsolete',
+'define-obsolete-function-alias', 'make-obsolete-variable',
+'define-obsolete-variable-alias'.
 
-** The variable 'keyboard-type' is obsolete and not dynamically scoped any more
+** The variable 'keyboard-type' is obsolete and not dynamically scoped any more.
 
 
 * Lisp Changes in Emacs 28.1
+
+---
+** New variable 'indent-line-ignored-functions'.
+This allows modes to cycle through a set of indentation functions
+appropriate for those modes.
 
 ** New function 'garbage-collect-maybe' to trigger GC early.
 

@@ -2047,7 +2047,7 @@ Called in PHASE `after-insertion', see `antlr-options-alists'."
     (let ((new-language (antlr-language-option t)))
       (or (null new-language)
 	  (eq new-language antlr-language)
-	  (let ((font-lock (and (boundp 'font-lock-mode) font-lock-mode)))
+          (let ((font-lock font-lock-mode))
 	    (if font-lock (font-lock-mode 0))
 	    (antlr-mode)
 	    (and font-lock (null font-lock-mode) (font-lock-mode 1)))))))

@@ -3273,7 +3273,8 @@ process running; defaults to t when called interactively."
     ;; lines have been removed/added.
     (with-current-buffer (process-buffer process)
       (compilation-forget-errors))
-    (python-shell-send-string string process)))
+    (python-shell-send-string string process)
+    (deactivate-mark)))
 
 (defun python-shell-send-statement (&optional send-main msg)
   "Send the statement at point to inferior Python process.

@@ -173,6 +173,10 @@ line; on subsequent consecutive invocations, make the current line the
 top line, the bottom line, and so on in cyclic order.  Possibly
 redisplay the screen too (@code{recenter-top-bottom}).
 
+@item C-M-S-l
+Scroll the other window; this is equivalent to @kbd{C-l} acting on the
+other window.
+
 @item M-x recenter
 Scroll the selected window so the current line is the center-most text
 line.  Possibly redisplay the screen too.
@@ -1755,13 +1759,13 @@ and/or leftmost columns.
 @findex toggle-truncate-lines
   Horizontal scrolling automatically causes line truncation
 (@pxref{Horizontal Scrolling}).  You can explicitly enable line
-truncation for a particular buffer with the command @kbd{M-x
-toggle-truncate-lines}.  This works by locally changing the variable
-@code{truncate-lines}.  If that variable is non-@code{nil}, long lines
-are truncated; if it is @code{nil}, they are continued onto multiple
-screen lines.  Setting the variable @code{truncate-lines} in any way
-makes it local to the current buffer; until that time, the default
-value, which is normally @code{nil}, is in effect.
+truncation for a particular buffer with the command @kbd{C-x x t}
+(@code{toggle-truncate-lines}).  This works by locally changing the
+variable @code{truncate-lines}.  If that variable is non-@code{nil},
+long lines are truncated; if it is @code{nil}, they are continued onto
+multiple screen lines.  Setting the variable @code{truncate-lines} in
+any way makes it local to the current buffer; until that time, the
+default value, which is normally @code{nil}, is in effect.
 
   If a split window becomes too narrow, Emacs may automatically enable
 line truncation.  @xref{Split Window}, for the variable

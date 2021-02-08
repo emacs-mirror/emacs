@@ -332,7 +332,6 @@ callback data (if any)."
 (cl-defstruct (epg-key
                (:constructor nil)
                (:constructor epg-make-key (owner-trust))
-               (:copier nil)
                (:predicate nil))
   (owner-trust nil :read-only t)
   sub-key-list user-id-list)
@@ -642,22 +641,14 @@ callback data (if any)."
     (with-current-buffer buffer
       (if (fboundp 'set-buffer-multibyte)
 	  (set-buffer-multibyte nil))
-      (make-local-variable 'epg-last-status)
-      (setq epg-last-status nil)
-      (make-local-variable 'epg-read-point)
-      (setq epg-read-point (point-min))
-      (make-local-variable 'epg-process-filter-running)
-      (setq epg-process-filter-running nil)
-      (make-local-variable 'epg-pending-status-list)
-      (setq epg-pending-status-list nil)
-      (make-local-variable 'epg-key-id)
-      (setq epg-key-id nil)
-      (make-local-variable 'epg-context)
-      (setq epg-context context)
-      (make-local-variable 'epg-agent-file)
-      (setq epg-agent-file agent-file)
-      (make-local-variable 'epg-agent-mtime)
-      (setq epg-agent-mtime agent-mtime))
+      (setq-local epg-last-status nil)
+      (setq-local epg-read-point (point-min))
+      (setq-local epg-process-filter-running nil)
+      (setq-local epg-pending-status-list nil)
+      (setq-local epg-key-id nil)
+      (setq-local epg-context context)
+      (setq-local epg-agent-file agent-file)
+      (setq-local epg-agent-mtime agent-mtime))
     (setq error-process
 	  (make-pipe-process :name "epg-error"
 			     :buffer (generate-new-buffer " *epg-error*")
@@ -1383,11 +1374,22 @@ NAME is either a string or a list of strings."
     keys))
 
 (defun epg--filter-revoked-keys (keys)
-  (seq-remove (lambda (key)
-                (seq-find (lambda (user)
-                            (eq (epg-user-id-validity user) 'revoked))
-                          (epg-key-user-id-list key)))
-              keys))
+  (mapcar
+   (lambda (key)
+     ;; We have something revoked, so copy the key and remove the
+     ;; revoked bits.
+     (if (seq-find (lambda (user)
+                     (eq (epg-user-id-validity user) 'revoked))
+                   (epg-key-user-id-list key))
+         (let ((copy (copy-epg-key key)))
+           (setf (epg-key-user-id-list copy)
+                 (seq-remove (lambda (user)
+                               (eq (epg-user-id-validity user) 'revoked))
+                             (epg-key-user-id-list copy)))
+           copy)
+       ;; Nothing to delete; return the key.
+       key))
+   keys))
 
 (defun epg--args-from-sig-notations (notations)
   (apply #'nconc

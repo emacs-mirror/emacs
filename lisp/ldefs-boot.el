@@ -8415,9 +8415,6 @@ strings when pressed twice.  See `double-map' for details.
 (autoload 'dunnet "dunnet" "\
 Switch to *dungeon* buffer and start game." t nil)
 
-(autoload 'dun-batch "dunnet" "\
-Start `dunnet' in batch mode." nil nil)
-
 (register-definition-prefixes "dunnet" '("dun" "obj-special"))
 
 ;;;***
@@ -12945,7 +12942,7 @@ lines.
 
 ;;;### (autoloads nil "flymake" "progmodes/flymake.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/flymake.el
-(push (purecopy '(flymake 1 0 9)) package--builtin-versions)
+(push (purecopy '(flymake 1 1 1)) package--builtin-versions)
 
 (autoload 'flymake-log "flymake" "\
 Log, at level LEVEL, the message MSG formatted with ARGS.
@@ -15889,7 +15886,7 @@ Produce a texinfo buffer with sorted doc-strings from the DOC file.
 
 \(fn FILE)" t nil)
 
-(register-definition-prefixes "help-fns" '("describe-" "help-"))
+(register-definition-prefixes "help-fns" '("describe-" "help-" "keymap-name-history"))
 
 ;;;***
 
@@ -16672,9 +16669,7 @@ non-selected window.  Hl-Line mode uses the function
 `hl-line-highlight' on `post-command-hook' in this case.
 
 When `hl-line-sticky-flag' is nil, Hl-Line mode highlights the
-line about point in the selected window only.  In this case, it
-uses the function `hl-line-maybe-unhighlight' in
-addition to `hl-line-highlight' on `post-command-hook'.
+line about point in the selected window only.
 
 \(fn &optional ARG)" t nil)
 
@@ -16706,8 +16701,8 @@ If `global-hl-line-sticky-flag' is non-nil, Global Hl-Line mode
 highlights the line about the current buffer's point in all live
 windows.
 
-Global-Hl-Line mode uses the functions `global-hl-line-highlight'
-and `global-hl-line-maybe-unhighlight' on `post-command-hook'.
+Global-Hl-Line mode uses the function `global-hl-line-highlight'
+on `post-command-hook'.
 
 \(fn &optional ARG)" t nil)
 
@@ -18387,7 +18382,9 @@ the environment variable INFOPATH is set.
 
 Although this is a customizable variable, that is mainly for technical
 reasons.  Normally, you should either set INFOPATH or customize
-`Info-additional-directory-list', rather than changing this variable." :initialize 'custom-initialize-delay :type '(repeat directory))
+`Info-additional-directory-list', rather than changing this variable." :initialize #'custom-initialize-delay :type '(repeat directory))
+
+(custom-autoload 'Info-default-directory-list "info" t)
 
 (autoload 'info-other-window "info" "\
 Like `info' but show the Info buffer in another window.
@@ -19539,7 +19536,7 @@ Create lambda form for macro bound to symbol or key.
 
 \(fn MAC &optional COUNTER FORMAT)" nil nil)
 
-(register-definition-prefixes "kmacro" '("kmacro-"))
+(register-definition-prefixes "kmacro" '("kdb-macro-redisplay" "kmacro-"))
 
 ;;;***
 
@@ -19548,8 +19545,8 @@ Create lambda form for macro bound to symbol or key.
 ;;; Generated autoloads from language/korea-util.el
 
 (defvar default-korean-keyboard (purecopy (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") "")) "3" "")) "\
-The kind of Korean keyboard for Korean input method.
-\"\" for 2, \"3\" for 3.")
+The kind of Korean keyboard for Korean (Hangul) input method.
+\"\" for 2, \"3\" for 3, and \"3f\" for 3f.")
 
 (autoload 'setup-korean-environment-internal "korea-util" nil nil nil)
 
@@ -21586,8 +21583,10 @@ Major mode for the mixal asm language.
 ;;;### (autoloads nil "mm-encode" "gnus/mm-encode.el" (0 0 0 0))
 ;;; Generated autoloads from gnus/mm-encode.el
 
-(autoload 'mm-default-file-encoding "mm-encode" "\
-Return a default encoding for FILE.
+(define-obsolete-function-alias 'mm-default-file-encoding #'mm-default-file-type "future")
+
+(autoload 'mm-default-file-type "mm-encode" "\
+Return a default content type for FILE.
 
 \(fn FILE)" nil nil)
 
@@ -22746,7 +22745,7 @@ Generate NOV databases in all nnml directories.
 ;;;### (autoloads nil "nnoo" "gnus/nnoo.el" (0 0 0 0))
 ;;; Generated autoloads from gnus/nnoo.el
 
-(register-definition-prefixes "nnoo" '("deffoo" "defvoo" "nnoo-"))
+(register-definition-prefixes "nnoo" '("deffoo" "defvoo" "nnoo-" "noo--defalias"))
 
 ;;;***
 
@@ -24246,9 +24245,26 @@ with \"-q\").
 
 Even if the value is nil, you can type \\[package-initialize] to
 make installed packages available at any time, or you can
-call (package-initialize) in your init-file.")
+call (package-activate-all) in your init-file.")
 
 (custom-autoload 'package-enable-at-startup "package" t)
+
+(defcustom package-user-dir (locate-user-emacs-file "elpa") "\
+Directory containing the user's Emacs Lisp packages.
+The directory name should be absolute.
+Apart from this directory, Emacs also looks for system-wide
+packages in `package-directory-list'." :type 'directory :initialize #'custom-initialize-delay :risky t :version "24.1")
+
+(custom-autoload 'package-user-dir "package" t)
+
+(defcustom package-directory-list (let (result) (dolist (f load-path) (and (stringp f) (equal (file-name-nondirectory f) "site-lisp") (push (expand-file-name "elpa" f) result))) (nreverse result)) "\
+List of additional directories containing Emacs Lisp packages.
+Each directory name should be absolute.
+
+These directories contain packages intended for system-wide; in
+contrast, `package-user-dir' contains packages for personal use." :type '(repeat directory) :initialize #'custom-initialize-delay :risky t :version "24.1")
+
+(custom-autoload 'package-directory-list "package" t)
 
 (defvar package--activated nil "\
 Non-nil if `package-activate-all' has been run.")
@@ -24271,9 +24287,9 @@ that code in the early init-file.
 
 \(fn &optional NO-ACTIVATE)" t nil)
 
-(autoload 'package-activate-all "package" "\
+(defun package-activate-all nil "\
 Activate all installed packages.
-The variable `package-load-list' controls which packages to load." nil nil)
+The variable `package-load-list' controls which packages to load." (setq package--activated t) (let* ((elc (concat package-quickstart-file "c")) (qs (if (file-readable-p elc) elc (if (file-readable-p package-quickstart-file) package-quickstart-file)))) (if qs (let ((load-source-file-function nil)) (unless (boundp 'package-activated-list) (setq package-activated-list nil)) (load qs nil 'nomessage)) (require 'package) (package--activate-all))))
 
 (autoload 'package-import-keyring "package" "\
 Import keys from FILE.
@@ -24369,6 +24385,11 @@ of an installed ELPA package.
 The return value is a string (or nil in case we can't find it)." nil nil)
 
 (function-put 'package-get-version 'pure 't)
+
+(defcustom package-quickstart-file (locate-user-emacs-file "package-quickstart.el") "\
+Location of the file used to speed up activation of packages at startup." :type 'file :initialize #'custom-initialize-delay :version "27.1")
+
+(custom-autoload 'package-quickstart-file "package" t)
 
 (register-definition-prefixes "package" '("bad-signature" "define-package" "describe-package-1" "package-"))
 
@@ -24561,6 +24582,7 @@ PATTERN matches.  PATTERN can take one of the forms:
                    If a SYMBOL is used twice in the same pattern
                    the second occurrence becomes an `eq'uality test.
   (pred FUN)       matches if FUN called on EXPVAL returns non-nil.
+  (pred (not FUN)) matches if FUN called on EXPVAL returns nil.
   (app FUN PAT)    matches if FUN called on EXPVAL matches PAT.
   (guard BOOLEXP)  matches if BOOLEXP evaluates to non-nil.
   (let PAT EXPR)   matches if EXPR matches PAT.
@@ -25851,7 +25873,7 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 5 3)) package--builtin-versions)
+(push (purecopy '(project 0 5 4)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
@@ -25956,8 +25978,12 @@ if one already exists." t nil)
 (autoload 'project-async-shell-command "project" "\
 Run `async-shell-command' in the current project's root directory." t nil)
 
+(function-put 'project-async-shell-command 'interactive-only 'async-shell-command)
+
 (autoload 'project-shell-command "project" "\
 Run `shell-command' in the current project's root directory." t nil)
+
+(function-put 'project-shell-command 'interactive-only 'shell-command)
 
 (autoload 'project-search "project" "\
 Search for REGEXP in all the files of the project.
@@ -25976,10 +26002,9 @@ loop using the command \\[fileloop-continue].
 \(fn FROM TO)" t nil)
 
 (autoload 'project-compile "project" "\
-Run `compile' in the project root.
-Arguments the same as in `compile'.
+Run `compile' in the project root." t nil)
 
-\(fn COMMAND &optional COMINT)" t nil)
+(function-put 'project-compile 'interactive-only 'compile)
 
 (autoload 'project-switch-to-buffer "project" "\
 Display buffer BUFFER-OR-NAME in the selected window.
@@ -26967,6 +26992,13 @@ When Recentf mode is enabled, a \"Open Recent\" submenu is
 displayed in the \"File\" menu, containing a list of files that
 were operated on recently, in the most-recently-used order.
 
+By default, only operations like opening a file, writing a buffer
+to a file, and killing a buffer is counted as \"operating\" on
+the file.  If instead you want to prioritize files that appear in
+buffers you switch to a lot, you can say something like the following:
+
+  (add-hook 'buffer-list-update-hook 'recentf-track-opened-file)
+
 \(fn &optional ARG)" t nil)
 
 (register-definition-prefixes "recentf" '("recentf-"))
@@ -27347,7 +27379,7 @@ Remember the contents of the current clipboard.
 Most useful for remembering things from other applications." t nil)
 
 (autoload 'remember-diary-extract-entries "remember" "\
-Extract diary entries from the region." nil nil)
+Extract diary entries from the region based on `remember-diary-regexp'." nil nil)
 
 (autoload 'remember-notes "remember" "\
 Return the notes buffer, creating it if needed, and maybe switch to it.
@@ -27637,14 +27669,11 @@ Name of user's primary mail file.")
 
 (custom-autoload 'rmail-file-name "rmail" t)
 
-(put 'rmail-spool-directory 'standard-value '((cond ((file-exists-p "/var/mail") "/var/mail/") ((file-exists-p "/var/spool/mail") "/var/spool/mail/") ((memq system-type '(hpux usg-unix-v)) "/usr/mail/") (t "/usr/spool/mail/"))))
-
-(defvar rmail-spool-directory (purecopy (cond ((file-exists-p "/var/mail") "/var/mail/") ((file-exists-p "/var/spool/mail") "/var/spool/mail/") ((memq system-type '(hpux usg-unix-v)) "/usr/mail/") (t "/usr/spool/mail/"))) "\
+(defcustom rmail-spool-directory (purecopy (cond ((file-exists-p "/var/mail") "/var/mail/") ((file-exists-p "/var/spool/mail") "/var/spool/mail/") ((memq system-type '(hpux usg-unix-v)) "/usr/mail/") (t "/usr/spool/mail/"))) "\
 Name of directory used by system mailer for delivering new mail.
-Its name should end with a slash.")
+Its name should end with a slash." :initialize #'custom-initialize-delay :type 'directory :group 'rmail)
 
 (custom-autoload 'rmail-spool-directory "rmail" t)
-(custom-initialize-delay 'rmail-spool-directory nil)
 
 (autoload 'rmail-movemail-variant-p "rmail" "\
 Return t if the current movemail variant is any of VARIANTS.
@@ -29076,7 +29105,9 @@ variable `feedmail-deduce-envelope-from'.")
 (defvar mail-self-blind nil "\
 Non-nil means insert Bcc to self in messages to be sent.
 This is done when the message is initialized,
-so you can remove or alter the Bcc field to override the default.")
+so you can remove or alter the Bcc field to override the default.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-self-blind "sendmail" t)
 
@@ -29104,14 +29135,18 @@ Line used to separate headers from text in messages being composed.")
 (defvar mail-archive-file-name nil "\
 Name of file to write all outgoing messages in, or nil for none.
 This is normally an mbox file, but for backwards compatibility may also
-be a Babyl file.")
+be a Babyl file.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-archive-file-name "sendmail" t)
 
 (defvar mail-default-reply-to nil "\
 Address to insert as default Reply-To field of outgoing messages.
 If nil, it will be initialized from the REPLYTO environment variable
-when you first send mail.")
+when you first send mail.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-default-reply-to "sendmail" t)
 
@@ -29198,7 +29233,9 @@ in `message-auto-save-directory'.")
 (defvar mail-default-headers nil "\
 A string containing header lines, to be inserted in outgoing messages.
 It can contain newlines, and should end in one.  It is inserted
-before you edit the message, so you can edit or delete the lines.")
+before you edit the message, so you can edit or delete the lines.
+If you are using `message-mode' to compose messages, customize the
+variable `message-default-mail-headers' instead.")
 
 (custom-autoload 'mail-default-headers "sendmail" t)
 
@@ -29887,10 +29924,6 @@ DOM should be a parse tree as generated by
 
 (autoload 'sieve-mode "sieve-mode" "\
 Major mode for editing Sieve code.
-This is much like C mode except for the syntax of comments.  Its keymap
-inherits from C mode's and it has the same variables for customizing
-indentation.  It has its own abbrev table and its own syntax table.
-
 Turning on Sieve mode runs `sieve-mode-hook'.
 
 \(fn)" t nil)
@@ -31532,7 +31565,7 @@ Truncate STRING to LENGTH, replacing initial surplus with \"...\".
 
 \(fn STRING LENGTH)" nil nil)
 
-(register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "replace-region-contents" "string-" "thread-" "when-let*"))
+(register-definition-prefixes "subr-x" '("and-let*" "hash-table-" "if-let*" "internal--" "named-let" "replace-region-contents" "string-" "thread-" "when-let*"))
 
 ;;;***
 
@@ -34174,7 +34207,7 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;### (autoloads nil "trampver" "net/trampver.el" (0 0 0 0))
 ;;; Generated autoloads from net/trampver.el
-(push (purecopy '(tramp 2 5 0)) package--builtin-versions)
+(push (purecopy '(tramp 2 5 1 -1)) package--builtin-versions)
 
 (register-definition-prefixes "trampver" '("tramp-"))
 
@@ -34542,9 +34575,9 @@ The variable `unrmail-mbox-format' controls which mbox format to use.
 (autoload 'unsafep "unsafep" "\
 Return nil if evaluating FORM couldn't possibly do any harm.
 Otherwise result is a reason why FORM is unsafe.
-UNSAFEP-VARS is a list of symbols with local bindings.
+VARS is a list of symbols with local bindings like `unsafep-vars'.
 
-\(fn FORM &optional UNSAFEP-VARS)" nil nil)
+\(fn FORM &optional VARS)" nil nil)
 
 (register-definition-prefixes "unsafep" '("safe-functions" "unsafep-"))
 
@@ -38493,43 +38526,43 @@ Zone out, completely." t nil)
 ;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
 ;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
 ;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
-;;;;;;  "leim/quail/compose.el" "leim/quail/croatian.el" "leim/quail/cyril-jis.el"
-;;;;;;  "leim/quail/cyrillic.el" "leim/quail/czech.el" "leim/quail/georgian.el"
-;;;;;;  "leim/quail/greek.el" "leim/quail/hanja-jis.el" "leim/quail/hanja.el"
-;;;;;;  "leim/quail/hanja3.el" "leim/quail/hebrew.el" "leim/quail/ipa-praat.el"
-;;;;;;  "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el" "leim/quail/latin-post.el"
-;;;;;;  "leim/quail/latin-pre.el" "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
-;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
-;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
-;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
-;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
-;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
-;;;;;;  "loadup.el" "mail/blessmail.el" "mail/rmailedit.el" "mail/rmailkwd.el"
-;;;;;;  "mail/rmailmm.el" "mail/rmailmsc.el" "mail/rmailsort.el"
-;;;;;;  "mail/rmailsum.el" "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el"
-;;;;;;  "mh-e/mh-loaddefs.el" "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el"
-;;;;;;  "newcomment.el" "obarray.el" "org/ob-core.el" "org/ob-lob.el"
-;;;;;;  "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el"
-;;;;;;  "org/ol-irc.el" "org/ol.el" "org/org-archive.el" "org/org-attach.el"
-;;;;;;  "org/org-clock.el" "org/org-colview.el" "org/org-compat.el"
-;;;;;;  "org/org-datetree.el" "org/org-duration.el" "org/org-element.el"
-;;;;;;  "org/org-feed.el" "org/org-footnote.el" "org/org-goto.el"
-;;;;;;  "org/org-id.el" "org/org-indent.el" "org/org-install.el"
-;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
-;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
-;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
-;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
-;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
-;;;;;;  "org/ox-texinfo.el" "org/ox.el" "progmodes/elisp-mode.el"
-;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
-;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
-;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/page.el"
-;;;;;;  "textmodes/paragraphs.el" "textmodes/reftex-auc.el" "textmodes/reftex-cite.el"
-;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-global.el" "textmodes/reftex-index.el"
-;;;;;;  "textmodes/reftex-parse.el" "textmodes/reftex-ref.el" "textmodes/reftex-sel.el"
-;;;;;;  "textmodes/reftex-toc.el" "textmodes/text-mode.el" "uniquify.el"
-;;;;;;  "vc/ediff-hook.el" "vc/vc-hooks.el" "version.el" "widget.el"
-;;;;;;  "window.el") (0 0 0 0))
+;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
+;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
+;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
+;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
+;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
+;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
+;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
+;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
+;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
+;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
+;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
+;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
+;;;;;;  "mail/rmailedit.el" "mail/rmailkwd.el" "mail/rmailmm.el"
+;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
+;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "mh-e/mh-loaddefs.el"
+;;;;;;  "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el" "newcomment.el"
+;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
+;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
+;;;;;;  "org/ol.el" "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
+;;;;;;  "org/org-colview.el" "org/org-compat.el" "org/org-datetree.el"
+;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
+;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
+;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
+;;;;;;  "org/org-list.el" "org/org-macs.el" "org/org-mobile.el" "org/org-num.el"
+;;;;;;  "org/org-plot.el" "org/org-refile.el" "org/org-table.el"
+;;;;;;  "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el" "org/ox-html.el"
+;;;;;;  "org/ox-icalendar.el" "org/ox-latex.el" "org/ox-md.el" "org/ox-odt.el"
+;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
+;;;;;;  "progmodes/elisp-mode.el" "progmodes/prog-mode.el" "ps-mule.el"
+;;;;;;  "register.el" "replace.el" "rfn-eshadow.el" "select.el" "simple.el"
+;;;;;;  "startup.el" "subdirs.el" "subr.el" "tab-bar.el" "textmodes/fill.el"
+;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
+;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
+;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
+;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/text-mode.el"
+;;;;;;  "uniquify.el" "vc/ediff-hook.el" "vc/vc-hooks.el" "version.el"
+;;;;;;  "widget.el" "window.el") (0 0 0 0))
 
 ;;;***
 

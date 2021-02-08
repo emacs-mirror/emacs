@@ -218,15 +218,13 @@ minus this value."
 ;; Markers seem to be the only buffer-id not affected by renaming a buffer.
 ;; This nevertheless loses when a buffer is killed.  The variable-name is
 ;; required by `describe-mode'.
-(defvar 2C-mode nil
+(defvar-local 2C-mode nil
   "Marker to the associated buffer, if non-nil.")
-(make-variable-buffer-local '2C-mode)
 (put '2C-mode 'permanent-local t)
 
 (setq minor-mode-alist (cons '(2C-mode " 2C") minor-mode-alist))
 
-(defvar 2C-autoscroll-start nil)
-(make-variable-buffer-local '2C-autoscroll-start)
+(defvar-local 2C-autoscroll-start nil)
 
 ;;;;; base functions ;;;;;
 

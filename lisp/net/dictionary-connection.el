@@ -1,34 +1,36 @@
 ;;; dictionary-connection.el --- TCP-based client connection for dictionary  -*- lexical-binding:t -*-
 
+;; Copyright (C) 2021 Free Software Foundation, Inc.
+
 ;; Author: Torsten Hilbrich <torsten.hilbrich@gmx.net>
 ;; Keywords: network
 
-;; This file is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; This file is part of GNU Emacs.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
 ;; dictionary-connection allows to handle TCP-based connections in
-;; client mode where text-based information are exchanged. There is
+;; client mode where text-based information are exchanged.  There is
 ;; special support for handling CR LF (and the usual CR LF . CR LF
 ;; terminater).
 
 ;;; Code:
 
 (defsubst dictionary-connection-p (connection)
-  "Returns non-nil if CONNECTION is a connection object."
+  "Return non-nil if CONNECTION is a connection object."
   (get connection 'connection))
 
 (defsubst dictionary-connection-read-point (connection)
@@ -147,8 +149,7 @@ nil: argument is no connection object
 
 (defun dictionary-connection-read-to-point (connection)
   "Read from CONNECTION until an end of entry is encountered.
-End of entry is a decimal point found on a line by itself.
-"
+End of entry is a decimal point found on a line by itself."
   (dictionary-connection-read connection "\015?\012[.]\015?\012"))
 
 (provide 'dictionary-connection)

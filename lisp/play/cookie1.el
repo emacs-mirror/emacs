@@ -60,7 +60,6 @@
 (defcustom cookie-file nil
   "Default phrase file for cookie functions."
   :type '(choice (const nil) file)
-  :group 'cookie
   :version "24.4")
 
 (defconst cookie-delimiter "\n%%\n\\|\n%\n\\|\0"

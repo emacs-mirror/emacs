@@ -879,5 +879,33 @@ Return nil if FILENAME doesn't exist."
          (file-regular-p filename)
          filename)))
 
+;; Bug#46284
+(ert-deftest process-sentinel-interrupt-event ()
+  "Test that interrupting a process on Windows sends \"interrupt\" to sentinel."
+  (skip-unless (eq system-type 'windows-nt))
+  (with-temp-buffer
+    (let* ((proc-buf (current-buffer))
+	   ;; Start a new emacs process to wait idly until interrupted.
+	   (cmd "emacs -batch --eval=\"(sit-for 50000)\"")
+	   (proc (start-file-process-shell-command
+                  "test/process-sentinel-signal-event" proc-buf cmd))
+	   (events '()))
+
+      ;; Capture any incoming events.
+      (set-process-sentinel proc
+                            (lambda (_prc event)
+			      (push event events)))
+      ;; Wait for the process to start.
+      (sleep-for 2)
+      (should (equal 'run (process-status proc)))
+      ;; Interrupt the sub-process and wait for it to die.
+      (interrupt-process proc)
+      (sleep-for 2)
+      ;; Should have received SIGINT...
+      (should (equal 'signal (process-status proc)))
+      (should (equal 2 (process-exit-status proc)))
+      ;; ...and the change description should be "interrupt".
+      (should (equal '("interrupt\n") events)))))
+
 (provide 'process-tests)
 ;;; process-tests.el ends here

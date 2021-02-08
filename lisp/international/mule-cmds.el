@@ -1315,15 +1315,13 @@ Each function is called with one arg, LEIM directory name.")
   (dolist (function update-leim-list-functions)
     (apply function dirs)))
 
-(defvar current-input-method nil
+(defvar-local current-input-method nil
   "The current input method for multilingual text.
 If nil, that means no input method is activated now.")
-(make-variable-buffer-local 'current-input-method)
 (put 'current-input-method 'permanent-local t)
 
-(defvar current-input-method-title nil
+(defvar-local current-input-method-title nil
   "Title string of the current input method shown in mode line.")
-(make-variable-buffer-local 'current-input-method-title)
 (put 'current-input-method-title 'permanent-local t)
 
 (define-widget 'mule-input-method-string 'string
@@ -1355,45 +1353,40 @@ This is the input method activated by the command
   :set-after '(current-language-environment)
   :version "28.1")
 
-(defvar current-transient-input-method nil
+(defvar-local current-transient-input-method nil
   "Current input method temporarily enabled by `activate-transient-input-method'.
 If nil, that means no transient input method is active now.")
-(make-variable-buffer-local 'current-transient-input-method)
 (put 'current-transient-input-method 'permanent-local t)
 
-(defvar previous-transient-input-method nil
+(defvar-local previous-transient-input-method nil
   "The input method that was active before enabling the transient input method.
 If nil, that means no previous input method was active.")
-(make-variable-buffer-local 'previous-transient-input-method)
 (put 'previous-transient-input-method 'permanent-local t)
 
 (put 'input-method-function 'permanent-local t)
 
-(defvar input-method-history nil
+(defvar-local input-method-history nil
   "History list of input methods read from the minibuffer.
 
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
-(make-variable-buffer-local 'input-method-history)
 (put 'input-method-history 'permanent-local t)
 
 (define-obsolete-variable-alias
   'inactivate-current-input-method-function
   'deactivate-current-input-method-function "24.3")
-(defvar deactivate-current-input-method-function nil
+(defvar-local deactivate-current-input-method-function nil
   "Function to call for deactivating the current input method.
 Every input method should set this to an appropriate value when activated.
 This function is called with no argument.
 
 This function should never change the value of `current-input-method'.
 It is set to nil by the function `deactivate-input-method'.")
-(make-variable-buffer-local 'deactivate-current-input-method-function)
 (put 'deactivate-current-input-method-function 'permanent-local t)
 
-(defvar describe-current-input-method-function nil
+(defvar-local describe-current-input-method-function nil
   "Function to call for describing the current input method.
 This function is called with no argument.")
-(make-variable-buffer-local 'describe-current-input-method-function)
 (put 'describe-current-input-method-function 'permanent-local t)
 
 (defvar input-method-alist nil

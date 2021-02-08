@@ -859,11 +859,10 @@ cell to cache and cache to cell.")
   "Non-nil inhibits auto fill paragraph when `table-with-cache-buffer' exits.
 This is always set to nil at the entry to `table-with-cache-buffer' before
 executing body forms.")
-(defvar table-mode-indicator nil
+(defvar-local table-mode-indicator nil
   "For mode line indicator")
 ;; This is not a real minor-mode but placed in the minor-mode-alist
 ;; so that we can show the indicator on the mode line handy.
-(make-variable-buffer-local 'table-mode-indicator)
 (unless (assq table-mode-indicator minor-mode-alist)
   (push '(table-mode-indicator (table-fixed-width-mode " Fixed-Table" " Table"))
         minor-mode-alist))

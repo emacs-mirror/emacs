@@ -62,33 +62,29 @@
     ["Move to Next Button" forward-button
       :help "Move to the Next Button in the help buffer"]))
 
-(defvar help-xref-stack nil
+(defvar-local help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
 Used by `help-follow' and `help-xref-go-back'.
 An element looks like (POSITION FUNCTION ARGS...).
 To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-stack 'permanent-local t)
-(make-variable-buffer-local 'help-xref-stack)
 
-(defvar help-xref-forward-stack nil
+(defvar-local help-xref-forward-stack nil
   "A stack used to navigate help forwards after using the back button.
 Used by `help-follow' and `help-xref-go-forward'.
 An element looks like (POSITION FUNCTION ARGS...).
 To use the element, do (apply FUNCTION ARGS) then goto the point.")
 (put 'help-xref-forward-stack 'permanent-local t)
-(make-variable-buffer-local 'help-xref-forward-stack)
 
-(defvar help-xref-stack-item nil
+(defvar-local help-xref-stack-item nil
   "An item for `help-follow' in this buffer to push onto `help-xref-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
-(make-variable-buffer-local 'help-xref-stack-item)
 
-(defvar help-xref-stack-forward-item nil
+(defvar-local help-xref-stack-forward-item nil
   "An item for `help-go-back' to push onto `help-xref-forward-stack'.
 The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-forward-item 'permanent-local t)
-(make-variable-buffer-local 'help-xref-stack-forward-item)
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
 (setq-default help-xref-forward-stack nil help-xref-forward-stack-item nil)

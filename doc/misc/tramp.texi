@@ -2792,9 +2792,10 @@ visiting a file will show its encrypted contents.  However, it is
 highly discouraged to mix encrypted and not encrypted files in the
 same directory.
 
-@deffn Command tramp-crypt-add-directory name
-If a remote directory shall not include encrypted files anymore, it
-must be indicated by this command.
+@deffn Command tramp-crypt-remove-directory name
+This command should be used to indicate that files in @code{name}
+should no longer be encrypted.  Existing encrypted files and
+subdirectories will remain encrypted.
 @end deffn
 
 

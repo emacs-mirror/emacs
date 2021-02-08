@@ -61,9 +61,8 @@ The alist's format is as follows:
   "Alist of actions to take on NOTICEs from EZBounce.")
 
 
-(defvar erc-ezb-session-list '()
+(defvar-local erc-ezb-session-list '()
   "List of detached EZBounce sessions.")
-(make-variable-buffer-local 'erc-ezb-session-list)
 
 (defvar erc-ezb-inside-session-listing nil
   "Indicate whether current notices are expected to be EZB session listings.")

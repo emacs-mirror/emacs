@@ -1,4 +1,4 @@
-;;; nngateway.el --- posting news via mail gateways
+;;; nngateway.el --- posting news via mail gateways  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 

@@ -149,12 +149,11 @@ This information is useful, but it takes screen space away from file names."
 ;; So instead, we now keep the two pieces of data in separate buffers, and
 ;; use the new buffer-swap-text primitive when we need to change which data
 ;; is associated with "the" buffer.
-(defvar tar-data-buffer nil "Buffer that holds the actual raw tar bytes.")
-(make-variable-buffer-local 'tar-data-buffer)
+(defvar-local tar-data-buffer nil
+  "Buffer that holds the actual raw tar bytes.")
 
-(defvar tar-data-swapped nil
+(defvar-local tar-data-swapped nil
   "If non-nil, `tar-data-buffer' indeed holds raw tar bytes.")
-(make-variable-buffer-local 'tar-data-swapped)
 
 (defun tar-data-swapped-p ()
   "Return non-nil if the tar-data is in `tar-data-buffer'."

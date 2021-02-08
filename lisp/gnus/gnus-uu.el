@@ -1,4 +1,4 @@
-;;; gnus-uu.el --- extract (uu)encoded files in Gnus
+;;; gnus-uu.el --- extract (uu)encoded files in Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1987, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
@@ -356,7 +356,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 (defun gnus-uu-decode-uu (&optional n)
   "Uudecodes the current article."
   (interactive "P")
-  (gnus-uu-decode-with-method 'gnus-uu-uustrip-article n))
+  (gnus-uu-decode-with-method #'gnus-uu-uustrip-article n))
 
 (defun gnus-uu-decode-uu-and-save (n dir)
   "Decodes and saves the resulting file."
@@ -366,12 +366,12 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	  (read-directory-name "Uudecode and save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir t))))
-  (gnus-uu-decode-with-method 'gnus-uu-uustrip-article n dir nil nil t))
+  (gnus-uu-decode-with-method #'gnus-uu-uustrip-article n dir nil nil t))
 
 (defun gnus-uu-decode-unshar (&optional n)
   "Unshars the current article."
   (interactive "P")
-  (gnus-uu-decode-with-method 'gnus-uu-unshar-article n nil nil 'scan t))
+  (gnus-uu-decode-with-method #'gnus-uu-unshar-article n nil nil 'scan t))
 
 (defun gnus-uu-decode-unshar-and-save (n dir)
   "Unshars and saves the current article."
@@ -381,7 +381,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	  (read-directory-name "Unshar and save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir t))))
-  (gnus-uu-decode-with-method 'gnus-uu-unshar-article n dir nil 'scan t))
+  (gnus-uu-decode-with-method #'gnus-uu-unshar-article n dir nil 'scan t))
 
 (defun gnus-uu-decode-save (n file)
   "Saves the current article."
@@ -393,7 +393,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	   (read-file-name
 	    "Save article in file: " gnus-uu-default-dir gnus-uu-default-dir))))
   (setq gnus-uu-saved-article-name file)
-  (gnus-uu-decode-with-method 'gnus-uu-save-article n nil t))
+  (gnus-uu-decode-with-method #'gnus-uu-save-article n nil t))
 
 (defun gnus-uu-decode-binhex (n dir)
   "Unbinhexes the current article."
@@ -406,7 +406,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (gnus-uu-initialize)
   (setq gnus-uu-binhex-article-name
 	(make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
-  (gnus-uu-decode-with-method 'gnus-uu-binhex-article n dir))
+  (gnus-uu-decode-with-method #'gnus-uu-binhex-article n dir))
 
 (defun gnus-uu-decode-yenc (n dir)
   "Decode the yEnc-encoded current article."
@@ -417,7 +417,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir))))
   (setq gnus-uu-yenc-article-name nil)
-  (gnus-uu-decode-with-method 'gnus-uu-yenc-article n dir nil t))
+  (gnus-uu-decode-with-method #'gnus-uu-yenc-article n dir nil t))
 
 (defun gnus-uu-decode-uu-view (&optional n)
   "Uudecodes and views the current article."
@@ -729,7 +729,7 @@ When called interactively, prompt for REGEXP."
 (defun gnus-uu-decode-postscript (&optional n)
   "Gets PostScript of the current article."
   (interactive "P")
-  (gnus-uu-decode-with-method 'gnus-uu-decode-postscript-article n))
+  (gnus-uu-decode-with-method #'gnus-uu-decode-postscript-article n))
 
 (defun gnus-uu-decode-postscript-view (&optional n)
   "Gets and views the current article."
@@ -745,7 +745,7 @@ When called interactively, prompt for REGEXP."
 	  (read-directory-name "Save in dir: "
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir t))))
-  (gnus-uu-decode-with-method 'gnus-uu-decode-postscript-article
+  (gnus-uu-decode-with-method #'gnus-uu-decode-postscript-article
 			      n dir nil nil t))
 
 (defun gnus-uu-decode-postscript-and-save-view (n dir)
@@ -977,7 +977,7 @@ When called interactively, prompt for REGEXP."
 (defvar gnus-uu-binhex-end-line
   ":$")
 
-(defun gnus-uu-binhex-article (buffer in-state)
+(defun gnus-uu-binhex-article (buffer _in-state)
   (let (state start-char)
     (with-current-buffer buffer
       (widen)
@@ -1014,11 +1014,11 @@ When called interactively, prompt for REGEXP."
 
 ;; yEnc
 
-(defun gnus-uu-yenc-article (buffer in-state)
+(defun gnus-uu-yenc-article (_buffer _in-state)
   (with-current-buffer gnus-original-article-buffer
     (widen)
     (let ((file-name (yenc-extract-filename))
-	  state start-char)
+	  state) ;; start-char
       (when (not file-name)
 	(setq state (list 'wrong-type)))
 
@@ -1046,7 +1046,7 @@ When called interactively, prompt for REGEXP."
 
 ;; PostScript
 
-(defun gnus-uu-decode-postscript-article (process-buffer in-state)
+(defun gnus-uu-decode-postscript-article (process-buffer _in-state)
   (let ((state (list 'ok))
 	start-char end-char file-name)
     (with-current-buffer process-buffer
@@ -1196,11 +1196,11 @@ When called interactively, prompt for REGEXP."
 
 	;; Expand numbers, sort, and return the list of article
 	;; numbers.
-	(mapcar 'cdr
+	(mapcar #'cdr
 		(sort (gnus-uu-expand-numbers
 		       list-of-subjects
 		       (not do-not-translate))
-		      'gnus-uu-string<))))))
+		      #'gnus-uu-string<))))))
 
 (defun gnus-uu-expand-numbers (string-list &optional translate)
   ;; Takes a list of strings and "expands" all numbers in all the
@@ -1278,13 +1278,15 @@ When called interactively, prompt for REGEXP."
       (when dont-unmark-last-article
 	(setq gnus-uu-has-been-grabbed (list art))))))
 
+(defvar gnus-asynchronous)
+
 ;; This function takes a list of articles and a function to apply to
 ;; each article grabbed.
 ;;
 ;; This function returns a list of files decoded if the grabbing and
 ;; the process-function has been successful and nil otherwise.
 (defun gnus-uu-grab-articles (articles process-function
-				       &optional sloppy limit no-errors)
+				       &optional sloppy limit _no-errors)
   (require 'gnus-async)
   (let ((state 'first)
 	(gnus-asynchronous nil)
@@ -1452,10 +1454,10 @@ When called interactively, prompt for REGEXP."
 	  (setq subject (substring subject (match-end 0)))))
     (or part "")))
 
-(defun gnus-uu-uudecode-sentinel (process event)
+(defun gnus-uu-uudecode-sentinel (process _event)
   (delete-process (get-process process)))
 
-(defun gnus-uu-uustrip-article (process-buffer in-state)
+(defun gnus-uu-uustrip-article (process-buffer _in-state)
   ;; Uudecodes a file asynchronously.
   (with-current-buffer process-buffer
     (let ((state (list 'wrong-type))
@@ -1576,7 +1578,7 @@ Gnus might fail to display all of it.")
 
 ;; This function is used by `gnus-uu-grab-articles' to treat
 ;; a shared article.
-(defun gnus-uu-unshar-article (process-buffer in-state)
+(defun gnus-uu-unshar-article (process-buffer _in-state)
   (let ((state (list 'ok))
 	start-char)
     (with-current-buffer process-buffer
@@ -1830,8 +1832,8 @@ Gnus might fail to display all of it.")
 
 ;; Initializing
 
-(add-hook 'gnus-summary-prepare-exit-hook 'gnus-uu-clean-up)
-(add-hook 'gnus-summary-prepare-exit-hook 'gnus-uu-delete-work-dir)
+(add-hook 'gnus-summary-prepare-exit-hook #'gnus-uu-clean-up)
+(add-hook 'gnus-summary-prepare-exit-hook #'gnus-uu-delete-work-dir)
 
 
 
@@ -1949,6 +1951,7 @@ The user will be asked for a file name."
 		  (gnus-uu-choose-action file-name gnus-uu-ext-to-mime-list)
 		  file-name))
   (insert (format "Content-Transfer-Encoding: %s\n\n" encoding))
+  ;; FIXME: Shouldn't we set-buffer before saving the restriction?  --Stef
   (save-restriction
     (set-buffer gnus-message-buffer)
     (goto-char (point-min))

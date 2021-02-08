@@ -374,9 +374,8 @@ prompting.  If file is a directory perform a `find-file' on it."
         (find-file f)
       (push-mark (+ (point) (cadr (insert-file-contents f)))))))
 
-(defvar ns-select-overlay nil
+(defvar-local ns-select-overlay nil
   "Overlay used to highlight areas in files requested by Nextstep apps.")
-(make-variable-buffer-local 'ns-select-overlay)
 
 (defvar ns-input-line) 			; nsterm.m
 

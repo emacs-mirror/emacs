@@ -341,7 +341,7 @@ Return the result of the last expression in BODY."
   ;; FIXME: We should probably just be using `pop-to-buffer'.
   (setq window
 	(cond
-	 ((and (edebug-window-live-p window)
+         ((and (window-live-p window)
 	       (eq (window-buffer window) buffer))
 	  window)
 	 ((eq (window-buffer) buffer)
@@ -392,7 +392,7 @@ Return the result of the last expression in BODY."
   ;; Get either a full window configuration or some window information.
   (if (listp which-windows)
       (mapcar (lambda (window)
-                (if (edebug-window-live-p window)
+                (if (window-live-p window)
                     (list window
                           (window-buffer window)
                           (window-point window)
@@ -407,7 +407,7 @@ Return the result of the last expression in BODY."
       (mapcar (lambda (one-window-info)
                 (if one-window-info
                     (apply (lambda (window buffer point start hscroll)
-                             (if (edebug-window-live-p window)
+                             (if (window-live-p window)
                                  (progn
                                    (set-window-buffer window buffer)
                                    (set-window-point window point)
@@ -2641,12 +2641,11 @@ See `edebug-behavior-alist' for implementations.")
 
 
 ;; window-start now stored with each function.
-;;(defvar edebug-window-start nil)
+;;(defvar-local edebug-window-start nil)
 ;; Remember where each buffers' window starts between edebug calls.
 ;; This is to avoid spurious recentering.
 ;; Does this still need to be buffer-local??
 ;;(setq-default edebug-window-start nil)
-;;(make-variable-buffer-local 'edebug-window-start)
 
 
 ;; Dynamically declared unbound vars
@@ -2689,7 +2688,7 @@ See `edebug-behavior-alist' for implementations.")
 	(edebug-outside-window (selected-window))
 	(edebug-outside-buffer (current-buffer))
 	(edebug-outside-point (point))
- 	(edebug-outside-mark (edebug-mark))
+        (edebug-outside-mark (mark t))
 	edebug-outside-windows		; Window or screen configuration.
 	edebug-buffer-points
 
@@ -2858,7 +2857,7 @@ See `edebug-behavior-alist' for implementations.")
 
                     ;; Unrestore edebug-buffer's window-start, if displayed.
                     (let ((window (car edebug-window-data)))
-                      (if (and (edebug-window-live-p window)
+                      (if (and (window-live-p window)
                                (eq (window-buffer) edebug-buffer))
                           (progn
                             (set-window-start window (cdr edebug-window-data)
@@ -2877,7 +2876,7 @@ See `edebug-behavior-alist' for implementations.")
                 ;; Since we may be in a save-excursion, in case of quit,
                 ;; reselect the outside window only.
                 ;; Only needed if we are not recovering windows??
-                (if (edebug-window-live-p edebug-outside-window)
+                (if (window-live-p edebug-outside-window)
                     (select-window edebug-outside-window))
                 )                       ; if edebug-save-windows
 
@@ -4541,11 +4540,6 @@ It is removed when you hit any char."
 
 ;;; Emacs version specific code
 
-(defalias 'edebug-window-live-p 'window-live-p)
-
-(defun edebug-mark ()
-  (mark t))
-
 (defun edebug-set-conditional-breakpoint (arg condition)
   "Set a conditional breakpoint at nearest sexp.
 The condition is evaluated in the outside context.
@@ -4661,7 +4655,15 @@ instrumentation for, defaulting to all functions."
   (message "Removed edebug instrumentation from %s"
            (mapconcat #'symbol-name functions ", ")))
 
+
+;;; Obsolete.
+
+(defun edebug-mark ()
+  (declare (obsolete mark "28.1"))
+  (mark t))
+
 (define-obsolete-function-alias 'edebug-mark-marker #'mark-marker "28.1")
+(define-obsolete-function-alias 'edebug-window-live-p #'window-live-p "28.1")
 
 (provide 'edebug)
 ;;; edebug.el ends here

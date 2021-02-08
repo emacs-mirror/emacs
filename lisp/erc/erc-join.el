@@ -105,8 +105,7 @@ servers, presumably in the same domain."
   :group 'erc-autojoin
   :type 'boolean)
 
-(defvar erc--autojoin-timer nil)
-(make-variable-buffer-local 'erc--autojoin-timer)
+(defvar-local erc--autojoin-timer nil)
 
 (defun erc-autojoin-channels-delayed (server nick buffer)
   "Attempt to autojoin channels.

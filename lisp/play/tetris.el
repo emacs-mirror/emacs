@@ -224,25 +224,15 @@ each one of its four blocks.")
 
 ;; ;;;;;;;;;;;;; variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tetris-shape 0)
-(defvar tetris-rot 0)
-(defvar tetris-next-shape 0)
-(defvar tetris-n-shapes 0)
-(defvar tetris-n-rows 0)
-(defvar tetris-score 0)
-(defvar tetris-pos-x 0)
-(defvar tetris-pos-y 0)
-(defvar tetris-paused nil)
-
-(make-variable-buffer-local 'tetris-shape)
-(make-variable-buffer-local 'tetris-rot)
-(make-variable-buffer-local 'tetris-next-shape)
-(make-variable-buffer-local 'tetris-n-shapes)
-(make-variable-buffer-local 'tetris-n-rows)
-(make-variable-buffer-local 'tetris-score)
-(make-variable-buffer-local 'tetris-pos-x)
-(make-variable-buffer-local 'tetris-pos-y)
-(make-variable-buffer-local 'tetris-paused)
+(defvar-local tetris-shape 0)
+(defvar-local tetris-rot 0)
+(defvar-local tetris-next-shape 0)
+(defvar-local tetris-n-shapes 0)
+(defvar-local tetris-n-rows 0)
+(defvar-local tetris-score 0)
+(defvar-local tetris-pos-x 0)
+(defvar-local tetris-pos-y 0)
+(defvar-local tetris-paused nil)
 
 ;; ;;;;;;;;;;;;; keymaps ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

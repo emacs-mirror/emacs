@@ -275,8 +275,6 @@ See `compilation-error-screen-columns'."
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
     (define-key map "\r" 'compile-goto-error)  ;; ?
-    (define-key map "n" 'next-error-no-select)
-    (define-key map "p" 'previous-error-no-select)
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
     (define-key map "\t" 'compilation-next-error)

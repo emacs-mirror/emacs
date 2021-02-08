@@ -39,7 +39,7 @@
 
 ;;; Code:
 
-(defvar semantic-dependency-include-path nil
+(defvar-local semantic-dependency-include-path nil
   "Defines the include path used when searching for files.
 This should be a list of directories to search which is specific
 to the file being included.
@@ -56,9 +56,8 @@ reparsed, the cache will be reset.
 TODO: use ffap.el to locate such items?
 
 NOTE: Obsolete this, or use as special user")
-(make-variable-buffer-local 'semantic-dependency-include-path)
 
-(defvar semantic-dependency-system-include-path nil
+(defvar-local semantic-dependency-system-include-path nil
   "Defines the system include path.
 This should be set with either `defvar-mode-local', or with
 `semantic-add-system-include'.
@@ -71,7 +70,6 @@ When searching for a file associated with a name found in a tag of
 class include, this path will be inspected for includes of type
 `system'.  Some include tags are agnostic to this setting and will
 check both the project and system directories.")
-(make-variable-buffer-local 'semantic-dependency-system-include-path)
 
 (defmacro defcustom-mode-local-semantic-dependency-system-include-path
   (mode name value &optional docstring)

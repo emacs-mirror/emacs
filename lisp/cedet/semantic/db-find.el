@@ -426,17 +426,15 @@ Default action as described in `semanticdb-find-translate-path'."
       ;; searchable item, then instead do the regular thing without caching.
       (semanticdb-find-translate-path-includes--internal path))))
 
-(defvar semanticdb-find-lost-includes nil
+(defvar-local semanticdb-find-lost-includes nil
   "Include files that we cannot find associated with this buffer.")
-(make-variable-buffer-local 'semanticdb-find-lost-includes)
 
-(defvar semanticdb-find-scanned-include-tags nil
+(defvar-local semanticdb-find-scanned-include-tags nil
   "All include tags scanned, plus action taken on the tag.
 Each entry is an alist:
   (ACTION . TAG)
 where ACTION is one of `scanned', `duplicate', `lost'
 and TAG is a clone of the include tag that was found.")
-(make-variable-buffer-local 'semanticdb-find-scanned-include-tags)
 
 (defvar semanticdb-implied-include-tags nil
   "Include tags implied for all files of a given mode.

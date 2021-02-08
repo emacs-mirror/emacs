@@ -971,12 +971,12 @@ get_minibuffer (EMACS_INT depth)
       char name[sizeof name_fmt + INT_STRLEN_BOUND (EMACS_INT)];
       AUTO_STRING_WITH_LEN (lname, name, sprintf (name, name_fmt, depth));
       buf = Fget_buffer_create (lname, Qnil);
+      /* Do this before set_minibuffer_mode.  */
+      XSETCAR (tail, buf);
       set_minibuffer_mode (buf, depth);
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */
       Fbuffer_enable_undo (buf);
-
-      XSETCAR (tail, buf);
     }
   else
     {

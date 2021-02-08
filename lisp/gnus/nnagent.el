@@ -1,4 +1,4 @@
-;;; nnagent.el --- offline backend for Gnus
+;;; nnagent.el --- offline backend for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -86,7 +86,7 @@
 		       server dir)
       t))))
 
-(deffoo nnagent-retrieve-groups (groups &optional server)
+(deffoo nnagent-retrieve-groups (_groups &optional _server)
   (save-excursion
     (cond
      ((file-exists-p (gnus-agent-lib-file "groups"))
@@ -106,13 +106,13 @@
 	(funcall (gnus-get-function gnus-command-method 'request-type)
 		 (gnus-group-real-name group) article)))))
 
-(deffoo nnagent-request-newgroups (date server)
+(deffoo nnagent-request-newgroups (_date _server)
   nil)
 
-(deffoo nnagent-request-update-info (group info &optional server)
+(deffoo nnagent-request-update-info (_group _info &optional _server)
   nil)
 
-(deffoo nnagent-request-post (&optional server)
+(deffoo nnagent-request-post (&optional _server)
   (gnus-agent-insert-meta-information 'news gnus-command-method)
   (gnus-request-accept-article "nndraft:queue" nil t t))
 
@@ -138,13 +138,13 @@
 	       group action server)))
   nil)
 
-(deffoo nnagent-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nnagent-retrieve-headers (articles &optional group _server fetch-old)
   (let ((file (gnus-agent-article-name ".overview" group))
 	arts n first)
     (save-excursion
       (gnus-agent-load-alist group)
       (setq arts (gnus-sorted-difference
-		  articles (mapcar 'car gnus-agent-article-alist)))
+		  articles (mapcar #'car gnus-agent-article-alist)))
       ;; Assume that articles with smaller numbers than the first one
       ;; Agent knows are gone.
       (setq first (caar gnus-agent-article-alist))
@@ -184,7 +184,7 @@
 	t)
       'nov)))
 
-(deffoo nnagent-request-expire-articles (articles group &optional server force)
+(deffoo nnagent-request-expire-articles (articles _group &optional _server _force)
   articles)
 
 (deffoo nnagent-request-group (group &optional server dont-check info)
@@ -249,7 +249,7 @@
   (nnoo-parent-function 'nnagent 'nnml-request-regenerate
 			(list (nnagent-server server))))
 
-(deffoo nnagent-retrieve-group-data-early (server infos)
+(deffoo nnagent-retrieve-group-data-early (_server _infos)
   nil)
 
 ;; Use nnml functions for just about everything.

@@ -3433,41 +3433,47 @@ possible for good performance."
   t (c-make-bare-char-alt (c-lang-const c-block-prefix-disallowed-chars) t))
 (c-lang-defvar c-block-prefix-charset (c-lang-const c-block-prefix-charset))
 
-(c-lang-defconst c-type-decl-prefix-key
-  "Regexp matching any declarator operator that might precede the
-identifier in a declaration, e.g. the \"*\" in \"char *argv\".  This
-regexp should match \"(\" if parentheses are valid in declarators.
-The end of the first submatch is taken as the end of the operator.
-Identifier syntax is in effect when this is matched (see
-`c-identifier-syntax-table')."
+(c-lang-defconst c-type-decl-prefix-keywords-key
+  ;; Regexp matching any keyword operator that might precede the identifier in
+  ;; a declaration, e.g. "const" or nil.  It doesn't test there is no "_"
+  ;; following the keyword.
   t (if (or (c-lang-const c-type-modifier-kwds) (c-lang-const c-modifier-kwds))
-        (concat
+	(concat
 	 (regexp-opt (c--delete-duplicates
 		      (append (c-lang-const c-type-modifier-kwds)
 			      (c-lang-const c-modifier-kwds))
 		      :test 'string-equal)
 		     t)
-	 "\\>")
-      ;; Default to a regexp that never matches.
-      regexp-unmatchable)
+	 "\\>")))
+
+(c-lang-defconst c-type-decl-prefix-key
+  "Regexp matching any declarator operator that might precede the
+identifier in a declaration, e.g. the \"*\" in \"char *argv\".  This
+regexp should match \"(\" if parentheses are valid in declarators.
+The operator found is either the first submatch (if it is not a
+keyword) or the second submatch (if it is)."
+  t (if (c-lang-const c-type-decl-prefix-keywords-key)
+	(concat "\\(\\`a\\`\\)\\|"	; 1 - will never match.
+		(c-lang-const c-type-decl-prefix-keywords-key) ; 2
+		"\\([^_]\\|$\\)")			       ; 3
+      "\\`a\\`") ;; Default to a regexp that never matches.
   ;; Check that there's no "=" afterwards to avoid matching tokens
   ;; like "*=".
-  (c objc) (concat "\\("
+  (c objc) (concat "\\("		; 1
 		   "[*(]"
-		   "\\|"
-		   (c-lang-const c-type-decl-prefix-key)
-		   "\\)"
-		   "\\([^=]\\|$\\)")
-  c++  (concat "\\("
+		   "\\)\\|"
+		   (c-lang-const c-type-decl-prefix-keywords-key) ; 2
+		   "\\([^=_]\\|$\\)")	; 3
+  c++  (concat "\\("			; 1
 	       "&&"
 	       "\\|"
 	       "\\.\\.\\."
 	       "\\|"
 	       "[*(&~]"
+	       "\\)\\|\\("				      ; 2
+	       (c-lang-const c-type-decl-prefix-keywords-key) ; 3
 	       "\\|"
-	       (c-lang-const c-type-decl-prefix-key)
-	       "\\|"
-	       (concat "\\("   ; 3
+	       (concat "\\("   ; 4
 		       ;; If this matches there's special treatment in
 		       ;; `c-font-lock-declarators' and
 		       ;; `c-font-lock-declarations' that check for a
@@ -3475,8 +3481,9 @@ Identifier syntax is in effect when this is matched (see
 		       (c-lang-const c-identifier-start)
 		       "\\)")
 	       "\\)"
-	       "\\([^=]\\|$\\)")
+	       "\\([^=_]\\|$\\)")	; 5
   pike "\\(\\*\\)\\([^=]\\|$\\)")
+
 (c-lang-defvar c-type-decl-prefix-key (c-lang-const c-type-decl-prefix-key)
   'dont-doc)
 

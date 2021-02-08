@@ -1,4 +1,4 @@
-;;; gnus-msg.el --- mail and post interface for Gnus
+;;; gnus-msg.el --- mail and post interface for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -389,9 +389,10 @@ only affect the Gcc copy, but not the original message."
 ;;; Internal functions.
 
 (defun gnus-inews-make-draft (articles)
-  `(lambda ()
-     (gnus-inews-make-draft-meta-information
-      ,gnus-newsgroup-name ',articles)))
+  (let ((gn gnus-newsgroup-name))
+    (lambda ()
+      (gnus-inews-make-draft-meta-information
+       gn articles))))
 
 (autoload 'nnselect-article-number "nnselect" nil nil 'macro)
 (autoload 'nnselect-article-group "nnselect" nil nil 'macro)
@@ -399,6 +400,7 @@ only affect the Gcc copy, but not the original message."
 
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
+  (declare (indent 1) (debug t))
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
 	(winconf-name (make-symbol "gnus-setup-message-winconf-name"))
 	(buffer (make-symbol "gnus-setup-message-buffer"))
@@ -473,8 +475,8 @@ only affect the Gcc copy, but not the original message."
              (let ((mbl1 mml-buffer-list))
                (setq mml-buffer-list mbl)  ;; Global value
                (setq-local mml-buffer-list mbl1) ;; Local value
-               (add-hook 'change-major-mode-hook 'mml-destroy-buffers nil t)
-               (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
+               (add-hook 'change-major-mode-hook #'mml-destroy-buffers nil t)
+               (add-hook 'kill-buffer-hook #'mml-destroy-buffers t t))
            (mml-destroy-buffers)
            (setq mml-buffer-list mbl)))
        (message-hide-headers)
@@ -516,14 +518,13 @@ instead."
                       switch-action yank-action send-actions return-action))
     (let ((buf (current-buffer))
 	  ;; Don't use posting styles corresponding to any existing group.
-	  (group-name gnus-newsgroup-name)
+	  ;; (group-name gnus-newsgroup-name)
 	  mail-buf)
-      (unwind-protect
-	  (progn
-	    (let ((gnus-newsgroup-name ""))
-	    (gnus-setup-message 'message
-	      (message-mail to subject other-headers continue
-			    nil yank-action send-actions return-action)))))
+      (let ((gnus-newsgroup-name ""))
+	(gnus-setup-message
+	 'message
+	 (message-mail to subject other-headers continue
+		       nil yank-action send-actions return-action)))
       (when switch-action
 	(setq mail-buf (current-buffer))
 	(switch-to-buffer buf)
@@ -565,16 +566,21 @@ instead."
 			 (symbol-value (car elem))))
 	    (throw 'found (cons (cadr elem) (caddr elem)))))))))
 
+(declare-function gnus-agent-possibly-do-gcc "gnus-agent" ())
+(declare-function gnus-cache-possibly-remove-article "gnus-cache"
+                  (article ticked dormant unread &optional force))
+
 (defun gnus-inews-add-send-actions (winconf buffer article
 					    &optional config yanked
 					    winconf-name)
-  (add-hook 'message-sent-hook (if gnus-agent 'gnus-agent-possibly-do-gcc
-				 'gnus-inews-do-gcc) nil t)
+  (add-hook 'message-sent-hook (if gnus-agent #'gnus-agent-possibly-do-gcc
+				 #'gnus-inews-do-gcc)
+	    nil t)
   (when gnus-agent
-    (add-hook 'message-header-hook 'gnus-agent-possibly-save-gcc nil t))
+    (add-hook 'message-header-hook #'gnus-agent-possibly-save-gcc nil t))
   (setq message-post-method
-	`(lambda (&optional arg)
-	   (gnus-post-method arg ,gnus-newsgroup-name)))
+	(let ((gn gnus-newsgroup-name))
+	  (lambda (&optional arg) (gnus-post-method arg gn))))
   (message-add-action
    `(progn
       (setq gnus-current-window-configuration ',winconf-name)
@@ -596,9 +602,6 @@ instead."
 	       `(gnus-summary-mark-article-as-replied ',to-be-marked)))))
      'send)))
 
-(put 'gnus-setup-message 'lisp-indent-function 1)
-(put 'gnus-setup-message 'edebug-form-spec '(form body))
-
 ;;; Post news commands of Gnus group mode and summary mode
 
 (defun gnus-group-mail (&optional arg)
@@ -608,21 +611,19 @@ If ARG is 1, prompt for a group name to find the posting style."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (unwind-protect
-	(progn
-	  (let ((gnus-newsgroup-name
-		 (if arg
-		     (if (= 1 (prefix-numeric-value arg))
-			 (gnus-group-completing-read
-			  "Use posting style of group"
-			  nil (gnus-read-active-file-p))
-		       (gnus-group-group-name))
-		   "")))
-	    (gnus-setup-message 'message (message-mail)))))))
+  (let* (;;(group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 ;; (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read
+		   "Use posting style of group"
+		   nil (gnus-read-active-file-p))
+		(gnus-group-group-name))
+	    "")))
+    (gnus-setup-message 'message (message-mail))))
 
 (defun gnus-group-news (&optional arg)
   "Start composing a news.
@@ -635,22 +636,21 @@ network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (unwind-protect
-	(progn
-	  (let ((gnus-newsgroup-name
-		(if arg
-		    (if (= 1 (prefix-numeric-value arg))
-			(gnus-group-completing-read "Use group"
-						    nil
-						    (gnus-read-active-file-p))
-		      (gnus-group-group-name))
-		  "")))
-	  (gnus-setup-message 'message
-	    (message-news (gnus-group-real-name gnus-newsgroup-name))))))))
+  (let* (;;(group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 ;; (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read "Use group"
+					      nil
+					      (gnus-read-active-file-p))
+		(gnus-group-group-name))
+	    "")))
+    (gnus-setup-message
+     'message
+     (message-news (gnus-group-real-name gnus-newsgroup-name)))))
 
 (defun gnus-group-post-news (&optional arg)
   "Start composing a message (a news by default).
@@ -679,21 +679,19 @@ posting style."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (unwind-protect
-	(progn
-	  (let ((gnus-newsgroup-name
-		(if arg
-		    (if (= 1 (prefix-numeric-value arg))
-			(gnus-group-completing-read "Use group"
-						    nil
-						    (gnus-read-active-file-p))
-		      "")
-		  gnus-newsgroup-name)))
-	  (gnus-setup-message 'message (message-mail)))))))
+  (let* (;;(group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 ;; (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read "Use group"
+					      nil
+					      (gnus-read-active-file-p))
+		"")
+	    gnus-newsgroup-name)))
+    (gnus-setup-message 'message (message-mail))))
 
 (defun gnus-summary-news-other-window (&optional arg)
   "Start composing a news in another window.
@@ -706,27 +704,26 @@ network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
   ;; We can't `let' gnus-newsgroup-name here, since that leads
   ;; to local variables leaking.
-  (let ((group gnus-newsgroup-name)
-	;; make sure last viewed article doesn't affect posting styles:
-	(gnus-article-copy)
-	(buffer (current-buffer)))
-    (unwind-protect
-	(progn
-	  (let ((gnus-newsgroup-name
-		(if arg
-		    (if (= 1 (prefix-numeric-value arg))
-			(gnus-group-completing-read "Use group"
-						    nil
-						    (gnus-read-active-file-p))
-		      "")
-		  gnus-newsgroup-name)))
-	  (gnus-setup-message 'message
-	    (progn
-	      (message-news (gnus-group-real-name gnus-newsgroup-name))
-              (setq-local gnus-discouraged-post-methods
-                          (remove
-                           (car (gnus-find-method-for-group gnus-newsgroup-name))
-                           gnus-discouraged-post-methods)))))))))
+  (let* (;;(group gnus-newsgroup-name)
+	 ;; make sure last viewed article doesn't affect posting styles:
+	 (gnus-article-copy)
+	 ;; (buffer (current-buffer))
+	 (gnus-newsgroup-name
+	  (if arg
+	      (if (= 1 (prefix-numeric-value arg))
+		  (gnus-group-completing-read "Use group"
+					      nil
+					      (gnus-read-active-file-p))
+		"")
+	    gnus-newsgroup-name)))
+    (gnus-setup-message
+     'message
+     (progn
+       (message-news (gnus-group-real-name gnus-newsgroup-name))
+       (setq-local gnus-discouraged-post-methods
+	           (remove
+	            (car (gnus-find-method-for-group gnus-newsgroup-name))
+	            gnus-discouraged-post-methods))))))
 
 (defun gnus-summary-post-news (&optional arg)
   "Start composing a message.  Post to the current group by default.
@@ -824,8 +821,8 @@ prefix `a', cancel using the standard posting method; if not
 post using the current select method."
   (interactive (gnus-interactive "P\ny"))
   (let ((message-post-method
-	 `(lambda (arg)
-	    (gnus-post-method (eq ',symp 'a) ,gnus-newsgroup-name)))
+	 (let ((gn gnus-newsgroup-name))
+	   (lambda (_arg) (gnus-post-method (eq symp 'a) gn))))
 	(custom-address user-mail-address))
     (dolist (article (gnus-summary-work-articles n))
       (when (gnus-summary-select-article t nil nil article)
@@ -860,11 +857,12 @@ header line with the old Message-ID."
       (set-buffer gnus-original-article-buffer)
       (message-supersede)
       (push
-       `((lambda ()
-           (when (gnus-buffer-live-p ,gnus-summary-buffer)
-	     (with-current-buffer ,gnus-summary-buffer
-	       (gnus-cache-possibly-remove-article ,article nil nil nil t)
-	       (gnus-summary-mark-as-read ,article gnus-canceled-mark)))))
+       (let ((buf gnus-summary-buffer))
+         (lambda ()
+           (when (gnus-buffer-live-p buf)
+	     (with-current-buffer buf
+	       (gnus-cache-possibly-remove-article article nil nil nil t)
+	       (gnus-summary-mark-as-read article gnus-canceled-mark)))))
        message-send-actions)
       ;; Add Gcc header.
       (gnus-inews-insert-gcc))))
@@ -934,7 +932,7 @@ header line with the old Message-ID."
 	      (run-hooks 'gnus-article-decode-hook)))))
       gnus-article-copy)))
 
-(defun gnus-post-news (post &optional group header article-buffer yank subject
+(defun gnus-post-news (post &optional group header article-buffer yank _subject
 			    force-news)
   (when article-buffer
     (gnus-copy-article-buffer))
@@ -1040,8 +1038,8 @@ If SILENT, don't prompt the user."
 		     gnus-post-method
 		   (list gnus-post-method)))
 	       gnus-secondary-select-methods
-	       (mapcar 'cdr gnus-server-alist)
-	       (mapcar 'car gnus-opened-servers)
+	       (mapcar #'cdr gnus-server-alist)
+	       (mapcar #'car gnus-opened-servers)
 	       (list gnus-select-method)
 	       (list group-method)))
 	     method-alist post-methods method)
@@ -1069,7 +1067,7 @@ If SILENT, don't prompt the user."
 		    ;; Just use the last value.
 		    gnus-last-posting-server
 		  (gnus-completing-read
-		   "Posting method" (mapcar 'car method-alist) t
+		   "Posting method" (mapcar #'car method-alist) t
 		   (cons (or gnus-last-posting-server "") 0))))
 	  method-alist))))
      ;; Override normal method.
@@ -1343,13 +1341,13 @@ For the \"inline\" alternatives, also see the variable
 					       self))
 		     "\n"))
 	    ((null self)
-	     (insert "Gcc: " (mapconcat 'identity gcc ", ") "\n"))
+	     (insert "Gcc: " (mapconcat #'identity gcc ", ") "\n"))
 	    ((eq self 'no-gcc-self)
 	     (when (setq gcc (delete
 			      gnus-newsgroup-name
 			      (delete (concat "\"" gnus-newsgroup-name "\"")
 				      gcc)))
-	       (insert "Gcc: " (mapconcat 'identity gcc ", ") "\n")))))))
+	       (insert "Gcc: " (mapconcat #'identity gcc ", ") "\n")))))))
 
 (defun gnus-summary-resend-message (address n &optional no-select)
   "Resend the current article to ADDRESS.
@@ -1389,13 +1387,14 @@ the message before resending."
 	  (setq user-mail-address tem))))
     ;; `gnus-summary-resend-message-insert-gcc' must run last.
     (add-hook 'message-header-setup-hook
-	      'gnus-summary-resend-message-insert-gcc t)
+	      #'gnus-summary-resend-message-insert-gcc t)
     (add-hook 'message-sent-hook
-	      `(lambda ()
-		 (let ((rfc2047-encode-encoded-words nil))
-		   ,(if gnus-agent
-			'(gnus-agent-possibly-do-gcc)
-		      '(gnus-inews-do-gcc)))))
+	      (let ((agent gnus-agent))
+		(lambda ()
+		  (let ((rfc2047-encode-encoded-words nil))
+		    (if agent
+			(gnus-agent-possibly-do-gcc)
+		      (gnus-inews-do-gcc))))))
     (dolist (article (gnus-summary-work-articles n))
       (if no-select
 	  (with-current-buffer " *nntpd*"
@@ -1736,7 +1735,7 @@ this is a reply."
 				 ;; Function.
 				 (funcall (car var) group))
 				(t
-				 (eval (car var)))))))
+				 (eval (car var) t))))))
 	      (setq var (cdr var)))
 	    result)))
 	 name)
@@ -1793,7 +1792,7 @@ this is a reply."
 		      (with-current-buffer gnus-summary-buffer
 			gnus-posting-styles)
 		    gnus-posting-styles))
-	  style match attribute value v results matched-string
+	  match value v results matched-string ;; style attribute
 	  filep name address element)
       ;; If the group has a posting-style parameter, add it at the end with a
       ;; regexp matching everything, to be sure it takes precedence over all
@@ -1848,7 +1847,7 @@ this is a reply."
 				  (setq matched-string header)))))))
 		 (t
 		  ;; This is a form to be evalled.
-		  (eval match)))))
+		  (eval match t)))))
 	  ;; We have a match, so we set the variables.
 	  (dolist (attribute style)
 	    (setq element (pop attribute)
@@ -1879,7 +1878,7 @@ this is a reply."
 			  ((boundp value)
 			   (symbol-value value))))
 		   ((listp value)
-		    (eval value))))
+		    (eval value t))))
 	    ;; Translate obsolescent value.
 	    (cond
 	     ((eq element 'signature-file)
@@ -1918,49 +1917,51 @@ this is a reply."
 	(add-hook 'message-setup-hook
 		  (cond
 		   ((eq 'eval (car result))
-		    'ignore)
+		    #'ignore)
 		   ((eq 'body (car result))
-		    `(lambda ()
-		       (save-excursion
-			 (message-goto-body)
-			 (insert ,(cdr result)))))
+		    (let ((txt (cdr result)))
+		      (lambda ()
+			(save-excursion
+			  (message-goto-body)
+			  (insert txt)))))
 		   ((eq 'signature (car result))
                     (setq-local message-signature nil)
                     (setq-local message-signature-file nil)
-		    (if (not (cdr result))
-			'ignore
-		      `(lambda ()
-			 (save-excursion
-			   (let ((message-signature ,(cdr result)))
-			     (when message-signature
-			       (message-insert-signature)))))))
+		    (let ((txt (cdr result)))
+		      (if (not txt)
+			  #'ignore
+			(lambda ()
+			  (save-excursion
+			    (let ((message-signature txt))
+			      (when message-signature
+			        (message-insert-signature))))))))
 		   (t
 		    (let ((header
 			   (if (symbolp (car result))
 			       (capitalize (symbol-name (car result)))
-			     (car result))))
-		      `(lambda ()
-			 (save-excursion
-			   (message-remove-header ,header)
-			   (let ((value ,(cdr result)))
-			     (when value
-			       (message-goto-eoh)
-			       (insert ,header ": " value)
-			       (unless (bolp)
-				 (insert "\n")))))))))
+			     (car result)))
+			  (value (cdr result)))
+		      (lambda ()
+			(save-excursion
+			  (message-remove-header header)
+			  (when value
+			    (message-goto-eoh)
+			    (insert header ": " value)
+			    (unless (bolp)
+			      (insert "\n"))))))))
 		  nil 'local))
       (when (or name address)
 	(add-hook 'message-setup-hook
-		  `(lambda ()
-                     (setq-local user-mail-address
-                                 ,(or (cdr address) user-mail-address))
-		     (let ((user-full-name ,(or (cdr name) (user-full-name)))
-			   (user-mail-address
-			    ,(or (cdr address) user-mail-address)))
-		       (save-excursion
-			 (message-remove-header "From")
-			 (message-goto-eoh)
-			 (insert "From: " (message-make-from) "\n"))))
+		  (let ((name (or (cdr name) (user-full-name)))
+		        (email (or (cdr address) user-mail-address)))
+		    (lambda ()
+                      (setq-local user-mail-address email)
+		      (let ((user-full-name name)
+			    (user-mail-address email))
+			(save-excursion
+			  (message-remove-header "From")
+			  (message-goto-eoh)
+			  (insert "From: " (message-make-from) "\n")))))
 		  nil 'local)))))
 
 (defun gnus-summary-attach-article (n)

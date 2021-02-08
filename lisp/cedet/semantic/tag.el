@@ -1194,7 +1194,7 @@ See also the function `semantic--expand-tag'."
       (setq tag (cdr tag)))
     (null tag)))
 
-(defvar semantic-tag-expand-function nil
+(defvar-local semantic-tag-expand-function nil
   "Function used to expand a tag.
 It is passed each tag production, and must return a list of tags
 derived from it, or nil if it does not need to be expanded.
@@ -1207,7 +1207,6 @@ following definition is easily parsed into one tag:
 
 This function should take this compound tag and turn it into two tags,
 one for A, and the other for B.")
-(make-variable-buffer-local 'semantic-tag-expand-function)
 
 (defun semantic--tag-expand (tag)
   "Convert TAG from a raw state to a cooked state, and expand it.

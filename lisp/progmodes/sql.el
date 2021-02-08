@@ -2829,9 +2829,7 @@ configured."
 
     ;; Force font lock to reinitialize if it is already on
     ;; Otherwise, we can wait until it can be started.
-    (when (and (fboundp 'font-lock-mode)
-	       (boundp 'font-lock-mode)
-	       font-lock-mode)
+    (when font-lock-mode
       (font-lock-mode-internal nil)
       (font-lock-mode-internal t))
 

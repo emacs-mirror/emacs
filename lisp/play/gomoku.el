@@ -76,8 +76,7 @@
 (defcustom gomoku-mode-hook nil
   "If non-nil, its value is called on entry to Gomoku mode.
 One useful value to include is `turn-on-font-lock' to highlight the pieces."
-  :type 'hook
-  :group 'gomoku)
+  :type 'hook)
 
 ;;;
 ;;; CONSTANTS FOR BOARD
@@ -168,13 +167,11 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 
 (defface gomoku-O
     '((((class color)) (:foreground "red" :weight bold)))
-  "Face to use for Emacs's O."
-  :group 'gomoku)
+  "Face to use for Emacs's O.")
 
 (defface gomoku-X
     '((((class color)) (:foreground "green" :weight bold)))
-  "Face to use for your X."
-  :group 'gomoku)
+  "Face to use for your X.")
 
 (defvar gomoku-font-lock-keywords
   '(("O" . 'gomoku-O)

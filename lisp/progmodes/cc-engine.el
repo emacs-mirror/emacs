@@ -9021,14 +9021,15 @@ point unchanged and return nil."
 		    (c-forward-noise-clause))
 		   ((and (looking-at c-type-decl-prefix-key)
 			 (if (and (c-major-mode-is 'c++-mode)
-				  (match-beginning 3))
+				  (match-beginning 4)) ; Was 3 - 2021-01-01
 			     ;; If the third submatch matches in C++ then
 			     ;; we're looking at an identifier that's a
 			     ;; prefix only if it specifies a member pointer.
 			     (progn
 			       (setq id-start (point))
 			       (c-forward-name)
-			       (if (looking-at "\\(::\\)")
+			       (if (save-match-data
+				     (looking-at "\\(::\\)"))
 				   ;; We only check for a trailing "::" and
 				   ;; let the "*" that should follow be
 				   ;; matched in the next round.
@@ -9038,13 +9039,15 @@ point unchanged and return nil."
 				 (setq got-identifier t)
 				 nil))
 			   t))
-		    (if (looking-at c-type-decl-operator-prefix-key)
+		    (if (save-match-data
+			  (looking-at c-type-decl-operator-prefix-key))
 			(setq decorated t))
 		    (if (eq (char-after) ?\()
 			(progn
 			  (setq paren-depth (1+ paren-depth))
 			  (forward-char))
-		      (goto-char (match-end 1)))
+		      (goto-char (or (match-end 1)
+				     (match-end 2))))
 		    (c-forward-syntactic-ws)
 		    t)))
 
@@ -9721,14 +9724,15 @@ This function might do hidden buffer changes."
 	      (setq after-paren-pos (point))))
 	(while (and (looking-at c-type-decl-prefix-key)
 		    (if (and (c-major-mode-is 'c++-mode)
-			     (match-beginning 3))
-			;; If the third submatch matches in C++ then
+			     (match-beginning 4))
+			;; If the fourth submatch matches in C++ then
 			;; we're looking at an identifier that's a
 			;; prefix only if it specifies a member pointer.
 			(when (progn (setq pos (point))
 				     (setq got-identifier (c-forward-name)))
 			  (setq name-start pos)
-			  (if (looking-at "\\(::\\)")
+			  (if (save-match-data
+				(looking-at "\\(::\\)"))
 			      ;; We only check for a trailing "::" and
 			      ;; let the "*" that should follow be
 			      ;; matched in the next round.
@@ -9749,7 +9753,8 @@ This function might do hidden buffer changes."
 	    (when (save-match-data
 		    (looking-at c-type-decl-operator-prefix-key))
 	      (setq got-function-name-prefix t))
-	    (goto-char (match-end 1)))
+	    (goto-char (or (match-end 1)
+			   (match-end 2))))
 	  (c-forward-syntactic-ws)))
 
       (setq got-parens (> paren-depth 0))
