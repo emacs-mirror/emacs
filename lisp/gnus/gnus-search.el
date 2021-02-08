@@ -1348,12 +1348,14 @@ Returns a list of [group article score] vectors."
   (let ((prefix (slot-value engine 'remove-prefix))
 	(group-regexp (when groups
 			(mapconcat
-			 (lambda (x)
-			   (replace-regexp-in-string
-			    ;; Accept any of [.\/] as path separators.
-			    "[.\\/]" "[.\\\\/]"
-			    (gnus-group-real-name x)))
-			 groups "\\|")))
+			 (lambda (group-name)
+			   (mapconcat #'regexp-quote
+				      (split-string
+				       (gnus-group-real-name group-name)
+				       "[.\\/]")
+				      "[.\\\\/]"))
+			 groups
+			 "\\|")))
 	artlist vectors article group)
     (goto-char (point-min))
     (while (not (eobp))
