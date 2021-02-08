@@ -32,6 +32,7 @@
 
 (defvar etags-regen--tags-file nil)
 (defvar etags-regen--tags-root nil)
+(defvar etags-regen--tags-mtime nil)
 (defvar etags-regen--new-file nil)
 
 (declare-function project-root "project")
@@ -113,12 +114,67 @@ File extensions to generate the tags for."
 
 (defvar etags-regen--errors-buffer-name "*etags-regen-tags-errors*")
 
+(defun etags-regen--all-mtimes (proj)
+  (let ((files (etags-regen--all-files proj))
+        (mtimes (make-hash-table :test 'equal)))
+    (with-temp-buffer
+      (mapc (lambda (f)
+              (insert f "\0"))
+            files)
+      (shell-command-on-region
+       (point-min) (point-max) "xargs -0 stat -c \"%Y\""
+       nil t etags-regen--errors-buffer-name t)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (puthash (pop files)
+                 (string-to-number (buffer-substring (point) (line-end-position)))
+                 mtimes)
+        (forward-line 1)))
+    mtimes))
+
+(defun etags-regen--refresh ()
+  (save-excursion
+    (let* ((tags-file-buf (get-file-buffer etags-regen--tags-file))
+           (proj (project-current))
+           (tags-mtime etags-regen--tags-mtime)
+           (all-mtimes (etags-regen--all-mtimes proj))
+           added-files
+           changed-files
+           removed-files)
+      (set-buffer tags-file-buf)
+      (dolist (file (tags-table-files))
+        (let ((mtime (gethash file all-mtimes)))
+          (cond
+           ((null mtime)
+            (push file removed-files))
+           ((> mtime tags-mtime)
+            (push file changed-files)
+            (remhash file all-mtimes))
+           (t
+            (remhash file all-mtimes)))))
+      (maphash
+       (lambda (key _value)
+         (push key added-files))
+       all-mtimes)
+      (when (> (+ (length added-files)
+                  (length changed-files)
+                  (length removed-files))
+               100)
+        (message "etags-regen: Too many changes, falling back to full rescan")
+        (etags-regen--tags-cleanup))
+      (dolist (file (nconc removed-files changed-files))
+        (etags-regen--remove-tag file))
+      (when (or changed-files added-files)
+        (apply #'etags-regen--append-tags
+               (nconc changed-files added-files))))))
+
 (defun etags-regen--maybe-generate ()
   (let (proj)
-    (when (and etags-regen--tags-root
-               (not (file-in-directory-p default-directory
-                                         etags-regen--tags-root)))
-      (etags-regen--tags-cleanup))
+    (when etags-regen--tags-root
+      (if (file-in-directory-p default-directory
+                               etags-regen--tags-root)
+          (etags-regen--refresh)
+        (etags-regen--tags-cleanup)))
     (when (and (not (or tags-file-name
                         tags-table-list))
                (setq proj (project-current)))
@@ -157,7 +213,8 @@ File extensions to generate the tags for."
                           (mapconcat #'identity (etags-regen--build-program-options) " ")
                           tags-file)))
     (setq etags-regen--tags-file tags-file
-          etags-regen--tags-root root)
+          etags-regen--tags-root root
+          etags-regen--tags-mtime (time-to-seconds))
     (with-temp-buffer
       (mapc (lambda (f)
               (insert f "\n"))
@@ -183,7 +240,6 @@ File extensions to generate the tags for."
 (defun etags-regen--update-file ()
   ;; TODO: Maybe only do this when Emacs is idle for a bit.
   (let ((file-name buffer-file-name)
-        (options (etags-regen--build-program-options))
         (tags-file-buf (get-file-buffer etags-regen--tags-file))
         pr should-scan)
     (save-excursion
@@ -197,34 +253,43 @@ File extensions to generate the tags for."
           (set-buffer tags-file-buf)
           (setq should-scan t))
          ((progn (set-buffer tags-file-buf)
-                 (goto-char (point-min))
-                 (search-forward (format "\f\n%s," file-name) nil t))
-          (let ((start (match-beginning 0)))
-            (search-forward "\f\n" nil 'move)
-            (let ((inhibit-read-only t)
-                  (save-silently t))
-              (delete-region start
-                             (if (eobp)
-                                 (point)
-                               (- (point) 2)))))
+                 (etags-regen--remove-tag file-name))
           (setq should-scan t))))
       (when should-scan
-        (goto-char (point-max))
-        (let ((inhibit-read-only t))
-          ;; FIXME: call-process is significantly faster, though.
-          ;; Like 10ms vs 20ms here.
-          (shell-command
-           (format "%s %s %s -o -"
-                   etags-regen-program (mapconcat #'identity options " ")
-                   file-name)
-           t etags-regen--errors-buffer-name))
-        ;; We don't want Emacs to ask us to save the buffer when exiting.
-        (set-buffer-modified-p nil)
-        ;; FIXME: Is there a better way to do this?
-        ;; Completion table is the only remaining place where the
-        ;; update is not incremental.
-        (setq-default tags-completion-table nil)
+        (etags-regen--append-tags file-name)
         ))))
+
+(defun etags-regen--remove-tag (file-name)
+  (goto-char (point-min))
+  (when (search-forward (format "\f\n%s," file-name) nil t)
+    (let ((start (match-beginning 0)))
+      (search-forward "\f\n" nil 'move)
+      (let ((inhibit-read-only t)
+            (save-silently t))
+        (delete-region start
+                       (if (eobp)
+                           (point)
+                         (- (point) 2)))))
+    t))
+
+(defun etags-regen--append-tags (&rest file-names)
+  (goto-char (point-max))
+  (let ((options (etags-regen--build-program-options))
+        (inhibit-read-only t))
+    (setq etags-regen--tags-mtime (time-to-seconds))
+    ;; FIXME: call-process is significantly faster, though.
+    ;; Like 10ms vs 20ms here.
+    (shell-command
+     (format "%s %s %s -o -"
+             etags-regen-program (mapconcat #'identity options " ")
+             (mapconcat #'identity file-names " "))
+     t etags-regen--errors-buffer-name))
+  ;; We don't want Emacs to ask us to save the buffer when exiting.
+  (set-buffer-modified-p nil)
+  ;; FIXME: Is there a better way to do this?
+  ;; Completion table is the only remaining place where the
+  ;; update is not incremental.
+  (setq-default tags-completion-table nil))
 
 (defun etags-regen--mark-as-new ()
   (unless buffer-file-number
@@ -242,7 +307,8 @@ File extensions to generate the tags for."
     (setq tags-file-name nil
           tags-table-list nil
           etags-regen--tags-file nil
-          etags-regen--tags-root nil))
+          etags-regen--tags-root nil
+          etags-regen--tags-mtime nil))
   (remove-hook 'after-save-hook #'etags-regen--update-file)
   (remove-hook 'before-save-hook #'etags-regen--mark-as-new))
 
