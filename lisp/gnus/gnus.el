@@ -3212,9 +3212,9 @@ that that variable is buffer-local to the summary buffers."
 		     (format "%s" (car method))
 		   (format "%s:%s" (car method) (cadr method))))
 	   (name-method (cons name method)))
-      (when (and (not no-enter-cache)
-		 (not (member name-method gnus-server-method-cache))
-		 (not (assoc (car name-method) gnus-server-method-cache)))
+      (unless (or no-enter-cache
+		  (member name-method gnus-server-method-cache)
+		  (assoc (car name-method) gnus-server-method-cache))
 	(push name-method gnus-server-method-cache))
       name)))
 

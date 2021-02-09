@@ -627,7 +627,14 @@ articles in the topic and its subtopics."
 
 (defun gnus-topic-insert-topic-line (name visiblep shownp level entries
 					  &optional unread)
+  (gnus--\,@
+   (let ((vars '(indentation visible name level number-of-groups
+                 total-number-of-articles entries)))
+     `((with-suppressed-warnings ((lexical ,@vars))
+         ,@(mapcar (lambda (s) `(defvar ,s)) vars)))))
   (let* ((visible (if visiblep "" "..."))
+	 (level level)
+	 (name name)
 	 (indentation (make-string (* gnus-topic-indent-level level) ? ))
 	 (total-number-of-articles unread)
 	 (number-of-groups (length entries))
@@ -640,14 +647,7 @@ articles in the topic and its subtopics."
 	(add-text-properties
 	 (point)
 	 (prog1 (1+ (point))
-	   (eval gnus-topic-line-format-spec
-                 `((indentation . ,indentation)
-                   (visible . ,visible)
-                   (name . ,name)
-                   (level . ,level)
-                   (number-of-groups . ,number-of-groups)
-                   (total-number-of-articles . ,total-number-of-articles)
-                   (entries . ,entries))))
+	   (eval gnus-topic-line-format-spec t))
 	 (list 'gnus-topic name
 	       'gnus-topic-level level
 	       'gnus-topic-unread unread
