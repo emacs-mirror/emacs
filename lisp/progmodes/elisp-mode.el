@@ -1339,7 +1339,8 @@ Return the result of evaluation."
   ;; printing, not while evaluating.
   (let ((debug-on-error eval-expression-debug-on-error)
 	(print-length eval-expression-print-length)
-	(print-level eval-expression-print-level))
+	(print-level eval-expression-print-level)
+        elisp--eval-defun-result)
     (save-excursion
       ;; Arrange for eval-region to "read" the (possibly) altered form.
       ;; eval-region handles recording which file defines a function or
@@ -1355,17 +1356,18 @@ Return the result of evaluation."
           (setq end (point)))
         ;; Alter the form if necessary.
         (let ((form (eval-sexp-add-defvars
-                     (elisp--eval-defun-1 (macroexpand form)))))
+                     (elisp--eval-defun-1
+                      (macroexpand
+                       `(setq elisp--eval-defun-result ,form))))))
           (eval-region beg end standard-output
                        (lambda (_ignore)
                          ;; Skipping to the end of the specified region
                          ;; will make eval-region return.
                          (goto-char end)
-                         form))))))
-  (let ((str (eval-expression-print-format (car values))))
-    (if str (princ str)))
-  ;; The result of evaluation has been put onto VALUES.  So return it.
-  (car values))
+                         form)))))
+    (let ((str (eval-expression-print-format elisp--eval-defun-result)))
+      (if str (princ str)))
+    elisp--eval-defun-result))
 
 (defun eval-defun (edebug-it)
   "Evaluate the top-level form containing point, or after point.
