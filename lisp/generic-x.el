@@ -23,7 +23,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file contains a collection of generic modes.
 ;;
 ;; INSTALLATION:
@@ -31,17 +31,6 @@
 ;; Add this line to your init file:
 ;;
 ;;   (require 'generic-x)
-;;
-;; You can decide which modes to load by setting the variable
-;; `generic-extras-enable-list'.  Its default value is platform-
-;; specific.  The recommended way to set this variable is through
-;; customize:
-;;
-;;   M-x customize-option RET generic-extras-enable-list RET
-;;
-;; This lets you select generic modes from the list of available
-;; modes.  If you manually set `generic-extras-enable-list' in your
-;; .emacs, do it BEFORE loading generic-x with (require 'generic-x).
 ;;
 ;; You can also send in new modes; if the file types are reasonably
 ;; common, we would like to install them.
@@ -184,88 +173,7 @@ This hook will be installed if the variable
 ;; Other Generic modes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; If you add a generic mode to this file, put it in one of these four
-;; lists as well.
-
-(defconst generic-default-modes
-  '(apache-conf-generic-mode
-    apache-log-generic-mode
-    hosts-generic-mode
-    java-manifest-generic-mode
-    java-properties-generic-mode
-    javascript-generic-mode
-    show-tabs-generic-mode
-    vrml-generic-mode)
-  "List of generic modes that are defined by default.")
-
-(defconst generic-mswindows-modes
-  '(bat-generic-mode
-    inf-generic-mode
-    ini-generic-mode
-    rc-generic-mode
-    reg-generic-mode
-    rul-generic-mode)
-  "List of generic modes that are defined by default on MS-Windows.")
-
-(defconst generic-unix-modes
-  '(alias-generic-mode
-    ansible-inventory-generic-mode
-    etc-fstab-generic-mode
-    etc-modules-conf-generic-mode
-    etc-passwd-generic-mode
-    etc-services-generic-mode
-    etc-sudoers-generic-mode
-    fvwm-generic-mode
-    inetd-conf-generic-mode
-    mailagent-rules-generic-mode
-    mailrc-generic-mode
-    named-boot-generic-mode
-    named-database-generic-mode
-    prototype-generic-mode
-    resolve-conf-generic-mode
-    samba-generic-mode
-    x-resource-generic-mode
-    xmodmap-generic-mode)
-  "List of generic modes that are defined by default on Unix.")
-
-(defconst generic-other-modes
-  '(astap-generic-mode
-    ibis-generic-mode
-    pkginfo-generic-mode
-    spice-generic-mode)
-  "List of generic modes that are not defined by default.")
-
-(defcustom generic-extras-enable-list
-  (append generic-default-modes
-          (if (memq system-type '(windows-nt ms-dos))
-              generic-mswindows-modes
-            generic-unix-modes)
-	  nil)
-  "List of generic modes to define.
-Each entry in the list should be a symbol.  If you set this variable
-directly, without using customize, you must reload generic-x to put
-your changes into effect."
-  :type (let (list)
-	  (dolist (mode
-		   (sort (append generic-default-modes
-				 generic-mswindows-modes
-				 generic-unix-modes
-				 generic-other-modes
-				 nil)
-			 (lambda (a b)
-			   (string< (symbol-name b)
-				    (symbol-name a))))
-		   (cons 'set list))
-	    (push `(const ,mode) list)))
-  :set (lambda (s v)
-	 (set-default s v)
-	 (unless load-in-progress
-	   (load "generic-x")))
-  :version "22.1")
-
 ;;; Apache
-(when (memq 'apache-conf-generic-mode generic-extras-enable-list)
-
 (define-generic-mode apache-conf-generic-mode
   '(?#)
   nil
@@ -278,9 +186,7 @@ your changes into effect."
            '((nil "^\\([-A-Za-z0-9_]+\\)" 1)
              ("*Directories*" "^\\s-*<Directory\\s-*\\([^>]+\\)>" 1)
              ("*Locations*"   "^\\s-*<Location\\s-*\\([^>]+\\)>" 1)))))
-  "Generic mode for Apache or HTTPD configuration files."))
-
-(when (memq 'apache-log-generic-mode generic-extras-enable-list)
+  "Generic mode for Apache or HTTPD configuration files.")
 
 (define-generic-mode apache-log-generic-mode
   nil
@@ -291,11 +197,9 @@ your changes into effect."
      (2 font-lock-variable-name-face)))
   '("access_log\\'")
   nil
-  "Generic mode for Apache log files."))
+  "Generic mode for Apache log files.")
 
 ;;; Samba
-(when (memq 'samba-generic-mode generic-extras-enable-list)
-
 (define-generic-mode samba-generic-mode
   '(?\; ?#)
   nil
@@ -305,13 +209,11 @@ your changes into effect."
      (2 font-lock-type-face)))
   '("smb\\.conf\\'")
   '(generic-bracket-support)
-  "Generic mode for Samba configuration files."))
+  "Generic mode for Samba configuration files.")
 
 ;;; Fvwm
 ;; This is pretty basic. Also, modes for other window managers could
 ;; be defined as well.
-(when (memq 'fvwm-generic-mode generic-extras-enable-list)
-
 (define-generic-mode fvwm-generic-mode
   '(?#)
   '("AddToMenu"
@@ -330,33 +232,28 @@ your changes into effect."
   nil
   '("\\.fvwmrc\\'" "\\.fvwm2rc\\'")
   nil
-  "Generic mode for FVWM configuration files."))
+  "Generic mode for FVWM configuration files.")
 
 ;;; X Resource
 ;; I'm pretty sure I've seen an actual mode to do this, but I don't
 ;; think it's standard with Emacs
-(when (memq 'x-resource-generic-mode generic-extras-enable-list)
-
 (define-generic-mode x-resource-generic-mode
   '(?!)
   nil
   '(("^\\([^:\n]+:\\)" 1 font-lock-variable-name-face))
   '("\\.Xdefaults\\'" "\\.Xresources\\'" "\\.Xenvironment\\'" "\\.ad\\'")
   nil
-  "Generic mode for X Resource configuration files."))
+  "Generic mode for X Resource configuration files.")
 
-(if (memq 'xmodmap-generic-mode generic-extras-enable-list)
 (define-generic-mode xmodmap-generic-mode
   '(?!)
   '("add" "clear" "keycode" "keysym" "remove" "pointer")
   nil
   '("[xX]modmap\\(rc\\)?\\'")
   nil
-  "Simple mode for xmodmap files."))
+  "Simple mode for xmodmap files.")
 
 ;;; Hosts
-(when (memq 'hosts-generic-mode generic-extras-enable-list)
-
 (define-generic-mode hosts-generic-mode
   '(?#)
   '("localhost")
@@ -364,14 +261,9 @@ your changes into effect."
     ("\\<\\([0-9A-Fa-f:]+\\)\\>" 1 font-lock-constant-face))
   '("[hH][oO][sS][tT][sS]\\'")
   nil
-  "Generic mode for HOSTS files."))
+  "Generic mode for HOSTS files.")
 
 ;;; Windows INF files
-
-;; If i-g-m-f-f-h is defined, then so is i-g-m.
-(declare-function ini-generic-mode "generic-x")
-
-(when (memq 'inf-generic-mode generic-extras-enable-list)
 
 (define-generic-mode inf-generic-mode
   '(?\;)
@@ -379,12 +271,10 @@ your changes into effect."
   '(("^\\(\\[.*\\]\\)" 1 font-lock-constant-face))
   '("\\.[iI][nN][fF]\\'")
   '(generic-bracket-support)
-  "Generic mode for MS-Windows INF files."))
+  "Generic mode for MS-Windows INF files.")
 
 ;;; Windows INI files
 ;; Should define escape character as well!
-(when (memq 'ini-generic-mode generic-extras-enable-list)
-
 (define-generic-mode ini-generic-mode
   '(?\;)
   nil
@@ -411,13 +301,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
 	 (goto-char (point-min))
 	 (and (looking-at "^\\s-*\\[.*\\]")
 	      (ini-generic-mode)))))
-(define-obsolete-function-alias 'generic-mode-ini-file-find-file-hook
-  'ini-generic-mode-find-file-hook "28.1"))
 
 ;;; Windows REG files
 ;;; Unfortunately, Windows 95 and Windows NT have different REG file syntax!
-(when (memq 'reg-generic-mode generic-extras-enable-list)
-
 (define-generic-mode reg-generic-mode
   '(?\;)
   '("key" "classes_root" "REGEDIT" "REGEDIT4")
@@ -428,19 +314,11 @@ like an INI file.  You can add this hook to `find-file-hook'."
    (lambda ()
      (setq imenu-generic-expression
            '((nil "^\\s-*\\(.*\\)\\s-*=" 1)))))
-  "Generic mode for MS-Windows Registry files."))
-
-(declare-function w32-shell-name "w32-fns" ())
-
-;;; DOS/Windows BAT files
-(when (memq 'bat-generic-mode generic-extras-enable-list)
-  (define-obsolete-function-alias 'bat-generic-mode 'bat-mode "24.4"))
+  "Generic mode for MS-Windows Registry files.")
 
 ;;; Mailagent
 ;; Mailagent is a Unix mail filtering program.  Anyone wanna do a
 ;; generic mode for procmail?
-(when (memq 'mailagent-rules-generic-mode generic-extras-enable-list)
-
 (define-generic-mode mailagent-rules-generic-mode
   '(?#)
   '("SAVE" "DELETE" "PIPE" "ANNOTATE" "REJECT")
@@ -451,11 +329,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
    (lambda ()
      (setq imenu-generic-expression
            '((nil "\\s-/\\([^/]+\\)/[i, \t\n]" 1)))))
-  "Generic mode for Mailagent rules files."))
+  "Generic mode for Mailagent rules files.")
 
 ;; Solaris/Sys V prototype files
-(when (memq 'prototype-generic-mode generic-extras-enable-list)
-
 (define-generic-mode prototype-generic-mode
   '(?#)
   nil
@@ -474,11 +350,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-variable-name-face)))
   '("prototype\\'")
   nil
-  "Generic mode for Sys V prototype files."))
+  "Generic mode for Sys V prototype files.")
 
 ;; Solaris/Sys V pkginfo files
-(when (memq 'pkginfo-generic-mode generic-extras-enable-list)
-
 (define-generic-mode pkginfo-generic-mode
   '(?#)
   nil
@@ -487,17 +361,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-variable-name-face)))
   '("pkginfo\\'")
   nil
-  "Generic mode for Sys V pkginfo files."))
-
-;; Javascript mode
-;; Obsolete; defer to js-mode from js.el.
-(when (memq 'javascript-generic-mode generic-extras-enable-list)
-  (define-obsolete-function-alias 'javascript-generic-mode 'js-mode "24.3")
-  (define-obsolete-variable-alias 'javascript-generic-mode-hook 'js-mode-hook "24.3"))
+  "Generic mode for Sys V pkginfo files.")
 
 ;; VRML files
-(when (memq 'vrml-generic-mode generic-extras-enable-list)
-
 (define-generic-mode vrml-generic-mode
   '(?#)
   '("DEF"
@@ -545,11 +411,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
              ("*Definitions*"
               "DEF\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([A-Za-z0-9]+\\)\\s-*{"
               1)))))
-  "Generic Mode for VRML files."))
+  "Generic Mode for VRML files.")
 
 ;; Java Manifests
-(when (memq 'java-manifest-generic-mode generic-extras-enable-list)
-
 (define-generic-mode java-manifest-generic-mode
   '(?#)
   '("Name"
@@ -566,11 +430,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-constant-face)))
   '("[mM][aA][nN][iI][fF][eE][sS][tT]\\.[mM][fF]\\'")
   nil
-  "Generic mode for Java Manifest files."))
+  "Generic mode for Java Manifest files.")
 
 ;; Java properties files
-(when (memq 'java-properties-generic-mode generic-extras-enable-list)
-
 (define-generic-mode java-properties-generic-mode
   '(?! ?#)
   nil
@@ -596,11 +458,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
    (lambda ()
      (setq imenu-generic-expression
            '((nil "^\\([^#! \t\n\r=:]+\\)" 1)))))
-  "Generic mode for Java properties files."))
+  "Generic mode for Java properties files.")
 
 ;; C shell alias definitions
-(when (memq 'alias-generic-mode generic-extras-enable-list)
-
 (define-generic-mode alias-generic-mode
   '(?#)
   '("alias" "unalias")
@@ -613,11 +473,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
    (lambda ()
      (setq imenu-generic-expression
            '((nil "^\\(alias\\|unalias\\)\\s-+\\([-a-zA-Z0-9_]+\\)" 2)))))
-  "Generic mode for C Shell alias files."))
+  "Generic mode for C Shell alias files.")
 
 ;; Ansible inventory files
-(when (memq 'ansible-inventory-generic-mode generic-extras-enable-list)
-
 (define-generic-mode ansible-inventory-generic-mode
   '(?#)
   nil
@@ -636,12 +494,10 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (setq imenu-generic-expression
            '((nil "^\\s-*\\[\\(.*\\)\\]" 1)
              ("*Variables*" "\\s-+\\([^ =\n\r]+\\)=" 1)))))
-  "Generic mode for Ansible inventory files."))
+  "Generic mode for Ansible inventory files.")
 
 ;;; Windows RC files
 ;; Contributed by ACorreir@pervasive-sw.com (Alfred Correira)
-(when (memq 'rc-generic-mode generic-extras-enable-list)
-
 (define-generic-mode rc-generic-mode
   ;; '(?\/)
   '("//")
@@ -721,15 +577,13 @@ like an INI file.  You can add this hook to `find-file-hook'."
      '("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
        (1 font-lock-constant-face)
        (2 font-lock-variable-name-face nil t))))
-    '("\\.[rR][cC]\\'")
-    nil
-    "Generic mode for MS-Windows Resource files."))
+  '("\\.[rR][cC]\\'")
+  nil
+  "Generic mode for MS-Windows Resource files.")
 
 ;; InstallShield RUL files
 ;; Contributed by  Alfred.Correira@Pervasive.Com
 ;; Bugfixes by "Rolf Sandau" <Rolf.Sandau@marconi.com>
-(when (memq 'rul-generic-mode generic-extras-enable-list)
-
 (eval-when-compile
 
 ;;; build the regexp strings using regexp-opt
@@ -1372,11 +1226,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
   > "begin" \n
   > _ \n
   resume:
-  > "end;"))
+  > "end;")
 
 ;; Additions by ACorreir@pervasive-sw.com (Alfred Correira)
-(when (memq 'mailrc-generic-mode generic-extras-enable-list)
-
 (define-generic-mode mailrc-generic-mode
   '(?#)
   '("alias"
@@ -1398,11 +1250,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
      (2 font-lock-variable-name-face)))
   '("\\.mailrc\\'")
   nil
-  "Mode for mailrc files."))
+  "Mode for mailrc files.")
 
 ;; Inetd.conf
-(when (memq 'inetd-conf-generic-mode generic-extras-enable-list)
-
 (define-generic-mode inetd-conf-generic-mode
   '(?#)
   '("stream"
@@ -1417,11 +1267,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (list
    (lambda ()
      (setq imenu-generic-expression
-           '((nil "^\\([-A-Za-z0-9_]+\\)" 1)))))))
+           '((nil "^\\([-A-Za-z0-9_]+\\)" 1))))))
 
 ;; Services
-(when (memq 'etc-services-generic-mode generic-extras-enable-list)
-
 (define-generic-mode etc-services-generic-mode
   '(?#)
   '("tcp"
@@ -1434,11 +1282,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (list
    (lambda ()
      (setq imenu-generic-expression
-           '((nil "^\\([-A-Za-z0-9_]+\\)" 1)))))))
+           '((nil "^\\([-A-Za-z0-9_]+\\)" 1))))))
 
 ;; Password and Group files
-(when (memq 'etc-passwd-generic-mode generic-extras-enable-list)
-
 (define-generic-mode etc-passwd-generic-mode
   nil              ;; No comment characters
   '("root")        ;; Only one keyword
@@ -1476,11 +1322,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (list
    (lambda ()
      (setq imenu-generic-expression
-           '((nil "^\\([-A-Za-z0-9_]+\\):" 1)))))))
+           '((nil "^\\([-A-Za-z0-9_]+\\):" 1))))))
 
 ;; Fstab
-(when (memq 'etc-fstab-generic-mode generic-extras-enable-list)
-
 (define-generic-mode etc-fstab-generic-mode
   '(?#)
   '("adfs"
@@ -1592,11 +1436,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
   (list
    (lambda ()
      (setq imenu-generic-expression
-           '((nil "^\\([^# \t]+\\)\\s-+" 1)))))))
+           '((nil "^\\([^# \t]+\\)\\s-+" 1))))))
 
 ;; /etc/sudoers
-(when (memq 'etc-sudoers-generic-mode generic-extras-enable-list)
-
 (define-generic-mode etc-sudoers-generic-mode
   '(?#)
   '("User_Alias" "Runas_Alias" "Host_Alias"  "Cmnd_Alias"
@@ -1607,11 +1449,9 @@ like an INI file.  You can add this hook to `find-file-hook'."
     ("\\<\\(%[A-Za-z0-9_]+\\)\\>" 1 font-lock-variable-name-face))
   '("/etc/sudoers\\'")
   nil
-  "Generic mode for sudoers configuration files."))
+  "Generic mode for sudoers configuration files.")
 
 ;; From Jacques Duthen <jacques.duthen@sncf.fr>
-(when (memq 'show-tabs-generic-mode generic-extras-enable-list)
-
 (eval-when-compile
 
 (defconst show-tabs-generic-mode-font-lock-defaults-1
@@ -1649,13 +1489,11 @@ like an INI file.  You can add this hook to `find-file-hook'."
   nil ;; no auto-mode-alist
   ;; '(show-tabs-generic-mode-hook-fun)
   nil
-  "Generic mode to show tabs and trailing spaces."))
+  "Generic mode to show tabs and trailing spaces.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; DNS modes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(when (memq 'named-boot-generic-mode generic-extras-enable-list)
 
 (define-generic-mode named-boot-generic-mode
   ;; List of comment characters
@@ -1672,9 +1510,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; List of additional automode-alist expressions
   '("/etc/named\\.boot\\'")
   ;; List of set up functions to call
-  nil))
-
-(when (memq 'named-database-generic-mode generic-extras-enable-list)
+  nil)
 
 (define-generic-mode named-database-generic-mode
   ;; List of comment characters
@@ -1695,9 +1531,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
 (defun named-database-print-serial ()
   "Print a serial number based on the current date."
   (interactive)
-  (insert (format-time-string named-database-time-string))))
-
-(when (memq 'resolve-conf-generic-mode generic-extras-enable-list)
+  (insert (format-time-string named-database-time-string)))
 
 (define-generic-mode resolve-conf-generic-mode
   ;; List of comment characters
@@ -1709,13 +1543,11 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; List of additional auto-mode-alist expressions
   '("/etc/resolve?\\.conf\\'")
   ;; List of set up functions to call
-  nil))
+  nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modes for spice and common electrical engineering circuit netlist formats
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(when (memq 'spice-generic-mode generic-extras-enable-list)
 
 (define-generic-mode spice-generic-mode
   nil
@@ -1752,9 +1584,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
    ;; Make keywords case-insensitive
    (lambda ()
      (setq font-lock-defaults '(generic-font-lock-keywords nil t))))
-  "Generic mode for SPICE circuit netlist files."))
-
-(when (memq 'ibis-generic-mode generic-extras-enable-list)
+  "Generic mode for SPICE circuit netlist files.")
 
 (define-generic-mode ibis-generic-mode
   '(?|)
@@ -1763,9 +1593,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
     ("\\(\\(_\\|\\w\\)+\\)\\s-*=" 1 font-lock-variable-name-face))
   '("\\.[iI][bB][sS]\\'")
   '(generic-bracket-support)
-  "Generic mode for IBIS circuit netlist files."))
-
-(when (memq 'astap-generic-mode generic-extras-enable-list)
+  "Generic mode for IBIS circuit netlist files.")
 
 (define-generic-mode astap-generic-mode
   nil
@@ -1799,9 +1627,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
    ;; Make keywords case-insensitive
    (lambda ()
      (setq font-lock-defaults '(generic-font-lock-keywords nil t))))
-  "Generic mode for ASTAP circuit netlist files."))
-
-(when (memq 'etc-modules-conf-generic-mode generic-extras-enable-list)
+  "Generic mode for ASTAP circuit netlist files.")
 
 (define-generic-mode etc-modules-conf-generic-mode
   ;; List of comment characters
@@ -1843,7 +1669,98 @@ like an INI file.  You can add this hook to `find-file-hook'."
   ;; List of additional automode-alist expressions
   '("/etc/modules\\.conf" "/etc/conf\\.modules")
   ;; List of set up functions to call
-  nil))
+  nil)
+
+;; Obsolete
+
+(define-obsolete-function-alias 'javascript-generic-mode #'js-mode "24.3")
+(define-obsolete-variable-alias 'javascript-generic-mode-hook 'js-mode-hook "24.3")
+
+(define-obsolete-function-alias 'bat-generic-mode #'bat-mode "24.4")
+
+(define-obsolete-function-alias 'generic-mode-ini-file-find-file-hook
+  #'ini-generic-mode-find-file-hook "28.1")
+
+(defconst generic-default-modes
+  '(apache-conf-generic-mode
+    apache-log-generic-mode
+    hosts-generic-mode
+    java-manifest-generic-mode
+    java-properties-generic-mode
+    javascript-generic-mode
+    show-tabs-generic-mode
+    vrml-generic-mode)
+  "List of generic modes that are defined by default.")
+(make-obsolete-variable 'generic-default-modes "no longer used." "28.1")
+
+(defconst generic-mswindows-modes
+  '(bat-generic-mode
+    inf-generic-mode
+    ini-generic-mode
+    rc-generic-mode
+    reg-generic-mode
+    rul-generic-mode)
+  "List of generic modes that are defined by default on MS-Windows.")
+(make-obsolete-variable 'generic-mswindows-modes "no longer used." "28.1")
+
+(defconst generic-unix-modes
+  '(alias-generic-mode
+    ansible-inventory-generic-mode
+    etc-fstab-generic-mode
+    etc-modules-conf-generic-mode
+    etc-passwd-generic-mode
+    etc-services-generic-mode
+    etc-sudoers-generic-mode
+    fvwm-generic-mode
+    inetd-conf-generic-mode
+    mailagent-rules-generic-mode
+    mailrc-generic-mode
+    named-boot-generic-mode
+    named-database-generic-mode
+    prototype-generic-mode
+    resolve-conf-generic-mode
+    samba-generic-mode
+    x-resource-generic-mode
+    xmodmap-generic-mode)
+  "List of generic modes that are defined by default on Unix.")
+(make-obsolete-variable 'generic-unix-modes "no longer used." "28.1")
+
+(defconst generic-other-modes
+  '(astap-generic-mode
+    ibis-generic-mode
+    pkginfo-generic-mode
+    spice-generic-mode)
+  "List of generic modes that are not defined by default.")
+(make-obsolete-variable 'generic-other-modes "no longer used." "28.1")
+
+(defcustom generic-extras-enable-list
+  (append generic-default-modes
+          (if (memq system-type '(windows-nt ms-dos))
+              generic-mswindows-modes
+            generic-unix-modes)
+          nil)
+  "List of generic modes to define.
+Each entry in the list should be a symbol.  If you set this variable
+directly, without using customize, you must reload generic-x to put
+your changes into effect."
+  :type (let (list)
+          (dolist (mode
+                   (sort (append generic-default-modes
+                                 generic-mswindows-modes
+                                 generic-unix-modes
+                                 generic-other-modes
+                                 nil)
+                         (lambda (a b)
+                           (string< (symbol-name b)
+                                    (symbol-name a))))
+                   (cons 'set list))
+            (push `(const ,mode) list)))
+  :set (lambda (s v)
+         (set-default s v)
+         (unless load-in-progress
+           (load "generic-x")))
+  :version "22.1")
+(make-obsolete-variable 'generic-extras-enable-list "no longer used." "28.1")
 
 (provide 'generic-x)
 
