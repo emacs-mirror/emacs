@@ -1268,7 +1268,7 @@ If `eval-expression-debug-on-error' is non-nil, which is the default,
 this command arranges for all errors to enter the debugger."
   (interactive "P")
   (if (null eval-expression-debug-on-error)
-      (values--store-values
+      (values--store-value
        (elisp--eval-last-sexp eval-last-sexp-arg-internal))
     (let ((value
 	   (let ((debug-on-error elisp--eval-last-sexp-fake-value))
