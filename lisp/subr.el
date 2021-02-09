@@ -1655,6 +1655,12 @@ The return value has the form (WIDTH . HEIGHT).  POSITION should
 be a list of the form returned by `event-start' and `event-end'."
   (nth 9 position))
 
+(defun values--store-value (value)
+  "Store VALUE in the obsolete `values' variable."
+  (with-suppressed-warnings ((obsolete values))
+    (push value values))
+  value)
+
 
 ;;;; Obsolescent names for functions.
 
@@ -1720,6 +1726,10 @@ be a list of the form returned by `event-start' and `event-end'."
   'inhibit-null-byte-detection "28.1")
 (make-obsolete-variable 'load-dangerous-libraries
                         "no longer used." "27.1")
+
+;; We can't actually make `values' obsolete, because that will result
+;; in warnings when using `values' in let-bindings.
+;;(make-obsolete-variable 'values "no longer used" "28.1")
 
 
 ;;;; Alternate names for functions - these are not being phased out.

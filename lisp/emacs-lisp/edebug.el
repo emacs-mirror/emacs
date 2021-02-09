@@ -3801,9 +3801,10 @@ Print result in minibuffer."
   (interactive (list (read--expression "Eval: ")))
   (princ
    (edebug-outside-excursion
-    (setq values (cons (edebug-eval expr) values))
-    (concat (edebug-safe-prin1-to-string (car values))
-            (eval-expression-print-format (car values))))))
+    (let ((result (edebug-eval expr)))
+      (values--store-value result)
+      (concat (edebug-safe-prin1-to-string result)
+              (eval-expression-print-format result))))))
 
 (defun edebug-eval-last-sexp (&optional no-truncate)
   "Evaluate sexp before point in the outside environment.
