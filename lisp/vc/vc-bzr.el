@@ -1076,49 +1076,49 @@ stream.  Standard error output is discarded."
 	  (when (string-match ".+checkout of branch: \\(.+\\)$" str)
 	    (match-string 1 str)))))
     (concat
-     (propertize "Parent branch      : " 'face 'font-lock-type-face)
+     (propertize "Parent branch      : " 'face 'vc-dir-header)
      (propertize
       (if (string-match "parent branch: \\(.+\\)$" str)
  	  (match-string 1 str)
  	"None")
-       'face 'font-lock-variable-name-face)
+       'face 'vc-dir-header-value)
      "\n"
       (when light-checkout
 	(concat
-	 (propertize "Light checkout root: " 'face 'font-lock-type-face)
-	 (propertize light-checkout 'face 'font-lock-variable-name-face)
+	 (propertize "Light checkout root: " 'face 'vc-dir-header)
+	 (propertize light-checkout 'face 'vc-dir-header-value)
 	 "\n"))
       (when light-checkout-branch
 	(concat
-	 (propertize "Checkout of branch : " 'face 'font-lock-type-face)
-	 (propertize light-checkout-branch 'face 'font-lock-variable-name-face)
+	 (propertize "Checkout of branch : " 'face 'vc-dir-header)
+	 (propertize light-checkout-branch 'face 'vc-dir-header-value)
 	 "\n"))
       (when pending-merge
 	(concat
-	 (propertize "Warning            : " 'face 'font-lock-warning-face
+	 (propertize "Warning            : " 'face 'vc-dir-status-warning
 		     'help-echo pending-merge-help-echo)
 	 (propertize "Pending merges, commit recommended before any other action"
 		     'help-echo pending-merge-help-echo
-		     'face 'font-lock-warning-face)
+		     'face 'vc-dir-status-warning)
 	 "\n"))
       (if shelve
 	  (concat
-	   (propertize "Shelves            :\n" 'face 'font-lock-type-face
+	   (propertize "Shelves            :\n" 'face 'vc-dir-header
 		       'help-echo shelve-help-echo)
 	   (mapconcat
 	    (lambda (x)
 	      (propertize x
-			  'face 'font-lock-variable-name-face
+			  'face 'vc-dir-header-value
 			  'mouse-face 'highlight
 			  'help-echo "mouse-3: Show shelve menu\nA: Apply and keep shelf\nP: Apply and remove shelf (pop)\nS: Snapshot to a shelf\nC-k: Delete shelf"
 			  'keymap vc-bzr-shelve-map))
 	    shelve "\n"))
 	(concat
-	 (propertize "Shelves            : " 'face 'font-lock-type-face
+	 (propertize "Shelves            : " 'face 'vc-dir-header
 		     'help-echo shelve-help-echo)
 	 (propertize "No shelved changes"
 		     'help-echo shelve-help-echo
-		     'face 'font-lock-variable-name-face))))))
+		     'face 'vc-dir-header-value))))))
 
 ;; Follows vc-bzr-command, which uses vc-do-command from vc-dispatcher.
 (declare-function vc-resynch-buffer "vc-dispatcher"

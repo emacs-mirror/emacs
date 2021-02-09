@@ -1403,8 +1403,8 @@ This runs the command \"hg summary\"."
                              (cons (capitalize (match-string 1)) (match-string 2))
                            (cons "" (buffer-substring (point) (line-end-position))))))
               (concat
-               (propertize (format "%-11s: " (car entry)) 'face 'font-lock-type-face)
-               (propertize (cdr entry) 'face 'font-lock-variable-name-face)))
+               (propertize (format "%-11s: " (car entry)) 'face 'vc-dir-header)
+               (propertize (cdr entry) 'face 'vc-dir-header-value)))
             result)
            (forward-line))
          (nreverse result))

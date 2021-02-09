@@ -479,7 +479,8 @@ or an empty string if none."
      (propertize
       (format "%-12s" state)
       'face (cond ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
-                  ((eq state '(missing conflict)) 'vc-dir-status-warning)
+                  ((memq state '(missing conflict)) 'vc-dir-status-warning)
+                  ((eq state 'ignored) 'vc-dir-status-ignored)
                   (t 'vc-dir-status-edited))
       'mouse-face 'highlight
       'keymap vc-dir-status-mouse-map)
@@ -835,7 +836,7 @@ or an empty string if none."
 	(propertize "Nothing stashed"
 		    'help-echo vc-git-stash-shared-help
                     'keymap vc-git-stash-shared-map
-		    'face 'vc-dir-ignored))))))
+		    'face 'vc-dir-header-value))))))
 
 (defun vc-git-branches ()
   "Return the existing branches, as a list of strings.

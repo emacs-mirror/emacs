@@ -239,8 +239,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
     (concat
      (cond (repo
 	    (concat
-	     (propertize "Repository : " 'face 'font-lock-type-face)
-	     (propertize repo 'face 'font-lock-variable-name-face)))
+	     (propertize "Repository : " 'face 'vc-dir-header)
+	     (propertize repo 'face 'vc-dir-header-value)))
 	   (t "")))))
 
 (defun vc-svn-working-revision (file)
