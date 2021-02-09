@@ -3078,15 +3078,14 @@ on encoding."
         (setq ucs-names names))))
 
 (defun mule--ucs-names-sort-by-code (names)
-  (let* ((codes-and-names
-          (mapcar (lambda (name) (cons (gethash name ucs-names) name)) names))
-         (sorted (sort codes-and-names (lambda (a b) (< (car a) (car b))))))
-    (mapcar #'cdr sorted)))
+  (let ((codes-and-names
+         (mapcar (lambda (name) (cons (gethash name ucs-names) name)) names)))
+    (mapcar #'cdr (sort codes-and-names #'car-less-than-car))))
 
 (defun mule--ucs-names-affixation (names)
   (mapcar (lambda (name)
             (let ((char (gethash name ucs-names)))
-              (list name (concat (if char (format "%c" char) " ") "\t") "")))
+              (list name (concat (if char (list char) " ") "\t") "")))
           names))
 
 (defun mule--ucs-names-group (names)
@@ -3189,11 +3188,11 @@ as names, not numbers."
 		 `(metadata
 		   (display-sort-function
 		    . ,(when (eq read-char-by-name-sort 'code)
-			 'mule--ucs-names-sort-by-code))
+                         #'mule--ucs-names-sort-by-code))
 		   (affixation-function
 		    . ,(if read-char-by-name-group
-			   'mule--ucs-names-group
-			 'mule--ucs-names-affixation))
+                           #'mule--ucs-names-group
+                         #'mule--ucs-names-affixation))
 		   (category . unicode-name))
 	       (complete-with-action action (ucs-names) string pred)))))
 	 (char
