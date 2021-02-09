@@ -916,7 +916,7 @@ To revert to the previous behavior,
 *** Most customize commands now hide obsolete user options.
 Obsolete user options are no longer shown in the listings produced by
 the commands 'customize', 'customize-group', 'customize-apropos' and
-'customize-changed-options'.
+'customize-changed'.
 
 To customize obsolete user options, use 'customize-option' or
 'customize-saved'.
