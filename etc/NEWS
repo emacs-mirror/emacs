@@ -2056,6 +2056,8 @@ directory instead of the default directory.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+** 'pcomplete-ignore-case' is now an obsolete alias of 'completion-ignore-case'.
+
 ** 'completions-annotations' face is not used when the caller puts own face.
 This affects the suffix specified by completion 'annotation-function'.
 
