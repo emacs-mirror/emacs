@@ -1,4 +1,4 @@
-;;; registry.el --- Track and remember data items by various fields
+;;; registry.el --- Track and remember data items by various fields  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
@@ -128,7 +128,7 @@
          :type hash-table
          :documentation "The data hash table.")))
 
-(cl-defmethod initialize-instance :before ((this registry-db) slots)
+(cl-defmethod initialize-instance :before ((_this registry-db) slots)
   "Check whether a registry object needs to be upgraded."
   ;; Hardcoded upgrade routines.  Version 0.1 to 0.2 requires the
   ;; :max-soft slot to disappear, and the :max-hard slot to be renamed
@@ -212,7 +212,7 @@ When SET is not nil, set it for VAL (use t for an empty list)."
                       (:regex
                        (string-match (car vals)
                                      (mapconcat
-                                      'prin1-to-string
+                                      #'prin1-to-string
                                       (cdr-safe (assoc key entry))
                                       "\0"))))
               vals (cdr-safe vals)))
@@ -247,7 +247,7 @@ Updates the secondary ('tracked') indices as well.
 With assert non-nil, errors out if the key does not exist already."
   (let* ((data (oref db data))
 	 (keys (or keys
-		   (apply 'registry-search db spec)))
+		   (apply #'registry-search db spec)))
 	 (tracked (oref db tracked)))
 
     (dolist (key keys)
@@ -308,19 +308,18 @@ Errors out if the key exists already."
   (let ((count 0)
 	(expected (* (length (oref db tracked)) (registry-size db))))
     (dolist (tr (oref db tracked))
-      (let (values)
-	(maphash
-	 (lambda (key v)
-	   (cl-incf count)
-	   (when (and (< 0 expected)
-		      (= 0 (mod count 1000)))
-	     (message "reindexing: %d of %d (%.2f%%)"
-		      count expected (/ (* 100.0 count) expected)))
-	   (dolist (val (cdr-safe (assq tr v)))
-	     (let ((value-keys (registry-lookup-secondary-value db tr val)))
-	       (push key value-keys)
-	       (registry-lookup-secondary-value db tr val value-keys))))
-	 (oref db data))))))
+      (maphash
+       (lambda (key v)
+	 (cl-incf count)
+	 (when (and (< 0 expected)
+		    (= 0 (mod count 1000)))
+	   (message "reindexing: %d of %d (%.2f%%)"
+		    count expected (/ (* 100.0 count) expected)))
+	 (dolist (val (cdr-safe (assq tr v)))
+	   (let ((value-keys (registry-lookup-secondary-value db tr val)))
+	     (push key value-keys)
+	     (registry-lookup-secondary-value db tr val value-keys))))
+       (oref db data)))))
 
 (cl-defmethod registry-prune ((db registry-db) &optional sortfunc)
   "Prune the registry-db object DB.
