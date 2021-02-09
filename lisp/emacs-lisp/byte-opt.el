@@ -289,7 +289,7 @@
                           (byte-compile-preprocess
                            (byte-compile--reify-function fn))))))
            (if (eq (car-safe newfn) 'function)
-               (byte-compile-unfold-lambda `(,(cadr newfn) ,@(cdr form)))
+               (macroexp--unfold-lambda `(,(cadr newfn) ,@(cdr form)))
              ;; This can happen because of macroexp-warn-and-return &co.
              (byte-compile-warn
               "Inlining closure %S failed" name)
@@ -297,74 +297,6 @@
 
       (_ ;; Give up on inlining.
        form))))
-
-;; ((lambda ...) ...)
-(defun byte-compile-unfold-lambda (form &optional name)
-  ;; In lexical-binding mode, let and functions don't bind vars in the same way
-  ;; (let obey special-variable-p, but functions don't).  But luckily, this
-  ;; doesn't matter here, because function's behavior is underspecified so it
-  ;; can safely be turned into a `let', even though the reverse is not true.
-  (or name (setq name "anonymous lambda"))
-  (let* ((lambda (car form))
-         (values (cdr form))
-         (arglist (nth 1 lambda))
-         (body (cdr (cdr lambda)))
-         optionalp restp
-         bindings)
-    (if (and (stringp (car body)) (cdr body))
-        (setq body (cdr body)))
-    (if (and (consp (car body)) (eq 'interactive (car (car body))))
-        (setq body (cdr body)))
-    ;; FIXME: The checks below do not belong in an optimization phase.
-    (while arglist
-      (cond ((eq (car arglist) '&optional)
-             ;; ok, I'll let this slide because funcall_lambda() does...
-             ;; (if optionalp (error "multiple &optional keywords in %s" name))
-             (if restp (error "&optional found after &rest in %s" name))
-             (if (null (cdr arglist))
-                 (error "nothing after &optional in %s" name))
-             (setq optionalp t))
-            ((eq (car arglist) '&rest)
-             ;; ...but it is by no stretch of the imagination a reasonable
-             ;; thing that funcall_lambda() allows (&rest x y) and
-             ;; (&rest x &optional y) in arglists.
-             (if (null (cdr arglist))
-                 (error "nothing after &rest in %s" name))
-             (if (cdr (cdr arglist))
-                 (error "multiple vars after &rest in %s" name))
-             (setq restp t))
-            (restp
-             (setq bindings (cons (list (car arglist)
-                                        (and values (cons 'list values)))
-                                  bindings)
-                   values nil))
-            ((and (not optionalp) (null values))
-             (byte-compile-warn "attempt to open-code `%s' with too few arguments" name)
-             (setq arglist nil values 'too-few))
-            (t
-             (setq bindings (cons (list (car arglist) (car values))
-                                  bindings)
-                   values (cdr values))))
-      (setq arglist (cdr arglist)))
-    (if values
-        (progn
-          (or (eq values 'too-few)
-              (byte-compile-warn
-               "attempt to open-code `%s' with too many arguments" name))
-          form)
-
-	                                ;; The following leads to infinite recursion when loading a
-	                                ;; file containing `(defsubst f () (f))', and then trying to
-	                                ;; byte-compile that file.
-                       ;(setq body (mapcar 'byte-optimize-form body)))
-
-      (let ((newform
-             (if bindings
-                 (cons 'let (cons (nreverse bindings) body))
-               (cons 'progn body))))
-        (byte-compile-log "  %s\t==>\t%s" form newform)
-        newform))))
-
 
 ;;; implementing source-level optimizers
 
@@ -604,7 +536,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
        form)
 
       (`((lambda . ,_) . ,_)
-       (let ((newform (byte-compile-unfold-lambda form)))
+       (let ((newform (macroexp--unfold-lambda form)))
 	 (if (eq newform form)
 	     ;; Some error occurred, avoid infinite recursion.
 	     form
