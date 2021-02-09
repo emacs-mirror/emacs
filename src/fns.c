@@ -5769,7 +5769,7 @@ visible part of the buffer.  If ABSOLUTE is non-nil, count the lines
 from the absolute start of the buffer.  */)
   (register Lisp_Object position, Lisp_Object absolute)
 {
-  ptrdiff_t pos, start = BEGV;
+  ptrdiff_t pos, start = BEGV_BYTE;
 
   if (MARKERP (position))
     pos = marker_position (position);

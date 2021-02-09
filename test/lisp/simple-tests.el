@@ -67,6 +67,11 @@
     (insert (propertize "\nbar\nbaz\nzut" 'invisible t))
     (should (= (count-lines (point-min) (point-max) t) 2))))
 
+(ert-deftest simple-text-count-lines-non-ascii ()
+  (with-temp-buffer
+    (insert "あ\nい\nう\nえ\nお\n")
+    (should (= (count-lines (point) (point)) 0))))
+
 
 ;;; `transpose-sexps'
 (defmacro simple-test--transpositions (&rest body)
