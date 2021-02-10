@@ -1687,10 +1687,10 @@ contains a circular object."
 	     (first-char (and (symbolp spec) (aref (symbol-name spec) 0)))
 	     (match (cond
 		     ((eq ?& first-char);; "&" symbols take all following specs.
-		      (funcall (edebug--get-spec-op spec) cursor (cdr specs)))
+		      (edebug--handle-&-spec-op spec cursor (cdr specs)))
 		     ((eq ?: first-char);; ":" symbols take one following spec.
 		      (setq rest (cdr (cdr specs)))
-		      (funcall (edebug--get-spec-op spec) cursor (car (cdr specs))))
+		      (edebug--handle-:-spec-op spec cursor (car (cdr specs))))
 		     (t;; Any other normal spec.
 		      (setq rest (cdr specs))
 		      (edebug-match-one-spec cursor spec)))))
@@ -1743,30 +1743,6 @@ contains a circular object."
 		))
   (put (car pair) 'edebug-form-spec (cdr pair)))
 
-;; Spec operators are things like `&or' and `&define': they are not
-;; themselves specs matching sexps but rather ways to combine specs.
-;; Contrary to spec matchers (which take 1 arg), they take 2 arguments.
-;; Their name can either start with `&' or `:' and they are called
-;; differently depending on this difference (The ones whose name
-;; starts with `:' only handle&receive the subsequent element,
-;; whereas the ones whose name starts with `&' handle&receive
-;; everything that follows).
-(dolist (pair '((&optional . edebug-match-&optional)
-		(&rest . edebug-match-&rest)
-		(&or . edebug-match-&or)
-		(&define . edebug-match-&define)
-		(&not . edebug-match-&not)
-		(&key . edebug-match-&key)
-		(&error . edebug-match-&error)
-		(:name . edebug-match-:name)
-                (:unique . edebug-match-:unique)
-                ))
-  (put (car pair) 'edebug--spec-op-function (cdr pair)))
-
-(defun edebug--get-spec-op (name)
-  "Return the function that handles the spec operator NAME."
-  (get name 'edebug--spec-op-function))
-
 (defun edebug-match-symbol (cursor symbol)
   ;; Match a symbol spec.
   (let* ((spec (get-edebug-spec symbol)))
@@ -1808,7 +1784,7 @@ contains a circular object."
 
 (defsubst edebug-match-body (cursor) (edebug-forms cursor))
 
-(defun edebug-match-&optional (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &optional)) cursor specs)
   ;; Keep matching until one spec fails.
   (edebug-&optional-wrapper cursor specs 'edebug-&optional-wrapper))
 
@@ -1834,7 +1810,11 @@ contains a circular object."
   ;; Reuse the &optional handler with this as the remainder handler.
   (edebug-&optional-wrapper cursor specs remainder-handler))
 
-(defun edebug-match-&rest (cursor specs)
+(cl-defgeneric edebug--handle-&-spec-op (op cursor specs)
+  "Handle &foo spec operators.
+&foo spec operators operate on all the subsequent SPECS.")
+
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &rest)) cursor specs)
   ;; Repeatedly use specs until failure.
   (let ((edebug-&rest specs) ;; remember these
 	edebug-best-error
@@ -1842,7 +1822,7 @@ contains a circular object."
     (edebug-&rest-wrapper cursor specs 'edebug-&rest-wrapper)))
 
 
-(defun edebug-match-&or (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &or)) cursor specs)
   ;; Keep matching until one spec succeeds, and return its results.
   ;; If none match, fail.
   ;; This needs to be optimized since most specs spend time here.
@@ -1867,23 +1847,24 @@ contains a circular object."
     ))
 
 
-(defun edebug-match-&not (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &not)) cursor specs)
   ;; If any specs match, then fail
   (if (null (catch 'no-match
 	      (let ((edebug-gate nil))
 		(save-excursion
-		  (edebug-match-&or cursor specs)))
+		  (edebug--handle-&-spec-op '&or cursor specs)))
 	      nil))
       ;; This means something matched, so it is a no match.
       (edebug-no-match cursor "Unexpected"))
   ;; This means nothing matched, so it is OK.
   nil) ;; So, return nothing
 
-(defun edebug-match-&key (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &key)) cursor specs)
   ;; Following specs must look like (<name> <spec>) ...
   ;; where <name> is the name of a keyword, and spec is its spec.
   ;; This really doesn't save much over the expanded form and takes time.
-  (edebug-match-&rest
+  (edebug--handle-&-spec-op
+   '&rest
    cursor
    (cons '&or
 	 (mapcar (lambda (pair)
@@ -1891,7 +1872,7 @@ contains a circular object."
                            (car (cdr pair))))
 		 specs))))
 
-(defun edebug-match-&error (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &error)) cursor specs)
   ;; Signal an error, using the following string in the spec as argument.
   (let ((error-string (car specs))
         (edebug-error-point (edebug-before-offset cursor)))
@@ -1995,7 +1976,7 @@ contains a circular object."
 (defun edebug-match-function (_cursor)
   (error "Use function-form instead of function in edebug spec"))
 
-(defun edebug-match-&define (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &define)) cursor specs)
   ;; Match a defining form.
   ;; Normally, &define is interpreted specially other places.
   ;; This should only be called inside of a spec list to match the remainder
@@ -2049,7 +2030,11 @@ contains a circular object."
     (edebug-move-cursor cursor)
     (list name)))
 
-(defun edebug-match-:name (_cursor spec)
+(cl-defgeneric edebug--handle-:-spec-op (op cursor spec)
+  "Handle :foo spec operators.
+:foo spec operators operate on just the one subsequent SPEC element.")
+
+(cl-defmethod edebug--handle-:-spec-op ((_ (eql :name)) _cursor spec)
   ;; Set the edebug-def-name to the spec.
   (setq edebug-def-name
 	(if edebug-def-name
@@ -2058,7 +2043,7 @@ contains a circular object."
 	  spec))
   nil)
 
-(defun edebug-match-:unique (_cursor spec)
+(cl-defmethod edebug--handle-:-spec-op ((_ (eql :unique)) _cursor spec)
   "Match a `:unique PREFIX' specifier.
 SPEC is the symbol name prefix for `gensym'."
   (let ((suffix (gensym spec)))
