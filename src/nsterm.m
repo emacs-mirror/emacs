@@ -857,6 +857,17 @@ ns_row_rect (struct window *w, struct glyph_row *row,
 }
 
 
+double
+ns_frame_scale_factor (struct frame *f)
+{
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > 1060
+  return [[FRAME_NS_VIEW (f) window] backingScaleFactor];
+#else
+  return [[FRAME_NS_VIEW (f) window] userSpaceScaleFactor];
+#endif
+}
+
+
 /* ==========================================================================
 
     Focus (clipping) and screen update

@@ -135,6 +135,12 @@ typedef struct ns_bitmap_record Bitmap_Record;
 # define COLOR_TABLE_SUPPORT 1
 #endif
 
+#if defined HAVE_NS
+# define FRAME_SCALE_FACTOR(f) ns_frame_scale_factor (f)
+#else
+# define FRAME_SCALE_FACTOR(f) 1;
+#endif
+
 static void image_disable_image (struct frame *, struct image *);
 static void image_edge_detection (struct frame *, struct image *, Lisp_Object,
                                   Lisp_Object);
@@ -2207,8 +2213,8 @@ image_set_transform (struct frame *f, struct image *img)
   /* SVGs are pre-scaled to the correct size.  */
   if (EQ (image_spec_value (img->spec, QCtype, NULL), Qsvg))
     {
-      width = img->width;
-      height = img->height;
+      width = img->width / FRAME_SCALE_FACTOR (f);
+      height = img->height / FRAME_SCALE_FACTOR (f);
     }
   else
 #endif
@@ -10007,6 +10013,9 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   compute_image_size (viewbox_width, viewbox_height, img->spec,
                       &width, &height);
+
+  width *= FRAME_SCALE_FACTOR (f);
+  height *= FRAME_SCALE_FACTOR (f);
 
   if (! check_image_size (f, width, height))
     {
