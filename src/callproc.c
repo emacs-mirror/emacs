@@ -394,7 +394,11 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
       /* If the buffer is (still) a list, it might be a (:file "file") spec. */
       if (CONSP (buffer) && EQ (XCAR (buffer), QCfile))
 	{
-	  output_file = Fexpand_file_name (XCAR (XCDR (buffer)),
+	  Lisp_Object ofile = XCDR (buffer);
+	  if (CONSP (ofile))
+	    ofile = XCAR (ofile);
+	  CHECK_STRING (ofile);
+	  output_file = Fexpand_file_name (ofile,
 					   BVAR (current_buffer, directory));
 	  CHECK_STRING (output_file);
 	  buffer = Qnil;
