@@ -1687,10 +1687,10 @@ contains a circular object."
 	     (first-char (and (symbolp spec) (aref (symbol-name spec) 0)))
 	     (match (cond
 		     ((eq ?& first-char);; "&" symbols take all following specs.
-		      (funcall (get-edebug-spec spec) cursor (cdr specs)))
+		      (funcall (edebug--get-spec-op spec) cursor (cdr specs)))
 		     ((eq ?: first-char);; ":" symbols take one following spec.
 		      (setq rest (cdr (cdr specs)))
-		      (funcall (get-edebug-spec spec) cursor (car (cdr specs))))
+		      (funcall (edebug--get-spec-op spec) cursor (car (cdr specs))))
 		     (t;; Any other normal spec.
 		      (setq rest (cdr specs))
 		      (edebug-match-one-spec cursor spec)))))
@@ -1721,16 +1721,10 @@ contains a circular object."
 ;; user may want to define macros or functions with the same names.
 ;; We could use an internal obarray for these primitive specs.
 
-(dolist (pair '((&optional . edebug-match-&optional)
-		(&rest . edebug-match-&rest)
-		(&or . edebug-match-&or)
-		(form . edebug-match-form)
+(dolist (pair '((form . edebug-match-form)
 		(sexp . edebug-match-sexp)
 		(body . edebug-match-body)
-		(&define . edebug-match-&define)
 		(name . edebug-match-name)
-		(:name . edebug-match-colon-name)
-                (:unique . edebug-match-:unique)
 		(arg . edebug-match-arg)
 		(def-body . edebug-match-def-body)
 		(def-form . edebug-match-def-form)
@@ -1743,14 +1737,35 @@ contains a circular object."
                 (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
                 (cl-macrolet-name . edebug-match-cl-macrolet-name)
                 (cl-macrolet-body . edebug-match-cl-macrolet-body)
-		(&not . edebug-match-&not)
-		(&key . edebug-match-&key)
-		(&error . edebug-match-&error)
 		(place . edebug-match-place)
 		(gate . edebug-match-gate)
 		;;   (nil . edebug-match-nil)  not this one - special case it.
 		))
   (put (car pair) 'edebug-form-spec (cdr pair)))
+
+;; Spec operators are things like `&or' and `&define': they are not
+;; themselves specs matching sexps but rather ways to combine specs.
+;; Contrary to spec matchers (which take 1 arg), they take 2 arguments.
+;; Their name can either start with `&' or `:' and they are called
+;; differently depending on this difference (The ones whose name
+;; starts with `:' only handle&receive the subsequent element,
+;; whereas the ones whose name starts with `&' handle&receive
+;; everything that follows).
+(dolist (pair '((&optional . edebug-match-&optional)
+		(&rest . edebug-match-&rest)
+		(&or . edebug-match-&or)
+		(&define . edebug-match-&define)
+		(&not . edebug-match-&not)
+		(&key . edebug-match-&key)
+		(&error . edebug-match-&error)
+		(:name . edebug-match-:name)
+                (:unique . edebug-match-:unique)
+                ))
+  (put (car pair) 'edebug--spec-op-function (cdr pair)))
+
+(defun edebug--get-spec-op (name)
+  "Return the function that handles the spec operator NAME."
+  (get name 'edebug--spec-op-function))
 
 (defun edebug-match-symbol (cursor symbol)
   ;; Match a symbol spec.
@@ -2034,7 +2049,7 @@ contains a circular object."
     (edebug-move-cursor cursor)
     (list name)))
 
-(defun edebug-match-colon-name (_cursor spec)
+(defun edebug-match-:name (_cursor spec)
   ;; Set the edebug-def-name to the spec.
   (setq edebug-def-name
 	(if edebug-def-name
