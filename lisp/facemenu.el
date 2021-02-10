@@ -85,10 +85,6 @@
 
 ;;; Code:
 
-;; Global bindings:
-(define-key global-map [C-down-mouse-2] 'facemenu-menu)
-(define-key global-map "\M-o" 'facemenu-keymap)
-
 (defgroup facemenu nil
   "Create a face menu for interactively adding fonts to text."
   :group 'faces

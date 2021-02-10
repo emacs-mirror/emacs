@@ -253,6 +253,7 @@
 (load "startup")
 (load "term/tty-colors")
 (load "font-core")
+(load "facemenu")
 (load "emacs-lisp/syntax")
 (load "font-lock")
 (load "jit-lock")
@@ -491,7 +492,9 @@ lost after dumping")))
 
 (defun facemenu-keymap-restore ()
   "Restore the facemenu keymap."
-  (require 'facemenu)
+  ;; Global bindings:
+  (define-key global-map [C-down-mouse-2] 'facemenu-menu)
+  (define-key global-map "\M-o" 'facemenu-keymap)
   (define-key facemenu-keymap "\eS" 'center-paragraph)
   (define-key facemenu-keymap "\es" 'center-line))
 
