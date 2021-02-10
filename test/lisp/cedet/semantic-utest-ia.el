@@ -30,121 +30,94 @@
 ;; (Replace // with contents of comment-start for the language being tested.)
 
 ;;; Code:
+(require 'ert)
+(require 'ert-x)
 (require 'semantic)
 (require 'semantic/analyze)
 (require 'semantic/analyze/refs)
 (require 'semantic/symref)
 (require 'semantic/symref/filter)
 
-(defvar cedet-utest-directory
-  (let* ((C (file-name-directory (locate-library "cedet")))
-         (D (expand-file-name "../../test/manual/cedet/" C)))
-    D)
-  "Location of test files for this test suite.")
-
-(defvar semantic-utest-test-directory (expand-file-name "tests" cedet-utest-directory)
-  "Location of test files.")
-
 (ert-deftest semantic-utest-ia-doublens.cpp ()
-  (let ((tst (expand-file-name "testdoublens.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testdoublens.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-subclass.cpp ()
-  (let ((tst (expand-file-name "testsubclass.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testsubclass.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-typedefs.cpp ()
-  (let ((tst (expand-file-name "testtypedefs.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testtypedefs.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-struct.cpp ()
-  (let ((tst (expand-file-name "teststruct.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "teststruct.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 ;;(ert-deftest semantic-utest-ia-union.cpp ()
-;;  (let ((tst (expand-file-name "testunion.cpp" semantic-utest-test-directory)))
-;;    (should (file-exists-p tst))
+;;  (let ((tst (ert-resource-file "testunion.cpp")))
 ;;    (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-templates.cpp ()
-  (let ((tst (expand-file-name "testtemplates.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testtemplates.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 ;;(ert-deftest semantic-utest-ia-friends.cpp ()
-;;  (let ((tst (expand-file-name "testfriends.cpp" semantic-utest-test-directory)))
-;;    (should (file-exists-p tst))
+;;  (let ((tst (ert-resource-file "testfriends.cpp")))
 ;;    (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-using.cpp ()
-  (let ((tst (expand-file-name "testusing.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testusing.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-nsp.cpp ()
   (skip-unless (executable-find "g++"))
-  (let ((tst (expand-file-name "testnsp.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testnsp.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-localvars.cpp ()
-  (let ((tst (expand-file-name "testlocalvars.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testlocalvars.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-namespace.cpp ()
   (skip-unless (executable-find "g++"))
-  (let ((tst (expand-file-name "testnsp.cpp" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testnsp.cpp")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-sppcomplete.c ()
-  (let ((tst (expand-file-name "testsppcomplete.c" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testsppcomplete.c")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-varnames.c ()
-  (let ((tst (expand-file-name "testvarnames.c" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testvarnames.c")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-javacomp.java ()
-  (let ((tst (expand-file-name "testjavacomp.java" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testjavacomp.java")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-varnames.java ()
-  (let ((tst (expand-file-name "testvarnames.java" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testvarnames.java")))
     (should-not (semantic-ia-utest tst))))
 
 ;;(ert-deftest semantic-utest-ia-f90.f90 ()
-;;  (let ((tst (expand-file-name "testf90.f90" semantic-utest-test-directory)))
-;;    (should (file-exists-p tst))
+;;  (let ((tst (ert-resource-file "testf90.f90")))
 ;;    (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-wisent.wy ()
-  (let ((tst (expand-file-name "testwisent.wy" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "testwisent.wy")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-texi ()
-  (let ((tst (expand-file-name "test.texi" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "test.texi")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-make ()
-  (let ((tst (expand-file-name "test.mk" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "test.mk")))
     (should-not (semantic-ia-utest tst))))
 
 (ert-deftest semantic-utest-ia-srecoder ()
-  (let ((tst (expand-file-name "test.srt" semantic-utest-test-directory)))
-    (should (file-exists-p tst))
+  (let ((tst (ert-resource-file "test.srt")))
     (should-not (semantic-ia-utest tst))))
 
 ;;; Core testing utility
