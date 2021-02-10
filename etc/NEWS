@@ -602,10 +602,11 @@ This is used when expanding commit messages from 'vc-print-root-log'
 and similar commands.
 
 ---
-*** New faces for 'vc-dir' buffers and their Git VC backend.
+*** New faces for 'vc-dir' buffers.
 Those are: 'vc-dir-header', 'vc-dir-header-value', 'vc-dir-directory',
 'vc-dir-file', 'vc-dir-mark-indicator', 'vc-dir-status-warning',
-'vc-dir-status-edited', 'vc-dir-status-up-to-date', 'vc-dir-ignored'.
+'vc-dir-status-edited', 'vc-dir-status-up-to-date',
+'vc-dir-status-ignored'.
 
 ---
 *** The responsible VC backend is now the most specific one.
