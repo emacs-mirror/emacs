@@ -1,4 +1,4 @@
-;;; cedet/semantic-utest-fmt.el --- Parsing / Formatting tests -*- lexical-binding:t -*-
+;;; semantic/format-tests.el --- Parsing / Formatting tests -*- lexical-binding:t -*-
 
 ;;; Copyright (C) 2003-2004, 2007-2021 Free Software Foundation, Inc.
 
@@ -28,19 +28,14 @@
 ;; make sure that the semantic-tag-format-* functions in question
 ;; created the desired output.
 
-(require 'semantic)
-(require 'semantic/format)
-
 ;;; Code:
 
-(defvar cedet-utest-directory
-  (let* ((C (file-name-directory (locate-library "cedet")))
-         (D (expand-file-name "../../test/manual/cedet/" C)))
-    D)
-  "Location of test files for this test suite.")
+(require 'ert)
+(require 'ert-x)
+(require 'semantic/format)
 
 (defvar semantic-fmt-utest-file-list
-  '("tests/test-fmt.cpp"
+  (list (ert-resource-file "test-fmt.cpp")
     ;; "tests/test-fmt.el" - add this when elisp is support by dflt in Emacs
     )
   "List of files to run unit tests in.")
@@ -53,21 +48,10 @@
 Files to visit are in `semantic-fmt-utest-file-list'."
   (save-current-buffer
     (semantic-mode 1)
-    (let ((fl semantic-fmt-utest-file-list)
-	  (fname nil)
-	  )
-
-      (dolist (FILE fl)
-
-	(save-current-buffer
-	  (setq fname (expand-file-name FILE cedet-utest-directory))
-
-	  ;; Make sure we have the files we think we have.
-	  (should (file-exists-p fname))
-	  ;; (error "Cannot find unit test file: %s" fname))
-
-	  ;; Run the tests.
-	  (let ((fb (find-buffer-visiting fname))
+    (let ((fl semantic-fmt-utest-file-list))
+      (dolist (fname fl)
+        (save-current-buffer
+          (let ((fb (find-buffer-visiting fname))
 		(b (semantic-find-file-noselect fname))
 		(tags nil))
 
@@ -122,6 +106,6 @@ Files to visit are in `semantic-fmt-utest-file-list'."
       )))
 
 
-(provide 'cedet/semantic/fmt-utest)
+(provide 'format-tests)
 
-;;; semantic-fmt-utest.el ends here
+;;; format-tests.el ends here
