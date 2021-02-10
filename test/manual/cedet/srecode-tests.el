@@ -1,4 +1,4 @@
-;;; srecode-tests.el --- Some tests for CEDET's srecode
+;;; srecode-tests.el --- Some tests for CEDET's srecode  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
