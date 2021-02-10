@@ -168,16 +168,19 @@ or operates on menu data structures, so you should write it so it
 can safely be called at any time."
   (let ((namevar (make-symbol "name"))
         (keyvar (make-symbol "key"))
+        (kmapvar (make-symbol "kmap"))
         (kdescvar (make-symbol "kdesc"))
         (bindingvar (make-symbol "binding")))
     `(let* ((,namevar ,key-name)
             (,keyvar (if (vectorp ,namevar) ,namevar
                        (read-kbd-macro ,namevar)))
-            (kmap (if (and ,keymap (symbolp ,keymap)) (symbol-value ,keymap) ,keymap))
+            (,kmapvar (or (if (and ,keymap (symbolp ,keymap))
+                              (symbol-value ,keymap) ,keymap)
+                          global-map))
             (,kdescvar (cons (if (stringp ,namevar) ,namevar
                                (key-description ,namevar))
                              (if (symbolp ,keymap) ,keymap (quote ,keymap))))
-            (,bindingvar (lookup-key (or kmap global-map) ,keyvar)))
+            (,bindingvar (lookup-key ,kmapvar ,keyvar)))
        (let ((entry (assoc ,kdescvar personal-keybindings))
              (details (list ,command
                             (unless (numberp ,bindingvar)
@@ -186,11 +189,11 @@ can safely be called at any time."
              (setcdr entry details)
            (add-to-list 'personal-keybindings (cons ,kdescvar details))))
        ,(if predicate
-            `(define-key (or kmap global-map) ,keyvar
+            `(define-key ,kmapvar ,keyvar
                '(menu-item "" nil :filter (lambda (&optional _)
                                             (when ,predicate
                                               ,command))))
-          `(define-key (or kmap global-map) ,keyvar ,command)))))
+          `(define-key ,kmapvar ,keyvar ,command)))))
 
 ;;;###autoload
 (defmacro unbind-key (key-name &optional keymap)
