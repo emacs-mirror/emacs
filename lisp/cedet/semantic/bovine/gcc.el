@@ -1,4 +1,4 @@
-;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser
+;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -25,6 +25,7 @@
 ;; GCC, and set up the preprocessor and include paths.
 
 (require 'semantic/dep)
+(require 'cl-lib)
 
 (defvar semantic-lex-c-preprocessor-symbol-file)
 (defvar semantic-lex-c-preprocessor-symbol-map)
@@ -88,9 +89,7 @@ to give to the program."
               (let ((path (substring line 1)))
                 (when (and (file-accessible-directory-p path)
                            (file-name-absolute-p path))
-                  (add-to-list 'inc-path
-                               (expand-file-name path)
-                               t))))))))
+                  (cl-pushnew (expand-file-name path) inc-path))))))))
     inc-path))
 
 
@@ -101,7 +100,7 @@ to give to the program."
     (dolist (L lines)
       (let ((dat (split-string L)))
         (when (= (length dat) 3)
-          (add-to-list 'lst (cons (nth 1 dat) (nth 2 dat))))))
+          (push (cons (nth 1 dat) (nth 2 dat)) lst))))
     lst))
 
 (defun semantic-gcc-fields (str)
@@ -141,6 +140,8 @@ This is an alist, and should include keys of:
   `--host'   - the host symbol (used in include directories)
   `--prefix' - where GCC was installed.
 It should also include other symbols GCC was compiled with.")
+
+(defvar c++-include-path)
 
 ;;;###autoload
 (defun semantic-gcc-setup ()
