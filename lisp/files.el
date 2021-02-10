@@ -2530,13 +2530,11 @@ unless NOMODES is non-nil."
 	   (msg
 	    (cond
 	     ((not warn) nil)
-	     ((and error (file-attributes buffer-file-name))
+	     ((and error (file-exists-p buffer-file-name))
 	      (setq buffer-read-only t)
-	      (if (and (file-symlink-p buffer-file-name)
-		       (not (file-exists-p
-			     (file-chase-links buffer-file-name))))
-		  "Symbolic link that points to nonexistent file"
-		"File exists, but cannot be read"))
+	      "File exists, but cannot be read")
+	     ((and error (file-symlink-p buffer-file-name))
+	      "Symbolic link that points to nonexistent file")
 	     ((not buffer-read-only)
 	      (if (and warn
 		       ;; No need to warn if buffer is auto-saved
@@ -2553,13 +2551,12 @@ unless NOMODES is non-nil."
 	     ((not error)
 	      (setq not-serious t)
 	      "Note: file is write protected")
-	     ((file-attributes (directory-file-name default-directory))
+	     ((file-accessible-directory-p default-directory)
 	      "File not found and directory write-protected")
-	     ((file-exists-p (file-name-directory buffer-file-name))
-	      (setq buffer-read-only nil))
 	     (t
 	      (setq buffer-read-only nil)
-	      "Use M-x make-directory RET RET to create the directory and its parents"))))
+	      (unless (file-directory-p default-directory)
+		"Use M-x make-directory RET RET to create the directory and its parents")))))
       (when msg
 	(message "%s" msg)
 	(or not-serious (sit-for 1 t))))
