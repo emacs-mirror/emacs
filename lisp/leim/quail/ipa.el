@@ -1,4 +1,4 @@
-;;; ipa.el --- Quail package for inputting IPA characters  -*-coding: utf-8;-*-
+;;; ipa.el --- Quail package for inputting IPA characters  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
@@ -276,7 +276,7 @@ string."
       (cl-assert (vectorp quail-keymap) t)
       (setq quail-keymap (append quail-keymap nil))))
   (list
-   (apply 'vector
+   (apply #'vector
 	  (mapcar
 	   #'(lambda (entry)
                (cl-assert (char-or-string-p entry) t)
@@ -502,9 +502,9 @@ of the mapping.")
 ;; diacritic. To avoid this, handle the input specially with the function
 ;; ipa-x-sampa-underscore-implosive.
 
-(dolist (implosive-x-sampa (mapcar 'car ipa-x-sampa-implosive-submap))
+(dolist (implosive-x-sampa (mapcar #'car ipa-x-sampa-implosive-submap))
   (setq implosive-x-sampa (car (split-string implosive-x-sampa "_")))
   (quail-defrule (format "%s_" implosive-x-sampa)
-		 'ipa-x-sampa-underscore-implosive))
+		 #'ipa-x-sampa-underscore-implosive))
 
 ;;; ipa.el ends here
