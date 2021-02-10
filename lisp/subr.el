@@ -1660,6 +1660,12 @@ The return value has the form (WIDTH . HEIGHT).  POSITION should
 be a list of the form returned by `event-start' and `event-end'."
   (nth 9 position))
 
+(defun values--store-value (value)
+  "Store VALUE in the obsolete `values' variable."
+  (with-suppressed-warnings ((obsolete values))
+    (push value values))
+  value)
+
 
 ;;;; Obsolescent names for functions.
 
@@ -1699,13 +1705,13 @@ be a list of the form returned by `event-start' and `event-end'."
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
-(make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
 (make-obsolete-variable 'deferred-action-list 'post-command-hook "24.1")
 (make-obsolete-variable 'deferred-action-function 'post-command-hook "24.1")
 (make-obsolete-variable 'redisplay-dont-pause nil "24.5")
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
+(make-obsolete-variable 'operating-system-release nil "28.1")
 
 (make-obsolete 'run-window-configuration-change-hook nil "27.1")
 
@@ -1725,6 +1731,10 @@ be a list of the form returned by `event-start' and `event-end'."
   'inhibit-null-byte-detection "28.1")
 (make-obsolete-variable 'load-dangerous-libraries
                         "no longer used." "27.1")
+
+;; We can't actually make `values' obsolete, because that will result
+;; in warnings when using `values' in let-bindings.
+;;(make-obsolete-variable 'values "no longer used" "28.1")
 
 
 ;;;; Alternate names for functions - these are not being phased out.
@@ -2233,9 +2243,13 @@ Affects only hooks run in the current buffer."
 ;; PUBLIC: find if the current mode derives from another.
 
 (defun provided-mode-derived-p (mode &rest modes)
-  "Non-nil if MODE is derived from one of MODES or their aliases.
+  "Non-nil if MODE is derived from one of MODES.
 Uses the `derived-mode-parent' property of the symbol to trace backwards.
 If you just want to check `major-mode', use `derived-mode-p'."
+  ;; If MODE is an alias, then look up the real mode function first.
+  (when-let ((alias (symbol-function mode)))
+    (when (symbolp alias)
+      (setq mode alias)))
   (while
       (and
        (not (memq mode modes))

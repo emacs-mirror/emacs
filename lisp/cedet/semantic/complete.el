@@ -867,9 +867,8 @@ Expected return values are:
 ;; * semantic-collector-try-completion
 ;; * semantic-collector-all-completions
 
-(defvar semantic-collector-per-buffer-list nil
+(defvar-local semantic-collector-per-buffer-list nil
   "List of collectors active in this buffer.")
-(make-variable-buffer-local 'semantic-collector-per-buffer-list)
 
 (defvar semantic-collector-list nil
   "List of global collectors active this session.")

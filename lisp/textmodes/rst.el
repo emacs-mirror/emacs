@@ -3627,10 +3627,7 @@ Region is from BEG to END.  With WITH-EMPTY prefix empty lines too."
                         "customize the face `rst-definition' instead."
                         "24.1")
 
-;; XEmacs compatibility (?).
-(defface rst-directive (if (boundp 'font-lock-builtin-face)
-                           '((t :inherit font-lock-builtin-face))
-                         '((t :inherit font-lock-preprocessor-face)))
+(defface rst-directive '((t :inherit font-lock-builtin-face))
   "Face used for directives and roles."
   :version "24.1"
   :group 'rst-faces)

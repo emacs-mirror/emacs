@@ -1,4 +1,4 @@
-;;; nnmbox.el --- mail mbox access for Gnus
+;;; nnmbox.el --- mail mbox access for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -76,7 +76,7 @@
 
 (nnoo-define-basics nnmbox)
 
-(deffoo nnmbox-retrieve-headers (sequence &optional newsgroup server fetch-old)
+(deffoo nnmbox-retrieve-headers (sequence &optional newsgroup server _fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let ((number (length sequence))
@@ -168,7 +168,7 @@
                 (cons nnmbox-current-group article)
               (nnmbox-article-group-number nil))))))))
 
-(deffoo nnmbox-request-group (group &optional server dont-check info)
+(deffoo nnmbox-request-group (group &optional server dont-check _info)
   (nnmbox-possibly-change-newsgroup nil server)
   (let ((active (cadr (assoc group nnmbox-group-alist))))
     (cond
@@ -207,17 +207,16 @@
    (file-name-directory nnmbox-mbox-file)
    group
    (lambda ()
-     (save-excursion
-       (let ((in-buf (current-buffer)))
-	 (set-buffer nnmbox-mbox-buffer)
+     (let ((in-buf (current-buffer)))
+       (with-current-buffer nnmbox-mbox-buffer
 	 (goto-char (point-max))
 	 (insert-buffer-substring in-buf)))
      (nnmbox-save-active nnmbox-group-alist nnmbox-active-file))))
 
-(deffoo nnmbox-close-group (group &optional server)
+(deffoo nnmbox-close-group (_group &optional _server)
   t)
 
-(deffoo nnmbox-request-create-group (group &optional server args)
+(deffoo nnmbox-request-create-group (group &optional _server _args)
   (nnmail-activate 'nnmbox)
   (unless (assoc group nnmbox-group-alist)
     (push (list group (cons 1 0))
@@ -225,7 +224,7 @@
     (nnmbox-save-active nnmbox-group-alist nnmbox-active-file))
   t)
 
-(deffoo nnmbox-request-list (&optional server)
+(deffoo nnmbox-request-list (&optional _server)
   (save-excursion
     (let ((nnmail-file-coding-system
 	   nnmbox-active-file-coding-system))
@@ -233,11 +232,13 @@
     (setq nnmbox-group-alist (nnmail-get-active))
     t))
 
-(deffoo nnmbox-request-newgroups (date &optional server)
+(deffoo nnmbox-request-newgroups (_date &optional server)
   (nnmbox-request-list server))
 
-(deffoo nnmbox-request-list-newsgroups (&optional server)
+(deffoo nnmbox-request-list-newsgroups (&optional _server)
   (nnheader-report 'nnmbox "LIST NEWSGROUPS is not implemented."))
+
+(defvar nnml-current-directory)
 
 (deffoo nnmbox-request-expire-articles
     (articles newsgroup &optional server force)
@@ -279,7 +280,7 @@
       (nconc rest articles))))
 
 (deffoo nnmbox-request-move-article
-    (article group server accept-form &optional last move-is-internal)
+    (article group server accept-form &optional last _move-is-internal)
   (let ((buf (gnus-get-buffer-create " *nnmbox move*"))
 	result)
     (and
@@ -292,7 +293,7 @@
 	       "^X-Gnus-Newsgroup:"
 	       (save-excursion (search-forward "\n\n" nil t) (point)) t)
 	 (gnus-delete-line))
-       (setq result (eval accept-form))
+       (setq result (eval accept-form t))
        (kill-buffer buf)
        result)
      (save-excursion
@@ -622,16 +623,15 @@
 	   (with-current-buffer nnmbox-mbox-buffer
 	     (= (buffer-size) (nnheader-file-size nnmbox-mbox-file))))
       ()
-    (save-excursion
-      (let ((delim (concat "^" message-unix-mail-delimiter))
-	    (alist nnmbox-group-alist)
-	    (nnmbox-group-building-active-articles t)
-	    start end end-header number)
-	(set-buffer (setq nnmbox-mbox-buffer
-			  (let ((nnheader-file-coding-system
-				 nnmbox-file-coding-system))
-			    (nnheader-find-file-noselect
-			     nnmbox-mbox-file t t))))
+    (let ((delim (concat "^" message-unix-mail-delimiter))
+          (alist nnmbox-group-alist)
+          (nnmbox-group-building-active-articles t)
+          start end end-header number)
+      (with-current-buffer (setq nnmbox-mbox-buffer
+                                 (let ((nnheader-file-coding-system
+                                        nnmbox-file-coding-system))
+                                   (nnheader-find-file-noselect
+                                    nnmbox-mbox-file t t)))
 	(mm-enable-multibyte)
 	(buffer-disable-undo)
 	(gnus-add-buffer)

@@ -620,14 +620,12 @@ Element N specifies the summary line for message N+1.")
 
 ;; Rmail buffer swapping variables.
 
-(defvar rmail-buffer-swapped nil
+(defvar-local rmail-buffer-swapped nil
   "If non-nil, `rmail-buffer' is swapped with `rmail-view-buffer'.")
-(make-variable-buffer-local 'rmail-buffer-swapped)
 (put 'rmail-buffer-swapped 'permanent-local t)
 
-(defvar rmail-view-buffer nil
+(defvar-local rmail-view-buffer nil
   "Buffer which holds RMAIL message for MIME displaying.")
-(make-variable-buffer-local 'rmail-view-buffer)
 (put 'rmail-view-buffer 'permanent-local t)
 
 ;; `Sticky' default variables.

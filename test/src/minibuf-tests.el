@@ -412,11 +412,11 @@
 
 (ert-deftest test-inhibit-interaction ()
   (let ((inhibit-interaction t))
-    (should-error (read-from-minibuffer "foo: "))
+    (should-error (read-from-minibuffer "foo: ") :type 'inhibited-interaction)
 
-    (should-error (y-or-n-p "foo: "))
-    (should-error (yes-or-no-p "foo: "))
-    (should-error (read-blanks-no-input "foo: "))
+    (should-error (y-or-n-p "foo: ") :type 'inhibited-interaction)
+    (should-error (yes-or-no-p "foo: ") :type 'inhibited-interaction)
+    (should-error (read-no-blanks-input "foo: ") :type 'inhibited-interaction)
 
     ;; See that we get the expected error.
     (should (eq (condition-case nil

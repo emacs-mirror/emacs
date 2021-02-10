@@ -82,6 +82,10 @@
 ;; Careful with that axe, Eugene! Order does matter in the custom
 ;; section below.
 
+(defgroup bubbles nil
+  "Bubbles, a puzzle game."
+  :group 'games)
+
 (defcustom bubbles-game-theme
   'easy
   "Overall game theme.
@@ -91,8 +95,7 @@ and a shift mode."
                 (const :tag "Medium" medium)
                 (const :tag "Difficult" difficult)
                 (const :tag "Hard" hard)
-                (const :tag "User defined" user-defined))
-  :group 'bubbles)
+                (const :tag "User defined" user-defined)))
 
 (defun bubbles-set-game-easy ()
   "Set game theme to `easy'."
@@ -123,10 +126,6 @@ and a shift mode."
   (interactive)
   (setq bubbles-game-theme 'user-defined)
   (bubbles))
-
-(defgroup bubbles nil
-  "Bubbles, a puzzle game."
-  :group 'games)
 
 (defcustom bubbles-graphics-theme
   'circles

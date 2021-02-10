@@ -310,11 +310,10 @@ may re-organize the list with side-effects."
 ;; external members, and bring them together in a cloned copy of the
 ;; class tag.
 ;;
-(defvar semantic-orphaned-member-metaparent-type "class"
+(defvar-local semantic-orphaned-member-metaparent-type "class"
   "In `semantic-adopt-external-members', the type of 'type for metaparents.
 A metaparent is a made-up type semantic token used to hold the child list
 of orphaned members of a named type.")
-(make-variable-buffer-local 'semantic-orphaned-member-metaparent-type)
 
 (defvar semantic-mark-external-member-function nil
   "Function called when an externally defined orphan is found.

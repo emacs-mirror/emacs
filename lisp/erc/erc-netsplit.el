@@ -82,12 +82,11 @@ Args: PROC is the process the netjoin originated from and
   :group 'erc-hooks
   :type 'hook)
 
-(defvar erc-netsplit-list nil
+(defvar-local erc-netsplit-list nil
   "This is a list of the form
 \((\"a.b.c.d e.f.g\" TIMESTAMP FIRST-JOIN \"nick1\" ... \"nickn\") ...)
 where FIRST-JOIN is t or nil, depending on whether or not the first
 join from that split has been detected or not.")
-(make-variable-buffer-local 'erc-netsplit-list)
 
 (defun erc-netsplit-install-message-catalogs ()
   (erc-define-catalog

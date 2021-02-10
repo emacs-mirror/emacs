@@ -505,9 +505,8 @@ Used to decide whether to save completions.")
 ;; Old name, non-namespace-clean.
 (defvaralias 'cmpl-syntax-table 'completion-syntax-table)
 
-(defvar completion-syntax-table completion-standard-syntax-table
+(defvar-local completion-syntax-table completion-standard-syntax-table
   "This variable holds the current completion syntax table.")
-(make-variable-buffer-local 'completion-syntax-table)
 
 ;;-----------------------------------------------
 ;; Symbol functions

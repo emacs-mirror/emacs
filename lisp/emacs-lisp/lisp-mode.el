@@ -62,9 +62,6 @@
     (modify-syntax-entry ?\t "    " table)
     (modify-syntax-entry ?\f "    " table)
     (modify-syntax-entry ?\n ">   " table)
-    ;; This is probably obsolete since nowadays such features use overlays.
-    ;; ;; Give CR the same syntax as newline, for selective-display.
-    ;; (modify-syntax-entry ?\^m ">   " table)
     (modify-syntax-entry ?\; "<   " table)
     (modify-syntax-entry ?` "'   " table)
     (modify-syntax-entry ?' "'   " table)
@@ -775,7 +772,8 @@ or to switch back to an existing one."
   (setq-local find-tag-default-function 'lisp-find-tag-default)
   (setq-local comment-start-skip
 	      "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(;+\\|#|\\) *")
-  (setq-local comment-end "|#")
+  (setq-local comment-end-skip "[ \t]*\\(\\s>\\||#\\)")
+  (setq-local font-lock-comment-end-skip "|#")
   (setq imenu-case-fold-search t))
 
 (defun lisp-find-tag-default ()
@@ -1372,7 +1370,24 @@ and initial semicolons."
                                   (derived-mode-p 'emacs-lisp-mode))
                              emacs-lisp-docstring-fill-column
                            fill-column)))
-	(fill-paragraph justify))
+        (save-restriction
+          (save-excursion
+          (let ((ppss (syntax-ppss)))
+            ;; If we're in a string, then narrow (roughly) to that
+            ;; string before filling.  This avoids filling Lisp
+            ;; statements that follow the string.
+            (when (ppss-string-terminator ppss)
+              (goto-char (ppss-comment-or-string-start ppss))
+              (beginning-of-line)
+              ;; The string may be unterminated -- in that case, don't
+              ;; narrow.
+              (when (ignore-errors
+                      (progn
+                        (forward-sexp 1)
+                        t))
+                (narrow-to-region (ppss-comment-or-string-start ppss)
+                                  (point))))
+	    (fill-paragraph justify)))))
       ;; Never return nil.
       t))
 

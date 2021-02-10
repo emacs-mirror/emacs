@@ -38,7 +38,7 @@
 ;;   or t), which means that copying from the vcursor will be turned
 ;;   off after any operation not involving the vcursor, but the
 ;;   vcursor itself will be left alone.
-;; - works on dumb terminals with Emacs 19.29 and later
+;; - works on dumb terminals
 ;; - new keymap vcursor-map for binding to a prefix key
 ;; - vcursor-compare-windows substantially improved
 ;; - vcursor-execute-{key,command} much better about using the
@@ -50,11 +50,7 @@
 ;; ============
 ;;
 ;; Virtual cursor commands.  I got this idea from the old BBC micro.
-;; You need Emacs 19 or 20 and a window system for the best effects.
-;; For character terminals, at least Emacs 19.29 is required
-;; (special behavior for the overlay property
-;; "before-string" must be implemented).  Search for "dumb terminals"
-;; for more information.
+;; You need a window system for the best effects.
 ;;
 ;; This is much easier to use than the instructions are to read.
 ;; First, you need to let vcursor define some keys: setting

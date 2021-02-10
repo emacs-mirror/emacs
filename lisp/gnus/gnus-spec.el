@@ -1,4 +1,4 @@
-;;; gnus-spec.el --- format spec functions for Gnus
+;;; gnus-spec.el --- format spec functions for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -146,14 +146,14 @@ Return a list of updated types."
     (while (setq type (pop types))
       ;; Jump to the proper buffer to find out the value of the
       ;; variable, if possible.  (It may be buffer-local.)
-      (save-excursion
+      (save-current-buffer
 	(let ((buffer (intern (format "gnus-%s-buffer" type))))
 	  (when (and (boundp buffer)
 		     (setq val (symbol-value buffer))
                      (gnus-buffer-live-p val))
-	    (set-buffer val))
-	  (setq new-format (symbol-value
-			    (intern (format "gnus-%s-line-format" type)))))
+	    (set-buffer val)))
+	(setq new-format (symbol-value
+			  (intern (format "gnus-%s-line-format" type))))
 	(setq entry (cdr (assq type gnus-format-specs)))
 	(if (and (car entry)
 		 (equal (car entry) new-format))
@@ -170,7 +170,7 @@ Return a list of updated types."
 		   new-format
 		   (symbol-value
 		    (intern (format "gnus-%s-line-format-alist" type)))
-		   (not (string-match "mode$" (symbol-name type))))))
+		   (not (string-match "mode\\'" (symbol-name type))))))
 	  ;; Enter the new format spec into the list.
 	  (if entry
 	      (progn
@@ -526,13 +526,13 @@ or to characters when given a pad value."
 	(if (eq spec ?%)
 	    ;; "%%" just results in a "%".
 	    (insert "%")
-	  (cond
-	   ;; Do tilde forms.
-	   ((eq spec ?@)
-	    (setq elem (list tilde-form ?s)))
-	   ;; Treat user defined format specifiers specially.
-	   (user-defined
-	    (setq elem
+	  (setq elem
+                (cond
+	         ;; Do tilde forms.
+	         ((eq spec ?@)
+	          (list tilde-form ?s))
+	         ;; Treat user defined format specifiers specially.
+	         (user-defined
 		  (list
 		   (list (intern (format
 				  (if (stringp user-defined)
@@ -540,14 +540,14 @@ or to characters when given a pad value."
 				    "gnus-user-format-function-%c")
 				  user-defined))
 			 'gnus-tmp-header)
-		   ?s)))
-	   ;; Find the specification from `spec-alist'.
-	   ((setq elem (cdr (assq (or extended-spec spec) spec-alist))))
-	   ;; We used to use "%l" for displaying the grouplens score.
-	   ((eq spec ?l)
-	    (setq elem '("" ?s)))
-	   (t
-	    (setq elem '("*" ?s))))
+		   ?s))
+	         ;; Find the specification from `spec-alist'.
+	         ((cdr (assq (or extended-spec spec) spec-alist)))
+	         ;; We used to use "%l" for displaying the grouplens score.
+	         ((eq spec ?l)
+                  '("" ?s))
+	         (t
+	          '("*" ?s))))
 	  (setq elem-type (cadr elem))
 	  ;; Insert the new format elements.
 	  (when pad-width
@@ -628,8 +628,8 @@ or to characters when given a pad value."
 If PROPS, insert the result."
   (let ((form (gnus-parse-format format alist props)))
     (if props
-	(add-text-properties (point) (progn (eval form) (point)) props)
-      (eval form))))
+	(add-text-properties (point) (progn (eval form t) (point)) props)
+      (eval form t))))
 
 (defun gnus-set-format (type &optional insertable)
   (set (intern (format "gnus-%s-line-format-spec" type))

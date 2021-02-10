@@ -35,4 +35,3 @@ int B::testB() {
 
 int B::testAB() { // %1% ( ( "testfriends.cpp" ) ( "B" "B::testAB" ) )
 }
-

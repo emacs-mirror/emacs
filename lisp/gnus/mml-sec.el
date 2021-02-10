@@ -1,4 +1,4 @@
-;;; mml-sec.el --- A package with security functions for MML documents
+;;; mml-sec.el --- A package with security functions for MML documents  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -236,7 +236,7 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 		 (re-search-forward
 		  (concat "^" (regexp-quote mail-header-separator) "\n") nil t))
 	     (goto-char (match-end 0))
-	     (apply 'mml-insert-tag 'part (cons (if sign 'sign 'encrypt)
+	     (apply #'mml-insert-tag 'part (cons (if sign 'sign 'encrypt)
 						(cons method tags))))
 	    (t (error "The message is corrupted. No mail header separator"))))))
 
@@ -298,14 +298,17 @@ Use METHOD if given.  Else use `mml-secure-method' or
   (interactive)
   (mml-secure-part "smime"))
 
-(defun mml-secure-is-encrypted-p ()
-  "Check whether secure encrypt tag is present."
+(defun mml-secure-is-encrypted-p (&optional tag-present)
+  "Whether the current buffer contains a mail message that should be encrypted.
+If TAG-PRESENT, say whether the <#secure tag is present anywhere
+in the buffer."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward
-     (concat "^" (regexp-quote mail-header-separator) "\n"
-	     "<#secure[^>]+encrypt")
-     nil t)))
+    (message-goto-body)
+    (if tag-present
+	(re-search-forward "<#secure[^>]+encrypt" nil t)
+      (skip-chars-forward "[ \t\n")
+      (looking-at "<#secure[^>]+encrypt"))))
 
 (defun mml-secure-bcc-is-safe ()
   "Check whether usage of Bcc is safe (or absent).
@@ -346,8 +349,8 @@ either an error is raised or not."
 	      (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
 	     (goto-char (setq insert-loc (match-end 0)))
 	     (unless (looking-at "<#secure")
-	       (apply 'mml-insert-tag
-		'secure 'method method 'mode mode tags)))
+	       (apply #'mml-insert-tag
+		      'secure 'method method 'mode mode tags)))
 	    (t (error
 		"The message is corrupted. No mail header separator"))))
     (when (eql insert-loc (point))
@@ -558,7 +561,7 @@ Return keys."
   (cl-assert keys)
   (let* ((usage-prefs (mml-secure-cust-usage-lookup context usage))
 	 (curr-fprs (cdr (assoc name (cdr usage-prefs))))
-	 (key-fprs (mapcar 'mml-secure-fingerprint keys))
+	 (key-fprs (mapcar #'mml-secure-fingerprint keys))
 	 (new-fprs (cl-union curr-fprs key-fprs :test 'equal)))
     (if curr-fprs
 	(setcdr (assoc name (cdr usage-prefs)) new-fprs)
@@ -622,7 +625,7 @@ Passphrase caching in Emacs is NOT recommended.  Use gpg-agent instead."
 		    mml-smime-passphrase-cache-expiry)
 	       mml-secure-passphrase-cache-expiry))))
 
-(defun mml-secure-passphrase-callback (context key-id standard)
+(defun mml-secure-passphrase-callback (context key-id _standard)
   "Ask for passphrase in CONTEXT for KEY-ID for STANDARD.
 The passphrase is read and cached."
   ;; Based on mml2015-epg-passphrase-callback.
@@ -795,7 +798,7 @@ When `mml-secure-fail-when-key-problem' is t, fail with an error in case of
 outdated or multiple keys."
   (let* ((nname (mml-secure-normalize-cust-name name))
 	 (fprs (mml-secure-cust-fpr-lookup context usage nname))
-	 (usable-fprs (mapcar 'mml-secure-fingerprint keys)))
+	 (usable-fprs (mapcar #'mml-secure-fingerprint keys)))
     (if fprs
 	(if (gnus-subsetp fprs usable-fprs)
 	    (mml-secure-filter-keys keys fprs)
@@ -906,7 +909,7 @@ If no one is selected, symmetric encryption will be performed.  "
 	(error "No recipient specified")))
     recipients))
 
-(defun mml-secure-epg-encrypt (protocol cont &optional sign)
+(defun mml-secure-epg-encrypt (protocol _cont &optional sign)
   ;; Based on code appearing inside mml2015-epg-encrypt.
   (let* ((context (epg-make-context protocol))
 	 (config (epg-find-configuration 'OpenPGP))

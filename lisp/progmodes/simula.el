@@ -281,7 +281,7 @@ for SIMULA mode to function correctly."
     (define-key map ":"          'simula-electric-label)
     (define-key map "\e\C-q"     'simula-indent-exp)
     (define-key map "\t"         'simula-indent-command)
-    ;; Emacs 19 defines menus in the mode map
+
     (define-key map [menu-bar simula]
       (cons "SIMULA" (make-sparse-keymap "SIMULA")))
     (define-key map [menu-bar simula indent-exp]

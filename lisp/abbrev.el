@@ -516,9 +516,8 @@ It is nil if the abbrev has already been unexpanded.")
 (defvar last-abbrev-location 0
   "The location of the start of the last abbrev expanded.")
 
-;; (defvar local-abbrev-table fundamental-mode-abbrev-table
+;; (defvar-local local-abbrev-table fundamental-mode-abbrev-table
 ;;   "Local (mode-specific) abbrev table of current buffer.")
-;; (make-variable-buffer-local 'local-abbrev-table)
 
 (defun clear-abbrev-table (table)
   "Undefine all abbrevs in abbrev table TABLE, leaving it empty."

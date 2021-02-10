@@ -2171,6 +2171,23 @@ has been handled by this function."
       (when eobp
         (goto-char (point-max))))))
 
+;;;###autoload
+(defun dbus-monitor (&optional bus)
+  "Invoke `dbus-register-monitor' interactively, and switch to the buffer.
+BUS is either a Lisp keyword, `:system' or `:session', or a
+string denoting the bus address.  The value nil defaults to `:session'."
+  (interactive
+   (list
+    (let ((input
+           (completing-read
+            (format-prompt "Enter bus symbol or name" :session)
+            '(:system :session) nil nil nil nil :session)))
+      (if (and (stringp input)
+               (string-match-p "^\\(:session\\|:system\\)$" input))
+          (intern input) input))))
+  (dbus-register-monitor (or bus :session))
+  (switch-to-buffer (get-buffer-create "*D-Bus Monitor*")))
+
 (defun dbus-handle-bus-disconnect ()
   "React to a bus disconnection.
 BUS is the bus that disconnected.  This routine unregisters all

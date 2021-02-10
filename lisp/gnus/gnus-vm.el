@@ -1,4 +1,4 @@
-;;; gnus-vm.el --- vm interface for Gnus
+;;; gnus-vm.el --- vm interface for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 

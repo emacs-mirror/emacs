@@ -515,17 +515,15 @@ This is normally set via `font-lock-add-keywords' and
   "Non-nil means Font Lock should not fontify comments or strings.
 This is normally set via `font-lock-defaults'.")
 
-(defvar font-lock-keywords-case-fold-search nil
+(defvar-local font-lock-keywords-case-fold-search nil
   "Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
 This is set via the function `font-lock-set-defaults', based on
 the CASE-FOLD argument of `font-lock-defaults'.")
-(make-variable-buffer-local 'font-lock-keywords-case-fold-search)
 
-(defvar font-lock-syntactically-fontified 0
+(defvar-local font-lock-syntactically-fontified 0
   "Point up to which `font-lock-syntactic-keywords' has been applied.
 If nil, this is ignored, in which case the syntactic fontification may
 sometimes be slightly incorrect.")
-(make-variable-buffer-local 'font-lock-syntactically-fontified)
 
 (defvar font-lock-syntactic-face-function
   (lambda (state)
@@ -1026,7 +1024,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; directives correctly and cleanly.  (It is the same problem as fontifying
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
 
-(defvar font-lock-extend-after-change-region-function nil
+(defvar-local font-lock-extend-after-change-region-function nil
   "A function that determines the region to refontify after a change.
 
 This variable is either nil, or is a function that determines the
@@ -1040,7 +1038,6 @@ and end buffer positions \(in that order) of the region to refontify, or nil
 \(which directs the caller to fontify a default region).
 This function should preserve the match-data.
 The region it returns may start or end in the middle of a line.")
-(make-variable-buffer-local 'font-lock-extend-after-change-region-function)
 
 (defun font-lock-fontify-buffer (&optional interactively)
   "Fontify the current buffer the way the function `font-lock-mode' would."
@@ -1159,7 +1156,7 @@ a very meaningful entity to highlight.")
 
 
 (defvar font-lock-beg) (defvar font-lock-end)
-(defvar font-lock-extend-region-functions
+(defvar-local font-lock-extend-region-functions
   '(font-lock-extend-region-wholelines
     ;; This use of font-lock-multiline property is unreliable but is just
     ;; a handy heuristic: in case you don't have a function that does
@@ -1181,7 +1178,6 @@ These functions are run in turn repeatedly until they all return nil.
 Put first the functions more likely to cause a change and cheaper to compute.")
 ;; Mark it as a special hook which doesn't use any global setting
 ;; (i.e. doesn't obey the element t in the buffer-local value).
-(make-variable-buffer-local 'font-lock-extend-region-functions)
 
 (defun font-lock-extend-region-multiline ()
   "Move fontification boundaries away from any `font-lock-multiline' property."
@@ -1888,9 +1884,8 @@ preserve `hi-lock-mode' highlighting patterns."
   (kill-local-variable 'font-lock-set-defaults)
   (font-lock-mode 1))
 
-(defvar font-lock-major-mode nil
+(defvar-local font-lock-major-mode nil
   "Major mode for which the font-lock settings have been setup.")
-(make-variable-buffer-local 'font-lock-major-mode)
 
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.

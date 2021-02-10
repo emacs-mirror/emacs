@@ -42,8 +42,7 @@
 					    (locate-user-emacs-file "games/")))
   "Name of file to store score information for dunnet."
   :version "26.1"
-  :type 'file
-  :group 'dunnet)
+  :type 'file)
 
 ;;;;
 ;;;; This section defines the globals that are used in dunnet.

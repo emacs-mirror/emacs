@@ -148,36 +148,30 @@ this value can let another user see some of your images."
   :group 'thumbs)
 
 ;; Initialize some variable, for later use.
-(defvar thumbs-current-tmp-filename nil
+(defvar-local thumbs-current-tmp-filename nil
   "Temporary filename of current image.")
-(make-variable-buffer-local 'thumbs-current-tmp-filename)
 
-(defvar thumbs-current-image-filename nil
+(defvar-local thumbs-current-image-filename nil
   "Filename of current image.")
-(make-variable-buffer-local 'thumbs-current-image-filename)
 
-(defvar thumbs-extra-images 1
+(defvar-local thumbs-extra-images 1
   "Counter for showing extra images in thumbs buffer.")
-(make-variable-buffer-local 'thumbs-extra-images)
 (put 'thumbs-extra-images 'permanent-local t)
 
 (defvar thumbs-current-image-size nil
   "Size of current image.")
 
-(defvar thumbs-image-num nil
+(defvar-local thumbs-image-num nil
   "Number of current image.")
-(make-variable-buffer-local 'thumbs-image-num)
 
-(defvar thumbs-buffer nil
+(defvar-local thumbs-buffer nil
   "Name of buffer containing thumbnails associated with image.")
-(make-variable-buffer-local 'thumbs-buffer)
 
 (defvar thumbs-current-dir nil
   "Current directory.")
 
-(defvar thumbs-marked-list nil
+(defvar-local thumbs-marked-list nil
   "List of marked files.")
-(make-variable-buffer-local 'thumbs-marked-list)
 (put 'thumbs-marked-list 'permanent-local t)
 
 (defsubst thumbs-temp-dir ()

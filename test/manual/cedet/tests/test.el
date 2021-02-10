@@ -1,4 +1,4 @@
-;;; test.el --- Unit test file for Semantic Emacs Lisp support.
+;;; test.el --- Unit test file for Semantic Emacs Lisp support.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 

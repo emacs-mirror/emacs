@@ -594,6 +594,18 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   record_unwind_protect (restore_buffer, Fcurrent_buffer ());
 
   choose_minibuf_frame ();
+  mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+
+  if (minibuf_level > 1
+      && minibuf_moves_frame_when_opened ()
+      && !minibuf_follows_frame ())
+    {
+      EMACS_INT i;
+
+      /* Stack up the existing minibuffers on the current mini-window */
+      for (i = 1; i < minibuf_level; i++)
+	set_window_buffer (minibuf_window, nth_minibuffer (i), 0, 0);
+    }
 
   record_unwind_protect_void (choose_minibuf_frame);
 
@@ -602,7 +614,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
-  mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
   if (!EQ (mini_frame, selected_frame))
     record_unwind_protect (restore_window_configuration,
 			   Fcons (/* Arrange for the frame later to be
@@ -744,17 +755,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
             set_window_buffer (mini_window, empty_minibuf, 0, 0);
         }
     }
-
-  if (minibuf_moves_frame_when_opened ())
-  {
-    EMACS_INT i;
-
-    /* Stack up all the (recursively) open minibuffers on the selected
-       mini_window.  */
-    for (i = 1; i < minibuf_level; i++)
-      set_window_buffer (XFRAME (mini_frame)->minibuffer_window,
-                         nth_minibuffer (i), 0, 0);
-  }
 
   /* Display this minibuffer in the proper window.  */
   /* Use set_window_buffer instead of Fset_window_buffer (see
@@ -926,6 +926,31 @@ nth_minibuffer (EMACS_INT depth)
   return XCAR (tail);
 }
 
+/* Set the major mode of the minibuffer BUF, depending on DEPTH, the
+   minibuffer depth.  */
+
+static void
+set_minibuffer_mode (Lisp_Object buf, EMACS_INT depth)
+{
+  ptrdiff_t count = SPECPDL_INDEX ();
+
+  record_unwind_current_buffer ();
+  Fset_buffer (buf);
+  if (depth > 0)
+    {
+      if (!NILP (Ffboundp (intern ("fundamental-mode"))))
+	call0 (intern ("fundamental-mode"));
+    }
+  else
+    {
+      if (!NILP (Ffboundp (intern ("minibuffer-inactive-mode"))))
+	call0 (intern ("minibuffer-inactive-mode"));
+      else
+	Fkill_all_local_variables ();
+    }
+  buf = unbind_to (count, buf);
+}
+
 /* Return a buffer to be used as the minibuffer at depth `depth'.
    depth = 0 is the lowest allowed argument, and that is the value
    used for nonrecursive minibuffer invocations.  */
@@ -946,28 +971,21 @@ get_minibuffer (EMACS_INT depth)
       char name[sizeof name_fmt + INT_STRLEN_BOUND (EMACS_INT)];
       AUTO_STRING_WITH_LEN (lname, name, sprintf (name, name_fmt, depth));
       buf = Fget_buffer_create (lname, Qnil);
-
+      /* Do this before set_minibuffer_mode.  */
+      XSETCAR (tail, buf);
+      set_minibuffer_mode (buf, depth);
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */
       Fbuffer_enable_undo (buf);
-
-      XSETCAR (tail, buf);
     }
   else
     {
-      ptrdiff_t count = SPECPDL_INDEX ();
       /* We have to empty both overlay lists.  Otherwise we end
 	 up with overlays that think they belong to this buffer
 	 while the buffer doesn't know about them any more.  */
       delete_all_overlays (XBUFFER (buf));
       reset_buffer (XBUFFER (buf));
-      record_unwind_current_buffer ();
-      Fset_buffer (buf);
-      if (!NILP (Ffboundp (intern ("minibuffer-inactive-mode"))))
-	call0 (intern ("minibuffer-inactive-mode"));
-      else
-        Fkill_all_local_variables ();
-      buf = unbind_to (count, buf);
+      set_minibuffer_mode (buf, depth);
     }
 
   return buf;

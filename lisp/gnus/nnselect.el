@@ -81,12 +81,12 @@
   "Compress ARTLIST."
   (let (selection)
     (pcase-dolist (`(,artgroup . ,arts)
-                   (nnselect-categorize artlist 'nnselect-artitem-group))
+                   (nnselect-categorize artlist #'nnselect-artitem-group))
       (let (list)
         (pcase-dolist (`(,rsv . ,articles)
                        (nnselect-categorize
-                        arts 'nnselect-artitem-rsv 'nnselect-artitem-number))
-          (push (cons rsv (gnus-compress-sequence (sort articles '<)))
+                        arts #'nnselect-artitem-rsv #'nnselect-artitem-number))
+          (push (cons rsv (gnus-compress-sequence (sort articles #'<)))
                 list))
         (push (cons artgroup list) selection)))
     selection))
@@ -200,25 +200,27 @@ as `(keyfunc member)' and the corresponding element is just
 
 (define-inline ids-by-group (articles)
   (inline-quote
-   (nnselect-categorize ,articles 'nnselect-article-group
-			'nnselect-article-id)))
+   (nnselect-categorize ,articles #'nnselect-article-group
+			#'nnselect-article-id)))
 
 (define-inline numbers-by-group (articles &optional type)
   (inline-quote
    (cond
     ((eq ,type 'range)
      (nnselect-categorize (gnus-uncompress-range ,articles)
-			  'nnselect-article-group 'nnselect-article-number))
+			  #'nnselect-article-group #'nnselect-article-number))
     ((eq ,type 'tuple)
      (nnselect-categorize ,articles
 			  #'(lambda (elem)
 			      (nnselect-article-group (car elem)))
 			  #'(lambda (elem)
 			      (cons (nnselect-article-number
-				     (car elem)) (cdr elem)))))
+				     (car elem))
+				    (cdr elem)))))
     (t
      (nnselect-categorize ,articles
-			  'nnselect-article-group 'nnselect-article-number)))))
+			  #'nnselect-article-group
+			  #'nnselect-article-number)))))
 
 (defmacro nnselect-add-prefix (group)
   "Ensures that the GROUP has an nnselect prefix."
@@ -319,7 +321,7 @@ If this variable is nil, or if the provided function returns nil,
 	    headers)
 	(with-current-buffer nntp-server-buffer
 	  (pcase-dolist (`(,artgroup . ,artids) gartids)
-	    (let ((artlist (sort (mapcar 'cdr artids) '<))
+	    (let ((artlist (sort (mapcar #'cdr artids) #'<))
 		  (gnus-override-method (gnus-find-method-for-group artgroup))
 		  (fetch-old
 		   (or
@@ -385,7 +387,8 @@ If this variable is nil, or if the provided function returns nil,
 		      (list
 		       (gnus-method-to-server
 			(gnus-find-method-for-group
-			 (nnselect-article-group x)))) servers :test 'equal)))
+			 (nnselect-article-group x))))
+		      servers :test 'equal)))
 		 (gnus-articles-in-thread thread)))))
 	(setq servers (list (list server))))
       (setq artlist
@@ -455,7 +458,7 @@ If this variable is nil, or if the provided function returns nil,
   (if force
       (let (not-expired)
 	(pcase-dolist (`(,artgroup . ,artids) (ids-by-group articles))
-	  (let ((artlist (sort (mapcar 'cdr artids) '<)))
+	  (let ((artlist (sort (mapcar #'cdr artids) #'<)))
 	    (unless (gnus-check-backend-function 'request-expire-articles
 						 artgroup)
 	      (error "Group %s does not support article expiration" artgroup))
@@ -467,7 +470,7 @@ If this variable is nil, or if the provided function returns nil,
 			    (gnus-request-expire-articles
 			     artlist artgroup force)))
 		  not-expired)))
-	(sort (delq nil not-expired) '<))
+	(sort (delq nil not-expired) #'<))
     articles))
 
 
@@ -518,11 +521,11 @@ If this variable is nil, or if the provided function returns nil,
 	 (mapcar
 	  (lambda (artgroup)
 	    (list (car artgroup)
-		  (gnus-compress-sequence (sort (cdr artgroup) '<))
+		  (gnus-compress-sequence (sort (cdr artgroup) #'<))
 		  action marks))
 	  (numbers-by-group range 'range))))
      actions)
-    'car 'cdr)))
+    #'car #'cdr)))
 
 (deffoo nnselect-request-update-info (group info &optional _server)
   (let* ((group (nnselect-add-prefix group))
@@ -651,8 +654,9 @@ If this variable is nil, or if the provided function returns nil,
 	     new-nnselect-artlist)
 	    (setq headers
 		  (gnus-fetch-headers
-		   (append (sort old-arts '<)
-			   (number-sequence first last)) nil t))
+		   (append (sort old-arts #'<)
+			   (number-sequence first last))
+		   nil t))
 	    (gnus-group-set-parameter
 	     group
 	     'nnselect-artlist
@@ -942,7 +946,7 @@ article came from is also searched."
 	       (gnus-remove-from-range
 		old-unread
 		(cdr (assoc artgroup select-reads)))
-	       (sort (cdr (assoc artgroup select-unreads)) '<))))
+	       (sort (cdr (assoc artgroup select-unreads)) #'<))))
 	    (gnus-get-unread-articles-in-group
 	     group-info (gnus-active artgroup) t)
 	    (gnus-group-update-group artgroup t t)))))))

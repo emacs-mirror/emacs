@@ -2143,11 +2143,11 @@ main(37,571
 	class D 41,622
 		D(43,659
 
-el-src/TAGTEST.EL,179
-(foo::defmumble bletch 1,0
-(defun foo==bar foo==bar2,33
-(defalias 'pending-delete-mode pending-delete-mode6,149
-(defalias (quote explicitly-quoted-pending-delete-mode)9,222
+el-src/TAGTEST.EL,181
+(foo::defmumble bletch 3,33
+(defun foo==bar foo==bar4,66
+(defalias 'pending-delete-mode pending-delete-mode8,182
+(defalias (quote explicitly-quoted-pending-delete-mode)11,255
 
 el-src/emacs/lisp/progmodes/etags.el,5069
 (defvar tags-file-name 34,1035

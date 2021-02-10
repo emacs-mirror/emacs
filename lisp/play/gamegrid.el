@@ -28,36 +28,35 @@
 
 ;; ;;;;;;;;;;;;; buffer-local variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar gamegrid-use-glyphs t
+(defvar-local gamegrid-use-glyphs t
   "Non-nil means use glyphs when available.")
 
-(defvar gamegrid-use-color t
+(defvar-local gamegrid-use-color t
   "Non-nil means use color when available.")
 
-(defvar gamegrid-font "-*-courier-medium-r-*-*-*-140-100-75-*-*-iso8859-*"
+(defvar-local gamegrid-font "-*-courier-medium-r-*-*-*-140-100-75-*-*-iso8859-*"
   "Name of the font used in X mode.")
 
-(defvar gamegrid-face nil
+(defvar-local gamegrid-face nil
   "Indicates the face to use as a default.")
-(make-variable-buffer-local 'gamegrid-face)
 
-(defvar gamegrid-display-options nil)
+(defvar-local gamegrid-display-options nil)
 
-(defvar gamegrid-buffer-width 0)
-(defvar gamegrid-buffer-height 0)
-(defvar gamegrid-blank 0)
+(defvar-local gamegrid-buffer-width 0)
+(defvar-local gamegrid-buffer-height 0)
+(defvar-local gamegrid-blank 0)
 
-(defvar gamegrid-timer nil)
+(defvar-local gamegrid-timer nil)
 
-(defvar gamegrid-display-mode nil)
+(defvar-local gamegrid-display-mode nil)
 
-(defvar gamegrid-display-table)
+(defvar-local gamegrid-display-table nil)
 
-(defvar gamegrid-face-table nil)
+(defvar-local gamegrid-face-table nil)
 
-(defvar gamegrid-buffer-start 1)
+(defvar-local gamegrid-buffer-start 1)
 
-(defvar gamegrid-score-file-length 50
+(defvar-local gamegrid-score-file-length 50
   "Number of high scores to keep.")
 
 (defvar gamegrid-user-score-file-directory
@@ -66,19 +65,6 @@
 If Emacs was built without support for shared game scores, then this
 directory will be used.")
 
-(make-variable-buffer-local 'gamegrid-use-glyphs)
-(make-variable-buffer-local 'gamegrid-use-color)
-(make-variable-buffer-local 'gamegrid-font)
-(make-variable-buffer-local 'gamegrid-display-options)
-(make-variable-buffer-local 'gamegrid-buffer-width)
-(make-variable-buffer-local 'gamegrid-buffer-height)
-(make-variable-buffer-local 'gamegrid-blank)
-(make-variable-buffer-local 'gamegrid-timer)
-(make-variable-buffer-local 'gamegrid-display-mode)
-(make-variable-buffer-local 'gamegrid-display-table)
-(make-variable-buffer-local 'gamegrid-face-table)
-(make-variable-buffer-local 'gamegrid-buffer-start)
-(make-variable-buffer-local 'gamegrid-score-file-length)
 
 ;; ;;;;;;;;;;;;; global variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

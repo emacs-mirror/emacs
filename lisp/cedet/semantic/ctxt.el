@@ -32,17 +32,15 @@
 (require 'semantic)
 
 ;;; Code:
-(defvar semantic-command-separation-character
+(defvar-local semantic-command-separation-character
  ";"
   "String which indicates the end of a command.
 Used for identifying the end of a single command.")
-(make-variable-buffer-local 'semantic-command-separation-character)
 
-(defvar semantic-function-argument-separation-character
+(defvar-local semantic-function-argument-separation-character
  ","
   "String which indicates the end of an argument.
 Used for identifying arguments to functions.")
-(make-variable-buffer-local 'semantic-function-argument-separation-character)
 
 ;;; Local Contexts
 ;;

@@ -147,13 +147,6 @@
 ;;
 ;;   See the above section "Checking Parameters" for details about
 ;; parameter checking.
-;;
-;; Dependencies:
-;;
-;;   This file requires lisp-mnt (Lisp maintenance routines) for the
-;;   comment checkers.
-;;
-;;   Requires custom for Emacs v20.
 
 ;;; TO DO:
 ;;   Hook into the byte compiler on a defun/defvar level to generate

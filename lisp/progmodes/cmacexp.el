@@ -72,15 +72,6 @@
 ;; Please report bugs, suggestions, complaints and so on to
 ;; bug-gnu-emacs@gnu.org and pot@gnu.org (Francesco Potortì).
 
-;; IMPROVEMENTS OVER emacs 18.xx cmacexp.el ==========================
-
-;; - A lot of user and programmer visible changes.  See above.
-;; - #line directives are inserted, so __LINE__ and __FILE__ are
-;;   correctly expanded.  Works even with START inside a string, a
-;;   comment or a region #ifdef'd away by cpp. cpp is invoked with -C,
-;;   making comments visible in the expansion.
-;; - All work is done in core memory, no need for temporary files.
-
 ;; ACKNOWLEDGMENTS ===================================================
 
 ;; A lot of thanks to Don Maszle who did a great work of testing, bug

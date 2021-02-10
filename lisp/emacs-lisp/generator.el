@@ -725,17 +725,20 @@ Return the value with which ITERATOR finished iteration."
         (condition-symbol (cps--gensym "iter-do-condition"))
         (it-symbol (cps--gensym "iter-do-iterator"))
         (result-symbol (cps--gensym "iter-do-result")))
-    `(let (,var
-           ,result-symbol
+    `(let (,result-symbol
            (,done-symbol nil)
            (,it-symbol ,iterator))
-       (while (not ,done-symbol)
-         (condition-case ,condition-symbol
-             (setf ,var (iter-next ,it-symbol))
-           (iter-end-of-sequence
-            (setf ,result-symbol (cdr ,condition-symbol))
-            (setf ,done-symbol t)))
-         (unless ,done-symbol ,@body))
+       (while
+           (let ((,var
+                  (condition-case ,condition-symbol
+                      (iter-next ,it-symbol)
+                    (iter-end-of-sequence
+                     (setf ,result-symbol (cdr ,condition-symbol))
+                     (setf ,done-symbol t)))))
+             (unless ,done-symbol
+               ,@body
+               ;; Loop until done-symbol is set.
+               t)))
        ,result-symbol)))
 
 (defvar cl--loop-args)

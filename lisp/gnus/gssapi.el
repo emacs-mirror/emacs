@@ -1,4 +1,4 @@
-;;; gssapi.el --- GSSAPI/Kerberos 5 interface for Emacs
+;;; gssapi.el --- GSSAPI/Kerberos 5 interface for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 

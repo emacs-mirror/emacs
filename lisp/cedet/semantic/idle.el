@@ -1,4 +1,4 @@
-;;; idle.el --- Schedule parsing tasks in idle time
+;;; idle.el --- Schedule parsing tasks in idle time  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2006, 2008-2021 Free Software Foundation, Inc.
 
@@ -135,10 +135,9 @@ it is unlikely the user would be ready to type again right away."
   :group 'semantic
   :type 'hook)
 
-(defvar semantic-idle-scheduler-mode nil
+(defvar-local semantic-idle-scheduler-mode nil
   "Non-nil if idle-scheduler minor mode is enabled.
 Use the command `semantic-idle-scheduler-mode' to change this variable.")
-(make-variable-buffer-local 'semantic-idle-scheduler-mode)
 
 (defcustom semantic-idle-scheduler-max-buffer-size 0
   "Maximum size in bytes of buffers where idle-scheduler is enabled.
@@ -223,18 +222,18 @@ And also manages services that depend on tag values."
                                             (and (buffer-file-name b)
                                                  b))
                                         (buffer-list)))))
-	   safe ;; This safe is not used, but could be.
+	   ;; safe ;; This safe is not used, but could be.
            others
 	   mode)
       (when (semantic-idle-scheduler-enabled-p)
         (save-excursion
           ;; First, reparse the current buffer.
-          (setq mode major-mode
-                safe (semantic-safe "Idle Parse Error: %S"
-		       ;(error "Goofy error 1")
-		       (semantic-idle-scheduler-refresh-tags)
-		       )
-		)
+          (setq mode major-mode)
+          ;; (setq safe
+	  (semantic-safe "Idle Parse Error: %S"
+                                        ;(error "Goofy error 1")
+		         (semantic-idle-scheduler-refresh-tags))
+
           ;; Now loop over other buffers with same major mode, trying to
           ;; update them as well.  Stop on keypress.
           (dolist (b buffers)
@@ -431,6 +430,8 @@ datasets."
       (message "Long Work Idle Timer...%s" exit-type)))
   )
 
+(defvar ede-auto-add-method)
+
 (defun semantic-idle-scheduler-work-parse-neighboring-files ()
   "Parse all the files in similar directories to buffers being edited."
   ;; Let's tell EDE to ignore all the files we're about to load
@@ -565,11 +566,12 @@ DOC will be a documentation string describing FORMS.
 FORMS will be called during idle time after the current buffer's
 semantic tag information has been updated.
 This routine creates the following functions and variables:"
+  (declare (indent 1) (debug (&define name stringp def-body)))
   (let ((global (intern (concat "global-" (symbol-name name) "-mode")))
 	(mode	(intern (concat (symbol-name name) "-mode")))
 	(hook	(intern (concat (symbol-name name) "-mode-hook")))
 	(map	(intern (concat (symbol-name name) "-mode-map")))
-	(setup	(intern (concat (symbol-name name) "-mode-setup")))
+	;; (setup	(intern (concat (symbol-name name) "-mode-setup")))
 	(func	(intern (concat (symbol-name name) "-idle-function"))))
 
     `(progn
@@ -619,11 +621,6 @@ turned on in every Semantic-supported buffer.")
 	 ,(concat "Perform idle activity for the minor mode `"
 		  (symbol-name mode) "'.")
 	 ,@forms))))
-(put 'define-semantic-idle-service 'lisp-indent-function 1)
-(add-hook 'edebug-setup-hook
-          (lambda ()
-	    (def-edebug-spec define-semantic-idle-service
-	      (&define name stringp def-body))))
 
 ;;; SUMMARY MODE
 ;;
@@ -717,8 +714,7 @@ specific to a major mode.  For example, in jde mode:
 
 (defun semantic-idle-summary-useful-context-p ()
   "Non-nil if we should show a summary based on context."
-  (if (and (boundp 'font-lock-mode)
-	   font-lock-mode
+  (if (and font-lock-mode
 	   (memq (get-text-property (point) 'face)
 		 semantic-idle-summary-out-of-context-faces))
       ;; The best I can think of at the moment is to disable
@@ -823,6 +819,8 @@ turned on in every Semantic-supported buffer."
 (make-obsolete-variable 'semantic-idle-symbol-highlight-face
     "customize the face `semantic-idle-symbol-highlight' instead" "24.4" 'set)
 
+(defvar pulse-flag)
+
 (defun semantic-idle-symbol-maybe-highlight (tag)
   "Perhaps add highlighting to the symbol represented by TAG.
 TAG was found as the symbol under point.  If it happens to be
@@ -900,7 +898,7 @@ Call `semantic-symref-hits-in-region' to identify local references."
 	(when (semantic-tag-p target)
 	  (require 'semantic/symref/filter)
 	  (semantic-symref-hits-in-region
-	   target (lambda (start end prefix)
+           target (lambda (start end _prefix)
 		    (when (/= start (car Hbounds))
 		      (pulse-momentary-highlight-region
 		       start end semantic-idle-symbol-highlight-face))
@@ -1233,7 +1231,7 @@ shortened at the beginning."
   )
 
 (defun semantic-idle-breadcrumbs--format-linear
-  (tag-list &optional max-length)
+  (tag-list &optional _max-length)
   "Format TAG-LIST as a linear list, starting with the outermost tag.
 MAX-LENGTH is not used."
   (require 'semantic/analyze/fcn)

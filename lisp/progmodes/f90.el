@@ -117,11 +117,10 @@
 ;;    correctly, but I imagine them to be rare.
 ;; 3) Regexps for hilit19 are no longer supported.
 ;; 4) For FIXED FORMAT code, use fortran mode.
-;; 5) This mode does not work under emacs-18.x.
-;; 6) Preprocessor directives, i.e., lines starting with # are left-justified
+;; 5) Preprocessor directives, i.e., lines starting with # are left-justified
 ;;    and are untouched by all case-changing commands. There is, at present, no
 ;;    mechanism for treating multi-line directives (continued by \ ).
-;; 7) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
+;; 6) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
 ;;    You are urged to use f90-do loops (with labels if you wish).
 
 ;; List of user commands
@@ -718,10 +717,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
     (modify-syntax-entry ?*  "."  table)
     (modify-syntax-entry ?/  "."  table)
     (modify-syntax-entry ?%  "."  table) ; bug#8820
-    ;; I think that the f95 standard leaves the behavior of \
-    ;; unspecified, but that f2k will require it to be non-special.
-    ;; Use `f90-backslash-not-special' to change.
-    (modify-syntax-entry ?\\ "\\" table) ; escape chars
+    (modify-syntax-entry ?\\ "."  table)
     table)
   "Syntax table used in F90 mode.")
 
@@ -926,9 +922,8 @@ then the presence of the token here allows a line-break before or
 after the other character, where a break would not normally be
 allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
 
-(defvar f90-cache-position nil
+(defvar-local f90-cache-position nil
   "Temporary position used to speed up region operations.")
-(make-variable-buffer-local 'f90-cache-position)
 
 
 ;; Hideshow support.
@@ -2396,9 +2391,11 @@ CHANGE-WORD should be one of `upcase-word', `downcase-word', `capitalize-word'."
 
 (defun f90-backslash-not-special (&optional all)
   "Make the backslash character (\\) be non-special in the current buffer.
+This is the default in `f90-mode'.
+
 With optional argument ALL, change the default for all present
-and future F90 buffers.  F90 mode normally treats backslash as an
-escape character."
+and future F90 buffers."
+  (declare (obsolete nil "28.1"))
   (or (derived-mode-p 'f90-mode)
       (user-error "This function should only be used in F90 buffers"))
   (when (equal (char-syntax ?\\ ) ?\\ )

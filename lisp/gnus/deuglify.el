@@ -1,4 +1,4 @@
-;;; deuglify.el --- deuglify broken Outlook (Express) articles
+;;; deuglify.el --- deuglify broken Outlook (Express) articles  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -155,15 +155,15 @@
 ;; To automatically invoke deuglification on every article you read,
 ;; put something like that in your .gnus:
 ;;
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-unwrap-lines)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-unwrap-lines)
 ;;
 ;; or _one_ of the following lines:
 ;;
 ;; ;; repair broken attribution lines
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-repair-attribution)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-repair-attribution)
 ;;
 ;; ;; repair broken attribution lines and citations
-;; (add-hook 'gnus-article-decode-hook 'gnus-article-outlook-rearrange-citation)
+;; (add-hook 'gnus-article-decode-hook #'gnus-article-outlook-rearrange-citation)
 ;;
 ;; Note that there always may be some false positives, so I suggest
 ;; using the manual invocation.  After deuglification you may want to
@@ -234,20 +234,17 @@
 (defcustom gnus-outlook-deuglify-unwrap-min 45
   "Minimum length of the cited line above the (possibly) wrapped line."
   :version "22.1"
-  :type 'integer
-  :group 'gnus-outlook-deuglify)
+  :type 'integer)
 
 (defcustom gnus-outlook-deuglify-unwrap-max 95
   "Maximum length of the cited line after unwrapping."
   :version "22.1"
-  :type 'integer
-  :group 'gnus-outlook-deuglify)
+  :type 'integer)
 
 (defcustom gnus-outlook-deuglify-cite-marks ">|#%"
   "Characters that indicate cited lines."
   :version "22.1"
-  :type 'string
-  :group 'gnus-outlook-deuglify)
+  :type 'string)
 
 (defcustom gnus-outlook-deuglify-unwrap-stop-chars nil ;; ".?!" or nil
   "Characters that, when at end of cited line, inhibit unwrapping.
@@ -255,44 +252,38 @@ When one of these characters is the last one on the cited line
 above the possibly wrapped line, it disallows unwrapping."
   :version "22.1"
   :type '(radio (const :format "None  " nil)
-		(string :value ".?!"))
-  :group 'gnus-outlook-deuglify)
+		(string :value ".?!")))
 
 (defcustom gnus-outlook-deuglify-no-wrap-chars "`"
   "Characters that, when at beginning of line, inhibit unwrapping.
 When one of these characters is the first one in the possibly
 wrapped line, it disallows unwrapping."
   :version "22.1"
-  :type 'string
-  :group 'gnus-outlook-deuglify)
+  :type 'string)
 
 (defcustom  gnus-outlook-deuglify-attrib-cut-regexp
   "\\(On \\|Am \\)?\\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),[^,]+, "
   "Regexp matching beginning of attribution line that should be cut off."
   :version "22.1"
-  :type 'regexp
-  :group 'gnus-outlook-deuglify)
+  :type 'regexp)
 
 (defcustom gnus-outlook-deuglify-attrib-verb-regexp
   "wrote\\|writes\\|says\\|schrieb\\|schreibt\\|meinte\\|skrev\\|a écrit\\|schreef\\|escribió"
   "Regular expression matching the verb used in an attribution line."
   :version "22.1"
-  :type 'regexp
-  :group 'gnus-outlook-deuglify)
+  :type 'regexp)
 
 (defcustom  gnus-outlook-deuglify-attrib-end-regexp
   ": *\\|\\.\\.\\."
   "Regular expression matching the end of an attribution line."
   :version "22.1"
-  :type 'regexp
-  :group 'gnus-outlook-deuglify)
+  :type 'regexp)
 
 (defcustom gnus-outlook-display-hook nil
   "A hook called after a deuglified article has been prepared.
 It is run after `gnus-article-prepare-hook'."
   :version "22.1"
-  :type 'hook
-  :group 'gnus-outlook-deuglify)
+  :type 'hook)
 
 ;; Functions
 
@@ -345,7 +336,8 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
   "Put text from ATTR-START to the end of buffer at the top of the article buffer."
   ;; FIXME: 1.  (*) text/plain          ( ) text/html
   (let ((inhibit-read-only t)
-	(cite-marks gnus-outlook-deuglify-cite-marks))
+	;; (cite-marks gnus-outlook-deuglify-cite-marks)
+	)
     (gnus-with-article-buffer
       (article-goto-body)
       ;; article does not start with attribution

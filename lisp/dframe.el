@@ -5,10 +5,6 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
 
-(defvar dframe-version "1.3"
-  "The current version of the dedicated frame library.")
-(make-obsolete-variable 'dframe-version nil "28.1")
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
@@ -150,42 +146,35 @@ selected frame and the focus will change to that frame."
   :group 'dframe
   :type 'hook)
 
-(defvar dframe-track-mouse-function nil
+(defvar-local dframe-track-mouse-function nil
   "A function to call when the mouse is moved in the given frame.
 Typically used to display info about the line under the mouse.")
-(make-variable-buffer-local 'dframe-track-mouse-function)
 
-(defvar dframe-help-echo-function nil
+(defvar-local dframe-help-echo-function nil
   "A function to call when help-echo is used in newer versions of Emacs.
 Typically used to display info about the line under the mouse.")
-(make-variable-buffer-local 'dframe-help-echo-function)
 
-(defvar dframe-mouse-click-function nil
+(defvar-local dframe-mouse-click-function nil
   "A function to call when the mouse is clicked.
 Valid clicks are mouse 2, our double mouse 1.")
-(make-variable-buffer-local 'dframe-mouse-click-function)
 
-(defvar dframe-mouse-position-function nil
+(defvar-local dframe-mouse-position-function nil
   "A function to call to position the cursor for a mouse click.")
-(make-variable-buffer-local 'dframe-mouse-position-function)
 
 (defvar dframe-power-click nil
   "Never set this by hand.  Value is t when S-mouse activity occurs.")
 
-(defvar dframe-timer nil
+(defvar-local dframe-timer nil
   "The dframe timer used for updating the buffer.")
-(make-variable-buffer-local 'dframe-timer)
 
-(defvar dframe-attached-frame nil
+(defvar-local dframe-attached-frame nil
   "The frame which started a frame mode.
 This is the frame from which all interesting activities will go
 for the mode using dframe.")
-(make-variable-buffer-local 'dframe-attached-frame)
 
-(defvar dframe-controlled nil
+(defvar-local dframe-controlled nil
   "Is this buffer controlled by a dedicated frame.
 Local to those buffers, as a function called that created it.")
-(make-variable-buffer-local 'dframe-controlled)
 
 (defun dframe-update-keymap (map)
   "Update the keymap MAP for dframe default bindings."
@@ -686,28 +675,26 @@ Evaluates all cached timer functions in sequence."
 	(funcall (car l)))
       (setq l (cdr l)))))
 
-(defalias 'dframe-popup-kludge
-  (lambda (e)
-    "Pop up a menu related to the clicked on item.
+(defun dframe-popup-kludge (e)
+  "Pop up a menu related to the clicked on item.
 Must be bound to event E."
-    (interactive "e")
-    (save-excursion
-      (mouse-set-point e)
-      ;; This gets the cursor where the user can see it.
-      (if (not (bolp)) (forward-char -1))
-      (sit-for 0)
-      (popup-menu (mouse-menu-major-mode-map) e))))
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point e)
+    ;; This gets the cursor where the user can see it.
+    (if (not (bolp)) (forward-char -1))
+    (sit-for 0)
+    (popup-menu (mouse-menu-major-mode-map) e)))
 
 ;;; Interactive user functions for the mouse
 ;;
-(defalias 'dframe-mouse-event-p
-  (lambda (event)
-    "Return t if the event is a mouse related event."
-    (if (and (listp event)
-             (member (event-basic-type event)
-                     '(mouse-1 mouse-2 mouse-3)))
-        t
-      nil)))
+(defun dframe-mouse-event-p (event)
+  "Return t if the event is a mouse related event."
+  (if (and (listp event)
+           (member (event-basic-type event)
+                   '(mouse-1 mouse-2 mouse-3)))
+      t
+    nil))
 
 (defun dframe-track-mouse (event)
   "For motion EVENT, display info about the current line."
@@ -835,6 +822,13 @@ the mode-line."
 	   (scroll-right 2))
 	  (t (dframe-message
 	      "Click on the edge of the mode line to scroll left/right")))))
+
+
+;;; Obsolete
+
+(defvar dframe-version "1.3"
+  "The current version of the dedicated frame library.")
+(make-obsolete-variable 'dframe-version nil "28.1")
 
 (provide 'dframe)
 

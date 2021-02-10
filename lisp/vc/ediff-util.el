@@ -3998,8 +3998,8 @@ Mail anyway? (y or n) ")
 (define-obsolete-function-alias 'ediff-deactivate-mark #'deactivate-mark "27.1")
 
 (defun ediff-activate-mark ()
-  (make-local-variable 'transient-mark-mode)
-  (setq mark-active 'ediff-util transient-mark-mode t))
+  (setq mark-active 'ediff-util)
+  (setq-local transient-mark-mode t))
 
 (define-obsolete-function-alias 'ediff-nuke-selective-display #'ignore "27.1")
 

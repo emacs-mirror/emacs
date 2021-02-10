@@ -165,10 +165,9 @@ execute malicious Lisp code, if that code came from an external source."
   :version "26.1"
   :group 'enriched)
 
-(defvar enriched-old-bindings nil
+(defvar-local enriched-old-bindings nil
   "Store old variable values that we change when entering mode.
 The value is a list of \(VAR VALUE VAR VALUE...).")
-(make-variable-buffer-local 'enriched-old-bindings)
 
 ;; The next variable is buffer local if and only if Enriched mode is
 ;; enabled.  The buffer local value records whether
@@ -187,7 +186,6 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
 
 (defvar enriched-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap move-beginning-of-line] 'beginning-of-line-text)
     (define-key map "\C-m" 'reindent-then-newline-and-indent)
     (define-key map
       [remap newline-and-indent] 'reindent-then-newline-and-indent)

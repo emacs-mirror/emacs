@@ -1047,29 +1047,29 @@ Query all files in DIR if files is nil."
 	   (file-error nil))))
     (concat
      (cond (repo
-	    (concat (propertize "Repository : " 'face 'font-lock-type-face)
-                    (propertize repo 'face 'font-lock-variable-name-face)))
+	    (concat (propertize "Repository : " 'face 'vc-dir-header)
+                    (propertize repo 'face 'vc-dir-header-value)))
 	   (t ""))
      (cond (module
-	    (concat (propertize "Module     : " 'face 'font-lock-type-face)
-                    (propertize module 'face 'font-lock-variable-name-face)))
+	    (concat (propertize "Module     : " 'face 'vc-dir-header)
+                    (propertize module 'face 'vc-dir-header-value)))
 	   (t ""))
      (if (file-readable-p "CVS/Tag")
 	 (let ((tag (vc-cvs-file-to-string "CVS/Tag")))
 	   (cond
 	    ((string-match "\\`T" tag)
-	     (concat (propertize "Tag        : " 'face 'font-lock-type-face)
+	     (concat (propertize "Tag        : " 'face 'vc-dir-header)
 		     (propertize (substring tag 1)
-				 'face 'font-lock-variable-name-face)))
+				 'face 'vc-dir-header-value)))
 	    ((string-match "\\`D" tag)
-	     (concat (propertize "Date       : " 'face 'font-lock-type-face)
+	     (concat (propertize "Date       : " 'face 'vc-dir-header)
 		     (propertize (substring tag 1)
-				 'face 'font-lock-variable-name-face)))
+				 'face 'vc-dir-header-value)))
 	    (t ""))))
 
      ;; In CVS, branch is a per-file property, not a per-directory property.
      ;; We can't really do this here without making dangerous assumptions.
-     ;;(propertize "Branch:     " 'face 'font-lock-type-face)
+     ;;(propertize "Branch:     " 'face 'vc-dir-header)
      ;;(propertize "ADD CODE TO PRINT THE BRANCH NAME\n"
      ;;	 'face 'font-lock-warning-face)
      )))

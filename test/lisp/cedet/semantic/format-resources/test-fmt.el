@@ -1,4 +1,4 @@
-;;; test-fmt.el --- test semantic tag formatting
+;;; test-fmt.el --- test semantic tag formatting  -*- lexical-binding: t -*-
 
 ;;; Copyright (C) 2012, 2019-2021 Free Software Foundation, Inc.
 

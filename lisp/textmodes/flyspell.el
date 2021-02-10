@@ -304,12 +304,11 @@ If this variable is nil, all regions are treated as small."
 (define-obsolete-variable-alias 'flyspell-generic-check-word-p
   'flyspell-generic-check-word-predicate "25.1")
 
-(defvar flyspell-generic-check-word-predicate nil
+(defvar-local flyspell-generic-check-word-predicate nil
   "Function providing per-mode customization over which words are flyspelled.
 Returns t to continue checking, nil otherwise.
 Flyspell mode sets this variable to whatever is the `flyspell-mode-predicate'
 property of the major mode name.")
-(make-variable-buffer-local 'flyspell-generic-check-word-predicate)
 
 ;;*--- mail mode -------------------------------------------------------*/
 (put 'mail-mode 'flyspell-mode-predicate 'mail-mode-flyspell-verify)
@@ -466,13 +465,10 @@ If this is set, also unbind `mouse-2'."
   :version "28.1")
 
 ;; dash character machinery
-(defvar flyspell-consider-dash-as-word-delimiter-flag nil
+(defvar-local flyspell-consider-dash-as-word-delimiter-flag nil
   "Non-nil means that the `-' char is considered as a word delimiter.")
-(make-variable-buffer-local 'flyspell-consider-dash-as-word-delimiter-flag)
-(defvar flyspell-dash-dictionary nil)
-(make-variable-buffer-local 'flyspell-dash-dictionary)
-(defvar flyspell-dash-local-dictionary nil)
-(make-variable-buffer-local 'flyspell-dash-local-dictionary)
+(defvar-local flyspell-dash-dictionary nil)
+(defvar-local flyspell-dash-local-dictionary nil)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    Highlighting                                                     */
@@ -714,14 +710,10 @@ has been used, the current word is not checked."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-word-cache ...                                          */
 ;;*---------------------------------------------------------------------*/
-(defvar flyspell-word-cache-start  nil)
-(defvar flyspell-word-cache-end    nil)
-(defvar flyspell-word-cache-word   nil)
-(defvar flyspell-word-cache-result '_)
-(make-variable-buffer-local 'flyspell-word-cache-start)
-(make-variable-buffer-local 'flyspell-word-cache-end)
-(make-variable-buffer-local 'flyspell-word-cache-word)
-(make-variable-buffer-local 'flyspell-word-cache-result)
+(defvar-local flyspell-word-cache-start  nil)
+(defvar-local flyspell-word-cache-end    nil)
+(defvar-local flyspell-word-cache-word   nil)
+(defvar-local flyspell-word-cache-result '_)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    The flyspell pre-hook, store the current position. In the        */
@@ -827,8 +819,7 @@ before the current command."
 ;;*    the post command hook, we will check, if the word at this        */
 ;;*    position has to be spell checked.                                */
 ;;*---------------------------------------------------------------------*/
-(defvar flyspell-changes nil)
-(make-variable-buffer-local 'flyspell-changes)
+(defvar-local flyspell-changes nil)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-after-change-function ...                               */
@@ -1894,14 +1885,10 @@ as returned by `ispell-parse-output'."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-auto-correct-cache ...                                  */
 ;;*---------------------------------------------------------------------*/
-(defvar flyspell-auto-correct-pos nil)
-(defvar flyspell-auto-correct-region nil)
-(defvar flyspell-auto-correct-ring nil)
-(defvar flyspell-auto-correct-word nil)
-(make-variable-buffer-local 'flyspell-auto-correct-pos)
-(make-variable-buffer-local 'flyspell-auto-correct-region)
-(make-variable-buffer-local 'flyspell-auto-correct-ring)
-(make-variable-buffer-local 'flyspell-auto-correct-word)
+(defvar-local flyspell-auto-correct-pos nil)
+(defvar-local flyspell-auto-correct-region nil)
+(defvar-local flyspell-auto-correct-ring nil)
+(defvar-local flyspell-auto-correct-word nil)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-check-previous-highlighted-word ...                     */

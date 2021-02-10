@@ -74,10 +74,10 @@ considered related."
   :group 'viper-mouse)
 
 ;; Local variable used to toggle wraparound search on click.
-(viper-deflocalvar  viper-mouse-click-search-noerror t)
+(defvar-local viper-mouse-click-search-noerror t)
 
 ;; Local variable used to delimit search after wraparound.
-(viper-deflocalvar  viper-mouse-click-search-limit nil)
+(defvar-local viper-mouse-click-search-limit nil)
 
 ;; remembers prefix argument to pass along to commands invoked by second
 ;; click.
@@ -591,12 +591,5 @@ This buffer may be different from the one where the click occurred."
 	       (integer :tag "Button"))
   :set 'viper-reset-mouse-insert-key
   :group 'viper-mouse)
-
-
-
-;; Local Variables:
-;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;; End:
-
 
 ;;; viper-mous.el ends here

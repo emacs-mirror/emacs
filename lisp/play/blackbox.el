@@ -1,4 +1,4 @@
-;;; blackbox.el --- blackbox game in Emacs Lisp
+;;; blackbox.el --- blackbox game in Emacs Lisp  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1987, 1992, 2001-2021 Free Software Foundation,
 ;; Inc.

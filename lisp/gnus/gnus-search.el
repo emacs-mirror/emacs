@@ -4,18 +4,20 @@
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -123,8 +125,7 @@ If this option is set to nil, search queries will be passed
 directly to the search engines without being parsed or
 transformed."
   :version "28.1"
-  :type 'boolean
-  :group 'gnus-search)
+  :type 'boolean)
 
 (define-obsolete-variable-alias 'nnir-ignored-newsgroups
   'gnus-search-ignored-newsgroups "28.1")
@@ -133,8 +134,7 @@ transformed."
   "A regexp to match newsgroups in the active file that should
   be skipped when searching."
   :version "24.1"
-  :type 'regexp
-  :group 'gnus-search)
+  :type 'regexp)
 
 (make-obsolete-variable
  'nnir-imap-default-search-key
@@ -146,14 +146,12 @@ transformed."
   (expand-file-name "~/Mail/swish++.conf")
   "Location of Swish++ configuration file.
 This variable can also be set per-server."
-  :type 'file
-  :group 'gnus-search)
+  :type 'file)
 
 (defcustom gnus-search-swish++-program "search"
   "Name of swish++ search executable.
 This variable can also be set per-server."
-  :type 'string
-  :group 'gnus-search)
+  :type 'string)
 
 (defcustom gnus-search-swish++-switches '()
   "A list of strings, to be given as additional arguments to swish++.
@@ -163,8 +161,7 @@ Instead, use this:
     (setq gnus-search-swish++-switches \\='(\"-i\" \"-w\"))
 
 This variable can also be set per-server."
-  :type '(repeat string)
-  :group 'gnus-search)
+  :type '(repeat string))
 
 (defcustom gnus-search-swish++-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from each file name returned by swish++
@@ -172,30 +169,26 @@ in order to get a group name (albeit with / instead of .).  This is a
 regular expression.
 
 This variable can also be set per-server."
-  :type 'regexp
-  :group 'gnus-search)
+  :type 'regexp)
 
 (defcustom gnus-search-swish++-raw-queries-p nil
   "If t, all Swish++ engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-swish-e-config-file
   (expand-file-name "~/Mail/swish-e.conf")
   "Configuration file for swish-e.
 This variable can also be set per-server."
   :type 'file
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-swish-e-program "search"
   "Name of swish-e search executable.
 This variable can also be set per-server."
   :type 'string
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-swish-e-switches '()
   "A list of strings, to be given as additional arguments to swish-e.
@@ -206,8 +199,7 @@ Instead, use this:
 
 This variable can also be set per-server."
   :type '(repeat string)
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-swish-e-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from each file name returned by swish-e
@@ -216,22 +208,19 @@ regular expression.
 
 This variable can also be set per-server."
   :type 'regexp
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-swish-e-index-files '()
   "A list of index files to use with this Swish-e instance.
 This variable can also be set per-server."
   :type '(repeat file)
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-swish-e-raw-queries-p nil
   "If t, all Swish-e engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 ;; Namazu engine, see <URL:http://www.namazu.org/>
 
@@ -239,15 +228,13 @@ This variable can also be set per-server."
   "Name of Namazu search executable.
 This variable can also be set per-server."
   :type 'string
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-namazu-index-directory (expand-file-name "~/Mail/namazu/")
   "Index directory for Namazu.
 This variable can also be set per-server."
   :type 'directory
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-namazu-switches '()
   "A list of strings, to be given as additional arguments to namazu.
@@ -261,8 +248,7 @@ Instead, use this:
 
 This variable can also be set per-server."
   :type '(repeat string)
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-namazu-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from each file name returned by Namazu
@@ -277,30 +263,26 @@ arrive at the correct group name, \"mail.misc\".
 
 This variable can also be set per-server."
   :type 'directory
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-namazu-raw-queries-p nil
   "If t, all Namazu engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-notmuch-program "notmuch"
   "Name of notmuch search executable.
 This variable can also be set per-server."
   :type '(string)
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-notmuch-config-file
   (expand-file-name "~/.notmuch-config")
   "Configuration file for notmuch.
 This variable can also be set per-server."
   :type 'file
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-notmuch-switches '()
   "A list of strings, to be given as additional arguments to notmuch.
@@ -311,8 +293,7 @@ Instead, use this:
 
 This variable can also be set per-server."
   :type '(repeat string)
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-notmuch-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from each file name returned by notmuch
@@ -321,37 +302,32 @@ regular expression.
 
 This variable can also be set per-server."
   :type 'regexp
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-notmuch-raw-queries-p nil
   "If t, all Notmuch engines will only accept raw search query
   strings."
   :type 'boolean
-  :version "28.1"
-  :group 'gnus-search)
+  :version "28.1")
 
 (defcustom gnus-search-imap-raw-queries-p nil
   "If t, all IMAP engines will only accept raw search query
   strings."
   :version "28.1"
-  :type 'boolean
-  :group 'gnus-search)
+  :type 'boolean)
 
 (defcustom gnus-search-mairix-program "mairix"
   "Name of mairix search executable.
 This variable can also be set per-server."
   :version "28.1"
-  :type 'string
-  :group 'gnus-search)
+  :type 'string)
 
 (defcustom gnus-search-mairix-config-file
   (expand-file-name "~/.mairixrc")
   "Configuration file for mairix.
 This variable can also be set per-server."
   :version "28.1"
-  :type 'file
-  :group 'gnus-search)
+  :type 'file)
 
 (defcustom gnus-search-mairix-switches '()
   "A list of strings, to be given as additional arguments to mairix.
@@ -362,8 +338,7 @@ Instead, use this:
 
 This variable can also be set per-server."
   :version "28.1"
-  :type '(repeat string)
-  :group 'gnus-search)
+  :type '(repeat string))
 
 (defcustom gnus-search-mairix-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from each file name returned by mairix
@@ -372,15 +347,13 @@ regular expression.
 
 This variable can also be set per-server."
   :version "28.1"
-  :type 'regexp
-  :group 'gnus-search)
+  :type 'regexp)
 
 (defcustom gnus-search-mairix-raw-queries-p nil
   "If t, all Mairix engines will only accept raw search query
   strings."
   :version "28.1"
-  :type 'boolean
-  :group 'gnus-search)
+  :type 'boolean)
 
 ;; Options for search language parsing.
 
@@ -396,7 +369,6 @@ typing in search queries, ie \"subject\" could be entered as
 \"subject\" and \"since\".
 
 Ambiguous abbreviations will raise an error."
-  :group 'gnus-search
   :version "28.1"
   :type '(repeat string))
 
@@ -405,7 +377,6 @@ Ambiguous abbreviations will raise an error."
   "A list of keywords whose value should be parsed as a date.
 See the docstring of `gnus-search-parse-query' for information on
 date parsing."
-  :group 'gnus-search
   :version "26.1"
   :type '(repeat string))
 
@@ -414,7 +385,6 @@ date parsing."
 Each list element should be a table or collection suitable to be
 returned by `completion-at-point-functions'.  That usually means
 a list of strings, a hash table, or an alist."
-  :group 'gnus-search
   :version "28.1"
   :type '(repeat sexp))
 
@@ -939,7 +909,6 @@ quirks.")
 (defcustom gnus-search-default-engines '((nnimap . gnus-search-imap))
   "Alist of default search engines keyed by server method."
   :version "26.1"
-  :group 'gnus-search
   :type `(repeat (cons (choice (const nnimap) (const nntp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)
@@ -1073,7 +1042,7 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (or (looking-at "(")
+      (unless (or (eql ?\( (aref q-string 0))
 		  (and (string-match "\\`[^[:blank:]]+" q-string)
 		       (memql (intern-soft (downcase
 					    (match-string 0 q-string)))
@@ -1379,12 +1348,14 @@ Returns a list of [group article score] vectors."
   (let ((prefix (slot-value engine 'remove-prefix))
 	(group-regexp (when groups
 			(mapconcat
-			 (lambda (x)
-			   (replace-regexp-in-string
-			    ;; Accept any of [.\/] as path separators.
-			    "[.\\/]" "[.\\\\/]"
-			    (gnus-group-real-name x)))
-			 groups "\\|")))
+			 (lambda (group-name)
+			   (mapconcat #'regexp-quote
+				      (split-string
+				       (gnus-group-real-name group-name)
+				       "[.\\/]")
+				      "[.\\\\/]"))
+			 groups
+			 "\\|")))
 	artlist vectors article group)
     (goto-char (point-min))
     (while (not (eobp))
@@ -1547,6 +1518,7 @@ Namazu provides a little more information, for instance a score."
   (when (re-search-forward
 	 "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
 	 nil t)
+    (forward-line 1)
     (list (match-string 4)
 	  (match-string 3))))
 
@@ -1859,7 +1831,7 @@ Assume \"size\" key is equal to \"larger\"."
 		     "No directory found in definition of server %s"
 		     server))))
     (apply
-     'vconcat
+     #'vconcat
      (mapcar (lambda (x)
 	       (let ((group x)
 		     artlist)
@@ -1894,7 +1866,7 @@ Assume \"size\" key is equal to \"larger\"."
 				"Cannot locate directory for group")))
 		     (save-excursion
 		       (apply
-			'call-process "find" nil t
+			#'call-process "find" nil t
 			"find" group "-maxdepth" "1" "-type" "f"
 			"-name" "[0-9]*" "-exec"
 			(slot-value engine 'grep-program)
@@ -1907,7 +1879,8 @@ Assume \"size\" key is equal to \"larger\"."
 		     (let* ((path (split-string
 				   (buffer-substring
 				    (point)
-				    (line-end-position)) "/" t))
+				    (line-end-position))
+				   "/" t))
 			    (art (string-to-number (car (last path)))))
 		       (while (string= "." (car path))
 			 (setq path (cdr path)))

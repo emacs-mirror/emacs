@@ -1802,6 +1802,8 @@ Geometry}).
 @item child-frame-border-width
 The width in pixels of the frame's internal border (@pxref{Frame
 Geometry}) if the given frame is a child frame (@pxref{Child Frames}).
+If this is @code{nil}, the value specified by the
+@code{internal-border-width} parameter is used instead.
 
 @vindex vertical-scroll-bars@r{, a frame parameter}
 @item vertical-scroll-bars

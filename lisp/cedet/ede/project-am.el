@@ -1,4 +1,4 @@
-;;; project-am.el --- A project management scheme based on automake files.
+;;; project-am.el --- A project management scheme based on automake files.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2000, 2003, 2005, 2007-2021 Free Software
 ;; Foundation, Inc.
@@ -54,17 +54,14 @@
 
 (defcustom project-am-compile-project-command nil
   "Default command used to compile a project."
-  :group 'project-am
   :type '(choice (const nil) string))
 
 (defcustom project-am-compile-target-command (concat ede-make-command " -k %s")
   "Default command used to compile a project."
-  :group 'project-am
   :type 'string)
 
 (defcustom project-am-debug-target-function 'gdb
   "Default Emacs command used to debug a target."
-  :group 'project-am
   :type 'function) ; make this be a list some day
 
 (defconst project-am-type-alist
@@ -240,8 +237,8 @@ OT is the object target.  DIR is the directory to start in."
   (if (= (point-min) (point))
       (re-search-forward (ede-target-name obj))))
 
-(cl-defmethod project-new-target ((proj project-am-makefile)
-			       &optional name type)
+(cl-defmethod project-new-target ((_proj project-am-makefile)
+			          &optional name type)
   "Create a new target named NAME.
 Argument TYPE is the type of target to insert.  This is a string
 matching something in `project-am-type-alist' or type class symbol.
@@ -300,7 +297,7 @@ buffer being in order to provide a smart default target type."
 ;;  This should be handled at the EDE level, calling a method of the
 ;; top most project.
 ;;
-(cl-defmethod project-compile-project ((obj project-am-target) &optional command)
+(cl-defmethod project-compile-project ((_obj project-am-target) &optional command)
   "Compile the entire current project.
 Argument COMMAND is the command to use when compiling."
   (require 'compile)
@@ -324,7 +321,7 @@ Argument COMMAND is the command to use when compiling."
   (let* ((default-directory (project-am-find-topmost-level default-directory)))
     (compile command)))
 
-(cl-defmethod project-compile-project ((obj project-am-makefile)
+(cl-defmethod project-compile-project ((_obj project-am-makefile)
 				    &optional command)
   "Compile the entire current project.
 Argument COMMAND is the command to use when compiling."
@@ -349,7 +346,7 @@ Argument COMMAND is the command to use when compiling."
   (let* ((default-directory (project-am-find-topmost-level default-directory)))
     (compile command)))
 
-(cl-defmethod project-compile-target ((obj project-am-target) &optional command)
+(cl-defmethod project-compile-target ((_obj project-am-target) &optional command)
   "Compile the current target.
 Argument COMMAND is the command to use for compiling the target."
   (require 'compile)
@@ -423,7 +420,7 @@ Argument COMMAND is the command to use for compiling the target."
 
 ;;; Project loading and saving
 ;;
-(defun project-am-load (directory &optional rootproj)
+(defun project-am-load (directory &optional _rootproj)
   "Read an automakefile DIRECTORY into our data structure.
 If a given set of projects has already been loaded, then do nothing
 but return the project for the directory given.
@@ -442,34 +439,28 @@ Optional ROOTPROJ is the root EDE project."
 	    (file-name-directory (directory-file-name newdir))))
     (expand-file-name dir)))
 
+(defvar recentf-exclude)
+
 (defmacro project-am-with-makefile-current (dir &rest forms)
   "Set the Makefile.am in DIR to be the current buffer.
-Run FORMS while the makefile is current.
-Kill the makefile if it was not loaded before the load."
-  `(let* ((fn (expand-file-name "Makefile.am" ,dir))
-	  (fb nil)
-	  (kb (get-file-buffer fn)))
-     (if (not (file-exists-p fn))
-	 nil
-       (save-excursion
-	 (if kb (setq fb kb)
-	   ;; We need to find-file this thing, but don't use
-	   ;; any semantic features.
-	   (let ((semantic-init-hook nil)
-		 (recentf-exclude '( (lambda (f) t) ))
-		 )
-	     (setq fb (find-file-noselect fn)))
-	   )
-	 (set-buffer fb)
-	 (prog1 ,@forms
-	   (if (not kb) (kill-buffer (current-buffer))))))))
-(put 'project-am-with-makefile-current 'lisp-indent-function 1)
+Run FORMS while the makefile is current."
+  (declare (indent 1) (debug (form def-body)))
+  `(project-am--with-makefile-current ,dir (lambda () ,@forms)))
 
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec project-am-with-makefile-current
-	      (form def-body))))
-
+(defun project-am--with-makefile-current (dir fun)
+  (let* ((fn (expand-file-name "Makefile.am" dir))
+	 (kb (get-file-buffer fn)))
+    (if (not (file-exists-p fn))
+	nil
+      (with-current-buffer
+	  (or kb
+	      ;; We need to find-file this thing, but don't use
+	      ;; any semantic features.
+	      (let ((semantic-init-hook nil)
+		    (recentf-exclude `(,(lambda (_f) t))))
+		(find-file-noselect fn)))
+	(unwind-protect (funcall fun)
+	  (if (not kb) (kill-buffer (current-buffer))))))))
 
 (defun project-am-load-makefile (path &optional suggestedname)
   "Convert PATH into a project Makefile, and return its project object.
@@ -480,6 +471,7 @@ This is used when subprojects are made in named subdirectories."
     (if (and ede-object (project-am-makefile-p ede-object))
 	ede-object
       (let* ((pi (project-am-package-info path))
+	     (fn buffer-file-name)
 	     (sfn (when suggestedname
 		    (project-am-last-dir suggestedname)))
 	     (pn (or sfn (nth 0 pi) (project-am-last-dir fn)))
@@ -734,19 +726,19 @@ Strip out duplicates, and recurse on variables."
   "Return the default macro to `edit' for this object type."
   (concat (subst-char-in-string ?- ?_ (oref this name)) "_SOURCES"))
 
-(cl-defmethod project-am-macro ((this project-am-header-noinst))
+(cl-defmethod project-am-macro ((_this project-am-header-noinst))
   "Return the default macro to `edit' for this object."
   "noinst_HEADERS")
 
-(cl-defmethod project-am-macro ((this project-am-header-inst))
+(cl-defmethod project-am-macro ((_this project-am-header-inst))
   "Return the default macro to `edit' for this object."
   "include_HEADERS")
 
-(cl-defmethod project-am-macro ((this project-am-header-pkg))
+(cl-defmethod project-am-macro ((_this project-am-header-pkg))
   "Return the default macro to `edit' for this object."
   "pkginclude_HEADERS")
 
-(cl-defmethod project-am-macro ((this project-am-header-chk))
+(cl-defmethod project-am-macro ((_this project-am-header-chk))
   "Return the default macro to `edit' for this object."
   "check_HEADERS")
 
@@ -758,7 +750,7 @@ Strip out duplicates, and recurse on variables."
   "Return the default macro to `edit' for this object type."
   (oref this name))
 
-(cl-defmethod project-am-macro ((this project-am-lisp))
+(cl-defmethod project-am-macro ((_this project-am-lisp))
   "Return the default macro to `edit' for this object."
   "lisp_LISP")
 
@@ -785,13 +777,11 @@ nil means that this buffer belongs to no-one."
   "Return t if object THIS lays claim to the file in BUFFER."
   (let ((efn  (expand-file-name (buffer-file-name buffer))))
     (or (string= (oref this file) efn)
-	(string-match "/configure\\.ac$" efn)
-	(string-match "/configure\\.in$" efn)
-	(string-match "/configure$" efn)
+	(string-match "/configure\\(?:\\.ac\\|\\.in\\)?\\'" efn)
 	;; Search output files.
 	(let ((ans nil))
 	  (dolist (f (oref this configureoutputfiles))
-	    (when (string-match (concat (regexp-quote f) "$") efn)
+	    (when (string-match (concat (regexp-quote f) "\\'") efn)
 	      (setq ans t)))
 	  ans)
 	)))
@@ -822,7 +812,7 @@ nil means that this buffer belongs to no-one."
   "Return the sub project in AMPF specified by SUBDIR."
   (object-assoc (expand-file-name subdir) 'file (oref ampf subproj)))
 
-(cl-defmethod project-compile-target-command ((this project-am-target))
+(cl-defmethod project-compile-target-command ((_this project-am-target))
   "Default target to use when compiling a given target."
   ;; This is a pretty good default for most.
   "")
@@ -861,7 +851,7 @@ Argument FILE is the file to extract the end directory name from."
 	(t
 	 'project-am-program)))
 
-(cl-defmethod ede-buffer-header-file((this project-am-objectcode) buffer)
+(cl-defmethod ede-buffer-header-file((this project-am-objectcode) _buffer)
   "There are no default header files."
   (or (cl-call-next-method)
       (let ((s (oref this source))
@@ -910,22 +900,13 @@ files in the project."
   "Set the Configure FILE in the top most directory above DIR as current.
 Run FORMS in the configure file.
 Kill the Configure buffer if it was not already in a buffer."
-  `(save-excursion
-     (let ((fb (generate-new-buffer ,file)))
-       (set-buffer fb)
-       (erase-buffer)
-       (insert-file-contents ,file)
-       (prog1 ,@forms
-	 (kill-buffer fb)))))
+  (declare (indent 1) (debug t))
+  `(with-temp-buffer
+     (erase-buffer)
+     (insert-file-contents ,file)
+     ,@forms))
 
-(put 'project-am-with-config-current 'lisp-indent-function 1)
-
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec project-am-with-config-current
-	      (form def-body))))
-
-(defmacro project-am-extract-shell-variable (var)
+(defun project-am-extract-shell-variable (var)
   "Extract the value of the shell variable VAR from a shell script."
   (save-excursion
     (goto-char (point-min))
@@ -997,12 +978,12 @@ Calculates the info with `project-am-extract-package-info'."
     (project-am-extract-package-info dir)))
 
 ;; for simple per project include path extension
-(cl-defmethod ede-system-include-path ((this project-am-makefile))
+(cl-defmethod ede-system-include-path ((_this project-am-makefile))
   "Return `project-am-localvars-include-path', usually local variable
 per file or in .dir-locals.el or similar."
   (bound-and-true-p project-am-localvars-include-path))
 
-(cl-defmethod ede-system-include-path ((this project-am-target))
+(cl-defmethod ede-system-include-path ((_this project-am-target))
   "Return `project-am-localvars-include-path', usually local variable
 per file or in .dir-locals.el or similar."
   (bound-and-true-p project-am-localvars-include-path))

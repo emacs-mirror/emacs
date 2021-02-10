@@ -1,4 +1,4 @@
-;;; gnus-cache.el --- cache interface for Gnus
+;;; gnus-cache.el --- cache interface for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -29,9 +29,7 @@
 (require 'gnus)
 (require 'gnus-sum)
 
-(eval-when-compile
-  (unless (fboundp 'gnus-agent-load-alist)
-    (defun gnus-agent-load-alist (group))))
+(declare-function gnus-agent-load-alist "gnus-agent" (group))
 
 (defcustom gnus-cache-active-file
   (expand-file-name "active" gnus-cache-directory)
@@ -55,7 +53,7 @@
 If you only want to cache your nntp groups, you could set this
 variable to \"^nntp\".
 
-If a group matches both gnus-cacheable-groups and gnus-uncacheable-groups
+If a group matches both `gnus-cacheable-groups' and `gnus-uncacheable-groups'
 it's not cached."
   :group 'gnus-cache
   :type '(choice (const :tag "off" nil)
@@ -149,6 +147,8 @@ it's not cached."
       ;; Kill the buffer -- it's either unmodified or saved.
       (gnus-kill-buffer buffer)
       (setq gnus-cache-buffer nil))))
+
+(defvar gnus-article-decode-hook)
 
 (defun gnus-cache-possibly-enter-article
   (group article ticked dormant unread &optional force)
@@ -518,7 +518,7 @@ Returns the list of articles removed."
       (setq articles
 	    (sort (mapcar (lambda (name) (string-to-number name))
 			  (directory-files dir nil "\\`[0-9]+\\'" t))
-		  '<))
+		  #'<))
       ;; Update the cache active file, just to synch more.
       (if articles
 	  (progn
@@ -714,7 +714,7 @@ If LOW, update the lower bound instead."
 	  (push (string-to-number (file-name-nondirectory (pop files))) nums)
 	(push (pop files) alphs)))
     ;; If we have nums, then this is probably a valid group.
-    (when (setq nums (sort nums '<))
+    (when (setq nums (sort nums #'<))
       (puthash group
 	       (cons (car nums) (car (last nums)))
 	       gnus-cache-active-hashtb))
@@ -729,6 +729,8 @@ If LOW, update the lower bound instead."
     (when top
       (gnus-cache-write-active t)
       (gnus-message 5 "Generating the cache active file...done"))))
+
+(defvar nnml-generate-active-function)
 
 ;;;###autoload
 (defun gnus-cache-generate-nov-databases (dir)
@@ -884,7 +886,7 @@ supported."
       (setq gnus-cache-total-fetched-hashtb (gnus-make-hashtable 1000)))
     (let* ((entry (gethash group gnus-cache-total-fetched-hashtb)))
       (if entry
-	  (apply '+ entry)
+	  (apply #'+ entry)
 	(let ((gnus-cache-inhibit-update-total-fetched-for (not no-inhibit)))
 	  (+
 	   (gnus-cache-update-overview-total-fetched-for group nil)

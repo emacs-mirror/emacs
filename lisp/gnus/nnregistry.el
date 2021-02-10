@@ -1,5 +1,4 @@
-;;; nnregistry.el --- access to articles via Gnus' message-id registry
-;;; -*- coding: utf-8 -*-
+;;; nnregistry.el --- access to articles via Gnus' message-id registry  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -36,21 +35,21 @@
 
 (nnoo-declare nnregistry)
 
-(deffoo nnregistry-server-opened (server)
+(deffoo nnregistry-server-opened (_server)
   gnus-registry-enabled)
 
-(deffoo nnregistry-close-server (server &optional defs)
+(deffoo nnregistry-close-server (_server &optional _defs)
   t)
 
-(deffoo nnregistry-status-message (server)
+(deffoo nnregistry-status-message (_server)
   nil)
 
-(deffoo nnregistry-open-server (server &optional defs)
+(deffoo nnregistry-open-server (_server &optional _defs)
   gnus-registry-enabled)
 
 (defvar nnregistry-within-nnregistry nil)
 
-(deffoo nnregistry-request-article (id &optional group server buffer)
+(deffoo nnregistry-request-article (id &optional _group _server buffer)
   (and (not nnregistry-within-nnregistry)
        (let* ((nnregistry-within-nnregistry t)
 	      (group (nth 0 (gnus-registry-get-id-key id 'group)))

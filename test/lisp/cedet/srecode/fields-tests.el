@@ -1,4 +1,4 @@
-;;; srecode-tests.el --- Some tests for CEDET's srecode
+;;; srecode/fields-tests.el --- Tests for srecode/fields.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -21,13 +21,15 @@
 
 ;;; Commentary:
 
-;; Extracted from srecode-fields.el and srecode-document.el in the
-;; CEDET distribution.
+;; Extracted from srecode-fields.el in the CEDET distribution.
+
+;; Converted to ert from test/manual/cedet/srecode-tests.el
 
 ;;; Code:
 
 ;;; From srecode-fields:
 
+(require 'ert)
 (require 'srecode/fields)
 
 (defvar srecode-field-utest-text
@@ -36,13 +38,10 @@
 It is filled with some text."
   "Text for tests.")
 
-(defun srecode-field-utest ()
-  "Test the srecode field manager."
-  (interactive)
-  (srecode-field-utest-impl))
-
-(defun srecode-field-utest-impl ()
+;; FIXME: This test fails even before conversion to ert.
+(ert-deftest srecode-field-utest-impl ()
   "Implementation of the SRecode field utest."
+  :tags '(:unstable)
   (save-excursion
     (find-file "/tmp/srecode-field-test.txt")
 
@@ -131,15 +130,15 @@ It is filled with some text."
 
       ;; Various sizes
       (mapc (lambda (T)
-	      (if (string= (object-name-string T) "Test4")
+              (if (string= (eieio-object-name-string T) "Test4")
 		  (progn
 		    (when (not (srecode-empty-region-p T))
 		      (error "Field %s is not empty"
-			     (object-name T)))
+                             (eieio-object-name T)))
 		    )
 		(when (not (= (srecode-region-size T) 5))
 		  (error "Calculated size of %s was not 5"
-			 (object-name T)))))
+                         (eieio-object-name T)))))
 	    fields)
 
       ;; Make sure things stay up after a 'command'.
@@ -151,21 +150,21 @@ It is filled with some text."
       (when (not (eq (srecode-overlaid-at-point 'srecode-field)
 		     (nth 0 fields)))
 	(error "Region Test: Field %s not under point"
-	       (object-name (nth 0 fields))))
+               (eieio-object-name (nth 0 fields))))
 
       (srecode-field-next)
 
       (when (not (eq (srecode-overlaid-at-point 'srecode-field)
 		     (nth 1 fields)))
 	(error "Region Test: Field %s not under point"
-	       (object-name (nth 1 fields))))
+               (eieio-object-name (nth 1 fields))))
 
       (srecode-field-prev)
 
       (when (not (eq (srecode-overlaid-at-point 'srecode-field)
 		     (nth 0 fields)))
 	(error "Region Test: Field %s not under point"
-	       (object-name (nth 0 fields))))
+               (eieio-object-name (nth 0 fields))))
 
       ;; Move cursor out of the region and have everything cleaned up.
       (goto-char 42)
@@ -176,7 +175,7 @@ It is filled with some text."
       (mapc (lambda (T)
 	      (when (slot-boundp T 'overlay)
 		(error "Overlay did not clear off of field %s"
-		       (object-name T))))
+                       (eieio-object-name T))))
 	    fields)
 
       ;; End of LET
@@ -187,8 +186,7 @@ It is filled with some text."
 	   (f1 (srecode-field "Test1" :name "TEST" :start 6 :end 8))
 	   (f2 (srecode-field "Test2" :name "TEST" :start 28 :end 30))
 	   (f3 (srecode-field "Test3" :name "NOTTEST" :start 35 :end 40))
-	   (reg (srecode-template-inserted-region "REG" :start 4 :end 40))
-	   )
+           (reg (srecode-template-inserted-region "REG" :start 4 :end 40)))
       (srecode-overlaid-activate reg)
 
       (when (not (string= (srecode-overlaid-text f1)
@@ -233,62 +231,8 @@ It is filled with some text."
 	(error "Linkage Test: tail-insert string on dissimilar fields is now the same"))
 
       ;; Cleanup
-      (srecode-delete reg)
-      )
+      (srecode-delete reg))
 
-    (set-buffer-modified-p nil)
+    (set-buffer-modified-p nil)))
 
-    (message "   All field tests passed.")
-    ))
-
-;;; From srecode-document:
-
-(require 'srecode/document)
-
-(defun srecode-document-function-comment-extract-test ()
-  "Test old comment extraction.
-Dump out the extracted dictionary."
-  (interactive)
-
-  (srecode-load-tables-for-mode major-mode)
-  (srecode-load-tables-for-mode major-mode 'document)
-
-  (if (not (srecode-table))
-      (error "No template table found for mode %s" major-mode))
-
-  (let* ((temp (srecode-template-get-table (srecode-table)
-					   "function-comment"
-					   "declaration"
-					   'document))
-	 (fcn-in (semantic-current-tag)))
-
-    (if (not temp)
-	(error "No templates for function comments"))
-
-    ;; Try to figure out the tag we want to use.
-    (when (or (not fcn-in)
-	      (not (semantic-tag-of-class-p fcn-in 'function)))
-      (error "No tag of class 'function to insert comment for"))
-
-    (let ((lextok (semantic-documentation-comment-preceding-tag fcn-in 'lex))
-	  )
-
-      (when (not lextok)
-	(error "No comment to attempt an extraction"))
-
-      (let ((s (semantic-lex-token-start lextok))
-	    (e (semantic-lex-token-end lextok))
-	    (extract nil))
-
-	(pulse-momentary-highlight-region s e)
-
-	;; Extract text from the existing comment.
-	(setq extract (srecode-extract temp s e))
-
-	(with-output-to-temp-buffer "*SRECODE DUMP*"
-	  (princ "EXTRACTED DICTIONARY FOR ")
-	  (princ (semantic-tag-name fcn-in))
-	  (princ "\n--------------------------------------------\n")
-	  (srecode-dump extract))))))
-
-;;; srecode-tests.el ends here
+;;; srecode/fields-tests.el ends here

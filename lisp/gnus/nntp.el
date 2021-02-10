@@ -335,16 +335,16 @@ retried once before actually displaying the error report."
 
     (apply #'error args)))
 
-(defmacro nntp-copy-to-buffer (buffer start end)
+(defsubst nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
-  `(let ((string (buffer-substring ,start ,end)))
-     (with-current-buffer ,buffer
+  (let ((string (buffer-substring start end)))
+     (with-current-buffer buffer
        (erase-buffer)
        (insert string)
        (goto-char (point-min))
        nil)))
 
-(defsubst nntp-wait-for (process wait-for buffer &optional decode discard)
+(defun nntp-wait-for (process wait-for buffer &optional decode discard)
   "Wait for WAIT-FOR to arrive from PROCESS."
 
   (with-current-buffer (process-buffer process)
@@ -436,7 +436,7 @@ retried once before actually displaying the error report."
     (when process
       (process-buffer process))))
 
-(defsubst nntp-retrieve-data (command address _port buffer
+(defun nntp-retrieve-data (command address _port buffer
 				      &optional wait-for callback decode)
   "Use COMMAND to retrieve data into BUFFER from PORT on ADDRESS."
   (let ((process (or (nntp-find-connection buffer)
@@ -469,7 +469,7 @@ retried once before actually displaying the error report."
              nil)))
       (nnheader-report 'nntp "Couldn't open connection to %s" address))))
 
-(defsubst nntp-send-command (wait-for &rest strings)
+(defun nntp-send-command (wait-for &rest strings)
   "Send STRINGS to server and wait until WAIT-FOR returns."
   (when (not (or nnheader-callback-function
                  nntp-inhibit-output))
@@ -1330,7 +1330,7 @@ If SEND-IF-FORCE, only send authinfo to the server if the
     (dolist (entry nntp-server-action-alist)
       (when (string-match (car entry) nntp-server-type)
 	(if (not (functionp (cadr entry)))
-	    (eval (cadr entry))
+	    (eval (cadr entry) t)
 	  (funcall (cadr entry)))))))
 
 (defun nntp-async-wait (process wait-for buffer decode callback)

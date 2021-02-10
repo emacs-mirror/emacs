@@ -636,9 +636,9 @@ Do the same for the keys of the same name."
                   :help "Customize value of specific option"))
     (bindings--define-key menu [separator-2]
       menu-bar-separator)
-    (bindings--define-key menu [customize-changed-options]
-      '(menu-item "New Options..." customize-changed-options
-                  :help "Options added or changed in recent Emacs versions"))
+    (bindings--define-key menu [customize-changed]
+      '(menu-item "New Options..." customize-changed
+                  :help "Options and faces added or changed in recent Emacs versions"))
     (bindings--define-key menu [customize-saved]
       '(menu-item "Saved Options" customize-saved
                   :help "Customize previously saved options"))
@@ -2240,9 +2240,8 @@ Buffers menu is regenerated."
   :type 'boolean
   :group 'menu)
 
-(defvar list-buffers-directory nil
+(defvar-local list-buffers-directory nil
   "String to display in buffer listings for buffers not visiting a file.")
-(make-variable-buffer-local 'list-buffers-directory)
 
 (defun menu-bar-select-buffer ()
   (interactive)

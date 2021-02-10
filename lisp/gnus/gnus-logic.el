@@ -1,4 +1,4 @@
-;;; gnus-logic.el --- advanced scoring code for Gnus
+;;; gnus-logic.el --- advanced scoring code for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 

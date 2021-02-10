@@ -1078,9 +1078,8 @@ Set by `.ns' request; reset by any output or `.rs' request")
   ;; Could end with "\\( +\\|$\\)" instead of " *"
   "Regexp to match a ?roff request plus trailing white space.")
 
-(defvar woman-imenu-done nil
+(defvar-local woman-imenu-done nil
   "Buffer-local: set to true if function `woman-imenu' has been called.")
-(make-variable-buffer-local 'woman-imenu-done)
 
 ;; From imenu.el -- needed when reformatting a file in its old buffer.
 ;; The latest buffer index used to update the menu bar menu.
@@ -2115,7 +2114,7 @@ No external programs are used."
   (interactive)				; mainly for testing
   (WoMan-log-begin)
   (run-hooks 'woman-pre-format-hook)
-  (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
+  (and font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
   (let ((start-time (current-time))
 	time)

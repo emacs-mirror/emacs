@@ -1893,7 +1893,9 @@ a variable local to the current buffer for one particular use, use
 while setting up a new major mode, unless they have a `permanent-local'
 property.
 
-The function `default-value' gets the default value and `set-default' sets it.  */)
+The function `default-value' gets the default value and `set-default' sets it.
+
+See also `defvar-local'.  */)
   (register Lisp_Object variable)
 {
   struct Lisp_Symbol *sym;

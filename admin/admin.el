@@ -1,4 +1,4 @@
-;;; admin.el --- utilities for Emacs administration
+;;; admin.el --- utilities for Emacs administration  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -254,7 +254,7 @@ ROOT should be the root of an Emacs source tree."
     (search-forward "INFO_COMMON = ")
     (let ((start (point)))
       (end-of-line)
-      (while (and (looking-back "\\\\")
+      (while (and (looking-back "\\\\" (- (point) 2))
 		  (zerop (forward-line 1)))
 	(end-of-line))
       (append (split-string (replace-regexp-in-string
@@ -930,13 +930,19 @@ changes (in a non-trivial way).  This function does not check for that."
   (interactive
    (list (progn
            (require 'debbugs-gnu)
+           (defvar debbugs-gnu-emacs-blocking-reports)
+           (defvar debbugs-gnu-emacs-current-release)
            (completing-read
 	    "Emacs release: "
 	    (mapcar #'identity debbugs-gnu-emacs-blocking-reports)
 	    nil t debbugs-gnu-emacs-current-release))))
 
   (require 'debbugs-gnu)
+  (declare-function debbugs-get-status "debbugs" (&rest bug-numbers))
+  (declare-function debbugs-get-attribute "debbugs" (bug-or-message attribute))
   (require 'reporter)
+  (declare-function mail-position-on-field "sendmail" (field &optional soft))
+  (declare-function mail-text "sendmail" ())
 
   (when-let ((id (alist-get version debbugs-gnu-emacs-blocking-reports
                             nil nil #'string-equal))
@@ -958,11 +964,11 @@ changes (in a non-trivial way).  This function does not check for that."
        (insert "
 The following bugs are regarded as release-blocking for Emacs " version ".
 People are encouraged to work on them with priority.\n\n")
-       (dolist (_ blockedby-status)
-         (unless (equal (debbugs-get-attribute _ 'pending) "done")
+       (dolist (i blockedby-status)
+         (unless (equal (debbugs-get-attribute i 'pending) "done")
            (insert (format "bug#%d %s\n"
-                           (debbugs-get-attribute _ 'id)
-                           (debbugs-get-attribute _ 'subject)))))
+                           (debbugs-get-attribute i 'id)
+                           (debbugs-get-attribute i 'subject)))))
        (insert "
 If you use the debbugs package from GNU ELPA, you can apply the
 following form to see all bugs which block a given release:

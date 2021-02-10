@@ -465,6 +465,14 @@
   (should (eq (dbus-unregister-service bus dbus--test-service) :non-existent))
   (should-not (member dbus--test-service (dbus-list-known-names bus)))
 
+  ;; A service name is a string, constructed of at least two words
+  ;; separated by ".".
+  (should
+   (equal
+    (butlast
+     (should-error (dbus-register-service bus "s")))
+    `(dbus-error ,dbus-error-invalid-args)))
+
   ;; `dbus-service-dbus' is reserved for the BUS itself.
   (should
    (equal

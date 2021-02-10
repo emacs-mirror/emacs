@@ -33,11 +33,6 @@
 
 ;;; Code:
 
-;; Emacs < 23.3
-(eval-and-compile
-  (unless (boundp 'float-pi)
-    (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")))
-
 ;;;###autoload
 (defun color-name-to-rgb (color &optional frame)
   "Convert COLOR string to a list of normalized RGB components.

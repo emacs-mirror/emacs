@@ -55,9 +55,6 @@
 ;; <twurgler@goodyear.com> is similar to mouse-drag-throw, but
 ;; doesn't pass clicks through.
 ;;
-;; These functions have been tested in emacs version 19.30,
-;; and this package has run in the past on 19.25-19.29.
-;;
 ;; Originally mouse-copy was part of a larger package.
 ;; As of 11 July 96 the scrolling functions were split out
 ;; in preparation for incorporation into (the future) emacs-19.32.

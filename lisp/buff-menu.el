@@ -111,11 +111,10 @@ as it is by default."
   :group 'Buffer-menu
   :version "22.1")
 
-(defvar Buffer-menu-files-only nil
+(defvar-local Buffer-menu-files-only nil
   "Non-nil if the current Buffer Menu lists only file buffers.
 This is set by the prefix argument to `buffer-menu' and related
 commands.")
-(make-variable-buffer-local 'Buffer-menu-files-only)
 
 (defvar Buffer-menu-mode-map
   (let ((map (make-sparse-keymap))

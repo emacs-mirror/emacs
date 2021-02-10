@@ -1545,9 +1545,7 @@
 			(set-buffer trace-buffer)
 			(goto-char (point-max))
 			(or (assq 'scroll-stop (buffer-local-variables))
-			    (progn
-			      (make-local-variable 'scroll-step)
-			      (setq scroll-step 3)))
+                            (setq-local scroll-step 3))
 			(insert "\n\n\n")
 			(set-buffer calcbuf)
 			(math-try-integral sexpr))

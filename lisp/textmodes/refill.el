@@ -88,10 +88,9 @@
 ;;;   "Refilling paragraphs on changes."
 ;;;   :group 'fill)
 
-(defvar refill-ignorable-overlay nil
+(defvar-local refill-ignorable-overlay nil
   "Portion of the most recently filled paragraph not needing filling.
 This is used to optimize refilling.")
-(make-variable-buffer-local 'refill-ignorable-overlay)
 
 (defun refill-adjust-ignorable-overlay (overlay afterp beg end &optional len)
   "Adjust OVERLAY to not include the about-to-be-modified region."
@@ -149,7 +148,7 @@ This is used to optimize refilling.")
   "Like `fill-paragraph' but don't delete whitespace at paragraph end."
   (refill-fill-paragraph-at (point) arg))
 
-(defvar refill-doit nil
+(defvar-local refill-doit nil
   "Non-nil tells `refill-post-command-function' to do its processing.
 Set by `refill-after-change-function' in `after-change-functions' and
 unset by `refill-post-command-function' in `post-command-hook', and
@@ -157,7 +156,6 @@ sometimes `refill-pre-command-function' in `pre-command-hook'.  This
 ensures refilling is only done once per command that causes a change,
 regardless of the number of after-change calls from commands doing
 complex processing.")
-(make-variable-buffer-local 'refill-doit)
 
 (defun refill-after-change-function (beg end len)
   "Function for `after-change-functions' which just sets `refill-doit'."

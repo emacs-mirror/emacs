@@ -408,57 +408,43 @@ be in `artist-spray-chars', or spraying will behave strangely.")
 
 ;; Internal variables
 ;;
-(defvar artist-mode nil
-  "Non-nil to enable `artist-mode' and nil to disable.")
-(make-variable-buffer-local 'artist-mode)
-
 (defvar artist-mode-name " Artist"
   "Name of Artist mode beginning with a space (appears in the mode-line).")
 
-(defvar artist-curr-go 'pen-line
+(defvar-local artist-curr-go 'pen-line
   "Current selected graphics operation.")
-(make-variable-buffer-local 'artist-curr-go)
 
-(defvar artist-line-char-set nil
+(defvar-local artist-line-char-set nil
   "Boolean to tell whether user has set some char to use when drawing lines.")
-(make-variable-buffer-local 'artist-line-char-set)
 
-(defvar artist-line-char nil
+(defvar-local artist-line-char nil
   "Char to use when drawing lines.")
-(make-variable-buffer-local 'artist-line-char)
 
-(defvar artist-fill-char-set nil
+(defvar-local artist-fill-char-set nil
   "Boolean to tell whether user has set some char to use when filling.")
-(make-variable-buffer-local 'artist-fill-char-set)
 
-(defvar artist-fill-char nil
+(defvar-local artist-fill-char nil
   "Char to use when filling.")
-(make-variable-buffer-local 'artist-fill-char)
 
-(defvar artist-erase-char ?\s
+(defvar-local artist-erase-char ?\s
   "Char to use when erasing.")
-(make-variable-buffer-local 'artist-erase-char)
 
-(defvar artist-default-fill-char ?.
+(defvar-local artist-default-fill-char ?.
   "Char to use when a fill-char is required but none is set.")
-(make-variable-buffer-local 'artist-default-fill-char)
 
 ; This variable is not buffer local
 (defvar artist-copy-buffer nil
   "Copy buffer.")
 
-(defvar artist-draw-region-min-y 0
+(defvar-local artist-draw-region-min-y 0
   "Line-number for top-most visited line for draw operation.")
-(make-variable-buffer-local 'artist-draw-region-min-y)
 
-(defvar artist-draw-region-max-y 0
+(defvar-local artist-draw-region-max-y 0
   "Line-number for bottom-most visited line for draw operation.")
-(make-variable-buffer-local 'artist-draw-region-max-y)
 
-(defvar artist-borderless-shapes nil
+(defvar-local artist-borderless-shapes nil
   "When non-nil, draw shapes without border.
 The fill char is used instead, if it is set.")
-(make-variable-buffer-local 'artist-borderless-shapes)
 
 (defvar artist-prev-next-op-alist nil
   "Assoc list for looking up next and/or previous draw operation.

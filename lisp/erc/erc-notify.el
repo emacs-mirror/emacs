@@ -75,13 +75,11 @@ strings."
 
 ;;;; Internal variables
 
-(defvar erc-last-ison nil
+(defvar-local erc-last-ison nil
   "Last ISON information received through `erc-notify-timer'.")
-(make-variable-buffer-local 'erc-last-ison)
 
-(defvar erc-last-ison-time 0
+(defvar-local erc-last-ison-time 0
   "Last time ISON was sent to the server in `erc-notify-timer'.")
-(make-variable-buffer-local 'erc-last-ison-time)
 
 ;;;; Setup
 

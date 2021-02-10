@@ -1,4 +1,4 @@
-;;; nnimap.el --- IMAP interface for Gnus
+;;; nnimap.el --- IMAP interface for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -143,8 +143,7 @@ textual parts.")
 (defcustom nnimap-request-articles-find-limit nil
   "Limit the number of articles to look for after moving an article."
   :type '(choice (const nil) integer)
-  :version "24.4"
-  :group 'nnimap)
+  :version "24.4")
 
 (define-obsolete-variable-alias
   'nnimap-split-download-body-default 'nnimap-split-download-body
@@ -1005,7 +1004,7 @@ during splitting, which may be slow."
                            internal-move-group server message-id
                            nnimap-request-articles-find-limit)))))
 	  ;; Move the article to a different method.
-	  (when-let* ((result (eval accept-form)))
+	  (when-let* ((result (eval accept-form t)))
 	    (nnimap-change-group group server)
 	    (nnimap-delete-article article)
 	    result))))))
@@ -1166,7 +1165,7 @@ If LIMIT, first try to limit the search to the N last articles."
        7 "Article marked for deletion, but not expunged.")
       nil))))
 
-(deffoo nnimap-request-scan (&optional group server)
+(deffoo nnimap-request-scan (&optional _group server)
   (when (and (nnimap-change-group nil server)
 	     nnimap-inbox
 	     nnimap-split-methods)

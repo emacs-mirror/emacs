@@ -1315,15 +1315,13 @@ Each function is called with one arg, LEIM directory name.")
   (dolist (function update-leim-list-functions)
     (apply function dirs)))
 
-(defvar current-input-method nil
+(defvar-local current-input-method nil
   "The current input method for multilingual text.
 If nil, that means no input method is activated now.")
-(make-variable-buffer-local 'current-input-method)
 (put 'current-input-method 'permanent-local t)
 
-(defvar current-input-method-title nil
+(defvar-local current-input-method-title nil
   "Title string of the current input method shown in mode line.")
-(make-variable-buffer-local 'current-input-method-title)
 (put 'current-input-method-title 'permanent-local t)
 
 (define-widget 'mule-input-method-string 'string
@@ -1355,45 +1353,40 @@ This is the input method activated by the command
   :set-after '(current-language-environment)
   :version "28.1")
 
-(defvar current-transient-input-method nil
+(defvar-local current-transient-input-method nil
   "Current input method temporarily enabled by `activate-transient-input-method'.
 If nil, that means no transient input method is active now.")
-(make-variable-buffer-local 'current-transient-input-method)
 (put 'current-transient-input-method 'permanent-local t)
 
-(defvar previous-transient-input-method nil
+(defvar-local previous-transient-input-method nil
   "The input method that was active before enabling the transient input method.
 If nil, that means no previous input method was active.")
-(make-variable-buffer-local 'previous-transient-input-method)
 (put 'previous-transient-input-method 'permanent-local t)
 
 (put 'input-method-function 'permanent-local t)
 
-(defvar input-method-history nil
+(defvar-local input-method-history nil
   "History list of input methods read from the minibuffer.
 
 Maximum length of the history list is determined by the value
 of `history-length', which see.")
-(make-variable-buffer-local 'input-method-history)
 (put 'input-method-history 'permanent-local t)
 
 (define-obsolete-variable-alias
   'inactivate-current-input-method-function
   'deactivate-current-input-method-function "24.3")
-(defvar deactivate-current-input-method-function nil
+(defvar-local deactivate-current-input-method-function nil
   "Function to call for deactivating the current input method.
 Every input method should set this to an appropriate value when activated.
 This function is called with no argument.
 
 This function should never change the value of `current-input-method'.
 It is set to nil by the function `deactivate-input-method'.")
-(make-variable-buffer-local 'deactivate-current-input-method-function)
 (put 'deactivate-current-input-method-function 'permanent-local t)
 
-(defvar describe-current-input-method-function nil
+(defvar-local describe-current-input-method-function nil
   "Function to call for describing the current input method.
 This function is called with no argument.")
-(make-variable-buffer-local 'describe-current-input-method-function)
 (put 'describe-current-input-method-function 'permanent-local t)
 
 (defvar input-method-alist nil
@@ -3084,11 +3077,46 @@ on encoding."
         (puthash "BELL (BEL)" ?\a names)
         (setq ucs-names names))))
 
+(defun mule--ucs-names-sort-by-code (names)
+  (let ((codes-and-names
+         (mapcar (lambda (name) (cons (gethash name ucs-names) name)) names)))
+    (mapcar #'cdr (sort codes-and-names #'car-less-than-car))))
+
 (defun mule--ucs-names-affixation (names)
   (mapcar (lambda (name)
             (let ((char (gethash name ucs-names)))
-              (list name (concat (if char (format "%c" char) " ") "\t") "")))
+              (list name (concat (if char (list char) " ") "\t") "")))
           names))
+
+(defun mule--ucs-names-group (names)
+  (let* ((codes-and-names
+          (mapcar (lambda (name) (cons (gethash name ucs-names) name)) names))
+         (grouped
+          (seq-group-by
+           (lambda (code-name)
+             (let ((script (aref char-script-table (car code-name))))
+               (if script (symbol-name script) "ungrouped")))
+           codes-and-names))
+         names-with-header header)
+    (dolist (group (sort grouped (lambda (a b) (string< (car a) (car b)))))
+      (setq header t)
+      (dolist (code-name (cdr group))
+        (push (list
+               (cdr code-name)
+               (concat
+                (if header
+                    (progn
+                      (setq header nil)
+                      (concat "\n" (propertize
+                                    (format "* %s\n" (car group))
+                                    'face 'header-line)))
+                  "")
+                ;; prefix
+                (if (car code-name) (format "%c" (car code-name)) " ") "\t")
+               ;; suffix
+               "")
+              names-with-header)))
+    (nreverse names-with-header)))
 
 (defun char-from-name (string &optional ignore-case)
   "Return a character as a number from its Unicode name STRING.
@@ -3111,6 +3139,23 @@ Return nil if STRING does not name a character."
                                            ignore-case))
                 code)))))))
 
+(defcustom read-char-by-name-sort nil
+  "How to sort characters for `read-char-by-name' completion.
+Defines the sorting order either by character names or their codepoints."
+  :type '(choice
+          (const :tag "Sort by character names" nil)
+          (const :tag "Sort by character codepoints" code))
+  :group 'mule
+  :version "28.1")
+
+(defcustom read-char-by-name-group nil
+  "How to group characters for `read-char-by-name' completion.
+When t, split characters to sections of Unicode blocks
+sorted alphabetically."
+  :type 'boolean
+  :group 'mule
+  :version "28.1")
+
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
 Display PROMPT and read a string that represents a character by its
@@ -3123,6 +3168,9 @@ use completion.  If you type a substring of the Unicode name
 preceded by an asterisk `*' and use completion, it will show all
 the characters whose names include that substring, not necessarily
 at the beginning of the name.
+
+The options `read-char-by-name-sort' and `read-char-by-name-group'
+define the sorting order of completion characters and how to group them.
 
 Accept a name like \"CIRCULATION FUNCTION\", a hexadecimal
 number like \"2A10\", or a number in hash notation (e.g.,
@@ -3137,8 +3185,14 @@ as names, not numbers."
 	   prompt
 	   (lambda (string pred action)
 	     (if (eq action 'metadata)
-		 '(metadata
-		   (affixation-function . mule--ucs-names-affixation)
+		 `(metadata
+		   (display-sort-function
+		    . ,(when (eq read-char-by-name-sort 'code)
+                         #'mule--ucs-names-sort-by-code))
+		   (affixation-function
+		    . ,(if read-char-by-name-group
+                           #'mule--ucs-names-group
+                         #'mule--ucs-names-affixation))
 		   (category . unicode-name))
 	       (complete-with-action action (ucs-names) string pred)))))
 	 (char

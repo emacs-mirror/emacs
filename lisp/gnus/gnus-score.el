@@ -1,4 +1,4 @@
-;;; gnus-score.el --- scoring code for Gnus
+;;; gnus-score.el --- scoring code for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -683,7 +683,7 @@ current score file."
 	  (and gnus-extra-headers
 	       (equal (nth 1 entry) "extra")
 	       (intern			; need symbol
-                (let ((collection (mapcar 'symbol-name gnus-extra-headers)))
+                (let ((collection (mapcar #'symbol-name gnus-extra-headers)))
                   (gnus-completing-read
                    "Score extra header"  ; prompt
                    collection            ; completion list
@@ -932,7 +932,7 @@ SCORE is the score to add.
 EXTRA is the possible non-standard header."
   (interactive (list (gnus-completing-read "Header"
                                            (mapcar
-                                            'car
+                                            #'car
                                             (seq-filter
                                              (lambda (x) (fboundp (nth 2 x)))
                                              gnus-header-index))
@@ -1235,7 +1235,7 @@ If FORMAT, also format the current score file."
     (let ((mark (car (gnus-score-get 'mark alist)))
 	  (expunge (car (gnus-score-get 'expunge alist)))
 	  (mark-and-expunge (car (gnus-score-get 'mark-and-expunge alist)))
-	  (score-fn (car (gnus-score-get 'score-fn alist)))
+	  ;; (score-fn (car (gnus-score-get 'score-fn alist)))
 	  (files (gnus-score-get 'files alist))
 	  (exclude-files (gnus-score-get 'exclude-files alist))
 	  (orphan (car (gnus-score-get 'orphan alist)))
@@ -1258,17 +1258,17 @@ If FORMAT, also format the current score file."
       ;; We do not respect eval and files atoms from global score
       ;; files.
       (when (and files (not global))
-	(setq lists (apply 'append lists
-			   (mapcar 'gnus-score-load-file
+	(setq lists (apply #'append lists
+			   (mapcar #'gnus-score-load-file
 				   (if adapt-file (cons adapt-file files)
 				     files)))))
       (when (and eval (not global))
-	(eval eval))
+	(eval eval t))
       ;; We then expand any exclude-file directives.
       (setq gnus-scores-exclude-files
 	    (nconc
 	     (apply
-	      'nconc
+	      #'nconc
 	      (mapcar
 	       (lambda (sfile)
 		 (list
@@ -1554,10 +1554,10 @@ If FORMAT, also format the current score file."
 	      (setq entry (pop entries)
 		    header (nth 0 entry)
 		    gnus-score-index (nth 1 (assoc header gnus-header-index)))
-	      (when (< 0 (apply 'max (mapcar
-				      (lambda (score)
-					(length (gnus-score-get header score)))
-				      scores)))
+	      (when (< 0 (apply #'max (mapcar
+				       (lambda (score)
+					 (length (gnus-score-get header score)))
+				       scores)))
 		(when (if (and gnus-inhibit-slow-scoring
 			       (or (eq gnus-inhibit-slow-scoring t)
 				   (and (stringp gnus-inhibit-slow-scoring)
@@ -1574,9 +1574,9 @@ If FORMAT, also format the current score file."
 			;; Run score-fn
 			(if (eq header 'score-fn)
 			    (setq new (gnus-score-func scores trace))
-			;; Call the scoring function for this type of "header".
-			(setq new (funcall (nth 2 entry) scores header
-					   now expire trace))))
+			  ;; Call the scoring function for this type of "header".
+			  (setq new (funcall (nth 2 entry) scores header
+					     now expire trace))))
 		  (push new news))))
 
 	    (when (gnus-buffer-live-p gnus-summary-buffer)
@@ -1818,45 +1818,44 @@ score in `gnus-newsgroup-scored' by SCORE."
 	handles))))
 
 (defun gnus-score-body (scores header now expire &optional trace)
-    (if gnus-agent-fetching
-       nil
-     (save-excursion
-       (setq gnus-scores-articles
-             (sort gnus-scores-articles
-                   (lambda (a1 a2)
-                     (< (mail-header-number (car a1))
-                        (mail-header-number (car a2))))))
-       (set-buffer nntp-server-buffer)
-       (save-restriction
-         (let* ((buffer-read-only nil)
-                (articles gnus-scores-articles)
-                (all-scores scores)
-                (request-func (cond ((string= "head" header)
-                                     'gnus-request-head)
-                                    ((string= "body" header)
-                                     'gnus-request-body)
-                                    (t 'gnus-request-article)))
-                entries alist ofunc article last)
-           (when articles
-             (setq last (mail-header-number (caar (last articles))))
-             ;; Not all backends support partial fetching.  In that case,
-             ;; we just fetch the entire article.
-             ;; When scoring by body, we need to peek at the headers to detect
-             ;; the content encoding
-             (unless (or (gnus-check-backend-function
-                          (and (string-match "^gnus-" (symbol-name request-func))
-                               (intern (substring (symbol-name request-func)
-                                                  (match-end 0))))
-                          gnus-newsgroup-name)
-                         (string= "body" header))
-               (setq ofunc request-func)
-               (setq request-func 'gnus-request-article))
-             (while articles
-               (setq article (mail-header-number (caar articles)))
-               (gnus-message 7 "Scoring article %s of %s..." article last)
-               (widen)
-               (let (handles)
-                 (when (funcall request-func article gnus-newsgroup-name)
+  (if gnus-agent-fetching
+      nil
+    (setq gnus-scores-articles
+          (sort gnus-scores-articles
+                (lambda (a1 a2)
+                  (< (mail-header-number (car a1))
+                     (mail-header-number (car a2))))))
+    (with-current-buffer nntp-server-buffer
+      (save-restriction
+        (let* ((buffer-read-only nil)
+               (articles gnus-scores-articles)
+               (all-scores scores)
+               (request-func (cond ((string= "head" header)
+                                    'gnus-request-head)
+                                   ((string= "body" header)
+                                    'gnus-request-body)
+                                   (t 'gnus-request-article)))
+               entries alist ofunc article last)
+          (when articles
+            (setq last (mail-header-number (caar (last articles))))
+            ;; Not all backends support partial fetching.  In that case,
+            ;; we just fetch the entire article.
+            ;; When scoring by body, we need to peek at the headers to detect
+            ;; the content encoding
+            (unless (or (gnus-check-backend-function
+                         (and (string-match "^gnus-" (symbol-name request-func))
+                              (intern (substring (symbol-name request-func)
+                                                 (match-end 0))))
+                         gnus-newsgroup-name)
+                        (string= "body" header))
+              (setq ofunc request-func)
+              (setq request-func 'gnus-request-article))
+            (while articles
+              (setq article (mail-header-number (caar articles)))
+              (gnus-message 7 "Scoring article %s of %s..." article last)
+              (widen)
+              (let (handles)
+                (when (funcall request-func article gnus-newsgroup-name)
                   (when (string= "body" header)
                     (setq handles (gnus-score-decode-text-parts)))
                   (goto-char (point-min))
@@ -1921,8 +1920,8 @@ score in `gnus-newsgroup-scored' by SCORE."
                             (setq rest entries))))
                         (setq entries rest))))
                   (when handles (mm-destroy-parts handles))))
-               (setq articles (cdr articles)))))))
-     nil))
+              (setq articles (cdr articles)))))))
+    nil))
 
 (defun gnus-score-thread (scores header now expire &optional trace)
   (gnus-score-followup scores header now expire trace t))
@@ -1948,7 +1947,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	      gnus-newsgroup-name gnus-adaptive-file-suffix))))
 
       (setq gnus-scores-articles (sort gnus-scores-articles
-				       'gnus-score-string<)
+				       #'gnus-score-string<)
 	    articles gnus-scores-articles)
 
       (erase-buffer)
@@ -2077,7 +2076,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 	  ;; We cannot string-sort the extra headers list.  *sigh*
 	  (if (= gnus-score-index 9)
 	      gnus-scores-articles
-	    (sort gnus-scores-articles 'gnus-score-string<))
+	    (sort gnus-scores-articles #'gnus-score-string<))
 	  articles gnus-scores-articles)
 
     (erase-buffer)
@@ -2550,11 +2549,11 @@ score in `gnus-newsgroup-scored' by SCORE."
 		   (abbreviate-file-name file))))
 	(insert
 	 (format "\nTotal score: %d"
-		 (apply '+ (mapcar
-			    (lambda (s)
-			      (or (caddr s)
-				  gnus-score-interactive-default-score))
-			    trace))))
+		 (apply #'+ (mapcar
+			     (lambda (s)
+			       (or (caddr s)
+				   gnus-score-interactive-default-score))
+			     trace))))
 	(insert
 	 "\n\nQuick help:
 
@@ -2699,7 +2698,7 @@ the score file and its full name, including the directory.")
 
 ;;; Finding score files.
 
-(defun gnus-score-score-files (group)
+(defun gnus-score-score-files (_group)
   "Return a list of all possible score files."
   ;; Search and set any global score files.
   (when gnus-global-score-files
@@ -2872,7 +2871,7 @@ This includes the score file for the group and all its parents."
 	   (mapcar (lambda (group)
 		     (gnus-score-file-name group gnus-adaptive-file-suffix))
 		   (setq all (nreverse all)))
-	   (mapcar 'gnus-score-file-name all)))
+	   (mapcar #'gnus-score-file-name all)))
     (if (equal prefix "")
 	all
       (mapcar
@@ -2912,7 +2911,7 @@ Destroys the current buffer."
 	    (lambda (file)
 	      (cons (inline (gnus-score-file-rank file)) file))
 	    files)))
-      (mapcar 'cdr (sort alist 'car-less-than-car)))))
+      (mapcar #'cdr (sort alist #'car-less-than-car)))))
 
 (defun gnus-score-find-alist (group)
   "Return list of score files for GROUP.

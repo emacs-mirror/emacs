@@ -1260,9 +1260,9 @@ is non-nil)."
       (if Info-history
 	  (let ((hist (car Info-history)))
 	    (setq Info-history (cdr Info-history))
-	    (Info-find-node (nth 0 hist) (nth 1 hist) t)
+	    (Info-find-node (nth 0 hist) (nth 1 hist) t t)
 	    (goto-char (nth 2 hist)))
-	(Info-find-node Info-current-file "Top" t)))))
+	(Info-find-node Info-current-file "Top" t t)))))
 
 ;; Cache the contents of the (virtual) dir file, once we have merged
 ;; it for the first time, so we can save time subsequently.

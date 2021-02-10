@@ -1,4 +1,4 @@
-;;; nnspool.el --- spool access for GNU Emacs
+;;; nnspool.el --- spool access for GNU Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1988-1990, 1993-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
@@ -126,7 +126,7 @@ there.")
 
 (nnoo-define-basics nnspool)
 
-(deffoo nnspool-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nnspool-retrieve-headers (articles &optional group _server fetch-old)
   "Retrieve the headers of ARTICLES."
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -203,7 +203,7 @@ there.")
 		     server nnspool-spool-directory)
     t)))
 
-(deffoo nnspool-request-article (id &optional group server buffer)
+(deffoo nnspool-request-article (id &optional group _server buffer)
   "Select article by message ID (or number)."
   (nnspool-possibly-change-directory group)
   (let ((nntp-server-buffer (or buffer nntp-server-buffer))
@@ -222,7 +222,7 @@ there.")
 	     (cons nnspool-current-group id)
 	   ag))))
 
-(deffoo nnspool-request-body (id &optional group server)
+(deffoo nnspool-request-body (id &optional group _server)
   "Select article body by message ID (or number)."
   (nnspool-possibly-change-directory group)
   (let ((res (nnspool-request-article id)))
@@ -233,7 +233,7 @@ there.")
 	  (delete-region (point-min) (point)))
 	res))))
 
-(deffoo nnspool-request-head (id &optional group server)
+(deffoo nnspool-request-head (id &optional group _server)
   "Select article head by message ID (or number)."
   (nnspool-possibly-change-directory group)
   (let ((res (nnspool-request-article id)))
@@ -245,7 +245,7 @@ there.")
 	(nnheader-fold-continuation-lines)))
     res))
 
-(deffoo nnspool-request-group (group &optional server dont-check info)
+(deffoo nnspool-request-group (group &optional _server dont-check _info)
   "Select news GROUP."
   (let ((pathname (nnspool-article-pathname group))
 	dir)
@@ -261,7 +261,7 @@ there.")
 	;; Yes, completely empty spool directories *are* possible.
 	;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>
 	(when (setq dir (directory-files pathname nil "\\`[0-9]+\\'" t))
-	  (setq dir (sort (mapcar 'string-to-number dir) '<)))
+	  (setq dir (sort (mapcar #'string-to-number dir) #'<)))
 	(if dir
 	    (nnheader-insert
 	     "211 %d %d %d %s\n" (length dir) (car dir)
@@ -269,26 +269,26 @@ there.")
 	  (nnheader-report 'nnspool "Empty group %s" group)
 	  (nnheader-insert "211 0 0 0 %s\n" group))))))
 
-(deffoo nnspool-request-type (group &optional article)
+(deffoo nnspool-request-type (_group &optional _article)
   'news)
 
-(deffoo nnspool-close-group (group &optional server)
+(deffoo nnspool-close-group (_group &optional _server)
   t)
 
-(deffoo nnspool-request-list (&optional server)
+(deffoo nnspool-request-list (&optional _server)
   "List active newsgroups."
   (save-excursion
     (or (nnspool-find-file nnspool-active-file)
 	(nnheader-report 'nnspool (nnheader-file-error nnspool-active-file)))))
 
-(deffoo nnspool-request-list-newsgroups (&optional server)
+(deffoo nnspool-request-list-newsgroups (&optional _server)
   "List newsgroups (defined in NNTP2)."
   (save-excursion
     (or (nnspool-find-file nnspool-newsgroups-file)
 	(nnheader-report 'nnspool (nnheader-file-error
 				   nnspool-newsgroups-file)))))
 
-(deffoo nnspool-request-list-distributions (&optional server)
+(deffoo nnspool-request-list-distributions (&optional _server)
   "List distributions (defined in NNTP2)."
   (save-excursion
     (or (nnspool-find-file nnspool-distributions-file)
@@ -296,7 +296,7 @@ there.")
 				   nnspool-distributions-file)))))
 
 ;; Suggested by Hallvard B Furuseth <h.b.furuseth@usit.uio.no>.
-(deffoo nnspool-request-newgroups (date &optional server)
+(deffoo nnspool-request-newgroups (date &optional _server)
   "List groups created after DATE."
   (if (nnspool-find-file nnspool-active-times-file)
       (save-excursion
@@ -323,7 +323,7 @@ there.")
 	t)
     nil))
 
-(deffoo nnspool-request-post (&optional server)
+(deffoo nnspool-request-post (&optional _server)
   "Post a new news in current buffer."
   (save-excursion
     (let* ((process-connection-type nil) ; t bugs out on Solaris
@@ -331,7 +331,7 @@ there.")
 	   (buf (current-buffer))
 	   (proc
 	    (condition-case err
-		(apply 'start-process "*nnspool inews*" inews-buffer
+		(apply #'start-process "*nnspool inews*" inews-buffer
 		       nnspool-inews-program nnspool-inews-switches)
 	      (error
 	       (nnheader-report 'nnspool "inews error: %S" err)))))
@@ -356,7 +356,7 @@ there.")
 
 ;;; Internal functions.
 
-(defun nnspool-inews-sentinel (proc status)
+(defun nnspool-inews-sentinel (proc _status)
   (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
     (if (or (zerop (buffer-size))
@@ -409,7 +409,7 @@ there.")
 				(<= last (car arts)))
 		      (pop arts))
 		    ;; The articles in `arts' are missing from the buffer.
-		    (mapc 'nnspool-insert-nov-head arts)
+		    (mapc #'nnspool-insert-nov-head arts)
 		    t))))))))))
 
 (defun nnspool-insert-nov-head (article)

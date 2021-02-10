@@ -1,4 +1,4 @@
-;;; hanoi.el --- towers of hanoi in Emacs
+;;; hanoi.el --- towers of hanoi in Emacs  -*- lexical-binding: t -*-
 
 ;; Author: Damon Anton Permezel
 ;; Maintainer: emacs-devel@gnu.org
@@ -71,33 +71,33 @@
 
 (defcustom hanoi-horizontal-flag nil
   "If non-nil, hanoi poles are oriented horizontally."
-  :group 'hanoi :type 'boolean)
+  :type 'boolean)
 
 (defcustom hanoi-move-period 1.0
   "Time, in seconds, for each pole-to-pole move of a ring.
 If nil, move rings as fast as possible while displaying all
 intermediate positions."
-  :group 'hanoi :type '(restricted-sexp :match-alternatives (numberp 'nil)))
+  :type '(restricted-sexp :match-alternatives (numberp 'nil)))
 
 (defcustom hanoi-use-faces nil
   "If nil, all hanoi-*-face variables are ignored."
-  :group 'hanoi :type 'boolean)
+  :type 'boolean)
 
 (defcustom hanoi-pole-face 'highlight
   "Face for poles.  Ignored if hanoi-use-faces is nil."
-  :group 'hanoi :type 'face)
+  :type 'face)
 
 (defcustom hanoi-base-face 'highlight
   "Face for base.  Ignored if hanoi-use-faces is nil."
-  :group 'hanoi :type 'face)
+  :type 'face)
 
 (defcustom hanoi-even-ring-face 'region
   "Face for even-numbered rings.  Ignored if hanoi-use-faces is nil."
-  :group 'hanoi :type 'face)
+  :type 'face)
 
 (defcustom hanoi-odd-ring-face 'secondary-selection
   "Face for odd-numbered rings.  Ignored if hanoi-use-faces is nil."
-  :group 'hanoi :type 'face)
+  :type 'face)
 
 
 ;;;

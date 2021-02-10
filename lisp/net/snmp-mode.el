@@ -1,4 +1,4 @@
-;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode
+;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 1998, 2001-2021 Free Software Foundation, Inc.
 
@@ -69,16 +69,6 @@
 ;; Once the template is done, you can use C-cC-f and C-cC-b to move back
 ;; and forth between the Tempo sequence points to fill in the rest of
 ;; the information.
-;;
-;; Font Lock
-;; ------------
-;;
-;; If you want font-lock in your MIB buffers, add this:
-;;
-;;  (add-hook 'snmp-common-mode-hook 'turn-on-font-lock)
-;;
-;; Enabling global-font-lock-mode is also sufficient.
-;;
 
 ;;; Code:
 
@@ -101,42 +91,35 @@
 (defcustom snmp-special-indent t
   "If non-nil, use a simple heuristic to try to guess the right indentation.
 If nil, then no special indentation is attempted."
-  :type 'boolean
-  :group 'snmp)
+  :type 'boolean)
 
 (defcustom snmp-indent-level 4
   "Indentation level for SNMP MIBs."
-  :type 'integer
-  :group 'snmp)
+  :type 'integer)
 
 (defcustom snmp-tab-always-indent nil
   "Non-nil means TAB should always reindent the current line.
 A value of nil means reindent if point is within the initial line indentation;
 otherwise insert a TAB."
-  :type 'boolean
-  :group 'snmp)
+  :type 'boolean)
 
 (defcustom snmp-completion-ignore-case t
   "Non-nil means that case differences are ignored during completion.
 A value of nil means that case is significant.
 This is used during Tempo template completion."
-  :type 'boolean
-  :group 'snmp)
+  :type 'boolean)
 
 (defcustom snmp-common-mode-hook nil
   "Hook(s) evaluated when a buffer enters either SNMP or SNMPv2 mode."
-  :type 'hook
-  :group 'snmp)
+  :type 'hook)
 
 (defcustom snmp-mode-hook nil
   "Hook(s) evaluated when a buffer enters SNMP mode."
-  :type 'hook
-  :group 'snmp)
+  :type 'hook)
 
 (defcustom snmpv2-mode-hook nil
   "Hook(s) evaluated when a buffer enters SNMPv2 mode."
-  :type 'hook
-  :group 'snmp)
+  :type 'hook)
 
 (defvar snmp-tempo-tags nil
   "Tempo tags for SNMP mode.")
@@ -291,7 +274,7 @@ This is used during Tempo template completion."
 
 ;; Set up the stuff that's common between snmp-mode and snmpv2-mode
 ;;
-(defun snmp-common-mode (name mode abbrev font-keywords imenu-index tempo-tags)
+(defun snmp-common-mode (name mode abbrev font-keywords imenu-index mode-tempo-tags)
   (kill-all-local-variables)
 
   ;; Become the current major mode
@@ -326,7 +309,7 @@ This is used during Tempo template completion."
   (setq-local imenu-create-index-function imenu-index)
 
   ;; Tempo
-  (tempo-use-tag-list tempo-tags)
+  (tempo-use-tag-list mode-tempo-tags)
   (setq-local tempo-match-finder "\\b\\(.+\\)\\=")
   (setq-local tempo-interactive t)
 
@@ -338,6 +321,7 @@ This is used during Tempo template completion."
 ;;
 ;;;###autoload
 (defun snmp-mode ()
+  ;; FIXME: Use define-derived-mode.
   "Major mode for editing SNMP MIBs.
 Expression and list commands understand all C brackets.
 Tab indents for C code.
@@ -370,6 +354,7 @@ Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
 
 ;;;###autoload
 (defun snmpv2-mode ()
+  ;; FIXME: Use define-derived-mode.
   "Major mode for editing SNMPv2 MIBs.
 Expression and list commands understand all C brackets.
 Tab indents for C code.
@@ -474,13 +459,11 @@ lines for the purposes of this function."
 	(index-table-alist '())
 	(index-trap-alist '())
         (case-fold-search nil) ; keywords must be uppercase
-	prev-pos token end)
+        token end)
     (goto-char (point-min))
-    (imenu-progress-message prev-pos 0)
     ;; Search for a useful MIB item (that's not in a comment)
     (save-match-data
       (while (re-search-forward snmp-clause-regexp nil t)
-        (imenu-progress-message prev-pos)
         (setq
          end (match-end 0)
          token (cons (match-string 1)
@@ -498,7 +481,6 @@ lines for the purposes of this function."
                (push token index-tc-alist)))
         (goto-char end)))
     ;; Create the menu
-    (imenu-progress-message prev-pos 100)
     (setq index-alist (nreverse index-alist))
     (and index-tc-alist
  	 (push (cons "Textual Conventions" (nreverse index-tc-alist))
