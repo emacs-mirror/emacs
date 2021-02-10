@@ -289,7 +289,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 /* Size of hash table of realized faces in face caches (should be a
    prime number).  */
 
-#define FACE_CACHE_BUCKETS_SIZE 1001
+#define FACE_CACHE_BUCKETS_SIZE 1009
 
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 
