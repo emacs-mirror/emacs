@@ -1068,6 +1068,11 @@ ARG is passed to the first function."
 
 ;;; Various
 
+(defmacro gnus--\,@ (exp)
+  "Splice EXP's value (a list of Lisp forms) into the code."
+  (declare (debug t))
+  `(progn ,@(eval exp t)))
+
 (defvar gnus-group-buffer)		; Compiler directive
 (defun gnus-alive-p ()
   "Say whether Gnus is running or not."

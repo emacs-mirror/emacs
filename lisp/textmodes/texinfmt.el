@@ -28,10 +28,12 @@
 ;;; Emacs lisp functions to convert Texinfo files to Info files.
 
 (defvar texinfmt-version "2.42 of  7 Jul 2006")
+(make-obsolete-variable 'texinfmt-version 'emacs-version "28.1")
 
 (defun texinfmt-version (&optional here)
   "Show the version of texinfmt.el in the minibuffer.
 If optional argument HERE is non-nil, insert info at point."
+  (declare (obsolete emacs-version "28.1"))
   (interactive "P")
   (let ((version-string
          (format-message "Version of `texinfmt.el': %s" texinfmt-version)))
@@ -345,8 +347,8 @@ converted to Info is stored in a temporary buffer."
 			 (file-name-nondirectory
 			  (buffer-file-name input-buffer))))
 	      (format-message "buffer `%s'" (buffer-name input-buffer)))
-            (format-message "\nusing `texinfmt.el' version ")
-            texinfmt-version
+            (format-message "\nusing `texinfmt.el' on Emacs version ")
+            emacs-version
             ".\n\n")
 
     ;; Now convert for real.
@@ -489,8 +491,8 @@ if large.  You can use `Info-split' to do this manually."
                          (file-name-nondirectory
                           (buffer-file-name input-buffer))))
               (format-message "buffer `%s'" (buffer-name input-buffer)))
-            (format-message "\nusing `texinfmt.el' version ")
-            texinfmt-version
+            (format-message "\nusing `texinfmt.el' on Emacs version ")
+            emacs-version
             ".\n\n")
     ;; Return data for indices.
     (list outfile

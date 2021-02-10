@@ -1,4 +1,4 @@
-;;; hanoi.el --- towers of hanoi in Emacs
+;;; hanoi.el --- towers of hanoi in Emacs  -*- lexical-binding: t -*-
 
 ;; Author: Damon Anton Permezel
 ;; Maintainer: emacs-devel@gnu.org

@@ -2116,13 +2116,15 @@ variables.")
 (defun exit-minibuffer ()
   "Terminate this minibuffer argument."
   (interactive)
+  (when (or
+         (innermost-minibuffer-p)
+         (not (minibufferp)))
   ;; If the command that uses this has made modifications in the minibuffer,
   ;; we don't want them to cause deactivation of the mark in the original
   ;; buffer.
   ;; A better solution would be to make deactivate-mark buffer-local
   ;; (or to turn it into a list of buffers, ...), but in the mean time,
   ;; this should do the trick in most cases.
-  (when (innermost-minibuffer-p)
     (setq deactivate-mark nil)
     (throw 'exit nil))
   (error "%s" "Not in most nested minibuffer"))

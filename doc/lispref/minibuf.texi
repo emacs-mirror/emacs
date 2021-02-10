@@ -2393,7 +2393,7 @@ minibuffer.
 @deffn Command exit-minibuffer
 This command exits the active minibuffer.  It is normally bound to
 keys in minibuffer local keymaps.  The command throws an error if the
-current buffer is not the active minibuffer.
+current buffer is a minibuffer, but not the active minibuffer.
 @end deffn
 
 @deffn Command self-insert-and-exit

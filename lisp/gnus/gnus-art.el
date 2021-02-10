@@ -4325,10 +4325,6 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   (if (gnus-buffer-live-p gnus-original-article-buffer)
       (canlock-verify gnus-original-article-buffer)))
 
-(defmacro gnus--\,@ (exp)
-  (declare (debug t))
-  `(progn ,@(eval exp t)))
-
 (gnus--\,@
  (mapcar (lambda (func)
            `(defun ,(intern (format "gnus-%s" func))

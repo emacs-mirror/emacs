@@ -1,4 +1,4 @@
-;;; gametree.el --- manage game analysis trees in Emacs
+;;; gametree.el --- manage game analysis trees in Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1997, 1999, 2001-2021 Free Software Foundation, Inc.
 

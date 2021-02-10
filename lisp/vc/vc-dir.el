@@ -86,7 +86,7 @@ See `run-hooks'."
   "Face for up-to-date status in VC-dir buffers."
   :group 'vc)
 
-(defface vc-dir-ignored '((t :inherit shadow))
+(defface vc-dir-status-ignored '((t :inherit shadow))
   "Face for ignored or empty values in VC-dir buffers."
   :group 'vc)
 
@@ -1454,10 +1454,12 @@ These are the commands available for use in the file status buffer:
      "   "
      (propertize
       (format "%-20s" state)
-      'face (cond ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
-		  ((memq state '(missing conflict)) 'vc-dir-status-warning)
-		  ((eq state 'edited) 'font-lock-constant-face)
-		  (t 'vc-dir-header-value))
+      'face (cond
+             ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
+             ((memq state '(missing conflict needs-update unlocked-changes))
+              'vc-dir-status-warning)
+             ((eq state 'ignored) 'vc-dir-status-ignored)
+             (t 'vc-dir-status-edited))
       'mouse-face 'highlight
       'keymap vc-dir-status-mouse-map)
      " "

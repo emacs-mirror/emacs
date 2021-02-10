@@ -495,7 +495,7 @@ absent, return nil."
                   (concat "^;;;[[:blank:]]*\\("
                           lm-commentary-header
                           "\\):[[:blank:]\n]*")
-                  "^;;[[:blank:]]*"     ; double semicolon prefix
+                  "^;;[[:blank:]]?"     ; double semicolon prefix
                   "[[:blank:]\n]*\\'")  ; trailing new-lines
           "" (buffer-substring-no-properties
               start (lm-commentary-end))))))))

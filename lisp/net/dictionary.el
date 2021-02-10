@@ -160,9 +160,28 @@ by the choice value:
   :type 'boolean
   :version "28.1")
 
+(defcustom dictionary-link-dictionary
+  "*"
+  "The dictionary which is used in links.
+* means to create links that search all dictionaries,
+nil means to create links that search only in the same dictionary
+where the current word was found."
+  :group 'dictionary
+  :type '(choice (const :tag "Link to all dictionaries" "*")
+		 (const :tag "Link only to the same dictionary" nil)
+		 (string :tag "User choice"))
+  :version "28.1")
+
 (defcustom dictionary-mode-hook
   nil
   "Hook run in dictionary mode buffers."
+  :group 'dictionary
+  :type 'hook
+  :version "28.1")
+
+(defcustom dictionary-post-buffer-hook
+  nil
+  "Hook run at the end of every update of the dictionary buffer."
   :group 'dictionary
   :type 'hook
   :version "28.1")
@@ -323,8 +342,9 @@ is utf-8"
     (define-key map "l" 'dictionary-previous)
     (define-key map "n" 'forward-button)
     (define-key map "p" 'backward-button)
-    (define-key map " " 'scroll-up)
-    (define-key map (read-kbd-macro "M-SPC") 'scroll-down)
+    (define-key map " " 'scroll-up-command)
+    (define-key map [?\S-\ ] 'scroll-down-command)
+    (define-key map (read-kbd-macro "M-SPC") 'scroll-down-command)
     map)
   "Keymap for the dictionary mode.")
 
@@ -772,7 +792,8 @@ of matching words."
   (goto-char dictionary-marker)
 
   (set-buffer-modified-p nil)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (run-hooks 'dictionary-post-buffer-hook))
 
 (defun dictionary-display-search-result (reply)
   "Start displaying the result in REPLY."
@@ -842,6 +863,8 @@ The word is taken from the buffer, the DICTIONARY is given as argument."
       (setq word (replace-match " " t t word)))
     (while (string-match "[*\"]" word)
       (setq word (replace-match "" t t word)))
+    (when dictionary-link-dictionary
+      (setq dictionary dictionary-link-dictionary))
 
     (unless (equal word displayed-word)
       (make-button start end :type 'dictionary-link
@@ -1117,9 +1140,11 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 ;; - if region is active returns its contents
 ;; - otherwise return the word near the point
 (defun dictionary-search-default ()
-  (if (use-region-p)
-      (buffer-substring-no-properties (region-beginning) (region-end))
-    (current-word t)))
+  (cond
+   ((use-region-p)
+    (buffer-substring-no-properties (region-beginning) (region-end)))
+   ((car (get-char-property (point) 'data)))
+   (t (current-word t))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User callable commands

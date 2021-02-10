@@ -469,11 +469,9 @@ PROPERTY set."
 ;;; Lexical Analyzer framework settings
 ;;
 
-;; FIXME change to non-obsolete default.
-(defvar-local semantic-lex-analyzer 'semantic-flex
+(defvar-local semantic-lex-analyzer 'semantic-lex
   "The lexical analyzer used for a given buffer.
-See `semantic-lex' for documentation.
-For compatibility with Semantic 1.x it defaults to `semantic-flex'.")
+See `semantic-lex' for documentation.")
 
 (defvar semantic-lex-tokens
   '(

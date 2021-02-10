@@ -519,12 +519,9 @@ Set up a customization buffer for all the settings and groups that
 match @var{regexp}.
 
 @item M-x customize-changed @key{RET} @var{version} @key{RET}
-Set up a customization buffer with all the settings and groups
-whose meaning has changed since Emacs version @var{version}.
-
-@item M-x customize-changed-options @key{RET} @var{version} @key{RET}
-Set up a customization buffer with all the options whose meaning or
-default values have changed since Emacs version @var{version}.
+Set up a customization buffer with all the user options, faces and
+groups whose meaning has changed since (or been added after) Emacs
+version @var{version}.
 
 @item M-x customize-saved
 Set up a customization buffer containing all settings that you
