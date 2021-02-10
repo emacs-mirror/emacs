@@ -81,12 +81,25 @@ pdumper_remember_lv_ptr_raw (void *ptr, enum Lisp_Type type)
 
 typedef void (*pdumper_hook)(void);
 extern void pdumper_do_now_and_after_load_impl (pdumper_hook hook);
+extern void pdumper_do_now_and_after_late_load_impl (pdumper_hook hook);
 
 INLINE void
 pdumper_do_now_and_after_load (pdumper_hook hook)
 {
 #ifdef HAVE_PDUMPER
   pdumper_do_now_and_after_load_impl (hook);
+#else
+  hook ();
+#endif
+}
+
+/* Same as 'pdumper_do_now_and_after_load' but for hooks running code
+   that can call into Lisp.  */
+INLINE void
+pdumper_do_now_and_after_late_load (pdumper_hook hook)
+{
+#ifdef HAVE_PDUMPER
+  pdumper_do_now_and_after_late_load_impl (hook);
 #else
   hook ();
 #endif
