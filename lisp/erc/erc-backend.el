@@ -6,7 +6,7 @@
 ;; Author: Lawrence Mitchell <wence@gmx.li>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Created: 2004-05-7
-;; Keywords: IRC chat client internet
+;; Keywords: comm, IRC, chat, client, internet
 
 ;; This file is part of GNU Emacs.
 

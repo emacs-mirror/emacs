@@ -6,7 +6,7 @@
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Old-Version: 1.0.0
 ;; URL: https://www.emacswiki.org/emacs/ErcLang
-;; Keywords: comm languages processes
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 

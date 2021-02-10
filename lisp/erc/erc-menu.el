@@ -4,7 +4,7 @@
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, processes, menu
+;; Keywords: comm, menu
 
 ;; This file is part of GNU Emacs.
 

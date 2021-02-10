@@ -4,7 +4,7 @@
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, faces
+;; Keywords: comm
 ;; URL: https://www.emacswiki.org/emacs/ErcMatch
 
 ;; This file is part of GNU Emacs.

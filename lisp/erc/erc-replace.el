@@ -6,7 +6,7 @@
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; URL: https://www.emacswiki.org/emacs/ErcReplace
-;; Keywords: IRC, client, Internet
+;; Keywords: comm, IRC, client, Internet
 
 ;; This file is part of GNU Emacs.
 
