@@ -26,7 +26,6 @@
 ;; into one command.
 
 (require 'cedet)
-(require 'inversion)
 
 (defvar cedet-utest-directory
   (let* ((C (file-name-directory (locate-library "cedet")))
@@ -48,7 +47,7 @@
     ;;
 
     ;; Test inversion
-    ("inversion" . inversion-unit-test)
+    ;; ("inversion" . inversion-unit-test) ; moved to automated suite
 
     ;; EZ Image dumping.
     ("ezimage associations" . ezimage-image-association-dump)
@@ -60,7 +59,7 @@
     ("pulse interactive test" . (lambda () (pulse-test t)))
 
     ;; Files
-    ("cedet file conversion" . cedet-files-utest)
+    ;; ("cedet file conversion" . cedet-files-utest) ; moved to automated suite
 
     ;;
     ;; EIEIO
@@ -100,7 +99,7 @@
 	   (message " ** Skipping test in noninteractive mode.")
 	 (semantic-test-throw-on-input))))
 
-    ;;("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)
+    ;;("semantic: gcc: output parse test" . semantic-gcc-test-output-parser)  ; moved to automated suite
 
     ;;
     ;; SRECODE
@@ -376,7 +375,7 @@ Optional argument PRECR indicates to prefix the done msg w/ a newline."
     (cedet-utest-add-log-item-start testname)
     ))
 
-(defun cedet-utest-log(format &rest args)
+(defun cedet-utest-log (format &rest args)
   "Log the text string FORMAT.
 The rest of the ARGS are used to fill in FORMAT with `format'."
   (if noninteractive
@@ -391,99 +390,6 @@ The rest of the ARGS are used to fill in FORMAT with `format'."
       ))
   (cedet-utest-show-log-end)
   )
-
-;;; Inversion tests
-
-(defun inversion-unit-test ()
-  "Test inversion to make sure it can identify different version strings."
-  (interactive)
-  (let ((c1 (inversion-package-version 'inversion))
-	(c1i (inversion-package-incompatibility-version 'inversion))
-	(c2 (inversion-decode-version  "1.3alpha2"))
-	(c3 (inversion-decode-version  "1.3beta4"))
-	(c4 (inversion-decode-version  "1.3 beta5"))
-	(c5 (inversion-decode-version  "1.3.4"))
-	(c6 (inversion-decode-version  "2.3alpha"))
-	(c7 (inversion-decode-version  "1.3"))
-	(c8 (inversion-decode-version  "1.3pre1"))
-	(c9 (inversion-decode-version  "2.4 (patch 2)"))
-	(c10 (inversion-decode-version "2.4 (patch 3)"))
-	(c11 (inversion-decode-version "2.4.2.1"))
-	(c12 (inversion-decode-version "2.4.2.2"))
-	)
-    (if (not (and
-	      (inversion-= c1 c1)
-	      (inversion-< c1i c1)
-	      (inversion-< c2 c3)
-	      (inversion-< c3 c4)
-	      (inversion-< c4 c5)
-	      (inversion-< c5 c6)
-	      (inversion-< c2 c4)
-	      (inversion-< c2 c5)
-	      (inversion-< c2 c6)
-	      (inversion-< c3 c5)
-	      (inversion-< c3 c6)
-	      (inversion-< c7 c6)
-	      (inversion-< c4 c7)
-	      (inversion-< c2 c7)
-	      (inversion-< c8 c6)
-	      (inversion-< c8 c7)
-	      (inversion-< c4 c8)
-	      (inversion-< c2 c8)
-	      (inversion-< c9 c10)
-	      (inversion-< c10 c11)
-	      (inversion-< c11 c12)
-	      ;; Negatives
-	      (not (inversion-< c3 c2))
-	      (not (inversion-< c4 c3))
-	      (not (inversion-< c5 c4))
-	      (not (inversion-< c6 c5))
-	      (not (inversion-< c7 c2))
-	      (not (inversion-< c7 c8))
-	      (not (inversion-< c12 c11))
-	      ;; Test the tester on inversion
-	      (not (inversion-test 'inversion inversion-version))
-	      ;; Test that we throw an error
-	      (inversion-test 'inversion "0.0.0")
-	      (inversion-test 'inversion "1000.0")
-	      ))
-	(error "Inversion tests failed")
-      (message "Inversion tests passed."))))
-
-;;; cedet-files unit test
-
-(defvar cedet-files-utest-list
-  '(
-    ( "/home/me/src/myproj/src/foo.c" . "!home!me!src!myproj!src!foo.c" )
-    ( "c:/work/myproj/foo.el" . "!drive_c!work!myproj!foo.el" )
-    ( "//windows/proj/foo.java" . "!!windows!proj!foo.java" )
-    ( "/home/me/proj!bang/foo.c" . "!home!me!proj!!bang!foo.c" )
-    )
-  "List of different file names to test.
-Each entry is a cons cell of ( FNAME . CONVERTED )
-where FNAME is some file name, and CONVERTED is what it should be
-converted into.")
-
-(defun cedet-files-utest ()
-  "Test out some file name conversions."
-  (interactive)
-  (let ((idx 0))
-    (dolist (FT cedet-files-utest-list)
-
-      (setq idx (+ idx 1))
-
-      (let ((dir->file (cedet-directory-name-to-file-name (car FT) t))
-	    (file->dir (cedet-file-name-to-directory-name (cdr FT) t))
-	    )
-
-	(unless (string= (cdr FT) dir->file)
-	  (error "Failed: %d.  Found: %S Wanted: %S"
-		 idx dir->file (cdr FT))
-	  )
-
-	(unless (string= file->dir (car FT))
-	  (error "Failed: %d.  Found: %S Wanted: %S"
-		 idx file->dir (car FT)))))))
 
 ;;; pulse test
 
