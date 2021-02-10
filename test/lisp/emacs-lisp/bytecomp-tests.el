@@ -1168,6 +1168,37 @@ mountpoint (Bug#44631)."
       (with-demoted-errors "Error cleaning up directory: %s"
         (delete-directory directory :recursive)))))
 
+(defun bytecomp-tests--get-vars ()
+  (list (ignore-errors (symbol-value 'bytecomp-tests--var1))
+        (ignore-errors (symbol-value 'bytecomp-tests--var2))))
+
+(ert-deftest bytecomp-local-defvar ()
+  "Check that local `defvar' declarations work correctly, both
+interpreted and compiled."
+  (let ((lexical-binding t))
+    (let ((fun '(lambda ()
+                  (defvar bytecomp-tests--var1)
+                  (let ((bytecomp-tests--var1 'a)    ; dynamic
+                        (bytecomp-tests--var2 'b))   ; still lexical
+                    (ignore bytecomp-tests--var2)    ; avoid warning
+                    (bytecomp-tests--get-vars)))))
+      (should (listp fun))      ; Guard against overzealous refactoring!
+      (should (equal (funcall (eval fun t)) '(a nil)))
+      (should (equal (funcall (byte-compile fun)) '(a nil)))
+      )
+
+    ;; `progn' does not constitute a lexical scope for `defvar' (bug#46387).
+    (let ((fun '(lambda ()
+                  (progn
+                    (defvar bytecomp-tests--var1)
+                    (defvar bytecomp-tests--var2))
+                  (let ((bytecomp-tests--var1 'c)
+                        (bytecomp-tests--var2 'd))
+                    (bytecomp-tests--get-vars)))))
+      (should (listp fun))
+      (should (equal (funcall (eval fun t)) '(c d)))
+      (should (equal (funcall (byte-compile fun)) '(c d))))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

@@ -698,7 +698,8 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
               (append new-lexvars byte-optimize--lexvars))
         ;; Walk the body expressions, which may mutate some of the records,
         ;; and generate new bindings that exclude unused variables.
-        (let* ((opt-body (byte-optimize-body (cdr form) for-effect))
+        (let* ((byte-optimize--dynamic-vars byte-optimize--dynamic-vars)
+               (opt-body (byte-optimize-body (cdr form) for-effect))
                (bindings nil))
           (dolist (var let-vars)
             ;; VAR is (NAME EXPR [KEEP [VALUE]])
@@ -730,7 +731,6 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
   ;; all-for-effect is true.  returns a new list of forms.
   (let ((rest forms)
 	(result nil)
-        (byte-optimize--dynamic-vars byte-optimize--dynamic-vars)
 	fe new)
     (while rest
       (setq fe (or all-for-effect (cdr rest)))
