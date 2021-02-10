@@ -474,13 +474,11 @@ lines for the purposes of this function."
 	(index-table-alist '())
 	(index-trap-alist '())
         (case-fold-search nil) ; keywords must be uppercase
-	prev-pos token end)
+        token end)
     (goto-char (point-min))
-    (imenu-progress-message prev-pos 0)
     ;; Search for a useful MIB item (that's not in a comment)
     (save-match-data
       (while (re-search-forward snmp-clause-regexp nil t)
-        (imenu-progress-message prev-pos)
         (setq
          end (match-end 0)
          token (cons (match-string 1)
@@ -498,7 +496,6 @@ lines for the purposes of this function."
                (push token index-tc-alist)))
         (goto-char end)))
     ;; Create the menu
-    (imenu-progress-message prev-pos 100)
     (setq index-alist (nreverse index-alist))
     (and index-tc-alist
  	 (push (cons "Textual Conventions" (nreverse index-tc-alist))
