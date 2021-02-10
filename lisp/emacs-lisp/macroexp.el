@@ -572,20 +572,35 @@ test of free variables in the following ways:
 - For the same reason it may cause the result to fail to include bindings
   which will be used if SEXP is not yet fully macro-expanded and the
   use of the binding will only be revealed by macro expansion."
-  (let ((res '()))
-    (while (and (consp sexp) bindings)
-      (dolist (binding (macroexp--fgrep bindings (pop sexp)))
-        (push binding res)
-        (setq bindings (remove binding bindings))))
-    (if (or (vectorp sexp) (byte-code-function-p sexp))
-        ;; With backquote, code can appear within vectors as well.
-        ;; This wouldn't be needed if we `macroexpand-all' before
-        ;; calling macroexp--fgrep, OTOH.
-        (macroexp--fgrep bindings (mapcar #'identity sexp))
-      (let ((tmp (assq sexp bindings)))
-        (if tmp
-            (cons tmp res)
-          res)))))
+  (let ((res '())
+        ;; Cyclic code should not happen, but code can contain cyclic data :-(
+        (seen (make-hash-table :test #'eq))
+        (sexpss (list (list sexp))))
+    ;; Use a nested while loop to reduce the amount of heap allocations for
+    ;; pushes to `sexpss' and the `gethash' overhead.
+    (while (and sexpss bindings)
+      (let ((sexps (pop sexpss)))
+        (unless (gethash sexps seen)
+          (puthash sexps t seen) ;; Using `setf' here causes bootstrap problems.
+          (if (vectorp sexps) (setq sexps (mapcar #'identity sexps)))
+          (let ((tortoise sexps) (skip t))
+            (while sexps
+              (let ((sexp (if (consp sexps) (pop sexps)
+                            (prog1 sexps (setq sexps nil)))))
+                (if skip
+                    (setq skip nil)
+                  (setq tortoise (cdr tortoise))
+                  (if (eq tortoise sexps)
+                      (setq sexps nil) ;; Found a cycle: we're done!
+                    (setq skip t)))
+                (cond
+                 ((or (consp sexp) (vectorp sexp)) (push sexp sexpss))
+                 (t
+                  (let ((tmp (assq sexp bindings)))
+                    (when tmp
+                      (push tmp res)
+                      (setq bindings (remove tmp bindings))))))))))))
+    res))
 
 ;;; Load-time macro-expansion.
 
