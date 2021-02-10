@@ -4330,6 +4330,8 @@ the specified region.  It must not change
 Additionally, the buffer modifications of BODY are recorded on
 the buffer's undo list as a single (apply ...) entry containing
 the function `undo--wrap-and-run-primitive-undo'."
+  (if (markerp beg) (setq beg (marker-position beg)))
+  (if (markerp end) (setq end (marker-position end)))
   (let ((old-bul buffer-undo-list)
 	(end-marker (copy-marker end t))
 	result)
