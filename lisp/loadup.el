@@ -253,9 +253,6 @@
 (load "startup")
 (load "term/tty-colors")
 (load "font-core")
-;; facemenu must be loaded before font-lock, because `facemenu-keymap'
-;; needs to be defined when font-lock is loaded.
-(load "facemenu")
 (load "emacs-lisp/syntax")
 (load "font-lock")
 (load "jit-lock")
@@ -476,6 +473,28 @@ lost after dumping")))
 
 ;; Make sure we will attempt bidi reordering henceforth.
 (setq redisplay--inhibit-bidi nil)
+
+
+;; Experimental feature removal.
+(define-key global-map "\M-o" #'removed-facemenu-command)
+
+(defun removed-facemenu-command ()
+  "Transition command during test period for facemenu removal."
+  (interactive)
+  (switch-to-buffer "*Facemenu Removal*")
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (insert-file-contents
+     (expand-file-name "facemenu-removal.txt" data-directory)))
+  (goto-char (point-min))
+  (special-mode))
+
+(defun facemenu-keymap-restore ()
+  "Restore the facemenu keymap."
+  (require 'facemenu)
+  (define-key facemenu-keymap "\eS" 'center-paragraph)
+  (define-key facemenu-keymap "\es" 'center-line))
+
 
 (if dump-mode
     (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")

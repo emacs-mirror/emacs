@@ -2048,6 +2048,11 @@ first).
 
 * Incompatible Editing Changes in Emacs 28.1
 
+** The 'M-o' ('facemanu-keymap') global binding has been removed.
+
+** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
+Use 'M-x center-line' and 'M-x center-paragraph' instead.
+
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
 special escape syntax in Fortran F90.  To get the old behaviour back,
