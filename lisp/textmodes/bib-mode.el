@@ -1,4 +1,4 @@
-;;; bib-mode.el --- major mode for editing bib files
+;;; bib-mode.el --- major mode for editing bib files  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1989, 2001-2021 Free Software Foundation, Inc.
 
@@ -39,13 +39,11 @@
 
 (defcustom bib-file "~/my-bibliography.bib"
   "Default name of file used by `addbib'."
-    :type 'file
-    :group 'bib)
+    :type 'file)
 
 (defcustom unread-bib-file "~/to-be-read.bib"
    "Default name of file used by `unread-bib' in Bib mode."
-   :type 'file
-   :group 'bib)
+   :type 'file)
 
 (defvar bib-mode-map
   (let ((map (make-sparse-keymap)))
@@ -138,8 +136,7 @@ with the cdr.")
 
 (defcustom bib-auto-capitalize t
   "True to automatically capitalize appropriate fields in Bib mode."
-  :type 'boolean
-  :group 'bib)
+  :type 'boolean)
 
 (defconst bib-capitalized-fields "%[AETCBIJR]")
 
