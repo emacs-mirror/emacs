@@ -35,7 +35,6 @@
 
 (defvar cedet-utest-libs '("ede-tests"
                            "semantic-tests"
-                           "srecode-tests"
                            )
   "List of test srcs that need to be loaded.")
 
@@ -106,7 +105,7 @@
     ;;
 
     ;; TODO - fix the fields test
-    ;;("srecode: fields" . srecode-field-utest)
+    ;;("srecode: fields" . srecode-field-utest)  ; moved to automated suite
     ;;("srecode: templates" . srecode-utest-template-output)
     ("srecode: show maps" . srecode-get-maps)
     ;;("srecode: getset" . srecode-utest-getset-output)

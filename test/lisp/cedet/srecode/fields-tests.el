@@ -1,4 +1,4 @@
-;;; srecode-tests.el --- Some tests for CEDET's srecode  -*- lexical-binding: t -*-
+;;; srecode/fields-tests.el --- Tests for srecode/fields.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -21,13 +21,15 @@
 
 ;;; Commentary:
 
-;; Extracted from srecode-fields.el and srecode-document.el in the
-;; CEDET distribution.
+;; Extracted from srecode-fields.el in the CEDET distribution.
+
+;; Converted to ert from test/manual/cedet/srecode-tests.el
 
 ;;; Code:
 
 ;;; From srecode-fields:
 
+(require 'ert)
 (require 'srecode/fields)
 
 (defvar srecode-field-utest-text
@@ -36,13 +38,10 @@
 It is filled with some text."
   "Text for tests.")
 
-(defun srecode-field-utest ()
-  "Test the srecode field manager."
-  (interactive)
-  (srecode-field-utest-impl))
-
-(defun srecode-field-utest-impl ()
+;; FIXME: This test fails even before conversion to ert.
+(ert-deftest srecode-field-utest-impl ()
   "Implementation of the SRecode field utest."
+  :tags '(:unstable)
   (save-excursion
     (find-file "/tmp/srecode-field-test.txt")
 
@@ -131,15 +130,15 @@ It is filled with some text."
 
       ;; Various sizes
       (mapc (lambda (T)
-	      (if (string= (object-name-string T) "Test4")
+              (if (string= (eieio-object-name-string T) "Test4")
 		  (progn
 		    (when (not (srecode-empty-region-p T))
 		      (error "Field %s is not empty"
-			     (object-name T)))
+                             (eieio-object-name T)))
 		    )
 		(when (not (= (srecode-region-size T) 5))
 		  (error "Calculated size of %s was not 5"
-			 (object-name T)))))
+                         (eieio-object-name T)))))
 	    fields)
 
       ;; Make sure things stay up after a 'command'.
@@ -151,21 +150,21 @@ It is filled with some text."
       (when (not (eq (srecode-overlaid-at-point 'srecode-field)
 		     (nth 0 fields)))
 	(error "Region Test: Field %s not under point"
-	       (object-name (nth 0 fields))))
+               (eieio-object-name (nth 0 fields))))
 
       (srecode-field-next)
 
       (when (not (eq (srecode-overlaid-at-point 'srecode-field)
 		     (nth 1 fields)))
 	(error "Region Test: Field %s not under point"
-	       (object-name (nth 1 fields))))
+               (eieio-object-name (nth 1 fields))))
 
       (srecode-field-prev)
 
       (when (not (eq (srecode-overlaid-at-point 'srecode-field)
 		     (nth 0 fields)))
 	(error "Region Test: Field %s not under point"
-	       (object-name (nth 0 fields))))
+               (eieio-object-name (nth 0 fields))))
 
       ;; Move cursor out of the region and have everything cleaned up.
       (goto-char 42)
@@ -176,7 +175,7 @@ It is filled with some text."
       (mapc (lambda (T)
 	      (when (slot-boundp T 'overlay)
 		(error "Overlay did not clear off of field %s"
-		       (object-name T))))
+                       (eieio-object-name T))))
 	    fields)
 
       ;; End of LET
@@ -187,8 +186,7 @@ It is filled with some text."
 	   (f1 (srecode-field "Test1" :name "TEST" :start 6 :end 8))
 	   (f2 (srecode-field "Test2" :name "TEST" :start 28 :end 30))
 	   (f3 (srecode-field "Test3" :name "NOTTEST" :start 35 :end 40))
-	   (reg (srecode-template-inserted-region "REG" :start 4 :end 40))
-	   )
+           (reg (srecode-template-inserted-region "REG" :start 4 :end 40)))
       (srecode-overlaid-activate reg)
 
       (when (not (string= (srecode-overlaid-text f1)
@@ -233,12 +231,8 @@ It is filled with some text."
 	(error "Linkage Test: tail-insert string on dissimilar fields is now the same"))
 
       ;; Cleanup
-      (srecode-delete reg)
-      )
+      (srecode-delete reg))
 
-    (set-buffer-modified-p nil)
+    (set-buffer-modified-p nil)))
 
-    (message "   All field tests passed.")
-    ))
-
-;;; srecode-tests.el ends here
+;;; srecode/fields-tests.el ends here
