@@ -532,7 +532,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
   /* If nonexistent lock file, all is well; otherwise, got strange error. */
   lfinfolen = read_lock_data (lfname, owner->user);
   if (lfinfolen < 0)
-    return errno == ENOENT ? 0 : errno;
+    return errno == ENOENT || errno == ENOTDIR ? 0 : errno;
   if (MAX_LFINFO < lfinfolen)
     return ENAMETOOLONG;
   owner->user[lfinfolen] = 0;
