@@ -20,7 +20,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; Unit tests for the formatting feature.
 ;;
 ;; Using test code from the tests source directory, parse the source
@@ -40,71 +40,55 @@
     )
   "List of files to run unit tests in.")
 
-(defvar semantic-fmt-utest-error-log-list nil
-  "Log errors during testing in this variable.")
-
 (ert-deftest semantic-fmt-utest ()
-  "Visit all file entries, and run formatting test.
-Files to visit are in `semantic-fmt-utest-file-list'."
+  "Visit all file entries, and run formatting test. "
   (save-current-buffer
     (semantic-mode 1)
-    (let ((fl semantic-fmt-utest-file-list))
-      (dolist (fname fl)
+    (dolist (fname semantic-fmt-utest-file-list)
+      (let ((fb (find-buffer-visiting fname))
+            (b (semantic-find-file-noselect fname))
+            (tags nil))
         (save-current-buffer
-          (let ((fb (find-buffer-visiting fname))
-		(b (semantic-find-file-noselect fname))
-		(tags nil))
+          (set-buffer b)
+          (should (semantic-active-p))
+          ;;(error "Cannot open %s for format tests" fname))
 
-	    (save-current-buffer
-	      (set-buffer b)
-	      (should (semantic-active-p))
-	      ;;(error "Cannot open %s for format tests" fname))
+          ;; This will force a reparse, removing any chance of semanticdb cache
+          ;; using stale data.
+          (semantic-clear-toplevel-cache)
+          ;; Force the reparse
+          (setq tags (semantic-fetch-tags))
 
-	      ;; This will force a reparse, removing any chance of semanticdb cache
-	      ;; using stale data.
-	      (semantic-clear-toplevel-cache)
-	      ;; Force the reparse
-	      (setq tags (semantic-fetch-tags))
+          (save-excursion
+            (while tags
+              (let* ((T (car tags))
+                     (start (semantic-tag-end T))
+                     (end (if (cdr tags)
+                              (semantic-tag-start (car (cdr tags)))
+                            (point-max)))
+                     (TESTS nil))
+                (goto-char start)
+                ;; Scan the space between tags for all test condition matches.
+                (while (re-search-forward "## \\([a-z-]+\\) \"\\([^\n\"]+\\)\"$" end t)
+                  (push (cons (match-string 1) (match-string 2)) TESTS))
+                (setq TESTS (nreverse TESTS))
 
-	      (save-excursion
-		(while tags
-		  (let* ((T (car tags))
-			 (start (semantic-tag-end T))
-			 (end (if (cdr tags)
-				  (semantic-tag-start (car (cdr tags)))
-				(point-max)))
-			 (TESTS nil)
-			 )
-		    (goto-char start)
-		    ;; Scan the space between tags for all test condition matches.
-		    (while (re-search-forward "## \\([a-z-]+\\) \"\\([^\n\"]+\\)\"$" end t)
-		      (push (cons (match-string 1) (match-string 2)) TESTS))
-		    (setq TESTS (nreverse TESTS))
+                (dolist (TST TESTS)
+                  (let* ( ;; For each test, convert CAR into a semantic-format-tag* fcn
+                         (sym (intern (concat "semantic-format-tag-" (car TST))))
+                         ;; Convert the desired result from a string syntax to a string.
+                         (desired (cdr TST))
+                         ;; What does the fmt function do?
+                         (actual (funcall sym T)))
+                    (when (not (string= desired actual))
+                      (should-not (list "Desired" desired
+                                        "Actual" actual
+                                        "Formatter" (car TST)))))))
+              (setq tags (cdr tags)))))
 
-		    (dolist (TST TESTS)
-		      (let* ( ;; For each test, convert CAR into a semantic-format-tag* fcn
-			     (sym (intern (concat "semantic-format-tag-" (car TST))))
-			     ;; Convert the desired result from a string syntax to a string.
-			     (desired (cdr TST))
-			     ;; What does the fmt function do?
-			     (actual (funcall sym T))
-			     )
-			(when (not (string= desired actual))
-			  (should-not (list "Desired" desired
-					    "Actual" actual
-					    "Formatter" (car TST))))
-			)))
-		  (setq tags (cdr tags)))
-
-		))
-
-	    ;; If it wasn't already in memory, whack it.
-	    (when (and b (not fb))
-	      (kill-buffer b)))
-	  ))
-
-      )))
-
+        ;; If it wasn't already in memory, whack it.
+        (when (and b (not fb))
+          (kill-buffer b))))))
 
 (provide 'format-tests)
 
