@@ -1165,21 +1165,23 @@ usage: (catch TAG BODY...)  */)
    FUNC should return a Lisp_Object.
    This is how catches are done from within C code.  */
 
+/* MINIBUFFER_QUIT_LEVEL is to handle quitting from nested minibuffers by
+   throwing t to tag `exit'.
+   0 means there is no (throw 'exit t) in progress, or it wasn't from
+     a minibuffer which isn't the most nested;
+   N > 0 means the `throw' was done from the minibuffer at level N which
+     wasn't the most nested.  */
+EMACS_INT minibuffer_quit_level = 0;
+
 Lisp_Object
 internal_catch (Lisp_Object tag,
 		Lisp_Object (*func) (Lisp_Object), Lisp_Object arg)
 {
-  /* MINIBUFFER_QUIT_LEVEL is to handle quitting from nested minibuffers by
-     throwing t to tag `exit'.
-     Value -1 means there is no (throw 'exit t) in progress;
-     0 means the `throw' wasn't done from an active minibuffer;
-     N > 0 means the `throw' was done from the minibuffer at level N.  */
-  static EMACS_INT minibuffer_quit_level = -1;
   /* This structure is made part of the chain `catchlist'.  */
   struct handler *c = push_handler (tag, CATCHER);
 
   if (EQ (tag, Qexit))
-    minibuffer_quit_level = -1;
+    minibuffer_quit_level = 0;
 
   /* Call FUNC.  */
   if (! sys_setjmp (c->jmp))
@@ -1194,22 +1196,16 @@ internal_catch (Lisp_Object tag,
       Lisp_Object val = handlerlist->val;
       clobbered_eassert (handlerlist == c);
       handlerlist = handlerlist->next;
-      if (EQ (tag, Qexit) && EQ (val, Qt))
+      if (EQ (tag, Qexit) && EQ (val, Qt) && minibuffer_quit_level > 0)
 	/* If we've thrown t to tag `exit' from within a minibuffer, we
 	   exit all minibuffers more deeply nested than the current
 	   one.  */
 	{
-	  EMACS_INT mini_depth = this_minibuffer_depth (Qnil);
-	  if (mini_depth && mini_depth != minibuffer_quit_level)
-	    {
-	      if (minibuffer_quit_level == -1)
-		minibuffer_quit_level = mini_depth;
-	      if (minibuffer_quit_level
-		  && (minibuf_level > minibuffer_quit_level))
-		Fthrow (Qexit, Qt);
-	    }
+	  if (minibuf_level > minibuffer_quit_level
+	      && !NILP (Fminibuffer_innermost_command_loop_p (Qnil)))
+            Fthrow (Qexit, Qt);
 	  else
-	    minibuffer_quit_level = -1;
+	    minibuffer_quit_level = 0;
 	}
       return val;
     }
