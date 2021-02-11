@@ -1,4 +1,4 @@
-;;; semantic/scope.el --- Analyzer Scope Calculations
+;;; semantic/scope.el --- Analyzer Scope Calculations  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -115,7 +115,7 @@ Saves scoping information between runs of the analyzer.")
   )
 
 (cl-defmethod semanticdb-synchronize ((cache semantic-scope-cache)
-				   new-tags)
+				      _new-tags)
   "Synchronize a CACHE with some NEW-TAGS."
   (semantic-reset cache))
 
@@ -262,7 +262,7 @@ are from nesting data types."
 	(semantic-go-to-tag pparent)
 	(setq stack (semantic-find-tag-by-overlay (point)))
 	;; Step one, find the merged version of stack in the typecache.
-	(let* ((stacknames (reverse (mapcar 'semantic-tag-name stack)))
+	(let* ((stacknames (reverse (mapcar #'semantic-tag-name stack)))
 	       (tc nil)
 	       )
 	  ;; @todo - can we use the typecache ability to
@@ -317,7 +317,7 @@ are from nesting data types."
 	      ;; returnlist is empty.
 	      (while snlist
 		(setq fullsearchname
-		      (append (mapcar 'semantic-tag-name returnlist)
+		      (append (mapcar #'semantic-tag-name returnlist)
 			      (list (car snlist)))) ;; Next one
 		(setq ptag
 		      (semanticdb-typecache-find fullsearchname))
@@ -325,8 +325,8 @@ are from nesting data types."
 		(when (or (not ptag)
 			  (not (semantic-tag-of-class-p ptag 'type)))
 		  (let ((rawscope
-			 (apply 'append
-				(mapcar 'semantic-tag-type-members
+			 (apply #'append
+				(mapcar #'semantic-tag-type-members
 					(cons (car returnlist) scopetypes)
 					)))
 			)
@@ -541,7 +541,7 @@ tag is not something you can complete from within TYPE."
 	  (setq leftover (cons S leftover)))))
     (nreverse leftover)))
 
-(defun semantic-analyze-scoped-type-parts (type &optional scope noinherit protection)
+(defun semantic-analyze-scoped-type-parts (type &optional scope noinherit _protection)
   "Return all parts of TYPE, a tag representing a TYPE declaration.
 SCOPE is the scope object.
 NOINHERIT turns off searching of inherited tags.

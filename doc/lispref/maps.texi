@@ -53,9 +53,6 @@ A sparse keymap for subcommands of the prefix @kbd{C-x r}.@*
 @item esc-map
 A full keymap for @key{ESC} (or @key{Meta}) commands.
 
-@item facemenu-keymap
-A sparse keymap used for the @kbd{M-o} prefix key.
-
 @item function-key-map
 The parent keymap of all @code{local-function-key-map} (q.v.@:) instances.
 

@@ -4,18 +4,20 @@
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -1040,7 +1042,7 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (or (looking-at "(")
+      (unless (or (eql ?\( (aref q-string 0))
 		  (and (string-match "\\`[^[:blank:]]+" q-string)
 		       (memql (intern-soft (downcase
 					    (match-string 0 q-string)))
@@ -1346,12 +1348,14 @@ Returns a list of [group article score] vectors."
   (let ((prefix (slot-value engine 'remove-prefix))
 	(group-regexp (when groups
 			(mapconcat
-			 (lambda (x)
-			   (replace-regexp-in-string
-			    ;; Accept any of [.\/] as path separators.
-			    "[.\\/]" "[.\\\\/]"
-			    (gnus-group-real-name x)))
-			 groups "\\|")))
+			 (lambda (group-name)
+			   (mapconcat #'regexp-quote
+				      (split-string
+				       (gnus-group-real-name group-name)
+				       "[.\\/]")
+				      "[.\\\\/]"))
+			 groups
+			 "\\|")))
 	artlist vectors article group)
     (goto-char (point-min))
     (while (not (eobp))
@@ -1514,6 +1518,7 @@ Namazu provides a little more information, for instance a score."
   (when (re-search-forward
 	 "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
 	 nil t)
+    (forward-line 1)
     (list (match-string 4)
 	  (match-string 3))))
 

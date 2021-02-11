@@ -298,14 +298,17 @@ Use METHOD if given.  Else use `mml-secure-method' or
   (interactive)
   (mml-secure-part "smime"))
 
-(defun mml-secure-is-encrypted-p ()
-  "Check whether secure encrypt tag is present."
+(defun mml-secure-is-encrypted-p (&optional tag-present)
+  "Whether the current buffer contains a mail message that should be encrypted.
+If TAG-PRESENT, say whether the <#secure tag is present anywhere
+in the buffer."
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward
-     (concat "^" (regexp-quote mail-header-separator) "\n"
-	     "<#secure[^>]+encrypt")
-     nil t)))
+    (message-goto-body)
+    (if tag-present
+	(re-search-forward "<#secure[^>]+encrypt" nil t)
+      (skip-chars-forward "[ \t\n")
+      (looking-at "<#secure[^>]+encrypt"))))
 
 (defun mml-secure-bcc-is-safe ()
   "Check whether usage of Bcc is safe (or absent).

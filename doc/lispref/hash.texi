@@ -150,17 +150,22 @@ multiplied by an approximation to this value.  The default for
 @end table
 @end defun
 
-You can also create a new hash table using the printed representation
+You can also create a hash table using the printed representation
 for hash tables.  The Lisp reader can read this printed
 representation, provided each element in the specified hash table has
 a valid read syntax (@pxref{Printed Representation}).  For instance,
-the following specifies a new hash table containing the keys
+the following specifies a hash table containing the keys
 @code{key1} and @code{key2} (both symbols) associated with @code{val1}
 (a symbol) and @code{300} (a number) respectively.
 
 @example
 #s(hash-table size 30 data (key1 val1 key2 300))
 @end example
+
+Note, however, that when using this in Emacs Lisp code, it's
+undefined whether this creates a new hash table or not.  If you want
+to create a new hash table, you should always use
+@code{make-hash-table} (@pxref{Self-Evaluating Forms}).
 
 @noindent
 The printed representation for a hash table consists of @samp{#s}

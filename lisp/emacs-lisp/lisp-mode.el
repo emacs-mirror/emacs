@@ -62,9 +62,6 @@
     (modify-syntax-entry ?\t "    " table)
     (modify-syntax-entry ?\f "    " table)
     (modify-syntax-entry ?\n ">   " table)
-    ;; This is probably obsolete since nowadays such features use overlays.
-    ;; ;; Give CR the same syntax as newline, for selective-display.
-    ;; (modify-syntax-entry ?\^m ">   " table)
     (modify-syntax-entry ?\; "<   " table)
     (modify-syntax-entry ?` "'   " table)
     (modify-syntax-entry ?' "'   " table)

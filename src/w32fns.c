@@ -1561,8 +1561,14 @@ w32_clear_under_internal_border (struct frame *f)
 static void
 w32_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int argval = check_integer_range (arg, INT_MIN, INT_MAX);
-  int border = max (argval, 0);
+  int border;
+
+  if (NILP (arg))
+    border = -1;
+  else if (RANGED_FIXNUMP (0, arg, INT_MAX))
+    border = XFIXNAT (arg);
+  else
+    signal_error ("Invalid child frame border width", arg);
 
   if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
     {
@@ -5896,12 +5902,16 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
       Lisp_Object value;
 
       value = gui_display_get_arg (dpyinfo, parameters, Qinternal_border_width,
-                                   "internalBorder", "InternalBorder",
+                                   "internalBorder", "internalBorder",
                                    RES_TYPE_NUMBER);
       if (! EQ (value, Qunbound))
 	parameters = Fcons (Fcons (Qinternal_border_width, value),
 			    parameters);
     }
+
+  gui_default_parameter (f, parameters, Qinternal_border_width, make_fixnum (0),
+                         "internalBorderWidth", "internalBorderWidth",
+			 RES_TYPE_NUMBER);
 
   /* Same for child frames.  */
   if (NILP (Fassq (Qchild_frame_border_width, parameters)))
@@ -5909,24 +5919,16 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
       Lisp_Object value;
 
       value = gui_display_get_arg (dpyinfo, parameters, Qchild_frame_border_width,
-                                   "childFrameBorderWidth", "childFrameBorderWidth",
+                                   "childFrameBorder", "childFrameBorder",
                                    RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
+      if (!EQ (value, Qunbound))
 	parameters = Fcons (Fcons (Qchild_frame_border_width, value),
 		       parameters);
-
     }
 
-  gui_default_parameter (f, parameters, Qchild_frame_border_width,
-#ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
-			 make_fixnum (0),
-#else
-			 make_fixnum (1),
-#endif
+  gui_default_parameter (f, parameters, Qchild_frame_border_width, Qnil,
 			 "childFrameBorderWidth", "childFrameBorderWidth",
 			 RES_TYPE_NUMBER);
-  gui_default_parameter (f, parameters, Qinternal_border_width, make_fixnum (0),
-                         "internalBorderWidth", "InternalBorder", RES_TYPE_NUMBER);
   gui_default_parameter (f, parameters, Qright_divider_width, make_fixnum (0),
                          NULL, NULL, RES_TYPE_NUMBER);
   gui_default_parameter (f, parameters, Qbottom_divider_width, make_fixnum (0),

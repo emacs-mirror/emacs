@@ -36,14 +36,6 @@
 
 ;;   A mode-specific function is called to generate the index.  It is
 ;;   then presented to the user, who can choose from this index.
-;;
-;;   The package comes with a set of example functions for how to
-;;   utilize this package.
-
-;;   There are *examples* for index gathering functions/regular
-;;   expressions for C/C++ and Lisp/Emacs Lisp but it is easy to
-;;   customize for other modes.  A function for jumping to the chosen
-;;   index position is also supplied.
 
 ;;; History:
 ;;  Thanks go to
@@ -81,25 +73,20 @@ Setting this to nil makes Imenu work a little faster but editing the
 buffer will make the generated index positions wrong.
 
 This might not yet be honored by all index-building functions."
-  :type 'boolean
-  :group 'imenu)
-
+  :type 'boolean)
 
 (defcustom imenu-max-item-length 60
   "If a number, truncate Imenu entries to that length."
   :type '(choice integer
-		 (const :tag "Unlimited"))
-  :group 'imenu)
+                 (const :tag "Unlimited")))
 
 (defcustom imenu-auto-rescan nil
   "Non-nil means Imenu should always rescan the buffers."
-  :type 'boolean
-  :group 'imenu)
+  :type 'boolean)
 
 (defcustom imenu-auto-rescan-maxout 600000
   "Imenu auto-rescan is disabled in buffers larger than this size (in bytes)."
   :type 'integer
-  :group 'imenu
   :version "26.2")
 
 (defcustom imenu-use-popup-menu 'on-mouse
@@ -109,13 +96,11 @@ If t, always use a popup menu,
 If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
   :type '(choice (const :tag "On Mouse" on-mouse)
 		 (const :tag "Never" nil)
-		 (other :tag "Always" t))
-  :group 'imenu)
+                 (other :tag "Always" t)))
 
 (defcustom imenu-eager-completion-buffer t
   "If non-nil, eagerly popup the completion buffer."
   :type 'boolean
-  :group 'imenu
   :version "22.1")
 
 (defcustom imenu-after-jump-hook nil
@@ -123,8 +108,7 @@ If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
 
 Useful things to use here include `reposition-window', `recenter', and
 \(lambda () (recenter 0)) to show at top of screen."
-  :type 'hook
-  :group 'imenu)
+  :type 'hook)
 
 ;;;###autoload
 (defcustom imenu-sort-function nil
@@ -143,39 +127,23 @@ element should come before the second.  The arguments are cons cells;
 \(NAME . POSITION).  Look at `imenu--sort-by-name' for an example."
   :type '(choice (const :tag "No sorting" nil)
 		 (const :tag "Sort by name" imenu--sort-by-name)
-		 (function :tag "Another function"))
-  :group 'imenu)
+                 (function :tag "Another function")))
 
 (defcustom imenu-max-items 25
   "Maximum number of elements in a mouse menu for Imenu."
-  :type 'integer
-  :group 'imenu)
-
-;; No longer used.  KFS 2004-10-27
-;; (defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
-;;   "Progress message during the index scanning of the buffer.
-;; If non-nil, user gets a message during the scanning of the buffer.
-;;
-;; Relevant only if the mode-specific function that creates the buffer
-;; index use `imenu-progress-message', and not useful if that is fast, in
-;; which case you might as well set this to nil."
-;;   :type '(choice string
-;;  		 (const :tag "None" nil))
-;;   :group 'imenu)
+  :type 'integer)
 
 (defcustom imenu-space-replacement "."
   "The replacement string for spaces in index names.
 Used when presenting the index in a completion buffer to make the
 names work as tokens."
-  :type '(choice string (const nil))
-  :group 'imenu)
+  :type '(choice string (const nil)))
 
 (defcustom imenu-level-separator ":"
   "The separator between index names of different levels.
 Used for making mouse-menu titles and for flattening nested indexes
 with name concatenation."
-  :type 'string
-  :group 'imenu)
+  :type 'string)
 
 (defcustom imenu-generic-skip-comments-and-strings t
   "When non-nil, ignore text inside comments and strings.
@@ -183,7 +151,6 @@ Only affects `imenu-default-create-index-function' (and any
 alternative implementation of `imenu-create-index-function' that
 uses `imenu--generic-function')."
   :type 'boolean
-  :group 'imenu
   :version "24.4")
 
 ;;;###autoload
@@ -280,26 +247,11 @@ The function in this variable is called when selecting a normal index-item.")
        (not (functionp (cadr item)))))
 
 (defmacro imenu-progress-message (_prevpos &optional _relpos _reverse)
-  "Macro to display a progress message.
-RELPOS is the relative position to display.
-If RELPOS is nil, then the relative position in the buffer
-is calculated.
-PREVPOS is the variable in which we store the last position displayed."
-
+  "This macro is obsolete and does nothing."
+  (declare (obsolete nil "28.1"))
 ;; Made obsolete/empty, as computers are now faster than the eye, and
 ;; it had problems updating the messages correctly, and could shadow
 ;; more important messages/prompts in the minibuffer.  KFS 2004-10-27.
-
-;;  `(and
-;;    imenu-scanning-message
-;;    (let ((pos ,(if relpos
-;;		   relpos
-;;		 `(imenu--relative-position ,reverse))))
-;;	(if ,(if relpos t
-;;	    `(> pos (+ 5 ,prevpos)))
-;;	 (progn
-;;	   (message imenu-scanning-message pos)
-;;	   (setq ,prevpos pos)))))
 )
 
 

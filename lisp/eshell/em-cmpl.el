@@ -150,8 +150,8 @@ to writing a completion function."
   :type (get 'pcomplete-dir-ignore 'custom-type))
 
 (defcustom eshell-cmpl-ignore-case (eshell-under-windows-p)
-  (eshell-cmpl--custom-variable-docstring 'pcomplete-ignore-case)
-  :type (get 'pcomplete-ignore-case 'custom-type))
+  (eshell-cmpl--custom-variable-docstring 'completion-ignore-case)
+  :type (get 'completion-ignore-case 'custom-type))
 
 (defcustom eshell-cmpl-autolist nil
   (eshell-cmpl--custom-variable-docstring 'pcomplete-autolist)
@@ -259,7 +259,7 @@ to writing a completion function."
               eshell-cmpl-file-ignore)
   (setq-local pcomplete-dir-ignore
               eshell-cmpl-dir-ignore)
-  (setq-local pcomplete-ignore-case
+  (setq-local completion-ignore-case
               eshell-cmpl-ignore-case)
   (setq-local pcomplete-autolist
               eshell-cmpl-autolist)

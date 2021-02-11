@@ -53,9 +53,9 @@
     (customize-apropos "cus-edit-tests")
     (should-not (search-forward cus-edit-tests--obsolete-option-tag nil t))))
 
-(ert-deftest cus-edit-tests-customize-changed-options/hide-obsolete ()
+(ert-deftest cus-edit-tests-customize-changed/hide-obsolete ()
   (with-cus-edit-test "*Customize Changed Options*"
-    (customize-changed-options "917.2") ; some future version
+    (customize-changed "917.2") ;; Some future version.
     (should-not (search-forward cus-edit-tests--obsolete-option-tag nil t))))
 
 (ert-deftest cus-edit-tests-customize-group/hide-obsolete ()

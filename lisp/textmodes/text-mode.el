@@ -169,8 +169,6 @@ both existing buffers and buffers that you subsequently create."
 	     (if enable-mode "enabled" "disabled"))))
 
 
-(define-key facemenu-keymap "\eS" 'center-paragraph)
-
 (defun center-paragraph ()
   "Center each nonblank line in the paragraph at or after point.
 See `center-line' for more info."
@@ -197,8 +195,6 @@ See `center-line' for more info."
 	(or (save-excursion (skip-chars-forward " \t") (eolp))
 	    (center-line))
 	(forward-line 1)))))
-
-(define-key facemenu-keymap "\es" 'center-line)
 
 (defun center-line (&optional nlines)
   "Center the line point is on, within the width specified by `fill-column'.

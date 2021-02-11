@@ -1,4 +1,4 @@
-;;; doctor.el --- psychological help for frustrated users
+;;; doctor.el --- psychological help for frustrated users  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1994, 1996, 2000-2021 Free Software
 ;; Foundation, Inc.

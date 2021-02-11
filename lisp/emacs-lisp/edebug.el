@@ -1687,10 +1687,10 @@ contains a circular object."
 	     (first-char (and (symbolp spec) (aref (symbol-name spec) 0)))
 	     (match (cond
 		     ((eq ?& first-char);; "&" symbols take all following specs.
-		      (funcall (get-edebug-spec spec) cursor (cdr specs)))
+		      (edebug--handle-&-spec-op spec cursor (cdr specs)))
 		     ((eq ?: first-char);; ":" symbols take one following spec.
 		      (setq rest (cdr (cdr specs)))
-		      (funcall (get-edebug-spec spec) cursor (car (cdr specs))))
+		      (edebug--handle-:-spec-op spec cursor (car (cdr specs))))
 		     (t;; Any other normal spec.
 		      (setq rest (cdr specs))
 		      (edebug-match-one-spec cursor spec)))))
@@ -1721,16 +1721,10 @@ contains a circular object."
 ;; user may want to define macros or functions with the same names.
 ;; We could use an internal obarray for these primitive specs.
 
-(dolist (pair '((&optional . edebug-match-&optional)
-		(&rest . edebug-match-&rest)
-		(&or . edebug-match-&or)
-		(form . edebug-match-form)
+(dolist (pair '((form . edebug-match-form)
 		(sexp . edebug-match-sexp)
 		(body . edebug-match-body)
-		(&define . edebug-match-&define)
 		(name . edebug-match-name)
-		(:name . edebug-match-colon-name)
-                (:unique . edebug-match-:unique)
 		(arg . edebug-match-arg)
 		(def-body . edebug-match-def-body)
 		(def-form . edebug-match-def-form)
@@ -1743,9 +1737,6 @@ contains a circular object."
                 (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
                 (cl-macrolet-name . edebug-match-cl-macrolet-name)
                 (cl-macrolet-body . edebug-match-cl-macrolet-body)
-		(&not . edebug-match-&not)
-		(&key . edebug-match-&key)
-		(&error . edebug-match-&error)
 		(place . edebug-match-place)
 		(gate . edebug-match-gate)
 		;;   (nil . edebug-match-nil)  not this one - special case it.
@@ -1793,7 +1784,7 @@ contains a circular object."
 
 (defsubst edebug-match-body (cursor) (edebug-forms cursor))
 
-(defun edebug-match-&optional (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &optional)) cursor specs)
   ;; Keep matching until one spec fails.
   (edebug-&optional-wrapper cursor specs 'edebug-&optional-wrapper))
 
@@ -1819,7 +1810,11 @@ contains a circular object."
   ;; Reuse the &optional handler with this as the remainder handler.
   (edebug-&optional-wrapper cursor specs remainder-handler))
 
-(defun edebug-match-&rest (cursor specs)
+(cl-defgeneric edebug--handle-&-spec-op (op cursor specs)
+  "Handle &foo spec operators.
+&foo spec operators operate on all the subsequent SPECS.")
+
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &rest)) cursor specs)
   ;; Repeatedly use specs until failure.
   (let ((edebug-&rest specs) ;; remember these
 	edebug-best-error
@@ -1827,7 +1822,7 @@ contains a circular object."
     (edebug-&rest-wrapper cursor specs 'edebug-&rest-wrapper)))
 
 
-(defun edebug-match-&or (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &or)) cursor specs)
   ;; Keep matching until one spec succeeds, and return its results.
   ;; If none match, fail.
   ;; This needs to be optimized since most specs spend time here.
@@ -1852,23 +1847,24 @@ contains a circular object."
     ))
 
 
-(defun edebug-match-&not (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &not)) cursor specs)
   ;; If any specs match, then fail
   (if (null (catch 'no-match
 	      (let ((edebug-gate nil))
 		(save-excursion
-		  (edebug-match-&or cursor specs)))
+		  (edebug--handle-&-spec-op '&or cursor specs)))
 	      nil))
       ;; This means something matched, so it is a no match.
       (edebug-no-match cursor "Unexpected"))
   ;; This means nothing matched, so it is OK.
   nil) ;; So, return nothing
 
-(defun edebug-match-&key (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &key)) cursor specs)
   ;; Following specs must look like (<name> <spec>) ...
   ;; where <name> is the name of a keyword, and spec is its spec.
   ;; This really doesn't save much over the expanded form and takes time.
-  (edebug-match-&rest
+  (edebug--handle-&-spec-op
+   '&rest
    cursor
    (cons '&or
 	 (mapcar (lambda (pair)
@@ -1876,7 +1872,7 @@ contains a circular object."
                            (car (cdr pair))))
 		 specs))))
 
-(defun edebug-match-&error (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &error)) cursor specs)
   ;; Signal an error, using the following string in the spec as argument.
   (let ((error-string (car specs))
         (edebug-error-point (edebug-before-offset cursor)))
@@ -1980,7 +1976,7 @@ contains a circular object."
 (defun edebug-match-function (_cursor)
   (error "Use function-form instead of function in edebug spec"))
 
-(defun edebug-match-&define (cursor specs)
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &define)) cursor specs)
   ;; Match a defining form.
   ;; Normally, &define is interpreted specially other places.
   ;; This should only be called inside of a spec list to match the remainder
@@ -2034,7 +2030,11 @@ contains a circular object."
     (edebug-move-cursor cursor)
     (list name)))
 
-(defun edebug-match-colon-name (_cursor spec)
+(cl-defgeneric edebug--handle-:-spec-op (op cursor spec)
+  "Handle :foo spec operators.
+:foo spec operators operate on just the one subsequent SPEC element.")
+
+(cl-defmethod edebug--handle-:-spec-op ((_ (eql :name)) _cursor spec)
   ;; Set the edebug-def-name to the spec.
   (setq edebug-def-name
 	(if edebug-def-name
@@ -2043,7 +2043,7 @@ contains a circular object."
 	  spec))
   nil)
 
-(defun edebug-match-:unique (_cursor spec)
+(cl-defmethod edebug--handle-:-spec-op ((_ (eql :unique)) _cursor spec)
   "Match a `:unique PREFIX' specifier.
 SPEC is the symbol name prefix for `gensym'."
   (let ((suffix (gensym spec)))
@@ -3801,9 +3801,10 @@ Print result in minibuffer."
   (interactive (list (read--expression "Eval: ")))
   (princ
    (edebug-outside-excursion
-    (setq values (cons (edebug-eval expr) values))
-    (concat (edebug-safe-prin1-to-string (car values))
-            (eval-expression-print-format (car values))))))
+    (let ((result (edebug-eval expr)))
+      (values--store-value result)
+      (concat (edebug-safe-prin1-to-string result)
+              (eval-expression-print-format result))))))
 
 (defun edebug-eval-last-sexp (&optional no-truncate)
   "Evaluate sexp before point in the outside environment.

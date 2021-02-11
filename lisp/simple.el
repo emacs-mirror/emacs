@@ -492,6 +492,16 @@ buffer causes automatic display of the corresponding source code location."
         (overlay-put ol 'window (get-buffer-window))
         (setf next-error--message-highlight-overlay ol)))))
 
+(defun recenter-current-error (&optional arg)
+  "Recenter the current displayed error in the `next-error' buffer."
+  (interactive "P")
+  (save-selected-window
+    (let ((next-error-highlight next-error-highlight-no-select)
+          (display-buffer-overriding-action
+           '(nil (inhibit-same-window . t))))
+      (next-error 0)
+      (set-buffer (window-buffer))
+      (recenter-top-bottom arg))))
 
 ;;;
 
@@ -1443,9 +1453,9 @@ included in the count."
   (save-excursion
     (save-restriction
       (narrow-to-region start end)
-      (goto-char (point-min))
       (cond ((and (not ignore-invisible-lines)
                   (eq selective-display t))
+             (goto-char (point-min))
 	     (save-match-data
 	       (let ((done 0))
 		 (while (re-search-forward "\n\\|\r[^\n]" nil t 40)
@@ -1458,6 +1468,7 @@ included in the count."
 		     (1+ done)
 		   done))))
 	    (ignore-invisible-lines
+             (goto-char (point-min))
 	     (save-match-data
 	       (- (buffer-size)
                   (forward-line (buffer-size))
@@ -1472,27 +1483,11 @@ included in the count."
 			        (assq prop buffer-invisibility-spec)))
 			  (setq invisible-count (1+ invisible-count))))
 		    invisible-count))))
-	    (t (- (buffer-size) (forward-line (buffer-size))))))))
-
-(defun line-number-at-pos (&optional pos absolute)
-  "Return buffer line number at position POS.
-If POS is nil, use current buffer location.
-
-If ABSOLUTE is nil, the default, counting starts
-at (point-min), so the value refers to the contents of the
-accessible portion of the (potentially narrowed) buffer.  If
-ABSOLUTE is non-nil, ignore any narrowing and return the
-absolute line number."
-  (save-restriction
-    (when absolute
-      (widen))
-    (let ((opoint (or pos (point))) start)
-      (save-excursion
-        (goto-char (point-min))
-        (setq start (point))
-        (goto-char opoint)
-        (forward-line 0)
-        (1+ (count-lines start (point)))))))
+	    (t
+             (goto-char (point-max))
+             (if (bolp)
+                 (1- (line-number-at-pos))
+               (line-number-at-pos)))))))
 
 (defcustom what-cursor-show-names nil
   "Whether to show character names in `what-cursor-position'."
@@ -1814,31 +1809,34 @@ this command arranges for all errors to enter the debugger."
    (cons (read--expression "Eval: ")
          (eval-expression-get-print-arguments current-prefix-arg)))
 
-  (if (null eval-expression-debug-on-error)
-      (push (eval (let ((lexical-binding t)) (macroexpand-all exp)) t)
-            values)
-    (let ((old-value (make-symbol "t")) new-value)
-      ;; Bind debug-on-error to something unique so that we can
-      ;; detect when evalled code changes it.
-      (let ((debug-on-error old-value))
-	(push (eval (let ((lexical-binding t)) (macroexpand-all exp)) t)
-              values)
-	(setq new-value debug-on-error))
-      ;; If evalled code has changed the value of debug-on-error,
-      ;; propagate that change to the global binding.
-      (unless (eq old-value new-value)
-	(setq debug-on-error new-value))))
+  (let (result)
+    (if (null eval-expression-debug-on-error)
+        (setq result
+              (values--store-value
+               (eval (let ((lexical-binding t)) (macroexpand-all exp)) t)))
+      (let ((old-value (make-symbol "t")) new-value)
+        ;; Bind debug-on-error to something unique so that we can
+        ;; detect when evalled code changes it.
+        (let ((debug-on-error old-value))
+          (setq result
+	        (values--store-value
+                 (eval (let ((lexical-binding t)) (macroexpand-all exp)) t)))
+	  (setq new-value debug-on-error))
+        ;; If evalled code has changed the value of debug-on-error,
+        ;; propagate that change to the global binding.
+        (unless (eq old-value new-value)
+	  (setq debug-on-error new-value))))
 
-  (let ((print-length (unless no-truncate eval-expression-print-length))
-        (print-level  (unless no-truncate eval-expression-print-level))
-        (eval-expression-print-maximum-character char-print-limit)
-        (deactivate-mark))
-    (let ((out (if insert-value (current-buffer) t)))
-      (prog1
-          (prin1 (car values) out)
-        (let ((str (and char-print-limit
-                        (eval-expression-print-format (car values)))))
-          (when str (princ str out)))))))
+    (let ((print-length (unless no-truncate eval-expression-print-length))
+          (print-level  (unless no-truncate eval-expression-print-level))
+          (eval-expression-print-maximum-character char-print-limit)
+          (deactivate-mark))
+      (let ((out (if insert-value (current-buffer) t)))
+        (prog1
+            (prin1 result out)
+          (let ((str (and char-print-limit
+                          (eval-expression-print-format result))))
+            (when str (princ str out))))))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.

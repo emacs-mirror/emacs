@@ -89,7 +89,7 @@ for use on `completion-at-point-function'."
 
 (defun pcomplete-erc-setup ()
   "Setup `erc-mode' to use pcomplete."
-  (setq-local pcomplete-ignore-case t)
+  (setq-local completion-ignore-case t)
   (setq-local pcomplete-use-paring nil)
   (setq-local pcomplete-parse-arguments-function
               #'pcomplete-erc-parse-arguments)

@@ -179,7 +179,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (insert "\
 
 ;; The remainder of this file is for handling :version.
-;; We provide a minimum of information so that `customize-changed-options'
+;; We provide a minimum of information so that `customize-changed'
 ;; can do its job.
 
 ;; For groups we set `custom-version', `group-documentation' and
@@ -240,7 +240,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 This is an alist whose members have as car a version string, and as
 elements the files that have variables or faces that contain that
 version.  These files should be loaded before showing the customization
-buffer that `customize-changed-options' generates.\")\n\n"))
+buffer that `customize-changed' generates.\")\n\n"))
   (save-buffer)
   (byte-compile-info
    (format "Generating %s...done" generated-custom-dependencies-file) t))

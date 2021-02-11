@@ -1413,7 +1413,17 @@ if `inhibit-field-text-motion' is non-nil."
 
 (define-key ctl-x-map "z" 'repeat)
 
-(define-key ctl-x-map "g" #'revert-buffer)
+(defvar ctl-x-x-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "g" #'revert-buffer)
+    (define-key map "r" #'rename-buffer)
+    (define-key map "u" #'rename-uniquely)
+    (define-key map "n" #'clone-buffer)
+    (define-key map "i" #'insert-buffer)
+    (define-key map "t" #'toggle-truncate-lines)
+    map)
+  "Keymap for subcommands of C-x x.")
+(define-key ctl-x-map "x" ctl-x-x-map)
 
 (define-key esc-map "\C-l" 'reposition-window)
 

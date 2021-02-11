@@ -1,4 +1,4 @@
-;;; mail-utils.el --- utility functions used both by rmail and rnews
+;;; mail-utils.el --- utility functions used both by rmail and rnews  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 2001-2021 Free Software Foundation, Inc.
 
@@ -46,6 +46,7 @@ also the To field, unless this would leave an empty To field."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'mail)
 
+(defvar epa-inhibit)
 ;; Returns t if file FILE is an Rmail file.
 ;;;###autoload
 (defun mail-file-babyl-p (file)
@@ -58,6 +59,7 @@ also the To field, unless this would leave an empty To field."
 (defun mail-string-delete (string start end)
   "Return a string containing all of STRING except the part
 from START (inclusive) to END (exclusive)."
+  ;; FIXME: This is not used anywhere.  Make obsolete?
   (if (null end) (substring string 0 start)
     (concat (substring string 0 start)
 	    (substring string end nil))))

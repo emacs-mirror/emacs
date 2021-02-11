@@ -73,13 +73,11 @@ Don't rely on this function, read it first!"
 	(topic-change-alist '())
 	prev-pos)
     (goto-char (point-max))
-    (imenu-progress-message prev-pos 0)
     (while (if (bolp)
 	       (> (forward-line -1)
 		  -1)
 	     (progn (forward-line 0)
 		    t))
-      (imenu-progress-message prev-pos nil t)
       (save-match-data
 	(when (looking-at (concat (regexp-quote erc-notice-prefix)
 				  "\\(.+\\)$"))

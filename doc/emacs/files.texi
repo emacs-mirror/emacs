@@ -927,7 +927,7 @@ Manual}).  For customizations, see the Custom group @code{time-stamp}.
 
   If you have made extensive changes to a file-visiting buffer and
 then change your mind, you can @dfn{revert} the changes and go back to
-the saved version of the file.  To do this, type @kbd{C-x g}.  Since
+the saved version of the file.  To do this, type @kbd{C-x x g}.  Since
 reverting unintentionally could lose a lot of work, Emacs asks for
 confirmation first.
 

@@ -700,8 +700,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   ;; https://lists.gnu.org/r/emacs-devel/2007-08/msg00827.html
   ;;
   ;; This makes it really work to keep point at the bottom.
-  ;; (make-local-variable 'scroll-conservatively)
-  ;; (setq scroll-conservatively 10000)
+  ;; (setq-local scroll-conservatively 10000)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom t t)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-process-echoes)

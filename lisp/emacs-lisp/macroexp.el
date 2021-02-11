@@ -200,6 +200,69 @@ and also to avoid outputting the warning during normal execution."
            new-form))
       new-form)))
 
+(defun macroexp--unfold-lambda (form &optional name)
+  ;; In lexical-binding mode, let and functions don't bind vars in the same way
+  ;; (let obey special-variable-p, but functions don't).  But luckily, this
+  ;; doesn't matter here, because function's behavior is underspecified so it
+  ;; can safely be turned into a `let', even though the reverse is not true.
+  (or name (setq name "anonymous lambda"))
+  (let* ((lambda (car form))
+         (values (cdr form))
+         (arglist (nth 1 lambda))
+         (body (cdr (cdr lambda)))
+         optionalp restp
+         bindings)
+    (if (and (stringp (car body)) (cdr body))
+        (setq body (cdr body)))
+    (if (and (consp (car body)) (eq 'interactive (car (car body))))
+        (setq body (cdr body)))
+    ;; FIXME: The checks below do not belong in an optimization phase.
+    (while arglist
+      (cond ((eq (car arglist) '&optional)
+             ;; ok, I'll let this slide because funcall_lambda() does...
+             ;; (if optionalp (error "multiple &optional keywords in %s" name))
+             (if restp (error "&optional found after &rest in %s" name))
+             (if (null (cdr arglist))
+                 (error "nothing after &optional in %s" name))
+             (setq optionalp t))
+            ((eq (car arglist) '&rest)
+             ;; ...but it is by no stretch of the imagination a reasonable
+             ;; thing that funcall_lambda() allows (&rest x y) and
+             ;; (&rest x &optional y) in arglists.
+             (if (null (cdr arglist))
+                 (error "nothing after &rest in %s" name))
+             (if (cdr (cdr arglist))
+                 (error "multiple vars after &rest in %s" name))
+             (setq restp t))
+            (restp
+             (setq bindings (cons (list (car arglist)
+                                        (and values (cons 'list values)))
+                                  bindings)
+                   values nil))
+            ((and (not optionalp) (null values))
+             (setq arglist nil values 'too-few))
+            (t
+             (setq bindings (cons (list (car arglist) (car values))
+                                  bindings)
+                   values (cdr values))))
+      (setq arglist (cdr arglist)))
+    (if values
+        (macroexp--warn-and-return
+         (format (if (eq values 'too-few)
+                     "attempt to open-code `%s' with too few arguments"
+                   "attempt to open-code `%s' with too many arguments")
+                 name)
+         form)
+
+      ;; The following leads to infinite recursion when loading a
+      ;; file containing `(defsubst f () (f))', and then trying to
+      ;; byte-compile that file.
+      ;;(setq body (mapcar 'byte-optimize-form body)))
+
+      (if bindings
+          `(let ,(nreverse bindings) . ,body)
+        (macroexp-progn body)))))
+
 (defun macroexp--expand-all (form)
   "Expand all macros in FORM.
 This is an internal version of `macroexpand-all'.
@@ -245,12 +308,8 @@ Assumes the caller has bound `macroexpand-all-environment'."
        ;; i.e. rewrite it to (let (<args>) <body>).  We'd do it in the optimizer
        ;; anyway, but doing it here (i.e. earlier) can sometimes avoid the
        ;; creation of a closure, thus resulting in much better code.
-       (let ((newform (if (not (fboundp 'byte-compile-unfold-lambda))
-	                  'macroexp--not-unfolded
-	                ;; Don't unfold if byte-opt is not yet loaded.
-	                (byte-compile-unfold-lambda form))))
-	 (if (or (eq newform 'macroexp--not-unfolded)
-	         (eq newform form))
+       (let ((newform (macroexp--unfold-lambda form)))
+	 (if (eq newform form)
 	     ;; Unfolding failed for some reason, avoid infinite recursion.
 	     (macroexp--cons (macroexp--all-forms fun 2)
                              (macroexp--all-forms args)

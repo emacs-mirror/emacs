@@ -121,6 +121,9 @@ static const char dump_magic[16] = {
 static pdumper_hook dump_hooks[24];
 static int nr_dump_hooks = 0;
 
+static pdumper_hook dump_late_hooks[24];
+static int nr_dump_late_hooks = 0;
+
 static struct
 {
   void *mem;
@@ -3245,6 +3248,12 @@ dump_metadata_for_pdumper (struct dump_context *ctx)
 				       (void const *) dump_hooks[i]);
   dump_emacs_reloc_immediate_int (ctx, &nr_dump_hooks, nr_dump_hooks);
 
+  for (int i = 0; i < nr_dump_late_hooks; ++i)
+    dump_emacs_reloc_to_emacs_ptr_raw (ctx, &dump_late_hooks[i],
+				       (void const *) dump_late_hooks[i]);
+  dump_emacs_reloc_immediate_int (ctx, &nr_dump_late_hooks,
+				  nr_dump_late_hooks);
+
   for (int i = 0; i < nr_remembered_data; ++i)
     {
       dump_emacs_reloc_to_emacs_ptr_raw (ctx, &remembered_data[i].mem,
@@ -4313,6 +4322,15 @@ pdumper_do_now_and_after_load_impl (pdumper_hook hook)
   if (nr_dump_hooks == ARRAYELTS (dump_hooks))
     fatal ("out of dump hooks: make dump_hooks[] bigger");
   dump_hooks[nr_dump_hooks++] = hook;
+  hook ();
+}
+
+void
+pdumper_do_now_and_after_late_load_impl (pdumper_hook hook)
+{
+  if (nr_dump_late_hooks == ARRAYELTS (dump_late_hooks))
+    fatal ("out of dump hooks: make dump_late_hooks[] bigger");
+  dump_late_hooks[nr_dump_late_hooks++] = hook;
   hook ();
 }
 
@@ -5597,6 +5615,12 @@ pdumper_load (const char *dump_filename, char *argv0, char const *original_pwd)
 
   dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
   dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);
+
+  /* Run the functions Emacs registered for doing post-dump-load
+     initialization.  */
+  for (int i = 0; i < nr_dump_late_hooks; ++i)
+    dump_late_hooks[i] ();
+
   initialized = true;
 
   struct timespec load_timespec =

@@ -462,7 +462,7 @@ or an empty string if none."
            (eq 0 (logand ?\111 (logxor old-perm new-perm))))
        "  "
      (if (eq 0 (logand ?\111 old-perm)) "+x" "-x"))
-  'face 'font-lock-type-face))
+  'face 'vc-dir-header))
 
 (defun vc-git-dir-printer (info)
   "Pretty-printer for the vc-dir-fileinfo structure."
@@ -474,20 +474,21 @@ or an empty string if none."
     (insert
      "  "
      (propertize (format "%c" (if (vc-dir-fileinfo->marked info) ?* ? ))
-                 'face 'font-lock-type-face)
+                 'face 'vc-dir-mark-indicator)
      "  "
      (propertize
       (format "%-12s" state)
-      'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
-                  ((eq state '(missing conflict)) 'font-lock-warning-face)
-                  (t 'font-lock-variable-name-face))
+      'face (cond ((eq state 'up-to-date) 'vc-dir-status-up-to-date)
+                  ((memq state '(missing conflict)) 'vc-dir-status-warning)
+                  ((eq state 'ignored) 'vc-dir-status-ignored)
+                  (t 'vc-dir-status-edited))
       'mouse-face 'highlight
       'keymap vc-dir-status-mouse-map)
      "  " (vc-git-permissions-as-string old-perm new-perm)
      "    "
      (propertize (vc-git-escape-file-name (vc-dir-fileinfo->name info))
-                 'face (if isdir 'font-lock-comment-delimiter-face
-                         'font-lock-function-name-face)
+                 'face (if isdir 'vc-dir-directory
+                         'vc-dir-file)
 		 'help-echo
 		 (if isdir
 		     "Directory\nVC operations can be applied to it\nmouse-3: Pop-up menu"
@@ -784,7 +785,7 @@ or an empty string if none."
                   (mapconcat
                    (lambda (x)
                      (propertize x
-                                 'face 'font-lock-variable-name-face
+                                 'face 'vc-dir-header-value
                                  'mouse-face 'highlight
                                  'vc-git-hideable all-hideable
                                  'help-echo vc-git-stash-list-help
@@ -800,7 +801,7 @@ or an empty string if none."
                   (mapconcat
                    (lambda (x)
                      (propertize x
-                                 'face 'font-lock-variable-name-face
+                                 'face 'vc-dir-header-value
                                  'mouse-face 'highlight
                                  'invisible t
                                  'vc-git-hideable t
@@ -810,33 +811,32 @@ or an empty string if none."
                    (propertize "\n"
                                'invisible t
                                'vc-git-hideable t))))))))
-    ;; FIXME: maybe use a different face when nothing is stashed.
     (concat
-     (propertize "Branch     : " 'face 'font-lock-type-face)
+     (propertize "Branch     : " 'face 'vc-dir-header)
      (propertize branch
-		 'face 'font-lock-variable-name-face)
+		 'face 'vc-dir-header-value)
      (when remote-url
        (concat
 	"\n"
-	(propertize "Remote     : " 'face 'font-lock-type-face)
+	(propertize "Remote     : " 'face 'vc-dir-header)
 	(propertize remote-url
-		    'face 'font-lock-variable-name-face)))
+		    'face 'vc-dir-header-value)))
      ;; For now just a heading, key bindings can be added later for various bisect actions
      (when (file-exists-p (expand-file-name ".git/BISECT_START" (vc-git-root dir)))
-       (propertize  "\nBisect     : in progress" 'face 'font-lock-warning-face))
+       (propertize  "\nBisect     : in progress" 'face 'vc-dir-status-warning))
      (when (file-exists-p (expand-file-name ".git/rebase-apply" (vc-git-root dir)))
-       (propertize  "\nRebase     : in progress" 'face 'font-lock-warning-face))
+       (propertize  "\nRebase     : in progress" 'face 'vc-dir-status-warning))
      (if stash-list
          (concat
-          (propertize "\nStash      : " 'face 'font-lock-type-face)
+          (propertize "\nStash      : " 'face 'vc-dir-header)
           stash-button
           stash-string)
        (concat
-	(propertize "\nStash      : " 'face 'font-lock-type-face)
+	(propertize "\nStash      : " 'face 'vc-dir-header)
 	(propertize "Nothing stashed"
 		    'help-echo vc-git-stash-shared-help
                     'keymap vc-git-stash-shared-map
-		    'face 'font-lock-variable-name-face))))))
+		    'face 'vc-dir-header-value))))))
 
 (defun vc-git-branches ()
   "Return the existing branches, as a list of strings.

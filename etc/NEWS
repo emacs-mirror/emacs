@@ -87,6 +87,10 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 ** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
 
++++
+** New command 'recenter-other-window', bound to 'S-M-C-l'.
+Like 'recenter-top-bottom' acting in the other window.
+
 ** Minibuffer scrolling is now conservative by default.
 This is controlled by the new variable 'scroll-minibuffer-conservatively'.
 
@@ -234,7 +238,12 @@ still applies for shorter search strings, which avoids flicker in the
 search buffer due to too many matches being highlighted.
 
 +++
-** 'revert-buffer' is now bound to 'C-x g' globally.
+** A new keymap for buffer actions has been added.
+The 'C-x x' keymap now holds keystrokes for various buffer-oriented
+commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
+'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'), 'C-x x n'
+('clone-buffer'), 'C-x x i' ('insert-buffer') and 'C-x x t'
+('toggle-truncate-lines').
 
 
 * Editing Changes in Emacs 28.1
@@ -465,8 +474,13 @@ applied when the option 'tab-line-tab-face-functions' is
 so-configured.  That option may also be used to customize tab-line
 faces in other ways.
 
-** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
+** Occur mode
+
+*** New bindings in occur-mode, 'next-error-no-select' bound to 'n' and
 'previous-error-no-select' bound to 'p'.
+
+*** The new command 'recenter-current-error', bound to 'l' in Occur or
+compilation buffers, recenters the current displayed occurrence/error.
 
 ** EIEIO
 
@@ -586,6 +600,13 @@ their 'default-directory' under VC.
 *** New face 'log-view-commit-body'.
 This is used when expanding commit messages from 'vc-print-root-log'
 and similar commands.
+
+---
+*** New faces for 'vc-dir' buffers.
+Those are: 'vc-dir-header', 'vc-dir-header-value', 'vc-dir-directory',
+'vc-dir-file', 'vc-dir-mark-indicator', 'vc-dir-status-warning',
+'vc-dir-status-edited', 'vc-dir-status-up-to-date',
+'vc-dir-status-ignored'.
 
 ---
 *** The responsible VC backend is now the most specific one.
@@ -852,6 +873,14 @@ so e.g. like 'C-x 8 [' inserts a left single quotation mark,
 'C-x \ [' does the same.
 
 ---
+*** New user options 'read-char-by-name-sort' and 'read-char-by-name-group'.
+'read-char-by-name-sort' defines the sorting order of characters for
+completion of 'C-x 8 RET TAB' and can be customized to sort them
+by codepoints instead of character names by default.  The 't' value of
+'read-char-by-name-group' groups the characters for completion of
+'C-x 8 RET TAB' by Unicode blocks.
+
+---
 *** Improved language transliteration in Malayalam input methods.
 Added a new Mozhi scheme.  The inapplicable ITRANS scheme is now
 deprecated.  Errors in the Inscript method were corrected.
@@ -896,7 +925,7 @@ To revert to the previous behavior,
 *** Most customize commands now hide obsolete user options.
 Obsolete user options are no longer shown in the listings produced by
 the commands 'customize', 'customize-group', 'customize-apropos' and
-'customize-changed-options'.
+'customize-changed'.
 
 To customize obsolete user options, use 'customize-option' or
 'customize-saved'.
@@ -1604,6 +1633,13 @@ that makes it a valid button.
 *** New variable 'thing-at-point-provider-alist'.
 This allows mode-specific alterations to how 'thing-at-point' works.
 
+** Enriched mode
+
+---
+*** 'C-a' is by default no longer bound to 'beginning-of-line-text'.
+This is so 'C-a' works as in other modes, and in particular holding
+Shift while typing 'C-a', i.e. 'C-S-a', will now highlight the text.
+
 ** Miscellaneous
 
 +++
@@ -2016,6 +2052,11 @@ first).
 
 * Incompatible Editing Changes in Emacs 28.1
 
+** The 'M-o' ('facemanu-keymap') global binding has been removed.
+
+** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
+Use 'M-x center-line' and 'M-x center-paragraph' instead.
+
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
 special escape syntax in Fortran F90.  To get the old behaviour back,
@@ -2032,6 +2073,8 @@ directory instead of the default directory.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
+** 'pcomplete-ignore-case' is now an obsolete alias of 'completion-ignore-case'.
 
 ** 'completions-annotations' face is not used when the caller puts own face.
 This affects the suffix specified by completion 'annotation-function'.
@@ -2087,6 +2130,11 @@ parameter.
 ** The Lisp variables 'previous-system-messages-locale' and
 'previous-system-time-locale' have been removed, as they were created
 by mistake and were not useful to Lisp code.
+
+---
+** Loading 'generic-x' unconditionally loads all modes.
+The user option `generic-extras-enable-list' is now obsolete, and
+setting it has no effect.
 
 ---
 ** The 'load-dangerous-libraries' variable is now obsolete.
@@ -2191,6 +2239,8 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 
 
 * Lisp Changes in Emacs 28.1
+
+** The 'values' variable is now obsolete.
 
 ---
 ** New variable 'indent-line-ignored-functions'.

@@ -1,4 +1,4 @@
-;;; 5x5.el --- simple little puzzle game
+;;; 5x5.el --- simple little puzzle game  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -289,7 +289,7 @@ Quit current game           \\[5x5-quit-game]"
 (defun 5x5-draw-grid-end ()
   "Draw the top/bottom of the grid."
   (insert "+")
-  (dotimes (x 5x5-grid-size)
+  (dotimes (_ 5x5-grid-size)
     (insert "-" (make-string 5x5-x-scale ?-)))
   (insert "-+ "))
 
@@ -297,11 +297,11 @@ Quit current game           \\[5x5-quit-game]"
   "Draw the grids GRIDS into the current buffer."
   (let ((inhibit-read-only t) grid-org)
     (erase-buffer)
-    (dolist (grid grids) (5x5-draw-grid-end))
+    (dolist (_ grids) (5x5-draw-grid-end))
     (insert "\n")
     (setq grid-org (point))
     (dotimes (y 5x5-grid-size)
-      (dotimes (lines 5x5-y-scale)
+      (dotimes (_lines 5x5-y-scale)
         (dolist (grid grids)
           (dotimes (x 5x5-grid-size)
             (insert (if (zerop x) "| " " ")
@@ -331,7 +331,7 @@ Quit current game           \\[5x5-quit-game]"
 		    (forward-char  (1+ 5x5-x-scale))))
 		(forward-line  5x5-y-scale))))
 	(setq 5x5-solver-output nil)))
-    (dolist (grid grids) (5x5-draw-grid-end))
+    (dolist (_grid grids) (5x5-draw-grid-end))
     (insert "\n")
     (insert (format "On: %d  Moves: %d" (5x5-grid-value (car grids)) 5x5-moves))))
 
@@ -475,11 +475,11 @@ position."
   "Convert a grid matrix GRID-MATRIX in Calc format to a grid in
 5x5 format.  See function `5x5-grid-to-vec'."
   (apply
-   'vector
+   #'vector
    (mapcar
     (lambda (x)
       (apply
-       'vector
+       #'vector
        (mapcar
 	(lambda (y) (/= (cadr y) 0))
 	(cdr x))))
@@ -503,7 +503,9 @@ position."
 Log a matrix VALUE of (mod B 2) forms, only B is output and
 Scilab matrix notation is used.  VALUE is returned so that it is
 easy to log a value with minimal rewrite of code."
-	(when (buffer-live-p 5x5-log-buffer)
+        (when (buffer-live-p 5x5-log-buffer)
+          (defvar calc-matrix-brackets)
+          (defvar calc-vector-commas)
 	  (let* ((unpacked-value
 		  (math-map-vec
 		   (lambda (row) (math-map-vec 'cadr row))
@@ -515,7 +517,7 @@ easy to log a value with minimal rewrite of code."
 	      (insert name ?= value-to-log ?\n))))
 	value))
   (defsubst 5x5-log-init ())
-  (defsubst 5x5-log (name value) value)))
+  (defsubst 5x5-log (_name value) value)))
 
 (declare-function math-map-vec "calc-vec" (f a))
 (declare-function math-sub "calc" (a b))
@@ -533,6 +535,10 @@ easy to log a value with minimal rewrite of code."
 (declare-function calcFunc-mcol "calc-vec" (mat n))
 (declare-function calcFunc-vconcat "calc-vec" (a b))
 (declare-function calcFunc-index "calc-vec" (n &optional start incr))
+(defvar calc-word-size)
+(defvar calc-leading-zeros)
+(defvar calc-number-radix)
+(defvar calc-command-flags)
 
 (defun 5x5-solver (grid)
   "Return a list of solutions for GRID.
@@ -671,16 +677,16 @@ Solutions are sorted from least to greatest Hamming weight."
 	    (5x5-log
 	     "cb"
 	     (math-mul inv-base-change targetv))); CB
-	   (row-1  (math-make-intv 3  1 transferm-kernel-size)) ; 1..2
+           ;; (row-1  (math-make-intv 3  1 transferm-kernel-size)) ; 1..2
 	   (row-2   (math-make-intv 1 transferm-kernel-size
 				    grid-size-squared)); 3..25
 	   (col-1 (math-make-intv 3 1  (- grid-size-squared
 					  transferm-kernel-size))); 1..23
-	   (col-2 (math-make-intv 1 (- grid-size-squared
-				       transferm-kernel-size)
-				  grid-size-squared)); 24..25
-	   (ctransferm-1-: (calcFunc-mrow ctransferm row-1))
-	   (ctransferm-1-1 (calcFunc-mcol ctransferm-1-: col-1))
+           ;; (col-2 (math-make-intv 1 (- grid-size-squared
+           ;;      		       transferm-kernel-size)
+           ;;      		  grid-size-squared)) ; 24..25
+           ;; (ctransferm-1-: (calcFunc-mrow ctransferm row-1))
+           ;; (ctransferm-1-1 (calcFunc-mcol ctransferm-1-: col-1))
 
 	   ;; By construction ctransferm-:-2 = 0, so ctransferm-1-2 = 0
 	   ;; and ctransferm-2-2 = 0.
@@ -696,8 +702,8 @@ Solutions are sorted from least to greatest Hamming weight."
 	   ;;
 	   ;;(ctransferm-2-2 (calcFunc-mcol ctransferm-2-: col-2))
 
-	   (ctarget-1 (calcFunc-mrow ctarget row-1))
-	   (ctarget-2 (calcFunc-mrow ctarget row-2))
+           ;; (ctarget-1 (calcFunc-mrow ctarget row-1))
+           (ctarget-2 (calcFunc-mrow ctarget row-2))
 
 	   ;;   ctarget-1(2x1)  =   ctransferm-1-1(2x23) *cx-1(23x1)
 	   ;;                     + ctransferm-1-2(2x2) *cx-2(2x1);
@@ -770,7 +776,7 @@ Solutions are sorted from least to greatest Hamming weight."
       (message "5x5 Solution computation done.")
       solution-list)))
 
-(defun 5x5-solve-suggest (&optional n)
+(defun 5x5-solve-suggest (&optional _n)
   "Suggest to the user where to click.
 
 Argument N is ignored."
