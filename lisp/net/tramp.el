@@ -1750,7 +1750,7 @@ The outline level is equal to the verbosity of the Tramp message."
    (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
    (tramp-compat-temporary-file-directory)))
 
-(defsubst tramp-debug-message (vec fmt-string &rest arguments)
+(defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
 Message is formatted with FMT-STRING as control string and the remaining
 ARGUMENTS to actually emit the message (if applicable)."
