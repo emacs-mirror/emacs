@@ -1,4 +1,4 @@
-;;; semantic/decorate/mode.el --- Minor mode for decorating tags
+;;; semantic/decorate/mode.el --- Minor mode for decorating tags  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -358,12 +358,12 @@ Return non-nil if the decoration style is enabled."
 	  :selected `(semantic-decoration-style-enabled-p ,(car style))
 	  ))
 
-(defun semantic-build-decoration-mode-menu (&rest ignore)
+(defun semantic-build-decoration-mode-menu (&rest _ignore)
   "Create a menu listing all the known decorations for toggling.
 IGNORE any input arguments."
   (or semantic-decoration-menu-cache
       (setq semantic-decoration-menu-cache
-	    (mapcar 'semantic-decoration-build-style-menu
+	    (mapcar #'semantic-decoration-build-style-menu
 		    (reverse semantic-decoration-styles))
 	    )))
 
