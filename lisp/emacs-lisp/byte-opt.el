@@ -458,16 +458,22 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
        (cons fn (byte-optimize-body exps for-effect)))
 
       (`(if ,test ,then . ,else)
+       ;; FIXME: We are conservative here: any variable changed in the
+       ;; THEN branch will be barred from substitution in the ELSE
+       ;; branch, despite the branches being mutually exclusive.
+
        ;; The test is always executed.
        (let* ((test-opt (byte-optimize-form test nil))
-              ;; The THEN and ELSE branches are executed conditionally.
-              ;;
-              ;; FIXME: We are conservative here: any variable changed in the
-              ;; THEN branch will be barred from substitution in the ELSE
-              ;; branch, despite the branches being  mutually exclusive.
-              (byte-optimize--vars-outside-condition byte-optimize--lexvars)
-              (then-opt (byte-optimize-form then for-effect))
-              (else-opt (byte-optimize-body else for-effect)))
+              (const (macroexp-const-p test-opt))
+              ;; The branches are traversed unconditionally when possible.
+              (byte-optimize--vars-outside-condition
+               (if const
+                   byte-optimize--vars-outside-condition
+                 byte-optimize--lexvars))
+              ;; Avoid traversing dead branches.
+              (then-opt (and test-opt (byte-optimize-form then for-effect)))
+              (else-opt (and (not (and test-opt const))
+                             (byte-optimize-body else for-effect))))
          `(if ,test-opt ,then-opt . ,else-opt)))
 
       (`(,(or 'and 'or) . ,exps) ; Remember, and/or are control structures.
@@ -638,30 +644,24 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
 (defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
-  ;;
-  ;; First, optimize all sub-forms of this one.
-  (setq form (byte-optimize-form-code-walker form for-effect))
-  ;;
-  ;; after optimizing all subforms, optimize this form until it doesn't
-  ;; optimize any further.  This means that some forms will be passed through
-  ;; the optimizer many times, but that's necessary to make the for-effect
-  ;; processing do as much as possible.
-  ;;
-  (let (opt new)
-    (if (and (consp form)
-	     (symbolp (car form))
-	     (or ;; (and for-effect
-		 ;;      ;; We don't have any of these yet, but we might.
-		 ;;      (setq opt (get (car form)
-                 ;;                     'byte-for-effect-optimizer)))
-		 (setq opt (function-get (car form) 'byte-optimizer)))
-	     (not (eq form (setq new (funcall opt form)))))
-	(progn
-;;	  (if (equal form new) (error "bogus optimizer -- %s" opt))
-	  (byte-compile-log "  %s\t==>\t%s" form new)
-	  (setq new (byte-optimize-form new for-effect))
-	  new)
-      form)))
+  (while
+      (progn
+        ;; First, optimize all sub-forms of this one.
+        (setq form (byte-optimize-form-code-walker form for-effect))
+
+        ;; If a form-specific optimiser is available, run it and start over
+        ;; until a fixpoint has been reached.
+        (and (consp form)
+             (symbolp (car form))
+             (let ((opt (function-get (car form) 'byte-optimizer)))
+               (and opt
+                    (let ((old form)
+                          (new (funcall opt form)))
+	              (byte-compile-log "  %s\t==>\t%s" old new)
+                      (setq form new)
+                      (not (eq new old))))))))
+  ;; Normalise (quote nil) to nil, for a single representation of constant nil.
+  (and (not (equal form '(quote nil))) form))
 
 (defun byte-optimize-let-form (head form for-effect)
   ;; Recursively enter the optimizer for the bindings and body
