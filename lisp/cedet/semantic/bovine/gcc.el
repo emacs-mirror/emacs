@@ -89,8 +89,9 @@ to give to the program."
               (let ((path (substring line 1)))
                 (when (and (file-accessible-directory-p path)
                            (file-name-absolute-p path))
-                  (cl-pushnew (expand-file-name path) inc-path))))))))
-    inc-path))
+                  (cl-pushnew (expand-file-name path) inc-path
+                              :test #'equal))))))))
+    (nreverse inc-path)))
 
 
 (defun semantic-cpp-defs (str)
