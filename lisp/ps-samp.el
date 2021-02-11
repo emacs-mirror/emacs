@@ -1,4 +1,4 @@
-;;; ps-samp.el --- ps-print sample setup code
+;;; ps-samp.el --- ps-print sample setup code  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
