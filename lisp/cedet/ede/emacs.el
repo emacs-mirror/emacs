@@ -1,4 +1,4 @@
-;;; ede/emacs.el --- Special project for Emacs
+;;; ede/emacs.el --- Special project for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 

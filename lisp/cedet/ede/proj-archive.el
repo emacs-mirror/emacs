@@ -1,4 +1,4 @@
-;;; ede/proj-archive.el --- EDE Generic Project archive support
+;;; ede/proj-archive.el --- EDE Generic Project archive support  -*- lexical-binding: t -*-
 
 ;;  Copyright (C) 1998-2001, 2009-2021 Free Software Foundation, Inc.
 
@@ -45,7 +45,7 @@
   "Linker object for creating an archive.")
 
 (cl-defmethod ede-proj-makefile-insert-source-variables :before
-  ((this ede-proj-target-makefile-archive) &optional moresource)
+  ((this ede-proj-target-makefile-archive) &optional _moresource)
   "Insert bin_PROGRAMS variables needed by target THIS.
 We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program."
