@@ -3,11 +3,12 @@
 @setfilename ../../info/remember.info
 @settitle Remember Manual
 @include docstyle.texi
+@include emacsver.texi
 @syncodeindex fn cp
 @c %**end of header
 
 @copying
-This manual is for Remember Mode, version 2.0
+This manual is for Remember Mode, as distributed with Emacs @value{EMACSVER}.
 
 Copyright @copyright{} 2001, 2004--2005, 2007--2021 Free Software
 Foundation, Inc.
