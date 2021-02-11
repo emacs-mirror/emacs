@@ -546,14 +546,41 @@ On PGTK, TIME-STAMP is unused.  */)
 
   cb = symbol_to_gtk_clipboard (FRAME_GTK_WIDGET (f), selection_symbol);
 
-  gchar *s = gtk_clipboard_wait_for_text (cb);
-  if (s == NULL)
+  GdkAtom target_atom = gdk_atom_intern (SSDATA (SYMBOL_NAME (target_type)), false);
+  GtkSelectionData *seldata = gtk_clipboard_wait_for_contents (cb, target_atom);
+
+  if (seldata == NULL)
     return Qnil;
-  int size = strlen (s);
-  Lisp_Object str = make_unibyte_string (s, size);
-  Fput_text_property (make_fixnum (0), make_fixnum (size),
-		      Qforeign_selection, QUTF8_STRING, str);
-  return str;
+
+  const guchar *sd_data = gtk_selection_data_get_data (seldata);
+  int sd_len = gtk_selection_data_get_length (seldata);
+  int sd_format = gtk_selection_data_get_format (seldata);
+  GdkAtom sd_type = gtk_selection_data_get_data_type (seldata);
+
+  if (sd_format == 8)
+    {
+      Lisp_Object str, lispy_type;
+
+      str = make_unibyte_string ((char *) sd_data, sd_len);
+      /* Indicate that this string is from foreign selection by a text
+	 property `foreign-selection' so that the caller of
+	 x-get-selection-internal (usually x-get-selection) can know
+	 that the string must be decode.  */
+      if (sd_type == gdk_atom_intern("COMPOUND_TEXT", false))
+	lispy_type = QCOMPOUND_TEXT;
+      else if (sd_type == gdk_atom_intern("UTF8_STRING", false))
+	lispy_type = QUTF8_STRING;
+      else
+	lispy_type = QSTRING;
+      Fput_text_property (make_fixnum (0), make_fixnum (sd_len),
+			  Qforeign_selection, lispy_type, str);
+
+      gtk_selection_data_free (seldata);
+      return str;
+    }
+
+  gtk_selection_data_free (seldata);
+  return Qnil;
 }
 
 
@@ -576,6 +603,8 @@ syms_of_pgtkselect (void)
 
   DEFSYM (Qforeign_selection, "foreign-selection");
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
+  DEFSYM (QSTRING, "STRING");
+  DEFSYM (QCOMPOUND_TEXT, "COMPOUND_TEXT");
 
   defsubr (&Spgtk_disown_selection_internal);
   defsubr (&Spgtk_get_selection_internal);

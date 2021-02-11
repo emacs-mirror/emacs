@@ -66,6 +66,9 @@ static Lisp_Object monitor_scale_factor_alist;
 static double
 pgtk_get_monitor_scale_factor (const char *model)
 {
+  if (model == NULL)
+    return 0.0;
+
   Lisp_Object mdl = build_string (model);
   Lisp_Object tem = Fassoc(mdl, monitor_scale_factor_alist, Qnil);
   if (NILP (tem))
