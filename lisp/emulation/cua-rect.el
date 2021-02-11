@@ -37,7 +37,7 @@
 
 (require 'rect)
 
-(defvar cua--rectangle nil
+(defvar-local cua--rectangle nil
   "If non-nil, restrict current region to this rectangle.
 A cua-rectangle definition is a vector used for all actions in
 `cua-rectangle-mark-mode', of the form:
@@ -59,7 +59,6 @@ If VIRT is non-nil, virtual straight edges are enabled.
 
 If SELECT is a regexp, only lines starting with that regexp are
 affected.")
-(make-variable-buffer-local 'cua--rectangle)
 
 (defvar cua--last-rectangle nil
   "Most recent rectangle geometry.
@@ -85,9 +84,8 @@ See `cua--rectangle'.")
 ;;       "active " "sert on" " straig" " lines ")
 (defvar cua--last-killed-rectangle nil)
 
-(defvar cua--rectangle-overlays nil
+(defvar-local cua--rectangle-overlays nil
   "List of overlays used to display current rectangle.")
-(make-variable-buffer-local 'cua--rectangle-overlays)
 (put 'cua--rectangle-overlays 'permanent-local t)
 
 (defvar cua--overlay-keymap

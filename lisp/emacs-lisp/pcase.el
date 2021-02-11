@@ -135,7 +135,6 @@ PATTERN matches.  PATTERN can take one of the forms:
   (pred (not FUN)) matches if FUN called on EXPVAL returns nil.
   (app FUN PAT)    matches if FUN called on EXPVAL matches PAT.
   (guard BOOLEXP)  matches if BOOLEXP evaluates to non-nil.
-  (let PAT EXPR)   matches if EXPR matches PAT.
   (and PAT...)     matches if all the patterns match.
   (or PAT...)      matches if any of the patterns matches.
 
@@ -145,7 +144,7 @@ FUN in `pred' and `app' can take one of the forms:
   (F ARG1 .. ARGn)
      call F with ARG1..ARGn and EXPVAL as n+1'th argument
 
-FUN, BOOLEXP, EXPR, and subsequent PAT can refer to variables
+FUN, BOOLEXP, and subsequent PAT can refer to variables
 bound earlier in the pattern by a SYMBOL pattern.
 
 Additional patterns can be defined using `pcase-defmacro'.
@@ -426,7 +425,6 @@ of the elements of LIST is performed as if by `pcase-let'.
       (if (pcase--self-quoting-p pat) `',pat pat))
      ((memq head '(pred guard quote)) pat)
      ((memq head '(or and)) `(,head ,@(mapcar #'pcase--macroexpand (cdr pat))))
-     ((eq head 'let) `(let ,(pcase--macroexpand (cadr pat)) ,@(cddr pat)))
      ((eq head 'app) `(app ,(nth 1 pat) ,(pcase--macroexpand (nth 2 pat))))
      (t
       (let* ((expander (pcase--get-macroexpander head))
@@ -888,17 +886,8 @@ Otherwise, it defers to REST which is a list of branches of the form
         (if (not (assq upat vars))
             (pcase--u1 matches code (cons (cons upat sym) vars) rest)
           ;; Non-linear pattern.  Turn it into an `eq' test.
-          (pcase--u1 (cons `(match ,sym . (pred (eq ,(cdr (assq upat vars)))))
+          (pcase--u1 (cons `(match ,sym . (pred (eql ,(cdr (assq upat vars)))))
                            matches)
-                     code vars rest)))
-       ((eq (car-safe upat) 'let)
-        ;; A upat of the form (let VAR EXP).
-        ;; (pcase--u1 matches code
-        ;;            (cons (cons (nth 1 upat) (nth 2 upat)) vars) rest)
-        (macroexp-let2
-            macroexp-copyable-p sym
-            (pcase--eval (nth 2 upat) vars)
-          (pcase--u1 (cons (pcase--match sym (nth 1 upat)) matches)
                      code vars rest)))
        ((eq (car-safe upat) 'app)
         ;; A upat of the form (app FUN PAT)
@@ -1010,6 +999,10 @@ The predicate is the logical-AND of:
    ;; backward compatibility when adding \` support for other
    ;; compounded values that are not `consp'
    (t (error "Unknown QPAT: %S" qpat))))
+
+(pcase-defmacro let (pat expr)
+  "Matches if EXPR matches PAT."
+  `(app (lambda (_) ,expr) ,pat))
 
 (provide 'pcase)
 ;;; pcase.el ends here

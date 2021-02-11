@@ -351,9 +351,8 @@ If nil, the default personal dictionary for your spelling checker is used."
   :type 'boolean
   :group 'ispell)
 
-(defvar ispell-local-dictionary-overridden nil
+(defvar-local ispell-local-dictionary-overridden nil
   "Non-nil means the user has explicitly set this buffer's Ispell dictionary.")
-(make-variable-buffer-local 'ispell-local-dictionary-overridden)
 
 (defcustom ispell-local-dictionary nil
   "If non-nil, the dictionary to be used for Ispell commands in this buffer.
@@ -1748,7 +1747,7 @@ Note - substrings of other matches must come last
  (e.g. \"<[tT][tT]/\" and \"<[^ \\t\\n>]\").")
 (put 'ispell-html-skip-alists 'risky-local-variable t)
 
-(defvar ispell-local-pdict ispell-personal-dictionary
+(defvar-local ispell-local-pdict ispell-personal-dictionary
   "A buffer local variable containing the current personal dictionary.
 If non-nil, the value must be a string, which is a file name.
 
@@ -1758,17 +1757,14 @@ to calling \\[ispell-change-dictionary].  This variable is automatically
 set when defined in the file with either `ispell-pdict-keyword' or the
 local variable syntax.")
 
-(make-variable-buffer-local 'ispell-local-pdict)
 ;;;###autoload(put 'ispell-local-pdict 'safe-local-variable 'stringp)
 
 (defvar ispell-buffer-local-name nil
   "Contains the buffer name if local word definitions were used.
 Ispell is then restarted because the local words could conflict.")
 
-(defvar ispell-buffer-session-localwords nil
+(defvar-local ispell-buffer-session-localwords nil
   "List of words accepted for session in this buffer.")
-
-(make-variable-buffer-local 'ispell-buffer-session-localwords)
 
 (defvar ispell-parser 'use-mode-name
   "Indicates whether ispell should parse the current buffer as TeX Code.

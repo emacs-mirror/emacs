@@ -1725,14 +1725,14 @@ a type (see `mailcap-mime-types').
 Optional argument DEFAULT is returned if a type isn't entered."
   (mailcap-parse-mimetypes)
   (let* ((default (or default
-                      (mm-default-file-encoding filename)
+                      (mm-default-file-type filename)
                       "application/octet-stream"))
          (probed-type (mh-file-mime-type filename))
          (type (or (and (not (equal probed-type "application/octet-stream"))
                         probed-type)
                    (completing-read
                     (format "Content type (default %s): " default)
-                    (mapcar 'list (mailcap-mime-types))))))
+                    (mapcar #'list (mailcap-mime-types))))))
     (if (not (equal type ""))
         type
       default)))

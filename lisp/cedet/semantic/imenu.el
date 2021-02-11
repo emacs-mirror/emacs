@@ -136,12 +136,11 @@ other buffer local ones based on the same semanticdb."
   "Non-nil if `semantic-imenu-rebuild-directory-indexes' is running.")
 
 ;;;###autoload
-(defvar semantic-imenu-expandable-tag-classes '(type)
+(defvar-local semantic-imenu-expandable-tag-classes '(type)
   "List of expandable tag classes.
 Tags of those classes will be given submenu with children.
 By default, a `type' has interesting children.  In Texinfo, however, a
 `section' has interesting children.")
-(make-variable-buffer-local 'semantic-imenu-expandable-tag-classes)
 
 ;;; Code:
 (defun semantic-imenu-tag-overlay (tag)

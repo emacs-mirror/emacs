@@ -112,9 +112,8 @@ If nil, `cpp-progress-message' prints no progress messages."
   :group 'cpp
   :version "26.1")
 
-(defvar cpp-overlay-list nil)
-;; List of cpp overlays active in the current buffer.
-(make-variable-buffer-local 'cpp-overlay-list)
+(defvar-local cpp-overlay-list nil
+  "List of cpp overlays active in the current buffer.")
 
 (defvar cpp-callback-data)
 (defvar cpp-state-stack)
@@ -134,9 +133,8 @@ If nil, `cpp-progress-message' prints no progress messages."
 (defvar cpp-button-event nil)
 ;; This will be t in the callback for `cpp-make-button'.
 
-(defvar cpp-edit-buffer nil)
-;; Real buffer whose cpp display information we are editing.
-(make-variable-buffer-local 'cpp-edit-buffer)
+(defvar-local cpp-edit-buffer nil
+  "Real buffer whose cpp display information we are editing.")
 
 (defconst cpp-branch-list
   ;; Alist of branches.
@@ -211,9 +209,8 @@ or a cons cell (background-color . COLOR)."
 
 ;;; Parse Buffer:
 
-(defvar cpp-parse-symbols nil
+(defvar-local cpp-parse-symbols nil
   "List of cpp macros used in the local buffer.")
-(make-variable-buffer-local 'cpp-parse-symbols)
 
 (defconst cpp-parse-regexp
   ;; Regexp matching all tokens needed to find conditionals.
@@ -471,9 +468,8 @@ A prefix arg suppresses display of that buffer."
 
 
 
-(defvar cpp-edit-symbols nil)
-;; Symbols defined in the edit buffer.
-(make-variable-buffer-local 'cpp-edit-symbols)
+(defvar-local cpp-edit-symbols nil
+  "Symbols defined in the edit buffer.")
 
 (define-derived-mode cpp-edit-mode fundamental-mode "CPP Edit"
   "Major mode for editing the criteria for highlighting cpp conditionals.

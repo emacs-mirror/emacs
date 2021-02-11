@@ -634,9 +634,8 @@ a cons (TYPE . COLOR), then both properties are affected."
 
 ;;; Low-level Interface
 
-(defvar cua-inhibit-cua-keys nil
+(defvar-local cua-inhibit-cua-keys nil
   "Buffer-local variable that may disable the CUA keymappings.")
-(make-variable-buffer-local 'cua-inhibit-cua-keys)
 
 ;;; Aux. variables
 
@@ -644,9 +643,8 @@ a cons (TYPE . COLOR), then both properties are affected."
 ;; checked in post-command hook to see if point was moved
 (defvar cua--buffer-and-point-before-command nil)
 
-;; status string for mode line indications
-(defvar cua--status-string nil)
-(make-variable-buffer-local 'cua--status-string)
+(defvar-local cua--status-string nil
+  "Status string for mode line indications.")
 
 (defvar cua--debug nil)
 

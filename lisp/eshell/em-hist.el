@@ -99,8 +99,12 @@ If it is nil, Eshell will use the value of HISTFILE."
 
 (defcustom eshell-hist-ignoredups nil
   "If non-nil, don't add input matching the last on the input ring.
-This mirrors the optional behavior of bash."
-  :type 'boolean)
+The value `erase' mirrors the \"erasedups\" value of HISTCONTROL
+in bash, and any other non-nil value mirrors the \"ignoredups\"
+value."
+  :type '(choice (const :tag "Don't ignore anything" nil)
+                 (const :tag "Ignore consecutive duplicates" t)
+                 (const :tag "Only keep last duplicate" 'erase)))
 
 (defcustom eshell-save-history-on-exit t
   "Determine if history should be automatically saved.
@@ -371,12 +375,22 @@ unless a different file is specified on the command line.")
 Input is entered into the input history ring, if the value of
 variable `eshell-input-filter' returns non-nil when called on the
 input."
-  (if (and (funcall eshell-input-filter input)
-	   (or (null eshell-hist-ignoredups)
-	       (not (ring-p eshell-history-ring))
-	       (ring-empty-p eshell-history-ring)
-	       (not (string-equal (eshell-get-history 0) input))))
-      (eshell-put-history input))
+  (when (and (funcall eshell-input-filter input)
+             (if (eq eshell-hist-ignoredups 'erase)
+                 ;; Remove any old occurrences of the input, and put
+                 ;; the new one at the end.
+                 (progn
+                   (ring-remove eshell-history-ring
+	                        (ring-member eshell-history-ring input))
+                   t)
+               ;; Always add...
+               (or (null eshell-hist-ignoredups)
+                   ;; ... or add if it's not already present at the
+                   ;; end.
+	           (not (ring-p eshell-history-ring))
+	           (ring-empty-p eshell-history-ring)
+	           (not (string-equal (eshell-get-history 0) input)))))
+    (eshell-put-history input))
   (setq eshell-save-history-index eshell-history-index)
   (setq eshell-history-index nil))
 

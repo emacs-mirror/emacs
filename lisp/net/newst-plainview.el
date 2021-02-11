@@ -34,7 +34,6 @@
 
 (require 'newst-ticker)
 (require 'newst-reader)
-(require 'derived)
 (require 'xml)
 
 ;; Silence warnings

@@ -972,8 +972,7 @@ Otherwise, [0-9A-F]."
 ;; Ethiopic word separator vs. ASCII space
 ;;
 
-(defvar ethio-prefer-ascii-space t)
-(make-variable-buffer-local 'ethio-prefer-ascii-space)
+(defvar-local ethio-prefer-ascii-space t)
 
 (defun ethio-toggle-space nil
   "Toggle ASCII space and Ethiopic separator for keyboard input."

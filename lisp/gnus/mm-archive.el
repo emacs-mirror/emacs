@@ -1,4 +1,4 @@
-;;; mm-archive.el --- Functions for parsing archive files as MIME
+;;; mm-archive.el --- Functions for parsing archive files as MIME  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 
@@ -54,10 +54,10 @@
 		  (write-region (point-min) (point-max) file nil 'silent)
 		  (setq decoder (copy-sequence decoder))
 		  (setcar (member "%f" decoder) file)
-		  (apply 'call-process (car decoder) nil nil nil
+		  (apply #'call-process (car decoder) nil nil nil
 			 (append (cdr decoder) (list dir)))
 		  (delete-file file))
-	      (apply 'call-process-region (point-min) (point-max) (car decoder)
+	      (apply #'call-process-region (point-min) (point-max) (car decoder)
 		     nil (gnus-get-buffer-create "*tnef*")
 		     nil (append (cdr decoder) (list dir)))))
 	  `("multipart/mixed"
@@ -100,11 +100,11 @@
       (goto-char (point-max))
       (mm-handle-set-undisplayer
        handle
-       `(lambda ()
-	  (let ((inhibit-read-only t)
-		(end ,(point-marker)))
-	    (remove-images ,start end)
-	    (delete-region ,start end)))))))
+       (let ((end (point-marker)))
+	 (lambda ()
+	   (let ((inhibit-read-only t))
+	     (remove-images start end)
+	     (delete-region start end))))))))
 
 (provide 'mm-archive)
 

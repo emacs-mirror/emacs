@@ -2017,7 +2017,8 @@ describing the type of event.
 default sentinel function, which inserts a message in the process's
 buffer with the process name and the string describing the event.
 
-  The string describing the event looks like one of the following:
+  The string describing the event looks like one of the following (but
+this is not an exhaustive list of event strings):
 
 @itemize @bullet
 @item
@@ -2046,6 +2047,9 @@ core.
 
 @item
 @code{"open\n"}.
+
+@item
+@code{"run\n"}.
 
 @item
 @code{"connection broken by remote peer\n"}.

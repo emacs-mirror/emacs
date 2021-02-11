@@ -2941,16 +2941,11 @@ See `ebnf-style-database' documentation."
 (defvar ebnf-eps-executing      nil)
 (defvar ebnf-eps-header-comment nil)
 (defvar ebnf-eps-footer-comment nil)
-(defvar ebnf-eps-upper-x        0.0)
-(make-variable-buffer-local 'ebnf-eps-upper-x)
-(defvar ebnf-eps-upper-y        0.0)
-(make-variable-buffer-local 'ebnf-eps-upper-y)
-(defvar ebnf-eps-prod-width     0.0)
-(make-variable-buffer-local 'ebnf-eps-prod-width)
-(defvar ebnf-eps-max-height     0.0)
-(make-variable-buffer-local 'ebnf-eps-max-height)
-(defvar ebnf-eps-max-width      0.0)
-(make-variable-buffer-local 'ebnf-eps-max-width)
+(defvar-local ebnf-eps-upper-x        0.0)
+(defvar-local ebnf-eps-upper-y        0.0)
+(defvar-local ebnf-eps-prod-width     0.0)
+(defvar-local ebnf-eps-max-height     0.0)
+(defvar-local ebnf-eps-max-width      0.0)
 
 
 (defvar ebnf-eps-context nil

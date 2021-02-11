@@ -249,7 +249,7 @@ arguments to pass to the OPERATION."
 ;;;###tramp-autoload
 (defun tramp-crypt-file-name-handler (operation &rest args)
   "Invoke the crypted remote file related OPERATION.
-First arg specifies the OPERATION, second arg ARGS is a list of
+First arg specifies the OPERATION, second arg is a list of
 arguments to pass to the OPERATION."
   (if-let ((filename
 	    (apply #'tramp-crypt-file-name-for-operation operation args))
@@ -568,9 +568,7 @@ absolute file names."
 
       (with-parsed-tramp-file-name (if t1 filename newname) nil
 	(unless (file-exists-p filename)
-	  (tramp-error
-	   v tramp-file-missing
-	   "%s file" msg-operation "No such file or directory" filename))
+	  (tramp-compat-file-missing v filename))
 	(when (and (not ok-if-already-exists) (file-exists-p newname))
 	  (tramp-error v 'file-already-exists newname))
 	(when (and (file-directory-p newname)
@@ -672,9 +670,7 @@ absolute file names."
     (directory &optional full match nosort count)
   "Like `directory-files' for Tramp files."
   (unless (file-exists-p directory)
-    (tramp-error
-     (tramp-dissect-file-name directory) tramp-file-missing
-     "No such file or directory" directory))
+    (tramp-compat-file-missing (tramp-dissect-file-name directory) directory))
   (when (file-directory-p directory)
     (setq directory (file-name-as-directory (expand-file-name directory)))
     (let* (tramp-crypt-enabled
@@ -781,7 +777,7 @@ WILDCARD is not supported."
   "Like `make-directory' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name dir) nil
     (when (and (null parents) (file-exists-p dir))
-      (tramp-error v 'file-already-exists "Directory already exists %s" dir))
+      (tramp-error v 'file-already-exists dir))
     (let (tramp-crypt-enabled)
       (make-directory (tramp-crypt-encrypt-file-name dir) parents))
     ;; When PARENTS is non-nil, DIR could be a chain of non-existent

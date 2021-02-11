@@ -1,4 +1,4 @@
-;;; gnus-agent.el --- Legacy unplugged support for Gnus
+;;; gnus-agent.el --- Legacy unplugged support for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
@@ -210,7 +210,7 @@ converted to the compressed format."
 ;; Therefore, hide the default prompt.
 (gnus-convert-mark-converter-prompt 'gnus-agent-unlist-expire-days t)
 
-(defun gnus-agent-unhook-expire-days (converting-to)
+(defun gnus-agent-unhook-expire-days (_converting-to)
   "Remove every lambda from `gnus-group-prepare-hook' that mention the
 symbol `gnus-agent-do-once' in their definition.  This should NOT be
 necessary as gnus-agent.el no longer adds them.  However, it is

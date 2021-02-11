@@ -113,13 +113,11 @@ character not found in IRC nicknames to avoid confusion."
 
 ;;; Variables:
 
-(defvar erc-capab-identify-activated nil
+(defvar-local erc-capab-identify-activated nil
   "CAPAB IDENTIFY-MSG has been activated.")
-(make-variable-buffer-local 'erc-capab-identify-activated)
 
-(defvar erc-capab-identify-sent nil
+(defvar-local erc-capab-identify-sent nil
   "CAPAB IDENTIFY-MSG and IDENTIFY-CTCP messages have been sent.")
-(make-variable-buffer-local 'erc-capab-identify-sent)
 
 ;;; Functions:
 

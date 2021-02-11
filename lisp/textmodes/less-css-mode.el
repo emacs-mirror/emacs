@@ -73,7 +73,6 @@
 
 (require 'compile)
 (require 'css-mode)
-(require 'derived)
 (eval-when-compile (require 'subr-x))
 
 (defgroup less-css nil

@@ -101,11 +101,10 @@ NOTE: Not used in MS-DOS and Windows systems."
 (defvar jka-compr-use-shell
   (not (memq system-type '(ms-dos windows-nt))))
 
-(defvar jka-compr-really-do-compress nil
+(defvar-local jka-compr-really-do-compress nil
   "Non-nil in a buffer whose visited file was uncompressed on visiting it.
 This means compress the data on writing the file, even if the
 data appears to be compressed already.")
-(make-variable-buffer-local 'jka-compr-really-do-compress)
 (put 'jka-compr-really-do-compress 'permanent-local t)
 
 

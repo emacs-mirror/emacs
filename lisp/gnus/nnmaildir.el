@@ -48,16 +48,6 @@
 
 ;;; Code:
 
-;; eval this before editing
-[(progn
-   (put 'nnmaildir--with-nntp-buffer 'lisp-indent-function 0)
-   (put 'nnmaildir--with-work-buffer 'lisp-indent-function 0)
-   (put 'nnmaildir--with-nov-buffer  'lisp-indent-function 0)
-   (put 'nnmaildir--with-move-buffer 'lisp-indent-function 0)
-   (put 'nnmaildir--condcase         'lisp-indent-function 2)
-   )
-]
-
 (require 'nnheader)
 (require 'gnus)
 (require 'gnus-util)
@@ -111,7 +101,7 @@ SUFFIX should start with \":2,\"."
 	 (new-flags
 	  (concat (gnus-delete-duplicates
 		   ;; maildir flags must be sorted
-		   (sort (cons flag flags-as-list) '<)))))
+		   (sort (cons flag flags-as-list) #'<)))))
     (concat ":2," new-flags)))
 
 (defun nnmaildir--remove-flag (flag suffix)
@@ -264,19 +254,19 @@ This variable is set by `nnmaildir-request-article'.")
   (eval param t))
 
 (defmacro nnmaildir--with-nntp-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer nntp-server-buffer
      ,@body))
 (defmacro nnmaildir--with-work-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer (gnus-get-buffer-create " *nnmaildir work*")
      ,@body))
 (defmacro nnmaildir--with-nov-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer (gnus-get-buffer-create " *nnmaildir nov*")
      ,@body))
 (defmacro nnmaildir--with-move-buffer (&rest body)
-  (declare (debug (body)))
+  (declare (indent 0) (debug t))
   `(with-current-buffer (gnus-get-buffer-create " *nnmaildir move*")
      ,@body))
 
@@ -302,7 +292,7 @@ This variable is set by `nnmaildir-request-article'.")
   (write-region "" nil file nil 'no-message))
 (defun nnmaildir--delete-dir-files (dir ls)
   (when (file-attributes dir)
-    (mapc 'delete-file (funcall ls dir 'full "\\`[^.]" 'nosort))
+    (mapc #'delete-file (funcall ls dir 'full "\\`[^.]" 'nosort))
     (delete-directory dir)))
 
 (defun nnmaildir--group-maxnum (server group)
@@ -358,7 +348,7 @@ This variable is set by `nnmaildir-request-article'.")
   string)
 
 (defmacro nnmaildir--condcase (errsym body &rest handler)
-  (declare (debug (sexp form body)))
+  (declare (indent 2) (debug (sexp form body)))
   `(condition-case ,errsym
        (let ((system-messages-locale "C")) ,body)
      (error . ,handler)))
@@ -865,8 +855,8 @@ This variable is set by `nnmaildir-request-article'.")
 			  file))
 		   files)
 	    files (delq nil files)
-	    files (mapcar 'nnmaildir--parse-filename files)
-	    files (sort files 'nnmaildir--sort-files))
+	    files (mapcar #'nnmaildir--parse-filename files)
+	    files (sort files #'nnmaildir--sort-files))
       (dolist (file files)
 	(setq file (if (consp file) file (aref file 3))
 	      x (make-nnmaildir--art :prefix (car file) :suffix (cdr file)))
@@ -1008,7 +998,7 @@ This variable is set by `nnmaildir-request-article'.")
 	    always-marks (nnmaildir--param pgname 'always-marks)
 	    never-marks (nnmaildir--param pgname 'never-marks)
 	    existing (nnmaildir--grp-nlist group)
-	    existing (mapcar 'car existing)
+	    existing (mapcar #'car existing)
 	    existing (nreverse existing)
 	    existing (gnus-compress-sequence existing 'always-list)
 	    missing (list (cons 1 (nnmaildir--group-maxnum
@@ -1023,8 +1013,8 @@ This variable is set by `nnmaildir-request-article'.")
 		       ;; get mark names from mark dirs and from flag
 		       ;; mappings
 		       (append
-			(mapcar 'cdr nnmaildir-flag-mark-mapping)
-			(mapcar 'intern (funcall ls dir nil "\\`[^.]" 'nosort))))
+			(mapcar #'cdr nnmaildir-flag-mark-mapping)
+			(mapcar #'intern (funcall ls dir nil "\\`[^.]" 'nosort))))
 	    new-mmth (make-hash-table :size (length all-marks))
 	    old-mmth (nnmaildir--grp-mmth group))
       (dolist (mark all-marks)
@@ -1080,7 +1070,7 @@ This variable is set by `nnmaildir-request-article'.")
 		 (let ((article (nnmaildir--flist-art flist prefix)))
 		   (when article
 		     (push (nnmaildir--art-num article) article-list))))))
-	    (setq ranges (gnus-add-to-range ranges (sort article-list '<)))))
+	    (setq ranges (gnus-add-to-range ranges (sort article-list #'<)))))
 	(if (eq mark 'read) (setq read ranges)
 	  (if ranges (setq marks (cons (cons mark ranges) marks)))))
       (setf (gnus-info-read info) (gnus-range-add read missing))
@@ -1705,8 +1695,8 @@ This variable is set by `nnmaildir-request-article'.")
 		       ;; get mark names from mark dirs and from flag
 		       ;; mappings
 		       (append
-			(mapcar 'cdr nnmaildir-flag-mark-mapping)
-			(mapcar 'intern all-marks))))
+			(mapcar #'cdr nnmaildir-flag-mark-mapping)
+			(mapcar #'intern all-marks))))
       (dolist (action actions)
 	(setq ranges (car action)
 	      todo-marks (caddr action))

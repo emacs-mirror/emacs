@@ -1019,9 +1019,8 @@ button end points."
 Recommended as a parent keymap for modes using widgets.
 Note that such modes will need to require wid-edit.")
 
-(defvar widget-global-map global-map
+(defvar-local widget-global-map global-map
   "Keymap used for events a widget does not handle itself.")
-(make-variable-buffer-local 'widget-global-map)
 
 (defvar widget-field-keymap
   (let ((map (copy-keymap widget-keymap)))
@@ -1326,13 +1325,11 @@ When not inside a field, signal an error."
 
 ;;; Setting up the buffer.
 
-(defvar widget-field-new nil
+(defvar-local widget-field-new nil
   "List of all newly created editable fields in the buffer.")
-(make-variable-buffer-local 'widget-field-new)
 
-(defvar widget-field-list nil
+(defvar-local widget-field-list nil
   "List of all editable fields in the buffer.")
-(make-variable-buffer-local 'widget-field-list)
 
 (defun widget-at (&optional pos)
   "The button or field at POS (default, point)."
@@ -1359,13 +1356,11 @@ When not inside a field, signal an error."
   (widget-clear-undo)
   (widget-add-change))
 
-(defvar widget-field-last nil)
-;; Last field containing point.
-(make-variable-buffer-local 'widget-field-last)
+(defvar-local widget-field-last nil
+  "Last field containing point.")
 
-(defvar widget-field-was nil)
-;; The widget data before the change.
-(make-variable-buffer-local 'widget-field-was)
+(defvar-local widget-field-was nil
+  "The widget data before the change.")
 
 (defun widget-field-at (pos)
   "Return the widget field at POS, or nil if none."

@@ -930,10 +930,11 @@ a negative argument means to delete and move backward."
   (unless (numberp count) (setq count 1))
   (let (del-msg
         (backward (< count 0)))
-    (while (and (/= count 0)
-		;; Don't waste time if we are at the beginning
-		;; and trying to go backward.
-		(not (and backward (bobp))))
+    (while (/= count 0)
+      ;; Don't waste time counting down without doing anything if we
+      ;; are at the beginning and trying to go backward.
+      (if (and backward (bobp))
+          (setq count -1))
       (rmail-summary-goto-msg)
       (with-current-buffer rmail-buffer
 	(setq del-msg rmail-current-message)

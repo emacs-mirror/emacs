@@ -1,4 +1,4 @@
-;;; gitmerge.el --- help merge one Emacs branch into another
+;;; gitmerge.el --- help merge one Emacs branch into another  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -390,7 +390,7 @@ is nil, only the single commit BEG is merged."
 			(if end "s were " " was ")
 			"skipped:\n\n")
 	      ""))
-    (apply 'call-process "git" nil t nil "log" "--oneline"
+    (apply #'call-process "git" nil t nil "log" "--oneline"
 	   (if end (list (concat beg "~.." end))
 	     `("-1" ,beg)))
     (insert "\n")
@@ -422,7 +422,7 @@ MISSING must be a list of SHA1 strings."
       (unless end
 	(setq end beg))
       (unless (zerop
-	       (apply 'call-process "git" nil t nil "merge" "--no-ff"
+	       (apply #'call-process "git" nil t nil "merge" "--no-ff"
 		      (append (when skip '("-s" "ours"))
 			      `("-m" ,commitmessage ,end))))
 	(gitmerge-write-missing missing from)

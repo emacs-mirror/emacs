@@ -6798,6 +6798,26 @@ same_x_server (const char *name1, const char *name2)
 	  && (*name2 == '.' || *name2 == '\0'));
 }
 
+#define GNOME_INTERFACE_SCHEMA "org.gnome.desktop.interface"
+
+static gdouble pgtk_text_scaling_factor(void)
+{
+  GSettingsSchemaSource *schema_source = g_settings_schema_source_get_default ();
+  if (schema_source != NULL)
+    {
+      GSettingsSchema *schema = g_settings_schema_source_lookup (schema_source,
+         GNOME_INTERFACE_SCHEMA, true);
+      if (schema != NULL)
+        {
+	  g_settings_schema_unref (schema);
+	  GSettings *set = g_settings_new (GNOME_INTERFACE_SCHEMA);
+	  return g_settings_get_double (set, "text-scaling-factor");
+	}
+    }
+  return 1;
+}
+
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -6969,11 +6989,7 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   {
     GdkScreen *gscr = gdk_display_get_default_screen (dpyinfo->gdpy);
 
-    GSettings *set = g_settings_new ("org.gnome.desktop.interface");
-    gdouble x = g_settings_get_double (set, "text-scaling-factor");
-    gdouble dpi = 0;
-
-    dpi = 96.0 * x;
+    gdouble dpi = 96.0 * pgtk_text_scaling_factor();
     gdk_screen_set_resolution (gscr, dpi);
     dpyinfo->resx = dpi;
     dpyinfo->resy = dpi;

@@ -435,6 +435,9 @@ not be enclosed in { } or ( )."
    '("[^$]\\(\\$[({][@%*][DF][})]\\)"
      1 'makefile-targets append)
 
+   ;; Automatic variables.
+   '("[^$]\\(\\$[@%*?+^|]\\)" 1 'makefile-targets append)
+
    ;; $(function ...) ${function ...}
    '("[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\s \\)"
      1 font-lock-function-name-face prepend)

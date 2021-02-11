@@ -432,9 +432,8 @@ Also load the specified macro libraries."
               defs)))
     (nreverse defs)))
 
-(defvar semantic-grammar-macros nil
+(defvar-local semantic-grammar-macros nil
   "List of associations (MACRO-NAME . EXPANDER).")
-(make-variable-buffer-local 'semantic-grammar-macros)
 
 (defun semantic-grammar-macros ()
   "Build and return the alist of defined macros."
@@ -1054,8 +1053,7 @@ See also the variable `semantic-grammar-file-regexp'."
 ;;;; Macros highlighting
 ;;;;
 
-(defvar semantic--grammar-macros-regexp-1 nil)
-(make-variable-buffer-local 'semantic--grammar-macros-regexp-1)
+(defvar-local semantic--grammar-macros-regexp-1 nil)
 
 (defun semantic--grammar-macros-regexp-1 ()
   "Return font-lock keyword regexp for pre-installed macro names."
@@ -1076,8 +1074,7 @@ See also the variable `semantic-grammar-file-regexp'."
   "\\<%use-macros\\>[ \t\r\n]+\\(\\sw\\|\\s_\\)+[ \t\r\n]+{"
   "Regexp that matches a macro declaration statement.")
 
-(defvar semantic--grammar-macros-regexp-2 nil)
-(make-variable-buffer-local 'semantic--grammar-macros-regexp-2)
+(defvar-local semantic--grammar-macros-regexp-2 nil)
 
 (defun semantic--grammar-clear-macros-regexp-2 (&rest _)
   "Clear the cached regexp that match macros local in this grammar.

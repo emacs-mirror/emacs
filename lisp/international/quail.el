@@ -61,15 +61,14 @@
 
 ;; Buffer local variables
 
-(defvar quail-current-package nil
+(defvar-local quail-current-package nil
   "The current Quail package, which depends on the current input method.
 See the documentation of `quail-package-alist' for the format.")
-(make-variable-buffer-local 'quail-current-package)
 (put 'quail-current-package 'permanent-local t)
 
 ;; Quail uses the following variables to assist users.
 ;; A string containing available key sequences or translation list.
-(defvar quail-guidance-str nil)
+(defvar-local quail-guidance-str nil)
 ;; A buffer to show completion list of the current key sequence.
 (defvar quail-completion-buf nil)
 ;; We may display the guidance string in a buffer on a one-line frame.
@@ -78,41 +77,34 @@ See the documentation of `quail-package-alist' for the format.")
 
 ;; Each buffer in which Quail is activated should use different
 ;; guidance string.
-(make-variable-buffer-local 'quail-guidance-str)
 (put 'quail-guidance-str 'permanent-local t)
 
-(defvar quail-overlay nil
+(defvar-local quail-overlay nil
   "Overlay which covers the current translation region of Quail.")
-(make-variable-buffer-local 'quail-overlay)
 
-(defvar quail-conv-overlay nil
+(defvar-local quail-conv-overlay nil
   "Overlay which covers the text to be converted in Quail mode.")
-(make-variable-buffer-local 'quail-conv-overlay)
 
-(defvar quail-current-key nil
+(defvar-local quail-current-key nil
   "Current key for translation in Quail mode.")
-(make-variable-buffer-local 'quail-current-key)
 
-(defvar quail-current-str nil
+(defvar-local quail-current-str nil
   "Currently selected translation of the current key.")
-(make-variable-buffer-local 'quail-current-str)
 
-(defvar quail-current-translations nil
+(defvar-local quail-current-translations nil
   "Cons of indices and vector of possible translations of the current key.
 Indices is a list of (CURRENT START END BLOCK BLOCKS), where
 CURRENT is an index of the current translation,
 START and END are indices of the start and end of the current block,
 BLOCK is the current block index,
 BLOCKS is a number of  blocks of translation.")
-(make-variable-buffer-local 'quail-current-translations)
 
-(defvar quail-current-data nil
+(defvar-local quail-current-data nil
   "Any Lisp object holding information of current translation status.
 When a key sequence is mapped to TRANS and TRANS is a cons
 of actual translation and some Lisp object to be referred
 for translating the longer key sequence, this variable is set
 to that Lisp object.")
-(make-variable-buffer-local 'quail-current-data)
 
 ;; Quail package handlers.
 
@@ -2027,10 +2019,15 @@ minibuffer and the selected frame has no other windows)."
   (bury-buffer quail-completion-buf)
 
   ;; Then, show the guidance.
-  (when (and (quail-require-guidance-buf)
-	     (not input-method-use-echo-area)
-	     (null unread-command-events)
-	     (null unread-post-input-method-events))
+  (when (and 
+         ;; Don't try to display guidance on an expired minibuffer.  This
+         ;; would go into an infinite wait rather than executing the user's
+         ;; command.  Bug #45792.
+         (not (eq major-mode 'minibuffer-inactive-mode))
+         (quail-require-guidance-buf)
+	 (not input-method-use-echo-area)
+	 (null unread-command-events)
+	 (null unread-post-input-method-events))
     (if (minibufferp)
 	(if (eq (minibuffer-window) (frame-root-window))
 	    ;; Use another frame.  It is sure that we are using some

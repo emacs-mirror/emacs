@@ -1192,12 +1192,11 @@ FORM is a form to evaluate to define the coding-system."
 ;; `last-coding-system-used'.  (It used to set it unconditionally, but
 ;; that seems unnecessary; see Bug#4533.)
 
-(defvar buffer-file-coding-system-explicit nil
+(defvar-local buffer-file-coding-system-explicit nil
   "The file coding system explicitly specified for the current buffer.
 The value is a cons of coding systems for reading (decoding) and
 writing (encoding).
 Internal use only.")
-(make-variable-buffer-local 'buffer-file-coding-system-explicit)
 (put 'buffer-file-coding-system-explicit 'permanent-local t)
 
 (defun read-buffer-file-coding-system ()

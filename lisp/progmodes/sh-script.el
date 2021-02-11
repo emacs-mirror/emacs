@@ -541,10 +541,9 @@ sign.  See `sh-feature'."
   :group 'sh-script)
 
 
-(defvar sh-header-marker nil
+(defvar-local sh-header-marker nil
   "When non-nil is the end of header for prepending by \\[sh-execute-region].
 That command is also used for setting this variable.")
-(make-variable-buffer-local 'sh-header-marker)
 
 (defcustom sh-beginning-of-command
   "\\([;({`|&]\\|\\`\\|[^\\]\n\\)[ \t]*\\([/~[:alnum:]:]\\)"

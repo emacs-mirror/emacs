@@ -498,10 +498,9 @@ non-nil if the minor mode is enabled."
 (semantic-add-minor-mode 'semantic-show-parser-state-mode
                          "")
 
-(defvar semantic-show-parser-state-string nil
+(defvar-local semantic-show-parser-state-string nil
   "String showing the parser state for this buffer.
 See `semantic-show-parser-state-marker' for details.")
-(make-variable-buffer-local 'semantic-show-parser-state-string)
 
 (defun semantic-show-parser-state-marker (&rest ignore)
   "Set `semantic-show-parser-state-string' to indicate parser state.
@@ -692,10 +691,6 @@ non-nil if the minor mode is enabled."
 	  ;; Disable minor mode if semantic stuff not available
 	  (setq semantic-stickyfunc-mode nil)
 	  (error "Buffer %s was not set up for parsing" (buffer-name)))
-	(unless (boundp 'header-line-format)
-	  ;; Disable if there are no header lines to use.
-	  (setq semantic-stickyfunc-mode nil)
-	  (error "Sticky Function mode requires Emacs"))
 	;; Enable the mode
 	;; Save previous buffer local value of header line format.
 	(when (and (local-variable-p 'header-line-format (current-buffer))
@@ -713,10 +708,9 @@ non-nil if the minor mode is enabled."
 	(setq header-line-format semantic-stickyfunc-old-hlf)
 	(kill-local-variable 'semantic-stickyfunc-old-hlf)))))
 
-(defvar semantic-stickyfunc-sticky-classes
+(defvar-local semantic-stickyfunc-sticky-classes
   '(function type)
   "List of tag classes which stickyfunc will display in the header line.")
-(make-variable-buffer-local 'semantic-stickyfunc-sticky-classes)
 
 (defcustom semantic-stickyfunc-show-only-functions-p nil
   "Non-nil means don't show lines that aren't part of a tag.
@@ -886,9 +880,8 @@ Argument EVENT describes the event that caused this function to be called."
       )
     (select-window startwin)))
 
-(defvar semantic-highlight-func-ct-overlay nil
+(defvar-local semantic-highlight-func-ct-overlay nil
   "Overlay used to highlight the tag the cursor is in.")
-(make-variable-buffer-local 'semantic-highlight-func-ct-overlay)
 
 (defface semantic-highlight-func-current-tag-face
   '((((class color) (background dark))

@@ -1,4 +1,4 @@
-;;; gnus-kill.el --- kill commands for Gnus
+;;; gnus-kill.el --- kill commands for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -275,7 +275,7 @@ If NEWSGROUP is nil, the global kill file is selected."
     (save-excursion
       (save-window-excursion
 	(pop-to-buffer gnus-summary-buffer)
-	(eval (car (read-from-string string)))))))
+	(eval (car (read-from-string string)) t)))))
 
 (defun gnus-kill-file-apply-last-sexp ()
   "Apply sexp before point in current buffer to current newsgroup."
@@ -289,7 +289,7 @@ If NEWSGROUP is nil, the global kill file is selected."
 	(save-excursion
 	  (save-window-excursion
 	    (pop-to-buffer gnus-summary-buffer)
-	    (eval (car (read-from-string string))))))
+	    (eval (car (read-from-string string)) t))))
     (ding) (gnus-message 2 "No newsgroup is selected.")))
 
 (defun gnus-kill-file-exit ()
@@ -403,9 +403,9 @@ Returns the number of articles marked as read."
 	      (eq (car form) 'gnus-lower))
 	  (progn
 	    (delete-region beg (point))
-	    (insert (or (eval form) "")))
+	    (insert (or (eval form t) "")))
 	(with-current-buffer gnus-summary-buffer
-	  (ignore-errors (eval form)))))
+	  (ignore-errors (eval form t)))))
     (and (buffer-modified-p)
 	 gnus-kill-save-kill-file
 	 (save-buffer))
@@ -560,7 +560,7 @@ COMMAND must be a Lisp expression or a string representing a key sequence."
 			 ((functionp form)
 			  (funcall form))
 			 (t
-			  (eval form)))))
+			  (eval form t)))))
 	  ;; Search article body.
 	  (let ((gnus-current-article nil) ;Save article pointer.
 		(gnus-last-article nil)
@@ -578,7 +578,7 @@ COMMAND must be a Lisp expression or a string representing a key sequence."
 		    ((functionp form)
 		     (funcall form))
 		    (t
-		     (eval form)))))))
+		     (eval form t)))))))
       did-kill)))
 
 (defun gnus-execute (field regexp form &optional backward unread)
@@ -606,12 +606,10 @@ marked as read or ticked are ignored."
 					     (downcase (symbol-name header)))
 					   gnus-extra-headers)))
 		 (setq function
-		       `(lambda (h)
-			  (gnus-extra-header
-			   (quote ,(nth (- (length gnus-extra-headers)
-					   (length extras))
-					gnus-extra-headers))
-			   h)))))))
+		       (let ((type (nth (- (length gnus-extra-headers)
+				           (length extras))
+				        gnus-extra-headers)))
+			 (lambda (h) (gnus-extra-header type h))))))))
        ;; Signal error.
        (t
 	(error "Unknown header field: \"%s\"" field)))
@@ -641,7 +639,7 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
   (let* ((gnus-newsrc-options-n
 	  (gnus-newsrc-parse-options
 	   (concat "options -n "
-		   (mapconcat 'identity command-line-args-left " "))))
+		   (mapconcat #'identity command-line-args-left " "))))
 	 (gnus-expert-user t)
 	 (mail-sources nil)
 	 (gnus-use-dribble-file nil)

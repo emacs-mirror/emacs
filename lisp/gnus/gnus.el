@@ -3501,7 +3501,7 @@ You should probably use `gnus-find-method-for-group' instead."
     (while (setq info (pop alist))
       (when (gnus-server-equal (gnus-info-method info) server)
 	(push (gnus-info-group info) groups)))
-    (sort groups 'string<)))
+    (sort groups #'string<)))
 
 (defun gnus-group-foreign-p (group)
   "Say whether a group is foreign or not."
@@ -3724,7 +3724,7 @@ just the host name."
 			       depth (+ depth 1)))
 		       depth))))
     ;; Separate foreign select method from group name and collapse.
-   ;; If method contains a server, collapse to non-domain server name,
+    ;; If method contains a server, collapse to non-domain server name,
     ;; otherwise collapse to select method.
     (let* ((colon (string-match ":" group))
 	   (server (and colon (substring group 0 colon)))

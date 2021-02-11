@@ -570,13 +570,12 @@ from the MODE alist ignoring the input argument VALUE."
 (defvar enable-connection-local-variables t
   "Non-nil means enable use of connection-local variables.")
 
-(defvar connection-local-variables-alist nil
+(defvar-local connection-local-variables-alist nil
   "Alist of connection-local variable settings in the current buffer.
 Each element in this list has the form (VAR . VALUE), where VAR
 is a connection-local variable (a symbol) and VALUE is its value.
 The actual value in the buffer may differ from VALUE, if it is
 changed by the user.")
-(make-variable-buffer-local 'connection-local-variables-alist)
 (setq ignored-local-variables
       (cons 'connection-local-variables-alist ignored-local-variables))
 

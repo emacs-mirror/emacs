@@ -1157,25 +1157,25 @@ versions of Emacs."
 	    (get-text-property (point-min) 'in-pod)
 	    (< (progn
 		 (and cperl-syntaxify-for-menu
-		      (cperl-update-syntaxification (point-max) (point-max)))
+		      (cperl-update-syntaxification (point-max)))
 		 (next-single-property-change (point-min) 'in-pod nil (point-max)))
 	       (point-max)))]
 	  ["Ispell HERE-DOCs" cperl-here-doc-spell
 	   (< (progn
 		(and cperl-syntaxify-for-menu
-		     (cperl-update-syntaxification (point-max) (point-max)))
+		     (cperl-update-syntaxification (point-max)))
 		(next-single-property-change (point-min) 'here-doc-group nil (point-max)))
 	      (point-max))]
 	  ["Narrow to this HERE-DOC" cperl-narrow-to-here-doc
 	   (eq 'here-doc  (progn
 		(and cperl-syntaxify-for-menu
-		     (cperl-update-syntaxification (point) (point)))
+		     (cperl-update-syntaxification (point)))
 		(get-text-property (point) 'syntax-type)))]
 	  ["Select this HERE-DOC or POD section"
 	   cperl-select-this-pod-or-here-doc
 	   (memq (progn
 		   (and cperl-syntaxify-for-menu
-			(cperl-update-syntaxification (point) (point)))
+			(cperl-update-syntaxification (point)))
 		   (get-text-property (point) 'syntax-type))
 		 '(here-doc pod))]
 	  "----"
@@ -1659,36 +1659,18 @@ or as help on variables `cperl-tips', `cperl-problems',
                 nil nil ((?_ . "w"))))
   ;; Reset syntaxification cache.
   (setq-local cperl-syntax-state nil)
-  (if cperl-use-syntax-table-text-property
-      (if (eval-when-compile (fboundp 'syntax-propertize-rules))
-          (progn
-            ;; Reset syntaxification cache.
-            (setq-local cperl-syntax-done-to nil)
-            (setq-local syntax-propertize-function
-                        (lambda (start end)
-                          (goto-char start)
-                          ;; Even if cperl-fontify-syntaxically has already gone
-                          ;; beyond `start', syntax-propertize has just removed
-                          ;; syntax-table properties between start and end, so we have
-                          ;; to re-apply them.
-                          (setq cperl-syntax-done-to start)
-                          (cperl-fontify-syntaxically end))))
-	;; Do not introduce variable if not needed, we check it!
-        (setq-local parse-sexp-lookup-properties t)
-	;; Our: just a plug for wrong font-lock
-        (setq-local font-lock-unfontify-region-function
-                    ;; not present with old Emacs
-                    #'cperl-font-lock-unfontify-region-function)
-	;; Reset syntaxification cache.
-        (setq-local cperl-syntax-done-to nil)
-        (setq-local font-lock-syntactic-keywords
-                    (if cperl-syntaxify-by-font-lock
-                        '((cperl-fontify-syntaxically))
-                      ;; unless font-lock-syntactic-keywords, font-lock (pre-22.1)
-                      ;;  used to ignore syntax-table text-properties.  (t) is a hack
-                      ;;  to make font-lock think that font-lock-syntactic-keywords
-                      ;;  are defined.
-                      '(t)))))
+  (when cperl-use-syntax-table-text-property
+    ;; Reset syntaxification cache.
+    (setq-local cperl-syntax-done-to nil)
+    (setq-local syntax-propertize-function
+                (lambda (start end)
+                  (goto-char start)
+                  ;; Even if cperl-fontify-syntaxically has already gone
+                  ;; beyond `start', syntax-propertize has just removed
+                  ;; syntax-table properties between start and end, so we have
+                  ;; to re-apply them.
+                  (setq cperl-syntax-done-to start)
+                  (cperl-fontify-syntaxically end))))
   (setq cperl-font-lock-multiline t) ; Not localized...
   (setq-local font-lock-multiline t)
   (setq-local font-lock-fontify-region-function
@@ -2405,7 +2387,7 @@ means indent rigidly all the lines of the expression starting after point
 so that this line becomes properly indented.
 The relative indentation among the lines of the expression are preserved."
   (interactive "P")
-  (cperl-update-syntaxification (point) (point))
+  (cperl-update-syntaxification (point))
   (if whole-exp
       ;; If arg, always indent this line as Perl
       ;; and shift remaining lines of expression the same amount.
@@ -2533,7 +2515,7 @@ Will not look before LIM."
 
 (defun cperl-sniff-for-indent (&optional parse-data) ; was parse-start
   ;; the sniffer logic to understand what the current line MEANS.
-  (cperl-update-syntaxification (point) (point))
+  (cperl-update-syntaxification (point))
   (let ((res (get-text-property (point) 'syntax-type)))
     (save-excursion
       (cond
@@ -3025,7 +3007,7 @@ Returns true if comment is found.  In POD will not move the point."
   ;; then looks for literal # or end-of-line.
   (let (state stop-in cpoint (lim (point-at-eol)) pr e)
     (or cperl-font-locking
-	(cperl-update-syntaxification lim lim))
+	(cperl-update-syntaxification lim))
     (beginning-of-line)
     (if (setq pr (get-text-property (point) 'syntax-type))
 	(setq e (next-single-property-change (point) 'syntax-type nil (point-max))))
@@ -4640,7 +4622,7 @@ CHARS is a string that contains good characters to have before us (however,
 `}' is treated \"smartly\" if it is not in the list)."
   (let ((lim (or lim (point-min)))
 	stop p)
-    (cperl-update-syntaxification (point) (point))
+    (cperl-update-syntaxification (point))
     (save-excursion
       (while (and (not stop) (> (point) lim))
 	(skip-chars-backward " \t\n\f" lim)
@@ -5027,7 +5009,7 @@ inclusive.
 If `cperl-indent-region-fix-constructs', will improve spacing on
 conditional/loop constructs."
   (interactive "r")
-  (cperl-update-syntaxification end end)
+  (cperl-update-syntaxification end)
   (save-excursion
     (let (cperl-update-start cperl-update-end (h-a-c after-change-functions))
       (let ((indent-info (list nil nil nil)	; Cannot use '(), since will modify
@@ -5233,7 +5215,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	packages ends-ranges p marker is-proto
         is-pack index index1 name (end-range 0) package)
     (goto-char (point-min))
-    (cperl-update-syntaxification (point-max) (point-max))
+    (cperl-update-syntaxification (point-max))
     ;; Search for the function
     (progn ;;save-match-data
       (while (re-search-forward
@@ -8209,7 +8191,7 @@ function returns nil."
     (or prop (setq prop 'in-pod))
     (or s (setq s (point-min)))
     (or end (setq end (point-max)))
-    (cperl-update-syntaxification end end)
+    (cperl-update-syntaxification end)
     (save-excursion
       (goto-char (setq pos s))
       (while (and cont (< pos end))
@@ -8225,7 +8207,7 @@ function returns nil."
 Return nil if the point is not in a HERE document region.  If POD is non-nil,
 will return a POD section if point is in a POD section."
   (or pos (setq pos (point)))
-  (cperl-update-syntaxification pos pos)
+  (cperl-update-syntaxification pos)
   (if (or (eq 'here-doc  (get-text-property pos 'syntax-type))
 	  (and pod
 	       (eq 'pod (get-text-property pos 'syntax-type))))
@@ -8295,7 +8277,7 @@ start with default arguments, then refine the slowdown regions."
       (forward-line step)
       (setq l (+ l step))
       (setq c (1+ c))
-      (cperl-update-syntaxification (point) (point))
+      (cperl-update-syntaxification (point))
       (setq delta (- (- tt (setq tt (funcall timems)))) tot (+ tot delta))
       (message "to %s:%6s,%7s" l delta tot))
     tot))
@@ -8405,19 +8387,12 @@ do extra unwind via `cperl-unwind-to-safe'."
     (setq end (point)))
   (font-lock-default-fontify-region beg end loudly))
 
-(defvar cperl-d-l nil)
-(defvar edebug-backtrace-buffer)        ;FIXME: Why?
 (defun cperl-fontify-syntaxically (end)
   ;; Some vars for debugging only
   ;; (message "Syntaxifying...")
   (let ((dbg (point)) (iend end) (idone cperl-syntax-done-to)
 	(istate (car cperl-syntax-state))
-	start from-start edebug-backtrace-buffer)
-    (if (eq cperl-syntaxify-by-font-lock 'backtrace)
-	(progn
-	  (require 'edebug)
-	  (let ((f 'edebug-backtrace))
-	    (funcall f))))	; Avoid compile-time warning
+	start from-start)
     (or cperl-syntax-done-to
 	(setq cperl-syntax-done-to (point-min)
 	      from-start t))
@@ -8473,16 +8448,9 @@ do extra unwind via `cperl-unwind-to-safe'."
   (if cperl-syntax-done-to
       (setq cperl-syntax-done-to (min cperl-syntax-done-to beg))))
 
-(defun cperl-update-syntaxification (from to)
-  (cond
-   ((not cperl-use-syntax-table-text-property) nil)
-   ((fboundp 'syntax-propertize) (syntax-propertize to))
-   ((and cperl-syntaxify-by-font-lock
-         (or (null cperl-syntax-done-to)
-             (< cperl-syntax-done-to to)))
-    (save-excursion
-      (goto-char from)
-      (cperl-fontify-syntaxically to)))))
+(defun cperl-update-syntaxification (to)
+  (when cperl-use-syntax-table-text-property
+    (syntax-propertize to)))
 
 (defvar cperl-version
   (let ((v  "Revision: 6.2"))

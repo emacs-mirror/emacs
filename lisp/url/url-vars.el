@@ -55,25 +55,18 @@
   :group 'url)
 
 
-(defvar url-current-object nil
+(defvar-local url-current-object nil
   "A parsed representation of the current URL.")
 
-(defvar url-current-mime-headers nil
+(defvar-local url-current-mime-headers nil
   "A parsed representation of the MIME headers for the current URL.")
 
-(defvar url-current-lastloc nil
+(defvar-local url-current-lastloc nil
   "A parsed representation of the URL to be considered as the last location.
 Use of this value on outbound connections is subject to
 `url-privacy-level' and `url-lastloc-privacy-level'.  This is never set
 by the url library, applications are expected to set this
 variable in buffers representing a displayed location.")
-
-(mapc 'make-variable-buffer-local
-      '(
-	url-current-object
-	url-current-mime-headers
-        url-current-lastloc
-	))
 
 (defcustom url-honor-refresh-requests t
   "Whether to do automatic page reloads.

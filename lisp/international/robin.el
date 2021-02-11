@@ -371,14 +371,12 @@ Internal use only."
 
 ;;; Interactive use
 
-(defvar robin-mode nil
+(defvar-local robin-mode nil
   "If non-nil, `robin-input-method' is active.")
-(make-variable-buffer-local 'robin-mode)
 
-(defvar robin-current-package-name nil
+(defvar-local robin-current-package-name nil
   "String representing the name of the current robin package.
 A nil value means no package is selected.")
-(make-variable-buffer-local 'robin-current-package-name)
 
 ;;;###autoload
 (defun robin-use-package (name)

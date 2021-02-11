@@ -197,9 +197,8 @@ The created frame is selected when the hook is called."
   "List of current server clients.
 Each element is a process.")
 
-(defvar server-buffer-clients nil
+(defvar-local server-buffer-clients nil
   "List of client processes requesting editing of current buffer.")
-(make-variable-buffer-local 'server-buffer-clients)
 ;; Changing major modes should not erase this local.
 (put 'server-buffer-clients 'permanent-local t)
 
@@ -239,11 +238,10 @@ in this way."
   :type 'boolean
   :version "21.1")
 
-(defvar server-existing-buffer nil
+(defvar-local server-existing-buffer nil
   "Non-nil means the buffer existed before the server was asked to visit it.
 This means that the server should not kill the buffer when you say you
 are done with it in the server.")
-(make-variable-buffer-local 'server-existing-buffer)
 
 (defvar server--external-socket-initialized nil
   "When an external socket is passed into Emacs, we need to call

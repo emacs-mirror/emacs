@@ -217,21 +217,17 @@ Each positive or negative step scales the default face height by this amount."
   :type 'number
   :version "23.1")
 
-;; current remapping cookie for text-scale-mode
-(defvar text-scale-mode-remapping nil)
-(make-variable-buffer-local 'text-scale-mode-remapping)
+(defvar-local text-scale-mode-remapping nil
+  "Current remapping cookie for text-scale-mode.")
 
-;; Lighter displayed for text-scale-mode in mode-line minor-mode list
-(defvar text-scale-mode-lighter "+0")
-(make-variable-buffer-local 'text-scale-mode-lighter)
+(defvar-local text-scale-mode-lighter "+0"
+  "Lighter displayed for text-scale-mode in mode-line minor-mode list.")
 
-;; Number of steps that text-scale-mode will increase/decrease text height
-(defvar text-scale-mode-amount 0)
-(make-variable-buffer-local 'text-scale-mode-amount)
+(defvar-local text-scale-mode-amount 0
+  "Number of steps that text-scale-mode will increase/decrease text height.")
 
-(defvar text-scale-remap-header-line nil
+(defvar-local text-scale-remap-header-line nil
   "If non-nil, text scaling may change font size of header lines too.")
-(make-variable-buffer-local 'text-scale-header-line)
 
 (defun face-remap--clear-remappings ()
   (dolist (remapping
@@ -413,8 +409,7 @@ plist, etc."
   :version "23.1")
 
 ;; current remapping cookie for  buffer-face-mode
-(defvar buffer-face-mode-remapping nil)
-(make-variable-buffer-local 'buffer-face-mode-remapping)
+(defvar-local buffer-face-mode-remapping nil)
 
 ;;;###autoload
 (define-minor-mode buffer-face-mode

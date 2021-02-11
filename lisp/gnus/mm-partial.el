@@ -1,4 +1,4 @@
-;;; mm-partial.el --- showing message/partial
+;;; mm-partial.el --- showing message/partial  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -39,7 +39,8 @@
 					    gnus-newsgroup-name)
 	  (when (search-forward id nil t)
 	    (let ((nhandles (mm-dissect-buffer
-			     nil gnus-article-loose-mime)) nid)
+			     nil gnus-article-loose-mime))
+		  nid)
 	      (if (consp (car nhandles))
 		  (mm-destroy-parts nhandles)
 		(setq nid (cdr (assq 'id
@@ -48,6 +49,8 @@
 		    (mm-destroy-parts nhandles)
 		  (push nhandles phandles))))))))
     phandles))
+
+(defvar gnus-displaying-mime)
 
 ;;;###autoload
 (defun mm-inline-partial (handle &optional no-display)
@@ -59,7 +62,7 @@ If NO-DISPLAY is nil, display it.  Otherwise, do nothing after replacing."
 	phandles
 	(b (point)) (n 1) total
 	phandle nn ntotal
-	gnus-displaying-mime handles buffer)
+	gnus-displaying-mime handles) ;; buffer
     (unless (mm-handle-cache handle)
       (unless id
 	(error "Can not find message/partial id"))
@@ -90,7 +93,7 @@ If NO-DISPLAY is nil, display it.  Otherwise, do nothing after replacing."
 	  (if ntotal
 	      (if total
 		  (unless (eq total ntotal)
-		  (error "The numbers of total are different"))
+		    (error "The numbers of total are different"))
 		(setq total ntotal)))
 	  (unless (< nn n)
 	    (unless (eq nn n)
@@ -132,9 +135,11 @@ If NO-DISPLAY is nil, display it.  Otherwise, do nothing after replacing."
 		  (mm-merge-handles gnus-article-mime-handles handles)))
 	  (mm-handle-set-undisplayer
 	   handle
-	   `(lambda ()
-	      (let (buffer-read-only)
-		(delete-region ,(point-min-marker) ,(point-max-marker))))))))))
+	   (let ((beg (point-min-marker))
+	         (end (point-max-marker)))
+	     (lambda ()
+	       (let ((inhibit-read-only t))
+		 (delete-region beg end))))))))))
 
 (provide 'mm-partial)
 

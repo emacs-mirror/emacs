@@ -1256,9 +1256,4 @@ These two lines must come in the order given."))
 
 (provide 'viper)
 
-
-;; Local Variables:
-;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;; End:
-
 ;;; viper.el ends here

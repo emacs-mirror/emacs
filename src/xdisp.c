@@ -10706,6 +10706,7 @@ include the height of both, if present, in the return value.  */)
 
   itdata = bidi_shelve_cache ();
   start_display (&it, w, startp);
+  int start_y = it.current_y;
   /* It makes no sense to measure dimensions of region of text that
      crosses the point where bidi reordering changes scan direction.
      By using unidirectional movement here we at least support the use
@@ -10714,8 +10715,23 @@ include the height of both, if present, in the return value.  */)
      same directionality.  */
   it.bidi_p = false;
 
+  /* Start at the beginning of the line containing FROM.  Otherwise
+     IT.current_x will be incorrectly set to zero at some arbitrary
+     non-zero X coordinate.  */
+  reseat_at_previous_visible_line_start (&it);
+  it.current_x = it.hpos = 0;
+  if (IT_CHARPOS (it) != start)
+    move_it_to (&it, start, -1, -1, -1, MOVE_TO_POS);
+
+  /* Now move to TO.  */
+  int start_x = it.current_x;
   int move_op = MOVE_TO_POS | MOVE_TO_Y;
   int to_x = -1;
+  it.current_y = start_y;
+  /* If FROM is on a newline, pretend that we start at the beginning
+     of the next line, because the newline takes no place on display.  */
+  if (FETCH_BYTE (start) == '\n')
+    it.current_x = 0;
   if (!NILP (x_limit))
     {
       it.last_visible_x = max_x;
@@ -10758,8 +10774,14 @@ include the height of both, if present, in the return value.  */)
         x = max_x;
     }
 
-  /* Subtract height of header-line which was counted automatically by
-     start_display.  */
+  /* If text spans more than one screen line, we don't need to adjust
+     the x-span for start_x, since the second and subsequent lines
+     will begin at zero X coordinate.  */
+  if (it.current_y > start_y)
+    start_x = 0;
+
+  /* Subtract height of header-line and tab-line which was counted
+     automatically by start_display.  */
   y = it.current_y + it.max_ascent + it.max_descent
     - WINDOW_TAB_LINE_HEIGHT (w) - WINDOW_HEADER_LINE_HEIGHT (w);
   /* Don't return more than Y-LIMIT.  */
@@ -10786,7 +10808,7 @@ include the height of both, if present, in the return value.  */)
   if (old_b)
     set_buffer_internal (old_b);
 
-  return Fcons (make_fixnum (x), make_fixnum (y));
+  return Fcons (make_fixnum (x - start_x), make_fixnum (y));
 }
 
 /***********************************************************************
@@ -12876,7 +12898,7 @@ update_menu_bar (struct frame *f, bool save_match_data, bool hooks_run)
                  the selected frame should be allowed to set it.  */
               if (f == SELECTED_FRAME ())
 #endif
-		set_frame_menubar (f, false, false);
+		set_frame_menubar (f, false);
 	    }
 	  else
 	    /* On a terminal screen, the menu bar is an ordinary screen
@@ -26974,6 +26996,15 @@ decode_mode_spec (struct window *w, register int c, int field_width,
     return "";
 }
 
+/* Return the number of lines between start_byte and end_byte in the
+   current buffer. */
+
+ptrdiff_t
+count_lines (ptrdiff_t start_byte, ptrdiff_t end_byte)
+{
+  ptrdiff_t ignored;
+  return display_count_lines (start_byte, end_byte, ZV, &ignored);
+}
 
 /* Count up to COUNT lines starting from START_BYTE.  COUNT negative
    means count lines back from START_BYTE.  But don't go beyond
@@ -35116,7 +35147,8 @@ of your window manager.  */);
 This dynamically changes the tab-bar's height to the minimum height
 that is needed to make all tab-bar items visible.
 If value is `grow-only', the tab-bar's height is only increased
-automatically; to decrease the tab-bar height, use \\[recenter].  */);
+automatically; to decrease the tab-bar height, use \\[recenter],
+after setting `recenter-redisplay' to the value of t.  */);
   Vauto_resize_tab_bars = Qt;
 
   DEFVAR_BOOL ("auto-raise-tab-bar-buttons", auto_raise_tab_bar_buttons_p,
@@ -35128,7 +35160,8 @@ automatically; to decrease the tab-bar height, use \\[recenter].  */);
 This dynamically changes the tool-bar's height to the minimum height
 that is needed to make all tool-bar items visible.
 If value is `grow-only', the tool-bar's height is only increased
-automatically; to decrease the tool-bar height, use \\[recenter].  */);
+automatically; to decrease the tool-bar height, use \\[recenter],
+after setting `recenter-redisplay' to the value of t.  */);
   Vauto_resize_tool_bars = Qt;
 
   DEFVAR_BOOL ("auto-raise-tool-bar-buttons", auto_raise_tool_bar_buttons_p,

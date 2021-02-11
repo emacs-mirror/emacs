@@ -296,9 +296,7 @@ remove it from existing buffers."
 ;; These are for internal use.
 
 (defvar hilit-chg-list nil)
-(defvar hilit-chg-string " ??")
-
-(make-variable-buffer-local 'hilit-chg-string)
+(defvar-local hilit-chg-string " ??")
 
 
 

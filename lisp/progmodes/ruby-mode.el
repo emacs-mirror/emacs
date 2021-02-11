@@ -1869,8 +1869,8 @@ It will be properly highlighted even when the call omits parens.")
       ;; Symbols with special characters.
       (":\\([-+~]@?\\|[/%&|^`]\\|\\*\\*?\\|<\\(<\\|=>?\\)?\\|>[>=]?\\|===?\\|=~\\|![~=]?\\|\\[\\]=?\\)"
        (1 (unless (or
-                   (eq (char-before (match-beginning 0)) ?:)
-                   (nth 8 (syntax-ppss (match-beginning 1))))
+                   (nth 8 (syntax-ppss (match-beginning 1)))
+                   (eq (char-before (match-beginning 0)) ?:))
             (goto-char (match-end 0))
             (string-to-syntax "_"))))
       ;; Symbols ending with '=' (bug#42846).

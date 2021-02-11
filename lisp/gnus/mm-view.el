@@ -1,4 +1,4 @@
-;;; mm-view.el --- functions for viewing MIME objects
+;;; mm-view.el --- functions for viewing MIME objects  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -104,11 +104,10 @@ This is only used if `mm-inline-large-images' is set to
     (insert "\n")
     (mm-handle-set-undisplayer
      handle
-     `(lambda ()
-	(let ((b ,b)
-	      (inhibit-read-only t))
-	  (remove-images b b)
-	  (delete-region b (1+ b)))))))
+     (lambda ()
+       (let ((inhibit-read-only t))
+	 (remove-images b b)
+	 (delete-region b (1+ b)))))))
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")
@@ -137,7 +136,7 @@ This is only used if `mm-inline-large-images' is set to
 		 (equal "multipart" (mm-handle-media-supertype elem)))
 	(mm-w3m-cid-retrieve-1 url elem)))))
 
-(defun mm-w3m-cid-retrieve (url &rest args)
+(defun mm-w3m-cid-retrieve (url &rest _args)
   "Insert a content pointed by URL if it has the cid: scheme."
   (when (string-match "\\`cid:" url)
     (or (catch 'found-handle
@@ -148,6 +147,9 @@ This is only used if `mm-inline-large-images' is set to
 	(prog1
 	    nil
 	  (message "Failed to find \"Content-ID: %s\"" url)))))
+
+(defvar w3m-force-redisplay)
+(defvar w3m-safe-url-regexp)
 
 (defun mm-inline-text-html-render-with-w3m (handle)
   "Render a text/html part using emacs-w3m."
@@ -199,10 +201,11 @@ This is only used if `mm-inline-large-images' is set to
 			       'keymap w3m-minor-mode-map)))
 	(mm-handle-set-undisplayer
 	 handle
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(point-min-marker)
-			     ,(point-max-marker)))))))))
+	 (let ((beg (point-min-marker))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 (defcustom mm-w3m-standalone-supports-m17n-p 'undecided
   "T means the w3m command supports the m17n feature."
@@ -274,13 +277,13 @@ This is only used if `mm-inline-large-images' is set to
       (write-region (point-min) (point-max) file nil 'silent))
     (delete-region (point-min) (point-max))
     (unwind-protect
-	(apply 'call-process cmd nil t nil (mapcar 'eval args))
+	(apply #'call-process cmd nil t nil (mapcar (lambda (e) (eval e t)) args))
       (delete-file file))
     (and post-func (funcall post-func))))
 
 (defun mm-inline-wash-with-stdin (post-func cmd &rest args)
   (let ((coding-system-for-write 'binary))
-    (apply 'call-process-region (point-min) (point-max)
+    (apply #'call-process-region (point-min) (point-max)
 	   cmd t t nil args))
   (and post-func (funcall post-func)))
 
@@ -290,7 +293,7 @@ This is only used if `mm-inline-large-images' is set to
      handle
      (mm-with-unibyte-buffer
        (insert source)
-       (apply 'mm-inline-wash-with-file post-func cmd args)
+       (apply #'mm-inline-wash-with-file post-func cmd args)
        (buffer-string)))))
 
 (defun mm-inline-render-with-stdin (handle post-func cmd &rest args)
@@ -299,7 +302,7 @@ This is only used if `mm-inline-large-images' is set to
      handle
      (mm-with-unibyte-buffer
        (insert source)
-       (apply 'mm-inline-wash-with-stdin post-func cmd args)
+       (apply #'mm-inline-wash-with-stdin post-func cmd args)
        (buffer-string)))))
 
 (defun mm-inline-render-with-function (handle func &rest args)
@@ -317,7 +320,7 @@ This is only used if `mm-inline-large-images' is set to
 
 (defun mm-inline-text-html (handle)
   (if (stringp (car handle))
-      (mapcar 'mm-inline-text-html (cdr handle))
+      (mapcar #'mm-inline-text-html (cdr handle))
     (let* ((func mm-text-html-renderer)
 	   (entry (assq func mm-text-html-renderer-alist))
 	   (inhibit-read-only t))
@@ -378,10 +381,11 @@ This is only used if `mm-inline-large-images' is set to
        handle
        (if (= (point-min) (point-max))
 	   #'ignore
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(copy-marker (point-min) t)
-			     ,(point-max-marker)))))))))
+	 (let ((beg (copy-marker (point-min) t))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
@@ -391,12 +395,13 @@ This is only used if `mm-inline-large-images' is set to
       (insert "\n"))
     (mm-handle-set-undisplayer
      handle
-     `(lambda ()
-	(let ((inhibit-read-only t))
-	  (delete-region ,(copy-marker b t)
-			 ,(point-marker)))))))
+     (let ((beg (copy-marker b t))
+           (end (point-marker)))
+       (lambda ()
+	 (let ((inhibit-read-only t))
+	   (delete-region beg end)))))))
 
-(defun mm-inline-audio (handle)
+(defun mm-inline-audio (_handle)
   (message "Not implemented"))
 
 (defun mm-view-message ()
@@ -412,6 +417,10 @@ This is only used if `mm-inline-large-images' is set to
 	    (mm-merge-handles gnus-article-mime-handles handles))))
   (fundamental-mode)
   (goto-char (point-min)))
+
+(defvar gnus-original-article-buffer)
+(defvar gnus-article-prepare-hook)
+(defvar gnus-displaying-mime)
 
 (defun mm-inline-message (handle)
   (let ((b (point))
@@ -450,9 +459,11 @@ This is only used if `mm-inline-large-images' is set to
 		(mm-merge-handles gnus-article-mime-handles handles)))
 	(mm-handle-set-undisplayer
 	 handle
-	 `(lambda ()
-	    (let ((inhibit-read-only t))
-	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
+	 (let ((beg (point-min-marker))
+	       (end (point-max-marker)))
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region beg end)))))))))
 
 ;; Shut up byte-compiler.
 (defvar font-lock-mode-hook)

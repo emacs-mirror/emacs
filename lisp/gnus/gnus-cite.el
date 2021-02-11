@@ -1,4 +1,4 @@
-;;; gnus-cite.el --- parse citations in articles for Gnus
+;;; gnus-cite.el --- parse citations in articles for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995-2021 Free Software Foundation, Inc.
 
@@ -38,19 +38,16 @@
 
 (defcustom gnus-cited-opened-text-button-line-format "%(%{[-]%}%)\n"
   "Format of opened cited text buttons."
-  :group 'gnus-cite
   :type 'string)
 
 (defcustom gnus-cited-closed-text-button-line-format "%(%{[+]%}%)\n"
   "Format of closed cited text buttons."
-  :group 'gnus-cite
   :type 'string)
 
 (defcustom gnus-cited-lines-visible nil
   "The number of lines of hidden cited text to remain visible.
 Or a pair (cons) of numbers which are the number of lines at the top
 and bottom of the text, respectively, to remain visible."
-  :group 'gnus-cite
   :type '(choice (const :tag "none" nil)
 		 integer
 		 (cons :tag "Top and Bottom" integer integer)))
@@ -58,13 +55,11 @@ and bottom of the text, respectively, to remain visible."
 (defcustom gnus-cite-parse-max-size 25000
   "Maximum article size (in bytes) where parsing citations is allowed.
 Set it to nil to parse all articles."
-  :group 'gnus-cite
   :type '(choice (const :tag "all" nil)
 		 integer))
 
 (defcustom gnus-cite-max-prefix 20
   "Maximum possible length for a citation prefix."
-  :group 'gnus-cite
   :type 'integer)
 
 (defcustom gnus-supercite-regexp
@@ -72,18 +67,15 @@ Set it to nil to parse all articles."
 	  ">>>>> +\"\\([^\"\n]+\\)\" +==")
   "Regexp matching normal Supercite attribution lines.
 The first grouping must match prefixes added by other packages."
-  :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-supercite-secondary-regexp "^.*\"\\([^\"\n]+\\)\" +=="
   "Regexp matching mangled Supercite attribution lines.
 The first regexp group should match the Supercite attribution."
-  :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-minimum-match-count 2
   "Minimum number of identical prefixes before we believe it's a citation."
-  :group 'gnus-cite
   :type 'integer)
 
 ;; Some Microsoft products put in a citation that extends to the
@@ -106,21 +98,18 @@ The first regexp group should match the Supercite attribution."
 (defcustom gnus-cite-attribution-prefix
   "In article\\|in <\\|On \\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),\\|----- ?Original Message ?-----"
   "Regexp matching the beginning of an attribution line."
-  :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-attribution-suffix
   "\\(\\(wrote\\|writes\\|said\\|says\\|>\\)\\(:\\|\\.\\.\\.\\)\\|----- ?Original Message ?-----\\)[ \t]*$"
   "Regexp matching the end of an attribution line.
 The text matching the first grouping will be used as a button."
-  :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-unsightly-citation-regexp
   "^-----Original Message-----\nFrom: \\(.+\n\\)+\n"
   "Regexp matching Microsoft-type rest-of-message citations."
   :version "22.1"
-  :group 'gnus-cite
   :type 'regexp)
 
 (defcustom gnus-cite-ignore-quoted-from t
@@ -128,18 +117,15 @@ The text matching the first grouping will be used as a button."
 Those lines may have been quoted by MTAs in order not to mix up with
 the envelope From line."
   :version "22.1"
-  :group 'gnus-cite
   :type 'boolean)
 
 (defface gnus-cite-attribution '((t (:italic t)))
-  "Face used for attribution lines."
-  :group 'gnus-cite)
+  "Face used for attribution lines.")
 
 (defcustom gnus-cite-attribution-face 'gnus-cite-attribution
   "Face used for attribution lines.
 It is merged with the face for the cited text belonging to the attribution."
   :version "22.1"
-  :group 'gnus-cite
   :type 'face)
 
 (defface gnus-cite-1 '((((class color)
@@ -150,8 +136,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "MidnightBlue"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-2 '((((class color)
 			 (background dark))
@@ -161,8 +146,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "firebrick"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-3 '((((class color)
 			 (background dark))
@@ -172,8 +156,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "dark green"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-4 '((((class color)
 			 (background dark))
@@ -183,8 +166,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "OrangeRed"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-5 '((((class color)
 			 (background dark))
@@ -194,8 +176,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "dark khaki"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-6 '((((class color)
 			 (background dark))
@@ -205,8 +186,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "dark violet"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-7 '((((class color)
 			 (background dark))
@@ -216,8 +196,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "SteelBlue4"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-8 '((((class color)
 			 (background dark))
@@ -227,8 +206,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "magenta"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-9 '((((class color)
 			 (background dark))
@@ -238,8 +216,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			(:foreground "violet"))
 		       (t
 			(:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-10 '((((class color)
 			  (background dark))
@@ -249,8 +226,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (:foreground "medium purple"))
 			(t
 			 (:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defface gnus-cite-11 '((((class color)
 			  (background dark))
@@ -260,8 +236,7 @@ It is merged with the face for the cited text belonging to the attribution."
 			 (:foreground "turquoise"))
 			(t
 			 (:italic t)))
-  "Citation face."
-  :group 'gnus-cite)
+  "Citation face.")
 
 (defcustom gnus-cite-face-list
   '(gnus-cite-1 gnus-cite-2 gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6
@@ -271,7 +246,6 @@ It is merged with the face for the cited text belonging to the attribution."
 When there are citations from multiple articles in the same message,
 Gnus will try to give each citation from each article its own face.
 This should make it easier to see who wrote what."
-  :group 'gnus-cite
   :type '(repeat face)
   :set (lambda (symbol value)
 	 (prog1
@@ -290,17 +264,14 @@ This should make it easier to see who wrote what."
 
 (defcustom gnus-cite-hide-percentage 50
   "Only hide excess citation if above this percentage of the body."
-  :group 'gnus-cite
   :type 'number)
 
 (defcustom gnus-cite-hide-absolute 10
   "Only hide excess citation if above this number of lines in the body."
-  :group 'gnus-cite
   :type 'integer)
 
 (defcustom gnus-cite-blank-line-after-header t
   "If non-nil, put a blank line between the citation header and the button."
-  :group 'gnus-cite
   :type 'boolean)
 
 ;; This has to go here because its default value depends on
@@ -445,7 +416,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
       (gnus-article-search-signature)
       (push (cons (point-marker) "") marks)
       ;; Sort the marks.
-      (setq marks (sort marks 'car-less-than-car))
+      (setq marks (sort marks #'car-less-than-car))
       (let ((omarks marks))
 	(setq marks nil)
 	(while (cdr omarks)
@@ -553,7 +524,7 @@ text (i.e., computer code and the like) will not be folded."
 	 ;; like code?  Check for ragged edges on the left.
 	 (< (length columns) 3))))
 
-(defun gnus-article-hide-citation (&optional arg force)
+(defun gnus-article-hide-citation (&optional arg _force)
   "Toggle hiding of all cited text except attribution lines.
 See the documentation for `gnus-article-highlight-citation'.
 If given a negative prefix, always show; if given a positive prefix,
@@ -623,7 +594,7 @@ always hide."
              (progn
 	       (gnus-article-add-button
 		(point)
-		(progn (eval gnus-cited-closed-text-button-line-format-spec)
+		(progn (eval gnus-cited-closed-text-button-line-format-spec t)
 		       (point))
 		'gnus-article-toggle-cited-text
 		(list (cons beg end) start))
@@ -673,7 +644,8 @@ means show, nil means toggle."
 	    (progn (eval
 		    (if hidden
 			gnus-cited-opened-text-button-line-format-spec
-		      gnus-cited-closed-text-button-line-format-spec))
+		      gnus-cited-closed-text-button-line-format-spec)
+		    t)
 		   (point))
 	    'gnus-article-toggle-cited-text
 	    args)
@@ -726,7 +698,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 
 ;;; Internal functions:
 
-(defun gnus-cite-parse-maybe (&optional force no-overlay)
+(defun gnus-cite-parse-maybe (&optional _force no-overlay)
   "Always parse the buffer."
   (gnus-cite-localize)
   ;;Reset parser information.
@@ -919,25 +891,25 @@ See also the documentation for `gnus-article-highlight-citation'."
 					    (regexp-quote tag) ">"))))
   ;; Find loose supercite citations after attributions.
   (gnus-cite-match-attributions 'small t
-				(lambda (prefix tag)
+				(lambda (_prefix tag)
 				  (when tag
 				    (concat "\\<"
 					    (regexp-quote tag)
 					    "\\>"))))
   ;; Find loose supercite citations anywhere.
   (gnus-cite-match-attributions 'small nil
-				(lambda (prefix tag)
+				(lambda (_prefix tag)
 				  (when tag
 				    (concat "\\<"
 					    (regexp-quote tag)
 					    "\\>"))))
   ;; Find nested citations after attributions.
   (gnus-cite-match-attributions 'small-if-unique t
-				(lambda (prefix tag)
+				(lambda (prefix _tag)
 				  (concat "\\`" (regexp-quote prefix) ".+")))
   ;; Find nested citations anywhere.
   (gnus-cite-match-attributions 'small nil
-				(lambda (prefix tag)
+				(lambda (prefix _tag)
 				  (concat "\\`" (regexp-quote prefix) ".+")))
   ;; Remove loose prefixes with too few lines.
   (let ((alist gnus-cite-loose-prefix-alist)
@@ -999,7 +971,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 		cites (cdr cites)
 		candidate (car cite)
 		numbers (cdr cite)
-		first (apply 'min numbers)
+		first (apply #'min numbers)
 		compare (if size (length candidate) first))
 	  (and (> first limit)
 	       regexp
@@ -1125,7 +1097,7 @@ See also the documentation for `gnus-article-highlight-citation'."
   "Search for a cited line and set match data accordingly.
 Returns nil if there is no such line before LIMIT, t otherwise."
   (when (re-search-forward gnus-message-cite-prefix-regexp limit t)
-    (let ((cdepth (min (length (apply 'concat
+    (let ((cdepth (min (length (apply #'concat
 				      (split-string
 				       (match-string-no-properties 0)
 				       "[\t [:alnum:]]+")))
@@ -1166,7 +1138,7 @@ When enabled, it automatically turns on `font-lock-mode'."
   (when (derived-mode-p 'message-mode)
     ;; FIXME: Use font-lock-add-keywords!
     (let ((defaults (car font-lock-defaults))
-	  default keywords)
+	  default) ;; keywords
       (while defaults
 	(setq default (if (consp defaults)
 			  (pop defaults)

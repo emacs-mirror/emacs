@@ -1675,9 +1675,8 @@ For example, try \":/\" for URL (and some FTP) references."
   :type '(choice (const nil) regexp)
   :group 'ffap)
 
-(defvar ffap-menu-alist nil
+(defvar-local ffap-menu-alist nil
   "Buffer local cache of menu presented by `ffap-menu'.")
-(make-variable-buffer-local 'ffap-menu-alist)
 
 (defvar ffap-menu-text-plist
   (cond

@@ -2044,8 +2044,7 @@ In the tex shell buffer this command behaves like `comint-send-input'."
     (with-current-buffer buffer
       (setq default-directory directory))))
 
-(defvar tex-send-command-modified-tick 0)
-(make-variable-buffer-local 'tex-send-command-modified-tick)
+(defvar-local tex-send-command-modified-tick 0)
 
 (defun tex-shell-proc ()
   (or (tex-shell-running) (error "No TeX subprocess")))

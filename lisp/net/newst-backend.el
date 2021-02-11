@@ -34,7 +34,6 @@
 ;; ======================================================================
 ;;; Code:
 
-(require 'derived)
 (require 'xml)
 (require 'url-parse)
 (require 'iso8601)

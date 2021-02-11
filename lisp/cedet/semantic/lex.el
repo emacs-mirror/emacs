@@ -202,10 +202,9 @@ as a PROPERTY value.  FUN receives a symbol as argument."
 ;; These keywords are keywords defined for using in a grammar with the
 ;; %keyword declaration, and are not keywords used in Emacs Lisp.
 
-(defvar semantic-flex-keywords-obarray nil
+(defvar-local semantic-flex-keywords-obarray nil
   "Buffer local keyword obarray for the lexical analyzer.
 These keywords are matched explicitly, and converted into special symbols.")
-(make-variable-buffer-local 'semantic-flex-keywords-obarray)
 
 (defmacro semantic-lex-keyword-invalid (name)
   "Signal that NAME is an invalid keyword name."
@@ -333,9 +332,8 @@ so that analysis can continue, if possible."
 ;; with the %type declaration.  Types represent different syntaxes.
 ;; See code for `semantic-lex-preset-default-types' for the classic
 ;; types of syntax.
-(defvar semantic-lex-types-obarray nil
+(defvar-local semantic-lex-types-obarray nil
   "Buffer local types obarray for the lexical analyzer.")
-(make-variable-buffer-local 'semantic-lex-types-obarray)
 
 (defun semantic-lex-type-invalid (type)
   "Signal that TYPE is an invalid lexical type name."
@@ -472,11 +470,10 @@ PROPERTY set."
 ;;
 
 ;; FIXME change to non-obsolete default.
-(defvar semantic-lex-analyzer 'semantic-flex
+(defvar-local semantic-lex-analyzer 'semantic-flex
   "The lexical analyzer used for a given buffer.
 See `semantic-lex' for documentation.
 For compatibility with Semantic 1.x it defaults to `semantic-flex'.")
-(make-variable-buffer-local 'semantic-lex-analyzer)
 
 (defvar semantic-lex-tokens
   '(
@@ -558,7 +555,7 @@ The key to this alist is the symbol representing token type that
   - whitespace:    Characters that match `\\s-+' regexp.
                    This token is produced with `semantic-lex-whitespace'.")
 
-(defvar semantic-lex-syntax-modifications nil
+(defvar-local semantic-lex-syntax-modifications nil
   "Changes to the syntax table for this buffer.
 These changes are active only while the buffer is being flexed.
 This is a list where each element has the form:
@@ -566,20 +563,17 @@ This is a list where each element has the form:
 CHAR is the char passed to `modify-syntax-entry',
 and CLASS is the string also passed to `modify-syntax-entry' to define
 what syntax class CHAR has.")
-(make-variable-buffer-local 'semantic-lex-syntax-modifications)
 
-(defvar semantic-lex-syntax-table nil
+(defvar-local semantic-lex-syntax-table nil
   "Syntax table used by lexical analysis.
 See also `semantic-lex-syntax-modifications'.")
-(make-variable-buffer-local 'semantic-lex-syntax-table)
 
-(defvar semantic-lex-comment-regex nil
+(defvar-local semantic-lex-comment-regex nil
   "Regular expression for identifying comment start during lexical analysis.
 This may be automatically set when semantic initializes in a mode, but
 may need to be overridden for some special languages.")
-(make-variable-buffer-local 'semantic-lex-comment-regex)
 
-(defvar semantic-lex-number-expression
+(defvar-local semantic-lex-number-expression
   ;; This expression was written by David Ponce for Java, and copied
   ;; here for C and any other similar language.
   (eval-when-compile
@@ -628,12 +622,10 @@ FLOATING_POINT_LITERAL:
   | [0-9]+<EXPONENT>[fFdD]?
   | [0-9]+<EXPONENT>?[fFdD]
   ;")
-(make-variable-buffer-local 'semantic-lex-number-expression)
 
-(defvar semantic-lex-depth 0
+(defvar-local semantic-lex-depth 0
   "Default lexing depth.
 This specifies how many lists to create tokens in.")
-(make-variable-buffer-local 'semantic-lex-depth)
 
 (defvar semantic-lex-unterminated-syntax-end-function
   (lambda (_syntax _syntax-start lex-end) lex-end)
@@ -1768,7 +1760,7 @@ when finding unterminated syntax.")
 (make-obsolete-variable 'semantic-flex-unterminated-syntax-end-function
                         nil "28.1")
 
-(defvar semantic-flex-extensions nil
+(defvar-local semantic-flex-extensions nil
   "Buffer local extensions to the lexical analyzer.
 This should contain an alist with a key of a regex and a data element of
 a function.  The function should both move point, and return a lexical
@@ -1777,10 +1769,9 @@ token of the form:
 nil is also a valid return value.
 TYPE can be any type of symbol, as long as it doesn't occur as a
 nonterminal in the language definition.")
-(make-variable-buffer-local 'semantic-flex-extensions)
 (make-obsolete-variable 'semantic-flex-extensions nil "28.1")
 
-(defvar semantic-flex-syntax-modifications nil
+(defvar-local semantic-flex-syntax-modifications nil
   "Changes to the syntax table for this buffer.
 These changes are active only while the buffer is being flexed.
 This is a list where each element has the form:
@@ -1788,47 +1779,40 @@ This is a list where each element has the form:
 CHAR is the char passed to `modify-syntax-entry',
 and CLASS is the string also passed to `modify-syntax-entry' to define
 what syntax class CHAR has.")
-(make-variable-buffer-local 'semantic-flex-syntax-modifications)
 (make-obsolete-variable 'semantic-flex-syntax-modifications nil "28.1")
 
-(defvar semantic-ignore-comments t
+(defvar-local semantic-ignore-comments t
   "Default comment handling.
 The value t means to strip comments when flexing; nil means
 to keep comments as part of the token stream.")
-(make-variable-buffer-local 'semantic-ignore-comments)
 (make-obsolete-variable 'semantic-ignore-comments nil "28.1")
 
-(defvar semantic-flex-enable-newlines nil
+(defvar-local semantic-flex-enable-newlines nil
   "When flexing, report newlines as syntactic elements.
 Useful for languages where the newline is a special case terminator.
 Only set this on a per mode basis, not globally.")
-(make-variable-buffer-local 'semantic-flex-enable-newlines)
 (make-obsolete-variable 'semantic-flex-enable-newlines nil "28.1")
 
-(defvar semantic-flex-enable-whitespace nil
+(defvar-local semantic-flex-enable-whitespace nil
   "When flexing, report whitespace as syntactic elements.
 Useful for languages where the syntax is whitespace dependent.
 Only set this on a per mode basis, not globally.")
-(make-variable-buffer-local 'semantic-flex-enable-whitespace)
 (make-obsolete-variable 'semantic-flex-enable-whitespace nil "28.1")
 
-(defvar semantic-flex-enable-bol nil
+(defvar-local semantic-flex-enable-bol nil
   "When flexing, report beginning of lines as syntactic elements.
 Useful for languages like python which are indentation sensitive.
 Only set this on a per mode basis, not globally.")
-(make-variable-buffer-local 'semantic-flex-enable-bol)
 (make-obsolete-variable 'semantic-flex-enable-bol nil "28.1")
 
-(defvar semantic-number-expression semantic-lex-number-expression
+(defvar-local semantic-number-expression semantic-lex-number-expression
   "See variable `semantic-lex-number-expression'.")
-(make-variable-buffer-local 'semantic-number-expression)
 (make-obsolete-variable 'semantic-number-expression
                         'semantic-lex-number-expression "28.1")
 
-(defvar semantic-flex-depth 0
+(defvar-local semantic-flex-depth 0
   "Default flexing depth.
 This specifies how many lists to create tokens in.")
-(make-variable-buffer-local 'semantic-flex-depth)
 (make-obsolete-variable 'semantic-flex-depth nil "28.1")
 
 (provide 'semantic/lex)

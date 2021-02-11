@@ -531,8 +531,7 @@ ARG and NO-CONFIRM are passed on to `revert-buffer'."
       (revert-buffer arg no-confirm t))
     (vc-restore-buffer-context context)))
 
-(defvar vc-mode-line-hook nil)
-(make-variable-buffer-local 'vc-mode-line-hook)
+(defvar-local vc-mode-line-hook nil)
 (put 'vc-mode-line-hook 'permanent-local t)
 
 (defvar view-old-buffer-read-only)

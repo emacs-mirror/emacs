@@ -1,4 +1,4 @@
-;;; gnus-fun.el --- various frivolous extension functions to Gnus
+;;; gnus-fun.el --- various frivolous extension functions to Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -268,9 +268,9 @@ colors of the displayed X-Faces."
 	   'xface
 	   (gnus-put-image
 	    (if (gnus-image-type-available-p 'xface)
-		(apply 'gnus-create-image (concat "X-Face: " data) 'xface t
+		(apply #'gnus-create-image (concat "X-Face: " data) 'xface t
 		       (cdr (assq 'xface gnus-face-properties-alist)))
-	      (apply 'gnus-create-image pbm 'pbm t
+	      (apply #'gnus-create-image pbm 'pbm t
 		     (cdr (assq 'pbm gnus-face-properties-alist))))
 	    nil 'xface))
 	  (gnus-add-wash-type 'xface))))))
@@ -325,7 +325,7 @@ colors of the displayed X-Faces."
   (dotimes (i 255)
     (push (format format i i i i i i)
 	  values))
-  (mapconcat 'identity values " ")))
+  (mapconcat #'identity values " ")))
 
 (defun gnus-funcall-no-warning (function &rest args)
   (when (fboundp function)

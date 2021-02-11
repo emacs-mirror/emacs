@@ -289,7 +289,7 @@ DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_i
   block_input ();
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
-    set_frame_menubar (f, false, true);
+    set_frame_menubar (f, true);
 
   menubar = FRAME_X_OUTPUT (f)->menubar_widget;
   if (menubar)
@@ -368,7 +368,7 @@ If FRAME is nil or not given, use the selected frame.  */)
   f = decode_window_system_frame (frame);
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
-    set_frame_menubar (f, false, true);
+    set_frame_menubar (f, true);
 
   menubar = FRAME_X_OUTPUT (f)->menubar_widget;
   if (menubar)
@@ -433,7 +433,7 @@ x_activate_menubar (struct frame *f)
     return;
 #endif
 
-  set_frame_menubar (f, false, true);
+  set_frame_menubar (f, true);
   block_input ();
   popup_activated_flag = 1;
 #ifdef USE_GTK
@@ -677,12 +677,10 @@ apply_systemfont_to_menu (struct frame *f, Widget w)
 
 #endif
 
-/* Set the contents of the menubar widgets of frame F.
-   The argument FIRST_TIME is currently ignored;
-   it is set the first time this is called, from initialize_frame_menubar.  */
+/* Set the contents of the menubar widgets of frame F.  */
 
 void
-set_frame_menubar (struct frame *f, bool first_time, bool deep_p)
+set_frame_menubar (struct frame *f, bool deep_p)
 {
   xt_or_gtk_widget menubar_widget, old_widget;
 #ifdef USE_X_TOOLKIT
@@ -1029,7 +1027,7 @@ initialize_frame_menubar (struct frame *f)
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
   fset_menu_bar_items (f, menu_bar_items (FRAME_MENU_BAR_ITEMS (f)));
-  set_frame_menubar (f, true, true);
+  set_frame_menubar (f, true);
 }
 
 

@@ -810,9 +810,7 @@ from the tab line."
   :version "27.1")
 
 ;;;###autoload
-(defvar tab-line-exclude nil)
-;;;###autoload
-(make-variable-buffer-local 'tab-line-exclude)
+(defvar-local tab-line-exclude nil)
 
 (defun tab-line-mode--turn-on ()
   "Turn on `tab-line-mode'."

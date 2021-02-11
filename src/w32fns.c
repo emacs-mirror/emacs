@@ -1637,7 +1637,7 @@ w32_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 	  if (!old)
 	    /* Make menu bar when there was none.  Emacs 25 waited until
 	       the next redisplay for this to take effect.  */
-	    set_frame_menubar (f, false, true);
+	    set_frame_menubar (f, true);
 	  else
 	    {
 	      /* Remove menu bar.  */

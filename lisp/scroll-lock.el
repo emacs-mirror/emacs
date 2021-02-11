@@ -40,9 +40,8 @@
     map)
   "Keymap for Scroll Lock mode.")
 
-(defvar scroll-lock-preserve-screen-pos-save scroll-preserve-screen-position
+(defvar-local scroll-lock-preserve-screen-pos-save scroll-preserve-screen-position
   "Used for saving the state of `scroll-preserve-screen-position'.")
-(make-variable-buffer-local 'scroll-lock-preserve-screen-pos-save)
 
 (defvar scroll-lock-temporary-goal-column 0
   "Like `temporary-goal-column' but for scroll-lock-* commands.")

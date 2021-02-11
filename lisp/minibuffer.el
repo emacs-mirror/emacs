@@ -122,7 +122,8 @@ This metadata is an alist.  Currently understood keys are:
    returns a string to append to STRING.
 - `affixation-function': function to prepend/append a prefix/suffix to
    entries.  Takes one argument (COMPLETIONS) and should return a list
-   of completions with a list of three elements: completion, its prefix
+   of completions with a list of either two elements: completion
+   and suffix, or three elements: completion, its prefix
    and suffix.  This function takes priority over `annotation-function'
    when both are provided, so only this function is used.
 - `display-sort-function': function to sort entries in *Completions*.
@@ -1785,22 +1786,17 @@ It also eliminates runs of equal strings."
                 (when prefix
                   (let ((beg (point))
                         (end (progn (insert prefix) (point))))
-                    (put-text-property beg end 'mouse-face nil)
-                    ;; When both prefix and suffix are added
-                    ;; by the caller via affixation-function,
-                    ;; then allow the caller to decide
-                    ;; what faces to put on prefix and suffix.
-                    (unless prefix
-                      (font-lock-prepend-text-property
-                       beg end 'face 'completions-annotations))))
+                    (put-text-property beg end 'mouse-face nil)))
                 (put-text-property (point) (progn (insert (car str)) (point))
                                    'mouse-face 'highlight)
                 (let ((beg (point))
                       (end (progn (insert suffix) (point))))
                   (put-text-property beg end 'mouse-face nil)
                   ;; Put the predefined face only when suffix
-                  ;; is added via annotation-function.
-                  (unless prefix
+                  ;; is added via annotation-function without prefix,
+                  ;; and when the caller doesn't use own face.
+                  (unless (or prefix (text-property-not-all
+                                      0 (length suffix) 'face nil suffix))
                     (font-lock-prepend-text-property
                      beg end 'face 'completions-annotations)))))
 	    (cond
@@ -1927,6 +1923,7 @@ These include:
 `:affixation-function': Function to prepend/append a prefix/suffix to
    completions.  The function must accept one argument, a list of
    completions, and return a list where each element is a list of
+   either two elements: a completion, and a suffix, or
    three elements: a completion, a prefix and a suffix.
    This function takes priority over `:annotation-function'
    when both are provided, so only this function is used.

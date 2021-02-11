@@ -46,10 +46,8 @@
 (defvar calc-embedded-modes nil)
 (defvar calc-embedded-globals nil)
 (defvar calc-embedded-active nil)
-(defvar calc-embedded-all-active nil)
-(make-variable-buffer-local 'calc-embedded-all-active)
-(defvar calc-embedded-some-active nil)
-(make-variable-buffer-local 'calc-embedded-some-active)
+(defvar-local calc-embedded-all-active nil)
+(defvar-local calc-embedded-some-active nil)
 
 ;; The following variables are customizable and defined in calc.el.
 (defvar calc-embedded-announce-formula)
