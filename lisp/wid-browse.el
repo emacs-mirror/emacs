@@ -56,11 +56,10 @@
     ["Browse At" widget-browse-at t]))
 
 (defcustom widget-browse-mode-hook nil
-  "Hook called when entering widget-browse-mode."
-  :type 'hook
-  :group 'widget-browse)
+  "Hook run after entering `widget-browse-mode'."
+  :type 'hook)
 
-(defun widget-browse-mode ()
+(define-derived-mode widget-browse-mode special-mode "Widget Browse"
   "Major mode for widget browser buffers.
 
 The following commands are available:
@@ -68,15 +67,7 @@ The following commands are available:
 \\[widget-forward]		Move to next button or editable field.
 \\[widget-backward]		Move to previous button or editable field.
 \\[widget-button-click]		Activate button under the mouse pointer.
-\\[widget-button-press]		Activate button under point.
-
-Entry to this mode calls the value of `widget-browse-mode-hook'
-if that value is non-nil."
-  (kill-all-local-variables)
-  (setq major-mode 'widget-browse-mode
-	mode-name "Widget")
-  (use-local-map widget-browse-mode-map)
-  (run-mode-hooks 'widget-browse-mode-hook))
+\\[widget-button-press]		Activate button under point.")
 
 (put 'widget-browse-mode 'mode-class 'special)
 
@@ -190,11 +181,11 @@ The :value of the widget should be the widget to be browsed."
   :action 'widget-browse-action)
 
 (defun widget-browse-action (widget &optional _event)
-  ;; Create widget browser for WIDGET's :value.
+  "Create widget browser for :value of WIDGET."
   (widget-browse (widget-get widget :value)))
 
 (defun widget-browse-value-create (widget)
-  ;; Insert type name.
+  "Insert type name for WIDGET."
   (let ((value (widget-get widget :value)))
     (cond ((symbolp value)
 	   (insert (symbol-name value)))
@@ -272,8 +263,6 @@ VALUE is assumed to be a list of widgets."
 (define-minor-mode widget-minor-mode
   "Minor mode for traversing widgets."
   :lighter " Widget")
-
-;;; The End:
 
 (provide 'wid-browse)
 
