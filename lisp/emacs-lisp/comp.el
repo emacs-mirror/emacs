@@ -3661,7 +3661,7 @@ Return the trampoline if found or nil otherwise."
          ;; Use speed 0 to maximize compilation speed and not to
          ;; optimize away funcall calls!
          (byte-optimize nil)
-         (comp-speed 0)
+         (comp-speed 1)
          (lexical-binding t))
     (comp--native-compile
      form nil
