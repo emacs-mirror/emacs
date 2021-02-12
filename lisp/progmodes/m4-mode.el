@@ -78,7 +78,7 @@ If m4 is not in your PATH, set this to an absolute file name."
       "stack_foreach_sep" "stack_foreach_sep_lifo" "substr" "syscmd"
       "sysval" "traceoff" "traceon" "translit" "undefine" "undivert"
       "unix" "upcase" "windows")
-    "List of valid m4 macros. for M4 mode"))
+    "List of valid m4 macros for M4 mode."))
 
 (defvar m4-font-lock-keywords
   (eval-when-compile
