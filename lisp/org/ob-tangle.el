@@ -150,7 +150,7 @@ represented in the file."
   "Open FILE into a temporary buffer execute BODY there like
 `progn', then kill the FILE buffer returning the result of
 evaluating BODY."
-  (declare (indent 1))
+  (declare (indent 1) (debug t))
   (let ((temp-path (make-symbol "temp-path"))
 	(temp-result (make-symbol "temp-result"))
 	(temp-file (make-symbol "temp-file"))
@@ -164,7 +164,6 @@ evaluating BODY."
 	 (setf ,temp-result (progn ,@body)))
        (unless ,visited-p (kill-buffer ,temp-file))
        ,temp-result)))
-(def-edebug-spec org-babel-with-temp-filebuffer (form body))
 
 ;;;###autoload
 (defun org-babel-tangle-file (file &optional target-file lang-re)

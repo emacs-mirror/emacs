@@ -88,6 +88,7 @@ Both SYMBOL and SPEC are unevaluated.  The SPEC can be:
 a symbol (naming a function with an Edebug specification); or a list.
 The elements of the list describe the argument types; see
 Info node `(elisp)Specification List' for details."
+  (declare (indent 1))
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
 (defmacro lambda (&rest cdr)

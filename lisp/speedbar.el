@@ -1,4 +1,4 @@
-;;; speedbar --- quick access to files and tags in a frame
+;;; speedbar --- quick access to files and tags in a frame  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -1640,7 +1640,7 @@ variable `speedbar-obj-alist'."
 
 (defmacro speedbar-with-writable (&rest forms)
   "Allow the buffer to be writable and evaluate FORMS."
-  (declare (indent 0))
+  (declare (indent 0) (debug t))
   `(let ((inhibit-read-only t))
      ,@forms))
 
@@ -4000,11 +4000,6 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 				    :overline "black"))
   "Speedbar face for separator labels in a display."
   :group 'speedbar-faces)
-
-;; some edebug hooks
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec speedbar-with-writable def-body)))
 
 ;; Fix a font lock problem for some versions of Emacs
 (and (boundp 'font-lock-global-modes)

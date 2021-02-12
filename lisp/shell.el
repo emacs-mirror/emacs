@@ -463,7 +463,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
   (if (pcomplete-match "/")
       (pcomplete-here (pcomplete-entries nil
 					 (if shell-completion-execonly
-					     'file-executable-p)))
+					     #'file-executable-p)))
     (pcomplete-here
      (nth 2 (shell--command-completion-data)))))
 

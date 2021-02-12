@@ -140,7 +140,7 @@ to an element already in the list stored in PLACE.
 \n(fn X PLACE [KEYWORD VALUE]...)"
   (declare (debug
             (form place &rest
-                  &or [[&or ":test" ":test-not" ":key"] function-form]
+                  &or [[&or ":test" ":test-not" ":key"] form]
                   [keywordp form])))
   (if (symbolp place)
       (if (null keys)
