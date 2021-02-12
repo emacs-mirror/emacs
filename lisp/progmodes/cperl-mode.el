@@ -5435,7 +5435,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
               (regexp-opt
-               '("CORE" "__FILE__" "__LINE__" "__SUB__"
+               '("CORE" "__FILE__" "__LINE__" "__SUB__" "__PACKAGE__"
                  "abs" "accept" "alarm" "and" "atan2"
                  "bind" "binmode" "bless" "caller"
                  "chdir" "chmod" "chown" "chr" "chroot" "close"
@@ -5483,7 +5483,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
                  "evalbytes" "exists" "finally" "for" "foreach" "format" "given"
                  "goto" "grep" "if" "keys" "last" "local" "m" "map" "my" "next"
                  "no" "our" "package" "pop" "pos" "print" "printf" "prototype"
-                 "push" "q" "qq" "qw" "qx" "redo" "return" "s" "say" "scalar"
+                 "push" "q" "qq" "qr" "qw" "qx" "redo" "return" "s" "say" "scalar"
                  "shift" "sort" "splice" "split" "state" "study" "sub" "tie"
                  "tied" "tr" "try" "undef" "unless" "unshift" "untie" "until"
                  "use" "when" "while" "y"))
