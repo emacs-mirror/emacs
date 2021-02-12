@@ -1,4 +1,4 @@
-;;; semantic/symref/filter.el --- Filter symbol reference hits for accuracy.
+;;; semantic/symref/filter.el --- Filter symbol reference hits for accuracy  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
@@ -48,7 +48,7 @@
   "Determine if the tag TARGET is used at POSITION in the current buffer.
 Return non-nil for a match."
   (semantic-analyze-current-symbol
-   (lambda (start end prefix)
+   (lambda (_start _end prefix)
      (let ((tag (car (nreverse prefix))))
        (and (semantic-tag-p tag)
 	    (semantic-equivalent-tag-p target tag))))
@@ -97,7 +97,7 @@ tag that contains point, and return that."
 	 (Lcount 0))
     (when (semantic-tag-p target)
       (semantic-symref-hits-in-region
-       target (lambda (start end prefix) (setq Lcount (1+ Lcount)))
+       target (lambda (_start _end _prefix) (setq Lcount (1+ Lcount)))
        (semantic-tag-start tag)
        (semantic-tag-end tag))
       (when (called-interactively-p 'interactive)
@@ -105,6 +105,8 @@ tag that contains point, and return that."
 		 Lcount (semantic-tag-name target)
 		 (semantic-elapsed-time start nil)))
       Lcount)))
+
+(defvar srecode-field-archive)
 
 (defun semantic-symref-rename-local-variable ()
   "Fancy way to rename the local variable under point.
@@ -140,7 +142,7 @@ Depends on the SRecode Field editing API."
 	  (region nil)
 	  )
       (semantic-symref-hits-in-region
-       target (lambda (start end prefix)
+       target (lambda (start end _prefix)
 		;; For every valid hit, create one field.
 		(srecode-field "LOCAL" :name "LOCAL" :start start :end end))
        (semantic-tag-start tag) (semantic-tag-end tag))
