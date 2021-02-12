@@ -1730,6 +1730,11 @@ and @var{set} is a function of one argument (a state) that sets it.
 @item :after-hook @var{after-hook}
 This defines a single Lisp form which is evaluated after the mode hooks
 have run.  It should not be quoted.
+
+@item :interactive @var{value}
+Minor modes are interactive commands by default.  If @var{value} is
+@code{nil}, this is inhibited.  If @var{value} is a list of symbols,
+it's used to say which major modes this minor mode is useful in.
 @end table
 
 Any other keyword arguments are passed directly to the
