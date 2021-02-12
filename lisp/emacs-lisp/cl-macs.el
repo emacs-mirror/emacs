@@ -2016,7 +2016,7 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or (&define name :unique "cl-flet@" function-form)
+           (debug ((&rest [&or (&define name :unique "cl-flet@" form)
                                (&define name :unique "cl-flet@"
                                         cl-lambda-list
                                         cl-declarations-or-string
