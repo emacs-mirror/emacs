@@ -975,9 +975,12 @@ versions of Emacs."
   "Abbrev table in use in CPerl mode buffers."
   :parents (list cperl-mode-electric-keywords-abbrev-table))
 
-(when (boundp 'edit-var-mode-alist)
-  ;; FIXME: What package uses this?
-  (add-to-list 'edit-var-mode-alist '(perl-mode (regexp . "^cperl-"))))
+;; ;; TODO: Commented out as we don't know what it is used for.  If
+;; ;;       there are no bug reports about this for Emacs 28.1, this
+;; ;;       can probably be removed.  (Code search online reveals nothing.)
+;; (when (boundp 'edit-var-mode-alist)
+;;   ;; FIXME: What package uses this?
+;;   (add-to-list 'edit-var-mode-alist '(perl-mode (regexp . "^cperl-"))))
 
 (defvar cperl-mode-map
   (let ((map (make-sparse-keymap)))
