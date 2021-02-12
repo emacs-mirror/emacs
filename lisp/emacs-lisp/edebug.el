@@ -55,6 +55,7 @@
 (require 'backtrace)
 (require 'macroexp)
 (require 'cl-lib)
+(require 'seq)
 (eval-when-compile (require 'pcase))
 
 ;;; Options
@@ -1866,6 +1867,22 @@ contains a circular object."
       (apply #'edebug-no-match cursor "Expected one of" original-specs))
     ))
 
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &lookup)) cursor specs)
+  "Compute the specs for `&lookup SPEC FUN ARGS...'.
+Extracts the head of the data by matching it against SPEC,
+and then matches the rest against the output of (FUN ARGS... HEAD)."
+  (pcase-let*
+      ((`(,spec ,fun . ,args) specs)
+       (exps (edebug-cursor-expressions cursor))
+       (instrumented-head (edebug-match-one-spec cursor (or spec 'sexp)))
+       (consumed (- (length exps)
+                    (length (edebug-cursor-expressions cursor))))
+       (newspecs (apply fun (append args (seq-subseq exps 0 consumed)))))
+    (cl-assert (eq (edebug-cursor-expressions cursor) (nthcdr consumed exps)))
+    ;; FIXME: What'd be the difference if we used `edebug-match-sublist',
+    ;; which is what `edebug-list-form-args' uses for the similar purpose
+    ;; when matching "normal" forms?
+    (append instrumented-head (edebug-match cursor newspecs))))
 
 (cl-defmethod edebug--handle-&-spec-op ((_ (eql &not)) cursor specs)
   ;; If any specs match, then fail

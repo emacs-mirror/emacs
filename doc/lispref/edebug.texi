@@ -1370,6 +1370,17 @@ is primarily used to generate more specific syntax error messages.  See
 edebug-spec; it aborts the instrumentation, displaying the message in
 the minibuffer.
 
+@item &lookup
+Selects a specification based on the code being instrumented.
+It takes the form @code{&lookup @var{spec} @var{fun} @var{args...}}
+and means that Edebug will first match @var{spec} against the code and
+then match the rest against the specification returned by calling
+@var{fun} with the concatenation of @var{args...} and the code that
+matched @code{spec}.  For example @code{(&lookup symbolp
+pcase--get-edebug-spec)} matches sexps whose first element is
+a symbol and whose subsequent elements must obey the spec associated
+with that head symbol according to @code{pcase--get-edebug-spec}.
+
 @item @var{other-symbol}
 @cindex indirect specifications
 Any other symbol in a specification list may be a predicate or an

@@ -62,44 +62,31 @@
 
 (defvar pcase--dontwarn-upats '(pcase--dontcare))
 
-(def-edebug-spec
-  pcase-PAT
-  (&or symbolp
-       ("or" &rest pcase-PAT)
-       ("and" &rest pcase-PAT)
-       ("guard" form)
-       ("pred" pcase-FUN)
-       ("app" pcase-FUN pcase-PAT)
-       pcase-MACRO
+(def-edebug-spec pcase-PAT
+  (&or (&lookup symbolp pcase--get-edebug-spec)
        sexp))
 
-(def-edebug-spec
-  pcase-FUN
+(def-edebug-spec pcase-FUN
   (&or lambda-expr
        ;; Punt on macros/special forms.
        (functionp &rest form)
        sexp))
 
-;; See bug#24717
-(put 'pcase-MACRO 'edebug-form-spec #'pcase--edebug-match-macro)
-
 ;; Only called from edebug.
 (declare-function edebug-get-spec "edebug" (symbol))
-(declare-function edebug-match "edebug" (cursor specs))
+(defun pcase--get-edebug-spec (head)
+  (or (alist-get head '((quote sexp)
+                        (or    &rest pcase-PAT)
+                        (and   &rest pcase-PAT)
+                        (guard form)
+                        (pred  &or ("not" pcase-FUN) pcase-FUN)
+                        (app   pcase-FUN pcase-PAT)))
+      (let ((me (pcase--get-macroexpander head)))
+        (and me (symbolp me) (edebug-get-spec me)))))
 
 (defun pcase--get-macroexpander (s)
   "Return the macroexpander for pcase pattern head S, or nil"
   (get s 'pcase-macroexpander))
-
-(defun pcase--edebug-match-macro (cursor)
-  (let (specs)
-    (mapatoms
-     (lambda (s)
-       (let ((m (pcase--get-macroexpander s)))
-	 (when (and m (edebug-get-spec m))
-	   (push (cons (symbol-name s) (edebug-get-spec m))
-		 specs)))))
-    (edebug-match cursor (cons '&or specs))))
 
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
@@ -938,8 +925,7 @@ Otherwise, it defers to REST which is a list of branches of the form
        (t (error "Unknown pattern `%S'" upat)))))
    (t (error "Incorrect MATCH %S" (car matches)))))
 
-(def-edebug-spec
-  pcase-QPAT
+(def-edebug-spec pcase-QPAT
   ;; Cf. edebug spec for `backquote-form' in edebug.el.
   (&or ("," pcase-PAT)
        (pcase-QPAT [&rest [&not ","] pcase-QPAT]

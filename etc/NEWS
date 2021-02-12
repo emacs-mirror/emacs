@@ -938,14 +938,17 @@ To customize obsolete user options, use 'customize-option' or
 ---
 *** 'get-edebug-spec' is obsolete, replaced by 'edebug-get-spec'.
 
-+++
-*** Edebug specification lists can use the new keyword '&error', which
-unconditionally aborts the current edebug instrumentation with the
-supplied error message.
+*** Edebug specification lists can use some new keywords:
 
-*** Edebug specification lists can use the new keyword ':unique',
-which appends a unique suffix to the Edebug name of the current
-definition.
++++
+**** '&lookup SPEC FUN ARGS...' lets FUN compute the specs to use
+
++++
+**** '&error MSG' unconditionally aborts the current edebug instrumentation.
+
++++
+**** ':unique STRING' appends STRING to the Edebug name of the current
+definition to (hopefully) make it more unique.
 
 ** ElDoc
 
