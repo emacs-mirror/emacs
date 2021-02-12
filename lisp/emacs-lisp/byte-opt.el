@@ -1562,10 +1562,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
              ;; so we create a copy of it, and replace the addresses with
              ;; TAGs.
              (let ((orig-table last-constant))
-               (cl-loop for e across constvec
-                        when (eq e last-constant)
-                        do (setq last-constant (copy-hash-table e))
-                        and return nil)
+               (setq last-constant (copy-hash-table last-constant))
                ;; Replace all addresses with TAGs.
                (maphash #'(lambda (value offset)
                             (let ((match (assq offset tags)))
