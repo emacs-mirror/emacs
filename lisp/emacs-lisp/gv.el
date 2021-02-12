@@ -307,7 +307,7 @@ The return value is the last VAL in the list.
 ;; Autoload this `put' since a user might use C-u C-M-x on an expression
 ;; containing a non-trivial `push' even before gv.el was loaded.
 ;;;###autoload
-(put 'gv-place 'edebug-form-spec 'edebug-match-form)
+(put 'gv-place 'edebug-form-spec '(form)) ;So-called "indirect spec".
 
 ;; CL did the equivalent of:
 ;;(gv-define-macroexpand edebug-after (lambda (before index place) place))
