@@ -27,19 +27,10 @@
 
 ;; Todo:
 
-;; - (pcase e (`(,x . ,x) foo)) signals an "x unused" warning if `foo' doesn't
-;;   use x, because x is bound separately for the equality constraint
-;;   (as well as any pred/guard) and for the body, so uses at one place don't
-;;   count for the other.
-;; - provide ways to extend the set of primitives, with some kind of
-;;   define-pcase-matcher.  We could easily make it so that (guard BOOLEXP)
-;;   could be defined this way, as a shorthand for (pred (lambda (_) BOOLEXP)).
-;;   But better would be if we could define new ways to match by having the
-;;   extension provide its own `pcase--split-<foo>' thingy.
-;; - along these lines, provide patterns to match CL structs.
+;; - Allow to provide new `pcase--split-<foo>' thingy.
 ;; - provide something like (setq VAR) so a var can be set rather than
 ;;   let-bound.
-;; - provide a way to fallthrough to subsequent cases
+;; - provide a way to continue matching to subsequent cases
 ;;   (e.g. Like Racket's (=> ID).
 ;; - try and be more clever to reduce the size of the decision tree, and
 ;;   to reduce the number of leaves that need to be turned into functions:
@@ -77,7 +68,6 @@
        ("or" &rest pcase-PAT)
        ("and" &rest pcase-PAT)
        ("guard" form)
-       ("let" pcase-PAT form)
        ("pred" pcase-FUN)
        ("app" pcase-FUN pcase-PAT)
        pcase-MACRO
@@ -91,10 +81,10 @@
        sexp))
 
 ;; See bug#24717
-(put 'pcase-MACRO 'edebug-form-spec 'pcase--edebug-match-macro)
+(put 'pcase-MACRO 'edebug-form-spec #'pcase--edebug-match-macro)
 
 ;; Only called from edebug.
-(declare-function get-edebug-spec "edebug" (symbol))
+(declare-function edebug-get-spec "edebug" (symbol))
 (declare-function edebug-match "edebug" (cursor specs))
 
 (defun pcase--get-macroexpander (s)
@@ -106,13 +96,15 @@
     (mapatoms
      (lambda (s)
        (let ((m (pcase--get-macroexpander s)))
-	 (when (and m (get-edebug-spec m))
-	   (push (cons (symbol-name s) (get-edebug-spec m))
+	 (when (and m (edebug-get-spec m))
+	   (push (cons (symbol-name s) (edebug-get-spec m))
 		 specs)))))
     (edebug-match cursor (cons '&or specs))))
 
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
+  ;; FIXME: Add some "global pattern" to wrap every case?
+  ;; Could be used to wrap all cases in a `
   "Evaluate EXP to get EXPVAL; try passing control to one of CASES.
 CASES is a list of elements of the form (PATTERN CODE...).
 For the first CASE whose PATTERN \"matches\" EXPVAL,
@@ -1002,7 +994,13 @@ The predicate is the logical-AND of:
 
 (pcase-defmacro let (pat expr)
   "Matches if EXPR matches PAT."
+  (declare (debug (pcase-PAT form)))
   `(app (lambda (_) ,expr) ,pat))
+
+;; (pcase-defmacro guard (expr)
+;;   "Matches if EXPR is non-nil."
+;;   (declare (debug (form)))
+;;   `(pred (lambda (_) ,expr)))
 
 (provide 'pcase)
 ;;; pcase.el ends here
