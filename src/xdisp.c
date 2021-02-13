@@ -10049,7 +10049,9 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, false);
 	  if ((op & MOVE_TO_POS) != 0
-	      && IT_CHARPOS (*it) > to_charpos)
+	      && (IT_CHARPOS (*it) > to_charpos
+		  || (IT_CHARPOS (*it) == to_charpos
+		      && to_charpos == ZV)))
 	    {
 	      reached = 9;
 	      goto out;
