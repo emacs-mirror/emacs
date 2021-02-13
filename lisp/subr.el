@@ -82,7 +82,7 @@ Testcover will raise an error."
   form)
 
 (defmacro def-edebug-spec (symbol spec)
-  "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
+  "Set the Edebug SPEC to use for sexps which have SYMBOL as head.
 Both SYMBOL and SPEC are unevaluated.  The SPEC can be:
 0 (instrument no arguments); t (instrument all arguments);
 a symbol (naming a function with an Edebug specification); or a list.
@@ -90,6 +90,21 @@ The elements of the list describe the argument types; see
 Info node `(elisp)Specification List' for details."
   (declare (indent 1))
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
+
+(defun def-edebug-elem-spec (name spec)
+  "Define a new Edebug spec element NAME as shorthand for SPEC.
+The SPEC has to be a list or a symbol.
+The elements of the list describe the argument types; see
+Info node `(elisp)Specification List' for details.
+If SPEC is a symbol it should name another pre-existing Edebug element."
+  (declare (indent 1))
+  (when (string-match "\\`[&:]" (symbol-name name))
+    ;; & and : have special meaning in spec element names.
+    (error "Edebug spec name cannot start with '&' or ':'"))
+  (unless (consp spec)
+    (error "Edebug spec has to be a list: %S" spec))
+  (put name 'edebug-elem-spec spec))
+
 
 (defmacro lambda (&rest cdr)
   "Return an anonymous function.

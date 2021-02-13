@@ -1125,7 +1125,7 @@ You don't need to give a directory or extension in the file name
 @var{library}.  Normally, you just give a bare file name, like this:
 
 @example
-(with-eval-after-load "edebug" (def-edebug-spec c-point t))
+(with-eval-after-load "js" (define-key js-mode-map "\C-c\C-c" 'js-eval))
 @end example
 
 To restrict which files can trigger the evaluation, include a

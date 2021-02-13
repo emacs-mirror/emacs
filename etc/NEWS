@@ -938,6 +938,13 @@ To customize obsolete user options, use 'customize-option' or
 ---
 *** 'get-edebug-spec' is obsolete, replaced by 'edebug-get-spec'.
 
++++
+*** New function 'def-edebug-elem-spec' to define Edebug spec elements.
+These used to be defined with 'def-edebug-spec' thus conflating the
+two name spaces, which lead to name collisions.
+The use of 'def-edebug-spec' to define Edebug spec elements is
+declared obsolete.
+
 *** Edebug specification lists can use some new keywords:
 
 +++

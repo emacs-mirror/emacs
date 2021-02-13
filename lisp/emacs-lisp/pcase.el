@@ -62,15 +62,14 @@
 
 (defvar pcase--dontwarn-upats '(pcase--dontcare))
 
-(def-edebug-spec pcase-PAT
-  (&or (&lookup symbolp pcase--get-edebug-spec)
-       sexp))
+(def-edebug-elem-spec 'pcase-PAT
+  '(&or (&lookup symbolp pcase--get-edebug-spec) sexp))
 
-(def-edebug-spec pcase-FUN
-  (&or lambda-expr
-       ;; Punt on macros/special forms.
-       (functionp &rest form)
-       sexp))
+(def-edebug-elem-spec 'pcase-FUN
+  '(&or lambda-expr
+        ;; Punt on macros/special forms.
+        (functionp &rest form)
+        sexp))
 
 ;; Only called from edebug.
 (declare-function edebug-get-spec "edebug" (symbol))
@@ -925,13 +924,13 @@ Otherwise, it defers to REST which is a list of branches of the form
        (t (error "Unknown pattern `%S'" upat)))))
    (t (error "Incorrect MATCH %S" (car matches)))))
 
-(def-edebug-spec pcase-QPAT
+(def-edebug-elem-spec 'pcase-QPAT
   ;; Cf. edebug spec for `backquote-form' in edebug.el.
-  (&or ("," pcase-PAT)
-       (pcase-QPAT [&rest [&not ","] pcase-QPAT]
-		   . [&or nil pcase-QPAT])
-       (vector &rest pcase-QPAT)
-       sexp))
+  '(&or ("," pcase-PAT)
+        (pcase-QPAT [&rest [&not ","] pcase-QPAT]
+		    . [&or nil pcase-QPAT])
+	(vector &rest pcase-QPAT)
+	sexp))
 
 (pcase-defmacro \` (qpat)
   "Backquote-style pcase patterns: \\=`QPAT

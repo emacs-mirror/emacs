@@ -261,6 +261,14 @@ The argument is usually a symbol, but it doesn't have to be."
 
 (define-obsolete-function-alias 'get-edebug-spec #'edebug-get-spec "28.1")
 
+(defun edebug--get-elem-spec (elem)
+  "Return the specs of the Edebug element ELEM, if any.
+ELEM has to be a symbol."
+  (or (get elem 'edebug-elem-spec)
+      ;; For backward compatibility, we also allow the use of
+      ;; a form's name as a shorthand to refer to its spec.
+      (edebug-get-spec elem)))
+
 ;;;###autoload
 (defun edebug-basic-spec (spec)
   "Return t if SPEC uses only extant spec symbols.
@@ -1757,16 +1765,11 @@ contains a circular object."
 		(gate . edebug-match-gate)
 		;;   (nil . edebug-match-nil)  not this one - special case it.
 		))
-  ;; FIXME: We abuse `edebug-form-spec' here.  It's normally used to store the
-  ;; specs for a given sexp's head, but here we use it to keep the
-  ;; function implementing of a given "core spec".
-  (put (car pair) 'edebug-form-spec (cdr pair)))
+  (put (car pair) 'edebug-elem-spec (cdr pair)))
 
 (defun edebug-match-symbol (cursor symbol)
   ;; Match a symbol spec.
-  ;; FIXME: We abuse `edebug-get-spec' here, passing it a *spec* rather than
-  ;; the head element of a source sexp.
-  (let* ((spec (edebug-get-spec symbol)))
+  (let* ((spec (edebug--get-elem-spec symbol)))
     (cond
      (spec
       (if (consp spec)
@@ -2184,112 +2187,114 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 
 ;;;* Emacs special forms and some functions.
 
-;; quote expects only one argument, although it allows any number.
-(def-edebug-spec quote sexp)
+(pcase-dolist
+    (`(,name ,spec)
 
-;; The standard defining forms.
-(def-edebug-spec defconst defvar)
-(def-edebug-spec defvar (symbolp &optional form stringp))
+     '((quote (sexp)) ;quote expects only one arg, tho it allows any number.
 
-(def-edebug-spec defun
-  (&define name lambda-list lambda-doc
-           [&optional ("declare" &rest sexp)]
-	   [&optional ("interactive" interactive)]
-	   def-body))
-(def-edebug-spec defmacro
-  ;; FIXME: Improve `declare' so we can Edebug gv-expander and
-  ;; gv-setter declarations.
-  (&define name lambda-list lambda-doc
-           [&optional ("declare" &rest sexp)] def-body))
+       ;; The standard defining forms.
+       (defvar (symbolp &optional form stringp))
+       (defconst defvar)
 
-(def-edebug-spec arglist lambda-list)  ;; deprecated - use lambda-list.
+       ;; Contrary to macros, special forms default to assuming that all args
+       ;; are normal forms, so we don't need to do anything about those
+       ;; special forms:
+       ;;(save-current-buffer t)
+       ;;(save-excursion t)
+       ;;...
+       ;;(progn t)
 
-(def-edebug-spec lambda-list
-  (([&rest arg]
-    [&optional ["&optional" arg &rest arg]]
-    &optional ["&rest" arg]
-    )))
+       ;; `defun' and `defmacro' are not special forms (any more), but it's
+       ;; more convenient to define their Edebug spec here.
+       (defun ( &define name lambda-list lambda-doc
+	        [&optional ("declare" &rest sexp)]
+	        [&optional ("interactive" &optional &or stringp def-form)]
+	        def-body))
 
-(def-edebug-spec lambda-doc
-  (&optional [&or stringp
-                  (&define ":documentation" def-form)]))
+       ;; FIXME: Improve `declare' so we can Edebug gv-expander and
+       ;; gv-setter declarations.
+       (defmacro ( &define name lambda-list lambda-doc
+                   [&optional ("declare" &rest sexp)]
+                   def-body))
 
-(def-edebug-spec interactive
-  (&optional &or stringp def-form))
+       ;; function expects a symbol or a lambda or macro expression
+       ;; A macro is allowed by Emacs.
+       (function (&or symbolp lambda-expr))
+
+       ;; FIXME?  The manual uses this form (maybe that's just
+       ;; for illustration purposes?):
+       ;; (let ((&rest &or symbolp (gate symbolp &optional form)) body))
+       (let ((&rest &or (symbolp &optional form) symbolp) body))
+       (let* let)
+
+       (setq (&rest symbolp form))
+       (cond (&rest (&rest form)))
+
+       (condition-case ( symbolp form
+                         &rest ([&or symbolp (&rest symbolp)] body)))
+
+       (\` (backquote-form))
+
+       ;; Assume immediate quote in unquotes mean backquote at next
+       ;;  higher level.
+       (\, (&or ("quote" edebug-\`) def-form))
+       (\,@ (&define  ;; so (,@ form) is never wrapped.
+	     &or ("quote" edebug-\`) def-form))
+       ))
+    (put name 'edebug-form-spec spec))
+
+(def-edebug-elem-spec 'lambda-list
+  '(([&rest arg]
+     [&optional ["&optional" arg &rest arg]]
+     &optional ["&rest" arg]
+     )))
+
+(def-edebug-elem-spec 'arglist '(lambda-list))  ;; deprecated - use lambda-list.
+
+(def-edebug-elem-spec 'lambda-doc
+  '(&optional [&or stringp
+                   (&define ":documentation" def-form)]))
 
 ;; A function-form is for an argument that may be a function or a form.
 ;; This specially recognizes anonymous functions quoted with quote.
-(def-edebug-spec function-form
+(def-edebug-elem-spec 'function-form          ;Deprecated, use `form'!
   ;; form at the end could also handle "function",
   ;; but recognize it specially to avoid wrapping function forms.
-  (&or ([&or "quote" "function"] &or symbolp lambda-expr) form))
-
-;; function expects a symbol or a lambda or macro expression
-;; A macro is allowed by Emacs.
-(def-edebug-spec function (&or symbolp lambda-expr))
-
-;; A macro expression is a lambda expression with "macro" prepended.
-(def-edebug-spec macro (&define "lambda" lambda-list def-body))
-
-;; (def-edebug-spec anonymous-form ((&or ["lambda" lambda] ["macro" macro])))
-
-;; Standard functions that take function-forms arguments.
-
-;; FIXME?  The manual uses this form (maybe that's just for illustration?):
-;; (def-edebug-spec let
-;;   ((&rest &or symbolp (gate symbolp &optional form))
-;;    body))
-(def-edebug-spec let
-  ((&rest &or (symbolp &optional form) symbolp)
-   body))
-
-(def-edebug-spec let* let)
-
-(def-edebug-spec setq (&rest symbolp form))
-
-(def-edebug-spec cond (&rest (&rest form)))
-
-(def-edebug-spec condition-case
-  (symbolp
-   form
-   &rest ([&or symbolp (&rest symbolp)] body)))
-
-
-(def-edebug-spec \` (backquote-form))
+  '(&or ([&or "quote" "function"] &or symbolp lambda-expr) form))
 
 ;; Supports quotes inside backquotes,
 ;; but only at the top level inside unquotes.
-(def-edebug-spec backquote-form
-  (&or
-   ;; Disallow instrumentation of , and ,@ inside a nested backquote, since
-   ;; these are likely to be forms generated by a macro being debugged.
-   ("`" nested-backquote-form)
-   ([&or "," ",@"] &or ("quote" backquote-form) form)
-   ;; The simple version:
-   ;;   (backquote-form &rest backquote-form)
-   ;; doesn't handle (a . ,b).  The straightforward fix:
-   ;;   (backquote-form . [&or nil backquote-form])
-   ;; uses up too much stack space.
-   ;; Note that `(foo . ,@bar) is not valid, so we don't need to handle it.
-   (backquote-form [&rest [&not ","] backquote-form]
-		   . [&or nil backquote-form])
-   ;; If you use dotted forms in backquotes, replace the previous line
-   ;; with the following.  This takes quite a bit more stack space, however.
-   ;; (backquote-form . [&or nil backquote-form])
-   (vector &rest backquote-form)
-   sexp))
+(def-edebug-elem-spec 'backquote-form
+  '(&or
+    ;; Disallow instrumentation of , and ,@ inside a nested backquote, since
+    ;; these are likely to be forms generated by a macro being debugged.
+    ("`" nested-backquote-form)
+    ([&or "," ",@"] &or ("quote" backquote-form) form)
+    ;; The simple version:
+    ;;   (backquote-form &rest backquote-form)
+    ;; doesn't handle (a . ,b).  The straightforward fix:
+    ;;   (backquote-form . [&or nil backquote-form])
+    ;; uses up too much stack space.
+    ;; Note that `(foo . ,@bar) is not valid, so we don't need to handle it.
+    (backquote-form [&rest [&not ","] backquote-form]
+		    . [&or nil backquote-form])
+    ;; If you use dotted forms in backquotes, replace the previous line
+    ;; with the following.  This takes quite a bit more stack space, however.
+    ;; (backquote-form . [&or nil backquote-form])
+    (vector &rest backquote-form)
+    sexp))
 
-(def-edebug-spec nested-backquote-form
-  (&or
-   ("`" &error "Triply nested backquotes (without commas \"between\" them) \
+(def-edebug-elem-spec 'nested-backquote-form
+  '(&or
+    ("`" &error "Triply nested backquotes (without commas \"between\" them) \
 are too difficult to instrument")
-   ;; Allow instrumentation of any , or ,@ contained within the (\, ...) or
-   ;; (\,@ ...) matched on the next line.
-   ([&or "," ",@"] backquote-form)
-   (nested-backquote-form [&rest [&not "," ",@"] nested-backquote-form]
-                          . [&or nil nested-backquote-form])
-   (vector &rest nested-backquote-form)
-   sexp))
+    ;; Allow instrumentation of any , or ,@ contained within the (\, ...) or
+    ;; (\,@ ...) matched on the next line.
+    ([&or "," ",@"] backquote-form)
+    (nested-backquote-form [&rest [&not "," ",@"] nested-backquote-form]
+                           . [&or nil nested-backquote-form])
+    (vector &rest nested-backquote-form)
+    sexp))
 
 ;; Special version of backquote that instruments backquoted forms
 ;; destined to be evaluated, usually as the result of a
@@ -2304,20 +2309,9 @@ are too difficult to instrument")
 
 ;; ,@ might have some problems.
 
-(defalias 'edebug-\` '\`)  ;; same macro as regular backquote.
-(def-edebug-spec edebug-\` (def-form))
-
-;; Assume immediate quote in unquotes mean backquote at next higher level.
-(def-edebug-spec \, (&or ("quote" edebug-\`) def-form))
-(def-edebug-spec \,@ (&define  ;; so (,@ form) is never wrapped.
-		     &or ("quote" edebug-\`) def-form))
-
-;; New byte compiler.
-
-(def-edebug-spec save-selected-window t)
-(def-edebug-spec save-current-buffer t)
-
-;; Anything else?
+(defmacro edebug-\` (exp)
+  (declare (debug (def-form)))
+  (list '\` exp))
 
 ;;; The debugger itself
 
