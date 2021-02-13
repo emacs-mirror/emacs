@@ -1290,14 +1290,6 @@ Short for @code{&rest form}.  See @code{&rest} below.  If your macro
 wraps its body of code with @code{lambda} before it is evaluated, use
 @code{def-body} instead.  See @code{def-body} below.
 
-@item function-form
-A function form: either a quoted function symbol, a quoted lambda
-expression, or a form (that should evaluate to a function symbol or
-lambda expression).  This is useful when an argument that's a lambda
-expression might be quoted with @code{quote} rather than
-@code{function}, since it instruments the body of the lambda expression
-either way.
-
 @item lambda-expr
 A lambda expression with no quoting.
 
@@ -1452,7 +1444,7 @@ match @var{spec} against the code and then call @var{fun} with the
 concatenation of the current name, @var{args...}, @var{prestring},
 the code that matched @code{spec}, and @var{poststring}.  If @var{fun}
 is absent, it defaults to a function that concatenates the arguments
-(with an @code{@} between the previous name and the new).
+(with an @code{@@} between the previous name and the new).
 
 @item name
 The argument, a symbol, is the name of the defining form.

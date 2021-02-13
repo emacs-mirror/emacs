@@ -1753,7 +1753,6 @@ contains a circular object."
 		(def-form . edebug-match-def-form)
 		;; Less frequently used:
 		;; (function . edebug-match-function)
-		(lambda-expr . edebug-match-lambda-expr)
                 (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
                 (cl-macrolet-name . edebug-match-cl-macrolet-name)
                 (cl-macrolet-body . edebug-match-cl-macrolet-body)
@@ -1873,7 +1872,7 @@ and then matches the rest against the output of (FUN ARGS... HEAD)."
   (pcase-let*
       ((`(,spec ,fun . ,args) specs)
        (exps (edebug-cursor-expressions cursor))
-       (instrumented-head (edebug-match-one-spec cursor (or spec 'sexp)))
+       (instrumented-head (edebug-match-one-spec cursor spec))
        (consumed (- (length exps)
                     (length (edebug-cursor-expressions cursor))))
        (newspecs (apply fun (append args (seq-subseq exps 0 consumed)))))
@@ -2025,32 +2024,6 @@ and then matches the rest against the output of (FUN ARGS... HEAD)."
       (while (consp offsets) (setq offsets (cdr offsets)))
       offsets)
     specs))
-
-(defun edebug-match-lambda-expr (cursor)
-  ;; The expression must be a function.
-  ;; This will match any list form that begins with a symbol
-  ;; that has an edebug-form-spec beginning with &define.  In
-  ;; practice, only lambda expressions should be used.
-  ;; I could add a &lambda specification to avoid confusion.
-  (let* ((sexp (edebug-top-element-required
-		cursor "Expected lambda expression"))
-	 (offset (edebug-top-offset cursor))
-	 (head (and (consp sexp) (car sexp)))
-	 (spec (and (symbolp head) (edebug-get-spec head)))
-	 (edebug-inside-func nil))
-    ;; Find out if this is a defining form from first symbol.
-    (if (and (consp spec) (eq '&define (car spec)))
-	(prog1
-	    (list
-	     (edebug-defining-form
-	      (edebug-new-cursor sexp offset)
-	      (car offset);; before the sexp
-	      (edebug-after-offset cursor)
-	      (cons (symbol-name head) (cdr spec))))
-	  (edebug-move-cursor cursor))
-      (edebug-no-match cursor "Expected lambda expression")
-      )))
-
 
 (cl-defmethod edebug--handle-&-spec-op ((_ (eql &name)) cursor specs)
   "Compute the name for `&name SPEC FUN` spec operator.
@@ -2271,11 +2244,18 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
      &optional ["&rest" arg]
      )))
 
+(def-edebug-elem-spec 'lambda-expr
+  '(("lambda" &define lambda-list lambda-doc
+     [&optional ("interactive" interactive)]
+     def-body)))
+
 (def-edebug-elem-spec 'arglist '(lambda-list))  ;; deprecated - use lambda-list.
 
 (def-edebug-elem-spec 'lambda-doc
   '(&optional [&or stringp
                    (&define ":documentation" def-form)]))
+
+(def-edebug-elem-spec 'interactive '(&optional &or stringp def-form))
 
 ;; A function-form is for an argument that may be a function or a form.
 ;; This specially recognizes anonymous functions quoted with quote.
