@@ -928,14 +928,14 @@ json_to_lisp (json_t *json, const struct json_configuration *conf)
 
 DEFUN ("json-parse-string", Fjson_parse_string, Sjson_parse_string, 1, MANY,
        NULL,
-       doc: /* Parse the JSON STRING into a Lisp object.  This is
-essentially the reverse operation of `json-serialize', which see.  The
-returned object will be the JSON null value, the JSON false value, t,
-a number, a string, a vector, a list, a hashtable, an alist, or a
-plist.  Its elements will be further objects of these types.  If there
-are duplicate keys in an object, all but the last one are ignored.  If
-STRING doesn't contain a valid JSON object, this function signals an
-error of type `json-parse-error'.
+       doc: /* Parse the JSON STRING into a Lisp object.
+This is essentially the reverse operation of `json-serialize', which
+see.  The returned object will be the JSON null value, the JSON false
+value, t, a number, a string, a vector, a list, a hashtable, an alist,
+or a plist.  Its elements will be further objects of these types.  If
+there are duplicate keys in an object, all but the last one are
+ignored.  If STRING doesn't contain a valid JSON object, this function
+signals an error of type `json-parse-error'.
 
 The arguments ARGS are a list of keyword/argument pairs:
 
