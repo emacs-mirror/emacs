@@ -2318,7 +2318,8 @@ tho trying to avoid AVOIDED-MODES."
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
 
-This is an XEmacs-compatibility function.  Use `define-minor-mode' instead.
+This function shouldn't be used directly -- use `define-minor-mode'
+instead (which will then call this function).
 
 TOGGLE is a symbol that is the name of a buffer-local variable that
 is toggled on or off to say whether the minor mode is active or not.
