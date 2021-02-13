@@ -358,7 +358,7 @@ more details.
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             ;; Same as defun but use cl-lambda-list.
-            (&define [&or name ("setf" :name setf name)]
+            (&define [&name sexp]   ;Allow (setf ...) additionally to symbols.
                      cl-lambda-list
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
@@ -376,7 +376,7 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             ;; Same as iter-defun but use cl-lambda-list.
-            (&define [&or name ("setf" :name setf name)]
+            (&define [&name sexp]   ;Allow (setf ...) additionally to symbols.
                      cl-lambda-list
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
@@ -2016,8 +2016,9 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or (&define name :unique "cl-flet@" form)
-                               (&define name :unique "cl-flet@"
+           (debug ((&rest [&or (symbolp form)
+                               (&define [&name symbolp "@cl-flet@"]
+                                        [&name [] gensym] ;Make it unique!
                                         cl-lambda-list
                                         cl-declarations-or-string
                                         [&optional ("interactive" interactive)]

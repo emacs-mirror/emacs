@@ -1079,14 +1079,12 @@ Finds hooks by looking in the `erc-server-responses' hash table."
     (erc-display-message parsed 'notice proc line)))
 
 
-(put 'define-erc-response-handler 'edebug-form-spec
-     '(&define :name erc-response-handler
-               (name &rest name)
-               &optional sexp sexp def-body))
-
 (cl-defmacro define-erc-response-handler ((name &rest aliases)
-                                        &optional extra-fn-doc extra-var-doc
-                                        &rest fn-body)
+                                          &optional extra-fn-doc extra-var-doc
+                                          &rest fn-body)
+  (declare (debug (&define [&name "erc-response-handler@"
+                                  (symbolp &rest symbolp)]
+                           &optional sexp sexp def-body)))
   "Define an ERC handler hook/function pair.
 NAME is the response name as sent by the server (see the IRC RFC for
 meanings).

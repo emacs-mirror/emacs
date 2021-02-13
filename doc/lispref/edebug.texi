@@ -1444,28 +1444,22 @@ Here is a list of additional specifications that may appear only after
 @code{&define}.  See the @code{defun} example.
 
 @table @code
+@item &name
+Extracts the name of the current defining form from the code.
+It takes the form @code{&name [@var{prestring}] @var{spec}
+[@var{poststring}] @var{fun} @var{args...}} and means that Edebug will
+match @var{spec} against the code and then call @var{fun} with the
+concatenation of the current name, @var{args...}, @var{prestring},
+the code that matched @code{spec}, and @var{poststring}.  If @var{fun}
+is absent, it defaults to a function that concatenates the arguments
+(with an @code{@} between the previous name and the new).
+
 @item name
 The argument, a symbol, is the name of the defining form.
+Shorthand for @code{[&name symbolp]}.
 
 A defining form is not required to have a name field; and it may have
 multiple name fields.
-
-@item :name
-This construct does not actually match an argument.  The element
-following @code{:name} should be a symbol; it is used as an additional
-name component for the definition.  You can use this to add a unique,
-static component to the name of the definition.  It may be used more
-than once.
-
-@item :unique
-This construct is like @code{:name}, but generates unique names.  It
-does not match an argument.  The element following @code{:unique}
-should be a string; it is used as the prefix for an additional name
-component for the definition.  You can use this to add a unique,
-dynamic component to the name of the definition.  This is useful for
-macros that can define the same symbol multiple times in different
-scopes, such as @code{cl-flet}; @ref{Function Bindings,,,cl}.  It may
-be used more than once.
 
 @item arg
 The argument, a symbol, is the name of an argument of the defining form.

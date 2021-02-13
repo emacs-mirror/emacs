@@ -1748,16 +1748,12 @@ contains a circular object."
 (dolist (pair '((form . edebug-match-form)
 		(sexp . edebug-match-sexp)
 		(body . edebug-match-body)
-		(name . edebug-match-name)
 		(arg . edebug-match-arg)
 		(def-body . edebug-match-def-body)
 		(def-form . edebug-match-def-form)
 		;; Less frequently used:
 		;; (function . edebug-match-function)
 		(lambda-expr . edebug-match-lambda-expr)
-                (cl-generic-method-qualifier
-                 . edebug-match-cl-generic-method-qualifier)
-                (cl-generic-method-args . edebug-match-cl-generic-method-args)
                 (cl-macrolet-expr . edebug-match-cl-macrolet-expr)
                 (cl-macrolet-name . edebug-match-cl-macrolet-name)
                 (cl-macrolet-body . edebug-match-cl-macrolet-body)
@@ -2056,19 +2052,61 @@ and then matches the rest against the output of (FUN ARGS... HEAD)."
       )))
 
 
-(defun edebug-match-name (cursor)
-  ;; Set the edebug-def-name bound in edebug-defining-form.
-  (let ((name (edebug-top-element-required cursor "Expected name")))
-    ;; Maybe strings and numbers could be used.
-    (if (not (symbolp name))
-	(edebug-no-match cursor "Symbol expected for name of definition"))
-    (setq edebug-def-name
-	  (if edebug-def-name
-	      ;; Construct a new name by appending to previous name.
-	      (intern (format "%s@%s" edebug-def-name name))
-	    name))
-    (edebug-move-cursor cursor)
-    (list name)))
+(cl-defmethod edebug--handle-&-spec-op ((_ (eql &name)) cursor specs)
+  "Compute the name for `&name SPEC FUN` spec operator.
+
+The full syntax of that operator is:
+    &name [PRESTRING] SPEC [POSTSTRING] FUN ARGS...
+
+Extracts the head of the data by matching it against SPEC,
+and then get the new name to use by calling
+  (FUN ARGS... OLDNAME [PRESTRING] HEAD [POSTSTRING])
+FUN should return either a string or a symbol.
+FUN can be missing in which case it defaults to concatenating
+the new name to the end of the old with an \"@\" char between the two.
+PRESTRING and POSTSTRING are optional strings that get prepended
+or appended to the actual name."
+  (pcase-let*
+      ((`(,spec ,fun . ,args) specs)
+       (prestrings (when (stringp spec)
+                     (prog1 (list spec) (setq spec fun fun (pop args)))))
+       (poststrings (when (stringp fun)
+                      (prog1 (list fun) (setq fun (pop args)))))
+       (exps (edebug-cursor-expressions cursor))
+       (instrumented (edebug-match-one-spec cursor spec))
+       (consumed (- (length exps)
+                    (length (edebug-cursor-expressions cursor))))
+       (newname (apply (or fun #'edebug--concat-name)
+                       `(,@args ,edebug-def-name
+                                ,@prestrings
+                                ,@(seq-subseq exps 0 consumed)
+                                ,@poststrings))))
+    (cl-assert (eq (edebug-cursor-expressions cursor) (nthcdr consumed exps)))
+    (setq edebug-def-name (if (stringp newname) (intern newname) newname))
+    instrumented))
+
+(defun edebug--concat-name (oldname &rest newnames)
+  (let ((newname (if (null (cdr newnames))
+                     (car newnames)
+                   ;; Put spaces between each name, but not for the
+                   ;; leading and trailing strings, if any.
+                   (let (beg mid end)
+                     (dolist (name newnames)
+                       (if (stringp name)
+                           (push name (if mid end beg))
+                         (when end (setq mid (nconc end mid) end nil))
+                         (push name mid)))
+                     (apply #'concat `(,@(nreverse beg)
+                                       ,(mapconcat (lambda (x) (format "%s" x))
+                                                   (nreverse mid) " ")
+                                       ,@(nreverse end)))))))
+    (if (null oldname)
+        (if (or (stringp newname) (symbolp newname))
+            newname
+          (format "%s" newname))
+      (format "%s@%s" edebug-def-name newname))))
+
+(def-edebug-elem-spec 'name '(&name symbolp))
 
 (cl-defgeneric edebug--handle-:-spec-op (op cursor spec)
   "Handle :foo spec operators.
@@ -2093,26 +2131,6 @@ SPEC is the symbol name prefix for `gensym'."
 	      (intern (format "%s@%s" edebug-def-name suffix))
 	    suffix)))
   nil)
-
-(defun edebug-match-cl-generic-method-qualifier (cursor)
-  "Match a QUALIFIER for `cl-defmethod' at CURSOR."
-  (let ((args (edebug-top-element-required cursor "Expected qualifier")))
-    ;; Like in CLOS spec, we support any non-list values.
-    (unless (atom args) (edebug-no-match cursor "Atom expected"))
-    ;; Append the arguments to `edebug-def-name' (Bug#42671).
-    (setq edebug-def-name (intern (format "%s %s" edebug-def-name args)))
-    (edebug-move-cursor cursor)
-    (list args)))
-
-(defun edebug-match-cl-generic-method-args (cursor)
-  (let ((args (edebug-top-element-required cursor "Expected arguments")))
-    (if (not (consp args))
-        (edebug-no-match cursor "List expected"))
-    ;; Append the arguments to edebug-def-name.
-    (setq edebug-def-name
-          (intern (format "%s %s" edebug-def-name args)))
-    (edebug-move-cursor cursor)
-    (list args)))
 
 (defvar edebug--cl-macrolet-defs nil
   "List of symbols found within the bindings of enclosing `cl-macrolet' forms.")

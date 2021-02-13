@@ -936,7 +936,11 @@ To customize obsolete user options, use 'customize-option' or
 ** Edebug
 
 ---
-*** 'get-edebug-spec' is obsolete, replaced by 'edebug-get-spec'.
+*** Obsoletions
+**** 'get-edebug-spec' is obsolete, replaced by 'edebug-get-spec'.
+
++++
+**** The Edebug spec operator ':name NAME' is obsolete.
 
 +++
 *** New function 'def-edebug-elem-spec' to define Edebug spec elements.
@@ -954,8 +958,7 @@ declared obsolete.
 **** '&error MSG' unconditionally aborts the current edebug instrumentation.
 
 +++
-**** ':unique STRING' appends STRING to the Edebug name of the current
-definition to (hopefully) make it more unique.
+**** '&name SPEC FUN' extracts the current name from the code matching SPEC.
 
 ** ElDoc
 
