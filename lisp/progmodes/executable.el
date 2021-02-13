@@ -54,19 +54,13 @@
   "Base functionality for executable interpreter scripts."
   :group 'processes)
 
-;; This used to default to `other', but that doesn't seem to have any
-;; significance.  fx 2000-02-11.
-(defcustom executable-insert t		; 'other
+(defcustom executable-insert t
   "Non-nil means offer to add a magic number to a file.
 This takes effect when you switch to certain major modes,
 including Shell-script mode (`sh-mode').
 When you type \\[executable-set-magic], it always offers to add or
 update the magic number."
-;;;   :type '(choice (const :tag "off" nil)
-;;; 		 (const :tag "on" t)
-;;; 		 symbol)
   :type 'boolean)
-
 
 (defcustom executable-query 'function
   "If non-nil, ask user before changing an existing magic number.
