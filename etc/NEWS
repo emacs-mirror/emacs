@@ -2557,6 +2557,12 @@ locales.  They are also available as aliases 'ebcdic-cp-*' (e.g.,
 'cp278' for 'ibm278').  There are also new charsets 'ibm2xx' to
 support these coding-systems.
 
+** The JSON functions 'json-serialize', 'json-insert',
+'json-parse-string', and 'json-parse-buffer' now implement some of the
+semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
+these functions now accept top-level JSON values that are neither
+arrays nor objects.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
