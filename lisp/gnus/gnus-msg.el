@@ -609,8 +609,6 @@ instead."
 If ARG, use the group under the point to find a posting style.
 If ARG is 1, prompt for a group name to find the posting style."
   (interactive "P")
-  ;; We can't `let' gnus-newsgroup-name here, since that leads
-  ;; to local variables leaking.
   (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
@@ -634,8 +632,6 @@ This function prepares a news even when using mail groups.  This is useful
 for posting messages to mail groups without actually sending them over the
 network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
-  ;; We can't `let' gnus-newsgroup-name here, since that leads
-  ;; to local variables leaking.
   (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
@@ -677,8 +673,6 @@ Use the posting of the current group by default.
 If ARG, don't do that.  If ARG is 1, prompt for group name to find the
 posting style."
   (interactive "P")
-  ;; We can't `let' gnus-newsgroup-name here, since that leads
-  ;; to local variables leaking.
   (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
@@ -702,8 +696,6 @@ This function prepares a news even when using mail groups.  This is useful
 for posting messages to mail groups without actually sending them over the
 network.  The corresponding back end must have a `request-post' method."
   (interactive "P")
-  ;; We can't `let' gnus-newsgroup-name here, since that leads
-  ;; to local variables leaking.
   (let* (;;(group gnus-newsgroup-name)
 	 ;; make sure last viewed article doesn't affect posting styles:
 	 (gnus-article-copy)
