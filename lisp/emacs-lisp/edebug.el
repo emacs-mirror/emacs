@@ -4247,7 +4247,8 @@ This should be a list of `edebug---frame' objects.")
   (pop-to-buffer edebug-backtrace-buffer)
   (unless (derived-mode-p 'backtrace-mode)
     (backtrace-mode)
-    (add-hook 'backtrace-goto-source-functions #'edebug--backtrace-goto-source))
+    (add-hook 'backtrace-goto-source-functions
+              #'edebug--backtrace-goto-source nil t))
   (setq edebug-instrumented-backtrace-frames
         (backtrace-get-frames 'edebug-debugger
                               :constructor #'edebug--make-frame)
