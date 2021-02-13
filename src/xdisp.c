@@ -9227,10 +9227,10 @@ move_it_in_display_line_to (struct it *it,
 		      || prev_method == GET_FROM_STRING)
 		  /* Passed TO_CHARPOS from left to right.  */
 		  && ((prev_pos < to_charpos
-		       && IT_CHARPOS (*it) > to_charpos)
+		       && IT_CHARPOS (*it) >= to_charpos)
 		      /* Passed TO_CHARPOS from right to left.  */
 		      || (prev_pos > to_charpos
-			  && IT_CHARPOS (*it) < to_charpos)))))
+			  && IT_CHARPOS (*it) <= to_charpos)))))
 	{
 	  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 	    {
