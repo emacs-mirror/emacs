@@ -327,13 +327,14 @@ struct json_configuration {
   Lisp_Object false_object;
 };
 
-static json_t *lisp_to_json (Lisp_Object, struct json_configuration *conf);
+static json_t *lisp_to_json (Lisp_Object,
+                             const struct json_configuration *conf);
 
 /* Convert a Lisp object to a nonscalar JSON object (array or object).  */
 
 static json_t *
 lisp_to_json_nonscalar_1 (Lisp_Object lisp,
-                          struct json_configuration *conf)
+                          const struct json_configuration *conf)
 {
   json_t *json;
   ptrdiff_t count;
@@ -454,7 +455,7 @@ lisp_to_json_nonscalar_1 (Lisp_Object lisp,
 
 static json_t *
 lisp_to_json_nonscalar (Lisp_Object lisp,
-                        struct json_configuration *conf)
+                        const struct json_configuration *conf)
 {
   if (++lisp_eval_depth > max_lisp_eval_depth)
     xsignal0 (Qjson_object_too_deep);
@@ -468,7 +469,7 @@ lisp_to_json_nonscalar (Lisp_Object lisp,
    JSON object.  */
 
 static json_t *
-lisp_to_json (Lisp_Object lisp, struct json_configuration *conf)
+lisp_to_json (Lisp_Object lisp, const struct json_configuration *conf)
 {
   if (EQ (lisp, conf->null_object))
     return json_check (json_null ());
@@ -788,7 +789,7 @@ usage: (json-insert OBJECT &rest ARGS)  */)
 /* Convert a JSON object to a Lisp object.  */
 
 static Lisp_Object ARG_NONNULL ((1))
-json_to_lisp (json_t *json, struct json_configuration *conf)
+json_to_lisp (json_t *json, const struct json_configuration *conf)
 {
   switch (json_typeof (json))
     {
