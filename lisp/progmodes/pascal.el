@@ -199,38 +199,32 @@
 
 (defcustom pascal-indent-level 3
   "Indentation of Pascal statements with respect to containing block."
-  :type 'integer
-  :group 'pascal)
+  :type 'integer)
 
 (defcustom pascal-case-indent 2
   "Indentation for case statements."
-  :type 'integer
-  :group 'pascal)
+  :type 'integer)
 
 (defcustom pascal-auto-newline nil
   "Non-nil means automatically insert newlines in certain cases.
 These include after semicolons and after the punctuation mark after an `end'."
-  :type 'boolean
-  :group 'pascal)
+  :type 'boolean)
 
 (defcustom pascal-indent-nested-functions t
   "Non-nil means nested functions are indented."
-  :type 'boolean
-  :group 'pascal)
+  :type 'boolean)
 
 (defcustom pascal-tab-always-indent t
   "Non-nil means TAB in Pascal mode should always reindent the current line.
 If this is nil, TAB inserts a tab if it is at the end of the line
 and follows non-whitespace text."
-  :type 'boolean
-  :group 'pascal)
+  :type 'boolean)
 
 (defcustom pascal-auto-endcomments t
   "Non-nil means automatically insert comments after certain `end's.
 Specifically, this is done after the ends of case statements and functions.
 The name of the function or case is included between the braces."
-  :type 'boolean
-  :group 'pascal)
+  :type 'boolean)
 
 (defcustom pascal-auto-lineup '(all)
   "List of contexts where auto lineup of :'s or ='s should be done.
@@ -243,8 +237,7 @@ will do all lineups."
 	      (const :tag "Everything" all)
 	      (const :tag "Parameter lists" paramlist)
 	      (const :tag "Declarations" declaration)
-	      (const :tag "Case statements" case))
-  :group 'pascal)
+              (const :tag "Case statements" case)))
 
 (defvar pascal-toggle-completions nil
   "If non-nil, `pascal-complete-word' tries all possible completions.
@@ -260,8 +253,7 @@ completions.")
 These include integer, real, char, etc.
 The types defined within the Pascal program
 are handled in another way, and should not be added to this list."
-  :type '(repeat (string :tag "Keyword"))
-  :group 'pascal)
+  :type '(repeat (string :tag "Keyword")))
 
 (defcustom pascal-start-keywords
   '("begin" "end" "function" "procedure" "repeat" "until" "while"
@@ -270,8 +262,7 @@ are handled in another way, and should not be added to this list."
 These are keywords such as begin, repeat, until, readln.
 The procedures and variables defined within the Pascal program
 are handled in another way, and should not be added to this list."
-  :type '(repeat (string :tag "Keyword"))
-  :group 'pascal)
+  :type '(repeat (string :tag "Keyword")))
 
 (defcustom pascal-separator-keywords
   '("downto" "else" "mod" "div" "then")
@@ -279,8 +270,7 @@ are handled in another way, and should not be added to this list."
 These are keywords such as downto, else, mod, then.
 Variables and function names defined within the Pascal program
 are handled in another way, and should not be added to this list."
-  :type '(repeat (string :tag "Keyword"))
-  :group 'pascal)
+  :type '(repeat (string :tag "Keyword")))
 
 
 ;;;

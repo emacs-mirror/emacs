@@ -41,8 +41,7 @@
   :type 'hook
   :options '(flyspell-prog-mode abbrev-mode flymake-mode
                                 display-line-numbers-mode
-                                prettify-symbols-mode)
-  :group 'prog-mode)
+                                prettify-symbols-mode))
 
 (defvar prog-mode-map
   (let ((map (make-sparse-keymap)))
@@ -166,8 +165,7 @@ on the symbol."
   :version "25.1"
   :type '(choice (const :tag "Never unprettify" nil)
                  (const :tag "Unprettify when point is inside" t)
-                 (const :tag "Unprettify when point is inside or at right edge" right-edge))
-  :group 'prog-mode)
+                 (const :tag "Unprettify when point is inside or at right edge" right-edge)))
 
 (defun prettify-symbols--post-command-hook ()
   (cl-labels ((get-prop-as-list
