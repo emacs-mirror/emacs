@@ -2207,14 +2207,12 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
        ;; `defun' and `defmacro' are not special forms (any more), but it's
        ;; more convenient to define their Edebug spec here.
        (defun ( &define name lambda-list lambda-doc
-	        [&optional ("declare" &rest sexp)]
+	        [&optional ("declare" def-declarations)]
 	        [&optional ("interactive" &optional &or stringp def-form)]
 	        def-body))
 
-       ;; FIXME: Improve `declare' so we can Edebug gv-expander and
-       ;; gv-setter declarations.
        (defmacro ( &define name lambda-list lambda-doc
-                   [&optional ("declare" &rest sexp)]
+                   [&optional ("declare" def-declarations)]
                    def-body))
 
        ;; function expects a symbol or a lambda or macro expression
@@ -2242,6 +2240,12 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
 	     &or ("quote" edebug-\`) def-form))
        ))
     (put name 'edebug-form-spec spec))
+
+(defun edebug--get-declare-spec (head)
+  (get head 'edebug-declaration-spec))
+
+(def-edebug-elem-spec 'def-declarations
+  '(&rest &or (&lookup symbolp edebug--get-declare-spec) sexp))
 
 (def-edebug-elem-spec 'lambda-list
   '(([&rest arg]

@@ -187,6 +187,11 @@ arguments as NAME.  DO is a function as defined in `gv-get'."
     (push (list 'gv-setter #'gv--setter-defun-declaration)
 	  defun-declarations-alist))
 
+;;;###autoload
+(let ((spec '(&or symbolp ("lambda" &define lambda-list def-body))))
+  (put 'gv-expander 'edebug-declaration-spec spec)
+  (put 'gv-setter 'edebug-declaration-spec spec))
+
 ;; (defmacro gv-define-expand (name expander)
 ;;   "Use EXPANDER to handle NAME as a generalized var.
 ;; NAME is a symbol: the name of a function, macro, or special form.
