@@ -961,12 +961,7 @@ The value, if non-nil, is a list of mode name symbols.  */)
   while (SYMBOLP (fun))
     fun = Fsymbol_function (fun);
 
-  if (SUBRP (fun))
-    {
-      if (!NILP (XSUBR (fun)->command_modes))
-	return XSUBR (fun)->command_modes;
-    }
-  else if (COMPILEDP (fun))
+  if (COMPILEDP (fun))
     {
       Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
       if (VECTORP (form))

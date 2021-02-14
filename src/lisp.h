@@ -2060,7 +2060,6 @@ struct Lisp_Subr
     const char *symbol_name;
     const char *intspec;
     EMACS_INT doc;
-    Lisp_Object command_modes;
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
