@@ -1974,7 +1974,7 @@ This function uses the `read-extended-command-predicate' user option."
 (defun completion-in-mode-p (symbol buffer)
   "Say whether SYMBOL should be offered as a completion.
 This is true if the command is applicable to the major mode in
-BUFFER."
+BUFFER, or any of the active minor modes in BUFFER."
   (or (null (command-modes symbol))
       ;; It's derived from a major mode.
       (apply #'provided-mode-derived-p
@@ -1986,9 +1986,16 @@ BUFFER."
                         #'eq)))
 
 (defun completion-with-modes-p (modes buffer)
-  (apply #'provided-mode-derived-p
-         (buffer-local-value 'major-mode buffer)
-         modes))
+  "Say whether MODES are in action in BUFFER.
+This is the case if either the major mode is derived from one of MODES,
+or (if one of MODES is a minor mode), if it is switched on in BUFFER."
+  (or (apply #'provided-mode-derived-p
+             (buffer-local-value 'major-mode buffer)
+             modes)
+      ;; It's a minor mode.
+      (seq-intersection modes
+                        (buffer-local-value 'minor-modes buffer)
+                        #'eq)))
 
 (defun read-extended-command--affixation (command-names)
   (with-selected-window (or (minibuffer-selected-window) (selected-window))
