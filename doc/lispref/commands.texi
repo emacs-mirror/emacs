@@ -773,6 +773,15 @@ part of the prompt.
      @result{} t
 @end group
 @end example
+
+@vindex read-extended-command-predicate
+This command heeds the @code{read-extended-command-predicate}
+variable, which will (by default) filter out commands that are not
+applicable to the current major mode (or enabled minor modes).
+@code{read-extended-command-predicate} will be called with two
+parameters: The symbol that is to be included or not, and the current
+buffer.  If should return non-@code{nil} if the command is to be
+included when completing.
 @end deffn
 
 @node Distinguish Interactive

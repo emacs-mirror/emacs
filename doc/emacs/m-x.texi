@@ -94,3 +94,8 @@ the command is followed by arguments.
   @kbd{M-x} works by running the command
 @code{execute-extended-command}, which is responsible for reading the
 name of another command and invoking it.
+
+@vindex read-extended-command-predicate
+  This command heeds the @code{read-extended-command-predicate}
+variable, which will (by default) filter out commands that are not
+applicable to the current major mode (or enabled minor modes).

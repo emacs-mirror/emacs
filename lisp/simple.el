@@ -1900,55 +1900,90 @@ to get different commands to edit and resubmit."
 (defvar extended-command-history nil)
 (defvar execute-extended-command--last-typed nil)
 
+(defcustom read-extended-command-predicate #'completion-in-mode-p
+  "Predicate to use to determine which commands to include when completing.
+The predicate function is called with two parameter: The
+symbol (i.e., command) in question that should be included or
+not, and the current buffer.  The predicate should return non-nil
+if the command should be present when doing `M-x TAB'."
+  :version "28.1"
+  :type '(choice (const :tag "Exclude commands not relevant to this mode"
+                        #'completion-in-mode-p)
+                 (const :tag "All commands" (lambda (_ _) t))
+                 (function :tag "Other function")))
+
 (defun read-extended-command ()
-  "Read command name to invoke in `execute-extended-command'."
-  (minibuffer-with-setup-hook
-      (lambda ()
-        (add-hook 'post-self-insert-hook
-                  (lambda ()
-                    (setq execute-extended-command--last-typed
-                              (minibuffer-contents)))
-                  nil 'local)
-        (setq-local minibuffer-default-add-function
-	     (lambda ()
-	       ;; Get a command name at point in the original buffer
-	       ;; to propose it after M-n.
-	       (let ((def (with-current-buffer
-			      (window-buffer (minibuffer-selected-window))
-			    (and (commandp (function-called-at-point))
-				 (format "%S" (function-called-at-point)))))
-		     (all (sort (minibuffer-default-add-completions)
-                                #'string<)))
-		 (if def
-		     (cons def (delete def all))
-		   all)))))
-    ;; Read a string, completing from and restricting to the set of
-    ;; all defined commands.  Don't provide any initial input.
-    ;; Save the command read on the extended-command history list.
-    (completing-read
-     (concat (cond
-	      ((eq current-prefix-arg '-) "- ")
-	      ((and (consp current-prefix-arg)
-		    (eq (car current-prefix-arg) 4)) "C-u ")
-	      ((and (consp current-prefix-arg)
-		    (integerp (car current-prefix-arg)))
-	       (format "%d " (car current-prefix-arg)))
-	      ((integerp current-prefix-arg)
-	       (format "%d " current-prefix-arg)))
-	     ;; This isn't strictly correct if `execute-extended-command'
-	     ;; is bound to anything else (e.g. [menu]).
-	     ;; It could use (key-description (this-single-command-keys)),
-	     ;; but actually a prompt other than "M-x" would be confusing,
-	     ;; because "M-x" is a well-known prompt to read a command
-	     ;; and it serves as a shorthand for "Extended command: ".
-	     "M-x ")
-     (lambda (string pred action)
-       (if (and suggest-key-bindings (eq action 'metadata))
-	   '(metadata
-	     (affixation-function . read-extended-command--affixation)
-	     (category . command))
-         (complete-with-action action obarray string pred)))
-     #'commandp t nil 'extended-command-history)))
+  "Read command name to invoke in `execute-extended-command'.
+This function uses the `read-extended-command-predicate' user option."
+  (let ((buffer (current-buffer)))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (add-hook 'post-self-insert-hook
+                    (lambda ()
+                      (setq execute-extended-command--last-typed
+                            (minibuffer-contents)))
+                    nil 'local)
+          (setq-local minibuffer-default-add-function
+	              (lambda ()
+	                ;; Get a command name at point in the original buffer
+	                ;; to propose it after M-n.
+	                (let ((def
+                               (with-current-buffer
+			           (window-buffer (minibuffer-selected-window))
+			         (and (commandp (function-called-at-point))
+				      (format
+                                       "%S" (function-called-at-point)))))
+		              (all (sort (minibuffer-default-add-completions)
+                                         #'string<)))
+		          (if def
+		              (cons def (delete def all))
+		            all)))))
+      ;; Read a string, completing from and restricting to the set of
+      ;; all defined commands.  Don't provide any initial input.
+      ;; Save the command read on the extended-command history list.
+      (completing-read
+       (concat (cond
+	        ((eq current-prefix-arg '-) "- ")
+	        ((and (consp current-prefix-arg)
+		      (eq (car current-prefix-arg) 4)) "C-u ")
+	        ((and (consp current-prefix-arg)
+		      (integerp (car current-prefix-arg)))
+	         (format "%d " (car current-prefix-arg)))
+	        ((integerp current-prefix-arg)
+	         (format "%d " current-prefix-arg)))
+	       ;; This isn't strictly correct if `execute-extended-command'
+	       ;; is bound to anything else (e.g. [menu]).
+	       ;; It could use (key-description (this-single-command-keys)),
+	       ;; but actually a prompt other than "M-x" would be confusing,
+	       ;; because "M-x" is a well-known prompt to read a command
+	       ;; and it serves as a shorthand for "Extended command: ".
+	       "M-x ")
+       (lambda (string pred action)
+         (if (and suggest-key-bindings (eq action 'metadata))
+	     '(metadata
+	       (affixation-function . read-extended-command--affixation)
+	       (category . command))
+           (complete-with-action action obarray string pred)))
+       (lambda (sym)
+         (and (commandp sym)
+              (if (get sym 'completion-predicate)
+                  (funcall (get sym 'completion-predicate) sym buffer)
+                (funcall read-extended-command-predicate sym buffer))))
+       t nil 'extended-command-history))))
+
+(defun completion-in-mode-p (symbol buffer)
+  "Say whether SYMBOL should be offered as a completion.
+This is true if the command is applicable to the major mode in
+BUFFER."
+  (or (null (command-modes symbol))
+      ;; It's derived from a major mode.
+      (apply #'provided-mode-derived-p
+             (buffer-local-value 'major-mode buffer)
+             (command-modes symbol))
+      ;; It's a minor mode.
+      (seq-intersection (command-modes symbol)
+                        (buffer-local-value 'minor-modes buffer)
+                        #'eq)))
 
 (defun completion-with-modes-p (modes buffer)
   (apply #'provided-mode-derived-p
