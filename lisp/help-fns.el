@@ -1827,9 +1827,30 @@ documentation for the major and minor modes of that buffer."
                                     nil t)
 		(help-xref-button 1 'help-function-def mode file-name)))))
 	(princ ":\n")
-	(princ (help-split-fundoc (documentation major-mode) nil 'doc)))))
+	(princ (help-split-fundoc (documentation major-mode) nil 'doc))
+        (princ (help-fns--list-local-commands)))))
   ;; For the sake of IELM and maybe others
   nil)
+
+(defun help-fns--list-local-commands ()
+  (let ((functions nil))
+    (mapatoms
+     (lambda (sym)
+       (when (and (commandp sym)
+                  ;; Ignore aliases.
+                  (not (symbolp (symbol-function sym)))
+                  ;; Ignore everything bound.
+                  (not (where-is-internal sym))
+                  (apply #'derived-mode-p (command-modes sym)))
+         (push sym functions))))
+    (with-temp-buffer
+      (when functions
+        (setq functions (sort functions #'string<))
+        (insert "\n\nOther commands for this mode, not bound to any keys:\n\n")
+        (dolist (function functions)
+          (insert (format "`%s'\n" function))))
+      (buffer-string))))
+
 
 ;; Widgets.
 
