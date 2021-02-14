@@ -172,6 +172,10 @@ BODY contains code to execute each time the mode is enabled or disabled.
 :lighter SPEC	Same as the LIGHTER argument.
 :keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
+:interactive VAL  Whether this mode should be a command or not.  The default
+                is to make it one; use nil to avoid that.  If VAL is a list,
+                it's interpreted as a list of major modes this minor mode
+                is useful in.
 :variable PLACE	The location to use instead of the variable MODE to store
 		the state of the mode.	This can be simply a different
 		named variable, or a generalized variable.
@@ -226,6 +230,7 @@ For example, you could write
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
+         (interactive t)
 	 keyw keymap-sym tmp)
 
     ;; Check keys.
@@ -245,6 +250,7 @@ For example, you could write
 	(:type (setq type (list :type (pop body))))
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
+	(:interactive (setq interactive (pop body)))
         (:variable (setq variable (pop body))
                    (if (not (and (setq tmp (cdr-safe variable))
                                  (or (symbolp tmp)
@@ -303,11 +309,17 @@ or call the function `%s'."))))
        ;; The actual function.
        (defun ,modefun (&optional arg ,@extra-args)
          ,(easy-mmode--mode-docstring doc pretty-name keymap-sym)
-	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
-	 ;; repeat-command still does the toggling correctly.
-	 (interactive (list (if current-prefix-arg
-                                (prefix-numeric-value current-prefix-arg)
-                              'toggle)))
+         ,(when interactive
+	    ;; Use `toggle' rather than (if ,mode 0 1) so that using
+	    ;; repeat-command still does the toggling correctly.
+            (if (consp interactive)
+                `(command ,interactive
+                          (list (if current-prefix-arg
+                                    (prefix-numeric-value current-prefix-arg)
+                                  'toggle)))
+	      '(interactive (list (if current-prefix-arg
+                                     (prefix-numeric-value current-prefix-arg)
+                                   'toggle)))))
 	 (let ((,last-message (current-message)))
            (,@setter
             (cond ((eq arg 'toggle)

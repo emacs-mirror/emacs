@@ -2294,7 +2294,13 @@ This permanently buffer-local variable holds a list of currently
 enabled minor modes in the current buffer (as a list of symbols).
 
 +++
-** 'defined-derived-mode' now takes an :interactive argument.
+** 'define-minor-mode'  now takes an :interactive argument.
+This can be used for specifying which modes this minor mode is meant
+for, or to make the new minor mode non-interactive.  The default value
+is t.
+
++++
+** 'define-derived-mode' now takes an :interactive argument.
 This can be used to control whether the defined mode is a command
 or not, and is useful when defining commands that aren't meant to be
 used by users directly.
