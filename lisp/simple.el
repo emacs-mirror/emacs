@@ -1966,6 +1966,9 @@ This function uses the `read-extended-command-predicate' user option."
            (complete-with-action action obarray string pred)))
        (lambda (sym)
          (and (commandp sym)
+              ;;; FIXME: This should also be possible to disable by
+              ;;; the user, but I'm not quite sure what the right
+              ;;; design for that would look like.
               (if (get sym 'completion-predicate)
                   (funcall (get sym 'completion-predicate) sym buffer)
                 (funcall read-extended-command-predicate sym buffer))))
