@@ -510,6 +510,9 @@ specification is not given here; it's not needed unless the user
 actually calls @var{function}, and when that happens, it's time to load
 the real definition.
 
+If @var{interactive} is a list, it is interpreted as a list of modes
+this command is applicable for.
+
 You can autoload macros and keymaps as well as ordinary functions.
 Specify @var{type} as @code{macro} if @var{function} is really a macro.
 Specify @var{type} as @code{keymap} if @var{function} is really a

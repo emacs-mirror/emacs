@@ -549,7 +549,7 @@ struct Lisp_Module_Function
   union vectorlike_header header;
 
   /* Fields traced by GC; these must come first.  */
-  Lisp_Object documentation, interactive_form;
+  Lisp_Object documentation, interactive_form, command_modes;
 
   /* Fields ignored by GC.  */
   ptrdiff_t min_arity, max_arity;
@@ -644,6 +644,12 @@ Lisp_Object
 module_function_interactive_form (const struct Lisp_Module_Function *fun)
 {
   return fun->interactive_form;
+}
+
+Lisp_Object
+module_function_command_modes (const struct Lisp_Module_Function *fun)
+{
+  return fun->command_modes;
 }
 
 static emacs_value

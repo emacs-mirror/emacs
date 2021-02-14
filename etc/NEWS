@@ -2267,6 +2267,14 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 * Lisp Changes in Emacs 28.1
 
 +++
+** The 'interactive' syntax has been extended to allow listing applicable modes.
+Forms like '(interactive "p" dired-mode)' can be used to annotate the
+commands as being applicable for modes derived from 'dired-mode',
+or if the mode is a minor mode, that the current buffer has that
+minor mode activated.  Note that using this form will create byte code
+that is not compatible with byte code in previous Emacs versions.
+
++++
 ** New buffer-local variable 'minor-modes'.
 This permanently buffer-local variable holds a list of currently
 enabled minor modes in the current buffer (as a list of symbols).

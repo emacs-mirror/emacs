@@ -2080,14 +2080,21 @@ then strings and vectors are not accepted.  */)
 DEFUN ("autoload", Fautoload, Sautoload, 2, 5, 0,
        doc: /* Define FUNCTION to autoload from FILE.
 FUNCTION is a symbol; FILE is a file name string to pass to `load'.
+
 Third arg DOCSTRING is documentation for the function.
-Fourth arg INTERACTIVE if non-nil says function can be called interactively.
+
+Fourth arg INTERACTIVE if non-nil says function can be called
+interactively.  If INTERACTIVE is a list, it is interpreted as a list
+of modes the function is applicable for.
+
 Fifth arg TYPE indicates the type of the object:
    nil or omitted says FUNCTION is a function,
    `keymap' says FUNCTION is really a keymap, and
    `macro' or t says FUNCTION is really a macro.
+
 Third through fifth args give info about the real definition.
 They default to nil.
+
 If FUNCTION is already defined other than as an autoload,
 this does nothing and returns nil.  */)
   (Lisp_Object function, Lisp_Object file, Lisp_Object docstring, Lisp_Object interactive, Lisp_Object type)

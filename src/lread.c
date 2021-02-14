@@ -4467,6 +4467,7 @@ defsubr (union Aligned_Lisp_Subr *aname)
   XSETPVECTYPE (sname, PVEC_SUBR);
   XSETSUBR (tem, sname);
   set_symbol_function (sym, tem);
+  sname->command_modes = Qnil;
 }
 
 #ifdef NOTDEF /* Use fset in subr.el now!  */

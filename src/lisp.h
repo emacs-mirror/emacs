@@ -2060,6 +2060,7 @@ struct Lisp_Subr
     const char *symbol_name;
     const char *intspec;
     EMACS_INT doc;
+    Lisp_Object command_modes;
   } GCALIGNED_STRUCT;
 union Aligned_Lisp_Subr
   {
@@ -4220,6 +4221,8 @@ extern Lisp_Object module_function_arity (const struct Lisp_Module_Function *);
 extern Lisp_Object module_function_documentation
   (struct Lisp_Module_Function const *);
 extern Lisp_Object module_function_interactive_form
+  (const struct Lisp_Module_Function *);
+extern Lisp_Object module_function_command_modes
   (const struct Lisp_Module_Function *);
 extern module_funcptr module_function_address
   (struct Lisp_Module_Function const *);
