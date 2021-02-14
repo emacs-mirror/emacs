@@ -37,28 +37,22 @@
 
 (defcustom picture-rectangle-ctl ?+
   "Character `picture-draw-rectangle' uses for top left corners."
-  :type 'character
-  :group 'picture)
+  :type 'character)
 (defcustom picture-rectangle-ctr ?+
   "Character `picture-draw-rectangle' uses for top right corners."
-  :type 'character
-  :group 'picture)
+  :type 'character)
 (defcustom picture-rectangle-cbr ?+
   "Character `picture-draw-rectangle' uses for bottom right corners."
-  :type 'character
-  :group 'picture)
+  :type 'character)
 (defcustom picture-rectangle-cbl ?+
   "Character `picture-draw-rectangle' uses for bottom left corners."
-  :type 'character
-  :group 'picture)
+  :type 'character)
 (defcustom picture-rectangle-v   ?|
   "Character `picture-draw-rectangle' uses for vertical lines."
-  :type 'character
-  :group 'picture)
+  :type 'character)
 (defcustom picture-rectangle-h   ?-
   "Character `picture-draw-rectangle' uses for horizontal lines."
-  :type 'character
-  :group 'picture)
+  :type 'character)
 
 
 ;; Picture Movement Commands
@@ -409,8 +403,7 @@ character `\\' in the set it must be preceded by itself: \"\\\\\".
 
 The command \\[picture-tab-search] is defined to move beneath (or to) a
 character belonging to this set independent of the tab stops list."
-  :type 'string
-  :group 'picture)
+  :type 'string)
 
 (defun picture-set-tab-stops (&optional arg)
   "Set value of `tab-stop-list' according to context of this line.
@@ -682,8 +675,7 @@ Leaves the region surrounding the rectangle."
 (defcustom picture-mode-hook nil
   "If non-nil, its value is called on entry to Picture mode.
 Picture mode is invoked by the command \\[picture-mode]."
-  :type 'hook
-  :group 'picture)
+  :type 'hook)
 
 (defvar picture-mode-old-local-map)
 (defvar picture-mode-old-mode-name)

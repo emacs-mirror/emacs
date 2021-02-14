@@ -65,8 +65,7 @@
 
 (defcustom r2b-trace-on nil
   "Non-nil means trace conversion."
-  :type 'boolean
-  :group 'refbib)
+  :type 'boolean)
 
 (defcustom r2b-journal-abbrevs
   '(
@@ -83,8 +82,7 @@ letter, even if it really doesn't.
 \(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the
 BibTeX macro \"ijcai7\"."
-  :type '(repeat (list string string))
-  :group 'refbib)
+  :type '(repeat (list string string)))
 
 (defcustom r2b-booktitle-abbrevs
   '(
@@ -101,8 +99,7 @@ should be listed as beginning with a capital letter, even if it doesn't.
 \(\"Ijcai81\" \"ijcai7\")) would expand Aij to the text string
 \"Artificial Intelligence\", but would replace Ijcai81 with the
 BibTeX macro \"ijcai7\"."
-  :type '(repeat (list string string))
-  :group 'refbib)
+  :type '(repeat (list string string)))
 
 (defcustom r2b-proceedings-list
   '()
@@ -119,8 +116,7 @@ a conference, and its expansion is the BibTeX macro \"ijcai7\".  Then
 expansion were \"Proceedings of the Seventh International Conference
 on Artificial Intelligence\", then you would NOT need to include Ijcai81
 in `r2b-proceedings-list' (although it wouldn't cause an error)."
-  :type '(repeat (list string string))
-  :group 'refbib)
+  :type '(repeat (list string string)))
 
 (defvar r2b-additional-stop-words
   "Some\\|What"
@@ -129,8 +125,7 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defcustom r2b-delimit-with-quote t
   "If true, then use \" to delimit fields, otherwise use braces."
-  :type 'boolean
-  :group 'refbib)
+  :type 'boolean)
 
 ;**********************************************************
 ; Utility Functions
@@ -205,13 +200,11 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defcustom r2b-out-buf-name "*Out*"
   "Name of buffer for output from refer-to-bibtex."
-  :type 'string
-  :group 'refbib)
+  :type 'string)
 
 (defcustom r2b-log-name "*Log*"
   "Name of buffer for logs errors from refer-to-bibtex."
-  :type 'string
-  :group 'refbib)
+  :type 'string)
 
 (defvar r2b-in-buf nil)
 (defvar r2b-out-buf nil)
