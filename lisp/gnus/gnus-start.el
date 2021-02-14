@@ -1070,7 +1070,7 @@ With 1 C-u, use the `ask-server' method to query the server for new
 groups.
 With 2 C-u's, use most complete method possible to query the server
 for new groups, and subscribe the new groups as zombies."
-  (interactive "p")
+  (interactive "p" gnus-group-mode)
   (let* ((gnus-subscribe-newsgroup-method
 	  gnus-subscribe-newsgroup-method)
 	 (check (cond
@@ -1405,7 +1405,7 @@ newsgroup."
 
 (defun gnus-check-duplicate-killed-groups ()
   "Remove duplicates from the list of killed groups."
-  (interactive)
+  (interactive nil gnus-group-mode)
   (let ((killed gnus-killed-list))
     (while killed
       (gnus-message 9 "%d" (length killed))

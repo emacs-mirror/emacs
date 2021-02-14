@@ -2513,7 +2513,7 @@ are always t.")
    '(("info" :interactive t Info-goto-node)
      ("qp" quoted-printable-decode-region quoted-printable-decode-string)
      ("ps-print" ps-print-preprint)
-     ("message" :interactive t
+     ("message" :interactive (message-mode)
       message-send-and-exit message-yank-original)
      ("babel" babel-as-string)
      ("nnmail" nnmail-split-fancy nnmail-article-group)
@@ -2530,7 +2530,7 @@ are always t.")
      ("score-mode" :interactive t gnus-score-mode)
      ("gnus-mh" gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
-     ("gnus-mh" :interactive t gnus-summary-save-in-folder)
+     ("gnus-mh" :interactive (gnus-summary-mode) gnus-summary-save-in-folder)
      ("gnus-demon" gnus-demon-add-scanmail
       gnus-demon-add-rescan gnus-demon-add-scan-timestamps
       gnus-demon-add-disconnection gnus-demon-add-handler
@@ -2545,7 +2545,7 @@ are always t.")
      ("gnus-srvr" gnus-enter-server-buffer gnus-server-set-info
       gnus-server-server-name)
      ("gnus-srvr" gnus-browse-foreign-server)
-     ("gnus-cite" :interactive t
+     ("gnus-cite" :interactive (gnus-article-mode gnus-summary-mode)
       gnus-article-highlight-citation gnus-article-hide-citation-maybe
       gnus-article-hide-citation gnus-article-fill-cited-article
       gnus-article-hide-citation-in-followups
@@ -2561,29 +2561,34 @@ are always t.")
       gnus-cache-enter-remove-article gnus-cached-article-p
       gnus-cache-open gnus-cache-close gnus-cache-update-article
       gnus-cache-articles-in-group)
-     ("gnus-cache" :interactive t gnus-jog-cache gnus-cache-enter-article
+     ("gnus-cache" :interactive (gnus-summary-mode)
+      gnus-summary-insert-cached-articles gnus-cache-enter-article
       gnus-cache-remove-article gnus-summary-insert-cached-articles)
+     ("gnus-cache" :interactive t gnus-jog-cache)
      ("gnus-score" :interactive t
+      gnus-score-flush-cache gnus-score-close)
+     ("gnus-score" :interactive (gnus-summary-mode)
       gnus-summary-increase-score gnus-summary-set-score
       gnus-summary-raise-thread gnus-summary-raise-same-subject
       gnus-summary-raise-score gnus-summary-raise-same-subject-and-select
       gnus-summary-lower-thread gnus-summary-lower-same-subject
       gnus-summary-lower-score gnus-summary-lower-same-subject-and-select
       gnus-summary-current-score gnus-score-delta-default
-      gnus-score-flush-cache gnus-score-close
       gnus-possibly-score-headers gnus-score-followup-article
       gnus-score-followup-thread)
      ("gnus-score"
       (gnus-summary-score-map keymap) gnus-score-save gnus-score-headers
       gnus-current-score-file-nondirectory gnus-score-adaptive
       gnus-score-find-trace gnus-score-file-name)
-     ("gnus-cus" :interactive t gnus-group-customize gnus-score-customize)
-     ("gnus-topic" :interactive t gnus-topic-mode)
+     ("gnus-cus" :interactive (gnus-group-mode) gnus-group-customize)
+     ("gnus-cus" :interactive (gnus-summary-mode) gnus-score-customize)
+     ("gnus-topic" :interactive (gnus-group-mode) gnus-topic-mode)
      ("gnus-topic" gnus-topic-remove-group gnus-topic-set-parameters
       gnus-subscribe-topics)
-     ("gnus-salt" :interactive t gnus-pick-mode gnus-binary-mode)
+     ("gnus-salt" :interactive (gnus-summary-mode)
+      gnus-pick-mode gnus-binary-mode)
      ("gnus-uu" (gnus-uu-extract-map keymap) (gnus-uu-mark-map keymap))
-     ("gnus-uu" :interactive t
+     ("gnus-uu" :interactive (gnus-article-mode gnus-summary-mode)
       gnus-uu-digest-mail-forward gnus-uu-digest-post-forward
       gnus-uu-mark-series gnus-uu-mark-region gnus-uu-mark-buffer
       gnus-uu-mark-by-regexp gnus-uu-mark-all
@@ -2598,12 +2603,13 @@ are always t.")
      ("gnus-uu" gnus-uu-delete-work-dir gnus-uu-unmark-thread)
      ("gnus-msg" (gnus-summary-send-map keymap)
       gnus-article-mail gnus-copy-article-buffer gnus-extended-version)
-     ("gnus-msg" :interactive t
-      gnus-group-post-news gnus-group-mail gnus-group-news
+     ("gnus-msg" :interactive (gnus-group-mode)
+      gnus-group-post-news gnus-group-mail gnus-group-news)
+     ("gnus-msg" :interactive (gnus-summary-mode)
       gnus-summary-post-news gnus-summary-news-other-window
       gnus-summary-followup gnus-summary-followup-with-original
       gnus-summary-cancel-article gnus-summary-supersede-article
-      gnus-post-news gnus-summary-reply gnus-summary-reply-with-original
+      gnus-summary-reply gnus-summary-reply-with-original
       gnus-summary-mail-forward gnus-summary-mail-other-window
       gnus-summary-resend-message gnus-summary-resend-bounced-mail
       gnus-summary-wide-reply gnus-summary-followup-to-mail
@@ -2611,7 +2617,9 @@ are always t.")
       gnus-summary-wide-reply-with-original
       gnus-summary-post-forward gnus-summary-wide-reply-with-original
       gnus-summary-post-forward)
-     ("gnus-picon" :interactive t gnus-treat-from-picon)
+     ("gnus-msg" gnus-post-news)
+     ("gnus-picon" :interactive (gnus-article-mode gnus-summary-mode)
+      gnus-treat-from-picon)
      ("smiley" :interactive t smiley-region)
      ("gnus-win" gnus-configure-windows gnus-add-configuration)
      ("gnus-sum" gnus-summary-insert-line gnus-summary-read-group
@@ -2634,7 +2642,7 @@ are always t.")
       gnus-request-article-this-buffer gnus-article-mode
       gnus-article-setup-buffer gnus-narrow-to-page
       gnus-article-delete-invisible-text gnus-treat-article)
-     ("gnus-art" :interactive t
+     ("gnus-art" :interactive (gnus-summary-mode gnus-article-mode)
       gnus-article-hide-headers gnus-article-hide-boring-headers
       gnus-article-treat-overstrike
       gnus-article-remove-cr gnus-article-remove-trailing-blank-lines
@@ -2646,7 +2654,6 @@ are always t.")
       gnus-article-hide-pem gnus-article-hide-signature
       gnus-article-strip-leading-blank-lines gnus-article-date-local
       gnus-article-date-original gnus-article-date-lapsed
-      ;;gnus-article-show-all-headers
       gnus-article-edit-mode gnus-article-edit-article
       gnus-article-edit-done gnus-article-decode-encoded-words
       gnus-start-date-timer gnus-stop-date-timer
@@ -2671,12 +2678,13 @@ are always t.")
       gnus-agent-store-article gnus-agent-group-covered-p)
      ("gnus-agent" :interactive t
       gnus-unplugged gnus-agentize gnus-agent-batch)
-     ("gnus-vm" :interactive t gnus-summary-save-in-vm
+     ("gnus-vm" :interactive (gnus-summary-mode) gnus-summary-save-in-vm
       gnus-summary-save-article-vm)
      ("compface" uncompface)
-     ("gnus-draft" :interactive t gnus-draft-mode gnus-group-send-queue)
+     ("gnus-draft" :interactive (gnus-summary-mode) gnus-draft-mode)
+     ("gnus-draft" :interactive t gnus-group-send-queue)
      ("gnus-mlspl" gnus-group-split gnus-group-split-fancy)
-     ("gnus-mlspl" :interactive t gnus-group-split-setup
+     ("gnus-mlspl" :interactive (gnus-group-mode) gnus-group-split-setup
       gnus-group-split-update)
      ("gnus-delay" gnus-delay-initialize))))
 

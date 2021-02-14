@@ -76,10 +76,10 @@ DELAY is a string, giving the length of the time.  Possible values are:
 The value of `message-draft-headers' determines which headers are
 generated when the article is delayed.  Remaining headers are
 generated when the article is sent."
-  (interactive
-   (list (read-string
-	  "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "
-	  gnus-delay-default-delay)))
+  (interactive (list (read-string
+		      "Target date (YYYY-MM-DD), time (hh:mm), or length of delay (units in [mhdwMY]): "
+		      gnus-delay-default-delay))
+	       message-mode)
   ;; Allow spell checking etc.
   (run-hooks 'message-send-hook)
   (let (num unit year month day hour minute deadline) ;; days

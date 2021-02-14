@@ -124,7 +124,8 @@ filenames."
 	  (mapcar
 	   ;; don't attach directories
 	   (lambda (f) (if (file-directory-p f) nil f))
-	   (nreverse (dired-map-over-marks (dired-get-filename) nil))))))
+	   (nreverse (dired-map-over-marks (dired-get-filename) nil)))))
+   dired-mode)
   (let ((destination nil)
 	(files-str nil)
 	(bufs nil))
@@ -178,7 +179,8 @@ filenames."
 If ARG is non-nil, open it in a new buffer."
   (interactive (list
 		(file-name-sans-versions (dired-get-filename) t)
-		current-prefix-arg))
+		current-prefix-arg)
+	       dired-mode)
   (mailcap-parse-mailcaps)
   (if (file-exists-p file-name)
       (let (mime-type method)
@@ -216,7 +218,8 @@ that name.  If PRINT-TO is a number, prompt the user for the name
 of the file to save in."
   (interactive (list
 		(file-name-sans-versions (dired-get-filename) t)
-		(ps-print-preprint current-prefix-arg)))
+		(ps-print-preprint current-prefix-arg))
+	       dired-mode)
   (mailcap-parse-mailcaps)
   (cond
    ((file-directory-p file-name)
