@@ -183,7 +183,10 @@ This is expected to be bound to a mouse event."
 						  :filter)
 				       'identity)
 				   (symbol-function symbol)))
-			     symbol)))))
+			     symbol))))
+      ;; These symbols are commands, but not interesting for users
+      ;; to `M-x TAB'.
+      (put symbol 'completion-predicate 'ignore))
     (dolist (map (if (keymapp maps) (list maps) maps))
       (define-key map
         (vector 'menu-bar (easy-menu-intern (car menu)))
