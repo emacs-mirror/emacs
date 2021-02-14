@@ -1040,6 +1040,14 @@ it to the name of the bookmark currently being set, advancing
        (car dired-directory)))
     (t (error "Buffer not visiting a file or directory")))))
 
+(defvar bookmark--watch-already-asked-mtime nil
+  "Mtime for which we already queried about reloading.")
+
+(defun bookmark--watch-file-already-queried-p (new-mtime)
+  ;; Don't ask repeatedly if user already said "no" to reloading a
+  ;; file with this mtime:
+  (prog1 (equal new-mtime bookmark--watch-already-asked-mtime)
+    (setq bookmark--watch-already-asked-mtime new-mtime)))
 
 (defun bookmark-maybe-load-default-file ()
   "If bookmarks have not been loaded from the default place, load them."
@@ -1048,13 +1056,15 @@ it to the name of the bookmark currently being set, advancing
               (file-readable-p bookmark-default-file)
               (bookmark-load bookmark-default-file t t)))
         ((and bookmark-watch-bookmark-file
-              (not (equal (nth 5 (file-attributes
-                                  (car bookmark-bookmarks-timestamp)))
-                          (cdr bookmark-bookmarks-timestamp)))
-              (or (eq 'silent bookmark-watch-bookmark-file)
-                  (yes-or-no-p
-                   (format "Bookmarks %s changed on disk.  Reload? "
-                           (car bookmark-bookmarks-timestamp)))))
+              (let ((new-mtime (nth 5 (file-attributes
+                                       (car bookmark-bookmarks-timestamp))))
+                    (old-mtime (cdr bookmark-bookmarks-timestamp)))
+                (and (not (equal new-mtime old-mtime))
+                     (not (bookmark--watch-file-already-queried-p new-mtime))
+                     (or (eq 'silent bookmark-watch-bookmark-file)
+                         (yes-or-no-p
+                          (format "Bookmarks %s changed on disk.  Reload? "
+                                  (car bookmark-bookmarks-timestamp)))))))
          (bookmark-load (car bookmark-bookmarks-timestamp) t t))))
 
 (defun bookmark-maybe-sort-alist ()
