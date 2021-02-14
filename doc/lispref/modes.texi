@@ -861,6 +861,13 @@ abbrev table as @var{parent}, or @code{fundamental-mode-abbrev-table}
 if @var{parent} is @code{nil}.  (Again, a @code{nil} value is
 @emph{not} equivalent to not specifying this keyword.)
 
+@item :interactive
+Modes are interactive commands by default.  If you specify a
+@code{nil} value, the mode defined here won't be interactive.  This is
+useful for modes that are never meant to be activated by users
+manually, but are only supposed to be used in some specially-formatted
+buffer.
+
 @item :group
 If this is specified, the value should be the customization group for
 this mode.  (Not all major modes have one.)  The command
