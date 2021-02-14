@@ -2088,7 +2088,7 @@ first).
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.
 
-** The 'M-o M-o global binding have been removed.
+** The 'M-o M-o' global binding have been removed.
 Use 'M-x font-lock-fontify-block' instead.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
