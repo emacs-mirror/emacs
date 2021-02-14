@@ -1235,53 +1235,10 @@ purpose by adding an entry to this alist, and setting
       (funcall edebug-after-instrumentation-function result))))
 
 (defvar edebug-def-args) ; args of defining form.
-(defvar edebug-def-interactive) ; is it an emacs interactive function?
 (defvar edebug-inside-func)  ;; whether code is inside function context.
 ;; Currently def-form sets this to nil; def-body sets it to t.
 
 (defvar edebug--cl-macrolet-defs) ;; Fully defined below.
-
-(defun edebug-interactive-p-name ()
-  ;; Return a unique symbol for the variable used to store the
-  ;; status of interactive-p for this function.
-  (intern (format "edebug-%s-interactive-p" edebug-def-name)))
-
-
-(defun edebug-wrap-def-body (forms)
-  "Wrap the FORMS of a definition body."
-  (if edebug-def-interactive
-      `(let ((,(edebug-interactive-p-name)
-	      (called-interactively-p 'interactive)))
-	 ,(edebug-make-enter-wrapper forms))
-    (edebug-make-enter-wrapper forms)))
-
-
-(defun edebug-make-enter-wrapper (forms)
-  ;; Generate the enter wrapper for some forms of a definition.
-  ;; This is not to be used for the body of other forms, e.g. `while',
-  ;; since it wraps the list of forms with a call to `edebug-enter'.
-  ;; Uses the dynamically bound vars edebug-def-name and edebug-def-args.
-  ;; Do this after parsing since that may find a name.
-  (when (string-match-p (rx bos "edebug-anon" (+ digit) eos)
-                        (symbol-name edebug-old-def-name))
-    ;; FIXME: Due to Bug#42701, we reset an anonymous name so that
-    ;; backtracking doesn't generate duplicate definitions.  It would
-    ;; be better to not define wrappers in the case of a non-matching
-    ;; specification branch to begin with.
-    (setq edebug-old-def-name nil))
-  (setq edebug-def-name
-	(or edebug-def-name edebug-old-def-name (gensym "edebug-anon")))
-  `(edebug-enter
-    (quote ,edebug-def-name)
-    ,(if edebug-inside-func
-	 `(list
-	   ;; Doesn't work with more than one def-body!!
-	   ;; But the list will just be reversed.
-	   ,@(nreverse edebug-def-args))
-       'nil)
-    (function (lambda () ,@forms))
-    ))
-
 
 (defvar edebug-form-begin-marker) ; the mark for def being instrumented
 
@@ -1404,7 +1361,6 @@ contains a circular object."
 	  (edebug-old-def-name (edebug--form-data-name form-data-entry))
 	  edebug-def-name
 	  edebug-def-args
-	  edebug-def-interactive
 	  edebug-inside-func;; whether wrapped code executes inside a function.
 	  )
 
@@ -1610,11 +1566,6 @@ contains a circular object."
      ((symbolp head)
       (cond
        ((null head) nil) ; () is valid.
-       ((eq head 'interactive-p)
-	;; Special case: replace (interactive-p) with variable
-	(setq edebug-def-interactive 'check-it)
-	(edebug-move-cursor cursor)
-	(edebug-interactive-p-name))
        (t
 	(cons head (edebug-list-form-args
 		    head (edebug-move-cursor cursor))))))
@@ -2170,7 +2121,7 @@ into `edebug--cl-macrolet-defs' which is checked in `edebug-list-form-args'."
     ;; This happens to handle bug#20281, tho maybe a better fix would be to
     ;; improve the `defun' spec.
     (when forms
-      (list (edebug-wrap-def-body forms)))))
+      (list (edebug-make-enter-wrapper forms)))))
 
 
 ;;;; Edebug Form Specs
@@ -2922,7 +2873,6 @@ See `edebug-behavior-alist' for implementations.")
 (defvar edebug-outside-match-data) ; match data outside of edebug
 (defvar edebug-backtrace-buffer) ; each recursive edit gets its own
 (defvar edebug-inside-windows)
-(defvar edebug-interactive-p)
 
 (defvar edebug-mode-map)		; will be defined fully later.
 
@@ -2938,7 +2888,6 @@ See `edebug-behavior-alist' for implementations.")
 	;;(edebug-number-of-recursions (1+ edebug-number-of-recursions))
 	(edebug-recursion-depth (recursion-depth))
 	edebug-entered			; bind locally to nil
-	(edebug-interactive-p nil)      ; again non-interactive
 	edebug-backtrace-buffer		; each recursive edit gets its own
 	;; The window configuration may be saved and restored
 	;; during a recursive-edit
@@ -4588,13 +4537,18 @@ With prefix argument, make it a temporary breakpoint."
 (add-hook 'called-interactively-p-functions
           #'edebug--called-interactively-skip)
 (defun edebug--called-interactively-skip (i frame1 frame2)
-  (when (and (eq (car-safe (nth 1 frame1)) 'lambda)
-             (eq (nth 1 (nth 1 frame1)) '())
-             (eq (nth 1 frame2) 'edebug-enter))
+  (when (and (memq (car-safe (nth 1 frame1)) '(lambda closure))
+             ;; Lambda value with no arguments.
+             (null (nth (if (eq (car-safe (nth 1 frame1)) 'lambda) 1 2)
+                        (nth 1 frame1)))
+             (memq (nth 1 frame2) '(edebug-enter edebug-default-enter)))
     ;; `edebug-enter' calls itself on its first invocation.
-    (if (eq (nth 1 (backtrace-frame i 'called-interactively-p))
-            'edebug-enter)
-        2 1)))
+    (let ((s 1))
+      (while (memq (nth 1 (backtrace-frame i 'called-interactively-p))
+                   '(edebug-enter edebug-default-enter))
+        (cl-incf s)
+        (cl-incf i))
+      s)))
 
 ;; Finally, hook edebug into the rest of Emacs.
 ;; There are probably some other things that could go here.
