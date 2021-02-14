@@ -1240,6 +1240,33 @@ purpose by adding an entry to this alist, and setting
 
 (defvar edebug--cl-macrolet-defs) ;; Fully defined below.
 
+(defun edebug-make-enter-wrapper (forms)
+  ;; Generate the enter wrapper for some forms of a definition.
+  ;; This is not to be used for the body of other forms, e.g. `while',
+  ;; since it wraps the list of forms with a call to `edebug-enter'.
+  ;; Uses the dynamically bound vars edebug-def-name and edebug-def-args.
+  ;; Do this after parsing since that may find a name.
+  (when (string-match-p (rx bos "edebug-anon" (+ digit) eos)
+                        (symbol-name edebug-old-def-name))
+    ;; FIXME: Due to Bug#42701, we reset an anonymous name so that
+    ;; backtracking doesn't generate duplicate definitions.  It would
+    ;; be better to not define wrappers in the case of a non-matching
+    ;; specification branch to begin with.
+    (setq edebug-old-def-name nil))
+  (setq edebug-def-name
+	(or edebug-def-name edebug-old-def-name (gensym "edebug-anon")))
+  `(edebug-enter
+    (quote ,edebug-def-name)
+    ,(if edebug-inside-func
+	 `(list
+	   ;; Doesn't work with more than one def-body!!
+	   ;; But the list will just be reversed.
+	   ,@(nreverse edebug-def-args))
+       'nil)
+    (function (lambda () ,@forms))
+    ))
+
+
 (defvar edebug-form-begin-marker) ; the mark for def being instrumented
 
 (defvar edebug-offset-index) ; the next available offset index.
