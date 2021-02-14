@@ -314,10 +314,10 @@ or call the function `%s'."))))
 	    ;; repeat-command still does the toggling correctly.
             (if (consp interactive)
                 `(interactive
-                  ,interactive
                   (list (if current-prefix-arg
                             (prefix-numeric-value current-prefix-arg)
-                          'toggle)))
+                          'toggle))
+                  ,@interactive)
 	      '(interactive (list (if current-prefix-arg
                                      (prefix-numeric-value current-prefix-arg)
                                    'toggle)))))
