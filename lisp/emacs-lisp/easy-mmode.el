@@ -330,10 +330,11 @@ or call the function `%s'."))))
                    nil)
                   (t
                    t)))
-           ;; Keep `minor-modes' up to date.
-           (setq minor-modes (delq ',modefun minor-modes))
-           (when ,getter
-             (push ',modefun minor-modes))
+           (unless ,globalp
+             ;; Keep `minor-modes' up to date.
+             (setq minor-modes (delq ',modefun minor-modes))
+             (when ,getter
+               (push ',modefun minor-modes)))
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,getter ',hook-on ',hook-off))
