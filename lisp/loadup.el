@@ -496,7 +496,8 @@ lost after dumping")))
   (define-key global-map [C-down-mouse-2] 'facemenu-menu)
   (define-key global-map "\M-o" 'facemenu-keymap)
   (define-key facemenu-keymap "\eS" 'center-paragraph)
-  (define-key facemenu-keymap "\es" 'center-line))
+  (define-key facemenu-keymap "\es" 'center-line)
+  (define-key facemenu-keymap "\M-o" 'font-lock-fontify-block))
 
 
 (if dump-mode
