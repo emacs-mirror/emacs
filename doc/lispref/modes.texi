@@ -1463,7 +1463,7 @@ deactivate minor modes in any order.
 
 @defvar minor-modes
 This buffer-local variable lists the currently enabled minor modes in
-the current buffer, and is a list if symbols.
+the current buffer, and is a list of symbols.
 @end defvar
 
 @defvar minor-mode-list
