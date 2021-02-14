@@ -1997,6 +1997,12 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
                         (buffer-local-value 'minor-modes buffer)
                         #'eq)))
 
+(defun completion-at-point-p (symbol buffer)
+  "Return non-nil if SYMBOL is in a local map at point in BUFFER."
+  (with-current-buffer buffer
+    (when-let ((map (get-text-property (point) 'keymap)))
+      (where-is-internal symbol map))))
+
 (defun read-extended-command--affixation (command-names)
   (with-selected-window (or (minibuffer-selected-window) (selected-window))
     (mapcar
