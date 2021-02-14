@@ -855,7 +855,7 @@ Currently this means either text/html or application/xhtml+xml."
 
 (defun eww-view-source ()
   "View the HTML source code of the current page."
-  (interactive)
+  (interactive nil eww-mode)
   (let ((buf (get-buffer-create "*eww-source*"))
         (source (plist-get eww-data :source)))
     (with-current-buffer buf
@@ -881,7 +881,7 @@ Currently this means either text/html or application/xhtml+xml."
 
 (defun eww-toggle-paragraph-direction ()
   "Cycle the paragraph direction between left-to-right, right-to-left and auto."
-  (interactive)
+  (interactive nil eww-mode)
   (setq bidi-paragraph-direction
         (cond ((eq bidi-paragraph-direction 'left-to-right)
                nil)
@@ -899,7 +899,7 @@ Currently this means either text/html or application/xhtml+xml."
 This command uses heuristics to find the parts of the web page that
 contains the main textual portion, leaving out navigation menus and
 the like."
-  (interactive)
+  (interactive nil eww-mode)
   (let* ((old-data eww-data)
 	 (dom (with-temp-buffer
 		(insert (plist-get old-data :source))
@@ -1038,6 +1038,7 @@ the like."
 ;;;###autoload
 (define-derived-mode eww-mode special-mode "eww"
   "Mode for browsing the web."
+  :interactive nil
   (setq-local eww-data (list :title ""))
   (setq-local browse-url-browser-function #'eww-browse-url)
   (add-hook 'after-change-functions #'eww-process-text-input nil t)
@@ -1090,7 +1091,7 @@ instead of `browse-url-new-window-flag'."
 
 (defun eww-back-url ()
   "Go to the previously displayed page."
-  (interactive)
+  (interactive nil eww-mode)
   (when (>= eww-history-position (length eww-history))
     (user-error "No previous page"))
   (eww-save-history)
@@ -1099,7 +1100,7 @@ instead of `browse-url-new-window-flag'."
 
 (defun eww-forward-url ()
   "Go to the next displayed page."
-  (interactive)
+  (interactive nil eww-mode)
   (when (zerop eww-history-position)
     (user-error "No next page"))
   (eww-save-history)
@@ -1123,7 +1124,7 @@ instead of `browse-url-new-window-flag'."
   "Go to the page marked `next'.
 A page is marked `next' if rel=\"next\" appears in a <link>
 or <a> tag."
-  (interactive)
+  (interactive nil eww-mode)
   (if (plist-get eww-data :next)
       (eww-browse-url (shr-expand-url (plist-get eww-data :next)
 				      (plist-get eww-data :url)))
@@ -1133,7 +1134,7 @@ or <a> tag."
   "Go to the page marked `previous'.
 A page is marked `previous' if rel=\"previous\" appears in a <link>
 or <a> tag."
-  (interactive)
+  (interactive nil eww-mode)
   (if (plist-get eww-data :previous)
       (eww-browse-url (shr-expand-url (plist-get eww-data :previous)
 				      (plist-get eww-data :url)))
@@ -1143,7 +1144,7 @@ or <a> tag."
   "Go to the page marked `up'.
 A page is marked `up' if rel=\"up\" appears in a <link>
 or <a> tag."
-  (interactive)
+  (interactive nil eww-mode)
   (if (plist-get eww-data :up)
       (eww-browse-url (shr-expand-url (plist-get eww-data :up)
 				      (plist-get eww-data :url)))
@@ -1153,7 +1154,7 @@ or <a> tag."
   "Go to the page marked `top'.
 A page is marked `top' if rel=\"start\", rel=\"home\", or rel=\"contents\"
 appears in a <link> or <a> tag."
-  (interactive)
+  (interactive nil eww-mode)
   (let ((best-url (or (plist-get eww-data :start)
 		      (plist-get eww-data :contents)
 		      (plist-get eww-data :home))))
@@ -1166,7 +1167,7 @@ appears in a <link> or <a> tag."
 If LOCAL is non-nil (interactively, the command was invoked with
 a prefix argument), don't reload the page from the network, but
 just re-display the HTML already fetched."
-  (interactive "P")
+  (interactive "P" eww-mode)
   (let ((url (plist-get eww-data :url)))
     (if local
 	(if (null (plist-get eww-data :dom))
@@ -1232,12 +1233,12 @@ just re-display the HTML already fetched."
 
 (defun eww-beginning-of-text ()
   "Move to the start of the input field."
-  (interactive)
+  (interactive nil eww-mode)
   (goto-char (eww-beginning-of-field)))
 
 (defun eww-end-of-text ()
   "Move to the end of the text in the input field."
-  (interactive)
+  (interactive nil eww-mode)
   (goto-char (eww-end-of-field))
   (let ((start (eww-beginning-of-field)))
     (while (and (equal (following-char) ? )
@@ -1329,7 +1330,7 @@ just re-display the HTML already fetched."
 
 (defun eww-select-file ()
   "Change the value of the upload file menu under point."
-  (interactive)
+  (interactive nil eww-mode)
   (let*  ((input (get-text-property (point) 'eww-form)))
     (let ((filename
 	   (let ((insert-default-directory t))
@@ -1537,7 +1538,9 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
 (defun eww-change-select (event)
   "Change the value of the select drop-down menu under point."
-  (interactive (list last-nonmenu-event))
+  (interactive
+   (list last-nonmenu-event)
+   eww-mode)
   (mouse-set-point event)
   (let ((input (get-text-property (point) 'eww-form)))
     (popup-menu
@@ -1572,7 +1575,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
 (defun eww-toggle-checkbox ()
   "Toggle the value of the checkbox under point."
-  (interactive)
+  (interactive nil eww-mode)
   (let* ((input (get-text-property (point) 'eww-form))
 	 (type (plist-get input :type)))
     (if (equal type "checkbox")
@@ -1642,7 +1645,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 
 (defun eww-submit ()
   "Submit the current form."
-  (interactive)
+  (interactive nil eww-mode)
   (let* ((this-input (get-text-property (point) 'eww-form))
 	 (form (plist-get this-input :eww-form))
 	 values next-submit)
@@ -1729,7 +1732,7 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
   "Browse the current URL with an external browser.
 The browser to used is specified by the
 `browse-url-secondary-browser-function' variable."
-  (interactive)
+  (interactive nil eww-mode)
   (funcall browse-url-secondary-browser-function
            (or url (plist-get eww-data :url))))
 
@@ -1739,7 +1742,9 @@ If EXTERNAL is single prefix, browse the URL using
 `browse-url-secondary-browser-function'.
 
 If EXTERNAL is double prefix, browse in new buffer."
-  (interactive (list current-prefix-arg last-nonmenu-event))
+  (interactive
+   (list current-prefix-arg last-nonmenu-event)
+   eww-mode)
   (mouse-set-point mouse-event)
   (let ((url (get-text-property (point) 'shr-url)))
     (cond
@@ -1773,14 +1778,14 @@ Differences in #targets are ignored."
 
 (defun eww-copy-page-url ()
   "Copy the URL of the current page into the kill ring."
-  (interactive)
+  (interactive nil eww-mode)
   (message "%s" (plist-get eww-data :url))
   (kill-new (plist-get eww-data :url)))
 
 (defun eww-download ()
   "Download URL to `eww-download-directory'.
 Use link at point if there is one, else the current page's URL."
-  (interactive)
+  (interactive nil eww-mode)
   (let ((dir (if (stringp eww-download-directory)
                  eww-download-directory
                (funcall eww-download-directory))))
@@ -1848,14 +1853,14 @@ Use link at point if there is one, else the current page's URL."
 (defun eww-set-character-encoding (charset)
   "Set character encoding to CHARSET.
 If CHARSET is nil then use UTF-8."
-  (interactive "zUse character set (default utf-8): ")
+  (interactive "zUse character set (default utf-8): " eww-mode)
   (if (null charset)
       (eww-reload nil 'utf-8)
     (eww-reload nil charset)))
 
 (defun eww-switch-to-buffer ()
   "Prompt for an EWW buffer to display in the selected window."
-  (interactive)
+  (interactive nil eww-mode)
   (let ((completion-extra-properties
          '(:annotation-function (lambda (buf)
                                   (with-current-buffer buf
@@ -1873,7 +1878,7 @@ If CHARSET is nil then use UTF-8."
 
 (defun eww-toggle-fonts ()
   "Toggle whether to use monospaced or font-enabled layouts."
-  (interactive)
+  (interactive nil eww-mode)
   (setq shr-use-fonts (not shr-use-fonts))
   (eww-reload)
   (message "Proportional fonts are now %s"
@@ -1881,7 +1886,7 @@ If CHARSET is nil then use UTF-8."
 
 (defun eww-toggle-colors ()
   "Toggle whether to use HTML-specified colors or not."
-  (interactive)
+  (interactive nil eww-mode)
   (message "Colors are now %s"
 	   (if (setq shr-use-colors (not shr-use-colors))
 	       "on"
@@ -1894,7 +1899,7 @@ If CHARSET is nil then use UTF-8."
 
 (defun eww-add-bookmark ()
   "Bookmark the current page."
-  (interactive)
+  (interactive nil eww-mode)
   (eww-read-bookmarks)
   (dolist (bookmark eww-bookmarks)
     (when (equal (plist-get eww-data :url) (plist-get bookmark :url))
@@ -1958,7 +1963,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-bookmark-kill ()
   "Kill the current bookmark."
-  (interactive)
+  (interactive nil eww-bookmark-mode)
   (let* ((start (line-beginning-position))
 	 (bookmark (get-text-property start 'eww-bookmark))
 	 (inhibit-read-only t))
@@ -1972,7 +1977,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-bookmark-yank ()
   "Yank a previously killed bookmark to the current line."
-  (interactive)
+  (interactive nil eww-bookmark-mode)
   (unless eww-bookmark-kill-ring
     (user-error "No previously killed bookmark"))
   (beginning-of-line)
@@ -1990,7 +1995,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-bookmark-browse ()
   "Browse the bookmark under point in eww."
-  (interactive)
+  (interactive nil eww-bookmark-mode)
   (let ((bookmark (get-text-property (line-beginning-position) 'eww-bookmark)))
     (unless bookmark
       (user-error "No bookmark on the current line"))
@@ -1999,7 +2004,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-next-bookmark ()
   "Go to the next bookmark in the list."
-  (interactive)
+  (interactive nil eww-bookmark-mode)
   (let ((first nil)
 	bookmark)
     (unless (get-buffer "*eww bookmarks*")
@@ -2018,7 +2023,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-previous-bookmark ()
   "Go to the previous bookmark in the list."
-  (interactive)
+  (interactive nil eww-bookmark-mode)
   (let ((first nil)
 	bookmark)
     (unless (get-buffer "*eww bookmarks*")
@@ -2061,6 +2066,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
   "Mode for listing bookmarks.
 
 \\{eww-bookmark-mode-map}"
+  :interactive nil
   (buffer-disable-undo)
   (setq truncate-lines t))
 
@@ -2109,7 +2115,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-history-browse ()
   "Browse the history under point in eww."
-  (interactive)
+  (interactive nil eww-history-mode)
   (let ((history (get-text-property (line-beginning-position) 'eww-history)))
     (unless history
       (error "No history on the current line"))
@@ -2137,6 +2143,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
   "Mode for listing eww-histories.
 
 \\{eww-history-mode-map}"
+  :interactive nil
   (buffer-disable-undo)
   (setq truncate-lines t))
 
@@ -2191,7 +2198,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-buffer-select ()
   "Switch to eww buffer."
-  (interactive)
+  (interactive nil eww-buffers-mode)
   (let ((buffer (get-text-property (line-beginning-position)
                                    'eww-buffer)))
     (unless buffer
@@ -2211,7 +2218,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-buffer-show-next ()
   "Move to next eww buffer in the list and display it."
-  (interactive)
+  (interactive nil eww-buffers-mode)
   (forward-line)
   (when (eobp)
     (goto-char (point-min)))
@@ -2219,7 +2226,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-buffer-show-previous ()
   "Move to previous eww buffer in the list and display it."
-  (interactive)
+  (interactive nil eww-buffers-mode)
   (beginning-of-line)
   (when (bobp)
     (goto-char (point-max)))
@@ -2228,7 +2235,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
 
 (defun eww-buffer-kill ()
   "Kill buffer from eww list."
-  (interactive)
+  (interactive nil eww-buffers-mode)
   (let* ((start (line-beginning-position))
 	 (buffer (get-text-property start 'eww-buffer))
 	 (inhibit-read-only t))
@@ -2262,6 +2269,7 @@ If ERROR-OUT, signal user-error if there are no bookmarks."
   "Mode for listing buffers.
 
 \\{eww-buffers-mode-map}"
+  :interactive nil
   (buffer-disable-undo)
   (setq truncate-lines t))
 
