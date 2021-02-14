@@ -2267,6 +2267,15 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 * Lisp Changes in Emacs 28.1
 
 +++
+** New forms to declare how completion should happen has been added.
+'(declare (completion PREDICATE))' can be used as a general predicate
+to say whether the command should be present when completing with
+'M-x TAB'.  '(declare (modes MODE...))' can be used as a short-hand
+way of saying that the command should be present when completing from
+buffers in major modes derived from MODE..., or, if it's a minor mode,
+whether that minor mode is enabled in the current buffer.
+
++++
 ** The 'interactive' syntax has been extended to allow listing applicable modes.
 Forms like '(interactive "p" dired-mode)' can be used to annotate the
 commands as being applicable for modes derived from 'dired-mode',

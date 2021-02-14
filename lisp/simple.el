@@ -1950,6 +1950,11 @@ to get different commands to edit and resubmit."
          (complete-with-action action obarray string pred)))
      #'commandp t nil 'extended-command-history)))
 
+(defun completion-with-modes-p (modes buffer)
+  (apply #'provided-mode-derived-p
+         (buffer-local-value 'major-mode buffer)
+         modes))
+
 (defun read-extended-command--affixation (command-names)
   (with-selected-window (or (minibuffer-selected-window) (selected-window))
     (mapcar
