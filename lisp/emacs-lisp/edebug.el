@@ -1091,8 +1091,6 @@ circular objects.  Let `read' read everything else."
 ;; This data is shared by all embedded definitions.
 (defvar edebug-top-window-data)
 
-(defvar edebug-&optional)
-(defvar edebug-&rest)
 (defvar edebug-gate nil) ;; whether no-match forces an error.
 
 (defvar edebug-def-name nil) ; name of definition, used by interactive-form
@@ -1143,8 +1141,6 @@ purpose by adding an entry to this alist, and setting
 	edebug-top-window-data
 	edebug-def-name;; make sure it is locally nil
 	;; I don't like these here!!
-	edebug-&optional
-	edebug-&rest
 	edebug-gate
 	edebug-best-error
 	edebug-error-point
@@ -1512,6 +1508,9 @@ contains a circular object."
 	 ((consp form)
 	  ;; The first offset for a list form is for the list form itself.
 	  (if (eq 'quote (car form))
+	      ;; This makes sure we don't instrument 'foo
+              ;; which would cause the debugger to single-step
+	      ;; the trivial evaluation of a constant.
 	      form
 	    (let* ((head (car form))
 		   (spec (and (symbolp head) (edebug-get-spec head)))
@@ -1584,10 +1583,7 @@ contains a circular object."
   ;; The after offset will be left in the cursor after processing the form.
   (let ((head (edebug-top-element-required cursor "Expected elements"))
 	;; Prevent backtracking whenever instrumenting.
-	(edebug-gate t)
-	;; A list form is never optional because it matches anything.
-	(edebug-&optional nil)
-	(edebug-&rest nil))
+	(edebug-gate t))
     ;; Skip the first offset.
     (edebug-set-cursor cursor (edebug-cursor-expressions cursor)
 		       (cdr (edebug-cursor-offsets cursor)))
@@ -1632,7 +1628,7 @@ contains a circular object."
   (setq edebug-error-point (or edebug-error-point
 			       (edebug-before-offset cursor))
 	edebug-best-error (or edebug-best-error args))
-  (if (and edebug-gate (not edebug-&optional))
+  (if edebug-gate
       (progn
 	(if edebug-error-point
 	    (goto-char edebug-error-point))
@@ -1643,9 +1639,7 @@ contains a circular object."
 (defun edebug-match (cursor specs)
   ;; Top level spec matching function.
   ;; Used also at each lower level of specs.
-  (let (edebug-&optional
-	edebug-&rest
-	edebug-best-error
+  (let (edebug-best-error
 	edebug-error-point
 	(edebug-gate edebug-gate)  ;; locally bound to limit effect
 	)
@@ -1782,11 +1776,10 @@ contains a circular object."
 
 (cl-defmethod edebug--match-&-spec-op ((_ (eql &optional)) cursor specs)
   ;; Keep matching until one spec fails.
-  (edebug-&optional-wrapper cursor specs 'edebug-&optional-wrapper))
+  (edebug-&optional-wrapper cursor specs #'edebug-&optional-wrapper))
 
 (defun edebug-&optional-wrapper (cursor specs remainder-handler)
   (let (result
-	(edebug-&optional specs)
 	(edebug-gate nil)
 	(this-form (edebug-cursor-expressions cursor))
 	(this-offset (edebug-cursor-offsets cursor)))
@@ -1801,21 +1794,21 @@ contains a circular object."
       nil)))
 
 
-(defun edebug-&rest-wrapper (cursor specs remainder-handler)
-  (if (null specs) (setq specs edebug-&rest))
-  ;; Reuse the &optional handler with this as the remainder handler.
-  (edebug-&optional-wrapper cursor specs remainder-handler))
-
 (cl-defgeneric edebug--match-&-spec-op (op cursor specs)
   "Handle &foo spec operators.
 &foo spec operators operate on all the subsequent SPECS.")
 
 (cl-defmethod edebug--match-&-spec-op ((_ (eql &rest)) cursor specs)
   ;; Repeatedly use specs until failure.
-  (let ((edebug-&rest specs) ;; remember these
-	edebug-best-error
+  (let (edebug-best-error
 	edebug-error-point)
-    (edebug-&rest-wrapper cursor specs 'edebug-&rest-wrapper)))
+    ;; Reuse the &optional handler with this as the remainder handler.
+    (edebug-&optional-wrapper
+     cursor specs
+     (lambda (c s rh)
+       ;; `s' is the remaining spec to match.
+       ;; When it's nil, start over matching `specs'.
+       (edebug-&optional-wrapper c (or s specs) rh)))))
 
 
 (cl-defmethod edebug--match-&-spec-op ((_ (eql &or)) cursor specs)
@@ -1961,19 +1954,15 @@ a sequence of elements."
 
 (defun edebug-match-sublist (cursor specs)
   ;; Match a sublist of specs.
-  (let (edebug-&optional
-	;;edebug-best-error
-	;;edebug-error-point
-	)
-    (prog1
-	;; match with edebug-match-specs so edebug-best-error is not bound.
-	(edebug-match-specs cursor specs 'edebug-match-specs)
-      (if (not (edebug-empty-cursor cursor))
-	  (if edebug-best-error
-	      (apply #'edebug-no-match cursor edebug-best-error)
-	    ;; A failed &rest or &optional spec may leave some args.
-	    (edebug-no-match cursor "Failed matching" specs)
-	    )))))
+  (prog1
+      ;; match with edebug-match-specs so edebug-best-error is not bound.
+      (edebug-match-specs cursor specs 'edebug-match-specs)
+    (if (not (edebug-empty-cursor cursor))
+	(if edebug-best-error
+	    (apply #'edebug-no-match cursor edebug-best-error)
+	  ;; A failed &rest or &optional spec may leave some args.
+	  (edebug-no-match cursor "Failed matching" specs)
+	  ))))
 
 
 (defun edebug-match-string (cursor spec)
