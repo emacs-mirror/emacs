@@ -299,7 +299,12 @@ Assumes the caller has bound `macroexpand-all-environment'."
       (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body) dontcare))
        (macroexp--cons fun
                        (macroexp--cons (macroexp--all-clauses bindings 1)
-                                       (macroexp--all-forms body)
+                                       (if (null body)
+                                           (macroexp-unprogn
+                                            (macroexp--warn-and-return
+                                             (format "Empty %s body" fun)
+                                             nil t))
+                                         (macroexp--all-forms body))
                                        (cdr form))
                        form))
       (`(,(and fun `(lambda . ,_)) . ,args)
