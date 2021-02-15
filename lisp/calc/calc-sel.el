@@ -486,8 +486,8 @@
 
 (defun calc-replace-sub-formula (expr rsf-old rsf-new)
   (let ((calc-rsf-old rsf-old)
-        (calc-rsf-new (calc-encase-atoms rsf-new))))
-  (calc-replace-sub-formula-rec expr))
+        (calc-rsf-new (calc-encase-atoms rsf-new)))
+    (calc-replace-sub-formula-rec expr)))
 
 (defun calc-replace-sub-formula-rec (expr)
   (cond ((eq expr calc-rsf-old) calc-rsf-new)
