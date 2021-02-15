@@ -889,12 +889,14 @@ If DAY-SHIFT is non-nil, the result is shifted by DAY-SHIFT days."
     (format "%04d%02d%02d" (nth 2 mdy) (nth 0 mdy) (nth 1 mdy))))
 
 
-(defun icalendar--datestring-to-isodate (datestring &optional day-shift)
+(defun icalendar--datestring-to-isodate (datestring &optional day-shift year-shift)
   "Convert diary-style DATESTRING to iso-style date.
 If DAY-SHIFT is non-nil, the result is shifted by DAY-SHIFT days
--- DAY-SHIFT must be either nil or an integer.  This function
-tries to figure the date style from DATESTRING itself.  If that
-is not possible it uses the current calendar date style."
+-- DAY-SHIFT must be either nil or an integer.  If YEAR-SHIFT is
+non-nil, the result is shifted by YEAR-SHIFT years -- YEAR-SHIFT
+must be either nil or an integer.  This function tries to figure
+the date style from DATESTRING itself.  If that is not possible
+it uses the current calendar date style."
   (let ((day -1) month year)
     (save-match-data
       (cond ( ;; iso-style numeric date
@@ -904,7 +906,7 @@ is not possible it uses the current calendar date style."
                                    "0?\\([1-9][0-9]?\\)")
                            datestring)
              (setq year (read (substring datestring (match-beginning 1)
-                                         (match-end 1))))
+                                            (match-end 1))))
              (setq month (read (substring datestring (match-beginning 2)
                                           (match-end 2))))
              (setq day (read (substring datestring (match-beginning 3)
@@ -967,6 +969,9 @@ is not possible it uses the current calendar date style."
                                          (match-end 3)))))
             (t
              nil)))
+    (when year-shift
+      (setq year (+ year year-shift)))
+
     (if (> day 0)
         (let ((mdy (calendar-gregorian-from-absolute
                     (+ (calendar-absolute-from-gregorian (list month day
@@ -1916,9 +1921,9 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
       (let* ((datetime (substring entry-main (match-beginning 1)
                                   (match-end 1)))
              (startisostring (icalendar--datestring-to-isodate
-                              datetime))
+                              datetime nil 1))
              (endisostring (icalendar--datestring-to-isodate
-                            datetime 1))
+                            datetime 1 1))
              (starttimestring (icalendar--diarytime-to-isotime
                                (if (match-beginning 3)
                                    (substring entry-main
@@ -2402,8 +2407,11 @@ END-T is the event's end time in diary format."
                                       (if end-t "-" "")
                                       (or end-t ""))))
              (setq result (format
-                           "%%%%(and (diary-anniversary %s)) %s%s%s"
-                           dtstart-conv
+                           "%%%%(diary-anniversary %s) %s%s%s"
+                           (let* ((year (nth 5 dtstart-dec))
+                                  (dtstart-1y-dec (copy-sequence dtstart-dec)))
+                             (setf (nth 5 dtstart-1y-dec) (1- year))
+                             (icalendar--datetime-to-diary-date dtstart-1y-dec))
                            (or start-t "")
                            (if end-t "-" "") (or end-t "")))))
           ;; monthly

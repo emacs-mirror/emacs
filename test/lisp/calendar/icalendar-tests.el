@@ -87,7 +87,7 @@
   (let* ((calendar-date-style 'iso)
          result)
     (setq result (icalendar--convert-anniversary-to-ical
-                  "" "%%(diary-anniversary 1964 6 30) g"))
+                  "" "%%(diary-anniversary 1963 6 30) g"))
     (should (consp result))
     (should (string= (concat
                       "\nDTSTART;VALUE=DATE:19640630"
@@ -353,7 +353,7 @@ END:VTIMEZONE
   (let ((calendar-date-style 'iso))
     ;; numeric iso
     (should (string= "20080511"
-		      (icalendar--datestring-to-isodate "2008 05 11")))
+		     (icalendar--datestring-to-isodate "2008 05 11")))
     (should (string= "20080531"
 		     (icalendar--datestring-to-isodate "2008 05 31")))
     (should (string= "20080602"
@@ -384,7 +384,19 @@ END:VTIMEZONE
     (should (string= "20081105"
 		     (icalendar--datestring-to-isodate "05 Nov 2008")))
     (should (string= "20081105"
-		     (icalendar--datestring-to-isodate "2008 Nov 05")))))
+		     (icalendar--datestring-to-isodate "2008 Nov 05")))
+
+    ;; non-numeric with day-shift and year-shift
+    (setq calendar-date-style nil)      ;not necessary for conversion
+    (should (string= "20210212"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" 1)))
+    (should (string= "20210131"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" -11)))
+    (should (string= "20200211"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" nil -1)))
+    (should (string= "21010211"
+		     (icalendar--datestring-to-isodate "2021 Feb 11" nil 80)))
+    ))
 
 (ert-deftest icalendar--first-weekday-of-year ()
   "Test method for `icalendar-first-weekday-of-year'."
@@ -569,10 +581,10 @@ END:VEVENT
 
           ;; testcase: dtstart is mandatory
           (should (null (icalendar--convert-tz-offset
-                          '((TZOFFSETFROM nil "+0100")
-                            (TZOFFSETTO nil "+0200")
-                            (RRULE nil "FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU"))
-                          t)))
+                         '((TZOFFSETFROM nil "+0100")
+                           (TZOFFSETTO nil "+0200")
+                           (RRULE nil "FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU"))
+                         t)))
 
           ;; FIXME: rrule and rdate are NOT mandatory!  Must fix code
           ;; before activating these testcases
@@ -830,18 +842,18 @@ SUMMARY:yearly no time
   "Perform export test."
   ;; anniversaries
   (icalendar-tests--test-export
-   "%%(diary-anniversary 1989 10 3) anniversary no time"
-   "%%(diary-anniversary 3 10 1989) anniversary no time"
-   "%%(diary-anniversary 10 3 1989) anniversary no time"
+   "%%(diary-anniversary 1988 10 3) anniversary no time"
+   "%%(diary-anniversary 3 10 1988) anniversary no time"
+   "%%(diary-anniversary 10 3 1988) anniversary no time"
    "DTSTART;VALUE=DATE:19891003
 DTEND;VALUE=DATE:19891004
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=10;BYMONTHDAY=03
 SUMMARY:anniversary no time
 ")
   (icalendar-tests--test-export
-   "%%(diary-anniversary 1989 10 3) 19:00-20:00 anniversary with time"
-   "%%(diary-anniversary 3 10 1989) 19:00-20:00 anniversary with time"
-   "%%(diary-anniversary 10 3 1989) 19:00-20:00 anniversary with time"
+   "%%(diary-anniversary 1988 10 3) 19:00-20:00 anniversary with time"
+   "%%(diary-anniversary 3 10 1988) 19:00-20:00 anniversary with time"
+   "%%(diary-anniversary 10 3 1988) 19:00-20:00 anniversary with time"
    "DTSTART;VALUE=DATE-TIME:19891003T190000
 DTEND;VALUE=DATE-TIME:19891004T200000
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=10;BYMONTHDAY=03
@@ -891,12 +903,12 @@ SUMMARY:no alarm
 "
    nil)
 
-    ;; 10 minutes in advance, audio
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 audio alarm"
-     "17 Nov 2014 19:30 audio alarm"
-     "Nov 17 2014 19:30 audio alarm"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 10 minutes in advance, audio
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 audio alarm"
+   "17 Nov 2014 19:30 audio alarm"
+   "Nov 17 2014 19:30 audio alarm"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:audio alarm
 BEGIN:VALARM
@@ -904,14 +916,14 @@ ACTION:AUDIO
 TRIGGER:-PT10M
 END:VALARM
 "
-     '(10 ((audio))))
+   '(10 ((audio))))
 
-    ;; 20 minutes in advance, display
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 display alarm"
-     "17 Nov 2014 19:30 display alarm"
-     "Nov 17 2014 19:30 display alarm"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 20 minutes in advance, display
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 display alarm"
+   "17 Nov 2014 19:30 display alarm"
+   "Nov 17 2014 19:30 display alarm"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:display alarm
 BEGIN:VALARM
@@ -920,14 +932,14 @@ TRIGGER:-PT20M
 DESCRIPTION:display alarm
 END:VALARM
 "
-     '(20 ((display))))
+   '(20 ((display))))
 
-    ;; 66 minutes in advance, email
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 email alarm"
-     "17 Nov 2014 19:30 email alarm"
-     "Nov 17 2014 19:30 email alarm"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 66 minutes in advance, email
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 email alarm"
+   "17 Nov 2014 19:30 email alarm"
+   "Nov 17 2014 19:30 email alarm"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:email alarm
 BEGIN:VALARM
@@ -939,14 +951,14 @@ ATTENDEE:MAILTO:att.one@email.com
 ATTENDEE:MAILTO:att.two@email.com
 END:VALARM
 "
-     '(66 ((email ("att.one@email.com" "att.two@email.com")))))
+   '(66 ((email ("att.one@email.com" "att.two@email.com")))))
 
-    ;; 2 minutes in advance, all alarms
-    (icalendar-tests--test-export
-     "2014 Nov 17 19:30 all alarms"
-     "17 Nov 2014 19:30 all alarms"
-     "Nov 17 2014 19:30 all alarms"
-     "DTSTART;VALUE=DATE-TIME:20141117T193000
+  ;; 2 minutes in advance, all alarms
+  (icalendar-tests--test-export
+   "2014 Nov 17 19:30 all alarms"
+   "17 Nov 2014 19:30 all alarms"
+   "Nov 17 2014 19:30 all alarms"
+   "DTSTART;VALUE=DATE-TIME:20141117T193000
 DTEND;VALUE=DATE-TIME:20141117T203000
 SUMMARY:all alarms
 BEGIN:VALARM
@@ -967,7 +979,7 @@ TRIGGER:-PT2M
 DESCRIPTION:all alarms
 END:VALARM
 "
-     '(2 ((email ("att.one@email.com" "att.two@email.com")) (audio) (display)))))
+   '(2 ((email ("att.one@email.com" "att.two@email.com")) (audio) (display)))))
 
 ;; ======================================================================
 ;; Import tests
@@ -1247,7 +1259,7 @@ Argument INPUT icalendar event string."
 	    (find-file temp-ics)
 	    (goto-char (point-min))
 	    ;;(when (re-search-forward "\nUID:.*\n" nil t)
-	      ;;(replace-match "\n"))
+	    ;;(replace-match "\n"))
 	    (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
 	      (should (string= org-input cycled)))))
       ;; clean up
@@ -1276,8 +1288,8 @@ DESCRIPTION:beschreibung!
 LOCATION:nowhere
 ORGANIZER:ulf
 ")
-    (icalendar-tests--test-cycle
-     "UID:4711
+  (icalendar-tests--test-cycle
+   "UID:4711
 DTSTART;VALUE=DATE:19190909
 DTEND;VALUE=DATE:19190910
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=09
@@ -1377,7 +1389,7 @@ SUMMARY:ff")
    "
 >>> anniversaries:
 
-%%(diary-anniversary 3 28 1991) aa birthday (%d years old)"
+%%(diary-anniversary 3 28 1990) aa birthday (%d years old)"
    "DTSTART;VALUE=DATE:19910328
 DTEND;VALUE=DATE:19910329
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=03;BYMONTHDAY=28
@@ -1387,7 +1399,7 @@ SUMMARY:aa birthday (%d years old)
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 5 17 1957) bb birthday (%d years old)"
+   "%%(diary-anniversary 5 17 1956) bb birthday (%d years old)"
    "DTSTART;VALUE=DATE:19570517
 DTEND;VALUE=DATE:19570518
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=05;BYMONTHDAY=17
@@ -1396,7 +1408,7 @@ SUMMARY:bb birthday (%d years old)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 6 8 1997) cc birthday (%d years old)"
+   "%%(diary-anniversary 6 8 1996) cc birthday (%d years old)"
    "DTSTART;VALUE=DATE:19970608
 DTEND;VALUE=DATE:19970609
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=06;BYMONTHDAY=08
@@ -1405,7 +1417,7 @@ SUMMARY:cc birthday (%d years old)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 7 22 1983) dd (%d years ago...!)"
+   "%%(diary-anniversary 7 22 1982) dd (%d years ago...!)"
    "DTSTART;VALUE=DATE:19830722
 DTEND;VALUE=DATE:19830723
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=07;BYMONTHDAY=22
@@ -1414,7 +1426,7 @@ SUMMARY:dd (%d years ago...!)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 8 1 1988) ee birthday (%d years old)"
+   "%%(diary-anniversary 8 1 1987) ee birthday (%d years old)"
    "DTSTART;VALUE=DATE:19880801
 DTEND;VALUE=DATE:19880802
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=08;BYMONTHDAY=01
@@ -1423,7 +1435,7 @@ SUMMARY:ee birthday (%d years old)")
   (icalendar-tests--test-export
    nil
    nil
-   "%%(diary-anniversary 9 21 1957) ff birthday (%d years old)"
+   "%%(diary-anniversary 9 21 1956) ff birthday (%d years old)"
    "DTSTART;VALUE=DATE:19570921
 DTEND;VALUE=DATE:19570922
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=09;BYMONTHDAY=21
