@@ -250,7 +250,7 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
   "Add MML tags to sign this MML part.
 Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part
    (or method mml-secure-method mml-default-sign-method)
    'sign))
@@ -259,43 +259,43 @@ Use METHOD if given.  Else use `mml-secure-method' or
   "Add MML tags to encrypt this MML part.
 Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part
    (or method mml-secure-method mml-default-sign-method)))
 
 (defun mml-secure-sign-pgp ()
   "Add MML tags to PGP sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgp" 'sign))
 
 (defun mml-secure-sign-pgpauto ()
   "Add MML tags to PGP-auto sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgpauto" 'sign))
 
 (defun mml-secure-sign-pgpmime ()
   "Add MML tags to PGP/MIME sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgpmime" 'sign))
 
 (defun mml-secure-sign-smime ()
   "Add MML tags to S/MIME sign this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "smime" 'sign))
 
 (defun mml-secure-encrypt-pgp ()
   "Add MML tags to PGP encrypt this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgp"))
 
 (defun mml-secure-encrypt-pgpmime ()
   "Add MML tags to PGP/MIME encrypt this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "pgpmime"))
 
 (defun mml-secure-encrypt-smime ()
   "Add MML tags to S/MIME encrypt this MML part."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-part "smime"))
 
 (defun mml-secure-is-encrypted-p (&optional tag-present)
@@ -358,7 +358,7 @@ either an error is raised or not."
 
 (defun mml-unsecure-message ()
   "Remove security related MML tags from message."
-  (interactive)
+  (interactive nil mml-mode)
   (save-excursion
     (goto-char (point-max))
     (when (re-search-backward "^<#secure.*>\n" nil t)
@@ -369,7 +369,7 @@ either an error is raised or not."
   "Add MML tags to sign the entire message.
 Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'sign))
@@ -378,7 +378,7 @@ Use METHOD if given.  Else use `mml-secure-method' or
   "Add MML tag to sign and encrypt the entire message.
 Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'signencrypt))
@@ -387,53 +387,53 @@ Use METHOD if given.  Else use `mml-secure-method' or
   "Add MML tag to encrypt the entire message.
 Use METHOD if given.  Else use `mml-secure-method' or
 `mml-default-sign-method'."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message
    (or method mml-secure-method mml-default-sign-method)
    'encrypt))
 
 (defun mml-secure-message-sign-smime ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "smime" 'sign))
 
 (defun mml-secure-message-sign-pgp ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "pgp" 'sign))
 
 (defun mml-secure-message-sign-pgpmime ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "pgpmime" 'sign))
 
 (defun mml-secure-message-sign-pgpauto ()
   "Add MML tag to encrypt/sign the entire message."
-  (interactive)
+  (interactive nil mml-mode)
   (mml-secure-message "pgpauto" 'sign))
 
 (defun mml-secure-message-encrypt-smime (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "smime" (if dontsign 'encrypt 'signencrypt)))
 
 (defun mml-secure-message-encrypt-pgp (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "pgp" (if dontsign 'encrypt 'signencrypt)))
 
 (defun mml-secure-message-encrypt-pgpmime (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "pgpmime" (if dontsign 'encrypt 'signencrypt)))
 
 (defun mml-secure-message-encrypt-pgpauto (&optional dontsign)
   "Add MML tag to encrypt and sign the entire message.
 If called with a prefix argument, only encrypt (do NOT sign)."
-  (interactive "P")
+  (interactive "P" mml-mode)
   (mml-secure-message "pgpauto" (if dontsign 'encrypt 'signencrypt)))
 
 ;;; Common functionality for mml1991.el, mml2015.el, mml-smime.el

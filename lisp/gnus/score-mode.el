@@ -83,12 +83,12 @@ This mode is an extended emacs-lisp mode.
 
 (defun gnus-score-edit-insert-date ()
   "Insert date in numerical format."
-  (interactive)
+  (interactive nil gnus-score-mode)
   (princ (time-to-days nil) (current-buffer)))
 
 (defun gnus-score-pretty-print ()
   "Format the current score file."
-  (interactive)
+  (interactive nil gnus-score-mode)
   (goto-char (point-min))
   (let ((form (read (current-buffer))))
     (erase-buffer)
@@ -98,7 +98,7 @@ This mode is an extended emacs-lisp mode.
 
 (defun gnus-score-edit-exit ()
   "Stop editing the score file."
-  (interactive)
+  (interactive nil gnus-score-mode)
   (unless (file-exists-p (file-name-directory (buffer-file-name)))
     (make-directory (file-name-directory (buffer-file-name)) t))
   (let ((coding-system-for-write score-mode-coding-system))
