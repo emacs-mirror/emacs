@@ -1906,14 +1906,14 @@ to get different commands to edit and resubmit."
 
 (defcustom read-extended-command-predicate #'completion-default-include-p
   "Predicate to use to determine which commands to include when completing.
-The predicate function is called with two parameter: The
+The predicate function is called with two parameters: The
 symbol (i.e., command) in question that should be included or
 not, and the current buffer.  The predicate should return non-nil
 if the command should be present when doing `M-x TAB'."
   :version "28.1"
-  :type '(choice (const :tag "Exclude commands not relevant to the current mode"
-                        #'completion-default-include-p)
-                 (const :tag "All commands" (lambda (_ _) t))
+  :type `(choice (const :tag "Exclude commands not relevant to the current mode"
+                        completion-default-include-p)
+                 (const :tag "All commands" ,(lambda (_s _b) t))
                  (function :tag "Other function")))
 
 (defun read-extended-command ()
