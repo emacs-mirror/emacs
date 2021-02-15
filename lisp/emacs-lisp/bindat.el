@@ -26,7 +26,7 @@
 ;;  Packing and unpacking of (binary) data structures.
 ;;
 ;;  The data formats used in binary files and network protocols are
-;;  often structed data which can be described by a C-style structure
+;;  often structured data which can be described by a C-style structure
 ;;  such as the one shown below.  Using the bindat package, decoding
 ;;  and encoding binary data formats like these is made simple using a
 ;;  structure specification which closely resembles the C style
@@ -135,7 +135,8 @@
 ;;          |  ( [FIELD] repeat COUNT ITEM... )
 
 ;;          -- In (eval EXPR), the value of the last field is available in
-;;             the dynamically bound variable `last'.
+;;             the dynamically bound variable `last' and all the previous
+;;             ones in the variable `struct'.
 
 ;; TYPE    ::= ( eval EXPR )		-- interpret result as TYPE
 ;;	    |  u8   | byte		-- length 1
@@ -191,7 +192,7 @@
 ;;; Code:
 
 ;; Helper functions for structure unpacking.
-;; Relies on dynamic binding of BINDAT-RAW and BINDAT-IDX
+;; Relies on dynamic binding of `bindat-raw' and `bindat-idx'.
 
 (defvar bindat-raw)
 (defvar bindat-idx)
@@ -276,8 +277,8 @@
    (t nil)))
 
 (defun bindat--unpack-group (spec)
-  (with-suppressed-warnings ((lexical last))
-    (defvar last))
+  (with-suppressed-warnings ((lexical struct last))
+    (defvar struct) (defvar last))
   (let (struct last)
     (while spec
       (let* ((item (car spec))
@@ -378,9 +379,9 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (ip . 4)))
 
 (defun bindat--length-group (struct spec)
-  (with-suppressed-warnings ((lexical last))
-    (defvar last))
-  (let (last)
+  (with-suppressed-warnings ((lexical struct last))
+    (defvar struct) (defvar last))
+  (let ((struct struct) last)
     (while spec
       (let* ((item (car spec))
 	     (field (car item))
@@ -544,9 +545,9 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (setq bindat-idx (+ bindat-idx len)))))
 
 (defun bindat--pack-group (struct spec)
-  (with-suppressed-warnings ((lexical last))
-    (defvar last))
-  (let (last)
+  (with-suppressed-warnings ((lexical struct last))
+    (defvar struct) (defvar last))
+  (let ((struct struct) last)
     (while spec
       (let* ((item (car spec))
 	     (field (car item))
