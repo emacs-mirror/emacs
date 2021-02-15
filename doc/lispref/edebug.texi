@@ -1367,7 +1367,7 @@ Lets a function control the parsing of the remaining code.
 It takes the form @code{&interpose @var{spec} @var{fun} @var{args...}}
 and means that Edebug will first match @var{spec} against the code and
 then call @var{fun} with the code that matched @code{spec}, a parsing
-function var{pf}, and finally @var{args...}.  The parsing
+function @var{pf}, and finally @var{args...}.  The parsing
 function expects a single argument indicating the specification list
 to use to parse the remaining code.  It should be called exactly once
 and returns the instrumented code that @var{fun} is expected to return.
@@ -1375,7 +1375,7 @@ For example @code{(&interpose symbolp pcase--match-pat-args)} matches
 sexps whose first element is a symbol and then lets
 @code{pcase--match-pat-args} lookup the specs associated
 with that head symbol according to @code{pcase--match-pat-args} and
-pass them to the var{pf} it received as argument.
+pass them to the @var{pf} it received as argument.
 
 @item @var{other-symbol}
 @cindex indirect specifications
