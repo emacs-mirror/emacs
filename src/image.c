@@ -99,7 +99,7 @@ static unsigned long image_alloc_image_color (struct frame *, struct image *,
 					      Lisp_Object, unsigned long);
 #endif	/* USE_CAIRO */
 
-#ifdef HAVE_PGTK
+#if defined HAVE_PGTK && defined HAVE_IMAGEMAGICK
 /* On pgtk, we don't want to create scaled image.
  * If we create scaled image on scale=2.0 environment,
  * the created image is half size and Gdk scales it back,
@@ -2307,12 +2307,11 @@ compute_image_rotation (struct image *img, double *rotation)
 static void
 image_set_transform (struct frame *f, struct image *img)
 {
-# ifdef HAVE_IMAGEMAGICK
-#  ifndef DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE
+# if (defined HAVE_IMAGEMAGICK \
+      && !defined DONT_CREATE_TRANSFORMED_IMAGEMAGICK_IMAGE)
   /* ImageMagick images already have the correct transform.  */
   if (EQ (image_spec_value (img->spec, QCtype, NULL), Qimagemagick))
     return;
-#  endif
 # endif
 
 # if !defined USE_CAIRO && defined HAVE_XRENDER
