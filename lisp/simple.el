@@ -138,6 +138,10 @@ messages are highlighted; this helps to see what messages were visited."
   nil
   "Overlay highlighting the current error message in the `next-error' buffer.")
 
+(defvar global-minor-modes nil
+  "A list of the currently enabled global minor modes.
+This is a list of symbols.")
+
 (defcustom next-error-hook nil
   "List of hook functions run by `next-error' after visiting source file."
   :type 'hook
@@ -1985,14 +1989,16 @@ BUFFER, or any of the active minor modes in BUFFER."
             (or (provided-mode-derived-p
                  (buffer-local-value 'major-mode buffer) (car modes))
                 (memq (car modes)
-                      (buffer-local-value 'local-minor-modes buffer)))
+                      (buffer-local-value 'local-minor-modes buffer))
+                (memq (car modes) global-minor-modes))
           ;; Uncommon case: Multiple modes.
           (apply #'provided-mode-derived-p
                  (buffer-local-value 'major-mode buffer)
                  modes)
           (seq-intersection modes
                             (buffer-local-value 'local-minor-modes buffer)
-                            #'eq)))))
+                            #'eq)
+          (seq-intersection modes global-minor-modes #'eq)))))
 
 (defun completion-with-modes-p (modes buffer)
   "Say whether MODES are in action in BUFFER.
@@ -2004,7 +2010,8 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
       ;; It's a minor mode.
       (seq-intersection modes
                         (buffer-local-value 'local-minor-modes buffer)
-                        #'eq)))
+                        #'eq)
+      (seq-intersection modes global-minor-modes #'eq)))
 
 (defun completion-button-p (category buffer)
   "Return non-nil if there's a button of CATEGORY at point in BUFFER."

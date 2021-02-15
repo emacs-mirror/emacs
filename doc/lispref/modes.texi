@@ -1466,6 +1466,11 @@ This buffer-local variable lists the currently enabled minor modes in
 the current buffer, and is a list of symbols.
 @end defvar
 
+@defvar global-minor-modes
+This variable lists the currently enabled global minor modes, and is a
+list of symbols.
+@end defvar
+
 @defvar minor-mode-list
 The value of this variable is a list of all minor mode commands.
 @end defvar

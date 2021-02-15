@@ -2297,7 +2297,13 @@ that is not compatible with byte code in previous Emacs versions.
 +++
 ** New buffer-local variable 'local-minor-modes'.
 This permanently buffer-local variable holds a list of currently
-enabled minor modes in the current buffer (as a list of symbols).
+enabled non-global minor modes in the current buffer (as a list of
+symbols).
+
++++
+** New variable 'global-minor-modes'.
+This variable holds a list of currently enabled global minor modes (as
+a list of symbols).
 
 +++
 ** 'define-minor-mode'  now takes an :interactive argument.
