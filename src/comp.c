@@ -4858,7 +4858,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
 	 is not cons hashed.  */
       if (!recursive_load)
 	{
-	  Lisp_Object volatile data_ephemeral_vec  =
+	  data_ephemeral_vec =
 	    load_static_obj (comp_u, TEXT_DATA_RELOC_EPHEMERAL_SYM);
 
 	  EMACS_INT d_vec_len = XFIXNUM (Flength (data_ephemeral_vec));

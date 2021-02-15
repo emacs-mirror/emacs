@@ -540,7 +540,7 @@ It is the default value of the variable `top-level'."
       (defvar comp-eln-load-path)
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
         (when path-env
-          (dolist (path (split-string path-env ":"))
+          (dolist (path (split-string path-env path-separator))
             (unless (string= "" path)
               (push path comp-eln-load-path)))))
       (push (concat user-emacs-directory "eln-cache/") comp-eln-load-path))
