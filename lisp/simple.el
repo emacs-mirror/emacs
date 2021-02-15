@@ -1978,15 +1978,20 @@ This function uses the `read-extended-command-predicate' user option."
   "Say whether SYMBOL should be offered as a completion.
 This is true if the command is applicable to the major mode in
 BUFFER, or any of the active minor modes in BUFFER."
-  (or (null (command-modes symbol))
-      ;; It's derived from a major mode.
-      (apply #'provided-mode-derived-p
-             (buffer-local-value 'major-mode buffer)
-             (command-modes symbol))
-      ;; It's a minor mode.
-      (seq-intersection (command-modes symbol)
-                        (buffer-local-value 'minor-modes buffer)
-                        #'eq)))
+  (let ((modes (command-modes symbol)))
+    (or (null modes)
+        ;; Common case: Just a single mode.
+        (if (null (cdr modes))
+            (or (provided-mode-derived-p
+                 (buffer-local-value 'major-mode buffer) (car modes))
+                (memq (car modes) (buffer-local-value 'minor-modes buffer)))
+          ;; Uncommon case: Multiple modes.
+          (apply #'provided-mode-derived-p
+                 (buffer-local-value 'major-mode buffer)
+                 modes)
+          (seq-intersection modes
+                            (buffer-local-value 'minor-modes buffer)
+                            #'eq)))))
 
 (defun completion-with-modes-p (modes buffer)
   "Say whether MODES are in action in BUFFER.
