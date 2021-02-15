@@ -2295,7 +2295,7 @@ minor mode activated.  Note that using this form will create byte code
 that is not compatible with byte code in previous Emacs versions.
 
 +++
-** New buffer-local variable 'minor-modes'.
+** New buffer-local variable 'local-minor-modes'.
 This permanently buffer-local variable holds a list of currently
 enabled minor modes in the current buffer (as a list of symbols).
 

@@ -1984,13 +1984,14 @@ BUFFER, or any of the active minor modes in BUFFER."
         (if (null (cdr modes))
             (or (provided-mode-derived-p
                  (buffer-local-value 'major-mode buffer) (car modes))
-                (memq (car modes) (buffer-local-value 'minor-modes buffer)))
+                (memq (car modes)
+                      (buffer-local-value 'local-minor-modes buffer)))
           ;; Uncommon case: Multiple modes.
           (apply #'provided-mode-derived-p
                  (buffer-local-value 'major-mode buffer)
                  modes)
           (seq-intersection modes
-                            (buffer-local-value 'minor-modes buffer)
+                            (buffer-local-value 'local-minor-modes buffer)
                             #'eq)))))
 
 (defun completion-with-modes-p (modes buffer)
@@ -2002,7 +2003,7 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
              modes)
       ;; It's a minor mode.
       (seq-intersection modes
-                        (buffer-local-value 'minor-modes buffer)
+                        (buffer-local-value 'local-minor-modes buffer)
                         #'eq)))
 
 (defun completion-button-p (category buffer)
