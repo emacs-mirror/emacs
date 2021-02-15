@@ -62,12 +62,12 @@
 
 (defun edebug-test-code-format-vector-node (node)
   !start!(concat "["
-          (apply 'concat (mapcar 'edebug-test-code-format-node node))!apply!
+          (apply #'concat (mapcar #'edebug-test-code-format-node node))!apply!
           "]"))
 
 (defun edebug-test-code-format-list-node (node)
   !start!(concat "{"
-          (apply 'concat (mapcar 'edebug-test-code-format-node node))!apply!
+          (apply #'concat (mapcar #'edebug-test-code-format-node node))!apply!
           "}"))
 
 (defun edebug-test-code-format-node (node)

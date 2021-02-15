@@ -63,7 +63,7 @@
 (defvar pcase--dontwarn-upats '(pcase--dontcare))
 
 (def-edebug-elem-spec 'pcase-PAT
-  '(&or (&lookup symbolp pcase--get-edebug-spec) sexp))
+  '(&or (&interpose symbolp pcase--edebug-match-pat-args) sexp))
 
 (def-edebug-elem-spec 'pcase-FUN
   '(&or lambda-expr
@@ -73,7 +73,9 @@
 
 ;; Only called from edebug.
 (declare-function edebug-get-spec "edebug" (symbol))
-(defun pcase--get-edebug-spec (head)
+(defun pcase--edebug-match-pat-args (head pf)
+  ;; (cl-assert (null (cdr head)))
+  (setq head (car head))
   (or (alist-get head '((quote sexp)
                         (or    &rest pcase-PAT)
                         (and   &rest pcase-PAT)
@@ -81,7 +83,7 @@
                         (pred  &or ("not" pcase-FUN) pcase-FUN)
                         (app   pcase-FUN pcase-PAT)))
       (let ((me (pcase--get-macroexpander head)))
-        (and me (symbolp me) (edebug-get-spec me)))))
+        (funcall pf (and me (symbolp me) (edebug-get-spec me))))))
 
 (defun pcase--get-macroexpander (s)
   "Return the macroexpander for pcase pattern head S, or nil"

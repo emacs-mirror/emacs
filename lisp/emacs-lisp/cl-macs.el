@@ -190,7 +190,7 @@ The name is made by appending a number to PREFIX, default \"T\"."
   '(&rest ("cl-declare" &rest sexp)))
 
 (def-edebug-elem-spec 'cl-declarations-or-string
-  '(&or lambda-doc cl-declarations))
+  '(lambda-doc &or ("declare" def-declarations) cl-declarations))
 
 (def-edebug-elem-spec 'cl-lambda-list
   '(([&rest cl-lambda-arg]
@@ -2193,6 +2193,20 @@ details.
             (macroexp-progn body)
             newenv)))))
 
+(defvar edebug-lexical-macro-ctx)
+
+(defun cl--edebug-macrolet-interposer (bindings pf &rest specs)
+  ;; (cl-assert (null (cdr bindings)))
+  (setq bindings (car bindings))
+  (let ((edebug-lexical-macro-ctx
+         (nconc (mapcar (lambda (binding)
+                          (cons (car binding)
+                                (when (eq 'declare (car-safe (nth 2 binding)))
+                                  (nth 1 (assq 'debug (cdr (nth 2 binding)))))))
+                        bindings)
+                edebug-lexical-macro-ctx)))
+    (funcall pf specs)))
+
 ;; The following ought to have a better definition for use with newer
 ;; byte compilers.
 ;;;###autoload
@@ -2202,7 +2216,13 @@ This is like `cl-flet', but for macros instead of functions.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug (cl-macrolet-expr)))
+           (debug (&interpose (&rest (&define [&name symbolp "@cl-macrolet@"]
+                                              [&name [] gensym] ;Make it unique!
+                                              cl-macro-list
+                                              cl-declarations-or-string
+                                              def-body))
+                              cl--edebug-macrolet-interposer
+                              cl-declarations body)))
   (if (cdr bindings)
       `(cl-macrolet (,(car bindings)) (cl-macrolet ,(cdr bindings) ,@body))
     (if (null bindings) (macroexp-progn body)

@@ -1362,16 +1362,20 @@ is primarily used to generate more specific syntax error messages.  See
 edebug-spec; it aborts the instrumentation, displaying the message in
 the minibuffer.
 
-@item &lookup
-Selects a specification based on the code being instrumented.
-It takes the form @code{&lookup @var{spec} @var{fun} @var{args...}}
+@item &interpose
+Lets a function control the parsing of the remaining code.
+It takes the form @code{&interpose @var{spec} @var{fun} @var{args...}}
 and means that Edebug will first match @var{spec} against the code and
-then match the rest against the specification returned by calling
-@var{fun} with the concatenation of @var{args...} and the code that
-matched @code{spec}.  For example @code{(&lookup symbolp
-pcase--get-edebug-spec)} matches sexps whose first element is
-a symbol and whose subsequent elements must obey the spec associated
-with that head symbol according to @code{pcase--get-edebug-spec}.
+then call @var{fun} with the code that matched @code{spec}, a parsing
+function var{pf}, and finally @var{args...}.  The parsing
+function expects a single argument indicating the specification list
+to use to parse the remaining code.  It should be called exactly once
+and returns the instrumented code that @var{fun} is expected to return.
+For example @code{(&interpose symbolp pcase--match-pat-args)} matches
+sexps whose first element is a symbol and then lets
+@code{pcase--match-pat-args} lookup the specs associated
+with that head symbol according to @code{pcase--match-pat-args} and
+pass them to the var{pf} it received as argument.
 
 @item @var{other-symbol}
 @cindex indirect specifications

@@ -951,8 +951,8 @@ primary ones (Bug#42671)."
       (should
        (equal
         defined-symbols
-        (list (intern "edebug-cl-defmethod-qualifier :around ((_ number))")
-              (intern "edebug-cl-defmethod-qualifier ((_ number))")))))))
+        (list (intern "edebug-cl-defmethod-qualifier :around (number)")
+              (intern "edebug-cl-defmethod-qualifier (number)")))))))
 
 (ert-deftest edebug-tests--conflicting-internal-names ()
   "Check conflicts between form's head symbols and Edebug spec elements."
@@ -992,23 +992,19 @@ clashes (Bug#41853)."
            ;; Make generated symbols reproducible.
            (gensym-counter 10000))
       (eval-buffer)
-      (should (equal (reverse instrumented-names)
+      ;; Use `format' so as to throw away differences due to
+      ;; interned/uninterned symbols.
+      (should (equal (format "%s" (reverse instrumented-names))
                      ;; The outer definitions come after the inner
                      ;; ones because their body ends later.
-                     ;; FIXME: There are twice as many inner
-                     ;; definitions as expected due to Bug#41988.
-                     ;; Once that bug is fixed, remove the duplicates.
                      ;; FIXME: We'd rather have names such as
                      ;; `edebug-tests-cl-flet-1@inner@cl-flet@10000',
                      ;; but that requires further changes to Edebug.
-                     '(inner@cl-flet@10000
-                       inner@cl-flet@10001
-                       inner@cl-flet@10002
-                       inner@cl-flet@10003
-                       edebug-tests-cl-flet-1
-                       inner@cl-flet@10004
-                       inner@cl-flet@10005
-                       edebug-tests-cl-flet-2))))))
+                     (format "%s" '(inner@cl-flet@10000
+                                    inner@cl-flet@10001
+                                    edebug-tests-cl-flet-1
+                                    inner@cl-flet@10002
+                                    edebug-tests-cl-flet-2)))))))
 
 (ert-deftest edebug-tests-duplicate-symbol-backtrack ()
   "Check that Edebug doesn't create duplicate symbols when

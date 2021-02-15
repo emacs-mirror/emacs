@@ -959,7 +959,10 @@ declared obsolete.
 *** Edebug specification lists can use some new keywords:
 
 +++
-**** '&lookup SPEC FUN ARGS...' lets FUN compute the specs to use
+**** '&interpose SPEC FUN ARGS..' lets FUN control parsing after SPEC.
+More specifically, FUN is called with 'HEAD PF ARGS..' where
+PF is a parsing function that expects a single argument (the specs to
+use) and HEAD is the code that matched SPEC.
 
 +++
 **** '&error MSG' unconditionally aborts the current edebug instrumentation.
