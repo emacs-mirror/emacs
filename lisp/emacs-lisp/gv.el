@@ -188,7 +188,9 @@ arguments as NAME.  DO is a function as defined in `gv-get'."
 	  defun-declarations-alist))
 
 ;;;###autoload
-(let ((spec '(&or symbolp ("lambda" &define lambda-list def-body))))
+(let ((spec (get 'compiler-macro 'edebug-declaration-spec)))
+  ;; It so happens that it's the same spec for gv-* as for compiler-macros.
+  ;; '(&or symbolp ("lambda" &define lambda-list lambda-doc def-body))
   (put 'gv-expander 'edebug-declaration-spec spec)
   (put 'gv-setter 'edebug-declaration-spec spec))
 
