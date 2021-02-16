@@ -320,7 +320,8 @@ If it is \"all\", load all Lisp files."
       (lambda (file)
 	(condition-case alpha
 	    (unless (member file cus-test-libs-noloads)
-	      (load (file-name-sans-extension (expand-file-name file lispdir)))
+	      (load (file-name-sans-extension (expand-file-name file lispdir))
+                    nil t)
 	      (push file cus-test-libs-loaded))
 	  (error
 	   (push (cons file alpha) cus-test-libs-errors)
