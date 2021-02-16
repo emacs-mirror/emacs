@@ -3404,10 +3404,15 @@ Unsigned integer in network byte order, with length 3.
 @itemx long
 Unsigned integer in network byte order, with length 4.
 
+@item u64
+Unsigned integer in network byte order, with length 8.
+
 @item u16r
 @itemx u24r
 @itemx u32r
-Unsigned integer in little endian order, with length 2, 3 and 4, respectively.
+@itemx u64r
+Unsigned integer in little endian order, with length 2, 3, 4, and
+8, respectively.
 
 @item str @var{len}
 String of length @var{len}.
@@ -3545,7 +3550,7 @@ array, and @var{struct} to an alist representing unpacked field data.
 @defun bindat-unpack spec raw &optional idx
 @c FIXME?  Again, no multibyte?
 This function unpacks data from the unibyte string or byte
-array var{raw}
+array @var{raw}
 according to @var{spec}.  Normally, this starts unpacking at the
 beginning of the byte array, but if @var{idx} is non-@code{nil}, it
 specifies a zero-based starting position to use instead.
@@ -3586,7 +3591,7 @@ the data in the alist @var{struct}.  It normally creates and fills a
 new byte array starting at the beginning.  However, if @var{raw}
 is non-@code{nil}, it specifies a pre-allocated unibyte string or vector to
 pack into.  If @var{idx} is non-@code{nil}, it specifies the starting
-offset for packing into var{raw}.
+offset for packing into @var{raw}.
 
 When pre-allocating, you should make sure @code{(length @var{raw})}
 meets or exceeds the total length to avoid an out-of-range error.

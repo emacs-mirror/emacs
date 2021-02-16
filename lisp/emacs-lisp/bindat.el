@@ -146,7 +146,8 @@
 ;;          |  u16  | word | short      -- length 2, network byte order
 ;;          |  u24                      -- 3-byte value
 ;;          |  u32  | dword | long      -- length 4, network byte order
-;;          |  u16r | u24r | u32r       -- little endian byte order.
+;;          |  u64                      -- length 8, network byte order
+;;          |  u16r | u24r | u32r | u64r - little endian byte order.
 ;;	    |  str LEN                  -- LEN byte string
 ;;          |  strz LEN                 -- LEN byte (zero-terminated) string
 ;;          |  vec LEN [TYPE]           -- vector of LEN items of TYPE (default: u8)
@@ -214,6 +215,9 @@
 (defun bindat--unpack-u32 ()
   (logior (ash (bindat--unpack-u16) 16) (bindat--unpack-u16)))
 
+(defun bindat--unpack-u64 ()
+  (logior (ash (bindat--unpack-u32) 32) (bindat--unpack-u32)))
+
 (defun bindat--unpack-u16r ()
   (logior (bindat--unpack-u8) (ash (bindat--unpack-u8) 8)))
 
@@ -223,6 +227,9 @@
 (defun bindat--unpack-u32r ()
   (logior (bindat--unpack-u16r) (ash (bindat--unpack-u16r) 16)))
 
+(defun bindat--unpack-u64r ()
+  (logior (bindat--unpack-u32r) (ash (bindat--unpack-u32r) 32)))
+
 (defun bindat--unpack-item (type len &optional vectype)
   (if (eq type 'ip)
       (setq type 'vec len 4))
@@ -231,16 +238,14 @@
     (bindat--unpack-u8))
    ((or 'u16 'word 'short)
     (bindat--unpack-u16))
-   ('u24
-    (bindat--unpack-u24))
+   ('u24 (bindat--unpack-u24))
    ((or 'u32 'dword 'long)
     (bindat--unpack-u32))
-   ('u16r
-    (bindat--unpack-u16r))
-   ('u24r
-    (bindat--unpack-u24r))
-   ('u32r
-    (bindat--unpack-u32r))
+   ('u64  (bindat--unpack-u64))
+   ('u16r (bindat--unpack-u16r))
+   ('u24r (bindat--unpack-u24r))
+   ('u32r (bindat--unpack-u32r))
+   ('u64r (bindat--unpack-u64r))
    ('bits
     (let ((bits nil) (bnum (1- (* 8 len))) j m)
       (while (>= bnum 0)
@@ -374,6 +379,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (u16 . 2) (u16r . 2) (word . 2) (short . 2)
     (u24 . 3) (u24r . 3)
     (u32 . 4) (u32r . 4) (dword . 4) (long . 4)
+    (u64 . 8) (u64r . 8)
     (ip . 4)))
 
 (defun bindat--length-group (struct spec)
@@ -471,6 +477,10 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (bindat--pack-u16 (ash v -16))
   (bindat--pack-u16 v))
 
+(defun bindat--pack-u64 (v)
+  (bindat--pack-u32 (ash v -32))
+  (bindat--pack-u32 v))
+
 (defun bindat--pack-u16r (v)
   (aset bindat-raw (1+ bindat-idx) (logand (ash v -8) 255))
   (aset bindat-raw bindat-idx (logand v 255))
@@ -483,6 +493,10 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 (defun bindat--pack-u32r (v)
   (bindat--pack-u16r v)
   (bindat--pack-u16r (ash v -16)))
+
+(defun bindat--pack-u64r (v)
+  (bindat--pack-u32r v)
+  (bindat--pack-u32r (ash v -32)))
 
 (defun bindat--pack-item (v type len &optional vectype)
   (if (eq type 'ip)
@@ -498,12 +512,11 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (bindat--pack-u24 v))
    ((or 'u32 'dword 'long)
     (bindat--pack-u32 v))
-   ('u16r
-    (bindat--pack-u16r v))
-   ('u24r
-    (bindat--pack-u24r v))
-   ('u32r
-    (bindat--pack-u32r v))
+   ('u64  (bindat--pack-u64 v))
+   ('u16r (bindat--pack-u16r v))
+   ('u24r (bindat--pack-u24r v))
+   ('u32r (bindat--pack-u32r v))
+   ('u64r (bindat--pack-u64r v))
    ('bits
     (let ((bnum (1- (* 8 len))) j m)
       (while (>= bnum 0)
@@ -518,11 +531,9 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 		  j (ash j -1))))
 	(bindat--pack-u8 m))))
    ((or 'str 'strz)
-    (let ((l (length v)))
-      (if (> l len) (setq l len))
-      (dotimes (i l)
-	(aset bindat-raw (+ bindat-idx i) (aref v i)))
-      (setq bindat-idx (+ bindat-idx len))))
+    (dotimes (i (min len (length v)))
+      (aset bindat-raw (+ bindat-idx i) (aref v i)))
+    (setq bindat-idx (+ bindat-idx len)))
    ('vec
     (let ((l (length v)) (vlen 1))
       (if (consp vectype)
