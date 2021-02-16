@@ -24,13 +24,15 @@
 (require 'cl-lib)
 
 (defvar header-bindat-spec
-  '((dest-ip ip)
+  (bindat-spec
+    (dest-ip ip)
     (src-ip ip)
     (dest-port u16)
     (src-port u16)))
 
 (defvar data-bindat-spec
-  '((type u8)
+  (bindat-spec
+    (type u8)
     (opcode u8)
     (length u16r) ;; little endian order
     (id strz 8)
@@ -38,7 +40,8 @@
     (align 4)))
 
 (defvar packet-bindat-spec
-  '((header struct header-bindat-spec)
+  (bindat-spec
+    (header struct header-bindat-spec)
     (items u8)
     (fill 3)
     (item repeat (items)

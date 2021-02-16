@@ -970,6 +970,23 @@ primary ones (Bug#42671)."
               (eval '(setf (edebug-test-code-use-gv-expander (cons 'a 'b)) 3) t))
             "(func"))))
 
+(defun edebug-tests--read (form spec)
+  (with-temp-buffer
+    (print form (current-buffer))
+    (goto-char (point-min))
+    (cl-letf ((edebug-all-forms t)
+              ((get (car form) 'edebug-form-spec) spec))
+      (edebug--read nil (current-buffer)))))
+
+(ert-deftest edebug-tests--&rest-behavior ()
+  ;; `&rest' is documented to allow the last "repetition" to be aborted early.
+  (should (edebug-tests--read '(dummy x 1 y 2 z)
+                              '(&rest symbolp integerp)))
+  ;; `&rest' should notice here that the "symbolp integerp" sequence
+  ;; is not respected.
+  (should-error (edebug-tests--read '(dummy x 1 2 y)
+                                    '(&rest symbolp integerp))))
+
 (ert-deftest edebug-tests-cl-flet ()
   "Check that Edebug can instrument `cl-flet' forms without name
 clashes (Bug#41853)."

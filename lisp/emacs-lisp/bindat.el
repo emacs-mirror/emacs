@@ -65,13 +65,15 @@
 ;;  The corresponding Lisp bindat specification looks like this:
 ;;
 ;;  (setq header-bindat-spec
-;;    '((dest-ip   ip)
+;;    (bindat-spec
+;;      (dest-ip   ip)
 ;;	(src-ip    ip)
 ;;	(dest-port u16)
 ;;	(src-port  u16)))
 ;;
 ;;  (setq data-bindat-spec
-;;    '((type      u8)
+;;    (bindat-spec
+;;      (type      u8)
 ;;	(opcode	   u8)
 ;;	(length	   u16r)  ;; little endian order
 ;;	(id	   strz 8)
@@ -79,7 +81,8 @@
 ;;	(align     4)))
 ;;
 ;;  (setq packet-bindat-spec
-;;    '((header    struct header-bindat-spec)
+;;    (bindat-spec
+;;      (header    struct header-bindat-spec)
 ;;	(items     u8)
 ;;	(fill      3)
 ;;	(item	   repeat (items)
@@ -179,7 +182,7 @@
 ;; is interpreted by evalling TAG_VAL and then comparing that to
 ;; each TAG using equal; if a match is found, the corresponding SPEC
 ;; is used.
-;; If TAG is a form (eval EXPR), EXPR is evalled with `tag' bound to the
+;; If TAG is a form (eval EXPR), EXPR is eval'ed with `tag' bound to the
 ;; value of TAG_VAL; the corresponding SPEC is used if the result is non-nil.
 ;; Finally, if TAG is t, the corresponding SPEC is used unconditionally.
 ;;
@@ -368,8 +371,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (setq field (cdr field)))
   struct)
 
-
-;; Calculate bindat-raw length of structured data
+;;;; Calculate bindat-raw length of structured data
 
 (defvar bindat--fixed-length-alist
   '((u8 . 1) (byte . 1)
@@ -452,13 +454,13 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	  (setq bindat-idx (+ bindat-idx len))))))))
 
 (defun bindat-length (spec struct)
-  "Calculate bindat-raw length for STRUCT according to bindat SPEC."
+  "Calculate `bindat-raw' length for STRUCT according to bindat SPEC."
   (let ((bindat-idx 0))
     (bindat--length-group struct spec)
     bindat-idx))
 
 
-;; Pack structured data into bindat-raw
+;;;; Pack structured data into bindat-raw
 
 (defun bindat--pack-u8 (v)
   (aset bindat-raw bindat-idx (logand v 255))
@@ -623,8 +625,47 @@ Optional fourth arg IDX is the starting offset into RAW."
     (bindat--pack-group struct spec)
     (if raw nil bindat-raw)))
 
+;;;; Debugging support
 
-;; Misc. format conversions
+(def-edebug-elem-spec 'bindat-spec '(&rest bindat-item))
+
+(def-edebug-elem-spec 'bindat-item
+  '(([&optional bindat-field]
+     &or ["eval" form]
+         ["fill" bindat-len]
+         ["align" bindat-len]
+         ["struct" form]          ;A reference to another bindat-spec.
+         ["union" bindat-tag-val &rest (bindat-tag bindat-spec)]
+         ["repeat" integerp bindat-spec]
+         bindat-type)))
+
+(def-edebug-elem-spec 'bindat-type
+  '(&or ("eval" form)
+        ["str"  bindat-len]
+        ["strz" bindat-len]
+        ["vec"  bindat-len &optional bindat-type]
+        ["bits" bindat-len]
+        symbolp))
+
+(def-edebug-elem-spec 'bindat-field
+  '(&or ("eval" form) symbolp))
+
+(def-edebug-elem-spec 'bindat-len '(&or [] "nil" bindat-arg))
+
+(def-edebug-elem-spec 'bindat-tag-val '(bindat-arg))
+
+(def-edebug-elem-spec 'bindat-tag '(&or ("eval" form) atom))
+
+(def-edebug-elem-spec 'bindat-arg
+  '(&or ("eval" form) integerp (&rest symbolp integerp)))
+
+(defmacro bindat-spec (&rest fields)
+  "Build the bindat spec described by FIELDS."
+  (declare (indent 0) (debug (bindat-spec)))
+  ;; FIXME: We should really "compile" this to a triplet of functions!
+  `',fields)
+
+;;;; Misc. format conversions
 
 (defun bindat-format-vector (vect fmt sep &optional len)
   "Format vector VECT using element format FMT and separator SEP.
