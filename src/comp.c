@@ -56,6 +56,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_block_end_with_return
 #undef gcc_jit_block_end_with_void_return
 #undef gcc_jit_context_acquire
+#undef gcc_jit_context_add_command_line_option
 #undef gcc_jit_context_add_driver_option
 #undef gcc_jit_context_compile_to_file
 #undef gcc_jit_context_dump_reproducer_to_file
@@ -124,6 +125,8 @@ DEF_DLL_FN (const char *, gcc_jit_context_get_first_error,
 DEF_DLL_FN (gcc_jit_block *, gcc_jit_function_new_block,
             (gcc_jit_function *func, const char *name));
 DEF_DLL_FN (gcc_jit_context *, gcc_jit_context_acquire, (void));
+DEF_DLL_FN (void, gcc_jit_context_add_command_line_option,
+            (gcc_jit_context *ctxt, const char *optname));
 DEF_DLL_FN (void, gcc_jit_context_add_driver_option,
             (gcc_jit_context *ctxt, const char *optname));
 DEF_DLL_FN (gcc_jit_field *, gcc_jit_context_new_field,
@@ -312,6 +315,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_const);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
+  LOAD_DLL_FN_OPT (library, gcc_jit_context_add_command_line_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_global_set_initializer);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_major);
@@ -330,6 +334,7 @@ init_gccjit_functions (void)
 #define gcc_jit_block_end_with_return fn_gcc_jit_block_end_with_return
 #define gcc_jit_block_end_with_void_return fn_gcc_jit_block_end_with_void_return
 #define gcc_jit_context_acquire fn_gcc_jit_context_acquire
+#define gcc_jit_context_add_command_line_option fn_gcc_jit_context_add_command_line_option
 #define gcc_jit_context_add_driver_option fn_gcc_jit_context_add_driver_option
 #define gcc_jit_context_compile_to_file fn_gcc_jit_context_compile_to_file
 #define gcc_jit_context_dump_reproducer_to_file fn_gcc_jit_context_dump_reproducer_to_file
@@ -4374,6 +4379,16 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
     if (!EQ (HASH_VALUE (func_h, i), Qunbound))
       compile_function (HASH_VALUE (func_h, i));
+
+  /* Work around bug#46495 (GCC PR99126). */
+#if defined (WIDE_EMACS_INT)						\
+  && (defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)	\
+      || defined (WINDOWSNT))
+  Lisp_Object version = Fcomp_libgccjit_version ();
+  if (!NILP (version) && XFIXNUM (XCAR (version)) == 10)
+    gcc_jit_context_add_command_line_option (comp.ctxt,
+					     "-fdisable-tree-isolate-paths");
+#endif
 
   add_driver_options ();
 
