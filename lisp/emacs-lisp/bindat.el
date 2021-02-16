@@ -129,13 +129,13 @@
 
 ;; SPEC    ::= ( ITEM... )
 
-;; ITEM    ::= ( [FIELD] TYPE )
+;; ITEM    ::= (  FIELD  TYPE )
 ;;          |  ( [FIELD] eval FORM )    -- eval FORM for side-effect only
 ;;          |  ( [FIELD] fill LEN )     -- skip LEN bytes
 ;;          |  ( [FIELD] align LEN )    -- skip to next multiple of LEN bytes
 ;;          |  ( [FIELD] struct SPEC_NAME )
 ;;          |  ( [FIELD] union TAG_VAL (TAG SPEC)... [(t SPEC)] )
-;;          |  ( [FIELD] repeat COUNT ITEM... )
+;;          |  (  FIELD  repeat ARG ITEM... )
 
 ;;          -- In (eval EXPR), the value of the last field is available in
 ;;             the dynamically bound variable `last' and all the previous
@@ -151,7 +151,7 @@
 ;;          |  strz LEN                 -- LEN byte (zero-terminated) string
 ;;          |  vec LEN [TYPE]           -- vector of LEN items of TYPE (default: u8)
 ;;          |  ip                       -- 4 byte vector
-;;          |  bits LEN                 -- List with bits set in LEN bytes.
+;;          |  bits LEN                 -- bit vector using LEN bytes.
 ;;
 ;;          -- Example: `bits 2' will unpack 0x28 0x1c to (2 3 4 11 13)
 ;;                                       and 0x1c 0x28 to (3 5 10 11 12).
@@ -226,22 +226,22 @@
 (defun bindat--unpack-item (type len &optional vectype)
   (if (eq type 'ip)
       (setq type 'vec len 4))
-  (cond
-   ((memq type '(u8 byte))
+  (pcase type
+   ((or 'u8 'byte)
     (bindat--unpack-u8))
-   ((memq type '(u16 word short))
+   ((or 'u16 'word 'short)
     (bindat--unpack-u16))
-   ((eq type 'u24)
+   ('u24
     (bindat--unpack-u24))
-   ((memq type '(u32 dword long))
+   ((or 'u32 'dword 'long)
     (bindat--unpack-u32))
-   ((eq type 'u16r)
+   ('u16r
     (bindat--unpack-u16r))
-   ((eq type 'u24r)
+   ('u24r
     (bindat--unpack-u24r))
-   ((eq type 'u32r)
+   ('u32r
     (bindat--unpack-u32r))
-   ((eq type 'bits)
+   ('bits
     (let ((bits nil) (bnum (1- (* 8 len))) j m)
       (while (>= bnum 0)
 	(if (= (setq m (bindat--unpack-u8)) 0)
@@ -253,12 +253,12 @@
 	    (setq bnum (1- bnum)
 		  j (ash j -1)))))
       bits))
-   ((eq type 'str)
+   ('str
     (let ((s (substring bindat-raw bindat-idx (+ bindat-idx len))))
       (setq bindat-idx (+ bindat-idx len))
       (if (stringp s) s
 	(apply #'unibyte-string s))))
-   ((eq type 'strz)
+   ('strz
     (let ((i 0) s)
       (while (and (< i len) (/= (aref bindat-raw (+ bindat-idx i)) 0))
 	(setq i (1+ i)))
@@ -266,34 +266,29 @@
       (setq bindat-idx (+ bindat-idx len))
       (if (stringp s) s
 	(apply #'unibyte-string s))))
-   ((eq type 'vec)
-    (let ((v (make-vector len 0)) (i 0) (vlen 1))
+   ('vec
+    (let ((v (make-vector len 0)) (vlen 1))
       (if (consp vectype)
 	  (setq vlen (nth 1 vectype)
 		vectype (nth 2 vectype))
 	(setq type (or vectype 'u8)
 	      vectype nil))
-      (while (< i len)
-	(aset v i (bindat--unpack-item type vlen vectype))
-	(setq i (1+ i)))
+      (dotimes (i len)
+	(aset v i (bindat--unpack-item type vlen vectype)))
       v))
-   (t nil)))
+   (_ nil)))
 
 (defun bindat--unpack-group (spec)
   (with-suppressed-warnings ((lexical struct last))
     (defvar struct) (defvar last))
   (let (struct last)
-    (while spec
-      (let* ((item (car spec))
-	     (field (car item))
+    (dolist (item spec)
+      (let* ((field (car item))
 	     (type (nth 1 item))
 	     (len (nth 2 item))
 	     (vectype (and (eq type 'vec) (nth 3 item)))
 	     (tail 3)
 	     data)
-	(setq spec (cdr spec))
-	(if (and (consp field) (eq (car field) 'eval))
-	    (setq field (eval (car (cdr field)) t)))
 	(if (and type (consp type) (eq (car type) 'eval))
 	    (setq type (eval (car (cdr type)) t)))
 	(if (and len (consp len) (eq (car len) 'eval))
@@ -303,29 +298,29 @@
 		  len type
 		  type field
 		  field nil))
+	(if (and (consp field) (eq (car field) 'eval))
+	    (setq field (eval (car (cdr field)) t)))
 	(if (and (consp len) (not (eq type 'eval)))
             (setq len (apply #'bindat-get-field struct len)))
 	(if (not len)
 	    (setq len 1))
-	(cond
-	 ((eq type 'eval)
+	(pcase type
+	 ('eval
 	  (if field
 	      (setq data (eval len t))
 	    (eval len t)))
-	 ((eq type 'fill)
+	 ('fill
 	  (setq bindat-idx (+ bindat-idx len)))
-	 ((eq type 'align)
+	 ('align
 	  (while (/= (% bindat-idx len) 0)
 	    (setq bindat-idx (1+ bindat-idx))))
-	 ((eq type 'struct)
+	 ('struct
 	  (setq data (bindat--unpack-group (eval len t))))
-	 ((eq type 'repeat)
-	  (let ((index 0) (count len))
-	    (while (< index count)
-	      (push (bindat--unpack-group (nthcdr tail item)) data)
-	      (setq index (1+ index)))
-	    (setq data (nreverse data))))
-	 ((eq type 'union)
+	 ('repeat
+	  (dotimes (_ len)
+	    (push (bindat--unpack-group (nthcdr tail item)) data))
+	  (setq data (nreverse data)))
+	 ('union
 	  (with-suppressed-warnings ((lexical tag))
 	    (defvar tag))
 	  (let ((tag len) (cases (nthcdr tail item)) case cc)
@@ -337,7 +332,8 @@
 		      (and (consp cc) (eval cc t)))
 		  (setq data (bindat--unpack-group (cdr case))
 			cases nil)))))
-	 (t
+	 ((pred integerp) (debug t))
+	 (_
 	  (setq data (bindat--unpack-item type len vectype)
 		last data)))
 	(if data
@@ -384,16 +380,12 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (with-suppressed-warnings ((lexical struct last))
     (defvar struct) (defvar last))
   (let ((struct struct) last)
-    (while spec
-      (let* ((item (car spec))
-	     (field (car item))
+    (dolist (item spec)
+      (let* ((field (car item))
 	     (type (nth 1 item))
 	     (len (nth 2 item))
 	     (vectype (and (eq type 'vec) (nth 3 item)))
 	     (tail 3))
-	(setq spec (cdr spec))
-	(if (and (consp field) (eq (car field) 'eval))
-	    (setq field (eval (car (cdr field)) t)))
 	(if (and type (consp type) (eq (car type) 'eval))
 	    (setq type (eval (car (cdr type)) t)))
 	(if (and len (consp len) (eq (car len) 'eval))
@@ -403,6 +395,8 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 		  len type
 		  type field
 		  field nil))
+	(if (and (consp field) (eq (car field) 'eval))
+	    (setq field (eval (car (cdr field)) t)))
 	(if (and (consp len) (not (eq type 'eval)))
 	    (setq len (apply #'bindat-get-field struct len)))
 	(if (not len)
@@ -413,27 +407,25 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 		    type (nth 2 vectype))
 	    (setq type (or vectype 'u8)
 		  vectype nil)))
-	(cond
-	 ((eq type 'eval)
+	(pcase type
+	 ('eval
 	  (if field
 	      (setq struct (cons (cons field (eval len t)) struct))
 	    (eval len t)))
-	 ((eq type 'fill)
+	 ('fill
 	  (setq bindat-idx (+ bindat-idx len)))
-	 ((eq type 'align)
+	 ('align
 	  (while (/= (% bindat-idx len) 0)
 	    (setq bindat-idx (1+ bindat-idx))))
-	 ((eq type 'struct)
+	 ('struct
 	  (bindat--length-group
 	   (if field (bindat-get-field struct field) struct) (eval len t)))
-	 ((eq type 'repeat)
-	  (let ((index 0) (count len))
-	    (while (< index count)
-	      (bindat--length-group
-               (nth index (bindat-get-field struct field))
-               (nthcdr tail item))
-	      (setq index (1+ index)))))
-	 ((eq type 'union)
+	 ('repeat
+	  (dotimes (index len)
+	    (bindat--length-group
+             (nth index (bindat-get-field struct field))
+             (nthcdr tail item))))
+	 ('union
 	  (with-suppressed-warnings ((lexical tag))
 	    (defvar tag))
 	  (let ((tag len) (cases (nthcdr tail item)) case cc)
@@ -446,7 +438,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 		  (progn
 		    (bindat--length-group struct (cdr case))
 		    (setq cases nil))))))
-	 (t
+	 (_
 	  (if (setq type (assq type bindat--fixed-length-alist))
 	      (setq len (* len (cdr type))))
 	  (if field
@@ -495,24 +487,24 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 (defun bindat--pack-item (v type len &optional vectype)
   (if (eq type 'ip)
       (setq type 'vec len 4))
-  (cond
-   ((null v)
+  (pcase type
+   ((guard (null v))
     (setq bindat-idx (+ bindat-idx len)))
-   ((memq type '(u8 byte))
+   ((or 'u8 'byte)
     (bindat--pack-u8 v))
-   ((memq type '(u16 word short))
+   ((or 'u16 'word 'short)
     (bindat--pack-u16 v))
-   ((eq type 'u24)
+   ('u24
     (bindat--pack-u24 v))
-   ((memq type '(u32 dword long))
+   ((or 'u32 'dword 'long)
     (bindat--pack-u32 v))
-   ((eq type 'u16r)
+   ('u16r
     (bindat--pack-u16r v))
-   ((eq type 'u24r)
+   ('u24r
     (bindat--pack-u24r v))
-   ((eq type 'u32r)
+   ('u32r
     (bindat--pack-u32r v))
-   ((eq type 'bits)
+   ('bits
     (let ((bnum (1- (* 8 len))) j m)
       (while (>= bnum 0)
 	(setq m 0)
@@ -525,41 +517,35 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	    (setq bnum (1- bnum)
 		  j (ash j -1))))
 	(bindat--pack-u8 m))))
-   ((memq type '(str strz))
-    (let ((l (length v)) (i 0))
+   ((or 'str 'strz)
+    (let ((l (length v)))
       (if (> l len) (setq l len))
-      (while (< i l)
-	(aset bindat-raw (+ bindat-idx i) (aref v i))
-	(setq i (1+ i)))
+      (dotimes (i l)
+	(aset bindat-raw (+ bindat-idx i) (aref v i)))
       (setq bindat-idx (+ bindat-idx len))))
-   ((eq type 'vec)
-    (let ((l (length v)) (i 0) (vlen 1))
+   ('vec
+    (let ((l (length v)) (vlen 1))
       (if (consp vectype)
 	  (setq vlen (nth 1 vectype)
 		vectype (nth 2 vectype))
 	(setq type (or vectype 'u8)
 	      vectype nil))
       (if (> l len) (setq l len))
-      (while (< i l)
-	(bindat--pack-item (aref v i) type vlen vectype)
-	(setq i (1+ i)))))
-   (t
+      (dotimes (i l)
+	(bindat--pack-item (aref v i) type vlen vectype))))
+   (_
     (setq bindat-idx (+ bindat-idx len)))))
 
 (defun bindat--pack-group (struct spec)
   (with-suppressed-warnings ((lexical struct last))
     (defvar struct) (defvar last))
   (let ((struct struct) last)
-    (while spec
-      (let* ((item (car spec))
-	     (field (car item))
+    (dolist (item spec)
+      (let* ((field (car item))
 	     (type (nth 1 item))
 	     (len (nth 2 item))
 	     (vectype (and (eq type 'vec) (nth 3 item)))
 	     (tail 3))
-	(setq spec (cdr spec))
-	(if (and (consp field) (eq (car field) 'eval))
-	    (setq field (eval (car (cdr field)) t)))
 	(if (and type (consp type) (eq (car type) 'eval))
 	    (setq type (eval (car (cdr type)) t)))
 	(if (and len (consp len) (eq (car len) 'eval))
@@ -569,31 +555,31 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 		  len type
 		  type field
 		  field nil))
+	(if (and (consp field) (eq (car field) 'eval))
+	    (setq field (eval (car (cdr field)) t)))
 	(if (and (consp len) (not (eq type 'eval)))
             (setq len (apply #'bindat-get-field struct len)))
 	(if (not len)
 	    (setq len 1))
-	(cond
-	 ((eq type 'eval)
+	(pcase type
+	 ('eval
 	  (if field
 	      (setq struct (cons (cons field (eval len t)) struct))
 	    (eval len t)))
-	 ((eq type 'fill)
+	 ('fill
 	  (setq bindat-idx (+ bindat-idx len)))
-	 ((eq type 'align)
+	 ('align
 	  (while (/= (% bindat-idx len) 0)
 	    (setq bindat-idx (1+ bindat-idx))))
-	 ((eq type 'struct)
+	 ('struct
 	  (bindat--pack-group
 	   (if field (bindat-get-field struct field) struct) (eval len t)))
-	 ((eq type 'repeat)
-	  (let ((index 0) (count len))
-	    (while (< index count)
-	      (bindat--pack-group
-               (nth index (bindat-get-field struct field))
-               (nthcdr tail item))
-	      (setq index (1+ index)))))
-	 ((eq type 'union)
+	 ('repeat
+	  (dotimes (index len)
+	    (bindat--pack-group
+             (nth index (bindat-get-field struct field))
+             (nthcdr tail item))))
+	 ('union
 	  (with-suppressed-warnings ((lexical tag))
 	    (defvar tag))
 	  (let ((tag len) (cases (nthcdr tail item)) case cc)
@@ -606,7 +592,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 		  (progn
 		    (bindat--pack-group struct (cdr case))
 		    (setq cases nil))))))
-	 (t
+	 (_
 	  (setq last (bindat-get-field struct field))
 	  (bindat--pack-item last type len vectype)
 	  ))))))
@@ -629,15 +615,21 @@ Optional fourth arg IDX is the starting offset into RAW."
 
 (def-edebug-elem-spec 'bindat-spec '(&rest bindat-item))
 
+
+(def-edebug-elem-spec 'bindat--item-aux
+  ;; Field types which can come without a field label.
+  '(&or ["eval" form]
+        ["fill" bindat-len]
+        ["align" bindat-len]
+        ["struct" form]          ;A reference to another bindat-spec.
+        ["union" bindat-tag-val &rest (bindat-tag bindat-spec)]))
+
 (def-edebug-elem-spec 'bindat-item
-  '(([&optional bindat-field]
-     &or ["eval" form]
-         ["fill" bindat-len]
-         ["align" bindat-len]
-         ["struct" form]          ;A reference to another bindat-spec.
-         ["union" bindat-tag-val &rest (bindat-tag bindat-spec)]
-         ["repeat" integerp bindat-spec]
-         bindat-type)))
+  '((&or bindat--item-aux               ;Without label..
+         [bindat-field                  ;..or with label
+          &or bindat--item-aux
+              ["repeat" bindat-arg bindat-spec]
+              bindat-type])))
 
 (def-edebug-elem-spec 'bindat-type
   '(&or ("eval" form)
@@ -672,13 +664,8 @@ Optional fourth arg IDX is the starting offset into RAW."
 Result is a string with each element of VECT formatted using FMT and
 separated by the string SEP.  If optional fourth arg LEN is given, use
 only that many elements from VECT."
-  (unless len
-    (setq len (length vect)))
-  (let ((i len) (fmt2 (concat sep fmt)) (s nil))
-    (while (> i 0)
-      (setq i (1- i)
-	    s (cons (format (if (= i 0) fmt fmt2) (aref vect i)) s)))
-    (apply #'concat s)))
+  (when len (setq vect (substring vect 0 len)))
+  (mapconcat (lambda (x) (format fmt x)) vect sep))
 
 (defun bindat-vector-to-dec (vect &optional sep)
   "Format vector VECT in decimal format separated by dots.
