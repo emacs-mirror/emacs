@@ -4713,12 +4713,12 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
   Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
 
   EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
-  for (EMACS_INT i = 0; i < d_vec_len; i++)
+  for (ptrdiff_t i = 0; i < d_vec_len; i++)
     if (!EQ (data_relocs[i],  AREF (comp_u->data_vec, i)))
       return false;
 
   d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
-  for (EMACS_INT i = 0; i < d_vec_len; i++)
+  for (ptrdiff_t i = 0; i < d_vec_len; i++)
     {
       Lisp_Object x = data_imp_relocs[i];
       if (EQ (x, Qlambda_fixup))
