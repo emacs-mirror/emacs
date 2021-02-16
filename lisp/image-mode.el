@@ -611,7 +611,6 @@ Key bindings:
   (major-mode-suspend)
   (setq major-mode 'image-mode)
   (setq image-transform-resize image-auto-resize)
-  (setq-local disable-point-adjustment t)
 
   ;; Bail out early if we have no image data.
   (if (zerop (buffer-size))
@@ -932,7 +931,6 @@ If the current buffer is displaying an image file as an image,
 call `image-mode-as-text' to switch to text or hex display.
 Otherwise, display the image by calling `image-mode'."
   (interactive)
-  (goto-char (point-min))
   (if (image-get-display-property)
       (image-mode-as-text)
     (if (eq major-mode 'hexl-mode)
