@@ -440,12 +440,6 @@ after reload."
   :type 'boolean
   :group 'cperl-speed)
 
-(defcustom cperl-imenu-addback nil
-  "Not-nil means add backreferences to generated `imenu's.
-May require patched `imenu' and `imenu-go'.  Obsolete."
-  :type 'boolean
-  :group 'cperl-help-system)
-
 (defcustom cperl-max-help-size 66
   "Non-nil means shrink-wrapping of info-buffer allowed up to these percents."
   :type '(choice integer (const nil))
@@ -1216,6 +1210,153 @@ versions of Emacs."
 The expansion is entirely correct because it uses the C preprocessor."
   t)
 
+
+;;; Perl Grammar Components
+;;
+;; The following regular expressions are building blocks for a
+;; minimalistic Perl grammar, to be used instead of individual (and
+;; not always consistent) literal regular expressions.
+
+(defconst cperl--basic-identifier-regexp
+  (rx (sequence (or alpha "_") (* (or word "_"))))
+  "A regular expression for the name of a \"basic\" Perl variable.
+Neither namespace separators nor sigils are included.  As is,
+this regular expression applies to labels,subroutine calls where
+the ampersand sigil is not required, and names of subroutine
+attributes.")
+
+(defconst cperl--label-regexp
+  (rx-to-string
+   `(sequence
+     symbol-start
+     (regexp ,cperl--basic-identifier-regexp)
+     (0+ space)
+     ":"))
+  "A regular expression for a Perl label.
+By convention, labels are uppercase alphabetics, but this isn't
+enforced.")
+
+(defconst cperl--normal-identifier-regexp
+  (rx-to-string
+   `(or
+     (sequence
+      (1+ (sequence
+           (opt (regexp ,cperl--basic-identifier-regexp))
+           "::"))
+      (opt (regexp ,cperl--basic-identifier-regexp)))
+     (regexp ,cperl--basic-identifier-regexp)))
+  "A regular expression for a Perl variable name with optional namespace.
+Examples are `foo`, `Some::Module::VERSION`, and `::` (yes, that
+is a legal variable name).")
+
+(defconst cperl--special-identifier-regexp
+  (rx-to-string
+   `(or
+     (1+ digit)                          ; $0, $1, $2, ...
+     (sequence "^" (any "A-Z" "]^_?\\")) ; $^V
+     (sequence "{" (0+ space)            ; ${^MATCH}
+               "^" (any "A-Z" "]^_?\\")
+               (0+ (any "A-Z" "_" digit))
+               (0+ space) "}")
+     (in "!\"$%&'()+,-./:;<=>?@\\]^_`|~")))   ; $., $|, $", ... but not $^ or ${
+  "The list of Perl \"punctuation\" variables, as listed in perlvar.")
+
+(defconst cperl--ws-regexp
+  (rx-to-string
+   '(or space "\n"))
+  "Regular expression for a single whitespace in Perl.")
+
+(defconst cperl--eol-comment-regexp
+  (rx-to-string
+   '(sequence "#" (0+ (not (in "\n"))) "\n"))
+  "Regular expression for a single end-of-line comment in Perl")
+
+(defconst cperl--ws-or-comment-regexp
+  (rx-to-string
+   `(1+
+     (or
+      (regexp ,cperl--ws-regexp)
+      (regexp ,cperl--eol-comment-regexp))))
+  "Regular expression for a sequence of whitespace and comments in Perl.")
+
+(defconst cperl--ows-regexp
+  (rx-to-string
+   `(opt (regexp ,cperl--ws-or-comment-regexp)))
+  "Regular expression for optional whitespaces or comments in Perl")
+
+(defconst cperl--version-regexp
+  (rx-to-string
+   `(or
+     (sequence (opt "v")
+	       (>= 2 (sequence (1+ digit) "."))
+	       (1+ digit)
+	       (opt (sequence "_" (1+ word))))
+     (sequence (1+ digit)
+	       (opt (sequence "." (1+ digit)))
+	       (opt (sequence "_" (1+ word))))))
+  "A sequence for recommended version number schemes in Perl.")
+
+(defconst cperl--package-regexp
+  (rx-to-string
+   `(sequence
+     "package" ; FIXME: the "class" and "role" keywords need to be
+               ; recognized soon...ish.
+     (regexp ,cperl--ws-or-comment-regexp)
+     (group (regexp ,cperl--normal-identifier-regexp))
+     (opt
+      (sequence
+       (1+ (regexp ,cperl--ws-or-comment-regexp))
+       (group (regexp ,cperl--version-regexp))))))
+  "A regular expression for package NAME VERSION in Perl.
+Contains two groups for the package name and version.")
+
+(defconst cperl--package-for-imenu-regexp
+  (rx-to-string
+   `(sequence
+     (regexp ,cperl--package-regexp)
+     (regexp ,cperl--ows-regexp)
+     (group (or ";" "{"))))
+  "A regular expression to collect package names for `imenu`.
+Catches \"package NAME;\", \"package NAME VERSION;\", \"package
+NAME BLOCK\" and \"package NAME VERSION BLOCK.\" Contains three
+groups: Two from `cperl--package-regexp` for the package name and
+version, and a third to detect \"package BLOCK\" syntax.")
+
+(defconst cperl--sub-name-regexp
+  (rx-to-string
+   `(sequence
+     (optional (sequence (group (or "my" "state" "our"))
+			 (regexp ,cperl--ws-or-comment-regexp)))
+     "sub" ; FIXME: the "method" and maybe "fun" keywords need to be
+           ; recognized soon...ish.
+     (regexp ,cperl--ws-or-comment-regexp)
+     (group (regexp ,cperl--normal-identifier-regexp))))
+  "A regular expression to detect a subroutine start.
+Contains two groups: One for to distinguish lexical from
+\"normal\" subroutines and one for the subroutine name.")
+
+(defconst cperl--pod-heading-regexp
+  (rx-to-string
+   `(sequence
+     line-start "=head"
+     (group (in "1-4"))
+     (1+ (in " \t"))
+     (group (1+ (not (in "\n"))))
+     line-end)) ; that line-end seems to be redundant?
+  "A regular expression to detect a POD heading.
+Contains two groups: One for the heading level, and one for the
+heading text.")
+
+(defconst cperl--imenu-entries-regexp
+  (rx-to-string
+   `(or
+     (regexp ,cperl--package-for-imenu-regexp) ; 1..3
+     (regexp ,cperl--sub-name-regexp)	       ; 4..5
+     (regexp ,cperl--pod-heading-regexp)))     ; 6..7
+  "A regular expression to collect stuff that goes into the `imenu` index.
+Covers packages, subroutines, and POD headings.")
+
+
 ;; These two must be unwound, otherwise take exponential time
 (defconst cperl-maybe-white-and-comment-rex "[ \t\n]*\\(#[^\n]*\n[ \t\n]*\\)*"
 "Regular expression to match optional whitespace with interspersed comments.
@@ -1227,8 +1368,7 @@ Should contain exactly one group.")
 Should contain exactly one group.")
 
 
-;; Is incorporated in `cperl-imenu--function-name-regexp-perl'
-;; `cperl-outline-regexp', `defun-prompt-regexp'.
+;; Is incorporated in `cperl-outline-regexp', `defun-prompt-regexp'.
 ;; Details of groups in this may be used in several functions; see comments
 ;; near mentioned above variable(s)...
 ;; sub($$):lvalue{}  sub:lvalue{} Both allowed...
@@ -5147,117 +5287,80 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  ;; Previous space could have gone:
 	  (or (memq (preceding-char) '(?\s ?\t)) (insert " "))))))
 
-(defun cperl-imenu-addback (lst &optional isback name)
-  ;; We suppose that the lst is a DAG, unless the first element only
-  ;; loops back, and ISBACK is set.  Thus this function cannot be
-  ;; applied twice without ISBACK set.
-  (cond ((not cperl-imenu-addback) lst)
-	(t
-	 (or name
-	     (setq name "+++BACK+++"))
-	 (mapc (lambda (elt)
-		 (if (and (listp elt) (listp (cdr elt)))
-		     (progn
-		       ;; In the other order it goes up
-		       ;; one level only ;-(
-		       (setcdr elt (cons (cons name lst)
-					 (cdr elt)))
-		       (cperl-imenu-addback (cdr elt) t name))))
-	       (if isback (cdr lst) lst))
-	 lst)))
-
-(defun cperl-imenu--create-perl-index (&optional regexp)
-  (require 'imenu)			; May be called from TAGS creator
-  (let ((index-alist '()) (index-pack-alist '()) (index-pod-alist '())
+(defun cperl-imenu--create-perl-index ()
+  "Implement `imenu-create-index-function` for CPerl mode.
+This function relies on syntaxification to exclude lines which
+look like declarations but actually are part of a string, a
+comment, or POD."
+  (interactive) ; We'll remove that at some point
+  (goto-char (point-min))
+  (cperl-update-syntaxification (point-max))
+  (let ((case-fold-search nil)
+	(index-alist '())
+	(index-package-alist '())
+	(index-pod-alist '())
+	(index-sub-alist '())
 	(index-unsorted-alist '())
-	(index-meth-alist '()) meth
-	packages ends-ranges p marker is-proto
-        is-pack index index1 name (end-range 0) package)
-    (goto-char (point-min))
-    (cperl-update-syntaxification (point-max))
-    ;; Search for the function
-    (progn ;;save-match-data
-      (while (re-search-forward
-	      (or regexp cperl-imenu--function-name-regexp-perl)
-	      nil t)
-	;; 2=package-group, 5=package-name 8=sub-name
+	(package-stack '())                 ; for package NAME BLOCK
+	(current-package "(main)")
+	(current-package-end (point-max)))   ; end of package scope
+    ;; collect index entries
+    (while (re-search-forward cperl--imenu-entries-regexp nil t)
+      ;; First, check whether we have left the scope of previously
+      ;; recorded packages, and if so, eliminate them from the stack.
+      (while (< current-package-end (point))
+	(setq current-package (pop package-stack))
+	(setq current-package-end (pop package-stack)))
+      (let ((state (syntax-ppss))
+	    name marker) ; for the "current" entry
 	(cond
-	 ((and				; Skip some noise if building tags
-	   (match-beginning 5)		; package name
-	   ;;(eq (char-after (match-beginning 2)) ?p) ; package
-	   (not (save-match-data
-		  (looking-at "[ \t\n]*;")))) ; Plain text word 'package'
-	  nil)
-	 ((and
-	   (or (match-beginning 2)
-	       (match-beginning 8))		; package or sub
-	   ;; Skip if quoted (will not skip multi-line ''-strings :-():
-	   (null (get-text-property (match-beginning 1) 'syntax-table))
-	   (null (get-text-property (match-beginning 1) 'syntax-type))
-	   (null (get-text-property (match-beginning 1) 'in-pod)))
-	  (setq is-pack (match-beginning 2))
-	  ;; (if (looking-at "([^()]*)[ \t\n\f]*")
-	  ;;    (goto-char (match-end 0)))	; Messes what follows
-	  (setq meth nil
-		p (point))
-	  (while (and ends-ranges (>= p (car ends-ranges)))
-	    ;; delete obsolete entries
-	    (setq ends-ranges (cdr ends-ranges) packages (cdr packages)))
-	  (setq package (or (car packages) "")
-		end-range (or (car ends-ranges) 0))
-	  (if is-pack			; doing "package"
-	      (progn
-		(if (match-beginning 5)	; named package
-		    (setq name (buffer-substring (match-beginning 5)
-						 (match-end 5))
-			  name (progn
-				 (set-text-properties 0 (length name) nil name)
-				 name)
-			  package (concat name "::")
-			  name (concat "package " name))
-		  ;; Support nameless packages
-		  (setq name "package;" package ""))
-		(setq end-range
-		      (save-excursion
-			(parse-partial-sexp (point) (point-max) -1) (point))
-		      ends-ranges (cons end-range ends-ranges)
-		      packages (cons package packages)))
-	    (setq is-proto
-		  (or (eq (following-char) ?\;)
-		      (eq 0 (get-text-property (point) 'attrib-group)))))
-	  ;; Skip this function name if it is a prototype declaration.
-	  (if (and is-proto (not is-pack)) nil
-	    (or is-pack
-		(setq name
-		      (buffer-substring (match-beginning 8) (match-end 8)))
-		(set-text-properties 0 (length name) nil name))
-	    (setq marker (make-marker))
-	    (set-marker marker (match-end (if is-pack 2 8)))
-	    (cond (is-pack nil)
-		  ((string-match "[:']" name)
-		   (setq meth t))
-		  ((> p end-range) nil)
-		  (t
-		   (setq name (concat package name) meth t)))
-	    (setq index (cons name marker))
-	    (if is-pack
-		(push index index-pack-alist)
-	      (push index index-alist))
-	    (if meth (push index index-meth-alist))
-	    (push index index-unsorted-alist)))
-	 ((match-beginning 16)		; POD section
-	  (setq name (buffer-substring (match-beginning 17) (match-end 17))
-		marker (make-marker))
-	  (set-marker marker (match-beginning 17))
-	  (set-text-properties 0 (length name) nil name)
-	  (setq name (concat (make-string
-			      (* 3 (- (char-after (match-beginning 16)) ?1))
-			      ?\ )
-			     name)
-		index (cons name marker))
-	  (setq index1 (cons (concat "=" name) (cdr index)))
-	  (push index index-pod-alist)
-	  (push index1 index-unsorted-alist)))))
+	 ((nth 3 state) nil)            ; matched in a string, so skip
+	 ((match-string 1)              ; found a package name!
+	  (unless (nth 4 state)         ; skip if in a comment
+	    (setq name (match-string-no-properties 1)
+		  marker (copy-marker (match-end 1)))
+	    (if  (string= (match-string 3) ";")
+		(setq current-package name)  ; package NAME;
+	      ;; No semicolon, therefore we have: package NAME BLOCK.
+	      ;; Stash the current package, because we need to restore
+	      ;; it after the end of BLOCK.
+	      (push current-package-end package-stack)
+	      (push current-package package-stack)
+	      ;; record the current name and its scope
+	      (setq current-package name)
+	      (setq current-package-end (save-excursion
+					  (goto-char (match-beginning 3))
+					  (forward-sexp)
+					  (point)))
+	    (push (cons name marker) index-package-alist)
+	    (push (cons (concat "package " name) marker) index-unsorted-alist))))
+	 ((match-string 5)              ; found a sub name!
+	  (unless (nth 4 state)         ; skip if in a comment
+	    (setq name (match-string-no-properties 5)
+		  marker (copy-marker (match-end 5)))
+	    ;; Qualify the sub name with the package if it doesn't
+	    ;; already have one, and if it isn't lexically scoped.
+	    ;; "my" and "state" subs are lexically scoped, but "our"
+	    ;; are just lexical aliases to package subs.
+	    (if (and (null (string-match "::" name))
+		     (or (null (match-string 4))
+			 (string-equal (match-string 4) "our")))
+	      (setq name (concat current-package "::" name)))
+	    (let ((index (cons name marker)))
+	      (push index index-alist)
+	      (push index index-sub-alist)
+	      (push index index-unsorted-alist))))
+	 ((match-string 6)              ; found a POD heading!
+	  (when (get-text-property (match-beginning 6) 'in-pod)
+	    (setq name (concat (make-string
+				(* 3 (- (char-after (match-beginning 6)) ?1))
+				?\ )
+			       (match-string-no-properties 7))
+		  marker (copy-marker (match-beginning 7)))
+	    (push (cons name marker) index-pod-alist)
+	    (push (cons (concat "=" name) marker) index-unsorted-alist)))
+	 (t (error "Unidentified match: %s" (match-string 0))))))
+    ;; Now format the collected stuff
     (setq index-alist
 	  (if (default-value 'imenu-sort-function)
 	      (sort index-alist (default-value 'imenu-sort-function))
@@ -5266,14 +5369,14 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	 (push (cons "+POD headers+..."
 		     (nreverse index-pod-alist))
 	       index-alist))
-    (and (or index-pack-alist index-meth-alist)
-	 (let ((lst index-pack-alist) hier-list pack elt group name)
-	   ;; Remove "package ", reverse and uniquify.
+    (and (or index-package-alist index-sub-alist)
+	 (let ((lst index-package-alist) hier-list pack elt group name)
+	   ;; reverse and uniquify.
 	   (while lst
-	     (setq elt (car lst) lst (cdr lst) name (substring (car elt) 8))
+	     (setq elt (car lst) lst (cdr lst) name (car elt))
 	     (if (assoc name hier-list) nil
 	       (setq hier-list (cons (cons name (cdr elt)) hier-list))))
-	   (setq lst index-meth-alist)
+	   (setq lst index-sub-alist)
 	   (while lst
 	     (setq elt (car lst) lst (cdr lst))
 	     (cond ((string-match "\\(::\\|'\\)[_a-zA-Z0-9]+$" (car elt))
@@ -5301,17 +5404,18 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	   (push (cons "+Hierarchy+..."
 		       hier-list)
 		 index-alist)))
-    (and index-pack-alist
+    (and index-package-alist
 	 (push (cons "+Packages+..."
-		     (nreverse index-pack-alist))
+		     (nreverse index-package-alist))
 	       index-alist))
-    (and (or index-pack-alist index-pod-alist
+    (and (or index-package-alist index-pod-alist
 	     (default-value 'imenu-sort-function))
 	 index-unsorted-alist
 	 (push (cons "+Unsorted List+..."
 		     (nreverse index-unsorted-alist))
 	       index-alist))
-    (cperl-imenu-addback index-alist)))
+    ;; Finally, return the whole collection
+    index-alist))
 
 
 ;; Suggested by Mark A. Hershberger
@@ -6631,9 +6735,7 @@ One may build such TAGS files from CPerl mode menu."
 	(cperl-tags-treeify to 1)
 	(setcar (nthcdr 2 cperl-hierarchy)
 		(cperl-menu-to-keymap (cons '("+++UPDATE+++" . -999) (cdr to))))
-	(message "Updating list of classes: done, requesting display...")
-	;;(cperl-imenu-addback (nth 2 cperl-hierarchy))
-	))
+	(message "Updating list of classes: done, requesting display...")))
   (or (nth 2 cperl-hierarchy)
       (error "No items found"))
   (setq update
