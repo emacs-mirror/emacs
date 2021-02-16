@@ -118,8 +118,9 @@ If the data is invalid, an `exif-error' is signaled."
                                     dest))
             (when-let ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
               (exif--parse-exif-chunk app1))))
-      (when-let ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
-        (exif--parse-exif-chunk app1)))))
+      (save-excursion
+        (when-let ((app1 (cdr (assq #xffe1 (exif--parse-jpeg)))))
+          (exif--parse-exif-chunk app1))))))
 
 (defun exif-orientation (exif)
   "Return the orientation (in degrees) in EXIF.
