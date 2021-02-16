@@ -1639,7 +1639,7 @@ called additional times).
 
 This macro actually adds an auxiliary function that calls FUN,
 rather than FUN itself, to `minibuffer-setup-hook'."
-  (declare (indent 1) (debug t))
+  (declare (indent 1) (debug ([&or (":append" form) [&or symbolp form]] body)))
   (let ((hook (make-symbol "setup-hook"))
         (funsym (make-symbol "fun"))
         (append nil))
