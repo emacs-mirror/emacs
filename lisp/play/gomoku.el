@@ -781,7 +781,7 @@ Use \\[describe-mode] for more info."
 
 (defun gomoku-emacs-plays ()
   "Compute Emacs next move and play it."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -814,7 +814,7 @@ Use \\[describe-mode] for more info."
 ;; pixels, event's (X . Y) is a character's top-left corner.
 (defun gomoku-click (click)
   "Position at the square where you click."
-  (interactive "e")
+  (interactive "e" gomoku-mode)
   (and (windowp (posn-window (setq click (event-end click))))
        (numberp (posn-point click))
        (select-window (posn-window click))
@@ -843,7 +843,7 @@ Use \\[describe-mode] for more info."
 
 (defun gomoku-mouse-play (click)
   "Play at the square where you click."
-  (interactive "e")
+  (interactive "e" gomoku-mode)
   (if (gomoku-click click)
       (gomoku-human-plays)))
 
@@ -851,7 +851,7 @@ Use \\[describe-mode] for more info."
   "Signal to the Gomoku program that you have played.
 You must have put the cursor on the square where you want to play.
 If the game is finished, this command requests for another game."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -879,7 +879,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-human-takes-back ()
   "Signal to the Gomoku program that you wish to take back your last move."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -903,7 +903,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-human-resigns ()
   "Signal to the Gomoku program that you may want to resign."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -1161,20 +1161,20 @@ If the game is finished, this command requests for another game."
 ;; the screen.
 (defun gomoku-move-right ()
   "Move point right one column on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (< (gomoku-point-x) gomoku-board-width)
     (forward-char gomoku-square-width)))
 
 (defun gomoku-move-left ()
   "Move point left one column on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (> (gomoku-point-x) 1)
     (backward-char gomoku-square-width)))
 
 ;; previous-line and next-line don't work right with intangible newlines
 (defun gomoku-move-down ()
   "Move point down one row on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (< (gomoku-point-y) gomoku-board-height)
     (let ((column (current-column)))
       (forward-line gomoku-square-height)
@@ -1182,7 +1182,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-move-up ()
   "Move point up one row on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (> (gomoku-point-y) 1)
     (let ((column (current-column)))
       (forward-line (- gomoku-square-height))
@@ -1190,36 +1190,36 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-move-ne ()
   "Move point North East on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-up)
   (gomoku-move-right))
 
 (defun gomoku-move-se ()
   "Move point South East on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-down)
   (gomoku-move-right))
 
 (defun gomoku-move-nw ()
   "Move point North West on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-up)
   (gomoku-move-left))
 
 (defun gomoku-move-sw ()
   "Move point South West on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-down)
   (gomoku-move-left))
 
 (defun gomoku-beginning-of-line ()
   "Move point to first square on the Gomoku board row."
-  (interactive)
+  (interactive nil gomoku-mode)
   (move-to-column gomoku-x-offset))
 
 (defun gomoku-end-of-line ()
   "Move point to last square on the Gomoku board row."
-  (interactive)
+  (interactive nil gomoku-mode)
   (move-to-column (+ gomoku-x-offset
 		     (* gomoku-square-width (1- gomoku-board-width)))))
 
