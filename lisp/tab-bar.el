@@ -161,7 +161,8 @@ update."
                          (t frames))))
     ;; Loop over all frames and update default-frame-alist
     (dolist (frame frame-lst)
-      (set-frame-parameter frame 'tab-bar-lines (tab-bar--tab-bar-lines-for-frame frame))))
+      (unless (frame-parameter frame 'tab-bar-lines-keep-state)
+        (set-frame-parameter frame 'tab-bar-lines (tab-bar--tab-bar-lines-for-frame frame)))))
   (when (eq frames t)
     (setq default-frame-alist
           (cons (cons 'tab-bar-lines (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
@@ -233,7 +234,9 @@ new frame when the global `tab-bar-mode' is enabled, by using
   (add-hook 'after-make-frame-functions 'toggle-frame-tab-bar)"
   (interactive)
   (set-frame-parameter frame 'tab-bar-lines
-                       (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1)))
+                       (if (> (frame-parameter frame 'tab-bar-lines) 0) 0 1))
+  (set-frame-parameter frame 'tab-bar-lines-keep-state
+                       (not (frame-parameter frame 'tab-bar-lines-keep-state))))
 
 (defvar tab-bar-map (make-sparse-keymap)
   "Keymap for the tab bar.
