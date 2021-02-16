@@ -560,6 +560,7 @@ typedef struct {
   EMACS_INT func_speed; /* From comp-func speed slot.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
+  ptrdiff_t frame_size; /* Size of the following array in elements. */
   gcc_jit_lvalue **frame; /* Frame slot n -> gcc_jit_lvalue *.  */
   gcc_jit_rvalue *zero;
   gcc_jit_rvalue *one;
@@ -785,7 +786,9 @@ emit_mvar_lval (Lisp_Object mvar)
       return comp.scratch;
     }
 
-  return comp.frame[XFIXNUM (mvar_slot)];
+  EMACS_INT slot_n = XFIXNUM (mvar_slot);
+  eassert (slot_n < comp.frame_size);
+  return comp.frame[slot_n];
 }
 
 static void
@@ -1163,7 +1166,7 @@ emit_rvalue_from_unsigned_long_long (gcc_jit_type *type, unsigned long long n)
 static gcc_jit_rvalue *
 emit_rvalue_from_emacs_uint (EMACS_UINT val)
 {
-  if (val != (long) val)
+  if (val > LONG_MAX || val < LONG_MIN)
     return emit_rvalue_from_unsigned_long_long (comp.emacs_uint_type, val);
   else
     return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -1174,7 +1177,7 @@ emit_rvalue_from_emacs_uint (EMACS_UINT val)
 static gcc_jit_rvalue *
 emit_rvalue_from_emacs_int (EMACS_INT val)
 {
-  if (val != (long) val)
+  if (val > LONG_MAX || val < LONG_MIN)
     return emit_rvalue_from_long_long (comp.emacs_int_type, val);
   else
     return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -1184,7 +1187,7 @@ emit_rvalue_from_emacs_int (EMACS_INT val)
 static gcc_jit_rvalue *
 emit_rvalue_from_lisp_word_tag (Lisp_Word_tag val)
 {
-  if (val != (long) val)
+  if (val > LONG_MAX || val < LONG_MIN)
     return emit_rvalue_from_unsigned_long_long (comp.lisp_word_tag_type, val);
   else
     return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -1200,7 +1203,7 @@ emit_rvalue_from_lisp_word (Lisp_Word val)
                                               comp.lisp_word_type,
                                               val);
 #else
-  if (val != (long) val)
+  if (val > LONG_MAX || val < LONG_MIN)
     return emit_rvalue_from_unsigned_long_long (comp.lisp_word_type, val);
   else
     return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -3857,7 +3860,7 @@ static void
 compile_function (Lisp_Object func)
 {
   USE_SAFE_ALLOCA;
-  EMACS_INT frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
+  comp.frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
 
   comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-c-name, func),
 				       comp.exported_funcs_h, Qnil));
@@ -3871,7 +3874,7 @@ compile_function (Lisp_Object func)
 				comp.func_relocs_ptr_type,
 				"freloc");
 
-  comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
+  comp.frame = SAFE_ALLOCA (comp.frame_size * sizeof (*comp.frame));
   if (comp.func_has_non_local || !comp.func_speed)
     {
       /* FIXME: See bug#42360.  */
@@ -3882,10 +3885,10 @@ compile_function (Lisp_Object func)
           gcc_jit_context_new_array_type (comp.ctxt,
                                           NULL,
                                           comp.lisp_obj_type,
-                                          frame_size),
+                                          comp.frame_size),
           "frame");
 
-      for (ptrdiff_t i = 0; i < frame_size; ++i)
+      for (ptrdiff_t i = 0; i < comp.frame_size; ++i)
 	comp.frame[i] =
           gcc_jit_context_new_array_access (
             comp.ctxt,
@@ -3896,7 +3899,7 @@ compile_function (Lisp_Object func)
                                                  i));
     }
   else
-    for (ptrdiff_t i = 0; i < frame_size; ++i)
+    for (ptrdiff_t i = 0; i < comp.frame_size; ++i)
       comp.frame[i] =
 	gcc_jit_function_new_local (comp.func,
 				    NULL,
@@ -4328,13 +4331,6 @@ add_driver_options (void)
 			    " and above."));
 }
 
-static void
-restore_sigmask (void)
-{
-  pthread_sigmask (SIG_SETMASK, &saved_sigset, 0);
-  unblock_input ();
-}
-
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
@@ -4382,21 +4378,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   ptrdiff_t count = 0;
 
-  if (!noninteractive)
-    {
-      sigset_t blocked;
-      /* Gcc doesn't like being interrupted at all.  */
-      block_input ();
-      sigemptyset (&blocked);
-      sigaddset (&blocked, SIGALRM);
-      sigaddset (&blocked, SIGINT);
-#ifdef USABLE_SIGIO
-      sigaddset (&blocked, SIGIO);
-#endif
-      pthread_sigmask (SIG_BLOCK, &blocked, &saved_sigset);
-      count = SPECPDL_INDEX ();
-      record_unwind_protect_void (restore_sigmask);
-    }
   emit_ctxt_code ();
 
   /* Define inline functions.  */
@@ -4447,9 +4428,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   CALL1I (comp-clean-up-stale-eln, filename);
   CALL2I (comp-delete-or-replace-file, filename, tmp_file);
-
-  if (!noninteractive)
-    unbind_to (count, Qnil);
 
   return filename;
 }
@@ -4710,12 +4688,12 @@ check_comp_unit_relocs (struct Lisp_Native_Comp_Unit *comp_u)
   Lisp_Object *data_imp_relocs = dynlib_sym (handle, DATA_RELOC_IMPURE_SYM);
 
   EMACS_INT d_vec_len = XFIXNUM (Flength (comp_u->data_vec));
-  for (EMACS_INT i = 0; i < d_vec_len; i++)
+  for (ptrdiff_t i = 0; i < d_vec_len; i++)
     if (!EQ (data_relocs[i],  AREF (comp_u->data_vec, i)))
       return false;
 
   d_vec_len = XFIXNUM (Flength (comp_u->data_impure_vec));
-  for (EMACS_INT i = 0; i < d_vec_len; i++)
+  for (ptrdiff_t i = 0; i < d_vec_len; i++)
     {
       Lisp_Object x = data_imp_relocs[i];
       if (EQ (x, Qlambda_fixup))
