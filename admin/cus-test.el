@@ -349,6 +349,8 @@ Optional argument ALL non-nil means list all (non-obsolete) Lisp files."
 	(mapcar (lambda (e) (substring e 2))
 		(apply #'process-lines find-program
 		       "." "-name" "obsolete" "-prune" "-o"
+                       "-name" "ldefs-boot.el" "-prune" "-o"
+                       "-name" "*loaddefs.el" "-prune" "-o"
 		       "-name" "[^.]*.el" ; ignore .dir-locals.el
 		       (if all
 			   '("-print")
