@@ -4331,13 +4331,6 @@ add_driver_options (void)
 			    " and above."));
 }
 
-static void
-restore_sigmask (void)
-{
-  pthread_sigmask (SIG_SETMASK, &saved_sigset, 0);
-  unblock_input ();
-}
-
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
        Scomp__compile_ctxt_to_file,
        1, 1, 0,
@@ -4385,21 +4378,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   ptrdiff_t count = 0;
 
-  if (!noninteractive)
-    {
-      sigset_t blocked;
-      /* Gcc doesn't like being interrupted at all.  */
-      block_input ();
-      sigemptyset (&blocked);
-      sigaddset (&blocked, SIGALRM);
-      sigaddset (&blocked, SIGINT);
-#ifdef USABLE_SIGIO
-      sigaddset (&blocked, SIGIO);
-#endif
-      pthread_sigmask (SIG_BLOCK, &blocked, &saved_sigset);
-      count = SPECPDL_INDEX ();
-      record_unwind_protect_void (restore_sigmask);
-    }
   emit_ctxt_code ();
 
   /* Define inline functions.  */
@@ -4450,9 +4428,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   CALL1I (comp-clean-up-stale-eln, filename);
   CALL2I (comp-delete-or-replace-file, filename, tmp_file);
-
-  if (!noninteractive)
-    unbind_to (count, Qnil);
 
   return filename;
 }
