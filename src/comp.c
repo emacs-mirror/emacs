@@ -560,6 +560,7 @@ typedef struct {
   EMACS_INT func_speed; /* From comp-func speed slot.  */
   gcc_jit_block *block;  /* Current basic block being compiled.  */
   gcc_jit_lvalue *scratch; /* Used as scratch slot for some code sequence (switch).  */
+  ptrdiff_t frame_size; /* Size of the following array in elements. */
   gcc_jit_lvalue **frame; /* Frame slot n -> gcc_jit_lvalue *.  */
   gcc_jit_rvalue *zero;
   gcc_jit_rvalue *one;
@@ -785,7 +786,9 @@ emit_mvar_lval (Lisp_Object mvar)
       return comp.scratch;
     }
 
-  return comp.frame[XFIXNUM (mvar_slot)];
+  EMACS_INT slot_n = XFIXNUM (mvar_slot);
+  eassert (slot_n < comp.frame_size);
+  return comp.frame[slot_n];
 }
 
 static void
@@ -3857,7 +3860,7 @@ static void
 compile_function (Lisp_Object func)
 {
   USE_SAFE_ALLOCA;
-  EMACS_INT frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
+  comp.frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
 
   comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-c-name, func),
 				       comp.exported_funcs_h, Qnil));
@@ -3871,7 +3874,7 @@ compile_function (Lisp_Object func)
 				comp.func_relocs_ptr_type,
 				"freloc");
 
-  comp.frame = SAFE_ALLOCA (frame_size * sizeof (*comp.frame));
+  comp.frame = SAFE_ALLOCA (comp.frame_size * sizeof (*comp.frame));
   if (comp.func_has_non_local || !comp.func_speed)
     {
       /* FIXME: See bug#42360.  */
@@ -3882,10 +3885,10 @@ compile_function (Lisp_Object func)
           gcc_jit_context_new_array_type (comp.ctxt,
                                           NULL,
                                           comp.lisp_obj_type,
-                                          frame_size),
+                                          comp.frame_size),
           "frame");
 
-      for (ptrdiff_t i = 0; i < frame_size; ++i)
+      for (ptrdiff_t i = 0; i < comp.frame_size; ++i)
 	comp.frame[i] =
           gcc_jit_context_new_array_access (
             comp.ctxt,
@@ -3896,7 +3899,7 @@ compile_function (Lisp_Object func)
                                                  i));
     }
   else
-    for (ptrdiff_t i = 0; i < frame_size; ++i)
+    for (ptrdiff_t i = 0; i < comp.frame_size; ++i)
       comp.frame[i] =
 	gcc_jit_function_new_local (comp.func,
 				    NULL,
