@@ -59,7 +59,7 @@ sub Check_texi_function {
     $arglist_parm{$parm} = 1;
   }
 
-  foreach my $parm ($docstring =~ /\@var{([^{}]+)}/g) {
+  foreach my $parm ($docstring =~ /\@var\{([^{}]+)\}/g) {
     $docstring_parm{$parm} = 1;
   }
 
@@ -111,7 +111,9 @@ sub Check_function {
   #  $arglist_parm{$parm} = 1;
   #}
   foreach my $parm (@parms) {
-    next if $parm eq '&optional' || $parm eq '&rest';
+    next if $parm eq '&optional'
+      || $parm eq '&rest'
+      || $parm eq 'Lisp-Object';
     $arglist_parm{$parm} = 1;
   }
   my $doc_tmp = $docstring;
@@ -150,6 +152,22 @@ sub Check_function {
     next if $parm eq 'primary';
     next if $parm eq 'secondary';
     next if $parm eq 'clipboard';
+    next if $parm eq 'bbdb';
+    next if $parm eq 'dos';
+    next if $parm eq 'erc';
+    next if $parm eq 'exif';
+    next if $parm eq 'ldap';
+    next if $parm eq 'ime';
+    next if $parm eq 'rfc';
+    next if $parm eq 'ms-dos';
+    next if $parm eq 'url';
+    next if $parm eq 'w32';
+    next if $parm eq 'todo'; # org-mode
+    next if $parm eq 'done'; # org-mode
+    next if $parm eq 'waiting'; #org-mode
+    next if $parm eq 'ordered'; #org-mode
+    next if $parm eq 'deadline'; #org-mode
+    next if $parm eq 'scheduled'; #org-mode
     next if length $parm < 3;
     if (! exists $arglist_parm{$parm}) {
       print "bogus parm: $function: $parm\n";
@@ -228,20 +246,43 @@ open (FIND, "find src -name '*.c' -print |") or die;
 while (my $file = <FIND>) {
   my @matches =
     ((FileContents $file) =~
-     /\bDEFUN\s*\(\s*\"((?:[^\\\"]|\\.)+)\"\s*,\s*\S+\s*,\s*(\S+)\s*,\s*(\S+)\s*,\s*((?:0|\"(?:(?:[^\\\"]|\\.)*)\"))\s*,\s*\/\*(.*?)\*\/\s*\(([^()]*)\)\)/sgo);
+     /\b
+      DEFUN\s*\(\s*
+      ## $function
+      \"((?:[^\\\"]|\\.)+)\"\s*,
+      \s*\S+\s*, \s*\S+\s*,
+      ## $minargs
+      \s*(\S+)\s*,
+      ## $maxargs
+      \s*(\S+)\s*,
+      ## $interactive
+      \s*((?:0|\"(?:(?:[^\\\"]|\\.)*)\"))\s*,
+      ## $docstring
+      \s*doc:\s*\/\*\s*(.*?)\s*\*\/
+      # attributes -- skip
+      (?:\s*attributes:\s*
+          (?:noreturn|const)
+          \s*)?
+      \s*\)
+      ### $parms
+      \s*\(
+      ([^()]*)
+      \)
+     /sgox);
   while (@matches) {
     my ($function, $minargs, $maxargs, $interactive, $docstring, $parms) = splice (@matches, 0, 6);
     $docstring =~ s/^\n+//s;
     $docstring =~ s/\n+$//s;
     $parms =~ s/,/ /g;
-    my @parms = split (' ',$parms);
+    my @parms = $parms eq 'void' ? () : split (' ', $parms);
     for (@parms) { tr/_/-/; s/-$//; }
     if ($parms !~ /Lisp_Object/) {
       if ($minargs < @parms) {
-	if ($maxargs =~ /^\d+$/) {
-	  die unless $maxargs eq @parms;
-	  splice (@parms, $minargs, 0, '&optional');
-	}
+        if ($maxargs =~ /^\d+$/) {
+          die "$function: $maxargs"
+            unless $maxargs eq @parms;
+          splice (@parms, $minargs, 0, '&optional');
+        }
       }
     }
     my $funtype = ($interactive =~ /\"/ ? 'Command' : 'Function');
