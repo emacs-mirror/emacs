@@ -1,4 +1,4 @@
-;;; pcvs-parse.el --- the CVS output parser
+;;; pcvs-parse.el --- the CVS output parser  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1991-2021 Free Software Foundation, Inc.
 
@@ -73,12 +73,12 @@ by `$'."
   '("status" "add" "commit" "update" "remove" "checkout" "ci")
   "List of CVS commands whose output is understood by the parser.")
 
-(defun cvs-parse-buffer (parse-spec dont-change-disc &optional subdir)
+(defun cvs-parse-buffer (parse-spec dcd &optional subdir)
   "Parse current buffer according to PARSE-SPEC.
 PARSE-SPEC is a function of no argument advancing the point and returning
   either a fileinfo or t (if the matched text should be ignored) or
   nil if it didn't match anything.
-DONT-CHANGE-DISC just indicates whether the command was changing the disc
+DCD just indicates whether the command was changing the disc
   or not (useful to tell the difference between `cvs-examine' and `cvs-update'
   output.
 The path names should be interpreted as relative to SUBDIR (defaults
@@ -86,6 +86,7 @@ The path names should be interpreted as relative to SUBDIR (defaults
 Return a list of collected entries, or t if an error occurred."
   (goto-char (point-min))
   (let ((fileinfos ())
+	(dont-change-disc dcd)
 	(cvs-current-dir "")
 	(case-fold-search nil)
 	(cvs-current-subdir (or subdir "")))
@@ -134,12 +135,12 @@ Match RE and if successful, execute MATCHES."
 
 (defmacro cvs-or (&rest alts)
   "Try each one of the ALTS alternatives until one matches."
+  (declare (debug t))
   `(let ((-cvs-parse-point (point)))
      ,(cons 'or
 	    (mapcar (lambda (es)
 		      `(or ,es (ignore (goto-char -cvs-parse-point))))
 		    alts))))
-(def-edebug-spec cvs-or t)
 
 ;; This is how parser tables should be executed
 (defun cvs-parse-run-table (parse-spec)
@@ -190,9 +191,9 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 	     file (cvs-parse-msg) :subtype subtype keys))))
 
 ;;;; CVS Process Parser Tables:
-;;;;
-;;;; The table for status and update could actually be merged since they
-;;;; don't conflict.  But they don't overlap much either.
+;;
+;; The table for status and update could actually be merged since they
+;; don't conflict.  But they don't overlap much either.
 
 (defun cvs-parse-table ()
   "Table of message objects for `cvs-parse-process'."

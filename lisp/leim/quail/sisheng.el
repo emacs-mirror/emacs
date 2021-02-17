@@ -1,4 +1,4 @@
-;;; sisheng.el --- sisheng input method for Chinese pinyin transliteration
+;;; sisheng.el --- sisheng input method for Chinese pinyin transliteration  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 

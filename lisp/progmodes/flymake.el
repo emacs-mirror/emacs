@@ -1198,7 +1198,6 @@ default) no filter is applied."
   '(" " flymake-mode-line-title flymake-mode-line-exception
     flymake-mode-line-counters)
   "Mode line construct for customizing Flymake information."
-  :group 'flymake
   :type '(repeat (choice string symbol)))
 
 (defcustom flymake-mode-line-counter-format
@@ -1210,7 +1209,6 @@ default) no filter is applied."
 This is a suitable place for placing the `flymake-error-counter',
 `flymake-warning-counter' and `flymake-note-counter' constructs.
 Separating each of these with space is not necessary."
-  :group 'flymake
   :type '(repeat (choice string symbol)))
 
 (defvar flymake-mode-line-title '(:eval (flymake--mode-line-title))

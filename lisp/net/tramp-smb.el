@@ -743,6 +743,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Make the file name absolute.
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
+     ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       (tramp-make-tramp-file-name

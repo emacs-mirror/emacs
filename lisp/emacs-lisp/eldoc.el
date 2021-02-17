@@ -248,7 +248,8 @@ expression point is on." :lighter eldoc-minor-mode-string
                      #'elisp-eldoc-var-docstring nil t)
            (add-hook 'eldoc-documentation-functions
                      #'elisp-eldoc-funcall nil t)
-           (setq eldoc-documentation-strategy 'eldoc-documentation-default)))
+           (setq-local eldoc-documentation-strategy
+                       'eldoc-documentation-default)))
   (eldoc-mode +1))
 
 ;;;###autoload

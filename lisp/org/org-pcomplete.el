@@ -239,11 +239,11 @@ When completing for #+STARTUP, for example, this function returns
   (require 'ox)
   (pcomplete-here
    (and org-export-exclude-tags
-	(list (mapconcat 'identity org-export-exclude-tags " ")))))
+	(list (mapconcat #'identity org-export-exclude-tags " ")))))
 
 (defun pcomplete/org-mode/file-option/filetags ()
   "Complete arguments for the #+FILETAGS file option."
-  (pcomplete-here (and org-file-tags (mapconcat 'identity org-file-tags " "))))
+  (pcomplete-here (and org-file-tags (mapconcat #'identity org-file-tags " "))))
 
 (defun pcomplete/org-mode/file-option/language ()
   "Complete arguments for the #+LANGUAGE file option."
@@ -264,13 +264,13 @@ When completing for #+STARTUP, for example, this function returns
   (require 'ox)
   (pcomplete-here
    (and org-export-select-tags
-	(list (mapconcat 'identity org-export-select-tags " ")))))
+	(list (mapconcat #'identity org-export-select-tags " ")))))
 
 (defun pcomplete/org-mode/file-option/startup ()
   "Complete arguments for the #+STARTUP file option."
   (while (pcomplete-here
 	  (let ((opts (pcomplete-uniquify-list
-		       (mapcar 'car org-startup-options))))
+		       (mapcar #'car org-startup-options))))
 	    ;; Some options are mutually exclusive, and shouldn't be completed
 	    ;; against if certain other options have already been seen.
 	    (dolist (arg pcomplete-args)
@@ -340,7 +340,8 @@ When completing for #+STARTUP, for example, this function returns
   "Complete against TeX-style HTML entity names."
   (require 'org-entities)
   (while (pcomplete-here
-	  (pcomplete-uniquify-list (remove nil (mapcar 'car-safe org-entities)))
+	  (pcomplete-uniquify-list
+	   (remove nil (mapcar #'car-safe org-entities)))
 	  (substring pcomplete-stub 1))))
 
 (defun pcomplete/org-mode/todo ()

@@ -64,8 +64,7 @@ pdb (Python), and jdb."
 
 (defcustom gud-key-prefix "\C-x\C-a"
   "Prefix of all GUD commands valid in C buffers."
-  :type 'key-sequence
-  :group 'gud)
+  :type 'key-sequence)
 
 (global-set-key (vconcat gud-key-prefix "\C-l") 'gud-refresh)
 ;; (define-key ctl-x-map " " 'gud-break); backward compatibility hack
@@ -1074,8 +1073,7 @@ The file names should be absolute, or relative to the directory
 containing the executable being debugged."
   :type '(choice (const :tag "Current Directory" nil)
 		 (repeat :value ("")
-			 directory))
-  :group 'gud)
+                         directory)))
 
 (defun gud-dbx-massage-args (_file args)
   (nconc (let ((directories gud-dbx-directories)
@@ -1380,8 +1378,7 @@ The file names should be absolute, or relative to the directory
 containing the executable being debugged."
   :type '(choice (const :tag "Current Directory" nil)
 		 (repeat :value ("")
-			 directory))
-  :group 'gud)
+                         directory)))
 
 (defun gud-xdb-massage-args (_file args)
   (nconc (let ((directories gud-xdb-directories)
@@ -1563,8 +1560,7 @@ into one that invokes an Emacs-enabled debugging session.
 
 (defcustom gud-perldb-command-name "perl -d"
   "Default command to execute a Perl script under debugger."
-  :type 'string
-  :group 'gud)
+  :type 'string)
 
 ;;;###autoload
 (defun perldb (command-line)
@@ -1677,8 +1673,7 @@ and source-file directory for your debugger."
   (if (executable-find "pdb") "pdb" "python -m pdb")
   "Command that executes the Python debugger."
   :version "27.1"
-  :type 'string
-  :group 'gud)
+  :type 'string)
 
 ;;;###autoload
 (defun pdb (command-line)
@@ -1759,8 +1754,7 @@ directory and source-file directory for your debugger."
   "File name for executing the Guile debugger.
 This should be an executable on your path, or an absolute file name."
   :version "25.1"
-  :type 'string
-  :group 'gud)
+  :type 'string)
 
 ;;;###autoload
 (defun guiler (command-line)
@@ -1883,8 +1877,7 @@ and source-file directory for your debugger."
 
 (defcustom gud-jdb-command-name "jdb"
   "Command that executes the Java debugger."
-  :type 'string
-  :group 'gud)
+  :type 'string)
 
 (defcustom gud-jdb-use-classpath t
   "If non-nil, search for Java source files in classpath directories.
@@ -1899,8 +1892,7 @@ and parsing all Java files for class information.
 
 Set to nil to use `gud-jdb-directories' to scan java sources for
 class information on jdb startup (original method)."
-  :type 'boolean
-  :group 'gud)
+  :type 'boolean)
 
 (defvar gud-jdb-classpath nil
   "Java/jdb classpath directories list.
@@ -2584,7 +2576,6 @@ Commands:
 
 (defcustom gud-chdir-before-run t
   "Non-nil if GUD should `cd' to the debugged executable."
-  :group 'gud
   :type 'boolean)
 
 ;; Perform initializations common to all debuggers.
@@ -3419,7 +3410,6 @@ Treats actions as defuns."
 					python-mode)
   "List of modes for which to enable GUD tooltips."
   :type '(repeat (symbol :tag "Major mode"))
-  :group 'gud
   :group 'tooltip)
 
 (defcustom gud-tooltip-display
@@ -3431,13 +3421,11 @@ Forms in the list are combined with AND.  The default is to display
 only tooltips in the buffer containing the overlay arrow."
   :type 'sexp
   :risky t
-  :group 'gud
   :group 'tooltip)
 
 (defcustom gud-tooltip-echo-area nil
   "Use the echo area instead of frames for GUD tooltips."
   :type 'boolean
-  :group 'gud
   :group 'tooltip)
 
 (make-obsolete-variable 'gud-tooltip-echo-area

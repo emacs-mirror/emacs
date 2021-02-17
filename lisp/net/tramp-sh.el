@@ -2818,6 +2818,9 @@ the result will be a local, non-Tramp, file name."
       ;; expands to "/".  Remove this.
       (while (string-match "//" localname)
 	(setq localname (replace-match "/" t t localname)))
+      ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       ;; `default-directory' is bound, because on Windows there would
@@ -2927,16 +2930,11 @@ alternative implementation will be used."
 			     elt (default-toplevel-value 'process-environment))
 			    (if (string-match-p "=" elt)
 				(setq env (append env `(,elt)))
-			      (if (tramp-get-env-with-u-option v)
-				  (setq env (append `("-u" ,elt) env))
-				(setq uenv (cons elt uenv)))))))
+			      (setq uenv (cons elt uenv))))))
+		 (env (setenv-internal
+		       env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
 		 (command
 		  (when (stringp program)
-		    (setenv-internal
-		     env "INSIDE_EMACS"
-		     (concat (or (getenv "INSIDE_EMACS") emacs-version)
-			     ",tramp:" tramp-version)
-		     'keep)
 		    (format "cd %s && %s exec %s %s env %s %s"
 			    (tramp-shell-quote-argument localname)
 			    (if uenv
@@ -3147,14 +3145,8 @@ alternative implementation will be used."
         (or (member elt (default-toplevel-value 'process-environment))
             (if (string-match-p "=" elt)
                 (setq env (append env `(,elt)))
-              (if (tramp-get-env-with-u-option v)
-                  (setq env (append `("-u" ,elt) env))
-                (setq uenv (cons elt uenv))))))
-      (setenv-internal
-       env "INSIDE_EMACS"
-       (concat (or (getenv "INSIDE_EMACS") emacs-version)
-	       ",tramp:" tramp-version)
-       'keep)
+              (setq uenv (cons elt uenv)))))
+      (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep)
       (when env
 	(setq command
 	      (format
@@ -4307,10 +4299,9 @@ file exists and nonzero exit status otherwise."
     (tramp-send-command
      vec (format
 	  (concat
-	   "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
+	   "exec env TERM='%s' INSIDE_EMACS='%s' "
 	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
-          tramp-terminal-type
-          (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
+          tramp-terminal-type (tramp-inside-emacs)
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")
 	  (if (stringp tramp-histfile-override)
 	      (format "HISTFILE=%s"
@@ -5944,16 +5935,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	    "ln -s foo %s && chmod -h %s 0777"
 	    (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
 	(delete-file tmpfile)))))
-
-(defun tramp-get-env-with-u-option (vec)
-  "Check, whether the remote `env' command supports the -u option."
-  (with-tramp-connection-property vec "env-u-option"
-    (tramp-message vec 5 "Checking, whether `env -u' works")
-    ;; Option "-u" is a GNU extension.
-    (tramp-send-command-and-check
-     vec (format "env FOO=foo env -u FOO 2>%s | grep -qv FOO"
-                 (tramp-get-remote-null-device vec))
-     t)))
 
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)

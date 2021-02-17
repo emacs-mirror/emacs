@@ -1,4 +1,4 @@
-;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver
+;;; ede/proj-comp.el --- EDE Generic Project compiler/rule driver  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2021 Free Software
 ;; Foundation, Inc.
@@ -172,12 +172,12 @@ Adds this rule to a .PHONY list."))
 This is used when creating a Makefile to prevent duplicate variables and
 rules from being created.")
 
-(cl-defmethod initialize-instance :after ((this ede-compiler) &rest fields)
+(cl-defmethod initialize-instance :after ((this ede-compiler) &rest _fields)
   "Make sure that all ede compiler objects are cached in
 `ede-compiler-list'."
   (add-to-list 'ede-compiler-list this))
 
-(cl-defmethod initialize-instance :after ((this ede-linker) &rest fields)
+(cl-defmethod initialize-instance :after ((this ede-linker) &rest _fields)
   "Make sure that all ede compiler objects are cached in
 `ede-linker-list'."
   (add-to-list 'ede-linker-list this))
@@ -185,11 +185,13 @@ rules from being created.")
 (defmacro ede-compiler-begin-unique (&rest body)
   "Execute BODY, making sure that `ede-current-build-list' is maintained.
 This will prevent rules from creating duplicate variables or rules."
+  (declare (indent 0) (debug t))
   `(let ((ede-current-build-list nil))
     ,@body))
 
 (defmacro ede-compiler-only-once (object &rest body)
   "Using OBJECT, execute BODY only once per Makefile generation."
+  (declare (indent 1) (debug t))
   `(if (not (member ,object ede-current-build-list))
        (progn
 	 (add-to-list 'ede-current-build-list ,object)
@@ -198,24 +200,17 @@ This will prevent rules from creating duplicate variables or rules."
 (defmacro ede-linker-begin-unique (&rest body)
   "Execute BODY, making sure that `ede-current-build-list' is maintained.
 This will prevent rules from creating duplicate variables or rules."
+  (declare (indent 0) (debug t))
   `(let ((ede-current-build-list nil))
     ,@body))
 
 (defmacro ede-linker-only-once (object &rest body)
   "Using OBJECT, execute BODY only once per Makefile generation."
+  (declare (indent 1) (debug t))
   `(if (not (member ,object ede-current-build-list))
        (progn
 	 (add-to-list 'ede-current-build-list ,object)
 	 ,@body)))
-
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec ede-compiler-begin-unique def-body)
-	    (def-edebug-spec ede-compiler-only-once (form def-body))
-	    (def-edebug-spec ede-linker-begin-unique def-body)
-	    (def-edebug-spec ede-linker-only-once (form def-body))
-	    (def-edebug-spec ede-pmake-insert-variable-shared (form def-body))
-	    ))
 
 ;;; Queries
 (defun ede-proj-find-compiler (compilers sourcetype)
@@ -246,7 +241,7 @@ This will prevent rules from creating duplicate variables or rules."
      )
    (oref this autoconf)))
 
-(cl-defmethod ede-proj-flush-autoconf ((this ede-compilation-program))
+(cl-defmethod ede-proj-flush-autoconf ((_this ede-compilation-program))
   "Flush the configure file (current buffer) to accommodate THIS."
   nil)
 
@@ -281,8 +276,8 @@ If this compiler creates code that can be linked together,
 then the object files created by the compiler are considered intermediate."
   (oref this uselinker))
 
-(cl-defmethod ede-compiler-intermediate-object-variable ((this ede-compiler)
-						      targetname)
+(cl-defmethod ede-compiler-intermediate-object-variable ((_this ede-compiler)
+						         targetname)
   "Return a string based on THIS representing a make object variable.
 TARGETNAME is the name of the target that these objects belong to."
   (concat targetname "_OBJ"))
@@ -342,16 +337,6 @@ compiler it decides to use after inserting in the rule."
 		      "\n"))
        commands))
     (insert "\n")))
-
-;;; Some details about our new macro
-;;
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec ede-compiler-begin-unique def-body)))
-(put 'ede-compiler-begin-unique 'lisp-indent-function 0)
-(put 'ede-compiler-only-once 'lisp-indent-function 1)
-(put 'ede-linker-begin-unique 'lisp-indent-function 0)
-(put 'ede-linker-only-once 'lisp-indent-function 1)
 
 (provide 'ede/proj-comp)
 

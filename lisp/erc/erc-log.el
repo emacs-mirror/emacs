@@ -5,7 +5,7 @@
 ;; Author: Lawrence Mitchell <wence@gmx.li>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; URL: https://www.emacswiki.org/emacs/ErcLogging
-;; Keywords: IRC, chat, client, Internet, logging
+;; Keywords: comm, IRC, chat, client, Internet, logging
 
 ;; Created 2003-04-26
 ;; Logging code taken from erc.el and modified to use markers.

@@ -1,4 +1,4 @@
-;;; semantic/symref/list.el --- Symref Output List UI.
+;;; semantic/symref/list.el --- Symref Output List UI  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 

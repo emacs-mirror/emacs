@@ -54,20 +54,17 @@
 ;;;###autoload
 (defcustom texinfo-open-quote (purecopy "``")
   "String inserted by typing \\[texinfo-insert-quote] to open a quotation."
-  :type 'string
-  :group 'texinfo)
+  :type 'string)
 
 ;;;###autoload
 (defcustom texinfo-close-quote (purecopy "''")
   "String inserted by typing \\[texinfo-insert-quote] to close a quotation."
-  :type 'string
-  :group 'texinfo)
+  :type 'string)
 
 (defcustom texinfo-mode-hook nil
   "Normal hook run when entering Texinfo mode."
   :type 'hook
-  :options '(turn-on-auto-fill flyspell-mode)
-  :group 'texinfo)
+  :options '(turn-on-auto-fill flyspell-mode))
 
 
 ;;; Autoloads:
@@ -349,8 +346,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 (defface texinfo-heading
   '((t (:inherit font-lock-function-name-face)))
-  "Face used for section headings in `texinfo-mode'."
-  :group 'texinfo)
+  "Face used for section headings in `texinfo-mode'.")
 
 (defvar texinfo-font-lock-keywords
   `(;; All but the first had an OVERRIDE of t.
@@ -962,32 +958,27 @@ to jump to the corresponding spot in the Texinfo source file."
 
 (defcustom texinfo-texi2dvi-command "texi2dvi"
   "Command used by `texinfo-tex-buffer' to run TeX and texindex on a buffer."
-  :type 'string
-  :group 'texinfo)
+  :type 'string)
 
 (defcustom texinfo-texi2dvi-options ""
   "Command line options for `texinfo-texi2dvi-command'."
   :type 'string
-  :group 'texinfo
   :version "28.1")
 
 (defcustom texinfo-tex-command "tex"
   "Command used by `texinfo-tex-region' to run TeX on a region."
-  :type 'string
-  :group 'texinfo)
+  :type 'string)
 
 (defcustom texinfo-texindex-command "texindex"
   "Command used by `texinfo-texindex' to sort unsorted index files."
-  :type 'string
-  :group 'texinfo)
+  :type 'string)
 
 (defcustom texinfo-delete-from-print-queue-command "lprm"
   "Command string used to delete a job from the line printer queue.
 Command is used by \\[texinfo-delete-from-print-queue] based on
 number provided by a previous \\[tex-show-print-queue]
 command."
-  :type 'string
-  :group 'texinfo)
+  :type 'string)
 
 (defvar texinfo-tex-trailer "@bye"
   "String appended after a region sent to TeX by `texinfo-tex-region'.")

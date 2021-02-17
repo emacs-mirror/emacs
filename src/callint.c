@@ -104,7 +104,14 @@ If the string begins with `^' and `shift-select-mode' is non-nil,
  Emacs first calls the function `handle-shift-selection'.
 You may use `@', `*', and `^' together.  They are processed in the
  order that they appear, before reading any arguments.
-usage: (interactive &optional ARG-DESCRIPTOR)  */
+
+If MODES is present, it should be a list of mode names (symbols) that
+this command is applicable for.  The main effect of this is that
+`M-x TAB' (by default) won't list this command if the current buffer's
+mode doesn't match the list.  That is, if either the major mode isn't
+derived from them, or (when it's a minor mode) the mode isn't in effect.
+
+usage: (interactive &optional ARG-DESCRIPTOR &rest MODES)  */
        attributes: const)
   (Lisp_Object args)
 {

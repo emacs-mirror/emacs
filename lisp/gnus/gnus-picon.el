@@ -244,7 +244,7 @@ replacement is added."
 		     (gnus-picon-insert-glyph (pop spec) category))))))))))
 
 (defun gnus-picon-transform-newsgroups (header)
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-with-article-headers
    (gnus-article-goto-header header)
    (mail-header-narrow-to-field)
@@ -283,7 +283,7 @@ replacement is added."
 (defun gnus-treat-from-picon ()
   "Display picons in the From header.
 If picons are already displayed, remove them."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((wash-picon-p buffer-read-only))
     (gnus-with-article-buffer
      (if (and wash-picon-p (memq 'from-picon gnus-article-wash-types))
@@ -294,7 +294,7 @@ If picons are already displayed, remove them."
 (defun gnus-treat-mail-picon ()
   "Display picons in the Cc and To headers.
 If picons are already displayed, remove them."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((wash-picon-p buffer-read-only))
     (gnus-with-article-buffer
      (if (and wash-picon-p (memq 'mail-picon gnus-article-wash-types))
@@ -306,7 +306,7 @@ If picons are already displayed, remove them."
 (defun gnus-treat-newsgroups-picon ()
   "Display picons in the Newsgroups and Followup-To headers.
 If picons are already displayed, remove them."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((wash-picon-p buffer-read-only))
     (gnus-with-article-buffer
      (if (and wash-picon-p (memq 'newsgroups-picon gnus-article-wash-types))

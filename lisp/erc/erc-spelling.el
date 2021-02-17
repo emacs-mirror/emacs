@@ -4,7 +4,7 @@
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: irc
+;; Keywords: comm, irc
 ;; URL: https://www.emacswiki.org/emacs/ErcSpelling
 
 ;; This file is part of GNU Emacs.

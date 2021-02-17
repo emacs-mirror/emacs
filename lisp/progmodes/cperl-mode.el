@@ -440,12 +440,6 @@ after reload."
   :type 'boolean
   :group 'cperl-speed)
 
-(defcustom cperl-imenu-addback nil
-  "Not-nil means add backreferences to generated `imenu's.
-May require patched `imenu' and `imenu-go'.  Obsolete."
-  :type 'boolean
-  :group 'cperl-help-system)
-
 (defcustom cperl-max-help-size 66
   "Non-nil means shrink-wrapping of info-buffer allowed up to these percents."
   :type '(choice integer (const nil))
@@ -659,8 +653,8 @@ Run Perl/Tools/Insert-spaces-if-needed to fix your lazy typing.
 
 Switch auto-help on/off with Perl/Tools/Auto-help.
 
-Though with contemporary Emaxen CPerl mode should maintain the correct
-parsing of Perl even when editing, sometimes it may be lost.  Fix this by
+Though CPerl mode should maintain the correct parsing of Perl even when
+editing, sometimes it may be lost.  Fix this by
 
   \\[normal-mode]
 
@@ -676,63 +670,20 @@ micro-docs on what I know about CPerl problems.")
   "Description of problems in CPerl mode.
 `fill-paragraph' on a comment may leave the point behind the
 paragraph.  It also triggers a bug in some versions of Emacs (CPerl tries
-to detect it and bulk out).
-
-See documentation of a variable `cperl-problems-old-emaxen' for the
-problems which disappear if you upgrade Emacs to a reasonably new
-version (20.3 for Emacs).")
+to detect it and bulk out).")
 
 (defvar cperl-problems-old-emaxen 'please-ignore-this-line
-  "Description of problems in CPerl mode specific for older Emacs versions.
-
-Emacs had a _very_ restricted syntax parsing engine until version
-20.1.  Most problems below are corrected starting from this version of
-Emacs, and all of them should be fixed in version 20.3.  (Or apply
-patches to Emacs 19.33/34 - see tips.)
-
-Note that even with newer Emacsen in some very rare cases the details
-of interaction of `font-lock' and syntaxification may be not cleaned
-up yet.  You may get slightly different colors basing on the order of
-fontification and syntaxification.  Say, the initial faces is correct,
-but editing the buffer breaks this.
-
-Even with older Emacsen CPerl mode tries to corrects some Emacs
-misunderstandings, however, for efficiency reasons the degree of
-correction is different for different operations.  The partially
-corrected problems are: POD sections, here-documents, regexps.  The
-operations are: highlighting, indentation, electric keywords, electric
-braces.
-
-This may be confusing, since the regexp s#//#/#; may be highlighted
-as a comment, but it will be recognized as a regexp by the indentation
-code.  Or the opposite case, when a POD section is highlighted, but
-may break the indentation of the following code (though indentation
-should work if the balance of delimiters is not broken by POD).
-
-The main trick (to make $ a \"backslash\") makes constructions like
-${aaa} look like unbalanced braces.  The only trick I can think of is
-to insert it as $ {aaa} (valid in perl5, not in perl4).
-
-Similar problems arise in regexps, when /(\\s|$)/ should be rewritten
-as /($|\\s)/.  Note that such a transposition is not always possible.
-
-The solution is to upgrade your Emacs or patch an older one.  Note
-that Emacs 20.2 has some bugs related to `syntax-table' text
-properties.  Patches are available on the main CPerl download site,
-and on CPAN.
-
-If these bugs cannot be fixed on your machine (say, you have an inferior
-environment and cannot recompile), you may still disable all the fancy stuff
-via `cperl-use-syntax-table-text-property'.")
+  "This used to contain a description of problems in CPerl mode
+specific for very old Emacs versions.  This is no longer relevant
+and has been removed.")
+(make-obsolete-variable 'cperl-problems-old-emaxen nil "28.1")
 
 (defvar cperl-praise 'please-ignore-this-line
   "Advantages of CPerl mode.
 
 0) It uses the newest `syntax-table' property ;-);
 
-1) It does 99% of Perl syntax correct (as opposed to 80-90% in Perl
-mode - but the latter number may have improved too in last years) even
-with old Emaxen which do not support `syntax-table' property.
+1) It does 99% of Perl syntax correct.
 
 When using `syntax-table' property for syntax assist hints, it should
 handle 99.995% of lines correct - or somesuch.  It automatically
@@ -813,8 +764,7 @@ the settings present before the switch.
 9) When doing indentation of control constructs, may correct
 line-breaks/spacing between elements of the construct.
 
-10) Uses a linear-time algorithm for indentation of regions (on Emaxen with
-capable syntax engines).
+10) Uses a linear-time algorithm for indentation of regions.
 
 11) Syntax-highlight, indentation, sexp-recognition inside regular expressions.
 ")
@@ -838,8 +788,8 @@ syntax-parsing routines, and marks them up so that either
 
     A1) CPerl may work around these deficiencies (for big chunks, mostly
         PODs and HERE-documents), or
-    A2) On capable Emaxen CPerl will use improved syntax-handling
-	which reads mark-up hints directly.
+    A2) CPerl will use improved syntax-handling which reads mark-up
+        hints directly.
 
     The scan in case A2 is much more comprehensive, thus may be slower.
 
@@ -1019,9 +969,12 @@ versions of Emacs."
   "Abbrev table in use in CPerl mode buffers."
   :parents (list cperl-mode-electric-keywords-abbrev-table))
 
-(when (boundp 'edit-var-mode-alist)
-  ;; FIXME: What package uses this?
-  (add-to-list 'edit-var-mode-alist '(perl-mode (regexp . "^cperl-"))))
+;; ;; TODO: Commented out as we don't know what it is used for.  If
+;; ;;       there are no bug reports about this for Emacs 28.1, this
+;; ;;       can probably be removed.  (Code search online reveals nothing.)
+;; (when (boundp 'edit-var-mode-alist)
+;;   ;; FIXME: What package uses this?
+;;   (add-to-list 'edit-var-mode-alist '(perl-mode (regexp . "^cperl-"))))
 
 (defvar cperl-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1257,6 +1210,153 @@ versions of Emacs."
 The expansion is entirely correct because it uses the C preprocessor."
   t)
 
+
+;;; Perl Grammar Components
+;;
+;; The following regular expressions are building blocks for a
+;; minimalistic Perl grammar, to be used instead of individual (and
+;; not always consistent) literal regular expressions.
+
+(defconst cperl--basic-identifier-regexp
+  (rx (sequence (or alpha "_") (* (or word "_"))))
+  "A regular expression for the name of a \"basic\" Perl variable.
+Neither namespace separators nor sigils are included.  As is,
+this regular expression applies to labels,subroutine calls where
+the ampersand sigil is not required, and names of subroutine
+attributes.")
+
+(defconst cperl--label-regexp
+  (rx-to-string
+   `(sequence
+     symbol-start
+     (regexp ,cperl--basic-identifier-regexp)
+     (0+ space)
+     ":"))
+  "A regular expression for a Perl label.
+By convention, labels are uppercase alphabetics, but this isn't
+enforced.")
+
+(defconst cperl--normal-identifier-regexp
+  (rx-to-string
+   `(or
+     (sequence
+      (1+ (sequence
+           (opt (regexp ,cperl--basic-identifier-regexp))
+           "::"))
+      (opt (regexp ,cperl--basic-identifier-regexp)))
+     (regexp ,cperl--basic-identifier-regexp)))
+  "A regular expression for a Perl variable name with optional namespace.
+Examples are `foo`, `Some::Module::VERSION`, and `::` (yes, that
+is a legal variable name).")
+
+(defconst cperl--special-identifier-regexp
+  (rx-to-string
+   `(or
+     (1+ digit)                          ; $0, $1, $2, ...
+     (sequence "^" (any "A-Z" "]^_?\\")) ; $^V
+     (sequence "{" (0+ space)            ; ${^MATCH}
+               "^" (any "A-Z" "]^_?\\")
+               (0+ (any "A-Z" "_" digit))
+               (0+ space) "}")
+     (in "!\"$%&'()+,-./:;<=>?@\\]^_`|~")))   ; $., $|, $", ... but not $^ or ${
+  "The list of Perl \"punctuation\" variables, as listed in perlvar.")
+
+(defconst cperl--ws-regexp
+  (rx-to-string
+   '(or space "\n"))
+  "Regular expression for a single whitespace in Perl.")
+
+(defconst cperl--eol-comment-regexp
+  (rx-to-string
+   '(sequence "#" (0+ (not (in "\n"))) "\n"))
+  "Regular expression for a single end-of-line comment in Perl")
+
+(defconst cperl--ws-or-comment-regexp
+  (rx-to-string
+   `(1+
+     (or
+      (regexp ,cperl--ws-regexp)
+      (regexp ,cperl--eol-comment-regexp))))
+  "Regular expression for a sequence of whitespace and comments in Perl.")
+
+(defconst cperl--ows-regexp
+  (rx-to-string
+   `(opt (regexp ,cperl--ws-or-comment-regexp)))
+  "Regular expression for optional whitespaces or comments in Perl")
+
+(defconst cperl--version-regexp
+  (rx-to-string
+   `(or
+     (sequence (opt "v")
+	       (>= 2 (sequence (1+ digit) "."))
+	       (1+ digit)
+	       (opt (sequence "_" (1+ word))))
+     (sequence (1+ digit)
+	       (opt (sequence "." (1+ digit)))
+	       (opt (sequence "_" (1+ word))))))
+  "A sequence for recommended version number schemes in Perl.")
+
+(defconst cperl--package-regexp
+  (rx-to-string
+   `(sequence
+     "package" ; FIXME: the "class" and "role" keywords need to be
+               ; recognized soon...ish.
+     (regexp ,cperl--ws-or-comment-regexp)
+     (group (regexp ,cperl--normal-identifier-regexp))
+     (opt
+      (sequence
+       (1+ (regexp ,cperl--ws-or-comment-regexp))
+       (group (regexp ,cperl--version-regexp))))))
+  "A regular expression for package NAME VERSION in Perl.
+Contains two groups for the package name and version.")
+
+(defconst cperl--package-for-imenu-regexp
+  (rx-to-string
+   `(sequence
+     (regexp ,cperl--package-regexp)
+     (regexp ,cperl--ows-regexp)
+     (group (or ";" "{"))))
+  "A regular expression to collect package names for `imenu`.
+Catches \"package NAME;\", \"package NAME VERSION;\", \"package
+NAME BLOCK\" and \"package NAME VERSION BLOCK.\" Contains three
+groups: Two from `cperl--package-regexp` for the package name and
+version, and a third to detect \"package BLOCK\" syntax.")
+
+(defconst cperl--sub-name-regexp
+  (rx-to-string
+   `(sequence
+     (optional (sequence (group (or "my" "state" "our"))
+			 (regexp ,cperl--ws-or-comment-regexp)))
+     "sub" ; FIXME: the "method" and maybe "fun" keywords need to be
+           ; recognized soon...ish.
+     (regexp ,cperl--ws-or-comment-regexp)
+     (group (regexp ,cperl--normal-identifier-regexp))))
+  "A regular expression to detect a subroutine start.
+Contains two groups: One for to distinguish lexical from
+\"normal\" subroutines and one for the subroutine name.")
+
+(defconst cperl--pod-heading-regexp
+  (rx-to-string
+   `(sequence
+     line-start "=head"
+     (group (in "1-4"))
+     (1+ (in " \t"))
+     (group (1+ (not (in "\n"))))
+     line-end)) ; that line-end seems to be redundant?
+  "A regular expression to detect a POD heading.
+Contains two groups: One for the heading level, and one for the
+heading text.")
+
+(defconst cperl--imenu-entries-regexp
+  (rx-to-string
+   `(or
+     (regexp ,cperl--package-for-imenu-regexp) ; 1..3
+     (regexp ,cperl--sub-name-regexp)	       ; 4..5
+     (regexp ,cperl--pod-heading-regexp)))     ; 6..7
+  "A regular expression to collect stuff that goes into the `imenu` index.
+Covers packages, subroutines, and POD headings.")
+
+
 ;; These two must be unwound, otherwise take exponential time
 (defconst cperl-maybe-white-and-comment-rex "[ \t\n]*\\(#[^\n]*\n[ \t\n]*\\)*"
 "Regular expression to match optional whitespace with interspersed comments.
@@ -1268,8 +1368,7 @@ Should contain exactly one group.")
 Should contain exactly one group.")
 
 
-;; Is incorporated in `cperl-imenu--function-name-regexp-perl'
-;; `cperl-outline-regexp', `defun-prompt-regexp'.
+;; Is incorporated in `cperl-outline-regexp', `defun-prompt-regexp'.
 ;; Details of groups in this may be used in several functions; see comments
 ;; near mentioned above variable(s)...
 ;; sub($$):lvalue{}  sub:lvalue{} Both allowed...
@@ -1396,13 +1495,15 @@ the last)."
 (defvar cperl-font-lock-multiline nil)
 (defvar cperl-font-locking nil)
 
-;; NB as it stands the code in cperl-mode assumes this only has one
-;; element. Since XEmacs 19 support has been dropped, this could all be simplified.
-(defvar cperl-compilation-error-regexp-alist
+(defvar cperl-compilation-error-regexp-list
   ;; This look like a paranoiac regexp: could anybody find a better one? (which WORKS).
-  '(("^[^\n]* \\(file\\|at\\) \\([^ \t\n]+\\) [^\n]*line \\([0-9]+\\)[\\., \n]"
-     2 3))
-  "Alist that specifies how to match errors in perl output.")
+  '("^[^\n]* \\(file\\|at\\) \\([^ \t\n]+\\) [^\n]*line \\([0-9]+\\)[\\., \n]"
+    2 3)
+  "List that specifies how to match errors in Perl output.")
+
+(defvar cperl-compilation-error-regexp-alist)
+(make-obsolete-variable 'cperl-compilation-error-regexp-alist
+                        'cperl-compilation-error-regexp-list "28.1")
 
 (defvar compilation-error-regexp-alist)
 
@@ -1512,8 +1613,7 @@ span the needed amount of lines.
 
 Variables `cperl-pod-here-scan', `cperl-pod-here-fontify',
 `cperl-pod-face', `cperl-pod-head-face' control processing of POD and
-here-docs sections.  With capable Emaxen results of scan are used
-for indentation too, otherwise they are used for highlighting only.
+here-docs sections.  Results of scan are used for indentation too.
 
 Variables controlling indentation style:
  `cperl-tab-always-indent'
@@ -1639,19 +1739,18 @@ or as help on variables `cperl-tips', `cperl-problems',
   (setq-local imenu-sort-function nil)
   (setq-local vc-rcs-header cperl-vc-rcs-header)
   (setq-local vc-sccs-header cperl-vc-sccs-header)
-  (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
-         (setq-local compilation-error-regexp-alist-alist
-                     (cons (cons 'cperl (car cperl-compilation-error-regexp-alist))
-                           compilation-error-regexp-alist-alist))
-	 (if (fboundp 'compilation-build-compilation-error-regexp-alist)
-	     (let ((f 'compilation-build-compilation-error-regexp-alist))
-	       (funcall f))
-	   (make-local-variable 'compilation-error-regexp-alist)
-	   (push 'cperl compilation-error-regexp-alist)))
-	((boundp 'compilation-error-regexp-alist);; xemacs 19.x
-         (setq-local compilation-error-regexp-alist
-                     (append cperl-compilation-error-regexp-alist
-                             compilation-error-regexp-alist))))
+  (when (boundp 'compilation-error-regexp-alist-alist)
+    ;; The let here is just a compatibility kludge for the obsolete
+    ;; variable `cperl-compilation-error-regexp-alist'.  It can be removed
+    ;; when that variable is removed.
+    (let ((regexp (if (boundp 'cperl-compilation-error-regexp-alist)
+                           (car cperl-compilation-error-regexp-alist)
+                         cperl-compilation-error-regexp-list)))
+      (setq-local compilation-error-regexp-alist-alist
+                  (cons (cons 'cperl regexp)
+                        compilation-error-regexp-alist-alist)))
+    (make-local-variable 'compilation-error-regexp-alist)
+    (push 'cperl compilation-error-regexp-alist))
   (setq-local font-lock-defaults
               '((cperl-load-font-lock-keywords
                  cperl-load-font-lock-keywords-1
@@ -5188,117 +5287,80 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  ;; Previous space could have gone:
 	  (or (memq (preceding-char) '(?\s ?\t)) (insert " "))))))
 
-(defun cperl-imenu-addback (lst &optional isback name)
-  ;; We suppose that the lst is a DAG, unless the first element only
-  ;; loops back, and ISBACK is set.  Thus this function cannot be
-  ;; applied twice without ISBACK set.
-  (cond ((not cperl-imenu-addback) lst)
-	(t
-	 (or name
-	     (setq name "+++BACK+++"))
-	 (mapc (lambda (elt)
-		 (if (and (listp elt) (listp (cdr elt)))
-		     (progn
-		       ;; In the other order it goes up
-		       ;; one level only ;-(
-		       (setcdr elt (cons (cons name lst)
-					 (cdr elt)))
-		       (cperl-imenu-addback (cdr elt) t name))))
-	       (if isback (cdr lst) lst))
-	 lst)))
-
-(defun cperl-imenu--create-perl-index (&optional regexp)
-  (require 'imenu)			; May be called from TAGS creator
-  (let ((index-alist '()) (index-pack-alist '()) (index-pod-alist '())
+(defun cperl-imenu--create-perl-index ()
+  "Implement `imenu-create-index-function` for CPerl mode.
+This function relies on syntaxification to exclude lines which
+look like declarations but actually are part of a string, a
+comment, or POD."
+  (interactive) ; We'll remove that at some point
+  (goto-char (point-min))
+  (cperl-update-syntaxification (point-max))
+  (let ((case-fold-search nil)
+	(index-alist '())
+	(index-package-alist '())
+	(index-pod-alist '())
+	(index-sub-alist '())
 	(index-unsorted-alist '())
-	(index-meth-alist '()) meth
-	packages ends-ranges p marker is-proto
-        is-pack index index1 name (end-range 0) package)
-    (goto-char (point-min))
-    (cperl-update-syntaxification (point-max))
-    ;; Search for the function
-    (progn ;;save-match-data
-      (while (re-search-forward
-	      (or regexp cperl-imenu--function-name-regexp-perl)
-	      nil t)
-	;; 2=package-group, 5=package-name 8=sub-name
+	(package-stack '())                 ; for package NAME BLOCK
+	(current-package "(main)")
+	(current-package-end (point-max)))   ; end of package scope
+    ;; collect index entries
+    (while (re-search-forward cperl--imenu-entries-regexp nil t)
+      ;; First, check whether we have left the scope of previously
+      ;; recorded packages, and if so, eliminate them from the stack.
+      (while (< current-package-end (point))
+	(setq current-package (pop package-stack))
+	(setq current-package-end (pop package-stack)))
+      (let ((state (syntax-ppss))
+	    name marker) ; for the "current" entry
 	(cond
-	 ((and				; Skip some noise if building tags
-	   (match-beginning 5)		; package name
-	   ;;(eq (char-after (match-beginning 2)) ?p) ; package
-	   (not (save-match-data
-		  (looking-at "[ \t\n]*;")))) ; Plain text word 'package'
-	  nil)
-	 ((and
-	   (or (match-beginning 2)
-	       (match-beginning 8))		; package or sub
-	   ;; Skip if quoted (will not skip multi-line ''-strings :-():
-	   (null (get-text-property (match-beginning 1) 'syntax-table))
-	   (null (get-text-property (match-beginning 1) 'syntax-type))
-	   (null (get-text-property (match-beginning 1) 'in-pod)))
-	  (setq is-pack (match-beginning 2))
-	  ;; (if (looking-at "([^()]*)[ \t\n\f]*")
-	  ;;    (goto-char (match-end 0)))	; Messes what follows
-	  (setq meth nil
-		p (point))
-	  (while (and ends-ranges (>= p (car ends-ranges)))
-	    ;; delete obsolete entries
-	    (setq ends-ranges (cdr ends-ranges) packages (cdr packages)))
-	  (setq package (or (car packages) "")
-		end-range (or (car ends-ranges) 0))
-	  (if is-pack			; doing "package"
-	      (progn
-		(if (match-beginning 5)	; named package
-		    (setq name (buffer-substring (match-beginning 5)
-						 (match-end 5))
-			  name (progn
-				 (set-text-properties 0 (length name) nil name)
-				 name)
-			  package (concat name "::")
-			  name (concat "package " name))
-		  ;; Support nameless packages
-		  (setq name "package;" package ""))
-		(setq end-range
-		      (save-excursion
-			(parse-partial-sexp (point) (point-max) -1) (point))
-		      ends-ranges (cons end-range ends-ranges)
-		      packages (cons package packages)))
-	    (setq is-proto
-		  (or (eq (following-char) ?\;)
-		      (eq 0 (get-text-property (point) 'attrib-group)))))
-	  ;; Skip this function name if it is a prototype declaration.
-	  (if (and is-proto (not is-pack)) nil
-	    (or is-pack
-		(setq name
-		      (buffer-substring (match-beginning 8) (match-end 8)))
-		(set-text-properties 0 (length name) nil name))
-	    (setq marker (make-marker))
-	    (set-marker marker (match-end (if is-pack 2 8)))
-	    (cond (is-pack nil)
-		  ((string-match "[:']" name)
-		   (setq meth t))
-		  ((> p end-range) nil)
-		  (t
-		   (setq name (concat package name) meth t)))
-	    (setq index (cons name marker))
-	    (if is-pack
-		(push index index-pack-alist)
-	      (push index index-alist))
-	    (if meth (push index index-meth-alist))
-	    (push index index-unsorted-alist)))
-	 ((match-beginning 16)		; POD section
-	  (setq name (buffer-substring (match-beginning 17) (match-end 17))
-		marker (make-marker))
-	  (set-marker marker (match-beginning 17))
-	  (set-text-properties 0 (length name) nil name)
-	  (setq name (concat (make-string
-			      (* 3 (- (char-after (match-beginning 16)) ?1))
-			      ?\ )
-			     name)
-		index (cons name marker))
-	  (setq index1 (cons (concat "=" name) (cdr index)))
-	  (push index index-pod-alist)
-	  (push index1 index-unsorted-alist)))))
+	 ((nth 3 state) nil)            ; matched in a string, so skip
+	 ((match-string 1)              ; found a package name!
+	  (unless (nth 4 state)         ; skip if in a comment
+	    (setq name (match-string-no-properties 1)
+		  marker (copy-marker (match-end 1)))
+	    (if  (string= (match-string 3) ";")
+		(setq current-package name)  ; package NAME;
+	      ;; No semicolon, therefore we have: package NAME BLOCK.
+	      ;; Stash the current package, because we need to restore
+	      ;; it after the end of BLOCK.
+	      (push current-package-end package-stack)
+	      (push current-package package-stack)
+	      ;; record the current name and its scope
+	      (setq current-package name)
+	      (setq current-package-end (save-excursion
+					  (goto-char (match-beginning 3))
+					  (forward-sexp)
+					  (point)))
+	    (push (cons name marker) index-package-alist)
+	    (push (cons (concat "package " name) marker) index-unsorted-alist))))
+	 ((match-string 5)              ; found a sub name!
+	  (unless (nth 4 state)         ; skip if in a comment
+	    (setq name (match-string-no-properties 5)
+		  marker (copy-marker (match-end 5)))
+	    ;; Qualify the sub name with the package if it doesn't
+	    ;; already have one, and if it isn't lexically scoped.
+	    ;; "my" and "state" subs are lexically scoped, but "our"
+	    ;; are just lexical aliases to package subs.
+	    (if (and (null (string-match "::" name))
+		     (or (null (match-string 4))
+			 (string-equal (match-string 4) "our")))
+	      (setq name (concat current-package "::" name)))
+	    (let ((index (cons name marker)))
+	      (push index index-alist)
+	      (push index index-sub-alist)
+	      (push index index-unsorted-alist))))
+	 ((match-string 6)              ; found a POD heading!
+	  (when (get-text-property (match-beginning 6) 'in-pod)
+	    (setq name (concat (make-string
+				(* 3 (- (char-after (match-beginning 6)) ?1))
+				?\ )
+			       (match-string-no-properties 7))
+		  marker (copy-marker (match-beginning 7)))
+	    (push (cons name marker) index-pod-alist)
+	    (push (cons (concat "=" name) marker) index-unsorted-alist)))
+	 (t (error "Unidentified match: %s" (match-string 0))))))
+    ;; Now format the collected stuff
     (setq index-alist
 	  (if (default-value 'imenu-sort-function)
 	      (sort index-alist (default-value 'imenu-sort-function))
@@ -5307,14 +5369,14 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	 (push (cons "+POD headers+..."
 		     (nreverse index-pod-alist))
 	       index-alist))
-    (and (or index-pack-alist index-meth-alist)
-	 (let ((lst index-pack-alist) hier-list pack elt group name)
-	   ;; Remove "package ", reverse and uniquify.
+    (and (or index-package-alist index-sub-alist)
+	 (let ((lst index-package-alist) hier-list pack elt group name)
+	   ;; reverse and uniquify.
 	   (while lst
-	     (setq elt (car lst) lst (cdr lst) name (substring (car elt) 8))
+	     (setq elt (car lst) lst (cdr lst) name (car elt))
 	     (if (assoc name hier-list) nil
 	       (setq hier-list (cons (cons name (cdr elt)) hier-list))))
-	   (setq lst index-meth-alist)
+	   (setq lst index-sub-alist)
 	   (while lst
 	     (setq elt (car lst) lst (cdr lst))
 	     (cond ((string-match "\\(::\\|'\\)[_a-zA-Z0-9]+$" (car elt))
@@ -5342,17 +5404,18 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	   (push (cons "+Hierarchy+..."
 		       hier-list)
 		 index-alist)))
-    (and index-pack-alist
+    (and index-package-alist
 	 (push (cons "+Packages+..."
-		     (nreverse index-pack-alist))
+		     (nreverse index-package-alist))
 	       index-alist))
-    (and (or index-pack-alist index-pod-alist
+    (and (or index-package-alist index-pod-alist
 	     (default-value 'imenu-sort-function))
 	 index-unsorted-alist
 	 (push (cons "+Unsorted List+..."
 		     (nreverse index-unsorted-alist))
 	       index-alist))
-    (cperl-imenu-addback index-alist)))
+    ;; Finally, return the whole collection
+    index-alist))
 
 
 ;; Suggested by Mark A. Hershberger
@@ -5415,120 +5478,79 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	    (cons
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
-              ;; FIXME: Use regexp-opt.
-	      (mapconcat
-	       #'identity
+              (regexp-opt
 	       (append
                 cperl-sub-keywords
                 '("if" "until" "while" "elsif" "else"
-                 "given" "when" "default" "break"
-                 "unless" "for"
-                 "try" "catch" "finally"
-		 "foreach" "continue" "exit" "die" "last" "goto" "next"
-		 "redo" "return" "local" "exec"
-                 "do" "dump"
-                 "use" "our"
-		 "require" "package" "eval" "evalbytes" "my" "state"
-                 "BEGIN" "END" "CHECK" "INIT" "UNITCHECK"))
-	       "\\|")			; Flow control
+                  "given" "when" "default" "break"
+                  "unless" "for"
+                  "try" "catch" "finally"
+                  "foreach" "continue" "exit" "die" "last" "goto" "next"
+                  "redo" "return" "local" "exec"
+                  "do" "dump"
+                  "use" "our"
+                  "require" "package" "eval" "evalbytes" "my" "state"
+                  "BEGIN" "END" "CHECK" "INIT" "UNITCHECK"))) ; Flow control
 	      "\\)\\>") 2)		; was "\\)[ \n\t;():,|&]"
 					; In what follows we use `type' style
 					; for overwritable builtins
 	    (list
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
-              ;; FIXME: Use regexp-opt.
-	      ;; "CORE" "__FILE__" "__LINE__" "__SUB__" "abs" "accept" "alarm"
-	      ;; "and" "atan2" "bind" "binmode" "bless" "caller"
-	      ;; "chdir" "chmod" "chown" "chr" "chroot" "close"
-	      ;; "closedir" "cmp" "connect" "continue" "cos" "crypt"
-	      ;; "dbmclose" "dbmopen" "die" "dump" "endgrent"
-	      ;; "endhostent" "endnetent" "endprotoent" "endpwent"
-	      ;; "endservent" "eof" "eq" "exec" "exit" "exp" "fc" "fcntl"
-	      ;; "fileno" "flock" "fork" "formline" "ge" "getc"
-	      ;; "getgrent" "getgrgid" "getgrnam" "gethostbyaddr"
-	      ;; "gethostbyname" "gethostent" "getlogin"
-	      ;; "getnetbyaddr" "getnetbyname" "getnetent"
-	      ;; "getpeername" "getpgrp" "getppid" "getpriority"
-	      ;; "getprotobyname" "getprotobynumber" "getprotoent"
-	      ;; "getpwent" "getpwnam" "getpwuid" "getservbyname"
-	      ;; "getservbyport" "getservent" "getsockname"
-	      ;; "getsockopt" "glob" "gmtime" "gt" "hex" "index" "int"
-	      ;; "ioctl" "join" "kill" "lc" "lcfirst" "le" "length"
-	      ;; "link" "listen" "localtime" "lock" "log" "lstat" "lt"
-	      ;; "mkdir" "msgctl" "msgget" "msgrcv" "msgsnd" "ne"
-	      ;; "not" "oct" "open" "opendir" "or" "ord" "pack" "pipe"
-	      ;; "quotemeta" "rand" "read" "readdir" "readline"
-	      ;; "readlink" "readpipe" "recv" "ref" "rename" "require"
-	      ;; "reset" "reverse" "rewinddir" "rindex" "rmdir" "seek"
-	      ;; "seekdir" "select" "semctl" "semget" "semop" "send"
-	      ;; "setgrent" "sethostent" "setnetent" "setpgrp"
-	      ;; "setpriority" "setprotoent" "setpwent" "setservent"
-	      ;; "setsockopt" "shmctl" "shmget" "shmread" "shmwrite"
-	      ;; "shutdown" "sin" "sleep" "socket" "socketpair"
-	      ;; "sprintf" "sqrt" "srand" "stat" "substr" "symlink"
-	      ;; "syscall" "sysopen" "sysread" "sysseek" "system" "syswrite" "tell"
-	      ;; "telldir" "time" "times" "truncate" "uc" "ucfirst"
-	      ;; "umask" "unlink" "unpack" "utime" "values" "vec"
-	      ;; "wait" "waitpid" "wantarray" "warn" "write" "x" "xor"
-	      "a\\(bs\\|ccept\\|tan2\\|larm\\|nd\\)\\|"
-	      "b\\(in\\(d\\|mode\\)\\|less\\)\\|"
-	      "c\\(h\\(r\\(\\|oot\\)\\|dir\\|mod\\|own\\)\\|aller\\|rypt\\|"
-	      "lose\\(\\|dir\\)\\|mp\\|o\\(s\\|n\\(tinue\\|nect\\)\\)\\)\\|"
-	      "CORE\\|d\\(ie\\|bm\\(close\\|open\\)\\|ump\\)\\|"
-	      "e\\(x\\(p\\|it\\|ec\\)\\|q\\|nd\\(p\\(rotoent\\|went\\)\\|"
-	      "hostent\\|servent\\|netent\\|grent\\)\\|of\\)\\|"
-	      "f\\(ileno\\|c\\(ntl\\)?\\|lock\\|or\\(k\\|mline\\)\\)\\|"
-	      "g\\(t\\|lob\\|mtime\\|e\\(\\|t\\(p\\(pid\\|r\\(iority\\|"
-	      "oto\\(byn\\(ame\\|umber\\)\\|ent\\)\\)\\|eername\\|w"
-	      "\\(uid\\|ent\\|nam\\)\\|grp\\)\\|host\\(by\\(addr\\|name\\)\\|"
-	      "ent\\)\\|s\\(erv\\(by\\(port\\|name\\)\\|ent\\)\\|"
-	      "ock\\(name\\|opt\\)\\)\\|c\\|login\\|net\\(by\\(addr\\|name\\)\\|"
-	      "ent\\)\\|gr\\(ent\\|nam\\|gid\\)\\)\\)\\)\\|"
-	      "hex\\|i\\(n\\(t\\|dex\\)\\|octl\\)\\|join\\|kill\\|"
-	      "l\\(i\\(sten\\|nk\\)\\|stat\\|c\\(\\|first\\)\\|t\\|e"
-	      "\\(\\|ngth\\)\\|o\\(c\\(altime\\|k\\)\\|g\\)\\)\\|m\\(sg\\(rcv\\|snd\\|"
-	      "ctl\\|get\\)\\|kdir\\)\\|n\\(e\\|ot\\)\\|o\\(pen\\(\\|dir\\)\\|"
-	      "r\\(\\|d\\)\\|ct\\)\\|p\\(ipe\\|ack\\)\\|quotemeta\\|"
-	      "r\\(index\\|and\\|mdir\\|e\\(quire\\|ad\\(pipe\\|\\|lin"
-	      "\\(k\\|e\\)\\|dir\\)\\|set\\|cv\\|verse\\|f\\|winddir\\|name"
-	      "\\)\\)\\|s\\(printf\\|qrt\\|rand\\|tat\\|ubstr\\|e\\(t\\(p\\(r"
-	      "\\(iority\\|otoent\\)\\|went\\|grp\\)\\|hostent\\|s\\(ervent\\|"
-	      "ockopt\\)\\|netent\\|grent\\)\\|ek\\(\\|dir\\)\\|lect\\|"
-	      "m\\(ctl\\|op\\|get\\)\\|nd\\)\\|h\\(utdown\\|m\\(read\\|ctl\\|"
-	      "write\\|get\\)\\)\\|y\\(s\\(read\\|call\\|open\\|tem\\|write\\|seek\\)\\|"
-	      "mlink\\)\\|in\\|leep\\|ocket\\(pair\\|\\)\\)\\|t\\(runcate\\|"
-	      "ell\\(\\|dir\\)\\|ime\\(\\|s\\)\\)\\|u\\(c\\(\\|first\\)\\|"
-	      "time\\|mask\\|n\\(pack\\|link\\)\\)\\|v\\(alues\\|ec\\)\\|"
-	      "w\\(a\\(rn\\|it\\(pid\\|\\)\\|ntarray\\)\\|rite\\)\\|"
-	      "x\\(\\|or\\)\\|__\\(FILE\\|LINE\\|PACKAGE\\|SUB\\)__"
-	      "\\)\\>") 2 'font-lock-type-face)
+              (regexp-opt
+               '("CORE" "__FILE__" "__LINE__" "__SUB__" "__PACKAGE__"
+                 "abs" "accept" "alarm" "and" "atan2"
+                 "bind" "binmode" "bless" "caller"
+                 "chdir" "chmod" "chown" "chr" "chroot" "close"
+                 "closedir" "cmp" "connect" "continue" "cos" "crypt"
+                 "dbmclose" "dbmopen" "die" "dump" "endgrent"
+                 "endhostent" "endnetent" "endprotoent" "endpwent"
+                 "endservent" "eof" "eq" "exec" "exit" "exp" "fc" "fcntl"
+                 "fileno" "flock" "fork" "formline" "ge" "getc"
+                 "getgrent" "getgrgid" "getgrnam" "gethostbyaddr"
+                 "gethostbyname" "gethostent" "getlogin"
+                 "getnetbyaddr" "getnetbyname" "getnetent"
+                 "getpeername" "getpgrp" "getppid" "getpriority"
+                 "getprotobyname" "getprotobynumber" "getprotoent"
+                 "getpwent" "getpwnam" "getpwuid" "getservbyname"
+                 "getservbyport" "getservent" "getsockname"
+                 "getsockopt" "glob" "gmtime" "gt" "hex" "index" "int"
+                 "ioctl" "join" "kill" "lc" "lcfirst" "le" "length"
+                 "link" "listen" "localtime" "lock" "log" "lstat" "lt"
+                 "mkdir" "msgctl" "msgget" "msgrcv" "msgsnd" "ne"
+                 "not" "oct" "open" "opendir" "or" "ord" "pack" "pipe"
+                 "quotemeta" "rand" "read" "readdir" "readline"
+                 "readlink" "readpipe" "recv" "ref" "rename" "require"
+                 "reset" "reverse" "rewinddir" "rindex" "rmdir" "seek"
+                 "seekdir" "select" "semctl" "semget" "semop" "send"
+                 "setgrent" "sethostent" "setnetent" "setpgrp"
+                 "setpriority" "setprotoent" "setpwent" "setservent"
+                 "setsockopt" "shmctl" "shmget" "shmread" "shmwrite"
+                 "shutdown" "sin" "sleep" "socket" "socketpair"
+                 "sprintf" "sqrt" "srand" "stat" "substr" "symlink"
+                 "syscall" "sysopen" "sysread" "sysseek" "system" "syswrite" "tell"
+                 "telldir" "time" "times" "truncate" "uc" "ucfirst"
+                 "umask" "unlink" "unpack" "utime" "values" "vec"
+                 "wait" "waitpid" "wantarray" "warn" "write" "x" "xor"))
+              "\\)\\>")
+             2 'font-lock-type-face)
 	    ;; In what follows we use `other' style
 	    ;; for nonoverwritable builtins
-	    ;; Somehow 's', 'm' are not auto-generated???
 	    (list
 	     (concat
 	      "\\(^\\|[^$@%&\\]\\)\\<\\("
-	      ;; "AUTOLOAD" "BEGIN" "CHECK" "DESTROY" "END" "INIT" "UNITCHECK" "__END__" "chomp"
-	      ;; "break" "chop" "default" "defined" "delete" "do" "each" "else" "elsif"
-	      ;; "eval" "evalbytes" "exists" "for" "foreach" "format" "given" "goto"
-	      ;; "grep" "if" "keys" "last" "local" "map" "my" "next"
-	      ;; "no" "our" "package" "pop" "pos" "print" "printf" "prototype" "push"
-	      ;; "q" "qq" "qw" "qx" "redo" "return" "say" "scalar" "shift"
-	      ;; "sort" "splice" "split" "state" "study" "sub" "tie" "tr"
-	      ;; "undef" "unless" "unshift" "untie" "until" "use"
-	      ;; "when" "while" "y"
-	      "AUTOLOAD\\|BEGIN\\|\\(UNIT\\)?CHECK\\|break\\|c\\(atch\\|ho\\(p\\|mp\\)\\)\\|d\\(e\\(f\\(inally\\|ault\\|ined\\)\\|lete\\)\\|"
-	      "o\\)\\|DESTROY\\|e\\(ach\\|val\\(bytes\\)?\\|xists\\|ls\\(e\\|if\\)\\)\\|"
-	      "END\\|for\\(\\|each\\|mat\\)\\|g\\(iven\\|rep\\|oto\\)\\|INIT\\|if\\|keys\\|"
-	      "l\\(ast\\|ocal\\)\\|m\\(ap\\|y\\)\\|n\\(ext\\|o\\)\\|our\\|"
-	      "p\\(ackage\\|rototype\\|rint\\(\\|f\\)\\|ush\\|o\\(p\\|s\\)\\)\\|"
-	      "q\\(\\|q\\|w\\|x\\|r\\)\\|re\\(turn\\|do\\)\\|s\\(ay\\|pli\\(ce\\|t\\)\\|"
-	      "calar\\|t\\(ate\\|udy\\)\\|ub\\|hift\\|ort\\)\\|t\\(ry?\\|ied?\\)\\|"
-	      "u\\(se\\|n\\(shift\\|ti\\(l\\|e\\)\\|def\\|less\\)\\)\\|"
-	      "wh\\(en\\|ile\\)\\|y\\|__\\(END\\|DATA\\)__" ;__DATA__ added manually
-	      "\\|[sm]"			; Added manually
-	      "\\)\\>")
+              (regexp-opt
+               '("AUTOLOAD" "BEGIN" "CHECK" "DESTROY" "END" "INIT" "UNITCHECK"
+                 "__END__" "__DATA__" "break" "catch" "chomp" "chop" "default"
+                 "defined" "delete" "do" "each" "else" "elsif" "eval"
+                 "evalbytes" "exists" "finally" "for" "foreach" "format" "given"
+                 "goto" "grep" "if" "keys" "last" "local" "m" "map" "my" "next"
+                 "no" "our" "package" "pop" "pos" "print" "printf" "prototype"
+                 "push" "q" "qq" "qr" "qw" "qx" "redo" "return" "s" "say" "scalar"
+                 "shift" "sort" "splice" "split" "state" "study" "sub" "tie"
+                 "tied" "tr" "try" "undef" "unless" "unshift" "untie" "until"
+                 "use" "when" "while" "y"))
+              "\\)\\>")
 	     2 ''cperl-nonoverridable-face) ; unbound as var, so: doubly quoted
 	    ;;		(mapconcat #'identity
 	    ;;			   '("#endif" "#else" "#ifdef" "#ifndef" "#if"
@@ -6713,9 +6735,7 @@ One may build such TAGS files from CPerl mode menu."
 	(cperl-tags-treeify to 1)
 	(setcar (nthcdr 2 cperl-hierarchy)
 		(cperl-menu-to-keymap (cons '("+++UPDATE+++" . -999) (cdr to))))
-	(message "Updating list of classes: done, requesting display...")
-	;;(cperl-imenu-addback (nth 2 cperl-hierarchy))
-	))
+	(message "Updating list of classes: done, requesting display...")))
   (or (nth 2 cperl-hierarchy)
       (error "No items found"))
   (setq update

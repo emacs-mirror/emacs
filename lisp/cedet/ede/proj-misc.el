@@ -1,4 +1,4 @@
-;;; ede-proj-misc.el --- EDE Generic Project Emacs Lisp support
+;;; ede-proj-misc.el --- EDE Generic Project Emacs Lisp support  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2001, 2008-2021 Free Software Foundation, Inc.
 

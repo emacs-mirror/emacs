@@ -4599,7 +4599,7 @@ On MS Windows, this just returns nil.  */)
     return Qnil;
 }
 
-#if !defined USE_GTK || !defined HAVE_GTK3
+#if !(defined USE_GTK && defined HAVE_GTK3)
 
 /* Store the geometry of the workarea on display DPYINFO into *RECT.
    Return false if and only if the workarea information cannot be
@@ -4662,6 +4662,9 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 
   return result;
 }
+#endif /* !(USE_GTK && HAVE_GTK3) */
+
+#ifndef USE_GTK
 
 /* Return monitor number where F is "most" or closest to.  */
 static int
@@ -4876,6 +4879,8 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
   if (randr13_avail)
     pxid = XRRGetOutputPrimary (dpy, dpyinfo->root_window);
 #endif
+
+#undef RANDR13_LIBRARY
 
   for (i = 0; i < n_monitors; ++i)
     {

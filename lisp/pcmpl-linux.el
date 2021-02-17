@@ -50,20 +50,20 @@
   (while (pcomplete-here
 	  (if (file-directory-p "/proc")
               (directory-files "/proc" nil "\\`[0-9]+\\'"))
-	  nil 'identity)))
+	  nil #'identity)))
 
 ;;;###autoload
 (defun pcomplete/umount ()
   "Completion for GNU/Linux `umount'."
   (pcomplete-opt "hVafrnvt(pcmpl-linux-fs-types)")
   (while (pcomplete-here (pcmpl-linux-mounted-directories)
-			 nil 'identity)))
+			 nil #'identity)))
 
 ;;;###autoload
 (defun pcomplete/mount ()
   "Completion for GNU/Linux `mount'."
   (pcomplete-opt "hVanfFrsvwt(pcmpl-linux-fs-types)o?L?U?")
-  (while (pcomplete-here (pcomplete-entries) nil 'identity)))
+  (while (pcomplete-here (pcomplete-entries) nil #'identity)))
 
 (defconst pcmpl-linux-fs-modules-path-format "/lib/modules/%s/kernel/fs/")
 

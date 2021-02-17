@@ -1,4 +1,4 @@
-;;; ede/base.el --- Baseclasses for EDE.
+;;; ede/base.el --- Baseclasses for EDE  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -288,7 +288,7 @@ All specific project types must derive from this project."
 ;;
 (defmacro ede-with-projectfile (obj &rest forms)
   "For the project in which OBJ resides, execute FORMS."
-  (declare (indent 1))
+  (declare (indent 1) (debug t))
   (unless (symbolp obj)
     (message "Beware! ede-with-projectfile's first arg is copied: %S" obj))
   `(let* ((pf (if (obj-of-class-p ,obj 'ede-target)
@@ -317,13 +317,15 @@ If set to nil, then the cache is not saved."
 (defvar ede-project-cache-files nil
   "List of project files EDE has seen before.")
 
+(defvar recentf-exclude)
+
 (defun ede-save-cache ()
   "Save a cache of EDE objects that Emacs has seen before."
   (interactive)
   (when ede-project-placeholder-cache-file
     (let ((p ede-projects)
 	  (c ede-project-cache-files)
-	  (recentf-exclude '( (lambda (f) t) ))
+	  (recentf-exclude `( ,(lambda (_) t) ))
 	  )
       (condition-case nil
 	  (progn
@@ -461,7 +463,7 @@ Not all buffers need headers, so return nil if no applicable."
       (ede-buffer-header-file ede-object (current-buffer))
     nil))
 
-(cl-defmethod ede-buffer-header-file ((this ede-project) buffer)
+(cl-defmethod ede-buffer-header-file ((_this ede-project) _buffer)
   "Return nil, projects don't have header files."
   nil)
 
@@ -487,12 +489,12 @@ Some projects may have multiple documentation files, so return a list."
       (ede-buffer-documentation-files ede-object (current-buffer))
     nil))
 
-(cl-defmethod ede-buffer-documentation-files ((this ede-project) buffer)
+(cl-defmethod ede-buffer-documentation-files ((this ede-project) _buffer)
   "Return all documentation in project THIS based on BUFFER."
   ;; Find the info node.
   (ede-documentation this))
 
-(cl-defmethod ede-buffer-documentation-files ((this ede-target) buffer)
+(cl-defmethod ede-buffer-documentation-files ((_this ede-target) buffer)
   "Check for some documentation files for THIS.
 Also do a quick check to see if there is a Documentation tag in this BUFFER."
   (with-current-buffer buffer
@@ -518,7 +520,7 @@ files in the project."
 	    proj (cdr proj)))
     found))
 
-(cl-defmethod ede-documentation ((this ede-target))
+(cl-defmethod ede-documentation ((_this ede-target))
   "Return a list of files that provide documentation.
 Documentation is not for object THIS, but is provided by THIS for other
 files in the project."
@@ -529,7 +531,7 @@ files in the project."
   (ede-html-documentation (ede-toplevel))
   )
 
-(cl-defmethod ede-html-documentation ((this ede-project))
+(cl-defmethod ede-html-documentation ((_this ede-project))
   "Return a list of HTML files provided by project THIS."
 
   )
@@ -636,18 +638,7 @@ PROJECT-FILE-NAME is a name of project file (short name, like `pom.xml', etc."
     (oset this directory (file-name-directory (oref this file))))
   )
 
-
-
 
-;;; Hooks & Autoloads
-;;
-;;  These let us watch various activities, and respond appropriately.
-
-;; (add-hook 'edebug-setup-hook
-;; 	  (lambda ()
-;; 	    (def-edebug-spec ede-with-projectfile
-;; 	      (form def-body))))
-
 (provide 'ede/base)
 
 ;; Local variables:

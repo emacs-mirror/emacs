@@ -342,7 +342,7 @@ it's not cached."
   "Enter the next N articles into the cache.
 If not given a prefix, use the process marked articles instead.
 Returns the list of articles entered."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (let (out)
     (dolist (article (gnus-summary-work-articles n))
       (gnus-summary-remove-process-mark article)
@@ -363,7 +363,7 @@ Returns the list of articles entered."
   "Remove the next N articles from the cache.
 If not given a prefix, use the process marked articles instead.
 Returns the list of articles removed."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (gnus-cache-change-buffer gnus-newsgroup-name)
   (let (out)
     (dolist (article (gnus-summary-work-articles n))
@@ -388,7 +388,7 @@ Returns the list of articles removed."
 
 (defun gnus-summary-insert-cached-articles ()
   "Insert all the articles cached for this group into the current buffer."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (let ((gnus-verbose (max 6 gnus-verbose)))
     (cond
      ((not gnus-newsgroup-cached)
@@ -401,7 +401,7 @@ Returns the list of articles removed."
 
 (defun gnus-summary-limit-include-cached ()
   "Limit the summary buffer to articles that are cached."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (let ((gnus-verbose (max 6 gnus-verbose)))
     (if gnus-newsgroup-cached
 	(progn

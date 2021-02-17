@@ -1339,7 +1339,7 @@ If not set, `default-directory' will be used."
 
 (defun mml-quote-region (beg end)
   "Quote the MML tags in the region."
-  (interactive "r")
+  (interactive "r" mml-mode)
   (save-excursion
     (save-restriction
       ;; Temporarily narrow the region to defend from changes

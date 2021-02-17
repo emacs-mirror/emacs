@@ -196,8 +196,8 @@ it has to be wrapped in `(eval (quote ...))'.
 
 \(fn NAME () [DOCSTRING] [:expected-result RESULT-TYPE] \
 [:tags \\='(TAG...)] BODY...)"
-  (declare (debug (&define :name test
-                           name sexp [&optional stringp]
+  (declare (debug (&define [&name "test@" symbolp]
+			   sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body))
            (doc-string 3)
            (indent 2))

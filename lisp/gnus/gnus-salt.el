@@ -137,6 +137,8 @@ It accepts the same format specs that `gnus-summary-line-format' does."
   "Start reading the picked articles.
 If given a prefix, mark all unpicked articles as read."
   (interactive "P")
+  (declare (completion (lambda (s b)
+			 (completion-minor-mode-active-p s b 'gnus-pick-mode))))
   (if gnus-newsgroup-processable
       (progn
 	(gnus-summary-limit-to-articles nil)
@@ -462,7 +464,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-read-summary-keys (&optional arg)
   "Read a summary buffer key sequence and execute it."
-  (interactive "P")
+  (interactive "P" gnus-tree-mode)
   (unless gnus-tree-inhibit
     (let ((buf (current-buffer))
 	  (gnus-tree-inhibit t)
@@ -477,7 +479,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-show-summary ()
   "Reconfigure windows to show summary buffer."
-  (interactive)
+  (interactive nil gnus-tree-mode)
   (if (not (gnus-buffer-live-p gnus-summary-buffer))
       (error "There is no summary buffer for this tree buffer")
     (gnus-configure-windows 'article)
@@ -485,7 +487,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-select-article (article)
   "Select the article under point, if any."
-  (interactive (list (gnus-tree-article-number)))
+  (interactive (list (gnus-tree-article-number)) gnus-tree-mode)
   (let ((buf (current-buffer)))
     (when article
       (with-current-buffer gnus-summary-buffer
@@ -494,7 +496,7 @@ Two predefined functions are available:
 
 (defun gnus-tree-pick-article (e)
   "Select the article under the mouse pointer."
-  (interactive "e")
+  (interactive "e" gnus-tree-mode)
   (mouse-set-point e)
   (gnus-tree-select-article (gnus-tree-article-number)))
 

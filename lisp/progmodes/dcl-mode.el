@@ -97,8 +97,7 @@ dcl-block-begin-regexp and dcl-block-end-regexp.
 
 The meaning of this variable may be changed if
 dcl-calc-command-indent-function is set to a function."
-  :type 'integer
-  :group 'dcl)
+  :type 'integer)
 
 
 (defcustom dcl-continuation-offset 6
@@ -107,8 +106,7 @@ A continuation line is a line that follows a line ending with `-'.
 
 The meaning of this variable may be changed if
 dcl-calc-cont-indent-function is set to a function."
-  :type 'integer
-  :group 'dcl)
+  :type 'integer)
 
 
 (defcustom dcl-margin-offset 8
@@ -117,37 +115,32 @@ The first command line in a file or after a SUBROUTINE statement is indented
 this much.  Other command lines are indented the same number of columns as
 the preceding command line.
 A command line is a line that starts with `$'."
-  :type 'integer
-  :group 'dcl)
+  :type 'integer)
 
 
 (defcustom dcl-margin-label-offset 2
   "Number of columns to indent a margin label in DCL.
 A margin label is a label that doesn't begin or end a block, i.e. it
 doesn't match dcl-block-begin-regexp or dcl-block-end-regexp."
-  :type 'integer
-  :group 'dcl)
+  :type 'integer)
 
 
 (defcustom dcl-comment-line-regexp "^\\$!"
   "Regexp describing the start of a comment line in DCL.
 Comment lines are not indented."
-  :type 'regexp
-  :group 'dcl)
+  :type 'regexp)
 
 
 (defcustom dcl-block-begin-regexp "loop[0-9]*:"
   "Regexp describing a command that begins an indented block in DCL.
 Set to nil to only indent at THEN-ELSE-ENDIF."
-  :type 'regexp
-  :group 'dcl)
+  :type 'regexp)
 
 
 (defcustom dcl-block-end-regexp "endloop[0-9]*:"
   "Regexp describing a command that ends an indented block in DCL.
 Set to nil to only indent at THEN-ELSE-ENDIF."
-  :type 'regexp
-  :group 'dcl)
+  :type 'regexp)
 
 
 (defcustom dcl-calc-command-indent-function nil
@@ -178,8 +171,7 @@ CUR-INDENT + EXTRA-INDENT.
 This package includes two functions suitable for this:
   dcl-calc-command-indent-multiple
   dcl-calc-command-indent-hang"
-  :type '(choice (const nil) function)
-  :group 'dcl)
+  :type '(choice (const nil) function))
 
 
 (defcustom dcl-calc-cont-indent-function 'dcl-calc-cont-indent-relative
@@ -196,8 +188,7 @@ CUR-INDENT + EXTRA-INDENT.
 
 This package includes one function suitable for this:
   dcl-calc-cont-indent-relative"
-  :type 'function
-  :group 'dcl)
+  :type 'function)
 
 
 (defcustom dcl-tab-always-indent t
@@ -206,50 +197,41 @@ If t, pressing TAB always indents the current line.
 If nil, pressing TAB indents the current line if point is at the left margin.
 Data lines (i.e. lines not part of a command line or continuation line) are
 never indented."
-  :type 'boolean
-  :group 'dcl)
+  :type 'boolean)
 
 
 (defcustom dcl-electric-characters t
   "Non-nil means reindent immediately when a label, ELSE or ENDIF is inserted."
-  :type 'boolean
-  :group 'dcl)
+  :type 'boolean)
 
 
 (defcustom dcl-tempo-comma ", "
   "Text to insert when a comma is needed in a template, in DCL mode."
-  :type 'string
-  :group 'dcl)
+  :type 'string)
 
 (defcustom dcl-tempo-left-paren "("
   "Text to insert when a left parenthesis is needed in a template in DCL."
-  :type 'string
-  :group 'dcl)
+  :type 'string)
 
 
 (defcustom dcl-tempo-right-paren ")"
   "Text to insert when a right parenthesis is needed in a template in DCL."
-  :type 'string
-  :group 'dcl)
+  :type 'string)
 
 ; I couldn't decide what looked best, so I'll let you decide...
 ; Remember, you can also customize this with imenu-submenu-name-format.
 (defcustom dcl-imenu-label-labels "Labels"
   "Imenu menu title for sub-listing with label names."
-  :type 'string
-  :group 'dcl)
+  :type 'string)
 (defcustom dcl-imenu-label-goto "GOTO"
   "Imenu menu title for sub-listing with GOTO statements."
-  :type 'string
-  :group 'dcl)
+  :type 'string)
 (defcustom dcl-imenu-label-gosub "GOSUB"
   "Imenu menu title for sub-listing with GOSUB statements."
-  :type 'string
-  :group 'dcl)
+  :type 'string)
 (defcustom dcl-imenu-label-call "CALL"
   "Imenu menu title for sub-listing with CALL statements."
-  :type 'string
-  :group 'dcl)
+  :type 'string)
 
 (defcustom dcl-imenu-generic-expression
   `((nil "^\\$[ \t]*\\([A-Za-z0-9_$]+\\):[ \t]+SUBROUTINE\\b" 1)
@@ -263,14 +245,12 @@ never indented."
 The default includes SUBROUTINE labels in the main listing and
 sub-listings for other labels, CALL, GOTO and GOSUB statements.
 See `imenu-generic-expression' for details."
-  :type '(repeat (sexp :tag "Imenu Expression"))
-  :group 'dcl)
+  :type '(repeat (sexp :tag "Imenu Expression")))
 
 
 (defcustom dcl-mode-hook nil
   "Hook called by `dcl-mode'."
-  :type 'hook
-  :group 'dcl)
+  :type 'hook)
 
 
 ;;; *** Global variables ****************************************************
@@ -354,16 +334,14 @@ See `imenu-generic-expression' for details."
   "Regular expression describing white space in a DCL command line.
 White space is any number of continued lines with only space,tab,endcomment
 followed by space or tab."
-  :type 'regexp
-  :group 'dcl)
+  :type 'regexp)
 
 
 (defcustom dcl-label-r
   "[a-zA-Z0-9_$]*:\\([ \t!]\\|$\\)"
   "Regular expression describing a label.
 A label is a name followed by a colon followed by white-space or end-of-line."
-  :type 'regexp
-  :group 'dcl)
+  :type 'regexp)
 
 
 (defcustom dcl-cmd-r
@@ -373,8 +351,7 @@ A line starting with $, optionally followed by continuation lines,
 followed by the end of the command line.
 A continuation line is any characters followed by `-',
 optionally followed by a comment, followed by a newline."
-  :type 'regexp
-  :group 'dcl)
+  :type 'regexp)
 
 
 (defcustom dcl-command-regexp
@@ -384,8 +361,7 @@ A line starting with $, optionally followed by continuation lines,
 followed by the end of the command line.
 A continuation line is any characters followed by `-',
 optionally followed by a comment, followed by a newline."
-  :type 'regexp
-  :group 'dcl)
+  :type 'regexp)
 
 
 (defcustom dcl-electric-reindent-regexps
@@ -397,8 +373,7 @@ is defined as dcl-electric-character.
 E.g.: if this list contains `endif', the key `f' is defined as
 dcl-electric-character and you have just typed the `f' in
 `endif', the line will be reindented."
-  :type '(repeat regexp)
-  :group 'dcl)
+  :type '(repeat regexp))
 
 
 (defvar dcl-option-alist

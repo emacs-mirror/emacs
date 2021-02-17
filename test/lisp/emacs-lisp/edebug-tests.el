@@ -951,8 +951,41 @@ primary ones (Bug#42671)."
       (should
        (equal
         defined-symbols
-        (list (intern "edebug-cl-defmethod-qualifier :around ((_ number))")
-              (intern "edebug-cl-defmethod-qualifier ((_ number))")))))))
+        (list (intern "edebug-cl-defmethod-qualifier :around (number)")
+              (intern "edebug-cl-defmethod-qualifier (number)")))))))
+
+(ert-deftest edebug-tests--conflicting-internal-names ()
+  "Check conflicts between form's head symbols and Edebug spec elements."
+  (edebug-tests-with-normal-env
+   (edebug-tests-setup-@ "cl-flet1" '(10) t)))
+
+(ert-deftest edebug-tests-gv-expander ()
+  "Edebug can instrument `gv-expander' expressions."
+  (edebug-tests-with-normal-env
+   (edebug-tests-setup-@ "use-gv-expander" nil t)
+   (should (equal
+            (catch 'text
+              (run-at-time 0 nil
+                           (lambda () (throw 'text (buffer-substring (point) (+ (point) 5)))))
+              (eval '(setf (edebug-test-code-use-gv-expander (cons 'a 'b)) 3) t))
+            "(func"))))
+
+(defun edebug-tests--read (form spec)
+  (with-temp-buffer
+    (print form (current-buffer))
+    (goto-char (point-min))
+    (cl-letf ((edebug-all-forms t)
+              ((get (car form) 'edebug-form-spec) spec))
+      (edebug--read nil (current-buffer)))))
+
+(ert-deftest edebug-tests--&rest-behavior ()
+  ;; `&rest' is documented to allow the last "repetition" to be aborted early.
+  (should (edebug-tests--read '(dummy x 1 y 2 z)
+                              '(&rest symbolp integerp)))
+  ;; `&rest' should notice here that the "symbolp integerp" sequence
+  ;; is not respected.
+  (should-error (edebug-tests--read '(dummy x 1 2 y)
+                                    '(&rest symbolp integerp))))
 
 (ert-deftest edebug-tests-cl-flet ()
   "Check that Edebug can instrument `cl-flet' forms without name
@@ -976,23 +1009,19 @@ clashes (Bug#41853)."
            ;; Make generated symbols reproducible.
            (gensym-counter 10000))
       (eval-buffer)
-      (should (equal (reverse instrumented-names)
+      ;; Use `format' so as to throw away differences due to
+      ;; interned/uninterned symbols.
+      (should (equal (format "%s" (reverse instrumented-names))
                      ;; The outer definitions come after the inner
                      ;; ones because their body ends later.
-                     ;; FIXME: There are twice as many inner
-                     ;; definitions as expected due to Bug#41988.
-                     ;; Once that bug is fixed, remove the duplicates.
                      ;; FIXME: We'd rather have names such as
                      ;; `edebug-tests-cl-flet-1@inner@cl-flet@10000',
                      ;; but that requires further changes to Edebug.
-                     '(inner@cl-flet@10000
-                       inner@cl-flet@10001
-                       inner@cl-flet@10002
-                       inner@cl-flet@10003
-                       edebug-tests-cl-flet-1
-                       inner@cl-flet@10004
-                       inner@cl-flet@10005
-                       edebug-tests-cl-flet-2))))))
+                     (format "%s" '(inner@cl-flet@10000
+                                    inner@cl-flet@10001
+                                    edebug-tests-cl-flet-1
+                                    inner@cl-flet@10002
+                                    edebug-tests-cl-flet-2)))))))
 
 (ert-deftest edebug-tests-duplicate-symbol-backtrack ()
   "Check that Edebug doesn't create duplicate symbols when

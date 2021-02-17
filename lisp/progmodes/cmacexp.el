@@ -99,13 +99,11 @@
 
 (defcustom c-macro-shrink-window-flag nil
   "Non-nil means shrink the *Macroexpansion* window to fit its contents."
-  :type 'boolean
-  :group 'c-macro)
+  :type 'boolean)
 
 (defcustom c-macro-prompt-flag nil
   "Non-nil makes `c-macro-expand' prompt for preprocessor arguments."
-  :type 'boolean
-  :group 'c-macro)
+  :type 'boolean)
 
 (defcustom c-macro-preprocessor
   (cond ;; Solaris has it in an unusual place.
@@ -129,13 +127,11 @@
 
 If you change this, be sure to preserve the `-C' (don't strip comments)
 option, or to set an equivalent one."
-  :type 'string
-  :group 'c-macro)
+  :type 'string)
 
 (defcustom c-macro-cppflags ""
   "Preprocessor flags used by `c-macro-expand'."
-  :type 'string
-  :group 'c-macro)
+  :type 'string)
 
 (defconst c-macro-buffer-name "*Macroexpansion*")
 

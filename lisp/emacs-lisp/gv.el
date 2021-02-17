@@ -187,6 +187,13 @@ arguments as NAME.  DO is a function as defined in `gv-get'."
     (push (list 'gv-setter #'gv--setter-defun-declaration)
 	  defun-declarations-alist))
 
+;;;###autoload
+(let ((spec (get 'compiler-macro 'edebug-declaration-spec)))
+  ;; It so happens that it's the same spec for gv-* as for compiler-macros.
+  ;; '(&or symbolp ("lambda" &define lambda-list lambda-doc def-body))
+  (put 'gv-expander 'edebug-declaration-spec spec)
+  (put 'gv-setter 'edebug-declaration-spec spec))
+
 ;; (defmacro gv-define-expand (name expander)
 ;;   "Use EXPANDER to handle NAME as a generalized var.
 ;; NAME is a symbol: the name of a function, macro, or special form.
@@ -224,7 +231,8 @@ The first arg in ARGLIST (the one that receives VAL) receives an expression
 which can do arbitrary things, whereas the other arguments are all guaranteed
 to be pure and copyable.  Example use:
   (gv-define-setter aref (v a i) \\=`(aset ,a ,i ,v))"
-  (declare (indent 2) (debug (&define name :name gv-setter sexp def-body)))
+  (declare (indent 2)
+           (debug (&define [&name symbolp "@gv-setter"] sexp def-body)))
   `(gv-define-expander ,name
      (lambda (do &rest args)
        (declare-function
@@ -307,7 +315,7 @@ The return value is the last VAL in the list.
 ;; Autoload this `put' since a user might use C-u C-M-x on an expression
 ;; containing a non-trivial `push' even before gv.el was loaded.
 ;;;###autoload
-(put 'gv-place 'edebug-form-spec 'edebug-match-form)
+(put 'gv-place 'edebug-form-spec '(form)) ;So-called "indirect spec".
 
 ;; CL did the equivalent of:
 ;;(gv-define-macroexpand edebug-after (lambda (before index place) place))

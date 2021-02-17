@@ -104,7 +104,7 @@ The optional LAYOUT overrides the `edit-form' window layout."
 
 (defun gnus-edit-form-done ()
   "Update changes and kill the current buffer."
-  (interactive)
+  (interactive nil gnus-edit-form-mode)
   (goto-char (point-min))
   (let ((form (condition-case nil
 		  (read (current-buffer))
@@ -115,7 +115,7 @@ The optional LAYOUT overrides the `edit-form' window layout."
 
 (defun gnus-edit-form-exit ()
   "Kill the current buffer."
-  (interactive)
+  (interactive nil gnus-edit-form-mode)
   (let ((winconf gnus-prev-winconf))
     (kill-buffer (current-buffer))
     (set-window-configuration winconf)))

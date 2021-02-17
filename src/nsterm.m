@@ -857,6 +857,17 @@ ns_row_rect (struct window *w, struct glyph_row *row,
 }
 
 
+double
+ns_frame_scale_factor (struct frame *f)
+{
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > 1060
+  return [[FRAME_NS_VIEW (f) window] backingScaleFactor];
+#else
+  return [[FRAME_NS_VIEW (f) window] userSpaceScaleFactor];
+#endif
+}
+
+
 /* ==========================================================================
 
     Focus (clipping) and screen update
@@ -7339,6 +7350,8 @@ not_in_argv (NSString *arg)
 
       [surface release];
       surface = nil;
+
+      [self setNeedsDisplay:YES];
     }
 #endif
 
@@ -7509,6 +7522,16 @@ not_in_argv (NSString *arg)
                  FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, f->text_lines));
   [self initWithFrame: r];
   [self setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable];
+
+#ifdef NS_DRAW_TO_BUFFER
+  /* These settings mean AppKit will retain the contents of the frame
+     on resize.  Unfortunately it also means the frame will not be
+     automatically marked for display, but we can do that ourselves in
+     viewDidResize.  */
+  [self setLayerContentsRedrawPolicy:
+          NSViewLayerContentsRedrawOnSetNeedsDisplay];
+  [self setLayerContentsPlacement:NSViewLayerContentsPlacementTopLeft];
+#endif
 
   FRAME_NS_VIEW (f) = self;
   emacsframe = f;
@@ -8452,6 +8475,34 @@ not_in_argv (NSString *arg)
 }
 
 
+#ifdef NS_IMPL_COCOA
+/* If the frame has been garbaged but the toolkit wants to draw, for
+   example when resizing the frame, we end up with a blank screen.
+   Sometimes this results in an unpleasant flicker, so try to
+   redisplay before drawing.  */
+- (void)viewWillDraw
+{
+  if (FRAME_GARBAGED_P (emacsframe)
+      && !redisplaying_p)
+    {
+      /* If there is IO going on when redisplay is run here Emacs
+         crashes.  I think it's because this code will always be run
+         within the run loop and for whatever reason processing input
+         is dangerous.  This technique was stolen wholesale from
+         nsmenu.m and seems to work.  */
+      bool owfi = waiting_for_input;
+      waiting_for_input = 0;
+      block_input ();
+
+      redisplay ();
+
+      unblock_input ();
+      waiting_for_input = owfi;
+    }
+}
+#endif
+
+
 #ifdef NS_DRAW_TO_BUFFER
 - (BOOL)wantsUpdateLayer
 {
@@ -8468,6 +8519,13 @@ not_in_argv (NSString *arg)
 - (void)updateLayer
 {
   NSTRACE ("[EmacsView updateLayer]");
+
+  /* We run redisplay on frames that are garbaged, but marked for
+     display, before updateLayer is called so if the frame is still
+     garbaged that means the last redisplay must have refused to
+     update the frame.  */
+  if (FRAME_GARBAGED_P (emacsframe))
+    return;
 
   /* This can fail to update the screen if the same surface is
      provided twice in a row, even if its contents have changed.

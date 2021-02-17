@@ -64,8 +64,8 @@ For more information, see Info node `(elisp)Declaring Functions'."
 
 ;;;; Basic Lisp macros.
 
-(defalias 'not 'null)
-(defalias 'sxhash 'sxhash-equal)
+(defalias 'not #'null)
+(defalias 'sxhash #'sxhash-equal)
 
 (defmacro noreturn (form)
   "Evaluate FORM, expecting it not to return.
@@ -82,13 +82,26 @@ Testcover will raise an error."
   form)
 
 (defmacro def-edebug-spec (symbol spec)
-  "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
+  "Set the Edebug SPEC to use for sexps which have SYMBOL as head.
 Both SYMBOL and SPEC are unevaluated.  The SPEC can be:
 0 (instrument no arguments); t (instrument all arguments);
 a symbol (naming a function with an Edebug specification); or a list.
 The elements of the list describe the argument types; see
 Info node `(elisp)Specification List' for details."
+  (declare (indent 1))
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
+
+(defun def-edebug-elem-spec (name spec)
+  "Define a new Edebug spec element NAME as shorthand for SPEC.
+The SPEC has to be a list."
+  (declare (indent 1))
+  (when (string-match "\\`[&:]" (symbol-name name))
+    ;; & and : have special meaning in spec element names.
+    (error "Edebug spec name cannot start with '&' or ':'"))
+  (unless (consp spec)
+    (error "Edebug spec has to be a list: %S" spec))
+  (put name 'edebug-elem-spec spec))
+
 
 (defmacro lambda (&rest cdr)
   "Return an anonymous function.
@@ -777,7 +790,7 @@ If TEST is omitted or nil, `equal' is used."
   (let (found (tail alist) value)
     (while (and tail (not found))
       (let ((elt (car tail)))
-	(when (funcall (or test 'equal) (if (consp elt) (car elt) elt) key)
+	(when (funcall (or test #'equal) (if (consp elt) (car elt) elt) key)
 	  (setq found t value (if (consp elt) (cdr elt) default))))
       (setq tail (cdr tail)))
     value))
@@ -927,14 +940,14 @@ For an approximate inverse of this, see `key-description'."
   "Make MAP override all normally self-inserting keys to be undefined.
 Normally, as an exception, digits and minus-sign are set to make prefix args,
 but optional second arg NODIGITS non-nil treats them like other chars."
-  (define-key map [remap self-insert-command] 'undefined)
+  (define-key map [remap self-insert-command] #'undefined)
   (or nodigits
       (let (loop)
-	(define-key map "-" 'negative-argument)
+	(define-key map "-" #'negative-argument)
 	;; Make plain numbers do numeric args.
 	(setq loop ?0)
 	(while (<= loop ?9)
-	  (define-key map (char-to-string loop) 'digit-argument)
+	  (define-key map (char-to-string loop) #'digit-argument)
 	  (setq loop (1+ loop))))))
 
 (defun make-composed-keymap (maps &optional parent)
@@ -971,8 +984,8 @@ a menu, so this function is not useful for non-menu keymaps."
   (setq key
 	(if (<= (length key) 1) (aref key 0)
 	  (setq keymap (lookup-key keymap
-				   (apply 'vector
-					  (butlast (mapcar 'identity key)))))
+				   (apply #'vector
+					  (butlast (mapcar #'identity key)))))
 	  (aref key (1- (length key)))))
   (let ((tail keymap) done inserted)
     (while (and (not done) tail)
@@ -1100,7 +1113,7 @@ Subkeymaps may be modified but are not canonicalized."
                      (push (cons key item) bindings)))
                  map)))
     ;; Create the new map.
-    (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap) prompt))
+    (setq map (funcall (if ranges #'make-keymap #'make-sparse-keymap) prompt))
     (dolist (binding ranges)
       ;; Treat char-ranges specially.  FIXME: need to merge as well.
       (define-key map (vector (car binding)) (cdr binding)))
@@ -1739,29 +1752,29 @@ be a list of the form returned by `event-start' and `event-end'."
 
 ;;;; Alternate names for functions - these are not being phased out.
 
-(defalias 'send-string 'process-send-string)
-(defalias 'send-region 'process-send-region)
-(defalias 'string= 'string-equal)
-(defalias 'string< 'string-lessp)
-(defalias 'string> 'string-greaterp)
-(defalias 'move-marker 'set-marker)
-(defalias 'rplaca 'setcar)
-(defalias 'rplacd 'setcdr)
-(defalias 'beep 'ding) ;preserve lingual purity
-(defalias 'indent-to-column 'indent-to)
-(defalias 'backward-delete-char 'delete-backward-char)
+(defalias 'send-string #'process-send-string)
+(defalias 'send-region #'process-send-region)
+(defalias 'string= #'string-equal)
+(defalias 'string< #'string-lessp)
+(defalias 'string> #'string-greaterp)
+(defalias 'move-marker #'set-marker)
+(defalias 'rplaca #'setcar)
+(defalias 'rplacd #'setcdr)
+(defalias 'beep #'ding) ;preserve lingual purity
+(defalias 'indent-to-column #'indent-to)
+(defalias 'backward-delete-char #'delete-backward-char)
 (defalias 'search-forward-regexp (symbol-function 're-search-forward))
 (defalias 'search-backward-regexp (symbol-function 're-search-backward))
-(defalias 'int-to-string 'number-to-string)
-(defalias 'store-match-data 'set-match-data)
-(defalias 'chmod 'set-file-modes)
-(defalias 'mkdir 'make-directory)
+(defalias 'int-to-string #'number-to-string)
+(defalias 'store-match-data #'set-match-data)
+(defalias 'chmod #'set-file-modes)
+(defalias 'mkdir #'make-directory)
 ;; These are the XEmacs names:
-(defalias 'point-at-eol 'line-end-position)
-(defalias 'point-at-bol 'line-beginning-position)
+(defalias 'point-at-eol #'line-end-position)
+(defalias 'point-at-bol #'line-beginning-position)
 
 (define-obsolete-function-alias 'user-original-login-name
-  'user-login-name "28.1")
+  #'user-login-name "28.1")
 
 
 ;;;; Hook manipulation functions.
@@ -1875,7 +1888,7 @@ one will be removed."
                                         (if local "Buffer-local" "Global"))
                                 fn-alist
                                 nil t)
-                               fn-alist nil nil 'string=)))
+                               fn-alist nil nil #'string=)))
      (list hook function local)))
   (or (boundp hook) (set hook nil))
   (or (default-boundp hook) (set-default hook nil))
@@ -2087,9 +2100,9 @@ can do the job."
   (if (cond
        ((null compare-fn)
 	(member element (symbol-value list-var)))
-       ((eq compare-fn 'eq)
+       ((eq compare-fn #'eq)
 	(memq element (symbol-value list-var)))
-       ((eq compare-fn 'eql)
+       ((eq compare-fn #'eql)
 	(memql element (symbol-value list-var)))
        (t
 	(let ((lst (symbol-value list-var)))
@@ -2307,7 +2320,8 @@ tho trying to avoid AVOIDED-MODES."
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
   "Register a new minor mode.
 
-This is an XEmacs-compatibility function.  Use `define-minor-mode' instead.
+This function shouldn't be used directly -- use `define-minor-mode'
+instead (which will then call this function).
 
 TOGGLE is a symbol that is the name of a buffer-local variable that
 is toggled on or off to say whether the minor mode is active or not.
@@ -2520,7 +2534,7 @@ program before the output is collected.  If STATUS-HANDLER is
 NIL, an error is signalled if the program returns with a non-zero
 exit status."
   (with-temp-buffer
-    (let ((status (apply 'call-process program nil (current-buffer) nil args)))
+    (let ((status (apply #'call-process program nil (current-buffer) nil args)))
       (if status-handler
 	  (funcall status-handler status)
 	(unless (eq status 0)
@@ -2566,7 +2580,7 @@ process."
 	 (format "Buffer %S has a running process; kill it? "
 		 (buffer-name (current-buffer)))))))
 
-(add-hook 'kill-buffer-query-functions 'process-kill-buffer-query-function)
+(add-hook 'kill-buffer-query-functions #'process-kill-buffer-query-function)
 
 ;; process plist management
 
@@ -2754,7 +2768,7 @@ by doing (clear-string STRING)."
             (use-local-map read-passwd-map)
             (setq-local inhibit-modification-hooks nil) ;bug#15501.
 	    (setq-local show-paren-mode nil)		;bug#16091.
-            (add-hook 'post-command-hook 'read-password--hide-password nil t))
+            (add-hook 'post-command-hook #'read-password--hide-password nil t))
         (unwind-protect
             (let ((enable-recursive-minibuffers t)
 		  (read-hide-char (or read-hide-char ?*)))
@@ -2764,8 +2778,8 @@ by doing (clear-string STRING)."
               ;; Not sure why but it seems that there might be cases where the
               ;; minibuffer is not always properly reset later on, so undo
               ;; whatever we've done here (bug#11392).
-              (remove-hook 'after-change-functions 'read-password--hide-password
-                           'local)
+              (remove-hook 'after-change-functions
+                           #'read-password--hide-password 'local)
               (kill-local-variable 'post-self-insert-hook)
               ;; And of course, don't keep the sensitive data around.
               (erase-buffer))))))))
@@ -2795,7 +2809,7 @@ This function is used by the `interactive' code letter `n'."
 		      prompt nil nil nil (or hist 'read-number-history)
 		      (when default
 			(if (consp default)
-			    (mapcar 'number-to-string (delq nil default))
+			    (mapcar #'number-to-string (delq nil default))
 			  (number-to-string default))))))
 	    (condition-case nil
 		(setq n (cond
@@ -2949,13 +2963,13 @@ If there is a natural number at point, use it as default."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
 
-    (define-key map [remap self-insert-command] 'read-char-from-minibuffer-insert-char)
+    (define-key map [remap self-insert-command] #'read-char-from-minibuffer-insert-char)
 
-    (define-key map [remap recenter-top-bottom] 'minibuffer-recenter-top-bottom)
-    (define-key map [remap scroll-up-command] 'minibuffer-scroll-up-command)
-    (define-key map [remap scroll-down-command] 'minibuffer-scroll-down-command)
-    (define-key map [remap scroll-other-window] 'minibuffer-scroll-other-window)
-    (define-key map [remap scroll-other-window-down] 'minibuffer-scroll-other-window-down)
+    (define-key map [remap recenter-top-bottom] #'minibuffer-recenter-top-bottom)
+    (define-key map [remap scroll-up-command] #'minibuffer-scroll-up-command)
+    (define-key map [remap scroll-down-command] #'minibuffer-scroll-down-command)
+    (define-key map [remap scroll-other-window] #'minibuffer-scroll-other-window)
+    (define-key map [remap scroll-other-window-down] #'minibuffer-scroll-other-window-down)
 
     map)
   "Keymap for the `read-char-from-minibuffer' function.")
@@ -3018,9 +3032,9 @@ There is no need to explicitly add `help-char' to CHARS;
                                 (help-form-show)))))
                         (dolist (char chars)
                           (define-key map (vector char)
-                            'read-char-from-minibuffer-insert-char))
+                            #'read-char-from-minibuffer-insert-char))
                         (define-key map [remap self-insert-command]
-                          'read-char-from-minibuffer-insert-other)
+                          #'read-char-from-minibuffer-insert-other)
                         (puthash (list help-form (cons help-char chars))
                                  map read-char-from-minibuffer-map-hash)
                         map))
@@ -3053,26 +3067,26 @@ There is no need to explicitly add `help-char' to CHARS;
     (set-keymap-parent map minibuffer-local-map)
 
     (dolist (symbol '(act act-and-show act-and-exit automatic))
-      (define-key map (vector 'remap symbol) 'y-or-n-p-insert-y))
+      (define-key map (vector 'remap symbol) #'y-or-n-p-insert-y))
 
-    (define-key map [remap skip] 'y-or-n-p-insert-n)
+    (define-key map [remap skip] #'y-or-n-p-insert-n)
 
     (dolist (symbol '(backup undo undo-all edit edit-replacement
                       delete-and-edit ignore self-insert-command))
-      (define-key map (vector 'remap symbol) 'y-or-n-p-insert-other))
+      (define-key map (vector 'remap symbol) #'y-or-n-p-insert-other))
 
-    (define-key map [remap recenter] 'minibuffer-recenter-top-bottom)
-    (define-key map [remap scroll-up] 'minibuffer-scroll-up-command)
-    (define-key map [remap scroll-down] 'minibuffer-scroll-down-command)
-    (define-key map [remap scroll-other-window] 'minibuffer-scroll-other-window)
-    (define-key map [remap scroll-other-window-down] 'minibuffer-scroll-other-window-down)
+    (define-key map [remap recenter] #'minibuffer-recenter-top-bottom)
+    (define-key map [remap scroll-up] #'minibuffer-scroll-up-command)
+    (define-key map [remap scroll-down] #'minibuffer-scroll-down-command)
+    (define-key map [remap scroll-other-window] #'minibuffer-scroll-other-window)
+    (define-key map [remap scroll-other-window-down] #'minibuffer-scroll-other-window-down)
 
-    (define-key map [escape] 'abort-recursive-edit)
+    (define-key map [escape] #'abort-recursive-edit)
     (dolist (symbol '(quit exit exit-prefix))
-      (define-key map (vector 'remap symbol) 'abort-recursive-edit))
+      (define-key map (vector 'remap symbol) #'abort-recursive-edit))
 
     ;; FIXME: try catch-all instead of explicit bindings:
-    ;; (define-key map [remap t] 'y-or-n-p-insert-other)
+    ;; (define-key map [remap t] #'y-or-n-p-insert-other)
 
     map)
   "Keymap that defines additional bindings for `y-or-n-p' answers.")
@@ -3369,7 +3383,7 @@ This finishes the change group by reverting all of its changes."
 
 ;; For compatibility.
 (define-obsolete-function-alias 'redraw-modeline
-  'force-mode-line-update "24.3")
+  #'force-mode-line-update "24.3")
 
 (defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
@@ -3513,7 +3527,7 @@ When in a major mode that does not provide its own
 symbol at point exactly."
   (let ((tag (funcall (or find-tag-default-function
 			  (get major-mode 'find-tag-default-function)
-			  'find-tag-default))))
+			  #'find-tag-default))))
     (if tag (regexp-quote tag))))
 
 (defun find-tag-default-as-symbol-regexp ()
@@ -3527,8 +3541,8 @@ symbol at point exactly."
     (if (and tag-regexp
 	     (eq (or find-tag-default-function
 		     (get major-mode 'find-tag-default-function)
-		     'find-tag-default)
-		 'find-tag-default))
+		     #'find-tag-default)
+		 #'find-tag-default))
 	(format "\\_<%s\\_>" tag-regexp)
       tag-regexp)))
 
@@ -3862,7 +3876,7 @@ discouraged."
   (call-process shell-file-name
 		infile buffer display
 		shell-command-switch
-		(mapconcat 'identity (cons command args) " ")))
+		(mapconcat #'identity (cons command args) " ")))
 
 (defun process-file-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -3874,7 +3888,7 @@ Similar to `call-process-shell-command', but calls `process-file'."
   (with-connection-local-variables
    (process-file
     shell-file-name infile buffer display shell-command-switch
-    (mapconcat 'identity (cons command args) " "))))
+    (mapconcat #'identity (cons command args) " "))))
 
 (defun call-shell-region (start end command &optional delete buffer)
   "Send text from START to END as input to an inferior shell running COMMAND.
@@ -4335,6 +4349,8 @@ the specified region.  It must not change
 Additionally, the buffer modifications of BODY are recorded on
 the buffer's undo list as a single (apply ...) entry containing
 the function `undo--wrap-and-run-primitive-undo'."
+  (if (markerp beg) (setq beg (marker-position beg)))
+  (if (markerp end) (setq end (marker-position end)))
   (let ((old-bul buffer-undo-list)
 	(end-marker (copy-marker end t))
 	result)
@@ -4891,8 +4907,8 @@ FILE, a string, is described in the function `eval-after-load'."
 	      ""
 	    ;; Note: regexp-opt can't be used here, since we need to call
 	    ;; this before Emacs has been fully started.  2006-05-21
-	    (concat "\\(" (mapconcat 'regexp-quote load-suffixes "\\|") "\\)?"))
-	  "\\(" (mapconcat 'regexp-quote jka-compr-load-suffixes "\\|")
+	    (concat "\\(" (mapconcat #'regexp-quote load-suffixes "\\|") "\\)?"))
+	  "\\(" (mapconcat #'regexp-quote jka-compr-load-suffixes "\\|")
 	  "\\)?\\'"))
 
 (defun load-history-filename-element (file-regexp)
@@ -4908,7 +4924,6 @@ Return nil if there isn't one."
 	      load-elt (and loads (car loads)))))
     load-elt))
 
-(put 'eval-after-load 'lisp-indent-function 1)
 (defun eval-after-load (file form)
   "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
 If FILE is already loaded, evaluate FORM right now.
@@ -4943,7 +4958,8 @@ like `font-lock'.
 This function makes or adds to an entry on `after-load-alist'.
 
 See also `with-eval-after-load'."
-  (declare (compiler-macro
+  (declare (indent 1)
+           (compiler-macro
             (lambda (whole)
               (if (eq 'quote (car-safe form))
                   ;; Quote with lambda so the compiler can look inside.
@@ -5050,7 +5066,7 @@ This function is called directly from the C code."
   "Display delayed warnings from `delayed-warnings-list'.
 Used from `delayed-warnings-hook' (which see)."
   (dolist (warning (nreverse delayed-warnings-list))
-    (apply 'display-warning warning))
+    (apply #'display-warning warning))
   (setq delayed-warnings-list nil))
 
 (defun collapse-delayed-warnings ()
@@ -5383,7 +5399,7 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 `abortfunc', and `hookvar'."
   (put symbol 'composefunc composefunc)
   (put symbol 'sendfunc sendfunc)
-  (put symbol 'abortfunc (or abortfunc 'kill-buffer))
+  (put symbol 'abortfunc (or abortfunc #'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
 
 
@@ -5548,7 +5564,7 @@ To test whether a function can be called interactively, use
            (set symbol tail)))))
 
 (define-obsolete-function-alias
-  'set-temporary-overlay-map 'set-transient-map "24.4")
+  'set-temporary-overlay-map #'set-transient-map "24.4")
 
 (defun set-transient-map (map &optional keep-pred on-exit)
   "Set MAP as a temporary keymap taking precedence over other keymaps.
@@ -6176,7 +6192,7 @@ returned list are in the same order as in TREE.
 
 ;; Technically, `flatten-list' is a misnomer, but we provide it here
 ;; for discoverability:
-(defalias 'flatten-list 'flatten-tree)
+(defalias 'flatten-list #'flatten-tree)
 
 ;; The initial anchoring is for better performance in searching matches.
 (defconst regexp-unmatchable "\\`a\\`"

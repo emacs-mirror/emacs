@@ -105,10 +105,6 @@
 ;; Common Lisp stuff
 (require 'cl-lib)
 
-;; Correct wrong declaration.
-(def-edebug-spec push
-  (&or [form symbolp] [form gv-place]))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support for `testcover'
 
