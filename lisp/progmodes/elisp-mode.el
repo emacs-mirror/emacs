@@ -904,7 +904,13 @@ non-nil result supersedes the xrefs produced by
             (point-marker)))))))
 
 (cl-defmethod xref-location-group ((l xref-elisp-location))
-  (xref-elisp-location-file l))
+  (let ((file (xref-elisp-location-file l)))
+    (defvar find-function-C-source-directory)
+    (if (and find-function-C-source-directory
+             (string-match-p "\\`src/" file))
+        (concat find-function-C-source-directory
+                (substring file 3))
+      file)))
 
 (defun elisp-load-path-roots ()
   (if (boundp 'package-user-dir)
