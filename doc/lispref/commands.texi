@@ -603,10 +603,11 @@ mode that has editable text, and commands that display information
 
 Many other commands, however, are specifically tied to a mode, and
 make no sense outside of that context.  For instance, @code{M-x
-dired-diff} will just signal an error used outside of a dired buffer.
+dired-diff} will just signal an error if used outside of a Dired
+buffer.
 
 Emacs therefore has a mechanism for specifying what mode (or modes) a
-command ``belong'' to:
+command ``belongs'' to:
 
 @lisp
 (defun dired-diff (...)
@@ -634,8 +635,8 @@ commands (if they aren't bound to any keys).
 
 If using this extended @code{interactive} form isn't convenient
 (because the code is supposed to work in older versions of Emacs that
-doesn't support the extended @code{interactive} form), the following
-can be used instead:
+don't support the extended @code{interactive} form), the following
+equivalent declaration (@pxref{Declare Form}) can be used instead:
 
 @lisp
 (declare (modes dired-mode))
@@ -657,10 +658,10 @@ call @code{kill-buffer}.  This command will ``work'' from any mode,
 but it is highly unlikely that anybody would actually want to use the
 command outside the context of this special mode.
 
-Many modes have a set of different commands that start that start the
-mode in different ways, (e.g., @code{eww-open-in-new-buffer} and
+Many modes have a set of different commands that start the mode in
+different ways (e.g., @code{eww-open-in-new-buffer} and
 @code{eww-open-file}).  Commands like that should never be tagged as
-mode-specific, as then can be issued by the user from pretty much any
+mode-specific, as they can be issued by the user from pretty much any
 context.
 
 @node Generic Commands
