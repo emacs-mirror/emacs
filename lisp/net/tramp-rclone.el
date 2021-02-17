@@ -53,7 +53,12 @@
 (tramp--with-startup
  (add-to-list 'tramp-methods
 	      `(,tramp-rclone-method
-		(tramp-mount-args nil)
+		;; Be careful changing "--dir-cache-time", this could
+		;; delay visibility of files.  Since we use Tramp's
+		;; internal cache for file attributes, there shouldn't
+		;; be serious performance penalties when set to 0.
+		(tramp-mount-args
+		 ("--no-unicode-normalization" "--dir-cache-time" "0s"))
 		(tramp-copyto-args nil)
 		(tramp-moveto-args nil)
 		(tramp-about-args ("--full"))))
@@ -247,24 +252,13 @@ file names."
 	       "Error %s `%s' `%s'" msg-operation filename newname)))
 
 	  (when (and t1 (eq op 'rename))
-	    (with-parsed-tramp-file-name filename v1
-	      (tramp-flush-file-properties v1 v1-localname)
-	      (when (tramp-rclone-file-name-p filename)
-		(tramp-rclone-flush-directory-cache v1)
-		;; The mount point's directory cache might need time
-		;; to flush.
-		(while (file-exists-p filename)
-		  (tramp-flush-file-properties v1 v1-localname)))))
+	    (while (file-exists-p filename)
+	      (with-parsed-tramp-file-name filename v1
+		(tramp-flush-file-properties v1 v1-localname))))
 
 	  (when t2
 	    (with-parsed-tramp-file-name newname v2
-	      (tramp-flush-file-properties v2 v2-localname)
-	      (when (tramp-rclone-file-name-p newname)
-		(tramp-rclone-flush-directory-cache v2)
-		;; The mount point's directory cache might need time
-		;; to flush.
-		(while (not (file-exists-p newname))
-		  (tramp-flush-file-properties v2 v2-localname))))))))))
+	      (tramp-flush-file-properties v2 v2-localname))))))))
 
 (defun tramp-rclone-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -288,13 +282,11 @@ file names."
   "Like `delete-directory' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name directory) nil
     (tramp-flush-directory-properties v localname)
-    (tramp-rclone-flush-directory-cache v)
     (delete-directory (tramp-rclone-local-file-name directory) recursive trash)))
 
 (defun tramp-rclone-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
-    (tramp-rclone-flush-directory-cache v)
     (delete-file (tramp-rclone-local-file-name filename) trash)
     (tramp-flush-file-properties v localname)))
 
@@ -420,8 +412,7 @@ file names."
     ;; whole file cache.
     (tramp-flush-file-properties v localname)
     (tramp-flush-directory-properties
-     v (if parents "/" (file-name-directory localname)))
-    (tramp-rclone-flush-directory-cache v)))
+     v (if parents "/" (file-name-directory localname)))))
 
 (defun tramp-rclone-handle-rename-file
   (filename newname &optional ok-if-already-exists)
@@ -466,39 +457,6 @@ file names."
 		   "^\\(%s:\\S-*\\)" (regexp-quote (tramp-file-name-host vec)))
 		  mount)
 	     (match-string 1 mount)))))))
-
-(defun tramp-rclone-flush-directory-cache (vec)
-  "Flush directory cache of VEC mount."
-  (let ((rclone-pid
-	 ;; Identify rclone process.
-	 (when (tramp-get-connection-process vec)
-	   (with-tramp-connection-property
-	       (tramp-get-connection-process vec) "rclone-pid"
-	     (catch 'pid
-	       (dolist
-		   (pid
-		    ;; Until Emacs 25, `process-attributes' could
-		    ;; crash Emacs for some processes.  So we use
-		    ;; "pidof", which might not work everywhere.
-		    (if (<= emacs-major-version 25)
-			(let ((default-directory
-				(tramp-compat-temporary-file-directory)))
-			  (mapcar
-			   #'string-to-number
-			   (split-string
-			    (shell-command-to-string "pidof rclone"))))
-		      (list-system-processes)))
-		 (and (string-match-p
-		       (regexp-quote
-			(format "rclone mount %s:" (tramp-file-name-host vec)))
-		       (or (cdr (assoc 'args (process-attributes pid))) ""))
-		      (throw 'pid pid))))))))
-    ;; Send a SIGHUP in order to flush directory cache.
-    (when rclone-pid
-      (tramp-message
-       vec 6 "Send SIGHUP %d: %s"
-       rclone-pid (cdr (assoc 'args (process-attributes rclone-pid))))
-      (signal-process rclone-pid 'SIGHUP))))
 
 (defun tramp-rclone-local-file-name (filename)
   "Return local mount name of FILENAME."
@@ -572,7 +530,7 @@ connection if a previous connection has died for some reason."
 	       `("mount" ,(concat host ":/")
 		 ,(tramp-rclone-mount-point vec)
 		 ;; This could be nil.
-		 ,(tramp-get-method-parameter vec 'tramp-mount-args))))
+		 ,@(tramp-get-method-parameter vec 'tramp-mount-args))))
 	(while (not (file-exists-p (tramp-make-tramp-file-name vec 'noloc)))
 	  (tramp-cleanup-connection vec 'keep-debug 'keep-password))
 
@@ -606,10 +564,5 @@ The command is the list of strings ARGS."
 	    (unload-feature 'tramp-rclone 'force)))
 
 (provide 'tramp-rclone)
-
-;;; TODO:
-
-;; * If possible, get rid of "rclone mount".  Maybe it is more
-;;   performant then.
 
 ;;; tramp-rclone.el ends here

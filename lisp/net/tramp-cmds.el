@@ -465,7 +465,7 @@ For details, see `tramp-rename-files'."
 
 ;;;###tramp-autoload
 (defun tramp-version (arg)
-  "Print version number of tramp.el in minibuffer or current buffer."
+  "Print version number of tramp.el in echo area or current buffer."
   (interactive "P")
   (if arg (insert tramp-version) (message tramp-version)))
 
