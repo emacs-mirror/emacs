@@ -144,6 +144,7 @@ commands by adding the @code{interactive} form to them.
 * Interactive Codes::     The standard letter-codes for reading arguments
                              in various ways.
 * Interactive Examples::  Examples of how to read interactive arguments.
+* Command Modes::         Specifying that commands are for a specific mode.
 * Generic Commands::      Select among command alternatives.
 @end menu
 
@@ -178,21 +179,8 @@ occurs within the body, the form simply returns @code{nil} without
 even evaluating its argument.
 
 The @var{modes} list allows specifying which modes the command is
-meant to be used in.  This affects, for instance, completion in
-@kbd{M-x} (commands won't be offered as completions if they don't
-match (using @code{derived-mode-p}) the current major mode, or if the
-mode is a minor mode, whether it's switched on in the current buffer).
-This will also make @kbd{C-h m} list these commands (if they aren't
-bound to any keys).
-
-For instance:
-
-@lisp
-(interactive "p" dired-mode)
-@end lisp
-
-This will mark the command as applicable for modes derived from
-@code{dired-mode} only.
+meant to be used in.  See @ref{Command Modes} for more details about
+the effect of specifying @var{modes}, and when to use it.
 
 By convention, you should put the @code{interactive} form in the
 function body, as the first top-level form.  If there is an
@@ -604,6 +592,76 @@ Put them into three windows, selecting the last one."
      @result{} nil
 @end group
 @end example
+
+@node Command Modes
+@subsection Specifying Modes For Commands
+
+Many commands in Emacs are general, and not tied to any specific mode.
+For instance, @kbd{M-x kill-region} can be used pretty in pretty much
+any mode that has editable text, and commands that display information
+(like @kbd{M-x list-buffers}) can be used in pretty much any context.
+
+Many other commands, however, are specifically tied to a mode, and
+make no sense outside of that context.  For instance, @code{M-x
+dired-diff} will just signal an error used outside of a dired buffer.
+
+Emacs therefore has a mechanism for specifying what mode (or modes) a
+command ``belong'' to:
+
+@lisp
+(defun dired-diff (...)
+  ...
+  (interactive "p" dired-mode)
+  ...)
+@end lisp
+
+This will mark the command as applicable to @code{dired-mode} only (or
+any modes that are derived from @code{dired-mode}).  Any number of
+modes can be added to the @code{interactive} form.
+
+@vindex read-extended-command-predicate
+Specifying modes may affect completion in @kbd{M-x}, depending on the
+value of @code{read-extended-command-predicate}.
+
+For instance, when using the
+@code{command-completion-default-include-p} predicate, @kbd{M-x} won't
+list commands that have been marked as being applicable to a specific
+mode (unless you are in a buffer that uses that mode, of course).
+This goes for both major and minor modes.
+
+Marking commands this way will also make @kbd{C-h m} list these
+commands (if they aren't bound to any keys).
+
+If using this extended @code{interactive} form isn't convenient
+(because the code is supposed to work in older versions of Emacs that
+doesn't support the extended @code{interactive} form), the following
+can be used instead:
+
+@lisp
+(declare (modes dired-mode))
+@end lisp
+
+Which commands to tag with modes is to some degree a matter of taste,
+but commands that clearly do not work outside of the mode should be
+tagged.  This includes commands that will signal an error if called
+from somewhere else, but also commands that are destructive when
+called from an unexpected mode.  (This usually includes most of the
+commands that are written for special (i.e., non-editing) modes.)
+
+Some commands may be harmless, and ``work'' when called from other
+modes, but should still be tagged with a mode if they don't actually
+make much sense to use elsewhere.  For instance, many special modes
+have commands to exit the buffer bound to @kbd{q}, and may not do
+anything but issue a message like "Goodbye from this mode" and then
+call @code{kill-buffer}.  This command will ``work'' from any mode,
+but it is highly unlikely that anybody would actually want to use the
+command outside the context of this special mode.
+
+Many modes have a set of different commands that start that start the
+mode in different ways, (e.g., @code{eww-open-in-new-buffer} and
+@code{eww-open-file}).  Commands like that should never be tagged as
+mode-specific, as then can be issued by the user from pretty much any
+context.
 
 @node Generic Commands
 @subsection Select among Command Alternatives
