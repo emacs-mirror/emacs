@@ -329,6 +329,77 @@ recently executed command not bound to an input event\"."
 
 ;;;;; ************************* EMACS CONTROL ************************* ;;;;;
 
+
+;; And now for something completely different.
+
+;;; repeat-mode
+
+(defcustom repeat-exit-key nil
+  "Key that stops the modal repeating of keys in sequence.
+For example, you can set it to <return> like `isearch-exit'."
+  :type '(choice (const :tag "No special key to exit repeating sequence" nil)
+		 (key-sequence :tag "Key that exits repeating sequence"))
+  :group 'convenience
+  :version "28.1")
+
+;;;###autoload
+(define-minor-mode repeat-mode
+  "Toggle Repeat mode.
+When Repeat mode is enabled, and the command symbol has the property named
+`repeat-map', this map is activated temporarily for the next command."
+  :global t :group 'convenience
+  (if (not repeat-mode)
+      (remove-hook 'post-command-hook 'repeat-post-hook)
+    (add-hook 'post-command-hook 'repeat-post-hook)
+    (let* ((keymaps nil)
+           (commands (all-completions
+                      "" obarray (lambda (s)
+                                   (and (commandp s)
+                                        (get s 'repeat-map)
+                                        (push (get s 'repeat-map) keymaps))))))
+      (message "Repeat mode is enabled for %d commands and %d keymaps"
+               (length commands)
+               (length (delete-dups keymaps))))))
+
+(defun repeat-post-hook ()
+  "Function run after commands to set transient keymap for repeatable keys."
+  (when repeat-mode
+    (let ((repeat-map (and (symbolp this-command)
+                           (get this-command 'repeat-map))))
+      (when repeat-map
+        (when (boundp repeat-map)
+          (setq repeat-map (symbol-value repeat-map)))
+        (let ((map (copy-keymap repeat-map))
+              keys mess)
+          (map-keymap (lambda (key _) (push key keys)) map)
+
+          ;; Exit when the last char is not among repeatable keys,
+          ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
+          (when (or (memq last-command-event keys)
+                    (memq this-original-command '(universal-argument
+                                                  universal-argument-more
+				                  digit-argument
+                                                  negative-argument)))
+            ;; Messaging
+            (setq mess (format-message
+                        "Repeat with %s%s"
+                        (mapconcat (lambda (key)
+                                     (key-description (vector key)))
+                                   keys ", ")
+                        (if repeat-exit-key
+                            (format ", or exit with %s"
+                                    (key-description repeat-exit-key))
+                          "")))
+            (if (current-message)
+                (message "%s [%s]" (current-message) mess)
+              (message mess))
+
+            ;; Adding an exit key
+            (when repeat-exit-key
+              (define-key map repeat-exit-key 'ignore))
+
+            (set-transient-map map)))))))
+
 (provide 'repeat)
 
 ;;; repeat.el ends here
