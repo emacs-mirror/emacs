@@ -4715,10 +4715,10 @@ if test "$USE_X_TOOLKIT" != "none"; then
     else
       OTHERLIBS="-lXt -$LIBXMU"
     fi
-    AC_TRY_LINK(
-      [#include <X11/Intrinsic.h>
-       #include <X11/Xmu/Editres.h>],
-      [_XEditResCheckMessages (0, 0, 0, 0);],
+    AC_LINK_IFELSE([AC_LANG_PROGRAM(
+      [[#include <X11/Intrinsic.h>
+       #include <X11/Xmu/Editres.h>]],
+      [[_XEditResCheckMessages (0, 0, 0, 0);]])],
       [AC_DEFINE([X_TOOLKIT_EDITRES], 1,
         [Define to 1 if we should use XEditRes.])])
     LIBS=$OLDLIBS
