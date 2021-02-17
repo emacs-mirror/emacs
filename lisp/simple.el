@@ -1278,7 +1278,19 @@ that uses or sets the mark."
 
 ;; Counting lines, one way or another.
 
-(defvar-local goto-line-history nil
+(defcustom goto-line-history-local nil
+  "If this option is nil, `goto-line-history' is shared between all buffers.
+if it is non-nil, each buffer has its own value of this history list.
+
+Note that on changing from non-nil to nil, the former contents of
+`goto-line-history' for each buffer are discarded on use of
+`goto-line' in that buffer."
+  :group 'editing
+  :type 'boolean
+  :safe #'booleanp
+  :version "28.1")
+
+(defvar goto-line-history nil
   "History of values entered with `goto-line'.")
 
 (defun goto-line-read-args (&optional relative)
@@ -1296,6 +1308,11 @@ that uses or sets the mark."
             (if buffer
                 (concat " in " (buffer-name buffer))
               "")))
+      ;; Has the buffer locality of `goto-line-history' changed?
+      (cond ((and goto-line-history-local (not (local-variable-p 'goto-line-history)))
+             (make-local-variable 'goto-line-history))
+            ((and (not goto-line-history-local) (local-variable-p 'goto-line-history))
+             (kill-local-variable 'goto-line-history)))
       ;; Read the argument, offering that number (if any) as default.
       (list (read-number (format "Goto%s line%s: "
                                  (if (buffer-narrowed-p)
