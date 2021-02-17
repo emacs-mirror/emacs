@@ -897,6 +897,14 @@ If ARG is zero, create a new tab in place of the current tab."
         (tab-bar-new-tab-to (1+ to-index)))
     (tab-bar-new-tab-to)))
 
+(defun tab-bar-duplicate-tab (&optional arg)
+  "Duplicate the current tab to ARG positions to the right.
+If a negative ARG, duplicate the tab to ARG positions to the left.
+If ARG is zero, duplicate the tab in place of the current tab."
+  (interactive "P")
+  (let ((tab-bar-new-tab-choice nil))
+    (tab-bar-new-tab arg)))
+
 
 (defvar tab-bar-closed-tabs nil
   "A list of closed tabs to be able to undo their closing.")
@@ -1243,6 +1251,7 @@ and can restore them."
 
 (defalias 'tab-new         'tab-bar-new-tab)
 (defalias 'tab-new-to      'tab-bar-new-tab-to)
+(defalias 'tab-duplicate   'tab-bar-duplicate-tab)
 (defalias 'tab-close       'tab-bar-close-tab)
 (defalias 'tab-close-other 'tab-bar-close-other-tabs)
 (defalias 'tab-undo        'tab-bar-undo-close-tab)
