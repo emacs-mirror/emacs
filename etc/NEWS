@@ -254,7 +254,9 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 +++
 ** New user option 'read-extended-command-predicate'.
 This option controls how 'M-x TAB' performs completions.  The default
-predicate excludes modes for which the command is not applicable.
+predicate excludes commands that are not applicable to the current
+major and minor modes, and also respects the command's completion
+predicate (if any).
 
 ---
 ** 'eval-expression' now no longer signals an error on incomplete expressions.
