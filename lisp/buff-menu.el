@@ -338,7 +338,8 @@ negative ARG, display other buffers as well."
 	     "Showing all non-internal buffers."))
   (revert-buffer))
 
-(defalias 'Buffer-menu-sort 'tabulated-list-sort)
+(define-obsolete-function-alias 'Buffer-menu-sort 'tabulated-list-sort
+  "28.1")
 
 
 (defun Buffer-menu-buffer (&optional error-if-non-existent-p)
