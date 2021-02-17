@@ -434,7 +434,7 @@ Value is a pair of positions (START . END) if there is a non-nil
 
 (defun shr-show-alt-text ()
   "Show the ALT text of the image under point."
-  (declare (completion (lambda (_ b) (completion-button-p 'shr b))))
+  (declare (completion (lambda (_ b) (command-completion-button-p 'shr b))))
   (interactive)
   (let ((text (get-text-property (point) 'shr-alt)))
     (if (not text)
