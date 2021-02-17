@@ -1924,13 +1924,13 @@ to get different commands to edit and resubmit."
 (defcustom read-extended-command-predicate nil
   "Predicate to use to determine which commands to include when completing.
 If it's nil, include all the commands.
-If it's a functoion, it will be called with two parameters: the
+If it's a function, it will be called with two parameters: the
 symbol of the command and a buffer.  The predicate should return
 non-nil if the command should be present when doing `M-x TAB'
 in that buffer."
   :version "28.1"
   :group 'completion
-  :type `(choice (const :tag "Don't exclude any commands" nil)
+  :type '(choice (const :tag "Don't exclude any commands" nil)
                  (const :tag "Exclude commands irrelevant to current buffer's mode"
                         command-completion-default-include-p)
                  (function :tag "Other function")))
