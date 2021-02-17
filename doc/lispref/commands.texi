@@ -776,12 +776,16 @@ part of the prompt.
 
 @vindex read-extended-command-predicate
 This command heeds the @code{read-extended-command-predicate}
-variable, which will (by default) filter out commands that are not
-applicable to the current major mode (or enabled minor modes).
-@code{read-extended-command-predicate} will be called with two
-parameters: The symbol that is to be included or not, and the current
-buffer.  If should return non-@code{nil} if the command is to be
-included when completing.
+variable, which can filter out commands that are not applicable to the
+current major mode (or enabled minor modes).  By default, the value of
+this variable is @code{nil}, and no commands are filtered out.
+However, customizing it to invoke the function
+@code{command-completion-default-include-p} will perform
+mode-dependent filtering.  @code{read-extended-command-predicate} can
+be any predicate function; it will be called with two parameters: the
+command's symbol and the current buffer.  If should return
+non-@code{nil} if the command is to be included when completing in
+that buffer.
 @end deffn
 
 @node Distinguish Interactive

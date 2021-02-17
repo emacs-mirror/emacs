@@ -1904,17 +1904,18 @@ to get different commands to edit and resubmit."
 (defvar extended-command-history nil)
 (defvar execute-extended-command--last-typed nil)
 
-(defcustom read-extended-command-predicate
-  #'command-completion-default-include-p
+(defcustom read-extended-command-predicate nil
   "Predicate to use to determine which commands to include when completing.
-The predicate function is called with two parameters: The
-symbol (i.e., command) in question that should be included or
-not, and the current buffer.  The predicate should return non-nil
-if the command should be present when doing `M-x TAB'."
+If it's nil, include all the commands.
+If it's a functoion, it will be called with two parameters: the
+symbol of the command and a buffer.  The predicate should return
+non-nil if the command should be present when doing `M-x TAB'
+in that buffer."
   :version "28.1"
-  :type `(choice (const :tag "Exclude commands not relevant to the current mode"
+  :group 'completion
+  :type `(choice (const :tag "Don't exclude any commands" nil)
+                 (const :tag "Exclude commands irrelevant to current buffer's mode"
                         command-completion-default-include-p)
-                 (const :tag "All commands" ,(lambda (_s _b) t))
                  (function :tag "Other function")))
 
 (defun read-extended-command ()
@@ -1971,7 +1972,9 @@ This function uses the `read-extended-command-predicate' user option."
            (complete-with-action action obarray string pred)))
        (lambda (sym)
          (and (commandp sym)
-              (funcall read-extended-command-predicate sym buffer)))
+              (or (null read-extended-command-predicate)
+                  (and (functionp read-extended-command-predicate)
+                       (funcall read-extended-command-predicate sym buffer)))))
        t nil 'extended-command-history))))
 
 (defun command-completion-default-include-p (symbol buffer)

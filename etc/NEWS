@@ -253,9 +253,11 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 
 +++
 ** New user option 'read-extended-command-predicate'.
-This option controls how 'M-x TAB' performs completions.  The default
-predicate excludes commands that are not applicable to the current
-major and minor modes, and also respects the command's completion
+This option controls how 'M-x' performs completion of commands when
+you type TAB.  By default, any command that matches what you have
+typed is considered a completion candidate, but you can customize this
+option to exclude commands that are not applicable to the current
+buffer's major and minor modes, and respect the command's completion
 predicate (if any).
 
 ---
