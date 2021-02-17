@@ -55,7 +55,7 @@ Emacs release.)
 relevant to, and generally cannot work with, the current buffer's
 major mode (@pxref{Major Modes}) and minor modes (@pxref{Minor
 Modes}).  By default, no commands are excluded, but you can customize
-the option @var{read-extended-command-predicate} to exclude those
+the option @code{read-extended-command-predicate} to exclude those
 irrelevant commands from completion results.
 
   To cancel the @kbd{M-x} and not run a command, type @kbd{C-g} instead
