@@ -597,8 +597,8 @@ Put them into three windows, selecting the last one."
 @subsection Specifying Modes For Commands
 
 Many commands in Emacs are general, and not tied to any specific mode.
-For instance, @kbd{M-x kill-region} can be used pretty in pretty much
-any mode that has editable text, and commands that display information
+For instance, @kbd{M-x kill-region} can be used in pretty much any
+mode that has editable text, and commands that display information
 (like @kbd{M-x list-buffers}) can be used in pretty much any context.
 
 Many other commands, however, are specifically tied to a mode, and
