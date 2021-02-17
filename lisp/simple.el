@@ -1904,7 +1904,8 @@ to get different commands to edit and resubmit."
 (defvar extended-command-history nil)
 (defvar execute-extended-command--last-typed nil)
 
-(defcustom read-extended-command-predicate #'completion-default-include-p
+(defcustom read-extended-command-predicate
+  #'command-completion-default-include-p
   "Predicate to use to determine which commands to include when completing.
 The predicate function is called with two parameters: The
 symbol (i.e., command) in question that should be included or
@@ -1912,7 +1913,7 @@ not, and the current buffer.  The predicate should return non-nil
 if the command should be present when doing `M-x TAB'."
   :version "28.1"
   :type `(choice (const :tag "Exclude commands not relevant to the current mode"
-                        completion-default-include-p)
+                        command-completion-default-include-p)
                  (const :tag "All commands" ,(lambda (_s _b) t))
                  (function :tag "Other function")))
 
@@ -1973,7 +1974,7 @@ This function uses the `read-extended-command-predicate' user option."
               (funcall read-extended-command-predicate sym buffer)))
        t nil 'extended-command-history))))
 
-(defun completion-default-include-p (symbol buffer)
+(defun command-completion-default-include-p (symbol buffer)
   "Say whether SYMBOL should be offered as a completion.
 If there's a `completion-predicate' for SYMBOL, the result from
 calling that predicate is called.  If there isn't one, this
@@ -2002,7 +2003,7 @@ BUFFER."
                               #'eq)
             (seq-intersection modes global-minor-modes #'eq))))))
 
-(defun completion-with-modes-p (modes buffer)
+(defun command-completion-with-modes-p (modes buffer)
   "Say whether MODES are in action in BUFFER.
 This is the case if either the major mode is derived from one of MODES,
 or (if one of MODES is a minor mode), if it is switched on in BUFFER."
@@ -2015,7 +2016,7 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
                         #'eq)
       (seq-intersection modes global-minor-modes #'eq)))
 
-(defun completion-button-p (category buffer)
+(defun command-completion-button-p (category buffer)
   "Return non-nil if there's a button of CATEGORY at point in BUFFER."
   (with-current-buffer buffer
     (and (get-text-property (point) 'button)
