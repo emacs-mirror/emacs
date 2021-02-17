@@ -2136,7 +2136,8 @@ SPEC is the symbol name prefix for `gensym'."
        ;; more convenient to define their Edebug spec here.
        (defun ( &define name lambda-list lambda-doc
 	        [&optional ("declare" def-declarations)]
-	        [&optional ("interactive" &optional &or stringp def-form)]
+	        [&optional ("interactive" &optional [&or stringp def-form]
+                            &rest symbolp)]
 	        def-body))
 
        (defmacro ( &define name lambda-list lambda-doc
@@ -2192,7 +2193,8 @@ SPEC is the symbol name prefix for `gensym'."
   '(&optional [&or stringp
                    (&define ":documentation" def-form)]))
 
-(def-edebug-elem-spec 'interactive '(&optional &or stringp def-form))
+(def-edebug-elem-spec 'interactive '(&optional [&or stringp def-form]
+                                               &rest symbolp))
 
 ;; A function-form is for an argument that may be a function or a form.
 ;; This specially recognizes anonymous functions quoted with quote.
