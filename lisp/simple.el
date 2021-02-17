@@ -1280,7 +1280,7 @@ that uses or sets the mark."
 
 (defcustom goto-line-history-local nil
   "If this option is nil, `goto-line-history' is shared between all buffers.
-if it is non-nil, each buffer has its own value of this history list.
+If it is non-nil, each buffer has its own value of this history list.
 
 Note that on changing from non-nil to nil, the former contents of
 `goto-line-history' for each buffer are discarded on use of
