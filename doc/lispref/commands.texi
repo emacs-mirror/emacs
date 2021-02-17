@@ -775,6 +775,7 @@ part of the prompt.
 @end example
 
 @vindex read-extended-command-predicate
+@findex command-completion-default-include-p
 This command heeds the @code{read-extended-command-predicate}
 variable, which can filter out commands that are not applicable to the
 current major mode (or enabled minor modes).  By default, the value of
