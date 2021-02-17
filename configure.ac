@@ -1767,7 +1767,8 @@ fi
 
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define 'bool'.
-AC_CHECK_HEADERS(term.h, , , -)
+AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[#include <term.h>]],[[]])],
+  AC_DEFINE(HAVE_TERM_H, 1, [Define to 1 if you have the <term.h> header file.]))
 AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS_ONCE(sys/socket.h)
