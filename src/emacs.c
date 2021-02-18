@@ -3096,9 +3096,9 @@ because they do not depend on external libraries and are always available.
 Also note that this is not a generic facility for accessing external
 libraries; only those already known by Emacs will be loaded.  */);
 #ifdef WINDOWSNT
-  /* We may need to load libgccjit when dumping before term/w32-win.el
-     defines `dynamic-library-alist`. This will fail if that variable
-     is empty, so add libgccjit-0.dll to it.  */
+  /* FIXME: We may need to load libgccjit when dumping before
+     term/w32-win.el defines `dynamic-library-alist`. This will fail
+     if that variable is empty, so add libgccjit-0.dll to it.  */
   if (will_dump_p ())
     Vdynamic_library_alist = list1 (list2 (Qgccjit,
                                            build_string ("libgccjit-0.dll")));
