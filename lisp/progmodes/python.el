@@ -1506,7 +1506,7 @@ point position.  Return non-nil if point is moved to
 (defun python-nav-end-of-defun ()
   "Move point to the end of def or class.
 Returns nil if point is not in a def or class."
-  (interactive nil python-mode)
+  (interactive)
   (let ((beg-defun-indent)
         (beg-pos (point)))
     (when (or (python-info-looking-at-beginning-of-defun)
@@ -1577,19 +1577,19 @@ repeat it."
   "Navigate to closer defun backward ARG times.
 Unlikely `python-nav-beginning-of-defun' this doesn't care about
 nested definitions."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (python-nav--forward-defun (- (or arg 1))))
 
 (defun python-nav-forward-defun (&optional arg)
   "Navigate to closer defun forward ARG times.
 Unlikely `python-nav-beginning-of-defun' this doesn't care about
 nested definitions."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (python-nav--forward-defun (or arg 1)))
 
 (defun python-nav-beginning-of-statement ()
   "Move to start of current statement."
-  (interactive "^" python-mode)
+  (interactive "^")
   (forward-line 0)
   (let* ((ppss (syntax-ppss))
          (context-point
@@ -1613,7 +1613,7 @@ nested definitions."
 Optional argument NOEND is internal and makes the logic to not
 jump to the end of line when moving forward searching for the end
 of the statement."
-  (interactive "^" python-mode)
+  (interactive "^")
   (let (string-start bs-pos (last-string-end 0))
     (while (and (or noend (goto-char (line-end-position)))
                 (not (eobp))
@@ -1654,7 +1654,7 @@ Overlapping strings detected (start=%d, last-end=%d)")
 (defun python-nav-backward-statement (&optional arg)
   "Move backward to previous statement.
 With ARG, repeat.  See `python-nav-forward-statement'."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   (python-nav-forward-statement (- arg)))
 
@@ -1662,7 +1662,7 @@ With ARG, repeat.  See `python-nav-forward-statement'."
   "Move forward to next statement.
 With ARG, repeat.  With negative argument, move ARG times
 backward to previous statement."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   (while (> arg 0)
     (python-nav-end-of-statement)
@@ -1677,7 +1677,7 @@ backward to previous statement."
 
 (defun python-nav-beginning-of-block ()
   "Move to start of current block."
-  (interactive "^" python-mode)
+  (interactive "^")
   (let ((starting-pos (point)))
     (if (progn
           (python-nav-beginning-of-statement)
@@ -1701,7 +1701,7 @@ backward to previous statement."
 
 (defun python-nav-end-of-block ()
   "Move to end of current block."
-  (interactive "^" python-mode)
+  (interactive "^")
   (when (python-nav-beginning-of-block)
     (let ((block-indentation (current-indentation)))
       (python-nav-end-of-statement)
@@ -1717,7 +1717,7 @@ backward to previous statement."
 (defun python-nav-backward-block (&optional arg)
   "Move backward to previous block of code.
 With ARG, repeat.  See `python-nav-forward-block'."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   (python-nav-forward-block (- arg)))
 
@@ -1725,7 +1725,7 @@ With ARG, repeat.  See `python-nav-forward-block'."
   "Move forward to next block of code.
 With ARG, repeat.  With negative argument, move ARG times
 backward to previous block."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   (let ((block-start-regexp
          (python-rx line-start (* whitespace) block-start))
@@ -1878,7 +1878,7 @@ throw errors when at end of sexp, skip it instead.  With optional
 argument SKIP-PARENS-P force sexp motion to ignore parenthesized
 expressions when looking at them in either direction (forced to t
 in interactive calls)."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   ;; Do not follow parens on interactive calls.  This hack to detect
   ;; if the function was called interactively copes with the way
@@ -1912,7 +1912,7 @@ throw errors when at end of sexp, skip it instead.  With optional
 argument SKIP-PARENS-P force sexp motion to ignore parenthesized
 expressions when looking at them in either direction (forced to t
 in interactive calls)."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   (python-nav-forward-sexp (- arg) safe skip-parens-p))
 
@@ -1922,7 +1922,7 @@ With ARG, do it that many times.  Negative arg -N means move
 backward N times.  With optional argument SKIP-PARENS-P force
 sexp motion to ignore parenthesized expressions when looking at
 them in either direction (forced to t in interactive calls)."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (python-nav-forward-sexp arg t skip-parens-p))
 
 (defun python-nav-backward-sexp-safe (&optional arg skip-parens-p)
@@ -1931,7 +1931,7 @@ With ARG, do it that many times.  Negative arg -N means move
 forward N times.  With optional argument SKIP-PARENS-P force sexp
 motion to ignore parenthesized expressions when looking at them in
 either direction (forced to t in interactive calls)."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (python-nav-backward-sexp arg t skip-parens-p))
 
 (defun python-nav--up-list (&optional dir)
@@ -1977,7 +1977,7 @@ DIR is always 1 or -1 and comes sanitized from
 With ARG, do this that many times.
 A negative argument means move backward but still to a less deep spot.
 This command assumes point is not in a string or comment."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   (while (> arg 0)
     (python-nav--up-list 1)
@@ -1991,7 +1991,7 @@ This command assumes point is not in a string or comment."
 With ARG, do this that many times.
 A negative argument means move forward but still to a less deep spot.
 This command assumes point is not in a string or comment."
-  (interactive "^p" python-mode)
+  (interactive "^p")
   (or arg (setq arg 1))
   (python-nav-up-list (- arg)))
 
@@ -1999,7 +1999,7 @@ This command assumes point is not in a string or comment."
   "Move point at the beginning the __main__ block.
 When \"if __name__ == \\='__main__\\=':\" is found returns its
 position, else returns nil."
-  (interactive nil python-mode)
+  (interactive)
   (let ((point (point))
         (found (catch 'found
                  (goto-char (point-min))
