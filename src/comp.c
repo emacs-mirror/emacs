@@ -2057,6 +2057,7 @@ emit_limple_insn (Lisp_Object insn)
       */
       gcc_jit_lvalue *nargs =
 	gcc_jit_param_as_lvalue (gcc_jit_function_get_param (comp.func, 0));
+      eassert (XFIXNUM (arg[0]) < INT_MAX);
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.ptrdiff_type,
@@ -2200,6 +2201,7 @@ emit_limple_insn (Lisp_Object insn)
     {
       /* Ex: (set-par-to-local #s(comp-mvar 0 3 nil nil nil nil) 0).  */
       EMACS_INT param_n = XFIXNUM (arg[1]);
+      eassert (param_n < INT_MAX);
       gcc_jit_rvalue *param =
 	gcc_jit_param_as_rvalue (gcc_jit_function_get_param (comp.func,
 							     param_n));
@@ -2228,6 +2230,7 @@ emit_limple_insn (Lisp_Object insn)
       */
 
       EMACS_INT slot_n = XFIXNUM (CALL1I (comp-mvar-slot, arg[0]));
+      eassert (slot_n < INT_MAX);
       gcc_jit_rvalue *n =
 	gcc_jit_context_new_rvalue_from_int (comp.ctxt,
 					     comp.ptrdiff_type,
@@ -3805,6 +3808,7 @@ declare_lex_function (Lisp_Object func)
   if (!nargs)
     {
       EMACS_INT max_args = XFIXNUM (CALL1I (comp-args-max, args));
+      eassert (max_args < INT_MAX);
       gcc_jit_type **type = SAFE_ALLOCA (max_args * sizeof (*type));
       for (ptrdiff_t i = 0; i < max_args; i++)
 	type[i] = comp.lisp_obj_type;
@@ -3869,6 +3873,7 @@ compile_function (Lisp_Object func)
 {
   USE_SAFE_ALLOCA;
   comp.frame_size = XFIXNUM (CALL1I (comp-func-frame-size, func));
+  eassert (comp.frame_size < INT_MAX);
 
   comp.func = xmint_pointer (Fgethash (CALL1I (comp-func-c-name, func),
 				       comp.exported_funcs_h, Qnil));
@@ -4353,7 +4358,9 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   comp.func_relocs_local = NULL;
 
   comp.speed = XFIXNUM (CALL1I (comp-ctxt-speed, Vcomp_ctxt));
+  eassert (comp.speed < INT_MAX);
   comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
+  eassert (comp.debug < INT_MAX);
 
   if (comp.debug)
       gcc_jit_context_set_bool_option (comp.ctxt,
