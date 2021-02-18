@@ -88,7 +88,6 @@ using, but only when you also use Edebug."
 ;; because the byte compiler binds them; as a result, if edebug
 ;; is first loaded for a require in a compilation, they will be left unbound.
 
-;;;###autoload
 (defcustom edebug-all-defs nil
   "If non-nil, evaluating defining forms instruments for Edebug.
 This applies to `eval-defun', `eval-region', `eval-buffer', and
@@ -101,11 +100,6 @@ variable.  You may wish to make it local to each buffer with
 `emacs-lisp-mode-hook'."
   :type 'boolean)
 
-;; edebug-all-defs and edebug-all-forms need to be autoloaded
-;; because the byte compiler binds them; as a result, if edebug
-;; is first loaded for a require in a compilation, they will be left unbound.
-
-;;;###autoload
 (defcustom edebug-all-forms nil
   "Non-nil means evaluation of all forms will instrument for Edebug.
 This doesn't apply to loading or evaluations in the minibuffer.
@@ -457,66 +451,24 @@ the option `edebug-all-forms'."
 
 ;; We should somehow arrange to be able to do this
 ;; without actually replacing the eval-defun command.
-(defun edebug-eval-defun (edebug-it)
-  "Evaluate the top-level form containing point, or after point.
-
-If the current defun is actually a call to `defvar', then reset the
-variable using its initial value expression even if the variable
-already has some other value.  (Normally `defvar' does not change the
-variable's value if it already has a value.)  Treat `defcustom'
-similarly.  Reinitialize the face according to `defface' specification.
-
-With a prefix argument, instrument the code for Edebug.
-
-Setting option `edebug-all-defs' to a non-nil value reverses the meaning
+(defun edebug--eval-defun (orig-fun edebug-it)
+  "Setting option `edebug-all-defs' to a non-nil value reverses the meaning
 of the prefix argument.  Code is then instrumented when this function is
 invoked without a prefix argument.
 
 If acting on a `defun' for FUNCTION, and the function was instrumented,
 `Edebug: FUNCTION' is printed in the minibuffer.  If not instrumented,
-just FUNCTION is printed.
+just FUNCTION is printed."
+  (let* ((edebug-all-forms (not (eq (not edebug-it) (not edebug-all-defs))))
+	 (edebug-all-defs  edebug-all-forms))
+    (funcall orig-fun nil)))
 
-If not acting on a `defun', the result of evaluation is displayed in
-the minibuffer."
+(defun edebug-eval-defun (edebug-it)
+  (declare (obsolete "use eval-defun or edebug--eval-defun instead" "28.1"))
   (interactive "P")
-  (let* ((edebugging (not (eq (not edebug-it) (not edebug-all-defs))))
-	 (edebug-result)
-	 (form
-	  (let ((edebug-all-forms edebugging)
-		(edebug-all-defs (eq edebug-all-defs (not edebug-it))))
-	    (edebug-read-top-level-form))))
-    ;; This should be consistent with `eval-defun-1', but not the
-    ;; same, since that gets a macroexpanded form.
-    (cond ((and (eq (car form) 'defvar)
-		(cdr-safe (cdr-safe form)))
-	   ;; Force variable to be bound.
-	   (makunbound (nth 1 form)))
-	  ((and (eq (car form) 'defcustom)
-		(default-boundp (nth 1 form)))
-	   ;; Force variable to be bound.
-           ;; FIXME: Shouldn't this use the :setter or :initializer?
-	   (set-default (nth 1 form) (eval (nth 2 form) lexical-binding)))
-          ((eq (car form) 'defface)
-           ;; Reset the face.
-           (setq face-new-frame-defaults
-                 (assq-delete-all (nth 1 form) face-new-frame-defaults))
-           (put (nth 1 form) 'face-defface-spec nil)
-           (put (nth 1 form) 'face-documentation (nth 3 form))
-	   ;; See comments in `eval-defun-1' for purpose of code below
-	   (setq form (prog1 `(prog1 ,form
-				(put ',(nth 1 form) 'saved-face
-				     ',(get (nth 1 form) 'saved-face))
-				(put ',(nth 1 form) 'customized-face
-				     ,(nth 2 form)))
-			(put (nth 1 form) 'saved-face nil)))))
-    (setq edebug-result (eval (eval-sexp-add-defvars form) lexical-binding))
-    (if (not edebugging)
-	(prog1
-	    (prin1 edebug-result)
-	  (let ((str (eval-expression-print-format edebug-result)))
-	    (if str (princ str))))
-      edebug-result)))
-
+  (if (advice-member-p #'edebug--eval-defun 'eval-defun)
+      (eval-defun edebug-it)
+    (edebug--eval-defun #'eval-defun edebug-it)))
 
 ;;;###autoload
 (defalias 'edebug-defun 'edebug-eval-top-level-form)
@@ -588,12 +540,12 @@ already is one.)"
 (defun edebug-install-read-eval-functions ()
   (interactive)
   (add-function :around load-read-function #'edebug--read)
-  (advice-add 'eval-defun :override #'edebug-eval-defun))
+  (advice-add 'eval-defun :around #'edebug--eval-defun))
 
 (defun edebug-uninstall-read-eval-functions ()
   (interactive)
   (remove-function load-read-function #'edebug--read)
-  (advice-remove 'eval-defun #'edebug-eval-defun))
+  (advice-remove 'eval-defun #'edebug--eval-defun))
 
 ;;; Edebug internal data
 
