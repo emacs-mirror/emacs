@@ -5280,10 +5280,10 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	/* Check just once if this is a local build or Emacs was installed.  */
 	if (installation_state == UNKNOWN)
 	  {
-	    char *fname = SSDATA (concat2 (Vinvocation_directory,
-					   XCAR (comp_u->file)));
+	    Lisp_Object fname =
+	      concat2 (Vinvocation_directory, XCAR (comp_u->file));
 	    FILE *file;
-	    if ((file = fopen (fname, "r")))
+	    if ((file = emacs_fopen (SSDATA (ENCODE_FILE (fname)), "r")))
 	      {
 		fclose (file);
 		installation_state = INSTALLED;
