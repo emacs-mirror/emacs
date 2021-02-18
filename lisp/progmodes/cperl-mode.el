@@ -1764,12 +1764,12 @@ or as help on variables `cperl-tips', `cperl-problems',
     (setq-local syntax-propertize-function
                 (lambda (start end)
                   (goto-char start)
-                  ;; Even if cperl-fontify-syntaxically has already gone
+                  ;; Even if cperl-fontify-syntactically has already gone
                   ;; beyond `start', syntax-propertize has just removed
                   ;; syntax-table properties between start and end, so we have
                   ;; to re-apply them.
                   (setq cperl-syntax-done-to start)
-                  (cperl-fontify-syntaxically end))))
+                  (cperl-fontify-syntactically end))))
   (setq cperl-font-lock-multiline t) ; Not localized...
   (setq-local font-lock-multiline t)
   (setq-local font-lock-fontify-region-function
@@ -8407,7 +8407,7 @@ do extra unwind via `cperl-unwind-to-safe'."
     (setq end (point)))
   (font-lock-default-fontify-region beg end loudly))
 
-(defun cperl-fontify-syntaxically (end)
+(defun cperl-fontify-syntactically (end)
   ;; Some vars for debugging only
   ;; (message "Syntaxifying...")
   (let ((dbg (point)) (iend end) (idone cperl-syntax-done-to)

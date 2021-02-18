@@ -1015,7 +1015,7 @@ separate buffer, or a tooltip.
 *** New user option 'eldoc-documentation-strategy'.
 The built-in choices available for this user option let users compose
 the results of 'eldoc-documentation-functions' in various ways, even
-if some of those functions are sychronous and some asynchchronous.
+if some of those functions are synchronous and some asynchronous.
 The user option replaces 'eldoc-documentation-function', which is now
 obsolete.
 

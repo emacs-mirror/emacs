@@ -1997,7 +1997,7 @@ the beginning of the result if a multi-column character in
 
 If @var{ellipsis} is non-@code{nil}, it should be a string which will
 replace the end of @var{string} when it is truncated.  In this case,
-more charcaters will be removed from @var{string} to free enough space
+more characters will be removed from @var{string} to free enough space
 for @var{ellipsis} to fit within @var{width} columns.  However, if
 the display width of @var{string} is less than the display width of
 @var{ellipsis}, @var{ellipsis} will not be appended to the result.  If

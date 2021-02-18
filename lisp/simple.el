@@ -549,7 +549,7 @@ It must be called via `run-hook-with-args-until-success' with no arguments.
 If any function on this hook returns a non-nil value, `delete-selection-mode'
 will act on that value (see `delete-selection-helper') and will
 usually delete the region.  If all the functions on this hook return
-nil, it is an indiction that `self-insert-command' needs the region
+nil, it is an indication that `self-insert-command' needs the region
 untouched by `delete-selection-mode' and will itself do whatever is
 appropriate with the region.
 Any function on `post-self-insert-hook' that acts on the region should

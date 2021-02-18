@@ -642,7 +642,7 @@ MATCH is the pattern that needs to be matched, of the form:
 
 (defun pcase--split-pred (vars upat pat)
   "Indicate the overlap or mutual-exclusion between UPAT and PAT.
-More specifically retuns a pair (A . B) where A indicates whether PAT
+More specifically returns a pair (A . B) where A indicates whether PAT
 can match when UPAT has matched, and B does the same for the case
 where UPAT failed to match.
 A and B can be one of:
@@ -784,7 +784,7 @@ Otherwise, it defers to REST which is a list of branches of the form
 \(ELSE-MATCH ELSE-CODE . ELSE-VARS)."
   ;; Depending on the order in which we choose to check each of the MATCHES,
   ;; the resulting tree may be smaller or bigger.  So in general, we'd want
-  ;; to be careful to chose the "optimal" order.  But predicate
+  ;; to be careful to choose the "optimal" order.  But predicate
   ;; patterns make this harder because they create dependencies
   ;; between matches.  So we don't bother trying to reorder anything.
   (cond

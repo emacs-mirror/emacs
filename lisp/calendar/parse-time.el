@@ -29,7 +29,7 @@
 
 ;; `parse-time-string' parses a time in a string and returns a list of
 ;; values, just like `decode-time', where unspecified elements in the
-;; string are returned as nil (except unspecfied DST is returned as -1).
+;; string are returned as nil (except unspecified DST is returned as -1).
 ;; `encode-time' may be applied on these values to obtain an internal
 ;; time value.
 

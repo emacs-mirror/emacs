@@ -332,7 +332,7 @@ whose car is a symbol, it is `eval'uated to yield the validity.  If it
 is a string or list of strings, it represents a shell command to run
 to return a true or false shell value for the validity.
 
-The last matching entry in this structure takes presedence over
+The last matching entry in this structure takes precedence over
 preceding entries.")
 (put 'mailcap-mime-data 'risky-local-variable t)
 

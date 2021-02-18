@@ -3356,7 +3356,7 @@ the word mode."
 
 (defun isearch-lazy-count-format (&optional suffix-p)
   "Format the current match number and the total number of matches.
-When SUFFIX-P is non-nil, the returned string is indended for
+When SUFFIX-P is non-nil, the returned string is intended for
 isearch-message-suffix prompt.  Otherwise, for isearch-message-prefix."
   (let ((format-string (if suffix-p
                            lazy-count-suffix-format

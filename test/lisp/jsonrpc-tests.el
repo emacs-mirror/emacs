@@ -244,7 +244,7 @@
                        :timeout 1)
       ;; Wait another 0.5 secs just in case the success handlers of
       ;; one of these last two requests didn't quite have a chance to
-      ;; run (Emacs 25.2 apparentely needs this).
+      ;; run (Emacs 25.2 apparently needs this).
       (accept-process-output nil 0.5)
       (should second-deferred-went-through-p)
       (should (eq 1 n-deferred-1))

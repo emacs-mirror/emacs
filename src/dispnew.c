@@ -3328,7 +3328,7 @@ update_frame_with_menu (struct frame *f, int row, int col)
 }
 
 /* Update the mouse position for a frame F.  This handles both
-   updating the display for mouse-face propreties and updating the
+   updating the display for mouse-face properties and updating the
    help echo text.
 
    Returns the number of events generated.  */
