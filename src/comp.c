@@ -488,6 +488,11 @@ enum cast_kind_of_type
     kind_pointer
   };
 
+typedef struct {
+  EMACS_INT len;
+  gcc_jit_rvalue *r_val;
+} reloc_array_t;
+
 /* C side of the compiler context.  */
 
 typedef struct {
@@ -583,11 +588,11 @@ typedef struct {
   Lisp_Object imported_funcs_h; /* subr_name -> gcc_jit_field *reloc_field.  */
   Lisp_Object emitter_dispatcher;
   /* Synthesized struct holding data relocs.  */
-  gcc_jit_rvalue *data_relocs;
+  reloc_array_t data_relocs;
   /* Same as before but can't go in pure space. */
-  gcc_jit_rvalue *data_relocs_impure;
+  reloc_array_t data_relocs_impure;
   /* Same as before but content does not survive load phase. */
-  gcc_jit_rvalue *data_relocs_ephemeral;
+  reloc_array_t data_relocs_ephemeral;
   /* Global structure holding function relocations.  */
   gcc_jit_lvalue *func_relocs;
   gcc_jit_type *func_relocs_ptr_type;
@@ -610,7 +615,7 @@ typedef struct {
 } static_obj_t;
 
 typedef struct {
-  gcc_jit_rvalue *array;
+  reloc_array_t array;
   gcc_jit_rvalue *idx;
 } imm_reloc_t;
 
@@ -827,7 +832,9 @@ obj_to_reloc (Lisp_Object obj)
   xsignal1 (Qnative_ice,
 	    build_string ("cant't find data in relocation containers"));
   assume (false);
+
  found:
+  eassert (XFIXNUM (idx) < reloc.array.len);
   if (!FIXNUMP (idx))
     xsignal1 (Qnative_ice,
 	      build_string ("inconsistent data relocation container"));
@@ -1558,7 +1565,7 @@ emit_lisp_obj_reloc_lval (Lisp_Object obj)
   imm_reloc_t reloc = obj_to_reloc (obj);
   return gcc_jit_context_new_array_access (comp.ctxt,
 					   NULL,
-					   reloc.array,
+					   reloc.array.r_val,
 					   reloc.idx);
 }
 
@@ -2270,7 +2277,7 @@ emit_limple_insn (Lisp_Object insn)
 	gcc_jit_lvalue_as_rvalue (
 	  gcc_jit_context_new_array_access (comp.ctxt,
 					    NULL,
-					    reloc.array,
+					    reloc.array.r_val,
 					    reloc.idx)));
     }
   else if (EQ (op, Qcomment))
@@ -2608,18 +2615,19 @@ emit_static_object (const char *name, Lisp_Object obj)
 }
 #pragma GCC diagnostic pop
 
-static gcc_jit_rvalue *
+static reloc_array_t
 declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
 			      const char *text_symbol)
 {
   /* Imported objects.  */
-  EMACS_INT d_reloc_len =
+  reloc_array_t res;
+  res.len =
     XFIXNUM (CALL1I (hash-table-count,
 		     CALL1I (comp-data-container-idx, container)));
   Lisp_Object d_reloc = CALL1I (comp-data-container-l, container);
   d_reloc = Fvconcat (1, &d_reloc);
 
-  gcc_jit_rvalue *reloc_struct =
+  res.r_val =
     gcc_jit_lvalue_as_rvalue (
       gcc_jit_context_new_global (
 	comp.ctxt,
@@ -2628,12 +2636,12 @@ declare_imported_data_relocs (Lisp_Object container, const char *code_symbol,
 	gcc_jit_context_new_array_type (comp.ctxt,
 					NULL,
 					comp.lisp_obj_type,
-					d_reloc_len),
+					res.len),
 	code_symbol));
 
   emit_static_object (text_symbol, d_reloc);
 
-  return reloc_struct;
+  return res;
 }
 
 static void
