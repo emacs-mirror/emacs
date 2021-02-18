@@ -890,7 +890,7 @@ Return (REGEXP . PRECEDENCE)."
                                (* (or (seq "[:" (+ (any "a-z")) ":]")
                                       (not (any "]"))))
                                "]")
-                          anything
+                          (not (any "*+?^$[\\"))
                           (seq "\\"
                                (or anything
                                    (seq (any "sScC_") anything)
