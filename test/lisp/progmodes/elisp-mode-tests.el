@@ -398,18 +398,21 @@ to (xref-elisp-test-descr-to-target xref)."
     "(cl-defstruct (xref-elisp-location")
    ))
 
+(require 'em-xtra)
+(require 'find-dired)
 (xref-elisp-deftest find-defs-defalias-defun-el
-  (elisp--xref-find-definitions 'Buffer-menu-sort)
+  (elisp--xref-find-definitions 'eshell/ff)
   (list
-   (xref-make "(defalias Buffer-menu-sort)"
+   (xref-make "(defalias eshell/ff)"
 	      (xref-make-elisp-location
-	       'Buffer-menu-sort 'defalias
-	       (expand-file-name "../../../lisp/buff-menu.elc" emacs-test-dir)))
-   (xref-make "(defun tabulated-list-sort)"
+	       'eshell/ff 'defalias
+	       (expand-file-name "../../../lisp/eshell/em-xtra.elc"
+                                 emacs-test-dir)))
+   (xref-make "(defun find-name-dired)"
 	      (xref-make-elisp-location
-	       'tabulated-list-sort nil
-	       (expand-file-name "../../../lisp/emacs-lisp/tabulated-list.el" emacs-test-dir)))
-   ))
+	       'find-name-dired nil
+	       (expand-file-name "../../../lisp/find-dired.el"
+                                 emacs-test-dir)))))
 
 ;; FIXME: defconst
 

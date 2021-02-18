@@ -242,7 +242,7 @@ interactively.  If there's no argument, do it at the current buffer."
 (defun smiley-toggle-buffer (&optional arg)
   "Toggle displaying smiley faces in article buffer.
 With arg, turn displaying on if and only if arg is positive."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
     (if (if (numberp arg)
 	    (> arg 0)

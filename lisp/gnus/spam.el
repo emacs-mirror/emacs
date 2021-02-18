@@ -1604,7 +1604,6 @@ parameters.  A string as a parameter will set the
 `spam-split-group' to that string.
 
 See the Info node `(gnus)Fancy Mail Splitting' for more details."
-  (interactive)
   (setq spam-split-last-successful-check nil)
   (unless spam-split-disabled
     (let ((spam-split-group-choice spam-split-group))
@@ -1654,7 +1653,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 (defun spam-find-spam ()
   "Detect spam in the current newsgroup using `spam-split'."
-  (interactive)
+  (interactive nil gnus-summary-mode)
 
   (let* ((group gnus-newsgroup-name)
          (autodetect (gnus-parameter-spam-autodetect group))
@@ -2434,7 +2433,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 ;; return something sensible if the score can't be determined
 (defun spam-bogofilter-score (&optional recheck)
   "Get the Bogofilter spamicity score."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (save-window-excursion
     (gnus-summary-show-article t)
     (set-buffer gnus-article-buffer)
@@ -2606,7 +2605,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 ;; return something sensible if the score can't be determined
 (defun spam-spamassassin-score (&optional recheck)
   "Get the SpamAssassin score."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (save-window-excursion
     (gnus-summary-show-article t)
     (set-buffer gnus-article-buffer)
@@ -2673,7 +2672,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 ;; return something sensible if the score can't be determined
 (defun spam-bsfilter-score (&optional recheck)
   "Get the Bsfilter spamicity score."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (save-window-excursion
     (gnus-summary-show-article t)
     (set-buffer gnus-article-buffer)
@@ -2759,7 +2758,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 ;; return something sensible if the score can't be determined
 (defun spam-crm114-score ()
   "Get the CRM114 Mailfilter pR."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (save-window-excursion
     (gnus-summary-show-article t)
     (set-buffer gnus-article-buffer)

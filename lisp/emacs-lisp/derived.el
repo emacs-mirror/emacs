@@ -141,6 +141,9 @@ KEYWORD-ARGS:
            :after-hook FORM
                    A single lisp form which is evaluated after the mode
                    hooks have been run.  It should not be quoted.
+           :interactive BOOLEAN
+                   Whether the derived mode should be `interactive' or not.
+                   The default is t.
 
 BODY:      forms to execute just before running the
            hooks for the new mode.  Do not use `interactive' here.
@@ -194,6 +197,7 @@ See Info node `(elisp)Derived Modes' for more details.
 	(declare-syntax t)
 	(hook (derived-mode-hook-name child))
 	(group nil)
+        (interactive t)
         (after-hook nil))
 
     ;; Process the keyword args.
@@ -203,6 +207,7 @@ See Info node `(elisp)Derived Modes' for more details.
 	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
 	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
         (:after-hook (setq after-hook (pop body)))
+        (:interactive (setq interactive (pop body)))
 	(_ (pop body))))
 
     (setq docstring (derived-mode-make-docstring
@@ -246,7 +251,7 @@ No problems result if this variable is not bound.
 
        (defun ,child ()
 	 ,docstring
-	 (interactive)
+	 ,(and interactive '(interactive))
 					; Run the parent.
 	 (delay-mode-hooks
 

@@ -214,7 +214,7 @@ There are currently two built-in format functions:
 (defun gnus-summary-sort-by-schedule (&optional reverse)
   "Sort nndiary summary buffers by schedule of appointments.
 Optional prefix (or REVERSE argument) means sort in reverse order."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (gnus-summary-sort 'schedule reverse))
 
 (defvar gnus-summary-misc-menu) ;; Avoid byte compiler warning.
@@ -322,7 +322,7 @@ This function checks that all NNDiary required headers are present and
 valid, and prompts for values / correction otherwise.
 
 If ARG (or prefix) is non-nil, force prompting for all fields."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (save-excursion
     (mapcar
      (lambda (head)

@@ -338,6 +338,9 @@ struct buffer
   /* Symbol naming major mode (e.g., lisp-mode).  */
   Lisp_Object major_mode_;
 
+  /* Symbol listing all currently enabled minor modes.  */
+  Lisp_Object local_minor_modes_;
+
   /* Pretty name of major mode (e.g., "Lisp"). */
   Lisp_Object mode_name_;
 

@@ -463,7 +463,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
   (if (pcomplete-match "/")
       (pcomplete-here (pcomplete-entries nil
 					 (if shell-completion-execonly
-					     'file-executable-p)))
+					     #'file-executable-p)))
     (pcomplete-here
      (nth 2 (shell--command-completion-data)))))
 
@@ -556,8 +556,7 @@ Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and `comint-scroll-to-bottom-on-output'
 control whether input and output cause the window to scroll to the end of the
 buffer."
-  (when (called-interactively-p 'any)
-    (error "Can't be called interactively; did you mean `shell-script-mode' instead?"))
+  :interactive nil
   (setq comint-prompt-regexp shell-prompt-pattern)
   (shell-completion-vars)
   (setq-local paragraph-separate "\\'")

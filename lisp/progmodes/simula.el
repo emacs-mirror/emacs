@@ -51,16 +51,14 @@ the run of whitespace at the beginning of the line.")
   "Non-nil means TAB in SIMULA mode should always reindent the current line.
 Otherwise TAB indents only when point is within
 the run of whitespace at the beginning of the line."
-  :type 'boolean
-  :group 'simula)
+  :type 'boolean)
 
 (defconst simula-indent-level-default 3
   "Indentation of SIMULA statements with respect to containing block.")
 
 (defcustom simula-indent-level simula-indent-level-default
   "Indentation of SIMULA statements with respect to containing block."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 
 (defconst simula-substatement-offset-default 3
@@ -68,8 +66,7 @@ the run of whitespace at the beginning of the line."
 
 (defcustom simula-substatement-offset simula-substatement-offset-default
   "Extra indentation after DO, THEN, ELSE, WHEN and OTHERWISE."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 (defconst simula-continued-statement-offset-default 3
   "Extra indentation for lines not starting a statement or substatement.
@@ -83,16 +80,14 @@ the previous line of the statement.")
 If value is a list, each line in a multipleline continued statement
 will have the car of the list extra indentation with respect to
 the previous line of the statement."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 (defconst simula-label-offset-default -4711
   "Offset of SIMULA label lines relative to usual indentation.")
 
 (defcustom simula-label-offset simula-label-offset-default
   "Offset of SIMULA label lines relative to usual indentation."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 (defconst simula-if-indent-default '(0 . 0)
   "Extra indentation of THEN and ELSE with respect to the starting IF.
@@ -103,8 +98,7 @@ extra ELSE indentation.  IF after ELSE is indented as the starting IF.")
   "Extra indentation of THEN and ELSE with respect to the starting IF.
 Value is a cons cell, the car is extra THEN indentation and the cdr
 extra ELSE indentation.  IF after ELSE is indented as the starting IF."
-  :type '(cons integer integer)
-  :group 'simula)
+  :type '(cons integer integer))
 
 (defconst simula-inspect-indent-default '(0 . 0)
   "Extra indentation of WHEN and OTHERWISE with respect to the INSPECT.
@@ -115,16 +109,14 @@ and the cdr extra OTHERWISE indentation.")
   "Extra indentation of WHEN and OTHERWISE with respect to the INSPECT.
 Value is a cons cell, the car is extra WHEN indentation
 and the cdr extra OTHERWISE indentation."
-  :type '(cons integer integer)
-  :group 'simula)
+  :type '(cons integer integer))
 
 (defconst simula-electric-indent-default nil
   "Non-nil means `simula-indent-line' function may reindent previous line.")
 
 (defcustom simula-electric-indent simula-electric-indent-default
   "Non-nil means `simula-indent-line' function may reindent previous line."
-  :type 'boolean
-  :group 'simula)
+  :type 'boolean)
 
 (defconst simula-abbrev-keyword-default 'upcase
   "Specify how to convert case for SIMULA keywords.
@@ -135,8 +127,7 @@ Value is one of the symbols `upcase', `downcase', `capitalize',
   "Specify how to convert case for SIMULA keywords.
 Value is one of the symbols `upcase', `downcase', `capitalize',
 \(as in) `abbrev-table' or nil if they should not be changed."
-  :type '(choice (const upcase) (const downcase) (const capitalize)(const nil))
-  :group 'simula)
+  :type '(choice (const upcase) (const downcase) (const capitalize)(const nil)))
 
 (defconst simula-abbrev-stdproc-default 'abbrev-table
   "Specify how to convert case for standard SIMULA procedure and class names.
@@ -148,16 +139,14 @@ Value is one of the symbols `upcase', `downcase', `capitalize',
 Value is one of the symbols `upcase', `downcase', `capitalize',
 \(as in) `abbrev-table', or nil if they should not be changed."
   :type '(choice (const upcase) (const downcase) (const capitalize)
-	  (const abbrev-table) (const nil))
-  :group 'simula)
+          (const abbrev-table) (const nil)))
 
 (defcustom simula-abbrev-file nil
   "File with extra abbrev definitions for use in SIMULA mode.
 These are used together with the standard abbrev definitions for SIMULA.
 Please note that the standard definitions are required
 for SIMULA mode to function correctly."
-  :type '(choice file (const nil))
-  :group 'simula)
+  :type '(choice file (const nil)))
 
 (defvar simula-mode-syntax-table nil
   "Syntax table in SIMULA mode buffers.")

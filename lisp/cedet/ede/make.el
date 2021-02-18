@@ -1,4 +1,4 @@
-;;; ede/make.el --- General information about "make"
+;;; ede/make.el --- General information about "make"  -*- lexical-binding: t -*-
 
 ;;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 

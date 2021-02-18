@@ -1,4 +1,4 @@
-;;; ede-system.el --- EDE working with the system (VC, FTP, ETC)
+;;; ede-system.el --- EDE working with the system (VC, FTP, ETC)  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2001-2003, 2009-2021 Free Software Foundation, Inc.
 

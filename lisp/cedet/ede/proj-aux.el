@@ -1,4 +1,4 @@
-;;; ede/proj-aux.el --- EDE Generic Project auxiliary file support
+;;; ede/proj-aux.el --- EDE Generic Project auxiliary file support  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2000, 2007, 2009-2021 Free Software Foundation,
 ;; Inc.

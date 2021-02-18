@@ -1120,10 +1120,6 @@ void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
 
 extern Lisp_Object echo_area_window;
 
-/* Depth in recursive edits.  */
-
-extern EMACS_INT command_loop_level;
-
 /* Non-zero if we should redraw the mode lines on the next redisplay.
    Usually set to a unique small integer so we can track the main causes of
    full redisplays in `redisplay--mode-lines-cause'.  */

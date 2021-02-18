@@ -662,7 +662,7 @@ This is the string that Gnus uses to identify the group."
   "Look up the current article in the group where it originated.
 This command only makes sense for groups shows articles gathered
 from other groups -- for instance, search results and the like."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (let ((gnus-command-method
          (gnus-find-method-for-group gnus-newsgroup-name)))
     (or

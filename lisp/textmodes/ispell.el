@@ -131,8 +131,7 @@
 (defcustom ispell-highlight-p 'block
   "Highlight spelling errors when non-nil.
 When set to `block', assumes a block cursor with TTY displays."
-  :type '(choice (const block) (const :tag "off" nil) (const :tag "on" t))
-  :group 'ispell)
+  :type '(choice (const block) (const :tag "off" nil) (const :tag "on" t)))
 
 (defcustom ispell-lazy-highlight (boundp 'lazy-highlight-cleanup)
   "Controls the lazy-highlighting of spelling errors.
@@ -141,7 +140,6 @@ error is highlighted lazily using isearch lazy highlighting (see
 `lazy-highlight-initial-delay' and `lazy-highlight-interval')."
   :type 'boolean
   :group 'lazy-highlight
-  :group 'ispell
   :version "22.1")
 
 (defcustom ispell-highlight-face (if ispell-lazy-highlight 'isearch 'highlight)
@@ -149,16 +147,14 @@ error is highlighted lazily using isearch lazy highlighting (see
 This variable can be set by the user to whatever face they desire.
 It's most convenient if the cursor color and highlight color are
 slightly different."
-  :type 'face
-  :group 'ispell)
+  :type 'face)
 
 (defcustom ispell-check-comments t
   "Spelling of comments checked when non-nil.
 When set to `exclusive', ONLY comments are checked.  (For code comments).
 Warning!  Not checking comments, when a comment start is embedded in strings,
 may produce undesired results."
-  :type '(choice (const exclusive) (const :tag "off" nil) (const :tag "on" t))
-  :group 'ispell)
+  :type '(choice (const exclusive) (const :tag "off" nil) (const :tag "on" t)))
 ;;;###autoload
 (put 'ispell-check-comments 'safe-local-variable
      (lambda (a) (memq a '(nil t exclusive))))
@@ -166,8 +162,7 @@ may produce undesired results."
 (defcustom ispell-query-replace-choices nil
   "Corrections made throughout region when non-nil.
 Uses `query-replace' (\\[query-replace]) for corrections."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defcustom ispell-skip-tib nil
   "Does not spell check `tib' bibliography references when non-nil.
@@ -177,8 +172,7 @@ Skips any text between strings matching regular expressions
 TeX users beware:  Any text between [. and .] will be skipped -- even if
 that's your whole buffer -- unless you set `ispell-skip-tib' to nil.
 That includes the [.5mm] type of number..."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defvar ispell-tib-ref-beginning "[[<]\\."
   "Regexp matching the beginning of a Tib reference.")
@@ -189,14 +183,12 @@ That includes the [.5mm] type of number..."
 (defcustom ispell-keep-choices-win t
   "If non-nil, keep the `*Choices*' window for the entire spelling session.
 This minimizes redisplay thrashing."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defcustom ispell-choices-win-default-height 2
   "The default size of the `*Choices*' window, including the mode line.
 Must be greater than 1."
-  :type 'integer
-  :group 'ispell)
+  :type 'integer)
 
 (defcustom ispell-program-name
   (or (executable-find "aspell")
@@ -211,8 +203,7 @@ Must be greater than 1."
   :set (lambda (symbol value)
          (set-default symbol value)
          (if (featurep 'ispell)
-             (ispell-set-spellchecker-params)))
-  :group 'ispell)
+             (ispell-set-spellchecker-params))))
 
 (defcustom ispell-alternate-dictionary
   (cond ((file-readable-p "/usr/dict/web2") "/usr/dict/web2")
@@ -224,14 +215,12 @@ Must be greater than 1."
 	 "/usr/share/lib/dict/words")
 	((file-readable-p "/sys/dict") "/sys/dict"))
   "Alternate plain word-list dictionary for spelling help."
-  :type '(choice file (const :tag "None" nil))
-  :group 'ispell)
+  :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-complete-word-dict nil
   "Plain word-list dictionary used for word completion if
 different from `ispell-alternate-dictionary'."
-  :type '(choice file (const :tag "None" nil))
-  :group 'ispell)
+  :type '(choice file (const :tag "None" nil)))
 
 (defcustom ispell-message-dictionary-alist nil
   "List used by `ispell-message' to select a new dictionary.
@@ -241,29 +230,25 @@ DICTIONARY if `ispell-local-dictionary' is not buffer-local.
 E.g. you may use the following value:
    ((\"^Newsgroups:[ \\t]*de\\\\.\" . \"deutsch8\")
     (\"^To:[^\\n,]+\\\\.de[ \\t\\n,>]\" . \"deutsch8\"))"
-  :type '(repeat (cons regexp string))
-  :group 'ispell)
+  :type '(repeat (cons regexp string)))
 
 
 (defcustom ispell-message-fcc-skip 50000
   "Query before saving Fcc message copy if attachment larger than this value.
 Always stores Fcc copy of message when nil."
-  :type '(choice integer (const :tag "off" nil))
-  :group 'ispell)
+  :type '(choice integer (const :tag "off" nil)))
 
 
 (defcustom ispell-grep-command
   "grep"
   "Name of the grep command for search processes."
-  :type 'string
-  :group 'ispell)
+  :type 'string)
 
 (defcustom ispell-grep-options
   "-Ei"
   "String of options to use when running the program in `ispell-grep-command'.
 Should probably be \"-Ei\"."
-  :type 'string
-  :group 'ispell)
+  :type 'string)
 
 (defcustom ispell-look-command
   (cond ((file-exists-p "/bin/look") "/bin/look")
@@ -272,36 +257,30 @@ Should probably be \"-Ei\"."
 	(t "look"))
   "Name of the look command for search processes.
 This must be an absolute file name."
-  :type 'file
-  :group 'ispell)
+  :type 'file)
 
 (defcustom ispell-look-p (file-exists-p ispell-look-command)
   "Non-nil means use `look' rather than `grep'.
 Default is based on whether `look' seems to be available."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defcustom ispell-have-new-look nil
   "Non-nil means use the `-r' option (regexp) when running `look'."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defcustom ispell-look-options (if ispell-have-new-look "-dfr" "-df")
   "String of command options for `ispell-look-command'."
-  :type 'string
-  :group 'ispell)
+  :type 'string)
 
 (defcustom ispell-use-ptys-p nil
   "When non-nil, Emacs uses ptys to communicate with Ispell.
 When nil, Emacs uses pipes."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defcustom ispell-following-word nil
   "Non-nil means `ispell-word' checks the word around or after point.
 Otherwise `ispell-word' checks the preceding word."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defcustom ispell-help-in-bufferp nil
   "Non-nil means display interactive keymap help in a buffer.
@@ -312,21 +291,18 @@ The following values are supported:
              for a couple of seconds.
   electric   Pop up a new buffer and display a long help message there.
              User can browse and then exit the help mode."
-  :type '(choice (const electric) (const :tag "off" nil) (const :tag "on" t))
-  :group 'ispell)
+  :type '(choice (const electric) (const :tag "off" nil) (const :tag "on" t)))
 
 (defcustom ispell-quietly nil
   "Non-nil means suppress messages in `ispell-word'."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defvaralias 'ispell-format-word 'ispell-format-word-function)
 
 (defcustom ispell-format-word-function (function upcase)
   "Formatting function for displaying word being spell checked.
 The function must take one string argument and return a string."
-  :type 'function
-  :group 'ispell)
+  :type 'function)
 
 ;; FIXME framepop.el last updated c 2003 (?),
 ;; use posframe.
@@ -335,21 +311,18 @@ The function must take one string argument and return a string."
 You can set this variable to dynamically use framepop if you are in a
 window system by evaluating the following on startup to set this variable:
   (and (display-graphic-p) (require \\='framepop nil t))"
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 ;;;###autoload
 (defcustom ispell-personal-dictionary nil
   "File name of your personal spelling dictionary, or nil.
 If nil, the default personal dictionary for your spelling checker is used."
   :type '(choice file
-		 (const :tag "default" nil))
-  :group 'ispell)
+                 (const :tag "default" nil)))
 
 (defcustom ispell-silently-savep nil
   "When non-nil, save personal dictionary without asking for confirmation."
-  :type 'boolean
-  :group 'ispell)
+  :type 'boolean)
 
 (defvar-local ispell-local-dictionary-overridden nil
   "Non-nil means the user has explicitly set this buffer's Ispell dictionary.")
@@ -366,8 +339,7 @@ calling \\[ispell-change-dictionary] with that value.  This variable
 is automatically set when defined in the file with either
 `ispell-dictionary-keyword' or the Local Variable syntax."
   :type '(choice string
-		 (const :tag "default" nil))
-  :group 'ispell)
+                 (const :tag "default" nil)))
 ;;;###autoload
 (put 'ispell-local-dictionary 'safe-local-variable 'string-or-null-p)
 
@@ -376,16 +348,14 @@ is automatically set when defined in the file with either
 (defcustom ispell-dictionary nil
   "Default dictionary to use if `ispell-local-dictionary' is nil."
   :type '(choice string
-		 (const :tag "default" nil))
-  :group 'ispell)
+                 (const :tag "default" nil)))
 
 (defcustom ispell-extra-args nil
   "If non-nil, a list of extra switches to pass to the Ispell program.
 For example, (\"-W\" \"3\") to cause it to accept all 1-3 character
 words as correct.  See also `ispell-dictionary-alist', which may be used
 for language-specific arguments."
-  :type '(repeat string)
-  :group 'ispell)
+  :type '(repeat string))
 
 
 
@@ -400,8 +370,7 @@ such as \"&amp;\".  See `ispell-html-skip-alists' for more details.
 
 This variable affects spell-checking of HTML, XML, and SGML files."
   :type '(choice (const :tag "always" t) (const :tag "never" nil)
-		 (const :tag "use-mode-name" use-mode-name))
-  :group 'ispell)
+                 (const :tag "use-mode-name" use-mode-name)))
 
 (make-variable-buffer-local 'ispell-skip-html)
 
@@ -427,8 +396,7 @@ re-start Emacs."
 			       (const "~nroff") (const "~list")
 			       (const "~latin1") (const "~latin3")
  			       (const :tag "default" nil))
-		       (coding-system :tag "Coding System")))
-  :group 'ispell)
+                       (coding-system :tag "Coding System"))))
 
 
 (defvar ispell-dictionary-base-alist

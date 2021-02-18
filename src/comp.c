@@ -4376,8 +4376,6 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   comp.d_ephemeral_idx =
     CALL1I (comp-data-container-idx, CALL1I (comp-ctxt-d-ephemeral, Vcomp_ctxt));
 
-  ptrdiff_t count = 0;
-
   emit_ctxt_code ();
 
   /* Define inline functions.  */

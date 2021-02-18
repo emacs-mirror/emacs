@@ -1211,7 +1211,34 @@ Return a list of results."
 	             (= x 3))
            (error "Not foo or 3"))
          x)
-       (or (member foo) (integer 3 3)))))
+       (or (member foo) (integer 3 3)))
+
+      ;;58
+      ((defun comp-tests-ret-type-spec-f (x y)
+         (if (and (natnump x)
+                  (natnump y)
+                  (<= x y))
+             x
+           (error "")))
+       (integer 0 *))
+
+      ;; 59
+      ((defun comp-tests-ret-type-spec-f (x y)
+         (if (and (>= x 3)
+                  (<= y 10)
+                  (<= x y))
+             x
+           (error "")))
+       (or float (integer 3 10)))
+
+      ;; 60
+      ((defun comp-tests-ret-type-spec-f (x y)
+		    (if (and (<= x 10)
+			     (>= y 3)
+			     (>= x y))
+             x
+           (error "")))
+       (or float (integer 3 10)))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

@@ -69,7 +69,6 @@
 
 (defcustom cfengine-indent 2
   "Size of a CFEngine indentation step in columns."
-  :group 'cfengine
   :type 'integer)
 
 (defcustom cfengine-cf-promises
@@ -86,7 +85,6 @@ Used for syntax discovery and checking.  Set to nil to disable
 the `compile-command' override.  In that case, the ElDoc support
 will use a fallback syntax definition."
   :version "24.4"
-  :group 'cfengine
   :type '(choice file (const nil)))
 
 (defcustom cfengine-parameters-indent '(promise pname 2)
@@ -145,7 +143,6 @@ bundle agent rcfiles
 }
 "
   :version "24.4"
-  :group 'cfengine
   :type '(list
           (choice (const :tag "Anchor at beginning of promise" promise)
                   (const :tag "Anchor at beginning of line" bol))
@@ -799,7 +796,6 @@ bundle agent rcfiles
 
 (defcustom cfengine-mode-abbrevs nil
   "Abbrevs for CFEngine2 mode."
-  :group 'cfengine
   :type '(repeat (list (string :tag "Name")
 		       (string :tag "Expansion")
 		       (choice  :tag "Hook" (const nil) function))))

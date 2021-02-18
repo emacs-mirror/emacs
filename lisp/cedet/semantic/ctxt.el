@@ -1,4 +1,4 @@
-;;; semantic/ctxt.el --- Context calculations for Semantic tools.
+;;; semantic/ctxt.el --- Context calculations for Semantic tools  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -137,18 +137,16 @@ Return non-nil if there is no upper context."
 
 (defmacro semantic-with-buffer-narrowed-to-context (&rest body)
   "Execute BODY with the buffer narrowed to the current context."
+  (declare (indent 0) (debug t))
   `(save-restriction
      (semantic-narrow-to-context)
      ,@body))
-(put 'semantic-with-buffer-narrowed-to-context 'lisp-indent-function 0)
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec semantic-with-buffer-narrowed-to-context
-	      (def-body))))
 
 ;;; Local Variables
 ;;
-;;
+
+(defvar semantic--progress-reporter)
+
 (define-overloadable-function semantic-get-local-variables (&optional point)
   "Get the local variables based on POINT's context.
 Local variables are returned in Semantic tag format.
@@ -345,14 +343,10 @@ beginning and end of a command."
 
 (defmacro semantic-with-buffer-narrowed-to-command (&rest body)
   "Execute BODY with the buffer narrowed to the current command."
+  (declare (indent 0) (debug t))
   `(save-restriction
      (semantic-narrow-to-command)
      ,@body))
-(put 'semantic-with-buffer-narrowed-to-command 'lisp-indent-function 0)
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec semantic-with-buffer-narrowed-to-command
-	      (def-body))))
 
 (define-overloadable-function semantic-ctxt-end-of-symbol (&optional point)
   "Move point to the end of the current symbol under POINT.
@@ -374,7 +368,7 @@ work on C like languages."
 	 ;; NOTE: The [ \n] expression below should used \\s-, but that
 	 ;; doesn't work in C since \n means end-of-comment, and isn't
 	 ;; really whitespace.
-	 (fieldsep (concat "[ \t\n\r]*\\(" fieldsep1 "\\)[ \t\n\r]*\\(\\w\\|\\s_\\)"))
+	 ;;(fieldsep (concat "[ \t\n\r]*\\(" fieldsep1 "\\)[ \t\n\r]*\\(\\w\\|\\s_\\)"))
 	 (case-fold-search semantic-case-fold)
 	 (continuesearch t)
 	 (end nil)
@@ -655,7 +649,7 @@ POINT defaults to the value of point in current buffer.
 You should override this function in multiple mode buffers to
 determine which major mode apply at point.")
 
-(defun semantic-ctxt-current-mode-default (&optional point)
+(defun semantic-ctxt-current-mode-default (&optional _point)
   "Return the major mode active at POINT.
 POINT defaults to the value of point in current buffer.
 This default implementation returns the current major mode."
@@ -671,7 +665,7 @@ The return value can be a mixed list of either strings (names of
 types that are in scope) or actual tags (type declared locally
 that may or may not have a name.)")
 
-(defun semantic-ctxt-scoped-types-default (&optional point)
+(defun semantic-ctxt-scoped-types-default (&optional _point)
   "Return a list of scoped types by name for the current context at POINT.
 This is very different for various languages, and does nothing unless
 overridden."

@@ -455,6 +455,7 @@ negative integer or 0, nil is returned."
         (setq sequence (seq-drop sequence n)))
       (nreverse result))))
 
+;;;###autoload
 (cl-defgeneric seq-intersection (sequence1 sequence2 &optional testfn)
   "Return a list of the elements that appear in both SEQUENCE1 and SEQUENCE2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."

@@ -132,11 +132,12 @@ For instance, to insert an X-Face use `gnus-random-x-face' as FUN
 
 Files matching `gnus-x-face-omit-files' are not considered."
   (interactive)
-  (gnus--random-face-with-type gnus-x-face-directory "\\.pbm$" gnus-x-face-omit-files
-                         (lambda (file)
-                           (gnus-shell-command-to-string
-                            (format gnus-convert-pbm-to-x-face-command
-                                    (shell-quote-argument file))))))
+  (gnus--random-face-with-type
+   gnus-x-face-directory "\\.pbm$" gnus-x-face-omit-files
+   (lambda (file)
+     (gnus-shell-command-to-string
+      (format gnus-convert-pbm-to-x-face-command
+	      (shell-quote-argument file))))))
 
 ;;;###autoload
 (defun gnus-insert-random-x-face-header ()
@@ -231,8 +232,8 @@ FILE should be a PNG file that's 48x48 and smaller than or equal to
 Files matching `gnus-face-omit-files' are not considered."
   (interactive)
   (gnus--random-face-with-type gnus-face-directory "\\.png$"
-                         gnus-face-omit-files
-                         'gnus-convert-png-to-face))
+                               gnus-face-omit-files
+                               'gnus-convert-png-to-face))
 
 ;;;###autoload
 (defun gnus-insert-random-face-header ()
@@ -277,7 +278,6 @@ colors of the displayed X-Faces."
 
 (defun gnus-grab-cam-x-face ()
   "Grab a picture off the camera and make it into an X-Face."
-  (interactive)
   (shell-command "xawtv-remote snap ppm")
   (let ((file nil))
     (while (null (setq file (directory-files "/tftpboot/sparky/tmp"
@@ -289,13 +289,11 @@ colors of the displayed X-Faces."
        (format "pnmcut -left 110 -top 30 -width 144 -height 144 '%s' | ppmnorm 2>%s | pnmscale -width 48 | ppmtopgm | pgmtopbm -threshold -value 0.92 | pbmtoxbm | compface"
 	       file null-device)
        (current-buffer))
-      ;;(sleep-for 3)
       (delete-file file)
       (buffer-string))))
 
 (defun gnus-grab-cam-face ()
   "Grab a picture off the camera and make it into an X-Face."
-  (interactive)
   (shell-command "xawtv-remote snap ppm")
   (let ((file nil)
 	(tempfile (make-temp-file "gnus-face-" nil ".ppm"))
@@ -312,7 +310,6 @@ colors of the displayed X-Faces."
 		   (gnus-fun-ppm-change-string))))
       (setq result (gnus-face-from-file tempfile)))
     (delete-file file)
-    ;;(delete-file tempfile)    ; FIXME why are we not deleting it?!
     result))
 
 (defun gnus-fun-ppm-change-string ()

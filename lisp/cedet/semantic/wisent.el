@@ -1,4 +1,4 @@
-;;; semantic/wisent.el --- Wisent - Semantic gateway
+;;; semantic/wisent.el --- Wisent - Semantic gateway  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2007, 2009-2021 Free Software Foundation, Inc.
 
@@ -69,6 +69,7 @@ Returned tokens must have the form:
   (TOKSYM VALUE START . END)
 
 where VALUE is the buffer substring between START and END positions."
+  (declare (debug (&define name stringp def-body)))
   `(defun
      ,name () ,doc
      (cond
@@ -319,18 +320,6 @@ the standard function `semantic-parse-region'."
 		       (point-max))))))
     ;; Return parse tree
     (nreverse ptree)))
-
-;;; Interfacing with edebug
-;;
-(add-hook
- 'edebug-setup-hook
- #'(lambda ()
-
-     (def-edebug-spec define-wisent-lexer
-       (&define name stringp def-body)
-       )
-
-     ))
 
 (provide 'semantic/wisent)
 

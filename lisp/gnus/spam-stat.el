@@ -575,7 +575,6 @@ check the variable `spam-stat-score-data'."
 
 (defun spam-stat-count ()
   "Return size of `spam-stat'."
-  (interactive)
   (hash-table-count spam-stat))
 
 (defun spam-stat-test-directory (dir &optional verbose)

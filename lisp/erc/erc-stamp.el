@@ -4,7 +4,7 @@
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, processes, timestamp
+;; Keywords: comm, timestamp
 ;; URL: https://www.emacswiki.org/emacs/ErcStamp
 
 ;; This file is part of GNU Emacs.

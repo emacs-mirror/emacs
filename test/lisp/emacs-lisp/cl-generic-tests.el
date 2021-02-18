@@ -269,9 +269,7 @@ Edebug symbols (Bug#42672)."
               (when (memq name instrumented-names)
                 (error "Duplicate definition of `%s'" name))
               (push name instrumented-names)
-              (edebug-new-definition name)))
-           ;; Make generated symbols reproducible.
-           (gensym-counter 10000))
+              (edebug-new-definition name))))
       (eval-buffer)
       (should (equal
                (reverse instrumented-names)
@@ -280,11 +278,11 @@ Edebug symbols (Bug#42672)."
                ;; FIXME: We'd rather have names such as
                ;; `cl-defgeneric/edebug/method/1 ((_ number))', but
                ;; that requires further changes to Edebug.
-               (list (intern "cl-generic-:method@10000 ((_ number))")
-                     (intern "cl-generic-:method@10001 ((_ string))")
-                     (intern "cl-generic-:method@10002 :around ((_ number))")
+               (list (intern "cl-defgeneric/edebug/method/1 (number)")
+                     (intern "cl-defgeneric/edebug/method/1 (string)")
+                     (intern "cl-defgeneric/edebug/method/1 :around (number)")
                      'cl-defgeneric/edebug/method/1
-                     (intern "cl-generic-:method@10003 ((_ number))")
+                     (intern "cl-defgeneric/edebug/method/2 (number)")
                      'cl-defgeneric/edebug/method/2))))))
 
 (provide 'cl-generic-tests)

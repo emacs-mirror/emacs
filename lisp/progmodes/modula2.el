@@ -51,23 +51,19 @@
 
 (defcustom m2-compile-command "m2c"
   "Command to compile Modula-2 programs."
-  :type 'string
-  :group 'modula2)
+  :type 'string)
 
 (defcustom m2-link-command "m2l"
   "Command to link Modula-2 programs."
-  :type 'string
-  :group 'modula2)
+  :type 'string)
 
 (defcustom m2-link-name nil
   "Name of the Modula-2 executable."
-  :type '(choice (const nil) string)
-  :group 'modula2)
+  :type '(choice (const nil) string))
 
 (defcustom m2-end-comment-column 75
   "Column for aligning the end of a comment, in Modula-2."
-  :type 'integer
-  :group 'modula2)
+  :type 'integer)
 
 ;;; Added by TEP
 (defvar m2-mode-map
@@ -105,8 +101,7 @@
 
 (defcustom m2-indent 5
   "This variable gives the indentation in Modula-2 mode."
-  :type 'integer
-  :group 'modula2)
+  :type 'integer)
 (put 'm2-indent 'safe-local-variable
      (lambda (v) (or (null v) (integerp v))))
 

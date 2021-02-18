@@ -911,17 +911,17 @@ If CLOCK-SOUND is non-nil, it overrides `org-clock-sound'."
 
 (defmacro org-with-clock-position (clock &rest forms)
   "Evaluate FORMS with CLOCK as the current active clock."
+  (declare (indent 1) (debug t))
   `(with-current-buffer (marker-buffer (car ,clock))
      (org-with-wide-buffer
       (goto-char (car ,clock))
       (beginning-of-line)
       ,@forms)))
-(def-edebug-spec org-with-clock-position (form body))
-(put 'org-with-clock-position 'lisp-indent-function 1)
 
 (defmacro org-with-clock (clock &rest forms)
   "Evaluate FORMS with CLOCK as the current active clock.
 This macro also protects the current active clock from being altered."
+  (declare (indent 1) (debug t))
   `(org-with-clock-position ,clock
      (let ((org-clock-start-time (cdr ,clock))
 	   (org-clock-total-time)
@@ -932,8 +932,6 @@ This macro also protects the current active clock from being altered."
 				  (org-back-to-heading t)
 				  (point-marker))))
        ,@forms)))
-(def-edebug-spec org-with-clock (form body))
-(put 'org-with-clock 'lisp-indent-function 1)
 
 (defsubst org-clock-clock-in (clock &optional resume start-time)
   "Clock in to the clock located by CLOCK.

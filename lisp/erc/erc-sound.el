@@ -1,4 +1,4 @@
-;;; erc-sound.el --- CTCP SOUND support for ERC
+;;; erc-sound.el --- CTCP SOUND support for ERC  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2003, 2006-2021 Free Software Foundation, Inc.
 
@@ -66,18 +66,15 @@ and play sound files as requested."
 
 (defcustom erc-play-sound t
   "Play sounds when you receive CTCP SOUND requests."
-  :group 'erc-sound
   :type 'boolean)
 
 (defcustom erc-sound-path nil
   "List of directories that contain sound samples to play on SOUND events."
-  :group 'erc-sound
   :type '(repeat directory))
 
 (defcustom erc-default-sound nil
   "Play this sound if the requested file was not found.
 If this is set to nil or the file doesn't exist a beep will sound."
-  :group 'erc-sound
   :type '(choice (const nil)
 		 file))
 
@@ -108,7 +105,7 @@ LINE is the text entered, including the command."
       t))
    (t nil)))
 
-(defun erc-ctcp-query-SOUND (proc nick login host to msg)
+(defun erc-ctcp-query-SOUND (_proc nick login host _to msg)
   "Display a CTCP SOUND message and play sound if `erc-play-sound' is non-nil."
   (when (string-match "^SOUND\\s-+\\(\\S-+\\)\\(\\(\\s-+.*\\)\\|\\(\\s-*\\)\\)$" msg)
     (let ((sound (match-string 1 msg))

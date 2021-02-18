@@ -985,7 +985,13 @@ Otherwise, display the image by calling `image-mode'."
                    (edges (window-inside-pixel-edges window))
                    (window-width  (- (nth 2 edges) (nth 0 edges)))
                    (window-height (- (nth 3 edges) (nth 1 edges))))
+              ;; If the size has been changed manually (with `+'/`-'),
+              ;; then :max-width/:max-height is nil.  In that case, do
+              ;; no automatic resizing.
               (when (and image-width image-height
+                         ;; Don't do resizing if we have a manual
+                         ;; rotation (from the `r' command), either.
+                         (not (plist-get (cdr spec) :rotation))
                          (or (not (= image-width  window-width))
                              (not (= image-height window-height))))
                 (unless image-fit-to-window-lock

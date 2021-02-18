@@ -199,23 +199,24 @@ Create the thumbnails directory if it does not exist."
 If the total size of all files in `thumbs-thumbsdir' is bigger than
 `thumbs-thumbsdir-max-size', files are deleted until the max size is
 reached."
-  (let* ((files-list
-	  (sort
-	   (mapcar
-	    (lambda (f)
-	      (let ((fattribs-list (file-attributes f)))
-		`(,(file-attribute-access-time fattribs-list)
-		  ,(file-attribute-size fattribs-list)
-		  ,f)))
-	    (directory-files (thumbs-thumbsdir) t (image-file-name-regexp)))
-	   (lambda (l1 l2) (time-less-p (car l1) (car l2)))))
-	 (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files-list))))
-    (while (> dirsize thumbs-thumbsdir-max-size)
-      (progn
-	(message "Deleting file %s" (cadr (cdar files-list))))
-      (delete-file (cadr (cdar files-list)))
-      (setq dirsize (- dirsize (car (cdar files-list))))
-      (setq files-list (cdr files-list)))))
+  (when (file-directory-p thumbs-thumbsdir)
+    (let* ((files-list
+	    (sort
+	     (mapcar
+	      (lambda (f)
+	        (let ((fattribs-list (file-attributes f)))
+		  `(,(file-attribute-access-time fattribs-list)
+		    ,(file-attribute-size fattribs-list)
+		    ,f)))
+	      (directory-files (thumbs-thumbsdir) t (image-file-name-regexp)))
+	     (lambda (l1 l2) (time-less-p (car l1) (car l2)))))
+	   (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files-list))))
+      (while (> dirsize thumbs-thumbsdir-max-size)
+        (progn
+	  (message "Deleting file %s" (cadr (cdar files-list))))
+        (delete-file (cadr (cdar files-list)))
+        (setq dirsize (- dirsize (car (cdar files-list))))
+        (setq files-list (cdr files-list))))))
 
 ;; Check the thumbnail directory size and clean it if necessary.
 (when thumbs-thumbsdir-auto-clean

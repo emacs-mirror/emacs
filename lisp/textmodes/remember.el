@@ -193,24 +193,20 @@
 (defcustom remember-mode-hook nil
   "Functions run upon entering `remember-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill org-remember-apply-template)
-  :group 'remember)
+  :options '(flyspell-mode turn-on-auto-fill org-remember-apply-template))
 
 (defcustom remember-in-new-frame nil
   "Non-nil means use a separate frame for capturing remember data."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 (defcustom remember-register ?R
   "The register in which the window configuration is stored."
-  :type 'character
-  :group 'remember)
+  :type 'character)
 
 (defcustom remember-filter-functions nil
   "Functions run to filter remember data.
 All functions are run in the remember buffer."
-  :type 'hook
-  :group 'remember)
+  :type 'hook)
 
 (defcustom remember-handler-functions '(remember-append-to-file)
   "Functions run to process remember data.
@@ -223,13 +219,11 @@ recorded somewhere by that function."
              remember-append-to-file
              remember-store-in-files
              remember-diary-extract-entries
-             org-remember-handler)
-  :group 'remember)
+             org-remember-handler))
 
 (defcustom remember-all-handler-functions nil
   "If non-nil every function in `remember-handler-functions' is called."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 ;; See below for more user variables.
 
@@ -240,16 +234,14 @@ recorded somewhere by that function."
 
 (defcustom remember-save-after-remembering t
   "Non-nil means automatically save after remembering."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 ;;; User Functions:
 
 (defcustom remember-annotation-functions '(buffer-file-name)
   "Hook that returns an annotation to be inserted into the remember buffer."
   :type 'hook
-  :options '(org-remember-annotation buffer-file-name)
-  :group 'remember)
+  :options '(org-remember-annotation buffer-file-name))
 
 (defvar remember-annotation nil
   "Current annotation.")
@@ -258,13 +250,11 @@ recorded somewhere by that function."
 
 (defcustom remember-before-remember-hook nil
   "Functions run before switching to the *Remember* buffer."
-  :type 'hook
-  :group 'remember)
+  :type 'hook)
 
 (defcustom remember-run-all-annotation-functions-flag nil
   "Non-nil means use all annotations returned by `remember-annotation-functions'."
-  :type 'boolean
-  :group 'remember)
+  :type 'boolean)
 
 ;;;###autoload
 (defun remember (&optional initial)
@@ -337,13 +327,11 @@ With a prefix or a visible region, use the region as INITIAL."
 
 (defcustom remember-mailbox "~/Mail/remember"
   "The file in which to store remember data as mail."
-  :type 'file
-  :group 'remember)
+  :type 'file)
 
 (defcustom remember-default-priority "medium"
   "The default priority for remembered mail messages."
-  :type 'string
-  :group 'remember)
+  :type 'string)
 
 (defun remember-store-in-mailbox ()
   "Store remember data as if it were incoming mail.
@@ -396,19 +384,16 @@ exists) might be changed."
              (with-current-buffer buf
                (set-visited-file-name
                 (expand-file-name remember-data-file))))))
-  :initialize 'custom-initialize-default
-  :group 'remember)
+  :initialize 'custom-initialize-default)
 
 (defcustom remember-leader-text "** "
   "The text used to begin each remember item."
-  :type 'string
-  :group 'remember)
+  :type 'string)
 
 (defcustom remember-time-format "%a %b %d %H:%M:%S %Y"
   "The format for time stamp, passed to `format-time-string'.
 The default emulates `current-time-string' for backward compatibility."
   :type 'string
-  :group 'remember
   :version "27.1")
 
 (defcustom remember-text-format-function nil
@@ -416,7 +401,6 @@ The default emulates `current-time-string' for backward compatibility."
 The function receives the remembered text as argument and should
 return the text to be remembered."
   :type '(choice (const nil) function)
-  :group 'remember
   :version "28.1")
 
 (defun remember-append-to-file ()
@@ -465,16 +449,14 @@ If you want to remember a region, supply a universal prefix to
   "The directory in which to store remember data as files.
 Used by `remember-store-in-files'."
   :type 'directory
-  :version "24.4"
-  :group 'remember)
+  :version "24.4")
 
 (defcustom remember-directory-file-name-format "%Y-%m-%d_%T-%z"
   "Format string for the file name in which to store unprocessed data.
 This is passed to `format-time-string'.
 Used by `remember-store-in-files'."
   :type 'string
-  :version "24.4"
-  :group 'remember)
+  :version "24.4")
 
 (defun remember-store-in-files ()
   "Store remember data in a file in `remember-data-directory'.
@@ -511,8 +493,7 @@ Most useful for remembering things from other applications."
 (defcustom remember-diary-file nil
   "File for extracted diary entries.
 If this is nil, then `diary-file' will be used instead."
-  :type '(choice (const :tag "diary-file" nil) file)
-  :group 'remember)
+  :type '(choice (const :tag "diary-file" nil) file))
 
 (defvar calendar-date-style)            ; calendar.el
 

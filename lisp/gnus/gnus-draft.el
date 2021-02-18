@@ -71,7 +71,7 @@
 
 (defun gnus-draft-toggle-sending (article)
   "Toggle whether to send an article or not."
-  (interactive (list (gnus-summary-article-number)))
+  (interactive (list (gnus-summary-article-number)) gnus-summary-mode)
   (if (gnus-draft-article-sendable-p article)
       (progn
 	(push article gnus-newsgroup-unsendable)
@@ -83,7 +83,7 @@
 
 (defun gnus-draft-edit-message ()
   "Enter a mail/post buffer to edit and send the draft."
-  (interactive)
+  (interactive nil gnus-summary-mode)
   (let ((article (gnus-summary-article-number))
 	(group gnus-newsgroup-name))
     (gnus-draft-check-draft-articles (list article))
@@ -109,7 +109,7 @@
 (defun gnus-draft-send-message (&optional n)
   "Send the current draft(s).
 Obeys the standard process/prefix convention."
-  (interactive "P")
+  (interactive "P" gnus-summary-mode)
   (let* ((articles (gnus-summary-work-articles n))
 	 (total (length articles))
 	 article)

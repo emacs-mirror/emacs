@@ -1,4 +1,4 @@
-;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor
+;;; semantic/lex-spp.el --- Semantic Lexical Pre-processor  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
@@ -106,22 +106,12 @@ added and removed from this symbol table.")
 Pushes NAME into the macro stack.  The above stack is checked
 by `semantic-lex-spp-symbol' to not return true for any symbol
 currently being expanded."
+  (declare (indent 1) (debug (symbolp def-body)))
   `(unwind-protect
        (progn
 	 (push ,name semantic-lex-spp-expanded-macro-stack)
 	 ,@body)
      (pop semantic-lex-spp-expanded-macro-stack)))
-(put 'semantic-lex-with-macro-used 'lisp-indent-function 1)
-
-(add-hook
- 'edebug-setup-hook
- #'(lambda ()
-
-     (def-edebug-spec semantic-lex-with-macro-used
-       (symbolp def-body)
-       )
-
-     ))
 
 ;;; MACRO TABLE UTILS
 ;;
@@ -190,7 +180,7 @@ Disable debugging by entering nothing."
       (setq semantic-lex-spp-debug-symbol nil)
     (setq semantic-lex-spp-debug-symbol sym)))
 
-(defmacro semantic-lex-spp-validate-value (name value)
+(defmacro semantic-lex-spp-validate-value (_name _value)
   "Validate the NAME and VALUE of a macro before it is set."
 ;  `(progn
 ;     (when (not (semantic-lex-spp-value-valid-p ,value))
@@ -212,12 +202,11 @@ the dynamic map."
 			(semantic-lex-spp-dynamic-map)))
        value))
 
-(defsubst semantic-lex-spp-symbol-remove (name &optional obarray)
+(defsubst semantic-lex-spp-symbol-remove (name &optional map)
   "Remove the spp symbol with NAME.
-If optional OBARRAY is non-nil, then use that obarray instead of
+If optional obarray MAP is non-nil, then use that obarray instead of
 the dynamic map."
-  (unintern name (or obarray
-		     (semantic-lex-spp-dynamic-map))))
+  (unintern name (or map (semantic-lex-spp-dynamic-map))))
 
 (defun semantic-lex-spp-symbol-push (name value)
   "Push macro NAME with VALUE into the map.
@@ -246,7 +235,7 @@ Reverse with `semantic-lex-spp-symbol-pop'."
 	 (stack (semantic-lex-spp-dynamic-map-stack))
 	 (mapsym (intern name map))
 	 (stacksym (intern name stack))
-	 (oldvalue nil)
+	 ;; (oldvalue nil)
 	 )
     (if (or (not (boundp stacksym) )
 	    (= (length (symbol-value stacksym)) 0))
@@ -324,7 +313,7 @@ For use with semanticdb restoration of state."
     ;; Default obarray for below is the dynamic map.
     (semantic-lex-spp-symbol-set (car e) (cdr e))))
 
-(defun semantic-lex-spp-reset-hook (start end)
+(defun semantic-lex-spp-reset-hook (start _end)
   "Reset anything needed by SPP for parsing.
 In this case, reset the dynamic macro symbol table if
 START is (point-min).
@@ -354,7 +343,7 @@ Return non-nil if it matches"
       (string-match regex value))
     ))
 
-(defun semantic-lex-spp-simple-macro-to-macro-stream (val beg end argvalues)
+(defun semantic-lex-spp-simple-macro-to-macro-stream (val beg end _argvalues)
   "Convert lexical macro contents VAL into a macro expansion stream.
 These are for simple macro expansions that a user may have typed in directly.
 As such, we need to analyze the input text, to figure out what kind of real
@@ -819,7 +808,7 @@ ARGVALUES are values for any arg list, or nil."
 ;; An analyzer that will push tokens from a macro in place
 ;; of the macro symbol.
 ;;
-(defun semantic-lex-spp-analyzer-do-replace (sym val beg end)
+(defun semantic-lex-spp-analyzer-do-replace (_sym val beg end)
   "Do the lexical replacement for SYM with VAL.
 Argument BEG and END specify the bounds of SYM in the buffer."
   (if (not val)
@@ -1045,7 +1034,7 @@ and variable state from the current buffer."
 	 (fresh-toks nil)
 	 (toks nil)
 	 (origbuff (current-buffer))
-	 (analyzer semantic-lex-analyzer)
+	 ;; (analyzer semantic-lex-analyzer)
 	 (important-vars '(semantic-lex-spp-macro-symbol-obarray
 			   semantic-lex-spp-project-macro-symbol-obarray
 			   semantic-lex-spp-dynamic-macro-symbol-obarray
@@ -1176,6 +1165,7 @@ of type `spp-macro-def' is to be created.
 VALFORM are forms that return the value to be saved for this macro, or nil.
 When implementing a macro, you can use `semantic-lex-spp-stream-for-macro'
 to convert text into a lexical stream for storage in the macro."
+  (declare (debug (&define name stringp stringp form def-body)))
   (let ((start (make-symbol "start"))
 	(end (make-symbol "end"))
 	(val (make-symbol "val"))
@@ -1209,6 +1199,7 @@ REGEXP is a regular expression for the analyzer to match.
 See `define-lex-regex-analyzer' for more on regexp.
 TOKIDX is an index into REGEXP for which a new lexical token
 of type `spp-macro-undef' is to be created."
+  (declare (debug (&define name stringp stringp form)))
   (let ((start (make-symbol "start"))
 	(end (make-symbol "end")))
     `(define-lex-regex-analyzer ,name
@@ -1244,7 +1235,7 @@ Note: Not implemented yet."
   :group 'semantic
   :type 'boolean)
 
-(defun semantic-lex-spp-merge-header (name)
+(defun semantic-lex-spp-merge-header (_name)
   "Extract and merge any macros from the header with NAME.
 Finds the header file belonging to NAME, gets the macros
 from that file, and then merge the macros with our current
@@ -1269,6 +1260,7 @@ type of include.  The return value should be of the form:
   (NAME . TYPE)
 where NAME is the name of the include, and TYPE is the type of the include,
 where a valid symbol is `system', or nil."
+  (declare (debug (&define name stringp stringp form def-body)))
   (let ((start (make-symbol "start"))
 	(end (make-symbol "end"))
 	(val (make-symbol "val"))
@@ -1368,23 +1360,6 @@ If BUFFER is not provided, use the current buffer."
 	(prin1 (symbol-value sym))
 	(princ "\n")
 	))))
-
-;;; EDEBUG Handlers
-;;
-(add-hook
- 'edebug-setup-hook
- #'(lambda ()
-
-     (def-edebug-spec define-lex-spp-macro-declaration-analyzer
-       (&define name stringp stringp form def-body)
-       )
-
-     (def-edebug-spec define-lex-spp-macro-undeclaration-analyzer
-       (&define name stringp stringp form)
-       )
-
-     (def-edebug-spec define-lex-spp-include-analyzer
-       (&define name stringp stringp form def-body))))
 
 (provide 'semantic/lex-spp)
 

@@ -104,20 +104,17 @@ reading-string         reading prompt string")
 
 (defcustom scheme-band-name nil
   "Band loaded by the `run-scheme' command."
-  :type '(choice (const nil) string)
-  :group 'xscheme)
+  :type '(choice (const nil) string))
 
 (defcustom scheme-program-arguments nil
   "Arguments passed to the Scheme program by the `run-scheme' command."
-  :type '(choice (const nil) string)
-  :group 'xscheme)
+  :type '(choice (const nil) string))
 
 (defcustom xscheme-allow-pipelined-evaluation t
   "If non-nil, an expression may be transmitted while another is evaluating.
 Otherwise, attempting to evaluate an expression before the previous expression
 has finished evaluating will signal an error."
-  :type 'boolean
-  :group 'xscheme)
+  :type 'boolean)
 
 (defcustom xscheme-startup-message
   "This is the Scheme process buffer.
@@ -128,19 +125,16 @@ Type \\[describe-mode] for more information.
 "
   "String to insert into Scheme process buffer first time it is started.
 Is processed with `substitute-command-keys' first."
-  :type 'string
-  :group 'xscheme)
+  :type 'string)
 
 (defcustom xscheme-signal-death-message nil
   "If non-nil, causes a message to be generated when the Scheme process dies."
-  :type 'boolean
-  :group 'xscheme)
+  :type 'boolean)
 
 (defcustom xscheme-start-hook nil
   "If non-nil, a procedure to call when the Scheme process is started.
 When called, the current buffer will be the Scheme process-buffer."
   :type 'hook
-  :group 'xscheme
   :version "20.3")
 
 (defun xscheme-evaluation-commands (keymap)

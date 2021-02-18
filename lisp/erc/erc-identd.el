@@ -4,7 +4,7 @@
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, processes
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 

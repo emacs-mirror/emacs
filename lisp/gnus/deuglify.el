@@ -310,7 +310,7 @@ You can control what lines will be unwrapped by frobbing
 `gnus-outlook-deuglify-unwrap-min' and `gnus-outlook-deuglify-unwrap-max',
 indicating the minimum and maximum length of an unwrapped citation line.  If
 NODISPLAY is non-nil, don't redisplay the article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((case-fold-search nil)
 	(inhibit-read-only t)
 	(cite-marks gnus-outlook-deuglify-cite-marks)
@@ -430,7 +430,7 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
 (defun gnus-article-outlook-repair-attribution (&optional nodisplay)
   "Repair a broken attribution line.
 If NODISPLAY is non-nil, don't redisplay the article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((attrib-start
 	 (or
 	  (gnus-outlook-repair-attribution-other)
@@ -442,7 +442,7 @@ If NODISPLAY is non-nil, don't redisplay the article buffer."
 (defun gnus-article-outlook-rearrange-citation (&optional nodisplay)
   "Repair broken citations.
 If NODISPLAY is non-nil, don't redisplay the article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   (let ((attrib-start (gnus-article-outlook-repair-attribution 'nodisplay)))
     ;; rearrange citations if an attribution line has been recognized
     (if attrib-start
@@ -455,7 +455,7 @@ If NODISPLAY is non-nil, don't redisplay the article buffer."
 Treat \"smartquotes\", unwrap lines, repair attribution and
 rearrange citation.  If NODISPLAY is non-nil, don't redisplay the
 article buffer."
-  (interactive "P")
+  (interactive "P" gnus-article-mode gnus-summary-mode)
   ;; apply treatment of dumb quotes
   (gnus-article-treat-smartquotes)
   ;; repair wrapped cited lines
@@ -467,7 +467,7 @@ article buffer."
 ;;;###autoload
 (defun gnus-article-outlook-deuglify-article ()
   "Deuglify broken Outlook (Express) articles and redisplay."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-outlook-deuglify-article nil))
 
 (provide 'deuglify)

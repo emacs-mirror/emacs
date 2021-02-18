@@ -1,4 +1,4 @@
-;;; semantic/tag.el --- tag creation and access
+;;; semantic/tag.el --- Tag creation and access  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -1038,25 +1038,17 @@ See `semantic-tag-bounds'."
 
 (defmacro semantic-with-buffer-narrowed-to-current-tag (&rest body)
   "Execute BODY with the buffer narrowed to the current tag."
+  (declare (indent 0) (debug t))
   `(save-restriction
      (semantic-narrow-to-tag (semantic-current-tag))
      ,@body))
-(put 'semantic-with-buffer-narrowed-to-current-tag 'lisp-indent-function 0)
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec semantic-with-buffer-narrowed-to-current-tag
-	      (def-body))))
 
 (defmacro semantic-with-buffer-narrowed-to-tag (tag &rest body)
   "Narrow to TAG, and execute BODY."
+  (declare (indent 1) (debug t))
   `(save-restriction
      (semantic-narrow-to-tag ,tag)
      ,@body))
-(put 'semantic-with-buffer-narrowed-to-tag 'lisp-indent-function 1)
-(add-hook 'edebug-setup-hook
-	  (lambda ()
-	    (def-edebug-spec semantic-with-buffer-narrowed-to-tag
-	      (def-body))))
 
 ;;; Tag Hooks
 ;;

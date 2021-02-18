@@ -1,4 +1,4 @@
-;;; semantic/symref/grep.el --- Symref implementation using find/grep
+;;; semantic/symref/grep.el --- Symref implementation using find/grep  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 

@@ -24,6 +24,9 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 28.1
 
+--
+** Support for building with Motif has been removed.
+
 ** Cairo graphics library is now used by default if found.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'.  Note that building with Cairo means using
@@ -248,6 +251,15 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 
 * Editing Changes in Emacs 28.1
 
++++
+** New user option 'read-extended-command-predicate'.
+This option controls how 'M-x' performs completion of commands when
+you type TAB.  By default, any command that matches what you have
+typed is considered a completion candidate, but you can customize this
+option to exclude commands that are not applicable to the current
+buffer's major and minor modes, and respect the command's completion
+predicate (if any).
+
 ---
 ** 'eval-expression' now no longer signals an error on incomplete expressions.
 Previously, typing 'M-: ( RET' would result in Emacs saying "End of
@@ -349,6 +361,11 @@ the buffer cycles the whole buffer between "only top-level headings",
 It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
 
+** Bindat
++++
+*** New types 'u64' and 'u64r'
++++
+*** New macro 'bindat-spec' to define specs, with Edebug support
 ** pcase
 
 +++
@@ -453,6 +470,9 @@ value of 'tab-bar-show'.
 *** New command 'toggle-frame-tab-bar'.
 It can be used to enable/disable the tab bar individually on each frame
 independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
+
+---
+*** New command 'tab-duplicate'.
 
 ---
 *** New user option 'tab-bar-tab-name-format-function'.
@@ -932,14 +952,35 @@ To customize obsolete user options, use 'customize-option' or
 
 ** Edebug
 
-+++
-*** Edebug specification lists can use the new keyword '&error', which
-unconditionally aborts the current edebug instrumentation with the
-supplied error message.
+---
+*** Obsoletions
+**** 'get-edebug-spec' is obsolete, replaced by 'edebug-get-spec'.
 
-*** Edebug specification lists can use the new keyword ':unique',
-which appends a unique suffix to the Edebug name of the current
-definition.
++++
+**** The spec operator ':name NAME' is obsolete, use '&name' instead.
++++
+**** The spec element 'function-form' is obsolete, use 'form' instead.
+
++++
+*** New function 'def-edebug-elem-spec' to define Edebug spec elements.
+These used to be defined with 'def-edebug-spec' thus conflating the
+two name spaces, which lead to name collisions.
+The use of 'def-edebug-spec' to define Edebug spec elements is
+declared obsolete.
+
+*** Edebug specification lists can use some new keywords:
+
++++
+**** '&interpose SPEC FUN ARGS..' lets FUN control parsing after SPEC.
+More specifically, FUN is called with 'HEAD PF ARGS..' where
+PF is a parsing function that expects a single argument (the specs to
+use) and HEAD is the code that matched SPEC.
+
++++
+**** '&error MSG' unconditionally aborts the current edebug instrumentation.
+
++++
+**** '&name SPEC FUN' extracts the current name from the code matching SPEC.
 
 ** ElDoc
 
@@ -2022,6 +2063,26 @@ could have saved enough typing by using an abbrev, a hint will be
 displayed in the echo area, mentioning the abbrev that could have been
 used instead.
 
+** Octave Mode
+
++++
+*** Line continuations in double-quoted strings now use a backslash.
+Typing 'C-M-j' (bound to 'octave-indent-new-comment-line') now follows
+the behavior introduced in Octave 3.8 of using a backslash as a line
+continuation marker within double-quoted strings, and an ellipsis
+everywhere else.
+
+** Repeat
+
++++
+*** New transient mode 'repeat-mode' to allow shorter key sequences.
+You can type 'C-x u u' instead of 'C-x u C-x u' to undo many changes,
+'C-x o o' instead of 'C-x o C-x o' to switch several windows,
+'C-x { { } } ^ ^ v v' to resize the selected window interactively,
+'M-g n n p p' to navigate next-error matches.  Any other key exits
+transient mode and then is executed normally.  'repeat-exit-key'
+defines an additional key to exit mode like 'isearch-exit' (RET).
+
 
 * New Modes and Packages in Emacs 28.1
 
@@ -2052,10 +2113,13 @@ first).
 
 * Incompatible Editing Changes in Emacs 28.1
 
-** The 'M-o' ('facemanu-keymap') global binding has been removed.
+** The 'M-o' ('facemenu-keymap') global binding has been removed.
 
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.
+
+** The 'M-o M-o' global binding have been removed.
+Use 'M-x font-lock-fontify-block' instead.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
@@ -2239,6 +2303,46 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+** New forms to declare how completion should happen has been added.
+'(declare (completion PREDICATE))' can be used as a general predicate
+to say whether the command should be present when completing with
+'M-x TAB'.  '(declare (modes MODE...))' can be used as a short-hand
+way of saying that the command should be present when completing from
+buffers in major modes derived from MODE..., or, if it's a minor mode,
+whether that minor mode is enabled in the current buffer.
+
++++
+** The 'interactive' syntax has been extended to allow listing applicable modes.
+Forms like '(interactive "p" dired-mode)' can be used to annotate the
+commands as being applicable for modes derived from 'dired-mode',
+or if the mode is a minor mode, that the current buffer has that
+minor mode activated.  Note that using this form will create byte code
+that is not compatible with byte code in previous Emacs versions.
+
++++
+** New buffer-local variable 'local-minor-modes'.
+This permanently buffer-local variable holds a list of currently
+enabled non-global minor modes in the current buffer (as a list of
+symbols).
+
++++
+** New variable 'global-minor-modes'.
+This variable holds a list of currently enabled global minor modes (as
+a list of symbols).
+
++++
+** 'define-minor-mode'  now takes an :interactive argument.
+This can be used for specifying which modes this minor mode is meant
+for, or to make the new minor mode non-interactive.  The default value
+is t.
+
++++
+** 'define-derived-mode' now takes an :interactive argument.
+This can be used to control whether the defined mode is a command
+or not, and is useful when defining commands that aren't meant to be
+used by users directly.
 
 ** The 'values' variable is now obsolete.
 
@@ -2535,6 +2639,12 @@ locales.  They are also available as aliases 'ebcdic-cp-*' (e.g.,
 'ebcdic-cp-fi' for the Finnish variant 'ibm278'), and 'cp2xx' (e.g.,
 'cp278' for 'ibm278').  There are also new charsets 'ibm2xx' to
 support these coding-systems.
+
+** The JSON functions 'json-serialize', 'json-insert',
+'json-parse-string', and 'json-parse-buffer' now implement some of the
+semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
+these functions now accept top-level JSON values that are neither
+arrays nor objects.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

@@ -28,39 +28,36 @@
 ;; RULES:
 ;;
 ;; Gomoku is a game played between two players on a rectangular board.  Each
-;; player, in turn, marks a free square of its choice. The winner is the first
+;; player, in turn, marks a free square of its choice.  The winner is the first
 ;; one to mark five contiguous squares in any direction (horizontally,
 ;; vertically or diagonally).
 ;;
 ;; I have been told that, in "The TRUE Gomoku", some restrictions are made
 ;; about the squares where one may play, or else there is a known forced win
-;; for the first player. This program has no such restriction, but it does not
+;; for the first player.  This program has no such restriction, but it does not
 ;; know about the forced win, nor do I.
-;; See http://renju.se/rif/r1rulhis.htm for more information.
-
+;; See https://renju.se/rif/r1rulhis.htm for more information.
 
 ;; There are two main places where you may want to customize the program: key
-;; bindings and board display. These features are commented in the code. Go
+;; bindings and board display.  These features are commented in the code.  Go
 ;; and see.
-
 
 ;; HOW TO USE:
 ;;
-;; The command "M-x gomoku" displays a
-;; board, the size of which depends on the size of the current window. The
-;; size of the board is easily modified by giving numeric arguments to the
-;; gomoku command and/or by customizing the displaying parameters.
+;; The command `M-x gomoku' displays a board, the size of which depends on the
+;; size of the current window.  The size of the board is easily modified by
+;; giving numeric arguments to the gomoku command and/or by customizing the
+;; displaying parameters.
 ;;
-;; Emacs plays when it is its turn. When it is your turn, just put the cursor
+;; Emacs plays when it is its turn.  When it is your turn, just put the cursor
 ;; on the square where you want to play and hit RET, or X, or whatever key you
-;; bind to the command gomoku-human-plays. When it is your turn, Emacs is
+;; bind to the command `gomoku-human-plays'.  When it is your turn, Emacs is
 ;; idle: you may switch buffers, read your mail, ... Just come back to the
 ;; *Gomoku* buffer and resume play.
 
-
 ;; ALGORITHM:
 ;;
-;; The algorithm is briefly described in section "THE SCORE TABLE". Some
+;; The algorithm is briefly described in section "THE SCORE TABLE".  Some
 ;; parameters may be modified if you want to change the style exhibited by the
 ;; program.
 
@@ -86,13 +83,15 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
   "Name of the Gomoku buffer.")
 
 ;; You may change these values if you have a small screen or if the squares
-;; look rectangular, but spacings SHOULD be at least 2 (MUST BE at least 1).
+;; look rectangular.
 
 (defconst gomoku-square-width 4
-  "Horizontal spacing between squares on the Gomoku board.")
+  "Horizontal spacing between squares on the Gomoku board.
+SHOULD be at least 2 (MUST BE at least 1).")
 
 (defconst gomoku-square-height 2
-  "Vertical spacing between squares on the Gomoku board.")
+  "Vertical spacing between squares on the Gomoku board.
+SHOULD be at least 2 (MUST BE at least 1).")
 
 (defconst gomoku-x-offset 3
   "Number of columns between the Gomoku board and the side of the window.")
@@ -270,13 +269,13 @@ Other useful commands:\n
 ;; internested 5-tuples of contiguous squares (called qtuples).
 ;;
 ;; The aim of the program is to fill one qtuple with its O's while preventing
-;; you from filling another one with your X's. To that effect, it computes a
-;; score for every qtuple, with better qtuples having better scores. Of
+;; you from filling another one with your X's.  To that effect, it computes a
+;; score for every qtuple, with better qtuples having better scores.  Of
 ;; course, the score of a qtuple (taken in isolation) is just determined by
-;; its contents as a set, i.e. not considering the order of its elements. The
+;; its contents as a set, i.e. not considering the order of its elements.  The
 ;; highest score is given to the "OOOO" qtuples because playing in such a
-;; qtuple is winning the game. Just after this comes the "XXXX" qtuple because
-;; not playing in it is just losing the game, and so on. Note that a
+;; qtuple is winning the game.  Just after this comes the "XXXX" qtuple because
+;; not playing in it is just losing the game, and so on.  Note that a
 ;; "polluted" qtuple, i.e. one containing at least one X and at least one O,
 ;; has score zero because there is no more any point in playing in it, from
 ;; both an attacking and a defending point of view.
@@ -284,11 +283,11 @@ Other useful commands:\n
 ;; Given the score of every qtuple, the score of a given free square on the
 ;; board is just the sum of the scores of all the qtuples to which it belongs,
 ;; because playing in that square is playing in all its containing qtuples at
-;; once. And it is that function which takes into account the internesting of
+;; once.  And it is that function which takes into account the internesting of
 ;; the qtuples.
 ;;
 ;; This algorithm is rather simple but anyway it gives a not so dumb level of
-;; play. It easily extends to "n-dimensional Gomoku", where a win should not
+;; play.  It easily extends to "n-dimensional Gomoku", where a win should not
 ;; be obtained with as few as 5 contiguous marks: 6 or 7 (depending on n !)
 ;; should be preferred.
 
@@ -323,8 +322,8 @@ Other useful commands:\n
 ;; because "a" mainly belongs to six "XX" qtuples (the others are less
 ;; important) while "b" belongs to one "XXX" and one "XX" qtuples.  Other
 ;; conditions are required to obtain sensible moves, but the previous example
-;; should illustrate the point. If you manage to improve on these values,
-;; please send me a note. Thanks.
+;; should illustrate the point.  If you manage to improve on these values,
+;; please send me a note.  Thanks.
 
 
 ;; As we chose values 0, 1 and 6 to denote empty, X and O squares, the
@@ -343,9 +342,9 @@ Other useful commands:\n
 
 ;; If you do not modify drastically the previous constants, the only way for a
 ;; square to have a score higher than gomoku-OOOOscore is to belong to a "OOOO"
-;; qtuple, thus to be a winning move. Similarly, the only way for a square to
+;; qtuple, thus to be a winning move.  Similarly, the only way for a square to
 ;; have a score between gomoku-XXXXscore and gomoku-OOOOscore is to belong to a "XXXX"
-;; qtuple. We may use these considerations to detect when a given move is
+;; qtuple.  We may use these considerations to detect when a given move is
 ;; winning or losing.
 
 (defconst gomoku-winning-threshold gomoku-OOOOscore
@@ -357,8 +356,8 @@ Other useful commands:\n
 
 (defun gomoku-strongest-square ()
   "Compute index of free square with highest score, or nil if none."
-  ;; We just have to loop other all squares. However there are two problems:
-  ;; 1/ The SCORE-TABLE only gives correct scores to free squares. To speed
+  ;; We just have to loop other all squares.  However there are two problems:
+  ;; 1/ The SCORE-TABLE only gives correct scores to free squares.  To speed
   ;;	up future searches, we set the score of padding or occupied squares
   ;;	to -1 whenever we meet them.
   ;; 2/ We want to choose randomly between equally good moves.
@@ -378,7 +377,7 @@ Other useful commands:\n
 		  best-square square
 		  score-max   score)
 	    (aset gomoku-score-table square -1))) ; no: kill it !
-       ;; If score is equally good, choose randomly. But first check freedom:
+       ;; If score is equally good, choose randomly.  But first check freedom:
        ((not (zerop (aref gomoku-board square)))
 	(aset gomoku-score-table square -1))
        ((zerop (random (setq count (1+ count))))
@@ -392,11 +391,11 @@ Other useful commands:\n
 ;;;
 
 ;; At initialization the board is empty so that every qtuple amounts for
-;; gomoku-nil-score. Therefore, the score of any square is gomoku-nil-score times the number
-;; of qtuples that pass through it. This number is 3 in a corner and 20 if you
-;; are sufficiently far from the sides. As computing the number is time
+;; gomoku-nil-score.  Therefore, the score of any square is gomoku-nil-score times the number
+;; of qtuples that pass through it.  This number is 3 in a corner and 20 if you
+;; are sufficiently far from the sides.  As computing the number is time
 ;; consuming, we initialize every square with 20*gomoku-nil-score and then only
-;; consider squares at less than 5 squares from one side. We speed this up by
+;; consider squares at less than 5 squares from one side.  We speed this up by
 ;; taking symmetry into account.
 ;; Also, as it is likely that successive games will be played on a board with
 ;; same size, it is a good idea to save the initial SCORE-TABLE configuration.
@@ -451,7 +450,7 @@ Other useful commands:\n
   "Return the number of qtuples containing square I,J."
   ;; This function is complicated because we have to deal
   ;; with ugly cases like 3 by 6 boards, but it works.
-  ;; If you have a simpler (and correct) solution, send it to me. Thanks !
+  ;; If you have a simpler (and correct) solution, send it to me.  Thanks !
   (let ((left  (min 4 (1- i)))
 	(right (min 4 (- gomoku-board-width i)))
 	(up    (min 4 (1- j)))
@@ -477,9 +476,9 @@ Other useful commands:\n
 ;;;
 
 ;; We do not provide functions for computing the SCORE-TABLE given the
-;; contents of the BOARD. This would involve heavy nested loops, with time
-;; proportional to the size of the board. It is better to update the
-;; SCORE-TABLE after each move. Updating needs not modify more than 36
+;; contents of the BOARD.  This would involve heavy nested loops, with time
+;; proportional to the size of the board.  It is better to update the
+;; SCORE-TABLE after each move.  Updating needs not modify more than 36
 ;; squares: it is done in constant time.
 
 (defun gomoku-update-score-table (square dval)
@@ -782,7 +781,7 @@ Use \\[describe-mode] for more info."
 
 (defun gomoku-emacs-plays ()
   "Compute Emacs next move and play it."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -815,7 +814,7 @@ Use \\[describe-mode] for more info."
 ;; pixels, event's (X . Y) is a character's top-left corner.
 (defun gomoku-click (click)
   "Position at the square where you click."
-  (interactive "e")
+  (interactive "e" gomoku-mode)
   (and (windowp (posn-window (setq click (event-end click))))
        (numberp (posn-point click))
        (select-window (posn-window click))
@@ -844,7 +843,7 @@ Use \\[describe-mode] for more info."
 
 (defun gomoku-mouse-play (click)
   "Play at the square where you click."
-  (interactive "e")
+  (interactive "e" gomoku-mode)
   (if (gomoku-click click)
       (gomoku-human-plays)))
 
@@ -852,7 +851,7 @@ Use \\[describe-mode] for more info."
   "Signal to the Gomoku program that you have played.
 You must have put the cursor on the square where you want to play.
 If the game is finished, this command requests for another game."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -880,7 +879,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-human-takes-back ()
   "Signal to the Gomoku program that you wish to take back your last move."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -904,7 +903,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-human-resigns ()
   "Signal to the Gomoku program that you may want to resign."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-switch-to-window)
   (cond
    (gomoku-emacs-is-computing
@@ -1162,20 +1161,20 @@ If the game is finished, this command requests for another game."
 ;; the screen.
 (defun gomoku-move-right ()
   "Move point right one column on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (< (gomoku-point-x) gomoku-board-width)
     (forward-char gomoku-square-width)))
 
 (defun gomoku-move-left ()
   "Move point left one column on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (> (gomoku-point-x) 1)
     (backward-char gomoku-square-width)))
 
 ;; previous-line and next-line don't work right with intangible newlines
 (defun gomoku-move-down ()
   "Move point down one row on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (< (gomoku-point-y) gomoku-board-height)
     (let ((column (current-column)))
       (forward-line gomoku-square-height)
@@ -1183,7 +1182,7 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-move-up ()
   "Move point up one row on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (when (> (gomoku-point-y) 1)
     (let ((column (current-column)))
       (forward-line (- gomoku-square-height))
@@ -1191,36 +1190,36 @@ If the game is finished, this command requests for another game."
 
 (defun gomoku-move-ne ()
   "Move point North East on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-up)
   (gomoku-move-right))
 
 (defun gomoku-move-se ()
   "Move point South East on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-down)
   (gomoku-move-right))
 
 (defun gomoku-move-nw ()
   "Move point North West on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-up)
   (gomoku-move-left))
 
 (defun gomoku-move-sw ()
   "Move point South West on the Gomoku board."
-  (interactive)
+  (interactive nil gomoku-mode)
   (gomoku-move-down)
   (gomoku-move-left))
 
 (defun gomoku-beginning-of-line ()
   "Move point to first square on the Gomoku board row."
-  (interactive)
+  (interactive nil gomoku-mode)
   (move-to-column gomoku-x-offset))
 
 (defun gomoku-end-of-line ()
   "Move point to last square on the Gomoku board row."
-  (interactive)
+  (interactive nil gomoku-mode)
   (move-to-column (+ gomoku-x-offset
 		     (* gomoku-square-width (1- gomoku-board-width)))))
 

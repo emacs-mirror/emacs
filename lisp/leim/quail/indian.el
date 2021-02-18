@@ -1,4 +1,4 @@
-;;; indian.el --- Quail packages for inputting Indian
+;;; indian.el --- Quail packages for inputting Indian  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -39,7 +39,7 @@
 
 (defun quail-define-indian-trans-package (hashtbls pkgname
 						   lang title doc)
-  (funcall 'quail-define-package pkgname lang title t doc
+  (quail-define-package pkgname lang title t doc
 	   nil nil nil nil nil nil t nil)
   (maphash
    (lambda (key val)
@@ -200,7 +200,7 @@
 	(setq clm 6)
 
 	(dolist (v vowels)
-	  (apply 'insert (propertize "\t" 'display (list 'space :align-to clm))
+	  (apply #'insert (propertize "\t" 'display (list 'space :align-to clm))
 		 (if (nth 1 c) (list (nth 1 c) (nth 2 v)) (list "")))
 	  (setq clm (+ clm 6))))
       (insert "\n")
@@ -309,7 +309,7 @@ Full key sequences are listed below:")
 
 (defun quail-define-inscript-package (char-tables key-tables pkgname lang
                                                   title docstring)
-  (funcall 'quail-define-package pkgname lang title nil docstring
+  (quail-define-package pkgname lang title nil docstring
 	   nil nil nil t nil nil nil nil)
   (let (char-table key-table char key)
     (while (and char-tables key-tables)
@@ -627,7 +627,7 @@ Full key sequences are listed below:")
 (quail-define-package "malayalam-mozhi" "Malayalam" "MlmMI" t
                       "Malayalam transliteration by Mozhi method."
                       nil nil t nil nil nil t nil
-                      'indian-mlm-mozhi-update-translation)
+                      #'indian-mlm-mozhi-update-translation)
 
 (maphash
  (lambda (key val)
@@ -636,9 +636,9 @@ Full key sequences are listed below:")
 			(vector val))))
  (cdr indian-mlm-mozhi-hash))
 
-(defun indian-mlm-mozhi-underscore (key len) (throw 'quail-tag nil))
+(defun indian-mlm-mozhi-underscore (_key _len) (throw 'quail-tag nil))
 
-(quail-defrule "_" 'indian-mlm-mozhi-underscore)
+(quail-defrule "_" #'indian-mlm-mozhi-underscore)
 (quail-defrule "|" ?‌)
 (quail-defrule "||" ?​)
 

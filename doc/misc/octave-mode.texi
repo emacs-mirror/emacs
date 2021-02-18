@@ -83,9 +83,12 @@ addition to the standard Emacs commands.
 @kindex C-M-j
 @findex octave-indent-new-comment-line
 @vindex octave-continuation-string
+@vindex octave-string-continuation-marker
 Break Octave line at point, continuing comment if within one.  Insert
 @code{octave-continuation-string} before breaking the line unless
-inside a list.  Signal an error if within a single-quoted string.
+inside a list.  If within a double-quoted string, insert
+@code{octave-string-continuation-marker} instead.  Signal an error if
+within a single-quoted string.
 
 @item C-c ;
 @kindex C-c ;

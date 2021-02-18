@@ -1,4 +1,4 @@
-;;; ede/emacs.el --- Special project for Emacs
+;;; ede/emacs.el --- Special project for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -54,31 +54,6 @@ Return a tuple of ( EMACSNAME . VERSION )."
       (erase-buffer)
       (setq default-directory (file-name-as-directory dir))
       (cond
-       ;; Maybe XEmacs?
-       ((file-exists-p "version.sh")
-	(setq emacs "XEmacs")
-	(insert-file-contents "version.sh")
-	(goto-char (point-min))
-	(re-search-forward "emacs_major_version=\\([0-9]+\\)
-emacs_minor_version=\\([0-9]+\\)
-emacs_beta_version=\\([0-9]+\\)")
-	(setq ver (concat (match-string 1) "."
-			  (match-string 2) "."
-			  (match-string 3)))
-	)
-       ((file-exists-p "sxemacs.pc.in")
-	(setq emacs "SXEmacs")
-	(insert-file-contents "sxemacs_version.m4")
-	(goto-char (point-min))
-	(re-search-forward "m4_define(\\[SXEM4CS_MAJOR_VERSION\\], \\[\\([0-9]+\\)\\])
-m4_define(\\[SXEM4CS_MINOR_VERSION\\], \\[\\([0-9]+\\)\\])
-m4_define(\\[SXEM4CS_BETA_VERSION\\], \\[\\([0-9]+\\)\\])")
-	(setq ver (concat (match-string 1) "."
-			  (match-string 2) "."
-			  (match-string 3)))
-	)
-       ;; Insert other Emacs here...
-
        ;; Vaguely recent version of GNU Emacs?
        ((or (file-exists-p configure_ac)
 	    (file-exists-p (setq configure_ac "configure.in")))

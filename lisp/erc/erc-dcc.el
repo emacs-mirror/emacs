@@ -7,7 +7,7 @@
 ;;         Noah Friedman <friedman@prep.ai.mit.edu>
 ;;         Per Persson <pp@sno.pp.se>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, processes
+;; Keywords: comm
 ;; Created: 1994-01-23
 
 ;; This file is part of GNU Emacs.

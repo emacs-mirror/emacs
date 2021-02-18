@@ -2083,10 +2083,12 @@ there is no effect of this property.
 
 @item @t{"mount-args"}@*
 @t{"copyto-args"}@*
-@t{"moveto-args"}
+@t{"moveto-args"}@*
+@t{"about-args"}
 
 These properties keep optional flags to the different @option{rclone}
-operations.  Their default value is @code{nil}.
+operations.  See their default values in @code{tramp-methods} if you
+want to change their values.
 @end itemize
 
 
