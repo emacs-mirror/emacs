@@ -382,8 +382,25 @@ ARGUMENTS are passed to it."
   (concat "HTTP/1.1 200 OK\n\nAuthenticated." (unibyte-string 13) "\n")
   "Expected result of successful NTLM authentication.")
 
+(require 'find-func)
+(defun ntlm-tests--ensure-ws-parse-ntlm-support ()
+  "Ensure NTLM special-case in `ws-parse'."
+  (let* ((hit (find-function-search-for-symbol
+	       'ws-parse nil (locate-file "web-server.el" load-path)))
+	 (buffer (car hit))
+	 (position (cdr hit)))
+    (with-current-buffer buffer
+      (goto-char position)
+      (search-forward-regexp
+       ":NTLM" (save-excursion (forward-sexp) (point)) t))))
+
+(require 'lisp-mnt)
 (defvar ntlm-tests--dependencies-present
-  (and (featurep 'url-http-ntlm) (featurep 'web-server))
+  (and (featurep 'url-http-ntlm)
+       (version<= "2.0.4"
+		  (lm-version (locate-file "url-http-ntlm.el" load-path)))
+       (featurep 'web-server)
+       (ntlm-tests--ensure-ws-parse-ntlm-support))
   "Non-nil if GNU ELPA test dependencies were loaded.")
 
 (when (not ntlm-tests--dependencies-present)
