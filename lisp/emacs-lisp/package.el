@@ -2802,6 +2802,7 @@ either a full name or nil, and EMAIL is a valid email address."
 Letters do not insert themselves; instead, they are commands.
 \\<package-menu-mode-map>
 \\{package-menu-mode-map}"
+  :interactive nil
   (setq mode-line-process '((package--downloads-in-progress ":Loading")
                             (package-menu--transaction-status
                              package-menu--transaction-status)))
@@ -2924,7 +2925,7 @@ Installed obsolete packages are always displayed.")
 Also hide packages whose name matches a regexp in user option
 `package-hidden-regexps' (a list).  To add regexps to this list,
 use `package-menu-hide-package'."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (setq package-menu--hide-packages
         (not package-menu--hide-packages))
@@ -3261,7 +3262,7 @@ To unhide a package, type
 
 Type \\[package-menu-toggle-hiding] to toggle package hiding."
   (declare (interactive-only "change `package-hidden-regexps' instead."))
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (let* ((name (when (derived-mode-p 'package-menu-mode)
                  (concat "\\`" (regexp-quote (symbol-name (package-desc-name
@@ -3285,7 +3286,7 @@ Type \\[package-menu-toggle-hiding] to toggle package hiding."
 (defun package-menu-describe-package (&optional button)
   "Describe the current package.
 If optional arg BUTTON is non-nil, describe its associated package."
-  (interactive)
+  (interactive nil package-menu-mode)
   (let ((pkg-desc (if button (button-get button 'package-desc)
                     (tabulated-list-get-id))))
     (if pkg-desc
@@ -3295,7 +3296,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 ;; fixme numeric argument
 (defun package-menu-mark-delete (&optional _num)
   "Mark a package for deletion and move to the next line."
-  (interactive "p")
+  (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (member (package-menu-get-status)
               '("installed" "dependency" "obsolete" "unsigned"))
@@ -3304,7 +3305,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 
 (defun package-menu-mark-install (&optional _num)
   "Mark a package for installation and move to the next line."
-  (interactive "p")
+  (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (member (package-menu-get-status) '("available" "avail-obso" "new" "dependency"))
       (tabulated-list-put-tag "I" t)
@@ -3312,20 +3313,20 @@ If optional arg BUTTON is non-nil, describe its associated package."
 
 (defun package-menu-mark-unmark (&optional _num)
   "Clear any marks on a package and move to the next line."
-  (interactive "p")
+  (interactive "p" package-menu-mode)
   (package--ensure-package-menu-mode)
   (tabulated-list-put-tag " " t))
 
 (defun package-menu-backup-unmark ()
   "Back up one line and clear any marks on that package."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (forward-line -1)
   (tabulated-list-put-tag " "))
 
 (defun package-menu-mark-obsolete-for-deletion ()
   "Mark all obsolete packages for deletion."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (save-excursion
     (goto-char (point-min))
@@ -3356,7 +3357,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 (defun package-menu-quick-help ()
   "Show short key binding help for `package-menu-mode'.
 The full list of keys can be viewed with \\[describe-mode]."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (message (mapconcat #'package--prettify-quick-help-key
                       package--quick-help-keys "\n")))
@@ -3452,7 +3453,7 @@ call will upgrade the package.
 If there's an async refresh operation in progress, the flags will
 be placed as part of `package-menu--post-refresh' instead of
 immediately."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (not package--downloads-in-progress)
       (package-menu--mark-upgrades-1)
@@ -3546,7 +3547,7 @@ packages list, respectively."
 Packages marked for installation are downloaded and installed;
 packages marked for deletion are removed.
 Optional argument NOQUERY non-nil means do not ask the user to confirm."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (let (install-list delete-list cmd pkg-desc)
     (save-excursion
@@ -3791,7 +3792,8 @@ strings.  If ARCHIVE is nil or the empty string, show all
 packages."
   (interactive (list (completing-read-multiple
                       "Filter by archive (comma separated): "
-                      (mapcar #'car package-archives))))
+                      (mapcar #'car package-archives)))
+               package-menu-mode)
   (package--ensure-package-menu-mode)
   (let ((re (if (listp archive)
                 (regexp-opt archive)
@@ -3812,7 +3814,8 @@ DESCRIPTION.
 When called interactively, prompt for DESCRIPTION.
 
 If DESCRIPTION is nil or the empty string, show all packages."
-  (interactive (list (read-regexp "Filter by description (regexp)")))
+  (interactive (list (read-regexp "Filter by description (regexp)"))
+               package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (or (not description) (string-empty-p description))
       (package-menu--generate t t)
@@ -3833,10 +3836,11 @@ strings.  If KEYWORD is nil or the empty string, show all
 packages."
   (interactive (list (completing-read-multiple
                       "Keywords (comma separated): "
-                      (package-all-keywords))))
+                      (package-all-keywords)))
+               package-menu-mode)
+  (package--ensure-package-menu-mode)
   (when (stringp keyword)
     (setq keyword (list keyword)))
-  (package--ensure-package-menu-mode)
   (if (not keyword)
       (package-menu--generate t t)
     (package-menu--filter-by (lambda (pkg-desc)
@@ -3855,7 +3859,8 @@ When called interactively, prompt for NAME-OR-DESCRIPTION.
 
 If NAME-OR-DESCRIPTION is nil or the empty string, show all
 packages."
-  (interactive (list (read-regexp "Filter by name or description (regexp)")))
+  (interactive (list (read-regexp "Filter by name or description (regexp)"))
+               package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (or (not name-or-description) (string-empty-p name-or-description))
       (package-menu--generate t t)
@@ -3874,7 +3879,8 @@ Display only packages with name that matches regexp NAME.
 When called interactively, prompt for NAME.
 
 If NAME is nil or the empty string, show all packages."
-  (interactive (list (read-regexp "Filter by name (regexp)")))
+  (interactive (list (read-regexp "Filter by name (regexp)"))
+               package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (or (not name) (string-empty-p name))
       (package-menu--generate t t)
@@ -3904,7 +3910,8 @@ packages."
                                         "incompat"
                                         "installed"
                                         "new"
-                                        "unsigned"))))
+                                        "unsigned")))
+               package-menu-mode)
   (package--ensure-package-menu-mode)
   (if (or (not status) (string-empty-p status))
       (package-menu--generate t t)
@@ -3939,7 +3946,9 @@ If VERSION is nil or the empty string, show all packages."
                                     ('< "< less than")
                                     ('> "> greater than"))
                                   "): "))
-                         choice))))
+                         choice)))
+               package-menu-mode)
+  (package--ensure-package-menu-mode)
   (unless (equal predicate 'quit)
     (if (or (not version) (string-empty-p version))
         (package-menu--generate t t)
@@ -3957,7 +3966,7 @@ If VERSION is nil or the empty string, show all packages."
 (defun package-menu-filter-marked ()
   "Filter \"*Packages*\" buffer by non-empty upgrade mark.
 Unlike other filters, this leaves the marks intact."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (widen)
   (let (found-entries mark pkg-id entry marks)
@@ -3985,7 +3994,7 @@ Unlike other filters, this leaves the marks intact."
 
 (defun package-menu-filter-upgradable ()
   "Filter \"*Packages*\" buffer to show only upgradable packages."
-  (interactive)
+  (interactive nil package-menu-mode)
   (let ((pkgs (mapcar #'car (package-menu--find-upgrades))))
     (package-menu--filter-by
      (lambda (pkg)
@@ -3994,7 +4003,7 @@ Unlike other filters, this leaves the marks intact."
 
 (defun package-menu-clear-filter ()
   "Clear any filter currently applied to the \"*Packages*\" buffer."
-  (interactive)
+  (interactive nil package-menu-mode)
   (package--ensure-package-menu-mode)
   (package-menu--generate t t))
 
