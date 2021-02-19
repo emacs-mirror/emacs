@@ -1292,7 +1292,7 @@ passing it an updated value of CBARGS as arguments.  The first
 element in CBARGS should be a plist describing what has happened
 so far during the request, as described in the docstring of
 `url-retrieve' (if in doubt, specify nil).  The current buffer
-then CALLBACK is executed is the retrieval buffer.
+when CALLBACK is executed is the retrieval buffer.
 
 Optional arg RETRY-BUFFER, if non-nil, specifies the buffer of a
 previous `url-http' call, which is being re-attempted.
