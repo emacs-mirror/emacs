@@ -138,11 +138,16 @@ the case)."
      (should-not (file-locked-p buffer-file-truename))
      (filelock-tests--spoil-lock-file buffer-file-truename)
 
-     ;; FIXME: Unlocking buffers should not signal errors related to
-     ;; their lock files (bug#46397).
-     (let ((err (should-error (unlock-buffer))))
-       (should (equal (cl-subseq err 0 2)
-                      '(file-error "Unlocking file")))))))
+     ;; Errors from `unlock-buffer' should call
+     ;; `userlock--handle-unlock-error' (bug#46397).
+     (let (errors)
+       (cl-letf (((symbol-function 'userlock--handle-unlock-error)
+                  (lambda (err) (push err errors))))
+         (unlock-buffer))
+       (should (consp errors))
+       (should (equal '(file-error "Unlocking file")
+                      (seq-subseq (car errors) 0 2)))
+       (should (equal (length errors) 1))))))
 
 (ert-deftest filelock-tests-kill-buffer-spoiled ()
   "Check that `kill-buffer' fails if a lockfile is \"spoiled\"."
@@ -161,13 +166,18 @@ the case)."
      ;; a function that fakes a "yes" answer for the "Buffer modified;
      ;; kill anyway?" prompt.
      ;;
-     ;; FIXME: Killing buffers should not signal errors related to
-     ;; their lock files (bug#46397).
-     (let* ((err (cl-letf (((symbol-function 'yes-or-no-p)
-                            (lambda (&rest _) t)))
-                   (should-error (kill-buffer)))))
-       (should (equal (seq-subseq err 0 2)
-                      '(file-error "Unlocking file")))))))
+     ;; File errors from unlocking files should call
+     ;; `userlock--handle-unlock-error' (bug#46397).
+     (let (errors)
+       (cl-letf (((symbol-function 'yes-or-no-p)
+                  (lambda (&rest _) t))
+                 ((symbol-function 'userlock--handle-unlock-error)
+                  (lambda (err) (push err errors))))
+         (kill-buffer))
+       (should (consp errors))
+       (should (equal '(file-error "Unlocking file")
+                      (seq-subseq (car errors) 0 2)))
+       (should (equal (length errors) 1))))))
 
 (provide 'filelock-tests)
 ;;; filelock-tests.el ends here
