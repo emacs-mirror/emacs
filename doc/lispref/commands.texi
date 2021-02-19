@@ -488,7 +488,10 @@ I/O.
 Point and the mark, as two numeric arguments, smallest first.  This is
 the only code letter that specifies two successive arguments rather than
 one.  This will signal an error if the mark is not set in the buffer
-which is current when the command is invoked.  No I/O.
+which is current when the command is invoked.  If Transient Mark mode
+is turned on (@pxref{The Mark}) --- as it is by default --- and user
+option @code{mark-even-if-inactive} is @code{nil}, Emacs will signal
+an error even if the mark @emph{is} set, but is inactive.  No I/O.
 
 @item s
 Arbitrary text, read in the minibuffer and returned as a string
