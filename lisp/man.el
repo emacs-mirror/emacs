@@ -1024,7 +1024,7 @@ to auto-complete your input based on the installed manual pages."
 ;;;###autoload
 (defun man-follow (man-args)
   "Get a Un*x manual page of the item under point and put it in a buffer."
-  (interactive (list (Man-default-man-entry)))
+  (interactive (list (Man-default-man-entry)) Man-mode)
   (if (or (not man-args)
 	  (string= man-args ""))
       (error "No item under point")
@@ -1143,7 +1143,7 @@ Return the buffer in which the manpage will appear."
 
 (defun Man-update-manpage ()
   "Reformat current manpage by calling the man command again synchronously."
-  (interactive)
+  (interactive nil Man-mode)
   (when (eq Man-arguments nil)
     ;;this shouldn't happen unless it is not in a Man buffer."
     (error "Man-arguments not initialized"))
@@ -1239,7 +1239,7 @@ See the variable `Man-notify-method' for the different notification behaviors."
 (defun Man-fontify-manpage ()
   "Convert overstriking and underlining to the correct fonts.
 Same for the ANSI bold and normal escape sequences."
-  (interactive)
+  (interactive nil Man-mode)
   (goto-char (point-min))
   ;; Fontify ANSI escapes.
   (let ((ansi-color-apply-face-function #'ansi-color-apply-text-property-face)
@@ -1355,7 +1355,7 @@ default type, `Man-xref-man-page' is used for the buttons."
 Normally skip any jobs that should have been done by the sed script,
 but when called interactively, do those jobs even if the sed
 script would have done them."
-  (interactive "p")
+  (interactive "p" Man-mode)
   (if (or interactive (not Man-sed-script))
       (progn
 	(goto-char (point-min))
@@ -1723,7 +1723,7 @@ The following key bindings are currently in effect in the buffer:
 
 (defun Man-next-section (n)
   "Move point to Nth next section (default 1)."
-  (interactive "p")
+  (interactive "p" Man-mode)
   (let ((case-fold-search nil)
         (start (point)))
     (if (looking-at Man-heading-regexp)
@@ -1739,7 +1739,7 @@ The following key bindings are currently in effect in the buffer:
 
 (defun Man-previous-section (n)
   "Move point to Nth previous section (default 1)."
-  (interactive "p")
+  (interactive "p" Man-mode)
   (let ((case-fold-search nil))
     (if (looking-at Man-heading-regexp)
 	(forward-line -1))
@@ -1756,8 +1756,7 @@ Returns t if section is found, nil otherwise."
     (if (re-search-forward (concat "^" section) (point-max) t)
 	(progn (beginning-of-line) t)
       (goto-char curpos)
-      nil)
-    ))
+      nil)))
 
 (defvar Man--last-section nil)
 
@@ -1771,7 +1770,8 @@ Returns t if section is found, nil otherwise."
           (prompt (concat "Go to section (default " default "): "))
           (chosen (completing-read prompt Man--sections
                                    nil nil nil nil default)))
-     (list chosen)))
+     (list chosen))
+   Man-mode)
   (setq Man--last-section section)
   (unless (Man-find-section section)
     (error "Section %s not found" section)))
@@ -1780,7 +1780,7 @@ Returns t if section is found, nil otherwise."
 (defun Man-goto-see-also-section ()
   "Move point to the \"SEE ALSO\" section.
 Actually the section moved to is described by `Man-see-also-regexp'."
-  (interactive)
+  (interactive nil Man-mode)
   (if (not (Man-find-section Man-see-also-regexp))
       (error "%s" (concat "No " Man-see-also-regexp
 		     " section found in the current manpage"))))
@@ -1834,7 +1834,8 @@ Specify which REFERENCE to use; default is based on word at point."
 	     (prompt (concat "Refer to (default " default "): "))
 	     (chosen (completing-read prompt Man--refpages
 				      nil nil nil nil defaults)))
-        chosen))))
+        chosen)))
+   Man-mode)
   (if (not Man--refpages)
       (error "Can't find any references in the current manpage")
     (setq Man--last-refpage reference)
@@ -1843,7 +1844,7 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (defun Man-kill ()
   "Kill the buffer containing the manpage."
-  (interactive)
+  (interactive nil Man-mode)
   (quit-window t))
 
 (defun Man-goto-page (page &optional noerror)
@@ -1854,7 +1855,8 @@ Specify which REFERENCE to use; default is based on word at point."
      (if (= (length Man-page-list) 1)
 	 (error "You're looking at the only manpage in the buffer")
        (list (read-minibuffer (format "Go to manpage [1-%d]: "
-				      (length Man-page-list)))))))
+                                      (length Man-page-list))))))
+    Man-mode)
   (if (and (not Man-page-list) (not noerror))
       (error "Not a man page buffer"))
   (when Man-page-list
@@ -1876,7 +1878,7 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (defun Man-next-manpage ()
   "Find the next manpage entry in the buffer."
-  (interactive)
+  (interactive nil Man-mode)
   (if (= (length Man-page-list) 1)
       (error "This is the only manpage in the buffer"))
   (if (< Man-current-page (length Man-page-list))
@@ -1887,7 +1889,7 @@ Specify which REFERENCE to use; default is based on word at point."
 
 (defun Man-previous-manpage ()
   "Find the previous manpage entry in the buffer."
-  (interactive)
+  (interactive nil Man-mode)
   (if (= (length Man-page-list) 1)
       (error "This is the only manpage in the buffer"))
   (if (> Man-current-page 1)
