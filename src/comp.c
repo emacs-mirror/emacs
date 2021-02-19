@@ -1128,56 +1128,12 @@ emit_rvalue_from_long_long (gcc_jit_type *type, long long n)
 	low));
 }
 
-#if (EMACS_INT_MAX > LONG_MAX)
-static gcc_jit_rvalue *
-emit_rvalue_from_unsigned_long_long (gcc_jit_type *type, unsigned long long n)
-{
-  emit_comment (format_string ("emit unsigned long long: %llu", n));
-
-  gcc_jit_rvalue *high =
-    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.unsigned_long_long_type,
-					  n >> 32);
-  gcc_jit_rvalue *low =
-    emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
-		    comp.unsigned_long_long_type,
-		    emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
-				    comp.unsigned_long_long_type,
-				    gcc_jit_context_new_rvalue_from_long (
-				      comp.ctxt,
-				      comp.unsigned_long_long_type,
-				      n),
-				    gcc_jit_context_new_rvalue_from_int (
-				      comp.ctxt,
-				      comp.unsigned_long_long_type,
-				      32)),
-		    gcc_jit_context_new_rvalue_from_int (
-		      comp.ctxt,
-		      comp.unsigned_long_long_type,
-		      32));
-
-  return emit_coerce (
-           type,
-           emit_binary_op (
-             GCC_JIT_BINARY_OP_BITWISE_OR,
-             comp.unsigned_long_long_type,
-             emit_binary_op (
-               GCC_JIT_BINARY_OP_LSHIFT,
-               comp.unsigned_long_long_type,
-               high,
-               gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-                                                    comp.unsigned_long_long_type,
-                                                    32)),
-             low));
-}
-#endif
-
 static gcc_jit_rvalue *
 emit_rvalue_from_emacs_uint (EMACS_UINT val)
 {
 #ifdef WIDE_EMACS_INT
   if (val > LONG_MAX || val < LONG_MIN)
-    return emit_rvalue_from_unsigned_long_long (comp.emacs_uint_type, val);
+    return emit_rvalue_from_long_long (comp.emacs_uint_type, val);
 #endif
   return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					       comp.emacs_uint_type,
@@ -1199,7 +1155,7 @@ emit_rvalue_from_lisp_word_tag (Lisp_Word_tag val)
 {
 #ifdef WIDE_EMACS_INT
   if (val > LONG_MAX || val < LONG_MIN)
-    return emit_rvalue_from_unsigned_long_long (comp.lisp_word_tag_type, val);
+    return emit_rvalue_from_long_long (comp.lisp_word_tag_type, val);
 #endif
   return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 					       comp.lisp_word_tag_type,
@@ -1215,7 +1171,7 @@ emit_rvalue_from_lisp_word (Lisp_Word val)
                                               val);
 #else
   if (val > LONG_MAX || val < LONG_MIN)
-    return emit_rvalue_from_unsigned_long_long (comp.lisp_word_type, val);
+    return emit_rvalue_from_long_long (comp.lisp_word_type, val);
   else
     return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 						 comp.lisp_word_type,
