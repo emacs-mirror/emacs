@@ -8377,6 +8377,11 @@ not_in_argv (NSString *arg)
       surface = [[EmacsSurface alloc] initWithSize:s
                                         ColorSpace:[[[self window] colorSpace]
                                                      CGColorSpace]];
+
+      /* Since we're using NSViewLayerContentsRedrawOnSetNeedsDisplay
+         the layer's scale factor is not set automatically, so do it
+         now.  */
+      [[self layer] setContentsScale:[[self window] backingScaleFactor]];
     }
 
   CGContextRef context = [surface getContext];
