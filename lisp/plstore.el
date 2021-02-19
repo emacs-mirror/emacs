@@ -1,4 +1,5 @@
 ;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
+
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@gnu.org>
@@ -19,7 +20,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;; Commentary
+;;; Commentary:
 
 ;; Plist based data store providing search and partial encryption.
 ;;
