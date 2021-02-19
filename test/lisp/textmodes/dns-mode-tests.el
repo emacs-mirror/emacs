@@ -37,7 +37,7 @@
     (dns-mode-soa-increment-serial)
     ;; Number is updated from 2015080302 to the current date
     ;; (actually, just ensure the year part is later than 2020).
-    (should (string-match "$TTL 86400
+    (should (string-match "\\$TTL 86400
 @   IN  SOA     ns.icann.org. noc.dns.icann.org. (
         20[2-9][0-9]+  ;Serial
         7200        ;Refresh

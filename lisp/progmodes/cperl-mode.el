@@ -1305,7 +1305,7 @@ is a legal variable name).")
      (group (regexp ,cperl--normal-identifier-regexp))
      (opt
       (sequence
-       (1+ (regexp ,cperl--ws-or-comment-regexp))
+       (regexp ,cperl--ws-or-comment-regexp)
        (group (regexp ,cperl--version-regexp))))))
   "A regular expression for package NAME VERSION in Perl.
 Contains two groups for the package name and version.")
