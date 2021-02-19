@@ -1128,6 +1128,7 @@ emit_rvalue_from_long_long (gcc_jit_type *type, long long n)
 	low));
 }
 
+#if (EMACS_INT_MAX > LONG_MAX)
 static gcc_jit_rvalue *
 emit_rvalue_from_unsigned_long_long (gcc_jit_type *type, unsigned long long n)
 {
@@ -1169,16 +1170,18 @@ emit_rvalue_from_unsigned_long_long (gcc_jit_type *type, unsigned long long n)
                                                     32)),
              low));
 }
+#endif
 
 static gcc_jit_rvalue *
 emit_rvalue_from_emacs_uint (EMACS_UINT val)
 {
+#ifdef WIDE_EMACS_INT
   if (val > LONG_MAX || val < LONG_MIN)
     return emit_rvalue_from_unsigned_long_long (comp.emacs_uint_type, val);
-  else
-    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-						 comp.emacs_uint_type,
-						 val);
+#endif
+  return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					       comp.emacs_uint_type,
+					       val);
 }
 
 static gcc_jit_rvalue *
@@ -1194,12 +1197,13 @@ emit_rvalue_from_emacs_int (EMACS_INT val)
 static gcc_jit_rvalue *
 emit_rvalue_from_lisp_word_tag (Lisp_Word_tag val)
 {
+#ifdef WIDE_EMACS_INT
   if (val > LONG_MAX || val < LONG_MIN)
     return emit_rvalue_from_unsigned_long_long (comp.lisp_word_tag_type, val);
-  else
-    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-						 comp.lisp_word_tag_type,
-						 val);
+#endif
+  return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					       comp.lisp_word_tag_type,
+					       val);
 }
 
 static gcc_jit_rvalue *
