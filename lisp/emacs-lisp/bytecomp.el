@@ -2859,7 +2859,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	      ((eq arg '&optional)
                (when (memq '&optional (cdr list))
                  (error "Duplicate &optional")))
-	      ((memq arg vars)
+	      ((and (memq arg vars)
+	            ;; Allow repetitions for unused args.
+	            (not (string-match "\\`_" (symbol-name arg))))
 	       (byte-compile-warn "repeated variable %s in lambda-list" arg))
 	      (t
 	       (push arg vars))))
