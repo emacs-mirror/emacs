@@ -403,15 +403,6 @@ ARGUMENTS are passed to it."
        (ntlm-tests--ensure-ws-parse-ntlm-support))
   "Non-nil if GNU ELPA test dependencies were loaded.")
 
-(when (not ntlm-tests--dependencies-present)
-  (warn "Cannot find one or more GNU ELPA packages")
-  (when (not (featurep 'url-http-ntlm))
-    (warn "Need url-http-ntlm/url-http-ntlm.el"))
-  (when (not (featurep 'web-server))
-    (warn "Need web-server/web-server.el"))
-  (warn "Skipping NTLM authentication tests")
-  (warn "See GNU_ELPA_DIRECTORY in test/README"))
-
 (ert-deftest ntlm-authentication ()
   "Check ntlm.el's implementation of NTLM authentication over HTTP."
   (skip-unless ntlm-tests--dependencies-present)
