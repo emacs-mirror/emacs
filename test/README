@@ -106,7 +106,7 @@ tramp-tests.el).  Per default, a mock-up connection method is used
 to test a real remote connection, set $REMOTE_TEMPORARY_FILE_DIRECTORY
 to a suitable value in order to overwrite the default value:
 
-  env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make ...
+    env REMOTE_TEMPORARY_FILE_DIRECTORY=/ssh:host:/tmp make ...
 
 Some optional tests require packages from GNU ELPA.  By default
 ../../elpa will be checked for these packages.  If GNU ELPA is checked
