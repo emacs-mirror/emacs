@@ -257,7 +257,7 @@ endef
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 ## Get the tests for only a specific directory.
-SUBDIRS = $(sort $(shell find lib-src lisp src -type d ! -path "*resources*" -print))
+SUBDIRS = $(sort $(shell find lib-src lisp misc src -type d ! -path "*resources*" -print))
 
 define subdir_template
   .PHONY: check-$(subst /,-,$(1))
