@@ -2195,8 +2195,8 @@ invoking, give a prefix argument to `execute-extended-command'."
 
 (defun execute-extended-command-for-buffer (prefixarg &optional
                                                       command-name typed)
-  "Query usert for a command relevant for the current mode and then execute it.
-This is like `execute-extended-command', but limits the
+  "Query user for a command relevant for the current mode, and then execute it.
+This is like `execute-extended-command', but it limits the
 completions to commands that are particularly relevant to the
 current buffer.  This includes commands that have been marked as
 being specially designed for the current major mode (and enabled
