@@ -90,23 +90,20 @@ Each element has the form (KEYWORD . DESCRIPTION).")
     (define-key map "p" 'previous-line)
     (define-key map "q"	'finder-exit)
     (define-key map "d"	'finder-list-keywords)
-
-    (define-key map [menu-bar finder-mode]
-      (cons "Finder" menu-map))
-    (define-key menu-map [finder-exit]
-      '(menu-item "Quit" finder-exit
-		  :help "Exit Finder mode"))
-    (define-key menu-map [finder-summary]
-      '(menu-item "Summary" finder-summary
-		  :help "Summary item on current line in a finder buffer"))
-    (define-key menu-map [finder-list-keywords]
-      '(menu-item "List keywords" finder-list-keywords
-		  :help "Display descriptions of the keywords in the Finder buffer"))
-    (define-key menu-map [finder-select]
-      '(menu-item "Select" finder-select
-		  :help "Select item on current line in a finder buffer"))
     map)
   "Keymap used in `finder-mode'.")
+
+(easy-menu-define finder-mode-menu finder-mode-map
+  "Menu for `finder-mode'."
+  '("Finder"
+    ["Select" finder-select
+     :help "Select item on current line in a finder buffer"]
+    ["List keywords" finder-list-keywords
+     :help "Display descriptions of the keywords in the Finder buffer"]
+    ["Summary" finder-summary
+     :help "Summary item on current line in a finder buffer"]
+    ["Quit" finder-exit
+     :help "Exit Finder mode"]))
 
 (defvar finder-mode-syntax-table
   (let ((st (make-syntax-table emacs-lisp-mode-syntax-table)))
