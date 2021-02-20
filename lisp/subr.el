@@ -1305,6 +1305,7 @@ in a cleaner way with command remapping, like this:
     (define-key map "l" #'downcase-word)
     (define-key map "c" #'capitalize-word)
     (define-key map "x" #'execute-extended-command)
+    (define-key map "X" #'execute-extended-command-for-buffer)
     map)
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")
