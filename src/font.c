@@ -4122,7 +4122,7 @@ representing the OpenType features supported by the font by this form:
 SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
 Layout tags.
 
-In addition to the keys listed abobe, the following keys are reserved
+In addition to the keys listed above, the following keys are reserved
 for the specific meanings as below:
 
 The value of :combining-capability is non-nil if the font-backend of

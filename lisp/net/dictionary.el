@@ -127,9 +127,9 @@ by the choice value:
 
   The found word exactly matches the searched word.
 
-- Similiar sounding
+- Similar sounding
 
-  The found word sounds similiar to the searched word.  For this match type
+  The found word sounds similar to the searched word.  For this match type
   the soundex algorithm defined by Donald E. Knuth is used.  It will only
   works with english words and the algorithm is not very reliable (i.e.,
   the soundex algorithm is quite simple).
@@ -148,7 +148,7 @@ by the choice value:
   dictionary server."
   :group 'dictionary
   :type '(choice (const :tag "Exact match" "exact")
-		 (const :tag "Similiar sounding" "soundex")
+		 (const :tag "Similar sounding" "soundex")
 		 (const :tag "Levenshtein distance one" "lev")
 		 (string :tag "User choice"))
   :version "28.1")
@@ -419,7 +419,7 @@ This is a quick reference to this mode describing the default key bindings:
 
 ;;;###autoload
 (defun dictionary ()
-  "Create a new dictonary buffer and install `dictionary-mode'."
+  "Create a new dictionary buffer and install `dictionary-mode'."
   (interactive)
   (let ((buffer (or (and dictionary-use-single-buffer
                          (get-buffer "*Dictionary*"))
@@ -568,7 +568,7 @@ The connection takes the proxy setting in customization group
       answer)))
 
 (defun dictionary-split-string (string)
-  "Split STRING constiting of space-separated words into elements.
+  "Split STRING consisting of space-separated words into elements.
 This function knows about the special meaning of quotes (\")"
   (let ((list))
     (while (and string (> (length string) 0))
@@ -894,7 +894,7 @@ The word is taken from the buffer, the DICTIONARY is given as argument."
       (unless (dictionary-check-reply reply 110)
 	(error "Unknown server answer: %s"
 	       (dictionary-reply reply)))
-      (dictionary-display-dictionarys))))
+      (dictionary-display-dictionaries))))
 
 (defun dictionary-simple-split-string (string &optional pattern)
   "Return a list of substrings of STRING which are separated by PATTERN.
@@ -909,7 +909,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 	    start (match-end 0)))
     (nreverse (cons (substring string start) parts))))
 
-(defun dictionary-display-dictionarys ()
+(defun dictionary-display-dictionaries ()
   "Handle the display of all dictionaries existing on the server."
   (dictionary-pre-buffer)
   (insert "Please select your default dictionary:\n\n")
@@ -1171,7 +1171,7 @@ allows editing it."
   ;; if called by pressing the button
   (unless word
     (setq word (read-string "Search word: " nil 'dictionary-word-history)))
-  ;; just in case non-interactivly called
+  ;; just in case non-interactively called
   (unless dictionary
     (setq dictionary dictionary-default-dictionary))
   (dictionary-new-search (cons word dictionary)))
@@ -1249,10 +1249,10 @@ allows editing it."
 
 ;;; Tooltip support
 
-;; Add a mode indicater named "Dict"
+;; Add a mode indicator named "Dict"
 (defvar dictionary-tooltip-mode
   nil
-  "Indicates wheather the dictionary tooltip mode is active.")
+  "Indicates whether the dictionary tooltip mode is active.")
 (nconc minor-mode-alist '((dictionary-tooltip-mode " Dict")))
 
 (defcustom dictionary-tooltip-dictionary

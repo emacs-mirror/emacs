@@ -69,13 +69,7 @@
 ;; Recommended use
 ;; ===============
 
-;; Put this in your .emacs:
-;;   (autoload 'woman "woman"
-;;             "Decode and browse a UN*X man page." t)
-;;   (autoload 'woman-find-file "woman"
-;;             "Find, decode and browse a specific UN*X man-page file." t)
-
-;; Then either (1 -- *RECOMMENDED*): If the `MANPATH' environment
+;; Either (1 -- *RECOMMENDED*): If the `MANPATH' environment
 ;; variable is set then WoMan will use it; otherwise you may need to
 ;; reset the Lisp variable `woman-manpath', and you may also want to
 ;; set the Lisp variable `woman-path'.  Please see the online
@@ -139,14 +133,8 @@
 ;; ==============================
 
 ;; WoMan supports the GNU Emacs customization facility, and puts
-;; a customization group called `WoMan' in the `Help' group under the
-;; top-level `Emacs' group.  In order to be able to customize WoMan
-;; without first loading it, add the following sexp to your .emacs:
-
-;;  (defgroup woman nil
-;;     "Browse UNIX manual pages `wo (without) man'."
-;;     :tag "WoMan" :group 'help :load "woman")
-
+;; a customization group called `woman' in the `help' group under the
+;; top-level `emacs' group.
 
 ;; WoMan currently runs two hooks: `woman-pre-format-hook' immediately
 ;; before formatting a buffer and `woman-post-format-hook' immediately

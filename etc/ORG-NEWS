@@ -747,7 +747,7 @@ removed.
 For those who hate breaking changes, even though the changes are made
 to clean things up; fear not.  ATTACH_DIR will still continue to work.
 It's just not documented any longer.  When you get the chance, run the
-code above to clean things up anyways!
+code above to clean things up anyway!
 
 **** New hooks
 Two hooks are added to org-attach:

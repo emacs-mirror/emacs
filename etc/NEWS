@@ -345,6 +345,11 @@ trying to be non-destructive.
 This command opens a new buffer called "*Memory Report*" and gives a
 summary of where Emacs is using memory currently.
 
++++
+** The history list for the 'goto-line' command is now a single list
+for all buffers by default.  You can configure a separate list for
+each buffer by customizing the user option 'goto-line-history-local'.
+
 ** Outline
 
 +++
@@ -1010,7 +1015,7 @@ separate buffer, or a tooltip.
 *** New user option 'eldoc-documentation-strategy'.
 The built-in choices available for this user option let users compose
 the results of 'eldoc-documentation-functions' in various ways, even
-if some of those functions are sychronous and some asynchchronous.
+if some of those functions are synchronous and some asynchronous.
 The user option replaces 'eldoc-documentation-function', which is now
 obsolete.
 

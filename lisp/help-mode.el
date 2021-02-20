@@ -54,13 +54,29 @@
     ["Show Help for Symbol" help-follow-symbol
      :help "Show the docs for the symbol at point"]
     ["Previous Topic" help-go-back
-     :help "Go back to previous topic in this help buffer"]
+     :help "Go back to previous topic in this help buffer"
+     :active help-xref-stack]
     ["Next Topic" help-go-forward
-     :help "Go back to next topic in this help buffer"]
+     :help "Go back to next topic in this help buffer"
+     :active help-xref-forward-stack]
     ["Move to Previous Button" backward-button
      :help "Move to the Previous Button in the help buffer"]
     ["Move to Next Button" forward-button
       :help "Move to the Next Button in the help buffer"]))
+
+(defvar help-mode-tool-bar-map
+  (let ((map (make-sparse-keymap)))
+    (tool-bar-local-item "close" 'quit-window 'quit map
+                         :label "Quit help."
+                         :vert-only t)
+    (define-key-after map [separator-1] menu-bar-separator)
+    (tool-bar-local-item "search" 'isearch-forward 'search map
+                         :label "Search" :vert-only t)
+    (tool-bar-local-item-from-menu 'help-go-back "left-arrow" map help-mode-map
+                                   :rtl "right-arrow" :vert-only t)
+    (tool-bar-local-item-from-menu 'help-go-forward "right-arrow" map help-mode-map
+                                   :rtl "left-arrow" :vert-only t)
+    map))
 
 (defvar-local help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
@@ -317,6 +333,8 @@ Commands:
 \\{help-mode-map}"
   (setq-local revert-buffer-function
               #'help-mode-revert-buffer)
+  (setq-local tool-bar-map
+              help-mode-tool-bar-map)
   (setq-local bookmark-make-record-function
               #'help-bookmark-make-record))
 
@@ -778,8 +796,8 @@ help buffer by other means."
                   (&optional no-file no-context posn))
 
 (defun help-bookmark-make-record ()
-  "Create and return a help-mode bookmark record.
-Implements `bookmark-make-record-function' for help-mode buffers."
+  "Create and return a `help-mode' bookmark record.
+Implements `bookmark-make-record-function' for `help-mode' buffers."
   (unless (car help-xref-stack-item)
     (error "Cannot create bookmark - help command not known"))
   `(,@(bookmark-make-record-default 'NO-FILE 'NO-CONTEXT)
@@ -792,7 +810,7 @@ Implements `bookmark-make-record-function' for help-mode buffers."
 
 ;;;###autoload
 (defun help-bookmark-jump (bookmark)
-  "Jump to help-mode bookmark BOOKMARK.
+  "Jump to `help-mode' bookmark BOOKMARK.
 Handler function for record returned by `help-bookmark-make-record'.
 BOOKMARK is a bookmark name or a bookmark record."
   (let ((help-fn    (bookmark-prop-get bookmark 'help-fn))

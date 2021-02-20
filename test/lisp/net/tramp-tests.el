@@ -5102,8 +5102,10 @@ INPUT, if non-nil, is a string sent to the process."
 	     (string-match-p
 	      (regexp-quote envvar)
 	      ;; We must remove PS1, the output is truncated otherwise.
+	      ;; We must suppress "_=VAR...".
 	      (funcall
-	       this-shell-command-to-string "printenv | grep -v PS1")))))))))
+	       this-shell-command-to-string
+	       "printenv | grep -v PS1 | grep -v _=")))))))))
 
 (tramp--test--deftest-direct-async-process tramp-test33-environment-variables
   "Check that remote processes set / unset environment variables properly.

@@ -388,6 +388,8 @@
 (ert-deftest rx-regexp ()
   (should (equal (rx (regexp "abc") (regex "[de]"))
                  "\\(?:abc\\)[de]"))
+  (should (equal (rx "a" (regexp "$"))
+                 "a\\(?:$\\)"))
   (let ((x "a*"))
     (should (equal (rx (regexp x) "b")
                    "\\(?:a*\\)b"))

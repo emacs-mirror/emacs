@@ -447,7 +447,7 @@ If it is `no-dir', omitting is much faster, but you can only match
 against the non-directory part of the file name.  Set it to nil if you
 need to match the entire file name.")
 
-;; \017=^O for Omit - other packages can chose other control characters.
+;; \017=^O for Omit - other packages can choose other control characters.
 (defvar dired-omit-marker-char ?\017
   "Temporary marker used by Dired-Omit.
 Should never be used as marker by the user or other packages.")

@@ -1928,7 +1928,7 @@ If ARGUMENT is non-nil, use it as argument for
 
     ;; Check whether we still have the same smbclient version.
     ;; Otherwise, we must delete the connection cache, because
-    ;; capabilities migh have changed.
+    ;; capabilities might have changed.
     (unless (or argument (processp p))
       (let ((default-directory (tramp-compat-temporary-file-directory))
 	    (command (concat tramp-smb-program " -V")))

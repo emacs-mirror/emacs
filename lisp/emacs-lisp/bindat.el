@@ -41,23 +41,23 @@
 ;;  Consider the following C structures:
 ;;
 ;;  struct header {
-;;	unsigned long	dest_ip;
-;;	unsigned long	src_ip;
-;;	unsigned short	dest_port;
-;;	unsigned short	src_port;
+;;	uint32_t	dest_ip;
+;;	uint32_t	src_ip;
+;;	uint16_t	dest_port;
+;;	uint16_t	src_port;
 ;;  };
 ;;
 ;;  struct data {
-;;	unsigned char	type;
-;;	unsigned char	opcode;
-;;	unsigned long	length;  /* In little endian order */
+;;	uint8_t		type;
+;;	uint8_t		opcode;
+;;	uint32_t	length;  /* In little endian order */
 ;;	unsigned char	id[8];   /* nul-terminated string  */
 ;;	unsigned char	data[/* (length + 3) & ~3 */];
 ;;  };
 ;;
 ;;  struct packet {
 ;;	struct header	header;
-;;	unsigned char	items;
+;;	uint8_t		items;
 ;;	unsigned char   filler[3];
 ;;	struct data	item[/* items */];
 ;;  };
@@ -75,7 +75,7 @@
 ;;    (bindat-spec
 ;;      (type      u8)
 ;;	(opcode	   u8)
-;;	(length	   u16r)  ;; little endian order
+;;	(length	   u32r)  ;; little endian order
 ;;	(id	   strz 8)
 ;;	(data	   vec (length))
 ;;	(align     4)))

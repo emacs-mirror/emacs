@@ -493,7 +493,10 @@ I/O.
 Point and the mark, as two numeric arguments, smallest first.  This is
 the only code letter that specifies two successive arguments rather than
 one.  This will signal an error if the mark is not set in the buffer
-which is current when the command is invoked.  No I/O.
+which is current when the command is invoked.  If Transient Mark mode
+is turned on (@pxref{The Mark}) --- as it is by default --- and user
+option @code{mark-even-if-inactive} is @code{nil}, Emacs will signal
+an error even if the mark @emph{is} set, but is inactive.  No I/O.
 
 @item s
 Arbitrary text, read in the minibuffer and returned as a string
@@ -597,16 +600,17 @@ Put them into three windows, selecting the last one."
 @subsection Specifying Modes For Commands
 
 Many commands in Emacs are general, and not tied to any specific mode.
-For instance, @kbd{M-x kill-region} can be used pretty in pretty much
-any mode that has editable text, and commands that display information
+For instance, @kbd{M-x kill-region} can be used in pretty much any
+mode that has editable text, and commands that display information
 (like @kbd{M-x list-buffers}) can be used in pretty much any context.
 
 Many other commands, however, are specifically tied to a mode, and
 make no sense outside of that context.  For instance, @code{M-x
-dired-diff} will just signal an error used outside of a dired buffer.
+dired-diff} will just signal an error if used outside of a Dired
+buffer.
 
 Emacs therefore has a mechanism for specifying what mode (or modes) a
-command ``belong'' to:
+command ``belongs'' to:
 
 @lisp
 (defun dired-diff (...)
@@ -634,8 +638,8 @@ commands (if they aren't bound to any keys).
 
 If using this extended @code{interactive} form isn't convenient
 (because the code is supposed to work in older versions of Emacs that
-doesn't support the extended @code{interactive} form), the following
-can be used instead:
+don't support the extended @code{interactive} form), the following
+equivalent declaration (@pxref{Declare Form}) can be used instead:
 
 @lisp
 (declare (modes dired-mode))
@@ -657,10 +661,10 @@ call @code{kill-buffer}.  This command will ``work'' from any mode,
 but it is highly unlikely that anybody would actually want to use the
 command outside the context of this special mode.
 
-Many modes have a set of different commands that start that start the
-mode in different ways, (e.g., @code{eww-open-in-new-buffer} and
+Many modes have a set of different commands that start the mode in
+different ways (e.g., @code{eww-open-in-new-buffer} and
 @code{eww-open-file}).  Commands like that should never be tagged as
-mode-specific, as then can be issued by the user from pretty much any
+mode-specific, as they can be issued by the user from pretty much any
 context.
 
 @node Generic Commands

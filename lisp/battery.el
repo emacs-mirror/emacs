@@ -246,7 +246,7 @@ seconds."
 	(add-to-list 'global-mode-string 'battery-mode-line-string t)
         (and (eq battery-status-function #'battery-upower)
              battery-upower-subscribe
-             (battery--upower-subsribe))
+             (battery--upower-subscribe))
 	(setq battery-update-timer (run-at-time nil battery-update-interval
                                                 #'battery-update-handler))
 	(battery-update))
@@ -634,7 +634,7 @@ Intended as a UPower PropertiesChanged signal handler."
   (mapc #'dbus-unregister-object battery--upower-signals)
   (setq battery--upower-signals ()))
 
-(defun battery--upower-subsribe ()
+(defun battery--upower-subscribe ()
   "Subscribe to UPower device change signals."
   (push (dbus-register-signal :system battery-upower-service
                               battery-upower-path
