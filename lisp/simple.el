@@ -1994,7 +1994,7 @@ This function uses the `read-extended-command-predicate' user option."
                        (funcall read-extended-command-predicate sym buffer)))))
        t nil 'extended-command-history))))
 
-(define-inline command-completion-using-modes-p (symbol buffer)
+(defun command-completion-using-modes-p (symbol buffer)
   "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
   ;; Check the modes.
   (let ((modes (command-modes symbol)))
