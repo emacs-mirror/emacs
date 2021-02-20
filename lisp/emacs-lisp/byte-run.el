@@ -149,7 +149,7 @@ The return value of this function is not used."
 (defalias 'byte-run--set-completion
   #'(lambda (f _args val)
       (list 'function-put (list 'quote f)
-            ''completion-predicate val)))
+            ''completion-predicate (list 'function val))))
 
 (defalias 'byte-run--set-modes
   #'(lambda (f _args &rest val)
