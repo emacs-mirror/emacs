@@ -373,9 +373,16 @@ PREFIX is a string, and defaults to \"g\"."
 
 (defun ignore (&rest _arguments)
   "Do nothing and return nil.
-This function accepts any number of ARGUMENTS, but ignores them."
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `always'."
   (interactive)
   nil)
+
+(defun always (&rest _arguments)
+  "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+  t)
 
 ;; Signal a compile-error if the first arg is missing.
 (defun error (&rest args)
