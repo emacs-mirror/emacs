@@ -268,6 +268,7 @@ In Buffer Menu mode, the following commands are defined:
 \\[revert-buffer]    Update the list of buffers.
 \\[Buffer-menu-toggle-files-only]    Toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury]    Bury the buffer listed on this line."
+  :interactive nil
   (setq-local buffer-stale-function
               (lambda (&optional _noconfirm) 'fast))
   (add-hook 'tabulated-list-revert-hook 'list-buffers--refresh nil t))
@@ -328,7 +329,7 @@ ARG, show only buffers that are visiting files."
   "Toggle whether the current buffer-menu displays only file buffers.
 With a positive ARG, display only file buffers.  With zero or
 negative ARG, display other buffers as well."
-  (interactive "P")
+  (interactive "P" Buffer-menu-mode)
   (setq Buffer-menu-files-only
 	(cond ((not arg) (not Buffer-menu-files-only))
 	      ((> (prefix-numeric-value arg) 0) t)))
@@ -337,7 +338,8 @@ negative ARG, display other buffers as well."
 	     "Showing all non-internal buffers."))
   (revert-buffer))
 
-(defalias 'Buffer-menu-sort 'tabulated-list-sort)
+(define-obsolete-function-alias 'Buffer-menu-sort 'tabulated-list-sort
+  "28.1")
 
 
 (defun Buffer-menu-buffer (&optional error-if-non-existent-p)
@@ -373,14 +375,14 @@ is nil or omitted, and signal an error otherwise."
 (defun Buffer-menu-mark ()
   "Mark the Buffer menu entry at point for later display.
 It will be displayed by the \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (tabulated-list-set-col 0 (char-to-string Buffer-menu-marker-char) t)
   (forward-line))
 
 (defun Buffer-menu-unmark (&optional backup)
   "Cancel all requested operations on buffer on this line and move down.
 Optional prefix arg means move up."
-  (interactive "P")
+  (interactive "P" Buffer-menu-mode)
   (Buffer-menu--unmark)
   (forward-line (if backup -1 1)))
 
@@ -388,7 +390,7 @@ Optional prefix arg means move up."
   "Cancel a requested operation on all buffers.
 MARK is the character to flag the operation on the buffers.
 When called interactively prompt for MARK;  RET remove all marks."
-  (interactive "cRemove marks (RET means all):")
+  (interactive "cRemove marks (RET means all):" Buffer-menu-mode)
   (save-excursion
     (goto-char (point-min))
     (when (tabulated-list-header-overlay-p)
@@ -403,12 +405,12 @@ When called interactively prompt for MARK;  RET remove all marks."
 
 (defun Buffer-menu-unmark-all ()
   "Cancel all requested operations on buffers."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (Buffer-menu-unmark-all-buffers ?\r))
 
 (defun Buffer-menu-backup-unmark ()
   "Move up and cancel all requested operations on buffer on line above."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (forward-line -1)
   (Buffer-menu--unmark))
 
@@ -427,7 +429,7 @@ will delete it.
 
 If prefix argument ARG is non-nil, it specifies the number of
 buffers to delete; a negative ARG means to delete backwards."
-  (interactive "p")
+  (interactive "p" Buffer-menu-mode)
   (if (or (null arg) (= arg 0))
       (setq arg 1))
   (while (> arg 0)
@@ -446,14 +448,14 @@ buffers to delete; a negative ARG means to delete backwards."
 A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]'
 command will delete the marked buffer.  Prefix ARG means move
 that many lines."
-  (interactive "p")
+  (interactive "p" Buffer-menu-mode)
   (Buffer-menu-delete (- (or arg 1))))
 
 (defun Buffer-menu-save ()
   "Mark the buffer on this Buffer Menu line for saving.
 A subsequent \\<Buffer-menu-mode-map>`\\[Buffer-menu-execute]' command
 will save it."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (when (Buffer-menu-buffer)
     (tabulated-list-set-col 2 "S" t)
     (forward-line 1)))
@@ -462,7 +464,7 @@ will save it."
   "Mark the buffer on this line as unmodified (no changes to save).
 If ARG is non-nil (interactively, with a prefix argument), mark
 it as modified."
-  (interactive "P")
+  (interactive "P" Buffer-menu-mode)
   (with-current-buffer (Buffer-menu-buffer t)
     (set-buffer-modified-p arg))
   (tabulated-list-set-col 2 (if arg "*" " ") t))
@@ -471,7 +473,7 @@ it as modified."
   "Save and/or delete marked buffers in the Buffer Menu.
 Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-save]' are saved.
 Buffers marked with \\<Buffer-menu-mode-map>`\\[Buffer-menu-delete]' are deleted."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (save-excursion
     (Buffer-menu-beginning)
     (while (not (eobp))
@@ -502,7 +504,7 @@ You can mark buffers with the \\<Buffer-menu-mode-map>`\\[Buffer-menu-mark]' com
 
 This command deletes and replaces all the previously existing windows
 in the selected frame, and will remove any marks."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (let* ((this-buffer (Buffer-menu-buffer t))
 	 (menu-buffer (current-buffer))
 	 (others (delq this-buffer (Buffer-menu-marked-buffers t)))
@@ -533,23 +535,23 @@ If UNMARK is non-nil, unmark them."
 
 (defun Buffer-menu-isearch-buffers ()
   "Search for a string through all marked buffers using Isearch."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (multi-isearch-buffers (Buffer-menu-marked-buffers)))
 
 (defun Buffer-menu-isearch-buffers-regexp ()
   "Search for a regexp through all marked buffers using Isearch."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (multi-isearch-buffers-regexp (Buffer-menu-marked-buffers)))
 
 (defun Buffer-menu-multi-occur (regexp &optional nlines)
   "Show all lines in marked buffers containing a match for a regexp."
-  (interactive (occur-read-primary-args))
+  (interactive (occur-read-primary-args) Buffer-menu-mode)
   (multi-occur (Buffer-menu-marked-buffers) regexp nlines))
 
 
 (defun Buffer-menu-visit-tags-table ()
   "Visit the tags table in the buffer on this line.  See `visit-tags-table'."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (let ((file (buffer-file-name (Buffer-menu-buffer t))))
     (if file
 	(visit-tags-table file)
@@ -557,30 +559,30 @@ If UNMARK is non-nil, unmark them."
 
 (defun Buffer-menu-1-window ()
   "Select this line's buffer, alone, in full frame."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (switch-to-buffer (Buffer-menu-buffer t))
   (bury-buffer (other-buffer))
   (delete-other-windows))
 
 (defun Buffer-menu-this-window ()
   "Select this line's buffer in this window."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (switch-to-buffer (Buffer-menu-buffer t)))
 
 (defun Buffer-menu-other-window ()
   "Select this line's buffer in other window, leaving buffer menu visible."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (switch-to-buffer-other-window (Buffer-menu-buffer t)))
 
 (defun Buffer-menu-switch-other-window ()
   "Make the other window select this line's buffer.
 The current window remains selected."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (display-buffer (Buffer-menu-buffer t) t))
 
 (defun Buffer-menu-2-window ()
   "Select this line's buffer, with previous buffer in second window."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (let ((buff (Buffer-menu-buffer t))
 	(menu (current-buffer)))
     (delete-other-windows)
@@ -591,7 +593,7 @@ The current window remains selected."
 (defun Buffer-menu-toggle-read-only ()
   "Toggle read-only status of buffer on this line.
 This behaves like invoking \\[read-only-mode] in that buffer."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (let ((read-only
          (with-current-buffer (Buffer-menu-buffer t)
            (read-only-mode 'toggle)
@@ -600,7 +602,7 @@ This behaves like invoking \\[read-only-mode] in that buffer."
 
 (defun Buffer-menu-bury ()
   "Bury the buffer listed on this line."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (let ((buffer (tabulated-list-get-id)))
     (cond ((null buffer))
 	  ((buffer-live-p buffer)
@@ -616,12 +618,12 @@ This behaves like invoking \\[read-only-mode] in that buffer."
 
 (defun Buffer-menu-view ()
   "View this line's buffer in View mode."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (view-buffer (Buffer-menu-buffer t)))
 
 (defun Buffer-menu-view-other-window ()
   "View this line's buffer in View mode in another window."
-  (interactive)
+  (interactive nil Buffer-menu-mode)
   (view-buffer-other-window (Buffer-menu-buffer t)))
 
 ;;; Functions for populating the Buffer Menu.
@@ -646,7 +648,7 @@ means list those buffers and no others."
 
 (defun Buffer-menu-mouse-select (event)
   "Select the buffer whose line you click on."
-  (interactive "e")
+  (interactive "e" Buffer-menu-mode)
   (select-window (posn-window (event-end event)))
   (let ((buffer (tabulated-list-get-id (posn-point (event-end event)))))
     (when (buffer-live-p buffer)

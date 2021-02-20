@@ -690,17 +690,24 @@ ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 static void
 ns_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int old_width = FRAME_CHILD_FRAME_BORDER_WIDTH (f);
-  int new_width = check_int_nonnegative (arg);
+  int border;
 
-  if (new_width == old_width)
-    return;
-  f->child_frame_border_width = new_width;
+  if (NILP (arg))
+    border = -1;
+  else if (RANGED_FIXNUMP (0, arg, INT_MAX))
+    border = XFIXNAT (arg);
+  else
+    signal_error ("Invalid child frame border width", arg);
 
-  if (FRAME_NATIVE_WINDOW (f) != 0)
-    adjust_frame_size (f, -1, -1, 3, 0, Qchild_frame_border_width);
+  if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
+    {
+      f->child_frame_border_width = border;
 
-  SET_FRAME_GARBAGED (f);
+      if (FRAME_NATIVE_WINDOW (f) != 0)
+	adjust_frame_size (f, -1, -1, 3, 0, Qchild_frame_border_width);
+
+      SET_FRAME_GARBAGED (f);
+    }
 }
 
 static void
@@ -1213,7 +1220,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   gui_default_parameter (f, parms, Qinternal_border_width, make_fixnum (2),
                          "internalBorderWidth", "InternalBorderWidth",
                          RES_TYPE_NUMBER);
-  gui_default_parameter (f, parms, Qchild_frame_border_width, make_fixnum (2),
+  gui_default_parameter (f, parms, Qchild_frame_border_width, Qnil,
 			 "childFrameBorderWidth", "childFrameBorderWidth",
 			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),

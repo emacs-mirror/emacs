@@ -1,4 +1,4 @@
-;;; uni-input.el --- Hex Unicode input method
+;;; uni-input.el --- Hex Unicode input method  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
@@ -57,11 +57,12 @@
 	  (echo-keystrokes 0)
 	  (help-char nil)
 	  (events (list key))
-	  (str "    "))
+	  ;; (str "    ")
+	  )
       (unwind-protect
 	  (catch 'non-digit
 	    (progn
-	      (dotimes (i 4)
+	      (dotimes (_ 4)
 		(let ((seq (read-key-sequence nil))
 		      key)
 		  (if (and (stringp seq)
@@ -76,7 +77,7 @@
 		    (throw 'non-digit (append (reverse events)
 					      (listify-key-sequence seq))))))
 	      (quail-delete-region)
-	      (let ((n (string-to-number (apply 'string
+	      (let ((n (string-to-number (apply #'string
 					    (cdr (nreverse events)))
 				     16)))
 		(if (characterp n)
@@ -100,12 +101,12 @@ While this input method is active, the variable
 	    (quail-delete-overlays)
 	    (setq describe-current-input-method-function nil))
 	(kill-local-variable 'input-method-function))
-    (setq deactivate-current-input-method-function 'ucs-input-deactivate)
-    (setq describe-current-input-method-function 'ucs-input-help)
+    (setq deactivate-current-input-method-function #'ucs-input-deactivate)
+    (setq describe-current-input-method-function #'ucs-input-help)
     (quail-delete-overlays)
     (if (eq (selected-window) (minibuffer-window))
-	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-    (setq-local input-method-function 'ucs-input-method)))
+	(add-hook 'minibuffer-exit-hook #'quail-exit-from-minibuffer))
+    (setq-local input-method-function #'ucs-input-method)))
 
 (defun ucs-input-deactivate ()
   "Deactivate UCS input method."
@@ -114,7 +115,7 @@ While this input method is active, the variable
 
 (define-obsolete-function-alias
   'ucs-input-inactivate
-  'ucs-input-deactivate "24.3")
+  #'ucs-input-deactivate "24.3")
 
 (defun ucs-input-help ()
   (interactive)

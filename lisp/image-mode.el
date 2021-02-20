@@ -858,7 +858,9 @@ was inserted."
       (setq image-transform-rotation
             (or (exif-orientation
                  (ignore-error exif-error
-                   (exif-parse-buffer)))
+                   ;; exif-parse-buffer can move point, so preserve it.
+                   (save-excursion
+                     (exif-parse-buffer))))
                 0.0)))
     ;; Swap width and height when changing orientation
     ;; between portrait and landscape.
@@ -985,7 +987,13 @@ Otherwise, display the image by calling `image-mode'."
                    (edges (window-inside-pixel-edges window))
                    (window-width  (- (nth 2 edges) (nth 0 edges)))
                    (window-height (- (nth 3 edges) (nth 1 edges))))
+              ;; If the size has been changed manually (with `+'/`-'),
+              ;; then :max-width/:max-height is nil.  In that case, do
+              ;; no automatic resizing.
               (when (and image-width image-height
+                         ;; Don't do resizing if we have a manual
+                         ;; rotation (from the `r' command), either.
+                         (not (plist-get (cdr spec) :rotation))
                          (or (not (= image-width  window-width))
                              (not (= image-height window-height))))
                 (unless image-fit-to-window-lock

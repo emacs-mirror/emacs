@@ -1803,7 +1803,14 @@ x_change_tool_bar_height (struct frame *f, int height)
 static void
 x_set_child_frame_border_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
-  int border = check_int_nonnegative (arg);
+  int border;
+
+  if (NILP (arg))
+    border = -1;
+  else if (RANGED_FIXNUMP (0, arg, INT_MAX))
+    border = XFIXNAT (arg);
+  else
+    signal_error ("Invalid child frame border width", arg);
 
   if (border != FRAME_CHILD_FRAME_BORDER_WIDTH (f))
     {
@@ -3920,28 +3927,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       parms);
     }
 
-  /* Same for child frames.  */
-  if (NILP (Fassq (Qchild_frame_border_width, parms)))
-    {
-      Lisp_Object value;
-
-      value = gui_display_get_arg (dpyinfo, parms, Qchild_frame_border_width,
-                                   "childFrameBorderWidth", "childFrameBorderWidth",
-                                   RES_TYPE_NUMBER);
-      if (! EQ (value, Qunbound))
-	parms = Fcons (Fcons (Qchild_frame_border_width, value),
-		       parms);
-
-    }
-
-  gui_default_parameter (f, parms, Qchild_frame_border_width,
-#ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
-			 make_fixnum (0),
-#else
-			 make_fixnum (1),
-#endif
-			 "childFrameBorderWidth", "childFrameBorderWidth",
-			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qinternal_border_width,
 #ifdef USE_GTK /* We used to impose 0 in xg_create_frame_widgets.  */
                          make_fixnum (0),
@@ -3950,6 +3935,23 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif
                          "internalBorderWidth", "internalBorderWidth",
                          RES_TYPE_NUMBER);
+
+  /* Same for child frames.  */
+  if (NILP (Fassq (Qchild_frame_border_width, parms)))
+    {
+      Lisp_Object value;
+
+      value = gui_display_get_arg (dpyinfo, parms, Qchild_frame_border_width,
+                                   "childFrameBorder", "childFrameBorder",
+                                   RES_TYPE_NUMBER);
+      if (! EQ (value, Qunbound))
+	parms = Fcons (Fcons (Qchild_frame_border_width, value),
+		       parms);
+    }
+
+  gui_default_parameter (f, parms, Qchild_frame_border_width, Qnil,
+			 "childFrameBorderWidth", "childFrameBorderWidth",
+			 RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qright_divider_width, make_fixnum (0),
                          NULL, NULL, RES_TYPE_NUMBER);
   gui_default_parameter (f, parms, Qbottom_divider_width, make_fixnum (0),
@@ -4597,7 +4599,7 @@ On MS Windows, this just returns nil.  */)
     return Qnil;
 }
 
-#if !defined USE_GTK || !defined HAVE_GTK3
+#if !(defined USE_GTK && defined HAVE_GTK3)
 
 /* Store the geometry of the workarea on display DPYINFO into *RECT.
    Return false if and only if the workarea information cannot be
@@ -4660,6 +4662,9 @@ x_get_net_workarea (struct x_display_info *dpyinfo, XRectangle *rect)
 
   return result;
 }
+#endif /* !(USE_GTK && HAVE_GTK3) */
+
+#ifndef USE_GTK
 
 /* Return monitor number where F is "most" or closest to.  */
 static int
@@ -4874,6 +4879,8 @@ x_get_monitor_attributes_xrandr (struct x_display_info *dpyinfo)
   if (randr13_avail)
     pxid = XRRGetOutputPrimary (dpy, dpyinfo->root_window);
 #endif
+
+#undef RANDR13_LIBRARY
 
   for (i = 0; i < n_monitors; ++i)
     {

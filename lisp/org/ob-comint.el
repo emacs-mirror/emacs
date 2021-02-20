@@ -44,7 +44,7 @@
 BUFFER is checked with `org-babel-comint-buffer-livep'.  BODY is
 executed inside the protection of `save-excursion' and
 `save-match-data'."
-  (declare (indent 1))
+  (declare (indent 1) (debug t))
   `(progn
      (unless (org-babel-comint-buffer-livep ,buffer)
        (error "Buffer %s does not exist or has no process" ,buffer))
@@ -53,7 +53,6 @@ executed inside the protection of `save-excursion' and
 	 (save-excursion
 	   (let ((comint-input-filter (lambda (_input) nil)))
 	     ,@body))))))
-(def-edebug-spec org-babel-comint-in-buffer (form body))
 
 (defmacro org-babel-comint-with-output (meta &rest body)
   "Evaluate BODY in BUFFER and return process output.
@@ -67,7 +66,7 @@ elements are optional.
 
 This macro ensures that the filter is removed in case of an error
 or user `keyboard-quit' during execution of body."
-  (declare (indent 1))
+  (declare (indent 1) (debug (sexp body)))
   (let ((buffer (nth 0 meta))
 	(eoe-indicator (nth 1 meta))
 	(remove-echo (nth 2 meta))
@@ -112,7 +111,6 @@ or user `keyboard-quit' during execution of body."
 		     string-buffer))
 	   (setq string-buffer (substring string-buffer (match-end 0))))
 	 (split-string string-buffer comint-prompt-regexp)))))
-(def-edebug-spec org-babel-comint-with-output (sexp body))
 
 (defun org-babel-comint-input-command (buffer cmd)
   "Pass CMD to BUFFER.

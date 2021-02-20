@@ -125,7 +125,7 @@ callback for `gravatar-retrieve'."
 (defun gnus-treat-from-gravatar (&optional force)
   "Display gravatar in the From header.
 If gravatar is already displayed, remove it."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
     (if (memq 'from-gravatar gnus-article-wash-types)
 	(gnus-delete-images 'from-gravatar)
@@ -135,7 +135,7 @@ If gravatar is already displayed, remove it."
 (defun gnus-treat-mail-gravatar (&optional force)
   "Display gravatars in the Cc and To headers.
 If gravatars are already displayed, remove them."
-  (interactive "p")
+  (interactive "p" gnus-article-mode gnus-summary-mode)
   (gnus-with-article-buffer
     (if (memq 'mail-gravatar gnus-article-wash-types)
         (gnus-delete-images 'mail-gravatar)

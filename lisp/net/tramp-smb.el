@@ -743,6 +743,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Make the file name absolute.
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
+     ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       (tramp-make-tramp-file-name
@@ -1925,7 +1928,7 @@ If ARGUMENT is non-nil, use it as argument for
 
     ;; Check whether we still have the same smbclient version.
     ;; Otherwise, we must delete the connection cache, because
-    ;; capabilities migh have changed.
+    ;; capabilities might have changed.
     (unless (or argument (processp p))
       (let ((default-directory (tramp-compat-temporary-file-directory))
 	    (command (concat tramp-smb-program " -V")))

@@ -127,8 +127,9 @@ Also add the value to the front of the list in the variable `values'."
   (interactive
    (list (read--expression "Eval: ")))
   (message "Evaluating...")
-  (push (eval expression lexical-binding) values)
-  (pp-display-expression (car values) "*Pp Eval Output*"))
+  (let ((result (eval expression lexical-binding)))
+    (values--store-value result)
+    (pp-display-expression result "*Pp Eval Output*")))
 
 ;;;###autoload
 (defun pp-macroexpand-expression (expression)

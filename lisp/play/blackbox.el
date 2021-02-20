@@ -1,4 +1,4 @@
-;;; blackbox.el --- blackbox game in Emacs Lisp
+;;; blackbox.el --- blackbox game in Emacs Lisp  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1987, 1992, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -274,45 +274,45 @@ a reflection."
     ))
 
 (defun bb-right (count)
-  (interactive "p")
+  (interactive "p" blackbox-mode)
   (while (and (> count 0) (< bb-x 8))
     (forward-char 2)
     (setq bb-x (1+ bb-x))
     (setq count (1- count))))
 
 (defun bb-left (count)
-  (interactive "p")
+  (interactive "p" blackbox-mode)
   (while (and (> count 0) (> bb-x -1))
     (backward-char 2)
     (setq bb-x (1- bb-x))
     (setq count (1- count))))
 
 (defun bb-up (count)
-  (interactive "p")
+  (interactive "p" blackbox-mode)
   (while (and (> count 0) (> bb-y -1))
     (with-no-warnings (previous-line))
     (setq bb-y (1- bb-y))
     (setq count (1- count))))
 
 (defun bb-down (count)
-  (interactive "p")
+  (interactive "p" blackbox-mode)
   (while (and (> count 0) (< bb-y 8))
     (with-no-warnings (next-line))
     (setq bb-y (1+ bb-y))
     (setq count (1- count))))
 
 (defun bb-eol ()
-  (interactive)
+  (interactive nil blackbox-mode)
   (setq bb-x 8)
   (bb-goto (cons bb-x bb-y)))
 
 (defun bb-bol ()
-  (interactive)
+  (interactive nil blackbox-mode)
   (setq bb-x -1)
   (bb-goto (cons bb-x bb-y)))
 
 (defun bb-romp ()
-  (interactive)
+  (interactive nil blackbox-mode)
   (cond
    ((and
      (or (= bb-x -1) (= bb-x 8))
@@ -379,7 +379,7 @@ a reflection."
 
 (defun bb-done ()
   "Finish the game and report score."
-  (interactive)
+  (interactive nil blackbox-mode)
   (let (bogus-balls)
     (cond
      ((not (= (length bb-balls-placed) (length bb-board)))

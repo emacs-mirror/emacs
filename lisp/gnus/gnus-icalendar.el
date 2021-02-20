@@ -970,7 +970,7 @@ These will be used to retrieve the RSVP information from ical events."
 
 (defun gnus-icalendar-save-event ()
   "Save the Calendar event in the text/calendar part under point."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-article-check-buffer)
   (let ((data (get-text-property (point) 'gnus-data)))
     (when data
@@ -978,28 +978,28 @@ These will be used to retrieve the RSVP information from ical events."
 
 (defun gnus-icalendar-reply-accept ()
   "Accept invitation in the current article."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
     (gnus-icalendar-reply (list gnus-icalendar-handle 'accepted gnus-icalendar-event))
     (setq-local gnus-icalendar-reply-status 'accepted)))
 
 (defun gnus-icalendar-reply-tentative ()
   "Send tentative response to invitation in the current article."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
     (gnus-icalendar-reply (list gnus-icalendar-handle 'tentative gnus-icalendar-event))
     (setq-local gnus-icalendar-reply-status 'tentative)))
 
 (defun gnus-icalendar-reply-decline ()
   "Decline invitation in the current article."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
     (gnus-icalendar-reply (list gnus-icalendar-handle 'declined gnus-icalendar-event))
     (setq-local gnus-icalendar-reply-status 'declined)))
 
 (defun gnus-icalendar-event-export ()
   "Export calendar event to `org-mode', or update existing agenda entry."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (with-current-buffer gnus-article-buffer
     (gnus-icalendar-sync-event-to-org gnus-icalendar-event))
   ;; refresh article buffer in case the reply had been sent before initial org
@@ -1009,14 +1009,14 @@ These will be used to retrieve the RSVP information from ical events."
 
 (defun gnus-icalendar-event-show ()
   "Display `org-mode' agenda entry related to the calendar event."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-icalendar--show-org-event
    (with-current-buffer gnus-article-buffer
      gnus-icalendar-event)))
 
 (defun gnus-icalendar-event-check-agenda ()
   "Display `org-mode' agenda for days between event start and end dates."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-icalendar-show-org-agenda
    (with-current-buffer gnus-article-buffer gnus-icalendar-event)))
 

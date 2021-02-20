@@ -1,0 +1,20 @@
+`facemenu-keymap' (normally bound to `M-o') has been disabled.
+==============================================================
+
+We've disabled the normal `M-o' keymap for a month (until March the
+10th, 2021) in the development version of Emacs to see whether anybody
+uses this feature.
+
+If the removal of this key binding doesn't annoy too many people, the
+plan is to then leave the it unbound, for usage by third-party
+packages and users.
+
+If you wish to restore the binding during the trial period, you can
+put the following in your .emacs file:
+
+(facemenu-keymap-restore)
+
+After the trial period is over, the function will be removed.
+
+If you wish to protest the removal of the `M-o' key binding, please
+send your thoughts to the emacs-devel@gnu.org mailing list.

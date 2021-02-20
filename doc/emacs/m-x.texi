@@ -46,9 +46,17 @@ from running the command by name.
 @cindex obsolete command
   When @kbd{M-x} completes on commands, it ignores the commands that
 are declared @dfn{obsolete}; for these, you will have to type their
-full name.  Obsolete commands are those for which newer, better
+full name.  (Obsolete commands are those for which newer, better
 alternatives exist, and which are slated for removal in some future
-Emacs release.
+Emacs release.)
+
+@vindex read-extended-command-predicate
+  In addition, @kbd{M-x} completion can exclude commands that are not
+relevant to, and generally cannot work with, the current buffer's
+major mode (@pxref{Major Modes}) and minor modes (@pxref{Minor
+Modes}).  By default, no commands are excluded, but you can customize
+the option @code{read-extended-command-predicate} to exclude those
+irrelevant commands from completion results.
 
   To cancel the @kbd{M-x} and not run a command, type @kbd{C-g} instead
 of entering the command name.  This takes you back to command level.

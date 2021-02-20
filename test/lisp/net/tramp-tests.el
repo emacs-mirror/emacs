@@ -2182,6 +2182,16 @@ is greater than 10.
       (expand-file-name ".." "./"))
     (concat (file-remote-p tramp-test-temporary-file-directory) "/"))))
 
+(ert-deftest tramp-test05-expand-file-name-top ()
+  "Check `expand-file-name'."
+  (skip-unless (tramp--test-enabled))
+  (skip-unless (not (tramp--test-ange-ftp-p)))
+
+  (let ((dir (concat (file-remote-p tramp-test-temporary-file-directory) "/")))
+    (dolist (local '("." ".."))
+      (should (string-equal (expand-file-name local dir) dir))
+      (should (string-equal (expand-file-name (concat dir local)) dir)))))
+
 (ert-deftest tramp-test06-directory-file-name ()
   "Check `directory-file-name'.
 This checks also `file-name-as-directory', `file-name-directory',
@@ -5092,8 +5102,10 @@ INPUT, if non-nil, is a string sent to the process."
 	     (string-match-p
 	      (regexp-quote envvar)
 	      ;; We must remove PS1, the output is truncated otherwise.
+	      ;; We must suppress "_=VAR...".
 	      (funcall
-	       this-shell-command-to-string "printenv | grep -v PS1")))))))))
+	       this-shell-command-to-string
+	       "printenv | grep -v PS1 | grep -v _=")))))))))
 
 (tramp--test--deftest-direct-async-process tramp-test33-environment-variables
   "Check that remote processes set / unset environment variables properly.
@@ -6730,8 +6742,8 @@ Since it unloads Tramp, it shall be the last test to run."
 If INTERACTIVE is non-nil, the tests are run interactively."
   (interactive "p")
   (funcall
-   (if interactive
-       #'ert-run-tests-interactively #'ert-run-tests-batch) "^tramp"))
+   (if interactive #'ert-run-tests-interactively #'ert-run-tests-batch)
+   "^tramp"))
 
 ;; TODO:
 

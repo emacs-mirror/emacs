@@ -3356,7 +3356,7 @@ the word mode."
 
 (defun isearch-lazy-count-format (&optional suffix-p)
   "Format the current match number and the total number of matches.
-When SUFFIX-P is non-nil, the returned string is indended for
+When SUFFIX-P is non-nil, the returned string is intended for
 isearch-message-suffix prompt.  Otherwise, for isearch-message-prefix."
   (let ((format-string (if suffix-p
                            lazy-count-suffix-format
@@ -4127,13 +4127,13 @@ Attempt to do the search exactly the way the pending Isearch would."
   "Update highlighting of other matches in the full buffer."
   (let ((max lazy-highlight-buffer-max-at-a-time)
         (looping t)
-        nomore window-start window-end
-        (opoint (point)))
+        nomore opoint window-start window-end)
     (with-local-quit
       (save-selected-window
 	(if (and (window-live-p isearch-lazy-highlight-window)
 		 (not (memq (selected-window) isearch-lazy-highlight-window-group)))
 	    (select-window isearch-lazy-highlight-window))
+	(setq opoint (point))
 	(setq window-start (window-group-start))
 	(setq window-end (window-group-end))
 	(save-excursion

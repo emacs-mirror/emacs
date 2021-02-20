@@ -113,7 +113,7 @@ Return nil if no rule could be guessed."
 
 ;;;###autoload
 (defun gnus-sieve-article-add-rule ()
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (gnus-summary-select-article nil 'force)
   (with-current-buffer gnus-original-article-buffer
     (let ((rule (gnus-sieve-guess-rule-for-article))

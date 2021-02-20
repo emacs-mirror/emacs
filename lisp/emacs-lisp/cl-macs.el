@@ -186,14 +186,14 @@ The name is made by appending a number to PREFIX, default \"T\"."
 
 ;;; Program structure.
 
-(def-edebug-spec cl-declarations
-  (&rest ("cl-declare" &rest sexp)))
+(def-edebug-elem-spec 'cl-declarations
+  '(&rest ("cl-declare" &rest sexp)))
 
-(def-edebug-spec cl-declarations-or-string
-  (&or lambda-doc cl-declarations))
+(def-edebug-elem-spec 'cl-declarations-or-string
+  '(lambda-doc &or ("declare" def-declarations) cl-declarations))
 
-(def-edebug-spec cl-lambda-list
-  (([&rest cl-lambda-arg]
+(def-edebug-elem-spec 'cl-lambda-list
+  '(([&rest cl-lambda-arg]
     [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
     [&optional ["&rest" cl-lambda-arg]]
     [&optional ["&key" [cl-&key-arg &rest cl-&key-arg]
@@ -202,27 +202,27 @@ The name is made by appending a number to PREFIX, default \"T\"."
 		&or (cl-lambda-arg &optional def-form) arg]]
     . [&or arg nil])))
 
-(def-edebug-spec cl-&optional-arg
-  (&or (cl-lambda-arg &optional def-form arg) arg))
+(def-edebug-elem-spec 'cl-&optional-arg
+  '(&or (cl-lambda-arg &optional def-form arg) arg))
 
-(def-edebug-spec cl-&key-arg
-  (&or ([&or (symbolp cl-lambda-arg) arg] &optional def-form arg) arg))
+(def-edebug-elem-spec 'cl-&key-arg
+  '(&or ([&or (symbolp cl-lambda-arg) arg] &optional def-form arg) arg))
 
-(def-edebug-spec cl-lambda-arg
-  (&or arg cl-lambda-list1))
+(def-edebug-elem-spec 'cl-lambda-arg
+  '(&or arg cl-lambda-list1))
 
-(def-edebug-spec cl-lambda-list1
-  (([&optional ["&whole" arg]]  ;; only allowed at lower levels
-    [&rest cl-lambda-arg]
-    [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
-    [&optional ["&rest" cl-lambda-arg]]
-    [&optional ["&key" cl-&key-arg &rest cl-&key-arg
-                &optional "&allow-other-keys"]]
-    [&optional ["&aux" &rest
-                &or (cl-lambda-arg &optional def-form) arg]]
-    . [&or arg nil])))
+(def-edebug-elem-spec 'cl-lambda-list1
+  '(([&optional ["&whole" arg]] ;; only allowed at lower levels
+     [&rest cl-lambda-arg]
+     [&optional ["&optional" cl-&optional-arg &rest cl-&optional-arg]]
+     [&optional ["&rest" cl-lambda-arg]]
+     [&optional ["&key" cl-&key-arg &rest cl-&key-arg
+                 &optional "&allow-other-keys"]]
+     [&optional ["&aux" &rest
+                 &or (cl-lambda-arg &optional def-form) arg]]
+     . [&or arg nil])))
 
-(def-edebug-spec cl-type-spec sexp)
+(def-edebug-elem-spec 'cl-type-spec '(sexp))
 
 (defconst cl--lambda-list-keywords
   '(&optional &rest &key &allow-other-keys &aux &whole &body &environment))
@@ -358,7 +358,7 @@ more details.
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             ;; Same as defun but use cl-lambda-list.
-            (&define [&or name ("setf" :name setf name)]
+            (&define [&name sexp]   ;Allow (setf ...) additionally to symbols.
                      cl-lambda-list
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
@@ -376,7 +376,7 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 \(fn NAME ARGLIST [DOCSTRING] BODY...)"
   (declare (debug
             ;; Same as iter-defun but use cl-lambda-list.
-            (&define [&or name ("setf" :name setf name)]
+            (&define [&name sexp]   ;Allow (setf ...) additionally to symbols.
                      cl-lambda-list
                      cl-declarations-or-string
                      [&optional ("interactive" interactive)]
@@ -390,39 +390,39 @@ and BODY is implicitly surrounded by (cl-block NAME ...).
 ;; Note that &environment is only allowed as first or last items in the
 ;; top level list.
 
-(def-edebug-spec cl-macro-list
-  (([&optional "&environment" arg]
-    [&rest cl-macro-arg]
-    [&optional ["&optional" &rest
-		&or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
-    [&optional [[&or "&rest" "&body"] cl-macro-arg]]
-    [&optional ["&key" [&rest
-			[&or ([&or (symbolp cl-macro-arg) arg]
-			      &optional def-form cl-macro-arg)
-			     arg]]
-		&optional "&allow-other-keys"]]
-    [&optional ["&aux" &rest
-		&or (cl-macro-arg &optional def-form) arg]]
-    [&optional "&environment" arg]
-    )))
+(def-edebug-elem-spec 'cl-macro-list
+  '(([&optional "&environment" arg]
+     [&rest cl-macro-arg]
+     [&optional ["&optional" &rest
+		 &or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
+     [&optional [[&or "&rest" "&body"] cl-macro-arg]]
+     [&optional ["&key" [&rest
+			 [&or ([&or (symbolp cl-macro-arg) arg]
+			       &optional def-form cl-macro-arg)
+			      arg]]
+		 &optional "&allow-other-keys"]]
+     [&optional ["&aux" &rest
+		 &or (cl-macro-arg &optional def-form) arg]]
+     [&optional "&environment" arg]
+     )))
 
-(def-edebug-spec cl-macro-arg
-  (&or arg cl-macro-list1))
+(def-edebug-elem-spec 'cl-macro-arg
+  '(&or arg cl-macro-list1))
 
-(def-edebug-spec cl-macro-list1
-  (([&optional "&whole" arg]  ;; only allowed at lower levels
-    [&rest cl-macro-arg]
-    [&optional ["&optional" &rest
-		&or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
-    [&optional [[&or "&rest" "&body"] cl-macro-arg]]
-    [&optional ["&key" [&rest
-			[&or ([&or (symbolp cl-macro-arg) arg]
-			      &optional def-form cl-macro-arg)
-			     arg]]
-		&optional "&allow-other-keys"]]
-    [&optional ["&aux" &rest
-		&or (cl-macro-arg &optional def-form) arg]]
-    . [&or arg nil])))
+(def-edebug-elem-spec 'cl-macro-list1
+  '(([&optional "&whole" arg] ;; only allowed at lower levels
+     [&rest cl-macro-arg]
+     [&optional ["&optional" &rest
+		 &or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
+     [&optional [[&or "&rest" "&body"] cl-macro-arg]]
+     [&optional ["&key" [&rest
+			 [&or ([&or (symbolp cl-macro-arg) arg]
+			       &optional def-form cl-macro-arg)
+			      arg]]
+		 &optional "&allow-other-keys"]]
+     [&optional ["&aux" &rest
+		 &or (cl-macro-arg &optional def-form) arg]]
+     . [&or arg nil])))
 
 ;;;###autoload
 (defmacro cl-defmacro (name args &rest body)
@@ -452,19 +452,19 @@ more details.
            (indent 2))
   `(defmacro ,name ,@(cl--transform-lambda (cons args body) name)))
 
-(def-edebug-spec cl-lambda-expr
-  (&define ("lambda" cl-lambda-list
-	    cl-declarations-or-string
-	    [&optional ("interactive" interactive)]
-	    def-body)))
+(def-edebug-elem-spec 'cl-lambda-expr
+  '(&define ("lambda" cl-lambda-list
+	     cl-declarations-or-string
+	     [&optional ("interactive" interactive)]
+	     def-body)))
 
 ;; Redefine function-form to also match cl-function
-(def-edebug-spec function-form
+(def-edebug-elem-spec 'function-form
   ;; form at the end could also handle "function",
   ;; but recognize it specially to avoid wrapping function forms.
-  (&or ([&or "quote" "function"] &or symbolp lambda-expr)
-       ("cl-function" cl-function)
-       form))
+  '(&or ([&or "quote" "function"] &or symbolp lambda-expr)
+        ("cl-function" cl-function)
+        form))
 
 ;;;###autoload
 (defmacro cl-function (func)
@@ -1051,20 +1051,20 @@ For more details, see Info node `(cl)Loop Facility'.
 ;;    [&rest loop-clause]
 ;;    ))
 
-;; (def-edebug-spec loop-with
-;;   ("with" loop-var
+;; (def-edebug-elem-spec 'loop-with
+;;  '("with" loop-var
 ;;    loop-type-spec
 ;;    [&optional ["=" form]]
 ;;    &rest ["and" loop-var
 ;; 	  loop-type-spec
 ;; 	  [&optional ["=" form]]]))
 
-;; (def-edebug-spec loop-for-as
-;;   ([&or "for" "as"] loop-for-as-subclause
+;; (def-edebug-elem-spec 'loop-for-as
+;;  '([&or "for" "as"] loop-for-as-subclause
 ;;    &rest ["and" loop-for-as-subclause]))
 
-;; (def-edebug-spec loop-for-as-subclause
-;;   (loop-var
+;; (def-edebug-elem-spec 'loop-for-as-subclause
+;;  '(loop-var
 ;;    loop-type-spec
 ;;    &or
 ;;    [[&or "in" "on" "in-ref" "across-ref"]
@@ -1124,19 +1124,19 @@ For more details, see Info node `(cl)Loop Facility'.
 ;;     [&optional ["by" form]]
 ;;     ]))
 
-;; (def-edebug-spec loop-initial-final
-;;   (&or ["initially"
+;; (def-edebug-elem-spec 'loop-initial-final
+;;  '(&or ["initially"
 ;; 	;; [&optional &or "do" "doing"]  ;; CLtL2 doesn't allow this.
 ;; 	&rest loop-non-atomic-expr]
 ;;        ["finally" &or
 ;; 	[[&optional &or "do" "doing"] &rest loop-non-atomic-expr]
 ;; 	["return" form]]))
 
-;; (def-edebug-spec loop-and-clause
-;;   (loop-clause &rest ["and" loop-clause]))
+;; (def-edebug-elem-spec 'loop-and-clause
+;;   '(loop-clause &rest ["and" loop-clause]))
 
-;; (def-edebug-spec loop-clause
-;;   (&or
+;; (def-edebug-elem-spec 'loop-clause
+;;  '(&or
 ;;    [[&or "while" "until" "always" "never" "thereis"] form]
 
 ;;    [[&or "collect" "collecting"
@@ -1163,10 +1163,10 @@ For more details, see Info node `(cl)Loop Facility'.
 ;;    loop-initial-final
 ;;    ))
 
-;; (def-edebug-spec loop-non-atomic-expr
-;;   ([&not atom] form))
+;; (def-edebug-elem-spec 'loop-non-atomic-expr
+;;   '([&not atom] form))
 
-;; (def-edebug-spec loop-var
+;; (def-edebug-elem-spec 'loop-var
 ;;   ;; The symbolp must be last alternative to recognize e.g. (a b . c)
 ;;   ;; loop-var =>
 ;;   ;; (loop-var . [&or nil loop-var])
@@ -1175,13 +1175,13 @@ For more details, see Info node `(cl)Loop Facility'.
 ;;   ;; (symbolp . (symbolp . [&or nil loop-var]))
 ;;   ;; (symbolp . (symbolp . loop-var))
 ;;   ;; (symbolp . (symbolp . symbolp)) == (symbolp symbolp . symbolp)
-;;   (&or (loop-var . [&or nil loop-var]) [gate symbolp]))
+;;   '(&or (loop-var . [&or nil loop-var]) [gate symbolp]))
 
-;; (def-edebug-spec loop-type-spec
-;;   (&optional ["of-type" loop-d-type-spec]))
+;; (def-edebug-elem-spec 'loop-type-spec
+;;   '(&optional ["of-type" loop-d-type-spec]))
 
-;; (def-edebug-spec loop-d-type-spec
-;;   (&or (loop-d-type-spec . [&or nil loop-d-type-spec]) cl-type-spec))
+;; (def-edebug-elem-spec 'loop-d-type-spec
+;;   '(&or (loop-d-type-spec . [&or nil loop-d-type-spec]) cl-type-spec))
 
 (defun cl--parse-loop-clause ()		; uses loop-*
   (let ((word (pop cl--loop-args))
@@ -2016,8 +2016,9 @@ info node `(cl) Function Bindings' for details.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug ((&rest [&or (&define name :unique "cl-flet@" function-form)
-                               (&define name :unique "cl-flet@"
+           (debug ((&rest [&or (symbolp form)
+                               (&define [&name symbolp "@cl-flet@"]
+                                        [&name [] gensym] ;Make it unique!
                                         cl-lambda-list
                                         cl-declarations-or-string
                                         [&optional ("interactive" interactive)]
@@ -2192,6 +2193,20 @@ details.
             (macroexp-progn body)
             newenv)))))
 
+(defvar edebug-lexical-macro-ctx)
+
+(defun cl--edebug-macrolet-interposer (bindings pf &rest specs)
+  ;; (cl-assert (null (cdr bindings)))
+  (setq bindings (car bindings))
+  (let ((edebug-lexical-macro-ctx
+         (nconc (mapcar (lambda (binding)
+                          (cons (car binding)
+                                (when (eq 'declare (car-safe (nth 2 binding)))
+                                  (nth 1 (assq 'debug (cdr (nth 2 binding)))))))
+                        bindings)
+                edebug-lexical-macro-ctx)))
+    (funcall pf specs)))
+
 ;; The following ought to have a better definition for use with newer
 ;; byte compilers.
 ;;;###autoload
@@ -2201,7 +2216,13 @@ This is like `cl-flet', but for macros instead of functions.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)"
   (declare (indent 1)
-           (debug (cl-macrolet-expr)))
+           (debug (&interpose (&rest (&define [&name symbolp "@cl-macrolet@"]
+                                              [&name [] gensym] ;Make it unique!
+                                              cl-macro-list
+                                              cl-declarations-or-string
+                                              def-body))
+                              cl--edebug-macrolet-interposer
+                              cl-declarations body)))
   (if (cdr bindings)
       `(cl-macrolet (,(car bindings)) (cl-macrolet ,(cdr bindings) ,@body))
     (if (null bindings) (macroexp-progn body)

@@ -66,11 +66,15 @@ more reliably, and makes the job of applying the patches easier and less
 error-prone.  It also allows sending patches whose author is someone
 other than the email sender.
 
-Once the cumulative amount of your submissions exceeds about 15 lines
-of non-trivial changes, we will need you to assign to the FSF the
-copyright for your contributions.  Ask on emacs-devel@gnu.org, and we
-will send you the necessary form together with the instructions to
-fill and email it, in order to start this legal paperwork.
+Once the cumulative amount of your submissions exceeds a dozen or so
+lines of non-trivial changes, we will need you to assign to the FSF
+the copyright for your contributions.  (To see how many lines were
+non-trivially changed, count only added and modified lines in the
+patched code.  Consider an added or changed line non-trivial if it
+includes at least one identifier, string, or substantial comment.)
+Ask on emacs-devel@gnu.org, and we will send you the necessary form
+together with the instructions to fill and email it, in order to start
+this legal paperwork.
 
 ** Issue tracker (a.k.a. "bug tracker")
 

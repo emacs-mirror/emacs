@@ -4,7 +4,7 @@
 
 ;; Author: Sacha Chua <sacha@free.net.ph>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, convenience
+;; Keywords: comm
 ;; URL: https://www.emacswiki.org/emacs/ErcCompletion
 
 ;; This file is part of GNU Emacs.
@@ -89,7 +89,7 @@ for use on `completion-at-point-function'."
 
 (defun pcomplete-erc-setup ()
   "Setup `erc-mode' to use pcomplete."
-  (setq-local pcomplete-ignore-case t)
+  (setq-local completion-ignore-case t)
   (setq-local pcomplete-use-paring nil)
   (setq-local pcomplete-parse-arguments-function
               #'pcomplete-erc-parse-arguments)

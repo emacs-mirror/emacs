@@ -483,7 +483,7 @@ Currently, Flymake may provide these keyword-value pairs:
 
 * `:recent-changes', a list of recent changes since the last time
   the backend function was called for the buffer.  An empty list
-  indicates that no changes have been reocrded.  If it is the
+  indicates that no changes have been recorded.  If it is the
   first time that this backend function is called for this
   activation of `flymake-mode', then this argument isn't provided
   at all (i.e. it's not merely nil).
@@ -1198,7 +1198,6 @@ default) no filter is applied."
   '(" " flymake-mode-line-title flymake-mode-line-exception
     flymake-mode-line-counters)
   "Mode line construct for customizing Flymake information."
-  :group 'flymake
   :type '(repeat (choice string symbol)))
 
 (defcustom flymake-mode-line-counter-format
@@ -1210,7 +1209,6 @@ default) no filter is applied."
 This is a suitable place for placing the `flymake-error-counter',
 `flymake-warning-counter' and `flymake-note-counter' constructs.
 Separating each of these with space is not necessary."
-  :group 'flymake
   :type '(repeat (choice string symbol)))
 
 (defvar flymake-mode-line-title '(:eval (flymake--mode-line-title))

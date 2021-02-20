@@ -1,4 +1,4 @@
-;;; hangul.el --- Korean Hangul input method
+;;; hangul.el --- Korean Hangul input method  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -88,9 +88,9 @@
 
 (defvar hangul-im-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map "\d" 'hangul-delete-backward-char)
-    (define-key map [f9] 'hangul-to-hanja-conversion)
-    (define-key map [Hangul_Hanja] 'hangul-to-hanja-conversion)
+    (define-key map "\d" #'hangul-delete-backward-char)
+    (define-key map [f9] #'hangul-to-hanja-conversion)
+    (define-key map [Hangul_Hanja] #'hangul-to-hanja-conversion)
     map)
   "Keymap for Hangul method.  It is used by all Hangul input methods.")
 
@@ -337,7 +337,7 @@ Other parts are the same as a `hangul3-input-method-cho'."
                         char)))))
              (aset hangul-queue 5 char)))
       (hangul-insert-character hangul-queue)
-    (if (zerop (apply '+ (append hangul-queue nil)))
+    (if (zerop (apply #'+ (append hangul-queue nil)))
 	(hangul-insert-character (setq hangul-queue (vector 0 0 0 0 char 0)))
       (hangul-insert-character hangul-queue
 			       (setq hangul-queue (vector 0 0 0 0 char 0))))))
@@ -349,7 +349,7 @@ Other parts are the same as a `hangul3-input-method-cho'."
     (while (and (> i 0) (zerop (aref hangul-queue i)))
       (setq i (1- i)))
     (aset hangul-queue i 0))
-  (if (notzerop (apply '+ (append hangul-queue nil)))
+  (if (notzerop (apply #'+ (append hangul-queue nil)))
       (hangul-insert-character hangul-queue)
     (delete-char -1)))
 
@@ -514,16 +514,16 @@ When a Korean input method is off, convert the following hangul character."
 (defvar-local hangul-input-method-help-text nil)
 
 ;;;###autoload
-(defun hangul-input-method-activate (input-method func help-text &rest args)
+(defun hangul-input-method-activate (_input-method func help-text &rest _args)
   "Activate Hangul input method INPUT-METHOD.
 FUNC is a function to handle input key.
 HELP-TEXT is a text set in `hangul-input-method-help-text'."
-  (setq deactivate-current-input-method-function 'hangul-input-method-deactivate
-	describe-current-input-method-function 'hangul-input-method-help
+  (setq deactivate-current-input-method-function #'hangul-input-method-deactivate
+	describe-current-input-method-function #'hangul-input-method-help
 	hangul-input-method-help-text help-text)
   (quail-delete-overlays)
   (if (eq (selected-window) (minibuffer-window))
-      (add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
+      (add-hook 'minibuffer-exit-hook #'quail-exit-from-minibuffer))
   (setq-local input-method-function func))
 
 (defun hangul-input-method-deactivate ()
@@ -538,7 +538,7 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'."
 
 (define-obsolete-function-alias
   'hangul-input-method-inactivate
-  'hangul-input-method-deactivate "24.3")
+  #'hangul-input-method-deactivate "24.3")
 
 (defun hangul-input-method-help ()
   "Describe the current Hangul input method."

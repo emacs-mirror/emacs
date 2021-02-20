@@ -4,18 +4,20 @@
 
 ;; Author: Eric Abrahamsen <eric@ericabrahamsen.net>
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -363,7 +365,7 @@ This variable can also be set per-server."
   "A list of strings representing expandable search keys.
 \"Expandable\" simply means the key can be abbreviated while
 typing in search queries, ie \"subject\" could be entered as
-\"subj\" or even \"su\", though \"s\" is ambigous between
+\"subj\" or even \"su\", though \"s\" is ambiguous between
 \"subject\" and \"since\".
 
 Ambiguous abbreviations will raise an error."
@@ -400,7 +402,7 @@ The search \"language\" is essentially a series of key:value
 expressions.  Key is most often a mail header, but there are
 other keys.  Value is a string, quoted if it contains spaces.
 Key and value are separated by a colon, no space.  Expressions
-are implictly ANDed; the \"or\" keyword can be used to
+are implicitly ANDed; the \"or\" keyword can be used to
 OR. \"not\" will negate the following expression, or keys can be
 prefixed with a \"-\".  The \"near\" operator will work for
 engines that understand it; other engines will convert it to
@@ -446,7 +448,7 @@ auto-completion of contact names and addresses for keys like
 Date values (any key in `gnus-search-date-keys') can be provided
 in any format that `parse-time-string' can parse (note that this
 can produce weird results).  Dates with missing bits will be
-interpreted as the most recent occurance thereof (ie \"march 03\"
+interpreted as the most recent occurence thereof (ie \"march 03\"
 is the most recent March 3rd).  Lastly, relative specifications
 such as 1d (one day ago) are understood.  This also accepts w, m,
 and y.  m is assumed to be 30 days.
@@ -644,7 +646,7 @@ gnus-*-mark marks, and return an appropriate string."
   "Return a string from the current buffer.
 If DELIMITED is non-nil, assume the next character is a delimiter
 character, and return everything between point and the next
-occurance of the delimiter, including the delimiters themselves.
+occurence of the delimiter, including the delimiters themselves.
 If TRIM is non-nil, do not return the delimiters. Otherwise,
 return one word."
   ;; This function cannot handle nested delimiters, as it's not a
@@ -787,7 +789,7 @@ the files in ARTLIST by that search key.")
    (raw-queries-p
     :initform (symbol-value 'gnus-search-imap-raw-queries-p)))
     :documentation
-  "The base IMAP search engine, using an IMAP server's search capabilites.
+  "The base IMAP search engine, using an IMAP server's search capabilities.
 This backend may be subclassed to handle particular IMAP servers'
 quirks.")
 
@@ -1040,7 +1042,7 @@ Responsible for handling and, or, and parenthetical expressions.")
       ;; A bit of backward-compatibility slash convenience: if the
       ;; query string doesn't start with any known IMAP search
       ;; keyword, assume it is a "TEXT" search.
-      (unless (or (looking-at "(")
+      (unless (or (eql ?\( (aref q-string 0))
 		  (and (string-match "\\`[^[:blank:]]+" q-string)
 		       (memql (intern-soft (downcase
 					    (match-string 0 q-string)))
@@ -1080,7 +1082,7 @@ Responsible for handling and, or, and parenthetical expressions.")
 (cl-defmethod gnus-search-imap-search-command ((engine gnus-search-imap)
 					       (query string))
   "Create the IMAP search command for QUERY.
-Currenly takes into account support for the LITERAL+ capability.
+Currently takes into account support for the LITERAL+ capability.
 Other capabilities could be tested here."
   (with-slots (literal-plus) engine
     (when literal-plus
@@ -1346,12 +1348,14 @@ Returns a list of [group article score] vectors."
   (let ((prefix (slot-value engine 'remove-prefix))
 	(group-regexp (when groups
 			(mapconcat
-			 (lambda (x)
-			   (replace-regexp-in-string
-			    ;; Accept any of [.\/] as path separators.
-			    "[.\\/]" "[.\\\\/]"
-			    (gnus-group-real-name x)))
-			 groups "\\|")))
+			 (lambda (group-name)
+			   (mapconcat #'regexp-quote
+				      (split-string
+				       (gnus-group-real-name group-name)
+				       "[.\\/]")
+				      "[.\\\\/]"))
+			 groups
+			 "\\|")))
 	artlist vectors article group)
     (goto-char (point-min))
     (while (not (eobp))
@@ -1514,6 +1518,7 @@ Namazu provides a little more information, for instance a score."
   (when (re-search-forward
 	 "^\\([0-9,]+\\.\\).*\\((score: \\([0-9]+\\)\\))\n\\([^ ]+\\)"
 	 nil t)
+    (forward-line 1)
     (list (match-string 4)
 	  (match-string 3))))
 
@@ -1667,8 +1672,8 @@ and \"-\" before marks."
 (cl-defmethod gnus-search-transform-expression ((engine gnus-search-mairix)
 						(expr (head or)))
   "Handle Mairix \"or\" statement.
-Mairix only accepts \"or\" expressions on homogenous keys.  We
-cast \"or\" expressions on heterogenous keys as \"and\", which
+Mairix only accepts \"or\" expressions on homogeneous keys.  We
+cast \"or\" expressions on heterogeneous keys as \"and\", which
 isn't quite right, but it's the best we can do.  For date keys,
 only keep one of the terms."
   (let ((term1 (caadr expr))

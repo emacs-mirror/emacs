@@ -581,14 +581,15 @@ default value.  If the user, host, or port are missing, the alist
 `auth-source-creation-prompts' will be used to look up the
 prompts IN THAT ORDER (so the `user' prompt will be queried first,
 then `host', then `port', and finally `secret').  Each prompt string
-can use %u, %h, and %p to show the user, host, and port.
+can use %u, %h, and %p to show the user, host, and port.  The prompt
+is formatted with `format-prompt', a trailing \": \" is removed.
 
 Here's an example:
 
 \(let ((auth-source-creation-defaults \\='((user . \"defaultUser\")
                                         (A    . \"default A\")))
        (auth-source-creation-prompts
-        \\='((secret . \"Enter IMAP password for %h:%p: \"))))
+        \\='((secret . \"Enter IMAP password for %h:%p\"))))
   (auth-source-search :host \\='(\"nonesuch\" \"twosuch\") :type \\='netrc :max 1
                       :P \"pppp\" :Q \"qqqq\"
                       :create \\='(A B Q)))
@@ -860,7 +861,9 @@ while \(:host t) would find all host entries."
       secret)))
 
 (defun auth-source-format-prompt (prompt alist)
-  "Format PROMPT using %x (for any character x) specifiers in ALIST."
+  "Format PROMPT using %x (for any character x) specifiers in ALIST.
+Remove trailing \": \"."
+  (setq prompt (replace-regexp-in-string ":\\s-*$" "" prompt))
   (dolist (cell alist)
     (let ((c (nth 0 cell))
           (v (nth 1 cell)))
@@ -1344,11 +1347,11 @@ See `auth-source-search' for details on SPEC."
                                          "[any port]"))))
              (prompt (or (auth-source--aget auth-source-creation-prompts r)
                          (cl-case r
-                           (secret "%p password for %u@%h: ")
-                           (user "%p user name for %h: ")
-                           (host "%p host name for user %u: ")
-                           (port "%p port for %u@%h: "))
-                         (format "Enter %s (%%u@%%h:%%p): " r)))
+                           (secret "%p password for %u@%h")
+                           (user "%p user name for %h")
+                           (host "%p host name for user %u")
+                           (port "%p port for %u@%h"))
+                         (format "Enter %s (%%u@%%h:%%p)" r)))
              (prompt (auth-source-format-prompt
                       prompt
                       `((?u ,(auth-source--aget printable-defaults 'user))
@@ -1378,7 +1381,9 @@ See `auth-source-search' for details on SPEC."
                                            (setq check nil)))
                                        ret))
                                     (t 'never)))
-                                  (plain (or (eval default) (read-passwd prompt))))
+                                  (plain
+                                   (or (eval default)
+                                       (read-passwd (format-prompt prompt nil)))))
                              ;; ask if we don't know what to do (in which case
                              ;; auth-source-netrc-use-gpg-tokens must be a list)
                              (unless gpg-encrypt
@@ -1390,12 +1395,9 @@ See `auth-source-search' for details on SPEC."
                              (if (eq gpg-encrypt 'gpg)
                                  (auth-source-epa-make-gpg-token plain file)
                                plain))
-                         (if (stringp default)
-                             (read-string (if (string-match ": *\\'" prompt)
-                                              (concat (substring prompt 0 (match-beginning 0))
-                                                      " (default " default "): ")
-                                            (concat prompt "(default " default ") "))
-                                          nil nil default)
+                         (if (and (stringp default) auth-source-save-behavior)
+                             (read-string
+                              (format-prompt prompt default) nil nil default)
                            (eval default)))))
 
         (when data
@@ -1745,12 +1747,12 @@ authentication tokens:
                                          "[any label]"))))
              (prompt (or (auth-source--aget auth-source-creation-prompts r)
                          (cl-case r
-                           (secret "%p password for %u@%h: ")
-                           (user "%p user name for %h: ")
-                           (host "%p host name for user %u: ")
-                           (port "%p port for %u@%h: ")
-                           (label "Enter label for %u@%h: "))
-                         (format "Enter %s (%%u@%%h:%%p): " r)))
+                           (secret "%p password for %u@%h")
+                           (user "%p user name for %h")
+                           (host "%p host name for user %u")
+                           (port "%p port for %u@%h")
+                           (label "Enter label for %u@%h"))
+                         (format "Enter %s (%%u@%%h:%%p)" r)))
              (prompt (auth-source-format-prompt
                       prompt
                       `((?u ,(auth-source--aget printable-defaults 'user))
@@ -1760,13 +1762,11 @@ authentication tokens:
         ;; Store the data, prompting for the password if needed.
         (setq data (or data
                        (if (eq r 'secret)
-                           (or (eval default) (read-passwd prompt))
-                         (if (stringp default)
-                             (read-string (if (string-match ": *\\'" prompt)
-                                              (concat (substring prompt 0 (match-beginning 0))
-                                                      " (default " default "): ")
-                                            (concat prompt "(default " default ") "))
-                                          nil nil default)
+                           (or (eval default)
+                               (read-passwd  (format-prompt prompt nil)))
+                         (if (and (stringp default) auth-source-save-behavior)
+                             (read-string
+                              (format-prompt prompt default) nil nil default)
                            (eval default)))))
 
         (when data
@@ -2190,11 +2190,11 @@ entries for git.gnus.org:
                                          "[any port]"))))
              (prompt (or (auth-source--aget auth-source-creation-prompts r)
                          (cl-case r
-                           (secret "%p password for %u@%h: ")
-                           (user "%p user name for %h: ")
-                           (host "%p host name for user %u: ")
-                           (port "%p port for %u@%h: "))
-                         (format "Enter %s (%%u@%%h:%%p): " r)))
+                           (secret "%p password for %u@%h")
+                           (user "%p user name for %h")
+                           (host "%p host name for user %u")
+                           (port "%p port for %u@%h"))
+                         (format "Enter %s (%%u@%%h:%%p)" r)))
              (prompt (auth-source-format-prompt
                       prompt
                       `((?u ,(auth-source--aget printable-defaults 'user))
@@ -2204,14 +2204,11 @@ entries for git.gnus.org:
         ;; Store the data, prompting for the password if needed.
         (setq data (or data
                        (if (eq r 'secret)
-                           (or (eval default) (read-passwd prompt))
-                         (if (stringp default)
+                           (or (eval default)
+                               (read-passwd (format-prompt prompt nil)))
+                         (if (and (stringp default) auth-source-save-behavior)
                              (read-string
-                              (if (string-match ": *\\'" prompt)
-                                  (concat (substring prompt 0 (match-beginning 0))
-                                          " (default " default "): ")
-                                (concat prompt "(default " default ") "))
-                              nil nil default)
+                              (format-prompt prompt default) nil nil default)
                            (eval default)))))
 
         (when data

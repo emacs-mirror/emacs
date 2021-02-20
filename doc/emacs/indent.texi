@@ -136,8 +136,8 @@ this transient mode is active, typing @kbd{@key{LEFT}} or
 @kbd{@key{RIGHT}} indents leftward and rightward, respectively, by one
 space.  You can also type @kbd{S-@key{LEFT}} or @kbd{S-@key{RIGHT}} to
 indent leftward or rightward to the next tab stop (@pxref{Tab Stops}).
-Typing any other key disables the transient mode, and resumes normal
-editing.
+Typing any other key disables the transient mode, and this key is then
+acted upon as normally.
 
 If called with a prefix argument @var{n}, this command indents the
 lines forward by @var{n} spaces (without enabling the transient mode).

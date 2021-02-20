@@ -1315,7 +1315,7 @@ compute_motion (ptrdiff_t from, ptrdiff_t frombyte, EMACS_INT fromvpos,
 	     j        ^---- next after the point
 	     ^---  next char. after the point.
 	     ----------
-	              In case of sigle-column character
+	              In case of single-column character
 
 	     ----------
 	     abcdefgh\\

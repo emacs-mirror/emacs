@@ -292,6 +292,11 @@ bset_major_mode (struct buffer *b, Lisp_Object val)
   b->major_mode_ = val;
 }
 static void
+bset_local_minor_modes (struct buffer *b, Lisp_Object val)
+{
+  b->local_minor_modes_ = val;
+}
+static void
 bset_mark (struct buffer *b, Lisp_Object val)
 {
   b->mark_ = val;
@@ -893,6 +898,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       bset_file_truename (b, Qnil);
       bset_display_count (b, make_fixnum (0));
       bset_backed_up (b, Qnil);
+      bset_local_minor_modes (b, Qnil);
       bset_auto_save_file_name (b, Qnil);
       set_buffer_internal_1 (b);
       Fset (intern ("buffer-save-without-query"), Qnil);
@@ -967,6 +973,7 @@ reset_buffer (register struct buffer *b)
   b->clip_changed = 0;
   b->prevent_redisplay_optimizations_p = 1;
   bset_backed_up (b, Qnil);
+  bset_local_minor_modes (b, Qnil);
   BUF_AUTOSAVE_MODIFF (b) = 0;
   b->auto_save_failure_time = 0;
   bset_auto_save_file_name (b, Qnil);
@@ -5151,6 +5158,7 @@ init_buffer_once (void)
   bset_auto_save_file_name (&buffer_local_flags, make_fixnum (-1));
   bset_read_only (&buffer_local_flags, make_fixnum (-1));
   bset_major_mode (&buffer_local_flags, make_fixnum (-1));
+  bset_local_minor_modes (&buffer_local_flags, make_fixnum (-1));
   bset_mode_name (&buffer_local_flags, make_fixnum (-1));
   bset_undo_list (&buffer_local_flags, make_fixnum (-1));
   bset_mark_active (&buffer_local_flags, make_fixnum (-1));
@@ -5616,6 +5624,12 @@ Decimal digits after the % specify field width to which to pad.  */);
 The default value (normally `fundamental-mode') affects new buffers.
 A value of nil means to use the current buffer's major mode, provided
 it is not marked as "special".  */);
+
+  DEFVAR_PER_BUFFER ("local-minor-modes",
+		     &BVAR (current_buffer, local_minor_modes),
+		     Qnil,
+		     doc: /* Minor modes currently active in the current buffer.
+This is a list of symbols, or nil if there are no minor modes active.  */);
 
   DEFVAR_PER_BUFFER ("mode-name", &BVAR (current_buffer, mode_name),
                      Qnil,

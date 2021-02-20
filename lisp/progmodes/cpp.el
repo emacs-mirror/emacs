@@ -53,8 +53,7 @@
 
 (defcustom cpp-config-file (convert-standard-filename ".cpp.el")
   "File name to save cpp configuration."
-  :type 'file
-  :group 'cpp)
+  :type 'file)
 
 (define-widget 'cpp-face 'lazy
   "Either a face or the special symbol `invisible'."
@@ -62,13 +61,11 @@
 
 (defcustom cpp-known-face 'invisible
   "Face used for known cpp symbols."
-  :type 'cpp-face
-  :group 'cpp)
+  :type 'cpp-face)
 
 (defcustom cpp-unknown-face 'highlight
   "Face used for unknown cpp symbols."
-  :type 'cpp-face
-  :group 'cpp)
+  :type 'cpp-face)
 
 (defcustom cpp-face-type 'light
   "Indicate what background face type you prefer.
@@ -76,18 +73,15 @@ Can be either light or dark for color screens, mono for monochrome
 screens, and none if you don't use a window system and don't have
 a color-capable display."
   :options '(light dark mono nil)
-  :type 'symbol
-  :group 'cpp)
+  :type 'symbol)
 
 (defcustom cpp-known-writable t
   "Non-nil means you are allowed to modify the known conditionals."
-  :type 'boolean
-  :group 'cpp)
+  :type 'boolean)
 
 (defcustom cpp-unknown-writable t
   "Non-nil means you are allowed to modify the unknown conditionals."
-  :type 'boolean
-  :group 'cpp)
+  :type 'boolean)
 
 (defcustom cpp-edit-list nil
   "Alist of cpp macros and information about how they should be displayed.
@@ -101,15 +95,13 @@ Each entry is a list with the following elements:
 		       (cpp-face :tag "False")
 		       (choice (const :tag "True branch writable" t)
 			       (const :tag "False branch writable" nil)
-			       (const :tag "Both branches writable" both))))
-  :group 'cpp)
+                               (const :tag "Both branches writable" both)))))
 
 (defcustom cpp-message-min-time-interval 1.0
   "Minimum time interval in seconds for `cpp-progress-message' messages.
 If nil, `cpp-progress-message' prints no progress messages."
   :type '(choice (const :tag "Disable progress messages" nil)
                  float)
-  :group 'cpp
   :version "26.1")
 
 (defvar-local cpp-overlay-list nil
@@ -153,36 +145,31 @@ or a cons cell (background-color . COLOR)."
 		:value-type (choice face
 				    (const invisible)
 				    (cons (const background-color)
-					  (string :tag "Color"))))
-  :group 'cpp)
+                                          (string :tag "Color")))))
 
 (defcustom cpp-face-light-name-list
   '("light gray" "light blue" "light cyan" "light yellow" "light pink"
     "pale green" "beige" "orange" "magenta" "violet" "medium purple"
     "turquoise")
   "Background colors useful with dark foreground colors."
-  :type '(repeat string)
-  :group 'cpp)
+  :type '(repeat string))
 
 (defcustom cpp-face-dark-name-list
   '("dim gray" "blue" "cyan" "yellow" "red"
     "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
     "dark turquoise")
   "Background colors useful with light foreground colors."
-  :type '(repeat string)
-  :group 'cpp)
+  :type '(repeat string))
 
 (defcustom cpp-face-light-list nil
   "Alist of names and faces to be used for light backgrounds."
   :type '(repeat (cons string (choice face
-				      (cons (const background-color) string))))
-  :group 'cpp)
+                                      (cons (const background-color) string)))))
 
 (defcustom cpp-face-dark-list nil
   "Alist of names and faces to be used for dark backgrounds."
   :type '(repeat (cons string (choice face
-				      (cons (const background-color) string))))
-  :group 'cpp)
+                                      (cons (const background-color) string)))))
 
 (defcustom cpp-face-mono-list
   '(("bold" . bold)
@@ -190,15 +177,13 @@ or a cons cell (background-color . COLOR)."
     ("italic" . italic)
     ("underline" . underline))
   "Alist of names and faces to be used for monochrome screens."
-  :type '(repeat (cons string face))
-  :group 'cpp)
+  :type '(repeat (cons string face)))
 
 (defcustom cpp-face-none-list
    '(("default" . default)
      ("invisible" . invisible))
    "Alist of names and faces available even if you don't use a window system."
-  :type '(repeat (cons string cpp-face))
-  :group 'cpp)
+  :type '(repeat (cons string cpp-face)))
 
 (defvar cpp-face-all-list
   (append cpp-face-light-list

@@ -27,19 +27,10 @@
 
 ;; Todo:
 
-;; - (pcase e (`(,x . ,x) foo)) signals an "x unused" warning if `foo' doesn't
-;;   use x, because x is bound separately for the equality constraint
-;;   (as well as any pred/guard) and for the body, so uses at one place don't
-;;   count for the other.
-;; - provide ways to extend the set of primitives, with some kind of
-;;   define-pcase-matcher.  We could easily make it so that (guard BOOLEXP)
-;;   could be defined this way, as a shorthand for (pred (lambda (_) BOOLEXP)).
-;;   But better would be if we could define new ways to match by having the
-;;   extension provide its own `pcase--split-<foo>' thingy.
-;; - along these lines, provide patterns to match CL structs.
+;; - Allow to provide new `pcase--split-<foo>' thingy.
 ;; - provide something like (setq VAR) so a var can be set rather than
 ;;   let-bound.
-;; - provide a way to fallthrough to subsequent cases
+;; - provide a way to continue matching to subsequent cases
 ;;   (e.g. Like Racket's (=> ID).
 ;; - try and be more clever to reduce the size of the decision tree, and
 ;;   to reduce the number of leaves that need to be turned into functions:
@@ -71,48 +62,37 @@
 
 (defvar pcase--dontwarn-upats '(pcase--dontcare))
 
-(def-edebug-spec
-  pcase-PAT
-  (&or symbolp
-       ("or" &rest pcase-PAT)
-       ("and" &rest pcase-PAT)
-       ("guard" form)
-       ("let" pcase-PAT form)
-       ("pred" pcase-FUN)
-       ("app" pcase-FUN pcase-PAT)
-       pcase-MACRO
-       sexp))
+(def-edebug-elem-spec 'pcase-PAT
+  '(&or (&interpose symbolp pcase--edebug-match-pat-args) sexp))
 
-(def-edebug-spec
-  pcase-FUN
-  (&or lambda-expr
-       ;; Punt on macros/special forms.
-       (functionp &rest form)
-       sexp))
-
-;; See bug#24717
-(put 'pcase-MACRO 'edebug-form-spec 'pcase--edebug-match-macro)
+(def-edebug-elem-spec 'pcase-FUN
+  '(&or lambda-expr
+        ;; Punt on macros/special forms.
+        (functionp &rest form)
+        sexp))
 
 ;; Only called from edebug.
-(declare-function get-edebug-spec "edebug" (symbol))
-(declare-function edebug-match "edebug" (cursor specs))
+(declare-function edebug-get-spec "edebug" (symbol))
+(defun pcase--edebug-match-pat-args (head pf)
+  ;; (cl-assert (null (cdr head)))
+  (setq head (car head))
+  (or (alist-get head '((quote sexp)
+                        (or    &rest pcase-PAT)
+                        (and   &rest pcase-PAT)
+                        (guard form)
+                        (pred  &or ("not" pcase-FUN) pcase-FUN)
+                        (app   pcase-FUN pcase-PAT)))
+      (let ((me (pcase--get-macroexpander head)))
+        (funcall pf (and me (symbolp me) (edebug-get-spec me))))))
 
 (defun pcase--get-macroexpander (s)
   "Return the macroexpander for pcase pattern head S, or nil"
   (get s 'pcase-macroexpander))
 
-(defun pcase--edebug-match-macro (cursor)
-  (let (specs)
-    (mapatoms
-     (lambda (s)
-       (let ((m (pcase--get-macroexpander s)))
-	 (when (and m (get-edebug-spec m))
-	   (push (cons (symbol-name s) (get-edebug-spec m))
-		 specs)))))
-    (edebug-match cursor (cons '&or specs))))
-
 ;;;###autoload
 (defmacro pcase (exp &rest cases)
+  ;; FIXME: Add some "global pattern" to wrap every case?
+  ;; Could be used to wrap all cases in a `
   "Evaluate EXP to get EXPVAL; try passing control to one of CASES.
 CASES is a list of elements of the form (PATTERN CODE...).
 For the first CASE whose PATTERN \"matches\" EXPVAL,
@@ -662,7 +642,7 @@ MATCH is the pattern that needs to be matched, of the form:
 
 (defun pcase--split-pred (vars upat pat)
   "Indicate the overlap or mutual-exclusion between UPAT and PAT.
-More specifically retuns a pair (A . B) where A indicates whether PAT
+More specifically returns a pair (A . B) where A indicates whether PAT
 can match when UPAT has matched, and B does the same for the case
 where UPAT failed to match.
 A and B can be one of:
@@ -804,7 +784,7 @@ Otherwise, it defers to REST which is a list of branches of the form
 \(ELSE-MATCH ELSE-CODE . ELSE-VARS)."
   ;; Depending on the order in which we choose to check each of the MATCHES,
   ;; the resulting tree may be smaller or bigger.  So in general, we'd want
-  ;; to be careful to chose the "optimal" order.  But predicate
+  ;; to be careful to choose the "optimal" order.  But predicate
   ;; patterns make this harder because they create dependencies
   ;; between matches.  So we don't bother trying to reorder anything.
   (cond
@@ -946,14 +926,13 @@ Otherwise, it defers to REST which is a list of branches of the form
        (t (error "Unknown pattern `%S'" upat)))))
    (t (error "Incorrect MATCH %S" (car matches)))))
 
-(def-edebug-spec
-  pcase-QPAT
+(def-edebug-elem-spec 'pcase-QPAT
   ;; Cf. edebug spec for `backquote-form' in edebug.el.
-  (&or ("," pcase-PAT)
-       (pcase-QPAT [&rest [&not ","] pcase-QPAT]
-		   . [&or nil pcase-QPAT])
-       (vector &rest pcase-QPAT)
-       sexp))
+  '(&or ("," pcase-PAT)
+        (pcase-QPAT [&rest [&not ","] pcase-QPAT]
+		    . [&or nil pcase-QPAT])
+	(vector &rest pcase-QPAT)
+	sexp))
 
 (pcase-defmacro \` (qpat)
   "Backquote-style pcase patterns: \\=`QPAT
@@ -1002,7 +981,13 @@ The predicate is the logical-AND of:
 
 (pcase-defmacro let (pat expr)
   "Matches if EXPR matches PAT."
+  (declare (debug (pcase-PAT form)))
   `(app (lambda (_) ,expr) ,pat))
+
+;; (pcase-defmacro guard (expr)
+;;   "Matches if EXPR is non-nil."
+;;   (declare (debug (form)))
+;;   `(pred (lambda (_) ,expr)))
 
 (provide 'pcase)
 ;;; pcase.el ends here

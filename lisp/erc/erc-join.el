@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: irc
+;; Keywords: comm, irc
 ;; URL: https://www.emacswiki.org/emacs/ErcAutoJoin
 
 ;; This file is part of GNU Emacs.

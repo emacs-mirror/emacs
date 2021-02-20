@@ -113,6 +113,9 @@ The return value of this function is not used."
       (list 'function-put (list 'quote f)
             ''side-effect-free (list 'quote val))))
 
+(put 'compiler-macro 'edebug-declaration-spec
+     '(&or symbolp ("lambda" &define lambda-list lambda-doc def-body)))
+
 (defalias 'byte-run--set-compiler-macro
   #'(lambda (f args compiler-function)
       (if (not (eq (car-safe compiler-function) 'lambda))
@@ -143,6 +146,18 @@ The return value of this function is not used."
       (list 'function-put (list 'quote f)
             ''lisp-indent-function (list 'quote val))))
 
+(defalias 'byte-run--set-completion
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''completion-predicate val)))
+
+(defalias 'byte-run--set-modes
+  #'(lambda (f _args &rest val)
+      (list 'function-put (list 'quote f)
+            ''completion-predicate
+            `(lambda (_ b)
+               (command-completion-with-modes-p ',val b)))))
+
 ;; Add any new entries to info node `(elisp)Declare Form'.
 (defvar defun-declarations-alist
   (list
@@ -159,7 +174,9 @@ This may shift errors from run-time to compile-time.")
 If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'compiler-macro #'byte-run--set-compiler-macro)
    (list 'doc-string #'byte-run--set-doc-string)
-   (list 'indent #'byte-run--set-indent))
+   (list 'indent #'byte-run--set-indent)
+   (list 'completion #'byte-run--set-completion)
+   (list 'modes #'byte-run--set-modes))
   "List associating function properties to their macro expansion.
 Each element of the list takes the form (PROP FUN) where FUN is
 a function.  For each (PROP . VALUES) in a function's declaration,

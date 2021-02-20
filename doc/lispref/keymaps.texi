@@ -574,12 +574,6 @@ key.
 key.
 
 @item
-@cindex @kbd{M-o}
-@vindex facemenu-keymap
-@code{facemenu-keymap} is the global keymap used for the @kbd{M-o}
-prefix key.
-
-@item
 The other Emacs prefix keys are @kbd{C-x @@}, @kbd{C-x a i}, @kbd{C-x
 @key{ESC}} and @kbd{@key{ESC} @key{ESC}}.  They use keymaps that have
 no special names.

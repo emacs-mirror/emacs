@@ -120,7 +120,8 @@ submitted at once.  Internal variable.")
 
 (defun spam-report-gmane-ham (&rest articles)
   "Report ARTICLES as ham (unregister) through Gmane."
-  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (interactive (gnus-summary-work-articles current-prefix-arg)
+	       gnus-summary-mode)
   (let ((count 0))
     (dolist (article articles)
       (setq count (1+ count))
@@ -130,7 +131,8 @@ submitted at once.  Internal variable.")
 
 (defun spam-report-gmane-spam (&rest articles)
   "Report ARTICLES as spam through Gmane."
-  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (interactive (gnus-summary-work-articles current-prefix-arg)
+	       gnus-summary-mode)
   (let ((count 0))
     (dolist (article articles)
       (setq count (1+ count))

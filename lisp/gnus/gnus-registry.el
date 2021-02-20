@@ -813,7 +813,7 @@ Consults `gnus-registry-ignored-groups' and
 (defun gnus-registry-wash-for-keywords (&optional force)
   "Get the keywords of the current article.
 Overrides existing keywords with FORCE set non-nil."
-  (interactive)
+  (interactive nil gnus-article-mode gnus-summary-mode)
   (let ((id (gnus-registry-fetch-message-id-fast gnus-current-article))
         word words)
     (if (or (not (gnus-registry-get-id-key id 'keyword))
@@ -1039,13 +1039,15 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 
 (defun gnus-registry-set-article-mark (&rest articles)
   "Apply a mark to process-marked ARTICLES."
-  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (interactive (gnus-summary-work-articles current-prefix-arg)
+	       gnus-article-mode gnus-summary-mode)
   (gnus-registry-set-article-mark-internal (gnus-registry-read-mark)
                                            articles nil t))
 
 (defun gnus-registry-remove-article-mark (&rest articles)
   "Remove a mark from process-marked ARTICLES."
-  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (interactive (gnus-summary-work-articles current-prefix-arg)
+	       gnus-article-mode gnus-summary-mode)
   (gnus-registry-set-article-mark-internal (gnus-registry-read-mark)
                                            articles t t))
 
@@ -1069,7 +1071,8 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
   "Get the Gnus registry marks for ARTICLES and show them if interactive.
 Uses process/prefix conventions.  For multiple articles,
 only the last one's marks are returned."
-  (interactive (gnus-summary-work-articles 1))
+  (interactive (gnus-summary-work-articles 1)
+	       gnus-article-mode gnus-summary-mode)
   (let* ((article (last articles))
          (id (gnus-registry-fetch-message-id-fast article))
          (marks (when id (gnus-registry-get-id-key id 'mark))))

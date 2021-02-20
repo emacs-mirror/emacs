@@ -1468,12 +1468,12 @@ found, uses VC to try and find the next file with conflict."
          (if (and (buffer-modified-p) buffer-file-name)
              (save-buffer))
          (vc-find-conflicted-file)
-         (if (eq buffer (current-buffer))
-             ;; Do nothing: presumably `vc-find-conflicted-file' already
-             ;; emitted a message explaining there aren't any more conflicts.
-             nil
-           (goto-char (point-min))
-           (smerge-next)))))))
+         (when (eq buffer (current-buffer))
+           ;; Try to find a conflict marker in current file above the point.
+           (let ((prev-pos (point)))
+             (goto-char (point-min))
+             (unless (ignore-errors (not (smerge-next)))
+               (goto-char prev-pos)))))))))
 
 (provide 'smerge-mode)
 

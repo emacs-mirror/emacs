@@ -133,26 +133,22 @@
 	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
 	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
   "Value of `mode-line-format' for a buffer in two-column minor mode."
-  :type 'sexp
-  :group 'two-column)
+  :type 'sexp)
 
 (defcustom 2C-other-buffer-hook 'text-mode
   "Hook run in new buffer when it is associated with current one."
-  :type 'function
-  :group 'two-column)
+  :type 'function)
 
 (defcustom 2C-separator ""
   "A string inserted between the two columns when merging.
 This gets set locally by \\[2C-split]."
-  :type 'string
-  :group 'two-column)
+  :type 'string)
 (put '2C-separator 'permanent-local t)
 
 (defcustom 2C-window-width 40
   "The width of the first column.  (Must be at least `window-min-width'.)
 This value is local for every buffer that sets it."
-  :type 'integer
-  :group 'two-column)
+  :type 'integer)
 (make-variable-buffer-local '2C-window-width)
 (put '2C-window-width 'permanent-local t)
 
@@ -160,13 +156,11 @@ This value is local for every buffer that sets it."
   "Base for calculating `fill-column' for a buffer in two-column minor mode.
 The value of `fill-column' becomes `2C-window-width' for this buffer
 minus this value."
-  :type 'integer
-  :group 'two-column)
+  :type 'integer)
 
 (defcustom 2C-autoscroll t
   "If non-nil, Emacs attempts to keep the two column's buffers aligned."
-  :type 'boolean
-  :group 'two-column)
+  :type 'boolean)
 
 
 (defvar 2C-mode-map

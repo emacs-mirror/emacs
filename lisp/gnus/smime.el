@@ -672,7 +672,7 @@ The following commands are available:
 
 (defun smime-exit ()
   "Quit the S/MIME buffer."
-  (interactive)
+  (interactive nil smime-mode)
   (kill-buffer (current-buffer)))
 
 ;; Other functions

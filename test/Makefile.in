@@ -71,6 +71,15 @@ am__v_at_0 = @
 am__v_at_1 =
 
 
+# Load any GNU ELPA dependencies that are present, for optional tests.
+GNU_ELPA_DIRECTORY ?= $(srcdir)/../../elpa
+# Keep elpa_dependencies dependency-ordered.
+elpa_dependencies = \
+	url-http-ntlm/url-http-ntlm.el \
+	web-server/web-server.el
+elpa_els = $(addprefix $(GNU_ELPA_DIRECTORY)/packages/,$(elpa_dependencies))
+elpa_opts = $(foreach el,$(elpa_els),$(and $(wildcard $(el)),-L $(dir $(el)) -l $(el)))
+
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
 # directory, we can use emacs --chdir.
@@ -81,7 +90,7 @@ EMACS_EXTRAOPT=
 # Command line flags for Emacs.
 # Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
 # but we might as well be explicit.
-EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
+EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(elpa_opts) $(EMACS_EXTRAOPT)
 
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
@@ -105,7 +114,7 @@ export TEST_LOAD_EL ?= \
     $(if $(findstring $(MAKECMDGOALS), all check check-maybe),no,yes)
 
 # Additional settings for ert.
-ert_opts =
+ert_opts += $(elpa_opts)
 
 # Maximum length of lines in ert backtraces; nil for no limit.
 # (if empty, use the default ert-batch-backtrace-right-margin).

@@ -388,6 +388,11 @@ posting a followup that recommends such software.
 @uref{news:gnu.emacs.bug} is a place where bug reports appear, but avoid
 posting bug reports to this newsgroup directly (@pxref{Reporting bugs}).
 
+Finally, we recommend reading the
+@url{https://www.gnu.org/philosophy/kind-communication.html, GNU Kind
+Communications Guidelines} before posting to any GNU lists or
+newsgroups.
+
 @node Newsgroup archives
 @section Where can I get old postings to @uref{news:gnu.emacs.help} and other GNU groups?
 @cindex Archived postings from @code{gnu.emacs.help}

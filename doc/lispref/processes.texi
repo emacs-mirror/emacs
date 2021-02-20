@@ -3368,6 +3368,11 @@ processed, and how to pack or unpack it.  We normally keep bindat specs
 in variables whose names end in @samp{-bindat-spec}; that kind of name
 is automatically recognized as risky.
 
+@defmac bindat-spec &rest specs
+Creates a Bindat spec object according to the data layout
+specification @var{specs}.
+@end defmac
+
 @cindex endianness
 @cindex big endian
 @cindex little endian
@@ -3398,12 +3403,16 @@ Unsigned integer in network byte order, with length 3.
 @itemx dword
 @itemx long
 Unsigned integer in network byte order, with length 4.
-Note: These values may be limited by Emacs's integer implementation limits.
+
+@item u64
+Unsigned integer in network byte order, with length 8.
 
 @item u16r
 @itemx u24r
 @itemx u32r
-Unsigned integer in little endian order, with length 2, 3 and 4, respectively.
+@itemx u64r
+Unsigned integer in little endian order, with length 2, 3, 4, and
+8, respectively.
 
 @item str @var{len}
 String of length @var{len}.
@@ -3534,16 +3543,16 @@ repetition has completed.
 @node Bindat Functions
 @subsection Functions to Unpack and Pack Bytes
 
-  In the following documentation, @var{spec} refers to a data layout
-specification, @code{bindat-raw} to a byte array, and @var{struct} to an
-alist representing unpacked field data.
+  In the following documentation, @var{spec} refers to a Bindat spec
+object as returned from @code{bindat-spec}, @code{raw} to a byte
+array, and @var{struct} to an alist representing unpacked field data.
 
-@defun bindat-unpack spec bindat-raw &optional bindat-idx
+@defun bindat-unpack spec raw &optional idx
 @c FIXME?  Again, no multibyte?
 This function unpacks data from the unibyte string or byte
-array @code{bindat-raw}
+array @var{raw}
 according to @var{spec}.  Normally, this starts unpacking at the
-beginning of the byte array, but if @var{bindat-idx} is non-@code{nil}, it
+beginning of the byte array, but if @var{idx} is non-@code{nil}, it
 specifies a zero-based starting position to use instead.
 
 The value is an alist or nested alist in which each element describes
@@ -3576,15 +3585,15 @@ This function returns the total length of the data in @var{struct},
 according to @var{spec}.
 @end defun
 
-@defun bindat-pack spec struct &optional bindat-raw bindat-idx
+@defun bindat-pack spec struct &optional raw idx
 This function returns a byte array packed according to @var{spec} from
 the data in the alist @var{struct}.  It normally creates and fills a
-new byte array starting at the beginning.  However, if @var{bindat-raw}
+new byte array starting at the beginning.  However, if @var{raw}
 is non-@code{nil}, it specifies a pre-allocated unibyte string or vector to
-pack into.  If @var{bindat-idx} is non-@code{nil}, it specifies the starting
-offset for packing into @code{bindat-raw}.
+pack into.  If @var{idx} is non-@code{nil}, it specifies the starting
+offset for packing into @var{raw}.
 
-When pre-allocating, you should make sure @code{(length @var{bindat-raw})}
+When pre-allocating, you should make sure @code{(length @var{raw})}
 meets or exceeds the total length to avoid an out-of-range error.
 @end defun
 

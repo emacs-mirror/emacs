@@ -9227,10 +9227,10 @@ move_it_in_display_line_to (struct it *it,
 		      || prev_method == GET_FROM_STRING)
 		  /* Passed TO_CHARPOS from left to right.  */
 		  && ((prev_pos < to_charpos
-		       && IT_CHARPOS (*it) > to_charpos)
+		       && IT_CHARPOS (*it) >= to_charpos)
 		      /* Passed TO_CHARPOS from right to left.  */
 		      || (prev_pos > to_charpos
-			  && IT_CHARPOS (*it) < to_charpos)))))
+			  && IT_CHARPOS (*it) <= to_charpos)))))
 	{
 	  if (it->line_wrap != WORD_WRAP || wrap_it.sp < 0)
 	    {
@@ -10049,7 +10049,10 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	  it->continuation_lines_width = 0;
 	  reseat_at_next_visible_line_start (it, false);
 	  if ((op & MOVE_TO_POS) != 0
-	      && IT_CHARPOS (*it) > to_charpos)
+	      && (IT_CHARPOS (*it) > to_charpos
+		  || (IT_CHARPOS (*it) == to_charpos
+		      && to_charpos == ZV
+		      && FETCH_BYTE (ZV_BYTE - 1) != '\n')))
 	    {
 	      reached = 9;
 	      goto out;
@@ -19452,8 +19455,11 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
      'start_display' again.  */
   ptrdiff_t it_charpos = IT_CHARPOS (it);
 
-  /* Don't let the cursor end in the scroll margins.  */
+  /* Don't let the cursor end in the scroll margins.  However, when
+     the window is vscrolled, we leave it to vscroll to handle the
+     margins, see window_scroll_pixel_based.  */
   if ((flags & TRY_WINDOW_CHECK_MARGINS)
+      && w->vscroll == 0
       && !MINI_WINDOW_P (w))
     {
       int top_scroll_margin = window_scroll_margin (w, MARGIN_IN_PIXELS);
@@ -19462,7 +19468,7 @@ try_window (Lisp_Object window, struct text_pos pos, int flags)
 	top_scroll_margin += CURRENT_HEADER_LINE_HEIGHT (w);
       start_display (&it, w, pos);
 
-      if ((w->cursor.y >= 0	/* not vscrolled */
+      if ((w->cursor.y >= 0
 	   && w->cursor.y < top_scroll_margin
 	   && CHARPOS (pos) > BEGV)
 	  /* rms: considering make_cursor_line_fully_visible_p here

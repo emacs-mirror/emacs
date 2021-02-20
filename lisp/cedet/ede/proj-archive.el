@@ -1,9 +1,11 @@
-;;; ede/proj-archive.el --- EDE Generic Project archive support
+;;; ede/proj-archive.el --- EDE Generic Project archive support  -*- lexical-binding: t -*-
 
 ;;  Copyright (C) 1998-2001, 2009-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -43,7 +45,7 @@
   "Linker object for creating an archive.")
 
 (cl-defmethod ede-proj-makefile-insert-source-variables :before
-  ((this ede-proj-target-makefile-archive) &optional moresource)
+  ((this ede-proj-target-makefile-archive) &optional _moresource)
   "Insert bin_PROGRAMS variables needed by target THIS.
 We aren't actually inserting SOURCE details, but this is used by the
 Makefile.am generator, so use it to add this important bin program."

@@ -106,7 +106,7 @@
     (while (pcomplete-here (completion-table-in-turn
                             (pcmpl-gnu-make-rule-names)
                             (pcomplete-entries))
-                           nil 'identity))))
+                           nil #'identity))))
 
 (defun pcmpl-gnu-makefile-names ()
   "Return a list of possible makefile names."
@@ -336,7 +336,7 @@ Return the new list."
                          (pcomplete-match-string 1 0)))))
     (unless saw-option
       (pcomplete-here
-       (mapcar 'char-to-string
+       (mapcar #'char-to-string
 	       (string-to-list
 		"01234567ABCFGIKLMNOPRSTUVWXZbcdfghiklmoprstuvwxz")))
       (if (pcomplete-match "[xt]" 'first 1)
@@ -355,7 +355,7 @@ Return the new list."
                      (pcmpl-gnu-with-file-buffer
                       file (mapcar #'tar-header-name tar-parse-info)))))
 	      (pcomplete-entries))
-	    nil 'identity))))
+	    nil #'identity))))
 
 ;;;###autoload
 
@@ -391,7 +391,7 @@ Return the new list."
                (string= prec "-execdir"))
            (while (pcomplete-here* (funcall pcomplete-command-completion-function)
                                    (pcomplete-arg 'last) t))))
-    (while (pcomplete-here (pcomplete-dirs) nil 'identity))))
+    (while (pcomplete-here (pcomplete-dirs) nil #'identity))))
 
 ;;;###autoload
 (defalias 'pcomplete/gdb 'pcomplete/xargs)

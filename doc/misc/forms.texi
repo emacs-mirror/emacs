@@ -6,6 +6,7 @@
 @setfilename ../../info/forms.info
 @settitle Forms Mode User's Manual
 @include docstyle.texi
+@include emacsver.texi
 @syncodeindex vr cp
 @syncodeindex fn cp
 @syncodeindex ky cp
@@ -47,7 +48,7 @@ modify this GNU manual.''
 @sp 4
 @center Forms-Mode version 2
 @sp 1
-@center for GNU Emacs 22.1
+@center for GNU Emacs @value{EMACSVER}
 @sp 1
 @center April 2007
 @sp 5

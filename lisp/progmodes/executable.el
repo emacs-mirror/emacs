@@ -54,41 +54,31 @@
   "Base functionality for executable interpreter scripts."
   :group 'processes)
 
-;; This used to default to `other', but that doesn't seem to have any
-;; significance.  fx 2000-02-11.
-(defcustom executable-insert t		; 'other
+(defcustom executable-insert t
   "Non-nil means offer to add a magic number to a file.
 This takes effect when you switch to certain major modes,
 including Shell-script mode (`sh-mode').
 When you type \\[executable-set-magic], it always offers to add or
 update the magic number."
-;;;   :type '(choice (const :tag "off" nil)
-;;; 		 (const :tag "on" t)
-;;; 		 symbol)
-  :type 'boolean
-  :group 'executable)
-
+  :type 'boolean)
 
 (defcustom executable-query 'function
   "If non-nil, ask user before changing an existing magic number.
 When this is `function', only ask when called non-interactively."
   :type '(choice (const :tag "Don't Ask" nil)
 		 (const :tag "Ask when non-interactive" function)
-		 (other :tag "Ask" t))
-  :group 'executable)
+                 (other :tag "Ask" t)))
 
 
 (defcustom executable-magicless-file-regexp "/[Mm]akefile$\\|/\\.\\(z?profile\\|bash_profile\\|z?login\\|bash_login\\|z?logout\\|bash_logout\\|.+shrc\\|esrc\\|rcrc\\|[kz]shenv\\)$"
   "On files with this kind of name no magic is inserted or changed."
-  :type 'regexp
-  :group 'executable)
+  :type 'regexp)
 
 (defcustom executable-prefix "#!"
   "Interpreter magic number prefix inserted when there was no magic number.
 Use of `executable-prefix-env' is preferable to this option."
   :version "26.1"                       ; deprecated
-  :type 'string
-  :group 'executable)
+  :type 'string)
 
 (defcustom executable-prefix-env nil
   "If non-nil, use \"/usr/bin/env\" in interpreter magic number.
@@ -96,8 +86,7 @@ If this variable is non-nil, the interpreter magic number inserted
 by `executable-set-magic' will be \"#!/usr/bin/env INTERPRETER\",
 otherwise it will be \"#!/path/to/INTERPRETER\"."
   :version "26.1"
-  :type 'boolean
-  :group 'executable)
+  :type 'boolean)
 
 (defcustom executable-chmod 73
   "After saving, if the file is not executable, set this mode.
@@ -105,8 +94,7 @@ This mode passed to `set-file-modes' is taken absolutely when negative, or
 relative to the files existing modes.  Do nothing if this is nil.
 Typical values are 73 (+x) or -493 (rwxr-xr-x)."
   :type '(choice integer
-		 (const nil))
-  :group 'executable)
+                 (const nil)))
 
 
 (defvar executable-command nil)
@@ -114,8 +102,7 @@ Typical values are 73 (+x) or -493 (rwxr-xr-x)."
 (defcustom executable-self-display "tail"
   "Command you use with argument `-n+2' to make text files self-display.
 Note that the like of `more' doesn't work too well under Emacs \\[shell]."
-  :type 'string
-  :group 'executable)
+  :type 'string)
 
 (make-obsolete-variable 'executable-self-display nil "25.1" 'set)
 

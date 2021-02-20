@@ -1,4 +1,4 @@
-;;; tibetan.el --- Quail package for inputting Tibetan characters -*-coding: utf-8-emacs;-*-
+;;; tibetan.el --- Quail package for inputting Tibetan characters -*-coding: utf-8-emacs; lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
@@ -158,7 +158,7 @@
   Tsheg is assigned to SPC.  Space is assigned to period `.'.
 "
  nil nil nil nil nil nil nil nil
- 'quail-tibetan-update-translation)
+ #'quail-tibetan-update-translation)
 
 ;; Here we build up a Quail map for a Tibetan sequence the whole of
 ;; which can be one composition.
@@ -371,7 +371,7 @@
 	    (setq trans-list (cons trans trans-list)
 		  i last)
 	  (setq trans-list nil i len))))
-    (apply 'concat (nreverse trans-list))))
+    (apply #'concat (nreverse trans-list))))
 
 (defvar quail-tibkey-characters nil)
 
@@ -440,7 +440,7 @@
        I hope I'll complete in a future revision.
 "
  nil nil nil nil nil nil nil nil
- 'quail-tibkey-update-translation)
+ #'quail-tibkey-update-translation)
 
 (quail-install-map
  (quail-map-from-table

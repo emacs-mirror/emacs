@@ -651,7 +651,6 @@ already exist."
   (setq-local add-log-current-defun-function
        #'tcl-add-log-defun)
 
-  (setq-local beginning-of-defun-function #'tcl-beginning-of-defun-function)
   (setq-local end-of-defun-function #'tcl-end-of-defun-function))
 
 
@@ -849,14 +848,12 @@ Returns nil if line starts inside a string, t if in a comment."
 	   state
 	   containing-sexp
 	   found-next-line)
-      (cond
-       (parse-start
+
+      (if parse-start
 	(goto-char parse-start))
-       ((not (beginning-of-defun))
-        ;; If we're not in a function, don't use
-        ;; `tcl-beginning-of-defun-function'.
-        (let ((beginning-of-defun-function nil))
-          (beginning-of-defun))))
+
+      (beginning-of-defun)
+
       (while (< (point) indent-point)
 	(setq parse-start (point))
 	(setq state (parse-partial-sexp (point) indent-point 0))
@@ -1034,22 +1031,6 @@ Returns nil if line starts inside a string, t if in a comment."
 ;;
 ;; Interfaces to other packages.
 ;;
-
-(defun tcl-beginning-of-defun-function (&optional arg)
-  "`beginning-of-defun-function' for Tcl mode."
-  (when (or (not arg) (= arg 0))
-    (setq arg 1))
-  (let* ((search-fn (if (> arg 0)
-                        ;; Positive arg means to search backward.
-                        #'re-search-backward
-                      #'re-search-forward))
-         (arg (abs arg))
-         (result t))
-    (while (and (> arg 0) result)
-      (unless (funcall search-fn tcl-proc-regexp nil t)
-        (setq result nil))
-      (setq arg (1- arg)))
-    result))
 
 (defun tcl-end-of-defun-function ()
   "`end-of-defun-function' for Tcl mode."

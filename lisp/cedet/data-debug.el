@@ -1045,30 +1045,30 @@ If the result is a list or vector, then use the data debugger to display it."
    (list (let ((minibuffer-completing-symbol t))
 	   (read-from-minibuffer "Eval: "
 				 nil read-expression-map t
-				 'read-expression-history))
-	 ))
+				 'read-expression-history))))
 
-  (if (null eval-expression-debug-on-error)
-      (setq values (cons (eval expr) values))
-    (let ((old-value (make-symbol "t")) new-value)
-      ;; Bind debug-on-error to something unique so that we can
-      ;; detect when evalled code changes it.
-      (let ((debug-on-error old-value))
-	(setq values (cons (eval expr) values))
-	(setq new-value debug-on-error))
-      ;; If evalled code has changed the value of debug-on-error,
-      ;; propagate that change to the global binding.
-      (unless (eq old-value new-value)
-	(setq debug-on-error new-value))))
+  (let (result)
+    (if (null eval-expression-debug-on-error)
+        (setq result (values--store-value (eval expr)))
+      (let ((old-value (make-symbol "t")) new-value)
+        ;; Bind debug-on-error to something unique so that we can
+        ;; detect when evalled code changes it.
+        (let ((debug-on-error old-value))
+	  (setq result (values--store-value (eval expr)))
+	  (setq new-value debug-on-error))
+        ;; If evalled code has changed the value of debug-on-error,
+        ;; propagate that change to the global binding.
+        (unless (eq old-value new-value)
+	  (setq debug-on-error new-value))))
 
-  (if (or (consp (car values)) (vectorp (car values)))
-      (let ((v (car values)))
-	(data-debug-show-stuff v "Expression"))
-    ;; Old style
-    (prog1
-	(prin1 (car values) t)
-      (let ((str (eval-expression-print-format (car values))))
-	(if str (princ str t))))))
+    (if (or (consp result) (vectorp result))
+        (let ((v result))
+	  (data-debug-show-stuff v "Expression"))
+      ;; Old style
+      (prog1
+	  (prin1 result t)
+        (let ((str (eval-expression-print-format result)))
+	  (if str (princ str t)))))))
 
 (provide 'data-debug)
 

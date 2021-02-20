@@ -1,4 +1,4 @@
-;;; semantic/decorate/include.el --- Decoration modes for include statements
+;;; semantic/decorate/include.el --- Decoration modes for include statements  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -535,7 +535,7 @@ Argument EVENT is the mouse clicked event."
   (interactive)
   (let* ((tag (semantic-current-tag))
 	 (table (semanticdb-find-table-for-include tag (current-buffer)))
-	 (mm major-mode))
+	 ) ;; (mm major-mode)
     (with-output-to-temp-buffer (help-buffer) ; "*Help*"
       (help-setup-xref (list #'semantic-decoration-fileless-include-describe)
 		       (called-interactively-p 'interactive))
@@ -793,7 +793,7 @@ any decorated referring includes.")
   (let ((table (oref obj table)))
     ;; This is a hack.  Add in something better?
     (semanticdb-notify-references
-     table (lambda (tab me)
+     table (lambda (tab _me)
 	     (semantic-decoration-unparsed-include-refrence-reset tab)
 	     ))
     ))
@@ -805,7 +805,7 @@ any decorated referring includes.")
       (semantic-reset cache)))
 
 (cl-defmethod semanticdb-synchronize ((cache semantic-decoration-unparsed-include-cache)
-				   new-tags)
+				   _new-tags)
   "Synchronize a CACHE with some NEW-TAGS."
   (semantic-reset cache))
 

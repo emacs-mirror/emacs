@@ -2069,6 +2069,10 @@ Returns the compilation buffer created."
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    (define-key map "n" 'next-error-no-select)
+    (define-key map "p" 'previous-error-no-select)
+    (define-key map "l" 'recenter-current-error)
+
     (define-key map "g" 'recompile) ; revert
     ;; Set up the menu-bar
     (define-key map [menu-bar compilation]

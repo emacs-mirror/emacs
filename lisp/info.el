@@ -1972,7 +1972,8 @@ If DIRECTION is `backward', search in the reverse direction."
                       (format-prompt
                        "Regexp search%s" (car Info-search-history)
 		       (if case-fold-search "" " case-sensitively"))
-		      nil 'Info-search-history)))
+		      nil 'Info-search-history))
+               Info-mode)
   (when (equal regexp "")
     (setq regexp (car Info-search-history)))
   (when regexp
@@ -2080,13 +2081,13 @@ If DIRECTION is `backward', search in the reverse direction."
 
 (defun Info-search-case-sensitively ()
   "Search for a regexp case-sensitively."
-  (interactive)
+  (interactive nil Info-mode)
   (let ((case-fold-search nil))
     (call-interactively 'Info-search)))
 
 (defun Info-search-next ()
   "Search for next regexp from a previous `Info-search' command."
-  (interactive)
+  (interactive nil Info-mode)
   (let ((case-fold-search Info-search-case-fold))
     (if Info-search-history
         (Info-search (car Info-search-history))
@@ -2098,7 +2099,8 @@ If DIRECTION is `backward', search in the reverse direction."
                       (format-prompt
                        "Regexp search%s backward" (car Info-search-history)
 		       (if case-fold-search "" " case-sensitively"))
-		      nil 'Info-search-history)))
+		      nil 'Info-search-history))
+               Info-mode)
   (Info-search regexp bound noerror count 'backward))
 
 (defun Info-isearch-search ()
@@ -2235,7 +2237,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
 (defun Info-next ()
   "Go to the \"next\" node, staying on the same hierarchical level.
 This command doesn't descend into sub-nodes, like \\<Info-mode-map>\\[Info-forward-node] does."
-  (interactive)
+  (interactive nil Info-mode)
   ;; In case another window is currently selected
   (save-window-excursion
     (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
@@ -2244,7 +2246,7 @@ This command doesn't descend into sub-nodes, like \\<Info-mode-map>\\[Info-forwa
 (defun Info-prev ()
   "Go to the \"previous\" node, staying on the same hierarchical level.
 This command doesn't go up to the parent node, like \\<Info-mode-map>\\[Info-backward-node] does."
-  (interactive)
+  (interactive nil Info-mode)
   ;; In case another window is currently selected
   (save-window-excursion
     (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
@@ -2253,7 +2255,7 @@ This command doesn't go up to the parent node, like \\<Info-mode-map>\\[Info-bac
 (defun Info-up (&optional same-file)
   "Go to the superior node of this node.
 If SAME-FILE is non-nil, do not move to a different Info file."
-  (interactive)
+  (interactive nil Info-mode)
   ;; In case another window is currently selected
   (save-window-excursion
     (or (derived-mode-p 'Info-mode) (switch-to-buffer "*info*"))
@@ -2284,7 +2286,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 
 (defun Info-history-back ()
   "Go back in the history to the last node visited."
-  (interactive)
+  (interactive nil Info-mode)
   (or Info-history
       (user-error "This is the first Info node you looked at"))
   (let ((history-forward
@@ -2304,7 +2306,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 
 (defun Info-history-forward ()
   "Go forward in the history of visited nodes."
-  (interactive)
+  (interactive nil Info-mode)
   (or Info-history-forward
       (user-error "This is the last Info node you looked at"))
   (let ((history-forward (cdr Info-history-forward))
@@ -2378,7 +2380,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 
 (defun Info-history ()
   "Go to a node with a menu of visited nodes."
-  (interactive)
+  (interactive nil Info-mode)
   (Info-find-node "*History*" "Top")
   (Info-next-reference)
   (Info-next-reference))
@@ -2415,7 +2417,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 (defun Info-toc ()
   "Go to a node with table of contents of the current Info file.
 Table of contents is created from the tree structure of menus."
-  (interactive)
+  (interactive nil Info-mode)
   (Info-find-node Info-current-file "*TOC*")
   (let ((prev-node (nth 1 (car Info-history))) p)
     (goto-char (point-min))
@@ -2587,7 +2589,8 @@ new buffer."
 	   (list (if (equal input "")
 		     default input)
                  current-prefix-arg))
-       (user-error "No cross-references in this node"))))
+       (user-error "No cross-references in this node")))
+   Info-mode)
 
   (unless footnotename
     (error "No reference was specified"))
@@ -2789,7 +2792,8 @@ new buffer."
 		      (completing-read (format-prompt "Menu item" default)
 				       #'Info-complete-menu-item nil t nil nil
                                        default))))
-       (list item current-prefix-arg))))
+       (list item current-prefix-arg)))
+   Info-mode)
   ;; there is a problem here in that if several menu items have the same
   ;; name you can only go to the node of the first with this command.
   (Info-goto-node (Info-extract-menu-item menu-item)
@@ -2833,19 +2837,19 @@ new buffer."
 (defun Info-nth-menu-item ()
   "Go to the node of the Nth menu item.
 N is the digit argument used to invoke this command."
-  (interactive)
+  (interactive nil Info-mode)
   (Info-goto-node
    (Info-extract-menu-counting
     (- (aref (this-command-keys) (1- (length (this-command-keys)))) ?0))))
 
 (defun Info-top-node ()
   "Go to the Top node of this file."
-  (interactive)
+  (interactive nil Info-mode)
   (Info-goto-node "Top"))
 
 (defun Info-final-node ()
   "Go to the final node in this file."
-  (interactive)
+  (interactive nil Info-mode)
   (Info-goto-node "Top")
   (let ((Info-history nil)
 	(case-fold-search t))
@@ -2869,7 +2873,7 @@ to the parent node.
 When called from Lisp, NOT-DOWN non-nil means don't descend into sub-nodes,
 NOT-UP non-nil means don't go to parent nodes, and NO-ERROR non-nil means
 don't signal a user-error if there's no node to go to."
-  (interactive)
+  (interactive nil Info-mode)
   (goto-char (point-min))
   (forward-line 1)
   (let ((case-fold-search t))
@@ -2906,7 +2910,7 @@ don't signal a user-error if there's no node to go to."
   "Go backward one node, considering all nodes as forming one sequence.
 If the current node has a \"previous\" node, go to it, descending into its
 last sub-node, if any; otherwise go \"up\" to the parent node."
-  (interactive)
+  (interactive nil Info-mode)
   (let ((prevnode (Info-extract-pointer "prev[ious]*" t))
 	(upnode (Info-extract-pointer "up" t))
 	(case-fold-search t))
@@ -2935,7 +2939,7 @@ last sub-node, if any; otherwise go \"up\" to the parent node."
 
 (defun Info-next-menu-item ()
   "Go to the node of the next menu item."
-  (interactive)
+  (interactive nil Info-mode)
   ;; Bind this in case the user sets it to nil.
   (let* ((case-fold-search t)
 	 (node
@@ -2949,7 +2953,7 @@ last sub-node, if any; otherwise go \"up\" to the parent node."
 
 (defun Info-last-menu-item ()
   "Go to the node of the previous menu item."
-  (interactive)
+  (interactive nil Info-mode)
   (save-excursion
     (forward-line 1)
     ;; Bind this in case the user sets it to nil.
@@ -2968,7 +2972,7 @@ last sub-node, if any; otherwise go \"up\" to the parent node."
 
 (defun Info-next-preorder ()
   "Go to the next subnode or the next node, or go up a level."
-  (interactive)
+  (interactive nil Info-mode)
   (cond ((Info-no-error (Info-next-menu-item)))
 	((Info-no-error (Info-next)))
 	((Info-no-error (Info-up t))
@@ -2987,7 +2991,7 @@ last sub-node, if any; otherwise go \"up\" to the parent node."
 
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
-  (interactive)
+  (interactive nil Info-mode)
   (cond ((and Info-scroll-prefer-subnodes
 	      (Info-no-error
 	       (Info-last-menu-item)
@@ -3039,7 +3043,7 @@ the menu of a node, it moves to subnode indicated by the following menu
 item.  (That case won't normally result from this command, but can happen
 in other ways.)"
 
-  (interactive)
+  (interactive nil Info-mode)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
       (set-window-start (selected-window) (point)))
@@ -3061,7 +3065,7 @@ in other ways.)"
 (defun Info-mouse-scroll-up (e)
   "Scroll one screenful forward in Info, using the mouse.
 See `Info-scroll-up'."
-  (interactive "e")
+  (interactive "e" Info-mode)
   (save-selected-window
     (if (eventp e)
 	(select-window (posn-window (event-start e))))
@@ -3073,7 +3077,7 @@ If point is within the menu of a node, and `Info-scroll-prefer-subnodes'
 is non-nil, this goes to its last subnode.  When you scroll past the
 beginning of a node, that goes to the previous node or back up to the
 parent node."
-  (interactive)
+  (interactive nil Info-mode)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
       (set-window-start (selected-window) (point)))
@@ -3093,7 +3097,7 @@ parent node."
 (defun Info-mouse-scroll-down (e)
   "Scroll one screenful backward in Info, using the mouse.
 See `Info-scroll-down'."
-  (interactive "e")
+  (interactive "e" Info-mode)
   (save-selected-window
     (if (eventp e)
 	(select-window (posn-window (event-start e))))
@@ -3139,7 +3143,7 @@ Return the new position of point, or nil."
   "Move cursor to the next cross-reference or menu item in the node.
 If COUNT is non-nil (interactively with a prefix arg), jump over
 COUNT cross-references."
-  (interactive "i\np")
+  (interactive "i\np" Info-mode)
   (unless count
     (setq count 1))
   (if (< count 0)
@@ -3167,7 +3171,7 @@ COUNT cross-references."
   "Move cursor to the previous cross-reference or menu item in the node.
 If COUNT is non-nil (interactively with a prefix arg), jump over
 COUNT cross-references."
-  (interactive "i\np")
+  (interactive "i\np" Info-mode)
   (unless count
     (setq count 1))
   (if (< count 0)
@@ -3365,7 +3369,7 @@ Give an empty topic name to go to the Index node itself."
 
 (defun Info-index-next (num)
   "Go to the next matching index item from the last \\<Info-mode-map>\\[Info-index] command."
-  (interactive "p")
+  (interactive "p" Info-mode)
   (or Info-index-alternatives
       (user-error "No previous `i' command"))
   (while (< num 0)
@@ -3487,7 +3491,8 @@ search results."
 	  (with-current-buffer Info-complete-menu-buffer
 	    (Info-goto-index)
 	    (completing-read "Index topic: " #'Info-complete-menu-item))
-	(kill-buffer Info-complete-menu-buffer)))))
+	(kill-buffer Info-complete-menu-buffer))))
+   Info-mode)
   (if (equal topic "")
       (Info-find-node Info-current-file "*Index*")
     (unless (assoc (cons Info-current-file topic) Info-virtual-index-nodes)
@@ -3793,7 +3798,7 @@ with a list of packages that contain all specified keywords."
 
 (defun Info-undefined ()
   "Make command be undefined in Info."
-  (interactive)
+  (interactive nil Info-mode)
   (ding))
 
 (defun Info-help ()
@@ -3870,7 +3875,7 @@ ERRORSTRING optional fourth argument, controls action on no match:
   "\\<Info-mode-map>Follow a node reference near point.
 Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
 At end of the node's text, moves to the next node, or up if none."
-  (interactive "e")
+  (interactive "e" Info-mode)
   (mouse-set-point click)
   (and (not (Info-follow-nearest-node))
        (save-excursion (forward-line 1) (eobp))
@@ -3884,7 +3889,7 @@ if point is in a menu item description, follow that menu item.
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new Info buffer.
 If FORK is a string, it is the name to use for the new buffer."
-  (interactive "P")
+  (interactive "P" Info-mode)
   (or (Info-try-follow-nearest-node fork)
       (when (save-excursion
 	      (search-backward "\n* menu:" nil t))
@@ -3954,7 +3959,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 
 (defun Info-mouse-follow-link (click)
   "Follow a link where you click."
-  (interactive "@e")
+  (interactive "@e" Info-mode)
   (let* ((position (event-start click))
 	 (posn-string (and position (posn-string position)))
 	 (link-args (if posn-string
@@ -4158,12 +4163,12 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 
 (defun Info-history-back-menu (e)
   "Pop up the menu with a list of previously visited Info nodes."
-  (interactive "e")
+  (interactive "e" Info-mode)
   (Info-history-menu e "Back in history" Info-history 'Info-history-back))
 
 (defun Info-history-forward-menu (e)
   "Pop up the menu with a list of Info nodes visited with ‘Info-history-back’."
-  (interactive "e")
+  (interactive "e" Info-mode)
   (Info-history-menu e "Forward in history" Info-history-forward 'Info-history-forward))
 
 (defvar Info-menu-last-node nil)
@@ -4237,7 +4242,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
   "Put the name of the current Info node into the kill ring.
 The name of the Info file is prepended to the node name in parentheses.
 With a zero prefix arg, put the name inside a function call to `info'."
-  (interactive "P")
+  (interactive "P" Info-mode)
   (unless Info-current-node
     (user-error "No current Info node"))
   (let ((node (if (stringp Info-current-file)

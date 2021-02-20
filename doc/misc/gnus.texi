@@ -19357,6 +19357,9 @@ and dormant.  If @code{nil} (which is the default), only read articles
 are eligible for expiry, and unread, ticked and dormant articles will
 be kept indefinitely.
 
+The last (i.e., newest) article in a group will normally not be
+expired (due to internal book-keeping reasons).
+
 If you find that some articles eligible for expiry are never expired,
 perhaps some Gnus Agent files are corrupted.  There's are special
 commands, @code{gnus-agent-regenerate} and

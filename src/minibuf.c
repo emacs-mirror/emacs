@@ -41,6 +41,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
    minibuffer recursions are encountered.  */
 
 Lisp_Object Vminibuffer_list;
+Lisp_Object Vcommand_loop_level_list;
 
 /* Data to remember during recursive minibuffer invocations.  */
 
@@ -64,6 +65,8 @@ static Lisp_Object minibuf_prompt;
 static ptrdiff_t minibuf_prompt_width;
 
 static Lisp_Object nth_minibuffer (EMACS_INT depth);
+static EMACS_INT minibuf_c_loop_level (EMACS_INT depth);
+static void set_minibuffer_mode (Lisp_Object buf, EMACS_INT depth);
 
 
 /* Return TRUE when a frame switch causes a minibuffer on the old
@@ -181,7 +184,12 @@ void move_minibuffer_onto_frame (void)
 	set_window_buffer (sf->minibuffer_window, nth_minibuffer (i), 0, 0);
       minibuf_window = sf->minibuffer_window;
       if (of != sf)
-	set_window_buffer (of->minibuffer_window, get_minibuffer (0), 0, 0);
+	{
+	  Lisp_Object temp = get_minibuffer (0);
+
+	  set_window_buffer (of->minibuffer_window, temp, 0, 0);
+	  set_minibuffer_mode (temp, 0);
+	}
     }
 }
 
@@ -389,6 +397,21 @@ No argument or nil as argument means use the current buffer as BUFFER.  */)
     : Qnil;
 }
 
+DEFUN ("minibuffer-innermost-command-loop-p", Fminibuffer_innermost_command_loop_p,
+       Sminibuffer_innermost_command_loop_p, 0, 1, 0,
+       doc: /* Return t if BUFFER is a minibuffer at the current command loop level.
+No argument or nil as argument means use the current buffer as BUFFER.  */)
+  (Lisp_Object buffer)
+{
+  EMACS_INT depth;
+  if (NILP (buffer))
+    buffer = Fcurrent_buffer ();
+  depth = this_minibuffer_depth (buffer);
+  return depth && minibuf_c_loop_level (depth) == command_loop_level
+    ? Qt
+    : Qnil;
+}
+
 /* Return the nesting depth of the active minibuffer BUFFER, or 0 if
    BUFFER isn't such a thing.  If BUFFER is nil, this means use the current
    buffer.  */
@@ -420,12 +443,17 @@ confirm the aborting of the current minibuffer and all contained ones.  */)
 
   if (!minibuf_depth)
     error ("Not in a minibuffer");
+  if (NILP (Fminibuffer_innermost_command_loop_p (Qnil)))
+    error ("Not in most nested command loop");
   if (minibuf_depth < minibuf_level)
     {
       array[0] = fmt;
       array[1] = make_fixnum (minibuf_level - minibuf_depth + 1);
       if (!NILP (Fyes_or_no_p (Fformat (2, array))))
-	Fthrow (Qexit, Qt);
+	{
+	  minibuffer_quit_level = minibuf_depth;
+	  Fthrow (Qexit, Qt);
+	}
     }
   else
     Fthrow (Qexit, Qt);
@@ -508,6 +536,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   ptrdiff_t count = SPECPDL_INDEX ();
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   Lisp_Object calling_frame = selected_frame;
+  Lisp_Object calling_window = selected_window;
   Lisp_Object enable_multibyte;
   EMACS_INT pos = 0;
   /* String to add to the history.  */
@@ -598,7 +627,8 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   if (minibuf_level > 1
       && minibuf_moves_frame_when_opened ()
-      && !minibuf_follows_frame ())
+      && (!minibuf_follows_frame ()
+	  || (!EQ (mini_frame, selected_frame))))
     {
       EMACS_INT i;
 
@@ -606,8 +636,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
       for (i = 1; i < minibuf_level; i++)
 	set_window_buffer (minibuf_window, nth_minibuffer (i), 0, 0);
     }
-
-  record_unwind_protect_void (choose_minibuf_frame);
 
   record_unwind_protect (restore_window_configuration,
                          Fcons (Qt, Fcurrent_window_configuration (Qnil)));
@@ -640,7 +668,9 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   minibuf_save_list
     = Fcons (Voverriding_local_map,
 	     Fcons (minibuf_window,
-		    minibuf_save_list));
+		    Fcons (calling_frame,
+			   Fcons (calling_window,
+				  minibuf_save_list))));
   minibuf_save_list
     = Fcons (minibuf_prompt,
 	     Fcons (make_fixnum (minibuf_prompt_width),
@@ -694,6 +724,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   /* Switch to the minibuffer.  */
 
   minibuffer = get_minibuffer (minibuf_level);
+  set_minibuffer_mode (minibuffer, minibuf_level);
   Fset_buffer (minibuffer);
 
   /* Defeat (setq-default truncate-lines t), since truncated lines do
@@ -738,6 +769,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
      where there is an active minibuffer.
      Set them to point to ` *Minibuf-0*', which is always empty.  */
   empty_minibuf = get_minibuffer (0);
+  set_minibuffer_mode (empty_minibuf, 0);
 
   FOR_EACH_FRAME (dummy, frame)
     {
@@ -836,20 +868,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   bset_undo_list (current_buffer, Qnil);
 
   recursive_edit_1 ();
-
-  /* We've exited the recursive edit without an error, so switch the
-     current window away from the expired minibuffer window.  */
-  {
-    Lisp_Object prev = Fprevious_window (minibuf_window, Qnil, Qnil);
-    /* PREV can be on a different frame when we have a minibuffer only
-       frame, the other frame's minibuffer window is MINIBUF_WINDOW,
-       and its "focus window" is also MINIBUF_WINDOW.  */
-    while (!EQ (prev, minibuf_window)
-	   && !EQ (selected_frame, WINDOW_FRAME (XWINDOW (prev))))
-      prev = Fprevious_window (prev, Qnil, Qnil);
-    if (!EQ (prev, minibuf_window))
-      Fset_frame_selected_window (selected_frame, prev, Qnil);
-  }
 
   /* If cursor is on the minibuffer line,
      show the user we have exited by putting it in column 0.  */
@@ -959,11 +977,16 @@ Lisp_Object
 get_minibuffer (EMACS_INT depth)
 {
   Lisp_Object tail = Fnthcdr (make_fixnum (depth), Vminibuffer_list);
+  Lisp_Object cll_tail = Fnthcdr (make_fixnum (depth),
+				  Vcommand_loop_level_list);
   if (NILP (tail))
     {
       tail = list1 (Qnil);
       Vminibuffer_list = nconc2 (Vminibuffer_list, tail);
+      cll_tail = list1 (Qnil);
+      Vcommand_loop_level_list = nconc2 (Vcommand_loop_level_list, cll_tail);
     }
+  XSETCAR (cll_tail, make_fixnum (depth ? command_loop_level : 0));
   Lisp_Object buf = Fcar (tail);
   if (NILP (buf) || !BUFFER_LIVE_P (XBUFFER (buf)))
     {
@@ -973,7 +996,6 @@ get_minibuffer (EMACS_INT depth)
       buf = Fget_buffer_create (lname, Qnil);
       /* Do this before set_minibuffer_mode.  */
       XSETCAR (tail, buf);
-      set_minibuffer_mode (buf, depth);
       /* Although the buffer's name starts with a space, undo should be
 	 enabled in it.  */
       Fbuffer_enable_undo (buf);
@@ -985,10 +1007,17 @@ get_minibuffer (EMACS_INT depth)
 	 while the buffer doesn't know about them any more.  */
       delete_all_overlays (XBUFFER (buf));
       reset_buffer (XBUFFER (buf));
-      set_minibuffer_mode (buf, depth);
     }
 
   return buf;
+}
+
+static EMACS_INT minibuf_c_loop_level (EMACS_INT depth)
+{
+  Lisp_Object cll = Fnth (make_fixnum (depth), Vcommand_loop_level_list);
+  if (FIXNUMP (cll))
+    return XFIXNUM (cll);
+  return 0;
 }
 
 static void
@@ -1004,17 +1033,16 @@ static void
 read_minibuf_unwind (void)
 {
   Lisp_Object old_deactivate_mark;
-  Lisp_Object window;
+  Lisp_Object calling_frame;
+  Lisp_Object calling_window;
   Lisp_Object future_mini_window;
 
-  /* If this was a recursive minibuffer,
-     tie the minibuffer window back to the outer level minibuffer buffer.  */
-  minibuf_level--;
-
-  window = minibuf_window;
   /* To keep things predictable, in case it matters, let's be in the
-     minibuffer when we reset the relevant variables.  */
-  Fset_buffer (XWINDOW (window)->contents);
+     minibuffer when we reset the relevant variables.  Don't depend on
+     `minibuf_window' here.  This could by now be the mini-window of any
+     frame.  */
+  Fset_buffer (nth_minibuffer (minibuf_level));
+  minibuf_level--;
 
   /* Restore prompt, etc, from outer minibuffer level.  */
   Lisp_Object key_vec = Fcar (minibuf_save_list);
@@ -1042,6 +1070,10 @@ read_minibuf_unwind (void)
 #endif
   future_mini_window = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
+  calling_frame = Fcar (minibuf_save_list);
+  minibuf_save_list = Fcdr (minibuf_save_list);
+  calling_window = Fcar (minibuf_save_list);
+  minibuf_save_list = Fcdr (minibuf_save_list);
 
   /* Erase the minibuffer we were using at this level.  */
   {
@@ -1059,7 +1091,7 @@ read_minibuf_unwind (void)
      mini-window back to its normal size.  */
   if (minibuf_level == 0
       || !EQ (selected_frame, WINDOW_FRAME (XWINDOW (future_mini_window))))
-    resize_mini_window (XWINDOW (window), 0);
+    resize_mini_window (XWINDOW (minibuf_window), 0);
 
   /* Deal with frames that should be removed when exiting the
      minibuffer.  */
@@ -1090,6 +1122,24 @@ read_minibuf_unwind (void)
      to make sure we don't leave around bindings and stuff which only
      made sense during the read_minibuf invocation.  */
   call0 (intern ("minibuffer-inactive-mode"));
+
+  /* We've exited the recursive edit, so switch the current windows
+     away from the expired minibuffer window, both in the current
+     minibuffer's frame and the original calling frame.  */
+  choose_minibuf_frame ();
+  if (!EQ (WINDOW_FRAME (XWINDOW (minibuf_window)), calling_frame))
+  {
+    Lisp_Object prev = Fprevious_window (minibuf_window, Qnil, Qnil);
+    /* PREV can be on a different frame when we have a minibuffer only
+       frame, the other frame's minibuffer window is MINIBUF_WINDOW,
+       and its "focus window" is also MINIBUF_WINDOW.  */
+    if (!EQ (prev, minibuf_window)
+	&& EQ (WINDOW_FRAME (XWINDOW (prev)),
+	       WINDOW_FRAME (XWINDOW (minibuf_window))))
+      Fset_frame_selected_window (selected_frame, prev, Qnil);
+  }
+  else
+    Fset_frame_selected_window (calling_frame, calling_window, Qnil);
 }
 
 
@@ -2137,6 +2187,7 @@ void
 init_minibuf_once (void)
 {
   staticpro (&Vminibuffer_list);
+  staticpro (&Vcommand_loop_level_list);
   pdumper_do_now_and_after_load (init_minibuf_once_for_pdumper);
 }
 
@@ -2150,6 +2201,7 @@ init_minibuf_once_for_pdumper (void)
      restore from a dump file.  pdumper doesn't try to preserve
      frames, windows, and so on, so reset everything related here.  */
   Vminibuffer_list = Qnil;
+  Vcommand_loop_level_list = Qnil;
   minibuf_level = 0;
   minibuf_prompt = Qnil;
   minibuf_save_list = Qnil;
@@ -2380,6 +2432,7 @@ instead. */);
 
   defsubr (&Sminibufferp);
   defsubr (&Sinnermost_minibuffer_p);
+  defsubr (&Sminibuffer_innermost_command_loop_p);
   defsubr (&Sabort_minibuffers);
   defsubr (&Sminibuffer_prompt_end);
   defsubr (&Sminibuffer_contents);

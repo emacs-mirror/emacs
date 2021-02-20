@@ -1161,6 +1161,7 @@ a previously found match."
     (define-key map "\C-o" 'occur-mode-display-occurrence)
     (define-key map "n" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
+    (define-key map "l" 'recenter-current-error)
     (define-key map "\M-n" 'occur-next)
     (define-key map "\M-p" 'occur-prev)
     (define-key map "r" 'occur-rename-buffer)

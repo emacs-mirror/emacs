@@ -73,8 +73,7 @@ so that it is considered safe, see `enable-local-variables'.")
   "Regular expression matching bug references.
 The second subexpression should match the bug reference (usually a number)."
   :type 'regexp
-  :version "24.3"			; previously defconst
-  :group 'bug-reference)
+  :version "24.3")			; previously defconst
 
 ;;;###autoload
 (put 'bug-reference-bug-regexp 'safe-local-variable 'stringp)

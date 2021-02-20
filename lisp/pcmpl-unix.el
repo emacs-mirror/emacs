@@ -77,7 +77,7 @@ being via `pcmpl-ssh-known-hosts-file'."
   (let ((pcomplete-help "(fileutils)rm invocation"))
     (pcomplete-opt "dfirRv")
     (while (pcomplete-here (pcomplete-all-entries) nil
-			   'expand-file-name))))
+			   #'expand-file-name))))
 
 ;;;###autoload
 (defun pcomplete/xargs ()

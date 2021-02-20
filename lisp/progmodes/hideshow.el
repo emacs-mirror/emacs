@@ -232,13 +232,11 @@
 
 (defcustom hs-hide-comments-when-hiding-all t
   "Hide the comments too when you do an `hs-hide-all'."
-  :type 'boolean
-  :group 'hideshow)
+  :type 'boolean)
 
 (defcustom hs-minor-mode-hook nil
   "Hook called when hideshow minor mode is activated or deactivated."
   :type 'hook
-  :group 'hideshow
   :version "21.1")
 
 (defcustom hs-isearch-open 'code
@@ -254,8 +252,7 @@ This has effect only if `search-invisible' is set to `open'."
   :type '(choice (const :tag "open only code blocks" code)
                  (const :tag "open only comment blocks" comment)
                  (const :tag "open both code and comment blocks" t)
-                 (const :tag "don't open any of them" nil))
-  :group 'hideshow)
+                 (const :tag "don't open any of them" nil)))
 
 ;;;###autoload
 (defvar hs-special-modes-alist

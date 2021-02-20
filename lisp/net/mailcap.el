@@ -332,7 +332,7 @@ whose car is a symbol, it is `eval'uated to yield the validity.  If it
 is a string or list of strings, it represents a shell command to run
 to return a true or false shell value for the validity.
 
-The last matching entry in this structure takes presedence over
+The last matching entry in this structure takes precedence over
 preceding entries.")
 (put 'mailcap-mime-data 'risky-local-variable t)
 
@@ -842,11 +842,11 @@ If NO-DECODE is non-nil, don't decode STRING."
             ;; ~/.mailcap file, then we filter out the system entries
             ;; and see whether we have anything left.
             (when mailcap-prefer-mailcap-viewers
-              (when-let ((user-entry
-                          (seq-find (lambda (elem)
-                                      (eq (cdr (assq 'source elem)) 'user))
-                                    passed)))
-                (setq passed (list user-entry))))
+              (when-let ((user-entries
+                          (seq-filter (lambda (elem)
+                                        (eq (cdr (assq 'source elem)) 'user))
+                                      passed)))
+                (setq passed user-entries)))
             (setq viewer (car passed))))
         (when (and (stringp (cdr (assq 'viewer viewer)))
                    passed)

@@ -427,22 +427,19 @@ Match group 1 is the name of the macro.")
 (defcustom js-indent-level 4
   "Number of spaces for each indentation step in `js-mode'."
   :type 'integer
-  :safe 'integerp
-  :group 'js)
+  :safe 'integerp)
 
 (defcustom js-expr-indent-offset 0
   "Number of additional spaces for indenting continued expressions.
 The value must be no less than minus `js-indent-level'."
   :type 'integer
-  :safe 'integerp
-  :group 'js)
+  :safe 'integerp)
 
 (defcustom js-paren-indent-offset 0
   "Number of additional spaces for indenting expressions in parentheses.
 The value must be no less than minus `js-indent-level'."
   :type 'integer
   :safe 'integerp
-  :group 'js
   :version "24.1")
 
 (defcustom js-square-indent-offset 0
@@ -450,7 +447,6 @@ The value must be no less than minus `js-indent-level'."
 The value must be no less than minus `js-indent-level'."
   :type 'integer
   :safe 'integerp
-  :group 'js
   :version "24.1")
 
 (defcustom js-curly-indent-offset 0
@@ -458,7 +454,6 @@ The value must be no less than minus `js-indent-level'."
 The value must be no less than minus `js-indent-level'."
   :type 'integer
   :safe 'integerp
-  :group 'js
   :version "24.1")
 
 (defcustom js-switch-indent-offset 0
@@ -466,26 +461,22 @@ The value must be no less than minus `js-indent-level'."
 The value must not be negative."
   :type 'integer
   :safe 'integerp
-  :group 'js
   :version "24.4")
 
 (defcustom js-flat-functions nil
   "Treat nested functions as top-level functions in `js-mode'.
 This applies to function movement, marking, and so on."
-  :type 'boolean
-  :group 'js)
+  :type 'boolean)
 
 (defcustom js-indent-align-list-continuation t
   "Align continuation of non-empty ([{ lines in `js-mode'."
   :version "26.1"
   :type 'boolean
-  :safe 'booleanp
-  :group 'js)
+  :safe 'booleanp)
 
 (defcustom js-comment-lineup-func #'c-lineup-C-comments
   "Lineup function for `cc-mode-style', for C comments in `js-mode'."
-  :type 'function
-  :group 'js)
+  :type 'function)
 
 (defcustom js-enabled-frameworks js--available-frameworks
   "Frameworks recognized by `js-mode'.
@@ -493,30 +484,26 @@ To improve performance, you may turn off some frameworks you
 seldom use, either globally or on a per-buffer basis."
   :type (cons 'set (mapcar (lambda (x)
                              (list 'const x))
-                           js--available-frameworks))
-  :group 'js)
+                           js--available-frameworks)))
 
 (defcustom js-js-switch-tabs
   (and (memq system-type '(darwin)) t)
   "Whether `js-mode' should display tabs while selecting them.
 This is useful only if the windowing system has a good mechanism
 for preventing Firefox from stealing the keyboard focus."
-  :type 'boolean
-  :group 'js)
+  :type 'boolean)
 
 (defcustom js-js-tmpdir
   "~/.emacs.d/js/js"
   "Temporary directory used by `js-mode' to communicate with Mozilla.
 This directory must be readable and writable by both Mozilla and Emacs."
-  :type 'directory
-  :group 'js)
+  :type 'directory)
 
 (defcustom js-js-timeout 5
   "Reply timeout for executing commands in Mozilla via `js-mode'.
 The value is given in seconds.  Increase this value if you are
 getting timeout messages."
-  :type 'integer
-  :group 'js)
+  :type 'integer)
 
 (defcustom js-indent-first-init nil
   "Non-nil means specially indent the first variable declaration's initializer.
@@ -557,8 +544,7 @@ don't indent the first one's initializer; otherwise, indent it.
       bar = 2;"
   :version "25.1"
   :type '(choice (const nil) (const t) (const dynamic))
-  :safe 'symbolp
-  :group 'js)
+  :safe 'symbolp)
 
 (defcustom js-chain-indent nil
   "Use \"chained\" indentation.
@@ -571,8 +557,7 @@ then the \".\"s will be lined up:
 "
   :version "26.1"
   :type 'boolean
-  :safe 'booleanp
-  :group 'js)
+  :safe 'booleanp)
 
 (defcustom js-jsx-detect-syntax t
   "When non-nil, automatically detect whether JavaScript uses JSX.
@@ -581,8 +566,7 @@ t.  The detection strategy can be customized by adding elements
 to `js-jsx-regexps', which see."
   :version "27.1"
   :type 'boolean
-  :safe 'booleanp
-  :group 'js)
+  :safe 'booleanp)
 
 (defcustom js-jsx-syntax nil
   "When non-nil, parse JavaScript with consideration for JSX syntax.
@@ -600,8 +584,7 @@ When `js-mode' is already enabled, you should call
 It is set to be buffer-local (and t) when in `js-jsx-mode'."
   :version "27.1"
   :type 'boolean
-  :safe 'booleanp
-  :group 'js)
+  :safe 'booleanp)
 
 (defcustom js-jsx-align->-with-< t
   "When non-nil, “>” will be indented to the opening “<” in JSX.
@@ -625,8 +608,7 @@ When this is disabled, JSX indentation looks like this:
     />"
   :version "27.1"
   :type 'boolean
-  :safe 'booleanp
-  :group 'js)
+  :safe 'booleanp)
 
 (defcustom js-jsx-indent-level nil
   "When non-nil, indent JSX by this value, instead of like JS.
@@ -655,8 +637,7 @@ indentation looks like this (different):
   :version "27.1"
   :type '(choice integer
                  (const :tag "Not Set" nil))
-  :safe (lambda (x) (or (null x) (integerp x)))
-  :group 'js)
+  :safe (lambda (x) (or (null x) (integerp x))))
 ;; This is how indentation behaved out-of-the-box until Emacs 27.  JSX
 ;; indentation was controlled with `sgml-basic-offset', which defaults
 ;; to 2, whereas `js-indent-level' defaults to 4.  Users who had the
@@ -685,8 +666,7 @@ indentation looks like this:
 This variable is like `sgml-attribute-offset'."
   :version "27.1"
   :type 'integer
-  :safe 'integerp
-  :group 'js)
+  :safe 'integerp)
 
 ;;; KeyMap
 

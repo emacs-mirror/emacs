@@ -1743,7 +1743,7 @@ documentation for the major and minor modes of that buffer."
   ;; don't switch buffers before calling `help-buffer'.
   (with-help-window (help-buffer)
     (with-current-buffer buffer
-      (let (minor-modes)
+      (let (minors)
 	;; Older packages do not register in minor-mode-list but only in
 	;; minor-mode-alist.
 	(dolist (x minor-mode-alist)
@@ -1766,19 +1766,19 @@ documentation for the major and minor modes of that buffer."
 			  fmode)))
 		   (push (list fmode pretty-minor-mode
 			       (format-mode-line (assq mode minor-mode-alist)))
-			 minor-modes)))))
+			 minors)))))
 	;; Narrowing is not a minor mode, but its indicator is part of
 	;; mode-line-modes.
 	(when (buffer-narrowed-p)
-	  (push '(narrow-to-region "Narrow" " Narrow") minor-modes))
-	(setq minor-modes
-	      (sort minor-modes
+	  (push '(narrow-to-region "Narrow" " Narrow") minors))
+	(setq minors
+	      (sort minors
 		    (lambda (a b) (string-lessp (cadr a) (cadr b)))))
-	(when minor-modes
+	(when minors
 	  (princ "Enabled minor modes:\n")
 	  (make-local-variable 'help-button-cache)
 	  (with-current-buffer standard-output
-	    (dolist (mode minor-modes)
+	    (dolist (mode minors)
 	      (let ((mode-function (nth 0 mode))
 		    (pretty-minor-mode (nth 1 mode))
 		    (indicator (nth 2 mode)))
@@ -1827,9 +1827,30 @@ documentation for the major and minor modes of that buffer."
                                     nil t)
 		(help-xref-button 1 'help-function-def mode file-name)))))
 	(princ ":\n")
-	(princ (help-split-fundoc (documentation major-mode) nil 'doc)))))
+	(princ (help-split-fundoc (documentation major-mode) nil 'doc))
+        (princ (help-fns--list-local-commands)))))
   ;; For the sake of IELM and maybe others
   nil)
+
+(defun help-fns--list-local-commands ()
+  (let ((functions nil))
+    (mapatoms
+     (lambda (sym)
+       (when (and (commandp sym)
+                  ;; Ignore aliases.
+                  (not (symbolp (symbol-function sym)))
+                  ;; Ignore everything bound.
+                  (not (where-is-internal sym))
+                  (apply #'derived-mode-p (command-modes sym)))
+         (push sym functions))))
+    (with-temp-buffer
+      (when functions
+        (setq functions (sort functions #'string<))
+        (insert "\n\nOther commands for this mode, not bound to any keys:\n\n")
+        (dolist (function functions)
+          (insert (format "`%s'\n" function))))
+      (buffer-string))))
+
 
 ;; Widgets.
 

@@ -1168,13 +1168,14 @@ x
 @end group
 @end example
 
-However, the other arguments (all but the last) should be mutable lists.
+However, the other arguments (all but the last) should be mutable
+lists.
 
-A common pitfall is to use a constant list as a non-last
-argument to @code{nconc}.  If you do this, the resulting behavior
-is undefined.  It is possible that your program will change
-each time you run it!  Here is what might happen (though this
-is not guaranteed to happen):
+A common pitfall is to use a constant list as a non-last argument to
+@code{nconc}.  If you do this, the resulting behavior is undefined
+(@pxref{Self-Evaluating Forms}).  It is possible that your program
+will change each time you run it!  Here is what might happen (though
+this is not guaranteed to happen):
 
 @smallexample
 @group

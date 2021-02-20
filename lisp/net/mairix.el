@@ -1,4 +1,4 @@
-;;; mairix.el --- Mairix interface for Emacs
+;;; mairix.el --- Mairix interface for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -83,55 +83,46 @@
 
 (defcustom mairix-file-path "~/"
   "Path where output files produced by Mairix should be stored."
-  :type 'directory
-  :group 'mairix)
+  :type 'directory)
 
 (defcustom mairix-search-file "mairixsearch.mbox"
   "Name of the default file for storing the searches.
 Note that this will be prefixed by `mairix-file-path'."
-  :type 'string
-  :group 'mairix)
+  :type 'string)
 
 (defcustom mairix-command "mairix"
   "Command for calling mairix.
 You can add further options here if you want to, but better use
 `mairix-update-options' instead."
-  :type 'string
-  :group 'mairix)
+  :type 'string)
 
 (defcustom mairix-output-buffer "*mairix output*"
   "Name of the buffer for the output of the mairix binary."
-  :type 'string
-  :group 'mairix)
+  :type 'string)
 
 (defcustom mairix-customize-query-buffer "*mairix query*"
   "Name of the buffer for customizing a search query."
-  :type 'string
-  :group 'mairix)
+  :type 'string)
 
 (defcustom mairix-saved-searches-buffer "*mairix searches*"
   "Name of the buffer for displaying saved searches."
-  :type 'string
-  :group 'mairix)
+  :type 'string)
 
 (defcustom mairix-update-options '("-F" "-Q")
   "Options when calling mairix for updating the database.
 The default is \"-F\" and \"-Q\" for making updates faster.  You
 should call mairix without these options from time to
 time (e.g. via cron job)."
-  :type '(repeat string)
-  :group 'mairix)
+  :type '(repeat string))
 
 (defcustom mairix-search-options '("-Q")
   "Options when calling mairix for searching.
 The default is \"-Q\" for making searching faster."
-  :type '(repeat string)
-  :group 'mairix)
+  :type '(repeat string))
 
 (defcustom mairix-synchronous-update nil
   "Defines if Emacs should wait for the mairix database update."
-  :type 'boolean
-  :group 'mairix)
+  :type 'boolean)
 
 (defcustom mairix-saved-searches nil
   "Saved mairix searches.
@@ -144,8 +135,7 @@ threads (nil or t).  Note that the file will be prefixed by
 		       (choice :tag "File"
 			       (const :tag "default")
 			       file)
-		       (boolean :tag "Threads")))
-  :group 'mairix)
+		       (boolean :tag "Threads"))))
 
 (defcustom mairix-mail-program 'rmail
   "Mail program used to display search results.
@@ -153,8 +143,7 @@ Currently RMail, Gnus (mbox), and VM are supported.  If you use Gnus
 with maildir, use nnmairix.el instead."
   :type '(choice (const :tag "RMail" rmail)
 		 (const :tag "Gnus mbox" gnus)
-		 (const :tag "VM" vm))
-  :group 'mairix)
+		 (const :tag "VM" vm)))
 
 (defcustom mairix-display-functions
   '((rmail mairix-rmail-display)
@@ -166,8 +155,7 @@ This is an alist where each entry consists of a symbol from
 displaying the search results.  The function will be called with
 the mailbox file produced by mairix as the single argument."
   :type '(repeat (list (symbol :tag "Mail program")
-		       (function)))
-  :group 'mairix)
+		       (function))))
 
 (defcustom mairix-get-mail-header-functions
   '((rmail mairix-rmail-fetch-field)
@@ -184,15 +172,13 @@ won't work."
   :type '(repeat (list (symbol :tag "Mail program")
 		       (choice :tag "Header function"
 			       (const :tag "none")
-			       function)))
-  :group 'mairix)
+			       function))))
 
 (defcustom mairix-widget-select-window-function
   (lambda () (select-window (get-largest-window)))
   "Function for selecting the window for customizing the mairix query.
 The default chooses the largest window in the current frame."
-  :type 'function
-  :group 'mairix)
+  :type 'function)
 
 ;; Other variables
 
@@ -466,18 +452,18 @@ MVALUES may contain values from current article."
   ;; generate Buttons
   (widget-create 'push-button
 		 :notify
-		 (lambda (&rest ignore)
+		 (lambda (&rest _)
 		   (mairix-widget-send-query mairix-widgets))
 		 "Send Query")
   (widget-insert "   ")
   (widget-create 'push-button
 		 :notify
-		 (lambda (&rest ignore)
+		 (lambda (&rest _)
 		   (mairix-widget-save-search mairix-widgets))
 		 "Save search")
   (widget-insert "   ")
   (widget-create 'push-button
-		 :notify (lambda (&rest ignore)
+		 :notify (lambda (&rest _)
 			   (kill-buffer mairix-customize-query-buffer))
 		 "Cancel")
   (use-local-map widget-keymap)
@@ -502,7 +488,7 @@ Mairix will be called asynchronously unless
 				 (cdr commandsplit)
 				 mairix-update-options))
 	    (setq args (append args mairix-update-options)))
-	  (apply 'call-process args))
+	  (apply #'call-process args))
       (progn
 	(message "Updating mairix database...")
 	(setq args (append (list "mairixupdate" (get-buffer-create mairix-output-buffer)
@@ -511,8 +497,8 @@ Mairix will be called asynchronously unless
 	    (setq args (append args (cdr commandsplit) mairix-update-options))
 	  (setq args (append args mairix-update-options)))
 	(set-process-sentinel
-	 (apply 'start-process args)
-	 'mairix-sentinel-mairix-update-finished)))))
+	 (apply #'start-process args)
+	 #'mairix-sentinel-mairix-update-finished)))))
 
 
 ;;;; Helper functions
@@ -557,7 +543,7 @@ whole threads.  Function returns t if messages were found."
 	     mairix-file-path))
 	   file))
     (setq rval
-	  (apply 'call-process
+	  (apply #'call-process
 		 (append args (list "-o" file) query)))
     (if (zerop rval)
 	(with-current-buffer mairix-output-buffer
@@ -582,7 +568,7 @@ whole threads.  Function returns t if messages were found."
       (setq header (replace-match "," t t header)))
   header))
 
-(defun mairix-sentinel-mairix-update-finished (proc status)
+(defun mairix-sentinel-mairix-update-finished (_proc status)
   "Sentinel for mairix update process PROC with STATUS."
   (if (equal status "finished\n")
       (message "Updating mairix database... done")
@@ -642,51 +628,50 @@ See %s for details" mairix-output-buffer)))
       (when (not (zerop (length flag)))
 	(push (concat "F:" flag) query)))
     ;; return query string
-    (mapconcat 'identity query " ")))
+    (mapconcat #'identity query " ")))
 
 (defun mairix-widget-create-query (&optional values)
   "Create widgets for creating mairix queries.
 Fill in VALUES if based on an article."
-  (let (allwidgets)
-    (when (get-buffer mairix-customize-query-buffer)
-      (kill-buffer mairix-customize-query-buffer))
-    (switch-to-buffer mairix-customize-query-buffer)
-    (kill-all-local-variables)
-    (erase-buffer)
-    (widget-insert
-     "Specify your query for Mairix using check boxes for activating fields.\n\n")
-    (widget-insert
-     (concat "Use ~word        to match messages "
-	     (propertize "not" 'face 'italic)
-	     " containing the word)\n"
-	     "    substring=   to match words containing the substring\n"
-	     "    substring=N  to match words containing the substring, allowing\n"
-	     "                  up to N errors(missing/extra/different letters)\n"
-	     "    ^substring=  to match the substring at the beginning of a word.\n"))
-    (widget-insert
-     (format-message
-      "Whitespace will be converted to `,' (i.e. AND).  Use `/' for OR.\n\n"))
-    (setq mairix-widgets (mairix-widget-build-editable-fields values))
-    (when (member 'flags mairix-widget-other)
-      (widget-insert "\nFlags:\n      Seen:     ")
-      (mairix-widget-add "seen"
-			   'menu-choice
-			   :value "ignore"
-			   '(item "yes") '(item "no") '(item "ignore"))
-      (widget-insert "      Replied:  ")
-      (mairix-widget-add "replied"
-			   'menu-choice
-			   :value "ignore"
-			   '(item "yes") '(item "no") '(item "ignore"))
-      (widget-insert "      Ticked:   ")
-      (mairix-widget-add "flagged"
-			   'menu-choice
-			   :value "ignore"
-			   '(item "yes") '(item "no") '(item "ignore")))
-    (when (member 'threads mairix-widget-other)
-      (widget-insert "\n")
-      (mairix-widget-add "Threads" 'checkbox nil))
-      (widget-insert " Show full threads\n\n")))
+  (when (get-buffer mairix-customize-query-buffer)
+    (kill-buffer mairix-customize-query-buffer))
+  (switch-to-buffer mairix-customize-query-buffer)
+  (kill-all-local-variables)
+  (erase-buffer)
+  (widget-insert
+   "Specify your query for Mairix using check boxes for activating fields.\n\n")
+  (widget-insert
+   (concat "Use ~word        to match messages "
+	   (propertize "not" 'face 'italic)
+	   " containing the word)\n"
+	   "    substring=   to match words containing the substring\n"
+	   "    substring=N  to match words containing the substring, allowing\n"
+	   "                  up to N errors(missing/extra/different letters)\n"
+	   "    ^substring=  to match the substring at the beginning of a word.\n"))
+  (widget-insert
+   (format-message
+    "Whitespace will be converted to `,' (i.e. AND).  Use `/' for OR.\n\n"))
+  (setq mairix-widgets (mairix-widget-build-editable-fields values))
+  (when (member 'flags mairix-widget-other)
+    (widget-insert "\nFlags:\n      Seen:     ")
+    (mairix-widget-add "seen"
+		       'menu-choice
+		       :value "ignore"
+		       '(item "yes") '(item "no") '(item "ignore"))
+    (widget-insert "      Replied:  ")
+    (mairix-widget-add "replied"
+		       'menu-choice
+		       :value "ignore"
+		       '(item "yes") '(item "no") '(item "ignore"))
+    (widget-insert "      Ticked:   ")
+    (mairix-widget-add "flagged"
+		       'menu-choice
+		       :value "ignore"
+		       '(item "yes") '(item "no") '(item "ignore")))
+  (when (member 'threads mairix-widget-other)
+    (widget-insert "\n")
+    (mairix-widget-add "Threads" 'checkbox nil))
+  (widget-insert " Show full threads\n\n"))
 
 (defun mairix-widget-build-editable-fields (values)
   "Build editable field widgets in `nnmairix-widget-fields-list'.
@@ -703,7 +688,7 @@ VALUES may contain values for editable fields from current article."
            (concat "c" field)
            (widget-create 'checkbox
                           :tag field
-                          :notify (lambda (widget &rest ignore)
+                          :notify (lambda (widget &rest _ignore)
                                     (mairix-widget-toggle-activate widget))
                           nil)))
          (list
@@ -727,7 +712,7 @@ VALUES may contain values for editable fields from current article."
   "Add a widget NAME with optional ARGS."
   (push
    (list name
-	 (apply 'widget-create args))
+	 (apply #'widget-create args))
    mairix-widgets))
 
 (defun mairix-widget-toggle-activate (widget)

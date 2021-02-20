@@ -469,11 +469,9 @@ PROPERTY set."
 ;;; Lexical Analyzer framework settings
 ;;
 
-;; FIXME change to non-obsolete default.
-(defvar-local semantic-lex-analyzer 'semantic-flex
+(defvar-local semantic-lex-analyzer 'semantic-lex
   "The lexical analyzer used for a given buffer.
-See `semantic-lex' for documentation.
-For compatibility with Semantic 1.x it defaults to `semantic-flex'.")
+See `semantic-lex' for documentation.")
 
 (defvar semantic-lex-tokens
   '(
@@ -762,6 +760,7 @@ If two analyzers can match the same text, it is important to order the
 analyzers so that the one you want to match first occurs first.  For
 example, it is good to put a number analyzer in front of a symbol
 analyzer which might mistake a number for a symbol."
+  (declare (debug (&define name stringp (&rest symbolp))))
   `(defun ,name  (start end &optional depth length)
      ,(concat doc "\nSee `semantic-lex' for more information.")
      ;; Make sure the state of block parsing starts over.
@@ -1066,14 +1065,13 @@ the desired syntax, and a position returned.
 If `debug-on-error' is set, errors are not caught, so that you can
 debug them.
 Avoid using a large FORMS since it is duplicated."
+  (declare (indent 1) (debug t))
   `(if (and debug-on-error semantic-lex-debug-analyzers)
        (progn ,@forms)
      (condition-case nil
          (progn ,@forms)
        (error
         (semantic-lex-unterminated-syntax-detected ,syntax)))))
-(put 'semantic-lex-unterminated-syntax-protection
-     'lisp-indent-function 1)
 
 (defmacro define-lex-analyzer (name doc condition &rest forms)
   "Create a single lexical analyzer NAME with DOC.
@@ -1098,6 +1096,7 @@ Proper action in FORMS is to move the value of `semantic-lex-end-point' to
 after the location of the analyzed entry, and to add any discovered tokens
 at the beginning of `semantic-lex-token-stream'.
 This can be done by using `semantic-lex-push-token'."
+  (declare (debug (&define name stringp form def-body)))
   `(eval-and-compile
      (defvar ,name nil ,doc)
      (defun ,name nil)
@@ -1124,6 +1123,7 @@ This can be done by using `semantic-lex-push-token'."
   "Create a lexical analyzer with NAME and DOC that will match REGEXP.
 FORMS are evaluated upon a successful match.
 See `define-lex-analyzer' for more about analyzers."
+  (declare (debug (&define name stringp form def-body)))
   `(define-lex-analyzer ,name
      ,doc
      (looking-at ,regexp)
@@ -1141,6 +1141,8 @@ expression.
 FORMS are evaluated upon a successful match BEFORE the new token is
 created.  It is valid to ignore FORMS.
 See `define-lex-analyzer' for more about analyzers."
+  (declare (debug
+            (&define name stringp form symbolp [ &optional form ] def-body)))
   `(define-lex-analyzer ,name
      ,doc
      (looking-at ,regexp)
@@ -1165,6 +1167,7 @@ where BLOCK-SYM is the symbol returned in a block token.  OPEN-DELIM
 and CLOSE-DELIM are respectively the open and close delimiters
 identifying a block.  OPEN-SYM and CLOSE-SYM are respectively the
 symbols returned in open and close tokens."
+  (declare (debug (&define name stringp form (&rest form))))
   (let ((specs (cons spec1 specs))
         spec open olist clist)
     (while specs
@@ -1686,6 +1689,7 @@ the error will be caught here without the buffer's cache being thrown
 out of date.
 If there is an error, the syntax that failed is returned.
 If there is no error, then the last value of FORMS is returned."
+  (declare (indent 1) (debug (symbolp def-body)))
   (let ((ret (make-symbol "ret"))
         (syntax (make-symbol "syntax"))
         (start (make-symbol "start"))
@@ -1709,35 +1713,7 @@ If there is no error, then the last value of FORMS is returned."
          ;;(message "Buffer not currently parsable (%S)." ,ret)
          (semantic-parse-tree-unparseable))
        ,ret)))
-(put 'semantic-lex-catch-errors 'lisp-indent-function 1)
 
-
-;;; Interfacing with edebug
-;;
-(add-hook
- 'edebug-setup-hook
- #'(lambda ()
-
-     (def-edebug-spec define-lex
-       (&define name stringp (&rest symbolp))
-       )
-     (def-edebug-spec define-lex-analyzer
-       (&define name stringp form def-body)
-       )
-     (def-edebug-spec define-lex-regex-analyzer
-       (&define name stringp form def-body)
-       )
-     (def-edebug-spec define-lex-simple-regex-analyzer
-       (&define name stringp form symbolp [ &optional form ] def-body)
-       )
-     (def-edebug-spec define-lex-block-analyzer
-       (&define name stringp form (&rest form))
-       )
-     (def-edebug-spec semantic-lex-catch-errors
-       (symbolp def-body)
-       )
-
-     ))
 
 ;;; Compatibility with Semantic 1.x lexical analysis
 

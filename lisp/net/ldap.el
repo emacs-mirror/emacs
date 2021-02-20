@@ -1,4 +1,4 @@
-;;; ldap.el --- client interface to LDAP for Emacs
+;;; ldap.el --- client interface to LDAP for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -418,12 +418,12 @@ RFC2798 Section 9.1.1")
   (encode-coding-string str ldap-coding-system))
 
 (defun ldap-decode-address (str)
-  (mapconcat 'ldap-decode-string
+  (mapconcat #'ldap-decode-string
 	     (split-string str "\\$")
 	     "\n"))
 
 (defun ldap-encode-address (str)
-  (mapconcat 'ldap-encode-string
+  (mapconcat #'ldap-encode-string
 	     (split-string str "\n")
 	     "$"))
 
@@ -601,7 +601,7 @@ an alist of attribute/value pairs."
 	(sizelimit (plist-get search-plist 'sizelimit))
 	(withdn (plist-get search-plist 'withdn))
 	(numres 0)
-	arglist dn name value record result proc)
+	arglist dn name value record result)
     (if (or (null filter)
 	    (equal "" filter))
 	(error "No search filter"))
@@ -671,7 +671,7 @@ an alist of attribute/value pairs."
 				   " bind distinguished name (binddn)"))
 		  (error "Failed ldapsearch invocation: %s \"%s\""
 			 ldap-ldapsearch-prog
-			 (mapconcat 'identity proc-args "\" \""))))))
+			 (mapconcat #'identity proc-args "\" \""))))))
 	(apply #'call-process ldap-ldapsearch-prog
 	       ;; Ignore stderr, which can corrupt results
 	       nil (list buf nil) nil

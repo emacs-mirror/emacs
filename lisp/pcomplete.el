@@ -135,11 +135,8 @@
   "A regexp of names to be disregarded during directory completion."
   :type '(choice regexp (const :tag "None" nil)))
 
-(defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt cygwin))
-  ;; FIXME: the doc mentions file-name completion, but the code
-  ;; seems to apply it to all completions.
-  "If non-nil, ignore case when doing filename completion."
-  :type 'boolean)
+(define-obsolete-variable-alias 'pcomplete-ignore-case 'completion-ignore-case
+  "28.1")
 
 (defcustom pcomplete-autolist nil
   "If non-nil, automatically list possibilities on partial completion.
@@ -472,7 +469,7 @@ Same as `pcomplete' but using the standard completion UI."
                      (not (member
                            (funcall norm-func (directory-file-name f))
                            seen)))))))
-          (when pcomplete-ignore-case
+          (when completion-ignore-case
             (setq table (completion-table-case-fold table)))
           (list beg (point) table
                 :predicate pred
@@ -865,7 +862,7 @@ this is `comint-dynamic-complete-functions'."
                            (sort comps pcomplete-compare-entry-function)))
                      ,@(cdr (completion-file-name-table s p a)))
         (let ((completion-ignored-extensions nil)
-	      (completion-ignore-case pcomplete-ignore-case))
+	      (completion-ignore-case completion-ignore-case))
           (completion-table-with-predicate
            #'comint-completion-file-name-table pred 'strict s p a))))))
 
@@ -1116,7 +1113,7 @@ Typing SPC flushes the help buffer."
   "Insert a completion entry at point.
 Returns non-nil if a space was appended at the end."
   (let ((here (point)))
-    (if (not pcomplete-ignore-case)
+    (if (not completion-ignore-case)
 	(insert-and-inherit (if raw-p
 				(substring entry (length stub))
 			      (comint-quote-filename
@@ -1194,7 +1191,7 @@ Returns `partial' if completed as far as possible with the matches.
 Returns `listed' if a completion listing was shown.
 
 See also `pcomplete-filename'."
-  (let* ((completion-ignore-case pcomplete-ignore-case)
+  (let* ((completion-ignore-case completion-ignore-case)
 	 (completions (all-completions stub candidates))
          (entry (try-completion stub candidates))
          result)

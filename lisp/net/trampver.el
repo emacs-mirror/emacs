@@ -80,6 +80,11 @@
             (replace-regexp-in-string "\n" "" (emacs-version))))))
   (unless (string-equal "ok" x) (error "%s" x)))
 
+(defun tramp-inside-emacs ()
+  "Version string provided by INSIDE_EMACS enmvironment variable."
+  (concat (or (getenv "INSIDE_EMACS") emacs-version)
+	  ",tramp:" tramp-version))
+
 ;; Tramp versions integrated into Emacs.  If a user option declares a
 ;; `:package-version' which doesn't belong to an integrated Tramp
 ;; version, it must be added here as well (see `tramp-syntax', for

@@ -364,6 +364,9 @@ the result will be a local, non-Tramp, file name."
 	(when (string-equal uname "~")
 	  (setq uname (concat uname user)))
 	(setq localname (concat uname fname))))
+     ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
     ;; Do normal `expand-file-name' (this does "~user/", "/./" and "/../").
     (tramp-make-tramp-file-name v (expand-file-name localname))))
 

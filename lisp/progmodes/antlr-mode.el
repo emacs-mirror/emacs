@@ -1246,9 +1246,8 @@ IF TOKENREFS-ONLY is non-nil, just return alist with tokenref names."
   (let ((items nil)
 	(classes nil)
 	(continue t))
-    ;; Using `imenu-progress-message' would require imenu for compilation, but
-    ;; nobody is missing these messages.  The generic imenu function searches
-    ;; backward, which is slower and more likely not to work during editing.
+    ;; The generic imenu function searches backward, which is slower
+    ;; and more likely not to work during editing.
     (antlr-with-syntax-table antlr-action-syntax-table
       (antlr-invalidate-context-cache)
       (goto-char (point-min))

@@ -546,7 +546,7 @@ Many aspects this mode can be customized using
     (when (and nxml-default-buffer-file-coding-system
 	       (not (local-variable-p 'buffer-file-coding-system)))
       (setq buffer-file-coding-system nxml-default-buffer-file-coding-system))
-    ;; When starting a new file, insert the XML declaraction.
+    ;; When starting a new file, insert the XML declaration.
     (when (and nxml-auto-insert-xml-declaration-flag
                (zerop (buffer-size)))
       (nxml-insert-xml-declaration)))

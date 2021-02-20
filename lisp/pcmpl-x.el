@@ -301,7 +301,8 @@ long options."
          "nst" "ntd" "nto" "nvf" "obi" "obs" "ofp" "osh" "ovf" "par"
          "pch" "pck" "pia" "pin" "pow" "prc" "pre" "pro" "rch" "ret"
          "rng" "rpt" "rvl" "sig" "spa" "stl" "stu" "stv" "sus" "tai"
-         "tes" "thr" "ucp" "use" "voi" "zdi") (match-string 2 cur)))
+         "tes" "thr" "ucp" "use" "voi" "zdi")
+       (match-string 2 cur)))
      ((string-match "\\`-[LIn]\\([^;]+;\\)*\\([^;]*\\)\\'" cur)
       (pcomplete-here (pcomplete-dirs) (match-string 2 cur)))
      ((string-match "\\`-[Ee]\\(.*\\)\\'" cur)

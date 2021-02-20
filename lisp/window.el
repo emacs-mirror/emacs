@@ -9768,6 +9768,19 @@ With plain \\[universal-argument], move current line to window center."
 
 (define-key global-map [?\C-l] 'recenter-top-bottom)
 
+(defun recenter-other-window (&optional arg)
+  "Call `recenter-top-bottom' in the other window.
+
+A prefix argument is handled like `recenter':
+ With numeric prefix ARG, move current line to window-line ARG.
+ With plain `C-u', move current line to window center."
+  (interactive "P")
+  (with-selected-window (other-window-for-scrolling)
+    (recenter-top-bottom arg)
+    (pulse-momentary-highlight-one-line (point))))
+
+(define-key global-map [?\S-\M-\C-l] 'recenter-other-window)
+
 (defun move-to-window-line-top-bottom (&optional arg)
   "Position point relative to window.
 
@@ -10238,6 +10251,28 @@ displaying that processes's buffer."
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 (define-key ctl-x-4-map "1" 'same-window-prefix)
 (define-key ctl-x-4-map "4" 'other-window-prefix)
+
+(defvar other-window-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "o" 'other-window)
+    map)
+  "Keymap to repeat other-window key sequences.  Used in `repeat-mode'.")
+(put 'other-window 'repeat-map 'other-window-repeat-map)
+
+(defvar resize-window-repeat-map
+  (let ((map (make-sparse-keymap)))
+    ;; Standard keys:
+    (define-key map "^" 'enlarge-window)
+    (define-key map "}" 'enlarge-window-horizontally)
+    (define-key map "{" 'shrink-window-horizontally)
+    ;; Additional keys:
+    (define-key map "v" 'shrink-window)
+    map)
+  "Keymap to repeat window resizing commands.  Used in `repeat-mode'.")
+(put 'enlarge-window 'repeat-map 'resize-window-repeat-map)
+(put 'enlarge-window-horizontally 'repeat-map 'resize-window-repeat-map)
+(put 'shrink-window-horizontally 'repeat-map 'resize-window-repeat-map)
+(put 'shrink-window 'repeat-map 'resize-window-repeat-map)
 
 (provide 'window)
 

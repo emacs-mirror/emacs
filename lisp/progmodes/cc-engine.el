@@ -2665,7 +2665,7 @@ comment at the start of cc-engine.el for more info."
 ;; One of the above "near" caches is associated with each of these functions.
 ;;
 ;; When searching this cache, these functions first seek an exact match, then
-;; a "close" match from the assiciated near cache.  If neither of these
+;; a "close" match from the associated near cache.  If neither of these
 ;; succeed, the nearest preceding entry in the far cache is used.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
