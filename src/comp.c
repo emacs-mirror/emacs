@@ -56,6 +56,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_block_end_with_return
 #undef gcc_jit_block_end_with_void_return
 #undef gcc_jit_context_acquire
+#undef gcc_jit_context_add_command_line_option
 #undef gcc_jit_context_add_driver_option
 #undef gcc_jit_context_compile_to_file
 #undef gcc_jit_context_dump_reproducer_to_file
@@ -124,6 +125,8 @@ DEF_DLL_FN (const char *, gcc_jit_context_get_first_error,
 DEF_DLL_FN (gcc_jit_block *, gcc_jit_function_new_block,
             (gcc_jit_function *func, const char *name));
 DEF_DLL_FN (gcc_jit_context *, gcc_jit_context_acquire, (void));
+DEF_DLL_FN (void, gcc_jit_context_add_command_line_option,
+            (gcc_jit_context *ctxt, const char *optname));
 DEF_DLL_FN (void, gcc_jit_context_add_driver_option,
             (gcc_jit_context *ctxt, const char *optname));
 DEF_DLL_FN (gcc_jit_field *, gcc_jit_context_new_field,
@@ -312,6 +315,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_struct_set_fields);
   LOAD_DLL_FN (library, gcc_jit_type_get_const);
   LOAD_DLL_FN (library, gcc_jit_type_get_pointer);
+  LOAD_DLL_FN_OPT (library, gcc_jit_context_add_command_line_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_context_add_driver_option);
   LOAD_DLL_FN_OPT (library, gcc_jit_global_set_initializer);
   LOAD_DLL_FN_OPT (library, gcc_jit_version_major);
@@ -330,6 +334,7 @@ init_gccjit_functions (void)
 #define gcc_jit_block_end_with_return fn_gcc_jit_block_end_with_return
 #define gcc_jit_block_end_with_void_return fn_gcc_jit_block_end_with_void_return
 #define gcc_jit_context_acquire fn_gcc_jit_context_acquire
+#define gcc_jit_context_add_command_line_option fn_gcc_jit_context_add_command_line_option
 #define gcc_jit_context_add_driver_option fn_gcc_jit_context_add_driver_option
 #define gcc_jit_context_compile_to_file fn_gcc_jit_context_compile_to_file
 #define gcc_jit_context_dump_reproducer_to_file fn_gcc_jit_context_dump_reproducer_to_file
@@ -1129,56 +1134,15 @@ emit_rvalue_from_long_long (gcc_jit_type *type, long long n)
 }
 
 static gcc_jit_rvalue *
-emit_rvalue_from_unsigned_long_long (gcc_jit_type *type, unsigned long long n)
-{
-  emit_comment (format_string ("emit unsigned long long: %llu", n));
-
-  gcc_jit_rvalue *high =
-    gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-					  comp.unsigned_long_long_type,
-					  n >> 32);
-  gcc_jit_rvalue *low =
-    emit_binary_op (GCC_JIT_BINARY_OP_RSHIFT,
-		    comp.unsigned_long_long_type,
-		    emit_binary_op (GCC_JIT_BINARY_OP_LSHIFT,
-				    comp.unsigned_long_long_type,
-				    gcc_jit_context_new_rvalue_from_long (
-				      comp.ctxt,
-				      comp.unsigned_long_long_type,
-				      n),
-				    gcc_jit_context_new_rvalue_from_int (
-				      comp.ctxt,
-				      comp.unsigned_long_long_type,
-				      32)),
-		    gcc_jit_context_new_rvalue_from_int (
-		      comp.ctxt,
-		      comp.unsigned_long_long_type,
-		      32));
-
-  return emit_coerce (
-           type,
-           emit_binary_op (
-             GCC_JIT_BINARY_OP_BITWISE_OR,
-             comp.unsigned_long_long_type,
-             emit_binary_op (
-               GCC_JIT_BINARY_OP_LSHIFT,
-               comp.unsigned_long_long_type,
-               high,
-               gcc_jit_context_new_rvalue_from_int (comp.ctxt,
-                                                    comp.unsigned_long_long_type,
-                                                    32)),
-             low));
-}
-
-static gcc_jit_rvalue *
 emit_rvalue_from_emacs_uint (EMACS_UINT val)
 {
+#ifdef WIDE_EMACS_INT
   if (val > LONG_MAX || val < LONG_MIN)
-    return emit_rvalue_from_unsigned_long_long (comp.emacs_uint_type, val);
-  else
-    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-						 comp.emacs_uint_type,
-						 val);
+    return emit_rvalue_from_long_long (comp.emacs_uint_type, val);
+#endif
+  return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					       comp.emacs_uint_type,
+					       val);
 }
 
 static gcc_jit_rvalue *
@@ -1194,12 +1158,13 @@ emit_rvalue_from_emacs_int (EMACS_INT val)
 static gcc_jit_rvalue *
 emit_rvalue_from_lisp_word_tag (Lisp_Word_tag val)
 {
+#ifdef WIDE_EMACS_INT
   if (val > LONG_MAX || val < LONG_MIN)
-    return emit_rvalue_from_unsigned_long_long (comp.lisp_word_tag_type, val);
-  else
-    return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
-						 comp.lisp_word_tag_type,
-						 val);
+    return emit_rvalue_from_long_long (comp.lisp_word_tag_type, val);
+#endif
+  return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
+					       comp.lisp_word_tag_type,
+					       val);
 }
 
 static gcc_jit_rvalue *
@@ -1211,7 +1176,7 @@ emit_rvalue_from_lisp_word (Lisp_Word val)
                                               val);
 #else
   if (val > LONG_MAX || val < LONG_MIN)
-    return emit_rvalue_from_unsigned_long_long (comp.lisp_word_type, val);
+    return emit_rvalue_from_long_long (comp.lisp_word_type, val);
   else
     return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
 						 comp.lisp_word_type,
@@ -4414,6 +4379,16 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   for (ptrdiff_t i = 0; i < HASH_TABLE_SIZE (func_h); i++)
     if (!EQ (HASH_VALUE (func_h, i), Qunbound))
       compile_function (HASH_VALUE (func_h, i));
+
+  /* Work around bug#46495 (GCC PR99126). */
+#if defined (WIDE_EMACS_INT)						\
+  && (defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)	\
+      || defined (WINDOWSNT))
+  Lisp_Object version = Fcomp_libgccjit_version ();
+  if (!NILP (version) && XFIXNUM (XCAR (version)) == 10)
+    gcc_jit_context_add_command_line_option (comp.ctxt,
+					     "-fdisable-tree-isolate-paths");
+#endif
 
   add_driver_options ();
 
