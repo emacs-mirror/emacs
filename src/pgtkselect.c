@@ -371,6 +371,12 @@ nil, it defaults to the selected frame. */)
       list = gtk_target_list_new (NULL, 0);
       gtk_target_list_add_text_targets (list, 0);
 
+      {
+	/* text/plain: Strings encoded by Gtk are not correctly decoded by Chromium(Wayland). */
+	GdkAtom atom_text_plain = gdk_atom_intern("text/plain", false);
+	gtk_target_list_remove(list, atom_text_plain);
+      }
+
       targets = gtk_target_table_new_from_list (list, &n_targets);
 
       int size = SBYTES (value);
