@@ -331,6 +331,11 @@ a plain prefix argument.  Alternatively, you can use the command
 @code{goto-line-relative} to move point to the line relative to the
 accessible portion of the narrowed buffer.
 
+@code{goto-line} has its own history list (@pxref{Minibuffer
+History}).  You can have either a single list shared between all
+buffers (the default) or a separate list for each buffer, by
+customizing the user option @code{goto-line-history-local}.
+
 @item M-g @key{TAB}
 @kindex M-g TAB
 @findex move-to-column

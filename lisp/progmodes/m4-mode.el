@@ -122,22 +122,22 @@ If m4 is not in your PATH, set this to an absolute file name."
              (string-to-syntax "."))))))
 
 (defvar m4-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-b" 'm4-m4-buffer)
     (define-key map "\C-c\C-r" 'm4-m4-region)
     (define-key map "\C-c\C-c" 'comment-region)
-    (define-key map [menu-bar m4-mode] (cons "M4" menu-map))
-    (define-key menu-map [m4c]
-      '(menu-item "Comment Region" comment-region
-		  :help "Comment Region"))
-    (define-key menu-map [m4b]
-      '(menu-item "M4 Buffer" m4-m4-buffer
-		  :help "Send contents of the current buffer to m4"))
-    (define-key menu-map [m4r]
-      '(menu-item "M4 Region" m4-m4-region
-		  :help "Send contents of the current region to m4"))
-    map))
+    map)
+  "Keymap for M4 Mode.")
+
+(easy-menu-define m4-mode-menu m4-mode-map
+  "Menu for M4 Mode."
+  '("M4"
+    ["M4 Region" m4-m4-region
+     :help "Send contents of the current region to m4"]
+    ["M4 Buffer" m4-m4-buffer
+     :help "Send contents of the current buffer to m4"]
+    ["Comment Region" comment-region
+     :help "Comment Region"]))
 
 (defun m4-m4-buffer ()
   "Send contents of the current buffer to m4."

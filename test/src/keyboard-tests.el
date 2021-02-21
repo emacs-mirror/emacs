@@ -23,14 +23,15 @@
 
 (ert-deftest keyboard-unread-command-events ()
   "Test `unread-command-events'."
-  (should (equal (progn (push ?\C-a unread-command-events)
-                        (read-event nil nil 1))
-                 ?\C-a))
-  (should (equal (progn (run-with-timer
-                         1 nil
-                         (lambda () (push '(t . ?\C-b) unread-command-events)))
-                        (read-event nil nil 2))
-                 ?\C-b)))
+  (let ((unread-command-events nil))
+    (should (equal (progn (push ?\C-a unread-command-events)
+                          (read-event nil nil 1))
+                   ?\C-a))
+    (should (equal (progn (run-with-timer
+                           1 nil
+                           (lambda () (push '(t . ?\C-b) unread-command-events)))
+                          (read-event nil nil 2))
+                   ?\C-b))))
 
 (ert-deftest keyboard-lossage-size ()
   "Test `lossage-size'."
@@ -46,6 +47,28 @@
     (should-error (lossage-size (1- min-value)))
     (should (= lossage-orig (lossage-size lossage-orig)))))
 
+;; FIXME: This test doesn't currently work :-(
+;; (ert-deftest keyboard-tests--echo-keystrokes-bug15332 ()
+;;   (let ((msgs '())
+;;         (unread-command-events nil)
+;;         (redisplay--interactive t)
+;;         (echo-keystrokes 2))
+;;     (setq unread-command-events '(?\C-u))
+;;     (let* ((timer1
+;; 	    (run-with-timer 3 1
+;; 			    (lambda ()
+;; 			      (setq unread-command-events '(?5)))))
+;; 	   (timer2
+;; 	    (run-with-timer 2.5 1
+;; 			    (lambda ()
+;; 			      (push (current-message) msgs)))))
+;;       (run-with-timer 5 nil
+;; 	              (lambda ()
+;; 	                (cancel-timer timer1)
+;; 	                (cancel-timer timer2)
+;; 	                (throw 'exit msgs)))
+;;       (recursive-edit)
+;;       (should (equal msgs '("C-u 55-" "C-u 5-" "C-u-"))))))
 
 (provide 'keyboard-tests)
 ;;; keyboard-tests.el ends here

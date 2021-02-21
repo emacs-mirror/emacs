@@ -145,17 +145,6 @@
                                (widget-apply field :value-to-internal origvalue)
                                "bar"))))))
 
-(defconst custom-test-admin-cus-test
-  (expand-file-name "admin/cus-test.el" source-directory))
-
-(declare-function cus-test-opts custom-test-admin-cus-test)
-
-(ert-deftest check-for-wrong-custom-types ()
-  :tags '(:expensive-test)
-  (skip-unless (file-readable-p custom-test-admin-cus-test))
-  (load custom-test-admin-cus-test)
-  (should (null (cus-test-opts t))))
-
 (ert-deftest custom-test-enable-theme-keeps-settings ()
   "Test that enabling a theme doesn't change its settings."
   (let* ((custom-theme-load-path `(,(ert-resource-directory)))

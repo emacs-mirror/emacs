@@ -811,78 +811,7 @@ static char * dot3d_xpm[] = {
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
-;; game theme menu
-(defvar bubbles-game-theme-menu
-  (let ((menu (make-sparse-keymap "Game Theme")))
-    (define-key menu [bubbles-set-game-userdefined]
-      (list 'menu-item "User defined" 'bubbles-set-game-userdefined
-            :button '(:radio . (eq bubbles-game-theme 'user-defined))))
-    (define-key menu [bubbles-set-game-hard]
-      (list 'menu-item "Hard" 'bubbles-set-game-hard
-            :button '(:radio . (eq bubbles-game-theme 'hard))))
-    (define-key menu [bubbles-set-game-difficult]
-      (list 'menu-item "Difficult" 'bubbles-set-game-difficult
-            :button '(:radio . (eq bubbles-game-theme 'difficult))))
-    (define-key menu [bubbles-set-game-medium]
-      (list 'menu-item "Medium" 'bubbles-set-game-medium
-            :button '(:radio . (eq bubbles-game-theme 'medium))))
-    (define-key menu [bubbles-set-game-easy]
-      (list 'menu-item "Easy" 'bubbles-set-game-easy
-            :button '(:radio . (eq bubbles-game-theme 'easy))))
-    menu)
-  "Map for bubbles game theme menu.")
 
-;; graphics theme menu
-(defvar bubbles-graphics-theme-menu
-  (let ((menu (make-sparse-keymap "Graphics Theme")))
-    (define-key menu [bubbles-set-graphics-theme-ascii]
-      (list 'menu-item "ASCII" 'bubbles-set-graphics-theme-ascii
-            :button '(:radio . (eq bubbles-graphics-theme 'ascii))))
-    (define-key menu [bubbles-set-graphics-theme-emacs]
-      (list 'menu-item "Emacs" 'bubbles-set-graphics-theme-emacs
-            :button '(:radio . (eq bubbles-graphics-theme 'emacs))))
-    (define-key menu [bubbles-set-graphics-theme-balls]
-      (list 'menu-item "Balls" 'bubbles-set-graphics-theme-balls
-            :button '(:radio . (eq bubbles-graphics-theme 'balls))))
-    (define-key menu [bubbles-set-graphics-theme-diamonds]
-      (list 'menu-item "Diamonds" 'bubbles-set-graphics-theme-diamonds
-            :button '(:radio . (eq bubbles-graphics-theme 'diamonds))))
-    (define-key menu [bubbles-set-graphics-theme-squares]
-      (list 'menu-item "Squares" 'bubbles-set-graphics-theme-squares
-            :button '(:radio . (eq bubbles-graphics-theme 'squares))))
-    (define-key menu [bubbles-set-graphics-theme-circles]
-      (list 'menu-item "Circles" 'bubbles-set-graphics-theme-circles
-            :button '(:radio . (eq bubbles-graphics-theme 'circles))))
-    menu)
-    "Map for bubbles graphics theme menu.")
-
-;; menu
-(defvar bubbles-menu
-  (let ((menu (make-sparse-keymap "Bubbles")))
-    (define-key menu [bubbles-quit]
-      (list 'menu-item "Quit" 'bubbles-quit))
-    (define-key menu [bubbles]
-      (list 'menu-item "New game" 'bubbles))
-    (define-key menu [bubbles-separator-1]
-      '("--"))
-    (define-key menu [bubbles-save-settings]
-      (list 'menu-item "Save all settings" 'bubbles-save-settings))
-    (define-key menu [bubbles-customize]
-      (list 'menu-item "Edit all settings" 'bubbles-customize))
-    (define-key menu [bubbles-game-theme-menu]
-      (list 'menu-item "Game Theme" bubbles-game-theme-menu))
-    (define-key menu [bubbles-graphics-theme-menu]
-      (list 'menu-item "Graphics Theme" bubbles-graphics-theme-menu
-            :enable 'bubbles--playing))
-    (define-key menu [bubbles-separator-2]
-      '("--"))
-    (define-key menu [bubbles-undo]
-      (list 'menu-item "Undo last move" 'bubbles-undo
-            :enable '(and bubbles--playing (listp buffer-undo-list))))
-    menu)
-  "Map for bubbles menu.")
-
-;; bubbles mode map
 (defvar bubbles-mode-map
   (let ((map (make-sparse-keymap 'bubbles-mode-map)))
     ;; (suppress-keymap map t)
@@ -897,12 +826,59 @@ static char * dot3d_xpm[] = {
     (define-key map "n" 'next-line)
     (define-key map "f" 'forward-char)
     (define-key map "b" 'backward-char)
-    ;; bind menu to mouse
-    (define-key map [down-mouse-3] bubbles-menu)
-    ;; Put menu in menu-bar
-    (define-key map [menu-bar Bubbles] (cons "Bubbles" bubbles-menu))
     map)
-  "Mode map for bubbles.")
+  "Mode map for `bubbles'.")
+
+(easy-menu-define bubbles-menu bubbles-mode-map
+  "Menu for `bubbles'."
+  '("Bubbles"
+    ["Undo last move" bubbles-undo
+     :enable '(and bubbles--playing (listp buffer-undo-list))]
+    "---"
+    ("Graphics Theme"
+     :enable bubbles--playing
+     ["Circles" bubbles-set-graphics-theme-circles
+      :style radio
+      :selected (eq bubbles-graphics-theme 'circles)]
+     ["Squares" bubbles-set-graphics-theme-squares
+      :style radio
+      :selected (eq bubbles-graphics-theme 'squares)]
+     ["Diamonds" bubbles-set-graphics-theme-diamonds
+      :style radio
+      :selected (eq bubbles-graphics-theme 'diamonds)]
+     ["Balls" bubbles-set-graphics-theme-balls
+      :style radio
+      :selected (eq bubbles-graphics-theme 'balls)]
+     ["Emacs" bubbles-set-graphics-theme-emacs
+      :style radio
+      :selected (eq bubbles-graphics-theme 'emacs)]
+     ["ASCII" bubbles-set-graphics-theme-ascii
+      :style radio
+      :selected (eq bubbles-graphics-theme 'ascii)])
+    ("Game Theme"
+     ["Easy" bubbles-set-game-easy
+      :style radio
+      :selected (eq bubbles-game-theme 'easy)]
+     ["Medium" bubbles-set-game-medium
+      :style radio
+      :selected (eq bubbles-game-theme 'medium)]
+     ["Difficult" bubbles-set-game-difficult
+      :style radio
+      :selected (eq bubbles-game-theme 'difficult)]
+     ["Hard" bubbles-set-game-hard
+      :style radio
+      :selected (eq bubbles-game-theme 'hard)]
+     ["User defined" bubbles-set-game-userdefined
+      :style radio
+      :selected (eq bubbles-game-theme 'user-defined)])
+    ["Edit all settings" bubbles-customize]
+    ["Save all settings" bubbles-save-settings]
+    "---"
+    ["New game" bubbles]
+    ["Quit" bubbles-quit]))
+
+;; bind menu to mouse
+(define-key bubbles-mode-map [down-mouse-3] bubbles-menu)
 
 (define-derived-mode bubbles-mode nil "Bubbles"
   "Major mode for playing bubbles.

@@ -2557,7 +2557,7 @@ frame visible and, unless @var{alist} contains an
 This function tries to display @var{buffer} by finding a window
 that is displaying a buffer in a given mode.
 
-If @var{alist} contains a @code{mode} entry, its value specifes a
+If @var{alist} contains a @code{mode} entry, its value specifies a
 major mode (a symbol) or a list of major modes.  If @var{alist}
 contains no @code{mode} entry, the current major mode of @var{buffer}
 is used instead.  A window is a candidate if it displays a buffer

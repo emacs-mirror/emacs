@@ -134,7 +134,7 @@
   (interactive)
   (message "Using verilog-mode version %s" verilog-mode-version))
 
-(defmacro verilog--supressed-warnings (warnings &rest body)
+(defmacro verilog--suppressed-warnings (warnings &rest body)
   (declare (indent 1) (debug t))
   (cond
    ((fboundp 'with-suppressed-warnings)
@@ -5550,7 +5550,7 @@ FILENAME to find directory to run in, or defaults to `buffer-file-name'."
           ;; font-lock-fontify-buffer, but IIUC the problem this is supposed to
           ;; solve only appears in Emacsen older than font-lock-ensure anyway.
           (when fontlocked
-            (verilog--supressed-warnings
+            (verilog--suppressed-warnings
                 ((interactive-only font-lock-fontify-buffer))
               (font-lock-fontify-buffer))))))))
 

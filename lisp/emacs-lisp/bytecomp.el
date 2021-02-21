@@ -2940,7 +2940,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	      ((eq arg '&optional)
                (when (memq '&optional (cdr list))
                  (error "Duplicate &optional")))
-	      ((memq arg vars)
+	      ((and (memq arg vars)
+	            ;; Allow repetitions for unused args.
+	            (not (string-match "\\`_" (symbol-name arg))))
 	       (byte-compile-warn "repeated variable %s in lambda-list" arg))
 	      (t
 	       (push arg vars))))
@@ -3903,15 +3905,21 @@ discarding."
       (cl-assert (or (> (length env) 0)
 		     docstring-exp))	;Otherwise, we don't need a closure.
       (cl-assert (byte-code-function-p fun))
-      (byte-compile-form `(make-byte-code
-                           ',(aref fun 0) ',(aref fun 1)
-                           (vconcat (vector . ,env) ',(aref fun 2))
-                           ,@(let ((rest (nthcdr 3 (mapcar (lambda (x) `',x) fun))))
-                               (if docstring-exp
-                                   `(,(car rest)
-                                     ,docstring-exp
-                                     ,@(cddr rest))
-                                 rest)))))))
+      (byte-compile-form
+       ;; Use symbols V0, V1 ... as placeholders for closure variables:
+       ;; they should be short (to save space in the .elc file), yet
+       ;; distinct when disassembled.
+       (let* ((dummy-vars (mapcar (lambda (i) (intern (format "V%d" i)))
+                                  (number-sequence 0 (1- (length env)))))
+              (proto-fun
+               (apply #'make-byte-code
+                      (aref fun 0) (aref fun 1)
+                      ;; Prepend dummy cells to the constant vector,
+                      ;; to get the indices right when disassembling.
+                      (vconcat dummy-vars (aref fun 2))
+                      (mapcar (lambda (i) (aref fun i))
+                              (number-sequence 3 (1- (length fun)))))))
+         `(make-closure ,proto-fun ,@env))))))
 
 (defun byte-compile-get-closed-var (form)
   "Byte-compile the special `internal-get-closed-var' form."

@@ -23,9 +23,9 @@
 ;;; Commentary:
 
 ;; dictionary-connection allows to handle TCP-based connections in
-;; client mode where text-based information are exchanged.  There is
+;; client mode where text-based information is exchanged.  There is
 ;; special support for handling CR LF (and the usual CR LF . CR LF
-;; terminater).
+;; terminator).
 
 ;;; Code:
 
@@ -68,7 +68,7 @@
 
 (defun dictionary-connection-open (server port)
   "Open a connection to SERVER at PORT.
-A data structure identifing the connection is returned"
+A data structure identifying the connection is returned"
 
   (let ((process-buffer (generate-new-buffer (format " connection to %s:%s"
 						     server

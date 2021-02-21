@@ -1518,7 +1518,7 @@ It does not apply the value to buffers."
 ;;; FIXME: Could someone look into implementing `project-ignores' for
 ;;; EDE and/or a faster `project-files'?
 
-(add-hook 'project-find-functions #'project-try-ede)
+(add-hook 'project-find-functions #'project-try-ede 50)
 
 (provide 'ede)
 
