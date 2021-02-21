@@ -1856,13 +1856,15 @@ Argument EVENT is the invoking mouse event."
 
 (defvar bookmark-make-record-function)
 
-(define-derived-mode woman-mode special-mode "WoMan"
+(define-derived-mode woman-mode man-common "WoMan"
   "Turn on (most of) Man mode to browse a buffer formatted by WoMan.
 WoMan is an ELisp emulation of much of the functionality of the Emacs
 `man' command running the standard UN*X man and ?roff programs.
 WoMan author: F.J.Wright@Maths.QMW.ac.uk
 See `Man-mode' for additional details.
 \\{woman-mode-map}"
+  ;; FIXME: Should all this just be re-arranged so that this can just
+  ;; inherit `man-common' and be done with it?
   (let ((Man-build-page-list (symbol-function 'Man-build-page-list))
 	(Man-strip-page-headers (symbol-function 'Man-strip-page-headers))
 	(Man-unindent (symbol-function 'Man-unindent))
