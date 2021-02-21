@@ -1927,6 +1927,25 @@ file, you must customize @code{ange-ftp-netrc-filename}:
 (customize-set-variable 'ange-ftp-netrc-filename "~/.authinfo.gpg")
 @end lisp
 
+In case you do not want to use an authentication file for
+@value{tramp} passwords, use connection-local variables
+@ifinfo
+(@pxref{Connection Variables, , , emacs})
+@end ifinfo
+like this:
+
+@lisp
+@group
+(connection-local-set-profile-variables
+ 'remote-without-auth-sources '((auth-sources . nil)))
+@end group
+
+@group
+(connection-local-set-profiles
+ '(:application tramp) 'remote-without-auth-sources)
+@end group
+@end lisp
+
 
 @anchor{Caching passwords}
 @subsection Caching passwords
@@ -2345,10 +2364,16 @@ fi
 
 Another possibility is to check the environment variable
 @env{INSIDE_EMACS}.  Like for all subprocesses of Emacs, this is set
-to the version of the parent Emacs process, @xref{Interactive Shell, ,
-, emacs}.  @value{tramp} adds its own package version to this string,
-which could be used for further tests in an inferior shell.  The
-string of that environment variable looks always like
+to the version of the parent Emacs
+@ifinfo
+process, @xref{Interactive Shell, , , emacs}.
+@end ifinfo
+@ifnotinfo
+process.
+@end ifnotinfo
+@value{tramp} adds its own package version to this string, which could
+be used for further tests in an inferior shell.  The string of that
+environment variable looks always like
 
 @example
 @group
@@ -3473,10 +3498,13 @@ uid=0(root) gid=0(root) groups=0(root)
 @cindex @code{gdb}
 @cindex @code{perldb}
 
-@file{gud.el} provides a unified interface to symbolic debuggers
+@file{gud.el} provides a unified interface to symbolic
 @ifinfo
-(@ref{Debuggers, , , emacs}).
+debuggers (@pxref{Debuggers, , , emacs}).
 @end ifinfo
+@ifnotinfo
+debuggers.
+@end ifnotinfo
 @value{tramp} can run debug on remote hosts by calling @code{gdb}
 with a remote file name:
 
@@ -3637,9 +3665,15 @@ minibuffer.  Each connection is of the format
 
 Flushing remote connections also cleans the password cache
 (@pxref{Password handling}), file cache, connection cache
-(@pxref{Connection caching}), and recentf cache (@pxref{File
-Conveniences, , , emacs}).  It also deletes session timers
-(@pxref{Predefined connection information}) and connection buffers.
+(@pxref{Connection caching}), and recentf
+@ifinfo
+cache (@pxref{File Conveniences, , , emacs}).
+@end ifinfo
+@ifnotinfo
+cache.
+@end ifnotinfo
+It also deletes session timers (@pxref{Predefined connection
+information}) and connection buffers.
 
 If @var{keep-debug} is non-@code{nil}, the debug buffer is kept.  A
 non-@code{nil} @var{keep-password} preserves the password cache.
@@ -4544,10 +4578,16 @@ HISTFILE=/dev/null
 @item
 Where are remote files trashed to?
 
-Emacs can trash file instead of deleting them, @ref{Misc File Ops,
-Trashing , , emacs}.  Remote files are always trashed to the local
-trash, except remote encrypted files (@pxref{Keeping files
-encrypted}), which are deleted anyway.
+Emacs can trash file instead of deleting
+@ifinfo
+them, @ref{Misc File Ops, Trashing , , emacs}.
+@end ifinfo
+@ifnotinfo
+them.
+@end ifnotinfo
+Remote files are always trashed to the local trash, except remote
+encrypted files (@pxref{Keeping files encrypted}), which are deleted
+anyway.
 
 If Emacs is configured to use the XDG conventions for the trash
 directory, remote files cannot be restored with the respective tools,
