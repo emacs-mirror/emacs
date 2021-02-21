@@ -73,18 +73,18 @@
     ;; Note that the comment character isn't set up until asm-mode is called.
     (define-key map ":"		'asm-colon)
     (define-key map "\C-c;"	'comment-region)
-    (define-key map [menu-bar asm-mode] (cons "Asm" (make-sparse-keymap)))
-    (define-key map [menu-bar asm-mode comment-region]
-      '(menu-item "Comment Region" comment-region
-		  :help "Comment or uncomment each line in the region"))
-    (define-key map [menu-bar asm-mode newline-and-indent]
-      '(menu-item "Insert Newline and Indent" newline-and-indent
-		  :help "Insert a newline, then indent according to major mode"))
-    (define-key map [menu-bar asm-mode asm-colon]
-      '(menu-item "Insert Colon" asm-colon
-		  :help "Insert a colon; if it follows a label, delete the label's indentation"))
     map)
   "Keymap for Asm mode.")
+
+(easy-menu-define asm-mode-menu asm-mode-map
+  "Menu for Asm mode."
+  '("Asm"
+    ["Insert Colon" asm-colon
+     :help "Insert a colon; if it follows a label, delete the label's indentation"]
+    ["Insert Newline and Indent" newline-and-indent
+     :help "Insert a newline, then indent according to major mode"]
+    ["Comment Region" comment-region
+     :help "Comment or uncomment each line in the region"]))
 
 (defconst asm-font-lock-keywords
   (append
