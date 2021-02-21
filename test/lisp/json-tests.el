@@ -421,12 +421,21 @@ Point is moved to beginning of the buffer."
                  "\"\\nasdфыв\\u001f\u007ffgh\\t\"")))
 
 (ert-deftest test-json-encode-key ()
-  (should (equal (json-encode-key "") "\"\""))
   (should (equal (json-encode-key '##) "\"\""))
   (should (equal (json-encode-key :) "\"\""))
-  (should (equal (json-encode-key "foo") "\"foo\""))
-  (should (equal (json-encode-key 'foo) "\"foo\""))
-  (should (equal (json-encode-key :foo) "\"foo\""))
+  (should (equal (json-encode-key "") "\"\""))
+  (should (equal (json-encode-key 'a) "\"a\""))
+  (should (equal (json-encode-key :a) "\"a\""))
+  (should (equal (json-encode-key "a") "\"a\""))
+  (should (equal (json-encode-key t) "\"t\""))
+  (should (equal (json-encode-key :t) "\"t\""))
+  (should (equal (json-encode-key "t") "\"t\""))
+  (should (equal (json-encode-key nil) "\"nil\""))
+  (should (equal (json-encode-key :nil) "\"nil\""))
+  (should (equal (json-encode-key "nil") "\"nil\""))
+  (should (equal (json-encode-key ":a") "\":a\""))
+  (should (equal (json-encode-key ":t") "\":t\""))
+  (should (equal (json-encode-key ":nil") "\":nil\""))
   (should (equal (should-error (json-encode-key 5))
                  '(json-key-format 5)))
   (should (equal (should-error (json-encode-key ["foo"]))
@@ -572,6 +581,39 @@ Point is moved to beginning of the buffer."
     (should (equal (json-encode-hash-table #s(hash-table)) "{}"))
     (should (equal (json-encode-hash-table #s(hash-table data (a 1)))
                    "{\"a\":1}"))
+    (should (equal (json-encode-hash-table #s(hash-table data (t 1)))
+                   "{\"t\":1}"))
+    (should (equal (json-encode-hash-table #s(hash-table data (nil 1)))
+                   "{\"nil\":1}"))
+    (should (equal (json-encode-hash-table #s(hash-table data (:a 1)))
+                   "{\"a\":1}"))
+    (should (equal (json-encode-hash-table #s(hash-table data (:t 1)))
+                   "{\"t\":1}"))
+    (should (equal (json-encode-hash-table #s(hash-table data (:nil 1)))
+                   "{\"nil\":1}"))
+    (should (equal (json-encode-hash-table
+                    #s(hash-table test equal data ("a" 1)))
+                   "{\"a\":1}"))
+    (should (equal (json-encode-hash-table
+                    #s(hash-table test equal data ("t" 1)))
+                   "{\"t\":1}"))
+    (should (equal (json-encode-hash-table
+                    #s(hash-table test equal data ("nil" 1)))
+                   "{\"nil\":1}"))
+    (should (equal (json-encode-hash-table
+                    #s(hash-table test equal data (":a" 1)))
+                   "{\":a\":1}"))
+    (should (equal (json-encode-hash-table
+                    #s(hash-table test equal data (":t" 1)))
+                   "{\":t\":1}"))
+    (should (equal (json-encode-hash-table
+                    #s(hash-table test equal data (":nil" 1)))
+                   "{\":nil\":1}"))
+    (should (member (json-encode-hash-table #s(hash-table data (t 2 :nil 1)))
+                    '("{\"nil\":1,\"t\":2}" "{\"t\":2,\"nil\":1}")))
+    (should (member (json-encode-hash-table
+                     #s(hash-table test equal data (:t 2 ":t" 1)))
+                    '("{\":t\":1,\"t\":2}" "{\"t\":2,\":t\":1}")))
     (should (member (json-encode-hash-table #s(hash-table data (b 2 a 1)))
                     '("{\"a\":1,\"b\":2}" "{\"b\":2,\"a\":1}")))
     (should (member (json-encode-hash-table #s(hash-table data (c 3 b 2 a 1)))
@@ -638,7 +680,16 @@ Point is moved to beginning of the buffer."
   (let ((json-encoding-object-sort-predicate nil)
         (json-encoding-pretty-print nil))
     (should (equal (json-encode-alist ()) "{}"))
-    (should (equal (json-encode-alist '((a . 1))) "{\"a\":1}"))
+    (should (equal (json-encode-alist '((a . 1) (t . 2) (nil . 3)))
+                   "{\"a\":1,\"t\":2,\"nil\":3}"))
+    (should (equal (json-encode-alist '((:a . 1) (:t . 2) (:nil . 3)))
+                   "{\"a\":1,\"t\":2,\"nil\":3}"))
+    (should (equal (json-encode-alist '(("a" . 1) ("t" . 2) ("nil" . 3)))
+                   "{\"a\":1,\"t\":2,\"nil\":3}"))
+    (should (equal (json-encode-alist '((":a" . 1) (":t" . 2) (":nil" . 3)))
+                   "{\":a\":1,\":t\":2,\":nil\":3}"))
+    (should (equal (json-encode-alist '((t . 1) (:nil . 2) (":nil" . 3)))
+                   "{\"t\":1,\"nil\":2,\":nil\":3}"))
     (should (equal (json-encode-alist '((b . 2) (a . 1))) "{\"b\":2,\"a\":1}"))
     (should (equal (json-encode-alist '((c . 3) (b . 2) (a . 1)))
                    "{\"c\":3,\"b\":2,\"a\":1}"))))
@@ -687,8 +738,14 @@ Point is moved to beginning of the buffer."
     (should (equal (json-encode-plist ()) "{}"))
     (should (equal (json-encode-plist '(:a 1)) "{\"a\":1}"))
     (should (equal (json-encode-plist '(:b 2 :a 1)) "{\"b\":2,\"a\":1}"))
-    (should (equal (json-encode-plist '(:c 3 :b 2 :a 1))
-                   "{\"c\":3,\"b\":2,\"a\":1}"))))
+    (should (equal (json-encode-plist '(":d" 4 "c" 3 b 2 :a 1))
+                   "{\":d\":4,\"c\":3,\"b\":2,\"a\":1}"))
+    (should (equal (json-encode-plist '(nil 2 t 1))
+                   "{\"nil\":2,\"t\":1}"))
+    (should (equal (json-encode-plist '(:nil 2 :t 1))
+                   "{\"nil\":2,\"t\":1}"))
+    (should (equal (json-encode-plist '(":nil" 4 "nil" 3 ":t" 2 "t" 1))
+                   "{\":nil\":4,\"nil\":3,\":t\":2,\"t\":1}"))))
 
 (ert-deftest test-json-encode-plist-pretty ()
   (let ((json-encoding-object-sort-predicate nil)
@@ -950,7 +1007,13 @@ nil, ORIGINAL should stay unchanged by pretty-printing."
   ;; Nested array.
   (json-tests-equal-pretty-print
    "{\"key\":[1,2]}"
-   "{\n  \"key\": [\n    1,\n    2\n  ]\n}"))
+   "{\n  \"key\": [\n    1,\n    2\n  ]\n}")
+  ;; Confusable keys (bug#24252, bug#42545).
+  (json-tests-equal-pretty-print
+   (concat "{\"t\":1,\"nil\":2,\":t\":3,\":nil\":4,"
+           "\"null\":5,\":json-null\":6,\":json-false\":7}")
+   (concat "{\n  \"t\": 1,\n  \"nil\": 2,\n  \":t\": 3,\n  \":nil\": 4,"
+           "\n  \"null\": 5,\n  \":json-null\": 6,\n  \":json-false\": 7\n}")))
 
 (ert-deftest test-json-pretty-print-array ()
   ;; Empty.

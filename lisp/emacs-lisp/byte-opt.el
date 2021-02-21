@@ -1348,7 +1348,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	 window-total-height window-total-width window-use-time window-vscroll
 	 window-width zerop))
       (side-effect-and-error-free-fns
-       '(arrayp atom
+       '(always arrayp atom
 	 bignump bobp bolp bool-vector-p
 	 buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p characterp

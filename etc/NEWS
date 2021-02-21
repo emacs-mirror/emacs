@@ -252,6 +252,13 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 * Editing Changes in Emacs 28.1
 
 +++
+** New command 'execute-extended-command-for-buffer'.
+This new command, bound to 'M-S-x', works like
+'execute-extended-command', but limits the set of commands to the
+commands that have been determined to be particularly useful with the
+current mode.
+
++++
 ** New user option 'read-extended-command-predicate'.
 This option controls how 'M-x' performs completion of commands when
 you type TAB.  By default, any command that matches what you have
@@ -2308,6 +2315,10 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 
 
 * Lisp Changes in Emacs 28.1
+
++++
+** New function 'always'.
+This is identical to 'ignore', but returns t instead.
 
 +++
 ** New forms to declare how completion should happen has been added.

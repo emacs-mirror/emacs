@@ -279,56 +279,38 @@ See `compilation-error-screen-columns'."
     (define-key map "}" 'compilation-next-file)
     (define-key map "\t" 'compilation-next-error)
     (define-key map [backtab] 'compilation-previous-error)
-
-    ;; Set up the menu-bar
-    (define-key map [menu-bar grep]
-      (cons "Grep" (make-sparse-keymap "Grep")))
-
-    (define-key map [menu-bar grep grep-find-toggle-abbreviation]
-      '(menu-item "Toggle command abbreviation"
-                  grep-find-toggle-abbreviation
-                  :help "Toggle showing verbose command options"))
-    (define-key map [menu-bar grep compilation-separator3] '("----"))
-    (define-key map [menu-bar grep compilation-kill-compilation]
-      '(menu-item "Kill Grep" kill-compilation
-		  :help "Kill the currently running grep process"))
-    (define-key map [menu-bar grep compilation-separator2] '("----"))
-    (define-key map [menu-bar grep compilation-compile]
-      '(menu-item
-        "Compile..." compile
-	:help
-        "Compile the program including the current buffer.  Default: run `make'"))
-    (define-key map [menu-bar grep compilation-rgrep]
-      '(menu-item "Recursive grep..." rgrep
-		  :help "User-friendly recursive grep in directory tree"))
-    (define-key map [menu-bar grep compilation-lgrep]
-      '(menu-item "Local grep..." lgrep
-		  :help "User-friendly grep in a directory"))
-    (define-key map [menu-bar grep compilation-grep-find]
-      '(menu-item "Grep via Find..." grep-find
-		  :help "Run grep via find, with user-specified args"))
-    (define-key map [menu-bar grep compilation-grep]
-      '(menu-item
-        "Another grep..." grep
-	:help
-        "Run grep, with user-specified args, and collect output in a buffer."))
-    (define-key map [menu-bar grep compilation-recompile]
-      '(menu-item "Repeat grep" recompile
-		  :help "Run grep again"))
-    (define-key map [menu-bar grep compilation-separator1] '("----"))
-    (define-key map [menu-bar grep compilation-first-error]
-      '(menu-item
-        "First Match" first-error
-	:help "Restart at the first match, visit corresponding location"))
-    (define-key map [menu-bar grep compilation-previous-error]
-      '(menu-item "Previous Match" previous-error
-		  :help "Visit the previous match and corresponding location"))
-    (define-key map [menu-bar grep compilation-next-error]
-      '(menu-item "Next Match" next-error
-		  :help "Visit the next match and corresponding location"))
     map)
   "Keymap for grep buffers.
 `compilation-minor-mode-map' is a cdr of this.")
+
+(easy-menu-define grep-menu-map grep-mode-map
+  "Menu for grep buffers."
+  '("Grep"
+    ["Next Match" next-error
+     :help "Visit the next match and corresponding location"]
+    ["Previous Match" previous-error
+     :help "Visit the previous match and corresponding location"]
+    ["First Match" first-error
+     :help "Restart at the first match, visit corresponding location"]
+    "----"
+    ["Repeat grep" recompile
+     :help "Run grep again"]
+    ["Another grep..." grep
+     :help "Run grep, with user-specified args, and collect output in a buffer."]
+    ["Grep via Find..." grep-find
+     :help "Run grep via find, with user-specified args"]
+    ["Local grep..." lgrep
+     :help "User-friendly grep in a directory"]
+    ["Recursive grep..." rgrep
+     :help "User-friendly recursive grep in directory tree"]
+    ["Compile..." compile
+     :help "Compile the program including the current buffer.  Default: run `make'"]
+    "----"
+    ["Kill Grep" kill-compilation
+     :help "Kill the currently running grep process"]
+    "----"
+    ["Toggle command abbreviation" grep-find-toggle-abbreviation
+     :help "Toggle showing verbose command options"]))
 
 (defvar grep-mode-tool-bar-map
   ;; When bootstrapping, tool-bar-map is not properly initialized yet,

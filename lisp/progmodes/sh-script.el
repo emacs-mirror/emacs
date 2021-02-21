@@ -403,8 +403,7 @@ This is buffer-local in every such buffer.")
   "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
 
 (defvar sh-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c(" 'sh-function)
     (define-key map "\C-c\C-w" 'sh-while)
     (define-key map "\C-c\C-u" 'sh-until)
@@ -434,73 +433,56 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-c:" 'sh-set-shell)
     (define-key map [remap backward-sentence] 'sh-beginning-of-command)
     (define-key map [remap forward-sentence] 'sh-end-of-command)
-    (define-key map [menu-bar sh-script] (cons "Sh-Script" menu-map))
-    (define-key menu-map [smie-config-guess]
-      '(menu-item "Learn buffer indentation" smie-config-guess
-        :help "Learn how to indent the buffer the way it currently is."))
-    (define-key menu-map [smie-config-show-indent]
-      '(menu-item "Show indentation" smie-config-show-indent
-		  :help "Show the how the current line would be indented"))
-    (define-key menu-map [smie-config-set-indent]
-      '(menu-item "Set indentation" smie-config-set-indent
-		  :help "Set the indentation for the current line"))
-
-    (define-key menu-map [sh-pair]
-      '(menu-item "Insert braces and quotes in pairs"
-        electric-pair-mode
-        :button (:toggle . (bound-and-true-p electric-pair-mode))
-        :help "Inserting a brace or quote automatically inserts the matching pair"))
-
-    (define-key menu-map [sh-s0] '("--"))
-    ;; Insert
-    (define-key menu-map [sh-function]
-      '(menu-item "Function..." sh-function
-		  :help "Insert a function definition"))
-    (define-key menu-map [sh-add]
-      '(menu-item "Addition..." sh-add
-        :help "Insert an addition of VAR and prefix DELTA for Bourne (type) shell"))
-    (define-key menu-map [sh-until]
-      '(menu-item "Until Loop" sh-until
-		  :help "Insert an until loop"))
-    (define-key menu-map [sh-repeat]
-      '(menu-item "Repeat Loop" sh-repeat
-		  :help "Insert a repeat loop definition"))
-    (define-key menu-map [sh-while]
-      '(menu-item "While Loop" sh-while
-		  :help "Insert a while loop"))
-    (define-key menu-map [sh-getopts]
-      '(menu-item "Options Loop" sh-while-getopts
-		  :help "Insert a while getopts loop."))
-    (define-key menu-map [sh-indexed-loop]
-      '(menu-item "Indexed Loop" sh-indexed-loop
-		  :help "Insert an indexed loop from 1 to n."))
-    (define-key menu-map [sh-select]
-      '(menu-item "Select Statement" sh-select
-		  :help "Insert a select statement "))
-    (define-key menu-map [sh-if]
-      '(menu-item "If Statement" sh-if
-		  :help "Insert an if statement"))
-    (define-key menu-map [sh-for]
-      '(menu-item "For Loop" sh-for
-		  :help "Insert a for loop"))
-    (define-key menu-map [sh-case]
-      '(menu-item "Case Statement" sh-case
-		  :help "Insert a case/switch statement"))
-    (define-key menu-map [sh-s1] '("--"))
-    (define-key menu-map [sh-exec]
-      '(menu-item "Execute region" sh-execute-region
-        :help "Pass optional header and region to a subshell for noninteractive execution"))
-    (define-key menu-map [sh-exec-interpret]
-      '(menu-item "Execute script..." executable-interpret
-        :help "Run script with user-specified args, and collect output in a buffer"))
-    (define-key menu-map [sh-set-shell]
-      '(menu-item "Set shell type..." sh-set-shell
-		  :help "Set this buffer's shell to SHELL (a string)"))
-    (define-key menu-map [sh-backslash-region]
-      '(menu-item "Backslash region" sh-backslash-region
-        :help "Insert, align, or delete end-of-line backslashes on the lines in the region."))
     map)
   "Keymap used in Shell-Script mode.")
+
+(easy-menu-define sh-mode-menu sh-mode-map
+  "Menu for Shell-Script mode."
+  '("Sh-Script"
+    ["Backslash region" sh-backslash-region
+     :help "Insert, align, or delete end-of-line backslashes on the lines in the region."]
+    ["Set shell type..." sh-set-shell
+     :help "Set this buffer's shell to SHELL (a string)"]
+    ["Execute script..." executable-interpret
+     :help "Run script with user-specified args, and collect output in a buffer"]
+    ["Execute region" sh-execute-region
+     :help "Pass optional header and region to a subshell for noninteractive execution"]
+    "---"
+    ;; Insert
+    ["Case Statement" sh-case
+     :help "Insert a case/switch statement"]
+    ["For Loop" sh-for
+     :help "Insert a for loop"]
+    ["If Statement" sh-if
+     :help "Insert an if statement"]
+    ["Select Statement" sh-select
+     :help "Insert a select statement "]
+    ["Indexed Loop" sh-indexed-loop
+     :help "Insert an indexed loop from 1 to n."]
+    ["Options Loop" sh-while-getopts
+     :help "Insert a while getopts loop."]
+    ["While Loop" sh-while
+     :help "Insert a while loop"]
+    ["Repeat Loop" sh-repeat
+     :help "Insert a repeat loop definition"]
+    ["Until Loop" sh-until
+     :help "Insert an until loop"]
+    ["Addition..." sh-add
+     :help "Insert an addition of VAR and prefix DELTA for Bourne (type) shell"]
+    ["Function..." sh-function
+     :help "Insert a function definition"]
+    "---"
+    ;; Other
+    ["Insert braces and quotes in pairs" electric-pair-mode
+     :style toggle
+     :selected (bound-and-true-p electric-pair-mode)
+     :help "Inserting a brace or quote automatically inserts the matching pair"]
+    ["Set indentation" smie-config-set-indent
+     :help "Set the indentation for the current line"]
+    ["Show indentation" smie-config-show-indent
+     :help "Show the how the current line would be indented"]
+    ["Learn buffer indentation" smie-config-guess
+     :help "Learn how to indent the buffer the way it currently is."]))
 
 (defvar sh-skeleton-pair-default-alist '((?\( _ ?\)) (?\))
 				      (?\[ ?\s _ ?\s ?\]) (?\])

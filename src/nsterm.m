@@ -9767,7 +9767,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   for (id object in cache)
     CFRelease ((IOSurfaceRef)object);
 
-  [cache removeAllObjects];
+  [cache release];
 
   [super dealloc];
 }

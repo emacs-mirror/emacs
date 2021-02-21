@@ -1306,7 +1306,7 @@ clashes."
 (defun comp-spill-lap (input)
   "Byte-compile and spill the LAP representation for INPUT.
 If INPUT is a symbol this is the function-name to be compiled.
-If INPUT is a string this is the file path to be compiled."
+If INPUT is a string this is the filename to be compiled."
   (let ((byte-native-compiling t)
         (byte-to-native-lambdas-h (make-hash-table :test #'eq))
         (byte-to-native-top-level-forms ())

@@ -438,7 +438,8 @@ Initialized lazily by `json-encode-string'.")
               ;; This seems to afford decent performance gains.
               (setq-local inhibit-modification-hooks t)
               (setq json--string-buffer (current-buffer))))
-      (insert ?\" (substring-no-properties string)) ; see bug#43549
+      ;; Strip `read-only' property (bug#43549).
+      (insert ?\" (substring-no-properties string))
       (goto-char (1+ (point-min)))
       (while (re-search-forward (rx json--escape) nil 'move)
         (let ((char (preceding-char)))
@@ -452,14 +453,20 @@ Initialized lazily by `json-encode-string'.")
       ;; Empty buffer for next invocation.
       (delete-and-extract-region (point-min) (point-max)))))
 
+(defun json--encode-stringlike (object)
+  "Return OBJECT encoded as a JSON string, or nil if not possible."
+  (cond ((stringp object)  (json-encode-string object))
+        ((keywordp object) (json-encode-string
+                            (substring (symbol-name object) 1)))
+        ((symbolp object)  (json-encode-string (symbol-name object)))))
+
 (defun json-encode-key (object)
   "Return a JSON representation of OBJECT.
 If the resulting JSON object isn't a valid JSON object key,
 this signals `json-key-format'."
-  (let ((encoded (json-encode object)))
-    (unless (stringp (json-read-from-string encoded))
-      (signal 'json-key-format (list object)))
-    encoded))
+  ;; Encoding must be a JSON string.
+  (or (json--encode-stringlike object)
+      (signal 'json-key-format (list object))))
 
 ;;; Objects
 
@@ -652,11 +659,10 @@ become JSON objects."
 ;; Array encoding
 
 (defun json-encode-array (array)
-  "Return a JSON representation of ARRAY."
+  "Return a JSON representation of ARRAY.
+ARRAY can also be a list."
   (if (and json-encoding-pretty-print
-           (if (listp array)
-               array
-             (> (length array) 0)))
+           (not (length= array 0)))
       (concat
        "["
        (json--with-indentation
@@ -737,15 +743,9 @@ you will get the following structure returned:
 OBJECT should have a structure like one returned by `json-read'.
 If an error is detected during encoding, an error based on
 `json-error' is signaled."
-  (cond ((eq object t)          (json-encode-keyword object))
-        ((eq object json-null)  (json-encode-keyword object))
-        ((eq object json-false) (json-encode-keyword object))
-        ((stringp object)       (json-encode-string object))
-        ((keywordp object)      (json-encode-string
-                                 (substring (symbol-name object) 1)))
+  (cond ((json-encode-keyword object))
         ((listp object)         (json-encode-list object))
-        ((symbolp object)       (json-encode-string
-                                 (symbol-name object)))
+        ((json--encode-stringlike object))
         ((numberp object)       (json-encode-number object))
         ((arrayp object)        (json-encode-array object))
         ((hash-table-p object)  (json-encode-hash-table object))
@@ -774,6 +774,8 @@ With prefix argument MINIMIZE, minimize it instead."
         (json-null :json-null)
         ;; Ensure that ordering is maintained.
         (json-object-type 'alist)
+        ;; Ensure that keys survive roundtrip (bug#24252, bug#42545).
+        (json-key-type 'string)
         (orig-buf (current-buffer))
         error)
     ;; Strategy: Repeatedly `json-read' from the original buffer and

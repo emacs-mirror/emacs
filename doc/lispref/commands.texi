@@ -851,6 +851,15 @@ non-@code{nil} if the command is to be included when completing in
 that buffer.
 @end deffn
 
+@deffn Command execute-extended-command-for-buffer prefix-argument
+This is like @code{execute-extended-command}, but limits the commands
+offered for completion to those commands that are of particular
+relevance to the current major mode (and enabled minor modes).  This
+includes commands that are tagged with the modes (@pxref{Using
+Interactive}), and also commands that are bound to locally active
+keymaps.
+@end deffn
+
 @node Distinguish Interactive
 @section Distinguish Interactive Calls
 @cindex distinguish interactive calls
