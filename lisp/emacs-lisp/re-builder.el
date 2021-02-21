@@ -250,9 +250,9 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
     ["Change target buffer..." reb-change-target-buffer
      :help "Change the target buffer and display it in the target window"]
     ["Case sensitive" reb-toggle-case
-     :button (:toggle . (with-current-buffer
-                            reb-target-buffer
-                          (null case-fold-search)))
+     :style toggle
+     :selected (with-current-buffer reb-target-buffer
+                 (null case-fold-search))
      :help "Toggle case sensitivity of searches for RE Builder target buffer"]
     "---"
     ["Quit" reb-quit

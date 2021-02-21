@@ -631,22 +631,28 @@ The function must satisfy this calling convention:
     ("Switch Makefile Type"
      ["GNU make" makefile-gmake-mode
       :help "An adapted `makefile-mode' that knows about GNU make"
-      :button (:radio . (eq major-mode 'makefile-gmake-mode))]
+      :style radio
+      :selected (eq major-mode 'makefile-gmake-mode)]
      ["Automake" makefile-automake-mode
       :help "An adapted `makefile-mode' that knows about automake"
-      :button (:radio . (eq major-mode 'makefile-automake-mode))]
+      :style radio
+      :selected (eq major-mode 'makefile-automake-mode)]
      ["BSD" makefile-bsdmake-mode
       :help "An adapted `makefile-mode' that knows about BSD make"
-      :button (:radio . (eq major-mode 'makefile-bsdmake-mode))]
+      :style radio
+      :selected (eq major-mode 'makefile-bsdmake-mode)]
      ["Classic" makefile-mode
       :help "`makefile-mode' with no special functionality"
-      :button (:radio . (eq major-mode 'makefile-mode))]
+      :style radio
+      :selected (eq major-mode 'makefile-mode)]
      ["Imake" makefile-imake-mode
       :help "An adapted `makefile-mode' that knows about imake"
-      :button (:radio . (eq major-mode 'makefile-imake-mode))]
+      :style radio
+      :selected (eq major-mode 'makefile-imake-mode)]
      ["Makepp" makefile-makepp-mode
       :help "An adapted `makefile-mode' that knows about makepp"
-      :button (:radio . (eq major-mode 'makefile-makepp-mode))])))
+      :style radio
+      :selected (eq major-mode 'makefile-makepp-mode)])))
 
 
 (defvar makefile-browser-map
