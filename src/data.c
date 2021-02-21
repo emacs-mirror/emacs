@@ -3989,6 +3989,8 @@ syms_of_data (void)
   DEFSYM (Qinteractive_form, "interactive-form");
   DEFSYM (Qdefalias_fset_function, "defalias-fset-function");
 
+  DEFSYM (Qbyte_code_function_p, "byte-code-function-p");
+
   defsubr (&Sindirect_variable);
   defsubr (&Sinteractive_form);
   defsubr (&Scommand_modes);

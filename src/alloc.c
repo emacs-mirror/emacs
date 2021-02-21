@@ -3498,6 +3498,38 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   return val;
 }
 
+DEFUN ("make-closure", Fmake_closure, Smake_closure, 1, MANY, 0,
+       doc: /* Create a byte-code closure from PROTOTYPE and CLOSURE-VARS.
+Return a copy of PROTOTYPE, a byte-code object, with CLOSURE-VARS
+replacing the elements in the beginning of the constant-vector.
+usage: (make-closure PROTOTYPE &rest CLOSURE-VARS) */)
+  (ptrdiff_t nargs, Lisp_Object *args)
+{
+  Lisp_Object protofun = args[0];
+  CHECK_TYPE (COMPILEDP (protofun), Qbyte_code_function_p, protofun);
+
+  /* Create a copy of the constant vector, filling it with the closure
+     variables in the beginning.  (The overwritten part should just
+     contain placeholder values.) */
+  Lisp_Object proto_constvec = AREF (protofun, COMPILED_CONSTANTS);
+  ptrdiff_t constsize = ASIZE (proto_constvec);
+  ptrdiff_t nvars = nargs - 1;
+  if (nvars > constsize)
+    error ("Closure vars do not fit in constvec");
+  Lisp_Object constvec = make_uninit_vector (constsize);
+  memcpy (XVECTOR (constvec)->contents, args + 1, nvars * word_size);
+  memcpy (XVECTOR (constvec)->contents + nvars,
+	  XVECTOR (proto_constvec)->contents + nvars,
+	  (constsize - nvars) * word_size);
+
+  /* Return a copy of the prototype function with the new constant vector. */
+  ptrdiff_t protosize = PVSIZE (protofun);
+  struct Lisp_Vector *v = allocate_vectorlike (protosize, false);
+  v->header = XVECTOR (protofun)->header;
+  memcpy (v->contents, XVECTOR (protofun)->contents, protosize * word_size);
+  v->contents[COMPILED_CONSTANTS] = constvec;
+  return make_lisp_ptr (v, Lisp_Vectorlike);
+}
 
 
 /***********************************************************************
@@ -7573,6 +7605,7 @@ N should be nonnegative.  */);
   defsubr (&Srecord);
   defsubr (&Sbool_vector);
   defsubr (&Smake_byte_code);
+  defsubr (&Smake_closure);
   defsubr (&Smake_list);
   defsubr (&Smake_vector);
   defsubr (&Smake_record);
