@@ -375,6 +375,7 @@ PREFIX is a string, and defaults to \"g\"."
   "Do nothing and return nil.
 This function accepts any number of ARGUMENTS, but ignores them.
 Also see `always'."
+  (declare (completion #'ignore))
   (interactive)
   nil)
 
@@ -922,6 +923,7 @@ For an approximate inverse of this, see `key-description'."
 
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
+  (declare (completion #'ignore))
   (interactive)
   (ding)
   (if defining-kbd-macro
