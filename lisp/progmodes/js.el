@@ -3699,8 +3699,7 @@ Otherwise, use the current value of `process-mark'."
 Strings and numbers are JSON-encoded.  Lists (including nil) are
 made into JavaScript array literals and their contents encoded
 with `js--js-encode-value'."
-  (cond ((stringp x) (json-encode-string x))
-        ((numberp x) (json-encode-number x))
+  (cond ((or (stringp x) (numberp x)) (json-encode x))
         ((symbolp x) (format "{objid:%S}" (symbol-name x)))
         ((js--js-handle-p x)
 
@@ -4390,7 +4389,8 @@ If one hasn't been set, or if it's stale, prompt for a new one."
             (with-temp-buffer
               (insert js--js-inserter)
               (insert "(")
-              (insert (json-encode-list defun-info))
+              (let ((standard-output (current-buffer)))
+                (json--print-list defun-info))
               (insert ",\n")
               (insert defun-body)
               (insert "\n)")

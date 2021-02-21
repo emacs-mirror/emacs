@@ -1559,6 +1559,16 @@ component are now rejected by 'json-read' and friends.  This makes
 them more compliant with the JSON specification and consistent with
 the native JSON parsing functions.
 
+---
+*** Some JSON encoding functions are now obsolete.
+The functions 'json-encode-number', 'json-encode-hash-table',
+'json-encode-key', and 'json-encode-list' are now obsolete.
+
+The first two are kept as aliases of 'json-encode', which should be
+used instead.  Uses of 'json-encode-list' should be changed to call
+one of 'json-encode', 'json-encode-alist', 'json-encode-plist', or
+'json-encode-array' instead.
+
 ** xml.el
 
 *** XML serialization functions now reject invalid characters.
