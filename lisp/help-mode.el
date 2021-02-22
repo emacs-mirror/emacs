@@ -476,8 +476,7 @@ that."
   (with-current-buffer (or buffer (current-buffer))
     (save-excursion
       (goto-char (point-min))
-      ;; Skip the header-type info, though it might be useful to parse
-      ;; it at some stage (e.g. "function in `library'").
+      ;; Skip the first bit, which has already been buttonized.
       (forward-paragraph)
       (let ((old-modified (buffer-modified-p)))
         (let ((stab (syntax-table))
