@@ -600,6 +600,53 @@ Useful to hook into pass checkers.")
 (define-error 'native-compiler-error-empty-byte
   "empty byte compiler output"
   'native-compiler-error)
+
+
+(cl-defstruct (comp-vec (:copier nil))
+  "A re-sizable vector like object."
+  (data (make-hash-table :test #'eql) :type hash-table
+        :documentation "Payload data.")
+  (beg 0 :type integer)
+  (end 0 :type natnum))
+
+(defsubst comp-vec-copy (vec)
+  "Return a copy of VEC."
+  (make-comp-vec :data (copy-hash-table (comp-vec-data vec))
+                 :beg (comp-vec-beg vec)
+                 :end (comp-vec-end vec)))
+
+(defsubst comp-vec-length (vec)
+  "Return the number of elements of VEC."
+  (+ (comp-vec-beg vec) (comp-vec-end vec)))
+
+(defsubst comp-vec--verify-idx (vec idx)
+  "Check idx is in bounds for VEC."
+  (cl-assert (and (< idx (comp-vec-end vec))
+                  (>= idx (comp-vec-beg vec)))))
+
+(defsubst comp-vec-aref (vec idx)
+  "Return the element of VEC at index IDX."
+  (declare (gv-setter (lambda (val)
+                        `(comp-vec--verify-idx ,vec ,idx)
+			`(puthash ,idx ,val (comp-vec-data ,vec)))))
+  (comp-vec--verify-idx vec idx)
+  (gethash idx (comp-vec-data vec)))
+
+(defsubst comp-vec-append (vec elt)
+  "Append ELT into VEC.
+ELT is returned."
+  (puthash (comp-vec-end vec) elt (comp-vec-aref vec))
+  (cl-incf (comp-vec-end vec))
+  elt)
+
+(defsubst comp-vec-prepend (vec elt)
+  "Prepend ELT into VEC.
+ELT is returned."
+  (puthash (comp-vec-beg vec) elt (comp-vec-aref vec))
+  (cl-decf (comp-vec-beg vec))
+  elt)
+
+
 
 (eval-when-compile
   (defconst comp-op-stack-info
@@ -2772,9 +2819,9 @@ blocks."
     (cl-loop for i from 0 below (comp-func-frame-size comp-func)
              ;; List of blocks with a definition of mvar i
              for defs-v = (cl-loop with blocks = (comp-func-blocks comp-func)
-                                    for b being each hash-value of blocks
-                                    when (slot-assigned-p i b)
-                                    collect b)
+                                   for b being each hash-value of blocks
+                                   when (slot-assigned-p i b)
+                                   collect b)
              ;; Set of basic blocks where phi is added.
              for f = ()
              ;; Worklist, set of basic blocks that contain definitions of v.
