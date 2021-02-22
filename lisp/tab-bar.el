@@ -100,11 +100,13 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   "Install key bindings for switching between tabs if the user has configured them."
   (when tab-bar-select-tab-modifiers
     (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
-                    'tab-bar-switch-to-recent-tab)
-    (dotimes (i 9)
+                    'tab-recent)
+    (dotimes (i 8)
       (global-set-key (vector (append tab-bar-select-tab-modifiers
                                       (list (+ i 1 ?0))))
-                      'tab-bar-select-tab)))
+                      'tab-bar-select-tab))
+    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?9)))
+                    'tab-last))
   ;; Don't override user customized key bindings
   (unless (global-key-binding [(control tab)])
     (global-set-key [(control tab)] 'tab-next))
@@ -720,6 +722,12 @@ ARG counts from 1."
     (setq arg 1))
   (tab-bar-switch-to-next-tab (- arg)))
 
+(defun tab-bar-switch-to-last-tab (&optional arg)
+  "Switch to the last tab or ARGth tab from the end of the tab bar."
+  (interactive "p")
+  (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
+                         (1- (or arg 1)))))
+
 (defun tab-bar-switch-to-recent-tab (&optional arg)
   "Switch to ARGth most recently visited tab."
   (interactive "p")
@@ -734,7 +742,8 @@ ARG counts from 1."
   "Switch to the tab by NAME.
 Default values are tab names sorted by recency, so you can use \
 \\<minibuffer-local-map>\\[next-history-element]
-to get the name of the last visited tab, the second last, and so on."
+to get the name of the most recently visited tab, the second
+most recent, and so on."
   (interactive
    (let* ((recent-tabs (mapcar (lambda (tab)
                                  (alist-get 'name tab))
@@ -1070,7 +1079,7 @@ for the last tab on a frame is determined by
         (message "Deleted all other tabs")))))
 
 (defun tab-bar-undo-close-tab ()
-  "Restore the last closed tab."
+  "Restore the most recently closed tab."
   (interactive)
   ;; Pop out closed tabs that were on already deleted frames
   (while (and tab-bar-closed-tabs
@@ -1261,6 +1270,7 @@ and can restore them."
 (defalias 'tab-select      'tab-bar-select-tab)
 (defalias 'tab-next        'tab-bar-switch-to-next-tab)
 (defalias 'tab-previous    'tab-bar-switch-to-prev-tab)
+(defalias 'tab-last        'tab-bar-switch-to-last-tab)
 (defalias 'tab-recent      'tab-bar-switch-to-recent-tab)
 (defalias 'tab-move        'tab-bar-move-tab)
 (defalias 'tab-move-to     'tab-bar-move-tab-to)

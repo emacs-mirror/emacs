@@ -487,6 +487,9 @@ independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 *** New command 'tab-duplicate'.
 
 ---
+*** 'Mod-9' bound to 'tab-last' now switches to the last tab.
+
+---
 *** New user option 'tab-bar-tab-name-format-function'.
 
 ---
