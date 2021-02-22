@@ -772,41 +772,41 @@ static char * dot3d_xpm[] = {
 
 (defun bubbles-set-graphics-theme-ascii ()
   "Set graphics theme to `ascii'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'ascii)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-circles ()
   "Set graphics theme to `circles'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'circles)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-squares ()
   "Set graphics theme to `squares'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'squares)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-diamonds ()
   "Set graphics theme to `diamonds'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'diamonds)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-balls ()
   "Set graphics theme to `balls'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'balls)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
 
 (defun bubbles-set-graphics-theme-emacs ()
   "Set graphics theme to `emacs'."
-  (interactive)
+  (interactive nil bubbles-mode)
   (setq bubbles-graphics-theme 'emacs)
   (bubbles--initialize-images)
   (bubbles--update-faces-or-images))
@@ -914,7 +914,7 @@ columns on its right towards the left.
 
 (defun bubbles-quit ()
   "Quit Bubbles."
-  (interactive)
+  (interactive nil bubbles-mode)
   (message "bubbles-quit")
   (bury-buffer))
 
@@ -1165,7 +1165,7 @@ Use optional parameter POS instead of point if given."
 
 (defun bubbles-plop ()
   "Remove active bubbles region."
-  (interactive)
+  (interactive nil bubbles-mode)
   (when (and bubbles--playing
              (> bubbles--neighborhood-score 0))
     (setq bubbles--save-data (list bubbles--score (buffer-string)))
@@ -1249,7 +1249,7 @@ Use optional parameter POS instead of point if given."
 
 (defun bubbles-undo ()
   "Undo last move."
-  (interactive)
+  (interactive nil bubbles-mode)
   (when bubbles--save-data
     (let ((inhibit-read-only t)
           (pos (point)))
