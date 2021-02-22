@@ -128,6 +128,10 @@
              (format (concat "%-3d/" s) 12)
              #("12 /X" 4 5 (prop "val"))))))
 
+(ert-deftest propertize/error-even-number-of-args ()
+  "Number of args for `propertize' must be odd."
+  (should-error (propertize "foo" 'bar) :type 'wrong-number-of-arguments))
+
 ;; Tests for bug#5131.
 (defun transpose-test-reverse-word (start end)
   "Reverse characters in a word by transposing pairs of characters."
