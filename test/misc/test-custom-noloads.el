@@ -35,7 +35,7 @@
 
 ;; FIXME: Multiple failures here.
 (ert-deftest custom-test-load ()
-  :tags '(:expensive-test)
+  :tags '(:expensive-test :unstable)
   :expected-result :failed ; FIXME: See above.
   (skip-unless (file-readable-p custom-test-admin-cus-test))
   (load custom-test-admin-cus-test)
