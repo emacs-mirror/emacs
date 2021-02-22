@@ -36,6 +36,8 @@
 ;;        - lisp/term/ns-win.el
 ;;        - lisp/org/org-num.el
 (ert-deftest test-custom-libs ()
+  ;; This test is very slow, and IMO not worth the time it takes.
+  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
   :tags '(:expensive-test)
   :expected-result :failed ; FIXME: See above.
   (skip-unless (file-readable-p custom-test-admin-cus-test))
