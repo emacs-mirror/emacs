@@ -491,6 +491,10 @@ independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 It also supports a negative argument.
 
 ---
+*** 'C-x t N' creates a new tab at the specified absolute position.
+It also supports a negative argument.
+
+---
 *** 'C-x t M' moves the current tab to the specified absolute position.
 It also supports a negative argument.
 

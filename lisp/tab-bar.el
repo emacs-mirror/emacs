@@ -847,7 +847,9 @@ called."
   "Add a new tab at the absolute position TO-INDEX.
 TO-INDEX counts from 1.  If no TO-INDEX is specified, then add
 a new tab at the position specified by `tab-bar-new-tab-to'.
-
+Negative TO-INDEX counts tabs from the end of the tab bar.
+Argument addressing is absolute in contrast to `tab-bar-new-tab'
+where argument addressing is relative.
 After the tab is created, the hooks in
 `tab-bar-tab-post-open-functions' are run."
   (interactive "P")
@@ -874,15 +876,19 @@ After the tab is created, the hooks in
 
     (when from-index
       (setf (nth from-index tabs) from-tab))
-    (let ((to-tab (tab-bar--current-tab))
-          (to-index (or (if to-index (1- to-index))
-                        (pcase tab-bar-new-tab-to
-                          ('leftmost 0)
-                          ('rightmost (length tabs))
-                          ('left (or from-index 1))
-                          ('right (1+ (or from-index 0)))
-                          ((pred functionp)
-                           (funcall tab-bar-new-tab-to))))))
+    (let* ((to-tab (tab-bar--current-tab))
+           (to-index (and to-index (prefix-numeric-value to-index)))
+           (to-index (or (if to-index
+                             (if (< to-index 0)
+                                 (+ (length tabs) (1+ to-index))
+                               (1- to-index)))
+                         (pcase tab-bar-new-tab-to
+                           ('leftmost 0)
+                           ('rightmost (length tabs))
+                           ('left (or from-index 1))
+                           ('right (1+ (or from-index 0)))
+                           ((pred functionp)
+                            (funcall tab-bar-new-tab-to))))))
       (setq to-index (max 0 (min (or to-index 0) (length tabs))))
       (cl-pushnew to-tab (nthcdr to-index tabs))
 
@@ -907,7 +913,11 @@ After the tab is created, the hooks in
 (defun tab-bar-new-tab (&optional arg)
   "Create a new tab ARG positions to the right.
 If a negative ARG, create a new tab ARG positions to the left.
-If ARG is zero, create a new tab in place of the current tab."
+If ARG is zero, create a new tab in place of the current tab.
+If no ARG is specified, then add a new tab at the position
+specified by `tab-bar-new-tab-to'.
+Argument addressing is relative in contrast to `tab-bar-new-tab-to'
+where argument addressing is absolute."
   (interactive "P")
   (if arg
       (let* ((tabs (funcall tab-bar-tabs-function))
@@ -1689,6 +1699,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
    nil "[other-tab]")
   (message "Display next command buffer in a new tab..."))
 
+(define-key tab-prefix-map "N" 'tab-new-to)
 (define-key tab-prefix-map "2" 'tab-new)
 (define-key tab-prefix-map "1" 'tab-close-other)
 (define-key tab-prefix-map "0" 'tab-close)
