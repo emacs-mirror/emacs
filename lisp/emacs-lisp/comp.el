@@ -3943,9 +3943,9 @@ LOAD and SELECTOR work as described in `native--compile-async'."
                       (string-match-p re file))
                     comp-deferred-compilation-deny-list))))
 
-(defun native--compile-async (paths &optional recursively load selector)
-  "Compile PATHS asynchronously.
-PATHS is one path or a list of paths to files or directories.
+(defun native--compile-async (files &optional recursively load selector)
+  "Compile FILES asynchronously.
+FILES is one path or a list of files to files or directories.
 
 If optional argument RECURSIVELY is non-nil, recurse into
 subdirectories of given directories.
@@ -3974,10 +3974,10 @@ bytecode definition was not changed in the meanwhile)."
   (comp-ensure-native-compiler)
   (unless (member load '(nil t late))
     (error "LOAD must be nil, t or 'late"))
-  (unless (listp paths)
-    (setf paths (list paths)))
+  (unless (listp files)
+    (setf files (list files)))
   (let (files)
-    (dolist (path paths)
+    (dolist (path files)
       (cond ((file-directory-p path)
              (dolist (file (if recursively
                                (directory-files-recursively
@@ -4057,9 +4057,9 @@ environment variable 'NATIVE_DISABLED' is set byte compile only."
          (rename-file tempfile target-file t))))))
 
 ;;;###autoload
-(defun native-compile-async (paths &optional recursively load selector)
-  "Compile PATHS asynchronously.
-PATHS is one path or a list of paths to files or directories.
+(defun native-compile-async (files &optional recursively load selector)
+  "Compile FILES asynchronously.
+FILES is one path or a list of files to files or directories.
 
 If optional argument RECURSIVELY is non-nil, recurse into
 subdirectories of given directories.
@@ -4077,7 +4077,7 @@ The variable `comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously."
   ;; Normalize: we only want to pass t or nil, never e.g. `late'.
   (let ((load (not (not load))))
-    (native--compile-async paths recursively load selector)))
+    (native--compile-async files recursively load selector)))
 
 (provide 'comp)
 
