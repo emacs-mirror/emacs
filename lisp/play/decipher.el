@@ -292,7 +292,7 @@ The most useful commands are:
 
 (defun decipher-keypress ()
   "Enter a plaintext or ciphertext character."
-  (interactive)
+  (interactive nil decipher-mode)
   (let ((decipher-function 'decipher-set-map)
         buffer-read-only)               ;Make buffer writable
     (save-excursion
@@ -346,7 +346,7 @@ The most useful commands are:
 
 (defun decipher-undo ()
   "Undo a change in Decipher mode."
-  (interactive)
+  (interactive nil decipher-mode)
   ;; If we don't get all the way thru, make last-command indicate that
   ;; for the following command.
   (setq this-command t)
@@ -487,7 +487,7 @@ The most useful commands are:
 This records the current alphabet so you can return to it later.
 You may have any number of checkpoints.
 Type `\\[decipher-restore-checkpoint]' to restore a checkpoint."
-  (interactive "sCheckpoint description: ")
+  (interactive "sCheckpoint description: " decipher-mode)
   (or (stringp desc)
       (setq desc ""))
   (let (alphabet
@@ -514,7 +514,7 @@ If point is not on a checkpoint line, moves to the first checkpoint line.
 If point is on a checkpoint, restores that checkpoint.
 
 Type `\\[decipher-make-checkpoint]' to make a checkpoint."
-  (interactive)
+  (interactive nil decipher-mode)
   (beginning-of-line)
   (if (looking-at "%!\\([A-Z ]+\\)!")
       ;; Restore this checkpoint:
@@ -542,7 +542,7 @@ Type `\\[decipher-make-checkpoint]' to make a checkpoint."
 This fills any blanks in the cipher alphabet with the unused letters
 in alphabetical order.  Use this when you have a keyword cipher and
 you have determined the keyword."
-  (interactive)
+  (interactive nil decipher-mode)
   (let ((cipher-char ?A)
         (ptr decipher-alphabet)
         buffer-read-only                ;Make buffer writable
@@ -559,7 +559,7 @@ you have determined the keyword."
 
 (defun decipher-show-alphabet ()
   "Display the current cipher alphabet in the message line."
-  (interactive)
+  (interactive nil decipher-mode)
   (message "%s"
    (mapconcat (lambda (a)
                 (concat
@@ -572,7 +572,7 @@ you have determined the keyword."
   "Reprocess the buffer using the alphabet from the top.
 This regenerates all deciphered plaintext and clears the undo list.
 You should use this if you edit the ciphertext."
-  (interactive)
+  (interactive nil decipher-mode)
   (message "Reprocessing buffer...")
   (let (alphabet
         buffer-read-only                ;Make buffer writable
@@ -616,13 +616,13 @@ You should use this if you edit the ciphertext."
 
 (defun decipher-frequency-count ()
   "Display the frequency count in the statistics buffer."
-  (interactive)
+  (interactive nil decipher-mode)
   (decipher-analyze)
   (decipher-display-regexp "^A" "^[A-Z][A-Z]"))
 
 (defun decipher-digram-list ()
   "Display the list of digrams in the statistics buffer."
-  (interactive)
+  (interactive nil decipher-mode)
   (decipher-analyze)
   (decipher-display-regexp "[A-Z][A-Z] +[0-9]" "^$"))
 
@@ -639,7 +639,7 @@ words, and ends 3 words (`*' represents a space).  X comes before 8
 different letters, after 7 different letters, and is next to a total
 of 11 different letters.  It occurs 14 times, making up 9% of the
 ciphertext."
-  (interactive (list (upcase (following-char))))
+  (interactive (list (upcase (following-char))) decipher-mode)
   (decipher-analyze)
   (let (start end)
     (with-current-buffer (decipher-stats-buffer)
