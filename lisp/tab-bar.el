@@ -113,6 +113,15 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   (unless (global-key-binding [(control shift iso-lefttab)])
     (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
 
+(defun tab-bar--undefine-keys ()
+  "Uninstall key bindings previously bound by `tab-bar--define-keys'."
+  (when (eq (global-key-binding [(control tab)]) 'tab-next)
+    (global-unset-key [(control tab)]))
+  (when (eq (global-key-binding [(control shift tab)]) 'tab-previous)
+    (global-unset-key [(control shift tab)]))
+  (when (eq (global-key-binding [(control shift iso-lefttab)]) 'tab-previous)
+    (global-unset-key [(control shift iso-lefttab)])))
+
 (defun tab-bar--load-buttons ()
   "Load the icons for the tab buttons."
   (when (and tab-bar-new-button
@@ -181,13 +190,7 @@ update."
     (tab-bar--load-buttons))
   (if tab-bar-mode
       (tab-bar--define-keys)
-    ;; Unset only keys bound by tab-bar
-    (when (eq (global-key-binding [(control tab)]) 'tab-next)
-      (global-unset-key [(control tab)]))
-    (when (eq (global-key-binding [(control shift tab)]) 'tab-previous)
-      (global-unset-key [(control shift tab)]))
-    (when (eq (global-key-binding [(control shift iso-lefttab)]) 'tab-previous)
-      (global-unset-key [(control shift iso-lefttab)]))))
+    (tab-bar--undefine-keys)))
 
 (defun tab-bar-handle-mouse (event)
   "Text-mode emulation of switching tabs on the tab bar.
