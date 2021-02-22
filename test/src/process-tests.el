@@ -348,8 +348,7 @@ See Bug#30460."
                                                   invocation-directory))
                  :stop t))))
 
-;; All the following tests require working DNS, which appears not to
-;; be the case for hydra.nixos.org, so disable them there for now.
+;; The following tests require working DNS
 
 ;; This will need updating when IANA assign more IPv6 global ranges.
 (defun ipv6-is-available ()
@@ -360,9 +359,16 @@ See Bug#30460."
                (= (logand (aref elt 0) #xe000) #x2000)))
         (network-interface-list))))
 
+;; Check if the Internet seems to be working.  Mainly to pacify
+;; Debian's CI system.
+(defvar internet-is-working
+  (progn
+    (require 'dns)
+    (dns-query "google.com")))
+
 (ert-deftest lookup-family-specification ()
   "`network-lookup-address-info' should only accept valid family symbols."
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-unless internet-is-working)
   (with-timeout (60 (ert-fail "Test timed out"))
   (should-error (network-lookup-address-info "localhost" 'both))
   (should (network-lookup-address-info "localhost" 'ipv4))
@@ -371,20 +377,20 @@ See Bug#30460."
 
 (ert-deftest lookup-unicode-domains ()
   "Unicode domains should fail."
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-unless internet-is-working)
   (with-timeout (60 (ert-fail "Test timed out"))
   (should-error (network-lookup-address-info "faß.de"))
   (should (network-lookup-address-info (puny-encode-domain "faß.de")))))
 
 (ert-deftest unibyte-domain-name ()
   "Unibyte domain names should work."
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-unless internet-is-working)
   (with-timeout (60 (ert-fail "Test timed out"))
   (should (network-lookup-address-info (string-to-unibyte "google.com")))))
 
 (ert-deftest lookup-google ()
   "Check that we can look up google IP addresses."
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-unless internet-is-working)
   (with-timeout (60 (ert-fail "Test timed out"))
   (let ((addresses-both (network-lookup-address-info "google.com"))
         (addresses-v4 (network-lookup-address-info "google.com" 'ipv4)))
@@ -396,9 +402,11 @@ See Bug#30460."
 
 (ert-deftest non-existent-lookup-failure ()
   "Check that looking up non-existent domain returns nil."
-  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
+  (skip-unless internet-is-working)
   (with-timeout (60 (ert-fail "Test timed out"))
   (should (eq nil (network-lookup-address-info "emacs.invalid")))))
+
+;; End of tests requiring DNS
 
 (defmacro process-tests--ignore-EMFILE (&rest body)
   "Evaluate BODY, ignoring EMFILE errors."
