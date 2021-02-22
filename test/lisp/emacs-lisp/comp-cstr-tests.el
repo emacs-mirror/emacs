@@ -211,7 +211,9 @@
       ;; 85
       ((or (not string) t) . t)
       ;; 86
-      ((or (not vector) sequence) . sequence))
+      ((or (not vector) sequence) . sequence)
+      ;; 87
+      ((or (not symbol) null) . t))
     "Alist type specifier -> expected type specifier."))
 
 (defmacro comp-cstr-synthesize-tests ()

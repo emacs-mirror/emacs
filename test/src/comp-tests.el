@@ -1185,7 +1185,7 @@ Return a list of results."
       ((defun comp-tests-ret-type-spec-f (x)
          (unless (symbolp x)
            x))
-       (not symbol))
+       t)
 
       ;; 55
       ((defun comp-tests-ret-type-spec-f (x)
