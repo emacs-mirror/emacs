@@ -2418,16 +2418,7 @@ the default language."
 		    (cadr (assq antlr-language antlr-language-alist)))))
   ;; indentation, for the C engine -------------------------------------------
   (setq c-buffer-is-cc-mode antlr-language)
-  (cond ((fboundp 'c-init-language-vars-for) ; cc-mode 5.30.5+
-	 (c-init-language-vars-for antlr-language))
-	((fboundp 'c-init-c-language-vars) ; cc-mode 5.30 to 5.30.4
-	 (c-init-c-language-vars)	; not perfect, but OK
-	 (setq c-recognize-knr-p nil))
-	((fboundp 'c-init-language-vars) ; cc-mode 5.29
-	 (let ((init-fn 'c-init-language-vars))
-	   (funcall init-fn)))		; is a function in v5.29
-	(t				; cc-mode upto 5.28
-	 (antlr-c-init-language-vars)))	; do it myself
+  (c-init-language-vars-for antlr-language)
   (c-basic-common-init antlr-language (or antlr-indent-style "gnu"))
   (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
   (set (make-local-variable 'outline-level) #'c-outline-level) ;TODO: define own
@@ -2471,6 +2462,6 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 
 (provide 'antlr-mode)
 
-;;; Local IspellPersDict: .ispell_antlr
+;; Local IspellPersDict: .ispell_antlr
 
 ;;; antlr-mode.el ends here
