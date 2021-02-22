@@ -1,4 +1,4 @@
-;;; fast-lock.el --- automagic text properties caching for fast Font Lock mode
+;;; fast-lock.el --- automagic text properties caching for fast Font Lock mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1998, 2001-2021 Free Software Foundation, Inc.
 
@@ -190,18 +190,6 @@
 (defvar font-lock-face-list)
 
 (eval-when-compile
- ;; We use this to preserve or protect things when modifying text properties.
- (defmacro save-buffer-state (varlist &rest body)
-   "Bind variables according to VARLIST and eval BODY restoring buffer state."
-   `(let* (,@(append varlist
-                     '((modified (buffer-modified-p)) (buffer-undo-list t)
-                       (inhibit-read-only t) (inhibit-point-motion-hooks t)
-                       (inhibit-modification-hooks t)
-                       deactivate-mark buffer-file-name buffer-file-truename)))
-     ,@body
-     (when (and (not modified) (buffer-modified-p))
-       (set-buffer-modified-p nil))))
- (put 'save-buffer-state 'lisp-indent-function 1)
  ;;
  ;; We use this to verify that a face should be saved.
  (defmacro fast-lock-save-facep (face)
@@ -244,8 +232,7 @@ for buffers in Rmail mode, and size is irrelevant otherwise."
 				      (symbol :tag "name"))
 			       (radio :tag "Size"
 				      (const :tag "none" nil)
-				      (integer :tag "size")))))
-  :group 'fast-lock)
+				      (integer :tag "size"))))))
 
 (defcustom fast-lock-cache-directories '("~/.emacs-flc")
 ; - `internal', keep each file's Font Lock cache file in the same file.
@@ -271,8 +258,7 @@ to avoid the possibility of using the cache of another user."
   :type '(repeat (radio (directory :tag "directory")
 			(cons :tag "Matching"
 			      (regexp :tag "regexp")
-			      (directory :tag "directory"))))
-  :group 'fast-lock)
+			      (directory :tag "directory")))))
 (put 'fast-lock-cache-directories 'risky-local-variable t)
 
 (defcustom fast-lock-save-events '(kill-buffer kill-emacs)
@@ -282,23 +268,20 @@ If concurrent editing sessions use the same associated cache file for a file's
 buffer, then you should add `save-buffer' to this list."
   :type '(set (const :tag "buffer saving" save-buffer)
 	      (const :tag "buffer killing" kill-buffer)
-	      (const :tag "emacs killing" kill-emacs))
-  :group 'fast-lock)
+	      (const :tag "emacs killing" kill-emacs)))
 
 (defcustom fast-lock-save-others t
   "If non-nil, save Font Lock cache files irrespective of file owner.
 If nil, means only buffer files known to be owned by you can have associated
 Font Lock cache files saved.  Ownership may be unknown for networked files."
-  :type 'boolean
-  :group 'fast-lock)
+  :type 'boolean)
 
 (defcustom fast-lock-verbose font-lock-verbose
   "If non-nil, means show status messages for cache processing.
 If a number, only buffers greater than this size have processing messages."
   :type '(choice (const :tag "never" nil)
 		 (other :tag "always" t)
-		 (integer :tag "size"))
-  :group 'fast-lock)
+		 (integer :tag "size")))
 
 (defvar fast-lock-save-faces
   (when (featurep 'xemacs)
@@ -581,7 +564,7 @@ See `fast-lock-cache-directory'."
 (defun fast-lock-cache-data (version timestamp
 			     syntactic-keywords syntactic-properties
 			     keywords face-properties
-			     &rest ignored)
+			     &rest _ignored)
   ;; Find value of syntactic keywords in case it is a symbol.
   (setq font-lock-syntactic-keywords (font-lock-eval-keywords
 				      font-lock-syntactic-keywords))
@@ -708,85 +691,25 @@ See `fast-lock-get-face-properties'."
   "Add `syntax-table' and `face' text properties to the current buffer.
 Any existing `syntax-table' and `face' text properties are removed first.
 See `fast-lock-get-face-properties'."
-  (save-buffer-state (plist regions)
-    (save-restriction
-      (widen)
-      (font-lock-unfontify-region (point-min) (point-max))
-      ;;
-      ;; Set the `syntax-table' property for each start/end region.
-      (while syntactic-properties
-	(setq plist (list 'syntax-table (car (car syntactic-properties)))
-	      regions (cdr (car syntactic-properties))
-	      syntactic-properties (cdr syntactic-properties))
-	(while regions
-	  (add-text-properties (nth 0 regions) (nth 1 regions) plist)
-	  (setq regions (nthcdr 2 regions))))
-      ;;
-      ;; Set the `face' property for each start/end region.
-      (while face-properties
-	(setq plist (list 'face (car (car face-properties)))
-	      regions (cdr (car face-properties))
-	      face-properties (cdr face-properties))
-	(while regions
-	  (add-text-properties (nth 0 regions) (nth 1 regions) plist)
-	  (setq regions (nthcdr 2 regions)))))))
+  (with-silent-modifications
+    (let ((inhibit-point-motion-hooks t))
+      (save-restriction
+        (widen)
+        (font-lock-unfontify-region (point-min) (point-max))
+        ;;
+        ;; Set the `syntax-table' property for each start/end region.
+        (pcase-dolist (`(,plist . ,regions) syntactic-properties)
+	  (while regions
+	    (add-text-properties (nth 0 regions) (nth 1 regions) plist)
+	    (setq regions (nthcdr 2 regions))))
+	;;
+	;; Set the `face' property for each start/end region.
+        (pcase-dolist (`(,plist . ,regions) face-properties)
+	  (while regions
+	    (add-text-properties (nth 0 regions) (nth 1 regions) plist)
+	    (setq regions (nthcdr 2 regions))))))))
 
 ;; Functions for XEmacs:
-
-(when (featurep 'xemacs)
-  ;;
-  ;; It would be better to use XEmacs' `map-extents' over extents with a
-  ;; `font-lock' property, but `face' properties are on different extents.
-  (defun fast-lock-get-face-properties ()
-    "Return a list of `face' text properties in the current buffer.
-Each element of the list is of the form (VALUE START1 END1 START2 END2 ...)
-where VALUE is a `face' property value and STARTx and ENDx are positions.
-Only those `face' VALUEs in `fast-lock-save-faces' are returned."
-    (save-restriction
-      (widen)
-      (let ((properties ()) cell)
-	(map-extents
-	 (function (lambda (extent ignore)
-	    (let ((value (extent-face extent)))
-	      ;; We're only interested if it's one of `fast-lock-save-faces'.
-	      (when (and value (fast-lock-save-facep value))
-		(let ((start (extent-start-position extent))
-		      (end (extent-end-position extent)))
-		  ;; Make or add to existing list of regions with the same
-		  ;; `face' property value.
-		  (if (setq cell (assoc value properties))
-		      (setcdr cell (cons start (cons end (cdr cell))))
-		    (push (list value start end) properties))))
-	      ;; Return nil to keep `map-extents' going.
-	      nil))))
-	properties)))
-  ;;
-  ;; XEmacs does not support the `syntax-table' text property.
-  (defalias 'fast-lock-get-syntactic-properties
-    'ignore)
-  ;;
-  ;; Make extents just like XEmacs' font-lock.el does.
-  (defun fast-lock-add-properties (syntactic-properties face-properties)
-    "Set `face' text properties in the current buffer.
-Any existing `face' text properties are removed first.
-See `fast-lock-get-face-properties'."
-    (save-restriction
-      (widen)
-      (font-lock-unfontify-region (point-min) (point-max))
-      ;; Set the `face' property, etc., for each start/end region.
-      (while face-properties
-	(let ((face (car (car face-properties)))
-	      (regions (cdr (car face-properties))))
-	  (while regions
-	    (font-lock-set-face (nth 0 regions) (nth 1 regions) face)
-	    (setq regions (nthcdr 2 regions)))
-	  (setq face-properties (cdr face-properties))))
-      ;; XEmacs does not support the `syntax-table' text property.
-      ))
-  ;;
-  ;; XEmacs 19.12 font-lock.el's `font-lock-fontify-buffer' runs a hook.
-  (add-hook 'font-lock-after-fontify-buffer-hook
-	    'fast-lock-after-fontify-buffer))
 
 (unless (boundp 'font-lock-syntactic-keywords)
   (defvar font-lock-syntactic-keywords nil))
@@ -802,7 +725,7 @@ See `fast-lock-get-face-properties'."
     (if (symbolp keywords)
 	(font-lock-eval-keywords (if (fboundp keywords)
 				     (funcall keywords)
-				   (eval keywords)))
+				   (eval keywords t)))
       keywords)))
 
 (unless (fboundp 'font-lock-value-in-major-mode)

@@ -45,6 +45,7 @@
 BODY twice: once using ordinary `eval' and once using
 lambda-generators.  The test ensures that the two forms produce
 identical output."
+  (declare (indent 1))
   `(progn
      (ert-deftest ,name ()
        (should
@@ -61,8 +62,6 @@ identical output."
           (funcall
            (let ((cps-inhibit-atomic-optimization t))
              (iter-lambda () (iter-yield (progn ,@body)))))))))))
-
-(put 'cps-testcase 'lisp-indent-function 1)
 
 (defvar *cps-test-i* nil)
 (defun cps-get-test-i ()

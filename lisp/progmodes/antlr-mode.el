@@ -1,4 +1,4 @@
-;;; antlr-mode.el --- major mode for ANTLR grammar files
+;;; antlr-mode.el --- major mode for ANTLR grammar files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -164,18 +164,10 @@
 ;; More compile-time-macros
 (eval-when-compile
   (defmacro save-buffer-state-x (&rest body) ; similar to EMACS/lazy-lock.el
-    (let ((modified (with-no-warnings (gensym "save-buffer-state-x-modified-"))))
-      `(let ((,modified (buffer-modified-p)))
-	 (unwind-protect
-	     (let ((buffer-undo-list t) (inhibit-read-only t)
-		   ,@(unless (featurep 'xemacs)
-		       '((inhibit-point-motion-hooks t) deactivate-mark))
-		   (inhibit-modification-hooks t)
-		   buffer-file-name buffer-file-truename)
-	       ,@body)
-	   (and (not ,modified) (buffer-modified-p)
-		(set-buffer-modified-p nil)))))))
-(put 'save-buffer-state-x 'lisp-indent-function 0)
+    (declare (debug t) (indent 0))
+    `(let ((inhibit-point-motion-hooks t))
+       (with-silent-modifications
+         ,@body))))
 
 (defvar outline-level)
 (defvar imenu-use-markers)
@@ -188,7 +180,7 @@
 ;; Additional to the `defalias' below, we must set `antlr-c-forward-sws' to
 ;; `c-forward-syntactic-ws' when `c-forward-sws' is not defined after requiring
 ;; cc-mode.
-(defalias 'antlr-c-forward-sws 'c-forward-sws)
+(defalias 'antlr-c-forward-sws #'c-forward-sws)
 
 
 ;;;;##########################################################################
@@ -231,7 +223,6 @@ value of `antlr-language' if the first group in the string matched by
 REGEXP in `antlr-language-limit-n-regexp' is one of the OPTION-VALUEs.
 An OPTION-VALUE of nil denotes the fallback element.  MODELINE-STRING is
 also displayed in the mode line next to \"Antlr\"."
-  :group 'antlr
   :type '(repeat (group :value (java-mode "")
 			(function :tag "Major mode")
 			(string :tag "Mode line string")
@@ -245,7 +236,6 @@ also displayed in the mode line next to \"Antlr\"."
 Looks like \(LIMIT . REGEXP).  Search for REGEXP from the beginning of
 the buffer to LIMIT and use the first group in the matched string to set
 the language according to `antlr-language-alist'."
-  :group 'antlr
   :type '(cons (choice :tag "Limit" (const :tag "No" nil) (integer :value 0))
 	       regexp))
 
@@ -259,7 +249,6 @@ the language according to `antlr-language-alist'."
 If nil, the actions with their surrounding braces are hidden.  If a
 number, do not hide the braces, only hide the contents if its length is
 greater than this number."
-  :group 'antlr
   :type '(choice (const :tag "Completely hidden" nil)
 		 (integer :tag "Hidden if longer than" :value 3)))
 
@@ -268,7 +257,6 @@ greater than this number."
 If nil, no continuation line of a block comment is changed.  If t, they
 are changed according to `c-indentation-line'.  When not nil and not t,
 they are only changed by \\[antlr-indent-command]."
-  :group 'antlr
   :type '(radio (const :tag "No" nil)
 		(const :tag "Always" t)
 		(sexp :tag "With TAB" :format "%t" :value tab)))
@@ -282,7 +270,6 @@ The first element whose MAJOR-MODE is nil or equal to `major-mode' and
 whose REGEXP is nil or matches variable `buffer-file-name' is used to
 set `tab-width' and `indent-tabs-mode'.  This is useful to support both
 ANTLR's and Java's indentation styles.  Used by `antlr-set-tabs'."
-  :group 'antlr
   :type '(repeat (group :value (antlr-mode nil 8 nil)
 			(choice (const :tag "All" nil)
 				(function :tag "Major mode"))
@@ -294,14 +281,12 @@ ANTLR's and Java's indentation styles.  Used by `antlr-set-tabs'."
   "If non-nil, cc-mode indentation style used for `antlr-mode'.
 See `c-set-style' and for details, where the most interesting part in
 `c-style-alist' is the value of `c-basic-offset'."
-  :group 'antlr
   :type '(choice (const nil) regexp))
 
 (defcustom antlr-indent-item-regexp
   "[]}):;|&]" ; & is local ANTLR extension (SGML's and-connector)
   "Regexp matching lines which should be indented by one TAB less.
 See `antlr-indent-line' and command \\[antlr-indent-command]."
-  :group 'antlr
   :type 'regexp)
 
 (defcustom antlr-indent-at-bol-alist
@@ -316,7 +301,6 @@ If `antlr-language' equals to a MODE, the line starting at the first
 non-whitespace is matched by the corresponding REGEXP, and the line is
 part of a header action, indent the line at column 0 instead according
 to the normal rules of `antlr-indent-line'."
-  :group 'antlr
   :type '(repeat (cons (function :tag "Major mode") regexp)))
 
 ;; adopt indentation to cc-engine
@@ -337,7 +321,6 @@ to the normal rules of `antlr-indent-line'."
   "Non-nil, if the major mode menu should include option submenus.
 If nil, the menu just includes a command to insert options.  Otherwise,
 it includes four submenus to insert file/grammar/rule/subrule options."
-  :group 'antlr
   :type 'boolean)
 
 (defcustom antlr-tool-version 20701
@@ -349,7 +332,6 @@ version correct option values when using \\[antlr-insert-option].
 Don't use a number smaller than 20600 since the stored history of
 Antlr's options starts with v2.06.00, see `antlr-options-alists'.  You
 can make this variable buffer-local."
-  :group 'antlr
   :type 'integer)
 
 (defcustom antlr-options-auto-colon t
@@ -358,7 +340,6 @@ A `:' is only inserted if this value is non-nil, if a rule or subrule
 option is inserted with \\[antlr-insert-option], if there was no rule or
 subrule options section before, and if a `:' is not already present
 after the section, ignoring whitespace, comments and the init action."
-  :group 'antlr
   :type 'boolean)
 
 (defcustom antlr-options-style nil
@@ -369,7 +350,6 @@ identifier.
 
 The only style symbol used in the default value of `antlr-options-alist'
 is `language-as-string'.  See also `antlr-read-value'."
-  :group 'antlr
   :type '(repeat (symbol :tag "Style symbol")))
 
 (defcustom antlr-options-push-mark t
@@ -380,7 +360,6 @@ number, only set mark if point was outside the options area before and
 the number of lines between point and the insert position is greater
 than this value.  Otherwise, only set mark if point was outside the
 options area before."
-  :group 'antlr
   :type '(radio (const :tag "No" nil)
 		(const :tag "Always" t)
 		(integer :tag "Lines between" :value 10)
@@ -391,7 +370,6 @@ options area before."
 This string is only used if the option to insert did not exist before
 or if there was no `=' after it.  In other words, the spacing around an
 existing `=' won't be changed when changing an option value."
-  :group 'antlr
   :type 'string)
 
 
@@ -576,13 +554,11 @@ AS-STRING is non-nil and is either t or a symbol which is a member of
   "Command used in \\[antlr-run-tool] to run the Antlr tool.
 This variable should include all options passed to Antlr except the
 option \"-glib\" which is automatically suggested if necessary."
-  :group 'antlr
   :type 'string)
 
 (defcustom antlr-ask-about-save t
   "If not nil, \\[antlr-run-tool] asks which buffers to save.
 Otherwise, it saves all modified buffers before running without asking."
-  :group 'antlr
   :type 'boolean)
 
 (defcustom antlr-makefile-specification
@@ -604,7 +580,6 @@ Then, GEN-VAR is a string with the name of the variable which contains
 the file names of all makefile rules.  GEN-VAR-FORMAT is a format string
 producing the variable of each target with substitution COUNT/%d where
 COUNT starts with 1.  GEN-SEP is used to separate long variable values."
-  :group 'antlr
   :type '(list (string :tag "Rule separator")
 	       (choice
 		(const :tag "Direct targets" nil)
@@ -683,7 +658,6 @@ DIRECTORY is the name of the current directory.")
   "Non-nil, if a \"Index\" menu should be added to the menubar.
 If it is a string, it is used instead \"Index\".  Requires package
 imenu."
-  :group 'antlr
   :type '(choice (const :tag "No menu" nil)
 		 (const :tag "Index menu" t)
 		 (string :tag "Other menu name")))
@@ -780,7 +754,6 @@ bound to `antlr-language'.  For example, with value
   ((java-mode . 2) (c++-mode . 0))
 Java actions are fontified with level 2 and C++ actions are not
 fontified at all."
-  :group 'antlr
   :type '(choice (const :tag "None" none)
 		 (const :tag "Inherit" inherit)
 		 (const :tag "Default" nil)
@@ -824,52 +797,45 @@ in the grammar's actions and semantic predicates, see
 
 (defface antlr-default '((t nil))
   "Face to prevent strings from language dependent highlighting.
-Do not change."
-  :group 'antlr)
+Do not change.")
 
 (defface antlr-keyword
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "black" :EMACS :weight bold :XEMACS :bold t))
      (t :inherit font-lock-keyword-face)))
-  "ANTLR keywords."
-  :group 'antlr)
+  "ANTLR keywords.")
 
 (defface antlr-syntax
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "black" :EMACS :weight bold :XEMACS :bold t))
      (t :inherit font-lock-constant-face)))
-  "ANTLR syntax symbols like :, |, (, ), ...."
-  :group 'antlr)
+  "ANTLR syntax symbols like :, |, (, ), ....")
 
 (defface antlr-ruledef
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))
      (t :inherit font-lock-function-name-face)))
-  "ANTLR rule references (definition)."
-  :group 'antlr)
+  "ANTLR rule references (definition).")
 
 (defface antlr-tokendef
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))
      (t :inherit font-lock-function-name-face)))
-  "ANTLR token references (definition)."
-  :group 'antlr)
+  "ANTLR token references (definition).")
 
 (defface antlr-ruleref
   '((((class color) (background light)) (:foreground "blue4"))
     (t :inherit font-lock-type-face))
-  "ANTLR rule references (usage)."
-  :group 'antlr)
+  "ANTLR rule references (usage).")
 
 (defface antlr-tokenref
   '((((class color) (background light)) (:foreground "orange4"))
     (t :inherit font-lock-type-face))
-  "ANTLR token references (usage)."
-  :group 'antlr)
+  "ANTLR token references (usage).")
 
 (defface antlr-literal
   (cond-emacs-xemacs
@@ -878,8 +844,7 @@ Do not change."
      (t :inherit font-lock-string-face)))
   "ANTLR special literal tokens.
 It is used to highlight strings matched by the first regexp group of
-`antlr-font-lock-literal-regexp'."
-  :group 'antlr)
+`antlr-font-lock-literal-regexp'.")
 
 (defcustom antlr-font-lock-literal-regexp "\"\\(\\sw\\(\\sw\\|-\\)*\\)\""
   "Regexp matching literals with special syntax highlighting, or nil.
@@ -887,7 +852,6 @@ If nil, there is no special syntax highlighting for some literals.
 Otherwise, it should be a regular expression which must contain a regexp
 group.  The string matched by the first group is highlighted with
 `antlr-font-lock-literal-face'."
-  :group 'antlr
   :type '(choice (const :tag "None" nil) regexp))
 
 (defvar antlr-class-header-regexp
@@ -1016,15 +980,6 @@ Used for `antlr-slow-syntactic-context'.")
 ;;;===========================================================================
 
 ;; From help.el (XEmacs-21.1), without `copy-syntax-table'
-(defmacro antlr-with-syntax-table (syntab &rest body)
-  "Evaluate BODY with the syntax table SYNTAB."
-  `(let ((stab (syntax-table)))
-     (unwind-protect
-	 (progn (set-syntax-table ,syntab) ,@body)
-       (set-syntax-table stab))))
-(put 'antlr-with-syntax-table 'lisp-indent-function 1)
-(put 'antlr-with-syntax-table 'edebug-form-spec '(form body))
-
 (defunx antlr-default-directory ()
   :xemacs-and-try default-directory
   "Return `default-directory'."
@@ -1229,7 +1184,8 @@ See `antlr-font-lock-additional-keywords', `antlr-language' and
 				    antlr-font-lock-keywords-alist))
 			 (if (eq antlr-font-lock-maximum-decoration 'inherit)
 			     font-lock-maximum-decoration
-			   antlr-font-lock-maximum-decoration)))))))
+			   antlr-font-lock-maximum-decoration)))
+		  t))))
 
 
 ;;;===========================================================================
@@ -1248,7 +1204,7 @@ IF TOKENREFS-ONLY is non-nil, just return alist with tokenref names."
 	(continue t))
     ;; The generic imenu function searches backward, which is slower
     ;; and more likely not to work during editing.
-    (antlr-with-syntax-table antlr-action-syntax-table
+    (with-syntax-table antlr-action-syntax-table
       (antlr-invalidate-context-cache)
       (goto-char (point-min))
       (antlr-skip-file-prelude t)
@@ -1392,7 +1348,7 @@ Move to the beginning of the current rule if point is inside a rule."
 A grammar class header and the file prelude are also considered as a
 rule."
   (save-excursion
-    (antlr-with-syntax-table antlr-action-syntax-table
+    (with-syntax-table antlr-action-syntax-table
       (not (antlr-outside-rule-p)))))
 
 (defunx antlr-end-of-rule (&optional arg)
@@ -1403,7 +1359,7 @@ rule.  If ARG is zero, run `antlr-end-of-body'."
   (interactive "_p")
   (if (zerop arg)
       (antlr-end-of-body)
-    (antlr-with-syntax-table antlr-action-syntax-table
+    (with-syntax-table antlr-action-syntax-table
       (antlr-next-rule arg nil))))
 
 (defunx antlr-beginning-of-rule (&optional arg)
@@ -1414,7 +1370,7 @@ of rule.  If ARG is zero, run `antlr-beginning-of-body'."
   (interactive "_p")
   (if (zerop arg)
       (antlr-beginning-of-body)
-    (antlr-with-syntax-table antlr-action-syntax-table
+    (with-syntax-table antlr-action-syntax-table
       (antlr-next-rule (- arg) t))))
 
 (defunx antlr-end-of-body (&optional msg)
@@ -1422,7 +1378,7 @@ of rule.  If ARG is zero, run `antlr-beginning-of-body'."
 A grammar class header is also considered as a rule.  With optional
 prefix arg MSG, move to `:'."
   (interactive "_")
-  (antlr-with-syntax-table antlr-action-syntax-table
+  (with-syntax-table antlr-action-syntax-table
     (let ((orig (point)))
       (if (antlr-outside-rule-p)
 	  (error "Outside an ANTLR rule"))
@@ -1458,7 +1414,7 @@ If non-nil, TRANSFORM is used on literals instead of `downcase-region'."
   (let ((literals 0))
     (save-excursion
       (goto-char (point-min))
-      (antlr-with-syntax-table antlr-action-syntax-table
+      (with-syntax-table antlr-action-syntax-table
 	(antlr-invalidate-context-cache)
 	(while (antlr-re-search-forward "\"\\(\\sw\\(\\sw\\|-\\)*\\)\"" nil)
 	  (funcall transform (match-beginning 0) (match-end 0))
@@ -1487,7 +1443,7 @@ Display a message unless optional argument SILENT is non-nil."
 	  (antlr-hide-actions 0 t)
 	  (save-excursion
 	    (goto-char (point-min))
-	    (antlr-with-syntax-table antlr-action-syntax-table
+	    (with-syntax-table antlr-action-syntax-table
 	      (antlr-invalidate-context-cache)
 	      (while (antlr-re-search-forward regexp nil)
 		(let ((beg (ignore-errors-x (scan-sexps (point) -1))))
@@ -1708,7 +1664,7 @@ is undefined."
   (widen)
   (if (eq requested 1)
       1
-    (antlr-with-syntax-table antlr-action-syntax-table
+    (with-syntax-table antlr-action-syntax-table
       (antlr-invalidate-context-cache)
       (let* ((orig (point))
 	     (outsidep (antlr-outside-rule-p))
@@ -2086,7 +2042,7 @@ its export vocabulary is used as an import vocabulary."
   (unless buffer-file-name
     (error "Grammar buffer does not visit a file"))
   (let (classes export-vocabs import-vocabs superclasses default-vocab)
-    (antlr-with-syntax-table antlr-action-syntax-table
+    (with-syntax-table antlr-action-syntax-table
       (goto-char (point-min))
       (while (antlr-re-search-forward antlr-class-header-regexp nil)
 	;; parse class definition --------------------------------------------
@@ -2385,7 +2341,7 @@ to a lesser extent, `antlr-tab-offset-alist'."
       (skip-chars-forward " \t")
       (setq boi (point))
       ;; check syntax at beginning of indentation ----------------------------
-      (antlr-with-syntax-table antlr-action-syntax-table
+      (with-syntax-table antlr-action-syntax-table
 	(antlr-invalidate-context-cache)
 	(setq syntax (antlr-syntactic-context))
 	(cond ((symbolp syntax)
@@ -2481,7 +2437,7 @@ ANTLR's syntax and influences the auto indentation, see
   (interactive "*P")
   (if (or arg
 	  (save-excursion (skip-chars-backward " \t") (not (bolp)))
-	  (antlr-with-syntax-table antlr-action-syntax-table
+	  (with-syntax-table antlr-action-syntax-table
 	    (antlr-invalidate-context-cache)
 	    (let ((context (antlr-syntactic-context)))
 	      (not (and (numberp context)
@@ -2524,7 +2480,7 @@ ANTLR's syntax and influences the auto indentation, see
     (while settings
       (when (boundp (car settings))
 	(ignore-errors
-	  (set (car settings) (eval (cadr settings)))))
+	  (set (car settings) (eval (cadr settings) t))))
       (setq settings (cddr settings)))))
 
 (defun antlr-language-option (search)
@@ -2583,8 +2539,8 @@ the default language."
 	 (antlr-c-init-language-vars)))	; do it myself
   (c-basic-common-init antlr-language (or antlr-indent-style "gnu"))
   (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
-  (set (make-local-variable 'outline-level) 'c-outline-level) ;TODO: define own
-  (set (make-local-variable 'indent-line-function) 'antlr-indent-line)
+  (set (make-local-variable 'outline-level) #'c-outline-level) ;TODO: define own
+  (set (make-local-variable 'indent-line-function) #'antlr-indent-line)
   (set (make-local-variable 'indent-region-function) nil)	; too lazy
   (setq comment-start "// "
  	comment-end ""
@@ -2594,7 +2550,7 @@ the default language."
   (when (featurep 'xemacs)
     (easy-menu-add antlr-mode-menu))
   (set (make-local-variable 'imenu-create-index-function)
-       'antlr-imenu-create-index-function)
+       #'antlr-imenu-create-index-function)
   (set (make-local-variable 'imenu-generic-expression) t) ; fool stupid test
   (and antlr-imenu-name			; there should be a global variable...
        (fboundp 'imenu-add-to-menubar)

@@ -81,15 +81,13 @@ Use nil for no limit (caution: backtrace lines can be very long)."
                                      :background "green1")
                                     (((class color) (background dark))
                                      :background "green3"))
-  "Face used for expected results in the ERT results buffer."
-  :group 'ert)
+  "Face used for expected results in the ERT results buffer.")
 
 (defface ert-test-result-unexpected '((((class color) (background light))
                                        :background "red1")
                                       (((class color) (background dark))
                                        :background "red3"))
-  "Face used for unexpected results in the ERT results buffer."
-  :group 'ert)
+  "Face used for unexpected results in the ERT results buffer.")
 
 
 ;;; Copies/reimplementations of cl functions.
@@ -223,16 +221,6 @@ it has to be wrapped in `(eval (quote ...))'.
                             `(:tags ,tags))
                         :body (lambda () ,@body)))
          ',name))))
-
-;; We use these `put' forms in addition to the (declare (indent)) in
-;; the defmacro form since the `declare' alone does not lead to
-;; correct indentation before the .el/.elc file is loaded.
-;; Autoloading these `put' forms solves this.
-;;;###autoload
-(progn
-  ;; TODO(ohler): Figure out what these mean and make sure they are correct.
-  (put 'ert-deftest 'lisp-indent-function 2)
-  (put 'ert-info 'lisp-indent-function 1))
 
 (defvar ert--find-test-regexp
   (concat "^\\s-*(ert-deftest"
