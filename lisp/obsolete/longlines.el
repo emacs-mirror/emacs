@@ -1,4 +1,4 @@
-;;; longlines.el --- automatically wrap long lines   -*- coding:utf-8 -*-
+;;; longlines.el --- automatically wrap long lines   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2001, 2004-2021 Free Software Foundation, Inc.
 
@@ -48,7 +48,6 @@
 Otherwise, you can perform filling using `fill-paragraph' or
 `auto-fill-mode'.  In any case, the soft newlines will be removed
 when the file is saved to disk."
-  :group 'longlines
   :type 'boolean)
 
 (defcustom longlines-wrap-follows-window-size nil
@@ -60,7 +59,6 @@ with differing widths.
 If the value is an integer, that specifies the distance from the
 right edge of the window at which wrapping occurs.  For any other
 non-nil value, wrapping occurs 2 characters from the right edge."
-  :group 'longlines
   :type 'boolean)
 
 (defcustom longlines-show-hard-newlines nil
@@ -68,13 +66,11 @@ non-nil value, wrapping occurs 2 characters from the right edge."
 \(The variable `longlines-show-effect' controls what they look like.)
 You can also enable the display temporarily, using the command
 `longlines-show-hard-newlines'."
-  :group 'longlines
   :type 'boolean)
 
 (defcustom longlines-show-effect (propertize "¶\n" 'face 'escape-glyph)
   "A string to display when showing hard newlines.
 This is used when `longlines-show-hard-newlines' is on."
-  :group 'longlines
   :type 'string)
 
 ;;; Internal variables
@@ -110,23 +106,23 @@ always call `fill-paragraph' to fill individual paragraphs.
 
 If the variable `longlines-show-hard-newlines' is non-nil, hard
 newlines are indicated with a symbol."
-  :group 'longlines :lighter " ll"
+  :lighter " ll"
   (if longlines-mode
       ;; Turn on longlines mode
       (progn
         (use-hard-newlines 1 'never)
         (set (make-local-variable 'require-final-newline) nil)
         (add-to-list 'buffer-file-format 'longlines)
-        (add-hook 'change-major-mode-hook 'longlines-mode-off nil t)
-	(add-hook 'before-revert-hook 'longlines-before-revert-hook nil t)
+        (add-hook 'change-major-mode-hook #'longlines-mode-off nil t)
+	(add-hook 'before-revert-hook #'longlines-before-revert-hook nil t)
         (make-local-variable 'buffer-substring-filters)
         (make-local-variable 'longlines-auto-wrap)
 	(set (make-local-variable 'isearch-search-fun-function)
-	     'longlines-search-function)
+	     #'longlines-search-function)
 	(set (make-local-variable 'replace-search-function)
-	     'longlines-search-forward)
+	     #'longlines-search-forward)
 	(set (make-local-variable 'replace-re-search-function)
-	     'longlines-re-search-forward)
+	     #'longlines-re-search-forward)
         (add-to-list 'buffer-substring-filters 'longlines-encode-string)
         (when longlines-wrap-follows-window-size
 	  (let ((dw (if (and (integerp longlines-wrap-follows-window-size)
@@ -138,7 +134,7 @@ newlines are indicated with a symbol."
 	    (set (make-local-variable 'fill-column)
 		 (- (window-width) dw)))
           (add-hook 'window-configuration-change-hook
-                    'longlines-window-change-function nil t))
+                    #'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)
               (inhibit-read-only t)
 	      (inhibit-modification-hooks t)
@@ -160,21 +156,22 @@ newlines are indicated with a symbol."
 
 	;; Hacks to make longlines play nice with various modes.
 	(cond ((eq major-mode 'mail-mode)
-	       (add-hook 'mail-setup-hook 'longlines-decode-buffer nil t)
+	       (declare-function mail-indent-citation "sendmail" ())
+	       (add-hook 'mail-setup-hook #'longlines-decode-buffer nil t)
 	       (or mail-citation-hook
-		   (add-hook 'mail-citation-hook 'mail-indent-citation nil t))
-	       (add-hook 'mail-citation-hook 'longlines-decode-region nil t))
+		   (add-hook 'mail-citation-hook #'mail-indent-citation nil t))
+	       (add-hook 'mail-citation-hook #'longlines-decode-region nil t))
 	      ((eq major-mode 'message-mode)
-	       (add-hook 'message-setup-hook 'longlines-decode-buffer nil t)
+	       (add-hook 'message-setup-hook #'longlines-decode-buffer nil t)
 	       (make-local-variable 'message-indent-citation-function)
 	       (if (not (listp message-indent-citation-function))
 		   (setq message-indent-citation-function
 			 (list message-indent-citation-function)))
-	       (add-to-list 'message-indent-citation-function
-			    'longlines-decode-region t)))
+	       (add-hook 'message-indent-citation-function
+			 #'longlines-decode-region t t)))
 
-	(add-hook 'after-change-functions 'longlines-after-change-function nil t)
-	(add-hook 'post-command-hook 'longlines-post-command-function nil t)
+	(add-hook 'after-change-functions #'longlines-after-change-function nil t)
+	(add-hook 'post-command-hook #'longlines-post-command-function nil t)
         (when longlines-auto-wrap
           (auto-fill-mode 0)))
     ;; Turn off longlines mode
@@ -190,12 +187,12 @@ newlines are indicated with a symbol."
 	    (widen)
 	    (longlines-encode-region (point-min) (point-max))
 	    (setq longlines-decoded nil))))
-    (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
-    (remove-hook 'after-change-functions 'longlines-after-change-function t)
-    (remove-hook 'post-command-hook 'longlines-post-command-function t)
-    (remove-hook 'before-revert-hook 'longlines-before-revert-hook t)
+    (remove-hook 'change-major-mode-hook #'longlines-mode-off t)
+    (remove-hook 'after-change-functions #'longlines-after-change-function t)
+    (remove-hook 'post-command-hook #'longlines-post-command-function t)
+    (remove-hook 'before-revert-hook #'longlines-before-revert-hook t)
     (remove-hook 'window-configuration-change-hook
-                 'longlines-window-change-function t)
+                 #'longlines-window-change-function t)
     (when longlines-wrap-follows-window-size
       (kill-local-variable 'fill-column))
     (kill-local-variable 'isearch-search-fun-function)
@@ -482,17 +479,17 @@ This is called by `window-configuration-change-hook'."
 ;;; Loading and saving
 
 (defun longlines-before-revert-hook ()
-  (add-hook 'after-revert-hook 'longlines-after-revert-hook nil t)
+  (add-hook 'after-revert-hook #'longlines-after-revert-hook nil t)
   (longlines-mode 0))
 
 (defun longlines-after-revert-hook ()
-  (remove-hook 'after-revert-hook 'longlines-after-revert-hook t)
+  (remove-hook 'after-revert-hook #'longlines-after-revert-hook t)
   (longlines-mode 1))
 
 (add-to-list
  'format-alist
  (list 'longlines "Automatically wrap long lines." nil nil
-       'longlines-encode-region t nil))
+       #'longlines-encode-region t nil))
 
 ;;; Unloading
 

@@ -1,4 +1,4 @@
-;;; html2text.el --- a simple html to plain text converter -*- coding: utf-8 -*-
+;;; html2text.el --- a simple html to plain text converter -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 

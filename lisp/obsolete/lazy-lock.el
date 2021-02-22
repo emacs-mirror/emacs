@@ -554,30 +554,30 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; Add hook if lazy-lock.el is fontifying on scrolling or is deferring.
   (when (or fontifying defer-change defer-scroll defer-context)
     (add-hook 'window-scroll-functions (if defer-scroll
-					   'lazy-lock-defer-after-scroll
-					 'lazy-lock-fontify-after-scroll)
+					   #'lazy-lock-defer-after-scroll
+					 #'lazy-lock-fontify-after-scroll)
 	      nil t))
   ;;
   ;; Add hook if lazy-lock.el is fontifying and is not deferring changes.
   (when (and fontifying (not defer-change) (not defer-context))
-    (add-hook 'before-change-functions 'lazy-lock-arrange-before-change nil t))
+    (add-hook 'before-change-functions #'lazy-lock-arrange-before-change nil t))
   ;;
   ;; Replace Font Lock mode hook.
-  (remove-hook 'after-change-functions 'font-lock-after-change-function t)
+  (remove-hook 'after-change-functions #'font-lock-after-change-function t)
   (add-hook 'after-change-functions
 	    (cond ((and defer-change defer-context)
-		   'lazy-lock-defer-rest-after-change)
+		   #'lazy-lock-defer-rest-after-change)
 		  (defer-change
-		   'lazy-lock-defer-line-after-change)
+		   #'lazy-lock-defer-line-after-change)
 		  (defer-context
-		   'lazy-lock-fontify-rest-after-change)
+		   #'lazy-lock-fontify-rest-after-change)
 		  (t
-		   'lazy-lock-fontify-line-after-change))
+		   #'lazy-lock-fontify-line-after-change))
 	    nil t)
   ;;
   ;; Add package-specific hook.
-  (add-hook 'outline-view-change-hook 'lazy-lock-fontify-after-visage nil t)
-  (add-hook 'hs-hide-hook 'lazy-lock-fontify-after-visage nil t))
+  (add-hook 'outline-view-change-hook #'lazy-lock-fontify-after-visage nil t)
+  (add-hook 'hs-hide-hook #'lazy-lock-fontify-after-visage nil t))
 
 (defun lazy-lock-install-timers (dtime stime)
   ;; Schedule or re-schedule the deferral and stealth timers.
@@ -590,13 +590,13 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
       (when (cdr defer)
 	(cancel-timer (cdr defer)))
       (setcar lazy-lock-timers (cons dtime (and dtime
-	      (run-with-idle-timer dtime t 'lazy-lock-fontify-after-defer))))))
+	      (run-with-idle-timer dtime t #'lazy-lock-fontify-after-defer))))))
   (unless (eq stime (car (cdr lazy-lock-timers)))
     (let ((stealth (cdr lazy-lock-timers)))
       (when (cdr stealth)
 	(cancel-timer (cdr stealth)))
       (setcdr lazy-lock-timers (cons stime (and stime
-	      (run-with-idle-timer stime t 'lazy-lock-fontify-after-idle)))))))
+	      (run-with-idle-timer stime t #'lazy-lock-fontify-after-idle)))))))
 
 (defun lazy-lock-unstall ()
   ;;
@@ -614,21 +614,21 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 	  (save-restriction
 	    (widen)
 	    (lazy-lock-fontify-region (point-min) (point-max))))))
-    (add-hook 'after-change-functions 'font-lock-after-change-function nil t))
+    (add-hook 'after-change-functions #'font-lock-after-change-function nil t))
   ;;
   ;; Remove the text properties.
   (lazy-lock-after-unfontify-buffer)
   ;;
   ;; Remove the fontification hooks.
-  (remove-hook 'window-scroll-functions 'lazy-lock-fontify-after-scroll t)
-  (remove-hook 'window-scroll-functions 'lazy-lock-defer-after-scroll t)
-  (remove-hook 'before-change-functions 'lazy-lock-arrange-before-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-fontify-line-after-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-fontify-rest-after-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-defer-line-after-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-defer-rest-after-change t)
-  (remove-hook 'outline-view-change-hook 'lazy-lock-fontify-after-visage t)
-  (remove-hook 'hs-hide-hook 'lazy-lock-fontify-after-visage t))
+  (remove-hook 'window-scroll-functions #'lazy-lock-fontify-after-scroll t)
+  (remove-hook 'window-scroll-functions #'lazy-lock-defer-after-scroll t)
+  (remove-hook 'before-change-functions #'lazy-lock-arrange-before-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-fontify-line-after-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-fontify-rest-after-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-defer-line-after-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-defer-rest-after-change t)
+  (remove-hook 'outline-view-change-hook #'lazy-lock-fontify-after-visage t)
+  (remove-hook 'hs-hide-hook #'lazy-lock-fontify-after-visage t))
 
 ;; Hook functions.
 
@@ -724,7 +724,7 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 (defalias 'lazy-lock-fontify-line-after-change
   ;; Called from `after-change-functions'.
   ;; Fontify the current change.
-  'font-lock-after-change-function)
+  #'font-lock-after-change-function)
 
 (defun lazy-lock-fontify-rest-after-change (beg end old-len)
   ;; Called from `after-change-functions'.
@@ -783,10 +783,10 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 	(setq lazy-lock-buffers (cdr lazy-lock-buffers)))))
   ;; Add hook if fontification should now be defer-driven in this buffer.
   (when (and lazy-lock-mode lazy-lock-defer-on-scrolling
-	     (memq 'lazy-lock-fontify-after-scroll window-scroll-functions)
+	     (memq #'lazy-lock-fontify-after-scroll window-scroll-functions)
 	     (not (or (input-pending-p) (lazy-lock-unfontified-p))))
-    (remove-hook 'window-scroll-functions 'lazy-lock-fontify-after-scroll t)
-    (add-hook 'window-scroll-functions 'lazy-lock-defer-after-scroll nil t)))
+    (remove-hook 'window-scroll-functions #'lazy-lock-fontify-after-scroll t)
+    (add-hook 'window-scroll-functions #'lazy-lock-defer-after-scroll nil t)))
 
 (defun lazy-lock-fontify-after-idle ()
   ;; Called from `timer-idle-list'.

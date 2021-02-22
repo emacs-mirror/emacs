@@ -1,4 +1,4 @@
-;;; messcompat.el --- making message mode compatible with mail mode
+;;; messcompat.el --- making message mode compatible with mail mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 

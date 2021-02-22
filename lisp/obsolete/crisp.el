@@ -1,4 +1,4 @@
-;;; crisp.el --- CRiSP/Brief Emacs emulator
+;;; crisp.el --- CRiSP/Brief Emacs emulator  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1999, 2001-2021 Free Software Foundation, Inc.
 
@@ -66,63 +66,63 @@
 
 (defvar crisp-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(f1)]           'other-window)
+    (define-key map [(f1)]           #'other-window)
 
-    (define-key map [(f2) (down)]    'enlarge-window)
-    (define-key map [(f2) (left)]    'shrink-window-horizontally)
-    (define-key map [(f2) (right)]   'enlarge-window-horizontally)
-    (define-key map [(f2) (up)]      'shrink-window)
-    (define-key map [(f3) (down)]    'split-window-below)
-    (define-key map [(f3) (right)]   'split-window-right)
+    (define-key map [(f2) (down)]    #'enlarge-window)
+    (define-key map [(f2) (left)]    #'shrink-window-horizontally)
+    (define-key map [(f2) (right)]   #'enlarge-window-horizontally)
+    (define-key map [(f2) (up)]      #'shrink-window)
+    (define-key map [(f3) (down)]    #'split-window-below)
+    (define-key map [(f3) (right)]   #'split-window-right)
 
-    (define-key map [(f4)]           'delete-window)
-    (define-key map [(control f4)]   'delete-other-windows)
+    (define-key map [(f4)]           #'delete-window)
+    (define-key map [(control f4)]   #'delete-other-windows)
 
-    (define-key map [(f5)]           'search-forward-regexp)
-    (define-key map [(f19)]          'search-forward-regexp)
-    (define-key map [(meta f5)]      'search-backward-regexp)
+    (define-key map [(f5)]           #'search-forward-regexp)
+    (define-key map [(f19)]          #'search-forward-regexp)
+    (define-key map [(meta f5)]      #'search-backward-regexp)
 
-    (define-key map [(f6)]           'query-replace)
+    (define-key map [(f6)]           #'query-replace)
 
-    (define-key map [(f7)]           'start-kbd-macro)
-    (define-key map [(meta f7)]      'end-kbd-macro)
+    (define-key map [(f7)]           #'start-kbd-macro)
+    (define-key map [(meta f7)]      #'end-kbd-macro)
 
-    (define-key map [(f8)]           'call-last-kbd-macro)
-    (define-key map [(meta f8)]      'save-kbd-macro)
+    (define-key map [(f8)]           #'call-last-kbd-macro)
+    ;;(define-key map [(meta f8)]    #'save-kbd-macro) ;FIXME:Unknown command?
 
-    (define-key map [(f9)]           'find-file)
-    (define-key map [(meta f9)]      'load-library)
+    (define-key map [(f9)]           #'find-file)
+    (define-key map [(meta f9)]      #'load-library)
 
-    (define-key map [(f10)]          'execute-extended-command)
-    (define-key map [(meta f10)]     'compile)
+    (define-key map [(f10)]          #'execute-extended-command)
+    (define-key map [(meta f10)]     #'compile)
 
-    (define-key map [(SunF37)]       'kill-buffer)
-    (define-key map [(kp-add)]       'crisp-copy-line)
-    (define-key map [(kp-subtract)]  'crisp-kill-line)
+    (define-key map [(SunF37)]       #'kill-buffer)
+    (define-key map [(kp-add)]       #'crisp-copy-line)
+    (define-key map [(kp-subtract)]  #'crisp-kill-line)
     ;; just to cover all the bases (GNU Emacs, for instance)
-    (define-key map [(f24)]          'crisp-kill-line)
-    (define-key map [(insert)]       'crisp-yank-clipboard)
-    (define-key map [(f16)]          'crisp-set-clipboard) ; copy on Sun5 kbd
-    (define-key map [(f20)]          'crisp-kill-region) ; cut on Sun5 kbd
-    (define-key map [(f18)]          'crisp-yank-clipboard) ; paste on Sun5 kbd
+    (define-key map [(f24)]          #'crisp-kill-line)
+    (define-key map [(insert)]       #'crisp-yank-clipboard)
+    (define-key map [(f16)]          #'crisp-set-clipboard) ; copy on Sun5 kbd
+    (define-key map [(f20)]          #'crisp-kill-region) ; cut on Sun5 kbd
+    (define-key map [(f18)]          #'crisp-yank-clipboard) ; paste on Sun5 kbd
 
-    (define-key map [(control f)]    'fill-paragraph-or-region)
+    ;; (define-key map [(control f)]    #'fill-paragraph-or-region)
     (define-key map [(meta d)]       (lambda ()
                                        (interactive)
                                        (beginning-of-line) (kill-line)))
-    (define-key map [(meta e)]       'find-file)
-    (define-key map [(meta g)]       'goto-line)
-    (define-key map [(meta h)]       'help)
-    (define-key map [(meta i)]       'overwrite-mode)
-    (define-key map [(meta j)]       'bookmark-jump)
-    (define-key map [(meta l)]       'crisp-mark-line)
-    (define-key map [(meta m)]       'set-mark-command)
-    (define-key map [(meta n)]       'bury-buffer)
-    (define-key map [(meta p)]       'crisp-unbury-buffer)
-    (define-key map [(meta u)]       'undo)
-    (define-key map [(f14)]          'undo)
-    (define-key map [(meta w)]       'save-buffer)
-    (define-key map [(meta x)]       'crisp-meta-x-wrapper)
+    (define-key map [(meta e)]       #'find-file)
+    (define-key map [(meta g)]       #'goto-line)
+    (define-key map [(meta h)]       #'help)
+    (define-key map [(meta i)]       #'overwrite-mode)
+    (define-key map [(meta j)]       #'bookmark-jump)
+    (define-key map [(meta l)]       #'crisp-mark-line)
+    (define-key map [(meta m)]       #'set-mark-command)
+    (define-key map [(meta n)]       #'bury-buffer)
+    (define-key map [(meta p)]       #'crisp-unbury-buffer)
+    (define-key map [(meta u)]       #'undo)
+    (define-key map [(f14)]          #'undo)
+    (define-key map [(meta w)]       #'save-buffer)
+    (define-key map [(meta x)]       #'crisp-meta-x-wrapper)
     (define-key map [(meta ?0)]      (lambda ()
                                        (interactive)
                                        (bookmark-set "0")))
@@ -154,21 +154,21 @@
                                        (interactive)
                                        (bookmark-set "9")))
 
-    (define-key map [(shift delete)]    'kill-word)
-    (define-key map [(shift backspace)] 'backward-kill-word)
-    (define-key map [(control left)]    'backward-word)
-    (define-key map [(control right)]   'forward-word)
+    (define-key map [(shift delete)]    #'kill-word)
+    (define-key map [(shift backspace)] #'backward-kill-word)
+    (define-key map [(control left)]    #'backward-word)
+    (define-key map [(control right)]   #'forward-word)
 
-    (define-key map [(home)]            'crisp-home)
+    (define-key map [(home)]            #'crisp-home)
     (define-key map [(control home)]    (lambda ()
                                           (interactive)
                                           (move-to-window-line 0)))
-    (define-key map [(meta home)]       'beginning-of-line)
-    (define-key map [(end)]             'crisp-end)
+    (define-key map [(meta home)]       #'beginning-of-line)
+    (define-key map [(end)]             #'crisp-end)
     (define-key map [(control end)]     (lambda ()
                                           (interactive)
                                           (move-to-window-line -1)))
-    (define-key map [(meta end)]        'end-of-line)
+    (define-key map [(meta end)]        #'end-of-line)
     map)
   "Local keymap for CRiSP emulation mode.
 All the bindings are done here instead of globally to try and be
@@ -179,8 +179,7 @@ nice to the world.")
 
 (defcustom crisp-mode-mode-line-string " *CRiSP*"
   "String to display in the mode line when CRiSP emulation mode is enabled."
-  :type 'string
-  :group 'crisp)
+  :type 'string)
 
 ;;;###autoload
 (defcustom crisp-mode nil
@@ -190,20 +189,18 @@ indicates CRiSP mode is enabled.
 
 Setting this variable directly does not take effect;
 use either M-x customize or the function `crisp-mode'."
-  :set (lambda (symbol value) (crisp-mode (if value 1 0)))
-  :initialize 'custom-initialize-default
+  :set (lambda (_symbol value) (crisp-mode (if value 1 0)))
+  :initialize #'custom-initialize-default
   :require 'crisp
   :version "20.4"
-  :type 'boolean
-  :group 'crisp)
+  :type 'boolean)
 
 (defcustom crisp-override-meta-x t
   "Controls overriding the normal Emacs M-x key binding in the CRiSP emulator.
 Normally the CRiSP emulator rebinds M-x to `save-buffers-exit-emacs', and
 provides the usual M-x functionality on the F10 key.  If this variable
 is non-nil, M-x will exit Emacs."
-  :type 'boolean
-  :group 'crisp)
+  :type 'boolean)
 
 (defcustom crisp-load-scroll-all nil
   "Controls loading of the Scroll Lock in the CRiSP emulator.
@@ -212,18 +209,15 @@ package when enabling the CRiSP emulator.
 
 If this variable is nil when you start the CRiSP emulator, it
 does not load the scroll-all package."
-  :type 'boolean
-  :group 'crisp)
+  :type 'boolean)
 
 (defcustom crisp-load-hook nil
   "Hooks to run after loading the CRiSP emulator package."
-  :type 'hook
-  :group 'crisp)
+  :type 'hook)
 
 (defcustom crisp-mode-hook nil
   "Hook run by the function `crisp-mode'."
-  :type 'hook
-  :group 'crisp)
+  :type 'hook)
 
 (defconst crisp-version "1.34"
   "The version of the CRiSP emulator.")
@@ -370,11 +364,11 @@ normal CRiSP binding) and when it is nil M-x will run
     (if crisp-load-scroll-all
 	(require 'scroll-all))
     (if (featurep 'scroll-all)
-	(define-key crisp-mode-map [(meta f1)] 'scroll-all-mode))))
+	(define-key crisp-mode-map [(meta f1)] #'scroll-all-mode))))
 
 ;; People might use Apropos on `brief'.
 ;;;###autoload
-(defalias 'brief-mode 'crisp-mode)
+(defalias 'brief-mode #'crisp-mode)
 
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)

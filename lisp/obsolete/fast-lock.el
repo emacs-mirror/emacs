@@ -438,8 +438,7 @@ See `fast-lock-mode'."
   ;; Flag so that a cache will be saved later even if the file is never saved.
   (setq fast-lock-cache-timestamp nil))
 
-(defalias 'fast-lock-after-unfontify-buffer
-  'ignore)
+(defalias 'fast-lock-after-unfontify-buffer #'ignore)
 
 ;; Miscellaneous Functions:
 
@@ -456,7 +455,7 @@ See `fast-lock-mode'."
 (defun fast-lock-save-caches-before-kill-emacs ()
   ;; Do `fast-lock-save-cache's if `kill-emacs' is on `fast-lock-save-events'.
   (when (memq 'kill-emacs fast-lock-save-events)
-    (mapcar 'fast-lock-save-cache (buffer-list))))
+    (mapcar #'fast-lock-save-cache (buffer-list))))
 
 (defun fast-lock-cache-directory (directory create)
   "Return usable directory based on DIRECTORY.
@@ -517,7 +516,7 @@ See `fast-lock-cache-directory'."
 	    (function (lambda (c) (or (cdr (assq c chars-alist)) (list c))))))
       (concat
        (file-name-as-directory (expand-file-name directory))
-       (mapconcat 'char-to-string (apply 'append (mapcar mapchars bufile)) "")
+       (mapconcat #'char-to-string (apply #'append (mapcar mapchars bufile)) "")
        ".flc"))))
 
 ;; Font Lock Cache Processing Functions:
@@ -718,7 +717,7 @@ See `fast-lock-get-face-properties'."
   (defvar font-lock-inhibit-thing-lock nil))
 
 (unless (fboundp 'font-lock-compile-keywords)
-  (defalias 'font-lock-compile-keywords 'identity))
+  (defalias 'font-lock-compile-keywords #'identity))
 
 (unless (fboundp 'font-lock-eval-keywords)
   (defun font-lock-eval-keywords (keywords)
@@ -740,10 +739,10 @@ See `fast-lock-get-face-properties'."
 
 ;; Install ourselves:
 
-(add-hook 'after-save-hook 'fast-lock-save-cache-after-save-file)
-(add-hook 'kill-buffer-hook 'fast-lock-save-cache-before-kill-buffer)
+(add-hook 'after-save-hook #'fast-lock-save-cache-after-save-file)
+(add-hook 'kill-buffer-hook #'fast-lock-save-cache-before-kill-buffer)
 (unless noninteractive
-  (add-hook 'kill-emacs-hook 'fast-lock-save-caches-before-kill-emacs))
+  (add-hook 'kill-emacs-hook #'fast-lock-save-caches-before-kill-emacs))
 
 ;;;###autoload
 (when (fboundp 'add-minor-mode)

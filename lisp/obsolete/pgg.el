@@ -27,33 +27,16 @@
 
 (require 'pgg-def)
 (require 'pgg-parse)
-(autoload 'run-at-time "timer")
 
 (eval-when-compile (require 'cl-lib))
 
 ;;; @ utility functions
 ;;;
 
-(eval-and-compile
-  (if (featurep 'xemacs)
-      (progn
-	(defun pgg-run-at-time (time repeat function &rest args)
-	  "Emulating function run as `run-at-time'.
-TIME should be nil meaning now, or a number of seconds from now.
-Return an itimer object which can be used in either `delete-itimer'
-or `cancel-timer'."
-	  (pgg-run-at-time-1 time repeat function args))
-	(defun pgg-cancel-timer (timer)
-	  "Emulate cancel-timer for xemacs."
-	  (let ((delete-itimer 'delete-itimer))
-	    (funcall delete-itimer timer))))
-    (defalias 'pgg-run-at-time 'run-at-time)
-    (defalias 'pgg-cancel-timer 'cancel-timer)))
-
 (defun pgg-invoke (func scheme &rest args)
   (progn
     (require (intern (format "pgg-%s" scheme)))
-    (apply 'funcall (intern (format "pgg-%s-%s" scheme func)) args)))
+    (apply #'funcall (intern (format "pgg-%s-%s" scheme func)) args)))
 
 (defmacro pgg-save-coding-system (start end &rest body)
   (declare (indent 2) (debug t))
@@ -153,16 +136,9 @@ regulate cache behavior."
     (set (intern key pgg-passphrase-cache)
          passphrase)
     (set (intern key pgg-pending-timers)
-         (pgg-run-at-time pgg-passphrase-cache-expiry nil
-                           #'pgg-remove-passphrase-from-cache
-                           key notruncate))))
-
-(if (fboundp 'clear-string)
-    (defalias 'pgg-clear-string 'clear-string)
-  (defun pgg-clear-string (string)
-    (fillarray string ?_)))
-
-(declare-function pgg-clear-string "pgg" (string))
+         (run-at-time pgg-passphrase-cache-expiry nil
+                      #'pgg-remove-passphrase-from-cache
+                      key notruncate))))
 
 (defun pgg-remove-passphrase-from-cache (key &optional notruncate)
   "Omit passphrase associated with KEY in time-limited passphrase cache.
@@ -182,10 +158,10 @@ regulate cache behavior."
          (interned-timer-key (intern-soft key pgg-pending-timers))
          (old-timer (symbol-value interned-timer-key)))
     (when passphrase
-      (pgg-clear-string passphrase)
+      (clear-string passphrase)
       (unintern key pgg-passphrase-cache))
     (when old-timer
-      (pgg-cancel-timer old-timer)
+      (cancel-timer old-timer)
       (unintern interned-timer-key pgg-pending-timers))))
 
 (defmacro pgg-convert-lbt-region (start end lbt)
