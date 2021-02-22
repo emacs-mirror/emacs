@@ -46,8 +46,7 @@
   :type 'boolean)
 
 (defvar nroff-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\t"  'tab-to-tab-stop)
     (define-key map "\e?" 'nroff-count-text-lines)
     (define-key map "\n"  'nroff-electric-newline)

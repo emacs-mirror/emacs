@@ -63,8 +63,7 @@ not align (only setting space according to `conf-assignment-space')."
   :type 'boolean)
 
 (defvar conf-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-u" 'conf-unix-mode)
     (define-key map "\C-c\C-w" 'conf-windows-mode)
     (define-key map "\C-c\C-j" 'conf-javaprop-mode)
