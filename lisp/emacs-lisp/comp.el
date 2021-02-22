@@ -733,7 +733,7 @@ This is typically for top-level forms other than defun.")
       :documentation "Dominance frontier set. Block-name -> block")
   (post-num nil :type (or null number)
             :documentation "Post order number.")
-  (final-frame nil :type (or null vector)
+  (final-frame nil :type (or null comp-vec)
              :documentation "This is a copy of the frame when leaving the block.
 Is in use to help the SSA rename pass."))
 
@@ -1357,7 +1357,7 @@ If INPUT is a string this is the filename to be compiled."
 
 (cl-defstruct (comp-limplify (:copier nil))
   "Support structure used during function limplification."
-  (frame nil :type vector
+  (frame nil :type (or null comp-vec)
          :documentation "Meta-stack used to flat LAP.")
   (curr-block nil :type comp-block
               :documentation "Current block being limplified.")
@@ -1406,7 +1406,7 @@ Restore the original value afterwards."
 
 (defsubst comp-slot-n (n)
   "Slot N into the meta-stack."
-  (aref (comp-limplify-frame comp-pass) n))
+  (comp-vec-aref (comp-limplify-frame comp-pass) n))
 
 (defsubst comp-slot ()
   "Current slot into the meta-stack pointed by sp."
@@ -1471,12 +1471,12 @@ STACK-OFF is the index of the first slot frame involved."
 (defun comp-new-frame (size &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
 If SSA non-nil populate it of m-var in ssa form."
-  (cl-loop with v = (make-vector size nil)
+  (cl-loop with v = (make-comp-vec)
            for i below size
            for mvar = (if ssa
                           (make-comp-ssa-mvar :slot i)
                         (make-comp-mvar :slot i))
-           do (aset v i mvar)
+           do (setf (comp-vec-aref v i) mvar)
            finally return v))
 
 (defun comp-emit (insn)
@@ -2816,7 +2816,7 @@ blocks."
                                (eq op 'fetch-handler))
                         return t)))
 
-    (cl-loop for i from 0 below (comp-func-frame-size comp-func)
+    (cl-loop for i from 0 below (comp-func-frame-size comp-func) ; FIXME
              ;; List of blocks with a definition of mvar i
              for defs-v = (cl-loop with blocks = (comp-func-blocks comp-func)
                                    for b being each hash-value of blocks
@@ -2854,8 +2854,8 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
 
 (cl-defstruct (comp-ssa (:copier nil))
   "Support structure used while SSA renaming."
-  (frame (comp-new-frame (comp-func-frame-size comp-func) t) :type vector
-         :documentation "Vector of m-vars."))
+  (frame (comp-new-frame (comp-func-frame-size comp-func) t) :type comp-vec
+         :documentation "`comp-vec' of m-vars."))
 
 (defun comp-ssa-rename-insn (insn frame)
   (dotimes (slot-n (comp-func-frame-size comp-func))
@@ -2866,21 +2866,21 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
               (new-lvalue ()
                 ;; If is an assignment make a new mvar and put it as l-value.
                 (let ((mvar (make-comp-ssa-mvar :slot slot-n)))
-                  (setf (aref frame slot-n) mvar
+                  (setf (comp-vec-aref frame slot-n) mvar
                         (cadr insn) mvar))))
       (pcase insn
         (`(,(pred comp-assign-op-p) ,(pred targetp) . ,_)
-         (let ((mvar (aref frame slot-n)))
+         (let ((mvar (comp-vec-aref frame slot-n)))
            (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))
          (new-lvalue))
         (`(fetch-handler . ,_)
          ;; Clobber all no matter what!
-         (setf (aref frame slot-n) (make-comp-ssa-mvar :slot slot-n)))
+         (setf (comp-vec-aref frame slot-n) (make-comp-ssa-mvar :slot slot-n)))
         (`(phi ,n)
          (when (equal n slot-n)
            (new-lvalue)))
         (_
-         (let ((mvar (aref frame slot-n)))
+         (let ((mvar (comp-vec-aref frame slot-n)))
            (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn)))))))))
 
 (defun comp-ssa-rename ()
@@ -2900,7 +2900,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                        for ed in out-edges
                        for child = (comp-edge-dst ed)
                        ;; Provide a copy of the same frame to all children.
-                       do (ssa-rename-rec child (copy-sequence in-frame)))))))
+                       do (ssa-rename-rec child (comp-vec-copy in-frame)))))))
 
       (ssa-rename-rec (gethash 'entry (comp-func-blocks comp-func))
                       (comp-new-frame frame-size t)))))
@@ -2914,7 +2914,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                                for e in (comp-block-in-edges b)
                                for b = (comp-edge-src e)
                                for in-frame = (comp-block-final-frame b)
-                               collect (list (aref in-frame slot-n)
+                               collect (list (comp-vec-aref in-frame slot-n)
                                              (comp-block-name b))))))
 
     (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
