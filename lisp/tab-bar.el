@@ -759,12 +759,17 @@ most recent, and so on."
 (defun tab-bar-move-tab-to (to-index &optional from-index)
   "Move tab from FROM-INDEX position to new position at TO-INDEX.
 FROM-INDEX defaults to the current tab index.
-FROM-INDEX and TO-INDEX count from 1."
+FROM-INDEX and TO-INDEX count from 1.
+Negative TO-INDEX counts tabs from the end of the tab bar.
+Argument addressing is absolute in contrast to `tab-bar-move-tab'
+where argument addressing is relative."
   (interactive "P")
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (or from-index (1+ (tab-bar--current-tab-index tabs))))
          (from-tab (nth (1- from-index) tabs))
-         (to-index (max 0 (min (1- (or to-index 1)) (1- (length tabs))))))
+         (to-index (if to-index (prefix-numeric-value to-index) 1))
+         (to-index (if (< to-index 0) (+ (length tabs) (1+ to-index)) to-index))
+         (to-index (max 0 (min (1- to-index) (1- (length tabs))))))
     (setq tabs (delq from-tab tabs))
     (cl-pushnew from-tab (nthcdr to-index tabs))
     (set-frame-parameter nil 'tabs tabs)
@@ -772,7 +777,9 @@ FROM-INDEX and TO-INDEX count from 1."
 
 (defun tab-bar-move-tab (&optional arg)
   "Move the current tab ARG positions to the right.
-If a negative ARG, move the current tab ARG positions to the left."
+If a negative ARG, move the current tab ARG positions to the left.
+Argument addressing is relative in contrast to `tab-bar-move-tab-to'
+where argument addressing is absolute."
   (interactive "p")
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (or (tab-bar--current-tab-index tabs) 0))
@@ -1687,6 +1694,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (define-key tab-prefix-map "0" 'tab-close)
 (define-key tab-prefix-map "o" 'tab-next)
 (define-key tab-prefix-map "m" 'tab-move)
+(define-key tab-prefix-map "M" 'tab-move-to)
 (define-key tab-prefix-map "r" 'tab-rename)
 (define-key tab-prefix-map "\r" 'tab-bar-select-tab-by-name)
 (define-key tab-prefix-map "b" 'switch-to-buffer-other-tab)
