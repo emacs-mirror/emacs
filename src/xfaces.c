@@ -6034,10 +6034,11 @@ realize_gui_face (struct face_cache *cache, Lisp_Object attrs[LFACE_VECTOR_SIZE]
 		face->box = FACE_RAISED_BOX;
 	      else if (EQ (value, Qpressed_button))
 		face->box = FACE_SUNKEN_BOX;
-	      else if (EQ (value, Qflat_button)) {
-		face->box = FACE_SIMPLE_BOX;
-		face->box_color = face->background;
-	      }
+	      else if (EQ (value, Qflat_button))
+		{
+		  face->box = FACE_SIMPLE_BOX;
+		  face->box_color = face->background;
+		}
 	    }
 	}
     }
