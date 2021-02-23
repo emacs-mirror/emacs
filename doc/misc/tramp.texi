@@ -494,7 +494,7 @@ and the return value of @code{(system-name)} as default host name.
 Therefore, it is convenient to open a file as
 @file{@trampfn{sudo,,/path/to/file}}.
 
-The method @option{sg} stands for ``switch group''; here the username
+The method @option{sg} stands for ``switch group''; here the user name
 is used as the group to change to.  The default host name is the same.
 
 
@@ -562,7 +562,7 @@ of the local file name is the share exported by the remote host,
 @cindex @option{mtp} method
 
 On systems which have @acronym{GVFS, the GNOME Virtual File System}
-installed , its offered methods can be used by @value{tramp}.
+installed, its offered methods can be used by @value{tramp}.
 Examples are @file{@trampfn{sftp,user@@host,/path/to/file}},
 @file{@trampfn{afp,user@@host,/path/to/file}} (accessing Apple's AFP
 file system), @file{@trampfn{dav,user@@host,/path/to/file}},
