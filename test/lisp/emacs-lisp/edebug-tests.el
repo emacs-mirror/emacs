@@ -219,16 +219,16 @@ index."
     (with-current-buffer (find-file-noselect edebug-tests-temp-file)
       (setq saved-local-map overriding-local-map)
       (setq overriding-local-map edebug-tests-keymap)
-      (add-hook 'post-command-hook 'edebug-tests-post-command))
+      (add-hook 'post-command-hook #'edebug-tests-post-command))
     (advice-add 'exit-recursive-edit
-                :around 'edebug-tests-preserve-keyboard-macro-state)
+                :around #'edebug-tests-preserve-keyboard-macro-state)
     (unwind-protect
         (kmacro-call-macro nil nil nil kbdmac)
       (advice-remove 'exit-recursive-edit
-                     'edebug-tests-preserve-keyboard-macro-state)
+                     #'edebug-tests-preserve-keyboard-macro-state)
       (with-current-buffer (find-file-noselect edebug-tests-temp-file)
         (setq overriding-local-map saved-local-map)
-        (remove-hook 'post-command-hook 'edebug-tests-post-command)))))
+        (remove-hook 'post-command-hook #'edebug-tests-post-command)))))
 
 (defun edebug-tests-preserve-keyboard-macro-state (orig &rest args)
   "Call ORIG with ARGS preserving the value of `executing-kbd-macro'.
@@ -857,12 +857,14 @@ test and possibly others should be updated."
 (ert-deftest edebug-tests-trivial-backquote ()
   "Edebug can instrument a trivial backquote expression (Bug#23651)."
   (edebug-tests-with-normal-env
-   (read-only-mode -1)
-   (delete-region (point-min) (point-max))
-   (insert  "`1")
-   (read-only-mode)
+   (let ((inhibit-read-only t))
+     (delete-region (point-min) (point-max))
+     (insert  "`1"))
    (edebug-eval-defun nil)
-   (should (string-match-p (regexp-quote "1 (#o1, #x1, ?\\C-a)")
+   ;; `eval-defun' outputs its message to the echo area in a rather
+   ;; funny way, so the "1" and the " (#o1, #x1, ?\C-a)" end up placed
+   ;; there in separate pieces (via `print' rather than via `message').
+   (should (string-match-p (regexp-quote " (#o1, #x1, ?\\C-a)")
                            edebug-tests-messages))
    (setq edebug-tests-messages "")
 
@@ -912,13 +914,17 @@ test and possibly others should be updated."
 (ert-deftest edebug-tests-cl-macrolet ()
   "Edebug can instrument `cl-macrolet' expressions. (Bug#29919)"
   (edebug-tests-with-normal-env
-   (edebug-tests-setup-@ "use-cl-macrolet" '(10) t)
+   (edebug-tests-locate-def "use-cl-macrolet")
    (edebug-tests-run-kbd-macro
-    "@ SPC SPC"
+    "C-u C-M-x SPC"
     (edebug-tests-should-be-at "use-cl-macrolet" "func")
-    (edebug-tests-should-match-result-in-messages "+")
-    "g"
-    (should (equal edebug-tests-@-result "The result of applying + to (1 x) is 11")))))
+    (edebug-tests-should-match-result-in-messages "+"))
+   (let ((edebug-initial-mode 'Go-nonstop))
+     (edebug-tests-setup-@ "use-cl-macrolet" '(10) t))
+   (edebug-tests-run-kbd-macro
+    "@ SPC g"
+    (should (equal edebug-tests-@-result "The result of applying + to (1 x) is 11"))
+     )))
 
 (ert-deftest edebug-tests-backtrace-goto-source ()
   "Edebug can jump to instrumented source from its *Edebug-Backtrace* buffer."

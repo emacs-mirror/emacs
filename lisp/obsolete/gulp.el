@@ -1,4 +1,4 @@
-;;; gulp.el --- ask for updates for Lisp packages
+;;; gulp.el --- ask for updates for Lisp packages  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -37,18 +37,15 @@
 (defcustom gulp-discard "^;+ *Maintainer: *\\(FSF\\|emacs-devel@gnu\\.org\\) *$"
   "The regexp matching the packages not requiring the request for updates."
   :version "24.4"			; added emacs-devel
-  :type 'regexp
-  :group 'gulp)
+  :type 'regexp)
 
 (defcustom gulp-tmp-buffer "*gulp*"
   "The name of the temporary buffer."
-  :type 'string
-  :group 'gulp)
+  :type 'string)
 
 (defcustom gulp-max-len 2000
   "Distance into a Lisp source file to scan for keywords."
-  :type 'integer
-  :group 'gulp)
+  :type 'integer)
 
 (defcustom gulp-request-header
   (concat
@@ -57,8 +54,7 @@ I'm going to start pretesting a new version of GNU Emacs soon, so I'd
 like to ask if you have any updates for the Emacs packages you work on.
 You're listed as the maintainer of the following package(s):\n\n")
   "The starting text of a gulp message."
-  :type 'string
-  :group 'gulp)
+  :type 'string)
 
 (defcustom gulp-request-end
   (concat
@@ -75,8 +71,7 @@ of information to include.
 
 Thanks.")
   "The closing text in a gulp message."
-  :type 'string
-  :group 'gulp)
+  :type 'string)
 
 (declare-function mail-subject "sendmail" ())
 (declare-function mail-send "sendmail" ())

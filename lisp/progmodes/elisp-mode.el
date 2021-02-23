@@ -1342,6 +1342,7 @@ if it already has a value.)
 Return the result of evaluation."
   ;; FIXME: the print-length/level bindings should only be applied while
   ;; printing, not while evaluating.
+  (defvar elisp--eval-defun-result)
   (let ((debug-on-error eval-expression-debug-on-error)
 	(print-length eval-expression-print-length)
 	(print-level eval-expression-print-level)
@@ -1357,19 +1358,22 @@ Return the result of evaluation."
           (end-of-defun)
           (beginning-of-defun)
           (setq beg (point))
-          (setq form (read (current-buffer)))
+          (setq form (funcall load-read-function (current-buffer)))
           (setq end (point)))
         ;; Alter the form if necessary.
         (let ((form (eval-sexp-add-defvars
                      (elisp--eval-defun-1
-                      (macroexpand
-                       `(setq elisp--eval-defun-result ,form))))))
+                      (macroexpand form)))))
           (eval-region beg end standard-output
                        (lambda (_ignore)
                          ;; Skipping to the end of the specified region
                          ;; will make eval-region return.
                          (goto-char end)
-                         form)))))
+                         ;; This `setq' needs to be added *after* passing
+                         ;; form through `elisp--eval-defun-1' since it
+                         ;; would otherwise "hide" forms like `defvar's and
+                         ;; thus defeat their special treatment.
+                         `(setq elisp--eval-defun-result ,form))))))
     (let ((str (eval-expression-print-format elisp--eval-defun-result)))
       (if str (princ str)))
     elisp--eval-defun-result))

@@ -483,7 +483,7 @@ Currently, Flymake may provide these keyword-value pairs:
 
 * `:recent-changes', a list of recent changes since the last time
   the backend function was called for the buffer.  An empty list
-  indicates that no changes have been reocrded.  If it is the
+  indicates that no changes have been recorded.  If it is the
   first time that this backend function is called for this
   activation of `flymake-mode', then this argument isn't provided
   at all (i.e. it's not merely nil).

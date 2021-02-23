@@ -1,4 +1,4 @@
-;;; lazy-lock.el --- lazy demand-driven fontification for fast Font Lock mode
+;;; lazy-lock.el --- lazy demand-driven fontification for fast Font Lock mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1998, 2001-2021 Free Software Foundation, Inc.
 
@@ -270,30 +270,14 @@
 (eval-when-compile (require 'cl-lib))
 
 (eval-when-compile
- ;; We use this to preserve or protect things when modifying text properties.
- (defmacro save-buffer-state (varlist &rest body)
-   "Bind variables according to VARLIST and eval BODY restoring buffer state."
-   `(let* (,@(append varlist
-		   '((modified (buffer-modified-p))
-		     (buffer-undo-list t)
-		     (inhibit-read-only t)
-		     (inhibit-point-motion-hooks t)
-		     (inhibit-modification-hooks t)
-		     deactivate-mark
-		     buffer-file-name
-		     buffer-file-truename)))
-     ,@body
-     (when (and (not modified) (buffer-modified-p))
-       (restore-buffer-modified-p nil))))
- (put 'save-buffer-state 'lisp-indent-function 1)
  ;;
  ;; We use this for clarity and speed.  Naughty but nice.
  (defmacro do-while (test &rest body)
    "(do-while TEST BODY...): eval BODY... and repeat if TEST yields non-nil.
 The order of execution is thus BODY, TEST, BODY, TEST and so on
 until TEST returns nil."
-   `(while (progn ,@body ,test)))
- (put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function)))
+   (declare (indent 1) (debug t))
+   `(while (progn ,@body ,test))))
 
 (defgroup lazy-lock nil
   "Font Lock support mode to fontify lazily."
@@ -326,8 +310,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
 				      (symbol :tag "name"))
 			       (radio :tag "Size"
 				      (const :tag "none" nil)
-				      (integer :tag "size")))))
-  :group 'lazy-lock)
+				      (integer :tag "size"))))))
 
 (defcustom lazy-lock-defer-on-the-fly t
   "If non-nil, means fontification after a change should be deferred.
@@ -346,8 +329,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
 		 (set :menu-tag "mode specific" :tag "modes"
 		      :value (not)
 		      (const :tag "Except" not)
-		      (repeat :inline t (symbol :tag "mode"))))
-  :group 'lazy-lock)
+		      (repeat :inline t (symbol :tag "mode")))))
 
 (defcustom lazy-lock-defer-on-scrolling nil
   "If non-nil, means fontification after a scroll should be deferred.
@@ -371,8 +353,7 @@ makes little sense if `lazy-lock-defer-contextually' is non-nil.)
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always" t)
-		 (other :tag "eventually" eventually))
-  :group 'lazy-lock)
+		 (other :tag "eventually" eventually)))
 
 (defcustom lazy-lock-defer-contextually 'syntax-driven
   "If non-nil, means deferred fontification should be syntactically true.
@@ -389,8 +370,7 @@ buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
 		 (const :tag "always" t)
-		 (other :tag "syntax-driven" syntax-driven))
-  :group 'lazy-lock)
+		 (other :tag "syntax-driven" syntax-driven)))
 
 (defcustom lazy-lock-defer-time 0.25
   "Time in seconds to delay before beginning deferred fontification.
@@ -401,8 +381,7 @@ variables `lazy-lock-defer-on-the-fly', `lazy-lock-defer-on-scrolling' and
 
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds"))
-  :group 'lazy-lock)
+		 (number :tag "seconds")))
 
 (defcustom lazy-lock-stealth-time 30
   "Time in seconds to delay before beginning stealth fontification.
@@ -411,16 +390,14 @@ If nil, means stealth fontification is never performed.
 
 The value of this variable is used when Lazy Lock mode is turned on."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds"))
-  :group 'lazy-lock)
+		 (number :tag "seconds")))
 
 (defcustom lazy-lock-stealth-lines (if font-lock-maximum-decoration 100 250)
   "Maximum size of a chunk of stealth fontification.
 Each iteration of stealth fontification can fontify this number of lines.
 To speed up input response during stealth fontification, at the cost of stealth
 taking longer to fontify, you could reduce the value of this variable."
-  :type '(integer :tag "lines")
-  :group 'lazy-lock)
+  :type '(integer :tag "lines"))
 
 (defcustom lazy-lock-stealth-load
   (if (condition-case nil (load-average) (error)) 200)
@@ -435,8 +412,7 @@ See also `lazy-lock-stealth-nice'."
   :type (if (condition-case nil (load-average) (error))
 	    '(choice (const :tag "never" nil)
 		     (integer :tag "load"))
-	  '(const :format "%t: unsupported\n" nil))
-  :group 'lazy-lock)
+	  '(const :format "%t: unsupported\n" nil)))
 
 (defcustom lazy-lock-stealth-nice 0.125
   "Time in seconds to pause between chunks of stealth fontification.
@@ -447,14 +423,12 @@ To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could increase the value of this variable.
 See also `lazy-lock-stealth-load'."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds"))
-  :group 'lazy-lock)
+		 (number :tag "seconds")))
 
 (defcustom lazy-lock-stealth-verbose
   (and (not lazy-lock-defer-contextually) (not (null font-lock-verbose)))
   "If non-nil, means stealth fontification should show status messages."
-  :type 'boolean
-  :group 'lazy-lock)
+  :type 'boolean)
 
 ;; User Functions:
 
@@ -580,30 +554,30 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; Add hook if lazy-lock.el is fontifying on scrolling or is deferring.
   (when (or fontifying defer-change defer-scroll defer-context)
     (add-hook 'window-scroll-functions (if defer-scroll
-					   'lazy-lock-defer-after-scroll
-					 'lazy-lock-fontify-after-scroll)
+					   #'lazy-lock-defer-after-scroll
+					 #'lazy-lock-fontify-after-scroll)
 	      nil t))
   ;;
   ;; Add hook if lazy-lock.el is fontifying and is not deferring changes.
   (when (and fontifying (not defer-change) (not defer-context))
-    (add-hook 'before-change-functions 'lazy-lock-arrange-before-change nil t))
+    (add-hook 'before-change-functions #'lazy-lock-arrange-before-change nil t))
   ;;
   ;; Replace Font Lock mode hook.
-  (remove-hook 'after-change-functions 'font-lock-after-change-function t)
+  (remove-hook 'after-change-functions #'font-lock-after-change-function t)
   (add-hook 'after-change-functions
 	    (cond ((and defer-change defer-context)
-		   'lazy-lock-defer-rest-after-change)
+		   #'lazy-lock-defer-rest-after-change)
 		  (defer-change
-		   'lazy-lock-defer-line-after-change)
+		   #'lazy-lock-defer-line-after-change)
 		  (defer-context
-		   'lazy-lock-fontify-rest-after-change)
+		   #'lazy-lock-fontify-rest-after-change)
 		  (t
-		   'lazy-lock-fontify-line-after-change))
+		   #'lazy-lock-fontify-line-after-change))
 	    nil t)
   ;;
   ;; Add package-specific hook.
-  (add-hook 'outline-view-change-hook 'lazy-lock-fontify-after-visage nil t)
-  (add-hook 'hs-hide-hook 'lazy-lock-fontify-after-visage nil t))
+  (add-hook 'outline-view-change-hook #'lazy-lock-fontify-after-visage nil t)
+  (add-hook 'hs-hide-hook #'lazy-lock-fontify-after-visage nil t))
 
 (defun lazy-lock-install-timers (dtime stime)
   ;; Schedule or re-schedule the deferral and stealth timers.
@@ -616,13 +590,13 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
       (when (cdr defer)
 	(cancel-timer (cdr defer)))
       (setcar lazy-lock-timers (cons dtime (and dtime
-	      (run-with-idle-timer dtime t 'lazy-lock-fontify-after-defer))))))
+	      (run-with-idle-timer dtime t #'lazy-lock-fontify-after-defer))))))
   (unless (eq stime (car (cdr lazy-lock-timers)))
     (let ((stealth (cdr lazy-lock-timers)))
       (when (cdr stealth)
 	(cancel-timer (cdr stealth)))
       (setcdr lazy-lock-timers (cons stime (and stime
-	      (run-with-idle-timer stime t 'lazy-lock-fontify-after-idle)))))))
+	      (run-with-idle-timer stime t #'lazy-lock-fontify-after-idle)))))))
 
 (defun lazy-lock-unstall ()
   ;;
@@ -640,21 +614,21 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 	  (save-restriction
 	    (widen)
 	    (lazy-lock-fontify-region (point-min) (point-max))))))
-    (add-hook 'after-change-functions 'font-lock-after-change-function nil t))
+    (add-hook 'after-change-functions #'font-lock-after-change-function nil t))
   ;;
   ;; Remove the text properties.
   (lazy-lock-after-unfontify-buffer)
   ;;
   ;; Remove the fontification hooks.
-  (remove-hook 'window-scroll-functions 'lazy-lock-fontify-after-scroll t)
-  (remove-hook 'window-scroll-functions 'lazy-lock-defer-after-scroll t)
-  (remove-hook 'before-change-functions 'lazy-lock-arrange-before-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-fontify-line-after-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-fontify-rest-after-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-defer-line-after-change t)
-  (remove-hook 'after-change-functions 'lazy-lock-defer-rest-after-change t)
-  (remove-hook 'outline-view-change-hook 'lazy-lock-fontify-after-visage t)
-  (remove-hook 'hs-hide-hook 'lazy-lock-fontify-after-visage t))
+  (remove-hook 'window-scroll-functions #'lazy-lock-fontify-after-scroll t)
+  (remove-hook 'window-scroll-functions #'lazy-lock-defer-after-scroll t)
+  (remove-hook 'before-change-functions #'lazy-lock-arrange-before-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-fontify-line-after-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-fontify-rest-after-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-defer-line-after-change t)
+  (remove-hook 'after-change-functions #'lazy-lock-defer-rest-after-change t)
+  (remove-hook 'outline-view-change-hook #'lazy-lock-fontify-after-visage t)
+  (remove-hook 'hs-hide-hook #'lazy-lock-fontify-after-visage t))
 
 ;; Hook functions.
 
@@ -682,7 +656,7 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; result in an unnecessary trigger after this if we did not cancel it now.
   (set-window-redisplay-end-trigger window nil))
 
-(defun lazy-lock-defer-after-scroll (window window-start)
+(defun lazy-lock-defer-after-scroll (window _window-start)
   ;; Called from `window-scroll-functions'.
   ;; Defer fontification following the scroll.  Save the current buffer so that
   ;; we subsequently fontify in all windows showing the buffer.
@@ -750,7 +724,7 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 (defalias 'lazy-lock-fontify-line-after-change
   ;; Called from `after-change-functions'.
   ;; Fontify the current change.
-  'font-lock-after-change-function)
+  #'font-lock-after-change-function)
 
 (defun lazy-lock-fontify-rest-after-change (beg end old-len)
   ;; Called from `after-change-functions'.
@@ -758,29 +732,29 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; buffer.  Save the current buffer so that we subsequently fontify in all
   ;; windows showing the buffer.
   (lazy-lock-fontify-line-after-change beg end old-len)
-  (save-buffer-state nil
+  (with-silent-modifications
     (unless (memq (current-buffer) lazy-lock-buffers)
       (push (current-buffer) lazy-lock-buffers))
     (save-restriction
       (widen)
       (remove-text-properties end (point-max) '(lazy-lock nil)))))
 
-(defun lazy-lock-defer-line-after-change (beg end old-len)
+(defun lazy-lock-defer-line-after-change (beg end _old-len)
   ;; Called from `after-change-functions'.
   ;; Defer fontification of the current change.  Save the current buffer so
   ;; that we subsequently fontify in all windows showing the buffer.
-  (save-buffer-state nil
+  (with-silent-modifications
     (unless (memq (current-buffer) lazy-lock-buffers)
       (push (current-buffer) lazy-lock-buffers))
     (remove-text-properties (max (1- beg) (point-min))
 			    (min (1+ end) (point-max))
 			    '(lazy-lock nil))))
 
-(defun lazy-lock-defer-rest-after-change (beg end old-len)
+(defun lazy-lock-defer-rest-after-change (beg _end _old-len)
   ;; Called from `after-change-functions'.
   ;; Defer fontification of the rest of the buffer.  Save the current buffer so
   ;; that we subsequently fontify in all windows showing the buffer.
-  (save-buffer-state nil
+  (with-silent-modifications
     (unless (memq (current-buffer) lazy-lock-buffers)
       (push (current-buffer) lazy-lock-buffers))
     (save-restriction
@@ -809,10 +783,10 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 	(setq lazy-lock-buffers (cdr lazy-lock-buffers)))))
   ;; Add hook if fontification should now be defer-driven in this buffer.
   (when (and lazy-lock-mode lazy-lock-defer-on-scrolling
-	     (memq 'lazy-lock-fontify-after-scroll window-scroll-functions)
+	     (memq #'lazy-lock-fontify-after-scroll window-scroll-functions)
 	     (not (or (input-pending-p) (lazy-lock-unfontified-p))))
-    (remove-hook 'window-scroll-functions 'lazy-lock-fontify-after-scroll t)
-    (add-hook 'window-scroll-functions 'lazy-lock-defer-after-scroll nil t)))
+    (remove-hook 'window-scroll-functions #'lazy-lock-fontify-after-scroll t)
+    (add-hook 'window-scroll-functions #'lazy-lock-defer-after-scroll nil t)))
 
 (defun lazy-lock-fontify-after-idle ()
   ;; Called from `timer-idle-list'.
@@ -868,14 +842,14 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; Called from `font-lock-after-fontify-buffer'.
   ;; Mark the current buffer as fontified.
   ;; This is a conspiracy hack between lazy-lock.el and font-lock.el.
-  (save-buffer-state nil
+  (with-silent-modifications
     (add-text-properties (point-min) (point-max) '(lazy-lock t))))
 
 (defun lazy-lock-after-unfontify-buffer ()
   ;; Called from `font-lock-after-unfontify-buffer'.
   ;; Mark the current buffer as unfontified.
   ;; This is a conspiracy hack between lazy-lock.el and font-lock.el.
-  (save-buffer-state nil
+  (with-silent-modifications
     (remove-text-properties (point-min) (point-max) '(lazy-lock nil))))
 
 ;; Fontification functions.
@@ -888,27 +862,27 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
     (widen)
     (when (setq beg (text-property-any beg end 'lazy-lock nil))
       (save-excursion
-	(save-match-data
-	  (save-buffer-state
-	   (next)
-	   ;; Find successive unfontified regions between BEG and END.
-	   (condition-case data
-	       (do-while beg
-			 (setq next (or (text-property-any beg end 'lazy-lock t) end))
-	  ;; Make sure the region end points are at beginning of line.
-			 (goto-char beg)
-			 (unless (bolp)
-			   (beginning-of-line)
-			   (setq beg (point)))
-			 (goto-char next)
-			 (unless (bolp)
-			   (forward-line)
-			   (setq next (point)))
-		     ;; Fontify the region, then flag it as fontified.
-			 (font-lock-fontify-region beg next)
-			 (add-text-properties beg next '(lazy-lock t))
-			 (setq beg (text-property-any next end 'lazy-lock nil)))
-	     ((error quit) (message "Fontifying region...%s" data)))))))))
+	(with-silent-modifications
+	  (let ((inhibit-point-motion-hooks t))
+	    ;; Find successive unfontified regions between BEG and END.
+	    (condition-case data
+		(do-while beg
+		  (let ((next (or (text-property-any beg end 'lazy-lock t)
+		                  end)))
+		    ;; Make sure the region end points are at beginning of line.
+		    (goto-char beg)
+		    (unless (bolp)
+		      (beginning-of-line)
+		      (setq beg (point)))
+		    (goto-char next)
+		    (unless (bolp)
+		      (forward-line)
+		      (setq next (point)))
+		    ;; Fontify the region, then flag it as fontified.
+		    (font-lock-fontify-region beg next)
+		    (add-text-properties beg next '(lazy-lock t))
+		    (setq beg (text-property-any next end 'lazy-lock nil))))
+	      ((error quit) (message "Fontifying region...%s" data)))))))))
 
 (defun lazy-lock-fontify-chunk ()
   ;; Fontify the nearest chunk, for stealth, in the current buffer.
@@ -1036,8 +1010,8 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 ;; Install ourselves:
 
-(add-hook 'window-size-change-functions 'lazy-lock-fontify-after-resize)
-(add-hook 'redisplay-end-trigger-functions 'lazy-lock-fontify-after-trigger)
+(add-hook 'window-size-change-functions #'lazy-lock-fontify-after-resize)
+(add-hook 'redisplay-end-trigger-functions #'lazy-lock-fontify-after-trigger)
 
 (unless (assq 'lazy-lock-mode minor-mode-alist)
   (setq minor-mode-alist (append minor-mode-alist '((lazy-lock-mode nil)))))

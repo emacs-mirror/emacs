@@ -108,7 +108,7 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 (defun eudc-macos-contacts-set-server (dummy)
   "Set the EUDC server to macOS Contacts app.
 The server in DUMMY is not actually used, since this backend
-always and implicitly connetcs to an instance of the Contacts app
+always and implicitly connects to an instance of the Contacts app
 running on the local host."
   (interactive)
   (eudc-set-server dummy 'macos-contacts)

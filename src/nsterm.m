@@ -8377,6 +8377,11 @@ not_in_argv (NSString *arg)
       surface = [[EmacsSurface alloc] initWithSize:s
                                         ColorSpace:[[[self window] colorSpace]
                                                      CGColorSpace]];
+
+      /* Since we're using NSViewLayerContentsRedrawOnSetNeedsDisplay
+         the layer's scale factor is not set automatically, so do it
+         now.  */
+      [[self layer] setContentsScale:[[self window] backingScaleFactor]];
     }
 
   CGContextRef context = [surface getContext];
@@ -9762,7 +9767,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   for (id object in cache)
     CFRelease ((IOSurfaceRef)object);
 
-  [cache removeAllObjects];
+  [cache release];
 
   [super dealloc];
 }

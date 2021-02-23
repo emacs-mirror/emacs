@@ -43,6 +43,10 @@ Similarly, tests of features implemented in C should reside in
 ~-tests.el~ added to the base-name of the tested source file.  Thus,
 tests for ~src/fileio.c~ should be in ~test/src/fileio-tests.el~.
 
+Some tests do not belong to any one particular file.  Such tests
+should be put in the ~misc~ directory and be given a descriptive name
+that does /not/ end with ~-tests.el~.
+
 There are also some test materials that cannot be run automatically
 (i.e. via ert).  These should be placed in ~/test/manual~; they are
 not run by the "make check" command and its derivatives.

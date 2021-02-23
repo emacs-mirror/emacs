@@ -1,4 +1,4 @@
-;;; mh-compat.el --- make MH-E compatible with various versions of Emacs
+;;; mh-compat.el --- make MH-E compatible with various versions of Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
@@ -83,6 +83,7 @@ This is an analogue of a dynamically scoped `let' that operates on
 the function cell of FUNCs rather than their value cell.
 
 \(fn ((FUNC ARGLIST BODY...) ...) FORM...)"
+  (declare (indent 1) (debug ((&rest (sexp sexp &rest form)) &rest form)))
   (if (fboundp 'cl-letf)
       `(cl-letf ,(mapcar (lambda (binding)
                            `((symbol-function ',(car binding))
@@ -90,9 +91,6 @@ the function cell of FUNCs rather than their value cell.
                          bindings)
          ,@body)
     `(flet ,bindings ,@body)))
-(put 'mh-flet 'lisp-indent-function 1)
-(put 'mh-flet 'edebug-form-spec
-     '((&rest (sexp sexp &rest form)) &rest form))
 
 (defun mh-display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.

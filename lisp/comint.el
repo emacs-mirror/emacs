@@ -104,6 +104,7 @@
 (require 'ring)
 (require 'ansi-color)
 (require 'regexp-opt)                   ;For regexp-opt-charset.
+(eval-when-compile (require 'subr-x))
 
 ;; Buffer Local Variables:
 ;;============================================================================
@@ -378,7 +379,7 @@ This variable is buffer-local."
    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
-   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'")
+   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :version "27.1"
@@ -2430,12 +2431,11 @@ This function could be in the list `comint-output-filter-functions'."
   (when (let ((case-fold-search t))
 	  (string-match comint-password-prompt-regexp
                         (replace-regexp-in-string "\r" "" string)))
-    (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
-      (setq string (replace-match "" t t string)))
     (let ((comint--prompt-recursion-depth (1+ comint--prompt-recursion-depth)))
       (if (> comint--prompt-recursion-depth 10)
           (message "Password prompt recursion too deep")
-        (comint-send-invisible string)))))
+        (comint-send-invisible
+         (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+"))))))
 
 ;; Low-level process communication
 

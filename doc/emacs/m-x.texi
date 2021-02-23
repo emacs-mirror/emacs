@@ -58,6 +58,14 @@ Modes}).  By default, no commands are excluded, but you can customize
 the option @code{read-extended-command-predicate} to exclude those
 irrelevant commands from completion results.
 
+@kindex M-S-x
+  Conversely, Emacs can exclude all commands except those that are
+particularly relevant to the current buffer.  The @kbd{M-S-x} (that's
+``meta shift x'') command works just like @kbd{M-x}, but instead of
+listing all (or most) of the commands Emacs knows about, it will only
+list the commands that have been marked as ``belonging'' to the
+current major mode, or any enabled minor modes.
+
   To cancel the @kbd{M-x} and not run a command, type @kbd{C-g} instead
 of entering the command name.  This takes you back to command level.
 

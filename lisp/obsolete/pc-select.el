@@ -1,4 +1,4 @@
-;;; pc-select.el --- emulate mark, cut, copy and paste from Motif
+;;; pc-select.el --- emulate mark, cut, copy and paste from Motif  -*- lexical-binding: t; -*-
 ;;;		     (or MAC GUI or MS-windoze (bah)) look-and-feel
 ;;;		     including key bindings.
 
@@ -94,25 +94,21 @@ The scroll commands normally generate an error if you try to scroll
 past the top or bottom of the buffer.  This is annoying when selecting
 text with these commands.  If you set this variable to non-nil, these
 errors are suppressed."
-  :type 'boolean
-  :group 'pc-select)
+  :type 'boolean)
 
 (defcustom pc-select-selection-keys-only nil
   "Non-nil means only bind the basic selection keys when started.
 Other keys that emulate pc-behavior will be untouched.
 This gives mostly Emacs-like behavior with only the selection keys enabled."
-  :type 'boolean
-  :group 'pc-select)
+  :type 'boolean)
 
 (defcustom pc-select-meta-moves-sexps nil
   "Non-nil means move sexp-wise with Meta key, otherwise move word-wise."
-  :type 'boolean
-  :group 'pc-select)
+  :type 'boolean)
 
 (defcustom pc-selection-mode-hook nil
   "The hook to run when PC Selection mode is toggled."
-  :type 'hook
-  :group 'pc-select)
+  :type 'hook)
 
 (defvar pc-select-saved-settings-alist nil
   "The values of the variables before PC Selection mode was toggled on.
@@ -320,7 +316,6 @@ but before calling PC Selection mode):
   ;; FIXME: bring pc-bindings-mode here ?
   nil nil nil
 
-  :group 'pc-select
   :global t
 
   (if pc-selection-mode

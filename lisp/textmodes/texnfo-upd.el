@@ -1033,7 +1033,7 @@ However, there does not need to be a title field."
 
   (save-excursion
     ;; `master-menu-inserted-p' is a kludge to tell
-    ;; whether to insert @end detailmenu (see bleow)
+    ;; whether to insert @end detailmenu (see below)
     (let (master-menu-inserted-p)
       ;; Handle top of menu
       (insert "\n@menu\n")

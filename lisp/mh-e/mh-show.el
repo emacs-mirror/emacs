@@ -136,7 +136,7 @@ displayed."
         (show-window (get-buffer-window mh-show-buffer))
         (display-mime-buttons-flag mh-display-buttons-for-inline-parts-flag))
     (if (not (eq (next-window (minibuffer-window)) (selected-window)))
-        (delete-other-windows))         ; force ourself to the top window
+        (delete-other-windows))         ; force ourselves to the top window
     (mh-in-show-buffer (mh-show-buffer)
       (setq mh-display-buttons-for-inline-parts-flag display-mime-buttons-flag)
       (if (and show-window

@@ -4011,6 +4011,7 @@ The third component is now determined on the basis of the names of the
 existing executable files.  This means that version.el is not altered
 by building Emacs.
 
+** New macro 'easy-menu-define'
 
 
 * Changes in 19.22.

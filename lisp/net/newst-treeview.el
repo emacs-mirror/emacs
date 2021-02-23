@@ -1626,7 +1626,7 @@ Return t if a new feed was activated, nil otherwise."
   (interactive
    (list (let ((completion-ignore-case t))
            (completing-read
-            "Jump to feed: "
+            "Jump to feed/group: "
             (append '("new" "obsolete" "immortal" "all")
                     (mapcar #'car (append newsticker-url-list
                                           newsticker-url-list-defaults)))
@@ -1852,28 +1852,34 @@ of the shift.  If MOVE-GROUP is nil the currently selected feed
 `newsticker--treeview-current-feed' is shifted, if it is t then
 the current feed's parent group is shifted.."
   (let* ((cur-feed newsticker--treeview-current-feed)
-         (thing (if move-group
-                    (newsticker--group-find-parent-group cur-feed)
+         (thing (if (and move-group
+                         (not (newsticker--group-get-group cur-feed)))
+                    (car (newsticker--group-find-parent-group cur-feed))
                   cur-feed))
          (parent-group (newsticker--group-find-parent-group
-                        (if move-group (car thing) thing))))
+                        ;;(if move-group (car thing) thing)
+                        thing)))
     (unless parent-group
       (error "Group not found!"))
     (let* ((siblings (cdr parent-group))
-           (pos (cl-position thing siblings :test 'equal))
+           (pos (cl-position thing siblings :test
+                             (lambda (o1 o2)
+                               (equal (if (listp o1) (car o1) o1)
+                                      (if (listp o2) (car o2) o2)))))
            (tpos (+ pos delta ))
            (new-pos (max 0 (min (length siblings) tpos)))
            (beg (cl-subseq siblings 0 (min pos new-pos)))
            (end (cl-subseq siblings (+ 1 (max pos new-pos))))
            (p (elt siblings new-pos)))
       (when (not (= pos new-pos))
-        (setcdr parent-group
-                (cl-concatenate 'list
-                                beg
-                                (if (> delta 0)
-                                    (list p thing)
-                                  (list thing p))
-                                end))
+        (let ((th (or (newsticker--group-get-group thing) thing)))
+          (setcdr parent-group
+                  (cl-concatenate 'list
+                                  beg
+                                  (if (> delta 0)
+                                      (list p th)
+                                    (list th p))
+                                  end)))
         (newsticker--treeview-tree-update)
         (newsticker-treeview-update)
         (newsticker-treeview-jump cur-feed)))))

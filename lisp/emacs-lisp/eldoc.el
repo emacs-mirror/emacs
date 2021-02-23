@@ -100,7 +100,7 @@ If the value is a positive number, it is used to calculate a
 number of logical lines of documentation that ElDoc is allowed to
 put in the echo area.  If a positive integer, the number is used
 directly, while a float specifies the number of lines as a
-proporting of the echo area frame's height.
+proportion of the echo area frame's height.
 
 If value is the symbol `truncate-sym-name-if-fit' t, the part of
 the doc string that represents a symbol's name may be truncated
@@ -692,7 +692,7 @@ following values are allowed:
 
 - `eldoc-documentation-compose-eagerly': calls all functions in
   the special hook and display as many of the resulting doc
-  strings as possible, as soon as possibl.  Preserving the
+  strings as possible, as soon as possible.  Preserving the
   relative order of doc strings;
 
 - `eldoc-documentation-enthusiast': calls all functions in the

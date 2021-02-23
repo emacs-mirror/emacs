@@ -1,4 +1,4 @@
-;;; cust-print.el --- handles print-level and print-circle
+;;; cust-print.el --- handles print-level and print-circle  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992, 2001-2021 Free Software Foundation, Inc.
 
@@ -118,9 +118,6 @@
 
 ;; Emacs 18 doesn't have defalias.
 ;; Provide def for byte compiler.
-(eval-and-compile
-  (or (fboundp 'defalias) (fset 'defalias 'fset)))
-
 
 ;; Variables:
 ;;=========================================================
@@ -141,8 +138,7 @@ If non-nil, components at levels equal to or greater than `print-level'
 are printed simply as `#'.  The object to be printed is at level 0,
 and if the object is a list or vector, its top-level components are at
 level 1."
-  :type '(choice (const nil) integer)
-  :group 'cust-print)
+  :type '(choice (const nil) integer))
 
 
 (defcustom print-circle nil
@@ -157,14 +153,12 @@ If non-nil, shared substructures anywhere in the structure are printed
 with `#N=' before the first occurrence (in the order of the print
 representation) and `#N#' in place of each subsequent occurrence,
 where N is a positive decimal integer."
-  :type 'boolean
-  :group 'cust-print)
+  :type 'boolean)
 
 
 (defcustom custom-print-vectors nil
   "Non-nil if printing of vectors should obey `print-level' and `print-length'."
-  :type 'boolean
-  :group 'cust-print)
+  :type 'boolean)
 
 
 ;; Custom printers
@@ -201,7 +195,7 @@ Any pair that has the same PREDICATE is first removed."
   (cust-print-update-custom-printers))
 
 
-(defun cust-print-use-custom-printer (object)
+(defun cust-print-use-custom-printer (_object)
   ;; Default function returns nil.
   nil)
 
@@ -231,11 +225,11 @@ Any pair that has the same PREDICATE is first removed."
   (defalias (car symbol-pair)
     (symbol-function (car (cdr symbol-pair)))))
 
-(defun cust-print-original-princ (object &optional stream)) ; dummy def
+(defun cust-print-original-princ (_object &optional _stream) nil) ; dummy def
 
 ;; Save emacs routines.
 (if (not (fboundp 'cust-print-original-prin1))
-    (mapc 'cust-print-set-function-cell
+    (mapc #'cust-print-set-function-cell
 	  '((cust-print-original-prin1 prin1)
 	    (cust-print-original-princ princ)
 	    (cust-print-original-print print)
@@ -243,14 +237,15 @@ Any pair that has the same PREDICATE is first removed."
 	    (cust-print-original-format format)
 	    (cust-print-original-message message)
 	    (cust-print-original-error error))))
-
+(declare-function cust-print-original-format "cust-print")
+(declare-function cust-print-original-message "cust-print")
 
 (defun custom-print-install ()
   "Replace print functions with general, customizable, Lisp versions.
 The Emacs subroutines are saved away, and you can reinstall them
 by running `custom-print-uninstall'."
   (interactive)
-  (mapc 'cust-print-set-function-cell
+  (mapc #'cust-print-set-function-cell
 	'((prin1 custom-prin1)
 	  (princ custom-princ)
 	  (print custom-print)
@@ -264,7 +259,7 @@ by running `custom-print-uninstall'."
 (defun custom-print-uninstall ()
   "Reset print functions to their Emacs subroutines."
   (interactive)
-  (mapc 'cust-print-set-function-cell
+  (mapc #'cust-print-set-function-cell
 	'((prin1 cust-print-original-prin1)
 	  (princ cust-print-original-princ)
 	  (print cust-print-original-print)
@@ -275,22 +270,20 @@ by running `custom-print-uninstall'."
 	  ))
   t)
 
-(defalias 'custom-print-funcs-installed-p 'custom-print-installed-p)
+(defalias 'custom-print-funcs-installed-p #'custom-print-installed-p)
 (defun custom-print-installed-p ()
   "Return t if custom-print is currently installed, nil otherwise."
   (eq (symbol-function 'custom-prin1) (symbol-function 'prin1)))
 
-(put 'with-custom-print-funcs 'edebug-form-spec '(body))
-(put 'with-custom-print 'edebug-form-spec '(body))
-
-(defalias 'with-custom-print-funcs 'with-custom-print)
 (defmacro with-custom-print (&rest body)
   "Temporarily install the custom print package while executing BODY."
+  (declare (debug t))
   `(unwind-protect
        (progn
 	 (custom-print-install)
 	 ,@body)
      (custom-print-uninstall)))
+(defalias 'with-custom-print-funcs #'with-custom-print)
 
 
 ;; Lisp replacements for prin1 and princ, and for some subrs that use them
@@ -369,7 +362,7 @@ vector, or symbol args.  The format specification for such args should
 be `%s' in any case, so a string argument will also work.  The string
 is generated with `custom-prin1-to-string', which quotes quotable
 characters."
-  (apply 'cust-print-original-format fmt
+  (apply #'cust-print-original-format fmt
 	 (mapcar (function (lambda (arg)
 			     (if (or (listp arg) (vectorp arg) (symbolp arg))
 				 (custom-prin1-to-string arg)
@@ -393,7 +386,7 @@ See `custom-format' for the details."
   ;; because the echo area requires special handling
   ;; to avoid duplicating the output.
   ;; cust-print-original-message does it right.
-  (apply 'cust-print-original-message  fmt
+  (apply #'cust-print-original-message  fmt
 	 (mapcar (function (lambda (arg)
 			     (if (or (listp arg) (vectorp arg) (symbolp arg))
 				 (custom-prin1-to-string arg)
@@ -406,7 +399,7 @@ See `custom-format' for the details."
 
 This is the custom-print replacement for the standard `error'.
 See `custom-format' for the details."
-  (signal 'error (list (apply 'custom-format fmt args))))
+  (signal 'error (list (apply #'custom-format fmt args))))
 
 
 
@@ -417,9 +410,9 @@ See `custom-format' for the details."
 (defvar circle-table)
 (defvar cust-print-current-level)
 
-(defun cust-print-original-printer (object))  ; One of the standard printers.
-(defun cust-print-low-level-prin (object))    ; Used internally.
-(defun cust-print-prin (object))              ; Call this to print recursively.
+(defun cust-print-original-printer (_object) nil) ; One of the standard printers.
+(defun cust-print-low-level-prin (_object) nil)   ; Used internally.
+(defun cust-print-prin (_object) nil) ; Call this to print recursively.
 
 (defun cust-print-top-level (object stream emacs-printer)
   ;; Set up for printing.

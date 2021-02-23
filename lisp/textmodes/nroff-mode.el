@@ -46,37 +46,33 @@
   :type 'boolean)
 
 (defvar nroff-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\t"  'tab-to-tab-stop)
     (define-key map "\e?" 'nroff-count-text-lines)
     (define-key map "\n"  'nroff-electric-newline)
     (define-key map "\en" 'nroff-forward-text-line)
     (define-key map "\ep" 'nroff-backward-text-line)
     (define-key map "\C-c\C-c" 'nroff-view)
-    (define-key map [menu-bar nroff-mode] (cons "Nroff" menu-map))
-    (define-key menu-map [nn]
-      '(menu-item "Newline" nroff-electric-newline
-		  :help "Insert newline for nroff mode; special if nroff-electric mode"))
-    (define-key menu-map [nc]
-      '(menu-item "Count text lines" nroff-count-text-lines
-		  :help "Count lines in region, except for nroff request lines."))
-    (define-key menu-map [nf]
-      '(menu-item "Forward text line" nroff-forward-text-line
-		  :help "Go forward one nroff text line, skipping lines of nroff requests"))
-    (define-key menu-map [nb]
-      '(menu-item "Backward text line" nroff-backward-text-line
-		  :help "Go backward one nroff text line, skipping lines of nroff requests"))
-    (define-key menu-map [ne]
-      '(menu-item "Electric newline mode"
-		  nroff-electric-mode
-		  :help "Auto insert closing requests if necessary"
-		  :button (:toggle . nroff-electric-mode)))
-    (define-key menu-map [npm]
-      '(menu-item "Preview as man page" nroff-view
-		  :help "Run man on this file."))
     map)
   "Major mode keymap for `nroff-mode'.")
+
+(easy-menu-define nroff-mode-menu nroff-mode-map
+  "Menu for `nroff-mode'."
+  '("Nroff"
+    ["Preview as man page" nroff-view
+     :help "Run man on this file."]
+    ["Electric newline mode" nroff-electric-mode
+     :help "Auto insert closing requests if necessary"
+     :style toggle
+     :selected nroff-electric-mode]
+    ["Backward text line" nroff-backward-text-line
+     :help "Go backward one nroff text line, skipping lines of nroff requests"]
+    ["Forward text line" nroff-forward-text-line
+     :help "Go forward one nroff text line, skipping lines of nroff requests"]
+    ["Count text lines" nroff-count-text-lines
+     :help "Count lines in region, except for nroff request lines."]
+    ["Newline" nroff-electric-newline
+     :help "Insert newline for nroff mode; special if nroff-electric mode"]))
 
 (defvar nroff-mode-syntax-table
   (let ((st (copy-syntax-table text-mode-syntax-table)))

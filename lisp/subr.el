@@ -373,9 +373,17 @@ PREFIX is a string, and defaults to \"g\"."
 
 (defun ignore (&rest _arguments)
   "Do nothing and return nil.
-This function accepts any number of ARGUMENTS, but ignores them."
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `always'."
+  (declare (completion #'ignore))
   (interactive)
   nil)
+
+(defun always (&rest _arguments)
+  "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+  t)
 
 ;; Signal a compile-error if the first arg is missing.
 (defun error (&rest args)
@@ -915,6 +923,7 @@ For an approximate inverse of this, see `key-description'."
 
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
+  (declare (completion #'ignore))
   (interactive)
   (ding)
   (if defining-kbd-macro
@@ -1298,6 +1307,7 @@ in a cleaner way with command remapping, like this:
     (define-key map "l" #'downcase-word)
     (define-key map "c" #'capitalize-word)
     (define-key map "x" #'execute-extended-command)
+    (define-key map "X" #'execute-extended-command-for-buffer)
     map)
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")

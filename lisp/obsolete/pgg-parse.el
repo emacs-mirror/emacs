@@ -1,4 +1,4 @@
-;;; pgg-parse.el --- OpenPGP packet parsing
+;;; pgg-parse.el --- OpenPGP packet parsing  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999, 2002-2021 Free Software Foundation, Inc.
 
@@ -44,14 +44,12 @@
 (defcustom pgg-parse-public-key-algorithm-alist
   '((1 . RSA) (2 . RSA-E) (3 . RSA-S) (16 . ELG-E) (17 . DSA) (20 . ELG))
   "Alist of the assigned number to the public key algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
 (defcustom pgg-parse-symmetric-key-algorithm-alist
   '((1 . IDEA) (2 . 3DES) (4 . CAST5) (5 . SAFER-SK128))
   "Alist of the assigned number to the symmetric key algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
@@ -59,7 +57,6 @@
   '((1 . MD5) (2 . SHA1) (3 . RIPEMD160) (5 . MD2) (8 . SHA256) (9 . SHA384)
     (10 . SHA512))
   "Alist of the assigned number to the cryptographic hash algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
@@ -68,7 +65,6 @@
     (1 . ZIP)
     (2 . ZLIB))
   "Alist of the assigned number to the compression algorithm."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
@@ -87,13 +83,11 @@
     (48 . "Certification revocation signature")
     (64 . "Timestamp signature."))
   "Alist of the assigned number to the signature type."
-  :group 'pgg-parse
   :type '(repeat
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
 (defcustom pgg-ignore-packet-checksum t; XXX
   "If non-nil checksum of each ascii armored packet will be ignored."
-  :group 'pgg-parse
   :type 'boolean)
 
 (defvar pgg-armor-header-lines
@@ -148,7 +142,7 @@
   ;; `(string-to-number-list (pgg-read-body-string ,ptag))
   )
 
-(defalias 'pgg-skip-bytes 'forward-char)
+(defalias 'pgg-skip-bytes #'forward-char)
 
 (defmacro pgg-skip-header (ptag)
   `(pgg-skip-bytes (nth 2 ,ptag)))
@@ -345,7 +339,7 @@
     ;; 100 to 110 = internal or user-defined
     ))
 
-(defun pgg-parse-signature-packet (ptag)
+(defun pgg-parse-signature-packet (_ptag)
   (let* ((signature-version (pgg-byte-after))
 	 (result (list (cons 'version signature-version)))
 	 hashed-material field n)
@@ -411,7 +405,7 @@
 		       pgg-parse-hash-algorithm-alist)))
     result))
 
-(defun pgg-parse-public-key-encrypted-session-key-packet (ptag)
+(defun pgg-parse-public-key-encrypted-session-key-packet (_ptag)
   (let (result)
     (pgg-set-alist result
 		   'version (pgg-read-byte))
@@ -425,7 +419,7 @@
 			      pgg-parse-public-key-algorithm-alist)))
     result))
 
-(defun pgg-parse-symmetric-key-encrypted-session-key-packet (ptag)
+(defun pgg-parse-symmetric-key-encrypted-session-key-packet (_ptag)
   (let (result)
     (pgg-set-alist result
 		   'version
@@ -436,7 +430,7 @@
 			      pgg-parse-symmetric-key-algorithm-alist)))
     result))
 
-(defun pgg-parse-public-key-packet (ptag)
+(defun pgg-parse-public-key-packet (_ptag)
   (let* ((key-version (pgg-read-byte))
 	 (result (list (cons 'version key-version)))
 	 field)

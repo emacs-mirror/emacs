@@ -863,6 +863,10 @@ This function returns @var{argument} and has no side effects.
 This function ignores any @var{arguments} and returns @code{nil}.
 @end defun
 
+@defun always &rest arguments
+This function ignores any @var{arguments} and returns @code{t}.
+@end defun
+
   Some functions are user-visible @dfn{commands}, which can be called
 interactively (usually by a key sequence).  It is possible to invoke
 such a command exactly as though it was called interactively, by using

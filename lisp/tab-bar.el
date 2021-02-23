@@ -100,11 +100,13 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   "Install key bindings for switching between tabs if the user has configured them."
   (when tab-bar-select-tab-modifiers
     (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?0)))
-                    'tab-bar-switch-to-recent-tab)
-    (dotimes (i 9)
+                    'tab-recent)
+    (dotimes (i 8)
       (global-set-key (vector (append tab-bar-select-tab-modifiers
                                       (list (+ i 1 ?0))))
-                      'tab-bar-select-tab)))
+                      'tab-bar-select-tab))
+    (global-set-key (vector (append tab-bar-select-tab-modifiers (list ?9)))
+                    'tab-last))
   ;; Don't override user customized key bindings
   (unless (global-key-binding [(control tab)])
     (global-set-key [(control tab)] 'tab-next))
@@ -112,6 +114,15 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
     (global-set-key [(control shift tab)] 'tab-previous))
   (unless (global-key-binding [(control shift iso-lefttab)])
     (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
+
+(defun tab-bar--undefine-keys ()
+  "Uninstall key bindings previously bound by `tab-bar--define-keys'."
+  (when (eq (global-key-binding [(control tab)]) 'tab-next)
+    (global-unset-key [(control tab)]))
+  (when (eq (global-key-binding [(control shift tab)]) 'tab-previous)
+    (global-unset-key [(control shift tab)]))
+  (when (eq (global-key-binding [(control shift iso-lefttab)]) 'tab-previous)
+    (global-unset-key [(control shift iso-lefttab)])))
 
 (defun tab-bar--load-buttons ()
   "Load the icons for the tab buttons."
@@ -181,13 +192,7 @@ update."
     (tab-bar--load-buttons))
   (if tab-bar-mode
       (tab-bar--define-keys)
-    ;; Unset only keys bound by tab-bar
-    (when (eq (global-key-binding [(control tab)]) 'tab-next)
-      (global-unset-key [(control tab)]))
-    (when (eq (global-key-binding [(control shift tab)]) 'tab-previous)
-      (global-unset-key [(control shift tab)]))
-    (when (eq (global-key-binding [(control shift iso-lefttab)]) 'tab-previous)
-      (global-unset-key [(control shift iso-lefttab)]))))
+    (tab-bar--undefine-keys)))
 
 (defun tab-bar-handle-mouse (event)
   "Text-mode emulation of switching tabs on the tab bar.
@@ -717,6 +722,12 @@ ARG counts from 1."
     (setq arg 1))
   (tab-bar-switch-to-next-tab (- arg)))
 
+(defun tab-bar-switch-to-last-tab (&optional arg)
+  "Switch to the last tab or ARGth tab from the end of the tab bar."
+  (interactive "p")
+  (tab-bar-select-tab (- (length (funcall tab-bar-tabs-function))
+                         (1- (or arg 1)))))
+
 (defun tab-bar-switch-to-recent-tab (&optional arg)
   "Switch to ARGth most recently visited tab."
   (interactive "p")
@@ -731,7 +742,8 @@ ARG counts from 1."
   "Switch to the tab by NAME.
 Default values are tab names sorted by recency, so you can use \
 \\<minibuffer-local-map>\\[next-history-element]
-to get the name of the last visited tab, the second last, and so on."
+to get the name of the most recently visited tab, the second
+most recent, and so on."
   (interactive
    (let* ((recent-tabs (mapcar (lambda (tab)
                                  (alist-get 'name tab))
@@ -747,12 +759,17 @@ to get the name of the last visited tab, the second last, and so on."
 (defun tab-bar-move-tab-to (to-index &optional from-index)
   "Move tab from FROM-INDEX position to new position at TO-INDEX.
 FROM-INDEX defaults to the current tab index.
-FROM-INDEX and TO-INDEX count from 1."
+FROM-INDEX and TO-INDEX count from 1.
+Negative TO-INDEX counts tabs from the end of the tab bar.
+Argument addressing is absolute in contrast to `tab-bar-move-tab'
+where argument addressing is relative."
   (interactive "P")
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (or from-index (1+ (tab-bar--current-tab-index tabs))))
          (from-tab (nth (1- from-index) tabs))
-         (to-index (max 0 (min (1- (or to-index 1)) (1- (length tabs))))))
+         (to-index (if to-index (prefix-numeric-value to-index) 1))
+         (to-index (if (< to-index 0) (+ (length tabs) (1+ to-index)) to-index))
+         (to-index (max 0 (min (1- to-index) (1- (length tabs))))))
     (setq tabs (delq from-tab tabs))
     (cl-pushnew from-tab (nthcdr to-index tabs))
     (set-frame-parameter nil 'tabs tabs)
@@ -760,7 +777,9 @@ FROM-INDEX and TO-INDEX count from 1."
 
 (defun tab-bar-move-tab (&optional arg)
   "Move the current tab ARG positions to the right.
-If a negative ARG, move the current tab ARG positions to the left."
+If a negative ARG, move the current tab ARG positions to the left.
+Argument addressing is relative in contrast to `tab-bar-move-tab-to'
+where argument addressing is absolute."
   (interactive "p")
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (or (tab-bar--current-tab-index tabs) 0))
@@ -828,7 +847,9 @@ called."
   "Add a new tab at the absolute position TO-INDEX.
 TO-INDEX counts from 1.  If no TO-INDEX is specified, then add
 a new tab at the position specified by `tab-bar-new-tab-to'.
-
+Negative TO-INDEX counts tabs from the end of the tab bar.
+Argument addressing is absolute in contrast to `tab-bar-new-tab'
+where argument addressing is relative.
 After the tab is created, the hooks in
 `tab-bar-tab-post-open-functions' are run."
   (interactive "P")
@@ -855,15 +876,19 @@ After the tab is created, the hooks in
 
     (when from-index
       (setf (nth from-index tabs) from-tab))
-    (let ((to-tab (tab-bar--current-tab))
-          (to-index (or (if to-index (1- to-index))
-                        (pcase tab-bar-new-tab-to
-                          ('leftmost 0)
-                          ('rightmost (length tabs))
-                          ('left (or from-index 1))
-                          ('right (1+ (or from-index 0)))
-                          ((pred functionp)
-                           (funcall tab-bar-new-tab-to))))))
+    (let* ((to-tab (tab-bar--current-tab))
+           (to-index (and to-index (prefix-numeric-value to-index)))
+           (to-index (or (if to-index
+                             (if (< to-index 0)
+                                 (+ (length tabs) (1+ to-index))
+                               (1- to-index)))
+                         (pcase tab-bar-new-tab-to
+                           ('leftmost 0)
+                           ('rightmost (length tabs))
+                           ('left (or from-index 1))
+                           ('right (1+ (or from-index 0)))
+                           ((pred functionp)
+                            (funcall tab-bar-new-tab-to))))))
       (setq to-index (max 0 (min (or to-index 0) (length tabs))))
       (cl-pushnew to-tab (nthcdr to-index tabs))
 
@@ -888,7 +913,11 @@ After the tab is created, the hooks in
 (defun tab-bar-new-tab (&optional arg)
   "Create a new tab ARG positions to the right.
 If a negative ARG, create a new tab ARG positions to the left.
-If ARG is zero, create a new tab in place of the current tab."
+If ARG is zero, create a new tab in place of the current tab.
+If no ARG is specified, then add a new tab at the position
+specified by `tab-bar-new-tab-to'.
+Argument addressing is relative in contrast to `tab-bar-new-tab-to'
+where argument addressing is absolute."
   (interactive "P")
   (if arg
       (let* ((tabs (funcall tab-bar-tabs-function))
@@ -1067,7 +1096,7 @@ for the last tab on a frame is determined by
         (message "Deleted all other tabs")))))
 
 (defun tab-bar-undo-close-tab ()
-  "Restore the last closed tab."
+  "Restore the most recently closed tab."
   (interactive)
   ;; Pop out closed tabs that were on already deleted frames
   (while (and tab-bar-closed-tabs
@@ -1258,6 +1287,7 @@ and can restore them."
 (defalias 'tab-select      'tab-bar-select-tab)
 (defalias 'tab-next        'tab-bar-switch-to-next-tab)
 (defalias 'tab-previous    'tab-bar-switch-to-prev-tab)
+(defalias 'tab-last        'tab-bar-switch-to-last-tab)
 (defalias 'tab-recent      'tab-bar-switch-to-recent-tab)
 (defalias 'tab-move        'tab-bar-move-tab)
 (defalias 'tab-move-to     'tab-bar-move-tab-to)
@@ -1669,11 +1699,13 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
    nil "[other-tab]")
   (message "Display next command buffer in a new tab..."))
 
+(define-key tab-prefix-map "N" 'tab-new-to)
 (define-key tab-prefix-map "2" 'tab-new)
 (define-key tab-prefix-map "1" 'tab-close-other)
 (define-key tab-prefix-map "0" 'tab-close)
 (define-key tab-prefix-map "o" 'tab-next)
 (define-key tab-prefix-map "m" 'tab-move)
+(define-key tab-prefix-map "M" 'tab-move-to)
 (define-key tab-prefix-map "r" 'tab-rename)
 (define-key tab-prefix-map "\r" 'tab-bar-select-tab-by-name)
 (define-key tab-prefix-map "b" 'switch-to-buffer-other-tab)

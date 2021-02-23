@@ -331,7 +331,7 @@ The two cases that are handled are:
                         (cddr f))))
       (if (and cl-closure-vars
                (cl--expr-contains-any body cl-closure-vars))
-          (let* ((new (mapcar 'cl-gensym cl-closure-vars))
+          (let* ((new (mapcar #'cl-gensym cl-closure-vars))
                  (sub (cl-pairlis cl-closure-vars new)) (decls nil))
             (while (or (stringp (car body))
                        (eq (car-safe (car body)) 'interactive))
@@ -446,7 +446,7 @@ will not work - use `labels' instead" (symbol-name (car x))))
                  ;; FIXME This affects the rest of the file, when it
                  ;; should be restricted to the flet body.
                  (and (boundp 'byte-compile-function-environment)
-                      (push (cons (car x) (eval func))
+                      (push (cons (car x) (eval func t))
                             byte-compile-function-environment)))
                (list `(symbol-function ',(car x)) func)))
            bindings)
@@ -630,10 +630,10 @@ You can replace this macro with `gv-letplace'."
 ;;; Additional compatibility code.
 ;; For names that were clean but really aren't needed any more.
 
-(define-obsolete-function-alias 'cl-macroexpand 'macroexpand "24.3")
+(define-obsolete-function-alias 'cl-macroexpand #'macroexpand "24.3")
 (define-obsolete-variable-alias 'cl-macro-environment
   'macroexpand-all-environment "24.3")
-(define-obsolete-function-alias 'cl-macroexpand-all 'macroexpand-all "24.3")
+(define-obsolete-function-alias 'cl-macroexpand-all #'macroexpand-all "24.3")
 
 ;;; Hash tables.
 ;; This is just kept for compatibility with code byte-compiled by Emacs-20.
@@ -652,22 +652,22 @@ You can replace this macro with `gv-letplace'."
 (defvar cl-builtin-maphash (symbol-function 'maphash))
 
 (make-obsolete-variable 'cl-builtin-maphash nil "24.3")
-(define-obsolete-function-alias 'cl-map-keymap 'map-keymap "24.3")
-(define-obsolete-function-alias 'cl-copy-tree 'copy-tree "24.3")
-(define-obsolete-function-alias 'cl-gethash 'gethash "24.3")
-(define-obsolete-function-alias 'cl-puthash 'puthash "24.3")
-(define-obsolete-function-alias 'cl-remhash 'remhash "24.3")
-(define-obsolete-function-alias 'cl-clrhash 'clrhash "24.3")
-(define-obsolete-function-alias 'cl-maphash 'maphash "24.3")
-(define-obsolete-function-alias 'cl-make-hash-table 'make-hash-table "24.3")
-(define-obsolete-function-alias 'cl-hash-table-p 'hash-table-p "24.3")
-(define-obsolete-function-alias 'cl-hash-table-count 'hash-table-count "24.3")
+(define-obsolete-function-alias 'cl-map-keymap #'map-keymap "24.3")
+(define-obsolete-function-alias 'cl-copy-tree #'copy-tree "24.3")
+(define-obsolete-function-alias 'cl-gethash #'gethash "24.3")
+(define-obsolete-function-alias 'cl-puthash #'puthash "24.3")
+(define-obsolete-function-alias 'cl-remhash #'remhash "24.3")
+(define-obsolete-function-alias 'cl-clrhash #'clrhash "24.3")
+(define-obsolete-function-alias 'cl-maphash #'maphash "24.3")
+(define-obsolete-function-alias 'cl-make-hash-table #'make-hash-table "24.3")
+(define-obsolete-function-alias 'cl-hash-table-p #'hash-table-p "24.3")
+(define-obsolete-function-alias 'cl-hash-table-count #'hash-table-count "24.3")
 
 (define-obsolete-function-alias 'cl-map-keymap-recursively
-  'cl--map-keymap-recursively "24.3")
-(define-obsolete-function-alias 'cl-map-intervals 'cl--map-intervals "24.3")
-(define-obsolete-function-alias 'cl-map-extents 'cl--map-overlays "24.3")
-(define-obsolete-function-alias 'cl-set-getf 'cl--set-getf "24.3")
+  #'cl--map-keymap-recursively "24.3")
+(define-obsolete-function-alias 'cl-map-intervals #'cl--map-intervals "24.3")
+(define-obsolete-function-alias 'cl-map-extents #'cl--map-overlays "24.3")
+(define-obsolete-function-alias 'cl-set-getf #'cl--set-getf "24.3")
 
 (defun cl-maclisp-member (item list)
   (declare (obsolete member "24.3"))

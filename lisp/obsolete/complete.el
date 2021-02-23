@@ -1,4 +1,4 @@
-;;; complete.el --- partial completion mechanism plus other goodies
+;;; complete.el --- partial completion mechanism plus other goodies  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1990-1993, 1999-2021 Free Software Foundation, Inc.
 
@@ -102,14 +102,12 @@ If non-nil and non-t, the first character is taken literally only for file name
 completion."
   :type '(choice (const :tag "delimiter" nil)
 		 (const :tag "literal" t)
-		 (other :tag "find-file" find-file))
-  :group 'partial-completion)
+		 (other :tag "find-file" find-file)))
 
 (defcustom PC-meta-flag t
   "If non-nil, TAB means PC completion and M-TAB means normal completion.
 Otherwise, TAB means normal completion and M-TAB means Partial Completion."
-  :type 'boolean
-  :group 'partial-completion)
+  :type 'boolean)
 
 (defcustom PC-word-delimiters "-_. "
   "A string of characters treated as word delimiters for completion.
@@ -119,19 +117,16 @@ If `^' is in this string, it must not come first.
 If `-' is in this string, it must come first or right after `]'.
 In other words, if S is this string, then `[S]' must be a valid Emacs regular
 expression (not containing character ranges like `a-z')."
-  :type 'string
-  :group 'partial-completion)
+  :type 'string)
 
 (defcustom PC-include-file-path '("/usr/include" "/usr/local/include")
   "A list of directories in which to look for include files.
 If nil, means use the colon-separated path in the variable $INCPATH instead."
-  :type '(repeat directory)
-  :group 'partial-completion)
+  :type '(repeat directory))
 
 (defcustom PC-disable-includes nil
   "If non-nil, include-file support in \\[find-file] is disabled."
-  :type 'boolean
-  :group 'partial-completion)
+  :type 'boolean)
 
 (defvar PC-default-bindings t
   "If non-nil, default partial completion key bindings are suppressed.")
@@ -146,36 +141,36 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
     (cond ((not bind)
 	   ;; These bindings are the default bindings.  It would be better to
 	   ;; restore the previous bindings.
-	   (define-key read-expression-map "\e\t" 'lisp-complete-symbol)
+	   (define-key read-expression-map "\e\t" #'completion-at-point)
 
-	   (define-key completion-map "\t"	'minibuffer-complete)
-	   (define-key completion-map " "	'minibuffer-complete-word)
-	   (define-key completion-map "?"	'minibuffer-completion-help)
+	   (define-key completion-map "\t"	#'minibuffer-complete)
+	   (define-key completion-map " "	#'minibuffer-complete-word)
+	   (define-key completion-map "?"	#'minibuffer-completion-help)
 
-	   (define-key must-match-map "\r"	'minibuffer-complete-and-exit)
-	   (define-key must-match-map "\n"	'minibuffer-complete-and-exit)
+	   (define-key must-match-map "\r"	#'minibuffer-complete-and-exit)
+	   (define-key must-match-map "\n"	#'minibuffer-complete-and-exit)
 
 	   (define-key global-map [remap lisp-complete-symbol]	nil))
 	  (PC-default-bindings
-	   (define-key read-expression-map "\e\t" 'PC-lisp-complete-symbol)
+	   (define-key read-expression-map "\e\t" #'PC-lisp-complete-symbol)
 
-	   (define-key completion-map "\t"	'PC-complete)
-	   (define-key completion-map " "	'PC-complete-word)
-	   (define-key completion-map "?"	'PC-completion-help)
+	   (define-key completion-map "\t"	#'PC-complete)
+	   (define-key completion-map " "	#'PC-complete-word)
+	   (define-key completion-map "?"	#'PC-completion-help)
 
-	   (define-key completion-map "\e\t"	'PC-complete)
-	   (define-key completion-map "\e "	'PC-complete-word)
-	   (define-key completion-map "\e\r"	'PC-force-complete-and-exit)
-	   (define-key completion-map "\e\n"	'PC-force-complete-and-exit)
-	   (define-key completion-map "\e?"	'PC-completion-help)
+	   (define-key completion-map "\e\t"	#'PC-complete)
+	   (define-key completion-map "\e "	#'PC-complete-word)
+	   (define-key completion-map "\e\r"	#'PC-force-complete-and-exit)
+	   (define-key completion-map "\e\n"	#'PC-force-complete-and-exit)
+	   (define-key completion-map "\e?"	#'PC-completion-help)
 
-	   (define-key must-match-map "\r"	'PC-complete-and-exit)
-	   (define-key must-match-map "\n"	'PC-complete-and-exit)
+	   (define-key must-match-map "\r"	#'PC-complete-and-exit)
+	   (define-key must-match-map "\n"	#'PC-complete-and-exit)
 
-	   (define-key must-match-map "\e\r"	'PC-complete-and-exit)
-	   (define-key must-match-map "\e\n"	'PC-complete-and-exit)
+	   (define-key must-match-map "\e\r"	#'PC-complete-and-exit)
+	   (define-key must-match-map "\e\n"	#'PC-complete-and-exit)
 
-	   (define-key global-map [remap lisp-complete-symbol]	'PC-lisp-complete-symbol)))))
+	   (define-key global-map [remap lisp-complete-symbol]	#'PC-lisp-complete-symbol)))))
 
 (defvar PC-do-completion-end nil
   "Internal variable used by `PC-do-completion'.")
@@ -212,14 +207,15 @@ see), so that if it is neither nil nor t, Emacs shows the `*Completions*'
 buffer only on the second attempt to complete.  That is, if TAB finds nothing
 to complete, the first TAB just says \"Next char not unique\" and the
 second TAB brings up the `*Completions*' buffer."
-  :global t :group 'partial-completion
+  :global t
   ;; Deal with key bindings...
   (PC-bindings partial-completion-mode)
   ;; Deal with include file feature...
   (cond ((not partial-completion-mode)
-	 (remove-hook 'find-file-not-found-functions 'PC-look-for-include-file))
+	 (remove-hook 'find-file-not-found-functions
+	              #'PC-look-for-include-file))
 	((not PC-disable-includes)
-	 (add-hook 'find-file-not-found-functions 'PC-look-for-include-file)))
+	 (add-hook 'find-file-not-found-functions #'PC-look-for-include-file)))
   ;; Adjust the completion selection in *Completion* buffers to the way
   ;; we work.  The default minibuffer completion code only completes the
   ;; text before point and leaves the text after point alone (new in
@@ -229,9 +225,9 @@ second TAB brings up the `*Completions*' buffer."
   ;; to trick choose-completion into replacing the whole minibuffer text
   ;; rather than only the text before point.  --Stef
   (funcall
-   (if partial-completion-mode 'add-hook 'remove-hook)
+   (if partial-completion-mode #'add-hook #'remove-hook)
    'choose-completion-string-functions
-   (lambda (choice buffer &rest ignored)
+   (lambda (_choice buffer &rest _)
      ;; When completing M-: (lisp- ) with point before the ), it is
      ;; not appropriate to go to point-max (unlike the filename case).
      (if (and (not PC-goto-end)
@@ -648,7 +644,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                       (when (string-match regex x)
                         (push x p)))
                     (setq basestr (try-completion "" p)))
-                  (setq basestr (mapconcat 'list str "-"))
+                  (setq basestr (mapconcat #'list str "-"))
                   (delete-region beg end)
                   (setq end (+ beg (length basestr)))
                   (insert basestr))))
@@ -672,7 +668,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                  (setq PC-ignored-regexp
                        (concat "\\("
                                (mapconcat
-                                'regexp-quote
+                                #'regexp-quote
                                 (setq PC-ignored-extensions
                                       completion-ignored-extensions)
                                 "\\|")
@@ -815,7 +811,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 			(eq mode 'help))
                     (let ((prompt-end (minibuffer-prompt-end)))
                       (with-output-to-temp-buffer "*Completions*"
-                        (display-completion-list (sort helpposs 'string-lessp))
+                        (display-completion-list (sort helpposs #'string-lessp))
                         (setq PC-do-completion-end end
                               PC-goto-end goto-end)
                         (with-current-buffer standard-output
@@ -1093,7 +1089,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 		       file-lists))))
 	  (setq search-path (cdr search-path))))
       ;; Compress out duplicates while building complete list (slloooow!)
-      (let ((sorted (sort (apply 'nconc file-lists)
+      (let ((sorted (sort (apply #'nconc file-lists)
 			  (lambda (x y) (not (string-lessp x y)))))
 	    compressed)
 	(while sorted
