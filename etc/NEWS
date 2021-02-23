@@ -484,11 +484,11 @@ It can be used to enable/disable the tab bar individually on each frame
 independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 
 ---
-*** New command 'tab-duplicate'.
-
----
 *** 'Mod-9' bound to 'tab-last' now switches to the last tab.
 It also supports a negative argument.
+
+---
+*** New command 'tab-duplicate' bound to 'C-x t n'.
 
 ---
 *** 'C-x t N' creates a new tab at the specified absolute position.

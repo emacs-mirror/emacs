@@ -379,6 +379,9 @@ and `tab-bar-select-tab-modifiers'."
 (defvar tab-bar-separator nil
   "String that delimits tabs.")
 
+(defun tab-bar-separator ()
+  (or tab-bar-separator (if window-system " " "|")))
+
 
 (defcustom tab-bar-tab-name-function #'tab-bar-tab-name-current
   "Function to get a tab name.
@@ -502,9 +505,9 @@ the formatted tab name to display in the tab bar."
 
 (defun tab-bar-make-keymap-1 ()
   "Generate an actual keymap from `tab-bar-map', without caching."
-  (let* ((separator (or tab-bar-separator (if window-system " " "|")))
-         (i 0)
-         (tabs (funcall tab-bar-tabs-function)))
+  (let ((separator (tab-bar-separator))
+        (tabs (funcall tab-bar-tabs-function))
+        (i 0))
     (append
      '(keymap (mouse-1 . tab-bar-handle-mouse))
      (when (and tab-bar-history-mode tab-bar-history-buttons-show)
@@ -1699,6 +1702,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
    nil "[other-tab]")
   (message "Display next command buffer in a new tab..."))
 
+(define-key tab-prefix-map "n" 'tab-duplicate)
 (define-key tab-prefix-map "N" 'tab-new-to)
 (define-key tab-prefix-map "2" 'tab-new)
 (define-key tab-prefix-map "1" 'tab-close-other)
