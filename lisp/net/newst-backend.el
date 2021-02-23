@@ -649,8 +649,7 @@ If URL is nil it is searched at point."
   "Open customization buffer for `newsticker-url-list' and jump to FEED-NAME."
   (interactive
    (list (completing-read "Name of feed or group to edit: "
-                          (append (mapcar #'car newsticker-url-list)
-                                  nil t feed-name))))
+                          (mapcar #'car newsticker-url-list))))
   (customize-variable 'newsticker-url-list)
   (delete-other-windows)
   (when (re-search-forward (concat "Label: " feed-name) nil t)
