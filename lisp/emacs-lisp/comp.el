@@ -4011,7 +4011,7 @@ LOAD and SELECTOR work as described in `native--compile-async'."
 
 (defun native--compile-async (files &optional recursively load selector)
   "Compile FILES asynchronously.
-FILES is one path or a list of files to files or directories.
+FILES is one filename or a list of filenames or directories.
 
 If optional argument RECURSIVELY is non-nil, recurse into
 subdirectories of given directories.
@@ -4042,18 +4042,18 @@ bytecode definition was not changed in the meanwhile)."
     (error "LOAD must be nil, t or 'late"))
   (unless (listp files)
     (setf files (list files)))
-  (let (files)
+  (let (file-list)
     (dolist (path files)
       (cond ((file-directory-p path)
              (dolist (file (if recursively
                                (directory-files-recursively
                                 path comp-valid-source-re)
                              (directory-files path t comp-valid-source-re)))
-               (push file files)))
-            ((file-exists-p path) (push path files))
+               (push file file-list)))
+            ((file-exists-p path) (push path file-list))
             (t (signal 'native-compiler-error
                        (list "Path not a file nor directory" path)))))
-    (dolist (file files)
+    (dolist (file file-list)
       (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
           ;; Most likely the byte-compiler has requested a deferred
           ;; compilation, so update `comp-files-queue' to reflect that.
@@ -4125,7 +4125,7 @@ environment variable 'NATIVE_DISABLED' is set byte compile only."
 ;;;###autoload
 (defun native-compile-async (files &optional recursively load selector)
   "Compile FILES asynchronously.
-FILES is one path or a list of files to files or directories.
+FILES is one file or a list of filenames or directories.
 
 If optional argument RECURSIVELY is non-nil, recurse into
 subdirectories of given directories.
