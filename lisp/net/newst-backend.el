@@ -651,8 +651,7 @@ If URL is nil it is searched at point."
    (list (completing-read "Name of feed or group to edit: "
                           (mapcar #'car newsticker-url-list))))
   (customize-variable 'newsticker-url-list)
-  (delete-other-windows)
-  (when (re-search-forward (concat "Label: " feed-name) nil t)
+  (when (search-forward (concat "Label: " feed-name) nil t)
     (forward-line -1)))
 
 (defun newsticker-customize ()
