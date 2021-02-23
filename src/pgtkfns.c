@@ -853,6 +853,7 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
   if (NILP (new_value))
     {
       gtk_css_provider_load_from_data (css_provider, "", -1, NULL);
+      update_face_from_frame_parameter (f, Qscroll_bar_foreground, new_value);
     }
   else if (STRINGP (new_value))
     {
@@ -861,10 +862,14 @@ pgtk_set_scroll_bar_foreground (struct frame *f, Lisp_Object new_value,
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
 	error ("Unknown color.");
 
+      /* On pgtk, this frame parameter should be ignored, and honor gtk theme. */
+#if 0
       char css[64];
       sprintf (css, "scrollbar slider { background-color: #%06x; }",
 	       (unsigned int) rgb.pixel & 0xffffff);
       gtk_css_provider_load_from_data (css_provider, css, -1, NULL);
+#endif
+      update_face_from_frame_parameter (f, Qscroll_bar_foreground, new_value);
 
     }
   else
@@ -881,6 +886,7 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
   if (NILP (new_value))
     {
       gtk_css_provider_load_from_data (css_provider, "", -1, NULL);
+      update_face_from_frame_parameter (f, Qscroll_bar_background, new_value);
     }
   else if (STRINGP (new_value))
     {
@@ -889,10 +895,14 @@ pgtk_set_scroll_bar_background (struct frame *f, Lisp_Object new_value,
       if (!pgtk_parse_color (f, SSDATA (new_value), &rgb))
 	error ("Unknown color.");
 
+      /* On pgtk, this frame parameter should be ignored, and honor gtk theme. */
+#if 0
       char css[64];
       sprintf (css, "scrollbar trough { background-color: #%06x; }",
 	       (unsigned int) rgb.pixel & 0xffffff);
       gtk_css_provider_load_from_data (css_provider, css, -1, NULL);
+#endif
+      update_face_from_frame_parameter (f, Qscroll_bar_background, new_value);
 
     }
   else
