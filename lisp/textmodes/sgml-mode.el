@@ -117,8 +117,7 @@ definitions.  So we normally turn it off.")
 This takes effect when first loading the `sgml-mode' library.")
 
 (defvar sgml-mode-map
-  (let ((map (make-keymap))	;`sparse' doesn't allow binding to charsets.
-	(menu-map (make-sparse-keymap "SGML")))
+  (let ((map (make-keymap)))	;`sparse' doesn't allow binding to charsets.
     (define-key map "\C-c\C-i" 'sgml-tags-invisible)
     (define-key map "/" 'sgml-slash)
     (define-key map "\C-c\C-n" 'sgml-name-char)
@@ -153,25 +152,23 @@ This takes effect when first loading the `sgml-mode' library.")
 	  (map (nth 1 map)))
       (while (< (setq c (1+ c)) 256)
 	(aset map c 'sgml-maybe-name-self)))
-    (define-key map [menu-bar sgml] (cons "SGML" menu-map))
-    (define-key menu-map [sgml-validate] '("Validate" . sgml-validate))
-    (define-key menu-map [sgml-name-8bit-mode]
-      '("Toggle 8 Bit Insertion" . sgml-name-8bit-mode))
-    (define-key menu-map [sgml-tags-invisible]
-      '("Toggle Tag Visibility" . sgml-tags-invisible))
-    (define-key menu-map [sgml-tag-help]
-      '("Describe Tag" . sgml-tag-help))
-    (define-key menu-map [sgml-delete-tag]
-      '("Delete Tag" . sgml-delete-tag))
-    (define-key menu-map [sgml-skip-tag-forward]
-      '("Forward Tag" . sgml-skip-tag-forward))
-    (define-key menu-map [sgml-skip-tag-backward]
-      '("Backward Tag" . sgml-skip-tag-backward))
-    (define-key menu-map [sgml-attributes]
-      '("Insert Attributes" . sgml-attributes))
-    (define-key menu-map [sgml-tag] '("Insert Tag" . sgml-tag))
     map)
   "Keymap for SGML mode.  See also `sgml-specials'.")
+
+(easy-menu-define sgml-mode-menu sgml-mode-map
+  "Menu for SGML mode."
+  '("SGML"
+    ["Insert Tag" sgml-tag]
+    ["Insert Attributes" sgml-attributes]
+    ["Backward Tag" sgml-skip-tag-backward]
+    ["Forward Tag" sgml-skip-tag-forward]
+    ["Delete Tag" sgml-delete-tag]
+    ["Describe Tag" sgml-tag-help]
+    "---"
+    ["Toggle Tag Visibility" sgml-tags-invisible]
+    ["Toggle 8 Bit Insertion" sgml-name-8bit-mode]
+    "---"
+    ["Validate" sgml-validate]))
 
 (defun sgml-make-syntax-table (specials)
   (let ((table (make-syntax-table text-mode-syntax-table)))
@@ -1788,8 +1785,7 @@ This defaults to `sgml-quick-keys'.
 This takes effect when first loading the library.")
 
 (defvar html-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "HTML")))
+  (let ((map (make-sparse-keymap)))
     (set-keymap-parent map  sgml-mode-map)
     (define-key map "\C-c6" 'html-headline-6)
     (define-key map "\C-c5" 'html-headline-5)
@@ -1826,33 +1822,34 @@ This takes effect when first loading the library.")
       (define-key map "\C-cs" 'html-span))
     (define-key map "\C-c\C-s" 'html-autoview-mode)
     (define-key map "\C-c\C-v" 'browse-url-of-buffer)
-    (define-key map [menu-bar html] (cons "HTML" menu-map))
-    (define-key menu-map [html-autoview-mode]
-      '("Toggle Autoviewing" . html-autoview-mode))
-    (define-key menu-map [browse-url-of-buffer]
-      '("View Buffer Contents" . browse-url-of-buffer))
-    (define-key menu-map [nil] '("--"))
-    ;;(define-key menu-map "6" '("Heading 6" . html-headline-6))
-    ;;(define-key menu-map "5" '("Heading 5" . html-headline-5))
-    ;;(define-key menu-map "4" '("Heading 4" . html-headline-4))
-    (define-key menu-map "3" '("Heading 3" . html-headline-3))
-    (define-key menu-map "2" '("Heading 2" . html-headline-2))
-    (define-key menu-map "1" '("Heading 1" . html-headline-1))
-    (define-key menu-map "l" '("Radio Buttons" . html-radio-buttons))
-    (define-key menu-map "c" '("Checkboxes" . html-checkboxes))
-    (define-key menu-map "l" '("List Item" . html-list-item))
-    (define-key menu-map "u" '("Unordered List" . html-unordered-list))
-    (define-key menu-map "o" '("Ordered List" . html-ordered-list))
-    (define-key menu-map "-" '("Horizontal Rule" . html-horizontal-rule))
-    (define-key menu-map "\n" '("Line Break" . html-line))
-    (define-key menu-map "\r" '("Paragraph" . html-paragraph))
-    (define-key menu-map "i" '("Image" . html-image))
-    (define-key menu-map "h" '("Href Anchor URL" . html-href-anchor))
-    (define-key menu-map "f" '("Href Anchor File" . html-href-anchor-file))
-    (define-key menu-map "n" '("Name Anchor" . html-name-anchor))
-    (define-key menu-map "#" '("ID Anchor" . html-id-anchor))
     map)
   "Keymap for commands for use in HTML mode.")
+
+(easy-menu-define html-mode-menu html-mode-map
+  "Menu for HTML mode."
+  '("HTML"
+    ["ID Anchor" html-id-anchor]
+    ["Name Anchor" html-name-anchor]
+    ["Href Anchor File" html-href-anchor-file]
+    ["Href Anchor URL" html-href-anchor]
+    ["Image" html-image]
+    ["Paragraph" html-paragraph]
+    ["Line Break" html-line]
+    ["Horizontal Rule" html-horizontal-rule]
+    ["Ordered List" html-ordered-list]
+    ["Unordered List" html-unordered-list]
+    ["List Item" html-list-item]
+    ["Checkboxes" html-checkboxes]
+    ["Radio Buttons" html-radio-buttons]
+    ["Heading 1" html-headline-1]
+    ["Heading 2" html-headline-2]
+    ["Heading 3" html-headline-3]
+    ;; ["Heading 4" html-headline-4]
+    ;; ["Heading 5" html-headline-5]
+    ;; ["Heading 6" html-headline-6]
+    "---"
+    ["View Buffer Contents" browse-url-of-buffer]
+    ["Toggle Autoviewing" html-autoview-mode]))
 
 (defvar html-face-tag-alist
   '((bold . "strong")

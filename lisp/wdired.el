@@ -176,25 +176,20 @@ nonexistent directory will fail."
     (define-key map "\C-p"     'wdired-previous-line)
     (define-key map [down]     'wdired-next-line)
     (define-key map "\C-n"     'wdired-next-line)
-
-    (define-key map [menu-bar wdired]
-      (cons "WDired" (make-sparse-keymap "WDired")))
-    (define-key map [menu-bar wdired wdired-customize]
-      '("Options" . wdired-customize))
-    (define-key map [menu-bar wdired dashes]
-      '("--"))
-    (define-key map [menu-bar wdired wdired-abort-changes]
-      '(menu-item "Abort Changes" wdired-abort-changes
-		  :help "Abort changes and return to dired mode"))
-    (define-key map [menu-bar wdired wdired-finish-edit]
-      '("Commit Changes" . wdired-finish-edit))
-
     (define-key map [remap upcase-word] 'wdired-upcase-word)
     (define-key map [remap capitalize-word] 'wdired-capitalize-word)
     (define-key map [remap downcase-word] 'wdired-downcase-word)
-
     map)
   "Keymap used in `wdired-mode'.")
+
+(easy-menu-define wdired-mode-menu wdired-mode-map
+  "Menu for `wdired-mode'."
+  '("WDired"
+    ["Commit Changes" wdired-finish-edit]
+    ["Abort Changes" wdired-abort-changes
+     :help "Abort changes and return to Dired mode"]
+    "---"
+    ["Options" wdired-customize]))
 
 (defvar wdired-mode-hook nil
   "Hooks run when changing to WDired mode.")
