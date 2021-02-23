@@ -6235,11 +6235,6 @@ an auto-save file."
              "Cannot revert unreadable file %s")
            file-name))
    (t
-    ;; Bind buffer-file-name to nil
-    ;; so that we don't try to lock the file.
-    (let ((buffer-file-name nil))
-      (or auto-save-p
-          (unlock-buffer)))
     (widen)
     (let ((coding-system-for-read
            ;; Auto-saved file should be read by Emacs's
