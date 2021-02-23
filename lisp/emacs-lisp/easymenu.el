@@ -23,6 +23,9 @@
 
 ;;; Commentary:
 
+;; The `easy-menu-define' macro provides a convenient way to define
+;; pop-up menus and/or menu bar menus.
+;;
 ;; This is compatible with easymenu.el by Per Abrahamsen
 ;; but it is much simpler as it doesn't try to support other Emacs versions.
 ;; The code was mostly derived from lmenu.el.
