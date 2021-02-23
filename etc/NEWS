@@ -830,10 +830,12 @@ instances.
 Emacs can be defined as a handler for the "x-scheme-handler/mailto"
 MIME type with the following command: "emacs -f message-mailto %u".
 An "emacs-mail.desktop" file has been included, suitable for
-installing in desktop directories like "/usr/share/applications".
+installing in desktop directories like "/usr/share/applications" or
+"~/.local/share/applications".
 Clicking on a 'mailto:' link in other applications will then open
 Emacs with headers filled out according to the link, e.g.
-"mailto:larsi@gnus.org?subject=This+is+a+test".
+"mailto:larsi@gnus.org?subject=This+is+a+test".  If you prefer
+emacsclient, use "emacsclient -e '(message-mailto "%u")'"
 
 ---
 *** Change to default value of 'message-draft-headers' user option.
