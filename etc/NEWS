@@ -502,6 +502,9 @@ It also supports a negative argument.
 *** New user option 'tab-bar-tab-name-format-function'.
 
 ---
+*** New user option 'tab-line-tab-name-format-function'.
+
+---
 *** The tabs in the tab line can now be scrolled using horizontal scroll.
 If your mouse or trackpad supports it, you can now scroll tabs when
 the mouse pointer is in the tab line by scrolling left or right.
