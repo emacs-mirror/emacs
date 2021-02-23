@@ -1434,6 +1434,15 @@ Move to next item unless DONT-PROCEED is non-nil."
                                   newsticker--treeview-current-vfeed)
                               (newsticker--treeview-get-selected-item)))
 
+(defun newsticker-treeview-customize-current-feed ()
+  "Open customization buffer for `newsticker-url-list' and move to current feed."
+  (interactive)
+  (let ((cur-feed (or newsticker--treeview-current-feed
+                      newsticker--treeview-current-vfeed)))
+    (if (newsticker--group-get-group cur-feed)
+        (message "Cannot customize groups.  Please select a feed.")
+      (newsticker-customize-feed cur-feed))))
+
 (defun newsticker--treeview-set-current-node (node)
   "Make NODE the current node."
   (with-current-buffer (newsticker--treeview-tree-buffer)
@@ -1995,6 +2004,7 @@ Return t if groups have changed, nil otherwise."
     (define-key map " " 'newsticker-treeview-next-page)
     (define-key map "a" 'newsticker-add-url)
     (define-key map "b" 'newsticker-treeview-browse-url-item)
+    (define-key map "c" 'newsticker-treeview-customize-current-feed)
     (define-key map "F" 'newsticker-treeview-prev-feed)
     (define-key map "f" 'newsticker-treeview-next-feed)
     (define-key map "g" 'newsticker-treeview-get-news)
