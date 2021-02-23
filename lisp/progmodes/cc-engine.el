@@ -4319,38 +4319,29 @@ mhtml-mode."
       (setq c-state-nonlit-pos-cache-limit (1- here)))
   (c-truncate-lit-pos-cache here)
 
-  ;; `c-state-cache':
-  ;; Case 1: if `here' is in a literal containing point-min, everything
-  ;; becomes (or is already) nil.
-  (if (or (null c-state-cache-good-pos)
-	  (< here (c-state-get-min-scan-pos)))
-      (setq c-state-cache nil
-	    c-state-cache-good-pos nil
-	    c-state-min-scan-pos nil)
+  (cond
+   ;; `c-state-cache':
+   ;; Case 1: if `here' is in a literal containing point-min, everything
+   ;; becomes (or is already) nil.
+   ((or (null c-state-cache-good-pos)
+	(< here (c-state-get-min-scan-pos)))
+    (setq c-state-cache nil
+	  c-state-cache-good-pos nil
+	  c-state-min-scan-pos nil))
 
-    ;; Truncate `c-state-cache' and set `c-state-cache-good-pos' to a value
-    ;; below `here'.  To maintain its consistency, we may need to insert a new
-    ;; brace pair.
-    (let ((here-bol (c-point 'bol here))
-	  too-high-pa  ; recorded {/(/[ next above or just below here, or nil.
-	  dropped-cons)		  ; was the last removed element a brace pair?
-      ;; The easy bit - knock over-the-top bits off `c-state-cache'.
-      (while (and c-state-cache
-		  (>= (c-state-cache-top-paren) here))
-	(setq dropped-cons (consp (car c-state-cache))
-	      too-high-pa (c-state-cache-top-lparen)
-	      c-state-cache (cdr c-state-cache)))
-
-      ;; Do we need to add in an earlier brace pair, having lopped one off?
-      (if (and dropped-cons
-	       (<= too-high-pa here))
-	  (c-append-lower-brace-pair-to-state-cache too-high-pa here here-bol))
-      (if (and c-state-cache-good-pos (< here c-state-cache-good-pos))
-	  (setq c-state-cache-good-pos
-		(or (save-excursion
-		      (goto-char here)
-		      (c-literal-start))
-		    here)))))
+   ;; Case 2: `here' is below `c-state-cache-good-pos', so we need to amend
+   ;; the entire `c-state-cache' data.
+   ((< here c-state-cache-good-pos)
+    (let* ((res (c-remove-stale-state-cache-backwards here))
+	   (good-pos (car res))
+	   (scan-backward-pos (cadr res))
+	   (scan-forward-p (car (cddr res))))
+      (if scan-backward-pos
+	  (c-append-lower-brace-pair-to-state-cache scan-backward-pos here))
+      (setq c-state-cache-good-pos
+	    (if scan-forward-p
+		(c-append-to-state-cache good-pos here)
+	      good-pos)))))
 
   ;; The brace-pair desert marker:
   (when (car c-state-brace-pair-desert)
