@@ -1162,7 +1162,6 @@ it is displayed along with the global value."
 
               (with-current-buffer standard-output
                 (help-fns--ensure-empty-line))
-	      (princ "Documentation:\n")
 	      (with-current-buffer standard-output
 		(insert (or doc "Not documented as a variable."))))
 
