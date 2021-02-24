@@ -33,6 +33,11 @@
 ;; for optional functionality
 (require 'python nil t)
 
+;; Tell wisent how many shift/reduce conflicts are to be expected by
+;; this grammar.
+(eval-and-compile
+  (defconst wisent-python--expected-conflicts 4))
+
 (require 'semantic/wisent)
 (require 'semantic/wisent/python-wy)
 (require 'semantic/find)
