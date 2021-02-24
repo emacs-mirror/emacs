@@ -112,7 +112,7 @@ and also to avoid outputting the warning during normal execution."
        (funcall (eval (cadr form)))
        (byte-compile-constant nil)))
 
-(defun macroexp--compiling-p ()
+(defun macroexp-compiling-p ()
   "Return non-nil if we're macroexpanding for the compiler."
   ;; FIXME: ¡¡Major Ugly Hack!! To determine whether the output of this
   ;; macro-expansion will be processed by the byte-compiler, we check
@@ -120,13 +120,22 @@ and also to avoid outputting the warning during normal execution."
   (member '(declare-function . byte-compile-macroexpand-declare-function)
           macroexpand-all-environment))
 
+(defun macroexp-file-name ()
+  "Return the name of the file from which the code comes.
+Returns nil when we do not know.
+A non-nil result is expected to be reliable when called from a macro in order
+to find the file in which the macro's call was found, and it should be
+reliable as well when used at the top-level of a file.
+Other uses risk returning non-nil value that point to the wrong file."
+  (or load-file-name (bound-and-true-p byte-compile-current-file)))
+
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
 (defun macroexp--warn-and-return (msg form &optional compile-only)
   (let ((when-compiled (lambda () (byte-compile-warn "%s" msg))))
     (cond
      ((null msg) form)
-     ((macroexp--compiling-p)
+     ((macroexp-compiling-p)
       (if (and (consp form) (gethash form macroexp--warned))
           ;; Already wrapped this exp with a warning: avoid inf-looping
           ;; where we keep adding the same warning onto `form' because

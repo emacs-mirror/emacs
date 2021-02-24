@@ -367,8 +367,7 @@ different resource directory naming scheme, set the variable
 name will be trimmed using `string-trim' with arguments
 `ert-resource-directory-trim-left-regexp' and
 `ert-resource-directory-trim-right-regexp'."
-  `(let* ((testfile ,(or (bound-and-true-p byte-compile-current-file)
-                         (and load-in-progress load-file-name)
+  `(let* ((testfile ,(or (macroexp-file-name)
                          buffer-file-name))
           (default-directory (file-name-directory testfile)))
      (file-truename

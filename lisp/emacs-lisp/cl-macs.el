@@ -545,7 +545,7 @@ its argument list allows full Common Lisp conventions."
     (let ((p (memq '&body args))) (if p (setcar p '&rest)))
     (if (memq '&environment args) (error "&environment used incorrectly"))
     (let ((restarg (memq '&rest args))
-	  (safety (if (cl--compiling-file) cl--optimize-safety 3))
+	  (safety (if (macroexp-compiling-p) cl--optimize-safety 3))
 	  (keys t)
 	  (laterarg nil) (exactarg nil) minarg)
       (or num (setq num 0))
@@ -709,7 +709,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 
 \(fn (WHEN...) BODY...)"
   (declare (indent 1) (debug (sexp body)))
-  (if (and (fboundp 'cl--compiling-file) (cl--compiling-file)
+  (if (and (macroexp-compiling-p)
 	   (not cl--not-toplevel) (not (boundp 'for-effect))) ;Horrible kludge.
       (let ((comp (or (memq 'compile when) (memq :compile-toplevel when)))
 	    (cl--not-toplevel t))
@@ -738,7 +738,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
   "Like `progn', but evaluates the body at load time.
 The result of the body appears to the compiler as a quoted constant."
   (declare (debug (form &optional sexp)))
-  (if (cl--compiling-file)
+  (if (macroexp-compiling-p)
       (let* ((temp (cl-gentemp "--cl-load-time--"))
 	     (set `(setq ,temp ,form)))
 	(if (and (fboundp 'byte-compile-file-form-defmumble)
@@ -2455,7 +2455,7 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 (defmacro cl-the (type form)
   "Return FORM.  If type-checking is enabled, assert that it is of TYPE."
   (declare (indent 1) (debug (cl-type-spec form)))
-  (if (not (or (not (cl--compiling-file))
+  (if (not (or (not (macroexp-compiling-p))
                (< cl--optimize-speed 3)
                (= cl--optimize-safety 3)))
       form
@@ -2522,7 +2522,7 @@ For instance
 
 will turn off byte-compile warnings in the function.
 See Info node `(cl)Declarations' for details."
-  (if (cl--compiling-file)
+  (if (macroexp-compiling-p)
       (while specs
 	(if (listp cl--declare-stack) (push (car specs) cl--declare-stack))
 	(cl--do-proclaim (pop specs) nil)))
@@ -2859,7 +2859,7 @@ Supported keywords for slots are:
 	 (copier (intern (format "copy-%s" name)))
 	 (predicate (intern (format "%s-p" name)))
 	 (print-func nil) (print-auto nil)
-	 (safety (if (cl--compiling-file) cl--optimize-safety 3))
+	 (safety (if (macroexp-compiling-p) cl--optimize-safety 3))
 	 (include nil)
          ;; There are 4 types of structs:
          ;; - `vector' type: means we should use a vector, which can come
@@ -3263,7 +3263,7 @@ does not contain SLOT-NAME."
   "Return non-nil if SYM will be bound when we run the code.
 Of course, we really can't know that for sure, so it's just a heuristic."
   (or (fboundp sym)
-      (and (cl--compiling-file)
+      (and (macroexp-compiling-p)
            (or (cdr (assq sym byte-compile-function-environment))
                (cdr (assq sym byte-compile-macro-environment))))))
 
@@ -3359,7 +3359,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
   "Verify that FORM is of type TYPE; signal an error if not.
 STRING is an optional description of the desired type."
   (declare (debug (place cl-type-spec &optional stringp)))
-  (and (or (not (cl--compiling-file))
+  (and (or (not (macroexp-compiling-p))
 	   (< cl--optimize-speed 3) (= cl--optimize-safety 3))
        (macroexp-let2 macroexp-copyable-p temp form
          `(progn (or (cl-typep ,temp ',type)
@@ -3379,7 +3379,7 @@ Other args STRING and ARGS... are arguments to be passed to `error'.
 They are not evaluated unless the assertion fails.  If STRING is
 omitted, a default message listing FORM itself is used."
   (declare (debug (form &rest form)))
-  (and (or (not (cl--compiling-file))
+  (and (or (not (macroexp-compiling-p))
 	   (< cl--optimize-speed 3) (= cl--optimize-safety 3))
        (let ((sargs (and show-args
                          (delq nil (mapcar (lambda (x)

@@ -369,6 +369,12 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Macroexp
+---
+*** New function 'macroexp-file-name' to know the name of the current file
+---
+*** New function 'macroexp-compiling-p' to know if we're compiling.
+
 ** 'blink-cursor-mode' is now enabled by default regardless of the UI.
 It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.

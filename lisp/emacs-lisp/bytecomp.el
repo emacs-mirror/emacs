@@ -1727,6 +1727,11 @@ It is too wide if it has any lines longer than the largest of
          ;; 		(byte-compile-generate-emacs19-bytecodes
          ;; 		 byte-compile-generate-emacs19-bytecodes)
          (byte-compile-warnings byte-compile-warnings)
+         ;; Indicate that we're not currently loading some file.
+         ;; This is used in `macroexp-file-name' to make sure that
+         ;; loading file A which does (byte-compile-file B) won't
+         ;; cause macro calls in B to think they come from A.
+         (load-file-name nil)
          )
      ,@body))
 

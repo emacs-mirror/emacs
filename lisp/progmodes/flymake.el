@@ -287,8 +287,7 @@ LEVEL is passed to `display-warning', which is used to display
 the warning.  If this form is included in a byte-compiled file,
 the generated warning contains an indication of the file that
 generated it."
-  (let* ((compile-file (and (boundp 'byte-compile-current-file)
-                            (symbol-value 'byte-compile-current-file)))
+  (let* ((compile-file (macroexp-file-name))
          (sublog (if (and
                       compile-file
                       (not load-file-name))

@@ -4024,10 +4024,7 @@ The return value is a string (or nil in case we can't find it)."
   ;; the version at compile time and hardcodes it into the .elc file!
   (declare (pure t))
   ;; Hack alert!
-  (let ((file
-         (or (if (boundp 'byte-compile-current-file) byte-compile-current-file)
-             load-file-name
-             buffer-file-name)))
+  (let ((file (or (macroexp-file-name) buffer-file-name)))
     (cond
      ((null file) nil)
      ;; Packages are normally installed into directories named "<pkg>-<vers>",
