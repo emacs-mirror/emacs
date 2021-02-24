@@ -4670,7 +4670,7 @@ see other processes running on the system, use `list-system-processes'."
     (setq prefix-command--last-echo
           (let ((strs nil))
             (run-hook-wrapped 'prefix-command-echo-keystrokes-functions
-                              (lambda (fun) (push (funcall fun) strs)))
+                              (lambda (fun) (push (funcall fun) strs) nil))
             (setq strs (delq nil strs))
             (when strs (mapconcat #'identity strs " "))))))
 
