@@ -2008,7 +2008,7 @@ Try to visit the target file for a richer summary line."
        (eglot--lambda ((Location) uri range)
          (collect (eglot--xref-make-match (symbol-name (symbol-at-point))
                                           uri range)))
-       (if (vectorp response) response (list response))))))
+       (if (vectorp response) response (and response (list response)))))))
 
 (cl-defun eglot--lsp-xref-helper (method &key extra-params capability )
   "Helper for `eglot-find-declaration' & friends."
