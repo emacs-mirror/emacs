@@ -119,6 +119,18 @@ applies to newsticker only."
   :type 'boolean
   :group 'newsticker-treeview)
 
+(defcustom newsticker-treeview-use-feed-name-from-url-list-in-treeview
+  t
+  "Use the feed names from 'newsticker-url-list' for display in treeview."
+  :type 'boolean
+  :group 'newsticker-treeview)
+
+(defcustom newsticker-treeview-use-feed-name-from-url-list-in-itemview
+  t
+  "Use feed names from 'newsticker-url-list' in itemview."
+  :type 'boolean
+  :group 'newsticker-treeview)
+
 (defvar newsticker-groups
   '("Feeds")
   "List of feed groups, used in the treeview frontend.
@@ -738,11 +750,14 @@ for the button."
                (img (newsticker--image-read feed-name-symbol nil 40)))
           (if (and (display-images-p) img)
               (newsticker--insert-image img (car item))
-            (insert (newsticker--real-feed-name feed-name-symbol))))
+            (insert (if newsticker-treeview-use-feed-name-from-url-list-in-itemview
+                        (symbol-name feed-name-symbol)
+                      (newsticker--real-feed-name feed-name-symbol)))))
         (add-text-properties (point-min) (point)
                              (list 'face 'newsticker-feed-face
                                    'mouse-face 'highlight
-                                   'help-echo "Visit in web browser."
+                                   'help-echo (concat (newsticker--real-feed-name feed-name-symbol)
+                                                      "\nClick to visit in web browser.")
                                    :nt-link (newsticker--link item)
                                    'keymap newsticker--treeview-url-keymap))
         (setq pos (point))
@@ -933,10 +948,10 @@ Optional arguments CHANGED-WIDGET and EVENT are ignored."
     (newsticker-treeview-mode)))
 
 (defun newsticker--treeview-propertize-tag (tag &optional num-new nt-id feed
-                                                vfeed)
+                                                vfeed tooltip)
   "Return propertized copy of string TAG.
 Optional argument NUM-NEW is used for choosing face, other
-arguments NT-ID, FEED, and VFEED are added as properties."
+arguments NT-ID, FEED, VFEED and TOOLTIP are added as properties."
   ;;(message "newsticker--treeview-propertize-tag `%s' %s" feed nt-id)
   (let ((face 'newsticker-treeview-face)
         (map (make-sparse-keymap)))
@@ -950,14 +965,14 @@ arguments NT-ID, FEED, and VFEED are added as properties."
                 :nt-id nt-id
                 :nt-feed feed
                 :nt-vfeed vfeed
-                'help-echo tag
+                'help-echo tooltip
                 'mouse-face 'highlight)))
 
 (defun newsticker--treeview-tree-get-tag (feed-name vfeed-name
                                                     &optional nt-id)
   "Return a tag string for either FEED-NAME or, if it is nil, for VFEED-NAME.
 Optional argument NT-ID is added to the tag's properties."
-  (let (tag (num-new 0))
+  (let (tag tooltip (num-new 0))
     (cond (vfeed-name
            (cond ((string= vfeed-name "new")
                   (setq num-new (newsticker--stat-num-items-total 'new))
@@ -970,18 +985,29 @@ Optional argument NT-ID is added to the tag's properties."
                   (setq tag (format "Obsolete items (%d)" num-new)))
                  ((string= vfeed-name "all")
                   (setq num-new (newsticker--stat-num-items-total))
-                  (setq tag (format "All items (%d)" num-new)))))
+                  (setq tag (format "All items (%d)" num-new))))
+           (setq tooltip tag))
           (feed-name
            (setq num-new (newsticker--stat-num-items-for-group
                           (intern feed-name) 'new 'immortal))
            (setq tag
                  (format "%s (%d)"
-                         (newsticker--real-feed-name (intern feed-name))
-                         num-new))))
+                         (if newsticker-treeview-use-feed-name-from-url-list-in-itemview
+                             feed-name
+                           (newsticker--real-feed-name (intern feed-name)))
+                         num-new))
+           (setq tooltip
+                 (if (newsticker--group-get-group feed-name)
+                     tag
+                   (format "%s (%d)\n%s"
+                           feed-name
+                           num-new
+                           (newsticker--real-feed-name (intern feed-name)))))))
     (if tag
         (newsticker--treeview-propertize-tag tag num-new
                                              nt-id
-                                             feed-name vfeed-name))))
+                                             feed-name vfeed-name
+                                             tooltip))))
 
 (defun newsticker--stat-num-items-for-group (feed-name-symbol &rest ages)
   "Count number of items in feed FEED-NAME-SYMBOL that have an age matching AGES."
