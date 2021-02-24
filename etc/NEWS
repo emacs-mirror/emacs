@@ -1734,6 +1734,10 @@ If this is bound to something non-nil, functions like
 This is a plain 2D button, but uses the background color instead of
 the foreground color.
 
+---
+*** New face 'shortdoc-heading'.
+Applies to headings of shortdoc sections.
+
 +++
 *** New predicate functions 'length<', 'length>' and 'length='.
 Using these functions may be more efficient than using 'length' (if
