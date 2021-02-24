@@ -3,12 +3,10 @@
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 
 ;; Author: Nicolas Petton <nicolas@petton.fr>
-;; Keywords: convenience, map, hash-table, alist, array
-;; Version: 2.1
-;; Package-Requires: ((emacs "25"))
-;; Package: map
-
 ;; Maintainer: emacs-devel@gnu.org
+;; Keywords: extensions, lisp
+;; Version: 3.0
+;; Package-Requires: ((emacs "26"))
 
 ;; This file is part of GNU Emacs.
 
@@ -27,8 +25,9 @@
 
 ;;; Commentary:
 
-;; map.el provides map-manipulation functions that work on alists,
-;; hash-table and arrays.  All functions are prefixed with "map-".
+;; map.el provides generic map-manipulation functions that work on
+;; alists, plists, hash-tables, and arrays.  All functions are
+;; prefixed with "map-".
 ;;
 ;; Functions taking a predicate or iterating over a map using a
 ;; function take the function as their first argument.  All other
@@ -54,7 +53,7 @@ ARGS is a list of elements to be matched in the map.
 Each element of ARGS can be of the form (KEY PAT), in which case KEY is
 evaluated and searched for in the map.  The match fails if for any KEY
 found in the map, the corresponding PAT doesn't match the value
-associated to the KEY.
+associated with the KEY.
 
 Each element can also be a SYMBOL, which is an abbreviation of
 a (KEY PAT) tuple of the form (\\='SYMBOL SYMBOL).  When SYMBOL
@@ -75,7 +74,7 @@ bound to the looked up value in MAP.
 KEYS can also be a list of (KEY VARNAME) pairs, in which case
 KEY is an unquoted form.
 
-MAP can be a list, hash-table or array."
+MAP can be an alist, plist, hash-table, or array."
   (declare (indent 2)
            (debug ((&rest &or symbolp ([form symbolp])) form body)))
   `(pcase-let ((,(map--make-pcase-patterns keys) ,map))
@@ -101,7 +100,7 @@ Returns the result of evaluating the form associated with MAP-VAR's type."
 (define-error 'map-not-inplace "Cannot modify map in-place")
 
 (defsubst map--plist-p (list)
-  (and (consp list) (not (listp (car list)))))
+  (and (consp list) (atom (car list))))
 
 (cl-defgeneric map-elt (map key &optional default testfn)
   "Lookup KEY in MAP and return its associated value.
@@ -109,7 +108,8 @@ If KEY is not found, return DEFAULT which defaults to nil.
 
 TESTFN is deprecated.  Its default depends on the MAP argument.
 
-In the base definition, MAP can be an alist, hash-table, or array."
+In the base definition, MAP can be an alist, plist, hash-table,
+or array."
   (declare
    (gv-expander
     (lambda (do)
@@ -127,26 +127,25 @@ In the base definition, MAP can be an alist, hash-table, or array."
                                    `(map-insert ,mgetter ,key ,v))))))))))
    ;; `testfn' is deprecated.
    (advertised-calling-convention (map key &optional default) "27.1"))
+  ;; Can't use `cl-defmethod' with `advertised-calling-convention'.
   (map--dispatch map
     :list (if (map--plist-p map)
-              (let ((res (plist-get map key)))
-                (if (and default (null res) (not (plist-member map key)))
-                    default
-                  res))
+              (let ((res (plist-member map key)))
+                (if res (cadr res) default))
             (alist-get key map default nil testfn))
     :hash-table (gethash key map default)
-    :array (if (and (>= key 0) (< key (seq-length map)))
-               (seq-elt map key)
+    :array (if (map-contains-key map key)
+               (aref map key)
              default)))
 
 (defmacro map-put (map key value &optional testfn)
   "Associate KEY with VALUE in MAP and return VALUE.
 If KEY is already present in MAP, replace the associated value
 with VALUE.
-When MAP is a list, test equality with TESTFN if non-nil,
+When MAP is an alist, test equality with TESTFN if non-nil,
 otherwise use `eql'.
 
-MAP can be a list, hash-table or array."
+MAP can be an alist, plist, hash-table, or array."
   (declare (obsolete "use map-put! or (setf (map-elt ...) ...) instead" "27.1"))
   `(setf (map-elt ,map ,key nil ,testfn) ,value))
 
@@ -168,23 +167,30 @@ MAP can be a list, hash-table or array."
 
 (cl-defgeneric map-delete (map key)
   "Delete KEY in-place from MAP and return MAP.
-No error is signaled if KEY is not a key of MAP.
-If MAP is an array, store nil at the index KEY."
-  (map--dispatch map
-    ;; FIXME: Signal map-not-inplace i.s.o returning a different list?
-    :list (if (map--plist-p map)
-              (setq map (map--plist-delete map key))
-            (setf (alist-get key map nil t) nil))
-    :hash-table (remhash key map)
-    :array (and (>= key 0)
-                (<= key (seq-length map))
-                (aset map key nil)))
+Keys not present in MAP are ignored.")
+
+(cl-defmethod map-delete ((map list) key)
+  ;; FIXME: Signal map-not-inplace i.s.o returning a different list?
+  (if (map--plist-p map)
+      (map--plist-delete map key)
+    (setf (alist-get key map nil t) nil)
+    map))
+
+(cl-defmethod map-delete ((map hash-table) key)
+  (remhash key map)
+  map)
+
+(cl-defmethod map-delete ((map array) key)
+  "Store nil at index KEY."
+  (when (map-contains-key map key)
+    (aset map key nil))
   map)
 
 (defun map-nested-elt (map keys &optional default)
   "Traverse MAP using KEYS and return the looked up value or DEFAULT if nil.
 
-Map can be a nested map composed of alists, hash-tables and arrays."
+MAP can be a nested map composed of alists, plists, hash-tables,
+and arrays."
   (or (seq-reduce (lambda (acc key)
                     (when (mapp acc)
                       (map-elt acc key)))
@@ -202,30 +208,49 @@ The default implementation delegates to `map-apply'."
 The default implementation delegates to `map-apply'."
   (map-apply (lambda (_ value) value) map))
 
+(cl-defmethod map-values ((map array))
+  "Convert MAP into a list."
+  (append map ()))
+
 (cl-defgeneric map-pairs (map)
-  "Return the elements of MAP as key/value association lists.
+  "Return the key/value pairs in MAP as an alist.
 The default implementation delegates to `map-apply'."
   (map-apply #'cons map))
 
 (cl-defgeneric map-length (map)
   ;; FIXME: Should we rename this to `map-size'?
-  "Return the number of elements in the map.
-The default implementation counts `map-keys'."
-  (cond
-   ((hash-table-p map) (hash-table-count map))
-   ((listp map)
-    ;; FIXME: What about repeated/shadowed keys?
-    (if (map--plist-p map) (/ (length map) 2) (length map)))
-   ((arrayp map) (length map))
-   (t (length (map-keys map)))))
+  "Return the number of key/value pairs in MAP.
+Note that this does not always reflect the number of unique keys.
+The default implementation delegates to `map-do'."
+  (let ((size 0))
+    (map-do (lambda (_k _v) (setq size (1+ size))) map)
+    size))
+
+(cl-defmethod map-length ((map hash-table))
+  (hash-table-count map))
+
+(cl-defmethod map-length ((map list))
+  (if (map--plist-p map)
+      (/ (length map) 2)
+    (length map)))
+
+(cl-defmethod map-length ((map array))
+  (length map))
 
 (cl-defgeneric map-copy (map)
-  "Return a copy of MAP."
-  ;; FIXME: Clarify how deep is the copy!
-  (map--dispatch map
-    :list (seq-copy map)           ;FIXME: Probably not deep enough for alists!
-    :hash-table (copy-hash-table map)
-    :array (seq-copy map)))
+  "Return a copy of MAP.")
+
+(cl-defmethod map-copy ((map list))
+  "Use `copy-alist' on alists and `copy-sequence' on plists."
+  (if (map--plist-p map)
+      (copy-sequence map)
+    (copy-alist map)))
+
+(cl-defmethod map-copy ((map hash-table))
+  (copy-hash-table map))
+
+(cl-defmethod map-copy ((map array))
+  (copy-sequence map))
 
 (cl-defgeneric map-apply (function map)
   "Apply FUNCTION to each element of MAP and return the result as a list.
@@ -243,26 +268,28 @@ FUNCTION is called with two arguments, the key and the value.")
 (cl-defmethod map-do (function (map hash-table)) (maphash function map))
 
 (cl-defgeneric map-keys-apply (function map)
-  "Return the result of applying FUNCTION to each key of MAP.
+  "Return the result of applying FUNCTION to each key in MAP.
 The default implementation delegates to `map-apply'."
   (map-apply (lambda (key _)
                (funcall function key))
              map))
 
 (cl-defgeneric map-values-apply (function map)
-  "Return the result of applying FUNCTION to each value of MAP.
+  "Return the result of applying FUNCTION to each value in MAP.
 The default implementation delegates to `map-apply'."
   (map-apply (lambda (_ val)
                (funcall function val))
              map))
 
+(cl-defmethod map-values-apply (function (map array))
+  (mapcar function map))
+
 (cl-defgeneric map-filter (pred map)
   "Return an alist of key/val pairs for which (PRED key val) is non-nil in MAP.
 The default implementation delegates to `map-apply'."
   (delq nil (map-apply (lambda (key val)
-                         (if (funcall pred key val)
-                             (cons key val)
-                           nil))
+                         (and (funcall pred key val)
+                              (cons key val)))
                        map)))
 
 (cl-defgeneric map-remove (pred map)
@@ -272,7 +299,7 @@ The default implementation delegates to `map-filter'."
               map))
 
 (cl-defgeneric mapp (map)
-  "Return non-nil if MAP is a map (alist, hash-table, array, ...)."
+  "Return non-nil if MAP is a map (alist/plist, hash-table, array, ...)."
   (or (listp map)
       (hash-table-p map)
       (arrayp map)))
@@ -292,56 +319,58 @@ The default implementation delegates to `map-length'."
   ;; test function!
   "Return non-nil if and only if MAP contains KEY.
 TESTFN is deprecated.  Its default depends on MAP.
-The default implementation delegates to `map-do'."
+The default implementation delegates to `map-some'."
   (unless testfn (setq testfn #'equal))
-  (catch 'map--catch
-    (map-do (lambda (k _v)
-              (if (funcall testfn key k) (throw 'map--catch t)))
-            map)
-    nil))
+  (map-some (lambda (k _v) (funcall testfn key k)) map))
 
 (cl-defmethod map-contains-key ((map list) key &optional testfn)
-  (let ((v '(nil)))
-    (not (eq v (alist-get key map v nil (or testfn #'equal))))))
+  "Return non-nil if MAP contains KEY.
+If MAP is an alist, TESTFN defaults to `equal'.
+If MAP is a plist, `plist-member' is used instead."
+  (if (map--plist-p map)
+      (plist-member map key)
+    (let ((v '(nil)))
+      (not (eq v (alist-get key map v nil (or testfn #'equal)))))))
 
 (cl-defmethod map-contains-key ((map array) key &optional _testfn)
-  (and (integerp key)
-       (>= key 0)
-       (< key (length map))))
+  "Return non-nil if KEY is an index of MAP, ignoring TESTFN."
+  (and (natnump key) (< key (length map))))
 
 (cl-defmethod map-contains-key ((map hash-table) key &optional _testfn)
+  "Return non-nil if MAP contains KEY, ignoring TESTFN."
   (let ((v '(nil)))
     (not (eq v (gethash key map v)))))
 
 (cl-defgeneric map-some (pred map)
   "Return the first non-nil (PRED key val) in MAP.
-The default implementation delegates to `map-apply'."
+Return nil if no such element is found.
+The default implementation delegates to `map-do'."
   ;; FIXME: Not sure if there's much benefit to defining it as defgeneric,
   ;; since as defined, I can't think of a map-type where we could provide an
   ;; algorithmically more efficient algorithm than the default.
   (catch 'map--break
-    (map-apply (lambda (key value)
-                 (let ((result (funcall pred key value)))
-                   (when result
-                     (throw 'map--break result))))
-               map)
+    (map-do (lambda (key value)
+              (let ((result (funcall pred key value)))
+                (when result
+                  (throw 'map--break result))))
+            map)
     nil))
 
 (cl-defgeneric map-every-p (pred map)
   "Return non-nil if (PRED key val) is non-nil for all elements of MAP.
-The default implementation delegates to `map-apply'."
+The default implementation delegates to `map-do'."
   ;; FIXME: Not sure if there's much benefit to defining it as defgeneric,
   ;; since as defined, I can't think of a map-type where we could provide an
   ;; algorithmically more efficient algorithm than the default.
   (catch 'map--break
-    (map-apply (lambda (key value)
+    (map-do (lambda (key value)
               (or (funcall pred key value)
                   (throw 'map--break nil)))
             map)
     t))
 
 (defun map-merge (type &rest maps)
-  "Merge into a map of type TYPE all the key/value pairs in MAPS.
+  "Merge into a map of TYPE all the key/value pairs in MAPS.
 See `map-into' for all supported values of TYPE."
   (let ((result (map-into (pop maps) type)))
     (while maps
@@ -349,48 +378,57 @@ See `map-into' for all supported values of TYPE."
       ;; For small tables, this is fine, but for large tables, we
       ;; should probably use a hash-table internally which we convert
       ;; to an alist in the end.
-      (map-apply (lambda (key value)
-                   (setf (map-elt result key) value))
-                 (pop maps)))
+      (map-do (lambda (key value)
+                (setf (map-elt result key) value))
+              (pop maps)))
     result))
 
 (defun map-merge-with (type function &rest maps)
-  "Merge into a map of type TYPE all the key/value pairs in MAPS.
-When two maps contain the same key (`eql'), call FUNCTION on the two
+  "Merge into a map of TYPE all the key/value pairs in MAPS.
+When two maps contain the same (`eql') key, call FUNCTION on the two
 values and use the value returned by it.
-MAP can be a list, hash-table or array.
+Each of MAPS can be an alist, plist, hash-table, or array.
 See `map-into' for all supported values of TYPE."
   (let ((result (map-into (pop maps) type))
-        (not-found (cons nil nil)))
+        (not-found (list nil)))
     (while maps
-      (map-apply (lambda (key value)
-                   (cl-callf (lambda (old)
-                               (if (eql old not-found)
-                                   value
-                                 (funcall function old value)))
-                       (map-elt result key not-found)))
-                 (pop maps)))
+      (map-do (lambda (key value)
+                (cl-callf (lambda (old)
+                            (if (eql old not-found)
+                                value
+                              (funcall function old value)))
+                    (map-elt result key not-found)))
+              (pop maps)))
     result))
 
 (cl-defgeneric map-into (map type)
-  "Convert the map MAP into a map of type TYPE.")
+  "Convert MAP into a map of TYPE.")
+
 ;; FIXME: I wish there was a way to avoid this η-redex!
-(cl-defmethod map-into (map (_type (eql list))) (map-pairs map))
-(cl-defmethod map-into (map (_type (eql alist))) (map-pairs map))
+(cl-defmethod map-into (map (_type (eql list)))
+  "Convert MAP into an alist."
+  (map-pairs map))
+
+(cl-defmethod map-into (map (_type (eql alist)))
+  "Convert MAP into an alist."
+  (map-pairs map))
+
 (cl-defmethod map-into (map (_type (eql plist)))
-  (let ((plist '()))
-    (map-do (lambda (k v) (setq plist `(,k ,v ,@plist))) map)
-    plist))
+  "Convert MAP into a plist."
+  (let (plist)
+    (map-do (lambda (k v) (setq plist `(,v ,k ,@plist))) map)
+    (nreverse plist)))
 
 (cl-defgeneric map-put! (map key value &optional testfn)
   "Associate KEY with VALUE in MAP.
 If KEY is already present in MAP, replace the associated value
 with VALUE.
 This operates by modifying MAP in place.
-If it cannot do that, it signals the `map-not-inplace' error.
-If you want to insert an element without modifying MAP, use `map-insert'."
+If it cannot do that, it signals a `map-not-inplace' error.
+To insert an element without modifying MAP, use `map-insert'."
   ;; `testfn' only exists for backward compatibility with `map-put'!
   (declare (advertised-calling-convention (map key value) "27.1"))
+  ;; Can't use `cl-defmethod' with `advertised-calling-convention'.
   (map--dispatch map
     :list
     (if (map--plist-p map)
@@ -404,18 +442,20 @@ If you want to insert an element without modifying MAP, use `map-insert'."
     ;; and let `map-insert' grow the array?
     :array (aset map key value)))
 
-(define-error 'map-inplace "Can only modify map in place")
-
 (cl-defgeneric map-insert (map key value)
   "Return a new map like MAP except that it associates KEY with VALUE.
 This does not modify MAP.
-If you want to insert an element in place, use `map-put!'."
-  (if (listp map)
-      (if (map--plist-p map)
-          `(,key ,value ,@map)
-        (cons (cons key value) map))
-    ;; FIXME: Should we signal an error or use copy+put! ?
-    (signal 'map-inplace (list map))))
+If you want to insert an element in place, use `map-put!'.
+The default implementation defaults to `map-copy' and `map-put!'."
+  (let ((copy (map-copy map)))
+    (map-put! copy key value)
+    copy))
+
+(cl-defmethod map-insert ((map list) key value)
+  "Cons KEY and VALUE to the front of MAP."
+  (if (map--plist-p map)
+      (cons key (cons value map))
+    (cons (cons key value) map)))
 
 ;; There shouldn't be old source code referring to `map--put', yet we do
 ;; need to keep it for backward compatibility with .elc files where the
@@ -425,11 +465,9 @@ If you want to insert an element in place, use `map-put!'."
 (cl-defmethod map-apply (function (map list))
   (if (map--plist-p map)
       (cl-call-next-method)
-    (seq-map (lambda (pair)
-               (funcall function
-                        (car pair)
-                        (cdr pair)))
-             map)))
+    (mapcar (lambda (pair)
+              (funcall function (car pair) (cdr pair)))
+            map)))
 
 (cl-defmethod map-apply (function (map hash-table))
   (let (result)
@@ -439,46 +477,40 @@ If you want to insert an element in place, use `map-put!'."
     (nreverse result)))
 
 (cl-defmethod map-apply (function (map array))
-  (let ((index 0))
-    (seq-map (lambda (elt)
-               (prog1
-                   (funcall function index elt)
-                 (setq index (1+ index))))
-             map)))
+  (seq-map-indexed (lambda (elt index)
+                     (funcall function index elt))
+                   map))
 
 (cl-defmethod map-do (function (map list))
-  "Private function used to iterate over ALIST using FUNCTION."
   (if (map--plist-p map)
       (while map
         (funcall function (pop map) (pop map)))
-    (seq-do (lambda (pair)
-              (funcall function
-                       (car pair)
-                       (cdr pair)))
-            map)))
+    (mapc (lambda (pair)
+            (funcall function (car pair) (cdr pair)))
+          map)
+    nil))
 
-(cl-defmethod map-do (function (array array))
-  "Private function used to iterate over ARRAY using FUNCTION."
+(cl-defmethod map-do (function (map array))
   (seq-do-indexed (lambda (elt index)
-                     (funcall function index elt))
-                   array))
+                    (funcall function index elt))
+                  map))
 
 (defun map--into-hash (map keyword-args)
   "Convert MAP into a hash-table.
 KEYWORD-ARGS are forwarded to `make-hash-table'."
   (let ((ht (apply #'make-hash-table keyword-args)))
-    (map-apply (lambda (key value)
-                 (setf (gethash key ht) value))
-               map)
+    (map-do (lambda (key value)
+              (puthash key value ht))
+            map)
     ht))
 
 (cl-defmethod map-into (map (_type (eql hash-table)))
-  "Convert MAP into a hash-table."
-  (map--into-hash map (list :size (map-length map) :test 'equal)))
+  "Convert MAP into a hash-table with keys compared with `equal'."
+  (map--into-hash map (list :size (map-length map) :test #'equal)))
 
 (cl-defmethod map-into (map (type (head hash-table)))
   "Convert MAP into a hash-table.
-TYPE is a list where the car is `hash-table' and the cdr are the
+TYPE is a list whose car is `hash-table' and cdr a list of
 keyword-args forwarded to `make-hash-table'.
 
 Example:
@@ -487,23 +519,23 @@ Example:
 
 (defun map--make-pcase-bindings (args)
   "Return a list of pcase bindings from ARGS to the elements of a map."
-  (seq-map (lambda (elt)
-             (cond ((consp elt)
-                    `(app (pcase--flip map-elt ,(car elt)) ,(cadr elt)))
-                   ((keywordp elt)
-                    (let ((var (intern (substring (symbol-name elt) 1))))
-                      `(app (pcase--flip map-elt ,elt) ,var)))
-                   (t `(app (pcase--flip map-elt ',elt) ,elt))))
-           args))
+  (mapcar (lambda (elt)
+            (cond ((consp elt)
+                   `(app (pcase--flip map-elt ,(car elt)) ,(cadr elt)))
+                  ((keywordp elt)
+                   (let ((var (intern (substring (symbol-name elt) 1))))
+                     `(app (pcase--flip map-elt ,elt) ,var)))
+                  (t `(app (pcase--flip map-elt ',elt) ,elt))))
+          args))
 
 (defun map--make-pcase-patterns (args)
   "Return a list of `(map ...)' pcase patterns built from ARGS."
   (cons 'map
-        (seq-map (lambda (elt)
-                   (if (and (consp elt) (eq 'map (car elt)))
-                       (map--make-pcase-patterns elt)
-                     elt))
-                 args)))
+        (mapcar (lambda (elt)
+                  (if (eq (car-safe elt) 'map)
+                      (map--make-pcase-patterns elt)
+                    elt))
+                args)))
 
 (provide 'map)
 ;;; map.el ends here

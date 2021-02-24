@@ -1160,6 +1160,13 @@ effect.
 A pattern like '(map :sym)' binds the map's value for ':sym' to 'sym',
 equivalent to '(map (:sym sym))'.
 
+---
+*** The function 'map-copy' now uses 'copy-alist' on alists.
+This is a slightly deeper copy than the previous 'copy-sequence'.
+
+---
+*** The function 'map-contains-key' now supports plists.
+
 ** Package
 
 +++
