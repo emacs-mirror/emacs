@@ -34,6 +34,8 @@
 
 (defconst macroexp--tests-filename (macroexp-file-name))
 
+(defmacro macroexp--test-get-file-name () (macroexp-file-name))
+
 (ert-deftest macroexp--tests-file-name ()
   (should (string-match
            "\\`macroexp-tests.elc?\\'"
@@ -44,10 +46,13 @@
     (with-current-buffer
         (find-file-noselect (expand-file-name "m1.el" rsrc-dir))
       (defvar macroexp--m1-tests-filename)
+      (declare-function macroexp--m1-tests-file-name "m1" ())
       ;; `macroexp-file-name' should work with `eval-buffer'.
       (eval-buffer)
       (should (equal "m1.el"
                      (file-name-nondirectory macroexp--m1-tests-filename)))
+      (should (equal "m1.el"
+                     (file-name-nondirectory (macroexp--m1-tests-file-name))))
       (search-forward "macroexp--m1-tests-filename")
       (makunbound 'macroexp--m1-tests-filename)
       ;; `macroexp-file-name' should also work with `eval-defun'.

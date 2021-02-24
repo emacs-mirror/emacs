@@ -29,5 +29,8 @@
 (eval-when-compile
   (defconst macroexp--m1-tests-comp-filename (macroexp-file-name)))
 
+(defun macroexp--m1-tests-file-name ()
+  (macroexp--test-get-file-name))
+
 (provide 'm1)
 ;;; m1.el ends here
