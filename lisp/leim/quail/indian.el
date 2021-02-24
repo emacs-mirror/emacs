@@ -312,7 +312,10 @@ Full key sequences are listed below:")
 
 (defun quail-define-inscript-package (char-tables key-tables pkgname lang
                                                   title docstring)
-  (quail-define-package pkgname lang title nil docstring
+  ;; This is a funcall to avoid `quail-update-leim-list-file'
+  ;; determining that this is a quail definition (it searches for
+  ;; "(quail-define-package").
+  (funcall #'quail-define-package pkgname lang title nil docstring
 	   nil nil nil t nil nil nil nil)
   (let (char-table key-table char key)
     (while (and char-tables key-tables)
