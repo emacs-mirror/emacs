@@ -478,6 +478,13 @@
 	      (eq family 'unspecified))
       family)))
 
+(defun comp-test-46670-1-f (x)
+  "foo")
+
+(defun comp-test-46670-2-f (s)
+  (and (equal (comp-test-46670-1-f (length s)) s)
+       s))
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;

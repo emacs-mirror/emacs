@@ -497,6 +497,12 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (load (native-compile (concat comp-test-directory "comp-test-45603.el")))
   (should (fboundp #'comp-test-45603--file-local-name)))
 
+(comp-deftest 46670-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01413.html>"
+  (should (string= (comp-test-46670-2-f "foo") "foo"))
+  (should (equal (subr-type (symbol-function #'comp-test-46670-2-f))
+                 '(function (t) (or null sequence)))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;
@@ -1185,7 +1191,7 @@ Return a list of results."
       ((defun comp-tests-ret-type-spec-f (x)
          (unless (symbolp x)
            x))
-       (not symbol))
+       t)
 
       ;; 55
       ((defun comp-tests-ret-type-spec-f (x)

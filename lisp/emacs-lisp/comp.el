@@ -600,6 +600,53 @@ Useful to hook into pass checkers.")
 (define-error 'native-compiler-error-empty-byte
   "empty byte compiler output"
   'native-compiler-error)
+
+
+(cl-defstruct (comp-vec (:copier nil))
+  "A re-sizable vector like object."
+  (data (make-hash-table :test #'eql) :type hash-table
+        :documentation "Payload data.")
+  (beg 0 :type integer)
+  (end 0 :type natnum))
+
+(defsubst comp-vec-copy (vec)
+  "Return a copy of VEC."
+  (make-comp-vec :data (copy-hash-table (comp-vec-data vec))
+                 :beg (comp-vec-beg vec)
+                 :end (comp-vec-end vec)))
+
+(defsubst comp-vec-length (vec)
+  "Return the number of elements of VEC."
+  (+ (comp-vec-beg vec) (comp-vec-end vec)))
+
+(defsubst comp-vec--verify-idx (vec idx)
+  "Check idx is in bounds for VEC."
+  (cl-assert (and (< idx (comp-vec-end vec))
+                  (>= idx (comp-vec-beg vec)))))
+
+(defsubst comp-vec-aref (vec idx)
+  "Return the element of VEC at index IDX."
+  (declare (gv-setter (lambda (val)
+                        `(comp-vec--verify-idx ,vec ,idx)
+			`(puthash ,idx ,val (comp-vec-data ,vec)))))
+  (comp-vec--verify-idx vec idx)
+  (gethash idx (comp-vec-data vec)))
+
+(defsubst comp-vec-append (vec elt)
+  "Append ELT into VEC.
+ELT is returned."
+  (puthash (comp-vec-end vec) elt (comp-vec-aref vec))
+  (cl-incf (comp-vec-end vec))
+  elt)
+
+(defsubst comp-vec-prepend (vec elt)
+  "Prepend ELT into VEC.
+ELT is returned."
+  (puthash (comp-vec-beg vec) elt (comp-vec-aref vec))
+  (cl-decf (comp-vec-beg vec))
+  elt)
+
+
 
 (eval-when-compile
   (defconst comp-op-stack-info
@@ -686,7 +733,7 @@ This is typically for top-level forms other than defun.")
       :documentation "Dominance frontier set. Block-name -> block")
   (post-num nil :type (or null number)
             :documentation "Post order number.")
-  (final-frame nil :type (or null vector)
+  (final-frame nil :type (or null comp-vec)
              :documentation "This is a copy of the frame when leaving the block.
 Is in use to help the SSA rename pass."))
 
@@ -762,6 +809,7 @@ non local exit (ends with an `unreachable' insn)."))
 Once in SSA form this *must* be set to 'dirty' every time the topology of the
 CFG is mutated by a pass.")
   (frame-size nil :type integer)
+  (vframe-size 0 :type integer)
   (blocks (make-hash-table :test #'eq) :type hash-table
           :documentation "Basic block symbol -> basic block.")
   (lap-block (make-hash-table :test #'equal) :type hash-table
@@ -774,8 +822,6 @@ CFG is mutated by a pass.")
                 :documentation "Generates edges numbers.")
   (has-non-local nil :type boolean
                  :documentation "t if non local jumps are present.")
-  (array-h (make-hash-table) :type hash-table
-           :documentation "array idx -> array length.")
   (speed nil :type number
          :documentation "Optimization level (see `comp-speed').")
   (pure nil :type boolean
@@ -1188,8 +1234,6 @@ clashes."
         (setf (comp-ctxt-top-level-forms comp-ctxt)
               (list (make-byte-to-native-func-def :name function-name
                                                   :c-name c-name)))
-        ;; Create the default array.
-        (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
         (comp-add-func-to-ctxt func))))
 
 (cl-defmethod comp-spill-lap-function ((form list))
@@ -1227,8 +1271,6 @@ clashes."
             (comp-ctxt-top-level-forms comp-ctxt)
             (list (make-byte-to-native-func-def :name '--anonymous-lambda
                                                 :c-name c-name)))
-      ;; Create the default array.
-      (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
       (comp-add-func-to-ctxt func))))
 
 (defun comp-intern-func-in-ctxt (_ obj)
@@ -1265,8 +1307,6 @@ clashes."
         (setf (byte-to-native-func-def-c-name top-l-form) c-name))
       (unless name
         (puthash byte-func func (comp-ctxt-byte-func-to-func-h comp-ctxt)))
-      ;; Create the default array.
-      (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
       (comp-add-func-to-ctxt func)
       (comp-log (format "Function %s:\n" name) 1)
       (comp-log lap 1 t))))
@@ -1318,7 +1358,7 @@ If INPUT is a string this is the filename to be compiled."
 
 (cl-defstruct (comp-limplify (:copier nil))
   "Support structure used during function limplification."
-  (frame nil :type vector
+  (frame nil :type (or null comp-vec)
          :documentation "Meta-stack used to flat LAP.")
   (curr-block nil :type comp-block
               :documentation "Current block being limplified.")
@@ -1367,7 +1407,7 @@ Restore the original value afterwards."
 
 (defsubst comp-slot-n (n)
   "Slot N into the meta-stack."
-  (aref (comp-limplify-frame comp-pass) n))
+  (comp-vec-aref (comp-limplify-frame comp-pass) n))
 
 (defsubst comp-slot ()
   "Current slot into the meta-stack pointed by sp."
@@ -1429,15 +1469,15 @@ STACK-OFF is the index of the first slot frame involved."
       (setf (comp-mvar-typeset mvar) (list type)))
     mvar))
 
-(defun comp-new-frame (size &optional ssa)
+(defun comp-new-frame (size vsize &optional ssa)
   "Return a clean frame of meta variables of size SIZE.
 If SSA non-nil populate it of m-var in ssa form."
-  (cl-loop with v = (make-vector size nil)
-           for i below size
+  (cl-loop with v = (make-comp-vec :beg (- vsize) :end size)
+           for i from (- vsize) below size
            for mvar = (if ssa
                           (make-comp-ssa-mvar :slot i)
                         (make-comp-mvar :slot i))
-           do (aset v i mvar)
+           do (setf (comp-vec-aref v i) mvar)
            finally return v))
 
 (defun comp-emit (insn)
@@ -2077,7 +2117,7 @@ into the C code forwarding the compilation unit."
          (comp-func func)
          (comp-pass (make-comp-limplify
                      :curr-block (make--comp-block-lap -1 0 'top-level)
-                     :frame (comp-new-frame 1))))
+                     :frame (comp-new-frame 1 0))))
     (comp-make-curr-block 'entry (comp-sp))
     (comp-emit-annotation (if for-late-load
                               "Late top level"
@@ -2090,7 +2130,6 @@ into the C code forwarding the compilation unit."
     (mapc (lambda (x) (comp-emit-for-top-level x for-late-load))
           (comp-ctxt-top-level-forms comp-ctxt))
     (comp-emit `(return ,(make-comp-mvar :slot 1)))
-    (puthash 0 (comp-func-frame-size func) (comp-func-array-h func))
     (comp-limplify-finalize-function func)))
 
 (defun comp-addr-to-bb-name (addr)
@@ -2139,7 +2178,7 @@ into the C code forwarding the compilation unit."
   (let* ((frame-size (comp-func-frame-size func))
          (comp-func func)
          (comp-pass (make-comp-limplify
-                     :frame (comp-new-frame frame-size))))
+                     :frame (comp-new-frame frame-size 0))))
     (comp-fill-label-h)
     ;; Prologue
     (comp-make-curr-block 'entry (comp-sp))
@@ -2284,6 +2323,18 @@ The assume is emitted at the beginning of the block BB."
       (_ (cl-assert nil)))
     (setf (comp-func-ssa-status comp-func) 'dirty)))
 
+(defun comp-maybe-add-vmvar (op cmp-res insns-seq)
+  "If CMP-RES is clobbering OP emit a new constrained MVAR and return it.
+Return OP otherwise."
+  (if-let ((match (eql (comp-mvar-slot op) (comp-mvar-slot cmp-res)))
+           (new-mvar (make-comp-mvar
+                      :slot
+                      (- (cl-incf (comp-func-vframe-size comp-func))))))
+      (progn
+        (push `(assume ,new-mvar ,op) (cdr insns-seq))
+        new-mvar)
+    op))
+
 (defun comp-add-new-block-between (bb-symbol bb-a bb-b)
   "Create a new basic-block named BB-SYMBOL and add it between BB-A and BB-B."
   (cl-loop
@@ -2389,6 +2440,7 @@ TARGET-BB-SYM is the symbol name of the target block."
    do
    (cl-loop
     named in-the-basic-block
+    with prev-insns-seq
     for insns-seq on (comp-block-insns b)
     do
     (pcase insns-seq
@@ -2414,10 +2466,14 @@ TARGET-BB-SYM is the symbol name of the target block."
         (let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
           (when (comp-mvar-used-p target-mvar1)
-            (comp-emit-assume kind target-mvar1 op2 block-target negated))
+            (comp-emit-assume kind target-mvar1
+                              (comp-maybe-add-vmvar op2 cmp-res prev-insns-seq)
+                              block-target negated))
           (when (comp-mvar-used-p target-mvar2)
             (comp-emit-assume (comp-reverse-cmp-fun kind)
-                              target-mvar2 op1 block-target negated)))
+                              target-mvar2
+                              (comp-maybe-add-vmvar op1 cmp-res prev-insns-seq)
+                              block-target negated)))
         finally (cl-return-from in-the-basic-block)))
       (`((set ,(and (pred comp-mvar-p) cmp-res)
               (,(pred comp-call-op-p)
@@ -2455,7 +2511,8 @@ TARGET-BB-SYM is the symbol name of the target block."
         (let ((block-target (comp-add-cond-cstrs-target-block b branch-target)))
           (setf (car branch-target-cell) (comp-block-name block-target))
           (comp-emit-assume 'and target-mvar cstr block-target negated))
-        finally (cl-return-from in-the-basic-block)))))))
+        finally (cl-return-from in-the-basic-block))))
+    (setf prev-insns-seq insns-seq))))
 
 (defsubst comp-insert-insn (insn insn-cell)
   "Insert INSN as second insn of INSN-CELL."
@@ -2778,12 +2835,13 @@ blocks."
                                (eq op 'fetch-handler))
                         return t)))
 
-    (cl-loop for i from 0 below (comp-func-frame-size comp-func)
+    (cl-loop for i from (- (comp-func-vframe-size comp-func))
+                   below (comp-func-frame-size comp-func)
              ;; List of blocks with a definition of mvar i
              for defs-v = (cl-loop with blocks = (comp-func-blocks comp-func)
-                                    for b being each hash-value of blocks
-                                    when (slot-assigned-p i b)
-                                    collect b)
+                                   for b being each hash-value of blocks
+                                   when (slot-assigned-p i b)
+                                   collect b)
              ;; Set of basic blocks where phi is added.
              for f = ()
              ;; Worklist, set of basic blocks that contain definitions of v.
@@ -2816,40 +2874,44 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
 
 (cl-defstruct (comp-ssa (:copier nil))
   "Support structure used while SSA renaming."
-  (frame (comp-new-frame (comp-func-frame-size comp-func) t) :type vector
-         :documentation "Vector of m-vars."))
+  (frame (comp-new-frame (comp-func-frame-size comp-func)
+                         (comp-func-vframe-size comp-func) t)
+         :type comp-vec
+         :documentation "`comp-vec' of m-vars."))
 
 (defun comp-ssa-rename-insn (insn frame)
-  (dotimes (slot-n (comp-func-frame-size comp-func))
-    (cl-flet ((targetp (x)
-                ;; Ret t if x is an mvar and target the correct slot number.
-                (and (comp-mvar-p x)
-                     (eql slot-n (comp-mvar-slot x))))
-              (new-lvalue ()
-                ;; If is an assignment make a new mvar and put it as l-value.
-                (let ((mvar (make-comp-ssa-mvar :slot slot-n)))
-                  (setf (aref frame slot-n) mvar
-                        (cadr insn) mvar))))
-      (pcase insn
-        (`(,(pred comp-assign-op-p) ,(pred targetp) . ,_)
-         (let ((mvar (aref frame slot-n)))
-           (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))
-         (new-lvalue))
-        (`(fetch-handler . ,_)
-         ;; Clobber all no matter what!
-         (setf (aref frame slot-n) (make-comp-ssa-mvar :slot slot-n)))
-        (`(phi ,n)
-         (when (equal n slot-n)
-           (new-lvalue)))
-        (_
-         (let ((mvar (aref frame slot-n)))
-           (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn)))))))))
+  (cl-loop
+   for slot-n from (- (comp-func-vframe-size comp-func))
+              below (comp-func-frame-size comp-func)
+   do
+   (cl-flet ((targetp (x)
+               ;; Ret t if x is an mvar and target the correct slot number.
+               (and (comp-mvar-p x)
+                    (eql slot-n (comp-mvar-slot x))))
+             (new-lvalue ()
+               ;; If is an assignment make a new mvar and put it as l-value.
+               (let ((mvar (make-comp-ssa-mvar :slot slot-n)))
+                 (setf (comp-vec-aref frame slot-n) mvar
+                       (cadr insn) mvar))))
+     (pcase insn
+       (`(,(pred comp-assign-op-p) ,(pred targetp) . ,_)
+        (let ((mvar (comp-vec-aref frame slot-n)))
+          (setf (cddr insn) (cl-nsubst-if mvar #'targetp (cddr insn))))
+        (new-lvalue))
+       (`(fetch-handler . ,_)
+        ;; Clobber all no matter what!
+        (setf (comp-vec-aref frame slot-n) (make-comp-ssa-mvar :slot slot-n)))
+       (`(phi ,n)
+        (when (equal n slot-n)
+          (new-lvalue)))
+       (_
+        (let ((mvar (comp-vec-aref frame slot-n)))
+          (setcdr insn (cl-nsubst-if mvar #'targetp (cdr insn)))))))))
 
 (defun comp-ssa-rename ()
   "Entry point to rename into SSA within the current function."
   (comp-log "Renaming\n" 2)
-  (let ((frame-size (comp-func-frame-size comp-func))
-        (visited (make-hash-table)))
+  (let ((visited (make-hash-table)))
     (cl-labels ((ssa-rename-rec (bb in-frame)
                   (unless (gethash bb visited)
                     (puthash bb t visited)
@@ -2862,10 +2924,12 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                        for ed in out-edges
                        for child = (comp-edge-dst ed)
                        ;; Provide a copy of the same frame to all children.
-                       do (ssa-rename-rec child (copy-sequence in-frame)))))))
+                       do (ssa-rename-rec child (comp-vec-copy in-frame)))))))
 
       (ssa-rename-rec (gethash 'entry (comp-func-blocks comp-func))
-                      (comp-new-frame frame-size t)))))
+                      (comp-new-frame (comp-func-frame-size comp-func)
+                                      (comp-func-vframe-size comp-func)
+                                      t)))))
 
 (defun comp-finalize-phis ()
   "Fixup r-values into phis in all basic blocks."
@@ -2876,7 +2940,7 @@ PRE-LAMBDA and POST-LAMBDA are called in pre or post-order if non-nil."
                                for e in (comp-block-in-edges b)
                                for b = (comp-edge-src e)
                                for in-frame = (comp-block-final-frame b)
-                               collect (list (aref in-frame slot-n)
+                               collect (list (comp-vec-aref in-frame slot-n)
                                              (comp-block-name b))))))
 
     (cl-loop for b being each hash-value of (comp-func-blocks comp-func)
@@ -3056,6 +3120,8 @@ Fold the call in case."
           (comp-fwprop-call insn lval f args)))
        (_
         (comp-mvar-propagate lval rval))))
+    (`(assume ,lval ,(and (pred comp-mvar-p) rval))
+     (comp-mvar-propagate lval rval))
     (`(assume ,lval (,kind . ,operands))
      (cl-case kind
        (and
@@ -3943,9 +4009,9 @@ LOAD and SELECTOR work as described in `native--compile-async'."
                       (string-match-p re file))
                     comp-deferred-compilation-deny-list))))
 
-(defun native--compile-async (paths &optional recursively load selector)
-  "Compile PATHS asynchronously.
-PATHS is one path or a list of paths to files or directories.
+(defun native--compile-async (files &optional recursively load selector)
+  "Compile FILES asynchronously.
+FILES is one filename or a list of filenames or directories.
 
 If optional argument RECURSIVELY is non-nil, recurse into
 subdirectories of given directories.
@@ -3974,20 +4040,20 @@ bytecode definition was not changed in the meanwhile)."
   (comp-ensure-native-compiler)
   (unless (member load '(nil t late))
     (error "LOAD must be nil, t or 'late"))
-  (unless (listp paths)
-    (setf paths (list paths)))
-  (let (files)
-    (dolist (path paths)
+  (unless (listp files)
+    (setf files (list files)))
+  (let (file-list)
+    (dolist (path files)
       (cond ((file-directory-p path)
              (dolist (file (if recursively
                                (directory-files-recursively
                                 path comp-valid-source-re)
                              (directory-files path t comp-valid-source-re)))
-               (push file files)))
-            ((file-exists-p path) (push path files))
+               (push file file-list)))
+            ((file-exists-p path) (push path file-list))
             (t (signal 'native-compiler-error
                        (list "Path not a file nor directory" path)))))
-    (dolist (file files)
+    (dolist (file file-list)
       (if-let ((entry (cl-find file comp-files-queue :key #'car :test #'string=)))
           ;; Most likely the byte-compiler has requested a deferred
           ;; compilation, so update `comp-files-queue' to reflect that.
@@ -4057,9 +4123,9 @@ environment variable 'NATIVE_DISABLED' is set byte compile only."
          (rename-file tempfile target-file t))))))
 
 ;;;###autoload
-(defun native-compile-async (paths &optional recursively load selector)
-  "Compile PATHS asynchronously.
-PATHS is one path or a list of paths to files or directories.
+(defun native-compile-async (files &optional recursively load selector)
+  "Compile FILES asynchronously.
+FILES is one file or a list of filenames or directories.
 
 If optional argument RECURSIVELY is non-nil, recurse into
 subdirectories of given directories.
@@ -4077,7 +4143,7 @@ The variable `comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously."
   ;; Normalize: we only want to pass t or nil, never e.g. `late'.
   (let ((load (not (not load))))
-    (native--compile-async paths recursively load selector)))
+    (native--compile-async files recursively load selector)))
 
 (provide 'comp)
 

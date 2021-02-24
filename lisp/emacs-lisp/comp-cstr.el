@@ -597,6 +597,12 @@ DST is returned."
                           (valset pos)))
               ;; Pos is a superset of neg.
               (give-up))
+             ((cl-some (lambda (x)
+                         (cl-some (lambda (y)
+                                    (comp-subtype-p y x))
+                                  (mapcar #'type-of (valset pos))))
+                       (typeset neg))
+              (give-up))
              (t
               ;; pos is a subset or eq to neg
               (setf (valset neg)
