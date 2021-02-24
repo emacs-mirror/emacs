@@ -39,7 +39,10 @@
 
 (defun quail-define-indian-trans-package (hashtbls pkgname
 						   lang title doc)
-  (quail-define-package pkgname lang title t doc
+  ;; This is a funcall to avoid `quail-update-leim-list-file'
+  ;; determining that this is a quail definition (it searches for
+  ;; "(quail-define-package").
+  (funcall #'quail-define-package pkgname lang title t doc
 	   nil nil nil nil nil nil t nil)
   (maphash
    (lambda (key val)
