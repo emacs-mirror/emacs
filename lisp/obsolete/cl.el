@@ -438,7 +438,7 @@ definitions, or lack thereof).
              (let ((func `(cl-function
                            (lambda ,(cadr x)
                              (cl-block ,(car x) ,@(cddr x))))))
-               (when (cl--compiling-file)
+               (when (macroexp-compiling-p)
                  ;; Bug#411.  It would be nice to fix this.
                  (and (get (car x) 'byte-compile)
                       (error "Byte-compiling a redefinition of `%s' \
