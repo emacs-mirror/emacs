@@ -1279,26 +1279,6 @@ and can restore them."
     (remove-hook 'window-configuration-change-hook 'tab-bar--history-change)))
 
 
-;;; Short aliases
-
-(defalias 'tab-new         'tab-bar-new-tab)
-(defalias 'tab-new-to      'tab-bar-new-tab-to)
-(defalias 'tab-duplicate   'tab-bar-duplicate-tab)
-(defalias 'tab-close       'tab-bar-close-tab)
-(defalias 'tab-close-other 'tab-bar-close-other-tabs)
-(defalias 'tab-undo        'tab-bar-undo-close-tab)
-(defalias 'tab-select      'tab-bar-select-tab)
-(defalias 'tab-switch      'tab-bar-switch-to-tab)
-(defalias 'tab-next        'tab-bar-switch-to-next-tab)
-(defalias 'tab-previous    'tab-bar-switch-to-prev-tab)
-(defalias 'tab-last        'tab-bar-switch-to-last-tab)
-(defalias 'tab-recent      'tab-bar-switch-to-recent-tab)
-(defalias 'tab-move        'tab-bar-move-tab)
-(defalias 'tab-move-to     'tab-bar-move-tab-to)
-(defalias 'tab-rename      'tab-bar-rename-tab)
-(defalias 'tab-list        'tab-switcher)
-
-
 ;;; Non-graphical access to frame-local tabs (named window configurations)
 
 (defun tab-switcher ()
@@ -1702,6 +1682,26 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
            'tab))
    nil "[other-tab]")
   (message "Display next command buffer in a new tab..."))
+
+
+;;; Short aliases and keybindings
+
+(defalias 'tab-new         'tab-bar-new-tab)
+(defalias 'tab-new-to      'tab-bar-new-tab-to)
+(defalias 'tab-duplicate   'tab-bar-duplicate-tab)
+(defalias 'tab-close       'tab-bar-close-tab)
+(defalias 'tab-close-other 'tab-bar-close-other-tabs)
+(defalias 'tab-undo        'tab-bar-undo-close-tab)
+(defalias 'tab-select      'tab-bar-select-tab)
+(defalias 'tab-switch      'tab-bar-switch-to-tab)
+(defalias 'tab-next        'tab-bar-switch-to-next-tab)
+(defalias 'tab-previous    'tab-bar-switch-to-prev-tab)
+(defalias 'tab-last        'tab-bar-switch-to-last-tab)
+(defalias 'tab-recent      'tab-bar-switch-to-recent-tab)
+(defalias 'tab-move        'tab-bar-move-tab)
+(defalias 'tab-move-to     'tab-bar-move-tab-to)
+(defalias 'tab-rename      'tab-bar-rename-tab)
+(defalias 'tab-list        'tab-switcher)
 
 (define-key tab-prefix-map "n" 'tab-duplicate)
 (define-key tab-prefix-map "N" 'tab-new-to)
