@@ -11857,18 +11857,27 @@ resize_mini_window (struct window *w, bool exact_p)
       max_height = clip_to_bounds (unit, max_height, windows_height);
 
       /* Find out the height of the text in the window.  */
-      if (it.line_wrap == TRUNCATE)
-	height = unit;
-      else
+      last_height = 0;
+      move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
+      /* If move_it_to moved to the next visible line after EOB,
+	 account for the height of the last full line.  */
+      if (it.max_ascent == 0 && it.max_descent == 0)
 	{
-	  last_height = 0;
-	  move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
-	  if (it.max_ascent == 0 && it.max_descent == 0)
-	    height = it.current_y + last_height;
-	  else
-	    height = it.current_y + it.max_ascent + it.max_descent;
-	  height -= min (it.extra_line_spacing, it.max_extra_line_spacing);
+	  height = it.current_y;
+	  /* Don't add the last line's height if lines are truncated
+	     and the text doesn't end in a newline.
+	     FIXME: if the text ends in a newline from a display
+	     property or an overlay string, they lose: the mini-window
+	     might not show the last empty line.  */
+	  if (!(it.line_wrap == TRUNCATE
+		&& it.current_x <= it.first_visible_x
+		&& ZV_BYTE > 1
+		&& FETCH_BYTE (ZV_BYTE - 1) != '\n'))
+	    height += last_height;
 	}
+      else
+	height = it.current_y + it.max_ascent + it.max_descent;
+      height -= min (it.extra_line_spacing, it.max_extra_line_spacing);
 
       /* Compute a suitable window start.  */
       if (height > max_height)
