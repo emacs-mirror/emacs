@@ -10052,7 +10052,7 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	      && (IT_CHARPOS (*it) > to_charpos
 		  || (IT_CHARPOS (*it) == to_charpos
 		      && to_charpos == ZV
-		      && FETCH_BYTE (ZV_BYTE - 1) != '\n')))
+		      && (ZV_BYTE <= 1 || FETCH_BYTE (ZV_BYTE - 1) != '\n'))))
 	    {
 	      reached = 9;
 	      goto out;
@@ -24118,7 +24118,8 @@ display_line (struct it *it, int cursor_vpos)
 	     the logical order.  */
 	  if (IT_BYTEPOS (*it) > BEG_BYTE)
 	    row->ends_at_zv_p =
-	      IT_BYTEPOS (*it) >= ZV_BYTE && FETCH_BYTE (ZV_BYTE - 1) != '\n';
+	      IT_BYTEPOS (*it) >= ZV_BYTE
+	      && (ZV_BYTE <= 1 || FETCH_BYTE (ZV_BYTE - 1) != '\n');
 	  else
 	    row->ends_at_zv_p = false;
 	  break;
