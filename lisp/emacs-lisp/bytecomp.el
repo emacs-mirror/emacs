@@ -1731,7 +1731,7 @@ It is too wide if it has any lines longer than the largest of
          ;; This is used in `macroexp-file-name' to make sure that
          ;; loading file A which does (byte-compile-file B) won't
          ;; cause macro calls in B to think they come from A.
-         (load-file-name nil)
+         (current-load-list (list nil))
          )
      ,@body))
 
