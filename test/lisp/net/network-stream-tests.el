@@ -32,13 +32,6 @@
 ;; it pulls in nsm, which then makes the :nowait t' tests fail unless
 ;; we disable the nsm, which we do by binding 'network-security-level'
 
-;; Check if the Internet seems to be working.  Mainly to pacify
-;; Debian's CI system.
-(defvar internet-is-working
-  (progn
-    (require 'dns)
-    (dns-query "google.com")))
-
 (ert-deftest make-local-unix-server ()
   (skip-unless (featurep 'make-network-process '(:family local)))
   (let* ((file (make-temp-name "/tmp/server-test"))
@@ -298,7 +291,6 @@
 (ert-deftest connect-to-tls-ipv4-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (skip-unless internet-is-working)
   (let ((server (make-tls-server 44331))
         (times 0)
         (network-security-level 'low)
@@ -342,7 +334,6 @@
 (ert-deftest connect-to-tls-ipv6-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (skip-unless internet-is-working)
   (skip-unless (not (eq system-type 'windows-nt)))
   (skip-unless (featurep 'make-network-process '(:family ipv6)))
   (let ((server (make-tls-server 44333))
@@ -427,7 +418,6 @@
 (ert-deftest open-network-stream-tls-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (skip-unless internet-is-working)
   (let ((server (make-tls-server 44335))
         (times 0)
         (network-security-level 'low)
@@ -656,7 +646,6 @@
 (ert-deftest open-gnutls-stream-new-api-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (skip-unless internet-is-working)
   (let ((server (make-tls-server 44668))
         (times 0)
         (network-security-level 'low)
@@ -695,7 +684,6 @@
 (ert-deftest open-gnutls-stream-old-api-nowait ()
   (skip-unless (executable-find "gnutls-serv"))
   (skip-unless (gnutls-available-p))
-  (skip-unless internet-is-working)
   (let ((server (make-tls-server 44669))
         (times 0)
         (network-security-level 'low)
