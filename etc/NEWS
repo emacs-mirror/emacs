@@ -2414,6 +2414,11 @@ and display the result.
 When non-nil, then functions 'read-char-choice' and 'y-or-n-p' (respectively)
 use the function 'read-key' to read a character instead of using the minibuffer.
 
+---
+** New variable 'use-short-answers' to use 'y-or-n-p' instead of 'yes-or-no-p'.
+This relieves of the need to define an alias that maps one to another
+in the init file.  The same variable also affects the function 'read-answer'.
+
 +++
 ** 'set-window-configuration' now takes an optional 'dont-set-frame'
 parameter which, when non-nil, instructs the function not to select
