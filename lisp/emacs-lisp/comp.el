@@ -1470,7 +1470,7 @@ STACK-OFF is the index of the first slot frame involved."
     mvar))
 
 (defun comp-new-frame (size vsize &optional ssa)
-  "Return a clean frame of meta variables of size SIZE.
+  "Return a clean frame of meta variables of size SIZE and VSIZE.
 If SSA non-nil populate it of m-var in ssa form."
   (cl-loop with v = (make-comp-vec :beg (- vsize) :end size)
            for i from (- vsize) below size
@@ -2324,7 +2324,7 @@ The assume is emitted at the beginning of the block BB."
     (setf (comp-func-ssa-status comp-func) 'dirty)))
 
 (defun comp-maybe-add-vmvar (op cmp-res insns-seq)
-  "If CMP-RES is clobbering OP emit a new constrained MVAR and return it.
+  "If CMP-RES is clobbering OP emit a new constrained mvar and return it.
 Return OP otherwise."
   (if-let ((match (eql (comp-mvar-slot op) (comp-mvar-slot cmp-res)))
            (new-mvar (make-comp-mvar
