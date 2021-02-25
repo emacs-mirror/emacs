@@ -32,7 +32,6 @@
 
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
 (defalias 'erc-define-minor-mode #'define-minor-mode)
-(put 'erc-define-minor-mode 'edebug-form-spec 'define-minor-mode)
 
 (defun erc-decode-coding-string (s coding-system)
   "Decode S using CODING-SYSTEM."
