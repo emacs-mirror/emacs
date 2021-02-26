@@ -1182,7 +1182,7 @@ of the configured system storage.
 Optional flags to the different @option{rclone} operations could be
 passed as connection property, @xref{Predefined connection
 information}.  Supported properties are @t{"mount-args"},
-@t{"copyto-args"} and @t{"moveto-args"}.
+@t{"copyto-args"}, @t{"moveto-args"} and @t{"about-args"}.
 
 Access via @option{rclone} is slow.  If you have an alternative method
 for accessing the system storage, you should use it.
@@ -2218,7 +2218,7 @@ connection information}.  If you want, for example, use
 @lisp
 @group
 (add-to-list 'tramp-connection-properties
-             (list (regexp-quote "@trampfn{ssh,user@@host,}")
+             (list (regexp-quote "@trampfn{sshx,user@@host,}")
                    "remote-shell" "/usr/bin/zsh"))
 @end group
 @end lisp
