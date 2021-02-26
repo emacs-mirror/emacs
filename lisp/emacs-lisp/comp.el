@@ -124,11 +124,15 @@ Usable to modify the compiler environment."
   :type 'list)
 
 (defcustom comp-async-report-warnings-errors t
-  "Report warnings and errors from native asynchronous compilation."
+  "Whether to report warnings and errors from asynchronous native compilation."
   :type 'boolean)
 
 (defcustom comp-async-query-on-exit nil
-  "Exiting Emacs, query the user if async compilation process is running."
+  "Whether to query the user about killing async compilations when exiting.
+If this is non-nil, Emacs will ask for confirmation to exit and kill the
+asynchronous native compilations if any are running.  If nil, when you
+exit Emacs, it will silently kill those asynchronous compilations even
+if `confirm-kill-processes' is non-nil."
   :type 'boolean)
 
 (defcustom comp-native-driver-options nil
