@@ -1,4 +1,4 @@
-;;; mantemp.el --- create manual template instantiations from g++ 2.7.2 output
+;;; mantemp.el --- create manual template instantiations from g++ 2.7.2 output  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 

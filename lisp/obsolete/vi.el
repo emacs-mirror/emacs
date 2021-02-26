@@ -1,4 +1,4 @@
-;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs
+;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs  -*- lexical-binding: t; -*-
 
 ;; This file is in the public domain because the authors distributed it
 ;; without a copyright notice before the US signed the Bern Convention.
@@ -48,7 +48,7 @@
 (defvar vi-mode-old-case-fold)
 
 (if (null (where-is-internal 'vi-switch-mode (current-local-map)))
-    (define-key ctl-x-map "~" 'vi-switch-mode))
+    (define-key ctl-x-map "~" #'vi-switch-mode))
 
 (defvar vi-tilde-map nil
   "Keymap used for \\[vi-switch-mode] prefix key.  Link to various major modes.")
@@ -56,24 +56,24 @@
 (if vi-tilde-map
     nil
   (setq vi-tilde-map (make-keymap))
-  (define-key vi-tilde-map "a" 'abbrev-mode)
-  (define-key vi-tilde-map "c" 'c-mode)
-  (define-key vi-tilde-map "d" 'vi-debugging)
-  (define-key vi-tilde-map "e" 'emacs-lisp-mode)
-  (define-key vi-tilde-map "f" 'auto-fill-mode)
-  (define-key vi-tilde-map "g" 'prolog-mode)
-  (define-key vi-tilde-map "h" 'hanoi)
-  (define-key vi-tilde-map "i" 'info-mode)
-  (define-key vi-tilde-map "l" 'lisp-mode)
-  (define-key vi-tilde-map "n" 'nroff-mode)
-  (define-key vi-tilde-map "o" 'overwrite-mode)
-  (define-key vi-tilde-map "O" 'outline-mode)
-  (define-key vi-tilde-map "P" 'picture-mode)
-  (define-key vi-tilde-map "r" 'vi-readonly-mode)
-  (define-key vi-tilde-map "t" 'text-mode)
-  (define-key vi-tilde-map "v" 'vi-mode)
-  (define-key vi-tilde-map "x" 'tex-mode)
-  (define-key vi-tilde-map "~" 'vi-back-to-old-mode))
+  (define-key vi-tilde-map "a" #'abbrev-mode)
+  (define-key vi-tilde-map "c" #'c-mode)
+  (define-key vi-tilde-map "d" #'vi-debugging)
+  (define-key vi-tilde-map "e" #'emacs-lisp-mode)
+  (define-key vi-tilde-map "f" #'auto-fill-mode)
+  (define-key vi-tilde-map "g" #'prolog-mode)
+  (define-key vi-tilde-map "h" #'hanoi)
+  ;; (define-key vi-tilde-map "i" #'info-mode)
+  (define-key vi-tilde-map "l" #'lisp-mode)
+  (define-key vi-tilde-map "n" #'nroff-mode)
+  (define-key vi-tilde-map "o" #'overwrite-mode)
+  (define-key vi-tilde-map "O" #'outline-mode)
+  (define-key vi-tilde-map "P" #'picture-mode)
+  (define-key vi-tilde-map "r" #'vi-readonly-mode)
+  (define-key vi-tilde-map "t" #'text-mode)
+  (define-key vi-tilde-map "v" #'vi-mode)
+  (define-key vi-tilde-map "x" #'tex-mode)
+  (define-key vi-tilde-map "~" #'vi-back-to-old-mode))
 
 (defun vi-switch-mode (arg mode-char)
   "Switch the major mode of current buffer as specified by the following char \\{vi-tilde-map}"
@@ -123,143 +123,143 @@ command extensions.")
 (put 'vi-undefined 'suppress-keymap t)
 (if vi-com-map nil
   (setq vi-com-map (make-keymap))
-;;(fillarray vi-com-map 'vi-undefined)
-  (define-key vi-com-map "\C-@" 'vi-mark-region) ; extension
-  (define-key vi-com-map "\C-a" 'vi-ask-for-info)  ; extension
-  (define-key vi-com-map "\C-b" 'vi-backward-windowful)
-  (define-key vi-com-map "\C-c" 'vi-do-old-mode-C-c-command) ; extension
-  (define-key vi-com-map "\C-d" 'vi-scroll-down-window)
-  (define-key vi-com-map "\C-e" 'vi-expose-line-below)
-  (define-key vi-com-map "\C-f" 'vi-forward-windowful)
-  (define-key vi-com-map "\C-g" 'keyboard-quit)
-  (define-key vi-com-map "\C-i" 'indent-relative-first-indent-point) ; TAB
-  (define-key vi-com-map "\C-j" 'vi-next-line) ; LFD
-  (define-key vi-com-map "\C-k" 'vi-kill-line) ; extension
-  (define-key vi-com-map "\C-l" 'recenter)
-  (define-key vi-com-map "\C-m" 'vi-next-line-first-nonwhite) ; RET
-  (define-key vi-com-map "\C-n" 'vi-next-line)
-  (define-key vi-com-map "\C-o" 'vi-split-open-line)
-  (define-key vi-com-map "\C-p" 'previous-line)
-  (define-key vi-com-map "\C-q" 'vi-query-replace) ; extension
-  (define-key vi-com-map "\C-r" 'vi-isearch-backward) ; modification
-  (define-key vi-com-map "\C-s" 'vi-isearch-forward)  ; extension
-  (define-key vi-com-map "\C-t" 'vi-transpose-objects) ; extension
-  (define-key vi-com-map "\C-u" 'vi-scroll-up-window)
-  (define-key vi-com-map "\C-v" 'scroll-up-command) ; extension
-  (define-key vi-com-map "\C-w" 'vi-kill-region)   ; extension
+;;(fillarray vi-com-map #'vi-undefined)
+  (define-key vi-com-map "\C-@" #'vi-mark-region) ; extension
+  (define-key vi-com-map "\C-a" #'vi-ask-for-info)  ; extension
+  (define-key vi-com-map "\C-b" #'vi-backward-windowful)
+  (define-key vi-com-map "\C-c" #'vi-do-old-mode-C-c-command) ; extension
+  (define-key vi-com-map "\C-d" #'vi-scroll-down-window)
+  (define-key vi-com-map "\C-e" #'vi-expose-line-below)
+  (define-key vi-com-map "\C-f" #'vi-forward-windowful)
+  (define-key vi-com-map "\C-g" #'keyboard-quit)
+  (define-key vi-com-map "\C-i" #'indent-relative-first-indent-point) ; TAB
+  (define-key vi-com-map "\C-j" #'vi-next-line) ; LFD
+  (define-key vi-com-map "\C-k" #'vi-kill-line) ; extension
+  (define-key vi-com-map "\C-l" #'recenter)
+  (define-key vi-com-map "\C-m" #'vi-next-line-first-nonwhite) ; RET
+  (define-key vi-com-map "\C-n" #'vi-next-line)
+  (define-key vi-com-map "\C-o" #'vi-split-open-line)
+  (define-key vi-com-map "\C-p" #'previous-line)
+  (define-key vi-com-map "\C-q" #'vi-query-replace) ; extension
+  (define-key vi-com-map "\C-r" #'vi-isearch-backward) ; modification
+  (define-key vi-com-map "\C-s" #'vi-isearch-forward)  ; extension
+  (define-key vi-com-map "\C-t" #'vi-transpose-objects) ; extension
+  (define-key vi-com-map "\C-u" #'vi-scroll-up-window)
+  (define-key vi-com-map "\C-v" #'scroll-up-command) ; extension
+  (define-key vi-com-map "\C-w" #'vi-kill-region)   ; extension
   (define-key vi-com-map "\C-x" 'Control-X-prefix) ; extension
-  (define-key vi-com-map "\C-y" 'vi-expose-line-above)
-  (define-key vi-com-map "\C-z" 'suspend-emacs)
+  (define-key vi-com-map "\C-y" #'vi-expose-line-above)
+  (define-key vi-com-map "\C-z" #'suspend-emacs)
 
   (define-key vi-com-map "\e"   'ESC-prefix); C-[ (ESC)
-  (define-key vi-com-map "\C-\\" 'vi-unimplemented)
-  (define-key vi-com-map "\C-]" 'find-tag)
-  (define-key vi-com-map "\C-^" 'vi-locate-def)  ; extension
-  (define-key vi-com-map "\C-_" 'vi-undefined)
+  (define-key vi-com-map "\C-\\" #'vi-unimplemented)
+  (define-key vi-com-map "\C-]" #'xref-find-definitions)
+  (define-key vi-com-map "\C-^" #'vi-locate-def)  ; extension
+  (define-key vi-com-map "\C-_" #'vi-undefined)
 
-  (define-key vi-com-map " " 'forward-char)
-  (define-key vi-com-map "!"  'vi-operator)
-  (define-key vi-com-map "\"" 'vi-char-argument)
-  (define-key vi-com-map "#"  'universal-argument) ; extension
-  (define-key vi-com-map "$"  'end-of-line)
-  (define-key vi-com-map "%"  'vi-find-matching-paren)
-  (define-key vi-com-map "&"  'vi-unimplemented)
-  (define-key vi-com-map "'"  'vi-goto-line-mark)
-  (define-key vi-com-map "("  'backward-sexp)
-  (define-key vi-com-map ")"  'forward-sexp)
-  (define-key vi-com-map "*"  'vi-name-last-change-or-macro) ; extension
-  (define-key vi-com-map "+"  'vi-next-line-first-nonwhite)
-  (define-key vi-com-map ","  'vi-reverse-last-find-char)
-  (define-key vi-com-map "-"  'vi-previous-line-first-nonwhite)
-  (define-key vi-com-map "."  'vi-redo-last-change-command)
-  (define-key vi-com-map "/"  'vi-search-forward)
-  (define-key vi-com-map "0"  'beginning-of-line)
+  (define-key vi-com-map " "  #'forward-char)
+  (define-key vi-com-map "!"  #'vi-operator)
+  (define-key vi-com-map "\"" #'vi-char-argument)
+  (define-key vi-com-map "#"  #'universal-argument) ; extension
+  (define-key vi-com-map "$"  #'end-of-line)
+  (define-key vi-com-map "%"  #'vi-find-matching-paren)
+  (define-key vi-com-map "&"  #'vi-unimplemented)
+  (define-key vi-com-map "'"  #'vi-goto-line-mark)
+  (define-key vi-com-map "("  #'backward-sexp)
+  (define-key vi-com-map ")"  #'forward-sexp)
+  (define-key vi-com-map "*"  #'vi-name-last-change-or-macro) ; extension
+  (define-key vi-com-map "+"  #'vi-next-line-first-nonwhite)
+  (define-key vi-com-map ","  #'vi-reverse-last-find-char)
+  (define-key vi-com-map "-"  #'vi-previous-line-first-nonwhite)
+  (define-key vi-com-map "."  #'vi-redo-last-change-command)
+  (define-key vi-com-map "/"  #'vi-search-forward)
+  (define-key vi-com-map "0"  #'beginning-of-line)
 
-  (define-key vi-com-map "1"  'vi-digit-argument)
-  (define-key vi-com-map "2"  'vi-digit-argument)
-  (define-key vi-com-map "3"  'vi-digit-argument)
-  (define-key vi-com-map "4"  'vi-digit-argument)
-  (define-key vi-com-map "5"  'vi-digit-argument)
-  (define-key vi-com-map "6"  'vi-digit-argument)
-  (define-key vi-com-map "7"  'vi-digit-argument)
-  (define-key vi-com-map "8"  'vi-digit-argument)
-  (define-key vi-com-map "9"  'vi-digit-argument)
+  (define-key vi-com-map "1"  #'vi-digit-argument)
+  (define-key vi-com-map "2"  #'vi-digit-argument)
+  (define-key vi-com-map "3"  #'vi-digit-argument)
+  (define-key vi-com-map "4"  #'vi-digit-argument)
+  (define-key vi-com-map "5"  #'vi-digit-argument)
+  (define-key vi-com-map "6"  #'vi-digit-argument)
+  (define-key vi-com-map "7"  #'vi-digit-argument)
+  (define-key vi-com-map "8"  #'vi-digit-argument)
+  (define-key vi-com-map "9"  #'vi-digit-argument)
 
-  (define-key vi-com-map ":"  'vi-ex-cmd)
-  (define-key vi-com-map ";"  'vi-repeat-last-find-char)
-  (define-key vi-com-map "<"  'vi-operator)
-  (define-key vi-com-map "="  'vi-operator)
-  (define-key vi-com-map ">"  'vi-operator)
-  (define-key vi-com-map "?"  'vi-search-backward)
-  (define-key vi-com-map "@"  'vi-call-named-change-or-macro) ; extension
+  (define-key vi-com-map ":"  #'vi-ex-cmd)
+  (define-key vi-com-map ";"  #'vi-repeat-last-find-char)
+  (define-key vi-com-map "<"  #'vi-operator)
+  (define-key vi-com-map "="  #'vi-operator)
+  (define-key vi-com-map ">"  #'vi-operator)
+  (define-key vi-com-map "?"  #'vi-search-backward)
+  (define-key vi-com-map "@"  #'vi-call-named-change-or-macro) ; extension
 
-  (define-key vi-com-map "A"  'vi-append-at-end-of-line)
-  (define-key vi-com-map "B"  'vi-backward-blank-delimited-word)
-  (define-key vi-com-map "C"  'vi-change-rest-of-line)
-  (define-key vi-com-map "D"  'vi-kill-line)
-  (define-key vi-com-map "E"  'vi-end-of-blank-delimited-word)
-  (define-key vi-com-map "F"  'vi-backward-find-char)
-  (define-key vi-com-map "G"  'vi-goto-line)
-  (define-key vi-com-map "H"  'vi-home-window-line)
-  (define-key vi-com-map "I"  'vi-insert-before-first-nonwhite)
-  (define-key vi-com-map "J"  'vi-join-lines)
-  (define-key vi-com-map "K"  'vi-undefined)
-  (define-key vi-com-map "L"  'vi-last-window-line)
-  (define-key vi-com-map "M"  'vi-middle-window-line)
-  (define-key vi-com-map "N"  'vi-reverse-last-search)
-  (define-key vi-com-map "O"  'vi-open-above)
-  (define-key vi-com-map "P"  'vi-put-before)
-  (define-key vi-com-map "Q"  'vi-quote-words) ; extension
-  (define-key vi-com-map "R"  'vi-replace-chars)
-  (define-key vi-com-map "S"  'vi-substitute-lines)
-  (define-key vi-com-map "T"  'vi-backward-upto-char)
-  (define-key vi-com-map "U"  'vi-unimplemented)
-  (define-key vi-com-map "V"  'vi-undefined)
-  (define-key vi-com-map "W"  'vi-forward-blank-delimited-word)
-  (define-key vi-com-map "X"  'call-last-kbd-macro) ; modification/extension
-  (define-key vi-com-map "Y"  'vi-yank-line)
+  (define-key vi-com-map "A"  #'vi-append-at-end-of-line)
+  (define-key vi-com-map "B"  #'vi-backward-blank-delimited-word)
+  (define-key vi-com-map "C"  #'vi-change-rest-of-line)
+  (define-key vi-com-map "D"  #'vi-kill-line)
+  (define-key vi-com-map "E"  #'vi-end-of-blank-delimited-word)
+  (define-key vi-com-map "F"  #'vi-backward-find-char)
+  (define-key vi-com-map "G"  #'vi-goto-line)
+  (define-key vi-com-map "H"  #'vi-home-window-line)
+  (define-key vi-com-map "I"  #'vi-insert-before-first-nonwhite)
+  (define-key vi-com-map "J"  #'vi-join-lines)
+  (define-key vi-com-map "K"  #'vi-undefined)
+  (define-key vi-com-map "L"  #'vi-last-window-line)
+  (define-key vi-com-map "M"  #'vi-middle-window-line)
+  (define-key vi-com-map "N"  #'vi-reverse-last-search)
+  (define-key vi-com-map "O"  #'vi-open-above)
+  (define-key vi-com-map "P"  #'vi-put-before)
+  (define-key vi-com-map "Q"  #'vi-quote-words) ; extension
+  (define-key vi-com-map "R"  #'vi-replace-chars)
+  (define-key vi-com-map "S"  #'vi-substitute-lines)
+  (define-key vi-com-map "T"  #'vi-backward-upto-char)
+  (define-key vi-com-map "U"  #'vi-unimplemented)
+  (define-key vi-com-map "V"  #'vi-undefined)
+  (define-key vi-com-map "W"  #'vi-forward-blank-delimited-word)
+  (define-key vi-com-map "X"  #'call-last-kbd-macro) ; modification/extension
+  (define-key vi-com-map "Y"  #'vi-yank-line)
   (define-key vi-com-map "Z" (make-sparse-keymap)) ;allow below prefix command
-  (define-key vi-com-map "ZZ" 'vi-save-all-and-exit)
+  (define-key vi-com-map "ZZ" #'vi-save-all-and-exit)
 
-  (define-key vi-com-map "["  'vi-unimplemented)
-  (define-key vi-com-map "\\" 'vi-operator) ; extension for vi-narrow-op
-  (define-key vi-com-map "]"  'vi-unimplemented)
-  (define-key vi-com-map "^"  'back-to-indentation)
-  (define-key vi-com-map "_"  'vi-undefined)
-  (define-key vi-com-map "`"  'vi-goto-char-mark)
+  (define-key vi-com-map "["  #'vi-unimplemented)
+  (define-key vi-com-map "\\" #'vi-operator) ; extension for vi-narrow-op
+  (define-key vi-com-map "]"  #'vi-unimplemented)
+  (define-key vi-com-map "^"  #'back-to-indentation)
+  (define-key vi-com-map "_"  #'vi-undefined)
+  (define-key vi-com-map "`"  #'vi-goto-char-mark)
 
-  (define-key vi-com-map "a"  'vi-insert-after)
-  (define-key vi-com-map "b"  'backward-word)
-  (define-key vi-com-map "c"  'vi-operator)
-  (define-key vi-com-map "d"  'vi-operator)
-  (define-key vi-com-map "e"  'vi-end-of-word)
-  (define-key vi-com-map "f"  'vi-forward-find-char)
-  (define-key vi-com-map "g"  'vi-beginning-of-buffer) ; extension
-  (define-key vi-com-map "h"  'backward-char)
-  (define-key vi-com-map "i"  'vi-insert-before)
-  (define-key vi-com-map "j"  'vi-next-line)
-  (define-key vi-com-map "k"  'previous-line)
-  (define-key vi-com-map "l"  'forward-char)
-  (define-key vi-com-map "m"  'vi-set-mark)
-  (define-key vi-com-map "n"  'vi-repeat-last-search)
-  (define-key vi-com-map "o"  'vi-open-below)
-  (define-key vi-com-map "p"  'vi-put-after)
-  (define-key vi-com-map "q"  'vi-replace)
-  (define-key vi-com-map "r"  'vi-replace-1-char)
-  (define-key vi-com-map "s"  'vi-substitute-chars)
-  (define-key vi-com-map "t"  'vi-forward-upto-char)
-  (define-key vi-com-map "u"  'undo)
-  (define-key vi-com-map "v"  'vi-verify-spelling)
-  (define-key vi-com-map "w"  'vi-forward-word)
-  (define-key vi-com-map "x"  'vi-kill-char)
-  (define-key vi-com-map "y"  'vi-operator)
-  (define-key vi-com-map "z"  'vi-adjust-window)
+  (define-key vi-com-map "a"  #'vi-insert-after)
+  (define-key vi-com-map "b"  #'backward-word)
+  (define-key vi-com-map "c"  #'vi-operator)
+  (define-key vi-com-map "d"  #'vi-operator)
+  (define-key vi-com-map "e"  #'vi-end-of-word)
+  (define-key vi-com-map "f"  #'vi-forward-find-char)
+  (define-key vi-com-map "g"  #'vi-beginning-of-buffer) ; extension
+  (define-key vi-com-map "h"  #'backward-char)
+  (define-key vi-com-map "i"  #'vi-insert-before)
+  (define-key vi-com-map "j"  #'vi-next-line)
+  (define-key vi-com-map "k"  #'previous-line)
+  (define-key vi-com-map "l"  #'forward-char)
+  (define-key vi-com-map "m"  #'vi-set-mark)
+  (define-key vi-com-map "n"  #'vi-repeat-last-search)
+  (define-key vi-com-map "o"  #'vi-open-below)
+  (define-key vi-com-map "p"  #'vi-put-after)
+  (define-key vi-com-map "q"  #'vi-replace)
+  (define-key vi-com-map "r"  #'vi-replace-1-char)
+  (define-key vi-com-map "s"  #'vi-substitute-chars)
+  (define-key vi-com-map "t"  #'vi-forward-upto-char)
+  (define-key vi-com-map "u"  #'undo)
+  (define-key vi-com-map "v"  #'vi-verify-spelling)
+  (define-key vi-com-map "w"  #'vi-forward-word)
+  (define-key vi-com-map "x"  #'vi-kill-char)
+  (define-key vi-com-map "y"  #'vi-operator)
+  (define-key vi-com-map "z"  #'vi-adjust-window)
 
-  (define-key vi-com-map "{"  'backward-paragraph)
-  (define-key vi-com-map "|"  'vi-goto-column)
-  (define-key vi-com-map "}"  'forward-paragraph)
-  (define-key vi-com-map "~"  'vi-change-case)
-  (define-key vi-com-map "\177" 'delete-backward-char))
+  (define-key vi-com-map "{"  #'backward-paragraph)
+  (define-key vi-com-map "|"  #'vi-goto-column)
+  (define-key vi-com-map "}"  #'forward-paragraph)
+  (define-key vi-com-map "~"  #'vi-change-case)
+  (define-key vi-com-map "\177" #'delete-backward-char))
 
 (put 'backward-char 'point-moving-unit 'char)
 (put 'vi-next-line 'point-moving-unit 'line)
@@ -1182,7 +1182,7 @@ SPECIAL FEATURE: char argument can be used to specify shift amount(1-9)."
 (defun vi-narrow-op (motion-command arg)
   "Narrow to region specified by MOTION-COMMAND with ARG."
   (let* ((range (vi-effective-range motion-command arg))
-	 (begin (car range)) (end (cdr range)) reg)
+	 (begin (car range)) (end (cdr range)))
     (if (= begin end)
 	nil				; point not moved, abort op
       (narrow-to-region begin end))))

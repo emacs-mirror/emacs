@@ -1,4 +1,4 @@
-;;; image-circular-tests.el --- test image functions with circular objects
+;;; image-circular-tests.el --- test image functions with circular objects  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019, 2021 Free Software Foundation, Inc.
 

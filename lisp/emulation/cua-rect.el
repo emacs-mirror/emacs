@@ -1,4 +1,4 @@
-;;; cua-rect.el --- CUA unified rectangle support
+;;; cua-rect.el --- CUA unified rectangle support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -575,6 +575,7 @@ Set undo boundary if UNDO is non-nil.
 Rectangle is padded if PAD = t or numeric and (cua--rectangle-virtual-edges)
 Perform auto-tabify after operation if TABIFY is non-nil.
 Mark is kept if keep-clear is 'keep and cleared if keep-clear is 'clear."
+  (declare (indent 4))
   (let* ((inhibit-field-text-motion t)
 	 (start (cua--rectangle-top))
          (end   (cua--rectangle-bot))
@@ -644,8 +645,6 @@ Mark is kept if keep-clear is 'keep and cleared if keep-clear is 'clear."
       (cua--rectangle-set-corners)
       (cua--keep-active)))
     (setq cua--buffer-and-point-before-command nil)))
-
-(put 'cua--rectangle-operation 'lisp-indent-function 4)
 
 (defun cua--delete-rectangle ()
   (let ((lines 0))
@@ -1220,6 +1219,7 @@ The numbers are formatted according to the FORMAT string."
 ;;; Replace/rearrange text in current rectangle
 
 (defun cua--rectangle-aux-replace (width adjust keep replace pad format-fct &optional setup-fct)
+  (declare (indent 4))
   ;; Process text inserted by calling SETUP-FCT or current rectangle if nil.
   ;; Then call FORMAT-FCT on text (if non-nil); takes two args: start and end.
   ;; Fill to WIDTH characters if > 0 or fill to current width if == 0.
@@ -1278,8 +1278,6 @@ The numbers are formatted according to the FORMAT string."
           (cua--rectangle-right (+ (cua--rectangle-left) w -1)))
       (if keep
           (cua--rectangle-resized)))))
-
-(put 'cua--rectangle-aux-replace 'lisp-indent-function 4)
 
 (defun cua--left-fill-rectangle (_start _end)
   (beginning-of-line)

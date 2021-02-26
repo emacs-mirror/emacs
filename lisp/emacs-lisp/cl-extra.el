@@ -898,8 +898,8 @@ Outputs to the current buffer."
                (list (cl-prin1-to-string (cl--slot-descriptor-name slot))
                      (cl-prin1-to-string (cl--slot-descriptor-type slot))
                      (cl-prin1-to-string (cl--slot-descriptor-initform slot))
-                     (let ((doc (alist-get :documentation
-                                           (cl--slot-descriptor-props slot))))
+                     (let ((doc (plist-get (cl--slot-descriptor-props slot)
+                                           :documentation)))
                        (if (not doc) ""
                          (setq has-doc t)
                          (substitute-command-keys doc)))))

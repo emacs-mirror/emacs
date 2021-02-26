@@ -1,4 +1,4 @@
-;;; mailpost.el --- RMAIL coupler to /usr/uci/post mailer
+;;; mailpost.el --- RMAIL coupler to /usr/uci/post mailer  -*- lexical-binding: t; -*-
 
 ;; This is in the public domain
 ;; since Delp distributed it in 1986 without a copyright notice.
@@ -76,7 +76,7 @@ site-init."
 		(with-current-buffer errbuf
 		  (erase-buffer))))
 	  (with-file-modes 384 (setq temfile (make-temp-file ",rpost")))
-	  (apply 'call-process
+	  (apply #'call-process
 		 (append (list (if (boundp 'post-mail-program)
 				   post-mail-program
 				 "/usr/uci/lib/mh/post")

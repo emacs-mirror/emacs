@@ -1044,166 +1044,161 @@ versions of Emacs."
     map)
   "Keymap used in CPerl mode.")
 
-(defvar cperl-menu)
 (defvar cperl-lazy-installed)
 (defvar cperl-old-style nil)
-(condition-case nil
-    (progn
-      (require 'easymenu)
-      (easy-menu-define
-       cperl-menu cperl-mode-map "Menu for CPerl mode"
-       '("Perl"
-	 ["Beginning of function" beginning-of-defun t]
-	 ["End of function" end-of-defun t]
-	 ["Mark function" mark-defun t]
-	 ["Indent expression" cperl-indent-exp t]
-	  ["Fill paragraph/comment" fill-paragraph t]
-	 "----"
-	 ["Line up a construction" cperl-lineup (use-region-p)]
-	 ["Invert if/unless/while etc" cperl-invert-if-unless t]
-	 ("Regexp"
-	  ["Beautify" cperl-beautify-regexp
-	   cperl-use-syntax-table-text-property]
-	  ["Beautify one level deep" (cperl-beautify-regexp 1)
-	   cperl-use-syntax-table-text-property]
-	  ["Beautify a group" cperl-beautify-level
-	   cperl-use-syntax-table-text-property]
-	  ["Beautify a group one level deep" (cperl-beautify-level 1)
-	   cperl-use-syntax-table-text-property]
-	  ["Contract a group" cperl-contract-level
-	   cperl-use-syntax-table-text-property]
-	  ["Contract groups" cperl-contract-levels
-	   cperl-use-syntax-table-text-property]
-	  "----"
-	  ["Find next interpolated" cperl-next-interpolated-REx
-	   (next-single-property-change (point-min) 'REx-interpolated)]
-	  ["Find next interpolated (no //o)"
-	   cperl-next-interpolated-REx-0
-	   (or (text-property-any (point-min) (point-max) 'REx-interpolated t)
-	       (text-property-any (point-min) (point-max) 'REx-interpolated 1))]
-	  ["Find next interpolated (neither //o nor whole-REx)"
-	   cperl-next-interpolated-REx-1
-	   (text-property-any (point-min) (point-max) 'REx-interpolated t)])
-	 ["Insert spaces if needed to fix style" cperl-find-bad-style t]
-	 ["Refresh \"hard\" constructions" cperl-find-pods-heres t]
-	 "----"
-	 ["Indent region" cperl-indent-region (use-region-p)]
-	 ["Comment region" cperl-comment-region (use-region-p)]
-	 ["Uncomment region" cperl-uncomment-region (use-region-p)]
-	 "----"
-	 ["Run" mode-compile (fboundp 'mode-compile)]
-	 ["Kill" mode-compile-kill (and (fboundp 'mode-compile-kill)
-					(get-buffer "*compilation*"))]
-	 ["Next error" next-error (get-buffer "*compilation*")]
-	 ["Check syntax" cperl-check-syntax (fboundp 'mode-compile)]
-	 "----"
-	 ["Debugger" cperl-db t]
-	 "----"
-	 ("Tools"
-	  ["Imenu" imenu (fboundp 'imenu)]
-	  ["Imenu on Perl Info" cperl-imenu-on-info (featurep 'imenu)]
-	  "----"
-	  ["Ispell PODs" cperl-pod-spell
-	   ;; Better not to update syntaxification here:
-	   ;; debugging syntaxification can be broken by this???
-	   (or
-	    (get-text-property (point-min) 'in-pod)
-	    (< (progn
-		 (and cperl-syntaxify-for-menu
-		      (cperl-update-syntaxification (point-max)))
-		 (next-single-property-change (point-min) 'in-pod nil (point-max)))
-	       (point-max)))]
-	  ["Ispell HERE-DOCs" cperl-here-doc-spell
-	   (< (progn
-		(and cperl-syntaxify-for-menu
-		     (cperl-update-syntaxification (point-max)))
-		(next-single-property-change (point-min) 'here-doc-group nil (point-max)))
-	      (point-max))]
-	  ["Narrow to this HERE-DOC" cperl-narrow-to-here-doc
-	   (eq 'here-doc  (progn
-		(and cperl-syntaxify-for-menu
-		     (cperl-update-syntaxification (point)))
-		(get-text-property (point) 'syntax-type)))]
-	  ["Select this HERE-DOC or POD section"
-	   cperl-select-this-pod-or-here-doc
-	   (memq (progn
-		   (and cperl-syntaxify-for-menu
-			(cperl-update-syntaxification (point)))
-		   (get-text-property (point) 'syntax-type))
-		 '(here-doc pod))]
-	  "----"
-	  ["CPerl pretty print (experimental)" cperl-ps-print
-	   (fboundp 'ps-extend-face-list)]
-	  "----"
-	  ["Syntaxify region" cperl-find-pods-heres-region
-	   (use-region-p)]
-	  ["Profile syntaxification" cperl-time-fontification t]
-	  ["Debug errors in delayed fontification" cperl-emulate-lazy-lock t]
-	  ["Debug unwind for syntactic scan" cperl-toggle-set-debug-unwind t]
-	  ["Debug backtrace on syntactic scan (BEWARE!!!)"
-	   (cperl-toggle-set-debug-unwind nil t) t]
-	  "----"
-	  ["Class Hierarchy from TAGS" cperl-tags-hier-init t]
-	  ;;["Update classes" (cperl-tags-hier-init t) tags-table-list]
-	  ("Tags"
-	   ;; ["Create tags for current file" cperl-etags t]
-	   ;; ["Add tags for current file" (cperl-etags t) t]
-	   ;; ["Create tags for Perl files in directory" (cperl-etags nil t) t]
-	   ;; ["Add tags for Perl files in directory" (cperl-etags t t) t]
-	   ;; ["Create tags for Perl files in (sub)directories"
-	   ;;  (cperl-etags nil 'recursive) t]
-	   ;; ["Add tags for Perl files in (sub)directories"
-	   ;;  (cperl-etags t 'recursive) t])
-	   ;; ;;? cperl-write-tags (&optional file erase recurse dir inbuffer)
-	   ["Create tags for current file" (cperl-write-tags nil t) t]
-	   ["Add tags for current file" (cperl-write-tags) t]
-	   ["Create tags for Perl files in directory"
-	    (cperl-write-tags nil t nil t) t]
-	   ["Add tags for Perl files in directory"
-	    (cperl-write-tags nil nil nil t) t]
-	   ["Create tags for Perl files in (sub)directories"
-	    (cperl-write-tags nil t t t) t]
-	   ["Add tags for Perl files in (sub)directories"
-	    (cperl-write-tags nil nil t t) t]))
-	 ("Perl docs"
-	  ["Define word at point" imenu-go-find-at-position
-	   (fboundp 'imenu-go-find-at-position)]
-	  ["Help on function" cperl-info-on-command t]
-	  ["Help on function at point" cperl-info-on-current-command t]
-	  ["Help on symbol at point" cperl-get-help t]
-	  ["Perldoc" cperl-perldoc t]
-	  ["Perldoc on word at point" cperl-perldoc-at-point t]
-	  ["View manpage of POD in this file" cperl-build-manpage t]
-	  ["Auto-help on" cperl-lazy-install
-	   (not cperl-lazy-installed)]
-	  ["Auto-help off" cperl-lazy-unstall
-	   cperl-lazy-installed])
-	 ("Toggle..."
-	  ["Auto newline" cperl-toggle-auto-newline t]
-	  ["Electric parens" cperl-toggle-electric t]
-	  ["Electric keywords" cperl-toggle-abbrev t]
-	  ["Fix whitespace on indent" cperl-toggle-construct-fix t]
-	  ["Auto-help on Perl constructs" cperl-toggle-autohelp t]
-	  ["Auto fill" auto-fill-mode t])
-	 ("Indent styles..."
-	  ["CPerl" (cperl-set-style "CPerl") t]
-	  ["PBP" (cperl-set-style  "PBP") t]
-	  ["PerlStyle" (cperl-set-style "PerlStyle") t]
-	  ["GNU" (cperl-set-style "GNU") t]
-	  ["C++" (cperl-set-style "C++") t]
-	  ["K&R" (cperl-set-style "K&R") t]
-	  ["BSD" (cperl-set-style "BSD") t]
-	  ["Whitesmith" (cperl-set-style "Whitesmith") t]
-	  ["Memorize Current" (cperl-set-style "Current") t]
-	  ["Memorized" (cperl-set-style-back) cperl-old-style])
-	 ("Micro-docs"
-	  ["Tips" (describe-variable 'cperl-tips) t]
-	  ["Problems" (describe-variable 'cperl-problems) t]
-	  ["Speed" (describe-variable 'cperl-speed) t]
-	  ["Praise" (describe-variable 'cperl-praise) t]
-	  ["Faces" (describe-variable 'cperl-tips-faces) t]
-          ["CPerl mode" (describe-function 'cperl-mode) t]))))
-  (error nil))
+(easy-menu-define cperl-menu cperl-mode-map
+  "Menu for CPerl mode."
+  '("Perl"
+    ["Beginning of function" beginning-of-defun t]
+    ["End of function" end-of-defun t]
+    ["Mark function" mark-defun t]
+    ["Indent expression" cperl-indent-exp t]
+    ["Fill paragraph/comment" fill-paragraph t]
+    "----"
+    ["Line up a construction" cperl-lineup (use-region-p)]
+    ["Invert if/unless/while etc" cperl-invert-if-unless t]
+    ("Regexp"
+     ["Beautify" cperl-beautify-regexp
+      cperl-use-syntax-table-text-property]
+     ["Beautify one level deep" (cperl-beautify-regexp 1)
+      cperl-use-syntax-table-text-property]
+     ["Beautify a group" cperl-beautify-level
+      cperl-use-syntax-table-text-property]
+     ["Beautify a group one level deep" (cperl-beautify-level 1)
+      cperl-use-syntax-table-text-property]
+     ["Contract a group" cperl-contract-level
+      cperl-use-syntax-table-text-property]
+     ["Contract groups" cperl-contract-levels
+      cperl-use-syntax-table-text-property]
+     "----"
+     ["Find next interpolated" cperl-next-interpolated-REx
+      (next-single-property-change (point-min) 'REx-interpolated)]
+     ["Find next interpolated (no //o)"
+      cperl-next-interpolated-REx-0
+      (or (text-property-any (point-min) (point-max) 'REx-interpolated t)
+          (text-property-any (point-min) (point-max) 'REx-interpolated 1))]
+     ["Find next interpolated (neither //o nor whole-REx)"
+      cperl-next-interpolated-REx-1
+      (text-property-any (point-min) (point-max) 'REx-interpolated t)])
+    ["Insert spaces if needed to fix style" cperl-find-bad-style t]
+    ["Refresh \"hard\" constructions" cperl-find-pods-heres t]
+    "----"
+    ["Indent region" cperl-indent-region (use-region-p)]
+    ["Comment region" cperl-comment-region (use-region-p)]
+    ["Uncomment region" cperl-uncomment-region (use-region-p)]
+    "----"
+    ["Run" mode-compile (fboundp 'mode-compile)]
+    ["Kill" mode-compile-kill (and (fboundp 'mode-compile-kill)
+                                   (get-buffer "*compilation*"))]
+    ["Next error" next-error (get-buffer "*compilation*")]
+    ["Check syntax" cperl-check-syntax (fboundp 'mode-compile)]
+    "----"
+    ["Debugger" cperl-db t]
+    "----"
+    ("Tools"
+     ["Imenu" imenu (fboundp 'imenu)]
+     ["Imenu on Perl Info" cperl-imenu-on-info (featurep 'imenu)]
+     "----"
+     ["Ispell PODs" cperl-pod-spell
+      ;; Better not to update syntaxification here:
+      ;; debugging syntaxification can be broken by this???
+      (or
+       (get-text-property (point-min) 'in-pod)
+       (< (progn
+            (and cperl-syntaxify-for-menu
+                 (cperl-update-syntaxification (point-max)))
+            (next-single-property-change (point-min) 'in-pod nil (point-max)))
+          (point-max)))]
+     ["Ispell HERE-DOCs" cperl-here-doc-spell
+      (< (progn
+           (and cperl-syntaxify-for-menu
+                (cperl-update-syntaxification (point-max)))
+           (next-single-property-change (point-min) 'here-doc-group nil (point-max)))
+         (point-max))]
+     ["Narrow to this HERE-DOC" cperl-narrow-to-here-doc
+      (eq 'here-doc  (progn
+                       (and cperl-syntaxify-for-menu
+                            (cperl-update-syntaxification (point)))
+                       (get-text-property (point) 'syntax-type)))]
+     ["Select this HERE-DOC or POD section"
+      cperl-select-this-pod-or-here-doc
+      (memq (progn
+              (and cperl-syntaxify-for-menu
+                   (cperl-update-syntaxification (point)))
+              (get-text-property (point) 'syntax-type))
+            '(here-doc pod))]
+     "----"
+     ["CPerl pretty print (experimental)" cperl-ps-print
+      (fboundp 'ps-extend-face-list)]
+     "----"
+     ["Syntaxify region" cperl-find-pods-heres-region
+      (use-region-p)]
+     ["Profile syntaxification" cperl-time-fontification t]
+     ["Debug errors in delayed fontification" cperl-emulate-lazy-lock t]
+     ["Debug unwind for syntactic scan" cperl-toggle-set-debug-unwind t]
+     ["Debug backtrace on syntactic scan (BEWARE!!!)"
+      (cperl-toggle-set-debug-unwind nil t) t]
+     "----"
+     ["Class Hierarchy from TAGS" cperl-tags-hier-init t]
+     ;;["Update classes" (cperl-tags-hier-init t) tags-table-list]
+     ("Tags"
+      ;; ["Create tags for current file" cperl-etags t]
+      ;; ["Add tags for current file" (cperl-etags t) t]
+      ;; ["Create tags for Perl files in directory" (cperl-etags nil t) t]
+      ;; ["Add tags for Perl files in directory" (cperl-etags t t) t]
+      ;; ["Create tags for Perl files in (sub)directories"
+      ;;  (cperl-etags nil 'recursive) t]
+      ;; ["Add tags for Perl files in (sub)directories"
+      ;;  (cperl-etags t 'recursive) t])
+      ;; ;;? cperl-write-tags (&optional file erase recurse dir inbuffer)
+      ["Create tags for current file" (cperl-write-tags nil t) t]
+      ["Add tags for current file" (cperl-write-tags) t]
+      ["Create tags for Perl files in directory"
+       (cperl-write-tags nil t nil t) t]
+      ["Add tags for Perl files in directory"
+       (cperl-write-tags nil nil nil t) t]
+      ["Create tags for Perl files in (sub)directories"
+       (cperl-write-tags nil t t t) t]
+      ["Add tags for Perl files in (sub)directories"
+       (cperl-write-tags nil nil t t) t]))
+    ("Perl docs"
+     ["Define word at point" imenu-go-find-at-position
+      (fboundp 'imenu-go-find-at-position)]
+     ["Help on function" cperl-info-on-command t]
+     ["Help on function at point" cperl-info-on-current-command t]
+     ["Help on symbol at point" cperl-get-help t]
+     ["Perldoc" cperl-perldoc t]
+     ["Perldoc on word at point" cperl-perldoc-at-point t]
+     ["View manpage of POD in this file" cperl-build-manpage t]
+     ["Auto-help on" cperl-lazy-install
+      (not cperl-lazy-installed)]
+     ["Auto-help off" cperl-lazy-unstall
+      cperl-lazy-installed])
+    ("Toggle..."
+     ["Auto newline" cperl-toggle-auto-newline t]
+     ["Electric parens" cperl-toggle-electric t]
+     ["Electric keywords" cperl-toggle-abbrev t]
+     ["Fix whitespace on indent" cperl-toggle-construct-fix t]
+     ["Auto-help on Perl constructs" cperl-toggle-autohelp t]
+     ["Auto fill" auto-fill-mode t])
+    ("Indent styles..."
+     ["CPerl" (cperl-set-style "CPerl") t]
+     ["PBP" (cperl-set-style  "PBP") t]
+     ["PerlStyle" (cperl-set-style "PerlStyle") t]
+     ["GNU" (cperl-set-style "GNU") t]
+     ["C++" (cperl-set-style "C++") t]
+     ["K&R" (cperl-set-style "K&R") t]
+     ["BSD" (cperl-set-style "BSD") t]
+     ["Whitesmith" (cperl-set-style "Whitesmith") t]
+     ["Memorize Current" (cperl-set-style "Current") t]
+     ["Memorized" (cperl-set-style-back) cperl-old-style])
+    ("Micro-docs"
+     ["Tips" (describe-variable 'cperl-tips) t]
+     ["Problems" (describe-variable 'cperl-problems) t]
+     ["Speed" (describe-variable 'cperl-speed) t]
+     ["Praise" (describe-variable 'cperl-praise) t]
+     ["Faces" (describe-variable 'cperl-tips-faces) t]
+     ["CPerl mode" (describe-function 'cperl-mode) t])))
 
 (autoload 'c-macro-expand "cmacexp"
   "Display the result of expanding all C macros occurring in the region.

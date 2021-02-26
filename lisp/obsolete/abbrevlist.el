@@ -1,4 +1,4 @@
-;;; abbrevlist.el --- list one abbrev table alphabetically ordered
+;;; abbrevlist.el --- list one abbrev table alphabetically ordered  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986, 1992, 2001-2021 Free Software Foundation, Inc.
 ;; Suggested by a previous version by Gildea.
@@ -38,7 +38,7 @@
 	  (function (lambda (abbrev)
 		      (setq abbrev-list (cons abbrev abbrev-list))))
 	  abbrev-table)
-	(setq abbrev-list (sort abbrev-list 'string-lessp))
+	(setq abbrev-list (sort abbrev-list #'string-lessp))
 	(while abbrev-list
 	  (if (> (+ first-column 40) (window-width))
 	      (progn

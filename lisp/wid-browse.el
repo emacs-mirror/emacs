@@ -27,7 +27,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
 (require 'wid-edit)
 
 (defgroup widget-browse nil

@@ -1,4 +1,4 @@
-;;; erc-compat.el --- ERC compatibility code for XEmacs
+;;; erc-compat.el --- ERC compatibility code for XEmacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
 
@@ -31,8 +31,7 @@
 (require 'format-spec)
 
 ;;;###autoload(autoload 'erc-define-minor-mode "erc-compat")
-(defalias 'erc-define-minor-mode 'define-minor-mode)
-(put 'erc-define-minor-mode 'edebug-form-spec 'define-minor-mode)
+(defalias 'erc-define-minor-mode #'define-minor-mode)
 
 (defun erc-decode-coding-string (s coding-system)
   "Decode S using CODING-SYSTEM."
@@ -73,7 +72,7 @@ are placed.
 Note that this should end with a directory separator.")
 
 (defun erc-replace-match-subexpression-in-string
-  (newtext string match subexp start &optional fixedcase literal)
+  (newtext string _match subexp _start &optional fixedcase literal)
   "Replace the subexpression SUBEXP of the last match in STRING with NEWTEXT.
 MATCH is the text which matched the subexpression (see `match-string').
 START is the beginning position of the last match (see `match-beginning').

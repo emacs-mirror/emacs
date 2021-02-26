@@ -278,14 +278,13 @@ Optional 5th argument NIL-FOR-TOO-LONG non-nil means return nil
 CODING-SYSTEMS is a list of coding systems.  See `set-coding-system-priority'.
 This affects the implicit sorting of lists of coding systems returned by
 operations such as `find-coding-systems-region'."
+  (declare (indent 1) (debug t))
   (let ((current (make-symbol "current")))
   `(let ((,current (coding-system-priority-list)))
      (apply #'set-coding-system-priority ,coding-systems)
      (unwind-protect
 	 (progn ,@body)
        (apply #'set-coding-system-priority ,current)))))
-;;;###autoload(put 'with-coding-priority 'lisp-indent-function 1)
-(put 'with-coding-priority 'edebug-form-spec t)
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)

@@ -380,7 +380,7 @@ PREFIX is a string, and defaults to \"g\"."
   "Do nothing and return nil.
 This function accepts any number of ARGUMENTS, but ignores them.
 Also see `always'."
-  (declare (completion #'ignore))
+  (declare (completion ignore))
   (interactive)
   nil)
 
@@ -928,7 +928,7 @@ For an approximate inverse of this, see `key-description'."
 
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
-  (declare (completion #'ignore))
+  (declare (completion ignore))
   (interactive)
   (ding)
   (if defining-kbd-macro
@@ -2102,7 +2102,7 @@ can do the job."
                      ,(if append
                           `(setq ,sym (append ,sym (list ,x)))
                         `(push ,x ,sym))))))
-          (if (not (macroexp--compiling-p))
+          (if (not (macroexp-compiling-p))
               code
             `(progn
                (macroexp--funcall-if-compiled ',warnfun)
@@ -3340,7 +3340,7 @@ to `accept-change-group' or `cancel-change-group'."
         ;; insertions are ever merged/combined, so we use such a "boundary"
         ;; only when the last change was an insertion and we use the position
         ;; of the last insertion.
-        (when (numberp (caar buffer-undo-list))
+        (when (numberp (car-safe (car buffer-undo-list)))
           (push (cons (caar buffer-undo-list) (caar buffer-undo-list))
                 buffer-undo-list))))))
 
@@ -5050,14 +5050,10 @@ This function is called directly from the C code."
                             obarray))
 	   (msg (format "Package %s is deprecated" package))
 	   (fun (lambda (msg) (message "%s" msg))))
-      ;; Cribbed from cl--compiling-file.
       (when (or (not (fboundp 'byte-compile-warning-enabled-p))
                 (byte-compile-warning-enabled-p 'obsolete package))
         (cond
-	 ((and (boundp 'byte-compile--outbuffer)
-	       (bufferp (symbol-value 'byte-compile--outbuffer))
-	       (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
-		      " *Compiler Output*"))
+	 ((bound-and-true-p byte-compile-current-file)
 	  ;; Don't warn about obsolete files using other obsolete files.
 	  (unless (and (stringp byte-compile-current-file)
 		       (string-match-p "/obsolete/[^/]*\\'"

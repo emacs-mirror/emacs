@@ -1,4 +1,4 @@
-;;; metamail.el --- Metamail interface for GNU Emacs
+;;; metamail.el --- Metamail interface for GNU Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -44,13 +44,11 @@
 
 (defcustom metamail-program-name "metamail"
   "Metamail program name."
-  :type 'string
-  :group 'metamail)
+  :type 'string)
 
 (defcustom metamail-mailer-name "emacs"
   "Mailer name set to MM_MAILER environment variable."
-  :type 'string
-  :group 'metamail)
+  :type 'string)
 
 (defvar metamail-environment '("KEYHEADS=*" "MM_QUIET=1")
   "Environment variables passed to `metamail'.
@@ -65,8 +63,7 @@ It is not expected to be altered globally by `set' or `setq'.
 Instead, change its value temporary using `let' or `let*' form.
 `-m MAILER' argument is automatically generated from the
 `metamail-mailer-name' variable."
-  :type '(repeat (string :tag "Switch"))
-  :group 'metamail)
+  :type '(repeat (string :tag "Switch")))
 
 ;;;###autoload
 (defun metamail-interpret-header ()
@@ -193,7 +190,7 @@ redisplayed as output is inserted."
 		       (list "-m" (or metamail-mailer-name "emacs"))
 		       (list metafile))))
       ;; `metamail' may not delete the temporary file!
-      (condition-case error
+      (condition-case nil
 	  (delete-file metafile)
 	(error nil))
       )))

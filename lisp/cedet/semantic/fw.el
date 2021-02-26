@@ -189,14 +189,13 @@ will throw a warning when it encounters this symbol."
   (when (and (mode-local--function-overload-p newfn)
              (not (mode-local--overload-obsoleted-by newfn))
              ;; Only throw this warning when byte compiling things.
-             (boundp 'byte-compile-current-file)
-             byte-compile-current-file
-	     (not (string-match "cedet" byte-compile-current-file))
+             (macroexp-compiling-p)
+	     (not (string-match "cedet" (macroexp-file-name)))
 	     )
     (make-obsolete-overload oldfnalias newfn when)
     (byte-compile-warn
      "%s: `%s' obsoletes overload `%s'"
-     byte-compile-current-file
+     (macroexp-file-name)
      newfn
      (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
        (semantic-overload-symbol-from-function oldfnalias)))))
@@ -211,8 +210,7 @@ will throw a warning when it encounters this symbol."
       (defvaralias oldvaralias newvar)
     (error
      ;; Only throw this warning when byte compiling things.
-     (when (and (boundp 'byte-compile-current-file)
-                byte-compile-current-file)
+     (when (macroexp-compiling-p)
        (byte-compile-warn
         "variable `%s' obsoletes, but isn't alias of `%s'"
         newvar oldvaralias)

@@ -1206,7 +1206,6 @@ Also refresh various data structures that hinge on the regexp."
 (defvar allout-mode-navigation-menu)
 (defvar allout-mode-misc-menu)
 (defun allout-produce-mode-menubar-entries ()
-  (require 'easymenu)
   (easy-menu-define allout-mode-exposure-menu
 		    allout-mode-map-value
 		    "Allout outline exposure menu."

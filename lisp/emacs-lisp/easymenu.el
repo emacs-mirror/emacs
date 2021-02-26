@@ -23,6 +23,9 @@
 
 ;;; Commentary:
 
+;; The `easy-menu-define' macro provides a convenient way to define
+;; pop-up menus and/or menu bar menus.
+;;
 ;; This is compatible with easymenu.el by Per Abrahamsen
 ;; but it is much simpler as it doesn't try to support other Emacs versions.
 ;; The code was mostly derived from lmenu.el.
@@ -140,7 +143,7 @@ solely of dashes is displayed as a menu separator.
 
 Alternatively, a menu item can be a list with the same format as
 MENU.  This is a submenu."
-  (declare (indent defun) (debug (symbolp body)))
+  (declare (indent defun) (debug (symbolp body)) (doc-string 3))
   `(progn
      ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
@@ -181,12 +184,12 @@ This is expected to be bound to a mouse event."
 				  (funcall
 				   (or (plist-get (get symbol 'menu-prop)
 						  :filter)
-				       'identity)
+                                       #'identity)
 				   (symbol-function symbol)))
 			     symbol))))
       ;; These symbols are commands, but not interesting for users
       ;; to `M-x TAB'.
-      (put symbol 'completion-predicate 'ignore))
+      (function-put symbol 'completion-predicate #'ignore))
     (dolist (map (if (keymapp maps) (list maps) maps))
       (define-key map
         (vector 'menu-bar (easy-menu-intern (car menu)))

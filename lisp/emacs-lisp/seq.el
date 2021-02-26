@@ -393,9 +393,9 @@ found or not."
     count))
 
 (cl-defgeneric seq-contains (sequence elt &optional testfn)
-  (declare (obsolete seq-contains-p "27.1"))
   "Return the first element in SEQUENCE that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
+  (declare (obsolete seq-contains-p "27.1"))
   (seq-some (lambda (e)
               (when (funcall (or testfn #'equal) elt e)
                 e))

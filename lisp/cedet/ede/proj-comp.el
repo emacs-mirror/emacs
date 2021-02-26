@@ -248,6 +248,7 @@ This will prevent rules from creating duplicate variables or rules."
 (defmacro proj-comp-insert-variable-once (varname &rest body)
   "Add VARNAME into the current Makefile if it doesn't exist.
 Execute BODY in a location where a value can be placed."
+  (declare (indent 1) (debug (sexp body)))
   `(let ((addcr t) (v ,varname))
      (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
        (insert v "=")
@@ -255,7 +256,6 @@ Execute BODY in a location where a value can be placed."
        (if addcr (insert "\n"))
        (goto-char (point-max)))
      ))
-(put 'proj-comp-insert-variable-once 'lisp-indent-function 1)
 
 (cl-defmethod ede-proj-makefile-insert-variables ((this ede-compilation-program))
   "Insert variables needed by the compiler THIS."

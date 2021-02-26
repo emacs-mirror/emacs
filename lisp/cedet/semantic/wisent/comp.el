@@ -159,13 +159,9 @@ Its name is defined in constant `wisent-log-buffer-name'."
   '(with-current-buffer (wisent-log-buffer)
      (erase-buffer)))
 
-(defvar byte-compile-current-file)
-
 (defun wisent-source ()
   "Return the current source file name or nil."
-  (let ((source (or (and (boundp 'byte-compile-current-file)
-                         byte-compile-current-file)
-                    load-file-name (buffer-file-name))))
+  (let ((source (macroexp-file-name)))
     (if source
         (file-relative-name source))))
 
@@ -2241,7 +2237,7 @@ there are any reduce/reduce conflicts."
           ;; output warnings.
           (and src
                (intern (format "wisent-%s--expected-conflicts"
-                               (replace-regexp-in-string "\\.el$" "" src))))))
+                               (replace-regexp-in-string "\\.el\\'" "" src))))))
     (when (or (not (zerop rrc-total))
               (and (not (zerop src-total))
                    (not (= src-total (or wisent-expected-conflicts 0)))

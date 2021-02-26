@@ -35,7 +35,6 @@
 
 (require 'cl-lib)
 (require 'seq)
-(require 'easymenu)
 (require 'view)
 (require 'ebuff-menu)
 

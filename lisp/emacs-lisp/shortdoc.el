@@ -40,6 +40,11 @@
     (t :height 0.1 :inverse-video t :extend t))
   "Face used to separate sections.")
 
+(defface shortdoc-heading
+  '((t :inherit variable-pitch :height 1.3 :weight bold))
+  "Face used for a heading."
+  :version "28.1")
+
 (defface shortdoc-section
   '((t :inherit variable-pitch))
   "Face used for a section.")
@@ -1107,7 +1112,7 @@ There can be any number of :example/:result elements."
            (insert "\n"))
          (insert (propertize
                   (concat (substitute-command-keys data) "\n\n")
-                  'face '(variable-pitch (:height 1.3 :weight bold))
+                  'face 'shortdoc-heading
                   'shortdoc-section t)))
         ;; There may be functions not yet defined in the data.
         ((fboundp (car data))
@@ -1175,7 +1180,7 @@ function's documentation in the Info manual")))
                     (prin1 value (current-buffer)))
                   (insert "\n    " single-arrow " "
                           (propertize "[it depends]"
-                                      'face 'variable-pitch)
+                                      'face 'shortdoc-section)
                           "\n"))
                  (:no-value
                   (if (stringp value)

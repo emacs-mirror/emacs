@@ -332,7 +332,7 @@ Parses \"/etc/resolv.conf\" or calls \"nslookup\"."
 	  (setq dns-servers (nreverse dns-servers))))
       (when (executable-find "nslookup")
 	(with-temp-buffer
-	  (call-process "nslookup" nil t nil "localhost")
+	  (call-process "nslookup" nil t nil "-retry=0" "-timeout=2" "localhost")
 	  (goto-char (point-min))
           (when (re-search-forward
 	   "^Address:[ \t]*\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\|[[:xdigit:]:]*\\)" nil t)
@@ -492,19 +492,22 @@ If REVERSE, look up an IP address."
                            (dns-get-txt-answer (dns-get 'answers result))
                          (dns-get 'data answer))))))))))
 
+;;;###autoload
 (defun dns-query (name &optional type full reverse)
   "Query a DNS server for NAME of TYPE.
 If FULL, return the entire record returned.
 If REVERSE, look up an IP address."
-  (let ((result nil))
-    (dns-query-asynchronous
-     name
-     (lambda (response)
-       (setq result (list response)))
-     type full reverse)
-    ;; Loop until we get the callback.
-    (while (not result)
-      (sleep-for 0.01))
+  (let* ((result nil)
+         (query-started
+          (dns-query-asynchronous
+           name
+           (lambda (response)
+             (setq result (list response)))
+           type full reverse)))
+    (if query-started
+        ;; Loop until we get the callback.
+        (while (not result)
+          (sleep-for 0.01)))
     (car result)))
 
 (provide 'dns)

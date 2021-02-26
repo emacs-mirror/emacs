@@ -1,4 +1,4 @@
-;;; todo-mode.el --- major mode for editing TODO list files
+;;; todo-mode.el --- major mode for editing TODO list files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 1999, 2001-2021 Free Software Foundation, Inc.
 
@@ -280,26 +280,21 @@ every day and it may also be marked on every day of the calendar.
 Using \"&%%(equal (calendar-current-date) date)\" instead will only
 show and mark todo entries for today, but may slow down processing of
 the diary file somewhat."
-  :type 'string
-  :group 'todo)
+  :type 'string)
 (defcustom todo-file-do    (locate-user-emacs-file "todo-do" ".todo-do")
   "TODO mode list file."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type 'file
-  :group 'todo)
+  :type 'file)
 (defcustom todo-file-done  (locate-user-emacs-file "todo-done" ".todo-done")
   "TODO mode archive file."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type 'file
-  :group 'todo)
+  :type 'file)
 (defcustom todo-mode-hook  nil
   "TODO mode hooks."
-  :type 'hook
-  :group 'todo)
+  :type 'hook)
 (defcustom todo-edit-mode-hook nil
   "TODO Edit mode hooks."
-  :type 'hook
-  :group 'todo)
+  :type 'hook)
 (defcustom todo-insert-threshold 0
   "TODO mode insertion accuracy.
 
@@ -314,8 +309,7 @@ your item just before that point.  If you set the threshold to,
 e.g. 8, it will stop as soon as the window size drops below that
 amount and will insert the item in the approximate center of that
 window."
-  :type 'integer
-  :group 'todo)
+  :type 'integer)
 (defvar todo-edit-buffer " *TODO Edit*"
   "TODO Edit buffer name.")
 (defcustom todo-file-top (locate-user-emacs-file "todo-top" ".todo-top")
@@ -324,32 +318,26 @@ window."
 Not in TODO format, but diary compatible.
 Automatically generated when `todo-save-top-priorities' is non-nil."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type 'string
-  :group 'todo)
+  :type 'string)
 
 (defcustom todo-print-function 'ps-print-buffer-with-faces
   "Function to print the current buffer."
-  :type 'symbol
-  :group 'todo)
+  :type 'symbol)
 (defcustom todo-show-priorities 1
   "Default number of priorities to show by \\[todo-top-priorities].
 0 means show all entries."
-  :type 'integer
-  :group 'todo)
+  :type 'integer)
 (defcustom todo-print-priorities 0
   "Default number of priorities to print by \\[todo-print].
 0 means print all entries."
-  :type 'integer
-  :group 'todo)
+  :type 'integer)
 (defcustom todo-remove-separator t
   "Non-nil to remove category separators in\
 \\[todo-top-priorities] and \\[todo-print]."
-  :type 'boolean
-  :group 'todo)
+  :type 'boolean)
 (defcustom todo-save-top-priorities-too t
   "Non-nil makes `todo-save' automatically save top-priorities in `todo-file-top'."
-  :type 'boolean
-  :group 'todo)
+  :type 'boolean)
 
 ;; Thanks for the ISO time stamp format go to Karl Eichwalder <ke@suse.de>
 ;; My format string for the appt.el package is "%3b %2d, %y, %02I:%02M%p".
@@ -358,17 +346,14 @@ Automatically generated when `todo-save-top-priorities' is non-nil."
   "%:y-%02m-%02d %02H:%02M"
   "TODO mode time string format for done entries.
 For details see the variable `time-stamp-format'."
-  :type 'string
-  :group 'todo)
+  :type 'string)
 
 (defcustom todo-entry-prefix-function 'todo-entry-timestamp-initials
   "Function producing text to insert at start of todo entry."
-  :type 'symbol
-  :group 'todo)
+  :type 'symbol)
 (defcustom todo-initials (or (getenv "INITIALS") (user-login-name))
   "Initials of todo item author."
-  :type 'string
-  :group 'todo)
+  :type 'string)
 
 (defun todo-entry-timestamp-initials ()
   "Prepend timestamp and your initials to the head of a TODO entry."
@@ -395,25 +380,25 @@ Use `todo-categories' instead.")
 (defvar todo-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map t)
-    (define-key map "+" 'todo-forward-category)
-    (define-key map "-" 'todo-backward-category)
-    (define-key map "d" 'todo-file-item) ;done/delete
-    (define-key map "e" 'todo-edit-item)
-    (define-key map "E" 'todo-edit-multiline)
-    (define-key map "f" 'todo-file-item)
-    (define-key map "i" 'todo-insert-item)
-    (define-key map "I" 'todo-insert-item-here)
-    (define-key map "j" 'todo-jump-to-category)
-    (define-key map "k" 'todo-delete-item)
-    (define-key map "l" 'todo-lower-item)
-    (define-key map "n" 'todo-forward-item)
-    (define-key map "p" 'todo-backward-item)
-    (define-key map "P" 'todo-print)
-    (define-key map "q" 'todo-quit)
-    (define-key map "r" 'todo-raise-item)
-    (define-key map "s" 'todo-save)
-    (define-key map "S" 'todo-save-top-priorities)
-    (define-key map "t" 'todo-top-priorities)
+    (define-key map "+" #'todo-forward-category)
+    (define-key map "-" #'todo-backward-category)
+    (define-key map "d" #'todo-file-item) ;done/delete
+    (define-key map "e" #'todo-edit-item)
+    (define-key map "E" #'todo-edit-multiline)
+    (define-key map "f" #'todo-file-item)
+    (define-key map "i" #'todo-insert-item)
+    (define-key map "I" #'todo-insert-item-here)
+    (define-key map "j" #'todo-jump-to-category)
+    (define-key map "k" #'todo-delete-item)
+    (define-key map "l" #'todo-lower-item)
+    (define-key map "n" #'todo-forward-item)
+    (define-key map "p" #'todo-backward-item)
+    (define-key map "P" #'todo-print)
+    (define-key map "q" #'todo-quit)
+    (define-key map "r" #'todo-raise-item)
+    (define-key map "s" #'todo-save)
+    (define-key map "S" #'todo-save-top-priorities)
+    (define-key map "t" #'todo-top-priorities)
     map)
   "TODO mode keymap.")
 
@@ -451,7 +436,7 @@ Use `todo-categories' instead.")
       (search-forward-regexp (concat "^" todo-category-end))
       (narrow-to-region begin (line-beginning-position))
       (goto-char (point-min)))))
-(defalias 'todo-cat-slct 'todo-category-select)
+(defalias 'todo-cat-slct #'todo-category-select)
 
 (defun todo-forward-category ()
   "Go forward to TODO list of next category."
@@ -459,7 +444,7 @@ Use `todo-categories' instead.")
   (setq todo-category-number
         (mod (1+ todo-category-number) (length todo-categories)))
   (todo-category-select))
-(defalias 'todo-cmd-forw 'todo-forward-category)
+(defalias 'todo-cmd-forw #'todo-forward-category)
 
 (defun todo-backward-category ()
   "Go back to TODO list of previous category."
@@ -467,14 +452,14 @@ Use `todo-categories' instead.")
   (setq todo-category-number
         (mod (1- todo-category-number) (length todo-categories)))
   (todo-category-select))
-(defalias 'todo-cmd-back 'todo-backward-category)
+(defalias 'todo-cmd-back #'todo-backward-category)
 
 (defun todo-backward-item ()
   "Select previous entry of TODO list."
   (interactive)
   (search-backward-regexp (concat "^" (regexp-quote todo-prefix)) nil t)
   (message ""))
-(defalias 'todo-cmd-prev 'todo-backward-item)
+(defalias 'todo-cmd-prev #'todo-backward-item)
 
 (defun todo-forward-item (&optional count)
   "Select COUNT-th next entry of TODO list."
@@ -485,7 +470,7 @@ Use `todo-categories' instead.")
                          nil 'goto-end count)
   (beginning-of-line)
   (message ""))
-(defalias 'todo-cmd-next 'todo-forward-item)
+(defalias 'todo-cmd-next #'todo-forward-item)
 
 (defun todo-save ()
   "Save the TODO list."
@@ -494,7 +479,7 @@ Use `todo-categories' instead.")
     (save-restriction
       (save-buffer)))
   (if todo-save-top-priorities-too (todo-save-top-priorities)))
-(defalias 'todo-cmd-save 'todo-save)
+(defalias 'todo-cmd-save #'todo-save)
 
 (defun todo-quit ()
   "Done with TODO list for now."
@@ -503,7 +488,7 @@ Use `todo-categories' instead.")
   (todo-save)
   (message "")
   (bury-buffer))
-(defalias 'todo-cmd-done 'todo-quit)
+(defalias 'todo-cmd-done #'todo-quit)
 
 (defun todo-edit-item ()
   "Edit current TODO list entry."
@@ -518,7 +503,7 @@ Use `todo-categories' instead.")
 	    (todo-backward-item)
 	    (message ""))))
     (error "No TODO list entry to edit")))
-(defalias 'todo-cmd-edit 'todo-edit-item)
+(defalias 'todo-cmd-edit #'todo-edit-item)
 
 (defun todo-edit-multiline ()
   "Set up a buffer for editing a multiline TODO list entry."
@@ -622,7 +607,7 @@ category."
 	   (category (if arg (todo-completing-read) current-category)))
       (todo-add-item-non-interactively new-item category))))
 
-(defalias 'todo-cmd-inst 'todo-insert-item)
+(defalias 'todo-cmd-inst #'todo-insert-item)
 
 (defun todo-insert-item-here ()
   "Insert a new TODO list entry directly above the entry at point.
@@ -650,7 +635,7 @@ If point is on an empty line, insert the entry there."
       (setq todo-previous-answer
             (y-or-n-p (format-message "More important than `%s'? " item)))))
   todo-previous-answer)
-(defalias 'todo-ask-p 'todo-more-important-p)
+(defalias 'todo-ask-p #'todo-more-important-p)
 
 (defun todo-delete-item ()
   "Delete current TODO list entry."
@@ -664,7 +649,7 @@ If point is on an empty line, insert the entry there."
           (todo-backward-item))
         (message ""))
     (error "No TODO list entry to delete")))
-(defalias 'todo-cmd-kill 'todo-delete-item)
+(defalias 'todo-cmd-kill #'todo-delete-item)
 
 (defun todo-raise-item ()
   "Raise priority of current entry."
@@ -677,7 +662,7 @@ If point is on an empty line, insert the entry there."
           (insert item "\n"))
         (message ""))
     (error "No TODO list entry to raise")))
-(defalias 'todo-cmd-rais 'todo-raise-item)
+(defalias 'todo-cmd-rais #'todo-raise-item)
 
 (defun todo-lower-item ()
   "Lower priority of current entry."
@@ -691,7 +676,7 @@ If point is on an empty line, insert the entry there."
           (insert item "\n"))
         (message ""))
     (error "No TODO list entry to lower")))
-(defalias 'todo-cmd-lowr 'todo-lower-item)
+(defalias 'todo-cmd-lowr #'todo-lower-item)
 
 (defun todo-file-item (&optional comment)
   "File the current TODO list entry away, annotated with an optional COMMENT."

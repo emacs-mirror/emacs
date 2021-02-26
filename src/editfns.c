@@ -2945,7 +2945,7 @@ usage: (propertize STRING &rest PROPERTIES)  */)
 
   /* Number of args must be odd.  */
   if ((nargs & 1) == 0)
-    error ("Wrong number of arguments");
+    xsignal2 (Qwrong_number_of_arguments, Qpropertize, make_fixnum (nargs));
 
   properties = string = Qnil;
 
@@ -4448,6 +4448,7 @@ syms_of_editfns (void)
 {
   DEFSYM (Qbuffer_access_fontify_functions, "buffer-access-fontify-functions");
   DEFSYM (Qwall, "wall");
+  DEFSYM (Qpropertize, "propertize");
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);

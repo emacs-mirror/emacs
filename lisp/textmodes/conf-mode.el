@@ -63,8 +63,7 @@ not align (only setting space according to `conf-assignment-space')."
   :type 'boolean)
 
 (defvar conf-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-u" 'conf-unix-mode)
     (define-key map "\C-c\C-w" 'conf-windows-mode)
     (define-key map "\C-c\C-j" 'conf-javaprop-mode)
@@ -78,51 +77,45 @@ not align (only setting space according to `conf-assignment-space')."
     (define-key map "\C-c\"" 'conf-quote-normal)
     (define-key map "\C-c'" 'conf-quote-normal)
     (define-key map "\C-c\C-a" 'conf-align-assignments)
-    (define-key map [menu-bar sh-script] (cons "Conf" menu-map))
-    (define-key menu-map [conf-windows-mode]
-      '(menu-item "Windows mode"
-		  conf-windows-mode
-		  :help "Conf Mode starter for Windows style Conf files"
-		  :button (:radio . (eq major-mode 'conf-windows-mode))))
-    (define-key menu-map [conf-javaprop-mode]
-      '(menu-item "Java properties mode"
-		  conf-javaprop-mode
-		  :help "Conf Mode starter for Java properties files"
-		  :button (:radio . (eq major-mode 'conf-javaprop-mode))))
-    (define-key menu-map [conf-space-keywords]
-      '(menu-item "Space keywords mode..."
-		  conf-space-keywords
-		  :help "Enter Conf Space mode using regexp KEYWORDS to match the keywords"
-		  :button (:radio . (eq major-mode 'conf-space-keywords))))
-    (define-key menu-map [conf-ppd-mode]
-      '(menu-item "PPD mode"
-		  conf-ppd-mode
-		  :help "Conf Mode starter for Adobe/CUPS PPD files"
-		  :button (:radio . (eq major-mode 'conf-ppd-mode))))
-    (define-key menu-map [conf-colon-mode]
-      '(menu-item "Colon mode"
-		  conf-colon-mode
-		  :help "Conf Mode starter for Colon files"
-		  :button (:radio . (eq major-mode 'conf-colon-mode))))
-    (define-key menu-map [conf-unix-mode]
-      '(menu-item "Unix mode"
-		  conf-unix-mode
-		  :help "Conf Mode starter for Unix style Conf files"
-		  :button (:radio . (eq major-mode 'conf-unix-mode))))
-    (define-key menu-map [conf-xdefaults-mode]
-      '(menu-item "Xdefaults mode"
-		  conf-xdefaults-mode
-		  :help "Conf Mode starter for Xdefaults files"
-		  :button (:radio . (eq major-mode 'conf-xdefaults-mode))))
-    (define-key menu-map [c-s0] '("--"))
-    (define-key menu-map [conf-quote-normal]
-      '(menu-item "Set quote syntax normal" conf-quote-normal
-		  :help "Set the syntax of \\=' and \" to punctuation"))
-    (define-key menu-map [conf-align-assignments]
-      '(menu-item "Align assignments" conf-align-assignments
-		  :help "Align assignments"))
     map)
   "Local keymap for `conf-mode' buffers.")
+
+(easy-menu-define conf-mode-menu conf-mode-map
+  "Menu for `conf-mode'."
+  '("Conf"
+    ["Align assignments" conf-align-assignments
+     :help "Align assignments"]
+    ["Set quote syntax normal" conf-quote-normal
+     :help "Set the syntax of \\=' and \" to punctuation"]
+    "---"
+    ["Xdefaults mode" conf-xdefaults-mode
+     :help "Conf Mode starter for Xdefaults files"
+     :style radio
+     :selected (eq major-mode 'conf-xdefaults-mode)]
+    ["Unix mode" conf-unix-mode
+     :help "Conf Mode starter for Unix style Conf files"
+     :style radio
+     :selected (eq major-mode 'conf-unix-mode)]
+    ["Colon mode" conf-colon-mode
+     :help "Conf Mode starter for Colon files"
+     :style radio
+     :selected (eq major-mode 'conf-colon-mode)]
+    ["PPD mode" conf-ppd-mode
+     :help "Conf Mode starter for Adobe/CUPS PPD files"
+     :style radio
+     :selected (eq major-mode 'conf-ppd-mode)]
+    ["Space keywords mode..." conf-space-keywords
+     :help "Enter Conf Space mode using regexp KEYWORDS to match the keywords"
+     :style radio
+     :selected (eq major-mode 'conf-space-keywords)]
+    ["Java properties mode" conf-javaprop-mode
+     :help "Conf Mode starter for Java properties files"
+     :style radio
+     :selected (eq major-mode 'conf-javaprop-mode)]
+    ["Windows mode" conf-windows-mode
+     :help "Conf Mode starter for Windows style Conf files"
+     :style radio
+     :selected (eq major-mode 'conf-windows-mode)]))
 
 (defvar conf-mode-syntax-table
   (let ((table (make-syntax-table)))

@@ -430,42 +430,56 @@ variable `tab-line-tabs-function'."
             next-buffers)))
 
 
+(defcustom tab-line-tab-name-format-function #'tab-line-tab-name-format-default
+  "Function to format a tab name.
+Function gets two arguments: the tab and a list of all tabs, and
+should return the formatted tab name to display in the tab line."
+  :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-line
+  :version "28.1")
+
+(defun tab-line-tab-name-format-default (tab tabs)
+  (let* ((buffer-p (bufferp tab))
+         (selected-p (if buffer-p
+                         (eq tab (window-buffer))
+                       (cdr (assq 'selected tab))))
+         (name (if buffer-p
+                   (funcall tab-line-tab-name-function tab tabs)
+                 (cdr (assq 'name tab))))
+         (face (if selected-p
+                   (if (eq (selected-window) (old-selected-window))
+                       'tab-line-tab-current
+                     'tab-line-tab)
+                 'tab-line-tab-inactive)))
+    (dolist (fn tab-line-tab-face-functions)
+      (setf face (funcall fn tab tabs face buffer-p selected-p)))
+    (apply 'propertize
+           (concat (propertize name 'keymap tab-line-tab-map)
+                   (or (and (or buffer-p (assq 'buffer tab) (assq 'close tab))
+                            tab-line-close-button-show
+                            (not (eq tab-line-close-button-show
+                                     (if selected-p 'non-selected 'selected)))
+                            tab-line-close-button)
+                       ""))
+           `(
+             tab ,tab
+             ,@(if selected-p '(selected t))
+             face ,face
+             mouse-face tab-line-highlight))))
+
 (defun tab-line-format-template (tabs)
   "Template for displaying tab line for selected window."
-  (let* ((selected-buffer (window-buffer))
-         (separator (or tab-line-separator (if window-system " " "|")))
+  (let* ((separator (or tab-line-separator (if window-system " " "|")))
          (hscroll (window-parameter nil 'tab-line-hscroll))
          (strings
           (mapcar
            (lambda (tab)
-             (let* ((buffer-p (bufferp tab))
-                    (selected-p (if buffer-p
-                                    (eq tab selected-buffer)
-                                  (cdr (assq 'selected tab))))
-                    (name (if buffer-p
-                              (funcall tab-line-tab-name-function tab tabs)
-                            (cdr (assq 'name tab))))
-                    (face (if selected-p
-                              (if (eq (selected-window) (old-selected-window))
-                                  'tab-line-tab-current
-                                'tab-line-tab)
-                            'tab-line-tab-inactive)))
-               (dolist (fn tab-line-tab-face-functions)
-                 (setf face (funcall fn tab tabs face buffer-p selected-p)))
-               (concat
-                separator
-                (apply 'propertize
-                       (concat (propertize name 'keymap tab-line-tab-map)
-                               (or (and (or buffer-p (assq 'buffer tab) (assq 'close tab))
-                                        tab-line-close-button-show
-                                        (not (eq tab-line-close-button-show
-                                                 (if selected-p 'non-selected 'selected)))
-                                        tab-line-close-button) ""))
-                       `(
-                         tab ,tab
-                         ,@(if selected-p '(selected t))
-                         face ,face
-                         mouse-face tab-line-highlight)))))
+             (concat separator
+                     (funcall tab-line-tab-name-format-function tab tabs)))
            tabs))
          (hscroll-data (tab-line-auto-hscroll strings hscroll)))
     (setq hscroll (nth 1 hscroll-data))

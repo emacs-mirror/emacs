@@ -28,7 +28,6 @@
 ;;; Code:
 
 (require 'erc)
-(require 'easymenu)
 
 (defgroup erc-menu nil
   "ERC menu support."

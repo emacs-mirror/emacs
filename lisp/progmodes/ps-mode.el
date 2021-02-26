@@ -39,7 +39,6 @@
   "Peter Kleiweg <p.c.j.kleiweg@rug.nl>, bug-gnu-emacs@gnu.org")
 
 (require 'comint)
-(require 'easymenu)
 (require 'smie)
 
 ;; Define core `PostScript' group.

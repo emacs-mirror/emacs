@@ -4369,10 +4369,6 @@ It is removed when you hit any char."
   (set variable (not (symbol-value variable)))
   (message "%s: %s" variable (symbol-value variable)))
 
-;; We have to require easymenu (even for Emacs 18) just so
-;; the easy-menu-define macro call is compiled correctly.
-(require 'easymenu)
-
 (defconst edebug-mode-menus
   '("Edebug"
      ["Stop" edebug-stop t]
