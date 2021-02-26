@@ -127,6 +127,10 @@ Usable to modify the compiler environment."
   "Report warnings and errors from native asynchronous compilation."
   :type 'boolean)
 
+(defcustom comp-async-query-on-exit nil
+  "Exiting Emacs, query the user if async compilation process is running."
+  :type 'boolean)
+
 (defcustom comp-native-driver-options nil
   "Options passed verbatim to the native compiler's backend driver.
 Note that not all options are meaningful; typically only the options
@@ -3928,7 +3932,8 @@ display a message."
                                  (native-elisp-load
                                   (comp-el-to-eln-filename source-file1)
                                   (eq load1 'late)))
-                               (comp-run-async-workers)))))
+                               (comp-run-async-workers))
+                             :noquery (not comp-async-query-on-exit))))
               (puthash source-file process comp-async-compilations))
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
