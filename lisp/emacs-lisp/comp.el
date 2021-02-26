@@ -54,7 +54,7 @@
     Warning: the compiler is free to perform dangerous optimizations."
   :type 'number
   :safe #'numberp
-  :group 'comp)
+  :version "28.1")
 
 (defcustom comp-debug 0
   "Compiler debug level.  From 0 to 3.
@@ -66,7 +66,7 @@ This intended for debugging the compiler itself.
 - 3 dump libgccjit reproducers."
   :type 'number
   :safe #'numberp
-  :group 'comp)
+  :version "28.1")
 
 (defcustom comp-verbose 0
   "Compiler verbosity.  From 0 to 3.
@@ -75,23 +75,27 @@ This intended for debugging the compiler itself.
 - 1 final limple is logged.
 - 2 LAP and final limple and some pass info are logged.
 - 3 max verbosity."
-  :type 'number)
+  :type 'number
+  :version "28.1")
 
 (defcustom comp-always-compile nil
   "Unconditionally (re-)compile all files."
-  :type 'boolean)
+  :type 'boolean
+  :version "28.1")
 
 (defcustom comp-deferred-compilation-deny-list
   '()
   "List of regexps to exclude files from deferred native compilation.
 Skip if any is matching."
-  :type 'list)
+  :type 'list
+  :version "28.1")
 
 (defcustom comp-bootstrap-deny-list
   '()
   "List of regexps to exclude files from native compilation during bootstrap.
 Skip if any is matching."
-  :type 'list)
+  :type 'list
+  :version "28.1")
 
 (defcustom comp-never-optimize-functions
   '(;; The following two are mandatory for Emacs to be working
@@ -99,12 +103,14 @@ Skip if any is matching."
     ;; REMOVE.
     macroexpand rename-buffer)
   "Primitive functions for which we do not perform trampoline optimization."
-  :type 'list)
+  :type 'list
+  :version "28.1")
 
 (defcustom comp-async-jobs-number 0
   "Default number of processes used for async compilation.
 When zero use half of the CPUs or at least one."
-  :type 'number)
+  :type 'number
+  :version "28.1")
 
 ;; FIXME: This an abnormal hook, and should be renamed to something
 ;; like `comp-async-cu-done-function'.
@@ -112,16 +118,19 @@ When zero use half of the CPUs or at least one."
   "Hook run after asynchronously compiling a single compilation unit.
 The argument FILE passed to the function is the filename used as
 compilation input."
-  :type 'hook)
+  :type 'hook
+  :version "28.1")
 
 (defcustom comp-async-all-done-hook nil
   "Hook run after asynchronously compiling all input files."
-  :type 'hook)
+  :type 'hook
+  :version "28.1")
 
 (defcustom comp-async-env-modifier-form nil
   "Form evaluated before compilation by each asynchronous compilation worker.
 Usable to modify the compiler environment."
-  :type 'list)
+  :type 'list
+  :version "28.1")
 
 (defcustom comp-async-report-warnings-errors t
   "Whether to report warnings and errors from asynchronous native compilation.
@@ -138,7 +147,8 @@ environment, it is more sensitive to such omissions, and might be
 unable to compile such Lisp source files correctly.
 
 Set this variable to nil if these warnings annoy you."
-  :type 'boolean)
+  :type 'boolean
+  :version "28.1")
 
 (defcustom comp-async-query-on-exit nil
   "Whether to query the user about killing async compilations when exiting.
@@ -146,7 +156,8 @@ If this is non-nil, Emacs will ask for confirmation to exit and kill the
 asynchronous native compilations if any are running.  If nil, when you
 exit Emacs, it will silently kill those asynchronous compilations even
 if `confirm-kill-processes' is non-nil."
-  :type 'boolean)
+  :type 'boolean
+  :version "28.1")
 
 (defcustom comp-native-driver-options nil
   "Options passed verbatim to the native compiler's backend driver.
@@ -155,13 +166,15 @@ affecting the assembler and linker are likely to be useful.
 
 Passing these options is only available in libgccjit version 9
 and above."
-  :type 'list)
+  :type 'list
+  :version "28.1")
 
 (defcustom comp-libgccjit-reproducer nil
   "When non-nil produce a libgccjit reproducer.
 The reproducer is a file ELNFILENAME_libgccjit_repro.c deposed in
 the .eln output directory."
-  :type 'boolean)
+  :type 'boolean
+  :version "28.1")
 
 (defvar comp-log-time-report nil
   "If non-nil, log a time report for each pass.")
