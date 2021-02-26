@@ -60,7 +60,6 @@
 (require 'cl-lib)
 (require 'debug)
 (require 'backtrace)
-(require 'easymenu)
 (require 'ewoc)
 (require 'find-func)
 (require 'pp)

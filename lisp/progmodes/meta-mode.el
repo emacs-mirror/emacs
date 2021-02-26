@@ -88,8 +88,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
-
 (defgroup meta-font nil
   "Major mode for editing Metafont or MetaPost sources."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)

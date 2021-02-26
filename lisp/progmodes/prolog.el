@@ -267,7 +267,6 @@
   (require 'shell)
   )
 
-(require 'easymenu)
 (require 'align)
 
 (defgroup prolog nil

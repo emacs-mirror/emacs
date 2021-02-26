@@ -30,7 +30,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(eval-when-compile (require 'easymenu))
 
 (defvar help-mode-map
   (let ((map (make-sparse-keymap)))
