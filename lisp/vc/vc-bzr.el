@@ -45,9 +45,9 @@
 
 ;;; Code:
 
+(require 'vc-dispatcher)
 (eval-when-compile
   (require 'cl-lib)
-  (require 'vc-dispatcher)
   (require 'vc-dir))                    ; vc-dir-at-event
 
 (declare-function vc-deduce-fileset "vc"
@@ -66,7 +66,6 @@
 
 (defcustom vc-bzr-program "bzr"
   "Name of the bzr command (excluding any arguments)."
-  :group 'vc-bzr
   :type 'string)
 
 (defcustom vc-bzr-diff-switches nil
@@ -75,8 +74,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :type '(choice (const :tag "Unspecified" nil)
                  (const :tag "None" t)
                  (string :tag "Argument String")
-                 (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-bzr)
+                 (repeat :tag "Argument List" :value ("") string)))
 
 (defcustom vc-bzr-annotate-switches nil
   "String or list of strings specifying switches for bzr annotate under VC.
@@ -85,15 +83,13 @@ If nil, use the value of `vc-annotate-switches'.  If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "25.1"
-  :group 'vc-bzr)
+  :version "25.1")
 
 (defcustom vc-bzr-log-switches nil
   "String or list of strings specifying switches for bzr log under VC."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
-                 (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-bzr)
+                 (repeat :tag "Argument List" :value ("") string)))
 
 (defcustom vc-bzr-status-switches
   (ignore-errors
@@ -108,7 +104,6 @@ The option \"--no-classify\" should be present if your bzr supports it."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
                  (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-bzr
   :version "24.1")
 
 ;; since v0.9, bzr supports removing the progress indicators
@@ -122,7 +117,7 @@ prepends `vc-bzr-status-switches' to ARGS."
          `("BZR_PROGRESS_BAR=none" ; Suppress progress output (bzr >=0.9)
            "LC_MESSAGES=C"         ; Force English output
            ,@process-environment)))
-    (apply 'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
+    (apply #'vc-do-command (or buffer "*vc*") okstatus vc-bzr-program
            file-or-list bzr-command
            (if (and (string-equal "status" bzr-command)
                     vc-bzr-status-switches)
@@ -144,7 +139,7 @@ Use the current Bzr root directory as the ROOT argument to
             ,@process-environment))
 	 (root (vc-bzr-root default-directory))
 	 (buffer (format "*vc-bzr : %s*" (expand-file-name root))))
-    (apply 'vc-do-async-command buffer root
+    (apply #'vc-do-async-command buffer root
 	   vc-bzr-program bzr-command args)
     buffer))
 
@@ -267,7 +262,8 @@ in the repository root directory of FILE."
                  ;; If there is no parent, this must be a new repo.
                  ;; If file is in dirstate, can only be added (b#8025).
                  ((or (not (match-beginning 4))
-                      (eq (char-after (match-beginning 4)) ?a)) 'added)
+                      (eq (char-after (match-beginning 4)) ?a))
+                  'added)
                  ((or (and (eql (string-to-number (match-string 3))
 				(file-attribute-size (file-attributes file)))
                            (equal (match-string 5)
@@ -280,7 +276,7 @@ in the repository root directory of FILE."
                                       (memq
                                        ?x
                                        (mapcar
-                                        'identity
+                                        #'identity
 					(file-attribute-modes
 					 (file-attributes file))))))
                                  (if (eq (char-after (match-beginning 7))
@@ -374,13 +370,13 @@ If PROMPT is non-nil, prompt for the Bzr command to run."
 	    command        (cadr args)
 	    args           (cddr args)))
     (require 'vc-dispatcher)
-    (let ((buf (apply 'vc-bzr-async-command command args)))
+    (let ((buf (apply #'vc-bzr-async-command command args)))
       (with-current-buffer buf
         (vc-run-delayed
           (vc-compilation-mode 'bzr)
           (setq-local compile-command
                       (concat vc-bzr-program " " command " "
-                              (if args (mapconcat 'identity args " ") "")))))
+                              (if args (mapconcat #'identity args " ") "")))))
       (vc-set-async-update buf))))
 
 (defun vc-bzr-pull (prompt)
@@ -424,7 +420,7 @@ default if it is available."
 	 (vc-bzr-program (car  cmd))
 	 (command        (cadr cmd))
 	 (args           (cddr cmd)))
-    (let ((buf (apply 'vc-bzr-async-command command args)))
+    (let ((buf (apply #'vc-bzr-async-command command args)))
       (with-current-buffer buf (vc-run-delayed (vc-compilation-mode 'bzr)))
       (vc-set-async-update buf))))
 
@@ -512,7 +508,7 @@ in the branch repository (or whose status not be determined)."
     (unless (re-search-forward "^<<<<<<< " nil t)
       (vc-bzr-command "resolve" nil 0 buffer-file-name)
       ;; Remove the hook so that it is not called multiple times.
-      (remove-hook 'after-save-hook 'vc-bzr-resolve-when-done t))))
+      (remove-hook 'after-save-hook #'vc-bzr-resolve-when-done t))))
 
 (defun vc-bzr-find-file-hook ()
   (when (and buffer-file-name
@@ -529,7 +525,7 @@ in the branch repository (or whose status not be determined)."
     ;; but the one in `bzr pull' isn't, so it would be good to provide an
     ;; elisp function to remerge from the .BASE/OTHER/THIS files.
     (smerge-start-session)
-    (add-hook 'after-save-hook 'vc-bzr-resolve-when-done nil t)
+    (add-hook 'after-save-hook #'vc-bzr-resolve-when-done nil t)
     (vc-message-unresolved-conflicts buffer-file-name)))
 
 (defun vc-bzr-version-dirstate (dir)
@@ -643,7 +639,7 @@ Returns nil if unable to find this information."
 
 ;; Could run `bzr status' in the directory and see if it succeeds, but
 ;; that's relatively expensive.
-(defalias 'vc-bzr-responsible-p 'vc-bzr-root
+(defalias 'vc-bzr-responsible-p #'vc-bzr-root
   "Return non-nil if FILE is (potentially) controlled by bzr.
 The criterion is that there is a `.bzr' directory in the same
 or a superior directory.")
@@ -664,7 +660,7 @@ or a superior directory.")
 
 (defun vc-bzr-checkin (files comment &optional _rev)
   "Check FILES in to bzr with log message COMMENT."
-  (apply 'vc-bzr-command "commit" nil 0 files
+  (apply #'vc-bzr-command "commit" nil 0 files
          (cons "-m" (log-edit-extract-headers
                      `(("Author" . ,(vc-bzr--sanitize-header "--author"))
                        ("Date" . ,(vc-bzr--sanitize-header "--commit-time"))
@@ -699,7 +695,7 @@ or a superior directory.")
 (defvar log-view-expanded-log-entry-function)
 
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
-  (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
+  (remove-hook 'log-view-mode-hook #'vc-bzr-log-view-mode) ;Deactivate the hack.
   (require 'add-log)
   (setq-local log-view-per-file-logs nil)
   (setq-local log-view-file-re regexp-unmatchable)
@@ -745,7 +741,7 @@ If LIMIT is non-nil, show no more than this many entries."
   ;; the log display may not what the user wants - but I see no other
   ;; way of getting the above regexps working.
   (with-current-buffer buffer
-    (apply 'vc-bzr-command "log" buffer 'async files
+    (apply #'vc-bzr-command "log" buffer 'async files
 	   (append
 	    (if shortlog '("--line") '("--long"))
 	    ;; The extra complications here when start-revision and limit
@@ -761,7 +757,8 @@ If LIMIT is non-nil, show no more than this many entries."
 			   ;; This means we don't have to use --no-aliases.
 			   ;; Is -c any different to -r in this case?
 			   "-r%s"
-			 "-r..%s") start-revision)))
+			 "-r..%s")
+		       start-revision)))
             (if (eq vc-log-view-type 'with-diff) (list "-p"))
 	    (when limit (list "-l" (format "%s" limit)))
 	    ;; There is no sensible way to combine --limit and --forward,
@@ -782,7 +779,7 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (defun vc-bzr-expanded-log-entry (revision)
   (with-temp-buffer
-    (apply 'vc-bzr-command "log" t nil nil
+    (apply #'vc-bzr-command "log" t nil nil
            (append
             (list "--long" (format "-r%s" revision))
             (if (stringp vc-bzr-log-switches)
@@ -795,11 +792,11 @@ If LIMIT is non-nil, show no more than this many entries."
       (buffer-substring (match-end 0) (point-max)))))
 
 (defun vc-bzr-log-incoming (buffer remote-location)
-  (apply 'vc-bzr-command "missing" buffer 'async nil
+  (apply #'vc-bzr-command "missing" buffer 'async nil
 	 (list "--theirs-only" (unless (string= remote-location "") remote-location))))
 
 (defun vc-bzr-log-outgoing (buffer remote-location)
-  (apply 'vc-bzr-command "missing" buffer 'async nil
+  (apply #'vc-bzr-command "missing" buffer 'async nil
 	 (list "--mine-only" (unless (string= remote-location "") remote-location))))
 
 (defun vc-bzr-show-log-entry (revision)
@@ -830,7 +827,7 @@ If LIMIT is non-nil, show no more than this many entries."
           (append
            ;; Only add --diff-options if there are any diff switches.
            (unless (zerop (length switches))
-             (list "--diff-options" (mapconcat 'identity switches " ")))
+             (list "--diff-options" (mapconcat #'identity switches " ")))
            ;; This `when' is just an optimization because bzr-1.2 is *much*
            ;; faster when the revision argument is not given.
            (when (or rev1 rev2)
@@ -995,7 +992,7 @@ stream.  Standard error output is discarded."
 
 (defun vc-bzr-dir-status-files (dir files update-function)
   "Return a list of conses (file . state) for DIR."
-  (apply 'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
+  (apply #'vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S" files)
   (vc-run-delayed
    (vc-bzr-after-dir-status update-function
                             ;; "bzr status" results are relative to
@@ -1010,15 +1007,15 @@ stream.  Standard error output is discarded."
 (defvar vc-bzr-shelve-map
   (let ((map (make-sparse-keymap)))
     ;; Turn off vc-dir marking
-    (define-key map [mouse-2] 'ignore)
+    (define-key map [mouse-2] #'ignore)
 
-    (define-key map [down-mouse-3] 'vc-bzr-shelve-menu)
-    (define-key map "\C-k" 'vc-bzr-shelve-delete-at-point)
-    (define-key map "=" 'vc-bzr-shelve-show-at-point)
-    (define-key map "\C-m" 'vc-bzr-shelve-show-at-point)
-    (define-key map "A" 'vc-bzr-shelve-apply-and-keep-at-point)
-    (define-key map "P" 'vc-bzr-shelve-apply-at-point)
-    (define-key map "S" 'vc-bzr-shelve-snapshot)
+    (define-key map [down-mouse-3] #'vc-bzr-shelve-menu)
+    (define-key map "\C-k" #'vc-bzr-shelve-delete-at-point)
+    (define-key map "=" #'vc-bzr-shelve-show-at-point)
+    (define-key map "\C-m" #'vc-bzr-shelve-show-at-point)
+    (define-key map "A" #'vc-bzr-shelve-apply-and-keep-at-point)
+    (define-key map "P" #'vc-bzr-shelve-apply-at-point)
+    (define-key map "S" #'vc-bzr-shelve-snapshot)
     map))
 
 (defvar vc-bzr-shelve-menu-map
@@ -1211,7 +1208,7 @@ stream.  Standard error output is discarded."
   (let ((vc-bzr-revisions '())
         (default-directory (file-name-directory (car files))))
     (with-temp-buffer
-      (apply 'vc-bzr-command "log" t 0 files
+      (apply #'vc-bzr-command "log" t 0 files
              (append '("--line")
                      (if (stringp vc-bzr-log-switches)
                          (list vc-bzr-log-switches)

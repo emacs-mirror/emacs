@@ -242,7 +242,7 @@ CODE should be a function of no arguments."
      ((or (null proc) (eq (process-status proc) 'exit))
       ;; Make sure we've read the process's output before going further.
       (when proc (accept-process-output proc))
-      (if (functionp code) (funcall code) (eval code)))
+      (if (functionp code) (funcall code) (eval code t)))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
       (vc-set-mode-line-busy-indicator)
@@ -267,7 +267,7 @@ and is passed 3 arguments: the COMMAND, the FILES and the FLAGS.")
 (defun vc-delistify (filelist)
   "Smash a FILELIST into a file list string suitable for info messages."
   ;; FIXME what about file names with spaces?
-  (if (not filelist) "."  (mapconcat 'identity filelist " ")))
+  (if (not filelist) "."  (mapconcat #'identity filelist " ")))
 
 (defcustom vc-tor nil
   "If non-nil, communicate with the repository site via Tor.
@@ -331,7 +331,7 @@ case, and the process object in the asynchronous case."
 	      ;; Run asynchronously.
 	      (let ((proc
 		     (let ((process-connection-type nil))
-		       (apply 'start-file-process command (current-buffer)
+		       (apply #'start-file-process command (current-buffer)
                               command squeezed))))
 		(when vc-command-messages
 		  (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
@@ -339,7 +339,7 @@ case, and the process object in the asynchronous case."
                 ;; Get rid of the default message insertion, in case we don't
                 ;; set a sentinel explicitly.
 		(set-process-sentinel proc #'ignore)
-		(set-process-filter proc 'vc-process-filter)
+		(set-process-filter proc #'vc-process-filter)
 		(setq status proc)
 		(when vc-command-messages
 		  (vc-run-delayed
@@ -351,7 +351,7 @@ case, and the process object in the asynchronous case."
 	      (let ((inhibit-message (eq (selected-window) (active-minibuffer-window))))
 		(message "Running in foreground: %s" full-command)))
 	    (let ((buffer-undo-list t))
-	      (setq status (apply 'process-file command nil t nil squeezed)))
+	      (setq status (apply #'process-file command nil t nil squeezed)))
 	    (when (and (not (eq t okstatus))
 		       (or (not (integerp status))
 			   (and okstatus (< okstatus status))))
@@ -394,7 +394,7 @@ Display the buffer in some window, but don't select it."
       (insert "\"...\n")
       ;; Run in the original working directory.
       (let ((default-directory dir))
-	(apply 'vc-do-command t 'async command nil args)))
+	(apply #'vc-do-command t 'async command nil args)))
     (setq window (display-buffer buffer))
     (if window
 	(set-window-start window new-window-start))

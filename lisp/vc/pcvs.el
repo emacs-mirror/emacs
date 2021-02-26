@@ -115,7 +115,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'ewoc)				;Ewoc was once cookie
 (require 'pcvs-defs)
 (require 'pcvs-util)
@@ -513,7 +513,7 @@ If non-nil, NEW means to create a new buffer no matter what."
       (let* ((dir+files+rest
 	      (if (or (null fis) (not single-dir))
 		  ;; not single-dir mode: just process the whole thing
-		  (list "" (mapcar 'cvs-fileinfo->full-name fis) nil)
+		  (list "" (mapcar #'cvs-fileinfo->full-name fis) nil)
 		;; single-dir mode: extract the same-dir-elements
 		(let ((dir (cvs-fileinfo->dir (car fis))))
 		  ;; output the concerned dir so the parser can translate paths
@@ -2135,11 +2135,11 @@ Returns a list of FIS that should be `cvs remove'd."
 				    (eq (cvs-fileinfo->type fi) 'UNKNOWN))
 				  (cvs-mode-marked filter cmd))))
 	 (silent (or (not cvs-confirm-removals)
-		     (cvs-every (lambda (fi)
-				  (or (not (file-exists-p
-					    (cvs-fileinfo->full-name fi)))
-				      (cvs-applicable-p fi 'safe-rm)))
-				files)))
+		     (cl-every (lambda (fi)
+				 (or (not (file-exists-p
+					   (cvs-fileinfo->full-name fi)))
+				     (cvs-applicable-p fi 'safe-rm)))
+			       files)))
 	 (tmpbuf (cvs-temp-buffer)))
     (when (and (not silent) (equal cvs-confirm-removals 'list))
       (with-current-buffer tmpbuf
