@@ -212,7 +212,7 @@ Load the compiled code when finished.
 Use `emacs-lisp-byte-compile-and-load' in combination with
 `comp-deferred-compilation' set to `t' to achieve asynchronous
 native compilation."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
   (load (native-compile buffer-file-name)))
 
