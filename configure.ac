@@ -484,7 +484,7 @@ OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
-OPTION_DEFAULT_OFF([nativecomp],[compile with Emacs Lisp native compiler support])
+OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -3786,7 +3786,7 @@ AC_DEFUN([libgccjit_not_found], [
   AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
 Please try installing libgccjit or similar package.
 If you are sure you want Emacs compiled without elisp native compiler, pass
-  --without-nativecomp
+  --without-native-compilation
 to configure.])])
 
 AC_DEFUN([libgccjit_dev_not_found], [
@@ -3808,7 +3808,7 @@ Here instructions on how to compile and install libgccjit from source:
 
 HAVE_NATIVE_COMP=no
 LIBGCCJIT_LIB=
-if test "${with_nativecomp}" != "no"; then
+if test "${with_native_compilation}" != "no"; then
     if test "${HAVE_PDUMPER}" = no; then
        AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
     fi
