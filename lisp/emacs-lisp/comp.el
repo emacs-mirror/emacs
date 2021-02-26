@@ -126,16 +126,18 @@ Usable to modify the compiler environment."
 (defcustom comp-async-report-warnings-errors t
   "Whether to report warnings and errors from asynchronous native compilation.
 
-When native compilation happens asynchronously this can produce
-warnings and errors, some of these diagnostic messages might not be
-emitted by the first synchronous byte-compilation.  The typical case
-for that is byte-compiling a file that is missing to require a
-necessary feature while having it already loaded into the environment.
+When native compilation happens asynchronously, it can produce
+warnings and errors, some of which might not be emitted by a
+byte-compilation.  The typical case for that is native-compiling
+a file that is missing some `require' of a necessary feature,
+while having it already loaded into the environment when
+byte-compiling.
 
-As asynchronous native compilation always starts from a fresh
-environment it is more sensitive into highlighting issues about non
-consistent source files and might not be able to compile correctly
-these."
+As asynchronous native compilation always starts from a pristine
+environment, it is more sensitive to such omissions, and might be
+unable to compile such Lisp source files correctly.
+
+Set this variable to nil if these warnings annoy you."
   :type 'boolean)
 
 (defcustom comp-async-query-on-exit nil
