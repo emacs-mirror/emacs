@@ -1,4 +1,4 @@
-;;; semantic/analyze/complete.el --- Smart Completions
+;;; semantic/analyze/complete.el --- Smart Completions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -45,7 +45,7 @@
   "For the tag TYPE, return any constant symbols of TYPE.
 Used as options when completing.")
 
-(defun semantic-analyze-type-constants-default (type)
+(defun semantic-analyze-type-constants-default (_type)
   "Do nothing with TYPE."
   nil)
 
@@ -54,7 +54,7 @@ Used as options when completing.")
   (let ((origc tags))
     ;; Accept only tags that are of the datatype specified by
     ;; the desired classes.
-    (setq tags (apply 'nconc ;; All input lists are permutable.
+    (setq tags (apply #'nconc ;; All input lists are permutable.
 		      (mapcar (lambda (class)
 				(semantic-find-tags-by-class class origc))
 			      classlist)))
@@ -109,6 +109,8 @@ in a buffer."
     (when (called-interactively-p 'any)
       (error "Buffer was not parsed by Semantic."))))
 
+(defvar semantic--prefixtypes)
+
 (defun semantic-analyze-possible-completions-default (context &optional flags)
   "Default method for producing smart completions.
 Argument CONTEXT is an object specifying the locally derived context.
@@ -121,14 +123,14 @@ FLAGS can be any number of:
 	 (desired-type (semantic-analyze-type-constraint a))
 	 (desired-class (oref a prefixclass))
 	 (prefix (oref a prefix))
-	 (prefixtypes (oref a prefixtypes))
+	 (semantic--prefixtypes (oref a prefixtypes))
 	 (completetext nil)
 	 (completetexttype nil)
 	 (scope (oref a scope))
 	 (localvar (when scope (oref scope localvar)))
 	 (origc nil)
 	 (c nil)
-	 (any nil)
+	 ;; (any nil)
 	 (do-typeconstraint (not (memq 'no-tc flags)))
 	 (do-longprefix (not (memq 'no-longprefix flags)))
 	 (do-unique (not (memq 'no-unique flags)))
@@ -138,7 +140,7 @@ FLAGS can be any number of:
       ;; If we are not doing the long prefix, shorten all the key
       ;; elements.
       (setq prefix (list (car (reverse prefix)))
-	    prefixtypes nil))
+	    semantic--prefixtypes nil))
 
     ;; Calculate what our prefix string is so that we can
     ;; find all our matching text.
@@ -155,7 +157,7 @@ FLAGS can be any number of:
     ;; The prefixtypes should always be at least 1 less than
     ;; the prefix since the type is never looked up for the last
     ;; item when calculating a sequence.
-    (setq completetexttype (car (reverse prefixtypes)))
+    (setq completetexttype (car (reverse semantic--prefixtypes)))
     (when (or (not completetexttype)
 	      (not (and (semantic-tag-p completetexttype)
 			(eq (semantic-tag-class completetexttype) 'type))))
