@@ -52,8 +52,8 @@
 - 2 max optimization level fully adherent to the language semantic.
 - 3 max optimization level, to be used only when necessary.
     Warning: the compiler is free to perform dangerous optimizations."
-  :type 'number
-  :safe #'numberp
+  :type 'integer
+  :safe #'integerp
   :version "28.1")
 
 (defcustom comp-debug 0
@@ -64,8 +64,8 @@ This intended for debugging the compiler itself.
 - 1 emit debug symbols and dump pseudo C code.
 - 2 dump gcc passes and libgccjit log file.
 - 3 dump libgccjit reproducers."
-  :type 'number
-  :safe #'numberp
+  :type 'integer
+  :safe #'natnump
   :version "28.1")
 
 (defcustom comp-verbose 0
@@ -75,7 +75,8 @@ This intended for debugging the compiler itself.
 - 1 final limple is logged.
 - 2 LAP and final limple and some pass info are logged.
 - 3 max verbosity."
-  :type 'number
+  :type 'integer
+  :risky t
   :version "28.1")
 
 (defcustom comp-always-compile nil
@@ -109,7 +110,8 @@ Skip if any is matching."
 (defcustom comp-async-jobs-number 0
   "Default number of processes used for async compilation.
 When zero use half of the CPUs or at least one."
-  :type 'number
+  :type 'integer
+  :risky t
   :version "28.1")
 
 ;; FIXME: This an abnormal hook, and should be renamed to something
@@ -130,6 +132,7 @@ compilation input."
   "Form evaluated before compilation by each asynchronous compilation worker.
 Usable to modify the compiler environment."
   :type 'list
+  :risky t
   :version "28.1")
 
 (defcustom comp-async-report-warnings-errors t
