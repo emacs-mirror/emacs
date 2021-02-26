@@ -124,7 +124,18 @@ Usable to modify the compiler environment."
   :type 'list)
 
 (defcustom comp-async-report-warnings-errors t
-  "Whether to report warnings and errors from asynchronous native compilation."
+  "Whether to report warnings and errors from asynchronous native compilation.
+
+When native compilation happens asynchronously this can produce
+warnings and errors, some of these diagnostic messages might not be
+emitted by the first synchronous byte-compilation.  The typical case
+for that is byte-compiling a file that is missing to require a
+necessary feature while having it already loaded into the environment.
+
+As asynchronous native compilation always starts from a fresh
+environment it is more sensitive into highlighting issues about non
+consistent source files and might not be able to compile correctly
+these."
   :type 'boolean)
 
 (defcustom comp-async-query-on-exit nil
