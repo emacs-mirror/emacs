@@ -143,7 +143,7 @@ solely of dashes is displayed as a menu separator.
 
 Alternatively, a menu item can be a list with the same format as
 MENU.  This is a submenu."
-  (declare (indent defun) (debug (symbolp body)))
+  (declare (indent defun) (debug (symbolp body)) (doc-string 3))
   `(progn
      ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
