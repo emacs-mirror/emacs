@@ -1168,7 +1168,8 @@ If optional MARKER, return a marker instead"
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
   (url-hexify-string
-   (concat "file://" (if (eq system-type 'windows-nt) "/") (file-truename path))
+   (concat "file://" (if (eq system-type 'windows-nt) "/")
+           (directory-file-name (file-truename path)))
    url-path-allowed-chars))
 
 (defun eglot--uri-to-path (uri)
