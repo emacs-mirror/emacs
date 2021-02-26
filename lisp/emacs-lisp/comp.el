@@ -617,7 +617,7 @@ Useful to hook into pass checkers.")
 
 (defsubst comp-vec-length (vec)
   "Return the number of elements of VEC."
-  (+ (comp-vec-beg vec) (comp-vec-end vec)))
+  (- (comp-vec-end vec) (comp-vec-beg vec)))
 
 (defsubst comp-vec--verify-idx (vec idx)
   "Check idx is in bounds for VEC."
@@ -628,21 +628,21 @@ Useful to hook into pass checkers.")
   "Return the element of VEC at index IDX."
   (declare (gv-setter (lambda (val)
                         `(comp-vec--verify-idx ,vec ,idx)
-			`(puthash ,idx ,val (comp-vec-data ,vec)))))
+                        `(puthash ,idx ,val (comp-vec-data ,vec)))))
   (comp-vec--verify-idx vec idx)
   (gethash idx (comp-vec-data vec)))
 
 (defsubst comp-vec-append (vec elt)
   "Append ELT into VEC.
 ELT is returned."
-  (puthash (comp-vec-end vec) elt (comp-vec-aref vec))
+  (puthash (comp-vec-end vec) elt (comp-vec-data vec))
   (cl-incf (comp-vec-end vec))
   elt)
 
 (defsubst comp-vec-prepend (vec elt)
   "Prepend ELT into VEC.
 ELT is returned."
-  (puthash (comp-vec-beg vec) elt (comp-vec-aref vec))
+  (puthash (1- (comp-vec-beg vec)) elt (comp-vec-data vec))
   (cl-decf (comp-vec-beg vec))
   elt)
 
@@ -1470,7 +1470,7 @@ STACK-OFF is the index of the first slot frame involved."
     mvar))
 
 (defun comp-new-frame (size vsize &optional ssa)
-  "Return a clean frame of meta variables of size SIZE.
+  "Return a clean frame of meta variables of size SIZE and VSIZE.
 If SSA non-nil populate it of m-var in ssa form."
   (cl-loop with v = (make-comp-vec :beg (- vsize) :end size)
            for i from (- vsize) below size
@@ -2324,7 +2324,7 @@ The assume is emitted at the beginning of the block BB."
     (setf (comp-func-ssa-status comp-func) 'dirty)))
 
 (defun comp-maybe-add-vmvar (op cmp-res insns-seq)
-  "If CMP-RES is clobbering OP emit a new constrained MVAR and return it.
+  "If CMP-RES is clobbering OP emit a new constrained mvar and return it.
 Return OP otherwise."
   (if-let ((match (eql (comp-mvar-slot op) (comp-mvar-slot cmp-res)))
            (new-mvar (make-comp-mvar
