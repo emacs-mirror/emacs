@@ -286,48 +286,29 @@ See `imenu-generic-expression' for details."
     (define-key map "\C-c\C-o" 	'dcl-set-option)
     (define-key map "\C-c\C-f" 	'tempo-forward-mark)
     (define-key map "\C-c\C-b" 	'tempo-backward-mark)
-
-    (define-key map [menu-bar] 	(make-sparse-keymap))
-    (define-key map [menu-bar dcl]
-      (cons "DCL" (make-sparse-keymap "DCL")))
-
-    ;; Define these in bottom-up order
-    (define-key map [menu-bar dcl tempo-backward-mark]
-      '("Previous template mark" . tempo-backward-mark))
-    (define-key map [menu-bar dcl tempo-forward-mark]
-      '("Next template mark" . tempo-forward-mark))
-    (define-key map [menu-bar dcl tempo-complete-tag]
-      '("Complete template tag" . tempo-complete-tag))
-    (define-key map [menu-bar dcl dcl-separator-tempo]
-      '("--"))
-    (define-key map [menu-bar dcl dcl-save-all-options]
-      '("Save all options" . dcl-save-all-options))
-    (define-key map [menu-bar dcl dcl-save-nondefault-options]
-      '("Save changed options" . dcl-save-nondefault-options))
-    (define-key map [menu-bar dcl dcl-set-option]
-      '("Set option" . dcl-set-option))
-    (define-key map [menu-bar dcl dcl-separator-option]
-      '("--"))
-    (define-key map [menu-bar dcl dcl-delete-indentation]
-      '("Delete indentation" . dcl-delete-indentation))
-    (define-key map [menu-bar dcl dcl-split-line]
-      '("Split line" . dcl-split-line))
-    (define-key map [menu-bar dcl dcl-indent-command]
-      '("Indent command" . dcl-indent-command))
-    (define-key map [menu-bar dcl dcl-tab]
-      '("Indent line/insert tab" . dcl-tab))
-    (define-key map [menu-bar dcl dcl-back-to-indentation]
-      '("Back to indentation" . dcl-back-to-indentation))
-    (define-key map [menu-bar dcl dcl-forward-command]
-      '("End of statement" . dcl-forward-command))
-    (define-key map [menu-bar dcl dcl-backward-command]
-      '("Beginning of statement" . dcl-backward-command))
-    (define-key map [menu-bar dcl dcl-separator-movement]
-      '("--"))
-    (define-key map [menu-bar dcl imenu]
-      '("Buffer index menu" . imenu))
     map)
   "Keymap used in DCL-mode buffers.")
+
+(easy-menu-define dcl-mode-menu dcl-mode-map
+  "Menu for DCL-mode buffers."
+  '("DCL"
+    ["Buffer index menu" imenu]
+    "---"
+    ["Beginning of statement" dcl-backward-command]
+    ["End of statement" dcl-forward-command]
+    ["Back to indentation" dcl-back-to-indentation]
+    ["Indent line/insert tab" dcl-tab]
+    ["Indent command" dcl-indent-command]
+    ["Split line" dcl-split-line]
+    ["Delete indentation" dcl-delete-indentation]
+    "---"
+    ["Set option" dcl-set-option]
+    ["Save changed options" dcl-save-nondefault-options]
+    ["Save all options" dcl-save-all-options]
+    "---"
+    ["Complete template tag" tempo-complete-tag]
+    ["Next template mark" tempo-forward-mark]
+    ["Previous template mark" tempo-backward-mark]))
 
 (defcustom dcl-ws-r
   "\\([ \t]*-[ \t]*\\(!.*\\)*\n\\)*[ \t]*"
