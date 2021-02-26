@@ -171,7 +171,17 @@
   (should (equal (pcase "abc"
                    ((rx (? (let x alpha)) (?? (let y alnum)) ?c)
                     (list x y)))
-                 '("a" "b"))))
+                 '("a" "b")))
+  (should (equal (pcase 'not-a-string
+                   ((rx nonl) 'wrong)
+                   (_ 'correct))
+                 'correct))
+  (should (equal (pcase-let (((rx ?B (let z nonl)) "ABC"))
+                   (list 'ok z))
+                 '(ok "C")))
+  (should (equal (pcase-let* (((rx ?E (let z nonl)) "DEF"))
+                   (list 'ok z))
+                 '(ok "F"))))
 
 (ert-deftest rx-kleene ()
   "Test greedy and non-greedy repetition operators."
