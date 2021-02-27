@@ -569,28 +569,26 @@ Compatibility function for \\[next-error] invocations."
 	(select-window change-log-find-window)))))
 
 (defvar change-log-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map [?\C-c ?\C-p] #'add-log-edit-prev-comment)
     (define-key map [?\C-c ?\C-n] #'add-log-edit-next-comment)
     (define-key map [?\C-c ?\C-f] #'change-log-find-file)
     (define-key map [?\C-c ?\C-c] #'change-log-goto-source)
-    (define-key map [menu-bar changelog] (cons "ChangeLog" menu-map))
-    (define-key menu-map [gs]
-      '(menu-item "Go To Source" change-log-goto-source
-		  :help "Go to source location of ChangeLog tag near point"))
-    (define-key menu-map [ff]
-      '(menu-item "Find File" change-log-find-file
-		  :help "Visit the file for the change under point"))
-    (define-key menu-map [sep] '("--"))
-    (define-key menu-map [nx]
-      '(menu-item "Next Log-Edit Comment" add-log-edit-next-comment
-		  :help "Cycle forward through Log-Edit mode comment history"))
-    (define-key menu-map [pr]
-      '(menu-item "Previous Log-Edit Comment" add-log-edit-prev-comment
-		  :help "Cycle backward through Log-Edit mode comment history"))
     map)
   "Keymap for Change Log major mode.")
+
+(easy-menu-define change-log-mode-menu change-log-mode-map
+  "Menu for Change Log major mode."
+  '("ChangeLog"
+    ["Previous Log-Edit Comment" add-log-edit-prev-comment
+     :help "Cycle backward through Log-Edit mode comment history"]
+    ["Next Log-Edit Comment" add-log-edit-next-comment
+     :help "Cycle forward through Log-Edit mode comment history"]
+    "---"
+    ["Find File" change-log-find-file
+     :help "Visit the file for the change under point"]
+    ["Go To Source" change-log-goto-source
+     :help "Go to source location of ChangeLog tag near point"]))
 
 ;; It used to be called change-log-time-zone-rule but really should be
 ;; called add-log-time-zone-rule since it's only used from add-log-* code.
