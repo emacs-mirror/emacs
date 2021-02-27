@@ -90,6 +90,7 @@
     (define-key map [handwrite] '("Write by hand" . handwrite))
     map))
 (fset 'menu-bar-handwrite-map menu-bar-handwrite-map)
+(make-obsolete 'menu-bar-handwrite-map nil "28.1")
 (make-obsolete-variable 'menu-bar-handwrite-map nil "28.1")
 
 ;; User definable variables
