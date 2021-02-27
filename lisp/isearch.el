@@ -527,159 +527,6 @@ This is like `describe-bindings', but displays only Isearch keys."
   '(isearch-tmm-menubar tmm-menubar menu-bar-open mouse-minor-mode-menu)
   "List of commands that can open a menu during Isearch.")
 
-(defvar isearch-menu-bar-yank-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [isearch-yank-pop]
-      '(menu-item "Previous kill" isearch-yank-pop-only
-                  :help "Replace previous yanked kill on search string"))
-    (define-key map [isearch-yank-kill]
-      '(menu-item "Current kill" isearch-yank-kill
-                  :help "Append current kill to search string"))
-    (define-key map [isearch-yank-until-char]
-      '(menu-item "Until char..." isearch-yank-until-char
-                  :help "Yank from point to specified character into search string"))
-    (define-key map [isearch-yank-line]
-      '(menu-item "Rest of line" isearch-yank-line
-                  :help "Yank the rest of the current line on search string"))
-    (define-key map [isearch-yank-symbol-or-char]
-      '(menu-item "Symbol/char"
-                  isearch-yank-symbol-or-char
-                  :help "Yank next symbol or char on search string"))
-    (define-key map [isearch-yank-word-or-char]
-      '(menu-item "Word/char"
-                  isearch-yank-word-or-char
-                  :help "Yank next word or char on search string"))
-    (define-key map [isearch-yank-char]
-      '(menu-item "Char" isearch-yank-char
-                  :help "Yank char at point on search string"))
-    map))
-
-(defvar isearch-menu-bar-map
-  (let ((map (make-sparse-keymap "Isearch")))
-    (define-key map [isearch-complete]
-      '(menu-item "Complete current search string" isearch-complete
-                  :help "Complete current search string over search history"))
-    (define-key map [isearch-complete-separator]
-      '(menu-item "--"))
-    (define-key map [isearch-query-replace-regexp]
-      '(menu-item "Replace search string as regexp" isearch-query-replace-regexp
-                  :help "Replace matches for current search string as regexp"))
-    (define-key map [isearch-query-replace]
-      '(menu-item "Replace search string" isearch-query-replace
-                  :help "Replace matches for current search string"))
-    (define-key map [isearch-occur]
-      '(menu-item "Show all matches for search string" isearch-occur
-                  :help "Show all matches for current search string"))
-    (define-key map [isearch-highlight-regexp]
-      '(menu-item "Highlight all matches for search string"
-                  isearch-highlight-regexp
-                  :help "Highlight all matches for current search string"))
-    (define-key map [isearch-search-replace-separator]
-      '(menu-item "--"))
-    (define-key map [isearch-transient-input-method]
-      '(menu-item "Turn on transient input method"
-                  isearch-transient-input-method
-                  :help "Turn on transient input method for search"))
-    (define-key map [isearch-toggle-specified-input-method]
-      '(menu-item "Turn on specific input method"
-                  isearch-toggle-specified-input-method
-                  :help "Turn on specific input method for search"))
-    (define-key map [isearch-toggle-input-method]
-      '(menu-item "Toggle input method" isearch-toggle-input-method
-                  :help "Toggle input method for search"))
-    (define-key map [isearch-input-method-separator]
-      '(menu-item "--"))
-    (define-key map [isearch-char-by-name]
-      '(menu-item "Search for char by name" isearch-char-by-name
-                  :help "Search for character by name"))
-    (define-key map [isearch-quote-char]
-      '(menu-item "Search for literal char" isearch-quote-char
-                  :help "Search for literal char"))
-    (define-key map [isearch-special-char-separator]
-      '(menu-item "--"))
-    (define-key map [isearch-toggle-word]
-      '(menu-item "Word matching" isearch-toggle-word
-                  :help "Word matching"
-                  :button (:toggle
-                           . (eq isearch-regexp-function 'word-search-regexp))))
-    (define-key map [isearch-toggle-symbol]
-      '(menu-item "Symbol matching" isearch-toggle-symbol
-                  :help "Symbol matching"
-                  :button (:toggle
-                           . (eq isearch-regexp-function
-                                 'isearch-symbol-regexp))))
-    (define-key map [isearch-toggle-regexp]
-      '(menu-item "Regexp matching" isearch-toggle-regexp
-                  :help "Regexp matching"
-                  :button (:toggle . isearch-regexp)))
-    (define-key map [isearch-toggle-invisible]
-      '(menu-item "Invisible text matching" isearch-toggle-invisible
-                  :help "Invisible text matching"
-                  :button (:toggle . isearch-invisible)))
-    (define-key map [isearch-toggle-char-fold]
-      '(menu-item "Character folding matching" isearch-toggle-char-fold
-                  :help "Character folding matching"
-                  :button (:toggle
-                           . (eq isearch-regexp-function
-                                 'char-fold-to-regexp))))
-    (define-key map [isearch-toggle-case-fold]
-      '(menu-item "Case folding matching" isearch-toggle-case-fold
-                  :help "Case folding matching"
-                  :button (:toggle . isearch-case-fold-search)))
-    (define-key map [isearch-toggle-lax-whitespace]
-      '(menu-item "Lax whitespace matching" isearch-toggle-lax-whitespace
-                  :help "Lax whitespace matching"
-                  :button (:toggle . isearch-lax-whitespace)))
-    (define-key map [isearch-toggle-separator]
-      '(menu-item "--"))
-    (define-key map [isearch-yank-menu]
-      `(menu-item "Yank on search string" ,isearch-menu-bar-yank-map))
-    (define-key map [isearch-edit-string]
-      '(menu-item "Edit current search string" isearch-edit-string
-                  :help "Edit current search string"))
-    (define-key map [isearch-ring-retreat]
-      '(menu-item "Edit previous search string" isearch-ring-retreat
-                  :help "Edit previous search string in Isearch history"))
-    (define-key map [isearch-ring-advance]
-      '(menu-item "Edit next search string" isearch-ring-advance
-                  :help "Edit next search string in Isearch history"))
-    (define-key map [isearch-del-char]
-      '(menu-item "Delete last char from search string" isearch-del-char
-                  :help "Delete last character from search string"))
-    (define-key map [isearch-delete-char]
-      '(menu-item "Undo last input item" isearch-delete-char
-                  :help "Undo the effect of the last Isearch command"))
-    (define-key map [isearch-end-of-buffer]
-      '(menu-item "Go to last match" isearch-end-of-buffer
-                  :help "Go to last occurrence of current search string"))
-    (define-key map [isearch-beginning-of-buffer]
-      '(menu-item "Go to first match" isearch-beginning-of-buffer
-                  :help "Go to first occurrence of current search string"))
-    (define-key map [isearch-repeat-backward]
-      '(menu-item "Repeat search backward" isearch-repeat-backward
-                  :help "Repeat current search backward"))
-    (define-key map [isearch-repeat-forward]
-      '(menu-item "Repeat search forward" isearch-repeat-forward
-                  :help "Repeat current search forward"))
-    (define-key map [isearch-nonincremental]
-      '(menu-item "Nonincremental search" isearch-exit
-                  :help "Start nonincremental search"
-                  :visible (string-equal isearch-string "")))
-    (define-key map [isearch-exit]
-      '(menu-item "Finish search" isearch-exit
-                  :help "Finish search leaving point where it is"
-                  :visible (not (string-equal isearch-string ""))))
-    (define-key map [isearch-abort]
-      '(menu-item "Remove characters not found" isearch-abort
-                  :help "Quit current search"
-                  :visible (not isearch-success)))
-    (define-key map [isearch-cancel]
-      `(menu-item "Cancel search" isearch-cancel
-                  :help "Cancel current search and return to starting point"
-                  :filter ,(lambda (binding)
-                             (if isearch-success 'isearch-abort binding))))
-    map))
-
 ;; Note: Before adding more key bindings to this map, please keep in
 ;; mind that any unbound key exits Isearch and runs the command bound
 ;; to it in the local or global map.  So in effect every key unbound
@@ -795,12 +642,115 @@ This is like `describe-bindings', but displays only Isearch keys."
     ;; The key translations defined in the C-x 8 prefix should add
     ;; characters to the search string.  See iso-transl.el.
     (define-key map "\C-x8\r" 'isearch-char-by-name)
-
-    (define-key map [menu-bar search-menu]
-      (list 'menu-item "Isearch" isearch-menu-bar-map))
-
     map)
   "Keymap for `isearch-mode'.")
+
+(easy-menu-define isearch-menu-bar-map  isearch-mode-map
+  "Menu for `isearch-mode'."
+  '("Isearch"
+    ["Cancel search" isearch-cancel
+     :help "Cancel current search and return to starting point"
+     :filter (lambda (binding)
+               (if isearch-success 'isearch-abort binding))]
+    ["Remove characters not found" isearch-abort
+     :help "Quit current search"
+     :visible (not isearch-success)]
+    ["Finish search" isearch-exit
+     :help "Finish search leaving point where it is"
+     :visible (not (string-equal isearch-string ""))]
+    ["Nonincremental search" isearch-exit
+     :help "Start nonincremental search"
+     :visible (string-equal isearch-string "")]
+    ["Repeat search forward" isearch-repeat-forward
+     :help "Repeat current search forward"]
+    ["Repeat search backward" isearch-repeat-backward
+     :help "Repeat current search backward"]
+    ["Go to first match" isearch-beginning-of-buffer
+     :help "Go to first occurrence of current search string"]
+    ["Go to last match" isearch-end-of-buffer
+     :help "Go to last occurrence of current search string"]
+    ["Undo last input item" isearch-delete-char
+     :help "Undo the effect of the last Isearch command"]
+    ["Delete last char from search string" isearch-del-char
+     :help "Delete last character from search string"]
+    ["Edit next search string" isearch-ring-advance
+     :help "Edit next search string in Isearch history"]
+    ["Edit previous search string" isearch-ring-retreat
+     :help "Edit previous search string in Isearch history"]
+    ["Edit current search string" isearch-edit-string
+     :help "Edit current search string"]
+    ("Yank on search string"
+     ["Char" isearch-yank-char
+      :help "Yank char at point on search string"]
+     ["Word/char"
+      isearch-yank-word-or-char
+      :help "Yank next word or char on search string"]
+     ["Symbol/char"
+      isearch-yank-symbol-or-char
+      :help "Yank next symbol or char on search string"]
+     ["Rest of line" isearch-yank-line
+      :help "Yank the rest of the current line on search string"]
+     ["Until char..." isearch-yank-until-char
+      :help "Yank from point to specified character into search string"]
+     ["Current kill" isearch-yank-kill
+      :help "Append current kill to search string"]
+     ["Previous kill" isearch-yank-pop-only
+      :help "Replace previous yanked kill on search string"])
+    "---"
+    ["Lax whitespace matching" isearch-toggle-lax-whitespace
+     :help "Lax whitespace matching"
+     :style toggle
+     :selected isearch-lax-whitespace]
+    ["Case folding matching" isearch-toggle-case-fold
+     :help "Case folding matching"
+     :style toggle
+     :selected isearch-case-fold-search]
+    ["Character folding matching" isearch-toggle-char-fold
+     :help "Character folding matching"
+     :style toggle
+     :selected (eq isearch-regexp-function
+                   'char-fold-to-regexp)]
+    ["Invisible text matching" isearch-toggle-invisible
+     :help "Invisible text matching"
+     :style toggle
+     :selected isearch-invisible]
+    ["Regexp matching" isearch-toggle-regexp
+     :help "Regexp matching"
+     :style toggle
+     :selected isearch-regexp]
+    ["Symbol matching" isearch-toggle-symbol
+     :help "Symbol matching"
+     :style toggle
+     :selected (eq isearch-regexp-function
+                   'isearch-symbol-regexp)]
+    ["Word matching" isearch-toggle-word
+     :help "Word matching"
+     :style toggle
+     :selected (eq isearch-regexp-function 'word-search-regexp)]
+    "---"
+    ["Search for literal char" isearch-quote-char
+     :help "Search for literal char"]
+    ["Search for char by name" isearch-char-by-name
+     :help "Search for character by name"]
+    "---"
+    ["Toggle input method" isearch-toggle-input-method
+     :help "Toggle input method for search"]
+    ["Turn on specific input method" isearch-toggle-specified-input-method
+     :help "Turn on specific input method for search"]
+    ["Turn on transient input method" isearch-transient-input-method
+     :help "Turn on transient input method for search"]
+    "---"
+    ["Highlight all matches for search string" isearch-highlight-regexp
+     :help "Highlight all matches for current search string"]
+    ["Show all matches for search string" isearch-occur
+     :help "Show all matches for current search string"]
+    ["Replace search string" isearch-query-replace
+     :help "Replace matches for current search string"]
+    ["Replace search string as regexp" isearch-query-replace-regexp
+     :help "Replace matches for current search string as regexp"]
+    "---"
+    ["Complete current search string" isearch-complete
+     :help "Complete current search string over search history"]))
 
 (defvar isearch-tool-bar-old-map nil
   "Variable holding the old local value of `tool-bar-map', if any.")
