@@ -1176,7 +1176,8 @@ If optional MARKER, return a marker instead"
   "Convert URI to a file path."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
   (let ((retval (url-filename (url-generic-parse-url (url-unhex-string uri)))))
-    (if (eq system-type 'windows-nt) (substring retval 1) retval)))
+    (if (and (eq system-type 'windows-nt) (cl-plusp (length retval)))
+        (substring retval 1) retval)))
 
 (defun eglot--snippet-expansion-fn ()
   "Compute a function to expand snippets.
