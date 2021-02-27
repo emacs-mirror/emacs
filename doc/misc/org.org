@@ -1,7 +1,6 @@
 #+title: The Org Manual
 #+subtitle:  Release {{{version}}}
 #+author:    The Org Mode Developers
-#+date:      {{{modification-time}}}
 #+language:  en
 
 
@@ -3244,7 +3243,7 @@ A link should be enclosed in double brackets and may contain
 descriptive text to be displayed instead of the URL (see [[*Link
 Format]]), for example:
 
-: [[http://www.gnu.org/software/emacs/][GNU Emacs]]
+: [[https://www.gnu.org/software/emacs/][GNU Emacs]]
 
 If the description is a file name or URL that points to an image, HTML
 export (see [[*HTML Export]]) inlines the image as a clickable button.  If
@@ -21233,7 +21232,7 @@ be complete if the ones above were not mentioned in this manual.
 :DESCRIPTION: The license for this documentation.
 :END:
 
-#+include: fdl.org
+#+texinfo: @include doclicense.texi
 
 * Main Index
 :PROPERTIES:
@@ -21286,7 +21285,7 @@ modify this GNU manual."
 
 * Export Setup                                                          :noexport:
 
-#+setupfile: doc-setup.org
+#+setupfile: org-setup.org
 
 #+export_file_name: org.texi
 

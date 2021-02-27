@@ -1,4 +1,21 @@
-# SETUPFILE for manuals
+# SETUPFILE for Org manual
+
+# Copyright (C) 2021 Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# GNU Emacs is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 # XXX: We cannot use TODO keyword as a node starts with "TODO".
 #+todo: REVIEW FIXME | DONE
@@ -28,7 +45,7 @@
 # returns major.minor version number.  This is sufficient since bugfix
 # releases are not expected to add features and therefore imply manual
 # modifications.
-#+macro: version (eval (with-current-buffer (find-file-noselect "../lisp/org.el") (org-with-point-at 1 (if (re-search-forward "Version: +\\([0-9.]+\\)" nil t) (mapconcat #'identity (cl-subseq (split-string (match-string-no-properties 1) "\\.") 0 2) ".") (error "Missing \"Version\" keyword in \"org.el\"")))))
+#+macro: version (eval (with-current-buffer (find-file-noselect "../../lisp/org/org.el") (org-with-point-at 1 (if (re-search-forward "Version: +\\([0-9.]+\\)" nil t) (mapconcat #'identity (cl-subseq (split-string (match-string-no-properties 1) "\\.") 0 2) ".") (error "Missing \"Version\" keyword in \"org.el\"")))))
 
 # The "kbd" macro turns KBD into @kbd{KBD}.  Additionally, it
 # encloses case-sensitive special keys (SPC, RET...) within @key{...}.
