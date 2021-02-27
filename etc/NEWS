@@ -374,6 +374,10 @@ the buffer cycles the whole buffer between "only top-level headings",
 *** New function 'macroexp-file-name' to know the name of the current file
 ---
 *** New function 'macroexp-compiling-p' to know if we're compiling.
+---
+*** New function 'macroexp-warn-and-return' to help emit warnings.
+This used to be named 'macroexp--warn-and-return' and has proved useful
+and well-behaved enough to lose the "internal" marker.
 
 ** 'blink-cursor-mode' is now enabled by default regardless of the UI.
 It used to be enabled when Emacs is started in GUI mode but not when started

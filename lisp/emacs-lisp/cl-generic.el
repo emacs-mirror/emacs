@@ -487,7 +487,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                (or (not (fboundp 'byte-compile-warning-enabled-p))
                    (byte-compile-warning-enabled-p 'obsolete name))
                (let* ((obsolete (get name 'byte-obsolete-info)))
-                 (macroexp--warn-and-return
+                 (macroexp-warn-and-return
                   (macroexp--obsolete-warning name obsolete "generic function")
                   nil)))
          ;; You could argue that `defmethod' modifies rather than defines the

@@ -2422,8 +2422,6 @@ list that represents a doc string reference.
 	      byte-compile-output nil
               byte-compile-jump-tables nil))))
 
-(defvar byte-compile-force-lexical-warnings nil)
-
 (defun byte-compile-preprocess (form &optional _for-effect)
   (setq form (macroexpand-all form byte-compile-macro-environment))
   ;; FIXME: We should run byte-optimize-form here, but it currently does not
@@ -2434,7 +2432,6 @@ list that represents a doc string reference.
   ;;     (setq form (byte-optimize-form form for-effect)))
   (cond
    (lexical-binding (cconv-closure-convert form))
-   (byte-compile-force-lexical-warnings (cconv-warnings-only form))
    (t form)))
 
 ;; byte-hunk-handlers cannot call this!

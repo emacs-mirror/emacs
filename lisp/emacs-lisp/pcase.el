@@ -469,8 +469,10 @@ for the result of evaluating EXP (first arg to `pcase').
 ;; the depth of the generated tree.
 (defun pcase--if (test then else)
   (cond
-   ((eq else :pcase--dontcare) then)
-   ((eq then :pcase--dontcare) (debug) else) ;Can/should this ever happen?
+   ((eq else :pcase--dontcare) `(progn (ignore ,test) ,then))
+   ;; This happens very rarely.  Known case:
+   ;;     (pcase EXP ((and 1 pcase--dontcare) FOO))
+   ((eq then :pcase--dontcare) `(progn (ignore ,test) ,else))
    (t (macroexp-if test then else))))
 
 ;; Note about MATCH:
@@ -845,7 +847,7 @@ Otherwise, it defers to REST which is a list of branches of the form
        ((memq upat '(t _))
         (let ((code (pcase--u1 matches code vars rest)))
           (if (eq upat '_) code
-            (macroexp--warn-and-return
+            (macroexp-warn-and-return
              "Pattern t is deprecated.  Use `_' instead"
              code))))
        ((eq upat 'pcase--dontcare) :pcase--dontcare)
@@ -971,8 +973,8 @@ The predicate is the logical-AND of:
               (nreverse upats))))
    ((consp qpat)
     `(and (pred consp)
-          (app car ,(list '\` (car qpat)))
-          (app cdr ,(list '\` (cdr qpat)))))
+          (app car-safe ,(list '\` (car qpat)))
+          (app cdr-safe ,(list '\` (cdr qpat)))))
    ((or (stringp qpat) (numberp qpat) (symbolp qpat)) `',qpat)
    ;; In all other cases just raise an error so we can't break
    ;; backward compatibility when adding \` support for other

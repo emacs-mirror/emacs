@@ -1406,6 +1406,7 @@ which see."
   (interactive "P")
   (cond (edebug-it
 	 (require 'edebug)
+	 (defvar edebug-all-defs)
 	 (eval-defun (not edebug-all-defs)))
 	(t
 	 (if (null eval-expression-debug-on-error)

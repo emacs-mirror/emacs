@@ -565,7 +565,7 @@ its argument list allows full Common Lisp conventions."
                              ,(length (cl-ldiff args p)))
 		  exactarg (not (eq args p)))))
       (while (and args (not (memq (car args) cl--lambda-list-keywords)))
-	(let ((poparg (list (if (or (cdr args) (not exactarg)) 'pop 'car)
+	(let ((poparg (list (if (or (cdr args) (not exactarg)) 'pop 'car-safe)
 			    restarg)))
 	  (cl--do-arglist
 	   (pop args)
@@ -2393,7 +2393,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
                                                (append bindings venv))
                                          macroexpand-all-environment))))
             (if malformed-bindings
-                (macroexp--warn-and-return
+                (macroexp-warn-and-return
                  (format-message "Malformed `cl-symbol-macrolet' binding(s): %S"
                                  (nreverse malformed-bindings))
                  expansion)
@@ -3032,7 +3032,7 @@ Supported keywords for slots are:
                     forms)
               (when (cl-oddp (length desc))
                 (push
-                 (macroexp--warn-and-return
+                 (macroexp-warn-and-return
                   (format "Missing value for option `%S' of slot `%s' in struct %s!"
                           (car (last desc)) slot name)
                   'nil)
@@ -3041,7 +3041,7 @@ Supported keywords for slots are:
                            (not (keywordp (car desc))))
                   (let ((kw (car defaults)))
                     (push
-                     (macroexp--warn-and-return
+                     (macroexp-warn-and-return
                       (format "  I'll take `%s' to be an option rather than a default value."
                               kw)
                       'nil)

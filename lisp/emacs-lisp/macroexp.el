@@ -135,28 +135,33 @@ Other uses risk returning non-nil value that point to the wrong file."
 
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
-(defun macroexp--warn-and-return (msg form &optional compile-only)
+(defun macroexp--warn-wrap (msg form)
   (let ((when-compiled (lambda () (byte-compile-warn "%s" msg))))
-    (cond
-     ((null msg) form)
-     ((macroexp-compiling-p)
-      (if (and (consp form) (gethash form macroexp--warned))
-          ;; Already wrapped this exp with a warning: avoid inf-looping
-          ;; where we keep adding the same warning onto `form' because
-          ;; macroexpand-all gets right back to macroexpanding `form'.
-          form
-        (puthash form form macroexp--warned)
-        `(progn
-           (macroexp--funcall-if-compiled ',when-compiled)
-           ,form)))
-     (t
-      (unless compile-only
-        (message "%sWarning: %s"
-                 (if (stringp load-file-name)
-                     (concat (file-relative-name load-file-name) ": ")
-                   "")
-                 msg))
-      form))))
+    `(progn
+       (macroexp--funcall-if-compiled ',when-compiled)
+       ,form)))
+
+(define-obsolete-function-alias 'macroexp--warn-and-return
+  #'macroexp-warn-and-return "28.1")
+(defun macroexp-warn-and-return (msg form &optional compile-only)
+  (cond
+   ((null msg) form)
+   ((macroexp-compiling-p)
+    (if (and (consp form) (gethash form macroexp--warned))
+        ;; Already wrapped this exp with a warning: avoid inf-looping
+        ;; where we keep adding the same warning onto `form' because
+        ;; macroexpand-all gets right back to macroexpanding `form'.
+        form
+      (puthash form form macroexp--warned)
+      (macroexp--warn-wrap msg form)))
+   (t
+    (unless compile-only
+      (message "%sWarning: %s"
+               (if (stringp load-file-name)
+                   (concat (file-relative-name load-file-name) ": ")
+                 "")
+               msg))
+    form)))
 
 (defun macroexp--obsolete-warning (fun obsolescence-data type)
   (let ((instead (car obsolescence-data))
@@ -205,7 +210,7 @@ Other uses risk returning non-nil value that point to the wrong file."
                  (byte-compile-warning-enabled-p 'obsolete (car form))))
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
-          (macroexp--warn-and-return
+          (macroexp-warn-and-return
            (macroexp--obsolete-warning
             fun obsolete
             (if (symbolp (symbol-function fun))
@@ -260,7 +265,7 @@ Other uses risk returning non-nil value that point to the wrong file."
                    values (cdr values))))
       (setq arglist (cdr arglist)))
     (if values
-        (macroexp--warn-and-return
+        (macroexp-warn-and-return
          (format (if (eq values 'too-few)
                      "attempt to open-code `%s' with too few arguments"
                    "attempt to open-code `%s' with too many arguments")
@@ -314,7 +319,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                        (macroexp--cons (macroexp--all-clauses bindings 1)
                                        (if (null body)
                                            (macroexp-unprogn
-                                            (macroexp--warn-and-return
+                                            (macroexp-warn-and-return
                                              (format "Empty %s body" fun)
                                              nil t))
                                          (macroexp--all-forms body))
@@ -344,13 +349,13 @@ Assumes the caller has bound `macroexpand-all-environment'."
       ;; First arg is a function:
       (`(,(and fun (or 'funcall 'apply 'mapcar 'mapatoms 'mapconcat 'mapc))
          ',(and f `(lambda . ,_)) . ,args)
-       (macroexp--warn-and-return
+       (macroexp-warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun #',f . ,args))))
       ;; Second arg is a function:
       (`(,(and fun (or 'sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
-       (macroexp--warn-and-return
+       (macroexp-warn-and-return
         (format "%s quoted with ' rather than with #'"
                 (list 'lambda (nth 1 f) '...))
         (macroexp--expand-all `(,fun ,arg1 #',f . ,args))))

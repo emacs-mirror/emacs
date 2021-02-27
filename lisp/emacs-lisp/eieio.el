@@ -269,7 +269,7 @@ This method is obsolete."
                        (lambda (whole)
                          (if (not (stringp (car slots)))
                              whole
-                           (macroexp--warn-and-return
+                           (macroexp-warn-and-return
                             (format "Obsolete name arg %S to constructor %S"
                                     (car slots) (car whole))
                             ;; Keep the name arg, for backward compatibility,
