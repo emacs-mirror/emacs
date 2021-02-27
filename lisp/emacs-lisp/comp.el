@@ -885,78 +885,12 @@ CFG is mutated by a pass.")
         :documentation "Slot number in the array if a number or
         'scratch' for scratch slot."))
 
-(defun comp-mvar-value-vld-p (mvar)
-  "Return t if one single value can be extracted by the MVAR constrains."
-  (when (and (null (comp-mvar-typeset mvar))
-             (null (comp-mvar-neg mvar)))
-    (let* ((v (comp-mvar-valset mvar))
-           (r (comp-mvar-range mvar))
-           (valset-len (length v))
-           (range-len (length r)))
-      (if (and (= valset-len 1)
-               (= range-len 0))
-          t
-        (when (and (= valset-len 0)
-                   (= range-len 1))
-          (let* ((low (caar r))
-                 (high (cdar r)))
-            (and (integerp low)
-                 (integerp high)
-                 (= low high))))))))
-
-;; FIXME move these into cstr?
-
-(defun comp-mvar-value (mvar)
-  "Return the constant value of MVAR.
-`comp-mvar-value-vld-p' *must* be satisfied before calling
-`comp-mvar-const'."
-  (declare (gv-setter
-            (lambda (val)
-              `(if (integerp ,val)
-                   (setf (comp-mvar-typeset ,mvar) nil
-                         (comp-mvar-range ,mvar) (list (cons ,val ,val)))
-                 (setf (comp-mvar-typeset ,mvar) nil
-                       (comp-mvar-valset ,mvar) (list ,val))))))
-  (let ((v (comp-mvar-valset mvar)))
-    (if (= (length v) 1)
-        (car v)
-      (caar (comp-mvar-range mvar)))))
-
-(defun comp-mvar-fixnum-p (mvar)
-  "Return t if MVAR is certainly a fixnum."
-  (when (null (comp-mvar-neg mvar))
-    (when-let (range (comp-mvar-range mvar))
-      (let* ((low (caar range))
-             (high (cdar (last range))))
-        (unless (or (eq low '-)
-                    (< low most-negative-fixnum)
-                    (eq high '+)
-                    (> high most-positive-fixnum))
-          t)))))
-
-(defun comp-mvar-symbol-p (mvar)
-  "Return t if MVAR is certainly a symbol."
-  (and (null (comp-mvar-range mvar))
-       (null (comp-mvar-neg mvar))
-       (or (and (null (comp-mvar-valset mvar))
-                (equal (comp-mvar-typeset mvar) '(symbol)))
-           (and (or (null (comp-mvar-typeset mvar))
-                    (equal (comp-mvar-typeset mvar) '(symbol)))
-                (cl-every #'symbolp (comp-mvar-valset mvar))))))
-
-(defsubst comp-mvar-cons-p (mvar)
-  "Return t if MVAR is certainly a cons."
-  (and (null (comp-mvar-valset mvar))
-       (null (comp-mvar-range mvar))
-       (null (comp-mvar-neg mvar))
-       (equal (comp-mvar-typeset mvar) '(cons))))
-
 (defun comp-mvar-type-hint-match-p (mvar type-hint)
   "Match MVAR against TYPE-HINT.
 In use by the backend."
   (cl-ecase type-hint
-    (cons (comp-mvar-cons-p mvar))
-    (fixnum (comp-mvar-fixnum-p mvar))))
+    (cons (comp-cstr-cons-p mvar))
+    (fixnum (comp-cstr-fixnum-p mvar))))
 
 
 
@@ -1501,7 +1435,7 @@ STACK-OFF is the index of the first slot frame involved."
   (let ((mvar (make--comp-mvar :slot slot)))
     (when const-vld
       (comp-add-const-to-relocs constant)
-      (setf (comp-mvar-value mvar) constant))
+      (setf (comp-cstr-imm mvar) constant))
     (when type
       (setf (comp-mvar-typeset mvar) (list type)))
     mvar))
@@ -2351,8 +2285,8 @@ The assume is emitted at the beginning of the block BB."
                      kind)))
          (push `(assume ,(make-comp-mvar :slot lhs-slot)
                         (,kind ,lhs
-                               ,(if-let* ((vld (comp-mvar-value-vld-p rhs))
-                                          (val (comp-mvar-value rhs))
+                               ,(if-let* ((vld (comp-cstr-imm-vld-p rhs))
+                                          (val (comp-cstr-imm rhs))
                                           (ok (integerp val)))
                                     val
                                   (make-comp-mvar :slot (comp-mvar-slot rhs)))))
@@ -3077,7 +3011,7 @@ Forward propagate immediate involed in assignments."
        for insn in (comp-block-insns b)
        do (pcase insn
             (`(setimm ,lval ,v)
-             (setf (comp-mvar-value lval) v))))))
+             (setf (comp-cstr-imm lval) v))))))
 
 (defun comp-mvar-propagate (lval rval)
   "Propagate into LVAL properties of RVAL."
@@ -3089,7 +3023,7 @@ Forward propagate immediate involed in assignments."
 (defun comp-function-foldable-p (f args)
   "Given function F called with ARGS return non-nil when optimizable."
   (and (comp-function-pure-p f)
-       (cl-every #'comp-mvar-value-vld-p args)))
+       (cl-every #'comp-cstr-imm-vld-p args)))
 
 (defun comp-function-call-maybe-fold (insn f args)
   "Given INSN when F is pure if all ARGS are known remove the function call.
@@ -3102,10 +3036,10 @@ Return non-nil if the function is folded successfully."
     (cond
      ((eq f 'symbol-value)
       (when-let* ((arg0 (car args))
-                  (const (comp-mvar-value-vld-p arg0))
-                  (ok-to-optim (member (comp-mvar-value arg0)
+                  (const (comp-cstr-imm-vld-p arg0))
+                  (ok-to-optim (member (comp-cstr-imm arg0)
                                        comp-symbol-values-optimizable)))
-        (rewrite-insn-as-setimm insn (symbol-value (comp-mvar-value
+        (rewrite-insn-as-setimm insn (symbol-value (comp-cstr-imm
                                                     (car args))))))
      ((comp-function-foldable-p f args)
       (ignore-errors
@@ -3118,7 +3052,7 @@ Return non-nil if the function is folded successfully."
                       ;; and know to be pure.
                       (comp-func-byte-func f-in-ctxt)
                     f))
-               (value (comp-apply-in-env f (mapcar #'comp-mvar-value args))))
+               (value (comp-apply-in-env f (mapcar #'comp-cstr-imm args))))
           (rewrite-insn-as-setimm insn value)))))))
 
 (defun comp-fwprop-call (insn lval f args)
@@ -3127,8 +3061,8 @@ F is the function being called with arguments ARGS.
 Fold the call in case."
   (unless (comp-function-call-maybe-fold insn f args)
     (when (and (eq 'funcall f)
-               (comp-mvar-value-vld-p (car args)))
-      (setf f (comp-mvar-value (car args))
+               (comp-cstr-imm-vld-p (car args)))
+      (setf f (comp-cstr-imm (car args))
             args (cdr args)))
     (when-let ((cstr-f (gethash f comp-known-func-cstr-h)))
       (let ((cstr (comp-cstr-f-ret cstr-f)))
@@ -3176,7 +3110,7 @@ Fold the call in case."
        (<=
         (comp-cstr-<= lval (car operands) (cadr operands)))))
     (`(setimm ,lval ,v)
-     (setf (comp-mvar-value lval) v))
+     (setf (comp-cstr-imm lval) v))
     (`(phi ,lval . ,rest)
      (let* ((from-latch (cl-some
                          (lambda (x)
@@ -3337,11 +3271,11 @@ FUNCTION can be a function-name or byte compiled function."
         (pcase insn
           (`(set ,lval (callref funcall ,f . ,rest))
            (when-let ((new-form (comp-call-optim-form-call
-                                 (comp-mvar-value f) rest)))
+                                 (comp-cstr-imm f) rest)))
              (setf insn `(set ,lval ,new-form))))
           (`(callref funcall ,f . ,rest)
            (when-let ((new-form (comp-call-optim-form-call
-                                 (comp-mvar-value f) rest)))
+                                 (comp-cstr-imm f) rest)))
              (setf insn new-form)))))))
 
 (defun comp-call-optim (_)
@@ -3539,7 +3473,7 @@ Set it into the `type' slot."
                             ,(comp-cstr-to-type-spec res-mvar))))
       (comp-add-const-to-relocs type)
       ;; Fix it up.
-      (setf (comp-mvar-value (comp-func-type func)) type))))
+      (setf (comp-cstr-imm (comp-func-type func)) type))))
 
 (defun comp-finalize-container (cont)
   "Finalize data container CONT."

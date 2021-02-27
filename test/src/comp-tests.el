@@ -739,8 +739,8 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (cl-loop for y in insn
            when (cond
                  ((consp y) (comp-tests-mentioned-p x y))
-                 ((and (comp-mvar-p y) (comp-mvar-value-vld-p y))
-                  (equal (comp-mvar-value y) x))
+                 ((and (comp-mvar-p y) (comp-cstr-imm-vld-p y))
+                  (equal (comp-cstr-imm y) x))
                  (t (equal x y)))
              return t))
 
@@ -1313,8 +1313,8 @@ Return a list of results."
      (lambda (insn)
        (pcase insn
          (`(return ,mvar)
-          (and (comp-mvar-value-vld-p mvar)
-               (eql (comp-mvar-value mvar) 123)))))))))
+          (and (comp-cstr-imm-vld-p mvar)
+               (eql (comp-cstr-imm mvar) 123)))))))))
 
 (defvar comp-tests-cond-rw-expected-type nil
   "Type to expect in `comp-tests-cond-rw-checker-type'.")

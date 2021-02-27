@@ -1747,11 +1747,11 @@ emit_PURE_P (gcc_jit_rvalue *ptr)
 static gcc_jit_rvalue *
 emit_mvar_rval (Lisp_Object mvar)
 {
-  Lisp_Object const_vld = CALL1I (comp-mvar-value-vld-p, mvar);
+  Lisp_Object const_vld = CALL1I (comp-cstr-imm-vld-p, mvar);
 
   if (!NILP (const_vld))
     {
-      Lisp_Object value = CALL1I (comp-mvar-value, mvar);
+      Lisp_Object value = CALL1I (comp-cstr-imm, mvar);
       if (comp.debug > 1)
 	{
 	  Lisp_Object func =
