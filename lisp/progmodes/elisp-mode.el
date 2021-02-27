@@ -149,8 +149,9 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     ["Check Documentation Strings" checkdoc
      :help "Check documentation strings for style requirements"]
     ["Auto-Display Documentation Strings" eldoc-mode
-     :button (:toggle . (bound-and-true-p eldoc-mode))
-     :help "Display the documentation string for the item under cursor"]))
+     :help "Display the documentation string for the item under cursor"
+     :style toggle
+     :selected (bound-and-true-p eldoc-mode)]))
 
 (defun emacs-lisp-byte-compile ()
   "Byte compile the file containing the current buffer."
