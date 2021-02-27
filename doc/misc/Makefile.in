@@ -85,7 +85,8 @@ INFO_TARGETS = $(INFO_COMMON) efaq-w32
 ## Some manuals have their source in .org format.
 ## This is discouraged because the .texi files it generates
 ## are not as well formatted as handwritten ones.
-ORG_SRC = org modus-themes
+ORG_SETUP = $(wildcard ${srcdir}/*-setup.org)
+ORG_SRC = $(filter-out ${ORG_SETUP},$(wildcard ${srcdir}/*.org))
 
 # There are some naming differences between the info targets and the other
 # targets, so let's resolve them here.
@@ -235,7 +236,7 @@ emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
 # Work in srcdir (and use abs_top_builddir) so that +setupfile and
 # things like org-setup's "version" macro work.  Sigh.
 define org_template
- $${srcdir}/$(1).texi: $${srcdir}/$(1).org
+ $(1:.org=.texi): $(1)
 	@rm -f $$@
 	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
 	  -f org-texinfo-export-to-texinfo-batch $$< $$@
@@ -243,7 +244,12 @@ endef
 
 $(foreach orgfile,${ORG_SRC},$(eval $(call org_template,$(orgfile))))
 
-${srcdir}/org.texi: ${srcdir}/org-setup.org
+## foo.org depends on foo-setup.org, if the latter exists.
+define org_setup_template
+  $(1:-setup.org=.texi): $(1)
+endef
+
+$(foreach orgfile,${ORG_SETUP},$(eval $(call org_setup_template,$(orgfile))))
 
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
