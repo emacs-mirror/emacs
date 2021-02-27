@@ -1,4 +1,4 @@
-;;; icon.el --- mode for editing Icon code
+;;; icon.el --- mode for editing Icon code  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1989, 2001-2021 Free Software Foundation, Inc.
 
@@ -197,12 +197,11 @@ with no args, if that value is non-nil."
 	(progn
 	  (insert last-command-event)
 	  (icon-indent-line)
-	  (if icon-auto-newline
-	      (progn
-		(newline)
-		;; (newline) may have done auto-fill
-		(setq insertpos (- (point) 2))
-		(icon-indent-line)))
+          (when icon-auto-newline
+            (newline)
+            ;; (newline) may have done auto-fill
+            (setq insertpos (- (point) 2))
+            (icon-indent-line))
 	  (save-excursion
 	    (if insertpos (goto-char (1+ insertpos)))
 	    (delete-char -1))))
