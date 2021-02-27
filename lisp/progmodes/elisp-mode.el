@@ -88,7 +88,16 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     ["Instrument Function for Debugging" edebug-defun
      :help "Evaluate the top level form point is in, stepping through with Edebug"
      :keys "C-u C-M-x"]
-    ["Linting"
+    ("Navigation"
+     ["Forward Sexp" forward-sexp
+      :help "Go to the next s-expression"]
+     ["Backward Sexp" backward-sexp
+      :help "Go to the previous s-expression"]
+     ["Beginning Of Defun" beginning-of-defun
+      :help "Go to the start of the current function definition"]
+     ["Up List" up-list
+      :help "Go one level up and forward"])
+    ("Linting"
      ["Lint Defun" elint-defun
       :help "Lint the function at point"]
      ["Lint Buffer" elint-current-buffer
@@ -96,8 +105,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      ["Lint File..." elint-file
       :help "Lint a file"]
      ["Lint Directory..." elint-directory
-      :help "Lint a directory"]]
-    ["Profiling"
+      :help "Lint a directory"])
+    ("Profiling"
      ;; Maybe this should be in a separate submenu from the ELP stuff?
      ["Start Native Profiler..." profiler-start
       :help "Start recording profiling information"]
@@ -124,8 +133,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      ["Remove Instrumentation for All Functions" elp-restore-all
       :help "Restore the original definitions of all functions being profiled"]
      ["Remove Instrumentation for Function..." elp-restore-function
-      :help "Restore an instrumented function to its original definition"]]
-    ["Tracing"
+      :help "Restore an instrumented function to its original definition"])
+    ("Tracing"
      ["Trace Function..." trace-function
       :help "Trace the function given as an argument"]
      ["Trace Function Quietly..." trace-function-background
@@ -134,7 +143,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
      ["Untrace All" untrace-all
       :help "Untrace all currently traced functions"]
      ["Untrace Function..." untrace-function
-      :help "Untrace function, and possibly activate all remaining advice"]]
+      :help "Untrace function, and possibly activate all remaining advice"])
     ["Construct Regexp" re-builder
      :help "Construct a regexp interactively"]
     ["Check Documentation Strings" checkdoc
