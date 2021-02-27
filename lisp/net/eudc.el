@@ -49,10 +49,6 @@
 
 (require 'cl-lib)
 
-(eval-and-compile
-  (if (not (fboundp 'make-overlay))
-      (require 'overlay)))
-
 (unless (fboundp 'custom-menu-create)
   (autoload 'custom-menu-create "cus-edit"))
 
