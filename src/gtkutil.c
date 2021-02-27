@@ -5019,11 +5019,10 @@ update_frame_tool_bar (struct frame *f)
       GtkWidget *wbutton = NULL;
       Lisp_Object specified_file;
       bool vert_only = ! NILP (PROP (TOOL_BAR_ITEM_VERT_ONLY));
-      const char *label
-	= (EQ (style, Qimage) || (vert_only && horiz)) ? NULL
-	: STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
-	? SSDATA (PROP (TOOL_BAR_ITEM_LABEL))
-	: "";
+      Lisp_Object label
+	= (EQ (style, Qimage) || (vert_only && horiz))
+	? Qnil
+	: PROP (TOOL_BAR_ITEM_LABEL);
 
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), j);
 
@@ -5136,8 +5135,11 @@ update_frame_tool_bar (struct frame *f)
 
       /* If there is an existing widget, check if it's stale; if so,
 	 remove it and make a new tool item from scratch.  */
-      if (ti && xg_tool_item_stale_p (wbutton, stock_name, icon_name,
-				      img, label, horiz))
+      if (ti && xg_tool_item_stale_p (wbutton, stock_name, icon_name, img,
+				      NILP (label)
+				      ? NULL
+				      : STRINGP (label) ? SSDATA (label) : "",
+				      horiz))
 	{
 	  gtk_container_remove (GTK_CONTAINER (wtoolbar),
 				GTK_WIDGET (ti));
@@ -5194,7 +5196,11 @@ update_frame_tool_bar (struct frame *f)
 #else
 	  if (w) gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
 #endif
-          ti = xg_make_tool_item (f, w, &wbutton, label, i, horiz, text_image);
+          ti = xg_make_tool_item (f, w, &wbutton,
+				  NILP (label)
+				  ? NULL
+				  : STRINGP (label) ? SSDATA (label) : "",
+				  i, horiz, text_image);
           gtk_toolbar_insert (GTK_TOOLBAR (wtoolbar), ti, j);
         }
 
