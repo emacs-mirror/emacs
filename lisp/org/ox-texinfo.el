@@ -1627,6 +1627,23 @@ Return output file's name."
     (org-export-to-file 'texinfo outfile
       async subtreep visible-only body-only ext-plist)))
 
+(defun org-texinfo-export-to-texinfo-batch ()
+  "Export Org file INFILE to Texinfo file OUTFILE, in batch mode.
+Usage: emacs -batch -f org-texinfo-export-to-texinfo-batch INFILE OUTFILE"
+  (or noninteractive (user-error "Batch mode use only"))
+  (let ((infile (pop command-line-args-left))
+	(outfile (pop command-line-args-left))
+	(org-export-coding-system org-texinfo-coding-system))
+    (unless (file-readable-p infile)
+      (message "File `%s' not readable" infile)
+      (kill-emacs 1))
+    (when (file-exists-p outfile)
+      (message "File `%s' already exists" outfile)
+      (kill-emacs 1))
+    (with-temp-buffer
+      (insert-file-contents infile)
+      (org-export-to-file 'texinfo outfile))))
+
 ;;;###autoload
 (defun org-texinfo-export-to-info
   (&optional async subtreep visible-only body-only ext-plist)

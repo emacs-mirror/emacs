@@ -82,6 +82,11 @@ INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
 ## because the info files are pre-built in release tarfiles.
 INFO_TARGETS = $(INFO_COMMON) efaq-w32
 
+## Some manuals have their source in .org format.
+## This is discouraged because the .texi files it generates
+## are not as well formatted as handwritten ones.
+ORG_SRC = org modus-themes
+
 # There are some naming differences between the info targets and the other
 # targets, so let's resolve them here.
 TARGETS_1 = $(INFO_INSTALL:ccmode=cc-mode)
@@ -221,6 +226,26 @@ gnus.pdf: $(gnus_deps)
 ${buildinfodir}/tramp.info tramp.html: ${srcdir}/trampver.texi
 
 
+abs_top_builddir = @abs_top_builddir@
+EMACS = ${abs_top_builddir}/src/emacs
+emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
+
+# Generated .texi files go in srcdir so they can be included in the
+# release tarfile along with the others.
+# Work in srcdir (and use abs_top_builddir) so that +setupfile and
+# things like org-setup's "version" macro work.  Sigh.
+define org_template
+ $${srcdir}/$(1).texi: $${srcdir}/$(1).org
+	@rm -f $$@
+	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
+	  -f org-texinfo-export-to-texinfo-batch $$< $$@
+endef
+
+$(foreach orgfile,${ORG_SRC},$(eval $(call org_template,$(orgfile))))
+
+${srcdir}/org.texi: ${srcdir}/org-setup.org
+
+
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 mostlyclean:
@@ -245,7 +270,12 @@ infoclean:
 	    $(buildinfodir)/$${file}-[1-9][0-9]; \
 	done
 
-bootstrap-clean maintainer-clean: distclean infoclean
+.PHONY: orgclean
+
+orgclean:
+	rm -f $(addprefix ${srcdir}/,${ORG_SRC:=.texi})
+
+bootstrap-clean maintainer-clean: distclean infoclean orgclean
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 

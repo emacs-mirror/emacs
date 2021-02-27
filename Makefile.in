@@ -982,6 +982,8 @@ INFOS = lispref-info lispintro-info emacs-info misc-info
 PDFS  = lispref-pdf  lispintro-pdf  emacs-pdf  misc-pdf
 PSS   = lispref-ps   lispintro-ps   emacs-ps   misc-ps
 
+## FIXME all of the misc- targets should really depend on lisp,
+## like the info target.
 DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
 $(DOCS):
 	$(MAKE) -C doc/$(subst -, ,$@)
@@ -1084,7 +1086,14 @@ uninstall-ps: $(UNINSTALL_PS)
 # would require changing every rule in doc/ that builds an info file,
 # and it's not worth it.  This case is only relevant if you download a
 # release, then change the .texi files.
-info:
+
+# The dependency is due to those doc/misc/ manuals that use .org sources.
+# I would have preferred to just add this to the misc-info target,
+# but that gave parallel build errors.
+# Depending on src is sufficient, but ends up being slow, since the
+# uncompiled lisp/org/*.el files are used to build the .texi files
+# (which is slow even with the elc files).
+info: lisp
   ifneq ($(HAVE_MAKEINFO),no)
 	$(MAKE) info-real info-dir
   endif
