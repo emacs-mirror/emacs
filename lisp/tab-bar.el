@@ -113,7 +113,21 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
   (unless (global-key-binding [(control shift tab)])
     (global-set-key [(control shift tab)] 'tab-previous))
   (unless (global-key-binding [(control shift iso-lefttab)])
-    (global-set-key [(control shift iso-lefttab)] 'tab-previous)))
+    (global-set-key [(control shift iso-lefttab)] 'tab-previous))
+
+  ;; Replace default value with a condition that supports displaying
+  ;; global-mode-string in the tab bar instead of the mode line.
+  (when (member '(global-mode-string ("" global-mode-string " "))
+                mode-line-misc-info)
+    (setq mode-line-misc-info
+          (append '(global-mode-string
+                    ("" (:eval (if (and tab-bar-mode
+                                        (memq 'tab-bar-format-global
+                                              tab-bar-format))
+                                   "" global-mode-string))
+                     " "))
+                  (remove '(global-mode-string ("" global-mode-string " "))
+                          mode-line-misc-info)))))
 
 (defun tab-bar--undefine-keys ()
   "Uninstall key bindings previously bound by `tab-bar--define-keys'."
@@ -503,56 +517,111 @@ the formatted tab name to display in the tab bar."
                  ""))
      'face (if current-p 'tab-bar-tab 'tab-bar-tab-inactive))))
 
-(defun tab-bar-make-keymap-1 ()
-  "Generate an actual keymap from `tab-bar-map', without caching."
+(defvar tab-bar-format '(tab-bar-format-history
+                         tab-bar-format-tabs
+                         tab-bar-separator
+                         tab-bar-format-add-tab)
+  "Template for displaying tab bar items.
+Every item in the list is a function that returns
+a string, or a list of menu-item elements, or nil.
+When you add more items `tab-bar-format-align-right' and
+`tab-bar-format-global' to the end, then after enabling
+`display-time-mode' (or any other mode that uses `global-mode-string')
+it will display time aligned to the right on the tab bar instead of
+the mode line.")
+
+(defun tab-bar-format-history ()
+  (when (and tab-bar-history-mode tab-bar-history-buttons-show)
+    `((sep-history-back menu-item ,(tab-bar-separator) ignore)
+      (history-back
+       menu-item ,tab-bar-back-button tab-bar-history-back
+       :help "Click to go back in tab history")
+      (sep-history-forward menu-item ,(tab-bar-separator) ignore)
+      (history-forward
+       menu-item ,tab-bar-forward-button tab-bar-history-forward
+       :help "Click to go forward in tab history"))))
+
+(defun tab-bar-format-tabs ()
   (let ((separator (tab-bar-separator))
         (tabs (funcall tab-bar-tabs-function))
         (i 0))
-    (append
-     '(keymap (mouse-1 . tab-bar-handle-mouse))
-     (when (and tab-bar-history-mode tab-bar-history-buttons-show)
-       `((sep-history-back menu-item ,separator ignore)
-         (history-back
-          menu-item ,tab-bar-back-button tab-bar-history-back
-          :help "Click to go back in tab history")
-         (sep-history-forward menu-item ,separator ignore)
-         (history-forward
-          menu-item ,tab-bar-forward-button tab-bar-history-forward
-          :help "Click to go forward in tab history")))
-     (mapcan
-      (lambda (tab)
-        (setq i (1+ i))
-        (append
-         `((,(intern (format "sep-%i" i)) menu-item ,separator ignore))
-         (cond
-          ((eq (car tab) 'current-tab)
-           `((current-tab
-              menu-item
-              ,(funcall tab-bar-tab-name-format-function tab i)
-              ignore
-              :help "Current tab")))
-          (t
-           `((,(intern (format "tab-%i" i))
-              menu-item
-              ,(funcall tab-bar-tab-name-format-function tab i)
-              ,(or
-                (alist-get 'binding tab)
-                `(lambda ()
-                   (interactive)
-                   (tab-bar-select-tab ,i)))
-              :help "Click to visit tab"))))
-         `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
-            menu-item ""
-            ,(or
-              (alist-get 'close-binding tab)
-              `(lambda ()
-                 (interactive)
-                 (tab-bar-close-tab ,i)))))))
-      tabs)
-     `((sep-add-tab menu-item ,separator ignore))
-     (when (and tab-bar-new-button-show tab-bar-new-button)
-       `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
-                  :help "New tab"))))))
+    (mapcan
+     (lambda (tab)
+       (setq i (1+ i))
+       (append
+        `((,(intern (format "sep-%i" i)) menu-item ,separator ignore))
+        (cond
+         ((eq (car tab) 'current-tab)
+          `((current-tab
+             menu-item
+             ,(funcall tab-bar-tab-name-format-function tab i)
+             ignore
+             :help "Current tab")))
+         (t
+          `((,(intern (format "tab-%i" i))
+             menu-item
+             ,(funcall tab-bar-tab-name-format-function tab i)
+             ,(or
+               (alist-get 'binding tab)
+               `(lambda ()
+                  (interactive)
+                  (tab-bar-select-tab ,i)))
+             :help "Click to visit tab"))))
+        `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
+           menu-item ""
+           ,(or
+             (alist-get 'close-binding tab)
+             `(lambda ()
+                (interactive)
+                (tab-bar-close-tab ,i)))))))
+     tabs)))
+
+(defun tab-bar-format-add-tab ()
+  (when (and tab-bar-new-button-show tab-bar-new-button)
+    `((add-tab menu-item ,tab-bar-new-button tab-bar-new-tab
+               :help "New tab"))))
+
+(defun tab-bar-format-align-right ()
+  "Align the rest of tab bar items to the right."
+  (let* ((rest (cdr (memq 'tab-bar-format-align-right tab-bar-format)))
+         (rest (tab-bar-format-list rest))
+         (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
+         (hpos (length rest))
+         (str (propertize " " 'display `(space :align-to (- right ,hpos)))))
+    `((tab-bar-format-align-right menu-item ,str ignore))))
+
+(defun tab-bar-format-global ()
+  "Format `global-mode-string' to display it in the tab bar.
+When `tab-bar-format-global' is added to `tab-bar-format'
+(possibly appended after `tab-bar-format-align-right'),
+then modes that display information on the mode line
+using `global-mode-string' will display the same text
+on the tab bar instead."
+  `((tab-bar-format-global
+     menu-item
+     ,(format-mode-line global-mode-string)
+     ignore)))
+
+(defun tab-bar-format-list (format-list)
+  (let ((i 0))
+    (apply #'append
+           (mapcar
+            (lambda (format)
+              (setq i (1+ i))
+              (cond
+               ((functionp format)
+                (let ((ret (funcall format)))
+                  (when (stringp ret)
+                    (setq ret `((,(intern (format "str-%i" i))
+                                 menu-item ,ret ignore))))
+                  ret))))
+            format-list))))
+
+(defun tab-bar-make-keymap-1 ()
+  "Generate an actual keymap from `tab-bar-map', without caching."
+  (append
+   '(keymap (mouse-1 . tab-bar-handle-mouse))
+   (tab-bar-format-list tab-bar-format)))
 
 
 ;; Some window-configuration parameters don't need to be persistent.
