@@ -1014,7 +1014,6 @@ Please send all bug fixes and enhancements to
 
 (require 'lpr)
 (require 'ps-print)
-(require 'easymenu)
 
 (and (string< ps-print-version "6.6.4")
      (error "`printing' requires `ps-print' package version 6.6.4 or later"))

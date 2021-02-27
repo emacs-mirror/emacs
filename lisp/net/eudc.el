@@ -1052,8 +1052,6 @@ queries the server for the existing fields and displays a corresponding form."
 
 ;;{{{      Menus and keymaps
 
-(require 'easymenu)
-
 (defconst eudc-custom-generated-menu (cdr (custom-menu-create 'eudc)))
 
 (defconst eudc-tail-menu

@@ -2387,6 +2387,9 @@ This can be used to control whether the defined mode is a command
 or not, and is useful when defining commands that aren't meant to be
 used by users directly.
 
+---
+** The 'easymenu' library is now preloaded.
+
 ** The 'values' variable is now obsolete.
 
 ---

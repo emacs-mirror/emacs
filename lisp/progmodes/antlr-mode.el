@@ -84,7 +84,8 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(require 'easymenu)
+(when (< emacs-major-version 28)  ; preloaded in Emacs 28
+  (require 'easymenu))
 (require 'cc-mode)
 
 ;; More compile-time-macros

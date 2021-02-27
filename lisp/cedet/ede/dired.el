@@ -30,7 +30,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
 (require 'dired)
 (require 'ede)
 

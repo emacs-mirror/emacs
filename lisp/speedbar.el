@@ -106,7 +106,6 @@
 ;;; TODO:
 ;; - Timeout directories we haven't visited in a while.
 
-(require 'easymenu)
 (require 'dframe)
 (require 'ezimage)
 

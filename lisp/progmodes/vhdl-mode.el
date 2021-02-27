@@ -2159,7 +2159,8 @@ your style, only those that are different from the default.")
 
 ;; mandatory
 (require 'compile)			; XEmacs
-(require 'easymenu)
+(when (< emacs-major-version 28)	; preloaded in Emacs 28
+  (require 'easymenu))
 (require 'hippie-exp)
 
 ;; optional (minimize warning messages during compile)
