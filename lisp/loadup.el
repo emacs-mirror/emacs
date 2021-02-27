@@ -266,6 +266,7 @@
 (load "isearch")
 (load "rfn-eshadow")
 
+(load "emacs-lisp/easymenu")
 (load "menu-bar")
 (load "tab-bar")
 (load "emacs-lisp/lisp")
