@@ -286,7 +286,7 @@ of converted forms."
               (let (and (pred stringp) msg)
                 (cconv--warn-unused-msg arg "argument")))
          (if (assq arg env) (push `(,arg . nil) env)) ;FIXME: Is it needed?
-         (push (lambda (body) `(macroexp--warn-wrap ,msg ,body)) wrappers))
+         (push (lambda (body) (macroexp--warn-wrap msg body)) wrappers))
         (_
          (if (assq arg env) (push `(,arg . nil) env)))))
     (setq funcbody (mapcar (lambda (form)
@@ -505,7 +505,7 @@ places where they originally did not directly appear."
             (newprotform (cconv-convert protected-form env extend)))
        `(condition-case ,var
             ,(if msg
-                 `(macroexp--warn-wrap msg newprotform)
+                 (macroexp--warn-wrap msg newprotform)
                newprotform)
           ,@(mapcar
              (lambda (handler)
