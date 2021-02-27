@@ -26,7 +26,7 @@
 
 ;; Instructions
 
-;; For programmed use of isearch-mode, e.g. calling (isearch-forward),
+;; For programmed use of isearch-mode, e.g. calling (`isearch-forward'),
 ;; isearch-mode behaves modally and does not return until the search
 ;; is completed.  It uses a recursive-edit to behave this way.
 
@@ -46,7 +46,7 @@
 ;; exits and searches in the last search direction.
 
 ;; Exiting immediately from isearch uses isearch-edit-string instead
-;; of nonincremental-search, if search-nonincremental-instead is non-nil.
+;; of nonincremental-search, if `search-nonincremental-instead' is non-nil.
 ;; The name of this option should probably be changed if we decide to
 ;; keep the behavior.  No point in forcing nonincremental search until
 ;; the last possible moment.
@@ -1499,7 +1499,7 @@ REGEXP if non-nil says use the regexp search ring."
   (apply 'propertize string properties))
 
 (defun isearch-update-from-string-properties (string)
-  "Update isearch properties from the isearch string"
+  "Update isearch properties from the isearch STRING."
   (when (plist-member (text-properties-at 0 string) 'isearch-case-fold-search)
     (setq isearch-case-fold-search
 	  (get-text-property 0 'isearch-case-fold-search string)))
@@ -2536,7 +2536,7 @@ minibuffer to read a string from the `kill-ring' as `yank-pop' does."
 Unlike `isearch-yank-pop', when this command is called not immediately
 after a `isearch-yank-kill' or a `isearch-yank-pop-only', it only pops
 the last killed string instead of activating the minibuffer to read
-a string from the `kill-ring' as `yank-pop' does.  The prefix arg C-u
+a string from the `kill-ring' as `yank-pop' does.  The prefix arg \\[universal-argument]
 always reads a string from the `kill-ring' using the minibuffer."
   (interactive "P")
   (cond
@@ -2695,7 +2695,7 @@ With argument, add COUNT copies of the character."
 						      string ""))))))))
 
 (defun isearch-search-and-update ()
-  ;; Do the search and update the display.
+  "Do the search and update the display."
   (when (or isearch-success
 	    ;; Unsuccessful regexp search may become successful by
 	    ;; addition of characters which make isearch-string valid
@@ -3227,7 +3227,7 @@ If there is no completion possible, say so and continue searching."
 ;; Message string
 
 (defun isearch-message (&optional c-q-hack ellipsis)
-  ;; Generate and print the message string.
+  "Generate and print the message string."
 
   ;; N.B.: This function should always be called with point at the
   ;; search point, because in certain (rare) circumstances, undesired
@@ -3481,7 +3481,7 @@ Optional third argument, if t, means if fail just return nil (no error).
       pos1)))
 
 (defun isearch-search ()
-  ;; Do the search with the current search string.
+  "Do the search with the current search string."
   (if (and (eq isearch-case-fold-search t) search-upper-case)
       (setq isearch-case-fold-search
 	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
