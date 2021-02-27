@@ -69,10 +69,13 @@ Call this function when setting up the mode."
     (setq erc-input-ring (make-ring comint-input-ring-size)))
   (setq erc-input-ring-index nil))
 
-(defun erc-add-to-input-ring (state)
-  "Add string S to the input ring and reset history position."
+(defun erc-add-to-input-ring (state-or-string)
+  "Add STATE-OR-STRING to input ring and reset history position.
+STATE-OR-STRING should be a string or an erc-input object."
   (unless erc-input-ring (erc-input-ring-setup))
-  (ring-insert erc-input-ring (erc-input-string state))
+  (ring-insert erc-input-ring (if (erc-input-p state-or-string)
+                                  (erc-input-string state-or-string)
+                                state-or-string)) ; string
   (setq erc-input-ring-index nil))
 
 (defun erc-clear-input-ring ()
@@ -101,11 +104,10 @@ containing a password."
       ;; area, push it on the history ring before moving back through
       ;; the input history, so it will be there when we return to the
       ;; front.
-      (if (null erc-input-ring-index)
-          (when (> (point-max) erc-input-marker)
-            (erc-add-to-input-ring (buffer-substring erc-input-marker
-                                                     (point-max)))
-            (setq erc-input-ring-index 0)))
+      (when (and (null erc-input-ring-index)
+                 (> (point-max) erc-input-marker))
+        (erc-add-to-input-ring (erc-user-input))
+        (setq erc-input-ring-index 0))
 
       (setq erc-input-ring-index (if erc-input-ring-index
                                      (ring-plus1 erc-input-ring-index
