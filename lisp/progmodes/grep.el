@@ -88,9 +88,9 @@ To make grep highlight matches even into a pipe, you need the option
 `always' that forces grep to use `--color=always' to unconditionally
 output escape sequences.
 
-In interactive usage, the actual value of this variable is set up
-by `grep-compute-defaults' when the default value is `auto-detect'.
-To change the default value, use \\[customize] or call the function
+If the value is `auto-detect' (the default), `grep' will call
+`grep-compute-defaults' to compute the value.  To change the
+default value, use \\[customize] or call the function
 `grep-apply-setting'."
   :type '(choice (const :tag "Do not highlight matches with grep markers" nil)
 		 (const :tag "Highlight matches with grep markers" t)
@@ -915,7 +915,10 @@ list is empty)."
                                  (if current-prefix-arg default grep-command)
                                  'grep-history
                                  (if current-prefix-arg nil default))))))
-
+  ;; If called non-interactively, also compute the defaults if we
+  ;; haven't already.
+  (when (eq grep-highlight-matches 'auto-detect)
+    (grep-compute-defaults))
   (grep--save-buffers)
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
