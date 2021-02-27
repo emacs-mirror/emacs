@@ -1,4 +1,4 @@
-;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt
+;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 2000-2021 Free Software Foundation, Inc.
 
@@ -144,12 +144,12 @@ the previous line when starting from a line beginning."
 ;;;  Hooks  --  Set cursor free in picture mode.
 ;;;             Clean up when writing a file from cursor free mode.
 
-(add-hook 'picture-mode-hook 'tpu-set-cursor-free)
+(add-hook 'picture-mode-hook #'tpu-set-cursor-free)
 
 (defun tpu-trim-line-ends-if-needed ()
   "Eliminate whitespace at ends of lines, if the cursor is free."
   (if (and (buffer-modified-p) tpu-cursor-free-mode) (tpu-trim-line-ends)))
-(add-hook 'before-save-hook 'tpu-trim-line-ends-if-needed)
+(add-hook 'before-save-hook #'tpu-trim-line-ends-if-needed)
 
 
 ;;;  Utility routines for implementing scroll margins

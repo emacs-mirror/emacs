@@ -3983,6 +3983,10 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
   if (NILP (Ffile_exists_p (filename)))
     xsignal1 (Qfile_missing, filename);
 
+#ifdef WINDOWSNT
+  filename = Fw32_long_file_name (filename);
+#endif
+
   Lisp_Object content_hash = comp_hash_source_file (filename);
 
   if (suffix_p (filename, ".gz"))
@@ -4014,8 +4018,11 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
       Lisp_Object sys_re =
 	concat2 (build_string ("\\`[[:ascii:]]+"),
 		 Fregexp_quote (build_string ("/" PATH_REL_LOADSEARCH "/")));
-      loadsearch_re_list =
-	list2 (sys_re, Fregexp_quote (build_string (PATH_DUMPLOADSEARCH "/")));
+      Lisp_Object dump_load_search = build_string (PATH_DUMPLOADSEARCH "/");
+#ifdef WINDOWSNT
+      dump_load_search = Fw32_long_file_name (dump_load_search);
+#endif
+      loadsearch_re_list = list2 (sys_re, Fregexp_quote (dump_load_search));
     }
 
   Lisp_Object lds_re_tail = loadsearch_re_list;

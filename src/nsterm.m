@@ -8411,13 +8411,16 @@ not_in_argv (NSString *arg)
 {
   NSTRACE ("EmacsView windowDidChangeBackingProperties:]");
 
-  NSRect frame = [self frame];
+  if ([self wantsUpdateLayer])
+    {
+      NSRect frame = [self frame];
 
-  [surface release];
-  surface = nil;
+      [surface release];
+      surface = nil;
 
-  ns_clear_frame (emacsframe);
-  expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
+      ns_clear_frame (emacsframe);
+      expose_frame (emacsframe, 0, 0, NSWidth (frame), NSHeight (frame));
+    }
 }
 #endif /* NS_DRAW_TO_BUFFER */
 
@@ -8480,7 +8483,7 @@ not_in_argv (NSString *arg)
 }
 
 
-#ifdef NS_IMPL_COCOA
+#ifdef NS_DRAW_TO_BUFFER
 /* If the frame has been garbaged but the toolkit wants to draw, for
    example when resizing the frame, we end up with a blank screen.
    Sometimes this results in an unpleasant flicker, so try to
@@ -8488,7 +8491,8 @@ not_in_argv (NSString *arg)
 - (void)viewWillDraw
 {
   if (FRAME_GARBAGED_P (emacsframe)
-      && !redisplaying_p)
+      && !redisplaying_p
+      && [self wantsUpdateLayer])
     {
       /* If there is IO going on when redisplay is run here Emacs
          crashes.  I think it's because this code will always be run
@@ -8505,10 +8509,8 @@ not_in_argv (NSString *arg)
       waiting_for_input = owfi;
     }
 }
-#endif
 
 
-#ifdef NS_DRAW_TO_BUFFER
 - (BOOL)wantsUpdateLayer
 {
 #if MAC_OS_X_VERSION_MIN_REQUIRED < 101400

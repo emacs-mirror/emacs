@@ -129,6 +129,12 @@ options (that is, single characters) requiring no arguments, and long
 options (starting with @samp{--}) whose arguments are specified with
 @samp{=}.
 
+  Dired does not handle files that have names with embedded newline
+characters well.  If you have many such files, you may consider adding
+@samp{-b} to @code{dired-listing-switches}.  This will quote all
+special characters and allow Dired to handle them better.  (You can
+also use the @kbd{C-u C-x d} command to add @samp{-b} temporarily.)
+
 @vindex dired-switches-in-mode-line
   Dired displays in the mode line an indication of what were the
 switches used to invoke @command{ls}.  By default, Dired will try to

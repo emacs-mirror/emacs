@@ -102,15 +102,6 @@ the name of the test and the result of NAME-FORM."
            (indent 1))
   `(ert--call-with-test-buffer ,name-form (lambda () ,@body)))
 
-;; We use these `put' forms in addition to the (declare (indent)) in
-;; the defmacro form since the `declare' alone does not lead to
-;; correct indentation before the .el/.elc file is loaded.
-;; Autoloading these `put' forms solves this.
-;;;###autoload
-(progn
-  ;; TODO(ohler): Figure out what these mean and make sure they are correct.
-  (put 'ert-with-test-buffer 'lisp-indent-function 1))
-
 ;;;###autoload
 (defun ert-kill-all-test-buffers ()
   "Kill all test buffers that are still live."
@@ -376,8 +367,7 @@ different resource directory naming scheme, set the variable
 name will be trimmed using `string-trim' with arguments
 `ert-resource-directory-trim-left-regexp' and
 `ert-resource-directory-trim-right-regexp'."
-  `(let* ((testfile ,(or (bound-and-true-p byte-compile-current-file)
-                         (and load-in-progress load-file-name)
+  `(let* ((testfile ,(or (macroexp-file-name)
                          buffer-file-name))
           (default-directory (file-name-directory testfile)))
      (file-truename

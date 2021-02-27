@@ -1,4 +1,4 @@
-;;; sup-mouse.el --- supdup mouse support for lisp machines
+;;; sup-mouse.el --- supdup mouse support for lisp machines  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 2001-2021 Free Software Foundation, Inc.
 

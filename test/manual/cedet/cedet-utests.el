@@ -1,4 +1,4 @@
-;;; cedet-utests.el --- Run all unit tests in the CEDET suite.
+;;; cedet-utests.el --- Run all unit tests in the CEDET suite.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -120,9 +120,9 @@
 EXIT-ON-ERROR causes the test suite to exit on an error, instead
 of just logging the error."
   (interactive)
-  (if (or (not (featurep 'semantic/db-mode))
-	  (not (semanticdb-minor-mode-p)))
-      (error "CEDET Tests require semantic-mode to be enabled"))
+  (unless (and (fboundp 'semanticdb-minor-mode-p)
+               (semanticdb-minor-mode-p))
+    (error "CEDET Tests require semantic-mode to be enabled"))
   (dolist (L cedet-utest-libs)
     (load-file (expand-file-name (concat L ".el") cedet-utest-directory)))
   (cedet-utest-log-setup "ALL TESTS")
@@ -170,6 +170,8 @@ of just logging the error."
   (declare (obsolete nil "27.1"))
   noninteractive)
 
+(defvar srecode-map-save-file)
+
 ;;;###autoload
 (defun cedet-utest-batch ()
   "Run the CEDET unit test in BATCH mode."
@@ -178,6 +180,7 @@ of just logging the error."
   (condition-case err
       (when (catch 'cedet-utest-exit-on-error
 	      ;; Get basic semantic features up.
+	      ;; FIXME: I can't see any such function in our code!
 	      (semantic-load-enable-minimum-features)
 	      ;; Disables all caches related to semantic DB so all
 	      ;; tests run as if we have bootstrapped CEDET for the
@@ -231,8 +234,7 @@ Optional argument TITLE is the title of this testing session."
       (setq cedet-utest-frame (make-frame cedet-utest-frame-parameters)))
     (when (or (not cedet-utest-buffer) (not (buffer-live-p cedet-utest-buffer)))
       (setq cedet-utest-buffer (get-buffer-create "*CEDET utest log*")))
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+    (with-current-buffer cedet-utest-buffer
       (setq cedet-utest-last-log-item nil)
       (when (not cedet-running-master-tests)
 	(erase-buffer))
@@ -254,7 +256,7 @@ Argument START and END bound the time being calculated."
      (- (car (cdr end)) (car (cdr start)))
      (/ (- (car (cdr (cdr end))) (car (cdr (cdr start)))) 1000000.0)))
 
-(defun cedet-utest-log-shutdown (title &optional errorcondition)
+(defun cedet-utest-log-shutdown (title &optional _errorcondition)
   "Shut-down a larger test suite.
 TITLE is the section that is done.
 ERRORCONDITION is some error that may have occurred during testing."
@@ -274,8 +276,7 @@ ERRORCONDITION is some error that may have occurred during testing."
 	(message "     Elapsed Time %.2f Seconds\n"
 		 (cedet-utest-elapsed-time startime endtime)))
 
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+    (with-current-buffer cedet-utest-buffer
       (goto-char (point-max))
       (insert "\n>> Test Suite " title " ended at @ "
 	      (format-time-string "%c" endtime) "\n"
@@ -305,12 +306,11 @@ ERRORCONDITION is some error that may have occurred during testing."
   "Hook run after the current log command was run."
     (if noninteractive
 	(message "")
-      (save-excursion
-	(set-buffer cedet-utest-buffer)
+      (with-current-buffer cedet-utest-buffer
 	(goto-char (point-max))
 	(insert "\n\n")))
     (setq cedet-utest-last-log-item nil)
-    (remove-hook 'post-command-hook 'cedet-utest-post-command-hook)
+    (remove-hook 'post-command-hook #'cedet-utest-post-command-hook)
     )
 
 (defun cedet-utest-add-log-item-start (item)
@@ -318,12 +318,11 @@ ERRORCONDITION is some error that may have occurred during testing."
   (unless (equal item cedet-utest-last-log-item)
     (setq cedet-utest-last-log-item item)
     ;; This next line makes sure we clear out status during logging.
-    (add-hook 'post-command-hook 'cedet-utest-post-command-hook)
+    (add-hook 'post-command-hook #'cedet-utest-post-command-hook)
 
     (if noninteractive
 	(message " - Running %s ..." item)
-      (save-excursion
-	(set-buffer cedet-utest-buffer)
+      (with-current-buffer cedet-utest-buffer
 	(goto-char (point-max))
 	(when (not (bolp)) (insert "\n"))
 	(insert "Running " item " ... ")
@@ -343,8 +342,7 @@ Optional argument PRECR indicates to prefix the done msg w/ a newline."
 	  (message "   * %s {%s}" (or err "done") notes)
 	(message "   * %s" (or err "done")))
     ;; Interactive-mode - insert into the buffer.
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+    (with-current-buffer cedet-utest-buffer
       (goto-char (point-max))
       (when precr (insert "\n"))
       (if err
@@ -378,12 +376,11 @@ Optional argument PRECR indicates to prefix the done msg w/ a newline."
   "Log the text string FORMAT.
 The rest of the ARGS are used to fill in FORMAT with `format'."
   (if noninteractive
-      (apply 'message format args)
-    (save-excursion
-      (set-buffer cedet-utest-buffer)
+      (apply #'message format args)
+    (with-current-buffer cedet-utest-buffer
       (goto-char (point-max))
       (when (not (bolp)) (insert "\n"))
-      (insert (apply 'format format args))
+      (insert (apply #'format format args))
       (insert "\n")
       (sit-for 0)
       ))
@@ -396,11 +393,15 @@ The rest of the ARGS are used to fill in FORMAT with `format'."
   "Test the lightening function for pulsing a line.
 When optional NO-ERROR don't throw an error if we can't run tests."
   (interactive)
-  (if (or (not pulse-flag) (not (pulse-available-p)))
+  (if (not (and (bound-and-true-p pulse-flag)
+                (fboundp 'pulse-available-p)
+                (pulse-available-p)))
       (if no-error
 	  nil
 	(error (concat "Pulse test only works on versions of Emacs"
 		       " that support pulsing")))
+    (declare-function pulse-momentary-highlight-overlay
+                      "pulse.el" (o &optional face))
     ;; Run the tests
     (when (called-interactively-p 'interactive)
       (message "<Press a key> Pulse one line.")

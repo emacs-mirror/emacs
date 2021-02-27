@@ -163,51 +163,50 @@
 
 (defcustom landmark-mode-hook nil
   "If non-nil, its value is called on entry to Landmark mode."
-  :type 'hook
-  :group 'landmark)
+  :type 'hook)
 
 (defvar landmark-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Key bindings for cursor motion.
-    (define-key map "y" 'landmark-move-nw)		; y
-    (define-key map "u" 'landmark-move-ne)		; u
-    (define-key map "b" 'landmark-move-sw)		; b
-    (define-key map "n" 'landmark-move-se)		; n
-    (define-key map "h" 'backward-char)		; h
-    (define-key map "l" 'forward-char)		; l
-    (define-key map "j" 'landmark-move-down)		; j
-    (define-key map "k" 'landmark-move-up)		; k
+    (define-key map "y" #'landmark-move-nw)		; y
+    (define-key map "u" #'landmark-move-ne)		; u
+    (define-key map "b" #'landmark-move-sw)		; b
+    (define-key map "n" #'landmark-move-se)		; n
+    (define-key map "h" #'backward-char)		; h
+    (define-key map "l" #'forward-char)		; l
+    (define-key map "j" #'landmark-move-down)		; j
+    (define-key map "k" #'landmark-move-up)		; k
 
-    (define-key map [kp-7] 'landmark-move-nw)
-    (define-key map [kp-9] 'landmark-move-ne)
-    (define-key map [kp-1] 'landmark-move-sw)
-    (define-key map [kp-3] 'landmark-move-se)
-    (define-key map [kp-4] 'backward-char)
-    (define-key map [kp-6] 'forward-char)
-    (define-key map [kp-2] 'landmark-move-down)
-    (define-key map [kp-8] 'landmark-move-up)
+    (define-key map [kp-7] #'landmark-move-nw)
+    (define-key map [kp-9] #'landmark-move-ne)
+    (define-key map [kp-1] #'landmark-move-sw)
+    (define-key map [kp-3] #'landmark-move-se)
+    (define-key map [kp-4] #'backward-char)
+    (define-key map [kp-6] #'forward-char)
+    (define-key map [kp-2] #'landmark-move-down)
+    (define-key map [kp-8] #'landmark-move-up)
 
-    (define-key map "\C-n" 'landmark-move-down)		; C-n
-    (define-key map "\C-p" 'landmark-move-up)		; C-p
+    (define-key map "\C-n" #'landmark-move-down)		; C-n
+    (define-key map "\C-p" #'landmark-move-up)		; C-p
 
     ;; Key bindings for entering Human moves.
-    (define-key map "X" 'landmark-human-plays)		; X
-    (define-key map "x" 'landmark-human-plays)		; x
+    (define-key map "X" #'landmark-human-plays)		; X
+    (define-key map "x" #'landmark-human-plays)		; x
 
-    (define-key map " " 'landmark-start-robot)		; SPC
-    (define-key map [down-mouse-1] 'landmark-start-robot)
-    (define-key map [drag-mouse-1] 'landmark-click)
-    (define-key map [mouse-1] 'landmark-click)
-    (define-key map [down-mouse-2] 'landmark-click)
-    (define-key map [mouse-2] 'landmark-mouse-play)
-    (define-key map [drag-mouse-2] 'landmark-mouse-play)
+    (define-key map " " #'landmark-start-robot)		; SPC
+    (define-key map [down-mouse-1] #'landmark-start-robot)
+    (define-key map [drag-mouse-1] #'landmark-click)
+    (define-key map [mouse-1] #'landmark-click)
+    (define-key map [down-mouse-2] #'landmark-click)
+    (define-key map [mouse-2] #'landmark-mouse-play)
+    (define-key map [drag-mouse-2] #'landmark-mouse-play)
 
-    (define-key map [remap previous-line] 'landmark-move-up)
-    (define-key map [remap next-line] 'landmark-move-down)
-    (define-key map [remap beginning-of-line] 'landmark-beginning-of-line)
-    (define-key map [remap end-of-line] 'landmark-end-of-line)
-    (define-key map [remap undo] 'landmark-human-takes-back)
-    (define-key map [remap advertised-undo] 'landmark-human-takes-back)
+    (define-key map [remap previous-line] #'landmark-move-up)
+    (define-key map [remap next-line] #'landmark-move-down)
+    (define-key map [remap beginning-of-line] #'landmark-beginning-of-line)
+    (define-key map [remap end-of-line] #'landmark-end-of-line)
+    (define-key map [remap undo] #'landmark-human-takes-back)
+    (define-key map [remap advertised-undo] #'landmark-human-takes-back)
     map)
   "Local keymap to use in Landmark mode.")
 
@@ -219,14 +218,12 @@
 (defface landmark-font-lock-face-O '((((class color)) :foreground "red")
 			       (t :weight bold))
   "Face to use for Emacs's O."
-  :version "22.1"
-  :group 'landmark)
+  :version "22.1")
 
 (defface landmark-font-lock-face-X '((((class color)) :foreground "green")
 			       (t :weight bold))
   "Face to use for your X."
-  :version "22.1"
-  :group 'landmark)
+  :version "22.1")
 
 (defvar landmark-font-lock-keywords
   '(("O" . 'landmark-font-lock-face-O)
@@ -1132,12 +1129,10 @@ this program to add a random element to the way moves were made.")
   "If non-nil, print \"One moment please\" when a new board is generated.
 The drawback of this is you don't see how many moves the last run took
 because it is overwritten by \"One moment please\"."
-  :type 'boolean
-  :group 'landmark)
+  :type 'boolean)
 (defcustom landmark-output-moves t
   "If non-nil, output number of moves so far on a move-by-move basis."
-  :type 'boolean
-  :group 'landmark)
+  :type 'boolean)
 
 
 (defun landmark-weights-debug ()
@@ -1153,7 +1148,7 @@ because it is overwritten by \"One moment please\"."
 
 (defun landmark-print-distance ()
   (insert (format "tree: %S \n" (landmark-calc-distance-of-robot-from 'landmark-tree)))
-  (mapc 'landmark-print-distance-int landmark-directions))
+  (mapc #'landmark-print-distance-int landmark-directions))
 
 
 ;;(setq direction 'landmark-n)
@@ -1166,10 +1161,10 @@ because it is overwritten by \"One moment please\"."
 
 (defun landmark-nslify-wts ()
   (interactive)
-  (let ((l (apply 'append (mapcar 'landmark-nslify-wts-int landmark-directions))))
+  (let ((l (apply #'append (mapcar #'landmark-nslify-wts-int landmark-directions))))
     (insert (format "set data_value WTS \n %s \n" l))
     (insert (format "/* max: %S min: %S */"
-		  (eval (cons 'max l)) (eval (cons 'min l))))))
+		  (apply #'max l) (apply #'min l)))))
 
 (defun landmark-print-wts-int (direction)
   (mapc (lambda (target-direction)
@@ -1184,7 +1179,7 @@ because it is overwritten by \"One moment please\"."
   (interactive)
   (with-current-buffer "*landmark-wts*"
     (insert "==============================\n")
-    (mapc 'landmark-print-wts-int landmark-directions)))
+    (mapc #'landmark-print-wts-int landmark-directions)))
 
 (defun landmark-print-moves (moves)
   (interactive)
@@ -1204,7 +1199,7 @@ because it is overwritten by \"One moment please\"."
   (interactive)
   (with-current-buffer "*landmark-y,s,noise*"
     (insert "==============================\n")
-    (mapc 'landmark-print-y-s-noise-int landmark-directions)))
+    (mapc #'landmark-print-y-s-noise-int landmark-directions)))
 
 (defun landmark-print-smell-int (direction)
   (insert (format "%S: smell: %S \n"
@@ -1216,7 +1211,7 @@ because it is overwritten by \"One moment please\"."
   (with-current-buffer "*landmark-smell*"
     (insert "==============================\n")
     (insert (format "tree: %S \n" (get 'z 't)))
-    (mapc 'landmark-print-smell-int landmark-directions)))
+    (mapc #'landmark-print-smell-int landmark-directions)))
 
 (defun landmark-print-w0-int (direction)
   (insert (format "%S: w0: %S \n"
@@ -1227,7 +1222,7 @@ because it is overwritten by \"One moment please\"."
   (interactive)
   (with-current-buffer "*landmark-w0*"
     (insert "==============================\n")
-    (mapc 'landmark-print-w0-int landmark-directions)))
+    (mapc #'landmark-print-w0-int landmark-directions)))
 
 (defun landmark-blackbox ()
   (with-current-buffer "*landmark-blackbox*"
@@ -1252,36 +1247,31 @@ because it is overwritten by \"One moment please\"."
 
 (defun landmark-print-wts-blackbox ()
   (interactive)
-  (mapc 'landmark-print-wts-int landmark-directions))
+  (mapc #'landmark-print-wts-int landmark-directions))
 
 ;;;_  - learning parameters
 (defcustom landmark-bound 0.005
   "The maximum that w0j may be."
-  :type 'number
-  :group 'landmark)
+  :type 'number)
 (defcustom landmark-c 1.0
   "A factor applied to modulate the increase in wij.
 Used in the function landmark-update-normal-weights."
-  :type 'number
-  :group 'landmark)
+  :type 'number)
 (defcustom landmark-c-naught 0.5
   "A factor applied to modulate the increase in w0j.
 Used in the function landmark-update-naught-weights."
-  :type 'number
-  :group 'landmark)
+  :type 'number)
 (defvar landmark-initial-w0 0.0)
 (defvar landmark-initial-wij 0.0)
 (defcustom landmark-no-payoff 0
   "The amount of simulation cycles that have occurred with no movement.
 Used to move the robot when he is stuck in a rut for some reason."
-  :type 'integer
-  :group 'landmark)
+  :type 'integer)
 (defcustom landmark-max-stall-time 2
   "The maximum number of cycles that the robot can remain stuck in a place.
 After this limit is reached, landmark-random-move is called to
 push him out of it."
-  :type 'integer
-  :group 'landmark)
+  :type 'integer)
 
 
 ;;;_ + Randomizing functions
@@ -1346,7 +1336,8 @@ push him out of it."
   (put 'landmark-e    'y (/ landmark-board-height 2))
   (put 'landmark-e    'sym 4)
 
-  (mapc 'landmark-plot-internal '(landmark-n landmark-s landmark-e landmark-w landmark-tree)))
+  (mapc #'landmark-plot-internal
+        '(landmark-n landmark-s landmark-e landmark-w landmark-tree)))
 
 
 
@@ -1434,7 +1425,7 @@ push him out of it."
 ;;;_ + Functions to move robot
 
 (defun landmark-confidence-for (target-direction)
-  (apply '+
+  (apply #'+
 	 (get target-direction 'w0)
 	 (mapcar (lambda (direction)
 		   (*
@@ -1494,13 +1485,13 @@ push him out of it."
 	(landmark-random-move)
       (progn
 	(landmark-calc-confidences)
-	(mapc 'landmark-y landmark-directions)
+	(mapc #'landmark-y landmark-directions)
 	(landmark-move)))
 
     (landmark-calc-payoff)
 
-    (mapc 'landmark-update-normal-weights landmark-directions)
-    (mapc 'landmark-update-naught-weights landmark-directions)
+    (mapc #'landmark-update-normal-weights landmark-directions)
+    (mapc #'landmark-update-naught-weights landmark-directions)
     (if landmark-debug
 	(landmark-weights-debug)))
   (landmark-terminate-game nil))
@@ -1536,8 +1527,8 @@ If the game is finished, this command requests for another game."
 
 	       (landmark-calc-payoff)
 
-	       (mapc 'landmark-update-normal-weights landmark-directions)
-	       (mapc 'landmark-update-naught-weights landmark-directions)
+	       (mapc #'landmark-update-normal-weights landmark-directions)
+	       (mapc #'landmark-update-naught-weights landmark-directions)
 	       (landmark-amble-robot)
 	       )))))))
 
@@ -1576,7 +1567,7 @@ If the game is finished, this command requests for another game."
 
   (if (not save-weights)
       (progn
-	(mapc 'landmark-fix-weights-for landmark-directions)
+	(mapc #'landmark-fix-weights-for landmark-directions)
 	(dolist (direction landmark-directions)
           (put direction 'w0 landmark-initial-w0)))
     (message "Weights preserved for this run."))
@@ -1618,7 +1609,7 @@ If the game is finished, this command requests for another game."
 ;;;_ + landmark-test-run ()
 
 ;;;###autoload
-(defalias 'landmark-repeat 'landmark-test-run)
+(defalias 'landmark-repeat #'landmark-test-run)
 ;;;###autoload
 (defun landmark-test-run ()
   "Run 100 Landmark games, each time saving the weights from the previous game."
@@ -1670,13 +1661,13 @@ Use \\[describe-mode] for more info."
     (if landmark-one-moment-please
 	(message "One moment, please..."))
     (landmark-start-game landmark-n landmark-m)
-    (eval (cons 'landmark-init
-		(cond
-		 ((= parg 1)  '(t nil))
-		 ((= parg 2)  '(t t))
-		 ((= parg 3)  '(nil t))
-		 ((= parg 4)  '(nil nil))
-		 (t '(nil t))))))))
+    (apply #'landmark-init
+	   (cond
+	    ((= parg 1)  '(t nil))
+	    ((= parg 2)  '(t t))
+	    ((= parg 3)  '(nil t))
+	    ((= parg 4)  '(nil nil))
+	    (t '(nil t)))))))
 
 
 ;;;_ + Local variables

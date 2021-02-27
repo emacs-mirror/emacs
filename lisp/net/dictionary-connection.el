@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; dictionary-connection allows to handle TCP-based connections in
+;; dictionary-connection allows handling TCP-based connections in
 ;; client mode where text-based information is exchanged.  There is
 ;; special support for handling CR LF (and the usual CR LF . CR LF
 ;; terminator).
@@ -68,7 +68,7 @@
 
 (defun dictionary-connection-open (server port)
   "Open a connection to SERVER at PORT.
-A data structure identifying the connection is returned"
+Return a data structure identifying the connection."
 
   (let ((process-buffer (generate-new-buffer (format " connection to %s:%s"
 						     server
@@ -82,11 +82,11 @@ A data structure identifying the connection is returned"
 (defun dictionary-connection-status (connection)
   "Return the status of the CONNECTION.
 Possible return values are the symbols:
-nil: argument is no connection object
-'none: argument has no connection
-'up: connection is open and buffer is existing
-'down: connection is closed
-'alone: connection is not associated with a buffer"
+    nil:    argument is not a connection object
+    'none:  argument is not connected
+    'up:    connection is open and buffer is existing
+    'down:  connection is closed
+    'alone: connection is not associated with a buffer"
   (when (dictionary-connection-p connection)
     (let ((process (dictionary-connection-process connection))
           (buffer (dictionary-connection-buffer connection)))

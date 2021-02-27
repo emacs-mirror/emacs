@@ -1,4 +1,4 @@
-;;; s-region.el --- set region using shift key
+;;; s-region.el --- set region using shift key  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -112,11 +112,11 @@ to global keymap."
        [M-next] [M-previous] [M-home] [M-end]))
 
 (or (global-key-binding [C-insert])
-    (global-set-key [C-insert] 'copy-region-as-kill))
+    (global-set-key [C-insert] #'copy-region-as-kill))
 (or (global-key-binding [S-delete])
-    (global-set-key [S-delete] 'kill-region))
+    (global-set-key [S-delete] #'kill-region))
 (or (global-key-binding [S-insert])
-    (global-set-key [S-insert] 'yank))
+    (global-set-key [S-insert] #'yank))
 
 (provide 's-region)
 

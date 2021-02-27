@@ -1,4 +1,4 @@
-;;; semantic/sb.el --- Semantic tag display for speedbar
+;;; semantic/sb.el --- Semantic tag display for speedbar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -73,10 +73,10 @@ use the `speedbar-line-file' to get this info if needed."
 (defmacro semantic-sb-with-tag-buffer (tag &rest forms)
   "Set the current buffer to the origin of TAG and execute FORMS.
 Restore the old current buffer when completed."
+  (declare (indent 1) (debug t))
   `(save-excursion
      (semantic-sb-tag-set-buffer ,tag)
      ,@forms))
-(put 'semantic-sb-with-tag-buffer 'lisp-indent-function 1)
 
 ;;; Button Generation
 ;;
@@ -294,7 +294,7 @@ TEXT TOKEN and INDENT are the details."
 	(t (error "Ooops...  not sure what to do")))
   (speedbar-center-buffer-smartly))
 
-(defun semantic-sb-token-jump (text token indent)
+(defun semantic-sb-token-jump (_text token indent)
   "Jump to the location specified in token.
 TEXT TOKEN and INDENT are the details."
   (let ((file

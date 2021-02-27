@@ -1,4 +1,4 @@
-;;; tpu-mapper.el --- create a TPU-edt X-windows keymap file
+;;; tpu-mapper.el --- create a TPU-edt X-windows keymap file  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 2001-2021 Free Software Foundation, Inc.
 

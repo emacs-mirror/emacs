@@ -1,4 +1,4 @@
-;;; sb-image --- Image management for speedbar
+;;; sb-image --- Image management for speedbar  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2003, 2005-2019, 2021 Free Software Foundation,
 ;; Inc.

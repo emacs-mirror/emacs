@@ -182,7 +182,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defun emacs-lisp-byte-compile ()
   "Byte compile the file containing the current buffer."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (if buffer-file-name
       (byte-compile-file buffer-file-name)
     (error "The buffer must be saved in a file first")))
@@ -198,7 +198,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defun emacs-lisp-byte-compile-and-load ()
   "Byte-compile the current file (if it has changed), then load compiled code."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
   (require 'bytecomp)
   (byte-recompile-file buffer-file-name nil 0)
@@ -212,7 +212,7 @@ Load the compiled code when finished.
 Use `emacs-lisp-byte-compile-and-load' in combination with
 `comp-deferred-compilation' set to `t' to achieve asynchronous
 native compilation."
-  (interactive)
+  (interactive nil emacs-lisp-mode)
   (emacs-lisp--before-compile-buffer)
   (load (native-compile buffer-file-name)))
 

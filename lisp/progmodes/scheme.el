@@ -162,24 +162,25 @@
 (defvar scheme-mode-line-process "")
 
 (defvar scheme-mode-map
-  (let ((smap (make-sparse-keymap))
-        (map (make-sparse-keymap "Scheme")))
-    (set-keymap-parent smap lisp-mode-shared-map)
-    (define-key smap [menu-bar scheme] (cons "Scheme" map))
-    (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
-    (define-key map [uncomment-region]
-      '("Uncomment Out Region" . (lambda (beg end)
-                                   (interactive "r")
-                                   (comment-region beg end '(4)))))
-    (define-key map [comment-region] '("Comment Out Region" . comment-region))
-    (define-key map [indent-region] '("Indent Region" . indent-region))
-    (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
-    (put 'comment-region 'menu-enable 'mark-active)
-    (put 'uncomment-region 'menu-enable 'mark-active)
-    (put 'indent-region 'menu-enable 'mark-active)
-    smap)
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map lisp-mode-shared-map)
+    map)
   "Keymap for Scheme mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
+
+(easy-menu-define scheme-mode-menu scheme-mode-map
+  "Menu for Scheme mode."
+  '("Scheme"
+    ["Indent Line" lisp-indent-line]
+    ["Indent Region" indent-region
+     :enable mark-active]
+    ["Comment Out Region" comment-region
+     :enable mark-active]
+    ["Uncomment Out Region" (lambda (beg end)
+                                (interactive "r")
+                                (comment-region beg end '(4)))
+     :enable mark-active]
+    ["Run Inferior Scheme" run-scheme]))
 
 ;; Used by cmuscheme
 (defun scheme-mode-commands (map)

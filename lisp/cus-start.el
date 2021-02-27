@@ -302,6 +302,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
+	     (use-short-answers menu boolean "28.1")
 	     (focus-follows-mouse
               frames (choice
                       (const :tag "Off (nil)" :value nil)

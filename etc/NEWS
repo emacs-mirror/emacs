@@ -369,6 +369,12 @@ the buffer cycles the whole buffer between "only top-level headings",
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
+** Macroexp
+---
+*** New function 'macroexp-file-name' to know the name of the current file
+---
+*** New function 'macroexp-compiling-p' to know if we're compiling.
+
 ** 'blink-cursor-mode' is now enabled by default regardless of the UI.
 It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
@@ -484,10 +490,25 @@ It can be used to enable/disable the tab bar individually on each frame
 independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 
 ---
-*** New command 'tab-duplicate'.
+*** 'Mod-9' bound to 'tab-last' now switches to the last tab.
+It also supports a negative argument.
+
+---
+*** New command 'tab-duplicate' bound to 'C-x t n'.
+
+---
+*** 'C-x t N' creates a new tab at the specified absolute position.
+It also supports a negative argument.
+
+---
+*** 'C-x t M' moves the current tab to the specified absolute position.
+It also supports a negative argument.
 
 ---
 *** New user option 'tab-bar-tab-name-format-function'.
+
+---
+*** New user option 'tab-line-tab-name-format-function'.
 
 ---
 *** The tabs in the tab line can now be scrolled using horizontal scroll.
@@ -818,10 +839,12 @@ instances.
 Emacs can be defined as a handler for the "x-scheme-handler/mailto"
 MIME type with the following command: "emacs -f message-mailto %u".
 An "emacs-mail.desktop" file has been included, suitable for
-installing in desktop directories like "/usr/share/applications".
+installing in desktop directories like "/usr/share/applications" or
+"~/.local/share/applications".
 Clicking on a 'mailto:' link in other applications will then open
 Emacs with headers filled out according to the link, e.g.
-"mailto:larsi@gnus.org?subject=This+is+a+test".
+"mailto:larsi@gnus.org?subject=This+is+a+test".  If you prefer
+emacsclient, use "emacsclient -e '(message-mailto "%u")'"
 
 ---
 *** Change to default value of 'message-draft-headers' user option.
@@ -1721,6 +1744,10 @@ If this is bound to something non-nil, functions like
 This is a plain 2D button, but uses the background color instead of
 the foreground color.
 
+---
+*** New face 'shortdoc-heading'.
+Applies to headings of shortdoc sections.
+
 +++
 *** New predicate functions 'length<', 'length>' and 'length='.
 Using these functions may be more efficient than using 'length' (if
@@ -2390,6 +2417,12 @@ and display the result.
 ** New variables 'read-char-choice-use-read-key' and 'y-or-n-p-use-read-key'.
 When non-nil, then functions 'read-char-choice' and 'y-or-n-p' (respectively)
 use the function 'read-key' to read a character instead of using the minibuffer.
+
+---
+** New variable 'use-short-answers' to use 'y-or-n-p' instead of 'yes-or-no-p'.
+This eliminates the need to define an alias that maps one to another
+in the init file.  The same variable also controls whether the
+function 'read-answer' accepts short answers.
 
 +++
 ** 'set-window-configuration' now takes an optional 'dont-set-frame'

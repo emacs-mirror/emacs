@@ -3224,6 +3224,15 @@ s   Search for keywords                 M   Like m, but only TODO entries
 (defvar org-agenda-overriding-cmd nil)
 (defvar org-agenda-overriding-arguments nil)
 (defvar org-agenda-overriding-cmd-arguments nil)
+
+(defun org-let (list &rest body) ;FIXME: So many kittens are suffering here.
+  (declare (indent 1))
+  (eval (cons 'let (cons list body))))
+
+(defun org-let2 (list1 list2 &rest body) ;FIXME: Where did our karma go?
+  (declare (indent 2))
+  (eval (cons 'let (cons list1 (list (cons 'let (cons list2 body)))))))
+
 (defun org-agenda-run-series (name series)
   "Run agenda NAME as a SERIES of agenda commands."
   (org-let (nth 1 series) '(org-agenda-prepare name))

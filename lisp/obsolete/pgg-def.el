@@ -1,4 +1,4 @@
-;;; pgg-def.el --- functions/macros for defining PGG functions
+;;; pgg-def.el --- functions/macros for defining PGG functions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999, 2002-2021 Free Software Foundation, Inc.
 
@@ -32,47 +32,39 @@
 
 (defcustom pgg-default-scheme 'gpg
   "Default PGP scheme."
-  :group 'pgg
   :type '(choice (const :tag "GnuPG" gpg)
 		 (const :tag "PGP 5" pgp5)
 		 (const :tag "PGP" pgp)))
 
 (defcustom pgg-default-user-id (user-login-name)
   "User ID of your default identity."
-  :group 'pgg
   :type 'string)
 
 (defcustom pgg-default-keyserver-address "subkeys.pgp.net"
   "Host name of keyserver."
-  :group 'pgg
   :type 'string)
 
 (defcustom pgg-query-keyserver nil
   "Whether PGG queries keyservers for missing keys when verifying messages."
   :version "22.1"
-  :group 'pgg
   :type 'boolean)
 
 (defcustom pgg-encrypt-for-me t
   "If t, encrypt all outgoing messages with user's public key."
-  :group 'pgg
   :type 'boolean)
 
 (defcustom pgg-cache-passphrase t
   "If t, cache passphrase."
-  :group 'pgg
   :type 'boolean)
 
 (defcustom pgg-passphrase-cache-expiry 16
   "How many seconds the passphrase is cached.
 Whether the passphrase is cached at all is controlled by
 `pgg-cache-passphrase'."
-  :group 'pgg
   :type 'integer)
 
 (defcustom pgg-passphrase-coding-system nil
   "Coding system to encode passphrase."
-  :group 'pgg
   :type 'coding-system)
 
 (defvar pgg-messages-coding-system nil

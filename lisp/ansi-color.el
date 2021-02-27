@@ -429,7 +429,8 @@ being deleted."
         ;; positions that overlap regions previously colored; these
         ;; `codes' should not be applied to that overlap, so we need
         ;; to know where they should really start.
-	(setq ansi-color-context-region (if codes (list codes end-marker)))))
+	(setq ansi-color-context-region
+              (if codes (list codes (copy-marker (point)))))))
     ;; Clean up our temporary markers.
     (unless (eq start-marker (cadr ansi-color-context-region))
       (set-marker start-marker nil))

@@ -635,53 +635,37 @@ For instance, if mode is #o700, then it produces `rwx------'."
     ;; Let mouse-1 follow the link.
     (define-key map [follow-link] 'mouse-face)
 
-    ;; Make menu bar items.
-
     ;; Get rid of the Edit menu bar item to save space.
     (define-key map [menu-bar edit] 'undefined)
 
-    (define-key map [menu-bar immediate]
-      (cons "Immediate" (make-sparse-keymap "Immediate")))
-
-    (define-key map [menu-bar immediate woman]
-      '("Read Man Page (WoMan)" . woman-tar-extract-file))
-    (define-key map [menu-bar immediate view]
-      '("View This File" . tar-view))
-    (define-key map [menu-bar immediate display]
-      '("Display in Other Window" . tar-display-other-window))
-    (define-key map [menu-bar immediate find-file-other-window]
-      '("Find in Other Window" . tar-extract-other-window))
-    (define-key map [menu-bar immediate find-file]
-      '("Find This File" . tar-extract))
-
-    (define-key map [menu-bar mark]
-      (cons "Mark" (make-sparse-keymap "Mark")))
-
-    (define-key map [menu-bar mark unmark-all]
-      '("Unmark All" . tar-clear-modification-flags))
-    (define-key map [menu-bar mark deletion]
-      '("Flag" . tar-flag-deleted))
-    (define-key map [menu-bar mark unmark]
-      '("Unflag" . tar-unflag))
-
-    (define-key map [menu-bar operate]
-      (cons "Operate" (make-sparse-keymap "Operate")))
-
-    (define-key map [menu-bar operate chown]
-      '("Change Owner..." . tar-chown-entry))
-    (define-key map [menu-bar operate chgrp]
-      '("Change Group..." . tar-chgrp-entry))
-    (define-key map [menu-bar operate chmod]
-      '("Change Mode..." . tar-chmod-entry))
-    (define-key map [menu-bar operate rename]
-      '("Rename to..." . tar-rename-entry))
-    (define-key map [menu-bar operate copy]
-      '("Copy to..." . tar-copy))
-    (define-key map [menu-bar operate expunge]
-      '("Expunge Marked Files" . tar-expunge))
-    
     map)
   "Local keymap for Tar mode listings.")
+
+(easy-menu-define tar-mode-immediate-menu tar-mode-map
+  "Immediate menu for Tar mode."
+  '("Immediate"
+    ["Find This File" tar-extract]
+    ["Find in Other Window" tar-extract-other-window]
+    ["Display in Other Window" tar-display-other-window]
+    ["View This File" tar-view]
+    ["Read Man Page (WoMan)" woman-tar-extract-file]))
+
+(easy-menu-define tar-mode-mark-menu tar-mode-map
+  "Mark menu for Tar mode."
+  '("Mark"
+    ["Unflag" tar-unflag]
+    ["Flag" tar-flag-deleted]
+    ["Unmark All" tar-clear-modification-flags]))
+
+(easy-menu-define tar-mode-operate-menu tar-mode-map
+  "Operate menu for Tar mode."
+  '("Operate"
+    ["Expunge Marked Files" tar-expunge]
+    ["Copy to..." tar-copy]
+    ["Rename to..." tar-rename-entry]
+    ["Change Mode..." tar-chmod-entry]
+    ["Change Group..." tar-chgrp-entry]
+    ["Change Owner..." tar-chown-entry]))
 
 
 ;; tar mode is suitable only for specially formatted data.

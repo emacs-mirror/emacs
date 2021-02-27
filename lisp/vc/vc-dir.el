@@ -56,39 +56,48 @@ See `run-hooks'."
 
 (defface vc-dir-header '((t :inherit font-lock-type-face))
   "Face for headers in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-header-value '((t :inherit font-lock-variable-name-face))
   "Face for header values in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-directory '((t :inherit font-lock-comment-delimiter-face))
   "Face for directories in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-file '((t :inherit font-lock-function-name-face))
   "Face for files in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-mark-indicator '((t :inherit font-lock-type-face))
   "Face for mark indicators in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-status-warning '((t :inherit font-lock-warning-face))
   "Face for warning status in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-status-edited '((t :inherit font-lock-variable-name-face))
   "Face for edited status in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-status-up-to-date '((t :inherit font-lock-builtin-face))
   "Face for up-to-date status in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 (defface vc-dir-status-ignored '((t :inherit shadow))
   "Face for ignored or empty values in VC-dir buffers."
-  :group 'vc)
+  :group 'vc
+  :version "28.1")
 
 ;; Used to store information for the files displayed in the directory buffer.
 ;; Each item displayed corresponds to one of these defstructs.

@@ -38,6 +38,8 @@
 (ert-deftest test-custom-libs ()
   :tags '(:expensive-test)
   :expected-result :failed ; FIXME: See above.
+  ;; This test is very slow, and IMO not worth the time it takes.
+  (skip-unless (not (getenv "EMACS_HYDRA_CI")))
   (skip-unless (file-readable-p custom-test-admin-cus-test))
   (load custom-test-admin-cus-test)
   (cus-test-libs t)

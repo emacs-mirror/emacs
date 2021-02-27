@@ -1437,7 +1437,11 @@ following constructs:
                    construct."
   (let* ((rx--pcase-vars nil)
          (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))))
-    `(and (pred (string-match ,regexp))
+    `(and (pred stringp)
+          ;; `pcase-let' takes a match for granted and discards all unnecessary
+          ;; conditions, which means that a `pred' clause cannot be used for
+          ;; the match condition.  The following construct seems to survive.
+          (app (lambda (s) (string-match ,regexp s)) (pred identity))
           ,@(let ((i 0))
               (mapcar (lambda (name)
                         (setq i (1+ i))

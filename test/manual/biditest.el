@@ -1,4 +1,4 @@
-;;; biditest.el --- test bidi reordering in GNU Emacs display engine.
+;;; biditest.el --- test bidi reordering in GNU Emacs display engine.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 
@@ -54,7 +54,7 @@ The resulting file should be viewed with `inhibit-bidi-mirroring' set to t."
 		(resolved-paragraph (match-string 3))
 		;; FIXME: Should compare LEVELS with what the display
 		;; engine actually produced.
-		(levels (match-string 4))
+		;;(levels (match-string 4))
 		(indices (match-string 5)))
 	    (setq codes (split-string codes " ")
 		  indices (split-string indices " "))
@@ -120,4 +120,4 @@ BidiCharacterTest.txt file."
   (interactive)
   (message "%s" (bidi-resolved-levels)))
 
-(define-key global-map [f8] 'bidi-levels)
+(define-key global-map [f8] #'bidi-levels)

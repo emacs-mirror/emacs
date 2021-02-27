@@ -1,4 +1,4 @@
-;;; emacs-lock.el --- prevents you from exiting Emacs if a buffer is locked
+;;; emacs-lock.el --- prevents you from exiting Emacs if a buffer is locked  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994, 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -90,12 +90,12 @@ If the buffer is locked, signal error and display its name."
       (setq emacs-lock-from-exiting t)))
 
 (unless noninteractive
-  (add-hook 'kill-emacs-hook 'check-emacs-lock))
-(add-hook 'kill-buffer-hook 'emacs-lock-check-buffer-lock)
-(add-hook 'shell-mode-hook 'emacs-lock-was-buffer-locked)
-(add-hook 'shell-mode-hook 'emacs-lock-shell-sentinel)
-(add-hook 'telnet-mode-hook 'emacs-lock-was-buffer-locked)
-(add-hook 'telnet-mode-hook 'emacs-lock-shell-sentinel)
+  (add-hook 'kill-emacs-hook #'check-emacs-lock))
+(add-hook 'kill-buffer-hook #'emacs-lock-check-buffer-lock)
+(add-hook 'shell-mode-hook #'emacs-lock-was-buffer-locked)
+(add-hook 'shell-mode-hook #'emacs-lock-shell-sentinel)
+(add-hook 'telnet-mode-hook #'emacs-lock-was-buffer-locked)
+(add-hook 'telnet-mode-hook #'emacs-lock-shell-sentinel)
 
 (provide 'emacs-lock)
 

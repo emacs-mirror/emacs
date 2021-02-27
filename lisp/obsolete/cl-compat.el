@@ -1,4 +1,4 @@
-;;; cl-compat.el --- Common Lisp extensions for GNU Emacs Lisp (compatibility)
+;;; cl-compat.el --- Common Lisp extensions for GNU Emacs Lisp (compatibility)  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 2001-2021 Free Software Foundation, Inc.
 
@@ -46,31 +46,23 @@
 
 ;;; Code:
 
-;; This used to be:
-;; (or (featurep 'cl) (require 'cl))
-;; which just has the effect of fooling the byte-compiler into not
-;; loading cl when compiling.  However, that leads to some bogus
-;; compiler warnings.  Loading cl when compiling cannot do any harm,
-;; because for a long time bootstrap-emacs contained 'cl, due to being
-;; dumped from uncompiled files that eval-when-compile'd cl.  So every
-;; file was compiled with 'cl loaded.
-(require 'cl)
+(require 'cl-lib)
 
 
 ;;; Keyword routines not supported by new package.
 
 (defmacro defkeyword (x &optional doc)
-  (list* 'defconst x (list 'quote x) (and doc (list doc))))
+  (cl-list* 'defconst x (list 'quote x) (and doc (list doc))))
 
 (defun keyword-of (sym)
   (or (keywordp sym) (keywordp (intern (format ":%s" sym)))))
 
 
-;;; Multiple values.  Note that the new package uses a different
-;;; convention for multiple values.  The following definitions
-;;; emulate the old convention; all function names have been changed
-;;; by capitalizing the first letter: Values, Multiple-value-*,
-;;; to avoid conflict with the new-style definitions in cl-macs.
+;; Multiple values.  Note that the new package uses a different
+;; convention for multiple values.  The following definitions
+;; emulate the old convention; all function names have been changed
+;; by capitalizing the first letter: Values, Multiple-value-*,
+;; to avoid conflict with the new-style definitions in cl-macs.
 
 (defvar *mvalues-values* nil)
 
@@ -79,7 +71,7 @@
   (car val-forms))
 
 (defun Values-list (val-forms)
-  (apply 'values val-forms))
+  (apply #'cl-values val-forms))
 
 (defmacro Multiple-value-list (form)
   (list 'let* (list '(*mvalues-values* nil) (list '*mvalues-temp* form))
@@ -95,7 +87,7 @@
 
 (defmacro Multiple-value-bind (vars form &rest body)
   (declare (indent 2))
-  (list* 'multiple-value-bind vars (list 'Multiple-value-list form) body))
+  (cl-list* 'multiple-value-bind vars (list 'Multiple-value-list form) body))
 
 (defmacro Multiple-value-setq (vars form)
   (declare (indent 2))
@@ -103,17 +95,16 @@
 
 (defmacro Multiple-value-prog1 (form &rest body)
   (declare (indent 1))
-  (list 'prog1 form (list* 'let '((*mvalues-values* nil)) body)))
+  (list 'prog1 form (cl-list* 'let '((*mvalues-values* nil)) body)))
 
 
 ;;; Routines for parsing keyword arguments.
 
 (defun build-klist (arglist keys &optional allow-others)
-  (let ((res (Multiple-value-call 'mapcar* 'cons (unzip-lists arglist))))
+  (let ((res (Multiple-value-call #'cl-mapcar 'cons (unzip-lists arglist))))
     (or allow-others
-        (with-suppressed-warnings ((obsolete set-difference))
-          (let ((bad (set-difference (mapcar 'car res) keys)))
-            (if bad (error "Bad keywords: %s not in %s" bad keys)))))
+        (let ((bad (cl-set-difference (mapcar #'car res) keys)))
+          (if bad (error "Bad keywords: %s not in %s" bad keys))))
     res))
 
 (defun extract-from-klist (klist key &optional def)
@@ -131,18 +122,16 @@
       (funcall (or test 'eql) item elt))))
 
 (defun safe-idiv (a b)
-  (with-suppressed-warnings ((obsolete signum))
-    (let* ((q (/ (abs a) (abs b)))
-           (s (* (signum a) (signum b))))
-      (Values q (- a (* s q b)) s))))
+  (let* ((q (/ (abs a) (abs b)))
+         (s (* (cl-signum a) (cl-signum b))))
+    (Values q (- a (* s q b)) s)))
 
 
 ;; Internal routines.
 
 (defun pair-with-newsyms (oldforms)
-  (with-suppressed-warnings ((obsolete mapcar*))
-    (let ((newsyms (mapcar (lambda (x) (make-symbol "--cl-var--")) oldforms)))
-      (Values (mapcar* 'list newsyms oldforms) newsyms))))
+  (let ((newsyms (mapcar (lambda (_) (make-symbol "--cl-var--")) oldforms)))
+    (Values (cl-mapcar #'list newsyms oldforms) newsyms)))
 
 (defun zip-lists (evens odds)
   (cl-mapcan 'list evens odds))
@@ -154,7 +143,7 @@
     (Values (nreverse e) (nreverse o))))
 
 (defun reassemble-argslists (list)
-  (let ((n (apply 'min (mapcar 'length list))) (res nil))
+  (let ((n (apply #'min (mapcar #'length list))) (res nil))
     (while (>= (setq n (1- n)) 0)
       (setq res (cons (mapcar (function (lambda (x) (elt x n))) list) res)))
     res))

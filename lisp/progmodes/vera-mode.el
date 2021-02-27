@@ -119,8 +119,6 @@ If nil, TAB always indents current line."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Menu
 
-(require 'easymenu)
-
 (easy-menu-define vera-mode-menu vera-mode-map
   "Menu keymap for Vera Mode."
   '("Vera"

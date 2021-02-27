@@ -495,6 +495,7 @@ Subtests signal errors if something goes wrong."
       (insert "\n"))))
 
 (defun test-byte-comp-compile-and-load (compile &rest forms)
+  (declare (indent 1))
   (let ((elfile nil)
         (elcfile nil))
     (unwind-protect
@@ -513,7 +514,6 @@ Subtests signal errors if something goes wrong."
            (load elfile nil 'nomessage))
       (when elfile (delete-file elfile))
       (when elcfile (delete-file elcfile)))))
-(put 'test-byte-comp-compile-and-load 'lisp-indent-function 1)
 
 (ert-deftest test-byte-comp-macro-expansion ()
   (test-byte-comp-compile-and-load t
