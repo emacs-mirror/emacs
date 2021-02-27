@@ -253,6 +253,8 @@ doc/*/*/*.ps
 doc/emacs/emacsver.texi
 doc/man/emacs.1
 doc/misc/cc-mode.ss
+doc/misc/modus-themes.texi
+doc/misc/org.texi
 etc/DOC
 etc/refcards/emacsver.tex
 gnustmp*
