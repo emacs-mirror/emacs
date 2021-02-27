@@ -859,6 +859,18 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
          (null (neg cstr))
          (equal (typeset cstr) '(cons)))))
 
+(defun comp-cstr-= (dst old-dst src)
+  "Constraint DST being = SRC."
+  (with-comp-cstr-accessors
+    (comp-cstr-intersection dst old-dst src)
+    (cl-loop for v in (valset dst)
+             when (and (floatp v)
+                       (= v (truncate v)))
+               do (push (cons (truncate v) (truncate v)) (range dst)))
+    (cl-loop for (l . h) in (range dst)
+             when (eql l h)
+               do (push (float l) (valset dst)))))
+
 (defun comp-cstr-> (dst old-dst src)
   "Constraint DST being > than SRC.
 SRC can be either a comp-cstr or an integer."

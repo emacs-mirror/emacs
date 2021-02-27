@@ -891,24 +891,24 @@ Return a list of results."
 
       ;; 10
       ((defun comp-tests-ret-type-spec-f (x)
-         (if (= x 3)
+         (if (eql x 3)
              x
            'foo))
        (or (member foo) (integer 3 3)))
 
       ;; 11
       ((defun comp-tests-ret-type-spec-f (x)
-         (if (= 3 x)
+         (if (eql 3 x)
              x
            'foo))
        (or (member foo) (integer 3 3)))
 
       ;; 12
       ((defun comp-tests-ret-type-spec-f (x)
-         (if (= x 3)
+         (if (eql x 3)
              'foo
            x))
-       (or (member foo) marker number))
+       (not (integer 3 3)))
 
       ;; 13
       ((defun comp-tests-ret-type-spec-f (x y)
@@ -1214,7 +1214,7 @@ Return a list of results."
       ;; 57
       ((defun comp-tests-ret-type-spec-f (x)
          (unless (or (eq x 'foo)
-	             (= x 3))
+	             (eql x 3))
            (error "Not foo or 3"))
          x)
        (or (member foo) (integer 3 3)))
@@ -1244,7 +1244,42 @@ Return a list of results."
 			     (>= x y))
              x
            (error "")))
-       (or float (integer 3 10)))))
+       (or float (integer 3 10)))
+
+      ;; 61
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (= x 1.0)
+             x
+           (error "")))
+       (or (member 1.0) (integer 1 1)))
+
+      ;; 62
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (= x 1.0)
+             x
+           (error "")))
+       (or (member 1.0) (integer 1 1)))
+
+      ;; 63
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (= x 1.1)
+             x
+           (error "")))
+       (member 1.1))
+
+      ;; 64
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (= x 1)
+             x
+           (error "")))
+       (or (member 1.0) (integer 1 1)))
+
+      ;; 65
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (= x 1)
+             x
+           (error "")))
+       (or (member 1.0) (integer 1 1)))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

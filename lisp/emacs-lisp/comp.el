@@ -906,11 +906,11 @@ To be used by all entry points."
 
 (defun comp-equality-fun-p (function)
   "Equality functions predicate for FUNCTION."
-  (when (memq function '(eq eql = equal)) t))
+  (when (memq function '(eq eql equal)) t))
 
-(defun comp-range-cmp-fun-p (function)
-  "Predicate for range comparision functions."
-  (when (memq function '(> < >= <=)) t))
+(defun comp-arithm-cmp-fun-p (function)
+  "Predicate for arithmetic comparision functions."
+  (when (memq function '(= > < >= <=)) t))
 
 (defun comp-set-op-p (op)
   "Assignment predicate for OP."
@@ -2238,17 +2238,21 @@ into the C code forwarding the compilation unit."
        else
          do (comp-collect-mvars args))))
 
-(defun comp-negate-range-cmp-fun (function)
-  "Negate FUNCTION."
+(defun comp-negate-arithm-cmp-fun (function)
+  "Negate FUNCTION.
+Return nil if we don't want to emit constraints for its
+negation."
   (cl-ecase function
+    (= nil)
     (> '<=)
     (< '>=)
     (>= '<)
     (<= '>)))
 
-(defun comp-reverse-cmp-fun (function)
+(defun comp-reverse-arithm-fun (function)
   "Reverse FUNCTION."
   (cl-case function
+    (= '=)
     (> '<)
     (< '>)
     (>= '<=)
@@ -2279,15 +2283,16 @@ The assume is emitted at the beginning of the block BB."
                                        (comp-cstr-negation-make rhs)
                                      rhs)))
 	       (comp-block-insns bb))))
-      ((pred comp-range-cmp-fun-p)
-       (let ((kind (if negated
-                       (comp-negate-range-cmp-fun kind)
-                     kind)))
+      ((pred comp-arithm-cmp-fun-p)
+       (when-let ((kind (if negated
+                            (comp-negate-arithm-cmp-fun kind)
+                          kind)))
          (push `(assume ,(make-comp-mvar :slot lhs-slot)
                         (,kind ,lhs
                                ,(if-let* ((vld (comp-cstr-imm-vld-p rhs))
                                           (val (comp-cstr-imm rhs))
-                                          (ok (integerp val)))
+                                          (ok (and (integerp val)
+                                                   (not (memq kind '(= !=))))))
                                     val
                                   (make-comp-mvar :slot (comp-mvar-slot rhs)))))
 	       (comp-block-insns bb))))
@@ -2418,7 +2423,7 @@ TARGET-BB-SYM is the symbol name of the target block."
       (`((set ,(and (pred comp-mvar-p) cmp-res)
               (,(pred comp-call-op-p)
                ,(and (or (pred comp-equality-fun-p)
-                         (pred comp-range-cmp-fun-p))
+                         (pred comp-arithm-cmp-fun-p))
                      fun)
                ,op1 ,op2))
 	 ;; (comment ,_comment-str)
@@ -2441,7 +2446,7 @@ TARGET-BB-SYM is the symbol name of the target block."
                               (comp-maybe-add-vmvar op2 cmp-res prev-insns-seq)
                               block-target negated))
           (when (comp-mvar-used-p target-mvar2)
-            (comp-emit-assume (comp-reverse-cmp-fun kind)
+            (comp-emit-assume (comp-reverse-arithm-fun kind)
                               target-mvar2
                               (comp-maybe-add-vmvar op1 cmp-res prev-insns-seq)
                               block-target negated)))
@@ -3108,7 +3113,9 @@ Fold the call in case."
        (<
         (comp-cstr-< lval (car operands) (cadr operands)))
        (<=
-        (comp-cstr-<= lval (car operands) (cadr operands)))))
+        (comp-cstr-<= lval (car operands) (cadr operands)))
+       (=
+        (comp-cstr-= lval (car operands) (cadr operands)))))
     (`(setimm ,lval ,v)
      (setf (comp-cstr-imm lval) v))
     (`(phi ,lval . ,rest)
