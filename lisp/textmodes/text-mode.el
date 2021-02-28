@@ -70,31 +70,30 @@
 (defvar text-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\e\t" 'ispell-complete-word)
-    (define-key map [menu-bar text]
-      (cons "Text" (make-sparse-keymap "Text")))
-    (bindings--define-key map [menu-bar text toggle-text-mode-auto-fill]
-      '(menu-item "Auto Fill" toggle-text-mode-auto-fill
-                  :button (:toggle . (memq 'turn-on-auto-fill text-mode-hook))
-                  :help "Automatically fill text while typing in text modes (Auto Fill mode)"))
-    (bindings--define-key map [menu-bar text paragraph-indent-minor-mode]
-      '(menu-item "Paragraph Indent" paragraph-indent-minor-mode
-                  :button (:toggle . (bound-and-true-p paragraph-indent-minor-mode))
-                  :help "Toggle paragraph indent minor mode"))
-    (bindings--define-key map [menu-bar text sep] menu-bar-separator)
-    (bindings--define-key map [menu-bar text center-region]
-      '(menu-item "Center Region" center-region
-                  :help "Center the marked region"
-                  :enable (region-active-p)))
-    (bindings--define-key map [menu-bar text center-paragraph]
-      '(menu-item "Center Paragraph" center-paragraph
-                  :help "Center the current paragraph"))
-    (bindings--define-key map [menu-bar text center-line]
-      '(menu-item "Center Line" center-line
-                  :help "Center the current line"))
     map)
   "Keymap for `text-mode'.
 Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
 inherit all the commands defined in this map.")
+
+(easy-menu-define text-mode-menu text-mode-map
+  "Menu for `text-mode'."
+  '("Text"
+    ["Center Line" center-line
+     :help "Center the current line"]
+    ["Center Paragraph" center-paragraph
+     :help "Center the current paragraph"]
+    ["Center Region" center-region
+     :help "Center the marked region"
+     :enable (region-active-p)]
+    "---"
+    ["Paragraph Indent" paragraph-indent-minor-mode
+     :help "Toggle paragraph indent minor mode"
+     :style toggle
+     :selected (bound-and-true-p paragraph-indent-minor-mode)]
+    ["Auto Fill" toggle-text-mode-auto-fill
+     :help "Automatically fill text while typing in text modes (Auto Fill mode)"
+     :style toggle
+     :selected (memq 'turn-on-auto-fill text-mode-hook)]))
 
 
 (define-derived-mode text-mode nil "Text"
