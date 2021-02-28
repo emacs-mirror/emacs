@@ -237,7 +237,6 @@ emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
 # things like org-setup's "version" macro work.  Sigh.
 define org_template
  $(1:.org=.texi): $(1)
-	@rm -f $$@
 	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
 	  -f org-texinfo-export-to-texinfo-batch $$(notdir $$<) $$(notdir $$@)
 endef
