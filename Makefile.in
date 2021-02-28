@@ -999,6 +999,8 @@ info-real: $(INFOS)
 pdf: $(PDFS)
 ps: $(PSS)
 
+misc-info: lisp
+
 info-dir: ${srcdir}/info/dir
 
 ## Hopefully doc/misc/*.texi is not too long for some systems?
@@ -1021,7 +1023,11 @@ info_dir_deps = \
 ## FIXME it would be faster to use the install-info program if we have it,
 ## but then we would need to depend on info-real, which would
 ## slow down parallelization.
-${srcdir}/info/dir: ${info_dir_deps}
+
+## Now that some texi files are generated, this needs to depend on info.
+## Sigh.  FIXME: the minimum dependency is "generated doc/misc/*.texi".
+## TODO build-aux/make-info-dir could parse org sources directly.
+${srcdir}/info/dir: ${info_dir_deps} info-real
 	$(AM_V_at)${MKDIR_P} ${srcdir}/info
 	$(AM_V_GEN)(cd ${srcdir}/doc && \
 	 AWK='${AWK}' ../build-aux/make-info-dir ${info_dir_inputs} \
@@ -1093,10 +1099,11 @@ uninstall-ps: $(UNINSTALL_PS)
 # Depending on src is sufficient, but ends up being slow, since the
 # uncompiled lisp/org/*.el files are used to build the .texi files
 # (which is slow even with the elc files).
-info: lisp
-  ifneq ($(HAVE_MAKEINFO),no)
-	$(MAKE) info-real info-dir
-  endif
+ifneq ($(HAVE_MAKEINFO),no)
+info: info-real info-dir
+else
+info:
+endif
 
 ## build-aux/make-info-dir expects only certain dircategories.
 check-info: info
