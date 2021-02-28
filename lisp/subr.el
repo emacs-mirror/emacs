@@ -2533,10 +2533,10 @@ use `start-file-process'."
 
 (defun process-lines-handling-status (program status-handler &rest args)
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
-If STATUS-HANDLER is non-NIL, it must be a function with one
+If STATUS-HANDLER is non-nil, it must be a function with one
 argument, which will be called with the exit status of the
 program before the output is collected.  If STATUS-HANDLER is
-NIL, an error is signalled if the program returns with a non-zero
+nil, an error is signaled if the program returns with a non-zero
 exit status."
   (with-temp-buffer
     (let ((status (apply #'call-process program nil (current-buffer) nil args)))
@@ -2564,7 +2564,7 @@ Also see `process-lines-ignore-status'."
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 The exit status of the program is ignored.
 Also see `process-lines'."
-  (apply #'process-lines-handling-status program #'identity args))
+  (apply #'process-lines-handling-status program #'ignore args))
 
 (defun process-live-p (process)
   "Return non-nil if PROCESS is alive.
