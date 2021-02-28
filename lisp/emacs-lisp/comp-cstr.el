@@ -789,6 +789,88 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 
 ;;; Entry points.
 
+(defun comp-cstr-imm-vld-p (cstr)
+  "Return t if one and only one immediate value can be extracted from CSTR."
+  (with-comp-cstr-accessors
+    (when (and (null (typeset cstr))
+               (null (neg cstr)))
+      (let* ((v (valset cstr))
+             (r (range cstr))
+             (valset-len (length v))
+             (range-len (length r)))
+        (if (and (= valset-len 1)
+                 (= range-len 0))
+            t
+          (when (and (= valset-len 0)
+                     (= range-len 1))
+            (let* ((low (caar r))
+                   (high (cdar r)))
+              (and (integerp low)
+                   (integerp high)
+                   (= low high)))))))))
+
+(defun comp-cstr-imm (cstr)
+  "Return the immediate value of CSTR.
+`comp-cstr-imm-vld-p' *must* be satisfied before calling
+`comp-cstr-imm'."
+  (declare (gv-setter
+            (lambda (val)
+              `(with-comp-cstr-accessors
+                 (if (integerp ,val)
+                     (setf (typeset ,cstr) nil
+                           (range ,cstr) (list (cons ,val ,val)))
+                   (setf (typeset ,cstr) nil
+                         (valset ,cstr) (list ,val)))))))
+  (with-comp-cstr-accessors
+    (let ((v (valset cstr)))
+      (if (= (length v) 1)
+          (car v)
+        (caar (range cstr))))))
+
+(defun comp-cstr-fixnum-p (cstr)
+  "Return t if CSTR is certainly a fixnum."
+  (with-comp-cstr-accessors
+    (when (null (neg cstr))
+      (when-let (range (range cstr))
+        (let* ((low (caar range))
+               (high (cdar (last range))))
+          (unless (or (eq low '-)
+                      (< low most-negative-fixnum)
+                      (eq high '+)
+                      (> high most-positive-fixnum))
+            t))))))
+
+(defun comp-cstr-symbol-p (cstr)
+  "Return t if CSTR is certainly a symbol."
+  (with-comp-cstr-accessors
+    (and (null (range cstr))
+         (null (neg cstr))
+         (or (and (null (valset cstr))
+                  (equal (typeset cstr) '(symbol)))
+             (and (or (null (typeset cstr))
+                      (equal (typeset cstr) '(symbol)))
+                  (cl-every #'symbolp (valset cstr)))))))
+
+(defsubst comp-cstr-cons-p (cstr)
+  "Return t if CSTR is certainly a cons."
+  (with-comp-cstr-accessors
+    (and (null (valset cstr))
+         (null (range cstr))
+         (null (neg cstr))
+         (equal (typeset cstr) '(cons)))))
+
+(defun comp-cstr-= (dst old-dst src)
+  "Constraint DST being = SRC."
+  (with-comp-cstr-accessors
+    (comp-cstr-intersection dst old-dst src)
+    (cl-loop for v in (valset dst)
+             when (and (floatp v)
+                       (= v (truncate v)))
+               do (push (cons (truncate v) (truncate v)) (range dst)))
+    (cl-loop for (l . h) in (range dst)
+             when (eql l h)
+               do (push (float l) (valset dst)))))
+
 (defun comp-cstr-> (dst old-dst src)
   "Constraint DST being > than SRC.
 SRC can be either a comp-cstr or an integer."
