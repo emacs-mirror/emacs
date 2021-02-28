@@ -305,10 +305,12 @@ Additionally, the function now accepts a HIST argument which can be
 used to specify a custom history variable.
 
 +++
-** Input history for 'goto-line' is now local to every buffer.
-Each buffer will keep a separate history of line numbers used with
-'goto-line'.  This should help making faster the process of finding
-line numbers that were previously jumped to.
+** Input history for 'goto-line' can now be made local to every buffer.
+In any event, line numbers used with 'goto-line' are kept in their own
+history list.  This should help make faster the process of finding
+line numbers that were previously jumped to.  By default, all buffers
+share a single history list.  To make every buffer have its own
+history list, customize the user option 'goto-line-history-local'.
 
 +++
 ** New command 'goto-line-relative' to use in a narrowed buffer.
@@ -351,11 +353,6 @@ trying to be non-destructive.
 ** New command 'memory-report'.
 This command opens a new buffer called "*Memory Report*" and gives a
 summary of where Emacs is using memory currently.
-
-+++
-** The history list for the 'goto-line' command is now a single list
-for all buffers by default.  You can configure a separate list for
-each buffer by customizing the user option 'goto-line-history-local'.
 
 ** Outline
 
