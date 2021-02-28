@@ -2785,16 +2785,12 @@ FUN should be either a `lambda' value or a `closure' value."
     (dolist (binding env)
       (cond
        ((consp binding)
-        ;; We check shadowing by the args, so that the `let' can be moved
-        ;; within the lambda, which can then be unfolded.  FIXME: Some of those
-        ;; bindings might be unused in `body'.
-        (unless (memq (car binding) args) ;Shadowed.
-          (push `(,(car binding) ',(cdr binding)) renv)))
+        (push `(,(car binding) ',(cdr binding)) renv))
        ((eq binding t))
        (t (push `(defvar ,binding) body))))
     (if (null renv)
         `(lambda ,args ,@preamble ,@body)
-      `(lambda ,args ,@preamble (let ,(nreverse renv) ,@body)))))
+      `(let ,renv (lambda ,args ,@preamble ,@body)))))
 
 ;;;###autoload
 (defun byte-compile (form)
@@ -2819,23 +2815,27 @@ If FORM is a lambda or a macro, byte-compile it as a function."
                  (if (symbolp form) form "provided"))
         fun)
        (t
-        (when (or (symbolp form) (eq (car-safe fun) 'closure))
-          ;; `fun' is a function *value*, so try to recover its corresponding
-          ;; source code.
-          (setq lexical-binding (eq (car fun) 'closure))
-          (setq fun (byte-compile--reify-function fun)))
-        ;; Expand macros.
-        (setq fun (byte-compile-preprocess fun))
-        (setq fun (byte-compile-top-level fun nil 'eval))
-        (if (symbolp form)
-            ;; byte-compile-top-level returns an *expression* equivalent to the
-            ;; `fun' expression, so we need to evaluate it, tho normally
-            ;; this is not needed because the expression is just a constant
-            ;; byte-code object, which is self-evaluating.
-            (setq fun (eval fun t)))
-        (if macro (push 'macro fun))
-        (if (symbolp form) (fset form fun))
-        fun))))))
+        (let (final-eval)
+          (when (or (symbolp form) (eq (car-safe fun) 'closure))
+            ;; `fun' is a function *value*, so try to recover its corresponding
+            ;; source code.
+            (setq lexical-binding (eq (car fun) 'closure))
+            (setq fun (byte-compile--reify-function fun))
+            (setq final-eval t))
+          ;; Expand macros.
+          (setq fun (byte-compile-preprocess fun))
+          (setq fun (byte-compile-top-level fun nil 'eval))
+          (if (symbolp form)
+              ;; byte-compile-top-level returns an *expression* equivalent to the
+              ;; `fun' expression, so we need to evaluate it, tho normally
+              ;; this is not needed because the expression is just a constant
+              ;; byte-code object, which is self-evaluating.
+              (setq fun (eval fun t)))
+          (if final-eval
+              (setq fun (eval fun t)))
+          (if macro (push 'macro fun))
+          (if (symbolp form) (fset form fun))
+          fun)))))))
 
 (defun byte-compile-sexp (sexp)
   "Compile and return SEXP."
