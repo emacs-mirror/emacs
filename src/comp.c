@@ -422,7 +422,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "1"
+#define ABI_VERSION "2"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -646,7 +646,9 @@ void *helper_link_table[] =
     helper_PSEUDOVECTOR_TYPEP_XUNTAG,
     pure_write_error,
     push_handler,
+#ifdef WINDOWSNT
     SETJMP_NAME,
+#endif
     record_unwind_protect_excursion,
     helper_unbind_n,
     helper_save_restriction,
@@ -1935,8 +1937,19 @@ emit_setjmp (gcc_jit_rvalue *buf)
 {
 #ifndef WINDOWSNT
   gcc_jit_rvalue *args[] = {buf};
-  return emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 1, args,
-                   false);
+  gcc_jit_param *params[] =
+  {
+    gcc_jit_context_new_param (comp.ctxt, NULL, comp.void_ptr_type, "buf"),
+  };
+  /* Don't call setjmp through a function pointer (Bug#46824) */
+  gcc_jit_function *f =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_IMPORTED,
+				  comp.int_type, STR (SETJMP_NAME),
+				  ARRAYELTS (params), params,
+				  false);
+
+  return gcc_jit_context_new_call (comp.ctxt, NULL, f, 1, args);
 #else
   /* _setjmp (buf, __builtin_frame_address (0)) */
   gcc_jit_rvalue *args[2];
@@ -2668,10 +2681,7 @@ declare_runtime_imported_funcs (void)
   args[1] = comp.int_type;
   ADD_IMPORTED (push_handler, comp.handler_ptr_type, 2, args);
 
-#ifndef WINDOWSNT
-  args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
-  ADD_IMPORTED (SETJMP_NAME, comp.int_type, 1, args);
-#else
+#ifdef WINDOWSNT
   args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
   args[1] = comp.void_ptr_type;
   ADD_IMPORTED (SETJMP_NAME, comp.int_type, 2, args);

@@ -1,6 +1,6 @@
 ;;; comp-tests.el --- unit tests for src/comp.c      -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 
@@ -502,6 +502,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (string= (comp-test-46670-2-f "foo") "foo"))
   (should (equal (subr-type (symbol-function #'comp-test-46670-2-f))
                  '(function (t) (or null sequence)))))
+
+(comp-deftest 46824-1 ()
+  "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01949.html>"
+  (should (equal (comp-test-46824-1-f) nil)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;
