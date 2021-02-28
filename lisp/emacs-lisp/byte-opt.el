@@ -1413,7 +1413,8 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          copysign isnan ldexp float logb
          floor ceiling round truncate
          ffloor fceiling fround ftruncate
-         string= string-equal string< string-lessp
+         string= string-equal string< string-lessp string> string-greaterp
+         string-empty-p string-blank-p string-prefix-p string-suffix-p
          string-search
          consp atom listp nlistp proper-list-p
          sequencep arrayp vectorp stringp bool-vector-p hash-table-p
