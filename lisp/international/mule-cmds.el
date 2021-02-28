@@ -1312,8 +1312,13 @@ Each function is called with one arg, LEIM directory name.")
 
 (defun update-leim-list-file (&rest dirs)
   "Update LEIM list file in directories DIRS."
-  (dolist (function update-leim-list-functions)
-    (apply function dirs)))
+  ;; bug#46818: This `let'-binding is not necessary, but
+  ;; it reduces the recursion depth during bootstrap (at which
+  ;; point some of the core ELisp files haven't been byte-compiled
+  ;; yet, which causes deeper-than-normal recursion).
+  (let ((vc-handled-backends nil))
+    (dolist (function update-leim-list-functions)
+      (apply function dirs))))
 
 (defvar-local current-input-method nil
   "The current input method for multilingual text.
