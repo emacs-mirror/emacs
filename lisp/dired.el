@@ -4240,7 +4240,8 @@ Possible values:
  * `as-is':  Show full switches.
  * Integer:  Show only the first N chars of full switches.
  * Function: Pass `dired-actual-switches' as arg and show result."
-  :group 'Dired-Plus
+  :group 'dired
+  :version "28.1"
   :type '(choice
           (const    :tag "Indicate by name or date, else full"   nil)
           (const    :tag "Show full switches"                    as-is)
