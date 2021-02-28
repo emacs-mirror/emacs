@@ -8,6 +8,8 @@
 #+MACRO: version-tag 0.13.0
 #+MACRO: release-date 2020-10-08
 
+#+texinfo: @insertcopying
+
 This manual, written by Protesilaos Stavrou, describes the customization
 options for the =modus-operandi= and =modus-vivendi= themes, and provides
 every other piece of information pertinent to them.
@@ -16,6 +18,11 @@ The documentation furnished herein corresponds to version {{{version-tag}}},
 released on {{{release-date}}}.  Any reference to a newer feature which does
 not yet form part of the latest tagged commit, is explicitly marked as
 such.
+
+* Copying
+:PROPERTIES:
+:copying:  t
+:END:
 
 Copyright (C) 2020--2021 Free Software Foundation, Inc.
 
