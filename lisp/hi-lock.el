@@ -254,39 +254,25 @@ that older functionality.  This variable avoids multiple reminders.")
 Assumption is made if `hi-lock-mode' used in the *scratch* buffer while
 a library is being loaded.")
 
-(defvar hi-lock-menu
-  (let ((map (make-sparse-keymap "Hi Lock")))
-    (define-key-after map [highlight-regexp]
-      '(menu-item "Highlight Regexp..." highlight-regexp
-        :help "Highlight text matching PATTERN (a regexp)."))
-
-    (define-key-after map [highlight-phrase]
-      '(menu-item "Highlight Phrase..." highlight-phrase
-        :help "Highlight text matching PATTERN (a regexp processed to match phrases)."))
-
-    (define-key-after map [highlight-lines-matching-regexp]
-      '(menu-item "Highlight Lines..." highlight-lines-matching-regexp
-        :help "Highlight lines containing match of PATTERN (a regexp)."))
-
-    (define-key-after map [highlight-symbol-at-point]
-      '(menu-item "Highlight Symbol at Point" highlight-symbol-at-point
-        :help "Highlight symbol found near point without prompting."))
-
-    (define-key-after map [unhighlight-regexp]
-      '(menu-item "Remove Highlighting..." unhighlight-regexp
-        :help "Remove previously entered highlighting pattern."
-        :enable hi-lock-interactive-patterns))
-
-    (define-key-after map [hi-lock-write-interactive-patterns]
-      '(menu-item "Patterns to Buffer" hi-lock-write-interactive-patterns
-        :help "Insert interactively added REGEXPs into buffer at point."
-        :enable hi-lock-interactive-patterns))
-
-    (define-key-after map [hi-lock-find-patterns]
-      '(menu-item "Patterns from Buffer" hi-lock-find-patterns
-        :help "Use patterns (if any) near top of buffer."))
-    map)
-  "Menu for hi-lock mode.")
+(easy-menu-define hi-lock-menu nil
+  "Menu for hi-lock mode."
+  '("Hi Lock"
+    ["Highlight Regexp..." highlight-regexp
+     :help "Highlight text matching PATTERN (a regexp)."]
+    ["Highlight Phrase..." highlight-phrase
+     :help "Highlight text matching PATTERN (a regexp processed to match phrases)."]
+    ["Highlight Lines..." highlight-lines-matching-regexp
+     :help "Highlight lines containing match of PATTERN (a regexp)."]
+    ["Highlight Symbol at Point" highlight-symbol-at-point
+     :help "Highlight symbol found near point without prompting."]
+    ["Remove Highlighting..." unhighlight-regexp
+     :help "Remove previously entered highlighting pattern."
+     :enable hi-lock-interactive-patterns]
+    ["Patterns to Buffer" hi-lock-write-interactive-patterns
+     :help "Insert interactively added REGEXPs into buffer at point."
+     :enable hi-lock-interactive-patterns]
+    ["Patterns from Buffer" hi-lock-find-patterns
+     :help "Use patterns (if any) near top of buffer."]))
 
 (defvar hi-lock-map
   (let ((map (make-sparse-keymap "Hi Lock")))
