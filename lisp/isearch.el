@@ -26,7 +26,7 @@
 
 ;; Instructions
 
-;; For programmed use of isearch-mode, e.g. calling (`isearch-forward'),
+;; For programmed use of isearch-mode, e.g. calling `isearch-forward',
 ;; isearch-mode behaves modally and does not return until the search
 ;; is completed.  It uses a recursive-edit to behave this way.
 
