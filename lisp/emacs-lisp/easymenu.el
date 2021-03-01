@@ -190,7 +190,11 @@ This is expected to be bound to a mouse event."
       (function-put symbol 'completion-predicate #'ignore))
     (dolist (map (if (keymapp maps) (list maps) maps))
       (define-key map
-        (vector 'menu-bar (easy-menu-intern (car menu)))
+        (vector 'menu-bar (if (symbolp (car menu))
+                              (car menu)
+                            ;; If a string, then use the downcased
+                            ;; version for greater backwards compatibiltiy.
+                            (intern (downcase (car menu)))))
         (easy-menu-binding keymap (car menu))))))
 
 (defun easy-menu-filter-return (menu &optional name)

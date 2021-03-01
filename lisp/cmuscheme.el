@@ -132,7 +132,7 @@
 (define-key scheme-mode-map "\C-c\C-l" 'scheme-load-file)
 (define-key scheme-mode-map "\C-c\C-k" 'scheme-compile-file) ;k for "kompile"
 
-(let ((map (lookup-key scheme-mode-map [menu-bar Scheme])))
+(let ((map (lookup-key scheme-mode-map [menu-bar scheme])))
   (define-key map [separator-eval] '("--"))
   (define-key map [compile-file]
     '("Compile Scheme File" . scheme-compile-file))

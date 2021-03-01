@@ -1523,7 +1523,7 @@ Also make each path-info component into a list.
 	  (mapc 'woman-dired-define-key woman-dired-keys)
 	(woman-dired-define-key-maybe "w")
 	(woman-dired-define-key-maybe "W")))
-  (define-key-after (lookup-key dired-mode-map [menu-bar Immediate])
+  (define-key-after (lookup-key dired-mode-map [menu-bar immediate])
     [woman] '("Read Man Page (WoMan)" . woman-dired-find-file) 'view))
 
 (if (featurep 'dired)
