@@ -740,24 +740,23 @@ font-lock keywords will not be case sensitive."
 ;;; Generic Lisp mode.
 
 (defvar lisp-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "Lisp")))
+  (let ((map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
-    (bindings--define-key map [menu-bar lisp] (cons "Lisp" menu-map))
-    (bindings--define-key menu-map [run-lisp]
-      '(menu-item "Run inferior Lisp" run-lisp
-		  :help "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'"))
-    (bindings--define-key menu-map [ev-def]
-      '(menu-item "Eval defun" lisp-eval-defun
-		  :help "Send the current defun to the Lisp process made by M-x run-lisp"))
-    (bindings--define-key menu-map [ind-sexp]
-      '(menu-item "Indent sexp" indent-sexp
-		  :help "Indent each line of the list starting just after point"))
     map)
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
+
+(easy-menu-define lisp-mode-menu lisp-mode-map
+  "Menu for ordinary Lisp mode."
+  '("Lisp"
+    ["Indent sexp" indent-sexp
+     :help "Indent each line of the list starting just after point"]
+    ["Eval defun" lisp-eval-defun
+     :help "Send the current defun to the Lisp process made by M-x run-lisp"]
+    ["Run inferior Lisp" run-lisp
+     :help "Run an inferior Lisp process, input and output via buffer `*inferior-lisp*'"]))
 
 (define-derived-mode lisp-mode lisp-data-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.

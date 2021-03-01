@@ -893,34 +893,30 @@ non-nil result supersedes the xrefs produced by
 ;;; Elisp Interaction mode
 
 (defvar lisp-interaction-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "Lisp-Interaction")))
+  (let ((map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map "\e\t" 'completion-at-point)
     (define-key map "\n" 'eval-print-last-sexp)
-    (bindings--define-key map [menu-bar lisp-interaction]
-      (cons "Lisp-Interaction" menu-map))
-    (bindings--define-key menu-map [eval-defun]
-      '(menu-item "Evaluate Defun" eval-defun
-		  :help "Evaluate the top-level form containing point, or after point"))
-    (bindings--define-key menu-map [eval-print-last-sexp]
-      '(menu-item "Evaluate and Print" eval-print-last-sexp
-		  :help "Evaluate sexp before point; print value into current buffer"))
-    (bindings--define-key menu-map [edebug-defun-lisp-interaction]
-      '(menu-item "Instrument Function for Debugging" edebug-defun
-		  :help "Evaluate the top level form point is in, stepping through with Edebug"
-		  :keys "C-u C-M-x"))
-    (bindings--define-key menu-map [indent-pp-sexp]
-      '(menu-item "Indent or Pretty-Print" indent-pp-sexp
-		  :help "Indent each line of the list starting just after point, or prettyprint it"))
-    (bindings--define-key menu-map [complete-symbol]
-      '(menu-item "Complete Lisp Symbol" completion-at-point
-		  :help "Perform completion on Lisp symbol preceding point"))
     map)
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
+
+(easy-menu-define lisp-interaction-mode-menu lisp-interaction-mode-map
+  "Menu for Lisp Interaction mode."
+  '("Lisp-Interaction"
+    ["Complete Lisp Symbol" completion-at-point
+     :help "Perform completion on Lisp symbol preceding point"]
+    ["Indent or Pretty-Print" indent-pp-sexp
+     :help "Indent each line of the list starting just after point, or prettyprint it"]
+    ["Instrument Function for Debugging" edebug-defun
+     :help "Evaluate the top level form point is in, stepping through with Edebug"
+     :keys "C-u C-M-x"]
+    ["Evaluate and Print" eval-print-last-sexp
+     :help "Evaluate sexp before point; print value into current buffer"]
+    ["Evaluate Defun" eval-defun
+     :help "Evaluate the top-level form containing point, or after point"]))
 
 (define-derived-mode lisp-interaction-mode emacs-lisp-mode "Lisp Interaction"
   "Major mode for typing and evaluating Lisp forms.
