@@ -75,6 +75,14 @@
 (ert-deftest pcase-tests-vectors ()
   (should (equal (pcase [1 2] (`[,x] 1) (`[,x ,y] (+ x y))) 3)))
 
+(ert-deftest pcase-tests-bug14773 ()
+  (let ((f (lambda (x)
+             (pcase 'dummy
+               ((and (let var x) (guard var)) 'left)
+               ((and (let var (not x)) (guard var)) 'right)))))
+    (should (equal (funcall f t) 'left))
+    (should (equal (funcall f nil) 'right))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

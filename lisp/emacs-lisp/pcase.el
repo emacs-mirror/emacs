@@ -661,7 +661,7 @@ A and B can be one of:
                ;; run, but we don't have the environment in which `pat' will
                ;; run, so we can't do a reliable verification.  But let's try
                ;; and catch at least the easy cases such as (bug#14773).
-               (not (macroexp--fgrep (mapcar #'car vars) (cadr upat)))))
+               (not (macroexp--fgrep vars (cadr upat)))))
       '(:pcase--succeed . :pcase--fail))
      ;; In case PAT is of the form (pred (not PRED))
      ((and (eq 'pred (car-safe pat)) (eq 'not (car-safe (cadr pat))))
