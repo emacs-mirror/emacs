@@ -723,7 +723,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 (defun cl--compile-time-too (form)
   (or (and (symbolp (car-safe form)) (get (car-safe form) 'byte-hunk-handler))
       (setq form (macroexpand
-		  form (cons '(cl-eval-when) byte-compile-macro-environment))))
+		  form (cons '(cl-eval-when) macroexpand-all-environment))))
   (cond ((eq (car-safe form) 'progn)
 	 (cons 'progn (mapcar #'cl--compile-time-too (cdr form))))
 	((eq (car-safe form) 'cl-eval-when)
@@ -2481,12 +2481,12 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 		     '(nil byte-compile-inline-expand))
 	       (error "%s already has a byte-optimizer, can't make it inline"
 		      (car spec)))
-	   (put (car spec) 'byte-optimizer 'byte-compile-inline-expand)))
+	   (put (car spec) 'byte-optimizer #'byte-compile-inline-expand)))
 
 	((eq (car-safe spec) 'notinline)
 	 (while (setq spec (cdr spec))
 	   (if (eq (get (car spec) 'byte-optimizer)
-		   'byte-compile-inline-expand)
+		   #'byte-compile-inline-expand)
 	       (put (car spec) 'byte-optimizer nil))))
 
 	((eq (car-safe spec) 'optimize)
@@ -3257,7 +3257,6 @@ does not contain SLOT-NAME."
       (signal 'cl-struct-unknown-slot (list struct-type slot-name))))
 
 (defvar byte-compile-function-environment)
-(defvar byte-compile-macro-environment)
 
 (defun cl--macroexp-fboundp (sym)
   "Return non-nil if SYM will be bound when we run the code.
@@ -3265,7 +3264,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
   (or (fboundp sym)
       (and (macroexp-compiling-p)
            (or (cdr (assq sym byte-compile-function-environment))
-               (cdr (assq sym byte-compile-macro-environment))))))
+               (cdr (assq sym macroexpand-all-environment))))))
 
 (pcase-dolist (`(,type . ,pred)
                ;; Mostly kept in alphabetical order.

@@ -94,7 +94,7 @@ strings case-insensitively."
 (defun cl--mapcar-many (cl-func cl-seqs &optional acc)
   (if (cdr (cdr cl-seqs))
       (let* ((cl-res nil)
-	     (cl-n (apply 'min (mapcar 'length cl-seqs)))
+	     (cl-n (apply #'min (mapcar #'length cl-seqs)))
 	     (cl-i 0)
 	     (cl-args (copy-sequence cl-seqs))
 	     cl-p1 cl-p2)
@@ -131,7 +131,7 @@ strings case-insensitively."
   "Map a FUNCTION across one or more SEQUENCEs, returning a sequence.
 TYPE is the sequence type to return.
 \n(fn TYPE FUNCTION SEQUENCE...)"
-  (let ((cl-res (apply 'cl-mapcar cl-func cl-seq cl-rest)))
+  (let ((cl-res (apply #'cl-mapcar cl-func cl-seq cl-rest)))
     (and cl-type (cl-coerce cl-res cl-type))))
 
 ;;;###autoload
@@ -190,14 +190,14 @@ the elements themselves.
   "Like `cl-mapcar', but nconc's together the values returned by the function.
 \n(fn FUNCTION SEQUENCE...)"
   (if cl-rest
-      (apply 'nconc (apply 'cl-mapcar cl-func cl-seq cl-rest))
+      (apply #'nconc (apply #'cl-mapcar cl-func cl-seq cl-rest))
     (mapcan cl-func cl-seq)))
 
 ;;;###autoload
 (defun cl-mapcon (cl-func cl-list &rest cl-rest)
   "Like `cl-maplist', but nconc's together the values returned by the function.
 \n(fn FUNCTION LIST...)"
-  (apply 'nconc (apply 'cl-maplist cl-func cl-list cl-rest)))
+  (apply #'nconc (apply #'cl-maplist cl-func cl-list cl-rest)))
 
 ;;;###autoload
 (defun cl-some (cl-pred cl-seq &rest cl-rest)
@@ -236,13 +236,13 @@ non-nil value.
 (defun cl-notany (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of every element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
-  (not (apply 'cl-some cl-pred cl-seq cl-rest)))
+  (not (apply #'cl-some cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
 (defun cl-notevery (cl-pred cl-seq &rest cl-rest)
   "Return true if PREDICATE is false of some element of SEQ or SEQs.
 \n(fn PREDICATE SEQ...)"
-  (not (apply 'cl-every cl-pred cl-seq cl-rest)))
+  (not (apply #'cl-every cl-pred cl-seq cl-rest)))
 
 ;;;###autoload
 (defun cl--map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
@@ -693,12 +693,11 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
   "Expand macros in FORM and insert the pretty-printed result."
   (declare (advertised-calling-convention (form) "27.1"))
   (message "Expanding...")
-  (let ((byte-compile-macro-environment nil))
-    (setq form (macroexpand-all form))
-    (message "Formatting...")
-    (prog1
-        (cl-prettyprint form)
-      (message ""))))
+  (setq form (macroexpand-all form))
+  (message "Formatting...")
+  (prog1
+      (cl-prettyprint form)
+    (message "")))
 
 ;;; Integration into the online help system.
 
