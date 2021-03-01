@@ -117,8 +117,9 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
 
   ;; Replace default value with a condition that supports displaying
   ;; global-mode-string in the tab bar instead of the mode line.
-  (when (member '(global-mode-string ("" global-mode-string " "))
-                mode-line-misc-info)
+  (when (and (memq 'tab-bar-format-global tab-bar-format)
+             (member '(global-mode-string ("" global-mode-string " "))
+                     mode-line-misc-info))
     (setq mode-line-misc-info
           (append '(global-mode-string
                     ("" (:eval (if (and tab-bar-mode
