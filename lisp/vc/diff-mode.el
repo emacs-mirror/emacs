@@ -2003,7 +2003,7 @@ revision of the file otherwise."
   (if event (posn-set-point (event-end event)))
   (let ((buffer (when event (current-buffer)))
         (reverse (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
-    (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,switched)
+    (pcase-let ((`(,buf ,_line-offset ,pos ,src ,_dst ,_switched)
                  (diff-find-source-location other-file reverse)))
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))

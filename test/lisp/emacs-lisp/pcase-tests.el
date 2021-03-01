@@ -83,6 +83,13 @@
     (should (equal (funcall f t) 'left))
     (should (equal (funcall f nil) 'right))))
 
+(ert-deftest pcase-tests-bug46786 ()
+  (let ((self 'outer))
+    (should (equal (cl-macrolet ((show-self () `(list 'self self)))
+                     (pcase-let ((`(,self ,self2) '(inner "2")))
+                       (show-self)))
+                   '(self inner)))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

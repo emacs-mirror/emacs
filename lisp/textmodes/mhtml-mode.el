@@ -313,7 +313,7 @@ Prefix arg specifies how many times to move (default 1)."
   (interactive "P")
   (pcase (get-text-property (point) 'mhtml-submode)
     ('nil (sgml-skip-tag-forward arg))
-    (submode (forward-sexp arg))))
+    (_submode (forward-sexp arg))))
 
 ;;;###autoload
 (define-derived-mode mhtml-mode html-mode
