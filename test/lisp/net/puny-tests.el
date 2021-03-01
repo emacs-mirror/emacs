@@ -39,10 +39,12 @@
   (should (string= (puny-decode-string "xn--9dbdkw") "חנוך")))
 
 (ert-deftest puny-test-encode-domain ()
-  (should (string= (puny-encode-domain "åäö.se") "xn--4cab6c.se")))
+  (should (string= (puny-encode-domain "åäö.se") "xn--4cab6c.se"))
+  (should (string= (puny-encode-domain "яндекс.рф") "xn--d1acpjx3f.xn--p1ai")))
 
 (ert-deftest puny-test-decode-domain ()
-  (should (string= (puny-decode-domain "xn--4cab6c.se") "åäö.se")))
+  (should (string= (puny-decode-domain "xn--4cab6c.se") "åäö.se"))
+  (should (string= (puny-decode-domain "xn--d1acpjx3f.xn--p1ai") "яндекс.рф")))
 
 (ert-deftest puny-highly-restrictive-domain-p ()
   (should (puny-highly-restrictive-domain-p "foo.bar.org"))
