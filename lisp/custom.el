@@ -1200,6 +1200,30 @@ property `theme-feature' (which is usually a symbol created by
   (custom-check-theme theme)
   (provide (get theme 'theme-feature)))
 
+(defun require-theme (theme &optional path)
+  "Load THEME stored in `custom-theme-load-path'.
+
+THEME is a symbol that corresponds to the file name without its file
+type extension.  That is assumed to be either '.el' or '.elc'.
+
+When THEME is an element of `custom-available-themes', load it and ask
+for confirmation if it is not considered safe by `custom-safe-themes'.
+Otherwise load the file indicated by THEME, if present.  In the latter
+case, the file is intended to work as the basis of a theme declared
+with `deftheme'.
+
+If optional PATH is non-nil, it should be a list of directories
+to search for THEME in, instead of `custom-theme-load-path'.
+PATH should have the same form as `load-path' or `exec-path'."
+  (cond
+   ((memq theme (custom-available-themes))
+    (load-theme theme))
+   ((let* ((dirs (or path (custom-theme--load-path)))
+           (file (unless (featurep theme)
+                   (locate-file (symbol-name theme) dirs '(".el" ".elc")))))
+      (when file
+        (load-file file))))))
+
 (defcustom custom-safe-themes '(default)
   "Themes that are considered safe to load.
 If the value is a list, each element should be either the SHA-256
