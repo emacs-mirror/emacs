@@ -71,7 +71,7 @@
                                        (irange &aux
                                                (range (list irange))
                                                (typeset ())))
-                         (:copier nil))
+                         (:copier comp-cstr-shallow-copy))
   "Internal representation of a type/value constraint."
   (typeset '(t) :type list
            :documentation "List of possible types the mvar can assume.
@@ -859,17 +859,36 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
          (null (neg cstr))
          (equal (typeset cstr) '(cons)))))
 
-(defun comp-cstr-= (dst old-dst src)
-  "Constraint DST being = SRC."
+(defun comp-cstr-= (dst op1 op2)
+  "Constraint OP1 being = OP2 setting the result into DST."
   (with-comp-cstr-accessors
-    (comp-cstr-intersection dst old-dst src)
-    (cl-loop for v in (valset dst)
-             when (and (floatp v)
-                       (= v (truncate v)))
-               do (push (cons (truncate v) (truncate v)) (range dst)))
-    (cl-loop for (l . h) in (range dst)
-             when (eql l h)
-               do (push (float l) (valset dst)))))
+    (cl-flet ((relax-cstr (cstr)
+                (setf cstr (comp-cstr-shallow-copy cstr))
+                ;; If can be any float extend it to all integers.
+                (when (memq 'float (typeset cstr))
+                  (setf (range cstr) '((- . +))))
+                ;; For each float value that can be represented
+                ;; precisely as an integer add the integer as well.
+                (cl-loop
+                 for v in (valset cstr)
+                 when (and (floatp v)
+                           (= v (truncate v)))
+                   do (push (cons (truncate v) (truncate v)) (range cstr)))
+                (cl-loop
+                 with vals-to-add
+                 for (l . h) in (range cstr)
+                 ;; If an integer range reduces to single value add
+                 ;; its float value too.
+                 if (eql l h)
+                   do (push (float l) vals-to-add)
+                 ;; Otherwise can be any float.
+                 else
+                   do (cl-pushnew 'float (typeset cstr))
+                      (cl-return cstr)
+                 finally (setf (valset cstr)
+                               (append vals-to-add (valset cstr))))
+                cstr))
+      (comp-cstr-intersection dst (relax-cstr op1) (relax-cstr op2)))))
 
 (defun comp-cstr-> (dst old-dst src)
   "Constraint DST being > than SRC.
