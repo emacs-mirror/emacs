@@ -1072,8 +1072,13 @@ To kill an entire subdirectory \(without killing its line in the
 parent directory), go to its directory header line and use this
 command with a prefix argument (the value does not matter).
 
-To undo the killing, the undo command can be used as normally."
-  ;; Returns count of killed lines.  FMT="" suppresses message.
+To undo the killing, the undo command can be used as normally.
+
+This function returns the number of killed lines.
+
+FMT is a format string used for messaging the user about the
+killed lines, and defaults to \"Killed %d line%s.\" if not
+present.  A FMT of \"\" will suppress the messaging."
   (interactive "P")
   (if arg
       (if (dired-get-subdir)
