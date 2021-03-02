@@ -244,6 +244,10 @@ let the buffer grow forever."
 
 (defconst eglot--{} (make-hash-table) "The empty JSON object.")
 
+(defun eglot--executable-find (command &optional remote)
+  "Like Emacs 27's `executable-find', ignore REMOTE on Emacs 26."
+  (if (>= emacs-major-version 27) (executable-find command remote)
+    (executable-find command)))
 
 
 ;;; Message verification helpers
@@ -753,7 +757,7 @@ be guessed."
                      ((null guess)
                       (format "[eglot] Sorry, couldn't guess for `%s'!\n%s"
                               managed-mode base-prompt))
-                     ((and program (not (executable-find program)))
+                     ((and program (not (eglot--executable-find program t)))
                       (concat (format "[eglot] I guess you want to run `%s'"
                                       program-guess)
                               (format ", but I can't find `%s' in PATH!" program)
@@ -878,6 +882,21 @@ received the initializing configuration.
 
 Each function is passed the server as an argument")
 
+(defun eglot--cmd (contact)
+  "Helper for `eglot--connect'."
+  (if (file-remote-p default-directory)
+      ;; TODO: this seems like a bug, although it’s everywhere. For
+      ;; some reason, for remote connections only, over a pipe, we
+      ;; need to turn off line buffering on the tty.
+      ;;
+      ;; Not only does this seem like there should be a better way,
+      ;; but it almost certainly doesn’t work on non-unix systems.
+      (list "sh" "-c"
+            (string-join (cons "stty raw > /dev/null;"
+                               (mapcar #'shell-quote-argument contact))
+             " "))
+    contact))
+
 (defun eglot--connect (managed-major-mode project class contact)
   "Connect to MANAGED-MAJOR-MODE, PROJECT, CLASS and CONTACT.
 This docstring appeases checkdoc, that's all."
@@ -908,12 +927,13 @@ This docstring appeases checkdoc, that's all."
                       (let ((default-directory default-directory))
                         (make-process
                          :name readable-name
-                         :command contact
+                         :command (eglot--cmd contact)
                          :connection-type 'pipe
                          :coding 'utf-8-emacs-unix
                          :noquery t
                          :stderr (get-buffer-create
-                                  (format "*%s stderr*" readable-name)))))))))
+                                  (format "*%s stderr*" readable-name))
+                         :file-handler t)))))))
          (spread (lambda (fn) (lambda (server method params)
                                 (apply fn server method (append params nil)))))
          (server
@@ -943,10 +963,15 @@ This docstring appeases checkdoc, that's all."
                      (jsonrpc-async-request
                       server
                       :initialize
-                      (list :processId (unless (eq (jsonrpc-process-type server)
-                                                   'network)
-                                         (emacs-pid))
-                            :rootPath (expand-file-name default-directory)
+                      (list :processId
+                            (unless (or (file-remote-p default-directory)
+                                        (eq (jsonrpc-process-type server)
+                                            'network))
+                              (emacs-pid))
+                            ;; Maybe turn trampy `/ssh:foo@bar:/path/to/baz.py'
+                            ;; into `/path/to/baz.py', so LSP groks it.
+                            :rootPath (expand-file-name
+                                       (file-local-name default-directory))
                             :rootUri (eglot--path-to-uri default-directory)
                             :initializationOptions (eglot-initialization-options
                                                     server)
@@ -1169,15 +1194,23 @@ If optional MARKER, return a marker instead"
   "URIfy PATH."
   (url-hexify-string
    (concat "file://" (if (eq system-type 'windows-nt) "/")
-           (directory-file-name (file-truename path)))
+           ;; Again watch out for trampy paths.
+           (directory-file-name (file-local-name (file-truename path))))
    url-path-allowed-chars))
 
 (defun eglot--uri-to-path (uri)
-  "Convert URI to a file path."
+  "Convert URI to file path, helped by `eglot--current-server'."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
-  (let ((retval (url-filename (url-generic-parse-url (url-unhex-string uri)))))
-    (if (and (eq system-type 'windows-nt) (cl-plusp (length retval)))
-        (substring retval 1) retval)))
+  (let* ((retval (url-filename (url-generic-parse-url (url-unhex-string uri))))
+         (normalized (if (and (eq system-type 'windows-nt)
+                              (cl-plusp (length retval)))
+                         (substring retval 1)
+                       retval))
+         (server (eglot-current-server))
+         (remote-prefix (and server
+                             (file-remote-p
+                              (project-root (eglot--project server))))))
+    (concat remote-prefix normalized)))
 
 (defun eglot--snippet-expansion-fn ()
   "Compute a function to expand snippets.
