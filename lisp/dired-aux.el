@@ -954,8 +954,13 @@ Dired buffer as a subdirectory, then it deletes that subdirectory
 from the buffer as well.
 To kill an entire subdirectory \(without killing its line in the
 parent directory), go to its directory header line and use this
-command with a prefix argument (the value does not matter)."
-  ;; Returns count of killed lines.  FMT="" suppresses message.
+command with a prefix argument (the value does not matter).
+
+This function returns the number of killed lines.
+
+FMT is a format string used for messaging the user about the
+killed lines, and defaults to \"Killed %d line%s.\" if not
+present.  A FMT of \"\" will suppress the messaging."
   (interactive "P")
   (if arg
       (if (dired-get-subdir)
