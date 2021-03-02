@@ -140,24 +140,26 @@ MS-Windows does not have a \"primary\" selection."
 (defcustom x-select-request-type nil
   "Data type request for X selection.
 The value is one of the following data types, a list of them, or nil:
-  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT'
+  `COMPOUND_TEXT', `UTF8_STRING', `STRING', `TEXT', `text/plain'
 
 If the value is one of the above symbols, try only the specified type.
 
 If the value is a list of them, try each of them in the specified
 order until succeed.
 
-The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING)."
+The value nil is the same as the list (UTF8_STRING COMPOUND_TEXT STRING text/plain)."
   :type '(choice (const :tag "Default" nil)
 		 (const COMPOUND_TEXT)
 		 (const UTF8_STRING)
 		 (const STRING)
 		 (const TEXT)
+                 (const text/plain)
 		 (set :tag "List of values"
 		      (const COMPOUND_TEXT)
 		      (const UTF8_STRING)
 		      (const STRING)
-		      (const TEXT)))
+		      (const TEXT)
+                      (const text/plain)))
   :group 'killing)
 
 (defun gui--selection-value-internal (type)
@@ -167,7 +169,7 @@ decided by `x-select-request-type'.  The return value is already
 decoded.  If `gui-get-selection' signals an error, return nil."
   (let ((request-type (if (memq window-system '(x pgtk))
                           (or x-select-request-type
-                              '(UTF8_STRING COMPOUND_TEXT STRING))
+                              '(UTF8_STRING COMPOUND_TEXT STRING text/plain))
                         'STRING))
 	text)
     (with-demoted-errors "gui-get-selection: %S"
