@@ -667,6 +667,14 @@
     (while (comp-test-no-return-3)
       (comp-test-no-return-3))))
 
+(defun comp-test-=-nan (x)
+  (when (= x 0.0e+NaN)
+    x))
+
+(defun comp-test-=-infinity (x)
+  (when (= x 1.0e+INF)
+    x))
+
 (provide 'comp-test-funcs)
 
 ;;; comp-test-funcs.el ends here
