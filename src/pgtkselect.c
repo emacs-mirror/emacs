@@ -576,6 +576,8 @@ On PGTK, TIME-STAMP is unused.  */)
 	lispy_type = QCOMPOUND_TEXT;
       else if (sd_type == gdk_atom_intern("UTF8_STRING", false))
 	lispy_type = QUTF8_STRING;
+      else if (sd_type == gdk_atom_intern("text/plain;charset=utf-8", false))
+	lispy_type = Qtext_plain_charset_utf_8;
       else
 	lispy_type = QSTRING;
       Fput_text_property (make_fixnum (0), make_fixnum (sd_len),
@@ -611,6 +613,7 @@ syms_of_pgtkselect (void)
   DEFSYM (QUTF8_STRING, "UTF8_STRING");
   DEFSYM (QSTRING, "STRING");
   DEFSYM (QCOMPOUND_TEXT, "COMPOUND_TEXT");
+  DEFSYM (Qtext_plain_charset_utf_8, "text/plain;charset=utf-8");
 
   defsubr (&Spgtk_disown_selection_internal);
   defsubr (&Spgtk_get_selection_internal);
