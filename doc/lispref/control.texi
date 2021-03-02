@@ -617,17 +617,13 @@ match, @code{and} matches.
 @item (or @var{pattern1} @var{pattern2}@dots{})
 Attempts to match @var{pattern1}, @var{pattern2}, @dots{}, in order,
 until one of them succeeds.  In that case, @code{or} likewise matches,
-and the rest of the sub-patterns are not tested.  (Note that there
-must be at least two sub-patterns.
-Simply @w{@code{(or @var{pattern1})}} signals error.)
-@c Issue: Is this correct and intended?
-@c        Are there exceptions, qualifications?
-@c        (Btw, ``Please avoid it'' is a poor error message.)
+and the rest of the sub-patterns are not tested.
 
 To present a consistent environment (@pxref{Intro Eval})
 to @var{body-forms} (thus avoiding an evaluation error on match),
-if any of the sub-patterns let-binds a set of symbols,
-they @emph{must} all bind the same set of symbols.
+the set of variables bound by the pattern is the union of the
+variables bound by each sub-pattern.  If a variable is not bound by
+the sub-pattern that matched, then it is bound to @code{nil}.
 
 @ifnottex
 @anchor{rx in pcase}

@@ -388,6 +388,11 @@ in text mode.  The cursor still only actually blinks in GUI frames.
 ** pcase
 
 +++
+*** The 'or' pattern now binds the union of the vars of its sub-patterns
+If a variable is not bound by the subpattern that matched, it gets bound
+to nil.  This was already sometimes the case, but it is now guaranteed.
+
++++
 *** The 'pred' pattern can now take the form '(pred (not FUN))'.
 This is like '(pred (lambda (x) (not (FUN x))))' but results
 in better code.
