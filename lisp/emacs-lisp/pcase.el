@@ -872,7 +872,7 @@ Otherwise, it defers to REST which is a list of branches of the form
           (if (not v)
               (pcase--u1 matches code (cons (list upat sym) vars) rest)
             ;; Non-linear pattern.  Turn it into an `eq' test.
-            (setq (cddr v) 'used)
+            (setcdr (cdr v) 'used)
             (pcase--u1 (cons `(match ,sym . (pred (eql ,(cadr v))))
                              matches)
                        code vars rest))))
