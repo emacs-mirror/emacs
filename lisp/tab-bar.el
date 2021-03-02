@@ -90,8 +90,8 @@ Possible modifier keys are `control', `meta', `shift', `hyper', `super' and
          (set-default sym val)
          ;; Reenable the tab-bar with new keybindings
          (when tab-bar-mode
-           (tab-bar-mode -1)
-           (tab-bar-mode 1)))
+           (tab-bar--undefine-keys)
+           (tab-bar--define-keys)))
   :group 'tab-bar
   :version "27.1")
 
@@ -174,21 +174,22 @@ either 1 or 0 depending on the value of the customizable variable
     (if (> (length (funcall tab-bar-tabs-function frame)) tab-bar-show) 1 0))))
 
 (defun tab-bar--update-tab-bar-lines (&optional frames)
-  "Update the `tab-bar-lines' parameter in frames.
-Update the tab-bar-lines frame parameter. If the optional
-parameter FRAMES is omitted, update only the currently selected
-frame.  If it is `t', update all frames as well as the default
-for new frames.  Otherwise FRAMES should be a list of frames to
-update."
+  "Update the `tab-bar-lines' frame parameter in FRAMES.
+If the optional parameter FRAMES is omitted, update only
+the currently selected frame.  If it is `t', update all frames
+as well as the default for new frames.  Otherwise FRAMES should be
+a list of frames to update."
   (let ((frame-lst (cond ((null frames)
                           (list (selected-frame)))
                          ((eq frames t)
                           (frame-list))
                          (t frames))))
-    ;; Loop over all frames and update default-frame-alist
+    ;; Loop over all frames and update `tab-bar-lines'
     (dolist (frame frame-lst)
       (unless (frame-parameter frame 'tab-bar-lines-keep-state)
-        (set-frame-parameter frame 'tab-bar-lines (tab-bar--tab-bar-lines-for-frame frame)))))
+        (set-frame-parameter frame 'tab-bar-lines
+                             (tab-bar--tab-bar-lines-for-frame frame)))))
+  ;; Update `default-frame-alist'
   (when (eq frames t)
     (setq default-frame-alist
           (cons (cons 'tab-bar-lines (if (and tab-bar-mode (eq tab-bar-show t)) 1 0))
@@ -200,7 +201,7 @@ update."
   ;; It's defined in C/cus-start, this stops the d-m-m macro defining it again.
   :variable tab-bar-mode
 
-  ;; Recalculate tab-bar-lines for all frames
+  ;; Recalculate `tab-bar-lines' for all frames
   (tab-bar--update-tab-bar-lines t)
 
   (when tab-bar-mode
@@ -665,9 +666,9 @@ on the tab bar instead."
       (wc-history-forward . ,(gethash (or frame (selected-frame)) tab-bar-history-forward)))))
 
 (defun tab-bar--current-tab (&optional tab frame)
-  ;; `tab` here is an argument meaning 'use tab as template'. This is
+  ;; `tab' here is an argument meaning "use tab as template".  This is
   ;; necessary when switching tabs, otherwise the destination tab
-  ;; inherit the current tab's `explicit-name` parameter.
+  ;; inherits the current tab's `explicit-name' parameter.
   (let* ((tab (or tab (assq 'current-tab (frame-parameter frame 'tabs))))
          (tab-explicit-name (alist-get 'explicit-name tab)))
     `(current-tab
@@ -909,9 +910,8 @@ on the tab bar specifying where to insert a new tab."
 
 (defcustom tab-bar-tab-post-open-functions nil
   "List of functions to call after creating a new tab.
-The current tab is supplied as an argument. Any modifications
-made to the tab argument will be applied after all functions are
-called."
+The current tab is supplied as an argument.  Any modifications made
+to the tab argument will be applied after all functions are called."
   :type '(repeat function)
   :group 'tab-bar
   :version "27.1")
@@ -966,7 +966,7 @@ After the tab is created, the hooks in
       (cl-pushnew to-tab (nthcdr to-index tabs))
 
       (when (eq to-index 0)
-        ;; pushnew handles the head of tabs but not frame-parameter
+        ;; `pushnew' handles the head of tabs but not frame-parameter
         (set-frame-parameter nil 'tabs tabs))
 
       (run-hook-with-args 'tab-bar-tab-post-open-functions
@@ -974,8 +974,8 @@ After the tab is created, the hooks in
 
     (when tab-bar-show
       (if (not tab-bar-mode)
-          ;; Switch on tab-bar-mode, since a tab was created
-          ;; Note: This also updates tab-bar-lines
+          ;; Turn on `tab-bar-mode' since a tab was created.
+          ;; Note: this also updates `tab-bar-lines'.
           (tab-bar-mode 1)
         (tab-bar--update-tab-bar-lines)))
 
@@ -1026,10 +1026,10 @@ If `recent', select the most recently visited tab."
   "Defines what to do when the last tab is closed.
 If nil, do nothing and show a message, like closing the last window or frame.
 If `delete-frame', delete the containing frame, as a web browser would do.
-If `tab-bar-mode-disable', disable tab-bar-mode so that tabs no longer show in
-the frame.
-If the value is a function, call that function with the tab to be closed as an
- argument."
+If `tab-bar-mode-disable', disable tab-bar-mode so that tabs no longer show
+in the frame.
+If the value is a function, call that function with the tab to be closed
+as an argument."
   :type '(choice (const    :tag "Do nothing and show message" nil)
                  (const    :tag "Close the containing frame" delete-frame)
                  (const    :tag "Disable tab-bar-mode" tab-bar-mode-disable)
@@ -1040,7 +1040,7 @@ If the value is a function, call that function with the tab to be closed as an
 (defcustom tab-bar-tab-prevent-close-functions nil
   "List of functions to call to determine whether to close a tab.
 The tab to be closed and a boolean indicating whether or not it
-is the only tab in the frame are supplied as arguments. If any
+is the only tab in the frame are supplied as arguments.  If any
 function returns a non-nil value, the tab will not be closed."
   :type '(repeat function)
   :group 'tab-bar
@@ -1124,7 +1124,7 @@ for the last tab on a frame is determined by
                 tab-bar-closed-tabs)
           (set-frame-parameter nil 'tabs (delq close-tab tabs)))
 
-        ;; Recalculate tab-bar-lines and update frames
+        ;; Recalculate `tab-bar-lines' and update frames
         (tab-bar--update-tab-bar-lines)
 
         (force-mode-line-update)
@@ -1151,8 +1151,8 @@ for the last tab on a frame is determined by
                     (run-hook-with-args-until-success
                      'tab-bar-tab-prevent-close-functions
                      (nth index tabs)
-                     ; last-tab-p logically can't ever be true if we
-                     ; make it this far
+                     ;; `last-tab-p' logically can't ever be true
+                     ;; if we make it this far
                      nil))
           (push `((frame . ,(selected-frame))
                   (index . ,index)
@@ -1723,7 +1723,6 @@ Like \\[find-file-other-frame] (which see), but creates a new tab."
 (defun find-file-read-only-other-tab (filename &optional wildcards)
   "Edit file FILENAME, in another tab, but don't allow changes.
 Like \\[find-file-other-frame] (which see), but creates a new tab.
-
 Like \\[find-file-other-tab], but marks buffer as read-only.
 Use \\[read-only-mode] to permit editing."
   (interactive
