@@ -968,6 +968,28 @@ DST is returned."
             (neg dst) (neg res))
       res)))
 
+(defun comp-cstr-intersection-no-hashcons (dst &rest srcs)
+  "Combine SRCS by intersection set operation setting the result in DST.
+Non hash consed values are not propagated as values but rather
+promoted to their types.
+DST is returned."
+  (with-comp-cstr-accessors
+    (apply #'comp-cstr-intersection dst srcs)
+    (let (strip-values strip-types)
+      (cl-loop for v in (valset dst)
+               unless (or (symbolp v)
+                          (fixnump v))
+                 do (push v strip-values)
+                    (push (type-of v) strip-types))
+      (when strip-values
+        (setf (typeset dst) (comp-union-typesets (typeset dst) strip-types)
+              (valset dst) (cl-set-difference (valset dst) strip-values)))
+      (cl-loop for (l . h) in (range dst)
+               when (or (bignump l) (bignump h))
+                 do (setf (range dst) '((- . +)))
+                    (cl-return))
+      dst)))
+
 (defun comp-cstr-intersection-make (&rest srcs)
   "Combine SRCS by intersection set operation and return a new constraint."
   (apply #'comp-cstr-intersection (make-comp-cstr) srcs))

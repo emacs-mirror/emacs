@@ -1279,7 +1279,21 @@ Return a list of results."
 	 (if (= x 1)
              x
            (error "")))
-       (or (member 1.0) (integer 1 1)))))
+       (or (member 1.0) (integer 1 1)))
+
+      ;; 66
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (eql x 0.0)
+	     x
+	   (error "")))
+       float)
+
+      ;; 67
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (equal x '(1 2 3))
+	     x
+	   (error "")))
+       cons)))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

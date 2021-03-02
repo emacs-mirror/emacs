@@ -2266,20 +2266,20 @@ The assume is emitted at the beginning of the block BB."
   (let ((lhs-slot (comp-mvar-slot lhs)))
     (cl-assert lhs-slot)
     (pcase kind
-      ('and
+      ((or 'and 'and-nhc)
        (if (comp-mvar-p rhs)
            (let ((tmp-mvar (if negated
                                (make-comp-mvar :slot (comp-mvar-slot rhs))
                              rhs)))
              (push `(assume ,(make-comp-mvar :slot lhs-slot)
-                            (and ,lhs ,tmp-mvar))
+                            (,kind ,lhs ,tmp-mvar))
 	           (comp-block-insns bb))
              (if negated
                  (push `(assume ,tmp-mvar (not ,rhs))
 	               (comp-block-insns bb))))
          ;; If is only a constraint we can negate it directly.
          (push `(assume ,(make-comp-mvar :slot lhs-slot)
-                        (and ,lhs ,(if negated
+                        (,kind ,lhs ,(if negated
                                        (comp-cstr-negation-make rhs)
                                      rhs)))
 	       (comp-block-insns bb))))
@@ -2431,11 +2431,14 @@ TARGET-BB-SYM is the symbol name of the target block."
        (cl-loop
         with target-mvar1 = (comp-cond-cstrs-target-mvar op1 (car insns-seq) b)
         with target-mvar2 = (comp-cond-cstrs-target-mvar op2 (car insns-seq) b)
-        with equality = (comp-equality-fun-p fun)
         for branch-target-cell on blocks
         for branch-target = (car branch-target-cell)
         for negated in '(t nil)
-        for kind = (if equality 'and fun)
+        for kind = (cl-case fun
+                     (equal 'and-nhc)
+                     (eql 'and-nhc)
+                     (eq 'and)
+                     (t fun))
         when (or (comp-mvar-used-p target-mvar1)
                  (comp-mvar-used-p target-mvar2))
         do
@@ -3102,6 +3105,8 @@ Fold the call in case."
      (cl-case kind
        (and
         (apply #'comp-cstr-intersection lval operands))
+       (and-nhc
+        (apply #'comp-cstr-intersection-no-hashcons lval operands))
        (not
         ;; Prevent double negation!
         (unless (comp-cstr-neg (car operands))
