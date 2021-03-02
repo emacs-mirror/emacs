@@ -2528,11 +2528,11 @@ region's (or buffer's) end.
 This function can be used by modes to add elements to the
 'choice' customization type of a variable.
 
----
++++
 ** New function 'require-theme'.
-This function is used to load a theme or library stored in the
-'custom-theme-load-path'.  It is intended to work as a substitute for
-'require' in those cases where that cannot be used.
+This function is like 'require', but searches 'custom-theme-load-path'
+instead of 'load-path'.  It can be used by Custom themes to load
+supporting Lisp files when 'require' is unsuitable.
 
 +++
 ** New function 'file-modes-number-to-symbolic' to convert a numeric

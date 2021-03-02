@@ -4661,6 +4661,4 @@ Also bind `class' to ((class color) (min-colors 89))."
 
 (provide-theme 'modus-operandi)
 
-(provide 'modus-operandi-theme)
-
 ;;; modus-operandi-theme.el ends here

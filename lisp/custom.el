@@ -1200,29 +1200,31 @@ property `theme-feature' (which is usually a symbol created by
   (custom-check-theme theme)
   (provide (get theme 'theme-feature)))
 
-(defun require-theme (theme &optional path)
-  "Load THEME stored in `custom-theme-load-path'.
+(defun require-theme (feature &optional noerror)
+  "Load FEATURE from a file along `custom-theme-load-path'.
 
-THEME is a symbol that corresponds to the file name without its file
-type extension.  That is assumed to be either '.el' or '.elc'.
+This function is like `require', but searches along
+`custom-theme-load-path' instead of `load-path'.  It can be used
+by Custom themes to load supporting Lisp files when `require' is
+unsuitable.
 
-When THEME is an element of `custom-available-themes', load it and ask
-for confirmation if it is not considered safe by `custom-safe-themes'.
-Otherwise load the file indicated by THEME, if present.  In the latter
-case, the file is intended to work as the basis of a theme declared
-with `deftheme'.
+If FEATURE is not already loaded, search for a file named FEATURE
+with an added `.elc' or `.el' suffix, in that order, in the
+directories specified by `custom-theme-load-path'.
 
-If optional PATH is non-nil, it should be a list of directories
-to search for THEME in, instead of `custom-theme-load-path'.
-PATH should have the same form as `load-path' or `exec-path'."
+Return FEATURE if the file is successfully found and loaded, or
+if FEATURE was already loaded.  If the file fails to load, signal
+an error.  If optional argument NOERROR is non-nil, return nil
+instead of signaling an error.  If the file loads but does not
+provide FEATURE, signal an error.  This cannot be suppressed."
   (cond
-   ((memq theme (custom-available-themes))
-    (load-theme theme))
-   ((let* ((dirs (or path (custom-theme--load-path)))
-           (file (unless (featurep theme)
-                   (locate-file (symbol-name theme) dirs '(".el" ".elc")))))
-      (when file
-        (load-file file))))))
+   ((featurep feature) feature)
+   ((let* ((path (custom-theme--load-path))
+           (file (locate-file (symbol-name feature) path '(".elc" ".el"))))
+      (and file (require feature (file-name-sans-extension file) noerror))))
+   ((not noerror)
+    (let (load-path)
+      (require feature)))))
 
 (defcustom custom-safe-themes '(default)
   "Themes that are considered safe to load.

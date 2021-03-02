@@ -1474,7 +1474,7 @@ To protect against loading themes containing malicious code, Emacs
 displays the source file and asks for confirmation from the user
 before loading any non-built-in theme for the first time.  As
 such, themes are not ordinarily byte-compiled, and source files
-always take precedence when Emacs is looking for a theme to load.
+usually take precedence when Emacs is looking for a theme to load.
 
   The following functions are useful for programmatically enabling and
 disabling themes:
@@ -1507,6 +1507,30 @@ variable and face settings to take effect.  It prompts the user for
 confirmation before loading the theme, unless the optional argument
 @var{no-confirm} is non-@code{nil}.
 @end deffn
+
+@defun require-theme feature &optional noerror
+This function searches @code{custom-theme-load-path} for a file that
+provides @var{feature} and then loads it.  This is like the function
+@code{require} (@pxref{Named Features}), except it searches
+@code{custom-theme-load-path} instead of @code{load-path}
+(@pxref{Library Search}).  This can be useful in Custom themes that
+need to load supporting Lisp files when @code{require} is unsuitable
+for that.
+
+If @var{feature}, which should be a symbol, is not already present in
+the current Emacs session according to @code{featurep}, then
+@code{require-theme} searches for a file named @var{feature} with an
+added @samp{.elc} or @samp{.el} suffix, in that order, in the
+directories specified by @code{custom-theme-load-path}.
+
+If a file providing @var{feature} is successfully found and loaded,
+then @code{require-theme} returns @var{feature}.  The optional
+argument @var{noerror} determines what happens if the search or
+loading fails.  If it is @code{nil}, the function signals an error;
+otherwise, it returns @code{nil}.  If the file loads successfully but
+does not provide @var{feature}, then @code{require-theme} signals an
+error; this cannot be suppressed.
+@end defun
 
 @deffn Command enable-theme theme
 This function enables the Custom theme named @var{theme}.  It signals

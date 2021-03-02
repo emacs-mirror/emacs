@@ -4661,6 +4661,4 @@ Also bind `class' to ((class color) (min-colors 89))."
 
 (provide-theme 'modus-vivendi)
 
-(provide 'modus-vivendi-theme)
-
 ;;; modus-vivendi-theme.el ends here
