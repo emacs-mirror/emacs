@@ -1293,7 +1293,34 @@ Return a list of results."
 	 (if (equal x '(1 2 3))
 	     x
 	   (error "")))
-       cons)))
+       cons)
+
+      ;; 69
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (and (floatp x)
+	          (= x 0))
+             x
+           (error "")))
+       ;; Conservative (see cstr relax in `comp-cstr-=').
+       (or (member 0.0) (integer 0 0)))
+
+      ;; 70
+      ((defun comp-tests-ret-type-spec-f (x)
+	 (if (and (integer x)
+	          (= x 0))
+             x
+           (error "")))
+       ;; Conservative (see cstr relax in `comp-cstr-=').
+       (or (member 0.0) (integer 0 0)))
+
+      ;; 71
+      ((defun comp-tests-ret-type-spec-f (x y)
+	 (if (and (floatp x)
+	          (integerp y)
+	          (= x y))
+             x
+           (error "")))
+       (or float integer))))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()
