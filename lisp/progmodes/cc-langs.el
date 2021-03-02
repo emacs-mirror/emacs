@@ -3098,6 +3098,36 @@ Note that Java specific rules are currently applied to tell this from
   t (c-make-keywords-re t (c-lang-const c-keywords)))
 (c-lang-defvar c-keywords-regexp (c-lang-const c-keywords-regexp))
 
+(c-lang-defconst c-stmt-block-only-keywords
+  "All keywords which unambiguously signify a statement block (as opposed to
+   a brace list) when occurring inside braces."
+  t (c--set-difference
+     (c-lang-const c-keywords)
+     (append (c-lang-const c-primary-expr-kwds)
+	     (c-lang-const c-constant-kwds)
+	     `(,@(when (c-major-mode-is 'c++-mode)
+		   '("typeid" "dynamic_cast" "static_cast" "const_cast"
+		     "reinterpret_cast" "alignof")))
+	     (c-lang-const c-type-modifier-prefix-kwds)
+	     (c-lang-const c-overloadable-operators)
+	     (c-lang-const c-template-typename-kwds)
+	     `(,@(when (c-major-mode-is 'c++-mode)
+		   '("reflexpr")))
+	     `(,@(when (c-major-mode-is '(c-mode c++-mode))
+		   '("sizeof")))
+	     (c-lang-const c-pre-lambda-tokens)
+	     (c-lang-const c-block-decls-with-vars)
+	     (c-lang-const c-primitive-type-kwds))
+     :test 'string-equal))
+
+(c-lang-defconst c-stmt-block-only-keywords-regexp
+  ;; A regexp matching a keyword in `c-stmt-block-only-keywords'.  Such a
+  ;; match can start and end only at token boundaries.
+  t (concat "\\(^\\|\\=\\|[^" (c-lang-const c-symbol-chars) "]\\)"
+	    (c-make-keywords-re t (c-lang-const c-stmt-block-only-keywords))))
+(c-lang-defvar c-stmt-block-only-keywords-regexp
+  (c-lang-const c-stmt-block-only-keywords-regexp))
+
 (c-lang-defconst c-keyword-member-alist
   ;; An alist with all the keywords in the cars.  The cdr for each
   ;; keyword is a list of the symbols for the `*-kwds' lists that
@@ -3650,12 +3680,24 @@ list."
   c t)
 (c-lang-defvar c-recognize-knr-p (c-lang-const c-recognize-knr-p))
 
+(c-lang-defconst c-pre-id-bracelist-kwds
+  "Keywords which, preceding an identifier and brace, signify a bracelist.
+This is only used in c++-mode."
+  t nil
+  c++ '("new" "throw"))
+
 (c-lang-defconst c-pre-id-bracelist-key
-  "A regexp matching tokens which, preceding an identifier, signify a bracelist.
-"
-  t regexp-unmatchable
-  c++ "new\\([^[:alnum:]_$]\\|$\\)\\|&&?\\(\\S.\\|$\\)")
+  ;; A regexp matching keywords which, preceding an identifier and brace,
+  ;; signify a bracelist.  Only used in c++-mode.
+  t (c-make-keywords-re t (c-lang-const c-pre-id-bracelist-kwds)))
 (c-lang-defvar c-pre-id-bracelist-key (c-lang-const c-pre-id-bracelist-key))
+
+(c-lang-defconst c-pre-brace-non-bracelist-key
+  "A regexp matching tokens which, preceding a brace, make it a non-bracelist."
+  t regexp-unmatchable
+  c++ "&&?\\(\\S.\\|$\\)")
+(c-lang-defvar c-pre-brace-non-bracelist-key
+  (c-lang-const c-pre-brace-non-bracelist-key))
 
 (c-lang-defconst c-recognize-typeless-decls
   "Non-nil means function declarations without return type should be
