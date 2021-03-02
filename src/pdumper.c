@@ -489,6 +489,10 @@ struct dump_context
 {
   /* Header we'll write to the dump file when done.  */
   struct dump_header header;
+  /* Data that will be written to the dump file.  */
+  void *buf;
+  dump_off buf_size;
+  dump_off max_offset;
 
   Lisp_Object old_purify_flag;
   Lisp_Object old_post_gc_hook;
@@ -596,6 +600,13 @@ static struct link_weight const
 
 
 /* Dump file creation */
+
+static void dump_grow_buffer (struct dump_context *ctx)
+{
+  ctx->buf = xrealloc (ctx->buf, ctx->buf_size = (ctx->buf_size ?
+						  (ctx->buf_size * 2)
+						  : 8 * 1024 * 1024));
+}
 
 static dump_off dump_object (struct dump_context *ctx, Lisp_Object object);
 static dump_off dump_object_for_offset (struct dump_context *ctx,
@@ -763,8 +774,9 @@ dump_write (struct dump_context *ctx, const void *buf, dump_off nbyte)
   eassert (nbyte == 0 || buf != NULL);
   eassert (ctx->obj_offset == 0);
   eassert (ctx->flags.dump_object_contents);
-  if (emacs_write (ctx->fd, buf, nbyte) < nbyte)
-    report_file_error ("Could not write to dump file", ctx->dump_filename);
+  while (ctx->offset + nbyte > ctx->buf_size)
+    dump_grow_buffer (ctx);
+  memcpy ((char *)ctx->buf + ctx->offset, buf, nbyte);
   ctx->offset += nbyte;
 }
 
@@ -844,10 +856,9 @@ dump_tailq_pop (struct dump_tailq *tailq)
 static void
 dump_seek (struct dump_context *ctx, dump_off offset)
 {
+  if (ctx->max_offset < ctx->offset)
+    ctx->max_offset = ctx->offset;
   eassert (ctx->obj_offset == 0);
-  if (lseek (ctx->fd, offset, SEEK_SET) < 0)
-    report_file_error ("Setting file position",
-                       ctx->dump_filename);
   ctx->offset = offset;
 }
 
@@ -4270,6 +4281,12 @@ types.  */)
   ctx->header.magic[0] = dump_magic[0];
   dump_seek (ctx, 0);
   dump_write (ctx, &ctx->header, sizeof (ctx->header));
+  if (emacs_write (ctx->fd, ctx->buf, ctx->max_offset) < ctx->max_offset)
+    report_file_error ("Could not write to dump file", ctx->dump_filename);
+  xfree (ctx->buf);
+  ctx->buf = NULL;
+  ctx->buf_size = 0;
+  ctx->max_offset = 0;
 
   dump_off
     header_bytes = header_end - header_start,
