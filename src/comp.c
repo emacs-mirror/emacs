@@ -179,8 +179,10 @@ DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_comparison,
              enum gcc_jit_comparison op, gcc_jit_rvalue *a, gcc_jit_rvalue *b));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_long,
             (gcc_jit_context *ctxt, gcc_jit_type *numeric_type, long value));
+#if LISP_WORDS_ARE_POINTERS
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_ptr,
             (gcc_jit_context *ctxt, gcc_jit_type *pointer_type, void *value));
+#endif
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_string_literal,
             (gcc_jit_context *ctxt, const char *value));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_unary_op,
@@ -290,7 +292,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_new_param);
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_int);
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_long);
+#if LISP_WORDS_ARE_POINTERS
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_ptr);
+#endif
   LOAD_DLL_FN (library, gcc_jit_context_new_string_literal);
   LOAD_DLL_FN (library, gcc_jit_context_new_struct_type);
   LOAD_DLL_FN (library, gcc_jit_context_new_unary_op);
@@ -357,7 +361,9 @@ init_gccjit_functions (void)
 #define gcc_jit_context_new_param fn_gcc_jit_context_new_param
 #define gcc_jit_context_new_rvalue_from_int fn_gcc_jit_context_new_rvalue_from_int
 #define gcc_jit_context_new_rvalue_from_long fn_gcc_jit_context_new_rvalue_from_long
-#define gcc_jit_context_new_rvalue_from_ptr fn_gcc_jit_context_new_rvalue_from_ptr
+#if LISP_WORDS_ARE_POINTERS
+# define gcc_jit_context_new_rvalue_from_ptr fn_gcc_jit_context_new_rvalue_from_ptr
+#endif
 #define gcc_jit_context_new_string_literal fn_gcc_jit_context_new_string_literal
 #define gcc_jit_context_new_struct_type fn_gcc_jit_context_new_struct_type
 #define gcc_jit_context_new_unary_op fn_gcc_jit_context_new_unary_op
@@ -1137,7 +1143,7 @@ static gcc_jit_rvalue *
 emit_rvalue_from_emacs_uint (EMACS_UINT val)
 {
 #ifdef WIDE_EMACS_INT
-  if (val > LONG_MAX || val < LONG_MIN)
+  if (val > ULONG_MAX)
     return emit_rvalue_from_long_long (comp.emacs_uint_type, val);
 #endif
   return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -1159,7 +1165,7 @@ static gcc_jit_rvalue *
 emit_rvalue_from_lisp_word_tag (Lisp_Word_tag val)
 {
 #ifdef WIDE_EMACS_INT
-  if (val > LONG_MAX || val < LONG_MIN)
+  if (val > ULONG_MAX)
     return emit_rvalue_from_long_long (comp.lisp_word_tag_type, val);
 #endif
   return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
