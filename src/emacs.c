@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <mbstring.h>
+#include <filename.h>	/* for IS_ABSOLUTE_FILE_NAME */
 #include "w32.h"
 #include "w32heap.h"
 #endif
@@ -433,6 +434,12 @@ set_invocation_vars (char *argv0, char const *original_pwd)
   {
     char argv0_1[MAX_UTF8_PATH];
 
+    /* Avoid calling 'openp' below, as we aren't ready for that yet:
+       emacs_dir is not yet defined in the environment, and therefore
+       emacs_root_dir, called by expand-file-name, will abort.  */
+    if (!IS_ABSOLUTE_FILE_NAME (argv0))
+      argv0 = w32_my_exename ();
+
     if (filename_from_ansi (argv0, argv0_1) == 0)
       raw_name = build_unibyte_string (argv0_1);
     else
@@ -450,6 +457,11 @@ set_invocation_vars (char *argv0, char const *original_pwd)
 
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
   Vinvocation_directory = Ffile_name_directory (raw_name);
+
+#ifdef WINDOWSNT
+  eassert (!NILP (Vinvocation_directory)
+	   && !NILP (Ffile_name_absolute_p (Vinvocation_directory)));
+#endif
 
   /* If we got no directory in argv0, search PATH to find where
      Emacs actually came from.  */
