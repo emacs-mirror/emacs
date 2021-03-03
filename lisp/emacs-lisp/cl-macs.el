@@ -2298,7 +2298,7 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
             ;; The behavior of CL made sense in a dynamically scoped
             ;; language, but nowadays, lexical scoping semantics is more often
             ;; expected.
-            (`(,(or 'let 'let*) . ,(or `(,bindings . ,body) dontcare))
+            (`(,(or 'let 'let*) . ,(or `(,bindings . ,body) pcase--dontcare))
              (let ((nbs ()) (found nil))
                (dolist (binding bindings)
                  (let* ((var (if (symbolp binding) binding (car binding)))
