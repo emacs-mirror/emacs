@@ -1184,6 +1184,15 @@ comment at the start of cc-engine.el for more info."
 			   ;; suitable error.
 			   (setq pre-stmt-found t)
 			   (throw 'loop nil))
+			 ;; Handle C++'s `constexpr', etc.
+			 (if (save-excursion
+			       (and (looking-at c-block-stmt-hangon-key)
+				    (progn
+				      (c-backward-syntactic-ws lim)
+				      (c-safe (c-backward-sexp) t))
+				    (looking-at c-block-stmt-2-key)
+				    (setq pos (point))))
+			     (goto-char pos))
 			 (cond
 			  ;; Have we moved into a macro?
 			  ((and (not macro-start)
