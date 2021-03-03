@@ -2133,7 +2133,7 @@ is not active."
                                        insertText)
                                       (t
                                        (string-trim-left label)))))
-                           (unless (zerop (length item))
+                           (unless (zerop (length proxy))
                              (put-text-property 0 1 'eglot--lsp-item item proxy))
                            proxy))
                        items)))))
