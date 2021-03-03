@@ -4506,6 +4506,14 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 
 static Lisp_Object all_loaded_comp_units_h;
 
+#ifdef WINDOWSNT
+static Lisp_Object
+return_nil (Lisp_Object arg)
+{
+  return Qnil;
+}
+#endif
+
 /* Windows does not let us delete a .eln file that is currently loaded
    by a process.  The strategy is to rename .eln files into .old.eln
    instead of removing them when this is not possible and clean-up
@@ -4517,8 +4525,6 @@ void
 eln_load_path_final_clean_up (void)
 {
 #ifdef WINDOWSNT
-  Lisp_Object return_nil (Lisp_Object arg) { return Qnil; }
-
   Lisp_Object dir_tail = Vcomp_eln_load_path;
   FOR_EACH_TAIL (dir_tail)
     {
