@@ -1,6 +1,6 @@
 ;;; comp-test-funcs.el --- compilation unit tested by comp-tests.el -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019-2020 Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 
@@ -485,6 +485,22 @@
   (and (equal (comp-test-46670-1-f (length s)) s)
        s))
 
+(cl-defun comp-test-46824-1-f ()
+  (let ((next-repos '(1)))
+    (while t
+      (let ((recipe (car next-repos)))
+        (cl-block loop
+          (while t
+            (let ((err
+                   (condition-case e
+                       (progn
+                         (setq next-repos
+                               (cdr next-repos))
+                         (cl-return-from loop))
+                     (error e))))
+              (format "%S"
+                      (error-message-string err))))))
+      (cl-return-from comp-test-46824-1-f))))
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
@@ -666,6 +682,14 @@
     (error "foo")
     (while (comp-test-no-return-3)
       (comp-test-no-return-3))))
+
+(defun comp-test-=-nan (x)
+  (when (= x 0.0e+NaN)
+    x))
+
+(defun comp-test-=-infinity (x)
+  (when (= x 1.0e+INF)
+    x))
 
 (provide 'comp-test-funcs)
 

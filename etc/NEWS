@@ -24,6 +24,11 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 28.1
 
+** Emacs now optionally supports native compilation of Lisp files.
+To enable, configure Emacs with the '--with-native-compilation' option
+to the 'configure' script.  This requires to have the libgccjit
+library to be installed and functional.
+
 --
 ** Support for building with Motif has been removed.
 
@@ -1149,9 +1154,13 @@ key             binding
 / u             package-menu-filter-upgradable
 / /             package-menu-filter-clear
 
-*** Option to automatically native compile packages on installation.
-Customize the user option `package-native-compile' to enable automatic
-native compilation of packages on installation.
+*** Option to automatically native-compile packages upon installation.
+Customize the user option 'package-native-compile' to enable automatic
+native compilation of packages when they are installed.  That option
+is nil by default; if set non-nil, and if your Emacs was built with
+native-compilation support, each package will be natively compiled
+when it is installed, by invoking an asynchronous Emacs subprocess to
+run the native-compilation of the package files.
 
 ---
 *** Column widths in 'list-packages' display can now be customized.

@@ -179,8 +179,10 @@ DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_comparison,
              enum gcc_jit_comparison op, gcc_jit_rvalue *a, gcc_jit_rvalue *b));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_long,
             (gcc_jit_context *ctxt, gcc_jit_type *numeric_type, long value));
+#if LISP_WORDS_ARE_POINTERS
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_rvalue_from_ptr,
             (gcc_jit_context *ctxt, gcc_jit_type *pointer_type, void *value));
+#endif
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_string_literal,
             (gcc_jit_context *ctxt, const char *value));
 DEF_DLL_FN (gcc_jit_rvalue *, gcc_jit_context_new_unary_op,
@@ -290,7 +292,9 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_new_param);
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_int);
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_long);
+#if LISP_WORDS_ARE_POINTERS
   LOAD_DLL_FN (library, gcc_jit_context_new_rvalue_from_ptr);
+#endif
   LOAD_DLL_FN (library, gcc_jit_context_new_string_literal);
   LOAD_DLL_FN (library, gcc_jit_context_new_struct_type);
   LOAD_DLL_FN (library, gcc_jit_context_new_unary_op);
@@ -357,7 +361,9 @@ init_gccjit_functions (void)
 #define gcc_jit_context_new_param fn_gcc_jit_context_new_param
 #define gcc_jit_context_new_rvalue_from_int fn_gcc_jit_context_new_rvalue_from_int
 #define gcc_jit_context_new_rvalue_from_long fn_gcc_jit_context_new_rvalue_from_long
-#define gcc_jit_context_new_rvalue_from_ptr fn_gcc_jit_context_new_rvalue_from_ptr
+#if LISP_WORDS_ARE_POINTERS
+# define gcc_jit_context_new_rvalue_from_ptr fn_gcc_jit_context_new_rvalue_from_ptr
+#endif
 #define gcc_jit_context_new_string_literal fn_gcc_jit_context_new_string_literal
 #define gcc_jit_context_new_struct_type fn_gcc_jit_context_new_struct_type
 #define gcc_jit_context_new_unary_op fn_gcc_jit_context_new_unary_op
@@ -416,7 +422,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "1"
+#define ABI_VERSION "2"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -640,7 +646,9 @@ void *helper_link_table[] =
     helper_PSEUDOVECTOR_TYPEP_XUNTAG,
     pure_write_error,
     push_handler,
+#ifdef WINDOWSNT
     SETJMP_NAME,
+#endif
     record_unwind_protect_excursion,
     helper_unbind_n,
     helper_save_restriction,
@@ -1137,7 +1145,7 @@ static gcc_jit_rvalue *
 emit_rvalue_from_emacs_uint (EMACS_UINT val)
 {
 #ifdef WIDE_EMACS_INT
-  if (val > LONG_MAX || val < LONG_MIN)
+  if (val > ULONG_MAX)
     return emit_rvalue_from_long_long (comp.emacs_uint_type, val);
 #endif
   return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -1159,7 +1167,7 @@ static gcc_jit_rvalue *
 emit_rvalue_from_lisp_word_tag (Lisp_Word_tag val)
 {
 #ifdef WIDE_EMACS_INT
-  if (val > LONG_MAX || val < LONG_MIN)
+  if (val > ULONG_MAX)
     return emit_rvalue_from_long_long (comp.lisp_word_tag_type, val);
 #endif
   return gcc_jit_context_new_rvalue_from_long (comp.ctxt,
@@ -1929,8 +1937,19 @@ emit_setjmp (gcc_jit_rvalue *buf)
 {
 #ifndef WINDOWSNT
   gcc_jit_rvalue *args[] = {buf};
-  return emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 1, args,
-                   false);
+  gcc_jit_param *params[] =
+  {
+    gcc_jit_context_new_param (comp.ctxt, NULL, comp.void_ptr_type, "buf"),
+  };
+  /* Don't call setjmp through a function pointer (Bug#46824) */
+  gcc_jit_function *f =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_IMPORTED,
+				  comp.int_type, STR (SETJMP_NAME),
+				  ARRAYELTS (params), params,
+				  false);
+
+  return gcc_jit_context_new_call (comp.ctxt, NULL, f, 1, args);
 #else
   /* _setjmp (buf, __builtin_frame_address (0)) */
   gcc_jit_rvalue *args[2];
@@ -2662,10 +2681,7 @@ declare_runtime_imported_funcs (void)
   args[1] = comp.int_type;
   ADD_IMPORTED (push_handler, comp.handler_ptr_type, 2, args);
 
-#ifndef WINDOWSNT
-  args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
-  ADD_IMPORTED (SETJMP_NAME, comp.int_type, 1, args);
-#else
+#ifdef WINDOWSNT
   args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
   args[1] = comp.void_ptr_type;
   ADD_IMPORTED (SETJMP_NAME, comp.int_type, 2, args);
@@ -4500,6 +4516,14 @@ helper_PSEUDOVECTOR_TYPEP_XUNTAG (Lisp_Object a, enum pvec_type code)
 
 static Lisp_Object all_loaded_comp_units_h;
 
+#ifdef WINDOWSNT
+static Lisp_Object
+return_nil (Lisp_Object arg)
+{
+  return Qnil;
+}
+#endif
+
 /* Windows does not let us delete a .eln file that is currently loaded
    by a process.  The strategy is to rename .eln files into .old.eln
    instead of removing them when this is not possible and clean-up
@@ -4511,8 +4535,6 @@ void
 eln_load_path_final_clean_up (void)
 {
 #ifdef WINDOWSNT
-  Lisp_Object return_nil (Lisp_Object arg) { return Qnil; }
-
   Lisp_Object dir_tail = Vcomp_eln_load_path;
   FOR_EACH_TAIL (dir_tail)
     {

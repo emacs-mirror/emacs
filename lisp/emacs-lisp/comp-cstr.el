@@ -871,9 +871,12 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                 ;; precisely as an integer add the integer as well.
                 (cl-loop
                  for v in (valset cstr)
-                 when (and (floatp v)
-                           (= v (truncate v)))
-                   do (push (cons (truncate v) (truncate v)) (range cstr)))
+                 do
+                 (when-let* ((ok (floatp v))
+                             (truncated (ignore-error 'overflow-error
+                                          (truncate v)))
+                             (ok (= v truncated)))
+                   (push (cons truncated truncated) (range cstr))))
                 (cl-loop
                  with vals-to-add
                  for (l . h) in (range cstr)
