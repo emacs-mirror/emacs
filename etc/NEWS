@@ -2259,7 +2259,10 @@ This is no longer supported, and setting this variable has no effect.
 Use macro 'with-current-buffer-window' with action alist entry 'body-function'.
 
 ---
-** The metamail.el library is now marked obsolete.
+** The inversion.el library is now obsolete.
+
+---
+** The metamail.el library is now obsolete.
 
 ---
 ** Some obsolete variable and function aliases in dbus.el have been removed.

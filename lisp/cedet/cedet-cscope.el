@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(declare-function inversion-check-version "inversion")
-
 (defvar cedet-cscope-min-version "15.7"
   "Minimum version of CScope required.")
 
@@ -139,7 +137,6 @@ If optional programmatic argument NOERROR is non-nil,
 then instead of throwing an error if CScope isn't available,
 return nil."
   (interactive)
-  (require 'inversion)
   (let ((b (condition-case nil
 	       (cedet-cscope-call (list "-V"))
 	     (error nil)))
@@ -153,7 +150,7 @@ return nil."
 	(goto-char (point-min))
 	(re-search-forward "cscope: version \\([0-9.]+\\)" nil t)
 	(setq rev (match-string 1))
-	(if (inversion-check-version rev nil cedet-cscope-min-version)
+        (if (version< rev cedet-cscope-min-version)
 	    (if noerror
 		nil
 	      (error "Version of CScope is %s.  Need at least %s"

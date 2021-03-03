@@ -141,25 +141,6 @@
 
 ;;; Code:
 
-;; Note: `inversion-test' requires parts of the CEDET package that are
-;; not included with Emacs.
-;;
-;; (defun speedbar-require-version (major minor &optional beta)
-;;   "Non-nil if this version of SPEEDBAR does not satisfy a specific version.
-;; Arguments can be:
-;;
-;;   (MAJOR MINOR &optional BETA)
-;;
-;;   Values MAJOR and MINOR must be integers.  BETA can be an integer, or
-;; excluded if a released version is required.
-;;
-;; It is assumed that if the current version is newer than that specified,
-;; everything passes.  Exceptions occur when known incompatibilities are
-;; introduced."
-;;   (inversion-test 'speedbar
-;; 		  (concat major "." minor
-;; 			  (when beta (concat "beta" beta)))))
-
 (defvar speedbar-initial-expansion-mode-alist
   '(("buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
      speedbar-buffer-buttons)

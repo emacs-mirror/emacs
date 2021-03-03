@@ -162,10 +162,9 @@ Lays claim to all -by.el, and -wy.el files."
   "Insert variables needed by target THIS."
   (ede-proj-makefile-insert-loadpath-items
    (ede-proj-elisp-packages-to-loadpath
-    (list "eieio" "semantic" "inversion" "ede")))
+    (list "eieio" "semantic" "ede")))
   ;; eieio for object system needed in ede
   ;; semantic because it is
-  ;; Inversion for versioning system.
   ;; ede for project regeneration
   (ede-pmake-insert-variable-shared
       (concat (ede-pmake-varname this) "_SEMANTIC_GRAMMAR_EL")
@@ -174,8 +173,7 @@ Lays claim to all -by.el, and -wy.el files."
 		  (with-current-buffer (find-file-noselect src)
 		    (concat (semantic-grammar-package) ".el")))
 		(oref this source)
-		" ")))
-  )
+                " "))))
 
 (cl-defmethod ede-proj-makefile-insert-rules :after ((this semantic-ede-proj-target-grammar))
     "Insert rules needed by THIS target.
