@@ -436,7 +436,13 @@ for the result of evaluating EXP (first arg to `pcase').
 	(decl (assq 'declare body)))
     (when decl (setq body (remove decl body)))
     `(progn
-       (defun ,fsym ,args ,@body)
+       ;; FIXME: We use `eval-and-compile' here so that the pcase macro can be
+       ;; used in the same file where it's defined, but ideally, we should
+       ;; handle this using something similar to `overriding-plist-environment'
+       ;; but for `symbol-function' slots so compiling a file doesn't have the
+       ;; side-effect of defining the function.
+       (eval-and-compile
+         (defun ,fsym ,args ,@body))
        (define-symbol-prop ',fsym 'edebug-form-spec ',(cadr (assq 'debug decl)))
        (define-symbol-prop ',name 'pcase-macroexpander #',fsym))))
 
