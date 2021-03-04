@@ -94,6 +94,15 @@ TEXI_FROM_ORG = ${ORG_SRC:.org=.texi}
 TARGETS_1 = $(INFO_INSTALL:ccmode=cc-mode)
 TARGETS = $(TARGETS_1:info.info=info)
 
+texi_sources = $(addsuffix .texi,${TARGETS})
+texi_notgen = $(filter-out $(notdir ${TEXI_FROM_ORG}),${texi_sources})
+texi_and_org = $(notdir ${ORG_SRC}) ${texi_notgen}
+SOURCES = $(sort ${texi_and_org})
+.PHONY: echo-sources
+## Used by the top-level Makefile.
+echo-sources:
+	@echo ${SOURCES}
+
 DVI_TARGETS  = $(TARGETS:=.dvi)
 HTML_TARGETS = $(TARGETS:=.html)
 PDF_TARGETS  = $(TARGETS:=.pdf)
