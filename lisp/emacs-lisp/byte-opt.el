@@ -607,9 +607,12 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
            (setq args (cddr args)))
          (cons fn (nreverse var-expr-list))))
 
-      (`(defvar ,(and (pred symbolp) name) . ,_)
-       (push name byte-optimize--dynamic-vars)
-       form)
+      (`(defvar ,(and (pred symbolp) name) . ,rest)
+       (let ((optimized-rest (and rest
+                                  (cons (byte-optimize-form (car rest) nil)
+                                        (cdr rest)))))
+         (push name byte-optimize--dynamic-vars)
+         `(defvar ,name . ,optimized-rest)))
 
       (`(,(pred byte-code-function-p) . ,exps)
        (cons fn (mapcar #'byte-optimize-form exps)))
