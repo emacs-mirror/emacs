@@ -87,6 +87,7 @@ INFO_TARGETS = $(INFO_COMMON) efaq-w32
 ## are not as well formatted as handwritten ones.
 ORG_SETUP = $(wildcard ${srcdir}/*-setup.org)
 ORG_SRC = $(filter-out ${ORG_SETUP},$(wildcard ${srcdir}/*.org))
+TEXI_FROM_ORG = ${ORG_SRC:.org=.texi}
 
 # There are some naming differences between the info targets and the other
 # targets, so let's resolve them here.
@@ -278,7 +279,7 @@ infoclean:
 .PHONY: orgclean
 
 orgclean:
-	rm -f $(addprefix ${srcdir}/,${ORG_SRC:=.texi})
+	rm -f ${TEXI_FROM_ORG}
 
 bootstrap-clean maintainer-clean: distclean infoclean orgclean
 
