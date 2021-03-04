@@ -39,9 +39,9 @@
 (require 'iso8601)
 
 ;; Silence warnings
+(defvar newsticker-groups)
 (defvar w3-mode-map)
 (defvar w3m-minor-mode-map)
-
 
 (defvar newsticker--retrieval-timer-list nil
   "List of timers for news retrieval.
@@ -2236,7 +2236,6 @@ If AGE is nil, the total number of items is returned."
 (defun newsticker-opml-export ()
   "OPML subscription export.
 Export subscriptions to a buffer in OPML Format."
-  ;; FIXME: use newsticker-groups
   (interactive)
   (with-current-buffer (get-buffer-create "*OPML Export*")
     (erase-buffer)
@@ -2311,7 +2310,7 @@ Export subscriptions to a buffer in OPML Format."
 
 (defun newsticker-opml-import (filename)
   "Import OPML data from FILENAME.
-Feeds are added to 'newsticker-url-list and 'newsticker-groups
+Feeds are added to `newsticker-url-list' and `newsticker-groups'
 preserving the outline structure."
   (interactive "fOPML file: ")
   (set-buffer (find-file-noselect filename))
