@@ -724,7 +724,8 @@ hash_native_abi (void)
   Vcomp_abi_hash =
     comp_hash_string (
       concat3 (build_string (ABI_VERSION),
-	       concat2 (Vemacs_version, Vsystem_configuration),
+	       concat3 (Vemacs_version, Vsystem_configuration,
+			Vsystem_configuration_options),
 	       Fmapconcat (intern_c_string ("subr-name"),
 			   Vcomp_subr_list, build_string (""))));
   Vcomp_native_version_dir =
