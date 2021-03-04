@@ -999,6 +999,10 @@ info-real: $(INFOS)
 pdf: $(PDFS)
 ps: $(PSS)
 
+# The dependency is due to those doc/misc/ manuals that use .org sources.
+# Depending on src is sufficient, but ends up being slow, since the
+# uncompiled lisp/org/*.el files are used to build the .texi files
+# (which is slow even with the elc files).
 misc-info: lisp
 
 info-dir: ${srcdir}/info/dir
@@ -1092,13 +1096,6 @@ uninstall-ps: $(UNINSTALL_PS)
 # would require changing every rule in doc/ that builds an info file,
 # and it's not worth it.  This case is only relevant if you download a
 # release, then change the .texi files.
-
-# The dependency is due to those doc/misc/ manuals that use .org sources.
-# I would have preferred to just add this to the misc-info target,
-# but that gave parallel build errors.
-# Depending on src is sufficient, but ends up being slow, since the
-# uncompiled lisp/org/*.el files are used to build the .texi files
-# (which is slow even with the elc files).
 ifneq ($(HAVE_MAKEINFO),no)
 info: info-real info-dir
 else
