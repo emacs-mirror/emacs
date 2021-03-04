@@ -282,7 +282,7 @@ Match group 1 is the name of the macro.")
      "continue" "debugger" "default" "delete" "do" "else"
      "enum" "export" "extends" "final" "finally" "for"
      "function" "goto" "if" "implements" "import" "in"
-     "instanceof" "interface" "native" "new" "package"
+     "instanceof" "interface" "native" "new" "of" "package"
      "private" "protected" "public" "return" "static"
      "super" "switch" "synchronized" "throw"
      "throws" "transient" "try" "typeof" "var" "void" "let"
