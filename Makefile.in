@@ -1007,12 +1007,13 @@ misc-info: lisp
 
 info-dir: ${srcdir}/info/dir
 
-## Hopefully doc/misc/*.texi is not too long for some systems?
+texi_misc = $(shell ${MAKE} --no-print-directory -s -C doc/misc echo-sources)
+
 srcdir_doc_info_dir_inputs = \
   ${srcdir}/doc/emacs/emacs.texi \
   ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
   ${srcdir}/doc/lispref/elisp.texi \
-  $(sort $(wildcard ${srcdir}/doc/misc/*.texi))
+  $(addprefix ${srcdir}/doc/misc/,${texi_misc})
 info_dir_inputs = \
   ../build-aux/dir_top \
   $(subst ${srcdir}/doc/,,${srcdir_doc_info_dir_inputs})
@@ -1027,11 +1028,7 @@ info_dir_deps = \
 ## FIXME it would be faster to use the install-info program if we have it,
 ## but then we would need to depend on info-real, which would
 ## slow down parallelization.
-
-## Now that some texi files are generated, this needs to depend on info.
-## Sigh.  FIXME: the minimum dependency is "generated doc/misc/*.texi".
-## TODO build-aux/make-info-dir could parse org sources directly.
-${srcdir}/info/dir: ${info_dir_deps} info-real
+${srcdir}/info/dir: ${info_dir_deps}
 	$(AM_V_at)${MKDIR_P} ${srcdir}/info
 	$(AM_V_GEN)(cd ${srcdir}/doc && \
 	 AWK='${AWK}' ../build-aux/make-info-dir ${info_dir_inputs} \
