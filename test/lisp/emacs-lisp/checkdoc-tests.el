@@ -52,6 +52,33 @@
     (insert "(cl-defmethod foo ((a (eql smthg)) (b list)) \"Return A+B.\")")
     (checkdoc-defun)))
 
+(ert-deftest checkdoc-cl-defmethod-qualified-ok ()
+  "Checkdoc should be happy with a `cl-defmethod' using qualifiers."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defmethod test :around ((a (eql smthg))) \"Return A.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-ok ()
+  "Checkdoc should be happy with a :extra qualified `cl-defmethod'."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defmethod foo :extra \"foo\" ((a (eql smthg))) \"Return A.\")")
+    (checkdoc-defun))
+
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert
+     "(cl-defmethod foo :extra \"foo\" :after ((a (eql smthg))) \"Return A.\")")
+    (checkdoc-defun)))
+
+(ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-and-nil-args-ok ()
+  "Checkdoc should be happy with a 0-arity :extra qualified `cl-defmethod'."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert "(cl-defmethod foo :extra \"foo\" () \"Return A.\")")
+    (checkdoc-defun)))
+
 (ert-deftest checkdoc-cl-defun-with-key-ok ()
   "Checkdoc should be happy with a cl-defun using &key."
   (with-temp-buffer

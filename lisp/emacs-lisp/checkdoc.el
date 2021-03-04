@@ -932,7 +932,7 @@ don't move point."
                            ;; definition ends prematurely.
                            (end-of-file)))
     (`(,(or 'defun 'defvar 'defcustom 'defmacro 'defconst 'defsubst 'defadvice
-            'cl-defun 'cl-defgeneric 'cl-defmethod 'cl-defmacro)
+            'cl-defun 'cl-defgeneric 'cl-defmacro)
        ,(pred symbolp)
        ;; Require an initializer, i.e. ignore single-argument `defvar'
        ;; forms, which never have a doc string.
@@ -941,6 +941,25 @@ don't move point."
      ;; Skip over function or macro name, symbol to be defined, and
      ;; initializer or argument list.
      (forward-sexp 3)
+     (skip-chars-forward " \n\t")
+     t)
+    (`(,'cl-defmethod
+        ,(pred symbolp)
+        . ,rest)
+     (down-list)
+     (forward-sexp (pcase (car rest)
+                     ;; No qualifier, so skip like we would have skipped in
+                     ;; the first clause of the outer `pcase'.
+                     ((pred listp) 3)
+                     (':extra
+                      ;; Skip the :extra qualifier together with its string too.
+                      ;; Skip any additional qualifier.
+                      (if (memq (nth 2 rest) '(:around :before :after))
+                                  6
+                                5))
+                     ;; Skip :before, :after or :around qualifier too.
+                     ((or ':around ':before ':after)
+                      4)))
      (skip-chars-forward " \n\t")
      t)))
 
