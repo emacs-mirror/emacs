@@ -785,6 +785,7 @@ can re-execute a command by calling @code{eval} with the
 
 @node Passwords
 @section Entering passwords
+@cindex entering passwords
 
 Sometimes, you may need to enter a password into Emacs.  For instance,
 when you tell Emacs to visit a file on another machine via a network
@@ -795,7 +796,7 @@ access to the machine (@pxref{Remote Files}).
 displays a prompt in the echo area (such as @samp{Password: }); after
 you type the required password, press @key{RET} to submit it.  To
 prevent others from seeing your password, every character you type is
-displayed as a dot (@samp{.}) instead of its usual form.
+displayed as an asterisk (@samp{*}) instead of its usual form.
 
   Most of the features and commands associated with the minibuffer
 @emph{cannot} be used when entering a password.  There is no history
