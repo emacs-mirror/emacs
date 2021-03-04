@@ -52,8 +52,11 @@ exec "${AWK-awk}" '
     topic[ntopics++] = "Emacs misc features"
     topic[ntopics++] = "Emacs lisp libraries"
     topic[ntopics] = "Unknown category"
+    texinfo = 0
   }
+
   /^@dircategory / {
+    texinfo = 1
     sub(/^@dircategory /, "")
     detexinfo()
     for (dircat = 0; dircat < ntopics && topic[dircat] != $0; dircat++)
@@ -66,6 +69,33 @@ exec "${AWK-awk}" '
       data[dircat] = data[dircat] $0 "\n"
     }
   }
+
+  ## Org stuff. TODO we assume the order of the texinfo items.
+  {
+    ## TODO Check FILENAME suffix instead?
+    ## TODO Is this portable awk?
+    if (FNR == 1) texinfo = 0
+
+    ## If applied to the generated org.texi file, this picks up the examples.
+    ## Thanks for making life more difficult...
+    if (texinfo) next
+
+    if (tolower($0) ~ /^#\+texinfo_dir_category/) {
+      sub(/^#[^:]*: /, "")
+      for (dircat = 0; dircat < ntopics && topic[dircat] != $0; dircat++)
+        continue;
+    }
+    if (tolower($0) ~ /^#\+texinfo_dir_title/) {
+      sub(/^#[^:]*: /, "")
+      ## Note this does not fill any long descriptions.
+      data[dircat] = data[dircat] sprintf("* %-30s", ($0 ". "))
+    }
+    if (tolower($0) ~ /^#\+texinfo_dir_desc/) {
+      sub(/^#[^:]*: /, "")
+      data[dircat] = data[dircat] $0 ".\n"
+    }
+  }
+
   END {
     for (dircat = 0; dircat <= ntopics; dircat++)
       if (data[dircat])
