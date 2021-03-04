@@ -2731,6 +2731,7 @@ either a full name or nil, and EMAIL is a valid email address."
     (define-key map "U" 'package-menu-mark-upgrades)
     (define-key map "r" 'revert-buffer)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
+    (define-key map "w" 'package-browse-url)
     (define-key map "x" 'package-menu-execute)
     (define-key map "h" 'package-menu-quick-help)
     (define-key map "H" #'package-menu-hide-package)
@@ -2753,6 +2754,8 @@ either a full name or nil, and EMAIL is a valid email address."
   "Menu for `package-menu-mode'."
   '("Package"
     ["Describe Package" package-menu-describe-package :help "Display information about this package"]
+    ["Open Package Homepage" package-browse-url
+     :help "Open the homepage of this package"]
     ["Help" package-menu-quick-help :help "Show short key binding help for package-menu-mode"]
     "--"
     ["Refresh Package List" revert-buffer
@@ -4159,6 +4162,22 @@ beginning of the line."
             (package-desc-name package-desc)
             (package-version-join (package-desc-version package-desc))
             (package-desc-summary package-desc))))
+
+(defun package-browse-url (desc &optional secondary)
+  "Open the home page of the package under point in a browser.
+`browse-url' is used to determine the browser to be used.
+If SECONDARY (interactively, the prefix), use the secondary browser."
+  (interactive (list (tabulated-list-get-id)
+                     current-prefix-arg)
+               package-menu-mode)
+  (unless desc
+    (user-error "No package here"))
+  (let ((url (cdr (assoc :url (package-desc-extras desc)))))
+    (unless url
+      (user-error "No home page for %s" (package-desc-name desc)))
+    (if secondary
+	(funcall browse-url-secondary-browser-function url)
+      (browse-url url))))
 
 ;;;; Introspection
 

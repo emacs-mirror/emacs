@@ -1160,6 +1160,9 @@ equivalent to '(map (:sym sym))'.
 ** Package
 
 +++
+*** New command 'package-browse-url' and keystroke 'w'.
+
++++
 *** New commands to filter the package list.
 The filter commands are bound to the following keys:
 
