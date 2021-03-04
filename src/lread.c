@@ -5200,8 +5200,7 @@ that are loaded before your customizations are read!  */);
   load_prefer_newer = 0;
 
   DEFVAR_BOOL ("load-no-native", load_no_native,
-               doc: /* Do not try to load the a .eln file in place of
-		       a .elc one.  */);
+               doc: /* Non-nil means not to load a .eln file when a .elc was requested.  */);
   load_no_native = false;
 
   /* Vsource_directory was initialized in init_lread.  */

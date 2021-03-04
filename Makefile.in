@@ -341,7 +341,7 @@ CONFIG_STATUS_FILES_IN = \
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
-ELN_DESTDIR = "$(DESTDIR)${libdir}/emacs/${version}/"
+ELN_DESTDIR = $(DESTDIR)${libdir}/emacs/${version}/
 
 gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
 

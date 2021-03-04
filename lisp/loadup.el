@@ -457,8 +457,9 @@ lost after dumping")))
 
 (when (featurep 'nativecomp)
   ;; Fix the compilation unit filename to have it working when
-  ;; when installed or if the source directory got moved.  This is set to be
-  ;; a pair in the form: (rel-path-from-install-bin . rel-path-from-local-bin).
+  ;; installed or if the source directory got moved.  This is set to be
+  ;; a cons cell of the form:
+  ;;     (rel-filename-from-install-bin . rel-filename-from-local-bin).
   (let ((h (make-hash-table :test #'eq))
         (bin-dest-dir (cadr (member "--bin-dest" command-line-args)))
         (eln-dest-dir (cadr (member "--eln-dest" command-line-args))))
@@ -473,12 +474,12 @@ lost after dumping")))
                  (native-comp-unit-set-file
                   cu
 	          (cons
-                   ;; Relative path from the installed binary.
+                   ;; Relative filename from the installed binary.
                    (file-relative-name (concat eln-dest-dir
                                                (file-name-nondirectory
                                                 (native-comp-unit-file cu)))
                                        bin-dest-dir)
-                   ;; Relative path from the built uninstalled binary.
+                   ;; Relative filename from the built uninstalled binary.
                    (file-relative-name (native-comp-unit-file cu)
                                        invocation-directory))))
 	       h))))
@@ -543,8 +544,8 @@ lost after dumping")))
                         (t (error "unrecognized dump mode %s" dump-mode)))))
       (when (and (featurep 'nativecomp)
                  (equal dump-mode "pdump"))
-        ;; Don't enable this before bootstrap is completed the as the
-        ;; compiler infrastructure may not be usable.
+        ;; Don't enable this before bootstrap is completed, as the
+        ;; compiler infrastructure may not be usable yet.
         (setq comp-enable-subr-trampolines t))
       (message "Dumping under the name %s" output)
       (condition-case ()
