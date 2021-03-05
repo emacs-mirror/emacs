@@ -982,8 +982,6 @@ INFOS = lispref-info lispintro-info emacs-info misc-info
 PDFS  = lispref-pdf  lispintro-pdf  emacs-pdf  misc-pdf
 PSS   = lispref-ps   lispintro-ps   emacs-ps   misc-ps
 
-## FIXME all of the misc- targets should really depend on lisp,
-## like the info target.
 DOCS = $(DVIS) $(HTMLS) $(INFOS) $(PDFS) $(PSS)
 $(DOCS):
 	$(MAKE) -C doc/$(subst -, ,$@)
@@ -999,11 +997,14 @@ info-real: $(INFOS)
 pdf: $(PDFS)
 ps: $(PSS)
 
-# The dependency is due to those doc/misc/ manuals that use .org sources.
+# This dependency is due to those doc/misc/ manuals that use .org sources.
 # Depending on src is sufficient, but ends up being slow, since the
 # uncompiled lisp/org/*.el files are used to build the .texi files
-# (which is slow even with the elc files).
+# (which can be slow even with the elc files).
 misc-info: lisp
+# Using src rather than lisp because one is less likely to get unnecessary
+# rebuilds of stuff that is not strictly necessary for generating manuals.
+misc-dvi misc-html misc-pdf misc-ps: src
 
 info-dir: ${srcdir}/info/dir
 
