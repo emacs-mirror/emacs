@@ -4,7 +4,7 @@
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; URL: https://gitlab.com/protesilaos/modus-themes
-;; Version: 1.2.0
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -50,7 +50,10 @@
 
 
 
-(require-theme 'modus-themes)
+(eval-and-compile
+  (unless (and (fboundp 'require-theme)
+               (require-theme 'modus-themes t))
+    (require 'modus-themes)))
 
 (deftheme modus-vivendi
   "Accessible and customizable dark theme (WCAG AAA standard).

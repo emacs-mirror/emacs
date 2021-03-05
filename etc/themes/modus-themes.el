@@ -4,7 +4,7 @@
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; URL: https://gitlab.com/protesilaos/modus-themes
-;; Version: 1.2.0
+;; Version: 1.2.3
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -3616,7 +3616,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
 ;;;;; dictionary
     `(dictionary-button-face ((,class :inherit bold :foreground ,fg-special-cold)))
     `(dictionary-reference-face ((,class :inherit button)))
-    `(dictionary-word-definition-face ((,class)))
+    `(dictionary-word-definition-face (()))
     `(dictionary-word-entry-face ((,class :inherit font-lock-comment-face)))
 ;;;;; diff-hl
     `(diff-hl-change ((,class :inherit modus-theme-fringe-yellow)))
@@ -3918,8 +3918,8 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(epa-field-name ((,class :inherit bold :foreground ,fg-dim)))
     `(epa-mark ((,class :inherit bold :foreground ,magenta)))
     `(epa-string ((,class :foreground ,blue-alt)))
-    `(epa-validity-disabled ((,class :inherit modus-theme-refine-red)))
-    `(epa-validity-high ((,class :inherit bold :foreground ,green-alt-other)))
+    `(epa-validity-disabled ((,class :foreground ,red)))
+    `(epa-validity-high ((,class :inherit bold :foreground ,cyan)))
     `(epa-validity-low ((,class :inherit shadow)))
     `(epa-validity-medium ((,class :foreground ,green-alt)))
 ;;;;; equake
@@ -5378,7 +5378,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(org-done ((,class :foreground ,green)))
     `(org-drawer ((,class ,@(modus-themes--mixed-fonts)
                           :foreground ,fg-alt)))
-    `(org-ellipsis ((,class))) ; inherits from the heading's color
+    `(org-ellipsis (())) ; inherits from the heading's color
     `(org-footnote ((,class :inherit button
                             ,@(modus-themes--link-color
                                blue-alt blue-alt-faint))))
@@ -5811,7 +5811,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(sh-quoted-exec ((,class :inherit modus-theme-bold :foreground ,magenta-alt)))
 ;;;;; shortdoc
     `(shortdoc-heading ((,class :inherit modus-theme-pseudo-header)))
-    `(shortdoc-section ((,class))) ; remove the default's variable-pitch style
+    `(shortdoc-section (())) ; remove the default's variable-pitch style
 ;;;;; show-paren-mode
     `(show-paren-match ((,class ,@(modus-themes--paren bg-paren-match
                                                        bg-paren-match-intense)
@@ -5875,7 +5875,7 @@ by virtue of calling either of `modus-themes-load-operandi' and
     `(smerge-lower ((,class :inherit modus-theme-diff-added)))
     `(smerge-markers ((,class :background ,bg-diff-neutral-2 :foreground ,fg-diff-neutral-2)))
     `(smerge-refined-added ((,class :inherit modus-theme-diff-refine-added)))
-    `(smerge-refined-changed ((,class)))
+    `(smerge-refined-changed (()))
     `(smerge-refined-removed ((,class :inherit modus-theme-diff-refine-removed)))
     `(smerge-upper ((,class :inherit modus-theme-diff-removed)))
 ;;;;; solaire
@@ -6431,6 +6431,12 @@ by virtue of calling either of `modus-themes-load-operandi' and
             ("docker" modus-theme-nuanced-cyan)))
       `(org-src-block-faces '())))
   "Custom variables for `modus-themes-theme'.")
+
+;;;###autoload
+(when load-file-name
+  (let ((dir (file-name-directory load-file-name)))
+    (unless (equal dir (expand-file-name "themes/" data-directory))
+      (add-to-list 'custom-theme-load-path dir))))
 
 (provide 'modus-themes)
 ;;; modus-themes.el ends here
