@@ -1,4 +1,4 @@
-;;; bindat-tests.el --- tests for bindat.el  -*- lexical-binding: t; coding: utf-8; -*-
+;;; bindat-tests.el --- tests for bindat.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
@@ -23,14 +23,14 @@
 (require 'bindat)
 (require 'cl-lib)
 
-(defvar header-bindat-spec
+(defconst header-bindat-spec
   (bindat-spec
     (dest-ip ip)
     (src-ip ip)
     (dest-port u16)
     (src-port u16)))
 
-(defvar data-bindat-spec
+(defconst data-bindat-spec
   (bindat-spec
     (type u8)
     (opcode u8)
@@ -39,7 +39,7 @@
     (data vec (length))
     (align 4)))
 
-(defvar packet-bindat-spec
+(defconst packet-bindat-spec
   (bindat-spec
     (header struct header-bindat-spec)
     (items u8)
@@ -47,23 +47,23 @@
     (item repeat (items)
           (struct data-bindat-spec))))
 
-(defvar struct-bindat
+(defconst struct-bindat
   '((header
      (dest-ip . [192 168 1 100])
      (src-ip . [192 168 1 101])
      (dest-port . 284)
      (src-port . 5408))
     (items . 2)
-    (item ((data . [1 2 3 4 5])
-           (id . "ABCDEF")
-           (length . 5)
+    (item ((type . 2)
            (opcode . 3)
-           (type . 2))
-          ((data . [6 7 8 9 10 11 12])
-           (id . "BCDEFG")
-           (length . 7)
+           (length . 5)
+           (id . "ABCDEF")
+           (data . [1 2 3 4 5]))
+          ((type . 1)
            (opcode . 4)
-           (type . 1)))))
+           (length . 7)
+           (id . "BCDEFG")
+           (data . [6 7 8 9 10 11 12])))))
 
 (ert-deftest bindat-test-pack ()
   (should (equal

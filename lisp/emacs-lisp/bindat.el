@@ -201,7 +201,7 @@
 (defvar bindat-raw)
 (defvar bindat-idx)
 
-(defun bindat--unpack-u8 ()
+(defsubst bindat--unpack-u8 ()
   (prog1
       (aref bindat-raw bindat-idx)
     (setq bindat-idx (1+ bindat-idx))))
@@ -230,47 +230,50 @@
 (defun bindat--unpack-u64r ()
   (logior (bindat--unpack-u32r) (ash (bindat--unpack-u32r) 32)))
 
+(defun bindat--unpack-str (len)
+  (let ((s (substring bindat-raw bindat-idx (+ bindat-idx len))))
+    (setq bindat-idx (+ bindat-idx len))
+    (if (stringp s) s
+      (apply #'unibyte-string s))))
+
+(defun bindat--unpack-strz (len)
+  (let ((i 0) s)
+    (while (and (< i len) (/= (aref bindat-raw (+ bindat-idx i)) 0))
+      (setq i (1+ i)))
+    (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
+    (setq bindat-idx (+ bindat-idx len))
+    (if (stringp s) s
+      (apply #'unibyte-string s))))
+
+(defun bindat--unpack-bits (len)
+  (let ((bits nil) (bnum (1- (* 8 len))) j m)
+    (while (>= bnum 0)
+      (if (= (setq m (bindat--unpack-u8)) 0)
+	  (setq bnum (- bnum 8))
+	(setq j 128)
+	(while (> j 0)
+	  (if (/= 0 (logand m j))
+	      (setq bits (cons bnum bits)))
+	  (setq bnum (1- bnum)
+		j (ash j -1)))))
+    bits))
+
 (defun bindat--unpack-item (type len &optional vectype)
   (if (eq type 'ip)
       (setq type 'vec len 4))
   (pcase type
-   ((or 'u8 'byte)
-    (bindat--unpack-u8))
-   ((or 'u16 'word 'short)
-    (bindat--unpack-u16))
+   ((or 'u8 'byte) (bindat--unpack-u8))
+   ((or 'u16 'word 'short) (bindat--unpack-u16))
    ('u24 (bindat--unpack-u24))
-   ((or 'u32 'dword 'long)
-    (bindat--unpack-u32))
+   ((or 'u32 'dword 'long) (bindat--unpack-u32))
    ('u64  (bindat--unpack-u64))
    ('u16r (bindat--unpack-u16r))
    ('u24r (bindat--unpack-u24r))
    ('u32r (bindat--unpack-u32r))
    ('u64r (bindat--unpack-u64r))
-   ('bits
-    (let ((bits nil) (bnum (1- (* 8 len))) j m)
-      (while (>= bnum 0)
-	(if (= (setq m (bindat--unpack-u8)) 0)
-	    (setq bnum (- bnum 8))
-	  (setq j 128)
-	  (while (> j 0)
-	    (if (/= 0 (logand m j))
-		(setq bits (cons bnum bits)))
-	    (setq bnum (1- bnum)
-		  j (ash j -1)))))
-      bits))
-   ('str
-    (let ((s (substring bindat-raw bindat-idx (+ bindat-idx len))))
-      (setq bindat-idx (+ bindat-idx len))
-      (if (stringp s) s
-	(apply #'unibyte-string s))))
-   ('strz
-    (let ((i 0) s)
-      (while (and (< i len) (/= (aref bindat-raw (+ bindat-idx i)) 0))
-	(setq i (1+ i)))
-      (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
-      (setq bindat-idx (+ bindat-idx len))
-      (if (stringp s) s
-	(apply #'unibyte-string s))))
+   ('bits (bindat--unpack-bits len))
+   ('str (bindat--unpack-str len))
+   ('strz (bindat--unpack-strz len))
    ('vec
     (let ((v (make-vector len 0)) (vlen 1))
       (if (consp vectype)
@@ -282,6 +285,9 @@
 	(aset v i (bindat--unpack-item type vlen vectype)))
       v))
    (_ nil)))
+
+(defsubst bindat--align (n len)
+  (* len (/ (+ n (1- len)) len)))       ;Isn't there a simpler way?
 
 (defun bindat--unpack-group (spec)
   (with-suppressed-warnings ((lexical struct last))
@@ -317,8 +323,7 @@
 	 ('fill
 	  (setq bindat-idx (+ bindat-idx len)))
 	 ('align
-	  (while (/= (% bindat-idx len) 0)
-	    (setq bindat-idx (1+ bindat-idx))))
+	  (setq bindat-idx (bindat--align bindat-idx len)))
 	 ('struct
 	  (setq data (bindat--unpack-group (eval len t))))
 	 ('repeat
@@ -366,9 +371,8 @@ An integer value in the field list is taken as an array index,
 e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (while (and struct field)
     (setq struct (if (integerp (car field))
-		     (nth (car field) struct)
-		   (let ((val (assq (car field) struct)))
-		     (if (consp val) (cdr val)))))
+		     (elt struct (car field))
+		   (cdr (assq (car field) struct))))
     (setq field (cdr field)))
   struct)
 
@@ -421,8 +425,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	 ('fill
 	  (setq bindat-idx (+ bindat-idx len)))
 	 ('align
-	  (while (/= (% bindat-idx len) 0)
-	    (setq bindat-idx (1+ bindat-idx))))
+	  (setq bindat-idx (bindat--align bindat-idx len)))
 	 ('struct
 	  (bindat--length-group
 	   (if field (bindat-get-field struct field) struct) (eval len t)))
@@ -460,7 +463,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 
 ;;;; Pack structured data into bindat-raw
 
-(defun bindat--pack-u8 (v)
+(defsubst bindat--pack-u8 (v)
   (aset bindat-raw bindat-idx (logand v 255))
   (setq bindat-idx (1+ bindat-idx)))
 
@@ -498,42 +501,41 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (bindat--pack-u32r v)
   (bindat--pack-u32r (ash v -32)))
 
+(defun bindat--pack-str (len v)
+  (dotimes (i (min len (length v)))
+    (aset bindat-raw (+ bindat-idx i) (aref v i)))
+  (setq bindat-idx (+ bindat-idx len)))
+
+(defun bindat--pack-bits (len v)
+  (let ((bnum (1- (* 8 len))) j m)
+    (while (>= bnum 0)
+      (setq m 0)
+      (if (null v)
+	  (setq bnum (- bnum 8))
+	(setq j 128)
+	(while (> j 0)
+	  (if (memq bnum v)
+	      (setq m (logior m j)))
+	  (setq bnum (1- bnum)
+		j (ash j -1))))
+      (bindat--pack-u8 m))))
+
 (defun bindat--pack-item (v type len &optional vectype)
   (if (eq type 'ip)
       (setq type 'vec len 4))
   (pcase type
-   ((guard (null v))
-    (setq bindat-idx (+ bindat-idx len)))
-   ((or 'u8 'byte)
-    (bindat--pack-u8 v))
-   ((or 'u16 'word 'short)
-    (bindat--pack-u16 v))
-   ('u24
-    (bindat--pack-u24 v))
-   ((or 'u32 'dword 'long)
-    (bindat--pack-u32 v))
+   ((guard (null v)) (setq bindat-idx (+ bindat-idx len)))
+   ((or 'u8 'byte) (bindat--pack-u8 v))
+   ((or 'u16 'word 'short) (bindat--pack-u16 v))
+   ('u24 (bindat--pack-u24 v))
+   ((or 'u32 'dword 'long) (bindat--pack-u32 v))
    ('u64  (bindat--pack-u64 v))
    ('u16r (bindat--pack-u16r v))
    ('u24r (bindat--pack-u24r v))
    ('u32r (bindat--pack-u32r v))
    ('u64r (bindat--pack-u64r v))
-   ('bits
-    (let ((bnum (1- (* 8 len))) j m)
-      (while (>= bnum 0)
-	(setq m 0)
-	(if (null v)
-	    (setq bnum (- bnum 8))
-	  (setq j 128)
-	  (while (> j 0)
-	    (if (memq bnum v)
-		(setq m (logior m j)))
-	    (setq bnum (1- bnum)
-		  j (ash j -1))))
-	(bindat--pack-u8 m))))
-   ((or 'str 'strz)
-    (dotimes (i (min len (length v)))
-      (aset bindat-raw (+ bindat-idx i) (aref v i)))
-    (setq bindat-idx (+ bindat-idx len)))
+   ('bits (bindat--pack-bits len v))
+   ((or 'str 'strz) (bindat--pack-str len v))
    ('vec
     (let ((l (length v)) (vlen 1))
       (if (consp vectype)
@@ -580,8 +582,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	 ('fill
 	  (setq bindat-idx (+ bindat-idx len)))
 	 ('align
-	  (while (/= (% bindat-idx len) 0)
-	    (setq bindat-idx (1+ bindat-idx))))
+	  (setq bindat-idx (bindat--align bindat-idx len)))
 	 ('struct
 	  (bindat--pack-group
 	   (if field (bindat-get-field struct field) struct) (eval len t)))
