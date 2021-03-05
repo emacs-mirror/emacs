@@ -1223,8 +1223,8 @@ provide FEATURE, signal an error.  This cannot be suppressed."
            (file (locate-file (symbol-name feature) path '(".elc" ".el"))))
       (and file (require feature (file-name-sans-extension file) noerror))))
    ((not noerror)
-    (let (load-path)
-      (require feature)))))
+    (signal 'file-missing `("Cannot open load file" "No such file or directory"
+                            ,(symbol-name feature))))))
 
 (defcustom custom-safe-themes '(default)
   "Themes that are considered safe to load.
