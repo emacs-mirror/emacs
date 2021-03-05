@@ -713,6 +713,16 @@ comp_hash_source_file (Lisp_Object filename)
   return Fsubstring (digest, Qnil, make_fixnum (HASH_LENGTH));
 }
 
+DEFUN ("comp--subr-signature", Fcomp__subr_signature,
+       Scomp__subr_signature, 1, 1, 0,
+       doc: /* Support function to 'hash_native_abi'.
+For internal use.  */)
+  (Lisp_Object subr)
+{
+  return concat2 (Fsubr_name (subr),
+		  Fprin1_to_string (Fsubr_arity (subr), Qnil));
+}
+
 /* Produce a key hashing Vcomp_subr_list.  */
 
 void
@@ -726,7 +736,7 @@ hash_native_abi (void)
       concat3 (build_string (ABI_VERSION),
 	       concat3 (Vemacs_version, Vsystem_configuration,
 			Vsystem_configuration_options),
-	       Fmapconcat (intern_c_string ("subr-name"),
+	       Fmapconcat (intern_c_string ("comp--subr-signature"),
 			   Vcomp_subr_list, build_string (""))));
   Vcomp_native_version_dir =
     concat3 (Vemacs_version, build_string ("-"), Vcomp_abi_hash);
@@ -5199,6 +5209,7 @@ compiled one.  */);
         build_pure_c_string ("eln file inconsistent with current runtime "
 			     "configuration, please recompile"));
 
+  defsubr (&Scomp__subr_signature);
   defsubr (&Scomp_el_to_eln_filename);
   defsubr (&Scomp_native_driver_options_effective_p);
   defsubr (&Scomp__install_trampoline);
