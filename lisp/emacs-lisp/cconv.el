@@ -612,7 +612,7 @@ FORM is the parent form that binds this var."
      (push (cons (cons binder form) :captured+mutated)
            cconv-var-classification))
     (`(,(and binder `(,_ (function (lambda . ,_)))) nil nil nil t)
-     (push (cons (cons binder form) :lambda-candidates)
+     (push (cons (cons binder form) :lambda-candidate)
            cconv-var-classification))))
 
 (defun cconv--analyze-function (args body env parentform)
