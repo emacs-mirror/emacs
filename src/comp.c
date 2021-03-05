@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dynlib.h"
 #include "buffer.h"
 #include "blockinput.h"
+#include "coding.h"
 #include "md5.h"
 #include "sysstdio.h"
 #include "zlib.h"
@@ -693,7 +694,8 @@ comp_hash_source_file (Lisp_Object filename)
   /* Can't use Finsert_file_contents + Fbuffer_hash as this is called
      by Fcomp_el_to_eln_filename too early during bootstrap.  */
   bool is_gz = suffix_p (filename, ".gz");
-  FILE *f = emacs_fopen (SSDATA (filename), is_gz ? "rb" : "r");
+  Lisp_Object encoded_filename = ENCODE_FILE (filename);
+  FILE *f = emacs_fopen (SSDATA (encoded_filename), is_gz ? "rb" : "r");
 
   if (!f)
     report_file_error ("Opening source file", filename);
@@ -3792,7 +3794,7 @@ static gcc_jit_function *
 declare_lex_function (Lisp_Object func)
 {
   gcc_jit_function *res;
-  char *c_name = SSDATA (CALL1I (comp-func-c-name, func));
+  Lisp_Object c_name = CALL1I (comp-func-c-name, func);
   Lisp_Object args = CALL1I (comp-func-l-args, func);
   bool nargs = !NILP (CALL1I (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
@@ -3814,7 +3816,7 @@ declare_lex_function (Lisp_Object func)
       res = gcc_jit_context_new_function (comp.ctxt, NULL,
 					  GCC_JIT_FUNCTION_EXPORTED,
 					  comp.lisp_obj_type,
-					  c_name,
+					  SSDATA (c_name),
 					  max_args,
 					  params,
 					  0);
@@ -3835,7 +3837,8 @@ declare_lex_function (Lisp_Object func)
 				      NULL,
 				      GCC_JIT_FUNCTION_EXPORTED,
 				      comp.lisp_obj_type,
-				      c_name, ARRAYELTS (params), params, 0);
+				      SSDATA (c_name),
+				      ARRAYELTS (params), params, 0);
     }
   SAFE_FREE ();
   return res;
@@ -4332,6 +4335,10 @@ add_driver_options (void)
   if (!NILP (Fcomp_native_driver_options_effective_p ()))
     FOR_EACH_TAIL (options)
       gcc_jit_context_add_driver_option (comp.ctxt,
+					 /* FIXME: Need to encode
+					    this, but how? either
+					    ENCODE_FILE or
+					    ENCODE_SYSTEM.  */
 					 SSDATA (XCAR (options)));
   return;
 #endif
@@ -4353,6 +4360,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   CHECK_STRING (filename);
   Lisp_Object base_name = Fsubstring (filename, Qnil, make_fixnum (-4));
+  Lisp_Object ebase_name = ENCODE_FILE (base_name);
 
   comp.func_relocs_local = NULL;
 
@@ -4367,7 +4375,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				       1);
   if (comp.debug > 2)
     {
-      logfile = fopen ("libgccjit.log", "w");
+      logfile = emacs_fopen ("libgccjit.log", "w");
       gcc_jit_context_set_logfile (comp.ctxt,
 				   logfile,
 				   0, 0);
@@ -4428,18 +4436,18 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   if (comp.debug)
       gcc_jit_context_dump_to_file (comp.ctxt,
-				    format_string ("%s.c", SSDATA (base_name)),
+				    format_string ("%s.c", SSDATA (ebase_name)),
 				    1);
   if (!NILP (Fsymbol_value (Qcomp_libgccjit_reproducer)))
     gcc_jit_context_dump_reproducer_to_file (
       comp.ctxt,
-      format_string ("%s_libgccjit_repro.c", SSDATA (base_name)));
+      format_string ("%s_libgccjit_repro.c", SSDATA (ebase_name)));
 
   Lisp_Object tmp_file =
     Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
-				   SSDATA (tmp_file));
+				   SSDATA (ENCODE_FILE (tmp_file)));
 
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
   if (err)
@@ -5043,28 +5051,29 @@ LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
     xsignal2 (Qnative_lisp_load_failed, build_string ("file does not exists"),
 	      filename);
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit ();
+  Lisp_Object encoded_filename = ENCODE_FILE (filename);
 
   if (!NILP (Fgethash (filename, all_loaded_comp_units_h, Qnil))
       && !file_in_eln_sys_dir (filename)
       && !NILP (Ffile_writable_p (filename)))
     {
       /* If in this session there was ever a file loaded with this
-	 name rename before loading it to make sure we always get a
+	 name, rename it before loading, to make sure we always get a
 	 new handle!  */
       Lisp_Object tmp_filename =
 	Fmake_temp_file_internal (filename, Qnil, build_string (".eln.tmp"),
 				  Qnil);
       if (NILP (Ffile_writable_p (tmp_filename)))
-	comp_u->handle = dynlib_open (SSDATA (filename));
+	comp_u->handle = dynlib_open (SSDATA (encoded_filename));
       else
 	{
 	  Frename_file (filename, tmp_filename, Qt);
-	  comp_u->handle = dynlib_open (SSDATA (tmp_filename));
+	  comp_u->handle = dynlib_open (SSDATA (ENCODE_FILE (tmp_filename)));
 	  Frename_file (tmp_filename, filename, Qnil);
 	}
     }
   else
-    comp_u->handle = dynlib_open (SSDATA (filename));
+    comp_u->handle = dynlib_open (SSDATA (encoded_filename));
 
   if (!comp_u->handle)
     xsignal2 (Qnative_lisp_load_failed, filename,
