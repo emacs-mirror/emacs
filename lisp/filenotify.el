@@ -100,6 +100,7 @@ If it is registered in `file-notify-descriptors', a `stopped' event is sent."
   "Handle a file system monitoring event, coming from backends.
 If OBJECT is a filewatch event, call its callback.
 Otherwise, signal a `file-notify-error'."
+  (declare (completion ignore))
   (interactive "e")
   (when file-notify-debug
     (message "file-notify-handle-event %S" object))
