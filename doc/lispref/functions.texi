@@ -1181,7 +1181,7 @@ This form defines a method like @code{cl-defmethod} does.
 @end table
 @end defmac
 
-@defmac cl-defmethod name [qualifier] arguments [&context (expr spec)@dots{}] &rest [docstring] body
+@defmac cl-defmethod name [extra] [qualifier] arguments [&context (expr spec)@dots{}] &rest [docstring] body
 This macro defines a particular implementation for the generic
 function called @var{name}.  The implementation code is given by
 @var{body}.  If present, @var{docstring} is the documentation string
@@ -1267,6 +1267,10 @@ Parent type: @code{array}.
 @item font-object
 @end table
 
+The optional @var{extra} element, expressed as @samp{:extra
+@var{string}}, allows you to add more methods, distinguished by
+@var{string}, for the same specializers and qualifiers.
+
 The optional @var{qualifier} allows combining several applicable
 methods.  If it is not present, the defined method is a @dfn{primary}
 method, responsible for providing the primary implementation of the
@@ -1288,9 +1292,6 @@ This auxiliary method will run @emph{instead} of the primary method.
 The most specific of such methods will be run before any other method.
 Such methods normally use @code{cl-call-next-method}, described below,
 to invoke the other auxiliary or primary methods.
-@item :extra @var{string}
-This allows you to add more methods, distinguished by @var{string},
-for the same specializers and qualifiers.
 @end table
 
 Functions defined using @code{cl-defmethod} cannot be made
