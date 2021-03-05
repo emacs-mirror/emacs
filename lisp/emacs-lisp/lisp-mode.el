@@ -1371,7 +1371,8 @@ and initial semicolons."
                            fill-column)))
         (save-restriction
           (save-excursion
-          (let ((ppss (syntax-ppss)))
+          (let ((ppss (syntax-ppss))
+                (start (point)))
             ;; If we're in a string, then narrow (roughly) to that
             ;; string before filling.  This avoids filling Lisp
             ;; statements that follow the string.
@@ -1386,6 +1387,8 @@ and initial semicolons."
                         t))
                 (narrow-to-region (ppss-comment-or-string-start ppss)
                                   (point))))
+            ;; Move back to where we were.
+            (goto-char start)
 	    (fill-paragraph justify)))))
       ;; Never return nil.
       t))
