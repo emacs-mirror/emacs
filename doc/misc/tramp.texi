@@ -2150,7 +2150,7 @@ be recomputed.  To force @value{tramp} to recompute afresh, call
 
 Per default, @value{tramp} uses the command @command{/bin/sh} for
 starting a shell on the remote host.  This can be changed by setting
-the connection property @t{"remote-shell"}, see @xref{Predefined
+the connection property @t{"remote-shell"}, see @ref{Predefined
 connection information}.  If you want, for example, use
 @command{/usr/bin/zsh} on a remote host, you might apply
 
