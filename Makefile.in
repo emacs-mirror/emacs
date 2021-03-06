@@ -1008,7 +1008,7 @@ misc-dvi misc-html misc-pdf misc-ps: src
 
 info-dir: ${srcdir}/info/dir
 
-texi_misc = $(shell ${MAKE} --no-print-directory -O -s -C doc/misc echo-sources)
+texi_misc = $(shell ${MAKE} --no-print-directory -s -C doc/misc echo-sources)
 
 srcdir_doc_info_dir_inputs = \
   ${srcdir}/doc/emacs/emacs.texi \
