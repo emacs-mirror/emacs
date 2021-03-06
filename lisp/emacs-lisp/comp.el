@@ -3282,11 +3282,13 @@ FUNCTION can be a function-name or byte compiled function."
    do (comp-loop-insn-in-block b
         (pcase insn
           (`(set ,lval (callref funcall ,f . ,rest))
-           (when-let ((new-form (comp-call-optim-form-call
+           (when-let ((ok (comp-cstr-imm-vld-p f))
+                      (new-form (comp-call-optim-form-call
                                  (comp-cstr-imm f) rest)))
              (setf insn `(set ,lval ,new-form))))
           (`(callref funcall ,f . ,rest)
-           (when-let ((new-form (comp-call-optim-form-call
+           (when-let ((ok (comp-cstr-imm-vld-p f))
+                      (new-form (comp-call-optim-form-call
                                  (comp-cstr-imm f) rest)))
              (setf insn new-form)))))))
 
