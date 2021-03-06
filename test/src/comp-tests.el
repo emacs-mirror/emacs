@@ -1340,7 +1340,14 @@ Return a list of results."
          (unless (eql x -0.0)
            (error ""))
          x)
-       float)))
+       float)
+
+      ;; 73
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (eql x 1.0)
+	   (error ""))
+         x)
+       t)))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()
