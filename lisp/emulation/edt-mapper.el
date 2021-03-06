@@ -1,4 +1,4 @@
-;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs
+;;; edt-mapper.el --- create an EDT LK-201 map file for X-Windows Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1995, 2000-2021 Free Software Foundation, Inc.
 
@@ -176,7 +176,7 @@
   (mapc
    (lambda (function-key)
      (if (not (lookup-key (current-global-map) function-key))
-	 (define-key (current-global-map) function-key 'forward-char)))
+	 (define-key (current-global-map) function-key #'forward-char)))
    '([kp-0] [kp-1] [kp-2] [kp-3] [kp-4]
      [kp-5] [kp-6] [kp-7] [kp-8] [kp-9]
      [kp-space]
