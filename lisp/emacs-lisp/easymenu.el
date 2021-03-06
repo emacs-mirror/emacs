@@ -193,7 +193,7 @@ This is expected to be bound to a mouse event."
         (vector 'menu-bar (if (symbolp (car menu))
                               (car menu)
                             ;; If a string, then use the downcased
-                            ;; version for greater backwards compatibiltiy.
+                            ;; version for greater backwards compatibility.
                             (intern (downcase (car menu)))))
         (easy-menu-binding keymap (car menu))))))
 
