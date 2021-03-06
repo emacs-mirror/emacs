@@ -294,7 +294,7 @@ generated it."
          (sublog (if file
                      (intern
                       (file-name-nondirectory
-                       (file-name-sans-extension compile-file))))))
+                       (file-name-sans-extension file))))))
     `(flymake--log-1 ,level ',sublog ,msg ,@args)))
 
 (defun flymake-error (text &rest args)
