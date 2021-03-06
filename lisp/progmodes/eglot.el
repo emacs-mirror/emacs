@@ -1848,6 +1848,7 @@ Records BEG, END and PRE-CHANGE-LENGTH locally."
 SECTION should be a keyword or a string, value can be anything
 that can be converted to JSON.")
 
+;;;###autoload
 (put 'eglot-workspace-configuration 'safe-local-variable 'listp)
 
 (defun eglot-signal-didChangeConfiguration (server)
