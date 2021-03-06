@@ -2384,8 +2384,7 @@ TARGET-BB-SYM is the symbol name of the target block."
     for insn-seq on (comp-block-insns b)
     do
     (pcase insn-seq
-      (`((set ,(and (pred comp-mvar-p) tmp-mvar)
-              ,(and (pred comp-mvar-p) obj1))
+      (`((set ,(and (pred comp-mvar-p) tmp-mvar) ,(pred comp-mvar-p))
          ;; (comment ,_comment-str)
          (cond-jump ,tmp-mvar ,obj2 . ,blocks))
        (cl-loop
