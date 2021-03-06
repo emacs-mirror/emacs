@@ -399,7 +399,8 @@ in text mode.  The cursor still only actually blinks in GUI frames.
 *** New 'Bindat type expression' description language.
 This new system is provided by the new macro 'bindat-type' and
 obsoletes the old data layout specifications.  It supports
-arbitrary-size integers, recursive types, and more.
+arbitrary-size integers, recursive types, and more.  See the Info node
+'Byte Packing' in the ELisp manual for more details.
 
 ** pcase
 

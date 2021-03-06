@@ -3361,24 +3361,30 @@ direction is also known as @dfn{serializing} or @dfn{packing}.
 
 @node Bindat Types
 @subsection Describing Data Layout
+@cindex bindat types
 
+@cindex data layout specification
+@cindex bindat type expression
+@cindex base type, in bindat specification
+@cindex composite type, in bindat specification
   To control unpacking and packing, you write a @dfn{data layout
-specification}, also called a Bindat type expression.
-This can be a base type or a composite type made of several fields,
+specification}, also called a @dfn{Bindat type expression}.  This can
+be a @dfn{base type} or a @dfn{composite type} made of several fields,
 where the specification controls the length of each field to be
 processed, and how to pack or unpack it.  We normally keep bindat type
-values in variables whose names end in @samp{-bindat-spec}; that kind of name
-is automatically recognized as risky.
+values in variables whose names end in @code{-bindat-spec}; that kind
+of name is automatically recognized as risky (@pxref{File Local
+Variables}).
 
 @defmac bindat-type &rest type
 Creates a Bindat type @emph{value} object according to the Bindat type
 @emph{expression} @var{type}.
 @end defmac
 
-@cindex endianness
-@cindex big endian
-@cindex little endian
-@cindex network byte ordering
+@cindex endianness, in bindat specification
+@cindex big endian, in bindat specification
+@cindex little endian, in bindat specification
+@cindex network byte ordering, in Bindat specification
   A field's @dfn{type} describes the size (in bytes) of the object
 that the field represents and, in the case of multibyte fields, how
 the bytes are ordered within the field.  The two possible orderings
@@ -3408,19 +3414,20 @@ String of bytes of length @var{len}.
 Zero-terminated string of bytes, in a fixed-size field with length @var{len}.
 
 @item vec @var{len} [@var{type}]
-Vector of @var{len} elements of type @var{type}, defaulting to bytes.
-The @var{type} can be any Bindat type expression.
+Vector of @var{len} elements.  The type of the elements is given by
+@var{type}, defaulting to bytes.  The @var{type} can be any Bindat
+type expression.
 
 @item repeat @var{len} [@var{type}]
 Like @code{vec}, but it unpacks to and packs from lists, whereas
 @code{vec} unpacks to vectors.
 
 @item bits @var{len}
-List of set bits in @var{len} bytes.  The bytes are taken in big
-endian order and the bits are numbered starting with @code{8 *
-@var{len} @minus{} 1} and ending with zero.  For example: @code{bits
-2} unpacks @code{#x28} @code{#x1c} to @code{(2 3 4 11 13)} and
-@code{#x1c} @code{#x28} to @code{(3 5 10 11 12)}.
+List of bits that are set to 1 in @var{len} bytes.  The bytes are
+taken in big-endian order, and the bits are numbered starting with
+@code{8 * @var{len} @minus{} 1} and ending with zero.  For example:
+@code{bits 2} unpacks @code{#x28} @code{#x1c} to @code{(2 3 4 11 13)}
+and @code{#x1c} @code{#x28} to @code{(3 5 10 11 12)}.
 
 @item fill @var{len}
 @var{len} bytes used as a mere filler.  In packing, these bytes are
@@ -3466,9 +3473,10 @@ the size of a subsequent vector of 16 bit integers could be:
 
 @node Bindat Functions
 @subsection Functions to Unpack and Pack Bytes
+@cindex bindat functions
 
   In the following documentation, @var{type} refers to a Bindat type
-value as returned from @code{bindat-type}, @code{raw} to a byte
+value as returned from @code{bindat-type}, @var{raw} to a byte
 array, and @var{struct} to an alist representing unpacked field data.
 
 @defun bindat-unpack type raw &optional idx
@@ -3487,12 +3495,13 @@ This function selects a field's data from the nested alist
 @var{struct}.  Usually @var{struct} was returned by
 @code{bindat-unpack}.  If @var{name} corresponds to just one argument,
 that means to extract a top-level field value.  Multiple @var{name}
-arguments specify repeated lookup of sub-structures.  An integer name
-acts as an array index.
+arguments specify repeated lookup of sub-structures.  An integer
+@var{name} acts as an array index.
 
-For example, if @var{name} is @code{(a b 2 c)}, that means to find
-field @code{c} in the third element of subfield @code{b} of field
-@code{a}.  (This corresponds to @code{struct.a.b[2].c} in C.)
+For example, @w{@code{(bindat-get-field @var{struct} a b 2 c)}} means
+to find field @code{c} in the third element of subfield @code{b} of
+field @code{a}.  (This corresponds to @code{@var{struct}.a.b[2].c} in
+the C programming language syntax.)
 @end defun
 
   Although packing and unpacking operations change the organization of
@@ -3533,11 +3542,12 @@ dotted notation.
 
 @node Bindat Computed Types
 @subsection Advanced data layout specifications
+@cindex bindat computed types
 
 Bindat type expressions are not limited to the types described
 earlier.  They can also be arbitrary Lisp forms returning Bindat
 type expressions.  For example, the type below describes data which
-can either contain a 24bit error code or a vector of bytes:
+can either contain a 24-bit error code or a vector of bytes:
 
 @example
 (bindat-type
@@ -3545,13 +3555,14 @@ can either contain a 24bit error code or a vector of bytes:
   (payload  . (if (zerop len) (uint 24) (vec (1- len)))))
 @end example
 
+@cindex bindat packing and unpacking into arbitrary types
 Furthermore, while composite types are normally unpacked to (and
 packed from) association lists, this can be changed via the use of
 the following special keyword arguments:
 
 @table @code
 @item :unpack-val @var{exp}
-When the list of fields end with this keyword argument, then the value
+When the list of fields ends with this keyword argument, then the value
 returned when unpacking is the value of @var{exp} instead of the
 standard alist.  @var{exp} can refer to all the previous fields by
 their name.
@@ -3568,7 +3579,7 @@ value to pack into this composite type via the variable named
 @var{name}.
 @end table
 
-For example, one could describe a 16 bit signed integer as follows:
+For example, one could describe a 16-bit signed integer as follows:
 
 @example
 (defconst sint16-bindat-spec
@@ -3588,6 +3599,8 @@ Which would then behave as follows:
      @result{} -16320
 @end example
 
+@cindex define new bindat type forms
+@cindex bindat, define new type forms
 Finally, you can define new Bindat type forms to use in Bindat type
 expressions with @code{bindat-defmacro}:
 
