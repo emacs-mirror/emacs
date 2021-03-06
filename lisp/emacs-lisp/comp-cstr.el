@@ -664,7 +664,7 @@ DST is returned."
       (cl-return-from comp-cstr-intersection-homogeneous dst))
 
     (setf (neg dst) (when srcs
-                                (neg (car srcs))))
+                      (neg (car srcs))))
 
     ;; Type propagation.
     (setf (typeset dst)
@@ -682,7 +682,7 @@ DST is returned."
              ;; If (member value) is subtypep of all other sources then
              ;; is good to be colleted.
              when (cl-every (lambda (s)
-                              (or (memq val (valset s))
+                              (or (memql val (valset s))
                                   (cl-some (lambda (type)
                                              (cl-typep val type))
                                            (typeset s))))
@@ -890,6 +890,10 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                       (cl-return cstr)
                  finally (setf (valset cstr)
                                (append vals-to-add (valset cstr))))
+                (when (memql 0.0 (valset cstr))
+                  (cl-pushnew -0.0 (valset cstr)))
+                (when (memql -0.0 (valset cstr))
+                  (cl-pushnew 0.0 (valset cstr)))
                 cstr))
       (comp-cstr-intersection dst (relax-cstr op1) (relax-cstr op2)))))
 
