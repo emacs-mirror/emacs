@@ -805,8 +805,8 @@ is the name of a variable that will hold the value we need to pack.")
       (_ (error "Unrecognized format in bindat fields: %S" fields)))))
 
 (def-edebug-elem-spec 'bindat-struct
-  [[&rest (symbolp bindat-type &optional ":pack-val" def-form)]
-   &optional ":unpack-val" def-form])
+  '([&rest (symbolp bindat-type &optional ":pack-val" def-form)]
+    &optional ":unpack-val" def-form))
 
 (def-edebug-elem-spec 'bindat-type
   '(&or ["uint" def-form]
