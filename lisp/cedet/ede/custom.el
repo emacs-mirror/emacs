@@ -53,7 +53,7 @@
     (setq-local eieio-ede-old-variables ov)))
 
 ;;;###autoload
-(defalias 'customize-project 'ede-customize-project)
+(defalias 'customize-project #'ede-customize-project)
 
 ;;;###autoload
 (defun ede-customize-current-target()
@@ -65,7 +65,7 @@
   (ede-customize-target ede-object))
 
 ;;;###autoload
-(defalias 'customize-target 'ede-customize-current-target)
+(defalias 'customize-target #'ede-customize-current-target)
 
 (defun ede-customize-target (obj)
   "Edit fields of the current target through EIEIO & Custom.
