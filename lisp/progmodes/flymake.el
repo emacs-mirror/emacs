@@ -284,15 +284,14 @@ If set to nil, don't suppress any zero counters."
 (defmacro flymake-log (level msg &rest args)
   "Log, at level LEVEL, the message MSG formatted with ARGS.
 LEVEL is passed to `display-warning', which is used to display
-the warning.  If this form is included in a byte-compiled file,
+the warning.  If this form is included in a file,
 the generated warning contains an indication of the file that
 generated it."
-  (let* ((compile-file (or (and (fboundp 'macroexp-file-name)
-                                (macroexp-file-name))
-                           (bound-and-true-p byte-compile-current-file)))
-         (sublog (if (and
-                      compile-file
-                      (not load-file-name))
+  (let* ((file (if (fboundp 'macroexp-file-name)
+                   (macroexp-file-name)
+                 (and (not load-file-name)
+                      (bound-and-true-p byte-compile-current-file))))
+         (sublog (if file
                      (intern
                       (file-name-nondirectory
                        (file-name-sans-extension compile-file))))))
