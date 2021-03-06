@@ -396,9 +396,11 @@ in text mode.  The cursor still only actually blinks in GUI frames.
 
 ** Bindat
 +++
-*** New types 'u64' and 'u64r'
-+++
-*** New macro 'bindat-spec' to define specs, with Edebug support
+*** New 'Bindat type expression' description language.
+This new system is provided by the new macro 'bindat-type' and
+obsoletes the old data layout specifications.  It supports
+arbitrary-size integers, recursive types, and more.
+
 ** pcase
 
 +++
