@@ -67,6 +67,12 @@ shaping, so 'configure' now recommends that combination.
 It was declared obsolete in Emacs 27.1.
 
 ---
+** The configure option '--without-makeinfo' has been removed.
+This was only ever relevant when building from a repository checkout.
+Please install makeinfo, or if all else fails run 'make lisp' instead
+of 'make [all]'.
+
+---
 ** Support for building with '-fcheck-pointer-bounds' has been removed.
 GCC has withdrawn the '-fcheck-pointer-bounds' option and support for
 its implementation has been removed from the Linux kernel.

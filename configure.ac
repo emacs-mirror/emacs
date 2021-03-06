@@ -506,11 +506,6 @@ otherwise for the first of 'inotify', 'kqueue' or 'gfile' that is usable.])
 OPTION_DEFAULT_OFF([xwidgets],
   [enable use of xwidgets in Emacs buffers (requires gtk3 or macOS Cocoa)])
 
-## For the times when you want to build Emacs but don't have
-## a suitable makeinfo, and can live without the manuals.
-dnl https://lists.gnu.org/r/emacs-devel/2008-04/msg01844.html
-OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
-
 ## Makefile.in needs the cache file name.
 AC_SUBST(cache_file)
 
@@ -1344,14 +1339,13 @@ if test -n "$BREW"; then
 fi
 
 ## Require makeinfo >= 4.13 (last of the 4.x series) to build the manuals.
-if test "${MAKEINFO:=makeinfo}" != "no"; then
-  case `($MAKEINFO --version) 2>/dev/null` in
-    *' (GNU texinfo) '4.1[[3-9]]* | \
-    *' (GNU texinfo) '[[5-9]]* | \
-    *' (GNU texinfo) '[[1-9][0-9]]* ) ;;
-    *) MAKEINFO=no;;
-  esac
-fi
+: ${MAKEINFO:=makeinfo}
+case `($MAKEINFO --version) 2>/dev/null` in
+  *' (GNU texinfo) '4.1[[3-9]]* | \
+  *' (GNU texinfo) '[[5-9]]* | \
+  *' (GNU texinfo) '[[1-9][0-9]]* ) ;;
+  *) MAKEINFO=no;;
+esac
 
 ## Makeinfo is unusual.  For a released Emacs, the manuals are
 ## pre-built, and not deleted by the normal clean rules.  makeinfo is
@@ -1362,21 +1356,19 @@ fi
 ## should test for it as it does for any other build requirement.
 ## We use the presence of $srcdir/info/emacs to distinguish a release,
 ## with pre-built manuals, from a repository checkout.
-HAVE_MAKEINFO=yes
-
 if test "$MAKEINFO" = "no"; then
   MAKEINFO=makeinfo
-  if test "x${with_makeinfo}" = "xno"; then
-    HAVE_MAKEINFO=no
-  elif test ! -e "$srcdir/info/emacs" && test ! -e "$srcdir/info/emacs.info"; then
+  if test ! -e "$srcdir/info/emacs" && test ! -e "$srcdir/info/emacs.info"; then
     AC_MSG_ERROR( [You do not seem to have makeinfo >= 4.13, and your
 source tree does not seem to have pre-built manuals in the 'info' directory.
-Either install a suitable version of makeinfo, or re-run configure
-with the '--without-makeinfo' option to build without the manuals.] )
+Please install a suitable version of makeinfo.] )
+  else
+    AC_MSG_WARN( [You do not seem to have makeinfo >= 4.13.
+You will not be able to rebuild the manuals if you delete them or change
+their sources.] )
   fi
 fi
 AC_SUBST([MAKEINFO])
-AC_SUBST(HAVE_MAKEINFO)
 
 if test $opsys = mingw32; then
    DOCMISC_W32=efaq-w32
