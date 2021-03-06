@@ -283,7 +283,7 @@ list of semantic tokens found."
 
 ;; Make it the default parser
 ;;;###autoload
-(defalias 'semantic-parse-stream-default 'semantic-bovinate-stream)
+(defalias 'semantic-parse-stream-default #'semantic-bovinate-stream)
 
 (provide 'semantic/bovine)
 

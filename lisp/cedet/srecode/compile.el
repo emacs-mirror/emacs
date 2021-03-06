@@ -1,4 +1,4 @@
-;;; srecode/compile --- Compilation of srecode template files.
+;;; srecode/compile --- Compilation of srecode template files.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -499,7 +499,7 @@ PROPS are additional properties that might need to be passed
 to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
-      (apply 'srecode-template-inserter-variable name props)
+      (make-instance 'srecode-template-inserter-variable name props)
     (let ((classes (eieio-class-children 'srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and

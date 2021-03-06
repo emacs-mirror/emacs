@@ -1,4 +1,4 @@
-;;; srecode/template.el --- SRecoder template language parser support.
+;;; srecode/template.el --- SRecoder template language parser support.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005, 2007-2021 Free Software Foundation, Inc.
 

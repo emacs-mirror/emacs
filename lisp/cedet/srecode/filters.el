@@ -1,4 +1,4 @@
-;;; srecode/filters.el --- Filters for use in template variables.
+;;; srecode/filters.el --- Filters for use in template variables.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 

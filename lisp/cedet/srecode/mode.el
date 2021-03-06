@@ -1,4 +1,4 @@
-;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
+;;; srecode/mode.el --- Minor mode for managing and using SRecode templates  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -54,14 +54,14 @@
 (defvar srecode-prefix-map
   (let ((km (make-sparse-keymap)))
     ;; Basic template codes
-    (define-key km "/" 'srecode-insert)
-    (define-key km [insert] 'srecode-insert)
-    (define-key km "." 'srecode-insert-again)
-    (define-key km "E" 'srecode-edit)
+    (define-key km "/" #'srecode-insert)
+    (define-key km [insert] #'srecode-insert)
+    (define-key km "." #'srecode-insert-again)
+    (define-key km "E" #'srecode-edit)
     ;; Template indirect binding
     (let ((k ?a))
       (while (<= k ?z)
-	(define-key km (format "%c" k) 'srecode-bind-insert)
+	(define-key km (format "%c" k) #'srecode-bind-insert)
 	(setq k (1+ k))))
     km)
   "Keymap used behind the srecode prefix key in srecode minor mode.")
@@ -141,16 +141,17 @@ non-nil if the minor mode is enabled.
   ;; this mode first.
   (if srecode-minor-mode
       (if (not (apply
-		'append
+		#'append
 		(mapcar (lambda (map)
 			  (srecode-map-entries-for-mode map major-mode))
 			(srecode-get-maps))))
 	  (setq srecode-minor-mode nil)
 	;; Else, we have success, do stuff
-	(add-hook 'cedet-m3-menu-do-hooks 'srecode-m3-items nil t)
-	)
-    (remove-hook 'cedet-m3-menu-do-hooks 'srecode-m3-items t)
-    )
+	;; FIXME: Where are `cedet-m3-menu-do-hooks' nor `srecode-m3-items'?
+	(when (fboundp 'srecode-m3-items)
+	  (add-hook 'cedet-m3-menu-do-hooks #'srecode-m3-items nil t)))
+    (when (fboundp 'srecode-m3-items)
+      (remove-hook 'cedet-m3-menu-do-hooks #'srecode-m3-items t)))
   ;; Run hooks if we are turning this on.
   (when srecode-minor-mode
     (run-hooks 'srecode-minor-mode-hook))
@@ -170,7 +171,7 @@ non-nil if the minor mode is enabled.
 
 ;;; Menu Filters
 ;;
-(defun srecode-minor-mode-templates-menu (menu-def)
+(defun srecode-minor-mode-templates-menu (_menu-def)
   "Create a menu item of cascading filters active for this mode.
 MENU-DEF is the menu to bind this into."
   ;; Doing this SEGVs Emacs on windows.
@@ -246,7 +247,7 @@ MENU-DEF is the menu to bind this into."
 (defvar srecode-minor-mode-generators nil
   "List of code generators to be displayed in the srecoder menu.")
 
-(defun srecode-minor-mode-generate-menu (menu-def)
+(defun srecode-minor-mode-generate-menu (_menu-def)
   "Create a menu item of cascading filters active for this mode.
 MENU-DEF is the menu to bind this into."
   ;; Doing this SEGVs Emacs on windows.
