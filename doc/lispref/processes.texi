@@ -3426,8 +3426,8 @@ Like @code{vec}, but it unpacks to and packs from lists, whereas
 List of bits that are set to 1 in @var{len} bytes.  The bytes are
 taken in big-endian order, and the bits are numbered starting with
 @code{8 * @var{len} @minus{} 1} and ending with zero.  For example:
-@code{bits 2} unpacks @code{#x28} @code{#x1c} to @code{(2 3 4 11 13)}
-and @code{#x1c} @code{#x28} to @code{(3 5 10 11 12)}.
+@code{bits 2} unpacks @code{#x28} @code{#x1c} to @w{@code{(2 3 4 11 13)}}
+and @code{#x1c} @code{#x28} to @w{@code{(3 5 10 11 12)}}.
 
 @item fill @var{len}
 @var{len} bytes used as a mere filler.  In packing, these bytes are
