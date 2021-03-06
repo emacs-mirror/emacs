@@ -1190,13 +1190,19 @@ If optional MARKER, return a marker instead"
           (funcall eglot-move-to-column-function col)))
       (if marker (copy-marker (point-marker)) (point)))))
 
+(defconst eglot--uri-path-allowed-chars
+  (let ((vec (copy-sequence url-path-allowed-chars)))
+    (aset vec ?: nil) ;; see github#639
+    vec)
+  "Like `url-path-allows-chars' but more restrictive.")
+
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
-  (url-hexify-string
-   (concat "file://" (if (eq system-type 'windows-nt) "/")
+  (concat "file://" (if (eq system-type 'windows-nt) "/")
+          (url-hexify-string
            ;; Again watch out for trampy paths.
-           (directory-file-name (file-local-name (file-truename path))))
-   url-path-allowed-chars))
+           (directory-file-name (file-local-name (file-truename path))) 
+           eglot--uri-path-allowed-chars)))
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to file path, helped by `eglot--current-server'."
