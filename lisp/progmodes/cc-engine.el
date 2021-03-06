@@ -3793,12 +3793,14 @@ mhtml-mode."
 		     (point)))
 	     (bra			; Position of "{".
 	      ;; Don't start scanning in the middle of a CPP construct unless
-	      ;; it contains HERE - these constructs, in Emacs, are "commented
-	      ;; out" with category properties.
-	      (if (eq (c-get-char-property macro-start-or-from 'category)
-			'c-cpp-delimiter)
-		    macro-start-or-from
-		  from))
+	      ;; it contains HERE.
+	      (if (and (not (eq macro-start-or-from from))
+		       (< macro-start-or-from here) ; Might not be needed.
+		       (progn (goto-char macro-start-or-from)
+			      (c-end-of-macro)
+			      (>= (point) here)))
+		  from
+		macro-start-or-from))
 	     ce)			; Position of "}"
 	(or upper-lim (setq upper-lim from))
 
