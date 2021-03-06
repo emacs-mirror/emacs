@@ -499,7 +499,7 @@ PROPS are additional properties that might need to be passed
 to the inserter constructor."
   ;;(message "Compile: %s %S" name props)
   (if (not key)
-      (make-instance 'srecode-template-inserter-variable name props)
+      (apply #'make-instance 'srecode-template-inserter-variable name props)
     (let ((classes (eieio-class-children 'srecode-template-inserter))
 	  (new nil))
       ;; Loop over the various subclasses and
@@ -510,7 +510,7 @@ to the inserter constructor."
 	(when (and (not (class-abstract-p (car classes)))
 		   (equal (oref-default (car classes) key) key))
 	  ;; Create the new class, and apply state.
-	  (setq new (apply (car classes) name props))
+	  (setq new (apply #'make-instance (car classes) name props))
 	  (srecode-inserter-apply-state new STATE)
 	  )
 	(setq classes (cdr classes)))
