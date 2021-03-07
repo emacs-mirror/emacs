@@ -4949,6 +4949,20 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   return res;
 }
 
+void
+unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
+{
+  if (cu->handle == NULL)
+    return;
+
+  Lisp_Object *saved_cu = dynlib_sym (cu->handle, COMP_UNIT_SYM);
+  Lisp_Object this_cu;
+  XSETNATIVE_COMP_UNIT (this_cu, cu);
+  if (EQ (this_cu, *saved_cu))
+    *saved_cu = Qnil;
+  dynlib_close (cu->handle);
+}
+
 Lisp_Object
 native_function_doc (Lisp_Object function)
 {
