@@ -1184,9 +1184,6 @@ AC_DEFUN([AM_CONDITIONAL],
 
 dnl Prefer silent make output.  For verbose output, use
 dnl 'configure --disable-silent-rules' or 'make V=1' .
-dnl This code is adapted from Automake.
-dnl Although it can be simplified now that GNU Make is assumed,
-dnl the simplification hasn't been done yet.
 AC_ARG_ENABLE([silent-rules],
   [AS_HELP_STRING(
      [--disable-silent-rules],
@@ -1196,11 +1193,8 @@ if test "$enable_silent_rules" = no; then
 else
   AM_DEFAULT_VERBOSITY=0
 fi
-AM_V='$(V)'
-AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
-AC_SUBST([AM_V])
-AC_SUBST([AM_DEFAULT_V])
 AC_SUBST([AM_DEFAULT_VERBOSITY])
+AC_CONFIG_FILES([src/verbose.mk])
 
 dnl Some other nice autoconf tests.
 AC_PROG_INSTALL

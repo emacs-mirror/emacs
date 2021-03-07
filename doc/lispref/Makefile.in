@@ -24,6 +24,7 @@ SHELL = @SHELL@
 
 # Standard configure variables.
 srcdir = @srcdir@
+top_builddir = @top_builddir@
 
 buildinfodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
@@ -59,13 +60,7 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
+-include ${top_builddir}/src/verbose.mk
 
 ENVADD = \
   $(AM_V_GEN)TEXINPUTS="$(srcdir):$(texinfodir):$(emacsdir):$(TEXINPUTS)" \

@@ -95,18 +95,8 @@ configuration=@configuration@
 ### The nt/ subdirectory gets built only for MinGW
 NTDIR=@NTDIR@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+top_builddir = @top_builddir@
+-include ${top_builddir}/src/verbose.mk
 
 # ==================== Where To Install Things ====================
 

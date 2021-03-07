@@ -32,6 +32,7 @@ SHELL = @SHELL@
 
 srcdir = @srcdir@
 abs_top_srcdir=@abs_top_srcdir@
+top_builddir = @top_builddir@
 VPATH = $(srcdir)
 
 FIND_DELETE = @FIND_DELETE@
@@ -46,30 +47,7 @@ SO = @MODULES_SUFFIX@
 
 SEPCHAR = @SEPCHAR@
 
-
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
-
-AM_V_ELC = $(am__v_ELC_@AM_V@)
-am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
-am__v_ELC_0 = @echo "  ELC     " $@;
-am__v_ELC_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
-
+-include ${top_builddir}/src/verbose.mk
 
 # Load any GNU ELPA dependencies that are present, for optional tests.
 GNU_ELPA_DIRECTORY ?= $(srcdir)/../../elpa

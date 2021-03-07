@@ -29,6 +29,7 @@ SHELL = @SHELL@
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 VPATH = $(srcdir)
@@ -340,33 +341,7 @@ HAVE_PDUMPER = @HAVE_PDUMPER@
 ## invalidates the signature, we must re-sign to fix it.
 DO_CODESIGN=$(patsubst aarch64-apple-darwin%,yes,@configuration@)
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
-
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
-
-AM_V_NO_PD = $(am__v_NO_PD_@AM_V@)
-am__v_NO_PD_ = $(am__v_NO_PD_@AM_DEFAULT_V@)
-am__v_NO_PD_0 = --no-print-directory
-am__v_NO_PD_1 =
+-include ${top_builddir}/src/verbose.mk
 
 bootstrap_exe = ../src/bootstrap-emacs$(EXEEXT)
 ifeq ($(DUMPING),pdumper)
@@ -621,11 +596,6 @@ buildobj.h: Makefile
 
 GLOBAL_SOURCES = $(base_obj:.o=.c) $(NS_OBJC_OBJ:.o=.m)
 
-AM_V_GLOBALS = $(am__v_GLOBALS_@AM_V@)
-am__v_GLOBALS_ = $(am__v_GLOBALS_@AM_DEFAULT_V@)
-am__v_GLOBALS_0 = @echo "  GEN     " globals.h;
-am__v_GLOBALS_1 =
-
 gl-stamp: $(libsrc)/make-docfile$(EXEEXT) $(GLOBAL_SOURCES)
 	$(AM_V_GLOBALS)$(libsrc)/make-docfile -d $(srcdir) -g $(obj) > globals.tmp
 	$(AM_V_at)$(top_srcdir)/build-aux/move-if-change globals.tmp globals.h
@@ -724,7 +694,7 @@ bootstrap-clean: clean
 	fi
 
 distclean: bootstrap-clean
-	rm -f Makefile lisp.mk
+	rm -f Makefile lisp.mk verbose.mk
 	rm -fr $(DEPDIR)
 
 maintainer-clean: distclean
