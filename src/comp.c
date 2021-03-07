@@ -4459,7 +4459,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   && (defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)	\
       || defined (WINDOWSNT))
   Lisp_Object version = Fcomp_libgccjit_version ();
-  if (!NILP (version) && XFIXNUM (XCAR (version)) == 10)
+  if (NILP (version)
+      || XFIXNUM (XCAR (version)) < 11)
     gcc_jit_context_add_command_line_option (comp.ctxt,
 					     "-fdisable-tree-isolate-paths");
 #endif
