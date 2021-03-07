@@ -10447,6 +10447,13 @@ shutdown_handler (DWORD type)
       || type == CTRL_LOGOFF_EVENT    /* User logs off.  */
       || type == CTRL_SHUTDOWN_EVENT) /* User shutsdown.  */
     {
+      /* If we are being shut down in noninteractive mode, we don't
+	 care about the message stack, so clear it to avoid abort in
+	 shut_down_emacs.  This happens when an noninteractive Emacs
+	 is invoked as a subprocess of Emacs, and the parent wants to
+	 kill us, e.g. because it's about to exit.  */
+      if (noninteractive)
+	clear_message_stack ();
       /* Shut down cleanly, making sure autosave files are up to date.  */
       shut_down_emacs (0, Qnil);
     }
