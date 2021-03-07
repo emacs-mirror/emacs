@@ -2364,7 +2364,7 @@ TARGET-BB-SYM is the symbol name of the target block."
                              (comp-func-blocks comp-func)))
          (target-bb-in-edges (comp-block-in-edges target-bb)))
     (cl-assert target-bb-in-edges)
-    (if (= (length target-bb-in-edges) 1)
+    (if (length= target-bb-in-edges 1)
         ;; If block has only one predecessor is already suitable for
         ;; adding constraint assumptions.
         target-bb
@@ -2780,7 +2780,7 @@ blocks."
            for b-name being each hash-keys of blocks
            using (hash-value b)
            for preds = (comp-block-preds b)
-           when (>= (length preds) 2) ; All joins
+           when (length> preds 1) ; All joins
            do (cl-loop for p in preds
                        for runner = p
                        do (while (not (eq runner (comp-block-idom b)))
@@ -4104,7 +4104,7 @@ environment variable 'NATIVE_DISABLED' is set, only byte compile."
   (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
-    (cl-assert (= 1 (length command-line-args-left)))
+    (cl-assert (length= command-line-args-left 1))
     (let ((byte-native-for-bootstrap t)
           (byte-to-native-output-file nil))
       (batch-native-compile)

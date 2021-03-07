@@ -287,7 +287,7 @@ Return them as multiple value."
 (defun comp-intersect-typesets (&rest typesets)
   "Intersect types present into TYPESETS."
   (unless (cl-some #'null typesets)
-    (if (= (length typesets) 1)
+    (if (length= typesets 1)
         (car typesets)
       (comp-normalize-typeset
        (cl-reduce #'comp-intersect-two-typesets typesets)))))
@@ -823,7 +823,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                          (valset ,cstr) (list ,val)))))))
   (with-comp-cstr-accessors
     (let ((v (valset cstr)))
-      (if (= (length v) 1)
+      (if (length= v 1)
           (car v)
         (caar (range cstr))))))
 
