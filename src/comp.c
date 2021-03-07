@@ -4385,6 +4385,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 	libgccjit_fname = XCAR (libgccjit_loaded_from);
       /* Must encode to ANSI, as libgccjit will not be able to handle
 	 UTF-8 encoded file names.  */
+      libgccjit_fname = ENCODE_FILE (libgccjit_fname);
       libgccjit_fname = ansi_encode_filename (libgccjit_fname);
       gcc_jit_context_set_str_option (comp.ctxt, GCC_JIT_STR_OPTION_PROGNAME,
 				      SSDATA (libgccjit_fname));
