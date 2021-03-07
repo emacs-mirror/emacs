@@ -89,6 +89,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_set_bool_option
 #undef gcc_jit_context_set_int_option
 #undef gcc_jit_context_set_logfile
+#undef gcc_jit_context_set_str_option
 #undef gcc_jit_function_get_param
 #undef gcc_jit_function_new_block
 #undef gcc_jit_function_new_local
@@ -248,6 +249,9 @@ DEF_DLL_FN (void, gcc_jit_context_set_int_option,
             (gcc_jit_context *ctxt, enum gcc_jit_int_option opt, int value));
 DEF_DLL_FN (void, gcc_jit_context_set_logfile,
             (gcc_jit_context *ctxt, FILE *logfile, int flags, int verbosity));
+DEF_DLL_FN (void, gcc_jit_context_set_str_option,
+	    (gcc_jit_context *ctxt, enum gcc_jit_str_option opt,
+	     const char *value));
 DEF_DLL_FN (void, gcc_jit_struct_set_fields,
             (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
              gcc_jit_field **fields));
@@ -304,6 +308,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_set_bool_option);
   LOAD_DLL_FN (library, gcc_jit_context_set_int_option);
   LOAD_DLL_FN (library, gcc_jit_context_set_logfile);
+  LOAD_DLL_FN (library, gcc_jit_context_set_str_option);
   LOAD_DLL_FN (library, gcc_jit_function_get_param);
   LOAD_DLL_FN (library, gcc_jit_function_new_block);
   LOAD_DLL_FN (library, gcc_jit_function_new_local);
@@ -373,6 +378,7 @@ init_gccjit_functions (void)
 #define gcc_jit_context_set_bool_option fn_gcc_jit_context_set_bool_option
 #define gcc_jit_context_set_int_option fn_gcc_jit_context_set_int_option
 #define gcc_jit_context_set_logfile fn_gcc_jit_context_set_logfile
+#define gcc_jit_context_set_str_option fn_gcc_jit_context_set_str_option
 #define gcc_jit_function_get_param fn_gcc_jit_function_get_param
 #define gcc_jit_function_new_block fn_gcc_jit_function_new_block
 #define gcc_jit_function_new_local fn_gcc_jit_function_new_local
@@ -4363,6 +4369,30 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   Lisp_Object ebase_name = ENCODE_FILE (base_name);
 
   comp.func_relocs_local = NULL;
+
+#ifdef WINDOWSNT
+  /* Tell libgccjit the actual file name of the loaded DLL, otherwise
+     it will use 'libgccjit.so', which is not useful.  */
+  Lisp_Object libgccjit_loaded_from = Fget (Qgccjit, QCloaded_from);
+  Lisp_Object libgccjit_fname;
+
+  if (CONSP (libgccjit_loaded_from))
+    {
+      /* Use the absolute file name if available, otherwise the name
+	 we looked for in w32_delayed_load.  */
+      libgccjit_fname = XCDR (libgccjit_loaded_from);
+      if (NILP (libgccjit_fname))
+	libgccjit_fname = XCAR (libgccjit_loaded_from);
+      /* Must encode to ANSI, as libgccjit will not be able to handle
+	 UTF-8 encoded file names.  */
+      libgccjit_fname = ansi_encode_filename (libgccjit_fname);
+      gcc_jit_context_set_str_option (comp.ctxt, GCC_JIT_STR_OPTION_PROGNAME,
+				      SSDATA (libgccjit_fname));
+    }
+  else	/* this should never happen */
+    gcc_jit_context_set_str_option (comp.ctxt, GCC_JIT_STR_OPTION_PROGNAME,
+				    "libgccjit-0.dll");
+#endif
 
   comp.speed = XFIXNUM (CALL1I (comp-ctxt-speed, Vcomp_ctxt));
   eassert (comp.speed < INT_MAX);
