@@ -97,6 +97,7 @@
 		  (tag))
 (declare-function semantic-parse-region "semantic"
 		  (start end &optional nonterminal depth returnonerror))
+(defvar wisent-python-EXPANDING-block)
 }
 
 %languagemode python-mode
@@ -871,7 +872,7 @@ paren_class_list_opt
 paren_class_list
   : PAREN_BLOCK
     (let ((wisent-python-EXPANDING-block t))
-      (mapcar 'semantic-tag-name (EXPANDFULL $1 paren_classes)))
+      (mapcar #'semantic-tag-name (EXPANDFULL $1 paren_classes)))
   ;
 
 ;; parameters: '(' [varargslist] ')'

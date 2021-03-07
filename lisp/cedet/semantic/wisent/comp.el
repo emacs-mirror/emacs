@@ -1,4 +1,4 @@
-;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler
+;;; semantic/wisent/comp.el --- GNU Bison for Emacs - Grammar compiler  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1984, 1986, 1989, 1992, 1995, 2000-2007, 2009-2021 Free
 ;; Software Foundation, Inc.
@@ -71,7 +71,7 @@
          (declarations (mapcar #'(lambda (v) (list 'defvar v)) vars)))
     `(progn
        ,@declarations
-       (eval-when-compile
+       (eval-and-compile
          (defvar ,context ',vars)))))
 
 (defmacro wisent-with-context (name &rest body)
@@ -100,6 +100,8 @@ If optional LEFT is non-nil insert spaces on left."
 ;;;; ------------------------
 ;;;; Environment dependencies
 ;;;; ------------------------
+
+;; FIXME: Use bignums or bool-vectors?
 
 (defconst wisent-BITS-PER-WORD (logcount most-positive-fixnum))
 
@@ -2774,7 +2776,7 @@ that likes a token gets to handle it."
   "Figure out the actions for every state.
 Return the action table."
   ;; Store the semantic action obarray in (unused) RCODE[0].
-  (aset rcode 0 (make-vector 13 0))
+  (aset rcode 0 (obarray-make 13))
   (let (i j action-table actrow action)
     (setq action-table (make-vector nstates nil)
           actrow (make-vector ntokens nil)
@@ -3388,7 +3390,7 @@ NONTERMS is the list of non terminal definitions (see function
 ;;;; Compile input grammar
 ;;;; ---------------------
 
-(defun wisent-compile-grammar (grammar &optional start-list)
+(defun wisent--compile-grammar (grammar start-list)
   "Compile the LALR(1) GRAMMAR.
 
 GRAMMAR is a list (TOKENS ASSOCS . NONTERMS) where:
@@ -3440,7 +3442,7 @@ where:
 	(wisent-parser-automaton)))))
 
 ;;;; --------------------------
-;;;; Byte compile input grammar
+;;;; Obsolete byte compile support
 ;;;; --------------------------
 
 (require 'bytecomp)
@@ -3449,25 +3451,32 @@ where:
   "Byte compile the `wisent-compile-grammar' FORM.
 Automatically called by the Emacs Lisp byte compiler as a
 `byte-compile' handler."
-  ;; Eval the `wisent-compile-grammar' form to obtain an LALR
-  ;; automaton internal data structure.  Then, because the internal
-  ;; data structure contains an obarray, convert it to a lisp form so
-  ;; it can be byte-compiled.
   (byte-compile-form
-   ;; FIXME: we macroexpand here since `byte-compile-form' expects
-   ;; macroexpanded code, but that's just a workaround: for lexical-binding
-   ;; the lisp form should have to pass through closure-conversion and
-   ;; `wisent-byte-compile-grammar' is called much too late for that.
-   ;; Why isn't this `wisent-automaton-lisp-form' performed at
-   ;; macroexpansion time?  --Stef
    (macroexpand-all
     (wisent-automaton-lisp-form (eval form)))))
 
-;; FIXME: We shouldn't use a `byte-compile' handler.  Maybe using a hash-table
-;; instead of an obarray would work around the problem that obarrays
-;; aren't printable.  Then (put 'wisent-compile-grammar 'side-effect-free t).
-(put 'wisent-compile-grammar 'byte-compile 'wisent-byte-compile-grammar)
+(defun wisent-compile-grammar (grammar &optional start-list)
+  ;; This is kept for compatibility with FOO-wy.el files generated
+  ;; with older Emacsen.
+  (declare (obsolete wisent-compiled-grammar "Mar 2021"))
+  (wisent--compile-grammar grammar start-list))
 
+(put 'wisent-compile-grammar 'byte-compile #'wisent-byte-compile-grammar)
+
+;;;; --------------------------
+;;;; Byte compile input grammar
+;;;; --------------------------
+
+;; `wisent--compile-grammar' generates the actual parse table
+;; we need at run-time, but in order to be able to compile the code it
+;; contains, we need to "reify" it back into a piece of ELisp code
+;; which (re)builds it.
+;; This is needed for 2 reasons:
+;; - The parse tables include an obarray and these don't survive the print+read
+;;   steps involved in generating a `.elc' file and reading it back in.
+;; - Within the parse table vectors/obarrays we have ELisp functions which
+;;   we want to byte-compile, but if we were to just `quote' the table
+;;   we'd get them with the same non-compiled functions.
 (defun wisent-automaton-lisp-form (automaton)
   "Return a Lisp form that produces AUTOMATON.
 See also `wisent-compile-grammar' for more details on AUTOMATON."
@@ -3477,7 +3486,7 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
   (let ((obn (make-symbol "ob"))        ; Generated obarray name
         (obv (aref automaton 3))        ; Semantic actions obarray
         )
-    `(let ((,obn (make-vector 13 0)))
+    `(let ((,obn (obarray-make 13)))
        ;; Generate code to initialize the semantic actions obarray,
        ;; in local variable OBN.
        ,@(let (obcode)
@@ -3496,7 +3505,9 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
         ;; obarray.
         (vector
          ,@(mapcar
-            #'(lambda (state) ;; for each state
+            ;; Use name `st' rather than `state' since `state' is
+            ;; defined as dynbound in `semantic-actions' context above :-( !
+            #'(lambda (st) ;; for each state
                 `(list
                   ,@(mapcar
                      #'(lambda (tr) ;; for each transition
@@ -3507,7 +3518,7 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
                                `(cons ,(if (symbolp k) `(quote ,k) k)
                                       (intern-soft ,(symbol-name a) ,obn))
                              `(quote ,tr))))
-                     state)))
+                     st)))
             (aref automaton 0)))
         ;; The code of the goto table is unchanged.
         ,(aref automaton 1)

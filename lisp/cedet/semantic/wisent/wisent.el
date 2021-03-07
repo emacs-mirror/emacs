@@ -1,4 +1,4 @@
-;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime
+;;; semantic/wisent/wisent.el --- GNU Bison for Emacs - Runtime  -*- lexical-binding: t; -*-
 
 ;;; Copyright (C) 2002-2007, 2009-2021 Free Software Foundation, Inc.
 
@@ -139,7 +139,7 @@ POSITIONS are available."
   "Print a one-line message if `wisent-parse-verbose-flag' is set.
 Pass STRING and ARGS arguments to `message'."
   (and wisent-parse-verbose-flag
-       (apply 'message string args)))
+       (apply #'message string args)))
 
 ;;;; --------------------
 ;;;; The LR parser engine
@@ -147,13 +147,11 @@ Pass STRING and ARGS arguments to `message'."
 
 (defcustom wisent-parse-max-stack-size 500
   "The parser stack size."
-  :type 'integer
-  :group 'wisent)
+  :type 'integer)
 
 (defcustom wisent-parse-max-recover 3
   "Number of tokens to shift before turning off error status."
-  :type 'integer
-  :group 'wisent)
+  :type 'integer)
 
 (defvar wisent-discarding-token-functions nil
   "List of functions to be called when discarding a lexical token.
@@ -397,9 +395,9 @@ automaton has only one entry point."
             (wisent-error
              (format "Syntax error, unexpected %s, expecting %s"
                      (wisent-token-to-string wisent-input)
-                     (mapconcat 'wisent-item-to-string
+                     (mapconcat #'wisent-item-to-string
                                 (delq wisent-error-term
-                                      (mapcar 'car (cdr choices)))
+                                      (mapcar #'car (cdr choices)))
                                 ", "))))
         ;; Increment the error counter
         (setq wisent-nerrs (1+ wisent-nerrs))
