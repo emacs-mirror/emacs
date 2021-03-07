@@ -316,14 +316,15 @@ include support for finding `use-package' and `require' forms.
 Must be set before loading use-package."
   :type 'boolean
   :set
-  #'(lambda (_sym value)
+  #'(lambda (sym value)
       (eval-after-load 'lisp-mode
         (if value
             `(add-to-list 'lisp-imenu-generic-expression
                           (list "Packages" ,use-package-form-regexp-eval 2))
           `(setq lisp-imenu-generic-expression
                  (remove (list "Packages" ,use-package-form-regexp-eval 2)
-                         lisp-imenu-generic-expression)))))
+                         lisp-imenu-generic-expression))))
+      (set-default sym value))
   :group 'use-package)
 
 (defconst use-package-font-lock-keywords
