@@ -4371,6 +4371,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   comp.func_relocs_local = NULL;
 
 #ifdef WINDOWSNT
+  ebase_name = ansi_encode_filename (ebase_name);
   /* Tell libgccjit the actual file name of the loaded DLL, otherwise
      it will use 'libgccjit.so', which is not useful.  */
   Lisp_Object libgccjit_loaded_from = Fget (Qgccjit, QCloaded_from);
@@ -4476,9 +4477,13 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   Lisp_Object tmp_file =
     Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);
+  Lisp_Object encoded_tmp_file = ENCODE_FILE (tmp_file);
+#ifdef WINDOWSNT
+  encoded_tmp_file = ansi_encode_filename (encoded_tmp_file);
+#endif
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
-				   SSDATA (ENCODE_FILE (tmp_file)));
+				   SSDATA (encoded_tmp_file));
 
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
   if (err)
