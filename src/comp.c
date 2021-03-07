@@ -4814,7 +4814,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     /* 'dlopen' returns the same handle when trying to load two times
        the same shared.  In this case touching 'd_reloc' etc leads to
        fails in case a frame with a reference to it in a live reg is
-       active (comp-speed >= 0).
+       active (comp-speed > 0).
 
        We must *never* mess with static pointers in an already loaded
        eln.  */
