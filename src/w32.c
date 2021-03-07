@@ -1941,11 +1941,10 @@ buf_prev (int from)
   return prev_idx;
 }
 
-static void
-sample_system_load (ULONGLONG *idle, ULONGLONG *kernel, ULONGLONG *user)
+unsigned
+w32_get_nproc (void)
 {
   SYSTEM_INFO sysinfo;
-  FILETIME ft_idle, ft_user, ft_kernel;
 
   /* Initialize the number of processors on this machine.  */
   if (num_of_processors <= 0)
@@ -1960,6 +1959,15 @@ sample_system_load (ULONGLONG *idle, ULONGLONG *kernel, ULONGLONG *user)
       if (num_of_processors <= 0)
 	num_of_processors = 1;
     }
+  return num_of_processors;
+}
+
+static void
+sample_system_load (ULONGLONG *idle, ULONGLONG *kernel, ULONGLONG *user)
+{
+  FILETIME ft_idle, ft_user, ft_kernel;
+
+  (void) w32_get_nproc ();
 
   /* TODO: Take into account threads that are ready to run, by
      sampling the "\System\Processor Queue Length" performance

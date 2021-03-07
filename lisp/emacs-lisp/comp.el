@@ -3824,8 +3824,7 @@ processes from `comp-async-compilations'"
                 ;; the number of processors, see get_native_system_info in w32.c.
                 ;; The result needs to be exported to Lisp.
                 (max 1 (/ (cond ((eq 'windows-nt system-type)
-                                 (string-to-number (getenv
-                                                    "NUMBER_OF_PROCESSORS")))
+                                 (w32-get-nproc))
                                 ((executable-find "nproc")
                                  (string-to-number
                                   (shell-command-to-string "nproc")))
