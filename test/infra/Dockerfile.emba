@@ -28,7 +28,7 @@ FROM debian:stretch as emacs-base
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev git \
+      libc-dev gcc g++ make autoconf automake libncurses-dev gnutls-dev git texinfo \
     && rm -rf /var/lib/apt/lists/*
 
 FROM emacs-base as emacs-inotify
@@ -39,11 +39,10 @@ RUN apt-get update && \
 
 COPY . /checkout
 WORKDIR /checkout
-RUN mkdir info && touch info/emacs
 RUN ./autogen.sh autoconf
 RUN ./configure
 RUN make -j4 bootstrap
-RUN make -j4 lisp
+RUN make -j4
 
 FROM emacs-base as emacs-filenotify-gio
 
@@ -53,11 +52,10 @@ RUN apt-get update && \
 
 COPY . /checkout
 WORKDIR /checkout
-RUN mkdir info && touch info/emacs
 RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make -j4 bootstrap
-RUN make -j4 lisp
+RUN make -j4
 
 FROM emacs-base as emacs-gnustep
 
@@ -67,8 +65,7 @@ RUN apt-get update && \
 
 COPY . /checkout
 WORKDIR /checkout
-RUN mkdir info && touch info/emacs
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
 RUN make -j4 bootstrap
-RUN make -j4 lisp
+RUN make -j4
