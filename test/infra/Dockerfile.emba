@@ -39,6 +39,7 @@ RUN apt-get update && \
 
 COPY . /checkout
 WORKDIR /checkout
+RUN touch info/emacs
 RUN ./autogen.sh autoconf
 RUN ./configure
 RUN make -j4 bootstrap
@@ -52,6 +53,7 @@ RUN apt-get update && \
 
 COPY . /checkout
 WORKDIR /checkout
+RUN touch info/emacs
 RUN ./autogen.sh autoconf
 RUN ./configure --with-file-notification=gfile
 RUN make -j4 bootstrap
@@ -65,6 +67,7 @@ RUN apt-get update && \
 
 COPY . /checkout
 WORKDIR /checkout
+RUN touch info/emacs
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
 RUN make -j4 bootstrap
