@@ -3818,6 +3818,7 @@ processes from `comp-async-compilations'"
    do (remhash file-name comp-async-compilations))
   (hash-table-count comp-async-compilations))
 
+(declare-function w32-get-nproc "w32.c")
 (defvar comp-num-cpus nil)
 (defun comp-effective-async-max-jobs ()
   "Compute the effective number of async jobs."
