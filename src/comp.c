@@ -4334,9 +4334,9 @@ DEFUN ("comp-native-driver-options-effective-p",
 static void
 add_driver_options (void)
 {
-  Lisp_Object options = comp.driver_options;
+  Lisp_Object options = Fsymbol_value (Qcomp_native_driver_options);
 
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option) \
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
   || defined (WINDOWSNT)
   load_gccjit_if_necessary (true);
   if (!NILP (Fcomp_native_driver_options_effective_p ()))
@@ -4347,7 +4347,6 @@ add_driver_options (void)
 					    ENCODE_FILE or
 					    ENCODE_SYSTEM.  */
 					 SSDATA (XCAR (options)));
-  return;
 #endif
   if (CONSP (options))
     xsignal1 (Qnative_compiler_error,
@@ -4355,6 +4354,20 @@ add_driver_options (void)
 			    " via `comp-native-driver-options' is"
 			    " only available on libgccjit version 9"
 			    " and above."));
+
+  /* Captured `comp-native-driver-options' because file-local.  */
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
+  || defined (WINDOWSNT)
+  options = comp.driver_options;
+  if (!NILP (Fcomp_native_driver_options_effective_p ()))
+    FOR_EACH_TAIL (options)
+      gcc_jit_context_add_driver_option (comp.ctxt,
+					 /* FIXME: Need to encode
+					    this, but how? either
+					    ENCODE_FILE or
+					    ENCODE_SYSTEM.  */
+					 SSDATA (XCAR (options)));
+#endif
 }
 
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
