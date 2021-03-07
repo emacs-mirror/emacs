@@ -16269,7 +16269,6 @@ Translate all @samp{@key{TAB}} characters into @samp{@key{SPC}} characters.
 
 @item nnmail-ignore-broken-references
 @findex nnmail-ignore-broken-references
-@c @findex nnmail-fix-eudora-headers
 @cindex Eudora
 @cindex Pegasus
 Some mail user agents (e.g., Eudora and Pegasus) produce broken
@@ -16359,9 +16358,8 @@ If you start using any of the mail back ends, they have the annoying
 habit of assuming that you want to read mail with them.  This might not
 be unreasonable, but it might not be what you want.
 
-If you set @code{mail-sources} and @code{nnmail-spool-file} to
-@code{nil}, none of the back ends will ever attempt to read incoming
-mail, which should help.
+If you set @code{mail-sources} to @code{nil}, none of the back ends
+will ever attempt to read incoming mail, which should help.
 
 @vindex nnbabyl-get-new-mail
 @vindex nnmbox-get-new-mail
