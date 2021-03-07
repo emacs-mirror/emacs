@@ -941,6 +941,10 @@ extraclean: $(extraclean_dirs:=_extraclean)
 # I removed it because it causes `make tags` to build Emacs.
 TAGS tags: lib lib-src # src
 	$(MAKE) -C src tags
+	$(MAKE) -C doc/emacs tags
+	$(MAKE) -C doc/lispintro tags
+	$(MAKE) -C doc/lispref tags
+	$(MAKE) -C doc/misc tags
 
 CHECK_TARGETS = check check-maybe check-expensive check-all
 .PHONY: $(CHECK_TARGETS)
