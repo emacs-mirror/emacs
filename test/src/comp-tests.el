@@ -1299,32 +1299,55 @@ Return a list of results."
 	   (error "")))
        cons)
 
-      ;; 69
+      ;; 68
       ((defun comp-tests-ret-type-spec-f (x)
 	 (if (and (floatp x)
-	          (= x 0))
+	          (= x 1))
              x
            (error "")))
        ;; Conservative (see cstr relax in `comp-cstr-=').
-       (or (member 0.0) (integer 0 0)))
+       (or (member 1.0) (integer 1 1)))
 
-      ;; 70
+      ;; 69
       ((defun comp-tests-ret-type-spec-f (x)
 	 (if (and (integer x)
-	          (= x 0))
+	          (= x 1))
              x
            (error "")))
        ;; Conservative (see cstr relax in `comp-cstr-=').
-       (or (member 0.0) (integer 0 0)))
+       (or (member 1.0) (integer 1 1)))
 
-      ;; 71
+      ;; 70
       ((defun comp-tests-ret-type-spec-f (x y)
 	 (if (and (floatp x)
 	          (integerp y)
 	          (= x y))
              x
            (error "")))
-       (or float integer))))
+       (or float integer))
+
+      ;; 71
+      ((defun comp-tests-ret-type-spec-f (x)
+         (if (= x 0.0)
+             x
+           (error "")))
+       (or (member -0.0 0.0) (integer 0 0)))
+
+      ;; 72
+      ((defun comp-tests-ret-type-spec-f (x)
+         (unless (= x 0.0)
+           (error ""))
+         (unless (eql x -0.0)
+           (error ""))
+         x)
+       float)
+
+      ;; 73
+      ((defun comp-tests-ret-type-spec-f (x)
+         (when (eql x 1.0)
+	   (error ""))
+         x)
+       t)))
 
   (defun comp-tests-define-type-spec-test (number x)
     `(comp-deftest ,(intern (format "ret-type-spec-%d" number)) ()

@@ -712,6 +712,8 @@ Returns ELT."
          :documentation "Default speed for this compilation unit.")
   (debug comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
+  (driver-options comp-native-driver-options :type list
+         :documentation "Options for the GCC driver.")
   (top-level-forms () :type list
                    :documentation "List of spilled top level forms.")
   (funcs-h (make-hash-table :test #'equal) :type hash-table
@@ -1298,6 +1300,8 @@ clashes."
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'comp-debug
                                                byte-native-qualities)
+        (comp-ctxt-driver-options comp-ctxt) (alist-get 'comp-native-driver-options
+                                                        byte-native-qualities)
         (comp-ctxt-top-level-forms comp-ctxt)
         (cl-loop
          for form in (reverse byte-to-native-top-level-forms)
@@ -2360,7 +2364,7 @@ TARGET-BB-SYM is the symbol name of the target block."
                              (comp-func-blocks comp-func)))
          (target-bb-in-edges (comp-block-in-edges target-bb)))
     (cl-assert target-bb-in-edges)
-    (if (= (length target-bb-in-edges) 1)
+    (if (length= target-bb-in-edges 1)
         ;; If block has only one predecessor is already suitable for
         ;; adding constraint assumptions.
         target-bb
@@ -2384,8 +2388,7 @@ TARGET-BB-SYM is the symbol name of the target block."
     for insn-seq on (comp-block-insns b)
     do
     (pcase insn-seq
-      (`((set ,(and (pred comp-mvar-p) tmp-mvar)
-              ,(and (pred comp-mvar-p) obj1))
+      (`((set ,(and (pred comp-mvar-p) tmp-mvar) ,(pred comp-mvar-p))
          ;; (comment ,_comment-str)
          (cond-jump ,tmp-mvar ,obj2 . ,blocks))
        (cl-loop
@@ -2777,7 +2780,7 @@ blocks."
            for b-name being each hash-keys of blocks
            using (hash-value b)
            for preds = (comp-block-preds b)
-           when (>= (length preds) 2) ; All joins
+           when (length> preds 1) ; All joins
            do (cl-loop for p in preds
                        for runner = p
                        do (while (not (eq runner (comp-block-idom b)))
@@ -3283,11 +3286,13 @@ FUNCTION can be a function-name or byte compiled function."
    do (comp-loop-insn-in-block b
         (pcase insn
           (`(set ,lval (callref funcall ,f . ,rest))
-           (when-let ((new-form (comp-call-optim-form-call
+           (when-let ((ok (comp-cstr-imm-vld-p f))
+                      (new-form (comp-call-optim-form-call
                                  (comp-cstr-imm f) rest)))
              (setf insn `(set ,lval ,new-form))))
           (`(callref funcall ,f . ,rest)
-           (when-let ((new-form (comp-call-optim-form-call
+           (when-let ((ok (comp-cstr-imm-vld-p f))
+                      (new-form (comp-call-optim-form-call
                                  (comp-cstr-imm f) rest)))
              (setf insn new-form)))))))
 
@@ -3813,6 +3818,7 @@ processes from `comp-async-compilations'"
    do (remhash file-name comp-async-compilations))
   (hash-table-count comp-async-compilations))
 
+(declare-function w32-get-nproc "w32.c")
 (defvar comp-num-cpus nil)
 (defun comp-effective-async-max-jobs ()
   "Compute the effective number of async jobs."
@@ -3823,8 +3829,7 @@ processes from `comp-async-compilations'"
                 ;; the number of processors, see get_native_system_info in w32.c.
                 ;; The result needs to be exported to Lisp.
                 (max 1 (/ (cond ((eq 'windows-nt system-type)
-                                 (string-to-number (getenv
-                                                    "NUMBER_OF_PROCESSORS")))
+                                 (w32-get-nproc))
                                 ((executable-find "nproc")
                                  (string-to-number
                                   (shell-command-to-string "nproc")))
@@ -4099,7 +4104,7 @@ environment variable 'NATIVE_DISABLED' is set, only byte compile."
   (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
-    (cl-assert (= 1 (length command-line-args-left)))
+    (cl-assert (length= command-line-args-left 1))
     (let ((byte-native-for-bootstrap t)
           (byte-to-native-output-file nil))
       (batch-native-compile)

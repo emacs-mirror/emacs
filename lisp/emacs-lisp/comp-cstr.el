@@ -287,7 +287,7 @@ Return them as multiple value."
 (defun comp-intersect-typesets (&rest typesets)
   "Intersect types present into TYPESETS."
   (unless (cl-some #'null typesets)
-    (if (= (length typesets) 1)
+    (if (length= typesets 1)
         (car typesets)
       (comp-normalize-typeset
        (cl-reduce #'comp-intersect-two-typesets typesets)))))
@@ -664,7 +664,7 @@ DST is returned."
       (cl-return-from comp-cstr-intersection-homogeneous dst))
 
     (setf (neg dst) (when srcs
-                                (neg (car srcs))))
+                      (neg (car srcs))))
 
     ;; Type propagation.
     (setf (typeset dst)
@@ -682,7 +682,7 @@ DST is returned."
              ;; If (member value) is subtypep of all other sources then
              ;; is good to be colleted.
              when (cl-every (lambda (s)
-                              (or (memq val (valset s))
+                              (or (memql val (valset s))
                                   (cl-some (lambda (type)
                                              (cl-typep val type))
                                            (typeset s))))
@@ -823,7 +823,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                          (valset ,cstr) (list ,val)))))))
   (with-comp-cstr-accessors
     (let ((v (valset cstr)))
-      (if (= (length v) 1)
+      (if (length= v 1)
           (car v)
         (caar (range cstr))))))
 
@@ -890,6 +890,10 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                       (cl-return cstr)
                  finally (setf (valset cstr)
                                (append vals-to-add (valset cstr))))
+                (when (memql 0.0 (valset cstr))
+                  (cl-pushnew -0.0 (valset cstr)))
+                (when (memql -0.0 (valset cstr))
+                  (cl-pushnew 0.0 (valset cstr)))
                 cstr))
       (comp-cstr-intersection dst (relax-cstr op1) (relax-cstr op2)))))
 
@@ -997,20 +1001,26 @@ promoted to their types.
 DST is returned."
   (with-comp-cstr-accessors
     (apply #'comp-cstr-intersection dst srcs)
-    (let (strip-values strip-types)
-      (cl-loop for v in (valset dst)
-               unless (or (symbolp v)
-                          (fixnump v))
-                 do (push v strip-values)
-                    (push (type-of v) strip-types))
-      (when strip-values
-        (setf (typeset dst) (comp-union-typesets (typeset dst) strip-types)
-              (valset dst) (cl-set-difference (valset dst) strip-values)))
-      (cl-loop for (l . h) in (range dst)
-               when (or (bignump l) (bignump h))
+    (if (and (neg dst)
+             (valset dst)
+             (cl-notevery #'symbolp (valset dst)))
+        (setf (valset dst) ()
+              (typeset dst) '(t)
+              (range dst) ()
+              (neg dst) nil)
+      (let (strip-values strip-types)
+        (cl-loop for v in (valset dst)
+                 unless (symbolp v)
+                   do (push v strip-values)
+                      (push (type-of v) strip-types))
+        (when strip-values
+          (setf (typeset dst) (comp-union-typesets (typeset dst) strip-types)
+                (valset dst) (cl-set-difference (valset dst) strip-values)))
+        (cl-loop for (l . h) in (range dst)
+                 when (or (bignump l) (bignump h))
                  do (setf (range dst) '((- . +)))
-                    (cl-return))
-      dst)))
+                    (cl-return))))
+    dst))
 
 (defun comp-cstr-intersection-make (&rest srcs)
   "Combine SRCS by intersection set operation and return a new constraint."

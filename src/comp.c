@@ -36,6 +36,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include "dynlib.h"
 #include "buffer.h"
 #include "blockinput.h"
+#include "coding.h"
 #include "md5.h"
 #include "sysstdio.h"
 #include "zlib.h"
@@ -88,6 +89,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #undef gcc_jit_context_set_bool_option
 #undef gcc_jit_context_set_int_option
 #undef gcc_jit_context_set_logfile
+#undef gcc_jit_context_set_str_option
 #undef gcc_jit_function_get_param
 #undef gcc_jit_function_new_block
 #undef gcc_jit_function_new_local
@@ -247,6 +249,9 @@ DEF_DLL_FN (void, gcc_jit_context_set_int_option,
             (gcc_jit_context *ctxt, enum gcc_jit_int_option opt, int value));
 DEF_DLL_FN (void, gcc_jit_context_set_logfile,
             (gcc_jit_context *ctxt, FILE *logfile, int flags, int verbosity));
+DEF_DLL_FN (void, gcc_jit_context_set_str_option,
+	    (gcc_jit_context *ctxt, enum gcc_jit_str_option opt,
+	     const char *value));
 DEF_DLL_FN (void, gcc_jit_struct_set_fields,
             (gcc_jit_struct *struct_type, gcc_jit_location *loc, int num_fields,
              gcc_jit_field **fields));
@@ -303,6 +308,7 @@ init_gccjit_functions (void)
   LOAD_DLL_FN (library, gcc_jit_context_set_bool_option);
   LOAD_DLL_FN (library, gcc_jit_context_set_int_option);
   LOAD_DLL_FN (library, gcc_jit_context_set_logfile);
+  LOAD_DLL_FN (library, gcc_jit_context_set_str_option);
   LOAD_DLL_FN (library, gcc_jit_function_get_param);
   LOAD_DLL_FN (library, gcc_jit_function_new_block);
   LOAD_DLL_FN (library, gcc_jit_function_new_local);
@@ -372,6 +378,7 @@ init_gccjit_functions (void)
 #define gcc_jit_context_set_bool_option fn_gcc_jit_context_set_bool_option
 #define gcc_jit_context_set_int_option fn_gcc_jit_context_set_int_option
 #define gcc_jit_context_set_logfile fn_gcc_jit_context_set_logfile
+#define gcc_jit_context_set_str_option fn_gcc_jit_context_set_str_option
 #define gcc_jit_function_get_param fn_gcc_jit_function_get_param
 #define gcc_jit_function_new_block fn_gcc_jit_function_new_block
 #define gcc_jit_function_new_local fn_gcc_jit_function_new_local
@@ -509,6 +516,7 @@ typedef struct {
 typedef struct {
   EMACS_INT speed;
   EMACS_INT debug;
+  Lisp_Object driver_options;
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
   gcc_jit_type *bool_type;
@@ -693,7 +701,8 @@ comp_hash_source_file (Lisp_Object filename)
   /* Can't use Finsert_file_contents + Fbuffer_hash as this is called
      by Fcomp_el_to_eln_filename too early during bootstrap.  */
   bool is_gz = suffix_p (filename, ".gz");
-  FILE *f = emacs_fopen (SSDATA (filename), is_gz ? "rb" : "r");
+  Lisp_Object encoded_filename = ENCODE_FILE (filename);
+  FILE *f = emacs_fopen (SSDATA (encoded_filename), is_gz ? "rb" : "r");
 
   if (!f)
     report_file_error ("Opening source file", filename);
@@ -713,6 +722,16 @@ comp_hash_source_file (Lisp_Object filename)
   return Fsubstring (digest, Qnil, make_fixnum (HASH_LENGTH));
 }
 
+DEFUN ("comp--subr-signature", Fcomp__subr_signature,
+       Scomp__subr_signature, 1, 1, 0,
+       doc: /* Support function to 'hash_native_abi'.
+For internal use.  */)
+  (Lisp_Object subr)
+{
+  return concat2 (Fsubr_name (subr),
+		  Fprin1_to_string (Fsubr_arity (subr), Qnil));
+}
+
 /* Produce a key hashing Vcomp_subr_list.  */
 
 void
@@ -726,7 +745,7 @@ hash_native_abi (void)
       concat3 (build_string (ABI_VERSION),
 	       concat3 (Vemacs_version, Vsystem_configuration,
 			Vsystem_configuration_options),
-	       Fmapconcat (intern_c_string ("subr-name"),
+	       Fmapconcat (intern_c_string ("comp--subr-signature"),
 			   Vcomp_subr_list, build_string (""))));
   Vcomp_native_version_dir =
     concat3 (Vemacs_version, build_string ("-"), Vcomp_abi_hash);
@@ -3782,7 +3801,7 @@ static gcc_jit_function *
 declare_lex_function (Lisp_Object func)
 {
   gcc_jit_function *res;
-  char *c_name = SSDATA (CALL1I (comp-func-c-name, func));
+  Lisp_Object c_name = CALL1I (comp-func-c-name, func);
   Lisp_Object args = CALL1I (comp-func-l-args, func);
   bool nargs = !NILP (CALL1I (comp-nargs-p, args));
   USE_SAFE_ALLOCA;
@@ -3804,7 +3823,7 @@ declare_lex_function (Lisp_Object func)
       res = gcc_jit_context_new_function (comp.ctxt, NULL,
 					  GCC_JIT_FUNCTION_EXPORTED,
 					  comp.lisp_obj_type,
-					  c_name,
+					  SSDATA (c_name),
 					  max_args,
 					  params,
 					  0);
@@ -3825,7 +3844,8 @@ declare_lex_function (Lisp_Object func)
 				      NULL,
 				      GCC_JIT_FUNCTION_EXPORTED,
 				      comp.lisp_obj_type,
-				      c_name, ARRAYELTS (params), params, 0);
+				      SSDATA (c_name),
+				      ARRAYELTS (params), params, 0);
     }
   SAFE_FREE ();
   return res;
@@ -4316,14 +4336,17 @@ add_driver_options (void)
 {
   Lisp_Object options = Fsymbol_value (Qcomp_native_driver_options);
 
-#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option) \
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
   || defined (WINDOWSNT)
   load_gccjit_if_necessary (true);
   if (!NILP (Fcomp_native_driver_options_effective_p ()))
     FOR_EACH_TAIL (options)
       gcc_jit_context_add_driver_option (comp.ctxt,
+					 /* FIXME: Need to encode
+					    this, but how? either
+					    ENCODE_FILE or
+					    ENCODE_SYSTEM.  */
 					 SSDATA (XCAR (options)));
-  return;
 #endif
   if (CONSP (options))
     xsignal1 (Qnative_compiler_error,
@@ -4331,6 +4354,20 @@ add_driver_options (void)
 			    " via `comp-native-driver-options' is"
 			    " only available on libgccjit version 9"
 			    " and above."));
+
+  /* Captured `comp-native-driver-options' because file-local.  */
+#if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
+  || defined (WINDOWSNT)
+  options = comp.driver_options;
+  if (!NILP (Fcomp_native_driver_options_effective_p ()))
+    FOR_EACH_TAIL (options)
+      gcc_jit_context_add_driver_option (comp.ctxt,
+					 /* FIXME: Need to encode
+					    this, but how? either
+					    ENCODE_FILE or
+					    ENCODE_SYSTEM.  */
+					 SSDATA (XCAR (options)));
+#endif
 }
 
 DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
@@ -4343,13 +4380,41 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   CHECK_STRING (filename);
   Lisp_Object base_name = Fsubstring (filename, Qnil, make_fixnum (-4));
+  Lisp_Object ebase_name = ENCODE_FILE (base_name);
 
   comp.func_relocs_local = NULL;
+
+#ifdef WINDOWSNT
+  ebase_name = ansi_encode_filename (ebase_name);
+  /* Tell libgccjit the actual file name of the loaded DLL, otherwise
+     it will use 'libgccjit.so', which is not useful.  */
+  Lisp_Object libgccjit_loaded_from = Fget (Qgccjit, QCloaded_from);
+  Lisp_Object libgccjit_fname;
+
+  if (CONSP (libgccjit_loaded_from))
+    {
+      /* Use the absolute file name if available, otherwise the name
+	 we looked for in w32_delayed_load.  */
+      libgccjit_fname = XCDR (libgccjit_loaded_from);
+      if (NILP (libgccjit_fname))
+	libgccjit_fname = XCAR (libgccjit_loaded_from);
+      /* Must encode to ANSI, as libgccjit will not be able to handle
+	 UTF-8 encoded file names.  */
+      libgccjit_fname = ENCODE_FILE (libgccjit_fname);
+      libgccjit_fname = ansi_encode_filename (libgccjit_fname);
+      gcc_jit_context_set_str_option (comp.ctxt, GCC_JIT_STR_OPTION_PROGNAME,
+				      SSDATA (libgccjit_fname));
+    }
+  else	/* this should never happen */
+    gcc_jit_context_set_str_option (comp.ctxt, GCC_JIT_STR_OPTION_PROGNAME,
+				    "libgccjit-0.dll");
+#endif
 
   comp.speed = XFIXNUM (CALL1I (comp-ctxt-speed, Vcomp_ctxt));
   eassert (comp.speed < INT_MAX);
   comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
   eassert (comp.debug < INT_MAX);
+  comp.driver_options = CALL1I (comp-ctxt-driver-options, Vcomp_ctxt);
 
   if (comp.debug)
       gcc_jit_context_set_bool_option (comp.ctxt,
@@ -4357,7 +4422,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 				       1);
   if (comp.debug > 2)
     {
-      logfile = fopen ("libgccjit.log", "w");
+      logfile = emacs_fopen ("libgccjit.log", "w");
       gcc_jit_context_set_logfile (comp.ctxt,
 				   logfile,
 				   0, 0);
@@ -4409,7 +4474,8 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   && (defined (LIBGCCJIT_HAVE_gcc_jit_context_add_command_line_option)	\
       || defined (WINDOWSNT))
   Lisp_Object version = Fcomp_libgccjit_version ();
-  if (!NILP (version) && XFIXNUM (XCAR (version)) == 10)
+  if (NILP (version)
+      || XFIXNUM (XCAR (version)) < 11)
     gcc_jit_context_add_command_line_option (comp.ctxt,
 					     "-fdisable-tree-isolate-paths");
 #endif
@@ -4418,18 +4484,22 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   if (comp.debug)
       gcc_jit_context_dump_to_file (comp.ctxt,
-				    format_string ("%s.c", SSDATA (base_name)),
+				    format_string ("%s.c", SSDATA (ebase_name)),
 				    1);
   if (!NILP (Fsymbol_value (Qcomp_libgccjit_reproducer)))
     gcc_jit_context_dump_reproducer_to_file (
       comp.ctxt,
-      format_string ("%s_libgccjit_repro.c", SSDATA (base_name)));
+      format_string ("%s_libgccjit_repro.c", SSDATA (ebase_name)));
 
   Lisp_Object tmp_file =
     Fmake_temp_file_internal (base_name, Qnil, build_string (".eln.tmp"), Qnil);
+  Lisp_Object encoded_tmp_file = ENCODE_FILE (tmp_file);
+#ifdef WINDOWSNT
+  encoded_tmp_file = ansi_encode_filename (encoded_tmp_file);
+#endif
   gcc_jit_context_compile_to_file (comp.ctxt,
 				   GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY,
-				   SSDATA (tmp_file));
+				   SSDATA (encoded_tmp_file));
 
   const char *err =  gcc_jit_context_get_first_error (comp.ctxt);
   if (err)
@@ -4757,7 +4827,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     /* 'dlopen' returns the same handle when trying to load two times
        the same shared.  In this case touching 'd_reloc' etc leads to
        fails in case a frame with a reference to it in a live reg is
-       active (comp-speed >= 0).
+       active (comp-speed > 0).
 
        We must *never* mess with static pointers in an already loaded
        eln.  */
@@ -5033,28 +5103,29 @@ LATE_LOAD has to be non-nil when loading for deferred compilation.  */)
     xsignal2 (Qnative_lisp_load_failed, build_string ("file does not exists"),
 	      filename);
   struct Lisp_Native_Comp_Unit *comp_u = allocate_native_comp_unit ();
+  Lisp_Object encoded_filename = ENCODE_FILE (filename);
 
   if (!NILP (Fgethash (filename, all_loaded_comp_units_h, Qnil))
       && !file_in_eln_sys_dir (filename)
       && !NILP (Ffile_writable_p (filename)))
     {
       /* If in this session there was ever a file loaded with this
-	 name rename before loading it to make sure we always get a
+	 name, rename it before loading, to make sure we always get a
 	 new handle!  */
       Lisp_Object tmp_filename =
 	Fmake_temp_file_internal (filename, Qnil, build_string (".eln.tmp"),
 				  Qnil);
       if (NILP (Ffile_writable_p (tmp_filename)))
-	comp_u->handle = dynlib_open (SSDATA (filename));
+	comp_u->handle = dynlib_open (SSDATA (encoded_filename));
       else
 	{
 	  Frename_file (filename, tmp_filename, Qt);
-	  comp_u->handle = dynlib_open (SSDATA (tmp_filename));
+	  comp_u->handle = dynlib_open (SSDATA (ENCODE_FILE (tmp_filename)));
 	  Frename_file (tmp_filename, filename, Qnil);
 	}
     }
   else
-    comp_u->handle = dynlib_open (SSDATA (filename));
+    comp_u->handle = dynlib_open (SSDATA (encoded_filename));
 
   if (!comp_u->handle)
     xsignal2 (Qnative_lisp_load_failed, filename,
@@ -5199,6 +5270,7 @@ compiled one.  */);
         build_pure_c_string ("eln file inconsistent with current runtime "
 			     "configuration, please recompile"));
 
+  defsubr (&Scomp__subr_signature);
   defsubr (&Scomp_el_to_eln_filename);
   defsubr (&Scomp_native_driver_options_effective_p);
   defsubr (&Scomp__install_trampoline);

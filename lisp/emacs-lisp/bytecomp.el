@@ -2272,7 +2272,10 @@ With argument ARG, insert value in current buffer after the form."
           (defvar comp-speed)
           (push `(comp-speed . ,comp-speed) byte-native-qualities)
           (defvar comp-debug)
-          (push `(comp-debug . ,comp-debug) byte-native-qualities))
+          (push `(comp-debug . ,comp-debug) byte-native-qualities)
+          (defvar comp-native-driver-options)
+          (push `(comp-native-driver-options . ,comp-native-driver-options)
+                byte-native-qualities))
 
 	;; Compile the forms from the input buffer.
 	(while (progn
