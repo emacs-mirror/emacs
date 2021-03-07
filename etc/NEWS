@@ -369,19 +369,18 @@ Typing 'TAB' on a heading line cycles the current section between
 anywhere in the buffer cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
-*** New minor mode 'outline-cycle-minor-mode'.
-This mode is a variant of 'outline-minor-mode', with the difference
+*** New option 'outline-minor-mode-cycle'.
+This option customizes 'outline-minor-mode', with the difference
 that 'TAB' and 'S-TAB' on heading lines cycle heading visibility.
 Typing 'TAB' on a heading line cycles the current section between
 "hide all", "subheadings", and "show all" states.  Typing 'S-TAB' on a
 heading line cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
-*** New minor mode 'outline-cycle-highlight-minor-mode'.
-This mode is a variant of 'outline-cycle-minor-mode'.  It puts
-highlighting on heading lines using standard outline faces.  This
-works well only when there are no conflicts with faces used by the
-major mode.
+*** New option 'outline-minor-mode-highlight'.
+This option customizes 'outline-minor-mode'.  It puts highlighting
+on heading lines using standard outline faces.  This works well only
+when there are no conflicts with faces used by the major mode.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
