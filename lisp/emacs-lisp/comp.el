@@ -712,6 +712,8 @@ Returns ELT."
          :documentation "Default speed for this compilation unit.")
   (debug comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
+  (driver-options comp-native-driver-options :type list
+         :documentation "Options for the GCC driver.")
   (top-level-forms () :type list
                    :documentation "List of spilled top level forms.")
   (funcs-h (make-hash-table :test #'equal) :type hash-table
@@ -1298,6 +1300,8 @@ clashes."
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'comp-debug
                                                byte-native-qualities)
+        (comp-ctxt-driver-options comp-ctxt) (alist-get 'comp-native-driver-options
+                                                        byte-native-qualities)
         (comp-ctxt-top-level-forms comp-ctxt)
         (cl-loop
          for form in (reverse byte-to-native-top-level-forms)

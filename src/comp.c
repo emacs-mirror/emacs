@@ -516,6 +516,7 @@ typedef struct {
 typedef struct {
   EMACS_INT speed;
   EMACS_INT debug;
+  Lisp_Object driver_options;
   gcc_jit_context *ctxt;
   gcc_jit_type *void_type;
   gcc_jit_type *bool_type;
@@ -4333,7 +4334,7 @@ DEFUN ("comp-native-driver-options-effective-p",
 static void
 add_driver_options (void)
 {
-  Lisp_Object options = Fsymbol_value (Qcomp_native_driver_options);
+  Lisp_Object options = comp.driver_options;
 
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option) \
   || defined (WINDOWSNT)
@@ -4400,6 +4401,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
   eassert (comp.speed < INT_MAX);
   comp.debug = XFIXNUM (CALL1I (comp-ctxt-debug, Vcomp_ctxt));
   eassert (comp.debug < INT_MAX);
+  comp.driver_options = CALL1I (comp-ctxt-driver-options, Vcomp_ctxt);
 
   if (comp.debug)
       gcc_jit_context_set_bool_option (comp.ctxt,
