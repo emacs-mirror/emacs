@@ -279,7 +279,7 @@ that it is for swish++, not Namazu."
 ;; `nnir-swish-e-additional-switches'
 
 (make-obsolete-variable 'nnir-swish-e-index-file
-			'nnir-swish-e-index-files "Emacs 23.1")
+                        'nnir-swish-e-index-files "23.1")
 (defcustom nnir-swish-e-index-file
   (expand-file-name "~/Mail/index.swish-e")
   "Index file for swish-e.
