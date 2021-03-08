@@ -2774,7 +2774,7 @@ emit_ctxt_code (void)
 	comp.ctxt,
 	NULL,
 	GCC_JIT_GLOBAL_EXPORTED,
-	gcc_jit_type_get_pointer (comp.lisp_obj_ptr_type),
+	comp.lisp_obj_type,
 	COMP_UNIT_SYM);
 
   declare_imported_data ();
