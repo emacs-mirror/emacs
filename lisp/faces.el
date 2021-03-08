@@ -2815,6 +2815,23 @@ Note: Other faces cannot inherit from the cursor face."
   "Face to highlight argument names in *Help* buffers."
   :group 'help)
 
+(defface help-key-binding
+  '((((class color) (min-colors 88) (background light)) :foreground "ForestGreen")
+    (((class color) (min-colors 88) (background dark)) :foreground "#44bc44")
+    (((class color grayscale) (background light)) :foreground "grey15")
+    (((class color grayscale) (background dark)) :foreground "grey85")
+    (t :foreground "ForestGreen"))
+  "Face for keybindings in *Help* buffers.
+
+This face is added by `substitute-command-keys', which see.
+
+Note that this face will also be used for key bindings in
+tooltips.  This means that, for example, changing the :height of
+this face will increase the height of any tooltip containing key
+bindings.  See also the face `tooltip'."
+  :version "28.1"
+  :group 'help)
+
 (defface glyphless-char
   '((((type tty)) :inherit underline)
     (((type pc)) :inherit escape-glyph)

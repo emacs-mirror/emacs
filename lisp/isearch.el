@@ -460,11 +460,11 @@ and doesn't remove full-buffer highlighting after a search."
 (make-help-screen isearch-help-for-help-internal
   (purecopy "Type a help option: [bkm] or ?")
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
-\(Type \\<help-map>\\[help-quit] to exit the Help command.)
+\(Type \\<isearch-help-map>\\[help-quit] to exit the Help command.)
 
-b           Display all Isearch key bindings.
-k KEYS      Display full documentation of Isearch key sequence.
-m           Display documentation of Isearch mode.
+\\[isearch-describe-bindings]           Display all Isearch key bindings.
+\\[isearch-describe-key] KEYS      Display full documentation of Isearch key sequence.
+\\[isearch-describe-mode]           Display documentation of Isearch mode.
 
 You can't type here other help keys available in the global help map,
 but outside of this help window when you type them in Isearch mode,

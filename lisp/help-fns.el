@@ -466,13 +466,16 @@ suitable file is found, return nil."
               ;; If lots of ordinary text characters run this command,
               ;; don't mention them one by one.
               (if (< (length non-modified-keys) 10)
-                  (princ (mapconcat #'key-description keys ", "))
+                  (with-current-buffer standard-output
+                    (insert (mapconcat #'help--key-description-fontified
+                                       keys ", ")))
                 (dolist (key non-modified-keys)
                   (setq keys (delq key keys)))
                 (if keys
-                    (progn
-                      (princ (mapconcat #'key-description keys ", "))
-                      (princ ", and many ordinary text characters"))
+                    (with-current-buffer standard-output
+                      (insert (mapconcat #'help--key-description-fontified
+                                        keys ", "))
+                      (insert ", and many ordinary text characters"))
                   (princ "many ordinary text characters"))))
             (when (or remapped keys non-modified-keys)
               (princ ".")
@@ -1824,10 +1827,12 @@ documentation for the major and minor modes of that buffer."
 	      (save-excursion
 		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                     nil t)
-		(help-xref-button 1 'help-function-def mode file-name)))))
-	(princ ":\n")
-	(princ (help-split-fundoc (documentation major-mode) nil 'doc))
-        (princ (help-fns--list-local-commands)))))
+                (help-xref-button 1 'help-function-def mode file-name)))))
+        (let ((fundoc (help-split-fundoc (documentation major-mode) nil 'doc)))
+          (with-current-buffer standard-output
+            (insert ":\n")
+            (insert fundoc)
+            (insert (help-fns--list-local-commands)))))))
   ;; For the sake of IELM and maybe others
   nil)
 

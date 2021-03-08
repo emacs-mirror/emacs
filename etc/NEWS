@@ -920,6 +920,15 @@ skipped.
 ** Help
 
 ---
+*** Keybindings in 'help-mode' use the new 'help-key-binding' face.
+This face is added by 'substitute-command-keys' to any "\[command]"
+substitution.  The return value of that function should consequently
+be assumed to be a propertized string.
+
+Note that the new face will also be used in tooltips.  When using the
+GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
+
+---
 *** 'g' ('revert-buffer') in 'help-mode' no longer requires confirmation.
 
 +++
