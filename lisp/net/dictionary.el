@@ -35,7 +35,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'easymenu)
 (require 'custom)
 (require 'dictionary-connection)
 (require 'button)

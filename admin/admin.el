@@ -665,6 +665,8 @@ style=\"text-align:left\">")
 
 (defconst make-manuals-dist-output-variables
   '(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
+    ("@\\(abs_\\)?top_builddir@" . ".") ; wrong but unused
+    ("^\\(EMACS *=\\).*" . "\\1 emacs")
     ("^\\(\\(?:texinfo\\|buildinfo\\|emacs\\)dir *=\\).*" . "\\1 .")
     ("^\\(clean:.*\\)" . "\\1 infoclean")
     ("@MAKEINFO@" . "makeinfo")
@@ -682,9 +684,7 @@ style=\"text-align:left\">")
     ("@INSTALL@" . "install -c")
     ("@INSTALL_DATA@" . "${INSTALL} -m 644")
     ("@configure_input@" . "")
-    ("@AM_DEFAULT_VERBOSITY@" . "0")
-    ("@AM_V@" . "${V}")
-    ("@AM_DEFAULT_V@" . "${AM_DEFAULT_VERBOSITY}"))
+    ("@AM_DEFAULT_VERBOSITY@" . "0"))
   "Alist of (REGEXP . REPLACEMENT) pairs for `make-manuals-dist'.")
 
 (defun make-manuals-dist--1 (root type)
@@ -714,7 +714,8 @@ style=\"text-align:left\">")
 		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
 	  (copy-file file stem)))
     (with-temp-buffer
-      (let ((outvars make-manuals-dist-output-variables))
+      (let ((outvars make-manuals-dist-output-variables)
+            (case-fold-search nil))
 	(push `("@version@" . ,version) outvars)
 	(insert-file-contents (format "../doc/%s/Makefile.in" type))
 	(dolist (cons outvars)

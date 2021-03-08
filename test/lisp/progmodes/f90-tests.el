@@ -22,9 +22,6 @@
 
 ;;; Commentary:
 
-;; This file does not have "test" in the name, because it lives under
-;; a test/ directory, so that would be superfluous.
-
 ;;; Code:
 
 (require 'ert)

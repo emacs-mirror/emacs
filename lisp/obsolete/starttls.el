@@ -1,4 +1,4 @@
-;;; starttls.el --- STARTTLS functions
+;;; starttls.el --- STARTTLS functions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -126,28 +126,24 @@
 This program is used when GnuTLS is used, i.e. when
 `starttls-use-gnutls' is non-nil."
   :version "22.1"
-  :type 'string
-  :group 'starttls)
+  :type 'string)
 
 (defcustom starttls-program "starttls"
   "The program to run in a subprocess to open an TLSv1 connection.
 This program is used when the `starttls' command is used,
 i.e. when `starttls-use-gnutls' is nil."
-  :type 'string
-  :group 'starttls)
+  :type 'string)
 
 (defcustom starttls-use-gnutls (not (executable-find starttls-program))
   "Whether to use GnuTLS instead of the `starttls' command."
   :version "22.1"
-  :type 'boolean
-  :group 'starttls)
+  :type 'boolean)
 
 (defcustom starttls-extra-args nil
   "Extra arguments to `starttls-program'.
 These apply when the `starttls' command is used, i.e. when
 `starttls-use-gnutls' is nil."
-  :type '(repeat string)
-  :group 'starttls)
+  :type '(repeat string))
 
 (defcustom starttls-extra-arguments nil
   "Extra arguments to `starttls-gnutls-program'.
@@ -157,14 +153,12 @@ For example, non-TLS compliant servers may require
 \(\"--protocols\" \"ssl3\").  Invoke \"gnutls-cli --help\" to
 find out which parameters are available."
   :version "22.1"
-  :type '(repeat string)
-  :group 'starttls)
+  :type '(repeat string))
 
 (defcustom starttls-process-connection-type nil
   "Value for `process-connection-type' to use when starting STARTTLS process."
   :version "22.1"
-  :type 'boolean
-  :group 'starttls)
+  :type 'boolean)
 
 (defcustom starttls-connect "- Simple Client Mode:\n\n"
   "Regular expression indicating successful connection.
@@ -173,8 +167,7 @@ The default is what GnuTLS's \"gnutls-cli\" outputs."
   ;; in the application read/write phase.  If the logic, or the string
   ;; itself, is modified, this must be updated.
   :version "22.1"
-  :type 'regexp
-  :group 'starttls)
+  :type 'regexp)
 
 (defcustom starttls-failure "\\*\\*\\* Handshake has failed"
   "Regular expression indicating failed TLS handshake.
@@ -182,8 +175,7 @@ The default is what GnuTLS's \"gnutls-cli\" outputs."
   ;; GnuTLS cli.c:do_handshake() prints this string on failure.  If the
   ;; logic, or the string itself, is modified, this must be updated.
   :version "22.1"
-  :type 'regexp
-  :group 'starttls)
+  :type 'regexp)
 
 (defcustom starttls-success "- Compression: "
   "Regular expression indicating completed TLS handshakes.
@@ -193,8 +185,7 @@ The default is what GnuTLS's \"gnutls-cli\" outputs."
   ;; last.  If that logic, or the string itself, is modified, this
   ;; must be updated.
   :version "22.1"
-  :type 'regexp
-  :group 'starttls)
+  :type 'regexp)
 
 (defun starttls-negotiate-gnutls (process)
   "Negotiate TLS on PROCESS opened by `open-starttls-stream'.
@@ -296,9 +287,8 @@ GnuTLS requires a port number."
 			    starttls-gnutls-program
 			  starttls-program))))
 
-(defalias 'starttls-any-program-available 'starttls-available-p)
-(make-obsolete 'starttls-any-program-available 'starttls-available-p
-	       "2011-08-02")
+(define-obsolete-function-alias 'starttls-any-program-available
+  #'starttls-available-p "24.1")
 
 (provide 'starttls)
 

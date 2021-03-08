@@ -1,4 +1,4 @@
-;;; srecode/srt-mode.el --- Major mode for writing screcode macros
+;;; srecode/srt-mode.el --- Major mode for writing screcode macros  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -181,9 +181,9 @@ we can tell font lock about them.")
 
 (defvar srecode-template-mode-map
   (let ((km (make-sparse-keymap)))
-    (define-key km "\C-c\C-c" 'srecode-compile-templates)
-    (define-key km "\C-c\C-m" 'srecode-macro-help)
-    (define-key km "/" 'srecode-self-insert-complete-end-macro)
+    (define-key km "\C-c\C-c" #'srecode-compile-templates)
+    (define-key km "\C-c\C-m" #'srecode-macro-help)
+    (define-key km "/" #'srecode-self-insert-complete-end-macro)
     km)
   "Keymap used in srecode mode.")
 
@@ -205,7 +205,7 @@ we can tell font lock about them.")
                 ((?_ . "w") (?- . "w")))))
 
 ;;;###autoload
-(defalias 'srt-mode 'srecode-template-mode)
+(defalias 'srt-mode #'srecode-template-mode)
 
 ;;; Template Commands
 ;;
@@ -436,7 +436,7 @@ Moves to the end of one named section."
     (when point (goto-char (point)))
     (let* ((tag (semantic-current-tag))
 	   (args (semantic-tag-function-arguments tag))
-	   (argsym (mapcar 'intern args))
+	   (argsym (mapcar #'intern args))
 	   (argvars nil)
 	   ;; Create a temporary dictionary in which the
 	   ;; arguments can be resolved so we can extract
@@ -475,7 +475,7 @@ section or ? for an ask variable."
 	  (ee (regexp-quote (srecode-template-get-escape-end)))
 	  (start (point))
 	  (macrostart nil)
-	  (raw nil)
+	  ;; (raw nil)
 	  )
       (when (and tag (semantic-tag-of-class-p tag 'function)
 		 (srecode-in-macro-p point)
@@ -627,7 +627,7 @@ section or ? for an ask variable."
 	context-return)))
 
 (define-mode-local-override semantic-analyze-possible-completions
-  srecode-template-mode (context &rest flags)
+  srecode-template-mode (context &rest _flags)
   "Return a list of possible completions based on NONTEXT."
   (with-current-buffer (oref context buffer)
     (let* ((prefix (car (last (oref context prefix))))

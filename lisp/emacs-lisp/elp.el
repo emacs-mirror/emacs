@@ -583,7 +583,7 @@ displayed."
   ;; continue standard unloading
   nil)
 
-(cl-defmethod loadhist-unload-element :before :extra "elp" ((x (head defun)))
+(cl-defmethod loadhist-unload-element :extra "elp" :before ((x (head defun)))
   "Un-instrument before unloading a function."
   (elp-restore-function (cdr x)))
 

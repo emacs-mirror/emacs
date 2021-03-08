@@ -47,8 +47,7 @@
 ;; FIXME there is also svnadmin.
 (defcustom vc-svn-program "svn"
   "Name of the SVN executable."
-  :type 'string
-  :group 'vc-svn)
+  :type 'string)
 
 ;; Might be nice if svn defaulted to non-interactive if stdin not tty.
 ;; https://svn.haxx.se/dev/archive-2008-05/0762.shtml
@@ -64,8 +63,7 @@ hanging while prompting for authorization."
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "24.4"
-  :group 'vc-svn)
+  :version "24.4")
 
 (defcustom vc-svn-register-switches nil
   "Switches for registering a file into SVN.
@@ -76,8 +74,7 @@ If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "22.1"
-  :group 'vc-svn)
+  :version "22.1")
 
 (defcustom vc-svn-diff-switches
   t			   ;`svn' doesn't support common args like -c or -b.
@@ -92,8 +89,7 @@ If you want to force an empty list of arguments, use t."
 		 (repeat :tag "Argument List"
 			 :value ("")
 			 string))
-  :version "22.1"
-  :group 'vc-svn)
+  :version "22.1")
 
 (defcustom vc-svn-annotate-switches nil
   "String or list of strings specifying switches for svn annotate under VC.
@@ -103,14 +99,12 @@ switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "25.1"
-  :group 'vc-svn)
+  :version "25.1")
 
 (defcustom vc-svn-header '("$Id\ $")
   "Header keywords to be inserted by `vc-insert-headers'."
   :version "24.1"     ; no longer consult the obsolete vc-header-alist
-  :type '(repeat string)
-  :group 'vc-svn)
+  :type '(repeat string))
 
 ;; We want to autoload it for use by the autoloaded version of
 ;; vc-svn-registered, but we want the value to be compiled at startup, not
@@ -305,19 +299,19 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 The COMMENT argument is ignored  This does an add but not a commit.
 Passes either `vc-svn-register-switches' or `vc-register-switches'
 to the SVN command."
-  (apply 'vc-svn-command nil 0 files "add" (vc-switches 'SVN 'register)))
+  (apply #'vc-svn-command nil 0 files "add" (vc-switches 'SVN 'register)))
 
 (defun vc-svn-root (file)
   (vc-find-root file vc-svn-admin-directory))
 
-(defalias 'vc-svn-responsible-p 'vc-svn-root)
+(defalias 'vc-svn-responsible-p #'vc-svn-root)
 
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
 (defun vc-svn-checkin (files comment &optional _extra-args-ignored)
   "SVN-specific version of `vc-backend-checkin'."
   (let ((status (apply
-                 'vc-svn-command nil 1 files "ci"
+                 #'vc-svn-command nil 1 files "ci"
                  (nconc (cons "-m" (log-edit-extract-headers nil comment))
                         (vc-switches 'SVN 'checkin)))))
     (set-buffer "*vc*")
@@ -345,7 +339,7 @@ to the SVN command."
 (defun vc-svn-find-revision (file rev buffer)
   "SVN-specific retrieval of a specified version into a buffer."
   (let (process-file-side-effects)
-    (apply 'vc-svn-command
+    (apply #'vc-svn-command
 	   buffer 0 file
 	   "cat"
 	   (and rev (not (string= rev ""))
@@ -391,7 +385,7 @@ DIRECTORY or absolute."
       nil
     ;; Check out a particular version (or recreate the file).
     (vc-file-setprop file 'vc-working-revision nil)
-    (apply 'vc-svn-command nil 0 file
+    (apply #'vc-svn-command nil 0 file
 	   "update"
 	   (cond
 	    ((null rev) "-rBASE")
@@ -563,27 +557,27 @@ If LIMIT is non-nil, show no more than this many entries."
       (goto-char (point-min))
       (if files
 	  (dolist (file files)
-		  (insert "Working file: " file "\n")
-		  (apply
-		   'vc-svn-command
-		   buffer
-		   'async
-		   (list file)
-		   "log"
-		   (append
-		    (list
-		     (if start-revision
-			 (format "-r%s:1" start-revision)
-		       ;; By default Subversion only shows the log up to the
-		       ;; working revision, whereas we also want the log of the
-		       ;; subsequent commits.  At least that's what the
-		       ;; vc-cvs.el code does.
-		       "-rHEAD:0"))
-                    (if (eq vc-log-view-type 'with-diff)
-                        (list "--diff"))
-                    (when limit (list "--limit" (format "%s" limit))))))
+	    (insert "Working file: " file "\n")
+	    (apply
+	     #'vc-svn-command
+	     buffer
+	     'async
+	     (list file)
+	     "log"
+	     (append
+	      (list
+	       (if start-revision
+		   (format "-r%s:1" start-revision)
+		 ;; By default Subversion only shows the log up to the
+		 ;; working revision, whereas we also want the log of the
+		 ;; subsequent commits.  At least that's what the
+		 ;; vc-cvs.el code does.
+		 "-rHEAD:0"))
+              (if (eq vc-log-view-type 'with-diff)
+                  (list "--diff"))
+              (when limit (list "--limit" (format "%s" limit))))))
 	;; Dump log for the entire directory.
-	(apply 'vc-svn-command buffer 0 nil "log"
+	(apply #'vc-svn-command buffer 0 nil "log"
 	       (append
 		(list
 		 (if start-revision (format "-r%s" start-revision) "-rHEAD:0"))
@@ -611,8 +605,8 @@ If LIMIT is non-nil, show no more than this many entries."
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
 	      (list (concat "--diff-cmd=" diff-command) "-x"
-		    (mapconcat 'identity (vc-switches nil 'diff) " ")))))
-      (apply 'vc-svn-command buffer
+		    (mapconcat #'identity (vc-switches nil 'diff) " ")))))
+      (apply #'vc-svn-command buffer
 	     (if async 'async 0)
 	     files "diff"
 	     (append
@@ -671,7 +665,7 @@ NAME is assumed to be a URL."
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
 and that it passes `vc-svn-global-switches' to it before FLAGS."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
+  (apply #'vc-do-command (or buffer "*vc*") okstatus vc-svn-program file-or-list
          (if (stringp vc-svn-global-switches)
              (cons vc-svn-global-switches flags)
            (append vc-svn-global-switches flags))))
@@ -683,7 +677,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
     (unless (re-search-forward "^<<<<<<< " nil t)
       (vc-svn-command nil 0 buffer-file-name "resolved")
       ;; Remove the hook so that it is not called multiple times.
-      (remove-hook 'after-save-hook 'vc-svn-resolve-when-done t))))
+      (remove-hook 'after-save-hook #'vc-svn-resolve-when-done t))))
 
 ;; Inspired by vc-arch-find-file-hook.
 (defun vc-svn-find-file-hook ()
@@ -696,7 +690,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
         ;; There are conflict markers.
         (progn
           (smerge-start-session)
-          (add-hook 'after-save-hook 'vc-svn-resolve-when-done nil t))
+          (add-hook 'after-save-hook #'vc-svn-resolve-when-done nil t))
       ;; There are no conflict markers.  This is problematic: maybe it means
       ;; the conflict has been resolved and we should immediately call "svn
       ;; resolved", or it means that the file's type does not allow Svn to

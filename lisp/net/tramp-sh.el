@@ -2397,7 +2397,7 @@ The method used must be an out-of-band method."
 		       (append
 			copy-args
 			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-			  (if (member "" y) '(" ") y))))))
+			  (unless (member "" y) y))))))
 
 	      copy-env
 	      (delq
@@ -2416,7 +2416,7 @@ The method used must be an out-of-band method."
 		(append
 		 remote-copy-args
 		 (let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-		   (if (member "" y) '(" ") y)))))
+		   (unless (member "" y) y)))))
 
 	;; Check for local copy program.
 	(unless (executable-find copy-program)

@@ -106,7 +106,6 @@
 ;;; TODO:
 ;; - Timeout directories we haven't visited in a while.
 
-(require 'easymenu)
 (require 'dframe)
 (require 'ezimage)
 
@@ -141,25 +140,6 @@
   :type 'boolean)
 
 ;;; Code:
-
-;; Note: `inversion-test' requires parts of the CEDET package that are
-;; not included with Emacs.
-;;
-;; (defun speedbar-require-version (major minor &optional beta)
-;;   "Non-nil if this version of SPEEDBAR does not satisfy a specific version.
-;; Arguments can be:
-;;
-;;   (MAJOR MINOR &optional BETA)
-;;
-;;   Values MAJOR and MINOR must be integers.  BETA can be an integer, or
-;; excluded if a released version is required.
-;;
-;; It is assumed that if the current version is newer than that specified,
-;; everything passes.  Exceptions occur when known incompatibilities are
-;; introduced."
-;;   (inversion-test 'speedbar
-;; 		  (concat major "." minor
-;; 			  (when beta (concat "beta" beta)))))
 
 (defvar speedbar-initial-expansion-mode-alist
   '(("buffers" speedbar-buffer-easymenu-definition speedbar-buffers-key-map
@@ -308,22 +288,6 @@ The default buffer is the buffer in the selected window in the attached frame."
 A nil value means don't show the file in the list."
   :group 'speedbar
   :type 'boolean)
-
-;;; EVENTUALLY REMOVE THESE
-
-;; When I moved to a repeating timer, I had the horrible misfortune
-;; of losing the ability for adaptive speed choice.  This update
-;; speed currently causes long delays when it should have been turned off.
-(defvar speedbar-update-speed dframe-update-speed)
-(make-obsolete-variable 'speedbar-update-speed
-			'dframe-update-speed
-			"speedbar 1.0pre3 (Emacs 23.1)")
-
-(defvar speedbar-navigating-speed dframe-update-speed)
-(make-obsolete-variable 'speedbar-navigating-speed
-			'dframe-update-speed
-			"speedbar 1.0pre3 (Emacs 23.1)")
-;;; END REMOVE THESE
 
 (defcustom speedbar-frame-parameters '((minibuffer . nil)
 				       (width . 20)
@@ -3280,7 +3244,7 @@ subdirectory chosen will be at INDENT level."
   ;; in case.
   (let ((speedbar-smart-directory-expand-flag nil))
     (speedbar-update-contents))
-  (speedbar-set-timer speedbar-navigating-speed)
+  (speedbar-set-timer dframe-update-speed)
   (setq speedbar-last-selected-file nil)
   (speedbar-stealthy-updates))
 
@@ -3343,7 +3307,7 @@ INDENT is the current indentation level and is unused."
   ;; update contents will change directory without
   ;; having to touch the attached frame.
   (speedbar-update-contents)
-  (speedbar-set-timer speedbar-navigating-speed))
+  (speedbar-set-timer dframe-update-speed))
 
 (defun speedbar-tag-file (text token indent)
   "The cursor is on a selected line.  Expand the tags in the specified file.

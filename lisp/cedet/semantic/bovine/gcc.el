@@ -47,11 +47,11 @@ to give to the program."
       (erase-buffer)
       (setenv "LC_ALL" "C")
       (condition-case nil
-          (setq err (apply 'call-process gcc-cmd options))
+          (setq err (apply #'call-process gcc-cmd options))
         (error ;; Some bogus directory for the first time perhaps?
          (let ((default-directory (expand-file-name "~/")))
            (condition-case nil
-               (setq err (apply 'call-process gcc-cmd options))
+               (setq err (apply #'call-process gcc-cmd options))
              (error ;; gcc doesn't exist???
               nil)))))
       (setenv "LC_ALL" old-lc-messages)
@@ -151,12 +151,12 @@ It should also include other symbols GCC was compiled with.")
   (let* ((fields (or semantic-gcc-setup-data
                      (semantic-gcc-fields (semantic-gcc-query "gcc" "-v"))))
          (cpp-options `("-E" "-dM" "-x" "c++" ,null-device))
-         (query (let ((q (apply 'semantic-gcc-query "cpp" cpp-options)))
+         (query (let ((q (apply #'semantic-gcc-query "cpp" cpp-options)))
                   (if (stringp q)
                       q
                     ;; `cpp' command in `semantic-gcc-setup' doesn't work on
                     ;; Mac, try `gcc'.
-                    (apply 'semantic-gcc-query "gcc" cpp-options))))
+                    (apply #'semantic-gcc-query "gcc" cpp-options))))
          (defines (if (stringp query)
 		      (semantic-cpp-defs query)
 		    (message (concat "Could not query gcc for defines. "

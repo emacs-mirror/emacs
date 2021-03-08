@@ -1,4 +1,4 @@
-;;; add-log.el --- change log maintenance commands for Emacs
+;;; add-log.el --- change log maintenance commands for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2021 Free
 ;; Software Foundation, Inc.
@@ -49,15 +49,13 @@
 (defcustom change-log-default-name nil
   "Name of a change log file for \\[add-change-log-entry]."
   :type '(choice (const :tag "default" nil)
-		 string)
-  :group 'change-log)
+		 string))
 ;;;###autoload
-(put 'change-log-default-name 'safe-local-variable 'string-or-null-p)
+(put 'change-log-default-name 'safe-local-variable #'string-or-null-p)
 
 (defcustom change-log-mode-hook nil
   "Normal hook run by `change-log-mode'."
-  :type 'hook
-  :group 'change-log)
+  :type 'hook)
 
 ;; Many modes set this variable, so avoid warnings.
 ;;;###autoload
@@ -66,16 +64,14 @@
 It is called by `add-log-current-defun' with no argument, and
 should return the function's name as a string, or nil if point is
 outside a function."
-  :type '(choice (const nil) function)
-  :group 'change-log)
+  :type '(choice (const nil) function))
 
 ;;;###autoload
 (defcustom add-log-full-name nil
   "Full name of user, for inclusion in ChangeLog daily headers.
 This defaults to the value returned by the function `user-full-name'."
   :type '(choice (const :tag "Default" nil)
-		 string)
-  :group 'change-log)
+		 string))
 
 ;;;###autoload
 (defcustom add-log-mailing-address nil
@@ -86,8 +82,7 @@ will be recognized as referring to the same user; when creating a new
 ChangeLog entry, one element will be chosen at random."
   :type '(choice (const :tag "Default" nil)
 		 (string :tag "String")
-		 (repeat :tag "List of Strings" string))
-  :group 'change-log)
+		 (repeat :tag "List of Strings" string)))
 
 (defcustom add-log-time-format 'add-log-iso8601-time-string
   "Function that defines the time format.
@@ -98,8 +93,7 @@ and `current-time-string' are two valid values."
 		       add-log-iso8601-time-string)
 		(const :tag "Old format, as returned by `current-time-string'"
 		       current-time-string)
-		(function :tag "Other"))
-  :group 'change-log)
+		(function :tag "Other")))
 
 (defcustom add-log-keep-changes-together nil
   "If non-nil, normally keep day's log entries for one file together.
@@ -130,14 +124,12 @@ and in the former:
 The NEW-ENTRY arg to `add-change-log-entry' can override the effect of
 this variable."
   :version "20.3"
-  :type 'boolean
-  :group 'change-log)
+  :type 'boolean)
 
 (defcustom add-log-always-start-new-record nil
   "If non-nil, `add-change-log-entry' will always start a new record."
   :version "22.1"
-  :type 'boolean
-  :group 'change-log)
+  :type 'boolean)
 
 (defvar add-log-buffer-file-name-function 'buffer-file-name
   "If non-nil, function to call to identify the full filename of a buffer.
@@ -149,15 +141,13 @@ use `buffer-file-name'.")
 This function is called with one argument, the value of variable
 `buffer-file-name' in that buffer.  If this is nil, the default is to
 use the file's name relative to the directory of the change log file."
-  :type '(choice (const nil) function)
-  :group 'change-log)
+  :type '(choice (const nil) function))
 
 
 (defcustom change-log-version-info-enabled nil
   "If non-nil, enable recording version numbers with the changes."
   :version "21.1"
-  :type 'boolean
-  :group 'change-log)
+  :type 'boolean)
 
 (defcustom change-log-version-number-regexp-list
   (let ((re "\\([0-9]+\\.[0-9.]+\\)"))
@@ -170,64 +160,54 @@ use the file's name relative to the directory of the change log file."
 The version number must be in group 1.
 Note: The search is conducted only within 10%, at the beginning of the file."
   :version "21.1"
-  :type '(repeat regexp)
-  :group 'change-log)
+  :type '(repeat regexp))
 
 (defcustom change-log-directory-files '(".bzr" ".git" ".hg" ".svn")
   "List of files that cause `find-change-log' to stop in containing directory.
 This applies if no pre-existing ChangeLog is found.  If nil, then in such
 a case simply use the directory containing the changed file."
   :version "26.1"
-  :type '(repeat file)
-  :group 'change-log)
+  :type '(repeat file))
 
 (defface change-log-date
   '((t (:inherit font-lock-string-face)))
   "Face used to highlight dates in date lines."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 
 (defface change-log-name
   '((t (:inherit font-lock-constant-face)))
   "Face for highlighting author names."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 
 (defface change-log-email
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting author email addresses."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 
 (defface change-log-file
   '((t (:inherit font-lock-function-name-face)))
   "Face for highlighting file names."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 
 (defface change-log-list
   '((t (:inherit font-lock-keyword-face)))
   "Face for highlighting parenthesized lists of functions or variables."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 
 (defface change-log-conditionals
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting conditionals of the form `[...]'."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 
 (defface change-log-function
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting items of the form `<....>'."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 
 (defface change-log-acknowledgment
   '((t (:inherit font-lock-comment-face)))
   "Face for highlighting acknowledgments."
-  :version "21.1"
-  :group 'change-log)
+  :version "21.1")
 (define-obsolete-face-alias 'change-log-acknowledgement
   'change-log-acknowledgment "24.3")
 
@@ -519,7 +499,7 @@ try to visit the file for the change under `point' instead."
 	   change-log-find-tail)
       (setq change-log-find-tail
 	    (condition-case nil
-		(apply 'change-log-goto-source-1
+		(apply #'change-log-goto-source-1
 		       (append change-log-find-head change-log-find-tail))
 	      (error
 	       (format-message
@@ -556,7 +536,7 @@ try to visit the file for the change under `point' instead."
 		      file (find-file-noselect file)))
 	  (condition-case nil
 	      (setq change-log-find-tail
-		    (apply 'change-log-goto-source-1 change-log-find-head))
+		    (apply #'change-log-goto-source-1 change-log-find-head))
 	    (error
 	     (format-message "Cannot find matches for tag `%s' in file `%s'"
 			     tag file)))))))))
@@ -569,7 +549,7 @@ Compatibility function for \\[next-error] invocations."
 	 (count (abs argp))		; how many cycles
 	 (down (< argp 0))		; are we going down? (is argp negative?)
 	 (up (not down))
-	 (search-function (if up 're-search-forward 're-search-backward)))
+	 (search-function (if up #'re-search-forward #'re-search-backward)))
 
     ;; set the starting position
     (goto-char (cond (reset (point-min))
@@ -589,28 +569,26 @@ Compatibility function for \\[next-error] invocations."
 	(select-window change-log-find-window)))))
 
 (defvar change-log-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
-    (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
-    (define-key map [?\C-c ?\C-n] 'add-log-edit-next-comment)
-    (define-key map [?\C-c ?\C-f] 'change-log-find-file)
-    (define-key map [?\C-c ?\C-c] 'change-log-goto-source)
-    (define-key map [menu-bar changelog] (cons "ChangeLog" menu-map))
-    (define-key menu-map [gs]
-      '(menu-item "Go To Source" change-log-goto-source
-		  :help "Go to source location of ChangeLog tag near point"))
-    (define-key menu-map [ff]
-      '(menu-item "Find File" change-log-find-file
-		  :help "Visit the file for the change under point"))
-    (define-key menu-map [sep] '("--"))
-    (define-key menu-map [nx]
-      '(menu-item "Next Log-Edit Comment" add-log-edit-next-comment
-		  :help "Cycle forward through Log-Edit mode comment history"))
-    (define-key menu-map [pr]
-      '(menu-item "Previous Log-Edit Comment" add-log-edit-prev-comment
-		  :help "Cycle backward through Log-Edit mode comment history"))
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\C-c ?\C-p] #'add-log-edit-prev-comment)
+    (define-key map [?\C-c ?\C-n] #'add-log-edit-next-comment)
+    (define-key map [?\C-c ?\C-f] #'change-log-find-file)
+    (define-key map [?\C-c ?\C-c] #'change-log-goto-source)
     map)
   "Keymap for Change Log major mode.")
+
+(easy-menu-define change-log-mode-menu change-log-mode-map
+  "Menu for Change Log major mode."
+  '("ChangeLog"
+    ["Previous Log-Edit Comment" add-log-edit-prev-comment
+     :help "Cycle backward through Log-Edit mode comment history"]
+    ["Next Log-Edit Comment" add-log-edit-next-comment
+     :help "Cycle forward through Log-Edit mode comment history"]
+    "---"
+    ["Find File" change-log-find-file
+     :help "Visit the file for the change under point"]
+    ["Go To Source" change-log-goto-source
+     :help "Go to source location of ChangeLog tag near point"]))
 
 ;; It used to be called change-log-time-zone-rule but really should be
 ;; called add-log-time-zone-rule since it's only used from add-log-* code.
@@ -814,7 +792,7 @@ means to put log entries in a suitably named buffer."
   :type 'boolean
   :version "27.1")
 
-(put 'add-log-dont-create-changelog-file 'safe-local-variable 'booleanp)
+(put 'add-log-dont-create-changelog-file 'safe-local-variable #'booleanp)
 
 (defun add-log--pseudo-changelog-buffer-name (changelog-file-name)
   "Compute a suitable name for a non-file visiting ChangeLog buffer.
@@ -1220,8 +1198,7 @@ file were isearch was started."
   "Heuristic regexp used by `add-log-current-defun' for unknown major modes.
 The regexp's first submatch is placed in the ChangeLog entry, in
 parentheses."
-  :type 'regexp
-  :group 'change-log)
+  :type 'regexp)
 
 (declare-function c-cpp-define-name "cc-cmds" ())
 (declare-function c-defun-name      "cc-cmds" ())

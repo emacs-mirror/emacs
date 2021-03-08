@@ -828,8 +828,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 
 ;; Make it the default changes parser
 ;;;###autoload
-(defalias 'semantic-parse-changes-default
-  'semantic-edits-incremental-parser)
+(defalias 'semantic-parse-changes-default #'semantic-edits-incremental-parser)
 
 ;;; Cache Splicing
 ;;

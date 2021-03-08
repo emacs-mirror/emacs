@@ -1,4 +1,4 @@
-;;; viper-init.el --- some common definitions for Viper
+;;; viper-init.el --- some common definitions for Viper  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -46,7 +46,7 @@
 
 ;; Tell whether we are running as a window application or on a TTY
 
-(define-obsolete-function-alias 'viper-device-type 'window-system "27.1")
+(define-obsolete-function-alias 'viper-device-type #'window-system "27.1")
 
 (defun viper-color-display-p ()
   (condition-case nil
@@ -141,7 +141,7 @@ docstring.  The variable becomes buffer-local whenever set."
   (append (vconcat string) nil))
 
 (defsubst viper-charlist-to-string (list)
-  (mapconcat 'char-to-string list ""))
+  (mapconcat #'char-to-string list ""))
 
 ;; like char-after/before, but saves typing
 (defun viper-char-at-pos (direction &optional offset)

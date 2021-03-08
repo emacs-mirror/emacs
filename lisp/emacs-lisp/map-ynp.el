@@ -265,7 +265,8 @@ C-g to quit (cancel the whole command);
   "If non-nil, `read-answer' accepts single-character answers.
 If t, accept short (single key-press) answers to the question.
 If nil, require long answers.  If `auto', accept short answers if
-the function cell of `yes-or-no-p' is set to `y-or-n-p'."
+`use-short-answers' is non-nil, or the function cell of `yes-or-no-p'
+is set to `y-or-n-p'."
   :type '(choice (const :tag "Accept short answers" t)
                  (const :tag "Require long answer" nil)
                  (const :tag "Guess preference" auto))
@@ -304,7 +305,8 @@ Return a long answer even in case of accepting short ones.
 
 When `use-dialog-box' is t, pop up a dialog window to get user input."
   (let* ((short (if (eq read-answer-short 'auto)
-                    (eq (symbol-function 'yes-or-no-p) 'y-or-n-p)
+                    (or use-short-answers
+                        (eq (symbol-function 'yes-or-no-p) 'y-or-n-p))
                   read-answer-short))
          (answers-with-help
           (if (assoc "help" answers)

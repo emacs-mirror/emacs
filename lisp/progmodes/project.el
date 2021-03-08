@@ -924,7 +924,7 @@ if one already exists."
                   "-eshell*"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
-        (pop-to-buffer eshell-buffer)
+        (pop-to-buffer-same-window eshell-buffer)
       (eshell t))))
 
 ;;;###autoload

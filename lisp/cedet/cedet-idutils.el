@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(declare-function inversion-check-version "inversion")
-
 (defvar cedet-idutils-min-version "4.0"
   "Minimum version of ID Utils required.")
 
@@ -167,7 +165,6 @@ If optional programmatic argument NOERROR is non-nil,
 then instead of throwing an error if Global isn't available,
 return nil."
   (interactive)
-  (require 'inversion)
   (let ((b (condition-case nil
 	       (cedet-idutils-fnid-call (list "--version"))
 	     (error nil)))
@@ -182,7 +179,7 @@ return nil."
 	(if (re-search-forward "fnid - \\([0-9.]+\\)" nil t)
 	    (setq rev (match-string 1))
 	  (setq rev "0"))
-	(if (inversion-check-version rev nil cedet-idutils-min-version)
+        (if (version< rev cedet-idutils-min-version)
 	    (if noerror
 		nil
 	      (error "Version of ID Utils is %s.  Need at least %s"

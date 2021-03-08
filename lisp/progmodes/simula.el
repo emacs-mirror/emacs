@@ -270,48 +270,25 @@ for SIMULA mode to function correctly."
     (define-key map ":"          'simula-electric-label)
     (define-key map "\e\C-q"     'simula-indent-exp)
     (define-key map "\t"         'simula-indent-command)
-
-    (define-key map [menu-bar simula]
-      (cons "SIMULA" (make-sparse-keymap "SIMULA")))
-    (define-key map [menu-bar simula indent-exp]
-      '("Indent Expression" . simula-indent-exp))
-    (define-key map [menu-bar simula indent-line]
-      '("Indent Line" . simula-indent-command))
-    (define-key map [menu-bar simula separator-navigate]
-      '("--"))
-    (define-key map [menu-bar simula backward-stmt]
-      '("Previous Statement" . simula-previous-statement))
-    (define-key map [menu-bar simula forward-stmt]
-      '("Next Statement" . simula-next-statement))
-    (define-key map [menu-bar simula backward-up]
-      '("Backward Up Level" . simula-backward-up-level))
-    (define-key map [menu-bar simula forward-down]
-      '("Forward Down Statement" . simula-forward-down-level))
-
-    (put 'simula-next-statement 'menu-enable '(not (eobp)))
-    (put 'simula-previous-statement 'menu-enable '(not (bobp)))
-    (put 'simula-forward-down-level 'menu-enable '(not (eobp)))
-    (put 'simula-backward-up-level 'menu-enable '(not (bobp)))
-    (put 'simula-indent-command 'menu-enable '(not buffer-read-only))
-    (put 'simula-indent-exp 'menu-enable '(not buffer-read-only))
-
-    ;; RMS: mouse-3 should not select this menu.  mouse-3's global
-    ;; definition is useful in SIMULA mode and we should not interfere
-    ;; with that.  The menu is mainly for beginners, and for them,
-    ;; the menubar requires less memory than a special click.
-    ;; in Lucid Emacs, we want the menu to popup when the 3rd button is
-    ;; hit.  In 19.10 and beyond this is done automatically if we put
-    ;; the menu on mode-popup-menu variable, see c-common-init [cc-mode.el]
-    ;;(if (not (boundp 'mode-popup-menu))
-    ;;	(define-key simula-mode-map 'button3 'simula-popup-menu))
     map)
   "Keymap used in `simula-mode'.")
 
-;; menus for Lucid
-(defun simula-popup-menu (_e)
-  "Pops up the SIMULA menu."
-  (interactive "@e")
-  (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
+(easy-menu-define simula-mode-menu simula-mode-map
+  "Menu for `simula-mode'."
+  '("SIMULA"
+    ["Forward Down Statement" simula-forward-down-level
+     :enable (not (eobp))]
+    ["Backward Up Level" simula-backward-up-level
+     :enable (not (bobp))]
+    ["Next Statement" simula-next-statement
+     :enable (not (eobp))]
+    ["Previous Statement" simula-previous-statement
+     :enable (not (bobp))]
+    "---"
+    ["Indent Line" simula-indent-command
+     :enable (not buffer-read-only)]
+    ["Indent Expression" simula-indent-exp
+     :enable (not buffer-read-only)]))
 
 ;;;###autoload
 (define-derived-mode simula-mode prog-mode "Simula"
@@ -1600,7 +1577,7 @@ If not nil and not t, move to limit of search and return nil."
        ("!\\|\\<COMMENT\\>" ";" comment))
      nil 'case-insensitive)))
 
-;; defuns for submitting bug reports
+;; obsolete
 
 (defconst simula-mode-help-address "bug-gnu-emacs@gnu.org"
   "Address accepting submission of `simula-mode' bug reports.")
@@ -1610,6 +1587,12 @@ If not nil and not t, move to limit of search and return nil."
 
 (define-obsolete-function-alias 'simula-submit-bug-report
   'report-emacs-bug "24.4")
+
+(defun simula-popup-menu (_e)
+  "Pops up the SIMULA menu."
+  (declare (obsolete simula-mode-menu "28.1"))
+  (interactive "@e")
+  (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
 
 (provide 'simula)
 

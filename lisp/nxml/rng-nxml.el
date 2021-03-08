@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
 (require 'xmltok)
 (require 'nxml-util)
 (require 'nxml-ns)

@@ -1,4 +1,4 @@
-;;; srecode/expandproto.el --- Expanding prototypes.
+;;; srecode/expandproto.el --- Expanding prototypes.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007, 2009-2021 Free Software Foundation, Inc.
 

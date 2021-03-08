@@ -701,8 +701,9 @@ A history list for numbers read by @code{read-number}.
 @end defvar
 
 @defvar goto-line-history
-A history list for arguments to @code{goto-line}.  This variable is
-buffer local.
+A history list for arguments to @code{goto-line}.  This variable can
+be made local in every buffer by customizing the user option
+@code{goto-line-history-local}.
 @end defvar
 
 @c Less common: coding-system-history, input-method-history,

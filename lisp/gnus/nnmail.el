@@ -240,11 +240,6 @@ If non-nil, also update the cache when copy or move articles."
   :group 'nnmail
   :type 'boolean)
 
-(make-obsolete-variable 'nnmail-spool-file 'mail-sources
-			"Gnus 5.9 (Emacs 22.1)")
-;; revision 5.29 / p0-85 / Gnus 5.9
-;; Variable removed in No Gnus v0.7
-
 (defcustom nnmail-resplit-incoming nil
   "If non-nil, re-split incoming procmail sorted mail."
   :group 'nnmail-procmail
@@ -1320,9 +1315,6 @@ Eudora has a broken References line, but an OK In-Reply-To."
     (goto-char (point-min))
     (when (re-search-forward "^\\(In-Reply-To:[^\n]+\\)\n[ \t]+" nil t)
       (replace-match "\\1" t))))
-
-(defalias 'nnmail-fix-eudora-headers #'nnmail-ignore-broken-references)
-(make-obsolete 'nnmail-fix-eudora-headers #'nnmail-ignore-broken-references "Emacs 23.1")
 
 (custom-add-option 'nnmail-prepare-incoming-header-hook
 		   'nnmail-ignore-broken-references)

@@ -90,7 +90,6 @@
 
 (require 'cl-lib)
 (require 'seq)
-(require 'easymenu)
 
 ;;; Some variables
 

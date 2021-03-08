@@ -30,7 +30,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(eval-when-compile (require 'easymenu))
 
 (defvar help-mode-map
   (let ((map (make-sparse-keymap)))
@@ -67,11 +66,11 @@
 (defvar help-mode-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item "close" 'quit-window 'quit map
-                         :label "Quit help."
+                         :help "Quit help"
                          :vert-only t)
     (define-key-after map [separator-1] menu-bar-separator)
     (tool-bar-local-item "search" 'isearch-forward 'search map
-                         :label "Search" :vert-only t)
+                         :help "Search" :vert-only t)
     (tool-bar-local-item-from-menu 'help-go-back "left-arrow" map help-mode-map
                                    :rtl "right-arrow" :vert-only t)
     (tool-bar-local-item-from-menu 'help-go-forward "right-arrow" map help-mode-map
@@ -476,8 +475,7 @@ that."
   (with-current-buffer (or buffer (current-buffer))
     (save-excursion
       (goto-char (point-min))
-      ;; Skip the header-type info, though it might be useful to parse
-      ;; it at some stage (e.g. "function in `library'").
+      ;; Skip the first bit, which has already been buttonized.
       (forward-paragraph)
       (let ((old-modified (buffer-modified-p)))
         (let ((stab (syntax-table))

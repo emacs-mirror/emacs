@@ -1,4 +1,4 @@
-;;; pgg-pgp.el --- PGP 2.* and 6.* support for PGG.
+;;; pgg-pgp.el --- PGP 2.* and 6.* support for PGG.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2000, 2002-2021 Free Software Foundation, Inc.
 
@@ -35,23 +35,19 @@
 
 (defcustom pgg-pgp-program "pgp"
   "PGP 2.* and 6.* executable."
-  :group 'pgg-pgp
   :type 'string)
 
 (defcustom pgg-pgp-shell-file-name "/bin/sh"
   "File name to load inferior shells from.
 Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
-  :group 'pgg-pgp
   :type 'string)
 
 (defcustom pgg-pgp-shell-command-switch "-c"
   "Switch used to have the shell execute its command line argument."
-  :group 'pgg-pgp
   :type 'string)
 
 (defcustom pgg-pgp-extra-args nil
   "Extra arguments for every PGP invocation."
-  :group 'pgg-pgp
   :type '(choice
 	  (const :tag "None" nil)
 	  (string :tag "Arguments")))
@@ -112,7 +108,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 	  (delete-file errors-file-name)
 	(file-error nil)))))
 
-(defun pgg-pgp-lookup-key (string &optional type)
+(defun pgg-pgp-lookup-key (string &optional _type)
   "Search keys associated with STRING."
   (let ((args (list "+batchmode" "+language=en" "-kv" string)))
     (with-current-buffer (get-buffer-create pgg-output-buffer)
@@ -133,7 +129,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 (defun pgg-pgp-encrypt-region (start end recipients &optional sign passphrase)
   "Encrypt the current region between START and END."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
-	 (passphrase (or passphrase
+	 (_passphrase (or passphrase
 			 (when sign
 			   (pgg-read-passphrase
 			    (format "PGP passphrase for %s: "
@@ -143,10 +139,11 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 	  (concat
 	   "+encrypttoself=off +verbose=1 +batchmode +language=us -fate "
            (if (or recipients pgg-encrypt-for-me)
-               (mapconcat 'shell-quote-argument
+               (mapconcat #'shell-quote-argument
                           (append recipients
                                   (if pgg-encrypt-for-me
-                                      (list pgg-pgp-user-id))) " "))
+                                      (list pgg-pgp-user-id)))
+                          " "))
            (if sign (concat " -s -u " (shell-quote-argument pgg-pgp-user-id))))))
     (pgg-pgp-process-region start end nil pgg-pgp-program args)
     (pgg-process-when-success nil)))
@@ -203,6 +200,7 @@ passphrase cache or user."
   (let* ((orig-file (pgg-make-temp-file "pgg"))
 	 (args "+verbose=1 +batchmode +language=us"))
     (with-file-modes 448
+      (defvar jam-zcat-filename-list)
       (let ((coding-system-for-write 'binary)
             jka-compr-compression-info-list jam-zcat-filename-list)
         (write-region start end orig-file)))

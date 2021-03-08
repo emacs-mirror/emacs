@@ -1,4 +1,4 @@
-;;; mouse-sel.el --- multi-click selection support
+;;; mouse-sel.el --- multi-click selection support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -146,20 +146,17 @@
 If non-nil, \\[mouse-select] and \\[mouse-extend] will leave point at the end
 of the region nearest to where the mouse last was.
 If nil, point will always be placed at the beginning of the region."
-  :type 'boolean
-  :group 'mouse-sel)
+  :type 'boolean)
 
 (defcustom mouse-sel-cycle-clicks t
   "If non-nil, \\[mouse-select] cycles the click-counts after 4 clicks."
-  :type 'boolean
-  :group 'mouse-sel)
+  :type 'boolean)
 
 (defcustom mouse-sel-default-bindings t
   "Control mouse bindings."
   :type '(choice (const :tag "none" nil)
 		 (const :tag "cut and paste" interprogram-cut-paste)
-		 (other :tag "default bindings" t))
-  :group 'mouse-sel)
+		 (other :tag "default bindings" t)))
 
 ;;=== Key bindings ========================================================
 
@@ -216,14 +213,13 @@ the mouse position (or point, if `mouse-yank-at-point' is non-nil).
 - mouse-2 while selecting or extending copies selection to the
 kill ring; mouse-1 or mouse-3 kills it."
   :global t
-  :group 'mouse-sel
   (if mouse-sel-mode
       (progn
 	;; If mouse-2 has never been done by the user, initialize the
 	;; `event-kind' property to ensure that `follow-link' clicks
 	;; are interpreted correctly.
 	(put 'mouse-2 'event-kind 'mouse-click)
-	(add-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
+	(add-hook 'x-lost-selection-functions #'mouse-sel-lost-selection-hook)
 	(when mouse-sel-default-bindings
 	  ;; Save original bindings and replace them with new ones.
 	  (setq mouse-sel-original-bindings
@@ -240,7 +236,7 @@ kill ring; mouse-1 or mouse-3 kills it."
                           #'mouse-sel--ignore))))
 
     ;; Restore original bindings
-    (remove-hook 'x-lost-selection-functions 'mouse-sel-lost-selection-hook)
+    (remove-hook 'x-lost-selection-functions #'mouse-sel-lost-selection-hook)
     (dolist (binding mouse-sel-original-bindings)
       (global-set-key (car binding) (cdr binding)))
     ;; Restore the old values of these variables,

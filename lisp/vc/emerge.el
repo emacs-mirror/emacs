@@ -79,90 +79,75 @@ but can be invoked directly in `fast' mode."
 ;; way they number lines of a file.
 (defcustom emerge-diff-program "diff"
   "Name of the program which compares two files."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 (defcustom emerge-diff3-program "diff3"
   "Name of the program which compares three files.
 Its arguments are the ancestor file and the two variant files."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 (defcustom emerge-diff-options ""
   "Options to pass to `emerge-diff-program' and `emerge-diff3-program'."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 (defcustom emerge-match-diff-line
   (let ((x "\\([0-9]+\\)\\(\\|,\\([0-9]+\\)\\)"))
     (concat "^" x "\\([acd]\\)" x "$"))
   "Pattern to match lines produced by diff that describe differences.
 This is as opposed to lines from the source files."
-  :type 'regexp
-  :group 'emerge)
+  :type 'regexp)
 (defcustom emerge-diff-ok-lines-regexp
   "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\)"
   "Regexp that matches normal output lines from `emerge-diff-program'.
 Lines that do not match are assumed to be error messages."
-  :type 'regexp
-  :group 'emerge)
+  :type 'regexp)
 (defcustom emerge-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\)"
   "Regexp that matches normal output lines from `emerge-diff3-program'.
 Lines that do not match are assumed to be error messages."
-  :type 'regexp
-  :group 'emerge)
+  :type 'regexp)
 
 (defcustom emerge-rcs-ci-program "ci"
   "Name of the program that checks in RCS revisions."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 (defcustom emerge-rcs-co-program "co"
   "Name of the program that checks out RCS revisions."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 
 (defcustom emerge-process-local-variables nil
   "Non-nil if Emerge should process local-variables lists in merge buffers.
 \(You can explicitly request processing the local-variables
 by executing `(hack-local-variables)'.)"
-  :type 'boolean
-  :group 'emerge)
+  :type 'boolean)
 (defcustom emerge-execute-line-deletions nil
   "If non-nil: `emerge-execute-line' makes no output if an input was deleted.
 It concludes that an input version has been deleted when an ancestor entry
 is present, only one A or B entry is present, and an output entry is present.
 If nil: In such circumstances, the A or B file that is present will be
 copied to the designated output file."
-  :type 'boolean
-  :group 'emerge)
+  :type 'boolean)
 
 (defcustom emerge-before-flag "vvvvvvvvvvvvvvvvvvvv\n"
   "Flag placed above the highlighted block of code.  Must end with newline.
 Must be set before Emerge is loaded, or  emerge-new-flags  must be run
 after setting."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 (defcustom emerge-after-flag "^^^^^^^^^^^^^^^^^^^^\n"
   "Flag placed below the highlighted block of code.  Must end with newline.
 Must be set before Emerge is loaded, or  emerge-new-flags  must be run
 after setting."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 
 ;; Hook variables
 
 (defcustom emerge-startup-hook nil
   "Hook to run in the merge buffer after the merge has been set up."
-  :type 'hook
-  :group 'emerge)
+  :type 'hook)
 (defcustom emerge-select-hook nil
   "Hook to run after a difference has been selected.
 The variable `n' holds the (internal) number of the difference."
-  :type 'hook
-  :group 'emerge)
+  :type 'hook)
 (defcustom emerge-unselect-hook nil
   "Hook to run after a difference has been unselected.
 The variable `n' holds the (internal) number of the difference."
-  :type 'hook
-  :group 'emerge)
+  :type 'hook)
 
 ;; Variables to control the default directories of the arguments to
 ;; Emerge commands.
@@ -171,8 +156,7 @@ The variable `n' holds the (internal) number of the difference."
   "If nil, default dir for filenames in emerge is `default-directory'.
 If non-nil, filenames complete in the directory of the last argument of the
 same type to an `emerge-files...' command."
-  :type 'boolean
-  :group 'emerge)
+  :type 'boolean)
 
 (defvar emerge-last-dir-A nil
   "Last directory for the first file of an `emerge-files...' command.")
@@ -235,15 +219,13 @@ depend on the flags."
 (defcustom emerge-min-visible-lines 3
   "Number of lines that we want to show above and below the flags when we are
 displaying a difference."
-  :type 'integer
-  :group 'emerge)
+  :type 'integer)
 
 (defcustom emerge-temp-file-prefix
   (expand-file-name "emerge" temporary-file-directory)
   "Prefix to put on Emerge temporary file names.
 Do not start with `~/' or `~USERNAME/'."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 
 (make-obsolete-variable 'emerge-temp-file-prefix
 			"customize `temporary-file-directory' instead."
@@ -251,8 +233,7 @@ Do not start with `~/' or `~USERNAME/'."
 
 (defcustom emerge-temp-file-mode 384	; u=rw only
   "Mode for Emerge temporary files."
-  :type 'integer
-  :group 'emerge)
+  :type 'integer)
 
 (make-obsolete-variable 'emerge-temp-file-mode
 			"it has no effect, temporary files are always private."
@@ -268,8 +249,7 @@ The template is inserted as a string, with the following interpolations:
 Don't forget to end the template with a newline.
 Note that this variable can be made local to a particular merge buffer by
 giving a prefix argument to `emerge-set-combine-versions-template'."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 
 ;; Build keymaps
 
@@ -294,8 +274,7 @@ Makes Emerge commands directly available.")
 (defcustom emerge-command-prefix "\C-c\C-c"
   "Command prefix for Emerge commands in `edit' mode.
 Must be set before Emerge is loaded."
-  :type 'string
-  :group 'emerge)
+  :type 'string)
 
 ;; This function sets up the fixed keymaps.  It is executed when the first
 ;; Emerge is done to allow the user maximum time to set up the global keymap.
@@ -1245,8 +1224,7 @@ Otherwise, the A or B file present is copied to the output file."
 
 (defcustom emerge-merge-directories-filename-regexp "[^.]"
   "Regexp describing files to be processed by `emerge-merge-directories'."
-  :type 'regexp
-  :group 'emerge)
+  :type 'regexp)
 
 ;;;###autoload
 (defun emerge-merge-directories (a-dir b-dir ancestor-dir output-dir)
@@ -3070,8 +3048,7 @@ See also `auto-save-file-name-p'."
 
 (defcustom emerge-metachars nil
   "No longer used.  Emerge now uses `shell-quote-argument'."
-  :type '(choice (const nil) regexp)
-  :group 'emerge)
+  :type '(choice (const nil) regexp))
 (make-obsolete-variable 'emerge-metachars nil "26.1")
 
 (provide 'emerge)

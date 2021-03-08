@@ -1,4 +1,4 @@
-;;; srecode/map.el --- Manage a template file map
+;;; srecode/map.el --- Manage a template file map  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -245,7 +245,7 @@ Optional argument RESET forces a reset of the current map."
     (princ "\n")
     ))
 
-(defun srecode-map-file-still-valid-p (filename map)
+(defun srecode-map-file-still-valid-p (filename _map)
   "Return t if FILENAME should be in MAP still."
   (let ((valid nil))
     (and (file-exists-p filename)
@@ -407,7 +407,7 @@ Return non-nil if the map changed."
   "Global load path for SRecode template files."
   :group 'srecode
   :type '(repeat file)
-  :set 'srecode-map-load-path-set)
+  :set #'srecode-map-load-path-set)
 
 (provide 'srecode/map)
 

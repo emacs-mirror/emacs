@@ -1,4 +1,4 @@
-;;; compare-w.el --- compare text between windows for Emacs
+;;; compare-w.el --- compare text between windows for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2021 Free Software
 ;; Foundation, Inc.
@@ -52,19 +52,16 @@ any text before that point.
 If the function returns the same value for both windows, then the
 whitespace is considered to match, and is skipped."
   :version "24.4"			; added \240
-  :type '(choice regexp function)
-  :group 'compare-windows)
+  :type '(choice regexp function))
 
 (defcustom compare-ignore-whitespace nil
   "Non-nil means command `compare-windows' ignores whitespace."
   :type 'boolean
-  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-ignore-case nil
   "Non-nil means command `compare-windows' ignores case differences."
-  :type 'boolean
-  :group 'compare-windows)
+  :type 'boolean)
 
 (defcustom compare-windows-sync 'compare-windows-sync-default-function
   "Function or regexp that is used to synchronize points in two
@@ -92,7 +89,6 @@ If the value of this variable is nil (option \"No sync\"), then
 no synchronization is performed, and the function `ding' is called
 to beep or flash the screen when points are mismatched."
   :type '(choice function regexp (const :tag "No sync" nil))
-  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-windows-sync-string-size 32
@@ -104,7 +100,6 @@ difference regions more coarse-grained.
 
 The default value 32 is good for the most cases."
   :type 'integer
-  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-windows-recenter nil
@@ -115,7 +110,6 @@ matching points side-by-side.
 The value `(-1 0)' is useful if windows are split vertically,
 and the value `((4) (4))' for horizontally split windows."
   :type '(list sexp sexp)
-  :group 'compare-windows
   :version "22.1")
 
 (defcustom compare-windows-highlight t
@@ -127,19 +121,16 @@ out all highlighting later with the command `compare-windows-dehighlight'."
   :type '(choice (const :tag "No highlighting" nil)
 		 (const :tag "Persistent highlighting" persistent)
 		 (other :tag "Highlight until next command" t))
-  :group 'compare-windows
   :version "22.1")
 
 (defface compare-windows-removed
   '((t :inherit diff-removed))
   "Face for highlighting `compare-windows' differing regions in the other window."
-  :group 'compare-windows
   :version "25.1")
 
 (defface compare-windows-added
   '((t :inherit diff-added))
   "Face for highlighting `compare-windows' differing regions in current window."
-  :group 'compare-windows
   :version "25.1")
 
 (define-obsolete-face-alias 'compare-windows 'compare-windows-added "25.1")
@@ -159,7 +150,6 @@ out all highlighting later with the command `compare-windows-dehighlight'."
 	  (function-item :tag "Next window"
 			 compare-windows-get-next-window)
 	  (function :tag "Your function"))
-  :group 'compare-windows
   :version "25.1")
 
 (defun compare-windows-get-recent-window ()
@@ -389,7 +379,7 @@ on third call it again advances points to the next difference and so on."
               (setq p1 (1+ p1)))))
         (when p12s
           ;; use closest matching points (i.e. points with minimal sum)
-          (setq p12 (cdr (assq (apply 'min (mapcar 'car p12s)) p12s)))
+          (setq p12 (cdr (assq (apply #'min (mapcar #'car p12s)) p12s)))
           (goto-char (car p12))
           (compare-windows-highlight op1 (car p12) (current-buffer) w1
                                      op2 (cadr p12) b2 w2))
@@ -416,7 +406,7 @@ on third call it again advances points to the next difference and so on."
     (overlay-put compare-windows-overlay2 'window w2)
     (if (not (eq compare-windows-highlight 'persistent))
 	;; Remove highlighting before next command is executed
-	(add-hook 'pre-command-hook 'compare-windows-dehighlight)
+	(add-hook 'pre-command-hook #'compare-windows-dehighlight)
       (when compare-windows-overlay1
 	(push (copy-overlay compare-windows-overlay1) compare-windows-overlays1)
 	(delete-overlay compare-windows-overlay1))
@@ -427,9 +417,9 @@ on third call it again advances points to the next difference and so on."
 (defun compare-windows-dehighlight ()
   "Remove highlighting created by function `compare-windows-highlight'."
   (interactive)
-  (remove-hook 'pre-command-hook 'compare-windows-dehighlight)
-  (mapc 'delete-overlay compare-windows-overlays1)
-  (mapc 'delete-overlay compare-windows-overlays2)
+  (remove-hook 'pre-command-hook #'compare-windows-dehighlight)
+  (mapc #'delete-overlay compare-windows-overlays1)
+  (mapc #'delete-overlay compare-windows-overlays2)
   (and compare-windows-overlay1 (delete-overlay compare-windows-overlay1))
   (and compare-windows-overlay2 (delete-overlay compare-windows-overlay2)))
 

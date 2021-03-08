@@ -37,6 +37,13 @@
 ;;
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-noloads
 ;;
+;; or as a part of the test suite with
+;;
+;;   make -C test test-custom-opts
+;;   make -C test test-custom-deps
+;;   make -C test test-custom-libs
+;;   make -C test test-custom-noloads
+;;
 ;; in the emacs source directory.
 ;;
 ;; For interactive use: Load this file.  Then

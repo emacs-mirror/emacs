@@ -114,17 +114,6 @@
   "Running scripts at startup and with /LOAD"
   :group 'erc)
 
-;; compatibility with older ERC releases
-
-(define-obsolete-variable-alias 'erc-announced-server-name
-  'erc-server-announced-name "ERC 5.1")
-(define-obsolete-variable-alias 'erc-process 'erc-server-process "ERC 5.1")
-(define-obsolete-variable-alias 'erc-default-coding-system
-  'erc-server-coding-system "ERC 5.1")
-
-(define-obsolete-function-alias 'erc-send-command
-  'erc-server-send "ERC 5.1")
-
 (require 'erc-backend)
 
 ;; tunable connection and authentication parameters
@@ -2136,33 +2125,34 @@ If no buffer matches, return nil."
           (erc-current-nick-p nick)))))
 
 (defcustom erc-before-connect nil
-  "Hook called before connecting to a server.
-This hook gets executed before `erc' actually invokes `erc-mode'
-with your input data.  The functions in here get called with three
-parameters, SERVER, PORT and NICK."
+  "Functions called before connecting to a server.
+The functions in this variable gets executed before `erc'
+actually invokes `erc-mode' with your input data.  The functions
+in here get called with three parameters, SERVER, PORT and NICK."
   :group 'erc-hooks
-  :type 'hook)
+  :type '(repeat function))
 
 (defcustom erc-after-connect nil
-  "Hook called after connecting to a server.
-This hook gets executed when an end of MOTD has been received.  All
-functions in here get called with the parameters SERVER and NICK."
+  "Functions called after connecting to a server.
+This functions in this variable gets executed when an end of MOTD
+has been received.  All functions in here get called with the
+parameters SERVER and NICK."
   :group 'erc-hooks
-  :type 'hook)
+  :type '(repeat function))
 
 ;;;###autoload
 (defun erc-select-read-args ()
   "Prompt the user for values of nick, server, port, and password."
   (let (user-input server port nick passwd)
-    (setq user-input (read-from-minibuffer
+    (setq user-input (read-string
                       "IRC server: "
-                      (erc-compute-server) nil nil 'erc-server-history-list))
+                      (erc-compute-server) 'erc-server-history-list))
 
     (if (string-match "\\(.*\\):\\(.*\\)\\'" user-input)
         (setq port (erc-string-to-port (match-string 2 user-input))
               user-input (match-string 1 user-input))
       (setq port
-            (erc-string-to-port (read-from-minibuffer
+            (erc-string-to-port (read-string
                                  "IRC port: " (erc-port-to-string
                                                (erc-compute-port))))))
 
@@ -2171,13 +2161,12 @@ functions in here get called with the parameters SERVER and NICK."
               user-input (match-string 2 user-input))
       (setq nick
             (if (erc-already-logged-in server port nick)
-                (read-from-minibuffer
+                (read-string
                  (erc-format-message 'nick-in-use ?n nick)
-                 nick
-                 nil nil 'erc-nick-history-list)
-              (read-from-minibuffer
+                 nick 'erc-nick-history-list)
+              (read-string
                "Nickname: " (erc-compute-nick nick)
-               nil nil 'erc-nick-history-list))))
+               'erc-nick-history-list))))
 
     (setq server user-input)
 
@@ -2196,10 +2185,9 @@ functions in here get called with the parameters SERVER and NICK."
       ;; bnc with the same nick. actually it would be nice to have
       ;; bncs transparent, so that erc-compute-buffer-name displays
       ;; the server one is connected to.
-      (setq nick (read-from-minibuffer
+      (setq nick (read-string
                   (erc-format-message 'nick-in-use ?n nick)
-                  nick
-                  nil nil 'erc-nick-history-list)))
+                  nick 'erc-nick-history-list)))
     (list :server server :port port :nick nick :password passwd)))
 
 ;;;###autoload
@@ -3521,7 +3509,7 @@ The type of query window/frame/etc will depend on the value of
 If USER is omitted, close the current query buffer if one exists
 - except this is broken now ;-)"
   (interactive
-   (list (read-from-minibuffer "Start a query with: " nil)))
+   (list (read-string "Start a query with: ")))
   (let ((session-buffer (erc-server-buffer))
         (erc-join-buffer erc-query-display))
     (if user
@@ -4033,8 +4021,7 @@ If FACE is non-nil, it will be used to propertize the prompt.  If it is nil,
   "Interactively input a user action and send it to IRC."
   (interactive "")
   (erc-set-active-buffer (current-buffer))
-  (let ((action (read-from-minibuffer
-                 "Action: " nil nil nil 'erc-action-history-list)))
+  (let ((action (read-string "Action: " nil 'erc-action-history-list)))
     (if (not (string-match "^\\s-*$" action))
         (erc-send-action (erc-default-target) action))))
 
@@ -4051,24 +4038,25 @@ If `point' is at the beginning of a channel name, use that as default."
       (completing-read (format-prompt "Join channel" chnl)
                        table nil nil nil nil chnl))
     (when (or current-prefix-arg erc-prompt-for-channel-key)
-      (read-from-minibuffer "Channel key (RET for none): " nil))))
+      (read-string "Channel key (RET for none): "))))
   (erc-cmd-JOIN channel (when (>= (length key) 1) key)))
 
 (defun erc-part-from-channel (reason)
   "Part from the current channel and prompt for a REASON."
   (interactive
+    ;; FIXME: Has this ever worked?  We're in the interactive-spec, so the
+    ;; argument `reason' can't be in scope yet!
+    ;;(if (and (boundp 'reason) (stringp reason) (not (string= reason "")))
+    ;;    reason
    (list
-    (if (and (boundp 'reason) (stringp reason) (not (string= reason "")))
-        reason
-      (read-from-minibuffer (concat "Reason for leaving " (erc-default-target)
-                                    ": ")))))
+    (read-string (concat "Reason for leaving " (erc-default-target) ": "))))
   (erc-cmd-PART (concat (erc-default-target)" " reason)))
 
 (defun erc-set-topic (topic)
   "Prompt for a TOPIC for the current channel."
   (interactive
    (list
-    (read-from-minibuffer
+    (read-string
      (concat "Set topic of " (erc-default-target) ": ")
      (when erc-channel-topic
        (let ((ss (split-string erc-channel-topic "\C-o")))
@@ -4080,7 +4068,7 @@ If `point' is at the beginning of a channel name, use that as default."
 (defun erc-set-channel-limit (&optional limit)
   "Set a LIMIT for the current channel.  Remove limit if nil.
 Prompt for one if called interactively."
-  (interactive (list (read-from-minibuffer
+  (interactive (list (read-string
                       (format "Limit for %s (RET to remove limit): "
                               (erc-default-target)))))
   (let ((tgt (erc-default-target)))
@@ -4091,7 +4079,7 @@ Prompt for one if called interactively."
 (defun erc-set-channel-key (&optional key)
   "Set a KEY for the current channel.  Remove key if nil.
 Prompt for one if called interactively."
-  (interactive (list (read-from-minibuffer
+  (interactive (list (read-string
                       (format "Key for %s (RET to remove key): "
                               (erc-default-target)))))
   (let ((tgt (erc-default-target)))
@@ -4102,7 +4090,7 @@ Prompt for one if called interactively."
 (defun erc-quit-server (reason)
   "Disconnect from current server after prompting for REASON.
 `erc-quit-reason' works with this just like with `erc-cmd-QUIT'."
-  (interactive (list (read-from-minibuffer
+  (interactive (list (read-string
                       (format "Reason for quitting %s: "
                               (or erc-server-announced-name
                                   erc-session-server)))))
@@ -6289,7 +6277,6 @@ The following characters are replaced:
 
 (defcustom erc-header-line-format "%n on %t (%m,%l) %o"
   "A string to be formatted and shown in the header-line in `erc-mode'.
-Only used starting in Emacs 21.
 
 Set this to nil if you do not want the header line to be
 displayed.

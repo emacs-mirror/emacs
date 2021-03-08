@@ -1,4 +1,4 @@
-;;; url-ns.el --- Various netscape-ish functions for proxy definitions
+;;; url-ns.el --- Various netscape-ish functions for proxy definitions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-1999, 2004-2021 Free Software Foundation, Inc.
 
@@ -55,9 +55,9 @@
     (if (or (/= (length netc) (length ipc))
 	    (/= (length ipc) (length maskc)))
 	nil
-      (setq netc (mapcar 'string-to-number netc)
-	    ipc (mapcar 'string-to-number ipc)
-	    maskc (mapcar 'string-to-number maskc))
+      (setq netc (mapcar #'string-to-number netc)
+	    ipc (mapcar #'string-to-number ipc)
+	    maskc (mapcar #'string-to-number maskc))
       (and
        (= (logand (nth 0 netc) (nth 0 maskc))
 	  (logand (nth 0 ipc)  (nth 0 maskc)))
@@ -79,24 +79,23 @@
   (if (not (and (file-exists-p file)
 		(file-readable-p file)))
       (message "Could not open %s for reading" file)
-    (save-excursion
-      (let ((false nil)
-	    (true t))
-	(setq url-ns-user-prefs (make-hash-table :size 13 :test 'equal))
-	(set-buffer (get-buffer-create " *ns-parse*"))
-	(erase-buffer)
-	(insert-file-contents file)
-	(goto-char (point-min))
-	(while (re-search-forward "^//" nil t)
-	  (replace-match ";;"))
-	(goto-char (point-min))
-	(while (re-search-forward "^user_pref(" nil t)
-	  (replace-match "(url-ns-set-user-pref "))
-	(goto-char (point-min))
-	(while (re-search-forward "\"," nil t)
-	  (replace-match "\""))
-	(goto-char (point-min))
-	(eval-buffer)))))
+    (setq url-ns-user-prefs (make-hash-table :size 13 :test 'equal))
+    (with-current-buffer (get-buffer-create " *ns-parse*")
+      (erase-buffer)
+      (insert-file-contents file)
+      (goto-char (point-min))
+      (while (re-search-forward "^//" nil t)
+	(replace-match ";;"))
+      (goto-char (point-min))
+      (while (re-search-forward "^user_pref(" nil t)
+	(replace-match "(url-ns-set-user-pref "))
+      (goto-char (point-min))
+      (while (re-search-forward "\"," nil t)
+	(replace-match "\""))
+      (goto-char (point-min))
+      (with-suppressed-warnings ((lexical true false))
+	(dlet ((false nil) (true t))
+	  (eval-buffer))))))
 
 (defun url-ns-set-user-pref (key val)
   (puthash key val url-ns-user-prefs))

@@ -739,7 +739,7 @@ start and end positions."
   "Restrict the view to the current hunk.
 If the prefix ARG is given, restrict the view to the current file instead."
   (interactive "P")
-  (apply 'narrow-to-region
+  (apply #'narrow-to-region
 	 (if arg (diff-bounds-of-file) (diff-bounds-of-hunk)))
   (setq-local diff-narrowed-to (if arg 'file 'hunk)))
 
@@ -770,7 +770,7 @@ If the prefix ARG is given, restrict the view to the current file instead."
                        file-bounds
                      hunk-bounds))
            (inhibit-read-only t))
-      (apply 'kill-region bounds)
+      (apply #'kill-region bounds)
       (goto-char (car bounds))
       (ignore-errors (diff-beginning-of-hunk t)))))
 
@@ -828,7 +828,7 @@ data such as \"Index: ...\" and such."
       (error "No hunks")
     (diff-beginning-of-hunk t)
     (let ((inhibit-read-only t))
-      (apply 'kill-region (diff-bounds-of-file)))
+      (apply #'kill-region (diff-bounds-of-file)))
     (ignore-errors (diff-beginning-of-hunk t))))
 
 (defun diff-kill-junk ()
@@ -1810,7 +1810,7 @@ Whitespace differences are ignored."
 	(if (> (- (car forw) orig) (- orig (car back))) back forw)
       (or back forw))))
 
-(define-obsolete-function-alias 'diff-xor 'xor "27.1")
+(define-obsolete-function-alias 'diff-xor #'xor "27.1")
 
 (defun diff-find-source-location (&optional other-file reverse noprompt)
   "Find current diff location within the source file.
@@ -1984,7 +1984,7 @@ With a prefix argument, try to REVERSE the hunk."
           (diff-hunk-kill)
         (diff-hunk-next)))))
 
-(defalias 'diff-mouse-goto-source 'diff-goto-source)
+(defalias 'diff-mouse-goto-source #'diff-goto-source)
 
 (defun diff-goto-source (&optional other-file event)
   "Jump to the corresponding source line.
@@ -2003,7 +2003,7 @@ revision of the file otherwise."
   (if event (posn-set-point (event-end event)))
   (let ((buffer (when event (current-buffer)))
         (reverse (not (save-excursion (beginning-of-line) (looking-at "[-<]")))))
-    (pcase-let ((`(,buf ,line-offset ,pos ,src ,_dst ,switched)
+    (pcase-let ((`(,buf ,_line-offset ,pos ,src ,_dst ,_switched)
                  (diff-find-source-location other-file reverse)))
       (pop-to-buffer buf)
       (goto-char (+ (car pos) (cdr src)))
@@ -2080,7 +2080,7 @@ For use in `add-log-current-defun-function'."
 	  (write-region (concat lead (car new)) nil file2 nil 'nomessage)
 	  (with-temp-buffer
 	    (let ((status
-		   (apply 'call-process
+		   (apply #'call-process
 			  `(,diff-command nil t nil
 			                 ,@opts ,file1 ,file2))))
 	      (pcase status

@@ -373,9 +373,17 @@ PREFIX is a string, and defaults to \"g\"."
 
 (defun ignore (&rest _arguments)
   "Do nothing and return nil.
-This function accepts any number of ARGUMENTS, but ignores them."
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `always'."
+  (declare (completion ignore))
   (interactive)
   nil)
+
+(defun always (&rest _arguments)
+  "Do nothing and return t.
+This function accepts any number of ARGUMENTS, but ignores them.
+Also see `ignore'."
+  t)
 
 ;; Signal a compile-error if the first arg is missing.
 (defun error (&rest args)
@@ -915,6 +923,7 @@ For an approximate inverse of this, see `key-description'."
 
 (defun undefined ()
   "Beep to tell the user this binding is undefined."
+  (declare (completion ignore))
   (interactive)
   (ding)
   (if defining-kbd-macro
@@ -1298,6 +1307,7 @@ in a cleaner way with command remapping, like this:
     (define-key map "l" #'downcase-word)
     (define-key map "c" #'capitalize-word)
     (define-key map "x" #'execute-extended-command)
+    (define-key map "X" #'execute-extended-command-for-buffer)
     map)
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")
@@ -2087,7 +2097,7 @@ can do the job."
                      ,(if append
                           `(setq ,sym (append ,sym (list ,x)))
                         `(push ,x ,sym))))))
-          (if (not (macroexp--compiling-p))
+          (if (not (macroexp-compiling-p))
               code
             `(progn
                (macroexp--funcall-if-compiled ',warnfun)
@@ -2523,10 +2533,10 @@ use `start-file-process'."
 
 (defun process-lines-handling-status (program status-handler &rest args)
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
-If STATUS-HANDLER is non-NIL, it must be a function with one
+If STATUS-HANDLER is non-nil, it must be a function with one
 argument, which will be called with the exit status of the
 program before the output is collected.  If STATUS-HANDLER is
-NIL, an error is signalled if the program returns with a non-zero
+nil, an error is signaled if the program returns with a non-zero
 exit status."
   (with-temp-buffer
     (let ((status (apply #'call-process program nil (current-buffer) nil args)))
@@ -2554,7 +2564,7 @@ Also see `process-lines-ignore-status'."
   "Execute PROGRAM with ARGS, returning its output as a list of lines.
 The exit status of the program is ignored.
 Also see `process-lines'."
-  (apply #'process-lines-handling-status program #'identity args))
+  (apply #'process-lines-handling-status program #'ignore args))
 
 (defun process-live-p (process)
   "Return non-nil if PROCESS is alive.
@@ -2822,6 +2832,11 @@ This function is used by the `interactive' code letter `n'."
 Otherwise, use the minibuffer.")
 
 (defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
+  (if (not read-char-choice-use-read-key)
+      (read-char-from-minibuffer prompt chars)
+    (read-char-choice-with-read-key prompt chars inhibit-keyboard-quit)))
+
+(defun read-char-choice-with-read-key (prompt chars &optional inhibit-keyboard-quit)
   "Read and return one of CHARS, prompting for PROMPT.
 Any input that is not one of CHARS is ignored.
 
@@ -2831,46 +2846,44 @@ keyboard-quit events while waiting for a valid input.
 If you bind the variable `help-form' to a non-nil value
 while calling this function, then pressing `help-char'
 causes it to evaluate `help-form' and display the result."
-  (if (not read-char-choice-use-read-key)
-      (read-char-from-minibuffer prompt chars)
-    (unless (consp chars)
-      (error "Called `read-char-choice' without valid char choices"))
-    (let (char done show-help (helpbuf " *Char Help*"))
-      (let ((cursor-in-echo-area t)
-            (executing-kbd-macro executing-kbd-macro)
-            (esc-flag nil))
-        (save-window-excursion        ; in case we call help-form-show
-          (while (not done)
-            (unless (get-text-property 0 'face prompt)
-              (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-            (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-                         (read-key prompt)))
-            (and show-help (buffer-live-p (get-buffer helpbuf))
-                 (kill-buffer helpbuf))
-            (cond
-             ((not (numberp char)))
-             ;; If caller has set help-form, that's enough.
-             ;; They don't explicitly have to add help-char to chars.
-             ((and help-form
-                   (eq char help-char)
-                   (setq show-help t)
-                   (help-form-show)))
-             ((memq char chars)
-              (setq done t))
-             ((and executing-kbd-macro (= char -1))
-              ;; read-event returns -1 if we are in a kbd macro and
-              ;; there are no more events in the macro.  Attempt to
-              ;; get an event interactively.
-              (setq executing-kbd-macro nil))
-             ((not inhibit-keyboard-quit)
-              (cond
-               ((and (null esc-flag) (eq char ?\e))
-                (setq esc-flag t))
-               ((memq char '(?\C-g ?\e))
-                (keyboard-quit))))))))
-      ;; Display the question with the answer.  But without cursor-in-echo-area.
-      (message "%s%s" prompt (char-to-string char))
-      char)))
+  (unless (consp chars)
+    (error "Called `read-char-choice' without valid char choices"))
+  (let (char done show-help (helpbuf " *Char Help*"))
+    (let ((cursor-in-echo-area t)
+          (executing-kbd-macro executing-kbd-macro)
+	  (esc-flag nil))
+      (save-window-excursion	      ; in case we call help-form-show
+	(while (not done)
+	  (unless (get-text-property 0 'face prompt)
+	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+		       (read-key prompt)))
+	  (and show-help (buffer-live-p (get-buffer helpbuf))
+	       (kill-buffer helpbuf))
+	  (cond
+	   ((not (numberp char)))
+	   ;; If caller has set help-form, that's enough.
+	   ;; They don't explicitly have to add help-char to chars.
+	   ((and help-form
+		 (eq char help-char)
+		 (setq show-help t)
+		 (help-form-show)))
+	   ((memq char chars)
+	    (setq done t))
+	   ((and executing-kbd-macro (= char -1))
+	    ;; read-event returns -1 if we are in a kbd macro and
+	    ;; there are no more events in the macro.  Attempt to
+	    ;; get an event interactively.
+	    (setq executing-kbd-macro nil))
+	   ((not inhibit-keyboard-quit)
+	    (cond
+	     ((and (null esc-flag) (eq char ?\e))
+	      (setq esc-flag t))
+	     ((memq char '(?\C-g ?\e))
+	      (keyboard-quit))))))))
+    ;; Display the question with the answer.  But without cursor-in-echo-area.
+    (message "%s%s" prompt (char-to-string char))
+    char))
 
 (defun sit-for (seconds &optional nodisp obsolete)
   "Redisplay, then wait for SECONDS seconds.  Stop when input is available.
@@ -3325,7 +3338,7 @@ to `accept-change-group' or `cancel-change-group'."
         ;; insertions are ever merged/combined, so we use such a "boundary"
         ;; only when the last change was an insertion and we use the position
         ;; of the last insertion.
-        (when (numberp (caar buffer-undo-list))
+        (when (numberp (car-safe (car buffer-undo-list)))
           (push (cons (caar buffer-undo-list) (caar buffer-undo-list))
                 buffer-undo-list))))))
 
@@ -4771,7 +4784,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
   "Replace FROMSTRING with TOSTRING in INSTRING each time it occurs."
   (declare (pure t) (side-effect-free t))
   (when (equal fromstring "")
-    (signal 'wrong-length-argument fromstring))
+    (signal 'wrong-length-argument '(0)))
   (let ((start 0)
         (result nil)
         pos)
@@ -5035,14 +5048,10 @@ This function is called directly from the C code."
                             obarray))
 	   (msg (format "Package %s is deprecated" package))
 	   (fun (lambda (msg) (message "%s" msg))))
-      ;; Cribbed from cl--compiling-file.
       (when (or (not (fboundp 'byte-compile-warning-enabled-p))
                 (byte-compile-warning-enabled-p 'obsolete package))
         (cond
-	 ((and (boundp 'byte-compile--outbuffer)
-	       (bufferp (symbol-value 'byte-compile--outbuffer))
-	       (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
-		      " *Compiler Output*"))
+	 ((bound-and-true-p byte-compile-current-file)
 	  ;; Don't warn about obsolete files using other obsolete files.
 	  (unless (and (stringp byte-compile-current-file)
 		       (string-match-p "/obsolete/[^/]*\\'"

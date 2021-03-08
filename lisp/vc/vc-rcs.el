@@ -58,8 +58,7 @@
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
-		 (const :tag "Unknown" unknown))
-  :group 'vc-rcs)
+		 (const :tag "Unknown" unknown)))
 
 (defcustom vc-rcs-register-switches nil
   "Switches for registering a file in RCS.
@@ -70,8 +69,7 @@ If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "21.1"
-  :group 'vc-rcs)
+  :version "21.1")
 
 (defcustom vc-rcs-diff-switches nil
   "String or list of strings specifying switches for RCS diff under VC.
@@ -80,21 +78,18 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
                  (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "21.1"
-  :group 'vc-rcs)
+  :version "21.1")
 
 (defcustom vc-rcs-header '("$Id\ $")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
-  :version "24.1"     ; no longer consult the obsolete vc-header-alist
-  :group 'vc-rcs)
+  :version "24.1")     ; no longer consult the obsolete vc-header-alist
 
 (defcustom vc-rcsdiff-knows-brief nil
   "Indicates whether rcsdiff understands the --brief option.
 The value is either `yes', `no', or nil.  If it is nil, VC tries
 to use --brief and sets this variable to remember whether it worked."
-  :type '(choice (const :tag "Work out" nil) (const yes) (const no))
-  :group 'vc-rcs)
+  :type '(choice (const :tag "Work out" nil) (const yes) (const no)))
 
 ;; This needs to be autoloaded because vc-rcs-registered uses it (via
 ;; vc-default-registered), and vc-hooks needs to be able to check
@@ -109,8 +104,7 @@ For a description of possible values, see `vc-check-master-templates'."
 		 (repeat :tag "User-specified"
 			 (choice string
 				 function)))
-  :version "21.1"
-  :group 'vc-rcs)
+  :version "21.1")
 
 
 ;;; Properties of the backend
@@ -379,7 +373,7 @@ whether to remove it."
   "Retrieve a copy of a saved version of FILE.  If FILE is a directory,
 attempt the checkout for all registered files beneath it."
   (if (file-directory-p file)
-      (mapc 'vc-rcs-checkout (vc-expand-dirs (list file) 'RCS))
+      (mapc #'vc-rcs-checkout (vc-expand-dirs (list file) 'RCS))
     (let ((file-buffer (get-file-buffer file))
 	  switches)
       (message "Checking out %s..." file)
@@ -445,7 +439,7 @@ attempt the checkout for all registered files beneath it."
   "Revert FILE to the version it was based on.  If FILE is a directory,
 revert all registered files beneath it."
   (if (file-directory-p file)
-      (mapc 'vc-rcs-revert (vc-expand-dirs (list file) 'RCS))
+      (mapc #'vc-rcs-revert (vc-expand-dirs (list file) 'RCS))
     (vc-do-command "*vc*" 0 "co" (vc-master-name file) "-f"
 		   (concat (if (eq (vc-state file) 'edited) "-u" "-r")
 			   (vc-working-revision file)))))
@@ -488,7 +482,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 If FILE is a directory, steal the lock on all registered files beneath it.
 Needs RCS 5.6.2 or later for -M."
   (if (file-directory-p file)
-      (mapc 'vc-rcs-steal-lock (vc-expand-dirs (list file) 'RCS))
+      (mapc #'vc-rcs-steal-lock (vc-expand-dirs (list file) 'RCS))
     (vc-do-command "*vc*" 0 "rcs" (vc-master-name file) "-M" (concat "-u" rev))
     ;; Do a real checkout after stealing the lock, so that we see
     ;; expanded headers.
@@ -539,7 +533,7 @@ Remaining arguments are ignored.
 If FILE is a directory the operation is applied to all registered
 files beneath it."
   (vc-do-command (or buffer "*vc*") 0 "rlog"
-                 (mapcar 'vc-master-name (vc-expand-dirs files 'RCS)))
+                 (mapcar #'vc-master-name (vc-expand-dirs files 'RCS)))
   (with-current-buffer (or buffer "*vc*")
     (vc-rcs-print-log-cleanup))
   (when limit 'limit-unsupported))
@@ -1344,7 +1338,7 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
           (push `(,(to-eol)
                   ,(k-semi 'date
                            (lambda ()
-                             (let ((ls (mapcar 'string-to-number
+                             (let ((ls (mapcar #'string-to-number
                                                (split-string
                                                 (buffer-substring-no-properties
                                                  b e)

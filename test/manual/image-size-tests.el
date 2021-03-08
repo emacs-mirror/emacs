@@ -1,4 +1,4 @@
-;;; image-size-tests.el -- tests for image scaling
+;;; image-size-tests.el -- tests for image scaling  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 
@@ -45,7 +45,8 @@
          (= (cdr size) height))))
 
 (defun image-size-tests ()
-  (unless (imagemagick-types)
+  (unless (and (fboundp 'imagemagick-types)
+               (imagemagick-types))
     (error "This only makes sense if ImageMagick is installed"))
   ;; Test the image that's wider than it is tall.
   ;; Default sizes.

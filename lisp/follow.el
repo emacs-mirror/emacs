@@ -201,7 +201,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
 (eval-when-compile (require 'cl-lib))
 
 ;;; Variables

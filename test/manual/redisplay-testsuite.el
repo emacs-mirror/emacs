@@ -1,4 +1,4 @@
-;;; redisplay-testsuite.el --- Test suite for redisplay.
+;;; redisplay-testsuite.el --- Test suite for redisplay.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 

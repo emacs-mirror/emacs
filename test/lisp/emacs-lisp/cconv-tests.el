@@ -182,7 +182,14 @@
   (should (eq (cconv-tests-cl-defsubst) 'cl-defsubst-result)))
 
 (ert-deftest cconv-convert-lambda-lifted ()
-  "Bug#30872."
+  ;; Verify that lambda-lifting is actually performed at all.
+  (should (equal (cconv-closure-convert
+                  '#'(lambda (x) (let ((f #'(lambda () (+ x 1))))
+                                   (funcall f))))
+                 '#'(lambda (x) (let ((f #'(lambda (x) (+ x 1))))
+                                  (funcall f x)))))
+
+  ;; Bug#30872.
   (should
    (equal (funcall
            (byte-compile

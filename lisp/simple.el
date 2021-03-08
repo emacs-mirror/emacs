@@ -1980,7 +1980,9 @@ This function uses the `read-extended-command-predicate' user option."
 	       ;; but actually a prompt other than "M-x" would be confusing,
 	       ;; because "M-x" is a well-known prompt to read a command
 	       ;; and it serves as a shorthand for "Extended command: ".
-	       "M-x ")
+               (if (memq 'shift (event-modifiers last-command-event))
+	           "M-X "
+	         "M-x "))
        (lambda (string pred action)
          (if (and suggest-key-bindings (eq action 'metadata))
 	     '(metadata
@@ -1994,6 +1996,26 @@ This function uses the `read-extended-command-predicate' user option."
                        (funcall read-extended-command-predicate sym buffer)))))
        t nil 'extended-command-history))))
 
+(defun command-completion-using-modes-p (symbol buffer)
+  "Say whether SYMBOL has been marked as a mode-specific command in BUFFER."
+  ;; Check the modes.
+  (let ((modes (command-modes symbol)))
+    ;; Common case: Just a single mode.
+    (if (null (cdr modes))
+        (or (provided-mode-derived-p
+             (buffer-local-value 'major-mode buffer) (car modes))
+            (memq (car modes)
+                  (buffer-local-value 'local-minor-modes buffer))
+            (memq (car modes) global-minor-modes))
+      ;; Uncommon case: Multiple modes.
+      (apply #'provided-mode-derived-p
+             (buffer-local-value 'major-mode buffer)
+             modes)
+      (seq-intersection modes
+                        (buffer-local-value 'local-minor-modes buffer)
+                        #'eq)
+      (seq-intersection modes global-minor-modes #'eq))))
+
 (defun command-completion-default-include-p (symbol buffer)
   "Say whether SYMBOL should be offered as a completion.
 If there's a `completion-predicate' for SYMBOL, the result from
@@ -2004,24 +2026,8 @@ BUFFER."
   (if (get symbol 'completion-predicate)
       ;; An explicit completion predicate takes precedence.
       (funcall (get symbol 'completion-predicate) symbol buffer)
-    ;; Check the modes.
-    (let ((modes (command-modes symbol)))
-      (or (null modes)
-          ;; Common case: Just a single mode.
-          (if (null (cdr modes))
-              (or (provided-mode-derived-p
-                   (buffer-local-value 'major-mode buffer) (car modes))
-                  (memq (car modes)
-                        (buffer-local-value 'local-minor-modes buffer))
-                  (memq (car modes) global-minor-modes))
-            ;; Uncommon case: Multiple modes.
-            (apply #'provided-mode-derived-p
-                   (buffer-local-value 'major-mode buffer)
-                   modes)
-            (seq-intersection modes
-                              (buffer-local-value 'local-minor-modes buffer)
-                              #'eq)
-            (seq-intersection modes global-minor-modes #'eq))))))
+    (or (null (command-modes symbol))
+        (command-completion-using-modes-p symbol buffer))))
 
 (defun command-completion-with-modes-p (modes buffer)
   "Say whether MODES are in action in BUFFER.
@@ -2188,6 +2194,38 @@ invoking, give a prefix argument to `execute-extended-command'."
             (sit-for (if (numberp suggest-key-bindings)
                          suggest-key-bindings
                        2))))))))
+
+(defun execute-extended-command-for-buffer (prefixarg &optional
+                                                      command-name typed)
+  "Query user for a command relevant for the current mode, and then execute it.
+This is like `execute-extended-command', but it limits the
+completions to commands that are particularly relevant to the
+current buffer.  This includes commands that have been marked as
+being specially designed for the current major mode (and enabled
+minor modes), as well as commands bound in the active local key
+maps."
+  (declare (interactive-only command-execute))
+  (interactive
+   (let* ((execute-extended-command--last-typed nil)
+          (keymaps
+           ;; The major mode's keymap and any active minor modes.
+           (cons
+            (current-local-map)
+            (mapcar
+             #'cdr
+             (seq-filter
+              (lambda (elem)
+                (symbol-value (car elem)))
+              minor-mode-map-alist))))
+          (read-extended-command-predicate
+           (lambda (symbol buffer)
+             (or (command-completion-using-modes-p symbol buffer)
+                 (where-is-internal symbol keymaps)))))
+     (list current-prefix-arg
+           (read-extended-command)
+           execute-extended-command--last-typed)))
+  (with-suppressed-warnings ((interactive-only execute-extended-command))
+    (execute-extended-command prefixarg command-name typed)))
 
 (defun command-execute (cmd &optional record-flag keys special)
   ;; BEWARE: Called directly from the C code.
@@ -3005,8 +3043,7 @@ Return what remains of the list."
                      (and (consp time)
                           (equal (list (car time) (cdr time))
                                  (visited-file-modtime))))
-             (when (fboundp 'unlock-buffer)
-               (unlock-buffer))
+             (unlock-buffer)
              (set-buffer-modified-p nil)))
           ;; Element (nil PROP VAL BEG . END) is property change.
           (`(nil . ,(or `(,prop ,val ,beg . ,end) pcase--dontcare))
@@ -4632,7 +4669,7 @@ see other processes running on the system, use `list-system-processes'."
     (setq prefix-command--last-echo
           (let ((strs nil))
             (run-hook-wrapped 'prefix-command-echo-keystrokes-functions
-                              (lambda (fun) (push (funcall fun) strs)))
+                              (lambda (fun) (push (funcall fun) strs) nil))
             (setq strs (delq nil strs))
             (when strs (mapconcat #'identity strs " "))))))
 

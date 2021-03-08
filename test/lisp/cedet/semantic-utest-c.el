@@ -43,7 +43,6 @@
 (defvar semantic-lex-c-nested-namespace-ignore-second)
 
 ;;; Code:
-;;;###autoload
 (ert-deftest semantic-test-c-preprocessor-simulation ()
   "Run parsing test for C from the test directory."
   :tags '(:expensive-test)

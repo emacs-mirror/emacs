@@ -1604,11 +1604,11 @@ that do nothing."
 
 ;; This might be a neat idea, but it's too hairy at the moment.
 ;;(defmacro tags-with-syntax (&rest body)
+;;  (declare (debug t))
 ;;   `(with-syntax-table
 ;;        (with-current-buffer (find-file-noselect (file-of-tag))
 ;;          (syntax-table))
 ;;      ,@body))
-;;(put 'tags-with-syntax 'edebug-form-spec '(&rest form))
 
 ;; exact file name match, i.e. searched tag must match complete file
 ;; name including directories parts if there are some.

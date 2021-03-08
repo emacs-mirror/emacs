@@ -4206,6 +4206,7 @@ looking into captions:
    (lambda (b)
      (and (org-element-map b \\='latex-snippet #\\='identity nil t) b))
    nil nil nil t)"
+  (declare (indent 2))
   ;; Ensure TYPES and NO-RECURSION are a list, even of one element.
   (let* ((types (if (listp types) types (list types)))
 	 (no-recursion (if (listp no-recursion) no-recursion
@@ -4299,7 +4300,6 @@ looking into captions:
 	(funcall --walk-tree data)
 	;; Return value in a proper order.
 	(nreverse --acc)))))
-(put 'org-element-map 'lisp-indent-function 2)
 
 ;; The following functions are internal parts of the parser.
 ;;

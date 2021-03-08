@@ -2723,6 +2723,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ckz]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
      ("\\.bash\\'" . sh-mode)
+     ("/PKGBUILD\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(bash_\\(profile\\|history\\|log\\(in\\|out\\)\\)\\|z?log\\(in\\|out\\)\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(shrc\\|zshrc\\|m?kshrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
@@ -6234,11 +6235,6 @@ an auto-save file."
              "Cannot revert unreadable file %s")
            file-name))
    (t
-    ;; Bind buffer-file-name to nil
-    ;; so that we don't try to lock the file.
-    (let ((buffer-file-name nil))
-      (or auto-save-p
-          (unlock-buffer)))
     (widen)
     (let ((coding-system-for-read
            ;; Auto-saved file should be read by Emacs's

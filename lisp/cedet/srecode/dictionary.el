@@ -1,4 +1,4 @@
-;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.
+;;; srecode/dictionary.el --- Dictionary code for the semantic recoder.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -443,8 +443,8 @@ The root dictionary is usually for a current or active insertion."
 ;; for use in converting the compound value into something insertable.
 
 (cl-defmethod srecode-compound-toString ((cp srecode-dictionary-compound-value)
-				      function
-				      dictionary)
+				         _function
+				         _dictionary)
   "Convert the compound dictionary value CP to a string.
 If FUNCTION is non-nil, then FUNCTION is somehow applied to an aspect
 of the compound value.  The FUNCTION could be a fraction
@@ -457,14 +457,15 @@ standard out is a buffer, and using `insert'."
   (eieio-object-name cp))
 
 (cl-defmethod srecode-dump ((cp srecode-dictionary-compound-value)
-			 &optional indent)
+			    &optional _indent)
   "Display information about this compound value."
   (princ (eieio-object-name cp))
   )
 
-(cl-defmethod srecode-compound-toString ((cp srecode-dictionary-compound-variable)
-				      function
-				      dictionary)
+(cl-defmethod srecode-compound-toString
+    ((cp srecode-dictionary-compound-variable)
+     _function
+     dictionary)
   "Convert the compound dictionary variable value CP into a string.
 FUNCTION and DICTIONARY are as for the baseclass."
   (require 'srecode/insert)
@@ -606,9 +607,9 @@ STATE is the current compiler state."
   (require 'srecode/find)
   (let* ((modesym major-mode)
 	 (start (current-time))
-	 (junk (or (progn (srecode-load-tables-for-mode modesym)
-			  (srecode-get-mode-table modesym))
-		   (error "No table found for mode %S" modesym)))
+	 (_ (or (progn (srecode-load-tables-for-mode modesym)
+		       (srecode-get-mode-table modesym))
+		(error "No table found for mode %S" modesym)))
 	 (dict (srecode-create-dictionary (current-buffer)))
 	 )
     (message "Creating a dictionary took %.2f seconds."

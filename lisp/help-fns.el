@@ -466,13 +466,16 @@ suitable file is found, return nil."
               ;; If lots of ordinary text characters run this command,
               ;; don't mention them one by one.
               (if (< (length non-modified-keys) 10)
-                  (princ (mapconcat #'key-description keys ", "))
+                  (with-current-buffer standard-output
+                    (insert (mapconcat #'help--key-description-fontified
+                                       keys ", ")))
                 (dolist (key non-modified-keys)
                   (setq keys (delq key keys)))
                 (if keys
-                    (progn
-                      (princ (mapconcat #'key-description keys ", "))
-                      (princ ", and many ordinary text characters"))
+                    (with-current-buffer standard-output
+                      (insert (mapconcat #'help--key-description-fontified
+                                        keys ", "))
+                      (insert ", and many ordinary text characters"))
                   (princ "many ordinary text characters"))))
             (when (or remapped keys non-modified-keys)
               (princ ".")
@@ -668,7 +671,7 @@ FILE is the file where FUNCTION was probably defined."
               ;; Almost all entries are of the form "* ... in Emacs NN.MM."
               ;; but there are also a few in the form "* Emacs NN.MM is a bug
               ;; fix release ...".
-              (if (not (re-search-backward "^\\*.* Emacs \\([0-9.]+[0-9]\\)"
+              (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
                                            nil t))
                   (message "Ref found in non-versioned section in %S"
                            (file-name-nondirectory f))
@@ -1026,7 +1029,7 @@ it is displayed along with the global value."
 	      (princ (if file-name
 		         (progn
 		           (princ (format-message
-                                   " is a variable defined in `%s'.\n"
+                                   " is a variable defined in `%s'.\n\n"
                                    (if (eq file-name 'C-source)
                                        "C source code"
                                      (help-fns-short-filename file-name))))
@@ -1162,7 +1165,6 @@ it is displayed along with the global value."
 
               (with-current-buffer standard-output
                 (help-fns--ensure-empty-line))
-	      (princ "Documentation:\n")
 	      (with-current-buffer standard-output
 		(insert (or doc "Not documented as a variable."))))
 
@@ -1825,10 +1827,12 @@ documentation for the major and minor modes of that buffer."
 	      (save-excursion
 		(re-search-backward (substitute-command-keys "`\\([^`']+\\)'")
                                     nil t)
-		(help-xref-button 1 'help-function-def mode file-name)))))
-	(princ ":\n")
-	(princ (help-split-fundoc (documentation major-mode) nil 'doc))
-        (princ (help-fns--list-local-commands)))))
+                (help-xref-button 1 'help-function-def mode file-name)))))
+        (let ((fundoc (help-split-fundoc (documentation major-mode) nil 'doc)))
+          (with-current-buffer standard-output
+            (insert ":\n")
+            (insert fundoc)
+            (insert (help-fns--list-local-commands)))))))
   ;; For the sake of IELM and maybe others
   nil)
 

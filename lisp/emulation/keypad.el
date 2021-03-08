@@ -1,4 +1,4 @@
-;;; keypad.el --- simplified keypad bindings
+;;; keypad.el --- simplified keypad bindings  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -101,10 +101,10 @@
   "Specifies the keypad setup for unshifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value nil nil value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
@@ -124,10 +124,10 @@ decimal key must be specified."
   "Specifies the keypad setup for unshifted keypad keys when NumLock is on.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value t nil value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
@@ -147,10 +147,10 @@ decimal key must be specified."
   "Specifies the keypad setup for shifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value nil t value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)
@@ -170,10 +170,10 @@ decimal key must be specified."
   "Specifies the keypad setup for shifted keypad keys when NumLock is off.
 When selecting the plain numeric keypad setup, the character returned by the
 decimal key must be specified."
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
 	 (if value
 	     (keypad-setup value t t value)))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :link '(emacs-commentary-link "keypad.el")
   :version "22.1"
   :type '(choice (const :tag "Plain numeric keypad" numeric)

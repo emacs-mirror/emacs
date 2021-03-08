@@ -37,7 +37,6 @@
 ;;
 
 ;;; Code:
-(require 'easymenu)
 (require 'tree-widget)
 (require 'timer)
 

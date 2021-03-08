@@ -1,4 +1,4 @@
-;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion
+;;; cc-compat.el --- cc-mode compatibility with c-mode.el confusion  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -156,7 +156,7 @@ This is in addition to c-continued-statement-offset.")
 	 (if bracep 0 c-indent-level)))))
 
 
-(defun cc-substatement-open-offset (langelem)
+(defun cc-substatement-open-offset (_langelem)
   (+ c-continued-statement-offset c-continued-brace-offset))
 
 

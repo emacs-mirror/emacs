@@ -495,6 +495,7 @@ Subtests signal errors if something goes wrong."
       (insert "\n"))))
 
 (defun test-byte-comp-compile-and-load (compile &rest forms)
+  (declare (indent 1))
   (let ((elfile nil)
         (elcfile nil))
     (unwind-protect
@@ -513,7 +514,6 @@ Subtests signal errors if something goes wrong."
            (load elfile nil 'nomessage))
       (when elfile (delete-file elfile))
       (when elcfile (delete-file elcfile)))))
-(put 'test-byte-comp-compile-and-load 'lisp-indent-function 1)
 
 (ert-deftest test-byte-comp-macro-expansion ()
   (test-byte-comp-compile-and-load t
@@ -1198,6 +1198,29 @@ interpreted and compiled."
       (should (listp fun))
       (should (equal (funcall (eval fun t)) '(c d)))
       (should (equal (funcall (byte-compile fun)) '(c d))))))
+
+(ert-deftest bytecomp-reify-function ()
+  "Check that closures that modify their bound variables are
+compiled correctly."
+  (cl-letf ((lexical-binding t)
+            ((symbol-function 'counter) nil))
+    (let ((x 0))
+      (defun counter () (cl-incf x))
+      (should (equal (counter) 1))
+      (should (equal (counter) 2))
+      ;; byte compiling should not cause counter to always return the
+      ;; same value (bug#46834)
+      (byte-compile 'counter)
+      (should (equal (counter) 3))
+      (should (equal (counter) 4)))
+    (let ((x 0))
+      (let ((x 1))
+        (defun counter () x)
+        (should (equal (counter) 1))
+        ;; byte compiling should not cause the outer binding to shadow
+        ;; the inner one (bug#46834)
+        (byte-compile 'counter)
+        (should (equal (counter) 1))))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

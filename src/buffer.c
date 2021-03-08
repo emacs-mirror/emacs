@@ -1942,8 +1942,8 @@ cleaning up all windows currently displaying the buffer to be killed. */)
     }
   /* Since we've unlinked the markers, the overlays can't be here any more
      either.  */
-  b->overlays_before = NULL;
-  b->overlays_after = NULL;
+  set_buffer_overlays_before (b, NULL);
+  set_buffer_overlays_after (b, NULL);
 
   /* Reset the local variables, so that this buffer's local values
      won't be protected from GC.  They would be protected

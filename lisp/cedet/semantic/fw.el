@@ -189,14 +189,13 @@ will throw a warning when it encounters this symbol."
   (when (and (mode-local--function-overload-p newfn)
              (not (mode-local--overload-obsoleted-by newfn))
              ;; Only throw this warning when byte compiling things.
-             (boundp 'byte-compile-current-file)
-             byte-compile-current-file
-	     (not (string-match "cedet" byte-compile-current-file))
+             (macroexp-compiling-p)
+	     (not (string-match "cedet" (macroexp-file-name)))
 	     )
     (make-obsolete-overload oldfnalias newfn when)
     (byte-compile-warn
      "%s: `%s' obsoletes overload `%s'"
-     byte-compile-current-file
+     (macroexp-file-name)
      newfn
      (with-suppressed-warnings ((obsolete semantic-overload-symbol-from-function))
        (semantic-overload-symbol-from-function oldfnalias)))))
@@ -211,8 +210,7 @@ will throw a warning when it encounters this symbol."
       (defvaralias oldvaralias newvar)
     (error
      ;; Only throw this warning when byte compiling things.
-     (when (and (boundp 'byte-compile-current-file)
-                byte-compile-current-file)
+     (when (macroexp-compiling-p)
        (byte-compile-warn
         "variable `%s' obsoletes, but isn't alias of `%s'"
         newvar oldvaralias)
@@ -324,17 +322,7 @@ calling this one."
   "Call `find-file-noselect' with various features turned off.
 Use this when referencing a file that will be soon deleted.
 FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'."
-  ;; Hack -
-  ;; Check if we are in set-auto-mode, and if so, warn about this.
-  (when (boundp 'keep-mode-if-same)
-    (let ((filename (or (and (boundp 'filename) filename)
-			"(unknown)")))
-      (message "WARNING: semantic-find-file-noselect called for \
-%s while in set-auto-mode for %s.  You should call the responsible function \
-into `mode-local-init-hook'." file filename)
-      (sit-for 1)))
-
-  (let* ((recentf-exclude '( (lambda (f) t) ))
+  (let* ((recentf-exclude #'always)
 	 ;; This is a brave statement.  Don't waste time loading in
 	 ;; lots of modes.  Especially decoration mode can waste a lot
 	 ;; of time for a buffer we intend to kill.

@@ -2846,6 +2846,21 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
   return unbind_to (count, Qnil);
 }
 
+static Lisp_Object fontify_key_properties;
+
+static Lisp_Object
+describe_key_maybe_fontify (Lisp_Object str, Lisp_Object prefix,
+				   bool keymap_p)
+{
+  Lisp_Object key_desc = Fkey_description (str, prefix);
+  if (keymap_p)
+    Fadd_text_properties (make_fixnum (0),
+			  make_fixnum (SCHARS (key_desc)),
+			  fontify_key_properties,
+			  key_desc);
+  return key_desc;
+}
+
 DEFUN ("help--describe-vector", Fhelp__describe_vector, Shelp__describe_vector, 7, 7, 0,
        doc: /* Insert in the current buffer a description of the contents of VECTOR.
 Call DESCRIBER to insert the description of one value found in VECTOR.
@@ -3021,7 +3036,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
       if (!NILP (elt_prefix))
 	insert1 (elt_prefix);
 
-      insert1 (Fkey_description (kludge, prefix));
+      insert1 (describe_key_maybe_fontify (kludge, prefix, keymap_p));
 
       /* Find all consecutive characters or rows that have the same
 	 definition.  But, if VECTOR is a char-table, we had better
@@ -3071,7 +3086,7 @@ describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
 	  if (!NILP (elt_prefix))
 	    insert1 (elt_prefix);
 
-	  insert1 (Fkey_description (kludge, prefix));
+	  insert1 (describe_key_maybe_fontify (kludge, prefix, keymap_p));
 	}
 
       /* Print a description of the definition of this character.
@@ -3199,6 +3214,12 @@ be preferred.  */);
   where_is_cache = Qnil;
   staticpro (&where_is_cache);
   staticpro (&where_is_cache_keymaps);
+
+  DEFSYM (Qfont_lock_face, "font-lock-face");
+  DEFSYM (Qhelp_key_binding, "help-key-binding");
+  staticpro (&fontify_key_properties);
+  fontify_key_properties = Fcons (Qfont_lock_face,
+				  Fcons (Qhelp_key_binding, Qnil));
 
   defsubr (&Skeymapp);
   defsubr (&Skeymap_parent);

@@ -75,9 +75,6 @@
 (declare-function epa-passphrase-callback-function
 		  "epa" (context key-id handback))
 
-;;;_* Dependency loads
-(require 'overlay)
-
 ;;;_* USER CUSTOMIZATION VARIABLES:
 
 ;;;_ > defgroup allout, allout-keybindings
@@ -1206,7 +1203,6 @@ Also refresh various data structures that hinge on the regexp."
 (defvar allout-mode-navigation-menu)
 (defvar allout-mode-misc-menu)
 (defun allout-produce-mode-menubar-entries ()
-  (require 'easymenu)
   (easy-menu-define allout-mode-exposure-menu
 		    allout-mode-map-value
 		    "Allout outline exposure menu."

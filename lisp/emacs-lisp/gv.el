@@ -315,7 +315,7 @@ The return value is the last VAL in the list.
 ;; Autoload this `put' since a user might use C-u C-M-x on an expression
 ;; containing a non-trivial `push' even before gv.el was loaded.
 ;;;###autoload
-(put 'gv-place 'edebug-form-spec '(form)) ;So-called "indirect spec".
+(def-edebug-elem-spec 'gv-place '(form))
 
 ;; CL did the equivalent of:
 ;;(gv-define-macroexpand edebug-after (lambda (before index place) place))
@@ -593,7 +593,7 @@ binding mode."
             ;; dynamic binding mode as well.
             (eq (car-safe code) 'cons))
         code
-      (macroexp--warn-and-return
+      (macroexp-warn-and-return
        "Use of gv-ref probably requires lexical-binding"
        code))))
 

@@ -24,8 +24,6 @@
 ;;
 ;; Basic support for calling GNU Global, and testing version numbers.
 
-(declare-function inversion-check-version "inversion")
-
 (defvar cedet-global-min-version "5.0"
   "Minimum version of GNU Global required.")
 
@@ -143,7 +141,6 @@ If optional programmatic argument NOERROR is non-nil,
 then instead of throwing an error if Global isn't available,
 return nil."
   (interactive)
-  (require 'inversion)
   (let ((b (condition-case nil
 	       (cedet-gnu-global-call (list "--version"))
 	     (error nil)))
@@ -157,7 +154,7 @@ return nil."
 	(goto-char (point-min))
 	(re-search-forward "(?GNU GLOBAL)? \\([0-9.]+\\)" nil t)
 	(setq rev (match-string 1))
-	(if (inversion-check-version rev nil cedet-global-min-version)
+        (if (version< rev cedet-global-min-version)
 	    (if noerror
 		nil
 	      (error "Version of GNU Global is %s.  Need at least %s"

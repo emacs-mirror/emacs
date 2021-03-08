@@ -773,9 +773,6 @@ American format: \"month day year\"."
     ;; datetime == nil
     nil))
 
-(define-obsolete-function-alias 'icalendar--datetime-to-noneuropean-date
-  'icalendar--datetime-to-american-date "icalendar 0.19")
-
 (defun icalendar--datetime-to-european-date (datetime &optional separator)
   "Convert the decoded DATETIME to European format.
 Optional argument SEPARATOR gives the separator between month,

@@ -125,5 +125,11 @@
      '(("completion1" "prefix1" #("suffix1" 0 7 (face shadow)))))
     (should (equal (get-text-property 19 'face) 'shadow))))
 
+(ert-deftest completion-pcm--optimize-pattern ()
+  (should (equal (completion-pcm--optimize-pattern '("buf" point "f"))
+                 '("buf" point "f")))
+  (should (equal (completion-pcm--optimize-pattern '(any "" any))
+                 '(any))))
+
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

@@ -1,4 +1,4 @@
-;;; gs.el --- interface to Ghostscript
+;;; gs.el --- interface to Ghostscript  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998, 2001-2021 Free Software Foundation, Inc.
 
@@ -205,7 +205,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 	(gs-set-ghostview-window-prop frame spec img-width img-height)
 	(gs-set-ghostview-colors-window-prop frame pixel-colors)
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
-	(setq gs (apply 'start-process "gs" "*GS*" gs-program
+	(setq gs (apply #'start-process "gs" "*GS*" gs-program
 			(gs-options gs-device file)))
 	(set-process-query-on-exit-flag gs nil)
 	gs)

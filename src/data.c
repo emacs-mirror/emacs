@@ -957,9 +957,17 @@ The value, if non-nil, is a list of mode name symbols.  */)
   if (NILP (fun))
     return Qnil;
 
+  /* Use a `command-modes' property if present, analogous to the
+     function-documentation property.  */
   fun = command;
   while (SYMBOLP (fun))
-    fun = Fsymbol_function (fun);
+    {
+      Lisp_Object modes = Fget (fun, Qcommand_modes);
+      if (!NILP (modes))
+	return modes;
+      else
+	fun = Fsymbol_function (fun);
+    }
 
   if (COMPILEDP (fun))
     {
@@ -3980,6 +3988,8 @@ syms_of_data (void)
 
   DEFSYM (Qinteractive_form, "interactive-form");
   DEFSYM (Qdefalias_fset_function, "defalias-fset-function");
+
+  DEFSYM (Qbyte_code_function_p, "byte-code-function-p");
 
   defsubr (&Sindirect_variable);
   defsubr (&Sinteractive_form);

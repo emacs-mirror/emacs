@@ -1138,7 +1138,7 @@ no need to set this variable."
   :group 'gnus-message
   :type '(choice (const :tag "default" nil)
 		 string))
-(make-obsolete-variable 'gnus-local-domain nil "Emacs 24.1")
+(make-obsolete-variable 'gnus-local-domain nil "24.1")
 
 ;; Customization variables
 
@@ -2310,7 +2310,7 @@ automatically cache the article in the agent cache."
 ;; The carpal mode has been removed, but define the variable for
 ;; backwards compatibility.
 (defvar gnus-carpal nil)
-(make-obsolete-variable 'gnus-carpal nil "Emacs 24.1")
+(make-obsolete-variable 'gnus-carpal nil "24.1")
 
 (defvar gnus-agent-fetching nil
   "Whether Gnus agent is in fetching mode.")

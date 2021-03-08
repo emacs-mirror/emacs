@@ -2565,9 +2565,9 @@ If X is not an error form, return 1."
 ;;; True if A is numerically equal to the integer B.  [P N S] [Public]
 ;;; B must not be a multiple of 10.
 (defun math-equal-int (a b)
-  (or (eq a b)
+  (or (eql a b)
       (and (eq (car-safe a) 'float)
-	   (eq (nth 1 a) b)
+	   (eql (nth 1 a) b)
 	   (= (nth 2 a) 0))))
 
 

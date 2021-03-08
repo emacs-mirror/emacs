@@ -60,7 +60,6 @@
 (require 'cl-lib)
 (require 'debug)
 (require 'backtrace)
-(require 'easymenu)
 (require 'ewoc)
 (require 'find-func)
 (require 'pp)
@@ -81,15 +80,13 @@ Use nil for no limit (caution: backtrace lines can be very long)."
                                      :background "green1")
                                     (((class color) (background dark))
                                      :background "green3"))
-  "Face used for expected results in the ERT results buffer."
-  :group 'ert)
+  "Face used for expected results in the ERT results buffer.")
 
 (defface ert-test-result-unexpected '((((class color) (background light))
                                        :background "red1")
                                       (((class color) (background dark))
                                        :background "red3"))
-  "Face used for unexpected results in the ERT results buffer."
-  :group 'ert)
+  "Face used for unexpected results in the ERT results buffer.")
 
 
 ;;; Copies/reimplementations of cl functions.
@@ -224,16 +221,6 @@ it has to be wrapped in `(eval (quote ...))'.
                         :body (lambda () ,@body)))
          ',name))))
 
-;; We use these `put' forms in addition to the (declare (indent)) in
-;; the defmacro form since the `declare' alone does not lead to
-;; correct indentation before the .el/.elc file is loaded.
-;; Autoloading these `put' forms solves this.
-;;;###autoload
-(progn
-  ;; TODO(ohler): Figure out what these mean and make sure they are correct.
-  (put 'ert-deftest 'lisp-indent-function 2)
-  (put 'ert-info 'lisp-indent-function 1))
-
 (defvar ert--find-test-regexp
   (concat "^\\s-*(ert-deftest"
           find-function-space-re
@@ -290,14 +277,7 @@ It should only be stopped when ran from inside ert--run-test-internal."
   (let ((form
          ;; catch macroexpansion errors
          (condition-case err
-             (macroexpand-all form
-                              (append (bound-and-true-p
-                                       byte-compile-macro-environment)
-                                      (cond
-                                       ((boundp 'macroexpand-all-environment)
-                                        macroexpand-all-environment)
-                                       ((boundp 'cl-macro-environment)
-                                        cl-macro-environment))))
+             (macroexpand-all form macroexpand-all-environment)
            (error `(signal ',(car err) ',(cdr err))))))
     (cond
      ((or (atom form) (ert--special-operator-p (car form)))
@@ -1563,7 +1543,7 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
       (message "------------------")
       (setq tests (sort tests (lambda (x y) (> (car x) (car y)))))
       (when (< high (length tests)) (setcdr (nthcdr (1- high) tests) nil))
-      (message "%s" (mapconcat 'cdr tests "\n")))
+      (message "%s" (mapconcat #'cdr tests "\n")))
     ;; More details on hydra, where the logs are harder to get to.
     (when (and (getenv "EMACS_HYDRA_CI")
                (not (zerop (+ nunexpected nskipped))))
@@ -2090,7 +2070,7 @@ and how to display message."
     (ert-run-tests selector listener t)))
 
 ;;;###autoload
-(defalias 'ert 'ert-run-tests-interactively)
+(defalias 'ert #'ert-run-tests-interactively)
 
 
 ;;; Simple view mode for auxiliary information like stack traces or

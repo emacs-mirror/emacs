@@ -264,7 +264,7 @@ arguments after setting up the Ediff buffers."
 			'ediff-files3))
 
 ;;;###autoload
-(defalias 'ediff3 'ediff-files3)
+(defalias 'ediff3 #'ediff-files3)
 
 (defvar-local ediff--magic-file-name nil
   "Name of file where buffer's content was saved.
@@ -359,7 +359,7 @@ has been saved (if not in `buffer-file-name')."
 (declare-function diff-latest-backup-file "diff" (fn))
 
 ;;;###autoload
-(defalias 'ediff 'ediff-files)
+(defalias 'ediff #'ediff-files)
 
 ;;;###autoload
 (defun ediff-current-file ()
@@ -442,7 +442,7 @@ symbol describing the Ediff job type; it defaults to
   (ediff-buffers-internal buffer-A buffer-B nil startup-hooks job-name))
 
 ;;;###autoload
-(defalias 'ebuffers 'ediff-buffers)
+(defalias 'ebuffers #'ediff-buffers)
 
 
 ;;;###autoload
@@ -479,7 +479,7 @@ symbol describing the Ediff job type; it defaults to
   (ediff-buffers-internal buffer-A buffer-B buffer-C startup-hooks job-name))
 
 ;;;###autoload
-(defalias 'ebuffers3 'ediff-buffers3)
+(defalias 'ebuffers3 #'ediff-buffers3)
 
 
 
@@ -556,7 +556,7 @@ the same name in both.  The third argument, REGEXP, is nil or a regular
 expression; only file names that match the regexp are considered."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
-	 (default-regexp (eval ediff-default-filtering-regexp))
+	 (default-regexp (eval ediff-default-filtering-regexp t))
 	 f)
      (list (setq f (read-directory-name
 		    "Directory A to compare: " dir-A nil 'must-match))
@@ -570,14 +570,14 @@ expression; only file names that match the regexp are considered."
 			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
-	    (eval ediff-default-filtering-regexp))
+	    (eval ediff-default-filtering-regexp t))
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp #'ediff-files 'ediff-directories
    ))
 
 ;;;###autoload
-(defalias 'edirs 'ediff-directories)
+(defalias 'edirs #'ediff-directories)
 
 
 ;;;###autoload
@@ -587,7 +587,7 @@ The second argument, REGEXP, is a regular expression that filters the file
 names.  Only the files that are under revision control are taken into account."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
-	 (default-regexp (eval ediff-default-filtering-regexp))
+	 (default-regexp (eval ediff-default-filtering-regexp t))
 	 )
      (list (read-directory-name
 	    "Directory to compare with revision:" dir-A nil 'must-match)
@@ -596,14 +596,14 @@ names.  Only the files that are under revision control are taken into account."
              "Filter filenames through regular expression" default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
-	    (eval ediff-default-filtering-regexp))
+	    (eval ediff-default-filtering-regexp t))
 	   )))
   (ediff-directory-revisions-internal
-   dir1 regexp 'ediff-revision 'ediff-directory-revisions
+   dir1 regexp #'ediff-revision 'ediff-directory-revisions
    ))
 
 ;;;###autoload
-(defalias 'edir-revisions 'ediff-directory-revisions)
+(defalias 'edir-revisions #'ediff-directory-revisions)
 
 
 ;;;###autoload
@@ -614,7 +614,7 @@ regular expression; only file names that match the regexp are considered."
 
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
-	 (default-regexp (eval ediff-default-filtering-regexp))
+	 (default-regexp (eval ediff-default-filtering-regexp t))
 	 f)
      (list (setq f (read-directory-name "Directory A to compare:" dir-A nil))
 	   (setq f (read-directory-name "Directory B to compare:"
@@ -632,14 +632,14 @@ regular expression; only file names that match the regexp are considered."
 			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
-	    (eval ediff-default-filtering-regexp))
+	    (eval ediff-default-filtering-regexp t))
 	   )))
   (ediff-directories-internal
    dir1 dir2 dir3 regexp #'ediff-files3 'ediff-directories3
    ))
 
 ;;;###autoload
-(defalias 'edirs3 'ediff-directories3)
+(defalias 'edirs3 #'ediff-directories3)
 
 ;;;###autoload
 (defun ediff-merge-directories (dir1 dir2 regexp &optional merge-autostore-dir)
@@ -649,7 +649,7 @@ expression; only file names that match the regexp are considered.
 MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
-	 (default-regexp (eval ediff-default-filtering-regexp))
+	 (default-regexp (eval ediff-default-filtering-regexp t))
 	 f)
      (list (setq f (read-directory-name "Directory A to merge:"
 					dir-A nil 'must-match))
@@ -663,7 +663,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
-	    (eval ediff-default-filtering-regexp))
+	    (eval ediff-default-filtering-regexp t))
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp #'ediff-merge-files 'ediff-merge-directories
@@ -671,7 +671,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
    ))
 
 ;;;###autoload
-(defalias 'edirs-merge 'ediff-merge-directories)
+(defalias 'edirs-merge #'ediff-merge-directories)
 
 ;;;###autoload
 (defun ediff-merge-directories-with-ancestor (dir1 dir2 ancestor-dir regexp
@@ -685,7 +685,7 @@ only file names that match the regexp are considered.
 MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
-	 (default-regexp (eval ediff-default-filtering-regexp))
+	 (default-regexp (eval ediff-default-filtering-regexp t))
 	 f)
      (list (setq f (read-directory-name "Directory A to merge:" dir-A nil))
 	   (setq f (read-directory-name "Directory B to merge:"
@@ -703,7 +703,7 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
-	    (eval ediff-default-filtering-regexp))
+	    (eval ediff-default-filtering-regexp t))
 	   )))
   (ediff-directories-internal
    dir1 dir2 ancestor-dir regexp
@@ -720,7 +720,7 @@ names.  Only the files that are under revision control are taken into account.
 MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
-	 (default-regexp (eval ediff-default-filtering-regexp))
+	 (default-regexp (eval ediff-default-filtering-regexp t))
 	 )
      (list (read-directory-name
 	    "Directory to merge with revisions:" dir-A nil 'must-match)
@@ -729,15 +729,15 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
-	    (eval ediff-default-filtering-regexp))
+	    (eval ediff-default-filtering-regexp t))
 	   )))
   (ediff-directory-revisions-internal
-   dir1 regexp 'ediff-merge-revisions 'ediff-merge-directory-revisions
+   dir1 regexp #'ediff-merge-revisions 'ediff-merge-directory-revisions
    nil merge-autostore-dir
    ))
 
 ;;;###autoload
-(defalias 'edir-merge-revisions 'ediff-merge-directory-revisions)
+(defalias 'edir-merge-revisions #'ediff-merge-directory-revisions)
 
 ;;;###autoload
 (defun ediff-merge-directory-revisions-with-ancestor (dir1 regexp
@@ -749,7 +749,7 @@ names.  Only the files that are under revision control are taken into account.
 MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
-	 (default-regexp (eval ediff-default-filtering-regexp))
+	 (default-regexp (eval ediff-default-filtering-regexp t))
 	 )
      (list (read-directory-name
 	    "Directory to merge with revisions and ancestors:"
@@ -759,10 +759,10 @@ MERGE-AUTOSTORE-DIR is the directory in which to store merged files."
 			   default-regexp)
 	    nil
 	    'ediff-filtering-regexp-history
-	    (eval ediff-default-filtering-regexp))
+	    (eval ediff-default-filtering-regexp t))
 	   )))
   (ediff-directory-revisions-internal
-   dir1 regexp 'ediff-merge-revisions-with-ancestor
+   dir1 regexp #'ediff-merge-revisions-with-ancestor
    'ediff-merge-directory-revisions-with-ancestor
    nil merge-autostore-dir
    ))

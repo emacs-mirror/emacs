@@ -26,6 +26,7 @@
 
 (require 'ert)
 (eval-when-compile (require 'cl-lib))
+(require 'text-property-search) ; for `text-property-search-forward'
 
 (ert-deftest help-split-fundoc-SECTION ()
   "Test new optional arg SECTION."
@@ -60,9 +61,8 @@
 (defmacro with-substitute-command-keys-test (&rest body)
   `(cl-flet* ((test
                (lambda (orig result)
-                 (should (equal-including-properties
-                          (substitute-command-keys orig)
-                          result))))
+                 (should (equal (substitute-command-keys orig)
+                                result))))
               (test-re
                (lambda (orig regexp)
                  (should (string-match (concat "^" regexp "$")
@@ -221,6 +221,24 @@ M-s		next-matching-history-element
 
 (define-minor-mode help-tests-minor-mode
   "Minor mode for testing shadowing.")
+
+(ert-deftest help-tests-substitute-command-keys/add-key-face ()
+  (should (equal (substitute-command-keys "\\[next-line]")
+                 (propertize "C-n"
+                             'face 'help-key-binding
+                             'font-lock-face 'help-key-binding))))
+
+(ert-deftest help-tests-substitute-command-keys/add-key-face-listing ()
+  (with-temp-buffer
+    (insert (substitute-command-keys "\\{help-tests-minor-mode-map}"))
+    (goto-char (point-min))
+    (text-property-search-forward 'face 'help-key-binding)
+    (should (looking-at "C-e"))
+    ;; Don't fontify trailing whitespace.
+    (should-not (get-text-property (+ (point) 3) 'face))
+    (text-property-search-forward 'face 'help-key-binding)
+    (should (looking-at "x"))
+    (should-not (get-text-property (+ (point) 1) 'face))))
 
 (ert-deftest help-tests-substitute-command-keys/test-mode ()
   (with-substitute-command-keys-test

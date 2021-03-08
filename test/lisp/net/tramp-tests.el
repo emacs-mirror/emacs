@@ -2824,9 +2824,10 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	  (should (file-exists-p (expand-file-name "bla" tmp-name2)))
 	  (should-error
 	   (delete-directory tmp-name1 nil 'trash)
-	   ;; tramp-rclone.el calls the local `delete-directory'.
-	   ;; This raises another error.
-	   :type (if (tramp--test-rclone-p) 'error 'file-error))
+	   ;; tramp-rclone.el and tramp-sshfs.el call the local
+	   ;; `delete-directory'.  This raises another error.
+	   :type (if (or (tramp--test-rclone-p) (tramp--test-sshfs-p))
+		     'error 'file-error))
 	  (delete-directory tmp-name1 'recursive 'trash)
 	  (should-not (file-directory-p tmp-name1))
 	  (should
@@ -3254,8 +3255,8 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
 	(ignore-errors (delete-directory tmp-name1 'recursive))))))
 
 ;; Method "smb" supports `make-symbolic-link' only if the remote host
-;; has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el and
-;; tramp-rclone.el do not support symbolic links at all.
+;; has CIFS capabilities.  tramp-adb.el, tramp-gvfs.el, tramp-rclone.el
+;; and tramp-sshfs.el do not support symbolic links at all.
 (defmacro tramp--test-ignore-make-symbolic-link-error (&rest body)
   "Run BODY, ignoring \"make-symbolic-link not supported\" file error."
   (declare (indent defun) (debug (body)))
@@ -5819,6 +5820,11 @@ Additionally, ls does not support \"--dired\"."
 	"^\\(afp\\|davs?\\|smb\\)$"
 	(file-remote-p tramp-test-temporary-file-directory 'method))))
 
+(defun tramp--test-sshfs-p ()
+  "Check, whether the remote host is offered by sshfs.
+This requires restrictions of file name syntax."
+  (tramp-sshfs-file-name-p tramp-test-temporary-file-directory))
+
 (defun tramp--test-sudoedit-p ()
   "Check, whether the sudoedit method is used."
   (tramp-sudoedit-file-name-p tramp-test-temporary-file-directory))
@@ -6761,7 +6767,6 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
 ;; * Implement `tramp-test31-interrupt-process' for `adb' and for
 ;;   direct async processes.
-;; * Fix `tramp-test44-threads'.
 
 (provide 'tramp-tests)
 

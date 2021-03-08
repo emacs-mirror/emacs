@@ -78,10 +78,14 @@
 
 (ert-deftest subr-test-define-prefix-command ()
   (define-prefix-command 'foo-prefix-map)
+  (defvar foo-prefix-map)
+  (declare-function foo-prefix-map "subr-tests")
   (should (keymapp foo-prefix-map))
   (should (fboundp #'foo-prefix-map))
   ;; With optional argument.
   (define-prefix-command 'bar-prefix 'bar-prefix-map)
+  (defvar bar-prefix-map)
+  (declare-function bar-prefix "subr-tests")
   (should (keymapp bar-prefix-map))
   (should (fboundp #'bar-prefix))
   ;; Returns the symbol.
@@ -531,7 +535,8 @@ See https://debbugs.gnu.org/cgi/bugreport.cgi?bug=19350."
   (should (equal (string-replace "a" "aa" "aaa") "aaaaaa"))
   (should (equal (string-replace "abc" "defg" "abc") "defg"))
 
-  (should-error (string-replace "" "x" "abc")))
+  (should (equal (should-error (string-replace "" "x" "abc"))
+                 '(wrong-length-argument 0))))
 
 (ert-deftest subr-replace-regexp-in-string ()
   (should (equal (replace-regexp-in-string "a+" "xy" "abaabbabaaba")

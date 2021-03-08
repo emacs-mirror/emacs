@@ -1,4 +1,4 @@
-;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder
+;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007, 2009-2021 Free Software Foundation, Inc.
 
@@ -44,7 +44,6 @@
 A dictionary entry of the named PREFIX_NAMESPACE with the value
 NAMESPACE:: is created for each namespace unless the current
 buffer contains a using NAMESPACE; statement."
-  :group 'srecode-cpp
   :type  '(repeat string))
 
 ;;; :c ARGUMENT HANDLING

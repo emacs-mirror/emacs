@@ -321,7 +321,7 @@ the debugger will not be entered."
 
 (make-obsolete 'debugger-insert-backtrace
                "use a `backtrace-mode' buffer or `backtrace-to-string'."
-               "Emacs 27.1")
+               "27.1")
 
 (defun debugger-insert-backtrace (frames do-xrefs)
   "Format and insert the backtrace FRAMES at point.

@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This library provides a minor mode to display a ruler in the header
-;; line.  It works from Emacs 21 onwards.
+;; line.
 ;;
 ;; You can use the mouse to change the `fill-column' `comment-column',
 ;; `goal-column', `window-margins' and `tab-stop-list' settings:

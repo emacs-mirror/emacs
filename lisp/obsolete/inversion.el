@@ -1,10 +1,11 @@
-;;; inversion.el --- When you need something in version XX.XX
+;;; inversion.el --- When you need something in version XX.XX  -*- lexical-binding: t; -*-
 
 ;;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3
 ;; Keywords: OO, lisp
+;; Obsolete-since: 28.1
 
 ;; This file is part of GNU Emacs.
 
@@ -222,7 +223,7 @@ not an indication of new features or bug fixes."
 	)))
 
 (defun inversion-check-version (version incompatible-version
-                                minimum &rest reserved)
+                                minimum &rest _reserved)
   "Check that a given version meets the minimum requirement.
 VERSION, INCOMPATIBLE-VERSION and MINIMUM are of similar format to
 return entries of `inversion-decode-version', or a classic version
@@ -329,7 +330,7 @@ Return nil if everything is ok.  Return an error string otherwise."
      (t "Inversion version check failed."))))
 
 (defun inversion-require (package version &optional file directory
-				  &rest reserved)
+				  &rest _reserved)
   "Declare that you need PACKAGE with at least VERSION.
 PACKAGE might be found in FILE.  (See `require'.)
 Throws an error if VERSION is incompatible with what is installed.
@@ -523,31 +524,6 @@ The package should have VERSION available for download."
 				     nil))))
 
 	  (copy-file (cdr (car files)) dest))))))
-
-;;; How we upgrade packages in Emacs has yet to be ironed out.
-
-;; (defun inversion-upgrade-package (package &optional directory)
-;;   "Try to upgrade PACKAGE in DIRECTORY is available."
-;;   (interactive "sPackage to upgrade: ")
-;;   (if (stringp package) (setq package (intern package)))
-;;   (if (not directory)
-;;       ;; Hope that the package maintainer specified.
-;;       (setq directory (symbol-value (or (intern-soft
-;; 					 (concat (symbol-name package)
-;; 						 "-url"))
-;; 					(intern-soft
-;; 					 (concat (symbol-name package)
-;; 						 "-directory"))))))
-;;   (let ((files (inversion-locate-package-files-and-split
-;; 		package directory))
-;; 	(cver (inversion-package-version package))
-;; 	(newer nil))
-;;     (mapc (lambda (f)
-;; 	    (if (inversion-< cver (inversion-decode-version (car f)))
-;; 		(setq newer (cons f newer))))
-;; 	    files)
-;;     newer
-;;     ))
 
 (provide 'inversion)
 

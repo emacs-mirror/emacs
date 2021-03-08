@@ -1595,9 +1595,9 @@ See URL `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input'.")
 	      (goto-char (car elem))
 	      (if (not (eq (cdr elem) input))
 		  (progn
-		    (plist-put input :checked nil)
+		    (plist-put (cdr elem) :checked nil)
 		    (eww-update-field eww-form-checkbox-symbol))
-		(plist-put input :checked t)
+		(plist-put (cdr elem) :checked t)
 		(eww-update-field eww-form-checkbox-selected-symbol)))))
 	(forward-char 1)))))
 

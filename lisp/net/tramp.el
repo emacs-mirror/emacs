@@ -2591,6 +2591,14 @@ Add operations defined in `HANDLER-alist' to `tramp-file-name-handler'."
 
 ;;; File name handler functions for completion mode:
 
+;; This function takes action since Emacs 28.1, when
+;; `read-extended-command-predicate' is set to
+;; `command-completion-default-include-p'.
+(defun tramp-command-completion-p (_symbol buffer)
+  "A predicate for Tramp interactive commands.
+They are completed by \"M-x TAB\" only if the current buffer is remote."
+  (with-current-buffer buffer (tramp-tramp-file-p default-directory)))
+
 (defun tramp-connectable-p (vec-or-filename)
   "Check, whether it is possible to connect the remote host w/o side-effects.
 This is true, if either the remote host is already connected, or if we are
@@ -5438,11 +5446,6 @@ BODY is the backend specific code."
 ;; * Better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start
 ;;   again.  (Greg Stark)
-;;
-;; * I was wondering if it would be possible to use tramp even if I'm
-;;   actually using sshfs.  But when I launch a command I would like
-;;   to get it executed on the remote machine where the files really
-;;   are.  (Andrea Crotti)
 ;;
 ;; * Run emerge on two remote files.  Bug is described here:
 ;;   <https://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.

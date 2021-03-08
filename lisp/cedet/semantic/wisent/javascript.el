@@ -1,4 +1,4 @@
-;;; semantic/wisent/javascript.el --- javascript parser support
+;;; semantic/wisent/javascript.el --- javascript parser support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005, 2009-2021 Free Software Foundation, Inc.
 
@@ -70,7 +70,7 @@ This function overrides `get-local-variables'."
   ;; Does javascript have identifiable local variables?
   nil)
 
-(define-mode-local-override semantic-tag-protection js-mode (tag &optional parent)
+(define-mode-local-override semantic-tag-protection js-mode (_tag &optional _parent)
   "Return protection information about TAG with optional PARENT.
 This function returns on of the following symbols:
    nil         - No special protection.  Language dependent.
@@ -85,7 +85,7 @@ The default behavior (if not overridden with `tag-protection'
 is to return a symbol based on type modifiers."
   nil)
 
-(define-mode-local-override semantic-analyze-scope-calculate-access js-mode (type scope)
+(define-mode-local-override semantic-analyze-scope-calculate-access js-mode (_type _scope)
   "Calculate the access class for TYPE as defined by the current SCOPE.
 Access is related to the :parents in SCOPE.  If type is a member of SCOPE
 then access would be `private'.  If TYPE is inherited by a member of SCOPE,
@@ -101,7 +101,7 @@ This is currently needed for the mozrepl omniscient database."
   (save-excursion
     (if point (goto-char point))
     (let* ((case-fold-search semantic-case-fold)
-	   symlist tmp end)
+	   tmp end) ;; symlist
       (with-syntax-table semantic-lex-syntax-table
 	(save-excursion
 	  (when (looking-at "\\w\\|\\s_")
@@ -110,10 +110,11 @@ This is currently needed for the mozrepl omniscient database."
 	  (unless (re-search-backward "\\s-" (point-at-bol) t)
 	    (beginning-of-line))
 	  (setq tmp (buffer-substring-no-properties (point) end))
+	  ;; (setq symlist
 	  (if (string-match "\\(.+\\)\\." tmp)
-	    (setq symlist (list (match-string 1 tmp)
-				(substring tmp (1+ (match-end 1)) (length tmp))))
-	    (setq symlist (list tmp))))))))
+	      (list (match-string 1 tmp)
+		    (substring tmp (1+ (match-end 1)) (length tmp)))
+	    (list tmp)))))));; )
 
 ;;; Setup Function
 ;;

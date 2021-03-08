@@ -1,4 +1,4 @@
-;;; semantic/analyze/debug.el --- Debug the analyzer
+;;; semantic/analyze/debug.el --- Debug the analyzer  -*- lexical-binding: t; -*-
 
 ;;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -109,11 +109,11 @@ Argument COMP are possible completions here."
 	(condition-case err
 	    (with-current-buffer origbuf
 	      (let* ((position (or (cdr-safe (oref ctxt bounds)) (point)))
-		     (prefixtypes nil) ; Used as type return
+		     ;; (semantic--prefixtypes nil) ; Used as type return
 		     (scope (semantic-calculate-scope position))
 		     )
 		(semantic-analyze-find-tag-sequence
-		 (list prefix "") scope 'prefixtypes)
+		 (list prefix "") scope) ;; 'semantic--prefixtypes
 		)
 	      )
 	  (error (setq finderr err)))
@@ -149,7 +149,7 @@ path was setup incorrectly.\n")
     (semantic-analyzer-debug-add-buttons)
     ))
 
-(defun semantic-analyzer-debug-missing-datatype (ctxt idx comp)
+(defun semantic-analyzer-debug-missing-datatype (ctxt idx _comp)
   "Debug why we can't find a datatype entry for CTXT prefix at IDX.
 Argument COMP are possible completions here."
   (let* ((prefixitem (nth idx (oref ctxt prefix)))

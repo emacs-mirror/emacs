@@ -663,7 +663,6 @@ the first newsgroup."
 (defvar mail-sources)
 (defvar nnmail-scan-directory-mail-source-once)
 (defvar nnmail-split-history)
-(defvar nnmail-spool-file)
 
 (defun gnus-close-all-servers ()
   "Close all servers."

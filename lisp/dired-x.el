@@ -236,8 +236,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 
 ;;; MENU BINDINGS
 
-(require 'easymenu)
-
 (when-let ((menu (lookup-key dired-mode-map [menu-bar])))
   (easy-menu-add-item menu '("Operate")
                       ["Find Files" dired-do-find-marked-files

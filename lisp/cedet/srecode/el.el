@@ -1,4 +1,4 @@
-;;; srecode/el.el --- Emacs Lisp specific arguments
+;;; srecode/el.el --- Emacs Lisp specific arguments  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 

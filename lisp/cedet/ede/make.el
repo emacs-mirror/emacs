@@ -30,8 +30,6 @@
 
 ;;; Code:
 
-(declare-function inversion-check-version "inversion")
-
 (defsubst ede--find-executable (exec)
   "Return an expanded file name for a program EXEC on the exec path."
   (declare (obsolete locate-file "28.1"))
@@ -60,8 +58,7 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
   (let ((b (get-buffer-create "*EDE Make Version*"))
 	(cd default-directory)
 	(rev nil)
-	(ans nil)
-	)
+        (ans nil))
     (with-current-buffer b
       ;; Setup, and execute make.
       (setq default-directory cd)
@@ -70,18 +67,18 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
 		    "--version")
       ;; Check the buffer for the string
       (goto-char (point-min))
-      (when (looking-at "GNU Make\\(?: version\\)? \\([0-9][^,]+\\),")
+      (when (looking-at "GNU Make\\(?: version\\)? \\([0-9][^,[:space:]]+\\),?")
 	(setq rev (match-string 1))
-	(require 'inversion)
-	(setq ans (not (inversion-check-version rev nil ede-make-min-version))))
+        (setq ans (not (version< rev ede-make-min-version))))
 
       ;; Answer reporting.
       (when (and (called-interactively-p 'interactive) ans)
 	(message "GNU Make version %s.  Good enough for CEDET." rev))
 
       (when (and (not noerror) (not ans))
-	(error "EDE requires GNU Make version %s or later.  Configure `ede-make-command' to fix"
-	       ede-make-min-version))
+        (error "EDE requires GNU Make version %s or later (found %s).  Configure `ede-make-command' to fix"
+               ede-make-min-version
+               rev))
       ans)))
 
 (provide 'ede/make)

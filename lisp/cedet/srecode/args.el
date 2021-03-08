@@ -1,4 +1,4 @@
-;;; srecode/args.el --- Provide some simple template arguments
+;;; srecode/args.el --- Provide some simple template arguments  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 

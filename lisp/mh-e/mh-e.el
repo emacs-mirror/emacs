@@ -1,4 +1,4 @@
-;;; mh-e.el --- GNU Emacs interface to the MH mail system
+;;; mh-e.el --- GNU Emacs interface to the MH mail system  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2021 Free
 ;; Software Foundation, Inc.
@@ -695,9 +695,8 @@ See documentation for `defgroup' for a description of the arguments
 SYMBOL, MEMBERS, DOC and ARGS.
 This macro is used by Emacs versions that lack the :package-version
 keyword, introduced in Emacs 22."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(defgroup ,symbol ,members ,doc ,@(mh-strip-package-version args)))
-(put 'defgroup-mh 'lisp-indent-function 'defun)
 
 (defmacro defcustom-mh (symbol value doc &rest args)
   "Declare SYMBOL as a customizable variable that defaults to VALUE.
@@ -705,9 +704,8 @@ See documentation for `defcustom' for a description of the arguments
 SYMBOL, VALUE, DOC and ARGS.
 This macro is used by Emacs versions that lack the :package-version
 keyword, introduced in Emacs 22."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(defcustom ,symbol ,value ,doc ,@(mh-strip-package-version args)))
-(put 'defcustom-mh 'lisp-indent-function 'defun)
 
 (defmacro defface-mh (face spec doc &rest args)
   "Declare FACE as a customizable face that defaults to SPEC.
@@ -715,9 +713,8 @@ See documentation for `defface' for a description of the arguments
 FACE, SPEC, DOC and ARGS.
 This macro is used by Emacs versions that lack the :package-version
 keyword, introduced in Emacs 22."
-  (declare (doc-string 3))
+  (declare (doc-string 3) (indent defun))
   `(defface ,face ,spec ,doc ,@(mh-strip-package-version args)))
-(put 'defface-mh 'lisp-indent-function 'defun)
 
 
 
