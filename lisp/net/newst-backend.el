@@ -163,7 +163,7 @@ These were mostly extracted from the Radio Community Server
 You may add other entries in `newsticker-url-list'."
   :type `(set ,@(mapcar #'newsticker--splicer
                         newsticker--raw-url-list-defaults))
-  :set 'newsticker--set-customvar-retrieval
+  :set #'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
 
 (defcustom newsticker-url-list nil
@@ -217,7 +217,7 @@ which apply for this feed only, overriding the value of
                        (choice :tag "Wget Arguments"
                                (const  :tag "Default arguments" nil)
                                (repeat :tag "Special arguments" string))))
-  :set 'newsticker--set-customvar-retrieval
+  :set #'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
 
 (defcustom newsticker-retrieval-method
@@ -260,7 +260,7 @@ make it less than 1800 seconds (30 minutes)!"
                  (const   :tag "Daily" 86400)
                  (const   :tag "Weekly" 604800)
                  (integer :tag "Interval"))
-  :set 'newsticker--set-customvar-retrieval
+  :set #'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
 
 (defcustom newsticker-desc-comp-max
@@ -549,7 +549,7 @@ name/timer pair to `newsticker--retrieval-timer-list'."
       (if (<= interval 0)
           (setq interval nil))
       (setq timer (run-at-time start-time interval
-                               'newsticker-get-news feed-name))
+                               #'newsticker-get-news feed-name))
       (if interval
           (add-to-list 'newsticker--retrieval-timer-list
                        (cons feed-name timer))))))
@@ -727,10 +727,10 @@ See `newsticker-get-news'."
           (error "Another wget-process is running for %s" feed-name))
       ;; start wget
       (let* ((args (append wget-arguments (list url)))
-             (proc (apply 'start-process feed-name buffername
+             (proc (apply #'start-process feed-name buffername
                           newsticker-wget-name args)))
         (set-process-coding-system proc 'no-conversion 'no-conversion)
-        (set-process-sentinel proc 'newsticker--sentinel)
+        (set-process-sentinel proc #'newsticker--sentinel)
         (process-put proc 'nt-feed-name feed-name)
         (setq newsticker--process-ids (cons (process-id proc)
                                             newsticker--process-ids))
@@ -1131,9 +1131,9 @@ Restore an xml-string from a an xml NODE that was returned by xml-parse..."
         (children (cddr node)))
     (concat "<" qname
             (when att-list " ")
-            (mapconcat 'newsticker--unxml-attribute att-list " ")
+            (mapconcat #'newsticker--unxml-attribute att-list " ")
             ">"
-            (mapconcat 'newsticker--unxml children "") "</" qname ">")))
+            (mapconcat #'newsticker--unxml children "") "</" qname ">")))
 
 (defun newsticker--unxml-attribute (attribute)
   "Actually restore xml-string of an ATTRIBUTE of an xml node."
@@ -1580,7 +1580,7 @@ Remove the pre-formatted from `newsticker--cache'."
   "Forget all cached pre-formatted data.
 Remove the pre-formatted from `newsticker--cache'."
   (mapc (lambda (feed)
-          (mapc 'newsticker--do-forget-preformatted
+          (mapc #'newsticker--do-forget-preformatted
                 (cdr feed)))
         newsticker--cache)
   (when (fboundp 'newsticker--buffer-set-uptodate)
@@ -1593,7 +1593,7 @@ This function calls `message' with arguments STRING and ARGS, if
   (and newsticker-debug
        ;;(not (active-minibuffer-window))
        ;;(not (current-message))
-       (apply 'message string args)))
+       (apply #'message string args)))
 
 (defun newsticker--decode-iso8601-date (string)
   "Return ISO8601-encoded STRING in format like `encode-time'.
@@ -1751,10 +1751,10 @@ Save image as FILENAME in DIRECTORY, download it from URL."
                  feed-name))
       ;; start wget
       (let* ((args (append wget-arguments (list url)))
-             (proc (apply 'start-process proc-name buffername
+             (proc (apply #'start-process proc-name buffername
                           newsticker-wget-name args)))
         (set-process-coding-system proc 'no-conversion 'no-conversion)
-        (set-process-sentinel proc 'newsticker--image-sentinel)
+        (set-process-sentinel proc #'newsticker--image-sentinel)
         (process-put proc 'nt-directory directory)
         (process-put proc 'nt-feed-name feed-name)
         (process-put proc 'nt-filename filename)))))
@@ -2149,7 +2149,7 @@ FEED is a symbol!"
   "Save cache data for all feeds."
   (unless (file-directory-p newsticker-dir)
     (make-directory newsticker-dir t))
-  (mapc 'newsticker--cache-save-feed newsticker--cache)
+  (mapc #'newsticker--cache-save-feed newsticker--cache)
   nil)
 
 (defun newsticker--cache-save-feed (feed)
@@ -2223,7 +2223,7 @@ If AGES is nil, the total number of items is returned."
 (defun newsticker--stat-num-items-total (&optional age)
   "Return total number of items in all feeds which have the given AGE.
 If AGE is nil, the total number of items is returned."
-  (apply '+
+  (apply #'+
          (mapcar (lambda (feed)
                    (if age
                        (newsticker--stat-num-items (intern (car feed)) age)
@@ -2395,7 +2395,7 @@ the item."
             (make-directory temp-dir t))
           (cd temp-dir)
           (message "Getting image %s" url)
-          (apply 'start-process "wget-image"
+          (apply #'start-process "wget-image"
                  " *newsticker-wget-download-images*"
                  newsticker-wget-name
                  (list url))
@@ -2417,7 +2417,7 @@ This function is suited for adding it to `newsticker-new-item-functions'."
           (make-directory temp-dir t))
         (cd temp-dir)
         (message "Getting enclosure %s" url)
-        (apply 'start-process "wget-enclosure"
+        (apply #'start-process "wget-enclosure"
                " *newsticker-wget-download-enclosures*"
                newsticker-wget-name
                (list url))

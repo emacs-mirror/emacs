@@ -386,6 +386,8 @@ Also see `tramp-default-method-alist'."
   :type 'string)
 
 (defcustom tramp-default-method-alist nil
+  ;; FIXME: This is not an "alist", because its elements are not of
+  ;; the form (KEY . VAL) but (KEY1 KEY2 VAL).
   "Default method to use for specific host/user pairs.
 This is an alist of items (HOST USER METHOD).  The first matching item
 specifies the method to use for a file name which does not specify a
@@ -413,6 +415,8 @@ This variable is regarded as obsolete, and will be removed soon."
   :type '(choice (const nil) string))
 
 (defcustom tramp-default-user-alist nil
+  ;; FIXME: This is not an "alist", because its elements are not of
+  ;; the form (KEY . VAL) but (KEY1 KEY2 VAL).
   "Default user to use for specific method/host pairs.
 This is an alist of items (METHOD HOST USER).  The first matching item
 specifies the user to use for a file name which does not specify a
@@ -432,6 +436,8 @@ Useful for su and sudo methods mostly."
   :type 'string)
 
 (defcustom tramp-default-host-alist nil
+  ;; FIXME: This is not an "alist", because its elements are not of
+  ;; the form (KEY . VAL) but (KEY1 KEY2 VAL).
   "Default host to use for specific method/user pairs.
 This is an alist of items (METHOD USER HOST).  The first matching item
 specifies the host to use for a file name which does not specify a
@@ -447,6 +453,8 @@ empty string for the method name."
 		       (choice :tag "    Host name" string (const nil)))))
 
 (defcustom tramp-default-proxies-alist nil
+  ;; FIXME: This is not an "alist", because its elements are not of
+  ;; the form (KEY . VAL) but (KEY1 KEY2 VAL).
   "Route to be followed for specific host/user pairs.
 This is an alist of items (HOST USER PROXY).  The first matching
 item specifies the proxy to be passed for a file name located on
@@ -1710,6 +1718,10 @@ version, the function does nothing."
   "Used for highlighting Tramp debug buffers in `outline-mode'.")
 
 (defconst tramp-debug-font-lock-keywords
+  ;; FIXME: Make it a function instead of an ELisp expression, so you
+  ;; can evaluate it with `funcall' rather than `eval'!
+  ;; Also, in `font-lock-defaults' you can specify a function name for
+  ;; the "KEYWORDS" part, so font-lock calls it to get the actual keywords!
   '(list
     (concat "^\\(?:" tramp-debug-outline-regexp "\\).+")
     '(1 font-lock-warning-face t t)
@@ -1738,8 +1750,11 @@ The outline level is equal to the verbosity of the Tramp message."
 	(outline-mode))
       (setq-local outline-level 'tramp-debug-outline-level)
       (setq-local font-lock-keywords
-                  `(t (eval ,tramp-debug-font-lock-keywords)
-                      ,(eval tramp-debug-font-lock-keywords)))
+                  ;; FIXME: This `(t FOO . BAR)' representation in
+                  ;; `font-lock-keywords' is supposed to be an
+                  ;; internal implementation "detail".  Don't abuse it here!
+                  `(t (eval ,tramp-debug-font-lock-keywords t)
+                      ,(eval tramp-debug-font-lock-keywords t)))
       ;; Do not edit the debug buffer.
       (use-local-map special-mode-map))
     (current-buffer)))
@@ -3691,15 +3706,15 @@ User is always nil."
     (setq choices tramp-default-proxies-alist)
     (while choices
       (setq item (pop choices)
-	    proxy (eval (nth 2 item)))
+	    proxy (eval (nth 2 item) t))
       (when (and
 	     ;; Host.
 	     (string-match-p
-	      (or (eval (nth 0 item)) "")
+	      (or (eval (nth 0 item) t) "")
 	      (or (tramp-file-name-host-port (car target-alist)) ""))
 	     ;; User.
 	     (string-match-p
-	      (or (eval (nth 1 item)) "")
+	      (or (eval (nth 1 item) t) "")
 	      (or (tramp-file-name-user-domain (car target-alist)) "")))
 	(if (null proxy)
 	    ;; No more hops needed.

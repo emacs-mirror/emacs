@@ -1,4 +1,4 @@
-;; newst-ticker.el --- mode line ticker for newsticker.
+;; newst-ticker.el --- mode line ticker for newsticker.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
@@ -83,7 +83,7 @@ smooth display (see `newsticker-scroll-smoothly') a value of 0.3 seems
 reasonable.  For non-smooth display a value of 10 is a good starting
 point."
   :type 'number
-  :set 'newsticker--set-customvar-ticker
+  :set #'newsticker--set-customvar-ticker
   :group 'newsticker-ticker)
 
 (defcustom newsticker-scroll-smoothly
@@ -104,7 +104,7 @@ at all.  If you change `newsticker-scroll-smoothly' you should also change
 If t the echo area will not show immortal items.  See also
 `newsticker-hide-old-items-in-echo-area'."
   :type 'boolean
-  :set 'newsticker--set-customvar-ticker
+  :set #'newsticker--set-customvar-ticker
   :group 'newsticker-ticker)
 
 (defcustom newsticker-hide-old-items-in-echo-area
@@ -113,7 +113,7 @@ If t the echo area will not show immortal items.  See also
 If t the echo area will show only new items, i.e. only items which have
 been added between the last two retrievals."
   :type 'boolean
-  :set 'newsticker--set-customvar-ticker
+  :set #'newsticker--set-customvar-ticker
   :group 'newsticker-ticker)
 
 (defcustom newsticker-hide-obsolete-items-in-echo-area
@@ -122,7 +122,7 @@ been added between the last two retrievals."
 If t the echo area will not show obsolete items.  See also
 `newsticker-hide-old-items-in-echo-area'."
   :type 'boolean
-  :set 'newsticker--set-customvar-ticker
+  :set #'newsticker--set-customvar-ticker
   :group 'newsticker-ticker)
 
 (defun newsticker--display-tick ()
@@ -205,7 +205,7 @@ running already."
       (setq newsticker--ticker-timer
             (run-at-time newsticker-ticker-interval
                          newsticker-ticker-interval
-                         'newsticker--display-tick))))
+                         #'newsticker--display-tick))))
 
 (defun newsticker-stop-ticker ()
   "Stop newsticker's ticker (but not the news retrieval)."

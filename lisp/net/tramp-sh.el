@@ -4918,7 +4918,7 @@ If there is just some editing, retry it after 5 seconds."
       (progn
 	(tramp-message
 	 vec 5 "Cannot timeout session, trying it again in %s seconds." 5)
-	(run-at-time 5 nil 'tramp-timeout-session vec))
+	(run-at-time 5 nil #'tramp-timeout-session vec))
     (tramp-message
      vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'noloc))
     (tramp-cleanup-connection vec 'keep-debug nil 'keep-processes)))
@@ -5149,7 +5149,7 @@ connection if a previous connection has died for some reason."
 		(when (tramp-get-connection-property p "session-timeout" nil)
 		  (run-at-time
 		   (tramp-get-connection-property p "session-timeout" nil) nil
-		   'tramp-timeout-session vec))
+		   #'tramp-timeout-session vec))
 
 		;; Make initial shell settings.
 		(tramp-open-connection-setup-interactive-shell p vec)

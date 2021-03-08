@@ -293,7 +293,7 @@ The following replacements are made:
 Setting this alone will not affect the prompt;
 use either M-x customize or also call `rcirc-update-prompt'."
   :type 'string
-  :set 'rcirc-set-changed
+  :set #'rcirc-set-changed
   :initialize 'custom-initialize-default)
 
 (defcustom rcirc-keywords nil

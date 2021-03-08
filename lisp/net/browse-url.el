@@ -826,7 +826,7 @@ If optional arg TEMP-FILE-NAME is non-nil, delete it instead."
     (if (and file-name (file-exists-p file-name))
 	(delete-file file-name))))
 
-(add-hook 'kill-buffer-hook 'browse-url-delete-temp-file)
+(add-hook 'kill-buffer-hook #'browse-url-delete-temp-file)
 
 (declare-function dired-get-filename "dired"
 		  (&optional localp no-error-if-not-filep))
@@ -1064,7 +1064,7 @@ xdg-open is a desktop utility that calls your preferred web browser."
        (executable-find "xdg-open")))
 
 ;;;###autoload
-(defun browse-url-xdg-open (url &optional ignored)
+(defun browse-url-xdg-open (url &optional _ignored)
   "Pass the specified URL to the \"xdg-open\" command.
 xdg-open is a desktop utility that calls your preferred web browser.
 The optional argument IGNORED is not used."
@@ -1095,7 +1095,7 @@ used instead of `browse-url-new-window-flag'."
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
 	 (process
-	  (apply 'start-process
+	  (apply #'start-process
 		 (concat "netscape " url) nil
 		 browse-url-netscape-program
 		 (append
@@ -1125,7 +1125,7 @@ used instead of `browse-url-new-window-flag'."
       (let* ((process-environment (browse-url-process-environment)))
 	;; Netscape not running - start it
 	(message "Starting %s..." browse-url-netscape-program)
-	(apply 'start-process (concat "netscape" url) nil
+	(apply #'start-process (concat "netscape" url) nil
 	       browse-url-netscape-program
 	       (append browse-url-netscape-startup-arguments (list url))))))
 
@@ -1144,7 +1144,7 @@ How depends on `browse-url-netscape-version'."
   "Send a remote control command to Netscape."
   (declare (obsolete nil "25.1"))
   (let* ((process-environment (browse-url-process-environment)))
-    (apply 'start-process "netscape" nil
+    (apply #'start-process "netscape" nil
            browse-url-netscape-program
            (append browse-url-netscape-arguments
                    (list "-remote" command)))))
@@ -1170,7 +1170,7 @@ used instead of `browse-url-new-window-flag'."
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
          (process
-	  (apply 'start-process
+	  (apply #'start-process
 		 (concat "mozilla " url) nil
 		 browse-url-mozilla-program
 		 (append
@@ -1196,7 +1196,7 @@ used instead of `browse-url-new-window-flag'."
       (let* ((process-environment (browse-url-process-environment)))
 	;; Mozilla is not running - start it
 	(message "Starting %s..." browse-url-mozilla-program)
-	(apply 'start-process (concat "mozilla " url) nil
+	(apply #'start-process (concat "mozilla " url) nil
 	       browse-url-mozilla-program
 	       (append browse-url-mozilla-startup-arguments (list url))))))
 
@@ -1219,7 +1219,7 @@ instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
-    (apply 'start-process
+    (apply #'start-process
            (concat "firefox " url) nil
            browse-url-firefox-program
            (append
@@ -1242,7 +1242,7 @@ The optional argument NEW-WINDOW is not used."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
-    (apply 'start-process
+    (apply #'start-process
 	   (concat "chromium " url) nil
 	   browse-url-chromium-program
 	   (append
@@ -1260,7 +1260,7 @@ The optional argument NEW-WINDOW is not used."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
-    (apply 'start-process
+    (apply #'start-process
 	   (concat "google-chrome " url) nil
 	   browse-url-chrome-program
 	   (append
@@ -1290,7 +1290,7 @@ used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
-         (process (apply 'start-process
+         (process (apply #'start-process
 			 (concat "galeon " url)
 			 nil
 			 browse-url-galeon-program
@@ -1315,7 +1315,7 @@ used instead of `browse-url-new-window-flag'."
       (let* ((process-environment (browse-url-process-environment)))
 	;; Galeon is not running - start it
 	(message "Starting %s..." browse-url-galeon-program)
-	(apply 'start-process (concat "galeon " url) nil
+	(apply #'start-process (concat "galeon " url) nil
 	       browse-url-galeon-program
 	       (append browse-url-galeon-startup-arguments (list url))))))
 
@@ -1338,7 +1338,7 @@ used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
-         (process (apply 'start-process
+         (process (apply #'start-process
 			 (concat "epiphany " url)
 			 nil
 			 browse-url-epiphany-program
@@ -1362,7 +1362,7 @@ used instead of `browse-url-new-window-flag'."
       (let* ((process-environment (browse-url-process-environment)))
 	;; Epiphany is not running - start it
 	(message "Starting %s..." browse-url-epiphany-program)
-	(apply 'start-process (concat "epiphany " url) nil
+	(apply #'start-process (concat "epiphany " url) nil
 	       browse-url-epiphany-program
 	       (append browse-url-epiphany-startup-arguments (list url))))))
 
@@ -1403,7 +1403,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (declare (obsolete nil "25.1"))
   (interactive (browse-url-interactive-arg "URL: "))
-  (apply 'start-process (concat "gnome-moz-remote " url)
+  (apply #'start-process (concat "gnome-moz-remote " url)
 	 nil
 	 browse-url-gnome-moz-program
 	 (append
@@ -1437,7 +1437,7 @@ NEW-WINDOW instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment)))
-    (apply 'start-process (format "conkeror %s" url)
+    (apply #'start-process (format "conkeror %s" url)
 	   nil
 	   browse-url-conkeror-program
 	   (append
@@ -1487,7 +1487,7 @@ The `browse-url-gnudoit-program' program is used with options given by
 `browse-url-gnudoit-args'.  Default to the URL around or before point."
   (declare (obsolete nil "25.1"))
   (interactive (browse-url-interactive-arg "W3 URL: "))
-  (apply 'start-process (concat "gnudoit:" url) nil
+  (apply #'start-process (concat "gnudoit:" url) nil
 	 browse-url-gnudoit-program
 	 (append browse-url-gnudoit-args
 		 (list (concat "(w3-fetch \"" url "\")")
@@ -1667,7 +1667,7 @@ don't offer a form of remote control."
   (interactive (browse-url-interactive-arg "URL: "))
   (if (not browse-url-generic-program)
       (error "No browser defined (`browse-url-generic-program')"))
-  (apply 'call-process browse-url-generic-program nil
+  (apply #'call-process browse-url-generic-program nil
 	 0 nil
 	 (append browse-url-generic-args (list url))))
 
@@ -1742,9 +1742,9 @@ from `browse-url-elinks-wrapper'."
 
 (defvar browse-url-button-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'browse-url-button-open)
-    (define-key map [mouse-2] 'browse-url-button-open)
-    (define-key map "w" 'browse-url-button-copy)
+    (define-key map "\r" #'browse-url-button-open)
+    (define-key map [mouse-2] #'browse-url-button-open)
+    (define-key map "w" #'browse-url-button-copy)
     map)
   "The keymap used for browse-url buttons.")
 

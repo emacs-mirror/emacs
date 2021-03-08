@@ -643,7 +643,7 @@ starting with a colon.  Example:
 The object labels of the found items are returned as list."
   (mapcar
    (lambda (item-path) (secrets-get-item-property item-path "Label"))
-   (apply 'secrets-search-item-paths collection attributes)))
+   (apply #'secrets-search-item-paths collection attributes)))
 
 (defun secrets-create-item (collection item password &rest attributes)
   "Create a new item in COLLECTION with label ITEM and password PASSWORD.
@@ -780,9 +780,9 @@ ITEM can also be an object path, which is used if contained in COLLECTION."
 (defvar secrets-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map (make-composed-keymap special-mode-map widget-keymap))
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "z" 'kill-current-buffer)
+    (define-key map "n" #'next-line)
+    (define-key map "p" #'previous-line)
+    (define-key map "z" #'kill-current-buffer)
     map)
   "Keymap used in `secrets-mode' buffers.")
 
@@ -859,7 +859,7 @@ to their attributes."
 	 ;; padding is needed to format attribute names.
 	 (padding
 	  (apply
-	   'max
+	   #'max
 	   (cons
 	    (1+ (length "password"))
 	    (mapcar
