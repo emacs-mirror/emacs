@@ -1833,13 +1833,13 @@ Return VALUE."
 	 (cond
 	  ((eq help-setup 'window)
 	   ;; ... and is new, ...
-	   "Type \"q\" to delete help window")
+           "Type \\<help-map>\\[help-quit] to delete help window")
 	  ((eq help-setup 'frame)
 	   ;; ... on a new frame, ...
-	   "Type \"q\" to quit the help frame")
+           "Type \\<help-map>\\[help-quit] to quit the help frame")
 	  ((eq help-setup 'other)
 	   ;; ... or displayed some other buffer before.
-	   "Type \"q\" to restore previous buffer"))
+           "Type \\<help-map>\\[help-quit] to restore previous buffer"))
 	 window t))
        ((and (eq (window-frame window) help-window-old-frame)
 	     (= (length (window-list nil 'no-mini)) 2))
@@ -1850,7 +1850,7 @@ Return VALUE."
 	  ((eq help-setup 'window)
 	   "Type \\[delete-other-windows] to delete the help window")
 	  ((eq help-setup 'other)
-	   "Type \"q\" in help window to restore its previous buffer"))
+           "Type \\<help-map>\\[help-quit] in help window to restore its previous buffer"))
 	 window 'other))
        (t
 	;; The help window is not selected ...
@@ -1858,10 +1858,10 @@ Return VALUE."
 	 (cond
 	  ((eq help-setup 'window)
 	   ;; ... and is new, ...
-	   "Type \"q\" in help window to delete it")
+           "Type \\<help-map>\\[help-quit] in help window to delete it")
 	  ((eq help-setup 'other)
 	   ;; ... or displayed some other buffer before.
-	   "Type \"q\" in help window to restore previous buffer"))
+           "Type \\<help-map>\\[help-quit] in help window to restore previous buffer"))
 	 window))))
     ;; Return VALUE.
     value))

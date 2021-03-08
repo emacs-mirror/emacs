@@ -1530,16 +1530,16 @@ have the page we want to view."
     (overlay-put (doc-view-current-overlay) 'display
                  (concat (propertize "Welcome to DocView!" 'face 'bold)
                          "\n"
-                         "
+                         (substitute-command-keys "
 If you see this buffer it means that the document you want to view is being
 converted to PNG and the conversion of the first page hasn't finished yet or
 `doc-view-conversion-refresh-interval' is set to nil.
 
 For now these keys are useful:
-
-`q' : Bury this buffer.  Conversion will go on in background.
-`k' : Kill the conversion process and this buffer.
-`K' : Kill the conversion process.\n"))))
+\\<doc-view-mode-map>
+\\[quit-window] : Bury this buffer.  Conversion will go on in background.
+\\[image-kill-buffer] : Kill the conversion process and this buffer.
+\\[doc-view-kill-proc] : Kill the conversion process.\n")))))
 
 (declare-function tooltip-show "tooltip" (text &optional use-echo-area))
 

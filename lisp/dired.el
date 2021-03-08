@@ -2449,7 +2449,9 @@ directory in another window."
 	file-name
       (if (file-symlink-p file-name)
 	  (error "File is a symlink to a nonexistent target")
-	(error "File no longer exists; type `g' to update Dired buffer")))))
+        (error (substitute-command-keys
+                (concat "File no longer exists; type \\<dired-mode-map>"
+                        "\\[revert-buffer] to update Dired buffer")))))))
 
 ;; Force C-m keybinding rather than `f' or `e' in the mode doc:
 (define-obsolete-function-alias 'dired-advertised-find-file
