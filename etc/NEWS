@@ -24,7 +24,7 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 28.1
 
---
+---
 ** Support for building with Motif has been removed.
 
 ** Cairo graphics library is now used by default if found.
@@ -69,8 +69,7 @@ It was declared obsolete in Emacs 27.1.
 ---
 ** The configure option '--without-makeinfo' has been removed.
 This was only ever relevant when building from a repository checkout.
-Please install makeinfo, or if all else fails run 'make lisp' instead
-of 'make [all]'.
+This now requires makeinfo, which is part of the texinfo package.
 
 ---
 ** Support for building with '-fcheck-pointer-bounds' has been removed.
