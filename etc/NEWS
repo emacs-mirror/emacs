@@ -266,8 +266,8 @@ current mode.
 
 +++
 ** New user option 'read-extended-command-predicate'.
-This option controls how 'M-x' performs completion of commands when
-you type TAB.  By default, any command that matches what you have
+This user option controls how 'M-x' performs completion of commands when
+you type 'TAB'.  By default, any command that matches what you have
 typed is considered a completion candidate, but you can customize this
 option to exclude commands that are not applicable to the current
 buffer's major and minor modes, and respect the command's completion
@@ -369,25 +369,26 @@ Typing 'TAB' on a heading line cycles the current section between
 anywhere in the buffer cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
-*** New option 'outline-minor-mode-cycle'.
-This option customizes 'outline-minor-mode', with the difference
+*** New user option 'outline-minor-mode-cycle'.
+This user option customizes 'outline-minor-mode', with the difference
 that 'TAB' and 'S-TAB' on heading lines cycle heading visibility.
 Typing 'TAB' on a heading line cycles the current section between
 "hide all", "subheadings", and "show all" states.  Typing 'S-TAB' on a
 heading line cycles the whole buffer between "only top-level
 headings", "all headings and subheadings", and "show all" states.
 
-*** New option 'outline-minor-mode-highlight'.
-This option customizes 'outline-minor-mode'.  It puts highlighting
-on heading lines using standard outline faces.  This works well only
-when there are no conflicts with faces used by the major mode.
+*** New user option 'outline-minor-mode-highlight'.
+This user option customizes 'outline-minor-mode'.  It puts
+highlighting on heading lines using standard outline faces.  This
+works well only when there are no conflicts with faces used by the
+major mode.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
 
 ** Macroexp
 ---
-*** New function 'macroexp-file-name' to know the name of the current file
+*** New function 'macroexp-file-name' to know the name of the current file.
 ---
 *** New function 'macroexp-compiling-p' to know if we're compiling.
 ---
@@ -400,17 +401,18 @@ It used to be enabled when Emacs is started in GUI mode but not when started
 in text mode.  The cursor still only actually blinks in GUI frames.
 
 ** Bindat
+
 +++
 *** New 'Bindat type expression' description language.
 This new system is provided by the new macro 'bindat-type' and
 obsoletes the old data layout specifications.  It supports
 arbitrary-size integers, recursive types, and more.  See the Info node
-'Byte Packing' in the ELisp manual for more details.
+"(elisp) Byte Packing" in the ELisp manual for more details.
 
 ** pcase
 
 +++
-*** The 'or' pattern now binds the union of the vars of its sub-patterns
+*** The 'or' pattern now binds the union of the vars of its sub-patterns.
 If a variable is not bound by the subpattern that matched, it gets bound
 to nil.  This was already sometimes the case, but it is now guaranteed.
 
@@ -1031,10 +1033,9 @@ To customize obsolete user options, use 'customize-option' or
 
 ** Edebug
 
----
 *** Obsoletions
+---
 **** 'get-edebug-spec' is obsolete, replaced by 'edebug-get-spec'.
-
 +++
 **** The spec operator ':name NAME' is obsolete, use '&name' instead.
 +++
@@ -1066,7 +1067,7 @@ use) and HEAD is the code that matched SPEC.
 +++
 *** New user option 'eldoc-echo-area-display-truncation-message'.
 If non-nil (the default), eldoc will display a message saying
-something like "(Documentation truncated. Use `M-x eldoc-doc-buffer'
+something like "(Documentation truncated.  Use `M-x eldoc-doc-buffer'
 to see rest)" when a message has been truncated.  If nil, truncated
 messages will be marked with just "..." at the end.
 
@@ -1133,6 +1134,10 @@ preferred over the eudcb-mab.el backend.
 +++
 *** New connection method "mtp", which allows accessing media devices
 like cell phones, tablets or cameras.
+
++++
+*** New connection method "sshfs", which allows accessing remote files
+via a file system mounted with 'sshfs'.
 
 +++
 *** Trashed remote files are moved to the local trash directory.
@@ -1555,7 +1560,7 @@ have been renamed to have "proper" public names and documented
 'xref-show-definitions-buffer-at-bottom').
 
 *** New command 'xref-quit-and-pop-marker-stack' and a binding for it
-in "*xref*" buffers ('M-,'). This combination is easy to press
+in "*xref*" buffers ('M-,').  This combination is easy to press
 semi-accidentally if the user wants to go back in the middle of
 choosing the exact definition to go to, and this should do TRT.
 
@@ -2138,7 +2143,7 @@ messages, contain the error name of that message now.
 +++
 *** D-Bus events have changed their internal structure.
 They carry now the destination and the error-name of an event.  They
-also keep the type information of their arguments. Use the
+also keep the type information of their arguments.  Use the
 'dbus-event-*' accessor functions.
 
 ** CPerl Mode
@@ -2180,7 +2185,7 @@ You can type 'C-x u u' instead of 'C-x u C-x u' to undo many changes,
 'C-x { { } } ^ ^ v v' to resize the selected window interactively,
 'M-g n n p p' to navigate next-error matches.  Any other key exits
 transient mode and then is executed normally.  'repeat-exit-key'
-defines an additional key to exit mode like 'isearch-exit' (RET).
+defines an additional key to exit mode like 'isearch-exit' ('RET').
 
 
 * New Modes and Packages in Emacs 28.1
@@ -2296,7 +2301,7 @@ by mistake and were not useful to Lisp code.
 
 ---
 ** Loading 'generic-x' unconditionally loads all modes.
-The user option `generic-extras-enable-list' is now obsolete, and
+The user option 'generic-extras-enable-list' is now obsolete, and
 setting it has no effect.
 
 ---
@@ -2343,8 +2348,8 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'dirtrack-debug-toggle', 'dynamic-completion-table',
 'easy-menu-precalculate-equivalent-keybindings',
 'epa-display-verify-result', 'epg-passphrase-callback-function',
-'erc-announced-server-name', 'erc-process',
-'erc-default-coding-system', 'erc-send-command', 'eshell-report-bug',
+'erc-announced-server-name', 'erc-default-coding-system',
+'erc-process', 'erc-send-command', 'eshell-report-bug',
 'eval-next-after-load', 'exchange-dot-and-mark', 'ffap-bug',
 'ffap-submit-bug', 'ffap-version', 'file-cache-choose-completion',
 'forward-point', 'generic-char-p', 'global-highlight-changes',
@@ -2391,7 +2396,7 @@ ledit.el, lmenu.el, lucid.el and old-whitespace.el.
 'semantic-toplevel-bovine-table', 'semanticdb-mode-hooks',
 'set-coding-priority', 'set-process-filter-multibyte',
 'shadows-compare-text-p', 'shell-dirtrack-toggle',
-'speedbar-update-speed', 'speedbar-navigating-speed', 't-mouse-mode',
+'speedbar-navigating-speed', 'speedbar-update-speed', 't-mouse-mode',
 'term-dynamic-simple-complete', 'tooltip-hook', 'tpu-have-ispell',
 'url-generate-unique-filename', 'url-temporary-directory',
 'vc-arch-command', 'vc-default-working-revision' (variable),
@@ -2412,6 +2417,8 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 'define-obsolete-variable-alias'.
 
 ** The variable 'keyboard-type' is obsolete and not dynamically scoped any more.
+
+** The 'values' variable is now obsolete.
 
 
 * Lisp Changes in Emacs 28.1
@@ -2449,21 +2456,19 @@ This variable holds a list of currently enabled global minor modes (as
 a list of symbols).
 
 +++
-** 'define-minor-mode'  now takes an :interactive argument.
+** 'define-minor-mode'  now takes an ':interactive' argument.
 This can be used for specifying which modes this minor mode is meant
 for, or to make the new minor mode non-interactive.  The default value
 is t.
 
 +++
-** 'define-derived-mode' now takes an :interactive argument.
+** 'define-derived-mode' now takes an ':interactive' argument.
 This can be used to control whether the defined mode is a command
 or not, and is useful when defining commands that aren't meant to be
 used by users directly.
 
 ---
 ** The 'easymenu' library is now preloaded.
-
-** The 'values' variable is now obsolete.
 
 ---
 ** New variable 'indent-line-ignored-functions'.
@@ -2495,10 +2500,11 @@ When non-nil, then functions 'read-char-choice' and 'y-or-n-p' (respectively)
 use the function 'read-key' to read a character instead of using the minibuffer.
 
 ---
-** New variable 'use-short-answers' to use 'y-or-n-p' instead of 'yes-or-no-p'.
-This eliminates the need to define an alias that maps one to another
-in the init file.  The same variable also controls whether the
-function 'read-answer' accepts short answers.
+** New user option 'use-short-answers'.
+When non-nil, the function 'y-or-n-p' is used instead of
+'yes-or-no-p'.  This eliminates the need to define an alias that maps
+one to another in the init file.  The same user option also controls
+whether the function 'read-answer' accepts short answers.
 
 +++
 ** 'set-window-configuration' now takes an optional 'dont-set-frame'
@@ -2700,7 +2706,7 @@ menu handling.
 It is meant as an (experimental) aid for converting Emacs Lisp code
 to lexical binding, where dynamic (special) variables bound in one
 file can affect code in another.  For details, see the manual section
-"(Elisp) Converting to Lexical Binding".
+"(elisp) Converting to Lexical Binding".
 
 +++
 *** 'byte-recompile-directory' can now compile symlinked ".el" files.

@@ -126,6 +126,7 @@ Configuring @value{tramp} for use
 * Inline methods::              Inline methods.
 * External methods::            External methods.
 * GVFS-based methods::          @acronym{GVFS}-based external methods.
+* FUSE-based methods::          @acronym{FUSE}-based external methods.
 * Default Method::              Selecting a default method.
 * Default User::                Selecting a default user.
 * Default Host::                Selecting a default host.
@@ -139,6 +140,7 @@ Configuring @value{tramp} for use
                                 Setting own connection related information.
 * Remote programs::             How @value{tramp} finds and uses programs on the remote host.
 * Remote shell setup::          Remote shell setup hints.
+* FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
@@ -433,7 +435,7 @@ remote host, when the buffer you call the process from has a remote
 @code{default-directory}.
 
 
-@anchor{Quick Start Guide: File name syntax}
+@anchor{Quick Start Guide File name syntax}
 @section File name syntax
 @cindex file name syntax
 
@@ -459,7 +461,7 @@ connection methods also support a notation for the port to be used, in
 which case it is written as @code{host#port}.
 
 
-@anchor{Quick Start Guide: @option{ssh} and @option{plink} methods}
+@anchor{Quick Start Guide ssh and plink methods}
 @section Using @option{ssh} and @option{plink}
 @cindex method @option{ssh}
 @cindex @option{ssh} method
@@ -478,28 +480,31 @@ an @command{ssh} server:
 @file{@trampfn{plink,user@@host,/path/to/file}}.
 
 
-@anchor{Quick Start Guide: @option{su}, @option{sudo} and @option{sg} methods}
-@section Using @option{su}, @option{sudo} and @option{sg}
+@anchor{Quick Start Guide su, sudo, doas and sg methods}
+@section Using @option{su}, @option{sudo}, @option{doas} and @option{sg}
 @cindex method @option{su}
 @cindex @option{su} method
 @cindex method @option{sudo}
 @cindex @option{sudo} method
+@cindex method @option{doas}
+@cindex @option{doas} method
 @cindex method @option{sg}
 @cindex @option{sg} method
 
 Sometimes, it is necessary to work on your local host under different
 permissions.  For this, you can use the @option{su} or @option{sudo}
-connection method.  Both methods use @samp{root} as default user name
-and the return value of @code{(system-name)} as default host name.
-Therefore, it is convenient to open a file as
+connection method.  On OpenBSD systems, the @option{doas} connection
+method offers the same functionality.  These methods use @samp{root}
+as default user name and the return value of @code{(system-name)} as
+default host name.  Therefore, it is convenient to open a file as
 @file{@trampfn{sudo,,/path/to/file}}.
 
 The method @option{sg} stands for ``switch group''; here the user name
 is used as the group to change to.  The default host name is the same.
 
 
-@anchor{Quick Start Guide: @option{ssh}, @option{plink}, @option{su}, @option{sudo} and @option{sg} methods}
-@section Combining @option{ssh} or @option{plink} with @option{su} or @option{sudo}
+@anchor{Quick Start Guide Combining ssh, plink, su, sudo and doas methods}
+@section Combining @option{ssh} or @option{plink} with @option{su}, @option{sudo} or @option{doas}
 @cindex method @option{ssh}
 @cindex @option{ssh} method
 @cindex method @option{plink}
@@ -508,18 +513,20 @@ is used as the group to change to.  The default host name is the same.
 @cindex @option{su} method
 @cindex method @option{sudo}
 @cindex @option{sudo} method
+@cindex method @option{doas}
+@cindex @option{doas} method
 
-If the @option{su} or @option{sudo} option should be performed on
-another host, it can be comnbined with a leading @option{ssh} or
-@option{plink} option.  That means that @value{tramp} connects first to
-the other host with non-administrative credentials, and changes to
-administrative credentials on that host afterwards.  In a simple case,
-the syntax looks like
+If the @option{su}, @option{sudo} or @option{doas} option should be
+performed on another host, it can be comnbined with a leading
+@option{ssh} or @option{plink} option.  That means that @value{tramp}
+connects first to the other host with non-administrative credentials,
+and changes to administrative credentials on that host afterwards.  In
+a simple case, the syntax looks like
 @file{@value{prefix}ssh@value{postfixhop}user@@host|sudo@value{postfixhop}@value{postfix}/path/to/file}.
 @xref{Ad-hoc multi-hops}.
 
 
-@anchor{Quick Start Guide: @option{sudoedit} method}
+@anchor{Quick Start Guide sudoedit method}
 @section Using @command{sudoedit}
 @cindex method @option{sudoedit}
 @cindex @option{sudoedit} method
@@ -532,7 +539,7 @@ method, it is restricted to @samp{localhost} only, and it does not
 support external processes.
 
 
-@anchor{Quick Start Guide: @option{smb} method}
+@anchor{Quick Start Guide smb method}
 @section Using @command{smbclient}
 @cindex method @option{smb}
 @cindex @option{smb} method
@@ -546,7 +553,7 @@ of the local file name is the share exported by the remote host,
 @samp{path} in this example.
 
 
-@anchor{Quick Start Guide: GVFS-based methods}
+@anchor{Quick Start Guide GVFS-based methods}
 @section Using @acronym{GVFS}-based methods
 @cindex methods, gvfs
 @cindex gvfs-based methods
@@ -570,7 +577,7 @@ file system), @file{@trampfn{dav,user@@host,/path/to/file}},
 @file{@trampfn{mtp,device,/path/to/file}} (for media devices).
 
 
-@anchor{Quick Start Guide: GNOME Online Accounts based methods}
+@anchor{Quick Start Guide GNOME Online Accounts based methods}
 @section Using @acronym{GNOME} Online Accounts based methods
 @cindex @acronym{GNOME} Online Accounts
 @cindex method @option{gdrive}
@@ -590,7 +597,34 @@ account), or @file{@trampfn{nextcloud,user@@host#8081,/path/to/file}}
 (@samp{8081} stands for the port number) for OwnCloud/NextCloud files.
 
 
-@anchor{Quick Start Guide: Android}
+@anchor{Quick Start Guide FUSE-based methods}
+@section Using @acronym{FUSE}-based methods
+@cindex methods, fuse
+@cindex fuse-based methods
+@cindex method @option{rclone}
+@cindex @option{rclone} method
+@cindex method @option{sshfs}
+@cindex @option{sshfs} method
+
+@acronym{FUSE, Filesystem in Userspace} allows users to mount a
+virtual file system.  It is also used by @acronym{GVFS} internally,
+but here we discuss methods which do not use the @acronym{GVFS} API.
+
+A convenient way to access system storages is the @command{rclone}
+program.  If you have configured a storage in @command{rclone} under a
+name @samp{storage} (for example), you can access it via the remote
+file name syntax @file{@trampfn{rclone,storage,/path/to/file}}.  User
+names are not needed.
+
+On local hosts which have installed the @command{sshfs} client for
+mounting a file system based on @command{sftp}, this method can be
+used.  All remote files are available via the local mount point.
+@value{tramp} aids in mounting the file system if it isn't mounted
+yet, and it supports the access with the usual file name syntax
+@file{@trampfn{sshfs,user@@host,/path/to/file}}.
+
+
+@anchor{Quick Start Guide Android}
 @section Using Android
 @cindex method @option{adb}
 @cindex @option{adb} method
@@ -599,18 +633,6 @@ account), or @file{@trampfn{nextcloud,user@@host#8081,/path/to/file}}
 An Android device, which is connected via USB to your local host, can
 be accessed via the @command{adb} command.  No user or host name is
 needed.  The file name syntax is @file{@trampfn{adb,,/path/to/file}}.
-
-
-@anchor{Quick Start Guide: @option{rclone} method}
-@section Using @command{rclone}
-@cindex method @option{rclone}
-@cindex @option{rclone} method
-
-A convenient way to access system storages is the @command{rclone}
-program.  If you have configured a storage in @command{rclone} under a
-name @samp{storage} (for example), you can access it via the remote
-file name syntax @file{@trampfn{rclone,storage,/path/to/file}}.  User
-names are not needed.
 
 
 @node Configuration
@@ -650,6 +672,7 @@ may be used in your init file:
 * Inline methods::              Inline methods.
 * External methods::            External methods.
 * GVFS-based methods::          @acronym{GVFS}-based external methods.
+* FUSE-based methods::          @acronym{FUSE}-based external methods.
 * Default Method::              Selecting a default method.
                                   Here we also try to help those who
                                   don't have the foggiest which method
@@ -666,6 +689,7 @@ may be used in your init file:
                                 Setting own connection related information.
 * Remote programs::             How @value{tramp} finds and uses programs on the remote host.
 * Remote shell setup::          Remote shell setup hints.
+* FUSE setup::                  @acronym{FUSE} setup hints.
 * Android shell setup::         Android shell setup hints.
 * Auto-save and Backup::        Auto-save and Backup.
 * Keeping files encrypted::     Protect remote files by encryption.
@@ -1110,7 +1134,6 @@ UNC file name specification does not allow the specification of a
 different user name for authentication like the @command{smbclient}
 can.
 
-
 @item @option{adb}
 @cindex method @option{adb}
 @cindex @option{adb} method
@@ -1150,45 +1173,6 @@ specified using @file{device#42} host name syntax or @value{tramp} can
 use the default value as declared in @command{adb} command.  Port
 numbers are not applicable to Android devices connected through USB@.
 
-
-@item @option{rclone}
-@cindex method @option{rclone}
-@cindex @option{rclone} method
-
-@vindex tramp-rclone-program
-The program @command{rclone} allows to access different system
-storages in the cloud, see @url{https://rclone.org/} for a list of
-supported systems.  If the @command{rclone} program isn't found in
-your @env{PATH} environment variable, you can tell @value{tramp} its
-absolute path via the user option @code{tramp-rclone-program}.
-
-A system storage must be configured via the @command{rclone config}
-command, outside Emacs.  If you have configured a storage in
-@command{rclone} under a name @samp{storage} (for example), you could
-access it via the remote file name
-
-@example
-@trampfn{rclone,storage,/path/to/file}
-@end example
-
-User names are part of the @command{rclone} configuration, and not
-needed in the remote file name.  If a user name is contained in the
-remote file name, it is ignored.
-
-Internally, @value{tramp} mounts the remote system storage at location
-@file{/tmp/tramp.rclone.storage}, with @file{storage} being the name
-of the configured system storage.
-
-Optional flags to the different @option{rclone} operations could be
-passed as connection property, @xref{Predefined connection
-information}.  Supported properties are @t{"mount-args"},
-@t{"copyto-args"}, @t{"moveto-args"} and @t{"about-args"}.
-
-Access via @option{rclone} is slow.  If you have an alternative method
-for accessing the system storage, you should use it.
-@ref{GVFS-based methods} for example, methods @option{gdrive} and
-@option{nextcloud}.
-
 @end table
 
 
@@ -1200,8 +1184,8 @@ for accessing the system storage, you should use it.
 
 @acronym{GVFS} is the virtual file system for the @acronym{GNOME}
 Desktop, @uref{https://en.wikipedia.org/wiki/GVFS}.  Remote files on
-@acronym{GVFS} are mounted locally through FUSE and @value{tramp} uses
-this locally mounted directory internally.
+@acronym{GVFS} are mounted locally through @acronym{FUSE} and
+@value{tramp} uses this locally mounted directory internally.
 
 Emacs uses the D-Bus mechanism to communicate with @acronym{GVFS}@.
 Emacs must have the message bus system, D-Bus integration active,
@@ -1315,6 +1299,88 @@ respectively:
 @end group
 @end lisp
 @end defopt
+
+
+@node FUSE-based methods
+@section @acronym{FUSE}-based external methods
+@cindex methods, fuse
+@cindex fuse-based methods
+
+Besides @acronym{GVFS}, there are other virtual file systems using the
+@acronym{FUSE} interface.  Remote files are mounted locally through
+@acronym{FUSE} and @value{tramp} uses this locally mounted directory
+internally.  When possible, @value{tramp} maps the remote file names
+to their respective local file name, and applies the file name
+operation on them.  For some of the file name operations this is not
+possible, @value{tramp} emulates those operations otherwise.
+
+@table @asis
+@item @option{rclone}
+@cindex method @option{rclone}
+@cindex @option{rclone} method
+
+@vindex tramp-rclone-program
+The program @command{rclone} allows to access different system
+storages in the cloud, see @url{https://rclone.org/} for a list of
+supported systems.  If the @command{rclone} program isn't found in
+your @env{PATH} environment variable, you can tell @value{tramp} its
+absolute path via the user option @code{tramp-rclone-program}.
+
+A system storage must be configured via the @command{rclone config}
+command, outside Emacs.  If you have configured a storage in
+@command{rclone} under a name @samp{storage} (for example), you could
+access it via the remote file name
+
+@example
+@trampfn{rclone,storage,/path/to/file}
+@end example
+
+User names are part of the @command{rclone} configuration, and not
+needed in the remote file name.  If a user name is contained in the
+remote file name, it is ignored.
+
+Internally, @value{tramp} mounts the remote system storage at location
+@file{/tmp/tramp.rclone.storage}, with @file{storage} being the name
+of the configured system storage.
+
+The mount point and optional flags to the different @option{rclone}
+operations could be passed as connection properties, @xref{Setup of
+rclone method}.
+
+Access via @option{rclone} is slow.  If you have an alternative method
+for accessing the system storage, you should use it.
+@ref{GVFS-based methods} for example, methods @option{gdrive} and
+@option{nextcloud}.
+
+@item @option{sshfs}
+@cindex method @option{sshfs}
+@cindex @option{sshfs} method
+
+@vindex tramp-sshfs-program
+On local hosts which have installed the @command{sshfs} client for
+mounting a file system based on @command{sftp}, this method can be
+used, see
+@url{https://github.com/libfuse/sshfs/blob/master/README.rst/}.  If
+the @command{sshfs} program isn't found in your @env{PATH} environment
+variable, you can tell @value{tramp} its absolute path via the user
+option @code{tramp-sshfs-program}.
+
+All remote files are available via the local mount point.
+@value{tramp} aids in mounting the file system if it isn't mounted
+yet.  The remote file name syntax is
+
+@example
+@trampfn{sshfs,user@@host#port,/path/to/file}
+@end example
+
+User name and port number are optional.  This method does not support
+password handling, the file system must either be mounted already, or
+the connection must be established passwordless via ssh keys.
+
+The mount point and mount arguments could be passed as connection
+properties, @xref{Setup of sshfs method}.
+
+@end table
 
 
 @node Default Method
@@ -2102,6 +2168,13 @@ The default value of this property is @code{t} (not specified in
 @code{tramp-methods}).  If the remote host runs native MS Windows,
 this propery has no effect.
 
+@item @t{"mount-point"}
+
+The directory file name an @acronym{FUSE}-based file system is mounted
+on.  The default value of this property is
+@t{"/tmp/tramp.method.user@@host#port"} (not specified in
+@code{tramp-methods}).
+
 @item @t{"mount-args"}@*
 @t{"copyto-args"}@*
 @t{"moveto-args"}@*
@@ -2430,7 +2503,6 @@ match the end of the connection buffer.  Due to performance reasons,
 this search starts at the end of the buffer, and it is limited to 256
 characters backwards.
 
-
 @item Conflicting names for users and variables in @file{.profile}
 
 When a user name is the same as a variable name in a local file, such
@@ -2439,7 +2511,6 @@ environment variables.  To avoid incorrect values, change the local
 variable name to something different from the user name.  For example,
 if the user name is @env{FRUMPLE}, then change the variable name to
 @env{FRUMPLE_DIR}.
-
 
 @item Non-Bourne commands in @file{.profile}
 
@@ -2464,7 +2535,6 @@ compatible so @value{tramp} can complete connections to that remote.
 To accommodate using non-Bourne shells on that remote, use other
 shell-specific config files.  For example, bash can use
 @file{~/.bash_profile} and ignore @file{.profile}.
-
 
 @item Interactive shell prompt
 
@@ -2531,6 +2601,57 @@ where @samp{192.168.0.1} is the remote host IP address
 (@pxref{Predefined connection information}).
 
 @end table
+
+
+@node FUSE setup
+@section @acronym{FUSE} setup hints
+
+The @acronym{FUSE} file systems are mounted per default at
+@file{/tmp/tramp.method.user@@host#port}.  The user name and port
+number are optional.  If the file system is already mounted, it will
+be used as it is.  If the mount point does not exist yet,
+@value{tramp} creates this directory.
+
+The mount point can be overwritten by the connection property
+@t{"mount-point"}, @ref{Predefined connection information}.
+Example:
+
+@lisp
+@group
+(add-to-list 'tramp-connection-properties
+             `(,(regexp-quote "@trampfn{sshfs,user@@host,}")
+               "mount-point"
+               ,(expand-file-name "sshfs.user@@host" user-emacs-directory)))
+@end group
+@end lisp
+
+
+@anchor{Setup of rclone method}
+@subsection @option{rclone} setup
+@cindex rclone setup
+
+The default arguments of the @command{rclone} operations
+@command{mount}, @command{coopyto}, @command{moveto} and
+@command{about} are declared in the variable @code{tramp-methods} as
+method specific parameters.  Usually, they don't need to be overwritten.
+
+If needed, these parameters can be overwritten as connection
+properties @t{"mount-args"}, @t{"copyto-args"}, @t{"moveto-args"} and
+@t{"about-args"}, @xref{Predefined connection information}.  All of
+them are list of strings.
+
+Be careful changing @t{"--dir-cache-time"}, this could delay
+visibility of files.
+
+
+@anchor{Setup of sshfs method}
+@subsection @option{sshfs} setup
+@cindex sshfs setup
+
+The method @option{sshfs} declares only the mount arguments, passed to
+the @command{sshfs} command.  This is a list of list of strings, and
+can be overwritten by the connection property @t{"mount-args"},
+@xref{Predefined connection information}.
 
 
 @node Android shell setup
@@ -4197,6 +4318,7 @@ Disable excessive traces.  Set @code{tramp-verbose} to 3 or lower,
 default being 3.  Increase trace levels temporarily when hunting for
 bugs.
 
+
 @item
 @value{tramp} does not connect to the remote host
 
@@ -4447,6 +4569,7 @@ To disable @acronym{ANSI} escape sequences from the remote hosts,
 disable @samp{--color=yes} or @samp{--color=auto} in the remote host's
 @file{.bashrc} or @file{.profile}.  Turn this alias on and off to see
 if file name completion works.
+
 
 @item
 File name completion does not work in directories with large number of
@@ -4845,6 +4968,7 @@ In BBDB buffer, access an entry by pressing the key @kbd{F}.
 @end enumerate
 
 Thanks to @value{tramp} users for contributing to these recipes.
+
 
 @item
 Why saved multi-hop file names do not work in a new Emacs session?

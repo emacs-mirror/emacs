@@ -5447,11 +5447,6 @@ BODY is the backend specific code."
 ;;   strange when doing zerop, we should kill the process and start
 ;;   again.  (Greg Stark)
 ;;
-;; * I was wondering if it would be possible to use tramp even if I'm
-;;   actually using sshfs.  But when I launch a command I would like
-;;   to get it executed on the remote machine where the files really
-;;   are.  (Andrea Crotti)
-;;
 ;; * Run emerge on two remote files.  Bug is described here:
 ;;   <https://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.
 ;;   (Bug#6850)
