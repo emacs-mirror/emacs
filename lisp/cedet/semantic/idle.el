@@ -734,7 +734,8 @@ Call `semantic-idle-summary-current-symbol-info' for getting the
 current tag to display information."
   (or (eq major-mode 'emacs-lisp-mode)
       (not (semantic-idle-summary-useful-context-p))
-      (let* ((found (semantic-idle-summary-current-symbol-info))
+      (let* ((found (save-excursion
+                      (semantic-idle-summary-current-symbol-info)))
              (str (cond ((stringp found) found)
                         ((semantic-tag-p found)
                          (funcall semantic-idle-summary-function
