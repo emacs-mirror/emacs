@@ -164,7 +164,7 @@ Return DEFAULT if not set."
      file property value remote-file-name-inhibit-cache cache-used cached-at)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-get-count-" property)))
-	     (val (or (numberp (bound-and-true-p var))
+	     (val (or (numberp (and (boundp var) (symbol-value var)))
 		      (progn
 			(add-hook 'tramp-cache-unload-hook
 				  (lambda () (makunbound var)))
@@ -188,7 +188,7 @@ Return VALUE."
     (tramp-message key 8 "%s %s %s" file property value)
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-set-count-" property)))
-	     (val (or (numberp (bound-and-true-p var))
+	     (val (or (numberp (and (boundp var) (symbol-value var)))
 		      (progn
 			(add-hook 'tramp-cache-unload-hook
 				  (lambda () (makunbound var)))
