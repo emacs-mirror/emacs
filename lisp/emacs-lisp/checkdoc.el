@@ -931,35 +931,20 @@ don't move point."
                            ;; Don't bug out if the file is empty (or a
                            ;; definition ends prematurely.
                            (end-of-file)))
-    (`(,(or 'defun 'defvar 'defcustom 'defmacro 'defconst 'defsubst 'defadvice
-            'cl-defun 'cl-defgeneric 'cl-defmacro)
+    (`(,(and (pred symbolp) def
+             (let (and doc (guard doc)) (function-get def 'doc-string-elt)))
        ,(pred symbolp)
        ;; Require an initializer, i.e. ignore single-argument `defvar'
        ;; forms, which never have a doc string.
        ,_ . ,_)
      (down-list)
-     ;; Skip over function or macro name, symbol to be defined, and
-     ;; initializer or argument list.
-     (forward-sexp 3)
-     (skip-chars-forward " \n\t")
-     t)
-    (`(,'cl-defmethod
-        ,(pred symbolp)
-        . ,rest)
-     (down-list)
-     (forward-sexp (pcase (car rest)
-                     ;; No qualifier, so skip like we would have skipped in
-                     ;; the first clause of the outer `pcase'.
-                     ((pred listp) 3)
-                     (':extra
-                      ;; Skip the :extra qualifier together with its string too.
-                      ;; Skip any additional qualifier.
-                      (if (memq (nth 2 rest) '(:around :before :after))
-                                  6
-                                5))
-                     ;; Skip :before, :after or :around qualifier too.
-                     ((or ':around ':before ':after)
-                      4)))
+     ;; Skip over function or macro name.
+     (forward-sexp 1)
+     ;; And now skip until the docstring.
+     (forward-sexp (1- ; We already skipped the function or macro name.
+                    (cond
+                     ((numberp doc) doc)
+                     ((functionp doc) (funcall doc)))))
      (skip-chars-forward " \n\t")
      t)))
 
