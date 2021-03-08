@@ -819,7 +819,9 @@ MACRO expansion mode is handled through the nature of Emacs's non-lexical
 binding of variables.
 START, END, NONTERMINAL, DEPTH, and RETURNONERRORS are the same
 as for the parent."
-  (if (and (boundp 'lse) (or (/= start 1) (/= end (point-max))))
+  ;; FIXME: We shouldn't depend on the internals of `semantic-bovinate-stream'.
+  (with-suppressed-warnings ((lexical lse)) (defvar lse))
+  (if (and (boundp 'lse) (or (/= start (point-min)) (/= end (point-max))))
       (let* ((last-lexical-token lse)
 	     (llt-class (semantic-lex-token-class last-lexical-token))
 	     (llt-fakebits (car (cdr last-lexical-token)))
