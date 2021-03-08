@@ -2816,11 +2816,11 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'help)
 
 (defface help-key-binding
-  '((((class color) (min-colors 88) (background light)) :foreground "ForestGreen")
-    (((class color) (min-colors 88) (background dark)) :foreground "#44bc44")
-    (((class color grayscale) (background light)) :foreground "grey15")
-    (((class color grayscale) (background dark)) :foreground "grey85")
-    (t :foreground "ForestGreen"))
+  '((((class color) (min-colors 88) (background light)) :background "grey90")
+    (((class color) (min-colors 88) (background dark)) :background "grey25")
+    (((class color grayscale) (background light)) :background "grey90")
+    (((class color grayscale) (background dark)) :background "grey25")
+    (t :background "grey90"))
   "Face for keybindings in *Help* buffers.
 
 This face is added by `substitute-command-keys', which see.
