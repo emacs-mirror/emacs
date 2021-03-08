@@ -685,12 +685,12 @@ For instance, if mode is #o700, then it produces `rwx------'."
 (define-derived-mode tar-mode special-mode "Tar"
   "Major mode for viewing a tar file as a dired-like listing of its contents.
 You can move around using the usual cursor motion commands.
-Letters no longer insert themselves.
-Type `e' to pull a file out of the tar file and into its own buffer;
+Letters no longer insert themselves.\\<tar-mode-map>
+Type \\[tar-extract] to pull a file out of the tar file and into its own buffer;
 or click mouse-2 on the file's line in the Tar mode buffer.
-Type `c' to copy an entry from the tar file into another file on disk.
+Type \\[tar-copy] to copy an entry from the tar file into another file on disk.
 
-If you edit a sub-file of this archive (as with the `e' command) and
+If you edit a sub-file of this archive (as with the \\[tar-extract] command) and
 save it with \\[save-buffer], the contents of that buffer will be
 saved back into the tar-file buffer; in this way you can edit a file
 inside of a tar archive without extracting it and re-archiving it.

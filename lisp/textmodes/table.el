@@ -1492,7 +1492,7 @@ Move the point under the table as shown below.
     +--------------+------+--------------------------------+
     -!-
 
-Type M-x table-insert-row instead of \\[table-insert-row-column].  \\[table-insert-row-column] does not work
+Type \\[table-insert-row] instead of \\[table-insert-row-column].  \\[table-insert-row-column] does not work
 when the point is outside of the table.  This insertion at
 outside of the table effectively appends a row at the end.
 
