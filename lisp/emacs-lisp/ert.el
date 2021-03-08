@@ -261,7 +261,7 @@ DATA is displayed to the user and should state the reason for skipping."
 It should only be stopped when ran from inside ert--run-test-internal."
   (when (and (not (symbolp debugger))   ; only run on anonymous debugger
              (memq error-symbol '(ert-test-failed ert-test-skipped)))
-    (funcall debugger 'error (list error-symbol data))))
+    (funcall debugger 'error (cons error-symbol data))))
 
 (defun ert--special-operator-p (thing)
   "Return non-nil if THING is a symbol naming a special operator."
