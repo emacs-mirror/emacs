@@ -775,7 +775,7 @@ pattern to search for."
     xrefs))
 
 (defun project--read-regexp ()
-  (let ((sym (thing-at-point 'symbol)))
+  (let ((sym (thing-at-point 'symbol t)))
     (read-regexp "Find regexp" (and sym (regexp-quote sym)))))
 
 ;;;###autoload
