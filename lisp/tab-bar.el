@@ -766,7 +766,7 @@ ARG counts from 1."
                      tab-bar-history-forward)))
 
          (ws
-          (window-state-put ws (frame-root-window (selected-frame)) 'safe)))
+          (window-state-put ws nil 'safe)))
 
         (setq tab-bar-history-omit t)
 
@@ -1777,6 +1777,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (define-key tab-prefix-map "2" 'tab-new)
 (define-key tab-prefix-map "1" 'tab-close-other)
 (define-key tab-prefix-map "0" 'tab-close)
+(define-key tab-prefix-map "u" 'tab-undo)
 (define-key tab-prefix-map "o" 'tab-next)
 (define-key tab-prefix-map "O" 'tab-previous)
 (define-key tab-prefix-map "m" 'tab-move)
