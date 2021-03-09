@@ -1,4 +1,4 @@
-;;; viper-mous.el --- mouse support for Viper
+;;; viper-mous.el --- mouse support for Viper  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -23,8 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(provide 'viper-mous)
 
 ;; compiler pacifier
 (defvar double-click-time)
@@ -60,8 +58,7 @@
 Takes two parameters: a COUNT, indicating how many words to return,
 and CLICK-COUNT, telling whether this is the first click, a double-click,
 or a triple-click."
-  :type 'symbol
-  :group 'viper-mouse)
+  :type 'symbol)
 
 ;; time interval in millisecond within which successive clicks are
 ;; considered related
@@ -70,8 +67,7 @@ or a triple-click."
 				    500)
   "Time interval in millisecond within which successive mouse clicks are
 considered related."
-  :type 'integer
-  :group 'viper-mouse)
+  :type 'integer)
 
 ;; Local variable used to toggle wraparound search on click.
 (defvar-local viper-mouse-click-search-noerror t)
@@ -292,7 +288,7 @@ See `viper-surrounding-word' for the definition of a word in this case."
 		    (prin1-to-string (viper-event-key event)))))
 
 (define-obsolete-function-alias 'viper-event-click-count
-  'event-click-count "28.1")
+  #'event-click-count "28.1")
 
 (declare-function viper-forward-word "viper-cmd" (arg))
 (declare-function viper-adjust-window "viper-cmd" ())
@@ -407,7 +403,7 @@ this command.
 	  (setq arg (1- arg)))
 	))))
 
-(defun viper-mouse-catch-frame-switch (event arg)
+(defun viper-mouse-catch-frame-switch (_event arg)
   "Catch the event of switching frame.
 Usually is bound to a `down-mouse' event to work properly.  See sample
 bindings in the Viper manual."
@@ -436,8 +432,9 @@ bindings in the Viper manual."
 ;; until you do something other than viper-mouse-click-* command.
 ;; In XEmacs, you have to manually select frame B (with the mouse click) in
 ;; order to shift focus to frame B.
-(defsubst viper-remember-current-frame (frame)
-  (setq last-command 'handle-switch-frame
+(defun viper-remember-current-frame (&rest _)
+  "Remember the selected frame before the switch-frame event."
+  (setq last-command #'handle-switch-frame
 	viper-current-frame-saved (selected-frame)))
 
 
@@ -446,8 +443,8 @@ bindings in the Viper manual."
 ;; Emacs.  EVENT-TYPE is either `up' or `down'.  Up returns button-up key; down
 ;; returns button-down key.
 (defun viper-parse-mouse-key (key-var event-type)
-  (let ((key (eval key-var))
-	button-spec meta-spec shift-spec control-spec key-spec)
+  (let ((key (symbol-value key-var))
+	button-spec meta-spec shift-spec control-spec)
     (if (null key)
 	;; just return nil
 	()
@@ -470,10 +467,9 @@ bindings in the Viper manual."
 	    control-spec
 	    (if (memq 'control key) "C-" ""))
 
-      (setq key-spec
-	    (vector
-	     (intern (concat control-spec meta-spec
-                             shift-spec button-spec)))))))
+      (vector
+       (intern (concat control-spec meta-spec
+                       shift-spec button-spec))))))
 
 (defun viper-unbind-mouse-search-key ()
   (if viper-mouse-up-search-key-parsed
@@ -497,8 +493,8 @@ bindings in the Viper manual."
 	(viper-parse-mouse-key 'viper-mouse-search-key 'up)
 	viper-mouse-down-search-key-parsed
 	(viper-parse-mouse-key 'viper-mouse-search-key 'down))
-  (cond ((or (null viper-mouse-up-search-key-parsed)
-	     (null viper-mouse-down-search-key-parsed))
+  (cond ((not (and viper-mouse-up-search-key-parsed
+	           viper-mouse-down-search-key-parsed))
 	 nil) ; just quit
 	((and (null force)
 	      (key-binding viper-mouse-up-search-key-parsed)
@@ -516,9 +512,9 @@ bindings in the Viper manual."
 	  viper-mouse-down-search-key-parsed))
 	(t
 	 (global-set-key viper-mouse-up-search-key-parsed
-			 'viper-mouse-click-search-word)
+			 #'viper-mouse-click-search-word)
 	 (global-set-key viper-mouse-down-search-key-parsed
-			 'viper-mouse-catch-frame-switch))))
+			 #'viper-mouse-catch-frame-switch))))
 
 ;; If FORCE, bind even if this mouse action is already bound to something else
 (defun viper-bind-mouse-insert-key (&optional force)
@@ -526,8 +522,8 @@ bindings in the Viper manual."
 	(viper-parse-mouse-key 'viper-mouse-insert-key 'up)
 	viper-mouse-down-insert-key-parsed
 	(viper-parse-mouse-key 'viper-mouse-insert-key 'down))
-  (cond ((or (null viper-mouse-up-insert-key-parsed)
-	     (null viper-mouse-down-insert-key-parsed))
+  (cond ((not (and viper-mouse-up-insert-key-parsed
+	           viper-mouse-down-insert-key-parsed))
 	 nil) ; just quit
 	((and (null force)
 	      (key-binding viper-mouse-up-insert-key-parsed)
@@ -545,9 +541,9 @@ bindings in the Viper manual."
 	  viper-mouse-down-insert-key-parsed))
 	(t
 	 (global-set-key viper-mouse-up-insert-key-parsed
-			 'viper-mouse-click-insert-word)
+			 #'viper-mouse-click-insert-word)
 	 (global-set-key viper-mouse-down-insert-key-parsed
-			 'viper-mouse-catch-frame-switch))))
+			 #'viper-mouse-catch-frame-switch))))
 
 (defun viper-reset-mouse-search-key (symb val)
   (viper-unbind-mouse-search-key)
@@ -573,8 +569,7 @@ This buffer may be different from the one where the click occurred."
 		     (const :format "%v " shift)
 		     (const control))
 	       (integer :tag "Button"))
-  :set 'viper-reset-mouse-search-key
-  :group 'viper-mouse)
+  :set #'viper-reset-mouse-search-key)
 
 (defcustom viper-mouse-insert-key '(meta shift 2)
   "Key used to click-insert in Viper.
@@ -589,7 +584,7 @@ This buffer may be different from the one where the click occurred."
 		     (const :format "%v " shift)
 		     (const control))
 	       (integer :tag "Button"))
-  :set 'viper-reset-mouse-insert-key
-  :group 'viper-mouse)
+  :set #'viper-reset-mouse-insert-key)
 
+(provide 'viper-mous)
 ;;; viper-mous.el ends here

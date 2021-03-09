@@ -1,4 +1,4 @@
-;;; viper-ex.el --- functions implementing the Ex commands for Viper
+;;; viper-ex.el --- functions implementing the Ex commands for Viper  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1998, 2000-2021 Free Software Foundation, Inc.
 
@@ -23,8 +23,6 @@
 ;;; Commentary:
 
 ;;; Code:
-
-(provide 'viper-ex)
 
 ;; Compiler pacifier
 (defvar read-file-name-map)
@@ -190,7 +188,7 @@
 
 ;; Executes the function associated with the command
 (defun ex-cmd-execute (cmd)
-  (eval (cadr cmd)))
+  (eval (cadr cmd) t))
 
 ;; If this is a one-letter magic command, splice in args.
 (defun ex-splice-args-in-1-letr-cmd (key list)
@@ -299,8 +297,7 @@
 	   "\\)")
 	  shell-file-name)))
   "Is the user using a unix-type shell under a non-OS?"
-  :type 'boolean
-  :group 'viper-ex)
+  :type 'boolean)
 
 (defcustom ex-unix-type-shell-options
   (let ((case-fold-search t))
@@ -312,13 +309,11 @@
 	      )))
   "Options to pass to the Unix-style shell.
 Don't put `-c' here, as it is added automatically."
-  :type '(choice (const nil) string)
-  :group 'viper-ex)
+  :type '(choice (const nil) string))
 
 (defcustom ex-compile-command "make"
   "The command to run when the user types :make."
-  :type 'string
-  :group 'viper-ex)
+  :type 'string)
 
 (defcustom viper-glob-function
   (cond (ex-unix-type-shell 'viper-glob-unix-files)
@@ -331,8 +326,7 @@ The default tries to set this variable to work with Unix or MS Windows.
 However, if it doesn't work right for some types of Unix shells or some OS,
 the user should supply the appropriate function and set this variable to the
 corresponding function symbol."
-  :type 'symbol
-  :group 'viper-ex)
+  :type 'symbol)
 
 
 ;; Remembers the previous Ex tag.
@@ -363,13 +357,11 @@ corresponding function symbol."
   "If t, :n and :b cycles through files and buffers in other window.
 Then :N and :B cycles in the current window.  If nil, this behavior is
 reversed."
-  :type 'boolean
-  :group 'viper-ex)
+  :type 'boolean)
 
 (defcustom ex-cycle-through-non-files nil
   "Cycle through *scratch* and other buffers that don't visit any file."
-  :type 'boolean
-  :group 'viper-ex)
+  :type 'boolean)
 
 ;; Last shell command executed with :! command.
 (defvar viper-ex-last-shell-com nil)
@@ -1314,7 +1306,7 @@ reversed."
   (let ((nonstandard-filename-chars "[^-a-zA-Z0-9_./,~$\\]"))
     (cond ((file-exists-p filespec) (find-file filespec))
 	  ((string-match nonstandard-filename-chars  filespec)
-	   (mapcar 'find-file (funcall viper-glob-function filespec)))
+	   (mapcar #'find-file (funcall viper-glob-function filespec)))
 	  (t (find-file filespec)))
     ))
 
@@ -1639,7 +1631,7 @@ reversed."
 ;; this function fixes ex-history for some commands like ex-read, ex-edit
 (defun ex-fixup-history (&rest args)
   (setq viper-ex-history
-	(cons (mapconcat 'identity args " ") (cdr viper-ex-history))))
+	(cons (mapconcat #'identity args " ") (cdr viper-ex-history))))
 
 
 ;; Ex recover from emacs \#file\#
@@ -1672,8 +1664,8 @@ reversed."
 	(cursor-in-echo-area t)
 	str batch)
     (define-key
-      minibuffer-local-completion-map " " 'minibuffer-complete-and-exit)
-    (define-key minibuffer-local-completion-map "=" 'exit-minibuffer)
+      minibuffer-local-completion-map " " #'minibuffer-complete-and-exit)
+    (define-key minibuffer-local-completion-map "=" #'exit-minibuffer)
     (if (viper-set-unread-command-events
 	 (ex-get-inline-cmd-args "[ \t]*[a-zA-Z]*[ \t]*" nil "\C-m"))
 	(progn
@@ -1837,7 +1829,7 @@ reversed."
 		     (format "%S" val)
 		   val)))
     (if actual-lisp-cmd
-	(eval (car (read-from-string actual-lisp-cmd))))
+	(eval (car (read-from-string actual-lisp-cmd)) t))
     (if (string= var "fill-column")
 	(if (> val2 0)
 	    (auto-fill-mode 1)
@@ -2319,4 +2311,5 @@ Type `mak ' (including the space) to run make with no args."
       (with-output-to-temp-buffer " *viper-info*"
 	(princ lines))))))
 
+(provide 'viper-ex)
 ;;; viper-ex.el ends here

@@ -51,7 +51,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(require 'easymenu)
+(when (< emacs-major-version 28)  ; preloaded in Emacs 28
+  (require 'easymenu))
 
 (defvar reftex-tables-dirty t
   "Flag showing if tables need to be re-computed.")

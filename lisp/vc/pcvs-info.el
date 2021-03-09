@@ -1,4 +1,4 @@
-;;; pcvs-info.el --- internal representation of a fileinfo entry
+;;; pcvs-info.el --- internal representation of a fileinfo entry  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1991-2021 Free Software Foundation, Inc.
 
@@ -384,8 +384,8 @@ For use by the ewoc package."
 The ordering defined by this function is such that directories are
 sorted alphabetically, and inside every directory the DIRCHANGE
 fileinfo will appear first, followed by all files (alphabetically)."
-  (let ((subtypea (cvs-fileinfo->subtype a))
-	(subtypeb (cvs-fileinfo->subtype b)))
+  (let (  ;; (subtypea (cvs-fileinfo->subtype a))
+	) ;; (subtypeb (cvs-fileinfo->subtype b))
     (cond
      ;; Sort according to directories.
      ((string< (cvs-fileinfo->dir a) (cvs-fileinfo->dir b)) t)

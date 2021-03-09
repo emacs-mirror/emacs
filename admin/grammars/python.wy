@@ -88,7 +88,7 @@
 
 %package wisent-python-wy
 %provide semantic/wisent/python-wy
-%expectedconflicts 4
+%expectedconflicts 5
 
 %{
 (declare-function wisent-python-reconstitute-function-tag
@@ -184,6 +184,7 @@
 %token <punctuation> ASSIGN 	"="
 %token <punctuation> BACKQUOTE	"`"
 %token <punctuation> AT         "@"
+%token <punctuation> FOLLOWS    "->"
 
 
 ;; -----------------
@@ -808,12 +809,17 @@ decorators
 
 ;; funcdef: [decorators] 'def' NAME parameters ':' suite
 funcdef
-  : DEF NAME function_parameter_list COLON suite
+  : DEF NAME function_parameter_list return_type_hint COLON suite
     (wisent-python-reconstitute-function-tag
-     (FUNCTION-TAG $2 nil $3) $5)
-  | decorators DEF NAME function_parameter_list COLON suite
+     (FUNCTION-TAG $2 nil $3) $6)
+  | decorators DEF NAME function_parameter_list return_type_hint COLON suite
     (wisent-python-reconstitute-function-tag
-     (FUNCTION-TAG $3 nil $4 :decorators $1) $6)
+     (FUNCTION-TAG $3 nil $4 :decorators $1) $7)
+  ;
+
+return_type_hint
+  : ;;EMPTY
+  | FOLLOWS type
   ;
 
 function_parameter_list
@@ -887,7 +893,7 @@ paren_classes
 ;; parser can parse general expressions, I don't see much benefit in
 ;; generating a string of expression as base class "name".
 paren_class
-  : dotted_name
+  : type
   ;
 
 ;;;****************************************************************************
@@ -1140,7 +1146,7 @@ fpdef_opt_test
 
 ;; fpdef: NAME | '(' fplist ')'
 fpdef
-  : NAME
+  : NAME type_hint
     (VARIABLE-TAG $1 nil nil)
  ;; Below breaks the parser.  Don't know why, but my guess is that
  ;; LPAREN/RPAREN clashes with the ones in function_parameters.
@@ -1159,6 +1165,15 @@ fpdef
 ;;   : fpdef
 ;;   | fpdef_list COMMA fpdef
 ;;   ;
+
+type_hint
+  : ;;EMPTY
+  | COLON type
+  ;
+
+type
+  : test
+  ;
 
 ;; ['=' test]
 eq_test_opt

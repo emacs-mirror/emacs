@@ -2553,7 +2553,6 @@ easy-to-use form."
   (let ((files (dired-get-marked-files)))
     (pop-to-buffer-same-window "*Image-Dired Edit Meta Data*")
     (kill-all-local-variables)
-    (make-local-variable 'widget-example-repeat)
     (let ((inhibit-read-only t))
       (erase-buffer))
     (remove-overlays)

@@ -1966,328 +1966,217 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map ":s" 'epa-dired-do-sign)
     (define-key map ":e" 'epa-dired-do-encrypt)
 
-    ;; Make menu bar items.
-
     ;; No need to do this, now that top-level items are fewer.
     ;;;;
     ;; Get rid of the Edit menu bar item to save space.
     ;(define-key map [menu-bar edit] 'undefined)
 
-    (define-key map [menu-bar subdir]
-      (cons "Subdir" (make-sparse-keymap "Subdir")))
-
-    (define-key map [menu-bar subdir hide-all]
-      '(menu-item "Hide All" dired-hide-all
-		  :help "Hide all subdirectories, leave only header lines"))
-    (define-key map [menu-bar subdir hide-subdir]
-      '(menu-item "Hide/UnHide Subdir" dired-hide-subdir
-		  :help "Hide or unhide current directory listing"))
-    (define-key map [menu-bar subdir tree-down]
-      '(menu-item "Tree Down" dired-tree-down
-		  :help "Go to first subdirectory header down the tree"))
-    (define-key map [menu-bar subdir tree-up]
-      '(menu-item "Tree Up" dired-tree-up
-		  :help "Go to first subdirectory header up the tree"))
-    (define-key map [menu-bar subdir up]
-      '(menu-item "Up Directory" dired-up-directory
-		  :help "Edit the parent directory"))
-    (define-key map [menu-bar subdir prev-subdir]
-      '(menu-item "Prev Subdir" dired-prev-subdir
-		  :help "Go to previous subdirectory header line"))
-    (define-key map [menu-bar subdir next-subdir]
-      '(menu-item "Next Subdir" dired-next-subdir
-		  :help "Go to next subdirectory header line"))
-    (define-key map [menu-bar subdir prev-dirline]
-      '(menu-item "Prev Dirline" dired-prev-dirline
-		  :help "Move to next directory-file line"))
-    (define-key map [menu-bar subdir next-dirline]
-      '(menu-item "Next Dirline" dired-next-dirline
-		  :help "Move to previous directory-file line"))
-    (define-key map [menu-bar subdir insert]
-      '(menu-item "Insert This Subdir" dired-maybe-insert-subdir
-		  :help "Insert contents of subdirectory"
-		  :enable (let ((f (dired-get-filename nil t)))
-			    (and f (file-directory-p f)))))
-    (define-key map [menu-bar immediate]
-      (cons "Immediate" (make-sparse-keymap "Immediate")))
-
-    (define-key map
-      [menu-bar immediate image-dired-dired-display-external]
-      '(menu-item "Display Image Externally" image-dired-dired-display-external
-                  :help "Display image in external viewer"))
-    (define-key map
-      [menu-bar immediate image-dired-dired-display-image]
-      '(menu-item "Display Image" image-dired-dired-display-image
-                  :help "Display sized image in a separate window"))
-    (define-key map
-      [menu-bar immediate image-dired-dired-toggle-marked-thumbs]
-      '(menu-item "Toggle Image Thumbnails in This Buffer" image-dired-dired-toggle-marked-thumbs
-                  :help "Add or remove image thumbnails in front of marked file names"))
-
-    (define-key map [menu-bar immediate hide-details]
-      '(menu-item "Hide Details" dired-hide-details-mode
-		  :help "Hide details in buffer"
-		  :button (:toggle . dired-hide-details-mode)))
-    (define-key map [menu-bar immediate revert-buffer]
-      '(menu-item "Refresh" revert-buffer
-		  :help "Update contents of shown directories"))
-    (define-key map [menu-bar immediate dired-number-of-marked-files]
-      '(menu-item "#Marked Files" dired-number-of-marked-files
-		  :help "Display the number and size of the marked files"))
-
-    (define-key map [menu-bar immediate dashes]
-      '("--"))
-
-    (define-key map [menu-bar immediate isearch-filenames-regexp]
-      '(menu-item "Isearch Regexp in File Names..." dired-isearch-filenames-regexp
-		  :help "Incrementally search for regexp in file names only"))
-    (define-key map [menu-bar immediate isearch-filenames]
-      '(menu-item "Isearch in File Names..." dired-isearch-filenames
-		  :help "Incrementally search for string in file names only."))
-    (define-key map [menu-bar immediate compare-directories]
-      '(menu-item "Compare Directories..." dired-compare-directories
-		  :help "Mark files with different attributes in two Dired buffers"))
-    (define-key map [menu-bar immediate backup-diff]
-      '(menu-item "Compare with Backup" dired-backup-diff
-		  :help "Diff file at cursor with its latest backup"))
-    (define-key map [menu-bar immediate diff]
-      '(menu-item "Diff..." dired-diff
-		  :help "Compare file at cursor with another file"))
-    (define-key map [menu-bar immediate view]
-      '(menu-item "View This File" dired-view-file
-		  :help "Examine file at cursor in read-only mode"))
-    (define-key map [menu-bar immediate display]
-      '(menu-item "Display in Other Window" dired-display-file
-		  :help "Display file at cursor in other window"))
-    (define-key map [menu-bar immediate find-file-other-window]
-      '(menu-item "Find in Other Window" dired-find-file-other-window
-		  :help "Edit file at cursor in other window"))
-    (define-key map [menu-bar immediate find-file]
-      '(menu-item "Find This File" dired-find-file
-		  :help "Edit file at cursor"))
-    (define-key map [menu-bar immediate create-directory]
-      '(menu-item "Create Directory..." dired-create-directory
-		  :help "Create a directory"))
-    (define-key map [menu-bar immediate create-empty-file]
-      '(menu-item "Create Empty file..." dired-create-empty-file
-		  :help "Create an empty file"))
-    (define-key map [menu-bar immediate wdired-mode]
-      '(menu-item "Edit File Names" wdired-change-to-wdired-mode
-		  :help "Put a Dired buffer in a mode in which filenames are editable"
-		  :keys "C-x C-q"
-		  :filter (lambda (x) (if (eq major-mode 'dired-mode) x))))
-
-    (define-key map [menu-bar regexp]
-      (cons "Regexp" (make-sparse-keymap "Regexp")))
-
-    (define-key map
-      [menu-bar regexp image-dired-mark-tagged-files]
-      '(menu-item "Mark From Image Tag..." image-dired-mark-tagged-files
-                  :help "Mark files whose image tags matches regexp"))
-
-    (define-key map [menu-bar regexp dashes-1]
-      '("--"))
-
-    (define-key map [menu-bar regexp downcase]
-      '(menu-item "Downcase" dired-downcase
-		  ;; When running on plain MS-DOS, there's only one
-		  ;; letter-case for file names.
-		  :enable (or (not (fboundp 'msdos-long-file-names))
-			      (msdos-long-file-names))
-		  :help "Rename marked files to lower-case name"))
-    (define-key map [menu-bar regexp upcase]
-      '(menu-item "Upcase" dired-upcase
-		  :enable (or (not (fboundp 'msdos-long-file-names))
-			      (msdos-long-file-names))
-		  :help "Rename marked files to upper-case name"))
-    (define-key map [menu-bar regexp hardlink]
-      '(menu-item "Hardlink..." dired-do-hardlink-regexp
-		  :help "Make hard links for files matching regexp"))
-    (define-key map [menu-bar regexp symlink]
-      '(menu-item "Symlink..." dired-do-symlink-regexp
-		  :visible (fboundp 'make-symbolic-link)
-		  :help "Make symbolic links for files matching regexp"))
-    (define-key map [menu-bar regexp rename]
-      '(menu-item "Rename..." dired-do-rename-regexp
-		  :help "Rename marked files matching regexp"))
-    (define-key map [menu-bar regexp copy]
-      '(menu-item "Copy..." dired-do-copy-regexp
-		  :help "Copy marked files matching regexp"))
-    (define-key map [menu-bar regexp flag]
-      '(menu-item "Flag..." dired-flag-files-regexp
-		  :help "Flag files matching regexp for deletion"))
-    (define-key map [menu-bar regexp mark]
-      '(menu-item "Mark..." dired-mark-files-regexp
-		  :help "Mark files matching regexp for future operations"))
-    (define-key map [menu-bar regexp mark-cont]
-      '(menu-item "Mark Containing..." dired-mark-files-containing-regexp
-		  :help "Mark files whose contents matches regexp"))
-
-    (define-key map [menu-bar mark]
-      (cons "Mark" (make-sparse-keymap "Mark")))
-
-    (define-key map [menu-bar mark prev]
-      '(menu-item "Previous Marked" dired-prev-marked-file
-		  :help "Move to previous marked file"))
-    (define-key map [menu-bar mark next]
-      '(menu-item "Next Marked" dired-next-marked-file
-		  :help "Move to next marked file"))
-    (define-key map [menu-bar mark marks]
-      '(menu-item "Change Marks..." dired-change-marks
-		  :help "Replace marker with another character"))
-    (define-key map [menu-bar mark unmark-all]
-      '(menu-item "Unmark All" dired-unmark-all-marks))
-    (define-key map [menu-bar mark symlinks]
-      '(menu-item "Mark Symlinks" dired-mark-symlinks
-		  :visible (fboundp 'make-symbolic-link)
-		  :help "Mark all symbolic links"))
-    (define-key map [menu-bar mark directories]
-      '(menu-item "Mark Directories" dired-mark-directories
-		  :help "Mark all directories except `.' and `..'"))
-    (define-key map [menu-bar mark directory]
-      '(menu-item "Mark Old Backups" dired-clean-directory
-		  :help "Flag old numbered backups for deletion"))
-    (define-key map [menu-bar mark executables]
-      '(menu-item "Mark Executables" dired-mark-executables
-		  :help "Mark all executable files"))
-    (define-key map [menu-bar mark garbage-files]
-      '(menu-item "Flag Garbage Files" dired-flag-garbage-files
-		  :help "Flag unneeded files for deletion"))
-    (define-key map [menu-bar mark backup-files]
-      '(menu-item "Flag Backup Files" dired-flag-backup-files
-		  :help "Flag all backup files for deletion"))
-    (define-key map [menu-bar mark auto-save-files]
-      '(menu-item "Flag Auto-save Files" dired-flag-auto-save-files
-		  :help "Flag auto-save files for deletion"))
-    (define-key map [menu-bar mark deletion]
-      '(menu-item "Flag" dired-flag-file-deletion
-		  :help "Flag current line's file for deletion"))
-    (define-key map [menu-bar mark unmark]
-      '(menu-item "Unmark" dired-unmark
-		  :help "Unmark or unflag current line's file"))
-    (define-key map [menu-bar mark mark]
-      '(menu-item "Mark" dired-mark
-		  :help "Mark current line's file for future operations"))
-    (define-key map [menu-bar mark toggle-marks]
-      '(menu-item "Toggle Marks" dired-toggle-marks
-		  :help "Mark unmarked files, unmark marked ones"))
-
-    (define-key map [menu-bar operate]
-      (cons "Operate" (make-sparse-keymap "Operate")))
-
-    (define-key map
-      [menu-bar operate image-dired-delete-tag]
-      '(menu-item "Delete Image Tag..." image-dired-delete-tag
-                  :help "Delete image tag from current or marked files"))
-    (define-key map
-      [menu-bar operate image-dired-tag-files]
-      '(menu-item "Add Image Tags..." image-dired-tag-files
-                  :help "Add image tags to current or marked files"))
-    (define-key map
-      [menu-bar operate image-dired-dired-comment-files]
-      '(menu-item "Add Image Comment..." image-dired-dired-comment-files
-                  :help "Add image comment to current or marked files"))
-    (define-key map
-      [menu-bar operate image-dired-display-thumbs]
-      '(menu-item "Display Image Thumbnails" image-dired-display-thumbs
-                  :help "Display image thumbnails for current or marked image files"))
-
-    (define-key map [menu-bar operate dashes-4]
-      '("--"))
-
-    (define-key map
-      [menu-bar operate epa-dired-do-decrypt]
-      '(menu-item "Decrypt..." epa-dired-do-decrypt
-		  :help "Decrypt current or marked files"))
-
-    (define-key map
-      [menu-bar operate epa-dired-do-verify]
-      '(menu-item "Verify" epa-dired-do-verify
-		  :help "Verify digital signature of current or marked files"))
-
-    (define-key map
-      [menu-bar operate epa-dired-do-sign]
-      '(menu-item "Sign..." epa-dired-do-sign
-		  :help "Create digital signature of current or marked files"))
-
-    (define-key map
-      [menu-bar operate epa-dired-do-encrypt]
-      '(menu-item "Encrypt..." epa-dired-do-encrypt
-		  :help "Encrypt current or marked files"))
-
-    (define-key map [menu-bar operate dashes-3]
-      '("--"))
-
-    (define-key map [menu-bar operate query-replace]
-      '(menu-item "Query Replace in Files..." dired-do-find-regexp-and-replace
-		  :help "Replace regexp matches in marked files"))
-    (define-key map [menu-bar operate search]
-      '(menu-item "Search Files..." dired-do-find-regexp
-		  :help "Search marked files for matches of regexp"))
-    (define-key map [menu-bar operate isearch-regexp]
-      '(menu-item "Isearch Regexp Files..." dired-do-isearch-regexp
-		  :help "Incrementally search marked files for regexp"))
-    (define-key map [menu-bar operate isearch]
-      '(menu-item "Isearch Files..." dired-do-isearch
-		  :help "Incrementally search marked files for string"))
-    (define-key map [menu-bar operate chown]
-      '(menu-item "Change Owner..." dired-do-chown
-		  :visible (not (memq system-type '(ms-dos windows-nt)))
-		  :help "Change the owner of marked files"))
-    (define-key map [menu-bar operate chgrp]
-      '(menu-item "Change Group..." dired-do-chgrp
-		  :visible (not (memq system-type '(ms-dos windows-nt)))
-		  :help "Change the group of marked files"))
-    (define-key map [menu-bar operate chmod]
-      '(menu-item "Change Mode..." dired-do-chmod
-		  :help "Change mode (attributes) of marked files"))
-    (define-key map [menu-bar operate touch]
-      '(menu-item "Change Timestamp..." dired-do-touch
-		  :help "Change timestamp of marked files"))
-    (define-key map [menu-bar operate load]
-      '(menu-item "Load" dired-do-load
-		  :help "Load marked Emacs Lisp files"))
-    (define-key map [menu-bar operate compile]
-      '(menu-item "Byte-compile" dired-do-byte-compile
-		  :help "Byte-compile marked Emacs Lisp files"))
-    (define-key map [menu-bar operate compress]
-      '(menu-item "Compress" dired-do-compress
-		  :help "Compress/uncompress marked files"))
-    (define-key map [menu-bar operate print]
-      '(menu-item "Print..." dired-do-print
-		  :help "Ask for print command and print marked files"))
-    (define-key map [menu-bar operate hardlink]
-      '(menu-item "Hardlink to..." dired-do-hardlink
-		  :help "Make hard links for current or marked files"))
-    (define-key map [menu-bar operate symlink]
-      '(menu-item "Symlink to..." dired-do-symlink
-		  :visible (fboundp 'make-symbolic-link)
-		  :help "Make symbolic links for current or marked files"))
-    (define-key map [menu-bar operate async-command]
-      '(menu-item "Asynchronous Shell Command..." dired-do-async-shell-command
-		  :help "Run a shell command asynchronously on current or marked files"))
-    (define-key map [menu-bar operate command]
-      '(menu-item "Shell Command..." dired-do-shell-command
-		  :help "Run a shell command on current or marked files"))
-    (define-key map [menu-bar operate delete]
-      `(menu-item "Delete"
-                  ,(let ((menu (make-sparse-keymap "Delete")))
-                     (define-key menu [delete-flagged]
-                       '(menu-item "Delete Flagged Files" dired-do-flagged-delete
-                                   :help "Delete all files flagged for deletion (D)"))
-                     (define-key menu [delete-marked]
-                       '(menu-item "Delete Marked (Not Flagged) Files" dired-do-delete
-                                   :help "Delete current file or all marked files (excluding flagged files)"))
-                     menu)))
-    (define-key map [menu-bar operate rename]
-      '(menu-item "Rename to..." dired-do-rename
-		  :help "Rename current file or move marked files"))
-    (define-key map [menu-bar operate copy]
-      '(menu-item "Copy to..." dired-do-copy
-		  :help "Copy current file or all marked files"))
-
     map)
   "Local keymap for Dired mode buffers.")
+
+(easy-menu-define dired-mode-subdir-menu dired-mode-map
+  "Subdir menu for Dired mode."
+  '("Subdir"
+    ["Insert This Subdir" dired-maybe-insert-subdir
+     :help "Insert contents of subdirectory"
+     :enable (let ((f (dired-get-filename nil t)))
+               (and f (file-directory-p f)))]
+    ["Next Dirline" dired-next-dirline
+     :help "Move to previous directory-file line"]
+    ["Prev Dirline" dired-prev-dirline
+     :help "Move to next directory-file line"]
+    ["Next Subdir" dired-next-subdir
+     :help "Go to next subdirectory header line"]
+    ["Prev Subdir" dired-prev-subdir
+     :help "Go to previous subdirectory header line"]
+    ["Up Directory" dired-up-directory
+     :help "Edit the parent directory"]
+    ["Tree Up" dired-tree-up
+     :help "Go to first subdirectory header up the tree"]
+    ["Tree Down" dired-tree-down
+     :help "Go to first subdirectory header down the tree"]
+    ["Hide/UnHide Subdir" dired-hide-subdir
+     :help "Hide or unhide current directory listing"]
+    ["Hide All" dired-hide-all
+     :help "Hide all subdirectories, leave only header lines"]))
+
+(easy-menu-define dired-mode-immediate-menu dired-mode-map
+  "Immediate menu for Dired mode."
+  '("Immediate"
+    ["Edit File Names" wdired-change-to-wdired-mode
+     :help "Put a Dired buffer in a mode in which filenames are editable"
+     :keys "C-x C-q"
+     :filter (lambda (x) (if (eq major-mode 'dired-mode) x))]
+    ["Create Empty file..." dired-create-empty-file
+     :help "Create an empty file"]
+    ["Create Directory..." dired-create-directory
+     :help "Create a directory"]
+    ["Find This File" dired-find-file
+     :help "Edit file at cursor"]
+    ["Find in Other Window" dired-find-file-other-window
+     :help "Edit file at cursor in other window"]
+    ["Display in Other Window" dired-display-file
+     :help "Display file at cursor in other window"]
+    ["View This File" dired-view-file
+     :help "Examine file at cursor in read-only mode"]
+    ["Diff..." dired-diff
+     :help "Compare file at cursor with another file"]
+    ["Compare with Backup" dired-backup-diff
+     :help "Diff file at cursor with its latest backup"]
+    ["Compare Directories..." dired-compare-directories
+     :help "Mark files with different attributes in two Dired buffers"]
+    ["Isearch in File Names..." dired-isearch-filenames
+     :help "Incrementally search for string in file names only."]
+    ["Isearch Regexp in File Names..." dired-isearch-filenames-regexp
+     :help "Incrementally search for regexp in file names only"]
+    "---"
+    ["#Marked Files" dired-number-of-marked-files
+     :help "Display the number and size of the marked files"]
+    ["Refresh" revert-buffer
+     :help "Update contents of shown directories"]
+    ["Hide Details" dired-hide-details-mode
+     :help "Hide details in buffer"
+     :style toggle
+     :selected dired-hide-details-mode]
+    ["Toggle Image Thumbnails in This Buffer" image-dired-dired-toggle-marked-thumbs
+     :help "Add or remove image thumbnails in front of marked file names"]
+    ["Display Image" image-dired-dired-display-image
+     :help "Display sized image in a separate window"]
+    ["Display Image Externally" image-dired-dired-display-external
+     :help "Display image in external viewer"]))
+
+(easy-menu-define dired-mode-regexp-menu dired-mode-map
+  "Regexp menu for Dired mode."
+  '("Regexp"
+    ["Mark Containing..." dired-mark-files-containing-regexp
+     :help "Mark files whose contents matches regexp"]
+    ["Mark..." dired-mark-files-regexp
+     :help "Mark files matching regexp for future operations"]
+    ["Flag..." dired-flag-files-regexp
+     :help "Flag files matching regexp for deletion"]
+    ["Copy..." dired-do-copy-regexp
+     :help "Copy marked files matching regexp"]
+    ["Rename..." dired-do-rename-regexp
+     :help "Rename marked files matching regexp"]
+    ["Symlink..." dired-do-symlink-regexp
+     :visible (fboundp 'make-symbolic-link)
+     :help "Make symbolic links for files matching regexp"]
+    ["Hardlink..." dired-do-hardlink-regexp
+     :help "Make hard links for files matching regexp"]
+    ["Upcase" dired-upcase
+     :enable (or (not (fboundp 'msdos-long-file-names))
+                 (msdos-long-file-names))
+     :help "Rename marked files to upper-case name"]
+    ["Downcase" dired-downcase
+     ;; When running on plain MS-DOS, there's only one
+     ;; letter-case for file names.
+     :enable (or (not (fboundp 'msdos-long-file-names))
+                 (msdos-long-file-names))
+     :help "Rename marked files to lower-case name"]
+    "---"
+    ["Mark From Image Tag..." image-dired-mark-tagged-files
+     :help "Mark files whose image tags matches regexp"]))
+
+(easy-menu-define dired-mode-mark-menu dired-mode-map
+  "Mark menu for Dired mode."
+  '("Mark"
+    ["Toggle Marks" dired-toggle-marks
+     :help "Mark unmarked files, unmark marked ones"]
+    ["Mark" dired-mark
+     :help "Mark current line's file for future operations"]
+    ["Unmark" dired-unmark
+     :help "Unmark or unflag current line's file"]
+    ["Flag" dired-flag-file-deletion
+     :help "Flag current line's file for deletion"]
+    ["Flag Auto-save Files" dired-flag-auto-save-files
+     :help "Flag auto-save files for deletion"]
+    ["Flag Backup Files" dired-flag-backup-files
+     :help "Flag all backup files for deletion"]
+    ["Flag Garbage Files" dired-flag-garbage-files
+     :help "Flag unneeded files for deletion"]
+    ["Mark Executables" dired-mark-executables
+     :help "Mark all executable files"]
+    ["Mark Old Backups" dired-clean-directory
+     :help "Flag old numbered backups for deletion"]
+    ["Mark Directories" dired-mark-directories
+     :help "Mark all directories except `.' and `..'"]
+    ["Mark Symlinks" dired-mark-symlinks
+     :visible (fboundp 'make-symbolic-link)
+     :help "Mark all symbolic links"]
+    ["Unmark All" dired-unmark-all-marks]
+    ["Change Marks..." dired-change-marks
+     :help "Replace marker with another character"]
+    ["Next Marked" dired-next-marked-file
+     :help "Move to next marked file"]
+    ["Previous Marked" dired-prev-marked-file
+     :help "Move to previous marked file"]))
+
+(easy-menu-define dired-mode-operate-menu dired-mode-map
+  "Operate menu for Dired mode."
+  '("Operate"
+    ["Copy to..." dired-do-copy
+     :help "Copy current file or all marked files"]
+    ["Rename to..." dired-do-rename
+     :help "Rename current file or move marked files"]
+    ("Delete"
+     ["Delete Flagged Files" dired-do-flagged-delete
+      :help "Delete all files flagged for deletion (D)"]
+     ["Delete Marked (Not Flagged) Files" dired-do-delete
+      :help "Delete current file or all marked files (excluding flagged files)"])
+    ["Shell Command..." dired-do-shell-command
+     :help "Run a shell command on current or marked files"]
+    ["Asynchronous Shell Command..." dired-do-async-shell-command
+     :help "Run a shell command asynchronously on current or marked files"]
+    ["Symlink to..." dired-do-symlink
+     :visible (fboundp 'make-symbolic-link)
+     :help "Make symbolic links for current or marked files"]
+    ["Hardlink to..." dired-do-hardlink
+     :help "Make hard links for current or marked files"]
+    ["Print..." dired-do-print
+     :help "Ask for print command and print marked files"]
+    ["Compress" dired-do-compress
+     :help "Compress/uncompress marked files"]
+    ["Byte-compile" dired-do-byte-compile
+     :help "Byte-compile marked Emacs Lisp files"]
+    ["Load" dired-do-load
+     :help "Load marked Emacs Lisp files"]
+    ["Change Timestamp..." dired-do-touch
+     :help "Change timestamp of marked files"]
+    ["Change Mode..." dired-do-chmod
+     :help "Change mode (attributes) of marked files"]
+    ["Change Group..." dired-do-chgrp
+     :visible (not (memq system-type '(ms-dos windows-nt)))
+     :help "Change the group of marked files"]
+    ["Change Owner..." dired-do-chown
+     :visible (not (memq system-type '(ms-dos windows-nt)))
+     :help "Change the owner of marked files"]
+    ["Isearch Files..." dired-do-isearch
+     :help "Incrementally search marked files for string"]
+    ["Isearch Regexp Files..." dired-do-isearch-regexp
+     :help "Incrementally search marked files for regexp"]
+    ["Search Files..." dired-do-find-regexp
+     :help "Search marked files for matches of regexp"]
+    ["Query Replace in Files..." dired-do-find-regexp-and-replace
+     :help "Replace regexp matches in marked files"]
+    "---"
+    ["Encrypt..." epa-dired-do-encrypt
+     :help "Encrypt current or marked files"]
+    ["Sign..." epa-dired-do-sign
+     :help "Create digital signature of current or marked files"]
+    ["Verify" epa-dired-do-verify
+     :help "Verify digital signature of current or marked files"]
+    ["Decrypt..." epa-dired-do-decrypt
+     :help "Decrypt current or marked files"]
+    "---"
+    ["Display Image Thumbnails" image-dired-display-thumbs
+     :help "Display image thumbnails for current or marked image files"]
+    ["Add Image Comment..." image-dired-dired-comment-files
+     :help "Add image comment to current or marked files"]
+    ["Add Image Tags..." image-dired-tag-files
+     :help "Add image tags to current or marked files"]
+    ["Delete Image Tag..." image-dired-delete-tag
+     :help "Delete image tag from current or marked files"]))
+
 
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
@@ -4240,7 +4129,8 @@ Possible values:
  * `as-is':  Show full switches.
  * Integer:  Show only the first N chars of full switches.
  * Function: Pass `dired-actual-switches' as arg and show result."
-  :group 'Dired-Plus
+  :group 'dired
+  :version "28.1"
   :type '(choice
           (const    :tag "Indicate by name or date, else full"   nil)
           (const    :tag "Show full switches"                    as-is)

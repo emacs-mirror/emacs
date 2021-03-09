@@ -1985,22 +1985,37 @@ Redefine the corresponding command."
 		      (cons 'quote
 			    (math-define-lambda (nth 1 exp) math-exp-env))
 		    exp))
-		 ((memq func '(let let* for foreach))
-		  (let ((head (nth 1 exp))
-			(body (cdr (cdr exp))))
-		    (if (memq func '(let let*))
-			()
-		      (setq func (cdr (assq func '((for . math-for)
-						   (foreach . math-foreach)))))
-		      (if (not (listp (car head)))
-			  (setq head (list head))))
-		    (macroexpand
-		     (cons func
-			   (cons (math-define-let head)
-				 (math-define-body body
-						   (nconc
-						    (math-define-let-env head)
-						    math-exp-env)))))))
+                 ((eq func 'let)
+                  (let ((bindings (nth 1 exp))
+                        (body (cddr exp)))
+                    `(let ,(math-define-let bindings)
+                       ,@(math-define-body
+                          body (append (math-define-let-env bindings)
+                                       math-exp-env)))))
+                 ((eq func 'let*)
+                  ;; Rewrite in terms of `let'.
+                  (let ((bindings (nth 1 exp))
+                        (body (cddr exp)))
+                    (math-define-exp
+                     (if (> (length bindings) 1)
+                         `(let ,(list (car bindings))
+                            (let* ,(cdr bindings) ,@body))
+                       `(let ,bindings ,@body)))))
+		 ((memq func '(for foreach))
+		  (let ((bindings (nth 1 exp))
+			(body (cddr exp)))
+                    (if (> (length bindings) 1)
+                        ;; Rewrite as nested loops.
+                        (math-define-exp
+                         `(,func ,(list (car bindings))
+                                 (,func ,(cdr bindings) ,@body)))
+                      (let ((mac (cdr (assq func '((for . math-for)
+                                                   (foreach . math-foreach))))))
+                        (macroexpand
+                         `(,mac ,(math-define-let bindings)
+                                ,@(math-define-body
+                                   body (append (math-define-let-env bindings)
+					        math-exp-env))))))))
 		 ((and (memq func '(setq setf))
 		       (math-complicated-lhs (cdr exp)))
 		  (if (> (length exp) 3)
@@ -2017,7 +2032,7 @@ Redefine the corresponding command."
 			(math-define-cond (cdr exp))))
 		 ((and (consp func)   ; ('spam a b) == force use of plain spam
 		       (eq (car func) 'quote))
-		  (cons func (math-define-list (cdr exp))))
+		  (cons (cadr func) (math-define-list (cdr exp))))
 		 ((symbolp func)
 		  (let ((args (math-define-list (cdr exp)))
 			(prim (assq func math-prim-funcs)))
@@ -2276,20 +2291,16 @@ Redefine the corresponding command."
 
 (defun math-handle-foreach (head body)
   (let ((var (nth 0 (car head)))
+        (loop-var (gensym "foreach"))
 	(data (nth 1 (car head)))
 	(body (if (cdr head)
 		  (list (math-handle-foreach (cdr head) body))
 		body)))
-    (cons 'let
-	  (cons (list (list var data))
-		(list
-		 (cons 'while
-		       (cons var
-			     (append body
-				     (list (list 'setq
-						 var
-						 (list 'cdr var)))))))))))
-
+    `(let ((,loop-var ,data))
+       (while ,loop-var
+         (let ((,var (car ,loop-var)))
+           ,@(append body
+                     `((setq ,loop-var (cdr ,loop-var)))))))))
 
 (defun math-body-refers-to (body thing)
   (or (equal body thing)

@@ -415,7 +415,7 @@ typesimple
   : struct-or-class opt-class opt-name opt-template-specifier
     opt-class-parents semantic-list
     (TYPE-TAG (car $3) (car $1)
-          (let ((semantic-c-classname (cons (car ,$3) (car ,$1))))
+          (dlet ((semantic-c-classname (cons (car ,$3) (car ,$1))))
             (EXPANDFULL $6 classsubparts))
           $5
           :template-specifier $4

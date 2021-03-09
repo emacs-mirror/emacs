@@ -274,8 +274,10 @@ statement-block-intro, statement-case-intro, arglist-intro."
   (save-excursion
     (beginning-of-line)
     (backward-up-list 1)
+    (forward-char)
     (skip-chars-forward " \t" (c-point 'eol))
-    (vector (1+ (current-column)))))
+    (if (eolp) (skip-chars-backward " \t"))
+    (vector (current-column))))
 
 (defun c-lineup-arglist-close-under-paren (langelem)
   "Line up a line under the enclosing open paren.
@@ -1145,7 +1147,8 @@ Works with brace-list-intro."
 							     ; the line.
 	   (save-excursion		; "{" earlier on the line
 	     (goto-char (c-langelem-pos
-			 (assq 'brace-list-intro c-syntactic-context)))
+			 (assq 'brace-list-entry
+			       c-syntactic-context)))
 	     (and
 	      (eq (c-backward-token-2
 		   1 nil

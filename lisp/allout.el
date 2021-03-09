@@ -75,9 +75,6 @@
 (declare-function epa-passphrase-callback-function
 		  "epa" (context key-id handback))
 
-;;;_* Dependency loads
-(require 'overlay)
-
 ;;;_* USER CUSTOMIZATION VARIABLES:
 
 ;;;_ > defgroup allout, allout-keybindings

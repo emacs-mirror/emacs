@@ -1,4 +1,4 @@
-;;; semantic/bovine.el --- LL Parser/Analyzer core.
+;;; semantic/bovine.el --- LL Parser/Analyzer core  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2004, 2006-2007, 2009-2021 Free Software
 ;; Foundation, Inc.
@@ -54,6 +54,7 @@ Use this to detect infinite recursion during a parse.")
   "Create a lambda expression to return a list including RETURN-VAL.
 The return list is a lambda expression to be used in a bovine table."
   `(lambda (vals start end)
+     (ignore vals)
      (append ,@return-val (list start end))))
 
 ;;; Semantic Bovination
@@ -283,7 +284,7 @@ list of semantic tokens found."
 
 ;; Make it the default parser
 ;;;###autoload
-(defalias 'semantic-parse-stream-default 'semantic-bovinate-stream)
+(defalias 'semantic-parse-stream-default #'semantic-bovinate-stream)
 
 (provide 'semantic/bovine)
 

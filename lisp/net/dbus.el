@@ -1144,6 +1144,7 @@ compound type arguments (TYPE VALUE) will be kept as is."
 EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
 part of the event, is called with arguments ARGS (without type information).
 If the HANDLER returns a `dbus-error', it is propagated as return message."
+  (declare (completion ignore))
   (interactive "e")
   (condition-case err
       (let (monitor args result)

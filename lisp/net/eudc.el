@@ -49,10 +49,6 @@
 
 (require 'cl-lib)
 
-(eval-and-compile
-  (if (not (fboundp 'make-overlay))
-      (require 'overlay)))
-
 (unless (fboundp 'custom-menu-create)
   (autoload 'custom-menu-create "cus-edit"))
 
@@ -1055,8 +1051,6 @@ queries the server for the existing fields and displays a corresponding form."
 ;;}}}
 
 ;;{{{      Menus and keymaps
-
-(require 'easymenu)
 
 (defconst eudc-custom-generated-menu (cdr (custom-menu-create 'eudc)))
 

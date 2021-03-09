@@ -47,8 +47,6 @@
 ;; For the semantic-find-tags-by-name macro.
 (eval-when-compile (require 'semantic/find))
 
-(defvar eldoc-last-message)
-(declare-function eldoc-message "eldoc")
 (declare-function semantic-analyze-unsplit-name "semantic/analyze/fcn")
 (declare-function semantic-complete-analyze-inline-idle "semantic/complete")
 (declare-function semanticdb-deep-find-tags-by-name "semantic/db-find")
@@ -730,8 +728,8 @@ specific to a major mode.  For example, in jde mode:
   :group 'semantic
   :type 'hook)
 
-(defun semantic-idle-summary-idle-function ()
-  "Display a tag summary of the lexical token under the cursor.
+(defun semantic--eldoc-info (_callback &rest _)
+  "Return the eldoc info for the current symbol.
 Call `semantic-idle-summary-current-symbol-info' for getting the
 current tag to display information."
   (or (eq major-mode 'emacs-lisp-mode)
@@ -741,21 +739,7 @@ current tag to display information."
                         ((semantic-tag-p found)
                          (funcall semantic-idle-summary-function
                                   found nil t)))))
-	;; Show the message with eldoc functions
-        (unless (and str (boundp 'eldoc-echo-area-use-multiline-p)
-                     eldoc-echo-area-use-multiline-p)
-          (let ((w (1- (window-width (minibuffer-window)))))
-            (if (> (length str) w)
-                (setq str (substring str 0 w)))))
-	;; I borrowed some bits from eldoc to shorten the
-	;; message.
-	(when semantic-idle-truncate-long-summaries
-	  (let ((ea-width (1- (window-width (minibuffer-window))))
-		(strlen (length str)))
-	    (when (> strlen ea-width)
-	      (setq str (substring str 0 ea-width)))))
-	;; Display it
-        (eldoc-message str))))
+        str)))
 
 (define-minor-mode semantic-idle-summary-mode
   "Toggle Semantic Idle Summary mode.
@@ -764,30 +748,16 @@ When this minor mode is enabled, the echo area displays a summary
 of the lexical token at point whenever Emacs is idle."
   :group 'semantic
   :group 'semantic-modes
-  (if semantic-idle-summary-mode
-      ;; Enable the mode
-      (progn
-	(unless (and (featurep 'semantic) (semantic-active-p))
-	  ;; Disable minor mode if semantic stuff not available
-	  (setq semantic-idle-summary-mode nil)
-	  (error "Buffer %s was not set up for parsing"
-		 (buffer-name)))
-	(require 'eldoc)
-	(semantic-idle-scheduler-add 'semantic-idle-summary-idle-function)
-	(add-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t))
-    ;; Disable the mode
-    (semantic-idle-scheduler-remove 'semantic-idle-summary-idle-function)
-    (remove-hook 'pre-command-hook 'semantic-idle-summary-refresh-echo-area t)))
-
-(defun semantic-idle-summary-refresh-echo-area ()
-  (and semantic-idle-summary-mode
-       eldoc-last-message
-       (if (and (not executing-kbd-macro)
-		(not (and (boundp 'edebug-active) edebug-active))
-		(not cursor-in-echo-area)
-		(not (eq (selected-window) (minibuffer-window))))
-           (eldoc-message eldoc-last-message)
-         (setq eldoc-last-message nil))))
+  (remove-hook 'eldoc-documentation-functions #'semantic--eldoc-info t)
+  (when semantic-idle-summary-mode
+    ;; Enable the mode
+    (unless (and (featurep 'semantic) (semantic-active-p))
+      ;; Disable minor mode if semantic stuff not available
+      (setq semantic-idle-summary-mode nil)
+      (error "Buffer %s was not set up for parsing"
+	     (buffer-name)))
+    (add-hook 'eldoc-documentation-functions #'semantic--eldoc-info nil t)
+    (eldoc-mode 1)))
 
 (semantic-add-minor-mode 'semantic-idle-summary-mode "")
 
@@ -1092,7 +1062,7 @@ be called."
     ;; mouse-3 pops up a context menu
     (define-key map
       [ header-line mouse-3 ]
-      'semantic-idle-breadcrumbs--popup-menu)
+      #'semantic-idle-breadcrumbs--popup-menu)
     map)
   "Keymap for semantic idle breadcrumbs minor mode.")
 

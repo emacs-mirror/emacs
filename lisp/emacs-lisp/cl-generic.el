@@ -425,6 +425,16 @@ the specializer used will be the one returned by BODY."
 (defun cl-generic--method-qualifier-p (x)
   (not (listp x)))
 
+(defun cl--defmethod-doc-pos ()
+  "Return the index of the docstring for a `cl-defmethod'.
+Presumes point is at the end of the `cl-defmethod' symbol."
+  (save-excursion
+    (let ((n 2))
+      (while (and (ignore-errors (forward-sexp 1) t)
+                  (not (eq (char-before) ?\))))
+        (cl-incf n))
+      n)))
+
 ;;;###autoload
 (defmacro cl-defmethod (name args &rest body)
   "Define a new method for generic function NAME.
@@ -445,8 +455,12 @@ all methods of NAME have to use the same set of arguments for dispatch.
 Each dispatch argument and TYPE are specified in ARGS where the corresponding
 formal argument appears as (VAR TYPE) rather than just VAR.
 
-The optional second argument QUALIFIER is a specifier that
-modifies how the method is combined with other methods, including:
+The optional EXTRA element, on the form `:extra STRING', allows
+you to add more methods for the same specializers and qualifiers.
+These are distinguished by STRING.
+
+The optional argument QUALIFIER is a specifier that modifies how
+the method is combined with other methods, including:
    :before  - Method will be called before the primary
    :after   - Method will be called after the primary
    :around  - Method will be called around everything else
@@ -463,8 +477,8 @@ method to be applicable.
 The set of acceptable TYPEs (also called \"specializers\") is defined
 \(and can be extended) by the various methods of `cl-generic-generalizers'.
 
-\(fn NAME [QUALIFIER] ARGS &rest [DOCSTRING] BODY)"
-  (declare (doc-string 3) (indent defun)
+\(fn NAME [EXTRA] [QUALIFIER] ARGS &rest [DOCSTRING] BODY)"
+  (declare (doc-string cl--defmethod-doc-pos) (indent defun)
            (debug
             (&define                    ; this means we are defining something
              [&name [sexp   ;Allow (setf ...) additionally to symbols.
@@ -487,7 +501,7 @@ The set of acceptable TYPEs (also called \"specializers\") is defined
                (or (not (fboundp 'byte-compile-warning-enabled-p))
                    (byte-compile-warning-enabled-p 'obsolete name))
                (let* ((obsolete (get name 'byte-obsolete-info)))
-                 (macroexp--warn-and-return
+                 (macroexp-warn-and-return
                   (macroexp--obsolete-warning name obsolete "generic function")
                   nil)))
          ;; You could argue that `defmethod' modifies rather than defines the

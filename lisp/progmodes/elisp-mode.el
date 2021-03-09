@@ -46,139 +46,112 @@ It has `lisp-mode-abbrev-table' as its parent."
   "Syntax table used in `emacs-lisp-mode'.")
 
 (defvar emacs-lisp-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "Emacs-Lisp"))
-	(lint-map (make-sparse-keymap))
-	(prof-map (make-sparse-keymap))
-	(tracing-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\t" 'completion-at-point)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
-    (bindings--define-key map [menu-bar emacs-lisp]
-      (cons "Emacs-Lisp" menu-map))
-    (bindings--define-key menu-map [eldoc]
-      '(menu-item "Auto-Display Documentation Strings" eldoc-mode
-		  :button (:toggle . (bound-and-true-p eldoc-mode))
-		  :help "Display the documentation string for the item under cursor"))
-    (bindings--define-key menu-map [checkdoc]
-      '(menu-item "Check Documentation Strings" checkdoc
-		  :help "Check documentation strings for style requirements"))
-    (bindings--define-key menu-map [re-builder]
-      '(menu-item "Construct Regexp" re-builder
-		  :help "Construct a regexp interactively"))
-    (bindings--define-key menu-map [tracing] (cons "Tracing" tracing-map))
-    (bindings--define-key tracing-map [tr-a]
-      '(menu-item "Untrace All" untrace-all
-		  :help "Untrace all currently traced functions"))
-    (bindings--define-key tracing-map [tr-uf]
-      '(menu-item "Untrace Function..." untrace-function
-		  :help "Untrace function, and possibly activate all remaining advice"))
-    (bindings--define-key tracing-map [tr-sep] menu-bar-separator)
-    (bindings--define-key tracing-map [tr-q]
-      '(menu-item "Trace Function Quietly..." trace-function-background
-		  :help "Trace the function with trace output going quietly to a buffer"))
-    (bindings--define-key tracing-map [tr-f]
-      '(menu-item "Trace Function..." trace-function
-		  :help "Trace the function given as an argument"))
-    (bindings--define-key menu-map [profiling] (cons "Profiling" prof-map))
-    (bindings--define-key prof-map [prof-restall]
-      '(menu-item "Remove Instrumentation for All Functions" elp-restore-all
-		  :help "Restore the original definitions of all functions being profiled"))
-    (bindings--define-key prof-map [prof-restfunc]
-      '(menu-item "Remove Instrumentation for Function..." elp-restore-function
-		  :help "Restore an instrumented function to its original definition"))
-
-    (bindings--define-key prof-map [sep-rem] menu-bar-separator)
-    (bindings--define-key prof-map [prof-resall]
-      '(menu-item "Reset Counters for All Functions" elp-reset-all
-		  :help "Reset the profiling information for all functions being profiled"))
-    (bindings--define-key prof-map [prof-resfunc]
-      '(menu-item "Reset Counters for Function..." elp-reset-function
-		  :help "Reset the profiling information for a function"))
-    (bindings--define-key prof-map [prof-res]
-      '(menu-item "Show Profiling Results" elp-results
-		  :help "Display current profiling results"))
-    (bindings--define-key prof-map [prof-pack]
-      '(menu-item "Instrument Package..." elp-instrument-package
-		  :help "Instrument for profiling all function that start with a prefix"))
-    (bindings--define-key prof-map [prof-func]
-      '(menu-item "Instrument Function..." elp-instrument-function
-		  :help "Instrument a function for profiling"))
-    ;; Maybe this should be in a separate submenu from the ELP stuff?
-    (bindings--define-key prof-map [sep-natprof] menu-bar-separator)
-    (bindings--define-key prof-map [prof-natprof-stop]
-      '(menu-item "Stop Native Profiler" profiler-stop
-		  :help "Stop recording profiling information"
-		  :enable (and (featurep 'profiler)
-			       (profiler-running-p))))
-    (bindings--define-key prof-map [prof-natprof-report]
-      '(menu-item "Show Profiler Report" profiler-report
-		  :help "Show the current profiler report"
-		  :enable (and (featurep 'profiler)
-			       (profiler-running-p))))
-    (bindings--define-key prof-map [prof-natprof-start]
-      '(menu-item "Start Native Profiler..." profiler-start
-		  :help "Start recording profiling information"))
-
-    (bindings--define-key menu-map [lint] (cons "Linting" lint-map))
-    (bindings--define-key lint-map [lint-di]
-      '(menu-item "Lint Directory..." elint-directory
-		  :help "Lint a directory"))
-    (bindings--define-key lint-map [lint-f]
-      '(menu-item "Lint File..." elint-file
-		  :help "Lint a file"))
-    (bindings--define-key lint-map [lint-b]
-      '(menu-item "Lint Buffer" elint-current-buffer
-		  :help "Lint the current buffer"))
-    (bindings--define-key lint-map [lint-d]
-      '(menu-item "Lint Defun" elint-defun
-		  :help "Lint the function at point"))
-    (bindings--define-key menu-map [edebug-defun]
-      '(menu-item "Instrument Function for Debugging" edebug-defun
-		  :help "Evaluate the top level form point is in, stepping through with Edebug"
-		  :keys "C-u C-M-x"))
-    (bindings--define-key menu-map [separator-byte] menu-bar-separator)
-    (bindings--define-key menu-map [disas]
-      '(menu-item "Disassemble Byte Compiled Object..." disassemble
-		  :help "Print disassembled code for OBJECT in a buffer"))
-    (bindings--define-key menu-map [byte-recompile]
-      '(menu-item "Byte-recompile Directory..." byte-recompile-directory
-		  :help "Recompile every `.el' file in DIRECTORY that needs recompilation"))
-    (bindings--define-key menu-map [emacs-byte-compile-and-load]
-      '(menu-item "Byte-compile and Load" emacs-lisp-byte-compile-and-load
-		  :help "Byte-compile the current file (if it has changed), then load compiled code"))
-    (bindings--define-key menu-map [byte-compile]
-      '(menu-item "Byte-compile This File" emacs-lisp-byte-compile
-		  :help "Byte compile the file containing the current buffer"))
-    (bindings--define-key menu-map [separator-eval] menu-bar-separator)
-    (bindings--define-key menu-map [ielm]
-      '(menu-item "Interactive Expression Evaluation" ielm
-		  :help "Interactively evaluate Emacs Lisp expressions"))
-    (bindings--define-key menu-map [eval-buffer]
-      '(menu-item "Evaluate Buffer" eval-buffer
-		  :help "Execute the current buffer as Lisp code"))
-    (bindings--define-key menu-map [eval-region]
-      '(menu-item "Evaluate Region" eval-region
-		  :help "Execute the region as Lisp code"
-		  :enable mark-active))
-    (bindings--define-key menu-map [eval-sexp]
-      '(menu-item "Evaluate Last S-expression" eval-last-sexp
-		  :help "Evaluate sexp before point; print value in echo area"))
-    (bindings--define-key menu-map [separator-format] menu-bar-separator)
-    (bindings--define-key menu-map [comment-region]
-      '(menu-item "Comment Out Region" comment-region
-		  :help "Comment or uncomment each line in the region"
-		  :enable mark-active))
-    (bindings--define-key menu-map [indent-region]
-      '(menu-item "Indent Region" indent-region
-		  :help "Indent each nonblank line in the region"
-		  :enable mark-active))
-    (bindings--define-key menu-map [indent-line]
-      '(menu-item "Indent Line" lisp-indent-line))
     map)
   "Keymap for Emacs Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
+
+(easy-menu-define emacs-lisp-mode-menu emacs-lisp-mode-map
+  "Menu for Emacs Lisp mode."
+  '("Emacs-Lisp"
+    ["Indent Line" lisp-indent-line]
+    ["Indent Region" indent-region
+     :help "Indent each nonblank line in the region"
+     :active mark-active]
+    ["Comment Out Region" comment-region
+     :help "Comment or uncomment each line in the region"
+     :active mark-active]
+    "---"
+    ["Evaluate Last S-expression" eval-last-sexp
+     :help "Evaluate sexp before point; print value in echo area"]
+    ["Evaluate Region" eval-region
+     :help "Execute the region as Lisp code"
+     :active mark-active]
+    ["Evaluate Buffer" eval-buffer
+     :help "Execute the current buffer as Lisp code"]
+    ["Interactive Expression Evaluation" ielm
+     :help "Interactively evaluate Emacs Lisp expressions"]
+    "---"
+    ["Byte-compile This File" emacs-lisp-byte-compile
+     :help "Byte compile the file containing the current buffer"]
+    ["Byte-compile and Load" emacs-lisp-byte-compile-and-load
+     :help "Byte-compile the current file (if it has changed), then load compiled code"]
+    ["Byte-recompile Directory..." byte-recompile-directory
+     :help "Recompile every `.el' file in DIRECTORY that needs recompilation"]
+    ["Disassemble Byte Compiled Object..." disassemble
+     :help "Print disassembled code for OBJECT in a buffer"]
+    "---"
+    ["Instrument Function for Debugging" edebug-defun
+     :help "Evaluate the top level form point is in, stepping through with Edebug"
+     :keys "C-u C-M-x"]
+    ("Navigation"
+     ["Forward Sexp" forward-sexp
+      :help "Go to the next s-expression"]
+     ["Backward Sexp" backward-sexp
+      :help "Go to the previous s-expression"]
+     ["Beginning Of Defun" beginning-of-defun
+      :help "Go to the start of the current function definition"]
+     ["Up List" up-list
+      :help "Go one level up and forward"])
+    ("Linting"
+     ["Lint Defun" elint-defun
+      :help "Lint the function at point"]
+     ["Lint Buffer" elint-current-buffer
+      :help "Lint the current buffer"]
+     ["Lint File..." elint-file
+      :help "Lint a file"]
+     ["Lint Directory..." elint-directory
+      :help "Lint a directory"])
+    ("Profiling"
+     ;; Maybe this should be in a separate submenu from the ELP stuff?
+     ["Start Native Profiler..." profiler-start
+      :help "Start recording profiling information"]
+     ["Show Profiler Report" profiler-report
+      :help "Show the current profiler report"
+      :active (and (featurep 'profiler)
+                   (profiler-running-p))]
+     ["Stop Native Profiler" profiler-stop
+      :help "Stop recording profiling information"
+      :active (and (featurep 'profiler)
+                   (profiler-running-p))]
+     "---"
+     ["Instrument Function..." elp-instrument-function
+      :help "Instrument a function for profiling"]
+     ["Instrument Package..." elp-instrument-package
+      :help "Instrument for profiling all function that start with a prefix"]
+     ["Show Profiling Results" elp-results
+      :help "Display current profiling results"]
+     ["Reset Counters for Function..." elp-reset-function
+      :help "Reset the profiling information for a function"]
+     ["Reset Counters for All Functions" elp-reset-all
+      :help "Reset the profiling information for all functions being profiled"]
+     "---"
+     ["Remove Instrumentation for All Functions" elp-restore-all
+      :help "Restore the original definitions of all functions being profiled"]
+     ["Remove Instrumentation for Function..." elp-restore-function
+      :help "Restore an instrumented function to its original definition"])
+    ("Tracing"
+     ["Trace Function..." trace-function
+      :help "Trace the function given as an argument"]
+     ["Trace Function Quietly..." trace-function-background
+      :help "Trace the function with trace output going quietly to a buffer"]
+     "---"
+     ["Untrace All" untrace-all
+      :help "Untrace all currently traced functions"]
+     ["Untrace Function..." untrace-function
+      :help "Untrace function, and possibly activate all remaining advice"])
+    ["Construct Regexp" re-builder
+     :help "Construct a regexp interactively"]
+    ["Check Documentation Strings" checkdoc
+     :help "Check documentation strings for style requirements"]
+    ["Auto-Display Documentation Strings" eldoc-mode
+     :help "Display the documentation string for the item under cursor"
+     :style toggle
+     :selected (bound-and-true-p eldoc-mode)]))
 
 (defun emacs-lisp-byte-compile ()
   "Byte compile the file containing the current buffer."
@@ -936,34 +909,30 @@ non-nil result supersedes the xrefs produced by
 ;;; Elisp Interaction mode
 
 (defvar lisp-interaction-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "Lisp-Interaction")))
+  (let ((map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map "\e\t" 'completion-at-point)
     (define-key map "\n" 'eval-print-last-sexp)
-    (bindings--define-key map [menu-bar lisp-interaction]
-      (cons "Lisp-Interaction" menu-map))
-    (bindings--define-key menu-map [eval-defun]
-      '(menu-item "Evaluate Defun" eval-defun
-		  :help "Evaluate the top-level form containing point, or after point"))
-    (bindings--define-key menu-map [eval-print-last-sexp]
-      '(menu-item "Evaluate and Print" eval-print-last-sexp
-		  :help "Evaluate sexp before point; print value into current buffer"))
-    (bindings--define-key menu-map [edebug-defun-lisp-interaction]
-      '(menu-item "Instrument Function for Debugging" edebug-defun
-		  :help "Evaluate the top level form point is in, stepping through with Edebug"
-		  :keys "C-u C-M-x"))
-    (bindings--define-key menu-map [indent-pp-sexp]
-      '(menu-item "Indent or Pretty-Print" indent-pp-sexp
-		  :help "Indent each line of the list starting just after point, or prettyprint it"))
-    (bindings--define-key menu-map [complete-symbol]
-      '(menu-item "Complete Lisp Symbol" completion-at-point
-		  :help "Perform completion on Lisp symbol preceding point"))
     map)
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
+
+(easy-menu-define lisp-interaction-mode-menu lisp-interaction-mode-map
+  "Menu for Lisp Interaction mode."
+  '("Lisp-Interaction"
+    ["Complete Lisp Symbol" completion-at-point
+     :help "Perform completion on Lisp symbol preceding point"]
+    ["Indent or Pretty-Print" indent-pp-sexp
+     :help "Indent each line of the list starting just after point, or prettyprint it"]
+    ["Instrument Function for Debugging" edebug-defun
+     :help "Evaluate the top level form point is in, stepping through with Edebug"
+     :keys "C-u C-M-x"]
+    ["Evaluate and Print" eval-print-last-sexp
+     :help "Evaluate sexp before point; print value into current buffer"]
+    ["Evaluate Defun" eval-defun
+     :help "Evaluate the top-level form containing point, or after point"]))
 
 (define-derived-mode lisp-interaction-mode emacs-lisp-mode "Lisp Interaction"
   "Major mode for typing and evaluating Lisp forms.
@@ -1422,6 +1391,7 @@ which see."
   (interactive "P")
   (cond (edebug-it
 	 (require 'edebug)
+	 (defvar edebug-all-defs)
 	 (eval-defun (not edebug-all-defs)))
 	(t
 	 (if (null eval-expression-debug-on-error)

@@ -52,49 +52,31 @@
     (insert "(cl-defmethod foo ((a (eql smthg)) (b list)) \"Return A+B.\")")
     (checkdoc-defun)))
 
-(ert-deftest checkdoc-cl-defun-with-key-ok ()
-  "Checkdoc should be happy with a cl-defun using &key."
+(ert-deftest checkdoc-cl-defmethod-qualified-ok ()
+  "Checkdoc should be happy with a `cl-defmethod' using qualifiers."
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "(cl-defun foo (&key a (b 27)) \"Return :A+:B.\")")
+    (insert "(cl-defmethod test :around ((a (eql smthg))) \"Return A.\")")
     (checkdoc-defun)))
 
-(ert-deftest checkdoc-cl-defun-with-allow-other-keys-ok ()
-  "Checkdoc should be happy with a cl-defun using &allow-other-keys."
+(ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-ok ()
+  "Checkdoc should be happy with a :extra qualified `cl-defmethod'."
   (with-temp-buffer
     (emacs-lisp-mode)
-    (insert "(cl-defun foo (&key a &allow-other-keys) \"Return :A.\")")
+    (insert "(cl-defmethod foo :extra \"foo\" ((a (eql smthg))) \"Return A.\")")
+    (checkdoc-defun))
+
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (insert
+     "(cl-defmethod foo :extra \"foo\" :after ((a (eql smthg))) \"Return A.\")")
     (checkdoc-defun)))
 
-(ert-deftest checkdoc-cl-defun-with-default-optional-value-ok ()
-  "Checkdoc should be happy with a cl-defun using default values for optional args."
+(ert-deftest checkdoc-cl-defmethod-with-extra-qualifier-and-nil-args-ok ()
+  "Checkdoc should be happy with a 0-arity :extra qualified `cl-defmethod'."
   (with-temp-buffer
     (emacs-lisp-mode)
-    ;; B is optional and equals 1+a if not provided. HAS-BS is non-nil
-    ;; if B was provided in the call:
-    (insert "(cl-defun foo (a &optional (b (1+ a) has-bs)) \"Return A + B.\")")
-    (checkdoc-defun)))
-
-(ert-deftest checkdoc-cl-defun-with-destructuring-ok ()
-  "Checkdoc should be happy with a cl-defun destructuring its arguments."
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (insert "(cl-defun foo ((a b &optional c) d) \"Return A+B+C+D.\")")
-    (checkdoc-defun)))
-
-(ert-deftest checkdoc-cl-defmethod-ok ()
-  "Checkdoc should be happy with a simple correct cl-defmethod."
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (insert "(cl-defmethod foo (a) \"Return A.\")")
-    (checkdoc-defun)))
-
-(ert-deftest checkdoc-cl-defmethod-with-types-ok ()
-  "Checkdoc should be happy with a cl-defmethod using types."
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    ;; this method matches if A is the symbol `smthg' and if b is a list:
-    (insert "(cl-defmethod foo ((a (eql smthg)) (b list)) \"Return A+B.\")")
+    (insert "(cl-defmethod foo :extra \"foo\" () \"Return A.\")")
     (checkdoc-defun)))
 
 (ert-deftest checkdoc-cl-defun-with-key-ok ()

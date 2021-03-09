@@ -75,8 +75,8 @@ example, it is our convention to have commands that list objects named
 as @samp{list-@var{something}}, e.g., a package called @samp{frob}
 could have a command @samp{list-frobs}, when its other global symbols
 begin with @samp{frob-}.  Also, constructs that define functions,
-variables, etc., work better if they start with @samp{defun} or
-@samp{defvar}, so put the name prefix later on in the name.
+variables, etc., work better if they start with @samp{define-}, so put
+the name prefix later on in the name.
 
 This recommendation applies even to names for traditional Lisp
 primitives that are not primitives in Emacs Lisp---such as

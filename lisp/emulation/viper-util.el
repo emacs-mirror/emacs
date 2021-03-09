@@ -24,8 +24,7 @@
 
 ;;; Code:
 
-(provide 'viper-util)
-
+(require 'seq)
 
 ;; Compiler pacifier
 (defvar viper-minibuffer-current-face)
@@ -47,22 +46,22 @@
 
 
 
-(define-obsolete-function-alias 'viper-overlay-p 'overlayp "27.1")
-(define-obsolete-function-alias 'viper-make-overlay 'make-overlay "27.1")
-(define-obsolete-function-alias 'viper-overlay-live-p 'overlayp "27.1")
-(define-obsolete-function-alias 'viper-move-overlay 'move-overlay "27.1")
-(define-obsolete-function-alias 'viper-overlay-start 'overlay-start "27.1")
-(define-obsolete-function-alias 'viper-overlay-end 'overlay-end "27.1")
-(define-obsolete-function-alias 'viper-overlay-get 'overlay-get "27.1")
-(define-obsolete-function-alias 'viper-overlay-put 'overlay-put "27.1")
-(define-obsolete-function-alias 'viper-read-event 'read-event "27.1")
-(define-obsolete-function-alias 'viper-characterp 'integerp "27.1")
-(define-obsolete-function-alias 'viper-int-to-char 'identity "27.1")
-(define-obsolete-function-alias 'viper-get-face 'facep "27.1")
+(define-obsolete-function-alias 'viper-overlay-p #'overlayp "27.1")
+(define-obsolete-function-alias 'viper-make-overlay #'make-overlay "27.1")
+(define-obsolete-function-alias 'viper-overlay-live-p #'overlayp "27.1")
+(define-obsolete-function-alias 'viper-move-overlay #'move-overlay "27.1")
+(define-obsolete-function-alias 'viper-overlay-start #'overlay-start "27.1")
+(define-obsolete-function-alias 'viper-overlay-end #'overlay-end "27.1")
+(define-obsolete-function-alias 'viper-overlay-get #'overlay-get "27.1")
+(define-obsolete-function-alias 'viper-overlay-put #'overlay-put "27.1")
+(define-obsolete-function-alias 'viper-read-event #'read-event "27.1")
+(define-obsolete-function-alias 'viper-characterp #'integerp "27.1")
+(define-obsolete-function-alias 'viper-int-to-char #'identity "27.1")
+(define-obsolete-function-alias 'viper-get-face #'facep "27.1")
 (define-obsolete-function-alias 'viper-color-defined-p
-  'x-color-defined-p "27.1")
+  #'x-color-defined-p "27.1")
 (define-obsolete-function-alias 'viper-iconify
-  'iconify-or-deiconify-frame "27.1")
+  #'iconify-or-deiconify-frame "27.1")
 
 
 ;; CHAR is supposed to be a char or an integer (positive or negative)
@@ -269,10 +268,10 @@ Otherwise return the normal value."
 ;; Then, each time this var is used in `viper-move-marker-locally' in a new
 ;; buffer, a new marker will be created.
 (defun viper-move-marker-locally (var pos &optional buffer)
-  (if (markerp (eval var))
+  (if (markerp (symbol-value var))
       ()
     (set var (make-marker)))
-  (move-marker (eval var) pos buffer))
+  (move-marker (symbol-value var) pos buffer))
 
 
 ;; Print CONDITIONS as a message.
@@ -280,7 +279,7 @@ Otherwise return the normal value."
   (let ((case (car conditions)) (msg (cdr conditions)))
     (if (null msg)
 	(message "%s" case)
-      (message "%s: %s" case (mapconcat 'prin1-to-string msg " ")))
+      (message "%s: %s" case (mapconcat #'prin1-to-string msg " ")))
     (beep 1)))
 
 
@@ -453,7 +452,7 @@ Otherwise return the normal value."
 				  "$"))
 			 tmp2))
 	(setq tmp (cdr tmp)))
-      (reverse (apply 'append tmp2)))))
+      (reverse (apply #'append tmp2)))))
 
 
 ;;; Insertion ring
@@ -488,11 +487,11 @@ Otherwise return the normal value."
 
 ;; Push item onto ring.  The second argument is a ring-variable, not value.
 (defun viper-push-onto-ring (item ring-var)
-  (or (ring-p (eval ring-var))
-      (set ring-var (make-ring (eval (intern (format "%S-size" ring-var))))))
+  (or (ring-p (symbol-value ring-var))
+      (set ring-var (make-ring (symbol-value (intern (format "%S-size" ring-var))))))
   (or (null item) ; don't push nil
       (and (stringp item) (string= item "")) ; or empty strings
-      (equal item (viper-current-ring-item (eval ring-var))) ; or old stuff
+      (equal item (viper-current-ring-item (symbol-value ring-var))) ; or old stuff
       ;; Since viper-set-destructive-command checks if we are inside
       ;; viper-repeat, we don't check whether this-command-keys is a `.'.  The
       ;; cmd viper-repeat makes a call to the current function only if `.' is
@@ -505,7 +504,7 @@ Otherwise return the normal value."
       (and (eq ring-var 'viper-command-ring)
 	   (string-match "\\([0-9]*\e\\|^[ \t]*$\\|escape\\)"
 			 (viper-array-to-string (this-command-keys))))
-      (viper-ring-insert (eval ring-var) item))
+      (viper-ring-insert (symbol-value ring-var) item))
   )
 
 
@@ -595,7 +594,7 @@ Otherwise return the normal value."
 ;; Arguments: var message file &optional erase-message
 (defun viper-save-setting (var message file &optional erase-msg)
   (let* ((var-name (symbol-name var))
-	 (var-val (if (boundp var) (eval var)))
+	 (var-val (if (boundp var) (symbol-value var)))
 	 (regexp (format "^[^;]*%s[ \t\n]*[a-zA-Z0-9---_']*[ \t\n)]" var-name))
 	 (buf (find-file-noselect (substitute-in-file-name file)))
 	)
@@ -795,7 +794,7 @@ Otherwise return the normal value."
 ;;; XEmacs compatibility
 
 (define-obsolete-function-alias 'viper-abbreviate-file-name
-  'abbreviate-file-name "27.1")
+  #'abbreviate-file-name "27.1")
 
 (defsubst viper-sit-for-short (val &optional nodisp)
   (declare (obsolete nil "28.1"))
@@ -815,7 +814,7 @@ Otherwise return the normal value."
 	(with-current-buffer buf
 	  (and (<= pos (point-max)) (<= (point-min) pos))))))
 
-(define-obsolete-function-alias 'viper-mark-marker 'mark-marker "27.1")
+(define-obsolete-function-alias 'viper-mark-marker #'mark-marker "27.1")
 
 (defvar viper-saved-mark nil
   "Where viper saves mark.  This mark is resurrected by m^.")
@@ -831,9 +830,9 @@ Otherwise return the normal value."
 ;; highlighted due to Viper's pushing marks.  So, we deactivate marks,
 ;; unless the user explicitly wants highlighting, e.g., by hitting ''
 ;; or ``
-(define-obsolete-function-alias 'viper-deactivate-mark 'deactivate-mark "27.1")
+(define-obsolete-function-alias 'viper-deactivate-mark #'deactivate-mark "27.1")
 
-(define-obsolete-function-alias 'viper-leave-region-active 'ignore "27.1")
+(define-obsolete-function-alias 'viper-leave-region-active #'ignore "27.1")
 
 ;; Check if arg is a valid character for register
 ;; TYPE is a list that can contain `letter', `Letter', and `digit'.
@@ -852,7 +851,7 @@ Otherwise return the normal value."
 
 
 
-(define-obsolete-function-alias 'viper-copy-event 'identity "27.1")
+(define-obsolete-function-alias 'viper-copy-event #'identity "27.1")
 
 ;; Uses different timeouts for ESC-sequences and others
 (defun viper-fast-keysequence-p ()
@@ -862,7 +861,7 @@ Otherwise return the normal value."
 	        t)))
 
 (define-obsolete-function-alias 'viper-read-event-convert-to-char
-  'read-event "27.1")
+  #'read-event "27.1")
 
 
 ;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)
@@ -941,20 +940,20 @@ Otherwise return the normal value."
 		     (car (read-from-string
 			   (concat
 			    "?\\"
-			    (mapconcat 'identity mod-char-list "-\\")
+			    (mapconcat #'identity mod-char-list "-\\")
 			    "-"
 			    base-key-name))))
 	     (setq key-name
 		   (intern
 		    (concat
-		     (mapconcat 'identity mod-char-list "-")
+		     (mapconcat #'identity mod-char-list "-")
 		     "-"
 		     base-key-name))))))
     ))
 
 
 ;; LIS is assumed to be a list of events of characters
-(define-obsolete-function-alias 'viper-eventify-list-xemacs 'ignore "27.1")
+(define-obsolete-function-alias 'viper-eventify-list-xemacs #'ignore "27.1")
 
 
 ;; Arg is a character, an event, a list of events or a sequence of
@@ -985,22 +984,20 @@ Otherwise return the normal value."
 ;; XEmacs only
 (defun viper-event-vector-p (vec)
   (and (vectorp vec)
-       (eval (cons 'and (mapcar (lambda (elt) (if (eventp elt) t)) vec)))))
+       (seq-every-p (lambda (elt) (if (eventp elt) t)) vec)))
 
 
 ;; check if vec is a vector of character symbols
 (defun viper-char-symbol-sequence-p (vec)
   (and
    (sequencep vec)
-   (eval
-    (cons 'and
-	  (mapcar (lambda (elt)
-		    (and (symbolp elt) (= (length (symbol-name elt)) 1)))
-		  vec)))))
+   (seq-every-p (lambda (elt)
+		  (and (symbolp elt) (= (length (symbol-name elt)) 1)))
+		vec)))
 
 
 (defun viper-char-array-p (array)
-  (eval (cons 'and (mapcar 'characterp array))))
+  (seq-every-p #'characterp array))
 
 
 ;; Args can be a sequence of events, a string, or a Viper macro.  Will try to
@@ -1012,19 +1009,19 @@ Otherwise return the normal value."
   (let (temp temp2)
     (cond ((stringp event-seq) event-seq)
 	  ((viper-event-vector-p event-seq)
-	    (setq temp (mapcar 'viper-event-key event-seq))
+	    (setq temp (mapcar #'viper-event-key event-seq))
 	    (cond ((viper-char-symbol-sequence-p temp)
-		   (mapconcat 'symbol-name temp ""))
+		   (mapconcat #'symbol-name temp ""))
 		  ((and (viper-char-array-p
-			 (setq temp2 (mapcar 'viper-key-to-character temp))))
-		   (mapconcat 'char-to-string temp2 ""))
+			 (setq temp2 (mapcar #'viper-key-to-character temp))))
+		   (mapconcat #'char-to-string temp2 ""))
 		  (t (prin1-to-string (vconcat temp)))))
 	  ((viper-char-symbol-sequence-p event-seq)
-	   (mapconcat 'symbol-name event-seq ""))
+	   (mapconcat #'symbol-name event-seq ""))
 	  ((and (vectorp event-seq)
 		(viper-char-array-p
-		 (setq temp (mapcar 'viper-key-to-character event-seq))))
-	   (mapconcat 'char-to-string temp ""))
+		 (setq temp (mapcar #'viper-key-to-character event-seq))))
+	   (mapconcat #'char-to-string temp ""))
 	  (t (prin1-to-string event-seq)))))
 
 (defun viper-key-press-events-to-chars (events)
@@ -1172,7 +1169,7 @@ syntax tables.
 This option is appropriate if you like Emacs-style words."
   :type '(radio (const strict-vi) (const reformed-vi)
 		 (const extended) (const emacs))
-  :set 'viper-set-syntax-preference
+  :set #'viper-set-syntax-preference
   :group 'viper)
 (make-variable-buffer-local 'viper-syntax-preference)
 
@@ -1375,4 +1372,5 @@ This option is appropriate if you like Emacs-style words."
 		 (setq i (1+ i) start (1+ start)))
 	       res))))))
 
+(provide 'viper-util)
 ;;; viper-util.el ends here

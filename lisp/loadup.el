@@ -263,6 +263,7 @@
     (load "scroll-bar"))
 (load "select")
 (load "emacs-lisp/timer")
+(load "emacs-lisp/easymenu")
 (load "isearch")
 (load "rfn-eshadow")
 

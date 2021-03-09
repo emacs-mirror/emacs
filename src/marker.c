@@ -634,16 +634,15 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer,
 /* Detach a marker so that it no longer points anywhere and no longer
    slows down editing.  Do not free the marker, though, as a change
    function could have inserted it into an undo list (Bug#30931).  */
+
 void
 detach_marker (Lisp_Object marker)
 {
   Fset_marker (marker, Qnil, Qnil);
 }
 
-/* Remove MARKER from the chain of whatever buffer it is in,
-   leaving it points to nowhere.  This is called during garbage
-   collection, so we must be careful to ignore and preserve
-   mark bits, including those in chain fields of markers.  */
+/* Remove MARKER from the chain of whatever buffer it is in.  Set its
+   buffer NULL.  */
 
 void
 unchain_marker (register struct Lisp_Marker *marker)

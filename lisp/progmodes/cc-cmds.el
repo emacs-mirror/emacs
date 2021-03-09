@@ -1639,7 +1639,7 @@ No indentation or other \"electric\" behavior is performed."
   ;;
   ;; This function might do hidden buffer changes.
   (save-excursion
-    (let* (kluge-start
+    (let* (knr-start knr-res
 	   decl-result brace-decl-p
 	   (start (point))
 	   (paren-state (c-parse-state))
@@ -1670,63 +1670,39 @@ No indentation or other \"electric\" behavior is performed."
 		    (not (looking-at c-defun-type-name-decl-key))))))
 	'at-function-end)
        (t
-	;; Find the start of the current declaration.  NOTE: If we're in the
-	;; variables after a "struct/eval" type block, we don't get to the
-	;; real declaration here - we detect and correct for this later.
-
-	;;If we're in the parameters' parens, move back out of them.
-	(if least-enclosing (goto-char least-enclosing))
-	;; Kluge so that c-beginning-of-decl-1 won't go back if we're already
-	;; at a declaration.
-	(if (or (and (eolp) (not (eobp))) ; EOL is matched by "\\s>"
-		(not (looking-at
-"\\([;#]\\|\\'\\|\\s(\\|\\s)\\|\\s\"\\|\\s\\\\|\\s$\\|\\s<\\|\\s>\\|\\s!\\)")))
-	    (forward-char))
-	(setq kluge-start (point))
-	;; First approximation as to whether the current "header" we're in is
-	;; one followed by braces.
-	(setq brace-decl-p
-	      (save-excursion
-		(and (c-syntactic-re-search-forward "[;{]" nil t t)
-		     (or (eq (char-before) ?\{)
-			 (and c-recognize-knr-p
-			      ;; Might have stopped on the
-			      ;; ';' in a K&R argdecl.  In
-			      ;; that case the declaration
-			      ;; should contain a block.
-			      (c-in-knr-argdecl))))))
-	(setq decl-result
-	      (car (c-beginning-of-decl-1
-		    ;; NOTE: If we're in a K&R region, this might be the start
-		    ;; of a parameter declaration, not the actual function.
-		    ;; It might also leave us at a label or "label" like
-		    ;; "private:".
-		    (and least-enclosing ; LIMIT for c-b-of-decl-1
-			 (c-safe-position least-enclosing paren-state)))))
-
-	;; Has the declaration we've gone back to got braces?
-	(if (or (eq decl-result 'label)
-		(looking-at c-protection-key))
-	    (setq brace-decl-p nil))
-
-	(cond
-	 ((or (eq decl-result 'label)	; e.g. "private:" or invalid syntax.
-	      (= (point) kluge-start))	; might be BOB or unbalanced parens.
-	  'outwith-function)
-	 ((eq decl-result 'same)
-	  (if brace-decl-p
-	      (if (eq (point) start)
-		  'at-header
+	(if (and least-enclosing
+		 (eq (char-after least-enclosing) ?\())
+	    (c-go-list-forward least-enclosing))
+	(c-forward-syntactic-ws)
+	(setq knr-start (point))
+	(if (c-syntactic-re-search-forward "{" nil t t)
+	    (progn
+	      (backward-char)
+	      (cond
+	       ((or (progn
+		      (c-backward-syntactic-ws)
+		      (<= (point) start))
+		    (and c-recognize-knr-p
+			 (and (setq knr-res (c-in-knr-argdecl))
+			      (<= knr-res knr-start))))
 		'in-header)
-	    'outwith-function))
-	 ((eq decl-result 'previous)
-	  (if (and (not brace-decl-p)
-		   (c-in-function-trailer-p))
-	      'at-function-end
-	    'outwith-function))
-	 (t (error
-	     "c-where-wrt-brace-construct: c-beginning-of-decl-1 returned %s"
-	     decl-result))))))))
+	       ((and knr-res
+		     (goto-char knr-res)
+		     (c-backward-syntactic-ws))) ; Always returns nil.
+	       ((and (eq (char-before) ?\))
+		     (c-go-list-backward))
+		(c-syntactic-skip-backward "^;" start t)
+		(if (eq (point) start)
+		    (if (progn (c-backward-syntactic-ws)
+			       (memq (char-before) '(?\; ?} nil)))
+			(if (progn (c-forward-syntactic-ws)
+				   (eq (point) start))
+			    'at-header
+			  'outwith-function)
+		      'in-header)
+		  'outwith-function))
+	       (t 'outwith-function)))
+	  'outwith-function))))))
 
 (defun c-backward-to-nth-BOF-{ (n where)
   ;; Skip to the opening brace of the Nth function before point.  If
@@ -1749,9 +1725,11 @@ No indentation or other \"electric\" behavior is performed."
     (goto-char (c-least-enclosing-brace (c-parse-state)))
     (setq n (1- n)))
    ((eq where 'in-header)
-    (c-syntactic-re-search-forward "{")
-    (backward-char)
-    (setq n (1- n)))
+    (let ((encl-paren (c-least-enclosing-brace (c-parse-state))))
+      (if encl-paren (goto-char encl-paren))
+      (c-syntactic-re-search-forward "{" nil t t)
+      (backward-char)
+      (setq n (1- n))))
    ((memq where '(at-header outwith-function at-function-end in-trailer))
     (c-syntactic-skip-backward "^}")
     (when (eq (char-before) ?\})
@@ -1965,14 +1943,14 @@ defun."
     ;; The actual movement is done below.
     (setq n (1- n)))
    ((memq where '(at-function-end outwith-function at-header in-header))
-    (when (c-syntactic-re-search-forward "{" nil 'eob)
+    (if (eq where 'in-header)
+	(let ((pos (c-least-enclosing-brace (c-parse-state))))
+	  (if pos (c-go-list-forward pos))))
+    (when (c-syntactic-re-search-forward "{" nil 'eob t)
       (backward-char)
       (forward-sexp)
       (setq n (1- n))))
    (t (error "c-forward-to-nth-EOF-\\;-or-}: `where' is %s" where)))
-
-  (when (c-in-function-trailer-p)
-    (c-syntactic-re-search-forward ";" nil 'eob t))
 
   ;; Each time round the loop, go forward to a "}" at the outermost level.
   (while (and (> n 0) (not (eobp)))
@@ -1980,6 +1958,9 @@ defun."
       (backward-char)
       (forward-sexp)
       (setq n (1- n))))
+
+  (when (c-in-function-trailer-p)
+    (c-syntactic-re-search-forward ";" nil 'eob t))
   n)
 
 (defun c-end-of-defun (&optional arg)

@@ -1,4 +1,4 @@
-;;; semantic/bovine/grammar.el --- Bovine's input grammar mode
+;;; semantic/bovine/grammar.el --- Bovine's input grammar mode  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 ;;
@@ -243,7 +243,8 @@ QUOTEMODE is the mode in which quoted symbols are slurred."
       (insert "\n")
       (cond
        ((eq (car sexp) 'EXPAND)
-        (insert ",(lambda (vals start end)")
+        (insert ",(lambda (vals start end)"
+                "\n(ignore vals start end)")
         ;; The EXPAND macro definition is mandatory
         (bovine-grammar-expand-form
          (apply (cdr (assq 'EXPAND bovine--grammar-macros)) (cdr sexp))
@@ -520,7 +521,8 @@ Menu items are appended to the common grammar menu.")
 	(goto-char (point-min))
 	(delete-region (point-min) (line-end-position))
 	(insert ";;; " packagename
-		" --- Generated parser support file")
+		  " --- Generated parser support file  "
+		  "-*- lexical-binding:t -*-")
 	(delete-trailing-whitespace)
 	(re-search-forward ";;; \\(.*\\) ends here")
 	(replace-match packagename nil nil nil 1)))))

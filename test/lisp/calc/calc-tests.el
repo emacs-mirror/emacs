@@ -707,6 +707,82 @@ An existing calc stack is reused, otherwise a new one is created."
                             (var c var-c))))))
     (calc-set-language nil)))
 
+(defvar var-g)
+
+;; Test `let'.
+(defmath test1 (x)
+  (let ((x (+ x 1))
+        (y (+ x 3)))
+    (let ((z (+ y 6)))
+      (* x y z g))))
+
+;; Test `let*'.
+(defmath test2 (x)
+  (let* ((y (+ x 1))
+         (z (+ y 3)))
+    (let* ((u (+ z 6)))
+      (* x y z u g))))
+
+;; Test `for'.
+(defmath test3 (x)
+  (let ((s 0))
+    (for ((ii 1 x)
+          (jj 1 ii))
+      (setq s (+ s (* ii jj))))
+    s))
+
+;; Test `for' with non-unit stride.
+(defmath test4 (x)
+  (let ((l nil))
+    (for ((ii 1 x 1)
+          (jj 1 10 ii))
+      (setq l ('cons jj l)))       ; Use Lisp `cons', not `calcFunc-cons'.
+    (reverse l)))
+
+;; Test `foreach'.
+(defmath test5 (x)
+  (let ((s 0))
+    (foreach ((a x)
+              (b a))
+      (setq s (+ s b)))
+    s))
+
+;; Test `break'.
+(defmath test6 (x)
+  (let ((a (for ((ii 1 10))
+             (when (= ii x)
+               (break (* ii 2)))))
+        (b (foreach ((e '(9 3 6)))
+             (when (= e x)
+               (break (- e 1))))))
+    (* a b)))
+
+;; Test `return' from `for'.
+(defmath test7 (x)
+  (for ((ii 1 10))
+    (when (= ii x)
+      (return (* ii 2))))
+  5)
+
+(ert-deftest calc-defmath ()
+  (let ((var-g 17))
+    (should (equal (calcFunc-test1 2) (* 3 5 11 17)))
+    (should (equal (calcFunc-test2 2) (* 2 3 6 12 17))))
+  (should (equal (calcFunc-test3 3)
+                 (+ (* 1 1)
+                    (* 2 1) (* 2 2)
+                    (* 3 1) (* 3 2) (* 3 3))))
+  (should (equal (calcFunc-test4 5)
+                 '( 1 2 3 4 5 6 7 8 9 10
+                    1 3 5 7 9
+                    1 4 7 10
+                    1 5 9
+                    1 6)))
+  (should (equal (calcFunc-test5 '((2 3) (5) (7 11 13)))
+                 (+ 2 3 5 7 11 13)))
+  (should (equal (calcFunc-test6 3) (* (* 3 2) (- 3 1))))
+  (should (equal (calcFunc-test7 3) (* 3 2))))
+
 (provide 'calc-tests)
 ;;; calc-tests.el ends here
 

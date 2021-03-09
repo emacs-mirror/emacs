@@ -1199,6 +1199,29 @@ interpreted and compiled."
       (should (equal (funcall (eval fun t)) '(c d)))
       (should (equal (funcall (byte-compile fun)) '(c d))))))
 
+(ert-deftest bytecomp-reify-function ()
+  "Check that closures that modify their bound variables are
+compiled correctly."
+  (cl-letf ((lexical-binding t)
+            ((symbol-function 'counter) nil))
+    (let ((x 0))
+      (defun counter () (cl-incf x))
+      (should (equal (counter) 1))
+      (should (equal (counter) 2))
+      ;; byte compiling should not cause counter to always return the
+      ;; same value (bug#46834)
+      (byte-compile 'counter)
+      (should (equal (counter) 3))
+      (should (equal (counter) 4)))
+    (let ((x 0))
+      (let ((x 1))
+        (defun counter () x)
+        (should (equal (counter) 1))
+        ;; byte compiling should not cause the outer binding to shadow
+        ;; the inner one (bug#46834)
+        (byte-compile 'counter)
+        (should (equal (counter) 1))))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

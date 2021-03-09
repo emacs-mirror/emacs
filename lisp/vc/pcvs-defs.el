@@ -1,4 +1,4 @@
-;;; pcvs-defs.el --- variable definitions for PCL-CVS
+;;; pcvs-defs.el --- variable definitions for PCL-CVS  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1991-2021 Free Software Foundation, Inc.
 
@@ -71,7 +71,6 @@ versions, such as the one in SunOS-4.")
 
 (defcustom cvs-cvsrc-file (convert-standard-filename "~/.cvsrc")
   "Path to your cvsrc file."
-  :group 'pcl-cvs
   :type '(file))
 
 (defvar cvs-shared-start 4
@@ -96,24 +95,20 @@ If t, they will be removed from the *cvs* buffer after every command.
 If `delayed', they will be removed from the *cvs* buffer before every command.
 If `status', they will only be removed after a `cvs-mode-status' command.
 Else, they will never be automatically removed from the *cvs* buffer."
-  :group 'pcl-cvs
   :type '(choice (const nil) (const status) (const delayed) (const t)))
 
 (defcustom cvs-auto-remove-directories 'handled
   "If `all', directory entries will never be shown.
 If `handled', only non-handled directories will be shown.
 If `empty', only non-empty directories will be shown."
-  :group 'pcl-cvs
   :type '(choice (const :tag "No" nil) (const all) (const handled) (const empty)))
 
 (defcustom cvs-auto-revert t
   "Non-nil if changed files should automatically be reverted."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-sort-ignore-file t
   "Non-nil if `cvs-mode-ignore' should sort the .cvsignore automatically."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-force-dir-tag t
@@ -121,7 +116,6 @@ If `empty', only non-empty directories will be shown."
 Tagging should generally be applied a directory at a time, but sometimes it is
 useful to be able to tag a single file.  The normal way to do that is to use
 `cvs-mode-force-command' so as to temporarily override the restrictions."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-default-ignore-marks nil
@@ -130,7 +124,6 @@ Normally they run on the files that are marked (with `cvs-mode-mark'),
 or the file under the cursor if no files are marked.  If this variable
 is set to a non-nil value they will by default run on the file on the
 current line.  See also `cvs-invert-ignore-marks'."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-invert-ignore-marks
@@ -143,7 +136,6 @@ current line.  See also `cvs-invert-ignore-marks'."
   "List of cvs commands that invert the default ignore-mark behavior.
 Commands in this set will use the opposite default from the one set
 in `cvs-default-ignore-marks'."
-  :group 'pcl-cvs
   :type '(set (const "diff")
 	      (const "tag")
 	      (const "ignore")))
@@ -154,7 +146,6 @@ Non-nil means that PCL-CVS will ask confirmation before removing files
 except for files whose content can readily be recovered from the repository.
 A value of `list' means that the list of files to be deleted will be
 displayed when asking for confirmation."
-  :group 'pcl-cvs
   :type '(choice (const list)
 		 (const t)
 		 (const nil)))
@@ -162,7 +153,6 @@ displayed when asking for confirmation."
 (defcustom cvs-add-default-message nil
   "Default message to use when adding files.
 If set to nil, `cvs-mode-add' will always prompt for a message."
-  :group 'pcl-cvs
   :type '(choice (const :tag "Prompt" nil)
 		 (string)))
 
@@ -171,7 +161,6 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
 If non-nil, `cvs-mode-find-file' will place the cursor at the beginning of
 the modified area.  If the file is not locally modified, this will obviously
 have no effect."
-  :group 'pcl-cvs
   :type '(boolean))
 
 (defcustom cvs-buffer-name-alist
@@ -193,7 +182,6 @@ POSTPROC is a function that should be executed when the command terminates
 
 The CMD used for `cvs-mode-commit' is \"message\".  For that special
   case, POSTPROC is called just after MODE with special arguments."
-  :group 'pcl-cvs
   :type '(repeat
 	  (list (choice (const "diff")
 			(const "status")
@@ -236,7 +224,6 @@ Output from cvs is placed here for asynchronous commands.")
       '(cvs-ediff-diff . cvs-ediff-merge)
     '(cvs-emerge-diff . cvs-emerge-merge))
   "Pair of functions to be used for resp. diff'ing and merg'ing interactively."
-  :group 'pcl-cvs
   :type '(choice (const :tag "Ediff" (cvs-ediff-diff . cvs-ediff-merge))
 		 (const :tag "Emerge" (cvs-emerge-diff . cvs-emerge-merge))))
 
@@ -255,7 +242,6 @@ Alternatives are:
  `samedir': reuse any cvs buffer displaying the same directory
  `subdir':  or reuse any cvs buffer displaying any sub- or super- directory
  `always':  reuse any cvs buffer."
-  :group 'pcl-cvs
   :type '(choice (const always) (const subdir) (const samedir) (const current)))
 
 (defvar cvs-temp-buffer nil
@@ -424,8 +410,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (defcustom cvs-minor-mode-prefix "\C-xc"
   "Prefix key for the `cvs-mode' bindings in `cvs-minor-mode'."
-  :type 'string
-  :group 'pcl-cvs)
+  :type 'string)
 
 (easy-mmode-defmap cvs-minor-mode-map
   `((,cvs-minor-mode-prefix . cvs-mode-map)

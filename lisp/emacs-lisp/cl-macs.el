@@ -565,7 +565,7 @@ its argument list allows full Common Lisp conventions."
                              ,(length (cl-ldiff args p)))
 		  exactarg (not (eq args p)))))
       (while (and args (not (memq (car args) cl--lambda-list-keywords)))
-	(let ((poparg (list (if (or (cdr args) (not exactarg)) 'pop 'car)
+	(let ((poparg (list (if (or (cdr args) (not exactarg)) 'pop 'car-safe)
 			    restarg)))
 	  (cl--do-arglist
 	   (pop args)
@@ -723,7 +723,7 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level.
 (defun cl--compile-time-too (form)
   (or (and (symbolp (car-safe form)) (get (car-safe form) 'byte-hunk-handler))
       (setq form (macroexpand
-		  form (cons '(cl-eval-when) byte-compile-macro-environment))))
+		  form (cons '(cl-eval-when) macroexpand-all-environment))))
   (cond ((eq (car-safe form) 'progn)
 	 (cons 'progn (mapcar #'cl--compile-time-too (cdr form))))
 	((eq (car-safe form) 'cl-eval-when)
@@ -2298,7 +2298,7 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
             ;; The behavior of CL made sense in a dynamically scoped
             ;; language, but nowadays, lexical scoping semantics is more often
             ;; expected.
-            (`(,(or 'let 'let*) . ,(or `(,bindings . ,body) dontcare))
+            (`(,(or 'let 'let*) . ,(or `(,bindings . ,body) pcase--dontcare))
              (let ((nbs ()) (found nil))
                (dolist (binding bindings)
                  (let* ((var (if (symbolp binding) binding (car binding)))
@@ -2393,7 +2393,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
                                                (append bindings venv))
                                          macroexpand-all-environment))))
             (if malformed-bindings
-                (macroexp--warn-and-return
+                (macroexp-warn-and-return
                  (format-message "Malformed `cl-symbol-macrolet' binding(s): %S"
                                  (nreverse malformed-bindings))
                  expansion)
@@ -2511,12 +2511,12 @@ Example:
 		     '(nil byte-compile-inline-expand))
 	       (error "%s already has a byte-optimizer, can't make it inline"
 		      (car spec)))
-	   (put (car spec) 'byte-optimizer 'byte-compile-inline-expand)))
+	   (put (car spec) 'byte-optimizer #'byte-compile-inline-expand)))
 
 	((eq (car-safe spec) 'notinline)
 	 (while (setq spec (cdr spec))
 	   (if (eq (get (car spec) 'byte-optimizer)
-		   'byte-compile-inline-expand)
+		   #'byte-compile-inline-expand)
 	       (put (car spec) 'byte-optimizer nil))))
 
 	((eq (car-safe spec) 'optimize)
@@ -3062,7 +3062,7 @@ Supported keywords for slots are:
                     forms)
               (when (cl-oddp (length desc))
                 (push
-                 (macroexp--warn-and-return
+                 (macroexp-warn-and-return
                   (format "Missing value for option `%S' of slot `%s' in struct %s!"
                           (car (last desc)) slot name)
                   'nil)
@@ -3071,7 +3071,7 @@ Supported keywords for slots are:
                            (not (keywordp (car desc))))
                   (let ((kw (car defaults)))
                     (push
-                     (macroexp--warn-and-return
+                     (macroexp-warn-and-return
                       (format "  I'll take `%s' to be an option rather than a default value."
                               kw)
                       'nil)
@@ -3287,7 +3287,6 @@ does not contain SLOT-NAME."
       (signal 'cl-struct-unknown-slot (list struct-type slot-name))))
 
 (defvar byte-compile-function-environment)
-(defvar byte-compile-macro-environment)
 
 (defun cl--macroexp-fboundp (sym)
   "Return non-nil if SYM will be bound when we run the code.
@@ -3295,7 +3294,7 @@ Of course, we really can't know that for sure, so it's just a heuristic."
   (or (fboundp sym)
       (and (macroexp-compiling-p)
            (or (cdr (assq sym byte-compile-function-environment))
-               (cdr (assq sym byte-compile-macro-environment))))))
+               (cdr (assq sym macroexpand-all-environment))))))
 
 (pcase-dolist (`(,type . ,pred)
                ;; Mostly kept in alphabetical order.

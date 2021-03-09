@@ -5,6 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3
 ;; Keywords: OO, lisp
+;; Obsolete-since: 28.1
 
 ;; This file is part of GNU Emacs.
 
@@ -523,31 +524,6 @@ The package should have VERSION available for download."
 				     nil))))
 
 	  (copy-file (cdr (car files)) dest))))))
-
-;;; How we upgrade packages in Emacs has yet to be ironed out.
-
-;; (defun inversion-upgrade-package (package &optional directory)
-;;   "Try to upgrade PACKAGE in DIRECTORY is available."
-;;   (interactive "sPackage to upgrade: ")
-;;   (if (stringp package) (setq package (intern package)))
-;;   (if (not directory)
-;;       ;; Hope that the package maintainer specified.
-;;       (setq directory (symbol-value (or (intern-soft
-;; 					 (concat (symbol-name package)
-;; 						 "-url"))
-;; 					(intern-soft
-;; 					 (concat (symbol-name package)
-;; 						 "-directory"))))))
-;;   (let ((files (inversion-locate-package-files-and-split
-;; 		package directory))
-;; 	(cver (inversion-package-version package))
-;; 	(newer nil))
-;;     (mapc (lambda (f)
-;; 	    (if (inversion-< cver (inversion-decode-version (car f)))
-;; 		(setq newer (cons f newer))))
-;; 	    files)
-;;     newer
-;;     ))
 
 (provide 'inversion)
 

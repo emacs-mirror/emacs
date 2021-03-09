@@ -1250,7 +1250,7 @@ other strings to choose various seed values.
 This function returns a pseudo-random integer.  Repeated calls return a
 series of pseudo-random integers.
 
-If @var{limit} is a positive fixnum, the value is chosen to be
+If @var{limit} is a positive integer, the value is chosen to be
 nonnegative and less than @var{limit}.  Otherwise, the value might be
 any fixnum, i.e., any integer from @code{most-negative-fixnum} through
 @code{most-positive-fixnum} (@pxref{Integer Basics}).

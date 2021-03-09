@@ -88,7 +88,6 @@
 (require 'gnus-art)
 (require 'gnus-util)
 (require 'nnmail)
-(require 'easymenu)
 (require 'registry)
 
 (defvar gnus-adaptive-word-syntax-table)

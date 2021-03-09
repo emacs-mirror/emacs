@@ -729,7 +729,7 @@ Argument FN is the function calling this verifier."
               (pcase slot
                 ((and (or `',name (and name (pred keywordp)))
                       (guard (not (memq name eieio--known-slot-names))))
-                 (macroexp--warn-and-return
+                 (macroexp-warn-and-return
                   (format-message "Unknown slot `%S'" name) exp 'compile-only))
                 (_ exp))))
            (gv-setter eieio-oset))

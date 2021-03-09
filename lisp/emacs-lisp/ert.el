@@ -277,14 +277,7 @@ It should only be stopped when ran from inside ert--run-test-internal."
   (let ((form
          ;; catch macroexpansion errors
          (condition-case err
-             (macroexpand-all form
-                              (append (bound-and-true-p
-                                       byte-compile-macro-environment)
-                                      (cond
-                                       ((boundp 'macroexpand-all-environment)
-                                        macroexpand-all-environment)
-                                       ((boundp 'cl-macro-environment)
-                                        cl-macro-environment))))
+             (macroexpand-all form macroexpand-all-environment)
            (error `(signal ',(car err) ',(cdr err))))))
     (cond
      ((or (atom form) (ert--special-operator-p (car form)))
@@ -1550,7 +1543,7 @@ Ran \\([0-9]+\\) tests, \\([0-9]+\\) results as expected\
       (message "------------------")
       (setq tests (sort tests (lambda (x y) (> (car x) (car y)))))
       (when (< high (length tests)) (setcdr (nthcdr (1- high) tests) nil))
-      (message "%s" (mapconcat 'cdr tests "\n")))
+      (message "%s" (mapconcat #'cdr tests "\n")))
     ;; More details on hydra, where the logs are harder to get to.
     (when (and (getenv "EMACS_HYDRA_CI")
                (not (zerop (+ nunexpected nskipped))))
@@ -2077,7 +2070,7 @@ and how to display message."
     (ert-run-tests selector listener t)))
 
 ;;;###autoload
-(defalias 'ert 'ert-run-tests-interactively)
+(defalias 'ert #'ert-run-tests-interactively)
 
 
 ;;; Simple view mode for auxiliary information like stack traces or

@@ -75,8 +75,29 @@
 (ert-deftest pcase-tests-vectors ()
   (should (equal (pcase [1 2] (`[,x] 1) (`[,x ,y] (+ x y))) 3)))
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
+(ert-deftest pcase-tests-bug14773 ()
+  (let ((f (lambda (x)
+             (pcase 'dummy
+               ((and (let var x) (guard var)) 'left)
+               ((and (let var (not x)) (guard var)) 'right)))))
+    (should (equal (funcall f t) 'left))
+    (should (equal (funcall f nil) 'right))))
+
+(ert-deftest pcase-tests-bug46786 ()
+  (let ((self 'outer))
+    (ignore self)
+    (should (equal (cl-macrolet ((show-self () `(list 'self self)))
+                     (pcase-let ((`(,self ,_self2) '(inner "2")))
+                       (show-self)))
+                   '(self inner)))))
+
+(ert-deftest pcase-tests-or-vars ()
+  (let ((f (lambda (v)
+             (pcase v
+               ((or (and 'b1 (let x1 4) (let x2 5))
+                    (and 'b2 (let y1 8) (let y2 9)))
+                (list x1 x2 y1 y2))))))
+    (should (equal (funcall f 'b1) '(4 5 nil nil)))
+    (should (equal (funcall f 'b2) '(nil nil 8 9)))))
 
 ;;; pcase-tests.el ends here.

@@ -6612,7 +6612,8 @@ further discussion of infinite and indeterminate values.
 @subsection Modes Tutorial Exercise 1
 
 @noindent
-Calc always stores its numbers in decimal, so even though one-third has
+Calc always stores its floating-point numbers in decimal,
+so even though one-third has
 an exact base-3 representation (@samp{3#0.1}), it is still stored as
 0.3333333 (chopped off after 12 or however many decimal digits) inside
 the calculator's memory.  When this inexact number is converted back
@@ -18888,9 +18889,7 @@ Each possible value @expr{N} appears with equal probability.
 
 With no numeric prefix argument, the @kbd{k r} command takes its argument
 from the stack instead.  Once again, if this is a positive integer @expr{M}
-the result is a random integer less than @expr{M}.  However, note that
-while numeric prefix arguments are limited to six digits or so, an @expr{M}
-taken from the stack can be arbitrarily large.  If @expr{M} is negative,
+the result is a random integer less than @expr{M}.  If @expr{M} is negative,
 the result is a random integer in the range
 @texline @math{M < N \le 0}.
 @infoline @expr{M < N <= 0}.
@@ -32240,7 +32239,7 @@ as the value of a function.  You can use @code{return} anywhere
 inside the body of the function.
 @end itemize
 
-Non-integer numbers (and extremely large integers) cannot be included
+Non-integer numbers cannot be included
 directly into a @code{defmath} definition.  This is because the Lisp
 reader will fail to parse them long before @code{defmath} ever gets control.
 Instead, use the notation, @samp{:"3.1415"}.  In fact, any algebraic
@@ -32374,7 +32373,7 @@ This expands to the pair of definitions,
 
 @noindent
 where in this case the latter function would never really be used!  Note
-that since the Calculator stores small integers as plain Lisp integers,
+that since the Calculator stores integers as plain Lisp integers,
 the @code{math-add} function will work just as well as the native
 @code{+} even when the intent is to operate on native Lisp integers.
 
@@ -32643,8 +32642,8 @@ Like @samp{integer}, but the argument must be non-negative.
 
 @item fixnum
 @findex fixnum
-Like @samp{integer}, but the argument must fit into a native Lisp integer,
-which on most systems means less than 2^23 in absolute value.  The
+Like @samp{integer}, but the argument must fit into a native Lisp fixnum,
+which on most systems means less than 2^61 in absolute value.  The
 argument is converted into Lisp-integer form if necessary.
 
 @item float
@@ -32739,50 +32738,6 @@ Emacs Lisp function:
       (setq n (calcFunc-lsh n -1)))
     count))
 @end smallexample
-
-If the input numbers are large, this function involves a fair amount
-of arithmetic.  A binary right shift is essentially a division by two;
-recall that Calc stores integers in decimal form so bit shifts must
-involve actual division.
-
-To gain a bit more efficiency, we could divide the integer into
-@var{n}-bit chunks, each of which can be handled quickly because
-they fit into Lisp integers.  It turns out that Calc's arithmetic
-routines are especially fast when dividing by an integer less than
-1000, so we can set @var{n = 9} bits and use repeated division by 512:
-
-@smallexample
-(defmath bcount ((natnum n))
-  (interactive 1 "bcnt")
-  (let ((count 0))
-    (while (not (fixnump n))
-      (let ((qr (idivmod n 512)))
-        (setq count (+ count (bcount-fixnum (cdr qr)))
-              n (car qr))))
-    (+ count (bcount-fixnum n))))
-
-(defun bcount-fixnum (n)
-  (let ((count 0))
-    (while (> n 0)
-      (setq count (+ count (logand n 1))
-            n (ash n -1)))
-    count))
-@end smallexample
-
-@noindent
-Note that the second function uses @code{defun}, not @code{defmath}.
-Because this function deals only with native Lisp integers (``fixnums''),
-it can use the actual Emacs @code{+} and related functions rather
-than the slower but more general Calc equivalents which @code{defmath}
-uses.
-
-The @code{idivmod} function does an integer division, returning both
-the quotient and the remainder at once.  Again, note that while it
-might seem that @samp{(logand n 511)} and @samp{(ash n -9)} are
-more efficient ways to split off the bottom nine bits of @code{n},
-actually they are less efficient because each operation is really
-a division by 512 in disguise; @code{idivmod} allows us to do the
-same thing with a single division by 512.
 
 @node Sine Example,  , Bit Counting Example, Example Definitions
 @subsubsection The Sine Function
@@ -33042,9 +32997,7 @@ in this case it would be easier to call the low-level @code{math-add}
 function in Calc, if you can remember its name.
 
 In particular, note that a plain Lisp integer is acceptable to Calc
-as a raw object.  (All Lisp integers are accepted on input, but
-integers of more than six decimal digits are converted to ``big-integer''
-form for output.  @xref{Data Type Formats}.)
+as a raw object.
 
 When it comes time to display the object, just use @samp{(calc-eval a)}
 to format it as a string.
@@ -33308,31 +33261,11 @@ you can't prove this file will already be loaded.
 @subsubsection Data Type Formats
 
 @noindent
-Integers are stored in either of two ways, depending on their magnitude.
-Integers less than one million in absolute value are stored as standard
-Lisp integers.  This is the only storage format for Calc data objects
-which is not a Lisp list.
-
-Large integers are stored as lists of the form @samp{(bigpos @var{d0}
-@var{d1} @var{d2} @dots{})} for sufficiently large positive integers
-(where ``sufficiently large'' depends on the machine), or
-@samp{(bigneg @var{d0} @var{d1} @var{d2} @dots{})} for negative
-integers.  Each @var{d} is a base-@expr{10^n} ``digit'' (where again,
-@expr{n} depends on the machine), a Lisp integer from 0 to
-99@dots{}9.  The least significant digit is @var{d0}; the last digit,
-@var{dn}, which is always nonzero, is the most significant digit.  For
-example, the integer @mathit{-12345678} might be stored as
-@samp{(bigneg 678 345 12)}.
-
-The distinction between small and large integers is entirely hidden from
-the user.  In @code{defmath} definitions, the Lisp predicate @code{integerp}
-returns true for either kind of integer, and in general both big and small
-integers are accepted anywhere the word ``integer'' is used in this manual.
-If the distinction must be made, native Lisp integers are called @dfn{fixnums}
-and large integers are called @dfn{bignums}.
+Integers are stored as standard Lisp integers.  This is the only
+storage format for Calc data objects which is not a Lisp list.
 
 Fractions are stored as a list of the form, @samp{(frac @var{n} @var{d})}
-where @var{n} is an integer (big or small) numerator, @var{d} is an
+where @var{n} is an integer numerator, @var{d} is an
 integer denominator greater than one, and @var{n} and @var{d} are relatively
 prime.  Note that fractions where @var{d} is one are automatically converted
 to plain integers by all math routines; fractions where @var{d} is negative
@@ -33341,7 +33274,7 @@ are normalized by negating the numerator and denominator.
 Floating-point numbers are stored in the form, @samp{(float @var{mant}
 @var{exp})}, where @var{mant} (the ``mantissa'') is an integer less than
 @samp{10^@var{p}} in absolute value (@var{p} represents the current
-precision), and @var{exp} (the ``exponent'') is a fixnum.  The value of
+precision), and @var{exp} (the ``exponent'') is an integer.  The value of
 the float is @samp{@var{mant} * 10^@var{exp}}.  For example, the number
 @mathit{-3.14} is stored as @samp{(float -314 -2) = -314*10^-2}.  Other constraints
 are that the number 0.0 is always stored as @samp{(float 0 0)}, and,
@@ -33736,7 +33669,7 @@ Returns true if @var{x} is an integer of any size.
 @end defun
 
 @defun fixnump x
-Returns true if @var{x} is a native Lisp integer.
+Returns true if @var{x} is a native Lisp fixnum.
 @end defun
 
 @defun natnump x
@@ -33744,7 +33677,7 @@ Returns true if @var{x} is a nonnegative integer of any size.
 @end defun
 
 @defun fixnatnump x
-Returns true if @var{x} is a nonnegative Lisp integer.
+Returns true if @var{x} is a nonnegative Lisp fixnum.
 @end defun
 
 @defun num-integerp x
@@ -33899,7 +33832,7 @@ converted to @samp{(math-equal x y)}.
 
 @defun equal-int x n
 Returns true if @var{x} and @var{n} are numerically equal, where @var{n}
-is a fixnum which is not a multiple of 10.  This will automatically be
+is an integer which is not a multiple of 10.  This will automatically be
 used by @code{defmath} in place of the more general @code{math-equal}
 whenever possible.
 @end defun
@@ -33980,12 +33913,8 @@ respectively, instead.
 
 @defun normalize val
 (Full form: @code{math-normalize}.)
-Reduce the value @var{val} to standard form.  For example, if @var{val}
-is a fixnum, it will be converted to a bignum if it is too large, and
-if @var{val} is a bignum it will be normalized by clipping off trailing
-(i.e., most-significant) zero digits and converting to a fixnum if it is
-small.  All the various data types are similarly converted to their standard
-forms.  Variables are left alone, but function calls are actually evaluated
+Reduce the value @var{val} to standard form.
+Variables are left alone, but function calls are actually evaluated
 in formulas.  For example, normalizing @samp{(+ 2 (calcFunc-abs -4))} will
 return 6.
 
@@ -34098,9 +34027,9 @@ integer rather than truncating.
 @end defun
 
 @defun fixnum n
-Return the integer @var{n} as a fixnum, i.e., a native Lisp integer.
-If @var{n} is outside the permissible range for Lisp integers (usually
-24 binary bits) the result is undefined.
+Return the integer @var{n} as a fixnum, i.e., a small Lisp integer.
+If @var{n} is outside the permissible range for Lisp fixnums (usually
+62 binary bits) the result is undefined.
 @end defun
 
 @defun sqr x
