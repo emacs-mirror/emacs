@@ -2230,7 +2230,12 @@ image_set_transform (struct frame *f, struct image *img)
      operations to use a blended filter, to avoid aliasing and the like.
 
      TODO: implement for Windows.  */
-  bool scale_down = (width < img->width) || (height < img->height);
+  bool smoothing;
+  Lisp_Object s = image_spec_value (img->spec, QCtransform_smoothing, NULL);
+  if (!s)
+    smoothing = (width < img->width) || (height < img->height);
+  else
+    smoothing = !NILP (s);
 # endif
 
   /* Perform scale transformation.  */
@@ -2344,13 +2349,13 @@ image_set_transform (struct frame *f, struct image *img)
   /* Under NS the transform is applied to the drawing surface at
      drawing time, so store it for later.  */
   ns_image_set_transform (img->pixmap, matrix);
-  ns_image_set_smoothing (img->pixmap, scale_down);
+  ns_image_set_smoothing (img->pixmap, smoothing);
 # elif defined USE_CAIRO
   cairo_matrix_t cr_matrix = {matrix[0][0], matrix[0][1], matrix[1][0],
 			      matrix[1][1], matrix[2][0], matrix[2][1]};
   cairo_pattern_t *pattern = cairo_pattern_create_rgb (0, 0, 0);
   cairo_pattern_set_matrix (pattern, &cr_matrix);
-  cairo_pattern_set_filter (pattern, scale_down
+  cairo_pattern_set_filter (pattern, smoothing
                             ? CAIRO_FILTER_BEST : CAIRO_FILTER_NEAREST);
   /* Dummy solid color pattern just to record pattern matrix.  */
   img->cr_data = pattern;
@@ -2369,13 +2374,13 @@ image_set_transform (struct frame *f, struct image *img)
              XDoubleToFixed (matrix[2][2])}}};
 
       XRenderSetPictureFilter (FRAME_X_DISPLAY (f), img->picture,
-                               scale_down ? FilterBest : FilterNearest, 0, 0);
+                               smoothing ? FilterBest : FilterNearest, 0, 0);
       XRenderSetPictureTransform (FRAME_X_DISPLAY (f), img->picture, &tmat);
 
       if (img->mask_picture)
         {
           XRenderSetPictureFilter (FRAME_X_DISPLAY (f), img->mask_picture,
-                                   scale_down ? FilterBest : FilterNearest, 0, 0);
+                                   smoothing ? FilterBest : FilterNearest, 0, 0);
           XRenderSetPictureTransform (FRAME_X_DISPLAY (f), img->mask_picture,
                                       &tmat);
         }
@@ -10693,6 +10698,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (QCrotation, ":rotation");
   DEFSYM (QCmatrix, ":matrix");
   DEFSYM (QCscale, ":scale");
+  DEFSYM (QCtransform_smoothing, ":transform-smoothing");
   DEFSYM (QCcolor_adjustment, ":color-adjustment");
   DEFSYM (QCmask, ":mask");
 

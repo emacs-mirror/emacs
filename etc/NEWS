@@ -1473,6 +1473,16 @@ To load images with the default frame colors use the ':foreground' and
 This change only affects image types that support foreground and
 background colors or transparency, such as xbm, pbm, svg, png and gif.
 
++++
+*** Image smoothing can now be explicitly enabled or disabled.
+Smoothing applies a bilinear filter while scaling or rotating an image
+to prevent aliasing and other unwanted effects.  The new image
+property ':transform-smoothing' can be set to t to enable smoothing
+and nil to disable smoothing.
+
+The default behaviour of smoothing on down-scaling and not smoothing
+on up-scaling remains unchanged.
+
 ** EWW
 
 +++

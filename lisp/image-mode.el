@@ -95,6 +95,9 @@ Its value should be one of the following:
 (defvar-local image-transform-rotation 0.0
   "Rotation angle for the image in the current Image mode buffer.")
 
+(defvar-local image-transform-smoothing nil
+  "Whether to use transform smoothing.")
+
 (defvar image-transform-right-angle-fudge 0.0001
   "Snap distance to a multiple of a right angle.
 There's no deep theory behind the default value, it should just
@@ -457,6 +460,7 @@ call."
     (define-key map "sb" 'image-transform-fit-both)
     (define-key map "ss" 'image-transform-set-scale)
     (define-key map "sr" 'image-transform-set-rotation)
+    (define-key map "sm" 'image-transform-set-smoothing)
     (define-key map "so" 'image-transform-original)
     (define-key map "s0" 'image-transform-reset)
 
@@ -523,6 +527,8 @@ call."
 	 :help "Rotate the image"]
 	["Set Rotation..." image-transform-set-rotation
 	 :help "Set rotation angle of the image"]
+        ["Set Smoothing..." image-transform-set-smoothing
+        :help "Toggle smoothing"]
 	["Original Size" image-transform-original
 	 :help "Reset image to actual size"]
 	["Reset to Default Size" image-transform-reset
@@ -1474,7 +1480,10 @@ return value is suitable for appending to an image spec."
 	,@(when (cdr resized)
 	    (list :height (cdr resized)))
 	,@(unless (= 0.0 image-transform-rotation)
-	    (list :rotation image-transform-rotation))))))
+	    (list :rotation image-transform-rotation))
+        ,@(when image-transform-smoothing
+            (list :transform-smoothing
+                  (string= image-transform-smoothing "smooth")))))))
 
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount."
@@ -1507,6 +1516,12 @@ ROTATION should be in degrees."
   (setq image-transform-rotation (float (mod rotation 360)))
   (image-toggle-display-image))
 
+(defun image-transform-set-smoothing (smoothing)
+  (interactive (list (completing-read "Smoothing: "
+                                      '("none" "smooth") nil t)))
+  (setq image-transform-smoothing smoothing)
+  (image-toggle-display-image))
+
 (defun image-transform-original ()
   "Display the current image with the original (actual) size and rotation."
   (interactive)
@@ -1519,7 +1534,8 @@ ROTATION should be in degrees."
   (interactive)
   (setq image-transform-resize image-auto-resize
 	image-transform-rotation 0.0
-	image-transform-scale 1)
+	image-transform-scale 1
+        image-transform-smoothing nil)
   (image-toggle-display-image))
 
 (provide 'image-mode)
