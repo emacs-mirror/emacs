@@ -429,7 +429,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "2"
+#define ABI_VERSION "3"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
