@@ -253,7 +253,7 @@ The return value is undefined.
 		  #'(lambda (x)
 		      (let ((f (cdr (assq (car x) macro-declarations-alist))))
 			(if f (apply (car f) name arglist (cdr x))
-			  (macroexp--warn-and-return
+			  (macroexp-warn-and-return
 			   (format-message
 			    "Unknown macro property %S in %S"
 			    (car x) name)
@@ -326,7 +326,7 @@ The return value is undefined.
                               body)))
                     nil)
                    (t
-                    (macroexp--warn-and-return
+                    (macroexp-warn-and-return
                      (format-message "Unknown defun property `%S' in %S"
                                      (car x) name)
                      nil)))))

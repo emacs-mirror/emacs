@@ -302,67 +302,67 @@ See `run-hooks'."
 (defvar vc-dir-mode-map
   (let ((map (make-sparse-keymap)))
     ;; VC commands
-    (define-key map "v" 'vc-next-action)   ;; C-x v v
-    (define-key map "=" 'vc-diff)	   ;; C-x v =
-    (define-key map "D" 'vc-root-diff)	   ;; C-x v D
-    (define-key map "i" 'vc-register)	   ;; C-x v i
-    (define-key map "+" 'vc-update)	   ;; C-x v +
+    (define-key map "v" #'vc-next-action)   ;; C-x v v
+    (define-key map "=" #'vc-diff)	   ;; C-x v =
+    (define-key map "D" #'vc-root-diff)	   ;; C-x v D
+    (define-key map "i" #'vc-register)	   ;; C-x v i
+    (define-key map "+" #'vc-update)	   ;; C-x v +
     ;; I'd prefer some kind of symmetry with vc-update:
-    (define-key map "P" 'vc-push)	   ;; C-x v P
-    (define-key map "l" 'vc-print-log)	   ;; C-x v l
-    (define-key map "L" 'vc-print-root-log) ;; C-x v L
-    (define-key map "I" 'vc-log-incoming)   ;; C-x v I
-    (define-key map "O" 'vc-log-outgoing)   ;; C-x v O
+    (define-key map "P" #'vc-push)	   ;; C-x v P
+    (define-key map "l" #'vc-print-log)	   ;; C-x v l
+    (define-key map "L" #'vc-print-root-log) ;; C-x v L
+    (define-key map "I" #'vc-log-incoming)   ;; C-x v I
+    (define-key map "O" #'vc-log-outgoing)   ;; C-x v O
     ;; More confusing than helpful, probably
-    ;;(define-key map "R" 'vc-revert) ;; u is taken by vc-dir-unmark.
-    ;;(define-key map "A" 'vc-annotate) ;; g is taken by revert-buffer
+    ;;(define-key map "R" #'vc-revert) ;; u is taken by vc-dir-unmark.
+    ;;(define-key map "A" #'vc-annotate) ;; g is taken by revert-buffer
     ;;                                     bound by `special-mode'.
     ;; Marking.
-    (define-key map "m" 'vc-dir-mark)
-    (define-key map "d" 'vc-dir-clean-files)
-    (define-key map "M" 'vc-dir-mark-all-files)
-    (define-key map "u" 'vc-dir-unmark)
-    (define-key map "U" 'vc-dir-unmark-all-files)
-    (define-key map "\C-?" 'vc-dir-unmark-file-up)
-    (define-key map "\M-\C-?" 'vc-dir-unmark-all-files)
+    (define-key map "m" #'vc-dir-mark)
+    (define-key map "d" #'vc-dir-clean-files)
+    (define-key map "M" #'vc-dir-mark-all-files)
+    (define-key map "u" #'vc-dir-unmark)
+    (define-key map "U" #'vc-dir-unmark-all-files)
+    (define-key map "\C-?" #'vc-dir-unmark-file-up)
+    (define-key map "\M-\C-?" #'vc-dir-unmark-all-files)
     ;; Movement.
-    (define-key map "n" 'vc-dir-next-line)
-    (define-key map " " 'vc-dir-next-line)
-    (define-key map "\t" 'vc-dir-next-directory)
-    (define-key map "p" 'vc-dir-previous-line)
-    (define-key map [?\S-\ ] 'vc-dir-previous-line)
-    (define-key map [backtab] 'vc-dir-previous-directory)
+    (define-key map "n" #'vc-dir-next-line)
+    (define-key map " " #'vc-dir-next-line)
+    (define-key map "\t" #'vc-dir-next-directory)
+    (define-key map "p" #'vc-dir-previous-line)
+    (define-key map [?\S-\ ] #'vc-dir-previous-line)
+    (define-key map [backtab] #'vc-dir-previous-directory)
     ;;; Rebind paragraph-movement commands.
-    (define-key map "\M-}" 'vc-dir-next-directory)
-    (define-key map "\M-{" 'vc-dir-previous-directory)
-    (define-key map [C-down] 'vc-dir-next-directory)
-    (define-key map [C-up] 'vc-dir-previous-directory)
+    (define-key map "\M-}" #'vc-dir-next-directory)
+    (define-key map "\M-{" #'vc-dir-previous-directory)
+    (define-key map [C-down] #'vc-dir-next-directory)
+    (define-key map [C-up] #'vc-dir-previous-directory)
     ;; The remainder.
-    (define-key map "f" 'vc-dir-find-file)
-    (define-key map "e" 'vc-dir-find-file) ; dired-mode compatibility
-    (define-key map "\C-m" 'vc-dir-find-file)
-    (define-key map "o" 'vc-dir-find-file-other-window)
-    (define-key map "\C-o" 'vc-dir-display-file)
-    (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
-    (define-key map [down-mouse-3] 'vc-dir-menu)
+    (define-key map "f" #'vc-dir-find-file)
+    (define-key map "e" #'vc-dir-find-file) ; dired-mode compatibility
+    (define-key map "\C-m" #'vc-dir-find-file)
+    (define-key map "o" #'vc-dir-find-file-other-window)
+    (define-key map "\C-o" #'vc-dir-display-file)
+    (define-key map "\C-c\C-c" #'vc-dir-kill-dir-status-process)
+    (define-key map [down-mouse-3] #'vc-dir-menu)
     (define-key map [follow-link] 'mouse-face)
-    (define-key map "x" 'vc-dir-hide-up-to-date)
-    (define-key map [?\C-k] 'vc-dir-kill-line)
-    (define-key map "S" 'vc-dir-search) ;; FIXME: Maybe use A like dired?
-    (define-key map "Q" 'vc-dir-query-replace-regexp)
-    (define-key map (kbd "M-s a C-s")   'vc-dir-isearch)
-    (define-key map (kbd "M-s a M-C-s") 'vc-dir-isearch-regexp)
-    (define-key map "G" 'vc-dir-ignore)
+    (define-key map "x" #'vc-dir-hide-up-to-date)
+    (define-key map [?\C-k] #'vc-dir-kill-line)
+    (define-key map "S" #'vc-dir-search) ;; FIXME: Maybe use A like dired?
+    (define-key map "Q" #'vc-dir-query-replace-regexp)
+    (define-key map (kbd "M-s a C-s")   #'vc-dir-isearch)
+    (define-key map (kbd "M-s a M-C-s") #'vc-dir-isearch-regexp)
+    (define-key map "G" #'vc-dir-ignore)
 
     (let ((branch-map (make-sparse-keymap)))
       (define-key map "B" branch-map)
-      (define-key branch-map "c" 'vc-create-tag)
-      (define-key branch-map "l" 'vc-print-branch-log)
-      (define-key branch-map "s" 'vc-retrieve-tag))
+      (define-key branch-map "c" #'vc-create-tag)
+      (define-key branch-map "l" #'vc-print-branch-log)
+      (define-key branch-map "s" #'vc-retrieve-tag))
 
     (let ((mark-map (make-sparse-keymap)))
       (define-key map "*" mark-map)
-      (define-key mark-map "r" 'vc-dir-mark-registered-files))
+      (define-key mark-map "r" #'vc-dir-mark-registered-files))
 
     ;; Hook up the menu.
     (define-key map [menu-bar vc-dir-mode]
@@ -506,7 +506,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	       (t
 		(unless noinsert
 		  (ewoc-enter-before vc-ewoc node
-				     (apply 'vc-dir-create-fileinfo entry)))
+				     (apply #'vc-dir-create-fileinfo entry)))
 		(setq entries (cdr entries))
 		(setq entry (car entries))))))
 	   (t
@@ -522,7 +522,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		   vc-ewoc node (vc-dir-create-fileinfo rd nil nil nil entrydir))))
 	      ;; Now insert the node itself.
 	      (ewoc-enter-before vc-ewoc node
-				 (apply 'vc-dir-create-fileinfo entry)))
+				 (apply #'vc-dir-create-fileinfo entry)))
 	    (setq entries (cdr entries) entry (car entries))))))
       ;; We're past the last node, all remaining entries go to the end.
       (unless (or node noinsert)
@@ -538,10 +538,10 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		   vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
 	      ;; Now insert the node itself.
 	      (ewoc-enter-last vc-ewoc
-			       (apply 'vc-dir-create-fileinfo entry))))))
+			       (apply #'vc-dir-create-fileinfo entry))))))
       (when to-remove
 	(let ((inhibit-read-only t))
-	  (apply 'ewoc-delete vc-ewoc (nreverse to-remove)))))))
+	  (apply #'ewoc-delete vc-ewoc (nreverse to-remove)))))))
 
 (defun vc-dir-busy ()
   (and (buffer-live-p vc-dir-process-buffer)
@@ -882,7 +882,7 @@ system; see `vc-dir-delete-file'."
 The files will also be marked as deleted in the version control
 system."
   (interactive)
-  (mapc 'vc-delete-file (or (vc-dir-marked-files)
+  (mapc #'vc-delete-file (or (vc-dir-marked-files)
                             (list (vc-dir-current-file)))))
 
 (defun vc-dir-find-file ()
@@ -912,13 +912,13 @@ system."
   "Search for a string through all marked buffers using Isearch."
   (interactive)
   (multi-isearch-files
-   (mapcar 'car (vc-dir-marked-only-files-and-states))))
+   (mapcar #'car (vc-dir-marked-only-files-and-states))))
 
 (defun vc-dir-isearch-regexp ()
   "Search for a regexp through all marked buffers using Isearch."
   (interactive)
   (multi-isearch-files-regexp
-   (mapcar 'car (vc-dir-marked-only-files-and-states))))
+   (mapcar #'car (vc-dir-marked-only-files-and-states))))
 
 (defun vc-dir-search (regexp)
   "Search through all marked files for a match for REGEXP.
@@ -943,13 +943,13 @@ with the command \\[tags-loop-continue]."
 	  (query-replace-read-args
 	   "Query replace regexp in marked files" t t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common))))
-  (dolist (file (mapcar 'car (vc-dir-marked-only-files-and-states)))
+  (dolist (file (mapcar #'car (vc-dir-marked-only-files-and-states)))
     (let ((buffer (get-file-buffer file)))
       (if (and buffer (with-current-buffer buffer
 			buffer-read-only))
 	  (error "File `%s' is visited read-only" file))))
   (fileloop-initialize-replace
-   from to (mapcar 'car (vc-dir-marked-only-files-and-states))
+   from to (mapcar #'car (vc-dir-marked-only-files-and-states))
    (if (equal from (downcase from)) nil 'default)
    delimited)
   (fileloop-continue))
@@ -1161,7 +1161,7 @@ the *vc-dir* buffer.
     (add-to-list 'vc-dir-buffers (current-buffer))
     ;; Make sure that if the directory buffer is killed, the update
     ;; process running in the background is also killed.
-    (add-hook 'kill-buffer-query-functions 'vc-dir-kill-query nil t)
+    (add-hook 'kill-buffer-query-functions #'vc-dir-kill-query nil t)
     (hack-dir-local-variables-non-file-buffer)
     (vc-dir-refresh)))
 
@@ -1276,7 +1276,7 @@ Throw an error if another update process is in progress."
                          vc-ewoc 'vc-dir-fileinfo->needs-update)))
                    (if remaining
                        (vc-dir-refresh-files
-                        (mapcar 'vc-dir-fileinfo->name remaining))
+                        (mapcar #'vc-dir-fileinfo->name remaining))
                      (setq mode-line-process nil)
                      (run-hooks 'vc-dir-refresh-hook))))))))))))
 
@@ -1330,7 +1330,7 @@ state of item at point, if any."
 	  (ewoc-delete vc-ewoc crt))
 	(setq crt prev)))))
 
-(defalias 'vc-dir-hide-up-to-date 'vc-dir-hide-state)
+(defalias 'vc-dir-hide-up-to-date #'vc-dir-hide-state)
 
 (defun vc-dir-kill-line ()
   "Remove the current line from display."
@@ -1366,7 +1366,7 @@ state of item at point, if any."
 	(unless (vc-compatible-state (cdr crt) state)
 	  (error "When applying VC operations to multiple files, the files are required\nto  be in similar VC states.\n%s in state %s clashes with %s in state %s"
 		 (car crt) (cdr crt) (caar only-files-list) state)))
-      (setq only-files-list (mapcar 'car only-files-list))
+      (setq only-files-list (mapcar #'car only-files-list))
       (when (and state (not (eq state 'unregistered)))
 	(setq model (vc-checkout-model vc-dir-backend only-files-list))))
     (list vc-dir-backend files only-files-list state model)))
@@ -1437,13 +1437,13 @@ These are the commands available for use in the file status buffer:
 
 (defvar vc-dir-status-mouse-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'vc-dir-toggle-mark)
+    (define-key map [mouse-2] #'vc-dir-toggle-mark)
     map)
   "Local keymap for toggling mark.")
 
 (defvar vc-dir-filename-mouse-map
    (let ((map (make-sparse-keymap)))
-     (define-key map [mouse-2] 'vc-dir-find-file-other-window)
+     (define-key map [mouse-2] #'vc-dir-find-file-other-window)
     map)
   "Local keymap for visiting a file.")
 

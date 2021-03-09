@@ -1,4 +1,4 @@
-;;; cua-base.el --- emulate CUA key bindings
+;;; cua-base.el --- emulate CUA key bindings  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -272,19 +272,16 @@ a shifted movement key.  If the value is nil, these keys are never
 enabled."
   :type '(choice (const :tag "Disabled" nil)
 		 (const :tag "Shift region only" shift)
-		 (other :tag "Enabled" t))
-  :group 'cua)
+		 (other :tag "Enabled" t)))
 
 (defcustom cua-remap-control-v t
   "If non-nil, C-v binding is used for paste (yank).
 Also, M-v is mapped to `delete-selection-repeat-replace-region'."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-remap-control-z t
   "If non-nil, C-z binding is used for undo."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-highlight-region-shift-only nil
   "If non-nil, only highlight region if marked with S-<move>.
@@ -292,8 +289,7 @@ When this is non-nil, CUA toggles `transient-mark-mode' on when the region
 is marked using shifted movement keys, and off when the mark is cleared.
 But when the mark was set using \\[cua-set-mark], Transient Mark mode
 is not turned on."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 (make-obsolete-variable 'cua-highlight-region-shift-only
                         'transient-mark-mode "24.4")
 
@@ -307,33 +303,28 @@ first prefix key is discarded, so typing a prefix key twice in quick
 succession will also inhibit overriding the prefix key.
 If the value is nil, use a shifted prefix key to inhibit the override."
   :type '(choice (number :tag "Inhibit delay")
-		 (const :tag "No delay" nil))
-  :group 'cua)
+		 (const :tag "No delay" nil)))
 
 (defcustom cua-delete-selection t
   "If non-nil, typed text replaces text in the active selection."
   :type '(choice (const :tag "Disabled" nil)
-		 (other :tag "Enabled" t))
-  :group 'cua)
+		 (other :tag "Enabled" t)))
 
 (defcustom cua-keep-region-after-copy nil
   "If non-nil, don't deselect the region after copying."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-toggle-set-mark t
   "If non-nil, the `cua-set-mark' command toggles the mark."
   :type '(choice (const :tag "Disabled" nil)
-		 (other :tag "Enabled" t))
-  :group 'cua)
+		 (other :tag "Enabled" t)))
 
 (defcustom cua-auto-mark-last-change nil
   "If non-nil, set implicit mark at position of last buffer change.
 This means that \\[universal-argument] \\[cua-set-mark] will jump to the position
 of the last buffer change before jumping to the explicit marks on the mark ring.
 See `cua-set-mark' for details."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-enable-register-prefix 'not-ctrl-u
   "If non-nil, registers are supported via numeric prefix arg.
@@ -346,32 +337,27 @@ interpreted as a register number."
   :type '(choice (const :tag "Disabled" nil)
 		 (const :tag "Enabled, but C-u arg is not a register" not-ctrl-u)
 		 (const :tag "Enabled, but only for C-u arg" ctrl-u-only)
-		 (other :tag "Enabled" t))
-  :group 'cua)
+		 (other :tag "Enabled" t)))
 
 (defcustom cua-delete-copy-to-register-0 t
   ;; FIXME: Obey delete-selection-save-to-register rather than hardcoding
   ;; register 0.
   "If non-nil, save last deleted region or rectangle to register 0."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-enable-region-auto-help nil
   "If non-nil, automatically show help for active region."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-enable-modeline-indications nil
   "If non-nil, use minor-mode hook to show status in mode line."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-check-pending-input t
   "If non-nil, don't override prefix key if input pending.
 It is rumored that `input-pending-p' is unreliable under some window
 managers, so try setting this to nil, if prefix override doesn't work."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-paste-pop-rotate-temporarily nil
   "If non-nil, \\[cua-paste-pop] only rotates the kill-ring temporarily.
@@ -380,8 +366,7 @@ insert the most recently killed text.  Each immediately following \\[cua-paste-p
 replaces the previous text with the next older element on the `kill-ring'.
 With prefix arg, \\[universal-argument] \\[yank-pop] inserts the same text as the
 most recent \\[yank-pop] (or \\[yank]) command."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 ;;; Rectangle Customization
 
@@ -390,8 +375,7 @@ most recent \\[yank-pop] (or \\[yank]) command."
 Note that although rectangles are always DISPLAYED with straight edges, the
 buffer is NOT modified, until you execute a command that actually modifies it.
 M-p toggles this feature when a rectangle is active."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-auto-tabify-rectangles 1000
   "If non-nil, automatically tabify after rectangle commands.
@@ -403,11 +387,12 @@ present.  The number specifies then number of characters before
 and after the region marked by the rectangle to search."
   :type '(choice (number :tag "Auto detect (limit)")
 		 (const :tag "Disabled" nil)
-		 (other :tag "Enabled" t))
-  :group 'cua)
+		 (other :tag "Enabled" t)))
 
 (defvar cua-global-keymap)		; forward
 (defvar cua--region-keymap)		; forward
+(declare-function cua-clear-rectangle-mark "cua-rect" ())
+(declare-function cua-mouse-set-rectangle-mark "cua-rect" (event))
 
 (defcustom cua-rectangle-mark-key [(control return)]
   "Global key used to toggle the cua rectangle mark."
@@ -416,14 +401,13 @@ and after the region marked by the rectangle to search."
 	   (when (and (boundp 'cua--keymaps-initialized)
 		      cua--keymaps-initialized)
 	     (define-key cua-global-keymap value
-	       'cua-set-rectangle-mark)
+	       #'cua-set-rectangle-mark)
 	     (when (boundp 'cua--rectangle-keymap)
 	       (define-key cua--rectangle-keymap value
-		 'cua-clear-rectangle-mark)
+		 #'cua-clear-rectangle-mark)
 	       (define-key cua--region-keymap value
-		 'cua-toggle-rectangle-mark))))
-  :type 'key-sequence
-  :group 'cua)
+		 #'cua-toggle-rectangle-mark))))
+  :type 'key-sequence)
 
 (defcustom cua-rectangle-modifier-key 'meta
   "Modifier key used for rectangle commands bindings.
@@ -432,8 +416,7 @@ Must be set prior to enabling CUA."
   :type '(choice (const :tag "Meta key" meta)
 		 (const :tag "Alt key" alt)
 		 (const :tag "Hyper key" hyper)
-		 (const :tag "Super key" super))
-  :group 'cua)
+		 (const :tag "Super key" super)))
 
 (defcustom cua-rectangle-terminal-modifier-key 'meta
   "Modifier key used for rectangle commands bindings in terminals.
@@ -442,54 +425,46 @@ Must be set prior to enabling CUA."
 		 (const :tag "Alt key" alt)
 		 (const :tag "Hyper key" hyper)
 		 (const :tag "Super key" super))
-  :group 'cua
   :version "27.1")
 
 (defcustom cua-enable-rectangle-auto-help t
   "If non-nil, automatically show help for region, rectangle and global mark."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defface cua-rectangle
   '((default :inherit region)
     (((class color)) :foreground "white" :background "maroon"))
-  "Font used by CUA for highlighting the rectangle."
-  :group 'cua)
+  "Font used by CUA for highlighting the rectangle.")
 
 (defface cua-rectangle-noselect
   '((default :inherit region)
     (((class color)) :foreground "white" :background "dimgray"))
-  "Font used by CUA for highlighting the non-selected rectangle lines."
-  :group 'cua)
+  "Font used by CUA for highlighting the non-selected rectangle lines.")
 
 
 ;;; Global Mark Customization
 
 (defcustom cua-global-mark-keep-visible t
   "If non-nil, always keep global mark visible in other window."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defface cua-global-mark
   '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
     (((class color)) :foreground "black" :background "yellow")
     (t :weight bold))
-  "Font used by CUA for highlighting the global mark."
-  :group 'cua)
+  "Font used by CUA for highlighting the global mark.")
 
 (defcustom cua-global-mark-blink-cursor-interval 0.20
   "Blink cursor at this interval when global mark is active."
   :type '(choice (number :tag "Blink interval")
-		 (const :tag "No blink" nil))
-  :group 'cua)
+		 (const :tag "No blink" nil)))
 
 
 ;;; Cursor Indication Customization
 
 (defcustom cua-enable-cursor-indications nil
   "If non-nil, use different cursor colors for indications."
-  :type 'boolean
-  :group 'cua)
+  :type 'boolean)
 
 (defcustom cua-normal-cursor-color (or (and (boundp 'initial-cursor-color) initial-cursor-color)
 				       (and (boundp 'initial-frame-alist)
@@ -507,7 +482,7 @@ If the value is a COLOR name, then only the `cursor-color' attribute will be
 affected.  If the value is a cursor TYPE (one of: box, hollow, bar, or hbar),
 then only the `cursor-type' property will be affected.  If the value is
 a cons (TYPE . COLOR), then both properties are affected."
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :type '(choice
 	  (color :tag "Color")
 	  (choice :tag "Type"
@@ -521,8 +496,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
-		(color :tag "Color")))
-  :group 'cua)
+		(color :tag "Color"))))
 
 (defcustom cua-read-only-cursor-color "darkgreen"
   "Cursor color used in read-only buffers, if non-nil.
@@ -545,8 +519,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
-		(color :tag "Color")))
-  :group 'cua)
+		(color :tag "Color"))))
 
 (defcustom cua-overwrite-cursor-color "yellow"
   "Cursor color used when overwrite mode is set, if non-nil.
@@ -569,8 +542,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
-		(color :tag "Color")))
-  :group 'cua)
+		(color :tag "Color"))))
 
 (defcustom cua-global-mark-cursor-color "cyan"
   "Indication for active global mark.
@@ -594,8 +566,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 			(const :tag "Vertical bar" bar)
 			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
-		(color :tag "Color")))
-  :group 'cua)
+		(color :tag "Color"))))
 
 
 ;;; Rectangle support is in cua-rect.el
@@ -710,7 +681,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 	   (<= cua-prefix-override-inhibit-delay 0)
 	   ;; In state [1], start [T] and change to state [2]
 	   (run-with-timer cua-prefix-override-inhibit-delay nil
-			   'cua--prefix-override-timeout)))
+			   #'cua--prefix-override-timeout)))
     ;; Don't record this command
     (setq this-command last-command)
     ;; Restore the prefix arg
@@ -1243,6 +1214,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (interactive)
   (cua--shift-control-prefix ?\C-x))
 
+(declare-function delete-selection-repeat-replace-region "delsel" (arg))
+
 (defun cua--init-keymaps ()
   ;; Cache actual rectangle modifier key.
   (setq cua--rectangle-modifier-key
@@ -1250,68 +1223,84 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	    cua-rectangle-terminal-modifier-key
 	  cua-rectangle-modifier-key))
   ;; C-return always toggles rectangle mark
-  (define-key cua-global-keymap cua-rectangle-mark-key	'cua-set-rectangle-mark)
+  (define-key cua-global-keymap cua-rectangle-mark-key #'cua-set-rectangle-mark)
   (unless (eq cua--rectangle-modifier-key 'meta)
-    (cua--M/H-key cua-global-keymap ?\s			'cua-set-rectangle-mark)
+    (cua--M/H-key cua-global-keymap ?\s		       #'cua-set-rectangle-mark)
     (define-key cua-global-keymap
-      (vector (list cua--rectangle-modifier-key 'mouse-1)) 'cua-mouse-set-rectangle-mark))
+      (vector (list cua--rectangle-modifier-key 'mouse-1))
+      #'cua-mouse-set-rectangle-mark))
 
-  (define-key cua-global-keymap [(shift control ?\s)]	'cua-toggle-global-mark)
+  (define-key cua-global-keymap [(shift control ?\s)]  #'cua-toggle-global-mark)
 
   ;; replace region with rectangle or element on kill ring
-  (define-key cua-global-keymap [remap yank]		'cua-paste)
-  (define-key cua-global-keymap [remap clipboard-yank]	'cua-paste)
-  (define-key cua-global-keymap [remap x-clipboard-yank] 'cua-paste)
+  (define-key cua-global-keymap [remap yank]		 #'cua-paste)
+  (define-key cua-global-keymap [remap clipboard-yank]	 #'cua-paste)
+  (define-key cua-global-keymap [remap x-clipboard-yank] #'cua-paste)
   ;; replace current yank with previous kill ring element
-  (define-key cua-global-keymap [remap yank-pop]		'cua-paste-pop)
+  (define-key cua-global-keymap [remap yank-pop]	       #'cua-paste-pop)
   ;; set mark
-  (define-key cua-global-keymap [remap set-mark-command]	'cua-set-mark)
-  (define-key cua-global-keymap [remap exchange-point-and-mark] 'cua-exchange-point-and-mark)
+  (define-key cua-global-keymap [remap set-mark-command]       #'cua-set-mark)
+  (define-key cua-global-keymap [remap exchange-point-and-mark]
+    #'cua-exchange-point-and-mark)
 
   ;; scrolling
-  (define-key cua-global-keymap [remap scroll-up]	'cua-scroll-up)
-  (define-key cua-global-keymap [remap scroll-down]	'cua-scroll-down)
-  (define-key cua-global-keymap [remap scroll-up-command]   'cua-scroll-up)
-  (define-key cua-global-keymap [remap scroll-down-command] 'cua-scroll-down)
+  (define-key cua-global-keymap [remap scroll-up]	#'cua-scroll-up)
+  (define-key cua-global-keymap [remap scroll-down]	#'cua-scroll-down)
+  (define-key cua-global-keymap [remap scroll-up-command]   #'cua-scroll-up)
+  (define-key cua-global-keymap [remap scroll-down-command] #'cua-scroll-down)
 
-  (define-key cua--cua-keys-keymap [(control x) timeout] 'kill-region)
-  (define-key cua--cua-keys-keymap [(control c) timeout] 'copy-region-as-kill)
+  (define-key cua--cua-keys-keymap [(control x) timeout] #'kill-region)
+  (define-key cua--cua-keys-keymap [(control c) timeout] #'copy-region-as-kill)
   (when cua-remap-control-z
-    (define-key cua--cua-keys-keymap [(control z)] 'undo))
+    (define-key cua--cua-keys-keymap [(control z)] #'undo))
   (when cua-remap-control-v
-    (define-key cua--cua-keys-keymap [(control v)] 'yank)
+    (define-key cua--cua-keys-keymap [(control v)] #'yank)
     (define-key cua--cua-keys-keymap [(meta v)]
-      'delete-selection-repeat-replace-region))
+      #'delete-selection-repeat-replace-region))
 
-  (define-key cua--prefix-override-keymap [(control x)] 'cua--prefix-override-handler)
-  (define-key cua--prefix-override-keymap [(control c)] 'cua--prefix-override-handler)
+  (define-key cua--prefix-override-keymap [(control x)]
+    #'cua--prefix-override-handler)
+  (define-key cua--prefix-override-keymap [(control c)]
+    #'cua--prefix-override-handler)
 
-  (define-key cua--prefix-repeat-keymap [(control x) (control x)] 'cua--prefix-repeat-handler)
-  (define-key cua--prefix-repeat-keymap [(control c) (control c)] 'cua--prefix-repeat-handler)
+  (define-key cua--prefix-repeat-keymap [(control x) (control x)]
+    #'cua--prefix-repeat-handler)
+  (define-key cua--prefix-repeat-keymap [(control c) (control c)]
+    #'cua--prefix-repeat-handler)
   (dolist (key '(up down left right home end next prior))
-    (define-key cua--prefix-repeat-keymap (vector '(control x) key) 'cua--prefix-cut-handler)
-    (define-key cua--prefix-repeat-keymap (vector '(control c) key) 'cua--prefix-copy-handler))
+    (define-key cua--prefix-repeat-keymap (vector '(control x) key)
+      #'cua--prefix-cut-handler)
+    (define-key cua--prefix-repeat-keymap (vector '(control c) key)
+      #'cua--prefix-copy-handler))
 
   ;; Enable shifted fallbacks for C-x and C-c when region is active
-  (define-key cua--region-keymap [(shift control x)] 'cua--shift-control-x-prefix)
-  (define-key cua--region-keymap [(shift control c)] 'cua--shift-control-c-prefix)
+  (define-key cua--region-keymap [(shift control x)]
+    #'cua--shift-control-x-prefix)
+  (define-key cua--region-keymap [(shift control c)]
+    #'cua--shift-control-c-prefix)
 
   ;; delete current region
-  (define-key cua--region-keymap [remap delete-backward-char]	'cua-delete-region)
-  (define-key cua--region-keymap [remap backward-delete-char]	'cua-delete-region)
-  (define-key cua--region-keymap [remap backward-delete-char-untabify] 'cua-delete-region)
-  (define-key cua--region-keymap [remap delete-char]		'cua-delete-region)
-  (define-key cua--region-keymap [remap delete-forward-char]    'cua-delete-region)
+  (define-key cua--region-keymap [remap delete-backward-char]
+    #'cua-delete-region)
+  (define-key cua--region-keymap [remap backward-delete-char]
+    #'cua-delete-region)
+  (define-key cua--region-keymap [remap backward-delete-char-untabify]
+    #'cua-delete-region)
+  (define-key cua--region-keymap [remap delete-char]
+    #'cua-delete-region)
+  (define-key cua--region-keymap [remap delete-forward-char]
+    #'cua-delete-region)
   ;; kill region
-  (define-key cua--region-keymap [remap kill-region]		'cua-cut-region)
-  (define-key cua--region-keymap [remap clipboard-kill-region]	'cua-cut-region)
+  (define-key cua--region-keymap [remap kill-region]	       #'cua-cut-region)
+  (define-key cua--region-keymap [remap clipboard-kill-region] #'cua-cut-region)
   ;; copy region
-  (define-key cua--region-keymap [remap copy-region-as-kill]	'cua-copy-region)
-  (define-key cua--region-keymap [remap kill-ring-save]		'cua-copy-region)
-  (define-key cua--region-keymap [remap clipboard-kill-ring-save] 'cua-copy-region)
+  (define-key cua--region-keymap [remap copy-region-as-kill]  #'cua-copy-region)
+  (define-key cua--region-keymap [remap kill-ring-save]	      #'cua-copy-region)
+  (define-key cua--region-keymap [remap clipboard-kill-ring-save]
+    #'cua-copy-region)
   ;; cancel current region/rectangle
-  (define-key cua--region-keymap [remap keyboard-escape-quit]	'cua-cancel)
-  (define-key cua--region-keymap [remap keyboard-quit]		'cua-cancel)
+  (define-key cua--region-keymap [remap keyboard-escape-quit]	#'cua-cancel)
+  (define-key cua--region-keymap [remap keyboard-quit]		#'cua-cancel)
   )
 
 
@@ -1344,11 +1333,9 @@ You can customize `cua-enable-cua-keys' to completely disable the
 CUA bindings, or `cua-prefix-override-inhibit-delay' to change
 the prefix fallback behavior."
   :global t
-  :group 'cua
   :set-after '(cua-enable-modeline-indications
 	       cua-remap-control-v cua-remap-control-z
 	       cua-rectangle-mark-key cua-rectangle-modifier-key)
-  :require 'cua-base
   :link '(emacs-commentary-link "cua-base.el")
   (setq mark-even-if-inactive t)
   (setq highlight-nonselected-windows nil)
@@ -1359,15 +1346,15 @@ the prefix fallback behavior."
 
   (if cua-mode
       (progn
-	(add-hook 'pre-command-hook 'cua--pre-command-handler)
-	(add-hook 'post-command-hook 'cua--post-command-handler)
+	(add-hook 'pre-command-hook #'cua--pre-command-handler)
+	(add-hook 'post-command-hook #'cua--post-command-handler)
 	(if (and cua-enable-modeline-indications (not (assoc 'cua-mode minor-mode-alist)))
 	    (setq minor-mode-alist (cons '(cua-mode cua--status-string) minor-mode-alist)))
 	(if cua-enable-cursor-indications
 	    (cua--update-indications)))
 
-    (remove-hook 'pre-command-hook 'cua--pre-command-handler)
-    (remove-hook 'post-command-hook 'cua--post-command-handler))
+    (remove-hook 'pre-command-hook #'cua--pre-command-handler)
+    (remove-hook 'post-command-hook #'cua--post-command-handler))
 
   (if (not cua-mode)
       (setq emulation-mode-map-alists

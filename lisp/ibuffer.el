@@ -364,64 +364,6 @@ directory, like `default-directory'."
 		       (regexp :tag "From")
                        (regexp :tag "To"))))
 
-(defvar ibuffer-mode-groups-popup
-  (let ((groups-map (make-sparse-keymap "Filter Groups")))
-    ;; Filter groups
-
-    (define-key-after groups-map [filters-to-filter-group]
-      '(menu-item "Create filter group from current filters..."
-        ibuffer-filters-to-filter-group
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
-    (define-key-after groups-map [forward-filter-group]
-      '(menu-item "Move point to the next filter group"
-        ibuffer-forward-filter-group))
-    (define-key-after groups-map [backward-filter-group]
-      '(menu-item "Move point to the previous filter group"
-        ibuffer-backward-filter-group))
-    (define-key-after groups-map [jump-to-filter-group]
-      '(menu-item "Move point to a specific filter group..."
-        ibuffer-jump-to-filter-group))
-    (define-key-after groups-map [kill-filter-group]
-      '(menu-item "Kill filter group named..."
-        ibuffer-kill-filter-group
-        :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
-    (define-key-after groups-map [yank-filter-group]
-      '(menu-item "Yank last killed filter group before..."
-        ibuffer-yank-filter-group
-        :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
-    (define-key-after groups-map [pop-filter-group]
-      '(menu-item "Remove top filter group"
-        ibuffer-pop-filter-group
-        :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
-    (define-key-after groups-map [clear-filter-groups]
-      '(menu-item "Remove all filter groups"
-        ibuffer-clear-filter-groups
-        :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
-    (define-key-after groups-map [pop-filter-group]
-      '(menu-item "Decompose filter group..."
-        ibuffer-pop-filter-group
-        :help "\"Unmake\" a filter group"
-        :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
-    (define-key-after groups-map [save-filter-groups]
-      '(menu-item "Save current filter groups permanently..."
-        ibuffer-save-filter-groups
-        :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)
-        :help "Use a mnemonic name to store current filter groups"))
-    (define-key-after groups-map [switch-to-saved-filter-groups]
-      '(menu-item "Restore permanently saved filters..."
-        ibuffer-switch-to-saved-filter-groups
-        :enable (and (featurep 'ibuf-ext) ibuffer-saved-filter-groups)
-        :help "Replace current filters with a saved stack"))
-    (define-key-after groups-map [delete-saved-filter-groups]
-      '(menu-item "Delete permanently saved filter groups..."
-        ibuffer-delete-saved-filter-groups
-        :enable (and (featurep 'ibuf-ext) ibuffer-saved-filter-groups)))
-    (define-key-after groups-map [set-filter-groups-by-mode]
-      '(menu-item "Set current filter groups to filter by mode"
-        ibuffer-set-filter-groups-by-mode))
-
-    groups-map))
-
 (defvar ibuffer--filter-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'ibuffer-filter-by-mode)
@@ -588,303 +530,233 @@ directory, like `default-directory'."
     (define-key map (kbd "C-x 5 RET") 'ibuffer-visit-buffer-other-frame)
 
     (define-key map (kbd "/") ibuffer--filter-map)
-
-    (define-key map [menu-bar view]
-      (cons "View" (make-sparse-keymap "View")))
-
-    (define-key-after map [menu-bar view visit-buffer]
-      '(menu-item "View this buffer" ibuffer-visit-buffer))
-    (define-key-after map [menu-bar view visit-buffer-other-window]
-      '(menu-item "View (other window)" ibuffer-visit-buffer-other-window))
-    (define-key-after map [menu-bar view visit-buffer-other-frame]
-      '(menu-item "View (other frame)" ibuffer-visit-buffer-other-frame))
-    (define-key-after map [menu-bar view ibuffer-update]
-      '(menu-item "Update" ibuffer-update
-        :help "Regenerate the list of buffers"))
-    (define-key-after map [menu-bar view switch-format]
-      '(menu-item "Switch display format" ibuffer-switch-format
-        :help "Toggle between available values of `ibuffer-formats'"))
-
-    (define-key-after map [menu-bar view dashes]
-      '("--"))
-
-    (define-key-after map [menu-bar view sort]
-      (cons "Sort" (make-sparse-keymap "Sort")))
-
-    (define-key-after map [menu-bar view sort do-sort-by-major-mode]
-      '(menu-item "Sort by major mode" ibuffer-do-sort-by-major-mode))
-    (define-key-after map [menu-bar view sort do-sort-by-size]
-      '(menu-item "Sort by buffer size" ibuffer-do-sort-by-size))
-    (define-key-after map [menu-bar view sort do-sort-by-alphabetic]
-      '(menu-item "Sort lexicographically" ibuffer-do-sort-by-alphabetic
-        :help "Sort by the alphabetic order of buffer name"))
-    (define-key-after map [menu-bar view sort do-sort-by-recency]
-      '(menu-item "Sort by view time" ibuffer-do-sort-by-recency
-        :help "Sort by the last time the buffer was displayed"))
-    (define-key-after map [menu-bar view sort dashes]
-      '("--"))
-    (define-key-after map [menu-bar view sort invert-sorting]
-      '(menu-item "Reverse sorting order" ibuffer-invert-sorting))
-    (define-key-after map [menu-bar view sort toggle-sorting-mode]
-      '(menu-item "Switch sorting mode" ibuffer-toggle-sorting-mode
-        :help "Switch between the various sorting criteria"))
-
-    (define-key-after map [menu-bar view filter]
-      (cons "Filter" (make-sparse-keymap "Filter")))
-
-    (define-key-after map [menu-bar view filter filter-disable]
-      '(menu-item "Disable all filtering" ibuffer-filter-disable
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
-    (define-key-after map [menu-bar view filter filter-by-mode]
-      '(menu-item "Add filter by any major mode..." ibuffer-filter-by-mode))
-    (define-key-after map [menu-bar view filter filter-by-used-mode]
-      '(menu-item "Add filter by a major mode in use..."
-        ibuffer-filter-by-used-mode))
-    (define-key-after map [menu-bar view filter filter-by-derived-mode]
-      '(menu-item "Add filter by derived mode..."
-                  ibuffer-filter-by-derived-mode))
-    (define-key-after map [menu-bar view filter filter-by-name]
-      '(menu-item "Add filter by buffer name..." ibuffer-filter-by-name))
-    (define-key-after map [menu-bar view filter filter-by-starred-name]
-      '(menu-item "Add filter by starred buffer name..."
-                  ibuffer-filter-by-starred-name
-                  :help "List buffers whose names begin with a star"))
-    (define-key-after map [menu-bar view filter filter-by-filename]
-      '(menu-item "Add filter by full filename..." ibuffer-filter-by-filename
-                  :help
-                  (concat "For a buffer associated with file `/a/b/c.d', "
-                          "list buffer if a given pattern matches `/a/b/c.d'")))
-    (define-key-after map [menu-bar view filter filter-by-basename]
-      '(menu-item "Add filter by file basename..."
-                  ibuffer-filter-by-basename
-                  :help (concat "For a buffer associated with file `/a/b/c.d', "
-                                "list buffer if a given pattern matches `c.d'")))
-    (define-key-after map [menu-bar view filter filter-by-file-extension]
-      '(menu-item "Add filter by file name extension..."
-                  ibuffer-filter-by-file-extension
-                  :help (concat "For a buffer associated with file `/a/b/c.d', "
-                                "list buffer if a given pattern matches `d'")))
-    (define-key-after map [menu-bar view filter filter-by-directory]
-      '(menu-item "Add filter by filename's directory..."
-                  ibuffer-filter-by-directory
-                  :help
-                  (concat "For a buffer associated with file `/a/b/c.d', "
-                          "list buffer if a given pattern matches `/a/b'")))
-    (define-key-after map [menu-bar view filter filter-by-size-lt]
-      '(menu-item "Add filter by size less than..." ibuffer-filter-by-size-lt))
-    (define-key-after map [menu-bar view filter filter-by-size-gt]
-      '(menu-item "Add filter by size greater than..."
-        ibuffer-filter-by-size-gt))
-    (define-key-after map [menu-bar view filter filter-by-modified]
-      '(menu-item "Add filter by modified buffer" ibuffer-filter-by-modified
-                  :help "List buffers that are marked as modified"))
-    (define-key-after map [menu-bar view filter filter-by-visiting-file]
-      '(menu-item "Add filter by buffer visiting a file"
-                  ibuffer-filter-by-visiting-file
-                  :help "List buffers that are visiting files"))
-    (define-key-after map [menu-bar view filter filter-by-content]
-      '(menu-item "Add filter by content (regexp)..."
-        ibuffer-filter-by-content))
-    (define-key-after map [menu-bar view filter filter-by-predicate]
-      '(menu-item "Add filter by Lisp predicate..."
-        ibuffer-filter-by-predicate))
-    (define-key-after map [menu-bar view filter pop-filter]
-      '(menu-item "Remove top filter" ibuffer-pop-filter
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
-    (define-key-after map [menu-bar view filter and-filter]
-      '(menu-item "AND top two filters" ibuffer-and-filter
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
-                     (cdr ibuffer-filtering-qualifiers))
-        :help
-        "Create a new filter which is the logical AND of the top two filters"))
-    (define-key-after map [menu-bar view filter or-filter]
-      '(menu-item "OR top two filters" ibuffer-or-filter
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
-                     (cdr ibuffer-filtering-qualifiers))
-        :help
-        "Create a new filter which is the logical OR of the top two filters"))
-    (define-key-after map [menu-bar view filter negate-filter]
-      '(menu-item "Negate top filter" ibuffer-negate-filter
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)))
-    (define-key-after map [menu-bar view filter decompose-filter]
-      '(menu-item "Decompose top filter" ibuffer-decompose-filter
-        :enable (and (featurep 'ibuf-ext)
-                     (memq (car ibuffer-filtering-qualifiers) '(or saved not)))
-        :help "Break down a complex filter like OR or NOT"))
-    (define-key-after map [menu-bar view filter exchange-filters]
-      '(menu-item "Swap top two filters" ibuffer-exchange-filters
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
-                     (cdr ibuffer-filtering-qualifiers))))
-    (define-key-after map [menu-bar view filter save-filters]
-      '(menu-item "Save current filters permanently..." ibuffer-save-filters
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
-        :help "Use a mnemonic name to store current filter stack"))
-    (define-key-after map [menu-bar view filter switch-to-saved-filters]
-      '(menu-item "Restore permanently saved filters..."
-        ibuffer-switch-to-saved-filters
-        :enable (and (featurep 'ibuf-ext) ibuffer-saved-filters)
-        :help "Replace current filters with a saved stack"))
-    (define-key-after map [menu-bar view filter add-saved-filters]
-      '(menu-item "Add to permanently saved filters..."
-        ibuffer-add-saved-filters
-        :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
-        :help "Include already saved stack with current filters"))
-    (define-key-after map [menu-bar view filter delete-saved-filters]
-      '(menu-item "Delete permanently saved filters..."
-        ibuffer-delete-saved-filters
-        :enable (and (featurep 'ibuf-ext) ibuffer-saved-filters)))
-
-    (define-key-after map [menu-bar view filter-groups]
-      (cons "Filter Groups" ibuffer-mode-groups-popup))
-
-    (define-key-after map [menu-bar view dashes2]
-      '("--"))
-    (define-key-after map [menu-bar view auto-mode]
-      '(menu-item "Auto Mode" ibuffer-auto-mode
-        :button (:toggle . ibuffer-auto-mode)
-        :help "Attempt to automatically update the Ibuffer buffer"))
-
-    (define-key-after map [menu-bar mark]
-      (cons "Mark" (make-sparse-keymap "Mark")))
-
-    (define-key-after map [menu-bar mark toggle-marks]
-      '(menu-item "Toggle marks" ibuffer-toggle-marks
-        :help "Unmark marked buffers, and mark unmarked buffers"))
-    (define-key-after map [menu-bar mark change-marks]
-      '(menu-item "Change marks" ibuffer-change-marks
-        :help "Change OLD mark for marked buffers with NEW"))
-    (define-key-after map [menu-bar mark mark-forward]
-      '(menu-item "Mark" ibuffer-mark-forward
-        :help "Mark the buffer at point"))
-    (define-key-after map [menu-bar mark unmark-forward]
-      '(menu-item "Unmark" ibuffer-unmark-forward
-        :help "Unmark the buffer at point"))
-    (define-key-after map [menu-bar mark mark-by-mode]
-      '(menu-item "Mark by mode..." ibuffer-mark-by-mode
-        :help "Mark all buffers in a particular major mode"))
-    (define-key-after map [menu-bar mark mark-modified-buffers]
-      '(menu-item "Mark modified buffers" ibuffer-mark-modified-buffers
-        :help "Mark all buffers which have been modified"))
-    (define-key-after map [menu-bar mark mark-unsaved-buffers]
-      '(menu-item "Mark unsaved buffers" ibuffer-mark-unsaved-buffers
-        :help "Mark all buffers which have a file and are modified"))
-    (define-key-after map [menu-bar mark mark-read-only-buffers]
-      '(menu-item "Mark read-only buffers" ibuffer-mark-read-only-buffers
-        :help "Mark all buffers which are read-only"))
-    (define-key-after map [menu-bar mark mark-special-buffers]
-      '(menu-item "Mark special buffers" ibuffer-mark-special-buffers
-        :help "Mark all buffers whose name begins with a *"))
-    (define-key-after map [menu-bar mark mark-dired-buffers]
-      '(menu-item "Mark dired buffers" ibuffer-mark-dired-buffers
-        :help "Mark buffers in dired-mode"))
-    (define-key-after map [menu-bar mark mark-dissociated-buffers]
-      '(menu-item "Mark dissociated buffers" ibuffer-mark-dissociated-buffers
-        :help "Mark buffers with a non-existent associated file"))
-    (define-key-after map [menu-bar mark mark-help-buffers]
-      '(menu-item "Mark help buffers" ibuffer-mark-help-buffers
-        :help "Mark buffers in help-mode"))
-    (define-key-after map [menu-bar mark mark-compressed-file-buffers]
-      '(menu-item "Mark compressed file buffers"
-        ibuffer-mark-compressed-file-buffers
-        :help "Mark buffers which have a file that is compressed"))
-    (define-key-after map [menu-bar mark mark-old-buffers]
-      '(menu-item "Mark old buffers" ibuffer-mark-old-buffers
-        :help "Mark buffers which have not been viewed recently"))
-    (define-key-after map [menu-bar mark unmark-all]
-      '(menu-item "Unmark All" ibuffer-unmark-all))
-    (define-key-after map [menu-bar mark unmark-all-marks]
-      '(menu-item "Unmark All buffers" ibuffer-unmark-all-marks))
-
-    (define-key-after map [menu-bar mark dashes]
-      '("--"))
-
-    (define-key-after map [menu-bar mark mark-by-name-regexp]
-      '(menu-item "Mark by buffer name (regexp)..." ibuffer-mark-by-name-regexp
-        :help "Mark buffers whose name matches a regexp"))
-    (define-key-after map [menu-bar mark mark-by-mode-regexp]
-      '(menu-item "Mark by major mode (regexp)..." ibuffer-mark-by-mode-regexp
-        :help "Mark buffers whose major mode name matches a regexp"))
-    (define-key-after map [menu-bar mark mark-by-file-name-regexp]
-      '(menu-item "Mark by file name (regexp)..."
-        ibuffer-mark-by-file-name-regexp
-        :help "Mark buffers whose file name matches a regexp"))
-    (define-key-after map [menu-bar mark ibuffer-mark-by-content-regexp]
-      '(menu-item "Mark by content (regexp)..."
-        ibuffer-mark-by-content-regexp
-        :help "Mark buffers whose content matches a regexp"))
-    (define-key-after map [menu-bar mark mark-by-locked]
-      '(menu-item "Mark by locked buffers..." ibuffer-mark-by-locked
-        :help "Mark all locked buffers"))
-
     map))
 
-(defvar ibuffer-mode-operate-map
-  (let ((operate-map (make-sparse-keymap "Operate")))
-    (define-key-after operate-map [do-view]
-      '(menu-item "View" ibuffer-do-view))
-    (define-key-after operate-map [do-view-other-frame]
-      '(menu-item "View (separate frame)" ibuffer-do-view-other-frame))
-    (define-key-after operate-map [do-save]
-      '(menu-item "Save" ibuffer-do-save))
-    (define-key-after operate-map [do-replace-regexp]
-      '(menu-item "Replace (regexp)..." ibuffer-do-replace-regexp
-        :help "Replace text inside marked buffers"))
-    (define-key-after operate-map [do-query-replace]
-      '(menu-item "Query Replace..." ibuffer-do-query-replace
-        :help "Replace text in marked buffers, asking each time"))
-    (define-key-after operate-map [do-query-replace-regexp]
-      '(menu-item "Query Replace (regexp)..." ibuffer-do-query-replace-regexp
-        :help "Replace text in marked buffers by regexp, asking each time"))
-    (define-key-after operate-map [do-print]
-      '(menu-item "Print" ibuffer-do-print))
-    (define-key-after operate-map [do-toggle-modified]
-      '(menu-item "Toggle modification flag" ibuffer-do-toggle-modified))
-    (define-key-after operate-map [do-toggle-read-only]
-      '(menu-item "Toggle read-only flag" ibuffer-do-toggle-read-only))
-    (define-key-after operate-map [do-toggle-lock]
-      '(menu-item "Toggle lock flag" ibuffer-do-toggle-lock))
-    (define-key-after operate-map [do-revert]
-      '(menu-item "Revert" ibuffer-do-revert
-        :help "Revert marked buffers to their associated file"))
-    (define-key-after operate-map [do-rename-uniquely]
-      '(menu-item "Rename Uniquely" ibuffer-do-rename-uniquely
-        :help "Rename marked buffers to a new, unique name"))
-    (define-key-after operate-map [do-delete]
-      '(menu-item "Kill" ibuffer-do-delete))
-    (define-key-after operate-map [do-occur]
-      '(menu-item "List lines matching..." ibuffer-do-occur
-        :help "View all lines in marked buffers matching a regexp"))
-    (define-key-after operate-map [do-shell-command-pipe]
-      '(menu-item "Pipe to shell command..." ibuffer-do-shell-command-pipe
-        :help "For each marked buffer, send its contents to a shell command"))
-    (define-key-after operate-map [do-shell-command-pipe-replace]
-      '(menu-item "Pipe to shell command (replace)..." ibuffer-do-shell-command-pipe-replace
-        :help "For each marked buffer, replace its contents with output of shell command"))
-    (define-key-after operate-map [do-shell-command-file]
-      '(menu-item "Shell command on buffer's file..." ibuffer-do-shell-command-file
-        :help "For each marked buffer, run a shell command with its file as argument"))
-    (define-key-after operate-map [do-eval]
-      '(menu-item "Eval..." ibuffer-do-eval
-        :help "Evaluate a Lisp form in each marked buffer"))
-    (define-key-after operate-map [do-view-and-eval]
-      '(menu-item "Eval (viewing buffer)..." ibuffer-do-view-and-eval
-        :help "Evaluate a Lisp form in each marked buffer while viewing it"))
-    (define-key-after operate-map [diff-with-file]
-      '(menu-item "Diff with file" ibuffer-diff-with-file
-                  :help "View the differences between this buffer and its file"))
+(defun ibuffer-mode--groups-menu-definition (&optional is-popup)
+  "Build the `ibuffer' \"Filter\" menu.  Internal."
+  `("Filter Groups"
+    ["Create filter group from current filters..."
+     ibuffer-filters-to-filter-group
+     :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)]
+    ["Move point to the next filter group"
+     ibuffer-forward-filter-group]
+    ["Move point to the previous filter group"
+     ibuffer-backward-filter-group]
+    ["Move point to a specific filter group..."
+     ibuffer-jump-to-filter-group]
+    ,@(if is-popup
+          '(["Kill filter group"
+             ibuffer-kill-line
+             :enable (and (featurep 'ibuf-ext)
+                          ibuffer-filter-groups)]
+            ["Yank last killed filter group"
+             ibuffer-yank
+             :enable (and (featurep 'ibuf-ext)
+                          ibuffer-filter-group-kill-ring)])
+      '(["Kill filter group named..."
+         ibuffer-kill-filter-group
+         :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)]
+        ["Yank last killed filter group before..."
+         ibuffer-yank-filter-group
+         :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)]))
+    ["Remove top filter group"
+     ibuffer-pop-filter-group
+     :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)]
+    ["Remove all filter groups"
+     ibuffer-clear-filter-groups
+     :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)]
+    ["Decompose filter group..."
+     ibuffer-pop-filter-group
+     :help "\"Unmake\" a filter group"
+     :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)]
+    ["Save current filter groups permanently..."
+     ibuffer-save-filter-groups
+     :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)
+     :help "Use a mnemonic name to store current filter groups"]
+    ["Restore permanently saved filters..."
+     ibuffer-switch-to-saved-filter-groups
+     :enable (and (featurep 'ibuf-ext) ibuffer-saved-filter-groups)
+     :help "Replace current filters with a saved stack"]
+    ["Delete permanently saved filter groups..."
+     ibuffer-delete-saved-filter-groups
+     :enable (and (featurep 'ibuf-ext) ibuffer-saved-filter-groups)]
+    ["Set current filter groups to filter by mode"
+     ibuffer-set-filter-groups-by-mode]))
 
-    operate-map))
+(easy-menu-define ibuffer-mode-groups-popup nil
+  "Menu for `ibuffer'."
+  (ibuffer-mode--groups-menu-definition 'is-popup))
 
-(define-key ibuffer-mode-groups-popup [kill-filter-group]
-  '(menu-item "Kill filter group"
-	      ibuffer-kill-line
-	      :enable (and (featurep 'ibuf-ext)
-			   ibuffer-filter-groups)))
-(define-key ibuffer-mode-groups-popup [yank-filter-group]
-  '(menu-item "Yank last killed filter group"
-	      ibuffer-yank
-	      :enable (and (featurep 'ibuf-ext)
-			   ibuffer-filter-group-kill-ring)))
+(easy-menu-define ibuffer-mode-mark-menu ibuffer-mode-map
+  "Mark menu for `ibuffer'."
+  '("Mark"
+    ["Toggle marks" ibuffer-toggle-marks
+     :help "Unmark marked buffers, and mark unmarked buffers"]
+    ["Change marks" ibuffer-change-marks
+     :help "Change OLD mark for marked buffers with NEW"]
+    ["Mark" ibuffer-mark-forward
+     :help "Mark the buffer at point"]
+    ["Unmark" ibuffer-unmark-forward
+     :help "Unmark the buffer at point"]
+    ["Mark by mode..." ibuffer-mark-by-mode
+     :help "Mark all buffers in a particular major mode"]
+    ["Mark modified buffers" ibuffer-mark-modified-buffers
+     :help "Mark all buffers which have been modified"]
+    ["Mark unsaved buffers" ibuffer-mark-unsaved-buffers
+     :help "Mark all buffers which have a file and are modified"]
+    ["Mark read-only buffers" ibuffer-mark-read-only-buffers
+     :help "Mark all buffers which are read-only"]
+    ["Mark special buffers" ibuffer-mark-special-buffers
+     :help "Mark all buffers whose name begins with a *"]
+    ["Mark dired buffers" ibuffer-mark-dired-buffers
+     :help "Mark buffers in dired-mode"]
+    ["Mark dissociated buffers" ibuffer-mark-dissociated-buffers
+     :help "Mark buffers with a non-existent associated file"]
+    ["Mark help buffers" ibuffer-mark-help-buffers
+     :help "Mark buffers in help-mode"]
+    ["Mark compressed file buffers" ibuffer-mark-compressed-file-buffers
+     :help "Mark buffers which have a file that is compressed"]
+    ["Mark old buffers" ibuffer-mark-old-buffers
+     :help "Mark buffers which have not been viewed recently"]
+    ["Unmark All" ibuffer-unmark-all]
+    ["Unmark All buffers" ibuffer-unmark-all-marks]
+    "---"
+    ["Mark by buffer name (regexp)..." ibuffer-mark-by-name-regexp
+     :help "Mark buffers whose name matches a regexp"]
+    ["Mark by major mode (regexp)..." ibuffer-mark-by-mode-regexp
+     :help "Mark buffers whose major mode name matches a regexp"]
+    ["Mark by file name (regexp)..." ibuffer-mark-by-file-name-regexp
+     :help "Mark buffers whose file name matches a regexp"]
+    ["Mark by content (regexp)..." ibuffer-mark-by-content-regexp
+     :help "Mark buffers whose content matches a regexp"]
+    ["Mark by locked buffers..." ibuffer-mark-by-locked
+     :help "Mark all locked buffers"]))
+
+(easy-menu-define ibuffer-mode-view-menu ibuffer-mode-map
+  "View menu for `ibuffer'."
+  `("View"
+    ["View this buffer" ibuffer-visit-buffer]
+    ["View (other window)" ibuffer-visit-buffer-other-window]
+    ["View (other frame)" ibuffer-visit-buffer-other-frame]
+    ["Update" ibuffer-update
+     :help "Regenerate the list of buffers"]
+    ["Switch display format" ibuffer-switch-format
+     :help "Toggle between available values of `ibuffer-formats'"]
+    "---"
+    ("Sort"
+     ["Sort by major mode" ibuffer-do-sort-by-major-mode]
+     ["Sort by buffer size" ibuffer-do-sort-by-size]
+     ["Sort lexicographically" ibuffer-do-sort-by-alphabetic
+      :help "Sort by the alphabetic order of buffer name"]
+     ["Sort by view time" ibuffer-do-sort-by-recency
+      :help "Sort by the last time the buffer was displayed"]
+     "---"
+     ["Reverse sorting order" ibuffer-invert-sorting]
+     ["Switch sorting mode" ibuffer-toggle-sorting-mode
+      :help "Switch between the various sorting criteria"])
+    ("Filter"
+     ["Disable all filtering" ibuffer-filter-disable
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)]
+     ["Add filter by any major mode..." ibuffer-filter-by-mode]
+     ["Add filter by a major mode in use..." ibuffer-filter-by-used-mode]
+     ["Add filter by derived mode..." ibuffer-filter-by-derived-mode]
+     ["Add filter by buffer name..." ibuffer-filter-by-name]
+     ["Add filter by starred buffer name..." ibuffer-filter-by-starred-name
+      :help "List buffers whose names begin with a star"]
+     ["Add filter by full filename..." ibuffer-filter-by-filename
+      :help (concat "For a buffer associated with file `/a/b/c.d', "
+                    "list buffer if a given pattern matches `/a/b/c.d'")]
+     ["Add filter by file basename..." ibuffer-filter-by-basename
+      :help (concat "For a buffer associated with file `/a/b/c.d', "
+                    "list buffer if a given pattern matches `c.d'")]
+     ["Add filter by file name extension..." ibuffer-filter-by-file-extension
+      :help (concat "For a buffer associated with file `/a/b/c.d', "
+                    "list buffer if a given pattern matches `d'")]
+     ["Add filter by filename's directory..." ibuffer-filter-by-directory
+      :help (concat "For a buffer associated with file `/a/b/c.d', "
+                    "list buffer if a given pattern matches `/a/b'")]
+     ["Add filter by size less than..." ibuffer-filter-by-size-lt]
+     ["Add filter by size greater than..." ibuffer-filter-by-size-gt]
+     ["Add filter by modified buffer" ibuffer-filter-by-modified
+      :help "List buffers that are marked as modified"]
+     ["Add filter by buffer visiting a file" ibuffer-filter-by-visiting-file
+      :help "List buffers that are visiting files"]
+     ["Add filter by content (regexp)..." ibuffer-filter-by-content]
+     ["Add filter by Lisp predicate..." ibuffer-filter-by-predicate]
+     ["Remove top filter" ibuffer-pop-filter
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)]
+     ["AND top two filters" ibuffer-and-filter
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
+                   (cdr ibuffer-filtering-qualifiers))
+      :help "Create a new filter which is the logical AND of the top two filters"]
+     ["OR top two filters" ibuffer-or-filter
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
+                   (cdr ibuffer-filtering-qualifiers))
+      :help "Create a new filter which is the logical OR of the top two filters"]
+     ["Negate top filter" ibuffer-negate-filter
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)]
+     ["Decompose top filter" ibuffer-decompose-filter
+      :enable (and (featurep 'ibuf-ext)
+                   (memq (car ibuffer-filtering-qualifiers) '(or saved not)))
+      :help "Break down a complex filter like OR or NOT"]
+     ["Swap top two filters" ibuffer-exchange-filters
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers
+                   (cdr ibuffer-filtering-qualifiers))]
+     ["Save current filters permanently..." ibuffer-save-filters
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
+      :help "Use a mnemonic name to store current filter stack"]
+     ["Restore permanently saved filters..." ibuffer-switch-to-saved-filters
+      :enable (and (featurep 'ibuf-ext) ibuffer-saved-filters)
+      :help "Replace current filters with a saved stack"]
+     ["Add to permanently saved filters..." ibuffer-add-saved-filters
+      :enable (and (featurep 'ibuf-ext) ibuffer-filtering-qualifiers)
+      :help "Include already saved stack with current filters"]
+     ["Delete permanently saved filters..." ibuffer-delete-saved-filters
+      :enable (and (featurep 'ibuf-ext) ibuffer-saved-filters)])
+    ;; The "Filter Groups" menu:
+    ,(ibuffer-mode--groups-menu-definition)
+    "---"
+    ["Auto Mode" ibuffer-auto-mode
+     :style toggle
+     :selected ibuffer-auto-mode
+     :help "Attempt to automatically update the Ibuffer buffer"]))
+
+(define-obsolete-variable-alias 'ibuffer-mode-operate-map 'ibuffer-mode-operate-menu "28.1")
+(easy-menu-define ibuffer-mode-operate-menu ibuffer-mode-map
+  "Operate menu for `ibuffer'."
+  '("Operate"
+    ["View" ibuffer-do-view]
+    ["View (separate frame)" ibuffer-do-view-other-frame]
+    ["Save" ibuffer-do-save]
+    ["Replace (regexp)..." ibuffer-do-replace-regexp
+     :help "Replace text inside marked buffers"]
+    ["Query Replace..." ibuffer-do-query-replace
+     :help "Replace text in marked buffers, asking each time"]
+    ["Query Replace (regexp)..." ibuffer-do-query-replace-regexp
+     :help "Replace text in marked buffers by regexp, asking each time"]
+    ["Print" ibuffer-do-print]
+    ["Toggle modification flag" ibuffer-do-toggle-modified]
+    ["Toggle read-only flag" ibuffer-do-toggle-read-only]
+    ["Toggle lock flag" ibuffer-do-toggle-lock]
+    ["Revert" ibuffer-do-revert
+     :help "Revert marked buffers to their associated file"]
+    ["Rename Uniquely" ibuffer-do-rename-uniquely
+     :help "Rename marked buffers to a new, unique name"]
+    ["Kill" ibuffer-do-delete]
+    ["List lines matching..." ibuffer-do-occur
+     :help "View all lines in marked buffers matching a regexp"]
+    ["Pipe to shell command..." ibuffer-do-shell-command-pipe
+     :help "For each marked buffer, send its contents to a shell command"]
+    ["Pipe to shell command (replace)..." ibuffer-do-shell-command-pipe-replace
+     :help "For each marked buffer, replace its contents with output of shell command"]
+    ["Shell command on buffer's file..." ibuffer-do-shell-command-file
+     :help "For each marked buffer, run a shell command with its file as argument"]
+    ["Eval..." ibuffer-do-eval
+     :help "Evaluate a Lisp form in each marked buffer"]
+    ["Eval (viewing buffer)..." ibuffer-do-view-and-eval
+     :help "Evaluate a Lisp form in each marked buffer while viewing it"]
+    ["Diff with file" ibuffer-diff-with-file
+     :help "View the differences between this buffer and its file"]))
 
 (defvar ibuffer-name-map
   (let ((map (make-sparse-keymap)))
@@ -1025,7 +897,7 @@ width and the longest string in LIST."
 		(goto-char eventpt)
 		(ibuffer-set-mark ibuffer-marked-char))
 	      (save-excursion
-		(popup-menu ibuffer-mode-operate-map)))))
+                (popup-menu ibuffer-mode-operate-menu)))))
       (setq buffer-read-only t)
       (if (= eventpt (point))
 	  (goto-char origpt)))))
@@ -2734,7 +2606,6 @@ will be inserted before the group at point."
   (setq-local ibuffer-tmp-hide-regexps nil)
   (setq-local ibuffer-tmp-show-regexps nil)
   (define-key ibuffer-mode-map [menu-bar edit] 'undefined)
-  (define-key ibuffer-mode-map [menu-bar operate] (cons "Operate" ibuffer-mode-operate-map))
   (ibuffer-update-format)
   (when ibuffer-default-directory
     (setq default-directory ibuffer-default-directory))

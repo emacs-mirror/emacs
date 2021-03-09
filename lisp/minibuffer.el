@@ -3162,7 +3162,7 @@ or a symbol, see `completion-pcm--merge-completions'."
   (let ((n '()))
     (while p
       (pcase p
-        (`(,(or 'any 'any-delim) ,(or 'any 'point) . ,rest)
+        (`(,(or 'any 'any-delim) ,(or 'any 'point) . ,_)
          (setq p (cdr p)))
         ;; This is not just a performance improvement: it turns a
         ;; terminating `point' into an implicit `any', which affects

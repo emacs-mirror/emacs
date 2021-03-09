@@ -1425,6 +1425,7 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
+;;;###autoload
 (defun vc-ignore (file &optional directory remove)
   "Ignore FILE under the VCS of DIRECTORY.
 

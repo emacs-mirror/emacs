@@ -155,29 +155,26 @@ In insert mode, this key also functions as Meta."
 	 (let ((old-value (if (boundp 'viper-toggle-key)
 			      viper-toggle-key
 			    [(control ?z)])))
-	   (mapc
-	    (lambda (buf)
-	      (with-current-buffer buf
-		(when (and (boundp 'viper-insert-basic-map)
-			   (keymapp viper-insert-basic-map))
-		  (when old-value
-		    (define-key viper-insert-basic-map old-value nil))
-		  (define-key viper-insert-basic-map value 'viper-escape-to-vi))
-		(when (and (boundp 'viper-vi-intercept-map)
-			   (keymapp viper-vi-intercept-map))
-		  (when old-value
-		    (define-key viper-vi-intercept-map old-value nil))
-		  (define-key
-		    viper-vi-intercept-map value 'viper-toggle-key-action))
-		(when (and (boundp 'viper-emacs-intercept-map)
-			   (keymapp viper-emacs-intercept-map))
-		  (define-key viper-emacs-intercept-map old-value nil)
-		  (define-key
-		    viper-emacs-intercept-map value 'viper-change-state-to-vi))
-		))
-	    (buffer-list))
-	   (set-default symbol value)
-           )))
+	   (dolist (buf (buffer-list))
+	     (with-current-buffer buf
+	       (when (and (boundp 'viper-insert-basic-map)
+			  (keymapp viper-insert-basic-map))
+		 (when old-value
+		   (define-key viper-insert-basic-map old-value nil))
+		 (define-key viper-insert-basic-map value 'viper-escape-to-vi))
+	       (when (and (boundp 'viper-vi-intercept-map)
+			  (keymapp viper-vi-intercept-map))
+		 (when old-value
+		   (define-key viper-vi-intercept-map old-value nil))
+		 (define-key
+		   viper-vi-intercept-map value 'viper-toggle-key-action))
+	       (when (and (boundp 'viper-emacs-intercept-map)
+			  (keymapp viper-emacs-intercept-map))
+		 (define-key viper-emacs-intercept-map old-value nil)
+		 (define-key
+		   viper-emacs-intercept-map value 'viper-change-state-to-vi))
+	       ))
+	   (set-default symbol value))))
 
 (defcustom viper-quoted-insert-key "\C-v"
   "The key used to quote special characters when inserting them in Insert state."
@@ -257,7 +254,7 @@ In insert mode, this key also functions as Meta."
 
 (let ((i ?\ ))
   (while (<= i ?~)
-    (define-key viper-insert-diehard-map (make-string 1 i) 'self-insert-command)
+    (define-key viper-insert-diehard-map (string i) #'self-insert-command)
     (setq i (1+ i))))
 
 ;; Insert mode map when user wants emacs style
@@ -490,7 +487,7 @@ Useful in some modes, such as Gnus, MH, etc.")
 The effect is seen in the current buffer only.
 Useful for customizing  mailer buffers, gnus, etc.
 STATE is `vi-state', `insert-state', or `emacs-state'.
-ALIST is of the form ((key . func) (key . func) ...)
+ALIST is of the form ((KEY . FUNC) (KEY . FUNC) ...)
 Normally, this would be called from a hook to a major mode or
 on a per buffer basis.
 Usage:
@@ -548,14 +545,11 @@ The above needs not to be done for major modes that come up in Vi or Insert
 state by default.
 
 Arguments: (major-mode viper-state keymap)"
-  (let ((alist
-	 (cond ((eq state 'vi-state) 'viper-vi-state-modifier-alist)
-	       ((eq state 'insert-state) 'viper-insert-state-modifier-alist)
-	       ((eq state 'emacs-state) 'viper-emacs-state-modifier-alist)))
-	elt)
-    (if (setq elt (assoc mode (eval alist)))
-	(set alist (delq elt (eval alist))))
-    (set alist (cons (cons mode keymap) (eval alist)))
+  (let* ((alist
+	  (cond ((eq state 'vi-state) 'viper-vi-state-modifier-alist)
+	        ((eq state 'insert-state) 'viper-insert-state-modifier-alist)
+	        ((eq state 'emacs-state) 'viper-emacs-state-modifier-alist))))
+    (setf (alist-get mode (symbol-value alist)) keymap)
 
     ;; Normalization usually doesn't help here, since one needs to
     ;; normalize in the actual buffer where changes to the keymap are
@@ -646,9 +640,9 @@ Arguments: (major-mode viper-state keymap)"
 	(cdr mapsrc)))
 
 (defun viper-modify-keymap (map alist)
-   "Modifies MAP with bindings specified in the ALIST.  The alist has the
-form ((key . function) (key . function) ... )."
-   (mapcar (lambda (p) (define-key map (eval (car p)) (cdr p)))
+   "Modifies MAP with bindings specified in the ALIST.
+The ALIST has the form ((KEY . FUNCTION) (KEY . FUNCTION) ... )."
+   (mapcar (lambda (p) (define-key map (eval (car p) t) (cdr p)))
 	   alist))
 
 

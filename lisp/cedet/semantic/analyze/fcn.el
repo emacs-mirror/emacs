@@ -1,4 +1,4 @@
-;;; semantic/analyze/fcn.el --- Analyzer support functions.
+;;; semantic/analyze/fcn.el --- Analyzer support functions.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -55,7 +55,7 @@ Return the string representing the compound name.")
 
 (defun semantic-analyze-unsplit-name-default (namelist)
   "Concatenate the names in NAMELIST with a . between."
-  (mapconcat 'identity namelist "."))
+  (mapconcat #'identity namelist "."))
 
 ;;; SELECTING
 ;;

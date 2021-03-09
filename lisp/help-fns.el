@@ -668,7 +668,7 @@ FILE is the file where FUNCTION was probably defined."
               ;; Almost all entries are of the form "* ... in Emacs NN.MM."
               ;; but there are also a few in the form "* Emacs NN.MM is a bug
               ;; fix release ...".
-              (if (not (re-search-backward "^\\*.* Emacs \\([0-9.]+[0-9]\\)"
+              (if (not (re-search-backward "^\\* .* Emacs \\([0-9.]+[0-9]\\)"
                                            nil t))
                   (message "Ref found in non-versioned section in %S"
                            (file-name-nondirectory f))

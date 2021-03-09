@@ -45,14 +45,12 @@ This variable is also used in the `vc-diff' command (and related
 commands) if the backend-specific diff switch variable isn't
 set (`vc-git-diff-switches' for git, for instance), and
 `vc-diff-switches' isn't set."
-  :type '(choice string (repeat string))
-  :group 'diff)
+  :type '(choice string (repeat string)))
 
 ;;;###autoload
 (defcustom diff-command (purecopy "diff")
   "The command to use to run diff."
-  :type 'string
-  :group 'diff)
+  :type 'string)
 
 ;; prompt if prefix arg present
 (defun diff-switches ()
@@ -60,7 +58,7 @@ set (`vc-git-diff-switches' for git, for instance), and
       (read-string "Diff switches: "
 		   (if (stringp diff-switches)
 		       diff-switches
-		     (mapconcat 'identity diff-switches " ")))))
+		     (mapconcat #'identity diff-switches " ")))))
 
 (defun diff-sentinel (code &optional old-temp-file new-temp-file)
   "Code run when the diff process exits.
@@ -165,7 +163,7 @@ returns the buffer used."
   (let* ((old-alt (diff-file-local-copy old))
 	 (new-alt (diff-file-local-copy new))
 	 (command
-	  (mapconcat 'identity
+	  (mapconcat #'identity
 		     `(,diff-command
 		       ;; Use explicitly specified switches
 		       ,@switches
@@ -200,7 +198,7 @@ returns the buffer used."
       (if (and (not no-async) (fboundp 'make-process))
 	  (let ((proc (start-process "Diff" buf shell-file-name
                                      shell-command-switch command)))
-	    (set-process-filter proc 'diff-process-filter)
+	    (set-process-filter proc #'diff-process-filter)
             (set-process-sentinel
              proc (lambda (proc _msg)
                     (with-current-buffer (process-buffer proc)

@@ -429,7 +429,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "2"
+#define ABI_VERSION "3"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -2774,7 +2774,7 @@ emit_ctxt_code (void)
 	comp.ctxt,
 	NULL,
 	GCC_JIT_GLOBAL_EXPORTED,
-	gcc_jit_type_get_pointer (comp.lisp_obj_ptr_type),
+	comp.lisp_obj_type,
 	COMP_UNIT_SYM);
 
   declare_imported_data ();
@@ -4947,6 +4947,20 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
   register_native_comp_unit (comp_u_lisp_obj);
 
   return res;
+}
+
+void
+unload_comp_unit (struct Lisp_Native_Comp_Unit *cu)
+{
+  if (cu->handle == NULL)
+    return;
+
+  Lisp_Object *saved_cu = dynlib_sym (cu->handle, COMP_UNIT_SYM);
+  Lisp_Object this_cu;
+  XSETNATIVE_COMP_UNIT (this_cu, cu);
+  if (EQ (this_cu, *saved_cu))
+    *saved_cu = Qnil;
+  dynlib_close (cu->handle);
 }
 
 Lisp_Object

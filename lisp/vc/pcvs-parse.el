@@ -186,7 +186,7 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
     (let ((type (if (consp type) (car type) type))
 	  (subtype (if (consp type) (cdr type))))
       (when dir (setq cvs-current-dir dir))
-      (apply 'cvs-create-fileinfo type
+      (apply #'cvs-create-fileinfo type
 	     (concat cvs-current-subdir (or dir cvs-current-dir))
 	     file (cvs-parse-msg) :subtype subtype keys))))
 

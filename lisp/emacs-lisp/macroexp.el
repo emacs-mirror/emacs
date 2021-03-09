@@ -135,28 +135,33 @@ Other uses risk returning non-nil value that point to the wrong file."
 
 (defvar macroexp--warned (make-hash-table :test #'equal :weakness 'key))
 
-(defun macroexp--warn-and-return (msg form &optional compile-only)
+(defun macroexp--warn-wrap (msg form)
   (let ((when-compiled (lambda () (byte-compile-warn "%s" msg))))
-    (cond
-     ((null msg) form)
-     ((macroexp-compiling-p)
-      (if (and (consp form) (gethash form macroexp--warned))
-          ;; Already wrapped this exp with a warning: avoid inf-looping
-          ;; where we keep adding the same warning onto `form' because
-          ;; macroexpand-all gets right back to macroexpanding `form'.
-          form
-        (puthash form form macroexp--warned)
-        `(progn
-           (macroexp--funcall-if-compiled ',when-compiled)
-           ,form)))
-     (t
-      (unless compile-only
-        (message "%sWarning: %s"
-                 (if (stringp load-file-name)
-                     (concat (file-relative-name load-file-name) ": ")
-                   "")
-                 msg))
-      form))))
+    `(progn
+       (macroexp--funcall-if-compiled ',when-compiled)
+       ,form)))
+
+(define-obsolete-function-alias 'macroexp--warn-and-return
+  #'macroexp-warn-and-return "28.1")
+(defun macroexp-warn-and-return (msg form &optional compile-only)
+  (cond
+   ((null msg) form)
+   ((macroexp-compiling-p)
+    (if (and (consp form) (gethash form macroexp--warned))
+        ;; Already wrapped this exp with a warning: avoid inf-looping
+        ;; where we keep adding the same warning onto `form' because
+        ;; macroexpand-all gets right back to macroexpanding `form'.
+        form
+      (puthash form form macroexp--warned)
+      (macroexp--warn-wrap msg form)))
+   (t
+    (unless compile-only
+      (message "%sWarning: %s"
+               (if (stringp load-file-name)
+                   (concat (file-relative-name load-file-name) ": ")
+                 "")
+               msg))
+    form)))
 
 (defun macroexp--obsolete-warning (fun obsolescence-data type)
   (let ((instead (car obsolescence-data))
@@ -205,7 +210,7 @@ Other uses risk returning non-nil value that point to the wrong file."
                  (byte-compile-warning-enabled-p 'obsolete (car form))))
         (let* ((fun (car form))
                (obsolete (get fun 'byte-obsolete-info)))
-          (macroexp--warn-and-return
+          (macroexp-warn-and-return
            (macroexp--obsolete-warning
             fun obsolete
             (if (symbolp (symbol-function fun))
@@ -260,7 +265,7 @@ Other uses risk returning non-nil value that point to the wrong file."
                    values (cdr values))))
       (setq arglist (cdr arglist)))
     (if values
-        (macroexp--warn-and-return
+        (macroexp-warn-and-return
          (format (if (eq values 'too-few)
                      "attempt to open-code `%s' with too few arguments"
                    "attempt to open-code `%s' with too many arguments")
@@ -289,10 +294,12 @@ Assumes the caller has bound `macroexpand-all-environment'."
 		   macroexpand-all-environment)
     ;; Normal form; get its expansion, and then expand arguments.
     (setq form (macroexp-macroexpand form macroexpand-all-environment))
+    ;; FIXME: It'd be nice to use `byte-optimize--pcase' here, but when
+    ;; I tried it, it broke the bootstrap :-(
     (pcase form
       (`(cond . ,clauses)
        (macroexp--cons 'cond (macroexp--all-clauses clauses) form))
-      (`(condition-case . ,(or `(,err ,body . ,handlers) dontcare))
+      (`(condition-case . ,(or `(,err ,body . ,handlers) pcase--dontcare))
        (macroexp--cons
         'condition-case
         (macroexp--cons err
@@ -309,12 +316,13 @@ Assumes the caller has bound `macroexpand-all-environment'."
                                        (cdr form))
                        form))
       (`(,(or 'function 'quote) . ,_) form)
-      (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body) dontcare))
+      (`(,(and fun (or 'let 'let*)) . ,(or `(,bindings . ,body)
+                                           pcase--dontcare))
        (macroexp--cons fun
                        (macroexp--cons (macroexp--all-clauses bindings 1)
                                        (if (null body)
                                            (macroexp-unprogn
-                                            (macroexp--warn-and-return
+                                            (macroexp-warn-and-return
                                              (format "Empty %s body" fun)
                                              nil t))
                                          (macroexp--all-forms body))
@@ -334,27 +342,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
                              form)
 	   (macroexp--expand-all newform))))
 
-      ;; The following few cases are for normal function calls that
-      ;; are known to funcall one of their arguments.  The byte
-      ;; compiler has traditionally handled these functions specially
-      ;; by treating a lambda expression quoted by `quote' as if it
-      ;; were quoted by `function'.  We make the same transformation
-      ;; here, so that any code that cares about the difference will
-      ;; see the same transformation.
-      ;; First arg is a function:
-      (`(,(and fun (or 'funcall 'apply 'mapcar 'mapatoms 'mapconcat 'mapc))
-         ',(and f `(lambda . ,_)) . ,args)
-       (macroexp--warn-and-return
-        (format "%s quoted with ' rather than with #'"
-                (list 'lambda (nth 1 f) '...))
-        (macroexp--expand-all `(,fun #',f . ,args))))
-      ;; Second arg is a function:
-      (`(,(and fun (or 'sort)) ,arg1 ',(and f `(lambda . ,_)) . ,args)
-       (macroexp--warn-and-return
-        (format "%s quoted with ' rather than with #'"
-                (list 'lambda (nth 1 f) '...))
-        (macroexp--expand-all `(,fun ,arg1 #',f . ,args))))
-      (`(funcall ,exp . ,args)
+      (`(funcall . ,(or `(,exp . ,args) pcase--dontcare))
        (let ((eexp (macroexp--expand-all exp))
              (eargs (macroexp--all-forms args)))
          ;; Rewrite (funcall #'foo bar) to (foo bar), in case `foo'
@@ -363,10 +351,22 @@ Assumes the caller has bound `macroexpand-all-environment'."
            (`#',f (macroexp--expand-all `(,f . ,eargs)))
            (_ `(funcall ,eexp . ,eargs)))))
       (`(,func . ,_)
-       ;; Macro expand compiler macros.  This cannot be delayed to
-       ;; byte-optimize-form because the output of the compiler-macro can
-       ;; use macros.
-       (let ((handler (function-get func 'compiler-macro)))
+       (let ((handler (function-get func 'compiler-macro))
+             (funargs (function-get func 'funarg-positions)))
+         ;; Check functions quoted with ' rather than with #'
+         (dolist (funarg funargs)
+           (let ((arg (nth funarg form)))
+             (when (and (eq 'quote (car-safe arg))
+                        (eq 'lambda (car-safe (cadr arg))))
+               (setcar (nthcdr funarg form)
+                       (macroexp-warn-and-return
+                        (format "%S quoted with ' rather than with #'"
+                                (let ((f (cadr arg)))
+                                  (if (symbolp f) f `(lambda ,(nth 1 f) ...))))
+                        arg)))))
+         ;; Macro expand compiler macros.  This cannot be delayed to
+         ;; byte-optimize-form because the output of the compiler-macro can
+         ;; use macros.
          (if (null handler)
              ;; No compiler macro.  We just expand each argument (for
              ;; setq/setq-default this works alright because the variable names
@@ -391,6 +391,18 @@ Assumes the caller has bound `macroexpand-all-environment'."
                (macroexp--expand-all newform))))))
 
       (_ form))))
+
+;; Record which arguments expect functions, so we can warn when those
+;; are accidentally quoted with ' rather than with #'
+(dolist (f '(funcall apply mapcar mapatoms mapconcat mapc cl-mapcar maphash))
+  (put f 'funarg-positions '(1)))
+(dolist (f '( add-hook remove-hook advice-remove advice--remove-function
+              defalias fset global-set-key run-after-idle-timeout
+              set-process-filter set-process-sentinel sort))
+  (put f 'funarg-positions '(2)))
+(dolist (f '( advice-add define-key
+              run-at-time run-with-idle-timer run-with-timer ))
+  (put f 'funarg-positions '(3)))
 
 ;;;###autoload
 (defun macroexpand-all (form &optional environment)

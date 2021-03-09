@@ -1,4 +1,4 @@
-;;;; srecode/find.el --- Tools for finding templates in the database.
+;;;; srecode/find.el --- Tools for finding templates in the database.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -58,17 +58,14 @@ See `srecode-get-maps' for more.
 APPNAME is the name of an application.  In this case,
 all template files for that application will be loaded."
   (let ((files
-	 (if appname
-	     (apply 'append
-		    (mapcar
+	 (apply #'append
+		(mapcar
+		 (if appname
 		     (lambda (map)
 		       (srecode-map-entries-for-app-and-mode map appname mmode))
-		     (srecode-get-maps)))
-	   (apply 'append
-		  (mapcar
 		   (lambda (map)
-		     (srecode-map-entries-for-mode map mmode))
-		   (srecode-get-maps)))))
+		     (srecode-map-entries-for-mode map mmode)))
+		 (srecode-get-maps))))
 	)
     ;; Don't recurse if we are already the 'default state.
     (when (not (eq mmode 'default))
@@ -112,8 +109,8 @@ If TAB is nil, then always return t."
 ;; Find a given template based on name, and features of the current
 ;; buffer.
 (cl-defmethod srecode-template-get-table ((tab srecode-template-table)
-				       template-name &optional
-				       context application)
+				          template-name &optional
+				          context _application)
   "Find in the template in table TAB, the template with TEMPLATE-NAME.
 Optional argument CONTEXT specifies that the template should part
 of a particular context.
@@ -218,7 +215,7 @@ tables that do not belong to an application will be searched."
 (defvar srecode-read-template-name-history nil
   "History for completing reads for template names.")
 
-(defun srecode-user-template-p (template)
+(defun srecode-user-template-p (_template)
   "Non-nil if TEMPLATE is intended for user insertion.
 Templates not matching this predicate are used for code
 generation or other internal purposes."
@@ -264,7 +261,7 @@ with `srecode-calculate-context'."
       ;; the prefix for the completing read
       (concat (nth 0 ctxt) ":"))))
 
-(defun srecode-read-template-name (prompt &optional initial hist default)
+(defun srecode-read-template-name (prompt &optional initial hist _default)
   "Completing read for Semantic Recoder template names.
 PROMPT is used to query for the name of the template desired.
 INITIAL is the initial string to use.

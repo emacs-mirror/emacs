@@ -478,7 +478,7 @@
 	      (eq family 'unspecified))
       family)))
 
-(defun comp-test-46670-1-f (x)
+(defun comp-test-46670-1-f (_)
   "foo")
 
 (defun comp-test-46670-2-f (s)

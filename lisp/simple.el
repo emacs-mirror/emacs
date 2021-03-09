@@ -3043,8 +3043,7 @@ Return what remains of the list."
                      (and (consp time)
                           (equal (list (car time) (cdr time))
                                  (visited-file-modtime))))
-             (when (fboundp 'unlock-buffer)
-               (unlock-buffer))
+             (unlock-buffer)
              (set-buffer-modified-p nil)))
           ;; Element (nil PROP VAL BEG . END) is property change.
           (`(nil . ,(or `(,prop ,val ,beg . ,end) pcase--dontcare))

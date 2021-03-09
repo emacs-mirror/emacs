@@ -1,4 +1,4 @@
-;;; srecode/ctxt.el --- Derive a context from the source buffer.
+;;; srecode/ctxt.el --- Derive a context from the source buffer.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 

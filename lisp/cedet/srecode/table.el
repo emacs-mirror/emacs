@@ -1,4 +1,4 @@
-;;; srecode/table.el --- Tables of Semantic Recoders
+;;; srecode/table.el --- Tables of Semantic Recoders  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -169,7 +169,7 @@ calculate all inherited templates from parent modes."
 				      :modetables nil
 				      :tables nil)))
 	;; Save this new mode table in that mode's variable.
-	(eval `(setq-mode-local ,mode srecode-table ,new))
+	(eval `(setq-mode-local ,mode srecode-table ,new) t)
 
 	new))))
 
@@ -184,7 +184,7 @@ INIT are the initialization parameters for the new template table."
   (let* ((mt (srecode-make-mode-table mode))
 	 (old (srecode-mode-table-find mt file))
 	 (attr (file-attributes file))
-	 (new (apply 'srecode-template-table
+	 (new (apply #'srecode-template-table
 		     (file-name-nondirectory file)
 		     :file file
 		     :filesize (file-attribute-size attr)

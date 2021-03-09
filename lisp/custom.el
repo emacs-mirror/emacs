@@ -1200,6 +1200,32 @@ property `theme-feature' (which is usually a symbol created by
   (custom-check-theme theme)
   (provide (get theme 'theme-feature)))
 
+(defun require-theme (feature &optional noerror)
+  "Load FEATURE from a file along `custom-theme-load-path'.
+
+This function is like `require', but searches along
+`custom-theme-load-path' instead of `load-path'.  It can be used
+by Custom themes to load supporting Lisp files when `require' is
+unsuitable.
+
+If FEATURE is not already loaded, search for a file named FEATURE
+with an added `.elc' or `.el' suffix, in that order, in the
+directories specified by `custom-theme-load-path'.
+
+Return FEATURE if the file is successfully found and loaded, or
+if FEATURE was already loaded.  If the file fails to load, signal
+an error.  If optional argument NOERROR is non-nil, return nil
+instead of signaling an error.  If the file loads but does not
+provide FEATURE, signal an error.  This cannot be suppressed."
+  (cond
+   ((featurep feature) feature)
+   ((let* ((path (custom-theme--load-path))
+           (file (locate-file (symbol-name feature) path '(".elc" ".el"))))
+      (and file (require feature (file-name-sans-extension file) noerror))))
+   ((not noerror)
+    (signal 'file-missing `("Cannot open load file" "No such file or directory"
+                            ,(symbol-name feature))))))
+
 (defcustom custom-safe-themes '(default)
   "Themes that are considered safe to load.
 If the value is a list, each element should be either the SHA-256

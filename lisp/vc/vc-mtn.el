@@ -46,8 +46,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "23.1"
-  :group 'vc-mtn)
+  :version "23.1")
 
 (defcustom vc-mtn-annotate-switches nil
   "String or list of strings specifying switches for mtn annotate under VC.
@@ -57,13 +56,11 @@ switches."
 		 (const :tag "None" t)
 		 (string :tag "Argument String")
 		 (repeat :tag "Argument List" :value ("") string))
-  :version "25.1"
-  :group 'vc-mtn)
+  :version "25.1")
 
 (defcustom vc-mtn-program "mtn"
   "Name of the monotone executable."
-  :type 'string
-  :group 'vc-mtn)
+  :type 'string)
 
 ;; Clear up the cache to force vc-call to check again and discover
 ;; new functions when we reload this file.
@@ -115,7 +112,7 @@ switches."
   (let ((process-environment
          ;; Avoid localization of messages so we can parse the output.
          (cons "LC_MESSAGES=C" process-environment)))
-    (apply 'vc-do-command (or buffer "*vc*") okstatus vc-mtn-program
+    (apply #'vc-do-command (or buffer "*vc*") okstatus vc-mtn-program
            files flags)))
 
 (defun vc-mtn-state (file)
@@ -176,8 +173,7 @@ switches."
   '(("\\`[^:/#]*[:/#]" . ""))           ;Drop the host part.
   "Rewrite rules to shorten Mtn's revision names on the mode-line."
   :type '(repeat (cons regexp string))
-  :version "22.2"
-  :group 'vc-mtn)
+  :version "22.2")
 
 (defun vc-mtn-mode-line-string (file)
   "Return a string for `vc-mode-line' to put in the mode line for FILE."
@@ -203,7 +199,7 @@ switches."
 (declare-function log-edit-extract-headers "log-edit" (headers string))
 
 (defun vc-mtn-checkin (files comment &optional _rev)
-  (apply 'vc-mtn-command nil 0 files
+  (apply #'vc-mtn-command nil 0 files
 	 (nconc (list "commit" "-m")
 		(log-edit-extract-headers '(("Author" . "--author")
 					    ("Date" . "--date"))
@@ -227,7 +223,7 @@ switches."
 _SHORTLOG is ignored.
 If START-REVISION is non-nil, it is the newest revision to show.
 If LIMIT is non-nil, show no more than this many entries."
-  (apply 'vc-mtn-command buffer 0 files "log"
+  (apply #'vc-mtn-command buffer 0 files "log"
 	 (append
 	  (when start-revision (list "--from" (format "%s" start-revision)))
 	  (when limit (list "--last" (format "%s" limit))))))
@@ -258,7 +254,7 @@ If LIMIT is non-nil, show no more than this many entries."
 
 (defun vc-mtn-diff (files &optional rev1 rev2 buffer _async)
   "Get a difference report using monotone between two revisions of FILES."
-  (apply 'vc-mtn-command (or buffer "*vc-diff*")
+  (apply #'vc-mtn-command (or buffer "*vc-diff*")
 	 1 ; bug#21969
 	 files "diff"
          (append

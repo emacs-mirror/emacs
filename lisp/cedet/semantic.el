@@ -57,6 +57,7 @@ excluded if a released version is required.
 It is assumed that if the current version is newer than that specified,
 everything passes.  Exceptions occur when known incompatibilities are
 introduced."
+  (declare (obsolete emacs-version "28.1"))
   (require 'inversion)
   (inversion-test 'semantic
 		  (concat major "." minor

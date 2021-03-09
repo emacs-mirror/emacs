@@ -156,6 +156,8 @@
           ".....")))
 
 (ert-deftest rx-pcase ()
+  (should (equal (pcase "i18n" ((rx (let x (+ digit))) (list 'ok x)))
+                 '(ok "18")))
   (should (equal (pcase "a 1 2 3 1 1 b"
                    ((rx (let u (+ digit)) space
                         (let v (+ digit)) space
@@ -176,6 +178,12 @@
                    ((rx nonl) 'wrong)
                    (_ 'correct))
                  'correct))
+  (should (equal (pcase "PQR"
+                   ((and (rx (let a nonl)) (rx ?z))
+                    (list 'one a))
+                   ((rx (let b ?Q))
+                    (list 'two b)))
+                 '(two "Q")))
   (should (equal (pcase-let (((rx ?B (let z nonl)) "ABC"))
                    (list 'ok z))
                  '(ok "C")))

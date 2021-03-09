@@ -63,10 +63,66 @@
     (keymap--get-keyelt object t)
     (should menu-item-filter-ran)))
 
+(ert-deftest keymap-define-key/undefined ()
+  ;;  nil (means key is undefined in this keymap),
+  (let ((map (make-keymap)))
+    (define-key map [?a] nil)
+    (should-not (lookup-key map [?a]))))
+
+(ert-deftest keymap-define-key/keyboard-macro ()
+  ;;  a string (treated as a keyboard macro),
+  (let ((map (make-keymap)))
+    (define-key map [?a] "abc")
+    (should (equal (lookup-key map [?a]) "abc"))))
+
+(ert-deftest keymap-define-key/lambda ()
+  (let ((map (make-keymap)))
+    (define-key map [?a] (lambda () (interactive) nil))
+    (should (functionp (lookup-key map [?a])))))
+
+(ert-deftest keymap-define-key/keymap ()
+  ;;  a keymap (to define a prefix key),
+  (let ((map (make-keymap))
+        (map2 (make-keymap)))
+    (define-key map [?a] map2)
+    (define-key map2 [?b] 'foo)
+    (should (eq (lookup-key map [?a ?b]) 'foo))))
+
+(ert-deftest keymap-define-key/menu-item ()
+  ;;  or an extended menu item definition.
+  ;;  (See info node ‘(elisp)Extended Menu Items’.)
+  (let ((map (make-sparse-keymap))
+        (menu (make-sparse-keymap)))
+    (define-key menu [new-file]
+      '(menu-item "Visit New File..." find-file
+                  :enable (menu-bar-non-minibuffer-window-p)
+                  :help "Specify a new file's name, to edit the file"))
+    (define-key map [menu-bar file] (cons "File" menu))
+    (should (eq (lookup-key map [menu-bar file new-file]) 'find-file))))
+
 (ert-deftest keymap-lookup-key ()
   (let ((map (make-keymap)))
     (define-key map [?a] 'foo)
-    (should (eq (lookup-key map [?a]) 'foo))))
+    (should (eq (lookup-key map [?a]) 'foo))
+    (should-not (lookup-key map [?b]))))
+
+(ert-deftest keymap-lookup-key/list-of-keymaps ()
+  (let ((map1 (make-keymap))
+        (map2 (make-keymap)))
+    (define-key map1 [?a] 'foo)
+    (define-key map2 [?b] 'bar)
+    (should (eq (lookup-key (list map1 map2) [?a]) 'foo))
+    (should (eq (lookup-key (list map1 map2) [?b]) 'bar))
+    (should-not (lookup-key (list map1 map2) [?c]))))
+
+(ert-deftest keymap-lookup-key/too-long ()
+  (let ((map (make-keymap)))
+    (define-key map (kbd "C-c f") 'foo)
+    (should (= (lookup-key map (kbd "C-c f x")) 2))))
+
+;; TODO: Write test for the ACCEPT-DEFAULT argument.
+;; (ert-deftest keymap-lookup-key/accept-default ()
+;;   ...)
 
 (ert-deftest describe-buffer-bindings/header-in-current-buffer ()
   "Header should be inserted into the current buffer.

@@ -229,6 +229,28 @@ See also the function `semantic-ctxt-current-mode'."
           (require 'semantic/ctxt)
           (semantic-ctxt-current-mode)))))
 
+;; Is this function still necessary?
+(defun semantic-tag-make-plist (args)
+  "Create a property list with ARGS.
+Args is a property list of the form (KEY1 VALUE1 ... KEYN VALUEN).
+Where KEY is a symbol, and VALUE is the value for that symbol.
+The return value will be a new property list, with these KEY/VALUE
+pairs eliminated:
+
+  - KEY associated to nil VALUE.
+  - KEY associated to an empty string VALUE.
+  - KEY associated to a zero VALUE."
+  (let (plist key val)
+    (while args
+      (setq key  (car args)
+            val  (nth 1 args)
+            args (nthcdr 2 args))
+      (or (member val '("" nil))
+          (and (numberp val) (zerop val))
+          (setq plist (cons key (cons val plist)))))
+    ;; It is not useful to reverse the new plist.
+    plist))
+
 (defsubst semantic--tag-attributes-cdr (tag)
   "Return the cons cell whose car is the ATTRIBUTES part of TAG.
 That function is for internal use only."
@@ -440,28 +462,6 @@ class to store those methods."
 
 ;;; Tag creation
 ;;
-
-;; Is this function still necessary?
-(defun semantic-tag-make-plist (args)
-  "Create a property list with ARGS.
-Args is a property list of the form (KEY1 VALUE1 ... KEYN VALUEN).
-Where KEY is a symbol, and VALUE is the value for that symbol.
-The return value will be a new property list, with these KEY/VALUE
-pairs eliminated:
-
-  - KEY associated to nil VALUE.
-  - KEY associated to an empty string VALUE.
-  - KEY associated to a zero VALUE."
-  (let (plist key val)
-    (while args
-      (setq key  (car args)
-            val  (nth 1 args)
-            args (nthcdr 2 args))
-      (or (member val '("" nil))
-          (and (numberp val) (zerop val))
-          (setq plist (cons key (cons val plist)))))
-    ;; It is not useful to reverse the new plist.
-    plist))
 
 (defsubst semantic-tag (name class &rest attributes)
   "Create a generic semantic tag.

@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'ediff-util)
 
 ;; Start compiler pacifier
 (defvar ediff-metajob-name)
@@ -1181,8 +1182,8 @@ this variable represents.")
 (put ediff-fine-diff-face-Ancestor 'ediff-help-echo
      "A `refinement' of the current difference region")
 
-(add-hook 'ediff-quit-hook 'ediff-cleanup-mess)
-(add-hook 'ediff-suspend-hook 'ediff-default-suspend-function)
+(add-hook 'ediff-quit-hook #'ediff-cleanup-mess)
+(add-hook 'ediff-suspend-hook #'ediff-default-suspend-function)
 
 
 ;;; Overlays
@@ -1312,7 +1313,8 @@ This default should work without changes."
 (defun ediff-paint-background-regions-in-one-buffer (buf-type unhighlight)
   (let ((diff-vector
 	 (eval (ediff-get-symbol-from-alist
-		buf-type ediff-difference-vector-alist)))
+		buf-type ediff-difference-vector-alist)
+	       t))
 	overl diff-num)
     (mapcar (lambda (rec)
 	      (setq overl (ediff-get-diff-overlay-from-diff-record rec)

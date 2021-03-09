@@ -593,7 +593,7 @@ binding mode."
             ;; dynamic binding mode as well.
             (eq (car-safe code) 'cons))
         code
-      (macroexp--warn-and-return
+      (macroexp-warn-and-return
        "Use of gv-ref probably requires lexical-binding"
        code))))
 

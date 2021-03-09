@@ -262,7 +262,7 @@ See Info node `(elisp)Defining Functions' for more details."
   '(throw 'inline--just-use
           ;; FIXME: This would inf-loop by calling us right back when
           ;; macroexpand-all recurses to expand inline--form.
-          ;; (macroexp--warn-and-return (format ,@args)
+          ;; (macroexp-warn-and-return (format ,@args)
           ;;                            inline--form)
           inline--form))
 

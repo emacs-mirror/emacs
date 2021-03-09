@@ -87,7 +87,7 @@ options after the default ones.
 This variable is not for customizing the look of the differences produced by
 the command \\[ediff-show-diff-output]. Use the variable
 `ediff-custom-diff-options' for that."
-  :set 'ediff-set-diff-options
+  :set #'ediff-set-diff-options
   :type 'string)
 
 (ediff-defvar-local ediff-ignore-case nil

@@ -75,7 +75,7 @@ For instance \"xn--bcher-kva\" => \"bücher\"."
 (defconst puny-damp 700)
 (defconst puny-tmin 1)
 (defconst puny-tmax 26)
-(defconst puny-skew 28)
+(defconst puny-skew 38)
 
 ;; 0-25  a-z
 ;; 26-36 0-9

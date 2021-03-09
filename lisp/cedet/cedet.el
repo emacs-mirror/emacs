@@ -85,6 +85,7 @@ for the specified PACKAGE.
 LOADED VERSION is the version of PACKAGE currently loaded in Emacs
 memory and (presumably) running in this Emacs instance.  Value is X
 if the package has not been loaded."
+  (declare (obsolete emacs-version "28.1"))
   (interactive)
   (require 'inversion)
   (with-output-to-temp-buffer "*CEDET*"

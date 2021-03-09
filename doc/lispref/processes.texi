@@ -3354,29 +3354,37 @@ To use the functions referred to in this section, load the
 direction is also known as @dfn{serializing} or @dfn{packing}.
 
 @menu
-* Bindat Spec::         Describing data layout.
-* Bindat Functions::    Doing the unpacking and packing.
+* Bindat Types::            Describing data layout.
+* Bindat Functions::        Doing the unpacking and packing.
+* Bindat Computed Types::   Advanced data layout specifications.
 @end menu
 
-@node Bindat Spec
+@node Bindat Types
 @subsection Describing Data Layout
+@cindex bindat types
 
+@cindex data layout specification
+@cindex bindat type expression
+@cindex base type, in bindat specification
+@cindex composite type, in bindat specification
   To control unpacking and packing, you write a @dfn{data layout
-specification}, a special nested list describing named and typed
-@dfn{fields}.  This specification controls the length of each field to be
-processed, and how to pack or unpack it.  We normally keep bindat specs
-in variables whose names end in @samp{-bindat-spec}; that kind of name
-is automatically recognized as risky.
+specification}, also called a @dfn{Bindat type expression}.  This can
+be a @dfn{base type} or a @dfn{composite type} made of several fields,
+where the specification controls the length of each field to be
+processed, and how to pack or unpack it.  We normally keep bindat type
+values in variables whose names end in @code{-bindat-spec}; that kind
+of name is automatically recognized as risky (@pxref{File Local
+Variables}).
 
-@defmac bindat-spec &rest specs
-Creates a Bindat spec object according to the data layout
-specification @var{specs}.
+@defmac bindat-type &rest type
+Creates a Bindat type @emph{value} object according to the Bindat type
+@emph{expression} @var{type}.
 @end defmac
 
-@cindex endianness
-@cindex big endian
-@cindex little endian
-@cindex network byte ordering
+@cindex endianness, in bindat specification
+@cindex big endian, in bindat specification
+@cindex little endian, in bindat specification
+@cindex network byte ordering, in Bindat specification
   A field's @dfn{type} describes the size (in bytes) of the object
 that the field represents and, in the case of multibyte fields, how
 the bytes are ordered within the field.  The two possible orderings
@@ -3391,167 +3399,90 @@ type values:
 @itemx byte
 Unsigned byte, with length 1.
 
-@item u16
-@itemx word
-@itemx short
-Unsigned integer in network byte order, with length 2.
+@item uint @var{bitlen}
+Unsigned integer in network byte order, with @var{bitlen} bits.
+@var{bitlen} has to be a multiple of 8.
 
-@item u24
-Unsigned integer in network byte order, with length 3.
-
-@item u32
-@itemx dword
-@itemx long
-Unsigned integer in network byte order, with length 4.
-
-@item u64
-Unsigned integer in network byte order, with length 8.
-
-@item u16r
-@itemx u24r
-@itemx u32r
-@itemx u64r
-Unsigned integer in little endian order, with length 2, 3, 4, and
-8, respectively.
+@item uintr @var{bitlen}
+Unsigned integer in little endian order, with @var{bitlen} bits.
+@var{bitlen} has to be a multiple of 8.
 
 @item str @var{len}
-String of length @var{len}.
+String of bytes of length @var{len}.
 
 @item strz @var{len}
-Zero-terminated string, in a fixed-size field with length @var{len}.
+Zero-terminated string of bytes, in a fixed-size field with length @var{len}.
 
 @item vec @var{len} [@var{type}]
-Vector of @var{len} elements of type @var{type}, defaulting to bytes.
-The @var{type} is any of the simple types above, or another vector
-specified as a list of the form @code{(vec @var{len} [@var{type}])}.
+Vector of @var{len} elements.  The type of the elements is given by
+@var{type}, defaulting to bytes.  The @var{type} can be any Bindat
+type expression.
 
-@item ip
-@c FIXME?  IPv6?
-Four-byte vector representing an Internet address.  For example:
-@code{[127 0 0 1]} for localhost.
+@item repeat @var{len} [@var{type}]
+Like @code{vec}, but it unpacks to and packs from lists, whereas
+@code{vec} unpacks to vectors.
 
 @item bits @var{len}
-List of set bits in @var{len} bytes.  The bytes are taken in big
-endian order and the bits are numbered starting with @code{8 *
-@var{len} @minus{} 1} and ending with zero.  For example: @code{bits
-2} unpacks @code{#x28} @code{#x1c} to @code{(2 3 4 11 13)} and
-@code{#x1c} @code{#x28} to @code{(3 5 10 11 12)}.
-
-@item (eval @var{form})
-@var{form} is a Lisp expression evaluated at the moment the field is
-unpacked or packed.  The result of the evaluation should be one of the
-above-listed type specifications.
-@end table
-
-For a fixed-size field, the length @var{len} is given as an integer
-specifying the number of bytes in the field.
-
-When the length of a field is not fixed, it typically depends on the
-value of a preceding field.  In this case, the length @var{len} can be
-given either as a list @code{(@var{name} ...)} identifying a
-@dfn{field name} in the format specified for @code{bindat-get-field}
-below, or by an expression @code{(eval @var{form})} where @var{form}
-should evaluate to an integer, specifying the field length.
-
-A field specification generally has the form @code{([@var{name}]
-@var{handler})}, where @var{name} is optional.  Don't use names that
-are symbols meaningful as type specifications (above) or handler
-specifications (below), since that would be ambiguous.  @var{name} can
-be a symbol or an expression @code{(eval @var{form})}, in which case
-@var{form} should evaluate to a symbol.
-
-@var{handler} describes how to unpack or pack the field and can be one
-of the following:
-
-@table @code
-@item @var{type}
-Unpack/pack this field according to the type specification @var{type}.
-
-@item eval @var{form}
-Evaluate @var{form}, a Lisp expression, for side-effect only.  If the
-field name is specified, the value is bound to that field name.
+List of bits that are set to 1 in @var{len} bytes.  The bytes are
+taken in big-endian order, and the bits are numbered starting with
+@code{8 * @var{len} @minus{} 1} and ending with zero.  For example:
+@code{bits 2} unpacks @code{#x28} @code{#x1c} to @w{@code{(2 3 4 11 13)}}
+and @code{#x1c} @code{#x28} to @w{@code{(3 5 10 11 12)}}.
 
 @item fill @var{len}
-Skip @var{len} bytes.  In packing, this leaves them unchanged,
-which normally means they remain zero.  In unpacking, this means
-they are ignored.
+@var{len} bytes used as a mere filler.  In packing, these bytes are
+are left unchanged, which normally means they remain zero.
+When unpacking, this just returns nil.
 
 @item align @var{len}
-Skip to the next multiple of @var{len} bytes.
+Same as @code{fill} except the number of bytes is that needed to skip
+to the next multiple of @var{len} bytes.
 
-@item struct @var{spec-name}
-Process @var{spec-name} as a sub-specification.  This describes a
-structure nested within another structure.
+@item type @var{exp}
+This lets you refer to a type indirectly: @var{exp} is a Lisp
+expression which should return a Bindat type @emph{value}.
 
-@item union @var{form} (@var{tag} @var{spec})@dots{}
-@c ??? I don't see how one would actually  use this.
-@c ??? what kind of expression would be useful for @var{form}?
-Evaluate @var{form}, a Lisp expression, find the first @var{tag}
-that matches it, and process its associated data layout specification
-@var{spec}.  Matching can occur in one of three ways:
+@item unit @var{exp}
+This is a trivial type which uses up 0 bits of space.  @var{exp}
+describes the value returned when we try to ``unpack'' such a field.
 
-@itemize
-@item
-If a @var{tag} has the form @code{(eval @var{expr})}, evaluate
-@var{expr} with the variable @code{tag} dynamically bound to the value
-of @var{form}.  A non-@code{nil} result indicates a match.
-
-@item
-@var{tag} matches if it is @code{equal} to the value of @var{form}.
-
-@item
-@var{tag} matches unconditionally if it is @code{t}.
-@end itemize
-
-@item repeat @var{count} @var{field-specs}@dots{}
-Process the @var{field-specs} recursively, in order, then repeat
-starting from the first one, processing all the specifications @var{count}
-times overall.  The @var{count} is given using the same formats as a
-field length---if an @code{eval} form is used, it is evaluated just once.
-For correct operation, each specification in @var{field-specs} must
-include a name.
+@item struct @var{fields}...
+Composite type made of several fields.  Every field is of the form
+@code{(@var{name} @var{type})} where @var{type} can be any Bindat
+type expression.  @var{name} can be @code{_} when the field's value
+does not deserve to be named, as is often the case for @code{align}
+and @code{fill} fields.
+When the context makes it clear that this is a Bindat type expression,
+the symbol @code{struct} can be omitted.
 @end table
 
-For the @code{(eval @var{form})} forms used in a bindat specification,
-the @var{form} can access and update these dynamically bound variables
-during evaluation:
+In the types above, @var{len} and @var{bitlen} are given as an integer
+specifying the number of bytes (or bits) in the field.  When the
+length of a field is not fixed, it typically depends on the value of
+preceding fields.  For this reason, the length @var{len} does not have
+to be a constant but can be any Lisp expression and it can refer to
+the value of previous fields via their name.
 
-@table @code
-@item last
-Value of the last field processed.
-
-@item bindat-raw
-The data as a byte array.
-
-@item bindat-idx
-Current index (within @code{bindat-raw}) for unpacking or packing.
-
-@item struct
-The alist containing the structured data that have been unpacked so
-far, or the entire structure being packed.  You can use
-@code{bindat-get-field} to access specific fields of this structure.
-
-@item count
-@itemx index
-Inside a @code{repeat} block, these contain the maximum number of
-repetitions (as specified by the @var{count} parameter), and the
-current repetition number (counting from 0).  Setting @code{count} to
-zero will terminate the inner-most repeat block after the current
-repetition has completed.
-@end table
+For example, the specification of a data layout where a leading byte gives
+the size of a subsequent vector of 16 bit integers could be:
+@example
+(bindat-type
+  (len      u8)
+  (payload  vec (1+ len) uint 16))
+@end example
 
 @node Bindat Functions
 @subsection Functions to Unpack and Pack Bytes
+@cindex bindat functions
 
-  In the following documentation, @var{spec} refers to a Bindat spec
-object as returned from @code{bindat-spec}, @code{raw} to a byte
+  In the following documentation, @var{type} refers to a Bindat type
+value as returned from @code{bindat-type}, @var{raw} to a byte
 array, and @var{struct} to an alist representing unpacked field data.
 
-@defun bindat-unpack spec raw &optional idx
-@c FIXME?  Again, no multibyte?
+@defun bindat-unpack type raw &optional idx
 This function unpacks data from the unibyte string or byte
 array @var{raw}
-according to @var{spec}.  Normally, this starts unpacking at the
+according to @var{type}.  Normally, this starts unpacking at the
 beginning of the byte array, but if @var{idx} is non-@code{nil}, it
 specifies a zero-based starting position to use instead.
 
@@ -3564,12 +3495,13 @@ This function selects a field's data from the nested alist
 @var{struct}.  Usually @var{struct} was returned by
 @code{bindat-unpack}.  If @var{name} corresponds to just one argument,
 that means to extract a top-level field value.  Multiple @var{name}
-arguments specify repeated lookup of sub-structures.  An integer name
-acts as an array index.
+arguments specify repeated lookup of sub-structures.  An integer
+@var{name} acts as an array index.
 
-For example, if @var{name} is @code{(a b 2 c)}, that means to find
-field @code{c} in the third element of subfield @code{b} of field
-@code{a}.  (This corresponds to @code{struct.a.b[2].c} in C.)
+For example, @w{@code{(bindat-get-field @var{struct} a b 2 c)}} means
+to find field @code{c} in the third element of subfield @code{b} of
+field @code{a}.  (This corresponds to @code{@var{struct}.a.b[2].c} in
+the C programming language syntax.)
 @end defun
 
   Although packing and unpacking operations change the organization of
@@ -3580,13 +3512,13 @@ both pieces of information contribute to its calculation.  Likewise, the
 length of a string or array being unpacked may be longer than the data's
 total length as described by the specification.
 
-@defun bindat-length spec struct
+@defun bindat-length type struct
 This function returns the total length of the data in @var{struct},
-according to @var{spec}.
+according to @var{type}.
 @end defun
 
-@defun bindat-pack spec struct &optional raw idx
-This function returns a byte array packed according to @var{spec} from
+@defun bindat-pack type struct &optional raw idx
+This function returns a byte array packed according to @var{type} from
 the data in the alist @var{struct}.  It normally creates and fills a
 new byte array starting at the beginning.  However, if @var{raw}
 is non-@code{nil}, it specifies a pre-allocated unibyte string or vector to
@@ -3607,3 +3539,74 @@ dotted notation.
      @result{} "127.0.0.1"
 @end example
 @end defun
+
+@node Bindat Computed Types
+@subsection Advanced data layout specifications
+@cindex bindat computed types
+
+Bindat type expressions are not limited to the types described
+earlier.  They can also be arbitrary Lisp forms returning Bindat
+type expressions.  For example, the type below describes data which
+can either contain a 24-bit error code or a vector of bytes:
+
+@example
+(bindat-type
+  (len      u8)
+  (payload  . (if (zerop len) (uint 24) (vec (1- len)))))
+@end example
+
+@cindex bindat packing and unpacking into arbitrary types
+Furthermore, while composite types are normally unpacked to (and
+packed from) association lists, this can be changed via the use of
+the following special keyword arguments:
+
+@table @code
+@item :unpack-val @var{exp}
+When the list of fields ends with this keyword argument, then the value
+returned when unpacking is the value of @var{exp} instead of the
+standard alist.  @var{exp} can refer to all the previous fields by
+their name.
+
+@item :pack-val @var{exp}
+If a field's type is followed by this keyword argument, then the value
+packed into this field is returned by @var{exp} instead of being
+extracted from the alist.
+
+@item :pack-var @var{name}
+If the list of fields is preceded by this keyword argument, then all
+the subsequent @code{:pack-val} arguments can refer to the overall
+value to pack into this composite type via the variable named
+@var{name}.
+@end table
+
+For example, one could describe a 16-bit signed integer as follows:
+
+@example
+(defconst sint16-bindat-spec
+  (let* ((max (ash 1 15))
+         (wrap (+ max max)))
+    (bindat-type :pack-var v
+                 (n uint 16 :pack-val (if (< v 0) (+ v wrap) v))
+                 :unpack-val (if (>= n max) (- n wrap) n))))
+@end example
+
+Which would then behave as follows:
+@example
+(bindat-pack sint16-bindat-spec -8)
+     @result{} "\377\370"
+
+(bindat-unpack sint16-bindat-spec "\300\100")
+     @result{} -16320
+@end example
+
+@cindex define new bindat type forms
+@cindex bindat, define new type forms
+Finally, you can define new Bindat type forms to use in Bindat type
+expressions with @code{bindat-defmacro}:
+
+@defmac bindat-defmacro name args &rest body
+Define a new Bindat type expression named @var{name} and taking
+arguments @var{args}.  Its behavior follows that of @code{defmacro},
+which the important difference that the new forms can only be used
+within Bindat type expressions.
+@end defmac
