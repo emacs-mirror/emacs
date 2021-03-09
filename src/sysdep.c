@@ -1818,7 +1818,15 @@ handle_arith_signal (int sig)
 
 /* Alternate stack used by SIGSEGV handler below.  */
 
-static unsigned char sigsegv_stack[SIGSTKSZ];
+/* Storage for the alternate signal stack.
+   64 KiB is not too large for Emacs, and is large enough
+   for all known platforms.  Smaller sizes may run into trouble.
+   For example, libsigsegv 2.6 through 2.8 have a bug where some
+   architectures use more than the Linux default of an 8 KiB alternate
+   stack when deciding if a fault was caused by stack overflow.  */
+static max_align_t sigsegv_stack[(64 * 1024
+				  + sizeof (max_align_t) - 1)
+				 / sizeof (max_align_t)];
 
 
 /* Return true if SIGINFO indicates a stack overflow.  */
