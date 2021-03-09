@@ -1450,30 +1450,31 @@ If no conflict maker is found, turn off `smerge-mode'."
 First tries to go to the next conflict in the current buffer, and if not
 found, uses VC to try and find the next file with conflict."
   (interactive)
-  (let ((buffer (current-buffer)))
-    (condition-case nil
-        ;; FIXME: Try again from BOB before moving to the next file.
-        (smerge-next)
-      (error
-       (if (and (or smerge-change-buffer-confirm
-                    (and (buffer-modified-p) buffer-file-name))
-                (not (or (eq last-command this-command)
-                         (eq ?\r last-command-event)))) ;Called via M-x!?
-           ;; FIXME: Don't emit this message if `vc-find-conflicted-file' won't
-           ;; go to another file anyway (because there are no more conflicted
-           ;; files).
-           (message (if (buffer-modified-p)
-                        "No more conflicts here.  Repeat to save and go to next buffer"
-                      "No more conflicts here.  Repeat to go to next buffer"))
-         (if (and (buffer-modified-p) buffer-file-name)
-             (save-buffer))
-         (vc-find-conflicted-file)
-         (when (eq buffer (current-buffer))
-           ;; Try to find a conflict marker in current file above the point.
-           (let ((prev-pos (point)))
-             (goto-char (point-min))
-             (unless (ignore-errors (not (smerge-next)))
-               (goto-char prev-pos)))))))))
+  (condition-case nil
+      ;; FIXME: Try again from BOB before moving to the next file.
+      (smerge-next)
+    (error
+     (if (and (or smerge-change-buffer-confirm
+                  (and (buffer-modified-p) buffer-file-name))
+              (not (or (eq last-command this-command)
+                       (eq ?\r last-command-event)))) ;Called via M-x!?
+         ;; FIXME: Don't emit this message if `vc-find-conflicted-file' won't
+         ;; go to another file anyway (because there are no more conflicted
+         ;; files).
+         (message (if (buffer-modified-p)
+                      "No more conflicts here.  Repeat to save and go to next buffer"
+                    "No more conflicts here.  Repeat to go to next buffer"))
+       (if (and (buffer-modified-p) buffer-file-name)
+           (save-buffer))
+       (vc-find-conflicted-file)
+       ;; At this point, the caret will only be at a conflict marker
+       ;; if the file did not correspond to an opened
+       ;; buffer. Otherwise we need to jump to a marker explicitly.
+       (unless (looking-at "^<<<<<<<")
+         (let ((prev-pos (point)))
+           (goto-char (point-min))
+           (unless (ignore-errors (not (smerge-next)))
+             (goto-char prev-pos))))))))
 
 (provide 'smerge-mode)
 
