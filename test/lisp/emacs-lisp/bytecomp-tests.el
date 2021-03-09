@@ -1222,6 +1222,11 @@ compiled correctly."
         (byte-compile 'counter)
         (should (equal (counter) 1))))))
 
+(ert-deftest bytecomp-string-vs-docstring ()
+  ;; Don't confuse a string return value for a docstring.
+  (let ((lexical-binding t))
+    (should (equal (funcall (byte-compile '(lambda (x) "foo")) 'dummy) "foo"))))
+
 ;; Local Variables:
 ;; no-byte-compile: t
 ;; End:

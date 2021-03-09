@@ -295,8 +295,9 @@ of converted forms."
     (if wrappers
         (let ((special-forms '()))
           ;; Keep special forms at the beginning of the body.
-          (while (or (stringp (car funcbody)) ;docstring.
-                     (memq (car-safe (car funcbody)) '(interactive declare)))
+          (while (or (and (cdr funcbody) (stringp (car funcbody))) ;docstring.
+                     (memq (car-safe (car funcbody))
+                           '(interactive declare :documentation)))
             (push (pop funcbody) special-forms))
           (let ((body (macroexp-progn funcbody)))
             (dolist (wrapper wrappers) (setq body (funcall wrapper body)))
