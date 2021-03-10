@@ -62,7 +62,8 @@ See also `benchmark-run-compiled'."
 		  ;; Take account of the loop overhead.
 		  `(- (benchmark-elapse (dotimes (,i ,repetitions)
 					  ,@forms))
-		      (benchmark-elapse (dotimes (,i ,repetitions))))
+		      (benchmark-elapse (dotimes (,i ,repetitions)
+                                          nil)))
 		`(benchmark-elapse ,@forms))
 	     (- gcs-done ,gcs)
 	     (- gc-elapsed ,gc)))))
