@@ -541,6 +541,9 @@ It also supports a negative argument.
 It also supports a negative argument.
 
 ---
+*** 'C-x t G' assigns a group name to the tab.
+
+---
 *** New user option 'tab-bar-tab-name-format-function'.
 
 ---

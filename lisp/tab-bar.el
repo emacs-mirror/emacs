@@ -648,6 +648,7 @@ on the tab bar instead."
 (defun tab-bar--tab (&optional frame)
   (let* ((tab (assq 'current-tab (frame-parameter frame 'tabs)))
          (tab-explicit-name (alist-get 'explicit-name tab))
+         (tab-group (alist-get 'group tab))
          (bl  (seq-filter #'buffer-live-p (frame-parameter frame 'buffer-list)))
          (bbl (seq-filter #'buffer-live-p (frame-parameter frame 'buried-buffer-list))))
     `(tab
@@ -655,6 +656,7 @@ on the tab bar instead."
                    (alist-get 'name tab)
                  (funcall tab-bar-tab-name-function)))
       (explicit-name . ,tab-explicit-name)
+      ,@(if tab-group `((group . ,tab-group)))
       (time . ,(float-time))
       (ws . ,(window-state-get
               (frame-root-window (or frame (selected-frame))) 'writable))
@@ -670,12 +672,14 @@ on the tab bar instead."
   ;; necessary when switching tabs, otherwise the destination tab
   ;; inherits the current tab's `explicit-name' parameter.
   (let* ((tab (or tab (assq 'current-tab (frame-parameter frame 'tabs))))
-         (tab-explicit-name (alist-get 'explicit-name tab)))
+         (tab-explicit-name (alist-get 'explicit-name tab))
+         (tab-group (alist-get 'group tab)))
     `(current-tab
       (name . ,(if tab-explicit-name
                    (alist-get 'name tab)
                  (funcall tab-bar-tab-name-function)))
-      (explicit-name . ,tab-explicit-name))))
+      (explicit-name . ,tab-explicit-name)
+      ,@(if tab-group `((group . ,tab-group))))))
 
 (defun tab-bar--current-tab-index (&optional tabs frame)
   (seq-position (or tabs (funcall tab-bar-tabs-function frame))
@@ -1240,6 +1244,40 @@ function `tab-bar-tab-name-function'."
   (tab-bar-rename-tab new-name (1+ (tab-bar--tab-index-by-name tab-name))))
 
 
+;;; Tab groups
+
+(defun tab-bar-change-tab-group (group-name &optional arg)
+  "Add the tab specified by its absolute position ARG to GROUP-NAME.
+If no ARG is specified, then set the GROUP-NAME for the current tab.
+ARG counts from 1.
+If GROUP-NAME is the empty string, then remove the tab from any group."
+  (interactive
+   (let* ((tabs (funcall tab-bar-tabs-function))
+          (tab-index (or current-prefix-arg (1+ (tab-bar--current-tab-index tabs))))
+          (group-name (alist-get 'group (nth (1- tab-index) tabs))))
+     (list (completing-read
+            "Group name for tab (leave blank to remove group): "
+            (delete-dups (delq nil (cons group-name
+                                         (mapcar (lambda (tab)
+                                                   (alist-get 'group tab))
+                                                 (funcall tab-bar-tabs-function))))))
+           current-prefix-arg)))
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (tab-index (if arg
+                        (1- (max 0 (min arg (length tabs))))
+                      (tab-bar--current-tab-index tabs)))
+         (tab (nth tab-index tabs))
+         (group (assq 'group tab))
+         (group-new-name (and (> (length group-name) 0) group-name)))
+    (if group
+        (setcdr group group-new-name)
+      (nconc tab `((group . ,group-new-name))))
+
+    (force-mode-line-update)
+    (unless tab-bar-mode
+      (message "Set tab group to '%s'" group-new-name))))
+
+
 ;;; Tab history mode
 
 (defvar tab-bar-history-limit 10
@@ -1630,6 +1668,8 @@ a function, then it is called with two arguments: BUFFER and ALIST, and
 should return the tab name.  When a `tab-name' entry is omitted, create
 a new tab without an explicit name.
 
+The ALIST entry `tab-group' (string or function) defines the tab group.
+
 If ALIST contains a `reusable-frames' entry, its value determines
 which frames to search for a reusable tab:
   nil -- the selected frame (actually the last non-minibuffer frame)
@@ -1682,6 +1722,8 @@ then it is called with two arguments: BUFFER and ALIST, and should return
 the tab name.  When a `tab-name' entry is omitted, create a new tab without
 an explicit name.
 
+The ALIST entry `tab-group' (string or function) defines the tab group.
+
 This is an action function for buffer display, see Info
 node `(elisp) Buffer Display Action Functions'.  It should be
 called only by `display-buffer' or a function directly or
@@ -1693,6 +1735,11 @@ indirectly called by the latter."
         (setq tab-name (funcall tab-name buffer alist)))
       (when tab-name
         (tab-bar-rename-tab tab-name)))
+    (let ((tab-group (alist-get 'tab-group alist)))
+      (when (functionp tab-group)
+        (setq tab-group (funcall tab-group buffer alist)))
+      (when tab-group
+        (tab-bar-change-tab-group tab-group)))
     (window--display-buffer buffer (selected-window) 'tab alist)))
 
 (defun switch-to-buffer-other-tab (buffer-or-name &optional norecord)
@@ -1770,6 +1817,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (defalias 'tab-move        'tab-bar-move-tab)
 (defalias 'tab-move-to     'tab-bar-move-tab-to)
 (defalias 'tab-rename      'tab-bar-rename-tab)
+(defalias 'tab-group       'tab-bar-change-tab-group)
 (defalias 'tab-list        'tab-switcher)
 
 (define-key tab-prefix-map "n" 'tab-duplicate)
@@ -1782,6 +1830,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (define-key tab-prefix-map "O" 'tab-previous)
 (define-key tab-prefix-map "m" 'tab-move)
 (define-key tab-prefix-map "M" 'tab-move-to)
+(define-key tab-prefix-map "G" 'tab-group)
 (define-key tab-prefix-map "r" 'tab-rename)
 (define-key tab-prefix-map "\r" 'tab-switch)
 (define-key tab-prefix-map "b" 'switch-to-buffer-other-tab)
