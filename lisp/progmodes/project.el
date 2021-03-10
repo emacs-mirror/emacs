@@ -1255,7 +1255,6 @@ It's also possible to enter an arbitrary directory not in the list."
 
 ;;; Project switching
 
-;;;###autoload
 (defcustom project-switch-commands
   '((project-find-file "Find file")
     (project-find-regexp "Find regexp")
