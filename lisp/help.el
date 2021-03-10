@@ -1253,7 +1253,7 @@ Return nil if the key sequence is too long."
   ;; Converted from describe_translation in keymap.c.
   ;; Avoid using the `help-keymap' face.
   (let ((op (point)))
-    (indent-to 16)
+    (indent-to 16 1)
     (set-text-properties op (point) '( face nil
                                       font-lock-face nil)))
   (cond ((symbolp definition)
