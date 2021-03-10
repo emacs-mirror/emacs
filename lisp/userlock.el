@@ -1,4 +1,4 @@
-;;; userlock.el --- handle file access contention between multiple users
+;;; userlock.el --- handle file access contention between multiple users  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1986, 2001-2021 Free Software Foundation, Inc.
 
