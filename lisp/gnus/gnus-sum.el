@@ -12741,7 +12741,7 @@ If REVERSE, save parts that do not match TYPE."
 	;; so we highlight the entire line instead.
 	(when (= (+ to 2) from)
 	  (setq from beg)
-	  (setq to end))
+	  (setq to (1+ end)))
 	(if gnus-newsgroup-selected-overlay
 	    ;; Move old overlay.
 	    (move-overlay
@@ -12796,7 +12796,7 @@ If REVERSE, save parts that do not match TYPE."
     (let ((face (funcall (gnus-summary-highlight-line-0))))
       (unless (eq face (gnus-get-text-property-excluding-characters-with-faces beg 'face))
 	(gnus-put-text-property-excluding-characters-with-faces
-	 beg (point-at-eol) 'face
+	 beg (1+ (point-at-eol)) 'face
 	 (setq face (if (boundp face) (symbol-value face) face)))
 	(when gnus-summary-highlight-line-function
 	  (funcall gnus-summary-highlight-line-function article face))))))
