@@ -907,22 +907,12 @@ In regular expressions (including character classes):
 
 
 (defun cperl-make-indent (column &optional minimum keep)
-  "Makes indent of the current line the requested amount.
-Unless KEEP, removes the old indentation.  Works around a bug in ancient
-versions of Emacs."
-  (let ((prop (get-text-property (point) 'syntax-type)))
-    (or keep
-	(delete-horizontal-space))
-    (indent-to column minimum)
-    ;; In old versions (e.g., 19.33) `indent-to' would not inherit properties
-    (and prop
-	 (> (current-column) 0)
-	 (save-excursion
-	   (beginning-of-line)
-	   (or (get-text-property (point) 'syntax-type)
-	       (and (looking-at "\\=[ \t]")
-		      (put-text-property (point) (match-end 0)
-					 'syntax-type prop)))))))
+  "Indent from point with tabs and spaces until COLUMN is reached.
+MINIMUM is like in `indent-to', which see.
+Unless KEEP, removes the old indentation."
+  (or keep
+      (delete-horizontal-space))
+  (indent-to column minimum))
 
 ;; Probably it is too late to set these guys already, but it can help later:
 
