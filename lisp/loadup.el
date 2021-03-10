@@ -157,7 +157,8 @@
 ;; Load-time macro-expansion can only take effect after setting
 ;; load-source-file-function because of where it is called in lread.c.
 (load "emacs-lisp/macroexp")
-(if (byte-code-function-p (symbol-function 'macroexpand-all))
+(if (or (byte-code-function-p (symbol-function 'macroexpand-all))
+        (subr-native-elisp-p (symbol-function 'macroexpand-all)))
     nil
   ;; Since loaddefs is not yet loaded, macroexp's uses of pcase will simply
   ;; fail until pcase is explicitly loaded.  This also means that we have to
