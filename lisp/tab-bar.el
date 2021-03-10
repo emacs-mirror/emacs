@@ -1148,22 +1148,25 @@ for the last tab on a frame is determined by
   "Close all tabs on the selected frame, except the selected one."
   (interactive)
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (current-index (tab-bar--current-tab-index tabs)))
-    (when current-index
-      (dotimes (index (length tabs))
-        (unless (or (eq index current-index)
+         (current-index (tab-bar--current-tab-index tabs))
+         (current-tab (and current-index (nth current-index tabs)))
+         (index 0))
+    (when current-tab
+      (dolist (tab tabs)
+        (unless (or (eq tab current-tab)
                     (run-hook-with-args-until-success
-                     'tab-bar-tab-prevent-close-functions
-                     (nth index tabs)
+                     'tab-bar-tab-prevent-close-functions tab
                      ;; `last-tab-p' logically can't ever be true
                      ;; if we make it this far
                      nil))
           (push `((frame . ,(selected-frame))
                   (index . ,index)
-                  (tab . ,(nth index tabs)))
+                  (tab . ,tab))
                 tab-bar-closed-tabs)
-          (run-hook-with-args 'tab-bar-tab-pre-close-functions (nth index tabs) nil)))
-      (set-frame-parameter nil 'tabs (list (nth current-index tabs)))
+          (run-hook-with-args 'tab-bar-tab-pre-close-functions tab nil)
+          (setq tabs (delq tab tabs)))
+        (setq index (1+ index)))
+      (set-frame-parameter nil 'tabs tabs)
 
       ;; Recalculate tab-bar-lines and update frames
       (tab-bar--update-tab-bar-lines)
@@ -1276,6 +1279,32 @@ If GROUP-NAME is the empty string, then remove the tab from any group."
     (force-mode-line-update)
     (unless tab-bar-mode
       (message "Set tab group to '%s'" group-new-name))))
+
+(defun tab-bar-close-group-tabs (group-name)
+  "Close all tabs that belong to GROUP-NAME on the selected frame."
+  (interactive
+   (let* ((tabs (funcall tab-bar-tabs-function))
+          (tab-index (1+ (tab-bar--current-tab-index tabs)))
+          (group-name (alist-get 'group (nth (1- tab-index) tabs))))
+     (list (completing-read
+            "Close all tabs with group name: "
+            (delete-dups (delq nil (cons group-name
+                                         (mapcar (lambda (tab)
+                                                   (alist-get 'group tab))
+                                                 (funcall tab-bar-tabs-function)))))))))
+  (let* ((close-group (and (> (length group-name) 0) group-name))
+         (tab-bar-tab-prevent-close-functions
+          (cons (lambda (tab _last-tab-p)
+                  (not (equal (alist-get 'group tab) close-group)))
+                tab-bar-tab-prevent-close-functions)))
+    (tab-bar-close-other-tabs)
+
+    (let* ((tabs (funcall tab-bar-tabs-function))
+           (current-index (tab-bar--current-tab-index tabs))
+           (current-tab (and current-index (nth current-index tabs))))
+      (when (and current-tab (equal (alist-get 'group current-tab)
+                                    close-group))
+        (tab-bar-close-tab)))))
 
 
 ;;; Tab history mode
@@ -1807,6 +1836,7 @@ When `switch-to-buffer-obey-display-actions' is non-nil,
 (defalias 'tab-duplicate   'tab-bar-duplicate-tab)
 (defalias 'tab-close       'tab-bar-close-tab)
 (defalias 'tab-close-other 'tab-bar-close-other-tabs)
+(defalias 'tab-close-group 'tab-bar-close-group-tabs)
 (defalias 'tab-undo        'tab-bar-undo-close-tab)
 (defalias 'tab-select      'tab-bar-select-tab)
 (defalias 'tab-switch      'tab-bar-switch-to-tab)
