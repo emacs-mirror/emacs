@@ -160,13 +160,7 @@ Where and how to get Gnus?
 
 @subsubheading Answer
 
-Gnus is released independent from releases of Emacs.  Therefore, the
-version bundled with Emacs might not be up to date (e.g., Gnus 5.9
-bundled with Emacs 21 is outdated).
-You can get the latest released version of Gnus from
-@uref{https://www.gnus.org/dist/gnus.tar.gz}
-or from
-@uref{https://ftp.gnus.org/pub/gnus/gnus.tar.gz}.
+Gnus is bundled with Emacs.
 
 @node FAQ 1-4
 @subsubheading Question 1.4

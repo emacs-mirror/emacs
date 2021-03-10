@@ -379,8 +379,6 @@ default, it makes the following bindings:
 @end table
 @end defvar
 
-@c In version 18, initial is required
-@c Emacs 19 feature
 @defun read-no-blanks-input prompt &optional initial inherit-input-method
 This function reads a string from the minibuffer, but does not allow
 whitespace characters as part of the input: instead, those characters
@@ -2475,7 +2473,6 @@ usual minibuffer input functions because they all start by choosing the
 minibuffer window according to the selected frame.
 @end defun
 
-@c Emacs 19 feature
 @defun window-minibuffer-p &optional window
 This function returns @code{t} if @var{window} is a minibuffer window.
 @var{window} defaults to the selected window.
@@ -2619,7 +2616,6 @@ when the minibuffer is active, not even if you switch to another window
 to do it.
 @end defopt
 
-@c Emacs 19 feature
 If a command name has a property @code{enable-recursive-minibuffers}
 that is non-@code{nil}, then the command can use the minibuffer to read
 arguments even if it is invoked from the minibuffer.  A command can

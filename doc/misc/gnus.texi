@@ -815,7 +815,7 @@ Various
 * Undo::                        Some actions can be undone.
 * Predicate Specifiers::        Specifying predicates.
 * Moderation::                  What to do if you're a moderator.
-* Image Enhancements::          Modern versions of Emacs can display images.
+* Image Enhancements::          Emacs can display images.
 * Fuzzy Matching::              What's the big fuzz?
 * Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
 * Spam Package::                A package for filtering and processing spam.
@@ -22505,7 +22505,7 @@ to you, using @kbd{G b u} and updating the group will usually fix this.
 * Predicate Specifiers::        Specifying predicates.
 * Moderation::                  What to do if you're a moderator.
 * Fetching a Group::            Starting Gnus just to read a group.
-* Image Enhancements::          Modern versions of Emacs can display images.
+* Image Enhancements::          Emacs can display images.
 * Fuzzy Matching::              What's the big fuzz?
 * Thwarting Email Spam::        Simple ways to avoid unsolicited commercial email.
 * Spam Package::                A package for filtering and processing spam.
@@ -23668,9 +23668,8 @@ It takes the group name as a parameter.
 @node Image Enhancements
 @section Image Enhancements
 
-Emacs 21@footnote{Emacs 21 on MS Windows doesn't
-support images, Emacs 22 does.} and up are able to display pictures and
-stuff, so Gnus has taken advantage of that.
+Emacs is able to display pictures and stuff, so Gnus has taken
+advantage of that.
 
 @menu
 * X-Face::                      Display a funky, teensy black-and-white image.
