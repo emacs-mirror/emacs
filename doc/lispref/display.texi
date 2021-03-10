@@ -5396,7 +5396,7 @@ is performed after scaling and cropping.
 When @code{t} any image transform will have smoothing applied, and if
 @code{nil} no smoothing will be applied.  The exact algorithm used
 will be platform dependent, but should be equivalent to bilinear
-filtering.  Disabling smoothing will use a nearest neighbour
+filtering.  Disabling smoothing will use a nearest neighbor
 algorithm.
 
 The default, if this property is not specified, will be for

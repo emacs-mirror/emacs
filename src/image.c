@@ -2225,7 +2225,7 @@ image_set_transform (struct frame *f, struct image *img)
   compute_image_rotation (img, &rotation);
 
 # if defined USE_CAIRO || defined HAVE_XRENDER || defined HAVE_NS
-  /* We want scale up operations to use a nearest neighbour filter to
+  /* We want scale up operations to use a nearest neighbor filter to
      show real pixels instead of munging them, but scale down
      operations to use a blended filter, to avoid aliasing and the like.
 
