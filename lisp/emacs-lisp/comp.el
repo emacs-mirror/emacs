@@ -3882,7 +3882,8 @@ display a message."
                                   comp-eln-load-path ',comp-eln-load-path
                                   comp-native-driver-options
                                   ',comp-native-driver-options
-                                  load-path ',load-path)
+                                  load-path ',load-path
+                                  warning-fill-column most-positive-fixnum)
                             ,comp-async-env-modifier-form
                             (message "Compiling %s..." ,source-file)
                             (comp--native-compile ,source-file ,(and load t))))
