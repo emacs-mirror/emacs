@@ -6964,11 +6964,11 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
 instead of signaling the error.
 @end deffn
 
-@deffn Command backward-button n &optional wrap display-message
+@deffn Command backward-button n &optional wrap display-message no-error
 Move to the @var{n}th previous button, or @var{n}th next button if
 @var{n} is negative.  If @var{n} is zero, move to the start of any
 button at point.  If @var{wrap} is non-@code{nil}, moving past either
@@ -6976,7 +6976,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
 instead of signaling the error.
 @end deffn
 
