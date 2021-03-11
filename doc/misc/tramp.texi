@@ -2648,11 +2648,14 @@ visibility of files.
 @subsection @option{sshfs} setup
 @cindex sshfs setup
 
-The method @option{sshfs} declares only the mount arguments, passed to
-the @command{sshfs} command.  This is a list of list of strings, and
-can be overwritten by the connection property @t{"mount-args"},
-@xref{Predefined connection information}.
+The method @option{sshfs} declares the mount arguments in the variable
+@code{tramp-methods}, passed to the @command{sshfs} command.  This is
+a list of list of strings, and can be overwritten by the connection
+property @t{"mount-args"}, @xref{Predefined connection information}.
 
+Additionally. it declares also the arguments for running remote
+processes, using the @command{ssh} command.  These don't need to be
+changed.
 
 @node Android shell setup
 @section Android shell setup hints

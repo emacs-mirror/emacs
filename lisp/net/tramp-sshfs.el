@@ -51,9 +51,19 @@
 (tramp--with-startup
  (add-to-list 'tramp-methods
 	      `(,tramp-sshfs-method
-		(tramp-mount-args
-		 (("-p" "%p")
-		  ("-o" "idmap=user,reconnect")))))
+		(tramp-mount-args            (("-C") ("-p" "%p")
+					      ("-o" "idmap=user,reconnect")))
+		;; These are for remote processes.
+                (tramp-login-program        "ssh")
+                (tramp-login-args           (("-q")("-l" "%u") ("-p" "%p")
+				             ("-e" "none") ("%h") ("%l")))
+                (tramp-direct-async         t)
+                (tramp-remote-shell         ,tramp-default-remote-shell)
+                (tramp-remote-shell-login   ("-l"))
+                (tramp-remote-shell-args    ("-c"))))
+
+ (add-to-list 'tramp-connection-properties
+	      `(,(format "/%s:" tramp-sshfs-method) "direct-async-process" t))
 
  (tramp-set-completion-function
   tramp-sshfs-method tramp-completion-function-alist-ssh))
@@ -76,7 +86,7 @@
      . tramp-handle-directory-files-and-attributes)
     (dired-compress-file . ignore)
     (dired-uncache . tramp-handle-dired-uncache)
-;;     (exec-path . ignore)
+    (exec-path . tramp-sshfs-handle-exec-path)
     (expand-file-name . tramp-handle-expand-file-name)
     (file-accessible-directory-p . tramp-handle-file-accessible-directory-p)
     (file-acl . ignore)
@@ -117,22 +127,22 @@
     (make-directory . tramp-fuse-handle-make-directory)
     (make-directory-internal . ignore)
     (make-nearby-temp-file . tramp-handle-make-nearby-temp-file)
-;;     (make-process . ignore)
+    (make-process . tramp-handle-make-process)
     (make-symbolic-link . tramp-handle-make-symbolic-link)
-;;     (process-file . ignore)
+    (process-file . tramp-sshfs-handle-process-file)
     (rename-file . tramp-sshfs-handle-rename-file)
     (set-file-acl . ignore)
-    (set-file-modes . ignore)
+    (set-file-modes . tramp-sshfs-handle-set-file-modes)
     (set-file-selinux-context . ignore)
     (set-file-times . ignore)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
-;;     (shell-command . ignore)
-;;     (start-file-process . ignore)
+    (shell-command . tramp-handle-shell-command)
+    (start-file-process . tramp-handle-start-file-process)
     (substitute-in-file-name . tramp-handle-substitute-in-file-name)
     (temporary-file-directory . tramp-handle-temporary-file-directory)
-;;     (tramp-get-remote-gid . ignore)
-;;     (tramp-get-remote-uid . ignore)
-;;     (tramp-set-file-uid-gid . ignore)
+    (tramp-get-remote-gid . ignore)
+    (tramp-get-remote-uid . ignore)
+    (tramp-set-file-uid-gid . ignore)
     (unhandled-file-name-directory . ignore)
     (vc-registered . ignore)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime)
@@ -185,6 +195,22 @@ arguments to pass to the OPERATION."
       (with-parsed-tramp-file-name newname nil
 	(tramp-flush-file-properties v localname)))))
 
+(defun tramp-sshfs-handle-exec-path ()
+  "Like `exec-path' for Tramp files."
+  (append
+   (with-parsed-tramp-file-name default-directory nil
+     (with-tramp-connection-property (tramp-get-process v) "remote-path"
+       (with-temp-buffer
+	 (process-file "getconf" nil t nil "PATH")
+	 (split-string
+	  (progn
+	    ;; Read the expression.
+	    (goto-char (point-min))
+	    (buffer-substring (point) (point-at-eol)))
+	  ":" 'omit))))
+   ;; The equivalent to `exec-directory'.
+   `(,(tramp-file-local-name (expand-file-name default-directory)))))
+
 (defun tramp-sshfs-handle-file-system-info (filename)
   "Like `file-system-info' for Tramp files."
   ;;`file-system-info' exists since Emacs 27.1.
@@ -198,6 +224,34 @@ arguments to pass to the OPERATION."
 	  (tramp-fuse-local-file-name filename) visit beg end replace)))
     (when visit (setq buffer-file-name filename))
     (cons (expand-file-name filename) (cdr result))))
+
+(defun tramp-sshfs-handle-process-file
+  (program &optional infile destination display &rest args)
+  "Like `process-file' for Tramp files."
+  ;; The implementation is not complete yet.
+  (when (and (numberp destination) (zerop destination))
+    (error "Implementation does not handle immediate return"))
+
+  (with-parsed-tramp-file-name default-directory nil
+    (let ((command
+	   (format
+	    "cd %s && exec %s"
+	    localname
+	    (mapconcat #'tramp-shell-quote-argument (cons program args) " "))))
+      (unwind-protect
+	  (apply
+	   #'tramp-call-process
+	   v (tramp-get-method-parameter v 'tramp-login-program)
+	   infile destination display
+	   (tramp-expand-args
+	    v 'tramp-login-args
+	    ?h (or (tramp-file-name-host v) "")
+	    ?u (or (tramp-file-name-user v) "")
+	    ?p (or (tramp-file-name-port v) "")
+	    ?l command))
+
+	(unless process-file-side-effects
+          (tramp-flush-directory-properties v ""))))))
 
 (defun tramp-sshfs-handle-rename-file
     (filename newname &optional ok-if-already-exists)
@@ -216,6 +270,13 @@ arguments to pass to the OPERATION."
   (when (tramp-sshfs-file-name-p newname)
     (with-parsed-tramp-file-name newname nil
       (tramp-flush-file-properties v localname))))
+
+(defun tramp-sshfs-handle-set-file-modes (filename mode &optional flag)
+  "Like `set-file-modes' for Tramp files."
+  (with-parsed-tramp-file-name filename nil
+    (unless (and (eq flag 'nofollow) (file-symlink-p filename))
+      (tramp-flush-file-properties v localname)
+      (set-file-modes (tramp-fuse-local-file-name filename) mode flag))))
 
 (defun tramp-sshfs-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
@@ -269,28 +330,16 @@ connection if a previous connection has died for some reason."
 
       (unless
 	  (or (tramp-fuse-mounted-p vec)
-	      (let* ((port (or (tramp-file-name-port vec) ""))
-		     (spec (format-spec-make ?p port))
-		     mount-args
-		     (mount-args
-		      (dolist
-			  (x
-			   (tramp-get-method-parameter vec 'tramp-mount-args)
-			   mount-args)
-			(setq mount-args
-			      (append
-			       mount-args
-			       (let ((y (mapcar
-					 (lambda (z) (format-spec z spec))
-					 x)))
-				 (unless (member "" y) y)))))))
-		(with-temp-buffer
-		  (zerop
-		   (apply
-		    #'tramp-call-process
-		    vec tramp-sshfs-program nil t nil
-		    (tramp-fuse-mount-spec vec)
-		    (tramp-fuse-mount-point vec) mount-args))))
+	      (with-temp-buffer
+		(zerop
+		 (apply
+		  #'tramp-call-process
+		  vec tramp-sshfs-program nil t nil
+		  (tramp-fuse-mount-spec vec)
+		  (tramp-fuse-mount-point vec)
+		  (tramp-expand-args
+		   vec 'tramp-mount-args
+		   ?p (or (tramp-file-name-port vec) "")))))
 	  (tramp-error
 	   vec 'file-error "Error mounting %s" (tramp-fuse-mount-spec vec))))
 

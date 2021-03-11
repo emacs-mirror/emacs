@@ -2370,53 +2370,29 @@ The method used must be an out-of-band method."
 	    (setq listener (number-to-string (+ 50000 (random 10000))))))
 
 	;; Compose copy command.
-	(setq host (or host "")
-	      user (or user "")
-	      port (or port "")
-	      spec (format-spec-make
-		    ?t (tramp-get-connection-property
-			(tramp-get-connection-process v) "temp-file" ""))
-	      options (format-spec (tramp-ssh-controlmaster-options v) spec)
-	      spec (format-spec-make
-		    ?h host ?u user ?p port ?r listener ?c options
-		    ?k (if keep-date " " "")
+	(setq options
+	      (format-spec
+	       (tramp-ssh-controlmaster-options v)
+	       (format-spec-make
+		?t (tramp-get-connection-property
+		    (tramp-get-connection-process v) "temp-file" "")))
+	      spec (list
+		    ?h (or host "") ?u (or user "") ?p (or port "")
+		    ?r listener ?c options ?k (if keep-date " " "")
                     ?n (concat "2>" (tramp-get-remote-null-device v)))
 	      copy-program (tramp-get-method-parameter v 'tramp-copy-program)
 	      copy-keep-date (tramp-get-method-parameter
 			      v 'tramp-copy-keep-date)
-
 	      copy-args
-	      (delete
-	       ;; " " has either been a replacement of "%k" (when
-	       ;; keep-date argument is non-nil), or a replacement
-	       ;; for the whole keep-date sublist.
-	       " "
-	       (dolist
-		   (x (tramp-get-method-parameter v 'tramp-copy-args) copy-args)
-		 (setq copy-args
-		       (append
-			copy-args
-			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-			  (unless (member "" y) y))))))
-
-	      copy-env
-	      (delq
-	       nil
-	       (mapcar
-		(lambda (x)
-		  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-		  (unless (member "" x) (string-join x " ")))
-		(tramp-get-method-parameter v 'tramp-copy-env)))
-
+	      ;; " " has either been a replacement of "%k" (when
+	      ;; keep-date argument is non-nil), or a replacement for
+	      ;; the whole keep-date sublist.
+	      (delete " " (apply #'tramp-expand-args v 'tramp-copy-args spec))
+	      copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
 	      remote-copy-program
-	      (tramp-get-method-parameter v 'tramp-remote-copy-program))
-
-	(dolist (x (tramp-get-method-parameter v 'tramp-remote-copy-args))
-	  (setq remote-copy-args
-		(append
-		 remote-copy-args
-		 (let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-		   (unless (member "" y) y)))))
+	      (tramp-get-method-parameter v 'tramp-remote-copy-program)
+	      remote-copy-args
+	      (apply #'tramp-expand-args v 'tramp-remote-copy-args spec))
 
 	;; Check for local copy program.
 	(unless (executable-find copy-program)
@@ -2462,10 +2438,11 @@ The method used must be an out-of-band method."
 		 v "process-name" (buffer-name (current-buffer)))
 		(tramp-set-connection-property
 		 v "process-buffer" (current-buffer))
-		(while copy-env
+		(when copy-env
 		  (tramp-message
-		   orig-vec 6 "%s=\"%s\"" (car copy-env) (cadr copy-env))
-		  (setenv (pop copy-env) (pop copy-env)))
+		   orig-vec 6 "%s=\"%s\""
+		   (car copy-env) (string-join (cdr copy-env) " "))
+		  (setenv (car copy-env) (string-join (cdr copy-env) " ")))
 		(setq
 		 copy-args
 		 (append
@@ -5049,19 +5026,17 @@ connection if a previous connection has died for some reason."
 			 (l-domain (tramp-file-name-domain hop))
 			 (l-host (tramp-file-name-host hop))
 			 (l-port (tramp-file-name-port hop))
-			 (login-program
-			  (tramp-get-method-parameter hop 'tramp-login-program))
-			 (login-args
-			  (tramp-get-method-parameter hop 'tramp-login-args))
 			 (remote-shell
 			  (tramp-get-method-parameter hop 'tramp-remote-shell))
 			 (extra-args (tramp-get-sh-extra-args remote-shell))
 			 (async-args
-			  (tramp-get-method-parameter hop 'tramp-async-args))
+			  (tramp-compat-flatten-tree
+			   (tramp-get-method-parameter hop 'tramp-async-args)))
 			 (connection-timeout
 			  (tramp-get-method-parameter
 			   hop 'tramp-connection-timeout))
-			 (command login-program)
+			 (command
+			  (tramp-get-method-parameter hop 'tramp-login-program))
 			 ;; We don't create the temporary file.  In
 			 ;; fact, it is just a prefix for the
 			 ;; ControlPath option of ssh; the real
@@ -5075,11 +5050,7 @@ connection if a previous connection has died for some reason."
 			  (with-tramp-connection-property
 			      (tramp-get-process vec) "temp-file"
 			    (tramp-compat-make-temp-name)))
-			 spec r-shell)
-
-		    ;; Add arguments for asynchronous processes.
-		    (when (and process-name async-args)
-		      (setq login-args (append async-args login-args)))
+			 r-shell)
 
 		    ;; Check, whether there is a restricted shell.
 		    (dolist (elt tramp-restricted-shell-hosts-alist)
@@ -5104,31 +5075,28 @@ connection if a previous connection has died for some reason."
 
 		    ;; Replace `login-args' place holders.
 		    (setq
-		     l-host (or l-host "")
-		     l-user (or l-user "")
-		     l-port (or l-port "")
-		     spec (format-spec-make ?t tmpfile)
-		     options (format-spec options spec)
-		     spec (format-spec-make
-			   ?h l-host ?u l-user ?p l-port ?c options
-			   ?l (concat remote-shell " " extra-args " -i"))
 		     command
-		     (concat
-		      ;; We do not want to see the trailing local
-		      ;; prompt in `start-file-process'.
-		      (unless r-shell "exec ")
-		      command " "
-		      (mapconcat
-		       (lambda (x)
-			 (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-			 (unless (member "" x) (string-join x " ")))
-		       login-args " ")
-		      ;; Local shell could be a Windows COMSPEC.  It
-		      ;; doesn't know the ";" syntax, but we must exit
-		      ;; always for `start-file-process'.  It could
-		      ;; also be a restricted shell, which does not
-		      ;; allow "exec".
-		      (when r-shell " && exit || exit")))
+		     (mapconcat
+		      #'identity
+		      (append
+		       ;; We do not want to see the trailing local
+		       ;; prompt in `start-file-process'.
+		       (unless r-shell '("exec"))
+		       `(,command)
+		       ;; Add arguments for asynchronous processes.
+		       (when process-name async-args)
+		       (tramp-expand-args
+			hop 'tramp-login-args
+			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
+			?c (format-spec options (format-spec-make ?t tmpfile))
+			?l (concat remote-shell " " extra-args " -i"))
+		       ;; Local shell could be a Windows COMSPEC.  It
+		       ;; doesn't know the ";" syntax, but we must
+		       ;; exit always for `start-file-process'.  It
+		       ;; could also be a restricted shell, which does
+		       ;; not allow "exec".
+		       (when r-shell '("&&" "exit" "||" "exit")))
+		      " "))
 
 		    ;; Send the command.
 		    (tramp-message vec 3 "Sending command `%s'" command)
@@ -5469,7 +5437,7 @@ Nonexistent directories are removed from spec."
 		  (progn
 		    (tramp-message
 		     vec 3
-		    "`getconf PATH' not successful, using default value \"%s\"."
+		     "`getconf PATH' not successful, using default value \"%s\"."
 		     "/bin:/usr/bin")
 		    "/bin:/usr/bin"))))
 	     (own-remote-path

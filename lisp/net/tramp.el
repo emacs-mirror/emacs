@@ -3765,6 +3765,22 @@ User is always nil."
     ;; Result.
     target-alist))
 
+(defun tramp-expand-args (vec parameter &rest spec-list)
+  "Expand login arguments as given by PARAMETER in `tramp-methods'.
+PARAMETER is a symbol like `tramp-login-args', denoting a list of
+list of strings from `tramp-methods', containing %-sequences for
+substitution.  SPEC-LIST is a list of char/value pairs used for
+`format-spec-make'."
+  (let ((args (tramp-get-method-parameter vec parameter))
+	(spec (apply 'format-spec-make spec-list)))
+    ;; Expand format spec.
+    (tramp-compat-flatten-tree
+     (mapcar
+      (lambda (x)
+	(setq x (mapcar (lambda (y) (format-spec y spec)) x))
+	(unless (member "" x) x))
+      args))))
+
 (defun tramp-direct-async-process-p (&rest args)
   "Whether direct async `make-process' can be called."
   (let ((v (tramp-dissect-file-name default-directory))
@@ -3846,14 +3862,11 @@ It does not support `:stderr'."
 	        (append `("cd" ,localname "&&" "(" "env") env `(,command ")"))))
 
 	  ;; Check for `tramp-sh-file-name-handler', because something
-	  ;; is different between tramp-adb.el and tramp-sh.el.
+	  ;; is different between tramp-sh.el, and tramp-adb.el or
+	  ;; tramp-sshfs.el.
 	  (let* ((sh-file-name-handler-p (tramp-sh-file-name-handler-p v))
 		 (login-program
 		  (tramp-get-method-parameter v 'tramp-login-program))
-		 (login-args
-		  (tramp-get-method-parameter v 'tramp-login-args))
-		 (async-args
-		  (tramp-get-method-parameter v 'tramp-async-args))
 		 ;; We don't create the temporary file.  In fact, it
 		 ;; is just a prefix for the ControlPath option of
 		 ;; ssh; the real temporary file has another name, and
@@ -3871,29 +3884,23 @@ It does not support `:stderr'."
 		  (when sh-file-name-handler-p
 		    (tramp-compat-funcall
 		     'tramp-ssh-controlmaster-options v)))
-		 spec p)
+		 login-args p)
 
-	    ;; Replace `login-args' place holders.
+	    ;; Replace `login-args' place holders.  Split
+	    ;; ControlMaster options.
 	    (setq
-	     spec (format-spec-make ?t tmpfile)
-	     options (format-spec (or options "") spec)
-	     spec (format-spec-make
-		   ?h (or host "") ?u (or user "") ?p (or port "")
-		   ?c options ?l "")
-	     ;; Add arguments for asynchronous processes.
-	     login-args (append async-args login-args)
-	     ;; Expand format spec.
 	     login-args
-	     (tramp-compat-flatten-tree
-	      (mapcar
-	       (lambda (x)
-		 (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-		 (unless (member "" x) x))
-	       login-args))
-	     ;; Split ControlMaster options.
-	     login-args
-	     (tramp-compat-flatten-tree
-	      (mapcar (lambda (x) (split-string x " ")) login-args))
+	     (append
+	      (tramp-compat-flatten-tree
+	       (tramp-get-method-parameter v 'tramp-async-args))
+	      (tramp-compat-flatten-tree
+	       (mapcar
+		(lambda (x) (split-string x " "))
+		(tramp-expand-args
+		 v 'tramp-login-args
+		 ?h (or host "") ?u (or user "") ?p (or port "")
+		 ?c (format-spec (or options "") (format-spec-make ?t tmpfile))
+		 ?l ""))))
 	     p (make-process
 		:name name :buffer buffer
 		:command (append `(,login-program) login-args command)
