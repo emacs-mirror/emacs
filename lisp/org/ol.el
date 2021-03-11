@@ -1467,7 +1467,7 @@ non-nil."
 	    (move-beginning-of-line 2)
 	    (set-mark (point)))))
     (setq org-store-link-plist nil)
-    (let (link cpltxt desc description search custom-id agenda-link)
+    (let (link cpltxt desc search custom-id agenda-link) ;; description
       (cond
        ;; Store a link using an external link type, if any function is
        ;; available. If more than one can generate a link from current
@@ -1598,7 +1598,7 @@ non-nil."
 		      'org-create-file-search-functions))
 	(setq link (concat "file:" (abbreviate-file-name buffer-file-name)
 			   "::" search))
-	(setq cpltxt (or description link)))
+	(setq cpltxt (or link))) ;; description
 
        ((and (buffer-file-name (buffer-base-buffer)) (derived-mode-p 'org-mode))
 	(org-with-limited-levels
