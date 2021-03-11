@@ -635,8 +635,7 @@ Argument NUM is the number of lines to move."
 
 (defmacro edt-with-position (&rest body)
   "Execute BODY with some position-related variables bound."
-  `(let* ((left nil)
-          (beg (edt-current-line))
+  `(let* ((beg (edt-current-line))
           (height (window-height))
           (top-percent
            (if (zerop edt-top-scroll-margin) 10 edt-top-scroll-margin))
@@ -650,7 +649,7 @@ Argument NUM is the number of lines to move."
           (far (save-excursion
                  (goto-char bottom)
                  (point-at-bol (1- height)))))
-     (ignore top left far)
+     (ignore top far)
      ,@body))
 
 ;;;
@@ -668,9 +667,10 @@ Optional argument FIND is t is this function is called from `edt-find'."
      (search-backward edt-find-last-text)
      (edt-set-match)
      (if (> (point) far)
-         (if (zerop (setq left (save-excursion (forward-line height))))
-             (recenter top-margin)
-           (recenter (- left bottom-up-margin)))
+         (let ((left (save-excursion (forward-line height))))
+           (recenter (if (zerop left)
+                         top-margin
+                       (- left bottom-up-margin))))
        (and (> (point) bottom) (recenter bottom-margin))))))
 
 (defun edt-find-backward (&optional find)
@@ -707,9 +707,9 @@ Optional argument FIND is t if this function is called from `edt-find'."
          (search-backward edt-find-last-text)
          (edt-set-match)
          (if (> (point) far)
-             (if (zerop (setq left (save-excursion (forward-line height))))
-                 (recenter top-margin)
-               (recenter (- left bottom-up-margin)))
+             (let ((left (save-excursion (forward-line height))))
+               (recenter (if (zerop left) top-margin
+                           (- left bottom-up-margin))))
            (and (> (point) bottom) (recenter bottom-margin))))
      (backward-char 1)
      (error "Search failed: \"%s\"" edt-find-last-text))))
@@ -1241,9 +1241,8 @@ Argument NUM is the positive number of sentences to move."
      (forward-word 1)
      (backward-sentence))
    (if (> (point) far)
-       (if (zerop (setq left (save-excursion (forward-line height))))
-           (recenter top-margin)
-         (recenter (- left bottom-up-margin)))
+       (let ((left (save-excursion (forward-line height))))
+         (recenter (if (zerop left) top-margin (- left bottom-up-margin))))
      (and (> (point) bottom) (recenter bottom-margin)))))
 
 (defun edt-sentence-backward (num)
@@ -1282,9 +1281,8 @@ Argument NUM is the positive number of paragraphs to move."
          (forward-line 1))
      (setq num (1- num)))
    (if (> (point) far)
-       (if (zerop (setq left (save-excursion (forward-line height))))
-           (recenter top-margin)
-         (recenter (- left bottom-up-margin)))
+       (let ((left (save-excursion (forward-line height))))
+         (recenter (if (zerop left) top-margin (- left bottom-up-margin))))
      (and (> (point) bottom) (recenter bottom-margin)))))
 
 (defun edt-paragraph-backward (num)
