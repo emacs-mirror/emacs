@@ -106,7 +106,7 @@
 ;;
 ;; - Write a new function that will determine the current project
 ;; based on the directory and add it to `project-find-functions'
-;; (which see) using `add-hook'. It is a good idea to depend on the
+;; (which see) using `add-hook'.  It is a good idea to depend on the
 ;; directory only, and not on the current major mode, for example.
 ;; Because the usual expectation is that all files in the directory
 ;; belong to the same project (even if some/most of them are ignored).

@@ -472,8 +472,8 @@ mouse event is used.
 If there's no button at POS, do nothing and return nil, otherwise
 return t.
 
-To get a description of what function will called when pushing a
-butting, use the `button-describe' command."
+To get a description of the function that will be invoked when
+pushing a button, use the `button-describe' command."
   (interactive
    (list (if (integerp last-command-event) (point) last-command-event)))
   (if (and (not (integerp pos)) (eventp pos))

@@ -1144,8 +1144,8 @@ replacing the current Image mode buffer."
       (funcall next))))
 
 (defun image-mode--directory-buffers (file)
-  "Return a alist of type/buffer for all \"parent\" buffers to image FILE.
-This is normally a list of dired buffers, but can also be archive and
+  "Return an alist of type/buffer for all \"parent\" buffers to image FILE.
+This is normally a list of Dired buffers, but can also be archive and
 tar mode buffers."
   (let ((buffers nil)
         (dir (file-name-directory file)))

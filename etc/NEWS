@@ -1441,9 +1441,9 @@ decaying average of delays, and if this number gets too high, the
 animation is stopped.
 
 +++
-*** The 'n' and 'p' commands (next/previous image) now respects dired order.
+*** The 'n' and 'p' commands (next/previous image) now respect Dired order.
 These commands would previously display the next/previous image in
-alphabetical order, but will now find the "parent" dired buffer and
+lexicographic order, but will now find the "parent" Dired buffer and
 select the next/previous image file according to how the files are
 sorted there.  The commands have also been extended to work when the
 "parent" buffer is an archive mode (i.e., zip file or the like) or tar
