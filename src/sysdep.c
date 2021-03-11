@@ -2670,6 +2670,13 @@ void
 errputc (int c)
 {
   fputc_unlocked (c, errstream ());
+
+#ifdef WINDOWSNT
+  /* Flush stderr after outputting a newline since stderr is fully
+     buffered when redirected to a pipe, contrary to POSIX.  */
+  if (c == '\n')
+    fflush_unlocked (stderr);
+#endif
 }
 
 void
