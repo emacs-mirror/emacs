@@ -1158,18 +1158,6 @@ Copied from `icomplete-exhibit' with two changes:
 	  (insert (iswitchb-completions
 		   contents))))))
 
-(defvar most-len)
-(defvar most-is-exact)
-
-(defun iswitchb-output-completion (com)
-  (if (= (length com) most-len)
-      ;; Most is one exact match,
-      ;; note that and leave out
-      ;; for later indication:
-      (ignore
-       (setq most-is-exact t))
-    (substring com most-len)))
-
 (defun iswitchb-completions (name)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
@@ -1260,16 +1248,11 @@ Modified from `icomplete-completions'."
 			(nreverse res))
 		      (list "...")
 		      (nthcdr (- (length comps)
-				 (/ iswitchb-max-to-show 2)) comps))))
+				 (/ iswitchb-max-to-show 2))
+			      comps))))
 	   (let* (
-		  ;;(most (try-completion name candidates predicate))
-		  (most nil)
-		  (most-len (length most))
-		  most-is-exact
 		  (alternatives
-		   (mapconcat (if most #'iswitchb-output-completion
-				#'identity)
-			      comps iswitchb-delim)))
+		   (mapconcat #'identity comps iswitchb-delim)))
 
 	     (concat
 
@@ -1283,17 +1266,9 @@ Modified from `icomplete-completions'."
 			  close-bracket-determined))
 	      ;; end of partial matches...
 
-	      ;; think this bit can be ignored.
-	      (and (> most-len (length name))
-		   (concat open-bracket-determined
-			   (substring most (length name))
-			   close-bracket-determined))
-
 	      ;; list all alternatives
 	      open-bracket-prospects
-	      (if most-is-exact
-		  (concat iswitchb-delim alternatives)
-		alternatives)
+	      alternatives
 	      close-bracket-prospects))))))
 
 (defun iswitchb-minibuffer-setup ()
