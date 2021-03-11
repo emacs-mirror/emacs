@@ -887,7 +887,9 @@ Example:
 
 (defun remove (elt seq)
   "Return a copy of SEQ with all occurrences of ELT removed.
-SEQ must be a list, vector, or string.  The comparison is done with `equal'."
+SEQ must be a list, vector, or string.  The comparison is done with `equal'.
+Contrary to `delete', this does not use side-effects, and the argument
+SEQ is not modified."
   (declare (side-effect-free t))
   (if (nlistp seq)
       ;; If SEQ isn't a list, there's no need to copy SEQ because

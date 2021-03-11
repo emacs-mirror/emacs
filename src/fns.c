@@ -1867,7 +1867,8 @@ If SEQ is not a list, deletion is never performed destructively;
 instead this function creates and returns a new vector or string.
 
 Write `(setq foo (delete element foo))' to be sure of correctly
-changing the value of a sequence `foo'.  */)
+changing the value of a sequence `foo'.  See also `remove', which
+does not modify the argument.  */)
   (Lisp_Object elt, Lisp_Object seq)
 {
   if (VECTORP (seq))
