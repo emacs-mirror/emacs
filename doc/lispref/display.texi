@@ -5393,15 +5393,14 @@ values rotate clockwise, negative values counter-clockwise.  Rotation
 is performed after scaling and cropping.
 
 @item :transform-smoothing @var{smooth}
-When @code{t} any image transform will have smoothing applied, and if
-@code{nil} no smoothing will be applied.  The exact algorithm used
-will be platform dependent, but should be equivalent to bilinear
-filtering.  Disabling smoothing will use a nearest neighbor
+If this is @code{t}, any image transform will have smoothing applied;
+if @code{nil}, no smoothing will be applied.  The exact algorithm used
+is platform dependent, but should be equivalent to bilinear
+filtering.  Disabling smoothing will use the nearest neighbor
 algorithm.
 
-The default, if this property is not specified, will be for
-down-scaling to apply smoothing, and up-scaling to not apply
-smoothing.
+The default, if this property is not specified, is for down-scaling to
+apply smoothing, and for up-scaling to not apply smoothing.
 
 @item :index @var{frame}
 @xref{Multi-Frame Images}.
