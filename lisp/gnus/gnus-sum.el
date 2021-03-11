@@ -6354,9 +6354,9 @@ The resulting hash table is returned, or nil if no Xrefs were found."
       ;; First peel off all invalid article numbers.
       (when active
 	(let ((ids articles)
-	      id first)
+	      id) ;; first
 	  (while (setq id (pop ids))
-	    (when (and first (> id (cdr active)))
+	    (when nil ;; (and first (> id (cdr active)))
 	      ;; We'll end up in this situation in one particular
 	      ;; obscure situation.  If you re-scan a group and get
 	      ;; a new article that is cross-posted to a different
