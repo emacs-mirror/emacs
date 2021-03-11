@@ -1,4 +1,4 @@
-;;; unrmail.el --- convert Rmail Babyl files to mbox files
+;;; unrmail.el --- convert Rmail Babyl files to mbox files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992, 2001-2021 Free Software Foundation, Inc.
 
@@ -235,7 +235,7 @@ The variable `unrmail-mbox-format' controls which mbox format to use."
 	    ;; Insert the `From ' line.
 	    (insert mail-from)
 	    ;; Record the keywords and attributes in our special way.
-	    (insert "X-RMAIL-ATTRIBUTES: " (apply 'string attrs) "\n")
+	    (insert "X-RMAIL-ATTRIBUTES: " (apply #'string attrs) "\n")
 	    (when keywords
 	      (insert "X-RMAIL-KEYWORDS: " keywords "\n"))
 	    ;; Convert From to >From, etc.
