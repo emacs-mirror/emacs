@@ -428,11 +428,11 @@ sources variable."
   (let* ((proj (ede-target-parent this))
 	 (conf-table (ede-proj-makefile-configuration-variables
 		      this (oref proj configuration-default)))
-	 (conf-done nil)
+	 ;; (conf-done nil)
 	 )
     ;; Add in all variables from the configuration not already covered.
     (mapc (lambda (c)
-	    (if (member (car c) conf-done)
+	    (if nil ;; (member (car c) conf-done)
 		nil
 	      (insert (car c) "=" (cdr c) "\n")))
 	  conf-table))

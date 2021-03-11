@@ -348,54 +348,56 @@ Returns t if all processing succeeded."
 Visits Semantic controlled buffers, and makes sure all needed
 include files have been parsed, and that the typecache is up to date.
 Uses `semantic-idle-work-for-on-buffer' to do the work."
-  (let ((errbuf nil)
-	(interrupted
-	 (semantic-exit-on-input 'idle-work-timer
-	   (let* ((inhibit-quit nil)
-		  (cb (current-buffer))
-		  (buffers (delq (current-buffer)
-				 (delq nil
-				       (mapcar #'(lambda (b)
-						   (and (buffer-file-name b)
-							b))
-					       (buffer-list)))))
-		  safe errbuf)
-	     ;; First, handle long tasks in the current buffer.
-	     (when (semantic-idle-scheduler-enabled-p)
-	       (save-excursion
-		 (setq safe (semantic-idle-work-for-one-buffer (current-buffer))
-		       )))
-	     (when (not safe) (push (current-buffer) errbuf))
+  (let*
+      ((errbuf nil)
+       (interrupted
+	(semantic-exit-on-input 'idle-work-timer
+	  (let* ((inhibit-quit nil)
+		 (cb (current-buffer))
+		 (buffers (delq (current-buffer)
+				(delq nil
+				      (mapcar #'(lambda (b)
+						  (and (buffer-file-name b)
+						       b))
+					      (buffer-list)))))
+		 safe) ;; errbuf
+	    ;; First, handle long tasks in the current buffer.
+	    (when (semantic-idle-scheduler-enabled-p)
+	      (save-excursion
+		(setq safe (semantic-idle-work-for-one-buffer (current-buffer))
+		      )))
+	    (when (not safe) (push (current-buffer) errbuf))
 
-	     ;; Now loop over other buffers with same major mode, trying to
-	     ;; update them as well.  Stop on keypress.
-	     (dolist (b buffers)
-	       (semantic-throw-on-input 'parsing-mode-buffers)
-	       (with-current-buffer b
-		 (when (semantic-idle-scheduler-enabled-p)
-		   (and (semantic-idle-scheduler-enabled-p)
-			(unless (semantic-idle-work-for-one-buffer (current-buffer))
-			  (push (current-buffer) errbuf)))
-		   ))
-	       )
+	    ;; Now loop over other buffers with same major mode, trying to
+	    ;; update them as well.  Stop on keypress.
+	    (dolist (b buffers)
+	      (semantic-throw-on-input 'parsing-mode-buffers)
+	      (with-current-buffer b
+		(when (semantic-idle-scheduler-enabled-p)
+		  (and (semantic-idle-scheduler-enabled-p)
+		       (unless (semantic-idle-work-for-one-buffer
+			        (current-buffer))
+			 (push (current-buffer) errbuf)))
+		  ))
+	      )
 
-	     (when (and (featurep 'semantic/db) (semanticdb-minor-mode-p))
-	       ;; Save everything.
-	       (semanticdb-save-all-db-idle)
+	    (when (and (featurep 'semantic/db) (semanticdb-minor-mode-p))
+	      ;; Save everything.
+	      (semanticdb-save-all-db-idle)
 
-	       ;; Parse up files near our active buffer
-	       (when semantic-idle-work-parse-neighboring-files-flag
-		 (semantic-safe "Idle Work Parse Neighboring Files: %S"
-		   (set-buffer cb)
-		   (semantic-idle-scheduler-work-parse-neighboring-files))
-		 t)
+	      ;; Parse up files near our active buffer
+	      (when semantic-idle-work-parse-neighboring-files-flag
+		(semantic-safe "Idle Work Parse Neighboring Files: %S"
+		  (set-buffer cb)
+		  (semantic-idle-scheduler-work-parse-neighboring-files))
+		t)
 
-	       ;; Save everything... again
-	       (semanticdb-save-all-db-idle)
-	       )
+	      ;; Save everything... again
+	      (semanticdb-save-all-db-idle)
+	      )
 
-	     ;; Done w/ processing
-	     nil))))
+	    ;; Done w/ processing
+	    nil))))
 
     ;; Done
     (if interrupted
