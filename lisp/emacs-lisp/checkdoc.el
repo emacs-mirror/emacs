@@ -2134,8 +2134,8 @@ buffer, otherwise stop after the first error."
       (user-error "No spellchecker installed: check the variable `ispell-program-name'"))
     (save-excursion
       (skip-chars-forward "^a-zA-Z")
-      (let (word sym case-fold-search err word-beginning word-end)
-        (while (and (not err) (< (point) end))
+      (let (word sym case-fold-search word-beginning word-end) ;; err
+        (while (and (< (point) end)) ;; (not err)
           (if (save-excursion (forward-char -1) (looking-at "[('`]"))
               ;; Skip lists describing meta-syntax, or bound variables
               (forward-sexp 1)
@@ -2167,7 +2167,7 @@ buffer, otherwise stop after the first error."
                           (sit-for 0)
                           (message "Continuing..."))))))))
           (skip-chars-forward "^a-zA-Z"))
-        err))))
+        nil)))) ;; err
 
 ;;; Rogue space checking engine
 ;;

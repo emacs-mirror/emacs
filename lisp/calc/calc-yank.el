@@ -639,7 +639,7 @@ Interactively, reads the register using `register-read-with-preview'."
   (calc-slow-wrapper
    (when (eq n 0)
      (setq n (calc-stack-size)))
-   (let* ((flag nil)
+   (let* (;; (flag nil)
 	  (allow-ret (> n 1))
 	  (list (math-showing-full-precision
 		 (mapcar (if (> n 1)
@@ -651,7 +651,8 @@ Interactively, reads the register using `register-read-with-preview'."
 			 (if (> n 0)
 			     (calc-top-list n)
 			   (calc-top-list 1 (- n)))))))
-     (calc--edit-mode (lambda () (calc-finish-stack-edit (or flag n))) allow-ret)
+     (calc--edit-mode (lambda () (calc-finish-stack-edit n)) ;; (or flag n)
+                      allow-ret)
      (while list
        (insert (car list) "\n")
        (setq list (cdr list)))))

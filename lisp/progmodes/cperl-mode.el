@@ -6701,9 +6701,9 @@ One may build such TAGS files from CPerl mode menu."
                        (or (nthcdr 2 elt)
                            ;; Only in one file
                            (setcdr elt (cdr (nth 1 elt))))))
-	    to l1 l2 l3)
+	    to) ;; l1 l2 l3
 	;; (setq cperl-hierarchy '(() () ())) ; Would write into '() later!
-	(setq cperl-hierarchy (list l1 l2 l3))
+	(setq cperl-hierarchy (list () () ())) ;; (list l1 l2 l3)
 	(or tags-table-list
 	    (call-interactively 'visit-tags-table))
 	(mapc
@@ -6749,7 +6749,7 @@ One may build such TAGS files from CPerl mode menu."
 			 "\\)\\(::\\)?"))
 	 (packages (cdr (nth 1 to)))
 	 (methods (cdr (nth 2 to)))
-	 l1 head cons1 cons2 ord writeto recurse
+	 head cons1 cons2 ord writeto recurse ;; l1
 	 root-packages root-functions
 	 (move-deeper
           (lambda (elt)
@@ -6769,7 +6769,7 @@ One may build such TAGS files from CPerl mode menu."
                    (setq root-functions (cons elt root-functions)))
                   (t
                    (setq root-packages (cons elt root-packages)))))))
-    (setcdr to l1)			; Init to dynamic space
+    (setcdr to nil) ;; l1		; Init to dynamic space
     (setq writeto to)
     (setq ord 1)
     (mapc move-deeper packages)

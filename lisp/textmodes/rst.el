@@ -616,7 +616,7 @@ After interpretation of ARGS the results are concatenated as for
    (:constructor
     rst-Ado-new-transition
     (&aux
-     (char nil)
+     ;; (char nil)
      (-style 'transition)))
    ;; Construct a simple section header.
    (:constructor
