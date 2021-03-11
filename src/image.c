@@ -2234,7 +2234,7 @@ image_set_transform (struct frame *f, struct image *img)
      TODO: implement for Windows.  */
   bool smoothing;
   Lisp_Object s = image_spec_value (img->spec, QCtransform_smoothing, NULL);
-  if (!s)
+  if (NILP (s))
     smoothing = (width < img->width) || (height < img->height);
   else
     smoothing = !NILP (s);
