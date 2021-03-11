@@ -210,10 +210,7 @@ in the file it applies to.")
                   (when (and outline-minor-mode
                              (eq outline-minor-mode-highlight 'override))
                     'append)
-                  (if (and outline-minor-mode
-                           (eq outline-minor-mode-highlight t))
-                      'append
-                    t))))
+                  t)))
   "Additional expressions to highlight in Outline mode.")
 
 (defface outline-1
