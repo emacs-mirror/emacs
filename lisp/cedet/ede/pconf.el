@@ -1,4 +1,4 @@
-;;; ede/pconf.el --- configure.ac maintenance for EDE
+;;; ede/pconf.el --- configure.ac maintenance for EDE  -*- lexical-binding: t; -*-
 
 ;;; Copyright (C) 1998-2000, 2005, 2008-2021 Free Software Foundation,
 ;;; Inc.
@@ -67,7 +67,7 @@ don't do it.  A value of nil means to just do it.")
 	;;(td (file-name-directory (ede-proj-configure-file this)))
 	(targs (oref this targets))
 	(postcmd "")
-	(add-missing nil))
+	) ;; (add-missing nil)
     ;; First, make sure we have a file.
     (if (not (file-exists-p (ede-proj-configure-file this)))
 	(autoconf-new-program b (oref this name) "Project.ede"))
@@ -97,7 +97,7 @@ don't do it.  A value of nil means to just do it.")
        (ede-map-targets sp #'ede-proj-flush-autoconf)))
     (ede-map-all-subprojects
      this
-     (lambda (sp)
+     (lambda (_sp)
        (ede-map-targets this #'ede-proj-tweak-autoconf)))
     ;; Now save
     (save-buffer)
@@ -109,14 +109,15 @@ don't do it.  A value of nil means to just do it.")
     (ede-proj-configure-test-required-file this "README")
     (ede-proj-configure-test-required-file this "ChangeLog")
     ;; Let specific targets get missing files.
-    (mapc 'ede-proj-configure-create-missing targs)
+    (mapc #'ede-proj-configure-create-missing targs)
     ;; Verify that we have a make system.
     (if (or (not (ede-expand-filename (ede-toplevel this) "Makefile"))
 	    ;; Now is this one of our old Makefiles?
 	    (with-current-buffer
                 (find-file-noselect
                  (ede-expand-filename (ede-toplevel this)
-                                      "Makefile" t) t)
+                                      "Makefile" t)
+                 t)
 	      (goto-char (point-min))
 	      ;; Here is the unique piece for our makefiles.
 	      (re-search-forward "For use with: make" nil t)))
@@ -166,11 +167,11 @@ don't do it.  A value of nil means to just do it.")
   "Tweak the configure file (current buffer) to accommodate THIS."
   ;; Check the compilers belonging to THIS, and call the autoconf
   ;; setup for those compilers.
-  (mapc 'ede-proj-tweak-autoconf (ede-proj-compilers this))
-  (mapc 'ede-proj-tweak-autoconf (ede-proj-linkers this))
+  (mapc #'ede-proj-tweak-autoconf (ede-proj-compilers this))
+  (mapc #'ede-proj-tweak-autoconf (ede-proj-linkers this))
   )
 
-(cl-defmethod ede-proj-flush-autoconf ((this ede-proj-target))
+(cl-defmethod ede-proj-flush-autoconf ((_this ede-proj-target))
   "Flush the configure file (current buffer) to accommodate THIS.
 By flushing, remove any cruft that may be in the file.  Subsequent
 calls to `ede-proj-tweak-autoconf' can restore items removed by flush."
@@ -178,13 +179,13 @@ calls to `ede-proj-tweak-autoconf' can restore items removed by flush."
 
 
 ;; @TODO - No-one calls this ???
-(cl-defmethod ede-proj-configure-add-missing ((this ede-proj-target))
+(cl-defmethod ede-proj-configure-add-missing ((_this ede-proj-target))
   "Query if any files needed by THIS provided by automake are missing.
 Results in --add-missing being passed to automake."
   nil)
 
 ;; @TODO - No-one implements this yet.
-(cl-defmethod ede-proj-configure-create-missing ((this ede-proj-target))
+(cl-defmethod ede-proj-configure-create-missing ((_this ede-proj-target))
   "Add any missing files for THIS by creating them."
   nil)
 

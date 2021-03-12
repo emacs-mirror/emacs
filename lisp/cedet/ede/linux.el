@@ -1,4 +1,4 @@
-;;; ede/linux.el --- Special project for Linux
+;;; ede/linux.el --- Special project for Linux  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -47,26 +47,22 @@
 (defcustom project-linux-build-directory-default 'ask
   "Build directory."
   :version "24.4"
-  :group 'project-linux
   :type '(choice (const :tag "Same as source directory" same)
                  (const :tag "Ask the user" ask)))
 
 (defcustom project-linux-architecture-default 'ask
   "Target architecture to assume when not auto-detected."
   :version "24.4"
-  :group 'project-linux
   :type '(choice (string :tag "Architecture name")
                  (const :tag "Ask the user" ask)))
 
 
 (defcustom project-linux-compile-target-command (concat ede-make-command " -k -C %s SUBDIRS=%s")
   "Default command used to compile a target."
-  :group 'project-linux
   :type 'string)
 
 (defcustom project-linux-compile-project-command (concat ede-make-command " -k -C %s")
   "Default command used to compile a project."
-  :group 'project-linux
   :type 'string)
 
 (defun ede-linux-version (dir)

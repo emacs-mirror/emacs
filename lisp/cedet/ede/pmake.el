@@ -46,6 +46,7 @@
 (require 'ede/proj)
 (require 'ede/proj-obj)
 (require 'ede/proj-comp)
+(require 'seq)
 
 (declare-function ede-srecode-setup "ede/srecode")
 (declare-function ede-srecode-insert "ede/srecode")
@@ -111,13 +112,13 @@ MFILENAME is the makefile to generate."
 
 	(let* ((targ (if isdist (oref this targets) mt))
 	       (sp (oref this subproj))
-	       (df (apply 'append
+	       (df (apply #'append
 			  (mapcar (lambda (tg)
 				    (ede-proj-makefile-dependency-files tg))
 				  targ))))
 	  ;; Distribution variables
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-variables targ))
+	    (mapc #'ede-proj-makefile-insert-variables targ))
 	  ;; Only add the distribution stuff in when depth != 0
 	  (let ((top  (ede-toplevel this))
 		(tmp this)
@@ -153,7 +154,8 @@ MFILENAME is the makefile to generate."
 				     (concat ".deps/"
 					     (file-name-nondirectory
 					      (file-name-sans-extension
-					       f)) ".P"))
+					       f))
+					     ".P"))
 				   df " "))))
 	  ;;
 	  ;; Insert ALL Rule
@@ -188,11 +190,11 @@ MFILENAME is the makefile to generate."
 	  ;;
 	  (ede-compiler-begin-unique
 	    (ede-proj-makefile-insert-rules this)
-	    (mapc 'ede-proj-makefile-insert-rules targ))
+	    (mapc #'ede-proj-makefile-insert-rules targ))
 	  ;;
 	  ;; phony targets for sub projects
 	  ;;
-	  (mapc 'ede-proj-makefile-insert-subproj-rules sp)
+	  (mapc #'ede-proj-makefile-insert-subproj-rules sp)
 	  ;;
 	  ;; Distribution rules such as CLEAN and DIST
 	  ;;
@@ -210,11 +212,11 @@ MFILENAME is the makefile to generate."
 	;; Distribution variables
 	(let ((targ (if isdist (oref this targets) mt)))
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-automake-pre-variables targ))
+	    (mapc #'ede-proj-makefile-insert-automake-pre-variables targ))
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-source-variables targ))
+	    (mapc #'ede-proj-makefile-insert-source-variables targ))
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-automake-post-variables targ))
+	    (mapc #'ede-proj-makefile-insert-automake-post-variables targ))
 	  (ede-compiler-begin-unique
 	    (ede-proj-makefile-insert-user-rules this))
 	  (insert "\n# End of Makefile.am\n")
@@ -464,9 +466,9 @@ sources variable."
   "Return a list of patterns that are considered garbage to THIS.
 These are removed with make clean."
   (let ((mc (ede-map-targets
-	     this (lambda (c) (ede-proj-makefile-garbage-patterns c))))
+	     this #'ede-proj-makefile-garbage-patterns))
 	(uniq nil))
-    (setq mc (sort (apply 'append mc) 'string<))
+    (setq mc (sort (apply #'append mc) #'string<))
     ;; Filter out duplicates from the targets.
     (while mc
       (if (and (car uniq) (string= (car uniq) (car mc)))
@@ -502,13 +504,13 @@ These are removed with make clean."
 
 (cl-defmethod ede-proj-makefile-insert-rules ((this ede-proj-project))
   "Insert rules needed by THIS target."
-  (mapc 'ede-proj-makefile-insert-rules (oref this inference-rules))
+  (mapc #'ede-proj-makefile-insert-rules (oref this inference-rules))
   )
 
 (cl-defmethod ede-proj-makefile-insert-dist-dependencies ((this ede-proj-project))
   "Insert any symbols that the DIST rule should depend on.
 Argument THIS is the project that should insert stuff."
-  (mapc 'ede-proj-makefile-insert-dist-dependencies (oref this targets))
+  (mapc #'ede-proj-makefile-insert-dist-dependencies (oref this targets))
   )
 
 (cl-defmethod ede-proj-makefile-insert-dist-dependencies ((_this ede-proj-target))
@@ -608,10 +610,10 @@ Argument THIS is the target that should insert stuff."
 
 (cl-defmethod ede-proj-makefile-insert-rules ((this ede-proj-target-makefile))
   "Insert rules needed by THIS target."
-  (mapc 'ede-proj-makefile-insert-rules (oref this rules))
+  (mapc #'ede-proj-makefile-insert-rules (oref this rules))
   (let ((c (ede-proj-compilers this)))
     (when c
-      (mapc 'ede-proj-makefile-insert-rules c)
+      (mapc #'ede-proj-makefile-insert-rules c)
       (if (oref this phony)
 	  (insert ".PHONY: " (ede-proj-makefile-target-name this) "\n"))
       (insert (ede-proj-makefile-target-name this) ": "
@@ -622,9 +624,9 @@ Argument THIS is the target that should insert stuff."
 (cl-defmethod ede-proj-makefile-insert-commands ((this ede-proj-target-makefile))
   "Insert the commands needed by target THIS.
 For targets, insert the commands needed by the chosen compiler."
-  (mapc 'ede-proj-makefile-insert-commands (ede-proj-compilers this))
+  (mapc #'ede-proj-makefile-insert-commands (ede-proj-compilers this))
   (when (object-assoc t :uselinker (ede-proj-compilers this))
-    (mapc 'ede-proj-makefile-insert-commands (ede-proj-linkers this))))
+    (mapc #'ede-proj-makefile-insert-commands (ede-proj-linkers this))))
 
 
 (cl-defmethod ede-proj-makefile-insert-user-rules ((this ede-proj-project))
@@ -632,11 +634,11 @@ For targets, insert the commands needed by the chosen compiler."
 This is different from `ede-proj-makefile-insert-rules' in that this
 function won't create the building rules which are auto created with
 automake."
-  (mapc 'ede-proj-makefile-insert-user-rules (oref this inference-rules)))
+  (mapc #'ede-proj-makefile-insert-user-rules (oref this inference-rules)))
 
 (cl-defmethod ede-proj-makefile-insert-user-rules ((this ede-proj-target))
   "Insert user specified rules needed by THIS target."
-  (mapc 'ede-proj-makefile-insert-rules (oref this rules)))
+  (mapc #'ede-proj-makefile-insert-rules (oref this rules)))
 
 (cl-defmethod ede-proj-makefile-dependencies ((this ede-proj-target-makefile))
   "Return a string representing the dependencies for THIS.
@@ -644,7 +646,7 @@ Some compilers only use the first element in the dependencies, others
 have a list of intermediates (object files), and others don't care.
 This allows customization of how these elements appear."
   (let* ((c (ede-proj-compilers this))
-	 (io (eval (cons 'or (mapcar 'ede-compiler-intermediate-objects-p c))))
+	 (io (seq-some #'ede-compiler-intermediate-objects-p c))
 	 (out nil))
     (if io
 	(progn
@@ -652,7 +654,8 @@ This allows customization of how these elements appear."
 	    (setq out
 		  (concat out "$(" (ede-compiler-intermediate-object-variable
 				    (car c)
-				    (ede-proj-makefile-target-name this)) ")")
+				    (ede-proj-makefile-target-name this))
+			  ")")
 		  c (cdr c)))
 	  out)
       (let ((sv (ede-proj-makefile-sourcevar this))

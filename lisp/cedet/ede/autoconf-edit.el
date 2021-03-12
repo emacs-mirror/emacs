@@ -1,4 +1,4 @@
-;;; ede/autoconf-edit.el --- Keymap for autoconf
+;;; ede/autoconf-edit.el --- Keymap for autoconf  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2000, 2009-2021 Free Software Foundation, Inc.
 

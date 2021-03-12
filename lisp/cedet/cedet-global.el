@@ -1,4 +1,4 @@
-;;; cedet-global.el --- GNU Global support for CEDET.
+;;; cedet-global.el --- GNU Global support for CEDET.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -75,7 +75,7 @@ SCOPE is the scope of the search, such as `project' or `subdirs'."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-global-command
+    (apply #'call-process cedet-global-command
 	   nil b nil
 	   flags)
     b))
@@ -88,7 +88,7 @@ SCOPE is the scope of the search, such as `project' or `subdirs'."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-global-gtags-command
+    (apply #'call-process cedet-global-gtags-command
 	   nil b nil
 	   flags)
 

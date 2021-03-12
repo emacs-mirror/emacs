@@ -1,4 +1,4 @@
-;;; ede.el --- Emacs Development Environment gloss
+;;; ede.el --- Emacs Development Environment gloss  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -87,7 +87,6 @@ target wants the file, the user is asked.  If only one target wants
 the file, then it is automatically added to that target.  If the
 value is `ask', then the user is always asked, unless there is no
 target willing to take the file.  `never' means never perform the check."
-  :group 'ede
   :type '(choice (const always)
 		 (const multi-ask)
 		 (const ask)
@@ -95,7 +94,6 @@ target willing to take the file.  `never' means never perform the check."
 
 (defcustom ede-debug-program-function 'gdb
   "Default Emacs command used to debug a target."
-  :group 'ede
   :type 'function) ; make this be a list of options some day
 
 (defcustom ede-project-directories nil
@@ -112,7 +110,6 @@ If you invoke the commands \\[ede] or \\[ede-new] on a directory
 that is not listed, Emacs will offer to add it to the list.
 
 Any other value disables searching for EDE project files."
-  :group 'ede
   :type '(choice (const :tag "Any directory" t)
 		 (repeat :tag "List of directories"
 			 (directory))
@@ -186,21 +183,23 @@ Argument LIST-O-O is the list of objects to choose from."
 
 ;;; Menu and Keymap
 
+(declare-function ede-speedbar "ede/speedbar" ())
+
 (defvar ede-minor-mode-map
   (let ((map (make-sparse-keymap))
 	(pmap (make-sparse-keymap)))
-    (define-key pmap "e" 'ede-edit-file-target)
-    (define-key pmap "a" 'ede-add-file)
-    (define-key pmap "d" 'ede-remove-file)
-    (define-key pmap "t" 'ede-new-target)
-    (define-key pmap "g" 'ede-rescan-toplevel)
-    (define-key pmap "s" 'ede-speedbar)
-    (define-key pmap "f" 'ede-find-file)
-    (define-key pmap "C" 'ede-compile-project)
-    (define-key pmap "c" 'ede-compile-target)
-    (define-key pmap "\C-c" 'ede-compile-selected)
-    (define-key pmap "D" 'ede-debug-target)
-    (define-key pmap "R" 'ede-run-target)
+    (define-key pmap "e" #'ede-edit-file-target)
+    (define-key pmap "a" #'ede-add-file)
+    (define-key pmap "d" #'ede-remove-file)
+    (define-key pmap "t" #'ede-new-target)
+    (define-key pmap "g" #'ede-rescan-toplevel)
+    (define-key pmap "s" #'ede-speedbar)
+    (define-key pmap "f" #'ede-find-file)
+    (define-key pmap "C" #'ede-compile-project)
+    (define-key pmap "c" #'ede-compile-target)
+    (define-key pmap "\C-c" #'ede-compile-selected)
+    (define-key pmap "D" #'ede-debug-target)
+    (define-key pmap "R" #'ede-run-target)
     ;; bind our submap into map
     (define-key map "\C-c." pmap)
     map)
@@ -476,7 +475,7 @@ To be used in hook functions."
 If this file is contained, or could be contained in an EDE
 controlled project, then this mode is activated automatically
 provided `global-ede-mode' is enabled."
-  :group 'ede
+  :global nil
   (cond ((or (eq major-mode 'dired-mode)
 	     (eq major-mode 'vc-dir-mode))
 	 (ede-dired-minor-mode (if ede-minor-mode 1 -1)))
@@ -485,6 +484,9 @@ provided `global-ede-mode' is enabled."
 	     (ede-initialize-state-current-buffer)
 	   ;; If we fail to have a project here, turn it back off.
 	   (ede-minor-mode -1)))))
+
+(declare-function ede-directory-project-cons "ede/files" (dir &optional force))
+(declare-function ede-toplevel-project-or-nil "ede/files" (dir))
 
 (defun ede-initialize-state-current-buffer ()
   "Initialize the current buffer's state for EDE.
@@ -496,7 +498,7 @@ Sets buffer local variables for EDE."
   ;; Init the buffer.
   (let* ((ROOT nil)
 	 (proj (ede-directory-get-open-project default-directory
-					       'ROOT)))
+					       (gv-ref ROOT))))
 
     (when (not proj)
       ;; If there is no open project, look up the project
@@ -517,7 +519,8 @@ Sets buffer local variables for EDE."
 		      (ede-directory-safe-p top)))
 
 	    ;; The project is safe, so load it in.
-	    (setq proj (ede-load-project-file default-directory projdetect 'ROOT))))))
+	    (setq proj (ede-load-project-file default-directory projdetect
+	                                      (gv-ref ROOT)))))))
 
     ;; If PROJ is now loaded in, we can initialize our buffer to it.
     (when proj
@@ -561,30 +564,29 @@ Sets buffer local variables for EDE."
 This global minor mode enables `ede-minor-mode' in all buffers in
 an EDE controlled project."
   :global t
-  :group 'ede
   (if global-ede-mode
       ;; Turn on global-ede-mode
       (progn
 	(if semantic-mode
 	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
-	(add-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
-	(add-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
-	(add-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
+	(add-hook 'semanticdb-project-predicate-functions #'ede-directory-project-p)
+	(add-hook 'semanticdb-project-root-functions #'ede-toplevel-project-or-nil)
+	(add-hook 'ecb-source-path-functions #'ede-ecb-project-paths)
 	;; Append our hook to the end.  This allows mode-local to finish
 	;; it's stuff before we start doing misc file loads, etc.
-	(add-hook 'find-file-hook 'ede-turn-on-hook t)
-	(add-hook 'dired-mode-hook 'ede-turn-on-hook)
-	(add-hook 'kill-emacs-hook 'ede-save-cache)
+	(add-hook 'find-file-hook #'ede-turn-on-hook t)
+	(add-hook 'dired-mode-hook #'ede-turn-on-hook)
+	(add-hook 'kill-emacs-hook #'ede-save-cache)
 	(ede-load-cache)
 	(ede-reset-all-buffers))
     ;; Turn off global-ede-mode
     (define-key cedet-menu-map [cedet-menu-separator] nil)
-    (remove-hook 'semanticdb-project-predicate-functions 'ede-directory-project-p)
-    (remove-hook 'semanticdb-project-root-functions 'ede-toplevel-project-or-nil)
-    (remove-hook 'ecb-source-path-functions 'ede-ecb-project-paths)
-    (remove-hook 'find-file-hook 'ede-turn-on-hook)
-    (remove-hook 'dired-mode-hook 'ede-turn-on-hook)
-    (remove-hook 'kill-emacs-hook 'ede-save-cache)
+    (remove-hook 'semanticdb-project-predicate-functions #'ede-directory-project-p)
+    (remove-hook 'semanticdb-project-root-functions #'ede-toplevel-project-or-nil)
+    (remove-hook 'ecb-source-path-functions #'ede-ecb-project-paths)
+    (remove-hook 'find-file-hook #'ede-turn-on-hook)
+    (remove-hook 'dired-mode-hook #'ede-turn-on-hook)
+    (remove-hook 'kill-emacs-hook #'ede-save-cache)
     (ede-save-cache)
     (ede-reset-all-buffers)))
 
@@ -1080,7 +1082,7 @@ Flush the dead projects from the project cache."
   (let ((dead nil))
     (dolist (P ede-projects)
       (when (not (file-exists-p (oref P file)))
-	(add-to-list 'dead P)))
+	(cl-pushnew P dead :test #'equal)))
     (dolist (D dead)
       (ede-delete-project-from-global-list D))
     ))
@@ -1108,7 +1110,7 @@ Flush the dead projects from the project cache."
   "Project file independent way to read a project in from DIR.
 Optional DETECTIN is an autoload cons from `ede-detect-directory-for-project'
 which can be passed in to save time.
-Optional ROOTRETURN will return the root project for DIR."
+Optional ROOTRETURN reference will return the root project for DIR."
   ;; Don't do anything if we are in the process of
   ;; constructing an EDE object.
   ;;
@@ -1147,7 +1149,8 @@ Optional ROOTRETURN will return the root project for DIR."
 	    (setq o (ede-auto-load-project autoloader toppath))))
 
 	;; Return the found root project.
-	(when rootreturn (set rootreturn o))
+	(when rootreturn (if (symbolp rootreturn) (set rootreturn o)
+	                   (setf (gv-deref rootreturn) o)))
 
 	;; The project has been found (in the global list) or loaded from
 	;; disk (via autoloader.)  We can now search for the project asked
@@ -1504,6 +1507,8 @@ It does not apply the value to buffers."
 ;;; Integration with project.el
 
 (defun project-try-ede (dir)
+  ;; FIXME: This passes the `ROOT' dynbound variable, but I don't know
+  ;; where it comes from!
   (let ((project-dir
          (locate-dominating-file
           dir
@@ -1523,7 +1528,7 @@ It does not apply the value to buffers."
 (provide 'ede)
 
 ;; Include this last because it depends on ede.
-(require 'ede/files)
+(if t (require 'ede/files)) ;; Don't bother loading it at compile-time.
 
 ;; If this does not occur after the provide, we can get a recursive
 ;; load.  Yuck!
