@@ -186,7 +186,7 @@ mean \"try again\"."
 (defvar smtpmail-auth-supported '(cram-md5 plain login)
   "List of supported SMTP AUTH mechanisms.
 The list is in preference order.
-Every element should have a matching `cl-defmethod' for
+Every element should have a matching `cl-defmethod'
 for `smtpmail-try-auth-method'.")
 
 (defvar smtpmail-mail-address nil

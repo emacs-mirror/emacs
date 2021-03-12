@@ -829,7 +829,7 @@ The DICTIONARY is only used for decoding the bytes to display the DESCRIPTION."
 (defun dictionary-display-word-definition (reply word dictionary)
   "Insert the definition in REPLY for the current WORD from DICTIONARY.
 It will replace links which are found in the REPLY and replace
-them with buttons to perform a a new search."
+them with buttons to perform a new search."
   (let ((start (point)))
     (insert (dictionary-decode-charset reply dictionary))
     (insert "\n\n")

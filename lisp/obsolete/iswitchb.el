@@ -313,7 +313,7 @@ Possible values:
 `otherwindow'	Show new buffer in another window (same frame)
 `display'	Display buffer in another window without switching to it
 `otherframe'	Show new buffer in another frame
-`maybe-frame'	If a buffer is visible in another frame, prompt to ask if you
+`maybe-frame'	If a buffer is visible in another frame, prompt to ask if
 		you want to see the buffer in the same window of the current
   		frame or in the other frame.
 `always-frame'  If a buffer is visible in another frame, raise that

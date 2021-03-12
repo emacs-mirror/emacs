@@ -65,7 +65,7 @@ just like `org-structure-template-alist'.  The tempo snippet
 \"<KEY\" will be expanded using the KEYWORD value.  For example
 \"<L\" at the beginning of a line is expanded to \"#+latex:\".
 
-Do not use \"I\" as a KEY, as it it reserved for expanding
+Do not use \"I\" as a KEY, as it is reserved for expanding
 \"#+include\"."
   :group 'org-tempo
   :type '(repeat (cons (string :tag "Key")
