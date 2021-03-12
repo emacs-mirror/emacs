@@ -2824,8 +2824,35 @@ the minibuffer contents."
 
 (defconst undo-equiv-table (make-hash-table :test 'eq :weakness t)
   "Table mapping redo records to the corresponding undo one.
-A redo record for undo-in-region maps to t.
-A redo record for ordinary undo maps to the following (earlier) undo.")
+A redo record for an undo in region maps to 'undo-in-region.
+A redo record for ordinary undo maps to the following (earlier) undo.
+A redo record that undoes to the beginning of the undo list maps to t.
+In the rare case where there are (erroneously) consecutive nil's in
+`buffer-undo-list', `undo' maps the previous valid undo record to
+'empty, if the previous record is a redo record, `undo' doesn't change
+its mapping.
+
+To be clear, a redo record is just an undo record, the only difference
+is that it is created by an undo command (instead of an ordinary buffer
+edit).  Since a record used to undo ordinary change is called undo
+record, a record used to undo an undo is called redo record.
+
+`undo' uses this table to make sure the previous command is `undo'.
+`undo-redo' uses this table to set the correct `pending-undo-list'.
+
+When you undo, `pending-undo-list' shrinks and `buffer-undo-list'
+grows, and Emacs maps the tip of `buffer-undo-list' to the tip of
+`pending-undo-list' in this table.
+
+For example, consider this undo list where each node represents an
+undo record: if we undo from 4, `pending-undo-list' will be at 3,
+`buffer-undo-list' at 5, and 5 will map to 3.
+
+    |
+    3  5
+    | /
+    |/
+    4")
 
 (defvar undo-in-region nil
   "Non-nil if `pending-undo-list' is not just a tail of `buffer-undo-list'.")
@@ -2872,7 +2899,9 @@ as an argument limits undo to changes within the current region."
     ;; the next command should not be a "consecutive undo".
     ;; So set `this-command' to something other than `undo'.
     (setq this-command 'undo-start)
-
+    ;; Here we decide whether to break the undo chain.  If the
+    ;; previous command is `undo', we don't call `undo-start', i.e.,
+    ;; don't break the undo chain.
     (unless (and (eq last-command 'undo)
 		 (or (eq pending-undo-list t)
 		     ;; If something (a timer or filter?) changed the buffer
@@ -2901,7 +2930,7 @@ as an argument limits undo to changes within the current region."
 	;; undo-redo-undo-redo-... so skip to the very last equiv.
 	(while (let ((next (gethash equiv undo-equiv-table)))
 		 (if next (setq equiv next))))
-	(setq pending-undo-list equiv)))
+	(setq pending-undo-list (if (consp equiv) equiv t))))
     (undo-more
      (if (numberp arg)
 	 (prefix-numeric-value arg)
@@ -2917,11 +2946,17 @@ as an argument limits undo to changes within the current region."
       (while (eq (car list) nil)
 	(setq list (cdr list)))
       (puthash list
-               ;; Prevent identity mapping.  This can happen if
-               ;; consecutive nils are erroneously in undo list.
-               (if (or undo-in-region (eq list pending-undo-list))
-                   t
-                 pending-undo-list)
+               (cond
+                (undo-in-region 'undo-in-region)
+                ;; Prevent identity mapping.  This can happen if
+                ;; consecutive nils are erroneously in undo list.  It
+                ;; has to map to _something_ so that the next `undo'
+                ;; command recognizes that the previous command is
+                ;; `undo' and doesn't break the undo chain.
+                ((eq list pending-undo-list)
+                 (or (gethash list undo-equiv-table)
+                     'empty))
+                (t pending-undo-list))
 	       undo-equiv-table))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
@@ -3234,7 +3269,7 @@ list can be applied to the current buffer."
         undo-elt)
     (while ulist
       (when undo-no-redo
-        (while (gethash ulist undo-equiv-table)
+        (while (consp (gethash ulist undo-equiv-table))
           (setq ulist (gethash ulist undo-equiv-table))))
       (setq undo-elt (car ulist))
       (cond

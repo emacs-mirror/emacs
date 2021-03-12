@@ -275,21 +275,11 @@ that it is for swish++, not Namazu."
 
 ;; Swish-E.
 ;; URL: http://swish-e.org/
-;; Variables `nnir-swish-e-index-file', `nnir-swish-e-program' and
+;; Variables `nnir-swish-e-index-files', `nnir-swish-e-program' and
 ;; `nnir-swish-e-additional-switches'
 
-(make-obsolete-variable 'nnir-swish-e-index-file
-			'nnir-swish-e-index-files "Emacs 23.1")
-(defcustom nnir-swish-e-index-file
-  (expand-file-name "~/Mail/index.swish-e")
-  "Index file for swish-e.
-This could be a server parameter.
-It is never consulted once `nnir-swish-e-index-files', which should be
-used instead, has been customized."
-  :type '(file))
-
 (defcustom nnir-swish-e-index-files
-  (list nnir-swish-e-index-file)
+  (list (expand-file-name "~/Mail/index.swish-e"))
   "List of index files for swish-e.
 This could be a server parameter."
   :type '(repeat (file)))

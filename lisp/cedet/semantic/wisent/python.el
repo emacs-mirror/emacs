@@ -1,4 +1,4 @@
-;;; wisent-python.el --- Semantic support for Python
+;;; wisent-python.el --- Semantic support for Python  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002, 2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -464,19 +464,19 @@ To be implemented for Python!  For now just return nil."
 (define-mode-local-override semantic-tag-include-filename python-mode (tag)
   "Return a suitable path for (some) Python imports."
   (let ((name (semantic-tag-name tag)))
-    (concat (mapconcat 'identity (split-string name "\\.") "/") ".py")))
+    (concat (mapconcat #'identity (split-string name "\\.") "/") ".py")))
 
 ;; Override ctxt-current-function/assignment defaults, since they do
 ;; not work properly with Python code, even leading to endless loops
 ;; (see bug #xxxxx).
-(define-mode-local-override semantic-ctxt-current-function python-mode (&optional point)
+(define-mode-local-override semantic-ctxt-current-function python-mode (&optional _point)
   "Return the current function call the cursor is in at POINT.
 The function returned is the one accepting the arguments that
 the cursor is currently in.  It will not return function symbol if the
 cursor is on the text representing that function."
   nil)
 
-(define-mode-local-override semantic-ctxt-current-assignment python-mode (&optional point)
+(define-mode-local-override semantic-ctxt-current-assignment python-mode (&optional _point)
   "Return the current assignment near the cursor at POINT.
 Return a list as per `semantic-ctxt-current-symbol'.
 Return nil if there is nothing relevant."

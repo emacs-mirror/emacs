@@ -52,86 +52,73 @@
 (defface newsticker-treeview-face
   '((((class color) (background dark))  :foreground "white")
     (((class color) (background light)) :foreground "black"))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-new-face
   '((t :inherit newsticker-treeview-face :weight bold))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-old-face
   '((t :inherit newsticker-treeview-face))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-immortal-face
   '((default :inherit newsticker-treeview-face :slant italic)
     (((class color) (background dark))  :foreground "orange")
     (((class color) (background light)) :foreground "blue"))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-obsolete-face
   '((t :inherit newsticker-treeview-face :strike-through t))
-  "Face for newsticker tree."
-  :group 'newsticker-treeview)
+  "Face for newsticker tree.")
 
 (defface newsticker-treeview-selection-face
   '((((class color) (background dark))  :background "#4444aa")
     (((class color) (background light)) :background "#bbbbff"))
-  "Face for newsticker selection."
-  :group 'newsticker-treeview)
+  "Face for newsticker selection.")
 
 (defcustom newsticker-treeview-date-format
   "%d.%m.%y, %H:%M"
   "Format for the date column in the treeview list buffer.
 See `format-time-string' for a list of valid specifiers."
   :version "25.1"
-  :type 'string
-  :group 'newsticker-treeview)
+  :type 'string)
 
 (defcustom newsticker-treeview-own-frame
   nil
   "Decides whether newsticker treeview creates and uses its own frame."
-  :type 'boolean
-  :group 'newsticker-treeview)
+  :type 'boolean)
 
 (defcustom newsticker-treeview-treewindow-width
   30
   "Width of tree window in treeview layout.
 See also `newsticker-treeview-listwindow-height'."
-  :type 'integer
-  :group 'newsticker-treeview)
+  :type 'integer)
 
 (defcustom newsticker-treeview-listwindow-height
   10
   "Height of list window in treeview layout.
 See also `newsticker-treeview-treewindow-width'."
-  :type 'integer
-  :group 'newsticker-treeview)
+  :type 'integer)
 
 (defcustom newsticker-treeview-automatically-mark-displayed-items-as-old
   t
   "Decides whether to automatically mark displayed items as old.
 If t an item is marked as old as soon as it is displayed.  This
 applies to newsticker only."
-  :type 'boolean
-  :group 'newsticker-treeview)
+  :type 'boolean)
 
 (defcustom newsticker-treeview-use-feed-name-from-url-list-in-treeview
   t
   "Use the feed names from 'newsticker-url-list' for display in treeview."
   :version "28.1"
-  :type 'boolean
-  :group 'newsticker-treeview)
+  :type 'boolean)
 
 (defcustom newsticker-treeview-use-feed-name-from-url-list-in-itemview
   t
   "Use feed names from 'newsticker-url-list' in itemview."
   :version "28.1"
-  :type 'boolean
-  :group 'newsticker-treeview)
+  :type 'boolean)
 
 (defvar newsticker-groups
   '("Feeds")
@@ -166,14 +153,16 @@ Example: (\"Topmost group\" \"feed1\" (\"subgroup1\" \"feed 2\")
 (defvar newsticker--treeview-feed-tree nil)
 (defvar newsticker--treeview-vfeed-tree nil)
 
+(declare-function newsticker-handle-url "newst-plainview" ())
+
 ;; maps for the clickable portions
 (defvar newsticker--treeview-url-keymap
   (let ((map (make-sparse-keymap 'newsticker--treeview-url-keymap)))
-    (define-key map [mouse-1] 'newsticker-treeview-mouse-browse-url)
-    (define-key map [mouse-2] 'newsticker-treeview-mouse-browse-url)
-    (define-key map "\n" 'newsticker-treeview-browse-url)
-    (define-key map "\C-m" 'newsticker-treeview-browse-url)
-    (define-key map [(control return)] 'newsticker-handle-url)
+    (define-key map [mouse-1] #'newsticker-treeview-mouse-browse-url)
+    (define-key map [mouse-2] #'newsticker-treeview-mouse-browse-url)
+    (define-key map "\n" #'newsticker-treeview-browse-url)
+    (define-key map "\C-m" #'newsticker-treeview-browse-url)
+    (define-key map [(control return)] #'newsticker-handle-url)
     map)
   "Key map for click-able headings in the newsticker treeview buffers.")
 
@@ -342,9 +331,9 @@ If string SHOW-FEED is non-nil it is shown in the item string."
         (replace-match " "))
       (let ((map (make-sparse-keymap)))
         (dolist (key'([mouse-1] [mouse-3]))
-                    (define-key map key 'newsticker-treeview-tree-click))
-        (define-key map "\n" 'newsticker-treeview-show-item)
-        (define-key map "\C-m" 'newsticker-treeview-show-item)
+          (define-key map key #'newsticker-treeview-tree-click))
+        (define-key map "\n" #'newsticker-treeview-show-item)
+        (define-key map "\C-m" #'newsticker-treeview-show-item)
         (add-text-properties pos1 (point-max)
                              (list :nt-item item
                                    :nt-feed feed
@@ -626,9 +615,9 @@ If CLEAR-BUFFER is non-nil the list buffer is completely erased."
 (defvar newsticker-treeview-list-sort-button-map
   (let ((map (make-sparse-keymap)))
     (define-key map [header-line mouse-1]
-      'newsticker--treeview-list-sort-by-column)
+      #'newsticker--treeview-list-sort-by-column)
     (define-key map [header-line mouse-2]
-      'newsticker--treeview-list-sort-by-column)
+      #'newsticker--treeview-list-sort-by-column)
     map)
   "Local keymap for newsticker treeview list window sort buttons.")
 
@@ -960,9 +949,9 @@ arguments NT-ID, FEED, VFEED and TOOLTIP are added as properties."
     (if (and num-new (> num-new 0))
         (setq face 'newsticker-treeview-new-face))
     (dolist (key '([mouse-1] [mouse-3]))
-                 (define-key map key 'newsticker-treeview-tree-click))
-    (define-key map "\n" 'newsticker-treeview-tree-do-click)
-    (define-key map "\C-m" 'newsticker-treeview-tree-do-click)
+      (define-key map key #'newsticker-treeview-tree-click))
+    (define-key map "\n" #'newsticker-treeview-tree-do-click)
+    (define-key map "\C-m" #'newsticker-treeview-tree-do-click)
     (propertize tag 'face face 'keymap map
                 :nt-id nt-id
                 :nt-feed feed
@@ -2029,37 +2018,37 @@ Return t if groups have changed, nil otherwise."
 
 (defvar newsticker-treeview-mode-map
   (let ((map (make-sparse-keymap 'newsticker-treeview-mode-map)))
-    (define-key map " " 'newsticker-treeview-next-page)
-    (define-key map "a" 'newsticker-add-url)
-    (define-key map "b" 'newsticker-treeview-browse-url-item)
-    (define-key map "c" 'newsticker-treeview-customize-current-feed)
-    (define-key map "F" 'newsticker-treeview-prev-feed)
-    (define-key map "f" 'newsticker-treeview-next-feed)
-    (define-key map "g" 'newsticker-treeview-get-news)
-    (define-key map "G" 'newsticker-get-all-news)
-    (define-key map "i" 'newsticker-treeview-toggle-item-immortal)
-    (define-key map "j" 'newsticker-treeview-jump)
-    (define-key map "n" 'newsticker-treeview-next-item)
-    (define-key map "N" 'newsticker-treeview-next-new-or-immortal-item)
-    (define-key map "O" 'newsticker-treeview-mark-list-items-old)
-    (define-key map "o" 'newsticker-treeview-mark-item-old)
-    (define-key map "p" 'newsticker-treeview-prev-item)
-    (define-key map "P" 'newsticker-treeview-prev-new-or-immortal-item)
-    (define-key map "q" 'newsticker-treeview-quit)
-    (define-key map "S" 'newsticker-treeview-save-item)
-    (define-key map "s" 'newsticker-treeview-save)
-    (define-key map "u" 'newsticker-treeview-update)
-    (define-key map "v" 'newsticker-treeview-browse-url)
-    ;;(define-key map "\n" 'newsticker-treeview-scroll-item)
-    ;;(define-key map "\C-m" 'newsticker-treeview-scroll-item)
-    (define-key map "\M-m" 'newsticker-group-move-feed)
-    (define-key map "\M-a" 'newsticker-group-add-group)
-    (define-key map "\M-d" 'newsticker-group-delete-group)
-    (define-key map "\M-r" 'newsticker-group-rename-group)
-    (define-key map [M-down] 'newsticker-group-shift-feed-down)
-    (define-key map [M-up] 'newsticker-group-shift-feed-up)
-    (define-key map [M-S-down] 'newsticker-group-shift-group-down)
-    (define-key map [M-S-up] 'newsticker-group-shift-group-up)
+    (define-key map " " #'newsticker-treeview-next-page)
+    (define-key map "a" #'newsticker-add-url)
+    (define-key map "b" #'newsticker-treeview-browse-url-item)
+    (define-key map "c" #'newsticker-treeview-customize-current-feed)
+    (define-key map "F" #'newsticker-treeview-prev-feed)
+    (define-key map "f" #'newsticker-treeview-next-feed)
+    (define-key map "g" #'newsticker-treeview-get-news)
+    (define-key map "G" #'newsticker-get-all-news)
+    (define-key map "i" #'newsticker-treeview-toggle-item-immortal)
+    (define-key map "j" #'newsticker-treeview-jump)
+    (define-key map "n" #'newsticker-treeview-next-item)
+    (define-key map "N" #'newsticker-treeview-next-new-or-immortal-item)
+    (define-key map "O" #'newsticker-treeview-mark-list-items-old)
+    (define-key map "o" #'newsticker-treeview-mark-item-old)
+    (define-key map "p" #'newsticker-treeview-prev-item)
+    (define-key map "P" #'newsticker-treeview-prev-new-or-immortal-item)
+    (define-key map "q" #'newsticker-treeview-quit)
+    (define-key map "S" #'newsticker-treeview-save-item)
+    (define-key map "s" #'newsticker-treeview-save)
+    (define-key map "u" #'newsticker-treeview-update)
+    (define-key map "v" #'newsticker-treeview-browse-url)
+    ;;(define-key map "\n" #'newsticker-treeview-scroll-item)
+    ;;(define-key map "\C-m" #'newsticker-treeview-scroll-item)
+    (define-key map "\M-m" #'newsticker-group-move-feed)
+    (define-key map "\M-a" #'newsticker-group-add-group)
+    (define-key map "\M-d" #'newsticker-group-delete-group)
+    (define-key map "\M-r" #'newsticker-group-rename-group)
+    (define-key map [M-down] #'newsticker-group-shift-feed-down)
+    (define-key map [M-up] #'newsticker-group-shift-feed-up)
+    (define-key map [M-S-down] #'newsticker-group-shift-group-down)
+    (define-key map [M-S-up] #'newsticker-group-shift-group-up)
     map)
   "Mode map for newsticker treeview.")
 

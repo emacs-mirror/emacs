@@ -2297,7 +2297,7 @@ buffers which are visiting a file."
 (defun ibuffer (&optional other-window-p name qualifiers noselect
 			  shrink filter-groups formats)
   "Begin using Ibuffer to edit a list of buffers.
-Type `h' after entering ibuffer for more information.
+Type \\<ibuffer-mode-map>\\[describe-mode] after entering ibuffer for more information.
 
 All arguments are optional.
 OTHER-WINDOW-P says to use another window.
@@ -2579,7 +2579,7 @@ will be inserted before the group at point."
   (setq buffer-read-only t)
   (buffer-disable-undo)
   (setq truncate-lines ibuffer-truncate-lines)
-  ;; This makes things less ugly for Emacs 21 users with a non-nil
+  ;; This makes things less ugly for users with a non-nil
   ;; `show-trailing-whitespace'.
   (setq show-trailing-whitespace nil)
   ;; disable `show-paren-mode' buffer-locally

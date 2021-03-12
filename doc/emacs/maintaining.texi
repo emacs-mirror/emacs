@@ -1611,6 +1611,10 @@ branch ID for a branch starting at the current revision.  For example,
 if the current revision is 2.5, the branch ID should be 2.5.1, 2.5.2,
 and so on, depending on the number of existing branches at that point.
 
+  This procedure will not work for distributed version control systems
+like git or Mercurial.  For those systems you should use the prefix
+argument to @code{vc-create-tag} (@kbd{C-u C-x v s}) instead.
+
   To create a new branch at an older revision (one that is no longer
 the head of a branch), first select that revision (@pxref{Switching
 Branches}).  Your procedure will then differ depending on whether you

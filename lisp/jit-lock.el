@@ -105,7 +105,7 @@ This means those subsequent lines are refontified to reflect their new
 syntactic context, after `jit-lock-context-time' seconds.
 If any other value, e.g., `syntax-driven', it means refontification of
 subsequent lines to reflect their new syntactic context may or may not
-occur after `jit-lock-context-time', depending on the the font-lock
+occur after `jit-lock-context-time', depending on the font-lock
 definitions of the buffer.  Specifically, if `font-lock-keywords-only'
 is nil in a buffer, which generally means the syntactic fontification
 is done using the buffer mode's syntax table, the syntactic

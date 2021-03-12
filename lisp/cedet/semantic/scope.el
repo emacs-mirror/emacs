@@ -562,7 +562,7 @@ such as `public' or `private'."
 	   ;; @TODO - is this line needed??  Try w/out for a while
 	   ;; @note - I think C++ says no.  elisp might, but methods
 	   ;;         look like defuns, so it makes no difference.
-	   (extmeth nil) ; (semantic-tag-external-member-children type t))
+	   ;;(extmeth nil) ; (semantic-tag-external-member-children type t))
 
 	   ;; INHERITED are tags found in classes that our TYPE tag
 	   ;; inherits from.  Do not do this if it was not requested.
@@ -584,7 +584,7 @@ such as `public' or `private'."
 	  (setq slots (nreverse copyslots))
 	  ))
       ;; Flatten the database output.
-      (append slots extmeth inherited)
+      (append slots nil inherited) ;; extmeth
       )))
 
 (defun semantic-analyze-scoped-inherited-tags (type scope access)

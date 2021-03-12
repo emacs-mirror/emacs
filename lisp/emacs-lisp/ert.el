@@ -261,7 +261,7 @@ DATA is displayed to the user and should state the reason for skipping."
 It should only be stopped when ran from inside ert--run-test-internal."
   (when (and (not (symbolp debugger))   ; only run on anonymous debugger
              (memq error-symbol '(ert-test-failed ert-test-skipped)))
-    (funcall debugger 'error (list error-symbol data))))
+    (funcall debugger 'error (cons error-symbol data))))
 
 (defun ert--special-operator-p (thing)
   "Return non-nil if THING is a symbol naming a special operator."
@@ -1633,7 +1633,7 @@ default (if any)."
 
 (defun ert-find-test-other-window (test-name)
   "Find, in another window, the definition of TEST-NAME."
-  (interactive (list (ert-read-test-name-at-point "Find test definition: ")))
+  (interactive (list (ert-read-test-name-at-point "Find test definition")))
   (find-function-do-it test-name 'ert--test 'switch-to-buffer-other-window))
 
 (defun ert-delete-test (test-name)
@@ -2083,6 +2083,7 @@ and how to display message."
 
 (define-derived-mode ert-results-mode special-mode "ERT-Results"
   "Major mode for viewing results of ERT test runs."
+  :interactive nil
   (setq-local revert-buffer-function
               (lambda (&rest _) (ert-results-rerun-all-tests))))
 
@@ -2178,7 +2179,7 @@ To be used in the ERT results buffer."
   "Move point to the next test.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (ert--results-move (ewoc-locate ert--results-ewoc) 'ewoc-next
                      "No tests below"))
 
@@ -2186,7 +2187,7 @@ To be used in the ERT results buffer."
   "Move point to the previous test.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (ert--results-move (ewoc-locate ert--results-ewoc) 'ewoc-prev
                      "No tests above"))
 
@@ -2219,7 +2220,7 @@ user-error is signaled with the message ERROR-MESSAGE."
   "Find the definition of the test at point in another window.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (let ((name (ert-test-at-point)))
     (unless name
       (user-error "No test at point"))
@@ -2253,7 +2254,7 @@ To be used in the ERT results buffer."
   ;; the summary apparently needs to be easily accessible from the
   ;; error log, and perhaps it would be better to have it in a
   ;; separate buffer to keep it visible.
-  (interactive)
+  (interactive nil ert-results-mode)
   (let ((ewoc ert--results-ewoc)
         (progress-bar-begin ert--results-progress-bar-button-begin))
     (cond ((ert--results-test-node-or-null-at-point)
@@ -2370,7 +2371,7 @@ definition."
   "Re-run all tests, using the same selector.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (cl-assert (eql major-mode 'ert-results-mode))
   (let ((selector (ert--stats-selector ert--results-stats)))
     (ert-run-tests-interactively selector (buffer-name))))
@@ -2379,7 +2380,7 @@ To be used in the ERT results buffer."
   "Re-run the test at point.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (cl-destructuring-bind (test redefinition-state)
       (ert--results-test-at-point-allow-redefinition)
     (when (null test)
@@ -2414,7 +2415,7 @@ To be used in the ERT results buffer."
   "Re-run the test at point with `ert-debug-on-error' bound to t.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (let ((ert-debug-on-error t))
     (ert-results-rerun-test-at-point)))
 
@@ -2422,7 +2423,7 @@ To be used in the ERT results buffer."
   "Display the backtrace for the test at point.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (let* ((test (ert--results-test-at-point-no-redefinition t))
          (stats ert--results-stats)
          (pos (ert--stats-test-pos stats test))
@@ -2449,7 +2450,7 @@ To be used in the ERT results buffer."
   "Display the part of the *Messages* buffer generated during the test at point.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (let* ((test (ert--results-test-at-point-no-redefinition t))
          (stats ert--results-stats)
          (pos (ert--stats-test-pos stats test))
@@ -2470,7 +2471,7 @@ To be used in the ERT results buffer."
   "Display the list of `should' forms executed during the test at point.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (let* ((test (ert--results-test-at-point-no-redefinition t))
          (stats ert--results-stats)
          (pos (ert--stats-test-pos stats test))
@@ -2506,7 +2507,7 @@ To be used in the ERT results buffer."
   "Toggle how much of the condition to print for the test at point.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (let* ((ewoc ert--results-ewoc)
          (node (ert--results-test-node-at-point))
          (entry (ewoc-data node)))
@@ -2518,7 +2519,7 @@ To be used in the ERT results buffer."
   "Display test timings for the last run.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (let* ((stats ert--results-stats)
          (buffer (get-buffer-create "*ERT timings*"))
          (data (cl-loop for test across (ert--stats-tests stats)
@@ -2597,7 +2598,7 @@ To be used in the ERT results buffer."
   "Display the documentation of the test at point.
 
 To be used in the ERT results buffer."
-  (interactive)
+  (interactive nil ert-results-mode)
   (ert-describe-test (ert--results-test-at-point-no-redefinition t)))
 
 

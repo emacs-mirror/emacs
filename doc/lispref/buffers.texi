@@ -309,7 +309,6 @@ foo
 This function renames the current buffer to @var{newname}.  An error
 is signaled if @var{newname} is not a string.
 
-@c Emacs 19 feature
 Ordinarily, @code{rename-buffer} signals an error if @var{newname} is
 already in use.  However, if @var{unique} is non-@code{nil}, it modifies
 @var{newname} to make a name that is not in use.  Interactively, you can
@@ -344,7 +343,6 @@ a name.  For example:
 See also the function @code{get-buffer-create} in @ref{Creating Buffers}.
 @end defun
 
-@c Emacs 19 feature
 @defun generate-new-buffer-name starting-name &optional ignore
 This function returns a name that would be unique for a new buffer---but
 does not create the buffer.  It starts with @var{starting-name}, and
@@ -879,7 +877,6 @@ then @code{other-buffer} uses that predicate to decide which buffers to
 consider.  It calls the predicate once for each buffer, and if the value
 is @code{nil}, that buffer is ignored.  @xref{Buffer Parameters}.
 
-@c Emacs 19 feature
 If @var{visible-ok} is @code{nil}, @code{other-buffer} avoids returning
 a buffer visible in any window on any visible frame, except as a last
 resort.  If @var{visible-ok} is non-@code{nil}, then it does not matter

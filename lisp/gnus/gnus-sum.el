@@ -6354,9 +6354,9 @@ The resulting hash table is returned, or nil if no Xrefs were found."
       ;; First peel off all invalid article numbers.
       (when active
 	(let ((ids articles)
-	      id first)
+	      id) ;; first
 	  (while (setq id (pop ids))
-	    (when (and first (> id (cdr active)))
+	    (when nil ;; (and first (> id (cdr active)))
 	      ;; We'll end up in this situation in one particular
 	      ;; obscure situation.  If you re-scan a group and get
 	      ;; a new article that is cross-posted to a different
@@ -12741,7 +12741,7 @@ If REVERSE, save parts that do not match TYPE."
 	;; so we highlight the entire line instead.
 	(when (= (+ to 2) from)
 	  (setq from beg)
-	  (setq to end))
+	  (setq to (1+ end)))
 	(if gnus-newsgroup-selected-overlay
 	    ;; Move old overlay.
 	    (move-overlay
@@ -12796,7 +12796,7 @@ If REVERSE, save parts that do not match TYPE."
     (let ((face (funcall (gnus-summary-highlight-line-0))))
       (unless (eq face (gnus-get-text-property-excluding-characters-with-faces beg 'face))
 	(gnus-put-text-property-excluding-characters-with-faces
-	 beg (point-at-eol) 'face
+	 beg (1+ (point-at-eol)) 'face
 	 (setq face (if (boundp face) (symbol-value face) face)))
 	(when gnus-summary-highlight-line-function
 	  (funcall gnus-summary-highlight-line-function article face))))))

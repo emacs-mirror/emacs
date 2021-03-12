@@ -369,7 +369,6 @@ appear directly as bindings in @var{keymap} are also copied recursively,
 and so on to any number of levels.  However, recursive copying does not
 take place when the definition of a character is a symbol whose function
 definition is a keymap; the same symbol appears in the new copy.
-@c Emacs 19 feature
 
 @example
 @group
@@ -1140,7 +1139,6 @@ and have extra events at the end that do not fit into a single key
 sequence.  Then the value is a number, the number of events at the front
 of @var{key} that compose a complete key.
 
-@c Emacs 19 feature
 If @var{accept-defaults} is non-@code{nil}, then @code{lookup-key}
 considers default bindings as well as bindings for the specific events
 in @var{key}.  Otherwise, @code{lookup-key} reports only bindings for
@@ -1182,7 +1180,6 @@ not cause an error.
 This function returns the binding for @var{key} in the current
 local keymap, or @code{nil} if it is undefined there.
 
-@c Emacs 19 feature
 The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{lookup-key} (above).
 @end defun
@@ -1191,12 +1188,10 @@ as in @code{lookup-key} (above).
 This function returns the binding for command @var{key} in the
 current global keymap, or @code{nil} if it is undefined there.
 
-@c Emacs 19 feature
 The argument @var{accept-defaults} controls checking for default bindings,
 as in @code{lookup-key} (above).
 @end defun
 
-@c Emacs 19 feature
 @defun minor-mode-key-binding key &optional accept-defaults
 This function returns a list of all the active minor mode bindings of
 @var{key}.  More precisely, it returns an alist of pairs
@@ -1414,7 +1409,6 @@ standard bindings:
 @end group
 @end smallexample
 
-@c Emacs 19 feature
 If @var{oldmap} is non-@code{nil}, that changes the behavior of
 @code{substitute-key-definition}: the bindings in @var{oldmap} determine
 which keys to rebind.  The rebindings still happen in @var{keymap}, not

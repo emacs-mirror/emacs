@@ -286,12 +286,9 @@ Return the expanded expression."
 
 (defun wisent-grammar-parsetable-builder ()
   "Return the value of the parser table."
-  `(progn
-     ;; Ensure that the grammar [byte-]compiler is available.
-     (eval-when-compile (require 'semantic/wisent/comp))
-     (wisent-compile-grammar
-      ',(wisent-grammar-grammar)
-      ',(semantic-grammar-start))))
+  `(wisent-compiled-grammar
+    ,(wisent-grammar-grammar)
+    ,(semantic-grammar-start)))
 
 (defun wisent-grammar-setupcode-builder ()
   "Return the parser setup code."
@@ -305,7 +302,7 @@ Return the expanded expression."
           semantic-lex-types-obarray %s)\n\
     ;; Collect unmatched syntax lexical tokens\n\
     (add-hook 'wisent-discarding-token-functions\n\
-              'wisent-collect-unmatched-syntax nil t)"
+              #'wisent-collect-unmatched-syntax nil t)"
    (semantic-grammar-parsetable)
    (buffer-name)
    (semantic-grammar-keywordtable)
@@ -325,6 +322,7 @@ Menu items are appended to the common grammar menu.")
 (define-derived-mode wisent-grammar-mode semantic-grammar-mode "WY"
   "Major mode for editing Wisent grammars."
   (semantic-grammar-setup-menu wisent-grammar-menu)
+  (setq-local semantic-grammar-require-form '(require 'semantic/wisent))
   (semantic-install-function-overrides
    '((semantic-grammar-parsetable-builder . wisent-grammar-parsetable-builder)
      (semantic-grammar-setupcode-builder  . wisent-grammar-setupcode-builder))))

@@ -162,15 +162,19 @@ Return DEFAULT if not set."
     (tramp-message
      key 8 "%s %s %s; inhibit: %s; cache used: %s; cached at: %s"
      file property value remote-file-name-inhibit-cache cache-used cached-at)
+    ;; For analysis purposes, count the number of getting this file attribute.
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-get-count-" property)))
-	     (val (or (numberp (bound-and-true-p var))
-		      (progn
-			(add-hook 'tramp-cache-unload-hook
-				  (lambda () (makunbound var)))
-			0))))
+	     (val (or (and (boundp var) (numberp (symbol-value var))
+			   (symbol-value var))
+		      0)))
 	(set var (1+ val))))
     value))
+
+(add-hook 'tramp-cache-unload-hook
+	  (lambda ()
+	    (dolist (var (all-completions "tramp-cache-get-count-" obarray))
+	      (unintern var obarray))))
 
 ;;;###tramp-autoload
 (defun tramp-set-file-property (key file property value)
@@ -186,15 +190,19 @@ Return VALUE."
     ;; We put the timestamp there.
     (puthash property (cons (current-time) value) hash)
     (tramp-message key 8 "%s %s %s" file property value)
+    ;; For analysis purposes, count the number of setting this file attribute.
     (when (>= tramp-verbose 10)
       (let* ((var (intern (concat "tramp-cache-set-count-" property)))
-	     (val (or (numberp (bound-and-true-p var))
-		      (progn
-			(add-hook 'tramp-cache-unload-hook
-				  (lambda () (makunbound var)))
-			0))))
+	     (val (or (and (boundp var) (numberp (symbol-value var))
+			   (symbol-value var))
+		      0)))
 	(set var (1+ val))))
     value))
+
+(add-hook 'tramp-cache-unload-hook
+	  (lambda ()
+	    (dolist (var (all-completions "tramp-cache-set-count-" obarray))
+	      (unintern var obarray))))
 
 ;;;###tramp-autoload
 (defun tramp-flush-file-property (key file property)

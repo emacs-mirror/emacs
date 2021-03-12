@@ -1310,7 +1310,7 @@ aligner would have dealt with are."
 		 (thissep (if rulesep (cdr rulesep) separate))
 		 same (eol 0)
 		 search-start
-		 groups group-c
+		 groups ;; group-c
 		 spacing spacing-c
 		 tab-stop tab-stop-c
 		 repeat repeat-c
@@ -1434,7 +1434,7 @@ aligner would have dealt with are."
 
                     ;; lookup the `group' attribute the first time
                     ;; that we need it
-                    (unless group-c
+                    (unless nil ;; group-c
                       (setq groups (or (cdr (assq 'group rule)) 1))
                       (unless (listp groups)
                         (setq groups (list groups)))

@@ -256,8 +256,8 @@ which is expected to be ordered by priority as in
         (when (file-readable-p f)
           (insert-file-contents-literally f nil nil nil t)
           (goto-char (point-min))
-          (let (end)
-            (while (not (or (eobp) end))
+          (let () ;; end
+            (while (not (or (eobp))) ;; end
               (if (= (following-char) ?\[)
                   (progn (setq sec (char-after (1+ (point))))
                          (forward-line))

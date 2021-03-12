@@ -36,14 +36,12 @@
 (defcustom shr-color-visible-luminance-min 40
   "Minimum luminance distance between two colors to be considered visible.
 Must be between 0 and 100."
-  :group 'shr-color
   :type 'number)
 
 (defcustom shr-color-visible-distance-min 5
   "Minimum color distance between two colors to be considered visible.
 This value is used to compare result for `ciede2000'.  It's an
 absolute value without any unit."
-  :group 'shr-color
   :type 'integer)
 
 (defconst shr-color-html-colors-alist
@@ -332,8 +330,8 @@ color will be adapted to be visible on BG."
     (if (or (null fg-norm)
 	    (null bg-norm))
 	(list bg fg)
-      (let* ((fg-lab (apply 'color-srgb-to-lab fg-norm))
-	     (bg-lab (apply 'color-srgb-to-lab bg-norm))
+      (let* ((fg-lab (apply #'color-srgb-to-lab fg-norm))
+	     (bg-lab (apply #'color-srgb-to-lab bg-norm))
 	     ;; Compute color distance using CIE DE 2000
 	     (fg-bg-distance (color-cie-de2000 fg-lab bg-lab))
 	     ;; Compute luminance distance (subtract L component)
@@ -351,12 +349,12 @@ color will be adapted to be visible on BG."
 	    (list
 	     (if fixed-background
 		 bg
-	       (apply 'format "#%02x%02x%02x"
+	       (apply #'format "#%02x%02x%02x"
 		      (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			      (apply 'color-lab-to-srgb bg-lab))))
-	     (apply 'format "#%02x%02x%02x"
+			      (apply #'color-lab-to-srgb bg-lab))))
+	     (apply #'format "#%02x%02x%02x"
 		    (mapcar (lambda (x) (* (max (min 1 x) 0) 255))
-			    (apply 'color-lab-to-srgb fg-lab))))))))))
+			    (apply #'color-lab-to-srgb fg-lab))))))))))
 
 (provide 'shr-color)
 

@@ -134,7 +134,7 @@ we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
 				       (aref string (1+ (match-beginning 1))))))
 		      strings)))
 	(setq i (match-end 0)))
-      (apply 'concat (nreverse (cons (substring string i) strings))))))
+      (apply #'concat (nreverse (cons (substring string i) strings))))))
 
 ;; FIXME Gnus for some reason has `quoted-printable-decode-region' in qp.el.
 ;;;###autoload
@@ -194,7 +194,7 @@ Also delete leading/trailing whitespace and replace FOO <BAR> with just BAR.
 Return a modified address list."
   (when address
     (if mail-use-rfc822
-	(mapconcat 'identity (rfc822-addresses address) ", ")
+	(mapconcat #'identity (rfc822-addresses address) ", ")
       (let (pos)
 
         ;; Strip comments.
@@ -282,7 +282,7 @@ comma-separated list, and return the pruned list."
     destinations))
 
 ;; Legacy name
-(define-obsolete-function-alias 'rmail-dont-reply-to 'mail-dont-reply-to "24.1")
+(define-obsolete-function-alias 'rmail-dont-reply-to #'mail-dont-reply-to "24.1")
 
 
 ;;;###autoload

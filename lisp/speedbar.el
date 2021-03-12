@@ -289,22 +289,6 @@ A nil value means don't show the file in the list."
   :group 'speedbar
   :type 'boolean)
 
-;;; EVENTUALLY REMOVE THESE
-
-;; When I moved to a repeating timer, I had the horrible misfortune
-;; of losing the ability for adaptive speed choice.  This update
-;; speed currently causes long delays when it should have been turned off.
-(defvar speedbar-update-speed dframe-update-speed)
-(make-obsolete-variable 'speedbar-update-speed
-			'dframe-update-speed
-			"speedbar 1.0pre3 (Emacs 23.1)")
-
-(defvar speedbar-navigating-speed dframe-update-speed)
-(make-obsolete-variable 'speedbar-navigating-speed
-			'dframe-update-speed
-			"speedbar 1.0pre3 (Emacs 23.1)")
-;;; END REMOVE THESE
-
 (defcustom speedbar-frame-parameters '((minibuffer . nil)
 				       (width . 20)
 				       (border-width . 0)
@@ -3260,7 +3244,7 @@ subdirectory chosen will be at INDENT level."
   ;; in case.
   (let ((speedbar-smart-directory-expand-flag nil))
     (speedbar-update-contents))
-  (speedbar-set-timer speedbar-navigating-speed)
+  (speedbar-set-timer dframe-update-speed)
   (setq speedbar-last-selected-file nil)
   (speedbar-stealthy-updates))
 
@@ -3323,7 +3307,7 @@ INDENT is the current indentation level and is unused."
   ;; update contents will change directory without
   ;; having to touch the attached frame.
   (speedbar-update-contents)
-  (speedbar-set-timer speedbar-navigating-speed))
+  (speedbar-set-timer dframe-update-speed))
 
 (defun speedbar-tag-file (text token indent)
   "The cursor is on a selected line.  Expand the tags in the specified file.

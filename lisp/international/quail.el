@@ -1075,7 +1075,7 @@ The installed decode map can be referred by the function `quail-decode-map'."
 KEY is a string meaning a sequence of keystrokes to be translated.
 TRANSLATION is a character, a string, a vector, a Quail map,
  a function, or a cons.
-It it is a character, it is the sole translation of KEY.
+If it is a character, it is the sole translation of KEY.
 If it is a string, each character is a candidate for the translation.
 If it is a vector, each element (string or character) is a candidate
  for the translation.

@@ -104,8 +104,8 @@
     (define-key map "R" 'info-display-manual)
     (define-key map "s" 'describe-syntax)
     (define-key map "t" 'help-with-tutorial)
-    (define-key map "w" 'where-is)
     (define-key map "v" 'describe-variable)
+    (define-key map "w" 'where-is)
     (define-key map "q" 'help-quit)
     map)
   "Keymap for characters following the Help key.")
@@ -187,64 +187,58 @@ Do not call this in the scope of `with-help-window'."
 ;; So keyboard macro definitions are documented correctly
 (fset 'defining-kbd-macro (symbol-function 'start-kbd-macro))
 
-(defalias 'help 'help-for-help-internal)
-;; find-function can find this.
-(defalias 'help-for-help 'help-for-help-internal)
-;; It can't find this, but nobody will look.
-(make-help-screen help-for-help-internal
+(defalias 'help 'help-for-help)
+(make-help-screen help-for-help
   (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
-  ;; Don't purecopy this one, because it's not evaluated (it's
-  ;; directly used as a docstring in a function definition, so it'll
-  ;; be moved to the DOC file anyway: no need for purecopying it).
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
-a PATTERN   Show commands whose name matches the PATTERN (a list of words
-              or a regexp).  See also the `apropos' command.
-b           Display all key bindings.
-c KEYS      Display the command name run by the given key sequence.
-C CODING    Describe the given coding system, or RET for current ones.
-d PATTERN   Show a list of functions, variables, and other items whose
+\\[apropos-command] PATTERN   Show commands whose name matches the PATTERN (a list of words
+              or a regexp).  See also \\[apropos].
+\\[describe-bindings]           Display all key bindings.
+\\[describe-key-briefly] KEYS      Display the command name run by the given key sequence.
+\\[describe-coding-system] CODING    Describe the given coding system, or RET for current ones.
+\\[apropos-documentation] PATTERN   Show a list of functions, variables, and other items whose
               documentation matches the PATTERN (a list of words or a regexp).
-e           Go to the *Messages* buffer which logs echo-area messages.
-f FUNCTION  Display documentation for the given function.
-F COMMAND   Show the Emacs manual's section that describes the command.
-g           Display information about the GNU project.
-h           Display the HELLO file which illustrates various scripts.
-i           Start the Info documentation reader: read included manuals.
-I METHOD    Describe a specific input method, or RET for current.
-k KEYS      Display the full documentation for the key sequence.
-K KEYS      Show the Emacs manual's section for the command bound to KEYS.
-l           Show last 300 input keystrokes (lossage).
-L LANG-ENV  Describes a specific language environment, or RET for current.
-m           Display documentation of current minor modes and current major mode,
-              including their special commands.
-n           Display news of recent Emacs changes.
-o SYMBOL    Display the given function or variable's documentation and value.
-p TOPIC     Find packages matching a given topic keyword.
-P PACKAGE   Describe the given Emacs Lisp package.
-r           Display the Emacs manual in Info mode.
-R           Prompt for a manual and then display it in Info mode.
-s           Display contents of current syntax table, plus explanations.
-S SYMBOL    Show the section for the given symbol in the Info manual
+\\[view-echo-area-messages]           Go to the *Messages* buffer which logs echo-area messages.
+\\[describe-function] FUNCTION  Display documentation for the given function.
+\\[Info-goto-emacs-command-node] COMMAND   Show the Emacs manual's section that describes the command.
+\\[describe-gnu-project]           Display information about the GNU project.
+\\[view-hello-file]           Display the HELLO file which illustrates various scripts.
+\\[info]           Start the Info documentation reader: read included manuals.
+\\[describe-input-method] METHOD    Describe a specific input method, or RET for current.
+\\[describe-key] KEYS      Display the full documentation for the key sequence.
+\\[Info-goto-emacs-key-command-node] KEYS      Show the Emacs manual's section for the command bound to KEYS.
+\\[view-lossage]           Show last 300 input keystrokes (lossage).
+\\[describe-language-environment] LANG-ENV  Describes a specific language environment, or RET for current.
+\\[describe-mode]           Display documentation of current minor modes and current major mode,
+             including their special commands.
+\\[view-emacs-news]           Display news of recent Emacs changes.
+\\[describe-symbol] SYMBOL    Display the given function or variable's documentation and value.
+\\[finder-by-keyword] TOPIC     Find packages matching a given topic keyword.
+\\[describe-package] PACKAGE   Describe the given Emacs Lisp package.
+\\[info-emacs-manual]           Display the Emacs manual in Info mode.
+\\[info-display-manual]           Prompt for a manual and then display it in Info mode.
+\\[describe-syntax]           Display contents of current syntax table, plus explanations.
+\\[info-lookup-symbol] SYMBOL    Show the section for the given symbol in the Info manual
               for the programming language used in this buffer.
-t           Start the Emacs learn-by-doing tutorial.
-v VARIABLE  Display the given variable's documentation and value.
-w COMMAND   Display which keystrokes invoke the given command (where-is).
-.           Display any available local help at point in the echo area.
+\\[help-with-tutorial]           Start the Emacs learn-by-doing tutorial.
+\\[describe-variable] VARIABLE  Display the given variable's documentation and value.
+\\[where-is] COMMAND   Display which keystrokes invoke the given command (where-is).
+\\[display-local-help]           Display any available local help at point in the echo area.
 
-C-a         Information about Emacs.
-C-c         Emacs copying permission (GNU General Public License).
-C-d         Instructions for debugging GNU Emacs.
-C-e         External packages and information about Emacs.
-C-f         Emacs FAQ.
+\\[about-emacs]         Information about Emacs.
+\\[describe-copying]         Emacs copying permission (GNU General Public License).
+\\[view-emacs-debugging]         Instructions for debugging GNU Emacs.
+\\[view-external-packages]         External packages and information about Emacs.
+\\[view-emacs-FAQ]         Emacs FAQ.
 C-m         How to order printed Emacs manuals.
 C-n         News of recent Emacs changes.
-C-o         Emacs ordering and distribution information.
-C-p         Info about known Emacs problems.
-C-s         Search forward \"help window\".
-C-t         Emacs TODO list.
-C-w         Information on absence of warranty for GNU Emacs."
+\\[describe-distribution]         Emacs ordering and distribution information.
+\\[view-emacs-problems]         Info about known Emacs problems.
+\\[search-forward-help-for-help]         Search forward \"help window\".
+\\[view-emacs-todo]         Emacs TODO list.
+\\[describe-no-warranty]         Information on absence of warranty for GNU Emacs."
   help-map)
 
 
@@ -492,6 +486,15 @@ To record all your input, use `open-dribble-file'."
 
 ;; Key bindings
 
+(defun help--key-description-fontified (keys &optional prefix)
+  "Like `key-description' but add face for \"*Help*\" buffers."
+  ;; We add both the `font-lock-face' and `face' properties here, as this
+  ;; seems to be the only way to get this to work reliably in any
+  ;; buffer.
+  (propertize (key-description keys prefix)
+              'font-lock-face 'help-key-binding
+              'face 'help-key-binding))
+
 (defun describe-bindings (&optional prefix buffer)
   "Display a buffer showing a list of all defined keys, and their definitions.
 The keys are displayed in order of precedence.
@@ -511,7 +514,6 @@ or a buffer name."
     (with-current-buffer (help-buffer)
       (describe-buffer-bindings buffer prefix))))
 
-;; This function used to be in keymap.c.
 (defun describe-bindings-internal (&optional menus prefix)
   "Show a list of all defined keys, and their definitions.
 We put that list in a buffer, and display the buffer.
@@ -559,7 +561,8 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
       (let* ((remapped (command-remapping symbol))
 	     (keys (where-is-internal
 		    symbol overriding-local-map nil nil remapped))
-	     (keys (mapconcat 'key-description keys ", "))
+             (keys (mapconcat #'help--key-description-fontified
+                              keys ", "))
 	     string)
 	(setq string
 	      (if insert
@@ -587,11 +590,11 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   nil)
 
 (defun help-key-description (key untranslated)
-  (let ((string (key-description key)))
+  (let ((string (help--key-description-fontified key)))
     (if (or (not untranslated)
 	    (and (eq (aref untranslated 0) ?\e) (not (eq (aref key 0) ?\e))))
 	string
-      (let ((otherstring (key-description untranslated)))
+      (let ((otherstring (help--key-description-fontified untranslated)))
 	(if (equal string otherstring)
 	    string
 	  (format "%s (translated from %s)" string otherstring))))))
@@ -979,7 +982,7 @@ is currently activated with completion."
   "Substitute key descriptions for command names in STRING.
 Each substring of the form \\\\=[COMMAND] is replaced by either a
 keystroke sequence that invokes COMMAND, or \"M-x COMMAND\" if COMMAND
-is not on any keys.
+is not on any keys.  Keybindings will use the face `help-key-binding'.
 
 Each substring of the form \\\\={MAPVAR} is replaced by a summary of
 the value of MAPVAR as a keymap.  This summary is similar to the one
@@ -999,7 +1002,7 @@ into the output, \\\\==\\[ puts \\[ into the output, and \\\\==\\=` puts \\=` in
 output.
 
 Return the original STRING if no substitutions are made.
-Otherwise, return a new string (without any text properties)."
+Otherwise, return a new string."
   (when (not (null string))
     ;; KEYMAP is either nil (which means search all the active
     ;; keymaps) or a specified local map (which means search just that
@@ -1053,12 +1056,16 @@ Otherwise, return a new string (without any text properties)."
                                 (where-is-internal fun keymap t))))
                   (if (not key)
                       ;; Function is not on any key.
-                      (progn (insert "M-x ")
-                             (goto-char (+ end-point 3))
-                             (delete-char 1))
+                      (let ((op (point)))
+                        (insert "M-x ")
+                        (goto-char (+ end-point 3))
+                        (add-text-properties op (point)
+                                             '( face help-key-binding
+                                                font-lock-face help-key-binding))
+                        (delete-char 1))
                     ;; Function is on a key.
                     (delete-char (- end-point (point)))
-                    (insert (key-description key)))))
+                    (insert (help--key-description-fontified key)))))
                ;; 1D. \{foo} is replaced with a summary of the keymap
                ;;            (symbol-value foo).
                ;;     \<foo> just sets the keymap used for \[cmd].
@@ -1172,7 +1179,7 @@ Any inserted text ends in two newlines (used by
                           (concat title
                                   (if prefix
                                       (concat " Starting With "
-                                              (key-description prefix)))
+                                              (help--key-description-fontified prefix)))
                                   ":\n"))
                       "key             binding\n"
                       "---             -------\n")))
@@ -1228,7 +1235,11 @@ Return nil if the key sequence is too long."
                                              (= help--previous-description-column 32)))
                                     32)
                                    (t 16))))
-    (indent-to description-column 1)
+    ;; Avoid using the `help-keymap' face.
+    (let ((op (point)))
+      (indent-to description-column 1)
+      (set-text-properties op (point) '( face nil
+                                         font-lock-face nil)))
     (setq help--previous-description-column description-column)
     (cond ((symbolp definition)
            (insert (symbol-name definition) "\n"))
@@ -1240,7 +1251,11 @@ Return nil if the key sequence is too long."
 
 (defun help--describe-translation (definition)
   ;; Converted from describe_translation in keymap.c.
-  (indent-to 16 1)
+  ;; Avoid using the `help-keymap' face.
+  (let ((op (point)))
+    (indent-to 16 1)
+    (set-text-properties op (point) '( face nil
+                                      font-lock-face nil)))
   (cond ((symbolp definition)
          (insert (symbol-name definition) "\n"))
         ((or (stringp definition) (vectorp definition))
@@ -1351,9 +1366,9 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
               (setq end (caar vect))))
           ;; Now START .. END is the range to describe next.
           ;; Insert the string to describe the event START.
-          (insert (key-description (vector start) prefix))
+          (insert (help--key-description-fontified (vector start) prefix))
           (when (not (eq start end))
-            (insert " .. " (key-description (vector end) prefix)))
+            (insert " .. " (help--key-description-fontified (vector end) prefix)))
           ;; Print a description of the definition of this character.
           ;; Called function will take care of spacing out far enough
           ;; for alignment purposes.
@@ -1420,7 +1435,7 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
 ;;             (setq first nil))
 ;;           (when (and prefix (> (length prefix) 0))
 ;;             (insert (format "%s" prefix)))
-;;           (insert (key-description (vector start-idx) prefix))
+;;           (insert (help--key-description-fontified (vector start-idx) prefix))
 ;;           ;; Find all consecutive characters or rows that have the
 ;;           ;; same definition.
 ;;           (while (equal (keymap--get-keyelt (aref vector (1+ idx)) nil)
@@ -1433,7 +1448,7 @@ TRANSL, PARTIAL, SHADOW, NOMENU, MENTION-SHADOW are as in
 ;;             (insert " .. ")
 ;;             (when (and prefix (> (length prefix) 0))
 ;;               (insert (format "%s" prefix)))
-;;             (insert (key-description (vector idx) prefix)))
+;;             (insert (help--key-description-fontified (vector idx) prefix)))
 ;;           (if transl
 ;;               (help--describe-translation definition)
 ;;             (help--describe-command definition))
@@ -1929,6 +1944,8 @@ the suggested string to use instead.  See
 
 (add-function :after command-error-function
               #'help-command-error-confusable-suggestions)
+
+(define-obsolete-function-alias 'help-for-help-internal #'help-for-help "28.1")
 
 
 (provide 'help)

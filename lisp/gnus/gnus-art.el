@@ -728,9 +728,6 @@ Each element is a regular expression."
   :type '(repeat regexp)
   :group 'gnus-article-various)
 
-(make-obsolete-variable 'gnus-article-hide-pgp-hook nil
-			"Gnus 5.10 (Emacs 22.1)")
-
 (defface gnus-button
   '((t (:weight bold)))
   "Face used for highlighting a button in the article buffer."
@@ -1264,9 +1261,6 @@ Any symbol is used to look up a regular expression to match the
 banner in `gnus-list-identifiers'.  A string is used as a regular
 expression to match the identifier directly.")
 
-(make-obsolete-variable 'gnus-treat-strip-pgp nil
-			"Gnus 5.10 (Emacs 22.1)")
-
 (defcustom gnus-treat-strip-pem nil
   "Strip PEM signatures.
 Valid values are nil, t, `head', `first', `last', an integer or a
@@ -1396,9 +1390,6 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
-(make-obsolete-variable 'gnus-treat-display-xface
-			'gnus-treat-display-x-face "Emacs 22.1")
-
 (defcustom gnus-treat-display-x-face
   (and (not noninteractive)
        (gnus-image-type-available-p 'xbm)
@@ -1423,17 +1414,7 @@ See Info node `(gnus)Customizing Articles' and Info node
 	  symbol
 	  (cond ((or (boundp symbol) (get symbol 'saved-value))
 		 value)
-		((boundp 'gnus-treat-display-xface)
-		 (message "\
-** gnus-treat-display-xface is an obsolete variable;\
- use gnus-treat-display-x-face instead")
-		 (default-value 'gnus-treat-display-xface))
-		((get 'gnus-treat-display-xface 'saved-value)
-		 (message "\
-** gnus-treat-display-xface is an obsolete variable;\
- use gnus-treat-display-x-face instead")
-		 (eval (car (get 'gnus-treat-display-xface 'saved-value)) t))
-		(t
+                (t
 		 value)))))
 (put 'gnus-treat-display-x-face 'highlight t)
 

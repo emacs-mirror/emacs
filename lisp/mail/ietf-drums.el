@@ -232,13 +232,13 @@ If DECODE, the DISPLAY-NAME will have RFC2047 decoding performed
       ;; If we found no display-name, then we look for comments.
       (if display-name
 	  (setq display-string
-		(mapconcat 'identity (reverse display-name) " "))
+		(mapconcat #'identity (reverse display-name) " "))
 	(setq display-string (ietf-drums-get-comment string)))
       (if (not mailbox)
 	  (when (and display-string
 		     (string-match "@" display-string))
 	    (cons
-	     (mapconcat 'identity (nreverse display-name) "")
+	     (mapconcat #'identity (nreverse display-name) "")
 	     (ietf-drums-get-comment string)))
 	(cons mailbox (if decode
                           (rfc2047-decode-string display-string)

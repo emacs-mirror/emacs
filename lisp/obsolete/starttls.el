@@ -288,7 +288,7 @@ GnuTLS requires a port number."
 			  starttls-program))))
 
 (define-obsolete-function-alias 'starttls-any-program-available
-  #'starttls-available-p "2011-08-02")
+  #'starttls-available-p "24.1")
 
 (provide 'starttls)
 

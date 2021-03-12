@@ -143,9 +143,6 @@ See Info node `(gnus)Posting Styles'."
   :group 'gnus-message
   :type 'boolean)
 
-(make-obsolete-variable 'gnus-inews-mark-gcc-as-read
-			'gnus-gcc-mark-as-read "Emacs 22.1")
-
 (defcustom gnus-gcc-externalize-attachments nil
   "Should local-file attachments be included as external parts in Gcc copies?
 If it is `all', attach files as external parts;
@@ -1659,9 +1656,7 @@ this is a reply."
 			 ;; FIXME: Should gcc-mark-as-read work when
 			 ;; Gnus is not running?
 			 (gnus-alive-p))
-		(if (or gnus-gcc-mark-as-read
-			(and (boundp 'gnus-inews-mark-gcc-as-read)
-			     (symbol-value 'gnus-inews-mark-gcc-as-read)))
+                (if gnus-gcc-mark-as-read
 		    (gnus-group-mark-article-read group (cdr group-art))
 		  (with-current-buffer gnus-group-buffer
 		    (let ((gnus-group-marked (list group))

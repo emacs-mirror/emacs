@@ -1,4 +1,4 @@
-;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
+;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996-1997, 2001-2021 Free Software Foundation, Inc.
 

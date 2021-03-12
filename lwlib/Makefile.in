@@ -26,6 +26,7 @@ all: liblw.a
 .PHONY: all
 
 srcdir=@srcdir@
+top_builddir=@top_builddir@
 # MinGW CPPFLAGS may use this.
 abs_top_srcdir=@abs_top_srcdir@
 VPATH=@srcdir@
@@ -56,23 +57,7 @@ TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
 OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+-include ${top_builddir}/src/verbose.mk
 
 AUTO_DEPEND = @AUTO_DEPEND@
 DEPDIR = deps

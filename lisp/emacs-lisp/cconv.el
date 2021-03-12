@@ -295,8 +295,9 @@ of converted forms."
     (if wrappers
         (let ((special-forms '()))
           ;; Keep special forms at the beginning of the body.
-          (while (or (stringp (car funcbody)) ;docstring.
-                     (memq (car-safe (car funcbody)) '(interactive declare)))
+          (while (or (and (cdr funcbody) (stringp (car funcbody))) ;docstring.
+                     (memq (car-safe (car funcbody))
+                           '(interactive declare :documentation)))
             (push (pop funcbody) special-forms))
           (let ((body (macroexp-progn funcbody)))
             (dolist (wrapper wrappers) (setq body (funcall wrapper body)))
@@ -584,9 +585,6 @@ places where they originally did not directly appear."
 
     (_ (or (cdr (assq form env)) form))))
 
-(unless (fboundp 'byte-compile-not-lexical-var-p)
-  ;; Only used to test the code in non-lexbind Emacs.
-  (defalias 'byte-compile-not-lexical-var-p 'boundp))
 (defvar byte-compile-lexical-variables)
 
 (defun cconv--analyze-use (vardata form varkind)
@@ -602,7 +600,14 @@ FORM is the parent form that binds this var."
      ;; FIXME: Convert this warning to use `macroexp--warn-wrap'
      ;; so as to give better position information.
      (byte-compile-warn
-      "%s `%S' not left unused" varkind var)))
+      "%s `%S' not left unused" varkind var))
+    ((and (let (or 'let* 'let) (car form))
+          `((,var) ;; (or `(,var nil) : Too many false positives: bug#47080
+            t nil ,_ ,_))
+     ;; FIXME: Convert this warning to use `macroexp--warn-wrap'
+     ;; so as to give better position information.
+     (unless (not (intern-soft var))
+       (byte-compile-warn "Variable `%S' left uninitialized" var))))
   (pcase vardata
     (`(,binder nil ,_ ,_ nil)
      (push (cons (cons binder form) :unused) cconv-var-classification))
@@ -783,7 +788,7 @@ This function does not return anything but instead fills the
      (let ((dv (assq form env)))        ; dv = declared and visible
        (when dv
          (setf (nth 1 dv) t))))))
-(define-obsolete-function-alias 'cconv-analyse-form 'cconv-analyze-form "25.1")
+(define-obsolete-function-alias 'cconv-analyse-form #'cconv-analyze-form "25.1")
 
 (provide 'cconv)
 ;;; cconv.el ends here

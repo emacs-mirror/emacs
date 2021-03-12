@@ -197,6 +197,9 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 (defun cvs-parse-table ()
   "Table of message objects for `cvs-parse-process'."
+  (with-suppressed-warnings ((lexical c file dir path base-rev subtype))
+    (defvar c) (defvar file) (defvar dir) (defvar path) (defvar base-rev)
+    (defvar subtype))
   (let (c file dir path base-rev subtype)
     (cvs-or
 
@@ -402,6 +405,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 
 
 (defun cvs-parse-merge ()
+  (with-suppressed-warnings ((lexical path base-rev head-rev type))
+    (defvar path) (defvar base-rev) (defvar head-rev) (defvar type))
   (let (path base-rev head-rev type)
     ;; A merge (maybe with a conflict).
     (and
@@ -446,6 +451,9 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 			    :merge (cons base-rev head-rev))))))
 
 (defun cvs-parse-status ()
+  (with-suppressed-warnings ((lexical nofile path base-rev head-rev type))
+    (defvar nofile) (defvar path) (defvar base-rev) (defvar head-rev)
+    (defvar type))
   (let (nofile path base-rev head-rev type)
     (and
      (cvs-match
@@ -494,6 +502,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 			  :head-rev head-rev))))
 
 (defun cvs-parse-commit ()
+  (with-suppressed-warnings ((lexical path file base-rev subtype))
+    (defvar path) (defvar file) (defvar base-rev) (defvar subtype))
   (let (path file base-rev subtype)
     (cvs-or
 

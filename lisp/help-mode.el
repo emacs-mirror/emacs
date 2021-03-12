@@ -66,11 +66,11 @@
 (defvar help-mode-tool-bar-map
   (let ((map (make-sparse-keymap)))
     (tool-bar-local-item "close" 'quit-window 'quit map
-                         :label "Quit help."
+                         :help "Quit help"
                          :vert-only t)
     (define-key-after map [separator-1] menu-bar-separator)
     (tool-bar-local-item "search" 'isearch-forward 'search map
-                         :label "Search" :vert-only t)
+                         :help "Search" :vert-only t)
     (tool-bar-local-item-from-menu 'help-go-back "left-arrow" map help-mode-map
                                    :rtl "right-arrow" :vert-only t)
     (tool-bar-local-item-from-menu 'help-go-forward "right-arrow" map help-mode-map

@@ -987,13 +987,11 @@ Intended as the value of `indent-line-function'."
     (if (> (- (point-max) pos) (point))
 	(goto-char (- (point-max) pos)))))
 
-;; This doesn't work too well in Emacs 21.2.  See 22.1 development
-;; code.
 (defun cfengine-fill-paragraph (&optional justify)
   "Fill `paragraphs' in Cfengine code."
   (interactive "P")
   (or (if (fboundp 'fill-comment-paragraph)
-	  (fill-comment-paragraph justify) ; post Emacs 21.3
+          (fill-comment-paragraph justify)
 	;; else do nothing in a comment
 	(nth 4 (parse-partial-sexp (save-excursion
 				     (beginning-of-defun)

@@ -332,9 +332,9 @@ column or default printer and then modify its output.")
       next-line-add-newlines transient-mark-mode)
     "Buffer-local variables used by SES."))
 
-(defmacro ses--metaprogramming (exp) (declare (debug t)) (eval exp t))
-(ses--metaprogramming
- `(progn ,@(mapcar (lambda (x) `(defvar ,(or (car-safe x) x))) ses-localvars)))
+(defmacro ses--\,@ (exp) (declare (debug t)) (macroexp-progn (eval exp t)))
+(ses--\,@
+ (mapcar (lambda (x) `(defvar ,(or (car-safe x) x))) ses-localvars))
 
 (defun ses-set-localvars ()
   "Set buffer-local and initialize some SES variables."
@@ -840,31 +840,31 @@ and ARGS and reset `ses-start-time' to the current time."
   "Install VAL as the contents for field FIELD (named by a quoted symbol) of
 cell (ROW,COL).  This is undoable.  The cell's data will be updated through
 `post-command-hook'."
-  `(let ((row ,row)
-         (col ,col)
-         (val ,val))
-     (let* ((cell (ses-get-cell row col))
+  (macroexp-let2 nil row row
+  (macroexp-let2 nil col col
+  (macroexp-let2 nil val val
+    `(let* ((cell (ses-get-cell ,row ,col))
             (change
              ,(let ((field (progn (cl-assert (eq (car field) 'quote))
                                   (cadr field))))
                 (if (eq field 'value)
-                    '(ses-set-with-undo (ses-cell-symbol cell) val)
+                    `(ses-set-with-undo (ses-cell-symbol cell) ,val)
                   ;; (let* ((slots (get 'ses-cell 'cl-struct-slots))
                   ;;        (slot (or (assq field slots)
                   ;;                  (error "Unknown field %S" field)))
                   ;;        (idx (- (length slots)
                   ;;                (length (memq slot slots)))))
-                  ;;   `(ses-aset-with-undo cell ,idx val))
+                  ;;   `(ses-aset-with-undo cell ,idx ,val))
                   (let ((getter (intern-soft (format "ses-cell--%s" field))))
                     `(ses-setter-with-undo
                       (eval-when-compile
                         (cons #',getter
                               (lambda (newval cell)
                                 (setf (,getter cell) newval))))
-                      val cell))))))
+                      ,val cell))))))
        (if change
-           (add-to-list 'ses--deferred-write (cons row col))))
-     nil)) ; Make coverage-tester happy.
+           (add-to-list 'ses--deferred-write (cons ,row ,col)))
+       nil))))) ; Make coverage-tester happy.
 
 (defun ses-cell-set-formula (row col formula)
   "Store a new formula for (ROW . COL) and enqueue the cell for

@@ -1,4 +1,4 @@
-;;; eudcb-mab.el --- Emacs Unified Directory Client - AddressBook backend
+;;; eudcb-mab.el --- Emacs Unified Directory Client - AddressBook backend  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 

@@ -231,7 +231,7 @@ NAME must be equal to `tramp-current-connection'."
 	     (delete (info-lookup->mode-cache 'symbol 'tramp-info-lookup-mode)
 		     (info-lookup->topic-cache 'symbol)))))
 
-  (dolist (mode (mapcar 'car (info-lookup->topic-value 'symbol)))
+  (dolist (mode (mapcar #'car (info-lookup->topic-value 'symbol)))
     ;; Add `tramp-info-lookup-mode' to `other-modes' for either
     ;; `emacs-lisp-mode' itself, or to modes which use
     ;; `emacs-lisp-mode' as `other-modes'.  Reset `info-lookup-cache'.

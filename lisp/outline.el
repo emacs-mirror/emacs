@@ -186,7 +186,7 @@ in the file it applies to.")
       (define-key map (kbd "TAB") tab-binding)
       (define-key map (kbd "<backtab>") #'outline-cycle-buffer))
     map)
-  "Keymap used by `outline-mode-map' and `outline-cycle-minor-mode'.")
+  "Keymap used by `outline-mode-map' and `outline-minor-mode-cycle'.")
 
 (defvar outline-mode-map
   (let ((map (make-sparse-keymap)))
@@ -199,18 +199,18 @@ in the file it applies to.")
   '(
     ;; Highlight headings according to the level.
     (eval . (list (concat "^\\(?:" outline-regexp "\\).+")
-                  0 '(if outline-minor-mode-cycle
-                         (if outline-minor-mode-highlight
-                             (list 'face (outline-font-lock-face)
-                                   'keymap outline-mode-cycle-map)
-                           (list 'face nil
-                                 'keymap outline-mode-cycle-map))
+                  0 '(if outline-minor-mode
+                         (if outline-minor-mode-cycle
+                             (if outline-minor-mode-highlight
+                                 (list 'face (outline-font-lock-face)
+                                       'keymap outline-mode-cycle-map)
+                               (list 'face nil
+                                     'keymap outline-mode-cycle-map)))
                        (outline-font-lock-face))
-                  nil
-                  (if (or outline-minor-mode-cycle
-                          outline-minor-mode-highlight)
-                      'append
-                    t))))
+                  (when (and outline-minor-mode
+                             (eq outline-minor-mode-highlight 'override))
+                    'append)
+                  t)))
   "Additional expressions to highlight in Outline mode.")
 
 (defface outline-1
@@ -324,18 +324,28 @@ After that, changing the prefix key requires manipulating keymaps."
          (define-key outline-minor-mode-map val outline-mode-prefix-map)
          (set-default sym val)))
 
-(defvar outline-minor-mode-cycle nil
+(defcustom outline-minor-mode-cycle nil
   "Enable cycling of headings in `outline-minor-mode'.
+When enabled, it puts a keymap with cycling keys on heading lines.
 When point is on a heading line, then typing `TAB' cycles between `hide all',
 `headings only' and `show all' (`outline-cycle').  Typing `S-TAB' on
 a heading line cycles the whole buffer (`outline-cycle-buffer').
-Typing these keys anywhere outside heading lines uses their default bindings.")
+Typing these keys anywhere outside heading lines uses their default bindings."
+  :type 'boolean
+  :version "28.1")
 ;;;###autoload(put 'outline-minor-mode-cycle 'safe-local-variable 'booleanp)
 
-(defvar outline-minor-mode-highlight nil
+(defcustom outline-minor-mode-highlight nil
   "Highlight headings in `outline-minor-mode' using font-lock keywords.
 Non-nil value works well only when outline font-lock keywords
-don't conflict with the major mode's font-lock keywords.")
+don't conflict with the major mode's font-lock keywords.
+When t, it puts outline faces only if there are no major mode's faces
+on headings.  When `override', it tries to append outline faces
+to major mode's faces."
+  :type '(choice (const :tag "No highlighting" nil)
+                 (const :tag "Append to major mode faces" override)
+                 (const :tag "Highlight separately from major mode faces" t))
+  :version "28.1")
 ;;;###autoload(put 'outline-minor-mode-highlight 'safe-local-variable 'booleanp)
 
 (defun outline-minor-mode-highlight-buffer ()
@@ -347,7 +357,9 @@ don't conflict with the major mode's font-lock keywords.")
         (let ((overlay (make-overlay (match-beginning 0)
                                      (match-end 0))))
           (overlay-put overlay 'outline-overlay t)
-          (when outline-minor-mode-highlight
+          (when (or (eq outline-minor-mode-highlight 'override)
+                    (and (eq outline-minor-mode-highlight t)
+                         (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
           (when outline-minor-mode-cycle
             (overlay-put overlay 'keymap outline-mode-cycle-map)))
@@ -385,32 +397,6 @@ See the command `outline-mode' for more information on this mode."
     (remove-from-invisibility-spec '(outline . t))
     ;; When turning off outline mode, get rid of any outline hiding.
     (outline-show-all)))
-
-;;;###autoload
-(define-minor-mode outline-cycle-minor-mode
-  "Toggle Outline-Cycle minor mode.
-Set the buffer-local variable `outline-minor-mode-cycle' to t
-and enable `outline-minor-mode'."
-  nil nil nil
-  (if outline-cycle-minor-mode
-      (progn
-        (setq-local outline-minor-mode-cycle t)
-        (outline-minor-mode +1))
-    (outline-minor-mode -1)
-    (kill-local-variable 'outline-minor-mode-cycle)))
-
-;;;###autoload
-(define-minor-mode outline-cycle-highlight-minor-mode
-  "Toggle Outline-Cycle-Highlight minor mode.
-Set the buffer-local variable `outline-minor-mode-highlight' to t
-and enable `outline-cycle-minor-mode'."
-  nil nil nil
-  (if outline-cycle-highlight-minor-mode
-      (progn
-        (setq-local outline-minor-mode-highlight t)
-        (outline-cycle-minor-mode +1))
-    (outline-cycle-minor-mode -1)
-    (kill-local-variable 'outline-minor-mode-highlight)))
 
 (defvar-local outline-heading-alist ()
   "Alist associating a heading for every possible level.

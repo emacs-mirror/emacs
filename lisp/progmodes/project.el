@@ -106,7 +106,7 @@
 ;;
 ;; - Write a new function that will determine the current project
 ;; based on the directory and add it to `project-find-functions'
-;; (which see) using `add-hook'. It is a good idea to depend on the
+;; (which see) using `add-hook'.  It is a good idea to depend on the
 ;; directory only, and not on the current major mode, for example.
 ;; Because the usual expectation is that all files in the directory
 ;; belong to the same project (even if some/most of them are ignored).
@@ -775,7 +775,7 @@ pattern to search for."
     xrefs))
 
 (defun project--read-regexp ()
-  (let ((sym (thing-at-point 'symbol)))
+  (let ((sym (thing-at-point 'symbol t)))
     (read-regexp "Find regexp" (and sym (regexp-quote sym)))))
 
 ;;;###autoload
@@ -924,7 +924,7 @@ if one already exists."
                   "-eshell*"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
-        (pop-to-buffer eshell-buffer)
+        (pop-to-buffer-same-window eshell-buffer)
       (eshell t))))
 
 ;;;###autoload
@@ -1255,7 +1255,6 @@ It's also possible to enter an arbitrary directory not in the list."
 
 ;;; Project switching
 
-;;;###autoload
 (defcustom project-switch-commands
   '((project-find-file "Find file")
     (project-find-regexp "Find regexp")
