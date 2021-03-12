@@ -602,7 +602,7 @@ FORM is the parent form that binds this var."
      (byte-compile-warn
       "%s `%S' not left unused" varkind var))
     ((and (let (or 'let* 'let) (car form))
-          `(,`(,var) ;; (or `(,var nil) : Too many false positives: bug#47080
+          `((,var) ;; (or `(,var nil) : Too many false positives: bug#47080
             t nil ,_ ,_))
      ;; FIXME: Convert this warning to use `macroexp--warn-wrap'
      ;; so as to give better position information.
