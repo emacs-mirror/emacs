@@ -3970,12 +3970,24 @@ load once it finishes compiling."
            (comp-log (format "Done compiling %s" data) 0)
            (cl-loop for (pass . time) in (reverse report)
                     do (comp-log (format "Pass %s took: %fs." pass time) 0))))
-      (native-compiler-error
-       ;; Add source input.
+      (t
        (let ((err-val (cdr err)))
-	 (signal (car err) (if (consp err-val)
-			       (cons function-or-file err-val)
-			     (list function-or-file err-val))))))
+         ;; If we are doing an async native compilation print the
+         ;; error in the correct format so is parsable and abort.
+         (if (and comp-async-compilation
+                  (not (eq (car err) 'native-compiler-error)))
+             (progn
+               (message (if err-val
+                            "%s: Error: %s %s"
+                          "%s: Error %s")
+                        function-or-file
+                        (get (car err) 'error-message)
+                        (car-safe err-val))
+               (kill-emacs -1))
+           ;; Otherwise re-signal it adding the compilation input.
+	   (signal (car err) (if (consp err-val)
+			         (cons function-or-file err-val)
+			       (list function-or-file err-val)))))))
     (if (stringp function-or-file)
         data
       ;; So we return the compiled function.
