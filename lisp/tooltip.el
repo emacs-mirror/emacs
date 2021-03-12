@@ -135,6 +135,7 @@ of the `tooltip' face are used instead."
 
 When using the GTK toolkit, this face will only be used if
 `x-gtk-use-system-tooltips' is non-nil."
+  :group 'tooltip
   :group 'basic-faces)
 
 (defcustom tooltip-use-echo-area nil
