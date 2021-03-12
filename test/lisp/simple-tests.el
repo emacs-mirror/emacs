@@ -465,8 +465,11 @@ See bug#35036."
     (simple-tests--exec '(backward-char undo-redo undo-redo))
     (should (equal (buffer-string) "abc"))
     (simple-tests--exec '(backward-char undo-redo undo-redo))
-    (should (equal (buffer-string) "abcde")))
+    (should (equal (buffer-string) "abcde"))))
+
+(ert-deftest simple-tests--undo-in-region ()
   ;; Test undo/redo in region.
+  (skip-unless (not noninteractive))
   (with-temp-buffer
     (buffer-enable-undo)
     (dolist (x '("a" "b" "c" "d" "e"))
@@ -503,6 +506,7 @@ See bug#35036."
   lst)
 
 (ert-deftest simple-tests--undo-equiv-table ()
+  (skip-unless (not noninteractive))
   (with-temp-buffer
     (buffer-enable-undo)
     (let ((ul-hash-table (make-hash-table :test #'equal)))
