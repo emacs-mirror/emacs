@@ -276,7 +276,8 @@ arguments to pass to the OPERATION."
   (with-parsed-tramp-file-name filename nil
     (unless (and (eq flag 'nofollow) (file-symlink-p filename))
       (tramp-flush-file-properties v localname)
-      (set-file-modes (tramp-fuse-local-file-name filename) mode flag))))
+      (tramp-compat-set-file-modes
+       (tramp-fuse-local-file-name filename) mode flag))))
 
 (defun tramp-sshfs-handle-write-region
   (start end filename &optional append visit lockname mustbenew)
