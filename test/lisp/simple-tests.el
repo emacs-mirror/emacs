@@ -469,8 +469,11 @@ See bug#35036."
 
 (ert-deftest simple-tests--undo-in-region ()
   ;; Test undo/redo in region.
-  (skip-unless (not noninteractive))
   (with-temp-buffer
+    ;; Enable `transient-mark-mode' so `region-active-p' works as
+    ;; expected. `region-active-p' is used to determine whether to
+    ;; perform regional undo in `undo'.
+    (transient-mark-mode)
     (buffer-enable-undo)
     (dolist (x '("a" "b" "c" "d" "e"))
       (insert x)
@@ -506,9 +509,9 @@ See bug#35036."
   lst)
 
 (ert-deftest simple-tests--undo-equiv-table ()
-  (skip-unless (not noninteractive))
   (with-temp-buffer
     (buffer-enable-undo)
+    (transient-mark-mode)
     (let ((ul-hash-table (make-hash-table :test #'equal)))
       (dolist (x '("a" "b" "c"))
         (insert x)
