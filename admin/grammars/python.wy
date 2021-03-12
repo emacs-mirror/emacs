@@ -91,6 +91,7 @@
 %expectedconflicts 5
 
 %{
+(require 'semantic/tag)
 (declare-function wisent-python-reconstitute-function-tag
 		  "semantic/wisent/python" (tag suite))
 (declare-function wisent-python-reconstitute-class-tag "semantic/wisent/python"
