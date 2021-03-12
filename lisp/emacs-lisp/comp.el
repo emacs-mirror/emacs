@@ -648,6 +648,23 @@ Useful to hook into pass checkers.")
   'native-compiler-error)
 
 
+;; Moved early to avoid circularity when comp.el is loaded and
+;; `macroexpand' needs to be advised (bug#47049).
+;;;###autoload
+(defun comp-subr-trampoline-install (subr-name)
+  "Make SUBR-NAME effectively advice-able when called from native code."
+  (unless (or (null comp-enable-subr-trampolines)
+              (memq subr-name comp-never-optimize-functions)
+              (gethash subr-name comp-installed-trampolines-h))
+    (cl-assert (subr-primitive-p (symbol-function subr-name)))
+    (comp--install-trampoline
+     subr-name
+     (or (comp-trampoline-search subr-name)
+         (comp-trampoline-compile subr-name)
+         ;; Should never happen.
+         (cl-assert nil)))))
+
+
 (cl-defstruct (comp-vec (:copier nil))
   "A re-sizable vector like object."
   (data (make-hash-table :test #'eql) :type hash-table
@@ -3742,20 +3759,6 @@ Return the trampoline if found or nil otherwise."
         do (cl-return f)
       finally (error "Cannot find suitable directory for output in \
 `comp-eln-load-path'")))))
-
-;;;###autoload
-(defun comp-subr-trampoline-install (subr-name)
-  "Make SUBR-NAME effectively advice-able when called from native code."
-  (unless (or (null comp-enable-subr-trampolines)
-              (memq subr-name comp-never-optimize-functions)
-              (gethash subr-name comp-installed-trampolines-h))
-    (cl-assert (subr-primitive-p (symbol-function subr-name)))
-    (comp--install-trampoline
-     subr-name
-     (or (comp-trampoline-search subr-name)
-         (comp-trampoline-compile subr-name)
-         ;; Should never happen.
-         (cl-assert nil)))))
 
 
 ;; Some entry point support code.
