@@ -6679,6 +6679,7 @@ parse_solitary_modifier (Lisp_Object symbol)
     case 'c':
       MULTI_LETTER_MOD (ctrl_modifier, "ctrl", 4);
       MULTI_LETTER_MOD (ctrl_modifier, "control", 7);
+      MULTI_LETTER_MOD (click_modifier, "click", 5);
       break;
 
     case 'H':
