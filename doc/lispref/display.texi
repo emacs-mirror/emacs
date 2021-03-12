@@ -5399,8 +5399,13 @@ is platform dependent, but should be equivalent to bilinear
 filtering.  Disabling smoothing will use the nearest neighbor
 algorithm.
 
-The default, if this property is not specified, is for down-scaling to
-apply smoothing, and for up-scaling to not apply smoothing.
+If this property is not specified, @code{create-image} will use the
+@code{image-transform-smoothing} user option to say whether scaling
+should be done or not.  This option can be @code{nil} (no smoothing),
+@code{t} (use smoothing) or a predicate function that's called with
+the image object as the only parameter, and should return either
+@code{nil} or @code{t}.  The default is for down-scaling to apply
+smoothing, and for large up-scaling to not apply smoothing.
 
 @item :index @var{frame}
 @xref{Multi-Frame Images}.

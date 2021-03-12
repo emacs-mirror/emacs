@@ -1483,6 +1483,12 @@ and nil to disable smoothing.
 The default behaviour of smoothing on down-scaling and not smoothing
 on up-scaling remains unchanged.
 
++++
+*** New user option 'image-transform-smoothing'.
+This controls whether to use smoothing or not for an image.  Values
+include nil (no smoothing), t (do smoothing) or a predicate function
+that's called with the image object and should return nil/t.
+
 ** EWW
 
 +++
