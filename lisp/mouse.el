@@ -119,7 +119,9 @@ Expects to be bound to `(double-)mouse-1' in `key-translation-map'."
 			      (time-since (cdr mouse--last-down))
                               (/ (abs mouse-1-click-follows-link) 1000.0))))))
        (eq (car mouse--last-down)
-           (event-convert-list (list 'down (car-safe last-input-event))))
+           (event-convert-list
+            `(down ,@(event-modifiers last-input-event)
+                   ,(event-basic-type last-input-event))))
        (let* ((action (mouse-on-link-p (event-start last-input-event))))
          (when (and action
                     (or mouse-1-click-in-non-selected-windows
