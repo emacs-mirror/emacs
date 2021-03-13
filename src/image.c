@@ -3256,6 +3256,7 @@ static int
 xbm_scan (char **s, char *end, char *sval, int *ival)
 {
   unsigned char c UNINIT;
+  char *sval_end = sval + BUFSIZ;
 
  loop:
 
@@ -3315,7 +3316,7 @@ xbm_scan (char **s, char *end, char *sval, int *ival)
   else if (c_isalpha (c) || c == '_')
     {
       *sval++ = c;
-      while (*s < end
+      while (*s < end && sval < sval_end
 	     && (c = *(*s)++, (c_isalnum (c) || c == '_')))
 	*sval++ = c;
       *sval = 0;
