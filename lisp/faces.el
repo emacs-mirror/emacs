@@ -2816,8 +2816,12 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'help)
 
 (defface help-key-binding
-  '((((class color) (min-colors 88) (background light)) :background "grey90")
-    (((class color) (min-colors 88) (background dark)) :background "grey25")
+  '((((class color) (min-colors 88) (background light))
+     :background "grey92" :foreground "DarkBlue"
+     :box (:line-width (1 . -1) :color "grey80"))
+    (((class color) (min-colors 88) (background dark))
+     :background "grey23" :foreground "LightBlue"
+     :box (:line-width (1 . -1) :color "grey35"))
     (((class color grayscale) (background light)) :background "grey90")
     (((class color grayscale) (background dark)) :background "grey25")
     (t :background "grey90"))
