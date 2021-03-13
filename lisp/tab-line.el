@@ -305,7 +305,10 @@ be displayed, or just a list of strings to display in the tab line.
 By default, use function `tab-line-tabs-window-buffers' that
 returns a list of buffers associated with the selected window.
 When `tab-line-tabs-mode-buffers', return a list of buffers
-with the same major mode as the current buffer."
+with the same major mode as the current buffer.
+When `tab-line-tabs-buffer-groups', return a list of buffers
+grouped either by `tab-line-tabs-buffer-group-function', when set,
+or by `tab-line-tabs-buffer-groups'."
   :type '(choice (const :tag "Window buffers"
                         tab-line-tabs-window-buffers)
                  (const :tag "Same mode buffers"
@@ -367,6 +370,11 @@ If the major mode's name string matches REGEXP, use GROUPNAME instead.")
           mode))))
 
 (defun tab-line-tabs-buffer-groups ()
+  "Return a list of tabs that should be displayed in the tab line.
+By default return a list of buffers grouped by major mode,
+according to `tab-line-tabs-buffer-groups'.
+If non-nil, `tab-line-tabs-buffer-group-function' is used to
+generate the group name."
   (if (window-parameter nil 'tab-line-groups)
       (let* ((buffers (funcall tab-line-tabs-buffer-list-function))
              (groups
