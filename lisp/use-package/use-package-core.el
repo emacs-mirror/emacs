@@ -998,11 +998,10 @@ If RECURSED is non-nil, recurse into sublists."
 (defun use-package-statistics-last-event (package)
   "Return the date when PACKAGE's status last changed.
 The date is returned as a string."
-  (format-time-string "%Y-%m-%d %a %H:%M"
-                      (or (gethash :config package)
-                          (gethash :init package)
-                          (gethash :preface package)
-                          (gethash :use-package package))))
+  (or (gethash :config package)
+      (gethash :init package)
+      (gethash :preface package)
+      (gethash :use-package package)))
 
 (defun use-package-statistics-time (package)
   "Return the time is took for PACKAGE to load."
@@ -1022,7 +1021,9 @@ The information is formatted in a way suitable for
      (vector
       (symbol-name package)
       (use-package-statistics-status statistics)
-      (use-package-statistics-last-event statistics)
+      (format-time-string
+       "%H:%M:%S.%6N"
+       (use-package-statistics-last-event statistics))
       (format "%.2f" (use-package-statistics-time statistics))))))
 
 (defun use-package-report ()
@@ -1042,15 +1043,43 @@ meaning:
     (tabulated-list-print)
     (display-buffer (current-buffer))))
 
+(defvar use-package-statistics-status-order
+  '(("Declared"    . 0)
+    ("Prefaced"    . 1)
+    ("Initialized" . 2)
+    ("Configured"  . 3)))
+
 (define-derived-mode use-package-statistics-mode tabulated-list-mode
   "use-package statistics"
   "Show current statistics gathered about use-package declarations."
   (setq tabulated-list-format
         ;; The sum of column width is 80 characters:
         [("Package" 25 t)
-         ("Status" 13 t)
-         ("Last Event" 23 t)
-         ("Time" 10 t)])
+         ("Status" 13
+          (lambda (a b)
+            (< (assoc-default
+                (use-package-statistics-status
+                 (gethash (car a) use-package-statistics))
+                use-package-statistics-status-order)
+               (assoc-default
+                (use-package-statistics-status
+                 (gethash (car b) use-package-statistics))
+                use-package-statistics-status-order))))
+         ("Last Event" 23
+          (lambda (a b)
+            (< (float-time
+                (use-package-statistics-last-event
+                 (gethash (car a) use-package-statistics)))
+               (float-time
+                (use-package-statistics-last-event
+                 (gethash (car b) use-package-statistics))))))
+         ("Time" 10
+          (lambda (a b)
+            (< (use-package-statistics-time
+                (gethash (car a) use-package-statistics))
+               (use-package-statistics-time
+                (gethash (car b) use-package-statistics)))))])
+  (setq tabulated-list-sort-key '("Time" . t))
   (tabulated-list-init-header))
 
 (defun use-package-statistics-gather (keyword name after)
