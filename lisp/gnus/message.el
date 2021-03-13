@@ -187,22 +187,26 @@ Otherwise, most addresses look like `angles', but they look like
 
 (defcustom message-syntax-checks
   (if message-insert-canlock '((sender . disabled)) nil)
-  ;; Guess this one shouldn't be easy to customize...
   "Controls what syntax checks should not be performed on outgoing posts.
 To disable checking of long signatures, for instance, add
  `(signature . disabled)' to this list.
 
 Don't touch this variable unless you really know what you're doing.
 
-Checks include `approved', `bogus-recipient', `continuation-headers',
-`control-chars', `empty', `existing-newsgroups', `from', `illegible-text',
-`invisible-text', `long-header-lines', `long-lines', `message-id',
-`multiple-headers', `new-text', `newsgroups', `quoting-style',
-`repeated-newsgroups', `reply-to', `sender', `sendsys', `shoot',
-`shorten-followup-to', `signature', `size', `subject', `subject-cmsg'
-and `valid-newsgroups'."
-  :group 'message-news
-  :type '(repeat sexp))			; Fixme: improve this
+See the Message manual for the meanings of the valid syntax check
+types."
+  :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
+  :type '(alist
+	  :key-type symbol
+	  :value-type (const disabled)
+	  :options (approved bogus-recipient continuation-headers
+		    control-chars empty existing-newsgroups from illegible-text
+		    invisible-text long-header-lines long-lines message-id
+		    multiple-headers new-text newgroups quoting-style
+		    repeated-newsgroups reply-to sender sendsys shoot
+		    shorten-followup-to signature size subject subject-cmsg
+		    valid-newsgroups)))
 
 (defcustom message-required-headers '((optional . References)
 				      From)
