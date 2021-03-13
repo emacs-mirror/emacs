@@ -40,7 +40,6 @@
 (defconst tramp-sshfs-method "sshfs"
   "Tramp method for sshfs mounts.")
 
-;;;###tramp-autoload
 (defcustom tramp-sshfs-program "sshfs"
   "The sshfs mount command."
   :group 'tramp

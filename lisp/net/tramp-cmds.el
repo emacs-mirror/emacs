@@ -208,7 +208,6 @@ This includes password cache, file cache, connection cache, buffers."
   (dolist (name (tramp-list-remote-buffers))
     (when (bufferp (get-buffer name)) (kill-buffer name))))
 
-;;;###tramp-autoload
 (defcustom tramp-default-rename-alist nil
   "Default target for renaming remote buffer file names.
 This is an alist of cons cells (SOURCE . TARGET).  The first
@@ -231,7 +230,6 @@ expression which always matches."
   :type '(repeat (cons (choice :tag "Source regexp" regexp sexp)
 		       (choice :tag "Target   name" string (const nil)))))
 
-;;;###tramp-autoload
 (defcustom tramp-confirm-rename-file-names t
   "Whether renaming a buffer file name must be confirmed."
   :group 'tramp

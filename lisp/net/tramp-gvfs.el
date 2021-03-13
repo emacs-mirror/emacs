@@ -175,7 +175,6 @@ They are checked during start up via
 		    (dbus-list-known-names :session))
       (setq tramp-media-methods (delete method tramp-media-methods)))))
 
-;;;###tramp-autoload
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "Zeroconf domain to be used for discovering services, like host names."
   :group 'tramp
