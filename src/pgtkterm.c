@@ -231,6 +231,23 @@ x_free_frame_resources (struct frame *f)
   if (f == hlinfo->mouse_face_mouse_frame)
     reset_mouse_highlight (hlinfo);
 
+  g_clear_object (&FRAME_X_OUTPUT (f)->text_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->nontext_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->modeline_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->hand_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->hourglass_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->horizontal_drag_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->vertical_drag_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->left_edge_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->right_edge_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->top_edge_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->bottom_edge_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->top_left_corner_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->top_right_corner_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->bottom_right_corner_cursor);
+  g_clear_object (&FRAME_X_OUTPUT (f)->bottom_left_corner_cursor);
+
+
   if (FRAME_X_OUTPUT (f)->border_color_css_provider != NULL)
     {
       GtkStyleContext *ctxt = gtk_widget_get_style_context (FRAME_WIDGET (f));
@@ -4686,6 +4703,15 @@ pgtk_delete_terminal (struct terminal *terminal)
   if (dpyinfo->gdpy)
     {
       image_destroy_all_bitmaps (dpyinfo);
+
+      g_clear_object (&dpyinfo->xg_cursor);
+      g_clear_object (&dpyinfo->vertical_scroll_bar_cursor);
+      g_clear_object (&dpyinfo->horizontal_scroll_bar_cursor);
+      g_clear_object (&dpyinfo->invisible_cursor);
+      if (dpyinfo->last_click_event != NULL) {
+	gdk_event_free (dpyinfo->last_click_event);
+	dpyinfo->last_click_event = NULL;
+      }
 
       xg_display_close (dpyinfo->gdpy);
 
