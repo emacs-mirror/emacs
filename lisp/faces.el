@@ -2818,6 +2818,9 @@ Note: Other faces cannot inherit from the cursor face."
 (defface help-key-binding
   '((((class color) (min-colors 88) (background light))
      :background "grey92" :foreground "DarkBlue"
+     ;; We use negative thickness of the horizontal box border line to
+     ;; avoid enlarging the height of the echo-area display, which
+     ;; would then move the mode line a few pixels up.
      :box (:line-width (1 . -1) :color "grey80"))
     (((class color) (min-colors 88) (background dark))
      :background "grey23" :foreground "LightBlue"
