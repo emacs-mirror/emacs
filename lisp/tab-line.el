@@ -44,6 +44,7 @@ whether the tab is a buffer, and whether the tab is selected."
   :type '(repeat
           (choice (function-item tab-line-tab-face-special)
                   (function-item tab-line-tab-face-inactive-alternating)
+                  (function-item tab-line-tab-face-group)
                   (function :tag "Custom function")))
   :group 'tab-line
   :version "28.1")
@@ -92,6 +93,16 @@ Applied to alternating tabs when option
   "Face for special (i.e. non-file-backed) tabs.
 Applied when option `tab-line-tab-face-functions' includes
 function `tab-line-tab-face-special'."
+  :version "28.1"
+  :group 'tab-line-faces)
+
+(defface tab-line-tab-group
+  '((default
+      :inherit tab-line
+      :box nil))
+  "Face for group tabs.
+Applied when option `tab-line-tab-face-functions' includes
+function `tab-line-tab-face-group'."
   :version "28.1"
   :group 'tab-line-faces)
 
@@ -385,6 +396,7 @@ If the major mode's name string matches REGEXP, use GROUPNAME instead.")
                       (set-window-parameter nil 'tab-line-group nil))))
            (group-tab `(tab
                         (name . ,group)
+                        (group-tab . t)
                         (select . ,(lambda ()
                                      (set-window-parameter nil 'tab-line-groups t)
                                      (set-window-parameter nil 'tab-line-group group)
@@ -518,6 +530,13 @@ When TAB is a non-file-backed buffer, make FACE inherit from
 `tab-line-tab-face-functions'."
   (when (and buffer-p (not (buffer-file-name tab)))
     (setf face `(:inherit (tab-line-tab-special ,face))))
+  face)
+
+(defun tab-line-tab-face-group (tab _tabs face _buffer-p _selected-p)
+  "Return FACE for TAB according to whether it's a group tab.
+For use in `tab-line-tab-face-functions'."
+  (when (alist-get 'group-tab tab)
+    (setf face `(:inherit (tab-line-tab-group ,face))))
   face)
 
 (defvar tab-line-auto-hscroll)
