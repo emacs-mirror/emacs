@@ -389,6 +389,8 @@ which can be the value of the `face' text property."
 	 (apply 'append (mapcar 'enriched-face-ans face)))
 	((let* ((fg (face-attribute face :foreground))
 		(bg (face-attribute face :background))
+                (weight (face-attribute face :weight))
+                (slant (face-attribute face :slant))
 		(props (face-font face t))
 		(ans (cdr (format-annotate-single-property-change
 			   'face nil props enriched-translations))))
@@ -396,6 +398,10 @@ which can be the value of the `face' text property."
 	     (setq ans (cons (list "x-color" fg) ans)))
 	   (unless (eq bg 'unspecified)
 	     (setq ans (cons (list "x-bg-color" bg) ans)))
+           (if (eq weight 'bold)
+               (setq ans (cons (list "bold") ans)))
+           (if (eq slant 'italic)
+               (setq ans (cons (list "italic") ans)))
 	   ans))))
 
 ;;;
