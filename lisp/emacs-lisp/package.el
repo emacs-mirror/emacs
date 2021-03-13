@@ -2206,10 +2206,13 @@ directory."
     (package-install-from-buffer)))
 
 ;;;###autoload
-(defun package-install-selected-packages ()
+(defun package-install-selected-packages (&optional noconfirm)
   "Ensure packages in `package-selected-packages' are installed.
-If some packages are not installed propose to install them."
+If some packages are not installed, propose to install them.
+If optional argument NOCONFIRM is non-nil, don't ask for
+confirmation to install packages."
   (interactive)
+  (package--archives-initialize)
   ;; We don't need to populate `package-selected-packages' before
   ;; using here, because the outcome is the same either way (nothing
   ;; gets installed).
@@ -2220,10 +2223,11 @@ If some packages are not installed propose to install them."
            (difference (- (length not-installed) (length available))))
       (cond
        (available
-        (when (y-or-n-p
-               (format "Packages to install: %d (%s), proceed? "
-                       (length available)
-                       (mapconcat #'symbol-name available " ")))
+        (when (or noconfirm
+                  (y-or-n-p
+                   (format "Packages to install: %d (%s), proceed? "
+                           (length available)
+                           (mapconcat #'symbol-name available " "))))
           (mapc (lambda (p) (package-install p 'dont-select)) available)))
        ((> difference 0)
         (message "Packages that are not available: %d (the rest is already installed), maybe you need to `M-x package-refresh-contents'"
