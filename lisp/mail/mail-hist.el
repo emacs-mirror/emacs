@@ -1,4 +1,4 @@
-;;; mail-hist.el --- headers and message body history for outgoing mail
+;;; mail-hist.el --- headers and message body history for outgoing mail  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
 
@@ -69,8 +69,8 @@
 
 ;;;###autoload
 (defun mail-hist-enable ()
-  (add-hook 'mail-mode-hook 'mail-hist-define-keys)
-  (add-hook 'mail-send-hook 'mail-hist-put-headers-into-history))
+  (add-hook 'mail-mode-hook #'mail-hist-define-keys)
+  (add-hook 'mail-send-hook #'mail-hist-put-headers-into-history))
 
 (defvar mail-hist-header-ring-alist nil
   "Alist of form (header-name . history-ring).
@@ -80,14 +80,12 @@ previous/next input.")
 (defcustom mail-hist-history-size (or kill-ring-max 1729)
   "The maximum number of elements in a mail field's history.
 Oldest elements are dumped first."
-  :type 'integer
-  :group 'mail-hist)
+  :type 'integer)
 
 ;;;###autoload
 (defcustom mail-hist-keep-history t
   "Non-nil means keep a history for headers and text of outgoing mail."
-  :type 'boolean
-  :group 'mail-hist)
+  :type 'boolean)
 
 ;; For handling repeated history requests
 (defvar mail-hist-access-count 0)
@@ -184,8 +182,7 @@ HEADER is a string without the colon."
 (defcustom mail-hist-text-size-limit nil
   "Don't store any header or body with more than this many characters.
 If the value is nil, that means no limit on text size."
-  :type '(choice (const nil) integer)
-  :group 'mail-hist)
+  :type '(choice (const nil) integer))
 
 (defun mail-hist-text-too-long-p (text)
   "Return non-nil if TEXT's length exceeds `mail-hist-text-size-limit'."

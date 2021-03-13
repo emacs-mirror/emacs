@@ -1,4 +1,4 @@
-;;; mailclient.el --- mail sending via system's mail client.
+;;; mailclient.el --- mail sending via system's mail client.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 

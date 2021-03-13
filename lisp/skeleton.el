@@ -290,7 +290,8 @@ i.e. we are handling the iterator of a subskeleton, returns empty string if
 user didn't modify input.
 While reading, the value of `minibuffer-help-form' is variable `help' if that
 is non-nil or a default string."
-  (let ((minibuffer-help-form (or (if (boundp 'help) (symbol-value 'help))
+  (with-suppressed-warnings ((lexical help)) (defvar help)) ;FIXME: Prefix!
+  (let ((minibuffer-help-form (or (bound-and-true-p help)
 				  (if recursive "\
 As long as you provide input you will insert another subskeleton.
 

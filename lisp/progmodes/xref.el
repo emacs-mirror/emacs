@@ -97,10 +97,6 @@ This is typically the filename.")
   "Return the line number corresponding to the location."
   nil)
 
-(cl-defgeneric xref-location-column (_location)
-  "Return the exact column corresponding to the location."
-  nil)
-
 (cl-defgeneric xref-match-length (_item)
   "Return the length of the match."
   nil)
@@ -130,7 +126,7 @@ in its full absolute form."
 (defclass xref-file-location (xref-location)
   ((file :type string :initarg :file)
    (line :type fixnum :initarg :line :reader xref-location-line)
-   (column :type fixnum :initarg :column :reader xref-location-column))
+   (column :type fixnum :initarg :column :reader xref-file-location-column))
   :documentation "A file location is a file/line/column triple.
 Line numbers start from 1 and columns from 0.")
 
@@ -414,6 +410,12 @@ elements is negated: these commands will NOT prompt."
 (defcustom xref-after-return-hook '(xref-pulse-momentarily)
   "Functions called after returning to a pre-jump location."
   :type 'hook)
+
+(defcustom xref-after-update-hook nil
+  "Functions called after the xref buffer is updated."
+  :type 'hook
+  :version "28.1"
+  :package-version '(xref . "1.0.4"))
 
 (defvar xref--marker-ring (make-ring xref-marker-ring-length)
   "Ring of markers to implement the marker stack.")
@@ -713,10 +715,7 @@ references displayed in the current *xref* buffer."
                    (push pair all-pairs)
                    ;; Perform sanity check first.
                    (xref--goto-location loc)
-                   (if (xref--outdated-p item
-                                         (buffer-substring-no-properties
-                                          (line-beginning-position)
-                                          (line-end-position)))
+                   (if (xref--outdated-p item)
                        (message "Search result out of date, skipping")
                      (cond
                       ((null file-buf)
@@ -733,18 +732,38 @@ references displayed in the current *xref* buffer."
            (move-marker (car pair) nil)
            (move-marker (cdr pair) nil)))))))
 
-(defun xref--outdated-p (item line-text)
-  ;; FIXME: The check should probably be a generic function instead of
-  ;; the assumption that all matches contain the full line as summary.
-  (let ((summary (xref-item-summary item))
-        (strip (lambda (s) (if (string-match "\r\\'" s)
-                          (substring-no-properties s 0 -1)
-                        s))))
+(defun xref--outdated-p (item)
+  "Check that the match location at current position is up-to-date.
+ITEMS is an xref item which "
+  ;; FIXME: The check should most likely be a generic function instead
+  ;; of the assumption that all matches' summaries relate to the
+  ;; buffer text in a particular way.
+  (let* ((summary (xref-item-summary item))
+         ;; Sometimes buffer contents include ^M, and sometimes Grep
+         ;; output includes it, and they don't always match.
+         (strip (lambda (s) (if (string-match "\r\\'" s)
+                           (substring-no-properties s 0 -1)
+                         s)))
+         (stripped-summary (funcall strip summary))
+         (lendpos (line-end-position))
+         (check (lambda ()
+                  (let ((comparison-end
+                         (+ (point) (length stripped-summary))))
+                    (and (>= lendpos comparison-end)
+                         (equal stripped-summary
+                                (buffer-substring-no-properties
+                                 (point) comparison-end)))))))
     (not
-     ;; Sometimes buffer contents include ^M, and sometimes Grep
-     ;; output includes it, and they don't always match.
-     (equal (funcall strip line-text)
-            (funcall strip summary)))))
+     (or
+      ;; Either summary contains match text and after
+      ;; (2nd+ match on the line)...
+      (funcall check)
+      ;; ...or it starts at bol, includes the match and after.
+      (and (< (point) (+ (line-beginning-position)
+                         (length stripped-summary)))
+           (save-excursion
+             (forward-line 0)
+             (funcall check)))))))
 
 ;; FIXME: Write a nicer UI.
 (defun xref--query-replace-1 (from to iter)
@@ -886,30 +905,24 @@ GROUP is a string for decoration purposes and XREF is an
                                (length (and line (format "%d" line)))))
            for line-format = (and max-line-width
                                   (format "%%%dd: " max-line-width))
-           with prev-line-key = nil
+           with prev-group = nil
+           with prev-line = nil
            do
            (xref--insert-propertized '(face xref-file-header xref-group t)
                                      group "\n")
            (cl-loop for (xref . more2) on xrefs do
                     (with-slots (summary location) xref
                       (let* ((line (xref-location-line location))
-                             (new-summary summary)
-                             (line-key (list (xref-location-group location) line))
                              (prefix
-                              (if line
-                                  (propertize (format line-format line)
-                                              'face 'xref-line-number)
-                                "  ")))
+                              (cond
+                               ((not line) "  ")
+                               ((equal line prev-line) "")
+                               (t (propertize (format line-format line)
+                                              'face 'xref-line-number)))))
                         ;; Render multiple matches on the same line, together.
-                        (when (and line (equal prev-line-key line-key))
-                          (when-let ((column (xref-location-column location)))
-                            (delete-region
-                             (save-excursion
-                               (forward-line -1)
-                               (move-to-column (+ (length prefix) column))
-                               (point))
-                             (point))
-                            (setq new-summary (substring summary column) prefix "")))
+                        (when (and (equal prev-group group)
+                                   (not (equal prev-line line)))
+                          (insert "\n"))
                         (xref--insert-propertized
                          (list 'xref-item xref
                                'mouse-face 'highlight
@@ -917,9 +930,11 @@ GROUP is a string for decoration purposes and XREF is an
                                'help-echo
                                (concat "mouse-2: display in another window, "
                                        "RET or mouse-1: follow reference"))
-                         prefix new-summary)
-                        (setq prev-line-key line-key)))
-                    (insert "\n"))))
+                         prefix summary)
+                        (setq prev-line line
+                              prev-group group))))
+           (insert "\n"))
+  (run-hooks 'xref-after-update-hook))
 
 (defun xref--analyze (xrefs)
   "Find common filenames in XREFS.
@@ -1678,20 +1693,30 @@ Such as the current syntax table and the applied syntax properties."
                                  syntax-needed)))))
 
 (defun xref--collect-matches-1 (regexp file line line-beg line-end syntax-needed)
-  (let (matches)
+  (let (match-pairs matches)
     (when syntax-needed
       (syntax-propertize line-end))
-    ;; FIXME: This results in several lines with the same
-    ;; summary. Solve with composite pattern?
     (while (and
             ;; REGEXP might match an empty string.  Or line.
-            (or (null matches)
+            (or (null match-pairs)
                 (> (point) line-beg))
             (re-search-forward regexp line-end t))
-      (let* ((beg-column (- (match-beginning 0) line-beg))
-             (end-column (- (match-end 0) line-beg))
+      (push (cons (match-beginning 0)
+                  (match-end 0))
+            match-pairs))
+    (setq match-pairs (nreverse match-pairs))
+    (while match-pairs
+      (let* ((beg-end (pop match-pairs))
+             (beg-column (- (car beg-end) line-beg))
+             (end-column (- (cdr beg-end) line-beg))
              (loc (xref-make-file-location file line beg-column))
-             (summary (buffer-substring line-beg line-end)))
+             (summary (buffer-substring (if matches (car beg-end) line-beg)
+                                        (if match-pairs
+                                            (caar match-pairs)
+                                          line-end))))
+        (when matches
+          (cl-decf beg-column (- (car beg-end) line-beg))
+          (cl-decf end-column (- (car beg-end) line-beg)))
         (add-face-text-property beg-column end-column 'xref-match
                                 t summary)
         (push (xref-make-match summary loc (- end-column beg-column))

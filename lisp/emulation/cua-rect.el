@@ -46,7 +46,7 @@ A cua-rectangle definition is a vector used for all actions in
 
 TOP is the upper-left corner point.
 
-BOTTOM is the point at the end of line after the the lower-right
+BOTTOM is the point at the end of line after the lower-right
 corner point.
 
 LEFT and RIGHT are column numbers.

@@ -70,7 +70,7 @@
 It is the default value of `temporary-file-directory'."
   ;; We must return a local directory.  If it is remote, we could run
   ;; into an infloop.
-  (eval (car (get 'temporary-file-directory 'standard-value))))
+  (eval (car (get 'temporary-file-directory 'standard-value)) t))
 
 (defsubst tramp-compat-make-temp-name ()
   "Generate a local temporary file name (compat function)."

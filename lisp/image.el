@@ -141,6 +141,18 @@ based on the font pixel size."
                  (const :tag "Automatically compute" auto))
   :version "26.1")
 
+(defcustom image-transform-smoothing #'image--default-smoothing
+  "Whether to do smoothing when applying transforms to images.
+Common transforms are rescaling and rotation.
+
+Valid values are nil (no smoothing), t (smoothing) or a predicate
+function that is called with the image specification and should return
+either nil or non-nil."
+  :type '(choice (const :tag "Do smoothing" t)
+                 (const :tag "No smoothing" nil)
+                 function)
+  :version "28.1")
+
 (defcustom image-use-external-converter nil
   "If non-nil, `create-image' will use external converters for exotic formats.
 Emacs handles most of the common image formats (SVG, JPEG, PNG, GIF
@@ -485,11 +497,40 @@ Image file names that are not absolute are searched for in the
             type 'png
             data-p t)))
   (when (image-type-available-p type)
-    (append (list 'image :type type (if data-p :data :file) file-or-data)
-            (and (not (plist-get props :scale))
-                 (list :scale
-                       (image-compute-scaling-factor image-scaling-factor)))
-	    props)))
+    (let ((image
+           (append (list 'image :type type (if data-p :data :file)
+                         file-or-data)
+                   (and (not (plist-get props :scale))
+                        ;; Add default scaling.
+                        (list :scale
+                              (image-compute-scaling-factor
+                               image-scaling-factor)))
+	           props)))
+      ;; Add default smoothing.
+      (unless (plist-member props :transform-smoothing)
+        (setq image (nconc image
+                           (list :transform-smoothing
+                                 (pcase image-transform-smoothing
+                                   ('t t)
+                                   ('nil nil)
+                                   (func (funcall func image)))))))
+      image)))
+
+(defun image--default-smoothing (image)
+  "Say whether IMAGE should be smoothed when transformed."
+  (let* ((props (nthcdr 5 image))
+         (scaling (plist-get props :scale))
+         (rotation (plist-get props :rotation)))
+    (cond
+     ;; We always smooth when scaling down and small upwards scaling.
+     ((and scaling (< scaling 2))
+      t)
+     ;; Smooth when doing non-90-degree rotation
+     ((and rotation
+           (or (not (zerop (mod rotation 1)))
+               (not (zerop (% (truncate rotation) 90)))))
+      t)
+     (t nil))))
 
 (defun image--set-property (image property value)
   "Set PROPERTY in IMAGE to VALUE.

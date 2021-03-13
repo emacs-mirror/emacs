@@ -110,11 +110,11 @@ ERC menu yet.")
 (define-erc-module menu nil
   "Enable a menu in ERC buffers."
   ((unless erc-menu-defined
-     ;; make sure the menu only gets defined once, since Emacs 22
+     ;; make sure the menu only gets defined once, since Emacs
      ;; activates it immediately
      (easy-menu-define erc-menu erc-mode-map "ERC menu" erc-menu-definition)
      (setq erc-menu-defined t)))
-  (;; `easy-menu-remove' is a no-op in Emacs 22
+  (;; `easy-menu-remove' is a no-op in Emacs
    (message "You might have to restart Emacs to remove the ERC menu")))
 
 (defun erc-menu-add ()

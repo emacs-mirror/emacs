@@ -1,4 +1,4 @@
-;;; inversion.el --- When you need something in version XX.XX
+;;; inversion.el --- When you need something in version XX.XX  -*- lexical-binding: t; -*-
 
 ;;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
 
@@ -223,7 +223,7 @@ not an indication of new features or bug fixes."
 	)))
 
 (defun inversion-check-version (version incompatible-version
-                                minimum &rest reserved)
+                                minimum &rest _reserved)
   "Check that a given version meets the minimum requirement.
 VERSION, INCOMPATIBLE-VERSION and MINIMUM are of similar format to
 return entries of `inversion-decode-version', or a classic version
@@ -330,7 +330,7 @@ Return nil if everything is ok.  Return an error string otherwise."
      (t "Inversion version check failed."))))
 
 (defun inversion-require (package version &optional file directory
-				  &rest reserved)
+				  &rest _reserved)
   "Declare that you need PACKAGE with at least VERSION.
 PACKAGE might be found in FILE.  (See `require'.)
 Throws an error if VERSION is incompatible with what is installed.

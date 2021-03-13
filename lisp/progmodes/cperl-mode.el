@@ -907,22 +907,12 @@ In regular expressions (including character classes):
 
 
 (defun cperl-make-indent (column &optional minimum keep)
-  "Makes indent of the current line the requested amount.
-Unless KEEP, removes the old indentation.  Works around a bug in ancient
-versions of Emacs."
-  (let ((prop (get-text-property (point) 'syntax-type)))
-    (or keep
-	(delete-horizontal-space))
-    (indent-to column minimum)
-    ;; In old versions (e.g., 19.33) `indent-to' would not inherit properties
-    (and prop
-	 (> (current-column) 0)
-	 (save-excursion
-	   (beginning-of-line)
-	   (or (get-text-property (point) 'syntax-type)
-	       (and (looking-at "\\=[ \t]")
-		      (put-text-property (point) (match-end 0)
-					 'syntax-type prop)))))))
+  "Indent from point with tabs and spaces until COLUMN is reached.
+MINIMUM is like in `indent-to', which see.
+Unless KEEP, removes the old indentation."
+  (or keep
+      (delete-horizontal-space))
+  (indent-to column minimum))
 
 ;; Probably it is too late to set these guys already, but it can help later:
 
@@ -6711,9 +6701,9 @@ One may build such TAGS files from CPerl mode menu."
                        (or (nthcdr 2 elt)
                            ;; Only in one file
                            (setcdr elt (cdr (nth 1 elt))))))
-	    to l1 l2 l3)
+	    to) ;; l1 l2 l3
 	;; (setq cperl-hierarchy '(() () ())) ; Would write into '() later!
-	(setq cperl-hierarchy (list l1 l2 l3))
+	(setq cperl-hierarchy (list () () ())) ;; (list l1 l2 l3)
 	(or tags-table-list
 	    (call-interactively 'visit-tags-table))
 	(mapc
@@ -6759,7 +6749,7 @@ One may build such TAGS files from CPerl mode menu."
 			 "\\)\\(::\\)?"))
 	 (packages (cdr (nth 1 to)))
 	 (methods (cdr (nth 2 to)))
-	 l1 head cons1 cons2 ord writeto recurse
+	 head cons1 cons2 ord writeto recurse ;; l1
 	 root-packages root-functions
 	 (move-deeper
           (lambda (elt)
@@ -6779,7 +6769,7 @@ One may build such TAGS files from CPerl mode menu."
                    (setq root-functions (cons elt root-functions)))
                   (t
                    (setq root-packages (cons elt root-packages)))))))
-    (setcdr to l1)			; Init to dynamic space
+    (setcdr to nil) ;; l1		; Init to dynamic space
     (setq writeto to)
     (setq ord 1)
     (mapc move-deeper packages)

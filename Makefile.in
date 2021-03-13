@@ -95,18 +95,8 @@ configuration=@configuration@
 ### The nt/ subdirectory gets built only for MinGW
 NTDIR=@NTDIR@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+top_builddir = @top_builddir@
+-include ${top_builddir}/src/verbose.mk
 
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
@@ -976,6 +966,10 @@ extraclean: $(extraclean_dirs:=_extraclean)
 # I removed it because it causes `make tags` to build Emacs.
 TAGS tags: lib lib-src # src
 	$(MAKE) -C src tags
+	$(MAKE) -C doc/emacs tags
+	$(MAKE) -C doc/lispintro tags
+	$(MAKE) -C doc/lispref tags
+	$(MAKE) -C doc/misc tags
 
 CHECK_TARGETS = check check-maybe check-expensive check-all
 .PHONY: $(CHECK_TARGETS)

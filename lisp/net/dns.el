@@ -135,8 +135,8 @@ updated.  Set this variable to t to disable the check.")
     (if (stringp ended)
 	(if (null name)
 	    ended
-	  (concat (mapconcat 'identity (nreverse name) ".") "." ended))
-      (mapconcat 'identity (nreverse name) "."))))
+	  (concat (mapconcat #'identity (nreverse name) ".") "." ended))
+      (mapconcat #'identity (nreverse name) "."))))
 
 (defun dns-write (spec &optional tcp-p)
   "Write a DNS packet according to SPEC.
@@ -283,7 +283,7 @@ If TCP-P, the first two bytes of the packet will be the length field."
             (let ((bytes nil))
               (dotimes (_ 4)
                 (push (dns-read-bytes 1) bytes))
-              (mapconcat 'number-to-string (nreverse bytes) ".")))
+              (mapconcat #'number-to-string (nreverse bytes) ".")))
            ((eq type 'AAAA)
             (let (hextets)
               (dotimes (_ 8)
@@ -386,7 +386,7 @@ If REVERSE, look up an IP address."
 
   (when reverse
     (setq name (concat
-		(mapconcat 'identity (nreverse (split-string name "\\.")) ".")
+		(mapconcat #'identity (nreverse (split-string name "\\.")) ".")
 		".in-addr.arpa")
 	  type 'PTR))
 

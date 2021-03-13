@@ -535,7 +535,7 @@ The location for a browser's bookmark should look like this:
         encodeURIComponent(location.href)"
   ;; As we enter this function for a match on our protocol, the return value
   ;; defaults to nil.
-  (let ((result nil)
+  (let (;; (result nil)
 	(f (org-protocol-sanitize-uri
 	    (plist-get (org-protocol-parse-parameters fname nil '(:url))
 		       :url))))
@@ -586,7 +586,7 @@ The location for a browser's bookmark should look like this:
               (if (file-exists-p the-file)
                   (message "%s: permission denied!" the-file)
                 (message "%s: no such file or directory." the-file))))))
-      result)))
+      nil))) ;; FIXME: Really?
 
 
 ;;; Core functions:

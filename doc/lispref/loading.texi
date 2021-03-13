@@ -1052,7 +1052,6 @@ rather than replacing that element.  @xref{Eval}.
 @section Unloading
 @cindex unloading packages
 
-@c Emacs 19 feature
   You can discard the functions and variables loaded by a library to
 reclaim memory for other Lisp objects.  To do this, use the function
 @code{unload-feature}:

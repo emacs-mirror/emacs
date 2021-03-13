@@ -1,4 +1,4 @@
-;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
+;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 1994, 1997-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
@@ -45,12 +45,10 @@
 
 (defcustom report-emacs-bug-no-confirmation nil
   "If non-nil, suppress the confirmations asked for the sake of novice users."
-  :group 'emacsbug
   :type 'boolean)
 
 (defcustom report-emacs-bug-no-explanations nil
   "If non-nil, suppress the explanations given for the sake of novice users."
-  :group 'emacsbug
   :type 'boolean)
 
 ;; User options end here.
@@ -204,7 +202,7 @@ This requires either the macOS \"open\" command, or the freedesktop
 (defvar message-sendmail-envelope-from)
 
 ;;;###autoload
-(defun report-emacs-bug (topic &optional unused)
+(defun report-emacs-bug (topic &optional _unused)
   "Report a bug in GNU Emacs.
 Prompts for bug subject.  Leaves you in a mail buffer.
 
@@ -219,10 +217,10 @@ Already submitted bugs can be found in the Emacs bug tracker:
   (let ((from-buffer (current-buffer))
 	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
 			     (report-emacs-bug-can-use-osx-open)))
-        user-point message-end-point)
-    (setq message-end-point
-	  (with-current-buffer (messages-buffer)
-	    (point-max-marker)))
+        user-point) ;; message-end-point
+    ;; (setq message-end-point
+    ;;       (with-current-buffer (messages-buffer)
+    ;;         (point-max-marker)))
     (condition-case nil
         ;; For the novice user make sure there's always enough space for
         ;; the mail and the warnings buffer on this frame (Bug#10873).
@@ -263,7 +261,7 @@ Already submitted bugs can be found in the Emacs bug tracker:
 	 "Bug-GNU-Emacs"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
-	 'action (lambda (button)
+	 'action (lambda (_button)
 		   (browse-url "https://lists.gnu.org/r/bug-gnu-emacs/"))
 	 'follow-link t)
 	(insert " mailing list\nand the GNU bug tracker at ")
@@ -271,7 +269,7 @@ Already submitted bugs can be found in the Emacs bug tracker:
 	 "debbugs.gnu.org"
 	 'face 'link
 	 'help-echo (concat "mouse-2, RET: Follow this link")
-	 'action (lambda (button)
+	 'action (lambda (_button)
 		   (browse-url "https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;max-bugs=100;base-order=1;bug-rev=1"))
 	 'follow-link t)
 
@@ -347,10 +345,10 @@ usually do not have translators for other languages.\n\n")))
 
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
-    (define-key (current-local-map) "\C-c\C-i" 'info-emacs-bug)
+    (define-key (current-local-map) "\C-c\C-i" #'info-emacs-bug)
     (if can-insert-mail
 	(define-key (current-local-map) "\C-c\M-i"
-	  'report-emacs-bug-insert-to-mailer))
+	  #'report-emacs-bug-insert-to-mailer))
     (setq report-emacs-bug-send-command (get mail-user-agent 'sendfunc)
 	  report-emacs-bug-send-hook (get mail-user-agent 'hookvar))
     (if report-emacs-bug-send-command
@@ -376,7 +374,7 @@ usually do not have translators for other languages.\n\n")))
       (shrink-window-if-larger-than-buffer (get-buffer-window "*Bug Help*")))
     ;; Make it less likely people will send empty messages.
     (if report-emacs-bug-send-hook
-        (add-hook report-emacs-bug-send-hook 'report-emacs-bug-hook nil t))
+        (add-hook report-emacs-bug-send-hook #'report-emacs-bug-hook nil t))
     (goto-char (point-max))
     (skip-chars-backward " \t\n")
     (setq-local report-emacs-bug-orig-text
@@ -398,7 +396,7 @@ usually do not have translators for other languages.\n\n")))
           ;; This is used not only for X11 but also W32 and others.
 	  (insert "Windowing system distributor '" (x-server-vendor)
                   "', version "
-		  (mapconcat 'number-to-string (x-server-version) ".") "\n")
+		  (mapconcat #'number-to-string (x-server-version) ".") "\n")
 	(error t)))
   (let ((os (ignore-errors (report-emacs-bug--os-description))))
     (if (stringp os)
@@ -409,7 +407,7 @@ usually do not have translators for other languages.\n\n")))
 	    system-configuration-options "'\n\n")
     (fill-region (line-beginning-position -1) (point))))
 
-(define-obsolete-function-alias 'report-emacs-bug-info 'info-emacs-bug "24.3")
+(define-obsolete-function-alias 'report-emacs-bug-info #'info-emacs-bug "24.3")
 
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."

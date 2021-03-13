@@ -332,7 +332,6 @@ or just
   The built-in function @code{indirect-function} provides an easy way to
 perform symbol function indirection explicitly.
 
-@c Emacs 19 feature
 @defun indirect-function function &optional noerror
 @anchor{Definition of indirect-function}
 This function returns the meaning of @var{function} as a function.  If

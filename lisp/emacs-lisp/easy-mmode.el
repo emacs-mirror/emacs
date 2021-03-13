@@ -332,12 +332,20 @@ or call the function `%s'."))))
                    t)))
            ;; Keep minor modes list up to date.
            ,@(if globalp
-                 `((setq global-minor-modes (delq ',modefun global-minor-modes))
+                 ;; When running this byte-compiled code in earlier
+                 ;; Emacs versions, these variables may not be defined
+                 ;; there.  So check defensively, even if they're
+                 ;; always defined in Emacs 28 and up.
+                 `((when (boundp 'global-minor-modes)
+                     (setq global-minor-modes
+                           (delq ',modefun global-minor-modes))
+                     (when ,getter
+                       (push ',modefun global-minor-modes))))
+               ;; Ditto check.
+               `((when (boundp 'local-minor-modes)
+                   (setq local-minor-modes (delq ',modefun local-minor-modes))
                    (when ,getter
-                     (push ',modefun global-minor-modes)))
-               `((setq local-minor-modes (delq ',modefun local-minor-modes))
-                 (when ,getter
-                   (push ',modefun local-minor-modes))))
+                     (push ',modefun local-minor-modes)))))
            ,@body
            ;; The on/off hooks are here for backward compatibility only.
            (run-hooks ',hook (if ,getter ',hook-on ',hook-off))

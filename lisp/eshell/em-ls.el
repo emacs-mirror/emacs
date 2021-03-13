@@ -680,12 +680,12 @@ Each member of FILES is either a string or a cons cell of the form
     (let ((f files)
 	  last-f
 	  display-files
-	  ignore)
+	  ) ;; ignore
       (while f
 	(if (cdar f)
 	    (setq last-f f
 		  f (cdr f))
-	  (unless ignore
+	  (unless nil ;; ignore
 	    (funcall error-func
 		     (format "%s: No such file or directory\n" (caar f))))
 	  (if (eq f files)
@@ -698,7 +698,7 @@ Each member of FILES is either a string or a cons cell of the form
 	      (setcar f (cadr f))
 	      (setcdr f (cddr f))))))
       (if (not show-size)
-	  (setq display-files (mapcar 'eshell-ls-annotate files))
+	  (setq display-files (mapcar #'eshell-ls-annotate files))
 	(dolist (file files)
 	  (let* ((str (eshell-ls-printable-size (file-attribute-size (cdr file)) t))
 		 (len (length str)))

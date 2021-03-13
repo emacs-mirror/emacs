@@ -1,4 +1,4 @@
-;;; newst-plainview.el --- Single buffer frontend for newsticker.
+;;; newst-plainview.el --- Single buffer frontend for newsticker.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
@@ -90,7 +90,7 @@ The following sort methods are available:
           (const :tag "Keep original order" sort-by-original-order)
           (const :tag "Sort by time"        sort-by-time)
           (const :tag "Sort by title"       sort-by-title))
-  :set 'newsticker--set-customvar-sorting
+  :set #'newsticker--set-customvar-sorting
   :group 'newsticker-plainview)
 
 (defcustom newsticker-heading-format
@@ -107,7 +107,7 @@ The following printf-like specifiers can be used:
 %s  The statistical data of the feed.  See `newsticker-statistics-format'.
 %t  The title of the feed, i.e. its name."
   :type 'string
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-plainview)
 
 (defcustom newsticker-item-format
@@ -122,7 +122,7 @@ The following printf-like specifiers can be used:
     the title of the feed is used.
 %t  The title of the item."
   :type 'string
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-plainview)
 
 (defcustom newsticker-desc-format
@@ -133,7 +133,7 @@ The following printf-like specifiers can be used:
 %d  The date the item was (first) retrieved.  See
     `newsticker-date-format'."
   :type 'string
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-plainview)
 
 (defcustom newsticker-statistics-format
@@ -146,7 +146,7 @@ The following printf-like specifiers can be used:
 %o  The number of old items in the feed.
 %O  The number of obsolete items in the feed."
   :type 'string
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-plainview)
 
 
@@ -195,7 +195,7 @@ If set to t old items will be completely folded and only new
 items will show up in the *newsticker* buffer.  Otherwise old as
 well as new items will be visible."
   :type 'boolean
-  :set 'newsticker--set-customvar-buffer
+  :set #'newsticker--set-customvar-buffer
   :group 'newsticker-plainview)
 
 (defcustom newsticker-show-descriptions-of-new-items
@@ -204,14 +204,14 @@ well as new items will be visible."
 If set to t old items will be folded and new items will be
 unfolded.  Otherwise old as well as new items will be folded."
   :type 'boolean
-  :set 'newsticker--set-customvar-buffer
+  :set #'newsticker--set-customvar-buffer
   :group 'newsticker-plainview)
 
 (defcustom newsticker-show-all-news-elements
   nil
   "Show all news elements."
   :type 'boolean
-  ;;:set 'newsticker--set-customvar
+  ;;:set #'newsticker--set-customvar
   :group 'newsticker-plainview)
 
 ;; ======================================================================
@@ -386,51 +386,45 @@ images."
 
 (defvar newsticker-mode-map
   (let ((map (make-keymap)))
-    (define-key map "sO" 'newsticker-show-old-items)
-    (define-key map "hO" 'newsticker-hide-old-items)
-    (define-key map "sa" 'newsticker-show-all-desc)
-    (define-key map "ha" 'newsticker-hide-all-desc)
-    (define-key map "sf" 'newsticker-show-feed-desc)
-    (define-key map "hf" 'newsticker-hide-feed-desc)
-    (define-key map "so" 'newsticker-show-old-item-desc)
-    (define-key map "ho" 'newsticker-hide-old-item-desc)
-    (define-key map "sn" 'newsticker-show-new-item-desc)
-    (define-key map "hn" 'newsticker-hide-new-item-desc)
-    (define-key map "se" 'newsticker-show-entry)
-    (define-key map "he" 'newsticker-hide-entry)
-    (define-key map "sx" 'newsticker-show-extra)
-    (define-key map "hx" 'newsticker-hide-extra)
+    (define-key map "sO" #'newsticker-show-old-items)
+    (define-key map "hO" #'newsticker-hide-old-items)
+    (define-key map "sa" #'newsticker-show-all-desc)
+    (define-key map "ha" #'newsticker-hide-all-desc)
+    (define-key map "sf" #'newsticker-show-feed-desc)
+    (define-key map "hf" #'newsticker-hide-feed-desc)
+    (define-key map "so" #'newsticker-show-old-item-desc)
+    (define-key map "ho" #'newsticker-hide-old-item-desc)
+    (define-key map "sn" #'newsticker-show-new-item-desc)
+    (define-key map "hn" #'newsticker-hide-new-item-desc)
+    (define-key map "se" #'newsticker-show-entry)
+    (define-key map "he" #'newsticker-hide-entry)
+    (define-key map "sx" #'newsticker-show-extra)
+    (define-key map "hx" #'newsticker-hide-extra)
 
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map " "  'scroll-up-command)
-    (define-key map "q"  'newsticker-close-buffer)
-    (define-key map "p"  'newsticker-previous-item)
-    (define-key map "P"  'newsticker-previous-new-item)
-    (define-key map "F"  'newsticker-previous-feed)
-    (define-key map "\t" 'newsticker-next-item)
-    (define-key map "n"  'newsticker-next-item)
-    (define-key map "N"  'newsticker-next-new-item)
-    (define-key map "f"  'newsticker-next-feed)
-    (define-key map "M"  'newsticker-mark-all-items-as-read)
-    (define-key map "m"
-      'newsticker-mark-all-items-at-point-as-read-and-redraw)
-    (define-key map "o"
-      'newsticker-mark-item-at-point-as-read)
-    (define-key map "O"
-      'newsticker-mark-all-items-at-point-as-read)
-    (define-key map "G"  'newsticker-get-all-news)
-    (define-key map "g"  'newsticker-get-news-at-point)
-    (define-key map "u"  'newsticker-buffer-update)
-    (define-key map "U"  'newsticker-buffer-force-update)
-    (define-key map "a"  'newsticker-add-url)
+    (define-key map [?\S-\ ] #'scroll-down-command)
+    (define-key map " "  #'scroll-up-command)
+    (define-key map "q"  #'newsticker-close-buffer)
+    (define-key map "p"  #'newsticker-previous-item)
+    (define-key map "P"  #'newsticker-previous-new-item)
+    (define-key map "F"  #'newsticker-previous-feed)
+    (define-key map "\t" #'newsticker-next-item)
+    (define-key map "n"  #'newsticker-next-item)
+    (define-key map "N"  #'newsticker-next-new-item)
+    (define-key map "f"  #'newsticker-next-feed)
+    (define-key map "M"  #'newsticker-mark-all-items-as-read)
+    (define-key map "m" #'newsticker-mark-all-items-at-point-as-read-and-redraw)
+    (define-key map "o"  #'newsticker-mark-item-at-point-as-read)
+    (define-key map "O"  #'newsticker-mark-all-items-at-point-as-read)
+    (define-key map "G"  #'newsticker-get-all-news)
+    (define-key map "g"  #'newsticker-get-news-at-point)
+    (define-key map "u"  #'newsticker-buffer-update)
+    (define-key map "U"  #'newsticker-buffer-force-update)
+    (define-key map "a"  #'newsticker-add-url)
 
-    (define-key map "i"
-      'newsticker-mark-item-at-point-as-immortal)
+    (define-key map "i"  #'newsticker-mark-item-at-point-as-immortal)
 
-    (define-key map "xf"
-      'newsticker-toggle-auto-narrow-to-feed)
-    (define-key map "xi"
-      'newsticker-toggle-auto-narrow-to-item)
+    (define-key map "xf" #'newsticker-toggle-auto-narrow-to-feed)
+    (define-key map "xi" #'newsticker-toggle-auto-narrow-to-item)
 
     ;; Bind menu to mouse.
     (define-key map [down-mouse-3] newsticker-menu)
@@ -479,11 +473,11 @@ images."
 ;; maps for the clickable portions
 (defvar newsticker--url-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-1] 'newsticker-mouse-browse-url)
-    (define-key map [mouse-2] 'newsticker-mouse-browse-url)
-    (define-key map "\n" 'newsticker-browse-url)
-    (define-key map "\C-m" 'newsticker-browse-url)
-    (define-key map [(control return)] 'newsticker-handle-url)
+    (define-key map [mouse-1] #'newsticker-mouse-browse-url)
+    (define-key map [mouse-2] #'newsticker-mouse-browse-url)
+    (define-key map "\n" #'newsticker-browse-url)
+    (define-key map "\C-m" #'newsticker-browse-url)
+    (define-key map [(control return)] #'newsticker-handle-url)
     map)
   "Key map for click-able headings in the newsticker buffer.")
 
@@ -980,7 +974,7 @@ not get changed."
     (let* (pos1 pos2
                 (inhibit-read-only t)
                 inv-prop org-inv-prop
-                is-invisible)
+                ) ;; is-invisible
       (newsticker--buffer-beginning-of-item)
       (newsticker--buffer-goto '(desc))
       (setq pos1 (max (point-min) (1- (point))))
@@ -1009,7 +1003,7 @@ not get changed."
     (let* (pos1 pos2
                 (inhibit-read-only t)
                 inv-prop org-inv-prop
-                is-invisible)
+                ) ;; is-invisible
       (newsticker--buffer-beginning-of-item)
       (newsticker--buffer-goto '(desc))
       (setq pos1 (max (point-min) (1- (point))))
@@ -1147,7 +1141,7 @@ If VALUE is nil, auto-narrowing is turned off, otherwise it is turned on."
 	(setq index-alist (list feed-list)))
       index-alist)))
 
-(defun newsticker--imenu-goto (name pos &rest args)
+(defun newsticker--imenu-goto (_name pos &rest _args)
   "Go to item NAME at position POS and show item.
 ARGS are ignored."
   (goto-char pos)
@@ -1235,6 +1229,9 @@ item-retrieval time is added as well."
     (newsticker--buffer-do-insert-text item 'item feed-name-symbol))
   ;; insert the description
   (newsticker--buffer-do-insert-text item 'desc feed-name-symbol))
+
+(defvar w3m-fill-column)
+(defvar w3-maximum-line-length)
 
 (defun newsticker--buffer-do-insert-text (item type feed-name-symbol)
   "Actually insert contents of news item, format it, render it and all that.

@@ -63,8 +63,8 @@ to "JIS X 0213:2004".
 
 * MULE-*.map
 
-Created by using ../mule-charsets.el in Emacs 22 as this:
-    % emacs-22 -batch -l ../mule-charsets.el
+Created by using ../mule-charsets.el in Emacs as this:
+    % emacs -batch -l ../mule-charsets.el
 
 
 This file is part of GNU Emacs.

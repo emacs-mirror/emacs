@@ -1439,6 +1439,8 @@ ARGS is a list of image descriptors."
 			    (apply #'create-image file doc-view--image-type nil args)
 			  (unless (member :width args)
 			    (setq args `(,@args :width ,doc-view-image-width)))
+                          (unless (member :transform-smoothing args)
+                            (setq args `(,@args :transform-smoothing t)))
 			  (apply #'create-image file doc-view--image-type nil args))))
 	     (slice (doc-view-current-slice))
 	     (img-width (and image (car (image-size image))))

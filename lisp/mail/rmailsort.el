@@ -1,4 +1,4 @@
-;;; rmailsort.el --- Rmail: sort messages
+;;; rmailsort.el --- Rmail: sort messages  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1990, 1993-1994, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -142,7 +142,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order."
 			      "\\(,\\|\\'\\)")
 		      labelvec))
       (setq labels (substring labels (match-end 0))))
-    (setq labelvec (apply 'vector (nreverse labelvec))
+    (setq labelvec (apply #'vector (nreverse labelvec))
 	  nmax (length labelvec))
     (rmail-sort-messages reverse
 			 ;; If no labels match, returns nmax; if they
@@ -205,7 +205,7 @@ Numeric keys are sorted numerically, all others as strings."
 	    (inhibit-read-only t)
 	    (current-message nil)
 	    (msgnum 1)
-	    (msginfo nil)
+	    ;; (msginfo nil)
 	    (undo (not (eq buffer-undo-list t))))
 	;; There's little hope that we can easily undo after that.
 	(buffer-disable-undo (current-buffer))

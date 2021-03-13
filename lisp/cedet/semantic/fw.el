@@ -322,17 +322,7 @@ calling this one."
   "Call `find-file-noselect' with various features turned off.
 Use this when referencing a file that will be soon deleted.
 FILE, NOWARN, RAWFILE, and WILDCARDS are passed into `find-file-noselect'."
-  ;; Hack -
-  ;; Check if we are in set-auto-mode, and if so, warn about this.
-  (when (boundp 'keep-mode-if-same)
-    (let ((filename (or (and (boundp 'filename) filename)
-			"(unknown)")))
-      (message "WARNING: semantic-find-file-noselect called for \
-%s while in set-auto-mode for %s.  You should call the responsible function \
-into `mode-local-init-hook'." file filename)
-      (sit-for 1)))
-
-  (let* ((recentf-exclude '( (lambda (f) t) ))
+  (let* ((recentf-exclude #'always)
 	 ;; This is a brave statement.  Don't waste time loading in
 	 ;; lots of modes.  Especially decoration mode can waste a lot
 	 ;; of time for a buffer we intend to kill.

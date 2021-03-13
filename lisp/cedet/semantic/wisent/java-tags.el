@@ -1,4 +1,4 @@
-;;; semantic/wisent/java-tags.el --- Java LALR parser for Emacs
+;;; semantic/wisent/java-tags.el --- Java LALR parser for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2006, 2009-2021 Free Software Foundation, Inc.
 
@@ -92,7 +92,7 @@ This function override `get-local-variables'."
 
 (define-mode-local-override semantic-analyze-unsplit-name java-mode (namelist)
   "Assemble the list of names NAMELIST into a namespace name."
-  (mapconcat 'identity namelist "."))
+  (mapconcat #'identity namelist "."))
 
 
 

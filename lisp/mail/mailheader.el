@@ -1,4 +1,4 @@
-;;; mailheader.el --- mail header parsing, merging, formatting
+;;; mailheader.el --- mail header parsing, merging, formatting  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -99,23 +99,23 @@ value."
   headers)
 
 ;; Advertised part of the interface; see mail-header, mail-header-set.
-(with-suppressed-warnings ((lexical headers))
-  (defvar headers))
 
-(defsubst mail-header (header &optional header-alist)
+(defun mail-header (header &optional header-alist)
   "Return the value associated with header HEADER in HEADER-ALIST.
 If the value is a string, it is the original value of the header.  If the
 value is a list, its first element is the original value of the header,
-with any subsequent elements being the result of parsing the value.
-If HEADER-ALIST is nil, the dynamically bound variable `headers' is used."
+with any subsequent elements being the result of parsing the value."
   (declare (gv-setter (lambda (value)
                         `(mail-header-set ,header ,value ,header-alist))))
+  (with-suppressed-warnings ((lexical headers)) (defvar headers))
   (cdr (assq header (or header-alist headers))))
 
 (defun mail-header-set (header value &optional header-alist)
   "Set the value associated with header HEADER to VALUE in HEADER-ALIST.
 HEADER-ALIST defaults to the dynamically bound variable `headers' if nil.
 See `mail-header' for the semantics of VALUE."
+  (declare (obsolete alist-get "28.1"))
+  (with-suppressed-warnings ((lexical headers)) (defvar headers))
   (let* ((alist (or header-alist headers))
 	(entry (assq header alist)))
     (if entry
@@ -131,10 +131,13 @@ should be a string or a list of string.  The first element may be nil to
 denote that the formatting functions must use the remaining elements, or
 skip the header altogether if there are no other elements.
   The macro `mail-header' can be used to access headers in HEADERS."
-  (mapcar
-   (lambda (rule)
-     (cons (car rule) (eval (cdr rule))))
-   merge-rules))
+  (declare (obsolete alist-get "28.1"))
+  (with-suppressed-warnings ((lexical headers)) (defvar headers))
+  (let ((headers headers))
+    (mapcar
+     (lambda (rule)
+       (cons (car rule) (eval (cdr rule) t)))
+     merge-rules)))
 
 (defvar mail-header-format-function
   (lambda (header value)
@@ -167,7 +170,7 @@ A key of nil has as its value a list of defaulted headers to ignore."
 			(mapcar #'car format-rules))))
     (dolist (rule format-rules)
       (let* ((header (car rule))
-	    (value (mail-header header)))
+	    (value (alist-get header headers)))
 	(if (stringp header)
 	    (setq header (intern header)))
 	(cond ((null header) 'ignore)
@@ -176,13 +179,11 @@ A key of nil has as its value a list of defaulted headers to ignore."
 		 (unless (memq (car defaulted) ignore)
 		   (let* ((header (car defaulted))
 			  (value (cdr defaulted)))
-		     (if (cdr rule)
-			 (funcall (cdr rule) header value)
-		       (funcall mail-header-format-function header value))))))
+		     (funcall (or (cdr rule) mail-header-format-function)
+		              header value)))))
 	      (value
-	       (if (cdr rule)
-		   (funcall (cdr rule) header value)
-		 (funcall mail-header-format-function header value))))))
+	       (funcall (or (cdr rule) mail-header-format-function)
+	                header value)))))
     (insert "\n")))
 
 (provide 'mailheader)

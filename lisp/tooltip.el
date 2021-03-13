@@ -248,7 +248,12 @@ in echo area."
 	    (setf (alist-get 'border-color params) fg))
 	  (when (stringp bg)
 	    (setf (alist-get 'background-color params) bg))
-	  (x-show-tip (propertize text 'face 'tooltip)
+          ;; Use non-nil APPEND argument below to avoid overriding any
+          ;; faces used in our TEXT.  Among other things, this allows
+          ;; tooltips to use the `help-key-binding' face used in
+          ;; `substitute-command-keys' substitutions.
+          (add-face-text-property 0 (length text) 'tooltip t text)
+          (x-show-tip text
 		      (selected-frame)
 		      params
 		      tooltip-hide-delay

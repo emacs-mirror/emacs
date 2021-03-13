@@ -250,7 +250,7 @@ function returns nil"
 	  (host (or (file-remote-p string 'host) ""))
 	  item result)
       (while (setq item (pop tdra))
-	(when (string-match-p (or (eval (car item)) "") string)
+	(when (string-match-p (or (eval (car item) t) "") string)
 	  (setq tdra nil
 		result
 		(format-spec

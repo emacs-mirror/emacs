@@ -1,4 +1,4 @@
-;;; blessmail.el --- decide whether movemail needs special privileges -*- no-byte-compile: t -*-
+;;; blessmail.el --- decide whether movemail needs special privileges -*- no-byte-compile: t; lexical-binding: t; -*-
 
 ;; Copyright (C) 1994, 2001-2021 Free Software Foundation, Inc.
 

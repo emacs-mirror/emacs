@@ -1,4 +1,4 @@
-;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs
+;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 1988, 1994, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -73,7 +73,7 @@ according to the choice made, and returns a symbol."
 	    (or (eq major-mode 'rmail-summary-mode)
 		(rmail-summary-exists)
 		(and (setq old (rmail-get-keywords))
-		     (mapc 'rmail-make-label (split-string old ", "))))
+		     (mapc #'rmail-make-label (split-string old ", "))))
 	    (completing-read (concat prompt
 				     (if rmail-last-label
 					 (concat " (default "

@@ -41,23 +41,8 @@ WERROR_CFLAGS = @WERROR_CFLAGS@
 # Program name transformation.
 TRANSFORM = @program_transform_name@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 =
-
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
-
-AM_V_RC = $(am__v_RC_@AM_V@)
-am__v_RC_ = $(am__v_RC_@AM_DEFAULT_V@)
-am__v_RC_0 = @echo "  RC      " $@;
-am__v_RC_1 =
+top_builddir = @top_builddir@
+-include ${top_builddir}/src/verbose.mk
 
 # ==================== Where To Install Things ====================
 

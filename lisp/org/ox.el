@@ -2706,9 +2706,9 @@ a list of footnote definitions or in the widened buffer."
 	       (and (or (eq (org-element-type f) 'footnote-definition)
 			(eq (org-element-property :type f) 'inline))
 		    (org-element-property :label f)))))
-	  seen)
+	  ) ;; seen
       (dolist (l (funcall list-labels tree))
-	(cond ((member l seen))
+	(cond ;; ((member l seen))
 	      ((member l known-definitions) (push l defined))
 	      (t (push l undefined)))))
     ;; Complete MISSING-DEFINITIONS by finding the definition of every

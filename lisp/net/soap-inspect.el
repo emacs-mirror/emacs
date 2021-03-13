@@ -109,7 +109,7 @@ soap-xs-attribute objects."
 This is a specialization of `soap-sample-value' for
 `soap-xs-simple-type' objects."
   (append
-   (mapcar 'soap-sample-value-for-xs-attribute
+   (mapcar #'soap-sample-value-for-xs-attribute
            (soap-xs-type-attributes type))
    (cond
     ((soap-xs-simple-type-enumeration type)
@@ -143,7 +143,7 @@ This is a specialization of `soap-sample-value' for
 This is a specialization of `soap-sample-value' for
 `soap-xs-complex-type' objects."
   (append
-   (mapcar 'soap-sample-value-for-xs-attribute
+   (mapcar #'soap-sample-value-for-xs-attribute
            (soap-xs-type-attributes type))
    (cl-case (soap-xs-complex-type-indicator type)
      (array
@@ -176,31 +176,31 @@ This is a specialization of `soap-sample-value' for
   ;; Install soap-sample-value methods for our types
   (put (soap-type-of (make-soap-xs-basic-type))
        'soap-sample-value
-       'soap-sample-value-for-xs-basic-type)
+       #'soap-sample-value-for-xs-basic-type)
 
   (put (soap-type-of (make-soap-xs-element))
        'soap-sample-value
-       'soap-sample-value-for-xs-element)
+       #'soap-sample-value-for-xs-element)
 
   (put (soap-type-of (make-soap-xs-attribute))
        'soap-sample-value
-       'soap-sample-value-for-xs-attribute)
+       #'soap-sample-value-for-xs-attribute)
 
   (put (soap-type-of (make-soap-xs-attribute))
        'soap-sample-value
-       'soap-sample-value-for-xs-attribute-group)
+       #'soap-sample-value-for-xs-attribute-group)
 
   (put (soap-type-of (make-soap-xs-simple-type))
        'soap-sample-value
-       'soap-sample-value-for-xs-simple-type)
+       #'soap-sample-value-for-xs-simple-type)
 
   (put (soap-type-of (make-soap-xs-complex-type))
        'soap-sample-value
-       'soap-sample-value-for-xs-complex-type)
+       #'soap-sample-value-for-xs-complex-type)
 
   (put (soap-type-of (make-soap-message))
        'soap-sample-value
-       'soap-sample-value-for-message))
+       #'soap-sample-value-for-message))
 
 
 
@@ -437,7 +437,7 @@ TYPE is a `soap-xs-complex-type'."
         (funcall (list 'soap-invoke '*WSDL* "SomeService"
                        (soap-element-name operation))))
     (let ((sample-invocation
-           (append funcall (mapcar 'cdr sample-message-value))))
+           (append funcall (mapcar #'cdr sample-message-value))))
       (pp sample-invocation (current-buffer)))))
 
 (defun soap-inspect-port-type (port-type)
@@ -460,7 +460,7 @@ TYPE is a `soap-xs-complex-type'."
                               collect o))
          op-name-width)
 
-    (setq operations (sort operations 'string<))
+    (setq operations (sort operations #'string<))
 
     (setq op-name-width (cl-loop for o in operations maximizing (length o)))
 
@@ -504,39 +504,39 @@ TYPE is a `soap-xs-complex-type'."
   ;; Install the soap-inspect methods for our types
 
   (put (soap-type-of (make-soap-xs-basic-type)) 'soap-inspect
-       'soap-inspect-xs-basic-type)
+       #'soap-inspect-xs-basic-type)
 
   (put (soap-type-of (make-soap-xs-element)) 'soap-inspect
-       'soap-inspect-xs-element)
+       #'soap-inspect-xs-element)
 
   (put (soap-type-of (make-soap-xs-simple-type)) 'soap-inspect
-       'soap-inspect-xs-simple-type)
+       #'soap-inspect-xs-simple-type)
 
   (put (soap-type-of (make-soap-xs-complex-type)) 'soap-inspect
-       'soap-inspect-xs-complex-type)
+       #'soap-inspect-xs-complex-type)
 
   (put (soap-type-of (make-soap-xs-attribute)) 'soap-inspect
-       'soap-inspect-xs-attribute)
+       #'soap-inspect-xs-attribute)
 
   (put (soap-type-of (make-soap-xs-attribute-group)) 'soap-inspect
-       'soap-inspect-xs-attribute-group)
+       #'soap-inspect-xs-attribute-group)
 
   (put (soap-type-of (make-soap-message)) 'soap-inspect
-       'soap-inspect-message)
+       #'soap-inspect-message)
   (put (soap-type-of (make-soap-operation)) 'soap-inspect
-       'soap-inspect-operation)
+       #'soap-inspect-operation)
 
   (put (soap-type-of (make-soap-port-type)) 'soap-inspect
-       'soap-inspect-port-type)
+       #'soap-inspect-port-type)
 
   (put (soap-type-of (make-soap-binding)) 'soap-inspect
-       'soap-inspect-binding)
+       #'soap-inspect-binding)
 
   (put (soap-type-of (make-soap-port)) 'soap-inspect
-       'soap-inspect-port)
+       #'soap-inspect-port)
 
   (put (soap-type-of (soap-make-wsdl "origin")) 'soap-inspect
-       'soap-inspect-wsdl))
+       #'soap-inspect-wsdl))
 
 (provide 'soap-inspect)
 ;;; soap-inspect.el ends here

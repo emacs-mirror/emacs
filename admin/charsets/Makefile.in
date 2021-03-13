@@ -31,6 +31,7 @@ AWK = @AWK@
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
 
 charsetdir = ${top_srcdir}/etc/charsets
 lispintdir = ${top_srcdir}/lisp/international
@@ -38,16 +39,7 @@ mapfiledir = ${srcdir}/mapfiles
 
 GLIBC_CHARMAPS = ${srcdir}/glibc
 
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+-include ${top_builddir}/src/verbose.mk
 
 # Note: We can not prepend "ISO-" to these map files because of file
 # name limits on DOS.

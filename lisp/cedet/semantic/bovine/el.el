@@ -940,7 +940,7 @@ ELisp variables can be pretty long, so track this one too.")
   ;; loaded into Emacs.
   )
 
-(add-hook 'emacs-lisp-mode-hook 'semantic-default-elisp-setup)
+(add-hook 'emacs-lisp-mode-hook #'semantic-default-elisp-setup)
 
 ;;; LISP MODE
 ;;
@@ -950,7 +950,7 @@ ELisp variables can be pretty long, so track this one too.")
 ;; See this syntax:
 ;; (defun foo () /#A)
 ;;
-(add-hook 'lisp-mode-hook 'semantic-default-elisp-setup)
+(add-hook 'lisp-mode-hook #'semantic-default-elisp-setup)
 
 (eval-after-load "semantic/db"
   '(require 'semantic/db-el)

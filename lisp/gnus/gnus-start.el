@@ -663,7 +663,6 @@ the first newsgroup."
 (defvar mail-sources)
 (defvar nnmail-scan-directory-mail-source-once)
 (defvar nnmail-split-history)
-(defvar nnmail-spool-file)
 
 (defun gnus-close-all-servers ()
   "Close all servers."
@@ -1173,7 +1172,7 @@ for new groups, and subscribe the new groups as zombies."
 			       gnus-check-new-newsgroups)
 			  gnus-secondary-select-methods))))
 	 (groups 0)
-	 group new-newsgroups got-new method hashtb
+	 new-newsgroups got-new method hashtb ;; group
 	 gnus-override-subscribe-method)
     (unless gnus-killed-hashtb
       (gnus-make-hashtable-from-killed))
@@ -1204,14 +1203,14 @@ for new groups, and subscribe the new groups as zombies."
 	       (cond
 		((eq do-sub 'subscribe)
 		 (cl-incf groups)
-		 (puthash g-name group gnus-killed-hashtb)
+		 (puthash g-name nil gnus-killed-hashtb) ;; group
 		 (gnus-call-subscribe-functions
 		  gnus-subscribe-options-newsgroup-method g-name))
 		((eq do-sub 'ignore)
 		 nil)
 		(t
 		 (cl-incf groups)
-		 (puthash g-name group gnus-killed-hashtb)
+		 (puthash g-name nil gnus-killed-hashtb) ;; group
 		 (if gnus-subscribe-hierarchical-interactive
 		     (push g-name new-newsgroups)
 		   (gnus-call-subscribe-functions
@@ -2378,6 +2377,11 @@ If FORCE is non-nil, the .newsrc file is read."
 	     (ding)
 	     (unless (gnus-yes-or-no-p (concat errmsg "; continue? "))
 	       (error "%s" errmsg)))))))))
+
+;; IIUC these 3 vars were used in older .newsrc files.
+(defvar gnus-killed-assoc)
+(defvar gnus-marked-assoc)
+(defvar gnus-newsrc-assoc)
 
 (defun gnus-read-newsrc-el-file (file)
   (let ((ding-file (concat file "d")))

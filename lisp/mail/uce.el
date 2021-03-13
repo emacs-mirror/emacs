@@ -1,4 +1,4 @@
-;;; uce.el --- facilitate reply to unsolicited commercial email
+;;; uce.el --- facilitate reply to unsolicited commercial email  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 1998, 2000-2021 Free Software Foundation, Inc.
 
@@ -127,14 +127,12 @@
   "A symbol indicating which mail reader you are using.
 Choose from: `gnus', `rmail'."
   :type '(choice (const gnus) (const rmail))
-  :version "20.3"
-  :group 'uce)
+  :version "20.3")
 
 (defcustom uce-setup-hook nil
   "Hook to run after UCE rant message is composed.
 This hook is run after `mail-setup-hook', which is run as well."
-  :type 'hook
-  :group 'uce)
+  :type 'hook)
 
 (defcustom uce-message-text
   "Recently, I have received an Unsolicited Commercial E-mail from you.
@@ -180,36 +178,31 @@ on beginning of some line from the spamming list.  So, when you set it
 up, it might be a good idea to actually use this feature.
 
 Value nil means insert no text by default, lets you type it in."
-  :type '(choice (const nil) string)
-  :group 'uce)
+  :type '(choice (const nil) string))
 
 (defcustom uce-uce-separator
   "----- original unsolicited commercial email follows -----"
   "Line that will begin quoting of the UCE.
 Value nil means use no separator."
-  :type '(choice (const nil) string)
-  :group 'uce)
+  :type '(choice (const nil) string))
 
 (defcustom uce-signature mail-signature
 "Text to put as your signature after the note to UCE sender.
 Value nil means none, t means insert `~/.signature' file (if it happens
 to exist), if this variable is a string this string will be inserted
 as your signature."
-  :type '(choice (const nil) (const t) string)
-  :group 'uce)
+  :type '(choice (const nil) (const t) string))
 
 (defcustom uce-default-headers
   "Errors-To: nobody@localhost\nPrecedence: bulk\n"
   "Additional headers to use when responding to a UCE with \\[uce-reply-to-uce].
 These are mostly meant for headers that prevent delivery errors reporting."
-  :type '(choice (const nil) string)
-  :group 'uce)
+  :type '(choice (const nil) string))
 
 (defcustom uce-subject-line
   "Spam alert: unsolicited commercial e-mail"
   "Subject of the message that will be sent in response to a UCE."
-  :type 'string
-  :group 'uce)
+  :type 'string)
 
 ;; End of user options.
 
@@ -221,7 +214,7 @@ These are mostly meant for headers that prevent delivery errors reporting."
 (declare-function rmail-toggle-header "rmail" (&optional arg))
 
 ;;;###autoload
-(defun uce-reply-to-uce (&optional ignored)
+(defun uce-reply-to-uce (&optional _ignored)
   "Compose a reply to unsolicited commercial email (UCE).
 Sets up a reply buffer addressed to: the sender, his postmaster,
 his abuse@ address, and the postmaster of the mail relay used.
@@ -367,7 +360,7 @@ You might need to set `uce-mail-reader' before using this."
       ;; functions in mail-mode, etc.
       (run-hooks 'mail-setup-hook 'uce-setup-hook))))
 
-(defun uce-insert-ranting (&optional ignored)
+(defun uce-insert-ranting (&optional _ignored)
   "Insert text of the usual reply to UCE into current buffer."
   (interactive "P")
   (insert uce-message-text))

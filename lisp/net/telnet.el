@@ -1,4 +1,4 @@
-;;; telnet.el --- run a telnet session from within an Emacs buffer
+;;; telnet.el --- run a telnet session from within an Emacs buffer  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2021 Free Software
 ;; Foundation, Inc.
@@ -63,11 +63,11 @@ LOGIN-NAME, which is optional, says what to log in as on that machine.")
 (defvar telnet-new-line "\r")
 (defvar telnet-mode-map
   (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
-    (define-key map "\C-m" 'telnet-send-input)
-    ;; (define-key map "\C-j" 'telnet-send-input)
-    (define-key map "\C-c\C-q" 'send-process-next-char)
-    (define-key map "\C-c\C-c" 'telnet-interrupt-subjob)
-    (define-key map "\C-c\C-z" 'telnet-c-z)
+    (define-key map "\C-m" #'telnet-send-input)
+    ;; (define-key map "\C-j" #'telnet-send-input)
+    (define-key map "\C-c\C-q" #'send-process-next-char)
+    (define-key map "\C-c\C-c" #'telnet-interrupt-subjob)
+    (define-key map "\C-c\C-z" #'telnet-c-z)
     map))
 
 (defvar telnet-prompt-pattern "^[^#$%>\n]*[#$%>] *")
@@ -152,7 +152,7 @@ rejecting one login and prompting again for a username and password.")
 	    (t (telnet-check-software-type-initialize string)
 	       (telnet-filter proc string)
 	       (cond ((> telnet-count telnet-maximum-count)
-		      (set-process-filter proc 'telnet-filter))
+		      (set-process-filter proc #'telnet-filter))
 		     (t (setq telnet-count (1+ telnet-count)))))))))
 
 ;; Identical to comint-simple-send, except that it sends telnet-new-line
@@ -227,9 +227,9 @@ Normally input is edited in Emacs and sent a line at a time."
     (if (and buffer (get-buffer-process buffer))
 	(switch-to-buffer (concat "*" name "*"))
       (switch-to-buffer
-       (apply 'make-comint name telnet-program nil telnet-options))
+       (apply #'make-comint name telnet-program nil telnet-options))
       (setq process (get-buffer-process (current-buffer)))
-      (set-process-filter process 'telnet-initial-filter)
+      (set-process-filter process #'telnet-initial-filter)
       ;; Don't send the `open' cmd till telnet is ready for it.
       (accept-process-output process)
       (erase-buffer)
@@ -263,7 +263,7 @@ Normally input is edited in Emacs and sent a line at a time."
   (require 'shell)
   (let ((name (concat "rsh-" host )))
     (switch-to-buffer (make-comint name remote-shell-program nil host))
-    (set-process-filter (get-process name) 'telnet-initial-filter)
+    (set-process-filter (get-process name) #'telnet-initial-filter)
     (telnet-mode)
     (setq-local telnet-connect-command (list 'rsh host))
     (setq telnet-count -16)))

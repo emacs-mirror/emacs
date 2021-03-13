@@ -1098,26 +1098,21 @@ at the beginning of `semantic-lex-token-stream'.
 This can be done by using `semantic-lex-push-token'."
   (declare (debug (&define name stringp form def-body)))
   `(eval-and-compile
-     (defvar ,name nil ,doc)
-     (defun ,name nil)
-     ;; Do this part separately so that re-evaluation rebuilds this code.
-     (setq ,name '(,condition ,@forms))
+     ;; This is the real info used by `define-lex' (via semantic-lex-one-token).
+     (defconst ,name '(,condition ,@forms) ,doc)
      ;; Build a single lexical analyzer function, so the doc for
      ;; function help is automatically provided, and perhaps the
      ;; function could be useful for testing and debugging one
      ;; analyzer.
-     (fset ',name (lambda () ,doc
-		    (let ((semantic-lex-token-stream nil)
-			  (semantic-lex-end-point (point))
-			  (semantic-lex-analysis-bounds
-			   (cons (point) (point-max)))
-			  (semantic-lex-current-depth 0)
-			  (semantic-lex-maximum-depth
-			   semantic-lex-depth)
-			  )
-		      (when ,condition ,@forms)
-		      semantic-lex-token-stream)))
-     ))
+     (defun ,name ()
+       ,doc
+       (let ((semantic-lex-token-stream nil)
+	     (semantic-lex-end-point (point))
+	     (semantic-lex-analysis-bounds (cons (point) (point-max)))
+	     (semantic-lex-current-depth 0)
+	     (semantic-lex-maximum-depth semantic-lex-depth))
+	 (when ,condition ,@forms)
+	 semantic-lex-token-stream))))
 
 (defmacro define-lex-regex-analyzer (name doc regexp &rest forms)
   "Create a lexical analyzer with NAME and DOC that will match REGEXP.
