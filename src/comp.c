@@ -4616,7 +4616,7 @@ eln_load_path_final_clean_up (void)
 				   Qt, build_string ("\\.eln\\.old\\'"), Qnil,
 				   Qnil, Qt, return_nil);
       FOR_EACH_TAIL (files_in_dir)
-	Fdelete_file (XCAR (files_in_dir), Qnil);
+	internal_delete_file (XCAR (files_in_dir));
     }
 #endif
 }
