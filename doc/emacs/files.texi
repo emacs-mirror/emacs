@@ -1652,8 +1652,9 @@ modify the original (``old'') source files rather than the patched
 (``new'') source files.
 
 @vindex diff-font-lock-syntax
-  If non-@code{nil}, fragments of source in hunks are highlighted
-according to the appropriate major mode.
+  If @code{diff-font-lock-syntax} is non-@code{nil}, fragments of
+source in hunks are highlighted according to the appropriate major
+mode.
 
 @node Copying and Naming
 @section Copying, Naming and Renaming Files
