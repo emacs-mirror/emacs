@@ -477,7 +477,6 @@ See `tramp-crypt-do-encrypt-or-decrypt-file'."
 Files in that directory and all subdirectories will be encrypted
 before copying to, and decrypted after copying from that
 directory.  File names will be also encrypted."
-  ;; (declare (completion tramp-crypt-enabled-p))
   (interactive "DRemote directory name: ")
   (unless tramp-crypt-enabled
     (tramp-user-error nil "Feature is not enabled."))
@@ -490,8 +489,7 @@ directory.  File names will be also encrypted."
     (setq tramp-crypt-directories (cons name tramp-crypt-directories)))
   (tramp-register-file-name-handlers))
 
-;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
-;;;###tramp-autoload
+;; `tramp-crypt-enabled-p' is not autoloaded, and this setting isn't either.
 (function-put
  #'tramp-crypt-add-directory 'completion-predicate #'tramp-crypt-enabled-p)
 
