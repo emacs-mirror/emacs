@@ -252,7 +252,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 		 (cond ((not expr) "")
 		       ((stringp expr) expr)
 		       ((vectorp expr) (webjump-builtin expr name))
-		       ((listp expr) (eval expr))
+		       ((listp expr) (eval expr t))
 		       ((symbolp expr)
 			(if (fboundp expr)
 			    (funcall expr name)

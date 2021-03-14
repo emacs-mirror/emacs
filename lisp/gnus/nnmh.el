@@ -503,6 +503,8 @@ as unread by Gnus.")
       (setcdr active (1+ (cdr active))))
     (cdr active)))
 
+(defvar nnmh-newsgroup-articles)
+
 (defun nnmh-update-gnus-unreads (group)
   ;; Go through the .nnmh-articles file and compare with the actual
   ;; articles in this folder.  The articles that are "new" will be

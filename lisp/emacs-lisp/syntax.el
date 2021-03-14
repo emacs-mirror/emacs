@@ -290,12 +290,13 @@ all RULES in total."
                                     ',(string-to-syntax (nth 1 action)))
                                    ,@(nthcdr 2 action))
                                `((let ((mb (match-beginning ,gn))
-                                       (me (match-end ,gn))
-                                       (syntax ,(nth 1 action)))
-                                   (if syntax
-                                       (put-text-property
-                                        mb me 'syntax-table syntax))
-                                   ,@(nthcdr 2 action)))))
+                                       (me (match-end ,gn)))
+                                   ,(macroexp-let2 nil syntax (nth 1 action)
+                                      `(progn
+                                         (if ,syntax
+                                             (put-text-property
+                                              mb me 'syntax-table ,syntax))
+                                         ,@(nthcdr 2 action)))))))
                             (t
                              `((let ((mb (match-beginning ,gn))
                                      (me (match-end ,gn))

@@ -1,4 +1,4 @@
-;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file
+;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 1987, 1993-1994, 2001-2021 Free Software
 ;; Foundation, Inc.
@@ -81,14 +81,14 @@ This uses `rmail-output-file-alist'."
 		      (widen)
 		      (narrow-to-region beg end)
 		      (let ((tail rmail-output-file-alist)
-			    answer err)
+			    answer) ;; err
 			;; Suggest a file based on a pattern match.
 			(while (and tail (not answer))
 			  (goto-char (point-min))
 			  (if (re-search-forward (caar tail) nil t)
 			      (setq answer
 				    (condition-case err
-					(eval (cdar tail))
+					(eval (cdar tail) t)
 				      (error
 				       (display-warning
 					'rmail-output
@@ -197,7 +197,8 @@ display message number MSG."
 
 (defun rmail-convert-to-babyl-format ()
   "Convert the mbox message in the current buffer to Babyl format."
-  (let ((count 0) (start (point-min))
+  (let (;; (count 0)
+	(start (point-min))
 	(case-fold-search nil)
 	(buffer-undo-list t))
     (goto-char (point-min))
@@ -357,7 +358,7 @@ unless NOMSG is a symbol (neither nil nor t).
 AS-SEEN is non-nil if we are copying the message \"as seen\"."
   (let ((case-fold-search t)
         encrypted-file-name
-	from date)
+	) ;; from date
     (goto-char (point-min))
     ;; Preserve the Mail-From and MIME-Version fields
     ;; even if they have been pruned.

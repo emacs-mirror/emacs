@@ -1721,7 +1721,7 @@ not be a new one).  It returns non-nil if it got any new messages."
 		  (buffer-read-only nil)
 		  ;; Don't make undo records while getting mail.
 		  (buffer-undo-list t)
-		  delete-files files file-last-names)
+		  files file-last-names) ;; delete-files
 	      ;; Pull files off all-files onto files as long as there is
 	      ;; no name conflict.  A conflict happens when two inbox
 	      ;; file names have the same last component.
@@ -1743,7 +1743,7 @@ not be a new one).  It returns non-nil if it got any new messages."
 		(while (not (looking-back "\n\n" (- (point) 2)))
 		  (insert "\n")))
 	      (setq found (or
-			   (rmail-get-new-mail-1 file-name files delete-files)
+			   (rmail-get-new-mail-1 file-name files nil) ;; delete-files
 			   found))))
 	  ;; Move to the first new message unless we have other unseen
 	  ;; messages before it.

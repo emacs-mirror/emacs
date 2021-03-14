@@ -248,8 +248,7 @@ gnutls-boot (as returned by `gnutls-boot-parameters')."
 	     (list key cert)))))))
 
 ;;;###autoload
-(defalias 'open-protocol-stream 'open-network-stream)
-(define-obsolete-function-alias 'open-protocol-stream 'open-network-stream
+(define-obsolete-function-alias 'open-protocol-stream #'open-network-stream
   "26.1")
 
 (defun network-stream-open-plain (name buffer host service parameters)

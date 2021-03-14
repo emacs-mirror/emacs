@@ -2279,7 +2279,7 @@ made in the number or names of categories."
 	(inc (prefix-numeric-value inc))
 	(buffer-read-only nil)
 	ndate ntime
-        year monthname month day dayname)
+        year monthname month day) ;; dayname
     (when marked (todo--user-error-if-marked-done-item))
     (save-excursion
       (or (and marked (goto-char (point-min))) (todo-item-start))
@@ -2437,7 +2437,7 @@ made in the number or names of categories."
                            (monthname monthname)
                            (month month)
                            (day day)
-                           (dayname dayname))
+                           (dayname nil)) ;; dayname
                         (mapconcat #'eval calendar-date-display-form "")))))
 	    (when ndate (replace-match ndate nil nil nil 1))
 	    ;; Add new time string to the header, if it was supplied.
@@ -3450,8 +3450,8 @@ containing only archived items, provided user option
 are shown in `todo-archived-only' face."
   (interactive)
   (todo-display-categories)
-  (let (sortkey)
-    (todo-update-categories-display sortkey)))
+  ;; (let (sortkey)
+  (todo-update-categories-display nil)) ;; sortkey
 
 (defun todo-next-button (n)
   "Move point to the Nth next button in the table of categories."

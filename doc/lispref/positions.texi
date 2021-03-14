@@ -232,7 +232,6 @@ backward until encountering the front of a word, rather than forward.
 @end deffn
 
 @defopt words-include-escapes
-@c Emacs 19 feature
 This variable affects the behavior of @code{forward-word} and
 @code{backward-word}, and everything that uses them.  If it is
 non-@code{nil}, then characters in the escape and character-quote

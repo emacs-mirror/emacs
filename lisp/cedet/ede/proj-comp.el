@@ -309,7 +309,7 @@ Not all compilers do this."
 (cl-defmethod ede-proj-makefile-insert-rules ((this ede-compilation-program))
   "Insert rules needed for THIS compiler object."
   (ede-compiler-only-once this
-    (mapc 'ede-proj-makefile-insert-rules (oref this rules))))
+    (mapc #'ede-proj-makefile-insert-rules (oref this rules))))
 
 (cl-defmethod ede-proj-makefile-insert-rules ((this ede-makefile-rule))
   "Insert rules needed for THIS rule object."

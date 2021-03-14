@@ -291,7 +291,7 @@ user-defined operators, use `calculator-user-operators' instead.")
 5. The function's precedence -- should be in the range of 1 (lowest) to
    9 (highest) (optional, defaults to 1);
 
-It it possible have a unary prefix version of a binary operator if it
+It is possible have a unary prefix version of a binary operator if it
 comes later in this list.  If the list begins with the symbol `nobind',
 then no key binding will take place -- this is only used for predefined
 keys.

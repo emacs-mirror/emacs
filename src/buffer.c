@@ -2419,6 +2419,7 @@ results, see Info node `(elisp)Swapping Text'.  */)
   swapfield (overlay_center, ptrdiff_t);
   swapfield_ (undo_list, Lisp_Object);
   swapfield_ (mark, Lisp_Object);
+  swapfield_ (mark_active, Lisp_Object); /* Belongs with the `mark'.  */
   swapfield_ (enable_multibyte_characters, Lisp_Object);
   swapfield_ (bidi_display_reordering, Lisp_Object);
   swapfield_ (bidi_paragraph_direction, Lisp_Object);

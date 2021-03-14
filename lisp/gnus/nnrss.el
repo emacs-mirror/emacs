@@ -200,7 +200,7 @@ for decoding when the cdr that the data specify is not available.")
   (nnrss-possibly-change-group group server)
   (let ((e (assq article nnrss-group-data))
 	(nntp-server-buffer (or buffer nntp-server-buffer))
-	err) ;; post
+	) ;; err post
     (when e
       (with-current-buffer nntp-server-buffer
 	(erase-buffer)
@@ -302,8 +302,7 @@ for decoding when the cdr that the data specify is not available.")
 	(when nnrss-content-function
 	  (funcall nnrss-content-function e group article))))
     (cond
-     (err
-      (nnheader-report 'nnrss err))
+     ;; (err (nnheader-report 'nnrss err))
      ((not e)
       (nnheader-report 'nnrss "no such id: %d" article))
      (t

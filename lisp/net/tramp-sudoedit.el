@@ -791,22 +791,16 @@ in case of error, t otherwise."
   (tramp-sudoedit-maybe-open-connection vec)
   (with-current-buffer (tramp-get-connection-buffer vec)
     (erase-buffer)
-    (let* ((login (tramp-get-method-parameter vec 'tramp-sudo-login))
-	   (host (or (tramp-file-name-host vec) ""))
-	   (user (or (tramp-file-name-user vec) ""))
-	   (spec (format-spec-make ?h host ?u user))
-	   (args (append
-		  (tramp-compat-flatten-tree
-		   (mapcar
-		    (lambda (x)
-		      (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-		      (unless (member "" x) x))
-		    login))
-		  (tramp-compat-flatten-tree (delq nil args))))
-	   (delete-exited-processes t)
+    (let* ((delete-exited-processes t)
 	   (process-connection-type tramp-process-connection-type)
 	   (p (apply #'start-process
-		     (tramp-get-connection-name vec) (current-buffer) args))
+		     (tramp-get-connection-name vec) (current-buffer)
+		     (append
+		      (tramp-expand-args
+		       vec 'tramp-sudo-login
+		       ?h (or (tramp-file-name-host vec) "")
+		       ?u (or (tramp-file-name-user vec) ""))
+		      (tramp-compat-flatten-tree args))))
 	   ;; We suppress the messages `Waiting for prompts from remote shell'.
 	   (tramp-verbose (if (= tramp-verbose 3) 2 tramp-verbose))
 	   ;; We do not want to save the password.

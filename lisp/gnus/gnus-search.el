@@ -549,7 +549,7 @@ structure.
 
 In the simplest case, they are simply consed together.  String
 KEY is converted to a symbol."
-  (let (return)
+  (let () ;; return
     (cond
      ((member key gnus-search-date-keys)
       (when (string= "after" key)
@@ -559,7 +559,7 @@ KEY is converted to a symbol."
       (setq value (gnus-search-query-parse-mark value)))
      ((string= "message-id" key)
       (setq key "id")))
-    (or return
+    (or nil ;; return
 	(cons (intern key) value))))
 
 (defun gnus-search-query-parse-date (value &optional rel-date)

@@ -3508,7 +3508,7 @@ canceled the first time the function is entered."
 
 (defun edebug-cancel-on-entry (function)
   "Cause Edebug to not stop when FUNCTION is called.
-The removes the effect of `edebug-on-entry'.  If FUNCTION is is
+The removes the effect of `edebug-on-entry'.  If FUNCTION is
 nil, remove `edebug-on-entry' on all functions."
   (interactive
    (list (let ((name (completing-read

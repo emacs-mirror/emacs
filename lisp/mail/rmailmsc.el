@@ -1,4 +1,4 @@
-;;; rmailmsc.el --- miscellaneous support functions for the RMAIL mail reader
+;;; rmailmsc.el --- miscellaneous support functions for the RMAIL mail reader  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 2001-2021 Free Software Foundation, Inc.
 
@@ -45,7 +45,7 @@ This applies only to the current session."
 	   (nreverse (mail-parse-comma-list)))))
     (when (or (not rmail-inbox-list)
 	      (y-or-n-p (concat "Replace "
-				(mapconcat 'identity
+				(mapconcat #'identity
 					   rmail-inbox-list
 					   ", ")
 				"? ")))

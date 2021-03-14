@@ -44,6 +44,7 @@ whether the tab is a buffer, and whether the tab is selected."
   :type '(repeat
           (choice (function-item tab-line-tab-face-special)
                   (function-item tab-line-tab-face-inactive-alternating)
+                  (function-item tab-line-tab-face-group)
                   (function :tag "Custom function")))
   :group 'tab-line
   :version "28.1")
@@ -92,6 +93,16 @@ Applied to alternating tabs when option
   "Face for special (i.e. non-file-backed) tabs.
 Applied when option `tab-line-tab-face-functions' includes
 function `tab-line-tab-face-special'."
+  :version "28.1"
+  :group 'tab-line-faces)
+
+(defface tab-line-tab-group
+  '((default
+      :inherit tab-line
+      :box nil))
+  "Face for group tabs.
+Applied when option `tab-line-tab-face-functions' includes
+function `tab-line-tab-face-group'."
   :version "28.1"
   :group 'tab-line-faces)
 
@@ -294,7 +305,10 @@ be displayed, or just a list of strings to display in the tab line.
 By default, use function `tab-line-tabs-window-buffers' that
 returns a list of buffers associated with the selected window.
 When `tab-line-tabs-mode-buffers', return a list of buffers
-with the same major mode as the current buffer."
+with the same major mode as the current buffer.
+When `tab-line-tabs-buffer-groups', return a list of buffers
+grouped either by `tab-line-tabs-buffer-group-function', when set,
+or by `tab-line-tabs-buffer-groups'."
   :type '(choice (const :tag "Window buffers"
                         tab-line-tabs-window-buffers)
                  (const :tag "Same mode buffers"
@@ -356,6 +370,11 @@ If the major mode's name string matches REGEXP, use GROUPNAME instead.")
           mode))))
 
 (defun tab-line-tabs-buffer-groups ()
+  "Return a list of tabs that should be displayed in the tab line.
+By default return a list of buffers grouped by major mode,
+according to `tab-line-tabs-buffer-groups'.
+If non-nil, `tab-line-tabs-buffer-group-function' is used to
+generate the group name."
   (if (window-parameter nil 'tab-line-groups)
       (let* ((buffers (funcall tab-line-tabs-buffer-list-function))
              (groups
@@ -385,6 +404,7 @@ If the major mode's name string matches REGEXP, use GROUPNAME instead.")
                       (set-window-parameter nil 'tab-line-group nil))))
            (group-tab `(tab
                         (name . ,group)
+                        (group-tab . t)
                         (select . ,(lambda ()
                                      (set-window-parameter nil 'tab-line-groups t)
                                      (set-window-parameter nil 'tab-line-group group)
@@ -518,6 +538,13 @@ When TAB is a non-file-backed buffer, make FACE inherit from
 `tab-line-tab-face-functions'."
   (when (and buffer-p (not (buffer-file-name tab)))
     (setf face `(:inherit (tab-line-tab-special ,face))))
+  face)
+
+(defun tab-line-tab-face-group (tab _tabs face _buffer-p _selected-p)
+  "Return FACE for TAB according to whether it's a group tab.
+For use in `tab-line-tab-face-functions'."
+  (when (alist-get 'group-tab tab)
+    (setf face `(:inherit (tab-line-tab-group ,face))))
   face)
 
 (defvar tab-line-auto-hscroll)

@@ -3716,7 +3716,7 @@ so return the size on the remote host exactly. See RFC 3659."
 	     (binary (or (ange-ftp-binary-file filename)
 			 (ange-ftp-binary-file newname)))
 	     temp1
-	     temp2)
+	     ) ;; temp2
 
 	;; check to see if we can overwrite
 	(if (or (not ok-if-already-exists)
@@ -3750,7 +3750,7 @@ so return the size on the remote host exactly. See RFC 3659."
 		     filename newname binary msg
 		     f-parsed f-host f-user f-name f-abbr
 		     t-parsed t-host t-user t-name t-abbr
-		     temp1 temp2 cont nowait)
+		     temp1 nil cont nowait) ;; temp2
 	       nowait))
 
 	  ;; filename wasn't remote.  newname must be remote.  call the

@@ -823,7 +823,9 @@ The path separator is colon in GNU and GNU-like systems."
          (expand-file-name dir))
     (locate-file dir cd-path nil
                  (lambda (f) (and (file-directory-p f) 'dir-ok)))
-    (error "No such directory found via CDPATH environment variable"))))
+    (if (getenv "CDPATH")
+        (error "No such directory found via CDPATH environment variable: %s" dir)
+      (error "No such directory: %s" dir)))))
 
 (defun directory-files-recursively (dir regexp
                                         &optional include-directories predicate

@@ -2293,8 +2293,8 @@ If OPOINT is non-nil, restore point there after adjusting it for replacement."
 				 corrects)
 		       '()))
 	 (affix      (car (cdr (cdr (cdr poss)))))
-	 show-affix-info
-	 (base-menu  (let ((save (if (and (consp affix) show-affix-info)
+	 ;; show-affix-info
+	 (base-menu  (let ((save (if nil ;; (and (consp affix) show-affix-info)
 				     (list
 				      (list (concat "Save affix: " (car affix))
 					    'save)

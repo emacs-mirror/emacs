@@ -1,4 +1,4 @@
-;;; eudc-export.el --- functions to export EUDC query results
+;;; eudc-export.el --- functions to export EUDC query results  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -35,6 +35,7 @@
 ;; NOERROR is so we can compile it.
 (require 'bbdb nil t)
 (require 'bbdb-com nil t)
+(require 'cl-lib)
 
 (defun eudc-create-bbdb-record (record &optional silent)
   "Create a BBDB record using the RECORD alist.
@@ -42,24 +43,22 @@ RECORD is an alist of (KEY . VALUE) where KEY is a directory attribute name
 symbol and VALUE is the corresponding value for the record.
 If SILENT is non-nil then the created BBDB record is not displayed."
   (require 'bbdb)
+  (declare-function bbdb-create-internal "bbdb-com" (&rest spec))
+  (declare-function bbdb-display-records "bbdb"
+                    (records &optional layout append))
   ;; This function runs in a special context where lisp symbols corresponding
   ;; to field names in record are bound to the corresponding values
-  (eval
-   `(let* (,@(mapcar (lambda (c)
-			(list (car c) (if (listp (cdr c))
-					  (list 'quote (cdr c))
-					(cdr c))))
-		     record)
-	     bbdb-name
-	     bbdb-company
-	     bbdb-net
-	     bbdb-address
-	     bbdb-phones
-	     bbdb-notes
-	     spec
-	     bbdb-record
-	     value
-	     (conversion-alist (symbol-value eudc-bbdb-conversion-alist)))
+  (cl-progv (mapcar #'car record) (mapcar #'cdr record)
+    (let* (bbdb-name
+	   bbdb-company
+	   bbdb-net
+	   bbdb-address
+	   bbdb-phones
+	   bbdb-notes
+	   spec
+	   bbdb-record
+	   value
+	   (conversion-alist (symbol-value eudc-bbdb-conversion-alist)))
 
       ;; BBDB standard fields
       (setq bbdb-name (eudc-parse-spec (cdr (assq 'name conversion-alist)) record nil)
@@ -68,14 +67,14 @@ If SILENT is non-nil then the created BBDB record is not displayed."
 	    bbdb-notes (eudc-parse-spec (cdr (assq 'notes conversion-alist)) record nil))
       (setq spec (cdr (assq 'address conversion-alist)))
       (setq bbdb-address (delq nil (eudc-parse-spec (if (listp (car spec))
-						      spec
-						    (list spec))
-						  record t)))
+						        spec
+						      (list spec))
+						    record t)))
       (setq spec (cdr (assq 'phone conversion-alist)))
       (setq bbdb-phones (delq nil (eudc-parse-spec (if (listp (car spec))
-						     spec
-						   (list spec))
-						 record t)))
+						       spec
+						     (list spec))
+						   record t)))
       ;; BBDB custom fields
       (setq bbdb-notes (append (list (and bbdb-notes (cons 'notes bbdb-notes)))
                                (mapcar (lambda (mapping)
@@ -85,19 +84,20 @@ If SILENT is non-nil then the created BBDB record is not displayed."
                                              (cons (car mapping) value)))
 				       conversion-alist)))
       (setq bbdb-notes (delq nil bbdb-notes))
-      (setq bbdb-record (bbdb-create-internal
-			 bbdb-name
-			 ,@(when (eudc--using-bbdb-3-or-newer-p)
-			     '(nil
-			       nil))
-			 bbdb-company
-			 bbdb-net
-			 ,@(if (eudc--using-bbdb-3-or-newer-p)
-			       '(bbdb-phones
-				 bbdb-address)
-			     '(bbdb-address
-			       bbdb-phones))
-			 bbdb-notes))
+      (setq bbdb-record
+	    (apply #'bbdb-create-internal
+	           `(,bbdb-name
+	             ,@(when (eudc--using-bbdb-3-or-newer-p)
+		         '(nil
+		           nil))
+		     ,bbdb-company
+		     ,bbdb-net
+		     ,@(if (eudc--using-bbdb-3-or-newer-p)
+		           (list bbdb-phones
+		                 bbdb-address)
+		         (list bbdb-address
+		               bbdb-phones))
+		     ,bbdb-notes)))
       (or silent
 	  (bbdb-display-records (list bbdb-record))))))
 
@@ -111,7 +111,7 @@ If RECURSE is non-nil then SPEC may be a list of atomic specs."
 	     (symbolp (car spec))
 	     (fboundp (car spec))))
     (condition-case nil
-	(eval spec)
+	(eval spec t)
       (void-variable nil)))
    ((and recurse
 	 (listp spec))
@@ -194,9 +194,9 @@ LOCATION is used as the phone location for BBDB."
 	   (signal (car err) (cdr err)))))
       (if (= 3 (length phone-list))
 	  (setq phone-list (append phone-list '(nil))))
-      (apply 'vector location phone-list)))
+      (apply #'vector location phone-list)))
    ((listp phone)
-    (vector location (mapconcat 'identity phone ", ")))
+    (vector location (mapconcat #'identity phone ", ")))
    (t
     (error "Invalid phone specification"))))
 

@@ -370,11 +370,10 @@ On Windows, the @file{.emacs} file may be called @file{_emacs} for
 backward compatibility with DOS and FAT filesystems where filenames
 could not start with a dot.  Some users prefer to continue using such
 a name due to historical problems various Windows tools had in the
-past with file names that begin with a dot.  In Emacs 22 and later,
-the init file may also be called @file{.emacs.d/init.el}.  Many of the
-other files that are created by lisp packages are now stored in the
-@file{.emacs.d} directory too, so this keeps all your Emacs related
-files in one place.
+past with file names that begin with a dot.  The init file may also be
+called @file{.emacs.d/init.el}.  Many of the other files that are
+created by Lisp packages are stored in the @file{.emacs.d} directory
+too, which keeps all your Emacs related files in one place.
 
 All the files mentioned above should go in your @env{HOME} directory.
 The @env{HOME} directory is determined by following the steps below:

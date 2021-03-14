@@ -3466,7 +3466,7 @@ The Y-RADIUS must be 0, but the X-RADIUS must not be 0."
 	(line-char  (if artist-line-char-set artist-line-char ?-))
 	(i          0)
 	(point-list nil)
-	(fill-info  nil)
+	;; (fill-info  nil)
 	(shape-info (make-vector 2 0)))
     (while (< i width)
       (let* ((line-x (+ left-edge i))
@@ -3479,7 +3479,7 @@ The Y-RADIUS must be 0, but the X-RADIUS must not be 0."
 	(setq point-list (append point-list (list new-coord)))
 	(setq i (1+ i))))
     (aset shape-info 0 point-list)
-    (aset shape-info 1 fill-info)
+    (aset shape-info 1 nil) ;; fill-info
     (artist-make-2point-object (artist-make-endpoint x1 y1)
 			       (artist-make-endpoint x-radius y-radius)
 			       shape-info)))

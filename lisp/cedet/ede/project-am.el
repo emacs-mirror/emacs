@@ -596,10 +596,8 @@ Strip out duplicates, and recurse on variables."
 		(project-am-expand-subdirlist
 		 place (makefile-macro-file-list var))
 	      ;; Else, add SP in if it isn't a dup.
-	      (if (member sp (symbol-value place))
-		  nil ; don't do it twice.
-		(set place (cons sp (symbol-value place))) ;; add
-		))))
+	      (cl-pushnew sp (gv-deref place) :test #'equal) ;; add
+	      )))
 	subdirs)
   )
 
@@ -645,7 +643,7 @@ Strip out duplicates, and recurse on variables."
       ;; We still have a list of targets.  For all buffers, make sure
       ;; their object still exists!
       ;; FIGURE THIS OUT
-      (project-am-expand-subdirlist 'csubprojexpanded csubproj)
+      (project-am-expand-subdirlist (gv-ref csubprojexpanded) csubproj)
       ;; Ok, now let's look at all our sub-projects.
       (mapc (lambda (sp)
 	      (let* ((subdir (file-name-as-directory

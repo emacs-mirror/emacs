@@ -1696,7 +1696,6 @@ buffer has a buffer-local binding.  For example, you could use
 you are in a C or Lisp mode buffer that has a buffer-local value for
 this variable.
 
-@c Emacs 19 feature
   The special forms @code{defvar} and @code{defconst} also set the
 default value (if they set the variable at all), rather than any
 buffer-local value.
@@ -1708,7 +1707,6 @@ this variable.  If @var{symbol} is not buffer-local, this is equivalent
 to @code{symbol-value} (@pxref{Accessing Variables}).
 @end defun
 
-@c Emacs 19 feature
 @defun default-boundp symbol
 The function @code{default-boundp} tells you whether @var{symbol}'s
 default value is nonvoid.  If @code{(default-boundp 'foo)} returns

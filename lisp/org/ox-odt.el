@@ -2111,7 +2111,8 @@ SHORT-CAPTION are strings."
 	 (caption (let ((c (org-export-get-caption element-or-parent)))
 		    (and c (org-export-data c info))))
 	 ;; FIXME: We don't use short-caption for now
-	 (short-caption nil))
+	 ;; (short-caption nil)
+	 )
     (when (or label caption)
       (let* ((default-category
 	       (cl-case (org-element-type element)
@@ -2159,7 +2160,7 @@ SHORT-CAPTION are strings."
 			   "<text:sequence text:ref-name=\"%s\" text:name=\"%s\" text:formula=\"ooow:%s+1\" style:num-format=\"1\">%s</text:sequence>"
 			   label counter counter seqno))
 		   (?c . ,(or caption "")))))
-	       short-caption))
+	       nil)) ;; short-caption
 	    ;; Case 2: Handle Label reference.
 	    (reference
 	     (let* ((fmt (cddr (assoc-string label-style org-odt-label-styles t)))
@@ -2362,14 +2363,14 @@ used as a communication channel."
 	 ;; If yes, note down its contents.  It will go in to frame
 	 ;; description.  This quite useful for debugging.
 	 (desc (and replaces (org-element-property :value replaces)))
-	 width height)
+	 ) ;; width height
     (cond
      ((eq embed-as 'character)
-      (org-odt--render-image/formula "InlineFormula" href width height
+      (org-odt--render-image/formula "InlineFormula" href nil nil ;; width height
 				     nil nil title desc))
      (t
       (let* ((equation (org-odt--render-image/formula
-			"CaptionedDisplayFormula" href width height
+			"CaptionedDisplayFormula" href nil nil ;; width height
 			captions nil title desc))
 	     (label
 	      (let* ((org-odt-category-map-alist

@@ -1,4 +1,4 @@
-;;; ede/detect.el --- EDE project detection and file associations
+;;; ede/detect.el --- EDE project detection and file associations  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 

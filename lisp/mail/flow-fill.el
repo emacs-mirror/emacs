@@ -81,7 +81,7 @@ RFC 2646 suggests 66 characters for readability."
 	(while (setq end (text-property-any start (point-max) 'hard 't))
 	  (save-restriction
 	    (narrow-to-region start end)
-	    (let ((fill-column (eval fill-flowed-encode-column)))
+	    (let ((fill-column (eval fill-flowed-encode-column t)))
 	      (fill-flowed-fill-buffer))
 	    (goto-char (point-min))
 	    (while (re-search-forward "\n" nil t)
@@ -119,7 +119,7 @@ If BUFFER is nil, default to the current buffer.
 If DELETE-SPACE, delete RFC2646 spaces padding at the end of
 lines."
   (with-current-buffer (or buffer (current-buffer))
-    (let ((fill-column  (eval fill-flowed-display-column)))
+    (let ((fill-column  (eval fill-flowed-display-column t)))
       (goto-char (point-min))
       (while (not (eobp))
         (cond

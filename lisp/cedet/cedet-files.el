@@ -1,4 +1,4 @@
-;;; cedet-files.el --- Common routines dealing with file names.
+;;; cedet-files.el --- Common routines dealing with file names.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 

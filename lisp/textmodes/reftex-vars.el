@@ -1318,7 +1318,7 @@ macro before insertion.  For example, it will change
     \\cite[][Chapter 1]{Jones}     -> \\cite[Chapter 1]{Jones}
     \\cite[see][]{Jones}           -> \\cite[see][]{Jones}
     \\cite[see][Chapter 1]{Jones}  -> \\cite{Jones}
-Is is possible that other packages have other conventions about which
+It is possible that other packages have other conventions about which
 optional argument is interpreted how - that is why this cleaning up
 can be turned off."
   :group 'reftex-citation-support

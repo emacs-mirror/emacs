@@ -388,15 +388,15 @@ file.  For example:
 Emacs versions, like this:
 
 @example
-(cond ((< emacs-major-version 22)
-       ;; @r{Emacs 21 customization.}
-       (setq custom-file "~/.config/custom-21.el"))
-      ((and (= emacs-major-version 22)
+(cond ((< emacs-major-version 28)
+       ;; @r{Emacs 27 customization.}
+       (setq custom-file "~/.config/custom-27.el"))
+      ((and (= emacs-major-version 26)
             (< emacs-minor-version 3))
-       ;; @r{Emacs 22 customization, before version 22.3.}
-       (setq custom-file "~/.config/custom-22.el"))
+       ;; @r{Emacs 26 customization, before version 26.3.}
+       (setq custom-file "~/.config/custom-26.el"))
       (t
-       ;; @r{Emacs version 22.3 or later.}
+       ;; @r{Emacs version 28.1 or later.}
        (setq custom-file "~/.config/emacs-custom.el")))
 
 (load custom-file)

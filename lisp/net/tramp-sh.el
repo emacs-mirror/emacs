@@ -46,7 +46,6 @@
 (defconst tramp-default-remote-shell "/bin/sh"
   "The default remote shell Tramp applies.")
 
-;;;###tramp-autoload
 (defcustom tramp-inline-compress-start-size 4096
   "The minimum size of compressing where inline transfer.
 When inline transfer, compress transferred data of file whose
@@ -56,23 +55,12 @@ If it is nil, no compression at all will be applied."
   :group 'tramp
   :type '(choice (const nil) integer))
 
-;;;###tramp-autoload
 (defcustom tramp-copy-size-limit 10240
   "Maximum file size where inline copying is preferred to an out-of-the-band copy.
 If it is nil, out-of-the-band copy will be used without a check."
   :group 'tramp
   :type '(choice (const nil) integer))
 
-;;;###tramp-autoload
-(defcustom tramp-terminal-type "dumb"
-  "Value of TERM environment variable for logging in to remote host.
-Because Tramp wants to parse the output of the remote shell, it is easily
-confused by ANSI color escape sequences and suchlike.  Often, shell init
-files conditionalize this setup based on the TERM environment variable."
-  :group 'tramp
-  :type 'string)
-
-;;;###tramp-autoload
 (defcustom tramp-histfile-override "~/.tramp_history"
   "When invoking a shell, override the HISTFILE with this value.
 When setting to a string, it redirects the shell history to that
@@ -115,7 +103,6 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (defconst tramp-end-of-heredoc (md5 tramp-end-of-output)
   "String used to recognize end of heredoc strings.")
 
-;;;###tramp-autoload
 (defcustom tramp-use-ssh-controlmaster-options t
   "Whether to use `tramp-ssh-controlmaster-options'.
 Set it to nil, if you use Control* or Proxy* options in your ssh
@@ -477,70 +464,6 @@ The string is used in `tramp-methods'.")
  (tramp-set-completion-function "psftp" tramp-completion-function-alist-ssh)
  (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
 
-;; "getconf PATH" yields:
-;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin
-;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
-;; GNU/Linux (Debian, Suse, RHEL): /bin:/usr/bin
-;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
-;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
-;; IRIX64: /usr/bin
-;; QNAP QTS: ---
-;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
-;;;###tramp-autoload
-(defcustom tramp-remote-path
-  '(tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin"
-    "/usr/local/bin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin"
-    "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin"
-    "/opt/bin" "/opt/sbin" "/opt/local/bin")
-  "List of directories to search for executables on remote host.
-For every remote host, this variable will be set buffer local,
-keeping the list of existing directories on that host.
-
-You can use \"~\" in this list, but when searching for a shell which groks
-tilde expansion, all directory names starting with \"~\" will be ignored.
-
-`Default Directories' represent the list of directories given by
-the command \"getconf PATH\".  It is recommended to use this
-entry on head of this list, because these are the default
-directories for POSIX compatible commands.  On remote hosts which
-do not offer the getconf command (like cygwin), the value
-\"/bin:/usr/bin\" is used instead.  This entry is represented in
-the list by the special value `tramp-default-remote-path'.
-
-`Private Directories' are the settings of the $PATH environment,
-as given in your `~/.profile'.  This entry is represented in
-the list by the special value `tramp-own-remote-path'."
-  :group 'tramp
-  :type '(repeat (choice
-		  (const :tag "Default Directories" tramp-default-remote-path)
-		  (const :tag "Private Directories" tramp-own-remote-path)
-		  (string :tag "Directory"))))
-
-;;;###tramp-autoload
-(defcustom tramp-remote-process-environment
-  '("ENV=''" "TMOUT=0" "LC_CTYPE=''"
-    "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH=" "PAGER=cat"
-    "autocorrect=" "correct=")
-  "List of environment variables to be set on the remote host.
-
-Each element should be a string of the form ENVVARNAME=VALUE.  An
-entry ENVVARNAME= disables the corresponding environment variable,
-which might have been set in the init files like ~/.profile.
-
-Special handling is applied to some environment variables,
-which should not be set here:
-
-The PATH environment variable should be set via `tramp-remote-path'.
-
-The TERM environment variable should be set via `tramp-terminal-type'.
-
-The INSIDE_EMACS environment variable will automatically be set
-based on the Tramp and Emacs versions, and should not be set here."
-  :group 'tramp
-  :version "26.1"
-  :type '(repeat string))
-
-;;;###tramp-autoload
 (defcustom tramp-sh-extra-args
   '(("/bash\\'" . "-noediting -norc -noprofile")
     ("/zsh\\'" . "-f +Z -V"))
@@ -2370,53 +2293,29 @@ The method used must be an out-of-band method."
 	    (setq listener (number-to-string (+ 50000 (random 10000))))))
 
 	;; Compose copy command.
-	(setq host (or host "")
-	      user (or user "")
-	      port (or port "")
-	      spec (format-spec-make
-		    ?t (tramp-get-connection-property
-			(tramp-get-connection-process v) "temp-file" ""))
-	      options (format-spec (tramp-ssh-controlmaster-options v) spec)
-	      spec (format-spec-make
-		    ?h host ?u user ?p port ?r listener ?c options
-		    ?k (if keep-date " " "")
+	(setq options
+	      (format-spec
+	       (tramp-ssh-controlmaster-options v)
+	       (format-spec-make
+		?t (tramp-get-connection-property
+		    (tramp-get-connection-process v) "temp-file" "")))
+	      spec (list
+		    ?h (or host "") ?u (or user "") ?p (or port "")
+		    ?r listener ?c options ?k (if keep-date " " "")
                     ?n (concat "2>" (tramp-get-remote-null-device v)))
 	      copy-program (tramp-get-method-parameter v 'tramp-copy-program)
 	      copy-keep-date (tramp-get-method-parameter
 			      v 'tramp-copy-keep-date)
-
 	      copy-args
-	      (delete
-	       ;; " " has either been a replacement of "%k" (when
-	       ;; keep-date argument is non-nil), or a replacement
-	       ;; for the whole keep-date sublist.
-	       " "
-	       (dolist
-		   (x (tramp-get-method-parameter v 'tramp-copy-args) copy-args)
-		 (setq copy-args
-		       (append
-			copy-args
-			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-			  (unless (member "" y) y))))))
-
-	      copy-env
-	      (delq
-	       nil
-	       (mapcar
-		(lambda (x)
-		  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-		  (unless (member "" x) (string-join x " ")))
-		(tramp-get-method-parameter v 'tramp-copy-env)))
-
+	      ;; " " has either been a replacement of "%k" (when
+	      ;; keep-date argument is non-nil), or a replacement for
+	      ;; the whole keep-date sublist.
+	      (delete " " (apply #'tramp-expand-args v 'tramp-copy-args spec))
+	      copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
 	      remote-copy-program
-	      (tramp-get-method-parameter v 'tramp-remote-copy-program))
-
-	(dolist (x (tramp-get-method-parameter v 'tramp-remote-copy-args))
-	  (setq remote-copy-args
-		(append
-		 remote-copy-args
-		 (let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-		   (unless (member "" y) y)))))
+	      (tramp-get-method-parameter v 'tramp-remote-copy-program)
+	      remote-copy-args
+	      (apply #'tramp-expand-args v 'tramp-remote-copy-args spec))
 
 	;; Check for local copy program.
 	(unless (executable-find copy-program)
@@ -2462,10 +2361,11 @@ The method used must be an out-of-band method."
 		 v "process-name" (buffer-name (current-buffer)))
 		(tramp-set-connection-property
 		 v "process-buffer" (current-buffer))
-		(while copy-env
+		(when copy-env
 		  (tramp-message
-		   orig-vec 6 "%s=\"%s\"" (car copy-env) (cadr copy-env))
-		  (setenv (pop copy-env) (pop copy-env)))
+		   orig-vec 6 "%s=\"%s\""
+		   (car copy-env) (string-join (cdr copy-env) " "))
+		  (setenv (car copy-env) (string-join (cdr copy-env) " ")))
 		(setq
 		 copy-args
 		 (append
@@ -4918,7 +4818,7 @@ If there is just some editing, retry it after 5 seconds."
       (progn
 	(tramp-message
 	 vec 5 "Cannot timeout session, trying it again in %s seconds." 5)
-	(run-at-time 5 nil 'tramp-timeout-session vec))
+	(run-at-time 5 nil #'tramp-timeout-session vec))
     (tramp-message
      vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'noloc))
     (tramp-cleanup-connection vec 'keep-debug nil 'keep-processes)))
@@ -5049,19 +4949,17 @@ connection if a previous connection has died for some reason."
 			 (l-domain (tramp-file-name-domain hop))
 			 (l-host (tramp-file-name-host hop))
 			 (l-port (tramp-file-name-port hop))
-			 (login-program
-			  (tramp-get-method-parameter hop 'tramp-login-program))
-			 (login-args
-			  (tramp-get-method-parameter hop 'tramp-login-args))
 			 (remote-shell
 			  (tramp-get-method-parameter hop 'tramp-remote-shell))
 			 (extra-args (tramp-get-sh-extra-args remote-shell))
 			 (async-args
-			  (tramp-get-method-parameter hop 'tramp-async-args))
+			  (tramp-compat-flatten-tree
+			   (tramp-get-method-parameter hop 'tramp-async-args)))
 			 (connection-timeout
 			  (tramp-get-method-parameter
 			   hop 'tramp-connection-timeout))
-			 (command login-program)
+			 (command
+			  (tramp-get-method-parameter hop 'tramp-login-program))
 			 ;; We don't create the temporary file.  In
 			 ;; fact, it is just a prefix for the
 			 ;; ControlPath option of ssh; the real
@@ -5075,11 +4973,7 @@ connection if a previous connection has died for some reason."
 			  (with-tramp-connection-property
 			      (tramp-get-process vec) "temp-file"
 			    (tramp-compat-make-temp-name)))
-			 spec r-shell)
-
-		    ;; Add arguments for asynchronous processes.
-		    (when (and process-name async-args)
-		      (setq login-args (append async-args login-args)))
+			 r-shell)
 
 		    ;; Check, whether there is a restricted shell.
 		    (dolist (elt tramp-restricted-shell-hosts-alist)
@@ -5104,31 +4998,28 @@ connection if a previous connection has died for some reason."
 
 		    ;; Replace `login-args' place holders.
 		    (setq
-		     l-host (or l-host "")
-		     l-user (or l-user "")
-		     l-port (or l-port "")
-		     spec (format-spec-make ?t tmpfile)
-		     options (format-spec options spec)
-		     spec (format-spec-make
-			   ?h l-host ?u l-user ?p l-port ?c options
-			   ?l (concat remote-shell " " extra-args " -i"))
 		     command
-		     (concat
-		      ;; We do not want to see the trailing local
-		      ;; prompt in `start-file-process'.
-		      (unless r-shell "exec ")
-		      command " "
-		      (mapconcat
-		       (lambda (x)
-			 (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-			 (unless (member "" x) (string-join x " ")))
-		       login-args " ")
-		      ;; Local shell could be a Windows COMSPEC.  It
-		      ;; doesn't know the ";" syntax, but we must exit
-		      ;; always for `start-file-process'.  It could
-		      ;; also be a restricted shell, which does not
-		      ;; allow "exec".
-		      (when r-shell " && exit || exit")))
+		     (mapconcat
+		      #'identity
+		      (append
+		       ;; We do not want to see the trailing local
+		       ;; prompt in `start-file-process'.
+		       (unless r-shell '("exec"))
+		       `(,command)
+		       ;; Add arguments for asynchronous processes.
+		       (when process-name async-args)
+		       (tramp-expand-args
+			hop 'tramp-login-args
+			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
+			?c (format-spec options (format-spec-make ?t tmpfile))
+			?l (concat remote-shell " " extra-args " -i"))
+		       ;; Local shell could be a Windows COMSPEC.  It
+		       ;; doesn't know the ";" syntax, but we must
+		       ;; exit always for `start-file-process'.  It
+		       ;; could also be a restricted shell, which does
+		       ;; not allow "exec".
+		       (when r-shell '("&&" "exit" "||" "exit")))
+		      " "))
 
 		    ;; Send the command.
 		    (tramp-message vec 3 "Sending command `%s'" command)
@@ -5149,7 +5040,7 @@ connection if a previous connection has died for some reason."
 		(when (tramp-get-connection-property p "session-timeout" nil)
 		  (run-at-time
 		   (tramp-get-connection-property p "session-timeout" nil) nil
-		   'tramp-timeout-session vec))
+		   #'tramp-timeout-session vec))
 
 		;; Make initial shell settings.
 		(tramp-open-connection-setup-interactive-shell p vec)
@@ -5469,7 +5360,7 @@ Nonexistent directories are removed from spec."
 		  (progn
 		    (tramp-message
 		     vec 3
-		    "`getconf PATH' not successful, using default value \"%s\"."
+		     "`getconf PATH' not successful, using default value \"%s\"."
 		     "/bin:/usr/bin")
 		    "/bin:/usr/bin"))))
 	     (own-remote-path

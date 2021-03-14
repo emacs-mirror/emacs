@@ -1327,6 +1327,8 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	 radians-to-degrees rassq rassoc read-from-string regexp-opt
          regexp-quote region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp
+         string> string-greaterp string-empty-p
+         string-prefix-p string-suffix-p string-blank-p
          string-search string-to-char
 	 string-to-number string-to-syntax substring
 	 sxhash sxhash-equal sxhash-eq sxhash-eql

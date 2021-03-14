@@ -1,4 +1,4 @@
-;;; semantic.el --- Semantic buffer evaluator.
+;;; semantic.el --- Semantic buffer evaluator.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -297,7 +297,7 @@ to use Semantic, and `semantic-init-hook' is run."
                    'semantic-inhibit-functions)))
     ;; Make sure that if this buffer is cloned, our tags and overlays
     ;; don't go along for the ride.
-    (add-hook 'clone-indirect-buffer-hook 'semantic-clear-toplevel-cache
+    (add-hook 'clone-indirect-buffer-hook #'semantic-clear-toplevel-cache
 	      nil t)
     ;; Specify that this function has done its work.  At this point
     ;; we can consider that semantic is active in this buffer.
@@ -466,12 +466,12 @@ is requested."
   ;; Nuke all semantic overlays.  This is faster than deleting based
   ;; on our data structure.
   (let ((l (overlay-lists)))
-    (mapc 'semantic-delete-overlay-maybe (car l))
-    (mapc 'semantic-delete-overlay-maybe (cdr l))
+    (mapc #'semantic-delete-overlay-maybe (car l))
+    (mapc #'semantic-delete-overlay-maybe (cdr l))
     )
   (semantic-parse-tree-set-needs-rebuild)
   ;; Remove this hook which tracks if a buffer is up to date or not.
-  (remove-hook 'after-change-functions 'semantic-change-function t)
+  (remove-hook 'after-change-functions #'semantic-change-function t)
 
   (run-hook-with-args 'semantic-after-toplevel-cache-change-hook
 		      semantic--buffer-cache)
@@ -487,7 +487,7 @@ is requested."
   ;; This is specific to the bovine parser.
   (setq-local semantic-bovinate-nonterminal-check-obarray nil)
   (semantic-parse-tree-set-up-to-date)
-  (add-hook 'after-change-functions 'semantic-change-function nil t)
+  (add-hook 'after-change-functions #'semantic-change-function nil t)
   (run-hook-with-args 'semantic-after-toplevel-cache-change-hook
 		      semantic--buffer-cache)
   (setq semantic--completion-cache nil)
@@ -779,25 +779,25 @@ Throw away all the old tags, and recreate the tag database."
 (defvar semantic-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Key bindings:
-    ;; (define-key km "f"    'senator-search-set-tag-class-filter)
-    ;; (define-key km "i"    'senator-isearch-toggle-semantic-mode)
-    (define-key map "\C-c,j" 'semantic-complete-jump-local)
-    (define-key map "\C-c,J" 'semantic-complete-jump)
-    (define-key map "\C-c,m" 'semantic-complete-jump-local-members)
-    (define-key map "\C-c,g" 'semantic-symref-symbol)
-    (define-key map "\C-c,G" 'semantic-symref)
-    (define-key map "\C-c,p" 'senator-previous-tag)
-    (define-key map "\C-c,n" 'senator-next-tag)
-    (define-key map "\C-c,u" 'senator-go-to-up-reference)
-    (define-key map "\C-c, " 'semantic-complete-analyze-inline)
-    (define-key map "\C-c,\C-w" 'senator-kill-tag)
-    (define-key map "\C-c,\M-w" 'senator-copy-tag)
-    (define-key map "\C-c,\C-y" 'senator-yank-tag)
-    (define-key map "\C-c,r" 'senator-copy-tag-to-register)
-    (define-key map "\C-c,," 'semantic-force-refresh)
-    (define-key map [?\C-c ?, up] 'senator-transpose-tags-up)
-    (define-key map [?\C-c ?, down] 'senator-transpose-tags-down)
-    (define-key map "\C-c,l" 'semantic-analyze-possible-completions)
+    ;; (define-key km "f"    #'senator-search-set-tag-class-filter)
+    ;; (define-key km "i"    #'senator-isearch-toggle-semantic-mode)
+    (define-key map "\C-c,j" #'semantic-complete-jump-local)
+    (define-key map "\C-c,J" #'semantic-complete-jump)
+    (define-key map "\C-c,m" #'semantic-complete-jump-local-members)
+    (define-key map "\C-c,g" #'semantic-symref-symbol)
+    (define-key map "\C-c,G" #'semantic-symref)
+    (define-key map "\C-c,p" #'senator-previous-tag)
+    (define-key map "\C-c,n" #'senator-next-tag)
+    (define-key map "\C-c,u" #'senator-go-to-up-reference)
+    (define-key map "\C-c, " #'semantic-complete-analyze-inline)
+    (define-key map "\C-c,\C-w" #'senator-kill-tag)
+    (define-key map "\C-c,\M-w" #'senator-copy-tag)
+    (define-key map "\C-c,\C-y" #'senator-yank-tag)
+    (define-key map "\C-c,r" #'senator-copy-tag-to-register)
+    (define-key map "\C-c,," #'semantic-force-refresh)
+    (define-key map [?\C-c ?, up] #'senator-transpose-tags-up)
+    (define-key map [?\C-c ?, down] #'senator-transpose-tags-down)
+    (define-key map "\C-c,l" #'semantic-analyze-possible-completions)
     ;; This hack avoids showing the CEDET menu twice if ede-minor-mode
     ;; and Semantic are both enabled.  Is there a better way?
     (define-key map [menu-bar cedet-menu]
@@ -1029,7 +1029,7 @@ Semantic mode.
 		     (file-exists-p semanticdb-default-system-save-directory))
 	    (require 'semantic/db-ebrowse)
 	    (semanticdb-load-ebrowse-caches)))
-	(add-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+	(add-hook 'mode-local-init-hook #'semantic-new-buffer-fcn)
 	;; Add semantic-ia-complete-symbol to
 	;; completion-at-point-functions, so that it is run from
 	;; M-TAB.
@@ -1037,11 +1037,11 @@ Semantic mode.
 	;; Note: The first entry added is the last entry run, so the
 	;;       most specific entry should be last.
 	(add-hook 'completion-at-point-functions
-		  'semantic-analyze-nolongprefix-completion-at-point-function)
+		  #'semantic-analyze-nolongprefix-completion-at-point-function)
 	(add-hook 'completion-at-point-functions
-		  'semantic-analyze-notc-completion-at-point-function)
+		  #'semantic-analyze-notc-completion-at-point-function)
 	(add-hook 'completion-at-point-functions
-		  'semantic-analyze-completion-at-point-function)
+		  #'semantic-analyze-completion-at-point-function)
 
 	(if (bound-and-true-p global-ede-mode)
 	    (define-key cedet-menu-map [cedet-menu-separator] '("--")))
@@ -1052,21 +1052,21 @@ Semantic mode.
     ;; introduced in the buffer is pretty much futile, but we have to
     ;; clean the hooks and delete Semantic-related overlays, so that
     ;; Semantic can be re-activated cleanly.
-    (remove-hook 'mode-local-init-hook 'semantic-new-buffer-fcn)
+    (remove-hook 'mode-local-init-hook #'semantic-new-buffer-fcn)
     (remove-hook 'completion-at-point-functions
-		 'semantic-analyze-completion-at-point-function)
+		 #'semantic-analyze-completion-at-point-function)
     (remove-hook 'completion-at-point-functions
-		 'semantic-analyze-notc-completion-at-point-function)
+		 #'semantic-analyze-notc-completion-at-point-function)
     (remove-hook 'completion-at-point-functions
-		 'semantic-analyze-nolongprefix-completion-at-point-function)
+		 #'semantic-analyze-nolongprefix-completion-at-point-function)
 
     (remove-hook 'after-change-functions
-		 'semantic-change-function)
+		 #'semantic-change-function)
     (define-key cedet-menu-map [cedet-menu-separator] nil)
     (define-key cedet-menu-map [semantic-options-separator] nil)
     ;; FIXME: handle semanticdb-load-ebrowse-caches
     (dolist (mode semantic-submode-list)
-      (if (and (boundp mode) (eval mode))
+      (if (and (boundp mode) (symbol-value mode))
 	  (funcall mode -1)))
     ;; Unlink buffer and clear cache
     (semantic--tag-unlink-cache-from-buffer)

@@ -1,4 +1,4 @@
-;;; cedet-idutils.el --- ID Utils support for CEDET.
+;;; cedet-idutils.el --- ID Utils support for CEDET.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
@@ -47,7 +47,7 @@
   :type 'string
   :group 'cedet)
 
-(defun cedet-idutils-search (searchtext texttype type scope)
+(defun cedet-idutils-search (searchtext texttype type _scope)
   "Perform a search with ID Utils, return the created buffer.
 SEARCHTEXT is text to find.
 TEXTTYPE is the type of text, such as `regexp', `string', `tagname',
@@ -64,7 +64,7 @@ Note: Scope is not yet supported."
     (let* ((resultflg (if (eq texttype 'tagcompletions)
 			  (list "--key=token")
 			(list "--result=grep")))
-	   (scopeflgs nil) ; (cond ((eq scope 'project) "" ) ((eq scope 'target) "l")))
+	   ;; (scopeflgs (cond ((eq scope 'project) "" ) ((eq scope 'target) "l")))
 	   (stflag (cond ((or (eq texttype 'tagname)
 			      (eq texttype 'tagregexp))
 			  (list "-r" "-w"))
@@ -77,7 +77,7 @@ Note: Scope is not yet supported."
 			 ;; t means 'symbol
 			 (t (list "-l" "-w"))))
 	   )
-      (cedet-idutils-lid-call (append resultflg scopeflgs stflag
+      (cedet-idutils-lid-call (append resultflg nil stflag ;; scopeflgs
 				      (list searchtext))))))
 
 (defun cedet-idutils-fnid-call (flags)
@@ -89,7 +89,7 @@ Return the created buffer with program output."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-idutils-file-command
+    (apply #'call-process cedet-idutils-file-command
 	   nil b nil
 	   flags)
     b))
@@ -103,7 +103,7 @@ Return the created buffer with program output."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-idutils-token-command
+    (apply #'call-process cedet-idutils-token-command
 	   nil b nil
 	   flags)
     b))
@@ -117,7 +117,7 @@ Return the created buffer with program output."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-idutils-make-command
+    (apply #'call-process cedet-idutils-make-command
 	   nil b nil
 	   flags)
     b))
@@ -133,7 +133,7 @@ Return a filename relative to the default directory."
 	       (if (looking-at "[^ \n]*fnid: ")
 		   (error "ID Utils not available")
 		 (split-string (buffer-string) "\n" t)))))
-    (setq ans (mapcar 'expand-file-name ans))
+    (setq ans (mapcar #'expand-file-name ans))
     (when (called-interactively-p 'interactive)
       (if ans
 	  (if (= (length ans) 1)

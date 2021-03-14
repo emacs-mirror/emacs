@@ -323,7 +323,7 @@
   (nnbabyl-possibly-change-newsgroup group server)
   (nnmail-check-syntax)
   (let ((buf (current-buffer))
-	result beg)
+	result) ;; beg
     (and
      (nnmail-activate 'nnbabyl)
      (save-excursion
@@ -331,7 +331,7 @@
        (search-forward "\n\n" nil t)
        (forward-line -1)
        (save-excursion
-	 (while (re-search-backward "^X-Gnus-Newsgroup: " beg t)
+	 (while (re-search-backward "^X-Gnus-Newsgroup: " nil t) ;; beg
 	   (delete-region (point) (progn (forward-line 1) (point)))))
        (when nnmail-cache-accepted-message-ids
 	 (nnmail-cache-insert (nnmail-fetch-field "message-id")

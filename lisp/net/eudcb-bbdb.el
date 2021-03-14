@@ -1,4 +1,4 @@
-;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
+;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -34,6 +34,7 @@
 ;; Make it loadable on systems without bbdb.
 (require 'bbdb nil t)
 (require 'bbdb-com nil t)
+(require 'seq)
 
 ;;{{{      Internal cooking
 
@@ -87,33 +88,30 @@ BBDB < 3 used `net'; BBDB >= 3 uses `mail'."
   "Return RECORD if it matches `eudc-bbdb-current-query', nil otherwise."
   (require 'bbdb)
   (catch 'unmatch
-    (progn
-      (dolist (condition eudc-bbdb-current-query)
-        (let ((attr (car condition))
-              (val (cdr condition))
-              (case-fold-search t)
-              bbdb-val)
-          (or (and (memq attr '(firstname lastname aka company phones
-                                addresses net))
-                   (progn
-                     (setq bbdb-val
-                           (eval (list (intern (concat "bbdb-record-"
-                                                       (symbol-name
-                                                        (eudc-bbdb-field
-                                                         attr))))
-                                       'record)))
-                     (if (listp bbdb-val)
-                         (if eudc-bbdb-enable-substring-matches
-                             (eval `(or ,@(mapcar (lambda (subval)
-                                                    (string-match val subval))
-                                                  bbdb-val)))
-                           (member (downcase val)
-                                   (mapcar 'downcase bbdb-val)))
+    (dolist (condition eudc-bbdb-current-query)
+      (let ((attr (car condition))
+            (val (cdr condition))
+            (case-fold-search t))
+        (or (and (memq attr '(firstname lastname aka company phones
+                              addresses net))
+                 (let ((bbdb-val
+                        (funcall (intern (concat "bbdb-record-"
+                                                 (symbol-name
+                                                  (eudc-bbdb-field
+                                                   attr))))
+                                 record)))
+                   (if (listp bbdb-val)
                        (if eudc-bbdb-enable-substring-matches
-                           (string-match val bbdb-val)
-                         (string-equal (downcase val) (downcase bbdb-val))))))
-              (throw 'unmatch nil))))
-      record)))
+                           (seq-some (lambda (subval)
+                                       (string-match val subval))
+                                     bbdb-val)
+                         (member (downcase val)
+                                 (mapcar #'downcase bbdb-val)))
+                     (if eudc-bbdb-enable-substring-matches
+                         (string-match val bbdb-val)
+                       (string-equal (downcase val) (downcase bbdb-val))))))
+            (throw 'unmatch nil))))
+    record))
 
 ;; External.
 (declare-function bbdb-phone-location   "ext:bbdb" t) ; via bbdb-defstruct
@@ -182,40 +180,34 @@ The record is filtered according to `eudc-bbdb-current-return-attributes'."
   (require 'bbdb)
   (let ((attrs (or eudc-bbdb-current-return-attributes
 		   '(firstname lastname aka company phones addresses net notes)))
-	attr
-	eudc-rec
-	val)
-    (while (prog1
-	       (setq attr (car attrs))
-	     (setq attrs (cdr attrs)))
-      (cond
-       ((eq attr 'phones)
-	(setq val (eudc-bbdb-extract-phones record)))
-       ((eq attr 'addresses)
-	(setq val (eudc-bbdb-extract-addresses record)))
-       ((eq attr 'notes)
-        (if (eudc--using-bbdb-3-or-newer-p)
-            (setq val (bbdb-record-xfield record 'notes))
-          (setq val (bbdb-record-notes record))))
-       ((memq attr '(firstname lastname aka company net))
-	(setq val (eval
-		   (list (intern
-			  (concat "bbdb-record-"
-				  (symbol-name (eudc-bbdb-field attr))))
-			 'record))))
-       (t
-	(error "Unknown BBDB attribute")))
-      (cond
-       ((or (not val) (equal val ""))) ; do nothing
-       ((memq attr '(phones addresses))
-	(setq eudc-rec (append val eudc-rec)))
-       ((and (listp val)
-	     (= 1 (length val)))
-	(setq eudc-rec (cons (cons attr (car val)) eudc-rec)))
-       ((> (length val) 0)
-	(setq eudc-rec (cons (cons attr val) eudc-rec)))
-       (t
-	(error "Unexpected attribute value"))))
+	eudc-rec)
+    (dolist (attr attrs)
+      (let ((val
+             (pcase attr
+              ('phones    (eudc-bbdb-extract-phones record))
+	      ('addresses (eudc-bbdb-extract-addresses record))
+	      ('notes
+               (if (eudc--using-bbdb-3-or-newer-p)
+                   (bbdb-record-xfield record 'notes)
+                 (bbdb-record-notes record)))
+              ((or 'firstname 'lastname 'aka 'company 'net)
+               (funcall (intern
+			 (concat "bbdb-record-"
+				 (symbol-name (eudc-bbdb-field attr))))
+			record))
+	      (_
+	       (error "Unknown BBDB attribute")))))
+	(cond
+	 ((or (not val) (equal val ""))) ; do nothing
+	 ((memq attr '(phones addresses))
+	  (setq eudc-rec (append val eudc-rec)))
+	 ((and (listp val)
+	       (= 1 (length val)))
+	  (push (cons attr (car val)) eudc-rec))
+	 ((> (length val) 0)
+	  (push (cons attr val) eudc-rec))
+	 (t
+	  (error "Unexpected attribute value")))))
     (nreverse eudc-rec)))
 
 
@@ -240,21 +232,20 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
     (while (and records (> (length query-attrs) 0))
       (setq bbdb-attrs (append bbdb-attrs (list (car query-attrs))))
       (if (car query-attrs)
-	  (setq records (eval `(bbdb-search ,(quote records) ,@bbdb-attrs))))
+	  ;; BEWARE: `bbdb-search' is a macro!
+	  (setq records (eval `(bbdb-search records ,@bbdb-attrs) t)))
       (setq query-attrs (cdr query-attrs)))
     (mapc (lambda (record)
             (setq filtered (eudc-filter-duplicate-attributes record))
             ;; If there were duplicate attributes reverse the order of the
             ;; record so the unique attributes appear first
             (if (> (length filtered) 1)
-                (setq filtered (mapcar (lambda (rec)
-                                         (reverse rec))
-                                       filtered)))
+                (setq filtered (mapcar #'reverse filtered)))
             (setq result (append result filtered)))
 	  (delq nil
-		(mapcar 'eudc-bbdb-format-record-as-result
+		(mapcar #'eudc-bbdb-format-record-as-result
 			(delq nil
-			      (mapcar 'eudc-bbdb-filter-non-matching-record
+			      (mapcar #'eudc-bbdb-filter-non-matching-record
 				      records)))))
     result))
 

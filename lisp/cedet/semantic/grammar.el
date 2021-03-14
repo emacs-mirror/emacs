@@ -1740,7 +1740,7 @@ If it is a macro name, return a description of the associated expander
 function parameter list.
 If it is a function name, return a description of this function
 parameter list.
-It it is a variable name, return a brief (one-line) documentation
+If it is a variable name, return a brief (one-line) documentation
 string for the variable.
 If a default description of the current context can be obtained,
 return it.

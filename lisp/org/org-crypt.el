@@ -284,6 +284,8 @@ Assume `epg-context' is set."
 	 nil)))
     (_ nil)))
 
+(defvar org--matcher-tags-todo-only)
+
 ;;;###autoload
 (defun org-encrypt-entries ()
   "Encrypt all top-level entries in the current buffer."

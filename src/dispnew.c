@@ -3588,6 +3588,7 @@ update_window (struct window *w, bool force_p)
       int yb;
       bool changed_p = 0, mouse_face_overwritten_p = 0;
       int n_updated = 0;
+      bool invisible_rows_marked = false;
 
 #ifdef HAVE_WINDOW_SYSTEM
       gui_update_window_begin (w);
@@ -3679,12 +3680,35 @@ update_window (struct window *w, bool force_p)
 	       tempted to optimize redisplay based on lines displayed
 	       in the first redisplay.  */
 	    if (MATRIX_ROW_BOTTOM_Y (row) >= yb)
-	      for (i = vpos + 1; i < w->current_matrix->nrows - 1; ++i)
-		SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
+	      {
+		for (i = vpos + 1; i < w->current_matrix->nrows - 1; ++i)
+		  SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
+		invisible_rows_marked = true;
+	      }
 	  }
 
       /* Was display preempted?  */
       paused_p = row < end;
+
+      if (!paused_p && !invisible_rows_marked)
+	{
+	  /* If we didn't mark the invisible rows in the current
+	     matrix as invalid above, do that now.  This can happen if
+	     scrolling_window updates the last visible rows of the
+	     current matrix, in which case the above loop doesn't get
+	     to examine the last visible row.  */
+	  int i;
+	  for (i = 0; i < w->current_matrix->nrows - 1; ++i)
+	    {
+	      struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, i);
+	      if (current_row->enabled_p
+		  && MATRIX_ROW_BOTTOM_Y (current_row) >= yb)
+		{
+		  for (++i ; i < w->current_matrix->nrows - 1; ++i)
+		    SET_MATRIX_ROW_ENABLED_P (w->current_matrix, i, false);
+		}
+	    }
+	}
 
     set_cursor:
 

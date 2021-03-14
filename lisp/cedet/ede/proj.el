@@ -1,4 +1,4 @@
-;;; ede/proj.el --- EDE Generic Project file driver
+;;; ede/proj.el --- EDE Generic Project file driver  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2003, 2007-2021 Free Software Foundation, Inc.
 
@@ -339,7 +339,7 @@ Argument PROJ is the project to save."
   (cl-call-next-method)
   (ede-proj-save proj))
 
-(cl-defmethod eieio-done-customizing ((target ede-proj-target))
+(cl-defmethod eieio-done-customizing ((_target ede-proj-target))
   "Call this when a user finishes customizing this object.
 Argument TARGET is the project we are completing customization on."
   (cl-call-next-method)
@@ -462,7 +462,7 @@ FILE must be massaged by `ede-convert-path'."
   (object-remove-from-list target 'auxsource (ede-convert-path target file))
   (ede-proj-save))
 
-(cl-defmethod project-update-version ((this ede-proj-project))
+(cl-defmethod project-update-version ((_this ede-proj-project))
   "The :version of project THIS has changed."
   (ede-proj-save))
 
@@ -486,7 +486,7 @@ FILE must be massaged by `ede-convert-path'."
    (concat (oref this name) "-" (oref this version) ".tar.gz")
    ))
 
-(cl-defmethod project-compile-project ((proj ede-proj-project) &optional command)
+(cl-defmethod project-compile-project ((proj ede-proj-project) &optional _command)
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   (let ((pm (ede-proj-dist-makefile proj))
@@ -499,13 +499,13 @@ Argument COMMAND is the command to use when compiling."
 
 ;;; Target type specific compilations/debug
 ;;
-(cl-defmethod project-compile-target ((obj ede-proj-target) &optional command)
+(cl-defmethod project-compile-target ((_obj ede-proj-target) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (project-compile-project (ede-current-project) command))
 
 (cl-defmethod project-compile-target ((obj ede-proj-target-makefile)
-				   &optional command)
+				      &optional _command)
   "Compile the current target program OBJ.
 Optional argument COMMAND is the s the alternate command to use."
   (ede-proj-setup-buildenvironment (ede-current-project))
@@ -545,11 +545,11 @@ Converts all symbols into the objects to be used."
       (if comp
 	  ;; Now that we have a pre-set compilers to use, convert tye symbols
 	  ;; into objects for ease of use
-	  (if (listp comp)
-	      (setq comp (mapcar 'symbol-value comp))
-	    (setq comp (list (symbol-value comp))))
+	  (setq comp (if (listp comp)
+	                 (mapcar #'symbol-value comp)
+	               (list (symbol-value comp))))
 	(let* ((acomp (oref obj availablecompilers))
-	       (avail (mapcar 'symbol-value acomp))
+	       (avail (mapcar #'symbol-value acomp))
 	       (st (oref obj sourcetype))
 	       (sources (oref obj source)))
 	  ;; COMP is not specified, so generate a list from the available
@@ -585,7 +585,7 @@ Converts all symbols into the objects to be used."
 	      (setq link (list (symbol-value link)))
 	    (error ":linker is not a symbol.  Howd you do that?"))
 	(let* ((alink (oref obj availablelinkers))
-	       (avail (mapcar 'symbol-value alink))
+	       (avail (mapcar #'symbol-value alink))
 	       (st (oref obj sourcetype))
 	       (sources (oref obj source)))
 	  ;; LINKER is not specified, so generate a list from the available
