@@ -700,7 +700,7 @@ ARG is positive, otherwise off."
   (let ((appt-active appt-timer))
     (setq appt-active (if arg (> (prefix-numeric-value arg) 0)
                         (not appt-active)))
-    (remove-hook 'write-file-functions #'appt-update-list 'local)
+    (remove-hook 'write-file-functions #'appt-update-list)
     (or global-mode-string (setq global-mode-string '("")))
     (delq 'appt-mode-string global-mode-string)
     (when appt-timer
@@ -708,7 +708,7 @@ ARG is positive, otherwise off."
       (setq appt-timer nil))
     (if appt-active
         (progn
-          (add-hook 'write-file-functions #'appt-update-list nil t)
+          (add-hook 'write-file-functions #'appt-update-list)
           (setq appt-timer (run-at-time t 60 #'appt-check)
                 global-mode-string
                 (append global-mode-string '(appt-mode-string)))
