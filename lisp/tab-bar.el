@@ -519,10 +519,10 @@ the formatted tab name to display in the tab bar."
                  ""))
      'face (if current-p 'tab-bar-tab 'tab-bar-tab-inactive))))
 
-(defvar tab-bar-format '(tab-bar-format-history
-                         tab-bar-format-tabs
-                         tab-bar-separator
-                         tab-bar-format-add-tab)
+(defcustom tab-bar-format '(tab-bar-format-history
+                            tab-bar-format-tabs
+                            tab-bar-separator
+                            tab-bar-format-add-tab)
   "Template for displaying tab bar items.
 Every item in the list is a function that returns
 a string, or a list of menu-item elements, or nil.
@@ -530,7 +530,22 @@ When you add more items `tab-bar-format-align-right' and
 `tab-bar-format-global' to the end, then after enabling
 `display-time-mode' (or any other mode that uses `global-mode-string')
 it will display time aligned to the right on the tab bar instead of
-the mode line.")
+the mode line.  Replacing `tab-bar-format-tabs' with
+`tab-bar-format-tabs-groups' will group tabs on the tab bar."
+  :type 'hook
+  :options '(tab-bar-format-history
+             tab-bar-format-tabs
+             tab-bar-format-tabs-groups
+             tab-bar-separator
+             tab-bar-format-add-tab
+             tab-bar-format-align-right
+             tab-bar-format-global)
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
 
 (defun tab-bar-format-history ()
   (when (and tab-bar-history-mode tab-bar-history-buttons-show)
@@ -543,39 +558,90 @@ the mode line.")
        menu-item ,tab-bar-forward-button tab-bar-history-forward
        :help "Click to go forward in tab history"))))
 
+(defun tab-bar--format-tab (tab i)
+  (append
+   `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
+   (cond
+    ((eq (car tab) 'current-tab)
+     `((current-tab
+        menu-item
+        ,(funcall tab-bar-tab-name-format-function tab i)
+        ignore
+        :help "Current tab")))
+    (t
+     `((,(intern (format "tab-%i" i))
+        menu-item
+        ,(funcall tab-bar-tab-name-format-function tab i)
+        ,(or
+          (alist-get 'binding tab)
+          `(lambda ()
+             (interactive)
+             (tab-bar-select-tab ,i)))
+        :help "Click to visit tab"))))
+   `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
+      menu-item ""
+      ,(or
+        (alist-get 'close-binding tab)
+        `(lambda ()
+           (interactive)
+           (tab-bar-close-tab ,i)))))))
+
 (defun tab-bar-format-tabs ()
-  (let ((separator (tab-bar-separator))
-        (tabs (funcall tab-bar-tabs-function))
-        (i 0))
+  (let ((i 0))
     (mapcan
      (lambda (tab)
        (setq i (1+ i))
-       (append
-        `((,(intern (format "sep-%i" i)) menu-item ,separator ignore))
-        (cond
-         ((eq (car tab) 'current-tab)
-          `((current-tab
-             menu-item
-             ,(funcall tab-bar-tab-name-format-function tab i)
-             ignore
-             :help "Current tab")))
-         (t
-          `((,(intern (format "tab-%i" i))
-             menu-item
-             ,(funcall tab-bar-tab-name-format-function tab i)
-             ,(or
-               (alist-get 'binding tab)
-               `(lambda ()
-                  (interactive)
-                  (tab-bar-select-tab ,i)))
-             :help "Click to visit tab"))))
-        `((,(if (eq (car tab) 'current-tab) 'C-current-tab (intern (format "C-tab-%i" i)))
-           menu-item ""
-           ,(or
-             (alist-get 'close-binding tab)
-             `(lambda ()
-                (interactive)
-                (tab-bar-close-tab ,i)))))))
+       (tab-bar--format-tab tab i))
+     (funcall tab-bar-tabs-function))))
+
+(defcustom tab-bar-tab-group-format-function #'tab-bar-tab-group-format-default
+  "Function to format a tab group name.
+Function gets two arguments, a tab with a group name and its number,
+and should return the formatted tab group name to display in the tab bar."
+  :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-group-format-default (tab i)
+  (propertize
+   (concat (if tab-bar-tab-hints (format "%d " i) "")
+           (alist-get 'group tab))
+   'face 'tab-bar-tab-inactive))
+
+(defun tab-bar--format-tab-group (tab i)
+  (append
+   `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
+   `((,(intern (format "group-%i" i))
+      menu-item
+      ,(funcall tab-bar-tab-group-format-function tab i)
+      ,(or
+        (alist-get 'binding tab)
+        `(lambda ()
+           (interactive)
+           (tab-bar-select-tab ,i)))
+      :help "Click to visit group"))))
+
+(defun tab-bar-format-tabs-groups ()
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (current-group (alist-get 'group (tab-bar--current-tab-find tabs)))
+         (previous-group nil)
+         (i 0))
+    (mapcan
+     (lambda (tab)
+       (let ((tab-group (alist-get 'group tab)))
+         (setq i (1+ i))
+         (prog1 (if (or (not tab-group) (equal tab-group current-group))
+                    ;; Show current group and ungrouped tabs
+                    (tab-bar--format-tab tab i)
+                  ;; Otherwise, show first group tab with a group name,
+                  ;; but hide other group tabs
+                  (unless (equal previous-group tab-group)
+                    (tab-bar--format-tab-group tab i)))
+           (setq previous-group tab-group))))
      tabs)))
 
 (defun tab-bar-format-add-tab ()
@@ -590,7 +656,7 @@ the mode line.")
          (rest (mapconcat (lambda (item) (nth 2 item)) rest ""))
          (hpos (length rest))
          (str (propertize " " 'display `(space :align-to (- right ,hpos)))))
-    `((tab-bar-format-align-right menu-item ,str ignore))))
+    `((align-right menu-item ,str ignore))))
 
 (defun tab-bar-format-global ()
   "Format `global-mode-string' to display it in the tab bar.
@@ -599,10 +665,7 @@ When `tab-bar-format-global' is added to `tab-bar-format'
 then modes that display information on the mode line
 using `global-mode-string' will display the same text
 on the tab bar instead."
-  `((tab-bar-format-global
-     menu-item
-     ,(format-mode-line global-mode-string)
-     ignore)))
+  `((global menu-item ,(format-mode-line global-mode-string) ignore)))
 
 (defun tab-bar-format-list (format-list)
   (let ((i 0))
@@ -1256,7 +1319,10 @@ function `tab-bar-tab-name-function'."
   "Add the tab specified by its absolute position ARG to GROUP-NAME.
 If no ARG is specified, then set the GROUP-NAME for the current tab.
 ARG counts from 1.
-If GROUP-NAME is the empty string, then remove the tab from any group."
+If GROUP-NAME is the empty string, then remove the tab from any group.
+While using this command, you might also want to replace
+`tab-bar-format-tabs' with `tab-bar-format-tabs-groups' in
+`tab-bar-format' to group tabs on the tab bar."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
           (tab-index (or current-prefix-arg (1+ (tab-bar--current-tab-index tabs))))

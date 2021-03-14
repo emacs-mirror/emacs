@@ -519,11 +519,13 @@ It can be used to enable/disable the tab bar individually on each frame
 independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 
 ---
-*** New variable 'tab-bar-format' defines a list of tab bar items.
+*** New option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
 (or any other mode that uses 'global-mode-string') it displays time
 aligned to the right on the tab bar instead of the mode line.
+When 'tab-bar-format-tabs' is replaced with 'tab-bar-format-tabs-groups',
+then the tab bar displays tab groups.
 
 ---
 *** 'Mod-9' bound to 'tab-last' now switches to the last tab.
