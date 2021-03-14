@@ -33,6 +33,7 @@
 ;; sorting by Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Finished up by rms in 1992.
 
+
 ;;; Code:
 
 (require 'cl-lib)
@@ -45,9 +46,8 @@
 Functions that operate recursively can store additional names
 into this list; they also should call `dired-log' to log the errors.")
 
-;;; 15K
-;;;###begin dired-cmd.el
-;; Diffing and compressing
+
+;;; Diffing and compressing
 
 (defconst dired-star-subst-regexp "\\(^\\|[ \t]\\)\\*\\([ \t]\\|$\\)")
 (defconst dired-quark-subst-regexp "\\(^\\|[ \t]\\)\\?\\([ \t]\\|$\\)")
@@ -418,6 +418,7 @@ List has a form of (file-name full-file-name (attribute-list))."
              full-file-name
              (file-attributes full-file-name))))
    (directory-files dir)))
+
 
 ;;; Change file attributes
 
@@ -655,8 +656,9 @@ passed as the second arg to `completing-read'."
 		     'completing-read
 		     (format prompt (dired-mark-prompt arg files))
 		     collection nil nil initial nil default-value nil))
+
 
-;;; Cleaning a directory: flagging some backups for deletion.
+;;; Cleaning a directory: flagging some backups for deletion
 
 (defvar dired-file-version-alist)
 
@@ -699,7 +701,8 @@ with a prefix argument."
     (dired-map-dired-file-lines #'dired-trample-file-versions)
     (message "Cleaning numerical backups...done")))
 
-;;; Subroutines of dired-clean-directory.
+
+;;; Subroutines of dired-clean-directory
 
 (defun dired-map-dired-file-lines (fun)
   ;; Perform FUN with point at the end of each non-directory line.
@@ -750,6 +753,7 @@ with a prefix argument."
 	 (progn (beginning-of-line)
 		(delete-char 1)
 		(insert dired-del-marker)))))
+
 
 ;;; Shell commands
 
@@ -986,8 +990,8 @@ prompted for the shell command to use interactively."
       (shell-command command)))
   ;; Return nil for sake of nconc in dired-bunch-files.
   nil)
-
 
+
 (defun dired-check-process (msg program &rest arguments)
   "Display MSG while running PROGRAM, and check for output.
 Remaining arguments are strings passed as command arguments to PROGRAM.
@@ -1032,8 +1036,9 @@ Return the result of `process-file' - zero for success."
         (unless (zerop res)
           (pop-to-buffer out-buffer))
         res))))
+
 
-;; Commands that delete or redisplay part of the dired buffer.
+;;; Commands that delete or redisplay part of the dired buffer
 
 (defun dired-kill-line (&optional arg)
   "Kill the current line (not the files).
@@ -1098,10 +1103,8 @@ present.  A FMT of \"\" will suppress the messaging."
 	    (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
 	count))))
 
-;;;###end dired-cmd.el
 
-;;; 30K
-;;;###begin dired-cp.el
+;;; Compression
 
 (defun dired-compress ()
   ;; Compress or uncompress the current file.
@@ -1454,7 +1457,8 @@ uncompress and unpack all the files in the archive."
   (interactive "P")
   (dired-map-over-marks-check #'dired-compress arg 'compress t))
 
-;; Commands for Emacs Lisp files - load and byte compile
+
+;;; Commands for Emacs Lisp files - load and byte compile
 
 (defun dired-byte-compile ()
   ;; Return nil for success, offending file name else.
@@ -1546,6 +1550,7 @@ See Info node `(emacs)Subdir switches' for more details."
   (interactive)
   (setq dired-switches-alist nil)
   (revert-buffer))
+
 
 (defun dired-update-file-line (file)
   ;; Delete the current line, and insert an entry for FILE.
@@ -1734,6 +1739,7 @@ See `dired-delete-file' in case you wish that."
 			  (line-beginning-position 2)))
       (setq file (directory-file-name file))
       (dired-add-entry file (if (eq ?\s marker) nil marker)))))
+
 
 ;;; Copy, move/rename, making hard and symbolic links
 
@@ -1933,7 +1939,9 @@ unless OK-IF-ALREADY-EXISTS is non-nil."
 (defvar overwrite-query)
 (defvar overwrite-backup-query)
 
-;; The basic function for half a dozen variations on cp/mv/ln/ln -s.
+
+;;; The basic function for half a dozen variations on cp/mv/ln/ln -s
+
 (defun dired-create-files (file-creator operation fn-list name-constructor
 					&optional marker-char)
   "Create one or more new files from a list of existing files FN-LIST.
@@ -2067,6 +2075,7 @@ ESC or `q' to not overwrite any of the remaining files,
 			 success-count)
 	       operation success-count))))
   (dired-move-to-filename))
+
 
 (defcustom dired-do-revert-buffer nil
   "Automatically revert Dired buffers after `dired-do' operations.
@@ -2299,7 +2308,6 @@ Optional arg HOW-TO determines how to treat the target.
       dired-dirs)))
 
 
-
 ;; We use this function in `dired-create-directory' and
 ;; `dired-create-empty-file'; the return value is the new entry
 ;; in the updated Dired buffer.
@@ -2448,10 +2456,10 @@ of `dired-dwim-target', which see."
   (interactive "P")
   (dired-do-create-files 'move #'dired-rename-file
 			 "Move" arg dired-keep-marker-rename "Rename"))
-;;;###end dired-cp.el
+
 
-;;; 5K
-;;;###begin dired-re.el
+;;; Operate on files matched by regexp
+
 (defvar rename-regexp-query)
 
 (defun dired-do-create-files-regexp
@@ -2572,6 +2580,9 @@ See function `dired-do-rename-regexp' for more info."
    #'make-symbolic-link
    "SymLink" arg regexp newname whole-name dired-keep-marker-symlink))
 
+
+;;; Change case of file names
+
 (defvar rename-non-directory-query)
 
 (defun dired-create-files-non-directory
@@ -2617,10 +2628,8 @@ Type SPC or `y' to %s one file, DEL or `n' to skip to next,
   (interactive "P")
   (dired-rename-non-directory #'downcase "Rename downcase" arg))
 
-;;;###end dired-re.el
 
-;;; 13K
-;;;###begin dired-ins.el
+;;; Insert subdirectory
 
 ;;;###autoload
 (defun dired-maybe-insert-subdir (dirname &optional
@@ -2894,8 +2903,9 @@ is always equal to STRING."
 	(setq result
 	      (cons (substring str end) result)))
     (nreverse result)))
+
 
-;;; moving by subdirectories
+;;; Moving by subdirectories
 
 ;;;###autoload
 (defun dired-prev-subdir (arg &optional no-error-if-not-found no-skip)
@@ -2998,8 +3008,9 @@ Lower levels are unaffected."
     (if pos
 	(goto-char pos)
       (error "At the bottom"))))
+
 
-;;; hiding
+;;; Hiding
 
 ;;;###autoload
 (defun dired-hide-subdir (arg)
@@ -3043,10 +3054,8 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
             (dired--hide start end))
           (setq pos (cdr subdir))))))) ; prev dir gets current dir
 
-;;;###end dired-ins.el
-
 
-;; Search only in file names in the Dired buffer.
+;;; Search only in file names in the Dired buffer
 
 (defcustom dired-isearch-filenames nil
   "Non-nil to Isearch in file names only.
@@ -3116,7 +3125,7 @@ is part of a file name (i.e., has the text property `dired-filename')."
   (isearch-forward-regexp nil t))
 
 
-;; Functions for searching in tags style among marked files.
+;;; Functions for searching in tags style among marked files
 
 ;;;###autoload
 (defun dired-do-isearch ()

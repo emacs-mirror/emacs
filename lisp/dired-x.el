@@ -44,7 +44,8 @@
 ;; but maybe not if a dired-x function is being autoloaded.
 (require 'dired)
 
-;;; User-defined variables.
+
+;;; User-defined variables
 
 (defgroup dired-x nil
   "Extended directory editing (dired-x)."
@@ -217,7 +218,9 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   :type 'boolean
   :group 'dired-x)
 
-;;; KEY BINDINGS.
+
+;;; Key bindings
+
 (when (keymapp (lookup-key dired-mode-map "*"))
   (define-key dired-mode-map "*(" 'dired-mark-sexp)
   (define-key dired-mode-map "*O" 'dired-mark-omitted)
@@ -234,7 +237,8 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (define-key dired-mode-map "Y"  'dired-do-relsymlink)
 (define-key dired-mode-map "V" 'dired-do-run-mail)
 
-;;; MENU BINDINGS
+
+;;; Menu bindings
 
 (when-let ((menu (lookup-key dired-mode-map [menu-bar])))
   (easy-menu-add-item menu '("Operate")
@@ -274,7 +278,7 @@ files"]
                       "Refresh"))
 
 
-;; Install into appropriate hooks.
+;;; Install into appropriate hooks
 
 (add-hook 'dired-mode-hook 'dired-extra-startup)
 (add-hook 'dired-after-readin-hook 'dired-omit-expunge)
@@ -303,7 +307,7 @@ See also the functions:
   (dired-omit-startup))
 
 
-;;; EXTENSION MARKING FUNCTIONS.
+;;; Extension marking functions
 
 (defun dired--mark-suffix-interactive-spec ()
   (let* ((default
@@ -432,7 +436,7 @@ See variables `dired-texinfo-unclean-extensions',
                                 (list ".dvi"))))
 
 
-;;; OMITTING.
+;;; Omitting
 
 ;; Enhanced omitting of lines from directory listings.
 ;; Marked files are never omitted.
@@ -570,7 +574,7 @@ files in the active region if `dired-mark-region' is non-nil."
      msg)))
 
 
-;;; VIRTUAL DIRED MODE.
+;;; Virtual dired mode
 
 ;; For browsing `ls -lR' listings in a dired-like fashion.
 
@@ -693,7 +697,7 @@ Also useful for `auto-mode-alist' like this:
   (dired-virtual (dired-virtual-guess-dir)))
 
 
-;;; SMART SHELL.
+;;; Smart shell
 
 ;; An Emacs buffer can have but one working directory, stored in the
 ;; buffer-local variable `default-directory'.  A Dired buffer may have
@@ -720,7 +724,7 @@ Also useful for `auto-mode-alist' like this:
     (shell-command command output-buffer error-buffer)))
 
 
-;;; GUESS SHELL COMMAND.
+;;; Guess shell command
 
 ;; Brief Description:
 ;;
@@ -1028,7 +1032,7 @@ See `dired-guess-shell-alist-user'."
       (if (equal val "") default val))))
 
 
-;;; RELATIVE SYMBOLIC LINKS.
+;;; Relative symbolic links
 
 (declare-function make-symbolic-link "fileio.c")
 
@@ -1117,7 +1121,7 @@ for more info."
    "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
 
 
-;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.
+;;; Visit all marked files simultaneously
 
 ;; Brief Description:
 ;;
@@ -1186,7 +1190,7 @@ NOSELECT the files are merely found but not selected."
         (find-file file)))))
 
 
-;;; MISCELLANEOUS COMMANDS.
+;;; Miscellaneous commands
 
 ;; Run man on files.
 
@@ -1254,7 +1258,7 @@ otherwise."
 	  (dired-rmail)))))
 
 
-;;; MISCELLANEOUS INTERNAL FUNCTIONS.
+;;; Miscellaneous internal functions
 
 ;; This should be a builtin
 (defun dired-buffer-more-recently-used-p (buffer1 buffer2)
@@ -1264,7 +1268,6 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
        (memq buffer1 (buffer-list))
        (not (memq buffer1 (memq buffer2 (buffer-list))))))
 
-
 ;; Needed if ls -lh is supported and also for GNU ls -ls.
 (defun dired-x--string-to-number (str)
   "Like `string-to-number' but recognize a trailing unit prefix.
@@ -1437,7 +1440,7 @@ only in the active region if `dired-mark-region' is non-nil."
      (format "'%s file" predicate))))
 
 
-;;; FIND FILE AT POINT.
+;;; Find file at point
 
 (defcustom dired-x-hands-off-my-keys t
   "Non-nil means don't remap `find-file' to `dired-x-find-file'.
@@ -1484,7 +1487,8 @@ a prefix argument, when it offers the filename near point as a default."
   (interactive (list (dired-x-read-filename-at-point "Find file: ")))
   (find-file-other-window filename))
 
-;;; Internal functions.
+
+;;; Internal functions
 
 ;; Fixme: This should probably use `thing-at-point'.  -- fx
 (define-obsolete-function-alias 'dired-filename-at-point
@@ -1532,8 +1536,9 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
 
 (define-obsolete-function-alias 'read-filename-at-point
   'dired-x-read-filename-at-point "24.1") ; is this even needed?
+
 
-;;; BUG REPORTS
+;;; Epilog
 
 (define-obsolete-function-alias 'dired-x-submit-report 'report-emacs-bug "24.1")
 

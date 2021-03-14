@@ -41,6 +41,7 @@
 (declare-function dired-buffer-more-recently-used-p
 		  "dired-x" (buffer1 buffer2))
 
+
 ;;; Customizable variables
 
 (defgroup dired nil
@@ -254,8 +255,6 @@ This is similar to the \"-L\" option for the \"cp\" shell command."
 (define-obsolete-variable-alias 'dired-free-space-args
   'directory-free-space-args "27.1")
 
-;;; Hook variables
-
 (defcustom dired-load-hook nil
   "Run after loading Dired.
 You can customize key bindings or load extensions with this."
@@ -357,7 +356,8 @@ is anywhere on its Dired line, except the beginning of the line."
   :group 'dired
   :version "28.1")
 
-;; Internal variables
+
+;;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
   ;; so that you can write things like
@@ -456,6 +456,9 @@ Subexpression 1 is the subdirectory proper, no trailing colon.
 The match starts at the beginning of the line and ends after the end
 of the line.
 Subexpression 2 must end right before the \\n.")
+
+
+;;; Faces
 
 (defgroup dired-faces nil
   "Faces used by Dired."
@@ -559,6 +562,9 @@ Subexpression 2 must end right before the \\n.")
   :version "22.1")
 (defvar dired-ignored-face 'dired-ignored
   "Face name used for files suffixed with `completion-ignored-extensions'.")
+
+
+;;; Font-lock
 
 (defvar dired-font-lock-keywords
   (list
@@ -687,8 +693,11 @@ Subexpression 2 must end right before the \\n.")
   "Additional expressions to highlight in Dired mode.")
 
 (defvar dnd-protocol-alist)
+
 
-;;; Macros must be defined before they are used, for the byte compiler.
+;;; Macros
+
+;; Macros must be defined before they are used, for the byte compiler.
 
 (defmacro dired-mark-if (predicate msg)
   "Mark files for PREDICATE, according to `dired-marker-char'.
@@ -883,7 +892,7 @@ ERROR can be a string with the error message."
     (point-max)))
 
 
-;; The dired command
+;;; The dired command
 
 (defun dired-read-dir-and-switches (str)
   ;; For use in interactive.
@@ -1263,7 +1272,7 @@ The return value is the target column for the file names."
       found)))
 
 
-;; Read in a new dired buffer
+;;; Read in a new dired buffer
 
 (defun dired-readin ()
   "Read in a new Dired buffer.
@@ -1627,8 +1636,9 @@ see `dired-use-ls-dired' for more details.")
 	    (put-text-property (+ (point) 4) (line-end-position)
 			       'invisible 'dired-hide-details-link))))
       (forward-line 1))))
+
 
-;; Reverting a dired buffer
+;;; Reverting a dired buffer
 
 (defun dired-revert (&optional _arg _noconfirm)
   "Reread the Dired buffer.
@@ -1815,8 +1825,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
   (let ((handler (find-file-name-handler dir 'dired-uncache)))
     (if handler
 	(funcall handler 'dired-uncache dir))))
+
 
-;; dired mode key bindings and initialization
+;;; Dired mode key bindings and menus
 
 (defvar dired-mode-map
   ;; This looks ugly when substitute-command-keys uses C-d instead d:
@@ -2177,6 +2188,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
      :help "Delete image tag from current or marked files"]))
 
 
+;;; Dired mode
+
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
@@ -2274,8 +2287,9 @@ Keybindings:
   (add-hook 'file-name-at-point-functions #'dired-file-name-at-point nil t)
   (add-hook 'isearch-mode-hook #'dired-isearch-filenames-setup nil t)
   (run-mode-hooks 'dired-mode-hook))
+
 
-;; Idiosyncratic dired commands that don't deal with marks.
+;;; Idiosyncratic dired commands that don't deal with marks
 
 (defun dired-summary ()
   "Summarize basic Dired commands and show recent Dired errors."
@@ -2473,8 +2487,9 @@ Otherwise, display it in another buffer."
   (interactive)
   (display-buffer (find-file-noselect (dired-get-file-for-visit))
 		  t))
+
 
-;;; Functions for extracting and manipulating file names in Dired buffers.
+;;; Functions for extracting and manipulating file names in Dired buffers
 
 (defun dired-unhide-subdir ()
   (with-silent-modifications
@@ -2619,7 +2634,10 @@ unchanged."
   (if (string-match (concat "^" (regexp-quote dir)) file)
       (substring file (match-end 0))
     file))
+
 
+;;; Mode to hide details
+
 (define-minor-mode dired-hide-details-mode
   "Toggle visibility of detailed information in current Dired buffer.
 When this minor mode is enabled, details such as file ownership and
@@ -2656,6 +2674,7 @@ See options: `dired-hide-details-hide-symlink-targets' and
 	       'add-to-invisibility-spec
 	     'remove-from-invisibility-spec)
 	   'dired-hide-details-link))
+
 
 ;;; Functions to hide/unhide text
 
@@ -2685,7 +2704,7 @@ See options: `dired-hide-details-hide-symlink-targets' and
      (progn (goto-char end) (line-end-position))
      '(invisible))))
 
-;;; Functions for finding the file name in a dired buffer line.
+;;; Functions for finding the file name in a dired buffer line
 
 (defvar dired-permission-flags-regexp
   "\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"
@@ -2784,7 +2803,7 @@ If EOL, it should be an position to use instead of
 	(point)))))
 
 
-;;; COPY NAMES OF MARKED FILES INTO KILL-RING.
+;;; Copy names of marked files into kill-ring
 
 (defun dired-copy-filename-as-kill (&optional arg)
   "Copy names of marked (or next ARG) files into the kill ring.
@@ -2818,7 +2837,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
       (message "%s" string))))
 
 
-;; Keeping Dired buffers in sync with the filesystem and with each other
+;;; Keeping Dired buffers in sync with the filesystem and with each other
 
 (defun dired-buffers-for-dir (dir &optional file subdirs)
   "Return a list of buffers for DIR (top level or in-situ subdir).
@@ -2904,10 +2923,9 @@ dired-buffers."
   ;; Removing is also done as a side-effect in dired-buffer-for-dir.
   (setq dired-buffers
 	(delq (assoc (expand-file-name dir) dired-buffers) dired-buffers)))
-
-;; Tree Dired
 
-;;; utility functions
+
+;;; Utility functions
 
 (defun dired-in-this-tree-p (file dir)
   ;;"Is FILE part of the directory tree starting at DIR?"
@@ -3167,7 +3185,7 @@ It runs the hook `dired-initial-position-hook'."
        (dired-goto-subdir dirname))
   (if dired-trivial-filenames (dired-goto-next-nontrivial-file))
   (run-hooks 'dired-initial-position-hook))
-
+
 ;; These are hooks which make tree dired work.
 ;; They are in this file because other parts of dired need to call them.
 ;; But they don't call the rest of tree dired unless there are subdirs loaded.
@@ -3206,8 +3224,9 @@ is the directory where the file on this line resides."
     (if (or (null (cdr dired-subdir-alist)) (not (dired-next-subdir 1 t t)))
 	(point-max)
       (point))))
+
 
-;; Deleting files
+;;; Deleting files
 
 (defcustom dired-recursive-deletes 'top
   "Whether Dired deletes directories recursively.
@@ -3448,7 +3467,7 @@ confirmation.  To disable the confirmation, see
              (kill-buffer buf))))))
 
 
-;; Confirmation
+;;; Confirmation
 
 (defun dired-marker-regexp ()
   (concat "^" (regexp-quote (char-to-string dired-marker-char))))
@@ -3567,8 +3586,9 @@ argument or confirmation)."
   (let ((beg (point)))
     (completion--insert-strings files)
     (put-text-property beg (point) 'mouse-face nil)))
+
 
-;; Commands to mark or flag file(s) at or near current line.
+;;; Commands to mark or flag file(s) at or near current line
 
 (defun dired-repeat-over-lines (arg function)
   ;; This version skips non-file lines.
@@ -3756,8 +3776,9 @@ on the whole buffer."
                        (list ?\s dired-marker-char)
                      (list dired-marker-char ?\s))))
         (forward-line 1)))))
+
 
-;;; Commands to mark or flag files based on their characteristics or names.
+;;; Commands to mark or flag files based on their characteristics or names
 
 (defvar dired-regexp-history nil
   "History list of regular expressions used in Dired commands.")
@@ -4033,8 +4054,9 @@ Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
       (message (if (= count 1) "1 mark removed"
 		 "%d marks removed")
 	       count))))
+
 
-;; Logging failures operating on files, and showing the results.
+;;; Logging failures operating on files, and showing the results
 
 (defvar dired-log-buffer "*Dired log*")
 
@@ -4099,6 +4121,7 @@ or nil if file names are not applicable."
   ;; Log a summary describing a bunch of errors.
   (dired-log (concat "\n" string "\n"))
   (dired-log t))
+
 
 ;;; Sorting
 
@@ -4280,9 +4303,9 @@ To be called first in body of `dired-sort-other', etc."
 	    ;; No pre-R subdir alist, so revert to main directory
 	    ;; listing:
 	    (list (car (reverse dired-subdir-alist))))))))
-
 
-;;;;  Drag and drop support
+
+;;; Drag and drop support
 
 (defcustom dired-recursive-copies 'top
   "Whether Dired copies directories recursively.
@@ -4384,9 +4407,9 @@ Ask means pop up a menu for the user to select one of copy, move or link."
   (let ((local-file (dnd-get-local-file-uri uri)))
     (if local-file (dired-dnd-handle-local-file local-file action)
       nil)))
-
 
-;;;;  Desktop support
+
+;;; Desktop support
 
 (eval-when-compile (require 'desktop))
 (declare-function desktop-file-name "desktop" (filename dirname))
@@ -4432,7 +4455,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 	     '(dired-mode . dired-restore-desktop-buffer))
 
 
-;;;; Jump to Dired
+;;; Jump to Dired
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
