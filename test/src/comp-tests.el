@@ -501,7 +501,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01413.html>"
   (should (string= (comp-test-46670-2-f "foo") "foo"))
   (should (equal (subr-type (symbol-function #'comp-test-46670-2-f))
-                 '(function (t) (or null sequence)))))
+                 '(function (t) t))))
 
 (comp-deftest 46824-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01949.html>"
