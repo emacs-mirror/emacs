@@ -40,7 +40,6 @@
 (defconst tramp-sshfs-method "sshfs"
   "Tramp method for sshfs mounts.")
 
-;;;###tramp-autoload
 (defcustom tramp-sshfs-program "sshfs"
   "The sshfs mount command."
   :group 'tramp
@@ -276,7 +275,8 @@ arguments to pass to the OPERATION."
   (with-parsed-tramp-file-name filename nil
     (unless (and (eq flag 'nofollow) (file-symlink-p filename))
       (tramp-flush-file-properties v localname)
-      (set-file-modes (tramp-fuse-local-file-name filename) mode flag))))
+      (tramp-compat-set-file-modes
+       (tramp-fuse-local-file-name filename) mode flag))))
 
 (defun tramp-sshfs-handle-write-region
   (start end filename &optional append visit lockname mustbenew)

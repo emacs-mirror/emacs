@@ -210,7 +210,7 @@ Do not call this in the scope of `with-help-window'."
 \\[describe-key] KEYS      Display the full documentation for the key sequence.
 \\[Info-goto-emacs-key-command-node] KEYS      Show the Emacs manual's section for the command bound to KEYS.
 \\[view-lossage]           Show last 300 input keystrokes (lossage).
-\\[describe-language-environment] LANG-ENV  Describes a specific language environment, or RET for current.
+\\[describe-language-environment] LANG-ENV  Describe a specific language environment, or RET for current.
 \\[describe-mode]           Display documentation of current minor modes and current major mode,
              including their special commands.
 \\[view-emacs-news]           Display news of recent Emacs changes.

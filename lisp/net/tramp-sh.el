@@ -46,7 +46,6 @@
 (defconst tramp-default-remote-shell "/bin/sh"
   "The default remote shell Tramp applies.")
 
-;;;###tramp-autoload
 (defcustom tramp-inline-compress-start-size 4096
   "The minimum size of compressing where inline transfer.
 When inline transfer, compress transferred data of file whose
@@ -56,23 +55,12 @@ If it is nil, no compression at all will be applied."
   :group 'tramp
   :type '(choice (const nil) integer))
 
-;;;###tramp-autoload
 (defcustom tramp-copy-size-limit 10240
   "Maximum file size where inline copying is preferred to an out-of-the-band copy.
 If it is nil, out-of-the-band copy will be used without a check."
   :group 'tramp
   :type '(choice (const nil) integer))
 
-;;;###tramp-autoload
-(defcustom tramp-terminal-type "dumb"
-  "Value of TERM environment variable for logging in to remote host.
-Because Tramp wants to parse the output of the remote shell, it is easily
-confused by ANSI color escape sequences and suchlike.  Often, shell init
-files conditionalize this setup based on the TERM environment variable."
-  :group 'tramp
-  :type 'string)
-
-;;;###tramp-autoload
 (defcustom tramp-histfile-override "~/.tramp_history"
   "When invoking a shell, override the HISTFILE with this value.
 When setting to a string, it redirects the shell history to that
@@ -115,7 +103,6 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (defconst tramp-end-of-heredoc (md5 tramp-end-of-output)
   "String used to recognize end of heredoc strings.")
 
-;;;###tramp-autoload
 (defcustom tramp-use-ssh-controlmaster-options t
   "Whether to use `tramp-ssh-controlmaster-options'.
 Set it to nil, if you use Control* or Proxy* options in your ssh
@@ -477,70 +464,6 @@ The string is used in `tramp-methods'.")
  (tramp-set-completion-function "psftp" tramp-completion-function-alist-ssh)
  (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
 
-;; "getconf PATH" yields:
-;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin
-;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
-;; GNU/Linux (Debian, Suse, RHEL): /bin:/usr/bin
-;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
-;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
-;; IRIX64: /usr/bin
-;; QNAP QTS: ---
-;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
-;;;###tramp-autoload
-(defcustom tramp-remote-path
-  '(tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin"
-    "/usr/local/bin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin"
-    "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin"
-    "/opt/bin" "/opt/sbin" "/opt/local/bin")
-  "List of directories to search for executables on remote host.
-For every remote host, this variable will be set buffer local,
-keeping the list of existing directories on that host.
-
-You can use \"~\" in this list, but when searching for a shell which groks
-tilde expansion, all directory names starting with \"~\" will be ignored.
-
-`Default Directories' represent the list of directories given by
-the command \"getconf PATH\".  It is recommended to use this
-entry on head of this list, because these are the default
-directories for POSIX compatible commands.  On remote hosts which
-do not offer the getconf command (like cygwin), the value
-\"/bin:/usr/bin\" is used instead.  This entry is represented in
-the list by the special value `tramp-default-remote-path'.
-
-`Private Directories' are the settings of the $PATH environment,
-as given in your `~/.profile'.  This entry is represented in
-the list by the special value `tramp-own-remote-path'."
-  :group 'tramp
-  :type '(repeat (choice
-		  (const :tag "Default Directories" tramp-default-remote-path)
-		  (const :tag "Private Directories" tramp-own-remote-path)
-		  (string :tag "Directory"))))
-
-;;;###tramp-autoload
-(defcustom tramp-remote-process-environment
-  '("ENV=''" "TMOUT=0" "LC_CTYPE=''"
-    "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH=" "PAGER=cat"
-    "autocorrect=" "correct=")
-  "List of environment variables to be set on the remote host.
-
-Each element should be a string of the form ENVVARNAME=VALUE.  An
-entry ENVVARNAME= disables the corresponding environment variable,
-which might have been set in the init files like ~/.profile.
-
-Special handling is applied to some environment variables,
-which should not be set here:
-
-The PATH environment variable should be set via `tramp-remote-path'.
-
-The TERM environment variable should be set via `tramp-terminal-type'.
-
-The INSIDE_EMACS environment variable will automatically be set
-based on the Tramp and Emacs versions, and should not be set here."
-  :group 'tramp
-  :version "26.1"
-  :type '(repeat string))
-
-;;;###tramp-autoload
 (defcustom tramp-sh-extra-args
   '(("/bash\\'" . "-noediting -norc -noprofile")
     ("/zsh\\'" . "-f +Z -V"))

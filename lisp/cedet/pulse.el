@@ -194,7 +194,7 @@ Optional argument FACE specifies the face to do the highlighting."
 	(progn
 	  (overlay-put o 'face (or face 'pulse-highlight-start-face))
 	  (add-hook 'pre-command-hook
-		    'pulse-momentary-unhighlight))
+		    #'pulse-momentary-unhighlight))
       ;; Pulse it.
       (overlay-put o 'face 'pulse-highlight-face)
       ;; The pulse function puts FACE onto 'pulse-highlight-face.
@@ -233,7 +233,7 @@ Optional argument FACE specifies the face to do the highlighting."
     (cancel-timer pulse-momentary-timer))
 
   ;; Remove this hook.
-  (remove-hook 'pre-command-hook 'pulse-momentary-unhighlight))
+  (remove-hook 'pre-command-hook #'pulse-momentary-unhighlight))
 
 ;;;###autoload
 (defun pulse-momentary-highlight-one-line (point &optional face)

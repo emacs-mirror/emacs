@@ -1,4 +1,4 @@
-;;; cedet-cscope.el --- CScope support for CEDET
+;;; cedet-cscope.el --- CScope support for CEDET  -*- lexical-binding: t; -*-
 
 ;;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
@@ -34,7 +34,7 @@
   :type 'string
   :group 'cedet)
 
-(defun cedet-cscope-search (searchtext texttype type scope)
+(defun cedet-cscope-search (searchtext texttype type _scope)
   "Perform a search with CScope, return the created buffer.
 SEARCHTEXT is text to find.
 TEXTTYPE is the type of text, such as `regexp', `string', `tagname',
@@ -85,7 +85,7 @@ options -cR."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process cedet-cscope-command
+    (apply #'call-process cedet-cscope-command
 	   nil b nil
 	   flags)
     b))

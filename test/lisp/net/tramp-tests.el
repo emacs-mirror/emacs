@@ -6380,7 +6380,7 @@ process sentinels.  They shall not disturb each other."
   ;; Prior Emacs 27, `shell-file-name' was hard coded as "/bin/sh" for
   ;; remote processes in Emacs.  That doesn't work for tramp-adb.el.
   (skip-unless (or (and (tramp--test-adb-p) (tramp--test-emacs27-p))
-		   (tramp--test-sh-p) (tramp--test-sshfs-p)))
+		   (tramp--test-sh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-windows-nt-p)))
@@ -6767,6 +6767,8 @@ If INTERACTIVE is non-nil, the tests are run interactively."
 ;; * Fix `tramp-test06-directory-file-name' for `ftp'.
 ;; * Implement `tramp-test31-interrupt-process' for `adb', `sshfs' and
 ;;   for direct async processes.
+;; * Check, why direct async processes do not work for
+;;   `tramp-test43-asynchronous-requests'.
 
 (provide 'tramp-tests)
 
