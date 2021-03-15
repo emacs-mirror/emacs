@@ -140,3 +140,7 @@
   (elb-nbody 300000))
 
 (provide 'elb-nbody)
+
+;; Local Variables:
+;; comp-speed: 3
+;; End:
