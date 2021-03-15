@@ -594,6 +594,20 @@ the mode line.  Replacing `tab-bar-format-tabs' with
        (tab-bar--format-tab tab i))
      (funcall tab-bar-tabs-function))))
 
+(defcustom tab-bar-tab-group-function #'tab-bar-tab-group-default
+  "Function to get a tab group name.
+Function gets one argument: a tab."
+  :type 'function
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set-default sym val)
+         (force-mode-line-update))
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-group-default (tab)
+  (alist-get 'group tab))
+
 (defcustom tab-bar-tab-group-format-function #'tab-bar-tab-group-format-default
   "Function to format a tab group name.
 Function gets two arguments, a tab with a group name and its number,
@@ -609,7 +623,7 @@ and should return the formatted tab group name to display in the tab bar."
 (defun tab-bar-tab-group-format-default (tab i)
   (propertize
    (concat (if tab-bar-tab-hints (format "%d " i) "")
-           (alist-get 'group tab))
+           (funcall tab-bar-tab-group-function tab))
    'face 'tab-bar-tab-inactive))
 
 (defun tab-bar--format-tab-group (tab i)
@@ -627,12 +641,13 @@ and should return the formatted tab group name to display in the tab bar."
 
 (defun tab-bar-format-tabs-groups ()
   (let* ((tabs (funcall tab-bar-tabs-function))
-         (current-group (alist-get 'group (tab-bar--current-tab-find tabs)))
+         (current-group (funcall tab-bar-tab-group-function
+                                 (tab-bar--current-tab-find tabs)))
          (previous-group nil)
          (i 0))
     (mapcan
      (lambda (tab)
-       (let ((tab-group (alist-get 'group tab)))
+       (let ((tab-group (funcall tab-bar-tab-group-function tab)))
          (setq i (1+ i))
          (prog1 (if (or (not tab-group) (equal tab-group current-group))
                     ;; Show current group and ungrouped tabs
@@ -1325,14 +1340,17 @@ While using this command, you might also want to replace
 `tab-bar-format' to group tabs on the tab bar."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
-          (tab-index (or current-prefix-arg (1+ (tab-bar--current-tab-index tabs))))
-          (group-name (alist-get 'group (nth (1- tab-index) tabs))))
+          (tab-index (or current-prefix-arg
+                         (1+ (tab-bar--current-tab-index tabs))))
+          (group-name (funcall tab-bar-tab-group-function
+                               (nth (1- tab-index) tabs))))
      (list (completing-read
             "Group name for tab (leave blank to remove group): "
-            (delete-dups (delq nil (cons group-name
-                                         (mapcar (lambda (tab)
-                                                   (alist-get 'group tab))
-                                                 (funcall tab-bar-tabs-function))))))
+            (delete-dups
+             (delq nil (cons group-name
+                             (mapcar (lambda (tab)
+                                       (funcall tab-bar-tab-group-function tab))
+                                     (funcall tab-bar-tabs-function))))))
            current-prefix-arg)))
   (let* ((tabs (funcall tab-bar-tabs-function))
          (tab-index (if arg
@@ -1353,24 +1371,28 @@ While using this command, you might also want to replace
   "Close all tabs that belong to GROUP-NAME on the selected frame."
   (interactive
    (let* ((tabs (funcall tab-bar-tabs-function))
-          (group-name (alist-get 'group (tab-bar--current-tab-find tabs))))
+          (group-name (funcall tab-bar-tab-group-function
+                               (tab-bar--current-tab-find tabs))))
      (list (completing-read
             "Close all tabs with group name: "
-            (delete-dups (delq nil (cons group-name
-                                         (mapcar (lambda (tab)
-                                                   (alist-get 'group tab))
-                                                 (funcall tab-bar-tabs-function)))))))))
+            (delete-dups
+             (delq nil (cons group-name
+                             (mapcar (lambda (tab)
+                                       (funcall tab-bar-tab-group-function tab))
+                                     (funcall tab-bar-tabs-function)))))))))
   (let* ((close-group (and (> (length group-name) 0) group-name))
          (tab-bar-tab-prevent-close-functions
           (cons (lambda (tab _last-tab-p)
-                  (not (equal (alist-get 'group tab) close-group)))
+                  (not (equal (funcall tab-bar-tab-group-function tab)
+                              close-group)))
                 tab-bar-tab-prevent-close-functions)))
     (tab-bar-close-other-tabs)
 
     (let* ((tabs (funcall tab-bar-tabs-function))
            (current-tab (tab-bar--current-tab-find tabs)))
-      (when (and current-tab (equal (alist-get 'group current-tab)
-                                    close-group))
+      (when (and current-tab
+                 (equal (funcall tab-bar-tab-group-function current-tab)
+                        close-group))
         (tab-bar-close-tab)))))
 
 
