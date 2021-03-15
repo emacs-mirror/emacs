@@ -42,3 +42,7 @@
 	   do (elb-map-closure elb-map-closure-list)))
 
 (provide 'elb-map-closure)
+
+;; Local Variables:
+;; comp-speed: 3
+;; End:

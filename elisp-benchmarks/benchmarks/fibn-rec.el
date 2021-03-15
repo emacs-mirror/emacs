@@ -31,3 +31,7 @@
   (elb-fib 37))
 
 (provide 'fibn-rec)
+
+;; Local Variables:
+;; comp-speed: 3
+;; End:

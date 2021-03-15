@@ -33,3 +33,7 @@
 	   do (elb-fibn-tc 1 0 80)))
 
 (provide 'fibn-tc)
+
+;; Local Variables:
+;; comp-speed: 3
+;; End:
