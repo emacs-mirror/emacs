@@ -1,4 +1,4 @@
-;;; help-macro.el --- makes command line help such as help-for-help
+;;; help-macro.el --- makes command line help such as help-for-help  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
 
