@@ -429,7 +429,7 @@ load_gccjit_if_necessary (bool mandatory)
 
 
 /* Increase this number to force a new Vcomp_abi_hash to be generated.  */
-#define ABI_VERSION "3"
+#define ABI_VERSION "4"
 
 /* Length of the hashes used for eln file naming.  */
 #define HASH_LENGTH 8
@@ -654,9 +654,6 @@ void *helper_link_table[] =
     helper_PSEUDOVECTOR_TYPEP_XUNTAG,
     pure_write_error,
     push_handler,
-#ifdef WINDOWSNT
-    SETJMP_NAME,
-#endif
     record_unwind_protect_excursion,
     helper_unbind_n,
     helper_save_restriction,
@@ -1972,6 +1969,11 @@ emit_setjmp (gcc_jit_rvalue *buf)
   return gcc_jit_context_new_call (comp.ctxt, NULL, f, 1, args);
 #else
   /* _setjmp (buf, __builtin_frame_address (0)) */
+  gcc_jit_param *params[] =
+  {
+    gcc_jit_context_new_param (comp.ctxt, NULL, comp.void_ptr_type, "buf"),
+    gcc_jit_context_new_param (comp.ctxt, NULL, comp.void_ptr_type, "frame"),
+  };
   gcc_jit_rvalue *args[2];
 
   args[0] =
@@ -1985,8 +1987,14 @@ emit_setjmp (gcc_jit_rvalue *buf)
 					    "__builtin_frame_address"),
       1, args);
   args[0] = buf;
-  return emit_call (intern_c_string (STR (SETJMP_NAME)), comp.int_type, 2, args,
-                    false);
+  gcc_jit_function *f =
+    gcc_jit_context_new_function (comp.ctxt, NULL,
+				  GCC_JIT_FUNCTION_IMPORTED,
+				  comp.int_type, STR (SETJMP_NAME),
+				  ARRAYELTS (params), params,
+				  false);
+
+  return gcc_jit_context_new_call (comp.ctxt, NULL, f, 2, args);
 #endif
 }
 
@@ -2700,12 +2708,6 @@ declare_runtime_imported_funcs (void)
   args[0] = comp.lisp_obj_type;
   args[1] = comp.int_type;
   ADD_IMPORTED (push_handler, comp.handler_ptr_type, 2, args);
-
-#ifdef WINDOWSNT
-  args[0] = gcc_jit_type_get_pointer (gcc_jit_struct_as_type (comp.jmp_buf_s));
-  args[1] = comp.void_ptr_type;
-  ADD_IMPORTED (SETJMP_NAME, comp.int_type, 2, args);
-#endif
 
   ADD_IMPORTED (record_unwind_protect_excursion, comp.void_type, 0, NULL);
 
@@ -4616,7 +4618,7 @@ eln_load_path_final_clean_up (void)
 				   Qt, build_string ("\\.eln\\.old\\'"), Qnil,
 				   Qnil, Qt, return_nil);
       FOR_EACH_TAIL (files_in_dir)
-	Fdelete_file (XCAR (files_in_dir), Qnil);
+	internal_delete_file (XCAR (files_in_dir));
     }
 #endif
 }
