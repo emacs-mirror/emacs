@@ -48,6 +48,17 @@
     (setf (image-property image :width) nil)
     (should (equal image '(image)))))
 
+(ert-deftest image-find-image ()
+  (find-image '((:type xpm :file "undo.xpm")))
+  (find-image '((:type png :file "newsticker/rss-feed.png" :ascent center))))
+
+(ert-deftest image-type-from-file-name ()
+  (should (eq (image-type-from-file-name "foo.jpg") 'jpeg))
+  (should (eq (image-type-from-file-name "foo.png") 'png)))
+
+(ert-deftest image-type/from-filename ()
+  (should (eq (image-type "foo.jpg") 'jpeg)))
+
 (ert-deftest image-type-from-file-header-test ()
   "Test image-type-from-file-header."
   (should (eq (if (image-type-available-p 'svg) 'svg)
