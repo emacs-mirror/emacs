@@ -3691,9 +3691,9 @@ Prepare every function for final compilation and drive the C back-end."
   "Return a list of effective eln load directories.
 Account for `comp-load-path' and `comp-native-version-dir'."
   (mapcar (lambda (dir)
-            (concat (file-name-as-directory
-                     (expand-file-name dir invocation-directory))
-                    comp-native-version-dir))
+            (expand-file-name comp-native-version-dir
+                              (file-name-as-directory
+                               (expand-file-name dir invocation-directory))))
           comp-eln-load-path))
 
 (defun comp-trampoline-filename (subr-name)

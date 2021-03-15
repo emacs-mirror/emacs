@@ -4121,8 +4121,8 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
     base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
 
   return Fexpand_file_name (filename,
-			    concat2 (Ffile_name_as_directory (base_dir),
-				     Vcomp_native_version_dir));
+			    Fexpand_file_name (Vcomp_native_version_dir,
+					       base_dir));
 }
 
 DEFUN ("comp--install-trampoline", Fcomp__install_trampoline,
@@ -4613,8 +4613,8 @@ eln_load_path_final_clean_up (void)
     {
       Lisp_Object files_in_dir =
 	internal_condition_case_5 (Fdirectory_files,
-				   concat2 (XCAR (dir_tail),
-					    Vcomp_native_version_dir),
+				   Fexpand_file_name (Vcomp_native_version_dir,
+						      XCAR (dir_tail)),
 				   Qt, build_string ("\\.eln\\.old\\'"), Qnil,
 				   Qnil, Qt, return_nil);
       FOR_EACH_TAIL (files_in_dir)
