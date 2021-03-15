@@ -133,47 +133,45 @@ OBJ is the target object to customize."
 (defun ede-project-sort-targets-list ()
   "Sort the target list while using `ede-project-sort-targets'."
   (save-excursion
-    (let ((count 0)
-          (targets (oref ede-object-project targets))
+    (let ((targets (oref ede-object-project targets))
           (inhibit-read-only t)
           (inhibit-modification-hooks t))
       (goto-char (point-min))
       (forward-line 2)
       (delete-region (point) (point-max))
-      (while (< count (length targets))
+      (dotimes (count (length targets))
         (if (> count 0)
             (widget-create 'push-button
-                           :notify `(lambda (&rest ignore)
-                                      (let ((cur ede-project-sort-targets-order))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth ,count cur)
-                                         (1- ,count))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth (1- ,count) cur) ,count))
-                                      (ede-project-sort-targets-list))
+                           :notify (lambda (&rest _ignore)
+                                     (let ((cur ede-project-sort-targets-order))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth count cur)
+                                        (1- count))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth (1- count) cur) count))
+                                     (ede-project-sort-targets-list))
                            " Up ")
           (widget-insert "      "))
         (if (< count (1- (length targets)))
             (widget-create 'push-button
-                           :notify `(lambda (&rest ignore)
-                                      (let ((cur ede-project-sort-targets-order))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth ,count cur) (1+ ,count))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth (1+ ,count) cur) ,count))
-                                      (ede-project-sort-targets-list))
+                           :notify (lambda (&rest _ignore)
+                                     (let ((cur ede-project-sort-targets-order))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth count cur) (1+ count))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth (1+ count) cur) count))
+                                     (ede-project-sort-targets-list))
                            " Down ")
           (widget-insert "        "))
         (widget-insert (concat " " (number-to-string (1+ count)) ".:   "
                                (oref (nth (nth count ede-project-sort-targets-order)
                                           targets)
                                      name)
-                               "\n"))
-        (setq count (1+ count))))))
+                               "\n"))))))
 
 ;;; Customization hooks
 ;;

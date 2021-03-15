@@ -1,4 +1,4 @@
-;;; semantic/edit.el --- Edit Management for Semantic
+;;; semantic/edit.el --- Edit Management for Semantic  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -157,7 +157,7 @@ Optional argument BUFFER is the buffer to search for changes in."
       (sort ret #'(lambda (a b) (< (overlay-start a)
 				   (overlay-start b)))))))
 
-(defun semantic-edits-change-function-handle-changes  (start end length)
+(defun semantic-edits-change-function-handle-changes  (start end _length)
   "Run whenever a buffer controlled by `semantic-mode' change.
 Tracks when and how the buffer is re-parsed.
 Argument START, END, and LENGTH specify the bounds of the change."
@@ -356,7 +356,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 		   start end)))
 	 (parent nil)
 	 (overlapped-tags nil)
-	 inner-start inner-end
+	 inner-end ;; inner-start
 	 (list-to-search nil))
     ;; By the time this is already called, we know that it is
     ;; not a leaf change, nor a between tag change.  That leaves
@@ -370,7 +370,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	(progn
 	  ;; We encompass one whole change.
 	  (setq overlapped-tags (list (car tags))
-		inner-start (semantic-tag-start (car tags))
+		;; inner-start (semantic-tag-start (car tags))
 		inner-end (semantic-tag-end (car tags))
 		tags (cdr tags))
 	  ;; Keep looping while tags are inside the change.
@@ -386,13 +386,14 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 		;; This is a parent.  Drop the children found
 		;; so far.
 		(setq overlapped-tags (list (car tags))
-		      inner-start (semantic-tag-start (car tags))
+		      ;; inner-start (semantic-tag-start (car tags))
 		      inner-end (semantic-tag-end (car tags))
 		      )
 	      ;; It is not a parent encompassing tag
 	      (setq overlapped-tags (cons (car tags)
 					    overlapped-tags)
-		    inner-start (semantic-tag-start (car tags))))
+		    ;; inner-start (semantic-tag-start (car tags))
+		    ))
 	    (setq tags (cdr tags)))
 	  (if (not tags)
 	      ;; There are no tags left, and all tags originally
@@ -533,6 +534,7 @@ This function is for internal use by `semantic-edits-incremental-parser'."
 					;query this when debugging to find
 					;source of bugs.
          )
+    (ignore last-cond) ;; Don't warn about the var not being used.
     (or changes
         ;; If we were called, and there are no changes, then we
         ;; don't know what to do.  Force a full reparse.

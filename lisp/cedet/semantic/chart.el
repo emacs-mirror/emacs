@@ -1,4 +1,4 @@
-;;; semantic/chart.el --- Utilities for use with semantic tag tables
+;;; semantic/chart.el --- Utilities for use with semantic tag tables  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2001, 2003, 2005, 2008-2021 Free Software
 ;; Foundation, Inc.
@@ -43,7 +43,7 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
   (interactive)
   (let* ((stream (semantic-something-to-tag-table
 		  (or tagtable (current-buffer))))
-	 (names (mapcar 'cdr semantic-symbol->name-assoc-list))
+	 (names (mapcar #'cdr semantic-symbol->name-assoc-list))
 	 (nums (mapcar
 		(lambda (symname)
 		  (length
@@ -57,7 +57,7 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
 		       nums "Volume")
     ))
 
-(defun semantic-chart-database-size (&optional tagtable)
+(defun semantic-chart-database-size (&optional _tagtable)
   "Create a bar chart representing the size of each file in semanticdb.
 Each bar represents how many toplevel tags in TAGTABLE
 exist in each database entry.
@@ -68,7 +68,7 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
     (error "Semanticdb is not enabled"))
   (let* ((db semanticdb-current-database)
 	 (dbt (semanticdb-get-database-tables db))
-	 (names (mapcar 'car
+	 (names (mapcar #'car
 			(object-assoc-list
 			 'file
 			 dbt)))
@@ -84,8 +84,8 @@ TAGTABLE is passed to `semantic-something-to-tag-table'."
 	 (nums nil)
 	 (fh (/ (- (frame-height) 7) 4)))
     (setq numnuts (sort numnuts (lambda (a b) (> (car a) (car b)))))
-    (setq names (mapcar 'cdr numnuts)
-	  nums (mapcar 'car numnuts))
+    (setq names (mapcar #'cdr numnuts)
+	  nums (mapcar #'car numnuts))
     (if (> (length names) fh)
 	(progn
 	  (setcdr (nthcdr fh names) nil)

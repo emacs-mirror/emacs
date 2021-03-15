@@ -249,13 +249,12 @@ This will prevent rules from creating duplicate variables or rules."
   "Add VARNAME into the current Makefile if it doesn't exist.
 Execute BODY in a location where a value can be placed."
   (declare (indent 1) (debug (sexp body)))
-  `(let ((addcr t) (v ,varname))
+  `(let ((v ,varname))
      (unless (re-search-backward (concat "^" v "\\s-*=") nil t)
        (insert v "=")
        ,@body
-       (if addcr (insert "\n"))
-       (goto-char (point-max)))
-     ))
+       (insert "\n")
+       (goto-char (point-max)))))
 
 (cl-defmethod ede-proj-makefile-insert-variables ((this ede-compilation-program))
   "Insert variables needed by the compiler THIS."

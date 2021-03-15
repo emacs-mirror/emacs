@@ -218,7 +218,7 @@ Uses default implementation, and also gets a list of filenames."
 					   ;; but not actually parsed.
 					   (file . "File"))
         semantic-case-fold t
-        semantic-tag-expand-function 'semantic-make-expand-tag
+        semantic-tag-expand-function #'semantic-make-expand-tag
         semantic-lex-syntax-modifications '((?. "_")
                                             (?= ".")
                                             (?/ "_")
@@ -226,7 +226,7 @@ Uses default implementation, and also gets a list of filenames."
                                             (?+ ".")
                                             (?\\ ".")
                                             )
-        imenu-create-index-function 'semantic-create-imenu-index
+        imenu-create-index-function #'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-make-lexer)
   )

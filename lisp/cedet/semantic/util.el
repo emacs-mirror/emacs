@@ -1,6 +1,6 @@
-;;; semantic/util.el --- Utilities for use with semantic tag tables
+;;; semantic/util.el --- Utilities for use with semantic tag tables  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2005, 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -114,7 +114,10 @@ buffer, or a filename.  If SOMETHING is nil return nil."
    ((and (featurep 'semantic/db)
 	 (require 'semantic/db-mode)
 	 (semanticdb-minor-mode-p)
-	 (cl-typep something 'semanticdb-abstract-table))
+	 (progn
+	   (declare-function semanticdb-abstract-table--eieio-childp
+	                     "semantic/db")
+	   (cl-typep something 'semanticdb-abstract-table)))
     (semanticdb-refresh-table something)
     (semanticdb-get-tags something))
    ;; Semanticdb find-results
@@ -427,7 +430,7 @@ determining which symbols are considered."
       (setq completion (try-completion pattern collection predicate))
       (if (string= pattern completion)
 	  (let ((list (all-completions pattern collection predicate)))
-	    (setq list (sort list 'string<))
+	    (setq list (sort list #'string<))
 	    (if (> (length list) 1)
 		(with-output-to-temp-buffer "*Completions*"
 		  (display-completion-list
