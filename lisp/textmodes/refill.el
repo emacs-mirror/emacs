@@ -1,4 +1,4 @@
-;;; refill.el --- `auto-fill' by refilling paragraphs on changes
+;;; refill.el --- `auto-fill' by refilling paragraphs on changes  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -82,11 +82,6 @@
 ;;      asdfa sdfasd sdf
 
 ;;; Code:
-
-;; Unused.
-;;; (defgroup refill nil
-;;;   "Refilling paragraphs on changes."
-;;;   :group 'fill)
 
 (defvar-local refill-ignorable-overlay nil
   "Portion of the most recently filled paragraph not needing filling.
