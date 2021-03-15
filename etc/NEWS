@@ -545,6 +545,7 @@ It also supports a negative argument.
 ---
 *** 'C-x t G' assigns a group name to the tab.
 'tab-close-group' can close all tabs that belong to the selected group.
+The option 'tab-bar-new-tab-group' defines the default group of a new tab.
 
 ---
 *** New user option 'tab-bar-tab-name-format-function'.

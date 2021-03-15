@@ -327,6 +327,20 @@ before calling the command that adds a new tab."
   :group 'tab-bar
   :version "27.1")
 
+(defcustom tab-bar-new-tab-group nil
+  "Defines what group to assign to a new tab.
+If nil, don't set a default group automatically.
+If t, inherit the group name from the previous tab.
+If the value is a string, use it as the group name of a new tab.
+If the value is a function, call it with no arguments
+to get the group name."
+  :type '(choice (const    :tag "No automatic group" nil)
+                 (const    :tag "Inherit group from previous tab" t)
+                 (string   :tag "Fixed group name")
+                 (function :tag "Function that returns group name"))
+  :group 'tab-bar
+  :version "28.1")
+
 (defcustom tab-bar-new-button-show t
   "If non-nil, show the \"New tab\" button in the tab bar.
 When this is nil, you can create new tabs with \\[tab-new]."
@@ -751,7 +765,11 @@ on the tab bar instead."
   ;; inherits the current tab's `explicit-name' parameter.
   (let* ((tab (or tab (assq 'current-tab (frame-parameter frame 'tabs))))
          (tab-explicit-name (alist-get 'explicit-name tab))
-         (tab-group (alist-get 'group tab)))
+         (tab-group (if tab
+                        (alist-get 'group tab)
+                      (pcase tab-bar-new-tab-group
+                        ((pred stringp) tab-bar-new-tab-group)
+                        ((pred functionp) (funcall tab-bar-new-tab-group))))))
     `(current-tab
       (name . ,(if tab-explicit-name
                    (alist-get 'name tab)
@@ -1035,7 +1053,10 @@ After the tab is created, the hooks in
 
     (when from-index
       (setf (nth from-index tabs) from-tab))
-    (let* ((to-tab (tab-bar--current-tab))
+
+    (let* ((to-tab (tab-bar--current-tab
+                    (when (eq tab-bar-new-tab-group t)
+                      `((group . ,(alist-get 'group from-tab))))))
            (to-index (and to-index (prefix-numeric-value to-index)))
            (to-index (or (if to-index
                              (if (< to-index 0)
@@ -1090,7 +1111,8 @@ where argument addressing is absolute."
 If a negative ARG, duplicate the tab to ARG positions to the left.
 If ARG is zero, duplicate the tab in place of the current tab."
   (interactive "P")
-  (let ((tab-bar-new-tab-choice nil))
+  (let ((tab-bar-new-tab-choice nil)
+        (tab-bar-new-tab-group t))
     (tab-bar-new-tab arg)))
 
 
