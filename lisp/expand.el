@@ -1,4 +1,4 @@
-;;; expand.el --- make abbreviations more usable
+;;; expand.el --- make abbreviations more usable  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995-1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -74,20 +74,17 @@
 
 (defcustom expand-load-hook nil
   "Hooks run when `expand.el' is loaded."
-  :type 'hook
-  :group 'expand)
+  :type 'hook)
 (make-obsolete-variable 'expand-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 
 (defcustom expand-expand-hook nil
   "Hooks run when an abbrev made by `expand-add-abbrevs' is expanded."
-  :type 'hook
-  :group 'expand)
+  :type 'hook)
 
 (defcustom expand-jump-hook nil
   "Hooks run by `expand-jump-to-previous-slot' and `expand-jump-to-next-slot'."
-  :type 'hook
-  :group 'expand)
+  :type 'hook)
 
 ;;; Samples:
 
@@ -319,8 +316,7 @@ If ARG is omitted, point is placed at the end of the expanded text."
 		nil)
 	      (if (and (symbolp expansion) (fboundp expansion))
 		  expansion
-		nil)
-	      )
+                nil))
       'expand-abbrev-hook)))
 
 (put 'expand-abbrev-hook 'no-self-insert t)
@@ -368,13 +364,12 @@ See `expand-add-abbrevs'.  Value is non-nil if expansion was done."
 	   (insert text)
 	   (setq expand-point (point))))
     (if jump-args
-	(funcall 'expand-build-list (car jump-args) (cdr jump-args)))
+        (funcall #'expand-build-list (car jump-args) (cdr jump-args)))
     (if position
 	(backward-char position))
     (if hook
 	(funcall hook))
-    t)
-  )
+    t))
 
 (defun expand-abbrev-from-expand (word)
   "Test if an abbrev has a hook."
@@ -428,8 +423,7 @@ This is used only in conjunction with `expand-add-abbrevs'."
 	(lenlist (length expand-list)))
     (while (< i lenlist)
       (aset expand-list i (- len (1- (aref expand-list i))))
-      (setq i (1+ i))))
-  )
+      (setq i (1+ i)))))
 
 (defun expand-build-marks (p)
   "Transform the offsets vector into a marker vector."
