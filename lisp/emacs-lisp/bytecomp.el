@@ -5423,6 +5423,7 @@ and corresponding effects."
 ;;
 (eval-when-compile
   (or (byte-code-function-p (symbol-function 'byte-compile-form))
+      (subr-native-elisp-p (symbol-function 'byte-compile-form))
       (assq 'byte-code (symbol-function 'byte-compile-form))
       (let ((byte-optimize nil)		; do it fast
 	    (byte-compile-warnings nil))
