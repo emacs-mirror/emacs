@@ -87,7 +87,7 @@
   "Portion of the most recently filled paragraph not needing filling.
 This is used to optimize refilling.")
 
-(defun refill-adjust-ignorable-overlay (overlay afterp beg end &optional len)
+(defun refill-adjust-ignorable-overlay (overlay afterp beg _end &optional _len)
   "Adjust OVERLAY to not include the about-to-be-modified region."
   (when (not afterp)
     (save-excursion
@@ -152,7 +152,7 @@ ensures refilling is only done once per command that causes a change,
 regardless of the number of after-change calls from commands doing
 complex processing.")
 
-(defun refill-after-change-function (beg end len)
+(defun refill-after-change-function (_beg end _len)
   "Function for `after-change-functions' which just sets `refill-doit'."
   (unless undo-in-progress
     (setq refill-doit end)))
