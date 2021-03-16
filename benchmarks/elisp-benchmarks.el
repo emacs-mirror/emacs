@@ -57,7 +57,7 @@
 (defcustom elb-runs 3
   "Total number of benchmark iterations."
   :type 'number
-  :group 'comp)
+  :group 'elb)
 
 (defcustom elb-speed 3
   "Default `comp-speed' to be used for native compiling the benchmarks."
