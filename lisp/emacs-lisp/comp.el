@@ -182,6 +182,8 @@ the .eln output directory."
 
 (defvar no-native-compile nil
   "Non-nil to prevent native-compiling of Emacs Lisp code.
+Note that when `no-byte-compile' is set to non-nil it overrides the value of
+`no-native-compile'.
 This is normally set in local file variables at the end of the elisp file:
 
 \;; Local Variables:\n;; no-native-compile: t\n;; End: ")
