@@ -148,9 +148,6 @@ starting list count:
 object, so when reading back the object, they will be the same object
 instead of copies (@pxref{Circular Objects}).
 
-@item #@@N
-Skip the next @samp{N} characters (@pxref{Comments}).
-
 @item #xN
 @samp{N} represented as a hexadecimal number (@samp{#x2a}).
 
