@@ -1315,7 +1315,8 @@ clashes."
 (cl-defmethod comp-spill-lap-function ((filename string))
   "Byte-compile FILENAME, spilling data from the byte compiler."
   (byte-compile-file filename)
-  (when (alist-get 'no-native-compile byte-native-qualities)
+  (when (or (null byte-native-qualities)
+            (alist-get 'no-native-compile byte-native-qualities))
     (throw 'no-native-compile nil))
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte filename))

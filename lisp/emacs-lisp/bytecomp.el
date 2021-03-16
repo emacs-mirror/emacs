@@ -2277,8 +2277,7 @@ With argument ARG, insert value in current buffer after the form."
           (push `(comp-native-driver-options . ,comp-native-driver-options)
                 byte-native-qualities)
           (defvar no-native-compile)
-          ;; `no-byte-compile' implies also `no-native-compile'.
-          (push `(no-native-compile . ,(or no-byte-compile no-native-compile))
+          (push `(no-native-compile . ,no-native-compile)
                 byte-native-qualities))
 
 	;; Compile the forms from the input buffer.
