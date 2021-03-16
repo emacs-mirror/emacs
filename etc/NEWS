@@ -253,6 +253,10 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 ('clone-buffer'), 'C-x x i' ('insert-buffer') and 'C-x x t'
 ('toggle-truncate-lines').
 
+---
+** Commands 'set-frame-width' and 'set-frame-height' can now get their
+input using the minibuffer.
+
 
 * Editing Changes in Emacs 28.1
 
