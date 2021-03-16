@@ -25,7 +25,7 @@
   (require 'cl-lib))
 
 (defconst image-tests--emacs-images-directory
-  (expand-file-name "../etc/images" (getenv "EMACS_TEST_DIRECTORY"))
+  (expand-file-name "images" data-directory)
   "Directory containing Emacs images.")
 
 (ert-deftest image--set-property ()
@@ -57,6 +57,8 @@
   (should (eq (image-type-from-file-name "foo.png") 'png)))
 
 (ert-deftest image-type/from-filename ()
+  ;; On emba, `image-load-path' does not exist.
+  (skip-unless (bound-and-true-p image-load-path))
   (should (eq (image-type "foo.jpg") 'jpeg)))
 
 (ert-deftest image-type-from-file-header-test ()
