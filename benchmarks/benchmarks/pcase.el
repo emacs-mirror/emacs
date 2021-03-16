@@ -29,7 +29,7 @@
   ;;
   ;; We should probably change GNUmakefile instead so it doesn't forcefully
   ;; add the directory to `load-path', e.g. make this dependent on the
-  ;; presence of special file like `.dont-add-to-load-path'.
+  ;; presence of special file like `.dont-add-to-load-path'. 
   (when load-file-name
     (setq load-path (remove (file-name-directory load-file-name) load-path))))
 
@@ -66,7 +66,3 @@
 	   do (elb-pcase elb-pcase-list)))
 
 (provide 'elb-pcase)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:

@@ -97,6 +97,9 @@ RECOMPILE all the benchmark folder when non nil."
 				       collect (file-name-base f))
 			  (mapcar #'file-name-base sources))
 	   initially
+	   (when native-comp
+	     (require 'comp)
+	     (setf comp-speed 3))
 	   ;; Compile
 	   (when recompile
 	     (mapc (lambda (f)

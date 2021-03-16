@@ -303,7 +303,3 @@
   (dhrystone 1000000))
 
 (provide 'elb-dhrystone)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:

@@ -38,7 +38,3 @@
   (elb-fibn 3000000 80))
 
 (provide 'elb-fibn)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:

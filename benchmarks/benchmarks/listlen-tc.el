@@ -41,7 +41,3 @@
 	     do (elb-listlen-tc elb-listlen-tc-list 0))))
 
 (provide 'listlen-tc)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:

@@ -42,7 +42,3 @@
   (let ((l (copy-sequence elb-inclist-th-no-type-hints-list)))
     (cl-loop repeat 10000
 	     do (elb-inclist-th l))))
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:

@@ -43,7 +43,3 @@
 	   do (elb-bubble-no-cons l)))
 
 (provide 'elb-bubble)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:

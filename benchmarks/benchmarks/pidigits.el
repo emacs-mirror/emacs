@@ -70,7 +70,3 @@
 	   do (elb-pidigits 500)))
 
 (provide 'elb-pidigits)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:

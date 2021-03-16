@@ -39,7 +39,3 @@
 	   do (elb-flet elb-flet-list)))
 
 (provide 'elb-flet)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:
