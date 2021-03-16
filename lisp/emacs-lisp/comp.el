@@ -182,6 +182,8 @@ the .eln output directory."
 
 (defvar no-native-compile nil
   "Non-nil to prevent native-compiling of Emacs Lisp code.
+Note that when `no-byte-compile' is set to non-nil it overrides the value of
+`no-native-compile'.
 This is normally set in local file variables at the end of the elisp file:
 
 \;; Local Variables:\n;; no-native-compile: t\n;; End: ")
@@ -1313,7 +1315,8 @@ clashes."
 (cl-defmethod comp-spill-lap-function ((filename string))
   "Byte-compile FILENAME, spilling data from the byte compiler."
   (byte-compile-file filename)
-  (when (alist-get 'no-native-compile byte-native-qualities)
+  (when (or (null byte-native-qualities)
+            (alist-get 'no-native-compile byte-native-qualities))
     (throw 'no-native-compile nil))
   (unless byte-to-native-top-level-forms
     (signal 'native-compiler-error-empty-byte filename))
