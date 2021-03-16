@@ -237,9 +237,6 @@ is greater than 10.
   :expected-result (if (tramp--test-enabled) :passed :failed)
   (tramp--test-message
    "Remote directory: `%s'" tramp-test-temporary-file-directory)
-  (when (or (getenv "EMACS_HYDRA_CI") (getenv "EMACS_EMBA_CI"))
-    (tramp-test-message "%s %s %s %s %s %s"
-     exec-directory data-directory temporary-file-directory load-path (bound-and-true-p image-load-path) (getenv "HOME")))
   (should (ignore-errors
 	    (and
 	     (file-remote-p tramp-test-temporary-file-directory)
