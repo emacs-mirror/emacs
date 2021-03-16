@@ -489,13 +489,13 @@ For example, \\='((tab (name . \"Tab 1\")) (current-tab (name . \"Tab 2\")))
 By default, use function `tab-bar-tabs'.")
 
 (defun tab-bar-tabs (&optional frame)
-  "Return a list of tabs belonging to the selected frame.
+  "Return a list of tabs belonging to the FRAME.
 Ensure the frame parameter `tabs' is pre-populated.
 Update the current tab name when it exists.
 Return its existing value or a new value."
   (let ((tabs (frame-parameter frame 'tabs)))
     (if tabs
-        (let* ((current-tab (assq 'current-tab tabs))
+        (let* ((current-tab (tab-bar--current-tab-find tabs))
                (current-tab-name (assq 'name current-tab))
                (current-tab-explicit-name (assq 'explicit-name current-tab)))
           (when (and current-tab-name
@@ -505,8 +505,12 @@ Return its existing value or a new value."
                   (funcall tab-bar-tab-name-function))))
       ;; Create default tabs
       (setq tabs (list (tab-bar--current-tab)))
-      (set-frame-parameter frame 'tabs tabs))
+      (tab-bar-tabs-set tabs frame))
     tabs))
+
+(defun tab-bar-tabs-set (tabs &optional frame)
+  "Set a list of TABS on the FRAME."
+  (set-frame-parameter frame 'tabs tabs))
 
 
 (defcustom tab-bar-tab-name-format-function #'tab-bar-tab-name-format-default
@@ -738,7 +742,7 @@ on the tab bar instead."
 (push '(tabs . frameset-filter-tabs) frameset-filter-alist)
 
 (defun tab-bar--tab (&optional frame)
-  (let* ((tab (assq 'current-tab (frame-parameter frame 'tabs)))
+  (let* ((tab (tab-bar--current-tab-find))
          (tab-explicit-name (alist-get 'explicit-name tab))
          (tab-group (alist-get 'group tab))
          (bl  (seq-filter #'buffer-live-p (frame-parameter frame 'buffer-list)))
@@ -759,12 +763,11 @@ on the tab bar instead."
       (wc-history-back . ,(gethash (or frame (selected-frame)) tab-bar-history-back))
       (wc-history-forward . ,(gethash (or frame (selected-frame)) tab-bar-history-forward)))))
 
-(defun tab-bar--current-tab (&optional tab frame)
+(defun tab-bar--current-tab (&optional tab)
   ;; `tab' here is an argument meaning "use tab as template".  This is
   ;; necessary when switching tabs, otherwise the destination tab
   ;; inherits the current tab's `explicit-name' parameter.
-  (let* ((tab (or tab (assq 'current-tab (frame-parameter frame 'tabs))))
-         (tab-explicit-name (alist-get 'explicit-name tab))
+  (let* ((tab-explicit-name (alist-get 'explicit-name tab))
          (tab-group (if tab
                         (alist-get 'group tab)
                       (pcase tab-bar-new-tab-group
@@ -778,8 +781,7 @@ on the tab bar instead."
       ,@(if tab-group `((group . ,tab-group))))))
 
 (defun tab-bar--current-tab-find (&optional tabs frame)
-  (seq-find (lambda (tab) (eq (car tab) 'current-tab))
-            (or tabs (funcall tab-bar-tabs-function frame))))
+  (assq 'current-tab (or tabs (funcall tab-bar-tabs-function frame))))
 
 (defun tab-bar--current-tab-index (&optional tabs frame)
   (seq-position (or tabs (funcall tab-bar-tabs-function frame))
@@ -950,7 +952,7 @@ where argument addressing is relative."
          (to-index (max 0 (min (1- to-index) (1- (length tabs))))))
     (setq tabs (delq from-tab tabs))
     (cl-pushnew from-tab (nthcdr to-index tabs))
-    (set-frame-parameter nil 'tabs tabs)
+    (tab-bar-tabs-set tabs)
     (force-mode-line-update)))
 
 (defun tab-bar-move-tab (&optional arg)
@@ -992,7 +994,7 @@ Interactively, ARG selects the ARGth different frame to move to."
         (let ((inhibit-message t) ; avoid message about deleted tab
               tab-bar-closed-tabs)
           (tab-bar-close-tab from-index)))
-      (set-frame-parameter to-frame 'tabs to-tabs)
+      (tab-bar-tabs-set to-tabs to-frame)
       (force-mode-line-update t))))
 
 
@@ -1074,7 +1076,7 @@ After the tab is created, the hooks in
 
       (when (eq to-index 0)
         ;; `pushnew' handles the head of tabs but not frame-parameter
-        (set-frame-parameter nil 'tabs tabs))
+        (tab-bar-tabs-set tabs))
 
       (run-hook-with-args 'tab-bar-tab-post-open-functions
                           (nth to-index tabs)))
@@ -1230,7 +1232,7 @@ for the last tab on a frame is determined by
                               (tab-bar--tab)
                             close-tab)))
                 tab-bar-closed-tabs)
-          (set-frame-parameter nil 'tabs (delq close-tab tabs)))
+          (tab-bar-tabs-set (delq close-tab tabs)))
 
         ;; Recalculate `tab-bar-lines' and update frames
         (tab-bar--update-tab-bar-lines)
@@ -1269,7 +1271,7 @@ for the last tab on a frame is determined by
           (run-hook-with-args 'tab-bar-tab-pre-close-functions tab nil)
           (setq tabs (delq tab tabs)))
         (setq index (1+ index)))
-      (set-frame-parameter nil 'tabs tabs)
+      (tab-bar-tabs-set tabs)
 
       ;; Recalculate tab-bar-lines and update frames
       (tab-bar--update-tab-bar-lines)
@@ -1299,7 +1301,7 @@ for the last tab on a frame is determined by
           (cl-pushnew tab (nthcdr index tabs))
           (when (eq index 0)
             ;; pushnew handles the head of tabs but not frame-parameter
-            (set-frame-parameter nil 'tabs tabs))
+            (tab-bar-tabs-set tabs))
           (tab-bar-select-tab (1+ index))))
 
     (message "No more closed tabs to undo")))
@@ -1392,9 +1394,8 @@ While using this command, you might also want to replace
 (defun tab-bar-close-group-tabs (group-name)
   "Close all tabs that belong to GROUP-NAME on the selected frame."
   (interactive
-   (let* ((tabs (funcall tab-bar-tabs-function))
-          (group-name (funcall tab-bar-tab-group-function
-                               (tab-bar--current-tab-find tabs))))
+   (let ((group-name (funcall tab-bar-tab-group-function
+                              (tab-bar--current-tab-find))))
      (list (completing-read
             "Close all tabs with group name: "
             (delete-dups
@@ -1410,12 +1411,10 @@ While using this command, you might also want to replace
                 tab-bar-tab-prevent-close-functions)))
     (tab-bar-close-other-tabs)
 
-    (let* ((tabs (funcall tab-bar-tabs-function))
-           (current-tab (tab-bar--current-tab-find tabs)))
-      (when (and current-tab
-                 (equal (funcall tab-bar-tab-group-function current-tab)
-                        close-group))
-        (tab-bar-close-tab)))))
+    (when (equal (funcall tab-bar-tab-group-function
+                          (tab-bar--current-tab-find))
+                 close-group)
+      (tab-bar-close-tab))))
 
 
 ;;; Tab history mode
@@ -1704,7 +1703,7 @@ Then move up one line.  Prefix arg means move that many lines."
           (index . ,(tab-bar--tab-index tab))
           (tab . ,tab))
         tab-bar-closed-tabs)
-  (set-frame-parameter nil 'tabs (delq tab (funcall tab-bar-tabs-function))))
+  (tab-bar-tabs-set (delq tab (funcall tab-bar-tabs-function))))
 
 (defun tab-switcher-execute ()
   "Delete window configurations marked with \\<tab-switcher-mode-map>\\[tab-switcher-delete] commands."
