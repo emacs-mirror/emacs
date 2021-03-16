@@ -238,15 +238,6 @@ all other buffers."
   :group 'next-error
   :version "28.1")
 
-(defcustom next-error-found-function #'ignore
-  "Function called when a next locus is found and displayed.
-Function is called with two arguments: a FROM-BUFFER buffer
-from which next-error navigated, and a target buffer TO-BUFFER."
-  :type '(choice (const :tag "No default" ignore)
-                 (function :tag "Other function"))
-  :group 'next-error
-  :version "27.1")
-
 (defun next-error-buffer-on-selected-frame (&optional _avoid-current
                                                       extra-test-inclusive
                                                       extra-test-exclusive)
@@ -385,6 +376,15 @@ To control which errors are matched, customize the variable
       (when (or next-error-verbose
                 (not (eq prev next-error-last-buffer)))
         (message "Current locus from %s" next-error-last-buffer)))))
+
+(defcustom next-error-found-function #'ignore
+  "Function called when a next locus is found and displayed.
+Function is called with two arguments: a FROM-BUFFER buffer
+from which next-error navigated, and a target buffer TO-BUFFER."
+  :type '(choice (const :tag "No default" ignore)
+                 (function :tag "Other function"))
+  :group 'next-error
+  :version "27.1")
 
 (defun next-error-found (&optional from-buffer to-buffer)
   "Function to call when the next locus is found and displayed.

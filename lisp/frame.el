@@ -2739,7 +2739,7 @@ Offer NUMBER as default value, if it is a natural number."
   (if (and current-prefix-arg (not (consp current-prefix-arg)))
       (list (selected-frame) (prefix-numeric-value current-prefix-arg))
     (let ((default (and (natnump number) number)))
-      (list (selected-frame) (read-number prompt (list default (point)))))))
+      (list (selected-frame) (read-number prompt default)))))
 
 ;; Variables whose change of value should trigger redisplay of the
 ;; current buffer.
