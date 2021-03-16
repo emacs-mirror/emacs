@@ -814,7 +814,7 @@ on the tab bar instead."
 When this command is bound to a numeric key (with a prefix or modifier key
 using `tab-bar-select-tab-modifiers'), calling it without an argument
 will translate its bound numeric key to the numeric argument.
-ARG counts from 1."
+ARG counts from 1.  Negative ARG counts tabs from the end of the tab bar."
   (interactive "P")
   (unless (integerp arg)
     (let ((key (event-basic-type last-command-event)))
@@ -824,7 +824,9 @@ ARG counts from 1."
 
   (let* ((tabs (funcall tab-bar-tabs-function))
          (from-index (tab-bar--current-tab-index tabs))
-         (to-index (1- (max 1 (min arg (length tabs))))))
+         (to-index (if (< arg 0) (+ (length tabs) (1+ arg)) arg))
+         (to-index (1- (max 1 (min to-index (length tabs))))))
+
     (unless (eq from-index to-index)
       (let* ((from-tab (tab-bar--tab))
              (to-tab (nth to-index tabs))
