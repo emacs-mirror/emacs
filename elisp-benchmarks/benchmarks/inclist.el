@@ -40,7 +40,3 @@
 	     do (elb-inclist l))))
 
 (provide 'elb-inclist)
-
-;; Local Variables:
-;; comp-speed: 3
-;; End:
