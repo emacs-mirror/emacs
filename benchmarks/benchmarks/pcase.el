@@ -1,6 +1,6 @@
 ;;; bench/pcase.el --- Exercise code using pcase  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,8 +30,11 @@
   ;; We should probably change GNUmakefile instead so it doesn't forcefully
   ;; add the directory to `load-path', e.g. make this dependent on the
   ;; presence of special file like `.dont-add-to-load-path'. 
-  (when load-file-name
-    (setq load-path (remove (file-name-directory load-file-name) load-path))))
+  (let ((file (if (fboundp 'macroexp-file-name) (macroexp-file-name) ;Emacs≥28
+                (or load-file-name
+                    (bound-and-true-p byte-compile-current-file)))))
+    (when file
+      (setq load-path (remove (file-name-directory file) load-path)))))
 
 ;;; Commentary:
 
