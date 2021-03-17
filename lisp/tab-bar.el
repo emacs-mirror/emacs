@@ -72,6 +72,24 @@
   :version "27.1"
   :group 'tab-bar-faces)
 
+(defface tab-bar-tab-group-current
+  '((t :inherit tab-bar-tab :box nil :weight bold))
+  "Tab bar face for current group tab."
+  :version "28.1"
+  :group 'tab-bar-faces)
+
+(defface tab-bar-tab-group-inactive
+  '((t :inherit (shadow tab-bar-tab-inactive)))
+  "Tab bar face for inactive group tab."
+  :version "28.1"
+  :group 'tab-bar-faces)
+
+(defface tab-bar-tab-ungrouped
+  '((t :inherit (shadow tab-bar-tab-inactive)))
+  "Tab bar face for ungrouped tab when tab groups are used."
+  :version "28.1"
+  :group 'tab-bar-faces)
+
 
 (defcustom tab-bar-select-tab-modifiers '()
   "List of modifier keys for selecting a tab by its index digit.
@@ -513,6 +531,16 @@ Return its existing value or a new value."
   (set-frame-parameter frame 'tabs tabs))
 
 
+(defcustom tab-bar-tab-face-function #'tab-bar-tab-face-default
+  "Function to define a tab face.
+Function gets one argument: a tab."
+  :type 'function
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-face-default (tab)
+  (if (eq (car tab) 'current-tab) 'tab-bar-tab 'tab-bar-tab-inactive))
+
 (defcustom tab-bar-tab-name-format-function #'tab-bar-tab-name-format-default
   "Function to format a tab name.
 Function gets two arguments, the tab and its number, and should return
@@ -535,7 +563,7 @@ the formatted tab name to display in the tab bar."
                                (if current-p 'non-selected 'selected)))
                       tab-bar-close-button)
                  ""))
-     'face (if current-p 'tab-bar-tab 'tab-bar-tab-inactive))))
+     'face (funcall tab-bar-tab-face-function tab))))
 
 (defcustom tab-bar-format '(tab-bar-format-history
                             tab-bar-format-tabs
@@ -642,19 +670,36 @@ and should return the formatted tab group name to display in the tab bar."
   (propertize
    (concat (if tab-bar-tab-hints (format "%d " i) "")
            (funcall tab-bar-tab-group-function tab))
-   'face 'tab-bar-tab-inactive))
+   'face 'tab-bar-tab-group-inactive))
 
-(defun tab-bar--format-tab-group (tab i)
+(defcustom tab-bar-tab-group-face-function #'tab-bar-tab-group-face-default
+  "Function to define a tab group face.
+Function gets one argument: a tab."
+  :type 'function
+  :group 'tab-bar
+  :version "28.1")
+
+(defun tab-bar-tab-group-face-default (tab)
+  (if (not (or (eq (car tab) 'current-tab)
+               (funcall tab-bar-tab-group-function tab)))
+      'tab-bar-tab-ungrouped
+    (tab-bar-tab-face-default tab)))
+
+(defun tab-bar--format-tab-group (tab i &optional current-p)
   (append
    `((,(intern (format "sep-%i" i)) menu-item ,(tab-bar-separator) ignore))
    `((,(intern (format "group-%i" i))
       menu-item
-      ,(funcall tab-bar-tab-group-format-function tab i)
-      ,(or
-        (alist-get 'binding tab)
-        `(lambda ()
-           (interactive)
-           (tab-bar-select-tab ,i)))
+      ,(if current-p
+           (propertize (funcall tab-bar-tab-group-function tab)
+                       'face 'tab-bar-tab-group-current)
+         (funcall tab-bar-tab-group-format-function tab i))
+      ,(if current-p 'ignore
+         (or
+          (alist-get 'binding tab)
+          `(lambda ()
+             (interactive)
+             (tab-bar-select-tab ,i))))
       :help "Click to visit group"))))
 
 (defun tab-bar-format-tabs-groups ()
@@ -667,13 +712,21 @@ and should return the formatted tab group name to display in the tab bar."
      (lambda (tab)
        (let ((tab-group (funcall tab-bar-tab-group-function tab)))
          (setq i (1+ i))
-         (prog1 (if (or (not tab-group) (equal tab-group current-group))
-                    ;; Show current group and ungrouped tabs
-                    (tab-bar--format-tab tab i)
-                  ;; Otherwise, show first group tab with a group name,
-                  ;; but hide other group tabs
-                  (unless (equal previous-group tab-group)
-                    (tab-bar--format-tab-group tab i)))
+         (prog1 (cond
+                 ;; Show current group tabs and ungrouped tabs
+                 ((or (equal tab-group current-group) (not tab-group))
+                  (append
+                   ;; Prepend current group name before first tab
+                   (when (and (not (equal previous-group tab-group)) tab-group)
+                     (tab-bar--format-tab-group tab i t))
+                   ;; Override default tab faces to use group faces
+                   (let ((tab-bar-tab-face-function tab-bar-tab-group-face-function))
+                     (tab-bar--format-tab tab i))))
+                 ;; Show first tab of other groups with a group name
+                 ((not (equal previous-group tab-group))
+                  (tab-bar--format-tab-group tab i))
+                 ;; Hide other group tabs
+                 (t nil))
            (setq previous-group tab-group))))
      tabs)))
 
