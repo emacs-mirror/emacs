@@ -1,6 +1,6 @@
-;; -*- lexical-binding: t; -*-
+;;; benchmarks/nbody.el ---   -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2020 Free Software Foundation, Inc.
+;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -25,7 +25,7 @@
 (require 'cl-lib)
 
 (defconst elb-days-per-year 365.24)
-(defconst elb-solar-mass (* 4 pi pi))
+(defconst elb-solar-mass (* 4 float-pi float-pi))
 
 (cl-defstruct (elb-body (:type vector)
 			(:conc-name nil)
@@ -139,4 +139,5 @@
 (defun elb-nbody-entry ()
   (elb-nbody 300000))
 
-(provide 'elb-nbody)
+(provide 'benchmarks/nbody)
+;;; benchmarks/nbody.el ends here

@@ -1,6 +1,6 @@
 ;;; elisp-benchmarks.el --- elisp benchmarks collection -*- lexical-binding:t -*-
 
-;; Copyright (C) 2019-2020  Free Software Foundation, Inc.
+;; Copyright (C) 2019-2021  Free Software Foundation, Inc.
 
 ;; Author: Andrea Corallo <akrl@sdf.org>
 ;; Maintainer: Andrea Corallo <akrl@sdf.org>
@@ -88,84 +88,95 @@ If non nil SELECTOR is a regexp to match the benchmark names to be executed.
 The test is repeated RUNS number of times.  If RUNS is nil `elb-runs' is used as
 default.
 RECOMPILE all the benchmark folder when non nil."
-  (interactive)
-  (cl-loop with runs = (or runs elb-runs)
-	   repeat runs
-	   for i from 1
-	   named test-loop
-	   with comp-speed = elb-speed
-	   with compile-function = (if (featurep 'nativecomp)
-				       #'native-compile
-				     #'byte-compile-file)
-	   with res = (make-hash-table :test #'equal)
-	   with sources = (directory-files elb-bench-directory t "\\.el\\'")
-	   with tests = (if selector
-			    (cl-loop for f in sources
-				     when (string-match selector f)
-				       collect (file-name-base f))
-			  (mapcar #'file-name-base sources))
-	   initially
-	   ;; Compile
-	   (when recompile
-	     (mapc (lambda (f)
-		     (message "Compiling... %s" f)
-		     (funcall compile-function f))
-		   sources))
-	   ;; Load
-	   (mapc #'load (mapcar (if (featurep 'nativecomp)
-				    #'comp-el-to-eln-filename
-				  #'file-name-sans-extension)
-				sources))
-	   (cl-loop for test in tests
-		    do (puthash test () res))
-	   do
-	   (message "Iteration number: %d" i)
-	   (cl-loop for test in tests
-		    for entry-point = (intern (concat "elb-" test "-entry"))
-		    do
-		    (garbage-collect)
-		    (message "Running %s..." test)
-		    (push (eval `(benchmark-run nil (,entry-point)) t)
-			  (gethash test res)))
-	   finally
-	   (pop-to-buffer elb-result-buffer-name)
-	   (erase-buffer)
-	   (insert "* Results\n\n")
-	   (insert "  |test|non-gc avg (s)|gc avg (s)|gcs avg|tot avg (s)|tot avg err (s)\n")
-	   (insert "|-\n")
-	   (cl-loop for test in tests
-		    for l = (gethash test res)
-		    for test-elapsed = (cl-loop for x in l sum (car x))
-		    for test-gcs = (cl-loop for x in l sum (cadr x))
-		    for test-gc-elapsed = (cl-loop for x in l sum (caddr x))
-		    for test-err = (elb-std-deviation (mapcar #'car l))
-		    do
-		    (insert (apply #'format "|%s|%.2f|%.2f|%d|%.2f" test
-				   (mapcar (lambda (x) (/ x runs))
-					   (list (- test-elapsed test-gc-elapsed)
-						 test-gc-elapsed test-gcs
-						 test-elapsed))))
-		    (insert (format "|%.2f\n" test-err))
-		    summing test-elapsed into elapsed
-		    summing test-gcs into gcs
-		    summing test-gc-elapsed into gc-elapsed
-		    collect test-err into errs
-		    finally
-		    (insert "|-\n")
-		    (insert (apply #'format "|total|%.2f|%.2f|%d|%.2f"
-				   (mapcar (lambda (x) (/ x runs))
-					   (list (- elapsed gc-elapsed)
-						 gc-elapsed gcs elapsed))))
-		    (insert (format "|%.2f\n"
-				    (sqrt (apply #'+ (mapcar (lambda (x)
-							    (expt x 2))
-							  errs))))))
-	   (org-table-align)
-	   (goto-char (point-min))
-	   (if noninteractive
-	       (message (buffer-string))
-	     (org-mode)
-	     (outline-show-subtree))))
+  (interactive
+   (when current-prefix-arg
+     (list (read-regexp "Run benchmark matching: "))))
+  (let* ((comp-speed elb-speed)
+	 (compile-function (if (fboundp 'native-compile)
+			       #'native-compile
+			     #'byte-compile-file))
+	 (res (make-hash-table :test #'equal))
+	 (sources (directory-files elb-bench-directory t "\\.el\\'"))
+	 (test-sources (if selector
+			   (cl-loop for f in sources
+				    when (string-match selector f)
+				    collect f)
+			 sources)))
+    ;; Compile
+    (when recompile
+      (mapc (lambda (f)
+	      (message "Compiling... %s" f)
+	      (funcall compile-function f))
+	    test-sources))
+    ;; Load
+    (mapc #'load (mapcar (if (and (featurep 'nativecomp)
+				  (fboundp 'comp-el-to-eln-filename))
+			     ;; FIXME: Isn't the elc->eln
+                             ;; remapping fully automatic?
+			     #'comp-el-to-eln-filename
+			   #'file-name-sans-extension)
+			 test-sources))
+    (let ((tests (let ((names '()))
+	           (mapatoms (lambda (s)
+	                      (let ((name (symbol-name s)))
+	                        (when (string-match
+	                               "\\`elb-\\(.*\\)-entry\\'" name)
+	                          (push (match-string 1 name) names)))))
+	           names)))
+      ;; (cl-loop for test in tests
+      ;;          do (puthash test () res))
+      (cl-loop with runs = (or runs elb-runs)
+	       repeat runs
+	       for i from 1
+	       named test-loop
+	       do
+	       (message "Iteration number: %d" i)
+	       (cl-loop for test in tests
+		        for entry-point = (intern (concat "elb-" test "-entry"))
+		        do
+		        (garbage-collect)
+		        (message "Running %s..." test)
+		        (push (eval `(benchmark-run nil (,entry-point)) t)
+			      (gethash test res)))
+	       finally
+	       (pop-to-buffer elb-result-buffer-name)
+	       (erase-buffer)
+	       (insert "* Results\n\n")
+	       (insert "  |test|non-gc avg (s)|gc avg (s)|gcs avg|tot avg (s)|tot avg err (s)\n")
+	       (insert "|-\n")
+	       (cl-loop for test in tests
+		        for l = (gethash test res)
+		        for test-elapsed = (cl-loop for x in l sum (car x))
+		        for test-gcs = (cl-loop for x in l sum (cadr x))
+		        for test-gc-elapsed = (cl-loop for x in l sum (caddr x))
+		        for test-err = (elb-std-deviation (mapcar #'car l))
+		        do
+		        (insert (apply #'format "|%s|%.2f|%.2f|%d|%.2f" test
+				       (mapcar (lambda (x) (/ x runs))
+					       (list (- test-elapsed test-gc-elapsed)
+						     test-gc-elapsed test-gcs
+						     test-elapsed))))
+			(insert (format "|%.2f\n" test-err))
+			summing test-elapsed into elapsed
+			summing test-gcs into gcs
+			summing test-gc-elapsed into gc-elapsed
+			collect test-err into errs
+			finally
+			(insert "|-\n")
+			(insert (apply #'format "|total|%.2f|%.2f|%d|%.2f"
+				       (mapcar (lambda (x) (/ x runs))
+					       (list (- elapsed gc-elapsed)
+						     gc-elapsed gcs elapsed))))
+			(insert (format "|%.2f\n"
+					(sqrt (apply #'+ (mapcar (lambda (x)
+							           (expt x 2))
+							         errs))))))
+	       (org-table-align)
+	       (goto-char (point-min))
+	       (if noninteractive
+	           (message (buffer-string))
+	         (org-mode)
+	         (outline-show-subtree))))))
 
 (provide 'elisp-benchmarks)
 ;;; elisp-benchmarks.el ends here
