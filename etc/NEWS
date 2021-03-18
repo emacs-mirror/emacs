@@ -532,7 +532,7 @@ It can be used to enable/disable the tab bar individually on each frame
 independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 
 ---
-*** New option 'tab-bar-format' defines a list of tab bar items.
+*** New user option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
 (or any other mode that uses 'global-mode-string') it displays time
@@ -558,7 +558,8 @@ It also supports a negative argument.
 ---
 *** 'C-x t G' assigns a group name to the tab.
 'tab-close-group' can close all tabs that belong to the selected group.
-The option 'tab-bar-new-tab-group' defines the default group of a new tab.
+The user option 'tab-bar-new-tab-group' defines the default group of a
+new tab.
 
 ---
 *** New user option 'tab-bar-tab-name-format-function'.
@@ -2257,8 +2258,8 @@ first).
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.
 
-** The 'M-o M-o' global binding have been removed.
-Use 'M-x font-lock-fontify-block' instead, or the new `C-x x f'
+** The 'M-o M-o' global binding has been removed.
+Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
 command, which toggles fontification in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
@@ -2824,6 +2825,11 @@ support these coding-systems.
 semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
 these functions now accept top-level JSON values that are neither
 arrays nor objects.
+
+---
+** 'while-no-input-ignore-events' accepts more special events.
+The special events 'dbus-event' and 'file-notify' are now ignored in
+'while-no-input' when added to this variable.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
