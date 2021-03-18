@@ -2278,6 +2278,12 @@ directory instead of the default directory.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
+** 'facemenu-color-alist' is now obsolete, and is not used.
+
+** 'facemenu.el' is no longer preloaded.
+To use functions/variables from the package, you now have to say
+'(require 'facemenu)' or similar.
+
 ** 'pcomplete-ignore-case' is now an obsolete alias of 'completion-ignore-case'.
 
 ** 'completions-annotations' face is not used when the caller puts own face.

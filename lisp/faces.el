@@ -1917,12 +1917,11 @@ Interactively, or with optional arg MSG non-nil, print the
 resulting color name in the echo area."
   (interactive "i\np\ni\np")    ; Always convert to RGB interactively.
   (let* ((completion-ignore-case t)
-	 (colors (or facemenu-color-alist
-		     (append '("foreground at point" "background at point")
-			     (if allow-empty-name '(""))
-                             (if (display-color-p)
-                                 (defined-colors-with-face-attributes)
-                               (defined-colors)))))
+	 (colors (append '("foreground at point" "background at point")
+			 (if allow-empty-name '(""))
+                         (if (display-color-p)
+                             (defined-colors-with-face-attributes)
+                           (defined-colors))))
 	 (color (completing-read
 		 (or prompt "Color (name or #RGB triplet): ")
 		 ;; Completing function for reading colors, accepting

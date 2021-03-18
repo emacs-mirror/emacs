@@ -92,6 +92,7 @@
 	(concat msg ": ")))))
 
 (eval-when-compile (require 'cl-lib))
+(require 'facemenu)
 
 (defvar msb-menu-cond)
 (defvar gud-perldb-history)

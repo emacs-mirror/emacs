@@ -253,7 +253,6 @@
 (load "startup")
 (load "term/tty-colors")
 (load "font-core")
-(load "facemenu")
 (load "emacs-lisp/syntax")
 (load "font-lock")
 (load "jit-lock")

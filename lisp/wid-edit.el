@@ -4034,7 +4034,7 @@ is inline."
                    (mapcar #'length (defined-colors))))
   :tag "Color"
   :value "black"
-  :completions (or facemenu-color-alist (defined-colors))
+  :completions (defined-colors)
   :sample-face-get 'widget-color-sample-face-get
   :notify 'widget-color-notify
   :match #'widget-color-match
@@ -4049,7 +4049,10 @@ is inline."
    :tag " Choose " :action 'widget-color--choose-action)
   (widget-insert " "))
 
+(declare-function list-colors-display "facemenu")
+
 (defun widget-color--choose-action (widget &optional _event)
+  (require 'facemenu)
   (list-colors-display
    nil nil
    (let ((cbuf (current-buffer))
@@ -4072,8 +4075,11 @@ is inline."
 	(list (cons 'foreground-color value))
       'default)))
 
+(declare-function facemenu-read-color "facemenu")
+
 (defun widget-color-action (widget &optional event)
   "Prompt for a color."
+  (require 'facemenu)
   (let* ((tag (widget-apply widget :menu-tag-get))
 	 (prompt (concat tag ": "))
 	 (answer (facemenu-read-color prompt)))
