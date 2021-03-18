@@ -216,10 +216,12 @@ of the project instance object."
 It usually contains the main build file, dependencies
 configuration file, etc. Though neither is mandatory.
 
-The directory name must be absolute."
-  (if project--within-roots-fallback
-      (signal 'cl-no-applicable-method (list 'project-root project))
-    (car (project-roots project))))
+The directory name must be absolute.")
+
+(cl-defmethod project-root (project
+                            &context (project--within-roots-fallback
+                                      (eql nil)))
+  (car (project-roots project)))
 
 (cl-defgeneric project-roots (project)
   "Return the list containing the current project root.
