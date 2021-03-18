@@ -2100,6 +2100,12 @@ Like `cl-flet' but the definitions can refer to previous ones.
             (`(progn . ,exps) `(progn . ,(funcall opt-exps exps)))
             (`(if ,cond ,then . ,else)
              `(if ,cond ,(funcall opt then) . ,(funcall opt-exps else)))
+            (`(and  . ,exps) `(and . ,(funcall opt-exps exps)))
+            (`(or ,arg) (funcall opt arg))
+            (`(or ,arg . ,args)
+             (let ((val (make-symbol "val")))
+               `(let ((,val ,arg))
+                  (if ,val ,(funcall opt val) ,(funcall opt `(or . ,args))))))
             (`(cond . ,conds)
              (let ((cs '()))
                (while conds
