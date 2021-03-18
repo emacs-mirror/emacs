@@ -721,13 +721,14 @@ of matching words."
     (if (dictionary-check-reply reply 552)
 	(progn
 	  (unless nomatching
-	    (beep)
-	    (insert "Word not found, maybe you are looking "
-		    "for one of these words\n\n")
-	    (dictionary-do-matching word
-				    dictionary
-				    "."
-				    'dictionary-display-only-match-result)
+	    (insert "Word not found")
+	    (dictionary-do-matching
+             word
+	     dictionary
+	     "."
+	     (lambda (reply)
+               (insert ", maybe you are looking for one of these words\n\n")
+               (dictionary-display-only-match-result reply)))
 	    (dictionary-post-buffer)))
       (if (dictionary-check-reply reply 550)
           (error "Dictionary \"%s\" is unknown, please select an existing one"
@@ -1074,7 +1075,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun dictionary-display-only-match-result (reply)
   "Display the results from the current matches in REPLY without the headers."
-
   (let ((number (nth 1 (dictionary-reply-list reply)))
 	(list (dictionary-simple-split-string (dictionary-read-answer) "\n+")))
     (insert number " matching word" (if (equal number "1") "" "s")
