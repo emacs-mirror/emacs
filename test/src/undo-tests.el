@@ -87,6 +87,7 @@
 
 (ert-deftest undo-test1 ()
   "Test undo of \\[undo] command (redo)."
+  (require 'facemenu)
   (with-temp-buffer
     (buffer-enable-undo)
     (undo-boundary)
