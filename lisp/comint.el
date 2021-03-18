@@ -366,6 +366,8 @@ This variable is buffer-local."
 ;; OpenBSD doas prints "doas (user@host) password:".
 ;; See ert test `comint-test-password-regexp'.
 (defcustom comint-password-prompt-regexp
+  ;; When extending this, please also add a corresponding test where
+  ;; possible (see `comint-testsuite-password-strings').
   (concat
    "\\(^ *\\|"
    (regexp-opt
@@ -382,7 +384,7 @@ This variable is buffer-local."
    "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
-  :version "27.1"
+  :version "28.1"
   :type 'regexp
   :group 'comint)
 
