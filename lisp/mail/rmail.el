@@ -551,7 +551,7 @@ Examples:
 (defvar rmail-reply-regexp
   (concat "\\`\\("
           rmail-re-abbrevs
-          "\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?[:：] *\\)*")
+          "\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?\u00a0*[:：] *\\)*")
   "Regexp to delete from Subject line before inserting `rmail-reply-prefix'.")
 
 (defcustom rmail-display-summary nil
@@ -3356,7 +3356,7 @@ whitespace, replacing whitespace runs with a single space and
 removing prefixes such as Re:, Fwd: and so on and mailing list
 tags such as [tag]."
   (let ((subject (or (rmail-get-header "Subject" msgnum) ""))
-	(regexp "\\`[ \t\n]*\\(\\(\\w\\{1,4\\}[:：]\\|\\[[^]]+]\\)[ \t\n]+\\)*"))
+	(regexp "\\`[ \t\n]*\\(\\(\\w\\{1,4\\}\u00a0*[:：]\\|\\[[^]]+]\\)[ \t\n]+\\)*"))
     (setq subject (rfc2047-decode-string subject))
     (setq subject (replace-regexp-in-string regexp "" subject))
     (replace-regexp-in-string "[ \t\n]+" " " subject)))
