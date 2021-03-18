@@ -2,7 +2,7 @@ Copyright (C) 2001-2021 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This directory tree holds version 27.1.91 of GNU Emacs, the extensible,
+This directory tree holds version 27.2 of GNU Emacs, the extensible,
 customizable, self-documenting real-time display editor.
 
 The file INSTALL in this directory says how to build and install GNU

@@ -114,7 +114,7 @@ Alan Shutko: changed diary-lib.el calendar.el bindings.el cal-hebrew.el
   solar.el
 
 Alan Third: wrote dabbrev-tests.el image-transforms-tests.el
-and changed nsterm.m nsterm.h nsfns.m ns-win.el nsmenu.m nsimage.m
+and changed nsterm.m nsfns.m nsterm.h ns-win.el nsmenu.m nsimage.m
   image.c macfont.m configure.ac frame.el xdisp.c macos.texi dispextern.h
   display.texi image.el xterm.c Info.plist.in conf_post.h frame.c frame.h
   frames.texi and 21 other files
@@ -156,6 +156,8 @@ Alexander Shopov: changed code-pages.el
 Alexander Vorobiev: changed org-compat.el
 
 Alexander Zhuckov: changed ebrowse.c
+
+Alexandre Duret-Lutz: changed nnmaildir.el
 
 Alexandre Garreau: changed message.el
 
@@ -1026,7 +1028,8 @@ Daniel Lopez: changed progmodes/compile.el
 
 Daniel Lublin: changed dns-mode.el
 
-Daniel Martín: changed erc.texi msdos-xtra.texi ns-win.el nsterm.m
+Daniel Martín: changed erc.texi files.texi msdos-xtra.texi ns-win.el
+  nsterm.m
 
 Daniel McClanahan: changed lisp-mode.el
 
@@ -1453,7 +1456,7 @@ Eli Zaretskii: wrote [bidirectional display in xdisp.c]
   [tty menus in term.c] abbrev-tests.el bidi.c biditest.el
   chartab-tests.el coding-tests.el doc-tests.el etags-tests.el rxvt.el
   tty-colors.el
-and changed xdisp.c msdos.c w32.c display.texi w32fns.c simple.el
+and changed xdisp.c w32.c msdos.c display.texi w32fns.c simple.el
   files.el fileio.c keyboard.c emacs.c w32term.c text.texi w32proc.c
   dispnew.c files.texi frames.texi lisp.h dispextern.h window.c process.c
   term.c and 1193 other files
@@ -1628,7 +1631,7 @@ Eyal Lotem: changed ido.el
 Fabián Ezequiel Gallina: wrote progmodes/python.el subr-x-tests.el
 and changed python-tests.el subr-x.el imenu.el wisent/python.el
 
-Fabrice Bauzac: changed dired-aux.el fixit.texi search.texi
+Fabrice Bauzac: changed dired-aux.el fixit.texi objects.texi search.texi
 
 Fabrice Niessen: wrote leuven-theme.el
 and changed org-agenda.el
@@ -3077,8 +3080,8 @@ and co-wrote gnus-kill.el gnus-mh.el gnus-msg.el gnus-score.el
   rfc2047.el svg.el time-date.el
 and changed gnus.texi process.c subr.el simple.el files.el gnutls.c
   gnus-ems.el smtpmail.el display.texi url-http.el auth-source.el
-  gnus-cite.el pop3.el dired.el edebug.el text.texi gnus-xmas.el image.el
-  image.c gnutls.el nnrss.el and 658 other files
+  gnus-cite.el pop3.el dired.el text.texi edebug.el gnus-xmas.el image.el
+  image.c gnutls.el nnrss.el and 662 other files
 
 Lars Rasmusson: changed ebrowse.c
 
@@ -3375,7 +3378,7 @@ Martin Pohlack: changed iimage.el pc-select.el
 
 Martin Rudalics: changed window.el window.c windows.texi frame.c xdisp.c
   w32fns.c xterm.c frames.texi w32term.c xfns.c frame.el display.texi
-  help.el buffer.c window.h cus-start.el frame.h dispnew.c mouse.el
+  help.el buffer.c cus-start.el window.h frame.h dispnew.c mouse.el
   nsfns.m gtkutil.c and 208 other files
 
 Martin Stjernholm: wrote cc-bytecomp.el
@@ -3395,7 +3398,7 @@ and changed ob-emacs-lisp.el
 
 Masahiko Sato: wrote vip.el
 
-Masahiro Nakamura: changed ns-win.el nsterm.m w32fns.c
+Masahiro Nakamura: changed ns-win.el nsterm.m tramp.texi w32fns.c
 
 Masanobu Umeda: wrote metamail.el rmailsort.el timezone.el
 and co-wrote gnus-kill.el gnus-mh.el gnus-msg.el gnus.el nnbabyl.el
@@ -3427,8 +3430,8 @@ Mathieu Othacehe: changed tramp-adb.el
 
 Mats Lidell: changed TUTORIAL.sv european.el gnus-art.el org-element.el
 
-Matt Armstrong: changed gnus-topic.el gnus.el message.el net/imap.el
-  shell.el
+Matt Armstrong: changed display.texi gnus-topic.el gnus.el message.el
+  net/imap.el shell.el
 
 Matt Bisson: changed xterm.c
 
@@ -4169,6 +4172,8 @@ Petri Kaurinkoski: changed configure.ac iris4d.h irix6-0.h irix6-5.h
 
 Petr Salinger: changed configure.ac gnu-kfreebsd.h
 
+Petteri Hintsanen: changed sequences.texi
+
 Phil Hagelberg: wrote ert-x-tests.el
 and changed package.el pcmpl-unix.el subr.el
 
@@ -4533,6 +4538,8 @@ Ryan Brown: changed cl-indent.el
 
 Ryan Crum: changed json.el
 
+Ryan Prior: changed comint.el
+
 Ryan Thompson: changed advice-tests.el ido.el minibuffer-tests.el
   minibuffer.el savehist.el tmm.el
 
@@ -4808,9 +4815,8 @@ Stefan Kangas: wrote bookmark-tests.el delim-col-tests.el morse-tests.el
   tabify-tests.el timezone-tests.el underline-tests.el uudecode-tests.el
 and changed bookmark.el package.el efaq.texi package.texi ibuffer.el
   mwheel.el cperl-mode.el fns.c gud.el simple.el subr.el tips.texi
-  autoinsert.el comint-tests.el control.texi cus-edit.el delim-col.el
-  dired-aux.el dired-x.el em-term.el emacs-lisp-intro.texi
-  and 158 other files
+  SKK-JISYO.L autoinsert.el comint-tests.el control.texi cus-edit.el
+  delim-col.el dired-aux.el dired-x.el em-term.el and 159 other files
 
 Stefan Merten: co-wrote rst.el
 
@@ -5091,8 +5097,8 @@ Thomas Dye: changed org.texi org-bibtex.el ob-R.el org.el
 
 Thomas Fitzsimmons: wrote soap-client.el
 and changed soap-inspect.el ldap.el eudc-vars.el eudc.el eudc.texi
-  ntlm.el eudcb-ldap.el eudcb-bbdb.el eudc-bob.el eudc-export.el
-  eudcb-ph.el package.el url-http.el diary-lib.el display.texi
+  ntlm.el eudcb-ldap.el eudcb-bbdb.el url-http.el eudc-bob.el
+  eudc-export.el eudcb-ph.el package.el diary-lib.el display.texi
   eudc-hotlist.el icalendar.el url-auth.el
 
 Thomas Horsley: changed cxux-crt0.s cxux.h cxux7.h emacs.c nh3000.h
