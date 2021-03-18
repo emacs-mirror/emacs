@@ -93,6 +93,10 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
++++
+** New command 'font-lock-update', bound to 'C-x x f'.
+This command updates the syntax highlighting in this buffer.
+
 ** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
 
 +++
@@ -2254,7 +2258,8 @@ first).
 Use 'M-x center-line' and 'M-x center-paragraph' instead.
 
 ** The 'M-o M-o' global binding have been removed.
-Use 'M-x font-lock-fontify-block' instead.
+Use 'M-x font-lock-fontify-block' instead, or the new `C-x x f'
+command, which toggles fontification in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
