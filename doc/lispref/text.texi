@@ -222,7 +222,9 @@ properties, just the characters themselves.  @xref{Text Properties}.
 
 @defun buffer-string
 This function returns the contents of the entire accessible portion of
-the current buffer, as a string.
+the current buffer, as a string.  If the text being copied has any
+text properties, these are copied into the string along with the
+characters they belong to.
 @end defun
 
   If you need to make sure the resulting string, when copied to a

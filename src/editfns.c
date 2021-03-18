@@ -1682,7 +1682,11 @@ they can be in either order.  */)
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
        doc: /* Return the contents of the current buffer as a string.
 If narrowing is in effect, this function returns only the visible part
-of the buffer.  */)
+of the buffer.
+
+This function copies the text properties of that part of the buffer
+into the result string; if you don’t want the text properties,
+use `buffer-substring-no-properties' instead.  */)
   (void)
 {
   return make_buffer_string_both (BEGV, BEGV_BYTE, ZV, ZV_BYTE, 1);
