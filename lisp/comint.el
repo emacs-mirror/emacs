@@ -372,7 +372,7 @@ This variable is buffer-local."
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-      "[sudo]" "doas" "Repeat" "Bad" "Retype")
+      "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
     t)
    ;; Allow for user name to precede password equivalent (Bug#31075).
    " +.*\\)"
