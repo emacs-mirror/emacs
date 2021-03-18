@@ -447,4 +447,30 @@ have a face property."
     ;; The yadda-yadda operator should not be in a string.
     (should (equal (nth 8 (cperl-test-ppss code "\\.")) nil))))
 
+(ert-deftest cperl-test-bug-47112 ()
+  "Check that in a bareword starting with a quote-like operator
+followed by an underscore is not interpreted as that quote-like
+operator.  Also check that a quote-like operator followed by a
+colon (which is, like ?_, a symbol in CPerl mode) _is_ identified
+as that quote like operator."
+  (with-temp-buffer
+    (funcall cperl-test-mode)
+    (insert "sub y_max { q:bar:; y _bar_foo_; }")
+    (goto-char (point-min))
+    (cperl-update-syntaxification (point-max))
+    (font-lock-fontify-buffer)
+    (search-forward "max")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-function-name-face))
+    (search-forward "bar")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-string-face))
+    ; perl-mode doesn't highlight
+    (when (eq cperl-test-mode #'cperl-mode)
+      (search-forward "_")
+      (should (equal (get-text-property (match-beginning 0) 'face)
+                     (if (eq cperl-test-mode #'cperl-mode)
+                         'font-lock-constant-face
+                       font-lock-string-face))))))
+
 ;;; cperl-mode-tests.el ends here
