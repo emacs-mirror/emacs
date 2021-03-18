@@ -1,4 +1,4 @@
-;;; refbib.el --- convert refer-style references to ones usable by Latex bib
+;;; refbib.el --- convert refer-style references to ones usable by Latex bib  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1989, 2001-2021 Free Software Foundation, Inc.
 
@@ -411,7 +411,7 @@ title if CAPITALIZE is true.  Returns value of VAR."
 with a comma and newline; if ABBREVS list is given, then
 try to replace the {DATA} with an abbreviation."
   (if data
-    (let (match nodelim multi-line index)
+    (let (match nodelim index) ;; multi-line
       (cond
 	((and abbrevs (setq match (assoc data abbrevs)))
 	  (if (null (cdr match))
@@ -507,7 +507,7 @@ but not a publisher."
 
 (defun r2b-barf-output ()
    "Generate bibtex based on global variables."
-   (let ((standard-output r2b-out-buf) (case-fold-search t) match)
+   (let ((standard-output r2b-out-buf) (case-fold-search t)) ;; match
 
       (r2b-trace "...barfing")
       (sit-for 0)

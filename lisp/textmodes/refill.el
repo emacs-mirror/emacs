@@ -227,9 +227,9 @@ For true \"word wrap\" behavior, use `visual-line-mode' instead."
     (kill-local-variable 'refill-saved-state))
   (if refill-mode
       (progn
-	(add-hook 'after-change-functions 'refill-after-change-function nil t)
-	(add-hook 'post-command-hook 'refill-post-command-function nil t)
-	(add-hook 'pre-command-hook 'refill-pre-command-function nil t)
+	(add-hook 'after-change-functions #'refill-after-change-function nil t)
+	(add-hook 'post-command-hook #'refill-post-command-function nil t)
+	(add-hook 'pre-command-hook #'refill-pre-command-function nil t)
         (setq-local refill-saved-state
                     (mapcar (lambda (s) (cons s (symbol-value s)))
                             '(fill-paragraph-function auto-fill-function)))
@@ -244,8 +244,8 @@ For true \"word wrap\" behavior, use `visual-line-mode' instead."
 	(overlay-put refill-ignorable-overlay 'insert-behind-hooks
 		     '(refill-adjust-ignorable-overlay))
 	(auto-fill-mode 0))
-    (remove-hook 'after-change-functions 'refill-after-change-function t)
-    (remove-hook 'post-command-hook 'refill-post-command-function t)
+    (remove-hook 'after-change-functions #'refill-after-change-function t)
+    (remove-hook 'post-command-hook #'refill-post-command-function t)
     (kill-local-variable 'backward-delete-char-untabify-method)))
 
 (provide 'refill)

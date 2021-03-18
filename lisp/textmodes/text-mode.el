@@ -69,7 +69,7 @@
 
 (defvar text-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\e\t" 'ispell-complete-word)
+    (define-key map "\e\t" #'ispell-complete-word)
     map)
   "Keymap for `text-mode'.
 Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
@@ -141,7 +141,7 @@ Turning on Paragraph-Indent minor mode runs the normal hook
     (remove-function (local 'indent-line-function)
                      #'indent-to-left-margin)))
 
-(defalias 'indented-text-mode 'text-mode)
+(defalias 'indented-text-mode #'text-mode)
 
 ;; This can be made a no-op once all modes that use text-mode-hook
 ;; are "derived" from text-mode.  (As of 2015/04, and probably well before,

@@ -1,4 +1,4 @@
-;;; texinfmt.el --- format Texinfo files into Info files
+;;; texinfmt.el --- format Texinfo files into Info files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985-1986, 1988, 1990-1998, 2000-2021 Free Software
 ;; Foundation, Inc.
@@ -186,6 +186,7 @@ containing the Texinfo file.")
 ;; These come from tex-mode.el.
 (defvar tex-start-of-header)
 (defvar tex-end-of-header)
+(defvar texinfo-example-start)
 
 ;;;###autoload
 (defun texinfo-format-region (region-beginning region-end)
@@ -211,7 +212,7 @@ converted to Info is stored in a temporary buffer."
         texinfo-last-node
         texinfo-node-names
         (texinfo-footnote-number 0)
-        last-input-buffer
+        ;; last-input-buffer
         (fill-column-for-info fill-column)
         (input-buffer (current-buffer))
         (input-directory default-directory)
@@ -405,7 +406,7 @@ if large.  You can use `Info-split' to do this manually."
         texinfo-stack
         texinfo-node-names
         (texinfo-footnote-number 0)
-        last-input-buffer
+        ;; last-input-buffer
         outfile
         (fill-column-for-info fill-column)
         (input-buffer (current-buffer))
@@ -924,7 +925,7 @@ commands."
          (error "Unterminated @%s" (car (car texinfo-stack)))))
 
   ;; Remove excess whitespace
-  (let ((whitespace-silent t))
+  (dlet ((whitespace-silent t))
     (whitespace-cleanup)))
 
 (defvar texinfo-copying-text ""
@@ -1032,18 +1033,18 @@ Leave point after argument."
 (defun texinfo-optional-braces-discard ()
   "Discard braces following command, if any."
   (goto-char texinfo-command-end)
-  (let ((start (point)))
-    (cond ((looking-at "[ \t]*\n"))     ; do nothing
-          ((looking-at "{")             ; remove braces, if any
-           (forward-list 1)
-           (setq texinfo-command-end (point)))
-          (t
-           (error
-            "Invalid `texinfo-optional-braces-discard' format (need braces?)")))
-    (delete-region texinfo-command-start texinfo-command-end)))
+  ;; (let ((start (point)))
+  (cond ((looking-at "[ \t]*\n"))       ; do nothing
+        ((looking-at "{")               ; remove braces, if any
+         (forward-list 1)
+         (setq texinfo-command-end (point)))
+        (t
+         (error
+          "Invalid `texinfo-optional-braces-discard' format (need braces?)")))
+  (delete-region texinfo-command-start texinfo-command-end)) ;;)
 
 (defun texinfo-format-parse-line-args ()
-  (let ((start (1- (point)))
+  (let (;; (start (1- (point)))
         next beg end
         args)
     (skip-chars-forward " ")
@@ -1064,7 +1065,7 @@ Leave point after argument."
     (nreverse args)))
 
 (defun texinfo-format-parse-args ()
-  (let ((start (1- (point)))
+  (let (;; (start (1- (point)))
         next beg end
         args)
     (search-forward "{")
@@ -2007,26 +2008,26 @@ commands that are defined in texinfo.tex for printed output.
      ;;
      ;; Case 2: {Column 1 template} {Column 2} {Column 3 example}
      ((looking-at "{")
-      (let ((start-of-templates (point)))
-        (while (not (eolp))
-          (skip-chars-forward " \t")
-          (let* ((start-of-template (1+ (point)))
-                 (end-of-template
-                 ;; forward-sexp works with braces in Texinfo mode
-                  (progn (forward-sexp 1) (1- (point)))))
-            (push (- end-of-template start-of-template)
-                  texinfo-multitable-width-list)
-            ;; Remove carriage return from within a template, if any.
-            ;; This helps those who want to use more than
-            ;; one line's worth of words in @multitable line.
-            (narrow-to-region start-of-template end-of-template)
-            (goto-char (point-min))
-            (while (search-forward "
+      ;; (let ((start-of-templates (point)))
+      (while (not (eolp))
+        (skip-chars-forward " \t")
+        (let* ((start-of-template (1+ (point)))
+               (end-of-template
+                ;; forward-sexp works with braces in Texinfo mode
+                (progn (forward-sexp 1) (1- (point)))))
+          (push (- end-of-template start-of-template)
+                texinfo-multitable-width-list)
+          ;; Remove carriage return from within a template, if any.
+          ;; This helps those who want to use more than
+          ;; one line's worth of words in @multitable line.
+          (narrow-to-region start-of-template end-of-template)
+          (goto-char (point-min))
+          (while (search-forward "
 " nil t)
-              (delete-char -1))
-            (goto-char (point-max))
-            (widen)
-            (forward-char 1)))))
+            (delete-char -1))
+          (goto-char (point-max))
+          (widen)
+          (forward-char 1)))) ;; )
      ;;
      ;; Case 3: Trouble
      (t
@@ -2040,7 +2041,7 @@ commands that are defined in texinfo.tex for printed output.
             ;; additional between column spaces, if any
             texinfo-extra-inter-column-width
             ;; sum of spaces for each entry
-            (apply '+ texinfo-multitable-width-list))))
+            (apply #'+ texinfo-multitable-width-list))))
       (if (> desired-columns fill-column)
           (error
            "Multi-column table width, %d chars, is greater than page width, %d chars."
@@ -2171,9 +2172,9 @@ This command is executed when texinfmt sees @item inside @multitable."
       (while (< column-number total-number-of-columns)
         (setq here (point))
         (insert-rectangle
-         (eval (intern
-                (concat texinfo-multitable-rectangle-name
-                        (int-to-string column-number)))))
+         (symbol-value (intern
+                        (concat texinfo-multitable-rectangle-name
+                                (int-to-string column-number)))))
         (goto-char here)
         (end-of-line)
         (setq column-number (1+ column-number))))
@@ -2396,8 +2397,8 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
 
 (put 'alias 'texinfo-format 'texinfo-alias)
 (defun texinfo-alias ()
-  (let ((start (1- (point)))
-        args)
+  (let (;; (start (1- (point))
+        ) ;; args
     (skip-chars-forward " ")
     (setq texinfo-command-end (line-end-position))
     (if (not (looking-at "\\([^=]+\\)=\\(.*\\)"))
@@ -3410,7 +3411,7 @@ Default is to leave paragraph indentation as is."
     (while args
       (insert " "
               (if (or (= ?& (aref (car args) 0))
-                      (eq (eval (car texinfo-defun-type)) 'deftp-type))
+                      (eq (car texinfo-defun-type) 'deftp-type))
                   (car args)
                 (upcase (car args))))
       (setq args (cdr args)))))
@@ -3775,80 +3776,80 @@ Default is to leave paragraph indentation as is."
 (put 'deffn 'texinfo-format 'texinfo-format-defun)
 (put 'deffnx 'texinfo-format 'texinfo-format-defunx)
 (put 'deffn 'texinfo-end 'texinfo-end-defun)
-(put 'deffn 'texinfo-defun-type '('deffn-type nil))
-(put 'deffnx 'texinfo-defun-type '('deffn-type nil))
+(put 'deffn 'texinfo-defun-type '(deffn-type nil))
+(put 'deffnx 'texinfo-defun-type '(deffn-type nil))
 (put 'deffn 'texinfo-defun-index 'texinfo-findex)
 (put 'deffnx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'defun 'texinfo-format 'texinfo-format-defun)
 (put 'defunx 'texinfo-format 'texinfo-format-defunx)
 (put 'defun 'texinfo-end 'texinfo-end-defun)
-(put 'defun 'texinfo-defun-type '('defun-type "Function"))
-(put 'defunx 'texinfo-defun-type '('defun-type "Function"))
+(put 'defun 'texinfo-defun-type '(defun-type "Function"))
+(put 'defunx 'texinfo-defun-type '(defun-type "Function"))
 (put 'defun 'texinfo-defun-index 'texinfo-findex)
 (put 'defunx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'defmac 'texinfo-format 'texinfo-format-defun)
 (put 'defmacx 'texinfo-format 'texinfo-format-defunx)
 (put 'defmac 'texinfo-end 'texinfo-end-defun)
-(put 'defmac 'texinfo-defun-type '('defun-type "Macro"))
-(put 'defmacx 'texinfo-defun-type '('defun-type "Macro"))
+(put 'defmac 'texinfo-defun-type '(defun-type "Macro"))
+(put 'defmacx 'texinfo-defun-type '(defun-type "Macro"))
 (put 'defmac 'texinfo-defun-index 'texinfo-findex)
 (put 'defmacx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'defspec 'texinfo-format 'texinfo-format-defun)
 (put 'defspecx 'texinfo-format 'texinfo-format-defunx)
 (put 'defspec 'texinfo-end 'texinfo-end-defun)
-(put 'defspec 'texinfo-defun-type '('defun-type "Special form"))
-(put 'defspecx 'texinfo-defun-type '('defun-type "Special form"))
+(put 'defspec 'texinfo-defun-type '(defun-type "Special form"))
+(put 'defspecx 'texinfo-defun-type '(defun-type "Special form"))
 (put 'defspec 'texinfo-defun-index 'texinfo-findex)
 (put 'defspecx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'defvr 'texinfo-format 'texinfo-format-defun)
 (put 'defvrx 'texinfo-format 'texinfo-format-defunx)
 (put 'defvr 'texinfo-end 'texinfo-end-defun)
-(put 'defvr 'texinfo-defun-type '('deffn-type nil))
-(put 'defvrx 'texinfo-defun-type '('deffn-type nil))
+(put 'defvr 'texinfo-defun-type '(deffn-type nil))
+(put 'defvrx 'texinfo-defun-type '(deffn-type nil))
 (put 'defvr 'texinfo-defun-index 'texinfo-vindex)
 (put 'defvrx 'texinfo-defun-index 'texinfo-vindex)
 
 (put 'defvar 'texinfo-format 'texinfo-format-defun)
 (put 'defvarx 'texinfo-format 'texinfo-format-defunx)
 (put 'defvar 'texinfo-end 'texinfo-end-defun)
-(put 'defvar 'texinfo-defun-type '('defun-type "Variable"))
-(put 'defvarx 'texinfo-defun-type '('defun-type "Variable"))
+(put 'defvar 'texinfo-defun-type '(defun-type "Variable"))
+(put 'defvarx 'texinfo-defun-type '(defun-type "Variable"))
 (put 'defvar 'texinfo-defun-index 'texinfo-vindex)
 (put 'defvarx 'texinfo-defun-index 'texinfo-vindex)
 
 (put 'defconst 'texinfo-format 'texinfo-format-defun)
 (put 'defconstx 'texinfo-format 'texinfo-format-defunx)
 (put 'defconst 'texinfo-end 'texinfo-end-defun)
-(put 'defconst 'texinfo-defun-type '('defun-type "Constant"))
-(put 'defconstx 'texinfo-defun-type '('defun-type "Constant"))
+(put 'defconst 'texinfo-defun-type '(defun-type "Constant"))
+(put 'defconstx 'texinfo-defun-type '(defun-type "Constant"))
 (put 'defconst 'texinfo-defun-index 'texinfo-vindex)
 (put 'defconstx 'texinfo-defun-index 'texinfo-vindex)
 
 (put 'defcmd 'texinfo-format 'texinfo-format-defun)
 (put 'defcmdx 'texinfo-format 'texinfo-format-defunx)
 (put 'defcmd 'texinfo-end 'texinfo-end-defun)
-(put 'defcmd 'texinfo-defun-type '('defun-type "Command"))
-(put 'defcmdx 'texinfo-defun-type '('defun-type "Command"))
+(put 'defcmd 'texinfo-defun-type '(defun-type "Command"))
+(put 'defcmdx 'texinfo-defun-type '(defun-type "Command"))
 (put 'defcmd 'texinfo-defun-index 'texinfo-findex)
 (put 'defcmdx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'defopt 'texinfo-format 'texinfo-format-defun)
 (put 'defoptx 'texinfo-format 'texinfo-format-defunx)
 (put 'defopt 'texinfo-end 'texinfo-end-defun)
-(put 'defopt 'texinfo-defun-type '('defun-type "User Option"))
-(put 'defoptx 'texinfo-defun-type '('defun-type "User Option"))
+(put 'defopt 'texinfo-defun-type '(defun-type "User Option"))
+(put 'defoptx 'texinfo-defun-type '(defun-type "User Option"))
 (put 'defopt 'texinfo-defun-index 'texinfo-vindex)
 (put 'defoptx 'texinfo-defun-index 'texinfo-vindex)
 
 (put 'deftp 'texinfo-format 'texinfo-format-defun)
 (put 'deftpx 'texinfo-format 'texinfo-format-defunx)
 (put 'deftp 'texinfo-end 'texinfo-end-defun)
-(put 'deftp 'texinfo-defun-type '('deftp-type nil))
-(put 'deftpx 'texinfo-defun-type '('deftp-type nil))
+(put 'deftp 'texinfo-defun-type '(deftp-type nil))
+(put 'deftpx 'texinfo-defun-type '(deftp-type nil))
 (put 'deftp 'texinfo-defun-index 'texinfo-tindex)
 (put 'deftpx 'texinfo-defun-index 'texinfo-tindex)
 
@@ -3857,32 +3858,32 @@ Default is to leave paragraph indentation as is."
 (put 'defop 'texinfo-format 'texinfo-format-defun)
 (put 'defopx 'texinfo-format 'texinfo-format-defunx)
 (put 'defop 'texinfo-end 'texinfo-end-defun)
-(put 'defop 'texinfo-defun-type '('defop-type nil))
-(put 'defopx 'texinfo-defun-type '('defop-type nil))
+(put 'defop 'texinfo-defun-type '(defop-type nil))
+(put 'defopx 'texinfo-defun-type '(defop-type nil))
 (put 'defop 'texinfo-defun-index 'texinfo-findex)
 (put 'defopx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'defmethod 'texinfo-format 'texinfo-format-defun)
 (put 'defmethodx 'texinfo-format 'texinfo-format-defunx)
 (put 'defmethod 'texinfo-end 'texinfo-end-defun)
-(put 'defmethod 'texinfo-defun-type '('defmethod-type "Method"))
-(put 'defmethodx 'texinfo-defun-type '('defmethod-type "Method"))
+(put 'defmethod 'texinfo-defun-type '(defmethod-type "Method"))
+(put 'defmethodx 'texinfo-defun-type '(defmethod-type "Method"))
 (put 'defmethod 'texinfo-defun-index 'texinfo-findex)
 (put 'defmethodx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'defcv 'texinfo-format 'texinfo-format-defun)
 (put 'defcvx 'texinfo-format 'texinfo-format-defunx)
 (put 'defcv 'texinfo-end 'texinfo-end-defun)
-(put 'defcv 'texinfo-defun-type '('defop-type nil))
-(put 'defcvx 'texinfo-defun-type '('defop-type nil))
+(put 'defcv 'texinfo-defun-type '(defop-type nil))
+(put 'defcvx 'texinfo-defun-type '(defop-type nil))
 (put 'defcv 'texinfo-defun-index 'texinfo-vindex)
 (put 'defcvx 'texinfo-defun-index 'texinfo-vindex)
 
 (put 'defivar 'texinfo-format 'texinfo-format-defun)
 (put 'defivarx 'texinfo-format 'texinfo-format-defunx)
 (put 'defivar 'texinfo-end 'texinfo-end-defun)
-(put 'defivar 'texinfo-defun-type '('defmethod-type "Instance variable"))
-(put 'defivarx 'texinfo-defun-type '('defmethod-type "Instance variable"))
+(put 'defivar 'texinfo-defun-type '(defmethod-type "Instance variable"))
+(put 'defivarx 'texinfo-defun-type '(defmethod-type "Instance variable"))
 (put 'defivar 'texinfo-defun-index 'texinfo-vindex)
 (put 'defivarx 'texinfo-defun-index 'texinfo-vindex)
 
@@ -3891,32 +3892,32 @@ Default is to leave paragraph indentation as is."
 (put 'deftypefn 'texinfo-format 'texinfo-format-defun)
 (put 'deftypefnx 'texinfo-format 'texinfo-format-defunx)
 (put 'deftypefn 'texinfo-end 'texinfo-end-defun)
-(put 'deftypefn 'texinfo-defun-type '('deftypefn-type nil))
-(put 'deftypefnx 'texinfo-defun-type '('deftypefn-type nil))
+(put 'deftypefn 'texinfo-defun-type '(deftypefn-type nil))
+(put 'deftypefnx 'texinfo-defun-type '(deftypefn-type nil))
 (put 'deftypefn 'texinfo-defun-index 'texinfo-findex)
 (put 'deftypefnx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'deftypefun 'texinfo-format 'texinfo-format-defun)
 (put 'deftypefunx 'texinfo-format 'texinfo-format-defunx)
 (put 'deftypefun 'texinfo-end 'texinfo-end-defun)
-(put 'deftypefun 'texinfo-defun-type '('deftypefun-type "Function"))
-(put 'deftypefunx 'texinfo-defun-type '('deftypefun-type "Function"))
+(put 'deftypefun 'texinfo-defun-type '(deftypefun-type "Function"))
+(put 'deftypefunx 'texinfo-defun-type '(deftypefun-type "Function"))
 (put 'deftypefun 'texinfo-defun-index 'texinfo-findex)
 (put 'deftypefunx 'texinfo-defun-index 'texinfo-findex)
 
 (put 'deftypevr 'texinfo-format 'texinfo-format-defun)
 (put 'deftypevrx 'texinfo-format 'texinfo-format-defunx)
 (put 'deftypevr 'texinfo-end 'texinfo-end-defun)
-(put 'deftypevr 'texinfo-defun-type '('deftypefn-type nil))
-(put 'deftypevrx 'texinfo-defun-type '('deftypefn-type nil))
+(put 'deftypevr 'texinfo-defun-type '(deftypefn-type nil))
+(put 'deftypevrx 'texinfo-defun-type '(deftypefn-type nil))
 (put 'deftypevr 'texinfo-defun-index 'texinfo-vindex)
 (put 'deftypevrx 'texinfo-defun-index 'texinfo-vindex)
 
 (put 'deftypevar 'texinfo-format 'texinfo-format-defun)
 (put 'deftypevarx 'texinfo-format 'texinfo-format-defunx)
 (put 'deftypevar 'texinfo-end 'texinfo-end-defun)
-(put 'deftypevar 'texinfo-defun-type '('deftypevar-type "Variable"))
-(put 'deftypevarx 'texinfo-defun-type '('deftypevar-type "Variable"))
+(put 'deftypevar 'texinfo-defun-type '(deftypevar-type "Variable"))
+(put 'deftypevarx 'texinfo-defun-type '(deftypevar-type "Variable"))
 (put 'deftypevar 'texinfo-defun-index 'texinfo-vindex)
 (put 'deftypevarx 'texinfo-defun-index 'texinfo-vindex)
 
@@ -3943,7 +3944,8 @@ Default is to leave paragraph indentation as is."
   "Clear the value of the flag."
   (let* ((arg (texinfo-parse-arg-discard))
          (flag (car (read-from-string arg)))
-         (value (substring arg (cdr (read-from-string arg)))))
+         ;; (value (substring arg (cdr (read-from-string arg))))
+         )
     (put flag 'texinfo-whether-setp 'flag-cleared)
     (put flag 'texinfo-set-value "")))
 
@@ -4043,7 +4045,7 @@ the @ifeq command."
   (goto-char texinfo-command-end)
   (let* ((case-fold-search t)
          (stop (save-excursion (forward-sexp 1) (point)))
-        start end
+        start ;; end
         ;; @ifeq{arg1, arg2, @command{optional-args}}
         (arg1
          (progn

@@ -1,4 +1,4 @@
-;;; reftex-dcr.el --- viewing cross references and citations with RefTeX
+;;; reftex-dcr.el --- viewing cross references and citations with RefTeX  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -132,7 +132,7 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
      ((eq bibtype 'thebib)
       (setq item t
             files (reftex-uniquify
-                   (mapcar 'cdr
+                   (mapcar #'cdr
                            (reftex-all-assq
                             'thebib (symbol-value reftex-docstruct-symbol))))))
      (reftex-default-bibliography
@@ -161,10 +161,10 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
           (shrink-window (1- (- (window-height) size)))
           (recenter 0))
         ;; Arrange restoration
-        (add-hook 'pre-command-hook 'reftex-restore-window-conf))
+        (add-hook 'pre-command-hook #'reftex-restore-window-conf))
 
         ;; Normal display in other window
-      (add-hook 'pre-command-hook 'reftex-highlight-shall-die)
+      (add-hook 'pre-command-hook #'reftex-highlight-shall-die)
       (setq pop-win (selected-window))
       (select-window win)
       (goto-char pos)
@@ -212,13 +212,13 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
           (error (set-window-configuration window-conf)
                  (message "ref: Label %s not found" label)
                  (error "ref: Label %s not found" label)))) ;; 2nd is line OK
-      (add-hook 'pre-command-hook 'reftex-highlight-shall-die)
+      (add-hook 'pre-command-hook #'reftex-highlight-shall-die)
 
       (when (eq how 'tmp-window)
         ;; Resize window and arrange restoration
         (shrink-window (1- (- (window-height) 9)))
         (recenter '(4))
-        (add-hook 'pre-command-hook 'reftex-restore-window-conf))
+        (add-hook 'pre-command-hook #'reftex-restore-window-conf))
       (setq pop-win (selected-window))
       (select-window win)
       (goto-char pos)
@@ -266,7 +266,7 @@ With argument, actually select the window showing the cross reference."
 (defun reftex-restore-window-conf ()
   (set-window-configuration (get 'reftex-auto-view-crossref 'last-window-conf))
   (put 'reftex-auto-view-crossref 'last-window-conf nil)
-  (remove-hook 'pre-command-hook 'reftex-restore-window-conf))
+  (remove-hook 'pre-command-hook #'reftex-restore-window-conf))
 
 (defun reftex-echo-ref (label entry docstruct)
   ;; Display crossref info in echo area.
@@ -320,10 +320,6 @@ With argument, actually select the window showing the cross reference."
       (with-current-buffer buf
         (run-hooks 'reftex-display-copied-context-hook)))))
 
-(defvar reftex-use-itimer-in-xemacs nil
-  "Non-nil means use the idle timers in XEmacs for crossref display.
-Currently, idle timer restart is broken and we use the post-command-hook.")
-
 ;;;###autoload
 (defun reftex-toggle-auto-view-crossref ()
   "Toggle the automatic display of crossref information in the echo area.
@@ -332,35 +328,15 @@ will display info in the echo area."
   (interactive)
   (if reftex-auto-view-crossref-timer
       (progn
-        (if (featurep 'xemacs)
-            (if reftex-use-itimer-in-xemacs
-                (delete-itimer reftex-auto-view-crossref-timer)
-              (remove-hook 'post-command-hook 'reftex-start-itimer-once))
-          (cancel-timer reftex-auto-view-crossref-timer))
+        (cancel-timer reftex-auto-view-crossref-timer)
         (setq reftex-auto-view-crossref-timer nil)
         (message "Automatic display of crossref information was turned off"))
     (setq reftex-auto-view-crossref-timer
-          (if (featurep 'xemacs)
-              (if reftex-use-itimer-in-xemacs
-                  (start-itimer "RefTeX Idle Timer"
-                                'reftex-view-crossref-when-idle
-                                reftex-idle-time reftex-idle-time t)
-                (add-hook 'post-command-hook 'reftex-start-itimer-once)
-                t)
-            (run-with-idle-timer
-             reftex-idle-time t 'reftex-view-crossref-when-idle)))
+          (run-with-idle-timer
+           reftex-idle-time t #'reftex-view-crossref-when-idle))
     (unless reftex-auto-view-crossref
       (setq reftex-auto-view-crossref t))
     (message "Automatic display of crossref information was turned on")))
-
-(defun reftex-start-itimer-once ()
-   (and (featurep 'xemacs)
-	reftex-mode
-        (not (itimer-live-p reftex-auto-view-crossref-timer))
-        (setq reftex-auto-view-crossref-timer
-              (start-itimer "RefTeX Idle Timer"
-                            'reftex-view-crossref-when-idle
-                            reftex-idle-time nil t))))
 
 ;;;###autoload
 (defun reftex-view-crossref-from-bibtex (&optional arg)
@@ -431,7 +407,7 @@ Calling this function several times find successive citation locations."
           (put 'reftex-view-regexp-match :cnt (cl-incf cnt))
           (reftex-highlight 0 (match-beginning highlight-group)
                             (match-end highlight-group))
-          (add-hook 'pre-command-hook 'reftex-highlight-shall-die)
+          (add-hook 'pre-command-hook #'reftex-highlight-shall-die)
           (setq pop-window (selected-window)))
       (put 'reftex-view-regexp-match :props nil)
       (or cont (set-window-configuration window-conf)))
