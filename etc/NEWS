@@ -1934,6 +1934,12 @@ highlight the current error message in the 'next-error' buffer.
 This user option can be also customized to keep highlighting on all
 visited errors, so you can have an overview what errors were already visited.
 
+---
+*** New choice 'next-error-quit-window' for 'next-error-found-function'.
+When 'next-error-found-function' is customized to 'next-error-quit-window',
+then typing the numeric prefix argument 0 before the command 'next-error'
+will quit the source window after visiting the next occurrence.
+
 +++
 *** New user option 'tab-first-completion'.
 If 'tab-always-indent' is 'complete', this new user option can be used to

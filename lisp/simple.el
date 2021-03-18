@@ -377,11 +377,22 @@ To control which errors are matched, customize the variable
                 (not (eq prev next-error-last-buffer)))
         (message "Current locus from %s" next-error-last-buffer)))))
 
+(defun next-error-quit-window (from-buffer to-buffer)
+  "Quit window of FROM-BUFFER when the prefix arg is 0.
+Intended to be used in `next-error-found-function'."
+  (when (and (eq current-prefix-arg 0) from-buffer
+             (not (eq from-buffer to-buffer)))
+    (let ((window (get-buffer-window from-buffer)))
+      (when (window-live-p window)
+        (quit-restore-window window)))))
+
 (defcustom next-error-found-function #'ignore
   "Function called when a next locus is found and displayed.
 Function is called with two arguments: a FROM-BUFFER buffer
 from which next-error navigated, and a target buffer TO-BUFFER."
   :type '(choice (const :tag "No default" ignore)
+                 (const :tag "Quit previous window with M-0"
+                        next-error-quit-window)
                  (function :tag "Other function"))
   :group 'next-error
   :version "27.1")
