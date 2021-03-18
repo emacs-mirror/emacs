@@ -33,6 +33,11 @@ General steps (for each step, check for possible errors):
     or some form of "git clean -x".  It's probably simpler and safer to
     make a new working directory exclusively for the release branch.
 
+    If the working directory has subdirectories created when making
+    previous releases or pretests, remove those subdirectories, as the
+    command which updates the ChangeLog file might attempt to recurse
+    there and scan any ChangeLog.* files there.
+
     Make sure the tree is built, or at least configured.  That's
     because some of the commands below run Make, so they need
     Makefiles to be present.
