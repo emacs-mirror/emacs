@@ -135,6 +135,9 @@ point in the distant past, and is still broken in perl-mode. "
         (should (equal (nth 3 (syntax-ppss)) nil))
         (should (equal (nth 4 (syntax-ppss)) t))))))
 
+(defvar perl-continued-statement-offset)
+(defvar perl-indent-level)
+
 (ert-deftest cperl-test-heredocs ()
   "Test that HERE-docs are fontified with the appropriate face."
   (require 'perl-mode)
@@ -242,7 +245,7 @@ This test relies on the specific layout of the index alist as
 created by CPerl mode, so skip it for Perl mode."
   (skip-unless (eq cperl-test-mode #'cperl-mode))
   (with-temp-buffer
-    (insert-file (ert-resource-file "grammar.pl"))
+    (insert-file-contents (ert-resource-file "grammar.pl"))
     (cperl-mode)
     (let ((index (cperl-imenu--create-perl-index))
           current-list)
@@ -457,8 +460,8 @@ as that quote like operator."
     (funcall cperl-test-mode)
     (insert "sub y_max { q:bar:; y _bar_foo_; }")
     (goto-char (point-min))
-    (cperl-update-syntaxification (point-max))
-    (font-lock-fontify-buffer)
+    (syntax-propertize (point-max))
+    (font-lock-ensure)
     (search-forward "max")
     (should (equal (get-text-property (match-beginning 0) 'face)
                    'font-lock-function-name-face))
