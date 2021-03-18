@@ -2068,6 +2068,8 @@ Like `cl-flet' but the definitions can refer to previous ones.
   ;; even handle mutually recursive functions.
   (letrec
       ((done nil) ;; Non-nil if some TCO happened.
+       ;; This var always holds the value `nil' until (just before) we
+       ;; exit the loop.
        (retvar (make-symbol "retval"))
        (ofargs (mapcar (lambda (s) (if (memq s cl--lambda-list-keywords) s
                                 (make-symbol (symbol-name s))))
@@ -2115,14 +2117,18 @@ Like `cl-flet' but the definitions can refer to previous ones.
                               ;; This returns the value of `exp' but it's
                               ;; only in tail position if it's the
                               ;; last condition.
+                              ;; Note: This may set the var before we
+                              ;; actually exit the loop, but luckily it's
+                              ;; only the case if we set the var to nil,
+                              ;; so it does preserve the invariant that
+                              ;; the var is nil until we exit the loop.
                               `((setq ,retvar ,exp) nil)
                             `(,(funcall opt exp)))
                           cs))
                    (exps
                     (push (funcall opt-exps exps) cs))))
-               (if (eq t (caar cs))
-                   `(cond . ,(nreverse cs))
-                 `(cond ,@(nreverse cs) (t (setq ,retvar nil))))))
+               ;; No need to set `retvar' to return nil.
+               `(cond . ,(nreverse cs))))
             ((and `(,(or 'let 'let*) ,bindings . ,exps)
                   (guard
                    ;; Note: it's OK for this `let' to shadow any
@@ -2134,8 +2140,8 @@ Like `cl-flet' but the definitions can refer to previous ones.
                      ;; tail-called any more.
                      (not (memq var shadowings)))))
              `(,(car exp) ,bindings . ,(funcall opt-exps exps)))
-            (_
-             `(progn (setq ,retvar ,exp) nil))))))
+            ('nil nil)  ;No need to set `retvar' to return nil.
+            (_ `(progn (setq ,retvar ,exp) nil))))))
 
     (let ((optimized-body (funcall opt-exps body)))
       (if (not done)
@@ -2281,7 +2287,7 @@ of `cl-symbol-macrolet' to additionally expand symbol macros."
             ;; on this behavior (haven't found any yet).
             ;; Such code should explicitly use `cl-letf' instead, I think.
             ;;
-            ;; (`(,(or `let `let*) . ,(or `(,bindings . ,body) dontcare))
+            ;; (`(,(or `let `let*) . ,(or `(,bindings . ,body) pcase--dontcare))
             ;;  (let ((letf nil) (found nil) (nbs ()))
             ;;    (dolist (binding bindings)
             ;;      (let* ((var (if (symbolp binding) binding (car binding)))
