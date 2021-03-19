@@ -35,7 +35,8 @@
 It is called with one argument, the minibuffer depth,
 and must return a string."
   :version "28.1"
-  :type 'function
+  :type '(choice (const :tag "Default" nil)
+                 (function))
   :group 'minibuffer)
 
 (defface minibuffer-depth-indicator '((t :inherit highlight))
