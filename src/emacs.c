@@ -468,8 +468,9 @@ set_invocation_vars (char *argv0, char const *original_pwd)
   if (NILP (Vinvocation_directory))
     {
       Lisp_Object found;
-      int yes = openp (Vexec_path, Vinvocation_name,
-		       Vexec_suffixes, &found, make_fixnum (X_OK), false);
+      int yes =
+	openp (Vexec_path, Vinvocation_name, Vexec_suffixes, &found,
+	       make_fixnum (X_OK), false, false);
       if (yes == 1)
 	{
 	  /* Add /: to the front of the name
