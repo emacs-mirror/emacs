@@ -2260,6 +2260,10 @@ first).
 * Incompatible Editing Changes in Emacs 28.1
 
 ** The 'M-o' ('facemenu-keymap') global binding has been removed.
+To restore the old binding, say something like:
+
+    (require 'facemenu)
+    (define-key global-map "\M-o" 'facemenu-keymap)
 
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.
