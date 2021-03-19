@@ -30,10 +30,13 @@
 
 ;;; Code:
 
-(defvar minibuffer-depth-indicator-function nil
+(defcustom minibuffer-depth-indicator-function nil
   "If non-nil, function to set up the minibuffer depth indicator.
 It is called with one argument, the minibuffer depth,
-and must return a string.")
+and must return a string."
+  :version "28.1"
+  :type 'function
+  :group 'minibuffer)
 
 (defface minibuffer-depth-indicator '((t :inherit highlight))
   "Face to use for minibuffer depth indicator."
