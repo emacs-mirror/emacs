@@ -207,6 +207,7 @@ If EXP fails to match any of the patterns in CASES, an error is signaled."
          (pcase--dontwarn-upats (cons x pcase--dontwarn-upats)))
     (pcase--expand
      ;; FIXME: Could we add the FILE:LINE data in the error message?
+     ;; FILE is available from `macroexp-file-name'.
      exp (append cases `((,x (error "No clause matching `%S'" ,x)))))))
 
 ;;;###autoload
@@ -320,34 +321,46 @@ of the elements of LIST is performed as if by `pcase-let'.
 (defun pcase--trivial-upat-p (upat)
   (and (symbolp upat) (not (memq upat pcase--dontcare-upats))))
 
-(defun pcase--expand (exp cases)
-  ;; (message "pid=%S (pcase--expand %S ...hash=%S)"
-  ;;          (emacs-pid) exp (sxhash cases))
+(defun pcase-compile-patterns (exp cases)
+  "Compile the set of patterns in CASES.
+EXP is the expression that will be matched against the patterns.
+CASES is a list of elements (PAT . CODEGEN)
+where CODEGEN is a function that returns the code to use when
+PAT matches.  That code has to be in the form of a cons cell.
+
+CODEGEN will be called with at least 2 arguments, VARVALS and COUNT.
+VARVALS is a list of elements of the form (VAR VAL . RESERVED) where VAR
+is a variable bound by the pattern and VAL is a duplicable expression
+that returns the value this variable should be bound to.
+If the pattern PAT uses `or', CODEGEN may be called multiple times,
+in which case it may want to generate the code differently to avoid
+a potential code explosion.  For this reason the COUNT argument indicates
+how many time this CODEGEN is called."
   (macroexp-let2 macroexp-copyable-p val exp
-    (let* ((defs ())
-           (seen '())
+    (let* ((seen '())
+           (phcounter 0)
            (main
             (pcase--u
              (mapcar
               (lambda (case)
                 `(,(pcase--match val (pcase--macroexpand (car case)))
                   ,(lambda (vars)
-                     (let ((prev (assq case seen))
-                           (code (cdr case)))
+                     (let ((prev (assq case seen)))
                        (unless prev
                          ;; Keep track of the cases that are used.
                          (push (setq prev (list case)) seen))
-                       (if (member code '(nil (nil))) nil
-                         ;; Put `code' in the cdr just so that not all
-                         ;; branches look identical (to avoid things like
-                         ;; `macroexp--if' optimizing them too optimistically).
-                         (let ((ph (list 'pcase--placeholder code)))
-                           (setcdr prev (cons (cons vars ph) (cdr prev)))
-                           ph))))))
+                       ;; Put a counter in the cdr just so that not
+                       ;; all branches look identical (to avoid things
+                       ;; like `macroexp--if' optimizing them too
+                       ;; optimistically).
+                       (let ((ph (cons 'pcase--placeholder
+                                       (setq phcounter (1+ phcounter)))))
+                         (setcdr prev (cons (cons vars ph) (cdr prev)))
+                         ph)))))
               cases))))
       ;; Take care of the place holders now.
       (dolist (branch seen)
-        (let ((code (cdar branch))
+        (let ((codegen (cdar branch))
               (uses (cdr branch)))
           ;; Find all the vars that are in scope (the union of the
           ;; vars provided in each use case).
@@ -358,48 +371,74 @@ of the elements of LIST is performed as if by `pcase-let'.
                           (if vi
                               (if (cddr v) (setcdr vi 'used))
                             (push (cons (car v) (cddr v)) allvarinfo))))))
-                 (allvars (mapcar #'car allvarinfo))
-                 (ignores (mapcar (lambda (vi) (when (cdr vi) `(ignore ,(car vi))))
-                                  allvarinfo)))
-            ;; Since we use a tree-based pattern matching
-            ;; technique, the leaves (the places that contain the
-            ;; code to run once a pattern is matched) can get
-            ;; copied a very large number of times, so to avoid
-            ;; code explosion, we need to keep track of how many
-            ;; times we've used each leaf and move it
-            ;; to a separate function if that number is too high.
-            (if (or (null (cdr uses)) (pcase--small-branch-p code))
-                (dolist (use uses)
-                  (let ((vars (car use))
-                        (placeholder (cdr use)))
-                    ;; (cl-assert (eq (car placeholder) 'pcase--placeholder))
-                    (setcar placeholder 'let)
-                    (setcdr placeholder
-                            `(,(mapcar (lambda (v) (list v (cadr (assq v vars))))
-                                       allvars)
-                              ;; Try and silence some of the most common
-                              ;; spurious "unused var" warnings.
-                              ,@ignores
-                              ,@code))))
-              ;; Several occurrence of this non-small branch in the output.
-              (let ((bsym
-                     (make-symbol (format "pcase-%d" (length defs)))))
-                (push `(,bsym (lambda ,allvars ,@ignores ,@code)) defs)
-                (dolist (use uses)
-                  (let ((vars (car use))
-                        (placeholder (cdr use)))
-                    ;; (cl-assert (eq (car placeholder) 'pcase--placeholder))
-                    (setcar placeholder 'funcall)
-                    (setcdr placeholder
-                            `(,bsym
-                              ,@(mapcar (lambda (v) (cadr (assq v vars)))
-                                        allvars))))))))))
+                 (allvars (mapcar #'car allvarinfo)))
+            (dolist (use uses)
+              (let* ((vars (car use))
+                     (varvals
+                      (mapcar (lambda (v)
+                                `(,v ,(cadr (assq v vars))
+                                     ,(cdr (assq v allvarinfo))))
+                              allvars))
+                     (placeholder (cdr use))
+                     (code (funcall codegen varvals (length uses))))
+                ;; (cl-assert (eq (car placeholder) 'pcase--placeholder))
+                (setcar placeholder (car code))
+                (setcdr placeholder (cdr code)))))))
       (dolist (case cases)
         (unless (or (assq case seen)
                     (memq (car case) pcase--dontwarn-upats))
-          (message "pcase pattern %S shadowed by previous pcase pattern"
-                   (car case))))
-      (macroexp-let* defs main))))
+          (setq main
+                (macroexp-warn-and-return
+                 (format "pcase pattern %S shadowed by previous pcase pattern"
+                         (car case))
+                 main))))
+      main)))
+
+(defun pcase--expand (exp cases)
+  ;; (message "pid=%S (pcase--expand %S ...hash=%S)"
+  ;;          (emacs-pid) exp (sxhash cases))
+  (let* ((defs ())
+         (codegen
+          (lambda (code)
+            (if (member code '(nil (nil) ('nil)))
+                (lambda (&rest _) ''nil)
+              (let ((bsym ()))
+                (lambda (varvals count &rest _)
+                  (let* ((ignored-vars
+                          (delq nil (mapcar (lambda (vv) (if (nth 2 vv) (car vv)))
+                                            varvals)))
+                         (ignores (if ignored-vars
+                                      `((ignore . ,ignored-vars)))))
+                    ;; Since we use a tree-based pattern matching
+                    ;; technique, the leaves (the places that contain the
+                    ;; code to run once a pattern is matched) can get
+                    ;; copied a very large number of times, so to avoid
+                    ;; code explosion, we need to keep track of how many
+                    ;; times we've used each leaf and move it
+                    ;; to a separate function if that number is too high.
+                    (if (or (< count 2) (pcase--small-branch-p code))
+                        `(let ,(mapcar (lambda (vv) (list (car vv) (cadr vv)))
+                                       varvals)
+                           ;; Try and silence some of the most common
+                           ;; spurious "unused var" warnings.
+                           ,@ignores
+                           ,@code)
+                    ;; Several occurrence of this non-small branch in
+                    ;; the output.
+                    (unless bsym
+                      (setq bsym (make-symbol
+                                  (format "pcase-%d" (length defs))))
+                      (push `(,bsym (lambda ,(mapcar #'car varvals)
+                                      ,@ignores ,@code))
+                            defs))
+                    `(funcall ,bsym ,@(mapcar #'cadr varvals)))))))))
+         (main
+          (pcase-compile-patterns
+           exp
+           (mapcar (lambda (case)
+                     (cons (car case) (funcall codegen (cdr case))))
+                   cases))))
+    (macroexp-let* defs main)))
 
 (defun pcase--macroexpand (pat)
   "Expands all macro-patterns in PAT."

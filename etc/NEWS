@@ -433,6 +433,9 @@ to nil.  This was already sometimes the case, but it is now guaranteed.
 This is like '(pred (lambda (x) (not (FUN x))))' but results
 in better code.
 
+---
+*** New function 'pcase-compile-patterns' to write other macros.
+
 +++
 ** profiler.el
 The results displayed by 'profiler-report' now have the usage figures
