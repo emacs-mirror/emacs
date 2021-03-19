@@ -3897,6 +3897,11 @@ case $with_json,$HAVE_JSON in
      WITH_IFAVAILABLE="$WITH_IFAVAILABLE --with-json=ifavailable";;
 esac
 if test "X${MISSING}" != X; then
+  # If we have a missing library, and we don't have pkg-config installed,
+  # the missing pkg-config may be the reason.  Give the user a hint.
+  if test "X${PKG_CONFIG}" = X; then
+    AC_MSG_WARN([Unable to locate a usable pkg-config])
+  fi
   AC_MSG_ERROR([The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
