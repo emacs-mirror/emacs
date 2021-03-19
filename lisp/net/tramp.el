@@ -660,6 +660,14 @@ The regexp should match at end of buffer.
 See also `tramp-yesno-prompt-regexp'."
   :type 'regexp)
 
+(defcustom tramp-terminal-type "dumb"
+  "Value of TERM environment variable for logging in to remote host.
+Because Tramp wants to parse the output of the remote shell, it is easily
+confused by ANSI color escape sequences and suchlike.  Often, shell init
+files conditionalize this setup based on the TERM environment variable."
+  :group 'tramp
+  :type 'string)
+
 (defcustom tramp-terminal-prompt-regexp
   (concat "\\("
 	  "TERM = (.*)"
@@ -1242,6 +1250,67 @@ in a short time frame.  In those cases it is recommended to
 let-bind this variable."
   :version "24.4"
   :type '(choice (const nil) integer))
+
+;; "getconf PATH" yields:
+;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin
+;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
+;; GNU/Linux (Debian, Suse, RHEL): /bin:/usr/bin
+;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
+;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
+;; IRIX64: /usr/bin
+;; QNAP QTS: ---
+;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
+(defcustom tramp-remote-path
+  '(tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin"
+    "/usr/local/bin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin"
+    "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin"
+    "/opt/bin" "/opt/sbin" "/opt/local/bin")
+  "List of directories to search for executables on remote host.
+For every remote host, this variable will be set buffer local,
+keeping the list of existing directories on that host.
+
+You can use \"~\" in this list, but when searching for a shell which groks
+tilde expansion, all directory names starting with \"~\" will be ignored.
+
+`Default Directories' represent the list of directories given by
+the command \"getconf PATH\".  It is recommended to use this
+entry on head of this list, because these are the default
+directories for POSIX compatible commands.  On remote hosts which
+do not offer the getconf command (like cygwin), the value
+\"/bin:/usr/bin\" is used instead.  This entry is represented in
+the list by the special value `tramp-default-remote-path'.
+
+`Private Directories' are the settings of the $PATH environment,
+as given in your `~/.profile'.  This entry is represented in
+the list by the special value `tramp-own-remote-path'."
+  :group 'tramp
+  :type '(repeat (choice
+		  (const :tag "Default Directories" tramp-default-remote-path)
+		  (const :tag "Private Directories" tramp-own-remote-path)
+		  (string :tag "Directory"))))
+
+(defcustom tramp-remote-process-environment
+  '("ENV=''" "TMOUT=0" "LC_CTYPE=''"
+    "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH=" "PAGER=cat"
+    "autocorrect=" "correct=")
+  "List of environment variables to be set on the remote host.
+
+Each element should be a string of the form ENVVARNAME=VALUE.  An
+entry ENVVARNAME= disables the corresponding environment variable,
+which might have been set in the init files like ~/.profile.
+
+Special handling is applied to some environment variables,
+which should not be set here:
+
+The PATH environment variable should be set via `tramp-remote-path'.
+
+The TERM environment variable should be set via `tramp-terminal-type'.
+
+The INSIDE_EMACS environment variable will automatically be set
+based on the Tramp and Emacs versions, and should not be set here."
+  :group 'tramp
+  :version "26.1"
+  :type '(repeat string))
 
 (defcustom tramp-completion-reread-directory-timeout 10
   "Defines seconds since last remote command before rereading a directory.

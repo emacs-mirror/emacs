@@ -1,4 +1,4 @@
-;;; erc-match.el --- Highlight messages matching certain regexps
+;;; erc-match.el --- Highlight messages matching certain regexps  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -52,19 +52,17 @@ they are hidden or highlighted.  This is controlled via the variables
 `erc-current-nick-highlight-type'.  For all these highlighting types,
 you can decide whether the entire message or only the sending nick is
 highlighted."
-  ((add-hook 'erc-insert-modify-hook 'erc-match-message 'append))
-  ((remove-hook 'erc-insert-modify-hook 'erc-match-message)))
+  ((add-hook 'erc-insert-modify-hook #'erc-match-message 'append))
+  ((remove-hook 'erc-insert-modify-hook #'erc-match-message)))
 
 ;; Remaining customizations
 
 (defcustom erc-pals nil
   "List of pals on IRC."
-  :group 'erc-match
   :type '(repeat regexp))
 
 (defcustom erc-fools nil
   "List of fools on IRC."
-  :group 'erc-match
   :type '(repeat regexp))
 
 (defcustom erc-keywords nil
@@ -72,14 +70,12 @@ highlighted."
 Each entry in the list is either a regexp, or a cons cell with the
 regexp in the car and the face to use in the cdr.  If no face is
 specified, `erc-keyword-face' is used."
-  :group 'erc-match
   :type '(repeat (choice regexp
 			 (list regexp face))))
 
 (defcustom erc-dangerous-hosts nil
   "List of regexps for hosts to highlight.
 Useful to mark nicks from dangerous hosts."
-  :group 'erc-match
   :type '(repeat regexp))
 
 (defcustom erc-current-nick-highlight-type 'keyword
@@ -99,7 +95,6 @@ The following values are allowed:
                      current nickname occurs
 
 Any other value disables highlighting of current nickname altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
 		 (const keyword)
@@ -120,7 +115,6 @@ The following values are allowed:
                 from pal
 
 Any other value disables pal highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -139,7 +133,6 @@ The following values are allowed:
                 from fool
 
 Any other value disables fool highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -157,7 +150,6 @@ The following values are allowed:
                 containing keyword
 
 Any other value disables keyword highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const keyword)
                  (const message)
@@ -175,7 +167,6 @@ The following values are allowed:
                 from dangerous-host
 
 Any other value disables dangerous-host highlighting altogether."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const nick)
                  (const message)
@@ -193,7 +184,6 @@ Valid match type keys are:
 
 The other element of each cons pair in this list is the buffer name to
 use for the logged message."
-  :group 'erc-match
   :type '(repeat (cons (choice :tag "Key"
 			       (const keyword)
 			       (const pal)
@@ -207,7 +197,6 @@ use for the logged message."
 When nil, don't log any matched messages.
 When t, log messages.
 When `away', log messages only when away."
-  :group 'erc-match
   :type '(choice (const nil)
 		 (const away)
 		 (const t)))
@@ -222,14 +211,12 @@ will be formatted.  The various format specs are:
 %u Nickname!user@host of sender
 %c Channel in which this was received
 %m Message"
-  :group 'erc-match
   :type 'string)
 
 (defcustom erc-beep-match-types '(current-nick)
   "Types of matches to beep for when a match occurs.
 The function `erc-beep-on-match' needs to be added to `erc-text-matched-hook'
 for beeping to work."
-  :group 'erc-match
   :type '(choice (repeat :tag "Beep on match" (choice
 					       (const current-nick)
 					       (const keyword)
@@ -244,14 +231,12 @@ Functions in this hook are passed as arguments:
 \(match-type nick!user@host message) where MATCH-TYPE is a symbol of:
 current-nick, keyword, pal, dangerous-host, fool."
   :options '(erc-log-matches erc-hide-fools erc-beep-on-match)
-  :group 'erc-match
   :type 'hook)
 
 (defcustom erc-match-exclude-server-buffer nil
   "If true, don't perform match on the server buffer; this is
 useful for excluding all the things like MOTDs from the server
 and other miscellaneous functions."
-  :group 'erc-match
   :version "24.3"
   :type 'boolean)
 
@@ -390,7 +375,7 @@ car is the string."
   (interactive)
   (erc-remove-entry-from-list 'erc-dangerous-hosts "Delete dangerous-host: "))
 
-(defun erc-match-current-nick-p (nickuserhost msg)
+(defun erc-match-current-nick-p (_nickuserhost msg)
   "Check whether the current nickname is in MSG.
 NICKUSERHOST will be ignored."
   (with-syntax-table erc-match-syntax-table
@@ -400,7 +385,7 @@ NICKUSERHOST will be ignored."
 			       "\\b")
 		       msg))))
 
-(defun erc-match-pal-p (nickuserhost msg)
+(defun erc-match-pal-p (nickuserhost _msg)
   "Check whether NICKUSERHOST is in `erc-pals'.
 MSG will be ignored."
   (and nickuserhost
@@ -412,7 +397,7 @@ MSG will be ignored."
        (or (erc-list-match erc-fools nickuserhost)
 	   (erc-match-directed-at-fool-p msg))))
 
-(defun erc-match-keyword-p (nickuserhost msg)
+(defun erc-match-keyword-p (_nickuserhost msg)
   "Check whether any keyword of `erc-keywords' matches for MSG.
 NICKUSERHOST will be ignored."
   (and msg
@@ -424,7 +409,7 @@ NICKUSERHOST will be ignored."
 		erc-keywords)
 	msg)))
 
-(defun erc-match-dangerous-host-p (nickuserhost msg)
+(defun erc-match-dangerous-host-p (nickuserhost _msg)
   "Check whether NICKUSERHOST is in `erc-dangerous-hosts'.
 MSG will be ignored."
   (and nickuserhost
@@ -457,7 +442,7 @@ Use this defun with `erc-insert-modify-hook'."
 	 (nickuserhost (erc-get-parsed-vector-nick vector))
 	 (nickname (and nickuserhost
 			(nth 0 (erc-parse-user nickuserhost))))
-	 (old-pt (point))
+	 ;; (old-pt (point))
 	 (nick-beg (and nickname
 			(re-search-forward (regexp-quote nickname)
 					   (point-max) t)
@@ -484,11 +469,12 @@ Use this defun with `erc-insert-modify-hook'."
 	 (goto-char (point-min))
 	 (let* ((match-prefix (concat "erc-" match-type))
 		(match-pred (intern (concat "erc-match-" match-type "-p")))
-		(match-htype (eval (intern (concat match-prefix
-						   "-highlight-type"))))
+		(match-htype (symbol-value (intern (concat match-prefix
+						           "-highlight-type"))))
 		(match-regex (if (string= match-type "current-nick")
 				 (regexp-quote (erc-current-nick))
-			       (eval (intern (concat match-prefix "s")))))
+			       (symbol-value
+			        (intern (concat match-prefix "s")))))
 		(match-face (intern (concat match-prefix "-face"))))
 	   (when (funcall match-pred nickuserhost message)
 	     (cond
@@ -601,7 +587,7 @@ See `erc-log-match-format'."
 				 (kill-buffer buffer)))))
       buffer)))
 
-(defun erc-log-matches-come-back (proc parsed)
+(defun erc-log-matches-come-back (_proc _parsed)
   "Display a notice that messages were logged while away."
   (when (and (erc-away-time)
 	     (eq erc-log-matches-flag 'away))
@@ -629,7 +615,7 @@ See `erc-log-match-format'."
   nil)
 
 ; This handler must be run _before_ erc-process-away is.
-(add-hook 'erc-server-305-functions 'erc-log-matches-come-back nil)
+(add-hook 'erc-server-305-functions #'erc-log-matches-come-back nil)
 
 (defun erc-go-to-log-matches-buffer ()
   "Interactively open an erc-log-matches buffer."
@@ -642,9 +628,9 @@ See `erc-log-match-format'."
 					(get-buffer (car buffer-cons))))))
     (switch-to-buffer buffer-name)))
 
-(define-key erc-mode-map "\C-c\C-k" 'erc-go-to-log-matches-buffer)
+(define-key erc-mode-map "\C-c\C-k" #'erc-go-to-log-matches-buffer)
 
-(defun erc-hide-fools (match-type nickuserhost message)
+(defun erc-hide-fools (match-type _nickuserhost _message)
  "Hide foolish comments.
 This function should be called from `erc-text-matched-hook'."
  (when (eq match-type 'fool)
@@ -652,7 +638,7 @@ This function should be called from `erc-text-matched-hook'."
 			    '(invisible intangible)
 			    (current-buffer))))
 
-(defun erc-beep-on-match (match-type nickuserhost message)
+(defun erc-beep-on-match (match-type _nickuserhost _message)
   "Beep when text matches.
 This function is meant to be called from `erc-text-matched-hook'."
   (when (member match-type erc-beep-match-types)

@@ -3040,12 +3040,7 @@ TRUE-DIRNAME is the `file-truename' of DIRNAME, if given."
 	    ;; Get the specified directory from FILE.
 	    (spec-directory
              (if (cdr file)
-                 ;; This function is active in `compilation-filter'.
-                 ;; There could be problems to call `file-truename'
-                 ;; for remote compilation processes.
-		 (if (file-remote-p default-directory)
-		     (concat comint-file-name-prefix (cdr file))
-		   (file-truename (concat comint-file-name-prefix (cdr file)))))))
+		 (file-truename (concat comint-file-name-prefix (cdr file))))))
 
 	;; Check for a comint-file-name-prefix and prepend it if appropriate.
 	;; (This is very useful for compilation-minor-mode in an rlogin-mode

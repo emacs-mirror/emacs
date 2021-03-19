@@ -207,9 +207,10 @@ in the file it applies to.")
                                (list 'face nil
                                      'keymap outline-mode-cycle-map)))
                        (outline-font-lock-face))
-                  (when (and outline-minor-mode
-                             (eq outline-minor-mode-highlight 'override))
-                    'append)
+                  (when outline-minor-mode
+                    (pcase outline-minor-mode-highlight
+                      ('override t)
+                      ('append 'append)))
                   t)))
   "Additional expressions to highlight in Outline mode.")
 
@@ -340,10 +341,12 @@ Typing these keys anywhere outside heading lines uses their default bindings."
 Non-nil value works well only when outline font-lock keywords
 don't conflict with the major mode's font-lock keywords.
 When t, it puts outline faces only if there are no major mode's faces
-on headings.  When `override', it tries to append outline faces
-to major mode's faces."
+on headings.  When `override', it completely overwrites major mode's
+faces with outline faces.  When `append', it tries to append outline
+faces to major mode's faces."
   :type '(choice (const :tag "No highlighting" nil)
-                 (const :tag "Append to major mode faces" override)
+                 (const :tag "Overwrite major mode faces" override)
+                 (const :tag "Append outline faces to major mode faces" append)
                  (const :tag "Highlight separately from major mode faces" t))
   :version "28.1")
 ;;;###autoload(put 'outline-minor-mode-highlight 'safe-local-variable 'booleanp)
@@ -359,6 +362,7 @@ to major mode's faces."
           (overlay-put overlay 'outline-overlay t)
           (when (or (eq outline-minor-mode-highlight 'override)
                     (and (eq outline-minor-mode-highlight t)
+                         (goto-char (match-beginning 0))
                          (not (get-text-property (point) 'face))))
             (overlay-put overlay 'face (outline-font-lock-face)))
           (when outline-minor-mode-cycle

@@ -1,6 +1,6 @@
-;;; semantic/db-ref.el --- Handle cross-db file references
+;;; semantic/db-ref.el --- Handle cross-db file references  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -67,7 +67,7 @@ will be added to the database that INCLUDE-TAG refers to."
       (object-add-to-list refdbt 'db-refs dbt)
       t)))
 
-(cl-defmethod semanticdb-check-references ((dbt semanticdb-abstract-table))
+(cl-defmethod semanticdb-check-references ((_dbt semanticdb-abstract-table))
   "Check and cleanup references in the database DBT.
 Abstract tables would be difficult to reference."
   ;; Not sure how an abstract table can have references.
@@ -109,7 +109,7 @@ refers to DBT will be removed."
 	  ))
       (setq refs (cdr refs)))))
 
-(cl-defmethod semanticdb-refresh-references ((dbt semanticdb-abstract-table))
+(cl-defmethod semanticdb-refresh-references ((_dbt semanticdb-abstract-table))
   "Refresh references to DBT in other files."
   ;; alternate tables can't be edited, so can't be changed.
   nil

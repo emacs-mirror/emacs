@@ -131,16 +131,21 @@ This exists as a variable so it can be set locally in certain buffers.")
 			(((class grayscale color)
 			  (background light))
 			 :background "gray85"
+                         ;; We use negative thickness of the horizontal box border line to
+                         ;; avoid making lines taller when fields become visible.
+                         :box (:line-width (1 . -1) :color "gray80")
 			 :extend t)
 			(((class grayscale color)
 			  (background dark))
 			 :background "dim gray"
+                         :box (:line-width (1 . -1) :color "gray46")
 			 :extend t)
 			(t
 			 :slant italic
 			 :extend t))
   "Face used for editable fields."
-  :group 'widget-faces)
+  :group 'widget-faces
+  :version "28.1")
 
 (defface widget-single-line-field '((((type tty))
 				     :background "green3"
@@ -4029,7 +4034,7 @@ is inline."
                    (mapcar #'length (defined-colors))))
   :tag "Color"
   :value "black"
-  :completions (or facemenu-color-alist (defined-colors))
+  :completions (defined-colors)
   :sample-face-get 'widget-color-sample-face-get
   :notify 'widget-color-notify
   :match #'widget-color-match
@@ -4044,7 +4049,10 @@ is inline."
    :tag " Choose " :action 'widget-color--choose-action)
   (widget-insert " "))
 
+(declare-function list-colors-display "facemenu")
+
 (defun widget-color--choose-action (widget &optional _event)
+  (require 'facemenu)
   (list-colors-display
    nil nil
    (let ((cbuf (current-buffer))
@@ -4067,8 +4075,11 @@ is inline."
 	(list (cons 'foreground-color value))
       'default)))
 
+(declare-function facemenu-read-color "facemenu")
+
 (defun widget-color-action (widget &optional event)
   "Prompt for a color."
+  (require 'facemenu)
   (let* ((tag (widget-apply widget :menu-tag-get))
 	 (prompt (concat tag ": "))
 	 (answer (facemenu-read-color prompt)))

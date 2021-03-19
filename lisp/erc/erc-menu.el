@@ -1,4 +1,4 @@
-;; erc-menu.el -- Menu-bar definitions for ERC
+;; erc-menu.el -- Menu-bar definitions for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2002, 2004-2021 Free Software Foundation, Inc.
 

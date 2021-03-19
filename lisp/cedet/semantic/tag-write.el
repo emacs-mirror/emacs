@@ -1,4 +1,4 @@
-;;; semantic/tag-write.el --- Write tags to a text stream
+;;; semantic/tag-write.el --- Write tags to a text stream  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -88,7 +88,7 @@ INDENT is the amount of indentation to use for this tag."
   (if (semantic-tag-with-position-p tag)
       (let ((bounds (semantic-tag-bounds tag)))
 	(princ " ")
-	(prin1 (apply 'vector bounds))
+	(prin1 (apply #'vector bounds))
 	)
     (princ " nil"))
   ;; End it.

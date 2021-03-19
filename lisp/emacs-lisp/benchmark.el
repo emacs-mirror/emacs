@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'subr-x))   ;For `named-let'.
+
 (defmacro benchmark-elapse (&rest forms)
   "Return the time in seconds elapsed for execution of FORMS."
   (declare (indent 0) (debug t))
@@ -39,6 +41,61 @@
        (setq ,t1 (current-time))
        ,@forms
        (float-time (time-since ,t1)))))
+
+;;;###autoload
+(defun benchmark-call (func &optional repetitions)
+  "Measure the run time of calling FUNC a number REPETITIONS of times.
+The result is a list (TIME GC GCTIME)
+where TIME is the total time it took, in seconds.
+GCTIME is the amount of time that was spent in the GC
+and GC is the number of times the GC was called.
+
+REPETITIONS can also be a floating point number, in which case it
+specifies a minimum number of seconds that the benchmark execution
+should take.  In that case the return value is prepended with the
+number of repetitions actually used."
+  (if (floatp repetitions)
+      (benchmark--adaptive func repetitions)
+    (unless repetitions (setq repetitions 1))
+    (let ((gc gc-elapsed)
+	  (gcs gcs-done)
+	  (empty-func (lambda () 'empty-func)))
+      (list
+       (if (> repetitions 1)
+	   (- (benchmark-elapse (dotimes (_ repetitions) (funcall func)))
+	      (benchmark-elapse (dotimes (_ repetitions) (funcall empty-func))))
+	 (- (benchmark-elapse (funcall func))
+            (benchmark-elapse (funcall empty-func))))
+       (- gcs-done gcs)
+       (- gc-elapsed gc)))))
+
+(defun benchmark--adaptive (func time)
+  "Measure the run time of FUNC, calling it enough times to last TIME seconds.
+Result is (REPETITIONS . DATA) where DATA is as returned by `branchmark-call'."
+  (named-let loop ((repetitions 1)
+                   (data (let ((x (list 0))) (setcdr x x) x)))
+    ;; (message "Running %d iteration" repetitions)
+    (let ((newdata (benchmark-call func repetitions)))
+      (if (<= (car newdata) 0)
+          ;; This can happen if we're unlucky, e.g. the process got preempted
+          ;; (or the GC ran) just during the empty-func loop.
+          ;; Just try again, hopefully this won't repeat itself.
+          (progn
+            ;; (message "Ignoring the %d iterations" repetitions)
+            (loop (* 2 repetitions) data))
+        (let* ((sum (cl-mapcar #'+ data (cons repetitions newdata)))
+               (totaltime (nth 1 sum)))
+          (if (>= totaltime time)
+              sum
+            (let* ((iter-time (/ totaltime (car sum)))
+                   (missing-time (- time totaltime))
+                   (missing-iter (/ missing-time iter-time)))
+              ;; `iter-time' is approximate because of effects like the GC,
+              ;; so multiply at most by 10, in case we are wildly off the mark.
+              (loop (max repetitions
+                         (min (ceiling missing-iter)
+                              (* 10 repetitions)))
+                    sum))))))))
 
 ;;;###autoload
 (defmacro benchmark-run (&optional repetitions &rest forms)
@@ -53,20 +110,7 @@ See also `benchmark-run-compiled'."
   (unless (or (natnump repetitions) (and repetitions (symbolp repetitions)))
     (setq forms (cons repetitions forms)
 	  repetitions 1))
-  (let ((i (make-symbol "i"))
-	(gcs (make-symbol "gcs"))
-	(gc (make-symbol "gc")))
-    `(let ((,gc gc-elapsed)
-	   (,gcs gcs-done))
-       (list ,(if (or (symbolp repetitions) (> repetitions 1))
-		  ;; Take account of the loop overhead.
-		  `(- (benchmark-elapse (dotimes (,i ,repetitions)
-					  ,@forms))
-		      (benchmark-elapse (dotimes (,i ,repetitions)
-                                          nil)))
-		`(benchmark-elapse ,@forms))
-	     (- gcs-done ,gcs)
-	     (- gc-elapsed ,gc)))))
+  `(benchmark-call (lambda () ,@forms) ,repetitions))
 
 ;;;###autoload
 (defmacro benchmark-run-compiled (&optional repetitions &rest forms)
@@ -78,21 +122,7 @@ result.  The overhead of the `lambda's is accounted for."
   (unless (or (natnump repetitions) (and repetitions (symbolp repetitions)))
     (setq forms (cons repetitions forms)
 	  repetitions 1))
-  (let ((i (make-symbol "i"))
-	(gcs (make-symbol "gcs"))
-	(gc (make-symbol "gc"))
-	(code (byte-compile `(lambda () ,@forms)))
-        (lambda-code (byte-compile '(lambda ()))))
-    `(let ((,gc gc-elapsed)
-	   (,gcs gcs-done))
-       (list ,(if (or (symbolp repetitions) (> repetitions 1))
-		  ;; Take account of the loop overhead.
-		  `(- (benchmark-elapse (dotimes (,i ,repetitions)
-					  (funcall ,code)))
-		      (benchmark-elapse (dotimes (,i ,repetitions)
-					  (funcall ,lambda-code))))
-		`(benchmark-elapse (funcall ,code)))
-	     (- gcs-done ,gcs) (- gc-elapsed ,gc)))))
+  `(benchmark-call (byte-compile '(lambda () ,@forms)) ,repetitions))
 
 ;;;###autoload
 (defun benchmark (repetitions form)
@@ -100,9 +130,15 @@ result.  The overhead of the `lambda's is accounted for."
 Interactively, REPETITIONS is taken from the prefix arg, and
 the command prompts for the form to benchmark.
 For non-interactive use see also `benchmark-run' and
-`benchmark-run-compiled'."
+`benchmark-run-compiled'.
+FORM can also be a function in which case we measure the time it takes
+to call it without any argument."
   (interactive "p\nxForm: ")
-  (let ((result (eval `(benchmark-run ,repetitions ,form) t)))
+  (let ((result (benchmark-call (eval (pcase form
+                                        ((or `#',_ `(lambda . ,_)) form)
+                                        (_ `(lambda () ,form)))
+                                      t)
+                                repetitions)))
     (if (zerop (nth 1 result))
 	(message "Elapsed time: %fs" (car result))
       (message "Elapsed time: %fs (%fs in %d GCs)" (car result)

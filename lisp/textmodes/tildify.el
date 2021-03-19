@@ -289,7 +289,7 @@ variable.  For example, for an XML file one might use:
   (setq-local tildify-foreach-region-function
     (apply-partially \\='tildify-foreach-ignore-environments
                      \\='((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
-  (let ((beg-re (concat "\\(?:" (mapconcat 'car pairs "\\)\\|\\(?:") "\\)"))
+  (let ((beg-re (concat "\\(?:" (mapconcat #'car pairs "\\)\\|\\(?:") "\\)"))
         p end-re)
     (save-excursion
       (save-restriction
@@ -499,8 +499,8 @@ variable will be set to the representation."
                            "mode won't have any effect, disabling.")))
         (setq tildify-mode nil))))
   (if tildify-mode
-      (add-hook 'post-self-insert-hook 'tildify-space nil t)
-    (remove-hook 'post-self-insert-hook 'tildify-space t)))
+      (add-hook 'post-self-insert-hook #'tildify-space nil t)
+    (remove-hook 'post-self-insert-hook #'tildify-space t)))
 
 
 ;;; *** Announce ***

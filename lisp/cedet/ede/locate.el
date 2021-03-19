@@ -1,4 +1,4 @@
-;;; ede/locate.el --- Locate support
+;;; ede/locate.el --- Locate support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -110,7 +110,7 @@ based on `ede-locate-setup-options'."
    )
   "Baseclass for LOCATE feature in EDE.")
 
-(cl-defmethod initialize-instance ((loc ede-locate-base) &rest fields)
+(cl-defmethod initialize-instance ((loc ede-locate-base) &rest _fields)
   "Make sure we have a hash table."
   ;; Basic setup.
   (cl-call-next-method)
@@ -118,8 +118,8 @@ based on `ede-locate-setup-options'."
   (ede-locate-flush-hash loc)
   )
 
-(cl-defmethod ede-locate-ok-in-project ((loc (subclass ede-locate-base))
-					     root)
+(cl-defmethod ede-locate-ok-in-project ((_loc (subclass ede-locate-base))
+					_root)
   "Is it ok to use this project type under ROOT."
   t)
 
@@ -149,17 +149,15 @@ that created this EDE locate object."
     (oset loc lastanswer ans)
     ans))
 
-(cl-defmethod ede-locate-file-in-project-impl ((loc ede-locate-base)
-					    filesubstring
-					    )
+(cl-defmethod ede-locate-file-in-project-impl ((_loc ede-locate-base)
+					       _filesubstring)
   "Locate with LOC occurrences of FILESUBSTRING.
 Searches are done under the current root of the EDE project
 that created this EDE locate object."
-  nil
-  )
+  nil)
 
 (cl-defmethod ede-locate-create/update-root-database
-  ((loc (subclass ede-locate-base)) root)
+  ((loc (subclass ede-locate-base)) _root)
   "Create or update the database for the current project.
 You cannot create projects for the baseclass."
   (error "Cannot create/update a database of type %S"
@@ -177,8 +175,8 @@ You cannot create projects for the baseclass."
 Configure the Emacs `locate-program' variable to also
 configure the use of EDE locate.")
 
-(cl-defmethod ede-locate-ok-in-project ((loc (subclass ede-locate-locate))
-					     root)
+(cl-defmethod ede-locate-ok-in-project ((_loc (subclass ede-locate-locate))
+					_root)
   "Is it ok to use this project type under ROOT."
   (or (featurep 'locate) (locate-library "locate"))
   )
@@ -198,7 +196,7 @@ that created this EDE locate object."
     (with-current-buffer b
       (setq default-directory cd)
       (erase-buffer))
-    (apply 'call-process locate-command
+    (apply #'call-process locate-command
 	   nil b nil
 	   searchstr nil)
     (with-current-buffer b
@@ -221,7 +219,7 @@ Configure EDE's use of GNU Global through the cedet-global.el
 variable `cedet-global-command'.")
 
 (cl-defmethod initialize-instance ((loc ede-locate-global)
-				&rest slots)
+				   &rest _slots)
   "Make sure that we can use GNU Global."
   (require 'cedet-global)
   ;; Get ourselves initialized.
@@ -235,8 +233,8 @@ variable `cedet-global-command'.")
 	     (oref loc root))))
   )
 
-(cl-defmethod ede-locate-ok-in-project ((loc (subclass ede-locate-global))
-					     root)
+(cl-defmethod ede-locate-ok-in-project ((_loc (subclass ede-locate-global))
+					root)
   "Is it ok to use this project type under ROOT."
   (require 'cedet-global)
   (cedet-gnu-global-version-check)
@@ -252,7 +250,7 @@ variable `cedet-global-command'.")
     (cedet-gnu-global-expand-filename filesubstring)))
 
 (cl-defmethod ede-locate-create/update-root-database
-  ((loc (subclass ede-locate-global)) root)
+  ((_loc (subclass ede-locate-global)) root)
   "Create or update the GNU Global database for the current project."
   (cedet-gnu-global-create/update-database root))
 
@@ -271,7 +269,7 @@ Configure EDE's use of IDUtils through the cedet-idutils.el
 file name searching variable `cedet-idutils-file-command'.")
 
 (cl-defmethod initialize-instance ((loc ede-locate-idutils)
-				&rest slots)
+				   &rest _slots)
   "Make sure that we can use IDUtils."
   ;; Get ourselves initialized.
   (cl-call-next-method)
@@ -283,8 +281,8 @@ file name searching variable `cedet-idutils-file-command'.")
 	   (oref loc root)))
   )
 
-(cl-defmethod ede-locate-ok-in-project ((loc (subclass ede-locate-idutils))
-					     root)
+(cl-defmethod ede-locate-ok-in-project ((_loc (subclass ede-locate-idutils))
+					root)
   "Is it ok to use this project type under ROOT."
   (require 'cedet-idutils)
   (cedet-idutils-version-check)
@@ -301,7 +299,7 @@ that created this EDE locate object."
     (cedet-idutils-expand-filename filesubstring)))
 
 (cl-defmethod ede-locate-create/update-root-database
-  ((loc (subclass ede-locate-idutils)) root)
+  ((_loc (subclass ede-locate-idutils)) root)
   "Create or update the GNU Global database for the current project."
   (cedet-idutils-create/update-database root))
 
@@ -320,7 +318,7 @@ Configure EDE's use of Cscope through the cedet-cscope.el
 file name searching variable `cedet-cscope-file-command'.")
 
 (cl-defmethod initialize-instance ((loc ede-locate-cscope)
-				&rest slots)
+				   &rest _slots)
   "Make sure that we can use Cscope."
   ;; Get ourselves initialized.
   (cl-call-next-method)
@@ -332,8 +330,8 @@ file name searching variable `cedet-cscope-file-command'.")
 	   (oref loc root)))
   )
 
-(cl-defmethod ede-locate-ok-in-project ((loc (subclass ede-locate-cscope))
-					     root)
+(cl-defmethod ede-locate-ok-in-project ((_loc (subclass ede-locate-cscope))
+					root)
   "Is it ok to use this project type under ROOT."
   (require 'cedet-cscope)
   (cedet-cscope-version-check)
@@ -350,7 +348,7 @@ that created this EDE locate object."
     (cedet-cscope-expand-filename filesubstring)))
 
 (cl-defmethod ede-locate-create/update-root-database
-  ((loc (subclass ede-locate-cscope)) root)
+  ((_loc (subclass ede-locate-cscope)) root)
   "Create or update the Cscope database for the current project."
   (require 'cedet-cscope)
   (cedet-cscope-create/update-database root))

@@ -1,6 +1,6 @@
 ;;; semantic/bovine/scm.el --- Semantic details for Scheme (guile)  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2001-2004, 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -102,8 +102,7 @@ syntax as specified by the syntax table."
                                             (function . "Functions")
                                             (include  . "Loads")
                                             (package  . "DefineModule"))
-        imenu-create-index-function 'semantic-create-imenu-index
-        imenu-create-index-function 'semantic-create-imenu-index
+        imenu-create-index-function #'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-scheme-lexer)
   )

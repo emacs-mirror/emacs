@@ -34,6 +34,7 @@
 
 (require 'dom)
 (require 'seq)
+(require 'facemenu)
 (eval-when-compile (require 'subr-x))
 (eval-when-compile
   (require 'skeleton)

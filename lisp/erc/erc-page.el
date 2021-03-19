@@ -1,4 +1,4 @@
-;; erc-page.el - CTCP PAGE support for ERC
+;; erc-page.el - CTCP PAGE support for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002, 2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -30,16 +30,16 @@
 
 (require 'erc)
 
+(defgroup erc-page nil
+  "React to CTCP PAGE messages."
+  :group 'erc)
+
 ;;;###autoload(autoload 'erc-page-mode "erc-page")
 (define-erc-module page ctcp-page
   "Process CTCP PAGE requests from IRC."
   nil nil)
 
 (erc-define-catalog-entry 'english 'CTCP-PAGE "Page from %n (%u@%h): %m")
-
-(defgroup erc-page nil
-  "React to CTCP PAGE messages."
-  :group 'erc)
 
 (defcustom erc-page-function nil
   "A function to process a \"page\" request.
@@ -53,20 +53,18 @@ Example for your init file:
       (lambda (sender msg)
 	(play-sound-file \"/home/alex/elisp/erc/sounds/ni.wav\")
 	(message \"IRC Page from %s: %s\" sender msg)))"
-  :group 'erc-page
   :type '(choice (const nil)
 		 (function)))
 
-(defcustom erc-ctcp-query-PAGE-hook '(erc-ctcp-query-PAGE)
+(defcustom erc-ctcp-query-PAGE-hook (list #'erc-ctcp-query-PAGE)
   "List of functions to be called when a CTCP PAGE is received.
 This is called from `erc-process-ctcp-query'.  The functions are called
 with six arguments: PROC NICK LOGIN HOST TO MSG.  Note that you can
 also set `erc-page-function' to a function, which only gets two arguments,
 SENDER and MSG, so that might be easier to use."
-  :group 'erc-page
   :type '(repeat function))
 
-(defun erc-ctcp-query-PAGE (proc nick login host to msg)
+(defun erc-ctcp-query-PAGE (_proc nick login host _to msg)
   "Deal with an CTCP PAGE query, if `erc-page-mode' is non-nil.
 This will call `erc-page-function', if defined, or it will just print
 a message and `beep'.  In addition to that, the page message is also
@@ -91,7 +89,7 @@ inserted into the server buffer."
        nil 'notice nil text)))
   nil)
 
-(defun erc-cmd-PAGE (line &optional force)
+(defun erc-cmd-PAGE (line &optional _force)
   "Send a CTCP page to the user given as the first word in LINE.
 The rest of LINE is the message to send.  Note that you will only
 receive pages if `erc-page-mode' is on."

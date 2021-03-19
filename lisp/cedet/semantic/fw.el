@@ -1,6 +1,6 @@
-;;; semantic/fw.el --- Framework for Semantic
+;;; semantic/fw.el --- Framework for Semantic  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -34,29 +34,29 @@
 
 ;;; Compatibility
 ;;
-(define-obsolete-function-alias 'semantic-overlay-live-p 'overlay-buffer "27.1")
-(define-obsolete-function-alias 'semantic-make-overlay 'make-overlay "27.1")
-(define-obsolete-function-alias 'semantic-overlay-put 'overlay-put "27.1")
-(define-obsolete-function-alias 'semantic-overlay-get 'overlay-get "27.1")
+(define-obsolete-function-alias 'semantic-overlay-live-p #'overlay-buffer "27.1")
+(define-obsolete-function-alias 'semantic-make-overlay #'make-overlay "27.1")
+(define-obsolete-function-alias 'semantic-overlay-put #'overlay-put "27.1")
+(define-obsolete-function-alias 'semantic-overlay-get #'overlay-get "27.1")
 (define-obsolete-function-alias 'semantic-overlay-properties
-  'overlay-properties "27.1")
-(define-obsolete-function-alias 'semantic-overlay-move 'move-overlay "27.1")
-(define-obsolete-function-alias 'semantic-overlay-delete 'delete-overlay "27.1")
-(define-obsolete-function-alias 'semantic-overlays-at 'overlays-at "27.1")
-(define-obsolete-function-alias 'semantic-overlays-in 'overlays-in "27.1")
-(define-obsolete-function-alias 'semantic-overlay-buffer 'overlay-buffer "27.1")
-(define-obsolete-function-alias 'semantic-overlay-start 'overlay-start "27.1")
-(define-obsolete-function-alias 'semantic-overlay-end 'overlay-end "27.1")
+  #'overlay-properties "27.1")
+(define-obsolete-function-alias 'semantic-overlay-move #'move-overlay "27.1")
+(define-obsolete-function-alias 'semantic-overlay-delete #'delete-overlay "27.1")
+(define-obsolete-function-alias 'semantic-overlays-at #'overlays-at "27.1")
+(define-obsolete-function-alias 'semantic-overlays-in #'overlays-in "27.1")
+(define-obsolete-function-alias 'semantic-overlay-buffer #'overlay-buffer "27.1")
+(define-obsolete-function-alias 'semantic-overlay-start #'overlay-start "27.1")
+(define-obsolete-function-alias 'semantic-overlay-end #'overlay-end "27.1")
 (define-obsolete-function-alias 'semantic-overlay-next-change
-  'next-overlay-change "27.1")
+  #'next-overlay-change "27.1")
 (define-obsolete-function-alias 'semantic-overlay-previous-change
-  'previous-overlay-change "27.1")
-(define-obsolete-function-alias 'semantic-overlay-lists 'overlay-lists "27.1")
-(define-obsolete-function-alias 'semantic-overlay-p 'overlayp "27.1")
-(define-obsolete-function-alias 'semantic-read-event 'read-event "27.1")
-(define-obsolete-function-alias 'semantic-popup-menu 'popup-menu "27.1")
+  #'previous-overlay-change "27.1")
+(define-obsolete-function-alias 'semantic-overlay-lists #'overlay-lists "27.1")
+(define-obsolete-function-alias 'semantic-overlay-p #'overlayp "27.1")
+(define-obsolete-function-alias 'semantic-read-event #'read-event "27.1")
+(define-obsolete-function-alias 'semantic-popup-menu #'popup-menu "27.1")
 (define-obsolete-function-alias 'semantic-buffer-local-value
-  'buffer-local-value "27.1")
+  #'buffer-local-value "27.1")
 
 (defun semantic-event-window (event)
   "Extract the window from EVENT."
@@ -68,11 +68,11 @@
 
 ;; Since Emacs 22 major mode functions should use `run-mode-hooks' to
 ;; run major mode hooks.
-(define-obsolete-function-alias 'semantic-run-mode-hooks 'run-mode-hooks "28.1")
+(define-obsolete-function-alias 'semantic-run-mode-hooks #'run-mode-hooks "28.1")
 
 ;; Fancy compat usage now handled in cedet-compat
 (define-obsolete-function-alias 'semantic-subst-char-in-string
-  'subst-char-in-string "28.1")
+  #'subst-char-in-string "28.1")
 
 (defun semantic-delete-overlay-maybe (overlay)
   "Delete OVERLAY if it is a semantic token overlay."
@@ -111,7 +111,7 @@ Possible Lifespans are:
     (setq semantic-cache-data-overlays
           (cons o semantic-cache-data-overlays))
     ;;(message "Adding to cache: %s" o)
-    (add-hook 'post-command-hook 'semantic-cache-data-post-command-hook)
+    (add-hook 'post-command-hook #'semantic-cache-data-post-command-hook)
     ))
 
 (defun semantic-cache-data-post-command-hook ()
@@ -137,7 +137,7 @@ Remove self from `post-command-hook' if it is empty."
   ;; Remove ourselves if we have removed all overlays.
   (unless semantic-cache-data-overlays
     (remove-hook 'post-command-hook
-                 'semantic-cache-data-post-command-hook)))
+                 #'semantic-cache-data-post-command-hook)))
 
 (defun semantic-get-cache-data (name &optional point)
   "Get cached data with NAME from optional POINT."
@@ -254,7 +254,7 @@ FUNCTION does not have arguments.  When FUNCTION is entered
 `current-buffer' is a selected Semantic enabled buffer."
   (mode-local-map-file-buffers function #'semantic-active-p))
 
-(defalias 'semantic-map-mode-buffers 'mode-local-map-mode-buffers)
+(defalias 'semantic-map-mode-buffers #'mode-local-map-mode-buffers)
 
 (defun semantic-install-function-overrides (overrides &optional transient)
   "Install the function OVERRIDES in the specified environment.
@@ -318,6 +318,12 @@ calling this one."
 
 ;;; Special versions of Find File
 ;;
+(defvar recentf-exclude)
+(defvar semantic-init-hook)
+(defvar ede-auto-add-method)
+(defvar flymake-start-syntax-check-on-find-file)
+(defvar auto-insert)
+
 (defun semantic-find-file-noselect (file &optional nowarn rawfile wildcards)
   "Call `find-file-noselect' with various features turned off.
 Use this when referencing a file that will be soon deleted.

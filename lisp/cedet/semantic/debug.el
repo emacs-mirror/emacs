@@ -1,4 +1,4 @@
-;;; semantic/debug.el --- Language Debugger framework
+;;; semantic/debug.el --- Language Debugger framework  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2005, 2008-2021 Free Software Foundation, Inc.
 
@@ -265,12 +265,12 @@ on different types of return values."
    )
   "One frame representation.")
 
-(cl-defmethod semantic-debug-frame-highlight ((frame semantic-debug-frame))
+(cl-defmethod semantic-debug-frame-highlight ((_frame semantic-debug-frame))
   "Highlight one parser frame."
 
   )
 
-(cl-defmethod semantic-debug-frame-info ((frame semantic-debug-frame))
+(cl-defmethod semantic-debug-frame-info ((_frame semantic-debug-frame))
   "Display info about this one parser frame."
 
   )
@@ -279,21 +279,21 @@ on different types of return values."
 ;;
 (defvar semantic-debug-mode-map
   (let ((km (make-sparse-keymap)))
-    (define-key km "n" 'semantic-debug-next)
-    (define-key km " " 'semantic-debug-next)
-    (define-key km "s" 'semantic-debug-step)
-    (define-key km "u" 'semantic-debug-up)
-    (define-key km "d" 'semantic-debug-down)
-    (define-key km "f" 'semantic-debug-fail-match)
-    (define-key km "h" 'semantic-debug-print-state)
-    (define-key km "s" 'semantic-debug-jump-to-source)
-    (define-key km "p" 'semantic-debug-jump-to-parser)
-    (define-key km "q" 'semantic-debug-quit)
-    (define-key km "a" 'semantic-debug-abort)
-    (define-key km "g" 'semantic-debug-go)
-    (define-key km "b" 'semantic-debug-set-breakpoint)
+    (define-key km "n" #'semantic-debug-next)
+    (define-key km " " #'semantic-debug-next)
+    (define-key km "s" #'semantic-debug-step)
+    (define-key km "u" #'semantic-debug-up)
+    (define-key km "d" #'semantic-debug-down)
+    (define-key km "f" #'semantic-debug-fail-match)
+    (define-key km "h" #'semantic-debug-print-state)
+    (define-key km "s" #'semantic-debug-jump-to-source)
+    (define-key km "p" #'semantic-debug-jump-to-parser)
+    (define-key km "q" #'semantic-debug-quit)
+    (define-key km "a" #'semantic-debug-abort)
+    (define-key km "g" #'semantic-debug-go)
+    (define-key km "b" #'semantic-debug-set-breakpoint)
     ;; Some boring bindings.
-    (define-key km "e" 'eval-expression)
+    (define-key km "e" #'eval-expression)
 
     km)
   "Keymap used when in semantic-debug-node.")
@@ -514,49 +514,49 @@ by overriding one of the command methods.  Be sure to use
 down to your parser later."
   :abstract t)
 
-(cl-defmethod semantic-debug-parser-next ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-next ((_parser semantic-debug-parser))
   "Execute next for this PARSER."
   (setq semantic-debug-user-command 'next)
   )
 
-(cl-defmethod semantic-debug-parser-step ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-step ((_parser semantic-debug-parser))
   "Execute a step for this PARSER."
   (setq semantic-debug-user-command 'step)
   )
 
-(cl-defmethod semantic-debug-parser-go ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-go ((_parser semantic-debug-parser))
   "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'go)
   )
 
-(cl-defmethod semantic-debug-parser-fail ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-fail ((_parser semantic-debug-parser))
   "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'fail)
   )
 
-(cl-defmethod semantic-debug-parser-quit ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-quit ((_parser semantic-debug-parser))
   "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'quit)
   )
 
-(cl-defmethod semantic-debug-parser-abort ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-abort ((_parser semantic-debug-parser))
   "Continue execution in this PARSER until the next breakpoint."
   (setq semantic-debug-user-command 'abort)
   )
 
-(cl-defmethod semantic-debug-parser-print-state ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-print-state ((_parser semantic-debug-parser))
   "Print state for this PARSER at the current breakpoint."
   (with-slots (current-frame) semantic-debug-current-interface
     (when current-frame
       (semantic-debug-frame-info current-frame)
       )))
 
-(cl-defmethod semantic-debug-parser-break ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-break ((_parser semantic-debug-parser))
   "Set a breakpoint for this PARSER."
   )
 
 ;; Stack stuff
-(cl-defmethod semantic-debug-parser-frames ((parser semantic-debug-parser))
+(cl-defmethod semantic-debug-parser-frames ((_parser semantic-debug-parser))
   "Return a list of frames for the current parser.
 A frame is of the form:
   ( .. .what ? .. )

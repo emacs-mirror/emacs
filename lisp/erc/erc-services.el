@@ -91,7 +91,6 @@ Possible settings are:.
 nil           - Disables automatic Nickserv identification.
 
 You can also use \\[erc-nickserv-identify-mode] to change modes."
-  :group 'erc-services
   :type '(choice (const autodetect)
 		 (const nick-change)
 		 (const both)
@@ -107,13 +106,13 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
   "This mode automates communication with services."
   ((erc-nickserv-identify-mode erc-nickserv-identify-mode))
   ((remove-hook 'erc-server-NOTICE-functions
-		'erc-nickserv-identify-autodetect)
+		#'erc-nickserv-identify-autodetect)
    (remove-hook 'erc-after-connect
-		'erc-nickserv-identify-on-connect)
+		#'erc-nickserv-identify-on-connect)
    (remove-hook 'erc-nick-changed-functions
-		'erc-nickserv-identify-on-nick-change)
+		#'erc-nickserv-identify-on-nick-change)
    (remove-hook 'erc-server-NOTICE-functions
-		'erc-nickserv-identification-autodetect)))
+		#'erc-nickserv-identification-autodetect)))
 
 ;;;###autoload
 (defun erc-nickserv-identify-mode (mode)
@@ -123,7 +122,7 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
 		  "Choose Nickserv identify mode (RET to disable): "
 		  '(("autodetect") ("nick-change") ("both")) nil t))))
   (add-hook 'erc-server-NOTICE-functions
-	    'erc-nickserv-identification-autodetect)
+	    #'erc-nickserv-identification-autodetect)
   (unless erc-networks-mode
     ;; Force-enable networks module, because we need it to set
     ;; erc-network for us.
@@ -131,41 +130,40 @@ You can also use \\[erc-nickserv-identify-mode] to change modes."
   (cond ((eq mode 'autodetect)
 	 (setq erc-nickserv-identify-mode 'autodetect)
 	 (add-hook 'erc-server-NOTICE-functions
-		   'erc-nickserv-identify-autodetect)
+		   #'erc-nickserv-identify-autodetect)
 	 (remove-hook 'erc-nick-changed-functions
-		      'erc-nickserv-identify-on-nick-change)
+		      #'erc-nickserv-identify-on-nick-change)
 	 (remove-hook 'erc-after-connect
-		      'erc-nickserv-identify-on-connect))
+		      #'erc-nickserv-identify-on-connect))
 	((eq mode 'nick-change)
 	 (setq erc-nickserv-identify-mode 'nick-change)
 	 (add-hook 'erc-after-connect
-		   'erc-nickserv-identify-on-connect)
+		   #'erc-nickserv-identify-on-connect)
 	 (add-hook 'erc-nick-changed-functions
-		   'erc-nickserv-identify-on-nick-change)
+		   #'erc-nickserv-identify-on-nick-change)
 	 (remove-hook 'erc-server-NOTICE-functions
-		      'erc-nickserv-identify-autodetect))
+		      #'erc-nickserv-identify-autodetect))
 	((eq mode 'both)
 	 (setq erc-nickserv-identify-mode 'both)
 	 (add-hook 'erc-server-NOTICE-functions
-		   'erc-nickserv-identify-autodetect)
+		   #'erc-nickserv-identify-autodetect)
 	 (add-hook 'erc-after-connect
-		   'erc-nickserv-identify-on-connect)
+		   #'erc-nickserv-identify-on-connect)
 	 (add-hook 'erc-nick-changed-functions
-		   'erc-nickserv-identify-on-nick-change))
+		   #'erc-nickserv-identify-on-nick-change))
 	(t
 	 (setq erc-nickserv-identify-mode nil)
 	 (remove-hook 'erc-server-NOTICE-functions
-		      'erc-nickserv-identify-autodetect)
+		      #'erc-nickserv-identify-autodetect)
 	 (remove-hook 'erc-after-connect
-		      'erc-nickserv-identify-on-connect)
+		      #'erc-nickserv-identify-on-connect)
 	 (remove-hook 'erc-nick-changed-functions
-		      'erc-nickserv-identify-on-nick-change)
+		      #'erc-nickserv-identify-on-nick-change)
 	 (remove-hook 'erc-server-NOTICE-functions
-		      'erc-nickserv-identification-autodetect))))
+		      #'erc-nickserv-identification-autodetect))))
 
 (defcustom erc-prompt-for-nickserv-password t
   "Ask for the password when identifying to NickServ."
-  :group 'erc-services
   :type 'boolean)
 
 (defcustom erc-use-auth-source-for-nickserv-password nil
@@ -174,7 +172,6 @@ This option has an no effect if `erc-prompt-for-nickserv-password'
 is non-nil, and passwords from `erc-nickserv-passwords' take
 precedence."
   :version "28.1"
-  :group 'erc-services
   :type 'boolean)
 
 (defcustom erc-nickserv-passwords nil
@@ -187,7 +184,6 @@ Example of use:
         \\='((freenode ((\"nick-one\" . \"password\")
                      (\"nick-two\" . \"password\")))
           (DALnet ((\"nick\" . \"password\")))))"
-  :group 'erc-services
   :type '(repeat
 	  (list :tag "Network"
 		(choice :tag "Network name"
@@ -305,7 +301,6 @@ ANSWER is the command to use for the answer.  The default is `privmsg'.
 SUCCESS-REGEXP is a regular expression matching the message nickserv
   sends when you've successfully identified.
 The last two elements are optional."
-   :group 'erc-services
    :type '(repeat
 	   (list :tag "Nickserv data"
 		 (symbol :tag "Network name")
@@ -357,7 +352,6 @@ The last two elements are optional."
 (defcustom erc-nickserv-identified-hook nil
   "Run this hook when NickServ acknowledged successful identification.
 Hooks are called with arguments (NETWORK NICK)."
-  :group 'erc-services
   :type 'hook)
 
 (defun erc-nickserv-identification-autodetect (_proc parsed)

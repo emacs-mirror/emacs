@@ -1,4 +1,4 @@
-;;; ede/custom.el --- customization of EDE projects.
+;;; ede/custom.el --- customization of EDE projects.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -97,13 +97,13 @@ OBJ is the target object to customize."
   "Create a custom-like buffer for sorting targets of current project."
   (interactive)
   (let ((proj (ede-current-project))
-        (count 1)
-        current order)
+        ;; (count 1)
+        ) ;; current order
     (switch-to-buffer (get-buffer-create "*EDE sort targets*"))
     (erase-buffer)
     (setq ede-object-project proj)
     (widget-create 'push-button
-                   :notify (lambda (&rest ignore)
+                   :notify (lambda (&rest _ignore)
                              (let ((targets (oref ede-object-project targets))
                                    cur newtargets)
                                (while (setq cur (pop ede-project-sort-targets-order))
@@ -115,7 +115,7 @@ OBJ is the target object to customize."
                    " Accept ")
     (widget-insert "   ")
     (widget-create 'push-button
-                   :notify (lambda (&rest ignore)
+                   :notify (lambda (&rest _ignore)
 			     (kill-buffer))
                    " Cancel ")
     (widget-insert "\n\n")
@@ -133,45 +133,45 @@ OBJ is the target object to customize."
 (defun ede-project-sort-targets-list ()
   "Sort the target list while using `ede-project-sort-targets'."
   (save-excursion
-    (let ((count 0)
-          (targets (oref ede-object-project targets))
+    (let ((targets (oref ede-object-project targets))
           (inhibit-read-only t)
           (inhibit-modification-hooks t))
       (goto-char (point-min))
       (forward-line 2)
       (delete-region (point) (point-max))
-      (while (< count (length targets))
+      (dotimes (count (length targets))
         (if (> count 0)
             (widget-create 'push-button
-                           :notify `(lambda (&rest ignore)
-                                      (let ((cur ede-project-sort-targets-order))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth ,count cur)
-                                         (1- ,count))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth (1- ,count) cur) ,count))
-                                      (ede-project-sort-targets-list))
+                           :notify (lambda (&rest _ignore)
+                                     (let ((cur ede-project-sort-targets-order))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth count cur)
+                                        (1- count))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth (1- count) cur) count))
+                                     (ede-project-sort-targets-list))
                            " Up ")
           (widget-insert "      "))
         (if (< count (1- (length targets)))
             (widget-create 'push-button
-                           :notify `(lambda (&rest ignore)
-                                      (let ((cur ede-project-sort-targets-order))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth ,count cur) (1+ ,count))
-                                        (add-to-ordered-list
-                                         'ede-project-sort-targets-order
-                                         (nth (1+ ,count) cur) ,count))
-                                      (ede-project-sort-targets-list))
+                           :notify (lambda (&rest _ignore)
+                                     (let ((cur ede-project-sort-targets-order))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth count cur) (1+ count))
+                                       (add-to-ordered-list
+                                        'ede-project-sort-targets-order
+                                        (nth (1+ count) cur) count))
+                                     (ede-project-sort-targets-list))
                            " Down ")
           (widget-insert "        "))
         (widget-insert (concat " " (number-to-string (1+ count)) ".:   "
                                (oref (nth (nth count ede-project-sort-targets-order)
-                                          targets) name) "\n"))
-        (setq count (1+ count))))))
+                                          targets)
+                                     name)
+                               "\n"))))))
 
 ;;; Customization hooks
 ;;
@@ -195,11 +195,11 @@ OBJ is the target object to customize."
 ;; These two methods should be implemented by subclasses of
 ;; project and targets in order to account for user specified
 ;; changes.
-(cl-defmethod eieio-done-customizing ((target ede-target))
+(cl-defmethod eieio-done-customizing ((_target ede-target))
   "Call this when a user finishes customizing TARGET."
   nil)
 
-(cl-defmethod ede-commit-project ((proj ede-project))
+(cl-defmethod ede-commit-project ((_proj ede-project))
   "Commit any change to PROJ to its file."
   nil
   )

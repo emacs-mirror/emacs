@@ -1,4 +1,4 @@
-;;; reftex-ref.el --- code to create labels and references with RefTeX
+;;; reftex-ref.el --- code to create labels and references with RefTeX  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -84,10 +84,12 @@ If optional BOUND is an integer, limit backward searches to that point."
 
           (if (or (re-search-forward
                    (format reftex-find-label-regexp-format
-                           (regexp-quote label)) nil t)
+                           (regexp-quote label))
+                   nil t)
                   (re-search-forward
                    (format reftex-find-label-regexp-format2
-                           (regexp-quote label)) nil t))
+                           (regexp-quote label))
+                   nil t))
 
               (progn
                 (backward-char 1)
@@ -248,13 +250,13 @@ This function is controlled by the settings of reftex-insert-label-flags."
                        ""
                      "POSITION UNCERTAIN.  RESCAN TO FIX."))
              (file (buffer-file-name))
-             (text nil)
+             ;; (text nil)
              (tail (memq here-I-am (symbol-value reftex-docstruct-symbol))))
 
         (or (cdr here-I-am-info) (setq rescan-is-useful t))
 
         (when tail
-          (push (list label typekey text file nil note) (cdr tail))
+          (push (list label typekey nil file nil note) (cdr tail))
           (put reftex-docstruct-symbol 'modified t)))
 
       ;; Insert the label into the buffer
@@ -286,7 +288,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
   (when (and reftex-translate-to-ascii-function
              (fboundp reftex-translate-to-ascii-function))
     (setq string (funcall reftex-translate-to-ascii-function string)))
-  (apply 'reftex-convert-string string
+  (apply #'reftex-convert-string string
          "[-~ \t\n\r,;]+" reftex-label-illegal-re nil nil
          reftex-derive-label-parameters))
 
@@ -402,6 +404,8 @@ also applies `reftex-translate-to-ascii-function' to the string."
  a / A      Put all marked entries into one/many \\ref commands.
  q / RET    Quit without referencing / Accept current label (also on mouse-2).")
 
+(defvar reftex-refstyle)
+
 ;;;###autoload
 (defun reftex-reference (&optional type no-insert cut)
   "Make a LaTeX reference.  Look only for labels of a certain TYPE.
@@ -473,7 +477,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
     ;; If the first entry is the symbol 'concat, concat all labels.
     ;; We keep the cdr of the first label for typekey etc information.
     (if (eq (car labels) 'concat)
-        (setq labels (list (list (mapconcat 'car (cdr labels) ",")
+        (setq labels (list (list (mapconcat #'car (cdr labels) ",")
                                  (cdr (nth 1 labels))))))
     (setq type (nth 1 (car labels))
           form (or (cdr (assoc type reftex-typekey-to-format-alist))
@@ -502,7 +506,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
           (setq form (substring form 1)))
         ;; do we have a special format?
 	(unless (string= reftex-refstyle "\\ref")
-	  (setq reftex-format-ref-function 'reftex-format-special))
+	  (setq reftex-format-ref-function #'reftex-format-special))
         ;; ok, insert the reference
         (if sep1 (insert sep1))
         (insert
@@ -744,7 +748,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
       ;; Goto the file in another window
       (setq buffer
             (if no-revisit
-                (reftex-get-buffer-visiting file)
+                (find-buffer-visiting file)
               (reftex-get-file-buffer-force
                file (not reftex-keep-temporary-buffers))))
       (if buffer
@@ -826,14 +830,16 @@ When called with 2 C-u prefix args, disable magic word recognition."
     (dolist (item (nth 2 elt))
       (let ((macro (car item))
 	    (package (nth 1 elt)))
-	(eval `(defun ,(intern (format "reftex-%s-%s" package
-				       (substring macro 1 (length macro)))) ()
-		 ,(format "Insert a reference using the `%s' macro from the %s \
+	(defalias (intern (format "reftex-%s-%s" package
+				  (substring macro 1 (length macro))))
+	  (lambda ()
+	    (:documentation
+	     (format "Insert a reference using the `%s' macro from the %s \
 package.\n\nThis is a generated function."
-			  macro package)
-		 (interactive)
-		 (let ((reftex-refstyle ,macro))
-		   (reftex-reference))))))))
+		     macro package))
+	    (interactive)
+	    (let ((reftex-refstyle macro))
+	      (reftex-reference))))))))
 
 (defun reftex-format-special (label fmt refstyle)
   "Apply selected reference style to format FMT and add LABEL.

@@ -512,12 +512,12 @@ Shortens `code' tags, but passes through for others."
    semantic-type-relation-separator-character '(".")
    semantic-command-separation-character ";"
    ;; Parsing
-   semantic-tag-expand-function 'semantic-python-expand-tag
+   semantic-tag-expand-function #'semantic-python-expand-tag
 
    ;; Semantic to take over from the one provided by python.
    ;; The python one, if it uses the senator advice, will hang
    ;; Emacs unrecoverably.
-   imenu-create-index-function 'semantic-create-imenu-index
+   imenu-create-index-function #'semantic-create-imenu-index
 
    ;; I need a python guru to update this list:
    semantic-symbol->name-assoc-list-for-type-parts '((variable . "Variables")

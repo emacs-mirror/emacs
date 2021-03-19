@@ -144,8 +144,8 @@ manually with \\[dns-mode-soa-increment-serial]."
 
 (defvar dns-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-s" 'dns-mode-soa-increment-serial)
-    (define-key map "\C-c\C-e" 'dns-mode-ipv6-to-nibbles)
+    (define-key map "\C-c\C-s" #'dns-mode-soa-increment-serial)
+    (define-key map "\C-c\C-e" #'dns-mode-ipv6-to-nibbles)
     map)
   "Keymap for DNS master file mode.")
 
@@ -177,7 +177,7 @@ Turning on DNS mode runs `dns-mode-hook'."
   (setq-local comment-start-skip ";+ *")
   (setq-local font-lock-defaults
               '(dns-mode-font-lock-keywords nil nil ((?_ . "w"))))
-  (add-hook 'before-save-hook 'dns-mode-soa-maybe-increment-serial
+  (add-hook 'before-save-hook #'dns-mode-soa-maybe-increment-serial
             nil t))
 
 ;;;###autoload (defalias 'zone-mode 'dns-mode)

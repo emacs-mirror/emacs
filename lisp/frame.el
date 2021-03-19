@@ -2733,6 +2733,14 @@ See also `toggle-frame-maximized'."
 (make-obsolete-variable
  'window-system-version "it does not give useful information." "24.3")
 
+(defun set-frame-property--interactive (prompt number)
+  "Get a value for `set-frame-width' or `set-frame-height', prompting with PROMPT.
+Offer NUMBER as default value, if it is a natural number."
+  (if (and current-prefix-arg (not (consp current-prefix-arg)))
+      (list (selected-frame) (prefix-numeric-value current-prefix-arg))
+    (let ((default (and (natnump number) number)))
+      (list (selected-frame) (read-number prompt default)))))
+
 ;; Variables whose change of value should trigger redisplay of the
 ;; current buffer.
 ;; To test whether a given variable needs to be added to this list,

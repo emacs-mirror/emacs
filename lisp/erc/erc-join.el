@@ -1,4 +1,4 @@
-;;; erc-join.el --- autojoin channels on connect and reconnects
+;;; erc-join.el --- autojoin channels on connect and reconnects  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -42,14 +42,14 @@
 ;;;###autoload(autoload 'erc-autojoin-mode "erc-join" nil t)
 (define-erc-module autojoin nil
   "Makes ERC autojoin on connects and reconnects."
-  ((add-hook 'erc-after-connect 'erc-autojoin-channels)
-   (add-hook 'erc-nickserv-identified-hook 'erc-autojoin-after-ident)
-   (add-hook 'erc-server-JOIN-functions 'erc-autojoin-add)
-   (add-hook 'erc-server-PART-functions 'erc-autojoin-remove))
-  ((remove-hook 'erc-after-connect 'erc-autojoin-channels)
-   (remove-hook 'erc-nickserv-identified-hook 'erc-autojoin-after-ident)
-   (remove-hook 'erc-server-JOIN-functions 'erc-autojoin-add)
-   (remove-hook 'erc-server-PART-functions 'erc-autojoin-remove)))
+  ((add-hook 'erc-after-connect #'erc-autojoin-channels)
+   (add-hook 'erc-nickserv-identified-hook #'erc-autojoin-after-ident)
+   (add-hook 'erc-server-JOIN-functions #'erc-autojoin-add)
+   (add-hook 'erc-server-PART-functions #'erc-autojoin-remove))
+  ((remove-hook 'erc-after-connect #'erc-autojoin-channels)
+   (remove-hook 'erc-nickserv-identified-hook #'erc-autojoin-after-ident)
+   (remove-hook 'erc-server-JOIN-functions #'erc-autojoin-add)
+   (remove-hook 'erc-server-PART-functions #'erc-autojoin-remove)))
 
 (defcustom erc-autojoin-channels-alist nil
   "Alist of channels to autojoin on IRC networks.
@@ -70,7 +70,6 @@ keeps track of what channels you are on, and will join them
 again when you get disconnected.  When you restart Emacs, however,
 those changes are lost, and the customization you saved the last
 time is used again."
-  :group 'erc-autojoin
   :type '(repeat (cons :tag "Server"
 		       (regexp :tag "Name")
 		       (repeat :tag "Channels"
@@ -82,7 +81,6 @@ If the value is `connect', autojoin immediately on connecting.
 If the value is `ident', autojoin after successful NickServ
 identification, or after `erc-autojoin-delay' seconds.
 Any other value means the same as `connect'."
-  :group 'erc-autojoin
   :version "24.1"
   :type  '(choice (const :tag "On Connection" connect)
 		  (const :tag "When Identified" ident)))
@@ -92,7 +90,6 @@ Any other value means the same as `connect'."
 This only takes effect if `erc-autojoin-timing' is `ident'.
 If NickServ identification occurs before this delay expires, ERC
 autojoins immediately at that time."
-  :group 'erc-autojoin
   :version "24.1"
   :type  'integer)
 
@@ -102,7 +99,6 @@ If non-nil, and a channel on the server a.b.c is joined, then
 only b.c is used as the server for `erc-autojoin-channels-alist'.
 This is important for networks that redirect you to other
 servers, presumably in the same domain."
-  :group 'erc-autojoin
   :type 'boolean)
 
 (defvar-local erc--autojoin-timer nil)
@@ -121,7 +117,7 @@ This is called from a timer set up by `erc-autojoin-channels'."
       (erc-log "Delayed autojoin started (no ident success detected yet)")
       (erc-autojoin-channels server nick))))
 
-(defun erc-autojoin-after-ident (network nick)
+(defun erc-autojoin-after-ident (_network _nick)
   "Autojoin channels in `erc-autojoin-channels-alist'.
 This function is run from `erc-nickserv-identified-hook'."
   (if erc--autojoin-timer
@@ -149,7 +145,7 @@ This function is run from `erc-nickserv-identified-hook'."
       (when (> erc-autojoin-delay 0)
 	(setq erc--autojoin-timer
 	      (run-with-timer erc-autojoin-delay nil
-			      'erc-autojoin-channels-delayed
+			      #'erc-autojoin-channels-delayed
 			      server nick (current-buffer))))
     ;; `erc-autojoin-timing' is `connect':
     (let ((server (or erc-session-server erc-server-announced-name)))

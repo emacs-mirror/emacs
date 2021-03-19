@@ -1,6 +1,6 @@
-;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
+;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -53,7 +53,7 @@ It does not need refreshing."
   "Return nil, we never need a refresh."
   nil)
 
-(cl-defmethod semanticdb-debug-info ((obj semanticdb-table-emacs-lisp))
+(cl-defmethod semanticdb-debug-info ((_obj semanticdb-table-emacs-lisp))
   (list "(proxy)"))
 
 (cl-defmethod cl-print-object ((obj semanticdb-table-emacs-lisp) stream)

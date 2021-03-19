@@ -1,4 +1,4 @@
-;;; ede/shell.el --- A shell controlled by EDE.
+;;; ede/shell.el --- A shell controlled by EDE.  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 ;;

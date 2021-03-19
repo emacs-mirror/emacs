@@ -1,6 +1,6 @@
-;;; ede-proj-shared.el --- EDE Generic Project shared library support
+;;; ede-proj-shared.el --- EDE Generic Project shared library support  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1998-2000, 2009-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -170,7 +170,7 @@ Use ldlibs to add addition libraries.")
   )
 
 (cl-defmethod ede-proj-configure-add-missing
-  ((this ede-proj-target-makefile-shared-object))
+  ((_this ede-proj-target-makefile-shared-object))
   "Query if any files needed by THIS provided by automake are missing.
 Results in --add-missing being passed to automake."
   (not (and (ede-expand-filename (ede-toplevel) "ltconfig")
@@ -185,7 +185,7 @@ Makefile.am generator, so use it to add this important bin program."
      (insert (concat "lib" (ede-name this) ".la"))))
 
 (cl-defmethod ede-proj-makefile-insert-automake-post-variables
-  ((this ede-proj-target-makefile-shared-object))
+  ((_this ede-proj-target-makefile-shared-object))
   "Insert bin_PROGRAMS variables needed by target THIS.
 We need to override -program which has an LDADD element."
   nil)

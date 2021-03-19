@@ -1,7 +1,6 @@
-;;; ede/proj-obj.el --- EDE Generic Project Object code generation support
+;;; ede/proj-obj.el --- EDE Generic Project Object code generation support  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1998-2000, 2005, 2008-2021 Free Software Foundation,
-;;; Inc.
+;; Copyright (C) 1998-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -282,15 +281,15 @@ Argument THIS is the target to get sources from."
   (append (oref this source) (oref this auxsource)))
 
 (cl-defmethod ede-proj-makefile-insert-variables ((this ede-proj-target-makefile-objectcode)
-					       &optional moresource)
+					          &optional _moresource)
   "Insert variables needed by target THIS.
 Optional argument MORESOURCE is not used."
   (let ((ede-proj-objectcode-dodependencies
 	 (oref (ede-target-parent this) automatic-dependencies)))
     (cl-call-next-method)))
 
-(cl-defmethod ede-buffer-header-file((this ede-proj-target-makefile-objectcode)
-				  buffer)
+(cl-defmethod ede-buffer-header-file ((this ede-proj-target-makefile-objectcode)
+				      _buffer)
   "There are no default header files."
   (or (cl-call-next-method)
       ;; Ok, nothing obvious. Try looking in ourselves.

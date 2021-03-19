@@ -131,7 +131,11 @@ of the `tooltip' face are used instead."
      :inherit variable-pitch)
     (t
      :inherit variable-pitch))
-  "Face for tooltips."
+  "Face for tooltips.
+
+When using the GTK toolkit, this face will only be used if
+`x-gtk-use-system-tooltips' is non-nil."
+  :group 'tooltip
   :group 'basic-faces)
 
 (defcustom tooltip-use-echo-area nil

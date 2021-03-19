@@ -1,4 +1,4 @@
-;;; semantic/texi.el --- Semantic details for Texinfo files
+;;; semantic/texi.el --- Semantic details for Texinfo files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -55,7 +55,7 @@ The field position is the field number (based at 1) where the
 name of this section is.")
 
 ;;; Code:
-(defun semantic-texi-parse-region (&rest ignore)
+(defun semantic-texi-parse-region (&rest _ignore)
   "Parse the current texinfo buffer for semantic tags.
 IGNORE any arguments, always parse the whole buffer.
 Each tag returned is of the form:
@@ -79,7 +79,7 @@ function `semantic-install-function-overrides'."
   (let ((chil (semantic-tag-components tag)))
     (if chil
         (semantic-tag-put-attribute
-         tag :members (mapcar 'semantic-texi-expand-tag chil)))
+         tag :members (mapcar #'semantic-texi-expand-tag chil)))
     (car (semantic--tag-expand tag))))
 
 (defun semantic-texi-parse-headings ()
@@ -297,7 +297,7 @@ can handle the @menu environment.")
     nil))
 
 (define-mode-local-override semantic-ctxt-current-class-list
-  texinfo-mode (&optional point)
+  texinfo-mode (&optional _point)
   "Determine the class of tags that can be used at POINT.
 For texinfo, there two possibilities returned.
 1) `function' - for a call to a texinfo function
@@ -368,7 +368,7 @@ Optional argument POINT is where to look for the environment."
 (declare-function semantic-analyze-context "semantic/analyze")
 
 (define-mode-local-override semantic-analyze-current-context
-  texinfo-mode (point)
+  texinfo-mode (_point)
   "Analysis context makes no sense for texinfo.  Return nil."
   (let* ((prefixandbounds (semantic-ctxt-current-symbol-and-bounds (point)))
 	 (prefix (car prefixandbounds))
@@ -408,7 +408,7 @@ Optional argument POINT is where to look for the environment."
   "List of commands that we might bother completing.")
 
 (define-mode-local-override semantic-analyze-possible-completions
-  texinfo-mode (context &rest flags)
+  texinfo-mode (context &rest _flags)
   "List smart completions at point.
 Since texinfo is not a programming language the default version is not
 useful.  Instead, look at the current symbol.  If it is a command
@@ -451,7 +451,7 @@ that start with that symbol."
   (setq semantic-parser-name "TEXI"
         ;; Setup a dummy parser table to enable parsing!
         semantic--parse-table t
-        imenu-create-index-function 'semantic-create-imenu-index
+        imenu-create-index-function #'semantic-create-imenu-index
 	semantic-command-separation-character "@"
 	semantic-type-relation-separator-character '(":")
 	semantic-symbol->name-assoc-list '((section . "Section")
@@ -466,7 +466,7 @@ that start with that symbol."
   ;; (local-set-key [(f9)] 'semantic-texi-update-doc-from-texi)
   )
 
-(add-hook 'texinfo-mode-hook 'semantic-default-texi-setup)
+(add-hook 'texinfo-mode-hook #'semantic-default-texi-setup)
 
 
 ;;; Special features of Texinfo tag streams
@@ -500,7 +500,7 @@ that start with that symbol."
 
 ;; Turns out this might not be useful.
 ;; Delete later if that is true.
-(defun semantic-texi-find-documentation (name &optional type)
+(defun semantic-texi-find-documentation (name &optional _type)
   "Find the function or variable NAME of TYPE in the texinfo source.
 NAME is a string representing some functional symbol.
 TYPE is a string, such as \"variable\" or \"Command\" used to find

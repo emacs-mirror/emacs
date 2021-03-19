@@ -45,13 +45,11 @@
 
 (defcustom erc-notifications-icon nil
   "Icon to use for notification."
-  :group 'erc-notifications
   :type '(choice (const :tag "No icon" nil) file))
 
 (defcustom erc-notifications-bus :session
   "D-Bus bus to use for notification."
   :version "25.1"
-  :group 'erc-notifications
   :type '(choice (const :tag "Session bus" :session) string))
 
 (defvar dbus-debug) ; used in the macroexpansion of dbus-ignore-errors
@@ -99,11 +97,11 @@ This will replace the last notification sent with this function."
 (define-erc-module notifications nil
   "Send notifications on private message reception and mentions."
   ;; Enable
-  ((add-hook 'erc-server-PRIVMSG-functions 'erc-notifications-PRIVMSG)
-   (add-hook 'erc-text-matched-hook 'erc-notifications-notify-on-match))
+  ((add-hook 'erc-server-PRIVMSG-functions #'erc-notifications-PRIVMSG)
+   (add-hook 'erc-text-matched-hook #'erc-notifications-notify-on-match))
   ;; Disable
-  ((remove-hook 'erc-server-PRIVMSG-functions 'erc-notifications-PRIVMSG)
-   (remove-hook 'erc-text-matched-hook 'erc-notifications-notify-on-match)))
+  ((remove-hook 'erc-server-PRIVMSG-functions #'erc-notifications-PRIVMSG)
+   (remove-hook 'erc-text-matched-hook #'erc-notifications-notify-on-match)))
 
 (provide 'erc-desktop-notifications)
 

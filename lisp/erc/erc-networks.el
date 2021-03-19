@@ -1,4 +1,4 @@
-;;; erc-networks.el --- IRC networks
+;;; erc-networks.el --- IRC networks  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002, 2004-2021 Free Software Foundation, Inc.
 
@@ -443,7 +443,6 @@ NET is a symbol indicating to which network from `erc-networks-alist'
   this server corresponds,
 HOST is the servers hostname and
 PORTS is either a number, a list of numbers, or a list of port ranges."
-  :group 'erc-networks
   :type '(alist :key-type (string :tag "Name")
 		:value-type
 		(group symbol (string :tag "Hostname")
@@ -714,7 +713,6 @@ MATCHER is used to find a corresponding network to a server while
   connected to it.  If it is regexp, it's used to match against
   `erc-server-announced-name'.  It can also be a function (predicate).
   Then it is executed with the server buffer as current-buffer."
-  :group 'erc-networks
   :type '(repeat
 	  (list :tag "Network"
 		(symbol :tag "Network name")
@@ -762,25 +760,25 @@ Return the name of this server's network as a symbol."
   "Return the name of the current network as a string."
   (erc-with-server-buffer (symbol-name erc-network)))
 
-(defun erc-set-network-name (proc parsed)
+(defun erc-set-network-name (_proc _parsed)
   "Set `erc-network' to the value returned by `erc-determine-network'."
   (unless erc-server-connected
     (setq erc-network (erc-determine-network)))
   nil)
 
-(defun erc-unset-network-name (nick ip reason)
+(defun erc-unset-network-name (_nick _ip _reason)
   "Set `erc-network' to nil."
   (setq erc-network nil)
   nil)
 
 (define-erc-module networks nil
   "Provide data about IRC networks."
-  ((add-hook 'erc-server-375-functions 'erc-set-network-name)
-   (add-hook 'erc-server-422-functions 'erc-set-network-name)
-   (add-hook 'erc-disconnected-hook 'erc-unset-network-name))
-  ((remove-hook 'erc-server-375-functions 'erc-set-network-name)
-   (remove-hook 'erc-server-422-functions 'erc-set-network-name)
-   (remove-hook 'erc-disconnected-hook 'erc-unset-network-name)))
+  ((add-hook 'erc-server-375-functions #'erc-set-network-name)
+   (add-hook 'erc-server-422-functions #'erc-set-network-name)
+   (add-hook 'erc-disconnected-hook #'erc-unset-network-name))
+  ((remove-hook 'erc-server-375-functions #'erc-set-network-name)
+   (remove-hook 'erc-server-422-functions #'erc-set-network-name)
+   (remove-hook 'erc-disconnected-hook #'erc-unset-network-name)))
 
 (defun erc-ports-list (ports)
   "Return a list of PORTS.

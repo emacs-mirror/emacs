@@ -1,4 +1,4 @@
-;;; erc-netsplit.el --- Reduce JOIN/QUIT messages on netsplits
+;;; erc-netsplit.el --- Reduce JOIN/QUIT messages on netsplits  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -42,30 +42,27 @@ netsplits, so that it can filter the JOIN messages on a netjoin too."
 (define-erc-module netsplit nil
   "This mode hides quit/join messages if a netsplit occurs."
   ((erc-netsplit-install-message-catalogs)
-   (add-hook 'erc-server-JOIN-functions 'erc-netsplit-JOIN)
-   (add-hook 'erc-server-MODE-functions 'erc-netsplit-MODE)
-   (add-hook 'erc-server-QUIT-functions 'erc-netsplit-QUIT)
-   (add-hook 'erc-timer-hook 'erc-netsplit-timer))
-  ((remove-hook 'erc-server-JOIN-functions 'erc-netsplit-JOIN)
-   (remove-hook 'erc-server-MODE-functions 'erc-netsplit-MODE)
-   (remove-hook 'erc-server-QUIT-functions 'erc-netsplit-QUIT)
-   (remove-hook 'erc-timer-hook 'erc-netsplit-timer)))
+   (add-hook 'erc-server-JOIN-functions #'erc-netsplit-JOIN)
+   (add-hook 'erc-server-MODE-functions #'erc-netsplit-MODE)
+   (add-hook 'erc-server-QUIT-functions #'erc-netsplit-QUIT)
+   (add-hook 'erc-timer-hook #'erc-netsplit-timer))
+  ((remove-hook 'erc-server-JOIN-functions #'erc-netsplit-JOIN)
+   (remove-hook 'erc-server-MODE-functions #'erc-netsplit-MODE)
+   (remove-hook 'erc-server-QUIT-functions #'erc-netsplit-QUIT)
+   (remove-hook 'erc-timer-hook #'erc-netsplit-timer)))
 
 (defcustom erc-netsplit-show-server-mode-changes-flag nil
   "Set to t to enable display of server mode changes."
-  :group 'erc-netsplit
   :type 'boolean)
 
 (defcustom erc-netsplit-debug nil
   "If non-nil, debug messages will be shown in the sever buffer."
-  :group 'erc-netsplit
   :type 'boolean)
 
 (defcustom erc-netsplit-regexp
   "^[^ @!\"\n]+\\.[^ @!\n]+ [^ @!\n]+\\.[^ @!\"\n]+$"
   "This regular expression should match quit reasons produced
 by netsplits."
-  :group 'erc-netsplit
   :type 'regexp)
 
 (defcustom erc-netsplit-hook nil
@@ -190,13 +187,13 @@ join from that split has been detected or not.")
 	(erc-display-message
 	 nil 'notice 'active
 	 'netsplit-wholeft ?s (car elt)
-	 ?n (mapconcat 'erc-extract-nick (nthcdr 3 elt) " ")
+	 ?n (mapconcat #'erc-extract-nick (nthcdr 3 elt) " ")
 	 ?t (if (nth 2 elt)
 		"(joining)"
 	      "")))))
   t)
 
-(defalias 'erc-cmd-WL 'erc-cmd-WHOLEFT)
+(defalias 'erc-cmd-WL #'erc-cmd-WHOLEFT)
 
 (provide 'erc-netsplit)
 

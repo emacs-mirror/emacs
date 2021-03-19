@@ -1,4 +1,4 @@
-;;; ede/config.el --- Configuration Handler baseclass
+;;; ede/config.el --- Configuration Handler baseclass  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 
@@ -171,7 +171,7 @@ the directory isn't on the `safe' list, ask to add it to the safe list."
 	(oset config project proj)))
     config))
 
-(cl-defmethod ede-config-setup-configuration ((proj ede-project-with-config) config)
+(cl-defmethod ede-config-setup-configuration ((_proj ede-project-with-config) _config)
   "Default configuration setup method."
   nil)
 
@@ -187,7 +187,7 @@ the directory isn't on the `safe' list, ask to add it to the safe list."
   (let ((config (ede-config-get-configuration proj t)))
     (eieio-customize-object config)))
 
-(cl-defmethod ede-customize ((target ede-target-with-config))
+(cl-defmethod ede-customize ((_target ede-target-with-config))
   "Customize the EDE TARGET by actually configuring the config object."
   ;; Nothing unique for the targets, use the project.
   (ede-customize-project))
@@ -302,14 +302,14 @@ This class brings in method overloads for building.")
   "Class to mix into a project with configuration for builds.
 This class brings in method overloads for building.")
 
-(cl-defmethod project-compile-project ((proj ede-project-with-config-build) &optional command)
+(cl-defmethod project-compile-project ((proj ede-project-with-config-build) &optional _command)
   "Compile the entire current project PROJ.
 Argument COMMAND is the command to use when compiling."
   (let* ((config (ede-config-get-configuration proj t))
 	 (comp (oref config build-command)))
     (compile comp)))
 
-(cl-defmethod project-compile-target ((obj ede-target-with-config-build) &optional command)
+(cl-defmethod project-compile-target ((_obj ede-target-with-config-build) &optional command)
   "Compile the current target OBJ.
 Argument COMMAND is the command to use for compiling the target."
   (project-compile-project (ede-current-project) command))

@@ -70,7 +70,7 @@
   (setq-local outline-regexp "^[a-z]")
   (setq-local imenu-generic-expression
               '((nil "\\<\\(FUNCTION\\|MACRO\\)\\s-+{\\([^}\n]+\\)}" 2)))
-  (setq-local indent-line-function 'bibtex-style-indent-line)
+  (setq-local indent-line-function #'bibtex-style-indent-line)
   (setq-local parse-sexp-ignore-comments t)
   (setq font-lock-defaults
 	'(bibtex-style-font-lock-keywords nil t

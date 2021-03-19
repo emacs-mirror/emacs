@@ -1,4 +1,4 @@
-;;; remember --- a mode for quickly jotting down things to remember
+;;; remember --- a mode for quickly jotting down things to remember  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2001, 2003-2021 Free Software Foundation, Inc.
 
@@ -270,12 +270,13 @@ With a prefix or a visible region, use the region as INITIAL."
            (buffer-substring (region-beginning) (region-end)))))
   (funcall (if remember-in-new-frame
                #'frameset-to-register
-             #'window-configuration-to-register) remember-register)
+             #'window-configuration-to-register)
+           remember-register)
   (let* ((annotation
           (if remember-run-all-annotation-functions-flag
-              (mapconcat 'identity
+              (mapconcat #'identity
                          (delq nil
-                               (mapcar 'funcall remember-annotation-functions))
+                               (mapcar #'funcall remember-annotation-functions))
                          "\n")
             (run-hook-with-args-until-success
              'remember-annotation-functions)))
@@ -283,7 +284,8 @@ With a prefix or a visible region, use the region as INITIAL."
     (run-hooks 'remember-before-remember-hook)
     (funcall (if remember-in-new-frame
                  #'switch-to-buffer-other-frame
-               #'switch-to-buffer-other-window) buf)
+               #'switch-to-buffer-other-window)
+             buf)
     (if remember-in-new-frame
         (set-window-dedicated-p
          (get-buffer-window (current-buffer) (selected-frame)) t))
@@ -384,7 +386,7 @@ exists) might be changed."
              (with-current-buffer buf
                (set-visited-file-name
                 (expand-file-name remember-data-file))))))
-  :initialize 'custom-initialize-default)
+  :initialize #'custom-initialize-default)
 
 (defcustom remember-leader-text "** "
   "The text used to begin each remember item."
@@ -541,7 +543,7 @@ If this is nil, then `diary-file' will be used instead."
       (while (re-search-forward remember-diary-regexp nil t)
         (push (remember-diary-convert-entry (match-string 1)) list))
       (when list
-        (diary-make-entry (mapconcat 'identity list "\n")
+        (diary-make-entry (mapconcat #'identity list "\n")
                           nil remember-diary-file)
         (when remember-save-after-remembering
           (with-current-buffer (find-buffer-visiting (or remember-diary-file
@@ -553,9 +555,9 @@ If this is nil, then `diary-file' will be used instead."
 
 (defvar remember-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'remember-finalize)
-    (define-key map "\C-c\C-c" 'remember-finalize)
-    (define-key map "\C-c\C-k" 'remember-destroy)
+    (define-key map "\C-x\C-s" #'remember-finalize)
+    (define-key map "\C-c\C-c" #'remember-finalize)
+    (define-key map "\C-c\C-k" #'remember-destroy)
     map)
   "Keymap used in `remember-mode'.")
 
@@ -601,7 +603,7 @@ If this is nil, use `initial-major-mode'."
 
 (defvar remember-notes-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'remember-notes-save-and-bury-buffer)
+    (define-key map "\C-c\C-c" #'remember-notes-save-and-bury-buffer)
     map)
   "Keymap used in `remember-notes-mode'.")
 

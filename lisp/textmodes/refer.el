@@ -1,4 +1,4 @@
-;;; refer.el --- look up references in bibliography files
+;;; refer.el --- look up references in bibliography files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992, 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -176,7 +176,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
 
 (defun refer-find-entry-internal (keywords continue)
    (let ((keywords-list (refer-convert-string-to-list-of-strings keywords))
-         (old-buffer (current-buffer))
+         ;; (old-buffer (current-buffer))
          (old-window (selected-window))
          (new-window (selected-window))
          (files (if continue
@@ -184,7 +184,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                   (setq refer-saved-pos nil)
                   (refer-get-bib-files)))
          (n 0)
-         (found nil)
+         ;; (found nil)
          (file nil))
      ;; find window in which to display bibliography file.
      ;; if a bibliography file is already displayed in a window, use

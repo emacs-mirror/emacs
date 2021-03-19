@@ -15,18 +15,6 @@ in older Emacs versions.
 You can narrow news to a specific version by calling 'view-emacs-news'
 with a prefix argument or by typing 'C-u C-h C-n'.
 
-Temporary note:
-+++ indicates that all relevant manuals in doc/ have been updated.
---- means no change in the manuals is needed.
-When you add a new item, use the appropriate mark if you are sure it
-applies, and please also update docstrings as needed.
-
-
-* Installation Changes in Emacs 27.2
-
-
-* Startup Changes in Emacs 27.2
-
 
 * Changes in Emacs 27.2
 
@@ -41,23 +29,11 @@ frame using the new function 'fit-mini-frame-to-buffer' which won't
 skip leading or trailing empty lines of the buffer.
 
 
-* Editing Changes in Emacs 27.2
-
-
 * Changes in Specialized Modes and Packages in Emacs 27.2
 
 ** Tramp
 
 *** The user option 'tramp-completion-reread-directory-timeout' is now obsolete.
-
-
-* New Modes and Packages in Emacs 27.2
-
-
-* Incompatible Lisp Changes in Emacs 27.2
-
-
-* Lisp Changes in Emacs 27.2
 
 
 * Changes in Emacs 27.2 on Non-Free Operating Systems

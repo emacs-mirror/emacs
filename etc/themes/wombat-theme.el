@@ -57,6 +57,8 @@ are included.")
    `(font-lock-type-face ((,class (:foreground "#92a65e" :weight bold))))
    `(font-lock-variable-name-face ((,class (:foreground "#cae682"))))
    `(font-lock-warning-face ((,class (:foreground "#ccaa8f"))))
+   ;; Help faces
+   `(help-key-binding ((,class (:background "#333333" :foreground "#f6f3e8"))))
    ;; Button and link faces
    `(link ((,class (:foreground "#8ac6f2" :underline t))))
    `(link-visited ((,class (:foreground "#e5786d" :underline t))))

@@ -1120,9 +1120,9 @@ The optional fourth argument @var{pixelwise} non-@code{nil} means that
 refuse to truly honor the request if it does not increase/decrease the
 frame height to a multiple of its character height.
 
-When used interactively, this command will set the height of the
-currently selected frame to the number of lines specified by the
-numeric prefix.
+When used interactively, this command will ask the user for the number
+of lines to set the height of the currently selected frame.  You can
+also provide this value with a numeric prefix.
 @end defun
 
 @defun set-frame-width frame width &optional pretend pixelwise
@@ -1136,9 +1136,9 @@ The optional fourth argument @var{pixelwise} non-@code{nil} means that
 refuse to fully honor the request if it does not increase/decrease the
 frame width to a multiple of its character width.
 
-When used interactively, this command will set the width of the
-currently selected frame to the number of columns specified by the
-numeric prefix.
+When used interactively, this command will ask the user for the number
+of columns to set the width of the currently selected frame.  You can
+also provide this value with a numeric prefix.
 @end defun
 
 None of these three functions will make a frame smaller than needed to

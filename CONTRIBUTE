@@ -72,9 +72,12 @@ the copyright for your contributions.  (To see how many lines were
 non-trivially changed, count only added and modified lines in the
 patched code.  Consider an added or changed line non-trivial if it
 includes at least one identifier, string, or substantial comment.)
-Ask on emacs-devel@gnu.org, and we will send you the necessary form
-together with the instructions to fill and email it, in order to start
-this legal paperwork.
+In most cases, to start the assignment process you should download
+https://git.savannah.gnu.org/cgit/gnulib.git/plain/doc/Copyright/request-assign.future
+and return the completed information to the address at the top.
+(There are other assignment options, but they are much less commonly used.)
+If you have questions about the assignment process, you can ask the
+address listed on the form, and/or emacs-devel@gnu.org.
 
 ** Issue tracker (a.k.a. "bug tracker")
 

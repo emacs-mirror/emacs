@@ -293,7 +293,7 @@ Used by `pages-directory-for-addresses' function."
 ;; FIXME: Merely loading a package shouldn't have this kind of side-effects!
 (global-unset-key "\C-x\C-p")
 (define-key ctl-x-map "\C-p" #'pages-ctl-x-ctl-p-prefix)
-(define-obsolete-function-alias 'ctl-x-ctl-p-prefix 'pages-ctl-x-ctl-p-prefix "27.1")
+(define-obsolete-function-alias 'ctl-x-ctl-p-prefix #'pages-ctl-x-ctl-p-prefix "27.1")
 (defalias 'pages-ctl-x-ctl-p-prefix pages--ctl-x-ctl-p-map)
 
 

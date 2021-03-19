@@ -112,6 +112,18 @@ initializing a new crypted remote directory."
   "Non-nil when encryption support is available.")
 (setq tramp-crypt-enabled (executable-find tramp-crypt-encfs-program))
 
+;; This function takes action since Emacs 28.1, when
+;; `read-extended-command-predicate' is set to
+;; `command-completion-default-include-p'.
+(defun tramp-crypt-command-completion-p (symbol _buffer)
+  "A predicate for Tramp interactive commands.
+They are completed by \"M-x TAB\" only when encryption support is enabled."
+  (and tramp-crypt-enabled
+       ;; `tramp-crypt-remove-directory' needs to be completed only in
+       ;; case we have already crypted directories.
+       (or (not (eq symbol #'tramp-crypt-remove-directory))
+	   tramp-crypt-directories)))
+
 ;;;###tramp-autoload
 (defconst tramp-crypt-encfs-config ".encfs6.xml"
   "Encfs configuration file name.")
@@ -481,10 +493,17 @@ directory.  File names will be also encrypted."
     (setq tramp-crypt-directories (cons name tramp-crypt-directories)))
   (tramp-register-file-name-handlers))
 
+;; `tramp-crypt-command-completion-p' is not autoloaded, and this
+;; setting isn't either.
+(function-put
+ #'tramp-crypt-add-directory 'completion-predicate
+ #'tramp-crypt-command-completion-p)
+
 (defun tramp-crypt-remove-directory (name)
   "Unmark remote directory NAME for encryption.
 Existing files in that directory and its subdirectories will be
 kept in their encrypted form."
+  ;; (declare (completion tramp-crypt-command-completion-p))
   (interactive "DRemote directory name: ")
   (unless tramp-crypt-enabled
     (tramp-user-error nil "Feature is not enabled."))
@@ -497,6 +516,11 @@ kept in their encrypted form."
 	      "There exist encrypted files, do you want to continue? "))
     (setq tramp-crypt-directories (delete name tramp-crypt-directories))
     (tramp-register-file-name-handlers)))
+
+;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
+(function-put
+ #'tramp-crypt-remove-directory 'completion-predicate
+ #'tramp-crypt-command-completion-p)
 
 ;; `auth-source' requires a user.
 (defun tramp-crypt-dissect-file-name (name)

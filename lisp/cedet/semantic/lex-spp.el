@@ -850,7 +850,7 @@ Argument BEG and END specify the bounds of SYM in the buffer."
     ))
 (define-obsolete-function-alias
   'semantic-lex-spp-anlyzer-do-replace
-  'semantic-lex-spp-analyzer-do-replace "25.1")
+  #'semantic-lex-spp-analyzer-do-replace "25.1")
 
 (defvar semantic-lex-spp-replacements-enabled t
   "Non-nil means do replacements when finding keywords.
@@ -1070,7 +1070,7 @@ and variable state from the current buffer."
 	    (semantic-lex-init)
 	    (semantic-clear-toplevel-cache)
 	    (remove-hook 'semantic-lex-reset-functions
-			 'semantic-lex-spp-reset-hook t)
+			 #'semantic-lex-spp-reset-hook t)
 	    ))
 
 	;; Second Cheat: copy key variables regarding macro state from the

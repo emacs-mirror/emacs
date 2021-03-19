@@ -224,13 +224,11 @@ MENU-DEF is the menu to bind this into."
 			  (if bind
 			      (concat name "   (" bind ")")
 			    name)
-			  `(lambda () (interactive)
-			     (srecode-insert (concat ,ctxt ":" ,name)))
+			  (lambda () (interactive)
+			    (srecode-insert (concat ctxt ":" name)))
 			  t)))
 
-		(setcdr ctxtcons (cons
-				  new
-				  (cdr ctxtcons)))))
+		(push new (cdr ctxtcons))))
 
 	    (setq ltab (cdr ltab))))
   	(setq subtab (cdr subtab)))

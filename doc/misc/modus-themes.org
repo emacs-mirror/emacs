@@ -10,10 +10,7 @@
 #+macro: export-date (eval (format-time-string "%F %R %z" (current-time)))
 #+macro: file @@texinfo:@file{@@$1@@texinfo:}@@
 #+macro: space @@texinfo:@: @@
-# The "kbd" macro turns KBD into @kbd{KBD}.  Additionally, it
-# encloses case-sensitive special keys (SPC, RET...) within @key{...}.
-# I got this from the Org source code.
-#+macro: kbd (eval (let ((case-fold-search nil) (regexp (regexp-opt '("SPC" "RET" "LFD" "TAB" "BS" "ESC" "DELETE" "SHIFT" "Ctrl" "Meta" "Alt" "Cmd" "Super" "UP" "LEFT" "RIGHT" "DOWN") 'words))) (format "@@texinfo:@kbd{@@%s@@texinfo:}@@" (replace-regexp-in-string regexp "@@texinfo:@key{@@\\&@@texinfo:}@@" $1 t))))
+#+macro: kbd @@texinfo:@kbd{@@$1@@texinfo:}@@
 
 #+texinfo_filename: modus-themes.info
 #+texinfo_dir_category: Emacs misc features

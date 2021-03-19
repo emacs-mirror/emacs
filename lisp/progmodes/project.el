@@ -208,13 +208,19 @@ of the project instance object."
 (defun project--find-in-directory (dir)
   (run-hook-with-args-until-success 'project-find-functions dir))
 
+(defvar project--within-roots-fallback nil)
+
 (cl-defgeneric project-root (project)
   "Return root directory of the current project.
 
 It usually contains the main build file, dependencies
 configuration file, etc. Though neither is mandatory.
 
-The directory name must be absolute."
+The directory name must be absolute.")
+
+(cl-defmethod project-root (project
+                            &context (project--within-roots-fallback
+                                      (eql nil)))
   (car (project-roots project)))
 
 (cl-defgeneric project-roots (project)
@@ -226,7 +232,8 @@ and the rest should be possible to express through
   ;; FIXME: Can we specify project's version here?
   ;; FIXME: Could we make this affect cl-defmethod calls too?
   (declare (obsolete project-root "0.3.0"))
-  (list (project-root project)))
+  (let ((project--within-roots-fallback t))
+    (list (project-root project))))
 
 ;; FIXME: Add MODE argument, like in `ede-source-paths'?
 (cl-defgeneric project-external-roots (_project)
