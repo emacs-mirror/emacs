@@ -52,11 +52,11 @@
   "In ERC sound mode, the client will respond to CTCP SOUND requests
 and play sound files as requested."
   ;; Enable:
-  ((add-hook 'erc-ctcp-query-SOUND-hook 'erc-ctcp-query-SOUND)
-   (define-key erc-mode-map "\C-c\C-s" 'erc-toggle-sound))
+  ((add-hook 'erc-ctcp-query-SOUND-hook #'erc-ctcp-query-SOUND)
+   (define-key erc-mode-map "\C-c\C-s" #'erc-toggle-sound))
   ;; Disable:
-  ((remove-hook 'erc-ctcp-query-SOUND-hook 'erc-ctcp-query-SOUND)
-   (define-key erc-mode-map "\C-c\C-s" 'undefined)))
+  ((remove-hook 'erc-ctcp-query-SOUND-hook #'erc-ctcp-query-SOUND)
+   (define-key erc-mode-map "\C-c\C-s" #'undefined)))
 
 (erc-define-catalog-entry 'english 'CTCP-SOUND "%n (%u@%h) plays %s:%m")
 

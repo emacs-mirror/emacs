@@ -1,4 +1,4 @@
-;;; erc-pcomplete.el --- Provides programmable completion for ERC
+;;; erc-pcomplete.el --- Provides programmable completion for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -50,23 +50,21 @@
 (defcustom erc-pcomplete-nick-postfix ":"
   "When `pcomplete' is used in the first word after the prompt,
 add this string to nicks completed."
-  :group 'erc-pcomplete
   :type 'string)
 
 (defcustom erc-pcomplete-order-nickname-completions t
   "If t, channel nickname completions will be ordered such that
 the most recent speakers are listed first."
-  :group 'erc-pcomplete
   :type 'boolean)
 
 ;;;###autoload(autoload 'erc-completion-mode "erc-pcomplete" nil t)
 (define-erc-module pcomplete Completion
   "In ERC Completion mode, the TAB key does completion whenever possible."
-  ((add-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (add-hook 'erc-complete-functions 'erc-pcompletions-at-point)
+  ((add-hook 'erc-mode-hook #'pcomplete-erc-setup)
+   (add-hook 'erc-complete-functions #'erc-pcompletions-at-point)
    (erc-buffer-list #'pcomplete-erc-setup))
-  ((remove-hook 'erc-mode-hook 'pcomplete-erc-setup)
-   (remove-hook 'erc-complete-functions 'erc-pcompletions-at-point)))
+  ((remove-hook 'erc-mode-hook #'pcomplete-erc-setup)
+   (remove-hook 'erc-complete-functions #'erc-pcompletions-at-point)))
 
 (defun erc-pcompletions-at-point ()
   "ERC completion data from pcomplete.
@@ -154,7 +152,7 @@ for use on `completion-at-point-function'."
 (defun pcomplete/erc-mode/NAMES ()
   (while (pcomplete-here (pcomplete-erc-channels))))
 
-(defalias 'pcomplete/erc-mode/NOTICE 'pcomplete/erc-mode/MSG)
+(defalias 'pcomplete/erc-mode/NOTICE #'pcomplete/erc-mode/MSG)
 
 (defun pcomplete/erc-mode/OP ()
   (while (pcomplete-here (pcomplete-erc-not-ops))))
@@ -162,7 +160,7 @@ for use on `completion-at-point-function'."
 (defun pcomplete/erc-mode/PART ()
   (pcomplete-here (pcomplete-erc-channels)))
 
-(defalias 'pcomplete/erc-mode/LEAVE 'pcomplete/erc-mode/PART)
+(defalias 'pcomplete/erc-mode/LEAVE #'pcomplete/erc-mode/PART)
 
 (defun pcomplete/erc-mode/QUERY ()
   (pcomplete-here (append (pcomplete-erc-all-nicks)

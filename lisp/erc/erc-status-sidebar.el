@@ -1,4 +1,4 @@
-;;; erc-status-sidebar.el --- HexChat-like activity overview for ERC
+;;; erc-status-sidebar.el --- HexChat-like activity overview for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017, 2020-2021 Free Software Foundation, Inc.
 
@@ -58,36 +58,30 @@
 
 (defcustom erc-status-sidebar-buffer-name "*ERC Status*"
   "Name of the sidebar buffer."
-  :type 'string
-  :group 'erc-status-sidebar)
+  :type 'string)
 
 (defcustom erc-status-sidebar-mode-line-format "ERC Status"
   "Mode line format for the status sidebar."
-  :type 'string
-  :group 'erc-status-sidebar)
+  :type 'string)
 
 (defcustom erc-status-sidebar-header-line-format nil
   "Header line format for the status sidebar."
   :type '(choice (const :tag "No header line" nil)
-                 string)
-  :group 'erc-status-sidebar)
+                 string))
 
 (defcustom erc-status-sidebar-width 15
   "Default width of the sidebar (in columns)."
-  :type 'number
-  :group 'erc-status-sidebar)
+  :type 'number)
 
 (defcustom erc-status-sidebar-channel-sort
   'erc-status-sidebar-default-chansort
   "Sorting function used to determine order of channels in the sidebar."
-  :type 'function
-  :group 'erc-status-sidebar)
+  :type 'function)
 
 (defcustom erc-status-sidebar-channel-format
   'erc-status-sidebar-default-chan-format
   "Function used to format channel names for display in the sidebar."
-  :type 'function
-  :group 'erc-status-sidebar)
+  :type 'function)
 
 (defun erc-status-sidebar-display-window ()
   "Display the status buffer in a side window.  Return the new window."
@@ -152,7 +146,8 @@ containing it on the current frame is closed.  See
   (save-excursion
     (let ((sidebar-exists (erc-status-sidebar-buffer-exists-p))
           (sidebar-buffer (erc-status-sidebar-get-buffer))
-          (sidebar-window (erc-status-sidebar-get-window)))
+          ;; (sidebar-window (erc-status-sidebar-get-window))
+          )
       (unless sidebar-exists
         (with-current-buffer sidebar-buffer
           (erc-status-sidebar-mode)
@@ -253,7 +248,7 @@ name stand out."
     erc-disconnected-hook
     erc-quit-hook))
 
-(defun erc-status-sidebar--post-refresh (&rest ignore)
+(defun erc-status-sidebar--post-refresh (&rest _ignore)
   "Schedule sidebar refresh for execution after command stack is cleared.
 
 Ignore arguments in IGNORE, allowing this function to be added to
@@ -276,7 +271,7 @@ to the `window-configuration-change-hook'."
   (when (and (eq (selected-window) (erc-status-sidebar-get-window))
              (fboundp 'window-preserve-size))
     (unless (eq (window-total-width) (window-min-size nil t))
-      (apply 'window-preserve-size (selected-window) t t nil))))
+      (apply #'window-preserve-size (selected-window) t t nil))))
 
 (define-derived-mode erc-status-sidebar-mode special-mode "ERC Sidebar"
   "Major mode for ERC status sidebar"
@@ -298,8 +293,7 @@ to the `window-configuration-change-hook'."
   ;; erc-status-sidebar-mode initialization code, so it won't undo the
   ;; add-hook's we did in the previous expressions.
   (add-hook 'change-major-mode-hook #'erc-status-sidebar-mode--unhook nil t)
-  (add-hook 'kill-buffer-hook #'erc-status-sidebar-mode--unhook nil t)
-  :group 'erc-status-sidebar)
+  (add-hook 'kill-buffer-hook #'erc-status-sidebar-mode--unhook nil t))
 
 (provide 'erc-status-sidebar)
 ;;; erc-status-sidebar.el ends here
