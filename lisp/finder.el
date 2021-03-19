@@ -415,7 +415,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 
 (defun finder-select ()
   "Select item on current line in a Finder buffer."
-  (interactive)
+  (interactive nil finder-mode)
   (let ((key (finder-current-item)))
       (if (string-match "\\.el$" key)
 	  (finder-commentary key)
@@ -423,7 +423,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 
 (defun finder-mouse-select (event)
   "Select item in a Finder buffer with the mouse."
-  (interactive "e")
+  (interactive "e" finder-mode)
   (with-current-buffer (window-buffer (posn-window (event-start event)))
     (goto-char (posn-point (event-start event)))
     (finder-select)))
@@ -441,13 +441,14 @@ FILE should be in a form suitable for passing to `locate-library'."
 \\[finder-select]	more help for the item on the current line
 \\[finder-exit]	exit Finder mode and kill the Finder buffer."
   :syntax-table finder-mode-syntax-table
+  :interactive nil
   (setq buffer-read-only t
 	buffer-undo-list t)
   (setq-local finder-headmark nil))
 
 (defun finder-summary ()
   "Summarize basic Finder commands."
-  (interactive)
+  (interactive nil finder-mode)
   (message "%s"
    (substitute-command-keys
     "\\<finder-mode-map>\\[finder-select] = select, \
@@ -457,7 +458,7 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 (defun finder-exit ()
   "Exit Finder mode.
 Quit the window and kill all Finder-related buffers."
-  (interactive)
+  (interactive nil finder-mode)
   (quit-window t)
   (dolist (buf (list finder-buffer "*Finder-package*"))
     (and (get-buffer buf) (kill-buffer buf))))
