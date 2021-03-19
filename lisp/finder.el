@@ -423,7 +423,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 
 (defun finder-mouse-select (event)
   "Select item in a Finder buffer with the mouse."
-  (interactive "e" finder-mode)
+  (interactive "e")
   (with-current-buffer (window-buffer (posn-window (event-start event)))
     (goto-char (posn-point (event-start event)))
     (finder-select)))
