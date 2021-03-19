@@ -46,6 +46,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'facemenu)
 
 (ert-deftest undo-test0 ()
   "Test basics of \\[undo]."
