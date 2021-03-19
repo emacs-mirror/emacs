@@ -31,11 +31,14 @@
 ;;; Code:
 
 (defcustom minibuffer-depth-indicator-function nil
-  "If non-nil, function to set up the minibuffer depth indicator.
-It is called with one argument, the minibuffer depth,
-and must return a string."
+  "If non-nil, a function to produce the minibuffer depth indicator.
+The function will be called with one argument, the minibuffer depth,
+and must return a string to display as indication of the minibuffer
+depth.
+If nil, display the depth as a number inside brackets, [NN], with
+the `minibuffer-depth-indicator' face."
   :version "28.1"
-  :type '(choice (const :tag "Default" nil)
+  :type '(choice (const :tag "Default indicator display, [NN]" nil)
                  (function))
   :group 'minibuffer)
 
