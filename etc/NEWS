@@ -2267,9 +2267,15 @@ To restore the old binding, say something like:
 
     (require 'facemenu)
     (define-key global-map "\M-o" 'facemenu-keymap)
+    (define-key facemenu-keymap "\es" 'center-line)
+    (define-key facemenu-keymap "\eS" 'center-paragraph)
+
+The last two lines are not strictly necessary if you don't care about
+having those two commands on the 'M-o' keymap; see the next section.
 
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
-Use 'M-x center-line' and 'M-x center-paragraph' instead.
+Use 'M-x center-line' and 'M-x center-paragraph' instead.  See the
+previous section for how to get back the old bindings.
 
 ** The 'M-o M-o' global binding has been removed.
 Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
