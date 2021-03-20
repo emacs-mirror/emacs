@@ -95,10 +95,11 @@ When it reaches that size (in bytes), a warning is sent."
   (if (eq system-type 'windows-nt)
       "convert.exe"
     (or (executable-find "convert")
-	"/usr/X11R6/bin/convert"))
+        "/usr/bin/convert"))
   "Name of conversion program for thumbnails generation.
 It must be \"convert\"."
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (defcustom thumbs-setroot-command
   "xloadimage -onroot -fullscreen *"
