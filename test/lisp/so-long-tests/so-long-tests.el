@@ -195,7 +195,9 @@
         ;; Emacs adds the framework necessary to make `redisplay' work
         ;; in batch mode.
         (unless (eq so-long--active t)
-          (run-window-configuration-change-hook))))
+          (with-suppressed-warnings
+              ((obsolete run-window-configuration-change-hook))
+            (run-window-configuration-change-hook)))))
     (so-long-tests-assert-and-revert 'so-long-mode))
   ;; `so-long-invisible-buffer-function' is `nil'.
   (with-temp-buffer
@@ -230,7 +232,9 @@
       (redisplay)
       (when noninteractive
         (unless (eq so-long--active t)
-          (run-window-configuration-change-hook))))
+          (with-suppressed-warnings
+              ((obsolete run-window-configuration-change-hook))
+            (run-window-configuration-change-hook)))))
     (should (eq major-mode 'emacs-lisp-mode))))
 
 (ert-deftest so-long-tests-actions ()
