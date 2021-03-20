@@ -254,8 +254,8 @@ search buffer due to too many matches being highlighted.
 The 'C-x x' keymap now holds keystrokes for various buffer-oriented
 commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'), 'C-x x n'
-('clone-buffer'), 'C-x x i' ('insert-buffer') and 'C-x x t'
-('toggle-truncate-lines').
+('clone-buffer'), 'C-x x i' ('insert-buffer'), 'C-x x t'
+('toggle-truncate-lines') and 'C-x x f' ('font-lock-update').
 
 ---
 ** Commands 'set-frame-width' and 'set-frame-height' can now get their
@@ -2273,7 +2273,7 @@ Use 'M-x center-line' and 'M-x center-paragraph' instead.
 
 ** The 'M-o M-o' global binding has been removed.
 Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
-command, which toggles fontification in the current buffer.
+command, which updates the syntax highlighting in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
