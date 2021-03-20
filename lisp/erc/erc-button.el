@@ -105,18 +105,19 @@ longer than `erc-fill-column'."
   "Flag indicating whether nicks should be buttonized or not."
   :type 'boolean)
 
-(defcustom erc-button-rfc-url "http://www.faqs.org/rfcs/rfc%s.html"
-  "URL used to browse rfc references.
+(defcustom erc-button-rfc-url "https://tools.ietf.org/html/rfc%s"
+  "URL used to browse RFC references.
 %s is replaced by the number."
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (define-obsolete-variable-alias 'erc-button-google-url
   'erc-button-search-url "27.1")
 
-(defcustom erc-button-search-url "http://duckduckgo.com/?q=%s"
+(defcustom erc-button-search-url "https://duckduckgo.com/?q=%s"
   "URL used to search for a term.
 %s is replaced by the search string."
-  :version "27.1"
+  :version "28.1"
   :type 'string)
 
 (defcustom erc-button-alist

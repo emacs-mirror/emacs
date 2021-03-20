@@ -40,8 +40,8 @@
 ;; disable this module, it will continue removing message flags, but the
 ;; unidentified nickname prefix will not be added to messages.
 
-;; Visit <http://freenode.net/faq.shtml#spoofing> and
-;; <http://freenode.net/faq.shtml#registering> to find further
+;; Visit <https://freenode.net/kb/answer/cloaks> and
+;; <https://freenode.net/kb/answer/registration> to find further
 ;; explanations of this capability.
 
 ;; From freenode.net's web site (not there anymore) on how to mark
