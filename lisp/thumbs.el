@@ -376,7 +376,7 @@ If MARKED is non-nil, the image is marked."
   "Make a preview buffer for all images in DIR.
 Optional argument REG to select file matching a regexp,
 and SAME-WINDOW to show thumbs in the same window."
-  (interactive "DDir: ")
+  (interactive "DThumbs (directory): ")
   (thumbs-show-thumbs-list
    (directory-files dir t (or reg (image-file-name-regexp)))
    dir same-window))
