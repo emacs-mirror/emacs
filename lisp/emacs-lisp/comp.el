@@ -3776,14 +3776,11 @@ sharing the original source filename (including FILE)."
      with filename-hash = (match-string 1 file)
      with regexp = (rx-to-string
                     `(seq "-" ,filename-hash "-" (1+ hex) ".eln" eos))
-     for dir in (comp-eln-load-path-eff)
+     for dir in (butlast (comp-eln-load-path-eff)) ; Skip last dir.
      do (cl-loop
          for f in (when (file-exists-p dir)
 		    (directory-files dir t regexp t))
-         ;; We may not be able to delete de file if we have no write
-         ;; permisison.
-         do (ignore-error file-error
-              (comp-delete-or-replace-file f))))))
+         do (comp-delete-or-replace-file f)))))
 
 (defun comp-delete-or-replace-file (oldfile &optional newfile)
   "Replace OLDFILE with NEWFILE.
