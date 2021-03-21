@@ -1,4 +1,4 @@
-;;; texinfo.el --- major mode for editing Texinfo files
+;;; texinfo.el --- major mode for editing Texinfo files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1985, 1988-1993, 1996-1997, 2000-2021 Free Software
 ;; Foundation, Inc.
@@ -373,7 +373,7 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-keyword-face keep)
     ;; (,texinfo-environment-regexp
     ;;  1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
-    (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
+    (,(concat "^@" (regexp-opt (mapcar #'car texinfo-section-list) t)
 	       ".*\n")
      0 'texinfo-heading t))
   "Additional expressions to highlight in Texinfo mode.")
@@ -400,19 +400,21 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 ;;; Keys common both to Texinfo mode and to TeX shell.
 
+(declare-function tex-show-print-queue "tex-mode" ())
+
 (defun texinfo-define-common-keys (keymap)
   "Define the keys both in Texinfo mode and in the texinfo-tex-shell."
-  (define-key keymap "\C-c\C-t\C-k"    'tex-kill-job)
-  (define-key keymap "\C-c\C-t\C-x"    'texinfo-quit-job)
-  (define-key keymap "\C-c\C-t\C-l"    'tex-recenter-output-buffer)
-  (define-key keymap "\C-c\C-t\C-d"    'texinfo-delete-from-print-queue)
-  (define-key keymap "\C-c\C-t\C-q"    'tex-show-print-queue)
-  (define-key keymap "\C-c\C-t\C-p"    'texinfo-tex-print)
-  (define-key keymap "\C-c\C-t\C-v"    'texinfo-tex-view)
-  (define-key keymap "\C-c\C-t\C-i"    'texinfo-texindex)
+  (define-key keymap "\C-c\C-t\C-k"    #'tex-kill-job)
+  (define-key keymap "\C-c\C-t\C-x"    #'texinfo-quit-job)
+  (define-key keymap "\C-c\C-t\C-l"    #'tex-recenter-output-buffer)
+  (define-key keymap "\C-c\C-t\C-d"    #'texinfo-delete-from-print-queue)
+  (define-key keymap "\C-c\C-t\C-q"    #'tex-show-print-queue)
+  (define-key keymap "\C-c\C-t\C-p"    #'texinfo-tex-print)
+  (define-key keymap "\C-c\C-t\C-v"    #'texinfo-tex-view)
+  (define-key keymap "\C-c\C-t\C-i"    #'texinfo-texindex)
 
-  (define-key keymap "\C-c\C-t\C-r"    'texinfo-tex-region)
-  (define-key keymap "\C-c\C-t\C-b"    'texinfo-tex-buffer))
+  (define-key keymap "\C-c\C-t\C-r"    #'texinfo-tex-region)
+  (define-key keymap "\C-c\C-t\C-b"    #'texinfo-tex-buffer))
 
 ;; Mode documentation displays commands in reverse order
 ;; from how they are listed in the texinfo-mode-map.
@@ -423,68 +425,68 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     ;; bindings for `texnfo-tex.el'
     (texinfo-define-common-keys map)
 
-    (define-key map "\"" 'texinfo-insert-quote)
+    (define-key map "\"" #'texinfo-insert-quote)
 
     ;; bindings for `makeinfo.el'
-    (define-key map "\C-c\C-m\C-k" 'kill-compilation)
+    (define-key map "\C-c\C-m\C-k" #'kill-compilation)
     (define-key map "\C-c\C-m\C-l"
-      'makeinfo-recenter-compilation-buffer)
-    (define-key map "\C-c\C-m\C-r" 'makeinfo-region)
-    (define-key map "\C-c\C-m\C-b" 'makeinfo-buffer)
+      #'makeinfo-recenter-compilation-buffer)
+    (define-key map "\C-c\C-m\C-r" #'makeinfo-region)
+    (define-key map "\C-c\C-m\C-b" #'makeinfo-buffer)
 
     ;; bindings for `texinfmt.el'
-    (define-key map "\C-c\C-e\C-r"    'texinfo-format-region)
-    (define-key map "\C-c\C-e\C-b"    'texinfo-format-buffer)
+    (define-key map "\C-c\C-e\C-r"    #'texinfo-format-region)
+    (define-key map "\C-c\C-e\C-b"    #'texinfo-format-buffer)
 
     ;; AUCTeX-like bindings
-    (define-key map "\e\r"		'texinfo-insert-@item)
+    (define-key map "\e\r"		#'texinfo-insert-@item)
 
     ;; bindings for updating nodes and menus
 
-    (define-key map "\C-c\C-um"   'texinfo-master-menu)
+    (define-key map "\C-c\C-um"   #'texinfo-master-menu)
 
-    (define-key map "\C-c\C-u\C-m"   'texinfo-make-menu)
-    (define-key map "\C-c\C-u\C-n"   'texinfo-update-node)
-    (define-key map "\C-c\C-u\C-e"   'texinfo-every-node-update)
-    (define-key map "\C-c\C-u\C-a"   'texinfo-all-menus-update)
+    (define-key map "\C-c\C-u\C-m"   #'texinfo-make-menu)
+    (define-key map "\C-c\C-u\C-n"   #'texinfo-update-node)
+    (define-key map "\C-c\C-u\C-e"   #'texinfo-every-node-update)
+    (define-key map "\C-c\C-u\C-a"   #'texinfo-all-menus-update)
 
-    (define-key map "\C-c\C-s"     'texinfo-show-structure)
+    (define-key map "\C-c\C-s"     #'texinfo-show-structure)
 
-    (define-key map "\C-c}"          'up-list)
+    (define-key map "\C-c}"          #'up-list)
     ;; FIXME: This is often used for "close block" aka texinfo-insert-@end.
-    (define-key map "\C-c]"          'up-list)
-    (define-key map "\C-c/"	     'texinfo-insert-@end)
-    (define-key map "\C-c{"		'texinfo-insert-braces)
+    (define-key map "\C-c]"          #'up-list)
+    (define-key map "\C-c/"	     #'texinfo-insert-@end)
+    (define-key map "\C-c{"		#'texinfo-insert-braces)
 
     ;; bindings for inserting strings
-    (define-key map "\C-c\C-o"     'texinfo-insert-block)
-    (define-key map "\C-c\C-c\C-d" 'texinfo-start-menu-description)
-    (define-key map "\C-c\C-c\C-s" 'texinfo-insert-@strong)
-    (define-key map "\C-c\C-c\C-e" 'texinfo-insert-@emph)
+    (define-key map "\C-c\C-o"     #'texinfo-insert-block)
+    (define-key map "\C-c\C-c\C-d" #'texinfo-start-menu-description)
+    (define-key map "\C-c\C-c\C-s" #'texinfo-insert-@strong)
+    (define-key map "\C-c\C-c\C-e" #'texinfo-insert-@emph)
 
-    (define-key map "\C-c\C-cv"    'texinfo-insert-@var)
-    (define-key map "\C-c\C-cu"    'texinfo-insert-@uref)
-    (define-key map "\C-c\C-ct"    'texinfo-insert-@table)
-    (define-key map "\C-c\C-cs"    'texinfo-insert-@samp)
-    (define-key map "\C-c\C-cr"    'texinfo-insert-dwim-@ref)
-    (define-key map "\C-c\C-cq"    'texinfo-insert-@quotation)
-    (define-key map "\C-c\C-co"    'texinfo-insert-@noindent)
-    (define-key map "\C-c\C-cn"    'texinfo-insert-@node)
-    (define-key map "\C-c\C-cm"    'texinfo-insert-@email)
-    (define-key map "\C-c\C-ck"    'texinfo-insert-@kbd)
-    (define-key map "\C-c\C-ci"    'texinfo-insert-@item)
-    (define-key map "\C-c\C-cf"    'texinfo-insert-@file)
-    (define-key map "\C-c\C-cx"    'texinfo-insert-@example)
-    (define-key map "\C-c\C-ce"    'texinfo-insert-@end)
-    (define-key map "\C-c\C-cd"    'texinfo-insert-@dfn)
-    (define-key map "\C-c\C-cc"    'texinfo-insert-@code)
+    (define-key map "\C-c\C-cv"    #'texinfo-insert-@var)
+    (define-key map "\C-c\C-cu"    #'texinfo-insert-@uref)
+    (define-key map "\C-c\C-ct"    #'texinfo-insert-@table)
+    (define-key map "\C-c\C-cs"    #'texinfo-insert-@samp)
+    (define-key map "\C-c\C-cr"    #'texinfo-insert-dwim-@ref)
+    (define-key map "\C-c\C-cq"    #'texinfo-insert-@quotation)
+    (define-key map "\C-c\C-co"    #'texinfo-insert-@noindent)
+    (define-key map "\C-c\C-cn"    #'texinfo-insert-@node)
+    (define-key map "\C-c\C-cm"    #'texinfo-insert-@email)
+    (define-key map "\C-c\C-ck"    #'texinfo-insert-@kbd)
+    (define-key map "\C-c\C-ci"    #'texinfo-insert-@item)
+    (define-key map "\C-c\C-cf"    #'texinfo-insert-@file)
+    (define-key map "\C-c\C-cx"    #'texinfo-insert-@example)
+    (define-key map "\C-c\C-ce"    #'texinfo-insert-@end)
+    (define-key map "\C-c\C-cd"    #'texinfo-insert-@dfn)
+    (define-key map "\C-c\C-cc"    #'texinfo-insert-@code)
 
     ;; bindings for environment movement
-    (define-key map "\C-c."        'texinfo-to-environment-bounds)
-    (define-key map "\C-c\C-c\C-f" 'texinfo-next-environment-end)
-    (define-key map "\C-c\C-c\C-b" 'texinfo-previous-environment-end)
-    (define-key map "\C-c\C-c\C-n" 'texinfo-next-environment-start)
-    (define-key map "\C-c\C-c\C-p" 'texinfo-previous-environment-start)
+    (define-key map "\C-c."        #'texinfo-to-environment-bounds)
+    (define-key map "\C-c\C-c\C-f" #'texinfo-next-environment-end)
+    (define-key map "\C-c\C-c\C-b" #'texinfo-previous-environment-end)
+    (define-key map "\C-c\C-c\C-n" #'texinfo-next-environment-start)
+    (define-key map "\C-c\C-c\C-p" #'texinfo-previous-environment-start)
     map))
 
 (easy-menu-define texinfo-mode-menu
@@ -624,7 +626,7 @@ value of `texinfo-mode-hook'."
 	      (mapcar (lambda (x) (cons (concat "@" (car x)) (cadr x)))
 		      texinfo-section-list))
   (setq-local outline-regexp
-	      (concat (regexp-opt (mapcar 'car outline-heading-alist) t)
+	      (concat (regexp-opt (mapcar #'car outline-heading-alist) t)
 		      "\\>"))
 
   (setq-local tex-start-of-header "%\\*\\*start")
@@ -893,7 +895,7 @@ A numeric argument says how many words the braces should surround.
 The default is not to surround any existing words with the braces."
   nil
   "@uref{" _ "}")
-(defalias 'texinfo-insert-@url 'texinfo-insert-@uref)
+(defalias 'texinfo-insert-@url #'texinfo-insert-@uref)
 
 ;;; Texinfo file structure
 

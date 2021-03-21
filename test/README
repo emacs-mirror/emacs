@@ -22,7 +22,10 @@ following tags are recognized:
 * :unstable
   The test is under development.  It shall run on demand only.
 
-The Makefile in this directory supports the following targets:
+The Makefile sets the environment variable $EMACS_TEST_DIRECTORY,
+which points to this directory.  This environment variable does not
+exist when the tests are run outside make.  The Makefile supports the
+following targets:
 
 * make check
   Run all tests as defined in the directory.  Expensive and unstable
@@ -113,6 +116,7 @@ Some optional tests require packages from GNU ELPA.  By default
 out somewhere else, use
 
     make GNU_ELPA_DIRECTORY=/path/to/elpa ...
+
 
 There are also continuous integration tests on
 <https://hydra.nixos.org/jobset/gnu/emacs-trunk> (see

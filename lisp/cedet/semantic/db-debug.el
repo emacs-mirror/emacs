@@ -1,6 +1,6 @@
-;;; semantic/db-debug.el --- Extra level debugging routines for Semantic
+;;; semantic/db-debug.el --- Extra level debugging routines for Semantic  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -38,7 +38,7 @@
     (data-debug-new-buffer "*SEMANTICDB*")
     (data-debug-insert-stuff-list db "*")))
 
-(defalias 'semanticdb-adebug-database-list 'semanticdb-dump-all-table-summary)
+(defalias 'semanticdb-adebug-database-list #'semanticdb-dump-all-table-summary)
 
 (defun semanticdb-adebug-current-database ()
   "Run ADEBUG on the current database."

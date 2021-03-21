@@ -24,23 +24,9 @@
 
 ;;; Code:
 
-;; Compiler pacifier
-(defvar rcs-default-co-switches)
+(eval-when-compile (require 'ediff-init))
 
-(and noninteractive
-     (eval-when-compile
-       (condition-case nil
-	   ;; for compatibility with current stable version of xemacs
-	   (progn
-	     ;;(require 'pcvs nil 'noerror)
-	     ;;(require 'rcs nil 'noerror)
-	     (require 'pcvs)
-	     (require 'rcs))
-	 (error nil))
-       (require 'vc)
-       (require 'ediff-init)
-       ))
-;; end pacifier
+(defvar rcs-default-co-switches)
 
 (defcustom ediff-keep-tmp-versions nil
   "If t, do not delete temporary previous versions for the files on which

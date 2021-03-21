@@ -478,7 +478,7 @@ TYPE is a string or semantic tag representing the type of this variable.
 Optional DEFAULT-VALUE is a string representing the default value of this
 variable.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'variable
+  (apply #'semantic-tag name 'variable
          :type type
          :default-value default-value
          attributes))
@@ -490,7 +490,7 @@ TYPE is a string or semantic tag representing the type of this function.
 ARG-LIST is a list of strings or semantic tags representing the
 arguments of this function.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'function
+  (apply #'semantic-tag name 'function
          :type type
          :arguments arg-list
          attributes))
@@ -513,7 +513,7 @@ This slot can be interesting because the form:
 is a valid parent where there is no explicit parent, and only an
 interface.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'type
+  (apply #'semantic-tag name 'type
          :type type
          :members members
          :superclasses (car parents)
@@ -526,7 +526,7 @@ NAME is the name of this include.
 SYSTEM-FLAG represents that we were able to identify this include as
 belonging to the system, as opposed to belonging to the local project.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'include
+  (apply #'semantic-tag name 'include
          :system-flag system-flag
          attributes))
 
@@ -536,7 +536,7 @@ NAME is the name of this package.
 DETAIL is extra information about this package, such as a location
 where it can be found.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'package
+  (apply #'semantic-tag name 'package
          :detail detail
          attributes))
 
@@ -545,7 +545,7 @@ ATTRIBUTES is a list of additional attributes belonging to this tag."
 NAME is a name for this code.
 DETAIL is extra information about the code.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'code
+  (apply #'semantic-tag name 'code
          :detail detail
          attributes))
 
@@ -685,7 +685,7 @@ FILTER takes TAG as an argument, and should return a `semantic-tag'.
 It is safe for FILTER to modify the input tag and return it."
   (when (not filter) (setq filter 'identity))
   (when (not (semantic-tag-p tag))
-    (signal 'wrong-type-argument (list tag 'semantic-tag-p)))
+    (signal 'wrong-type-argument (list tag #'semantic-tag-p)))
   (let ((ol (semantic-tag-overlay tag))
 	(fn (semantic-tag-file-name tag)))
     (funcall filter (list (semantic-tag-name tag)
@@ -937,7 +937,7 @@ NAME is a name for this alias.
 META-TAG-CLASS is the class of the tag this tag is an alias.
 VALUE is the aliased definition.
 ATTRIBUTES is a list of additional attributes belonging to this tag."
-  (apply 'semantic-tag name 'alias
+  (apply #'semantic-tag name 'alias
          :aliasclass meta-tag-class
          :definition value
          attributes))
@@ -1093,7 +1093,7 @@ For any given situation, additional ARGS may be passed."
     (condition-case err
 	;; If a hook bombs, ignore it!  Usually this is tied into
 	;; some sort of critical system.
-	(apply 'run-hook-with-args 'semantic--tag-hook-value arglist)
+	(apply #'run-hook-with-args 'semantic--tag-hook-value arglist)
       (error (message "Error: %S" err)))))
 
 ;;; Tags and Overlays
@@ -1104,7 +1104,7 @@ For any given situation, additional ARGS may be passed."
 (defsubst semantic--tag-unlink-list-from-buffer (tags)
   "Convert TAGS from using an overlay to using an overlay proxy.
 This function is for internal use only."
-  (mapcar 'semantic--tag-unlink-from-buffer tags))
+  (mapcar #'semantic--tag-unlink-from-buffer tags))
 
 (defun semantic--tag-unlink-from-buffer (tag)
   "Convert TAG from using an overlay to using an overlay proxy.
@@ -1125,7 +1125,7 @@ This function is for internal use only."
 (defsubst semantic--tag-link-list-to-buffer (tags)
   "Convert TAGS from using an overlay proxy to using an overlay.
 This function is for internal use only."
-  (mapc 'semantic--tag-link-to-buffer tags))
+  (mapc #'semantic--tag-link-to-buffer tags))
 
 (defun semantic--tag-link-to-buffer (tag)
   "Convert TAG from using an overlay proxy to using an overlay.

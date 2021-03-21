@@ -1240,6 +1240,8 @@ Return t if the file exists and loads successfully.  */)
   else
     file = Fsubstitute_in_file_name (file);
 
+  bool no_native = suffix_p (file, ".elc");
+
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file.  */
   if (SCHARS (file) == 0)
@@ -1280,7 +1282,9 @@ Return t if the file exists and loads successfully.  */)
 	    suffixes = CALLN (Fappend, suffixes, Vload_file_rep_suffixes);
 	}
 
-      fd = openp (Vload_path, file, suffixes, &found, Qnil, load_prefer_newer);
+      fd =
+	openp (Vload_path, file, suffixes, &found, Qnil, load_prefer_newer,
+	       no_native);
     }
 
   if (fd == -1)
@@ -1635,7 +1639,7 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   (Lisp_Object filename, Lisp_Object path, Lisp_Object suffixes, Lisp_Object predicate)
 {
   Lisp_Object file;
-  int fd = openp (path, filename, suffixes, &file, predicate, false);
+  int fd = openp (path, filename, suffixes, &file, predicate, false, false);
   if (NILP (predicate) && fd >= 0)
     emacs_close (fd);
   return file;
@@ -1645,30 +1649,33 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
    If found replace the content of FILENAME and FD. */
 
 static void
-maybe_swap_for_eln (Lisp_Object *filename, int *fd)
+maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd)
 {
 #ifdef HAVE_NATIVE_COMP
   struct stat eln_st;
 
-  if (load_no_native
+  if (no_native
+      || load_no_native
       || !suffix_p (*filename, ".elc"))
     return;
 
   /* Search eln in the eln-cache directories.  */
   Lisp_Object eln_path_tail = Vcomp_eln_load_path;
+  Lisp_Object src_name =
+    Fsubstring (*filename, Qnil, make_fixnum (-1));
+  if (NILP (Ffile_exists_p (src_name)))
+    {
+      src_name = concat2 (src_name, build_string (".gz"));
+      if (NILP (Ffile_exists_p (src_name)))
+	/* Can't find the corresponding source file.  */
+	return;
+    }
+  Lisp_Object eln_rel_name = Fcomp_el_to_eln_rel_filename (src_name);
+
   FOR_EACH_TAIL_SAFE (eln_path_tail)
     {
-      Lisp_Object src_name =
-	Fsubstring (*filename, Qnil, make_fixnum (-1));
-      if (NILP (Ffile_exists_p (src_name)))
-	{
-	  src_name = concat2 (src_name, build_string (".gz"));
-	  if (NILP (Ffile_exists_p (src_name)))
-	    /* Can't find the corresponding source file.  */
-	    return;
-	}
       Lisp_Object eln_name =
-	Fcomp_el_to_eln_filename (src_name, XCAR (eln_path_tail));
+	Fexpand_file_name (eln_rel_name, XCAR (eln_path_tail));
       int eln_fd = emacs_open (SSDATA (ENCODE_FILE (eln_name)), O_RDONLY, 0);
 
       if (eln_fd > 0)
@@ -1714,11 +1721,14 @@ maybe_swap_for_eln (Lisp_Object *filename, int *fd)
 
    If NEWER is true, try all SUFFIXes and return the result for the
    newest file that exists.  Does not apply to remote files,
-   or if a non-nil and non-t PREDICATE is specified.  */
+   or if a non-nil and non-t PREDICATE is specified.
+
+   if NO_NATIVE is true do not try to load native code.  */
 
 int
 openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
-       Lisp_Object *storeptr, Lisp_Object predicate, bool newer)
+       Lisp_Object *storeptr, Lisp_Object predicate, bool newer,
+       bool no_native)
 {
   ptrdiff_t fn_size = 100;
   char buf[100];
@@ -1928,7 +1938,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		  }
 		else
 		  {
-		    maybe_swap_for_eln (&string, &fd);
+		    maybe_swap_for_eln (no_native, &string, &fd);
 		    /* We succeeded; return this descriptor and filename.  */
 		    if (storeptr)
 		      *storeptr = string;
@@ -1940,7 +1950,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	    /* No more suffixes.  Return the newest.  */
 	    if (0 <= save_fd && ! CONSP (XCDR (tail)))
 	      {
-		maybe_swap_for_eln (&save_string, &save_fd);
+		maybe_swap_for_eln (no_native, &save_string, &save_fd);
 		if (storeptr)
 		  *storeptr = save_string;
 		SAFE_FREE ();

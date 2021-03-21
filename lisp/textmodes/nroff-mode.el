@@ -47,12 +47,12 @@
 
 (defvar nroff-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t"  'tab-to-tab-stop)
-    (define-key map "\e?" 'nroff-count-text-lines)
-    (define-key map "\n"  'nroff-electric-newline)
-    (define-key map "\en" 'nroff-forward-text-line)
-    (define-key map "\ep" 'nroff-backward-text-line)
-    (define-key map "\C-c\C-c" 'nroff-view)
+    (define-key map "\t"  #'tab-to-tab-stop)
+    (define-key map "\e?" #'nroff-count-text-lines)
+    (define-key map "\n"  #'nroff-electric-newline)
+    (define-key map "\en" #'nroff-forward-text-line)
+    (define-key map "\ep" #'nroff-backward-text-line)
+    (define-key map "\C-c\C-c" #'nroff-view)
     map)
   "Major mode keymap for `nroff-mode'.")
 

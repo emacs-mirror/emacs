@@ -55,7 +55,7 @@ Used by the decoration style: `semantic-decoration-on-includes'."
 
 (defvar semantic-decoration-on-include-map
   (let ((km (make-sparse-keymap)))
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-include-menu)
     km)
   "Keymap used on includes.")
 
@@ -114,7 +114,7 @@ Used by the decoration style: `semantic-decoration-on-unknown-includes'."
 (defvar semantic-decoration-on-unknown-include-map
   (let ((km (make-sparse-keymap)))
     ;(define-key km [ mouse-2 ] 'semantic-decoration-unknown-include-describe)
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-unknown-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-unknown-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -169,7 +169,7 @@ Used by the decoration style: `semantic-decoration-on-fileless-includes'."
 (defvar semantic-decoration-on-fileless-include-map
   (let ((km (make-sparse-keymap)))
     ;(define-key km [ mouse-2 ] 'semantic-decoration-fileless-include-describe)
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-fileless-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-fileless-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -223,7 +223,7 @@ Used by the decoration style: `semantic-decoration-on-unparsed-includes'."
 
 (defvar semantic-decoration-on-unparsed-include-map
   (let ((km (make-sparse-keymap)))
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-unparsed-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-unparsed-include-menu)
     km)
   "Keymap used on unparsed includes.")
 

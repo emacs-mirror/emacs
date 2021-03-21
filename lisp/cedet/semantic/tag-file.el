@@ -1,4 +1,4 @@
-;;; semantic/tag-file.el --- Routines that find files based on tags.
+;;; semantic/tag-file.el --- Routines that find files based on tags.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2005, 2007-2021 Free Software Foundation, Inc.
 

@@ -857,11 +857,11 @@ START is the position of the \\ and DELIM is the delimiter char."
 
 (defun tex-define-common-keys (keymap)
   "Define the keys that we want defined both in TeX mode and in the TeX shell."
-  (define-key keymap "\C-c\C-k" 'tex-kill-job)
-  (define-key keymap "\C-c\C-l" 'tex-recenter-output-buffer)
-  (define-key keymap "\C-c\C-q" 'tex-show-print-queue)
-  (define-key keymap "\C-c\C-p" 'tex-print)
-  (define-key keymap "\C-c\C-v" 'tex-view)
+  (define-key keymap "\C-c\C-k" #'tex-kill-job)
+  (define-key keymap "\C-c\C-l" #'tex-recenter-output-buffer)
+  (define-key keymap "\C-c\C-q" #'tex-show-print-queue)
+  (define-key keymap "\C-c\C-p" #'tex-print)
+  (define-key keymap "\C-c\C-v" #'tex-view)
 
   (define-key keymap [menu-bar tex] (cons "TeX" (make-sparse-keymap "TeX")))
 
@@ -884,27 +884,27 @@ START is the position of the \\ and DELIM is the delimiter char."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map text-mode-map)
     (tex-define-common-keys map)
-    (define-key map "\"" 'tex-insert-quote)
-    (define-key map "\n" 'tex-handle-newline)
-    (define-key map "\M-\r" 'latex-insert-item)
-    (define-key map "\C-c}" 'up-list)
-    (define-key map "\C-c{" 'tex-insert-braces)
-    (define-key map "\C-c\C-r" 'tex-region)
-    (define-key map "\C-c\C-b" 'tex-buffer)
-    (define-key map "\C-c\C-f" 'tex-file)
-    (define-key map "\C-c\C-c" 'tex-compile)
-    (define-key map "\C-c\C-i" 'tex-bibtex-file)
-    (define-key map "\C-c\C-o" 'latex-insert-block)
+    (define-key map "\"" #'tex-insert-quote)
+    (define-key map "\n" #'tex-handle-newline)
+    (define-key map "\M-\r" #'latex-insert-item)
+    (define-key map "\C-c}" #'up-list)
+    (define-key map "\C-c{" #'tex-insert-braces)
+    (define-key map "\C-c\C-r" #'tex-region)
+    (define-key map "\C-c\C-b" #'tex-buffer)
+    (define-key map "\C-c\C-f" #'tex-file)
+    (define-key map "\C-c\C-c" #'tex-compile)
+    (define-key map "\C-c\C-i" #'tex-bibtex-file)
+    (define-key map "\C-c\C-o" #'latex-insert-block)
 
     ;; Redundant keybindings, for consistency with SGML mode.
-    (define-key map "\C-c\C-t" 'latex-insert-block)
-    (define-key map "\C-c]" 'latex-close-block)
-    (define-key map "\C-c/" 'latex-close-block)
+    (define-key map "\C-c\C-t" #'latex-insert-block)
+    (define-key map "\C-c]" #'latex-close-block)
+    (define-key map "\C-c/" #'latex-close-block)
 
-    (define-key map "\C-c\C-e" 'latex-close-block)
-    (define-key map "\C-c\C-u" 'tex-goto-last-unclosed-latex-block)
-    (define-key map "\C-c\C-m" 'tex-feed-input)
-    (define-key map [(control return)] 'tex-feed-input)
+    (define-key map "\C-c\C-e" #'latex-close-block)
+    (define-key map "\C-c\C-u" #'tex-goto-last-unclosed-latex-block)
+    (define-key map "\C-c\C-m" #'tex-feed-input)
+    (define-key map [(control return)] #'tex-feed-input)
     (define-key map [menu-bar tex tex-bibtex-file]
       '("BibTeX File" . tex-bibtex-file))
     (define-key map [menu-bar tex tex-validate-region]
@@ -922,7 +922,7 @@ START is the position of the \\ and DELIM is the delimiter char."
 (defvar latex-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map tex-mode-map)
-    (define-key map "\C-c\C-s" 'latex-split-block)
+    (define-key map "\C-c\C-s" #'latex-split-block)
     map)
   "Keymap for `latex-mode'.  See also `tex-mode-map'.")
 
@@ -1033,11 +1033,11 @@ says which mode to use."
 ;; received them from someone using AUCTeX).
 
 ;;;###autoload
-(defalias 'TeX-mode 'tex-mode)
+(defalias 'TeX-mode #'tex-mode)
 ;;;###autoload
-(defalias 'plain-TeX-mode 'plain-tex-mode)
+(defalias 'plain-TeX-mode #'plain-tex-mode)
 ;;;###autoload
-(defalias 'LaTeX-mode 'latex-mode)
+(defalias 'LaTeX-mode #'latex-mode)
 
 ;;;###autoload
 (define-derived-mode plain-tex-mode tex-mode "TeX"
@@ -1560,7 +1560,7 @@ the name of the environment and SKEL-ELEM is an element to use in
 a skeleton (see `skeleton-insert').")
 
 ;; Like tex-insert-braces, but for LaTeX.
-(defalias 'tex-latex-block 'latex-insert-block)
+(defalias 'tex-latex-block #'latex-insert-block)
 (define-skeleton latex-insert-block
   "Create a matching pair of lines \\begin{NAME} and \\end{NAME} at point.
 Puts point on a blank line between them."
@@ -1866,7 +1866,7 @@ Mark is left at original location."
 	(with-syntax-table tex-mode-syntax-table
 	  (forward-sexp))))))
 
-(defalias 'tex-close-latex-block 'latex-close-block)
+(defalias 'tex-close-latex-block #'latex-close-block)
 (define-skeleton latex-close-block
   "Create an \\end{...} to match the last unclosed \\begin{...}."
   (save-excursion
@@ -2008,7 +2008,7 @@ Mark is left at original location."
        ;; Specify an interactive shell, to make sure it prompts.
        "-i")
     (let ((proc (get-process "tex-shell")))
-      (set-process-sentinel proc 'tex-shell-sentinel)
+      (set-process-sentinel proc #'tex-shell-sentinel)
       (set-process-query-on-exit-flag proc nil)
       (tex-shell)
       (while (zerop (buffer-size))
@@ -2063,7 +2063,7 @@ evaluates to a command string.
 
 Return the process in which TeX is running."
   (save-excursion
-    (let* ((cmd (eval command))
+    (let* ((cmd (eval command t))
 	   (proc (tex-shell-proc))
 	   (buf (process-buffer proc))
            (star (string-match "\\*" cmd))
@@ -2313,7 +2313,7 @@ FILE is typically the output DVI or PDF file."
             executable))))))
 
 (defun tex-command-executable (cmd)
-  (let ((s (if (stringp cmd) cmd (eval (car cmd)))))
+  (let ((s (if (stringp cmd) cmd (eval (car cmd) t))))
     (substring s 0 (string-match "[ \t]\\|\\'" s))))
 
 (defun tex-command-active-p (cmd fspec)
@@ -2400,7 +2400,7 @@ Only applies the FSPEC to the args part of FORMAT."
 		(setq latest (nth 1 cmd) cmds (list cmd)))))))
     ;; Expand the command spec into the actual text.
     (dolist (cmd (prog1 cmds (setq cmds nil)))
-      (push (cons (eval (car cmd)) (cdr cmd)) cmds))
+      (push (cons (eval (car cmd) t) (cdr cmd)) cmds))
     ;; Select the favorite command from the history.
     (let ((hist tex-compile-history)
 	  re hist-cmd)
@@ -2446,7 +2446,7 @@ Only applies the FSPEC to the args part of FORMAT."
 	   (completing-read
 	    (format "Command [%s]: " (tex-summarize-command default))
 	    (mapcar (lambda (x)
-		      (list (tex-format-cmd (eval (car x)) fspec)))
+		      (list (tex-format-cmd (eval (car x) t) fspec)))
 		    tex-compile-commands)
 	    nil nil nil 'tex-compile-history default))))
   (save-some-buffers (not compilation-ask-about-save) nil)
@@ -2740,7 +2740,7 @@ because there is no standard value that would generally work."
   ;; Restart the TeX shell if necessary.
   (or (tex-shell-running)
       (tex-start-shell))
-  (let ((tex-dvi-print-command (eval tex-dvi-view-command)))
+  (let ((tex-dvi-print-command (eval tex-dvi-view-command t)))
     (tex-print)))
 
 (defun tex-append (file-name suffix)

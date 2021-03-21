@@ -1,7 +1,6 @@
-;;; semantic/decorate.el --- Utilities for decorating/highlighting tokens.
+;;; semantic/decorate.el --- Utilities for decorating/highlighting tokens.  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2003, 2005-2007, 2009-2021 Free Software
-;;; Foundation, Inc.
+;; Copyright (C) 1999-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -51,7 +50,7 @@ Optional FACE specifies the face to use."
     ))
 
 ;;; Momentary Highlighting - One line
-(defun semantic-momentary-highlight-one-tag-line (tag &optional face)
+(defun semantic-momentary-highlight-one-tag-line (tag &optional _face)
   "Highlight the first line of TAG, unhighlighting before next command.
 Optional argument FACE specifies the face to do the highlighting."
   (save-excursion
@@ -88,7 +87,7 @@ If VISIBLE is non-nil, make the text visible."
   (overlay-get (semantic-tag-overlay tag) 'invisible))
 
 (defun semantic-overlay-signal-read-only
-  (overlay after start end &optional len)
+  (overlay after start end &optional _len)
   "Hook used in modification hooks to prevent modification.
 Allows deletion of the entire text.
 Argument OVERLAY, AFTER, START, END, and LEN are passed in by the system."
@@ -261,7 +260,7 @@ nil implies the tag should be fully shown."
 
 (declare-function semantic-current-tag "semantic/find")
 
-(defun semantic-set-tag-folded-isearch (overlay)
+(defun semantic-set-tag-folded-isearch (_overlay)
   "Called by isearch if it discovers text in the folded region.
 OVERLAY is passed in by isearch."
   (semantic-set-tag-folded (semantic-current-tag) nil)

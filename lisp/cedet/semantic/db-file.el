@@ -1,6 +1,6 @@
-;;; semantic/db-file.el --- Save a semanticdb to a cache file.
+;;; semantic/db-file.el --- Save a semanticdb to a cache file.  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2000-2005, 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -358,13 +358,13 @@ Uses `semanticdb-persistent-path' to determine the return value."
   (object-assoc (file-name-nondirectory filename) 'file (oref obj tables)))
 
 (cl-defmethod semanticdb-file-name-non-directory
-  ((dbclass (subclass semanticdb-project-database-file)))
+  ((_dbclass (subclass semanticdb-project-database-file)))
   "Return the file name DBCLASS will use.
 File name excludes any directory part."
   semanticdb-default-file-name)
 
 (cl-defmethod semanticdb-file-name-directory
-  ((dbclass (subclass semanticdb-project-database-file)) directory)
+  ((_dbclass (subclass semanticdb-project-database-file)) directory)
   "Return the relative directory to where DBCLASS will save its cache file.
 The returned path is related to DIRECTORY."
   (if semanticdb-default-save-directory

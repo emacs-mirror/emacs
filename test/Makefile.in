@@ -120,6 +120,8 @@ emacs = LANG=C EMACSLOADPATH= 		   \
 # Set HOME to a nonexistent directory to prevent tests from accessing
 # it accidentally (e.g., popping up a gnupg dialog if ~/.authinfo.gpg
 # exists, or writing to ~/.bzr.log when running bzr commands).
+# NOTE if the '/nonexistent' name is changed `normal-top-level' in
+# startup.el must be updated too.
 TEST_HOME = /nonexistent
 
 test_module_dir := src/emacs-module-resources

@@ -4001,11 +4001,10 @@ make_directory_wrapper_1 (Lisp_Object ignore)
   return Qt;
 }
 
-DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
-       Scomp_el_to_eln_filename, 1, 2, 0,
-       doc: /* Return the corresponding .eln filename for source FILENAME.
-If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
-  (Lisp_Object filename, Lisp_Object base_dir)
+DEFUN ("comp-el-to-eln-rel-filename", Fcomp_el_to_eln_rel_filename,
+       Scomp_el_to_eln_rel_filename, 1, 1, 0,
+       doc: /* Return the corresponding .eln relative filename.  */)
+  (Lisp_Object filename)
 {
   CHECK_STRING (filename);
 
@@ -4082,7 +4081,17 @@ If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
 							   make_fixnum (-3))),
 		      separator);
   Lisp_Object hash = concat3 (path_hash, separator, content_hash);
-  filename = concat3 (filename, hash, build_string (NATIVE_ELISP_SUFFIX));
+  return concat3 (filename, hash, build_string (NATIVE_ELISP_SUFFIX));
+}
+
+DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
+       Scomp_el_to_eln_filename, 1, 2, 0,
+       doc: /* Return the .eln filename for source FILENAME to used
+for new compilations.
+If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
+  (Lisp_Object filename, Lisp_Object base_dir)
+{
+  filename = Fcomp_el_to_eln_rel_filename (filename);
 
   /* If base_dir was not specified search inside Vcomp_eln_load_path
      for the first directory where we have write access.  */
@@ -5287,6 +5296,7 @@ compiled one.  */);
 			     "configuration, please recompile"));
 
   defsubr (&Scomp__subr_signature);
+  defsubr (&Scomp_el_to_eln_rel_filename);
   defsubr (&Scomp_el_to_eln_filename);
   defsubr (&Scomp_native_driver_options_effective_p);
   defsubr (&Scomp__install_trampoline);

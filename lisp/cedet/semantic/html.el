@@ -1,4 +1,4 @@
-;;; semantic/html.el --- Semantic details for html files
+;;; semantic/html.el --- Semantic details for html files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -59,14 +59,14 @@
   "Alist of sectioning commands and their relative level.")
 
 (define-mode-local-override semantic-parse-region
-  html-mode (&rest ignore)
+  html-mode (&rest _ignore)
   "Parse the current html buffer for semantic tags.
 IGNORE any arguments.  Always parse the whole buffer.
 Each tag returned is of the form:
  (\"NAME\" section (:members CHILDREN))
 or
  (\"NAME\" anchor)"
-  (mapcar 'semantic-html-expand-tag
+  (mapcar #'semantic-html-expand-tag
 	  (semantic-html-parse-headings)))
 
 (define-mode-local-override semantic-parse-changes
@@ -79,7 +79,7 @@ or
   (let ((chil (semantic-html-components tag)))
     (if chil
         (semantic-tag-put-attribute
-         tag :members (mapcar 'semantic-html-expand-tag chil)))
+         tag :members (mapcar #'semantic-html-expand-tag chil)))
     (car (semantic--tag-expand tag))))
 
 (defun semantic-html-components (tag)
@@ -233,7 +233,7 @@ tag with greater section value than LEVEL is found."
   ;; This will use our parser.
   (setq semantic-parser-name "HTML"
         semantic--parse-table t
-        imenu-create-index-function 'semantic-create-imenu-index
+        imenu-create-index-function #'semantic-create-imenu-index
 	semantic-command-separation-character ">"
 	semantic-type-relation-separator-character '(":")
 	semantic-symbol->name-assoc-list '((section . "Section")

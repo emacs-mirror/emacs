@@ -1,7 +1,6 @@
-;;; semantic/ia-sb.el --- Speedbar analysis display interactor
+;;; semantic/ia-sb.el --- Speedbar analysis display interactor  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2002-2004, 2006, 2008-2021 Free Software Foundation,
-;;; Inc.
+;; Copyright (C) 2002-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -30,17 +29,13 @@
 (require 'speedbar)
 
 ;;; Code:
-(defvar semantic-ia-sb-key-map nil
+(defvar semantic-ia-sb-key-map
+  (let ((map (speedbar-make-specialized-keymap)))
+    ;; Basic features.
+    (define-key map "\C-m" #'speedbar-edit-line)
+    (define-key map "I"    #'semantic-ia-sb-show-tag-info)
+    map)
   "Keymap used when in semantic analysis display mode.")
-
-(if semantic-ia-sb-key-map
-    nil
-  (setq semantic-ia-sb-key-map (speedbar-make-specialized-keymap))
-
-  ;; Basic features.
-  (define-key semantic-ia-sb-key-map "\C-m" 'speedbar-edit-line)
-  (define-key semantic-ia-sb-key-map "I" 'semantic-ia-sb-show-tag-info)
-  )
 
 (defvar semantic-ia-sb-easymenu-definition
   '( "---"
@@ -75,7 +70,7 @@ list of possible completions."
   (speedbar-change-initial-expansion-list "Analyze")
   )
 
-(defun semantic-ia-speedbar (directory zero)
+(defun semantic-ia-speedbar (_directory _zero)
   "Create buttons in speedbar which define the current analysis at POINT.
 DIRECTORY is the current directory, which is ignored, and ZERO is 0."
   (let ((analysis nil)
@@ -195,7 +190,7 @@ DIRECTORY is the current directory, which is ignored, and ZERO is 0."
       ;; An index for the argument the prefix is in:
       (let ((arg (oref context argument))
 	    (args (semantic-tag-function-arguments (car func)))
-	    (idx 0)
+	    ;; (idx 0)
 	    )
 	(speedbar-insert-separator
 	 (format "Argument #%d" (oref context index)))
@@ -275,7 +270,7 @@ See `semantic-ia-sb-tag-info' for more."
       (setq tok (get-text-property (point) 'speedbar-token)))
     (semantic-ia-sb-tag-info nil tok 0)))
 
-(defun semantic-ia-sb-tag-info (text tag indent)
+(defun semantic-ia-sb-tag-info (_text tag _indent)
   "Display as much information as we can about tag.
 Show the information in a shrunk split-buffer and expand
 out as many details as possible.
@@ -322,16 +317,15 @@ TEXT, TAG, and INDENT are speedbar function arguments."
 	   (get-buffer-window "*Tag Information*")))
       (select-frame speedbar-frame))))
 
-(defun semantic-ia-sb-line-path (&optional depth)
+(defun semantic-ia-sb-line-path (&optional _depth)
   "Return the file name associated with DEPTH."
   (save-match-data
     (let* ((tok (speedbar-line-token))
-	   (buff (if (semantic-tag-buffer tok)
-		     (semantic-tag-buffer tok)
-		   (current-buffer))))
+	   (buff (or (semantic-tag-buffer tok)
+		     (current-buffer))))
       (buffer-file-name buff))))
 
-(defun semantic-ia-sb-complete (text tag indent)
+(defun semantic-ia-sb-complete (_text tag _indent)
   "At point in the attached buffer, complete the symbol clicked on.
 TEXT TAG and INDENT are the details."
   ;; Find the specified bounds from the current analysis.

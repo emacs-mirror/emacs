@@ -1,4 +1,4 @@
-;;; semantic/db-typecache.el --- Manage Datatypes
+;;; semantic/db-typecache.el --- Manage Datatypes  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -74,14 +74,14 @@ Said object must support `semantic-reset' methods.")
 
   (oset tc stream nil)
 
-  (mapc 'semantic-reset (oref tc dependants))
+  (mapc #'semantic-reset (oref tc dependants))
   (oset tc dependants nil)
   )
 
 (cl-defmethod semanticdb-typecache-notify-reset ((tc semanticdb-typecache))
   "Do a reset from a notify from a table we depend on."
   (oset tc includestream nil)
-  (mapc 'semantic-reset (oref tc dependants))
+  (mapc #'semantic-reset (oref tc dependants))
   (oset tc dependants nil)
   )
 
@@ -90,7 +90,7 @@ Said object must support `semantic-reset' methods.")
   "Reset the typecache based on a partial reparse."
   (when (semantic-find-tags-by-class 'include new-tags)
     (oset tc includestream nil)
-    (mapc 'semantic-reset (oref tc dependants))
+    (mapc #'semantic-reset (oref tc dependants))
     (oset tc dependants nil)
     )
 
@@ -167,15 +167,15 @@ If there is no table, create one, and fill it in."
   (oset tc stream nil)
   )
 
-(cl-defmethod semanticdb-synchronize ((cache semanticdb-database-typecache)
-				   new-tags)
+(cl-defmethod semanticdb-synchronize ((_cache semanticdb-database-typecache)
+				      _new-tags)
   "Synchronize a CACHE with some NEW-TAGS."
-  )
+  nil)
 
-(cl-defmethod semanticdb-partial-synchronize ((cache semanticdb-database-typecache)
-					   new-tags)
+(cl-defmethod semanticdb-partial-synchronize ((_cache semanticdb-database-typecache)
+					      _new-tags)
   "Synchronize a CACHE with some changed NEW-TAGS."
-  )
+  nil)
 
 (cl-defmethod semanticdb-get-typecache ((db semanticdb-project-database))
   "Retrieve the typecache from the semantic database DB.
@@ -312,7 +312,7 @@ If TAG has fully qualified names, expand it to a series of nested
 namespaces instead."
   tag)
 
-(cl-defmethod semanticdb-typecache-file-tags ((table semanticdb-abstract-table))
+(cl-defmethod semanticdb-typecache-file-tags ((_table semanticdb-abstract-table))
   "No tags available from non-file based tables."
   nil)
 
@@ -338,7 +338,7 @@ all included files."
     (oref cache filestream)
     ))
 
-(cl-defmethod semanticdb-typecache-include-tags ((table semanticdb-abstract-table))
+(cl-defmethod semanticdb-typecache-include-tags ((_table semanticdb-abstract-table))
   "No tags available from non-file based tables."
   nil)
 
@@ -611,7 +611,7 @@ If there isn't one, create it.
   (require 'data-debug)
   (let* ((tab semanticdb-current-table)
 	 (idx (semanticdb-get-table-index tab))
-	 (junk (oset idx type-cache nil)) ;; flush!
+	 (_ (oset idx type-cache nil)) ;; flush!
 	 (start (current-time))
 	 (tc (semanticdb-typecache-for-database (oref tab parent-db)))
 	 (end (current-time))

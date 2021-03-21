@@ -295,7 +295,7 @@ by counted more than once."
 	       (- (position-bytes (point-min)))
 	       (gap-size)))
           (seq-reduce #'+ (mapcar (lambda (elem)
-                                    (if (cdr elem)
+                                    (if (and (consp elem) (cdr elem))
                                         (memory-report--object-size
                                          (make-hash-table :test #'eq)
                                          (cdr elem))

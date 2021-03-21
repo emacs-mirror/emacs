@@ -98,6 +98,10 @@ useful on systems such as FreeBSD which ships only with "etc/termcap".
 
 * Changes in Emacs 28.1
 
++++
+** New command 'font-lock-update', bound to 'C-x x f'.
+This command updates the syntax highlighting in this buffer.
+
 ** The new NonGNU ELPA archive is enabled by default alongside GNU ELPA.
 
 +++
@@ -258,6 +262,10 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 ('clone-buffer'), 'C-x x i' ('insert-buffer') and 'C-x x t'
 ('toggle-truncate-lines').
 
+---
+** Commands 'set-frame-width' and 'set-frame-height' can now get their
+input using the minibuffer.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -389,6 +397,11 @@ major mode.
 
 
 * Changes in Specialized Modes and Packages in Emacs 28.1
+
+** Benchmark
+*** New function 'benchmark-call' to measure the execution time of a function.
+Additionally, the number of repetitions can be expressed as a minimal duration
+in seconds.
 
 ** Macroexp
 ---
@@ -524,7 +537,7 @@ It can be used to enable/disable the tab bar individually on each frame
 independently from the value of 'tab-bar-mode' and 'tab-bar-show'.
 
 ---
-*** New option 'tab-bar-format' defines a list of tab bar items.
+*** New user option 'tab-bar-format' defines a list of tab bar items.
 When it contains 'tab-bar-format-global' (possibly appended after
 'tab-bar-format-align-right'), then after enabling 'display-time-mode'
 (or any other mode that uses 'global-mode-string') it displays time
@@ -550,6 +563,8 @@ It also supports a negative argument.
 ---
 *** 'C-x t G' assigns a group name to the tab.
 'tab-close-group' can close all tabs that belong to the selected group.
+The user option 'tab-bar-new-tab-group' defines the default group of a
+new tab.
 
 ---
 *** New user option 'tab-bar-tab-name-format-function'.
@@ -1932,6 +1947,12 @@ highlight the current error message in the 'next-error' buffer.
 This user option can be also customized to keep highlighting on all
 visited errors, so you can have an overview what errors were already visited.
 
+---
+*** New choice 'next-error-quit-window' for 'next-error-found-function'.
+When 'next-error-found-function' is customized to 'next-error-quit-window',
+then typing the numeric prefix argument 0 before the command 'next-error'
+will quit the source window after visiting the next occurrence.
+
 +++
 *** New user option 'tab-first-completion'.
 If 'tab-always-indent' is 'complete', this new user option can be used to
@@ -2252,12 +2273,17 @@ first).
 * Incompatible Editing Changes in Emacs 28.1
 
 ** The 'M-o' ('facemenu-keymap') global binding has been removed.
+To restore the old binding, say something like:
+
+    (require 'facemenu)
+    (define-key global-map "\M-o" 'facemenu-keymap)
 
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
 Use 'M-x center-line' and 'M-x center-paragraph' instead.
 
-** The 'M-o M-o' global binding have been removed.
-Use 'M-x font-lock-fontify-block' instead.
+** The 'M-o M-o' global binding has been removed.
+Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
+command, which toggles fontification in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
@@ -2275,6 +2301,12 @@ directory instead of the default directory.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
+** 'facemenu-color-alist' is now obsolete, and is not used.
+
+** 'facemenu.el' is no longer preloaded.
+To use functions/variables from the package, you now have to say
+'(require 'facemenu)' or similar.
 
 ** 'pcomplete-ignore-case' is now an obsolete alias of 'completion-ignore-case'.
 
@@ -2816,6 +2848,11 @@ support these coding-systems.
 semantics of RFC 8259 instead of the earlier RFC 4627.  In particular,
 these functions now accept top-level JSON values that are neither
 arrays nor objects.
+
+---
+** 'while-no-input-ignore-events' accepts more special events.
+The special events 'dbus-event' and 'file-notify' are now ignored in
+'while-no-input' when added to this variable.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

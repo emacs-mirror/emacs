@@ -1,4 +1,4 @@
-;;; semantic/db-global.el --- Semantic database extensions for GLOBAL
+;;; semantic/db-global.el --- Semantic database extensions for GLOBAL  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2006, 2008-2021 Free Software Foundation, Inc.
 
@@ -69,7 +69,8 @@ values."
     (let ((semanticdb--ih (mode-local-value mode 'semantic-init-mode-hook)))
       (eval `(setq-mode-local
               ,mode semantic-init-mode-hook
-              (cons 'semanticdb-enable-gnu-global-hook semanticdb--ih))))
+              (cons 'semanticdb-enable-gnu-global-hook ',semanticdb--ih))
+            t))
     t
     )
   )
@@ -114,7 +115,7 @@ if optional DONT-ERR-IF-NOT-AVAILABLE is non-nil; else throw an error."
    )
   "A table for returning search results from GNU Global.")
 
-(cl-defmethod semanticdb-debug-info ((obj semanticdb-table-global))
+(cl-defmethod semanticdb-debug-info ((_obj semanticdb-table-global))
   (list "(proxy)"))
 
 (cl-defmethod cl-print-object ((obj semanticdb-table-global) stream)
@@ -123,7 +124,7 @@ Adds the number of tags in this file to the object print name."
   (princ (eieio-object-name obj (semanticdb-debug-info obj))
          stream))
 
-(cl-defmethod semanticdb-equivalent-mode ((table semanticdb-table-global) &optional buffer)
+(cl-defmethod semanticdb-equivalent-mode ((_table semanticdb-table-global) &optional _buffer)
   "Return t, pretend that this table's mode is equivalent to BUFFER.
 Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
@@ -146,7 +147,7 @@ For each file hit, get the traditional semantic table from that file."
 
   (cl-call-next-method))
 
-(cl-defmethod semanticdb-file-table ((obj semanticdb-project-database-global) filename)
+(cl-defmethod semanticdb-file-table ((obj semanticdb-project-database-global) _filename)
   "From OBJ, return FILENAME's associated table object."
   ;; We pass in "don't load".  I wonder if we need to avoid that or not?
   (car (semanticdb-get-database-tables obj))
@@ -157,7 +158,7 @@ For each file hit, get the traditional semantic table from that file."
 ;; Only NAME based searches work with GLOBAL as that is all it tracks.
 ;;
 (cl-defmethod semanticdb-find-tags-by-name-method
-  ((table semanticdb-table-global) name &optional tags)
+  ((_table semanticdb-table-global) name &optional tags)
   "Find all tags named NAME in TABLE.
 Return a list of tags."
   (if tags
@@ -174,7 +175,7 @@ Return a list of tags."
       )))
 
 (cl-defmethod semanticdb-find-tags-by-name-regexp-method
-  ((table semanticdb-table-global) regex &optional tags)
+  ((_table semanticdb-table-global) regex &optional tags)
   "Find all tags with name matching REGEX in TABLE.
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
@@ -187,7 +188,7 @@ Return a list of tags."
       )))
 
 (cl-defmethod semanticdb-find-tags-for-completion-method
-  ((table semanticdb-table-global) prefix &optional tags)
+  ((_table semanticdb-table-global) prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."

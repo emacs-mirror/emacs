@@ -1918,7 +1918,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     {
       program = build_string (cmdname);
       full = Qnil;
-      openp (Vexec_path, program, Vexec_suffixes, &full, make_fixnum (X_OK), 0);
+      openp (Vexec_path, program, Vexec_suffixes, &full, make_fixnum (X_OK),
+	     0, 0);
       if (NILP (full))
 	{
 	  errno = EINVAL;

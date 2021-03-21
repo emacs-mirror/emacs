@@ -46,6 +46,7 @@
 ;;; Code:
 
 (require 'ert)
+(require 'facemenu)
 
 (ert-deftest undo-test0 ()
   "Test basics of \\[undo]."
@@ -87,6 +88,7 @@
 
 (ert-deftest undo-test1 ()
   "Test undo of \\[undo] command (redo)."
+  (require 'facemenu)
   (with-temp-buffer
     (buffer-enable-undo)
     (undo-boundary)

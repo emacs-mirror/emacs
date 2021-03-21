@@ -1,4 +1,4 @@
-;;; erc-truncate.el --- Functions for truncating ERC buffers
+;;; erc-truncate.el --- Functions for truncating ERC buffers  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -41,7 +41,6 @@
   "Maximum size in chars of each ERC buffer.
 Used only when auto-truncation is enabled.
 \(see `erc-truncate-buffer' and `erc-insert-post-hook')."
-  :group 'erc-truncate
   :type 'integer)
 
 ;;;###autoload(autoload 'erc-truncate-mode "erc-truncate" nil t)
@@ -51,9 +50,9 @@ This prevents the query buffer from getting too large, which can
 bring any grown Emacs to its knees after a few days worth of
 tracking heavy-traffic channels."
   ;;enable
-  ((add-hook 'erc-insert-post-hook 'erc-truncate-buffer))
+  ((add-hook 'erc-insert-post-hook #'erc-truncate-buffer))
   ;; disable
-  ((remove-hook 'erc-insert-post-hook 'erc-truncate-buffer)))
+  ((remove-hook 'erc-insert-post-hook #'erc-truncate-buffer)))
 
 ;;;###autoload
 (defun erc-truncate-buffer-to-size (size &optional buffer)

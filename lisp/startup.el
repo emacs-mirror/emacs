@@ -537,13 +537,19 @@ It is the default value of the variable `top-level'."
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
     (when (featurep 'nativecomp)
+      ;; Form `comp-eln-load-path'.
       (defvar comp-eln-load-path)
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
         (when path-env
           (dolist (path (split-string path-env path-separator))
             (unless (string= "" path)
               (push path comp-eln-load-path)))))
-      (push (concat user-emacs-directory "eln-cache/") comp-eln-load-path))
+      (push (concat user-emacs-directory "eln-cache/") comp-eln-load-path)
+      ;; When $HOME is set to '/nonexistent' means we are running the
+      ;; testsuite, add a temporary folder in front to produce there
+      ;; new compilations.
+      (when (equal (getenv "HOME") "/nonexistent")
+        (push (make-temp-file "emacs-testsuite-" t) comp-eln-load-path)))
     ;; Look in each dir in load-path for a subdirs.el file.  If we
     ;; find one, load it, which will add the appropriate subdirs of
     ;; that dir into load-path.  This needs to be done before setting

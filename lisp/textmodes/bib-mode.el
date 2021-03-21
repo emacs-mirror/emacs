@@ -29,6 +29,8 @@
 ;;   bibliography file.  Keys are automagically inserted as you type,
 ;;   and appropriate keys are presented for various kinds of entries.
 
+;; FIXME: Fix the namespace use of this library.
+
 ;;; Code:
 
 (defgroup bib nil
@@ -39,7 +41,7 @@
 
 (defcustom bib-file "~/my-bibliography.bib"
   "Default name of file used by `addbib'."
-    :type 'file)
+  :type 'file)
 
 (defcustom unread-bib-file "~/to-be-read.bib"
    "Default name of file used by `unread-bib' in Bib mode."
@@ -48,10 +50,10 @@
 (defvar bib-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map text-mode-map)
-    (define-key map "\C-M" 'return-key-bib)
-    (define-key map "\C-c\C-u" 'unread-bib)
-    (define-key map "\C-c\C-@" 'mark-bib)
-    (define-key map "\e`" 'abbrev-mode)
+    (define-key map "\C-M" #'return-key-bib)
+    (define-key map "\C-c\C-u" #'unread-bib)
+    (define-key map "\C-c\C-@" #'mark-bib)
+    (define-key map "\e`" #'abbrev-mode)
     map))
 
 (defun addbib ()
