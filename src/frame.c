@@ -1487,7 +1487,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 #endif
     internal_last_event_frame = Qnil;
 
-  move_minibuffer_onto_frame ();
+  move_minibuffers_onto_frame (sf, for_deletion);
   return frame;
 }
 

@@ -3610,6 +3610,7 @@ extern void validate_subarray (Lisp_Object, Lisp_Object, Lisp_Object,
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);
 extern Lisp_Object merge (Lisp_Object, Lisp_Object, Lisp_Object);
+extern Lisp_Object merge_c (Lisp_Object, Lisp_Object, bool (*) (Lisp_Object, Lisp_Object));
 extern Lisp_Object do_yes_or_no_p (Lisp_Object);
 extern int string_version_cmp (Lisp_Object, Lisp_Object);
 extern Lisp_Object concat2 (Lisp_Object, Lisp_Object);
@@ -4348,7 +4349,7 @@ extern void clear_regexp_cache (void);
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object last_minibuf_string;
-extern void move_minibuffer_onto_frame (void);
+extern void move_minibuffers_onto_frame (struct frame *, bool);
 extern bool is_minibuffer (EMACS_INT, Lisp_Object);
 extern EMACS_INT this_minibuffer_depth (Lisp_Object);
 extern EMACS_INT minibuf_level;
