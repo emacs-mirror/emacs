@@ -4099,6 +4099,20 @@ bytecode definition was not changed in the meantime)."
 
 ;;; Compiler entry points.
 
+(defun comp-lookup-eln (filename)
+  "Given a Lisp source FILENAME return the corresponding .eln file if found.
+Search happens in `comp-eln-load-path'."
+  (cl-loop
+   with eln-filename = (comp-el-to-eln-rel-filename filename)
+   for dir in comp-eln-load-path
+   for f = (expand-file-name eln-filename
+                             (expand-file-name comp-native-version-dir
+                                               (expand-file-name
+                                                dir
+                                                invocation-directory)))
+   when (file-exists-p f)
+     do (cl-return f)))
+
 ;;;###autoload
 (defun native-compile (function-or-file &optional output)
   "Compile FUNCTION-OR-FILE into native code.
