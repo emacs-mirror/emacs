@@ -1,7 +1,7 @@
-;;; wid-browse.el --- functions for browsing widgets
-;;
+;;; wid-browse.el --- functions for browsing widgets  -*- lexical-binding: t -*-
+
 ;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
-;;
+
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
 ;; Package: emacs
@@ -22,7 +22,7 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; Widget browser.  See `widget.el'.
 
 ;;; Code:
@@ -38,7 +38,7 @@
 (defvar widget-browse-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map widget-keymap)
-    (define-key map "q" 'bury-buffer)
+    (define-key map "q" #'bury-buffer)
     map)
   "Keymap for `widget-browse-mode'.")
 
