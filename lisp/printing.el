@@ -103,14 +103,14 @@ Please send all bug fixes and enhancements to
 ;; For example, after previewing a PostScript file, *Printing Command Output*
 ;; will have the following entry:
 ;;
-;;    /usr/X11R6/bin/gv ("/home/user/example/file.ps")
+;;    /usr/bin/gv ("/home/user/example/file.ps")
 ;;    Exit status: 0
 ;;
 ;; In the example above, the previewing was successful.  If during previewing,
 ;; you quit gv execution (by typing C-g during Emacs session), the log entry
 ;; would be:
 ;;
-;;    /usr/X11R6/bin/gv ("/home/user/example/file.ps")
+;;    /usr/bin/gv ("/home/user/example/file.ps")
 ;;    Exit status: Quit
 ;;
 ;; So, if something goes wrong, a good place to take a look is the buffer

@@ -1,4 +1,4 @@
-;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
+;;; novice.el --- handling of disabled commands ("novice mode") for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985-1987, 1994, 2001-2021 Free Software Foundation,
 ;; Inc.

@@ -259,8 +259,8 @@ search buffer due to too many matches being highlighted.
 The 'C-x x' keymap now holds keystrokes for various buffer-oriented
 commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 'C-x x r' ('rename-buffer'), 'C-x x u' ('rename-uniquely'), 'C-x x n'
-('clone-buffer'), 'C-x x i' ('insert-buffer') and 'C-x x t'
-('toggle-truncate-lines').
+('clone-buffer'), 'C-x x i' ('insert-buffer'), 'C-x x t'
+('toggle-truncate-lines') and 'C-x x f' ('font-lock-update').
 
 ---
 ** Commands 'set-frame-width' and 'set-frame-height' can now get their
@@ -437,6 +437,9 @@ to nil.  This was already sometimes the case, but it is now guaranteed.
 *** The 'pred' pattern can now take the form '(pred (not FUN))'.
 This is like '(pred (lambda (x) (not (FUN x))))' but results
 in better code.
+
+---
+*** New function 'pcase-compile-patterns' to write other macros.
 
 +++
 ** profiler.el
@@ -2277,13 +2280,24 @@ To restore the old binding, say something like:
 
     (require 'facemenu)
     (define-key global-map "\M-o" 'facemenu-keymap)
+    (define-key facemenu-keymap "\es" 'center-line)
+    (define-key facemenu-keymap "\eS" 'center-paragraph)
+
+The last two lines are not strictly necessary if you don't care about
+having those two commands on the 'M-o' keymap; see the next section.
 
 ** The 'M-o M-s' and 'M-o M-S' global bindings have been removed.
-Use 'M-x center-line' and 'M-x center-paragraph' instead.
+Use 'M-x center-line' and 'M-x center-paragraph' instead.  See the
+previous section for how to get back the old bindings.  Alternatively,
+if you only want these two commands to have global bindings they had
+before, you can add the following to your init file:
+
+  (define-key global-map "\M-o\M-s" 'center-line)
+  (define-key global-map "\M-o\M-S" 'center-paragraph)
 
 ** The 'M-o M-o' global binding has been removed.
 Use 'M-x font-lock-fontify-block' instead, or the new 'C-x x f'
-command, which toggles fontification in the current buffer.
+command, which updates the syntax highlighting in the current buffer.
 
 ** In 'f90-mode', the backslash character ('\') no longer escapes.
 For about a decade, the backslash character has no longer had a
