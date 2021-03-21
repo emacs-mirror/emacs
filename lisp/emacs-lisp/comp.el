@@ -4099,6 +4099,7 @@ bytecode definition was not changed in the meantime)."
 
 ;;; Compiler entry points.
 
+;;;###autoload
 (defun comp-lookup-eln (filename)
   "Given a Lisp source FILENAME return the corresponding .eln file if found.
 Search happens in `comp-eln-load-path'."
