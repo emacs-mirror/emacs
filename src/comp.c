@@ -4086,7 +4086,8 @@ DEFUN ("comp-el-to-eln-rel-filename", Fcomp_el_to_eln_rel_filename,
 
 DEFUN ("comp-el-to-eln-filename", Fcomp_el_to_eln_filename,
        Scomp_el_to_eln_filename, 1, 2, 0,
-       doc: /* Return the corresponding .eln filename for source FILENAME.
+       doc: /* Return the .eln filename for source FILENAME to used
+for new compilations.
 If BASE-DIR is nil use the first entry in `comp-eln-load-path'.  */)
   (Lisp_Object filename, Lisp_Object base_dir)
 {
