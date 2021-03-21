@@ -1843,6 +1843,22 @@ in the menu, and which key invokes each command.
 records the list of known projects.  It defaults to the file
 @file{projects} in @code{user-emacs-directory} (@pxref{Find Init}).
 
+@node Managing project list file
+@subsection Managing Projects
+
+@table @kbd
+@item M-x project-remove-known-project
+Remove a known project from the (@code{project-list-file}).
+@end table
+
+@findex project-remove-known-project
+  Normally Emacs handle adding and removing projects to the
+(@code{project-list-file}) automatically.  Sometimes you still want to
+manually edit the available
+projects. @kbd{M-x project-remove-known-project} will prompt you for the
+available projects, and upon selecting one, it will disappear from the
+@code{project-list-file}
+
 @node Change Log
 @section Change Logs
 
