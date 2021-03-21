@@ -1,4 +1,4 @@
-;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files
+;;; texnfo-upd.el --- utilities for updating nodes and menus in Texinfo files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1989-1992, 2001-2021 Free Software Foundation, Inc.
 
@@ -420,7 +420,7 @@ of the node if one is found; else do not move point."
 		 "\\|"			    ; or
 		 "\\(^@ifnottex[ ]*\n\\)"   ; ifnottex line, if any
 		 "\\)?"			    ; end of expression
-		 (eval (cdr (assoc level texinfo-update-menu-lower-regexps))))
+		 (eval (cdr (assoc level texinfo-update-menu-lower-regexps)) t))
 		;; the next higher level node marks the end of this
 		;; section, and no lower level node will be found beyond
 		;; this position even if region-end is farther off
@@ -454,7 +454,7 @@ if the match is found there, the value is t and point does not move."
 	      "\\|"                           ; or
 	      "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
 	      "\\)?"                          ; end of expression
-	      (eval (cdr (assoc level texinfo-update-menu-higher-regexps))))
+	      (eval (cdr (assoc level texinfo-update-menu-higher-regexps)) t))
 	     region-end t)
 	(beginning-of-line) t)))))
 
@@ -505,7 +505,7 @@ The function finds entries of the same type.  Thus `subsections' and
 	  "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
           "\\)?"                          ; end of expression
 	  (eval
-	   (cdr (assoc level texinfo-update-menu-same-level-regexps))))
+	   (cdr (assoc level texinfo-update-menu-same-level-regexps)) t))
 	 search-end
 	 t)
 	(goto-char (match-beginning 1)))))
@@ -742,7 +742,7 @@ You will need to edit the inserted text since a useful description
 complements the node name rather than repeats it as a title does."
 
   (interactive)
-  (let (beginning end node-name title)
+  (let (beginning node-name title) ;; end
     (save-excursion
       (beginning-of-line)
       (if (search-forward "* " (line-end-position) t)
@@ -1219,7 +1219,7 @@ Only argument is a string of the general type of section."
 	  "\\(^@ifnottex[ ]*\n\\)"        ; ifnottex line, if any
           "\\)?"                          ; end of expression
 	  (eval
-	   (cdr (assoc level texinfo-update-menu-higher-regexps))))
+	   (cdr (assoc level texinfo-update-menu-higher-regexps)) t))
 	 nil
 	 'goto-beginning)
 	(point))))))
@@ -1243,7 +1243,7 @@ string of the general type of section."
             "\\)?"                        ; end of expression
 	    (eval
 	     ;; Never finds end of level above chapter so goes to end.
-	     (cdr (assoc level texinfo-update-menu-higher-regexps))))
+	     (cdr (assoc level texinfo-update-menu-higher-regexps)) t))
 	   nil
 	   'goto-end)
 	  (match-beginning 1)
@@ -1430,7 +1430,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
 		 (eval
-		  (cdr (assoc level texinfo-update-menu-same-level-regexps))))
+		  (cdr (assoc level texinfo-update-menu-same-level-regexps)) t))
 		end
 		t)
 	       'normal
@@ -1451,7 +1451,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
 		 (eval
-		  (cdr (assoc level texinfo-update-menu-same-level-regexps)))
+		  (cdr (assoc level texinfo-update-menu-same-level-regexps)) t)
 		 "\\|"
 		 ;; Match node line.
 		 "\\(^@node\\).*\n"
@@ -1465,7 +1465,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
 		 (eval
-		  (cdr (assoc level texinfo-update-menu-higher-regexps)))
+		  (cdr (assoc level texinfo-update-menu-higher-regexps)) t)
 		 "\\|"
 		 ;; Handle `Top' node specially.
 		 "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
@@ -1489,7 +1489,7 @@ will be at some level higher in the Texinfo file.  The fourth argument
                   "\\|"
                   "\\(^@ifnottex[ ]*\n\\)"
                   "\\)?")
-		 (eval (cdr (assoc level texinfo-update-menu-higher-regexps)))
+		 (eval (cdr (assoc level texinfo-update-menu-higher-regexps)) t)
 		 "\\|"
 		 ;; Handle `Top' node specially.
 		 "^@node [ \t]*top[ \t]*\\(,\\|$\\)"
@@ -1662,7 +1662,7 @@ or `Up' pointer."
 	     'no-pointer))
 	  ((eq direction 'up)
 	   (if (re-search-backward
-		(eval (cdr (assoc level texinfo-update-menu-higher-regexps)))
+		(eval (cdr (assoc level texinfo-update-menu-higher-regexps)) t)
 		(point-min)
 		t)
 	       'normal
@@ -1686,7 +1686,7 @@ node names in pre-existing `@node' lines that lack names."
   ;; Use marker; after inserting node lines, leave point at end of
   ;; region and mark at beginning.
 
-  (let (beginning-marker end-marker title last-section-position)
+  (let (end-marker title last-section-position) ;; beginning-marker
 
     ;; Save current position on mark ring and set mark to end.
     (push-mark end t)
@@ -2043,8 +2043,8 @@ chapter."
 
   (let* ((included-file-list (texinfo-multi-file-included-list outer-file))
 	 (files included-file-list)
-	 next-node-name
-	 previous-node-name
+	 ;; next-node-name
+	 ;; previous-node-name
 	 ;; Update the pointers and collect the names of the nodes and titles
 	 (main-menu-list (texinfo-multi-file-update files update-everything)))
 

@@ -1,4 +1,4 @@
-;;; erc-imenu.el -- Imenu support for ERC
+;;; erc-imenu.el -- Imenu support for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2002, 2004, 2006-2021 Free Software Foundation,
 ;; Inc.
@@ -71,7 +71,7 @@ Don't rely on this function, read it first!"
 	(message-alist '())
 	(mode-change-alist '())
 	(topic-change-alist '())
-	prev-pos)
+	) ;; prev-pos
     (goto-char (point-max))
     (while (if (bolp)
 	       (> (forward-line -1)
@@ -106,7 +106,8 @@ Don't rely on this function, read it first!"
 		    "^\\(\\S-+\\) (.+) has set the topic for \\S-+: \\(.*\\)$"
 		    notice-text)
 	       (push (cons (concat (match-string 1 notice-text) ": "
-				   (match-string 2 notice-text)) pos)
+				   (match-string 2 notice-text))
+			   pos)
 		     topic-change-alist)))))
 	(when (looking-at "<\\(\\S-+\\)> \\(.+\\)$")
 	  (let ((from (match-string 1))

@@ -617,11 +617,26 @@ collection clause."
   (cl-labels ((len (xs) (if xs (1+ (len (cdr xs))) 0)))
     (should (equal (len (make-list 42 t)) 42)))
 
-  ;; Simple tail-recursive function.
-  (cl-labels ((len (xs n) (if xs (len (cdr xs) (1+ n)) n)))
-    (should (equal (len (make-list 42 t) 0) 42))
-    ;; Should not bump into stack depth limits.
-    (should (equal (len (make-list 42000 t) 0) 42000)))
+  (let ((list-42 (make-list 42 t))
+        (list-42k (make-list 42000 t)))
+
+    (cl-labels
+        ;; Simple tail-recursive function.
+        ((len (xs n) (if xs (len (cdr xs) (1+ n)) n))
+         ;; Slightly obfuscated version to exercise tail calls from
+         ;; `let', `progn', `and' and `or'.
+         (len2 (xs n) (or (and (not xs) n)
+                          (let (n1)
+                            (and xs
+                                 (progn (setq n1 (1+ n))
+                                        (len2 (cdr xs) n1)))))))
+      (should (equal (len nil 0) 0))
+      (should (equal (len2 nil 0) 0))
+      (should (equal (len list-42 0) 42))
+      (should (equal (len2 list-42 0) 42))
+      ;; Should not bump into stack depth limits.
+      (should (equal (len list-42k 0) 42000))
+      (should (equal (len2 list-42k 0) 42000))))
 
   ;; Check that non-recursive functions are handled more efficiently.
   (should (pcase (macroexpand '(cl-labels ((f (x) (+ x 1))) (f 5)))
@@ -632,5 +647,10 @@ collection clause."
                   '(cl-labels ((len (xs n) (if xs (len (cdr xs) (1+ n)) n)))
                      #'len))
             (`(function (lambda (,_ ,_) . ,_)) t))))
+
+(ert-deftest cl-macs--progv ()
+  (should (= (cl-progv '(test test) '(1 2) test) 2))
+  (should (equal (cl-progv '(test1 test2) '(1 2) (list test1 test2))
+                 '(1 2))))
 
 ;;; cl-macs-tests.el ends here

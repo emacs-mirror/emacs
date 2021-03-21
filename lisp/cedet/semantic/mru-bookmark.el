@@ -1,4 +1,4 @@
-;;; semantic/mru-bookmark.el --- Automatic bookmark tracking
+;;; semantic/mru-bookmark.el --- Automatic bookmark tracking  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -85,7 +85,7 @@ Nice values include the following:
    )
   "A single bookmark.")
 
-(cl-defmethod initialize-instance :after ((sbm semantic-bookmark) &rest fields)
+(cl-defmethod initialize-instance :after ((sbm semantic-bookmark) &rest _fields)
   "Initialize the bookmark SBM with details about :tag."
   (condition-case nil
       (save-excursion
@@ -216,7 +216,7 @@ Cause tags in the ring to become unlinked."
       (setq idx (1+ idx)))))
 
 (add-hook 'semantic-before-toplevel-cache-flush-hook
-	  'semantic-mrub-cache-flush-fcn)
+	  #'semantic-mrub-cache-flush-fcn)
 
 ;;; EDIT tracker
 ;;
@@ -246,8 +246,8 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags]."
   :group 'semantic-modes
   :type 'boolean
   :require 'semantic/util-modes
-  :initialize 'custom-initialize-default
-  :set (lambda (sym val)
+  :initialize #'custom-initialize-default
+  :set (lambda (_sym val)
          (global-semantic-mru-bookmark-mode (if val 1 -1))))
 
 ;;;###autoload
@@ -266,7 +266,7 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags]."
 
 (defvar semantic-mru-bookmark-mode-map
   (let ((km (make-sparse-keymap)))
-    (define-key km "\C-xB" 'semantic-mrub-switch-tags)
+    (define-key km "\C-xB" #'semantic-mrub-switch-tags)
     km)
   "Keymap for mru-bookmark minor mode.")
 
@@ -289,14 +289,14 @@ non-nil if the minor mode is enabled."
             (error "Buffer %s was not set up for parsing"
                    (buffer-name)))
         (add-hook 'semantic-edits-new-change-functions
-                  'semantic-mru-bookmark-change-hook-fcn nil t)
+                  #'semantic-mru-bookmark-change-hook-fcn nil t)
         (add-hook 'semantic-edits-move-change-hooks
-                  'semantic-mru-bookmark-change-hook-fcn nil t))
+                  #'semantic-mru-bookmark-change-hook-fcn nil t))
     ;; Remove hooks
     (remove-hook 'semantic-edits-new-change-functions
-		 'semantic-mru-bookmark-change-hook-fcn t)
+		 #'semantic-mru-bookmark-change-hook-fcn t)
     (remove-hook 'semantic-edits-move-change-hooks
-		 'semantic-mru-bookmark-change-hook-fcn t)))
+		 #'semantic-mru-bookmark-change-hook-fcn t)))
 
 (semantic-add-minor-mode 'semantic-mru-bookmark-mode
                          "k")

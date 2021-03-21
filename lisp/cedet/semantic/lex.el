@@ -469,7 +469,7 @@ PROPERTY set."
 ;;; Lexical Analyzer framework settings
 ;;
 
-(defvar-local semantic-lex-analyzer 'semantic-lex
+(defvar-local semantic-lex-analyzer #'semantic-lex
   "The lexical analyzer used for a given buffer.
 See `semantic-lex' for documentation.")
 

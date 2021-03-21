@@ -411,6 +411,7 @@ an event used for scrolling, such as `mouse-wheel-down-event'."
       (cons (vector event)
             (mapcar (lambda (prefix) (vector prefix event)) prefixes)))))
 
+;;;###autoload
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support (Mouse Wheel mode)."
   :init-value t

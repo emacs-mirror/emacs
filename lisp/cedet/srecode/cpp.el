@@ -164,7 +164,7 @@ specified in a C file."
       ;; when they make sense. My best bet would be
       ;; (semantic-tag-function-parent tag), but it is not there, when
       ;; the function is defined in the scope of a class.
-      (let ((member t)
+      (let (;; (member t)
 	    (templates (semantic-tag-get-attribute tag :template))
 	    (modifiers (semantic-tag-modifiers tag)))
 
@@ -185,7 +185,7 @@ specified in a C file."
 
 	;; When the function is a member function, it can have
 	;; additional modifiers.
-	(when member
+	(when t ;; member
 
 	  ;; For member functions, constness is called
 	  ;; 'methodconst-flag'.

@@ -3247,8 +3247,7 @@ set by means of @var{other-vars} in @code{font-lock-defaults}
 @defvar font-lock-mark-block-function
 If this variable is non-@code{nil}, it should be a function that is
 called with no arguments, to choose an enclosing range of text for
-refontification for the command @kbd{M-o M-o}
-(@code{font-lock-fontify-block}).
+refontification for the command @kbd{M-x font-lock-fontify-block}.
 
 The function should report its choice by placing the region around it.
 A good choice is a range of text large enough to give proper results,

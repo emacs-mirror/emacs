@@ -1306,17 +1306,16 @@ the last cache point coordinate."
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
     (defalias func-symbol
-      `(lambda
-         (&rest args)
-         ,doc-string
-         (interactive)
-         (let ((table-inhibit-update t)
-               (deactivate-mark nil))
-           (table--finish-delayed-tasks)
-           (table-recognize-cell 'force)
-           (table-with-cache-buffer
-             (call-interactively ',command)
-             (setq table-inhibit-auto-fill-paragraph t)))))
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (let ((table-inhibit-update t)
+              (deactivate-mark nil))
+          (table--finish-delayed-tasks)
+          (table-recognize-cell 'force)
+          (table-with-cache-buffer
+           (call-interactively command)
+           (setq table-inhibit-auto-fill-paragraph t)))))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -1338,17 +1337,16 @@ the last cache point coordinate."
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
     (defalias func-symbol
-      `(lambda
-         (&rest args)
-         ,doc-string
-         (interactive)
-         (table--finish-delayed-tasks)
-         (table-recognize-cell 'force)
-         (table-with-cache-buffer
-           (table--remove-cell-properties (point-min) (point-max))
-           (table--remove-eol-spaces (point-min) (point-max))
-           (call-interactively ',command))
-         (table--finish-delayed-tasks)))
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (table--finish-delayed-tasks)
+        (table-recognize-cell 'force)
+        (table-with-cache-buffer
+         (table--remove-cell-properties (point-min) (point-max))
+         (table--remove-eol-spaces (point-min) (point-max))
+         (call-interactively command))
+        (table--finish-delayed-tasks)))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -1360,19 +1358,18 @@ the last cache point coordinate."
            insert))
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
-    (fset func-symbol
-          `(lambda
-             (&rest args)
-             ,doc-string
-             (interactive)
-             (table--finish-delayed-tasks)
-             (table-recognize-cell 'force)
-             (table-with-cache-buffer
-               (call-interactively ',command)
-               (table--untabify (point-min) (point-max))
-               (table--fill-region (point-min) (point-max))
-               (setq table-inhibit-auto-fill-paragraph t))
-             (table--finish-delayed-tasks)))
+    (defalias func-symbol
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (table--finish-delayed-tasks)
+        (table-recognize-cell 'force)
+        (table-with-cache-buffer
+         (call-interactively command)
+         (table--untabify (point-min) (point-max))
+         (table--fill-region (point-min) (point-max))
+         (setq table-inhibit-auto-fill-paragraph t))
+        (table--finish-delayed-tasks)))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -1384,18 +1381,17 @@ the last cache point coordinate."
            fill-paragraph))
   (let ((func-symbol (intern (format "*table--cell-%s" command)))
         (doc-string (format "Table remapped function for `%s'." command)))
-    (fset func-symbol
-          `(lambda
-             (&rest args)
-             ,doc-string
-             (interactive)
-             (table--finish-delayed-tasks)
-             (table-recognize-cell 'force)
-             (table-with-cache-buffer
-               (let ((fill-column table-cell-info-width))
-                 (call-interactively ',command))
-               (setq table-inhibit-auto-fill-paragraph t))
-             (table--finish-delayed-tasks)))
+    (defalias func-symbol
+      (lambda (&rest _args)
+        (:documentation doc-string)
+        (interactive)
+        (table--finish-delayed-tasks)
+        (table-recognize-cell 'force)
+        (table-with-cache-buffer
+         (let ((fill-column table-cell-info-width))
+           (call-interactively command))
+         (setq table-inhibit-auto-fill-paragraph t))
+        (table--finish-delayed-tasks)))
     (push (cons command func-symbol)
           table-command-remap-alist)))
 
@@ -2975,8 +2971,8 @@ CALS (DocBook DTD):
 		(setq col-list (cons (car lu-coordinate) col-list)))
 	      (unless (memq (cdr lu-coordinate) row-list)
 		(setq row-list (cons (cdr lu-coordinate) row-list))))))
-	(setq col-list (sort col-list '<))
-	(setq row-list (sort row-list '<))
+	(setq col-list (sort col-list #'<))
+	(setq row-list (sort row-list #'<))
 	(message "Generating source...")
 	;; clear the source generation property list
 	(setplist 'table-source-info-plist nil)
@@ -3023,7 +3019,7 @@ CALS (DocBook DTD):
 		"")))
      ((eq language 'latex)
       (insert (format "%% This LaTeX table template is generated by emacs %s\n" emacs-version)
-	      "\\begin{tabular}{|" (apply 'concat (make-list (length col-list) "l|")) "}\n"
+	      "\\begin{tabular}{|" (apply #'concat (make-list (length col-list) "l|")) "}\n"
 	      "\\hline\n"))
      ((eq language 'cals)
       (insert (format "<!-- This CALS table template is generated by emacs %s -->\n" emacs-version)
@@ -3054,7 +3050,7 @@ CALS (DocBook DTD):
       (set-marker-insertion-type (table-get-source-info 'colspec-marker) t) ;; insert before
       (save-excursion
 	(goto-char (table-get-source-info 'colspec-marker))
-	(dolist (col (sort (table-get-source-info 'colnum-list) '<))
+	(dolist (col (sort (table-get-source-info 'colnum-list) #'<))
           (insert (format "    <colspec colnum=\"%d\" colname=\"c%d\"/>\n" col col))))
       (insert (format "    </%s>\n  </tgroup>\n</table>\n" (table-get-source-info 'row-type))))
      ((eq language 'mediawiki)
@@ -3852,7 +3848,7 @@ converts a table into plain text without frames.  It is a companion to
 
 ;; Create the keymap after running the user init file so that the user
 ;; modification to the global-map is accounted.
-(add-hook 'after-init-hook 'table--make-cell-map t)
+(add-hook 'after-init-hook #'table--make-cell-map t)
 
 (defun *table--cell-self-insert-command ()
   "Table cell version of `self-insert-command'."

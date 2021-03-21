@@ -128,14 +128,14 @@ This is currently needed for the mozrepl omniscient database."
   (wisent-javascript-jv-wy--install-parser)
   (setq
    ;; Lexical Analysis
-   semantic-lex-analyzer 'javascript-lexer-jv
+   semantic-lex-analyzer #'javascript-lexer-jv
    semantic-lex-number-expression semantic-java-number-regexp
    ;; semantic-lex-depth nil ;; Full lexical analysis
    ;; Parsing
-   semantic-tag-expand-function 'wisent-javascript-jv-expand-tag
+   semantic-tag-expand-function #'wisent-javascript-jv-expand-tag
    ;; Environment
-   semantic-imenu-summary-function 'semantic-format-tag-name
-   imenu-create-index-function 'semantic-create-imenu-index
+   semantic-imenu-summary-function #'semantic-format-tag-name
+   imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character ";"
    ))
 

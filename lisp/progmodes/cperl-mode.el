@@ -92,6 +92,7 @@
 	(concat msg ": ")))))
 
 (eval-when-compile (require 'cl-lib))
+(require 'facemenu)
 
 (defvar msb-menu-cond)
 (defvar gud-perldb-history)
@@ -3926,21 +3927,24 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		      bb (char-after (1- (match-beginning b1))) ; tmp holder
 		      ;; bb == "Not a stringy"
 		      bb (if (eq b1 10) ; user variables/whatever
-			     (and (memq bb (append "$@%*#_:-&>" nil)) ; $#y)
-				  (cond ((eq bb ?-) (eq c ?s)) ; -s file test
-					((eq bb ?\:) ; $opt::s
-					 (eq (char-after
-					      (- (match-beginning b1) 2))
-					     ?\:))
-					((eq bb ?\>) ; $foo->s
-					 (eq (char-after
-					      (- (match-beginning b1) 2))
-					     ?\-))
-					((eq bb ?\&)
-					 (not (eq (char-after ; &&m/blah/
-						   (- (match-beginning b1) 2))
-						  ?\&)))
-					(t t)))
+                             (or
+                              ; false positive: "y_" has no word boundary
+                              (save-match-data (looking-at "_"))
+			      (and (memq bb (append "$@%*#_:-&>" nil)) ; $#y)
+				   (cond ((eq bb ?-) (eq c ?s)) ; -s file test
+					 ((eq bb ?\:) ; $opt::s
+					  (eq (char-after
+					       (- (match-beginning b1) 2))
+					      ?\:))
+					 ((eq bb ?\>) ; $foo->s
+					  (eq (char-after
+					       (- (match-beginning b1) 2))
+					      ?\-))
+					 ((eq bb ?\&)
+					  (not (eq (char-after ; &&m/blah/
+						    (- (match-beginning b1) 2))
+						   ?\&)))
+					 (t t))))
 			   ;; <file> or <$file>
 			   (and (eq c ?\<)
 				;; Do not stringify <FH>, <$fh> :

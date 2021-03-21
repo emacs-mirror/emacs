@@ -33,6 +33,11 @@ General steps (for each step, check for possible errors):
     or some form of "git clean -x".  It's probably simpler and safer to
     make a new working directory exclusively for the release branch.
 
+    If the working directory has subdirectories created when making
+    previous releases or pretests, remove those subdirectories, as the
+    command which updates the ChangeLog file might attempt to recurse
+    there and scan any ChangeLog.* files there.
+
     Make sure the tree is built, or at least configured.  That's
     because some of the commands below run Make, so they need
     Makefiles to be present.
@@ -68,20 +73,23 @@ General steps (for each step, check for possible errors):
 
 3.  Set the version number (M-x load-file RET admin/admin.el RET, then
     M-x set-version RET).  For a pretest, start at version .90.  After
-    .99, use .990 (so that it sorts).
+    .99, use .990 (so that it sorts).  Commit the resulting changes
+    as one, with nothing else included, and using a log message
+    of the format "Bump Emacs version to ...", so that the commit can
+    be skipped when merging branches (see admin/gitmerge.el).
 
     The final pretest should be a release candidate.
     Before a release candidate is made, the tasks listed in
     admin/release-process must be completed.
 
-    Set the version number to that of the actual release.  Pick a date
-    about a week from now when you intend to make the release.  Use M-x
-    add-release-logs to add entries to etc/HISTORY and the ChangeLog
-    file.  It's best not to commit these files until the release is
-    actually made.  Merge the entries from (unversioned) ChangeLog
-    into the top of the current versioned ChangeLog.N and commit that
-    along with etc/HISTORY.  Then you can tag that commit as the
-    release.
+    Set the version number to that of the actual release (commit in
+    one, as described above). Pick a date about a week from now when
+    you intend to make the release.  Use M-x add-release-logs to add
+    entries to etc/HISTORY and the ChangeLog file.  It's best not to
+    commit these files until the release is actually made.  Merge the
+    entries from (unversioned) ChangeLog into the top of the current
+    versioned ChangeLog.N and commit that along with etc/HISTORY.
+    Then you can tag that commit as the release.
 
     Name the tar file as emacs-XX.Y-rc1.tar.  If all goes well in the
     following week, you can simply rename the file and use it for the

@@ -1,4 +1,4 @@
-;;; semantic/format.el --- Routines for formatting tags
+;;; semantic/format.el --- Routines for formatting tags  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -162,7 +162,7 @@ COLOR specifies if color should be used."
 	       (car args) nil color 'variable))
 	    out)
       (setq args (cdr args)))
-    (mapconcat 'identity (nreverse out) semantic-function-argument-separator)
+    (mapconcat #'identity (nreverse out) semantic-function-argument-separator)
     ))
 
 ;;; Data Type
@@ -200,7 +200,7 @@ Argument COLOR specifies to colorize the text."
 ;;; Abstract formatting functions
 ;;
 
-(defun semantic-format-tag-prin1 (tag &optional parent color)
+(defun semantic-format-tag-prin1 (tag &optional _parent _color)
   "Convert TAG to a string that is the print name for TAG.
 PARENT and COLOR are ignored."
   (format "%S" tag))
@@ -237,7 +237,7 @@ The name is the shortest possible representation.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors.")
 
-(defun semantic-format-tag-name-default (tag &optional parent color)
+(defun semantic-format-tag-name-default (tag &optional _parent color)
   "Return an abbreviated string describing TAG.
 Optional argument PARENT is the parent type if TAG is a detail.
 Optional argument COLOR means highlight the prototype with font-lock colors."
@@ -500,7 +500,7 @@ Optional argument COLOR means highlight the prototype with font-lock colors."
 		      args
 		      (if (eq class 'type) "}" ")"))))
     (when mods
-      (setq mods (concat (mapconcat 'identity mods " ") " ")))
+      (setq mods (concat (mapconcat #'identity mods " ") " ")))
     (concat (or mods "")
 	    (if type (concat type " "))
 	    name

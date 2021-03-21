@@ -268,7 +268,6 @@ protection algorithm.")
   "Non-nil means that ERC will attempt to reestablish broken connections.
 
 Reconnection will happen automatically for any unexpected disconnection."
-  :group 'erc-server
   :type 'boolean)
 
 (defcustom erc-server-reconnect-attempts 2
@@ -276,7 +275,6 @@ Reconnection will happen automatically for any unexpected disconnection."
 broken connection, or t to always attempt to reconnect.
 
 This only has an effect if `erc-server-auto-reconnect' is non-nil."
-  :group 'erc-server
   :type '(choice (const :tag "Always reconnect" t)
                  integer))
 
@@ -285,7 +283,6 @@ This only has an effect if `erc-server-auto-reconnect' is non-nil."
 successive reconnect attempts.
 
 If a key is pressed while ERC is waiting, it will stop waiting."
-  :group 'erc-server
   :type 'number)
 
 (defcustom erc-split-line-length 440
@@ -299,14 +296,12 @@ And a typical message looks like this:
 
 You can limit here the maximum length of the \"Hello!\" part.
 Good luck."
-  :type 'integer
-  :group 'erc-server)
+  :type 'integer)
 
 (defcustom erc-coding-system-precedence '(utf-8 undecided)
   "List of coding systems to be preferred when receiving a string from the server.
 This will only be consulted if the coding system in
 `erc-server-coding-system' is `undecided'."
-  :group 'erc-server
   :version "24.1"
   :type '(repeat coding-system))
 
@@ -331,7 +326,6 @@ If you need to send non-ASCII text to people not using a client that
 does decoding on its own, you must tell ERC what encoding to use.
 Emacs cannot guess it, since it does not know what the people on the
 other end of the line are using."
-  :group 'erc-server
   :type '(choice (const :tag "None" nil)
                  coding-system
                  (cons (coding-system :tag "encoding" :value utf-8)
@@ -346,37 +340,32 @@ current target as returned by `erc-default-target'.
 Example: If you know that the channel #linux-ru uses the coding-system
 `cyrillic-koi8', then add (\"#linux-ru\" . cyrillic-koi8) to the
 alist."
-  :group 'erc-server
   :type '(repeat (cons (regexp :tag "Target")
                        coding-system)))
 
 (defcustom erc-server-connect-function #'erc-open-network-stream
   "Function used to initiate a connection.
 It should take same arguments as `open-network-stream' does."
-  :group 'erc-server
   :type 'function)
 
 (defcustom erc-server-prevent-duplicates '("301")
   "Either nil or a list of strings.
 Each string is a IRC message type, like PRIVMSG or NOTICE.
 All Message types in that list of subjected to duplicate prevention."
-  :type '(choice (const nil) (list string))
-  :group 'erc-server)
+  :type '(choice (const nil) (list string)))
 
 (defcustom erc-server-duplicate-timeout 60
   "The time allowed in seconds between duplicate messages.
 
 If two identical messages arrive within this value of one another, the second
 isn't displayed."
-  :type 'integer
-  :group 'erc-server)
+  :type 'integer)
 
 (defcustom erc-server-timestamp-format "%Y-%m-%d %T"
   "Timestamp format used with server response messages.
 This string is processed using `format-time-string'."
   :version "24.3"
-  :type 'string
-  :group 'erc-server)
+  :type 'string)
 
 ;;; Flood-related
 
@@ -395,22 +384,19 @@ detailed in RFC 2813, section 5.8 \"Flood control of clients\".
     time, send a message, and increase
     `erc-server-flood-last-message' by
     `erc-server-flood-penalty' for each message."
-  :type 'integer
-  :group 'erc-server)
+  :type 'integer)
 
 (defcustom erc-server-flood-penalty 3
   "How much we penalize a message.
 See `erc-server-flood-margin' for an explanation of the flood
 protection algorithm."
-  :type 'integer
-  :group 'erc-server)
+  :type 'integer)
 
 ;; Ping handling
 
 (defcustom erc-server-send-ping-interval 30
   "Interval of sending pings to the server, in seconds.
 If this is set to nil, pinging the server is disabled."
-  :group 'erc-server
   :type '(choice (const :tag "Disabled" nil)
                  (integer :tag "Seconds")))
 
@@ -422,7 +408,6 @@ This must be greater than or equal to the value for
 `erc-server-send-ping-interval'.
 
 If this is set to nil, never try to reconnect."
-  :group 'erc-server
   :type '(choice (const :tag "Disabled" nil)
                  (integer :tag "Seconds")))
 
@@ -1082,9 +1067,6 @@ Finds hooks by looking in the `erc-server-responses' hash table."
 (cl-defmacro define-erc-response-handler ((name &rest aliases)
                                           &optional extra-fn-doc extra-var-doc
                                           &rest fn-body)
-  (declare (debug (&define [&name "erc-response-handler@"
-                                  (symbolp &rest symbolp)]
-                           &optional sexp sexp def-body)))
   "Define an ERC handler hook/function pair.
 NAME is the response name as sent by the server (see the IRC RFC for
 meanings).
@@ -1164,6 +1146,9 @@ Would expand to:
   See also `erc-server-311'.\"))
 
 \(fn (NAME &rest ALIASES) &optional EXTRA-FN-DOC EXTRA-VAR-DOC &rest FN-BODY)"
+  (declare (debug (&define [&name "erc-response-handler@"
+                                  (symbolp &rest symbolp)]
+                           &optional sexp sexp def-body)))
   (if (numberp name) (setq name (intern (format "%03i" name))))
   (setq aliases (mapcar (lambda (a)
                           (if (numberp a)
@@ -1226,8 +1211,8 @@ add things to `%s' instead."
        ,@(cl-loop for fn in fn-alternates
                   for var in var-alternates
                   for a in aliases
-                  nconc (list `(defalias ',fn ',fn-name)
-                              `(defvar ,var ',fn-name ,(format hook-doc a))
+                  nconc (list `(defalias ',fn #',fn-name)
+                              `(defvar ,var #',fn-name ,(format hook-doc a))
                               `(put ',var 'definition-name ',hook-name))))))
 
 (define-erc-response-handler (ERROR)

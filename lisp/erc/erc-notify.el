@@ -42,20 +42,17 @@
 (defcustom erc-notify-list nil
   "List of nicknames you want to be notified about online/offline
 status change."
-  :group 'erc-notify
   :type '(repeat string))
 
 (defcustom erc-notify-interval 60
   "Time interval (in seconds) for checking online status of notified
 people."
-  :group 'erc-notify
   :type 'integer)
 
 (defcustom erc-notify-signon-hook nil
   "Hook run after someone on `erc-notify-list' has signed on.
 Two arguments are passed to the function, SERVER and NICK, both
 strings."
-  :group 'erc-notify
   :type 'hook
   :options '(erc-notify-signon))
 
@@ -63,7 +60,6 @@ strings."
   "Hook run after someone on `erc-notify-list' has signed off.
 Two arguments are passed to the function, SERVER and NICK, both
 strings."
-  :group 'erc-notify
   :type 'hook
   :options '(erc-notify-signoff))
 
@@ -95,14 +91,14 @@ strings."
 (define-erc-module notify nil
   "Periodically check for the online status of certain users and report
 changes."
-  ((add-hook 'erc-timer-hook 'erc-notify-timer)
-   (add-hook 'erc-server-JOIN-functions 'erc-notify-JOIN)
-   (add-hook 'erc-server-NICK-functions 'erc-notify-NICK)
-   (add-hook 'erc-server-QUIT-functions 'erc-notify-QUIT))
-  ((remove-hook 'erc-timer-hook 'erc-notify-timer)
-   (remove-hook 'erc-server-JOIN-functions 'erc-notify-JOIN)
-   (remove-hook 'erc-server-NICK-functions 'erc-notify-NICK)
-   (remove-hook 'erc-server-QUIT-functions 'erc-notify-QUIT)))
+  ((add-hook 'erc-timer-hook #'erc-notify-timer)
+   (add-hook 'erc-server-JOIN-functions #'erc-notify-JOIN)
+   (add-hook 'erc-server-NICK-functions #'erc-notify-NICK)
+   (add-hook 'erc-server-QUIT-functions #'erc-notify-QUIT))
+  ((remove-hook 'erc-timer-hook #'erc-notify-timer)
+   (remove-hook 'erc-server-JOIN-functions #'erc-notify-JOIN)
+   (remove-hook 'erc-server-NICK-functions #'erc-notify-NICK)
+   (remove-hook 'erc-server-QUIT-functions #'erc-notify-QUIT)))
 
 ;;;; Timer handler
 
@@ -137,7 +133,7 @@ changes."
 	 (setq erc-last-ison ison-list)
 	 t)))
     (erc-server-send
-     (concat "ISON " (mapconcat 'identity erc-notify-list " ")))
+     (concat "ISON " (mapconcat #'identity erc-notify-list " ")))
     (setq erc-last-ison-time now)))
 
 (defun erc-notify-JOIN (proc parsed)
@@ -211,7 +207,7 @@ with args, toggle notify status of people."
 	 'notify_current ?l ison))))
    ((string= (car args) "-l")
     (erc-display-message nil 'notice 'active
-			 'notify_list ?l (mapconcat 'identity erc-notify-list
+			 'notify_list ?l (mapconcat #'identity erc-notify-list
 						    " ")))
    (t
     (while args
@@ -231,7 +227,7 @@ with args, toggle notify status of people."
       (setq args (cdr args)))
     (erc-display-message
      nil 'notice 'active
-     'notify_list ?l (mapconcat 'identity erc-notify-list " "))))
+     'notify_list ?l (mapconcat #'identity erc-notify-list " "))))
   t)
 
 (autoload 'pcomplete-erc-all-nicks "erc-pcomplete")

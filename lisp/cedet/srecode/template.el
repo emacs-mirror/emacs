@@ -49,11 +49,11 @@
 
   (setq
    ;; Lexical Analysis
-   semantic-lex-analyzer 'wisent-srecode-template-lexer
+   semantic-lex-analyzer #'wisent-srecode-template-lexer
    ;; Parsing
    ;; Environment
-   semantic-imenu-summary-function 'semantic-format-tag-name
-   imenu-create-index-function 'semantic-create-imenu-index
+   semantic-imenu-summary-function #'semantic-format-tag-name
+   imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character "\n"
    semantic-lex-comment-regex ";;"
    ;; Speedbar

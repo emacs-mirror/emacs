@@ -56,29 +56,25 @@ whether the tab is a buffer, and whether the tab is selected."
   :version "27.1")
 
 (defface tab-line-tab
-  '((default
-      :inherit tab-line)
+  '((default :inherit tab-line)
     (((class color) (min-colors 88))
      :box (:line-width 1 :style released-button))
-    (t
-     :inverse-video nil))
+    (t :inverse-video nil))
   "Tab line face for selected tab."
   :version "27.1"
   :group 'tab-line-faces)
 
 (defface tab-line-tab-inactive
-  '((default
-      :inherit tab-line-tab)
+  '((default :inherit tab-line-tab)
     (((class color) (min-colors 88))
      :background "grey75")
-    (t
-     :inverse-video t))
+    (t :inverse-video t))
   "Tab line face for non-selected tab."
   :version "27.1"
   :group 'tab-line-faces)
 
 (defface tab-line-tab-inactive-alternate
-  `((t (:inherit tab-line-tab-inactive :background "grey65")))
+  '((t :inherit tab-line-tab-inactive :background "grey65"))
   "Alternate face for inactive tab-line tabs.
 Applied to alternating tabs when option
 `tab-line-tab-face-functions' includes function
@@ -87,9 +83,9 @@ Applied to alternating tabs when option
   :group 'tab-line-faces)
 
 (defface tab-line-tab-special
-  '((default (:weight bold))
+  '((default :weight bold)
     (((supports :slant italic))
-     (:slant italic :weight normal)))
+     :slant italic :weight normal))
   "Face for special (i.e. non-file-backed) tabs.
 Applied when option `tab-line-tab-face-functions' includes
 function `tab-line-tab-face-special'."
@@ -97,9 +93,7 @@ function `tab-line-tab-face-special'."
   :group 'tab-line-faces)
 
 (defface tab-line-tab-group
-  '((default
-      :inherit tab-line
-      :box nil))
+  '((t :inherit tab-line :box nil))
   "Face for group tabs.
 Applied when option `tab-line-tab-face-functions' includes
 function `tab-line-tab-face-group'."
@@ -107,8 +101,7 @@ function `tab-line-tab-face-group'."
   :group 'tab-line-faces)
 
 (defface tab-line-tab-current
-  '((default
-      :inherit tab-line-tab)
+  '((default :inherit tab-line-tab)
     (((class color) (min-colors 88))
      :background "grey85"))
   "Tab line face for tab with current buffer in selected window."
@@ -116,7 +109,7 @@ function `tab-line-tab-face-group'."
   :group 'tab-line-faces)
 
 (defface tab-line-highlight
-  '((default :inherit tab-line-tab))
+  '((t :inherit tab-line-tab))
   "Tab line face for highlighting."
   :version "27.1"
   :group 'tab-line-faces)
@@ -189,7 +182,7 @@ If the value is a function, call it with no arguments."
 
 (defvar tab-line-new-button
   (propertize " + "
-              'display `(image :type xpm
+              'display '(image :type xpm
                                :file "tabs/new.xpm"
                                :margin (2 . 0)
                                :ascent center)
@@ -217,7 +210,7 @@ If nil, don't show it at all."
 
 (defvar tab-line-close-button
   (propertize " x"
-              'display `(image :type xpm
+              'display '(image :type xpm
                                :file "tabs/close.xpm"
                                :margin (2 . 0)
                                :ascent center)
@@ -228,7 +221,7 @@ If nil, don't show it at all."
 
 (defvar tab-line-left-button
   (propertize " <"
-              'display `(image :type xpm
+              'display '(image :type xpm
                                :file "tabs/left-arrow.xpm"
                                :margin (2 . 0)
                                :ascent center)
@@ -239,7 +232,7 @@ If nil, don't show it at all."
 
 (defvar tab-line-right-button
   (propertize "> "
-              'display `(image :type xpm
+              'display '(image :type xpm
                                :file "tabs/right-arrow.xpm"
                                :margin (2 . 0)
                                :ascent center)

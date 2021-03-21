@@ -747,13 +747,17 @@ to write these unknown annotations back into the file."
 
 	    (if (numberp val)	; add to ambient value if numeric
 		(format-property-increment-region from to prop val 0)
-	      (put-text-property
-	       from to prop
-	       (cond ((get prop 'format-list-valued) ; value gets consed onto
-						     ; list-valued properties
-		      (let ((prev (get-text-property from prop)))
-			(cons val (if (listp prev) prev (list prev)))))
-		     (t val))))) ; normally, just set to val.
+              ;; Kludge alert: ignore items with reversed order of
+              ;; FROM and TO.  They seem to be redundant anyway, and
+              ;; in one case I've seen them refer to EOB.
+              (when (<= from to)
+	        (put-text-property
+	         from to prop
+	         (cond ((get prop 'format-list-valued) ; value gets consed onto
+						       ; list-valued properties
+		        (let ((prev (get-text-property from prop)))
+			  (cons val (if (listp prev) prev (list prev)))))
+		       (t val)))))) ; normally, just set to val.
 	  (setq todo (cdr todo)))
 
 	(if unknown-ans

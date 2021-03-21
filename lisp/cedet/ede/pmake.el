@@ -266,14 +266,14 @@ Execute BODY in a location where a value can be placed."
   "Add VARNAME into the current Makefile if it doesn't exist.
 Execute BODY in a location where a value can be placed."
   (declare (debug t) (indent 1))
-  `(let ((addcr t) (v ,varname))
-       (unless
-	   (save-excursion
-	     (re-search-backward (concat "^" v "\\s-*=") nil t))
-	 (insert v "=")
-	 ,@body
-	 (when addcr (insert "\n"))
-	 (goto-char (point-max)))))
+  `(let ((v ,varname))
+     (unless
+	 (save-excursion
+	   (re-search-backward (concat "^" v "\\s-*=") nil t))
+       (insert v "=")
+       ,@body
+       (insert "\n")
+       (goto-char (point-max)))))
 
 ;;; SOURCE VARIABLE NAME CONSTRUCTION
 

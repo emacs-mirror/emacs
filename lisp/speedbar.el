@@ -2159,10 +2159,13 @@ passes some tests."
 			  ;; way by displaying the range over which we
 			  ;; have grouped them.
 			  (setq work-list
-				(cons (cons (concat short-start-name
-						    " to "
-						    short-end-name)
-					    short-group-list)
+				(cons (cons
+                                       (concat short-start-name
+					       " to " short-end-name)
+                                       (sort (copy-sequence short-group-list)
+                                             (lambda (e1 e2)
+                                               (string< (car e1)
+                                                        (car e2)))))
 				      work-list))))
 		     ;; Reset short group list information every time.
 			(setq short-group-list nil

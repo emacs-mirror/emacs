@@ -1,6 +1,6 @@
 ;;; semantic/analyze/debug.el --- Debug the analyzer  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -593,19 +593,20 @@ Look for key expressions, and add push-buttons near them."
         (setq-local semantic-analyzer-debug-orig orig-buffer)
 	;; First, add do-in buttons to recommendations.
 	(while (re-search-forward "^\\s-*M-x \\(\\(\\w\\|\\s_\\)+\\) " nil t)
-	  (let ((fcn (match-string 1)))
-	    (when (not (fboundp (intern-soft fcn)))
+	  (let* ((fcn (match-string 1))
+	         (fsym (intern-soft fcn)))
+	    (when (not (fboundp fsym))
 	      (error "Help Err: Can't find %s" fcn))
 	    (end-of-line)
 	    (insert "   ")
 	    (insert-button "[ Do It ]"
 			   'mouse-face 'custom-button-pressed-face
 			   'do-fcn fcn
-			   'action `(lambda (arg)
-				      (let ((M semantic-analyzer-debug-orig))
-					(set-buffer (marker-buffer M))
-					(goto-char M))
-				      (call-interactively (quote ,(intern-soft fcn))))))))
+			   'action (lambda (_arg)
+				     (let ((M semantic-analyzer-debug-orig))
+				       (set-buffer (marker-buffer M))
+				       (goto-char M))
+				     (call-interactively fsym))))))
       ;; Do something else?
       ;; Clean up the mess
       (set-buffer-modified-p nil))))

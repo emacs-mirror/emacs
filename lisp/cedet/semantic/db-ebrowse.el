@@ -1,4 +1,4 @@
-;;; semantic/db-ebrowse.el --- Semanticdb backend using ebrowse.
+;;; semantic/db-ebrowse.el --- Semanticdb backend using ebrowse.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
@@ -135,8 +135,8 @@ is specified by `semanticdb-default-save-directory'."
   (let* ((savein (semanticdb-ebrowse-file-for-directory dir))
 	 (filebuff (get-buffer-create "*SEMANTICDB EBROWSE TMP*"))
 	 (files (directory-files (expand-file-name dir) t))
-	 (mma auto-mode-alist)
-	 (regexp nil)
+	 ;; (mma auto-mode-alist)
+	 ;; (regexp nil)
 	 )
     ;; Create the input to the ebrowse command
     (with-current-buffer filebuff
@@ -227,7 +227,7 @@ warn instead."
   ()
   "Search Ebrowse for symbols.")
 
-(cl-defmethod semanticdb-needs-refresh-p ((table semanticdb-table-ebrowse))
+(cl-defmethod semanticdb-needs-refresh-p ((_table semanticdb-table-ebrowse))
   "EBROWSE database do not need to be refreshed.
 
 JAVE: stub for needs-refresh, because, how do we know if BROWSE files
@@ -274,7 +274,7 @@ For instance: /home/<username>/.semanticdb/!usr!include!BROWSE"
       (insert-file-contents B)
       (let ((ans nil)
 	    (efcn (symbol-function 'ebrowse-show-progress)))
-	(fset 'ebrowse-show-progress #'(lambda (&rest junk) nil))
+	(fset 'ebrowse-show-progress #'(lambda (&rest _junk) nil))
 	(unwind-protect ;; Protect against errors w/ ebrowse
 	    (setq ans (list B (ebrowse-read)))
 	  ;; These items must always happen
@@ -341,10 +341,10 @@ If there is no database for DIRECTORY available, then
     (while T
 
       (let* ((tree (car T))
-	     (class (ebrowse-ts-class tree)); root class of tree
+	     ;;(class (ebrowse-ts-class tree)); root class of tree
 	     ;; Something funny going on with this file thing...
-             (filename (or (ebrowse-cs-source-file class)
-			   (ebrowse-cs-file class)))
+             ;; (filename (or (ebrowse-cs-source-file class)
+	     ;;    	   (ebrowse-cs-file class)))
 	     )
 	(cond
 	 ((ebrowse-globals-tree-p tree)
@@ -363,18 +363,18 @@ If there is no database for DIRECTORY available, then
 
 ;;; Filename based methods
 ;;
-(defun semanticdb-ebrowse-add-globals-to-table (dbe tree)
+(defun semanticdb-ebrowse-add-globals-to-table (_dbe tree)
   "For database DBE, add the ebrowse TREE into the table."
   (if (or (not (ebrowse-ts-p tree))
 	  (not (ebrowse-globals-tree-p tree)))
       (signal 'wrong-type-argument (list 'ebrowse-ts-p tree)))
 
   (let* ((class (ebrowse-ts-class tree))
-	 (fname (or (ebrowse-cs-source-file class)
-		    (ebrowse-cs-file class)
-		    ;; Not def'd here, assume our current
-		    ;; file
-		    (concat default-directory "/unknown-proxy.hh")))
+	 ;; (fname (or (ebrowse-cs-source-file class)
+	 ;;            (ebrowse-cs-file class)
+	 ;;            ;; Not def'd here, assume our current
+	 ;;            ;; file
+	 ;;            (concat default-directory "/unknown-proxy.hh")))
 	 (vars (ebrowse-ts-member-functions tree))
 	 (fns (ebrowse-ts-member-variables tree))
 	 (toks nil)
@@ -573,7 +573,7 @@ return that."
 ;; how your new search routines are implemented.
 ;;
 (cl-defmethod semanticdb-find-tags-by-name-method
-  ((table semanticdb-table-ebrowse) name &optional tags)
+  ((_table semanticdb-table-ebrowse) _name &optional tags)
   "Find all tags named NAME in TABLE.
 Return a list of tags."
   ;;(message "semanticdb-find-tags-by-name-method name -- %s" name)
@@ -588,7 +588,7 @@ Return a list of tags."
   )
 
 (cl-defmethod semanticdb-find-tags-by-name-regexp-method
-  ((table semanticdb-table-ebrowse) regex &optional tags)
+  ((_table semanticdb-table-ebrowse) _regex &optional tags)
   "Find all tags with name matching REGEX in TABLE.
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
@@ -598,7 +598,7 @@ Return a list of tags."
     ))
 
 (cl-defmethod semanticdb-find-tags-for-completion-method
-  ((table semanticdb-table-ebrowse) prefix &optional tags)
+  ((_table semanticdb-table-ebrowse) _prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
@@ -608,7 +608,7 @@ Returns a table of all matching tags."
     ))
 
 (cl-defmethod semanticdb-find-tags-by-class-method
-  ((table semanticdb-table-ebrowse) class &optional tags)
+  ((_table semanticdb-table-ebrowse) _class &optional tags)
   "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
@@ -625,7 +625,7 @@ Returns a table of all matching tags."
 ;;
 
 (cl-defmethod semanticdb-deep-find-tags-by-name-method
-  ((table semanticdb-table-ebrowse) name &optional tags)
+  ((_table semanticdb-table-ebrowse) _name &optional _tags)
   "Find all tags name NAME in TABLE.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-by-name-method' for ebrowse."
@@ -633,7 +633,7 @@ Like `semanticdb-find-tags-by-name-method' for ebrowse."
   (cl-call-next-method))
 
 (cl-defmethod semanticdb-deep-find-tags-by-name-regexp-method
-  ((table semanticdb-table-ebrowse) regex &optional tags)
+  ((_table semanticdb-table-ebrowse) _regex &optional _tags)
   "Find all tags with name matching REGEX in TABLE.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-by-name-method' for ebrowse."
@@ -641,7 +641,7 @@ Like `semanticdb-find-tags-by-name-method' for ebrowse."
   (cl-call-next-method))
 
 (cl-defmethod semanticdb-deep-find-tags-for-completion-method
-  ((table semanticdb-table-ebrowse) prefix &optional tags)
+  ((_table semanticdb-table-ebrowse) _prefix &optional _tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Like `semanticdb-find-tags-for-completion-method' for ebrowse."
@@ -651,7 +651,7 @@ Like `semanticdb-find-tags-for-completion-method' for ebrowse."
 ;;; Advanced Searches
 ;;
 (cl-defmethod semanticdb-find-tags-external-children-of-type-method
-  ((table semanticdb-table-ebrowse) type &optional tags)
+  ((_table semanticdb-table-ebrowse) _type &optional tags)
   "Find all nonterminals which are child elements of TYPE
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."

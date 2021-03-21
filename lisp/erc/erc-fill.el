@@ -1,4 +1,4 @@
-;;; erc-fill.el --- Filling IRC messages in various ways
+;;; erc-fill.el --- Filling IRC messages in various ways  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -47,7 +47,7 @@ the mode if ARG is omitted or nil.
 ERC fill mode is a global minor mode.  When enabled, messages in
 the channel buffers are filled."
   nil nil nil
-  :global t :group 'erc-fill
+  :global t
   (if erc-fill-mode
       (erc-fill-enable)
     (erc-fill-disable)))
@@ -55,19 +55,18 @@ the channel buffers are filled."
 (defun erc-fill-enable ()
   "Setup hooks for `erc-fill-mode'."
   (interactive)
-  (add-hook 'erc-insert-modify-hook 'erc-fill)
-  (add-hook 'erc-send-modify-hook 'erc-fill))
+  (add-hook 'erc-insert-modify-hook #'erc-fill)
+  (add-hook 'erc-send-modify-hook #'erc-fill))
 
 (defun erc-fill-disable ()
   "Cleanup hooks, disable `erc-fill-mode'."
   (interactive)
-  (remove-hook 'erc-insert-modify-hook 'erc-fill)
-  (remove-hook 'erc-send-modify-hook 'erc-fill))
+  (remove-hook 'erc-insert-modify-hook #'erc-fill)
+  (remove-hook 'erc-send-modify-hook #'erc-fill))
 
 (defcustom erc-fill-prefix nil
   "Values used as `fill-prefix' for `erc-fill-variable'.
 nil means fill with space, a string means fill with this string."
-  :group 'erc-fill
   :type '(choice (const nil) string))
 
 (defcustom erc-fill-function 'erc-fill-variable
@@ -94,7 +93,6 @@ These two styles are implemented using `erc-fill-variable' and
 `erc-fill-static'.  You can, of course, define your own filling
 function.  Narrowing to the region in question is in effect while your
 function is called."
-  :group 'erc-fill
   :type '(choice (const :tag "Variable Filling" erc-fill-variable)
                  (const :tag "Static Filling" erc-fill-static)
                  function))
@@ -104,18 +102,15 @@ function is called."
 centered.  This column denotes the point where the ` ' character
 between <nickname> and the entered text will be put, thus aligning
 nick names right and text left."
-  :group 'erc-fill
   :type 'integer)
 
 (defcustom erc-fill-variable-maximum-indentation 17
   "If we indent a line after a long nick, don't indent more then this
 characters.  Set to nil to disable."
-  :group 'erc-fill
   :type 'integer)
 
 (defcustom erc-fill-column 78
   "The column at which a filled paragraph is broken."
-  :group 'erc-fill
   :type 'integer)
 
 ;;;###autoload

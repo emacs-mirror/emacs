@@ -1,4 +1,4 @@
-;;; reftex-parse.el --- parser functions for RefTeX
+;;; reftex-parse.el --- parser functions for RefTeX  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -143,7 +143,7 @@ When allowed, do only a partial scan from FILE."
                       (car (push (list 'is-multi is-multi) docstruct)))))
       (setcdr entry (cons is-multi nil)))
     (and reftex--index-tags
-         (setq reftex--index-tags (sort reftex--index-tags 'string<)))
+         (setq reftex--index-tags (sort reftex--index-tags #'string<)))
     (let ((index-tag-cell (assq 'index-tags docstruct)))
       (if index-tag-cell
           (setcdr index-tag-cell reftex--index-tags)
@@ -160,10 +160,10 @@ When allowed, do only a partial scan from FILE."
                          nil))
                      allxr))
              (alist (delq nil alist))
-             (allprefix (delq nil (mapcar 'car alist)))
+             (allprefix (delq nil (mapcar #'car alist)))
              (regexp (if allprefix
                          (concat "\\`\\("
-                                 (mapconcat 'identity allprefix "\\|")
+                                 (mapconcat #'identity allprefix "\\|")
                                  "\\)")
                        "\\\\\\\\\\\\")))   ; this will never match
         (push (list 'xr alist regexp) docstruct)))
@@ -209,7 +209,7 @@ of master file."
     (catch 'exit
       (setq file-found (reftex-locate-file file "tex" master-dir))
       (if (and (not file-found)
-               (setq buf (reftex-get-buffer-visiting file)))
+               (setq buf (find-buffer-visiting file)))
           (setq file-found (buffer-file-name buf)))
 
       (unless file-found
@@ -384,8 +384,9 @@ of master file."
 		     (concat
 		      ;;           "\\(\\`\\|[\n\r]\\)[^%]*\\\\\\("
 		      "\\(^\\)[^%\n\r]*\\\\\\("
-		      (mapconcat 'identity reftex-bibliography-commands "\\|")
-		      "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)") nil t))
+		      (mapconcat #'identity reftex-bibliography-commands "\\|")
+		      "\\)\\(\\[.+?\\]\\)?{[ \t]*\\([^}]+\\)")
+		     nil t))
 	  (setq files
 		(append files
 			(split-string (reftex-match-string 4)
@@ -532,7 +533,7 @@ Careful: This function expects the match-data to be still in place!"
 
            (key (if prefix (concat prefix rawkey) rawkey))
            (sortkey (downcase key))
-           (showkey (mapconcat 'identity
+           (showkey (mapconcat #'identity
                                (split-string key reftex-index-level-re)
                                " ! ")))
       (goto-char end-of-args)

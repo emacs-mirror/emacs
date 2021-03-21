@@ -89,32 +89,38 @@ Useful if new Emacs is used on B&W display.")
 
 (declare-function x-display-color-cells "xfns.c" (&optional terminal))
 
-(defvar chart-face-list
-  (if (display-color-p)
-      (let ((cl chart-face-color-list)
-            (pl chart-face-pixmap-list)
-            (faces ())
-            nf)
-        (while cl
-          (setq nf (make-face
-                    (intern (concat "chart-" (car cl) "-" (car pl)))))
-          (set-face-background nf (if (condition-case nil
-                                          (> (x-display-color-cells) 4)
-                                        (error t))
-                                      (car cl)
-                                    "white"))
-          (set-face-foreground nf "black")
-          (if (and chart-face-use-pixmaps pl)
-              (condition-case nil
-                  (set-face-background-pixmap nf (car pl))
-                (error (message "Cannot set background pixmap %s" (car pl)))))
-          (push nf faces)
-          (setq cl (cdr cl)
-                pl (cdr pl)))
-        faces))
+(defvar chart-face-list #'chart--face-list
   "Faces used to colorize charts.
+This should either be a list of faces, or a function that returns
+a list of faces.
+
 List is limited currently, which is ok since you really can't display
 too much in text characters anyways.")
+
+(defun chart--face-list ()
+  (and
+   (display-color-p)
+   (let ((cl chart-face-color-list)
+         (pl chart-face-pixmap-list)
+         (faces ())
+         nf)
+     (while cl
+       (setq nf (make-face
+                 (intern (concat "chart-" (car cl) "-" (car pl)))))
+       (set-face-background nf (if (condition-case nil
+                                       (> (x-display-color-cells) 4)
+                                     (error t))
+                                   (car cl)
+                                 "white"))
+       (set-face-foreground nf "black")
+       (if (and chart-face-use-pixmaps pl)
+           (condition-case nil
+               (set-face-background-pixmap nf (car pl))
+             (error (message "Cannot set background pixmap %s" (car pl)))))
+       (push nf faces)
+       (setq cl (cdr cl)
+             pl (cdr pl)))
+     faces)))
 
 (define-derived-mode chart-mode special-mode "Chart"
   "Define a mode in Emacs for displaying a chart."
@@ -374,7 +380,10 @@ of the drawing."
   (let* ((data (oref c sequences))
 	 (dir (oref c direction))
 	 (odir (if (eq dir 'vertical) 'horizontal 'vertical))
-	)
+         (faces
+          (if (functionp chart-face-list)
+              (funcall chart-face-list)
+            chart-face-list)))
     (while data
       (if (stringp (car (oref (car data) data)))
 	  ;; skip string lists...
@@ -390,10 +399,9 @@ of the drawing."
 		  (zp (if (eq dir 'vertical)
 			  (chart-translate-ypos c 0)
 			(chart-translate-xpos c 0)))
-		  (fc (if chart-face-list
-			  (nth (% i (length chart-face-list)) chart-face-list)
-			'default))
-		  )
+		  (fc (if faces
+			  (nth (% i (length faces)) faces)
+			'default)))
 	      (if (< dp zp)
 		  (progn
 		    (chart-draw-line dir (car rng) dp zp)

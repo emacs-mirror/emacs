@@ -3450,7 +3450,7 @@ Automatically called by the Emacs Lisp byte compiler as a
 `byte-compile' handler."
   (byte-compile-form
    (macroexpand-all
-    (wisent-automaton-lisp-form (eval form)))))
+    (wisent-automaton-lisp-form (eval form t)))))
 
 (defun wisent-compile-grammar (grammar &optional start-list)
   ;; This is kept for compatibility with FOO-wy.el files generated

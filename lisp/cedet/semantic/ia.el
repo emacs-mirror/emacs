@@ -1,6 +1,6 @@
-;;; semantic/ia.el --- Interactive Analysis functions
+;;; semantic/ia.el --- Interactive Analysis functions  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -79,13 +79,8 @@
 	   (insert "("))
 	  (t nil))))
 
-(defalias 'semantic-ia-get-completions 'semantic-ia-get-completions-deprecated)
-(make-obsolete 'semantic-ia-get-completions
-               #'semantic-analyze-possible-completions "28.1")
-
-(defun semantic-ia-get-completions-deprecated (context point)
-  "A function to help transition away from `semantic-ia-get-completions'.
-Return completions based on CONTEXT at POINT."
+(defun semantic-ia-get-completions (context _point)
+  "Fetch the completion of CONTEXT at POINT."
   (declare (obsolete semantic-analyze-possible-completions "28.1"))
   (semantic-analyze-possible-completions context))
 

@@ -52,7 +52,6 @@ This string is processed using `format-time-string'.
 Good examples are \"%T\" and \"%H:%M\".
 
 If nil, timestamping is turned off."
-  :group 'erc-stamp
   :type '(choice (const nil)
 		 (string)))
 
@@ -66,7 +65,6 @@ screen when `erc-insert-timestamp-function' is set to
 `erc-insert-timestamp-left-and-right'.
 
 If nil, timestamping is turned off."
-  :group 'erc-stamp
   :type '(choice (const nil)
 		 (string)))
 
@@ -80,7 +78,6 @@ screen when `erc-insert-timestamp-function' is set to
 `erc-insert-timestamp-left-and-right'.
 
 If nil, timestamping is turned off."
-  :group 'erc-stamp
   :type '(choice (const nil)
 		 (string)))
 
@@ -95,7 +92,6 @@ operate on.
 
 You will probably want to set
 `erc-insert-away-timestamp-function' to the same value."
-  :group 'erc-stamp
   :type '(choice (const :tag "Both sides" erc-insert-timestamp-left-and-right)
 		 (const :tag "Right" erc-insert-timestamp-right)
 		 (const :tag "Left" erc-insert-timestamp-left)
@@ -108,7 +104,6 @@ If nil, timestamping is turned off when away unless `erc-timestamp-format'
 is set.
 
 If `erc-timestamp-format' is set, this will not be used."
-  :group 'erc-stamp
   :type '(choice (const nil)
 		 (string)))
 
@@ -117,7 +112,6 @@ If `erc-timestamp-format' is set, this will not be used."
   "Function to use to insert the away timestamp.
 
 See `erc-insert-timestamp-function' for details."
-  :group 'erc-stamp
   :type '(choice (const :tag "Both sides" erc-insert-timestamp-left-and-right)
 		 (const :tag "Right" erc-insert-timestamp-right)
 		 (const :tag "Left" erc-insert-timestamp-left)
@@ -128,7 +122,6 @@ See `erc-insert-timestamp-function' for details."
 
 This is useful for logging, because, although timestamps will be
 hidden, they will still be present in the logs."
-  :group 'erc-stamp
   :type 'boolean)
 
 (defcustom erc-echo-timestamps nil
@@ -136,20 +129,17 @@ hidden, they will still be present in the logs."
 Using this variable, you can turn off normal timestamping,
 and simply move point to an irc message to see its timestamp
 printed in the minibuffer."
-  :group 'erc-stamp
   :type 'boolean)
 
 (defcustom erc-echo-timestamp-format "Timestamped %A, %H:%M:%S"
   "Format string to be used when `erc-echo-timestamps' is non-nil.
 This string specifies the format of the timestamp being echoed in
 the minibuffer."
-  :group 'erc-stamp
   :type 'string)
 
 (defcustom erc-timestamp-intangible nil
   "Whether the timestamps should be intangible, i.e. prevent the point
 from entering them and instead jump over them."
-  :group 'erc-stamp
   :version "24.5"
   :type 'boolean)
 
@@ -211,7 +201,6 @@ string of spaces which is the same size as the timestamp is added to
 the beginning of the line in its place.  If you use
 `erc-insert-timestamp-right', nothing gets inserted in place of the
 timestamp."
-  :group 'erc-stamp
   :type 'boolean)
 
 (defcustom erc-timestamp-right-column nil
@@ -219,7 +208,6 @@ timestamp."
 if the timestamp is to be printed to the right.  If nil,
 `erc-insert-timestamp-right' will use other means to determine
 the correct column."
-  :group 'erc-stamp
   :type '(choice
 	  (integer :tag "Column number")
 	  (const :tag "Unspecified" nil)))
@@ -231,7 +219,6 @@ Asian language characters and math symbols) precede a timestamp.
 
 A side effect of enabling this is that there will only be one
 space before a right timestamp in any saved logs."
-  :group 'erc-stamp
   :type 'boolean)
 
 (defun erc-insert-timestamp-left (string)

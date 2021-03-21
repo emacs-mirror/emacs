@@ -1,4 +1,4 @@
-;;; semantic/db-find.el --- Searching through semantic databases.
+;;; semantic/db-find.el --- Searching through semantic databases.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -209,14 +209,14 @@ This class will cache data derived during various searches.")
   )
 
 (cl-defmethod semanticdb-synchronize ((idx semanticdb-find-search-index)
-				   new-tags)
+				      _new-tags)
   "Synchronize the search index IDX with some NEW-TAGS."
   ;; Reset our parts.
   (semantic-reset idx)
   ;; Notify dependants by clearing their indices.
   (semanticdb-notify-references
    (oref idx table)
-   (lambda (tab me)
+   (lambda (tab _me)
      (semantic-reset (semanticdb-get-table-index tab))))
   )
 
@@ -230,7 +230,7 @@ This class will cache data derived during various searches.")
 	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
-	 (lambda (tab me)
+	 (lambda (tab _me)
 	   (semantic-reset (semanticdb-get-table-index tab))))
 	)
     ;; Else, not an include, by just a type.
@@ -240,7 +240,7 @@ This class will cache data derived during various searches.")
 	;; Notify dependants by clearing their indices.
 	(semanticdb-notify-references
 	 (oref idx table)
-	 (lambda (tab me)
+	 (lambda (tab _me)
 	   (let ((tab-idx (semanticdb-get-table-index tab)))
 	     ;; Not a full reset?
 	     (when (oref tab-idx type-cache)
@@ -791,7 +791,8 @@ PREBUTTONTEXT is some text between prefix and the overlay button."
 	 (file (semantic-tag-file-name tag))
 	 (str1 (format "%S %s" mode name))
 	 (str2 (format " : %s" file))
-	 (tip nil))
+	 ;; (tip nil)
+	 )
     (insert prefix prebuttontext str1)
     (setq end (point))
     (insert str2)
@@ -807,7 +808,7 @@ PREBUTTONTEXT is some text between prefix and the overlay button."
     (put-text-property start end 'ddebug (cdr consdata))
     (put-text-property start end 'ddebug-indent(length prefix))
     (put-text-property start end 'ddebug-prefix prefix)
-    (put-text-property start end 'help-echo tip)
+    ;; (put-text-property start end 'help-echo tip)
     (put-text-property start end 'ddebug-function
 		       'data-debug-insert-tag-parts-from-point)
     (insert "\n")
@@ -1009,7 +1010,7 @@ is still made current."
 	  (when norm
 	    ;; The normalized tags can now be found based on that
 	    ;; tags table.
-	    (condition-case foo
+	    (condition-case nil
 		(progn
 		  (semanticdb-set-buffer (car norm))
 		  ;; Now reset ans

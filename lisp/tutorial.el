@@ -1,4 +1,4 @@
-;;; tutorial.el --- tutorial for Emacs
+;;; tutorial.el --- tutorial for Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2006-2021 Free Software Foundation, Inc.
 
@@ -24,10 +24,6 @@
 ;;; Commentary:
 
 ;; Code for running the Emacs tutorial.
-
-;;; History:
-
-;; File was created 2006-09.
 
 ;;; Code:
 
@@ -517,8 +513,8 @@ where
 			   (list "more info" 'current-binding
 				 key-fun def-fun key where))
 		     nil))
-	    (add-to-list 'changed-keys
-			 (list key def-fun def-fun-txt where remark nil))))))
+            (push (list key def-fun def-fun-txt where remark nil)
+                  changed-keys)))))
     changed-keys))
 
 (defun tutorial--key-description (key)
@@ -768,7 +764,7 @@ Run the Viper tutorial? "))
 	(if (fboundp 'viper-tutorial)
 	    (if (y-or-n-p (concat prompt1 prompt2))
 		(progn (message "")
-		       (funcall 'viper-tutorial 0))
+                       (funcall #'viper-tutorial 0))
 	      (message "Tutorial aborted by user"))
 	  (message prompt1)))
     (let* ((lang (cond

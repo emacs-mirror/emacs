@@ -1,4 +1,4 @@
-;;; semantic/db-javascript.el --- Semantic database extensions for javascript
+;;; semantic/db-javascript.el --- Semantic database extensions for javascript  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -129,20 +129,20 @@ Create one of our special tables that can act as an intermediary."
   (cl-call-next-method)
   )
 
-(cl-defmethod semanticdb-file-table ((obj semanticdb-project-database-javascript) filename)
+(cl-defmethod semanticdb-file-table ((obj semanticdb-project-database-javascript) _filename)
   "From OBJ, return FILENAME's associated table object."
   ;; NOTE: See not for `semanticdb-get-database-tables'.
   (car (semanticdb-get-database-tables obj))
   )
 
-(cl-defmethod semanticdb-get-tags ((table semanticdb-table-javascript ))
+(cl-defmethod semanticdb-get-tags ((_table semanticdb-table-javascript ))
   "Return the list of tags belonging to TABLE."
   ;; NOTE: Omniscient databases probably don't want to keep large tables
   ;;       lolly-gagging about.  Keep internal Emacs tables empty and
   ;;       refer to alternate databases when you need something.
   semanticdb-javascript-tags)
 
-(cl-defmethod semanticdb-equivalent-mode ((table semanticdb-table-javascript) &optional buffer)
+(cl-defmethod semanticdb-equivalent-mode ((_table semanticdb-table-javascript) &optional buffer)
   "Return non-nil if TABLE's mode is equivalent to BUFFER.
 Equivalent modes are specified by the `semantic-equivalent-major-modes'
 local variable."
@@ -193,7 +193,7 @@ database (if available.)"
     result))
 
 (cl-defmethod semanticdb-find-tags-by-name-method
-  ((table semanticdb-table-javascript) name &optional tags)
+  ((_table semanticdb-table-javascript) name &optional tags)
   "Find all tags named NAME in TABLE.
 Return a list of tags."
   (if tags
@@ -203,7 +203,7 @@ Return a list of tags."
     ))
 
 (cl-defmethod semanticdb-find-tags-by-name-regexp-method
-  ((table semanticdb-table-javascript) regex &optional tags)
+  ((_table semanticdb-table-javascript) regex &optional tags)
   "Find all tags with name matching REGEX in TABLE.
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."
@@ -214,7 +214,7 @@ Return a list of tags."
     ))
 
 (cl-defmethod semanticdb-find-tags-for-completion-method
-  ((table semanticdb-table-javascript) prefix &optional tags)
+  ((_table semanticdb-table-javascript) prefix &optional tags)
   "In TABLE, find all occurrences of tags matching PREFIX.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
@@ -224,7 +224,7 @@ Returns a table of all matching tags."
     ))
 
 (cl-defmethod semanticdb-find-tags-by-class-method
-  ((table semanticdb-table-javascript) class &optional tags)
+  ((_table semanticdb-table-javascript) _class &optional tags)
   "In TABLE, find all occurrences of tags of CLASS.
 Optional argument TAGS is a list of tags to search.
 Returns a table of all matching tags."
@@ -268,7 +268,7 @@ Like `semanticdb-find-tags-for-completion-method' for javascript."
 ;;; Advanced Searches
 ;;
 (cl-defmethod semanticdb-find-tags-external-children-of-type-method
-  ((table semanticdb-table-javascript) type &optional tags)
+  ((_table semanticdb-table-javascript) _type &optional tags)
   "Find all nonterminals which are child elements of TYPE.
 Optional argument TAGS is a list of tags to search.
 Return a list of tags."

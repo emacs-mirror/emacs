@@ -175,8 +175,8 @@ contains the name of the directory which the buffer is visiting.")
 (cl-defstruct (uniquify-item
 	    (:constructor nil) (:copier nil)
 	    (:constructor uniquify-make-item
-	     (base dirname buffer &optional proposed)))
-  base dirname buffer proposed)
+	     (base dirname buffer &optional proposed original-dirname)))
+  base dirname buffer proposed original-dirname)
 
 ;; Internal variables used free
 (defvar uniquify-possibly-resolvable nil)
@@ -211,7 +211,8 @@ this rationalization."
   (with-current-buffer newbuf (setq uniquify-managed nil))
   (when dirname
     (setq dirname (expand-file-name (directory-file-name dirname)))
-    (let ((fix-list (list (uniquify-make-item base dirname newbuf)))
+    (let ((fix-list (list (uniquify-make-item base dirname newbuf
+                                              nil dirname)))
 	  items)
       (dolist (buffer (buffer-list))
 	(when (and (not (and uniquify-ignore-buffers-re
@@ -284,7 +285,9 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
       ;; Refresh the dirnames and proposed names.
       (setf (uniquify-item-proposed item)
 	    (uniquify-get-proposed-name (uniquify-item-base item)
-					(uniquify-item-dirname item)))
+					(uniquify-item-dirname item)
+                                        nil
+                                        (uniquify-item-original-dirname item)))
       (setq uniquify-managed fix-list)))
   ;; Strip any shared last directory names of the dirname.
   (when (and (cdr fix-list) uniquify-strip-common-suffix)
@@ -307,7 +310,8 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 					      (uniquify-item-dirname item))))
 				      (and f (directory-file-name f)))
 				    (uniquify-item-buffer item)
-				    (uniquify-item-proposed item))
+				    (uniquify-item-proposed item)
+                                    (uniquify-item-original-dirname item))
 		fix-list)))))
   ;; If uniquify-min-dir-content is 0, this will end up just
   ;; passing fix-list to uniquify-rationalize-conflicting-sublist.
@@ -335,13 +339,14 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
     (uniquify-rationalize-conflicting-sublist conflicting-sublist
 					      old-proposed depth)))
 
-(defun uniquify-get-proposed-name (base dirname &optional depth)
+(defun uniquify-get-proposed-name (base dirname &optional depth
+                                        original-dirname)
   (unless depth (setq depth uniquify-min-dir-content))
   (cl-assert (equal (directory-file-name dirname) dirname)) ;No trailing slash.
 
   ;; Distinguish directories by adding extra separator.
   (if (and uniquify-trailing-separator-p
-	   (file-directory-p (expand-file-name base dirname))
+	   (file-directory-p (expand-file-name base original-dirname))
 	   (not (string-equal base "")))
       (cond ((eq uniquify-buffer-name-style 'forward)
 	     (setq base (file-name-as-directory base)))
@@ -410,7 +415,8 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 		  (uniquify-get-proposed-name
 		   (uniquify-item-base item)
 		   (uniquify-item-dirname item)
-		   depth)))
+		   depth
+                   (uniquify-item-original-dirname item))))
 	  (uniquify-rationalize-a-list conf-list depth))
       (unless (string= old-name "")
 	(uniquify-rename-buffer (car conf-list) old-name)))))
