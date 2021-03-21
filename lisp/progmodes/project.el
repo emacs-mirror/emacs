@@ -911,7 +911,7 @@ if one already exists."
                    "-shell*"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
-        (pop-to-buffer shell-buffer)
+        (pop-to-buffer-same-window shell-buffer)
       (shell (generate-new-buffer-name default-project-shell-name)))))
 
 ;;;###autoload
