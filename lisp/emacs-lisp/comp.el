@@ -3606,7 +3606,7 @@ Prepare every function for final compilation and drive the C back-end."
              (comp-ctxt-funcs-h comp-ctxt))
     (unless (file-exists-p dir)
       ;; In case it's created in the meanwhile.
-      (ignore-error 'file-already-exists
+      (ignore-error file-already-exists
         (make-directory dir t)))
     (comp--compile-ctxt-to-file name)))
 

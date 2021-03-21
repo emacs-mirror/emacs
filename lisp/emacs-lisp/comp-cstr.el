@@ -873,7 +873,7 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
                  for v in (valset cstr)
                  do
                  (when-let* ((ok (floatp v))
-                             (truncated (ignore-error 'overflow-error
+                             (truncated (ignore-error overflow-error
                                           (truncate v)))
                              (ok (= v truncated)))
                    (push (cons truncated truncated) (range cstr))))
