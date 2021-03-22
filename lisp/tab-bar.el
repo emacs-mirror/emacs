@@ -345,7 +345,7 @@ before calling the command that adds a new tab."
   :group 'tab-bar
   :version "27.1")
 
-(defcustom tab-bar-new-tab-group nil
+(defcustom tab-bar-new-tab-group t
   "Defines what group to assign to a new tab.
 If nil, don't set a default group automatically.
 If t, inherit the group name from the previous tab.
@@ -522,7 +522,7 @@ Return its existing value or a new value."
             (setf (cdr current-tab-name)
                   (funcall tab-bar-tab-name-function))))
       ;; Create default tabs
-      (setq tabs (list (tab-bar--current-tab)))
+      (setq tabs (list (tab-bar--current-tab-make)))
       (tab-bar-tabs-set tabs frame))
     tabs))
 
@@ -795,7 +795,7 @@ on the tab bar instead."
 (push '(tabs . frameset-filter-tabs) frameset-filter-alist)
 
 (defun tab-bar--tab (&optional frame)
-  (let* ((tab (tab-bar--current-tab-find))
+  (let* ((tab (tab-bar--current-tab-find nil frame))
          (tab-explicit-name (alist-get 'explicit-name tab))
          (tab-group (alist-get 'group tab))
          (bl  (seq-filter #'buffer-live-p (frame-parameter frame 'buffer-list)))
@@ -816,7 +816,10 @@ on the tab bar instead."
       (wc-history-back . ,(gethash (or frame (selected-frame)) tab-bar-history-back))
       (wc-history-forward . ,(gethash (or frame (selected-frame)) tab-bar-history-forward)))))
 
-(defun tab-bar--current-tab (&optional tab)
+(defun tab-bar--current-tab (&optional tab frame)
+  (tab-bar--current-tab-make (or tab (tab-bar--current-tab-find nil frame))))
+
+(defun tab-bar--current-tab-make (&optional tab)
   ;; `tab' here is an argument meaning "use tab as template".  This is
   ;; necessary when switching tabs, otherwise the destination tab
   ;; inherits the current tab's `explicit-name' parameter.
@@ -933,7 +936,7 @@ ARG counts from 1.  Negative ARG counts tabs from the end of the tab bar."
 
         (when from-index
           (setf (nth from-index tabs) from-tab))
-        (setf (nth to-index tabs) (tab-bar--current-tab (nth to-index tabs)))
+        (setf (nth to-index tabs) (tab-bar--current-tab-make (nth to-index tabs)))
 
         (unless tab-bar-mode
           (message "Selected tab '%s'" (alist-get 'name to-tab))))
@@ -1111,7 +1114,7 @@ After the tab is created, the hooks in
     (when from-index
       (setf (nth from-index tabs) from-tab))
 
-    (let* ((to-tab (tab-bar--current-tab
+    (let* ((to-tab (tab-bar--current-tab-make
                     (when (eq tab-bar-new-tab-group t)
                       `((group . ,(alist-get 'group from-tab))))))
            (to-index (and to-index (prefix-numeric-value to-index)))
