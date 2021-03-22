@@ -699,13 +699,14 @@ will not be changed."
         (copy-tree connection-local-variables-alist)))
    (hack-local-variables-apply)))
 
-(defsubst connection-local-criteria-for-default-directory ()
-  "Return a connection-local criteria, which represents `default-directory'."
+(defsubst connection-local-criteria-for-default-directory (&optional application)
+  "Return a connection-local criteria, which represents `default-directory'.
+If APPLICATION is nil, the symbol `tramp' is used."
   (when (file-remote-p default-directory)
-    `(:application tramp
-       :protocol ,(file-remote-p default-directory 'method)
-       :user     ,(file-remote-p default-directory 'user)
-       :machine  ,(file-remote-p default-directory 'host))))
+    `(:application ,(or application 'tramp)
+       :protocol   ,(file-remote-p default-directory 'method)
+       :user       ,(file-remote-p default-directory 'user)
+       :machine    ,(file-remote-p default-directory 'host))))
 
 ;;;###autoload
 (defmacro with-connection-local-variables (&rest body)
