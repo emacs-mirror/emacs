@@ -2053,6 +2053,8 @@ nil.  */)
      code.  */
   ptrdiff_t del_bytes = (size_t) size_a / CHAR_BIT + 1;
   ptrdiff_t ins_bytes = (size_t) size_b / CHAR_BIT + 1;
+  unsigned char *deletions = SAFE_ALLOCA (del_bytes);
+  unsigned char *insertions = SAFE_ALLOCA (ins_bytes);
   struct context ctx = {
     .buffer_a = a,
     .buffer_b = b,
@@ -2060,8 +2062,8 @@ nil.  */)
     .beg_b = min_b,
     .a_unibyte = BUF_ZV (a) == BUF_ZV_BYTE (a),
     .b_unibyte = BUF_ZV (b) == BUF_ZV_BYTE (b),
-    .deletions = SAFE_ALLOCA (del_bytes),
-    .insertions = SAFE_ALLOCA (ins_bytes),
+    .deletions = deletions,
+    .insertions = insertions,
     .fdiag = buffer + size_b + 1,
     .bdiag = buffer + diags + size_b + 1,
     .heuristic = true,
