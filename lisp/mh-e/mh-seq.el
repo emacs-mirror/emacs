@@ -1,4 +1,4 @@
-;;; mh-seq.el --- MH-E sequences support
+;;; mh-seq.el --- MH-E sequences support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -156,7 +156,7 @@ The list appears in a buffer named \"*MH-E Sequences*\"."
           (let ((name (mh-seq-name (car seq-list)))
                 (sorted-seq-msgs
                  (mh-coalesce-msg-list
-                  (sort (copy-sequence (mh-seq-msgs (car seq-list))) '<)))
+                  (sort (copy-sequence (mh-seq-msgs (car seq-list))) #'<)))
                 name-spec)
             (insert (setq name-spec (format (format "%%%ss:" max-len) name)))
             (while sorted-seq-msgs
@@ -191,7 +191,7 @@ MESSAGE appears."
              (cond (dest-folder (format " (to be refiled to %s)" dest-folder))
                    (deleted-flag (format " (to be deleted)"))
                    (t ""))
-             (mapconcat 'concat
+             (mapconcat #'concat
                         (mh-list-to-string (mh-seq-containing-msg message t))
                         " "))))
 
@@ -494,13 +494,13 @@ folder buffer are not updated."
   ;; Add to a SEQUENCE each message the list of MSGS.
   (if (and (mh-valid-seq-p seq) (not (mh-folder-name-p seq)))
       (if msgs
-          (apply 'mh-exec-cmd "mark" mh-current-folder "-add"
+          (apply #'mh-exec-cmd "mark" mh-current-folder "-add"
                  "-sequence" (symbol-name seq)
                  (mh-coalesce-msg-list msgs)))))
 
 (defun mh-canonicalize-sequence (msgs)
   "Sort MSGS in decreasing order and remove duplicates."
-  (let* ((sorted-msgs (sort (copy-sequence msgs) '>))
+  (let* ((sorted-msgs (sort (copy-sequence msgs) #'>))
          (head sorted-msgs))
     (while (cdr head)
       (if (= (car head) (cadr head))
@@ -565,7 +565,7 @@ OP is one of `widen' and `unthread'."
 (defvar mh-range-seq-names)
 (defvar mh-range-history ())
 (defvar mh-range-completion-map (copy-keymap minibuffer-local-completion-map))
-(define-key mh-range-completion-map " " 'self-insert-command)
+(define-key mh-range-completion-map " " #'self-insert-command)
 
 ;;;###mh-autoload
 (defun mh-interactive-range (range-prompt &optional default)

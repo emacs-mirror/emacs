@@ -1,4 +1,4 @@
-;;; mh-xface.el --- MH-E X-Face and Face header field display
+;;; mh-xface.el --- MH-E X-Face and Face header field display  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
 

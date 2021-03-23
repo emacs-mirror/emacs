@@ -522,7 +522,7 @@ parsed by MH-E."
     (let* ((initial-size (mh-truncate-log-buffer))
            (start (point))
            (args (mh-list-to-string args)))
-      (apply 'call-process (expand-file-name command mh-progs) nil t nil args)
+      (apply #'call-process (expand-file-name command mh-progs) nil t nil args)
       (when (> (buffer-size) initial-size)
         (save-excursion
           (goto-char start)
@@ -560,7 +560,7 @@ ARGS are passed to COMMAND as command line arguments."
   (with-current-buffer (get-buffer-create mh-log-buffer)
     (mh-truncate-log-buffer))
   (let* ((process-connection-type nil)
-         (process (apply 'start-process
+         (process (apply #'start-process
                          command nil
                          (expand-file-name command mh-progs)
                          (mh-list-to-string args))))
@@ -602,7 +602,7 @@ RAISE-ERROR is non-nil, in which case an error is signaled if
   (set-buffer (get-buffer-create mh-temp-buffer))
   (erase-buffer)
   (let ((value
-         (apply 'call-process
+         (apply #'call-process
                 (expand-file-name command mh-progs) nil t nil
                 args)))
     (goto-char (point-min))
@@ -616,7 +616,7 @@ Put the output into buffer after point.
 Set mark after inserted text.
 Output is expected to be shown to user, not parsed by MH-E."
   (push-mark (point) t)
-  (apply 'call-process
+  (apply #'call-process
          (expand-file-name command mh-progs) nil t display
          (mh-list-to-string args))
 
@@ -650,7 +650,7 @@ preserves whether the mark is active or not."
   "Execute MH library command COMMAND with ARGS.
 Put the output into buffer after point.
 Set mark after inserted text."
-  (apply 'mh-exec-cmd-output (expand-file-name command mh-lib-progs) nil args))
+  (apply #'mh-exec-cmd-output (expand-file-name command mh-lib-progs) nil args))
 
 (defun mh-handle-process-error (command status)
   "Raise error if COMMAND returned non-zero STATUS, otherwise return STATUS."
@@ -974,7 +974,7 @@ necessary and can actually cause problems."
   :set (lambda (symbol value)
          (set-default symbol value)     ;Done in mh-variant-set-variant!
          (mh-variant-set value))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :group 'mh-e
   :package-version '(MH-E . "8.0"))
 
@@ -1548,7 +1548,7 @@ as the result is undefined."
                                  '(radio)
                                  (mapcar
                                   (lambda (arg) `(const ,arg))
-                                  (mapcar 'car mh-identity-list))))
+                                  (mapcar #'car mh-identity-list))))
                          (cons :tag "Fcc Field"
                                (const "fcc")
                                (string :tag "Value"))
@@ -1575,7 +1575,7 @@ See `mh-identity-list'."
          '(radio)
          (cons '(const :tag "None" nil)
                (mapcar (lambda (arg) `(const ,arg))
-                       (mapcar 'car mh-identity-list))))
+                       (mapcar #'car mh-identity-list))))
   :group 'mh-identity
   :package-version '(MH-E . "7.1"))
 
@@ -1744,7 +1744,7 @@ bogofilter, then you can set this option to \"Bogofilter\"."
                  (const :tag "SpamAssassin" spamassassin)
                  (const :tag "Bogofilter" bogofilter)
                  (const :tag "SpamProbe" spamprobe))
-  :set 'mh-junk-choose
+  :set #'mh-junk-choose
   :group 'mh-junk
   :package-version '(MH-E . "7.3"))
 
@@ -2005,7 +2005,7 @@ call `mh-set-cmd-note' with the width specified by your format file
 you would use \"(mh-set-cmd-note 4)\"."
   :type 'boolean
   :group 'mh-scan-line-formats
-  :set 'mh-adaptive-cmd-note-flag-check
+  :set #'mh-adaptive-cmd-note-flag-check
   :package-version '(MH-E . "7.0"))
 
 (defun mh-scan-format-file-check (symbol value)
@@ -2044,7 +2044,7 @@ Emacs start with 0)."
                  (const :tag "Use Default scan Format" nil)
                  (file  :tag "Specify a scan Format File"))
   :group 'mh-scan-line-formats
-  :set 'mh-scan-format-file-check
+  :set #'mh-scan-format-file-check
   :package-version '(MH-E . "6.0"))
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)

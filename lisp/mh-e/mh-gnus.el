@@ -1,4 +1,4 @@
-;;; mh-gnus.el --- make MH-E compatible with various versions of Gnus
+;;; mh-gnus.el --- make MH-E compatible with various versions of Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2004, 2006-2021 Free Software Foundation, Inc.
 
