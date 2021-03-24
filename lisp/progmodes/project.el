@@ -1237,7 +1237,7 @@ PROJECT-ROOT is the root directory of a known project listed in
 the project list."
   (interactive (list (project-prompt-project-dir)))
   (project--remove-from-project-list
-   dir "Project `%s' removed from known projects"))
+   project-root "Project `%s' removed from known projects"))
 
 (defun project-prompt-project-dir ()
   "Prompt the user for a directory that is one of the known project roots.
