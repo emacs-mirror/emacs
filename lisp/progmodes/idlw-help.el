@@ -1,4 +1,4 @@
-;;; idlw-help.el --- HTML Help code for IDLWAVE
+;;; idlw-help.el --- HTML Help code for IDLWAVE  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 ;;
@@ -50,7 +50,6 @@
 
 (defcustom idlwave-html-help-pre-v6 nil
   "Whether pre or post-v6.0 IDL help documents are being used."
-  :group 'idlwave-online-help
   :type 'boolean)
 
 (defvar idlwave-html-link-sep
@@ -60,7 +59,6 @@
   "The directory, relative to `idlwave-system-directory', where the IDL
 HTML help files live, for IDL 6.2 and later.  This location, if found,
 is used in preference to the old `idlwave-html-help-location'."
-  :group 'idlwave-online-help
   :type 'directory)
 
 (defcustom idlwave-html-help-location
@@ -69,7 +67,6 @@ is used in preference to the old `idlwave-html-help-location'."
     "/usr/local/etc/")
   "The directory where the idl_html_help/ dir lives.  Obsolete for IDL
 6.2 or later (see `idlwave-html-system-help-location')."
-  :group 'idlwave-online-help
   :type 'directory)
 
 (defvar idlwave-help-use-hh nil
@@ -77,18 +74,15 @@ is used in preference to the old `idlwave-html-help-location'."
 
 (defcustom idlwave-help-use-assistant t
   "Whether to use the IDL Assistant as the help browser."
-  :group 'idlwave-online-help
   :type 'boolean)
 
 (defcustom idlwave-help-browser-function browse-url-browser-function
   "Function to use to display HTML help.
 Defaults to `browse-url-browser-function', which see."
-  :group 'idlwave-online-help
   :type 'function)
 
 (defcustom idlwave-help-browser-generic-program browse-url-generic-program
   "Program to run if using `browse-url-generic-program'."
-  :group 'idlwave-online-help
   :type '(choice (const nil) string))
 
 ;; AFAICS, never used since it was introduced in 2004.
@@ -96,7 +90,6 @@ Defaults to `browse-url-browser-function', which see."
   (if (boundp 'browse-url-generic-args)
       browse-url-generic-args "")
   "Program args to use if using `browse-url-generic-program'."
-  :group 'idlwave-online-help
   :type '(repeat string))
 
 (defcustom idlwave-help-browser-is-local nil
@@ -106,7 +99,6 @@ external programs.  If the browser name contains \"-w3\", it is
 assumed to be local to Emacs.  For other local browsers, this variable
 must be explicitly set non-nil in order for the variable
 `idlwave-help-use-dedicated-frame' to function."
-  :group 'idlwave-online-help
   :type 'boolean)
 
 (defvar idlwave-help-directory ""
@@ -114,7 +106,6 @@ must be explicitly set non-nil in order for the variable
 
 (defcustom idlwave-help-use-dedicated-frame t
   "Non-nil means, use a separate frame for Online Help if possible."
-  :group 'idlwave-online-help
   :type 'boolean)
 
 (defcustom idlwave-help-frame-parameters
@@ -123,14 +114,12 @@ must be explicitly set non-nil in order for the variable
 See also `idlwave-help-use-dedicated-frame'.
 If you do not set the frame width here, the value specified in
 `idlw-help.el' will be used."
-  :group 'idlwave-online-help
   :type '(repeat
 	  (cons symbol sexp)))
 
 (defcustom idlwave-max-popup-menu-items 20
   "Maximum number of items per pane in popup menus.
 Currently only used for class selection during completion help."
-  :group 'idlwave-online-help
   :type 'integer)
 
 (defcustom idlwave-extra-help-function 'idlwave-help-with-source
@@ -158,12 +147,10 @@ The default value for this function is `idlwave-help-with-source' which
 loads the routine source file into the help buffer.  If you try to write
 a different function which accesses a special help file or so, it is
 probably a good idea to still call this function as a fallback."
-  :group 'idlwave-online-help
   :type 'symbol)
 
 (defcustom idlwave-help-fontify-source-code nil
   "Non-nil means, fontify source code displayed as help like normal code."
-  :group 'idlwave-online-help
   :type 'boolean)
 
 (defcustom idlwave-help-source-try-header t
@@ -173,7 +160,6 @@ help text.  When this variable is non-nil, we try to find a description of
 the help item in the first routine doclib header above the routine definition.
 If the variable is nil, or if we cannot find/parse the header, the routine
 definition is displayed instead."
-  :group 'idlwave-online-help
   :type 'boolean)
 
 
@@ -181,20 +167,17 @@ definition is displayed instead."
   "A regexp for the heading word to search for in doclib headers
 which specifies the `name' section.  Can be used for localization
 support."
-  :group 'idlwave-online-help
   :type 'regexp)
 
 (defcustom idlwave-help-doclib-keyword "KEYWORD"
   "A regexp for the heading word to search for in doclib headers
 which specifies the `keywords' section.  Can be used for localization
 support."
-  :group 'idlwave-online-help
   :type 'regexp)
 
 (defface idlwave-help-link
   '((t :inherit link))
-  "Face for highlighting links into IDLWAVE online help."
-  :group 'idlwave-online-help)
+  "Face for highlighting links into IDLWAVE online help.")
 
 (defvar idlwave-help-activate-links-aggressively nil
   "Obsolete variable.")
@@ -219,20 +202,20 @@ support."
 
 (defvar idlwave-help-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "q" 'idlwave-help-quit)
-    (define-key map "w" 'widen)
+    (define-key map "q" #'idlwave-help-quit)
+    (define-key map "w" #'widen)
     (define-key map "\C-m" (lambda (arg)
                              (interactive "p")
                              (scroll-up arg)))
-    (define-key map " " 'scroll-up-command)
-    (define-key map [?\S-\ ] 'scroll-down-command)
-    (define-key map [delete] 'scroll-down-command)
-    (define-key map "h" 'idlwave-help-find-header)
-    (define-key map "H" 'idlwave-help-find-first-header)
-    (define-key map "." 'idlwave-help-toggle-header-match-and-def)
-    (define-key map "F" 'idlwave-help-fontify)
-    (define-key map "\M-?" 'idlwave-help-return-to-calling-frame)
-    (define-key map "x" 'idlwave-help-return-to-calling-frame)
+    (define-key map " " #'scroll-up-command)
+    (define-key map [?\S-\ ] #'scroll-down-command)
+    (define-key map [delete] #'scroll-down-command)
+    (define-key map "h" #'idlwave-help-find-header)
+    (define-key map "H" #'idlwave-help-find-first-header)
+    (define-key map "." #'idlwave-help-toggle-header-match-and-def)
+    (define-key map "F" #'idlwave-help-fontify)
+    (define-key map "\M-?" #'idlwave-help-return-to-calling-frame)
+    (define-key map "x" #'idlwave-help-return-to-calling-frame)
     map)
   "The keymap used in `idlwave-help-mode'.")
 
@@ -374,7 +357,7 @@ It collects and prints the diagnostics messages."
       (setq idlwave-last-context-help-pos marker)
       (idlwave-do-context-help1 arg)
       (if idlwave-help-diagnostics
-	  (message "%s" (mapconcat 'identity
+	  (message "%s" (mapconcat #'identity
 				   (nreverse idlwave-help-diagnostics)
 				   "; "))))))
 
@@ -384,6 +367,12 @@ It collects and prints the diagnostics messages."
 (defvar idlwave-system-variables-alist)
 (defvar idlwave-executive-commands-alist)
 (defvar idlwave-system-class-info)
+(defvar idlwave-query-class)
+(defvar idlwave-force-class-query)
+(defvar idlw-help-name)
+(defvar idlw-help-kwd)
+(defvar idlw-help-link)
+
 (defun idlwave-do-context-help1 (&optional arg)
   "The work-horse version of `idlwave-context-help', which see."
   (save-excursion
@@ -549,16 +538,16 @@ It collects and prints the diagnostics messages."
 	(setq mod1 (append (list t) module))))
       (if mod3
 	  (condition-case nil
-	      (apply 'idlwave-online-help mod1)
+	      (apply #'idlwave-online-help mod1)
 	    (error (condition-case nil
-		       (apply 'idlwave-online-help mod2)
-		     (error (apply 'idlwave-online-help mod3)))))
+		       (apply #'idlwave-online-help mod2)
+		     (error (apply #'idlwave-online-help mod3)))))
 	(if mod2
 	    (condition-case nil
-		(apply 'idlwave-online-help mod1)
-	      (error (apply 'idlwave-online-help mod2)))
+		(apply #'idlwave-online-help mod1)
+	      (error (apply #'idlwave-online-help mod2)))
 	  (if mod1
-	      (apply 'idlwave-online-help mod1)
+	      (apply #'idlwave-online-help mod1)
 	    (error "Don't know which item to show help for")))))))
 
 (defun idlwave-do-mouse-completion-help (ev)
@@ -660,7 +649,7 @@ Those words in `idlwave-completion-help-links' have links.  The
 		 (props (list 'face 'idlwave-help-link))
 		 (info idlwave-completion-help-info) ; global passed in
 		 (what (nth 0 info))  ; what was completed, or a func
-		 (class (nth 3 info)) ; any class
+		 ;; (class (nth 3 info)) ; any class
 		 word beg end doit)
 	    (goto-char (point-min))
 	    (re-search-forward "possible completions are:" nil t)
@@ -685,7 +674,7 @@ Those words in `idlwave-completion-help-links' have links.  The
 
 ;; Arrange for this function to be called after completion
 (add-hook 'idlwave-completion-setup-hook
-	  'idlwave-highlight-linked-completions)
+	  #'idlwave-highlight-linked-completions)
 
 (defvar idlwave-help-return-frame nil
   "The frame to return to from the help frame.")
@@ -947,7 +936,7 @@ This function can be used as `idlwave-extra-help-function'."
     (point)))
 
 
-(defun idlwave-help-find-routine-definition (name type class keyword)
+(defun idlwave-help-find-routine-definition (name type class _keyword)
   "Find the definition of routine CLASS::NAME in current buffer.
 Returns the point of match if successful, nil otherwise.
 KEYWORD is ignored."
@@ -967,7 +956,7 @@ KEYWORD is ignored."
 
 (defvar idlwave-doclib-start)
 (defvar idlwave-doclib-end)
-(defun idlwave-help-find-in-doc-header (name type class keyword
+(defun idlwave-help-find-in-doc-header (name _type class keyword
 					     &optional exact)
   "Find the requested help in the doc-header above point.
 
@@ -1025,9 +1014,9 @@ If there is a match, we assume it is the keyword description."
 		   ":[ \t]*$\\)"))
 
 	 ;; Header start plus name
-	 (header-re (concat "\\(" idlwave-doclib-start "\\).*\n"
-			    "\\(^;+.*\n\\)*"
-			    "\\(" name-re "\\)"))
+	 ;; (header-re (concat "\\(" idlwave-doclib-start "\\).*\n"
+	 ;;        	    "\\(^;+.*\n\\)*"
+	 ;;        	    "\\(" name-re "\\)"))
 	 ;; A keywords section
 	 (kwds-re (concat		                    ; forgiving
 		   "^;+\\*?[ \t]*"
@@ -1095,8 +1084,8 @@ When DING is non-nil, ring the bell as well."
 	      (cons string idlwave-help-diagnostics))
 	(if ding (ding)))))
 
-(defun idlwave-help-toggle-header-top-and-def (arg)
-  (interactive "P")
+(defun idlwave-help-toggle-header-top-and-def (&optional _arg)
+  (interactive)
   (let (pos)
     (if idlwave-help-in-header
 	;; Header was the last thing displayed
@@ -1119,8 +1108,8 @@ When DING is non-nil, ring the bell as well."
 	  (goto-char pos)
 	  (recenter 0)))))
 
-(defun idlwave-help-find-first-header (arg)
-  (interactive "P")
+(defun idlwave-help-find-first-header (&optional _arg)
+  (interactive)
   (let (pos)
     (save-excursion
       (goto-char (point-min))
@@ -1140,8 +1129,8 @@ When DING is non-nil, ring the bell as well."
     (setq idlwave-help-in-header nil)
     (idlwave-help-toggle-header-match-and-def arg 'top)))
 
-(defun idlwave-help-toggle-header-match-and-def (arg &optional top)
-  (interactive "P")
+(defun idlwave-help-toggle-header-match-and-def (&optional _arg top)
+  (interactive)
   (let ((args idlwave-help-args)
 	pos)
     (if idlwave-help-in-header
@@ -1150,7 +1139,7 @@ When DING is non-nil, ring the bell as well."
 	  (setq idlwave-help-in-header nil)
 	  (setq pos idlwave-help-def-pos))
       ;; Try to display header
-      (setq pos (apply 'idlwave-help-find-in-doc-header
+      (setq pos (apply #'idlwave-help-find-in-doc-header
 		       (if top
 			   (list (car args) (nth 1 args) (nth 2 args) nil)
 			 args)))
@@ -1184,7 +1173,7 @@ Useful when source code is displayed as help.  See the option
         (with-no-warnings (font-lock-fontify-buffer))))))
 
 
-(defun idlwave-help-error (name type class keyword)
+(defun idlwave-help-error (name _type class keyword)
   (error "Can't find help on %s%s %s"
 	 (or (and (or class name) (idlwave-make-full-name class name))
 	     "<unknown>")
@@ -1272,11 +1261,11 @@ IDL assistant.")
 	  (delete-process idlwave-help-assistant-socket))
 
       (setq idlwave-help-assistant-process
-	    (apply 'start-process
+	    (apply #'start-process
 		   "IDL_ASSISTANT_PROC" nil command "-server" extra-args))
 
       (set-process-filter idlwave-help-assistant-process
-			  (lambda (proc string)
+			  (lambda (_proc string)
 			    (setq port (string-to-number string))))
       (unless (accept-process-output idlwave-help-assistant-process 15)
 	(error "Failed binding IDL_ASSISTANT socket"))
