@@ -390,10 +390,7 @@ This command leaves the mark before the letter and point after it."
                 (or mh-sent-from-msg (nth 0 (mh-translate-range folder "cur")))
               (nth 0 (mh-translate-range folder "cur"))))
           (message
-           (read-string (concat "Message number"
-                                (or (and default
-                                         (format " (default %d): " default))
-                                    ": "))
+           (read-string (format-prompt "Message number" default)
                         nil nil
                         (if (numberp default)
                             (int-to-string default)

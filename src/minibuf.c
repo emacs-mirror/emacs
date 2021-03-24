@@ -1490,8 +1490,8 @@ function, instead of the usual behavior.  */)
 					      STRING_MULTIBYTE (prompt));
 	    }
 
-	  AUTO_STRING (format, "%s (default %s): ");
-	  prompt = CALLN (Fformat, format, prompt,
+	  prompt = CALLN (Ffuncall, intern("format-prompt"),
+			  prompt,
 			  CONSP (def) ? XCAR (def) : def);
 	}
 

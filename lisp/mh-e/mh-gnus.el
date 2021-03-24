@@ -129,7 +129,7 @@
   (unless default
     (setq default (mml-content-disposition type filename)))
   (let ((disposition (completing-read
-		      (format "Disposition (default %s): " default)
+		      (format-prompt "Disposition" default)
 		      '(("attachment") ("inline") (""))
 		      nil t nil nil default)))
     (if (not (equal disposition ""))

@@ -390,10 +390,7 @@ Prompt with PROMPT, raise an error if the sequence is empty and
 the NOT-EMPTY flag is non-nil, and supply an optional DEFAULT
 sequence. A reply of `%' defaults to the first sequence
 containing the current message."
-  (let* ((input (completing-read (format "%s sequence%s: " prompt
-                                         (if default
-                                             (format " (default %s)" default)
-                                           ""))
+  (let* ((input (completing-read (format-prompt "%s sequence" default prompt)
                                  (mh-seq-names mh-seq-list)
                                  nil nil nil 'mh-sequence-history))
          (seq (cond ((equal input "%")
@@ -646,13 +643,10 @@ should be replaced with:
                         ((stringp default) default)
                         ((symbolp default) (symbol-name default))))
          (prompt (cond ((and guess large default)
-                        (format "%s (folder has %s messages, default %s)"
-                                prompt (car counts) default))
-                       ((and guess large)
-                        (format "%s (folder has %s messages)"
-                                prompt (car counts)))
+                        (format-prompt "%s (folder has %s messages)"
+                                default prompt (car counts)))
                        (default
-                         (format "%s (default %s)" prompt default))))
+                         (format-prompt prompt default))))
          (minibuffer-local-completion-map mh-range-completion-map)
          (seq-list (if (eq folder mh-current-folder)
                        mh-seq-list
@@ -662,7 +656,7 @@ should be replaced with:
                   (mh-seq-names seq-list)))
          (input (cond ((and (not ask-flag) unseen) (symbol-name mh-unseen-seq))
                       ((and (not ask-flag) (not large)) "all")
-                      (t (completing-read (format "%s: " prompt)
+                      (t (completing-read prompt
                                           'mh-range-completion-function nil nil
                                           nil 'mh-range-history default))))
          msg-list)

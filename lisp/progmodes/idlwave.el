@@ -7820,7 +7820,7 @@ force class query for object methods."
 	 (name (idlwave-completing-read
 		(if (or (not this-buffer)
 			(assoc default list))
-		    (format "Module (Default %s): " default)
+		    (format-prompt "Module" default)
 		  (format "Module in this file: "))
 		list))
 	 type class)

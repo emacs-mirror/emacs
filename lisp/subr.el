@@ -2806,9 +2806,9 @@ This function is used by the `interactive' code letter `n'."
     (when default1
       (setq prompt
 	    (if (string-match "\\(\\):[ \t]*\\'" prompt)
-		(replace-match (format " (default %s)" default1) t t prompt 1)
+		(replace-match (format minibuffer-default-prompt-format default1) t t prompt 1)
 	      (replace-regexp-in-string "[ \t]*\\'"
-					(format " (default %s) " default1)
+					(format minibuffer-default-prompt-format default1)
 					prompt t t))))
     (while
 	(progn

@@ -836,11 +836,7 @@ If no tags table is loaded, do nothing and return nil."
   "Read a tag name, with defaulting and completion."
   (let* ((completion-ignore-case (find-tag--completion-ignore-case))
 	 (default (find-tag--default))
-	 (spec (completing-read (if default
-				    (format "%s (default %s): "
-					    (substring string 0 (string-match "[ :]+\\'" string))
-					    default)
-				  string)
+	 (spec (completing-read (format-prompt string default)
 				(tags-lazy-completion-table)
 				nil nil nil nil default)))
     (if (equal spec "")
@@ -899,7 +895,7 @@ onto a ring and may be popped back to with \\[pop-tag-mark].
 Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
-  (interactive (find-tag-interactive "Find tag: "))
+  (interactive (find-tag-interactive "Find tag"))
 
   (setq find-tag-history (cons tagname find-tag-history))
   ;; Save the current buffer's value of `find-tag-hook' before
@@ -971,7 +967,7 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (declare (obsolete xref-find-definitions "25.1"))
-  (interactive (find-tag-interactive "Find tag: "))
+  (interactive (find-tag-interactive "Find tag"))
   (let* ((buf (find-tag-noselect tagname next-p regexp-p))
 	 (pos (with-current-buffer buf (point))))
     (condition-case nil
@@ -1000,7 +996,7 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (declare (obsolete xref-find-definitions-other-window "25.1"))
-  (interactive (find-tag-interactive "Find tag other window: "))
+  (interactive (find-tag-interactive "Find tag other window"))
 
   ;; This hair is to deal with the case where the tag is found in the
   ;; selected window's buffer; without the hair, point is moved in both
@@ -1041,7 +1037,7 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (declare (obsolete xref-find-definitions-other-frame "25.1"))
-  (interactive (find-tag-interactive "Find tag other frame: "))
+  (interactive (find-tag-interactive "Find tag other frame"))
   (let ((pop-up-frames t))
     (with-suppressed-warnings ((obsolete find-tag-other-window))
       (find-tag-other-window tagname next-p))))
@@ -1065,7 +1061,7 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (declare (obsolete xref-find-apropos "25.1"))
-  (interactive (find-tag-interactive "Find tag regexp: " t))
+  (interactive (find-tag-interactive "Find tag regexp" t))
   ;; We go through find-tag-other-window to do all the display hair there.
   (funcall (if other-window 'find-tag-other-window 'find-tag)
 	   regexp next-p t))

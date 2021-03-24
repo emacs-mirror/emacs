@@ -1192,12 +1192,7 @@ definitions."
                (xref--prompt-p this-command))
            (let ((id
                   (completing-read
-                   (if def
-                       (format "%s (default %s): "
-                               (substring prompt 0 (string-match
-                                                    "[ :]+\\'" prompt))
-                               def)
-                     prompt)
+                   (format-prompt prompt def)
                    (xref-backend-identifier-completion-table backend)
                    nil nil nil
                    'xref--read-identifier-history def)))
@@ -1257,19 +1252,19 @@ If sufficient information is available to determine a unique
 definition for IDENTIFIER, display it in the selected window.
 Otherwise, display the list of the possible definitions in a
 buffer where the user can select from the list."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref--read-identifier "Find definitions of")))
   (xref--find-definitions identifier nil))
 
 ;;;###autoload
 (defun xref-find-definitions-other-window (identifier)
   "Like `xref-find-definitions' but switch to the other window."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref--read-identifier "Find definitions of")))
   (xref--find-definitions identifier 'window))
 
 ;;;###autoload
 (defun xref-find-definitions-other-frame (identifier)
   "Like `xref-find-definitions' but switch to the other frame."
-  (interactive (list (xref--read-identifier "Find definitions of: ")))
+  (interactive (list (xref--read-identifier "Find definitions of")))
   (xref--find-definitions identifier 'frame))
 
 ;;;###autoload
@@ -1280,7 +1275,7 @@ offering the symbol at point as the default.
 With prefix argument, or if `xref-prompt-for-identifier' is t,
 always prompt for the identifier.  If `xref-prompt-for-identifier'
 is nil, prompt only if there's no usable symbol at point."
-  (interactive (list (xref--read-identifier "Find references of: ")))
+  (interactive (list (xref--read-identifier "Find references of")))
   (xref--find-xrefs identifier 'references identifier nil))
 
 ;;;###autoload

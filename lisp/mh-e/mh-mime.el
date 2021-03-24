@@ -259,9 +259,7 @@ usually reads the file \"/etc/mailcap\"."
               (methods (mapcar (lambda (x) (list (cdr (assoc 'viewer x))))
                                (mailcap-mime-info type 'all)))
               (def (caar methods))
-              (prompt (format "Viewer%s: " (if def
-                                               (format " (default %s)" def)
-                                             "")))
+              (prompt (format-prompt "Viewer" def))
               (method (completing-read prompt methods nil nil nil nil def))
               (folder mh-show-folder-buffer)
               (buffer-read-only nil))
@@ -395,9 +393,9 @@ do the work."
           ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
-           (read-directory-name (format
-                            "Store in directory (default %s): "
-                            mh-mime-save-parts-directory)
+           (read-directory-name (format-prompt
+                                 "Store in directory"
+                                 mh-mime-save-parts-directory)
                            "" mh-mime-save-parts-directory t ""))
           ((stringp mh-mime-save-parts-default-directory)
            mh-mime-save-parts-default-directory)
@@ -1258,11 +1256,7 @@ See also \\[mh-mh-to-mime]."
   (interactive (list
                 (mml-minibuffer-read-description)
                 (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-                (read-string (concat "Messages"
-                                     (if (numberp mh-sent-from-msg)
-                                         (format " (default %d): "
-                                                 mh-sent-from-msg)
-                                       ": ")))))
+                (read-string (format-prompt "Messages" mh-sent-from-msg))))
   (beginning-of-line)
   (insert "#forw [")
   (and description
@@ -1596,7 +1590,7 @@ the possible security methods (see `mh-mml-method-default')."
   (if current-prefix-arg
       (let ((def (or (car mh-mml-cryptographic-method-history)
                      mh-mml-method-default)))
-        (completing-read (format "Method (default %s): " def)
+        (completing-read (format-prompt "Method" def)
                          '(("pgp") ("pgpmime") ("smime"))
                          nil t nil 'mh-mml-cryptographic-method-history def))
     mh-mml-method-default))
@@ -1731,7 +1725,7 @@ Optional argument DEFAULT is returned if a type isn't entered."
          (type (or (and (not (equal probed-type "application/octet-stream"))
                         probed-type)
                    (completing-read
-                    (format "Content type (default %s): " default)
+                    (format-prompt "Content type" default)
                     (mapcar #'list (mailcap-mime-types))))))
     (if (not (equal type ""))
         type

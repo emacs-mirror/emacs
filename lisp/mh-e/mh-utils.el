@@ -757,10 +757,9 @@ function will accept the folder +, which means all folders when
 used in searching."
   (if (null default)
       (setq default ""))
-  (let* ((default-string (cond (default-string (format " (default %s)" default-string))
-                               ((equal "" default) "")
-                               (t (format " (default %s)" default))))
-         (prompt (format "%s folder%s: " prompt default-string))
+  (let* ((default-string (or default-string
+                             (if (equal default "") nil default)))
+         (prompt (format-prompt "%s folder" default-string prompt))
          (mh-current-folder-name mh-current-folder)
          read-name folder-name)
     (while (and (setq read-name (mh-folder-completing-read
