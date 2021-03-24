@@ -1120,13 +1120,17 @@ portion of the buffer."
     (funcall font-lock-ensure-function
              (or beg (point-min)) (or end (point-max)))))
 
-(defun font-lock-update ()
-  "Refontify the accessible portion of the buffer.
-Unconditionally activate `font-lock-mode'."
-  (interactive)
-  (unless font-lock-mode (font-lock-mode 1))
+(defun font-lock-update (&optional arg)
+  "Updates the syntax highlighting in this buffer.
+Refontify the accessible portion of this buffer, or enable Font Lock mode
+in this buffer if it is currently disabled.  With prefix ARG, toggle Font
+Lock mode."
+  (interactive "P")
   (save-excursion
-    (font-lock-fontify-region (point-min) (point-max))))
+    (if (and (not arg) font-lock-mode)
+        (font-lock-fontify-region (point-min) (point-max))
+      (font-lock-unfontify-region (point-min) (point-max))
+      (font-lock-mode 'toggle))))
 
 (defun font-lock-default-fontify-buffer ()
   "Fontify the whole buffer using `font-lock-fontify-region-function'."
