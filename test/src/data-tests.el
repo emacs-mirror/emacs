@@ -358,6 +358,7 @@ comparing the subr with a much slower lisp implementation."
             (should (equal (symbol-value var) 42))
             (should (equal (default-value var) (symbol-value var)))
             (set var 123)
+            (should (not (local-variable-p var)))
             (should (equal (symbol-value var) 123))
             (should (equal (default-value var) (symbol-value var)))) ;bug#44733
           (should (equal (symbol-value var) def))
