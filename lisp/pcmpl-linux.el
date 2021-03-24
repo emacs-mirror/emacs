@@ -31,11 +31,6 @@
 
 (require 'pcomplete)
 
-;; Unused.
-;;; (defgroup pcmpl-linux nil
-;;;   "Functions for dealing with GNU/Linux completions."
-;;;   :group 'pcomplete)
-
 ;; Functions:
 
 ;;;###autoload
