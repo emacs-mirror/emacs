@@ -33,10 +33,12 @@
 ;;; Code:
 
 (require 'seq)
-(eval-when-compile (require 'subr-x))
 (require 'cl-lib)
 (require 'auth-source)
 (require 'url-parse)
+;; Use `eval-when-compile' after the other `require's to avoid spurious
+;; "might not be defined at runtime" warnings.
+(eval-when-compile (require 'subr-x))
 
 (defgroup auth-source-pass nil
   "password-store integration within auth-source."
