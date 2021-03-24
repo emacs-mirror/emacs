@@ -135,14 +135,6 @@ typedef struct ns_bitmap_record Bitmap_Record;
 # define COLOR_TABLE_SUPPORT 1
 #endif
 
-#ifdef HAVE_RSVG
-#if defined HAVE_NS
-# define FRAME_SCALE_FACTOR(f) ns_frame_scale_factor (f)
-#else
-# define FRAME_SCALE_FACTOR(f) 1;
-#endif
-#endif
-
 static void image_disable_image (struct frame *, struct image *);
 static void image_edge_detection (struct frame *, struct image *, Lisp_Object,
                                   Lisp_Object);
