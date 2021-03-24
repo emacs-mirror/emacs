@@ -26,9 +26,9 @@
 
 ;; This package provides the `view' minor mode documented in the Emacs
 ;; user's manual.
-;; View mode entry and exit is done through the functions view-mode-enter
-;; and view-mode-exit.  Use these functions to enter or exit view-mode from
-;; emacs lisp programs.
+;; View mode entry and exit is done through the functions `view-mode-enter'
+;; and `view-mode-exit'.  Use these functions to enter or exit `view-mode' from
+;; Emacs Lisp programs.
 ;; We use both view- and View- as prefix for symbols.  View- is used as
 ;; prefix for commands that have a key binding.  view- is used for commands
 ;; without key binding.  The purpose of this is to make it easier for a
@@ -36,11 +36,11 @@
 
 ;;; Suggested key bindings:
 ;;
-;; (define-key ctl-x-4-map "v" 'view-file-other-window)  ; ^x4v
-;; (define-key ctl-x-5-map "v" 'view-file-other-frame)  ; ^x5v
+;; (define-key ctl-x-4-map "v" #'view-file-other-window)  ; ^x4v
+;; (define-key ctl-x-5-map "v" #'view-file-other-frame)   ; ^x5v
 ;;
-;; You could also bind view-file, view-buffer, view-buffer-other-window and
-;; view-buffer-other-frame to keys.
+;; You could also bind `view-file', `view-buffer', `view-buffer-other-window' and
+;; `view-buffer-other-frame' to keys.
 
 ;;; Code:
 
@@ -65,7 +65,7 @@ only rings the bell and gives a message on how to leave."
 (defcustom view-try-extend-at-buffer-end nil
  "Non-nil means try to load more of file when reaching end of buffer.
 This variable is mainly intended to be temporarily set to non-nil by
-the F command in view-mode, but you can set it to t if you want the action
+the F command in `view-mode', but you can set it to t if you want the action
 for all scroll commands in view mode."
   :type 'boolean
   :group 'view)
@@ -220,7 +220,7 @@ This is local in each buffer, once it is used.")
 ;; types C-x C-q again to return to view mode.
 ;;;###autoload
 (defun kill-buffer-if-not-modified (buf)
-  "Like `kill-buffer', but does nothing if the buffer is modified."
+  "Like `kill-buffer', but does nothing if buffer BUF is modified."
   (let ((buf (get-buffer buf)))
     (and buf (not (buffer-modified-p buf))
 	 (kill-buffer buf))))
@@ -305,7 +305,7 @@ file: Users may suspend viewing in order to modify the buffer.
 Exiting View mode will then discard the user's edits.  Setting
 EXIT-ACTION to `kill-buffer-if-not-modified' avoids this.
 
-This function does not enable View mode if the buffer's major-mode
+This function does not enable View mode if the buffer's major mode
 has a `special' mode-class, because such modes usually have their
 own View-like bindings."
   (interactive "bView buffer: ")
@@ -331,7 +331,7 @@ Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
 this argument instead of explicitly setting `view-exit-action'.
 
-This function does not enable View mode if the buffer's major-mode
+This function does not enable View mode if the buffer's major mode
 has a `special' mode-class, because such modes usually have their
 own View-like bindings."
   (interactive "bIn other window view buffer:\nP")
@@ -358,7 +358,7 @@ Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
 this argument instead of explicitly setting `view-exit-action'.
 
-This function does not enable View mode if the buffer's major-mode
+This function does not enable View mode if the buffer's major mode
 has a `special' mode-class, because such modes usually have their
 own View-like bindings."
   (interactive "bView buffer in other frame: \nP")
@@ -662,8 +662,8 @@ previous state and go to previous buffer or window."
   (recenter '(1)))
 
 (defun view-page-size-default (lines)
-  ;; If LINES is nil, 0, or larger than `view-window-size', return nil.
-  ;; Otherwise, return LINES.
+  "If LINES is nil, 0, or larger than `view-window-size', return nil.
+Otherwise, return LINES."
   (and lines
        (not (zerop (setq lines (prefix-numeric-value lines))))
        (<= (abs lines)
@@ -671,7 +671,7 @@ previous state and go to previous buffer or window."
        (abs lines)))
 
 (defun view-set-half-page-size-default (lines)
-  ;; Get and maybe set half page size.
+  "Get and maybe set half page size."
   (if (not lines) (or view-half-page-size
 		      (/ (view-window-size) 2))
     (setq view-half-page-size
@@ -749,7 +749,7 @@ invocations return to earlier marks."
 	   (if (view-really-at-end) (view-end-message)))))
 
 (defun view-really-at-end ()
-  ;; Return true if buffer end visible.  Maybe revert buffer and test.
+  "Return non-nil if buffer end visible.  Maybe revert buffer and test."
   (and (or (null scroll-error-top-bottom) (eobp))
        (pos-visible-in-window-p (point-max))
        (let ((buf (current-buffer))
@@ -772,7 +772,7 @@ invocations return to earlier marks."
 	       (pos-visible-in-window-p (point-max)))))))
 
 (defun view-end-message ()
-  ;; Tell that we are at end of buffer.
+  "Tell that we are at end of buffer."
   (goto-char (point-max))
   (if (window-parameter nil 'quit-restore)
       (message "End of buffer.  Type %s to quit viewing."
@@ -979,7 +979,7 @@ for highlighting the match that is found."
 ;; https://lists.gnu.org/r/bug-gnu-emacs/2007-09/msg00073.html
 (defun view-search-no-match-lines (times regexp)
   "Search for the TIMESth occurrence of a line with no match for REGEXP.
-If such a line is found, return non-nil and set the match-data to that line.
+If such a line is found, return non-nil and set the match data to that line.
 If TIMES is negative, search backwards."
   (let ((step (if (>= times 0) 1
                 (setq times (- times))
