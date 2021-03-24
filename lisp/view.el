@@ -1,4 +1,4 @@
-;;; view.el --- peruse file or buffer without editing
+;;; view.el --- peruse file or buffer without editing  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1989, 1994-1995, 1997, 2000-2021 Free Software
 ;; Foundation, Inc.
@@ -51,31 +51,27 @@
   :group 'text)
 
 (defcustom view-highlight-face 'highlight
-   "The face used for highlighting the match found by View mode search."
-   :type 'face
-   :group 'view)
+  "The face used for highlighting the match found by View mode search."
+  :type 'face)
 
 (defcustom view-scroll-auto-exit nil
   "Non-nil means scrolling past the end of buffer exits View mode.
 A value of nil means attempting to scroll past the end of the buffer,
 only rings the bell and gives a message on how to leave."
-  :type 'boolean
-  :group 'view)
+  :type 'boolean)
 
 (defcustom view-try-extend-at-buffer-end nil
  "Non-nil means try to load more of file when reaching end of buffer.
 This variable is mainly intended to be temporarily set to non-nil by
 the F command in `view-mode', but you can set it to t if you want the action
 for all scroll commands in view mode."
-  :type 'boolean
-  :group 'view)
+  :type 'boolean)
 
 ;;;###autoload
 (defcustom view-remove-frame-by-deleting t
   "Determine how View mode removes a frame no longer needed.
 If nil, make an icon of the frame.  If non-nil, delete the frame."
   :type 'boolean
-  :group 'view
   :version "23.1")
 
 (defcustom view-exits-all-viewing-windows nil
@@ -84,15 +80,13 @@ Commands that restore windows when finished viewing a buffer,
 apply to all windows that display the buffer and have restore
 information.  If `view-exits-all-viewing-windows' is nil, only
 the selected window is considered for restoring."
-  :type 'boolean
-  :group 'view)
+  :type 'boolean)
 
 (defcustom view-inhibit-help-message nil
   "Non-nil inhibits the help message shown upon entering View mode.
 This setting takes effect only when View mode is entered via an
 interactive command; otherwise the help message is not shown."
   :type 'boolean
-  :group 'view
   :version "22.1")
 
 ;;;###autoload
@@ -103,8 +97,7 @@ functions that enable or disable view mode.")
 
 (defcustom view-mode-hook nil
   "Normal hook run when starting to view a buffer or file."
-  :type 'hook
-  :group 'view)
+  :type 'hook)
 
 (defvar-local view-old-buffer-read-only nil)
 
@@ -154,62 +147,62 @@ This is local in each buffer, once it is used.")
 ;; Some redundant "less"-like key bindings below have been commented out.
 (defvar view-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "C" 'View-kill-and-leave)
-    (define-key map "c" 'View-leave)
-    (define-key map "Q" 'View-quit-all)
-    (define-key map "E" 'View-exit-and-edit)
-    ;; (define-key map "v" 'View-exit)
-    (define-key map "e" 'View-exit)
-    (define-key map "q" 'View-quit)
-    ;; (define-key map "N" 'View-search-last-regexp-backward)
-    (define-key map "p" 'View-search-last-regexp-backward)
-    (define-key map "n" 'View-search-last-regexp-forward)
-    ;; (define-key map "?" 'View-search-regexp-backward) ; Less does this.
-    (define-key map "\\" 'View-search-regexp-backward)
-    (define-key map "/" 'View-search-regexp-forward)
-    (define-key map "r" 'isearch-backward)
-    (define-key map "s" 'isearch-forward)
-    (define-key map "m" 'point-to-register)
-    (define-key map "'" 'register-to-point)
-    (define-key map "x" 'exchange-point-and-mark)
-    (define-key map "@" 'View-back-to-mark)
-    (define-key map "." 'set-mark-command)
-    (define-key map "%" 'View-goto-percent)
-    ;; (define-key map "G" 'View-goto-line-last)
-    (define-key map "g" 'View-goto-line)
-    (define-key map "=" 'what-line)
-    (define-key map "F" 'View-revert-buffer-scroll-page-forward)
-    ;; (define-key map "k" 'View-scroll-line-backward)
-    (define-key map "y" 'View-scroll-line-backward)
-    ;; (define-key map "j" 'View-scroll-line-forward)
-    (define-key map "\n" 'View-scroll-line-forward)
-    (define-key map "\r" 'View-scroll-line-forward)
-    (define-key map "u" 'View-scroll-half-page-backward)
-    (define-key map "d" 'View-scroll-half-page-forward)
-    (define-key map "z" 'View-scroll-page-forward-set-page-size)
-    (define-key map "w" 'View-scroll-page-backward-set-page-size)
-    ;; (define-key map "b" 'View-scroll-page-backward)
-    (define-key map "\C-?" 'View-scroll-page-backward)
-    ;; (define-key map "f" 'View-scroll-page-forward)
-    (define-key map " " 'View-scroll-page-forward)
-    (define-key map [?\S-\ ]  'View-scroll-page-backward)
-    (define-key map "o" 'View-scroll-to-buffer-end)
-    (define-key map ">" 'end-of-buffer)
-    (define-key map "<" 'beginning-of-buffer)
-    (define-key map "-" 'negative-argument)
-    (define-key map "9" 'digit-argument)
-    (define-key map "8" 'digit-argument)
-    (define-key map "7" 'digit-argument)
-    (define-key map "6" 'digit-argument)
-    (define-key map "5" 'digit-argument)
-    (define-key map "4" 'digit-argument)
-    (define-key map "3" 'digit-argument)
-    (define-key map "2" 'digit-argument)
-    (define-key map "1" 'digit-argument)
-    (define-key map "0" 'digit-argument)
-    (define-key map "H" 'describe-mode)
-    (define-key map "?" 'describe-mode)	; Maybe do as less instead? See above.
-    (define-key map "h" 'describe-mode)
+    (define-key map "C" #'View-kill-and-leave)
+    (define-key map "c" #'View-leave)
+    (define-key map "Q" #'View-quit-all)
+    (define-key map "E" #'View-exit-and-edit)
+    ;; (define-key map "v" #'View-exit)
+    (define-key map "e" #'View-exit)
+    (define-key map "q" #'View-quit)
+    ;; (define-key map "N" #'View-search-last-regexp-backward)
+    (define-key map "p" #'View-search-last-regexp-backward)
+    (define-key map "n" #'View-search-last-regexp-forward)
+    ;; (define-key map "?" #'View-search-regexp-backward) ; Less does this.
+    (define-key map "\\" #'View-search-regexp-backward)
+    (define-key map "/" #'View-search-regexp-forward)
+    (define-key map "r" #'isearch-backward)
+    (define-key map "s" #'isearch-forward)
+    (define-key map "m" #'point-to-register)
+    (define-key map "'" #'register-to-point)
+    (define-key map "x" #'exchange-point-and-mark)
+    (define-key map "@" #'View-back-to-mark)
+    (define-key map "." #'set-mark-command)
+    (define-key map "%" #'View-goto-percent)
+    ;; (define-key map "G" #'View-goto-line-last)
+    (define-key map "g" #'View-goto-line)
+    (define-key map "=" #'what-line)
+    (define-key map "F" #'View-revert-buffer-scroll-page-forward)
+    ;; (define-key map "k" #'View-scroll-line-backward)
+    (define-key map "y" #'View-scroll-line-backward)
+    ;; (define-key map "j" #'View-scroll-line-forward)
+    (define-key map "\n" #'View-scroll-line-forward)
+    (define-key map "\r" #'View-scroll-line-forward)
+    (define-key map "u" #'View-scroll-half-page-backward)
+    (define-key map "d" #'View-scroll-half-page-forward)
+    (define-key map "z" #'View-scroll-page-forward-set-page-size)
+    (define-key map "w" #'View-scroll-page-backward-set-page-size)
+    ;; (define-key map "b" #'View-scroll-page-backward)
+    (define-key map "\C-?" #'View-scroll-page-backward)
+    ;; (define-key map "f" #'View-scroll-page-forward)
+    (define-key map " " #'View-scroll-page-forward)
+    (define-key map [?\S-\ ] #'View-scroll-page-backward)
+    (define-key map "o" #'View-scroll-to-buffer-end)
+    (define-key map ">" #'end-of-buffer)
+    (define-key map "<" #'beginning-of-buffer)
+    (define-key map "-" #'negative-argument)
+    (define-key map "9" #'digit-argument)
+    (define-key map "8" #'digit-argument)
+    (define-key map "7" #'digit-argument)
+    (define-key map "6" #'digit-argument)
+    (define-key map "5" #'digit-argument)
+    (define-key map "4" #'digit-argument)
+    (define-key map "3" #'digit-argument)
+    (define-key map "2" #'digit-argument)
+    (define-key map "1" #'digit-argument)
+    (define-key map "0" #'digit-argument)
+    (define-key map "H" #'describe-mode)
+    (define-key map "?" #'describe-mode)	; Maybe do as less instead? See above.
+    (define-key map "h" #'describe-mode)
     map))
 
 ;;; Commands that enter or exit view mode.
