@@ -5354,6 +5354,8 @@ For internal use.  */);
 
 If a directory is non absolute is assumed to be relative to
 `invocation-directory'.
+`comp-native-version-dir' value is used as a sub-folder name inside
+each eln cache directory.
 The last directory of this list is assumed to be the system one.  */);
 
   /* Temporary value in use for bootstrap.  We can't do better as
