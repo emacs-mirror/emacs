@@ -3692,7 +3692,7 @@ Prepare every function for final compilation and drive the C back-end."
 
 (defun comp-eln-load-path-eff ()
   "Return a list of effective eln load directories.
-Account for `comp-load-path' and `comp-native-version-dir'."
+Account for `comp-eln-load-path' and `comp-native-version-dir'."
   (mapcar (lambda (dir)
             (expand-file-name comp-native-version-dir
                               (file-name-as-directory

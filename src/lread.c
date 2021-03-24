@@ -1675,7 +1675,9 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd)
   FOR_EACH_TAIL_SAFE (eln_path_tail)
     {
       Lisp_Object eln_name =
-	Fexpand_file_name (eln_rel_name, XCAR (eln_path_tail));
+	Fexpand_file_name (eln_rel_name,
+			   Fexpand_file_name (Vcomp_native_version_dir,
+					      XCAR (eln_path_tail)));
       int eln_fd = emacs_open (SSDATA (ENCODE_FILE (eln_name)), O_RDONLY, 0);
 
       if (eln_fd > 0)
