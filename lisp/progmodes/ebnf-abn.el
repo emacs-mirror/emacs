@@ -1,4 +1,4 @@
-;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)
+;;; ebnf-abn.el --- parser for ABNF (Augmented BNF)  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)
+;;; ebnf-ebx.el --- parser for EBNF used to specify XML (EBNFX)  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 

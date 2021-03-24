@@ -1,4 +1,4 @@
-;;; ebnf-iso.el --- parser for ISO EBNF
+;;; ebnf-iso.el --- parser for ISO EBNF  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
