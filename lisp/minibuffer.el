@@ -3948,7 +3948,8 @@ is included in the return value."
        prompt
      (apply #'format prompt format-args))
    (and default
-        (length> default 0)
+        (or (not (stringp default))
+            (length> default 0))
         (format minibuffer-default-prompt-format
                 (if (consp default)
                     (car default)
