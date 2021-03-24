@@ -1412,6 +1412,42 @@ function `tab-bar-tab-name-function'."
 
 ;;; Tab groups
 
+(defun tab-bar-move-tab-to-group (&optional tab)
+  "Relocate TAB (or the current tab) closer to its group."
+  (interactive)
+  (let* ((tabs (funcall tab-bar-tabs-function))
+         (tab (or tab (tab-bar--current-tab-find tabs)))
+         (tab-index (tab-bar--tab-index tab))
+         (group (alist-get 'group tab))
+         ;; Beginning position of the same group
+         (beg (seq-position tabs group
+                            (lambda (tb gr)
+                              (and (not (eq tb tab))
+                                   (equal (alist-get 'group tb) gr)))))
+         ;; Size of the same group
+         (len (when beg
+                (seq-position (nthcdr beg tabs) group
+                              (lambda (tb gr)
+                                (not (equal (alist-get 'group tb) gr))))))
+         (pos (when beg
+                (cond
+                 ;; Don't move tab when it's already inside group bounds
+                 ((and len (>= tab-index beg) (<= tab-index (+ beg len))) nil)
+                 ;; Move tab from the right to the group end
+                 ((and len (> tab-index (+ beg len))) (+ beg len 1))
+                 ;; Move tab from the left to the group beginning
+                 ((< tab-index beg) beg)))))
+    (when pos
+      (tab-bar-move-tab-to pos (1+ tab-index)))))
+
+(defcustom tab-bar-tab-post-change-group-functions nil
+  "List of functions to call after changing a tab group.
+The current tab is supplied as an argument."
+  :type 'hook
+  :options '(tab-bar-move-tab-to-group)
+  :group 'tab-bar
+  :version "28.1")
+
 (defun tab-bar-change-tab-group (group-name &optional arg)
   "Add the tab specified by its absolute position ARG to GROUP-NAME.
 If no ARG is specified, then set the GROUP-NAME for the current tab.
@@ -1444,6 +1480,8 @@ While using this command, you might also want to replace
     (if group
         (setcdr group group-new-name)
       (nconc tab `((group . ,group-new-name))))
+
+    (run-hook-with-args 'tab-bar-tab-post-change-group-functions tab)
 
     (force-mode-line-update)
     (unless tab-bar-mode
