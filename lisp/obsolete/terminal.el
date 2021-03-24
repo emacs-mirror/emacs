@@ -32,7 +32,7 @@
 
 ;; For information on US government censorship of the Internet, and
 ;; what you can do to bring back freedom of the press, see the web
-;; site http://www.vtw.org/
+;; site https://www.eff.org/ [used to be vtw.org but that link is dead]
 
 ;;; Code:
 

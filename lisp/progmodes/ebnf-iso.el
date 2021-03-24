@@ -38,7 +38,7 @@
 ;; ---------------
 ;;
 ;;	See the URL:
-;;	`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
+;;	`https://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
 ;;	("International Standard of the ISO EBNF Notation").
 ;;
 ;;

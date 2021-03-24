@@ -382,7 +382,7 @@ Archives \(such as groups.google.com) respect this header."
   :group 'message-various)
 
 (defcustom message-archive-note
-  "X-No-Archive: Yes - save http://groups.google.com/"
+  "X-No-Archive: Yes - save https://groups.google.com/"
   "Note to insert why you wouldn't want this posting archived.
 If nil, don't insert any text in the body."
   :version "22.1"

@@ -2245,7 +2245,7 @@ See `set-language-info-alist' for use in programs."
      ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
      ;; with additions from ISO 639/RA Newsletter No.1/1989;
      ;; see Internet RFC 2165 (1997-06) and
-     ;; http://www.evertype.com/standards/iso639/iso639-en.html
+     ;; https://www.evertype.com/standards/iso639/iso639-en.html
      ;; TERRITORY is a country code taken from ISO 3166
      ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
      ;; CODESET and MODIFIER are implementation-dependent.

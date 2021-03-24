@@ -4,7 +4,7 @@
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newst-plainview.el
-;; URL:         http://www.nongnu.org/newsticker
+;; URL:         https://www.nongnu.org/newsticker
 ;; Package:     newsticker
 
 ;; ======================================================================

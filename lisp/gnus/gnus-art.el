@@ -971,7 +971,7 @@ see http://www.cs.indiana.edu/picons/ftp/index.html"
   :version "22.1"
   :type '(repeat directory)
   :link '(url-link :tag "download"
-		   "http://www.cs.indiana.edu/picons/ftp/index.html")
+                   "http://www.cs.indiana.edu/picons/ftp/index.html")
   :link '(custom-manual "(gnus)Picons")
   :group 'gnus-picon)
 

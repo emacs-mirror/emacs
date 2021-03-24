@@ -6,7 +6,7 @@
 ;; Version: 1.0
 ;; Created: Dec 2005
 ;; Keywords: outlines
-;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
+;; Website: https://myriadicity.net/software-and-systems/craft/emacs-allout
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 ;; See the `allout-widgets-mode' docstring for more details.
 ;;
 ;; Info about allout and allout-widgets development are available at
-;; http://myriadicity.net/Sundry/EmacsAllout
+;; https://myriadicity.net/software-and-systems/craft/emacs-allout
 ;;
 ;; The graphics include:
 ;;

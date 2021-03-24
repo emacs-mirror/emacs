@@ -274,7 +274,7 @@ that it is for swish++, not Namazu."
   :type '(regexp))
 
 ;; Swish-E.
-;; URL: http://swish-e.org/
+;; URL: http://swish-e.org/ [dead link?]
 ;; Variables `nnir-swish-e-index-files', `nnir-swish-e-program' and
 ;; `nnir-swish-e-additional-switches'
 
@@ -311,7 +311,7 @@ that it is for swish-e, not Namazu.
 This could be a server parameter."
   :type '(regexp))
 
-;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/>
+;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/> [dead link?]
 
 (defcustom nnir-hyrex-program "nnir-search"
   "Name of the nnir-search executable."

@@ -5,7 +5,7 @@
 ;; Author:      Reto Zimmermann <reto@gnu.org>
 ;; Version:     2.28
 ;; Keywords:    languages vera
-;; WWW:         http://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html
+;; WWW:         https://guest.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 18/3/2008, and the maintainer agreed that when a bug is
@@ -249,7 +249,7 @@ Add a description of the problem and include a reproducible test case.
 Feel free to send questions and enhancement requests to <reto@gnu.org>.
 
 Official distribution is at
-URL `http://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html'
+URL `https://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html'
 
 
                                                   The Vera Mode Maintainer

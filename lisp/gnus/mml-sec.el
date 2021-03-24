@@ -140,7 +140,7 @@ by default identifies the used encryption keys, giving away the
 Bcc'ed identities.  Clearly, this contradicts the original goal of
 *blind* copies.
 For an academic paper explaining the problem, see URL
-`http://crypto.stanford.edu/portia/papers/bb-bcc.pdf'.
+`https://crypto.stanford.edu/portia/papers/bb-bcc.pdf'.
 Use this variable to specify e-mail addresses whose owners do not
 mind if they are identifiable as recipients.  This may be useful if
 you use Bcc headers to encrypt e-mails to yourself."

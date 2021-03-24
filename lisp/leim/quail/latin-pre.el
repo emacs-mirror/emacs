@@ -1294,7 +1294,7 @@ of characters from a single Latin-N charset.
 ;;; correctly on most displays.
 
 ;;; This reference is an authoritative guide to Hawaiian orthography:
-;;; http://www2.hawaii.edu/~strauch/tips/HawaiianOrthography.html
+;;; https://www2.hawaii.edu/~strauch/tips/HawaiianOrthography.html
 
 ;;; Initial coding 2018-09-08 Bob Newell, Honolulu, Hawaiʻi
 ;;; Comments to bobnewell@bobnewell.net

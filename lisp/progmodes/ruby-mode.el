@@ -331,7 +331,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
 (require 'smie)
 
 ;; Here's a simplified BNF grammar, for reference:
-;; http://www.cse.buffalo.edu/~regan/cse305/RubyBNF.pdf
+;; https://www.cse.buffalo.edu/~regan/cse305/RubyBNF.pdf
 (defconst ruby-smie-grammar
   (smie-prec2->grammar
    (smie-merge-prec2s

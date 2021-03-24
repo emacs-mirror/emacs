@@ -42,7 +42,7 @@
 ;; reflect this.
 ;;
 ;; The home of this file is in Gnus, but also available from
-;; http://josefsson.org/smime.html.
+;; https://josefsson.org/smime.html.
 
 ;;; Quick introduction:
 

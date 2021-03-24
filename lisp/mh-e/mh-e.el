@@ -1907,7 +1907,7 @@ white image, can be generated using the \"compface\" command (see URL
 `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z'). The
 \"Online X-Face Converter\" is a useful resource for quick conversion
 of images into \"X-Face:\" header fields (see URL
-`http://www.dairiki.org/xface/').
+`https://www.dairiki.org/xface/').
 
 Use the \"make-face\" script to convert a JPEG image to the higher
 resolution, color, \"Face:\" header field (see URL
@@ -2466,9 +2466,9 @@ of citations entirely, choose \"None\"."
     "Disposition-Notification-Options:" ; RFC 2298
     "Disposition-Notification-To:"      ; RFC 2298
     "Distribution:"                     ; RFC 1036
-    "DKIM-"                             ; http://antispam.yahoo.com/domainkeys
+    "DKIM-"                             ; https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail
     "DL-Expansion-History:"             ; RFC 2156
-    "DomainKey-"                        ; http://antispam.yahoo.com/domainkeys
+    "DomainKey-"                        ; https://en.wikipedia.org/wiki/DomainKeys_Identified_Mail
     "DomainKey-Signature:"
     "Encoding:"                         ; RFC 1505
     "Envelope-to:"
@@ -2555,7 +2555,7 @@ of citations entirely, choose \"None\"."
     "X-Abuse-Info:"
     "X-Accept-Language:"                ; Netscape/Mozilla
     "X-Ack:"
-    "X-ACL-Warn:"			; http://www.exim.org
+    "X-ACL-Warn:"			; https://www.exim.org
     "X-Admin:"                          ; https://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Administrivia-To:"
     "X-AMAZON"                          ; Amazon.com
@@ -2579,8 +2579,8 @@ of citations entirely, choose \"None\"."
     "X-BFI:"
     "X-Bigfish:"
     "X-Bogosity:"                       ; bogofilter
-    "X-BPS1:"				; http://www.boggletools.com
-    "X-BPS2:"				; http://www.boggletools.com
+    "X-BPS1:"				; http://www.boggletools.com [dead link?]
+    "X-BPS2:"				; http://www.boggletools.com [dead link?]
     "X-Brightmail-Tracker:"             ; Brightmail
     "X-BrightmailFiltered:"             ; Brightmail
     "X-Bugzilla-"                       ; Bugzilla
@@ -2596,12 +2596,12 @@ of citations entirely, choose \"None\"."
     "X-Confirm-Reading-To:"             ; https://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Content-Filtered-By:"
     "X-ContentStamp:"                   ; NetZero
-    "X-Country-Chain:"                  ; http://www.declude.com/x-note.htm
+    "X-Country-Chain:"                  ; http://www.declude.com/x-note.htm [dead link?]
     "X-Cr-Hashedpuzzle:"
     "X-Cr-Puzzleid:"
     "X-Cron-Env:"
     "X-DCC-"                            ; SpamAssassin
-    "X-Declude-"                        ; http://www.declude.com/x-note.htm
+    "X-Declude-"                        ; http://www.declude.com/x-note.htm [dead link?]
     "X-Dedicated:"
     "X-Delivered"
     "X-Destination-ID:"
@@ -2616,7 +2616,7 @@ of citations entirely, choose \"None\"."
     "X-EID:"
     "X-ELNK-Trace:"                     ; Earthlink mailer
     "X-EM-"				; Some ecommerce software
-    "X-Email-Type-Id:"			; Paypal http://www.paypal.com
+    "X-Email-Type-Id:"			; Paypal https://www.paypal.com
     "X-Enigmail-Version:"
     "X-Envelope-Date:"                  ; GNU mailutils
     "X-Envelope-From:"                  ; https://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2632,21 +2632,21 @@ of citations entirely, choose \"None\"."
     "X-Folder:"                         ; Spam
     "X-Forwarded-"                      ; Google+
     "X-From-Line"
-    "X-FuHaFi:"				; http://www.gmx.net/
+    "X-FuHaFi:"				; https://www.gmx.net/
     "X-Generated-By:"                   ; launchpad.net
     "X-Gmail-"                          ; Gmail
     "X-Gnus-Mail-Source:"               ; gnus
     "X-Google-"                         ; Google mail
     "X-Google-Sender-Auth:"
     "X-Greylist:"                       ; milter-greylist-1.2.1
-    "X-Habeas-"				; http://www.returnpath.net
+    "X-Habeas-"				; https://www.returnpath.net
     "X-Hashcash:"                       ; hashcash
     "X-Headers-End:"                    ; SpamCop
     "X-HPL-"
     "X-HR-"
     "X-HTTP-UserAgent:"
     "X-Hz"				; Hertz
-    "X-Identity:"                       ; http://www.declude.com/x-note.htm
+    "X-Identity:"                       ; http://www.declude.com/x-note.htm [dead link?]
     "X-IEEE-UCE-"                       ; IEEE spam filter
     "X-Image-URL:"
     "X-IMAP:"                           ; https://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2667,7 +2667,7 @@ of citations entirely, choose \"None\"."
     "X-Loop:"                           ; https://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "X-Lrde-Mailscanner:"
     "X-Lumos-SenderID:"                 ; Roving ConstantContact
-    "X-mail_abuse_inquiries:"		; http://www.salesforce.com
+    "X-mail_abuse_inquiries:"		; https://www.salesforce.com
     "X-Mail-from:"                      ; fastmail.fm
     "X-MAIL-INFO:"                      ; NetZero
     "X-Mailer_"
@@ -2680,11 +2680,11 @@ of citations entirely, choose \"None\"."
     "X-Mailutils-Message-Id"            ; GNU Mailutils
     "X-Majordomo:"                      ; Majordomo mailing list manager
     "X-Match:"
-    "X-MaxCode-Template:"		; Paypal http://www.paypal.com
+    "X-MaxCode-Template:"		; Paypal https://www.paypal.com
     "X-MB-Message-"                     ; AOL WebMail
     "X-MDaemon-Deliver-To:"
     "X-MDRemoteIP:"
-    "X-ME-Bayesian:"			; http://www.newmediadevelopment.net/page.cfm/parent/Client-Area/content/Managing-spam/
+    "X-ME-Bayesian:"			; https://www.newmediadevelopment.net/page.cfm/parent/Client-Area/content/Managing-spam/
     "X-Message-Id"
     "X-Message-Type:"
     "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
@@ -2755,7 +2755,7 @@ of citations entirely, choose \"None\"."
     "X-Server-Date:"
     "X-Server-Uuid:"
     "X-Service-Code:"
-    "X-SFDC-"				; http://www.salesforce.com
+    "X-SFDC-"				; https://www.salesforce.com
     "X-Sieve:"                          ; Sieve filtering
     "X-SMFBL:"
     "X-SMHeaderMap:"
@@ -2770,7 +2770,7 @@ of citations entirely, choose \"None\"."
     "X-Submissions-To:"
     "X-Sun-Charset:"
     "X-Telecom-Digest"
-    "X-TM-IMSS-Message-ID:"		; http://www.trendmicro.com
+    "X-TM-IMSS-Message-ID:"		; https://www.trendmicro.com
     "X-Trace:"
     "X-UID"
     "X-UIDL:"                           ; https://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2790,10 +2790,10 @@ of citations entirely, choose \"None\"."
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
     "X-X-Sender:"                       ; https://people.dsv.su.se/~jpalme/ietf/mail-headers/
-    "X-XPT-XSL-Name:"			; Paypal http://www.paypal.com
+    "X-XPT-XSL-Name:"			; Paypal https://www.paypal.com
     "X-xsi-"
-    "X-XWALL-"				; http://www.dataenter.co.at/doc/xwall_undocumented_config.htm
-    "X-Y-GMX-Trusted:"			; http://www.gmx.net/
+    "X-XWALL-"				; https://www.dataenter.co.at/doc/xwall_undocumented_config.htm
+    "X-Y-GMX-Trusted:"			; https://www.gmx.net/
     "X-Yahoo"
     "X-Yahoo-Newman-"
     "X-YMail-"
@@ -3039,7 +3039,7 @@ XEmacs. For more information, see URL
 `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.z'). Recent
 versions of XEmacs have internal support for \"X-Face:\" images. If
 your version of XEmacs does not, then you'll need both \"uncompface\"
-and the x-face package (see URL `http://www.jpl.org/ftp/pub/elisp/').
+and the x-face package (see URL `https://www.jpl.org/ftp/pub/elisp/').
 
 Finally, MH-E will display images referenced by the \"X-Image-URL:\"
 header field if neither the \"Face:\" nor the \"X-Face:\" fields are

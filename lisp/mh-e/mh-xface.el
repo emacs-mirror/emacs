@@ -365,7 +365,7 @@ Replace the ?/ character with a ?! character and append .png.
 Also replaces special characters with `mh-url-hexify-string'
 since not all characters, such as :, are valid within Windows
 filenames.  In addition, replaces * with %2a. See URL
-`http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/ifaces/iitemnamelimits/GetValidCharacters.asp'."
+`https://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/shell/reference/ifaces/iitemnamelimits/GetValidCharacters.asp'."
   (format "%s/%s.png" mh-x-image-cache-directory
           (mh-replace-regexp-in-string
            "\\*" "%2a"

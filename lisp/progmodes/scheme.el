@@ -28,7 +28,7 @@
 ;; the Lisp mode documented in the Emacs manual.  `dsssl-mode' is a
 ;; variant of scheme-mode for editing DSSSL specifications for SGML
 ;; documents.  [As of Apr 1997, some pointers for DSSSL may be found,
-;; for instance, at <URL:http://www.sil.org/sgml/related.html#dsssl>.]
+;; for instance, at <URL:https://www.sil.org/sgml/related.html#dsssl>.]
 ;; All these Lisp-ish modes vary basically in details of the language
 ;; syntax they highlight/indent/index, but dsssl-mode uses "^;;;" as
 ;; the page-delimiter since ^L isn't normally a valid SGML character.

@@ -330,7 +330,7 @@ Please send all bug fixes and enhancements to
 ;;			("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
-;;			`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
+;;			`https://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
 ;;			("International Standard of the ISO EBNF Notation").
 ;;			The following variables *ONLY* have effect with this
 ;;			setting:
@@ -1783,7 +1783,7 @@ Valid values are:
 		(\"Augmented BNF for Syntax Specifications: ABNF\").
 
    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
-		`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
+                `https://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
 		(\"International Standard of the ISO EBNF Notation\").
 		The following variables *ONLY* have effect with this
 		setting:

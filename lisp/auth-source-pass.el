@@ -27,7 +27,7 @@
 
 ;;; Commentary:
 
-;; Integrates password-store (http://passwordstore.org/) within
+;; Integrates password-store (https://passwordstore.org/) within
 ;; auth-source.
 
 ;;; Code:
@@ -123,7 +123,7 @@ ENTRY is the name of a password-store entry.
 The key used to retrieve the password is the symbol `secret'.
 
 The convention used as the format for a password-store file is
-the following (see http://www.passwordstore.org/#organization):
+the following (see https://www.passwordstore.org/#organization):
 
 secret
 key1: value1

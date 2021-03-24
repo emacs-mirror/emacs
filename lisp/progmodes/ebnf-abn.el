@@ -39,10 +39,6 @@
 ;;
 ;;	See the URL:
 ;;	`https://www.ietf.org/rfc/rfc2234.txt'
-;;	or
-;;	`http://www.faqs.org/rfcs/rfc2234.html'
-;;	or
-;;	`http://www.rnp.br/ietf/rfc/rfc2234.txt'
 ;;	("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;

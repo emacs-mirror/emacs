@@ -6,7 +6,7 @@
 ;; Keywords:     mouse
 ;; Old-Version:	 1.2.6
 ;; Release-date: 6-Aug-2004
-;; Location:     http://www.lysator.liu.se/~tab/artist/
+;; Location:     https://www.lysator.liu.se/~tab/artist/
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is filed in
