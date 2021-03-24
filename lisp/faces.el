@@ -25,8 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'subr-x))
-
 (defcustom term-file-prefix (purecopy "term/")
   "If non-nil, Emacs startup performs terminal-specific initialization.
 It does this by: (load (concat term-file-prefix (getenv \"TERM\")))
