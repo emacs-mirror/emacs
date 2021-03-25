@@ -1935,13 +1935,13 @@ when you're online.
 
 Let's talk about Unix systems first: For the news part,
 the easiest solution is a small nntp server like
-@uref{http://www.leafnode.org/, Leafnode} or
+@uref{https://www.leafnode.org/, Leafnode} or
 @uref{http://patrik.iki.fi/sn/, sn},
 of course you can also install a full featured news
 server like
 @uref{https://www.isc.org/othersoftware/, inn}.
 Then you want to fetch your Mail, popular choices
-are @uref{http://www.fetchmail.info/, fetchmail}
+are @uref{https://www.fetchmail.info/, fetchmail}
 and @uref{http://pyropus.ca/software/getmail/, getmail}.
 You should tell those to write the mail to your disk and
 Gnus to read it from there. Last but not least the mail

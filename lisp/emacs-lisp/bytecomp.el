@@ -548,6 +548,10 @@ has the form (autoload . FILENAME).")
 
 (defvar byte-compile-unresolved-functions nil
   "Alist of undefined functions to which calls have been compiled.
+Each element in the list has the form (FUNCTION POSITION . CALLS)
+where CALLS is a list whose elements are integers (indicating the
+number of arguments passed in the function call) or the constant `t'
+if the function is called indirectly.
 This variable is only significant whilst compiling an entire buffer.
 Used for warnings when a function is not known to be defined or is later
 defined with incorrect args.")
@@ -1472,9 +1476,9 @@ when printing the error message."
       ;; Remember number of args in call.
       (let ((cons (assq f byte-compile-unresolved-functions)))
         (if cons
-            (or (memq nargs (cdr cons))
-                (push nargs (cdr cons)))
-          (push (list f nargs)
+            (or (memq nargs (cddr cons))
+                (push nargs (cddr cons)))
+          (push (list f byte-compile-last-position nargs)
                 byte-compile-unresolved-functions)))))
 
 ;; Warn if the form is calling a function with the wrong number of arguments.
@@ -1574,14 +1578,14 @@ extra args."
     (setq byte-compile-unresolved-functions
           (delq calls byte-compile-unresolved-functions))
     (setq calls (delq t calls))      ;Ignore higher-order uses of the function.
-    (when (cdr calls)
+    (when (cddr calls)
       (when (and (symbolp name)
                  (eq (function-get name 'byte-optimizer)
                      'byte-compile-inline-expand))
         (byte-compile-warn "defsubst `%s' was used before it was defined"
                            name))
       (setq sig (byte-compile-arglist-signature arglist)
-            nums (sort (copy-sequence (cdr calls)) (function <))
+            nums (sort (copy-sequence (cddr calls)) (function <))
             min (car nums)
             max (car (nreverse nums)))
       (when (or (< min (car sig))
@@ -1689,56 +1693,21 @@ It is too wide if it has any lines longer than the largest of
                            kind name col))))
   form)
 
-(defun byte-compile-print-syms (str1 strn syms)
-  (when syms
-    (byte-compile-set-symbol-position (car syms) t))
-  (cond ((and (cdr syms) (not noninteractive))
-	 (let* ((str strn)
-		(L (length str))
-		s)
-	   (while syms
-	     (setq s (symbol-name (pop syms))
-		   L (+ L (length s) 2))
-	     (if (< L (1- (buffer-local-value 'fill-column
-                                              (or (get-buffer
-                                                   byte-compile-log-buffer)
-                                                  (current-buffer)))))
-		 (setq str (concat str " " s (and syms ",")))
-	       (setq str (concat str "\n    " s (and syms ","))
-		     L (+ (length s) 4))))
-	   (byte-compile-warn "%s" str)))
-	((cdr syms)
-	 (byte-compile-warn "%s %s"
-			    strn
-			    (mapconcat #'symbol-name syms ", ")))
-
-	(syms
-	 (byte-compile-warn str1 (car syms)))))
-
 ;; If we have compiled any calls to functions which are not known to be
 ;; defined, issue a warning enumerating them.
 ;; `unresolved' in the list `byte-compile-warnings' disables this.
 (defun byte-compile-warn-about-unresolved-functions ()
   (when (byte-compile-warning-enabled-p 'unresolved)
-    (let ((byte-compile-current-form :end)
-	  (noruntime nil)
-	  (unresolved nil))
+    (let ((byte-compile-current-form :end))
       ;; Separate the functions that will not be available at runtime
       ;; from the truly unresolved ones.
-      (dolist (f byte-compile-unresolved-functions)
-        (setq f (car f))
-        (when (not (memq f byte-compile-new-defuns))
-          (if (fboundp f) (push f noruntime) (push f unresolved))))
-      ;; Complain about the no-run-time functions
-      (byte-compile-print-syms
-       "the function `%s' might not be defined at runtime."
-       "the following functions might not be defined at runtime:"
-       noruntime)
-      ;; Complain about the unresolved functions
-      (byte-compile-print-syms
-       "the function `%s' is not known to be defined."
-       "the following functions are not known to be defined:"
-       unresolved)))
+      (dolist (urf byte-compile-unresolved-functions)
+        (let ((f (car urf)))
+          (when (not (memq f byte-compile-new-defuns))
+            (let ((byte-compile-last-position (cadr urf)))
+              (byte-compile-warn
+               (if (fboundp f) "the function `%s' might not be defined at runtime." "the function `%s' is not known to be defined.")
+               (car urf))))))))
   nil)
 
 
@@ -5006,10 +4975,10 @@ binding slots have been popped."
      (byte-compile-push-constant op)
      (byte-compile-form fun)
      (byte-compile-form prop)
-     (let* ((fun (eval fun))
-            (prop (eval prop))
+     (let* ((fun (eval fun t))
+            (prop (eval prop t))
             (val (if (macroexp-const-p val)
-                     (eval val)
+                     (eval val t)
                    (byte-compile-lambda (cadr val)))))
        (push `(,fun
                . (,prop ,val ,@(alist-get fun overriding-plist-environment)))

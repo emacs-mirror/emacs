@@ -1,4 +1,4 @@
-;;; ebnf-iso.el --- parser for ISO EBNF
+;;; ebnf-iso.el --- parser for ISO EBNF  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -38,7 +38,7 @@
 ;; ---------------
 ;;
 ;;	See the URL:
-;;	`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
+;;	`https://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
 ;;	("International Standard of the ISO EBNF Notation").
 ;;
 ;;

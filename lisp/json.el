@@ -26,7 +26,7 @@
 ;; This is a library for parsing and generating JSON (JavaScript Object
 ;; Notation).
 
-;; Learn all about JSON here: <URL:http://json.org/>.
+;; Learn all about JSON here: <URL:https://json.org/>.
 
 ;; The user-serviceable entry points for the parser are the functions
 ;; `json-read' and `json-read-from-string'.  The encoder has a single

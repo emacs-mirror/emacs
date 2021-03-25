@@ -1,4 +1,4 @@
-;;; help-at-pt.el --- local help through the keyboard
+;;; help-at-pt.el --- local help through the keyboard  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
@@ -42,9 +42,6 @@
 ;;
 ;; (global-set-key [C-tab] 'scan-buf-next-region)
 ;; (global-set-key [C-M-tab] 'scan-buf-previous-region)
-;;
-;; You do not have to do anything special to use the functionality
-;; provided by this file, because all important functions autoload.
 
 ;;; Code:
 

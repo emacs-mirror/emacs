@@ -12650,9 +12650,8 @@ gui_consider_frame_title (Lisp_Object frame)
 	 mode_line_noprop_buf; then display the title.  */
       record_unwind_protect (unwind_format_mode_line,
 			     format_mode_line_unwind_data
-			       (f, current_buffer, selected_window, false));
+			     (NULL, current_buffer, Qnil, false));
 
-      Fselect_window (f->selected_window, Qt);
       set_buffer_internal_1
 	(XBUFFER (XWINDOW (f->selected_window)->contents));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;

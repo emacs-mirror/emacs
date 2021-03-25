@@ -163,7 +163,7 @@
 ;;     (autoload 'feedmail-buffer-to-smtpmail "feedmail" nil t)
 ;;     (setq feedmail-buffer-eating-function 'feedmail-buffer-to-smtpmail)
 ;;
-;; Alternatively, the FLIM <http://www.m17n.org/FLIM/> project
+;; Alternatively, the FLIM <https://www.m17n.org/FLIM/> project
 ;; provides a library called smtp.el.  If you want to use that, the above lines
 ;; would be:
 ;;

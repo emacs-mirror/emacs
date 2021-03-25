@@ -6958,7 +6958,8 @@ the return value is nil.  Otherwise the value is t.  */)
 
 	  if (BUFFERP (w->contents)
 	      && !EQ (w->contents, p->buffer)
-	      && BUFFER_LIVE_P (XBUFFER (p->buffer)))
+	      && BUFFER_LIVE_P (XBUFFER (p->buffer))
+	      && (NILP (Fminibufferp (p->buffer, Qnil))))
 	    /* If a window we restore gets another buffer, record the
 	       window's old buffer.  */
 	    call1 (Qrecord_window_buffer, window);

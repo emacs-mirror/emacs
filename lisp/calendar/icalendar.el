@@ -66,7 +66,7 @@
 ;;  0.02:
 ;;  - Should work in XEmacs now.  Thanks to Len Trigg for the XEmacs patches!
 ;;  - Added exporting from Emacs diary to ical.
-;;  - Some bugfixes, after testing with calendars from http://icalshare.com.
+;;  - Some bugfixes, after testing with calendars from https://icalshare.com.
 ;;  - Tested with Emacs 21.3.2 and XEmacs 21.4.12
 
 ;;  0.01: (2003-03-21)

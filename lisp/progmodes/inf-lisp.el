@@ -487,7 +487,7 @@ Used by these commands to determine defaults."
 
 (defun lisp-load-file (file-name)
   "Load a Lisp file into the inferior Lisp process."
-  (interactive (comint-get-source "Load Lisp file: " lisp-prev-l/c-dir/file
+  (interactive (comint-get-source "Load Lisp file" lisp-prev-l/c-dir/file
 				  lisp-source-modes nil)) ; nil because LOAD
 					; doesn't need an exact name
   (comint-check-source file-name) ; Check to see if buffer needs saved.
@@ -500,7 +500,7 @@ Used by these commands to determine defaults."
 
 (defun lisp-compile-file (file-name)
   "Compile a Lisp file in the inferior Lisp process."
-  (interactive (comint-get-source "Compile Lisp file: " lisp-prev-l/c-dir/file
+  (interactive (comint-get-source "Compile Lisp file" lisp-prev-l/c-dir/file
 				  lisp-source-modes nil)) ; nil = don't need
 					; suffix .lisp
   (comint-check-source file-name) ; Check to see if buffer needs saved.

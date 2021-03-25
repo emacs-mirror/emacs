@@ -1,4 +1,4 @@
-;;; thumbs.el --- Thumbnails previewer for images files
+;;; thumbs.el --- Thumbnails previewer for images files  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This package create two new modes: thumbs-mode and thumbs-view-image-mode.
+;; This package create two new modes: `thumbs-mode' and `thumbs-view-image-mode'.
 ;; It is used for basic browsing and viewing of images from within Emacs.
 ;; Minimal image manipulation functions are also available via external
 ;; programs.  If you want to do more complex tasks like categorize and tag
@@ -34,7 +34,7 @@
 ;;
 ;; Thanks: Alex Schroeder <alex@gnu.org> for maintaining the package at some
 ;;         time.  The peoples at #emacs@freenode.net for numerous help.  RMS
-;;         for emacs and the GNU project.
+;;         for Emacs and the GNU project.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -68,29 +68,24 @@
 
 (defcustom thumbs-thumbsdir (locate-user-emacs-file "thumbs")
   "Directory to store thumbnails."
-  :type 'directory
-  :group 'thumbs)
+  :type 'directory)
 
 (defcustom thumbs-geometry "100x100"
   "Size of thumbnails."
-  :type 'string
-  :group 'thumbs)
+  :type 'string)
 
 (defcustom thumbs-per-line 4
   "Number of thumbnails per line to show in directory."
-  :type 'integer
-  :group 'thumbs)
+  :type 'integer)
 
 (defcustom thumbs-max-image-number 16
  "Maximum number of images initially displayed in thumbs buffer."
-  :type 'integer
-  :group 'thumbs)
+  :type 'integer)
 
 (defcustom thumbs-thumbsdir-max-size 50000000
   "Maximum size for thumbnails directory.
 When it reaches that size (in bytes), a warning is sent."
-  :type 'integer
-  :group 'thumbs)
+  :type 'integer)
 
 ;; Unfortunately Windows XP has a program called CONVERT.EXE in
 ;; C:/WINDOWS/SYSTEM32/ for partitioning NTFS systems.  So Emacs
@@ -98,54 +93,48 @@ When it reaches that size (in bytes), a warning is sent."
 ;; customize this value to the absolute filename.
 (defcustom thumbs-conversion-program
   (if (eq system-type 'windows-nt)
+      ;; FIXME is this necessary, or can a sane PATHEXE be assumed?
+      ;; Eg find-program does not do this.
       "convert.exe"
-    (or (executable-find "convert")
-	"/usr/X11R6/bin/convert"))
+    "convert")
   "Name of conversion program for thumbnails generation.
-It must be \"convert\"."
+This must be the ImageMagick \"convert\" utility."
   :type 'string
-  :group 'thumbs)
+  :version "28.1")
 
 (defcustom thumbs-setroot-command
   "xloadimage -onroot -fullscreen *"
   "Command to set the root window."
-  :type 'string
-  :group 'thumbs)
+  :type 'string)
 
 (defcustom thumbs-relief 5
   "Size of button-like border around thumbnails."
-  :type 'integer
-  :group 'thumbs)
+  :type 'integer)
 
 (defcustom thumbs-margin 2
   "Size of the margin around thumbnails.
 This is where you see the cursor."
-  :type 'integer
-  :group 'thumbs)
+  :type 'integer)
 
 (defcustom thumbs-thumbsdir-auto-clean t
   "If set, delete older file in the thumbnails directory.
 Deletion is done at load time when the directory size is bigger
 than `thumbs-thumbsdir-max-size'."
-  :type 'boolean
-  :group 'thumbs)
+  :type 'boolean)
 
 (defcustom thumbs-image-resizing-step 10
   "Step by which to resize image as a percentage."
-  :type 'integer
-  :group 'thumbs)
+  :type 'integer)
 
 (defcustom thumbs-temp-dir temporary-file-directory
   "Temporary directory to use.
 Defaults to `temporary-file-directory'.  Leaving it to
 this value can let another user see some of your images."
-  :type 'directory
-  :group 'thumbs)
+  :type 'directory)
 
 (defcustom thumbs-temp-prefix "emacsthumbs"
   "Prefix to add to temp files."
-  :type 'string
-  :group 'thumbs)
+  :type 'string)
 
 ;; Initialize some variable, for later use.
 (defvar-local thumbs-current-tmp-filename nil
@@ -210,7 +199,7 @@ reached."
 		    ,f)))
 	      (directory-files (thumbs-thumbsdir) t (image-file-name-regexp)))
 	     (lambda (l1 l2) (time-less-p (car l1) (car l2)))))
-	   (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files-list))))
+           (dirsize (apply #'+ (mapcar (lambda (x) (cadr x)) files-list))))
       (while (> dirsize thumbs-thumbsdir-max-size)
         (progn
 	  (message "Deleting file %s" (cadr (cdar files-list))))
@@ -290,7 +279,7 @@ smaller according to whether INCREMENT is 1 or -1."
              (subst-char-in-string
               ?\s ?\_
               (apply
-               'concat
+               #'concat
                (split-string filename "/")))))))
 
 (defun thumbs-make-thumb (img)
@@ -388,7 +377,7 @@ If MARKED is non-nil, the image is marked."
   "Make a preview buffer for all images in DIR.
 Optional argument REG to select file matching a regexp,
 and SAME-WINDOW to show thumbs in the same window."
-  (interactive "DDir: ")
+  (interactive "DThumbs (directory): ")
   (thumbs-show-thumbs-list
    (directory-files dir t (or reg (image-file-name-regexp)))
    dir same-window))
@@ -618,7 +607,7 @@ Open another window."
   (when (eolp) (forward-char)))
 
 ;; cleaning of old temp files
-(mapc 'delete-file
+(mapc #'delete-file
       (directory-files (thumbs-temp-dir) t thumbs-temp-prefix))
 
 ;; Image modification routines

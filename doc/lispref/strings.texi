@@ -390,6 +390,22 @@ whitespace to a single space character, as well as removing all
 whitespace from the start and the end of @var{string}.
 @end defun
 
+@defun string-trim-left string &optional regexp
+Remove the leading text that matches @var{regexp} from @var{string}.
+@var{regexp} defaults to @samp{[ \t\n\r]+}.
+@end defun
+
+@defun string-trim-right string &optional regexp
+Remove the trailing text that matches @var{regexp} from @var{string}.
+@var{regexp} defaults to @samp{[ \t\n\r]+}.
+@end defun
+
+@defun string-trim string &optional trim-left trim-right
+Remove the leading text that matches @var{trim-left} and trailing text
+that matches @var{trim-right} from from @var{string}.  Both regexps
+default to @samp{[ \t\n\r]+}.
+@end defun
+
 @defun string-fill string length
 Attempt to Word-wrap @var{string} so that no lines are longer than
 @var{length}.  Filling is done on whitespace boundaries only.  If

@@ -1976,7 +1976,8 @@ a `let' form, except that the list of symbols can be computed at run-time."
               (,binds ()))
          (while ,syms
            (push (list (pop ,syms) (list 'quote (pop ,vals))) ,binds))
-         (eval (list 'let ,binds (list 'funcall (list 'quote ,bodyfun))))))))
+         (eval (list 'let (nreverse ,binds)
+                     (list 'funcall (list 'quote ,bodyfun))))))))
 
 (defconst cl--labels-magic (make-symbol "cl--labels-magic"))
 

@@ -103,14 +103,14 @@ Please send all bug fixes and enhancements to
 ;; For example, after previewing a PostScript file, *Printing Command Output*
 ;; will have the following entry:
 ;;
-;;    /usr/X11R6/bin/gv ("/home/user/example/file.ps")
+;;    /usr/bin/gv ("/home/user/example/file.ps")
 ;;    Exit status: 0
 ;;
 ;; In the example above, the previewing was successful.  If during previewing,
 ;; you quit gv execution (by typing C-g during Emacs session), the log entry
 ;; would be:
 ;;
-;;    /usr/X11R6/bin/gv ("/home/user/example/file.ps")
+;;    /usr/bin/gv ("/home/user/example/file.ps")
 ;;    Exit status: Quit
 ;;
 ;; So, if something goes wrong, a good place to take a look is the buffer
@@ -264,7 +264,7 @@ Please send all bug fixes and enhancements to
 ;;    Also the gsprint utility comes together with gsview distribution.
 ;;
 ;;    For more information about gsprint see
-;;    `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
+;;    `https://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;
 ;;    As an example of gsprint declaration:
 ;;
@@ -950,18 +950,18 @@ Please send all bug fixes and enhancements to
 ;; * For GNU or Unix system:
 ;;
 ;;    gs, gv         `https://www.gnu.org/software/ghostscript/ghostscript.html'
-;;    enscript       `http://people.ssh.fi/mtr/genscript/'
+;;    enscript       `https://people.ssh.fi/mtr/genscript/'
 ;;    psnup          `http://www.knackered.org/angus/psutils/'
-;;    mpage          `http://www.mesa.nl/pub/mpage/'
+;;    mpage          `https://www.mesa.nl/pub/mpage/'
 ;;
 ;; * For Windows system:
 ;;
 ;;    gswin32, gsview32
 ;;                   `https://www.gnu.org/software/ghostscript/ghostscript.html'
-;;    gsprint        `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
-;;    enscript       `http://people.ssh.fi/mtr/genscript/'
+;;    gsprint        `https://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
+;;    enscript       `https://people.ssh.fi/mtr/genscript/'
 ;;    psnup          `http://gnuwin32.sourceforge.net/packages/psutils.htm'
-;;    redmon         `http://www.cs.wisc.edu/~ghost/redmon/'
+;;    redmon         `http://www.ghostgum.com.au/software/redmon.htm'
 ;;
 ;;
 ;; Acknowledgments
@@ -1520,22 +1520,19 @@ Examples:
 Useful links:
 
 * Information about the print command (print.exe)
-  `http://www.computerhope.com/printhlp.htm'
+  `https://www.computerhope.com/printhlp.htm'
 
 * RedMon - Redirection Port Monitor (redpr.exe)
-  `http://www.cs.wisc.edu/~ghost/redmon/index.htm'
+  `http://www.ghostgum.com.au/software/redmon.htm'
 
 * Redirection Port Monitor (redpr.exe on-line help)
-  `http://www.cs.wisc.edu/~ghost/redmon/en/redmon.htm'
+  `https://www.cs.wisc.edu/~ghost/redmon/en/redmon.htm'
 
 * UNIX man pages: lpr (or type `man lpr')
-  `http://bama.ua.edu/cgi-bin/man-cgi?lpr'
-  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lpr'
+  `https://linux.die.net/man/1/lpr-cups'
 
 * UNIX man pages: lp (or type `man lp')
-  `http://bama.ua.edu/cgi-bin/man-cgi?lp'
-  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lp'
-"
+  `https://linux.die.net/man/1/lp'"
   :type '(repeat
 	  (list :tag "Text Printer"
 		(symbol :tag "Printer Symbol Name")
@@ -1760,30 +1757,28 @@ are not printed.
 Useful links:
 
 * GSPRINT - Ghostscript print to Windows printer
-  `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'
+  `https://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'
 
 * Introduction to Ghostscript
-  `http://www.cs.wisc.edu/~ghost/doc/intro.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/intro.htm'
 
 * How to use Ghostscript
-  `http://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
 
 * Information about the print command (print.exe)
-  `http://www.computerhope.com/printhlp.htm'
+  `https://www.computerhope.com/printhlp.htm'
 
 * RedMon - Redirection Port Monitor (redpr.exe)
-  `http://www.cs.wisc.edu/~ghost/redmon/index.htm'
+  `http://www.ghostgum.com.au/software/redmon.htm'
 
 * Redirection Port Monitor (redpr.exe on-line help)
-  `http://www.cs.wisc.edu/~ghost/redmon/en/redmon.htm'
+  `https://www.cs.wisc.edu/~ghost/redmon/en/redmon.htm'
 
 * UNIX man pages: lpr (or type `man lpr')
-  `http://bama.ua.edu/cgi-bin/man-cgi?lpr'
-  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lpr'
+  `https://linux.die.net/man/1/lpr-cups'
 
 * UNIX man pages: lp (or type `man lp')
-  `http://bama.ua.edu/cgi-bin/man-cgi?lp'
-  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lp'
+  `https://linux.die.net/man/1/lp'
 
 * GNU utilities for w32 (cp.exe)
   `http://unxutils.sourceforge.net/'
@@ -1873,28 +1868,28 @@ Useful links:
   `https://www.gnu.org/software/gv/manual/gv.html'
 
 * GSview Help
-  `http://www.cs.wisc.edu/~ghost/gsview/gsviewen.htm'
+  `https://www.cs.wisc.edu/~ghost/gsview/gsviewen.htm'
 
 * GSview Help - Common Problems
-  `http://www.cs.wisc.edu/~ghost/gsview/gsviewen.htm#Common_Problems'
+  `https://www.cs.wisc.edu/~ghost/gsview/gsviewen.htm#Common_Problems'
 
 * GSview Readme (compilation & installation)
-  `http://www.cs.wisc.edu/~ghost/gsview/Readme.htm'
+  `https://www.cs.wisc.edu/~ghost/gsview/Readme.htm'
 
 * GSview (main site)
-  `http://www.cs.wisc.edu/~ghost/gsview/index.htm'
+  `https://www.cs.wisc.edu/~ghost/gsview/index.htm'
 
 * Ghostscript, Ghostview and GSview
-  `http://www.cs.wisc.edu/~ghost/'
+  `https://www.cs.wisc.edu/~ghost/'
 
 * Ghostview
-  `http://www.cs.wisc.edu/~ghost/gv/index.htm'
+  `https://www.cs.wisc.edu/~ghost/gv/index.htm'
 
 * gv 3.5, June 1997
-  `http://www.cs.wisc.edu/~ghost/gv/gv_doc/gv.html'
+  `http://pages.cs.wisc.edu/~ghost/gv/gv_doc/gv.html'
 
 * MacGSView (Mac OS)
-  `http://www.cs.wisc.edu/~ghost/macos/index.htm'
+  `http://pages.cs.wisc.edu/~ghost/macos/index.htm'
 "
   :type '(string :tag "Ghostview Utility"))
 
@@ -1910,16 +1905,16 @@ See also `pr-path-alist'.
 Useful links:
 
 * Ghostscript, Ghostview and GSview
-  `http://www.cs.wisc.edu/~ghost/'
+  `https://www.cs.wisc.edu/~ghost/'
 
 * Introduction to Ghostscript
-  `http://www.cs.wisc.edu/~ghost/doc/intro.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/intro.htm'
 
 * How to use Ghostscript
-  `http://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
 
 * Printer compatibility
-  `http://www.cs.wisc.edu/~ghost/doc/printer.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'
 "
   :type '(string :tag "Ghostscript Utility"))
 
@@ -1954,13 +1949,13 @@ To see ghostscript documentation for more information:
 Useful links:
 
 * Introduction to Ghostscript
-  `http://www.cs.wisc.edu/~ghost/doc/intro.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/intro.htm'
 
 * How to use Ghostscript
-  `http://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
 
 * Printer compatibility
-  `http://www.cs.wisc.edu/~ghost/doc/printer.htm'
+  `https://www.cs.wisc.edu/~ghost/doc/printer.htm'
 "
   :type '(repeat (string :tag "Ghostscript Switch")))
 
@@ -2407,11 +2402,10 @@ Examples:
 Useful links:
 
 * mpage download (GNU or Unix)
-  `http://www.mesa.nl/pub/mpage/'
+  `https://www.mesa.nl/pub/mpage/'
 
 * mpage documentation (GNU or Unix - or type `man mpage')
-  `http://www.cs.umd.edu/faq/guides/manual_unix/node48.html'
-  `http://www.rt.com/man/mpage.1.html'
+  `https://linux.die.net/man/1/mpage'
 
 * psnup (Windows, GNU or Unix)
   `http://www.knackered.org/angus/psutils/'
@@ -2421,14 +2415,13 @@ Useful links:
   `http://gnuwin32.sourceforge.net/packages/psutils.htm'
 
 * psnup documentation (GNU or Unix - or type `man psnup')
-  `http://linux.about.com/library/cmd/blcmdl1_psnup.htm'
-  `http://amath.colorado.edu/computing/software/man/psnup.html'
+  `https://linux.die.net/man/1/psnup'
 
 * GNU Enscript (Windows, GNU or Unix)
-  `http://people.ssh.com/mtr/genscript/'
+  `https://people.ssh.com/mtr/genscript/'
 
 * GNU Enscript documentation (Windows, GNU or Unix)
-  `http://people.ssh.com/mtr/genscript/enscript.man.html'
+  `https://people.ssh.com/mtr/genscript/enscript.man.html'
   (on GNU or Unix, type `man enscript')
 "
   :type '(repeat

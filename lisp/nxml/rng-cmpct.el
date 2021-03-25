@@ -26,7 +26,7 @@
 ;; specified in rng-pttrn.el.
 ;;
 ;; RELAX NG Compact Syntax is specified by
-;;    http://relaxng.org/compact.html
+;;    https://relaxng.org/compact.html
 ;;
 ;; This file uses the prefix "rng-c-".
 

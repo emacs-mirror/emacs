@@ -1,4 +1,4 @@
-;;; notifications.el --- Client interface to desktop notifications.
+;;; notifications.el --- Client interface to desktop notifications.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -229,56 +229,69 @@ of another `notifications-notify' call."
 	  id)
       ;; Build hints array
       (when urgency
-	(add-to-list 'hints `(:dict-entry
-			      "urgency"
-			      (:variant :byte ,(pcase urgency
-						 ('low 0)
-						 ('critical 2)
-						 (_ 1)))) t))
+        (push `(:dict-entry
+                "urgency"
+                (:variant :byte ,(pcase urgency
+                                   ('low 0)
+                                   ('critical 2)
+                                   (_ 1))))
+              hints))
       (when category
-	(add-to-list 'hints `(:dict-entry
-			      "category"
-			      (:variant :string ,category)) t))
+        (push `(:dict-entry
+                "category"
+                (:variant :string ,category))
+              hints))
       (when desktop-entry
-	(add-to-list 'hints `(:dict-entry
-			      "desktop-entry"
-			      (:variant :string ,desktop-entry)) t))
+        (push `(:dict-entry
+                "desktop-entry"
+                (:variant :string ,desktop-entry))
+              hints))
       (when image-data
-	(add-to-list 'hints `(:dict-entry
-			      "image-data"
-			      (:variant :struct ,image-data)) t))
+        (push `(:dict-entry
+                "image-data"
+                (:variant :struct ,image-data))
+              hints))
       (when image-path
-	(add-to-list 'hints `(:dict-entry
-			      "image-path"
-			      (:variant :string ,image-path)) t))
+        (push `(:dict-entry
+                "image-path"
+                (:variant :string ,image-path))
+              hints))
       (when action-items
-	(add-to-list 'hints `(:dict-entry
-			      "action-items"
-			      (:variant :boolean ,action-items)) t))
+        (push `(:dict-entry
+                "action-items"
+                (:variant :boolean ,action-items))
+              hints))
       (when sound-file
-	(add-to-list 'hints `(:dict-entry
-			      "sound-file"
-			      (:variant :string ,sound-file)) t))
+        (push `(:dict-entry
+                "sound-file"
+                (:variant :string ,sound-file))
+              hints))
       (when sound-name
-	(add-to-list 'hints `(:dict-entry
-			      "sound-name"
-			      (:variant :string ,sound-name)) t))
+        (push `(:dict-entry
+                "sound-name"
+                (:variant :string ,sound-name))
+              hints))
       (when suppress-sound
-	(add-to-list 'hints `(:dict-entry
-			      "suppress-sound"
-			      (:variant :boolean ,suppress-sound)) t))
+        (push `(:dict-entry
+                "suppress-sound"
+                (:variant :boolean ,suppress-sound))
+              hints))
       (when resident
-	(add-to-list 'hints `(:dict-entry
-			      "resident"
-			      (:variant :boolean ,resident)) t))
+        (push `(:dict-entry
+                "resident"
+                (:variant :boolean ,resident))
+              hints))
       (when transient
-	(add-to-list 'hints `(:dict-entry
-			      "transient"
-			      (:variant :boolean ,transient)) t))
+        (push `(:dict-entry
+                "transient"
+                (:variant :boolean ,transient))
+              hints))
       (when x
-	(add-to-list 'hints `(:dict-entry "x" (:variant :int32 ,x)) t))
+        (push `(:dict-entry "x" (:variant :int32 ,x)) hints))
       (when y
-	(add-to-list 'hints `(:dict-entry "y" (:variant :int32 ,y)) t))
+        (push `(:dict-entry "y" (:variant :int32 ,y)) hints))
+
+      (setq hints (nreverse hints))
 
       ;; Call Notify method.
       (setq id
@@ -313,8 +326,8 @@ of another `notifications-notify' call."
 	    (on-close (plist-get params :on-close))
 	    (unique-name (dbus-get-name-owner bus notifications-service)))
 	(when on-action
-	  (add-to-list 'notifications-on-action-map
-		       (list (list bus unique-name id) on-action))
+          (push (list (list bus unique-name id) on-action)
+                notifications-on-action-map)
 	  (unless notifications-on-action-object
 	    (setq notifications-on-action-object
 		  (dbus-register-signal
@@ -326,8 +339,8 @@ of another `notifications-notify' call."
 		   'notifications-on-action-signal))))
 
 	(when on-close
-	  (add-to-list 'notifications-on-close-map
-		       (list (list bus unique-name id) on-close))
+          (push (list (list bus unique-name id) on-close)
+                notifications-on-close-map)
 	  (unless notifications-on-close-object
 	    (setq notifications-on-close-object
 		  (dbus-register-signal

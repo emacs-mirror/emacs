@@ -3686,18 +3686,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 		'(created changed changes-done-hint moved deleted))
 	       ((memq 'attribute-change flags) '(attribute-changed)))
 	      sequence `(,command "monitor" ,localname)))
-       ;; "gvfs-monitor-dir".
-       ((setq command (tramp-get-remote-gvfs-monitor-dir v))
-	(setq filter #'tramp-sh-gvfs-monitor-dir-process-filter
-	      events
-	      (cond
-	       ((and (memq 'change flags) (memq 'attribute-change flags))
-		'(created changed changes-done-hint moved deleted
-			  attribute-changed))
-	       ((memq 'change flags)
-		'(created changed changes-done-hint moved deleted))
-	       ((memq 'attribute-change flags) '(attribute-changed)))
-	      sequence `(,command ,localname)))
        ;; None.
        (t (tramp-error
 	   v 'file-notify-error
@@ -3777,56 +3765,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 	       proc
 	       (list
 		(intern-soft (match-string 2 string)))
-	       ;; File names are returned as absolute paths.  We must
-	       ;; add the remote prefix.
-	       (concat remote-prefix file)
-	       (when file1 (concat remote-prefix file1)))))
-	(setq string (replace-match "" nil nil string))
-	;; Usually, we would add an Emacs event now.  Unfortunately,
-	;; `unread-command-events' does not accept several events at
-	;; once.  Therefore, we apply the handler directly.
-	(when (member (cl-caadr object) events)
-	  (tramp-compat-funcall
-	   (lookup-key special-event-map [file-notify])
-	   `(file-notify ,object file-notify-callback)))))
-
-    ;; Save rest of the string.
-    (when (zerop (length string)) (setq string nil))
-    (when string (tramp-message proc 10 "Rest string:\n%s" string))
-    (process-put proc 'rest-string string)))
-
-(defun tramp-sh-gvfs-monitor-dir-process-filter (proc string)
-  "Read output from \"gvfs-monitor-dir\" and add corresponding \
-`file-notify' events."
-  (let ((events (process-get proc 'events))
-	(remote-prefix
-	 (with-current-buffer (process-buffer proc)
-	   (file-remote-p default-directory)))
-	(rest-string (process-get proc 'rest-string)))
-    (when rest-string
-      (tramp-message proc 10 "Previous string:\n%s" rest-string))
-    (tramp-message proc 6 "%S\n%s" proc string)
-    (setq string (concat rest-string string)
-	  ;; Attribute change is returned in unused wording.
-	  string (tramp-compat-string-replace
-		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
-
-    (while (string-match
-	    (concat "^[\n\r]*"
-		    "Directory Monitor Event:[\n\r]+"
-		    "Child = \\([^\n\r]+\\)[\n\r]+"
-		    "\\(Other = \\([^\n\r]+\\)[\n\r]+\\)?"
-		    "Event = \\([^[:blank:]]+\\)[\n\r]+")
-	    string)
-      (let* ((file (match-string 1 string))
-	     (file1 (match-string 3 string))
-	     (object
-	      (list
-	       proc
-	       (list
-		(intern-soft
-		 (tramp-compat-string-replace
-		  "_" "-" (downcase (match-string 4 string)))))
 	       ;; File names are returned as absolute paths.  We must
 	       ;; add the remote prefix.
 	       (concat remote-prefix file)
@@ -5658,7 +5596,7 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	;; linked libraries of libgio.
 	(when (tramp-send-command-and-check vec (concat "ldd " gio))
 	  (goto-char (point-min))
-	  (when (re-search-forward "\\S-+/libgio\\S-+")
+	  (when (re-search-forward "\\S-+/\\(libgio\\|cyggio\\)\\S-+")
 	    (when (tramp-send-command-and-check
 		   vec (concat "strings " (match-string 0)))
 	      (goto-char (point-min))
@@ -5666,22 +5604,11 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	       (format
 		"^%s$"
 		(regexp-opt
-		 '("GFamFileMonitor" "GFenFileMonitor"
-		   "GInotifyFileMonitor" "GKqueueFileMonitor")))
+		 '("GFamFileMonitor" "GFamDirectoryMonitor" "GFenFileMonitor"
+		   "GInotifyFileMonitor" "GKqueueFileMonitor"
+		   "GPollFileMonitor")))
 	       nil 'noerror)
 	      (intern (match-string 0)))))))))
-
-(defun tramp-get-remote-gvfs-monitor-dir (vec)
-  "Determine remote `gvfs-monitor-dir' command."
-  (with-tramp-connection-property vec "gvfs-monitor-dir"
-    (tramp-message vec 5 "Finding a suitable `gvfs-monitor-dir' command")
-    ;; We distinguish "gvfs-monitor-dir.exe" from cygwin in order to
-    ;; establish better timeouts in filenotify-tests.el.  Any better
-    ;; distinction approach would be welcome!
-    (or (tramp-find-executable
-	 vec "gvfs-monitor-dir.exe" (tramp-get-remote-path vec) t t)
-	(tramp-find-executable
-	 vec "gvfs-monitor-dir" (tramp-get-remote-path vec) t t))))
 
 (defun tramp-get-remote-inotifywait (vec)
   "Determine remote `inotifywait' command."

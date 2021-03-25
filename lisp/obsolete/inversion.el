@@ -454,7 +454,7 @@ If it is a URL, wget will be used for download.
 Optional argument VERSION will restrict the list of available versions
 to the file matching VERSION exactly, or nil."
 ;;DIRECTORY should also allow a URL:
-;; \"http://ftp1.sourceforge.net/PACKAGE\"
+;; \"https://ftp1.sourceforge.net/PACKAGE\"
 ;; but then I can get file listings easily.
   (if (symbolp package) (setq package (symbol-name package)))
   (directory-files directory t

@@ -1,4 +1,4 @@
-;;; mh-inc.el --- MH-E "inc" and separate mail spool handling
+;;; mh-inc.el --- MH-E "inc" and separate mail spool handling  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -58,7 +58,7 @@
                     (mh-inc-spool-generator folder spool)
                     (mh-inc-spool-def-key key folder))))))
 
-(defalias 'mh-inc-spool-make-no-autoload 'mh-inc-spool-make)
+(defalias 'mh-inc-spool-make-no-autoload #'mh-inc-spool-make)
 
 (defun mh-inc-spool-generator (folder spool)
   "Create a command to inc into FOLDER from SPOOL file."

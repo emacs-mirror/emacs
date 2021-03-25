@@ -49,6 +49,7 @@
 (defvar recentf-exclude)
 (defvar tramp-current-connection)
 (defvar tramp-postfix-host-format)
+(defvar tramp-use-ssh-controlmaster-options)
 
 ;;; Fontification of `read-file-name':
 

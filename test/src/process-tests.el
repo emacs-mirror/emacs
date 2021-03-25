@@ -26,7 +26,6 @@
 (require 'cl-lib)
 (require 'ert)
 (require 'puny)
-(require 'rx)
 (require 'subr-x)
 (require 'dns)
 

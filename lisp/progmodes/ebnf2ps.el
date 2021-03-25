@@ -330,7 +330,7 @@ Please send all bug fixes and enhancements to
 ;;			("Augmented BNF for Syntax Specifications: ABNF").
 ;;
 ;;    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
-;;			`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
+;;			`https://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
 ;;			("International Standard of the ISO EBNF Notation").
 ;;			The following variables *ONLY* have effect with this
 ;;			setting:
@@ -1783,7 +1783,7 @@ Valid values are:
 		(\"Augmented BNF for Syntax Specifications: ABNF\").
 
    `iso-ebnf'	ebnf2ps recognizes the syntax described in the URL:
-		`http://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
+                `https://www.cl.cam.ac.uk/~mgk25/iso-ebnf.html'
 		(\"International Standard of the ISO EBNF Notation\").
 		The following variables *ONLY* have effect with this
 		setting:
@@ -2920,7 +2920,7 @@ See `ebnf-style-database' documentation."
 	value
       (and (car value) (ebnf-apply-style1 (car value)))
       (while (setq value (cdr value))
-	(set (caar value) (eval (cdar value)))))))
+	(set (caar value) (eval (cdar value) t))))))
 
 
 (defun ebnf-check-style-values (values)
@@ -5487,7 +5487,7 @@ killed after process termination."
 		      (ebnf-shape-value ebnf-chart-shape
 					ebnf-terminal-shape-alist))
 	      (format "/UserArrow{%s}def\n"
-		      (let ((arrow (eval ebnf-user-arrow)))
+		      (let ((arrow (eval ebnf-user-arrow t)))
 			(if (stringp arrow)
 			    arrow
 			  "")))
@@ -6290,7 +6290,7 @@ killed after process termination."
 (defun ebnf-log-header (format-str &rest args)
   (when ebnf-log
     (apply
-     'ebnf-log
+     #'ebnf-log
      (concat
       "\n\n===============================================================\n\n"
       format-str)

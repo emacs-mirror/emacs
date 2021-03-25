@@ -527,7 +527,7 @@ This will generate compile-time constants from BINDINGS."
          ;; This is too general -- rms.
          ;; A user complained that he has functions whose names start with `do'
          ;; and that they get the wrong color.
-         ;; That user has violated the http://www.cliki.net/Naming+conventions:
+         ;; That user has violated the https://www.cliki.net/Naming+conventions:
          ;; CL (but not EL!) `with-' (context) and `do-' (iteration)
          (,(concat "(\\(\\(do-\\|with-\\)" lisp-mode-symbol-regexp "\\)")
            (1 font-lock-keyword-face))

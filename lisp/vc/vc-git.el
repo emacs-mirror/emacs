@@ -252,7 +252,7 @@ included in the completions."
                ;; Do not use the `file-name-directory' here: git-ls-files
                ;; sometimes fails to return the correct status for relative
                ;; path specs.
-               ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
+               ;; See also: https://marc.info/?l=git&m=125787684318129&w=2
                (name (file-relative-name file dir))
                (str (with-demoted-errors "Error: %S"
                       (cd dir)

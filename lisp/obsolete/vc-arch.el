@@ -26,7 +26,7 @@
 
 ;; The home page of the Arch version control system is at
 ;;
-;;      http://www.gnuarch.org/
+;;      https://www.gnu.org/software/gnu-arch/
 ;;
 ;; This is derived from vc-mcvs.el as follows:
 ;; - cp vc-mcvs.el vc-arch.el and then M-% mcvs RET arch RET

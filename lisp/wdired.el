@@ -1,4 +1,4 @@
-;;; wdired.el --- Rename files editing their names in dired buffers -*- coding: utf-8; -*-
+;;; wdired.el --- Rename files editing their names in dired buffers -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
@@ -85,15 +85,13 @@
 If nil, WDired doesn't require confirmation to change the file names,
 and the variable `wdired-confirm-overwrite' controls whether it is ok
 to overwrite files without asking."
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defcustom wdired-confirm-overwrite t
   "If nil the renames can overwrite files without asking.
 This variable has no effect at all if `wdired-use-interactive-rename'
 is not nil."
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defcustom wdired-use-dired-vertical-movement nil
   "If t, the \"up\" and \"down\" movement works as in Dired mode.
@@ -106,15 +104,13 @@ when editing several filenames.
 If nil, \"up\" and \"down\" movement is done as in any other buffer."
   :type '(choice (const :tag "As in any other mode" nil)
 		 (const :tag "Smart cursor placement" sometimes)
-		 (other :tag "As in dired mode" t))
-  :group 'wdired)
+		 (other :tag "As in dired mode" t)))
 
 (defcustom wdired-allow-to-redirect-links t
   "If non-nil, the target of the symbolic links are editable.
 In systems without symbolic links support, this variable has no effect
 at all."
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defcustom wdired-allow-to-change-permissions nil
   "If non-nil, the permissions bits of the files are editable.
@@ -135,8 +131,7 @@ Anyway, the real change of the permissions is done by the external
 program `dired-chmod-program', which must exist."
   :type '(choice (const :tag "Not allowed" nil)
                  (const :tag "Toggle/set bits" t)
-		 (other :tag "Bits freely editable" advanced))
-  :group 'wdired)
+		 (other :tag "Bits freely editable" advanced)))
 
 (defcustom wdired-keep-marker-rename t
   ;; Use t as default so that renamed files "take their markers with them".
@@ -149,8 +144,7 @@ See `dired-keep-marker-rename' if you want to do the same for files
 renamed by `dired-do-rename' and `dired-do-rename-regexp'."
   :type '(choice (const :tag "Keep" t)
 		 (character :tag "Mark" :value ?R))
-  :version "24.3"
-  :group 'wdired)
+  :version "24.3")
 
 (defcustom wdired-create-parent-directories t
   "If non-nil, create parent directories of destination files.
@@ -159,26 +153,25 @@ nonexistent directory, wdired will create any parent directories
 necessary.  When nil, attempts to rename a file into a
 nonexistent directory will fail."
   :version "26.1"
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defvar wdired-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'wdired-finish-edit)
-    (define-key map "\C-c\C-c" 'wdired-finish-edit)
-    (define-key map "\C-c\C-k" 'wdired-abort-changes)
-    (define-key map "\C-c\C-[" 'wdired-abort-changes)
-    (define-key map "\C-x\C-q" 'wdired-exit)
-    (define-key map "\C-m"     'undefined)
-    (define-key map "\C-j"     'undefined)
-    (define-key map "\C-o"     'undefined)
-    (define-key map [up]       'wdired-previous-line)
-    (define-key map "\C-p"     'wdired-previous-line)
-    (define-key map [down]     'wdired-next-line)
-    (define-key map "\C-n"     'wdired-next-line)
-    (define-key map [remap upcase-word] 'wdired-upcase-word)
-    (define-key map [remap capitalize-word] 'wdired-capitalize-word)
-    (define-key map [remap downcase-word] 'wdired-downcase-word)
+    (define-key map "\C-x\C-s" #'wdired-finish-edit)
+    (define-key map "\C-c\C-c" #'wdired-finish-edit)
+    (define-key map "\C-c\C-k" #'wdired-abort-changes)
+    (define-key map "\C-c\C-[" #'wdired-abort-changes)
+    (define-key map "\C-x\C-q" #'wdired-exit)
+    (define-key map "\C-m"     #'undefined)
+    (define-key map "\C-j"     #'undefined)
+    (define-key map "\C-o"     #'undefined)
+    (define-key map [up]       #'wdired-previous-line)
+    (define-key map "\C-p"     #'wdired-previous-line)
+    (define-key map [down]     #'wdired-next-line)
+    (define-key map "\C-n"     #'wdired-next-line)
+    (define-key map [remap upcase-word] #'wdired-upcase-word)
+    (define-key map [remap capitalize-word] #'wdired-capitalize-word)
+    (define-key map [remap downcase-word] #'wdired-downcase-word)
     map)
   "Keymap used in `wdired-mode'.")
 
@@ -249,11 +242,11 @@ See `wdired-mode'."
   (force-mode-line-update)
   (setq buffer-read-only nil)
   (dired-unadvertise default-directory)
-  (add-hook 'kill-buffer-hook 'wdired-check-kill-buffer nil t)
-  (add-hook 'after-change-functions 'wdired--restore-properties nil t)
+  (add-hook 'kill-buffer-hook #'wdired-check-kill-buffer nil t)
+  (add-hook 'after-change-functions #'wdired--restore-properties nil t)
   (setq major-mode 'wdired-mode)
   (setq mode-name "Editable Dired")
-  (setq revert-buffer-function 'wdired-revert)
+  (add-function :override (local 'revert-buffer-function) #'wdired-revert)
   ;; I temp disable undo for performance: since I'm going to clear the
   ;; undo list, it can save more than a 9% of time with big
   ;; directories because setting properties modify the undo-list.
@@ -386,10 +379,9 @@ non-nil means return old filename."
   (setq major-mode 'dired-mode)
   (setq mode-name "Dired")
   (dired-advertise)
-  (remove-hook 'kill-buffer-hook 'wdired-check-kill-buffer t)
-  (remove-hook 'after-change-functions 'wdired--restore-properties t)
-  (setq-local revert-buffer-function 'dired-revert))
-
+  (remove-hook 'kill-buffer-hook #'wdired-check-kill-buffer t)
+  (remove-hook 'after-change-functions #'wdired--restore-properties t)
+  (remove-function (local 'revert-buffer-function) #'wdired-revert))
 
 (defun wdired-abort-changes ()
   "Abort changes and return to dired mode."
@@ -537,7 +529,7 @@ non-nil means return old filename."
               ;; So we must ensure dired-aux is loaded.
               (require 'dired-aux)
               (condition-case err
-                  (let ((dired-backup-overwrite nil))
+                  (dlet ((dired-backup-overwrite nil))
                     (and wdired-create-parent-directories
                          (wdired-create-parentdirs file-new))
                     (dired-rename-file file-ori file-new
@@ -814,18 +806,18 @@ Like original function but it skips read-only words."
 
 (defvar wdired-perm-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map " " 'wdired-toggle-bit)
-    (define-key map "r" 'wdired-set-bit)
-    (define-key map "w" 'wdired-set-bit)
-    (define-key map "x" 'wdired-set-bit)
-    (define-key map "-" 'wdired-set-bit)
-    (define-key map "S" 'wdired-set-bit)
-    (define-key map "s" 'wdired-set-bit)
-    (define-key map "T" 'wdired-set-bit)
-    (define-key map "t" 'wdired-set-bit)
-    (define-key map "s" 'wdired-set-bit)
-    (define-key map "l" 'wdired-set-bit)
-    (define-key map [down-mouse-1] 'wdired-mouse-toggle-bit)
+    (define-key map " " #'wdired-toggle-bit)
+    (define-key map "r" #'wdired-set-bit)
+    (define-key map "w" #'wdired-set-bit)
+    (define-key map "x" #'wdired-set-bit)
+    (define-key map "-" #'wdired-set-bit)
+    (define-key map "S" #'wdired-set-bit)
+    (define-key map "s" #'wdired-set-bit)
+    (define-key map "T" #'wdired-set-bit)
+    (define-key map "t" #'wdired-set-bit)
+    (define-key map "s" #'wdired-set-bit)
+    (define-key map "l" #'wdired-set-bit)
+    (define-key map [mouse-1] #'wdired-mouse-toggle-bit)
     map))
 
 ;; Put a keymap property to the permission bits of the files, and store the

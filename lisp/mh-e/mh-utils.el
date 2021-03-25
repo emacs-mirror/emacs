@@ -1,4 +1,4 @@
-;;; mh-utils.el --- MH-E general utilities
+;;; mh-utils.el --- MH-E general utilities  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
@@ -268,7 +268,7 @@ and displayed in a help buffer."
   (interactive)
   (let* ((help (or help-messages
                   (cdr (assoc nil (assoc major-mode mh-help-messages)))))
-         (text (substitute-command-keys (mapconcat 'identity help ""))))
+         (text (substitute-command-keys (mapconcat #'identity help ""))))
     (with-electric-help
      (lambda ()
        (insert text))
@@ -298,7 +298,7 @@ and displayed in a help buffer."
 This is the inverse of `mh-read-msg-list', which expands ranges.
 Message lists passed to MH programs should be processed by this
 function to avoid exceeding system command line argument limits."
-  (let ((msgs (sort (copy-sequence messages) 'mh-greaterp))
+  (let ((msgs (sort (copy-sequence messages) #'mh-greaterp))
         (range-high nil)
         (prev -1)
         (ranges nil))
@@ -669,7 +669,7 @@ three arguments so we bind this variable to t or nil.
 This variable should never be set.")
 
 (defvar mh-folder-completion-map (copy-keymap minibuffer-local-completion-map))
-(define-key mh-folder-completion-map " " 'minibuffer-complete)  ;Why???
+(define-key mh-folder-completion-map " " #'minibuffer-complete)  ;Why???
 
 (defvar mh-speed-flists-inhibit-flag nil)
 
@@ -730,8 +730,7 @@ See Info node `(elisp) Programmed Completion' for details."
                    (t (file-directory-p path))))))))
 
 ;; Shush compiler.
-(mh-do-in-xemacs
-  (defvar completion-root-regexp))
+(defvar completion-root-regexp) ;; Apparently used in XEmacs
 
 (defun mh-folder-completing-read (prompt default allow-root-folder-flag)
   "Read folder name with PROMPT and default result DEFAULT.
@@ -758,10 +757,9 @@ function will accept the folder +, which means all folders when
 used in searching."
   (if (null default)
       (setq default ""))
-  (let* ((default-string (cond (default-string (format " (default %s)" default-string))
-                               ((equal "" default) "")
-                               (t (format " (default %s)" default))))
-         (prompt (format "%s folder%s: " prompt default-string))
+  (let* ((default-string (or default-string
+                             (if (equal default "") nil default)))
+         (prompt (format-prompt "%s folder" default-string prompt))
          (mh-current-folder-name mh-current-folder)
          read-name folder-name)
     (while (and (setq read-name (mh-folder-completing-read
@@ -925,10 +923,10 @@ Handle RFC 822 (or later) continuation lines."
 (defvar mh-hidden-header-keymap
   (let ((map (make-sparse-keymap)))
     (mh-do-in-gnu-emacs
-      (define-key map [mouse-2] 'mh-letter-toggle-header-field-display-button))
+      (define-key map [mouse-2] #'mh-letter-toggle-header-field-display-button))
     (mh-do-in-xemacs
       (define-key map '(button2)
-        'mh-letter-toggle-header-field-display-button))
+        #'mh-letter-toggle-header-field-display-button))
     map))
 
 ;;;###mh-autoload

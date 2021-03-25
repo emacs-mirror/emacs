@@ -2653,9 +2653,7 @@ canceled."
   (barf-if-buffer-read-only)
   (if (eq default t)
       (setq default "")
-    (setq prompt (format "%s (default %S): "
-			 (substring prompt 0 -2)
-			 default)))
+    (setq prompt (format-prompt prompt default)))
   (dolist (key ses-completion-keys)
     (define-key ses-mode-edit-map key 'ses-read-printer-complete-symbol))
   ;; make it globally visible, so that it can be visible from the minibuffer.
@@ -2702,7 +2700,7 @@ right-justified) or a list of one string (will be left-justified)."
                ;;Range contains differing printer functions
                (setq default t)
                (throw 'ses-read-cell-printer t))))))
-     (list (ses-read-printer (format "Cell %S printer: " ses--curcell)
+     (list (ses-read-printer (format "Cell %S printer" ses--curcell)
 			     default))))
   (unless (eq newval t)
     (ses-begin-change)
@@ -2716,7 +2714,7 @@ See `ses-read-cell-printer' for input forms."
   (interactive
    (let ((col (cdr (ses-sym-rowcol ses--curcell))))
      (ses-check-curcell)
-     (list col (ses-read-printer (format "Column %s printer: "
+     (list col (ses-read-printer (format "Column %s printer"
 					 (ses-column-letter col))
 				 (ses-col-printer col)))))
 
@@ -2731,7 +2729,7 @@ See `ses-read-cell-printer' for input forms."
   "Set the default printer function for cells that have no other.
 See `ses-read-cell-printer' for input forms."
   (interactive
-   (list (ses-read-printer "Default printer: " ses--default-printer)))
+   (list (ses-read-printer "Default printer" ses--default-printer)))
   (unless (eq newval t)
     (ses-begin-change)
     (ses-set-parameter 'ses--default-printer newval)
@@ -3773,7 +3771,7 @@ function is redefined."
      (setq name (intern name))
      (let* ((cur-printer (gethash name ses--local-printer-hashmap))
             (default (and cur-printer (ses--locprn-def cur-printer))))
-            (setq def (ses-read-printer (format "Enter definition of printer %S: " name)
+            (setq def (ses-read-printer (format "Enter definition of printer %S" name)
                                         default)))
             (list name def)))
 

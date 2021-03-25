@@ -49,7 +49,7 @@
     "REVERSE" "SORT" "STRINGS"))
 
 (defconst bibtex-style-functions
-  ;; From http://www.eeng.dcu.ie/local-docs/btxdocs/btxhak/btxhak/node4.html.
+  ;; From https://www.eeng.dcu.ie/local-docs/btxdocs/btxhak/btxhak/node4.html.
   '("<" ">" "=" "+" "-" "*" ":="
     "add.period$" "call.type$" "change.case$" "chr.to.int$" "cite$"
     "duplicate$" "empty$" "format.name$" "if$" "int.to.chr$" "int.to.str$"

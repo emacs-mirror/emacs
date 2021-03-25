@@ -1,4 +1,4 @@
-;;; mh-junk.el --- MH-E interface to anti-spam measures
+;;; mh-junk.el --- MH-E interface to anti-spam measures  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 

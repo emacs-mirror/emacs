@@ -67,9 +67,9 @@ considered to be running if the newsticker timer list is not empty."
 ;; Hard-coding URLs like this is a recipe for propagating obsolete info.
 (defconst newsticker--raw-url-list-defaults
   '(("Debian Security Advisories"
-     "http://www.debian.org/security/dsa.en.rdf")
+     "https://www.debian.org/security/dsa.en.rdf")
     ("Debian Security Advisories - Long format"
-     "http://www.debian.org/security/dsa-long.en.rdf")
+     "https://www.debian.org/security/dsa-long.en.rdf")
     ("Emacs Wiki"
      "https://www.emacswiki.org/emacs?action=rss"
      nil
@@ -77,7 +77,7 @@ considered to be running if the newsticker timer list is not empty."
     ("LWN (Linux Weekly News)"
      "https://lwn.net/headlines/rss")
     ("Quote of the day"
-     "http://feeds.feedburner.com/quotationspage/qotd"
+     "https://feeds.feedburner.com/quotationspage/qotd"
      "07:00"
      86400)
     ("The Register"
@@ -1012,7 +1012,7 @@ Argument BUFFER is the buffer of the retrieval process."
   ;; And another one (20050702)! If description is HTML
   ;; encoded and starts with a `<', wrap the whole
   ;; description in a CDATA expression.  This happened for
-  ;; http://www.thefreedictionary.com/_/WoD/rss.aspx?type=quote
+  ;; https://www.thefreedictionary.com/_/WoD/rss.aspx?type=quote
   (goto-char (point-min))
   (while (re-search-forward
           "<description>\\(<img.*?\\)</description>" nil t)
@@ -1176,7 +1176,7 @@ URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
                       ;; unxml the content or the summary node. Atom
                       ;; allows for integrating (x)html into the atom
                       ;; structure but we need the raw html string.
-                      ;; e.g. http://www.heise.de/open/news/news-atom.xml
+                      ;; e.g. https://www.heise.de/open/news/news-atom.xml
                       ;; http://feeds.feedburner.com/ru_nix_blogs
                       (or (newsticker--unxml
                            (car (xml-node-children

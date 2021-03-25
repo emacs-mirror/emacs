@@ -168,15 +168,12 @@ There can be any number of :example/:result elements."
   (replace-regexp-in-string
    :eval (replace-regexp-in-string "[a-z]+" "_" "*foo*"))
   (string-trim
-   :no-manual t
    :args (string)
    :doc "Trim STRING of leading and trailing white space."
    :eval (string-trim " foo "))
   (string-trim-left
-   :no-manual t
    :eval (string-trim-left "oofoo" "o+"))
   (string-trim-right
-   :no-manual t
    :eval (string-trim-right "barkss" "s+"))
   (string-truncate-left
    :no-manual t

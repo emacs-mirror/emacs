@@ -1,4 +1,4 @@
-;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE
+;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -24,8 +24,8 @@
 
 ;;; Commentary:
 
-;; This file implements a debugging toolbar for IDLWAVE.  It requires
-;; Emacs or XEmacs with toolbar and xpm support.
+;; This file implements a debugging toolbar for IDLWAVE.
+;; It requires toolbar and xpm support.
 
 ;; New versions of IDLWAVE, documentation, and more information
 ;; available from:
@@ -35,22 +35,16 @@
 ;;; Code:
 
 (defun idlwave-toolbar-make-button (image)
-  (if (featurep 'xemacs)
-      (toolbar-make-button-list image)
-    (list 'image :type 'xpm :data image)))
+  (list 'image :type 'xpm :data image))
 
 (defvar idlwave-toolbar)
 (defvar default-toolbar)
 (defvar idlwave-toolbar-is-possible)
 
-(if (not (or (and (featurep 'xemacs)                ; This is XEmacs
-		  (featurep 'xpm)                   ; need xpm
-		  (featurep 'toolbar))              ; ... and the toolbar
-	     (and (not (featurep 'xemacs))          ; This is Emacs
-		  (boundp 'tool-bar-button-margin)   ; need toolbar
-		  (fboundp 'image-type-available-p) ; need image stuff
-		  (image-type-available-p 'xpm))    ; need xpm
-	     ))
+(if (not (and (boundp 'tool-bar-button-margin)   ; need toolbar
+	      (fboundp 'image-type-available-p) ; need image stuff
+	      (image-type-available-p 'xpm))    ; need xpm
+	 )
     ;; oops - cannot do the toolbar
     (message "Sorry, IDLWAVE xpm toolbar cannot be used on this version of Emacs")
 ;; OK, we can define a toolbar
@@ -873,23 +867,12 @@ static char * file[] = {
 
 ;; When the shell exits, arrange to remove the special toolbar everywhere.
 (add-hook 'idlwave-shell-cleanup-hook
-	  'idlwave-toolbar-remove-everywhere)
+	  #'idlwave-toolbar-remove-everywhere)
 );; End can define toolbar
 
-(defun idlwave-toolbar-add ()
-  "Add the IDLWAVE toolbar if appropriate."
-  (if (and (featurep 'xemacs)    ; This is a noop on Emacs
-	   (boundp 'idlwave-toolbar-is-possible)
-	   (derived-mode-p 'idlwave-mode 'idlwave-shell-mode))
-      (set-specifier default-toolbar (cons (current-buffer)
-					   idlwave-toolbar))))
+(define-obsolete-function-alias 'idlwave-toolbar-add #'ignore "28.1")
 
-(defun idlwave-toolbar-remove ()
-  "Add the IDLWAVE toolbar if appropriate."
-  (if (and (featurep 'xemacs)    ; This is a noop on Emacs
-	   (boundp 'idlwave-toolbar-is-possible)
-           (derived-mode-p 'idlwave-mode 'idlwave-shell-mode))
-      (remove-specifier default-toolbar (current-buffer))))
+(define-obsolete-function-alias 'idlwave-toolbar-remove #'ignore "28.1")
 
 (defvar idlwave-shell-mode-map)
 (defvar idlwave-mode-map)
@@ -898,57 +881,40 @@ static char * file[] = {
   "Add the toolbar in all appropriate buffers."
   (when (boundp 'idlwave-toolbar-is-possible)
 
-    ;; First make sure new buffers will get the toolbar
-    (add-hook 'idlwave-mode-hook 'idlwave-toolbar-add)
     ;; Then add it to all existing buffers
-    (if (featurep 'xemacs)
-	;; For XEmacs, map over all buffers to add toolbar
-	(save-excursion
-	  (mapcar (lambda (buf)
-		    (set-buffer buf)
-		    (idlwave-toolbar-add))
-		  (buffer-list)))
-      ;; For Emacs, add the key definitions to the mode maps
-      (mapc (lambda (x)
-	      (let* ((icon (aref x 0))
-		     (func (aref x 1))
-		     (show (aref x 2))
-		     (help (aref x 3))
-		     (key (vector 'tool-bar func))
-		     (def (list 'menu-item
-				""
-				func
-				:image (symbol-value icon)
-				:visible show
-				:help help)))
-		(define-key idlwave-mode-map key def)
-		(define-key idlwave-shell-mode-map key def)))
-	    (reverse idlwave-toolbar)))
+    ;; For Emacs, add the key definitions to the mode maps
+    (mapc (lambda (x)
+	    (let* ((icon (aref x 0))
+		   (func (aref x 1))
+		   (show (aref x 2))
+		   (help (aref x 3))
+		   (key (vector 'tool-bar func))
+		   (def (list 'menu-item
+			      ""
+			      func
+			      :image (symbol-value icon)
+			      :visible show
+			      :help help)))
+	      (define-key idlwave-mode-map key def)
+	      (define-key idlwave-shell-mode-map key def)))
+	  (reverse idlwave-toolbar))
     (setq idlwave-toolbar-visible t)))
 
 (defun idlwave-toolbar-remove-everywhere ()
   "Remove the toolbar in all appropriate buffers."
   ;; First make sure new buffers won't get the toolbar
   (when idlwave-toolbar-is-possible
-    (remove-hook 'idlwave-mode-hook 'idlwave-toolbar-add)
     ;; Then remove it in all existing buffers.
-    (if (featurep 'xemacs)
-	;; For XEmacs, map over all buffers to remove toolbar
-	(save-excursion
-	  (mapcar (lambda (buf)
-		    (set-buffer buf)
-		    (idlwave-toolbar-remove))
-		  (buffer-list)))
-      ;; For Emacs, remove the key definitions from the mode maps
-      (mapc (lambda (x)
-	      (let* (;;(icon (aref x 0))
-		     (func (aref x 1))
-		     ;;(show (aref x 2))
-		     ;;(help (aref x 3))
-		     (key (vector 'tool-bar func)))
-		(define-key idlwave-mode-map key nil)
-		(define-key idlwave-shell-mode-map key nil)))
-	    idlwave-toolbar))
+    ;; For Emacs, remove the key definitions from the mode maps
+    (mapc (lambda (x)
+	    (let* (;;(icon (aref x 0))
+		   (func (aref x 1))
+		   ;;(show (aref x 2))
+		   ;;(help (aref x 3))
+		   (key (vector 'tool-bar func)))
+	      (define-key idlwave-mode-map key nil)
+	      (define-key idlwave-shell-mode-map key nil)))
+	  idlwave-toolbar)
     (setq idlwave-toolbar-visible nil)))
 
 (defun idlwave-toolbar-toggle (&optional force-on)
@@ -956,11 +922,8 @@ static char * file[] = {
   (if idlwave-toolbar-visible
       (or force-on (idlwave-toolbar-remove-everywhere))
     (idlwave-toolbar-add-everywhere))
-  ;; Now make sure this
-  (if (featurep 'xemacs)
-      nil ; no action necessary, toolbar gets updated automatically
-    ;; On Emacs, redraw the frame to make sure the Toolbar is updated.
-    (redraw-frame)))
+  ;; On Emacs, redraw the frame to make sure the Toolbar is updated.
+  (redraw-frame))
 
 (provide 'idlw-toolbar)
 (provide 'idlwave-toolbar)

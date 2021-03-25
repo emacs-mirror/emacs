@@ -836,7 +836,10 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this command indents to the
 column specified by the function `current-left-margin'.
 
-With ARG, perform this action that many times."
+With ARG, perform this action that many times.
+
+Also see `open-line' (bound to \\[open-line]) for a command that
+just inserts a newline without doing any indentation."
   (interactive "*p")
   (delete-horizontal-space t)
   (unless arg
