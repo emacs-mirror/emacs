@@ -489,12 +489,6 @@ decoding the same message multiple times."
          handle
          `(lambda ()
             (let (buffer-read-only)
-              (if (fboundp 'remove-specifier)
-                  ;; This is only valid on XEmacs.
-                  (mapcar (lambda (prop)
-                            (remove-specifier
-                             (face-property 'default prop) (current-buffer)))
-                          '(background background-pixmap foreground)))
               (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
 ;;;###mh-autoload
