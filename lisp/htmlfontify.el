@@ -983,19 +983,18 @@ merged by the user - `hfy-flatten-style' should do this."
                        (:italic         (hfy-slant 'italic))))))
       (setq that (hfy-face-to-style-i next))
       ;;(lwarn t :warning "%S => %S" fn (nconc this that parent))
-      (nconc this parent that))) )
+      (append this parent that))) )
 
-(defun hfy-size-to-int (spec)
+(defun hfy--size-to-int (spec)
   "Convert SPEC, a CSS font-size specifier, to an Emacs :height attribute value.
 Used while merging multiple font-size attributes."
-  ;;(message "hfy-size-to-int");;DBUG
-  (list
-   (if (string-match "\\([0-9]+\\)\\(%\\|pt\\)" spec)
-       (cond ((string= "%"  (match-string 2 spec))
-              (/ (string-to-number (match-string 1 spec)) 100.0))
-             ((string= "pt" (match-string 2 spec))
-              (* (string-to-number (match-string 1 spec))    10)))
-     (string-to-number spec))) )
+  ;;(message "hfy--size-to-int");;DBUG
+  (if (string-match "\\([0-9]+\\)\\(%\\|pt\\)" spec)
+      (cond ((string= "%"  (match-string 2 spec))
+             (/ (string-to-number (match-string 1 spec)) 100.0))
+            ((string= "pt" (match-string 2 spec))
+             (* (string-to-number (match-string 1 spec))    10)))
+    (string-to-number spec)) )
 
 ;; size is different, in that in order to get it right at all,
 ;; we have to trawl the inheritance path, accumulating modifiers,
@@ -1006,19 +1005,18 @@ any multiple attributes appropriately.  Currently only font-size is merged
 down to a single occurrence - others may need special handling, but I
 haven't encountered them yet.  Returns a `hfy-style-assoc'."
   ;;(message "(hfy-flatten-style %S)" style) ;;DBUG
-  (let ((n        0)
-        (m (list 1))
+  (let ((m (list 1))
         (x      nil)
         (r      nil))
     (dolist (css style)
       (if (string= (car css) "font-size")
           (progn
-            (when (not x) (setq m (nconc m (hfy-size-to-int (cdr css)))))
+            (when (not x) (push (hfy--size-to-int (cdr css)) m))
             (when (string-match "pt" (cdr css)) (setq x t)))
-        (setq r (nconc r (list css)))))
+        (push css r)))
     ;;(message "r: %S" r)
-    (setq  n (apply #'* m))
-    (nconc r (hfy-size (if x (round n) (* n 1.0)))) ))
+    (let ((n (apply #'* m)))
+      (nconc (nreverse r) (hfy-size (if x (round n) (float n)))))))
 
 (defun hfy-face-resolve-face (fn)
   "For FN return a face specification.
@@ -1052,7 +1050,7 @@ See also `hfy-face-to-style-i', `hfy-flatten-style'."
                      ;; text-decoration is not inherited.
                      ;; but it's not wrong and if this ever changes it will
                      ;; be needed, so I think it's better to leave it in? -- v
-                     (nconc final-style '(("text-decoration" . "none"))))))
+                     (push '("text-decoration" . "none") final-style))))
     final-style))
 
 ;; strip redundant bits from a name. Technically, this could result in
