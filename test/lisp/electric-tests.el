@@ -50,7 +50,8 @@
   `(call-with-saved-electric-modes #'(lambda () ,@body)))
 
 (defun electric-pair-test-for (fixture where char expected-string
-                                       expected-point mode bindings fixture-fn)
+                                       expected-point mode bindings
+                                       fixture-fn &optional doc-string)
   (with-temp-buffer
     (funcall mode)
     (insert fixture)
@@ -63,6 +64,14 @@
             (mapcar #'car bindings)
             (mapcar #'cdr bindings)
           (call-interactively (key-binding `[,last-command-event])))))
+    (when
+        (and doc-string
+             (not
+              (and
+               (equal (buffer-substring-no-properties (point-min) (point-max))
+                      expected-string)
+               (equal (point) expected-point))))
+      (message "\n%s\n" doc-string))
     (should (equal (buffer-substring-no-properties (point-min) (point-max))
                    expected-string))
     (should (equal (point)
@@ -109,14 +118,9 @@
            (fixture (format "%s%s%s" prefix fixture suffix))
            (expected-string (format "%s%s%s" prefix expected-string suffix))
            (expected-point (+ (length prefix) expected-point))
-           (pos (+ (length prefix) pos)))
-      `(ert-deftest ,(intern (format "electric-pair-%s-at-point-%s-in-%s%s"
-                                     name
-                                     (1+ pos)
-                                     mode
-                                     extra-desc))
-           ()
-         ,(format "Electricity test in a `%s' buffer.\n
+           (pos (+ (length prefix) pos))
+           (doc-string
+            (format "Electricity test in a `%s' buffer.\n
 Start with point at %d in a %d-char-long buffer
 like this one:
 
@@ -143,7 +147,14 @@ The buffer's contents should %s:
                   char
                   (if (string= fixture expected-string) "stay" "become")
                   (replace-regexp-in-string "\n" "\\\\n" expected-string)
-                  expected-point)
+                  expected-point)))
+      `(ert-deftest ,(intern (format "electric-pair-%s-at-point-%s-in-%s%s"
+                                     name
+                                     (1+ pos)
+                                     mode
+                                     extra-desc))
+           ()
+         ,doc-string
          (electric-pair-test-for ,fixture
                                  ,(1+ pos)
                                  ,char
@@ -151,7 +162,8 @@ The buffer's contents should %s:
                                  ,expected-point
                                  ',mode
                                  ,bindings
-                                 ,fixture-fn)))))
+                                 ,fixture-fn
+                                 ,doc-string)))))
 
 (cl-defmacro define-electric-pair-test
     (name fixture

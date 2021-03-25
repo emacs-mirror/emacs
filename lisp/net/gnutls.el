@@ -4,7 +4,7 @@
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
-;; Originally-By: Simon Josefsson (See http://josefsson.org/emacs-security/)
+;; Originally-By: Simon Josefsson (See https://josefsson.org/emacs-security/)
 ;; Thanks-To: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
 ;; This file is part of GNU Emacs.

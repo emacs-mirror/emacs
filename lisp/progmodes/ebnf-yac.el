@@ -1,4 +1,4 @@
-;;; ebnf-yac.el --- parser for Yacc/Bison
+;;; ebnf-yac.el --- parser for Yacc/Bison  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

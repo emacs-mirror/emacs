@@ -135,6 +135,25 @@ point in the distant past, and is still broken in perl-mode. "
         (should (equal (nth 3 (syntax-ppss)) nil))
         (should (equal (nth 4 (syntax-ppss)) t))))))
 
+(ert-deftest cperl-test-fontify-declarations ()
+  "Test that declarations and package usage use consistent fontification."
+  (with-temp-buffer
+    (funcall cperl-test-mode)
+    (insert "package Foo::Bar;\n")
+    (insert "use Fee::Fie::Foe::Foo\n;")
+    (insert "my $xyzzy = 'PLUGH';\n")
+    (goto-char (point-min))
+    (font-lock-ensure)
+    (search-forward "Bar")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-function-name-face))
+    (search-forward "use") ; This was buggy in perl-mode
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-keyword-face))
+    (search-forward "my")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-keyword-face))))
+
 (defvar perl-continued-statement-offset)
 (defvar perl-indent-level)
 

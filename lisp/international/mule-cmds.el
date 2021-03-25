@@ -1524,7 +1524,7 @@ To deactivate it programmatically, use `deactivate-input-method'."
   (interactive
    (let* ((default (or (car input-method-history) default-input-method)))
      (list (read-input-method-name
-	    (if default "Select input method (default %s): " "Select input method: ")
+	    (format-prompt "Select input method" default)
 	    default t)
 	   t)))
   (activate-input-method input-method)
@@ -1569,7 +1569,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
        (if (or arg (not default))
 	   (progn
 	     (read-input-method-name
-	      (if default "Input method (default %s): " "Input method: " )
+	      (format-prompt "Input method" default)
 	      default t))
 	 default))
       (unless default-input-method
@@ -1620,7 +1620,7 @@ If `default-transient-input-method' was not yet defined, prompt for it."
   "Describe input method INPUT-METHOD."
   (interactive
    (list (read-input-method-name
-	  "Describe input method (default current choice): ")))
+          (format-prompt "Describe input method" current-input-method))))
   (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
   (help-setup-xref (list #'describe-input-method
@@ -1929,7 +1929,7 @@ runs the hook `exit-language-environment-hook'.  After setting up
 the new language environment, it runs `set-language-environment-hook'."
   (interactive (list (read-language-name
 		      nil
-		      "Set language environment (default English): ")))
+		      (format-prompt "Set language environment" "English"))))
   (if language-name
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
@@ -2144,7 +2144,7 @@ See `set-language-info-alist' for use in programs."
   (interactive
    (list (read-language-name
 	  'documentation
-	  "Describe language environment (default current choice): ")))
+	  (format-prompt "Describe language environment" current-language-environment))))
   (if (null language-name)
       (setq language-name current-language-environment))
   (if (or (null language-name)
@@ -2245,7 +2245,7 @@ See `set-language-info-alist' for use in programs."
      ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
      ;; with additions from ISO 639/RA Newsletter No.1/1989;
      ;; see Internet RFC 2165 (1997-06) and
-     ;; http://www.evertype.com/standards/iso639/iso639-en.html
+     ;; https://www.evertype.com/standards/iso639/iso639-en.html
      ;; TERRITORY is a country code taken from ISO 3166
      ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
      ;; CODESET and MODIFIER are implementation-dependent.

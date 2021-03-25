@@ -491,8 +491,8 @@ Non-nil means always go to the next Octave code line after sending."
          'font-lock-keyword-face)
    ;; Note: 'end' also serves as the last index in an indexing expression,
    ;; and 'enumerate' is also a function.
-   ;; Ref: http://www.mathworks.com/help/matlab/ref/end.html
-   ;; Ref: http://www.mathworks.com/help/matlab/ref/enumeration.html
+   ;; Ref: https://www.mathworks.com/help/matlab/ref/end.html
+   ;; Ref: https://www.mathworks.com/help/matlab/ref/enumeration.html
    (list (lambda (limit)
            (while (re-search-forward "\\_<en\\(?:d\\|umeratio\\(n\\)\\)\\_>"
                                      limit 'move)

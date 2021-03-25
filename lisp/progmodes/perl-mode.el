@@ -170,9 +170,9 @@
     ;;  (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t))
     ;;
     ;; Fontify function and package names in declarations.
-    ("\\<\\(package\\|sub\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\<\\(package\\|sub\\)\\>[ \t]*\\(\\(?:\\sw\\|::\\)+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-    ("\\(^\\|[^$@%&\\]\\)\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
+    ("\\(?:^\\|[^$@%&\\]\\)\\<\\(import\\|no\\|require\\|use\\)\\>[ \t]*\\(\\(?:\\sw\\|::\\)+\\)?"
      (1 font-lock-keyword-face) (2 font-lock-constant-face nil t)))
   "Subdued level highlighting for Perl mode.")
 
@@ -187,7 +187,7 @@
               "\\>")
      ;;
      ;; Fontify declarators and prefixes as types.
-     ("\\<\\(has\\|local\\|my\\|our\\|state\\)\\>" . font-lock-type-face) ; declarators
+     ("\\<\\(has\\|local\\|my\\|our\\|state\\)\\>" . font-lock-keyword-face) ; declarators
           ;;
      ;; Fontify function, variable and file name references.
      ("&\\(\\sw+\\(::\\sw+\\)*\\)" 1 font-lock-function-name-face)

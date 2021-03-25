@@ -24,7 +24,7 @@
 ;;; Commentary:
 
 ;;; This file provides an input method for the programmers Dvorak keyboard
-;;; layout by Roland Kaufman (<http://www.kaufmann.no/roland/dvorak/>).
+;;; layout by Roland Kaufman (<https://www.kaufmann.no/roland/dvorak/>).
 
 ;;; Code:
 

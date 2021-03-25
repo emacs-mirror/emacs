@@ -2368,7 +2368,7 @@ or Edit/Text Properties/Face commands.
 Pages can have <a name=\"SOMENAME\">named points</a> and can link other points
 to them with <a href=\"#SOMENAME\">see also somename</a>.  In the same way <a
 href=\"URL\">see also URL</a> where URL is a filename relative to current
-directory, or absolute as in `http://www.cs.indiana.edu/elisp/w3/docs.html'.
+directory, or absolute as in `https://www.cs.indiana.edu/elisp/w3/docs.html'.
 
 Images in many formats can be inlined with <img src=\"URL\">.
 

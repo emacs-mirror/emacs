@@ -1260,7 +1260,15 @@ of a global face.  Value is the new attribute value."
 		   (or (car (rassoc old-value valid))
 		       (format "%s" old-value))))
 	     (setq new-value
-		   (face-read-string face default attribute-name valid))
+                   (if (memq attribute '(:foreground :background))
+                       (let ((color
+                              (read-color
+                               (format-prompt "%s for face `%s'"
+                                              default attribute-name face))))
+                         (if (equal (string-trim color) "")
+                             default
+                           color))
+		     (face-read-string face default attribute-name valid)))
 	     (if (equal new-value default)
 		 ;; Nothing changed, so don't bother with all the stuff
 		 ;; below.  In particular, this avoids a non-tty color

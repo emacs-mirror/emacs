@@ -1573,7 +1573,19 @@ If not nil and not t, move to limit of search and return nil."
        ("^%\\([ \t\f].*\\)?$" nil comment)
        ("^%include\\>" nil include)
        ("\"[^\"\n]*\"\\|'.'\\|'![0-9]+!'" nil string)
-       ("\\<\\(ACTIVATE\\|AFTER\\|AND\\|ARRAY\\|AT\\|BEFORE\\|BEGIN\\|BOOLEAN\\|CHARACTER\\|CLASS\\|DELAY\\|DO\\|ELSE\\|END\\|EQ\\|EQV\\|EXTERNAL\\|FALSE\\|FOR\\|GE\\|GO\\|GOTO\\|GT\\|HIDDEN\\|IF\\|IMP\\|IN\\|INNER\\|INSPECT\\|INTEGER\\|IS\\|LABEL\\|LE\\|LONG\\|LT\\|NAME\\|NE\\|NEW\\|NONE\\|NOT\\|NOTEXT\\|OR\\|OTHERWISE\\|PRIOR\\|PROCEDURE\\|PROTECTED\\|QUA\\|REACTIVATE\\|REAL\\|REF\\|SHORT\\|STEP\\|SWITCH\\|TEXT\\|THEN\\|THIS\\|TO\\|TRUE\\|UNTIL\\|VALUE\\|VIRTUAL\\|WHEN\\|WHILE\\)\\>" nil keyword)
+       ((regexp-opt '("ACTIVATE" "AFTER" "AND" "ARRAY" "AT" "BEFORE"
+                      "BEGIN" "BOOLEAN" "CHARACTER" "CLASS" "DELAY"
+                      "DO" "ELSE" "END" "EQ" "EQV" "EXTERNAL" "FALSE"
+                      "FOR" "GE" "GO" "GOTO" "GT" "HIDDEN" "IF" "IMP"
+                      "IN" "INNER" "INSPECT" "INTEGER" "IS" "LABEL"
+                      "LE" "LONG" "LT" "NAME" "NE" "NEW" "NONE" "NOT"
+                      "NOTEXT" "OR" "OTHERWISE" "PRIOR" "PROCEDURE"
+                      "PROTECTED" "QUA" "REACTIVATE" "REAL" "REF"
+                      "SHORT" "STEP" "SWITCH" "TEXT" "THEN" "THIS"
+                      "TO" "TRUE" "UNTIL" "VALUE" "VIRTUAL" "WHEN"
+                      "WHILE")
+                    'words)
+        nil keyword)
        ("!\\|\\<COMMENT\\>" ";" comment))
      nil 'case-insensitive)))
 

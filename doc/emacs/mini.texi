@@ -82,7 +82,9 @@ after a recursive minibuffer has been opened in the current command
 (@pxref{Recursive Mini,,, elisp}).  This option is mainly to retain
 (approximately) the behavior prior to Emacs 28.1.  Note that the
 effect of the command, when you finally finish using the minibuffer,
-always takes place in the frame where you first opened it.
+always takes place in the frame where you first opened it.  The sole
+exception is that when that frame no longer exists, the action takes
+place in the currently selected frame.
 
 @node Minibuffer File
 @section Minibuffers for File Names

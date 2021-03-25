@@ -42,7 +42,7 @@
 (eval-when-compile (require 'mh-acros))
 
 (mh-do-in-gnu-emacs
-  (defalias 'mh-require 'require))
+  (defalias 'mh-require #'require))
 
 (mh-do-in-xemacs
   (defun mh-require (feature &optional filename noerror)

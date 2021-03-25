@@ -246,7 +246,7 @@ See `wdired-mode'."
   (add-hook 'after-change-functions #'wdired--restore-properties nil t)
   (setq major-mode 'wdired-mode)
   (setq mode-name "Editable Dired")
-  (add-function :override (local revert-buffer-function) #'wdired-revert)
+  (add-function :override (local 'revert-buffer-function) #'wdired-revert)
   ;; I temp disable undo for performance: since I'm going to clear the
   ;; undo list, it can save more than a 9% of time with big
   ;; directories because setting properties modify the undo-list.
@@ -381,7 +381,7 @@ non-nil means return old filename."
   (dired-advertise)
   (remove-hook 'kill-buffer-hook #'wdired-check-kill-buffer t)
   (remove-hook 'after-change-functions #'wdired--restore-properties t)
-  (remove-function (local revert-buffer-function) #'wdired-revert))
+  (remove-function (local 'revert-buffer-function) #'wdired-revert))
 
 (defun wdired-abort-changes ()
   "Abort changes and return to dired mode."

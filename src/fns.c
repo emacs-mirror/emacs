@@ -2279,6 +2279,52 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
     }
 }
 
+Lisp_Object
+merge_c (Lisp_Object org_l1, Lisp_Object org_l2, bool (*less) (Lisp_Object, Lisp_Object))
+{
+  Lisp_Object l1 = org_l1;
+  Lisp_Object l2 = org_l2;
+  Lisp_Object tail = Qnil;
+  Lisp_Object value = Qnil;
+
+  while (1)
+    {
+      if (NILP (l1))
+	{
+	  if (NILP (tail))
+	    return l2;
+	  Fsetcdr (tail, l2);
+	  return value;
+	}
+      if (NILP (l2))
+	{
+	  if (NILP (tail))
+	    return l1;
+	  Fsetcdr (tail, l1);
+	  return value;
+	}
+
+      Lisp_Object tem;
+      if (less (Fcar (l1), Fcar (l2)))
+	{
+	  tem = l1;
+	  l1 = Fcdr (l1);
+	  org_l1 = l1;
+	}
+      else
+	{
+	  tem = l2;
+	  l2 = Fcdr (l2);
+	  org_l2 = l2;
+	}
+      if (NILP (tail))
+	value = tem;
+      else
+	Fsetcdr (tail, tem);
+      tail = tem;
+    }
+}
+
 
 /* This does not check for quits.  That is safe since it must terminate.  */
 

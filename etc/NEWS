@@ -567,7 +567,9 @@ It also supports a negative argument.
 *** 'C-x t G' assigns a group name to the tab.
 'tab-close-group' can close all tabs that belong to the selected group.
 The user option 'tab-bar-new-tab-group' defines the default group of a
-new tab.
+new tab.  After customizing 'tab-bar-tab-post-change-group-functions'
+to 'tab-bar-move-tab-to-group', changing the tab group will also move it
+closer to other tabs in the same group.
 
 ---
 *** New user option 'tab-bar-tab-name-format-function'.
@@ -1586,6 +1588,11 @@ project's root directory, respectively.
 +++
 *** New user option 'project-list-file'.
 
++++
+*** New command 'project-remove-known-project'.
+This command lets you interactively remove an entry from the list of projects
+in 'project-list-file'.
+
 ** xref
 
 ---
@@ -2312,6 +2319,10 @@ since the latter uses 'M-s' as a prefix key of the search prefix map.
 
 ** 'vc-print-branch-log' shows the change log for BRANCH from its root
 directory instead of the default directory.
+
+---
+** 'project-shell' and 'shell' now use 'pop-to-buffer-same-window'.
+This is to keep the same behavior as Eshell.
 
 
 * Incompatible Lisp Changes in Emacs 28.1

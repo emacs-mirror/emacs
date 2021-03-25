@@ -33,7 +33,7 @@
 ;; are converted to Unicode internally.  See
 ;; <URL:http://www.ecma.ch/ecma1/STAND/ECMA-113.HTM>.  For more info
 ;; on Cyrillic charsets, see
-;; <URL:http://czyborra.com/charsets/cyrillic.html>.  The KOI and
+;; <URL:https://czyborra.com/charsets/cyrillic.html>.  The KOI and
 ;; Alternativnyj coding systems should live in code-pages.el, but
 ;; they've always been preloaded and the coding system autoload
 ;; mechanism didn't get accepted, so they have to stay here and

@@ -180,7 +180,7 @@ this function is always whether the value of `this-command' would've been
   (= repeat-num-input-keys-at-repeat num-input-keys))
 
 ;; An example of the use of (repeat-is-really-this-command) may still be
-;; available in <http://www.eskimo.com/~seldon/dotemacs.el>; search for
+;; available in <https://www.eskimo.com/~seldon/dotemacs.el>; search for
 ;; "defun wm-switch-buffer".
 
 ;;;;; ******************* THE REPEAT COMMAND ITSELF ******************* ;;;;;

@@ -1,4 +1,4 @@
-;;; master.el --- make a buffer the master over another buffer
+;;; master.el --- make a buffer the master over another buffer  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; master-mode is a minor mode which enables you to scroll another
+;; `master-mode' is a minor mode which enables you to scroll another
 ;; buffer (the slave) without leaving your current buffer (the master).
 
 ;; It can be used by sql.el, for example: The SQL buffer is the master
@@ -47,16 +47,7 @@
 ;;
 ;; Rob Riepel <networking.stanford.edu>
 
-;;; History:
-;;
-
 ;;; Code:
-
-;; Unused.
-;;; (defgroup master nil
-;;;   "Support for master/slave relationships between buffers."
-;;;   :version "22.1"
-;;;   :group 'convenience)
 
 ;; Variables that don't need initialization.
 
@@ -93,7 +84,7 @@ yourself the value of `master-of' by calling `master-show-slave'."
 ;; Initialize Master mode by setting a slave buffer.
 
 (defun master-set-slave (buffer)
-  "Makes BUFFER the slave of the current buffer.
+  "Make BUFFER the slave of the current buffer.
 Use \\[master-mode] to toggle control of the slave buffer."
   (interactive "bSlave: ")
   (setq-local master-of buffer)

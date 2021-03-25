@@ -82,7 +82,7 @@ documents.
 To get validation and schema-sensitive editing, you need a RELAX NG Compact
 Syntax (RNC) schema for your document (@pxref{Locating a schema}).  The
 @file{etc/schema} directory includes some schemas for popular document
-types.  See @url{http://relaxng.org/} for more information on RELAX NG@.
+types.  See @url{https://relaxng.org/} for more information on RELAX NG@.
 You can use the @samp{Trang} program from
 @url{http://www.thaiopensource.com/relaxng/trang.html} to
 automatically create RNC schemas.  This program can:

@@ -23,14 +23,6 @@
 
 ;;; Code:
 
-
-;; Unused.
-;; (defgroup eshell-opt nil
-;;   "The options processing code handles command argument parsing for
-;; Eshell commands implemented in Lisp."
-;;   :tag "Command options processing"
-;;   :group 'eshell)
-
 ;;; User Functions:
 
 ;; Macro expansion of eshell-eval-using-options refers to eshell-stringify-list

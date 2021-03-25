@@ -6,7 +6,7 @@
 ;; Created: Dec 1991 -- first release to usenet
 ;; Version: 2.3
 ;; Keywords: outlines, wp, languages, PGP, GnuPG
-;; Website: http://myriadicity.net/software-and-systems/craft/emacs-allout
+;; Website: https://myriadicity.net/software-and-systems/craft/emacs-allout
 
 ;; This file is part of GNU Emacs.
 
@@ -57,7 +57,7 @@
 ;; mode.
 ;;
 ;; Directions to the latest development version and helpful notes are
-;; available at http://myriadicity.net/Sundry/EmacsAllout .
+;; available at https://myriadicity.net/software-and-systems/craft/emacs-allout .
 ;;
 ;; The outline menubar additions provide quick reference to many of the
 ;; features.  See the docstring of the variables `allout-layout' and

@@ -1,4 +1,4 @@
-;;; idlw-complete-structtag.el --- Completion of structure tags.
+;;; idlw-complete-structtag.el --- Completion of structure tags.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -100,12 +100,11 @@
 (defvar idlwave-sint-structtags nil)
 
 ;; Create the sintern type for structure talks
-(declare-function idlwave-sintern-structtag "idlw-complete-structtag" t t)
-(idlwave-new-sintern-type 'structtag)
+(idlwave-new-sintern-type structtag)
 
 ;; Hook the plugin into idlwave
-(add-to-list 'idlwave-complete-special 'idlwave-complete-structure-tag)
-(add-hook 'idlwave-update-rinfo-hook 'idlwave-structtag-reset)
+(add-hook 'idlwave-complete-functions #'idlwave-complete-structure-tag)
+(add-hook 'idlwave-update-rinfo-hook #'idlwave-structtag-reset)
 
 ;;; The main code follows below
 (defvar idlwave-completion-help-info)

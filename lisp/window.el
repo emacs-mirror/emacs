@@ -4158,7 +4158,7 @@ returned by `window-start' and `window-point' respectively.
 
 This function is called only if `switch-to-buffer-preserve-window-point'
 evaluates non-nil."
-  (dolist (win (window-list))
+  (dolist (win (window-list nil 'no-minibuf))
     (let* ((buf   (window-buffer (or window win)))
            (start (window-start win))
            (pos   (window-point win))
@@ -4416,7 +4416,8 @@ WINDOW must be a live window and defaults to the selected one."
        window (assq-delete-all buffer (window-prev-buffers window))))
 
     ;; Don't record insignificant buffers.
-    (unless (eq (aref (buffer-name buffer) 0) ?\s)
+    (when (or (not (eq (aref (buffer-name buffer) 0) ?\s))
+              (minibufferp buffer))
       ;; Add an entry for buffer to WINDOW's previous buffers.
       (with-current-buffer buffer
 	(let ((start (window-start window))

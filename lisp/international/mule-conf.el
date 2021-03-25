@@ -41,7 +41,7 @@
 ;; Standards docs equivalent to iso-2022 and iso-8859 are at
 ;; https://www.ecma.ch/.
 
-;; FWIW, http://www.microsoft.com/globaldev/ lists the following for
+;; FWIW, https://www.microsoft.com/globaldev/ lists the following for
 ;; MS Windows, which are presumably the only charsets we really need
 ;; to worry about on such systems:
 ;; `OEM codepages': 437, 720, 737, 775, 850, 852, 855, 857, 858, 862, 866
@@ -358,7 +358,7 @@
   :code-offset #x130000
   :unify-map "BIG5")
 ;; Fixme: AKA cp950 according to
-;; <URL:http://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
+;; <URL:https://www.microsoft.com/globaldev/reference/WinCP.asp>.  Is
 ;; that correct?
 
 (define-charset 'chinese-big5-1
@@ -708,7 +708,7 @@
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
 (define-charset-alias 'cp866u 'cp1125)
 
-;; Fixme: C.f. iconv, http://czyborra.com/charsets/codepages.html
+;; Fixme: C.f. iconv, https://czyborra.com/charsets/codepages.html
 ;; shows this as not ASCII compatible, with various graphics in
 ;; 0x01-0x1F.
 (define-charset 'cp437

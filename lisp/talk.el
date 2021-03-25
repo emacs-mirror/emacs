@@ -1,4 +1,4 @@
-;;; talk.el --- allow several users to talk to each other through Emacs
+;;; talk.el --- allow several users to talk to each other through Emacs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; This is a multi-user talk package that runs in Emacs.
-;; Use talk-connect to bring a new person into the conversation.
+;; Use `talk-connect' to bring a new person into the conversation.
 
 ;;; Code:
 

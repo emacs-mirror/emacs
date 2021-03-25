@@ -1,4 +1,4 @@
-;;; mh-mime.el --- MH-E MIME support
+;;; mh-mime.el --- MH-E MIME support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -190,9 +190,9 @@ Set from last use.")
       ;; XEmacs doesn't care.
       (set-keymap-parent map mh-show-mode-map))
     (mh-do-in-gnu-emacs
-     (define-key map [mouse-2] 'mh-push-button))
+     (define-key map [mouse-2] #'mh-push-button))
     (mh-do-in-xemacs
-     (define-key map '(button2) 'mh-push-button))
+     (define-key map '(button2) #'mh-push-button))
     (dolist (c mh-mime-button-commands)
       (define-key map (cadr c) (car c)))
     map))
@@ -214,11 +214,11 @@ Set from last use.")
   (let ((map (make-sparse-keymap)))
     (unless (>= (string-to-number emacs-version) 21)
       (set-keymap-parent map mh-show-mode-map))
-    (define-key map "\r" 'mh-press-button)
+    (define-key map "\r" #'mh-press-button)
     (mh-do-in-gnu-emacs
-     (define-key map [mouse-2] 'mh-push-button))
+     (define-key map [mouse-2] #'mh-push-button))
     (mh-do-in-xemacs
-     (define-key map '(button2) 'mh-push-button))
+     (define-key map '(button2) #'mh-push-button))
     map))
 
 
@@ -259,9 +259,7 @@ usually reads the file \"/etc/mailcap\"."
               (methods (mapcar (lambda (x) (list (cdr (assoc 'viewer x))))
                                (mailcap-mime-info type 'all)))
               (def (caar methods))
-              (prompt (format "Viewer%s: " (if def
-                                               (format " (default %s)" def)
-                                             "")))
+              (prompt (format-prompt "Viewer" def))
               (method (completing-read prompt methods nil nil nil nil def))
               (folder mh-show-folder-buffer)
               (buffer-read-only nil))
@@ -395,9 +393,9 @@ do the work."
           ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
-           (read-directory-name (format
-                            "Store in directory (default %s): "
-                            mh-mime-save-parts-directory)
+           (read-directory-name (format-prompt
+                                 "Store in directory"
+                                 mh-mime-save-parts-directory)
                            "" mh-mime-save-parts-directory t ""))
           ((stringp mh-mime-save-parts-default-directory)
            mh-mime-save-parts-default-directory)
@@ -413,7 +411,7 @@ do the work."
         (cd directory)
         (setq mh-mime-save-parts-directory directory)
         (let ((initial-size (mh-truncate-log-buffer)))
-          (apply 'call-process
+          (apply #'call-process
                  (expand-file-name command mh-progs) nil t nil
                  (mh-list-to-string (list folder msg "-auto"
                                           (if (not (mh-variant-p 'nmh))
@@ -452,7 +450,7 @@ decoding the same message multiple times."
   (let ((b (point))
         (clean-message-header mh-clean-message-header-flag)
         (invisible-headers mh-invisible-header-fields-compiled)
-        (visible-headers nil))
+        ) ;; (visible-headers nil)
     (save-excursion
       (save-restriction
         (narrow-to-region b b)
@@ -474,7 +472,7 @@ decoding the same message multiple times."
         (cond (clean-message-header
                (mh-clean-msg-header (point-min)
                                     invisible-headers
-                                    visible-headers)
+                                    nil) ;; visible-headers
                (goto-char (point-min)))
               (t
                (mh-start-of-uncleaned-message)))
@@ -1225,7 +1223,7 @@ The option `mh-compose-insertion' controls what type of tags are inserted."
                               t)
                           t t)))
      (list description folder range)))
-  (let ((messages (mapconcat 'identity (mh-list-to-string range) " ")))
+  (let ((messages (mapconcat #'identity (mh-list-to-string range) " ")))
     (dolist (message (mh-translate-range folder messages))
       (if (equal mh-compose-insertion 'mml)
           (mh-mml-forward-message description folder (format "%s" message))
@@ -1258,11 +1256,7 @@ See also \\[mh-mh-to-mime]."
   (interactive (list
                 (mml-minibuffer-read-description)
                 (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-                (read-string (concat "Messages"
-                                     (if (numberp mh-sent-from-msg)
-                                         (format " (default %d): "
-                                                 mh-sent-from-msg)
-                                       ": ")))))
+                (read-string (format-prompt "Messages" mh-sent-from-msg))))
   (beginning-of-line)
   (insert "#forw [")
   (and description
@@ -1596,7 +1590,7 @@ the possible security methods (see `mh-mml-method-default')."
   (if current-prefix-arg
       (let ((def (or (car mh-mml-cryptographic-method-history)
                      mh-mml-method-default)))
-        (completing-read (format "Method (default %s): " def)
+        (completing-read (format-prompt "Method" def)
                          '(("pgp") ("pgpmime") ("smime"))
                          nil t nil 'mh-mml-cryptographic-method-history def))
     mh-mml-method-default))
@@ -1731,7 +1725,7 @@ Optional argument DEFAULT is returned if a type isn't entered."
          (type (or (and (not (equal probed-type "application/octet-stream"))
                         probed-type)
                    (completing-read
-                    (format "Content type (default %s): " default)
+                    (format-prompt "Content type" default)
                     (mapcar #'list (mailcap-mime-types))))))
     (if (not (equal type ""))
         type

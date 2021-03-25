@@ -458,7 +458,7 @@ and the hook `eshell-exit-hook'."
   (let ((inhibit-read-only t)
 	(no-default (eobp))
 	(find-tag-default-function 'ignore))
-    (setq tagname (car (find-tag-interactive "Find tag: " no-default)))
+    (setq tagname (car (find-tag-interactive "Find tag" no-default)))
     (with-suppressed-warnings ((obsolete find-tag))
       (find-tag tagname next-p regexp-p))))
 

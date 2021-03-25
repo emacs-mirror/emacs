@@ -36007,7 +36007,7 @@ Add a description of the problem and include a reproducible test case.
 Feel free to send questions and enhancement requests to <reto@gnu.org>.
 
 Official distribution is at
-URL `http://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html'
+URL `https://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html'
 
 
                                                   The Vera Mode Maintainer

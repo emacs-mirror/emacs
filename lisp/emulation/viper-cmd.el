@@ -1786,7 +1786,7 @@ Undo previous insertion and inserts new."
 	(do-not-change-default t))
     (setq quote-str
 	  (viper-read-string-with-history
-	   "Quote string: "
+	   "Quote string"
 	   nil
 	   'viper-quote-region-history
            ;; FIXME: Use comment-region.
@@ -1995,24 +1995,17 @@ problems."
 	    #'viper-minibuffer-standard-hook
 	    (if (or (not (listp old)) (eq (car old) 'lambda))
 		(list old) old))))
-	(val "")
-	(padding "")
-	temp-msg)
+	(val ""))
 
     (setq keymap (or keymap minibuffer-local-map)
 	  initial (or initial "")
-	  viper-initial initial
-	  temp-msg (if default
-		       (format "(default %s) " default)
-		     ""))
+	  viper-initial initial)
 
     (setq viper-incomplete-ex-cmd nil)
-    (setq val (read-from-minibuffer prompt
-				    (concat temp-msg initial val padding)
-				    keymap nil history-var))
-    (setq minibuffer-setup-hook nil
-	  padding (viper-array-to-string (this-command-keys))
-	  temp-msg "")
+    (setq val (read-from-minibuffer (format-prompt prompt default)
+				    nil
+				    keymap nil history-var default))
+    (setq minibuffer-setup-hook nil)
     ;; the following tries to be smart about what to put in history
     (if (not (string= val (car (symbol-value history-var))))
 	(push val (symbol-value history-var)))
@@ -3825,7 +3818,7 @@ Null string will repeat previous search."
   (let (buffer buffer-name)
     (setq buffer-name
 	  (funcall viper-read-buffer-function
-		   (format "Kill buffer (%s): "
+		   (format-prompt "Kill buffer"
 			   (buffer-name (current-buffer)))))
     (setq buffer
 	  (if (null buffer-name)
@@ -4171,8 +4164,8 @@ and regexp replace."
   (interactive)
   (let (str)
     (setq str (viper-read-string-with-history
-	       (if viper-re-query-replace "Query replace regexp: "
-		 "Query replace: ")
+	       (if viper-re-query-replace "Query replace regexp"
+		 "Query replace")
 	       nil  ; no initial
 	       'viper-replace1-history
 	       (car viper-replace1-history) ; default
@@ -4187,7 +4180,7 @@ and regexp replace."
 	  (query-replace-regexp
 	   str
 	   (viper-read-string-with-history
-	    (format-message "Query replace regexp `%s' with: " str)
+	    (format-message "Query replace regexp `%s' with" str)
 	    nil  ; no initial
 	    'viper-replace1-history
 	    (car viper-replace1-history) ; default
@@ -4195,7 +4188,7 @@ and regexp replace."
 	(query-replace
 	 str
 	 (viper-read-string-with-history
-	  (format-message "Query replace `%s' with: " str)
+	  (format-message "Query replace `%s' with" str)
 	  nil  ; no initial
 	  'viper-replace1-history
 	  (car viper-replace1-history) ; default

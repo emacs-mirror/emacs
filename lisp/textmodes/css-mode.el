@@ -427,7 +427,7 @@
      "paged-y" "paged-x-controls" "paged-y-controls" "fragments")
 
     ;; CSS Text Decoration Module Level 3
-    ;; (http://dev.w3.org/csswg/css-text-decor-3/#property-index)
+    ;; (https://dev.w3.org/csswg/css-text-decor-3/#property-index)
     ("text-decoration" text-decoration-line text-decoration-style
      text-decoration-color)
     ("text-decoration-color" color)

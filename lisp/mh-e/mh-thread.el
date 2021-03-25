@@ -1,4 +1,4 @@
-;;; mh-thread.el --- MH-E threading support
+;;; mh-thread.el --- MH-E threading support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2004, 2006-2021 Free Software Foundation, Inc.
 

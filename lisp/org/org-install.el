@@ -1,4 +1,4 @@
-;;; org-install.el --- backward compatibility file for obsolete configuration
+;;; org-install.el --- backward compatibility file for obsolete configuration  -*- lexical-binding: t -*-
 ;;
 ;;; Code:
 ;;

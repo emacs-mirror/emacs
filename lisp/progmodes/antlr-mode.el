@@ -33,7 +33,7 @@
 ;; the manual style, follow all commands mentioned in the documentation of
 ;; `antlr-mode'.  ANTLR is a LL(k)-based recognition tool which generates
 ;; lexers, parsers and tree transformers in Java, C++ or Sather and can be
-;; found at <http://www.antlr.org/>.
+;; found at <https://www.antlr.org/>.
 
 ;; Bug fixes, bug reports, improvements, and suggestions for the newest version
 ;; are strongly appreciated.

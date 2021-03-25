@@ -41,7 +41,7 @@
 ;;
 ;; The standard can be found at:
 ;;
-;; http://www.loc.gov/standards/datetime/iso-tc154-wg5_n0038_iso_wd_8601-1_2016-02-16.pdf
+;; https://www.loc.gov/standards/datetime/iso-tc154-wg5_n0038_iso_wd_8601-1_2016-02-16.pdf
 ;;
 ;; The Wikipedia page on the standard is also informative:
 ;;

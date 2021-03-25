@@ -1,4 +1,4 @@
-;;; ebnf-otz.el --- syntactic chart OpTimiZer
+;;; ebnf-otz.el --- syntactic chart OpTimiZer  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

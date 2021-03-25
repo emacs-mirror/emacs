@@ -1413,7 +1413,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
    (list
     ;; car because comint-get-source returns a list holding the
     ;; filename.
-    (car (comint-get-source "Load Tcl file: "
+    (car (comint-get-source "Load Tcl file"
 			    (or (and
 				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))
@@ -1433,7 +1433,7 @@ If an inferior Tcl process exists, it is killed first.
 Prefix argument means switch to the Tcl buffer afterwards."
   (interactive
    (list
-    (car (comint-get-source "Restart with Tcl file: "
+    (car (comint-get-source "Restart with Tcl file"
 			    (or (and
 				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))

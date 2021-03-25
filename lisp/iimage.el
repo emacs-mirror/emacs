@@ -1,4 +1,4 @@
-;;; iimage.el --- Inline image minor mode.
+;;; iimage.el --- Inline image minor mode.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
@@ -51,8 +51,7 @@
 
 (defcustom iimage-mode-image-search-path nil
   "List of directories to search for image files for iimage-mode."
-  :type '(choice (const nil) (repeat directory))
-  :group 'iimage)
+  :type '(choice (const nil) (repeat directory)))
 
 (defvar iimage-mode-image-filename-regex
   (concat "[-+./_0-9a-zA-Z]+\\."
@@ -74,14 +73,12 @@ Examples of image filename patterns to match:
     \\=`file://foo.png\\='
     \\[\\[foo.gif]]
     <foo.png>
-     foo.JPG
-"
-  :type '(alist :key-type regexp :value-type integer)
-  :group 'iimage)
+     foo.JPG"
+  :type '(alist :key-type regexp :value-type integer))
 
 (defvar iimage-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-l" 'iimage-recenter)
+    (define-key map "\C-l" #'iimage-recenter)
     map)
   "Keymap used in `iimage-mode'.")
 

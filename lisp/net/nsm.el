@@ -640,7 +640,7 @@ References:
 
 [1]: Sotirov A, Stevens M et al (2008).  \"MD5 considered harmful today
 - Creating a rogue CA certificate\",
-`http://www.win.tue.nl/hashclash/rogue-ca/'
+`https://www.win.tue.nl/hashclash/rogue-ca/'
 [2]: Turner S, Chen L (2011).  \"Updated Security Considerations for
 the MD5 Message-Digest and the HMAC-MD5 Algorithms\",
 `https://tools.ietf.org/html/rfc6151'"
