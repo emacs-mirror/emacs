@@ -151,7 +151,7 @@ Root must be the root of an Emacs source tree."
           (display-warning 'admin
                            "NEWS file contains empty sections - remove them?"))
         (goto-char (point-min))
-        (if (re-search-forward "^\\(\\+\\+\\+ *$\\|--- *$\\|Temporary note:\\)" nil t)
+        (if (re-search-forward "^\\(\\+\\+\\+? *$\\|---? *$\\|Temporary note:\\)" nil t)
             (display-warning 'admin
                              "NEWS file still contains temporary markup.
 Documentation changes might not have been completed!"))))
