@@ -247,8 +247,12 @@ General steps (for each step, check for possible errors):
     because replies that invariably are not announcements also get
     sent out as if they were.)
 
-12. After a release, update the Emacs pages as below.
+12. After a release, update the Emacs pages as described below.
 
+13. Bump the Emacs version on the release branch.
+    If the released version was XX.Y, use 'set-version' from
+    admin/admin.el to bump the version on the release branch to
+    XX.Y.50.  Commit the changes.
 
 UPDATING THE EMACS WEB PAGES AFTER A RELEASE
 
