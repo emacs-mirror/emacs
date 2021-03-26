@@ -1649,7 +1649,8 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
    If found replace the content of FILENAME and FD. */
 
 static void
-maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd)
+maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
+		    struct timespec mtime)
 {
 #ifdef HAVE_NATIVE_COMP
   struct stat eln_st;
@@ -1686,13 +1687,19 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd)
 	    emacs_close (eln_fd);
 	  else
 	    {
-	      *filename = eln_name;
-	      emacs_close (*fd);
-	      *fd = eln_fd;
-	      /* Store the eln -> el relation.  */
-	      Fputhash (Ffile_name_nondirectory (eln_name),
-			src_name, Vcomp_eln_to_el_h);
-	      return;
+	      struct timespec eln_mtime = get_stat_mtime (&eln_st);
+	      if (timespec_cmp (eln_mtime, mtime) >= 0)
+		{
+		  *filename = eln_name;
+		  emacs_close (*fd);
+		  *fd = eln_fd;
+		  /* Store the eln -> el relation.  */
+		  Fputhash (Ffile_name_nondirectory (eln_name),
+			    src_name, Vcomp_eln_to_el_h);
+		  return;
+		}
+	      else
+		emacs_close (eln_fd);
 	    }
 	}
     }
@@ -1940,7 +1947,8 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 		  }
 		else
 		  {
-		    maybe_swap_for_eln (no_native, &string, &fd);
+		    maybe_swap_for_eln (no_native, &string, &fd,
+					get_stat_mtime (&st));
 		    /* We succeeded; return this descriptor and filename.  */
 		    if (storeptr)
 		      *storeptr = string;
@@ -1952,7 +1960,8 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	    /* No more suffixes.  Return the newest.  */
 	    if (0 <= save_fd && ! CONSP (XCDR (tail)))
 	      {
-		maybe_swap_for_eln (no_native, &save_string, &save_fd);
+		maybe_swap_for_eln (no_native, &save_string, &save_fd,
+				    save_mtime);
 		if (storeptr)
 		  *storeptr = save_string;
 		SAFE_FREE ();
