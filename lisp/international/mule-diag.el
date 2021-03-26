@@ -835,6 +835,8 @@ The IGNORED argument is ignored."
    (list (completing-read
           "Font name (default current choice for ASCII chars): "
           (and window-system
+               ;; Implied by `window-system'.
+               (fboundp 'x-list-fonts)
                (fboundp 'fontset-list)
                ;; The final element in `fontset-list' is a default
                ;; (generic) one, so don't include that.
