@@ -487,9 +487,11 @@ decoding the same message multiple times."
         (mh-display-emphasis)
         (mm-handle-set-undisplayer
          handle
-         `(lambda ()
-            (let (buffer-read-only)
-              (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
+         (let ((beg (point-min-marker))
+               (end (point-max-marker)))
+           (lambda ()
+             (let ((inhibit-read-only t))
+               (delete-region beg end)))))))))
 
 ;;;###mh-autoload
 (defun mh-decode-message-header ()

@@ -62,15 +62,11 @@
 
 (defun mh-inc-spool-generator (folder spool)
   "Create a command to inc into FOLDER from SPOOL file."
-  (let ((folder1 (make-symbol "folder"))
-        (spool1 (make-symbol "spool")))
-    (set folder1 folder)
-    (set spool1 spool)
-    (setf (symbol-function (intern (concat "mh-inc-spool-" folder)))
-          `(lambda ()
-             ,(format "Inc spool file %s into folder %s." spool folder)
-             (interactive)
-             (mh-inc-folder ,spool1 (concat "+" ,folder1))))))
+  (defalias (symbol-function (intern (concat "mh-inc-spool-" folder)))
+    (lambda ()
+      (:documentation (format "Inc spool file %s into folder %s." spool folder))
+      (interactive)
+      (mh-inc-folder spool (concat "+" folder)))))
 
 (defun mh-inc-spool-def-key (key folder)
   "Define a KEY in `mh-inc-spool-map' to inc FOLDER and collect help string."
