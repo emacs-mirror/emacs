@@ -272,5 +272,14 @@ page for about a month, then comment it again.
 Regenerate the various manuals in manual/.
 The scripts admin/make-manuals and admin/upload-manuals summarize the process.
 
+If you have Texinfo installed locally, make-manuals might fail if it
+cannot find epsf.tex.  In that case define in the environment
+
+  TEXINPUTS=:/path/to/texinfo-tree/doc
+
+where /path/to/texinfo-tree is the absolute file name of the top-level
+directory where you have the Texinfo source tree.  Then re-run
+make-manuals.
+
 Browsing <https://web.cvs.savannah.gnu.org/viewvc/?root=emacs> is one
 way to check for any files that still need updating.
