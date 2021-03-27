@@ -288,10 +288,9 @@ or \\[wdired-abort-changes] to abort changes")))
   (if (wdired--line-preprocessed-p)
       (call-interactively 'self-insert-command)
     (wdired--before-change-fn (point) (point))
-    (let ((map (get-text-property (point) 'keymap)))
-      (when map
-        (let ((cmd (lookup-key map (this-command-keys))))
-          (call-interactively (or cmd 'self-insert-command)))))))
+    (let* ((map (get-text-property (point) 'keymap)))
+      (call-interactively (or (if map (lookup-key map (this-command-keys)))
+                              #'self-insert-command)))))
 
 (defun wdired--before-change-fn (beg end)
   (save-excursion
