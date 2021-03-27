@@ -106,7 +106,7 @@ default:
   after_script:
     - docker ps -a
     - printenv
-    - [ ${CI_JOB_STAGE} == fast ] && ( mkdir test-${test_name}; docker cp ${test_name}:test test-${test_name} ) || true
+    - ( test ${CI_JOB_STAGE} == fast ) && ( mkdir test-${test_name}; docker cp ${test_name}:test test-${test_name} ) || true
     - docker rm ${test_name}
 
 .build-template:
