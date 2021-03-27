@@ -95,8 +95,6 @@ default:
   artifacts:
     expire_in: 24 hrs
     paths: []
-      # - "test/**/*.log"
-      # - "**/*.log"
   # using the variables for each job
   script:
     - docker pull ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
@@ -135,9 +133,12 @@ default:
 
 .test-template:
   artifacts:
+    name: ${CI_JOB_NAME}-${CI_COMMIT_SHA}
+    public: true
     expire_in: 1 week
+    when: always
     paths:
-      - "test/**/*.log"
+      - "**/*.log"
 
 .gnustep-template:
   rules:
