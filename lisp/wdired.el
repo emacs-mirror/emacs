@@ -189,7 +189,6 @@ nonexistent directory will fail."
   "Hooks run when changing to WDired mode.")
 
 ;; Local variables (put here to avoid compilation gripes)
-(defvar wdired--col-perm) ;; Column where the permission bits start
 (defvar wdired--perm-beg) ;; Column where the permission bits start
 (defvar wdired--perm-end) ;; Column where the permission bits stop
 (defvar wdired--old-content)
@@ -233,8 +232,6 @@ See `wdired-mode'."
   (interactive)
   (unless (derived-mode-p 'dired-mode)
     (error "Not a Dired buffer"))
-  (when (directory-empty-p (expand-file-name default-directory))
-    (error "No files to be renamed"))
   (setq-local wdired--old-content
               (buffer-substring (point-min) (point-max)))
   (setq-local wdired--old-marks
@@ -264,49 +261,60 @@ or \\[wdired-abort-changes] to abort changes")))
 (defun wdired--set-permission-bounds ()
   (save-excursion
     (goto-char (point-min))
-    (re-search-forward dired-re-perms nil t 1)
-    (goto-char (match-beginning 0))
-    (setq-local wdired--perm-beg (current-column))
-    (goto-char (match-end 0))
-    (setq-local wdired--perm-end (current-column))))
+    (if (not (re-search-forward dired-re-perms nil t 1))
+        (progn
+          (setq-local wdired--perm-beg nil)
+          (setq-local wdired--perm-end nil))
+      (goto-char (match-beginning 0))
+      ;; Add 1 since the first char matched by `dired-re-perms' is the
+      ;; one describing the nature of the entry (dir/symlink/...) rather
+      ;; than its permissions.
+      (setq-local wdired--perm-beg (1+ (wdired--current-column)))
+      (goto-char (match-end 0))
+      (setq-local wdired--perm-end (wdired--current-column)))))
 
 (defun wdired--current-column ()
   (- (point) (line-beginning-position)))
 
 (defun wdired--point-at-perms-p ()
-  (<= wdired--perm-beg (wdired--current-column) wdired--perm-end))
+  (and wdired--perm-beg
+       (<= wdired--perm-beg (wdired--current-column) wdired--perm-end)))
 
 (defun wdired--line-preprocessed-p ()
   (get-text-property (line-beginning-position) 'front-sticky))
 
 (defun wdired--self-insert ()
   (interactive)
-  (if (wdired--point-at-perms-p)
-    (unless (wdired--line-preprocessed-p)
-      (wdired--before-change-fn (line-beginning-position) (line-end-position))
-      (wdired-toggle-bit))
-    (call-interactively 'self-insert-command)))
+  (if (wdired--line-preprocessed-p)
+      (call-interactively 'self-insert-command)
+    (wdired--before-change-fn (point) (point))
+    (let ((map (get-text-property (point) 'keymap)))
+      (when map
+        (let ((cmd (lookup-key map (this-command-keys))))
+          (call-interactively (or cmd 'self-insert-command)))))))
 
 (defun wdired--before-change-fn (beg end)
   (save-excursion
-    ;; make sure to process entire lines
-    (goto-char beg)
-    (setq beg (line-beginning-position))
+    ;; Make sure to process entire lines.
     (goto-char end)
     (setq end (line-end-position))
+    (goto-char beg)
+    (forward-line 0)
 
-    (while (< beg end)
+    (while (< (point) end)
       (unless (wdired--line-preprocessed-p)
-        (put-text-property beg (1+ beg) 'front-sticky t)
-        (wdired--preprocess-files)
-        (when wdired-allow-to-change-permissions
-          (wdired--preprocess-perms))
-        (when (fboundp 'make-symbolic-link)
-          (wdired--preprocess-symlinks)))
-      (forward-line)
-      (setq beg (point)))
-    ;; is this good enough? assumes no extra white lines from dired
-    (put-text-property (1- (point-max)) (point-max) 'read-only t)))
+        (with-silent-modifications
+          (put-text-property (point) (1+ (point)) 'front-sticky t)
+          (wdired--preprocess-files)
+          (when wdired-allow-to-change-permissions
+            (wdired--preprocess-perms))
+          (when (fboundp 'make-symbolic-link)
+            (wdired--preprocess-symlinks))))
+      (forward-line))
+    (when (eobp)
+      (with-silent-modifications
+        ;; Is this good enough? Assumes no extra white lines from dired.
+        (put-text-property (1- (point-max)) (point-max) 'read-only t)))))
 
 (defun wdired-isearch-filter-read-only (beg end)
   "Skip matches that have a read-only property."
@@ -317,28 +325,26 @@ or \\[wdired-abort-changes] to abort changes")))
 ;; properties so filenames (old and new) can be easily found.
 (defun wdired--preprocess-files ()
   (save-excursion
-    (with-silent-modifications
-      (beginning-of-line)
-      (let ((used-F (dired-check-switches dired-actual-switches "F" "classify"))
-	    filename)
-	(setq filename (dired-get-filename nil t))
-        (when (and filename
-		   (not (member (file-name-nondirectory filename) '("." ".."))))
-	  (dired-move-to-filename)
-	  ;; The rear-nonsticky property below shall ensure that text preceding
-	  ;; the filename can't be modified.
-	  (add-text-properties
-	   (1- (point)) (point) `(old-name ,filename rear-nonsticky (read-only)))
-	  (put-text-property (- (point) 1) (point) 'read-only t)
-          (dired-move-to-end-of-filename t)
-	  (put-text-property (point) (1+ (point)) 'end-name t))
-        (when (and used-F (looking-at "[*/@|=>]$")) (forward-char))
-        (when (save-excursion
-                (and (re-search-backward
-                      dired-permission-flags-regexp nil t)
-                     (looking-at "l")
-                     (search-forward " -> " (line-end-position) t)))
-          (goto-char (line-end-position)))))))
+    (let ((used-F (dired-check-switches dired-actual-switches "F" "classify"))
+	  (beg (point))
+          (filename (dired-get-filename nil t)))
+      (when (and filename
+		 (not (member (file-name-nondirectory filename) '("." ".."))))
+	(dired-move-to-filename)
+	;; The rear-nonsticky property below shall ensure that text preceding
+	;; the filename can't be modified.
+	(add-text-properties
+	 (1- (point)) (point) `(old-name ,filename rear-nonsticky (read-only)))
+	(put-text-property beg (point) 'read-only t)
+        (dired-move-to-end-of-filename t)
+	(put-text-property (point) (1+ (point)) 'end-name t))
+      (when (and used-F (looking-at "[*/@|=>]$")) (forward-char))
+      (when (save-excursion
+              (and (re-search-backward
+                    dired-permission-flags-regexp nil t)
+                   (looking-at "l")
+                   (search-forward " -> " (line-end-position) t)))
+        (goto-char (line-end-position))))))
 
 ;; This code is a copy of some dired-get-filename lines.
 (defsubst wdired-normalize-filename (file unquotep)
@@ -365,6 +371,7 @@ non-nil means return old filename."
   ;; FIXME: Use dired-get-filename's new properties.
   (let ((used-F (dired-check-switches dired-actual-switches "F" "classify"))
         beg end file)
+    (wdired--before-change-fn (point) (point))
     (save-excursion
       (setq end (line-end-position))
       (beginning-of-line)
@@ -425,8 +432,8 @@ non-nil means return old filename."
 (defun wdired-abort-changes ()
   "Abort changes and return to dired mode."
   (interactive)
-  (remove-hook 'before-change-functions 'wdired--before-change-fn t)
-  (with-silent-modifications
+  (remove-hook 'before-change-functions #'wdired--before-change-fn t)
+  (let ((inhibit-read-only t))
     (erase-buffer)
     (insert wdired--old-content)
     (goto-char wdired--old-point))
@@ -451,13 +458,14 @@ non-nil means return old filename."
 	(setq errors (cdr tmp-value))
 	(setq changes (car tmp-value)))
       (when (and wdired-allow-to-change-permissions
-		 (boundp 'wdired--col-perm)) ; could have been changed
+		 wdired--perm-beg) ; could have been changed
 	(setq tmp-value (wdired-do-perm-changes))
 	(setq errors (+ errors (cdr tmp-value)))
 	(setq changes (or changes (car tmp-value))))
       (goto-char (point-max))
       (while (not (bobp))
-	(setq file-old (wdired-get-filename nil t))
+	(setq file-old (and (wdired--line-preprocessed-p)
+	                    (wdired-get-filename nil t)))
 	(when file-old
 	  (setq file-new (wdired-get-filename))
           (if (equal file-new file-old)
@@ -744,17 +752,15 @@ says how many lines to move; default is one line."
 ;; Put the needed properties to allow the user to change links' targets
 (defun wdired--preprocess-symlinks ()
   (save-excursion
-    (with-silent-modifications
-      (beginning-of-line)
-      (when (looking-at dired-re-sym)
-        (re-search-forward " -> \\(.*\\)$")
-	(put-text-property (1- (match-beginning 1))
-			   (match-beginning 1) 'old-link
-			   (match-string-no-properties 1))
-        (put-text-property (match-end 1) (1+ (match-end 1)) 'end-link t)
-        (unless wdired-allow-to-redirect-links
-          (put-text-property (match-beginning 0)
-			     (match-end 1) 'read-only t))))))
+    (when (looking-at dired-re-sym)
+      (re-search-forward " -> \\(.*\\)$")
+      (put-text-property (1- (match-beginning 1))
+			 (match-beginning 1) 'old-link
+			 (match-string-no-properties 1))
+      (put-text-property (match-end 1) (1+ (match-end 1)) 'end-link t)
+      (unless wdired-allow-to-redirect-links
+        (put-text-property (match-beginning 0)
+			   (match-end 1) 'read-only t)))))
 
 (defun wdired-get-previous-link (&optional old move)
   "Return the next symlink target.
@@ -861,31 +867,26 @@ Like original function but it skips read-only words."
 ;; original name and permissions as a property
 (defun wdired--preprocess-perms ()
   (save-excursion
-    (with-silent-modifications
-      (setq-local wdired--col-perm nil)
-      (beginning-of-line)
-      (when (and (not (looking-at dired-re-sym))
-		 (wdired-get-filename)
-		 (re-search-forward dired-re-perms
-                                    (line-end-position) 'eol))
-	(let ((begin (match-beginning 0))
-	      (end (match-end 0)))
-	  (unless wdired--col-perm
-	    (setq wdired--col-perm (- (current-column) 9)))
-	  (if (eq wdired-allow-to-change-permissions 'advanced)
-	      (progn
-		(put-text-property begin end 'read-only nil)
-		;; make first permission bit writable
-		(put-text-property
-		 (1- begin) begin 'rear-nonsticky '(read-only)))
-	    ;; avoid that keymap applies to text following permissions
-	    (add-text-properties
-	     (1+ begin) end
-	     `(keymap ,wdired-perm-mode-map rear-nonsticky (keymap))))
-	  (put-text-property end (1+ end) 'end-perm t)
-	  (put-text-property
-	   begin (1+ begin)
-           'old-perm (match-string-no-properties 0)))))))
+    (when (and (not (looking-at dired-re-sym))
+	       (wdired-get-filename)
+	       (re-search-forward dired-re-perms
+                                  (line-end-position) 'eol))
+      (let ((begin (match-beginning 0))
+	    (end (match-end 0)))
+	(if (eq wdired-allow-to-change-permissions 'advanced)
+	    (progn
+	      (put-text-property begin end 'read-only nil)
+	      ;; make first permission bit writable
+	      (put-text-property
+	       (1- begin) begin 'rear-nonsticky '(read-only)))
+	  ;; avoid that keymap applies to text following permissions
+	  (add-text-properties
+	   (1+ begin) end
+	   `(keymap ,wdired-perm-mode-map rear-nonsticky (keymap))))
+	(put-text-property end (1+ end) 'end-perm t)
+	(put-text-property
+	 begin (1+ begin)
+         'old-perm (match-string-no-properties 0))))))
 
 (defun wdired-perm-allowed-in-pos (char pos)
   (cond
@@ -897,39 +898,30 @@ Like original function but it skips read-only words."
    ((memq char '(?t ?T)) (= pos 8))
    ((= char ?l)          (= pos 5))))
 
-(defun wdired-set-bit ()
+(defun wdired-set-bit (&optional char)
   "Set a permission bit character."
-  (interactive)
-  (if (wdired-perm-allowed-in-pos last-command-event
-                                  (- (current-column) wdired--col-perm))
-      (let ((new-bit (char-to-string last-command-event))
+  (interactive (list last-command-event))
+  (unless char (setq char last-command-event))
+  (if (wdired-perm-allowed-in-pos char
+                                  (- (wdired--current-column) wdired--perm-beg))
+      (let ((new-bit (char-to-string char))
             (inhibit-read-only t)
-	    (pos-prop (- (point) (- (current-column) wdired--col-perm))))
-        (put-text-property 0 1 'keymap wdired-perm-mode-map new-bit)
-        (put-text-property 0 1 'read-only t new-bit)
+	    (pos-prop (+ (line-beginning-position) wdired--perm-beg)))
+        (set-text-properties 0 1 (text-properties-at (point)) new-bit)
         (insert new-bit)
         (delete-char 1)
-	(put-text-property (1- pos-prop) pos-prop 'perm-changed t)
-	(put-text-property (1- (point)) (point) 'rear-nonsticky '(keymap)))
+	(put-text-property (1- pos-prop) pos-prop 'perm-changed t))
     (forward-char 1)))
 
 (defun wdired-toggle-bit ()
   "Toggle the permission bit at point."
   (interactive)
-  (let ((inhibit-read-only t)
-	(new-bit "-")
-	(pos-prop (- (point) (- (current-column) wdired--col-perm))))
-    (if (eq (char-after (point)) ?-)
-	(setq new-bit
-	      (if (= (% (- (current-column) wdired--col-perm) 3) 0) "r"
-		(if (= (% (- (current-column) wdired--col-perm) 3) 1) "w"
-		  "x"))))
-    (put-text-property 0 1 'keymap wdired-perm-mode-map new-bit)
-    (put-text-property 0 1 'read-only t new-bit)
-    (insert new-bit)
-    (delete-char 1)
-    (put-text-property (1- pos-prop) pos-prop 'perm-changed t)
-    (put-text-property (1- (point)) (point) 'rear-nonsticky '(keymap))))
+  (wdired-set-bit
+   (cond
+    ((not (eq (char-after (point)) ?-)) ?-)
+    ((= (% (- (wdired--current-column) wdired--perm-beg) 3) 0) ?r)
+    ((= (% (- (wdired--current-column) wdired--perm-beg) 3) 1) ?w)
+    (t ?x))))
 
 (defun wdired-mouse-toggle-bit (event)
   "Toggle the permission bit that was left clicked."
