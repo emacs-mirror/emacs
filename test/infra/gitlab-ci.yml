@@ -106,7 +106,8 @@ default:
   after_script:
     - docker ps -a
     - printenv
-    - ( test ${CI_JOB_STAGE} == fast ) && ( mkdir test-${test_name}; docker cp ${test_name}:test test-${test_name} ) || true
+    - test -n "${make_params}" && ( docker export ${test_name} | tar -tvf - ) || true
+    # - test -n "${make_params}" && ( mkdir test-${test_name}; docker cp ${test_name}:test test-${test_name} ) || true
     - docker rm ${test_name}
 
 .build-template:
