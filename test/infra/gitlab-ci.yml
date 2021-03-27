@@ -61,6 +61,8 @@ default:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
 
 .job-template:
+  variables:
+    test_name: ${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}
   rules:
     - changes:
         - "**/Makefile.in"
@@ -100,7 +102,11 @@ default:
     - docker pull ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
     # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
     - 'export PWD=$(pwd)'
-    - 'docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+  after_script:
+    - 'docker ps -a'
+    - 'docker cp $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):test test-${test_name}'
+    - 'docker rm $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}")'
 
 .build-template:
   rules:
@@ -132,15 +138,13 @@ default:
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
 .test-template:
-  after_script:
-    - docker cp $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):test test
   artifacts:
-    name: ${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}
+    name: ${test_name}
     public: true
     expire_in: 1 week
     when: always
     paths:
-      - "**/*.log"
+      - "test-${test_name}/**/*.log"
 
 .gnustep-template:
   rules:
