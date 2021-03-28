@@ -703,8 +703,6 @@ If no files are marked or a numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
 The prompt mentions the file(s) or the marker, as appropriate.
 
-When executing, FILE-LIST is appended to the COMMAND string.
-
 If there is a `*' in COMMAND, surrounded by whitespace, this runs
 COMMAND just once with the entire file list substituted there.
 
