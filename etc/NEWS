@@ -1511,6 +1511,15 @@ This controls whether to use smoothing or not for an image.  Values
 include nil (no smoothing), t (do smoothing) or a predicate function
 that's called with the image object and should return nil/t.
 
++++
+*** SVG images now support user stylesheets.
+The ':css' image attribute can be used to override the default CSS
+stylesheet for an image.  The default sets 'font-family' and
+'font-size' to match the current face, so an image with 'height="1em"'
+will match the font size in use where it is embedded.
+
+This feature relies on librsvg 2.48 or above being available.
+
 ** EWW
 
 +++
