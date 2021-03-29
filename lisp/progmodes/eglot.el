@@ -2236,6 +2236,13 @@ is not active."
                (concat " "
                        (propertize annotation
                                    'face 'font-lock-function-name-face))))))
+       :company-kind
+       ;; Associate each lsp-item with a lsp-kind symbol.
+       (lambda (proxy)
+         (when-let* ((lsp-item (get-text-property 0 'eglot--lsp-item proxy))
+                     (kind (alist-get (plist-get lsp-item :kind)
+                                      eglot--kind-names)))
+           (intern (downcase kind))))
        :company-doc-buffer
        (lambda (proxy)
          (let* ((documentation
