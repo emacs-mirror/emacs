@@ -966,7 +966,6 @@ the entire list as before.  An integer value limits the list length
 
 *** 'vc-git-stash' is now bound to 'C' in the stash headers.
 
---
 *** Some stash keybindings are now available in the stash button.
 'vc-git-stash' and 'vc-git-stash-snapshot' can now be run using 'C'
 and 'S' respectively, including when there are no stashes.

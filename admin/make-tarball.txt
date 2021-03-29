@@ -250,8 +250,12 @@ General steps (for each step, check for possible errors):
     because replies that invariably are not announcements also get
     sent out as if they were.)
 
-12. After a release, update the Emacs pages as below.
+12. After a release, update the Emacs pages as described below.
 
+13. Bump the Emacs version on the release branch.
+    If the released version was XX.Y, use 'set-version' from
+    admin/admin.el to bump the version on the release branch to
+    XX.Y.50.  Commit the changes.
 
 UPDATING THE EMACS WEB PAGES AFTER A RELEASE
 
@@ -270,6 +274,15 @@ page for about a month, then comment it again.
 
 Regenerate the various manuals in manual/.
 The scripts admin/make-manuals and admin/upload-manuals summarize the process.
+
+If you have Texinfo installed locally, make-manuals might fail if it
+cannot find epsf.tex.  In that case define in the environment
+
+  TEXINPUTS=:/path/to/texinfo-tree/doc
+
+where /path/to/texinfo-tree is the absolute file name of the top-level
+directory where you have the Texinfo source tree.  Then re-run
+make-manuals.
 
 Browsing <https://web.cvs.savannah.gnu.org/viewvc/?root=emacs> is one
 way to check for any files that still need updating.
