@@ -8300,7 +8300,7 @@ comment at the start of cc-engine.el for more info."
   ;; o - nil if no name is found;
   ;; o - 'template if it's an identifier ending with an angle bracket
   ;;   arglist;
-  ;; o - 'operator of it's an operator identifier;
+  ;; o - 'operator if it's an operator identifier;
   ;; o - t if it's some other kind of name.
   ;;
   ;; This function records identifier ranges on
@@ -8320,6 +8320,7 @@ comment at the start of cc-engine.el for more info."
 	(lim+ (c-determine-+ve-limit 500)))
     (while
 	(and
+	 (< (point) lim+)
 	 (looking-at c-identifier-key)
 
 	 (progn
@@ -8369,23 +8370,28 @@ comment at the start of cc-engine.el for more info."
 			  ;; '*', '&' or a name followed by ":: *",
 			  ;; where each can be followed by a sequence
 			  ;; of `c-opt-type-modifier-key'.
-			  (while (cond ((looking-at "[*&]")
-					(goto-char (match-end 0))
-					t)
-				       ((looking-at c-identifier-start)
-					(and (c-forward-name)
-					     (looking-at "::")
-					     (progn
-					       (goto-char (match-end 0))
-					       (c-forward-syntactic-ws lim+)
-					       (eq (char-after) ?*))
-					     (progn
-					       (forward-char)
-					       t))))
+			  (while
+			      (and
+			       (< (point) lim+)
+			       (cond ((looking-at "[*&]")
+				      (goto-char (match-end 0))
+				      t)
+				     ((looking-at c-identifier-start)
+				      (and (c-forward-name)
+					   (looking-at "::")
+					   (progn
+					     (goto-char (match-end 0))
+					     (c-forward-syntactic-ws lim+)
+					     (eq (char-after) ?*))
+					   (progn
+					     (forward-char)
+					     t)))))
 			    (while (progn
 				     (c-forward-syntactic-ws lim+)
 				     (setq pos (point))
-				     (looking-at c-opt-type-modifier-key))
+				     (and
+				      (<= (point) lim+)
+				      (looking-at c-opt-type-modifier-key)))
 			      (goto-char (match-end 1))))))
 
 		       ((looking-at c-overloadable-operators-regexp)
@@ -8431,6 +8437,9 @@ comment at the start of cc-engine.el for more info."
 	       ;; Maybe an angle bracket arglist.
 	       (when (let (c-last-identifier-range)
 		       (c-forward-<>-arglist nil))
+		 ;; <> arglists can legitimately be very long, so recalculate
+		 ;; `lim+'.
+		 (setq lim+ (c-determine-+ve-limit 500))
 
 		 (c-forward-syntactic-ws lim+)
 		 (unless (eq (char-after) ?\()
