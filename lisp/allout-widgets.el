@@ -1,4 +1,4 @@
-;; allout-widgets.el --- Visually highlight allout outline structure.
+;; allout-widgets.el --- Visually highlight allout outline structure.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
@@ -72,11 +72,11 @@
 (eval-when-compile (require 'cl-lib))
 
 ;;;_ : internal variables needed before user-customization variables
-;;; In order to enable activation of allout-widgets-mode via customization,
-;;; allout-widgets-auto-activation uses a setting function.  That function
-;;; is invoked when the customization variable definition is evaluated,
-;;; during file load, so the involved code must reside above that
-;;; definition in the file.
+;; In order to enable activation of allout-widgets-mode via customization,
+;; allout-widgets-auto-activation uses a setting function.  That function
+;; is invoked when the customization variable definition is evaluated,
+;; during file load, so the involved code must reside above that
+;; definition in the file.
 ;;;_  = allout-widgets-mode
 (defvar-local allout-widgets-mode nil
   "Allout mode enhanced with graphical widgets.")
@@ -100,8 +100,8 @@ with allout-mode."
 
 See `allout-widgets-mode-inhibit' for per-file/per-buffer
 inhibition of allout-widgets-mode."
-  (add-hook 'allout-mode-off-hook 'allout-widgets-mode-off)
-  (add-hook 'allout-mode-on-hook 'allout-widgets-mode-on)
+  (add-hook 'allout-mode-off-hook #'allout-widgets-mode-off)
+  (add-hook 'allout-mode-on-hook #'allout-widgets-mode-on)
   t)
 ;;;_  > allout-widgets-mode-disable
 (defun allout-widgets-mode-disable ()
@@ -109,8 +109,8 @@ inhibition of allout-widgets-mode."
 
 See `allout-widgets-mode-inhibit' for per-file/per-buffer
 inhibition of allout-widgets-mode."
-  (remove-hook 'allout-mode-off-hook 'allout-widgets-mode-off)
-  (remove-hook 'allout-mode-on-hook 'allout-widgets-mode-on)
+  (remove-hook 'allout-mode-off-hook #'allout-widgets-mode-off)
+  (remove-hook 'allout-mode-on-hook #'allout-widgets-mode-on)
   t)
 ;;;_  > allout-widgets-setup (varname value)
 ;;;###autoload
@@ -141,7 +141,7 @@ See `allout-widgets-mode' for allout widgets mode features."
   :version "24.1"
   :type 'boolean
   :group 'allout-widgets
-  :set 'allout-widgets-setup
+  :set #'allout-widgets-setup
  )
 ;; ;;;_  = allout-widgets-allow-unruly-edits
 ;; (defcustom allout-widgets-allow-unruly-edits nil
@@ -307,7 +307,7 @@ In addition, you can invoked `allout-widgets-mode' allout-mode
 buffers where this is set to enable and disable widget
 enhancements, directly.")
 ;;;###autoload
-(put 'allout-widgets-mode-inhibit 'safe-local-variable 'booleanp)
+(put 'allout-widgets-mode-inhibit 'safe-local-variable #'booleanp)
 ;;;_    = allout-inhibit-body-modification-hook
 (defvar-local allout-inhibit-body-modification-hook nil
   "Override de-escaping of text-prefixes in item bodies during specific changes.
@@ -402,14 +402,14 @@ not altered with an escape sequence.")
     (set-keymap-parent km as-parent)
     (dolist (digit '("0" "1" "2" "3"
                      "4" "5" "6" "7" "8" "9"))
-      (define-key km digit 'digit-argument))
-    (define-key km "-" 'negative-argument)
+      (define-key km digit #'digit-argument))
+    (define-key km "-" #'negative-argument)
     ;; Override underlying mouse-1 and mouse-2 bindings in icon territory:
-    (define-key km [(mouse-1)] (lambda () (interactive) nil))
-    (define-key km [(mouse-2)] (lambda () (interactive) nil))
+    (define-key km [(mouse-1)] #'ignore)
+    (define-key km [(mouse-2)] #'ignore)
 
     ;; Catchall, handles actual keybindings, dynamically doing keymap lookups:
-    (define-key km [t] 'allout-item-icon-key-handler)
+    (define-key km [t] #'allout-item-icon-key-handler)
 
     km)
   "General tree-node key bindings.")
@@ -535,7 +535,7 @@ outline hot-spot navigation (see `allout-mode')."
                      "\\1\\3"))
          )
 
-        (add-hook 'after-change-functions 'allout-widgets-after-change-handler
+        (add-hook 'after-change-functions #'allout-widgets-after-change-handler
                   nil t)
 
         (allout-setup-text-properties)
@@ -551,23 +551,23 @@ outline hot-spot navigation (see `allout-mode')."
           (set-keymap-parent allout-item-icon-keymap as-parent))
 
         (add-hook 'allout-exposure-change-functions
-                  'allout-widgets-exposure-change-recorder nil 'local)
+                  #'allout-widgets-exposure-change-recorder nil 'local)
         (add-hook 'allout-structure-added-functions
-                  'allout-widgets-additions-recorder nil 'local)
+                  #'allout-widgets-additions-recorder nil 'local)
         (add-hook 'allout-structure-deleted-functions
-                  'allout-widgets-deletions-recorder nil 'local)
+                  #'allout-widgets-deletions-recorder nil 'local)
         (add-hook 'allout-structure-shifted-functions
-                  'allout-widgets-shifts-recorder nil 'local)
+                  #'allout-widgets-shifts-recorder nil 'local)
         (add-hook 'allout-after-copy-or-kill-hook
-                  'allout-widgets-after-copy-or-kill-function nil 'local)
+                  #'allout-widgets-after-copy-or-kill-function nil 'local)
         (add-hook 'allout-post-undo-hook
-                  'allout-widgets-after-undo-function nil 'local)
+                  #'allout-widgets-after-undo-function nil 'local)
 
-        (add-hook 'before-change-functions 'allout-widgets-before-change-handler
+        (add-hook 'before-change-functions
+                  #'allout-widgets-before-change-handler nil 'local)
+        (add-hook 'post-command-hook #'allout-widgets-post-command-business
                   nil 'local)
-        (add-hook 'post-command-hook 'allout-widgets-post-command-business
-                  nil 'local)
-        (add-hook 'pre-command-hook 'allout-widgets-pre-command-business
+        (add-hook 'pre-command-hook #'allout-widgets-pre-command-business
                   nil 'local)
 
         ;; init the widgets tally for debugging:
@@ -596,23 +596,23 @@ outline hot-spot navigation (see `allout-mode')."
       (remove-from-invisibility-spec 'allout-escapes)
 
       (remove-hook 'after-change-functions
-                   'allout-widgets-after-change-handler 'local)
+                   #'allout-widgets-after-change-handler 'local)
       (remove-hook 'allout-exposure-change-functions
-                   'allout-widgets-exposure-change-recorder 'local)
+                   #'allout-widgets-exposure-change-recorder 'local)
       (remove-hook 'allout-structure-added-functions
-                   'allout-widgets-additions-recorder 'local)
+                   #'allout-widgets-additions-recorder 'local)
       (remove-hook 'allout-structure-deleted-functions
-                   'allout-widgets-deletions-recorder 'local)
+                   #'allout-widgets-deletions-recorder 'local)
       (remove-hook 'allout-structure-shifted-functions
-                   'allout-widgets-shifts-recorder 'local)
+                   #'allout-widgets-shifts-recorder 'local)
       (remove-hook 'allout-after-copy-or-kill-hook
-                   'allout-widgets-after-copy-or-kill-function 'local)
+                   #'allout-widgets-after-copy-or-kill-function 'local)
       (remove-hook 'before-change-functions
-                   'allout-widgets-before-change-handler 'local)
+                   #'allout-widgets-before-change-handler 'local)
       (remove-hook 'post-command-hook
-                   'allout-widgets-post-command-business 'local)
+                   #'allout-widgets-post-command-business 'local)
       (remove-hook 'pre-command-hook
-                   'allout-widgets-pre-command-business 'local)
+                   #'allout-widgets-pre-command-business 'local)
       (assq-delete-all 'allout-widgets-mode-inhibit minor-mode-alist)
       (set-buffer-modified-p was-modified))))
 ;;;_   > allout-widgets-mode-off
@@ -710,7 +710,7 @@ Optional RECURSING is for internal use, to limit recursion."
 
         (when allout-widgets-reenable-before-change-handler
           (add-hook 'before-change-functions
-                    'allout-widgets-before-change-handler
+                    #'allout-widgets-before-change-handler
                     nil 'local)
           (setq allout-widgets-reenable-before-change-handler nil))
 
@@ -879,7 +879,7 @@ encompassing condition-case."
     (message header) (sit-for allout-widgets-hook-error-post-time)
     ;; reraise the error, or one concerning this function if unexpected:
     (if (equal mode 'error)
-        (apply 'signal args)
+        (apply #'signal args)
       (error "%s: unexpected mode, %s %s" this mode args))))
 ;;;_   > allout-widgets-changes-exceed-threshold-p ()
 (defun allout-widgets-adjusting-message (message)
@@ -973,9 +973,8 @@ Generally invoked via `allout-exposure-change-functions'."
         deactivate-mark)
 
     (dolist (change changes)
-      (let (handling
-            (from (cadr change))
-            bucket got
+      (let ((from (cadr change))
+            bucket
             (to (caddr change))
             (flag (cadddr change))
             parent)
@@ -986,10 +985,11 @@ Generally invoked via `allout-exposure-change-functions'."
                               from bucket))
 
         ;; have we already handled exposure changes in this region?
-        (setq handling (if flag 'handled-conceal 'handled-expose)
-              got (allout-range-overlaps from to (symbol-value handling))
-              covered (car got))
-        (set handling (cadr got))
+        (cl-callf (lambda (x)
+                    (let ((got (allout-range-overlaps from to x)))
+                      (setq covered (car got))
+                      (cadr got)))
+            (if flag handled-conceal handled-expose))
 
         (when (not covered)
           (save-excursion
@@ -1825,7 +1825,7 @@ reapplying this method will rectify the glyphs."
             (if (> increment 1) (setq increment 1))
             (when extenders
               ;; paint extenders after a connector, else leave spaces.
-              (dotimes (i extenders)
+              (dotimes (_ extenders)
                 (put-text-property
                  position (setq position (1+ position))
                  'display (allout-fetch-icon-image
