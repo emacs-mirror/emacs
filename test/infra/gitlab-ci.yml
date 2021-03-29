@@ -144,11 +144,11 @@ default:
   rules:
     - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
       when: never
+    - when: always
   artifacts:
     name: ${test_name}
     public: true
     expire_in: 1 week
-    when: always
     paths:
       - "${test_name}/**/*.log"
 
