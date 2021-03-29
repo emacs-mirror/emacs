@@ -140,6 +140,10 @@ default:
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
 
 .test-template:
+  # Do not run fast and normal test jobs when scheduled
+  rules:
+    - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
+      when: never
   artifacts:
     name: ${test_name}
     public: true
