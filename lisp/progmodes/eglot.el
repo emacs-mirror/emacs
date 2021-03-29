@@ -2020,7 +2020,7 @@ Try to visit the target file for a richer summary line."
                                 (substring (buffer-substring bol (point-at-eol)))
                                 (hi-beg (- beg bol))
                                 (hi-end (- (min (point-at-eol) end) bol)))
-                     (add-face-text-property hi-beg hi-end 'highlight
+                     (add-face-text-property hi-beg hi-end 'xref-match
                                              t substring)
                      (list substring (1+ (current-line)) (eglot-current-column)
                            (- end beg))))))
