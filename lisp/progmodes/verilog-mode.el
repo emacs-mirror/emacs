@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.03.18.062085829
+;; Version: 2021.03.29.211984233
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-03-18-3b35ac5-vpo-GNU"
+(defconst verilog-mode-version "2021-03-29-ca29f69-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -290,7 +290,7 @@ STRING should be given if the last search was by `string-match' on STRING."
             (concat open (mapconcat 'regexp-quote strings "\\|") close)))
         )
     ;; Emacs.
-    (defalias 'verilog-regexp-opt 'regexp-opt)))
+    (defalias 'verilog-regexp-opt #'regexp-opt)))
 
 ;; emacs >=22 has looking-back, but older emacs and xemacs don't.
 ;; This function is lifted directly from emacs's subr.el
@@ -300,7 +300,7 @@ STRING should be given if the last search was by `string-match' on STRING."
 (eval-and-compile
   (cond
    ((fboundp 'looking-back)
-    (defalias 'verilog-looking-back 'looking-back))
+    (defalias 'verilog-looking-back #'looking-back))
    (t
     (defun verilog-looking-back (regexp limit &optional greedy)
       "Return non-nil if text before point matches regular expression REGEXP.
@@ -340,14 +340,14 @@ wherever possible, since it is slow."
   (cond
    ((fboundp 'restore-buffer-modified-p)
     ;; Faster, as does not update mode line when nothing changes
-    (defalias 'verilog-restore-buffer-modified-p 'restore-buffer-modified-p))
+    (defalias 'verilog-restore-buffer-modified-p #'restore-buffer-modified-p))
    (t
-    (defalias 'verilog-restore-buffer-modified-p 'set-buffer-modified-p))))
+    (defalias 'verilog-restore-buffer-modified-p #'set-buffer-modified-p))))
 
 (eval-and-compile
   (cond
    ((fboundp 'quit-window)
-    (defalias 'verilog-quit-window 'quit-window))
+    (defalias 'verilog-quit-window #'quit-window))
    (t
     (defun verilog-quit-window (_kill-ignored window)
       "Quit WINDOW and bury its buffer. KILL-IGNORED is ignored."
@@ -379,7 +379,7 @@ wherever possible, since it is slow."
   ;; Added in Emacs 25.1
   (condition-case nil
       (unless (fboundp 'forward-word-strictly)
-        (defalias 'forward-word-strictly 'forward-word))
+        (defalias 'forward-word-strictly #'forward-word))
     (error nil)))
 
 (eval-when-compile
@@ -1483,48 +1483,48 @@ If set will become buffer local.")
 
 (defvar verilog-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map ";"        'electric-verilog-semi)
-    (define-key map [(control 59)]    'electric-verilog-semi-with-comment)
-    (define-key map ":"        'electric-verilog-colon)
+    (define-key map ";"        #'electric-verilog-semi)
+    (define-key map [(control 59)]    #'electric-verilog-semi-with-comment)
+    (define-key map ":"        #'electric-verilog-colon)
     ;;(define-key map "="        'electric-verilog-equal)
-    (define-key map "`"        'electric-verilog-tick)
-    (define-key map "\t"       'electric-verilog-tab)
-    (define-key map "\r"       'electric-verilog-terminate-line)
+    (define-key map "`"        #'electric-verilog-tick)
+    (define-key map "\t"       #'electric-verilog-tab)
+    (define-key map "\r"       #'electric-verilog-terminate-line)
     ;; backspace/delete key bindings
-    (define-key map [backspace]    'backward-delete-char-untabify)
+    (define-key map [backspace]    #'backward-delete-char-untabify)
     (unless (boundp 'delete-key-deletes-forward) ; XEmacs variable
-      (define-key map [delete]       'delete-char)
-      (define-key map [(meta delete)] 'kill-word))
-    (define-key map "\M-\C-b"  'electric-verilog-backward-sexp)
-    (define-key map "\M-\C-f"  'electric-verilog-forward-sexp)
-    (define-key map "\M-\r"    'electric-verilog-terminate-and-indent)
+      (define-key map [delete]       #'delete-char)
+      (define-key map [(meta delete)] #'kill-word))
+    (define-key map "\M-\C-b"  #'electric-verilog-backward-sexp)
+    (define-key map "\M-\C-f"  #'electric-verilog-forward-sexp)
+    (define-key map "\M-\r"    #'electric-verilog-terminate-and-indent)
     (define-key map "\M-\t"    (if (fboundp 'completion-at-point)
-                                   'completion-at-point 'verilog-complete-word))
+                                   #'completion-at-point #'verilog-complete-word))
     (define-key map "\M-?"     (if (fboundp 'completion-help-at-point)
-                                   'completion-help-at-point 'verilog-show-completions))
+                                   #'completion-help-at-point #'verilog-show-completions))
     ;; Note \C-c and letter are reserved for users
-    (define-key map "\C-c`"    'verilog-lint-off)
-    (define-key map "\C-c*"    'verilog-delete-auto-star-implicit)
-    (define-key map "\C-c?"    'verilog-diff-auto)
-    (define-key map "\C-c\C-r" 'verilog-label-be)
-    (define-key map "\C-c\C-i" 'verilog-pretty-declarations)
-    (define-key map "\C-c="    'verilog-pretty-expr)
-    (define-key map "\C-c\C-b" 'verilog-submit-bug-report)
-    (define-key map "\C-c/"    'verilog-star-comment)
-    (define-key map "\C-c\C-c" 'verilog-comment-region)
-    (define-key map "\C-c\C-u" 'verilog-uncomment-region)
+    (define-key map "\C-c`"    #'verilog-lint-off)
+    (define-key map "\C-c*"    #'verilog-delete-auto-star-implicit)
+    (define-key map "\C-c?"    #'verilog-diff-auto)
+    (define-key map "\C-c\C-r" #'verilog-label-be)
+    (define-key map "\C-c\C-i" #'verilog-pretty-declarations)
+    (define-key map "\C-c="    #'verilog-pretty-expr)
+    (define-key map "\C-c\C-b" #'verilog-submit-bug-report)
+    (define-key map "\C-c/"    #'verilog-star-comment)
+    (define-key map "\C-c\C-c" #'verilog-comment-region)
+    (define-key map "\C-c\C-u" #'verilog-uncomment-region)
     (when (featurep 'xemacs)
-      (define-key map [(meta control h)] 'verilog-mark-defun)
-      (define-key map "\M-\C-a"  'verilog-beg-of-defun)
-      (define-key map "\M-\C-e"  'verilog-end-of-defun))
-    (define-key map "\C-c\C-d" 'verilog-goto-defun)
-    (define-key map "\C-c\C-k" 'verilog-delete-auto)
-    (define-key map "\C-c\C-a" 'verilog-auto)
-    (define-key map "\C-c\C-s" 'verilog-auto-save-compile)
-    (define-key map "\C-c\C-p" 'verilog-preprocess)
-    (define-key map "\C-c\C-z" 'verilog-inject-auto)
-    (define-key map "\C-c\C-e" 'verilog-expand-vector)
-    (define-key map "\C-c\C-h" 'verilog-header)
+      (define-key map [(meta control h)] #'verilog-mark-defun)
+      (define-key map "\M-\C-a"  #'verilog-beg-of-defun)
+      (define-key map "\M-\C-e"  #'verilog-end-of-defun))
+    (define-key map "\C-c\C-d" #'verilog-goto-defun)
+    (define-key map "\C-c\C-k" #'verilog-delete-auto)
+    (define-key map "\C-c\C-a" #'verilog-auto)
+    (define-key map "\C-c\C-s" #'verilog-auto-save-compile)
+    (define-key map "\C-c\C-p" #'verilog-preprocess)
+    (define-key map "\C-c\C-z" #'verilog-inject-auto)
+    (define-key map "\C-c\C-e" #'verilog-expand-vector)
+    (define-key map "\C-c\C-h" #'verilog-header)
     map)
   "Keymap used in Verilog mode.")
 
@@ -7732,7 +7732,7 @@ exact match, nil otherwise."
          (allcomp (if (and verilog-toggle-completions
                            (string= verilog-last-word-shown verilog-str))
                       verilog-last-completions
-                    (all-completions verilog-str 'verilog-completion))))
+                    (all-completions verilog-str #'verilog-completion))))
     (list b e allcomp)))
 
 (defun verilog-complete-word ()
@@ -7869,10 +7869,10 @@ If search fails, other files are checked based on
 		    ;; Do completion with default
 		    (completing-read (concat "Goto-Label: (default "
 					     default ") ")
-				     'verilog-comp-defun nil nil "")
+                                    #'verilog-comp-defun nil nil "")
 		  ;; There is no default value. Complete without it
 		  (completing-read "Goto-Label: "
-				   'verilog-comp-defun nil nil "")))
+                                  #'verilog-comp-defun nil nil "")))
 	 pt)
     ;; Make sure library paths are correct, in case need to resolve module
     (verilog-auto-reeval-locals)
@@ -14274,37 +14274,37 @@ Wilson Snyder (wsnyder@wsnyder.org)."
 
 (defvar verilog-template-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'verilog-sk-always)
-    (define-key map "b" 'verilog-sk-begin)
-    (define-key map "c" 'verilog-sk-case)
-    (define-key map "f" 'verilog-sk-for)
-    (define-key map "g" 'verilog-sk-generate)
-    (define-key map "h" 'verilog-sk-header)
-    (define-key map "i" 'verilog-sk-initial)
-    (define-key map "j" 'verilog-sk-fork)
-    (define-key map "m" 'verilog-sk-module)
-    (define-key map "o" 'verilog-sk-ovm-class)
-    (define-key map "p" 'verilog-sk-primitive)
-    (define-key map "r" 'verilog-sk-repeat)
-    (define-key map "s" 'verilog-sk-specify)
-    (define-key map "t" 'verilog-sk-task)
-    (define-key map "u" 'verilog-sk-uvm-object)
-    (define-key map "w" 'verilog-sk-while)
-    (define-key map "x" 'verilog-sk-casex)
-    (define-key map "z" 'verilog-sk-casez)
-    (define-key map "?" 'verilog-sk-if)
-    (define-key map ":" 'verilog-sk-else-if)
-    (define-key map "/" 'verilog-sk-comment)
-    (define-key map "A" 'verilog-sk-assign)
-    (define-key map "F" 'verilog-sk-function)
-    (define-key map "I" 'verilog-sk-input)
-    (define-key map "O" 'verilog-sk-output)
-    (define-key map "S" 'verilog-sk-state-machine)
-    (define-key map "=" 'verilog-sk-inout)
-    (define-key map "U" 'verilog-sk-uvm-component)
-    (define-key map "W" 'verilog-sk-wire)
-    (define-key map "R" 'verilog-sk-reg)
-    (define-key map "D" 'verilog-sk-define-signal)
+    (define-key map "a" #'verilog-sk-always)
+    (define-key map "b" #'verilog-sk-begin)
+    (define-key map "c" #'verilog-sk-case)
+    (define-key map "f" #'verilog-sk-for)
+    (define-key map "g" #'verilog-sk-generate)
+    (define-key map "h" #'verilog-sk-header)
+    (define-key map "i" #'verilog-sk-initial)
+    (define-key map "j" #'verilog-sk-fork)
+    (define-key map "m" #'verilog-sk-module)
+    (define-key map "o" #'verilog-sk-ovm-class)
+    (define-key map "p" #'verilog-sk-primitive)
+    (define-key map "r" #'verilog-sk-repeat)
+    (define-key map "s" #'verilog-sk-specify)
+    (define-key map "t" #'verilog-sk-task)
+    (define-key map "u" #'verilog-sk-uvm-object)
+    (define-key map "w" #'verilog-sk-while)
+    (define-key map "x" #'verilog-sk-casex)
+    (define-key map "z" #'verilog-sk-casez)
+    (define-key map "?" #'verilog-sk-if)
+    (define-key map ":" #'verilog-sk-else-if)
+    (define-key map "/" #'verilog-sk-comment)
+    (define-key map "A" #'verilog-sk-assign)
+    (define-key map "F" #'verilog-sk-function)
+    (define-key map "I" #'verilog-sk-input)
+    (define-key map "O" #'verilog-sk-output)
+    (define-key map "S" #'verilog-sk-state-machine)
+    (define-key map "=" #'verilog-sk-inout)
+    (define-key map "U" #'verilog-sk-uvm-component)
+    (define-key map "W" #'verilog-sk-wire)
+    (define-key map "R" #'verilog-sk-reg)
+    (define-key map "D" #'verilog-sk-define-signal)
     map)
   "Keymap used in Verilog mode for smart template operations.")
 
@@ -14695,13 +14695,13 @@ and the case items."
   (let ((map (make-sparse-keymap))) ; as described in info pages, make a map
     (set-keymap-parent map verilog-mode-map)
     ;; mouse button bindings
-    (define-key map "\r"            'verilog-load-file-at-point)
+    (define-key map "\r"            #'verilog-load-file-at-point)
+    (define-key map
+      (if (featurep 'xemacs) 'button2 [mouse-2])
+      #'verilog-load-file-at-mouse)
     (if (featurep 'xemacs)
-	(define-key map 'button2    'verilog-load-file-at-mouse);ffap-at-mouse ?
-      (define-key map [mouse-2]     'verilog-load-file-at-mouse))
-    (if (featurep 'xemacs)
-	(define-key map 'Sh-button2 'mouse-yank) ; you wanna paste don't you ?
-      (define-key map [S-mouse-2]   'mouse-yank-at-click))
+       (define-key map 'Sh-button2 #'mouse-yank) ; you wanna paste don't you ?
+      (define-key map [S-mouse-2]   #'mouse-yank-at-click))
     map)
   "Map containing mouse bindings for `verilog-mode'.")
 
@@ -14774,7 +14774,7 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
   (verilog-highlight-region (point-min) (point-max) nil))
 
 ;; Deprecated, but was interactive, so we'll keep it around
-(defalias 'verilog-colorize-include-files-buffer 'verilog-highlight-buffer)
+(defalias 'verilog-colorize-include-files-buffer #'verilog-highlight-buffer)
 
 ;; ffap-at-mouse isn't useful for Verilog mode. It uses library paths.
 ;; so define this function to do more or less the same as ffap-at-mouse
