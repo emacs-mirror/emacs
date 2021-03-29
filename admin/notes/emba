@@ -44,7 +44,7 @@ corresponding 'test-*' jobs run the ert tests.
 A special job is 'test-all-inotify', which runs 'make check-expensive'.
 While most of the jobs run as soon as a respective file has been
 committed into the Emacs git repository, this test job runs scheduled,
-every 6 hours.
+every 8 hours.
 
 The log files for every test job are kept on the server for a week.
 They can be downloaded from the server, visiting the URL
