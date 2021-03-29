@@ -237,7 +237,7 @@ test-filenotify-gio:
   extends: [.job-template, .test-template, .filenotify-gio-template]
   variables:
     target: emacs-filenotify-gio
-    make_params: "-k -C test autorevert-tests filenotify-tests"
+    make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
 
 test-gnustep:
   # This tests the GNUstep build process
