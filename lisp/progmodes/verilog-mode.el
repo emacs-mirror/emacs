@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.02.02.263931197
+;; Version: 2021.03.18.062085829
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-02-02-fbb453d-vpo-GNU"
+(defconst verilog-mode-version "2021-03-18-3b35ac5-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -1969,7 +1969,11 @@ To call on \\[verilog-auto], set `verilog-auto-delete-trailing-whitespace'."
     (unless (bolp) (insert "\n"))))
 
 (defvar compile-command)
+;; These are known to be from other packages and may not be defined
+(defvar diff-command)
+;; There are known to be from newer versions of Emacs
 (defvar create-lockfiles)  ; Emacs 24
+(defvar which-func-modes)
 
 ;; compilation program
 (defun verilog-set-compile-command ()
@@ -6653,7 +6657,7 @@ Return >0 for nested struct."
        (verilog-in-struct-p))
       ;; true
       (save-excursion
-	(if (looking-at "}\\(?:\\s-*\\w+\\s-*\\)?;") 1))
+        (if (looking-at "}\\(?:\\s-*\\w+\\s-*\\(\\s-*\\,\\s-*\\w+\\)*\\)?;") 1))
     ;; false
     nil))
 
@@ -8648,11 +8652,6 @@ Optional NUM-PARAM and MAX-PARAM check for a specific number of parameters."
 (defvar sigs-out-i)
 (defvar sigs-out-unk)
 (defvar sigs-temp)
-;; These are known to be from other packages and may not be defined
-(defvar diff-command)
-;; There are known to be from newer versions of Emacs
-(defvar create-lockfiles)
-(defvar which-func-modes)
 
 (defun verilog-read-decls ()
   "Compute signal declaration information for the current module at point.
