@@ -1,4 +1,4 @@
-;;; follow.el --- synchronize windows showing the same buffer
+;;; follow.el --- synchronize windows showing the same buffer  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995-1997, 1999, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -234,17 +234,17 @@ After that, changing the prefix key requires manipulating keymaps."
 (defvar follow-mode-map
   (let ((mainmap (make-sparse-keymap))
         (map (make-sparse-keymap)))
-    (define-key map "\C-v"	'follow-scroll-up)
-    (define-key map "\M-v"	'follow-scroll-down)
-    (define-key map "v"		'follow-scroll-down)
-    (define-key map "1"		'follow-delete-other-windows-and-split)
-    (define-key map "b"		'follow-switch-to-buffer)
-    (define-key map "\C-b"	'follow-switch-to-buffer-all)
-    (define-key map "\C-l"	'follow-recenter)
-    (define-key map "<"		'follow-first-window)
-    (define-key map ">"		'follow-last-window)
-    (define-key map "n"		'follow-next-window)
-    (define-key map "p"		'follow-previous-window)
+    (define-key map "\C-v"	#'follow-scroll-up)
+    (define-key map "\M-v"	#'follow-scroll-down)
+    (define-key map "v"		#'follow-scroll-down)
+    (define-key map "1"		#'follow-delete-other-windows-and-split)
+    (define-key map "b"		#'follow-switch-to-buffer)
+    (define-key map "\C-b"	#'follow-switch-to-buffer-all)
+    (define-key map "\C-l"	#'follow-recenter)
+    (define-key map "<"		#'follow-first-window)
+    (define-key map ">"		#'follow-last-window)
+    (define-key map "n"		#'follow-next-window)
+    (define-key map "p"		#'follow-previous-window)
 
     (define-key mainmap follow-mode-prefix map)
 
@@ -253,13 +253,13 @@ After that, changing the prefix key requires manipulating keymaps."
     ;; could be enhanced in Follow mode.  End-of-buffer is a special
     ;; case since it is very simple to define and it greatly enhances
     ;; the look and feel of Follow mode.)
-    (define-key mainmap [remap end-of-buffer] 'follow-end-of-buffer)
+    (define-key mainmap [remap end-of-buffer] #'follow-end-of-buffer)
 
-    (define-key mainmap [remap scroll-bar-toolkit-scroll] 'follow-scroll-bar-toolkit-scroll)
-    (define-key mainmap [remap scroll-bar-drag] 'follow-scroll-bar-drag)
-    (define-key mainmap [remap scroll-bar-scroll-up] 'follow-scroll-bar-scroll-up)
-    (define-key mainmap [remap scroll-bar-scroll-down] 'follow-scroll-bar-scroll-down)
-    (define-key mainmap [remap mwheel-scroll] 'follow-mwheel-scroll)
+    (define-key mainmap [remap scroll-bar-toolkit-scroll] #'follow-scroll-bar-toolkit-scroll)
+    (define-key mainmap [remap scroll-bar-drag] #'follow-scroll-bar-drag)
+    (define-key mainmap [remap scroll-bar-scroll-up] #'follow-scroll-bar-scroll-up)
+    (define-key mainmap [remap scroll-bar-scroll-down] #'follow-scroll-bar-scroll-down)
+    (define-key mainmap [remap mwheel-scroll] #'follow-mwheel-scroll)
 
     mainmap)
   "Minor mode keymap for Follow mode.")
@@ -368,7 +368,7 @@ This is typically set by explicit scrolling commands.")
 (defsubst follow-debug-message (&rest args)
   "Like `message', but only active when `follow-debug' is non-nil."
   (if (and (boundp 'follow-debug) follow-debug)
-      (apply 'message args)))
+      (apply #'message args)))
 
 ;;; Cache
 
@@ -1694,8 +1694,7 @@ omitted if the character after POS is fully visible; otherwise, RTOP
 and RBOT are the number of pixels off-window at the top and bottom of
 the screen line (\"row\") containing POS, ROWH is the visible height
 of that row, and VPOS is the row number \(zero-based)."
-  (let* ((windows (follow-all-followers window))
-         (last (car (last windows))))
+  (let* ((windows (follow-all-followers window)))
     (when follow-start-end-invalid
       (follow-redisplay windows (car windows)))
     (let* ((cache (follow-windows-start-end windows))
@@ -1723,7 +1722,7 @@ zero means top of the first window in the group, negative means
          (start-end (follow-windows-start-end windows))
          (rev-start-end (reverse start-end))
          (lines 0)
-         middle-window elt count)
+         elt count)
     (select-window
      (cond
       ((null arg)
