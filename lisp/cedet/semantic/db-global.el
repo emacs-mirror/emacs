@@ -56,7 +56,7 @@ values."
   (interactive
    (list (completing-read
           "Enable in Mode: " obarray
-          #'(lambda (s) (get s 'mode-local-symbol-table))
+          (lambda (s) (get s 'mode-local-symbol-table))
           t (symbol-name major-mode))))
 
   ;; First, make sure the version is ok.

@@ -429,12 +429,12 @@ Optional argument PARENT is a tag parent of STREAM."
 Clears all imenu menus that may be depending on the database."
   (require 'semantic/db-mode)
   (semantic-map-buffers
-   #'(lambda ()
-       ;; Set up semanticdb environment if enabled.
-       (if (semanticdb-minor-mode-p)
-           (semanticdb-semantic-init-hook-fcn))
-       ;; Clear imenu cache to redraw the imenu.
-       (semantic-imenu-flush-fcn))))
+   (lambda ()
+     ;; Set up semanticdb environment if enabled.
+     (if (semanticdb-minor-mode-p)
+         (semanticdb-semantic-init-hook-fcn))
+     ;; Clear imenu cache to redraw the imenu.
+     (semantic-imenu-flush-fcn))))
 
 (add-hook 'semanticdb-mode-hook #'semantic-imenu-semanticdb-hook)
 

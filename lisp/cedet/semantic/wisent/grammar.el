@@ -198,10 +198,10 @@ See also the function `wisent-skip-token'."
 (defun wisent-grammar-assocs ()
   "Return associativity and precedence level definitions."
   (mapcar
-   #'(lambda (tag)
-       (cons (intern (semantic-tag-name tag))
-             (mapcar #'semantic-grammar-item-value
-                     (semantic-tag-get-attribute tag :value))))
+   (lambda (tag)
+     (cons (intern (semantic-tag-name tag))
+           (mapcar #'semantic-grammar-item-value
+                   (semantic-tag-get-attribute tag :value))))
    (semantic-find-tags-by-class 'assoc (current-buffer))))
 
 (defun wisent-grammar-terminals ()
@@ -209,14 +209,14 @@ See also the function `wisent-skip-token'."
 Keep order of declaration in the WY file without duplicates."
   (let (terms)
     (mapc
-     #'(lambda (tag)
-	 (mapcar #'(lambda (name)
-		     (add-to-list 'terms (intern name)))
-		 (cons (semantic-tag-name tag)
-		       (semantic-tag-get-attribute tag :rest))))
+     (lambda (tag)
+       (mapcar (lambda (name)
+                 (add-to-list 'terms (intern name)))
+               (cons (semantic-tag-name tag)
+                     (semantic-tag-get-attribute tag :rest))))
      (semantic--find-tags-by-function
-      #'(lambda (tag)
-	  (memq (semantic-tag-class tag) '(token keyword)))
+      (lambda (tag)
+        (memq (semantic-tag-class tag) '(token keyword)))
       (current-buffer)))
     (nreverse terms)))
 

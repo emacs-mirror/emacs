@@ -162,7 +162,7 @@ too an interactive function used to toggle the mode."
   ;; Update the minor mode format.
   (semantic-mode-line-update)
   ;; Then turn MODE on or off in every Semantic enabled buffer.
-  (semantic-map-buffers #'(lambda () (funcall mode arg))))
+  (semantic-map-buffers (lambda () (funcall mode arg))))
 
 ;;;;
 ;;;; Minor mode to highlight areas that a user edits.
