@@ -110,10 +110,8 @@
 ;; `tree-widget-themes-directory', and `tree-widget-theme' options for
 ;; more details.
 
-;;; History:
-;;
-
 ;;; Code:
+
 (require 'wid-edit)
 
 ;;; Customization

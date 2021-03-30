@@ -120,8 +120,6 @@
 ;; can cycle through all file buffers and *scratch* although your current
 ;; configuration perhaps is "files" which ignores buffer *scratch*.
 
-;;; History:
-
 ;;; Code:
 
 ;; ----------------------------------------------------------------------

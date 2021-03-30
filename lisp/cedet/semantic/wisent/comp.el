@@ -35,9 +35,6 @@
 ;;
 ;; For more details on Wisent itself read the Wisent manual.
 
-;;; History:
-;;
-
 ;;; Code:
 (require 'semantic/wisent)
 (eval-when-compile (require 'cl-lib))

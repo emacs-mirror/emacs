@@ -176,8 +176,6 @@
 ;;
 ;;   2003.08.12 Sacha's birthday
 
-;;; History:
-
 ;;; Code:
 
 (defconst remember-version "2.0"

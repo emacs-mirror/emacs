@@ -100,10 +100,7 @@
 ;; To automatically display the ruler in specific major modes use:
 ;;
 ;;    (add-hook '<major-mode>-hook 'ruler-mode)
-;;
 
-;;; History:
-;;
 
 ;;; Code:
 (eval-when-compile

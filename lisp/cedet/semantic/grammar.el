@@ -23,9 +23,6 @@
 ;;
 ;; Major mode framework for editing Semantic's input grammar files.
 
-;;; History:
-;;
-
 ;;; Code:
 
 (require 'semantic)
@@ -599,9 +596,6 @@ Typically a DEFINE expression should look like this:
 ;;
 ;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
 ;; generated from the grammar file " gram ".
-
-;;; History:
-;;
 
 ;;; Code:
 

@@ -22,12 +22,9 @@
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; Here are functions necessary to use the Wisent LALR parser from
 ;; Semantic environment.
-
-;;; History:
-;;
 
 ;;; Code:
 

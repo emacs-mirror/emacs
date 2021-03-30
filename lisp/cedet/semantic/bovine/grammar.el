@@ -25,9 +25,8 @@
 ;;
 ;; Major mode for editing Bovine's input grammar (.by) files.
 
-;;; History:
-
 ;;; Code:
+
 (require 'semantic)
 (require 'semantic/grammar)
 (require 'semantic/find)
