@@ -33,7 +33,7 @@
 ;; turn be a vector of three elements: a real prefixed group name, an
 ;; article number in that group, and an integer score.  The score is
 ;; not used by nnselect but may be used by other code to help in
-;; sorting.  Most functions will just chose a fixed number, such as
+;; sorting.  Most functions will just choose a fixed number, such as
 ;; 100, for this score.
 
 ;; For example the search function `gnus-search-run-query' applied to

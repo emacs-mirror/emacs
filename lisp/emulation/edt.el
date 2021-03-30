@@ -1,4 +1,4 @@
-;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs
+;;; edt.el --- enhanced EDT keypad mode emulation for GNU Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986, 1992-1995, 2000-2021 Free Software Foundation,
 ;; Inc.
@@ -192,8 +192,7 @@ Emulation.  If set to nil (the default), the `page-delimiter' variable
 is set to \"\\f\" when edt-emulation-on is first invoked.  This
 setting replicates EDT's page delimiter behavior.  The original value
 is restored when edt-emulation-off is called."
-  :type 'boolean
-  :group 'edt)
+  :type 'boolean)
 
 (defcustom edt-use-EDT-control-key-bindings nil
   "Emacs MUST be restarted for a change in value to take effect!
@@ -201,8 +200,7 @@ Non-nil causes the control key bindings to be replaced with EDT
 bindings.  If set to nil (the default), EDT control key bindings are
 not used and the current Emacs control key bindings are retained for
 use within the EDT emulation."
-  :type 'boolean
-  :group 'edt)
+  :type 'boolean)
 
 (defcustom edt-word-entities '(?\t)
   "Specifies the list of EDT word entity characters.
@@ -226,22 +224,19 @@ representations, which you can also use:
 
 In EDT Emulation movement-by-word commands, each character in the list
 will be treated as if it were a separate word."
-  :type '(repeat integer)
-  :group 'edt)
+  :type '(repeat integer))
 
 (defcustom edt-top-scroll-margin 10
   "Scroll margin at the top of the screen.
 Interpreted as a percent of the current window size with a default
 setting of 10%.  If set to 0, top scroll margin is disabled."
-  :type 'integer
-  :group 'edt)
+  :type 'integer)
 
 (defcustom edt-bottom-scroll-margin 15
   "Scroll margin at the bottom of the screen.
 Interpreted as a percent of the current window size with a default
 setting of 15%.  If set to 0, bottom scroll margin is disabled."
-  :type 'integer
-  :group 'edt)
+  :type 'integer)
 
 ;;;
 ;;; Internal Variables
@@ -304,6 +299,8 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 ;;;     o edt-emulation-on      o edt-load-keys
 ;;;
 (defconst edt-xserver (when (eq window-system 'x)
+                        (declare-function x-server-vendor "xfns.c"
+                                          (&optional terminal))
 			;; The Cygwin window manager has a `/' in its
 			;; name, which breaks the generated file name of
 			;; the custom key map file.  Replace `/' with a
@@ -323,31 +320,31 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 ;;;; EDT Emulation Commands
 ;;;;
 
-;;; Almost all of EDT's keypad mode commands have equivalent Emacs
-;;; function counterparts.  But many of these counterparts behave
-;;; somewhat differently in Emacs.
-;;;
-;;; So, the following Emacs functions emulate, where practical, the
-;;; exact behavior of the corresponding EDT keypad mode commands.  In
-;;; a few cases, the emulation is not exact, but it should be close
-;;; enough for most EDT die-hards.
-;;;
+;; Almost all of EDT's keypad mode commands have equivalent Emacs
+;; function counterparts.  But many of these counterparts behave
+;; somewhat differently in Emacs.
+;;
+;; So, the following Emacs functions emulate, where practical, the
+;; exact behavior of the corresponding EDT keypad mode commands.  In
+;; a few cases, the emulation is not exact, but it should be close
+;; enough for most EDT die-hards.
+;;
 
 ;;;
 ;;; PAGE
 ;;;
-;;; Emacs uses the regexp assigned to page-delimiter to determine what
-;;; marks a page break.  This is normally "^\f", which causes the
-;;; edt-page command to ignore form feeds not located at the beginning
-;;; of a line.  To emulate the EDT PAGE command exactly,
-;;; page-delimiter is set to "\f" when EDT emulation is turned on, and
-;;; restored to its original value when EDT emulation is turned off.
-;;; But this can be overridden if the EDT definition is not desired by
-;;; placing
-;;;
-;;;         (setq edt-keep-current-page-delimiter t)
-;;;
-;;; in your init file.
+;; Emacs uses the regexp assigned to page-delimiter to determine what
+;; marks a page break.  This is normally "^\f", which causes the
+;; edt-page command to ignore form feeds not located at the beginning
+;; of a line.  To emulate the EDT PAGE command exactly,
+;; page-delimiter is set to "\f" when EDT emulation is turned on, and
+;; restored to its original value when EDT emulation is turned off.
+;; But this can be overridden if the EDT definition is not desired by
+;; placing
+;;
+;;         (setq edt-keep-current-page-delimiter t)
+;;
+;; in your init file.
 
 (defun edt-page-forward (num)
   "Move forward to just after next page delimiter.
@@ -384,12 +381,12 @@ Argument NUM is the number of page delimiters to move."
 ;;;
 ;;; SECT
 ;;;
-;;; EDT defaults a section size to be 16 lines of its one and only
-;;; 24-line window.  That's two-thirds of the window at a time.  The
-;;; EDT SECT commands moves the cursor, not the window.
-;;;
-;;; This emulation of EDT's SECT moves the cursor approximately
-;;; two-thirds of the current window at a time.
+;; EDT defaults a section size to be 16 lines of its one and only
+;; 24-line window.  That's two-thirds of the window at a time.  The
+;; EDT SECT commands moves the cursor, not the window.
+;;
+;; This emulation of EDT's SECT moves the cursor approximately
+;; two-thirds of the current window at a time.
 
 (defun edt-sect-forward (num)
   "Move cursor forward two-thirds of a window's number of lines.
@@ -417,8 +414,8 @@ Argument NUM is the number of sections to move."
 ;;;
 ;;; BEGINNING OF LINE
 ;;;
-;;; EDT's beginning-of-line command is not affected by current
-;;; direction, for some unknown reason.
+;; EDT's beginning-of-line command is not affected by current
+;; direction, for some unknown reason.
 
 (defun edt-beginning-of-line (num)
   "Move backward to next beginning of line mark.
@@ -470,13 +467,13 @@ Argument NUM is the number of EOL marks to move."
 ;;;
 ;;; WORD
 ;;;
-;;; This one is a tad messy.  To emulate EDT's behavior everywhere in
-;;; the file (beginning of file, end of file, beginning of line, end
-;;; of line, etc.) it takes a bit of special handling.
-;;;
-;;; The variable edt-word-entities contains a list of characters which
-;;; are to be viewed as distinct words wherever they appear in the
-;;; buffer.  This emulates the EDT line mode command SET ENTITY WORD.
+;; This one is a tad messy.  To emulate EDT's behavior everywhere in
+;; the file (beginning of file, end of file, beginning of line, end
+;; of line, etc.) it takes a bit of special handling.
+;;
+;; The variable edt-word-entities contains a list of characters which
+;; are to be viewed as distinct words wherever they appear in the
+;; buffer.  This emulates the EDT line mode command SET ENTITY WORD.
 
 
 (defun edt-one-word-forward ()
@@ -567,9 +564,9 @@ Argument NUM is the number of characters to move."
 ;;;
 ;;; LINE
 ;;;
-;;; When direction is set to BACKUP, LINE behaves just like BEGINNING
-;;; OF LINE in EDT.  So edt-line-backward is not really needed as a
-;;; separate function.
+;; When direction is set to BACKUP, LINE behaves just like BEGINNING
+;; OF LINE in EDT.  So edt-line-backward is not really needed as a
+;; separate function.
 
 (defun edt-line-backward (num)
   "Move backward to next beginning of line mark.
@@ -640,8 +637,7 @@ Argument NUM is the number of lines to move."
 
 (defmacro edt-with-position (&rest body)
   "Execute BODY with some position-related variables bound."
-  `(let* ((left nil)
-          (beg (edt-current-line))
+  `(let* ((beg (edt-current-line))
           (height (window-height))
           (top-percent
            (if (zerop edt-top-scroll-margin) 10 edt-top-scroll-margin))
@@ -655,6 +651,7 @@ Argument NUM is the number of lines to move."
           (far (save-excursion
                  (goto-char bottom)
                  (point-at-bol (1- height)))))
+     (ignore top far)
      ,@body))
 
 ;;;
@@ -672,9 +669,10 @@ Optional argument FIND is t is this function is called from `edt-find'."
      (search-backward edt-find-last-text)
      (edt-set-match)
      (if (> (point) far)
-         (if (zerop (setq left (save-excursion (forward-line height))))
-             (recenter top-margin)
-           (recenter (- left bottom-up-margin)))
+         (let ((left (save-excursion (forward-line height))))
+           (recenter (if (zerop left)
+                         top-margin
+                       (- left bottom-up-margin))))
        (and (> (point) bottom) (recenter bottom-margin))))))
 
 (defun edt-find-backward (&optional find)
@@ -711,9 +709,9 @@ Optional argument FIND is t if this function is called from `edt-find'."
          (search-backward edt-find-last-text)
          (edt-set-match)
          (if (> (point) far)
-             (if (zerop (setq left (save-excursion (forward-line height))))
-                 (recenter top-margin)
-               (recenter (- left bottom-up-margin)))
+             (let ((left (save-excursion (forward-line height))))
+               (recenter (if (zerop left) top-margin
+                           (- left bottom-up-margin))))
            (and (> (point) bottom) (recenter bottom-margin))))
      (backward-char 1)
      (error "Search failed: \"%s\"" edt-find-last-text))))
@@ -1203,9 +1201,9 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window."
 ;;;;
 
 ;;;
-;;; Several enhancements and additions to EDT keypad mode commands are
-;;; provided here.  Some of these have been motivated by similar
-;;; TPU/EVE and EVE-Plus commands.  Others are new.
+;; Several enhancements and additions to EDT keypad mode commands are
+;; provided here.  Some of these have been motivated by similar
+;; TPU/EVE and EVE-Plus commands.  Others are new.
 
 ;;;
 ;;; CHANGE DIRECTION
@@ -1245,9 +1243,8 @@ Argument NUM is the positive number of sentences to move."
      (forward-word 1)
      (backward-sentence))
    (if (> (point) far)
-       (if (zerop (setq left (save-excursion (forward-line height))))
-           (recenter top-margin)
-         (recenter (- left bottom-up-margin)))
+       (let ((left (save-excursion (forward-line height))))
+         (recenter (if (zerop left) top-margin (- left bottom-up-margin))))
      (and (> (point) bottom) (recenter bottom-margin)))))
 
 (defun edt-sentence-backward (num)
@@ -1286,9 +1283,8 @@ Argument NUM is the positive number of paragraphs to move."
          (forward-line 1))
      (setq num (1- num)))
    (if (> (point) far)
-       (if (zerop (setq left (save-excursion (forward-line height))))
-           (recenter top-margin)
-         (recenter (- left bottom-up-margin)))
+       (let ((left (save-excursion (forward-line height))))
+         (recenter (if (zerop left) top-margin (- left bottom-up-margin))))
      (and (> (point) bottom) (recenter bottom-margin)))))
 
 (defun edt-paragraph-backward (num)
@@ -1378,8 +1374,8 @@ Definition is stored in `edt-last-replaced-key-definition'."
 ;;;
 ;;; SCROLL WINDOW
 ;;;
-;;; Scroll a window (less one line) at a time.  Leave cursor in center of
-;;; window.
+;; Scroll a window (less one line) at a time.  Leave cursor in center of
+;; window.
 
 (defun edt-scroll-window-forward (num)
   "Scroll forward one window in buffer, less one line.
@@ -2051,7 +2047,7 @@ Optional argument USER-SETUP non-nil means  called from function
       (fset 'edt-emulation-on (symbol-function 'edt-select-default-global-map))
       (edt-select-default-global-map)))
   ;; Keep the menu bar Buffers menu up-to-date in edt-default-global-map.
-  (add-hook 'menu-bar-update-hook 'edt-default-menu-bar-update-buffers))
+  (add-hook 'menu-bar-update-hook #'edt-default-menu-bar-update-buffers))
 
 (defun edt-user-emulation-setup ()
   "Setup user custom emulation of DEC's EDT editor."
@@ -2072,7 +2068,7 @@ Optional argument USER-SETUP non-nil means  called from function
       (edt-setup-user-bindings))
   (edt-select-user-global-map)
   ;; Keep the menu bar Buffers menu up-to-date in edt-user-global-map.
-  (add-hook 'menu-bar-update-hook 'edt-user-menu-bar-update-buffers))
+  (add-hook 'menu-bar-update-hook #'edt-user-menu-bar-update-buffers))
 
 (defun edt-select-default-global-map()
   "Select default EDT emulation key bindings."
@@ -2490,7 +2486,7 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
                   (and b
                        (with-current-buffer b
                          (set-buffer-modified-p t)))
-                  (fset 'help-print-return-message 'ignore)
+                  (fset 'help-print-return-message #'ignore)
                   (call-interactively fun)
                   (and (get-buffer name)
                        (get-buffer-window (get-buffer name))

@@ -1,11 +1,10 @@
-;;; finder.el --- topic & keyword-based code finder
+;;; finder.el --- topic & keyword-based code finder  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 1997-1999, 2001-2021 Free Software Foundation,
 ;; Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
-;; Version: 1.0
 ;; Keywords: help
 
 ;; This file is part of GNU Emacs.
@@ -78,8 +77,7 @@
 Each element has the form (KEYWORD . DESCRIPTION).")
 
 (defvar finder-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "Finder")))
+  (let ((map (make-sparse-keymap)))
     (define-key map " "	'finder-select)
     (define-key map "f"	'finder-select)
     (define-key map [follow-link] 'mouse-face)
@@ -90,23 +88,20 @@ Each element has the form (KEYWORD . DESCRIPTION).")
     (define-key map "p" 'previous-line)
     (define-key map "q"	'finder-exit)
     (define-key map "d"	'finder-list-keywords)
-
-    (define-key map [menu-bar finder-mode]
-      (cons "Finder" menu-map))
-    (define-key menu-map [finder-exit]
-      '(menu-item "Quit" finder-exit
-		  :help "Exit Finder mode"))
-    (define-key menu-map [finder-summary]
-      '(menu-item "Summary" finder-summary
-		  :help "Summary item on current line in a finder buffer"))
-    (define-key menu-map [finder-list-keywords]
-      '(menu-item "List keywords" finder-list-keywords
-		  :help "Display descriptions of the keywords in the Finder buffer"))
-    (define-key menu-map [finder-select]
-      '(menu-item "Select" finder-select
-		  :help "Select item on current line in a finder buffer"))
     map)
   "Keymap used in `finder-mode'.")
+
+(easy-menu-define finder-mode-menu finder-mode-map
+  "Menu for `finder-mode'."
+  '("Finder"
+    ["Select" finder-select
+     :help "Select item on current line in a finder buffer"]
+    ["List keywords" finder-list-keywords
+     :help "Display descriptions of the keywords in the Finder buffer"]
+    ["Summary" finder-summary
+     :help "Summary item on current line in a finder buffer"]
+    ["Quit" finder-exit
+     :help "Exit Finder mode"]))
 
 (defvar finder-mode-syntax-table
   (let ((st (make-syntax-table emacs-lisp-mode-syntax-table)))
@@ -202,8 +197,7 @@ from; the default is `load-path'."
          (progress (make-progress-reporter
                     (byte-compile-info "Scanning files for finder")
                     0 (length files)))
-	 package-override base-name ; processed
-	 summary keywords package version entry desc)
+	 base-name summary keywords package version entry desc)
     (dolist (elem files)
       (let* ((d (car elem))
              (f (cdr elem))
@@ -233,7 +227,7 @@ from; the default is `load-path'."
           ;;	    (push base-name processed)
 	  (with-temp-buffer
 	    (insert-file-contents (expand-file-name f d))
-	    (setq keywords (mapcar 'intern (lm-keywords-list))
+	    (setq keywords (mapcar #'intern (lm-keywords-list))
 		  package  (or package-override
 			       (let ((str (lm-header "package")))
 			         (if str (intern str)))
@@ -293,7 +287,7 @@ from; the default is `load-path'."
 
 (defun finder-compile-keywords-make-dist ()
   "Regenerate `finder-inf.el' for the Emacs distribution."
-  (apply 'finder-compile-keywords command-line-args-left)
+  (apply #'finder-compile-keywords command-line-args-left)
   (kill-emacs))
 
 ;;; Now the retrieval code
@@ -302,7 +296,7 @@ from; the default is `load-path'."
   "Insert, at column COLUMN, other args STRINGS."
   (if (>= (current-column) column) (insert "\n"))
   (move-to-column column t)
-  (apply 'insert strings))
+  (apply #'insert strings))
 
 (defvar finder-help-echo nil)
 
@@ -319,7 +313,7 @@ from; the default is `load-path'."
 		   (keys (nconc (where-is-internal
 				 'finder-mouse-select finder-mode-map)
 				keys1)))
-	      (concat (mapconcat 'key-description keys ", ")
+	      (concat (mapconcat #'key-description keys ", ")
 		      ": select item"))))
     (add-text-properties
      (line-beginning-position) (line-end-position)
@@ -371,7 +365,7 @@ not `finder-known-keywords'."
 (define-button-type 'finder-xref 'action #'finder-goto-xref)
 
 (defun finder-goto-xref (button)
-  "Jump to a lisp file for the BUTTON at point."
+  "Jump to a Lisp file for the BUTTON at point."
   (let* ((file (button-get button 'xref))
          (lib (locate-library file)))
     (if lib (finder-commentary lib)
@@ -421,7 +415,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 
 (defun finder-select ()
   "Select item on current line in a Finder buffer."
-  (interactive)
+  (interactive nil finder-mode)
   (let ((key (finder-current-item)))
       (if (string-match "\\.el$" key)
 	  (finder-commentary key)
@@ -437,6 +431,7 @@ FILE should be in a form suitable for passing to `locate-library'."
 ;;;###autoload
 (defun finder-by-keyword ()
   "Find packages matching a given keyword."
+  ;; FIXME: Why does this function exist?  Should it just be an alias?
   (interactive)
   (finder-list-keywords))
 
@@ -446,13 +441,14 @@ FILE should be in a form suitable for passing to `locate-library'."
 \\[finder-select]	more help for the item on the current line
 \\[finder-exit]	exit Finder mode and kill the Finder buffer."
   :syntax-table finder-mode-syntax-table
+  :interactive nil
   (setq buffer-read-only t
 	buffer-undo-list t)
   (setq-local finder-headmark nil))
 
 (defun finder-summary ()
   "Summarize basic Finder commands."
-  (interactive)
+  (interactive nil finder-mode)
   (message "%s"
    (substitute-command-keys
     "\\<finder-mode-map>\\[finder-select] = select, \
@@ -462,7 +458,7 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 (defun finder-exit ()
   "Exit Finder mode.
 Quit the window and kill all Finder-related buffers."
-  (interactive)
+  (interactive nil finder-mode)
   (quit-window t)
   (dolist (buf (list finder-buffer "*Finder-package*"))
     (and (get-buffer buf) (kill-buffer buf))))

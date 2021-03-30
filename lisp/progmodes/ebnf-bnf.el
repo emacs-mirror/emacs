@@ -1,4 +1,4 @@
-;;; ebnf-bnf.el --- parser for EBNF
+;;; ebnf-bnf.el --- parser for EBNF  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

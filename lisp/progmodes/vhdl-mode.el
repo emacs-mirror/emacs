@@ -6,7 +6,7 @@
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
 ;; Maintainer:  Reto Zimmermann <reto@gnu.org>
 ;; Keywords:    languages vhdl
-;; WWW:         http://www.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
+;; WWW:         https://guest.iis.ee.ethz.ch/~zimmi/emacs/vhdl-mode.html
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 18/3/2008, and the maintainer agreed that when a bug is
@@ -2159,7 +2159,8 @@ your style, only those that are different from the default.")
 
 ;; mandatory
 (require 'compile)			; XEmacs
-(require 'easymenu)
+(when (< emacs-major-version 28)	; preloaded in Emacs 28
+  (require 'easymenu))
 (require 'hippie-exp)
 
 ;; optional (minimize warning messages during compile)

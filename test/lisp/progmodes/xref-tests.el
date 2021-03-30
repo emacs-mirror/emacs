@@ -59,15 +59,33 @@
     (should (string-match-p "file1\\.txt\\'" (xref-location-group (nth 1 locs))))
     (should (equal 1 (xref-location-line (nth 0 locs))))
     (should (equal 1 (xref-location-line (nth 1 locs))))
-    (should (equal 0 (xref-location-column (nth 0 locs))))
-    (should (equal 4 (xref-location-column (nth 1 locs))))))
+    (should (equal 1 (xref-file-location-column (nth 0 locs))))
+    (should (equal 5 (xref-file-location-column (nth 1 locs))))))
 
 (ert-deftest xref-matches-in-directory-finds-an-empty-line-regexp-match ()
   (let ((locs (xref-tests--locations-in-data-dir "^$")))
     (should (= 1 (length locs)))
     (should (string-match-p "file2\\.txt\\'" (xref-location-group (nth 0 locs))))
     (should (equal 1 (xref-location-line (nth 0 locs))))
-    (should (equal 0 (xref-location-column (nth 0 locs))))))
+    (should (equal 0 (xref-file-location-column (nth 0 locs))))))
+
+(ert-deftest xref-matches-in-files-includes-matches-from-all-the-files ()
+  (let ((matches (xref-matches-in-files "bar"
+                                        (directory-files xref-tests--data-dir t
+                                                         "\\`[^.]"))))
+    (should (= 2 (length matches)))
+    (should (cl-every
+             (lambda (match) (equal (xref-item-summary match) "bar"))
+             matches))))
+
+(ert-deftest xref-matches-in-files-trims-summary-for-matches-on-same-line ()
+  (let ((matches (xref-matches-in-files "match"
+                                        (directory-files xref-tests--data-dir t
+                                                         "\\`[^.]"))))
+    (should (= 3 (length matches)))
+    (should
+     (equal (mapcar #'xref-item-summary matches)
+            '(" match some words " "match more " "match ends here")))))
 
 (ert-deftest xref--buf-pairs-iterator-groups-markers-by-buffers-1 ()
   (let* ((xrefs (xref-tests--matches-in-data-dir "foo"))
@@ -99,18 +117,18 @@
     (should (null (marker-position (cdr (nth 0 (cdr cons2))))))))
 
 (ert-deftest xref--xref-file-name-display-is-abs ()
-  (let ((xref-file-name-display 'abs)
-        ;; Some older BSD find versions can produce '//' in the output.
-        (expected (list
-                   (concat xref-tests--data-dir "/?file1.txt")
-                   (concat xref-tests--data-dir "/?file2.txt")))
-        (actual (delete-dups
-                 (mapcar 'xref-location-group
-                         (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))))
-    (should (and (= (length expected) (length actual))
-                 (cl-every (lambda (e1 e2)
-                             (string-match-p e1 e2))
-                           expected actual)))))
+  (let* ((xref-file-name-display 'abs)
+         ;; Some older BSD find versions can produce '//' in the output.
+         (expected (list
+                    (concat xref-tests--data-dir "/?file1.txt")
+                    (concat xref-tests--data-dir "/?file2.txt")))
+         (actual (delete-dups
+                  (mapcar 'xref-location-group
+                          (xref-tests--locations-in-data-dir "\\(bar\\|foo\\)")))))
+    (should (= (length expected) (length actual)))
+    (should (cl-every (lambda (e1 e2)
+                        (string-match-p e1 e2))
+                      expected actual))))
 
 (ert-deftest xref--xref-file-name-display-is-nondirectory ()
   (let ((xref-file-name-display 'nondirectory))

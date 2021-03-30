@@ -97,13 +97,11 @@
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
 		 (string :tag "Specified")
-		 (const :tag "Unknown" unknown))
-  :group 'vc-src)
+		 (const :tag "Unknown" unknown)))
 
 (defcustom vc-src-program "src"
   "Name of the SRC executable (excluding any arguments)."
-  :type 'string
-  :group 'vc-src)
+  :type 'string)
 
 (defcustom vc-src-diff-switches nil
   "String or list of strings specifying switches for SRC diff under VC.
@@ -111,8 +109,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :type '(choice (const :tag "Unspecified" nil)
                  (const :tag "None" t)
 		 (string :tag "Argument String")
-		 (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-src)
+		 (repeat :tag "Argument List" :value ("") string)))
 
 ;; This needs to be autoloaded because vc-src-registered uses it (via
 ;; vc-default-registered), and vc-hooks needs to be able to check
@@ -126,8 +123,7 @@ For a description of possible values, see `vc-check-master-templates'."
 			'("%s.src/%s,v"))
 		 (repeat :tag "User-specified"
 			 (choice string
-				 function)))
-  :group 'vc-src)
+				 function))))
 
 
 ;;; Properties of the backend
@@ -221,7 +217,7 @@ This function differs from vc-do-command in that it invokes `vc-src-program'."
 	   (setq file-list (list "--" file-or-list)))
 	  (file-or-list
 	   (setq file-list (cons "--" file-or-list))))
-    (apply 'vc-do-command (or buffer "*vc*") 0 vc-src-program file-list flags)))
+    (apply #'vc-do-command (or buffer "*vc*") 0 vc-src-program file-list flags)))
 
 (defun vc-src-working-revision (file)
   "SRC-specific version of `vc-working-revision'."
@@ -275,7 +271,7 @@ REV is the revision to check out into WORKFILE."
   "Revert FILE to the version it was based on.  If FILE is a directory,
 revert all registered files beneath it."
   (if (file-directory-p file)
-      (mapc 'vc-src-revert (vc-expand-dirs (list file) 'SRC))
+      (mapc #'vc-src-revert (vc-expand-dirs (list file) 'SRC))
     (vc-src-command nil file "co")))
 
 (defun vc-src-modify-change-comment (files rev comment)
@@ -290,8 +286,7 @@ directory the operation is applied to all registered files beneath it."
   "String or list of strings specifying switches for src log under VC."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Argument String")
-                 (repeat :tag "Argument List" :value ("") string))
-  :group 'vc-src)
+                 (repeat :tag "Argument List" :value ("") string)))
 
 (defun vc-src-print-log (files buffer &optional shortlog _start-revision limit)
   "Print commit log associated with FILES into specified BUFFER.
@@ -307,7 +302,7 @@ If LIMIT is non-nil, show no more than this many entries."
   (let ((inhibit-read-only t))
     (with-current-buffer
 	buffer
-      (apply 'vc-src-command buffer files (if shortlog "list" "log")
+      (apply #'vc-src-command buffer files (if shortlog "list" "log")
 	     (nconc
 	      ;;(when start-revision (list (format "%s-1" start-revision)))
 	      (when limit (list "-l" (format "%s" limit)))

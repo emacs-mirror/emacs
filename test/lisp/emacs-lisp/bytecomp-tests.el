@@ -495,6 +495,7 @@ Subtests signal errors if something goes wrong."
       (insert "\n"))))
 
 (defun test-byte-comp-compile-and-load (compile &rest forms)
+  (declare (indent 1))
   (let ((elfile nil)
         (elcfile nil))
     (unwind-protect
@@ -513,7 +514,6 @@ Subtests signal errors if something goes wrong."
            (load elfile nil 'nomessage))
       (when elfile (delete-file elfile))
       (when elcfile (delete-file elcfile)))))
-(put 'test-byte-comp-compile-and-load 'lisp-indent-function 1)
 
 (ert-deftest test-byte-comp-macro-expansion ()
   (test-byte-comp-compile-and-load t
@@ -1167,6 +1167,65 @@ mountpoint (Bug#44631)."
                              (file-attributes "test.elc")))))
       (with-demoted-errors "Error cleaning up directory: %s"
         (delete-directory directory :recursive)))))
+
+(defun bytecomp-tests--get-vars ()
+  (list (ignore-errors (symbol-value 'bytecomp-tests--var1))
+        (ignore-errors (symbol-value 'bytecomp-tests--var2))))
+
+(ert-deftest bytecomp-local-defvar ()
+  "Check that local `defvar' declarations work correctly, both
+interpreted and compiled."
+  (let ((lexical-binding t))
+    (let ((fun '(lambda ()
+                  (defvar bytecomp-tests--var1)
+                  (let ((bytecomp-tests--var1 'a)    ; dynamic
+                        (bytecomp-tests--var2 'b))   ; still lexical
+                    (ignore bytecomp-tests--var2)    ; avoid warning
+                    (bytecomp-tests--get-vars)))))
+      (should (listp fun))      ; Guard against overzealous refactoring!
+      (should (equal (funcall (eval fun t)) '(a nil)))
+      (should (equal (funcall (byte-compile fun)) '(a nil)))
+      )
+
+    ;; `progn' does not constitute a lexical scope for `defvar' (bug#46387).
+    (let ((fun '(lambda ()
+                  (progn
+                    (defvar bytecomp-tests--var1)
+                    (defvar bytecomp-tests--var2))
+                  (let ((bytecomp-tests--var1 'c)
+                        (bytecomp-tests--var2 'd))
+                    (bytecomp-tests--get-vars)))))
+      (should (listp fun))
+      (should (equal (funcall (eval fun t)) '(c d)))
+      (should (equal (funcall (byte-compile fun)) '(c d))))))
+
+(ert-deftest bytecomp-reify-function ()
+  "Check that closures that modify their bound variables are
+compiled correctly."
+  (cl-letf ((lexical-binding t)
+            ((symbol-function 'counter) nil))
+    (let ((x 0))
+      (defun counter () (cl-incf x))
+      (should (equal (counter) 1))
+      (should (equal (counter) 2))
+      ;; byte compiling should not cause counter to always return the
+      ;; same value (bug#46834)
+      (byte-compile 'counter)
+      (should (equal (counter) 3))
+      (should (equal (counter) 4)))
+    (let ((x 0))
+      (let ((x 1))
+        (defun counter () x)
+        (should (equal (counter) 1))
+        ;; byte compiling should not cause the outer binding to shadow
+        ;; the inner one (bug#46834)
+        (byte-compile 'counter)
+        (should (equal (counter) 1))))))
+
+(ert-deftest bytecomp-string-vs-docstring ()
+  ;; Don't confuse a string return value for a docstring.
+  (let ((lexical-binding t))
+    (should (equal (funcall (byte-compile '(lambda (x) "foo")) 'dummy) "foo"))))
 
 ;; Local Variables:
 ;; no-byte-compile: t

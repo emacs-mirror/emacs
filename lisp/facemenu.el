@@ -85,10 +85,6 @@
 
 ;;; Code:
 
-;; Global bindings:
-(define-key global-map [C-down-mouse-2] 'facemenu-menu)
-(define-key global-map "\M-o" 'facemenu-keymap)
-
 (defgroup facemenu nil
   "Create a face menu for interactively adding fonts to text."
   :group 'faces
@@ -172,6 +168,14 @@ it will remove any faces not explicitly in the list."
   "Menu keymap for background colors.")
 (defalias 'facemenu-background-menu facemenu-background-menu)
 (put 'facemenu-background-menu 'menu-enable '(facemenu-enable-faces-p))
+
+(defcustom facemenu-add-face-function nil
+  "Function called at beginning of text to change or nil.
+This function is passed the FACE to set and END of text to change, and must
+return a string which is inserted.  It may set `facemenu-end-add-face'."
+  :type '(choice (const :tag "None" nil)
+		 function)
+  :group 'facemenu)
 
 ;;; Condition for enabling menu items that set faces.
 (defun facemenu-enable-faces-p ()
@@ -264,14 +268,6 @@ requested in `facemenu-keybindings'.")
 (defalias 'facemenu-keymap facemenu-keymap)
 
 
-(defcustom facemenu-add-face-function nil
-  "Function called at beginning of text to change or nil.
-This function is passed the FACE to set and END of text to change, and must
-return a string which is inserted.  It may set `facemenu-end-add-face'."
-  :type '(choice (const :tag "None" nil)
-		 function)
-  :group 'facemenu)
-
 (defcustom facemenu-end-add-face nil
   "String to insert or function called at end of text to change or nil.
 This function is passed the FACE to set, and must return a string which is
@@ -295,6 +291,7 @@ May also be t meaning to use `facemenu-add-face-function'."
 (defvar facemenu-color-alist nil
   "Alist of colors, used for completion.
 If this is nil, then the value of (defined-colors) is used.")
+(make-obsolete-variable 'facemenu-color-alist nil "28.1")
 
 (defun facemenu-update ()
   "Add or update the \"Face\" menu in the menu bar.

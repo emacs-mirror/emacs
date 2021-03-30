@@ -1,4 +1,4 @@
-;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
+;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX  -*- lexical-binding: t; -*-
 ;; Copyright (C) 1997-2000, 2003-2021 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
@@ -38,9 +38,8 @@
 ;;
 ;;     https://www.gnu.org/software/auctex/manual/reftex.index.html
 ;;
-;; RefTeX is bundled with Emacs and available as a plug-in package for
-;; XEmacs 21.x.  If you need to install it yourself, you can find a
-;; distribution at
+;; RefTeX is bundled with Emacs.
+;; If you need to install it yourself, you can find a distribution at
 ;;
 ;;    https://www.gnu.org/software/auctex/reftex.html
 ;;
@@ -51,7 +50,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
-(require 'easymenu)
+(when (< emacs-major-version 28)  ; preloaded in Emacs 28
+  (require 'easymenu))
 
 (defvar reftex-tables-dirty t
   "Flag showing if tables need to be re-computed.")
@@ -99,37 +99,34 @@
 (defvar reftex-mode-map
   (let ((map (make-sparse-keymap)))
     ;; The default bindings in the mode map.
-    (define-key map "\C-c=" 'reftex-toc)
-    (define-key map "\C-c-" 'reftex-toc-recenter)
-    (define-key map "\C-c(" 'reftex-label)
-    (define-key map "\C-c)" 'reftex-reference)
-    (define-key map "\C-c[" 'reftex-citation)
-    (define-key map "\C-c<" 'reftex-index)
-    (define-key map "\C-c>" 'reftex-display-index)
-    (define-key map "\C-c/" 'reftex-index-selection-or-word)
-    (define-key map "\C-c\\" 'reftex-index-phrase-selection-or-word)
-    (define-key map "\C-c|" 'reftex-index-visit-phrases-buffer)
-    (define-key map "\C-c&" 'reftex-view-crossref)
+    (define-key map "\C-c=" #'reftex-toc)
+    (define-key map "\C-c-" #'reftex-toc-recenter)
+    (define-key map "\C-c(" #'reftex-label)
+    (define-key map "\C-c)" #'reftex-reference)
+    (define-key map "\C-c[" #'reftex-citation)
+    (define-key map "\C-c<" #'reftex-index)
+    (define-key map "\C-c>" #'reftex-display-index)
+    (define-key map "\C-c/" #'reftex-index-selection-or-word)
+    (define-key map "\C-c\\" #'reftex-index-phrase-selection-or-word)
+    (define-key map "\C-c|" #'reftex-index-visit-phrases-buffer)
+    (define-key map "\C-c&" #'reftex-view-crossref)
 
     ;; Bind `reftex-mouse-view-crossref' only when the key is still free
-    (if (featurep 'xemacs)
-        (unless (key-binding [(shift button2)])
-          (define-key map [(shift button2)] 'reftex-mouse-view-crossref))
-      (unless (key-binding [(shift mouse-2)])
-        (define-key map [(shift mouse-2)] 'reftex-mouse-view-crossref)))
+    (unless (key-binding [(shift mouse-2)])
+      (define-key map [(shift mouse-2)] #'reftex-mouse-view-crossref))
 
     ;; For most of these commands there are already bindings in place.
     ;; Setting `reftex-extra-bindings' really is only there to spare users
     ;; the hassle of defining bindings in the user space themselves.  This
     ;; is why they violate the key binding recommendations.
     (when reftex-extra-bindings
-      (define-key map "\C-ct" 'reftex-toc)
-      (define-key map "\C-cl" 'reftex-label)
-      (define-key map "\C-cr" 'reftex-reference)
-      (define-key map "\C-cc" 'reftex-citation)
-      (define-key map "\C-cv" 'reftex-view-crossref)
-      (define-key map "\C-cg" 'reftex-grep-document)
-      (define-key map "\C-cs" 'reftex-search-document))
+      (define-key map "\C-ct" #'reftex-toc)
+      (define-key map "\C-cl" #'reftex-label)
+      (define-key map "\C-cr" #'reftex-reference)
+      (define-key map "\C-cc" #'reftex-citation)
+      (define-key map "\C-cv" #'reftex-view-crossref)
+      (define-key map "\C-cg" #'reftex-grep-document)
+      (define-key map "\C-cs" #'reftex-search-document))
 
     map)
   "Keymap for RefTeX mode.")
@@ -203,8 +200,6 @@ on the menu bar.
   (if reftex-mode
       (progn
         ;; Mode was turned on
-        (when (featurep 'xemacs)
-          (easy-menu-add reftex-mode-menu))
         (and reftex-plug-into-AUCTeX
              (reftex-plug-into-AUCTeX))
         (unless (get 'reftex-auto-view-crossref 'initialized)
@@ -219,10 +214,7 @@ on the menu bar.
         ;; Prepare the special syntax tables.
 	(reftex--prepare-syntax-tables)
 
-        (run-hooks 'reftex-mode-hook))
-    ;; Mode was turned off
-    (when (featurep 'xemacs)
-      (easy-menu-remove reftex-mode-menu))))
+        (run-hooks 'reftex-mode-hook))))
 
 (defvar reftex-docstruct-symbol)
 (defun reftex-kill-buffer-hook ()
@@ -390,11 +382,11 @@ If the symbols for the current master file do not exist, they are created."
      ((null master)
       (error "Need a filename for this buffer, please save it first"))
      ((or (file-exists-p (concat master ".tex"))
-          (reftex-get-buffer-visiting (concat master ".tex")))
+          (find-buffer-visiting (concat master ".tex")))
       ;; Ahh, an extra .tex was missing...
       (setq master (concat master ".tex")))
      ((or (file-exists-p master)
-          (reftex-get-buffer-visiting master))
+          (find-buffer-visiting master))
       ;; We either see the file, or have a buffer on it.  OK.
       )
      (t
@@ -889,7 +881,7 @@ This enforces rescanning the buffer on next use."
         ;; Are the magic words regular expressions?  Quote normal words.
         (if (eq (car wordlist) 'regexp)
             (setq wordlist (cdr wordlist))
-          (setq wordlist (mapcar 'regexp-quote wordlist)))
+          (setq wordlist (mapcar #'regexp-quote wordlist)))
         ;; Remember the first association of each word.
         (while (stringp (setq word (pop wordlist)))
           (or (assoc word reftex-words-to-typekey-alist)
@@ -1016,11 +1008,11 @@ This enforces rescanning the buffer on next use."
            (wbol "\\(^\\)%?[ \t]*") ; Need to keep the empty group because
                                     ; match numbers are hard coded
            (label-re (concat "\\(?:"
-			     (mapconcat 'identity reftex-label-regexps "\\|")
+			     (mapconcat #'identity reftex-label-regexps "\\|")
 			     "\\)"))
            (include-re (concat wbol
                                "\\\\\\("
-                               (mapconcat 'identity
+                               (mapconcat #'identity
                                           reftex-include-file-commands "\\|")
                                "\\)[{ \t]+\\([^} \t\n\r]+\\)"))
            (section-re
@@ -1032,23 +1024,24 @@ This enforces rescanning the buffer on next use."
            (macro-re
             (if macros-with-labels
                 (concat "\\("
-                        (mapconcat 'regexp-quote macros-with-labels "\\|")
+                        (mapconcat #'regexp-quote macros-with-labels "\\|")
                         "\\)[[{]")
               ""))
            (index-re
             (concat "\\("
-                    (mapconcat 'regexp-quote reftex-macros-with-index "\\|")
+                    (mapconcat #'regexp-quote reftex-macros-with-index "\\|")
                     "\\)[[{]"))
            (find-index-re-format
             (concat "\\("
-                    (mapconcat 'regexp-quote reftex-macros-with-index "\\|")
+                    (mapconcat #'regexp-quote reftex-macros-with-index "\\|")
                     "\\)\\([[{][^]}]*[]}]\\)*[[{]\\(%s\\)[]}]"))
            (find-label-re-format
             (concat "\\("
 		    "label[[:space:]]*=[[:space:]]*"
 		    "\\|"
-                    (mapconcat 'regexp-quote (append '("\\label")
-                                                     macros-with-labels) "\\|")
+                    (mapconcat #'regexp-quote (append '("\\label")
+                                                      macros-with-labels)
+                               "\\|")
                     "\\)\\([[{][^]}]*[]}]\\)*[[{]\\(%s\\)[]}]"))
            (index-level-re
             (regexp-quote (nth 0 reftex-index-special-chars)))
@@ -1080,7 +1073,7 @@ This enforces rescanning the buffer on next use."
             "\\([]} \t\n\r]\\)\\([[{]\\)\\(%s\\)[]}]")
       (message "Compiling label environment definitions...done")))
   (put reftex-docstruct-symbol 'reftex-cache
-       (mapcar 'symbol-value reftex-cache-variables)))
+       (mapcar #'symbol-value reftex-cache-variables)))
 
 (defun reftex-parse-args (macro)
   ;; Return a list of macro name, nargs, arg-nr which is label and a list of
@@ -1276,8 +1269,8 @@ Valid actions are: readable, restore, read, kill, write."
       (- 1 xr-index))
      (t
       (save-excursion
-        (let* ((length (apply 'max (mapcar
-                                    (lambda(x) (length (car x))) xr-alist)))
+        (let* ((length (apply #'max (mapcar
+                                     (lambda(x) (length (car x))) xr-alist)))
                (fmt (format " [%%c]  %%-%ds  %%s\n" length))
                (n (1- ?0)))
           (setq key
@@ -1311,7 +1304,7 @@ When DIE is non-nil, throw an error if file not found."
          (extensions (cdr (assoc type reftex-file-extensions)))
          (def-ext (car extensions))
          (ext-re (concat "\\("
-                         (mapconcat 'regexp-quote extensions "\\|")
+                         (mapconcat #'regexp-quote extensions "\\|")
                          "\\)\\'"))
          (files (if (string-match ext-re file)
                     (cons file nil)
@@ -1353,7 +1346,7 @@ When DIE is non-nil, throw an error if file not found."
         out)
     (if (string-match "%f" prg)
         (setq prg (replace-match file t t prg)))
-    (setq out (apply 'reftex-process-string (split-string prg)))
+    (setq out (apply #'reftex-process-string (split-string prg)))
     (if (string-match "[ \t\n]+\\'" out)     ; chomp
         (setq out (replace-match "" nil nil out)))
     (cond ((equal out "") nil)
@@ -1366,7 +1359,7 @@ When DIE is non-nil, throw an error if file not found."
     (with-output-to-string
       (with-current-buffer standard-output
         (let ((default-directory calling-dir)) ; set default directory
-          (apply 'call-process program nil '(t nil) nil args))))))
+          (apply #'call-process program nil '(t nil) nil args))))))
 
 (defun reftex-access-search-path (type &optional recurse master-dir file)
   ;; Access path from environment variables.  TYPE is either "tex" or "bib".
@@ -1385,7 +1378,7 @@ When DIE is non-nil, throw an error if file not found."
              (mapconcat
               (lambda(x)
                 (if (string-match "^!" x)
-                    (apply 'reftex-process-string
+                    (apply #'reftex-process-string
                            (split-string (substring x 1)))
                   (or (getenv x) x)))
               ;; For consistency, the next line should look like this:
@@ -1530,12 +1523,7 @@ When DIE is non-nil, throw an error if file not found."
   (when (match-beginning n)
     (buffer-substring-no-properties (match-beginning n) (match-end n))))
 
-(defun reftex-region-active-p ()
-  "Should we operate on an active region?"
-  (if (fboundp 'use-region-p)
-      (use-region-p)
-    ;; For XEmacs.
-    (region-active-p)))
+(define-obsolete-function-alias 'reftex-region-active-p #'use-region-p "28.1")
 
 (defun reftex-kill-buffer (buffer)
   ;; Kill buffer if it exists.
@@ -1744,26 +1732,12 @@ When DIE is non-nil, throw an error if file not found."
       (setq string (replace-match "[\n\r]" nil t string)))
     string))
 
-(defun reftex-get-buffer-visiting (file)
-  ;; return a buffer visiting FILE
-  (cond
-   ((boundp 'find-file-compare-truenames) ; XEmacs
-    (let ((find-file-compare-truenames t))
-      (get-file-buffer file)))
-   ((fboundp 'find-buffer-visiting)       ; Emacs
-    (find-buffer-visiting file))
-   (t (error "This should not happen (reftex-get-buffer-visiting)"))))
-
-;; Define `current-message' for compatibility with XEmacs prior to 20.4
-(defvar message-stack)
-(if (and (featurep 'xemacs)
-         (not (fboundp 'current-message)))
-    (defun current-message (&optional _frame)
-      (cdr (car message-stack))))
+(define-obsolete-function-alias 'reftex-get-buffer-visiting
+  #'find-buffer-visiting "28.1")
 
 (defun reftex-visited-files (list)
   ;; Takes a list of filenames and returns the buffers of those already visited
-  (delq nil (mapcar (lambda (x) (if (reftex-get-buffer-visiting x) x nil))
+  (delq nil (mapcar (lambda (x) (if (find-buffer-visiting x) x nil))
                     list)))
 
 (defun reftex-get-file-buffer-force (file &optional mark-to-kill)
@@ -1773,7 +1747,7 @@ When DIE is non-nil, throw an error if file not found."
   ;; initializations according to `reftex-initialize-temporary-buffers',
   ;; and mark the buffer to be killed after use.
 
-  (let ((buf (reftex-get-buffer-visiting file)))
+  (let ((buf (find-buffer-visiting file)))
 
     (cond (buf
            ;; We have it already as a buffer - just return it
@@ -1865,7 +1839,7 @@ When DIE is non-nil, throw an error if file not found."
   (setq list (copy-sequence list))
   (if sort
       (progn
-	(setq list (sort list 'string<))
+	(setq list (sort list #'string<))
 	(let ((p list))
 	  (while (cdr p)
 	    (if (string= (car p) (car (cdr p)))
@@ -2002,7 +1976,7 @@ IGNORE-WORDS List of words which should be removed from the string."
         (setcdr (nthcdr (1- nwords) words) nil))
 
     ;; First, try to use all words
-    (setq string (mapconcat 'identity words sep))
+    (setq string (mapconcat #'identity words sep))
 
     ;; Abbreviate words if enforced by user settings or string length
     (if (or (eq t abbrev)
@@ -2016,7 +1990,7 @@ IGNORE-WORDS List of words which should be removed from the string."
                                  (match-string 1 w))
                              w))
                words)
-              string (mapconcat 'identity words sep)))
+              string (mapconcat #'identity words sep)))
 
     ;; Shorten if still to long
     (setq string
@@ -2080,24 +2054,11 @@ IGNORE-WORDS List of words which should be removed from the string."
         (progn
           ;; Rename buffer temporarily to start w/o space (because of font-lock)
           (rename-buffer newname t)
-          (cond
-           ((fboundp 'font-lock-default-fontify-region)
-            ;; Good: we have the indirection functions
-            (set (make-local-variable 'font-lock-fontify-region-function)
-                 'reftex-select-font-lock-fontify-region)
-            (let ((major-mode 'latex-mode))
-              (font-lock-mode 1)))
-           ((fboundp 'font-lock-set-defaults-1)
-            ;; Looks like the XEmacs font-lock stuff.
-            ;; FIXME: this is still kind of a hack, but it works.
-            (set (make-local-variable 'font-lock-keywords) nil)
-            (let ((major-mode 'latex-mode)
-                  (font-lock-defaults-computed nil))
-              (font-lock-set-defaults-1)
-              (reftex-select-font-lock-fontify-region (point-min) (point-max))))
-           (t
-            ;; Oops?
-            (message "Sorry: cannot refontify RefTeX Select buffer."))))
+          ;; Good: we have the indirection functions
+          (set (make-local-variable 'font-lock-fontify-region-function)
+               #'reftex-select-font-lock-fontify-region)
+          (let ((major-mode 'latex-mode))
+            (font-lock-mode 1)))
       (rename-buffer oldname))))
 
 (defun reftex-select-font-lock-fontify-region (beg end &optional _loudly)
@@ -2122,46 +2083,39 @@ IGNORE-WORDS List of words which should be removed from the string."
   (let (face)
     (catch 'exit
       (while (setq face (pop faces))
-        (if (featurep 'xemacs)
-            (if (find-face face) (throw 'exit face))
-          (if (facep face) (throw 'exit face)))))))
+        (if (facep face) (throw 'exit face))))))
 
-;; Highlighting uses overlays.  For XEmacs, we use extends.
-(defalias 'reftex-make-overlay
-  (if (featurep 'xemacs) 'make-extent 'make-overlay))
-(defalias 'reftex-overlay-put
-  (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
-(defalias 'reftex-move-overlay
-  (if (featurep 'xemacs) 'set-extent-endpoints 'move-overlay))
-(defalias 'reftex-delete-overlay
-  (if (featurep 'xemacs) 'detach-extent 'delete-overlay))
+(define-obsolete-function-alias 'reftex-make-overlay #'make-overlay "28.1")
+(define-obsolete-function-alias 'reftex-overlay-put #'overlay-put "28.1")
+(define-obsolete-function-alias 'reftex-move-overlay #'move-overlay "28.1")
+(define-obsolete-function-alias 'reftex-delete-overlay #'delete-overlay "28.1")
 
 ;; We keep a vector with several different overlays to do our highlighting.
 (defvar reftex-highlight-overlays [nil nil nil])
 
 ;; Initialize the overlays
-(aset reftex-highlight-overlays 0 (reftex-make-overlay 1 1))
-(reftex-overlay-put (aref reftex-highlight-overlays 0)
+(aset reftex-highlight-overlays 0 (make-overlay 1 1))
+(overlay-put (aref reftex-highlight-overlays 0)
              'face 'highlight)
-(aset reftex-highlight-overlays 1 (reftex-make-overlay 1 1))
-(reftex-overlay-put (aref reftex-highlight-overlays 1)
+(aset reftex-highlight-overlays 1 (make-overlay 1 1))
+(overlay-put (aref reftex-highlight-overlays 1)
              'face reftex-cursor-selected-face)
-(aset reftex-highlight-overlays 2 (reftex-make-overlay 1 1))
-(reftex-overlay-put (aref reftex-highlight-overlays 2)
+(aset reftex-highlight-overlays 2 (make-overlay 1 1))
+(overlay-put (aref reftex-highlight-overlays 2)
              'face reftex-cursor-selected-face)
 
 ;; Two functions for activating and deactivation highlight overlays
 (defun reftex-highlight (index begin end &optional buffer)
   "Highlight a region with overlay INDEX."
-  (reftex-move-overlay (aref reftex-highlight-overlays index)
+  (move-overlay (aref reftex-highlight-overlays index)
                 begin end (or buffer (current-buffer))))
 (defun reftex-unhighlight (index)
   "Detach overlay INDEX."
-  (reftex-delete-overlay (aref reftex-highlight-overlays index)))
+  (delete-overlay (aref reftex-highlight-overlays index)))
 
 (defun reftex-highlight-shall-die ()
   ;; Function used in pre-command-hook to remove highlights.
-  (remove-hook 'pre-command-hook 'reftex-highlight-shall-die)
+  (remove-hook 'pre-command-hook #'reftex-highlight-shall-die)
   (reftex-unhighlight 0))
 
 ;;; =========================================================================
@@ -2173,7 +2127,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;; Bind `reftex-view-crossref-from-bibtex' in BibTeX mode map
 (eval-after-load
  "bibtex"
- '(define-key bibtex-mode-map "\C-c&" 'reftex-view-crossref-from-bibtex))
+ '(define-key bibtex-mode-map "\C-c&" #'reftex-view-crossref-from-bibtex))
 
 ;;; =========================================================================
 ;;;
@@ -2378,9 +2332,9 @@ Your bug report will be posted to the AUCTeX bug reporting list.
 
 ;;; Install the kill-buffer and kill-emacs hooks ------------------------------
 
-(add-hook 'kill-buffer-hook 'reftex-kill-buffer-hook)
+(add-hook 'kill-buffer-hook #'reftex-kill-buffer-hook)
 (unless noninteractive
-  (add-hook 'kill-emacs-hook  'reftex-kill-emacs-hook))
+  (add-hook 'kill-emacs-hook #'reftex-kill-emacs-hook))
 
 ;;; Run Hook ------------------------------------------------------------------
 

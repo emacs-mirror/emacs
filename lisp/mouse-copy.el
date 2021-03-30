@@ -1,4 +1,4 @@
-;;; mouse-copy.el --- one-click text copy and move
+;;; mouse-copy.el --- one-click text copy and move  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -213,8 +213,7 @@ by johnh@ficus.cs.ucla.edu."
   (if (mouse-drag-secondary start-event)
       (progn
 	(mouse-kill-preserving-secondary)
-	(insert (gui-get-selection 'SECONDARY))))
-)
+        (insert (gui-get-selection 'SECONDARY)))))
 
 (provide 'mouse-copy)
 

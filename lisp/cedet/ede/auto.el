@@ -1,4 +1,4 @@
-;;; ede/auto.el --- Autoload features for EDE
+;;; ede/auto.el --- Autoload features for EDE  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -325,13 +325,13 @@ NOTE: Do not call this - it should only be called from `ede-load-project-file'."
 ;; See if we can do without them.
 
 ;; @FIXME - delete from loaddefs to remove this.
-(cl-defmethod ede-project-root ((this ede-project-autoload))
+(cl-defmethod ede-project-root ((_this ede-project-autoload))
   "If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems."
   nil)
 
 ;; @FIXME - delete from loaddefs to remove this.
-(cl-defmethod ede-project-root-directory ((this ede-project-autoload) &optional file)
+(cl-defmethod ede-project-root-directory ((_this ede-project-autoload) &optional _file)
   "" nil)
 
 (provide 'ede/auto)

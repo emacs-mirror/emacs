@@ -1203,7 +1203,7 @@ define Edebug specifications for special forms implemented in C.
 
 @defmac def-edebug-spec macro specification
 Specify which expressions of a call to macro @var{macro} are forms to be
-evaluated.  @var{specification} should be the edebug specification.
+evaluated.  @var{specification} should be the Edebug specification.
 Neither argument is evaluated.
 
 The @var{macro} argument can actually be any symbol, not just a macro
@@ -1290,14 +1290,6 @@ Short for @code{&rest form}.  See @code{&rest} below.  If your macro
 wraps its body of code with @code{lambda} before it is evaluated, use
 @code{def-body} instead.  See @code{def-body} below.
 
-@item function-form
-A function form: either a quoted function symbol, a quoted lambda
-expression, or a form (that should evaluate to a function symbol or
-lambda expression).  This is useful when an argument that's a lambda
-expression might be quoted with @code{quote} rather than
-@code{function}, since it instruments the body of the lambda expression
-either way.
-
 @item lambda-expr
 A lambda expression with no quoting.
 
@@ -1370,6 +1362,21 @@ is primarily used to generate more specific syntax error messages.  See
 edebug-spec; it aborts the instrumentation, displaying the message in
 the minibuffer.
 
+@item &interpose
+Lets a function control the parsing of the remaining code.
+It takes the form @code{&interpose @var{spec} @var{fun} @var{args...}}
+and means that Edebug will first match @var{spec} against the code and
+then call @var{fun} with the code that matched @code{spec}, a parsing
+function @var{pf}, and finally @var{args...}.  The parsing
+function expects a single argument indicating the specification list
+to use to parse the remaining code.  It should be called exactly once
+and returns the instrumented code that @var{fun} is expected to return.
+For example @code{(&interpose symbolp pcase--match-pat-args)} matches
+sexps whose first element is a symbol and then lets
+@code{pcase--match-pat-args} lookup the specs associated
+with that head symbol according to @code{pcase--match-pat-args} and
+pass them to the @var{pf} it received as argument.
+
 @item @var{other-symbol}
 @cindex indirect specifications
 Any other symbol in a specification list may be a predicate or an
@@ -1378,8 +1385,13 @@ indirect specification.
 If the symbol has an Edebug specification, this @dfn{indirect
 specification} should be either a list specification that is used in
 place of the symbol, or a function that is called to process the
-arguments.  The specification may be defined with @code{def-edebug-spec}
-just as for macros.  See the @code{defun} example.
+arguments.  The specification may be defined with
+@code{def-edebug-elem-spec}:
+
+@defun def-edebug-elem-spec element specification
+Define the @var{specification} to use in place of the symbol @var{element}.
+@var{specification} has to be a list.
+@end defun
 
 Otherwise, the symbol should be a predicate.  The predicate is called
 with the argument, and if the predicate returns @code{nil}, the
@@ -1428,28 +1440,22 @@ Here is a list of additional specifications that may appear only after
 @code{&define}.  See the @code{defun} example.
 
 @table @code
+@item &name
+Extracts the name of the current defining form from the code.
+It takes the form @code{&name [@var{prestring}] @var{spec}
+[@var{poststring}] @var{fun} @var{args...}} and means that Edebug will
+match @var{spec} against the code and then call @var{fun} with the
+concatenation of the current name, @var{args...}, @var{prestring},
+the code that matched @code{spec}, and @var{poststring}.  If @var{fun}
+is absent, it defaults to a function that concatenates the arguments
+(with an @code{@@} between the previous name and the new).
+
 @item name
 The argument, a symbol, is the name of the defining form.
+Shorthand for @code{[&name symbolp]}.
 
 A defining form is not required to have a name field; and it may have
 multiple name fields.
-
-@item :name
-This construct does not actually match an argument.  The element
-following @code{:name} should be a symbol; it is used as an additional
-name component for the definition.  You can use this to add a unique,
-static component to the name of the definition.  It may be used more
-than once.
-
-@item :unique
-This construct is like @code{:name}, but generates unique names.  It
-does not match an argument.  The element following @code{:unique}
-should be a string; it is used as the prefix for an additional name
-component for the definition.  You can use this to add a unique,
-dynamic component to the name of the definition.  This is useful for
-macros that can define the same symbol multiple times in different
-scopes, such as @code{cl-flet}; @ref{Function Bindings,,,cl}.  It may
-be used more than once.
 
 @item arg
 The argument, a symbol, is the name of an argument of the defining form.
@@ -1557,14 +1563,14 @@ specification for @code{defmacro} is very similar to that for
            [&optional ("interactive" interactive)]
            def-body))
 
-(def-edebug-spec lambda-list
-  (([&rest arg]
-    [&optional ["&optional" arg &rest arg]]
-    &optional ["&rest" arg]
-    )))
+(def-edebug-elem-spec 'lambda-list
+  '(([&rest arg]
+     [&optional ["&optional" arg &rest arg]]
+     &optional ["&rest" arg]
+     )))
 
-(def-edebug-spec interactive
-  (&optional &or stringp def-form))    ; @r{Notice: @code{def-form}}
+(def-edebug-elem-spec 'interactive
+  '(&optional &or stringp def-form))    ; @r{Notice: @code{def-form}}
 @end smallexample
 
 The specification for backquote below illustrates how to match
@@ -1577,11 +1583,11 @@ could fail.)
 @smallexample
 (def-edebug-spec \` (backquote-form))   ; @r{Alias just for clarity.}
 
-(def-edebug-spec backquote-form
-  (&or ([&or "," ",@@"] &or ("quote" backquote-form) form)
-       (backquote-form . [&or nil backquote-form])
-       (vector &rest backquote-form)
-       sexp))
+(def-edebug-elem-spec 'backquote-form
+  '(&or ([&or "," ",@@"] &or ("quote" backquote-form) form)
+        (backquote-form . [&or nil backquote-form])
+        (vector &rest backquote-form)
+        sexp))
 @end smallexample
 
 
@@ -1624,10 +1630,10 @@ option.  @xref{Instrumenting}.
 
 @defopt edebug-eval-macro-args
 When this is non-@code{nil}, all macro arguments will be instrumented
-in the generated code.  For any macro, an @code{edebug-form-spec}
+in the generated code.  For any macro, the @code{debug} declaration
 overrides this option.  So to specify exceptions for macros that have
-some arguments evaluated and some not, use @code{def-edebug-spec} to
-specify an @code{edebug-form-spec}.
+some arguments evaluated and some not, use the @code{debug} declaration
+specify an Edebug form specification.
 @end defopt
 
 @defopt edebug-save-windows

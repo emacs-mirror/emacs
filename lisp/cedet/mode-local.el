@@ -576,7 +576,7 @@ OVERARGS is a list of arguments passed to the override and
 (put :override-with-args 'lisp-indent-function 1)
 
 (define-obsolete-function-alias 'define-overload
-  'define-overloadable-function "27.1")
+  #'define-overloadable-function "27.1")
 
 (define-obsolete-function-alias 'function-overload-p
   #'mode-local--function-overload-p "27.1")

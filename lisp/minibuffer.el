@@ -2116,18 +2116,19 @@ variables.")
 (defun exit-minibuffer ()
   "Terminate this minibuffer argument."
   (interactive)
-  (when (or
-         (innermost-minibuffer-p)
-         (not (minibufferp)))
+  (when (minibufferp)
+    (when (not (minibuffer-innermost-command-loop-p))
+      (error "%s" "Not in most nested command loop"))
+    (when (not (innermost-minibuffer-p))
+      (error "%s" "Not in most nested minibuffer")))
   ;; If the command that uses this has made modifications in the minibuffer,
   ;; we don't want them to cause deactivation of the mark in the original
   ;; buffer.
   ;; A better solution would be to make deactivate-mark buffer-local
   ;; (or to turn it into a list of buffers, ...), but in the mean time,
   ;; this should do the trick in most cases.
-    (setq deactivate-mark nil)
-    (throw 'exit nil))
-  (error "%s" "Not in most nested minibuffer"))
+  (setq deactivate-mark nil)
+  (throw 'exit nil))
 
 (defun self-insert-and-exit ()
   "Terminate minibuffer input."
@@ -3161,7 +3162,7 @@ or a symbol, see `completion-pcm--merge-completions'."
   (let ((n '()))
     (while p
       (pcase p
-        (`(,(or 'any 'any-delim) ,(or 'any 'point) . ,rest)
+        (`(,(or 'any 'any-delim) ,(or 'any 'point) . ,_)
          (setq p (cdr p)))
         ;; This is not just a performance improvement: it turns a
         ;; terminating `point' into an implicit `any', which affects
@@ -3940,13 +3941,15 @@ it.  See `format' for details.
 If DEFAULT is a list, the first element is used as the default.
 If not, the element is used as is.
 
-If DEFAULT is nil, no \"default value\" string is included in the
-return value."
+If DEFAULT is nil or an empty string, no \"default value\" string
+is included in the return value."
   (concat
    (if (null format-args)
        prompt
      (apply #'format prompt format-args))
    (and default
+        (or (not (stringp default))
+            (length> default 0))
         (format minibuffer-default-prompt-format
                 (if (consp default)
                     (car default)

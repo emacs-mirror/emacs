@@ -1,4 +1,4 @@
-;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt
+;;; tpu-extras.el --- scroll margins and free cursor mode for TPU-edt  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 2000-2021 Free Software Foundation, Inc.
 
@@ -144,12 +144,12 @@ the previous line when starting from a line beginning."
 ;;;  Hooks  --  Set cursor free in picture mode.
 ;;;             Clean up when writing a file from cursor free mode.
 
-(add-hook 'picture-mode-hook 'tpu-set-cursor-free)
+(add-hook 'picture-mode-hook #'tpu-set-cursor-free)
 
 (defun tpu-trim-line-ends-if-needed ()
   "Eliminate whitespace at ends of lines, if the cursor is free."
   (if (and (buffer-modified-p) tpu-cursor-free-mode) (tpu-trim-line-ends)))
-(add-hook 'before-save-hook 'tpu-trim-line-ends-if-needed)
+(add-hook 'before-save-hook #'tpu-trim-line-ends-if-needed)
 
 
 ;;;  Utility routines for implementing scroll margins
@@ -368,34 +368,22 @@ A repeat count means scroll that many sections."
      (and (< (point) top) (recenter (min beg top-margin))))))
 
 ;; Advise the newline, newline-and-indent, and do-auto-fill functions.
-(defadvice newline (around tpu-respect-bottom-scroll-margin activate disable)
+(defun tpu--respect-bottom-scroll-margin (orig-fun &optional &rest args)
   "Respect `tpu-bottom-scroll-margin'."
   (let ((beg (tpu-current-line))
-        (num (prefix-numeric-value (ad-get-arg 0))))
-    ad-do-it
+        (num (prefix-numeric-value (car args))))
+    (apply orig-fun args)
     (tpu-bottom-check beg num)))
-
-(defadvice newline-and-indent (around tpu-respect-bottom-scroll-margin)
-  "Respect `tpu-bottom-scroll-margin'."
-  (let ((beg (tpu-current-line)))
-    ad-do-it
-    (tpu-bottom-check beg 1)))
-
-(defadvice do-auto-fill (around tpu-respect-bottom-scroll-margin)
-  "Respect `tpu-bottom-scroll-margin'."
-  (let ((beg (tpu-current-line)))
-    ad-do-it
-    (tpu-bottom-check beg 1)))
-
 
 ;;;  Function to set scroll margins
 
 ;;;###autoload
-(defun tpu-set-scroll-margins (top bottom)
+(defun tpu-set-scroll-margins (top bottom &optional emit-msg)
   "Set scroll margins."
   (interactive
    "sEnter top scroll margin (N lines or N%% or RETURN for current value): \
-\nsEnter bottom scroll margin (N lines or N%% or RETURN for current value): ")
+\nsEnter bottom scroll margin (N lines or N%% or RETURN for current value): \
+\np")
   ;; set top scroll margin
   (or (string= top "")
       (setq tpu-top-scroll-margin
@@ -411,10 +399,9 @@ A repeat count means scroll that many sections."
 	      (/ (1- (+ (* (string-to-number bottom) 100) (window-height)))
 		 (window-height)))))
   (dolist (f '(newline newline-and-indent do-auto-fill))
-    (ad-enable-advice f 'around 'tpu-respect-bottom-scroll-margin)
-    (ad-activate f))
+    (advice-add f :around #'tpu--respect-bottom-scroll-margin))
   ;; report scroll margin settings if running interactively
-  (and (called-interactively-p 'interactive)
+  (and emit-msg
        (message "Scroll margins set.  Top = %s%%, Bottom = %s%%"
 		tpu-top-scroll-margin tpu-bottom-scroll-margin)))
 

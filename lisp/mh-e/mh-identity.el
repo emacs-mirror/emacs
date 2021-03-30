@@ -1,4 +1,4 @@
-;;; mh-identity.el --- multiple identify support for MH-E
+;;; mh-identity.el --- multiple identify support for MH-E  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -50,7 +50,7 @@ This is normally set as part of an Identity in
 (defvar mh-identity-menu nil
   "The Identity menu.")
 
-(defalias 'mh-identity-make-menu-no-autoload 'mh-identity-make-menu)
+(defalias 'mh-identity-make-menu-no-autoload #'mh-identity-make-menu)
 
 ;;;###mh-autoload
 (defun mh-identity-make-menu ()
@@ -74,7 +74,7 @@ See `mh-identity-add-menu'."
      (mapcar (lambda (arg)
                `[,arg  (mh-insert-identity ,arg) :style radio
                        :selected (equal mh-identity-local ,arg)])
-             (mapcar 'car mh-identity-list))
+             (mapcar #'car mh-identity-list))
      '(["None"
         (mh-insert-identity "None") :style radio
         :selected (not mh-identity-local)]
@@ -142,7 +142,7 @@ See `mh-identity-list'."
           (completing-read
            "Identity: "
            (cons '("None")
-                 (mapcar 'list (mapcar 'car mh-identity-list)))
+                 (mapcar #'list (mapcar #'car mh-identity-list)))
            nil t default nil default))
     (if (eq identity "None")
         nil
@@ -171,8 +171,8 @@ See `mh-identity-list'."
           "Identity: "
           (if mh-identity-local
               (cons '("None")
-                    (mapcar 'list (mapcar 'car mh-identity-list)))
-            (mapcar 'list (mapcar 'car mh-identity-list)))
+                    (mapcar #'list (mapcar #'car mh-identity-list)))
+            (mapcar #'list (mapcar #'car mh-identity-list)))
           nil t)
          nil))
 

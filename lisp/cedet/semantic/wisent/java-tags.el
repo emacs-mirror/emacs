@@ -1,4 +1,4 @@
-;;; semantic/wisent/java-tags.el --- Java LALR parser for Emacs
+;;; semantic/wisent/java-tags.el --- Java LALR parser for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2006, 2009-2021 Free Software Foundation, Inc.
 
@@ -92,7 +92,7 @@ This function override `get-local-variables'."
 
 (define-mode-local-override semantic-analyze-unsplit-name java-mode (namelist)
   "Assemble the list of names NAMELIST into a namespace name."
-  (mapconcat 'identity namelist "."))
+  (mapconcat #'identity namelist "."))
 
 
 
@@ -111,12 +111,12 @@ Use the alternate LALR(1) parser."
   (setq
    ;; Lexical analysis
    semantic-lex-number-expression semantic-java-number-regexp
-   semantic-lex-analyzer 'wisent-java-tags-lexer
+   semantic-lex-analyzer #'wisent-java-tags-lexer
    ;; Parsing
-   semantic-tag-expand-function 'semantic-java-expand-tag
+   semantic-tag-expand-function #'semantic-java-expand-tag
    ;; Environment
-   semantic-imenu-summary-function 'semantic-format-tag-prototype
-   imenu-create-index-function 'semantic-create-imenu-index
+   semantic-imenu-summary-function #'semantic-format-tag-prototype
+   imenu-create-index-function #'semantic-create-imenu-index
    semantic-type-relation-separator-character '(".")
    semantic-command-separation-character ";"
    ;; speedbar and imenu buckets name

@@ -1104,51 +1104,39 @@ a previously found match."
       count)))
 
 
-(defvar occur-menu-map
-  (let ((map (make-sparse-keymap)))
-    (bindings--define-key map [next-error-follow-minor-mode]
-      '(menu-item "Auto Occurrence Display"
-		  next-error-follow-minor-mode
-		  :help "Display another occurrence when moving the cursor"
-		  :button (:toggle . (and (boundp 'next-error-follow-minor-mode)
-					  next-error-follow-minor-mode))))
-    (bindings--define-key map [separator-1] menu-bar-separator)
-    (bindings--define-key map [kill-this-buffer]
-      '(menu-item "Kill Occur Buffer" kill-this-buffer
-		  :help "Kill the current *Occur* buffer"))
-    (bindings--define-key map [quit-window]
-      '(menu-item "Quit Occur Window" quit-window
-		  :help "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame"))
-    (bindings--define-key map [revert-buffer]
-      '(menu-item "Revert Occur Buffer" revert-buffer
-		  :help "Replace the text in the *Occur* buffer with the results of rerunning occur"))
-    (bindings--define-key map [clone-buffer]
-      '(menu-item "Clone Occur Buffer" clone-buffer
-		  :help "Create and return a twin copy of the current *Occur* buffer"))
-    (bindings--define-key map [occur-rename-buffer]
-      '(menu-item "Rename Occur Buffer" occur-rename-buffer
-		  :help "Rename the current *Occur* buffer to *Occur: original-buffer-name*."))
-    (bindings--define-key map [occur-edit-buffer]
-      '(menu-item "Edit Occur Buffer" occur-edit-mode
-		  :help "Edit the *Occur* buffer and apply changes to the original buffers."))
-    (bindings--define-key map [separator-2] menu-bar-separator)
-    (bindings--define-key map [occur-mode-goto-occurrence-other-window]
-      '(menu-item "Go To Occurrence Other Window" occur-mode-goto-occurrence-other-window
-		  :help "Go to the occurrence the current line describes, in another window"))
-    (bindings--define-key map [occur-mode-goto-occurrence]
-      '(menu-item "Go To Occurrence" occur-mode-goto-occurrence
-		  :help "Go to the occurrence the current line describes"))
-    (bindings--define-key map [occur-mode-display-occurrence]
-      '(menu-item "Display Occurrence" occur-mode-display-occurrence
-		  :help "Display in another window the occurrence the current line describes"))
-    (bindings--define-key map [occur-next]
-      '(menu-item "Move to Next Match" occur-next
-		  :help "Move to the Nth (default 1) next match in an Occur mode buffer"))
-    (bindings--define-key map [occur-prev]
-      '(menu-item "Move to Previous Match" occur-prev
-		  :help "Move to the Nth (default 1) previous match in an Occur mode buffer"))
-    map)
-  "Menu keymap for `occur-mode'.")
+(easy-menu-define occur-menu-map nil
+  "Menu for `occur-mode'."
+  '("Occur"
+    ["Move to Previous Match" occur-prev
+     :help "Move to the Nth (default 1) previous match in an Occur mode buffer"]
+    ["Move to Next Match" occur-next
+     :help "Move to the Nth (default 1) next match in an Occur mode buffer"]
+    ["Display Occurrence" occur-mode-display-occurrence
+     :help "Display in another window the occurrence the current line describes"]
+    ["Go To Occurrence" occur-mode-goto-occurrence
+     :help "Go to the occurrence the current line describes"]
+    ["Go To Occurrence Other Window" occur-mode-goto-occurrence-other-window
+     :help "Go to the occurrence the current line describes, in another window"]
+    "---"
+    ["Edit Occur Buffer" occur-edit-mode
+     :help "Edit the *Occur* buffer and apply changes to the original buffers."]
+    ["Rename Occur Buffer" occur-rename-buffer
+     :help "Rename the current *Occur* buffer to *Occur: original-buffer-name*."]
+    ["Clone Occur Buffer" clone-buffer
+     :help "Create and return a twin copy of the current *Occur* buffer"]
+    ["Revert Occur Buffer" revert-buffer
+     :help "Replace the text in the *Occur* buffer with the results of rerunning occur"]
+    ["Quit Occur Window" quit-window
+     :help "Quit the current *Occur* buffer.  Bury it, and maybe delete the selected frame"]
+    ["Kill Occur Buffer" kill-this-buffer
+     :help "Kill the current *Occur* buffer"]
+    "---"
+    ["Auto Occurrence Display"
+     next-error-follow-minor-mode
+     :help "Display another occurrence when moving the cursor"
+     :style toggle
+     :selected (and (boundp 'next-error-follow-minor-mode)
+                    next-error-follow-minor-mode)]))
 
 (defvar occur-mode-map
   (let ((map (make-sparse-keymap)))

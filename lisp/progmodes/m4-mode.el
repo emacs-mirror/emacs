@@ -60,12 +60,34 @@ If m4 is not in your PATH, set this to an absolute file name."
 ;;or
 ;;(defconst m4-program-options '("--prefix-builtins"))
 
+;; Needed at compile-time for `m4-font-lock-keywords' below.
+(eval-and-compile
+  (defconst m4--macro-list
+    ;; From (info "(m4) Macro index")
+    '("__file__" "__gnu__" "__line__" "__os2__" "__program__" "__unix__"
+      "__windows__" "argn" "array" "array_set" "builtin" "capitalize"
+      "changecom" "changequote" "changeword" "cleardivert" "cond" "copy"
+      "curry" "debugfile" "debugmode" "decr" "define" "define_blind"
+      "defn" "divert" "divnum" "dnl" "downcase" "dquote" "dquote_elt"
+      "dumpdef" "errprint" "esyscmd" "eval" "example" "exch"
+      "fatal_error" "file" "foreach" "foreachq" "forloop" "format" "gnu"
+      "ifdef" "ifelse" "include" "incr" "index" "indir" "join" "joinall"
+      "len" "line" "m4exit" "m4wrap" "maketemp" "mkstemp" "nargs" "os2"
+      "patsubst" "popdef" "pushdef" "quote" "regexp" "rename" "reverse"
+      "shift" "sinclude" "stack_foreach" "stack_foreach_lifo"
+      "stack_foreach_sep" "stack_foreach_sep_lifo" "substr" "syscmd"
+      "sysval" "traceoff" "traceon" "translit" "undefine" "undivert"
+      "unix" "upcase" "windows")
+    "List of valid m4 macros for M4 mode."))
+
 (defvar m4-font-lock-keywords
-  '(("\\(\\_<\\(m4_\\)?dnl\\_>\\).*$" (0 font-lock-comment-face t))
-    ("\\$[*#@0-9]" . font-lock-variable-name-face)
-    ("\\$@" . font-lock-variable-name-face)
-    ("\\$\\*" . font-lock-variable-name-face)
-    ("\\_<\\(m4_\\)?\\(builtin\\|change\\(com\\|quote\\|word\\)\\|d\\(e\\(bug\\(file\\|mode\\)\\|cr\\|f\\(ine\\|n\\)\\)\\|iv\\(ert\\|num\\)\\|nl\\|umpdef\\)\\|e\\(rrprint\\|syscmd\\|val\\)\\|f\\(ile\\|ormat\\)\\|gnu\\|i\\(f\\(def\\|else\\)\\|n\\(c\\(lude\\|r\\)\\|d\\(ex\\|ir\\)\\)\\)\\|l\\(en\\|ine\\)\\|m\\(4\\(exit\\|wrap\\)\\|aketemp\\)\\|p\\(atsubst\\|opdef\\|ushdef\\)\\|regexp\\|s\\(hift\\|include\\|ubstr\\|ys\\(cmd\\|val\\)\\)\\|tra\\(ceo\\(ff\\|n\\)\\|nslit\\)\\|un\\(d\\(efine\\|ivert\\)\\|ix\\)\\)\\_>" . font-lock-keyword-face))
+  (eval-when-compile
+    `(("\\(\\_<\\(m4_\\)?dnl\\_>\\).*$" (0 font-lock-comment-face t))
+      ("\\$[*#@0-9]" . font-lock-variable-name-face)
+      ("\\$@" . font-lock-variable-name-face)
+      ("\\$\\*" . font-lock-variable-name-face)
+      (,(concat "\\_<\\(m4_\\)?" (regexp-opt m4--macro-list) "\\_>")
+       . font-lock-keyword-face)))
   "Default `font-lock-keywords' for M4 mode.")
 
 (defcustom m4-mode-hook nil
@@ -100,22 +122,22 @@ If m4 is not in your PATH, set this to an absolute file name."
              (string-to-syntax "."))))))
 
 (defvar m4-mode-map
-  (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-b" 'm4-m4-buffer)
     (define-key map "\C-c\C-r" 'm4-m4-region)
     (define-key map "\C-c\C-c" 'comment-region)
-    (define-key map [menu-bar m4-mode] (cons "M4" menu-map))
-    (define-key menu-map [m4c]
-      '(menu-item "Comment Region" comment-region
-		  :help "Comment Region"))
-    (define-key menu-map [m4b]
-      '(menu-item "M4 Buffer" m4-m4-buffer
-		  :help "Send contents of the current buffer to m4"))
-    (define-key menu-map [m4r]
-      '(menu-item "M4 Region" m4-m4-region
-		  :help "Send contents of the current region to m4"))
-    map))
+    map)
+  "Keymap for M4 Mode.")
+
+(easy-menu-define m4-mode-menu m4-mode-map
+  "Menu for M4 Mode."
+  '("M4"
+    ["M4 Region" m4-m4-region
+     :help "Send contents of the current region to m4"]
+    ["M4 Buffer" m4-m4-buffer
+     :help "Send contents of the current buffer to m4"]
+    ["Comment Region" comment-region
+     :help "Comment Region"]))
 
 (defun m4-m4-buffer ()
   "Send contents of the current buffer to m4."
@@ -154,23 +176,5 @@ If m4 is not in your PATH, set this to an absolute file name."
 (provide 'm4-mode)
 ;;stuff to play with for debugging
 ;(char-to-string (char-syntax ?`))
-
-;;;how I generate the nasty looking regexps at the top
-;;;(make-regexp '("builtin" "changecom" "changequote" "changeword" "debugfile"
-;;;		  "debugmode" "decr" "define" "defn" "divert" "divnum" "dnl"
-;;;		  "dumpdef" "errprint" "esyscmd" "eval" "file" "format" "gnu"
-;;;		  "ifdef" "ifelse" "include" "incr" "index" "indir" "len" "line"
-;;;		  "m4exit" "m4wrap" "maketemp" "patsubst" "popdef" "pushdef" "regexp"
-;;;		  "shift" "sinclude" "substr" "syscmd" "sysval" "traceoff" "traceon"
-;;;		  "translit" "undefine" "undivert" "unix"))
-;;;(make-regexp '("m4_builtin" "m4_changecom" "m4_changequote" "m4_changeword"
-;;;		  "m4_debugfile" "m4_debugmode" "m4_decr" "m4_define" "m4_defn"
-;;;		  "m4_divert" "m4_divnum" "m4_dnl" "m4_dumpdef" "m4_errprint"
-;;;		  "m4_esyscmd" "m4_eval" "m4_file" "m4_format" "m4_ifdef" "m4_ifelse"
-;;;		  "m4_include" "m4_incr" "m4_index" "m4_indir" "m4_len" "m4_line"
-;;;		  "m4_m4exit" "m4_m4wrap" "m4_maketemp" "m4_patsubst" "m4_popdef"
-;;;		  "m4_pushdef" "m4_regexp" "m4_shift" "m4_sinclude" "m4_substr"
-;;;		  "m4_syscmd" "m4_sysval" "m4_traceoff" "m4_traceon" "m4_translit"
-;;;		  "m4_m4_undefine" "m4_undivert"))
 
 ;;; m4-mode.el ends here

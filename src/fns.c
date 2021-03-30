@@ -54,10 +54,55 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
   return argument;
 }
 
+static Lisp_Object
+ccall2 (Lisp_Object (f) (ptrdiff_t nargs, Lisp_Object *args),
+        Lisp_Object arg1, Lisp_Object arg2)
+{
+  Lisp_Object args[2] = {arg1, arg2};
+  return f (2, args);
+}
+
+static Lisp_Object
+get_random_bignum (Lisp_Object limit)
+{
+  /* This is a naive transcription into bignums of the fixnum algorithm.
+     I'd be quite surprised if that's anywhere near the best algorithm
+     for it.  */
+  while (true)
+    {
+      Lisp_Object val = make_fixnum (0);
+      Lisp_Object lim = limit;
+      int bits = 0;
+      int bitsperiteration = FIXNUM_BITS - 1;
+      do
+        {
+          /* Shift by one so it is a valid positive fixnum.  */
+          EMACS_INT rand = get_random () >> 1;
+          Lisp_Object lrand = make_fixnum (rand);
+          bits += bitsperiteration;
+          val = ccall2 (Flogior,
+                        Fash (val, make_fixnum (bitsperiteration)),
+                        lrand);
+          lim = Fash (lim, make_fixnum (- bitsperiteration));
+        }
+      while (!EQ (lim, make_fixnum (0)));
+      /* Return the remainder, except reject the rare case where
+	 get_random returns a number so close to INTMASK that the
+	 remainder isn't random.  */
+      Lisp_Object remainder = Frem (val, limit);
+      if (!NILP (ccall2 (Fleq,
+	                 ccall2 (Fminus, val, remainder),
+	                 ccall2 (Fminus,
+	                         Fash (make_fixnum (1), make_fixnum (bits)),
+	                         limit))))
+	return remainder;
+    }
+}
+
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
        doc: /* Return a pseudo-random integer.
 By default, return a fixnum; all fixnums are equally likely.
-With positive fixnum LIMIT, return random integer in interval [0,LIMIT).
+With positive integer LIMIT, return random integer in interval [0,LIMIT).
 With argument t, set the random number seed from the system's entropy
 pool if available, otherwise from less-random volatile data such as the time.
 With a string argument, set the seed based on the string's contents.
@@ -71,6 +116,12 @@ See Info node `(elisp)Random Numbers' for more details.  */)
     init_random ();
   else if (STRINGP (limit))
     seed_random (SSDATA (limit), SBYTES (limit));
+  if (BIGNUMP (limit))
+    {
+      if (0 > mpz_sgn (*xbignum_val (limit)))
+        xsignal2 (Qwrong_type_argument, Qnatnump, limit);
+      return get_random_bignum (limit);
+    }
 
   val = get_random ();
   if (FIXNUMP (limit) && 0 < XFIXNUM (limit))
@@ -1816,7 +1867,8 @@ If SEQ is not a list, deletion is never performed destructively;
 instead this function creates and returns a new vector or string.
 
 Write `(setq foo (delete element foo))' to be sure of correctly
-changing the value of a sequence `foo'.  */)
+changing the value of a sequence `foo'.  See also `remove', which
+does not modify the argument.  */)
   (Lisp_Object elt, Lisp_Object seq)
 {
   if (VECTORP (seq))
@@ -2227,6 +2279,52 @@ merge (Lisp_Object org_l1, Lisp_Object org_l2, Lisp_Object pred)
     }
 }
 
+Lisp_Object
+merge_c (Lisp_Object org_l1, Lisp_Object org_l2, bool (*less) (Lisp_Object, Lisp_Object))
+{
+  Lisp_Object l1 = org_l1;
+  Lisp_Object l2 = org_l2;
+  Lisp_Object tail = Qnil;
+  Lisp_Object value = Qnil;
+
+  while (1)
+    {
+      if (NILP (l1))
+	{
+	  if (NILP (tail))
+	    return l2;
+	  Fsetcdr (tail, l2);
+	  return value;
+	}
+      if (NILP (l2))
+	{
+	  if (NILP (tail))
+	    return l1;
+	  Fsetcdr (tail, l1);
+	  return value;
+	}
+
+      Lisp_Object tem;
+      if (less (Fcar (l1), Fcar (l2)))
+	{
+	  tem = l1;
+	  l1 = Fcdr (l1);
+	  org_l1 = l1;
+	}
+      else
+	{
+	  tem = l2;
+	  l2 = Fcdr (l2);
+	  org_l2 = l2;
+	}
+      if (NILP (tail))
+	value = tem;
+      else
+	Fsetcdr (tail, tem);
+      tail = tem;
+    }
+}
+
 
 /* This does not check for quits.  That is safe since it must terminate.  */
 
@@ -2271,7 +2369,10 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).
+
+The comparison with PROP is done using `eq'.
+
 If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (plist-put x prop val))' to be sure to use the new value.
@@ -2873,6 +2974,9 @@ if `last-nonmenu-event' is nil, and `use-dialog-box' is non-nil.  */)
       return obj;
     }
 
+  if (use_short_answers)
+    return call1 (intern ("y-or-n-p"), prompt);
+
   AUTO_STRING (yes_or_no, "(yes or no) ");
   prompt = CALLN (Fconcat, prompt, yes_or_no);
 
@@ -3110,7 +3214,10 @@ suppressed.  */)
 DEFUN ("plist-member", Fplist_member, Splist_member, 2, 2, 0,
        doc: /* Return non-nil if PLIST has the property PROP.
 PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).
+
+The comparison with PROP is done using `eq'.
+
 Unlike `plist-get', this allows you to distinguish between a missing
 property and a property with the value nil.
 The value is actually the tail of PLIST whose car is PROP.  */)
@@ -5903,6 +6010,15 @@ they are initiated from the keyboard.  If `use-dialog-box' is nil,
 that disables the use of a file dialog, regardless of the value of
 this variable.  */);
   use_file_dialog = true;
+
+  DEFVAR_BOOL ("use-short-answers", use_short_answers,
+    doc: /* Non-nil means `yes-or-no-p' uses shorter answers "y" or "n".
+When non-nil, `yes-or-no-p' will use `y-or-n-p' to read the answer.
+We recommend against setting this variable non-nil, because `yes-or-no-p'
+is intended to be used when users are expected not to respond too
+quickly, but to take their time and perhaps think about the answer.
+The same variable also affects the function `read-answer'.  */);
+  use_short_answers = false;
 
   defsubr (&Sidentity);
   defsubr (&Srandom);

@@ -1075,7 +1075,7 @@ The installed decode map can be referred by the function `quail-decode-map'."
 KEY is a string meaning a sequence of keystrokes to be translated.
 TRANSLATION is a character, a string, a vector, a Quail map,
  a function, or a cons.
-It it is a character, it is the sole translation of KEY.
+If it is a character, it is the sole translation of KEY.
 If it is a string, each character is a candidate for the translation.
 If it is a vector, each element (string or character) is a candidate
  for the translation.
@@ -3066,28 +3066,31 @@ of each directory."
 	    ;; Don't get fooled by commented-out code.
 	    (while (re-search-forward "^[ \t]*(quail-define-package" nil t)
 	      (goto-char (match-beginning 0))
-	      (condition-case nil
-		  (let ((form (read (current-buffer))))
-		    (with-current-buffer list-buf
-		      (insert
-		       (format "(register-input-method
+              (let (form)
+	        (condition-case err
+		    (progn
+                      (setq form (read (current-buffer)))
+		      (with-current-buffer list-buf
+		        (insert
+		         (format "(register-input-method
  %S %S '%s
  %S %S
  %S)\n"
-			       (nth 1 form) ; PACKAGE-NAME
-			       (nth 2 form) ; LANGUAGE
-			       'quail-use-package ; ACTIVATE-FUNC
-			       (nth 3 form) ; PACKAGE-TITLE
-			       (progn	; PACKAGE-DESCRIPTION (one line)
-				 (string-match ".*" (nth 5 form))
-				 (match-string 0 (nth 5 form)))
-			       (file-relative-name ; PACKAGE-FILENAME
-				(file-name-sans-extension (car pkg-list))
-				(car dirnames))))))
-		(error
-		 ;; Ignore the remaining contents of this file.
-		 (goto-char (point-max))
-		 (message "Some part of \"%s\" is broken" (car pkg-list))))))
+			         (nth 1 form)       ; PACKAGE-NAME
+			         (nth 2 form)       ; LANGUAGE
+			         'quail-use-package ; ACTIVATE-FUNC
+			         (nth 3 form)       ; PACKAGE-TITLE
+			         (progn	; PACKAGE-DESCRIPTION (one line)
+				   (string-match ".*" (nth 5 form))
+				   (match-string 0 (nth 5 form)))
+			         (file-relative-name ; PACKAGE-FILENAME
+				  (file-name-sans-extension (car pkg-list))
+				  (car dirnames))))))
+		  (error
+		   ;; Ignore the remaining contents of this file.
+		   (goto-char (point-max))
+		   (message "Some part of \"%s\" is broken: %s in %s"
+                            (car pkg-list) err form))))))
 	  (setq pkg-list (cdr pkg-list)))
 	(setq quail-dirs (cdr quail-dirs) dirnames (cdr dirnames))))
 

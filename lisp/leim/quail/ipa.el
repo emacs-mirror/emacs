@@ -1,4 +1,4 @@
-;;; ipa.el --- Quail package for inputting IPA characters  -*-coding: utf-8;-*-
+;;; ipa.el --- Quail package for inputting IPA characters  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
@@ -276,7 +276,7 @@ string."
       (cl-assert (vectorp quail-keymap) t)
       (setq quail-keymap (append quail-keymap nil))))
   (list
-   (apply 'vector
+   (apply #'vector
 	  (mapcar
 	   #'(lambda (entry)
                (cl-assert (char-or-string-p entry) t)
@@ -336,12 +336,12 @@ exchange in environments where Unicode is not available.  This input method
 uses this transliteration to allow you to produce the IPA in your editor
 with a keyboard that's limited to ASCII.
 
-See http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf for a full definition
+See https://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf for a full definition
 of the mapping.")
 
 (quail-define-rules
  ;; Table taken from https://en.wikipedia.org/wiki/X-SAMPA, checked with
- ;; http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf
+ ;; https://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf
 
  ("d`" "ɖ")	;; Voiced retroflex plosive		U+0256
  ("g" "ɡ")	;; Voiced velar plosive			U+0261
@@ -502,9 +502,9 @@ of the mapping.")
 ;; diacritic. To avoid this, handle the input specially with the function
 ;; ipa-x-sampa-underscore-implosive.
 
-(dolist (implosive-x-sampa (mapcar 'car ipa-x-sampa-implosive-submap))
+(dolist (implosive-x-sampa (mapcar #'car ipa-x-sampa-implosive-submap))
   (setq implosive-x-sampa (car (split-string implosive-x-sampa "_")))
   (quail-defrule (format "%s_" implosive-x-sampa)
-		 'ipa-x-sampa-underscore-implosive))
+		 #'ipa-x-sampa-underscore-implosive))
 
 ;;; ipa.el ends here

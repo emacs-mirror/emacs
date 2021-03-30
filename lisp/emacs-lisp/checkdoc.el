@@ -931,16 +931,20 @@ don't move point."
                            ;; Don't bug out if the file is empty (or a
                            ;; definition ends prematurely.
                            (end-of-file)))
-    (`(,(or 'defun 'defvar 'defcustom 'defmacro 'defconst 'defsubst 'defadvice
-            'cl-defun 'cl-defgeneric 'cl-defmethod 'cl-defmacro)
+    (`(,(and (pred symbolp) def
+             (let (and doc (guard doc)) (function-get def 'doc-string-elt)))
        ,(pred symbolp)
        ;; Require an initializer, i.e. ignore single-argument `defvar'
        ;; forms, which never have a doc string.
        ,_ . ,_)
      (down-list)
-     ;; Skip over function or macro name, symbol to be defined, and
-     ;; initializer or argument list.
-     (forward-sexp 3)
+     ;; Skip over function or macro name.
+     (forward-sexp 1)
+     ;; And now skip until the docstring.
+     (forward-sexp (1- ; We already skipped the function or macro name.
+                    (cond
+                     ((numberp doc) doc)
+                     ((functionp doc) (funcall doc)))))
      (skip-chars-forward " \n\t")
      t)))
 
@@ -2130,8 +2134,8 @@ buffer, otherwise stop after the first error."
       (user-error "No spellchecker installed: check the variable `ispell-program-name'"))
     (save-excursion
       (skip-chars-forward "^a-zA-Z")
-      (let (word sym case-fold-search err word-beginning word-end)
-        (while (and (not err) (< (point) end))
+      (let (word sym case-fold-search word-beginning word-end) ;; err
+        (while (and (< (point) end)) ;; (not err)
           (if (save-excursion (forward-char -1) (looking-at "[('`]"))
               ;; Skip lists describing meta-syntax, or bound variables
               (forward-sexp 1)
@@ -2163,7 +2167,7 @@ buffer, otherwise stop after the first error."
                           (sit-for 0)
                           (message "Continuing..."))))))))
           (skip-chars-forward "^a-zA-Z"))
-        err))))
+        nil)))) ;; err
 
 ;;; Rogue space checking engine
 ;;

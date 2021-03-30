@@ -23,6 +23,9 @@
 
 ;;; Commentary:
 
+;; The `easy-menu-define' macro provides a convenient way to define
+;; pop-up menus and/or menu bar menus.
+;;
 ;; This is compatible with easymenu.el by Per Abrahamsen
 ;; but it is much simpler as it doesn't try to support other Emacs versions.
 ;; The code was mostly derived from lmenu.el.
@@ -32,7 +35,6 @@
 (defsubst easy-menu-intern (s)
   (if (stringp s) (intern s) s))
 
-;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a pop-up menu and/or menu bar menu specified by MENU.
 If SYMBOL is non-nil, define SYMBOL as a function to pop up the
@@ -140,7 +142,7 @@ solely of dashes is displayed as a menu separator.
 
 Alternatively, a menu item can be a list with the same format as
 MENU.  This is a submenu."
-  (declare (indent defun) (debug (symbolp body)))
+  (declare (indent defun) (debug (symbolp body)) (doc-string 3))
   `(progn
      ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
@@ -163,7 +165,6 @@ This is expected to be bound to a mouse event."
                       ""))
                 (cons menu props)))))
 
-;;;###autoload
 (defun easy-menu-do-define (symbol maps doc menu)
   ;; We can't do anything that might differ between Emacs dialects in
   ;; `easy-menu-define' in order to make byte compiled files
@@ -181,12 +182,19 @@ This is expected to be bound to a mouse event."
 				  (funcall
 				   (or (plist-get (get symbol 'menu-prop)
 						  :filter)
-				       'identity)
+                                       #'identity)
 				   (symbol-function symbol)))
-			     symbol)))))
+			     symbol))))
+      ;; These symbols are commands, but not interesting for users
+      ;; to `M-x TAB'.
+      (function-put symbol 'completion-predicate #'ignore))
     (dolist (map (if (keymapp maps) (list maps) maps))
       (define-key map
-        (vector 'menu-bar (easy-menu-intern (car menu)))
+        (vector 'menu-bar (if (symbolp (car menu))
+                              (car menu)
+                            ;; If a string, then use the downcased
+                            ;; version for greater backwards compatibility.
+                            (intern (downcase (car menu)))))
         (easy-menu-binding keymap (car menu))))))
 
 (defun easy-menu-filter-return (menu &optional name)
@@ -212,7 +220,6 @@ If NAME is provided, it is used for the keymap."
 If it holds a list, this is expected to be a list of keys already seen in the
 menu we're processing.  Else it means we're not processing a menu.")
 
-;;;###autoload
 (defun easy-menu-create-menu (menu-name menu-items)
   "Create a menu called MENU-NAME with items described in MENU-ITEMS.
 MENU-NAME is a string, the name of the menu.  MENU-ITEMS is a list of items
@@ -468,7 +475,6 @@ When non-nil, NOEXP indicates that CALLBACK cannot be an expression
 	    (eval `(lambda () (interactive) ,callback) t)))
     command))
 
-;;;###autoload
 (defun easy-menu-change (path name items &optional before map)
   "Change menu found at PATH as item NAME to contain ITEMS.
 PATH is a list of strings for locating the menu that

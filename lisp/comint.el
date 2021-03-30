@@ -104,6 +104,7 @@
 (require 'ring)
 (require 'ansi-color)
 (require 'regexp-opt)                   ;For regexp-opt-charset.
+(eval-when-compile (require 'subr-x))
 
 ;; Buffer Local Variables:
 ;;============================================================================
@@ -365,23 +366,25 @@ This variable is buffer-local."
 ;; OpenBSD doas prints "doas (user@host) password:".
 ;; See ert test `comint-test-password-regexp'.
 (defcustom comint-password-prompt-regexp
+  ;; When extending this, please also add a corresponding test where
+  ;; possible (see `comint-testsuite-password-strings').
   (concat
    "\\(^ *\\|"
    (regexp-opt
     '("Enter" "enter" "Enter same" "enter same" "Enter the" "enter the"
       "Enter Auth" "enter auth" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "PEM" "SUDO"
-      "[sudo]" "doas" "Repeat" "Bad" "Retype")
+      "[sudo]" "doas" "Repeat" "Bad" "Retype" "Verify")
     t)
    ;; Allow for user name to precede password equivalent (Bug#31075).
    " +.*\\)"
    "\\(?:" (regexp-opt password-word-equivalents) "\\|Response\\)"
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?"
    ;; "[[:alpha:]]" used to be "for", which fails to match non-English.
-   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:blank:]]*\\'")
+   "\\(?: [[:alpha:]]+ .+\\)?[[:blank:]]*[:：៖][[:space:]]*\\'")
   "Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
-  :version "27.1"
+  :version "28.1"
   :type 'regexp
   :group 'comint)
 
@@ -2430,12 +2433,11 @@ This function could be in the list `comint-output-filter-functions'."
   (when (let ((case-fold-search t))
 	  (string-match comint-password-prompt-regexp
                         (replace-regexp-in-string "\r" "" string)))
-    (when (string-match "^[ \n\r\t\v\f\b\a]+" string)
-      (setq string (replace-match "" t t string)))
     (let ((comint--prompt-recursion-depth (1+ comint--prompt-recursion-depth)))
       (if (> comint--prompt-recursion-depth 10)
           (message "Password prompt recursion too deep")
-        (comint-send-invisible string)))))
+        (comint-send-invisible
+         (string-trim string "[ \n\r\t\v\f\b\a]+" "\n+"))))))
 
 ;; Low-level process communication
 
@@ -2944,7 +2946,7 @@ two arguments are used for determining defaults.)  If MUSTMATCH-P is true,
 then the filename reader will only accept a file that exists.
 
 A typical use:
- (interactive (comint-get-source \"Compile file: \" prev-lisp-dir/file
+ (interactive (comint-get-source \"Compile file\" prev-lisp-dir/file
                                  \\='(lisp-mode) t))"
   (let* ((def (comint-source-default prev-dir/file source-modes))
 	 (stringfile (comint-extract-string))
@@ -2957,9 +2959,7 @@ A typical use:
                     (car def)))
 	 (deffile (if sfile-p (file-name-nondirectory stringfile)
                     (cdr def)))
-	 (ans (read-file-name (if deffile (format "%s(default %s) "
-						  prompt    deffile)
-                                prompt)
+	 (ans (read-file-name (format-prompt prompt deffile)
 			      defdir
 			      (concat defdir deffile)
 			      mustmatch-p)))

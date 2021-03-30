@@ -1,10 +1,10 @@
-;;; erc-spelling.el --- use flyspell in ERC
+;;; erc-spelling.el --- use flyspell in ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: irc
+;; Keywords: comm, irc
 ;; URL: https://www.emacswiki.org/emacs/ErcSpelling
 
 ;; This file is part of GNU Emacs.
@@ -38,10 +38,10 @@
   "Enable flyspell mode in ERC buffers."
   ;; Use erc-connect-pre-hook instead of erc-mode-hook as pre-hook is
   ;; called AFTER the server buffer is initialized.
-  ((add-hook 'erc-connect-pre-hook 'erc-spelling-init)
+  ((add-hook 'erc-connect-pre-hook #'erc-spelling-init)
    (dolist (buffer (erc-buffer-list))
      (erc-spelling-init buffer)))
-  ((remove-hook 'erc-connect-pre-hook 'erc-spelling-init)
+  ((remove-hook 'erc-connect-pre-hook #'erc-spelling-init)
    (dolist (buffer (erc-buffer-list))
      (with-current-buffer buffer (flyspell-mode 0)))))
 
@@ -104,7 +104,7 @@ The cadr is the beginning and the caddr is the end."
 
 (put 'erc-mode
      'flyspell-mode-predicate
-     'erc-spelling-flyspell-verify)
+     #'erc-spelling-flyspell-verify)
 
 (provide 'erc-spelling)
 

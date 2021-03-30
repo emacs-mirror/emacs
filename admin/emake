@@ -83,3 +83,9 @@ do
   [[ "X${REPLY:0:3}" == "X   " ]] && C="\033[1;31m"
   [[ "X$C" == "X" ]] && printf "%s\n" "$REPLY" || printf "$C%s\033[0m\n" "$REPLY"
 done
+
+# Run a "make check" on all test files belonging to files that have
+# changed since last time.
+make -j$cores check-maybe 2>&1 | \
+    sed -n '/contained unexpected results/,$p' | \
+    egrep --line-buffered -v "^make"

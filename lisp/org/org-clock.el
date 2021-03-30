@@ -911,17 +911,17 @@ If CLOCK-SOUND is non-nil, it overrides `org-clock-sound'."
 
 (defmacro org-with-clock-position (clock &rest forms)
   "Evaluate FORMS with CLOCK as the current active clock."
+  (declare (indent 1) (debug t))
   `(with-current-buffer (marker-buffer (car ,clock))
      (org-with-wide-buffer
       (goto-char (car ,clock))
       (beginning-of-line)
       ,@forms)))
-(def-edebug-spec org-with-clock-position (form body))
-(put 'org-with-clock-position 'lisp-indent-function 1)
 
 (defmacro org-with-clock (clock &rest forms)
   "Evaluate FORMS with CLOCK as the current active clock.
 This macro also protects the current active clock from being altered."
+  (declare (indent 1) (debug t))
   `(org-with-clock-position ,clock
      (let ((org-clock-start-time (cdr ,clock))
 	   (org-clock-total-time)
@@ -932,8 +932,6 @@ This macro also protects the current active clock from being altered."
 				  (org-back-to-heading t)
 				  (point-marker))))
        ,@forms)))
-(def-edebug-spec org-with-clock (form body))
-(put 'org-with-clock 'lisp-indent-function 1)
 
 (defsubst org-clock-clock-in (clock &optional resume start-time)
   "Clock in to the clock located by CLOCK.
@@ -2241,7 +2239,7 @@ have priority."
 		  ((>= month 7) 3)
 		  ((>= month 4) 2)
 		  (t 1)))
-	 m1 h1 d1 month1 y1 shiftedy shiftedm shiftedq)
+	 h1 d1 month1 y1 shiftedy shiftedm shiftedq) ;; m1
     (cond
      ((string-match "\\`[0-9]+\\'" skey)
       (setq y (string-to-number skey) month 1 d 1 key 'year))
@@ -2344,7 +2342,7 @@ have priority."
 		  (`interactive (org-read-date nil t nil "Range end? "))
 		  (`untilnow (current-time))
 		  (_ (encode-time 0
-				  (or m1 m)
+				  m ;; (or m1 m)
 				  (or h1 h)
 				  (or d1 d)
 				  (or month1 month)
@@ -2391,7 +2389,7 @@ the currently selected interval size."
 	(user-error "Line needs a :block definition before this command works")
       (let* ((b (match-beginning 1)) (e (match-end 1))
 	     (s (match-string 1))
-	     block shift ins y mw d date wp m)
+	     block shift ins y mw d date wp) ;; m
 	(cond
 	 ((equal s "yesterday") (setq s "today-1"))
 	 ((equal s "lastweek") (setq s "thisweek-1"))
@@ -2416,7 +2414,7 @@ the currently selected interval size."
 	  (cond
 	   (d (setq ins (format-time-string
 			 "%Y-%m-%d"
-			 (encode-time 0 0 0 (+ d n) m y))))
+			 (encode-time 0 0 0 (+ d n) nil y)))) ;; m
 	   ((and wp (string-match "w\\|W" wp) mw (> (length wp) 0))
 	    (require 'cal-iso)
 	    (setq date (calendar-gregorian-from-absolute

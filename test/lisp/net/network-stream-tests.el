@@ -307,6 +307,7 @@
                                           :name "bar"
                                           :buffer (generate-new-buffer "*foo*")
                                           :nowait t
+                                          :family 'ipv4
                                           :tls-parameters
                                           (cons 'gnutls-x509pki
                                                 (gnutls-boot-parameters

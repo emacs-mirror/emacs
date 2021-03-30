@@ -2844,8 +2844,9 @@ and overlay is highlighted between MK and END-MK."
     (when (and (not pre-existing) w)
       (compilation-set-window-height w))
 
-    (if from-compilation-buffer
-        ;; If the compilation buffer window was selected,
+    (if (or from-compilation-buffer
+            (eq w (selected-window)))
+        ;; If the compilation buffer window is selected,
         ;; keep the compilation buffer in this window;
         ;; display the source in another window.
         (let ((pop-up-windows t))
@@ -3040,12 +3041,7 @@ TRUE-DIRNAME is the `file-truename' of DIRNAME, if given."
 	    ;; Get the specified directory from FILE.
 	    (spec-directory
              (if (cdr file)
-                 ;; This function is active in `compilation-filter'.
-                 ;; There could be problems to call `file-truename'
-                 ;; for remote compilation processes.
-		 (if (file-remote-p default-directory)
-		     (concat comint-file-name-prefix (cdr file))
-		   (file-truename (concat comint-file-name-prefix (cdr file)))))))
+		 (file-truename (concat comint-file-name-prefix (cdr file))))))
 
 	;; Check for a comint-file-name-prefix and prepend it if appropriate.
 	;; (This is very useful for compilation-minor-mode in an rlogin-mode

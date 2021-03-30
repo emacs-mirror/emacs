@@ -1,4 +1,4 @@
-;;; srecode/getset.el --- Package for inserting new get/set methods.
+;;; srecode/getset.el --- Package for inserting new get/set methods.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 
@@ -32,6 +32,8 @@
 ;;; Code:
 (defvar srecode-insert-getset-fully-automatic-flag nil
   "Non-nil means accept choices srecode comes up with without asking.")
+
+(defvar srecode-semantic-selected-tag)
 
 ;;;###autoload
 (defun srecode-insert-getset (&optional class-in field-in)

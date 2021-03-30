@@ -220,20 +220,20 @@ and other things:
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "a" 'shr-show-alt-text)
-    (define-key map "i" 'shr-browse-image)
-    (define-key map "z" 'shr-zoom-image)
-    (define-key map [?\t] 'shr-next-link)
-    (define-key map [?\M-\t] 'shr-previous-link)
+    (define-key map "a" #'shr-show-alt-text)
+    (define-key map "i" #'shr-browse-image)
+    (define-key map "z" #'shr-zoom-image)
+    (define-key map [?\t] #'shr-next-link)
+    (define-key map [?\M-\t] #'shr-previous-link)
     (define-key map [follow-link] 'mouse-face)
-    (define-key map [mouse-2] 'shr-browse-url)
-    (define-key map [C-down-mouse-1] 'shr-mouse-browse-url-new-window)
-    (define-key map "I" 'shr-insert-image)
-    (define-key map "w" 'shr-maybe-probe-and-copy-url)
-    (define-key map "u" 'shr-maybe-probe-and-copy-url)
-    (define-key map "v" 'shr-browse-url)
-    (define-key map "O" 'shr-save-contents)
-    (define-key map "\r" 'shr-browse-url)
+    (define-key map [mouse-2] #'shr-browse-url)
+    (define-key map [C-down-mouse-1] #'shr-mouse-browse-url-new-window)
+    (define-key map "I" #'shr-insert-image)
+    (define-key map "w" #'shr-maybe-probe-and-copy-url)
+    (define-key map "u" #'shr-maybe-probe-and-copy-url)
+    (define-key map "v" #'shr-browse-url)
+    (define-key map "O" #'shr-save-contents)
+    (define-key map "\r" #'shr-browse-url)
     map))
 
 (defvar shr-image-map
@@ -434,6 +434,7 @@ Value is a pair of positions (START . END) if there is a non-nil
 
 (defun shr-show-alt-text ()
   "Show the ALT text of the image under point."
+  (declare (completion (lambda (_ b) (command-completion-button-p 'shr b))))
   (interactive)
   (let ((text (get-text-property (point) 'shr-alt)))
     (if (not text)

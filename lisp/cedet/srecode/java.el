@@ -1,4 +1,4 @@
-;;; srecode/java.el --- Srecode Java support
+;;; srecode/java.el --- Srecode Java support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 

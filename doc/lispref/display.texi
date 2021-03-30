@@ -1997,7 +1997,7 @@ the beginning of the result if a multi-column character in
 
 If @var{ellipsis} is non-@code{nil}, it should be a string which will
 replace the end of @var{string} when it is truncated.  In this case,
-more charcaters will be removed from @var{string} to free enough space
+more characters will be removed from @var{string} to free enough space
 for @var{ellipsis} to fit within @var{width} columns.  However, if
 the display width of @var{string} is less than the display width of
 @var{ellipsis}, @var{ellipsis} will not be appended to the result.  If
@@ -5392,6 +5392,21 @@ are supported, unless the image type is @code{imagemagick}.  Positive
 values rotate clockwise, negative values counter-clockwise.  Rotation
 is performed after scaling and cropping.
 
+@item :transform-smoothing @var{smooth}
+If this is @code{t}, any image transform will have smoothing applied;
+if @code{nil}, no smoothing will be applied.  The exact algorithm used
+is platform dependent, but should be equivalent to bilinear
+filtering.  Disabling smoothing will use the nearest neighbor
+algorithm.
+
+If this property is not specified, @code{create-image} will use the
+@code{image-transform-smoothing} user option to say whether scaling
+should be done or not.  This option can be @code{nil} (no smoothing),
+@code{t} (use smoothing) or a predicate function that's called with
+the image object as the only parameter, and should return either
+@code{nil} or @code{t}.  The default is for down-scaling to apply
+smoothing, and for large up-scaling to not apply smoothing.
+
 @item :index @var{frame}
 @xref{Multi-Frame Images}.
 
@@ -7041,11 +7056,11 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
 instead of signaling the error.
 @end deffn
 
-@deffn Command backward-button n &optional wrap display-message
+@deffn Command backward-button n &optional wrap display-message no-error
 Move to the @var{n}th previous button, or @var{n}th next button if
 @var{n} is negative.  If @var{n} is zero, move to the start of any
 button at point.  If @var{wrap} is non-@code{nil}, moving past either
@@ -7053,7 +7068,7 @@ end of the buffer continues from the other end.  If
 @var{display-message} is non-@code{nil}, the button's help-echo string
 is displayed.  Any button with a non-@code{nil} @code{skip} property
 is skipped over.  Returns the button found, and signals an error if no
-buttons can be found.  If @var{no-error} in non-@code{nil}, return nil
+buttons can be found.  If @var{no-error} is non-@code{nil}, return nil
 instead of signaling the error.
 @end deffn
 

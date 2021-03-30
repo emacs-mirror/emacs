@@ -1,4 +1,4 @@
-;;; semantic/ede-grammar.el --- EDE support for Semantic Grammar Files
+;;; semantic/ede-grammar.el --- EDE support for Semantic Grammar Files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2004, 2007-2021 Free Software Foundation, Inc.
 
@@ -30,6 +30,7 @@
 (require 'ede/pconf)
 (require 'ede/proj-elisp)
 (require 'semantic/grammar)
+(eval-when-compile (require 'cl-lib))
 
 ;;; Code:
 (defclass semantic-ede-proj-target-grammar (ede-proj-target-elisp)
@@ -118,7 +119,7 @@ For Emacs Lisp, return addsuffix command on source files."
   "Compile Emacs Lisp programs.")
 
 ;;; Target options.
-(cl-defmethod ede-buffer-mine ((this semantic-ede-proj-target-grammar) buffer)
+(cl-defmethod ede-buffer-mine ((_this semantic-ede-proj-target-grammar) buffer)
   "Return t if object THIS lays claim to the file in BUFFER.
 Lays claim to all -by.el, and -wy.el files."
   ;; We need to be a little more careful than this, but at the moment it
@@ -130,7 +131,7 @@ Lays claim to all -by.el, and -wy.el files."
 
 (cl-defmethod project-compile-target ((obj semantic-ede-proj-target-grammar))
   "Compile all sources in a Lisp target OBJ."
-  (let* ((cb (current-buffer))
+  (let* (;; (cb (current-buffer))
 	 (proj (ede-target-parent obj))
 	 (default-directory (oref proj directory))
 	 (comp 0)
@@ -141,11 +142,10 @@ Lays claim to all -by.el, and -wy.el files."
 		     (fname (progn (string-match ".*/\\(.+\\.el\\)" package)
 				   (match-string 1 package)))
 		     (src (ede-expand-filename obj fname))
-		     (csrc (concat (file-name-sans-extension src) ".elc")))
-                (with-no-warnings
-                  (if (eq (byte-recompile-file src nil 0) t)
-                      (setq comp (1+ comp))
-                    (setq utd (1+ utd)))))))
+		     ;; (csrc (concat (file-name-sans-extension src) ".elc"))
+		     )
+                (cl-incf (if (eq (byte-recompile-file src nil 0) t)
+                             comp utd)))))
 	  (oref obj source))
     (message "All Semantic Grammar sources are up to date in %s" (eieio-object-name obj))
     (cons comp utd)))
@@ -162,10 +162,9 @@ Lays claim to all -by.el, and -wy.el files."
   "Insert variables needed by target THIS."
   (ede-proj-makefile-insert-loadpath-items
    (ede-proj-elisp-packages-to-loadpath
-    (list "eieio" "semantic" "inversion" "ede")))
+    (list "eieio" "semantic" "ede")))
   ;; eieio for object system needed in ede
   ;; semantic because it is
-  ;; Inversion for versioning system.
   ;; ede for project regeneration
   (ede-pmake-insert-variable-shared
       (concat (ede-pmake-varname this) "_SEMANTIC_GRAMMAR_EL")
@@ -174,8 +173,7 @@ Lays claim to all -by.el, and -wy.el files."
 		  (with-current-buffer (find-file-noselect src)
 		    (concat (semantic-grammar-package) ".el")))
 		(oref this source)
-		" ")))
-  )
+                " "))))
 
 (cl-defmethod ede-proj-makefile-insert-rules :after ((this semantic-ede-proj-target-grammar))
     "Insert rules needed by THIS target.

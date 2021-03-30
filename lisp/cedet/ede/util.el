@@ -1,4 +1,4 @@
-;;; ede/util.el --- EDE utilities
+;;; ede/util.el --- EDE utilities  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000, 2005, 2009-2021 Free Software Foundation, Inc.
 

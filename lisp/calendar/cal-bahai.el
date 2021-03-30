@@ -27,7 +27,7 @@
 ;; This collection of functions implements the features of calendar.el
 ;; and diary-lib.el that deal with the Bahá’í calendar.
 
-;; The Bahá’í (http://www.bahai.org) calendar system is based on a
+;; The Bahá’í (https://www.bahai.org) calendar system is based on a
 ;; solar cycle of 19 months with 19 days each.  The four remaining
 ;; "intercalary" days are called the Ayyám-i-Há (days of Há), and are
 ;; placed between the 18th and 19th months.  They are meant as a time

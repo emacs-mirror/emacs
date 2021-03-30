@@ -1,10 +1,10 @@
-;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
+;;; gnutls.el --- Support SSL/TLS connections through GnuTLS  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
-;; Originally-By: Simon Josefsson (See http://josefsson.org/emacs-security/)
+;; Originally-By: Simon Josefsson (See https://josefsson.org/emacs-security/)
 ;; Thanks-To: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
 ;; This file is part of GNU Emacs.
@@ -59,7 +59,6 @@ general, Emacs network security is handled by the Network
 Security Manager (NSM), and the default value of nil delegates
 the job of checking the connection security to the NSM.
 See Info node `(emacs) Network Security'."
-  :group 'gnutls
   :type '(choice (const nil)
                  string))
 
@@ -91,7 +90,6 @@ checks are performed at the gnutls level.  Instead the checks are
 performed via `open-network-stream' at a higher level by the
 Network Security Manager.  See Info node `(emacs) Network
 Security'."
-  :group 'gnutls
   :version "24.4"
   :type '(choice
           (const t)
@@ -118,7 +116,6 @@ Security'."
 If a file path contains glob wildcards, they will be expanded.
 The files may be in PEM or DER format, as per the GnuTLS documentation.
 The files may not exist, in which case they will be ignored."
-  :group 'gnutls
   :type '(choice (function :tag "Function to produce list of bundle filenames")
                  (repeat (file :tag "Bundle filename"))))
 
@@ -139,7 +136,6 @@ network security is handled at a higher level via
 node `(emacs) Network Security'."
   :type '(choice (const :tag "Use default value" nil)
                  (integer :tag "Number of bits" 2048))
-  :group 'gnutls
   :version "27.1")
 
 (defcustom gnutls-crlfiles
@@ -150,7 +146,6 @@ node `(emacs) Network Security'."
 If a file path contains glob wildcards, they will be expanded.
 The files may be in PEM or DER format, as per the GnuTLS documentation.
 The files may not exist, in which case they will be ignored."
-  :group 'gnutls
   :type '(choice (function :tag "Function to produce list of CRL filenames")
                  (repeat (file :tag "CRL filename")))
   :version "27.1")

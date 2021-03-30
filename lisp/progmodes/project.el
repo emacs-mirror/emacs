@@ -106,7 +106,7 @@
 ;;
 ;; - Write a new function that will determine the current project
 ;; based on the directory and add it to `project-find-functions'
-;; (which see) using `add-hook'. It is a good idea to depend on the
+;; (which see) using `add-hook'.  It is a good idea to depend on the
 ;; directory only, and not on the current major mode, for example.
 ;; Because the usual expectation is that all files in the directory
 ;; belong to the same project (even if some/most of them are ignored).
@@ -201,12 +201,15 @@ of the project instance object."
     (when maybe-prompt
       (if pr
           (project-remember-project pr)
-        (project--remove-from-project-list directory)
+        (project--remove-from-project-list
+         directory "Project `%s' not found; removed from list")
         (setq pr (cons 'transient directory))))
     pr))
 
 (defun project--find-in-directory (dir)
   (run-hook-with-args-until-success 'project-find-functions dir))
+
+(defvar project--within-roots-fallback nil)
 
 (cl-defgeneric project-root (project)
   "Return root directory of the current project.
@@ -214,7 +217,11 @@ of the project instance object."
 It usually contains the main build file, dependencies
 configuration file, etc. Though neither is mandatory.
 
-The directory name must be absolute."
+The directory name must be absolute.")
+
+(cl-defmethod project-root (project
+                            &context (project--within-roots-fallback
+                                      (eql nil)))
   (car (project-roots project)))
 
 (cl-defgeneric project-roots (project)
@@ -226,7 +233,8 @@ and the rest should be possible to express through
   ;; FIXME: Can we specify project's version here?
   ;; FIXME: Could we make this affect cl-defmethod calls too?
   (declare (obsolete project-root "0.3.0"))
-  (list (project-root project)))
+  (let ((project--within-roots-fallback t))
+    (list (project-root project))))
 
 ;; FIXME: Add MODE argument, like in `ede-source-paths'?
 (cl-defgeneric project-external-roots (_project)
@@ -803,9 +811,12 @@ pattern to search for."
       (user-error "No matches for: %s" regexp))
     xrefs))
 
+(defvar project-regexp-history-variable 'grep-regexp-history)
+
 (defun project--read-regexp ()
-  (let ((sym (thing-at-point 'symbol)))
-    (read-regexp "Find regexp" (and sym (regexp-quote sym)))))
+  (let ((sym (thing-at-point 'symbol t)))
+    (read-regexp "Find regexp" (and sym (regexp-quote sym))
+                 project-regexp-history-variable)))
 
 ;;;###autoload
 (defun project-find-file ()
@@ -933,7 +944,7 @@ if one already exists."
                    "-shell*"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
-        (pop-to-buffer shell-buffer)
+        (pop-to-buffer-same-window shell-buffer)
       (shell (generate-new-buffer-name default-project-shell-name)))))
 
 ;;;###autoload
@@ -953,7 +964,7 @@ if one already exists."
                   "-eshell*"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
-        (pop-to-buffer eshell-buffer)
+        (pop-to-buffer-same-window eshell-buffer)
       (eshell t))))
 
 ;;;###autoload
@@ -1239,16 +1250,26 @@ Save the result in `project-list-file' if the list of projects has changed."
       (push (list dir) project--list)
       (project--write-project-list))))
 
-(defun project--remove-from-project-list (pr-dir)
-  "Remove directory PR-DIR of a missing project from the project list.
+(defun project--remove-from-project-list (project-root report-message)
+  "Remove directory PROJECT-ROOT of a missing project from the project list.
 If the directory was in the list before the removal, save the
 result in `project-list-file'.  Announce the project's removal
-from the list."
+from the list using REPORT-MESSAGE, which is a format string
+passed to `message' as its first argument."
   (project--ensure-read-project-list)
-  (when-let ((ent (assoc pr-dir project--list)))
+  (when-let ((ent (assoc project-root project--list)))
     (setq project--list (delq ent project--list))
-    (message "Project `%s' not found; removed from list" pr-dir)
+    (message report-message project-root)
     (project--write-project-list)))
+
+;;;###autoload
+(defun project-remove-known-project (project-root)
+  "Remove directory PROJECT-ROOT from the project list.
+PROJECT-ROOT is the root directory of a known project listed in
+the project list."
+  (interactive (list (project-prompt-project-dir)))
+  (project--remove-from-project-list
+   project-root "Project `%s' removed from known projects"))
 
 (defun project-prompt-project-dir ()
   "Prompt the user for a directory that is one of the known project roots.
@@ -1284,7 +1305,6 @@ It's also possible to enter an arbitrary directory not in the list."
 
 ;;; Project switching
 
-;;;###autoload
 (defcustom project-switch-commands
   '((project-find-file "Find file")
     (project-find-regexp "Find regexp")

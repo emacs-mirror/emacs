@@ -88,8 +88,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
-
 (defgroup meta-font nil
   "Major mode for editing Metafont or MetaPost sources."
   :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
@@ -109,44 +107,31 @@
              "\\(def\\|let\\|mode_def\\|vardef\\)")
             (macro-keywords-2
              "\\(primarydef\\|secondarydef\\|tertiarydef\\)")
-;(make-regexp
-; '("expr" "suffix" "text" "primary" "secondary" "tertiary") t)
             (args-keywords
-             (concat "\\(expr\\|primary\\|s\\(econdary\\|uffix\\)\\|"
-                     "te\\(rtiary\\|xt\\)\\)"))
-;(make-regexp
-; '("boolean" "color" "numeric" "pair" "path" "pen" "picture"
-;   "string" "transform" "newinternal") t)
+             (eval-when-compile
+               (regexp-opt
+                '("expr" "suffix" "text" "primary" "secondary" "tertiary")
+                t)))
             (type-keywords
-             (concat "\\(boolean\\|color\\|n\\(ewinternal\\|umeric\\)\\|"
-                     "p\\(a\\(ir\\|th\\)\\|en\\|icture\\)\\|string\\|"
-                     "transform\\)"))
-;(make-regexp
-; '("for" "forever" "forsuffixes" "endfor"
-;   "step" "until" "upto" "downto" "thru" "within"
-;   "iff" "if" "elseif" "else" "fi" "exitif" "exitunless"
-;   "let" "def" "vardef" "enddef" "mode_def"
-;   "true" "false" "known" "unknown" "and" "or" "not"
-;   "save" "interim" "inner" "outer" "relax"
-;   "begingroup" "endgroup" "expandafter" "scantokens"
-;   "generate" "input" "endinput" "end" "bye"
-;   "message" "errmessage" "errhelp" "special" "numspecial"
-;   "readstring" "readfrom" "write") t)
+             (eval-when-compile
+              (regexp-opt
+               '("boolean" "color" "numeric" "pair" "path" "pen" "picture"
+                 "string" "transform" "newinternal")
+               t)))
             (syntactic-keywords
-             (concat "\\(and\\|b\\(egingroup\\|ye\\)\\|"
-                     "d\\(ef\\|ownto\\)\\|e\\(lse\\(\\|if\\)"
-                     "\\|nd\\(\\|def\\|for\\|group\\|input\\)"
-                     "\\|rr\\(help\\|message\\)"
-                     "\\|x\\(it\\(if\\|unless\\)\\|pandafter\\)\\)\\|"
-                     "f\\(alse\\|i\\|or\\(\\|ever\\|suffixes\\)\\)\\|"
-                     "generate\\|i\\(ff?\\|n\\(ner\\|put\\|terim\\)\\)\\|"
-                     "known\\|let\\|m\\(essage\\|ode_def\\)\\|"
-                     "n\\(ot\\|umspecial\\)\\|o\\(r\\|uter\\)\\|"
-                     "re\\(ad\\(from\\|string\\)\\|lax\\)\\|"
-                     "s\\(ave\\|cantokens\\|pecial\\|tep\\)\\|"
-                     "t\\(hru\\|rue\\)\\|"
-                     "u\\(n\\(known\\|til\\)\\|pto\\)\\|"
-                     "vardef\\|w\\(ithin\\|rite\\)\\)"))
+             (eval-when-compile
+              (regexp-opt
+               '("for" "forever" "forsuffixes" "endfor"
+                 "step" "until" "upto" "downto" "thru" "within"
+                 "iff" "if" "elseif" "else" "fi" "exitif" "exitunless"
+                 "let" "def" "vardef" "enddef" "mode_def"
+                 "true" "false" "known" "unknown" "and" "or" "not"
+                 "save" "interim" "inner" "outer" "relax"
+                 "begingroup" "endgroup" "expandafter" "scantokens"
+                 "generate" "input" "endinput" "end" "bye"
+                 "message" "errmessage" "errhelp" "special" "numspecial"
+                 "readstring" "readfrom" "write")
+               t)))
             )
         (list
          ;; embedded TeX code in btex ... etex
@@ -463,25 +448,21 @@ If the list was changed, sort the list and remove duplicates first."
 
 (defcustom meta-indent-level 2
   "Indentation of begin-end blocks in Metafont or MetaPost mode."
-  :type 'integer
-  :group 'meta-font)
+  :type 'integer)
 
 
 (defcustom meta-left-comment-regexp "%%+"
   "Regexp matching comments that should be placed on the left margin."
-  :type 'regexp
-  :group 'meta-font)
+  :type 'regexp)
 
 (defcustom meta-right-comment-regexp nil
   "Regexp matching comments that should be placed on the right margin."
   :type '(choice regexp
-		 (const :tag "None" nil))
-  :group 'meta-font)
+                 (const :tag "None" nil)))
 
 (defcustom meta-ignore-comment-regexp "%[^%]"
   "Regexp matching comments whose indentation should not be touched."
-  :type 'regexp
-  :group 'meta-font)
+  :type 'regexp)
 
 
 (defcustom meta-begin-environment-regexp
@@ -489,22 +470,19 @@ If the list was changed, sort the list and remove duplicates first."
           "def\\|for\\(\\|ever\\|suffixes\\)\\|if\\|mode_def\\|"
           "primarydef\\|secondarydef\\|tertiarydef\\|vardef\\)")
   "Regexp matching the beginning of environments to be indented."
-  :type 'regexp
-  :group 'meta-font)
+  :type 'regexp)
 
 (defcustom meta-end-environment-regexp
   (concat "\\(end\\(char\\|def\\|f\\(ig\\|or\\)\\|gr\\(aph\\|oup\\)\\)"
           "\\|fi\\)")
   "Regexp matching the end of environments to be indented."
-  :type 'regexp
-  :group 'meta-font)
+  :type 'regexp)
 
 (defcustom meta-within-environment-regexp
 ; (concat "\\(e\\(lse\\(\\|if\\)\\|xit\\(if\\|unless\\)\\)\\)")
   (concat "\\(else\\(\\|if\\)\\)")
   "Regexp matching keywords within environments not to be indented."
-  :type 'regexp
-  :group 'meta-font)
+  :type 'regexp)
 
 
 (defun meta-comment-indent ()
@@ -689,14 +667,12 @@ If the list was changed, sort the list and remove duplicates first."
   (concat "\\(begin\\(char\\|fig\\|logochar\\)\\|def\\|mode_def\\|"
           "primarydef\\|secondarydef\\|tertiarydef\\|vardef\\)")
   "Regexp matching beginning of defuns in Metafont or MetaPost mode."
-  :type 'regexp
-  :group 'meta-font)
+  :type 'regexp)
 
 (defcustom meta-end-defun-regexp
   (concat "\\(end\\(char\\|def\\|fig\\)\\)")
   "Regexp matching the end of defuns in Metafont or MetaPost mode."
-  :type 'regexp
-  :group 'meta-font)
+  :type 'regexp)
 
 
 (defun meta-beginning-of-defun (&optional arg)
@@ -893,24 +869,21 @@ The environment marked is the one that contains point or follows point."
 
 (defcustom meta-mode-load-hook nil
   "Hook evaluated when first loading Metafont or MetaPost mode."
-  :type 'hook
-  :group 'meta-font)
+  :type 'hook)
 (make-obsolete-variable 'meta-mode-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 
 (defcustom meta-common-mode-hook nil
   "Hook evaluated by both `metafont-mode' and `metapost-mode'."
-  :type 'hook
-  :group 'meta-font)
+  :type 'hook)
 
 (defcustom metafont-mode-hook nil
   "Hook evaluated by `metafont-mode' after `meta-common-mode-hook'."
-  :type 'hook
-  :group 'meta-font)
+  :type 'hook)
+
 (defcustom metapost-mode-hook nil
   "Hook evaluated by `metapost-mode' after `meta-common-mode-hook'."
-  :type 'hook
-  :group 'meta-font)
+  :type 'hook)
 
 
 

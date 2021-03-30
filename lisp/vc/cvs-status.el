@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'pcvs-util)
 
 ;;;
@@ -169,7 +169,7 @@
   name
   type)
 
-(defsubst cvs-status-vl-to-str (vl) (mapconcat 'number-to-string vl "."))
+(defsubst cvs-status-vl-to-str (vl) (mapconcat #'number-to-string vl "."))
 
 (defun cvs-tag->string (tag)
   (if (stringp tag) tag
@@ -283,7 +283,7 @@ BEWARE:  because of stability issues, this is not a symmetric operation."
        tree1 (list (cons (cvs-tag-make (butlast vl2)) tree2)))))))))
 
 (defun cvs-tag-make-tag (tag)
-  (let ((vl (mapcar 'string-to-number (split-string (nth 2 tag) "\\."))))
+  (let ((vl (mapcar #'string-to-number (split-string (nth 2 tag) "\\."))))
     (cvs-tag-make vl (nth 0 tag) (intern (nth 1 tag)))))
 
 (defun cvs-tags->tree (tags)
@@ -450,10 +450,10 @@ Optional prefix ARG chooses between two representations."
 	  (tags nil)
 	  (cvs-tree-nomerge (if arg (not cvs-tree-nomerge) cvs-tree-nomerge)))
       (while (listp (setq tags (cvs-status-get-tags)))
-	(let ((tags (mapcar 'cvs-tag-make-tag tags))
+	(let ((tags (mapcar #'cvs-tag-make-tag tags))
 	      ;;(pt (save-excursion (forward-line -1) (point)))
 	      )
-	  (setq tags (sort tags 'cvs-tag-lessp))
+	  (setq tags (sort tags #'cvs-tag-lessp))
 	  (let* ((first (car tags))
 		 (prev (if (cvs-tag-p first)
 			   (list (car (cvs-tag->vlist first))) nil)))
@@ -472,7 +472,7 @@ Optional prefix ARG chooses between two representations."
 		   (nprev (if (and cvs-tree-nomerge next
 				   (equal vlist (cvs-tag->vlist next)))
 			      prev vlist)))
-	      (cvs-map (lambda (v _p) v) nprev prev)))
+	      (cl-mapcar (lambda (v _p) v) nprev prev)))
 	   (after (save-excursion
 		   (newline)
 		   (cvs-tree-tags-insert (cdr tags) nprev)))
@@ -484,7 +484,7 @@ Optional prefix ARG chooses between two representations."
                (as after (cdr as)))
 	  ((and (null as) (null vs) (null ps))
 	   (let ((revname (cvs-status-vl-to-str vlist)))
-	     (if (cvs-every 'identity (cvs-map 'equal prev vlist))
+	     (if (cl-every #'identity (cl-mapcar #'equal prev vlist))
 		 (insert (make-string (+ 4 (length revname)) ? )
 			 (or (cvs-tag->name tag) ""))
 	       (insert "  " revname ": " (or (cvs-tag->name tag) "")))))
@@ -500,7 +500,7 @@ Optional prefix ARG chooses between two representations."
 			(if next-eq (cons nil cvs-tree-char-space)
 			  (cons t cvs-tree-char-eob))
 		      (cons nil (if (and (eq (cvs-tag->type tag) 'branch)
-					 (cvs-every 'null as))
+					 (cl-every #'null as))
 				    cvs-tree-char-space
 				  cvs-tree-char-hbar))))))
 	    (insert (cdr na+char))

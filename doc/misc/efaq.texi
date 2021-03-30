@@ -323,8 +323,8 @@ Free Software Foundation, and related organizations.
 
 @menu
 * Real meaning of copyleft::
-* Guidelines for newsgroup postings::
-* Newsgroup archives::
+* Guidelines for mailing list postings::
+* Mailing list archives::
 * Reporting bugs::
 * Unsubscribing from Emacs lists::
 * Contacting the FSF::
@@ -343,9 +343,10 @@ There has never been a copyright infringement case involving the GPL to
 set any precedents.  Although legal actions have been brought against
 companies for violating the terms of the GPL, so far all have been
 settled out of court (in favor of the plaintiffs).  Please take any
-discussion regarding this issue to the newsgroup
-@uref{news:gnu.misc.discuss}, which was created to hold the extensive
-flame wars on the subject.
+discussion regarding this issue to
+@uref{https://lists.gnu.org/mailman/listinfo/gnu-misc-discuss, the
+gnu-misc-discuss mailing list}, which was created to hold the
+extensive flame wars on the subject.
 
 RMS writes:
 
@@ -359,49 +360,60 @@ distribute any version of Emacs or a related program, and give the
 recipients the same freedom that you enjoyed.
 @end quotation
 
-@node Guidelines for newsgroup postings
-@section  What are appropriate messages for the various Emacs newsgroups?
+@node Guidelines for mailing list postings
+@section  What are appropriate messages for the various Emacs mailing lists?
 @cindex Newsgroups, appropriate messages for
 @cindex GNU newsgroups, appropriate messages for
+@cindex GNU mailing lists, appropriate messages for
 @cindex Usenet groups, appropriate messages for
 @cindex Mailing lists, appropriate messages for
-@cindex Posting messages to newsgroups
+@cindex Posting messages to mailing lists
 
 @cindex GNU mailing lists
 The Emacs mailing lists are described at
 @uref{https://savannah.gnu.org/mail/?group=emacs, the Emacs Savannah
-page}. Some of them are gatewayed to newsgroups.
+page}.
 
-The newsgroup @uref{news:comp.emacs} is for discussion of Emacs programs
-in general.  The newsgroup @uref{news:gnu.emacs.help} is specifically
-for GNU Emacs.  It therefore makes no sense to cross-post to both
-groups, since only one can be appropriate to any question.
+Messages advocating ``non-free'' software are considered unacceptable
+on any of the GNU mailing lists, except for
+@url{https://lists.gnu.org/mailman/listinfo/gnu-misc-discuss, the
+gnu-misc-discuss mailing list} which was created to hold the extensive
+flame-wars on the subject.
 
-Messages advocating ``non-free'' software are considered unacceptable on
-any of the @code{gnu.*} newsgroups except for @uref{news:gnu.misc.discuss},
-which was created to hold the extensive flame-wars on the subject.
-``Non-free'' software includes any software for which the end user can't
-freely modify the source code and exchange enhancements.  Be careful to
-remove the @code{gnu.*} groups from the @samp{Newsgroups:} line when
-posting a followup that recommends such software.
+``Non-free'' software includes any software for which the end user
+can't freely modify the source code and exchange enhancements.  Be
+careful to remove any GNU mailing lists from @samp{Cc:} when posting a
+reply that recommends such software.
 
-@uref{news:gnu.emacs.bug} is a place where bug reports appear, but avoid
-posting bug reports to this newsgroup directly (@pxref{Reporting bugs}).
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
+bug-gnu-emacs list} is a place where bug reports appear, but we
+recommend using the commands @kbd{M-x report-emacs-bug} or @kbd{M-x
+submit-emacs-patch} if at all possible (@pxref{Reporting bugs}).
 
-@node Newsgroup archives
-@section Where can I get old postings to @uref{news:gnu.emacs.help} and other GNU groups?
-@cindex Archived postings from @code{gnu.emacs.help}
-@cindex Usenet archives for GNU groups
-@cindex Old Usenet postings for GNU groups
+Some GNU mailing lists are gatewayed to (Usenet) newsgroups.
+For example, sending an email to
+@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
+bug-gnu-emacs list} has the effect of posting on the newsgroup
+@uref{news:gnu.emacs.help}).
+
+Finally, we recommend reading the
+@url{https://www.gnu.org/philosophy/kind-communication.html, GNU Kind
+Communications Guidelines} before posting to any GNU lists or
+newsgroups.
+
+@node Mailing list archives
+@section Where can I read archives for @code{help-gnu-emacs} and other GNU lists?
+@cindex Archived postings from @code{help-gnu-emacs}
+@cindex Old mailing list posts for GNU lists
+@cindex Mailing list archives for GNU lists
 
 The FSF has maintained archives of all of the GNU mailing lists for many
 years, although there may be some unintentional gaps in coverage.  The
 archive can be browsed over the web at
 @uref{https://lists.gnu.org/r/, the GNU mail archive}.
 
-Web-based Usenet search services, such as
-@uref{https://groups.google.com/groups/dir?q=gnu&, Google}, also
-archive the @code{gnu.*} groups.
+Some web-based Usenet search services also archive the @code{gnu.*}
+newsgroups.
 
 @node Reporting bugs
 @section Where should I report bugs and other problems with Emacs?
@@ -414,39 +426,25 @@ The correct way to report Emacs bugs is to use the command
 @kbd{M-x report-emacs-bug}.  It sets up a mail buffer with the
 essential information and the correct e-mail address,
 @email{bug-gnu-emacs@@gnu.org}.
-Anything sent there also appears in the
-newsgroup @uref{news:gnu.emacs.bug}, but please use e-mail instead of
-news to submit the bug report.  This ensures a reliable return address
-so you can be contacted for further details.
 
 Be sure to read the ``Bugs'' section of the Emacs manual before reporting
 a bug!  The manual describes in detail how to submit a useful bug
 report (@pxref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}).
 (@xref{Emacs manual}, if you don't know how to read the manual.)
 
-RMS says:
-
-@quotation
 Sending bug reports to
-@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs,
-the help-gnu-emacs mailing list}
-(which has the effect of posting on @uref{news:gnu.emacs.help}) is
-undesirable because it takes the time of an unnecessarily large group
-of people, most of whom are just users and have no idea how to fix
-these problem.
-@url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs, The
-bug-gnu-emacs list} reaches a much smaller group of people who are
+@url{https://lists.gnu.org/mailman/listinfo/help-gnu-emacs, the
+help-gnu-emacs mailing list} is undesirable because it takes the time
+of an unnecessarily large group of people, most of whom are just users
+and have no idea how to fix these
+problem.  @url{https://lists.gnu.org/mailman/listinfo/bug-gnu-emacs,
+The bug-gnu-emacs list} reaches a much smaller group of people who are
 more likely to know what to do and have expressed a wish to receive
 more messages about Emacs than the others.
-@end quotation
 
-RMS says it is sometimes fine to post to @uref{news:gnu.emacs.help}:
-
-@quotation
 If you have reported a bug and you don't hear about a possible fix,
 then after a suitable delay (such as a week) it is okay to post on
-@code{gnu.emacs.help} asking if anyone can help you.
-@end quotation
+@code{help-gnu-emacs@@gnu.org} asking if anyone can help you.
 
 If you are unsure whether you have found a bug, consider the following
 non-exhaustive list, courtesy of RMS:
@@ -457,6 +455,11 @@ while building, that is a bug.  If Emacs crashes while building, that
 is a bug.  If Lisp code does not do what the documentation says it
 does, that is a bug.
 @end quotation
+
+Anything sent to @email{bug-gnu-emacs@@gnu.org} also appears in the
+newsgroup @uref{news:gnu.emacs.bug}, but please use e-mail instead of
+news to submit the bug report.  This ensures a reliable return address
+so you can be contacted for further details.
 
 @node Unsubscribing from Emacs lists
 @section  How do I unsubscribe from a mailing list?
@@ -3526,10 +3529,8 @@ installing any nonfree software, we recommend for your freedom's sake
 that you stay away from it.
 
 The @uref{https://lists.gnu.org/mailman/listinfo/gnu-emacs-sources,
-GNU Emacs sources mailing list}, which is gatewayed to the
-@uref{news:gnu.emacs.sources, Emacs sources newsgroup} (although the
-connection between the two can be unreliable) is an official place
-where people can post or announce their extensions to Emacs.
+GNU Emacs sources mailing list} is an official place where people can
+post or announce their extensions to Emacs.
 
 The @uref{https://emacswiki.org, Emacs Wiki} contains pointers to some
 additional extensions.  @uref{https://wikemacs.org, WikEmacs} is an

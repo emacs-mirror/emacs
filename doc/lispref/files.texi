@@ -455,7 +455,6 @@ Even though this is not a normal hook, you can use @code{add-hook} and
 @code{remove-hook} to manipulate the list.  @xref{Hooks}.
 @end defvar
 
-@c Emacs 19 feature
 @defvar write-contents-functions
 This works just like @code{write-file-functions}, but it is intended
 for hooks that pertain to the buffer's contents, not to the particular
@@ -486,7 +485,6 @@ this hook to make sure the file you are saving has the current year in
 its copyright notice.
 @end defopt
 
-@c Emacs 19 feature
 @defopt after-save-hook
 This normal hook runs after a buffer has been saved in its visited file.
 @end defopt
@@ -622,7 +620,6 @@ If @var{start} is @code{nil}, then the command writes the entire buffer
 contents (@emph{not} just the accessible portion) to the file and
 ignores @var{end}.
 
-@c Emacs 19 feature
 If @var{start} is a string, then @code{write-region} writes or appends
 that string, rather than text from the buffer.  @var{end} is ignored in
 this case.
@@ -653,7 +650,6 @@ It also sets the last file modification time for the current buffer to
 feature is used by @code{save-buffer}, but you probably should not use
 it yourself.
 
-@c Emacs 19 feature
 If @var{visit} is a string, it specifies the file name to visit.  This
 way, you can write the data to one file (@var{filename}) while recording
 the buffer as visiting another file (@var{visit}).  The argument
@@ -768,6 +764,8 @@ This function unlocks the file being visited in the current buffer,
 if the buffer is modified.  If the buffer is not modified, then
 the file should not be locked, so this function does nothing.  It also
 does nothing if the current buffer is not visiting a file, or is not locked.
+This function handles file system errors by calling @code{display-warning}
+and otherwise ignores the error.
 @end defun
 
 @defopt create-lockfiles
@@ -3094,7 +3092,6 @@ which generate the listing with Lisp code.
 @node Create/Delete Dirs
 @section Creating, Copying and Deleting Directories
 @cindex creating, copying and deleting directories
-@c Emacs 19 features
 
   Most Emacs Lisp file-manipulation functions get errors when used on
 files that are directories.  For example, you cannot delete a directory

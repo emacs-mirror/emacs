@@ -147,15 +147,15 @@ Useful commands (type ? to hide them and free up screen):
 (defvar ediff-dir-diffs-buffer-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map "q" 'ediff-bury-dir-diffs-buffer)
-    (define-key map " " 'next-line)
-    (define-key map "n" 'next-line)
-    (define-key map "\C-?" 'previous-line)
-    (define-key map "p" 'previous-line)
-    (define-key map "C" 'ediff-dir-diff-copy-file)
-    (define-key map  [mouse-2] 'ediff-dir-diff-copy-file)
-    (define-key map [delete] 'previous-line)
-    (define-key map [backspace] 'previous-line)
+    (define-key map "q" #'ediff-bury-dir-diffs-buffer)
+    (define-key map " " #'next-line)
+    (define-key map "n" #'next-line)
+    (define-key map "\C-?" #'previous-line)
+    (define-key map "p" #'previous-line)
+    (define-key map "C" #'ediff-dir-diff-copy-file)
+    (define-key map  [mouse-2] #'ediff-dir-diff-copy-file)
+    (define-key map [delete] #'previous-line)
+    (define-key map [backspace] #'previous-line)
     map)
   "The keymap to be installed in the buffer showing differences between
 directories.")
@@ -413,12 +413,11 @@ Toggled by ediff-toggle-verbose-help-meta-buffer" )
       '(menu-item "Show Manual" ediff-documentation
 		  :help "Display Ediff's manual"))
 
-    (or (ediff-one-filegroup-metajob)
-	(progn
-	  (define-key ediff-meta-buffer-map "=" nil)
-	  (define-key ediff-meta-buffer-map "==" 'ediff-meta-mark-equal-files)
-	  (define-key ediff-meta-buffer-map "=m" 'ediff-meta-mark-equal-files)
-	  (define-key ediff-meta-buffer-map "=h" 'ediff-meta-mark-equal-files)))
+    (unless (ediff-one-filegroup-metajob)
+      (define-key ediff-meta-buffer-map "=" nil)
+      (define-key ediff-meta-buffer-map "==" #'ediff-meta-mark-equal-files)
+      (define-key ediff-meta-buffer-map "=m" #'ediff-meta-mark-equal-files)
+      (define-key ediff-meta-buffer-map "=h" #'ediff-meta-mark-equal-files))
 
 
     (define-key menu-map [ediff-next-meta-item]
@@ -430,7 +429,7 @@ Toggled by ediff-toggle-verbose-help-meta-buffer" )
 
 
   (if ediff-no-emacs-help-in-control-buffer
-      (define-key ediff-meta-buffer-map  "\C-h"  'ediff-previous-meta-item))
+      (define-key ediff-meta-buffer-map  "\C-h"  #'ediff-previous-meta-item))
   (define-key ediff-meta-buffer-map [mouse-2] ediff-meta-action-function)
 
   (use-local-map ediff-meta-buffer-map)
@@ -633,7 +632,7 @@ behavior."
 	  difflist (delete "."  difflist)
 	  ;; copying is needed because sort sorts via side effects
 	  difflist (sort (ediff-copy-list (delete ".." difflist))
-			 'string-lessp))
+			 #'string-lessp))
 
     (setq difflist (mapcar (lambda (elt) (cons elt 1)) difflist))
 
@@ -837,14 +836,14 @@ behavior."
 		(ediff-draw-dir-diffs ediff-dir-difference-list))
 	    (define-key
 	      ediff-meta-buffer-map "h" 'ediff-mark-for-hiding-at-pos)
-	    (define-key ediff-meta-buffer-map "x" 'ediff-hide-marked-sessions)
+	    (define-key ediff-meta-buffer-map "x" #'ediff-hide-marked-sessions)
 	    (define-key
-	      ediff-meta-buffer-map "m" 'ediff-mark-for-operation-at-pos)
+	      ediff-meta-buffer-map "m" #'ediff-mark-for-operation-at-pos)
 	    (define-key ediff-meta-buffer-map "u" nil)
 	    (define-key
-	      ediff-meta-buffer-map "um" 'ediff-unmark-all-for-operation)
+	      ediff-meta-buffer-map "um" #'ediff-unmark-all-for-operation)
 	    (define-key
-	      ediff-meta-buffer-map "uh" 'ediff-unmark-all-for-hiding)
+	      ediff-meta-buffer-map "uh" #'ediff-unmark-all-for-hiding)
 
 	    (define-key ediff-meta-buffer-map
 	      [menu-bar ediff-meta-mode ediff-hide-marked-sessions]
@@ -877,7 +876,7 @@ behavior."
 		     '(menu-item "Collect diffs" ediff-collect-custom-diffs
 				 :help "Collect custom diffs of marked sessions in buffer `*Ediff Multifile Diffs*'"))
 		   (define-key
-		     ediff-meta-buffer-map "P" 'ediff-collect-custom-diffs))
+		     ediff-meta-buffer-map "P" #'ediff-collect-custom-diffs))
 		  ((ediff-patch-metajob jobname)
 		   (define-key ediff-meta-buffer-map
 		     [menu-bar ediff-meta-mode ediff-meta-show-patch]
@@ -885,8 +884,8 @@ behavior."
 				 :help "Show the multi-file patch associated with this group session"))
 		   (define-key
 		     ediff-meta-buffer-map "P" 'ediff-meta-show-patch)))
-	    (define-key ediff-meta-buffer-map "^" 'ediff-up-meta-hierarchy)
-	    (define-key ediff-meta-buffer-map "D" 'ediff-show-dir-diffs)
+	    (define-key ediff-meta-buffer-map "^" #'ediff-up-meta-hierarchy)
+	    (define-key ediff-meta-buffer-map "D" #'ediff-show-dir-diffs)
 
 	    (define-key ediff-meta-buffer-map
 	      [menu-bar ediff-meta-mode ediff-up-meta-hierarchy]
@@ -2128,7 +2127,7 @@ all marked sessions must be active."
     ))
 
 ;;;###autoload
-(defalias 'eregistry 'ediff-show-registry)
+(defalias 'eregistry #'ediff-show-registry)
 
 ;; If meta-buf doesn't exist, it is created.  In that case, id doesn't have a
 ;; parent meta-buf

@@ -4,7 +4,7 @@
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: irc, button, url, regexp
+;; Keywords: comm, irc, button, url, regexp
 ;; URL: https://www.emacswiki.org/emacs/ErcButton
 
 ;; This file is part of GNU Emacs.
@@ -52,14 +52,14 @@
 ;;;###autoload(autoload 'erc-button-mode "erc-button" nil t)
 (define-erc-module button nil
   "This mode buttonizes all messages according to `erc-button-alist'."
-  ((add-hook 'erc-insert-modify-hook 'erc-button-add-buttons 'append)
-   (add-hook 'erc-send-modify-hook 'erc-button-add-buttons 'append)
-   (add-hook 'erc-complete-functions 'erc-button-next-function)
-   (add-hook 'erc-mode-hook 'erc-button-setup))
-  ((remove-hook 'erc-insert-modify-hook 'erc-button-add-buttons)
-   (remove-hook 'erc-send-modify-hook 'erc-button-add-buttons)
-   (remove-hook 'erc-complete-functions 'erc-button-next-function)
-   (remove-hook 'erc-mode-hook 'erc-button-setup)))
+  ((add-hook 'erc-insert-modify-hook #'erc-button-add-buttons 'append)
+   (add-hook 'erc-send-modify-hook #'erc-button-add-buttons 'append)
+   (add-hook 'erc-complete-functions #'erc-button-next-function)
+   (add-hook 'erc-mode-hook #'erc-button-setup))
+  ((remove-hook 'erc-insert-modify-hook #'erc-button-add-buttons)
+   (remove-hook 'erc-send-modify-hook #'erc-button-add-buttons)
+   (remove-hook 'erc-complete-functions #'erc-button-next-function)
+   (remove-hook 'erc-mode-hook #'erc-button-setup)))
 
 ;;; Variables
 
@@ -91,7 +91,6 @@ above them."
 (defcustom erc-button-url-regexp browse-url-button-regexp
   "Regular expression that matches URLs."
   :version "27.1"
-  :group 'erc-button
   :type 'regexp)
 
 (defcustom erc-button-wrap-long-urls nil
@@ -100,28 +99,25 @@ above them."
 If this variable is a number, consider URLs longer than its value to
 be \"long\".  If t, URLs will be considered \"long\" if they are
 longer than `erc-fill-column'."
-  :group 'erc-button
   :type '(choice integer boolean))
 
 (defcustom erc-button-buttonize-nicks t
   "Flag indicating whether nicks should be buttonized or not."
-  :group 'erc-button
   :type 'boolean)
 
-(defcustom erc-button-rfc-url "http://www.faqs.org/rfcs/rfc%s.html"
-  "URL used to browse rfc references.
+(defcustom erc-button-rfc-url "https://tools.ietf.org/html/rfc%s"
+  "URL used to browse RFC references.
 %s is replaced by the number."
-  :group 'erc-button
-  :type 'string)
+  :type 'string
+  :version "28.1")
 
 (define-obsolete-variable-alias 'erc-button-google-url
   'erc-button-search-url "27.1")
 
-(defcustom erc-button-search-url "http://duckduckgo.com/?q=%s"
+(defcustom erc-button-search-url "https://duckduckgo.com/?q=%s"
   "URL used to search for a term.
 %s is replaced by the search string."
-  :version "27.1"
-  :group 'erc-button
+  :version "28.1"
   :type 'string)
 
 (defcustom erc-button-alist
@@ -179,7 +175,6 @@ PAR is a number of a regexp grouping whose text will be passed to
   CALLBACK.  There can be several PAR arguments.  If REGEXP is
   \\='nicknames, these are ignored, and CALLBACK will be called with
   the nickname matched as the argument."
-  :group 'erc-button
   :version "24.1"                       ; remove finger (bug#4443)
   :type '(repeat
           (list :tag "Button"
@@ -200,20 +195,18 @@ PAR is a number of a regexp grouping whose text will be passed to
 
 (defcustom erc-emacswiki-url "https://www.emacswiki.org/cgi-bin/wiki.pl?"
   "URL of the EmacsWiki Homepage."
-  :group 'erc-button
   :type 'string)
 
 (defcustom erc-emacswiki-lisp-url "https://www.emacswiki.org/elisp/"
   "URL of the EmacsWiki ELisp area."
-  :group 'erc-button
   :type 'string)
 
 (defvar erc-button-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'erc-button-press-button)
-    (define-key map (kbd "<mouse-2>") 'erc-button-click-button)
-    (define-key map (kbd "TAB") 'erc-button-next)
-    (define-key map (kbd "<backtab>") 'erc-button-previous)
+    (define-key map (kbd "RET") #'erc-button-press-button)
+    (define-key map (kbd "<mouse-2>") #'erc-button-click-button)
+    (define-key map (kbd "TAB") #'erc-button-next)
+    (define-key map (kbd "<backtab>") #'erc-button-previous)
     (define-key map [follow-link] 'mouse-face)
     (set-keymap-parent map erc-mode-map)
     map)
@@ -244,7 +237,7 @@ global-level ERC button keys yet.")
   "Add ERC mode-level button movement keys.  This is only done once."
   ;; Add keys.
   (unless erc-button-keys-added
-    (define-key erc-mode-map (kbd "<backtab>") 'erc-button-previous)
+    (define-key erc-mode-map (kbd "<backtab>") #'erc-button-previous)
     (setq erc-button-keys-added t)))
 
 (defun erc-button-add-buttons ()
@@ -287,7 +280,7 @@ specified by `erc-button-alist'."
         (fun (nth 3 entry))
         bounds word)
     (when (or (eq t form)
-              (eval form))
+              (eval form t))
       (goto-char (point-min))
       (while (erc-forward-word)
         (when (setq bounds (erc-bounds-of-word-at-point))
@@ -306,9 +299,9 @@ specified by `erc-button-alist'."
           (end (match-end (nth 1 entry)))
           (form (nth 2 entry))
           (fun (nth 3 entry))
-          (data (mapcar 'match-string (nthcdr 4 entry))))
+          (data (mapcar #'match-string (nthcdr 4 entry))))
       (when (or (eq t form)
-                (eval form))
+                (eval form t))
         (erc-button-add-button start end fun nil data regexp)))))
 
 (defun erc-button-remove-old-buttons ()
@@ -483,7 +476,6 @@ Examples:
    (format
     \"ldapsearch -x -P 2 -h db.debian.org -b dc=debian,dc=org ircnick=%s\"
     nick)))"
-  :group 'erc-button
   :type '(repeat (cons (string :tag "Op")
                        sexp)))
 

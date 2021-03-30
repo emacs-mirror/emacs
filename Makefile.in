@@ -95,18 +95,8 @@ configuration=@configuration@
 ### The nt/ subdirectory gets built only for MinGW
 NTDIR=@NTDIR@
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
+top_builddir = @top_builddir@
+-include ${top_builddir}/src/verbose.mk
 
 # ==================== Where To Install Things ====================
 
@@ -165,9 +155,6 @@ man1dir=$(mandir)/man1
 infodir=@infodir@
 # Info files not in the doc/misc directory (we get those via make echo-info).
 INFO_NONMISC=emacs.info eintr.info elisp.info
-
-# If no makeinfo was found and configured --without-makeinfo, "no"; else "yes".
-HAVE_MAKEINFO=@HAVE_MAKEINFO@
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
@@ -650,9 +637,6 @@ install-etcdoc: src install-arch-indep
 ## If info/dir is missing, but we have install-info, we should let
 ## that handle it.  If info/dir is present and we do not have install-info,
 ## we should check for missing entries and add them by hand.
-##
-## FIXME:
-## If HAVE_MAKEINFO = no and there are no info files, do not install info/dir.
 install-info: info
 	umask 022; ${MKDIR_P} "$(DESTDIR)${infodir}"
 	-unset CDPATH; \
@@ -664,10 +648,9 @@ install-info: info
 	   [ -f "$(DESTDIR)${infodir}/dir" ] || \
 	      [ ! -f ${srcdir}/info/dir ] || \
 	      ${INSTALL_DATA} ${srcdir}/info/dir "$(DESTDIR)${infodir}/dir"; \
-	   info_misc=`$(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
+	   info_misc=`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
 	   cd ${srcdir}/info ; \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
-	      test "$(HAVE_MAKEINFO)" = "no" && test ! -f $$elt && continue; \
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	       (cd "$${thisdir}"; \
 	        ${INSTALL_DATA} ${srcdir}/info/$$f "$(DESTDIR)${infodir}/$$f"); \
@@ -779,7 +762,7 @@ uninstall: uninstall-$(NTDIR) uninstall-doc
 	done
 	-rm -rf "$(DESTDIR)${libexecdir}/emacs/${version}"
 	thisdir=`/bin/pwd`; \
-	(info_misc=`$(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
+	(info_misc=`MAKEFLAGS= $(MAKE) --no-print-directory -s -C doc/misc echo-info`; \
 	 if cd "$(DESTDIR)${infodir}"; then \
 	   for elt in ${INFO_NONMISC} $${info_misc}; do \
 	     (cd "$${thisdir}"; \
@@ -958,6 +941,10 @@ extraclean: $(extraclean_dirs:=_extraclean)
 # I removed it because it causes `make tags` to build Emacs.
 TAGS tags: lib lib-src # src
 	$(MAKE) -C src tags
+	$(MAKE) -C doc/emacs tags
+	$(MAKE) -C doc/lispintro tags
+	$(MAKE) -C doc/lispref tags
+	$(MAKE) -C doc/misc tags
 
 CHECK_TARGETS = check check-maybe check-expensive check-all
 .PHONY: $(CHECK_TARGETS)
@@ -987,24 +974,34 @@ $(DOCS):
 	$(MAKE) -C doc/$(subst -, ,$@)
 
 .PHONY: $(DOCS) docs pdf ps
-.PHONY: info dvi dist html info-real info-dir check-info
+.PHONY: info dvi dist html info-dir check-info
 
 ## TODO add etc/refcards.
 docs: $(DOCS)
 dvi: $(DVIS)
 html: $(HTMLS)
-info-real: $(INFOS)
+info: $(INFOS) info-dir
 pdf: $(PDFS)
 ps: $(PSS)
 
+# This dependency is due to those doc/misc/ manuals that use .org sources.
+# Depending on src is sufficient, but ends up being slow, since the
+# uncompiled lisp/org/*.el files are used to build the .texi files
+# (which can be slow even with the elc files).
+misc-info: lisp
+# Using src rather than lisp because one is less likely to get unnecessary
+# rebuilds of stuff that is not strictly necessary for generating manuals.
+misc-dvi misc-html misc-pdf misc-ps: src
+
 info-dir: ${srcdir}/info/dir
 
-## Hopefully doc/misc/*.texi is not too long for some systems?
+texi_misc = $(shell MAKEFLAGS= ${MAKE} --no-print-directory -s -C doc/misc echo-sources)
+
 srcdir_doc_info_dir_inputs = \
   ${srcdir}/doc/emacs/emacs.texi \
   ${srcdir}/doc/lispintro/emacs-lisp-intro.texi \
   ${srcdir}/doc/lispref/elisp.texi \
-  $(sort $(wildcard ${srcdir}/doc/misc/*.texi))
+  $(addprefix ${srcdir}/doc/misc/,${texi_misc})
 info_dir_inputs = \
   ../build-aux/dir_top \
   $(subst ${srcdir}/doc/,,${srcdir_doc_info_dir_inputs})
@@ -1017,7 +1014,7 @@ info_dir_deps = \
 ## installation location by the install-info rule, but we also
 ## need one in the source directory for people running uninstalled.
 ## FIXME it would be faster to use the install-info program if we have it,
-## but then we would need to depend on info-real, which would
+## but then we would need to depend on ${INFOS}, which would
 ## slow down parallelization.
 ${srcdir}/info/dir: ${info_dir_deps}
 	$(AM_V_at)${MKDIR_P} ${srcdir}/info
@@ -1071,23 +1068,6 @@ uninstall-dvi: $(UNINSTALL_DVI)
 uninstall-html: $(UNINSTALL_HTML)
 uninstall-pdf: $(UNINSTALL_PDF)
 uninstall-ps: $(UNINSTALL_PS)
-
-
-# Note that man/Makefile knows how to put the info files in $(srcdir),
-# so we can do ok running make in the build dir.
-# This used to have a clause that exited with an error if MAKEINFO = no.
-# But it is inappropriate to do so without checking if makeinfo is
-# actually needed - it is not if the info files are up-to-date.  (Bug#3982)
-# Only the doc/*/Makefiles can decide that, so we let those rules run
-# and give a standard error if makeinfo is needed but missing.
-# While it would be nice to give a more detailed error message, that
-# would require changing every rule in doc/ that builds an info file,
-# and it's not worth it.  This case is only relevant if you download a
-# release, then change the .texi files.
-info:
-  ifneq ($(HAVE_MAKEINFO),no)
-	$(MAKE) info-real info-dir
-  endif
 
 ## build-aux/make-info-dir expects only certain dircategories.
 check-info: info

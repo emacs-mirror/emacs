@@ -337,7 +337,7 @@ Returns the number of articles marked as read."
 			   (gnus-newsgroup-kill-file gnus-newsgroup-name)))
 	 (unreads (length gnus-newsgroup-unreads))
 	 (gnus-summary-inhibit-highlight t)
-	 beg)
+	 ) ;; beg
     (setq gnus-newsgroup-kill-headers nil)
     ;; If there are any previously scored articles, we remove these
     ;; from the `gnus-newsgroup-headers' list that the score functions
@@ -381,7 +381,7 @@ Returns the number of articles marked as read."
 
       (gnus-set-mode-line 'summary)
 
-      (if beg
+      (if nil ;; beg
 	  (let ((nunreads (- unreads (length gnus-newsgroup-unreads))))
 	    (or (eq nunreads 0)
 		(gnus-message 6 "Marked %d articles as read" nunreads))

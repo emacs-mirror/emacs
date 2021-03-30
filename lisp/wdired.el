@@ -1,4 +1,4 @@
-;;; wdired.el --- Rename files editing their names in dired buffers -*- coding: utf-8; -*-
+;;; wdired.el --- Rename files editing their names in dired buffers -*- coding: utf-8; lexical-binding: t; -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
@@ -85,15 +85,13 @@
 If nil, WDired doesn't require confirmation to change the file names,
 and the variable `wdired-confirm-overwrite' controls whether it is ok
 to overwrite files without asking."
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defcustom wdired-confirm-overwrite t
   "If nil the renames can overwrite files without asking.
 This variable has no effect at all if `wdired-use-interactive-rename'
 is not nil."
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defcustom wdired-use-dired-vertical-movement nil
   "If t, the \"up\" and \"down\" movement works as in Dired mode.
@@ -106,15 +104,13 @@ when editing several filenames.
 If nil, \"up\" and \"down\" movement is done as in any other buffer."
   :type '(choice (const :tag "As in any other mode" nil)
 		 (const :tag "Smart cursor placement" sometimes)
-		 (other :tag "As in dired mode" t))
-  :group 'wdired)
+		 (other :tag "As in dired mode" t)))
 
 (defcustom wdired-allow-to-redirect-links t
   "If non-nil, the target of the symbolic links are editable.
 In systems without symbolic links support, this variable has no effect
 at all."
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defcustom wdired-allow-to-change-permissions nil
   "If non-nil, the permissions bits of the files are editable.
@@ -135,8 +131,7 @@ Anyway, the real change of the permissions is done by the external
 program `dired-chmod-program', which must exist."
   :type '(choice (const :tag "Not allowed" nil)
                  (const :tag "Toggle/set bits" t)
-		 (other :tag "Bits freely editable" advanced))
-  :group 'wdired)
+		 (other :tag "Bits freely editable" advanced)))
 
 (defcustom wdired-keep-marker-rename t
   ;; Use t as default so that renamed files "take their markers with them".
@@ -149,8 +144,7 @@ See `dired-keep-marker-rename' if you want to do the same for files
 renamed by `dired-do-rename' and `dired-do-rename-regexp'."
   :type '(choice (const :tag "Keep" t)
 		 (character :tag "Mark" :value ?R))
-  :version "24.3"
-  :group 'wdired)
+  :version "24.3")
 
 (defcustom wdired-create-parent-directories t
   "If non-nil, create parent directories of destination files.
@@ -159,51 +153,47 @@ nonexistent directory, wdired will create any parent directories
 necessary.  When nil, attempts to rename a file into a
 nonexistent directory will fail."
   :version "26.1"
-  :type 'boolean
-  :group 'wdired)
+  :type 'boolean)
 
 (defvar wdired-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-x\C-s" 'wdired-finish-edit)
-    (define-key map "\C-c\C-c" 'wdired-finish-edit)
-    (define-key map "\C-c\C-k" 'wdired-abort-changes)
-    (define-key map "\C-c\C-[" 'wdired-abort-changes)
-    (define-key map "\C-x\C-q" 'wdired-exit)
-    (define-key map "\C-m"     'ignore)
-    (define-key map "\C-j"     'ignore)
-    (define-key map "\C-o"     'ignore)
-    (define-key map [up]       'wdired-previous-line)
-    (define-key map "\C-p"     'wdired-previous-line)
-    (define-key map [down]     'wdired-next-line)
-    (define-key map "\C-n"     'wdired-next-line)
-
-    (define-key map [menu-bar wdired]
-      (cons "WDired" (make-sparse-keymap "WDired")))
-    (define-key map [menu-bar wdired wdired-customize]
-      '("Options" . wdired-customize))
-    (define-key map [menu-bar wdired dashes]
-      '("--"))
-    (define-key map [menu-bar wdired wdired-abort-changes]
-      '(menu-item "Abort Changes" wdired-abort-changes
-		  :help "Abort changes and return to dired mode"))
-    (define-key map [menu-bar wdired wdired-finish-edit]
-      '("Commit Changes" . wdired-finish-edit))
-
-    (define-key map [remap upcase-word] 'wdired-upcase-word)
-    (define-key map [remap capitalize-word] 'wdired-capitalize-word)
-    (define-key map [remap downcase-word] 'wdired-downcase-word)
-
+    (define-key map "\C-x\C-s" #'wdired-finish-edit)
+    (define-key map "\C-c\C-c" #'wdired-finish-edit)
+    (define-key map "\C-c\C-k" #'wdired-abort-changes)
+    (define-key map "\C-c\C-[" #'wdired-abort-changes)
+    (define-key map "\C-x\C-q" #'wdired-exit)
+    (define-key map "\C-m"     #'undefined)
+    (define-key map "\C-j"     #'undefined)
+    (define-key map "\C-o"     #'undefined)
+    (define-key map [up]       #'wdired-previous-line)
+    (define-key map "\C-p"     #'wdired-previous-line)
+    (define-key map [down]     #'wdired-next-line)
+    (define-key map "\C-n"     #'wdired-next-line)
+    (define-key map [remap upcase-word] #'wdired-upcase-word)
+    (define-key map [remap capitalize-word] #'wdired-capitalize-word)
+    (define-key map [remap downcase-word] #'wdired-downcase-word)
+    (define-key map [remap self-insert-command] #'wdired--self-insert)
     map)
   "Keymap used in `wdired-mode'.")
+
+(easy-menu-define wdired-mode-menu wdired-mode-map
+  "Menu for `wdired-mode'."
+  '("WDired"
+    ["Commit Changes" wdired-finish-edit]
+    ["Abort Changes" wdired-abort-changes
+     :help "Abort changes and return to Dired mode"]
+    "---"
+    ["Options" wdired-customize]))
 
 (defvar wdired-mode-hook nil
   "Hooks run when changing to WDired mode.")
 
 ;; Local variables (put here to avoid compilation gripes)
-(defvar wdired-col-perm) ;; Column where the permission bits start
-(defvar wdired-old-content)
-(defvar wdired-old-point)
-(defvar wdired-old-marks)
+(defvar wdired--perm-beg) ;; Column where the permission bits start
+(defvar wdired--perm-end) ;; Column where the permission bits stop
+(defvar wdired--old-content)
+(defvar wdired--old-point)
+(defvar wdired--old-marks)
 
 (defun wdired-mode ()
   "Writable Dired (WDired) mode.
@@ -242,11 +232,12 @@ See `wdired-mode'."
   (interactive)
   (unless (derived-mode-p 'dired-mode)
     (error "Not a Dired buffer"))
-  (setq-local wdired-old-content
+  (setq-local wdired--old-content
               (buffer-substring (point-min) (point-max)))
-  (setq-local wdired-old-marks
+  (setq-local wdired--old-marks
               (dired-remember-marks (point-min) (point-max)))
-  (setq-local wdired-old-point (point))
+  (setq-local wdired--old-point (point))
+  (wdired--set-permission-bounds)
   (setq-local query-replace-skip-read-only t)
   (add-function :after-while (local 'isearch-filter-predicate)
                 #'wdired-isearch-filter-read-only)
@@ -254,27 +245,75 @@ See `wdired-mode'."
   (force-mode-line-update)
   (setq buffer-read-only nil)
   (dired-unadvertise default-directory)
-  (add-hook 'kill-buffer-hook 'wdired-check-kill-buffer nil t)
-  (add-hook 'after-change-functions 'wdired--restore-properties nil t)
+  (add-hook 'kill-buffer-hook #'wdired-check-kill-buffer nil t)
+  (add-hook 'before-change-functions #'wdired--before-change-fn nil t)
+  (add-hook 'after-change-functions #'wdired--restore-properties nil t)
   (setq major-mode 'wdired-mode)
   (setq mode-name "Editable Dired")
-  (setq revert-buffer-function 'wdired-revert)
-  ;; I temp disable undo for performance: since I'm going to clear the
-  ;; undo list, it can save more than a 9% of time with big
-  ;; directories because setting properties modify the undo-list.
-  (buffer-disable-undo)
-  (wdired-preprocess-files)
-  (if wdired-allow-to-change-permissions
-      (wdired-preprocess-perms))
-  (if (fboundp 'make-symbolic-link)
-      (wdired-preprocess-symlinks))
-  (buffer-enable-undo) ; Performance hack. See above.
+  (add-function :override (local 'revert-buffer-function) #'wdired-revert)
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
   (run-mode-hooks 'wdired-mode-hook)
   (message "%s" (substitute-command-keys
 		 "Press \\[wdired-finish-edit] when finished \
 or \\[wdired-abort-changes] to abort changes")))
+
+(defun wdired--set-permission-bounds ()
+  (save-excursion
+    (goto-char (point-min))
+    (if (not (re-search-forward dired-re-perms nil t 1))
+        (progn
+          (setq-local wdired--perm-beg nil)
+          (setq-local wdired--perm-end nil))
+      (goto-char (match-beginning 0))
+      ;; Add 1 since the first char matched by `dired-re-perms' is the
+      ;; one describing the nature of the entry (dir/symlink/...) rather
+      ;; than its permissions.
+      (setq-local wdired--perm-beg (1+ (wdired--current-column)))
+      (goto-char (match-end 0))
+      (setq-local wdired--perm-end (wdired--current-column)))))
+
+(defun wdired--current-column ()
+  (- (point) (line-beginning-position)))
+
+(defun wdired--point-at-perms-p ()
+  (and wdired--perm-beg
+       (<= wdired--perm-beg (wdired--current-column) wdired--perm-end)))
+
+(defun wdired--line-preprocessed-p ()
+  (get-text-property (line-beginning-position) 'front-sticky))
+
+(defun wdired--self-insert ()
+  (interactive)
+  (if (wdired--line-preprocessed-p)
+      (call-interactively 'self-insert-command)
+    (wdired--before-change-fn (point) (point))
+    (let* ((map (get-text-property (point) 'keymap)))
+      (call-interactively (or (if map (lookup-key map (this-command-keys)))
+                              #'self-insert-command)))))
+
+(defun wdired--before-change-fn (beg end)
+  (save-excursion
+    ;; Make sure to process entire lines.
+    (goto-char end)
+    (setq end (line-end-position))
+    (goto-char beg)
+    (forward-line 0)
+
+    (while (< (point) end)
+      (unless (wdired--line-preprocessed-p)
+        (with-silent-modifications
+          (put-text-property (point) (1+ (point)) 'front-sticky t)
+          (wdired--preprocess-files)
+          (when wdired-allow-to-change-permissions
+            (wdired--preprocess-perms))
+          (when (fboundp 'make-symbolic-link)
+            (wdired--preprocess-symlinks))))
+      (forward-line))
+    (when (eobp)
+      (with-silent-modifications
+        ;; Is this good enough? Assumes no extra white lines from dired.
+        (put-text-property (1- (point-max)) (point-max) 'read-only t)))))
 
 (defun wdired-isearch-filter-read-only (beg end)
   "Skip matches that have a read-only property."
@@ -283,35 +322,28 @@ or \\[wdired-abort-changes] to abort changes")))
 
 ;; Protect the buffer so only the filenames can be changed, and put
 ;; properties so filenames (old and new) can be easily found.
-(defun wdired-preprocess-files ()
-  (put-text-property (point-min) (1+ (point-min))'front-sticky t)
+(defun wdired--preprocess-files ()
   (save-excursion
-    (goto-char (point-min))
-    (let ((b-protection (point))
-          (used-F (dired-check-switches dired-actual-switches "F" "classify"))
-	  filename)
-      (while (not (eobp))
-	(setq filename (dired-get-filename nil t))
-        (when (and filename
-		   (not (member (file-name-nondirectory filename) '("." ".."))))
-	  (dired-move-to-filename)
-	  ;; The rear-nonsticky property below shall ensure that text preceding
-	  ;; the filename can't be modified.
-	  (add-text-properties
-	   (1- (point)) (point) `(old-name ,filename rear-nonsticky (read-only)))
-	  (put-text-property b-protection (point) 'read-only t)
-          (dired-move-to-end-of-filename t)
-	  (put-text-property (point) (1+ (point)) 'end-name t))
-          (when (and used-F (looking-at "[*/@|=>]$")) (forward-char))
-          (when (save-excursion
-                  (and (re-search-backward
-                        dired-permission-flags-regexp nil t)
-                       (looking-at "l")
-                       (search-forward " -> " (line-end-position) t)))
-            (goto-char (line-end-position)))
-	  (setq b-protection (point))
-        (forward-line))
-      (put-text-property b-protection (point-max) 'read-only t))))
+    (let ((used-F (dired-check-switches dired-actual-switches "F" "classify"))
+	  (beg (point))
+          (filename (dired-get-filename nil t)))
+      (when (and filename
+		 (not (member (file-name-nondirectory filename) '("." ".."))))
+	(dired-move-to-filename)
+	;; The rear-nonsticky property below shall ensure that text preceding
+	;; the filename can't be modified.
+	(add-text-properties
+	 (1- (point)) (point) `(old-name ,filename rear-nonsticky (read-only)))
+	(put-text-property beg (point) 'read-only t)
+        (dired-move-to-end-of-filename t)
+	(put-text-property (point) (1+ (point)) 'end-name t))
+      (when (and used-F (looking-at "[*/@|=>]$")) (forward-char))
+      (when (save-excursion
+              (and (re-search-backward
+                    dired-permission-flags-regexp nil t)
+                   (looking-at "l")
+                   (search-forward " -> " (line-end-position) t)))
+        (goto-char (line-end-position))))))
 
 ;; This code is a copy of some dired-get-filename lines.
 (defsubst wdired-normalize-filename (file unquotep)
@@ -338,6 +370,7 @@ non-nil means return old filename."
   ;; FIXME: Use dired-get-filename's new properties.
   (let ((used-F (dired-check-switches dired-actual-switches "F" "classify"))
         beg end file)
+    (wdired--before-change-fn (point) (point))
     (save-excursion
       (setq end (line-end-position))
       (beginning-of-line)
@@ -374,7 +407,6 @@ non-nil means return old filename."
 	(and file (> (length file) 0)
              (concat (dired-current-directory) file))))))
 
-
 (defun wdired-change-to-dired-mode ()
   "Change the mode back to dired."
   (or (eq major-mode 'wdired-mode)
@@ -391,18 +423,19 @@ non-nil means return old filename."
   (setq major-mode 'dired-mode)
   (setq mode-name "Dired")
   (dired-advertise)
-  (remove-hook 'kill-buffer-hook 'wdired-check-kill-buffer t)
-  (remove-hook 'after-change-functions 'wdired--restore-properties t)
-  (setq-local revert-buffer-function 'dired-revert))
-
+  (remove-hook 'kill-buffer-hook #'wdired-check-kill-buffer t)
+  (remove-hook 'before-change-functions #'wdired--before-change-fn t)
+  (remove-hook 'after-change-functions #'wdired--restore-properties t)
+  (remove-function (local 'revert-buffer-function) #'wdired-revert))
 
 (defun wdired-abort-changes ()
   "Abort changes and return to dired mode."
   (interactive)
+  (remove-hook 'before-change-functions #'wdired--before-change-fn t)
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (insert wdired-old-content)
-    (goto-char wdired-old-point))
+    (insert wdired--old-content)
+    (goto-char wdired--old-point))
   (wdired-change-to-dired-mode)
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
@@ -424,13 +457,14 @@ non-nil means return old filename."
 	(setq errors (cdr tmp-value))
 	(setq changes (car tmp-value)))
       (when (and wdired-allow-to-change-permissions
-		 (boundp 'wdired-col-perm)) ; could have been changed
+		 wdired--perm-beg) ; could have been changed
 	(setq tmp-value (wdired-do-perm-changes))
 	(setq errors (+ errors (cdr tmp-value)))
 	(setq changes (or changes (car tmp-value))))
       (goto-char (point-max))
       (while (not (bobp))
-	(setq file-old (wdired-get-filename nil t))
+	(setq file-old (and (wdired--line-preprocessed-p)
+	                    (wdired-get-filename nil t)))
 	(when file-old
 	  (setq file-new (wdired-get-filename))
           (if (equal file-new file-old)
@@ -442,11 +476,11 @@ non-nil means return old filename."
 		(let ((mark (cond ((integerp wdired-keep-marker-rename)
 				   wdired-keep-marker-rename)
 				  (wdired-keep-marker-rename
-				   (cdr (assoc file-old wdired-old-marks)))
+				   (cdr (assoc file-old wdired--old-marks)))
 				  (t nil))))
 		  (when mark
 		    (push (cons (substitute-in-file-name file-new) mark)
-			  wdired-old-marks))))
+			  wdired--old-marks))))
               (push (cons file-old (substitute-in-file-name file-new))
                     files-renamed))))
 	(forward-line -1)))
@@ -471,7 +505,7 @@ non-nil means return old filename."
 	  ;; Re-sort the buffer.
 	  (revert-buffer)
 	  (let ((inhibit-read-only t))
-	    (dired-mark-remembered wdired-old-marks)))
+	    (dired-mark-remembered wdired--old-marks)))
       (let ((inhibit-read-only t))
 	(remove-text-properties (point-min) (point-max)
 				'(old-name nil end-name nil old-link nil
@@ -542,7 +576,7 @@ non-nil means return old filename."
               ;; So we must ensure dired-aux is loaded.
               (require 'dired-aux)
               (condition-case err
-                  (let ((dired-backup-overwrite nil))
+                  (dlet ((dired-backup-overwrite nil))
                     (and wdired-create-parent-directories
                          (wdired-create-parentdirs file-new))
                     (dired-rename-file file-ori file-new
@@ -715,21 +749,17 @@ says how many lines to move; default is one line."
       (dired-move-to-filename)))
 
 ;; Put the needed properties to allow the user to change links' targets
-(defun wdired-preprocess-symlinks ()
-  (let ((inhibit-read-only t))
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-        (when (looking-at dired-re-sym)
-          (re-search-forward " -> \\(.*\\)$")
-	  (put-text-property (1- (match-beginning 1))
-			     (match-beginning 1) 'old-link
-			     (match-string-no-properties 1))
-          (put-text-property (match-end 1) (1+ (match-end 1)) 'end-link t)
-          (unless wdired-allow-to-redirect-links
-            (put-text-property (match-beginning 0)
-			       (match-end 1) 'read-only t)))
-        (forward-line)))))
+(defun wdired--preprocess-symlinks ()
+  (save-excursion
+    (when (looking-at dired-re-sym)
+      (re-search-forward " -> \\(.*\\)$")
+      (put-text-property (1- (match-beginning 1))
+			 (match-beginning 1) 'old-link
+			 (match-string-no-properties 1))
+      (put-text-property (match-end 1) (1+ (match-end 1)) 'end-link t)
+      (unless wdired-allow-to-redirect-links
+        (put-text-property (match-beginning 0)
+			   (match-end 1) 'read-only t)))))
 
 (defun wdired-get-previous-link (&optional old move)
   "Return the next symlink target.
@@ -813,56 +843,49 @@ Like original function but it skips read-only words."
   (interactive "p")
   (wdired-xcase-word 'capitalize-word arg))
 
-
 ;; The following code deals with changing the access bits (or
 ;; permissions) of the files.
 
 (defvar wdired-perm-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map " " 'wdired-toggle-bit)
-    (define-key map "r" 'wdired-set-bit)
-    (define-key map "w" 'wdired-set-bit)
-    (define-key map "x" 'wdired-set-bit)
-    (define-key map "-" 'wdired-set-bit)
-    (define-key map "S" 'wdired-set-bit)
-    (define-key map "s" 'wdired-set-bit)
-    (define-key map "T" 'wdired-set-bit)
-    (define-key map "t" 'wdired-set-bit)
-    (define-key map "s" 'wdired-set-bit)
-    (define-key map "l" 'wdired-set-bit)
-    (define-key map [down-mouse-1] 'wdired-mouse-toggle-bit)
+    (define-key map " " #'wdired-toggle-bit)
+    (define-key map "r" #'wdired-set-bit)
+    (define-key map "w" #'wdired-set-bit)
+    (define-key map "x" #'wdired-set-bit)
+    (define-key map "-" #'wdired-set-bit)
+    (define-key map "S" #'wdired-set-bit)
+    (define-key map "s" #'wdired-set-bit)
+    (define-key map "T" #'wdired-set-bit)
+    (define-key map "t" #'wdired-set-bit)
+    (define-key map "s" #'wdired-set-bit)
+    (define-key map "l" #'wdired-set-bit)
+    (define-key map [mouse-1] #'wdired-mouse-toggle-bit)
     map))
 
 ;; Put a keymap property to the permission bits of the files, and store the
 ;; original name and permissions as a property
-(defun wdired-preprocess-perms ()
-  (let ((inhibit-read-only t))
-    (setq-local wdired-col-perm nil)
-    (save-excursion
-      (goto-char (point-min))
-      (while (not (eobp))
-	(when (and (not (looking-at dired-re-sym))
-		   (wdired-get-filename)
-		   (re-search-forward dired-re-perms (line-end-position) 'eol))
-	  (let ((begin (match-beginning 0))
-		(end (match-end 0)))
-	    (unless wdired-col-perm
-	      (setq wdired-col-perm (- (current-column) 9)))
-	    (if (eq wdired-allow-to-change-permissions 'advanced)
-		(progn
-		  (put-text-property begin end 'read-only nil)
-		  ;; make first permission bit writable
-		  (put-text-property
-		   (1- begin) begin 'rear-nonsticky '(read-only)))
-	      ;; avoid that keymap applies to text following permissions
-	      (add-text-properties
-	       (1+ begin) end
-	       `(keymap ,wdired-perm-mode-map rear-nonsticky (keymap))))
-	    (put-text-property end (1+ end) 'end-perm t)
-	    (put-text-property
-	     begin (1+ begin) 'old-perm (match-string-no-properties 0))))
-        (forward-line)
-	(beginning-of-line)))))
+(defun wdired--preprocess-perms ()
+  (save-excursion
+    (when (and (not (looking-at dired-re-sym))
+	       (wdired-get-filename)
+	       (re-search-forward dired-re-perms
+                                  (line-end-position) 'eol))
+      (let ((begin (match-beginning 0))
+	    (end (match-end 0)))
+	(if (eq wdired-allow-to-change-permissions 'advanced)
+	    (progn
+	      (put-text-property begin end 'read-only nil)
+	      ;; make first permission bit writable
+	      (put-text-property
+	       (1- begin) begin 'rear-nonsticky '(read-only)))
+	  ;; avoid that keymap applies to text following permissions
+	  (add-text-properties
+	   (1+ begin) end
+	   `(keymap ,wdired-perm-mode-map rear-nonsticky (keymap))))
+	(put-text-property end (1+ end) 'end-perm t)
+	(put-text-property
+	 begin (1+ begin)
+         'old-perm (match-string-no-properties 0))))))
 
 (defun wdired-perm-allowed-in-pos (char pos)
   (cond
@@ -874,39 +897,30 @@ Like original function but it skips read-only words."
    ((memq char '(?t ?T)) (= pos 8))
    ((= char ?l)          (= pos 5))))
 
-(defun wdired-set-bit ()
+(defun wdired-set-bit (&optional char)
   "Set a permission bit character."
-  (interactive)
-  (if (wdired-perm-allowed-in-pos last-command-event
-                                  (- (current-column) wdired-col-perm))
-      (let ((new-bit (char-to-string last-command-event))
+  (interactive (list last-command-event))
+  (unless char (setq char last-command-event))
+  (if (wdired-perm-allowed-in-pos char
+                                  (- (wdired--current-column) wdired--perm-beg))
+      (let ((new-bit (char-to-string char))
             (inhibit-read-only t)
-	    (pos-prop (- (point) (- (current-column) wdired-col-perm))))
-        (put-text-property 0 1 'keymap wdired-perm-mode-map new-bit)
-        (put-text-property 0 1 'read-only t new-bit)
+	    (pos-prop (+ (line-beginning-position) wdired--perm-beg)))
+        (set-text-properties 0 1 (text-properties-at (point)) new-bit)
         (insert new-bit)
         (delete-char 1)
-	(put-text-property (1- pos-prop) pos-prop 'perm-changed t)
-	(put-text-property (1- (point)) (point) 'rear-nonsticky '(keymap)))
+	(put-text-property (1- pos-prop) pos-prop 'perm-changed t))
     (forward-char 1)))
 
 (defun wdired-toggle-bit ()
   "Toggle the permission bit at point."
   (interactive)
-  (let ((inhibit-read-only t)
-	(new-bit "-")
-	(pos-prop (- (point) (- (current-column) wdired-col-perm))))
-    (if (eq (char-after (point)) ?-)
-	(setq new-bit
-	      (if (= (% (- (current-column) wdired-col-perm) 3) 0) "r"
-		(if (= (% (- (current-column) wdired-col-perm) 3) 1) "w"
-		  "x"))))
-    (put-text-property 0 1 'keymap wdired-perm-mode-map new-bit)
-    (put-text-property 0 1 'read-only t new-bit)
-    (insert new-bit)
-    (delete-char 1)
-    (put-text-property (1- pos-prop) pos-prop 'perm-changed t)
-    (put-text-property (1- (point)) (point) 'rear-nonsticky '(keymap))))
+  (wdired-set-bit
+   (cond
+    ((not (eq (char-after (point)) ?-)) ?-)
+    ((= (% (- (wdired--current-column) wdired--perm-beg) 3) 0) ?r)
+    ((= (% (- (wdired--current-column) wdired--perm-beg) 3) 1) ?w)
+    (t ?x))))
 
 (defun wdired-mouse-toggle-bit (event)
   "Toggle the permission bit that was left clicked."

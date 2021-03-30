@@ -660,11 +660,11 @@ Does not signal an error if optional argument NOERROR is non-nil."
 (defun archive-mode (&optional force)
   "Major mode for viewing an archive file in a dired-like way.
 You can move around using the usual cursor motion commands.
-Letters no longer insert themselves.
-Type `e' to pull a file out of the archive and into its own buffer;
+Letters no longer insert themselves.\\<archive-mode-map>
+Type \\[archive-extract] to pull a file out of the archive and into its own buffer;
 or click mouse-2 on the file's line in the archive mode buffer.
 
-If you edit a sub-file of this archive (as with the `e' command) and
+If you edit a sub-file of this archive (as with the \\[archive-extract] command) and
 save it, the contents of that buffer will be saved back into the
 archive.
 

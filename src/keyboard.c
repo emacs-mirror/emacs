@@ -3614,6 +3614,12 @@ kbd_buffer_store_buffered_event (union buffered_input_event *event,
     case ICONIFY_EVENT: ignore_event = Qiconify_frame; break;
     case DEICONIFY_EVENT: ignore_event = Qmake_frame_visible; break;
     case SELECTION_REQUEST_EVENT: ignore_event = Qselection_request; break;
+#ifdef USE_FILE_NOTIFY
+    case FILE_NOTIFY_EVENT: ignore_event = Qfile_notify; break;
+#endif
+#ifdef HAVE_DBUS
+    case DBUS_EVENT: ignore_event = Qdbus_event; break;
+#endif
     default: ignore_event = Qnil; break;
     }
 
@@ -6679,6 +6685,7 @@ parse_solitary_modifier (Lisp_Object symbol)
     case 'c':
       MULTI_LETTER_MOD (ctrl_modifier, "ctrl", 4);
       MULTI_LETTER_MOD (ctrl_modifier, "control", 7);
+      MULTI_LETTER_MOD (click_modifier, "click", 5);
       break;
 
     case 'H':
@@ -12379,8 +12386,6 @@ syms_of_keyboard_for_pdumper (void)
   /* Create the initial keyboard.  Qt means 'unset'.  */
   eassert (initial_kboard == NULL);
   initial_kboard = allocate_kboard (Qt);
-
-  Vwhile_no_input_ignore_events = Qnil;
 
   inhibit_record_char = false;
 }

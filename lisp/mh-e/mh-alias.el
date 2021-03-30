@@ -1,4 +1,4 @@
-;;; mh-alias.el --- MH-E mail alias completion and expansion
+;;; mh-alias.el --- MH-E mail alias completion and expansion  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994-1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -42,8 +42,8 @@
   "Time aliases were last loaded.")
 (defvar mh-alias-read-address-map
   (let ((map (copy-keymap minibuffer-local-completion-map)))
-    (define-key map "," 'mh-alias-minibuffer-confirm-address)
-    (define-key map " " 'self-insert-command)
+    (define-key map "," #'mh-alias-minibuffer-confirm-address)
+    (define-key map " " #'self-insert-command)
     map))
 
 (defcustom mh-alias-system-aliases
@@ -270,9 +270,9 @@ Blind aliases or users from /etc/passwd are not expanded."
                   (t (split-string
                       (completing-read prompt mh-alias-alist nil nil) ",")))))
       (if (not mh-alias-expand-aliases-flag)
-          (mapconcat 'identity the-answer ", ")
+          (mapconcat #'identity the-answer ", ")
         ;; Loop over all elements, checking if in passwd alias or blind first
-        (mapconcat 'mh-alias-expand the-answer ",\n ")))))
+        (mapconcat #'mh-alias-expand the-answer ",\n ")))))
 
 ;;;###mh-autoload
 (defun mh-alias-minibuffer-confirm-address ()
@@ -427,10 +427,10 @@ contains it."
       (if (or (not alias)
               (string-equal alias (mh-alias-ali alias))) ;alias doesn't exist
           (completing-read "Alias file: "
-                           (mapcar 'list mh-alias-insert-file) nil t)
+                           (mapcar #'list mh-alias-insert-file) nil t)
         (or (mh-alias-which-file-has-alias alias mh-alias-insert-file)
             (completing-read "Alias file: "
-                             (mapcar 'list mh-alias-insert-file) nil t)))))
+                             (mapcar #'list mh-alias-insert-file) nil t)))))
    ((and mh-alias-insert-file (stringp mh-alias-insert-file))
     mh-alias-insert-file)
    (t
@@ -449,11 +449,10 @@ set `mh-alias-insert-file' or the \"Aliasfile:\" profile component"))
         (car autolist))
        ((or (not alias)
             (string-equal alias (mh-alias-ali alias))) ;alias doesn't exist
-        (completing-read "Alias file: " (mapcar 'list autolist) nil t))
+        (completing-read "Alias file: " autolist nil t))
        (t
         (or (mh-alias-which-file-has-alias alias autolist)
-            (completing-read "Alias file: "
-                             (mapcar 'list autolist) nil t))))))))
+            (completing-read "Alias file: " autolist nil t))))))))
 
 ;;;###mh-autoload
 (defun mh-alias-address-to-alias (address)

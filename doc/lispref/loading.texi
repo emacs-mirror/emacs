@@ -510,6 +510,9 @@ specification is not given here; it's not needed unless the user
 actually calls @var{function}, and when that happens, it's time to load
 the real definition.
 
+If @var{interactive} is a list, it is interpreted as a list of modes
+this command is applicable for.
+
 You can autoload macros and keymaps as well as ordinary functions.
 Specify @var{type} as @code{macro} if @var{function} is really a macro.
 Specify @var{type} as @code{keymap} if @var{function} is really a
@@ -1049,7 +1052,6 @@ rather than replacing that element.  @xref{Eval}.
 @section Unloading
 @cindex unloading packages
 
-@c Emacs 19 feature
   You can discard the functions and variables loaded by a library to
 reclaim memory for other Lisp objects.  To do this, use the function
 @code{unload-feature}:
@@ -1125,7 +1127,7 @@ You don't need to give a directory or extension in the file name
 @var{library}.  Normally, you just give a bare file name, like this:
 
 @example
-(with-eval-after-load "edebug" (def-edebug-spec c-point t))
+(with-eval-after-load "js" (define-key js-mode-map "\C-c\C-c" 'js-eval))
 @end example
 
 To restrict which files can trigger the evaluation, include a

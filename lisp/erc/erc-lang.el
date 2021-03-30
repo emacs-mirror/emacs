@@ -1,4 +1,4 @@
-;;; erc-lang.el --- provide the LANG command to ERC
+;;; erc-lang.el --- provide the LANG command to ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002, 2004, 2006-2021 Free Software Foundation, Inc.
 
@@ -6,7 +6,7 @@
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Old-Version: 1.0.0
 ;; URL: https://www.emacswiki.org/emacs/ErcLang
-;; Keywords: comm languages processes
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 

@@ -1,4 +1,4 @@
-;;; ede/dired.el --- EDE extensions to dired.
+;;; ede/dired.el --- EDE extensions to dired.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2000, 2003, 2009-2021 Free Software Foundation,
 ;; Inc.
@@ -30,17 +30,16 @@
 
 ;;; Code:
 
-(require 'easymenu)
 (require 'dired)
 (require 'ede)
 
 (defvar ede-dired-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map ".a" 'ede-dired-add-to-target)
-    (define-key map ".t" 'ede-new-target)
-    (define-key map ".s" 'ede-speedbar)
-    (define-key map ".C" 'ede-compile-project)
-    (define-key map ".d" 'ede-make-dist)
+    (define-key map ".a" #'ede-dired-add-to-target)
+    (define-key map ".t" #'ede-new-target)
+    (define-key map ".s" #'ede-speedbar)
+    (define-key map ".C" #'ede-compile-project)
+    (define-key map ".d" #'ede-make-dist)
 
     (easy-menu-define
       ede-dired-menu map "EDE Dired Minor Mode Menu"

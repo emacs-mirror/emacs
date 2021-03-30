@@ -1,4 +1,4 @@
-;;; srecode/srt.el --- argument handlers for SRT files
+;;; srecode/srt.el --- argument handlers for SRT files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -43,7 +43,7 @@ DEFAULT is the default if RET is hit."
 	 (currfcn (semantic-current-tag))
 	 )
     (srecode-resolve-argument-list
-     (mapcar 'read
+     (mapcar #'read
 	     (semantic-tag-get-attribute currfcn :arguments))
      newdict)
 
@@ -56,7 +56,7 @@ DEFAULT is the default if RET is hit."
 (defvar srecode-read-major-mode-history nil
   "History for `srecode-read-variable-name'.")
 
-(defun srecode-read-major-mode-name (prompt &optional initial hist default)
+(defun srecode-read-major-mode-name (prompt &optional initial hist _default)
   "Read in the name of a desired `major-mode'.
 PROMPT is the prompt to use.
 INITIAL is the initial string.
@@ -64,7 +64,7 @@ HIST is the history value, otherwise `srecode-read-variable-name-history'
      is used.
 DEFAULT is the default if RET is hit."
   (completing-read prompt obarray
-		   (lambda (s) (string-match "-mode$" (symbol-name s)))
+		   (lambda (s) (string-match "-mode\\'" (symbol-name s)))
 		   nil initial (or hist 'srecode-read-major-mode-history))
   )
 

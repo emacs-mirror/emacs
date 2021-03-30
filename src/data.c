@@ -904,7 +904,17 @@ Value, if non-nil, is a list (interactive SPEC).  */)
   else if (COMPILEDP (fun))
     {
       if (PVSIZE (fun) > COMPILED_INTERACTIVE)
-	return list2 (Qinteractive, AREF (fun, COMPILED_INTERACTIVE));
+	{
+	  Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
+	  if (VECTORP (form))
+	    /* The vector form is the new form, where the first
+	       element is the interactive spec, and the second is the
+	       command modes. */
+	    return list2 (Qinteractive, AREF (form, 0));
+	  else
+	    /* Old form -- just the interactive spec. */
+	    return list2 (Qinteractive, form);
+	}
     }
 #ifdef HAVE_MODULES
   else if (MODULE_FUNCTIONP (fun))
@@ -920,10 +930,83 @@ Value, if non-nil, is a list (interactive SPEC).  */)
   else if (CONSP (fun))
     {
       Lisp_Object funcar = XCAR (fun);
-      if (EQ (funcar, Qclosure))
-	return Fassq (Qinteractive, Fcdr (Fcdr (XCDR (fun))));
-      else if (EQ (funcar, Qlambda))
-	return Fassq (Qinteractive, Fcdr (XCDR (fun)));
+      if (EQ (funcar, Qclosure)
+	  || EQ (funcar, Qlambda))
+	{
+	  Lisp_Object form = Fcdr (XCDR (fun));
+	  if (EQ (funcar, Qclosure))
+	    form = Fcdr (form);
+	  Lisp_Object spec = Fassq (Qinteractive, form);
+	  if (NILP (Fcdr (Fcdr (spec))))
+	    return spec;
+	  else
+	    return list2 (Qinteractive, Fcar (Fcdr (spec)));
+	}
+    }
+  return Qnil;
+}
+
+DEFUN ("command-modes", Fcommand_modes, Scommand_modes, 1, 1, 0,
+       doc: /* Return the modes COMMAND is defined for.
+If COMMAND is not a command, the return value is nil.
+The value, if non-nil, is a list of mode name symbols.  */)
+  (Lisp_Object command)
+{
+  Lisp_Object fun = indirect_function (command); /* Check cycles.  */
+
+  if (NILP (fun))
+    return Qnil;
+
+  /* Use a `command-modes' property if present, analogous to the
+     function-documentation property.  */
+  fun = command;
+  while (SYMBOLP (fun))
+    {
+      Lisp_Object modes = Fget (fun, Qcommand_modes);
+      if (!NILP (modes))
+	return modes;
+      else
+	fun = Fsymbol_function (fun);
+    }
+
+  if (COMPILEDP (fun))
+    {
+      Lisp_Object form = AREF (fun, COMPILED_INTERACTIVE);
+      if (VECTORP (form))
+	/* New form -- the second element is the command modes. */
+	return AREF (form, 1);
+      else
+	/* Old .elc file -- no command modes. */
+	return Qnil;
+    }
+#ifdef HAVE_MODULES
+  else if (MODULE_FUNCTIONP (fun))
+    {
+      Lisp_Object form
+        = module_function_command_modes (XMODULE_FUNCTION (fun));
+      if (! NILP (form))
+        return form;
+    }
+#endif
+  else if (AUTOLOADP (fun))
+    {
+      Lisp_Object modes = Fnth (make_int (3), fun);
+      if (CONSP (modes))
+	return modes;
+      else
+	return Qnil;
+    }
+  else if (CONSP (fun))
+    {
+      Lisp_Object funcar = XCAR (fun);
+      if (EQ (funcar, Qclosure)
+	  || EQ (funcar, Qlambda))
+	{
+	  Lisp_Object form = Fcdr (XCDR (fun));
+	  if (EQ (funcar, Qclosure))
+	    form = Fcdr (form);
+	  return Fcdr (Fcdr (Fassq (Qinteractive, form)));
+	}
     }
   return Qnil;
 }
@@ -1506,6 +1589,7 @@ All writes to aliases of SYMBOL will call WATCH-FUNCTION too.  */)
   (Lisp_Object symbol, Lisp_Object watch_function)
 {
   symbol = Findirect_variable (symbol);
+  CHECK_SYMBOL (symbol);
   set_symbol_trapped_write (symbol, SYMBOL_TRAPPED_WRITE);
   map_obarray (Vobarray, harmonize_variable_watchers, symbol);
 
@@ -3906,8 +3990,11 @@ syms_of_data (void)
   DEFSYM (Qinteractive_form, "interactive-form");
   DEFSYM (Qdefalias_fset_function, "defalias-fset-function");
 
+  DEFSYM (Qbyte_code_function_p, "byte-code-function-p");
+
   defsubr (&Sindirect_variable);
   defsubr (&Sinteractive_form);
+  defsubr (&Scommand_modes);
   defsubr (&Seq);
   defsubr (&Snull);
   defsubr (&Stype_of);
@@ -4030,6 +4117,7 @@ This variable cannot be set; trying to do so will signal an error.  */);
   DEFSYM (Qunlet, "unlet");
   DEFSYM (Qset, "set");
   DEFSYM (Qset_default, "set-default");
+  DEFSYM (Qcommand_modes, "command-modes");
   defsubr (&Sadd_variable_watcher);
   defsubr (&Sremove_variable_watcher);
   defsubr (&Sget_variable_watchers);

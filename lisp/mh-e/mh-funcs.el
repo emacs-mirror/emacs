@@ -1,4 +1,4 @@
-;;; mh-funcs.el --- MH-E functions not everyone will use right away
+;;; mh-funcs.el --- MH-E functions not everyone will use right away  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -348,7 +348,7 @@ See `mh-store-msg' for a description of DIRECTORY."
         (error "Error occurred during execution of %s" command)))))
 
 ;;;###mh-autoload
-(defun mh-undo-folder (&rest ignored)
+(defun mh-undo-folder (&rest _ignored)
   "Undo all refiles and deletes in the current folder.
 Arguments are IGNORED (for `revert-buffer')."
   (interactive)

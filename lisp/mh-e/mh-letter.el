@@ -1,4 +1,4 @@
-;;; mh-letter.el --- MH-Letter mode
+;;; mh-letter.el --- MH-Letter mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
@@ -334,15 +334,15 @@ order).
   ;; Maybe we want to use the existing Mail menu from mail-mode in
   ;; 9.0; in the mean time, let's remove it since the redundancy will
   ;; only produce confusion.
-  (define-key mh-letter-mode-map [menu-bar mail] 'undefined)
+  (define-key mh-letter-mode-map [menu-bar mail] #'undefined)
   (mh-do-in-xemacs (easy-menu-remove mail-menubar-menu))
   (setq fill-column mh-letter-fill-column)
   (add-hook 'completion-at-point-functions
-            'mh-letter-completion-at-point nil 'local)
+            #'mh-letter-completion-at-point nil 'local)
   ;; If text-mode-hook turned on auto-fill, tune it for messages
   (when auto-fill-function
     (make-local-variable 'auto-fill-function)
-    (setq auto-fill-function 'mh-auto-fill-for-letter)))
+    (setq auto-fill-function #'mh-auto-fill-for-letter)))
 
 
 
@@ -390,10 +390,7 @@ This command leaves the mark before the letter and point after it."
                 (or mh-sent-from-msg (nth 0 (mh-translate-range folder "cur")))
               (nth 0 (mh-translate-range folder "cur"))))
           (message
-           (read-string (concat "Message number"
-                                (or (and default
-                                         (format " (default %d): " default))
-                                    ": "))
+           (read-string (format-prompt "Message number" default)
                         nil nil
                         (if (numberp default)
                             (int-to-string default)
@@ -851,7 +848,7 @@ body."
              (forward-line)))))
 
 ;;;###mh-autoload
-(defun mh-position-on-field (field &optional ignored)
+(defun mh-position-on-field (field &optional _ignored)
   "Move to the end of the FIELD in the header.
 Move to end of entire header if FIELD not found.
 Returns non-nil if FIELD was found.

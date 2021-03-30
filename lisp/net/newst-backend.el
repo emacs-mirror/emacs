@@ -39,9 +39,9 @@
 (require 'iso8601)
 
 ;; Silence warnings
+(defvar newsticker-groups)
 (defvar w3-mode-map)
 (defvar w3m-minor-mode-map)
-
 
 (defvar newsticker--retrieval-timer-list nil
   "List of timers for news retrieval.
@@ -66,35 +66,34 @@ considered to be running if the newsticker timer list is not empty."
 
 ;; Hard-coding URLs like this is a recipe for propagating obsolete info.
 (defconst newsticker--raw-url-list-defaults
-  '(
-    ("Debian Security Advisories"
-    "http://www.debian.org/security/dsa.en.rdf")
+  '(("Debian Security Advisories"
+     "https://www.debian.org/security/dsa.en.rdf")
     ("Debian Security Advisories - Long format"
-    "http://www.debian.org/security/dsa-long.en.rdf")
+     "https://www.debian.org/security/dsa-long.en.rdf")
     ("Emacs Wiki"
-    "https://www.emacswiki.org/emacs?action=rss"
-    nil
-    3600)
+     "https://www.emacswiki.org/emacs?action=rss"
+     nil
+     3600)
     ("LWN (Linux Weekly News)"
-    "https://lwn.net/headlines/rss")
+     "https://lwn.net/headlines/rss")
     ("Quote of the day"
-    "http://feeds.feedburner.com/quotationspage/qotd"
-    "07:00"
-    86400)
+     "https://feeds.feedburner.com/quotationspage/qotd"
+     "07:00"
+     86400)
     ("The Register"
-    "https://www.theregister.co.uk/headlines.rss")
+     "https://www.theregister.co.uk/headlines.rss")
     ("slashdot"
-    "http://rss.slashdot.org/Slashdot/slashdot"
-    nil
-    3600)                        ;/. will ban you if under 3600 seconds!
+     "http://rss.slashdot.org/Slashdot/slashdot"
+     nil
+     3600)                        ;/. will ban you if under 3600 seconds!
     ("Wired News"
-    "https://www.wired.com/feed/rss")
+     "https://www.wired.com/feed/rss")
     ("Heise News (german)"
-    "http://www.heise.de/newsticker/heise.rdf")
+     "http://www.heise.de/newsticker/heise.rdf")
     ("Tagesschau (german)"
-    "http://www.tagesschau.de/newsticker.rdf"
-    nil
-    1800))
+     "http://www.tagesschau.de/newsticker.rdf"
+     nil
+     1800))
   "Default URL list in raw form.
 This list is fed into defcustom via `newsticker--splicer'.")
 
@@ -153,10 +152,10 @@ value effective."
   :group 'newsticker)
 
 (defcustom newsticker-url-list-defaults
- '(("Emacs Wiki"
-    "https://www.emacswiki.org/emacs?action=rss"
-    nil
-    3600))
+  '(("Emacs Wiki"
+     "https://www.emacswiki.org/emacs?action=rss"
+     nil
+     3600))
   "A customizable list of news feeds to select from.
 These were mostly extracted from the Radio Community Server
 <http://rcs.userland.com/>.
@@ -164,7 +163,7 @@ These were mostly extracted from the Radio Community Server
 You may add other entries in `newsticker-url-list'."
   :type `(set ,@(mapcar #'newsticker--splicer
                         newsticker--raw-url-list-defaults))
-  :set 'newsticker--set-customvar-retrieval
+  :set #'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
 
 (defcustom newsticker-url-list nil
@@ -218,7 +217,7 @@ which apply for this feed only, overriding the value of
                        (choice :tag "Wget Arguments"
                                (const  :tag "Default arguments" nil)
                                (repeat :tag "Special arguments" string))))
-  :set 'newsticker--set-customvar-retrieval
+  :set #'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
 
 (defcustom newsticker-retrieval-method
@@ -261,7 +260,7 @@ make it less than 1800 seconds (30 minutes)!"
                  (const   :tag "Daily" 86400)
                  (const   :tag "Weekly" 604800)
                  (integer :tag "Interval"))
-  :set 'newsticker--set-customvar-retrieval
+  :set #'newsticker--set-customvar-retrieval
   :group 'newsticker-retrieval)
 
 (defcustom newsticker-desc-comp-max
@@ -550,7 +549,7 @@ name/timer pair to `newsticker--retrieval-timer-list'."
       (if (<= interval 0)
           (setq interval nil))
       (setq timer (run-at-time start-time interval
-                               'newsticker-get-news feed-name))
+                               #'newsticker-get-news feed-name))
       (if interval
           (add-to-list 'newsticker--retrieval-timer-list
                        (cons feed-name timer))))))
@@ -645,6 +644,15 @@ If URL is nil it is searched at point."
   (add-to-list 'newsticker-url-list (list name url nil nil nil) t)
   (customize-variable 'newsticker-url-list))
 
+(defun newsticker-customize-feed (feed-name)
+  "Open customization buffer for `newsticker-url-list' and jump to FEED-NAME."
+  (interactive
+   (list (completing-read "Name of feed or group to edit: "
+                          (mapcar #'car newsticker-url-list))))
+  (customize-variable 'newsticker-url-list)
+  (when (search-forward (concat "Label: " feed-name) nil t)
+    (forward-line -1)))
+
 (defun newsticker-customize ()
   "Open the newsticker customization group."
   (interactive)
@@ -671,8 +679,8 @@ See `newsticker-get-news'."
     (condition-case error-data
         (url-retrieve url 'newsticker--get-news-by-url-callback
                       (list feed-name))
-          (error (message "Error retrieving news from %s: %s" feed-name
-                          error-data))))
+      (error (message "Error retrieving news from %s: %s" feed-name
+                      error-data))))
   (force-mode-line-update))
 
 (defun newsticker--get-news-by-url-callback (status feed-name)
@@ -719,10 +727,10 @@ See `newsticker-get-news'."
           (error "Another wget-process is running for %s" feed-name))
       ;; start wget
       (let* ((args (append wget-arguments (list url)))
-             (proc (apply 'start-process feed-name buffername
+             (proc (apply #'start-process feed-name buffername
                           newsticker-wget-name args)))
         (set-process-coding-system proc 'no-conversion 'no-conversion)
-        (set-process-sentinel proc 'newsticker--sentinel)
+        (set-process-sentinel proc #'newsticker--sentinel)
         (process-put proc 'nt-feed-name feed-name)
         (setq newsticker--process-ids (cons (process-id proc)
                                             newsticker--process-ids))
@@ -816,7 +824,7 @@ Argument BUFFER is the buffer of the retrieval process."
                     (setq coding-system (intern (downcase (match-string 1))))
                   (setq coding-system
                         (condition-case nil
-                              (check-coding-system coding-system)
+                            (check-coding-system coding-system)
                           (coding-system-error
                            (message
                             "newsticker.el: ignoring coding system %s for %s"
@@ -927,8 +935,8 @@ Argument BUFFER is the buffer of the retrieval process."
         ;; setup scrollable text
         (when (= 0 (length newsticker--process-ids))
           (when (fboundp 'newsticker--ticker-text-setup) ;silence
-                                                         ;compiler
-                                                         ;warnings
+                                        ;compiler
+                                        ;warnings
             (newsticker--ticker-text-setup)))
         (setq newsticker--latest-update-time (current-time))
         (when something-was-added
@@ -936,8 +944,8 @@ Argument BUFFER is the buffer of the retrieval process."
           (newsticker--cache-save-feed
            (newsticker--cache-get-feed name-symbol))
           (when (fboundp 'newsticker--buffer-set-uptodate) ;silence
-                                                           ;compiler
-                                                           ;warnings
+                                        ;compiler
+                                        ;warnings
             (newsticker--buffer-set-uptodate nil)))
         ;; kill the process buffer if wanted
         (unless newsticker-debug
@@ -1004,7 +1012,7 @@ Argument BUFFER is the buffer of the retrieval process."
   ;; And another one (20050702)! If description is HTML
   ;; encoded and starts with a `<', wrap the whole
   ;; description in a CDATA expression.  This happened for
-  ;; http://www.thefreedictionary.com/_/WoD/rss.aspx?type=quote
+  ;; https://www.thefreedictionary.com/_/WoD/rss.aspx?type=quote
   (goto-char (point-min))
   (while (re-search-forward
           "<description>\\(<img.*?\\)</description>" nil t)
@@ -1098,8 +1106,8 @@ same as in `newsticker--parse-atom-1.0'."
                     ;; time-fn
                     (lambda (node)
                       (newsticker--decode-rfc822-date
-                            (car (xml-node-children
-                                  (car (xml-get-children node 'modified))))))
+                       (car (xml-node-children
+                             (car (xml-get-children node 'modified))))))
                     ;; guid-fn
                     (lambda (node)
                       (newsticker--guid-to-string
@@ -1123,9 +1131,9 @@ Restore an xml-string from a an xml NODE that was returned by xml-parse..."
         (children (cddr node)))
     (concat "<" qname
             (when att-list " ")
-            (mapconcat 'newsticker--unxml-attribute att-list " ")
+            (mapconcat #'newsticker--unxml-attribute att-list " ")
             ">"
-            (mapconcat 'newsticker--unxml children "") "</" qname ">")))
+            (mapconcat #'newsticker--unxml children "") "</" qname ">")))
 
 (defun newsticker--unxml-attribute (attribute)
   "Actually restore xml-string of an ATTRIBUTE of an xml node."
@@ -1168,7 +1176,7 @@ URL `http://www.atompub.org/2005/08/17/draft-ietf-atompub-format-11.html'"
                       ;; unxml the content or the summary node. Atom
                       ;; allows for integrating (x)html into the atom
                       ;; structure but we need the raw html string.
-                      ;; e.g. http://www.heise.de/open/news/news-atom.xml
+                      ;; e.g. https://www.heise.de/open/news/news-atom.xml
                       ;; http://feeds.feedburner.com/ru_nix_blogs
                       (or (newsticker--unxml
                            (car (xml-node-children
@@ -1548,6 +1556,7 @@ argument, which is one of the items in ITEMLIST."
 ;; ======================================================================
 
 (defun newsticker--insert-bytes (bytes)
+  "Decode BYTES and insert in current buffer."
   (insert (decode-coding-string bytes 'binary)))
 
 (defun newsticker--remove-whitespace (string)
@@ -1571,7 +1580,7 @@ Remove the pre-formatted from `newsticker--cache'."
   "Forget all cached pre-formatted data.
 Remove the pre-formatted from `newsticker--cache'."
   (mapc (lambda (feed)
-          (mapc 'newsticker--do-forget-preformatted
+          (mapc #'newsticker--do-forget-preformatted
                 (cdr feed)))
         newsticker--cache)
   (when (fboundp 'newsticker--buffer-set-uptodate)
@@ -1584,10 +1593,10 @@ This function calls `message' with arguments STRING and ARGS, if
   (and newsticker-debug
        ;;(not (active-minibuffer-window))
        ;;(not (current-message))
-       (apply 'message string args)))
+       (apply #'message string args)))
 
 (defun newsticker--decode-iso8601-date (string)
-  "Return ISO8601-STRING in format like `encode-time'.
+  "Return ISO8601-encoded STRING in format like `encode-time'.
 Converts from ISO-8601 to Emacs representation.  If no time zone
 is present, this function defaults to universal time."
   (if string
@@ -1669,7 +1678,7 @@ Sat, 07 Sep 2002 00:00:01 GMT
              (message "Cannot decode \"%s\": %s %s" rfc822-string
                       (car error-data) (cdr error-data))
              nil))))
-      nil))
+    nil))
 
 (defun newsticker--lists-intersect-p (list1 list2)
   "Return t if LIST1 and LIST2 share elements."
@@ -1728,27 +1737,27 @@ Save image as FILENAME in DIRECTORY, download it from URL."
   (let* ((proc-name (concat feed-name "-" filename))
          (buffername (concat " *newsticker-wget-image-" proc-name "*"))
          (item (or (assoc feed-name newsticker-url-list)
-                       (assoc feed-name newsticker-url-list-defaults)
-                       (error
-                        "Cannot get image for %s: Check newsticker-url-list"
-                        feed-name)))
+                   (assoc feed-name newsticker-url-list-defaults)
+                   (error
+                    "Cannot get image for %s: Check newsticker-url-list"
+                    feed-name)))
          (wget-arguments (or (car (cdr (cdr (cdr (cdr item)))))
                              newsticker-wget-arguments)))
-        (with-current-buffer (get-buffer-create buffername)
-          (erase-buffer)
-          ;; throw an error if there is an old wget-process around
-          (if (get-process feed-name)
-              (error "Another wget-process is running for image %s"
-                     feed-name))
-          ;; start wget
-          (let* ((args (append wget-arguments (list url)))
-                 (proc (apply 'start-process proc-name buffername
-                              newsticker-wget-name args)))
-            (set-process-coding-system proc 'no-conversion 'no-conversion)
-            (set-process-sentinel proc 'newsticker--image-sentinel)
-            (process-put proc 'nt-directory directory)
-            (process-put proc 'nt-feed-name feed-name)
-            (process-put proc 'nt-filename filename)))))
+    (with-current-buffer (get-buffer-create buffername)
+      (erase-buffer)
+      ;; throw an error if there is an old wget-process around
+      (if (get-process feed-name)
+          (error "Another wget-process is running for image %s"
+                 feed-name))
+      ;; start wget
+      (let* ((args (append wget-arguments (list url)))
+             (proc (apply #'start-process proc-name buffername
+                          newsticker-wget-name args)))
+        (set-process-coding-system proc 'no-conversion 'no-conversion)
+        (set-process-sentinel proc #'newsticker--image-sentinel)
+        (process-put proc 'nt-directory directory)
+        (process-put proc 'nt-feed-name feed-name)
+        (process-put proc 'nt-filename filename)))))
 
 (defun newsticker--image-sentinel (process _event)
   "Sentinel for image-retrieving PROCESS caused by EVENT."
@@ -1773,18 +1782,18 @@ Save image as FILENAME in DIRECTORY, download it from URL."
   "Save contents of BUFFER in DIRECTORY as FILE-NAME.
 Finally kill buffer."
   (with-current-buffer buffer
-      (let ((image-name (concat directory file-name)))
-        (set-buffer-file-coding-system 'no-conversion)
-        ;; make sure the cache dir exists
-        (unless (file-directory-p directory)
-          (make-directory directory))
-        ;; write and close buffer
-        (let ((require-final-newline nil)
-              (backup-inhibited t)
-              (coding-system-for-write 'no-conversion))
-          (write-region nil nil image-name nil 'quiet))
-        (set-buffer-modified-p nil)
-        (kill-buffer buffer))))
+    (let ((image-name (concat directory file-name)))
+      (set-buffer-file-coding-system 'no-conversion)
+      ;; make sure the cache dir exists
+      (unless (file-directory-p directory)
+        (make-directory directory))
+      ;; write and close buffer
+      (let ((require-final-newline nil)
+            (backup-inhibited t)
+            (coding-system-for-write 'no-conversion))
+        (write-region nil nil image-name nil 'quiet))
+      (set-buffer-modified-p nil)
+      (kill-buffer buffer))))
 
 (defun newsticker--image-remove (directory file-name)
   "In DIRECTORY remove FILE-NAME."
@@ -1799,8 +1808,8 @@ Save image as FILENAME in DIRECTORY, download it from URL."
     (condition-case error-data
         (url-retrieve url 'newsticker--image-download-by-url-callback
                       (list feed-name directory filename))
-          (error (message "Error retrieving image from %s: %s" feed-name
-                          error-data))))
+      (error (message "Error retrieving image from %s: %s" feed-name
+                      error-data))))
   (force-mode-line-update))
 
 (defun newsticker--image-download-by-url-callback (status feed-name directory filename)
@@ -2137,11 +2146,11 @@ FEED is a symbol!"
   (concat newsticker-dir "/feeds"))
 
 (defun newsticker--cache-save ()
-    "Save cache data for all feeds."
-    (unless (file-directory-p newsticker-dir)
-      (make-directory newsticker-dir t))
-    (mapc 'newsticker--cache-save-feed newsticker--cache)
-    nil)
+  "Save cache data for all feeds."
+  (unless (file-directory-p newsticker-dir)
+    (make-directory newsticker-dir t))
+  (mapc #'newsticker--cache-save-feed newsticker--cache)
+  nil)
 
 (defun newsticker--cache-save-feed (feed)
   "Save cache data for FEED."
@@ -2207,14 +2216,14 @@ If AGES is nil, the total number of items is returned."
           (if (memq (newsticker--age (car items)) ages)
               (setq num (1+ num)))
         (if (memq (newsticker--age (car items)) '(new old immortal obsolete))
-              (setq num (1+ num))))
+            (setq num (1+ num))))
       (setq items (cdr items)))
     num))
 
 (defun newsticker--stat-num-items-total (&optional age)
   "Return total number of items in all feeds which have the given AGE.
 If AGE is nil, the total number of items is returned."
-  (apply '+
+  (apply #'+
          (mapcar (lambda (feed)
                    (if age
                        (newsticker--stat-num-items (intern (car feed)) age)
@@ -2227,39 +2236,66 @@ If AGE is nil, the total number of items is returned."
 (defun newsticker-opml-export ()
   "OPML subscription export.
 Export subscriptions to a buffer in OPML Format."
-  ;; FIXME: use newsticker-groups
   (interactive)
   (with-current-buffer (get-buffer-create "*OPML Export*")
+    (erase-buffer)
     (set-buffer-file-coding-system 'utf-8)
     (insert (concat
              "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
              "<!-- OPML generated by Emacs newsticker.el -->\n"
              "<opml version=\"1.0\">\n"
              "  <head>\n"
-             "    <title>mySubscriptions</title>\n"
+             "    <title>Emacs newsticker subscriptions</title>\n"
              "    <dateCreated>" (format-time-string "%a, %d %b %Y %T %z")
              "</dateCreated>\n"
              "    <ownerEmail>" user-mail-address "</ownerEmail>\n"
              "    <ownerName>" (user-full-name) "</ownerName>\n"
              "  </head>\n"
              "  <body>\n"))
-    (dolist (sub (append newsticker-url-list newsticker-url-list-defaults))
-      (insert "    <outline text=\"")
-      (insert (newsticker--title sub))
-      (insert "\" xmlUrl=\"")
-      (insert (xml-escape-string (let ((url (cadr sub)))
-                                   (if (stringp url) url (prin1-to-string url)))))
-      (insert "\"/>\n"))
-    (insert "  </body>\n</opml>\n"))
+    (let ((feeds (append newsticker-url-list newsticker-url-list-defaults))
+          ;; insert the feed groups and all feeds that are contained
+          (saved-feed-names (newsticker--opml-insert-elt newsticker-groups 2)))
+      ;; to be safe: insert all feeds that are not contained in any group
+      (dolist (f feeds)
+        (unless (seq-find (lambda (sfn) (string= (car f) sfn)) saved-feed-names)
+          (newsticker--opml-insert-feed (car f) 4)))
+      (insert "  </body>\n</opml>\n")))
   (pop-to-buffer "*OPML Export*")
   (when (fboundp 'sgml-mode)
     (sgml-mode)))
 
+(defun newsticker--opml-insert-elt (elt depth)
+  "Insert an OPML ELT with indentation level DEPTH."
+  (if (listp elt)
+      (newsticker--opml-insert-group elt (+ 2 depth))
+    (newsticker--opml-insert-feed elt (+ 2 depth))))
+
+(defun newsticker--opml-insert-group (group depth)
+  "Insert an OPML GROUP with indentation level DEPTH."
+  (let (saved-feeds)
+    (insert (make-string depth ? ) "<outline type=\"folder\" text=\"" (car group) "\">\n")
+    (setq saved-feeds (mapcar (lambda (e)
+                                (newsticker--opml-insert-elt e depth))
+                              (cdr group)))
+    (insert (make-string depth ? ) "</outline>\n")
+    (flatten-tree saved-feeds)))
+
+(defun newsticker--opml-insert-feed (feed-name depth)
+  "Insert an OPML FEED-NAME with indentation level DEPTH."
+  (let* ((feed-definition (seq-find (lambda (f)
+                                      (string= feed-name (car f)))
+                                    (append newsticker-url-list newsticker-url-list-defaults)))
+         (url (nth 1 feed-definition))
+         (url-string (if (functionp url) (prin1-to-string url)
+                       (xml-escape-string url))))
+    (insert (make-string depth ? ) "<outline text=\"" feed-name
+            "\" xmlUrl=\"" url-string
+            "\"/>\n"))
+  feed-name)
+
 (defun newsticker--opml-import-outlines (outlines)
-  "Recursively import OUTLINES from OPML data.
-Note that nested outlines are currently flattened -- i.e. grouping is
-removed."
-  (mapc (lambda (outline)
+  "Recursively import OUTLINES from OPML data."
+  (mapcar (lambda (outline)
             (let ((name (xml-get-attribute outline 'text))
                   (url (xml-get-attribute outline 'xmlUrl))
                   (children (xml-get-children outline 'outline)))
@@ -2267,18 +2303,27 @@ removed."
                 (add-to-list 'newsticker-url-list
                              (list name url nil nil nil) t))
               (if children
-                  (newsticker--opml-import-outlines children))))
-        outlines))
+                        (append (list name)
+                                (newsticker--opml-import-outlines children))
+                      name)))
+          outlines))
 
 (defun newsticker-opml-import (filename)
-  "Import OPML data from FILENAME."
+  "Import OPML data from FILENAME.
+Feeds are added to `newsticker-url-list' and `newsticker-groups'
+preserving the outline structure."
   (interactive "fOPML file: ")
   (set-buffer (find-file-noselect filename))
   (goto-char (point-min))
   (let* ((node-list (xml-parse-region (point-min) (point-max)))
+         (title (car (xml-node-children
+                      (car (xml-get-children
+                            (car (xml-get-children (car node-list) 'head))
+                            'title)))))
          (body (car (xml-get-children (car node-list) 'body)))
-         (outlines (xml-get-children body 'outline)))
-    (newsticker--opml-import-outlines outlines))
+         (outlines (xml-get-children body 'outline))
+         (imported-groups-data (newsticker--opml-import-outlines outlines)))
+    (add-to-list 'newsticker-groups (cons title imported-groups-data) t))
   (customize-variable 'newsticker-url-list))
 
 ;; ======================================================================
@@ -2350,7 +2395,7 @@ the item."
             (make-directory temp-dir t))
           (cd temp-dir)
           (message "Getting image %s" url)
-          (apply 'start-process "wget-image"
+          (apply #'start-process "wget-image"
                  " *newsticker-wget-download-images*"
                  newsticker-wget-name
                  (list url))
@@ -2372,7 +2417,7 @@ This function is suited for adding it to `newsticker-new-item-functions'."
           (make-directory temp-dir t))
         (cd temp-dir)
         (message "Getting enclosure %s" url)
-        (apply 'start-process "wget-enclosure"
+        (apply #'start-process "wget-enclosure"
                " *newsticker-wget-download-enclosures*"
                newsticker-wget-name
                (list url))

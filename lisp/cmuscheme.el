@@ -421,7 +421,7 @@ in the next one.")
 
 (defun scheme-load-file (file-name)
   "Load a Scheme file FILE-NAME into the inferior Scheme process."
-  (interactive (comint-get-source "Load Scheme file: " scheme-prev-l/c-dir/file
+  (interactive (comint-get-source "Load Scheme file" scheme-prev-l/c-dir/file
 				  scheme-source-modes t)) ; t because `load'
                                                           ; needs an exact name
   (comint-check-source file-name) ; Check to see if buffer needs saved.
@@ -433,7 +433,7 @@ in the next one.")
 
 (defun scheme-compile-file (file-name)
   "Compile a Scheme file FILE-NAME in the inferior Scheme process."
-  (interactive (comint-get-source "Compile Scheme file: "
+  (interactive (comint-get-source "Compile Scheme file"
 				  scheme-prev-l/c-dir/file
 				  scheme-source-modes
 				  nil)) ; nil because COMPILE doesn't

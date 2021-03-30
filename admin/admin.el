@@ -151,7 +151,7 @@ Root must be the root of an Emacs source tree."
           (display-warning 'admin
                            "NEWS file contains empty sections - remove them?"))
         (goto-char (point-min))
-        (if (re-search-forward "^\\(\\+\\+\\+ *$\\|--- *$\\|Temporary note:\\)" nil t)
+        (if (re-search-forward "^\\(\\+\\+\\+? *$\\|---? *$\\|Temporary note:\\)" nil t)
             (display-warning 'admin
                              "NEWS file still contains temporary markup.
 Documentation changes might not have been completed!"))))
@@ -545,7 +545,7 @@ Leave point after the table."
 	(forward-line 1)
 	(while (not done)
 	  (cond ((re-search-forward "<tr><td.*&bull; \\(<a.*</a>\\)\
-:</td><td>&nbsp;&nbsp;</td><td[^>]*>\\(.*\\)" (line-end-position) t)
+:?</td><td>&nbsp;&nbsp;</td><td[^>]*>\\(.*\\)" (line-end-position) t)
 		 (replace-match (format "<tr><td%s>\\1</td>\n<td>\\2"
 					(if table-workaround
 					    " bgcolor=\"white\"" "")))
@@ -665,6 +665,8 @@ style=\"text-align:left\">")
 
 (defconst make-manuals-dist-output-variables
   '(("@\\(top_\\)?srcdir@" . ".")	; top_srcdir is wrong, but not used
+    ("@\\(abs_\\)?top_builddir@" . ".") ; wrong but unused
+    ("^\\(EMACS *=\\).*" . "\\1 emacs")
     ("^\\(\\(?:texinfo\\|buildinfo\\|emacs\\)dir *=\\).*" . "\\1 .")
     ("^\\(clean:.*\\)" . "\\1 infoclean")
     ("@MAKEINFO@" . "makeinfo")
@@ -682,9 +684,7 @@ style=\"text-align:left\">")
     ("@INSTALL@" . "install -c")
     ("@INSTALL_DATA@" . "${INSTALL} -m 644")
     ("@configure_input@" . "")
-    ("@AM_DEFAULT_VERBOSITY@" . "0")
-    ("@AM_V@" . "${V}")
-    ("@AM_DEFAULT_V@" . "${AM_DEFAULT_VERBOSITY}"))
+    ("@AM_DEFAULT_VERBOSITY@" . "0"))
   "Alist of (REGEXP . REPLACEMENT) pairs for `make-manuals-dist'.")
 
 (defun make-manuals-dist--1 (root type)
@@ -714,7 +714,8 @@ style=\"text-align:left\">")
 		   (string-match-p "\\.\\(eps\\|pdf\\)\\'" file)))
 	  (copy-file file stem)))
     (with-temp-buffer
-      (let ((outvars make-manuals-dist-output-variables))
+      (let ((outvars make-manuals-dist-output-variables)
+            (case-fold-search nil))
 	(push `("@version@" . ,version) outvars)
 	(insert-file-contents (format "../doc/%s/Makefile.in" type))
 	(dolist (cons outvars)

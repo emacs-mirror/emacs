@@ -1,4 +1,4 @@
-;;; net-utils.el --- network functions
+;;; net-utils.el --- network functions  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -67,17 +67,14 @@
       "tracert"
     "traceroute")
   "Program to trace network hops to a destination."
-  :group 'net-utils
   :type  'string)
 
 (defcustom traceroute-program-options nil
   "Options for the traceroute program."
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom ping-program "ping"
   "Program to send network test packets to a host."
-  :group 'net-utils
   :type  'string)
 
 ;; On GNU/Linux and Irix, the system's ping program seems to send packets
@@ -87,7 +84,6 @@
        (list "-c" "4"))
   "Options for the ping program.
 These options can be used to limit how many ICMP packets are emitted."
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom ifconfig-program
@@ -98,7 +94,6 @@ These options can be used to limit how many ICMP packets are emitted."
         (t "ip"))
   "Program to print network configuration information."
   :version "25.1"                       ; add ip
-  :group 'net-utils
   :type  'string)
 
 (defcustom ifconfig-program-options
@@ -108,7 +103,6 @@ These options can be used to limit how many ICMP packets are emitted."
   "Options for the ifconfig program."
   :version "25.1"
   :set-after '(ifconfig-program)
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom iwconfig-program
@@ -116,7 +110,6 @@ These options can be used to limit how many ICMP packets are emitted."
         ((net-utils--executable-find-sbin "iw") "iw")
         (t "iw"))
   "Program to print wireless network configuration information."
-  :group 'net-utils
   :type 'string
   :version "26.1")
 
@@ -124,7 +117,6 @@ These options can be used to limit how many ICMP packets are emitted."
   (cond ((string-match-p "iw\\'" iwconfig-program) (list "dev"))
         (t nil))
  "Options for the iwconfig program."
- :group 'net-utils
  :type '(repeat string)
  :version "26.1")
 
@@ -133,25 +125,21 @@ These options can be used to limit how many ICMP packets are emitted."
         ((net-utils--executable-find-sbin "ss"))
         (t "ss"))
   "Program to print network statistics."
-  :group 'net-utils
   :type  'string
   :version "26.1")
 
 (defcustom netstat-program-options
   (list "-a")
   "Options for the netstat program."
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom arp-program (or (net-utils--executable-find-sbin "arp") "arp")
   "Program to print IP to address translation tables."
-  :group 'net-utils
   :type  'string)
 
 (defcustom arp-program-options
   (list "-a")
   "Options for the arp program."
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom route-program
@@ -162,7 +150,6 @@ These options can be used to limit how many ICMP packets are emitted."
         ((net-utils--executable-find-sbin "ip"))
         (t "ip"))
   "Program to print routing tables."
-  :group 'net-utils
   :type  'string
   :version "26.1")
 
@@ -171,18 +158,15 @@ These options can be used to limit how many ICMP packets are emitted."
         ((string-match-p "netstat\\'" route-program) (list "-r"))
         (t (list "route")))
   "Options for the route program."
-  :group 'net-utils
   :type  '(repeat string)
   :version "26.1")
 
 (defcustom nslookup-program "nslookup"
   "Program to interactively query DNS information."
-  :group 'net-utils
   :type  'string)
 
 (defcustom nslookup-program-options nil
   "Options for the nslookup program."
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom nslookup-prompt-regexp "^> "
@@ -190,28 +174,23 @@ These options can be used to limit how many ICMP packets are emitted."
 
 This variable is only used if the variable
 `comint-use-prompt-regexp' is non-nil."
-  :group 'net-utils
   :type  'regexp)
 
 (defcustom dig-program "dig"
   "Program to query DNS information."
-  :group 'net-utils
   :type  'string)
 
 (defcustom dig-program-options nil
   "Options for the dig program."
-  :group 'net-utils
   :type '(repeat string)
   :version "26.1")
 
 (defcustom ftp-program "ftp"
   "Program to run to do FTP transfers."
-  :group 'net-utils
   :type  'string)
 
 (defcustom ftp-program-options nil
   "Options for the ftp program."
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom ftp-prompt-regexp "^ftp>"
@@ -219,17 +198,14 @@ This variable is only used if the variable
 
 This variable is only used if the variable
 `comint-use-prompt-regexp' is non-nil."
-  :group 'net-utils
   :type  'regexp)
 
 (defcustom smbclient-program "smbclient"
   "Smbclient program."
-  :group 'net-utils
   :type  'string)
 
 (defcustom smbclient-program-options nil
   "Options for the smbclient program."
-  :group 'net-utils
   :type  '(repeat string))
 
 (defcustom smbclient-prompt-regexp "^smb: >"
@@ -237,17 +213,14 @@ This variable is only used if the variable
 
 This variable is only used if the variable
 `comint-use-prompt-regexp' is non-nil."
-  :group 'net-utils
   :type  'regexp)
 
 (defcustom dns-lookup-program "host"
   "Program to interactively query DNS information."
-  :group 'net-utils
   :type  'string)
 
 (defcustom dns-lookup-program-options nil
   "Options for the dns-lookup program."
-  :group 'net-utils
   :type  '(repeat string))
 
 ;; Internal variables
@@ -265,7 +238,7 @@ This variable is only used if the variable
          1 'font-lock-keyword-face)
    ;; Dotted quads
    (list
-    (mapconcat 'identity
+    (mapconcat #'identity
                (make-list 4 "[0-9]+")
                "\\.")
     0 'font-lock-variable-name-face)
@@ -273,7 +246,7 @@ This variable is only used if the variable
    (list
     (let ((host-expression "[-A-Za-z0-9]+"))
       (concat
-       (mapconcat 'identity
+       (mapconcat #'identity
                   (make-list 2 host-expression)
                   "\\.")
        "\\(\\." host-expression "\\)*"))
@@ -288,7 +261,7 @@ This variable is only used if the variable
   (list
    ;; Dotted quads
    (list
-    (mapconcat 'identity (make-list 4 "[0-9]+") "\\.")
+    (mapconcat #'identity (make-list 4 "[0-9]+") "\\.")
     0 'font-lock-variable-name-face)
    ;; Simple rfc4291 addresses
    (list (concat
@@ -300,7 +273,7 @@ This variable is only used if the variable
    (list
     (let ((host-expression "[-A-Za-z0-9]+"))
       (concat
-       (mapconcat 'identity (make-list 2 host-expression) "\\.")
+       (mapconcat #'identity (make-list 2 host-expression) "\\.")
        "\\(\\." host-expression "\\)*"))
     0 'font-lock-variable-name-face))
   "Expressions to font-lock for general network utilities.")
@@ -371,8 +344,8 @@ This variable is only used if the variable
     (erase-buffer)
     (insert header "\n")
     (set-process-filter
-     (apply 'start-process name buf program args)
-     'net-utils-remove-ctrl-m-filter)
+     (apply #'start-process name buf program args)
+     #'net-utils-remove-ctrl-m-filter)
     (display-buffer buf)
     buf))
 
@@ -405,12 +378,12 @@ This variable is only used if the variable
                 `(net-utils-run-simple ,(current-buffer)
                                        ,program-name ,args nodisplay))
     (set-process-filter
-         (apply 'start-process program-name
-                (current-buffer) program-name args)
-         'net-utils-remove-ctrl-m-filter)
+     (apply #'start-process program-name
+            (current-buffer) program-name args)
+     #'net-utils-remove-ctrl-m-filter)
     (unless nodisplay (display-buffer (current-buffer)))))
 
-(defun net-utils--revert-function (&optional ignore-auto noconfirm)
+(defun net-utils--revert-function (&optional _ignore-auto _noconfirm)
   (message "Reverting `%s'..." (buffer-name))
   (apply (car net-utils--revert-cmd) (cdr net-utils--revert-cmd))
   (let ((proc (get-buffer-process (current-buffer))))
@@ -430,7 +403,7 @@ This variable is only used if the variable
    ifconfig-program
    ifconfig-program-options))
 
-(defalias 'ipconfig 'ifconfig)
+(defalias 'ipconfig #'ifconfig)
 
 ;;;###autoload
 (defun iwconfig ()
@@ -532,7 +505,7 @@ in Lisp code."
     (net-utils-run-program
      "Nslookup"
      (concat "** "
-      (mapconcat 'identity
+      (mapconcat #'identity
 		(list "Nslookup" host nslookup-program)
 		" ** "))
      nslookup-program
@@ -618,7 +591,7 @@ This command uses `nslookup-program' to look up DNS records."
 
 (defvar nslookup-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'completion-at-point)
+    (define-key map "\t" #'completion-at-point)
     map))
 
 ;; Using a derived mode gives us keymaps, hooks, etc.
@@ -646,9 +619,9 @@ This command uses `dns-lookup-program' for looking up the DNS information."
     (net-utils-run-program
      (concat "DNS Lookup [" host "]")
      (concat "** "
-      (mapconcat 'identity
-		(list "DNS Lookup" host dns-lookup-program)
-		" ** "))
+	     (mapconcat #'identity
+		        (list "DNS Lookup" host dns-lookup-program)
+		        " ** "))
      dns-lookup-program
      options)))
 
@@ -669,13 +642,14 @@ This command uses `dig-program' for looking up the DNS information."
   (net-utils-run-program
    "Dig"
    (concat "** "
-	   (mapconcat 'identity
+	   (mapconcat #'identity
 		      (list "Dig" host dig-program)
 		      " ** "))
    dig-program
    options)))
 
 (autoload 'comint-exec "comint")
+(declare-function comint-watch-for-password-prompt "comint" (string))
 
 ;; This is a lot less than ange-ftp, but much simpler.
 ;;;###autoload
@@ -697,7 +671,7 @@ This command uses `dig-program' for looking up the DNS information."
 (defvar ftp-mode-map
   (let ((map (make-sparse-keymap)))
     ;; Occasionally useful
-    (define-key map "\t" 'completion-at-point)
+    (define-key map "\t" #'completion-at-point)
     map))
 
 (define-derived-mode ftp-mode comint-mode "FTP"
@@ -710,9 +684,9 @@ This command uses `dig-program' for looking up the DNS information."
   ;; password prompts will probably immediately follow the initial
   ;; connection), but it's better than getting prompted twice for the
   ;; same password.
-  (unless (memq 'comint-watch-for-password-prompt
+  (unless (memq #'comint-watch-for-password-prompt
 		(default-value 'comint-output-filter-functions))
-    (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
+    (add-hook 'comint-output-filter-functions #'comint-watch-for-password-prompt
 	      nil t)))
 
 (defun smbclient (host service)
@@ -759,9 +733,9 @@ This command uses `smbclient-program' to connect to HOST."
   ;; password prompts will probably immediately follow the initial
   ;; connection), but it's better than getting prompted twice for the
   ;; same password.
-  (unless (memq 'comint-watch-for-password-prompt
+  (unless (memq #'comint-watch-for-password-prompt
 		(default-value 'comint-output-filter-functions))
-    (add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt
+    (add-hook 'comint-output-filter-functions #'comint-watch-for-password-prompt
 	      nil t)))
 
 
@@ -810,7 +784,7 @@ This list is not complete.")
      (error "Could not open connection to %s" host))
     (erase-buffer)
     (set-marker (process-mark tcp-connection) (point-min))
-    (set-process-filter tcp-connection 'net-utils-remove-ctrl-m-filter)
+    (set-process-filter tcp-connection #'net-utils-remove-ctrl-m-filter)
     (and initial-string
 	 (process-send-string tcp-connection
 			      (concat initial-string "\r\n")))
@@ -825,7 +799,6 @@ This list is not complete.")
 If a host name passed to `finger' matches one of these regular
 expressions, it is assumed to be a host that doesn't accept
 queries of the form USER@HOST, and wants a query containing USER only."
-  :group 'net-utils
   :type '(repeat regexp)
   :version "21.1")
 
@@ -852,7 +825,7 @@ and `network-connection-service-alist', which see."
   (let* ((user-and-host (concat user "@" host))
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
-	 found)
+	 ) ;; found
     (and regexps
 	 (while (not (string-match (car regexps) host))
 	   (setq regexps (cdr regexps)))
@@ -866,7 +839,6 @@ and `network-connection-service-alist', which see."
 
 (defcustom whois-server-name "rs.internic.net"
   "Default host name for the whois service."
-  :group 'net-utils
   :type  'string)
 
 (defcustom whois-server-list
@@ -880,7 +852,6 @@ and `network-connection-service-alist', which see."
     ("whois.nic.gov")
     ("whois.ripe.net"))
   "A list of whois servers that can be queried."
-  :group 'net-utils
   :type '(repeat (list string)))
 
 ;; FIXME: modern whois clients include a much better tld <-> whois server
@@ -903,14 +874,12 @@ and `network-connection-service-alist', which see."
     ("whois.nic.gov" . "gov")
     ("whois.nic.mil" . "mil"))
   "Alist to map top level domains to whois servers."
-  :group 'net-utils
   :type '(repeat (cons string string)))
 
 (defcustom whois-guess-server t
   "If non-nil then whois will try to deduce the appropriate whois
 server from the query.  If the query doesn't look like a domain or hostname
 then the server named by `whois-server-name' is used."
-  :group 'net-utils
   :type 'boolean)
 
 (defun whois-get-tld (host)
@@ -951,7 +920,6 @@ The port is deduced from `network-connection-service-alist'."
 
 (defcustom whois-reverse-lookup-server "whois.arin.net"
   "Server which provides inverse DNS mapping."
-  :group 'net-utils
   :type  'string)
 
 ;;;###autoload

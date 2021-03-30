@@ -38,19 +38,16 @@
   "Non-nil value should be a string that names a binhex decoder.
 The program should expect to read binhex data on its standard
 input and write the converted data to its standard output."
-  :type 'string
-  :group 'binhex)
+  :type 'string)
 
 (defcustom binhex-decoder-switches '("-d")
   "List of command line flags passed to the command `binhex-decoder-program'."
-  :group 'binhex
   :type '(repeat string))
 
 (defcustom binhex-use-external
   (executable-find binhex-decoder-program)
   "Use external binhex program."
   :version "22.1"
-  :group 'binhex
   :type 'boolean)
 
 (defconst binhex-alphabet-decoding-alist
@@ -80,7 +77,7 @@ input and write the converted data to its standard output."
 (make-obsolete-variable 'binhex-temporary-file-directory
                         'temporary-file-directory "28.1")
 
-(defun binhex-insert-char (char &optional count ignored buffer)
+(defun binhex-insert-char (char &optional count _ignored buffer)
   "Insert COUNT copies of CHARACTER into BUFFER."
   (if (or (null buffer) (eq buffer (current-buffer)))
       (insert-char char count)
@@ -273,7 +270,8 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 (defun binhex-decode-region-external (start end)
   "Binhex decode region between START and END using external decoder."
   (interactive "r")
-  (let ((cbuf (current-buffer)) firstline work-buffer
+  (let ((cbuf (current-buffer))
+	work-buffer ;; firstline
 	(file-name (expand-file-name
 		    (concat (binhex-decode-region-internal start end t)
 			    ".data")
@@ -287,9 +285,9 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 		(set-buffer (setq work-buffer
 				  (generate-new-buffer " *binhex-work*")))
 		(buffer-disable-undo work-buffer)
-		(insert-buffer-substring cbuf firstline end)
+		(insert-buffer-substring cbuf nil end) ;; firstline
 		(cd temporary-file-directory)
-		(apply 'call-process-region
+		(apply #'call-process-region
 		       (point-min)
 		       (point-max)
 		       binhex-decoder-program

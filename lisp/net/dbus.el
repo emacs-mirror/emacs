@@ -1144,6 +1144,7 @@ compound type arguments (TYPE VALUE) will be kept as is."
 EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
 part of the event, is called with arguments ARGS (without type information).
 If the HANDLER returns a `dbus-error', it is propagated as return message."
+  (declare (completion ignore))
   (interactive "e")
   (condition-case err
       (let (monitor args result)
@@ -2028,8 +2029,9 @@ either a method name, a signal name, or an error name."
            ",")
           rule (or rule ""))
 
-    (unless (ignore-errors (dbus-get-unique-name bus-private))
-      (dbus-init-bus bus 'private))
+    (when (fboundp 'dbus-get-unique-name)
+      (unless (ignore-errors (dbus-get-unique-name bus-private))
+        (dbus-init-bus bus 'private)))
     (dbus-call-method
      bus-private dbus-service-dbus dbus-path-dbus dbus-interface-monitoring
      "BecomeMonitor" `(:array :string ,rule) :uint32 0)

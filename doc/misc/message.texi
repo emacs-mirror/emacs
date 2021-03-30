@@ -540,6 +540,7 @@ better than you do.
 @node System Mailer Setup
 @section System Mailer Setup
 @cindex mailto:
+@cindex System Mailer
 
 Emacs can be set up as the system mailer, so that Emacs is opened when
 you click on @samp{mailto:} links in other programs.
@@ -548,10 +549,11 @@ How this is done varies from system to system, but commonly there's a
 way to set the default application for a @acronym{MIME} type, and the
 relevant type here is @samp{x-scheme-handler/mailto;}.
 
-The application to start should be @samp{"emacs -f message-mailto %u"}.
+The application to start should be @w{@samp{emacs -f message-mailto %u}}.
 This will start Emacs, and then run the @code{message-mailto}
 command.  It will parse the given @acronym{URL}, and set up a Message
-buffer with the given parameters.
+buffer with the given parameters.  If you prefer to use emacsclient,
+use @w{@samp{emacsclient -e '(message-mailto "%u")'}} as the application.
 
 For instance, @samp{mailto:larsi@@gnus.org?subject=This+is+a+test}
 will open a Message buffer with the @samp{To:} header filled in with

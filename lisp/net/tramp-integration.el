@@ -49,6 +49,7 @@
 (defvar recentf-exclude)
 (defvar tramp-current-connection)
 (defvar tramp-postfix-host-format)
+(defvar tramp-use-ssh-controlmaster-options)
 
 ;;; Fontification of `read-file-name':
 
@@ -231,7 +232,7 @@ NAME must be equal to `tramp-current-connection'."
 	     (delete (info-lookup->mode-cache 'symbol 'tramp-info-lookup-mode)
 		     (info-lookup->topic-cache 'symbol)))))
 
-  (dolist (mode (mapcar 'car (info-lookup->topic-value 'symbol)))
+  (dolist (mode (mapcar #'car (info-lookup->topic-value 'symbol)))
     ;; Add `tramp-info-lookup-mode' to `other-modes' for either
     ;; `emacs-lisp-mode' itself, or to modes which use
     ;; `emacs-lisp-mode' as `other-modes'.  Reset `info-lookup-cache'.
@@ -261,6 +262,23 @@ NAME must be equal to `tramp-current-connection'."
 		  (delete (info-lookup->mode-cache 'symbol ',mode)
 			  (info-lookup->topic-cache 'symbol))))))))
 
+;;; Integration of compile.el:
+
+;; Compilation processes use `accept-process-output' such a way that
+;; Tramp's parallel `accept-process-output' blocks.  See last part of
+;; Bug#45518.  So we don't use ssh ControlMaster options.
+(defun tramp-compile-disable-ssh-controlmaster-options ()
+  "Don't allow ssh ControlMaster while compiling."
+  (setq-local tramp-use-ssh-controlmaster-options nil))
+
+(with-eval-after-load 'compile
+  (add-hook 'compilation-mode-hook
+	    #'tramp-compile-disable-ssh-controlmaster-options)
+  (add-hook 'tramp-integration-unload-hook
+	    (lambda ()
+	      (remove-hook 'compilation-start-hook
+			   #'tramp-compile-disable-ssh-controlmaster-options))))
+
 ;;; Default connection-local variables for Tramp:
 ;; `connection-local-set-profile-variables' and
 ;; `connection-local-set-profiles' exists since Emacs 26.1.
@@ -277,7 +295,7 @@ NAME must be equal to `tramp-current-connection'."
 
 (tramp-compat-funcall
  'connection-local-set-profiles
- `(:application tramp)
+ '(:application tramp)
  'tramp-connection-local-default-system-profile)
 
 (defconst tramp-connection-local-default-shell-variables
@@ -293,7 +311,7 @@ NAME must be equal to `tramp-current-connection'."
 (with-eval-after-load 'shell
   (tramp-compat-funcall
    'connection-local-set-profiles
-   `(:application tramp)
+   '(:application tramp)
    'tramp-connection-local-default-shell-profile))
 
 (add-hook 'tramp-unload-hook

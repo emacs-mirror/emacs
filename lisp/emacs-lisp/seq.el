@@ -134,9 +134,10 @@ Unlike `seq-map', FUNCTION takes two arguments: the element of
 the sequence, and its index within the sequence."
   (let ((index 0))
     (seq-do (lambda (elt)
-               (funcall function elt index)
-               (setq index (1+ index)))
-             sequence)))
+              (funcall function elt index)
+              (setq index (1+ index)))
+            sequence))
+  nil)
 
 (cl-defgeneric seqp (object)
   "Return non-nil if OBJECT is a sequence, nil otherwise."
@@ -393,9 +394,9 @@ found or not."
     count))
 
 (cl-defgeneric seq-contains (sequence elt &optional testfn)
-  (declare (obsolete seq-contains-p "27.1"))
   "Return the first element in SEQUENCE that is equal to ELT.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."
+  (declare (obsolete seq-contains-p "27.1"))
   (seq-some (lambda (e)
               (when (funcall (or testfn #'equal) elt e)
                 e))
@@ -455,6 +456,7 @@ negative integer or 0, nil is returned."
         (setq sequence (seq-drop sequence n)))
       (nreverse result))))
 
+;;;###autoload
 (cl-defgeneric seq-intersection (sequence1 sequence2 &optional testfn)
   "Return a list of the elements that appear in both SEQUENCE1 and SEQUENCE2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil."

@@ -691,14 +691,16 @@ whitespace.
 
 LIMIT sets an upper limit of the forward movement, if specified.  If
 LIMIT or the end of the buffer is reached inside a comment or
-preprocessor directive, the point will be left there.
+preprocessor directive, the point will be left there.  If point starts
+on the wrong side of LIMIT, it stays unchanged.
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
   (if limit
-      `(save-restriction
-	 (narrow-to-region (point-min) (or ,limit (point-max)))
-	 (c-forward-sws))
+      `(when (< (point) (or ,limit (point-max)))
+	 (save-restriction
+	   (narrow-to-region (point-min) (or ,limit (point-max)))
+	   (c-forward-sws)))
     '(c-forward-sws)))
 
 (defmacro c-backward-syntactic-ws (&optional limit)
@@ -710,14 +712,16 @@ whitespace.
 
 LIMIT sets a lower limit of the backward movement, if specified.  If
 LIMIT is reached inside a line comment or preprocessor directive then
-the point is moved into it past the whitespace at the end.
+the point is moved into it past the whitespace at the end.  If point
+starts on the wrong side of LIMIT, it stays unchanged.
 
 Note that this function might do hidden buffer changes.  See the
 comment at the start of cc-engine.el for more info."
   (if limit
-      `(save-restriction
-	 (narrow-to-region (or ,limit (point-min)) (point-max))
-	 (c-backward-sws))
+      `(when (> (point) (or ,limit (point-min)))
+	 (save-restriction
+	   (narrow-to-region (or ,limit (point-min)) (point-max))
+	   (c-backward-sws)))
     '(c-backward-sws)))
 
 (defmacro c-forward-sexp (&optional count)

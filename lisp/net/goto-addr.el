@@ -1,4 +1,4 @@
-;;; goto-addr.el --- click to browse URL or to send to e-mail address
+;;; goto-addr.el --- click to browse URL or to send to e-mail address  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1995, 2000-2021 Free Software Foundation, Inc.
 
@@ -73,19 +73,16 @@
 (defcustom goto-address-fontify-p t
   "Non-nil means URLs and e-mail addresses in buffer are fontified.
 But only if `goto-address-highlight-p' is also non-nil."
-  :type 'boolean
-  :group 'goto-address)
+  :type 'boolean)
 
 (defcustom goto-address-highlight-p t
   "Non-nil means URLs and e-mail addresses in buffer are highlighted."
-  :type 'boolean
-  :group 'goto-address)
+  :type 'boolean)
 
 (defcustom goto-address-fontify-maximum-size 30000
   "Maximum size of file in which to fontify and/or highlight URLs.
 A value of t means there is no limit--fontify regardless of the size."
-  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t))
-  :group 'goto-address)
+  :type '(choice (integer :tag "Maximum size") (const :tag "No limit" t)))
 
 (defvar goto-address-mail-regexp
   ;; Actually pretty much any char could appear in the username part.  -stef
@@ -122,30 +119,26 @@ will have no effect.")
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
-    (define-key m (kbd "<mouse-2>") 'goto-address-at-point)
-    (define-key m (kbd "C-c RET") 'goto-address-at-point)
+    (define-key m (kbd "<mouse-2>") #'goto-address-at-point)
+    (define-key m (kbd "C-c RET") #'goto-address-at-point)
     m)
   "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
 (defcustom goto-address-url-face 'link
   "Face to use for URLs."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defcustom goto-address-url-mouse-face 'highlight
   "Face to use for URLs when the mouse is on them."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defcustom goto-address-mail-face 'italic
   "Face to use for e-mail addresses."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defcustom goto-address-mail-mouse-face 'secondary-selection
   "Face to use for e-mail addresses when the mouse is on them."
-  :type 'face
-  :group 'goto-address)
+  :type 'face)
 
 (defun goto-address-unfontify (start end)
   "Remove `goto-address' fontification from the given region."
@@ -287,7 +280,6 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 ;;;###autoload
 (define-globalized-minor-mode global-goto-address-mode
   goto-address-mode goto-addr-mode--turn-on
-  :group 'goto-address
   :version "28.1")
 
 ;;;###autoload

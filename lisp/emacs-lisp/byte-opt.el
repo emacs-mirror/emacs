@@ -458,16 +458,22 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
        (cons fn (byte-optimize-body exps for-effect)))
 
       (`(if ,test ,then . ,else)
+       ;; FIXME: We are conservative here: any variable changed in the
+       ;; THEN branch will be barred from substitution in the ELSE
+       ;; branch, despite the branches being mutually exclusive.
+
        ;; The test is always executed.
        (let* ((test-opt (byte-optimize-form test nil))
-              ;; The THEN and ELSE branches are executed conditionally.
-              ;;
-              ;; FIXME: We are conservative here: any variable changed in the
-              ;; THEN branch will be barred from substitution in the ELSE
-              ;; branch, despite the branches being  mutually exclusive.
-              (byte-optimize--vars-outside-condition byte-optimize--lexvars)
-              (then-opt (byte-optimize-form then for-effect))
-              (else-opt (byte-optimize-body else for-effect)))
+              (const (macroexp-const-p test-opt))
+              ;; The branches are traversed unconditionally when possible.
+              (byte-optimize--vars-outside-condition
+               (if const
+                   byte-optimize--vars-outside-condition
+                 byte-optimize--lexvars))
+              ;; Avoid traversing dead branches.
+              (then-opt (and test-opt (byte-optimize-form then for-effect)))
+              (else-opt (and (not (and test-opt const))
+                             (byte-optimize-body else for-effect))))
          `(if ,test-opt ,then-opt . ,else-opt)))
 
       (`(,(or 'and 'or) . ,exps) ; Remember, and/or are control structures.
@@ -587,24 +593,26 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
                   (lexvar (assq var byte-optimize--lexvars))
                   (value (byte-optimize-form expr nil)))
              (when lexvar
-               ;; If it's bound outside conditional, invalidate.
-               (if (assq var byte-optimize--vars-outside-condition)
-                   ;; We are in conditional code and the variable was
-                   ;; bound outside: cancel substitutions.
-                   (setcdr (cdr lexvar) nil)
-                 ;; Set a new value (if substitutable).
-                 (setcdr (cdr lexvar)
-                         (and (byte-optimize--substitutable-p value)
-                              (list value))))
-               (setcar (cdr lexvar) t)) ; Mark variable to be kept.
+               ;; Set a new value or inhibit further substitution.
+               (setcdr (cdr lexvar)
+                       (and
+                        ;; Inhibit if bound outside conditional code.
+                        (not (assq var byte-optimize--vars-outside-condition))
+                        ;; The new value must be substitutable.
+                        (byte-optimize--substitutable-p value)
+                        (list value)))
+               (setcar (cdr lexvar) t))   ; Mark variable to be kept.
              (push var var-expr-list)
              (push value var-expr-list))
            (setq args (cddr args)))
          (cons fn (nreverse var-expr-list))))
 
-      (`(defvar ,(and (pred symbolp) name) . ,_)
-       (push name byte-optimize--dynamic-vars)
-       form)
+      (`(defvar ,(and (pred symbolp) name) . ,rest)
+       (let ((optimized-rest (and rest
+                                  (cons (byte-optimize-form (car rest) nil)
+                                        (cdr rest)))))
+         (push name byte-optimize--dynamic-vars)
+         `(defvar ,name . ,optimized-rest)))
 
       (`(,(pred byte-code-function-p) . ,exps)
        (cons fn (mapcar #'byte-optimize-form exps)))
@@ -638,30 +646,24 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 
 (defun byte-optimize-form (form &optional for-effect)
   "The source-level pass of the optimizer."
-  ;;
-  ;; First, optimize all sub-forms of this one.
-  (setq form (byte-optimize-form-code-walker form for-effect))
-  ;;
-  ;; after optimizing all subforms, optimize this form until it doesn't
-  ;; optimize any further.  This means that some forms will be passed through
-  ;; the optimizer many times, but that's necessary to make the for-effect
-  ;; processing do as much as possible.
-  ;;
-  (let (opt new)
-    (if (and (consp form)
-	     (symbolp (car form))
-	     (or ;; (and for-effect
-		 ;;      ;; We don't have any of these yet, but we might.
-		 ;;      (setq opt (get (car form)
-                 ;;                     'byte-for-effect-optimizer)))
-		 (setq opt (function-get (car form) 'byte-optimizer)))
-	     (not (eq form (setq new (funcall opt form)))))
-	(progn
-;;	  (if (equal form new) (error "bogus optimizer -- %s" opt))
-	  (byte-compile-log "  %s\t==>\t%s" form new)
-	  (setq new (byte-optimize-form new for-effect))
-	  new)
-      form)))
+  (while
+      (progn
+        ;; First, optimize all sub-forms of this one.
+        (setq form (byte-optimize-form-code-walker form for-effect))
+
+        ;; If a form-specific optimiser is available, run it and start over
+        ;; until a fixpoint has been reached.
+        (and (consp form)
+             (symbolp (car form))
+             (let ((opt (function-get (car form) 'byte-optimizer)))
+               (and opt
+                    (let ((old form)
+                          (new (funcall opt form)))
+	              (byte-compile-log "  %s\t==>\t%s" old new)
+                      (setq form new)
+                      (not (eq new old))))))))
+  ;; Normalise (quote nil) to nil, for a single representation of constant nil.
+  (and (not (equal form '(quote nil))) form))
 
 (defun byte-optimize-let-form (head form for-effect)
   ;; Recursively enter the optimizer for the bindings and body
@@ -698,7 +700,8 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
               (append new-lexvars byte-optimize--lexvars))
         ;; Walk the body expressions, which may mutate some of the records,
         ;; and generate new bindings that exclude unused variables.
-        (let* ((opt-body (byte-optimize-body (cdr form) for-effect))
+        (let* ((byte-optimize--dynamic-vars byte-optimize--dynamic-vars)
+               (opt-body (byte-optimize-body (cdr form) for-effect))
                (bindings nil))
           (dolist (var let-vars)
             ;; VAR is (NAME EXPR [KEEP [VALUE]])
@@ -730,7 +733,6 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
   ;; all-for-effect is true.  returns a new list of forms.
   (let ((rest forms)
 	(result nil)
-        (byte-optimize--dynamic-vars byte-optimize--dynamic-vars)
 	fe new)
     (while rest
       (setq fe (or all-for-effect (cdr rest)))
@@ -1325,6 +1327,8 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	 radians-to-degrees rassq rassoc read-from-string regexp-opt
          regexp-quote region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp
+         string> string-greaterp string-empty-p
+         string-prefix-p string-suffix-p string-blank-p
          string-search string-to-char
 	 string-to-number string-to-syntax substring
 	 sxhash sxhash-equal sxhash-eq sxhash-eql
@@ -1349,7 +1353,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	 window-total-height window-total-width window-use-time window-vscroll
 	 window-width zerop))
       (side-effect-and-error-free-fns
-       '(arrayp atom
+       '(always arrayp atom
 	 bignump bobp bolp bool-vector-p
 	 buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p characterp
@@ -1414,7 +1418,8 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          copysign isnan ldexp float logb
          floor ceiling round truncate
          ffloor fceiling fround ftruncate
-         string= string-equal string< string-lessp
+         string= string-equal string< string-lessp string> string-greaterp
+         string-empty-p string-blank-p string-prefix-p string-suffix-p
          string-search
          consp atom listp nlistp proper-list-p
          sequencep arrayp vectorp stringp bool-vector-p hash-table-p
@@ -1563,10 +1568,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
              ;; so we create a copy of it, and replace the addresses with
              ;; TAGs.
              (let ((orig-table last-constant))
-               (cl-loop for e across constvec
-                        when (eq e last-constant)
-                        do (setq last-constant (copy-hash-table e))
-                        and return nil)
+               (setq last-constant (copy-hash-table last-constant))
                ;; Replace all addresses with TAGs.
                (maphash #'(lambda (value offset)
                             (let ((match (assq offset tags)))

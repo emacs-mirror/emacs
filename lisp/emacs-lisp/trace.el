@@ -161,7 +161,7 @@
   "Helper function to get internal values.
 You can call this function to add internal values in the trace buffer."
   (unless inhibit-trace
-    (with-current-buffer trace-buffer
+    (with-current-buffer (get-buffer-create trace-buffer)
       (goto-char (point-max))
       (insert
        (trace-entry-message
@@ -174,7 +174,7 @@ and CONTEXT is a string describing the dynamic context (e.g. values of
 some global variables)."
   (let ((print-circle t))
     (format "%s%s%d -> %S%s\n"
-            (mapconcat 'char-to-string (make-string (1- level) ?|) " ")
+            (mapconcat 'char-to-string (make-string (max 0 (1- level)) ?|) " ")
             (if (> level 1) " " "")
             level
             ;; FIXME: Make it so we can click the function name to jump to its

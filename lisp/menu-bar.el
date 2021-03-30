@@ -604,7 +604,7 @@ Do the same for the keys of the same name."
   (define-key global-map [f20] 'clipboard-kill-region)
   (define-key global-map [f16] 'clipboard-kill-ring-save)
   (define-key global-map [f18] 'clipboard-yank)
-  ;; X11R6 versions:
+  ;; X11 versions:
   (define-key global-map [cut] 'clipboard-kill-region)
   (define-key global-map [copy] 'clipboard-kill-ring-save)
   (define-key global-map [paste] 'clipboard-yank))

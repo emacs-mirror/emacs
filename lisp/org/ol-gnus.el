@@ -198,11 +198,11 @@ If `org-store-link' was called with a prefix arg the meaning of
 	       (to (mail-fetch-field "To"))
 	       (from (mail-fetch-field "From"))
 	       (subject (mail-fetch-field "Subject"))
-	       newsgroup xarchive)	;those are always nil for gcc
+	       ) ;; newsgroup xarchive	;those are always nil for gcc
 	   (unless gcc (error "Can not create link: No Gcc header found"))
 	   (org-link-store-props :type "gnus" :from from :subject subject
 				 :message-id id :group gcc :to to)
-	   (let ((link (org-gnus-article-link gcc newsgroup id xarchive))
+	   (let ((link (org-gnus-article-link gcc nil id nil)) ;;newsgroup xarchive
 		 (description (org-link-email-description)))
 	     (org-link-add-props :link link :description description)
 	     link)))))))

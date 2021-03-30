@@ -1,4 +1,4 @@
-;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files
+;;; dns-mode.el --- a mode for viewing/editing Domain Name System master files  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2001, 2004-2021 Free Software Foundation, Inc.
 
@@ -70,23 +70,19 @@
 
 (defface dns-mode-control-entity '((t :inherit font-lock-keyword-face))
   "Face used for DNS control entities, e.g. $ORIGIN."
-  :version "26.1"
-  :group 'dns-mode)
+  :version "26.1")
 
 (defface dns-mode-bad-control-entity '((t :inherit font-lock-warning-face))
   "Face used for non-standard DNS control entities, e.g. $FOO."
-  :version "26.1"
-  :group 'dns-mode)
+  :version "26.1")
 
 (defface dns-mode-type '((t :inherit font-lock-type-face))
   "Face used for DNS types, e.g., SOA."
-  :version "26.1"
-  :group 'dns-mode)
+  :version "26.1")
 
 (defface dns-mode-class '((t :inherit font-lock-constant-face))
   "Face used for DNS classes, e.g., IN."
-  :version "26.1"
-  :group 'dns-mode)
+  :version "26.1")
 
 (defvar dns-mode-control-entity-face ''dns-mode-control-entity
   "Name of face used for control entities, e.g. $ORIGIN.")
@@ -121,8 +117,7 @@
     (,(regexp-opt dns-mode-types) 0 ,dns-mode-type-face))
   "Font lock keywords used to highlight text in DNS master file mode."
   :version "26.1"
-  :type 'sexp
-  :group 'dns-mode)
+  :type 'sexp)
 
 (defcustom dns-mode-soa-auto-increment-serial t
   "Whether to increment the SOA serial number automatically.
@@ -134,8 +129,7 @@ manually with \\[dns-mode-soa-increment-serial]."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Ask" ask)
 		 (const :tag "Never" nil))
-  :safe 'symbolp
-  :group 'dns-mode)
+  :safe 'symbolp)
 
 ;; Syntax table.
 
@@ -150,8 +144,8 @@ manually with \\[dns-mode-soa-increment-serial]."
 
 (defvar dns-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-s" 'dns-mode-soa-increment-serial)
-    (define-key map "\C-c\C-e" 'dns-mode-ipv6-to-nibbles)
+    (define-key map "\C-c\C-s" #'dns-mode-soa-increment-serial)
+    (define-key map "\C-c\C-e" #'dns-mode-ipv6-to-nibbles)
     map)
   "Keymap for DNS master file mode.")
 
@@ -183,7 +177,7 @@ Turning on DNS mode runs `dns-mode-hook'."
   (setq-local comment-start-skip ";+ *")
   (setq-local font-lock-defaults
               '(dns-mode-font-lock-keywords nil nil ((?_ . "w"))))
-  (add-hook 'before-save-hook 'dns-mode-soa-maybe-increment-serial
+  (add-hook 'before-save-hook #'dns-mode-soa-maybe-increment-serial
             nil t))
 
 ;;;###autoload (defalias 'zone-mode 'dns-mode)

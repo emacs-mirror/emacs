@@ -293,7 +293,7 @@ The following replacements are made:
 Setting this alone will not affect the prompt;
 use either M-x customize or also call `rcirc-update-prompt'."
   :type 'string
-  :set 'rcirc-set-changed
+  :set #'rcirc-set-changed
   :initialize 'custom-initialize-default)
 
 (defcustom rcirc-keywords nil
@@ -329,7 +329,8 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook)
 
 (defvar rcirc-authenticated-hook nil
-  "Hook run after successfully authenticated.")
+  "Hook run after successfully authenticated.
+Functions in this hook are called with a single argument PROCESS.")
 
 (defcustom rcirc-always-use-server-buffer-flag nil
   "Non-nil means messages without a channel target will go to the server buffer."

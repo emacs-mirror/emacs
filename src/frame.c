@@ -1487,7 +1487,7 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
 #endif
     internal_last_event_frame = Qnil;
 
-  move_minibuffer_onto_frame ();
+  move_minibuffers_onto_frame (sf, for_deletion);
   return frame;
 }
 
@@ -3595,7 +3595,7 @@ check_frame_pixels (Lisp_Object size, Lisp_Object pixelwise, int item_size)
 }
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 4,
-       "(list (selected-frame) (prefix-numeric-value current-prefix-arg))",
+       "(set-frame-property--interactive \"Frame height: \" (frame-height))",
        doc: /* Set text height of frame FRAME to HEIGHT lines.
 Optional third arg PRETEND non-nil means that redisplay should use
 HEIGHT lines but that the idea of the actual height of the frame should
@@ -3620,7 +3620,7 @@ If FRAME is nil, it defaults to the selected frame.  */)
 }
 
 DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 4,
-       "(list (selected-frame) (prefix-numeric-value current-prefix-arg))",
+       "(set-frame-property--interactive \"Frame width: \" (frame-width))",
        doc: /* Set text width of frame FRAME to WIDTH columns.
 Optional third arg PRETEND non-nil means that redisplay should use WIDTH
 columns but that the idea of the actual width of the frame should not
@@ -3890,7 +3890,7 @@ frame_float (struct frame *f, Lisp_Object val, enum frame_float_type what,
 	      Lisp_Object frame;
 
 	      XSETFRAME (frame, f);
-	      monitor_attributes = Fcar (call1 (Qdisplay_monitor_attributes_list, frame));
+	      monitor_attributes = call1 (Qframe_monitor_attributes, frame);
 	      if (NILP (monitor_attributes))
 		{
 		  /* No monitor attributes available.  */
@@ -5890,7 +5890,7 @@ syms_of_frame (void)
   DEFSYM (Qframep, "framep");
   DEFSYM (Qframe_live_p, "frame-live-p");
   DEFSYM (Qframe_windows_min_size, "frame-windows-min-size");
-  DEFSYM (Qdisplay_monitor_attributes_list, "display-monitor-attributes-list");
+  DEFSYM (Qframe_monitor_attributes, "frame-monitor-attributes");
   DEFSYM (Qwindow__pixel_to_total, "window--pixel-to-total");
   DEFSYM (Qexplicit_name, "explicit-name");
   DEFSYM (Qheight, "height");

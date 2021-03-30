@@ -28,7 +28,7 @@
 ;; the Lisp mode documented in the Emacs manual.  `dsssl-mode' is a
 ;; variant of scheme-mode for editing DSSSL specifications for SGML
 ;; documents.  [As of Apr 1997, some pointers for DSSSL may be found,
-;; for instance, at <URL:http://www.sil.org/sgml/related.html#dsssl>.]
+;; for instance, at <URL:https://www.sil.org/sgml/related.html#dsssl>.]
 ;; All these Lisp-ish modes vary basically in details of the language
 ;; syntax they highlight/indent/index, but dsssl-mode uses "^;;;" as
 ;; the page-delimiter since ^L isn't normally a valid SGML character.
@@ -162,24 +162,25 @@
 (defvar scheme-mode-line-process "")
 
 (defvar scheme-mode-map
-  (let ((smap (make-sparse-keymap))
-        (map (make-sparse-keymap "Scheme")))
-    (set-keymap-parent smap lisp-mode-shared-map)
-    (define-key smap [menu-bar scheme] (cons "Scheme" map))
-    (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
-    (define-key map [uncomment-region]
-      '("Uncomment Out Region" . (lambda (beg end)
-                                   (interactive "r")
-                                   (comment-region beg end '(4)))))
-    (define-key map [comment-region] '("Comment Out Region" . comment-region))
-    (define-key map [indent-region] '("Indent Region" . indent-region))
-    (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
-    (put 'comment-region 'menu-enable 'mark-active)
-    (put 'uncomment-region 'menu-enable 'mark-active)
-    (put 'indent-region 'menu-enable 'mark-active)
-    smap)
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map lisp-mode-shared-map)
+    map)
   "Keymap for Scheme mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
+
+(easy-menu-define scheme-mode-menu scheme-mode-map
+  "Menu for Scheme mode."
+  '("Scheme"
+    ["Indent Line" lisp-indent-line]
+    ["Indent Region" indent-region
+     :enable mark-active]
+    ["Comment Out Region" comment-region
+     :enable mark-active]
+    ["Uncomment Out Region" (lambda (beg end)
+                                (interactive "r")
+                                (comment-region beg end '(4)))
+     :enable mark-active]
+    ["Run Inferior Scheme" run-scheme]))
 
 ;; Used by cmuscheme
 (defun scheme-mode-commands (map)
@@ -215,8 +216,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 (defcustom scheme-mit-dialect t
   "If non-nil, scheme mode is specialized for MIT Scheme.
 Set this to nil if you normally use another dialect."
-  :type 'boolean
-  :group 'scheme)
+  :type 'boolean)
 
 (defcustom dsssl-sgml-declaration
   "<!DOCTYPE style-sheet PUBLIC \"-//James Clark//DTD DSSSL Style Sheet//EN\">
@@ -226,26 +226,22 @@ If it is defined as a string this will be inserted into an empty buffer
 which is in `dsssl-mode'.  It is typically James Clark's style-sheet
 doctype, as required for Jade."
   :type '(choice (string :tag "Specified string")
-                 (const :tag "None" :value nil))
-  :group 'scheme)
+                 (const :tag "None" :value nil)))
 
 (defcustom scheme-mode-hook nil
   "Normal hook run when entering `scheme-mode'.
 See `run-hooks'."
-  :type 'hook
-  :group 'scheme)
+  :type 'hook)
 
 (defcustom dsssl-mode-hook nil
   "Normal hook run when entering `dsssl-mode'.
 See `run-hooks'."
-  :type 'hook
-  :group 'scheme)
+  :type 'hook)
 
 ;; This is shared by cmuscheme and xscheme.
 (defcustom scheme-program-name "scheme"
   "Program invoked by the `run-scheme' command."
-  :type 'string
-  :group 'scheme)
+  :type 'string)
 
 (defvar dsssl-imenu-generic-expression
   ;; Perhaps this should also look for the style-sheet DTD tags.  I'm
@@ -429,12 +425,10 @@ that variable's value is a string."
            '(1 font-lock-keyword-face)
            '(4 font-lock-function-name-face))
      (cons
-      (concat "(\\("
-              ;; (make-regexp '("case" "cond" "else" "if" "lambda"
-              ;; "let" "let*" "letrec" "and" "or" "map" "with-mode"))
-              "and\\|c\\(ase\\|ond\\)\\|else\\|if\\|"
-              "l\\(ambda\\|et\\(\\|\\*\\|rec\\)\\)\\|map\\|or\\|with-mode"
-              "\\)\\>")
+      (concat "(" (regexp-opt
+                   '("case" "cond" "else" "if" "lambda"
+                     "let" "let*" "letrec" "and" "or" "map" "with-mode")
+                   'words))
       1)
      ;; DSSSL syntax
      '("(\\(element\\|mode\\|declare-\\w+\\)\\>[ \t]*\\(\\sw+\\)"

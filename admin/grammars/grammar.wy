@@ -128,7 +128,7 @@ epilogue:
 ;;
 declaration:
     decl
-    (eval $1)
+    (eval $1 t)
   ;
 
 decl:
@@ -206,7 +206,7 @@ put_decl:
 
 put_name_list:
     BRACE_BLOCK
-    (mapcar 'semantic-tag-name (EXPANDFULL $1 put_names))
+    (mapcar #'semantic-tag-name (EXPANDFULL $1 put_names))
   ;
 
 put_names:
@@ -226,7 +226,7 @@ put_name:
 
 put_value_list:
     BRACE_BLOCK
-    (mapcar 'semantic-tag-code-detail (EXPANDFULL $1 put_values))
+    (mapcar #'semantic-tag-code-detail (EXPANDFULL $1 put_values))
   ;
 
 put_values:
@@ -300,7 +300,7 @@ plist:
 
 use_name_list:
     BRACE_BLOCK
-    (mapcar 'semantic-tag-name (EXPANDFULL $1 use_names))
+    (mapcar #'semantic-tag-name (EXPANDFULL $1 use_names))
   ;
 
 use_names:
@@ -356,7 +356,7 @@ nonterminal:
 
 rules:
     lifo_rules
-    (apply 'nconc (nreverse $1))
+    (apply #'nconc (nreverse $1))
   ;
 
 lifo_rules:

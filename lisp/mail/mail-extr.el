@@ -1,4 +1,4 @@
-;;; mail-extr.el --- extract full name and address from email header
+;;; mail-extr.el --- extract full name and address from email header  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1991-1994, 1997, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -222,23 +222,20 @@
   "Whether to try to guess middle initial from mail address.
 If true, then when we see an address like \"John Smith <jqs@host.com>\"
 we will assume that \"John Q. Smith\" is the fellow's name."
-  :type 'boolean
-  :group 'mail-extr)
+  :type 'boolean)
 
 (defcustom mail-extr-ignore-single-names nil
   "Whether to ignore a name that is just a single word.
 If true, then when we see an address like \"Idiot <dumb@stupid.com>\"
 we will act as though we couldn't find a full name in the address."
   :type 'boolean
-  :version "22.1"
-  :group 'mail-extr)
+  :version "22.1")
 
 (defcustom mail-extr-ignore-realname-equals-mailbox-name t
 "Whether to ignore a name that is equal to the mailbox name.
 If true, then when the address is like \"Single <single@address.com>\"
 we will act as though we couldn't find a full name in the address."
-  :type 'boolean
-  :group 'mail-extr)
+  :type 'boolean)
 
 ;; Matches a leading title that is not part of the name (does not
 ;; contribute to uniquely identifying the person).
@@ -248,19 +245,16 @@ we will act as though we couldn't find a full name in the address."
   "Matches prefixes to the full name that identify a person's position.
 These are stripped from the full name because they do not contribute to
 uniquely identifying the person."
-  :type 'regexp
-  :group 'mail-extr)
+  :type 'regexp)
 
 (defcustom mail-extr-@-binds-tighter-than-! nil
   "Whether the local mail transport agent looks at ! before @."
-  :type 'boolean
-  :group 'mail-extr)
+  :type 'boolean)
 
 (defcustom mail-extr-mangle-uucp nil
   "Whether to throw away information in UUCP addresses
 by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
-  :type 'boolean
-  :group 'mail-extr)
+  :type 'boolean)
 
 ;;----------------------------------------------------------------------
 ;; what orderings are meaningful?????
@@ -760,7 +754,6 @@ non-display use, you should probably use
 	      end-of-address
 	      <-pos >-pos @-pos colon-pos comma-pos !-pos %-pos \;-pos
 	      group-:-pos group-\;-pos route-addr-:-pos
-	      record-pos-symbol
 	      first-real-pos last-real-pos
 	      phrase-beg phrase-end
 	      ;; Dynamically set in mail-extr-voodoo.
@@ -852,13 +845,16 @@ non-display use, you should probably use
 	      )
 	     ;; record the position of various interesting chars, determine
 	     ;; validity later.
-	     ((setq record-pos-symbol
-		    (cdr (assq char
-			       '((?< . <-pos) (?> . >-pos) (?@ . @-pos)
-				 (?: . colon-pos) (?, . comma-pos) (?! . !-pos)
-				 (?% . %-pos) (?\; . \;-pos)))))
-	      (set record-pos-symbol
-		   (cons (point) (symbol-value record-pos-symbol)))
+	     ((memq char '(?< ?> ?@ ?: ?, ?!  ?% ?\;))
+	      (push (point) (pcase-exhaustive char
+			      (?<  <-pos)
+			      (?>  >-pos)
+			      (?@  @-pos)
+			      (?:  colon-pos)
+			      (?,  comma-pos)
+			      (?!  !-pos)
+			      (?%  %-pos)
+			      (?\; \;-pos)))
 	      (forward-char 1))
 	     ((eq char ?.)
 	      (forward-char 1))
@@ -1065,7 +1061,7 @@ non-display use, you should probably use
 	    (mail-extr-demarkerize route-addr-:-pos)
 	    (setq route-addr-:-pos nil
 		  >-pos (mail-extr-demarkerize >-pos)
-		  %-pos (mapcar 'mail-extr-demarkerize %-pos)))
+		  %-pos (mapcar #'mail-extr-demarkerize %-pos)))
 
 	  ;; de-listify @-pos
 	  (setq @-pos (car @-pos))
@@ -1122,7 +1118,7 @@ non-display use, you should probably use
 		       (setq insert-point (point-max)))
 		      (%-pos
 		       (setq insert-point (car (last %-pos))
-			     saved-%-pos (mapcar 'mail-extr-markerize %-pos)
+			     saved-%-pos (mapcar #'mail-extr-markerize %-pos)
 			     %-pos nil
 			     @-pos (mail-extr-markerize @-pos)))
 		      (@-pos
@@ -1162,7 +1158,7 @@ non-display use, you should probably use
 		       "uucp"))
 		  (setq !-pos (cdr !-pos))))
 	      (and saved-%-pos
-		   (setq %-pos (append (mapcar 'mail-extr-demarkerize
+		   (setq %-pos (append (mapcar #'mail-extr-demarkerize
 					       saved-%-pos)
 				       %-pos)))
 	      (setq @-pos (mail-extr-demarkerize @-pos))
@@ -1461,8 +1457,7 @@ If it is neither nil nor a string, modifying of names will never take
 place.  It affects how `mail-extract-address-components' works."
   :type '(choice (regexp :size 0)
 		 (const :tag "Always enabled" nil)
-		 (const :tag "Always disabled" t))
-  :group 'mail-extr)
+		 (const :tag "Always disabled" t)))
 
 (defun mail-extr-voodoo (mbox-beg mbox-end canonicalization-buffer)
   (unless (and mail-extr-disable-voodoo

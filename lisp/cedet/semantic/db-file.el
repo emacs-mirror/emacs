@@ -1,6 +1,6 @@
-;;; semantic/db-file.el --- Save a semanticdb to a cache file.
+;;; semantic/db-file.el --- Save a semanticdb to a cache file.  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2000-2005, 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -154,8 +154,6 @@ If DIRECTORY doesn't exist, create a new one."
 
 ;;; File IO
 
-(declare-function inversion-test "inversion")
-
 (defun semanticdb-load-database (filename)
   "Load the database FILENAME."
   (condition-case foo
@@ -163,32 +161,19 @@ If DIRECTORY doesn't exist, create a new one."
                                        'semanticdb-project-database-file))
 	     (c (semanticdb-get-database-tables r))
 	     (tv (oref r semantic-tag-version))
-	     (fv (oref r semanticdb-version))
-	     )
+             (fv (oref r semanticdb-version)))
 	;; Restore the parent-db connection
 	(while c
 	  (oset (car c) parent-db r)
 	  (setq c (cdr c)))
 	(unless (and (equal semanticdb-file-version fv)
 		     (equal semantic-tag-version tv))
-	  ;; Try not to load inversion unless we need it:
-	  (require 'inversion)
-	  (if (not (inversion-test 'semanticdb-file fv))
-	      (when (inversion-test 'semantic-tag tv)
-		;; Incompatible version.  Flush tables.
-		(semanticdb-flush-database-tables r)
-		;; Reset the version to new version.
-		(oset r semantic-tag-version semantic-tag-version)
-		;; Warn user
-		(message "Semanticdb file is old.  Starting over for %s"
-			 filename))
-	    ;; Version is not ok.  Flush whole system
-	    (message "semanticdb file is old.  Starting over for %s"
-		     filename)
-	    ;; This database is so old, we need to replace it.
-	    ;; We also need to delete it from the instance tracker.
-	    (delete-instance r)
-	    (setq r nil)))
+          ;; Version is not ok.  Flush whole system
+          (message "semanticdb file is old.  Starting over for %s" filename)
+          ;; This database is so old, we need to replace it.
+          ;; We also need to delete it from the instance tracker.
+          (delete-instance r)
+          (setq r nil))
 	r)
     (error (message "Cache Error: [%s] %s, Restart"
 		    filename foo)
@@ -373,13 +358,13 @@ Uses `semanticdb-persistent-path' to determine the return value."
   (object-assoc (file-name-nondirectory filename) 'file (oref obj tables)))
 
 (cl-defmethod semanticdb-file-name-non-directory
-  ((dbclass (subclass semanticdb-project-database-file)))
+  ((_dbclass (subclass semanticdb-project-database-file)))
   "Return the file name DBCLASS will use.
 File name excludes any directory part."
   semanticdb-default-file-name)
 
 (cl-defmethod semanticdb-file-name-directory
-  ((dbclass (subclass semanticdb-project-database-file)) directory)
+  ((_dbclass (subclass semanticdb-project-database-file)) directory)
   "Return the relative directory to where DBCLASS will save its cache file.
 The returned path is related to DIRECTORY."
   (if semanticdb-default-save-directory

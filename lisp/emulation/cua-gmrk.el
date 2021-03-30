@@ -1,4 +1,4 @@
-;;; cua-gmrk.el --- CUA unified global mark support
+;;; cua-gmrk.el --- CUA unified global mark support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -186,7 +186,7 @@ With prefix argument, don't jump to global mark when canceling it."
 (defun cua--copy-rectangle-to-global-mark (as-text)
   ;; Copy rectangle to global mark buffer/position.
   (if (cua--global-mark-active)
-      (let ((src-buf (current-buffer))
+      (let (;; (src-buf (current-buffer))
 	    (text (cua--extract-rectangle)))
 	(with-current-buffer (marker-buffer cua--global-mark-marker)
 	  (goto-char (marker-position cua--global-mark-marker))
@@ -351,29 +351,44 @@ With prefix argument, don't jump to global mark when canceling it."
 ;;; Initialization
 
 (defun cua--init-global-mark ()
-  (define-key cua--global-mark-keymap [remap copy-region-as-kill]	'cua-copy-to-global-mark)
-  (define-key cua--global-mark-keymap [remap kill-ring-save]		'cua-copy-to-global-mark)
-  (define-key cua--global-mark-keymap [remap kill-region]		'cua-cut-to-global-mark)
-  (define-key cua--global-mark-keymap [remap yank]			'cua-copy-next-to-global-mark)
+  (define-key cua--global-mark-keymap [remap copy-region-as-kill]
+    #'cua-copy-to-global-mark)
+  (define-key cua--global-mark-keymap [remap kill-ring-save]
+    #'cua-copy-to-global-mark)
+  (define-key cua--global-mark-keymap [remap kill-region]
+    #'cua-cut-to-global-mark)
+  (define-key cua--global-mark-keymap [remap yank]
+    #'cua-copy-next-to-global-mark)
 
-  (define-key cua--global-mark-keymap [remap keyboard-escape-quit]	'cua-cancel-global-mark)
-  (define-key cua--global-mark-keymap [remap keyboard-quit]		'cua-cancel-global-mark)
+  (define-key cua--global-mark-keymap [remap keyboard-escape-quit]
+    #'cua-cancel-global-mark)
+  (define-key cua--global-mark-keymap [remap keyboard-quit]
+    #'cua-cancel-global-mark)
 
-  (define-key cua--global-mark-keymap [(control ?d)]			'cua-cut-next-to-global-mark)
-  (define-key cua--global-mark-keymap [remap delete-backward-char]	'cua-delete-backward-char-at-global-mark)
-  (define-key cua--global-mark-keymap [remap backward-delete-char]	'cua-delete-backward-char-at-global-mark)
-  (define-key cua--global-mark-keymap [remap backward-delete-char-untabify] 'cua-delete-backward-char-at-global-mark)
-  (define-key cua--global-mark-keymap [remap self-insert-command]	'cua-insert-char-at-global-mark)
+  (define-key cua--global-mark-keymap [(control ?d)]
+    #'cua-cut-next-to-global-mark)
+  (define-key cua--global-mark-keymap [remap delete-backward-char]
+    #'cua-delete-backward-char-at-global-mark)
+  (define-key cua--global-mark-keymap [remap backward-delete-char]
+    #'cua-delete-backward-char-at-global-mark)
+  (define-key cua--global-mark-keymap [remap backward-delete-char-untabify]
+    #'cua-delete-backward-char-at-global-mark)
+  (define-key cua--global-mark-keymap [remap self-insert-command]
+    #'cua-insert-char-at-global-mark)
 
   ;; Catch self-inserting characters which are "stolen" by other modes
   (define-key cua--global-mark-keymap [t]
     '(menu-item "sic" cua-insert-char-at-global-mark :filter cua--self-insert-char-p))
 
-  (define-key cua--global-mark-keymap [remap newline]			'cua-insert-newline-at-global-mark)
-  (define-key cua--global-mark-keymap [remap newline-and-indent]	'cua-insert-newline-at-global-mark)
-  (define-key cua--global-mark-keymap "\r"				'cua-insert-newline-at-global-mark)
+  (define-key cua--global-mark-keymap [remap newline]
+    #'cua-insert-newline-at-global-mark)
+  (define-key cua--global-mark-keymap [remap newline-and-indent]
+    #'cua-insert-newline-at-global-mark)
+  (define-key cua--global-mark-keymap "\r"
+    #'cua-insert-newline-at-global-mark)
 
-  (define-key cua--global-mark-keymap "\t"				'cua-indent-to-global-mark-column)
+  (define-key cua--global-mark-keymap "\t"
+    #'cua-indent-to-global-mark-column)
 
   (setq cua--global-mark-initialized t))
 

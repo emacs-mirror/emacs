@@ -51,16 +51,14 @@ the run of whitespace at the beginning of the line.")
   "Non-nil means TAB in SIMULA mode should always reindent the current line.
 Otherwise TAB indents only when point is within
 the run of whitespace at the beginning of the line."
-  :type 'boolean
-  :group 'simula)
+  :type 'boolean)
 
 (defconst simula-indent-level-default 3
   "Indentation of SIMULA statements with respect to containing block.")
 
 (defcustom simula-indent-level simula-indent-level-default
   "Indentation of SIMULA statements with respect to containing block."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 
 (defconst simula-substatement-offset-default 3
@@ -68,8 +66,7 @@ the run of whitespace at the beginning of the line."
 
 (defcustom simula-substatement-offset simula-substatement-offset-default
   "Extra indentation after DO, THEN, ELSE, WHEN and OTHERWISE."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 (defconst simula-continued-statement-offset-default 3
   "Extra indentation for lines not starting a statement or substatement.
@@ -83,16 +80,14 @@ the previous line of the statement.")
 If value is a list, each line in a multipleline continued statement
 will have the car of the list extra indentation with respect to
 the previous line of the statement."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 (defconst simula-label-offset-default -4711
   "Offset of SIMULA label lines relative to usual indentation.")
 
 (defcustom simula-label-offset simula-label-offset-default
   "Offset of SIMULA label lines relative to usual indentation."
-  :type 'integer
-  :group 'simula)
+  :type 'integer)
 
 (defconst simula-if-indent-default '(0 . 0)
   "Extra indentation of THEN and ELSE with respect to the starting IF.
@@ -103,8 +98,7 @@ extra ELSE indentation.  IF after ELSE is indented as the starting IF.")
   "Extra indentation of THEN and ELSE with respect to the starting IF.
 Value is a cons cell, the car is extra THEN indentation and the cdr
 extra ELSE indentation.  IF after ELSE is indented as the starting IF."
-  :type '(cons integer integer)
-  :group 'simula)
+  :type '(cons integer integer))
 
 (defconst simula-inspect-indent-default '(0 . 0)
   "Extra indentation of WHEN and OTHERWISE with respect to the INSPECT.
@@ -115,16 +109,14 @@ and the cdr extra OTHERWISE indentation.")
   "Extra indentation of WHEN and OTHERWISE with respect to the INSPECT.
 Value is a cons cell, the car is extra WHEN indentation
 and the cdr extra OTHERWISE indentation."
-  :type '(cons integer integer)
-  :group 'simula)
+  :type '(cons integer integer))
 
 (defconst simula-electric-indent-default nil
   "Non-nil means `simula-indent-line' function may reindent previous line.")
 
 (defcustom simula-electric-indent simula-electric-indent-default
   "Non-nil means `simula-indent-line' function may reindent previous line."
-  :type 'boolean
-  :group 'simula)
+  :type 'boolean)
 
 (defconst simula-abbrev-keyword-default 'upcase
   "Specify how to convert case for SIMULA keywords.
@@ -135,8 +127,7 @@ Value is one of the symbols `upcase', `downcase', `capitalize',
   "Specify how to convert case for SIMULA keywords.
 Value is one of the symbols `upcase', `downcase', `capitalize',
 \(as in) `abbrev-table' or nil if they should not be changed."
-  :type '(choice (const upcase) (const downcase) (const capitalize)(const nil))
-  :group 'simula)
+  :type '(choice (const upcase) (const downcase) (const capitalize)(const nil)))
 
 (defconst simula-abbrev-stdproc-default 'abbrev-table
   "Specify how to convert case for standard SIMULA procedure and class names.
@@ -148,16 +139,14 @@ Value is one of the symbols `upcase', `downcase', `capitalize',
 Value is one of the symbols `upcase', `downcase', `capitalize',
 \(as in) `abbrev-table', or nil if they should not be changed."
   :type '(choice (const upcase) (const downcase) (const capitalize)
-	  (const abbrev-table) (const nil))
-  :group 'simula)
+          (const abbrev-table) (const nil)))
 
 (defcustom simula-abbrev-file nil
   "File with extra abbrev definitions for use in SIMULA mode.
 These are used together with the standard abbrev definitions for SIMULA.
 Please note that the standard definitions are required
 for SIMULA mode to function correctly."
-  :type '(choice file (const nil))
-  :group 'simula)
+  :type '(choice file (const nil)))
 
 (defvar simula-mode-syntax-table nil
   "Syntax table in SIMULA mode buffers.")
@@ -281,48 +270,25 @@ for SIMULA mode to function correctly."
     (define-key map ":"          'simula-electric-label)
     (define-key map "\e\C-q"     'simula-indent-exp)
     (define-key map "\t"         'simula-indent-command)
-
-    (define-key map [menu-bar simula]
-      (cons "SIMULA" (make-sparse-keymap "SIMULA")))
-    (define-key map [menu-bar simula indent-exp]
-      '("Indent Expression" . simula-indent-exp))
-    (define-key map [menu-bar simula indent-line]
-      '("Indent Line" . simula-indent-command))
-    (define-key map [menu-bar simula separator-navigate]
-      '("--"))
-    (define-key map [menu-bar simula backward-stmt]
-      '("Previous Statement" . simula-previous-statement))
-    (define-key map [menu-bar simula forward-stmt]
-      '("Next Statement" . simula-next-statement))
-    (define-key map [menu-bar simula backward-up]
-      '("Backward Up Level" . simula-backward-up-level))
-    (define-key map [menu-bar simula forward-down]
-      '("Forward Down Statement" . simula-forward-down-level))
-
-    (put 'simula-next-statement 'menu-enable '(not (eobp)))
-    (put 'simula-previous-statement 'menu-enable '(not (bobp)))
-    (put 'simula-forward-down-level 'menu-enable '(not (eobp)))
-    (put 'simula-backward-up-level 'menu-enable '(not (bobp)))
-    (put 'simula-indent-command 'menu-enable '(not buffer-read-only))
-    (put 'simula-indent-exp 'menu-enable '(not buffer-read-only))
-
-    ;; RMS: mouse-3 should not select this menu.  mouse-3's global
-    ;; definition is useful in SIMULA mode and we should not interfere
-    ;; with that.  The menu is mainly for beginners, and for them,
-    ;; the menubar requires less memory than a special click.
-    ;; in Lucid Emacs, we want the menu to popup when the 3rd button is
-    ;; hit.  In 19.10 and beyond this is done automatically if we put
-    ;; the menu on mode-popup-menu variable, see c-common-init [cc-mode.el]
-    ;;(if (not (boundp 'mode-popup-menu))
-    ;;	(define-key simula-mode-map 'button3 'simula-popup-menu))
     map)
   "Keymap used in `simula-mode'.")
 
-;; menus for Lucid
-(defun simula-popup-menu (_e)
-  "Pops up the SIMULA menu."
-  (interactive "@e")
-  (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
+(easy-menu-define simula-mode-menu simula-mode-map
+  "Menu for `simula-mode'."
+  '("SIMULA"
+    ["Forward Down Statement" simula-forward-down-level
+     :enable (not (eobp))]
+    ["Backward Up Level" simula-backward-up-level
+     :enable (not (bobp))]
+    ["Next Statement" simula-next-statement
+     :enable (not (eobp))]
+    ["Previous Statement" simula-previous-statement
+     :enable (not (bobp))]
+    "---"
+    ["Indent Line" simula-indent-command
+     :enable (not buffer-read-only)]
+    ["Indent Expression" simula-indent-exp
+     :enable (not buffer-read-only)]))
 
 ;;;###autoload
 (define-derived-mode simula-mode prog-mode "Simula"
@@ -1607,11 +1573,23 @@ If not nil and not t, move to limit of search and return nil."
        ("^%\\([ \t\f].*\\)?$" nil comment)
        ("^%include\\>" nil include)
        ("\"[^\"\n]*\"\\|'.'\\|'![0-9]+!'" nil string)
-       ("\\<\\(ACTIVATE\\|AFTER\\|AND\\|ARRAY\\|AT\\|BEFORE\\|BEGIN\\|BOOLEAN\\|CHARACTER\\|CLASS\\|DELAY\\|DO\\|ELSE\\|END\\|EQ\\|EQV\\|EXTERNAL\\|FALSE\\|FOR\\|GE\\|GO\\|GOTO\\|GT\\|HIDDEN\\|IF\\|IMP\\|IN\\|INNER\\|INSPECT\\|INTEGER\\|IS\\|LABEL\\|LE\\|LONG\\|LT\\|NAME\\|NE\\|NEW\\|NONE\\|NOT\\|NOTEXT\\|OR\\|OTHERWISE\\|PRIOR\\|PROCEDURE\\|PROTECTED\\|QUA\\|REACTIVATE\\|REAL\\|REF\\|SHORT\\|STEP\\|SWITCH\\|TEXT\\|THEN\\|THIS\\|TO\\|TRUE\\|UNTIL\\|VALUE\\|VIRTUAL\\|WHEN\\|WHILE\\)\\>" nil keyword)
+       ((regexp-opt '("ACTIVATE" "AFTER" "AND" "ARRAY" "AT" "BEFORE"
+                      "BEGIN" "BOOLEAN" "CHARACTER" "CLASS" "DELAY"
+                      "DO" "ELSE" "END" "EQ" "EQV" "EXTERNAL" "FALSE"
+                      "FOR" "GE" "GO" "GOTO" "GT" "HIDDEN" "IF" "IMP"
+                      "IN" "INNER" "INSPECT" "INTEGER" "IS" "LABEL"
+                      "LE" "LONG" "LT" "NAME" "NE" "NEW" "NONE" "NOT"
+                      "NOTEXT" "OR" "OTHERWISE" "PRIOR" "PROCEDURE"
+                      "PROTECTED" "QUA" "REACTIVATE" "REAL" "REF"
+                      "SHORT" "STEP" "SWITCH" "TEXT" "THEN" "THIS"
+                      "TO" "TRUE" "UNTIL" "VALUE" "VIRTUAL" "WHEN"
+                      "WHILE")
+                    'words)
+        nil keyword)
        ("!\\|\\<COMMENT\\>" ";" comment))
      nil 'case-insensitive)))
 
-;; defuns for submitting bug reports
+;; obsolete
 
 (defconst simula-mode-help-address "bug-gnu-emacs@gnu.org"
   "Address accepting submission of `simula-mode' bug reports.")
@@ -1621,6 +1599,12 @@ If not nil and not t, move to limit of search and return nil."
 
 (define-obsolete-function-alias 'simula-submit-bug-report
   'report-emacs-bug "24.4")
+
+(defun simula-popup-menu (_e)
+  "Pops up the SIMULA menu."
+  (declare (obsolete simula-mode-menu "28.1"))
+  (interactive "@e")
+  (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
 
 (provide 'simula)
 

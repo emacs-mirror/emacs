@@ -23,6 +23,8 @@ SHELL = @SHELL@
 # of the source tree.  This is set by configure's '--srcdir' option.
 srcdir=@srcdir@
 
+top_builddir = @top_builddir@
+
 ## Where the output files go.
 ## Note that all the Info targets build the Info files in srcdir.
 ## There is no provision for Info files to exist in the build directory.
@@ -82,10 +84,26 @@ INFO_INSTALL = $(INFO_COMMON) $(DOCMISC_W32)
 ## because the info files are pre-built in release tarfiles.
 INFO_TARGETS = $(INFO_COMMON) efaq-w32
 
+## Some manuals have their source in .org format.
+## This is discouraged because the .texi files it generates
+## are not as well formatted as handwritten ones.
+ORG_SETUP = $(wildcard ${srcdir}/*-setup.org)
+ORG_SRC = $(filter-out ${ORG_SETUP},$(wildcard ${srcdir}/*.org))
+TEXI_FROM_ORG = ${ORG_SRC:.org=.texi}
+
 # There are some naming differences between the info targets and the other
 # targets, so let's resolve them here.
 TARGETS_1 = $(INFO_INSTALL:ccmode=cc-mode)
 TARGETS = $(TARGETS_1:info.info=info)
+
+texi_sources = $(addsuffix .texi,${TARGETS})
+texi_notgen = $(filter-out $(notdir ${TEXI_FROM_ORG}),${texi_sources})
+texi_and_org = $(notdir ${ORG_SRC}) ${texi_notgen}
+SOURCES = $(sort ${texi_and_org})
+.PHONY: echo-sources
+## Used by the top-level Makefile.
+echo-sources:
+	@echo ${SOURCES}
 
 DVI_TARGETS  = $(TARGETS:=.dvi)
 HTML_TARGETS = $(TARGETS:=.html)
@@ -96,13 +114,7 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
+-include ${top_builddir}/src/verbose.mk
 
 ENVADD = $(AM_V_GEN)TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
@@ -221,6 +233,30 @@ gnus.pdf: $(gnus_deps)
 ${buildinfodir}/tramp.info tramp.html: ${srcdir}/trampver.texi
 
 
+abs_top_builddir = @abs_top_builddir@
+EMACS = ${abs_top_builddir}/src/emacs
+emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
+
+# Generated .texi files go in srcdir so they can be included in the
+# release tarfile along with the others.
+# Work in srcdir (and use abs_top_builddir) so that +setupfile and
+# things like org-setup's "version" macro work.  Sigh.
+define org_template
+ $(1:.org=.texi): $(1)
+	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
+	  -f org-texinfo-export-to-texinfo-batch $$(notdir $$<) $$(notdir $$@)
+endef
+
+$(foreach orgfile,${ORG_SRC},$(eval $(call org_template,$(orgfile))))
+
+## foo.org depends on foo-setup.org, if the latter exists.
+define org_setup_template
+  $(1:-setup.org=.texi): $(1)
+endef
+
+$(foreach orgfile,${ORG_SETUP},$(eval $(call org_setup_template,$(orgfile))))
+
+
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
 mostlyclean:
@@ -245,7 +281,13 @@ infoclean:
 	    $(buildinfodir)/$${file}-[1-9][0-9]; \
 	done
 
-bootstrap-clean maintainer-clean: distclean infoclean
+.PHONY: orgclean
+
+orgclean:
+	rm -f ${TEXI_FROM_ORG}
+
+bootstrap-clean maintainer-clean: distclean infoclean orgclean
+	rm -f TAGS
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 
@@ -294,5 +336,21 @@ uninstall-pdf:
 
 uninstall-doc: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
 
+
+ETAGS = ../../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	$(MAKE) -C $(dir $@) $(notdir $@)
+
+texifiles = $(wildcard ${srcdir}/*.texi)
+
+TAGS: ${ETAGS} $(texifiles)
+	$(AM_V_GEN)${ETAGS} $(texifiles)
+
+tags: TAGS
+.PHONY: tags
+
+FORCE:
+.PHONY: FORCE
 
 ### Makefile ends here

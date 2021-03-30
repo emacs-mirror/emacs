@@ -1,4 +1,4 @@
-;;; semantic/decorate/include.el --- Decoration modes for include statements
+;;; semantic/decorate/include.el --- Decoration modes for include statements  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -55,7 +55,7 @@ Used by the decoration style: `semantic-decoration-on-includes'."
 
 (defvar semantic-decoration-on-include-map
   (let ((km (make-sparse-keymap)))
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-include-menu)
     km)
   "Keymap used on includes.")
 
@@ -114,7 +114,7 @@ Used by the decoration style: `semantic-decoration-on-unknown-includes'."
 (defvar semantic-decoration-on-unknown-include-map
   (let ((km (make-sparse-keymap)))
     ;(define-key km [ mouse-2 ] 'semantic-decoration-unknown-include-describe)
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-unknown-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-unknown-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -169,7 +169,7 @@ Used by the decoration style: `semantic-decoration-on-fileless-includes'."
 (defvar semantic-decoration-on-fileless-include-map
   (let ((km (make-sparse-keymap)))
     ;(define-key km [ mouse-2 ] 'semantic-decoration-fileless-include-describe)
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-fileless-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-fileless-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -223,7 +223,7 @@ Used by the decoration style: `semantic-decoration-on-unparsed-includes'."
 
 (defvar semantic-decoration-on-unparsed-include-map
   (let ((km (make-sparse-keymap)))
-    (define-key km semantic-decoration-mouse-3 'semantic-decoration-unparsed-include-menu)
+    (define-key km semantic-decoration-mouse-3 #'semantic-decoration-unparsed-include-menu)
     km)
   "Keymap used on unparsed includes.")
 
@@ -535,7 +535,7 @@ Argument EVENT is the mouse clicked event."
   (interactive)
   (let* ((tag (semantic-current-tag))
 	 (table (semanticdb-find-table-for-include tag (current-buffer)))
-	 (mm major-mode))
+	 ) ;; (mm major-mode)
     (with-output-to-temp-buffer (help-buffer) ; "*Help*"
       (help-setup-xref (list #'semantic-decoration-fileless-include-describe)
 		       (called-interactively-p 'interactive))
@@ -793,7 +793,7 @@ any decorated referring includes.")
   (let ((table (oref obj table)))
     ;; This is a hack.  Add in something better?
     (semanticdb-notify-references
-     table (lambda (tab me)
+     table (lambda (tab _me)
 	     (semantic-decoration-unparsed-include-refrence-reset tab)
 	     ))
     ))
@@ -805,7 +805,7 @@ any decorated referring includes.")
       (semantic-reset cache)))
 
 (cl-defmethod semanticdb-synchronize ((cache semantic-decoration-unparsed-include-cache)
-				   new-tags)
+				   _new-tags)
   "Synchronize a CACHE with some NEW-TAGS."
   (semantic-reset cache))
 

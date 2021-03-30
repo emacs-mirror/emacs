@@ -1,4 +1,4 @@
-;;; semantic/wisent/grammar.el --- Wisent's input grammar mode
+;;; semantic/wisent/grammar.el --- Wisent's input grammar mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 ;;
@@ -228,7 +228,7 @@ Keep order of declaration in the WY file without duplicates."
 Return the expanded expression."
   (if (or (atom expr) (semantic-grammar-quote-p (car expr)))
       expr ;; Just return atom or quoted expression.
-    (let* ((expr  (mapcar 'wisent-grammar-expand-macros expr))
+    (let* ((expr  (mapcar #'wisent-grammar-expand-macros expr))
            (macro (assq (car expr) wisent--grammar-macros)))
       (if macro ;; Expand Semantic built-in.
           (apply (cdr macro) (cdr expr))
@@ -286,12 +286,9 @@ Return the expanded expression."
 
 (defun wisent-grammar-parsetable-builder ()
   "Return the value of the parser table."
-  `(progn
-     ;; Ensure that the grammar [byte-]compiler is available.
-     (eval-when-compile (require 'semantic/wisent/comp))
-     (wisent-compile-grammar
-      ',(wisent-grammar-grammar)
-      ',(semantic-grammar-start))))
+  `(wisent-compiled-grammar
+    ,(wisent-grammar-grammar)
+    ,(semantic-grammar-start)))
 
 (defun wisent-grammar-setupcode-builder ()
   "Return the parser setup code."
@@ -305,7 +302,7 @@ Return the expanded expression."
           semantic-lex-types-obarray %s)\n\
     ;; Collect unmatched syntax lexical tokens\n\
     (add-hook 'wisent-discarding-token-functions\n\
-              'wisent-collect-unmatched-syntax nil t)"
+              #'wisent-collect-unmatched-syntax nil t)"
    (semantic-grammar-parsetable)
    (buffer-name)
    (semantic-grammar-keywordtable)
@@ -325,6 +322,7 @@ Menu items are appended to the common grammar menu.")
 (define-derived-mode wisent-grammar-mode semantic-grammar-mode "WY"
   "Major mode for editing Wisent grammars."
   (semantic-grammar-setup-menu wisent-grammar-menu)
+  (setq-local semantic-grammar-require-form '(require 'semantic/wisent))
   (semantic-install-function-overrides
    '((semantic-grammar-parsetable-builder . wisent-grammar-parsetable-builder)
      (semantic-grammar-setupcode-builder  . wisent-grammar-setupcode-builder))))
@@ -514,7 +512,8 @@ Menu items are appended to the common grammar menu.")
 	  (goto-char (point-min))
 	  (delete-region (point-min) (line-end-position))
 	  (insert ";;; " packagename
-		  " --- Generated parser support file")
+		  " --- Generated parser support file  "
+		  "-*- lexical-binding:t -*-")
 	  (re-search-forward ";;; \\(.*\\) ends here")
 	  (replace-match packagename nil nil nil 1)
 	  (delete-trailing-whitespace))))))

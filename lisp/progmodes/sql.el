@@ -2992,7 +2992,7 @@ displayed."
 ;; (defconst sql-smie-grammar
 ;;   (smie-prec2->grammar
 ;;    (smie-bnf->prec2
-;;     ;; Partly based on http://www.h2database.com/html/grammar.html
+;;     ;; Partly based on https://www.h2database.com/html/grammar.html
 ;;     '((cmd ("SELECT" select-exp "FROM" select-table-exp)
 ;;            )
 ;;       (select-exp ("*") (exp) (exp "AS" column-alias))

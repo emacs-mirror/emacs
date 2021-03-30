@@ -331,7 +331,7 @@ It is used when `ruby-encoding-magic-comment-style' is set to `custom'."
 (require 'smie)
 
 ;; Here's a simplified BNF grammar, for reference:
-;; http://www.cse.buffalo.edu/~regan/cse305/RubyBNF.pdf
+;; https://www.cse.buffalo.edu/~regan/cse305/RubyBNF.pdf
 (defconst ruby-smie-grammar
   (smie-prec2->grammar
    (smie-merge-prec2s
@@ -1802,12 +1802,12 @@ FEATURE-NAME is a relative file name, file extension is optional.
 This commands delegates to `gem which', which searches both
 installed gems and the standard library.  When called
 interactively, defaults to the feature name in the `require'
-statement around point."
+or `gem' statement around point."
   (interactive)
   (unless feature-name
     (let ((init (save-excursion
                   (forward-line 0)
-                  (when (looking-at "require [\"']\\(.*\\)[\"']")
+                  (when (looking-at "\\(?:require\\| *gem\\) [\"']\\(.*?\\)[\"']")
                     (match-string 1)))))
       (setq feature-name (read-string "Feature name: " init))))
   (let ((out

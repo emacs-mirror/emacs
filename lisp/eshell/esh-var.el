@@ -355,7 +355,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
 (defun pcomplete/eshell-mode/setq ()
   "Completion function for Eshell's `setq'."
   (while (and (pcomplete-here (all-completions pcomplete-stub
-					       obarray 'boundp))
+					       obarray #'boundp))
 	      (pcomplete-here))))
 
 ;; FIXME the real "env" command does more than this, it runs a program

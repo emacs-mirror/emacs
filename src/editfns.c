@@ -1697,7 +1697,11 @@ they can be in either order.  */)
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
        doc: /* Return the contents of the current buffer as a string.
 If narrowing is in effect, this function returns only the visible part
-of the buffer.  */)
+of the buffer.
+
+This function copies the text properties of that part of the buffer
+into the result string; if you don’t want the text properties,
+use `buffer-substring-no-properties' instead.  */)
   (void)
 {
   return make_buffer_string_both (BEGV, BEGV_BYTE, ZV, ZV_BYTE, 1);
@@ -2945,7 +2949,7 @@ usage: (propertize STRING &rest PROPERTIES)  */)
 
   /* Number of args must be odd.  */
   if ((nargs & 1) == 0)
-    error ("Wrong number of arguments");
+    xsignal2 (Qwrong_number_of_arguments, Qpropertize, make_fixnum (nargs));
 
   properties = string = Qnil;
 
@@ -3134,7 +3138,7 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
   char *format_start = SSDATA (args[0]);
   bool multibyte_format = STRING_MULTIBYTE (args[0]);
   ptrdiff_t formatlen = SBYTES (args[0]);
-  bool fmt_props = string_intervals (args[0]);
+  bool fmt_props = !!string_intervals (args[0]);
 
   /* Upper bound on number of format specs.  Each uses at least 2 chars.  */
   ptrdiff_t nspec_bound = SCHARS (args[0]) >> 1;
@@ -4448,6 +4452,7 @@ syms_of_editfns (void)
 {
   DEFSYM (Qbuffer_access_fontify_functions, "buffer-access-fontify-functions");
   DEFSYM (Qwall, "wall");
+  DEFSYM (Qpropertize, "propertize");
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);

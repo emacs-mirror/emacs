@@ -140,7 +140,7 @@ to an element already in the list stored in PLACE.
 \n(fn X PLACE [KEYWORD VALUE]...)"
   (declare (debug
             (form place &rest
-                  &or [[&or ":test" ":test-not" ":key"] function-form]
+                  &or [[&or ":test" ":test-not" ":key"] form]
                   [keywordp form])))
   (if (symbolp place)
       (if (null keys)
@@ -232,13 +232,8 @@ one value.
 
 ;;; Declarations.
 
-(defvar cl--compiling-file nil)
-(defun cl--compiling-file ()
-  (or cl--compiling-file
-      (and (boundp 'byte-compile--outbuffer)
-           (bufferp (symbol-value 'byte-compile--outbuffer))
-	   (equal (buffer-name (symbol-value 'byte-compile--outbuffer))
-		  " *Compiler Output*"))))
+(define-obsolete-function-alias 'cl--compiling-file
+  #'macroexp-compiling-p "28.1")
 
 (defvar cl--proclaims-deferred nil)
 
@@ -253,7 +248,7 @@ one value.
 Puts `(cl-eval-when (compile load eval) ...)' around the declarations
 so that they are registered at compile-time as well as run-time."
   (let ((body (mapcar (lambda (x) `(cl-proclaim ',x)) specs)))
-    (if (cl--compiling-file) `(cl-eval-when (compile load eval) ,@body)
+    (if (macroexp-compiling-p) `(cl-eval-when (compile load eval) ,@body)
       `(progn ,@body))))           ; Avoid loading cl-macs.el for cl-eval-when.
 
 

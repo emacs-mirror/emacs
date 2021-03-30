@@ -1,4 +1,4 @@
-;;; erc-hecomplete.el --- Provides Nick name completion for ERC
+;;; erc-hecomplete.el --- Provides Nick name completion for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2002, 2004, 2006-2021 Free Software Foundation,
 ;; Inc.
@@ -39,8 +39,8 @@
 ;;;###autoload (autoload 'erc-hecomplete-mode "erc-hecomplete" nil t)
 (define-erc-module hecomplete nil
   "Complete nick at point."
-  ((add-hook 'erc-complete-functions 'erc-hecomplete))
-  ((remove-hook 'erc-complete-functions 'erc-hecomplete)))
+  ((add-hook 'erc-complete-functions #'erc-hecomplete))
+  ((remove-hook 'erc-complete-functions #'erc-hecomplete)))
 
 (defun erc-hecomplete ()
   "Complete nick at point.
@@ -70,15 +70,13 @@ or you may use an arbitrary lisp expression."
 			erc-nick-completion-exclude-myself)
 		 (repeat :tag "List" (string :tag "Nick"))
 		 function
-		 sexp)
-  :group 'erc-hecomplete)
+		 sexp))
 
 (defcustom erc-nick-completion-ignore-case t
   "Non-nil means don't consider case significant in nick completion.
 Case will be automatically corrected when non-nil.
 For instance if you type \"dely TAB\" the word completes and changes to
 \"delYsid\"."
-  :group 'erc-hecomplete
   :type 'boolean)
 
 (defun erc-nick-completion-exclude-myself ()
@@ -95,7 +93,6 @@ typing \"f o TAB\" will directly give you foobar.  Use this with
 (defcustom erc-nick-completion-postfix ": "
   "When `erc-complete' is used in the first word after the prompt,
 add this string when a unique expansion was found."
-  :group 'erc-hecomplete
   :type 'string)
 
 (defun erc-command-list ()

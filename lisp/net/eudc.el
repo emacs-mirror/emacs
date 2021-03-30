@@ -49,10 +49,6 @@
 
 (require 'cl-lib)
 
-(eval-and-compile
-  (if (not (fboundp 'make-overlay))
-      (require 'overlay)))
-
 (unless (fboundp 'custom-menu-create)
   (autoload 'custom-menu-create "cus-edit"))
 
@@ -69,12 +65,12 @@
 (defvar eudc-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map widget-keymap)
-    (define-key map "q" 'kill-current-buffer)
-    (define-key map "x" 'kill-current-buffer)
-    (define-key map "f" 'eudc-query-form)
-    (define-key map "b" 'eudc-try-bbdb-insert)
-    (define-key map "n" 'eudc-move-to-next-record)
-    (define-key map "p" 'eudc-move-to-previous-record)
+    (define-key map "q" #'kill-current-buffer)
+    (define-key map "x" #'kill-current-buffer)
+    (define-key map "f" #'eudc-query-form)
+    (define-key map "b" #'eudc-try-bbdb-insert)
+    (define-key map "n" #'eudc-move-to-next-record)
+    (define-key map "p" #'eudc-move-to-previous-record)
     map))
 
 (defvar mode-popup-menu)
@@ -411,7 +407,7 @@ if any, is called to print the value in cdr of FIELD."
 	(val (cdr field)))
     (if match
 	(progn
-	  (eval (list (cdr match) val))
+	  (funcall (cdr match) val)
 	  (insert "\n"))
       (mapc
        (lambda (val-elem)
@@ -1055,8 +1051,6 @@ queries the server for the existing fields and displays a corresponding form."
 ;;}}}
 
 ;;{{{      Menus and keymaps
-
-(require 'easymenu)
 
 (defconst eudc-custom-generated-menu (cdr (custom-menu-create 'eudc)))
 

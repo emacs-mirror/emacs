@@ -1,4 +1,4 @@
-;;; semantic/senator.el --- SEmantic NAvigaTOR
+;;; semantic/senator.el --- SEmantic NAvigaTOR  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -60,7 +60,6 @@ A tag class is a symbol, such as `variable', `function', or `type'.
 
 As a special exception, if the value is nil, Senator's navigation
 commands recognize all tag classes."
-  :group 'senator
   :type '(repeat (symbol)))
 ;;;###autoload
 (make-variable-buffer-local 'senator-step-at-tag-classes)
@@ -78,7 +77,6 @@ commands stop at the beginning of every tag.
 
 If t, the navigation commands stop at the start and end of any
 tag, where possible."
-  :group 'senator
   :type '(choice :tag "Identifiers"
                  (repeat :menu-tag "Symbols" (symbol))
                  (const  :tag "All" t)))
@@ -87,7 +85,6 @@ tag, where possible."
 
 (defcustom senator-highlight-found nil
   "If non-nil, Senator commands momentarily highlight found tags."
-  :group 'senator
   :type 'boolean)
 (make-variable-buffer-local 'senator-highlight-found)
 
@@ -193,7 +190,6 @@ source."
   '(code block)
   "List of ignored tag classes.
 Tags of those classes are excluded from search."
-  :group 'senator
   :type '(repeat (symbol :tag "class")))
 
 (defun senator-search-default-tag-filter (tag)
@@ -461,7 +457,7 @@ filters in `senator-search-tag-filter-functions' remain active."
          ((symbolp classes)
           (list classes))
          ((stringp classes)
-          (mapcar 'read (split-string classes)))
+          (mapcar #'read (split-string classes)))
          (t
           (signal 'wrong-type-argument (list classes)))
          ))
@@ -470,11 +466,10 @@ filters in `senator-search-tag-filter-functions' remain active."
                senator--search-filter t)
   (kill-local-variable 'senator--search-filter)
   (if classes
-      (let ((tag   (make-symbol "tag"))
-            (names (mapconcat 'symbol-name classes "', `")))
+      (let ((names (mapconcat #'symbol-name classes "', `")))
         (setq-local senator--search-filter
-                    `(lambda (,tag)
-                       (memq (semantic-tag-class ,tag) ',classes)))
+                    (lambda (tag)
+                      (memq (semantic-tag-class tag) classes)))
         (add-hook 'senator-search-tag-filter-functions
                   senator--search-filter nil t)
         (message "Limit search to `%s' tags" names))
@@ -605,7 +600,7 @@ Makes C/C++ language like assumptions."
   "Non-nil if isearch does semantic search.
 This is a buffer local variable.")
 
-(defun senator-beginning-of-defun (&optional arg)
+(defun senator-beginning-of-defun (&optional _arg)
   "Move backward to the beginning of a defun.
 Use semantic tags to navigate.
 ARG is the number of tags to navigate (not yet implemented)."
@@ -620,7 +615,7 @@ ARG is the number of tags to navigate (not yet implemented)."
           (goto-char (semantic-tag-start tag)))
       (beginning-of-line))))
 
-(defun senator-end-of-defun (&optional arg)
+(defun senator-end-of-defun (&optional _arg)
   "Move forward to next end of defun.
 Use semantic tags to navigate.
 ARG is the number of tags to navigate (not yet implemented)."
@@ -859,7 +854,7 @@ Use a senator search function when semantic isearch mode is enabled."
           (setq-local senator-old-isearch-search-fun
                       isearch-search-fun-function))
         (setq-local isearch-search-fun-function
-                    'senator-isearch-search-fun))
+                    #'senator-isearch-search-fun))
     ;; When `senator-isearch-semantic-mode' is off restore the
     ;; previous `isearch-search-fun-function'.
     (when (eq isearch-search-fun-function 'senator-isearch-search-fun)

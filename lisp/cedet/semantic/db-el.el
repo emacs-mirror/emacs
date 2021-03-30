@@ -1,6 +1,6 @@
-;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp
+;;; semantic/db-el.el --- Semantic database extensions for Emacs Lisp  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: tags
@@ -53,7 +53,7 @@ It does not need refreshing."
   "Return nil, we never need a refresh."
   nil)
 
-(cl-defmethod semanticdb-debug-info ((obj semanticdb-table-emacs-lisp))
+(cl-defmethod semanticdb-debug-info ((_obj semanticdb-table-emacs-lisp))
   (list "(proxy)"))
 
 (cl-defmethod cl-print-object ((obj semanticdb-table-emacs-lisp) stream)
@@ -195,9 +195,6 @@ If Emacs cannot resolve this symbol to a particular file, then return nil."
 	(when tab (cons tab match))))))
 
 (autoload 'help-function-arglist "help-fns")
-(defalias 'semanticdb-elisp-sym-function-arglist 'help-function-arglist)
-(make-obsolete 'semanticdb-elisp-sym-function-arglist
-	       'help-function-arglist "CEDET 1.1")
 
 (defun semanticdb-elisp-sym->tag (sym &optional toktype)
   "Convert SYM into a semantic tag.
@@ -346,6 +343,9 @@ Return a list of tags."
 				     (cl-generic-all-functions class)))))
 	     )
 	taglst))))
+
+(define-obsolete-function-alias 'semanticdb-elisp-sym-function-arglist
+  #'help-function-arglist "24.3")
 
 (provide 'semantic/db-el)
 

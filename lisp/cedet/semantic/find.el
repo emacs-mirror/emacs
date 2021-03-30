@@ -1,4 +1,4 @@
-;;; semantic/find.el --- Search routines for Semantic
+;;; semantic/find.el --- Search routines for Semantic  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2005, 2008-2021 Free Software Foundation, Inc.
 
@@ -583,7 +583,7 @@ Optional argument SEARCH-PARTS and SEARCH-INCLUDES are passed to
   )
 
 (defun semantic-brute-find-tag-by-function
-  (function streamorbuffer &optional search-parts search-includes)
+  (function streamorbuffer &optional search-parts _search-includes)
   "Find all tags for which FUNCTION's value is non-nil within STREAMORBUFFER.
 FUNCTION must return non-nil if an element of STREAM will be included
 in the new list.
@@ -620,7 +620,7 @@ This parameter hasn't be active for a while and is obsolete."
     nl))
 
 (defun semantic-brute-find-first-tag-by-function
-  (function streamorbuffer &optional search-parts search-includes)
+  (function streamorbuffer &optional _search-parts _search-includes)
   "Find the first tag which FUNCTION match within STREAMORBUFFER.
 FUNCTION must return non-nil if an element of STREAM will be included
 in the new list.

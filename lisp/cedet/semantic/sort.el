@@ -1,6 +1,6 @@
-;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.
+;;; semantic/sort.el --- Utilities for sorting and re-arranging tag tables.  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2005, 2007-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -233,8 +233,7 @@ unmodified as components of their parent tags."
 			       (semantic-flatten-tags-table components)
 			       lists)))))
 	  table)
-    (apply 'append (nreverse lists))
-    ))
+    (apply #'append (nreverse lists))))
 
 
 ;;; Buckets:
@@ -520,12 +519,11 @@ See `semantic-tag-external-member-children' for details."
 		(semantic-tag-name tag) tag)))
 	(if m (apply #'append (mapcar #'cdr m))))
     (semantic--find-tags-by-function
-     `(lambda (tok)
-	;; This bit of annoying backquote forces the contents of
-	;; tag into the generated lambda.
-       (semantic-tag-external-member-p ',tag tok))
-     (current-buffer))
-    ))
+     (lambda (tok)
+       ;; This bit of annoying backquote forces the contents of
+       ;; tag into the generated lambda.
+       (semantic-tag-external-member-p tag tok))
+     (current-buffer))))
 
 (define-overloadable-function semantic-tag-external-class (tag)
   "Return a list of real tags that faux TAG might represent.
@@ -539,6 +537,8 @@ likely derived, then this function is needed."
     (signal 'wrong-type-argument (list tag 'semantic-tag-faux-p)))
   (:override)
   )
+
+(defvar semanticdb-search-system-databases)
 
 (defun semantic-tag-external-class-default (tag)
   "Return a list of real tags that faux TAG might represent.

@@ -4158,7 +4158,7 @@ returned by `window-start' and `window-point' respectively.
 
 This function is called only if `switch-to-buffer-preserve-window-point'
 evaluates non-nil."
-  (dolist (win (window-list))
+  (dolist (win (window-list nil 'no-minibuf))
     (let* ((buf   (window-buffer (or window win)))
            (start (window-start win))
            (pos   (window-point win))
@@ -4416,7 +4416,8 @@ WINDOW must be a live window and defaults to the selected one."
        window (assq-delete-all buffer (window-prev-buffers window))))
 
     ;; Don't record insignificant buffers.
-    (unless (eq (aref (buffer-name buffer) 0) ?\s)
+    (when (or (not (eq (aref (buffer-name buffer) 0) ?\s))
+              (minibufferp buffer))
       ;; Add an entry for buffer to WINDOW's previous buffers.
       (with-current-buffer buffer
 	(let ((start (window-start window))
@@ -10251,6 +10252,28 @@ displaying that processes's buffer."
 (define-key ctl-x-4-map "0" 'kill-buffer-and-window)
 (define-key ctl-x-4-map "1" 'same-window-prefix)
 (define-key ctl-x-4-map "4" 'other-window-prefix)
+
+(defvar other-window-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "o" 'other-window)
+    map)
+  "Keymap to repeat other-window key sequences.  Used in `repeat-mode'.")
+(put 'other-window 'repeat-map 'other-window-repeat-map)
+
+(defvar resize-window-repeat-map
+  (let ((map (make-sparse-keymap)))
+    ;; Standard keys:
+    (define-key map "^" 'enlarge-window)
+    (define-key map "}" 'enlarge-window-horizontally)
+    (define-key map "{" 'shrink-window-horizontally)
+    ;; Additional keys:
+    (define-key map "v" 'shrink-window)
+    map)
+  "Keymap to repeat window resizing commands.  Used in `repeat-mode'.")
+(put 'enlarge-window 'repeat-map 'resize-window-repeat-map)
+(put 'enlarge-window-horizontally 'repeat-map 'resize-window-repeat-map)
+(put 'shrink-window-horizontally 'repeat-map 'resize-window-repeat-map)
+(put 'shrink-window 'repeat-map 'resize-window-repeat-map)
 
 (provide 'window)
 

@@ -1300,7 +1300,11 @@ out."
 	 (let ((s (comment-padleft comment-end numarg)))
 	   (and s (if (string-match comment-end-skip s) s
 		    (comment-padright comment-end))))
-	 (if multi (comment-padright comment-continue numarg))
+	 (if multi
+             (or (comment-padright comment-continue numarg)
+                 ;; `comment-padright' returns nil when
+                 ;; `comment-continue' contains only whitespace
+                 (and (stringp comment-continue) comment-continue)))
 	 (if multi
 	     (comment-padleft (comment-string-reverse comment-continue) numarg))
 	 block

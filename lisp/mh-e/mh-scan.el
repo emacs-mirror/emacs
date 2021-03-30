@@ -1,4 +1,4 @@
-;;; mh-scan.el --- MH-E scan line constants and utilities
+;;; mh-scan.el --- MH-E scan line constants and utilities  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
@@ -497,7 +497,7 @@ with `mh-scan-msg-format-string'."
         (width 0))
     (with-current-buffer tmp-buffer
       (erase-buffer)
-      (apply 'call-process
+      (apply #'call-process
              (expand-file-name mh-scan-prog mh-progs) nil '(t nil) nil
              (list folder "last" "-format" "%(msg)"))
       (goto-char (point-min))

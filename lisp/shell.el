@@ -110,11 +110,6 @@
   "Directory support in shell mode."
   :group 'shell)
 
-;; Unused.
-;;; (defgroup shell-faces nil
-;;;   "Faces in shell buffers."
-;;;   :group 'shell)
-
 ;;;###autoload
 (defcustom shell-dumb-shell-regexp (purecopy "cmd\\(proxy\\)?\\.exe")
   "Regexp to match shells that don't save their command history, and
@@ -463,7 +458,7 @@ Shell buffers.  It implements `shell-completion-execonly' for
   (if (pcomplete-match "/")
       (pcomplete-here (pcomplete-entries nil
 					 (if shell-completion-execonly
-					     'file-executable-p)))
+					     #'file-executable-p)))
     (pcomplete-here
      (nth 2 (shell--command-completion-data)))))
 
@@ -556,8 +551,7 @@ Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and `comint-scroll-to-bottom-on-output'
 control whether input and output cause the window to scroll to the end of the
 buffer."
-  (when (called-interactively-p 'any)
-    (error "Can't be called interactively; did you mean `shell-script-mode' instead?"))
+  :interactive nil
   (setq comint-prompt-regexp shell-prompt-pattern)
   (shell-completion-vars)
   (setq-local paragraph-separate "\\'")
@@ -744,7 +738,7 @@ Make the shell buffer the current buffer, and return it.
                  (current-buffer)))
   ;; The buffer's window must be correctly set when we call comint
   ;; (so that comint sets the COLUMNS env var properly).
-  (pop-to-buffer buffer)
+  (pop-to-buffer-same-window buffer)
 
   (with-connection-local-variables
    ;; On remote hosts, the local `shell-file-name' might be useless.

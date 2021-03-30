@@ -814,7 +814,7 @@ This macro is used to test if macroexpansion in `should' works."
                   :body (lambda () (should (integerp (ert-fail "Boo"))))))))
     (should (ert-test-failed-p result))
     (should (equal (ert-test-failed-condition result)
-                   '(ert-test-failed ("Boo"))))))
+                   '(ert-test-failed "Boo")))))
 
 
 (provide 'ert-tests)

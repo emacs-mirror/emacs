@@ -1,10 +1,10 @@
-;;; erc-identd.el --- RFC1413 (identd authentication protocol) server
+;;; erc-identd.el --- RFC1413 (identd authentication protocol) server  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003, 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, processes
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 
@@ -50,7 +50,6 @@
 `erc-identd-start'.
 
 This can be either a string or a number."
-  :group 'erc-identd
   :type '(choice (const :tag "None" nil)
 		 (integer :tag "Port number")
 		 (string :tag "Port string")))
@@ -58,10 +57,10 @@ This can be either a string or a number."
 ;;;###autoload(autoload 'erc-identd-mode "erc-identd")
 (define-erc-module identd nil
   "This mode launches an identd server on port 8113."
-  ((add-hook 'erc-connect-pre-hook 'erc-identd-quickstart)
-   (add-hook 'erc-disconnected-hook 'erc-identd-stop))
-  ((remove-hook 'erc-connect-pre-hook 'erc-identd-quickstart)
-   (remove-hook 'erc-disconnected-hook 'erc-identd-stop)))
+  ((add-hook 'erc-connect-pre-hook #'erc-identd-quickstart)
+   (add-hook 'erc-disconnected-hook #'erc-identd-stop))
+  ((remove-hook 'erc-connect-pre-hook #'erc-identd-quickstart)
+   (remove-hook 'erc-disconnected-hook #'erc-identd-stop)))
 
 (defun erc-identd-filter (proc string)
   "This filter implements RFC1413 (identd authentication protocol)."
@@ -95,16 +94,16 @@ system."
 			      :buffer nil
 			      :host 'local :service port
 			      :server t :noquery t :nowait t
-			      :filter 'erc-identd-filter))
+			      :filter #'erc-identd-filter))
   (set-process-query-on-exit-flag erc-identd-process nil))
 
-(defun erc-identd-quickstart (&rest ignored)
+(defun erc-identd-quickstart (&rest _ignored)
   "Start the identd server with the default port.
 The default port is specified by `erc-identd-port'."
   (erc-identd-start))
 
 ;;;###autoload
-(defun erc-identd-stop (&rest ignore)
+(defun erc-identd-stop (&rest _ignore)
   (interactive)
   (when erc-identd-process
     (delete-process erc-identd-process)

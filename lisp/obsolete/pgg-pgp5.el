@@ -1,4 +1,4 @@
-;;; pgg-pgp5.el --- PGP 5.* support for PGG.
+;;; pgg-pgp5.el --- PGP 5.* support for PGG.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2000, 2002-2021 Free Software Foundation, Inc.
 
@@ -35,38 +35,31 @@
 
 (defcustom pgg-pgp5-pgpe-program "pgpe"
   "PGP 5.* `pgpe' executable."
-  :group 'pgg-pgp5
   :type 'string)
 
 (defcustom pgg-pgp5-pgps-program "pgps"
   "PGP 5.* `pgps' executable."
-  :group 'pgg-pgp5
   :type 'string)
 
 (defcustom pgg-pgp5-pgpk-program "pgpk"
   "PGP 5.* `pgpk' executable."
-  :group 'pgg-pgp5
   :type 'string)
 
 (defcustom pgg-pgp5-pgpv-program "pgpv"
   "PGP 5.* `pgpv' executable."
-  :group 'pgg-pgp5
   :type 'string)
 
 (defcustom pgg-pgp5-shell-file-name "/bin/sh"
   "File name to load inferior shells from.
 Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
-  :group 'pgg-pgp5
   :type 'string)
 
 (defcustom pgg-pgp5-shell-command-switch "-c"
   "Switch used to have the shell execute its command line argument."
-  :group 'pgg-pgp5
   :type 'string)
 
 (defcustom pgg-pgp5-extra-args nil
   "Extra arguments for every PGP 5.* invocation."
-  :group 'pgg-pgp5
   :type '(choice
 	  (const :tag "None" nil)
 	  (string :tag "Arguments")))
@@ -128,7 +121,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 	  (delete-file errors-file-name)
 	(file-error nil)))))
 
-(defun pgg-pgp5-lookup-key (string &optional type)
+(defun pgg-pgp5-lookup-key (string &optional _type)
   "Search keys associated with STRING."
   (let ((args (list "+language=en" "-l" string)))
     (with-current-buffer (get-buffer-create pgg-output-buffer)
@@ -145,7 +138,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 (defun pgg-pgp5-encrypt-region (start end recipients &optional sign passphrase)
   "Encrypt the current region between START and END."
   (let* ((pgg-pgp5-user-id (or pgg-pgp5-user-id pgg-default-user-id))
-	 (passphrase (or passphrase
+	 (_passphrase (or passphrase
 			 (when sign
 			   (pgg-read-passphrase
 			    (format "PGP passphrase for %s: "
@@ -209,6 +202,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
   (let ((orig-file (pgg-make-temp-file "pgg"))
 	(args '("+verbose=1" "+batchmode=1" "+language=us")))
     (with-file-modes 448
+      (defvar jam-zcat-filename-list)   ;Not sure where this comes from.
       (let ((coding-system-for-write 'binary)
 	    jka-compr-compression-info-list jam-zcat-filename-list)
 	(write-region start end orig-file)))

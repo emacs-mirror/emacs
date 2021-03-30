@@ -1,6 +1,6 @@
-;;; semantic/bovine/scm.el --- Semantic details for Scheme (guile)
+;;; semantic/bovine/scm.el --- Semantic details for Scheme (guile)  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 2001-2004, 2008-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2021  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -49,7 +49,7 @@ actually on the local machine.")
 		")")
       (semantic-format-tag-prototype-default tag parent color))))
 
-(define-mode-local-override semantic-documentation-for-tag scheme-mode (tag &optional nosnarf)
+(define-mode-local-override semantic-documentation-for-tag scheme-mode (tag &optional _nosnarf)
   "Return the documentation string for TAG.
 Optional argument NOSNARF is ignored."
   (let ((d (semantic-tag-docstring tag)))
@@ -57,7 +57,7 @@ Optional argument NOSNARF is ignored."
 	(substring d 1)
       d)))
 
-(define-mode-local-override semantic-insert-foreign-tag scheme-mode (tag tagfile)
+(define-mode-local-override semantic-insert-foreign-tag scheme-mode (tag _tagfile)
   "Insert TAG from TAGFILE at point.
 Attempts a simple prototype for calling or using TAG."
   (cond ((eq (semantic-tag-class tag) 'function)
@@ -102,8 +102,7 @@ syntax as specified by the syntax table."
                                             (function . "Functions")
                                             (include  . "Loads")
                                             (package  . "DefineModule"))
-        imenu-create-index-function 'semantic-create-imenu-index
-        imenu-create-index-function 'semantic-create-imenu-index
+        imenu-create-index-function #'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-scheme-lexer)
   )

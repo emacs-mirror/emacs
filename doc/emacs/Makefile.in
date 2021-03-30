@@ -28,6 +28,8 @@ srcdir=@srcdir@
 
 top_srcdir = @top_srcdir@
 
+top_builddir = @top_builddir@
+
 version = @version@
 
 ## Where the output files go.
@@ -73,13 +75,7 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
+-include ${top_builddir}/src/verbose.mk
 
 ENVADD = $(AM_V_GEN)TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" \
          MAKEINFO="$(MAKEINFO) $(MAKEINFO_OPTS)"
@@ -224,7 +220,7 @@ infoclean:
 	  $(buildinfodir)/emacs.info-[1-9][0-9]
 
 bootstrap-clean maintainer-clean: distclean infoclean
-	rm -f ${srcdir}/emacsver.texi
+	rm -f ${srcdir}/emacsver.texi TAGS
 
 .PHONY: install-dvi install-html install-pdf install-ps install-doc
 
@@ -272,5 +268,21 @@ uninstall-pdf:
 
 uninstall-doc: uninstall-dvi uninstall-html uninstall-pdf uninstall-ps
 
+
+ETAGS = ../../lib-src/etags${EXEEXT}
+
+${ETAGS}: FORCE
+	$(MAKE) -C $(dir $@) $(notdir $@)
+
+texifiles = $(wildcard ${srcdir}/*.texi)
+
+TAGS: ${ETAGS} $(texifiles)
+	$(AM_V_GEN)${ETAGS} --include=../lispref/TAGS --include=../misc/TAGS $(texifiles)
+
+tags: TAGS
+.PHONY: tags
+
+FORCE:
+.PHONY: FORCE
 
 ### Makefile ends here

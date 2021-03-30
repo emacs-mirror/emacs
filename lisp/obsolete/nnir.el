@@ -228,8 +228,7 @@ with three items unique to nnir summary buffers:
 
 If nil this will use `gnus-summary-line-format'."
   :version "24.1"
-  :type '(choice (const :tag "gnus-summary-line-format" nil) string)
-  :group 'nnir)
+  :type '(choice (const :tag "gnus-summary-line-format" nil) string))
 
 
 (defcustom nnir-ignored-newsgroups ""
@@ -237,8 +236,7 @@ If nil this will use `gnus-summary-line-format'."
 Any newsgroup in the active file matching this regexp will be
 skipped when searching."
   :version "24.1"
-  :type '(regexp)
-  :group 'nnir)
+  :type '(regexp))
 
 (defcustom nnir-imap-default-search-key "whole message"
   "The default IMAP search key for an nnir search.
@@ -246,19 +244,16 @@ Must be one of the keys in `nnir-imap-search-arguments'.  To use
 raw imap queries by default set this to \"imap\"."
   :version "24.1"
   :type `(choice ,@(mapcar (lambda (elem) (list 'const (car elem)))
-			   nnir-imap-search-arguments))
-  :group 'nnir)
+			   nnir-imap-search-arguments)))
 
 (defcustom nnir-swish++-configuration-file
   (expand-file-name "~/Mail/swish++.conf")
   "Configuration file for swish++."
-  :type '(file)
-  :group 'nnir)
+  :type '(file))
 
 (defcustom nnir-swish++-program "search"
   "Name of swish++ search executable."
-  :type '(string)
-  :group 'nnir)
+  :type '(string))
 
 (defcustom nnir-swish++-additional-switches '()
   "A list of strings, to be given as additional arguments to swish++.
@@ -267,8 +262,7 @@ Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-swish++-additional-switches \"-i -w\") ; wrong
 Instead, use this:
     (setq nnir-swish++-additional-switches \\='(\"-i\" \"-w\"))"
-  :type '(repeat (string))
-  :group 'nnir)
+  :type '(repeat (string)))
 
 (defcustom nnir-swish++-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from swish++ file names to get group names.
@@ -277,37 +271,23 @@ expression.
 
 This variable is very similar to `nnir-namazu-remove-prefix', except
 that it is for swish++, not Namazu."
-  :type '(regexp)
-  :group 'nnir)
+  :type '(regexp))
 
 ;; Swish-E.
-;; URL: http://swish-e.org/
-;; Variables `nnir-swish-e-index-file', `nnir-swish-e-program' and
+;; URL: http://swish-e.org/ [dead link?]
+;; Variables `nnir-swish-e-index-files', `nnir-swish-e-program' and
 ;; `nnir-swish-e-additional-switches'
 
-(make-obsolete-variable 'nnir-swish-e-index-file
-			'nnir-swish-e-index-files "Emacs 23.1")
-(defcustom nnir-swish-e-index-file
-  (expand-file-name "~/Mail/index.swish-e")
-  "Index file for swish-e.
-This could be a server parameter.
-It is never consulted once `nnir-swish-e-index-files', which should be
-used instead, has been customized."
-  :type '(file)
-  :group 'nnir)
-
 (defcustom nnir-swish-e-index-files
-  (list nnir-swish-e-index-file)
+  (list (expand-file-name "~/Mail/index.swish-e"))
   "List of index files for swish-e.
 This could be a server parameter."
-  :type '(repeat (file))
-  :group 'nnir)
+  :type '(repeat (file)))
 
 (defcustom nnir-swish-e-program "swish-e"
   "Name of swish-e search executable.
 This cannot be a server parameter."
-  :type '(string)
-  :group 'nnir)
+  :type '(string))
 
 (defcustom nnir-swish-e-additional-switches '()
   "A list of strings, to be given as additional arguments to swish-e.
@@ -318,8 +298,7 @@ Instead, use this:
     (setq nnir-swish-e-additional-switches \\='(\"-i\" \"-w\"))
 
 This could be a server parameter."
-  :type '(repeat (string))
-  :group 'nnir)
+  :type '(repeat (string)))
 
 (defcustom nnir-swish-e-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from swish-e file names to get group names.
@@ -330,15 +309,13 @@ This variable is very similar to `nnir-namazu-remove-prefix', except
 that it is for swish-e, not Namazu.
 
 This could be a server parameter."
-  :type '(regexp)
-  :group 'nnir)
+  :type '(regexp))
 
-;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/>
+;; HyREX engine, see <URL:http://ls6-www.cs.uni-dortmund.de/> [dead link?]
 
 (defcustom nnir-hyrex-program "nnir-search"
   "Name of the nnir-search executable."
-  :type '(string)
-  :group 'nnir)
+  :type '(string))
 
 (defcustom nnir-hyrex-additional-switches '()
   "A list of strings, to be given as additional arguments for nnir-search.
@@ -346,13 +323,11 @@ Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-hyrex-additional-switches \"-ddl ddl.xml -c nnir\") ; wrong !
 Instead, use this:
     (setq nnir-hyrex-additional-switches \\='(\"-ddl\" \"ddl.xml\" \"-c\" \"nnir\"))"
-  :type '(repeat (string))
-  :group 'nnir)
+  :type '(repeat (string)))
 
 (defcustom nnir-hyrex-index-directory (getenv "HOME")
   "Index directory for HyREX."
-  :type '(directory)
-  :group 'nnir)
+  :type '(directory))
 
 (defcustom nnir-hyrex-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from HyREX file names to get group names.
@@ -364,20 +339,17 @@ setting:  (setq nnir-hyrex-remove-prefix \"/home/john/Mail/\")
 Note the trailing slash.  Removing this prefix gives \"mail/misc/42\".
 `nnir' knows to remove the \"/42\" and to replace \"/\" with \".\" to
 arrive at the correct group name, \"mail.misc\"."
-  :type '(directory)
-  :group 'nnir)
+  :type '(directory))
 
 ;; Namazu engine, see <URL:http://www.namazu.org/>
 
 (defcustom nnir-namazu-program "namazu"
   "Name of Namazu search executable."
-  :type '(string)
-  :group 'nnir)
+  :type '(string))
 
 (defcustom nnir-namazu-index-directory (expand-file-name "~/Mail/namazu/")
   "Index directory for Namazu."
-  :type '(directory)
-  :group 'nnir)
+  :type '(directory))
 
 (defcustom nnir-namazu-additional-switches '()
   "A list of strings, to be given as additional arguments to namazu.
@@ -388,8 +360,7 @@ Note that this should be a list.  I.e., do NOT use the following:
     (setq nnir-namazu-additional-switches \"-i -w\") ; wrong
 Instead, use this:
     (setq nnir-namazu-additional-switches \\='(\"-i\" \"-w\"))"
-  :type '(repeat (string))
-  :group 'nnir)
+  :type '(repeat (string)))
 
 (defcustom nnir-namazu-remove-prefix (concat (getenv "HOME") "/Mail/")
   "The prefix to remove from Namazu file names to get group names.
@@ -401,14 +372,12 @@ setting:  (setq nnir-namazu-remove-prefix \"/home/john/Mail/\")
 Note the trailing slash.  Removing this prefix gives \"mail/misc/42\".
 `nnir' knows to remove the \"/42\" and to replace \"/\" with \".\" to
 arrive at the correct group name, \"mail.misc\"."
-  :type '(directory)
-  :group 'nnir)
+  :type '(directory))
 
 (defcustom nnir-notmuch-program "notmuch"
   "Name of notmuch search executable."
   :version "24.1"
-  :type '(string)
-  :group 'nnir)
+  :type '(string))
 
 (defcustom nnir-notmuch-additional-switches '()
   "A list of strings, to be given as additional arguments to notmuch.
@@ -418,8 +387,7 @@ Note that this should be a list.  I.e., do NOT use the following:
 Instead, use this:
     (setq nnir-notmuch-additional-switches \\='(\"-i\" \"-w\"))"
   :version "24.1"
-  :type '(repeat (string))
-  :group 'nnir)
+  :type '(repeat (string)))
 
 (defcustom nnir-notmuch-remove-prefix
   (regexp-quote (or (getenv "MAILDIR") (expand-file-name "~/Mail")))
@@ -430,8 +398,7 @@ expression.
 This variable is very similar to `nnir-namazu-remove-prefix', except
 that it is for notmuch, not Namazu."
   :version "27.1"
-  :type '(regexp)
-  :group 'nnir)
+  :type '(regexp))
 
 (defcustom nnir-notmuch-filter-group-names-function nil
   "Whether and how to use Gnus group names as \"path:\" search terms.
@@ -457,7 +424,7 @@ like so:
   `((imap    nnir-run-imap
              ((criteria
 	       "Imap Search in"                   ; Prompt
-	       ,(mapcar 'car nnir-imap-search-arguments) ; alist for completing
+	       ,(mapcar #'car nnir-imap-search-arguments) ; alist for completing
 	       nil                                ; allow any user input
 	       nil                                ; initial value
 	       nnir-imap-search-argument-history  ; the history to use
@@ -495,7 +462,6 @@ Add an entry here when adding a new search engine.")
 (defcustom nnir-method-default-engines  '((nnimap . imap))
   "Alist of default search engines keyed by server method."
   :version "27.1"
-  :group 'nnir
   :type `(repeat (cons (choice (const nnimap) (const nntp) (const nnspool)
 			       (const nneething) (const nndir) (const nnmbox)
 			       (const nnml) (const nnmh) (const nndraft)
@@ -573,7 +539,7 @@ extensions."
 	   (or groups (gnus-server-get-active srv nnir-ignored-newsgroups))))
       (message "Opening server %s" server)
       (apply
-       'vconcat
+       #'vconcat
        (catch 'found
          (mapcar
           #'(lambda (group)
@@ -1214,7 +1180,7 @@ construct path: search terms (see the variable
       (error "No directory found in method specification of server %s"
 	     server))
     (apply
-     'vconcat
+     #'vconcat
      (mapcar (lambda (x)
 	       (let ((group x)
 		     artlist)
@@ -1247,7 +1213,7 @@ construct path: search terms (see the variable
 		       (error "Cannot locate directory for group"))
 		     (save-excursion
 		       (apply
-			'call-process "find" nil t
+			#'call-process "find" nil t
 			"find" group "-maxdepth" "1" "-type" "f"
 			"-name" "[0-9]*" "-exec"
 			"grep"
@@ -1260,7 +1226,8 @@ construct path: search terms (see the variable
 		     (let* ((path (split-string
 				   (buffer-substring
 				    (point)
-				    (line-end-position)) "/" t))
+				    (line-end-position))
+				   "/" t))
 			    (art (string-to-number (car (last path)))))
 		       (while (string= "." (car path))
 			 (setq path (cdr path)))
@@ -1359,7 +1326,7 @@ Query for the specs, or use SPECS."
 	 (query-spec
 	  (or (cdr (assq 'nnir-query-spec specs))
 	      (apply
-	       'append
+	       #'append
 	       (list (cons 'query
 			   (read-string "Query: " nil 'nnir-search-history)))
 	       (when nnir-extra-parms
@@ -1370,7 +1337,7 @@ Query for the specs, or use SPECS."
     (list (cons 'nnir-query-spec query-spec)
 	  (cons 'nnir-group-spec group-spec))))
 
-(define-obsolete-function-alias 'nnir-get-active 'gnus-server-get-active "28.1")
+(define-obsolete-function-alias 'nnir-get-active #'gnus-server-get-active "28.1")
 
 ;; The end.
 (provide 'nnir)

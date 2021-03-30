@@ -44,6 +44,7 @@
     "Password (again):"
     "Enter password:"
     "Enter Auth Password:" ; OpenVPN (Bug#35724)
+    "Verify password: "    ; zip -e zipfile.zip ... (Bug#47209)
     "Mot de Passe :" ; localized (Bug#29729)
     "Passwort:") ; localized
   "List of strings that should match `comint-password-prompt-regexp'.")

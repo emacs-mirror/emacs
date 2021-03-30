@@ -131,7 +131,11 @@ of the `tooltip' face are used instead."
      :inherit variable-pitch)
     (t
      :inherit variable-pitch))
-  "Face for tooltips."
+  "Face for tooltips.
+
+When using the GTK toolkit, this face will only be used if
+`x-gtk-use-system-tooltips' is non-nil."
+  :group 'tooltip
   :group 'basic-faces)
 
 (defcustom tooltip-use-echo-area nil
@@ -248,7 +252,12 @@ in echo area."
 	    (setf (alist-get 'border-color params) fg))
 	  (when (stringp bg)
 	    (setf (alist-get 'background-color params) bg))
-	  (x-show-tip (propertize text 'face 'tooltip)
+          ;; Use non-nil APPEND argument below to avoid overriding any
+          ;; faces used in our TEXT.  Among other things, this allows
+          ;; tooltips to use the `help-key-binding' face used in
+          ;; `substitute-command-keys' substitutions.
+          (add-face-text-property 0 (length text) 'tooltip t text)
+          (x-show-tip text
 		      (selected-frame)
 		      params
 		      tooltip-hide-delay

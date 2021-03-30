@@ -8255,7 +8255,7 @@ init_process_emacs (int sockfd)
 	 private SIGCHLD handler, allowing catch_child_signal to copy
 	 it into lib_child_handler.
 
-         Unfortunatly in glib commit 2e471acf, the behavior changed to
+         Unfortunately in glib commit 2e471acf, the behavior changed to
          always install a signal handler when g_child_watch_source_new
          is called and not just the first time it's called.  Glib also
          now resets signal handlers to SIG_DFL when it no longer has a

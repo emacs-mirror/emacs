@@ -3893,7 +3893,7 @@ deliver_wm_chars (int do_translate, HWND hwnd, UINT msg, UINT wParam,
 		     Essentially, we have no information about the "role" of
 		     modifiers on this key: which contribute into the
 		     produced character (so "are consumed"), and which are
-		     "extra" (must attache to bindable events).
+		     "extra" (must attach to bindable events).
 
 		     The default above would consume ALL modifiers, so the
 		     character is reported "as is".  However, on many layouts

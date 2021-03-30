@@ -1,4 +1,4 @@
-;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder
+;;; srecode/cpp.el --- C++ specific handlers for Semantic Recoder  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007, 2009-2021 Free Software Foundation, Inc.
 
@@ -44,7 +44,6 @@
 A dictionary entry of the named PREFIX_NAMESPACE with the value
 NAMESPACE:: is created for each namespace unless the current
 buffer contains a using NAMESPACE; statement."
-  :group 'srecode-cpp
   :type  '(repeat string))
 
 ;;; :c ARGUMENT HANDLING
@@ -165,7 +164,7 @@ specified in a C file."
       ;; when they make sense. My best bet would be
       ;; (semantic-tag-function-parent tag), but it is not there, when
       ;; the function is defined in the scope of a class.
-      (let ((member t)
+      (let (;; (member t)
 	    (templates (semantic-tag-get-attribute tag :template))
 	    (modifiers (semantic-tag-modifiers tag)))
 
@@ -186,7 +185,7 @@ specified in a C file."
 
 	;; When the function is a member function, it can have
 	;; additional modifiers.
-	(when member
+	(when t ;; member
 
 	  ;; For member functions, constness is called
 	  ;; 'methodconst-flag'.

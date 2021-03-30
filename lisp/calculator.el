@@ -20,23 +20,18 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
 
-;;;=====================================================================
 ;;; Commentary:
-;;
+
 ;; A calculator for Emacs.
 ;; Why should you reach for your mouse to get xcalc (calc.exe, gcalc or
 ;; whatever), when you have Emacs running already?
 ;;
-;; If this is not part of your Emacs distribution, then simply bind
-;; `calculator' to a key and make it an autoloaded function, e.g.:
-;;   (autoload 'calculator "calculator"
-;;     "Run the Emacs calculator." t)
+;; You can bind this to a key by adding this to your Init file:
+;;
 ;;   (global-set-key [(control return)] 'calculator)
 ;;
 ;; Written by Eli Barzilay, eli@barzilay.org
-;;
 
-;;;=====================================================================
 ;;; Customization:
 
 (defgroup calculator nil
@@ -50,19 +45,16 @@
   "Run `calculator' electrically, in the echo area.
 Electric mode saves some place but changes the way you interact with the
 calculator."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-use-menu t
   "Make `calculator' create a menu.
 Note that this requires easymenu.  Must be set before loading."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-bind-escape nil
   "If non-nil, set escape to exit the calculator."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-unary-style 'postfix
   "Value is either `prefix' or `postfix'.
@@ -75,44 +67,38 @@ This determines the default behavior of unary operators."
 It should contain a \"%s\" somewhere that will indicate the i/o radixes;
 this will be a two-character string as described in the documentation
 for `calculator-mode'."
-  :type  'string
-  :group 'calculator)
+  :type  'string)
 
 (defcustom calculator-number-digits 3
   "The calculator's number of digits used for standard display.
 Used by the `calculator-standard-display' function - it will use the
 format string \"%.NC\" where this number is N and C is a character given
 at runtime."
-  :type  'integer
-  :group 'calculator)
+  :type  'integer)
 
 (defcustom calculator-radix-grouping-mode t
   "Use digit grouping in radix output mode.
 If this is set, chunks of `calculator-radix-grouping-digits' characters
 will be separated by `calculator-radix-grouping-separator' when in radix
 output mode is active (determined by `calculator-output-radix')."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-radix-grouping-digits 4
   "The number of digits used for grouping display in radix modes.
 See `calculator-radix-grouping-mode'."
-  :type  'integer
-  :group 'calculator)
+  :type  'integer)
 
 (defcustom calculator-radix-grouping-separator "'"
   "The separator used in radix grouping display.
 See `calculator-radix-grouping-mode'."
-  :type  'string
-  :group 'calculator)
+  :type  'string)
 
 (defcustom calculator-remove-zeros t
   "Non-nil value means delete all redundant zero decimal digits.
 If this value is not t and not nil, redundant zeros are removed except
 for one.
 Used by the `calculator-remove-zeros' function."
-  :type  '(choice (const t) (const leave-decimal) (const nil))
-  :group 'calculator)
+  :type  '(choice (const t) (const leave-decimal) (const nil)))
 
 (defcustom calculator-displayer '(std ?n)
   "A displayer specification for numerical values.
@@ -135,8 +121,7 @@ a character and G is an optional boolean, in this case the
 arguments."
   :type '(choice (function) (string) (sexp)
                  (list (const std) character)
-                 (list (const std) character boolean))
-  :group 'calculator)
+                 (list (const std) character boolean)))
 
 (defcustom calculator-displayers
   '(((std ?n) "Standard display, decimal point or scientific")
@@ -152,15 +137,13 @@ specification is the same as the values that can be stored in
 `calculator-displayer'.
 
 `calculator-rotate-displayer' rotates this list."
-  :type  'sexp
-  :group 'calculator)
+  :type  'sexp)
 
 (defcustom calculator-paste-decimals t
   "If non-nil, convert pasted integers so they have a decimal point.
 This makes it possible to paste big integers since they will be read as
 floats, otherwise the Emacs reader will fail on them."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 (make-obsolete-variable 'calculator-paste-decimals
                         "it is no longer used." "26.1")
 
@@ -169,14 +152,12 @@ floats, otherwise the Emacs reader will fail on them."
 `calculator-displayer', to format a string before copying it with
 `calculator-copy'.  If nil, then `calculator-displayer's normal value is
 used."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-2s-complement nil
   "If non-nil, show negative numbers in 2s complement in radix modes.
 Otherwise show as a negative number."
-  :type  'boolean
-  :group 'calculator)
+  :type  'boolean)
 
 (defcustom calculator-mode-hook nil
   "List of hook functions for `calculator-mode' to run.
@@ -184,8 +165,7 @@ Note: if `calculator-electric-mode' is on, then this hook will get
 activated in the minibuffer -- in that case it should not do much more
 than local key settings and other effects that will change things
 outside the scope of calculator related code."
-  :type  'hook
-  :group 'calculator)
+  :type  'hook)
 
 (defcustom calculator-user-registers nil
   "An association list of user-defined register bindings.
@@ -200,8 +180,7 @@ before you load calculator."
            (when (boundp 'calculator-registers)
              (setq calculator-registers
                    (append val calculator-registers)))
-           (setq calculator-user-registers val))
-  :group 'calculator)
+           (setq calculator-user-registers val)))
 
 (defcustom calculator-user-operators nil
   "A list of additional operators.
@@ -234,8 +213,7 @@ Examples:
 
   Note that this will be either postfix or prefix, according to
   `calculator-unary-style'."
-  :type  '(repeat (list string symbol sexp integer integer))
-  :group 'calculator)
+  :type  '(repeat (list string symbol sexp integer integer)))
 
 ;;;=====================================================================
 ;;; Code:
@@ -313,7 +291,7 @@ user-defined operators, use `calculator-user-operators' instead.")
 5. The function's precedence -- should be in the range of 1 (lowest) to
    9 (highest) (optional, defaults to 1);
 
-It it possible have a unary prefix version of a binary operator if it
+It is possible have a unary prefix version of a binary operator if it
 comes later in this list.  If the list begins with the symbol `nobind',
 then no key binding will take place -- this is only used for predefined
 keys.

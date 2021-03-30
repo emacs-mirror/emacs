@@ -45,7 +45,7 @@ A value of nil means that any change in indentation starts a new paragraph."
 (defcustom colon-double-space nil
   "Non-nil means put two spaces after a colon when filling."
   :type 'boolean)
-(put 'colon-double-space 'safe-local-variable 'booleanp)
+(put 'colon-double-space 'safe-local-variable #'booleanp)
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
   "Non-nil means to use a space to separate words of a different kind.
@@ -703,7 +703,8 @@ space does not end a sentence, so don't break a line there."
     (or justify (setq justify (current-justification)))
 
     ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
-    (let ((fill-prefix fill-prefix))
+    (let ((actual-fill-prefix fill-prefix)
+          (fill-prefix fill-prefix))
       ;; Figure out how this paragraph is indented, if desired.
       (when (and adaptive-fill-mode
 		 (or (null fill-prefix) (string= fill-prefix "")))
@@ -717,7 +718,7 @@ space does not end a sentence, so don't break a line there."
       (goto-char from)
       (beginning-of-line)
 
-      (if (not justify)	  ; filling disabled: just check indentation
+      (if (not justify)     ; filling disabled: just check indentation
 	  (progn
 	    (goto-char from)
 	    (while (< (point) to)
@@ -747,12 +748,14 @@ space does not end a sentence, so don't break a line there."
               linebeg)
 	  (while (< (point) to)
             ;; On the first line, there may be text in the fill prefix
-            ;; zone.  In that case, don't consider that area when
-            ;; trying to find a place to put a line break (bug#45720).
+            ;; zone (when `fill-prefix' is specified externally, and
+            ;; not computed).  In that case, don't consider that area
+            ;; when trying to find a place to put a line break
+            ;; (bug#45720).
             (if (not first)
 	        (setq linebeg (point))
               (setq first nil
-                    linebeg (+ (point) (length fill-prefix))))
+                    linebeg (+ (point) (length actual-fill-prefix))))
 	    (move-to-column (current-fill-column))
 	    (if (when (< (point) to)
 		  ;; Find the position where we'll break the line.

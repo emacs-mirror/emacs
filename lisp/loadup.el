@@ -253,9 +253,6 @@
 (load "startup")
 (load "term/tty-colors")
 (load "font-core")
-;; facemenu must be loaded before font-lock, because `facemenu-keymap'
-;; needs to be defined when font-lock is loaded.
-(load "facemenu")
 (load "emacs-lisp/syntax")
 (load "font-lock")
 (load "jit-lock")
@@ -265,6 +262,7 @@
     (load "scroll-bar"))
 (load "select")
 (load "emacs-lisp/timer")
+(load "emacs-lisp/easymenu")
 (load "isearch")
 (load "rfn-eshadow")
 
@@ -476,6 +474,8 @@ lost after dumping")))
 
 ;; Make sure we will attempt bidi reordering henceforth.
 (setq redisplay--inhibit-bidi nil)
+
+
 
 (if dump-mode
     (let ((output (cond ((equal dump-mode "pdump") "emacs.pdmp")

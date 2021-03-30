@@ -32,6 +32,7 @@ SHELL = @SHELL@
 
 srcdir = @srcdir@
 abs_top_srcdir=@abs_top_srcdir@
+top_builddir = @top_builddir@
 VPATH = $(srcdir)
 
 FIND_DELETE = @FIND_DELETE@
@@ -46,30 +47,16 @@ SO = @MODULES_SUFFIX@
 
 SEPCHAR = @SEPCHAR@
 
+-include ${top_builddir}/src/verbose.mk
 
-# 'make' verbosity.
-AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 =
-
-AM_V_ELC = $(am__v_ELC_@AM_V@)
-am__v_ELC_ = $(am__v_ELC_@AM_DEFAULT_V@)
-am__v_ELC_0 = @echo "  ELC     " $@;
-am__v_ELC_1 =
-
-AM_V_GEN = $(am__v_GEN_@AM_V@)
-am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
-am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 =
-
-AM_V_at = $(am__v_at_@AM_V@)
-am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
-am__v_at_0 = @
-am__v_at_1 =
-
+# Load any GNU ELPA dependencies that are present, for optional tests.
+GNU_ELPA_DIRECTORY ?= $(srcdir)/../../elpa
+# Keep elpa_dependencies dependency-ordered.
+elpa_dependencies = \
+	url-http-ntlm/url-http-ntlm.el \
+	web-server/web-server.el
+elpa_els = $(addprefix $(GNU_ELPA_DIRECTORY)/packages/,$(elpa_dependencies))
+elpa_opts = $(foreach el,$(elpa_els),$(and $(wildcard $(el)),-L $(dir $(el)) -l $(el)))
 
 # We never change directory before running Emacs, so a relative file
 # name is fine, and makes life easier.  If we need to change
@@ -81,7 +68,7 @@ EMACS_EXTRAOPT=
 # Command line flags for Emacs.
 # Apparently MSYS bash would convert "-L :" to "-L ;" anyway,
 # but we might as well be explicit.
-EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(EMACS_EXTRAOPT)
+EMACSOPT = --no-init-file --no-site-file --no-site-lisp -L "$(SEPCHAR)$(srcdir)" $(elpa_opts) $(EMACS_EXTRAOPT)
 
 # Prevent any settings in the user environment causing problems.
 unexport EMACSDATA EMACSDOC EMACSPATH GREP_OPTIONS
@@ -105,7 +92,7 @@ export TEST_LOAD_EL ?= \
     $(if $(findstring $(MAKECMDGOALS), all check check-maybe),no,yes)
 
 # Additional settings for ert.
-ert_opts =
+ert_opts += $(elpa_opts)
 
 # Maximum length of lines in ert backtraces; nil for no limit.
 # (if empty, use the default ert-batch-backtrace-right-margin).
@@ -248,7 +235,7 @@ endef
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 ## Get the tests for only a specific directory.
-SUBDIRS = $(sort $(shell find lib-src lisp src -type d ! -path "*resources*" -print))
+SUBDIRS = $(sort $(shell find lib-src lisp misc src -type d ! -path "*resources*" -print))
 
 define subdir_template
   .PHONY: check-$(subst /,-,$(1))

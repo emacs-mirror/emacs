@@ -1,10 +1,10 @@
-;;; erc-xdcc.el --- XDCC file-server support for ERC
+;;; erc-xdcc.el --- XDCC file-server support for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2004, 2006-2021 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
-;; Keywords: comm, processes
+;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@ Your friends should issue \"/ctcp yournick XDCC list\" to see this."
 (defcustom erc-xdcc-help-text
   '(("Hey " nick ", wondering how this works?  Pretty easy.")
     ("Available commands: XDCC ["
-     (mapconcat 'car erc-xdcc-handler-alist "|") "]")
+     (mapconcat #'car erc-xdcc-handler-alist "|") "]")
     ("Type \"/ctcp " (erc-current-nick)
      " XDCC list\" to see the list of offered files, then type \"/ctcp "
      (erc-current-nick) " XDCC send #\" to get a particular file number."))
@@ -82,7 +82,7 @@ being evaluated and should return strings."
 (defvar erc-ctcp-query-XDCC-hook '(erc-xdcc)
   "Hook called whenever a CTCP XDCC message is received.")
 
-(defun erc-xdcc (proc nick login host to query)
+(defun erc-xdcc (proc nick login host _to query)
   "Handle incoming CTCP XDCC queries."
   (when erc-xdcc-verbose-flag
     (erc-display-message nil 'notice proc
@@ -96,15 +96,15 @@ being evaluated and should return strings."
        (format "Unknown XDCC sub-command, try \"/ctcp %s XDCC help\""
 	       (erc-current-nick))))))
 
-(defun erc-xdcc-help (proc nick login host args)
+(defun erc-xdcc-help (proc nick _login _host _args)
   "Send basic help information to NICK."
   (mapc
    (lambda (msg)
      (erc-xdcc-reply proc nick
-      (mapconcat (lambda (elt) (if (stringp elt) elt (eval elt))) msg "")))
+      (mapconcat (lambda (elt) (if (stringp elt) elt (eval elt t))) msg "")))
    erc-xdcc-help-text))
 
-(defun erc-xdcc-list (proc nick login host args)
+(defun erc-xdcc-list (proc nick _login _host _args)
   "Show the contents of `erc-xdcc-files' via privmsg to NICK."
   (if (null erc-xdcc-files)
       (erc-xdcc-reply proc nick "No files offered, sorry")
@@ -117,7 +117,7 @@ being evaluated and should return strings."
 		 (setq n (1+ n))
 		 (erc-dcc-file-to-name file)))))))
 
-(defun erc-xdcc-send (proc nick login host args)
+(defun erc-xdcc-send (proc nick _login _host args)
   "Send a file to NICK."
   (let ((n (string-to-number (car args)))
 	(len (length erc-xdcc-files)))

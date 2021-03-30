@@ -1,4 +1,4 @@
-;;; semantic/decorate/mode.el --- Minor mode for decorating tags
+;;; semantic/decorate/mode.el --- Minor mode for decorating tags  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -264,9 +264,9 @@ non-nil if the minor mode is enabled."
                    (buffer-name)))
         ;; Add hooks
         (add-hook 'semantic-after-partial-cache-change-hook
-                  'semantic-decorate-tags-after-partial-reparse nil t)
+                  #'semantic-decorate-tags-after-partial-reparse nil t)
         (add-hook 'semantic-after-toplevel-cache-change-hook
-                  'semantic-decorate-tags-after-full-reparse nil t)
+                  #'semantic-decorate-tags-after-full-reparse nil t)
         ;; Add decorations to available tags.  The above hooks ensure
         ;; that new tags will be decorated when they become available.
         ;; However, don't do this immediately, because EDE will be
@@ -282,9 +282,9 @@ non-nil if the minor mode is enabled."
     (semantic-decorate-flush-decorations)
     ;; Remove hooks
     (remove-hook 'semantic-after-partial-cache-change-hook
-                 'semantic-decorate-tags-after-partial-reparse t)
+                 #'semantic-decorate-tags-after-partial-reparse t)
     (remove-hook 'semantic-after-toplevel-cache-change-hook
-                 'semantic-decorate-tags-after-full-reparse t)))
+                 #'semantic-decorate-tags-after-full-reparse t)))
 
 (semantic-add-minor-mode 'semantic-decoration-mode
                          "")
@@ -350,20 +350,18 @@ Return non-nil if the decoration style is enabled."
 
 (defun semantic-decoration-build-style-menu (style)
   "Build a menu item for controlling a specific decoration STYLE."
-  (vector (car style)
-	  `(lambda () (interactive)
-	     (semantic-toggle-decoration-style
-	      ,(car style)))
-	  :style 'toggle
-	  :selected `(semantic-decoration-style-enabled-p ,(car style))
-	  ))
+  (let ((s (car style)))
+    (vector s
+	    (lambda () (interactive) (semantic-toggle-decoration-style s))
+	    :style 'toggle
+	    :selected `(semantic-decoration-style-enabled-p ',s))))
 
-(defun semantic-build-decoration-mode-menu (&rest ignore)
+(defun semantic-build-decoration-mode-menu (&rest _ignore)
   "Create a menu listing all the known decorations for toggling.
 IGNORE any input arguments."
   (or semantic-decoration-menu-cache
       (setq semantic-decoration-menu-cache
-	    (mapcar 'semantic-decoration-build-style-menu
+	    (mapcar #'semantic-decoration-build-style-menu
 		    (reverse semantic-decoration-styles))
 	    )))
 

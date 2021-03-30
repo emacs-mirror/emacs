@@ -60,7 +60,7 @@
 
 (defcustom url-cookie-multiple-line nil
   "If nil, HTTP requests put all cookies for the server on one line.
-Some web servers, such as http://www.hotmail.com/, only accept cookies
+Some web servers, such as https://www.hotmail.com/, only accept cookies
 when they are on one line.  This is broken behavior, but just try
 telling Microsoft that."
   :type 'boolean

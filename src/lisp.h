@@ -3610,6 +3610,7 @@ extern void validate_subarray (Lisp_Object, Lisp_Object, Lisp_Object,
 extern Lisp_Object substring_both (Lisp_Object, ptrdiff_t, ptrdiff_t,
 				   ptrdiff_t, ptrdiff_t);
 extern Lisp_Object merge (Lisp_Object, Lisp_Object, Lisp_Object);
+extern Lisp_Object merge_c (Lisp_Object, Lisp_Object, bool (*) (Lisp_Object, Lisp_Object));
 extern Lisp_Object do_yes_or_no_p (Lisp_Object);
 extern int string_version_cmp (Lisp_Object, Lisp_Object);
 extern Lisp_Object concat2 (Lisp_Object, Lisp_Object);
@@ -4091,6 +4092,7 @@ intern_c_string (const char *str)
 }
 
 /* Defined in eval.c.  */
+extern EMACS_INT minibuffer_quit_level;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vrun_hooks;
 extern Lisp_Object Vsignaling_function;
@@ -4220,6 +4222,8 @@ extern Lisp_Object module_function_documentation
   (struct Lisp_Module_Function const *);
 extern Lisp_Object module_function_interactive_form
   (const struct Lisp_Module_Function *);
+extern Lisp_Object module_function_command_modes
+  (const struct Lisp_Module_Function *);
 extern module_funcptr module_function_address
   (struct Lisp_Module_Function const *);
 extern void *module_function_data (const struct Lisp_Module_Function *);
@@ -4345,7 +4349,7 @@ extern void clear_regexp_cache (void);
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object last_minibuf_string;
-extern void move_minibuffer_onto_frame (void);
+extern void move_minibuffers_onto_frame (struct frame *, bool);
 extern bool is_minibuffer (EMACS_INT, Lisp_Object);
 extern EMACS_INT this_minibuffer_depth (Lisp_Object);
 extern EMACS_INT minibuf_level;
@@ -4369,6 +4373,7 @@ extern void syms_of_casetab (void);
 
 /* Defined in keyboard.c.  */
 
+extern EMACS_INT command_loop_level;
 extern Lisp_Object echo_message_buffer;
 extern struct kboard *echo_kboard;
 extern void cancel_echoing (void);

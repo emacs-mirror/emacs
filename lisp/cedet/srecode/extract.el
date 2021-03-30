@@ -1,4 +1,4 @@
-;;; srecode/extract.el --- Extract content from previously inserted macro.
+;;; srecode/extract.el --- Extract content from previously inserted macro.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -139,24 +139,24 @@ Uses STATE to maintain the current extraction state."
 
 ;;; Inserter Base Extractors
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter))
   "Return non-nil if this inserter can extract values."
   nil)
 
-(cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter)
-				     start end dict state)
+(cl-defmethod srecode-inserter-extract ((_ins srecode-template-inserter)
+				        _start _end _dict _state)
   "Extract text from START/END and store in DICT.
 Return nil as this inserter will extract nothing."
   nil)
 
 ;;; Variable extractor is simple and can extract later.
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter-variable))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter-variable))
   "Return non-nil if this inserter can extract values."
   'later)
 
 (cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter-variable)
-				     start end vdict state)
+				        start end vdict _state)
   "Extract text from START/END and store in VDICT.
 Return t if something was extracted.
 Return nil if this inserter doesn't need to extract anything."
@@ -168,12 +168,12 @@ Return nil if this inserter doesn't need to extract anything."
 
 ;;; Section Inserter
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter-section-start))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter-section-start))
   "Return non-nil if this inserter can extract values."
   'now)
 
 (cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter-section-start)
-				     start end indict state)
+				        _start _end indict state)
   "Extract text from START/END and store in INDICT.
 Return the starting location of the first plain-text match.
 Return nil if nothing was extracted."
@@ -201,12 +201,12 @@ Return nil if nothing was extracted."
 
 ;;; Include Extractor must extract now.
 ;;
-(cl-defmethod srecode-inserter-do-extract-p ((ins srecode-template-inserter-include))
+(cl-defmethod srecode-inserter-do-extract-p ((_ins srecode-template-inserter-include))
   "Return non-nil if this inserter can extract values."
   'now)
 
 (cl-defmethod srecode-inserter-extract ((ins srecode-template-inserter-include)
-				     start end dict state)
+				        start _end dict state)
   "Extract text from START/END and store in DICT.
 Return the starting location of the first plain-text match.
 Return nil if nothing was extracted."

@@ -1,4 +1,4 @@
-;;; modula2.el --- Modula-2 editing support package
+;;; modula2.el --- Modula-2 editing support package  -*- lexical-binding: t -*-
 
 ;; Author: Michael Schmidt <michael@pbinfo.UUCP>
 ;;	Tom Perrine <Perrin@LOGICON.ARPA>
@@ -51,62 +51,57 @@
 
 (defcustom m2-compile-command "m2c"
   "Command to compile Modula-2 programs."
-  :type 'string
-  :group 'modula2)
+  :type 'string)
 
 (defcustom m2-link-command "m2l"
   "Command to link Modula-2 programs."
-  :type 'string
-  :group 'modula2)
+  :type 'string)
 
 (defcustom m2-link-name nil
   "Name of the Modula-2 executable."
-  :type '(choice (const nil) string)
-  :group 'modula2)
+  :type '(choice (const nil) string))
 
 (defcustom m2-end-comment-column 75
   "Column for aligning the end of a comment, in Modula-2."
-  :type 'integer
-  :group 'modula2)
+  :type 'integer)
 
 ;;; Added by TEP
 (defvar m2-mode-map
   (let ((map (make-sparse-keymap)))
     ;; FIXME: Many of those bindings are contrary to coding conventions.
-    (define-key map "\C-cb" 'm2-begin)
-    (define-key map "\C-cc" 'm2-case)
-    (define-key map "\C-cd" 'm2-definition)
-    (define-key map "\C-ce" 'm2-else)
-    (define-key map "\C-cf" 'm2-for)
-    (define-key map "\C-ch" 'm2-header)
-    (define-key map "\C-ci" 'm2-if)
-    (define-key map "\C-cm" 'm2-module)
-    (define-key map "\C-cl" 'm2-loop)
-    (define-key map "\C-co" 'm2-or)
-    (define-key map "\C-cp" 'm2-procedure)
-    (define-key map "\C-c\C-w" 'm2-with)
-    (define-key map "\C-cr" 'm2-record)
-    (define-key map "\C-cs" 'm2-stdio)
-    (define-key map "\C-ct" 'm2-type)
-    (define-key map "\C-cu" 'm2-until)
-    (define-key map "\C-cv" 'm2-var)
-    (define-key map "\C-cw" 'm2-while)
-    (define-key map "\C-cx" 'm2-export)
-    (define-key map "\C-cy" 'm2-import)
-    (define-key map "\C-c{" 'm2-begin-comment)
-    (define-key map "\C-c}" 'm2-end-comment)
-    (define-key map "\C-c\C-z" 'suspend-emacs)
-    (define-key map "\C-c\C-v" 'm2-visit)
-    (define-key map "\C-c\C-t" 'm2-toggle)
-    (define-key map "\C-c\C-l" 'm2-link)
-    (define-key map "\C-c\C-c" 'm2-compile)
+    (define-key map "\C-cb" #'m2-begin)
+    (define-key map "\C-cc" #'m2-case)
+    (define-key map "\C-cd" #'m2-definition)
+    (define-key map "\C-ce" #'m2-else)
+    (define-key map "\C-cf" #'m2-for)
+    (define-key map "\C-ch" #'m2-header)
+    (define-key map "\C-ci" #'m2-if)
+    (define-key map "\C-cm" #'m2-module)
+    (define-key map "\C-cl" #'m2-loop)
+    (define-key map "\C-co" #'m2-or)
+    (define-key map "\C-cp" #'m2-procedure)
+    (define-key map "\C-c\C-w" #'m2-with)
+    (define-key map "\C-cr" #'m2-record)
+    (define-key map "\C-cs" #'m2-stdio)
+    (define-key map "\C-ct" #'m2-type)
+    (define-key map "\C-cu" #'m2-until)
+    (define-key map "\C-cv" #'m2-var)
+    (define-key map "\C-cw" #'m2-while)
+    (define-key map "\C-cx" #'m2-export)
+    (define-key map "\C-cy" #'m2-import)
+    (define-key map "\C-c{" #'m2-begin-comment)
+    (define-key map "\C-c}" #'m2-end-comment)
+    (define-key map "\C-c\C-z" #'suspend-emacs)
+    (define-key map "\C-c\C-v" #'m2-visit)
+    (define-key map "\C-c\C-t" #'m2-toggle)
+    (define-key map "\C-c\C-l" #'m2-link)
+    (define-key map "\C-c\C-c" #'m2-compile)
     map)
   "Keymap used in Modula-2 mode.")
 
 (defcustom m2-indent 5
   "This variable gives the indentation in Modula-2 mode."
-  :type 'integer
-  :group 'modula2)
+  :type 'integer)
 (put 'm2-indent 'safe-local-variable
      (lambda (v) (or (null v) (integerp v))))
 

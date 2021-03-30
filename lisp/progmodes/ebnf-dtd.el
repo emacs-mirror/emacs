@@ -1,4 +1,4 @@
-;;; ebnf-dtd.el --- parser for DTD (Data Type Description for XML)
+;;; ebnf-dtd.el --- parser for DTD (Data Type Description for XML)  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 

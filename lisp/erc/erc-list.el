@@ -59,13 +59,13 @@
 ;;;###autoload(autoload 'erc-list-mode "erc-list")
 (define-erc-module list nil
   "List channels nicely in a separate buffer."
-  ((remove-hook 'erc-server-321-functions 'erc-server-321-message)
-   (remove-hook 'erc-server-322-functions 'erc-server-322-message))
+  ((remove-hook 'erc-server-321-functions #'erc-server-321-message)
+   (remove-hook 'erc-server-322-functions #'erc-server-322-message))
   ((erc-with-all-buffers-of-server nil
      #'erc-open-server-buffer-p
-     (remove-hook 'erc-server-322-functions 'erc-list-handle-322 t))
-   (add-hook 'erc-server-321-functions 'erc-server-321-message t)
-   (add-hook 'erc-server-322-functions 'erc-server-322-message t)))
+     (remove-hook 'erc-server-322-functions #'erc-list-handle-322 t))
+   (add-hook 'erc-server-321-functions #'erc-server-321-message t)
+   (add-hook 'erc-server-322-functions #'erc-server-322-message t)))
 
 ;; Format a record for display.
 (defun erc-list-make-string (channel users topic)
@@ -126,17 +126,17 @@
 (defvar erc-list-menu-mode-map
   (let ((map (make-keymap)))
     (set-keymap-parent map special-mode-map)
-    (define-key map "k" 'erc-list-kill)
-    (define-key map "j" 'erc-list-join)
-    (define-key map "g" 'erc-list-revert)
-    (define-key map "n" 'next-line)
-    (define-key map "p" 'previous-line)
+    (define-key map "k" #'erc-list-kill)
+    (define-key map "j" #'erc-list-join)
+    (define-key map "g" #'erc-list-revert)
+    (define-key map "n" #'next-line)
+    (define-key map "p" #'previous-line)
     map)
   "Local keymap for `erc-list-mode' buffers.")
 
 (defvar erc-list-menu-sort-button-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [header-line mouse-1] 'erc-list-menu-sort-by-column)
+    (define-key map [header-line mouse-1] #'erc-list-menu-sort-by-column)
     (define-key map [follow-link] 'mouse-face)
     map)
   "Local keymap for ERC list menu mode sorting buttons.")
@@ -181,12 +181,12 @@
 (defun erc-list-install-322-handler (server-buffer)
   (with-current-buffer server-buffer
     ;; Arrange for 322 responses to insert into our buffer.
-    (add-hook 'erc-server-322-functions 'erc-list-handle-322 t t)
+    (add-hook 'erc-server-322-functions #'erc-list-handle-322 t t)
     ;; Arrange for 323 (end of list) to end this.
     (erc-once-with-server-event
      323
      (lambda (_proc _parsed)
-	(remove-hook 'erc-server-322-functions 'erc-list-handle-322 t)))
+	(remove-hook 'erc-server-322-functions #'erc-list-handle-322 t)))
     ;; Find the list buffer, empty it, and display it.
     (setq-local erc-list-buffer
                 (get-buffer-create (concat "*Channels of "

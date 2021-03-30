@@ -163,7 +163,7 @@
 ;;     (autoload 'feedmail-buffer-to-smtpmail "feedmail" nil t)
 ;;     (setq feedmail-buffer-eating-function 'feedmail-buffer-to-smtpmail)
 ;;
-;; Alternatively, the FLIM <http://www.m17n.org/FLIM/> project
+;; Alternatively, the FLIM <https://www.m17n.org/FLIM/> project
 ;; provides a library called smtp.el.  If you want to use that, the above lines
 ;; would be:
 ;;
@@ -1381,7 +1381,7 @@ It shows the simple addresses and gets a confirmation.  Use as:
   (save-window-excursion
     (display-buffer (set-buffer (get-buffer-create " F-C-A-H-E")))
     (erase-buffer)
-    (insert (mapconcat 'identity feedmail-address-list " "))
+    (insert (mapconcat #'identity feedmail-address-list " "))
     (if (not (y-or-n-p "How do you like them apples? "))
 	(error "FQM: Sending...gave up in last chance hook"))))
 
@@ -1592,10 +1592,10 @@ Feeds the buffer to it."
   (feedmail-say-debug ">in-> feedmail-buffer-to-binmail %s" addr-listoid)
   (set-buffer prepped)
   (apply
-   'call-process-region
+   #'call-process-region
    (append (list (point-min) (point-max) "/bin/sh" nil errors-to nil "-c"
 		 (format feedmail-binmail-template
-			 (mapconcat 'identity addr-listoid " "))))))
+			 (mapconcat #'identity addr-listoid " "))))))
 
 
 (defvar sendmail-program)
@@ -1609,7 +1609,7 @@ local gurus."
   (require 'sendmail)
   (feedmail-say-debug ">in-> feedmail-buffer-to-sendmail %s" addr-listoid)
   (set-buffer prepped)
-  (apply 'call-process-region
+  (apply #'call-process-region
 	 (append (list (point-min) (point-max) sendmail-program
 		       nil errors-to nil "-oi" "-t")
 		 ;; provide envelope "from" to sendmail; results will vary
@@ -2042,7 +2042,7 @@ backup file names and the like)."
 		       (message "FQM: Trapped `%s', message left in queue." (car signal-stuff))
 		       (sit-for 3)
 		       (message "FQM: Trap details: \"%s\""
-				(mapconcat 'identity (cdr signal-stuff) "\" \""))
+				(mapconcat #'identity (cdr signal-stuff) "\" \""))
 		       (sit-for 3)))
 	      (kill-buffer blobby-buffer)
 	      (feedmail-say-chatter

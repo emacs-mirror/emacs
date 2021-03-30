@@ -200,7 +200,7 @@ for decoding when the cdr that the data specify is not available.")
   (nnrss-possibly-change-group group server)
   (let ((e (assq article nnrss-group-data))
 	(nntp-server-buffer (or buffer nntp-server-buffer))
-	err) ;; post
+	) ;; err post
     (when e
       (with-current-buffer nntp-server-buffer
 	(erase-buffer)
@@ -302,8 +302,7 @@ for decoding when the cdr that the data specify is not available.")
 	(when nnrss-content-function
 	  (funcall nnrss-content-function e group article))))
     (cond
-     (err
-      (nnheader-report 'nnrss err))
+     ;; (err (nnheader-report 'nnrss err))
      ((not e)
       (nnheader-report 'nnrss "no such id: %d" article))
      (t
@@ -931,60 +930,7 @@ Use Mark Pilgrim's `ultra-liberal rss locator'."
 		      (setq rss-link (nnrss-rss-title-description
 				      rss-ns href-data (car hrefs))))
 		  (setq hrefs (cdr hrefs)))))
-	    (if rss-link
-		rss-link
-	      ;;    4. check syndic8
-	      (nnrss-find-rss-via-syndic8 url))))))))
-
-(declare-function xml-rpc-method-call "ext:xml-rpc"
-		  (server-url method &rest params))
-
-(defun nnrss-find-rss-via-syndic8 (url)
-  "Query syndic8 for the rss feeds it has for URL."
-  (if (not (locate-library "xml-rpc"))
-      (progn
-	(message "XML-RPC is not available... not checking Syndic8.")
-	nil)
-    (require 'xml-rpc)
-    (let ((feedid (xml-rpc-method-call
-		   "http://www.syndic8.com/xmlrpc.php"
-		   'syndic8.FindSites
-		   url)))
-      (when feedid
-	(let* ((feedinfo (xml-rpc-method-call
-			  "http://www.syndic8.com/xmlrpc.php"
-			  'syndic8.GetFeedInfo
-			  feedid))
-	       (urllist
-		(delq nil
-		      (mapcar
-		       (lambda (listinfo)
-			 (if (string-equal
-			      (cdr (assoc "status" listinfo))
-			      "Syndicated")
-			     (cons
-			      (cdr (assoc "sitename" listinfo))
-			      (list
-			       (cons 'title
-				     (cdr (assoc
-					   "sitename" listinfo)))
-			       (cons 'href
-				     (cdr (assoc
-					   "dataurl" listinfo)))))))
-		       feedinfo))))
-	  (if (not (> (length urllist) 1))
-	      (cdar urllist)
-	    (let ((completion-ignore-case t)
-		  (selection
-		   (mapcar (lambda (listinfo)
-			     (cons (cdr (assoc "sitename" listinfo))
-				   (string-to-number
-				    (cdr (assoc "feedid" listinfo)))))
-			   feedinfo)))
-	      (cdr (assoc
-		    (gnus-completing-read
-		     "Multiple feeds found. Select one"
-		     selection t) urllist)))))))))
+            rss-link))))))
 
 (defun nnrss-rss-p (data)
   "Test if DATA is an RSS feed.
@@ -1022,6 +968,11 @@ prefix), return the prefix."
     (if (and ns (not (string= ns "")))
 	(concat ns ":")
       ns)))
+
+(defun nnrss-find-rss-via-syndic8 (_url)
+  "This function is obsolete and does nothing.  Syndic8 shut down in 2013."
+  (declare (obsolete nil "28.1"))
+  nil)
 
 (provide 'nnrss)
 

@@ -1,4 +1,4 @@
-;;; vip.el --- a VI Package for GNU Emacs
+;;; vip.el --- a VI Package for GNU Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986-1988, 1992-1993, 1998, 2001-2021 Free Software
 ;; Foundation, Inc.
@@ -95,13 +95,11 @@
 
 (defcustom vip-shift-width 8
   "The number of columns shifted by > and < command."
-  :type 'integer
-  :group 'vip)
+  :type 'integer)
 
 (defcustom vip-re-replace nil
   "If t then do regexp replace, if nil then do string replace."
-  :type 'boolean
-  :group 'vip)
+  :type 'boolean)
 
 (defvar vip-d-char nil
   "The character remembered by the vi \"r\" command.")
@@ -120,13 +118,11 @@
 
 (defcustom vip-search-wrap-around t
   "If t, search wraps around."
-  :type 'boolean
-  :group 'vip)
+  :type 'boolean)
 
 (defcustom vip-re-search nil
   "If t, search is reg-exp search, otherwise vanilla search."
-  :type 'boolean
-  :group 'vip)
+  :type 'boolean)
 
 (defvar vip-s-string nil
   "Last vip search string.")
@@ -136,24 +132,20 @@
 
 (defcustom vip-case-fold-search nil
   "If t, search ignores cases."
-  :type 'boolean
-  :group 'vip)
+  :type 'boolean)
 
 (defcustom vip-re-query-replace nil
   "If t then do regexp replace, if nil then do string replace."
-  :type 'boolean
-  :group 'vip)
+  :type 'boolean)
 
 (defcustom vip-open-with-indent nil
   "If t, indent when open a new line."
-  :type 'boolean
-  :group 'vip)
+  :type 'boolean)
 
 (defcustom vip-help-in-insert-mode nil
   "If t then C-h is bound to help-command in insert mode.
 If nil then it is bound to `delete-backward-char'."
-  :type 'boolean
-  :group 'vip)
+  :type 'boolean)
 
 (defvar vip-quote-string "> "
   "String inserted at the beginning of region.")
@@ -169,131 +161,131 @@ If nil then it is bound to `delete-backward-char'."
 
 (defvar vip-mode-map
   (let ((map (make-keymap)))
-    (define-key map "\C-a" 'beginning-of-line)
-    (define-key map "\C-b" 'vip-scroll-back)
-    (define-key map "\C-c" 'vip-ctl-c)
-    (define-key map "\C-d" 'vip-scroll-up)
-    (define-key map "\C-e" 'vip-scroll-up-one)
-    (define-key map "\C-f" 'vip-scroll)
-    (define-key map "\C-g" 'vip-keyboard-quit)
-    (define-key map "\C-h" 'help-command)
-    (define-key map "\C-m" 'vip-scroll-back)
-    (define-key map "\C-n" 'vip-other-window)
-    (define-key map "\C-o" 'vip-open-line-at-point)
-    (define-key map "\C-u" 'vip-scroll-down)
-    (define-key map "\C-x" 'vip-ctl-x)
-    (define-key map "\C-y" 'vip-scroll-down-one)
-    (define-key map "\C-z" 'vip-change-mode-to-emacs)
-    (define-key map "\e" 'vip-ESC)
+    (define-key map "\C-a" #'beginning-of-line)
+    (define-key map "\C-b" #'vip-scroll-back)
+    (define-key map "\C-c" #'vip-ctl-c)
+    (define-key map "\C-d" #'vip-scroll-up)
+    (define-key map "\C-e" #'vip-scroll-up-one)
+    (define-key map "\C-f" #'vip-scroll)
+    (define-key map "\C-g" #'vip-keyboard-quit)
+    (define-key map "\C-h" #'help-command)
+    (define-key map "\C-m" #'vip-scroll-back)
+    (define-key map "\C-n" #'vip-other-window)
+    (define-key map "\C-o" #'vip-open-line-at-point)
+    (define-key map "\C-u" #'vip-scroll-down)
+    (define-key map "\C-x" #'vip-ctl-x)
+    (define-key map "\C-y" #'vip-scroll-down-one)
+    (define-key map "\C-z" #'vip-change-mode-to-emacs)
+    (define-key map "\e" #'vip-ESC)
 
-    (define-key map [?\S-\ ] 'vip-scroll-back)
-    (define-key map " " 'vip-scroll)
-    (define-key map "!" 'vip-command-argument)
-    (define-key map "\"" 'vip-command-argument)
-    (define-key map "#" 'vip-command-argument)
-    (define-key map "$" 'vip-goto-eol)
-    (define-key map "%" 'vip-paren-match)
-    (define-key map "&" 'vip-nil)
-    (define-key map "'" 'vip-goto-mark-and-skip-white)
-    (define-key map "(" 'vip-backward-sentence)
-    (define-key map ")" 'vip-forward-sentence)
-    (define-key map "*" 'call-last-kbd-macro)
-    (define-key map "+" 'vip-next-line-at-bol)
-    (define-key map "," 'vip-repeat-find-opposite)
-    (define-key map "-" 'vip-previous-line-at-bol)
-    (define-key map "." 'vip-repeat)
-    (define-key map "/" 'vip-search-forward)
+    (define-key map [?\S-\ ] #'vip-scroll-back)
+    (define-key map " " #'vip-scroll)
+    (define-key map "!" #'vip-command-argument)
+    (define-key map "\"" #'vip-command-argument)
+    (define-key map "#" #'vip-command-argument)
+    (define-key map "$" #'vip-goto-eol)
+    (define-key map "%" #'vip-paren-match)
+    (define-key map "&" #'vip-nil)
+    (define-key map "'" #'vip-goto-mark-and-skip-white)
+    (define-key map "(" #'vip-backward-sentence)
+    (define-key map ")" #'vip-forward-sentence)
+    (define-key map "*" #'call-last-kbd-macro)
+    (define-key map "+" #'vip-next-line-at-bol)
+    (define-key map "," #'vip-repeat-find-opposite)
+    (define-key map "-" #'vip-previous-line-at-bol)
+    (define-key map "." #'vip-repeat)
+    (define-key map "/" #'vip-search-forward)
 
-    (define-key map "0" 'vip-beginning-of-line)
-    (define-key map "1" 'vip-digit-argument)
-    (define-key map "2" 'vip-digit-argument)
-    (define-key map "3" 'vip-digit-argument)
-    (define-key map "4" 'vip-digit-argument)
-    (define-key map "5" 'vip-digit-argument)
-    (define-key map "6" 'vip-digit-argument)
-    (define-key map "7" 'vip-digit-argument)
-    (define-key map "8" 'vip-digit-argument)
-    (define-key map "9" 'vip-digit-argument)
+    (define-key map "0" #'vip-beginning-of-line)
+    (define-key map "1" #'vip-digit-argument)
+    (define-key map "2" #'vip-digit-argument)
+    (define-key map "3" #'vip-digit-argument)
+    (define-key map "4" #'vip-digit-argument)
+    (define-key map "5" #'vip-digit-argument)
+    (define-key map "6" #'vip-digit-argument)
+    (define-key map "7" #'vip-digit-argument)
+    (define-key map "8" #'vip-digit-argument)
+    (define-key map "9" #'vip-digit-argument)
 
-    (define-key map ":" 'vip-ex)
-    (define-key map ";" 'vip-repeat-find)
-    (define-key map "<" 'vip-command-argument)
-    (define-key map "=" 'vip-command-argument)
-    (define-key map ">" 'vip-command-argument)
-    (define-key map "?" 'vip-search-backward)
-    (define-key map "@" 'vip-nil)
+    (define-key map ":" #'vip-ex)
+    (define-key map ";" #'vip-repeat-find)
+    (define-key map "<" #'vip-command-argument)
+    (define-key map "=" #'vip-command-argument)
+    (define-key map ">" #'vip-command-argument)
+    (define-key map "?" #'vip-search-backward)
+    (define-key map "@" #'vip-nil)
 
-    (define-key map "A" 'vip-Append)
-    (define-key map "B" 'vip-backward-Word)
-    (define-key map "C" 'vip-ctl-c-equivalent)
-    (define-key map "D" 'vip-kill-line)
-    (define-key map "E" 'vip-end-of-Word)
-    (define-key map "F" 'vip-find-char-backward)
-    (define-key map "G" 'vip-goto-line)
-    (define-key map "H" 'vip-window-top)
-    (define-key map "I" 'vip-Insert)
-    (define-key map "J" 'vip-join-lines)
-    (define-key map "K" 'vip-kill-buffer)
-    (define-key map "L" 'vip-window-bottom)
-    (define-key map "M" 'vip-window-middle)
-    (define-key map "N" 'vip-search-Next)
-    (define-key map "O" 'vip-Open-line)
-    (define-key map "P" 'vip-Put-back)
-    (define-key map "Q" 'vip-query-replace)
-    (define-key map "R" 'vip-replace-string)
-    (define-key map "S" 'vip-switch-to-buffer-other-window)
-    (define-key map "T" 'vip-goto-char-backward)
-    (define-key map "U" 'vip-nil)
-    (define-key map "V" 'vip-find-file-other-window)
-    (define-key map "W" 'vip-forward-Word)
-    (define-key map "X" 'vip-ctl-x-equivalent)
-    (define-key map "Y" 'vip-yank-line)
-    (define-key map "ZZ" 'save-buffers-kill-emacs)
+    (define-key map "A" #'vip-Append)
+    (define-key map "B" #'vip-backward-Word)
+    (define-key map "C" #'vip-ctl-c-equivalent)
+    (define-key map "D" #'vip-kill-line)
+    (define-key map "E" #'vip-end-of-Word)
+    (define-key map "F" #'vip-find-char-backward)
+    (define-key map "G" #'vip-goto-line)
+    (define-key map "H" #'vip-window-top)
+    (define-key map "I" #'vip-Insert)
+    (define-key map "J" #'vip-join-lines)
+    (define-key map "K" #'vip-kill-buffer)
+    (define-key map "L" #'vip-window-bottom)
+    (define-key map "M" #'vip-window-middle)
+    (define-key map "N" #'vip-search-Next)
+    (define-key map "O" #'vip-Open-line)
+    (define-key map "P" #'vip-Put-back)
+    (define-key map "Q" #'vip-query-replace)
+    (define-key map "R" #'vip-replace-string)
+    (define-key map "S" #'vip-switch-to-buffer-other-window)
+    (define-key map "T" #'vip-goto-char-backward)
+    (define-key map "U" #'vip-nil)
+    (define-key map "V" #'vip-find-file-other-window)
+    (define-key map "W" #'vip-forward-Word)
+    (define-key map "X" #'vip-ctl-x-equivalent)
+    (define-key map "Y" #'vip-yank-line)
+    (define-key map "ZZ" #'save-buffers-kill-emacs)
 
-    (define-key map "[" 'vip-nil)
-    (define-key map "\\" 'vip-escape-to-emacs)
-    (define-key map "]" 'vip-nil)
-    (define-key map "^" 'vip-bol-and-skip-white)
-    (define-key map "_" 'vip-nil)
-    (define-key map "`" 'vip-goto-mark)
+    (define-key map "[" #'vip-nil)
+    (define-key map "\\" #'vip-escape-to-emacs)
+    (define-key map "]" #'vip-nil)
+    (define-key map "^" #'vip-bol-and-skip-white)
+    (define-key map "_" #'vip-nil)
+    (define-key map "`" #'vip-goto-mark)
 
-    (define-key map "a" 'vip-append)
-    (define-key map "b" 'vip-backward-word)
-    (define-key map "c" 'vip-command-argument)
-    (define-key map "d" 'vip-command-argument)
-    (define-key map "e" 'vip-end-of-word)
-    (define-key map "f" 'vip-find-char-forward)
-    (define-key map "g" 'vip-info-on-file)
-    (define-key map "h" 'vip-backward-char)
-    (define-key map "i" 'vip-insert)
-    (define-key map "j" 'vip-next-line)
-    (define-key map "k" 'vip-previous-line)
-    (define-key map "l" 'vip-forward-char)
-    (define-key map "m" 'vip-mark-point)
-    (define-key map "n" 'vip-search-next)
-    (define-key map "o" 'vip-open-line)
-    (define-key map "p" 'vip-put-back)
-    (define-key map "q" 'vip-nil)
-    (define-key map "r" 'vip-replace-char)
-    (define-key map "s" 'vip-switch-to-buffer)
-    (define-key map "t" 'vip-goto-char-forward)
-    (define-key map "u" 'vip-undo)
-    (define-key map "v" 'vip-find-file)
-    (define-key map "w" 'vip-forward-word)
-    (define-key map "x" 'vip-delete-char)
-    (define-key map "y" 'vip-command-argument)
-    (define-key map "zH" 'vip-line-to-top)
-    (define-key map "zM" 'vip-line-to-middle)
-    (define-key map "zL" 'vip-line-to-bottom)
-    (define-key map "z\C-m" 'vip-line-to-top)
-    (define-key map "z." 'vip-line-to-middle)
-    (define-key map "z-" 'vip-line-to-bottom)
+    (define-key map "a" #'vip-append)
+    (define-key map "b" #'vip-backward-word)
+    (define-key map "c" #'vip-command-argument)
+    (define-key map "d" #'vip-command-argument)
+    (define-key map "e" #'vip-end-of-word)
+    (define-key map "f" #'vip-find-char-forward)
+    (define-key map "g" #'vip-info-on-file)
+    (define-key map "h" #'vip-backward-char)
+    (define-key map "i" #'vip-insert)
+    (define-key map "j" #'vip-next-line)
+    (define-key map "k" #'vip-previous-line)
+    (define-key map "l" #'vip-forward-char)
+    (define-key map "m" #'vip-mark-point)
+    (define-key map "n" #'vip-search-next)
+    (define-key map "o" #'vip-open-line)
+    (define-key map "p" #'vip-put-back)
+    (define-key map "q" #'vip-nil)
+    (define-key map "r" #'vip-replace-char)
+    (define-key map "s" #'vip-switch-to-buffer)
+    (define-key map "t" #'vip-goto-char-forward)
+    (define-key map "u" #'vip-undo)
+    (define-key map "v" #'vip-find-file)
+    (define-key map "w" #'vip-forward-word)
+    (define-key map "x" #'vip-delete-char)
+    (define-key map "y" #'vip-command-argument)
+    (define-key map "zH" #'vip-line-to-top)
+    (define-key map "zM" #'vip-line-to-middle)
+    (define-key map "zL" #'vip-line-to-bottom)
+    (define-key map "z\C-m" #'vip-line-to-top)
+    (define-key map "z." #'vip-line-to-middle)
+    (define-key map "z-" #'vip-line-to-bottom)
 
-    (define-key map "{" 'vip-backward-paragraph)
-    (define-key map "|" 'vip-goto-col)
-    (define-key map "}" 'vip-forward-paragraph)
-    (define-key map "~" 'vip-nil)
-    (define-key map "\177" 'vip-delete-backward-char)
+    (define-key map "{" #'vip-backward-paragraph)
+    (define-key map "|" #'vip-goto-col)
+    (define-key map "}" #'vip-forward-paragraph)
+    (define-key map "~" #'vip-nil)
+    (define-key map "\177" #'vip-delete-backward-char)
     map))
 
 (defun vip-version ()
@@ -306,8 +298,8 @@ If nil then it is bound to `delete-backward-char'."
 ;;;###autoload
 (defun vip-setup ()
   "Set up bindings for C-x 7 and C-z that are useful for VIP users."
-  (define-key ctl-x-map "7" 'vip-buffer-in-two-windows)
-  (global-set-key "\C-z" 'vip-change-mode-to-vi))
+  (define-key ctl-x-map "7" #'vip-buffer-in-two-windows)
+  (global-set-key "\C-z" #'vip-change-mode-to-vi))
 
 (defmacro vip-loop (count body)
   "(COUNT BODY) Execute BODY COUNT times."
@@ -375,13 +367,13 @@ No message."
 					     vip-emacs-local-map)))
 	       (vip-change-mode-line "Insert")
 	       (use-local-map vip-insert-local-map)
-	       (define-key vip-insert-local-map "\e" 'vip-change-mode-to-vi)
-	       (define-key vip-insert-local-map "\C-z" 'vip-ESC)
+	       (define-key vip-insert-local-map "\e" #'vip-change-mode-to-vi)
+	       (define-key vip-insert-local-map "\C-z" #'vip-ESC)
 	       (define-key vip-insert-local-map "\C-h"
-		 (if vip-help-in-insert-mode 'help-command
-		   'delete-backward-char))
+		 (if vip-help-in-insert-mode #'help-command
+		   #'delete-backward-char))
 	       (define-key vip-insert-local-map "\C-w"
-		 'vip-delete-backward-word))
+		 #'vip-delete-backward-word))
 	      ((eq new-mode 'emacs-mode)
 	       (vip-change-mode-line "Emacs:")
 	       (use-local-map vip-emacs-local-map)))
@@ -461,13 +453,13 @@ Type `n' to quit this window for now.\n")
 ARG is used as the prefix value for the executed command.  If
 EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
-  (let (com key (old-map (current-local-map)))
+  (let (com (old-map (current-local-map)))
     (if events (setq unread-command-events
                      (append events unread-command-events)))
     (setq prefix-arg arg)
     (use-local-map vip-emacs-local-map)
     (unwind-protect
-	(setq com (key-binding (setq key (read-key-sequence nil))))
+	(setq com (key-binding (read-key-sequence nil)))
       (use-local-map old-map))
     (command-execute com prefix-arg)
     (setq prefix-arg nil)  ;; reset prefix arg
@@ -617,7 +609,7 @@ obtained so far, and COM is the command part obtained so far."
 (defun vip-command-argument (arg)
   "Accept a motion command as an argument."
   (interactive "P")
-  (condition-case conditions
+  (condition-case nil
       (vip-prefix-arg-com
        last-command-event
        (cond ((null arg) nil)
@@ -918,11 +910,11 @@ each line in the region."
 
 (defun vip-read-string (prompt &optional init)
   (setq vip-save-minibuffer-local-map (copy-keymap minibuffer-local-map))
-  (define-key minibuffer-local-map "\C-h" 'backward-char)
-  (define-key minibuffer-local-map "\C-w" 'backward-word)
-  (define-key minibuffer-local-map "\e" 'exit-minibuffer)
+  (define-key minibuffer-local-map "\C-h" #'backward-char)
+  (define-key minibuffer-local-map "\C-w" #'backward-word)
+  (define-key minibuffer-local-map "\e" #'exit-minibuffer)
   (let (str)
-    (condition-case conditions
+    (condition-case nil
 	(setq str (read-string prompt init))
       (quit
        (setq minibuffer-local-map vip-save-minibuffer-local-map)
@@ -2651,7 +2643,7 @@ a token has type \(command, address, end-mark) and value."
 	  (progn
 	    (with-output-to-temp-buffer " *delete text*"
 	      (princ (buffer-substring (point) (mark))))
-	    (condition-case conditions
+	    (condition-case nil
 		(vip-read-string "[Hit return to continue] ")
 	      (quit
 	       (save-excursion (kill-buffer " *delete text*"))
@@ -2759,7 +2751,7 @@ a token has type \(command, address, end-mark) and value."
 	  (progn
 	    (with-output-to-temp-buffer " *text*"
 	      (princ (buffer-substring (point) (mark))))
-	    (condition-case conditions
+	    (condition-case nil
 		(progn
 		  (vip-read-string "[Hit return to continue] ")
 		  (ex-line-subr com (point) (mark)))
@@ -2829,12 +2821,9 @@ a token has type \(command, address, end-mark) and value."
 	(define-key ex-map char
 	  (or (lookup-key vip-mode-map char) 'vip-nil)))
     (define-key vip-mode-map char
-      (eval
-       (list 'quote
-	     (cons 'lambda
-		   (list '(count)
-			 '(interactive "p")
-			 (list 'execute-kbd-macro string 'count))))))))
+      (lambda (count)
+	(interactive "p")
+	(execute-kbd-macro string count)))))
 
 (defun ex-unmap ()
   "ex unmap"
@@ -2892,10 +2881,7 @@ a token has type \(command, address, end-mark) and value."
 	(with-no-warnings
 	  (insert-file file)))))
 
-(defun ex-set ()
-  (eval (list 'setq
-	      (read-variable "Variable: ")
-	      (eval (read-minibuffer "Value: ")))))
+(defalias 'ex-set #'set-variable)
 
 (defun ex-shell ()
   "ex shell"
@@ -2935,7 +2921,7 @@ vip-s-string"
 	    (setq ex-addresses (cons (car ex-addresses) ex-addresses)))))
     ;(setq G opt-g)
     (let ((beg (car ex-addresses)) (end (car (cdr ex-addresses)))
-	  (cont t) eol-mark)
+	  eol-mark) ;;(cont t)
       (save-excursion
 	(vip-enlarge-region beg end)
 	(let ((limit (save-excursion

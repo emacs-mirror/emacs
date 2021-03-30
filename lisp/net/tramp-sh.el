@@ -46,7 +46,6 @@
 (defconst tramp-default-remote-shell "/bin/sh"
   "The default remote shell Tramp applies.")
 
-;;;###tramp-autoload
 (defcustom tramp-inline-compress-start-size 4096
   "The minimum size of compressing where inline transfer.
 When inline transfer, compress transferred data of file whose
@@ -56,23 +55,12 @@ If it is nil, no compression at all will be applied."
   :group 'tramp
   :type '(choice (const nil) integer))
 
-;;;###tramp-autoload
 (defcustom tramp-copy-size-limit 10240
   "Maximum file size where inline copying is preferred to an out-of-the-band copy.
 If it is nil, out-of-the-band copy will be used without a check."
   :group 'tramp
   :type '(choice (const nil) integer))
 
-;;;###tramp-autoload
-(defcustom tramp-terminal-type "dumb"
-  "Value of TERM environment variable for logging in to remote host.
-Because Tramp wants to parse the output of the remote shell, it is easily
-confused by ANSI color escape sequences and suchlike.  Often, shell init
-files conditionalize this setup based on the TERM environment variable."
-  :group 'tramp
-  :type 'string)
-
-;;;###tramp-autoload
 (defcustom tramp-histfile-override "~/.tramp_history"
   "When invoking a shell, override the HISTFILE with this value.
 When setting to a string, it redirects the shell history to that
@@ -115,7 +103,6 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (defconst tramp-end-of-heredoc (md5 tramp-end-of-output)
   "String used to recognize end of heredoc strings.")
 
-;;;###tramp-autoload
 (defcustom tramp-use-ssh-controlmaster-options t
   "Whether to use `tramp-ssh-controlmaster-options'.
 Set it to nil, if you use Control* or Proxy* options in your ssh
@@ -477,70 +464,6 @@ The string is used in `tramp-methods'.")
  (tramp-set-completion-function "psftp" tramp-completion-function-alist-ssh)
  (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh))
 
-;; "getconf PATH" yields:
-;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin
-;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
-;; GNU/Linux (Debian, Suse, RHEL): /bin:/usr/bin
-;; FreeBSD, DragonFly: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
-;; FreeBSD 12.1, Darwin: /usr/bin:/bin:/usr/sbin:/sbin
-;; IRIX64: /usr/bin
-;; QNAP QTS: ---
-;; Hydra: /run/current-system/sw/bin:/bin:/usr/bin
-;;;###tramp-autoload
-(defcustom tramp-remote-path
-  '(tramp-default-remote-path "/bin" "/usr/bin" "/sbin" "/usr/sbin"
-    "/usr/local/bin" "/usr/local/sbin" "/local/bin" "/local/freeware/bin"
-    "/local/gnu/bin" "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin"
-    "/opt/bin" "/opt/sbin" "/opt/local/bin")
-  "List of directories to search for executables on remote host.
-For every remote host, this variable will be set buffer local,
-keeping the list of existing directories on that host.
-
-You can use \"~\" in this list, but when searching for a shell which groks
-tilde expansion, all directory names starting with \"~\" will be ignored.
-
-`Default Directories' represent the list of directories given by
-the command \"getconf PATH\".  It is recommended to use this
-entry on head of this list, because these are the default
-directories for POSIX compatible commands.  On remote hosts which
-do not offer the getconf command (like cygwin), the value
-\"/bin:/usr/bin\" is used instead.  This entry is represented in
-the list by the special value `tramp-default-remote-path'.
-
-`Private Directories' are the settings of the $PATH environment,
-as given in your `~/.profile'.  This entry is represented in
-the list by the special value `tramp-own-remote-path'."
-  :group 'tramp
-  :type '(repeat (choice
-		  (const :tag "Default Directories" tramp-default-remote-path)
-		  (const :tag "Private Directories" tramp-own-remote-path)
-		  (string :tag "Directory"))))
-
-;;;###tramp-autoload
-(defcustom tramp-remote-process-environment
-  '("ENV=''" "TMOUT=0" "LC_CTYPE=''"
-    "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH=" "PAGER=cat"
-    "autocorrect=" "correct=")
-  "List of environment variables to be set on the remote host.
-
-Each element should be a string of the form ENVVARNAME=VALUE.  An
-entry ENVVARNAME= disables the corresponding environment variable,
-which might have been set in the init files like ~/.profile.
-
-Special handling is applied to some environment variables,
-which should not be set here:
-
-The PATH environment variable should be set via `tramp-remote-path'.
-
-The TERM environment variable should be set via `tramp-terminal-type'.
-
-The INSIDE_EMACS environment variable will automatically be set
-based on the Tramp and Emacs versions, and should not be set here."
-  :group 'tramp
-  :version "26.1"
-  :type '(repeat string))
-
-;;;###tramp-autoload
 (defcustom tramp-sh-extra-args
   '(("/bash\\'" . "-noediting -norc -noprofile")
     ("/zsh\\'" . "-f +Z -V"))
@@ -2370,53 +2293,29 @@ The method used must be an out-of-band method."
 	    (setq listener (number-to-string (+ 50000 (random 10000))))))
 
 	;; Compose copy command.
-	(setq host (or host "")
-	      user (or user "")
-	      port (or port "")
-	      spec (format-spec-make
-		    ?t (tramp-get-connection-property
-			(tramp-get-connection-process v) "temp-file" ""))
-	      options (format-spec (tramp-ssh-controlmaster-options v) spec)
-	      spec (format-spec-make
-		    ?h host ?u user ?p port ?r listener ?c options
-		    ?k (if keep-date " " "")
+	(setq options
+	      (format-spec
+	       (tramp-ssh-controlmaster-options v)
+	       (format-spec-make
+		?t (tramp-get-connection-property
+		    (tramp-get-connection-process v) "temp-file" "")))
+	      spec (list
+		    ?h (or host "") ?u (or user "") ?p (or port "")
+		    ?r listener ?c options ?k (if keep-date " " "")
                     ?n (concat "2>" (tramp-get-remote-null-device v)))
 	      copy-program (tramp-get-method-parameter v 'tramp-copy-program)
 	      copy-keep-date (tramp-get-method-parameter
 			      v 'tramp-copy-keep-date)
-
 	      copy-args
-	      (delete
-	       ;; " " has either been a replacement of "%k" (when
-	       ;; keep-date argument is non-nil), or a replacement
-	       ;; for the whole keep-date sublist.
-	       " "
-	       (dolist
-		   (x (tramp-get-method-parameter v 'tramp-copy-args) copy-args)
-		 (setq copy-args
-		       (append
-			copy-args
-			(let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-			  (if (member "" y) '(" ") y))))))
-
-	      copy-env
-	      (delq
-	       nil
-	       (mapcar
-		(lambda (x)
-		  (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-		  (unless (member "" x) (string-join x " ")))
-		(tramp-get-method-parameter v 'tramp-copy-env)))
-
+	      ;; " " has either been a replacement of "%k" (when
+	      ;; keep-date argument is non-nil), or a replacement for
+	      ;; the whole keep-date sublist.
+	      (delete " " (apply #'tramp-expand-args v 'tramp-copy-args spec))
+	      copy-env (apply #'tramp-expand-args v 'tramp-copy-env spec)
 	      remote-copy-program
-	      (tramp-get-method-parameter v 'tramp-remote-copy-program))
-
-	(dolist (x (tramp-get-method-parameter v 'tramp-remote-copy-args))
-	  (setq remote-copy-args
-		(append
-		 remote-copy-args
-		 (let ((y (mapcar (lambda (z) (format-spec z spec)) x)))
-		   (if (member "" y) '(" ") y)))))
+	      (tramp-get-method-parameter v 'tramp-remote-copy-program)
+	      remote-copy-args
+	      (apply #'tramp-expand-args v 'tramp-remote-copy-args spec))
 
 	;; Check for local copy program.
 	(unless (executable-find copy-program)
@@ -2462,10 +2361,11 @@ The method used must be an out-of-band method."
 		 v "process-name" (buffer-name (current-buffer)))
 		(tramp-set-connection-property
 		 v "process-buffer" (current-buffer))
-		(while copy-env
+		(when copy-env
 		  (tramp-message
-		   orig-vec 6 "%s=\"%s\"" (car copy-env) (cadr copy-env))
-		  (setenv (pop copy-env) (pop copy-env)))
+		   orig-vec 6 "%s=\"%s\""
+		   (car copy-env) (string-join (cdr copy-env) " "))
+		  (setenv (car copy-env) (string-join (cdr copy-env) " ")))
 		(setq
 		 copy-args
 		 (append
@@ -2818,6 +2718,9 @@ the result will be a local, non-Tramp, file name."
       ;; expands to "/".  Remove this.
       (while (string-match "//" localname)
 	(setq localname (replace-match "/" t t localname)))
+      ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       ;; `default-directory' is bound, because on Windows there would
@@ -2927,16 +2830,11 @@ alternative implementation will be used."
 			     elt (default-toplevel-value 'process-environment))
 			    (if (string-match-p "=" elt)
 				(setq env (append env `(,elt)))
-			      (if (tramp-get-env-with-u-option v)
-				  (setq env (append `("-u" ,elt) env))
-				(setq uenv (cons elt uenv)))))))
+			      (setq uenv (cons elt uenv))))))
+		 (env (setenv-internal
+		       env "INSIDE_EMACS" (tramp-inside-emacs) 'keep))
 		 (command
 		  (when (stringp program)
-		    (setenv-internal
-		     env "INSIDE_EMACS"
-		     (concat (or (getenv "INSIDE_EMACS") emacs-version)
-			     ",tramp:" tramp-version)
-		     'keep)
 		    (format "cd %s && %s exec %s %s env %s %s"
 			    (tramp-shell-quote-argument localname)
 			    (if uenv
@@ -3147,14 +3045,8 @@ alternative implementation will be used."
         (or (member elt (default-toplevel-value 'process-environment))
             (if (string-match-p "=" elt)
                 (setq env (append env `(,elt)))
-              (if (tramp-get-env-with-u-option v)
-                  (setq env (append `("-u" ,elt) env))
-                (setq uenv (cons elt uenv))))))
-      (setenv-internal
-       env "INSIDE_EMACS"
-       (concat (or (getenv "INSIDE_EMACS") emacs-version)
-	       ",tramp:" tramp-version)
-       'keep)
+              (setq uenv (cons elt uenv)))))
+      (setenv-internal env "INSIDE_EMACS" (tramp-inside-emacs) 'keep)
       (when env
 	(setq command
 	      (format
@@ -3762,6 +3654,8 @@ Fall back to normal file name handler if no Tramp handler exists."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
     (let ((default-directory (file-name-directory file-name))
+          (process-environment
+           (cons "GIO_USE_FILE_MONITOR=help" process-environment))
 	  command events filter p sequence)
       (cond
        ;; "inotifywait".
@@ -3794,18 +3688,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 		'(created changed changes-done-hint moved deleted))
 	       ((memq 'attribute-change flags) '(attribute-changed)))
 	      sequence `(,command "monitor" ,localname)))
-       ;; "gvfs-monitor-dir".
-       ((setq command (tramp-get-remote-gvfs-monitor-dir v))
-	(setq filter #'tramp-sh-gvfs-monitor-dir-process-filter
-	      events
-	      (cond
-	       ((and (memq 'change flags) (memq 'attribute-change flags))
-		'(created changed changes-done-hint moved deleted
-			  attribute-changed))
-	       ((memq 'change flags)
-		'(created changed changes-done-hint moved deleted))
-	       ((memq 'attribute-change flags) '(attribute-changed)))
-	      sequence `(,command ,localname)))
        ;; None.
        (t (tramp-error
 	   v 'file-notify-error
@@ -3838,10 +3720,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
-	;; Set "gio-file-monitor" property if needed.
-	(when (string-equal (file-name-nondirectory command) "gio")
-	  (tramp-set-connection-property
-	   p "gio-file-monitor" (tramp-get-remote-gio-file-monitor v)))
 	p))))
 
 (defun tramp-sh-gio-monitor-process-filter (proc string)
@@ -3862,91 +3740,64 @@ Fall back to normal file name handler if no Tramp handler exists."
 	          "changes done" "changes-done-hint" string)
           string (tramp-compat-string-replace
 	          "renamed to" "moved" string))
-    ;; https://bugs.launchpad.net/bugs/1742946
-    (when
-	(string-match-p "Monitoring not supported\\|No locations given" string)
-      (delete-process proc))
 
-    ;; Delete empty lines.
-    (setq string (tramp-compat-string-replace "\n\n" "\n" string))
+    (catch 'doesnt-work
+      ;; https://bugs.launchpad.net/bugs/1742946
+      (when
+          (string-match-p "Monitoring not supported\\|No locations given" string)
+        (delete-process proc)
+        (throw 'doesnt-work nil))
 
-    (while (string-match
-	    (eval-when-compile
-	      (concat "^[^:]+:"
-		      "[[:space:]]\\([^:]+\\):"
-		      "[[:space:]]" (regexp-opt tramp-gio-events t)
-		      "\\([[:space:]]\\([^:]+\\)\\)?$"))
-	    string)
+      ;; Determine monitor name.
+      (unless (tramp-connection-property-p proc "gio-file-monitor")
+        (cond
+         ;; We have seen this only on cygwin gio, which uses the
+         ;; GPollFileMonitor.
+         ((string-match
+           "Can't find module 'help' specified in GIO_USE_FILE_MONITOR" string)
+          (tramp-set-connection-property
+           proc "gio-file-monitor" 'GPollFileMonitor))
+         ;; TODO: What happens, if several monitor names are reported?
+         ((string-match "\
+Supported arguments for GIO_USE_FILE_MONITOR environment variable:
+\\s-*\\([[:alpha:]]+\\) - 20" string)
+          (tramp-set-connection-property
+           proc "gio-file-monitor"
+           (intern
+            (format "G%sFileMonitor" (capitalize (match-string 1 string))))))
+         (t (throw 'doesnt-work nil)))
+        (setq string (replace-match "" nil nil string)))
 
-      (let* ((file (match-string 1 string))
-	     (file1 (match-string 4 string))
-	     (object
-	      (list
-	       proc
-	       (list
-		(intern-soft (match-string 2 string)))
-	       ;; File names are returned as absolute paths.  We must
-	       ;; add the remote prefix.
-	       (concat remote-prefix file)
-	       (when file1 (concat remote-prefix file1)))))
-	(setq string (replace-match "" nil nil string))
-	;; Usually, we would add an Emacs event now.  Unfortunately,
-	;; `unread-command-events' does not accept several events at
-	;; once.  Therefore, we apply the handler directly.
-	(when (member (cl-caadr object) events)
-	  (tramp-compat-funcall
-	   (lookup-key special-event-map [file-notify])
-	   `(file-notify ,object file-notify-callback)))))
+      ;; Delete empty lines.
+      (setq string (tramp-compat-string-replace "\n\n" "\n" string))
 
-    ;; Save rest of the string.
-    (when (zerop (length string)) (setq string nil))
-    (when string (tramp-message proc 10 "Rest string:\n%s" string))
-    (process-put proc 'rest-string string)))
+      (while (string-match
+	      (eval-when-compile
+	        (concat "^[^:]+:"
+		        "[[:space:]]\\([^:]+\\):"
+		        "[[:space:]]" (regexp-opt tramp-gio-events t)
+		        "\\([[:space:]]\\([^:]+\\)\\)?$"))
+	      string)
 
-(defun tramp-sh-gvfs-monitor-dir-process-filter (proc string)
-  "Read output from \"gvfs-monitor-dir\" and add corresponding \
-`file-notify' events."
-  (let ((events (process-get proc 'events))
-	(remote-prefix
-	 (with-current-buffer (process-buffer proc)
-	   (file-remote-p default-directory)))
-	(rest-string (process-get proc 'rest-string)))
-    (when rest-string
-      (tramp-message proc 10 "Previous string:\n%s" rest-string))
-    (tramp-message proc 6 "%S\n%s" proc string)
-    (setq string (concat rest-string string)
-	  ;; Attribute change is returned in unused wording.
-	  string (tramp-compat-string-replace
-		  "ATTRIB CHANGED" "ATTRIBUTE_CHANGED" string))
-
-    (while (string-match
-	    (concat "^[\n\r]*"
-		    "Directory Monitor Event:[\n\r]+"
-		    "Child = \\([^\n\r]+\\)[\n\r]+"
-		    "\\(Other = \\([^\n\r]+\\)[\n\r]+\\)?"
-		    "Event = \\([^[:blank:]]+\\)[\n\r]+")
-	    string)
-      (let* ((file (match-string 1 string))
-	     (file1 (match-string 3 string))
-	     (object
-	      (list
-	       proc
-	       (list
-		(intern-soft
-		 (tramp-compat-string-replace
-		  "_" "-" (downcase (match-string 4 string)))))
-	       ;; File names are returned as absolute paths.  We must
-	       ;; add the remote prefix.
-	       (concat remote-prefix file)
-	       (when file1 (concat remote-prefix file1)))))
-	(setq string (replace-match "" nil nil string))
-	;; Usually, we would add an Emacs event now.  Unfortunately,
-	;; `unread-command-events' does not accept several events at
-	;; once.  Therefore, we apply the handler directly.
-	(when (member (cl-caadr object) events)
-	  (tramp-compat-funcall
-	   (lookup-key special-event-map [file-notify])
-	   `(file-notify ,object file-notify-callback)))))
+        (let* ((file (match-string 1 string))
+	       (file1 (match-string 4 string))
+	       (object
+	        (list
+	         proc
+	         (list
+		  (intern-soft (match-string 2 string)))
+	         ;; File names are returned as absolute paths.  We
+	         ;; must add the remote prefix.
+	         (concat remote-prefix file)
+	         (when file1 (concat remote-prefix file1)))))
+	  (setq string (replace-match "" nil nil string))
+	  ;; Usually, we would add an Emacs event now.  Unfortunately,
+	  ;; `unread-command-events' does not accept several events at
+	  ;; once.  Therefore, we apply the handler directly.
+	  (when (member (cl-caadr object) events)
+	    (tramp-compat-funcall
+	     (lookup-key special-event-map [file-notify])
+	     `(file-notify ,object file-notify-callback))))))
 
     ;; Save rest of the string.
     (when (zerop (length string)) (setq string nil))
@@ -4307,10 +4158,9 @@ file exists and nonzero exit status otherwise."
     (tramp-send-command
      vec (format
 	  (concat
-	   "exec env TERM='%s' INSIDE_EMACS='%s,tramp:%s' "
+	   "exec env TERM='%s' INSIDE_EMACS='%s' "
 	   "ENV=%s %s PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s %s -i")
-          tramp-terminal-type
-          (or (getenv "INSIDE_EMACS") emacs-version) tramp-version
+          tramp-terminal-type (tramp-inside-emacs)
           (or (getenv-internal "ENV" tramp-remote-process-environment) "")
 	  (if (stringp tramp-histfile-override)
 	      (format "HISTFILE=%s"
@@ -4927,7 +4777,7 @@ If there is just some editing, retry it after 5 seconds."
       (progn
 	(tramp-message
 	 vec 5 "Cannot timeout session, trying it again in %s seconds." 5)
-	(run-at-time 5 nil 'tramp-timeout-session vec))
+	(run-at-time 5 nil #'tramp-timeout-session vec))
     (tramp-message
      vec 3 "Timeout session %s" (tramp-make-tramp-file-name vec 'noloc))
     (tramp-cleanup-connection vec 'keep-debug nil 'keep-processes)))
@@ -5058,19 +4908,17 @@ connection if a previous connection has died for some reason."
 			 (l-domain (tramp-file-name-domain hop))
 			 (l-host (tramp-file-name-host hop))
 			 (l-port (tramp-file-name-port hop))
-			 (login-program
-			  (tramp-get-method-parameter hop 'tramp-login-program))
-			 (login-args
-			  (tramp-get-method-parameter hop 'tramp-login-args))
 			 (remote-shell
 			  (tramp-get-method-parameter hop 'tramp-remote-shell))
 			 (extra-args (tramp-get-sh-extra-args remote-shell))
 			 (async-args
-			  (tramp-get-method-parameter hop 'tramp-async-args))
+			  (tramp-compat-flatten-tree
+			   (tramp-get-method-parameter hop 'tramp-async-args)))
 			 (connection-timeout
 			  (tramp-get-method-parameter
 			   hop 'tramp-connection-timeout))
-			 (command login-program)
+			 (command
+			  (tramp-get-method-parameter hop 'tramp-login-program))
 			 ;; We don't create the temporary file.  In
 			 ;; fact, it is just a prefix for the
 			 ;; ControlPath option of ssh; the real
@@ -5084,11 +4932,7 @@ connection if a previous connection has died for some reason."
 			  (with-tramp-connection-property
 			      (tramp-get-process vec) "temp-file"
 			    (tramp-compat-make-temp-name)))
-			 spec r-shell)
-
-		    ;; Add arguments for asynchronous processes.
-		    (when (and process-name async-args)
-		      (setq login-args (append async-args login-args)))
+			 r-shell)
 
 		    ;; Check, whether there is a restricted shell.
 		    (dolist (elt tramp-restricted-shell-hosts-alist)
@@ -5113,31 +4957,28 @@ connection if a previous connection has died for some reason."
 
 		    ;; Replace `login-args' place holders.
 		    (setq
-		     l-host (or l-host "")
-		     l-user (or l-user "")
-		     l-port (or l-port "")
-		     spec (format-spec-make ?t tmpfile)
-		     options (format-spec options spec)
-		     spec (format-spec-make
-			   ?h l-host ?u l-user ?p l-port ?c options
-			   ?l (concat remote-shell " " extra-args " -i"))
 		     command
-		     (concat
-		      ;; We do not want to see the trailing local
-		      ;; prompt in `start-file-process'.
-		      (unless r-shell "exec ")
-		      command " "
-		      (mapconcat
-		       (lambda (x)
-			 (setq x (mapcar (lambda (y) (format-spec y spec)) x))
-			 (unless (member "" x) (string-join x " ")))
-		       login-args " ")
-		      ;; Local shell could be a Windows COMSPEC.  It
-		      ;; doesn't know the ";" syntax, but we must exit
-		      ;; always for `start-file-process'.  It could
-		      ;; also be a restricted shell, which does not
-		      ;; allow "exec".
-		      (when r-shell " && exit || exit")))
+		     (mapconcat
+		      #'identity
+		      (append
+		       ;; We do not want to see the trailing local
+		       ;; prompt in `start-file-process'.
+		       (unless r-shell '("exec"))
+		       `(,command)
+		       ;; Add arguments for asynchronous processes.
+		       (when process-name async-args)
+		       (tramp-expand-args
+			hop 'tramp-login-args
+			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
+			?c (format-spec options (format-spec-make ?t tmpfile))
+			?l (concat remote-shell " " extra-args " -i"))
+		       ;; Local shell could be a Windows COMSPEC.  It
+		       ;; doesn't know the ";" syntax, but we must
+		       ;; exit always for `start-file-process'.  It
+		       ;; could also be a restricted shell, which does
+		       ;; not allow "exec".
+		       (when r-shell '("&&" "exit" "||" "exit")))
+		      " "))
 
 		    ;; Send the command.
 		    (tramp-message vec 3 "Sending command `%s'" command)
@@ -5158,7 +4999,7 @@ connection if a previous connection has died for some reason."
 		(when (tramp-get-connection-property p "session-timeout" nil)
 		  (run-at-time
 		   (tramp-get-connection-property p "session-timeout" nil) nil
-		   'tramp-timeout-session vec))
+		   #'tramp-timeout-session vec))
 
 		;; Make initial shell settings.
 		(tramp-open-connection-setup-interactive-shell p vec)
@@ -5478,7 +5319,7 @@ Nonexistent directories are removed from spec."
 		  (progn
 		    (tramp-message
 		     vec 3
-		    "`getconf PATH' not successful, using default value \"%s\"."
+		     "`getconf PATH' not successful, using default value \"%s\"."
 		     "/bin:/usr/bin")
 		    "/bin:/usr/bin"))))
 	     (own-remote-path
@@ -5765,42 +5606,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
     (tramp-message vec 5 "Finding a suitable `gio-monitor' command")
     (tramp-find-executable vec "gio" (tramp-get-remote-path vec) t t)))
 
-(defun tramp-get-remote-gio-file-monitor (vec)
-  "Determine remote GFileMonitor."
-  (with-tramp-connection-property vec "gio-file-monitor"
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (tramp-message vec 5 "Finding the used GFileMonitor")
-      (when-let ((gio (tramp-get-remote-gio-monitor vec)))
-	;; Search for the used FileMonitor.  There is no known way to
-	;; get this information directly from gio, so we check for
-	;; linked libraries of libgio.
-	(when (tramp-send-command-and-check vec (concat "ldd " gio))
-	  (goto-char (point-min))
-	  (when (re-search-forward "\\S-+/libgio\\S-+")
-	    (when (tramp-send-command-and-check
-		   vec (concat "strings " (match-string 0)))
-	      (goto-char (point-min))
-	      (re-search-forward
-	       (format
-		"^%s$"
-		(regexp-opt
-		 '("GFamFileMonitor" "GFenFileMonitor"
-		   "GInotifyFileMonitor" "GKqueueFileMonitor")))
-	       nil 'noerror)
-	      (intern (match-string 0)))))))))
-
-(defun tramp-get-remote-gvfs-monitor-dir (vec)
-  "Determine remote `gvfs-monitor-dir' command."
-  (with-tramp-connection-property vec "gvfs-monitor-dir"
-    (tramp-message vec 5 "Finding a suitable `gvfs-monitor-dir' command")
-    ;; We distinguish "gvfs-monitor-dir.exe" from cygwin in order to
-    ;; establish better timeouts in filenotify-tests.el.  Any better
-    ;; distinction approach would be welcome!
-    (or (tramp-find-executable
-	 vec "gvfs-monitor-dir.exe" (tramp-get-remote-path vec) t t)
-	(tramp-find-executable
-	 vec "gvfs-monitor-dir" (tramp-get-remote-path vec) t t))))
-
 (defun tramp-get-remote-inotifywait (vec)
   "Determine remote `inotifywait' command."
   (with-tramp-connection-property vec "inotifywait"
@@ -5944,16 +5749,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
 	    "ln -s foo %s && chmod -h %s 0777"
 	    (tramp-file-local-name tmpfile) (tramp-file-local-name tmpfile)))
 	(delete-file tmpfile)))))
-
-(defun tramp-get-env-with-u-option (vec)
-  "Check, whether the remote `env' command supports the -u option."
-  (with-tramp-connection-property vec "env-u-option"
-    (tramp-message vec 5 "Checking, whether `env -u' works")
-    ;; Option "-u" is a GNU extension.
-    (tramp-send-command-and-check
-     vec (format "env FOO=foo env -u FOO 2>%s | grep -qv FOO"
-                 (tramp-get-remote-null-device vec))
-     t)))
 
 ;; Some predefined connection properties.
 (defun tramp-get-inline-compress (vec prop size)

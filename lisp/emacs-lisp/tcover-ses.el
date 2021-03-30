@@ -32,8 +32,8 @@
 
 ;;;Here are some macros that exercise SES.  Set `pause' to t if you want the
 ;;;macros to pause after each step.
-(let* ((pause nil)
-       (x (if pause "\^Xq" ""))
+(let* (;; (pause nil)
+       (x (if nil "\^Xq" "")) ;; pause
        (y "\^X\^Fses-test.ses\r\^[<"))
   ;;Fiddle with the existing spreadsheet
   (fset 'ses-exercise-example

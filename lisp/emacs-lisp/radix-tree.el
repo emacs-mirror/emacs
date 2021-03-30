@@ -194,14 +194,13 @@ If not found, return nil."
   "Return an alist of all bindings in TREE for prefixes of STRING."
   (radix-tree--prefixes tree string 0 nil))
 
-(eval-and-compile
-  (pcase-defmacro radix-tree-leaf (vpat)
-    "Pattern which matches a radix-tree leaf.
+(pcase-defmacro radix-tree-leaf (vpat)
+  "Pattern which matches a radix-tree leaf.
 The pattern VPAT is matched against the leaf's carried value."
-    ;; We used to use `(pred atom)', but `pcase' doesn't understand that
-    ;; `atom' is equivalent to the negation of `consp' and hence generates
-    ;; suboptimal code.
-    `(or `(t . ,,vpat) (and (pred (not consp)) ,vpat))))
+  ;; We used to use `(pred atom)', but `pcase' doesn't understand that
+  ;; `atom' is equivalent to the negation of `consp' and hence generates
+  ;; suboptimal code.
+  `(or `(t . ,,vpat) (and (pred (not consp)) ,vpat)))
 
 (defun radix-tree-iter-subtrees (tree fun)
   "Apply FUN to every immediate subtree of radix TREE.

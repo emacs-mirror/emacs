@@ -179,6 +179,7 @@ GRID is the grid of positions to click.")
 
 (define-derived-mode 5x5-mode special-mode "5x5"
   "A mode for playing `5x5'."
+  :interactive nil
   (setq buffer-read-only t
         truncate-lines   t)
   (buffer-disable-undo))
@@ -221,7 +222,7 @@ Quit current game           \\[5x5-quit-game]"
 
 (defun 5x5-new-game ()
   "Start a new game of `5x5'."
-  (interactive)
+  (interactive nil 5x5-mode)
   (when (if (called-interactively-p 'interactive)
 	    (5x5-y-or-n-p "Start a new game? ") t)
     (setq 5x5-x-pos (/ 5x5-grid-size 2)
@@ -234,7 +235,7 @@ Quit current game           \\[5x5-quit-game]"
 
 (defun 5x5-quit-game ()
   "Quit the current game of `5x5'."
-  (interactive)
+  (interactive nil 5x5-mode)
   (kill-buffer 5x5-buffer-name))
 
 (defun 5x5-make-new-grid ()
@@ -782,7 +783,7 @@ Solutions are sorted from least to greatest Hamming weight."
 Argument N is ignored."
   ;; For the time being n is ignored, the idea was to use some numeric
   ;; argument to show a limited amount of positions.
-  (interactive "P")
+  (interactive "P" 5x5-mode)
   (5x5-log-init)
   (let ((solutions (5x5-solver 5x5-grid)))
     (setq 5x5-solver-output
@@ -805,7 +806,7 @@ list. The list of solution is ordered by number of strokes, so
 rotating left just after calling `5x5-solve-suggest' will show
 the solution with second least number of strokes, while rotating
 right will show the solution with greatest number of strokes."
-  (interactive "P")
+  (interactive "P" 5x5-mode)
   (let ((len  (length 5x5-solver-output)))
     (when (>= len 3)
       (setq n (if (integerp n) n 1)
@@ -839,7 +840,7 @@ right will show the solution with greatest number of strokes."
 If N is not supplied, rotate by 1.  Similar to function
 `5x5-solve-rotate-left' except that rotation is right instead of
 lest."
-  (interactive "P")
+  (interactive "P" 5x5-mode)
   (setq n
 	(if (integerp n) (- n)
 	  -1))
@@ -851,7 +852,7 @@ lest."
 
 (defun 5x5-flip-current ()
   "Make a move on the current cursor location."
-  (interactive)
+  (interactive nil 5x5-mode)
   (setq 5x5-grid (5x5-make-move 5x5-grid 5x5-y-pos 5x5-x-pos))
   (5x5-made-move)
   (unless 5x5-cracking
@@ -863,61 +864,61 @@ lest."
 
 (defun 5x5-up ()
   "Move up."
-  (interactive)
+  (interactive nil 5x5-mode)
   (unless (zerop 5x5-y-pos)
     (cl-decf 5x5-y-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-down ()
   "Move down."
-  (interactive)
+  (interactive nil 5x5-mode)
   (unless (= 5x5-y-pos (1- 5x5-grid-size))
     (cl-incf 5x5-y-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-left ()
   "Move left."
-  (interactive)
+  (interactive nil 5x5-mode)
   (unless (zerop 5x5-x-pos)
     (cl-decf 5x5-x-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-right ()
   "Move right."
-  (interactive)
+  (interactive nil 5x5-mode)
   (unless (= 5x5-x-pos (1- 5x5-grid-size))
     (cl-incf 5x5-x-pos)
     (5x5-position-cursor)))
 
 (defun 5x5-bol ()
   "Move to beginning of line."
-  (interactive)
+  (interactive nil 5x5-mode)
   (setq 5x5-x-pos 0)
   (5x5-position-cursor))
 
 (defun 5x5-eol ()
   "Move to end of line."
-  (interactive)
+  (interactive nil 5x5-mode)
   (setq 5x5-x-pos (1- 5x5-grid-size))
   (5x5-position-cursor))
 
 (defun 5x5-first ()
   "Move to the first cell."
-  (interactive)
+  (interactive nil 5x5-mode)
   (setq 5x5-x-pos 0
         5x5-y-pos 0)
   (5x5-position-cursor))
 
 (defun 5x5-last ()
   "Move to the last cell."
-  (interactive)
+  (interactive nil 5x5-mode)
   (setq 5x5-x-pos (1- 5x5-grid-size)
         5x5-y-pos (1- 5x5-grid-size))
   (5x5-position-cursor))
 
 (defun 5x5-randomize ()
   "Randomize the grid."
-  (interactive)
+  (interactive nil 5x5-mode)
   (when (5x5-y-or-n-p "Start a new game with a random grid? ")
     (setq 5x5-x-pos (/ 5x5-grid-size 2)
           5x5-y-pos (/ 5x5-grid-size 2)

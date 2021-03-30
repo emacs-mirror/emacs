@@ -36,6 +36,21 @@ of the Emacs git repository to perform a bootstrap and test of Emacs.
 This could happen for several jobs with changed configuration, compile
 and test parameters.
 
+There are different types of jobs: 'prep-image-base' is responsible to
+prepare the environment for the following jobs.  'build-image-*' jobs
+are responsible to compile Emacs in different configuration.  The
+corresponding 'test-*' jobs run the ert tests.
+
+A special job is 'test-all-inotify', which runs 'make check-expensive'.
+While most of the jobs run as soon as a respective file has been
+committed into the Emacs git repository, this test job runs scheduled,
+every 8 hours.
+
+The log files for every test job are kept on the server for a week.
+They can be downloaded from the server, visiting the URL
+<https://emba.gnu.org/emacs/emacs/-/pipelines>, and selecting the job
+in question.
+
 * Emba configuration
 
 The emba configuration files are hosted on

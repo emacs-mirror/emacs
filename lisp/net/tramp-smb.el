@@ -60,20 +60,17 @@
   tramp-smb-method
   '((tramp-parse-netrc "~/.netrc"))))
 
-;;;###tramp-autoload
 (defcustom tramp-smb-program "smbclient"
   "Name of SMB client to run."
   :group 'tramp
   :type 'string)
 
-;;;###tramp-autoload
 (defcustom tramp-smb-acl-program "smbcacls"
   "Name of SMB acls to run."
   :group 'tramp
   :type 'string
   :version "24.4")
 
-;;;###tramp-autoload
 (defcustom tramp-smb-conf null-device
   "Path of the \"smb.conf\" file.
 If it is nil, no \"smb.conf\" will be added to the `tramp-smb-program'
@@ -81,7 +78,6 @@ call, letting the SMB client use the default one."
   :group 'tramp
   :type '(choice (const nil) (file :must-match t)))
 
-;;;###tramp-autoload
 (defcustom tramp-smb-options nil
   "List of additional options.
 They are added to the `tramp-smb-program' call via \"--option '...'\".
@@ -305,7 +301,6 @@ See `tramp-actions-before-shell' for more info.")
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
 ;; Options for remote processes via winexe.
-;;;###tramp-autoload
 (defcustom tramp-smb-winexe-program "winexe"
   "Name of winexe client to run.
 If it isn't found in the local $PATH, the absolute path of winexe
@@ -314,7 +309,6 @@ shall be given.  This is needed for remote processes."
   :type 'string
   :version "24.3")
 
-;;;###tramp-autoload
 (defcustom tramp-smb-winexe-shell-command "powershell.exe"
   "Shell to be used for processes on remote machines.
 This must be Powershell V2 compatible."
@@ -322,7 +316,6 @@ This must be Powershell V2 compatible."
   :type 'string
   :version "24.3")
 
-;;;###tramp-autoload
 (defcustom tramp-smb-winexe-shell-command-switch "-file -"
   "Command switch used together with `tramp-smb-winexe-shell-command'.
 This can be used to disable echo etc."
@@ -743,6 +736,9 @@ PRESERVE-UID-GID and PRESERVE-EXTENDED-ATTRIBUTES are completely ignored."
       ;; Make the file name absolute.
       (unless (tramp-run-real-handler #'file-name-absolute-p (list localname))
 	(setq localname (concat "/" localname)))
+     ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       (tramp-make-tramp-file-name
@@ -1925,7 +1921,7 @@ If ARGUMENT is non-nil, use it as argument for
 
     ;; Check whether we still have the same smbclient version.
     ;; Otherwise, we must delete the connection cache, because
-    ;; capabilities migh have changed.
+    ;; capabilities might have changed.
     (unless (or argument (processp p))
       (let ((default-directory (tramp-compat-temporary-file-directory))
 	    (command (concat tramp-smb-program " -V")))

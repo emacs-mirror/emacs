@@ -37,7 +37,7 @@ For instance, \"fśf.org\" => \"xn--ff-2sa.org\"."
   ;; add a check first to avoid doing unnecessary work.
   (if (string-match "\\`[[:ascii:]]+\\'" domain)
       domain
-    (mapconcat 'puny-encode-string (split-string domain "[.]") ".")))
+    (mapconcat #'puny-encode-string (split-string domain "[.]") ".")))
 
 (defun puny-encode-string (string)
   "Encode STRING according to the IDNA/punycode algorithm.
@@ -57,7 +57,7 @@ For instance, \"bücher\" => \"xn--bcher-kva\"."
 (defun puny-decode-domain (domain)
   "Decode DOMAIN according to the IDNA/punycode algorithm.
 For instance, \"xn--ff-2sa.org\" => \"fśf.org\"."
-  (mapconcat 'puny-decode-string (split-string domain "[.]") "."))
+  (mapconcat #'puny-decode-string (split-string domain "[.]") "."))
 
 (defun puny-decode-string (string)
   "Decode an IDNA/punycode-encoded string.
@@ -75,7 +75,7 @@ For instance \"xn--bcher-kva\" => \"bücher\"."
 (defconst puny-damp 700)
 (defconst puny-tmin 1)
 (defconst puny-tmax 26)
-(defconst puny-skew 28)
+(defconst puny-skew 38)
 
 ;; 0-25  a-z
 ;; 26-36 0-9

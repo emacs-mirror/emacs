@@ -519,7 +519,7 @@ This is a regression test for: Bug#3412, Bug#11817."
     (should (eq saved-binding (key-binding "\C-a")))))
 
 (kmacro-tests-deftest kmacro-tests-name-or-bind-to-key-when-no-macro ()
-  "Bind to key, symbol or register fails when when no macro exists."
+  "Bind to key, symbol or register fails when no macro exists."
   (should-error (kmacro-bind-to-key nil))
   (should-error (kmacro-name-last-macro 'kmacro-tests-symbol-for-test))
   (should-error (kmacro-to-register)))

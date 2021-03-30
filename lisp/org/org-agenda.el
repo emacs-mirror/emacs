@@ -2090,6 +2090,7 @@ Note that functions in this alist don't need to be quoted."
 If STRING is non-nil, the text property will be fetched from position 0
 in that string.  If STRING is nil, it will be fetched from the beginning
 of the current line."
+  (declare (debug t))
   (org-with-gensyms (marker)
     `(let ((,marker (get-text-property (if ,string 0 (point-at-bol))
 				       'org-hd-marker ,string)))
@@ -2097,7 +2098,6 @@ of the current line."
 	 (save-excursion
 	   (goto-char ,marker)
 	   ,@body)))))
-(def-edebug-spec org-agenda-with-point-at-orig-entry (form body))
 
 (defun org-add-agenda-custom-command (entry)
   "Replace or add a command in `org-agenda-custom-commands'.
@@ -3224,6 +3224,15 @@ s   Search for keywords                 M   Like m, but only TODO entries
 (defvar org-agenda-overriding-cmd nil)
 (defvar org-agenda-overriding-arguments nil)
 (defvar org-agenda-overriding-cmd-arguments nil)
+
+(defun org-let (list &rest body) ;FIXME: So many kittens are suffering here.
+  (declare (indent 1))
+  (eval (cons 'let (cons list body))))
+
+(defun org-let2 (list1 list2 &rest body) ;FIXME: Where did our karma go?
+  (declare (indent 2))
+  (eval (cons 'let (cons list1 (list (cons 'let (cons list2 body)))))))
+
 (defun org-agenda-run-series (name series)
   "Run agenda NAME as a SERIES of agenda commands."
   (org-let (nth 1 series) '(org-agenda-prepare name))

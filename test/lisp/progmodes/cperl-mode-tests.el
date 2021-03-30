@@ -135,6 +135,28 @@ point in the distant past, and is still broken in perl-mode. "
         (should (equal (nth 3 (syntax-ppss)) nil))
         (should (equal (nth 4 (syntax-ppss)) t))))))
 
+(ert-deftest cperl-test-fontify-declarations ()
+  "Test that declarations and package usage use consistent fontification."
+  (with-temp-buffer
+    (funcall cperl-test-mode)
+    (insert "package Foo::Bar;\n")
+    (insert "use Fee::Fie::Foe::Foo\n;")
+    (insert "my $xyzzy = 'PLUGH';\n")
+    (goto-char (point-min))
+    (font-lock-ensure)
+    (search-forward "Bar")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-function-name-face))
+    (search-forward "use") ; This was buggy in perl-mode
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-keyword-face))
+    (search-forward "my")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-keyword-face))))
+
+(defvar perl-continued-statement-offset)
+(defvar perl-indent-level)
+
 (ert-deftest cperl-test-heredocs ()
   "Test that HERE-docs are fontified with the appropriate face."
   (require 'perl-mode)
@@ -165,6 +187,101 @@ point in the distant past, and is still broken in perl-mode. "
         (should (equal (- (match-end 1) (match-beginning 1))
                        (if (match-beginning 3) 0
                          perl-indent-level)))))))
+
+;;; Grammar based tests: unit tests
+
+(defun cperl-test--validate-regexp (regexp valid &optional invalid)
+  "Runs tests for elements of VALID and INVALID lists against REGEXP.
+Tests with elements from VALID must match, tests with elements
+from INVALID must not match.  The match string must be equal to
+the whole string."
+  (funcall cperl-test-mode)
+  (dolist (string valid)
+    (should (string-match regexp string))
+    (should (string= (match-string 0 string) string)))
+  (when invalid
+    (dolist (string invalid)
+       (should-not
+       (and (string-match regexp string)
+	    (string= (match-string 0 string) string))))))
+
+(ert-deftest cperl-test-ws-regexp ()
+  "Tests capture of very simple regular expressions (yawn)."
+  (let ((valid
+	 '(" " "\t" "\n"))
+	(invalid
+	 '("a" "  " "")))
+    (cperl-test--validate-regexp cperl--ws-regexp
+				 valid invalid)))
+
+(ert-deftest cperl-test-ws-or-comment-regexp ()
+  "Tests sequences of whitespace and comment lines."
+  (let ((valid
+	 `(" " "\t#\n" "\n# \n"
+	   ,(concat "# comment\n" "# comment\n" "\n" "#comment\n")))
+	(invalid
+	 '("=head1 NAME\n" )))
+    (cperl-test--validate-regexp cperl--ws-or-comment-regexp
+				 valid invalid)))
+
+(ert-deftest cperl-test-version-regexp ()
+  "Tests the regexp for recommended syntax of versions in Perl."
+  (let ((valid
+	 '("1" "1.1" "1.1_1" "5.032001"
+	   "v120.100.103"))
+	(invalid
+	 '("alpha" "0." ".123" "1E2"
+	   "v1.1" ; a "v" version string needs at least 3 components
+	   ;; bad examples from "Version numbers should be boring"
+	   ;; by xdg AKA David A. Golden
+	   "1.20alpha" "2.34beta2" "2.00R3")))
+    (cperl-test--validate-regexp cperl--version-regexp
+				 valid invalid)))
+
+(ert-deftest cperl-test-package-regexp ()
+  "Tests the regular expression of Perl package names with versions.
+Also includes valid cases with whitespace in strange places."
+  (let ((valid
+	 '("package Foo"
+	   "package Foo::Bar"
+	   "package Foo::Bar v1.2.3"
+	   "package Foo::Bar::Baz 1.1"
+	   "package \nFoo::Bar\n 1.00"))
+	(invalid
+	 '("package Foo;"          ; semicolon must not be included
+	   "package Foo 1.1 {"     ; nor the opening brace
+	   "packageFoo"            ; not a package declaration
+	   "package Foo1.1"        ; invalid package name
+	   "class O3D::Sphere")))  ; class not yet supported
+    (cperl-test--validate-regexp cperl--package-regexp
+				 valid invalid)))
+
+;;; Function test: Building an index for imenu
+
+(ert-deftest cperl-test-imenu-index ()
+  "Test index creation for imenu.
+This test relies on the specific layout of the index alist as
+created by CPerl mode, so skip it for Perl mode."
+  (skip-unless (eq cperl-test-mode #'cperl-mode))
+  (with-temp-buffer
+    (insert-file-contents (ert-resource-file "grammar.pl"))
+    (cperl-mode)
+    (let ((index (cperl-imenu--create-perl-index))
+          current-list)
+      (setq current-list (assoc-string "+Unsorted List+..." index))
+      (should current-list)
+      (let ((expected '("(main)::outside"
+                        "Package::in_package"
+                        "Shoved::elsewhere"
+                        "Package::prototyped"
+                        "Versioned::Package::versioned"
+                        "Block::attr"
+                        "Versioned::Package::outer"
+                        "lexical"
+                        "Versioned::Block::signatured"
+                        "Package::in_package_again")))
+        (dolist (sub expected)
+          (should (assoc-string sub index)))))))
 
 ;;; Tests for issues reported in the Bug Tracker
 
@@ -351,5 +468,31 @@ have a face property."
                       "}\n")))
     ;; The yadda-yadda operator should not be in a string.
     (should (equal (nth 8 (cperl-test-ppss code "\\.")) nil))))
+
+(ert-deftest cperl-test-bug-47112 ()
+  "Check that in a bareword starting with a quote-like operator
+followed by an underscore is not interpreted as that quote-like
+operator.  Also check that a quote-like operator followed by a
+colon (which is, like ?_, a symbol in CPerl mode) _is_ identified
+as that quote like operator."
+  (with-temp-buffer
+    (funcall cperl-test-mode)
+    (insert "sub y_max { q:bar:; y _bar_foo_; }")
+    (goto-char (point-min))
+    (syntax-propertize (point-max))
+    (font-lock-ensure)
+    (search-forward "max")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-function-name-face))
+    (search-forward "bar")
+    (should (equal (get-text-property (match-beginning 0) 'face)
+                   'font-lock-string-face))
+    ; perl-mode doesn't highlight
+    (when (eq cperl-test-mode #'cperl-mode)
+      (search-forward "_")
+      (should (equal (get-text-property (match-beginning 0) 'face)
+                     (if (eq cperl-test-mode #'cperl-mode)
+                         'font-lock-constant-face
+                       font-lock-string-face))))))
 
 ;;; cperl-mode-tests.el ends here

@@ -95,7 +95,7 @@ Uses the same syntax as `nnmail-split-methods'.")
   "Articles with the flags in the list will not be considered when splitting.")
 
 (make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'."
-			"Emacs 24.1")
+                        "24.1")
 
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
@@ -440,6 +440,7 @@ during splitting, which may be slow."
 
 ;; This is only needed for Windows XP or earlier
 (defun nnimap-map-port (port)
+  (declare-function x-server-version "xfns.c" (&optional terminal))
   (if (and (eq system-type 'windows-nt)
            (<= (car (x-server-version)) 5)
            (equal port "imaps"))

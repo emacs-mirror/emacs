@@ -1,4 +1,4 @@
-;;; ede-pmake.el --- EDE Generic Project Makefile code generator.
+;;; ede-pmake.el --- EDE Generic Project Makefile code generator  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -46,6 +46,7 @@
 (require 'ede/proj)
 (require 'ede/proj-obj)
 (require 'ede/proj-comp)
+(require 'seq)
 
 (declare-function ede-srecode-setup "ede/srecode")
 (declare-function ede-srecode-insert "ede/srecode")
@@ -111,13 +112,13 @@ MFILENAME is the makefile to generate."
 
 	(let* ((targ (if isdist (oref this targets) mt))
 	       (sp (oref this subproj))
-	       (df (apply 'append
+	       (df (apply #'append
 			  (mapcar (lambda (tg)
 				    (ede-proj-makefile-dependency-files tg))
 				  targ))))
 	  ;; Distribution variables
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-variables targ))
+	    (mapc #'ede-proj-makefile-insert-variables targ))
 	  ;; Only add the distribution stuff in when depth != 0
 	  (let ((top  (ede-toplevel this))
 		(tmp this)
@@ -153,7 +154,8 @@ MFILENAME is the makefile to generate."
 				     (concat ".deps/"
 					     (file-name-nondirectory
 					      (file-name-sans-extension
-					       f)) ".P"))
+					       f))
+					     ".P"))
 				   df " "))))
 	  ;;
 	  ;; Insert ALL Rule
@@ -188,11 +190,11 @@ MFILENAME is the makefile to generate."
 	  ;;
 	  (ede-compiler-begin-unique
 	    (ede-proj-makefile-insert-rules this)
-	    (mapc 'ede-proj-makefile-insert-rules targ))
+	    (mapc #'ede-proj-makefile-insert-rules targ))
 	  ;;
 	  ;; phony targets for sub projects
 	  ;;
-	  (mapc 'ede-proj-makefile-insert-subproj-rules sp)
+	  (mapc #'ede-proj-makefile-insert-subproj-rules sp)
 	  ;;
 	  ;; Distribution rules such as CLEAN and DIST
 	  ;;
@@ -210,11 +212,11 @@ MFILENAME is the makefile to generate."
 	;; Distribution variables
 	(let ((targ (if isdist (oref this targets) mt)))
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-automake-pre-variables targ))
+	    (mapc #'ede-proj-makefile-insert-automake-pre-variables targ))
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-source-variables targ))
+	    (mapc #'ede-proj-makefile-insert-source-variables targ))
 	  (ede-compiler-begin-unique
-	    (mapc 'ede-proj-makefile-insert-automake-post-variables targ))
+	    (mapc #'ede-proj-makefile-insert-automake-post-variables targ))
 	  (ede-compiler-begin-unique
 	    (ede-proj-makefile-insert-user-rules this))
 	  (insert "\n# End of Makefile.am\n")
@@ -241,6 +243,7 @@ MFILENAME is the makefile to generate."
 (defmacro ede-pmake-insert-variable-shared (varname &rest body)
   "Add VARNAME into the current Makefile.
 Execute BODY in a location where a value can be placed."
+  (declare (debug t) (indent 1))
   `(let ((addcr t) (v ,varname))
      (if (save-excursion
 	   (goto-char (point-max))
@@ -258,20 +261,19 @@ Execute BODY in a location where a value can be placed."
      ,@body
      (if addcr (insert "\n"))
      (goto-char (point-max))))
-(put 'ede-pmake-insert-variable-shared 'lisp-indent-function 1)
 
 (defmacro ede-pmake-insert-variable-once (varname &rest body)
   "Add VARNAME into the current Makefile if it doesn't exist.
 Execute BODY in a location where a value can be placed."
-  `(let ((addcr t) (v ,varname))
-       (unless
-	   (save-excursion
-	     (re-search-backward (concat "^" v "\\s-*=") nil t))
-	 (insert v "=")
-	 ,@body
-	 (when addcr (insert "\n"))
-	 (goto-char (point-max)))))
-(put 'ede-pmake-insert-variable-once 'lisp-indent-function 1)
+  (declare (debug t) (indent 1))
+  `(let ((v ,varname))
+     (unless
+	 (save-excursion
+	   (re-search-backward (concat "^" v "\\s-*=") nil t))
+       (insert v "=")
+       ,@body
+       (insert "\n")
+       (goto-char (point-max)))))
 
 ;;; SOURCE VARIABLE NAME CONSTRUCTION
 
@@ -289,7 +291,7 @@ Change .  to _ in the variable name."
 
 ;;; DEPENDENCY FILE GENERATOR LISTS
 ;;
-(cl-defmethod ede-proj-makefile-dependency-files ((this ede-proj-target))
+(cl-defmethod ede-proj-makefile-dependency-files ((_this ede-proj-target))
   "Return a list of source files to convert to dependencies.
 Argument THIS is the target to get sources from."
   nil)
@@ -302,7 +304,7 @@ Argument THIS is the target to get sources from."
 Use CONFIGURATION as the current configuration to query."
   (cdr (assoc configuration (oref this configuration-variables))))
 
-(cl-defmethod ede-proj-makefile-insert-variables-new ((this ede-proj-project))
+(cl-defmethod ede-proj-makefile-insert-variables-new ((_this ede-proj-project))
   "Insert variables needed by target THIS.
 
 NOTE: Not yet in use!  This is part of an SRecode conversion of
@@ -420,7 +422,7 @@ Use CONFIGURATION as the current configuration to query."
   (cdr (assoc configuration (oref this configuration-variables))))
 
 (cl-defmethod ede-proj-makefile-insert-variables ((this ede-proj-target-makefile)
-					       &optional moresource)
+					       &optional _moresource)
   "Insert variables needed by target THIS.
 Optional argument MORESOURCE is a list of additional sources to add to the
 sources variable."
@@ -428,11 +430,11 @@ sources variable."
   (let* ((proj (ede-target-parent this))
 	 (conf-table (ede-proj-makefile-configuration-variables
 		      this (oref proj configuration-default)))
-	 (conf-done nil)
+	 ;; (conf-done nil)
 	 )
     ;; Add in all variables from the configuration not already covered.
     (mapc (lambda (c)
-	    (if (member (car c) conf-done)
+	    (if nil ;; (member (car c) conf-done)
 		nil
 	      (insert (car c) "=" (cdr c) "\n")))
 	  conf-table))
@@ -449,12 +451,12 @@ sources variable."
 			    (ede-proj-makefile-insert-variables linker)))))
 
 (cl-defmethod ede-proj-makefile-insert-automake-pre-variables
-  ((this ede-proj-target))
+  ((_this ede-proj-target))
   "Insert variables needed by target THIS in Makefile.am before SOURCES."
   nil)
 
 (cl-defmethod ede-proj-makefile-insert-automake-post-variables
-  ((this ede-proj-target))
+  ((_this ede-proj-target))
   "Insert variables needed by target THIS in Makefile.am after SOURCES."
   nil)
 
@@ -464,9 +466,9 @@ sources variable."
   "Return a list of patterns that are considered garbage to THIS.
 These are removed with make clean."
   (let ((mc (ede-map-targets
-	     this (lambda (c) (ede-proj-makefile-garbage-patterns c))))
+	     this #'ede-proj-makefile-garbage-patterns))
 	(uniq nil))
-    (setq mc (sort (apply 'append mc) 'string<))
+    (setq mc (sort (apply #'append mc) #'string<))
     ;; Filter out duplicates from the targets.
     (while mc
       (if (and (car uniq) (string= (car uniq) (car mc)))
@@ -502,16 +504,16 @@ These are removed with make clean."
 
 (cl-defmethod ede-proj-makefile-insert-rules ((this ede-proj-project))
   "Insert rules needed by THIS target."
-  (mapc 'ede-proj-makefile-insert-rules (oref this inference-rules))
+  (mapc #'ede-proj-makefile-insert-rules (oref this inference-rules))
   )
 
 (cl-defmethod ede-proj-makefile-insert-dist-dependencies ((this ede-proj-project))
   "Insert any symbols that the DIST rule should depend on.
 Argument THIS is the project that should insert stuff."
-  (mapc 'ede-proj-makefile-insert-dist-dependencies (oref this targets))
+  (mapc #'ede-proj-makefile-insert-dist-dependencies (oref this targets))
   )
 
-(cl-defmethod ede-proj-makefile-insert-dist-dependencies ((this ede-proj-target))
+(cl-defmethod ede-proj-makefile-insert-dist-dependencies ((_this ede-proj-target))
   "Insert any symbols that the DIST rule should depend on.
 Argument THIS is the target that should insert stuff."
   nil)
@@ -530,7 +532,7 @@ Argument THIS is the target that should insert stuff."
 	    (insert " " (ede-subproject-relative-path sproj))
 	    ))))
 
-(cl-defmethod ede-proj-makefile-automake-insert-extradist ((this ede-proj-project))
+(cl-defmethod ede-proj-makefile-automake-insert-extradist ((_this ede-proj-project))
   "Insert the EXTRADIST variable entries needed for Automake and EDE."
   (proj-comp-insert-variable-once "EXTRA_DIST" (insert "Project.ede")))
 
@@ -602,16 +604,16 @@ Argument THIS is the target that should insert stuff."
 	    "\t@false\n\n"
 	    "\n\n# End of Makefile\n")))
 
-(cl-defmethod ede-proj-makefile-insert-rules ((this ede-proj-target))
+(cl-defmethod ede-proj-makefile-insert-rules ((_this ede-proj-target))
   "Insert rules needed by THIS target."
   nil)
 
 (cl-defmethod ede-proj-makefile-insert-rules ((this ede-proj-target-makefile))
   "Insert rules needed by THIS target."
-  (mapc 'ede-proj-makefile-insert-rules (oref this rules))
+  (mapc #'ede-proj-makefile-insert-rules (oref this rules))
   (let ((c (ede-proj-compilers this)))
     (when c
-      (mapc 'ede-proj-makefile-insert-rules c)
+      (mapc #'ede-proj-makefile-insert-rules c)
       (if (oref this phony)
 	  (insert ".PHONY: " (ede-proj-makefile-target-name this) "\n"))
       (insert (ede-proj-makefile-target-name this) ": "
@@ -622,9 +624,9 @@ Argument THIS is the target that should insert stuff."
 (cl-defmethod ede-proj-makefile-insert-commands ((this ede-proj-target-makefile))
   "Insert the commands needed by target THIS.
 For targets, insert the commands needed by the chosen compiler."
-  (mapc 'ede-proj-makefile-insert-commands (ede-proj-compilers this))
+  (mapc #'ede-proj-makefile-insert-commands (ede-proj-compilers this))
   (when (object-assoc t :uselinker (ede-proj-compilers this))
-    (mapc 'ede-proj-makefile-insert-commands (ede-proj-linkers this))))
+    (mapc #'ede-proj-makefile-insert-commands (ede-proj-linkers this))))
 
 
 (cl-defmethod ede-proj-makefile-insert-user-rules ((this ede-proj-project))
@@ -632,11 +634,11 @@ For targets, insert the commands needed by the chosen compiler."
 This is different from `ede-proj-makefile-insert-rules' in that this
 function won't create the building rules which are auto created with
 automake."
-  (mapc 'ede-proj-makefile-insert-user-rules (oref this inference-rules)))
+  (mapc #'ede-proj-makefile-insert-user-rules (oref this inference-rules)))
 
 (cl-defmethod ede-proj-makefile-insert-user-rules ((this ede-proj-target))
   "Insert user specified rules needed by THIS target."
-  (mapc 'ede-proj-makefile-insert-rules (oref this rules)))
+  (mapc #'ede-proj-makefile-insert-rules (oref this rules)))
 
 (cl-defmethod ede-proj-makefile-dependencies ((this ede-proj-target-makefile))
   "Return a string representing the dependencies for THIS.
@@ -644,7 +646,7 @@ Some compilers only use the first element in the dependencies, others
 have a list of intermediates (object files), and others don't care.
 This allows customization of how these elements appear."
   (let* ((c (ede-proj-compilers this))
-	 (io (eval (cons 'or (mapcar 'ede-compiler-intermediate-objects-p c))))
+	 (io (seq-some #'ede-compiler-intermediate-objects-p c))
 	 (out nil))
     (if io
 	(progn
@@ -652,7 +654,8 @@ This allows customization of how these elements appear."
 	    (setq out
 		  (concat out "$(" (ede-compiler-intermediate-object-variable
 				    (car c)
-				    (ede-proj-makefile-target-name this)) ")")
+				    (ede-proj-makefile-target-name this))
+			  ")")
 		  c (cdr c)))
 	  out)
       (let ((sv (ede-proj-makefile-sourcevar this))

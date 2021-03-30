@@ -1,4 +1,4 @@
-;;; mh-show.el --- MH-Show mode
+;;; mh-show.el --- MH-Show mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
@@ -136,7 +136,7 @@ displayed."
         (show-window (get-buffer-window mh-show-buffer))
         (display-mime-buttons-flag mh-display-buttons-for-inline-parts-flag))
     (if (not (eq (next-window (minibuffer-window)) (selected-window)))
-        (delete-other-windows))         ; force ourself to the top window
+        (delete-other-windows))         ; force ourselves to the top window
     (mh-in-show-buffer (mh-show-buffer)
       (setq mh-display-buttons-for-inline-parts-flag display-mime-buttons-flag)
       (if (and show-window
@@ -195,7 +195,7 @@ Sets the current buffer to the show buffer."
     (let ((formfile mh-mhl-format-file)
           (clean-message-header mh-clean-message-header-flag)
           (invisible-headers mh-invisible-header-fields-compiled)
-          (visible-headers nil)
+          ;; (visible-headers nil)
           (msg-filename (mh-msg-filename msg-num folder-name))
           (show-buffer mh-show-buffer)
           (mm-inline-media-tests mh-mm-inline-media-tests))
@@ -241,7 +241,7 @@ Sets the current buffer to the show buffer."
              (cond (clean-message-header
                     (mh-clean-msg-header (point-min)
                                          invisible-headers
-                                         visible-headers)
+                                         nil) ;; visible-headers
                     (goto-char (point-min)))
                    (t
                     (mh-start-of-uncleaned-message)))
@@ -862,7 +862,7 @@ See also `mh-folder-mode'.
       (turn-on-font-lock))
   (when mh-decode-mime-flag
     (mh-make-local-hook 'kill-buffer-hook)
-    (add-hook 'kill-buffer-hook 'mh-mime-cleanup nil t))
+    (add-hook 'kill-buffer-hook #'mh-mime-cleanup nil t))
   (mh-do-in-xemacs
     (easy-menu-add mh-show-sequence-menu)
     (easy-menu-add mh-show-message-menu)

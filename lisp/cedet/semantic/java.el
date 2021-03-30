@@ -1,6 +1,6 @@
-;;; semantic/java.el --- Semantic functions for Java
+;;; semantic/java.el --- Semantic functions for Java  -*- lexical-binding: t; -*-
 
-;;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2021  Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 
@@ -148,7 +148,7 @@ corresponding compound declaration."
       (let* ((name (semantic-tag-name tag))
 	     (rsplit (nreverse (split-string name "\\." t)))
 	     (newclassname (car rsplit))
-	     (newpkg (mapconcat 'identity (reverse (cdr rsplit)) ".")))
+	     (newpkg (mapconcat #'identity (reverse (cdr rsplit)) ".")))
 	(semantic-tag-set-name tag newclassname)
 	(setq xpand
 	      (list tag
@@ -169,7 +169,7 @@ corresponding compound declaration."
 (define-mode-local-override semantic-ctxt-scoped-types
   java-mode (&optional point)
   "Return a list of type names currently in scope at POINT."
-  (mapcar 'semantic-tag-name
+  (mapcar #'semantic-tag-name
           (semantic-find-tags-by-class
            'type (semantic-find-tag-by-overlay point))))
 
@@ -184,7 +184,7 @@ Override function for `semantic-tag-protection'."
 
 ;; Prototype handler
 ;;
-(defun semantic-java-prototype-function (tag &optional parent color)
+(defun semantic-java-prototype-function (tag &optional _parent color)
   "Return a function (method) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
@@ -212,7 +212,7 @@ See also `semantic-format-tag-prototype'."
             (or type "") (if type " " "")
             name "(" argp ")")))
 
-(defun semantic-java-prototype-variable (tag &optional parent color)
+(defun semantic-java-prototype-variable (tag &optional _parent color)
   "Return a variable (field) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
@@ -227,7 +227,7 @@ See also `semantic-format-tag-prototype'."
                 (semantic--format-colorize-text name 'variable)
               name))))
 
-(defun semantic-java-prototype-type (tag &optional parent color)
+(defun semantic-java-prototype-type (tag &optional _parent color)
   "Return a type (class/interface) prototype for TAG.
 Optional argument PARENT is a parent (containing) item.
 Optional argument COLOR indicates that color should be mixed in.
@@ -260,7 +260,7 @@ Optional argument COLOR indicates that color should be mixed in."
 (define-mode-local-override semantic-tag-include-filename java-mode (tag)
   "Return a suitable path for (some) Java imports."
   (let ((name (semantic-tag-name tag)))
-    (concat (mapconcat 'identity (split-string name "\\.") "/") ".java")))
+    (concat (mapconcat #'identity (split-string name "\\.") "/") ".java")))
 
 ;; Documentation handler
 ;;
@@ -417,15 +417,13 @@ removed from the result list."
   (or semantic-java-doc-with-name-tags
       (setq semantic-java-doc-with-name-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 k)
+             #'(lambda (k _p) k)
              'with-name)))
 
   (or semantic-java-doc-with-ref-tags
       (setq semantic-java-doc-with-ref-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 k)
+             #'(lambda (k _p) k)
              'with-ref)))
 
   (or semantic-java-doc-extra-type-tags

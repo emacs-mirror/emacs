@@ -1,4 +1,4 @@
-;;; refer.el --- look up references in bibliography files
+;;; refer.el --- look up references in bibliography files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992, 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -91,8 +91,7 @@ the default search path.  Since Refer does not know that default path,
 it cannot search it.  Include that path explicitly in your BIBINPUTS
 environment if you really want it searched (which is not likely to
 happen anyway)."
-  :type '(choice (repeat directory) (const bibinputs) (const texinputs))
-  :group 'refer)
+  :type '(choice (repeat directory) (const bibinputs) (const texinputs)))
 
 (defcustom refer-bib-files 'dir
   "List of \\.bib files to search for references,
@@ -110,16 +109,14 @@ If `refer-bib-files' is nil, auto or dir, it is setq'd to the appropriate
 list of files when it is first used if `refer-cache-bib-files' is t.  If
 `refer-cache-bib-files' is nil, the list of \\.bib files to use is re-read
 each time it is needed."
-  :type '(choice (repeat file) (const nil) (const auto) (const dir))
-  :group 'refer)
+  :type '(choice (repeat file) (const nil) (const auto) (const dir)))
 
 (defcustom refer-cache-bib-files t
   "Variable determining whether the value of `refer-bib-files' should be cached.
 If t, initialize the value of refer-bib-files the first time it is used.  If
 nil, re-read the list of \\.bib files depending on the value of `refer-bib-files'
 each time it is needed."
-  :type 'boolean
-  :group 'refer)
+  :type 'boolean)
 
 (defcustom refer-bib-files-regexp "\\\\bibliography"
   "Regexp matching a bibliography file declaration.
@@ -131,8 +128,7 @@ command is expected to specify a file name, or a list of comma-separated file
 names, within curly braces.
 If a specified file doesn't exist and has no extension, a \\.bib extension
 is automatically tried."
-  :type 'regexp
-  :group 'refer)
+  :type 'regexp)
 
 (make-variable-buffer-local 'refer-bib-files)
 (make-variable-buffer-local 'refer-cache-bib-files)
@@ -180,7 +176,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
 
 (defun refer-find-entry-internal (keywords continue)
    (let ((keywords-list (refer-convert-string-to-list-of-strings keywords))
-         (old-buffer (current-buffer))
+         ;; (old-buffer (current-buffer))
          (old-window (selected-window))
          (new-window (selected-window))
          (files (if continue
@@ -188,7 +184,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                   (setq refer-saved-pos nil)
                   (refer-get-bib-files)))
          (n 0)
-         (found nil)
+         ;; (found nil)
          (file nil))
      ;; find window in which to display bibliography file.
      ;; if a bibliography file is already displayed in a window, use

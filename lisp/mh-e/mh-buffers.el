@@ -1,4 +1,4 @@
-;;; mh-buffers.el --- MH-E buffer constants and utilities
+;;; mh-buffers.el --- MH-E buffer constants and utilities  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.

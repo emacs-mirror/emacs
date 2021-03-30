@@ -102,6 +102,7 @@ grep -nH -e "xyzxyz" ../info/*
 ../info/emacs-2 1205 inserts `xyzxyzxyzxyz' in the current buffer.
 
 
+* Miscellaneous
 
 Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
@@ -124,4 +125,7 @@ COPYING PERMISSIONS:
 ;;; Local Variables:
 ;;; eval: (let ((inhibit-read-only t) (compilation-filter-start (point-min))) (save-excursion (goto-char (point-max)) (grep-filter) (set-buffer-modified-p nil)))
 ;;; buffer-read-only: t
+;;; outline-minor-mode-cycle: t
+;;; outline-minor-mode-highlight: t
+;;; eval: (outline-minor-mode 1)
 ;;; End:

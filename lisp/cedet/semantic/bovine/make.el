@@ -1,4 +1,4 @@
-;;; semantic/bovine/make.el --- Makefile parsing rules.
+;;; semantic/bovine/make.el --- Makefile parsing rules.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2000-2004, 2008-2021 Free Software Foundation, Inc.
 
@@ -103,13 +103,13 @@ Ignore them."
     xpand))
 
 (define-mode-local-override semantic-get-local-variables
-  makefile-mode (&optional point)
+  makefile-mode (&optional _point)
   "Override `semantic-get-local-variables' so it does not throw an error.
 We never have local variables in Makefiles."
   nil)
 
 (define-mode-local-override semantic-ctxt-current-class-list
-  makefile-mode (&optional point)
+  makefile-mode (&optional _point)
   "List of classes that are valid to place at point."
   (let ((tag (semantic-current-tag)))
     (when tag
@@ -176,7 +176,7 @@ This is the same as a regular prototype."
   (semantic-format-tag-prototype tag parent color))
 
 (define-mode-local-override semantic-analyze-possible-completions
-  makefile-mode (context &rest flags)
+  makefile-mode (context &rest _flags)
   "Return a list of possible completions in a Makefile.
 Uses default implementation, and also gets a list of filenames."
   (require 'semantic/analyze/complete)
@@ -218,7 +218,7 @@ Uses default implementation, and also gets a list of filenames."
 					   ;; but not actually parsed.
 					   (file . "File"))
         semantic-case-fold t
-        semantic-tag-expand-function 'semantic-make-expand-tag
+        semantic-tag-expand-function #'semantic-make-expand-tag
         semantic-lex-syntax-modifications '((?. "_")
                                             (?= ".")
                                             (?/ "_")
@@ -226,7 +226,7 @@ Uses default implementation, and also gets a list of filenames."
                                             (?+ ".")
                                             (?\\ ".")
                                             )
-        imenu-create-index-function 'semantic-create-imenu-index
+        imenu-create-index-function #'semantic-create-imenu-index
         )
   (setq semantic-lex-analyzer #'semantic-make-lexer)
   )

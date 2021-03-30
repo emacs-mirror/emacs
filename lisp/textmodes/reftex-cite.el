@@ -1,4 +1,4 @@
-;;; reftex-cite.el --- creating citations with RefTeX
+;;; reftex-cite.el --- creating citations with RefTeX  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -310,11 +310,11 @@ Return list with entries."
     ;; Sorting
     (cond
      ((eq 'author reftex-sort-bibtex-matches)
-      (sort found-list 'reftex-bib-sort-author))
+      (sort found-list #'reftex-bib-sort-author))
      ((eq 'year   reftex-sort-bibtex-matches)
-      (sort found-list 'reftex-bib-sort-year))
+      (sort found-list #'reftex-bib-sort-year))
      ((eq 'reverse-year reftex-sort-bibtex-matches)
-      (sort found-list 'reftex-bib-sort-year-reverse))
+      (sort found-list #'reftex-bib-sort-year-reverse))
      (t found-list))))
 
 (defun reftex-bib-sort-author (e1 e2)
@@ -390,7 +390,7 @@ The environment should be located in FILES."
 	      (when (and start end)
 		(setq entries
 		      (append entries
-			      (mapcar 'reftex-parse-bibitem
+			      (mapcar #'reftex-parse-bibitem
 				      (delete ""
 					      (split-string
 					       (buffer-substring-no-properties
@@ -533,7 +533,7 @@ If FORMAT is non-nil `format' entry accordingly."
   "Format a BibTeX ENTRY so that it is nice to look at."
   (let*
       ((auth-list (reftex-get-bib-names "author" entry))
-       (authors (mapconcat 'identity auth-list ", "))
+       (authors (mapconcat #'identity auth-list ", "))
        (year      (reftex-get-bib-field "year" entry))
        (title     (reftex-get-bib-field "title" entry))
        (type      (reftex-get-bib-field "&type" entry))
@@ -607,7 +607,7 @@ If FORMAT is non-nil `format' entry accordingly."
         (push (substring text 0 (+ 60 (match-beginning 0))) lines)
         (setq text (substring text (+ 61 (match-beginning 0)))))
     (push text lines)
-    (setq text (mapconcat 'identity (nreverse lines) "\n     "))
+    (setq text (mapconcat #'identity (nreverse lines) "\n     "))
 
     (when (reftex-use-fonts)
       (put-text-property 0 (length text) 'face reftex-bib-author-face text))
@@ -676,7 +676,7 @@ While entering the regexp, completion on knows citation keys is possible.
       ;; All keys go into a single command - we need to trick a little
       ;; FIXME: Unfortunately, this means that commenting does not work right.
       (pop selected-entries)
-      (let ((concat-keys (mapconcat 'car selected-entries
+      (let ((concat-keys (mapconcat #'car selected-entries
 				    reftex-cite-key-separator)))
         (setq insert-entries
               (list (list concat-keys (cons "&key" concat-keys))))))
@@ -726,7 +726,7 @@ While entering the regexp, completion on knows citation keys is possible.
       (when (and reftex-mode
                  (fboundp 'LaTeX-add-bibitems)
                  reftex-plug-into-AUCTeX)
-        (apply 'LaTeX-add-bibitems (mapcar 'car selected-entries)))
+        (apply #'LaTeX-add-bibitems (mapcar #'car selected-entries)))
 
       ;; Produce the cite-view strings
       (when (and reftex-mode reftex-cache-cite-echo cite-view)
@@ -749,7 +749,7 @@ While entering the regexp, completion on knows citation keys is possible.
         (forward-char 1)))
 
     ;; Return the citation key
-    (mapcar 'car selected-entries)))
+    (mapcar #'car selected-entries)))
 
 (defun reftex-figure-out-cite-format (arg &optional no-insert format-key)
   "Check if there is already a cite command at point and change cite format
@@ -815,15 +815,16 @@ in order to only add another reference in the same cite command."
   (reftex-citation nil ?t))
 
 (defvar reftex-select-bib-map)
+(defvar reftex--found-list)
 (defun reftex-offer-bib-menu ()
   "Offer bib menu and return list of selected items."
   (let ((bibtype (reftex-bib-or-thebib))
-        found-list rtn key data selected-entries)
+        reftex--found-list rtn key data selected-entries)
     (while
         (not
          (catch 'done
            ;; Scan bibtex files
-           (setq found-list
+           (setq reftex--found-list
               (cond
                ((eq bibtype 'bib)
 ;              ((assq 'bib (symbol-value reftex-docstruct-symbol))
@@ -834,7 +835,7 @@ in order to only add another reference in the same cite command."
                 ;; using thebibliography environment.
                 (reftex-extract-bib-entries-from-thebibliography
                  (reftex-uniquify
-                  (mapcar 'cdr
+                  (mapcar #'cdr
                           (reftex-all-assq
                            'thebib (symbol-value reftex-docstruct-symbol))))))
                (reftex-default-bibliography
@@ -842,7 +843,7 @@ in order to only add another reference in the same cite command."
                 (reftex-extract-bib-entries (reftex-default-bibliography)))
                (t (error "No valid bibliography in this document, and no default available"))))
 
-           (unless found-list
+           (unless reftex--found-list
              (error "Sorry, no matches found"))
 
           ;; Remember where we came from
@@ -854,11 +855,11 @@ in order to only add another reference in the same cite command."
             (delete-other-windows)
             (reftex-kill-buffer "*RefTeX Select*")
             (switch-to-buffer-other-window "*RefTeX Select*")
-            (unless (eq major-mode 'reftex-select-bib-mode)
+            (unless (derived-mode-p 'reftex-select-bib-mode)
               (reftex-select-bib-mode))
-            (let ((buffer-read-only nil))
+            (let ((inhibit-read-only t))
               (erase-buffer)
-              (reftex-insert-bib-matches found-list))
+              (reftex-insert-bib-matches reftex--found-list))
             (setq buffer-read-only t)
             (if (= 0 (buffer-size))
                 (error "No matches found"))
@@ -881,34 +882,36 @@ in order to only add another reference in the same cite command."
                 (throw 'done nil))
                ((eq key ?r)
                 ;; Restrict with new regular expression
-                (setq found-list (reftex-restrict-bib-matches found-list))
+                (setq reftex--found-list
+                      (reftex-restrict-bib-matches reftex--found-list))
                 (let ((buffer-read-only nil))
                   (erase-buffer)
-                  (reftex-insert-bib-matches found-list))
+                  (reftex-insert-bib-matches reftex--found-list))
                 (goto-char 1))
                ((eq key ?A)
                 ;; Take all (marked)
                 (setq selected-entries
                       (if reftex-select-marked
-                          (mapcar 'car (nreverse reftex-select-marked))
-                        found-list))
+                          (mapcar #'car (nreverse reftex-select-marked))
+                        reftex--found-list))
                 (throw 'done t))
                ((eq key ?a)
                 ;; Take all (marked), and push the symbol 'concat
                 (setq selected-entries
                       (cons 'concat
                             (if reftex-select-marked
-                                (mapcar 'car (nreverse reftex-select-marked))
-                              found-list)))
+                                (mapcar #'car (nreverse reftex-select-marked))
+                              reftex--found-list)))
                 (throw 'done t))
                ((eq key ?e)
                 ;; Take all (marked), and push the symbol 'concat
-                (reftex-extract-bib-file found-list reftex-select-marked)
+                (reftex-extract-bib-file reftex--found-list
+                                         reftex-select-marked)
                 (setq selected-entries "BibTeX database file created")
                 (throw 'done t))
                ((eq key ?E)
                 ;; Take all (marked), and push the symbol 'concat
-                (reftex-extract-bib-file found-list reftex-select-marked
+                (reftex-extract-bib-file reftex--found-list reftex-select-marked
                                          'complement)
                 (setq selected-entries "BibTeX database file created")
                 (throw 'done t))
@@ -918,7 +921,7 @@ in order to only add another reference in the same cite command."
                 (setq selected-entries
                       (if reftex-select-marked
                           (cons 'concat
-                                (mapcar 'car (nreverse reftex-select-marked)))
+                                (mapcar #'car (nreverse reftex-select-marked)))
                         (if data (list data) nil)))
                 (throw 'done t))
                ((stringp key)
@@ -971,7 +974,7 @@ in order to only add another reference in the same cite command."
                              nil)
                          (cdr (assoc "&entry" x))))
                      all)))
-    (insert (mapconcat 'identity all "\n\n"))
+    (insert (mapconcat #'identity all "\n\n"))
     (save-buffer)
     (goto-char (point-min))))
 
@@ -1004,7 +1007,7 @@ in order to only add another reference in the same cite command."
             last (nth (1- n) namelist))
       (setcdr (nthcdr (- n 2) namelist) nil)
       (concat
-       (mapconcat 'identity namelist (nth 0 reftex-cite-punctuation))
+       (mapconcat #'identity namelist (nth 0 reftex-cite-punctuation))
        (nth 1 reftex-cite-punctuation)
        last)))))
 
@@ -1100,7 +1103,7 @@ in order to only add another reference in the same cite command."
         (put reftex-docstruct-symbol 'modified t)))
     string))
 
-(defun reftex-bibtex-selection-callback (data ignore no-revisit)
+(defun reftex-bibtex-selection-callback (data _ignore no-revisit)
   "Callback function to be called from the BibTeX selection, in
 order to display context.  This function is relatively slow and not
 recommended for follow mode.  It works OK for individual lookups."
@@ -1119,7 +1122,7 @@ recommended for follow mode.  It works OK for individual lookups."
 ;        ((assq 'thebib (symbol-value reftex-docstruct-symbol))
           (setq bibfile-list
                 (reftex-uniquify
-                 (mapcar 'cdr
+                 (mapcar #'cdr
                          (reftex-all-assq
                           'thebib (symbol-value reftex-docstruct-symbol))))
                 item t))
@@ -1163,7 +1166,7 @@ recommended for follow mode.  It works OK for individual lookups."
   "Return a list of BibTeX @string references that appear as values in ALIST."
   (reftex-remove-if (lambda (x) (string-match "^\\([\"{]\\|[0-9]+$\\)" x))
 		    ;; get list of values, discard keys
-		    (mapcar 'cdr
+		    (mapcar #'cdr
 			    ;; remove &key and &type entries
 			    (reftex-remove-if (lambda (pair)
 						(string-match "^&" (car pair)))
@@ -1186,7 +1189,7 @@ created files in the variables `reftex-create-bibtex-header' or
   (interactive "FNew BibTeX file: ")
   (let ((keys (reftex-all-used-citation-keys))
         (files (reftex-get-bibfile-list))
-        file key entries beg end entry string-keys string-entries)
+        key entries beg end entry string-keys string-entries)
     (save-current-buffer
       (dolist (file files)
         (set-buffer (reftex-get-file-buffer-force file 'mark))
@@ -1252,9 +1255,9 @@ created files in the variables `reftex-create-bibtex-header' or
           (error "Abort")))
     (erase-buffer)
     (if reftex-create-bibtex-header (insert reftex-create-bibtex-header "\n\n"))
-    (insert (mapconcat 'identity (reverse string-entries) "\n\n"))
+    (insert (mapconcat #'identity (reverse string-entries) "\n\n"))
     (if string-entries (insert "\n\n\n"))
-    (insert (mapconcat 'identity (reverse entries) "\n\n"))
+    (insert (mapconcat #'identity (reverse entries) "\n\n"))
     (if reftex-create-bibtex-footer (insert "\n\n" reftex-create-bibtex-footer))
     (goto-char (point-min))
     (save-buffer)

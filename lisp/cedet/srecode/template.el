@@ -1,4 +1,4 @@
-;;; srecode/template.el --- SRecoder template language parser support.
+;;; srecode/template.el --- SRecoder template language parser support.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005, 2007-2021 Free Software Foundation, Inc.
 
@@ -49,11 +49,11 @@
 
   (setq
    ;; Lexical Analysis
-   semantic-lex-analyzer 'wisent-srecode-template-lexer
+   semantic-lex-analyzer #'wisent-srecode-template-lexer
    ;; Parsing
    ;; Environment
-   semantic-imenu-summary-function 'semantic-format-tag-name
-   imenu-create-index-function 'semantic-create-imenu-index
+   semantic-imenu-summary-function #'semantic-format-tag-name
+   imenu-create-index-function #'semantic-create-imenu-index
    semantic-command-separation-character "\n"
    semantic-lex-comment-regex ";;"
    ;; Speedbar

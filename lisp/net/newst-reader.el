@@ -1,4 +1,4 @@
-;;; newst-reader.el --- Generic RSS reader functions.
+;;; newst-reader.el --- Generic RSS reader functions.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 
@@ -94,7 +94,7 @@ done."
                  (const :tag "Right"      right)
                  (const :tag "Center"     center)
                  (const :tag "Full"       full))
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
 
 (defcustom newsticker-use-full-width
@@ -103,7 +103,7 @@ done."
 If non-nil newsticker sets `fill-column' so that the whole
 window is used when filling.  See also `newsticker-justification'."
   :type 'boolean
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
 
 (defcustom newsticker-html-renderer
@@ -122,7 +122,7 @@ htmlr if this option is set."
                  (const :tag "w3" w3-region)
                  (const :tag "w3m" w3m-region)
                  (const :tag "htmlr" newsticker-htmlr-render))
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
 
 (defcustom newsticker-date-format
@@ -130,7 +130,7 @@ htmlr if this option is set."
   "Format for the date part in item and feed lines.
 See `format-time-string' for a list of valid specifiers."
   :type 'string
-  :set 'newsticker--set-customvar-formatting
+  :set #'newsticker--set-customvar-formatting
   :group 'newsticker-reader)
 
 (defgroup newsticker-faces nil

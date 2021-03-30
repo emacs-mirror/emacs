@@ -1,4 +1,4 @@
-;;; pgg.el --- glue for the various PGP implementations.
+;;; pgg.el --- glue for the various PGP implementations.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2000, 2002-2021 Free Software Foundation, Inc.
 
@@ -27,99 +27,19 @@
 
 (require 'pgg-def)
 (require 'pgg-parse)
-(autoload 'run-at-time "timer")
 
 (eval-when-compile (require 'cl-lib))
 
 ;;; @ utility functions
 ;;;
 
-(eval-when-compile
-  (when (featurep 'xemacs)
-    (defmacro pgg-run-at-time-1 (time repeat function args)
-      (if (condition-case nil
-	      (let ((delete-itimer 'delete-itimer)
-		    (itimer-driver-start 'itimer-driver-start)
-		    (itimer-value 'itimer-value)
-		    (start-itimer 'start-itimer))
-		(unless (or (symbol-value 'itimer-process)
-			    (symbol-value 'itimer-timer))
-		  (funcall itimer-driver-start))
-		;; Check whether there is a bug to which the difference of
-		;; the present time and the time when the itimer driver was
-		;; woken up is subtracted from the initial itimer value.
-		(let* ((inhibit-quit t)
-		       (ctime (current-time))
-		       (itimer-timer-last-wakeup
-			(prog1
-			    ctime
-			  (setcar ctime (1- (car ctime)))))
-		       (itimer-list nil)
-		       (itimer (funcall start-itimer "pgg-run-at-time"
-					'ignore 5)))
-		  (sleep-for 0.1) ;; Accept the timeout interrupt.
-		  (prog1
-		      (> (funcall itimer-value itimer) 0)
-		    (funcall delete-itimer itimer))))
-	    (error nil))
-	  `(let ((time ,time))
-	     (apply #'start-itimer "pgg-run-at-time"
-		    ,function (if time (max time 1e-9) 1e-9)
-		    ,repeat nil t ,args))
-	`(let ((time ,time)
-	       (itimers (list nil)))
-	   (setcar
-	    itimers
-	    (apply #'start-itimer "pgg-run-at-time"
-		   (lambda (itimers repeat function &rest args)
-		     (let ((itimer (car itimers)))
-		       (if repeat
-			   (progn
-			     (set-itimer-function
-			      itimer
-			      (lambda (itimer repeat function &rest args)
-				(set-itimer-restart itimer repeat)
-				(set-itimer-function itimer function)
-				(set-itimer-function-arguments itimer args)
-				(apply function args)))
-			     (set-itimer-function-arguments
-			      itimer
-			      (append (list itimer repeat function) args)))
-			 (set-itimer-function
-			  itimer
-			  (lambda (itimer function &rest args)
-			    (delete-itimer itimer)
-			    (apply function args)))
-			 (set-itimer-function-arguments
-			  itimer
-			  (append (list itimer function) args)))))
-		   1e-9 (if time (max time 1e-9) 1e-9)
-		   nil t itimers ,repeat ,function ,args)))))))
-
-(eval-and-compile
-  (if (featurep 'xemacs)
-      (progn
-	(defun pgg-run-at-time (time repeat function &rest args)
-	  "Emulating function run as `run-at-time'.
-TIME should be nil meaning now, or a number of seconds from now.
-Return an itimer object which can be used in either `delete-itimer'
-or `cancel-timer'."
-	  (pgg-run-at-time-1 time repeat function args))
-	(defun pgg-cancel-timer (timer)
-	  "Emulate cancel-timer for xemacs."
-	  (let ((delete-itimer 'delete-itimer))
-	    (funcall delete-itimer timer))))
-    (defalias 'pgg-run-at-time 'run-at-time)
-    (defalias 'pgg-cancel-timer 'cancel-timer)))
-
 (defun pgg-invoke (func scheme &rest args)
   (progn
     (require (intern (format "pgg-%s" scheme)))
-    (apply 'funcall (intern (format "pgg-%s-%s" scheme func)) args)))
-
-(put 'pgg-save-coding-system 'lisp-indent-function 2)
+    (apply #'funcall (intern (format "pgg-%s-%s" scheme func)) args)))
 
 (defmacro pgg-save-coding-system (start end &rest body)
+  (declare (indent 2) (debug t))
   `(if (called-interactively-p 'interactive)
        (let ((buffer (current-buffer)))
 	 (with-temp-buffer
@@ -209,23 +129,16 @@ regulate cache behavior."
   (let* ((key (if notruncate key (pgg-truncate-key-identifier key)))
          (interned-timer-key (intern-soft key pgg-pending-timers))
          (old-timer (symbol-value interned-timer-key))
-         new-timer)
+         ) ;; new-timer
     (when old-timer
         (cancel-timer old-timer)
         (unintern interned-timer-key pgg-pending-timers))
     (set (intern key pgg-passphrase-cache)
          passphrase)
     (set (intern key pgg-pending-timers)
-         (pgg-run-at-time pgg-passphrase-cache-expiry nil
-                           #'pgg-remove-passphrase-from-cache
-                           key notruncate))))
-
-(if (fboundp 'clear-string)
-    (defalias 'pgg-clear-string 'clear-string)
-  (defun pgg-clear-string (string)
-    (fillarray string ?_)))
-
-(declare-function pgg-clear-string "pgg" (string))
+         (run-at-time pgg-passphrase-cache-expiry nil
+                      #'pgg-remove-passphrase-from-cache
+                      key notruncate))))
 
 (defun pgg-remove-passphrase-from-cache (key &optional notruncate)
   "Omit passphrase associated with KEY in time-limited passphrase cache.
@@ -245,10 +158,10 @@ regulate cache behavior."
          (interned-timer-key (intern-soft key pgg-pending-timers))
          (old-timer (symbol-value interned-timer-key)))
     (when passphrase
-      (pgg-clear-string passphrase)
+      (clear-string passphrase)
       (unintern key pgg-passphrase-cache))
     (when old-timer
-      (pgg-cancel-timer old-timer)
+      (cancel-timer old-timer)
       (unintern interned-timer-key pgg-pending-timers))))
 
 (defmacro pgg-convert-lbt-region (start end lbt)
@@ -265,9 +178,8 @@ regulate cache behavior."
 	(while (re-search-forward "\r$" pgg-conversion-end t)
 	  (replace-match ""))))))
 
-(put 'pgg-as-lbt 'lisp-indent-function 3)
-
 (defmacro pgg-as-lbt (start end lbt &rest body)
+  (declare (indent 3) (debug t))
   `(let ((inhibit-read-only t)
 	 buffer-read-only
 	 buffer-undo-list)
@@ -277,9 +189,8 @@ regulate cache behavior."
      (push nil buffer-undo-list)
      (ignore-errors (undo))))
 
-(put 'pgg-process-when-success 'lisp-indent-function 0)
-
 (defmacro pgg-process-when-success (&rest body)
+  (declare (indent 0) (debug t))
   `(with-current-buffer pgg-output-buffer
      (if (zerop (buffer-size)) nil ,@body t)))
 
@@ -377,7 +288,7 @@ passphrase cache or user."
 If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
   (interactive "r")
-  (let* ((buf (current-buffer))
+  (let* (;; (buf (current-buffer))
 	 (status
 	  (pgg-save-coding-system start end
 	    (pgg-invoke "decrypt-region" (or pgg-scheme pgg-default-scheme)

@@ -890,7 +890,7 @@ Return (REGEXP . PRECEDENCE)."
                                (* (or (seq "[:" (+ (any "a-z")) ":]")
                                       (not (any "]"))))
                                "]")
-                          anything
+                          (not (any "*+?^$[\\"))
                           (seq "\\"
                                (or anything
                                    (seq (any "sScC_") anything)
@@ -1418,6 +1418,12 @@ into a plain rx-expression, collecting names into `rx--pcase-vars'."
      (cons head (mapcar #'rx--pcase-transform rest)))
     (_ rx)))
 
+(defun rx--reduce-right (f l)
+  "Right-reduction on L by F.  L must be non-empty."
+  (if (cdr l)
+      (funcall f (car l) (rx--reduce-right f (cdr l)))
+    (car l)))
+
 ;;;###autoload
 (pcase-defmacro rx (&rest regexps)
   "A pattern that matches strings against `rx' REGEXPS in sexp form.
@@ -1436,13 +1442,28 @@ following constructs:
                    introduced by a previous (let REF ...)
                    construct."
   (let* ((rx--pcase-vars nil)
-         (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps)))))
-    `(and (pred (string-match ,regexp))
-          ,@(let ((i 0))
-              (mapcar (lambda (name)
-                        (setq i (1+ i))
-                        `(app (match-string ,i) ,name))
-                      (reverse rx--pcase-vars))))))
+         (regexp (rx--to-expr (rx--pcase-transform (cons 'seq regexps))))
+         (nvars (length rx--pcase-vars)))
+    `(and (pred stringp)
+          ,(if (zerop nvars)
+               ;; No variables bound: a single predicate suffices.
+               `(pred (string-match ,regexp))
+             ;; Pack the submatches into a dotted list which is then
+             ;; immediately destructured into individual variables again.
+             ;; This is of course slightly inefficient when NVARS > 1.
+             ;; A dotted list is used to reduce the number of conses
+             ;; to create and take apart.
+             `(app (lambda (s)
+                     (and (string-match ,regexp s)
+                          ,(rx--reduce-right
+                            (lambda (a b) `(cons ,a ,b))
+                            (mapcar (lambda (i) `(match-string ,i s))
+                                    (number-sequence 1 nvars)))))
+                   ,(list '\`
+                          (rx--reduce-right
+                           #'cons
+                           (mapcar (lambda (name) (list '\, name))
+                                   (reverse rx--pcase-vars)))))))))
 
 ;; Obsolete internal symbol, used in old versions of the `flycheck' package.
 (define-obsolete-function-alias 'rx-submatch-n 'rx-to-string "27.1")

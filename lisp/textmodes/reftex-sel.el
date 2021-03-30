@@ -1,4 +1,4 @@
-;;; reftex-sel.el --- the selection modes for RefTeX
+;;; reftex-sel.el --- the selection modes for RefTeX  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
 
@@ -34,31 +34,29 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map special-mode-map)
     (substitute-key-definition
-     'next-line 'reftex-select-next                      map global-map)
+     #'next-line #'reftex-select-next                      map global-map)
     (substitute-key-definition
-     'previous-line 'reftex-select-previous              map global-map)
+     #'previous-line #'reftex-select-previous              map global-map)
     (substitute-key-definition
-     'keyboard-quit 'reftex-select-keyboard-quit         map global-map)
+     #'keyboard-quit #'reftex-select-keyboard-quit         map global-map)
     (substitute-key-definition
-     'newline 'reftex-select-accept                      map global-map)
+     #'newline #'reftex-select-accept                      map global-map)
 
-    (define-key map " " 'reftex-select-callback)
-    (define-key map "n" 'reftex-select-next)
-    (define-key map [(down)] 'reftex-select-next)
-    (define-key map "p" 'reftex-select-previous)
-    (define-key map [(up)] 'reftex-select-previous)
-    (define-key map "f" 'reftex-select-toggle-follow)
-    (define-key map "\C-m" 'reftex-select-accept)
-    (define-key map [(return)] 'reftex-select-accept)
-    (define-key map "q" 'reftex-select-quit)
-    (define-key map "." 'reftex-select-show-insertion-point)
-    (define-key map "?" 'reftex-select-help)
+    (define-key map " " #'reftex-select-callback)
+    (define-key map "n" #'reftex-select-next)
+    (define-key map [(down)] #'reftex-select-next)
+    (define-key map "p" #'reftex-select-previous)
+    (define-key map [(up)] #'reftex-select-previous)
+    (define-key map "f" #'reftex-select-toggle-follow)
+    (define-key map "\C-m" #'reftex-select-accept)
+    (define-key map [(return)] #'reftex-select-accept)
+    (define-key map "q" #'reftex-select-quit)
+    (define-key map "." #'reftex-select-show-insertion-point)
+    (define-key map "?" #'reftex-select-help)
 
     ;; The mouse-2 binding
-    (if (featurep 'xemacs)
-        (define-key map [(button2)] 'reftex-select-mouse-accept)
-      (define-key map [(mouse-2)] 'reftex-select-mouse-accept)
-      (define-key map [follow-link] 'mouse-face))
+    (define-key map [(mouse-2)] #'reftex-select-mouse-accept)
+    (define-key map [follow-link] 'mouse-face)
     map))
 
 (define-obsolete-variable-alias
@@ -67,25 +65,26 @@
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
 
-    (cl-loop for key across "aAcgFlrRstx#%" do
-             (define-key map (vector (list key))
-               (list 'lambda '()
-                     "Press `?' during selection to find out about this key."
-                     '(interactive) (list 'throw '(quote myexit) key))))
+    (mapc (lambda (key)
+            (define-key map (vector (list key))
+              (lambda ()
+                "Press `?' during selection to find out about this key."
+                (interactive) (throw 'myexit key))))
+          "aAcgFlrRstx#%")
 
-    (define-key map "b" 'reftex-select-jump-to-previous)
-    (define-key map "z" 'reftex-select-jump)
-    (define-key map "v" 'reftex-select-cycle-ref-style-forward)
-    (define-key map "V" 'reftex-select-cycle-ref-style-backward)
-    (define-key map "m" 'reftex-select-mark)
-    (define-key map "u" 'reftex-select-unmark)
-    (define-key map "," 'reftex-select-mark-comma)
-    (define-key map "-" 'reftex-select-mark-to)
-    (define-key map "+" 'reftex-select-mark-and)
-    (define-key map [(tab)] 'reftex-select-read-label)
-    (define-key map "\C-i" 'reftex-select-read-label)
-    (define-key map "\C-c\C-n" 'reftex-select-next-heading)
-    (define-key map "\C-c\C-p" 'reftex-select-previous-heading)
+    (define-key map "b" #'reftex-select-jump-to-previous)
+    (define-key map "z" #'reftex-select-jump)
+    (define-key map "v" #'reftex-select-cycle-ref-style-forward)
+    (define-key map "V" #'reftex-select-cycle-ref-style-backward)
+    (define-key map "m" #'reftex-select-mark)
+    (define-key map "u" #'reftex-select-unmark)
+    (define-key map "," #'reftex-select-mark-comma)
+    (define-key map "-" #'reftex-select-mark-to)
+    (define-key map "+" #'reftex-select-mark-and)
+    (define-key map [(tab)] #'reftex-select-read-label)
+    (define-key map "\C-i" #'reftex-select-read-label)
+    (define-key map "\C-c\C-n" #'reftex-select-next-heading)
+    (define-key map "\C-c\C-p" #'reftex-select-previous-heading)
 
     map)
   "Keymap used for *RefTeX Select* buffer, when selecting a label.
@@ -104,10 +103,6 @@ Press `?' for a summary of important key bindings.
 During a selection process, these are the local bindings.
 
 \\{reftex-select-label-mode-map}"
-  (when (featurep 'xemacs)
-    ;; XEmacs needs the call to make-local-hook
-    (make-local-hook 'pre-command-hook)
-    (make-local-hook 'post-command-hook))
   (set (make-local-variable 'reftex-select-marked) nil)
   (when (syntax-table-p reftex-latex-syntax-table)
     (set-syntax-table reftex-latex-syntax-table))
@@ -120,16 +115,17 @@ During a selection process, these are the local bindings.
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map reftex-select-shared-map)
 
-    (cl-loop for key across "grRaAeE" do
-             (define-key map (vector (list key))
-               (list 'lambda '()
-                     "Press `?' during selection to find out about this key."
-                     '(interactive) (list 'throw '(quote myexit) key))))
+    (mapc (lambda (key)
+            (define-key map (vector (list key))
+              (lambda ()
+                "Press `?' during selection to find out about this key."
+                (interactive) (throw 'myexit key))))
+          "grRaAeE")
 
-    (define-key map "\C-i" 'reftex-select-read-cite)
-    (define-key map [(tab)] 'reftex-select-read-cite)
-    (define-key map "m" 'reftex-select-mark)
-    (define-key map "u" 'reftex-select-unmark)
+    (define-key map "\C-i" #'reftex-select-read-cite)
+    (define-key map [(tab)] #'reftex-select-read-cite)
+    (define-key map "m" #'reftex-select-mark)
+    (define-key map "u" #'reftex-select-unmark)
 
     map)
   "Keymap used for *RefTeX Select* buffer, when selecting a BibTeX entry.
@@ -148,10 +144,6 @@ Press `?' for a summary of important key bindings.
 During a selection process, these are the local bindings.
 
 \\{reftex-select-label-mode-map}"
-  (when (featurep 'xemacs)
-    ;; XEmacs needs the call to make-local-hook
-    (make-local-hook 'pre-command-hook)
-    (make-local-hook 'post-command-hook))
   (set (make-local-variable 'reftex-select-marked) nil)
   ;; We do not set a local map - reftex-select-item does this.
   )
@@ -432,12 +424,21 @@ During a selection process, these are the local bindings.
 (defvar reftex-last-data nil)
 (defvar reftex-last-line nil)
 (defvar reftex-select-marked nil)
+(defvar reftex-refstyle)
+
+;; The following variables are all bound dynamically in `reftex-select-item'.
+
+(defvar reftex-select-data)
+(defvar reftex-select-prompt)
+(defvar reftex--cb-flag)
+(defvar reftex--last-data)
+(defvar reftex--call-back)
+(defvar reftex--help-string)
 
 ;;;###autoload
-(defun reftex-select-item (reftex-select-prompt help-string keymap
-                                  &optional offset
-                                  call-back cb-flag)
-  ;; Select an item, using REFTEX-SELECT-PROMPT.
+(defun reftex-select-item ( prompt help-string keymap
+                            &optional offset call-back cb-flag)
+  ;; Select an item, using PROMPT.
   ;; The function returns a key indicating an exit status, along with a
   ;; data structure indicating which item was selected.
   ;; HELP-STRING contains help.  KEYMAP is a keymap with the available
@@ -448,7 +449,12 @@ During a selection process, these are the local bindings.
   ;; When CALL-BACK is given, it is a function which is called with the index
   ;; of the element.
   ;; CB-FLAG is the initial value of that flag.
-  (let (ev reftex-select-data last-data (selection-buffer (current-buffer)))
+  (let ((reftex-select-prompt prompt)
+        (reftex--help-string help-string)
+        (reftex--call-back call-back)
+        (reftex--cb-flag cb-flag)
+        ev reftex-select-data reftex--last-data
+        (selection-buffer (current-buffer)))
 
     (setq reftex-select-marked nil)
 
@@ -466,43 +472,29 @@ During a selection process, these are the local bindings.
       (unwind-protect
           (progn
             (use-local-map keymap)
-            (add-hook 'pre-command-hook 'reftex-select-pre-command-hook nil t)
-            (add-hook 'post-command-hook 'reftex-select-post-command-hook nil t)
+            (add-hook 'pre-command-hook #'reftex-select-pre-command-hook nil t)
+            (add-hook 'post-command-hook #'reftex-select-post-command-hook nil t)
             (princ reftex-select-prompt)
             (set-marker reftex-recursive-edit-marker (point))
-            ;; XEmacs does not run post-command-hook here
-            (and (featurep 'xemacs) (run-hooks 'post-command-hook))
             (recursive-edit))
 
         (set-marker reftex-recursive-edit-marker nil)
         (with-current-buffer selection-buffer
           (use-local-map nil)
-          (remove-hook 'pre-command-hook 'reftex-select-pre-command-hook t)
+          (remove-hook 'pre-command-hook #'reftex-select-pre-command-hook t)
           (remove-hook 'post-command-hook
-                       'reftex-select-post-command-hook t))
+                       #'reftex-select-post-command-hook t))
         ;; Kill the mark overlays
-        (mapc (lambda (c) (reftex-delete-overlay (nth 1 c)))
+        (mapc (lambda (c) (delete-overlay (nth 1 c)))
               reftex-select-marked)))))
 
     (set (make-local-variable 'reftex-last-line)
          (+ (count-lines (point-min) (point)) (if (bolp) 1 0)))
-    (set (make-local-variable 'reftex-last-data) last-data)
+    (set (make-local-variable 'reftex-last-data) reftex--last-data)
     (reftex-kill-buffer "*RefTeX Help*")
     (setq reftex-callback-fwd (not reftex-callback-fwd)) ;; ;-)))
     (message "")
-    (list ev reftex-select-data last-data)))
-
-;; The following variables are all bound dynamically in `reftex-select-item'.
-;; The defvars are here only to silence the byte compiler.
-
-(defvar found-list)
-(defvar cb-flag)
-(defvar reftex-select-data)
-(defvar reftex-select-prompt)
-(defvar last-data)
-(defvar call-back)
-(defvar help-string)
-(defvar reftex-refstyle)
+    (list ev reftex-select-data reftex--last-data)))
 
 ;; The selection commands
 
@@ -513,12 +505,12 @@ During a selection process, these are the local bindings.
 (defun reftex-select-post-command-hook ()
   (let (b e)
     (setq reftex-select-data (get-text-property (point) :data))
-    (setq last-data (or reftex-select-data last-data))
+    (setq reftex--last-data (or reftex-select-data reftex--last-data))
 
-    (when (and reftex-select-data cb-flag
+    (when (and reftex-select-data reftex--cb-flag
                (not (equal reftex-last-follow-point (point))))
       (setq reftex-last-follow-point (point))
-      (funcall call-back reftex-select-data reftex-callback-fwd
+      (funcall reftex--call-back reftex-select-data reftex-callback-fwd
                (not reftex-revisit-to-follow)))
     (if reftex-select-data
         (setq b (or (previous-single-property-change
@@ -594,7 +586,7 @@ Useful for large TOC's."
   "Toggle follow mode:  Other window follows with full context."
   (interactive)
   (setq reftex-last-follow-point -1)
-  (setq cb-flag (not cb-flag)))
+  (setq reftex--cb-flag (not reftex--cb-flag)))
 
 (defun reftex-select-cycle-ref-style-internal (&optional reverse)
   "Cycle through macros used for referencing.
@@ -632,7 +624,9 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
 (defun reftex-select-callback ()
   "Show full context in another window."
   (interactive)
-  (if reftex-select-data (funcall call-back reftex-select-data reftex-callback-fwd nil) (ding)))
+  (if reftex-select-data
+      (funcall reftex--call-back reftex-select-data reftex-callback-fwd nil)
+    (ding)))
 (defun reftex-select-accept ()
   "Accept the currently selected item."
   (interactive)
@@ -642,7 +636,7 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
   (interactive "e")
   (mouse-set-point ev)
   (setq reftex-select-data (get-text-property (point) :data))
-  (setq last-data (or reftex-select-data last-data))
+  (setq reftex--last-data (or reftex-select-data reftex--last-data))
   (throw 'myexit 'return))
 (defun reftex-select-read-label ()
   "Use minibuffer to read a label to reference, with completion."
@@ -652,16 +646,19 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
                 nil nil reftex-prefix)))
     (unless (or (equal label "") (equal label reftex-prefix))
       (throw 'myexit label))))
+
+(defvar reftex--found-list)
+
 (defun reftex-select-read-cite ()
   "Use minibuffer to read a citation key with completion."
   (interactive)
-  (let* ((key (completing-read "Citation key: " found-list))
-         (entry (assoc key found-list)))
+  (let* ((key (completing-read "Citation key: " reftex--found-list))
+         (entry (assoc key reftex--found-list)))
     (cond
      ((or (null key) (equal key "")))
      (entry
       (setq reftex-select-data entry)
-      (setq last-data reftex-select-data)
+      (setq reftex--last-data reftex-select-data)
       (throw 'myexit 'return))
      (t (throw 'myexit key)))))
 
@@ -676,14 +673,14 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
     (setq boe (or (previous-single-property-change (1+ (point)) :data)
                   (point-min))
           eoe (or (next-single-property-change (point) :data) (point-max)))
-    (setq ovl (reftex-make-overlay boe eoe))
+    (setq ovl (make-overlay boe eoe))
     (push (list data ovl separator) reftex-select-marked)
-    (reftex-overlay-put ovl 'font-lock-face reftex-select-mark-face)
-    (reftex-overlay-put ovl 'before-string
-                        (if separator
-                            (format "*%c%d* " separator
-                                    (length reftex-select-marked))
-                          (format "*%d*  " (length reftex-select-marked))))
+    (overlay-put ovl 'font-lock-face reftex-select-mark-face)
+    (overlay-put ovl 'before-string
+                 (if separator
+                     (format "*%c%d* " separator
+                             (length reftex-select-marked))
+                   (format "*%d*  " (length reftex-select-marked))))
     (message "Entry has mark no. %d" (length reftex-select-marked))))
 
 (defun reftex-select-mark-comma ()
@@ -709,15 +706,15 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
          sep)
     (unless cell
       (error "No marked entry at point"))
-    (and ovl (reftex-delete-overlay ovl))
+    (and ovl (delete-overlay ovl))
     (setq reftex-select-marked (delq cell reftex-select-marked))
     (setq cnt (1+ (length reftex-select-marked)))
     (mapc (lambda (c)
             (setq sep (nth 2 c))
-            (reftex-overlay-put (nth 1 c) 'before-string
-                                (if sep
-                                    (format "*%c%d* " sep (cl-decf cnt))
-                                  (format "*%d*  " (cl-decf cnt)))))
+            (overlay-put (nth 1 c) 'before-string
+                         (if sep
+                             (format "*%c%d* " sep (cl-decf cnt))
+                           (format "*%d*  " (cl-decf cnt)))))
           reftex-select-marked)
     (message "Entry no longer marked")))
 
@@ -725,7 +722,7 @@ Cycle in reverse order if optional argument REVERSE is non-nil."
   "Display a summary of the special key bindings."
   (interactive)
   (with-output-to-temp-buffer "*RefTeX Help*"
-    (princ help-string))
+    (princ reftex--help-string))
   (reftex-enlarge-to-fit "*RefTeX Help*" t))
 
 (provide 'reftex-sel)

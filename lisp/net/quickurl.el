@@ -1,4 +1,4 @@
-;;; quickurl.el --- insert a URL based on text at point in buffer
+;;; quickurl.el --- insert a URL based on text at point in buffer  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 
@@ -97,23 +97,19 @@
   (locate-user-emacs-file "quickurls" ".quickurls")
   "File that contains the URL list."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type  'file
-  :group 'quickurl)
+  :type  'file)
 
 (defcustom quickurl-format-function #'quickurl-format-url
   "Function to format the URL before insertion into the current buffer."
-  :type  'function
-  :group 'quickurl)
+  :type  'function)
 
 (defcustom quickurl-sort-function #'quickurl-sort-urls
   "Function to sort the URL list."
-  :type  'function
-  :group 'quickurl)
+  :type  'function)
 
 (defcustom quickurl-grab-lookup-function #'current-word
   "Function to grab the thing to lookup."
-  :type  'function
-  :group 'quickurl)
+  :type  'function)
 
 (defun quickurl--assoc-function (key alist)
   "Default function for `quickurl-assoc-function'."
@@ -122,31 +118,26 @@
 (defcustom quickurl-assoc-function #'quickurl--assoc-function
   "Function to use for alist lookup into `quickurl-urls'."
   :version "26.1"                 ; was the obsolete assoc-ignore-case
-  :type  'function
-  :group 'quickurl)
+  :type  'function)
 
 (defcustom quickurl-completion-ignore-case t
   "Should `quickurl-ask' ignore case when doing the input lookup?"
-  :type  'boolean
-  :group 'quickurl)
+  :type  'boolean)
 
 (defcustom quickurl-prefix ";; -*- lisp -*-\n\n"
   "Text to write to `quickurl-url-file' before writing the URL list."
-  :type  'string
-  :group 'quickurl)
+  :type  'string)
 
 (defcustom quickurl-postfix ""
   "Text to write to `quickurl-url-file' after writing the URL list.
 
 See the constant `quickurl-reread-hook-postfix' for some example text that
 could be used here."
-  :type  'string
-  :group 'quickurl)
+  :type  'string)
 
 (defcustom quickurl-list-mode-hook nil
   "Hooks for `quickurl-list-mode'."
-  :type  'hook
-  :group 'quickurl)
+  :type  'hook)
 
 ;; Constants.
 

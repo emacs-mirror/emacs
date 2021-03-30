@@ -332,9 +332,9 @@ column or default printer and then modify its output.")
       next-line-add-newlines transient-mark-mode)
     "Buffer-local variables used by SES."))
 
-(defmacro ses--metaprogramming (exp) (declare (debug t)) (eval exp t))
-(ses--metaprogramming
- `(progn ,@(mapcar (lambda (x) `(defvar ,(or (car-safe x) x))) ses-localvars)))
+(defmacro ses--\,@ (exp) (declare (debug t)) (macroexp-progn (eval exp t)))
+(ses--\,@
+ (mapcar (lambda (x) `(defvar ,(or (car-safe x) x))) ses-localvars))
 
 (defun ses-set-localvars ()
   "Set buffer-local and initialize some SES variables."
@@ -840,31 +840,31 @@ and ARGS and reset `ses-start-time' to the current time."
   "Install VAL as the contents for field FIELD (named by a quoted symbol) of
 cell (ROW,COL).  This is undoable.  The cell's data will be updated through
 `post-command-hook'."
-  `(let ((row ,row)
-         (col ,col)
-         (val ,val))
-     (let* ((cell (ses-get-cell row col))
+  (macroexp-let2 nil row row
+  (macroexp-let2 nil col col
+  (macroexp-let2 nil val val
+    `(let* ((cell (ses-get-cell ,row ,col))
             (change
              ,(let ((field (progn (cl-assert (eq (car field) 'quote))
                                   (cadr field))))
                 (if (eq field 'value)
-                    '(ses-set-with-undo (ses-cell-symbol cell) val)
+                    `(ses-set-with-undo (ses-cell-symbol cell) ,val)
                   ;; (let* ((slots (get 'ses-cell 'cl-struct-slots))
                   ;;        (slot (or (assq field slots)
                   ;;                  (error "Unknown field %S" field)))
                   ;;        (idx (- (length slots)
                   ;;                (length (memq slot slots)))))
-                  ;;   `(ses-aset-with-undo cell ,idx val))
+                  ;;   `(ses-aset-with-undo cell ,idx ,val))
                   (let ((getter (intern-soft (format "ses-cell--%s" field))))
                     `(ses-setter-with-undo
                       (eval-when-compile
                         (cons #',getter
                               (lambda (newval cell)
                                 (setf (,getter cell) newval))))
-                      val cell))))))
+                      ,val cell))))))
        (if change
-           (add-to-list 'ses--deferred-write (cons row col))))
-     nil)) ; Make coverage-tester happy.
+           (add-to-list 'ses--deferred-write (cons ,row ,col)))
+       nil))))) ; Make coverage-tester happy.
 
 (defun ses-cell-set-formula (row col formula)
   "Store a new formula for (ROW . COL) and enqueue the cell for
@@ -2653,9 +2653,7 @@ canceled."
   (barf-if-buffer-read-only)
   (if (eq default t)
       (setq default "")
-    (setq prompt (format "%s (default %S): "
-			 (substring prompt 0 -2)
-			 default)))
+    (setq prompt (format-prompt prompt default)))
   (dolist (key ses-completion-keys)
     (define-key ses-mode-edit-map key 'ses-read-printer-complete-symbol))
   ;; make it globally visible, so that it can be visible from the minibuffer.
@@ -2702,7 +2700,7 @@ right-justified) or a list of one string (will be left-justified)."
                ;;Range contains differing printer functions
                (setq default t)
                (throw 'ses-read-cell-printer t))))))
-     (list (ses-read-printer (format "Cell %S printer: " ses--curcell)
+     (list (ses-read-printer (format "Cell %S printer" ses--curcell)
 			     default))))
   (unless (eq newval t)
     (ses-begin-change)
@@ -2716,7 +2714,7 @@ See `ses-read-cell-printer' for input forms."
   (interactive
    (let ((col (cdr (ses-sym-rowcol ses--curcell))))
      (ses-check-curcell)
-     (list col (ses-read-printer (format "Column %s printer: "
+     (list col (ses-read-printer (format "Column %s printer"
 					 (ses-column-letter col))
 				 (ses-col-printer col)))))
 
@@ -2731,7 +2729,7 @@ See `ses-read-cell-printer' for input forms."
   "Set the default printer function for cells that have no other.
 See `ses-read-cell-printer' for input forms."
   (interactive
-   (list (ses-read-printer "Default printer: " ses--default-printer)))
+   (list (ses-read-printer "Default printer" ses--default-printer)))
   (unless (eq newval t)
     (ses-begin-change)
     (ses-set-parameter 'ses--default-printer newval)
@@ -3773,7 +3771,7 @@ function is redefined."
      (setq name (intern name))
      (let* ((cur-printer (gethash name ses--local-printer-hashmap))
             (default (and cur-printer (ses--locprn-def cur-printer))))
-            (setq def (ses-read-printer (format "Enter definition of printer %S: " name)
+            (setq def (ses-read-printer (format "Enter definition of printer %S" name)
                                         default)))
             (list name def)))
 

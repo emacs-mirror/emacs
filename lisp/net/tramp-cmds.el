@@ -144,10 +144,17 @@ When called interactively, a Tramp connection has to be selected."
 ;;;###tramp-autoload
 (defun tramp-cleanup-this-connection ()
   "Flush all connection related objects of the current buffer's connection."
+  ;; (declare (completion tramp-command-completion-p)))
   (interactive)
   (and (tramp-tramp-file-p default-directory)
        (tramp-cleanup-connection
 	(tramp-dissect-file-name default-directory 'noexpand))))
+
+;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
+;;;###tramp-autoload
+(function-put
+ #'tramp-cleanup-this-connection 'completion-predicate
+ #'tramp-command-completion-p)
 
 ;;;###tramp-autoload
 (defvar tramp-cleanup-all-connections-hook nil
@@ -201,7 +208,6 @@ This includes password cache, file cache, connection cache, buffers."
   (dolist (name (tramp-list-remote-buffers))
     (when (bufferp (get-buffer name)) (kill-buffer name))))
 
-;;;###tramp-autoload
 (defcustom tramp-default-rename-alist nil
   "Default target for renaming remote buffer file names.
 This is an alist of cons cells (SOURCE . TARGET).  The first
@@ -224,7 +230,6 @@ expression which always matches."
   :type '(repeat (cons (choice :tag "Source regexp" regexp sexp)
 		       (choice :tag "Target   name" string (const nil)))))
 
-;;;###tramp-autoload
 (defcustom tramp-confirm-rename-file-names t
   "Whether renaming a buffer file name must be confirmed."
   :group 'tramp
@@ -243,7 +248,7 @@ function returns nil"
 	  (host (or (file-remote-p string 'host) ""))
 	  item result)
       (while (setq item (pop tdra))
-	(when (string-match-p (or (eval (car item)) "") string)
+	(when (string-match-p (or (eval (car item) t) "") string)
 	  (setq tdra nil
 		result
 		(format-spec
@@ -431,6 +436,7 @@ Interactively, TARGET is selected from `tramp-default-rename-alist'
 without confirmation if the prefix argument is non-nil.
 
 For details, see `tramp-rename-files'."
+  ;; (declare (completion tramp-command-completion-p))
   (interactive
    (let ((source default-directory)
 	 target
@@ -461,11 +467,16 @@ For details, see `tramp-rename-files'."
 
   (tramp-rename-files default-directory target))
 
+;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
+;;;###tramp-autoload
+(function-put
+ #'tramp-rename-these-files 'completion-predicate #'tramp-command-completion-p)
+
 ;; Tramp version is useful in a number of situations.
 
 ;;;###tramp-autoload
 (defun tramp-version (arg)
-  "Print version number of tramp.el in minibuffer or current buffer."
+  "Print version number of tramp.el in echo area or current buffer."
   (interactive "P")
   (if arg (insert tramp-version) (message tramp-version)))
 

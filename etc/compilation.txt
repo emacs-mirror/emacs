@@ -692,3 +692,11 @@ COPYING PERMISSIONS:
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+;;; Local Variables:
+;;; outline-regexp: "\\*\\_>"
+;;; outline-minor-mode-cycle: t
+;;; outline-minor-mode-highlight: t
+;;; eval: (outline-minor-mode 1)
+;;; End:

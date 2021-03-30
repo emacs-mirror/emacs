@@ -627,18 +627,10 @@ program is needed for, so that the error message can be more informative."
   (let ((message-log-max nil))
     (apply #'message args)))
 
-(defun org-let (list &rest body)
-  (eval (cons 'let (cons list body))))
-(put 'org-let 'lisp-indent-function 1)
-
-(defun org-let2 (list1 list2 &rest body)
-  (eval (cons 'let (cons list1 (list (cons 'let (cons list2 body)))))))
-(put 'org-let2 'lisp-indent-function 2)
-
 (defun org-eval (form)
   "Eval FORM and return result."
   (condition-case error
-      (eval form)
+      (eval form t)
     (error (format "%%![Error: %s]" error))))
 
 (defvar org-outline-regexp) ; defined in org.el
@@ -877,7 +869,8 @@ delimiting S."
 		    (let ((width (plist-get props :width)))
 		      (and (wholenump width) width)))
 		   (`(image . ,_)
-		    (ceiling (car (image-size spec))))
+                    (and (fboundp 'image-size)
+                         (ceiling (car (image-size spec)))))
 		   ((pred stringp)
 		    ;; Displayed string could contain invisible parts,
 		    ;; but no nested display.
@@ -1241,31 +1234,29 @@ Return 0. if S is not recognized as a valid value."
 When ADDITIONAL-KEYS is not nil, also include SPC and DEL in the
 allowed keys for scrolling, as expected in the export dispatch
 window."
-  (let ((scrlup (if additional-keys '(?\s 22) 22))
-	(scrldn (if additional-keys `(?\d 134217846) 134217846)))
-    (eval
-     `(cl-case ,key
-	;; C-n
-	(14 (if (not (pos-visible-in-window-p (point-max)))
-		(ignore-errors (scroll-up 1))
-	      (message "End of buffer")
-	      (sit-for 1)))
-	;; C-p
-	(16 (if (not (pos-visible-in-window-p (point-min)))
-		(ignore-errors (scroll-down 1))
-	      (message "Beginning of buffer")
-	      (sit-for 1)))
-	;; SPC or
-	(,scrlup
-	 (if (not (pos-visible-in-window-p (point-max)))
-	     (scroll-up nil)
-	   (message "End of buffer")
-	   (sit-for 1)))
-	;; DEL
-	(,scrldn (if (not (pos-visible-in-window-p (point-min)))
-		     (scroll-down nil)
-		   (message "Beginning of buffer")
-		   (sit-for 1)))))))
+  (let ((scrlup (if additional-keys '(?\s ?\C-v) ?\C-v))
+	(scrldn (if additional-keys `(?\d ?\M-v) ?\M-v)))
+    (pcase key
+      (?\C-n (if (not (pos-visible-in-window-p (point-max)))
+	      (ignore-errors (scroll-up 1))
+	    (message "End of buffer")
+	    (sit-for 1)))
+      (?\C-p (if (not (pos-visible-in-window-p (point-min)))
+	      (ignore-errors (scroll-down 1))
+	    (message "Beginning of buffer")
+	    (sit-for 1)))
+      ;; SPC or
+      ((guard (memq key scrlup))
+       (if (not (pos-visible-in-window-p (point-max)))
+	   (scroll-up nil)
+	 (message "End of buffer")
+	 (sit-for 1)))
+      ;; DEL
+      ((guard (memq key scrldn))
+       (if (not (pos-visible-in-window-p (point-min)))
+	   (scroll-down nil)
+	 (message "Beginning of buffer")
+	 (sit-for 1))))))
 
 (provide 'org-macs)
 

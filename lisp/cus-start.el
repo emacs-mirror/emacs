@@ -36,7 +36,7 @@
 (defun minibuffer-prompt-properties--setter (symbol value)
   (set-default symbol value)
   (if (memq 'cursor-intangible value)
-      (add-hook 'minibuffer-setup-hook 'cursor-intangible-mode)
+      (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
     ;; Removing it is a bit trickier since it could have been added by someone
     ;; else as well, so let's just not bother.
     ))
@@ -302,6 +302,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "22.1")
+	     (use-short-answers menu boolean "28.1")
 	     (focus-follows-mouse
               frames (choice
                       (const :tag "Off (nil)" :value nil)

@@ -66,7 +66,6 @@ non-capturing groups can be used for grouping prior to the part of the regexp
 matching the white space).  The pattern is matched case-sensitive regardless of
 the value of `case-fold-search' setting."
   :version "25.1"
-  :group 'tildify
   :type 'regexp
   :safe t)
 
@@ -90,7 +89,6 @@ by the hard space character.
 
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
-  :group 'tildify
   :type '(repeat (cons :tag "Entry for major mode"
                        (choice (const  :tag "Default" t)
                                (symbol :tag "Major mode"))
@@ -110,7 +108,6 @@ might be used for other modes if compatible encoding is used.
 
 If nil, current major mode has no way to represent a hard space."
   :version "25.1"
-  :group 'tildify
   :type '(choice (const :tag "Space character (no hard-space representation)"
                         " ")
                  (const :tag "No-break space (U+00A0)" "\u00A0")
@@ -133,7 +130,6 @@ STRING defines the hard space, which is inserted at places defined by
 
 The form (MAJOR-MODE . SYMBOL) defines alias item for MAJOR-MODE.  For this
 mode, the item for the mode SYMBOL is looked up in the alist instead."
-  :group 'tildify
   :type '(repeat (cons :tag "Entry for major mode"
                        (choice (const  :tag "Default" t)
                                (symbol :tag "Major mode"))
@@ -164,7 +160,6 @@ or better still:
 See `tildify-foreach-ignore-environments' function for other ways to use the
 variable."
   :version "25.1"
-  :group 'tildify
   :type 'function)
 
 (defcustom tildify-ignored-environments-alist ()
@@ -183,7 +178,6 @@ MAJOR-MODE defines major mode, for which the item applies.  It can be either:
 
 See `tildify-foreach-ignore-environments' function for description of BEG-REGEX
 and END-REGEX."
-  :group 'tildify
   :type '(repeat
           (cons :tag "Entry for major mode"
                 (choice (const  :tag "Default" t)
@@ -295,7 +289,7 @@ variable.  For example, for an XML file one might use:
   (setq-local tildify-foreach-region-function
     (apply-partially \\='tildify-foreach-ignore-environments
                      \\='((\"<! *--\" . \"-- *>\") (\"<\" . \">\"))))"
-  (let ((beg-re (concat "\\(?:" (mapconcat 'car pairs "\\)\\|\\(?:") "\\)"))
+  (let ((beg-re (concat "\\(?:" (mapconcat #'car pairs "\\)\\|\\(?:") "\\)"))
         p end-re)
     (save-excursion
       (save-restriction
@@ -416,19 +410,16 @@ If the pattern matches `looking-back', a hard space needs to be inserted instead
 of a space at point.  The regexp is always case sensitive, regardless of the
 current `case-fold-search' setting."
   :version "25.1"
-  :group 'tildify
   :type 'regexp)
 
 (defcustom tildify-space-predicates '(tildify-space-region-predicate)
   "A list of predicate functions for `tildify-space' function."
   :version "25.1"
-  :group 'tildify
   :type '(repeat function))
 
 (defcustom tildify-double-space-undos t
   "Weather `tildify-space' should undo hard space when space is typed again."
   :version "25.1"
-  :group 'tildify
   :type 'boolean)
 
 ;;;###autoload
@@ -508,8 +499,8 @@ variable will be set to the representation."
                            "mode won't have any effect, disabling.")))
         (setq tildify-mode nil))))
   (if tildify-mode
-      (add-hook 'post-self-insert-hook 'tildify-space nil t)
-    (remove-hook 'post-self-insert-hook 'tildify-space t)))
+      (add-hook 'post-self-insert-hook #'tildify-space nil t)
+    (remove-hook 'post-self-insert-hook #'tildify-space t)))
 
 
 ;;; *** Announce ***

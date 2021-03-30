@@ -162,7 +162,7 @@ let-binding."
 (defvar auth-source-creation-prompts nil
   "Default prompts for token values.  Usually let-bound.")
 
-(make-obsolete 'auth-source-hide-passwords nil "Emacs 24.1")
+(make-obsolete 'auth-source-hide-passwords nil "24.1")
 
 (defcustom auth-source-save-behavior 'ask
   "If set, auth-source will respect it for save behavior."
@@ -2307,9 +2307,9 @@ See `auth-source-search' for details on SPEC."
 
 ;; deprecate the old interface
 (make-obsolete 'auth-source-user-or-password
-               'auth-source-search "Emacs 24.1")
+               'auth-source-search "24.1")
 (make-obsolete 'auth-source-forget-user-or-password
-               'auth-source-forget "Emacs 24.1")
+               'auth-source-forget "24.1")
 
 (defun auth-source-user-or-password
   (mode host port &optional username create-missing delete-existing)

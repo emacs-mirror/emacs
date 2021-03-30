@@ -90,7 +90,6 @@
 
 (require 'cl-lib)
 (require 'seq)
-(require 'easymenu)
 
 ;;; Some variables
 
@@ -1184,7 +1183,7 @@ Return full path if FULL-FLAG is non-nil."
      (constraint-flag
       (message "Obsolete :constraint-flag %S, use :constraintp instead"
                (cadr constraint-flag))
-      (eval (cadr constraint-flag)))
+      (eval (cadr constraint-flag) t))
      (t
       t))))
 
@@ -1558,18 +1557,20 @@ Replace <file-name> or <<file-name>> with filename."
 		    (completing-read "Select fileset: " filesets-data nil t))))
     (when (and cmd-name name)
       (let* ((event (if (equal cmd-name "Grep <<selection>>")
-		       'on-grep
+		        'on-grep
 		      'on-cmd))
 	     (files (if (and fileset
-			     (or (equal mode ':ingroup)
-				 (equal mode ':tree)))
+			     (or (equal mode :ingroup)
+				 (equal mode :tree)))
 			(filesets-get-filelist fileset mode event)
-		     (filesets-get-filelist
-		      (filesets-get-fileset-from-name name)
-		      mode event))))
+		      (filesets-get-filelist
+		       (filesets-get-fileset-from-name name)
+		       mode event))))
 	(when files
 	  (let ((fn   (filesets-cmd-get-fn cmd-name))
-		(args (filesets-cmd-get-args cmd-name)))
+		(args
+		 (dlet ((filesets--files files))
+		   (filesets-cmd-get-args cmd-name))))
 	    (if (memq fn '(multi-isearch-files multi-isearch-files-regexp))
 		(apply fn args)
 	      (dolist (this files nil)
@@ -1578,28 +1579,27 @@ Replace <file-name> or <<file-name>> with filename."
 		    (let ((buffer (filesets-find-file this)))
 		      (when buffer
 			(goto-char (point-min))
-			(progn
-			  (cond
-			   ((stringp fn)
-			    (let* ((args
-				    (mapconcat
-				     (lambda (this)
-				       (filesets-run-cmd--repl-fn
-						       this
-						       (lambda (this)
-							 (format "%s" this))))
-				     args
-				     " "))
-				   (cmd (concat fn " " args)))
-			      (filesets-cmd-show-result
-			       cmd (shell-command-to-string cmd))))
-			   ((symbolp fn)
-			    (apply fn
-			           (mapcan (lambda (this)
-				             (filesets-run-cmd--repl-fn
-					      this
-					      'list))
-					   args)))))))))))))))))
+			(cond
+			 ((stringp fn)
+			  (let* ((args
+				  (mapconcat
+				   (lambda (this)
+				     (filesets-run-cmd--repl-fn
+				      this
+				      (lambda (this)
+					(format "%s" this))))
+				   args
+				   " "))
+				 (cmd (concat fn " " args)))
+			    (filesets-cmd-show-result
+			     cmd (shell-command-to-string cmd))))
+			 ((symbolp fn)
+			  (apply fn
+			         (mapcan (lambda (this)
+				           (filesets-run-cmd--repl-fn
+					    this
+					    'list))
+					 args))))))))))))))))
 
 (defun filesets-get-cmd-menu ()
   "Create filesets command menu."
@@ -1625,7 +1625,7 @@ Replace <file-name> or <<file-name>> with filename."
 
 (defun filesets-cmd-isearch-getargs ()
   "Get arguments for `multi-isearch-files' and `multi-isearch-files-regexp'."
-  (and (boundp 'files) (list files)))
+  (and (boundp 'filesets--files) (list filesets--files)))
 
 (defun filesets-cmd-shell-command-getargs ()
   "Get arguments for `filesets-cmd-shell-command'."

@@ -175,7 +175,6 @@ They are checked during start up via
 		    (dbus-list-known-names :session))
       (setq tramp-media-methods (delete method tramp-media-methods)))))
 
-;;;###tramp-autoload
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "Zeroconf domain to be used for discovering services, like host names."
   :group 'tramp
@@ -1172,6 +1171,9 @@ file names."
       ;; There might be a double slash.  Remove this.
       (while (string-match "//" localname)
 	(setq localname (replace-match "/" t t localname)))
+      ;; Do not keep "/..".
+      (when (string-match-p "^/\\.\\.?$" localname)
+	(setq localname "/"))
       ;; No tilde characters in file name, do normal
       ;; `expand-file-name' (this does "/./" and "/../").
       (tramp-make-tramp-file-name

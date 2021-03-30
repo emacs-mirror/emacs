@@ -4757,8 +4757,8 @@ This is for getting out of special buffers like capture.")
 ;; Other stuff we need.
 (require 'time-date)
 (unless (fboundp 'time-subtract) (defalias 'time-subtract 'subtract-time))
-(require 'easymenu)
-(require 'overlay)
+(when (< emacs-major-version 28)  ; preloaded in Emacs 28
+  (require 'easymenu))
 
 (require 'org-entities)
 (require 'org-faces)
@@ -20318,7 +20318,7 @@ unless optional argument NO-INHERITANCE is non-nil."
 
 (defun org-point-at-end-of-empty-headline ()
   "If point is at the end of an empty headline, return t, else nil.
-If the heading only contains a TODO keyword, it is still still considered
+If the heading only contains a TODO keyword, it is still considered
 empty."
   (let ((case-fold-search nil))
     (and (looking-at "[ \t]*$")

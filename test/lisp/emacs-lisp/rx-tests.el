@@ -156,6 +156,8 @@
           ".....")))
 
 (ert-deftest rx-pcase ()
+  (should (equal (pcase "i18n" ((rx (let x (+ digit))) (list 'ok x)))
+                 '(ok "18")))
   (should (equal (pcase "a 1 2 3 1 1 b"
                    ((rx (let u (+ digit)) space
                         (let v (+ digit)) space
@@ -171,7 +173,23 @@
   (should (equal (pcase "abc"
                    ((rx (? (let x alpha)) (?? (let y alnum)) ?c)
                     (list x y)))
-                 '("a" "b"))))
+                 '("a" "b")))
+  (should (equal (pcase 'not-a-string
+                   ((rx nonl) 'wrong)
+                   (_ 'correct))
+                 'correct))
+  (should (equal (pcase "PQR"
+                   ((and (rx (let a nonl)) (rx ?z))
+                    (list 'one a))
+                   ((rx (let b ?Q))
+                    (list 'two b)))
+                 '(two "Q")))
+  (should (equal (pcase-let (((rx ?B (let z nonl)) "ABC"))
+                   (list 'ok z))
+                 '(ok "C")))
+  (should (equal (pcase-let* (((rx ?E (let z nonl)) "DEF"))
+                   (list 'ok z))
+                 '(ok "F"))))
 
 (ert-deftest rx-kleene ()
   "Test greedy and non-greedy repetition operators."
@@ -388,6 +406,8 @@
 (ert-deftest rx-regexp ()
   (should (equal (rx (regexp "abc") (regex "[de]"))
                  "\\(?:abc\\)[de]"))
+  (should (equal (rx "a" (regexp "$"))
+                 "a\\(?:$\\)"))
   (let ((x "a*"))
     (should (equal (rx (regexp x) "b")
                    "\\(?:a*\\)b"))

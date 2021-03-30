@@ -1,4 +1,4 @@
-;;; patcomp.el --- used by patch files to update Emacs releases
+;;; patcomp.el --- used by patch files to update Emacs releases  -*- lexical-binding: t; -*-
 
 ;; This file is part of GNU Emacs.
 

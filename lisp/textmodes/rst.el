@@ -105,10 +105,6 @@
 ;; Common Lisp stuff
 (require 'cl-lib)
 
-;; Correct wrong declaration.
-(def-edebug-spec push
-  (&or [form symbolp] [form gv-place]))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support for `testcover'
 
@@ -620,7 +616,7 @@ After interpretation of ARGS the results are concatenated as for
    (:constructor
     rst-Ado-new-transition
     (&aux
-     (char nil)
+     ;; (char nil)
      (-style 'transition)))
    ;; Construct a simple section header.
    (:constructor

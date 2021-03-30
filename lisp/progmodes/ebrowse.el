@@ -35,7 +35,6 @@
 
 (require 'cl-lib)
 (require 'seq)
-(require 'easymenu)
 (require 'view)
 (require 'ebuff-menu)
 
@@ -3185,8 +3184,8 @@ MEMBER-NAME is the name of the member found."
     (let* ((start (point))
 	   (name (progn (skip-chars-forward "a-zA-Z0-9_")
 			(buffer-substring start (point))))
-	   class)
-      (list class name))))
+	   ) ;; class
+      (list nil name)))) ;; class
 
 
 (defun ebrowse-tags-choose-class (_tree header name initial-class-name)

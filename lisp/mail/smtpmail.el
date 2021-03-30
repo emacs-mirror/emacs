@@ -186,7 +186,7 @@ mean \"try again\"."
 (defvar smtpmail-auth-supported '(cram-md5 plain login)
   "List of supported SMTP AUTH mechanisms.
 The list is in preference order.
-Every element should have a matching `cl-defmethod' for
+Every element should have a matching `cl-defmethod'
 for `smtpmail-try-auth-method'.")
 
 (defvar smtpmail-mail-address nil
@@ -326,7 +326,7 @@ for `smtpmail-try-auth-method'.")
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
-	    (if (eval mail-mailer-swallows-blank-line)
+	    (if (eval mail-mailer-swallows-blank-line t)
 		(newline))
 	    ;; Find and handle any Fcc fields.
 	    (goto-char (point-min))
@@ -627,7 +627,7 @@ USER and PASSWORD should be non-nil."
 	   (= code (car response)))))
 
 (defun smtpmail-response-text (response)
-  (mapconcat 'identity (cdr response) "\n"))
+  (mapconcat #'identity (cdr response) "\n"))
 
 (defun smtpmail-query-smtp-server ()
   "Query for an SMTP server and try to contact it.
@@ -741,7 +741,7 @@ Returns an error if the server cannot be contacted."
 			   "Unable to contact server")))
 
 	  ;; set the send-filter
-	  (set-process-filter process 'smtpmail-process-filter)
+	  (set-process-filter process #'smtpmail-process-filter)
 
 	  (let* ((greeting (plist-get (cdr result) :greeting))
 		 (code (smtpmail-response-code greeting)))

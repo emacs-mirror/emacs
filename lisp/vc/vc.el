@@ -1425,6 +1425,7 @@ first backend that could register the file is used."
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
 
+;;;###autoload
 (defun vc-ignore (file &optional directory remove)
   "Ignore FILE under the VCS of DIRECTORY.
 
@@ -1831,7 +1832,7 @@ Return t if the buffer had changes, nil otherwise."
          (backend (car vc-fileset))
          (first (car files))
          (rev1-default nil)
-         (rev2-default nil))
+         ) ;; (rev2-default nil)
     (cond
      ;; someday we may be able to do revision completion on non-singleton
      ;; filesets, but not yet.
@@ -1855,9 +1856,10 @@ Return t if the buffer had changes, nil otherwise."
                                     rev1-default "): ")
                           "Older revision: "))
            (rev2-prompt (concat "Newer revision (default "
-                                (or rev2-default "current source") "): "))
+                                ;; (or rev2-default
+                                "current source): "))
            (rev1 (vc-read-revision rev1-prompt files backend rev1-default))
-           (rev2 (vc-read-revision rev2-prompt files backend rev2-default)))
+           (rev2 (vc-read-revision rev2-prompt files backend nil))) ;; rev2-default
       (when (string= rev1 "") (setq rev1 nil))
       (when (string= rev2 "") (setq rev2 nil))
       (list files rev1 rev2))))

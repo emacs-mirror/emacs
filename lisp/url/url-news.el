@@ -27,11 +27,6 @@
 (require 'nntp)
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
 
-;; Unused.
-;;; (defgroup url-news nil
-;;;   "News related options."
-;;;   :group 'url)
-
 (defun url-news-open-host (host port user pass)
   (if (fboundp 'nnheader-init-server-buffer)
       (nnheader-init-server-buffer))

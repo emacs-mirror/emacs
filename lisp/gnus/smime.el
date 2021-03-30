@@ -42,7 +42,7 @@
 ;; reflect this.
 ;;
 ;; The home of this file is in Gnus, but also available from
-;; http://josefsson.org/smime.html.
+;; https://josefsson.org/smime.html.
 
 ;;; Quick introduction:
 
@@ -672,7 +672,7 @@ The following commands are available:
 
 (defun smime-exit ()
   "Quit the S/MIME buffer."
-  (interactive)
+  (interactive nil smime-mode)
   (kill-buffer (current-buffer)))
 
 ;; Other functions

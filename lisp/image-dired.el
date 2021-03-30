@@ -67,9 +67,9 @@
 ;;
 ;; * For `image-dired-get-exif-data' and `image-dired-set-exif-data' to work,
 ;; the command line tool `exiftool' is needed.  It can be found here:
-;; http://www.sno.phy.queensu.ca/~phil/exiftool/.  These two functions
-;; are, among other things, used for writing comments to image files
-;; using `image-dired-thumbnail-set-image-description' and to create
+;; https://exiftool.org/.  These two functions are, among other
+;; things, used for writing comments to image files using
+;; `image-dired-thumbnail-set-image-description' and to create
 ;; "unique" file names using `image-dired-get-exif-file-name' (used by
 ;; `image-dired-copy-with-exif-file-name').
 ;;
@@ -2553,7 +2553,6 @@ easy-to-use form."
   (let ((files (dired-get-marked-files)))
     (pop-to-buffer-same-window "*Image-Dired Edit Meta Data*")
     (kill-all-local-variables)
-    (make-local-variable 'widget-example-repeat)
     (let ((inhibit-read-only t))
       (erase-buffer))
     (remove-overlays)

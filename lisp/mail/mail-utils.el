@@ -1,4 +1,4 @@
-;;; mail-utils.el --- utility functions used both by rmail and rnews
+;;; mail-utils.el --- utility functions used both by rmail and rnews  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 2001-2021 Free Software Foundation, Inc.
 
@@ -46,6 +46,7 @@ also the To field, unless this would leave an empty To field."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'mail)
 
+(defvar epa-inhibit)
 ;; Returns t if file FILE is an Rmail file.
 ;;;###autoload
 (defun mail-file-babyl-p (file)
@@ -58,6 +59,7 @@ also the To field, unless this would leave an empty To field."
 (defun mail-string-delete (string start end)
   "Return a string containing all of STRING except the part
 from START (inclusive) to END (exclusive)."
+  ;; FIXME: This is not used anywhere.  Make obsolete?
   (if (null end) (substring string 0 start)
     (concat (substring string 0 start)
 	    (substring string end nil))))
@@ -132,7 +134,7 @@ we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
 				       (aref string (1+ (match-beginning 1))))))
 		      strings)))
 	(setq i (match-end 0)))
-      (apply 'concat (nreverse (cons (substring string i) strings))))))
+      (apply #'concat (nreverse (cons (substring string i) strings))))))
 
 ;; FIXME Gnus for some reason has `quoted-printable-decode-region' in qp.el.
 ;;;###autoload
@@ -192,7 +194,7 @@ Also delete leading/trailing whitespace and replace FOO <BAR> with just BAR.
 Return a modified address list."
   (when address
     (if mail-use-rfc822
-	(mapconcat 'identity (rfc822-addresses address) ", ")
+	(mapconcat #'identity (rfc822-addresses address) ", ")
       (let (pos)
 
         ;; Strip comments.
@@ -280,7 +282,7 @@ comma-separated list, and return the pruned list."
     destinations))
 
 ;; Legacy name
-(define-obsolete-function-alias 'rmail-dont-reply-to 'mail-dont-reply-to "24.1")
+(define-obsolete-function-alias 'rmail-dont-reply-to #'mail-dont-reply-to "24.1")
 
 
 ;;;###autoload
