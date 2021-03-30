@@ -1,4 +1,4 @@
-;;; double.el --- support for keyboard remapping with double clicking
+;;; double.el --- support for keyboard remapping with double clicking  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1994, 1997-1998, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -67,7 +67,6 @@ Each entry is a list with three elements:
 1. The key activating the translation.
 2. The string to be inserted when the key is pressed once.
 3. The string to be inserted when the key is pressed twice."
-  :group 'double
   :type '(repeat (list (character :tag "Key")
 		       (string :tag "Once")
 		       (string :tag "Twice"))))
@@ -76,7 +75,6 @@ Each entry is a list with three elements:
   "Non-nil means that Double mode mapping only works for prefix keys.
 That is, for any key `X' in `double-map', `X' alone will be mapped
 but not `C-u X' or `ESC X' since the X is not the prefix key."
-  :group 'double
   :type 'boolean)
 
 ;;; Read Event
