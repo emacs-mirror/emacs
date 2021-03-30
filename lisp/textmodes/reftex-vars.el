@@ -888,50 +888,46 @@ DOWNCASE    t:   Downcase words before using them."
                          (string :tag ""))
                 (option (boolean :tag "Downcase words          "))))
 
-(if (featurep 'xemacs)
-    ;; XEmacs 21.5 doesn't have explicitly numbered matching groups,
-    ;; so this list mustn't get any more items.
-    (defconst reftex-label-regexps '("\\\\label{\\([^}]*\\)}"))
-  (defcustom reftex-label-regexps
-    `(;; Normal \\label{foo} labels
-      "\\\\label{\\(?1:[^}]*\\)}"
-      ;; keyvals [..., label = {foo}, ...] forms used by ctable,
-      ;; listings, breqn, ...
-      ,(concat
-        ;; Make sure we search only for optional arguments of
-        ;; environments/macros and don't match any other [.  ctable
-        ;; provides a macro called \ctable, beamer/breqn/listings have
-        ;; environments.  Start with a backslash and a group for names
-        "\\\\\\(?:"
-        ;; begin, optional spaces and opening brace
-        "begin[[:space:]]*{"
-        ;; Build a regexp for env names
-        (regexp-opt '("lstlisting" "dmath" "dseries" "dgroup"
-                      "darray" "frame"))
-        ;; closing brace, optional spaces
-        "}[[:space:]]*"
-        ;; Now for macros
-        "\\|"
-        ;; Build a regexp for macro names; currently only \ctable
-        (regexp-opt '("ctable"))
-        ;; Close the group for names
-        "\\)"
-        ;; Match the opening [ and the following chars
-        "\\[[^][]*"
-        ;; Allow nested levels of chars enclosed in braces
-        "\\(?:{[^}{]*"
-        "\\(?:{[^}{]*"
-        "\\(?:{[^}{]*}[^}{]*\\)*"
-        "}[^}{]*\\)*"
-        "}[^][]*\\)*"
-        ;; Match the label key
-        "\\<label[[:space:]]*=[[:space:]]*"
-        ;; Match the label value; braces around the value are
-        ;; optional.
-        "{?\\(?1:[^] ,}\r\n\t%]+\\)"
-        ;; We are done.  Just search until the next closing bracket
-        "[^]]*\\]"))
-    "List of regexps matching \\label definitions.
+(defcustom reftex-label-regexps
+  `(;; Normal \\label{foo} labels
+    "\\\\label{\\(?1:[^}]*\\)}"
+    ;; keyvals [..., label = {foo}, ...] forms used by ctable,
+    ;; listings, breqn, ...
+    ,(concat
+      ;; Make sure we search only for optional arguments of
+      ;; environments/macros and don't match any other [.  ctable
+      ;; provides a macro called \ctable, beamer/breqn/listings have
+      ;; environments.  Start with a backslash and a group for names
+      "\\\\\\(?:"
+      ;; begin, optional spaces and opening brace
+      "begin[[:space:]]*{"
+      ;; Build a regexp for env names
+      (regexp-opt '("lstlisting" "dmath" "dseries" "dgroup"
+                    "darray" "frame"))
+      ;; closing brace, optional spaces
+      "}[[:space:]]*"
+      ;; Now for macros
+      "\\|"
+      ;; Build a regexp for macro names; currently only \ctable
+      (regexp-opt '("ctable"))
+      ;; Close the group for names
+      "\\)"
+      ;; Match the opening [ and the following chars
+      "\\[[^][]*"
+      ;; Allow nested levels of chars enclosed in braces
+      "\\(?:{[^}{]*"
+      "\\(?:{[^}{]*"
+      "\\(?:{[^}{]*}[^}{]*\\)*"
+      "}[^}{]*\\)*"
+      "}[^][]*\\)*"
+      ;; Match the label key
+      "\\<label[[:space:]]*=[[:space:]]*"
+      ;; Match the label value; braces around the value are
+      ;; optional.
+      "{?\\(?1:[^] ,}\r\n\t%]+\\)"
+      ;; We are done.  Just search until the next closing bracket
+      "[^]]*\\]"))
+  "List of regexps matching \\label definitions.
 The default value matches usual \\label{...} definitions and
 keyval style [..., label = {...}, ...] label definitions.  The
 regexp for keyval style explicitly looks for environments
@@ -946,13 +942,13 @@ you have to define it using \\(?1:...\\) when adding new regexps.
 When changed from Lisp, make sure to call
 `reftex-compile-variables' afterwards to make the change
 effective."
-    :version "28.1"
-    :set (lambda (symbol value)
-	   (set symbol value)
-	   (when (fboundp 'reftex-compile-variables)
-	     (reftex-compile-variables)))
-    :group 'reftex-defining-label-environments
-    :type '(repeat (regexp :tag "Regular Expression"))))
+  :version "28.1"
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (when (fboundp 'reftex-compile-variables)
+	   (reftex-compile-variables)))
+  :group 'reftex-defining-label-environments
+  :type '(repeat (regexp :tag "Regular Expression")))
 
 (defcustom reftex-label-ignored-macros-and-environments nil
   "List of macros and environments to be ignored when searching for labels.
