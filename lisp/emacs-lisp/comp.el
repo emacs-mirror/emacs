@@ -62,8 +62,8 @@ This is intended for debugging the compiler itself.
   0 no debugging output.
     This is the recommended value unless you are debugging the compiler itself.
   1 emit debug symbols and dump pseudo C code.
-  2 dump gcc passes and libgccjit log file.
-  3 dump libgccjit reproducers."
+  2 dump gcc passes.
+  3 dump libgccjit log file."
   :type 'integer
   :safe #'natnump
   :version "28.1")
