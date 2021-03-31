@@ -51,9 +51,6 @@
 ;; In thumbs-mode, pressing <return> on an image will bring you in image view
 ;; mode for that image.  C-h m will give you a list of available keybinding.
 
-;;; History:
-;;
-
 ;;; Code:
 
 (require 'dired)

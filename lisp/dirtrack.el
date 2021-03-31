@@ -1,4 +1,4 @@
-;;; dirtrack.el --- Directory Tracking by watching the prompt
+;;; dirtrack.el --- Directory Tracking by watching the prompt  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 
@@ -77,7 +77,7 @@
 ;;   Running under tcsh:
 ;;   (setq-default dirtrack-list '("^%E \\([^ ]+\\)" 1))
 ;;
-;;   It might be worth mentioning in your file that emacs sources start up
+;;   It might be worth mentioning in your file that Emacs sources start up
 ;;   files of the form: ~/.emacs_<SHELL> where <SHELL> is the name of the
 ;;   shell.  So for example, I have the following in ~/.emacs_tcsh:
 ;;
@@ -123,7 +123,6 @@
   "List for directory tracking.
 First item is a regexp that describes where to find the path in a prompt.
 Second is a number, the regexp group to match."
-  :group 'dirtrack
   :type  '(sexp (regexp  :tag "Prompt Expression")
 		(integer :tag "Regexp Group"))
   :version "24.1")
@@ -132,12 +131,10 @@ Second is a number, the regexp group to match."
 
 (defcustom dirtrack-debug nil
   "If non-nil, the function `dirtrack' will report debugging info."
-  :group 'dirtrack
   :type  'boolean)
 
 (defcustom dirtrack-debug-buffer "*Directory Tracking Log*"
   "Buffer in which to write directory tracking debug information."
-  :group 'dirtrack
   :type  'string)
 
 (defcustom dirtrack-directory-function
@@ -145,19 +142,16 @@ Second is a number, the regexp group to match."
       'dirtrack-windows-directory-function
     'file-name-as-directory)
   "Function to apply to the prompt directory for comparison purposes."
-  :group 'dirtrack
   :type  'function)
 
 (defcustom dirtrack-canonicalize-function
   (if (memq system-type '(ms-dos windows-nt cygwin))
       'downcase 'identity)
   "Function to apply to the default directory for comparison purposes."
-  :group 'dirtrack
   :type  'function)
 
 (defcustom dirtrack-directory-change-hook nil
   "Hook that is called when a directory change is made."
-  :group 'dirtrack
   :type 'hook)
 
 

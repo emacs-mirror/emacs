@@ -440,6 +440,7 @@ during splitting, which may be slow."
 
 ;; This is only needed for Windows XP or earlier
 (defun nnimap-map-port (port)
+  (declare-function x-server-version "xfns.c" (&optional terminal))
   (if (and (eq system-type 'windows-nt)
            (<= (car (x-server-version)) 5)
            (equal port "imaps"))

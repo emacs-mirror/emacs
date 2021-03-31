@@ -31,10 +31,6 @@
 ;; See newsticker.el
 
 ;; ======================================================================
-;;; History:
-;;
-
-;; ======================================================================
 ;;; Code:
 (require 'cl-lib)
 (require 'newst-reader)
@@ -1102,6 +1098,7 @@ Arguments are ignored."
 ;; ======================================================================
 (defvar newsticker-treeview-tool-bar-map
   (when (boundp 'tool-bar-map)
+    (defvar tool-bar-map)
     (let ((tool-bar-map (make-sparse-keymap)))
       (tool-bar-add-item "newsticker/prev-feed"
                          'newsticker-treeview-prev-feed

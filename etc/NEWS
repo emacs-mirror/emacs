@@ -2515,6 +2515,12 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 * Lisp Changes in Emacs 28.1
 
 +++
+** 'unlock-buffer' displays warnings instead of signaling.
+Instead of signaling 'file-error' conditions for file system level
+errors, the function now calls 'display-warning' and continues as if
+the error did not occur.
+
++++
 ** New function 'always'.
 This is identical to 'ignore', but returns t instead.
 

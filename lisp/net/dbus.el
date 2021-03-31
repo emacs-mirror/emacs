@@ -2029,8 +2029,9 @@ either a method name, a signal name, or an error name."
            ",")
           rule (or rule ""))
 
-    (unless (ignore-errors (dbus-get-unique-name bus-private))
-      (dbus-init-bus bus 'private))
+    (when (fboundp 'dbus-get-unique-name)
+      (unless (ignore-errors (dbus-get-unique-name bus-private))
+        (dbus-init-bus bus 'private)))
     (dbus-call-method
      bus-private dbus-service-dbus dbus-path-dbus dbus-interface-monitoring
      "BecomeMonitor" `(:array :string ,rule) :uint32 0)

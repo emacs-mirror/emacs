@@ -395,11 +395,11 @@ receives two arguments: the javadoc keyword and its associated
 removed from the result list."
   (delq nil
         (mapcar
-         #'(lambda (k)
-             (let* ((tag   (semantic-java-doc-tag k))
-                    (plist (semantic-lex-keyword-get tag 'javadoc)))
-               (if (or (not property) (plist-get plist property))
-                   (funcall fun k plist))))
+         (lambda (k)
+           (let* ((tag   (semantic-java-doc-tag k))
+                  (plist (semantic-lex-keyword-get tag 'javadoc)))
+             (if (or (not property) (plist-get plist property))
+                 (funcall fun k plist))))
          semantic-java-doc-line-tags)))
 
 
@@ -417,59 +417,59 @@ removed from the result list."
   (or semantic-java-doc-with-name-tags
       (setq semantic-java-doc-with-name-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k _p) k)
+             (lambda (k _p) k)
              'with-name)))
 
   (or semantic-java-doc-with-ref-tags
       (setq semantic-java-doc-with-ref-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k _p) k)
+             (lambda (k _p) k)
              'with-ref)))
 
   (or semantic-java-doc-extra-type-tags
       (setq semantic-java-doc-extra-type-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'type (plist-get p 'usage))
-                     k))
+             (lambda (k p)
+               (if (memq 'type (plist-get p 'usage))
+                   k))
              'opt)))
 
   (or semantic-java-doc-extra-function-tags
       (setq semantic-java-doc-extra-function-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'function (plist-get p 'usage))
-                     k))
+             (lambda (k p)
+               (if (memq 'function (plist-get p 'usage))
+                   k))
              'opt)))
 
   (or semantic-java-doc-extra-variable-tags
       (setq semantic-java-doc-extra-variable-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'variable (plist-get p 'usage))
-                     k))
+             (lambda (k p)
+               (if (memq 'variable (plist-get p 'usage))
+                   k))
              'opt)))
 
   (or semantic-java-doc-type-tags
       (setq semantic-java-doc-type-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'type (plist-get p 'usage))
-                     k)))))
+             (lambda (k p)
+               (if (memq 'type (plist-get p 'usage))
+                   k)))))
 
   (or semantic-java-doc-function-tags
       (setq semantic-java-doc-function-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'function (plist-get p 'usage))
-                     k)))))
+             (lambda (k p)
+               (if (memq 'function (plist-get p 'usage))
+                   k)))))
 
   (or semantic-java-doc-variable-tags
       (setq semantic-java-doc-variable-tags
             (semantic-java-doc-keywords-map
-             #'(lambda (k p)
-                 (if (memq 'variable (plist-get p 'usage))
-                     k)))))
+             (lambda (k p)
+               (if (memq 'variable (plist-get p 'usage))
+                   k)))))
 
   )
 

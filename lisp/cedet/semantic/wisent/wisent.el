@@ -34,9 +34,6 @@
 ;;
 ;; For more details on Wisent itself read the Wisent manual.
 
-;;; History:
-;;
-
 ;;; Code:
 
 (defgroup wisent nil

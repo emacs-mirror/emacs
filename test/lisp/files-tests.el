@@ -192,14 +192,37 @@ form.")
 (ert-deftest files-tests-bug-21454 ()
   "Test for https://debbugs.gnu.org/21454 ."
   (let ((input-result
-         '(("/foo/bar//baz/:/bar/foo/baz//" nil ("/foo/bar/baz/" "/bar/foo/baz/"))
-           ("/foo/bar/:/bar/qux/:/qux/foo" nil ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-           ("//foo/bar/:/bar/qux/:/qux/foo/" nil ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-           ("/foo/bar/:/bar/qux/:/qux/foo/" nil ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-           ("/foo//bar/:/bar/qux/:/qux/foo/" nil ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-           ("/foo//bar/:/bar/qux/:/qux/foo" nil ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
-           ("/foo/bar" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/"))
-           ("//foo/bar/" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/"))))
+         (if (memq system-type '(windows-nt ms-dos))
+             '(("x:/foo/bar//baz/;y:/bar/foo/baz//" nil
+                ("x:/foo/bar/baz/" "y:/bar/foo/baz/"))
+               ("x:/foo/bar/;y:/bar/qux/;z:/qux/foo" nil
+                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+               ("x://foo/bar/;y:/bar/qux/;z:/qux/foo/" nil
+                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+               ("x:/foo/bar/;y:/bar/qux/;z:/qux/foo/" nil
+                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+               ("x:/foo//bar/;y:/bar/qux/;z:/qux/foo/" nil
+                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+               ("x:/foo//bar/;y:/bar/qux/;z:/qux/foo" nil
+                ("x:/foo/bar/" "y:/bar/qux/" "z:/qux/foo/"))
+               ("x:/foo/bar" "$FOO/baz/;z:/qux/foo/"
+                ("x:/foo/bar/baz/" "z:/qux/foo/"))
+               ("x://foo/bar/" "$FOO/baz/;z:/qux/foo/"
+                ("x:/foo/bar/baz/" "z:/qux/foo/")))
+           '(("/foo/bar//baz/:/bar/foo/baz//" nil
+              ("/foo/bar/baz/" "/bar/foo/baz/"))
+             ("/foo/bar/:/bar/qux/:/qux/foo" nil
+              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+             ("//foo/bar/:/bar/qux/:/qux/foo/" nil
+              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+             ("/foo/bar/:/bar/qux/:/qux/foo/" nil
+              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+             ("/foo//bar/:/bar/qux/:/qux/foo/" nil
+              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+             ("/foo//bar/:/bar/qux/:/qux/foo" nil
+              ("/foo/bar/" "/bar/qux/" "/qux/foo/"))
+             ("/foo/bar" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/"))
+             ("//foo/bar/" "$FOO/baz/:/qux/foo/" ("/foo/bar/baz/" "/qux/foo/")))))
         (foo-env (getenv "FOO"))
         (bar-env (getenv "BAR")))
     (unwind-protect
@@ -857,10 +880,15 @@ unquoted file names."
                                  (find-backup-file-name tmpfile)))))))
 
 (ert-deftest files-tests-file-name-non-special-get-file-buffer ()
+  ;; Make sure these buffers don't exist.
   (files-tests--with-temp-non-special (tmpfile nospecial)
-    (should-not (get-file-buffer nospecial)))
+    (let ((fbuf (get-file-buffer nospecial)))
+      (if fbuf (kill-buffer fbuf))
+      (should-not (get-file-buffer nospecial))))
   (files-tests--with-temp-non-special-and-file-name-handler (tmpfile nospecial)
-    (should-not (get-file-buffer nospecial))))
+    (let ((fbuf (get-file-buffer nospecial)))
+      (if fbuf (kill-buffer fbuf))
+      (should-not (get-file-buffer nospecial)))))
 
 (ert-deftest files-tests-file-name-non-special-insert-directory ()
   (files-tests--with-temp-non-special (tmpdir nospecial-dir t)
@@ -1363,8 +1391,11 @@ See <https://debbugs.gnu.org/36401>."
       (should (not (eq major-mode 'text-mode))))))
 
 (ert-deftest files-colon-path ()
-  (should (equal (parse-colon-path "/foo//bar/baz")
-                 '("/foo/bar/baz/"))))
+  (if (memq system-type '(windows-nt ms-dos))
+      (should (equal (parse-colon-path "x:/foo//bar/baz")
+                     '("x:/foo/bar/baz/")))
+    (should (equal (parse-colon-path "/foo//bar/baz")
+                 '("/foo/bar/baz/")))))
 
 (ert-deftest files-test-magic-mode-alist-doctype ()
   "Test that DOCTYPE and variants put files in mhtml-mode."

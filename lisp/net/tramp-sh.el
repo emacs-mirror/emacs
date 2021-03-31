@@ -3654,6 +3654,8 @@ Fall back to normal file name handler if no Tramp handler exists."
   (setq file-name (expand-file-name file-name))
   (with-parsed-tramp-file-name file-name nil
     (let ((default-directory (file-name-directory file-name))
+          (process-environment
+           (cons "GIO_USE_FILE_MONITOR=help" process-environment))
 	  command events filter p sequence)
       (cond
        ;; "inotifywait".
@@ -3718,10 +3720,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 	(unless (process-live-p p)
 	  (tramp-error
 	   p 'file-notify-error "Monitoring not supported for `%s'" file-name))
-	;; Set "gio-file-monitor" property if needed.
-	(when (string-equal (file-name-nondirectory command) "gio")
-	  (tramp-set-connection-property
-	   p "gio-file-monitor" (tramp-get-remote-gio-file-monitor v)))
 	p))))
 
 (defun tramp-sh-gio-monitor-process-filter (proc string)
@@ -3742,41 +3740,64 @@ Fall back to normal file name handler if no Tramp handler exists."
 	          "changes done" "changes-done-hint" string)
           string (tramp-compat-string-replace
 	          "renamed to" "moved" string))
-    ;; https://bugs.launchpad.net/bugs/1742946
-    (when
-	(string-match-p "Monitoring not supported\\|No locations given" string)
-      (delete-process proc))
 
-    ;; Delete empty lines.
-    (setq string (tramp-compat-string-replace "\n\n" "\n" string))
+    (catch 'doesnt-work
+      ;; https://bugs.launchpad.net/bugs/1742946
+      (when
+          (string-match-p "Monitoring not supported\\|No locations given" string)
+        (delete-process proc)
+        (throw 'doesnt-work nil))
 
-    (while (string-match
-	    (eval-when-compile
-	      (concat "^[^:]+:"
-		      "[[:space:]]\\([^:]+\\):"
-		      "[[:space:]]" (regexp-opt tramp-gio-events t)
-		      "\\([[:space:]]\\([^:]+\\)\\)?$"))
-	    string)
+      ;; Determine monitor name.
+      (unless (tramp-connection-property-p proc "gio-file-monitor")
+        (cond
+         ;; We have seen this only on cygwin gio, which uses the
+         ;; GPollFileMonitor.
+         ((string-match
+           "Can't find module 'help' specified in GIO_USE_FILE_MONITOR" string)
+          (tramp-set-connection-property
+           proc "gio-file-monitor" 'GPollFileMonitor))
+         ;; TODO: What happens, if several monitor names are reported?
+         ((string-match "\
+Supported arguments for GIO_USE_FILE_MONITOR environment variable:
+\\s-*\\([[:alpha:]]+\\) - 20" string)
+          (tramp-set-connection-property
+           proc "gio-file-monitor"
+           (intern
+            (format "G%sFileMonitor" (capitalize (match-string 1 string))))))
+         (t (throw 'doesnt-work nil)))
+        (setq string (replace-match "" nil nil string)))
 
-      (let* ((file (match-string 1 string))
-	     (file1 (match-string 4 string))
-	     (object
-	      (list
-	       proc
-	       (list
-		(intern-soft (match-string 2 string)))
-	       ;; File names are returned as absolute paths.  We must
-	       ;; add the remote prefix.
-	       (concat remote-prefix file)
-	       (when file1 (concat remote-prefix file1)))))
-	(setq string (replace-match "" nil nil string))
-	;; Usually, we would add an Emacs event now.  Unfortunately,
-	;; `unread-command-events' does not accept several events at
-	;; once.  Therefore, we apply the handler directly.
-	(when (member (cl-caadr object) events)
-	  (tramp-compat-funcall
-	   (lookup-key special-event-map [file-notify])
-	   `(file-notify ,object file-notify-callback)))))
+      ;; Delete empty lines.
+      (setq string (tramp-compat-string-replace "\n\n" "\n" string))
+
+      (while (string-match
+	      (eval-when-compile
+	        (concat "^[^:]+:"
+		        "[[:space:]]\\([^:]+\\):"
+		        "[[:space:]]" (regexp-opt tramp-gio-events t)
+		        "\\([[:space:]]\\([^:]+\\)\\)?$"))
+	      string)
+
+        (let* ((file (match-string 1 string))
+	       (file1 (match-string 4 string))
+	       (object
+	        (list
+	         proc
+	         (list
+		  (intern-soft (match-string 2 string)))
+	         ;; File names are returned as absolute paths.  We
+	         ;; must add the remote prefix.
+	         (concat remote-prefix file)
+	         (when file1 (concat remote-prefix file1)))))
+	  (setq string (replace-match "" nil nil string))
+	  ;; Usually, we would add an Emacs event now.  Unfortunately,
+	  ;; `unread-command-events' does not accept several events at
+	  ;; once.  Therefore, we apply the handler directly.
+	  (when (member (cl-caadr object) events)
+	    (tramp-compat-funcall
+	     (lookup-key special-event-map [file-notify])
+	     `(file-notify ,object file-notify-callback))))))
 
     ;; Save rest of the string.
     (when (zerop (length string)) (setq string nil))
@@ -5584,31 +5605,6 @@ This command is returned only if `delete-by-moving-to-trash' is non-nil."
   (with-tramp-connection-property vec "gio-monitor"
     (tramp-message vec 5 "Finding a suitable `gio-monitor' command")
     (tramp-find-executable vec "gio" (tramp-get-remote-path vec) t t)))
-
-(defun tramp-get-remote-gio-file-monitor (vec)
-  "Determine remote GFileMonitor."
-  (with-tramp-connection-property vec "gio-file-monitor"
-    (with-current-buffer (tramp-get-connection-buffer vec)
-      (tramp-message vec 5 "Finding the used GFileMonitor")
-      (when-let ((gio (tramp-get-remote-gio-monitor vec)))
-	;; Search for the used FileMonitor.  There is no known way to
-	;; get this information directly from gio, so we check for
-	;; linked libraries of libgio.
-	(when (tramp-send-command-and-check vec (concat "ldd " gio))
-	  (goto-char (point-min))
-	  (when (re-search-forward "\\S-+/\\(libgio\\|cyggio\\)\\S-+")
-	    (when (tramp-send-command-and-check
-		   vec (concat "strings " (match-string 0)))
-	      (goto-char (point-min))
-	      (re-search-forward
-	       (format
-		"^%s$"
-		(regexp-opt
-		 '("GFamFileMonitor" "GFamDirectoryMonitor" "GFenFileMonitor"
-		   "GInotifyFileMonitor" "GKqueueFileMonitor"
-		   "GPollFileMonitor")))
-	       nil 'noerror)
-	      (intern (match-string 0)))))))))
 
 (defun tramp-get-remote-inotifywait (vec)
   "Determine remote `inotifywait' command."

@@ -33,9 +33,6 @@
 ;; To enable this package, add the following to your .emacs:
 ;; (recentf-mode 1)
 
-;;; History:
-;;
-
 ;;; Code:
 (require 'tree-widget)
 (require 'timer)

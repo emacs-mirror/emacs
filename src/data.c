@@ -1663,6 +1663,7 @@ All writes to aliases of SYMBOL will call WATCH-FUNCTION too.  */)
   (Lisp_Object symbol, Lisp_Object watch_function)
 {
   symbol = Findirect_variable (symbol);
+  CHECK_SYMBOL (symbol);
   set_symbol_trapped_write (symbol, SYMBOL_TRAPPED_WRITE);
   map_obarray (Vobarray, harmonize_variable_watchers, symbol);
 

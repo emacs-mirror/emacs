@@ -69,8 +69,6 @@
 ;; your average working time, and will make sure that the various
 ;; display functions return the correct value.
 
-;;; History:
-
 ;;; Code:
 
 (require 'cl-lib)

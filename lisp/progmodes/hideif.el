@@ -1600,7 +1600,7 @@ not be expanded."
              (result (funcall hide-ifdef-evaluator expr))
              (exprstring (replace-regexp-in-string
                           ;; Trim off leading/trailing whites
-                          "^[ \t]*\\([^ \t]+\\)[ \t]*" "\\1"
+                          "^[ \t]*\\|[ \t]*$"  ""
                           (replace-regexp-in-string
                            "\\(//.*\\)" "" ; Trim off end-of-line comments
                            (buffer-substring-no-properties start end)))))

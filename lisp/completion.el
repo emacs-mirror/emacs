@@ -1,7 +1,6 @@
-;;; completion.el --- dynamic word-completion code
+;;; completion.el --- dynamic word-completion code  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2001-2021 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1990-2021 Free Software Foundation, Inc.
 
 ;; Maintainer: emacs-devel@gnu.org
 ;; Keywords: abbrev convenience
@@ -286,62 +285,52 @@
 (defcustom enable-completion t
   "Non-nil means enable recording and saving of completions.
 If nil, no new words are added to the database or saved to the init file."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom save-completions-flag t
   "Non-nil means save most-used completions when exiting Emacs.
 See also `save-completions-retention-time'."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom save-completions-file-name
   (locate-user-emacs-file "completions" ".completions")
   "The filename to save completions to."
-  :type 'file
-  :group 'completion)
+  :type 'file)
 
 (defcustom save-completions-retention-time 336
   "Discard a completion if unused for this many hours.
 \(1 day = 24, 1 week = 168).  If this is 0, non-permanent completions
 will not be saved unless these are used.  Default is two weeks."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completion-on-separator-character nil
   "Non-nil means separator characters mark previous word as used.
 This means the word will be saved as a completion."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom completions-file-versions-kept kept-new-versions
   "Number of versions to keep for the saved completions file."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completion-prompt-speed-threshold 4800
   "Minimum output speed at which to display next potential completion."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completion-cdabbrev-prompt-flag nil
   "If non-nil, the next completion prompt does a cdabbrev search.
 This can be time consuming."
-  :type 'boolean
-  :group 'completion)
+  :type 'boolean)
 
 (defcustom completion-search-distance 15000
   "How far to search in the buffer when looking for completions.
 In number of characters.  If nil, search the whole buffer."
-  :type 'integer
-  :group 'completion)
+  :type 'integer)
 
 (defcustom completions-merging-modes '(lisp c)
   "List of modes {`c' or `lisp'} for automatic completions merging.
 Definitions from visited files which have these modes
 are automatically added to the completion database."
-  :type '(set (const lisp) (const c))
-  :group 'completion)
+  :type '(set (const lisp) (const c)))
 
 ;;(defvar *completion-auto-save-period* 1800
 ;;  "The period in seconds to wait for emacs to be idle before autosaving
@@ -950,9 +939,9 @@ Each symbol is bound to a single completion entry.")
 
 ;; READER Macros
 
-(defalias 'cmpl-prefix-entry-head 'car)
+(defalias 'cmpl-prefix-entry-head #'car)
 
-(defalias 'cmpl-prefix-entry-tail 'cdr)
+(defalias 'cmpl-prefix-entry-tail #'cdr)
 
 ;; WRITER Macros
 
@@ -978,31 +967,27 @@ Each symbol is bound to a single completion entry.")
   (setq cmpl-prefix-obarray (make-vector cmpl-obarray-length 0))
   (setq cmpl-obarray (make-vector cmpl-obarray-length 0)))
 
-(defvar completions-list-return-value)
-
 (defun list-all-completions ()
   "Return a list of all the known completion entries."
-  (let ((completions-list-return-value nil))
-    (mapatoms 'list-all-completions-1 cmpl-prefix-obarray)
-    completions-list-return-value))
+  (let ((return-value nil))
+    (mapatoms (lambda (prefix-symbol)
+                (if (boundp prefix-symbol)
+                    (setq return-value
+	                  (append (cmpl-prefix-entry-head
+		                   (symbol-value prefix-symbol))
+		                  return-value))))
+	      cmpl-prefix-obarray)
+    return-value))
 
-(defun list-all-completions-1 (prefix-symbol)
-  (if (boundp prefix-symbol)
-      (setq completions-list-return-value
-	    (append (cmpl-prefix-entry-head (symbol-value prefix-symbol))
-		    completions-list-return-value))))
-
-(defun list-all-completions-by-hash-bucket ()
+(defun list-all-completions-by-hash-bucket () ;FIXME: Unused!
   "Return list of lists of known completion entries, organized by hash bucket."
-  (let ((completions-list-return-value nil))
-    (mapatoms 'list-all-completions-by-hash-bucket-1 cmpl-prefix-obarray)
-    completions-list-return-value))
-
-(defun list-all-completions-by-hash-bucket-1 (prefix-symbol)
-  (if (boundp prefix-symbol)
-      (setq completions-list-return-value
-	    (cons (cmpl-prefix-entry-head (symbol-value prefix-symbol))
-		  completions-list-return-value))))
+  (let ((return-value nil))
+    (mapatoms (lambda (prefix-symbol)
+                (if (boundp prefix-symbol)
+                    (push (cmpl-prefix-entry-head (symbol-value prefix-symbol))
+		          return-value)))
+	      cmpl-prefix-obarray)
+    return-value))
 
 
 ;;-----------------------------------------------
@@ -2155,7 +2140,6 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (define-minor-mode dynamic-completion-mode
   "Toggle dynamic word-completion on or off."
   :global t
-  :group 'completion
   ;; This is always good, not specific to dynamic-completion-mode.
   (define-key function-key-map [C-return] [?\C-\r])
 
@@ -2239,7 +2223,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (completion-def-wrapper 'delete-backward-char-untabify :backward)
 
 ;; Old name, non-namespace-clean.
-(defalias 'initialize-completions 'completion-initialize)
+(defalias 'initialize-completions #'completion-initialize)
 
 (provide 'completion)
 

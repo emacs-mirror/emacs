@@ -50,9 +50,6 @@
 ;; After you are connected to a server, you can use C-h m or have a look at
 ;; the ERC menu.
 
-;;; History:
-;;
-
 ;;; Code:
 
 (load "erc-loaddefs" nil t)

@@ -869,7 +869,8 @@ delimiting S."
 		    (let ((width (plist-get props :width)))
 		      (and (wholenump width) width)))
 		   (`(image . ,_)
-		    (ceiling (car (image-size spec))))
+                    (and (fboundp 'image-size)
+                         (ceiling (car (image-size spec)))))
 		   ((pred stringp)
 		    ;; Displayed string could contain invisible parts,
 		    ;; but no nested display.

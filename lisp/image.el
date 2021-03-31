@@ -1130,6 +1130,7 @@ default is 20%."
     image))
 
 (defun image--get-imagemagick-and-warn (&optional position)
+  (declare-function image-transforms-p "image.c" (&optional frame))
   (unless (or (fboundp 'imagemagick-types) (image-transforms-p))
     (error "Cannot rescale images on this terminal"))
   (let ((image (image--get-image position)))

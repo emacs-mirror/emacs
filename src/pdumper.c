@@ -165,11 +165,7 @@ ptrdiff_t_to_dump_off (ptrdiff_t value)
 static int
 dump_get_page_size (void)
 {
-#if defined (WINDOWSNT) || defined (CYGWIN)
-  return 64 * 1024;  /* Worst-case allocation granularity.  */
-#else
-  return getpagesize ();
-#endif
+  return 64 * 1024;
 }
 
 #define dump_offsetof(type, member)                             \

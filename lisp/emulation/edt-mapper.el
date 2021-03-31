@@ -101,6 +101,8 @@
 (define-obsolete-variable-alias 'edt-window-system 'window-system "27.1")
 
 (defconst edt-xserver (when (eq window-system 'x)
+                        (declare-function x-server-vendor "xfns.c"
+                                          (&optional terminal))
 			;; The Cygwin window manager has a `/' in its
 			;; name, which breaks the generated file name of
 			;; the custom key map file.  Replace `/' with a

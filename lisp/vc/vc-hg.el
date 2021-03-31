@@ -97,9 +97,6 @@
 ;; without even using `hg' (this way even if you don't have `hg' installed,
 ;; Emacs is able to tell you this file is under mercurial's control).
 
-;;; History:
-;;
-
 ;;; Code:
 
 (require 'cl-lib)
