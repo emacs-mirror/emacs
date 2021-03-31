@@ -3740,6 +3740,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 	          "changes done" "changes-done-hint" string)
           string (tramp-compat-string-replace
 	          "renamed to" "moved" string))
+    (when (getenv "EMACS_EMBA_CI")
+      (message "%s" string))
 
     (catch 'doesnt-work
       ;; https://bugs.launchpad.net/bugs/1742946
@@ -3750,15 +3752,18 @@ Fall back to normal file name handler if no Tramp handler exists."
 
       ;; Determine monitor name.
       (unless (tramp-connection-property-p proc "gio-file-monitor")
-        (when (getenv "EMACS_EMBA_CI")
-          (message "%s" string))
         (cond
-         ;; We have seen this only on cygwin gio, which uses the
-         ;; GPollFileMonitor.
+         ;; We have seen this on cygwin gio and on emba.  Let's make some assumptions.
          ((string-match
            "Can't find module 'help' specified in GIO_USE_FILE_MONITOR" string)
-          (tramp-set-connection-property
-           proc "gio-file-monitor" 'GPollFileMonitor))
+          (cond
+           ((getenv "EMACS_EMBA_CI")
+            (tramp-set-connection-property
+             proc "gio-file-monitor" 'GInotifyMonitor))
+           ((eq system-type 'cygwin)
+            (tramp-set-connection-property
+             proc "gio-file-monitor" 'GPollFileMonitor))
+           (t (tramp-error proc 'file-error "Cannot determine gio monitor"))))
          ;; TODO: What happens, if several monitor names are reported?
          ((string-match "\
 Supported arguments for GIO_USE_FILE_MONITOR environment variable:
