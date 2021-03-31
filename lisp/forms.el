@@ -1,7 +1,6 @@
-;;; forms.el --- Forms mode: edit a file as a form to fill in
+;;; forms.el --- Forms mode: edit a file as a form to fill in  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1991, 1994-1997, 2001-2021 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1991-2021 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -298,7 +297,6 @@
 
 (defcustom forms-mode-hook nil
   "Hook run upon entering Forms mode."
-  :group 'forms
   :type 'hook)
 
 ;;; Mandatory variables - must be set by evaluating the control file.
@@ -316,7 +314,6 @@
 
 (defcustom forms-check-number-of-fields t
   "If non-nil, warn about records with wrong number of fields."
-  :group 'forms
   :type 'boolean)
 
 (defvar forms-field-sep "\t"
@@ -332,13 +329,11 @@ If not nil: use this character to separate multi-line fields (default C-k).")
 (defcustom forms-forms-scroll nil
   "Non-nil means replace scroll-up/down commands in Forms mode.
 The replacement commands performs forms-next/prev-record."
-  :group 'forms
   :type 'boolean)
 
 (defcustom forms-forms-jump nil
   "Non-nil means redefine beginning/end-of-buffer in Forms mode.
 The replacement commands performs forms-first/last-record."
-  :group 'forms
   :type 'boolean)
 
 (defvar forms-read-file-filter nil
@@ -363,23 +358,19 @@ The contents may NOT be modified.")
 
 (defcustom forms-use-text-properties t
   "Non-nil means to use text properties. "
-  :group 'forms
   :type 'boolean)
 
 (defcustom forms-insert-after nil
   "Non-nil means: inserts of new records go after current record.
 Also, initial position is at last record."
-  :group 'forms
   :type 'boolean)
 
 (defcustom forms-ro-face 'default
   "The face (a symbol) that is used to display read-only text on the screen."
-  :group 'forms
   :type 'face)
 
 (defcustom forms-rw-face 'region
   "The face (a symbol) that is used to display read-write text on the screen."
-  :group 'forms
   :type 'face)
 
 ;;; Internal variables.
@@ -767,7 +758,7 @@ Commands:                        Equivalent keys in read-only mode:
 	;; If it is a symbol, eval it first.
 	(if (and (symbolp el)
 		 (boundp el))
-	    (setq el (eval el)))
+	    (setq el (symbol-value el)))
 
 	(cond
 
@@ -1261,35 +1252,35 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;; `forms-mode-map' is always accessible via \C-c prefix.
   (setq forms-mode-map (make-keymap))
-  (define-key forms-mode-map "\t" 'forms-next-field)
-  (define-key forms-mode-map "\C-k" 'forms-delete-record)
-  (define-key forms-mode-map "\C-q" 'forms-toggle-read-only)
-  (define-key forms-mode-map "\C-o" 'forms-insert-record)
-  (define-key forms-mode-map "\C-l" 'forms-jump-record)
-  (define-key forms-mode-map "\C-n" 'forms-next-record)
-  (define-key forms-mode-map "\C-p" 'forms-prev-record)
-  (define-key forms-mode-map "\C-r" 'forms-search-backward)
-  (define-key forms-mode-map "\C-s" 'forms-search-forward)
-  (define-key forms-mode-map "\C-x" 'forms-exit)
-  (define-key forms-mode-map "<" 'forms-first-record)
-  (define-key forms-mode-map ">" 'forms-last-record)
-  (define-key forms-mode-map "\C-?" 'forms-prev-record)
+  (define-key forms-mode-map "\t" #'forms-next-field)
+  (define-key forms-mode-map "\C-k" #'forms-delete-record)
+  (define-key forms-mode-map "\C-q" #'forms-toggle-read-only)
+  (define-key forms-mode-map "\C-o" #'forms-insert-record)
+  (define-key forms-mode-map "\C-l" #'forms-jump-record)
+  (define-key forms-mode-map "\C-n" #'forms-next-record)
+  (define-key forms-mode-map "\C-p" #'forms-prev-record)
+  (define-key forms-mode-map "\C-r" #'forms-search-backward)
+  (define-key forms-mode-map "\C-s" #'forms-search-forward)
+  (define-key forms-mode-map "\C-x" #'forms-exit)
+  (define-key forms-mode-map "<" #'forms-first-record)
+  (define-key forms-mode-map ">" #'forms-last-record)
+  (define-key forms-mode-map "\C-?" #'forms-prev-record)
 
   ;; `forms-mode-ro-map' replaces the local map when in read-only mode.
   (setq forms-mode-ro-map (make-keymap))
   (suppress-keymap forms-mode-ro-map)
   (define-key forms-mode-ro-map "\C-c" forms-mode-map)
-  (define-key forms-mode-ro-map "q" 'forms-toggle-read-only)
-  (define-key forms-mode-ro-map "l" 'forms-jump-record)
-  (define-key forms-mode-ro-map "n" 'forms-next-record)
-  (define-key forms-mode-ro-map "p" 'forms-prev-record)
-  (define-key forms-mode-ro-map "r" 'forms-search-backward)
-  (define-key forms-mode-ro-map "s" 'forms-search-forward)
-  (define-key forms-mode-ro-map "x" 'forms-exit)
-  (define-key forms-mode-ro-map "<" 'forms-first-record)
-  (define-key forms-mode-ro-map ">" 'forms-last-record)
-  (define-key forms-mode-ro-map "?" 'describe-mode)
-  (define-key forms-mode-ro-map " " 'forms-next-record)
+  (define-key forms-mode-ro-map "q" #'forms-toggle-read-only)
+  (define-key forms-mode-ro-map "l" #'forms-jump-record)
+  (define-key forms-mode-ro-map "n" #'forms-next-record)
+  (define-key forms-mode-ro-map "p" #'forms-prev-record)
+  (define-key forms-mode-ro-map "r" #'forms-search-backward)
+  (define-key forms-mode-ro-map "s" #'forms-search-forward)
+  (define-key forms-mode-ro-map "x" #'forms-exit)
+  (define-key forms-mode-ro-map "<" #'forms-first-record)
+  (define-key forms-mode-ro-map ">" #'forms-last-record)
+  (define-key forms-mode-ro-map "?" #'describe-mode)
+  (define-key forms-mode-ro-map " " #'forms-next-record)
   (forms--mode-commands1 forms-mode-ro-map)
   (forms--mode-menu-ro forms-mode-ro-map)
 
@@ -1395,13 +1386,13 @@ Commands:                        Equivalent keys in read-only mode:
 
 (defun forms--mode-commands1 (map)
   "Helper routine to define keys."
-  (define-key map "\t" 'forms-next-field)
-  (define-key map [S-tab] 'forms-prev-field)
-  (define-key map [next] 'forms-next-record)
-  (define-key map [prior] 'forms-prev-record)
-  (define-key map [begin] 'forms-first-record)
-  (define-key map [last] 'forms-last-record)
-  (define-key map [backtab] 'forms-prev-field)
+  (define-key map "\t" #'forms-next-field)
+  (define-key map [S-tab] #'forms-prev-field)
+  (define-key map [next] #'forms-next-record)
+  (define-key map [prior] #'forms-prev-record)
+  (define-key map [begin] #'forms-first-record)
+  (define-key map [last] #'forms-last-record)
+  (define-key map [backtab] #'forms-prev-field)
   )
 
 ;;; Changed functions
@@ -2034,8 +2025,7 @@ Usage: (setq forms-number-of-fields
 
 (defcustom forms--debug nil
   "If non-nil, enable Forms mode debugging."
-  :type 'boolean
-  :group 'forms)
+  :type 'boolean)
 
 (defun forms--debug (&rest args)
   "Internal debugging routine."
@@ -2046,7 +2036,7 @@ Usage: (setq forms-number-of-fields
 		(if (stringp el) el
 		  (concat (prin1-to-string el) " = "
 		          (if (boundp el)
-		              (prin1-to-string (eval el))
+		              (prin1-to-string (symbol-value el))
 		            "<unbound>")
 		          "\n"
 		          (if (fboundp el)
