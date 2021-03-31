@@ -3666,7 +3666,9 @@ Prepare every function for final compilation and drive the C back-end."
                    (call-process (expand-file-name invocation-name
                                                    invocation-directory)
 				 nil t t "--batch" "-l" temp-file))
-                  output
+                  (progn
+                    (delete-file temp-file)
+                    output)
 		(signal 'native-compiler-error (buffer-string)))
             (comp-log-to-buffer (buffer-string))))))))
 
