@@ -3759,7 +3759,7 @@ Fall back to normal file name handler if no Tramp handler exists."
           (cond
            ((getenv "EMACS_EMBA_CI")
             (tramp-set-connection-property
-             proc "gio-file-monitor" 'GInotifyMonitor))
+             proc "gio-file-monitor" 'GInotifyFileMonitor))
            ((eq system-type 'cygwin)
             (tramp-set-connection-property
              proc "gio-file-monitor" 'GPollFileMonitor))
