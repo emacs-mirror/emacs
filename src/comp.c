@@ -4493,7 +4493,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   add_driver_options ();
 
-  if (comp.debug >= 1)
+  if (comp.debug > 1)
       gcc_jit_context_dump_to_file (comp.ctxt,
 				    format_string ("%s.c", SSDATA (ebase_name)),
 				    1);
