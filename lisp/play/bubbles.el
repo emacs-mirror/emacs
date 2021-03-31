@@ -72,9 +72,6 @@
 
 ;;; Code:
 
-(defconst bubbles-version "0.5" "Version number of bubbles.el.")
-(make-obsolete-variable 'bubbles-version nil "28.1")
-
 (require 'gamegrid)
 
 ;; User options
@@ -1404,6 +1401,11 @@ Return t if new char is non-empty."
                 (put-text-property (point) (1+ (point)) 'display nil))
             (forward-char 1)))
         (put-text-property (point-min) (point-max) 'pointer 'arrow)))))
+
+;; Obsolete.
+
+(defconst bubbles-version "0.5" "Version number of bubbles.el.")
+(make-obsolete-variable 'bubbles-version 'emacs-version "28.1")
 
 (provide 'bubbles)
 

@@ -32,7 +32,7 @@
 
 (defconst mule-version "6.0 (HANACHIRUSATO)" "\
 Version number and name of this version of MULE (multilingual environment).")
-(make-obsolete-variable 'mule-version nil "28.1")
+(make-obsolete-variable 'mule-version 'emacs-version "28.1")
 
 (defconst mule-version-date "2003.9.1" "\
 Distribution date of this version of MULE (multilingual environment).")

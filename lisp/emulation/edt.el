@@ -178,9 +178,6 @@
 (defvar edt-user-global-map)
 (defvar rect-start-point)
 
-(defconst edt-version "4.0" "EDT Emulation version number.")
-(make-obsolete-variable 'edt-version nil "28.1")
-
 ;;;
 ;;;  User Configurable Variables
 ;;;
@@ -2532,6 +2529,9 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
       (edt-set-term-width-132))
   (set-frame-width nil 132)
   (message "Terminal width 132"))
+
+(defconst edt-version "4.0" "EDT Emulation version number.")
+(make-obsolete-variable 'edt-version 'emacs-version "28.1")
 
 (provide 'edt)
 

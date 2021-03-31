@@ -178,10 +178,6 @@
 
 ;;; Code:
 
-(defconst remember-version "2.0"
-  "This version of remember.")
-(make-obsolete-variable 'remember-version nil "28.1")
-
 (defgroup remember nil
   "A mode to remember information."
   :group 'data)
@@ -670,6 +666,11 @@ is non-nil, bury it and return nil; otherwise return t."
         (bury-buffer)
         nil)
     t))
+
+;; Obsolete
+
+(defconst remember-version "2.0" "This version of remember.")
+(make-obsolete-variable 'remember-version 'emacs-version "28.1")
 
 (provide 'remember)
 

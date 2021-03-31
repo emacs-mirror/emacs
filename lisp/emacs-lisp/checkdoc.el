@@ -160,9 +160,6 @@
 ;;     not specifically docstring related.  Would this even be useful?
 
 ;;; Code:
-(defvar checkdoc-version "0.6.2"
-  "Release version of checkdoc you are currently running.")
-(make-obsolete-variable 'checkdoc-version nil "28.1")
 
 (require 'cl-lib)
 (require 'help-mode) ;; for help-xref-info-regexp
@@ -2708,6 +2705,12 @@ function called to create the messages."
         (message "No Package Keyword Errors.")))))
 
 (custom-add-option 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
+
+;; Obsolete
+
+(defvar checkdoc-version "0.6.2"
+  "Release version of checkdoc you are currently running.")
+(make-obsolete-variable 'checkdoc-version 'emacs-version "28.1")
 
 (provide 'checkdoc)
 
