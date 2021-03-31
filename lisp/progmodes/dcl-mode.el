@@ -1,4 +1,4 @@
-;;; dcl-mode.el --- major mode for editing DCL command files
+;;; dcl-mode.el --- major mode for editing DCL command files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -270,22 +270,22 @@ See `imenu-generic-expression' for details."
 
 (defvar dcl-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\e\n"	'dcl-split-line)
-    (define-key map "\e\t" 	'tempo-complete-tag)
-    (define-key map "\e^"	'dcl-delete-indentation)
-    (define-key map "\em"	'dcl-back-to-indentation)
-    (define-key map "\ee"        'dcl-forward-command)
-    (define-key map "\ea"        'dcl-backward-command)
-    (define-key map "\e\C-q" 	'dcl-indent-command)
-    (define-key map "\t"         'dcl-tab)
-    (define-key map ":"          'dcl-electric-character)
-    (define-key map "F"          'dcl-electric-character)
-    (define-key map "f"          'dcl-electric-character)
-    (define-key map "E"          'dcl-electric-character)
-    (define-key map "e"          'dcl-electric-character)
-    (define-key map "\C-c\C-o" 	'dcl-set-option)
-    (define-key map "\C-c\C-f" 	'tempo-forward-mark)
-    (define-key map "\C-c\C-b" 	'tempo-backward-mark)
+    (define-key map "\e\n"	#'dcl-split-line)
+    (define-key map "\e\t" 	#'tempo-complete-tag)
+    (define-key map "\e^"	#'dcl-delete-indentation)
+    (define-key map "\em"	#'dcl-back-to-indentation)
+    (define-key map "\ee"        #'dcl-forward-command)
+    (define-key map "\ea"        #'dcl-backward-command)
+    (define-key map "\e\C-q" 	#'dcl-indent-command)
+    (define-key map "\t"         #'dcl-tab)
+    (define-key map ":"          #'dcl-electric-character)
+    (define-key map "F"          #'dcl-electric-character)
+    (define-key map "f"          #'dcl-electric-character)
+    (define-key map "E"          #'dcl-electric-character)
+    (define-key map "e"          #'dcl-electric-character)
+    (define-key map "\C-c\C-o" 	#'dcl-set-option)
+    (define-key map "\C-c\C-f" 	#'tempo-forward-mark)
+    (define-key map "\C-c\C-b" 	#'tempo-backward-mark)
     map)
   "Keymap used in DCL-mode buffers.")
 
@@ -533,7 +533,7 @@ $
 
 There is some minimal font-lock support (see vars
 `dcl-font-lock-defaults' and `dcl-font-lock-keywords')."
-  (setq-local indent-line-function 'dcl-indent-line)
+  (setq-local indent-line-function #'dcl-indent-line)
   (setq-local comment-start "!")
   (setq-local comment-end "")
   (setq-local comment-multi-line nil)
@@ -547,7 +547,7 @@ There is some minimal font-lock support (see vars
 
   (setq imenu-generic-expression dcl-imenu-generic-expression)
   (setq imenu-case-fold-search t)
-  (setq imenu-create-index-function 'dcl-imenu-create-index-function)
+  (setq imenu-create-index-function #'dcl-imenu-create-index-function)
 
   (make-local-variable 'dcl-comment-line-regexp)
   (make-local-variable 'dcl-block-begin-regexp)
@@ -1391,7 +1391,7 @@ regexps in `dcl-electric-reindent-regexps'."
     (let ((case-fold-search t))
       ;; There must be a better way than (memq t ...).
       ;; (apply 'or ...) didn't work
-      (if (memq t (mapcar 'dcl-was-looking-at dcl-electric-reindent-regexps))
+      (if (memq t (mapcar #'dcl-was-looking-at dcl-electric-reindent-regexps))
           (dcl-indent-line)))))
 
 
@@ -1567,7 +1567,7 @@ Must return a string."
 		 ((fboundp action)
 		  (funcall action option-assoc))
 		 ((eq action 'toggle)
-		  (not (eval option)))
+		  (not (symbol-value option)))
 		 ((eq action 'curval)
 		  (cond ((or (stringp (symbol-value option))
 			     (numberp (symbol-value option)))
@@ -1735,7 +1735,7 @@ Set or update the value of VAR in the current buffers
 		    (setq continue nil)
 		    (beginning-of-line)
 		    (insert (concat prefix-string (symbol-name var) ": "
-				    (prin1-to-string (eval var)) " "
+				    (prin1-to-string (symbol-value var)) " "
 				    suffix-string "\n")))
 		;; Is it the variable we are looking for?
 		(if (eq var found-var)
@@ -1748,7 +1748,7 @@ Set or update the value of VAR in the current buffers
 		      (delete-region (point) (progn (read (current-buffer))
 						    (point)))
 		      (insert " ")
-		      (prin1 (eval var) (current-buffer))
+		      (prin1 (symbol-value var) (current-buffer))
 		      (skip-chars-backward "\n")
 		      (skip-chars-forward " \t")
 		      (or (if suffix (looking-at suffix) (eolp))
@@ -1781,7 +1781,7 @@ Set or update the value of VAR in the current buffers
 		  (concat " " comment-end))))))
 	(insert (concat def-prefix "Local variables:" def-suffix "\n"))
 	(insert (concat def-prefix (symbol-name var) ": "
-			(prin1-to-string (eval var)) def-suffix "\n"))
+			(prin1-to-string (symbol-value var)) def-suffix "\n"))
 	(insert (concat def-prefix "end:" def-suffix)))
       )))
 
@@ -1815,7 +1815,8 @@ still be present in the `Local Variables:' section with its old value."
 		   (option-name (symbol-name option)))
 	      (if (and (string-equal "dcl-"
 				     (substring option-name 0 4))
-		       (not (equal (default-value option) (eval option))))
+		       (not (equal (default-value option)
+		                   (symbol-value option))))
 		  (dcl-save-local-variable option "$! "))))
 	  dcl-option-alist))
 
