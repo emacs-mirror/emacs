@@ -3750,6 +3750,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 
       ;; Determine monitor name.
       (unless (tramp-connection-property-p proc "gio-file-monitor")
+        (when (getenv "EMACS_EMBA_CI")
+          (message "%s" string))
         (cond
          ;; We have seen this only on cygwin gio, which uses the
          ;; GPollFileMonitor.
