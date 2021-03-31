@@ -1,4 +1,4 @@
-;;; avoid.el --- make mouse pointer stay out of the way of editing
+;;; avoid.el --- make mouse pointer stay out of the way of editing  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1993-1994, 2000-2021 Free Software Foundation, Inc.
 
@@ -80,7 +80,6 @@ use either \\[customize] or \\[mouse-avoidance-mode]."
   :initialize 'custom-initialize-default
   :type '(choice (const :tag "none" nil) (const banish) (const jump)
 		 (const animate) (const exile) (const proteus))
-  :group 'avoid
   :require 'avoid
   :version "20.3")
 
@@ -89,25 +88,21 @@ use either \\[customize] or \\[mouse-avoidance-mode]."
   "Average distance that mouse will be moved when approached by cursor.
 Only applies in Mouse Avoidance mode `jump' and its derivatives.
 For best results make this larger than `mouse-avoidance-threshold'."
-  :type 'integer
-  :group 'avoid)
+  :type 'integer)
 
 (defcustom mouse-avoidance-nudge-var 10
   "Variability of `mouse-avoidance-nudge-dist' (which see)."
-  :type 'integer
-  :group 'avoid)
+  :type 'integer)
 
 (defcustom mouse-avoidance-animation-delay .01
   "Delay between animation steps, in seconds."
-  :type 'number
-  :group 'avoid)
+  :type 'number)
 
 (defcustom mouse-avoidance-threshold 5
   "Mouse-pointer's flight distance.
 If the cursor gets closer than this, the mouse pointer will move away.
 Only applies in Mouse Avoidance modes `animate' and `jump'."
-  :type 'integer
-  :group 'avoid)
+  :type 'integer)
 
 (defcustom mouse-avoidance-banish-position '((frame-or-window . frame)
                                              (side . right)
@@ -380,7 +375,7 @@ redefine this function to suit your own tastes."
 	(mouse-avoidance-nudge-mouse)
 	(if (not (eq (selected-frame) (car old-pos)))
 	    ;; This should never happen.
-	    (apply 'set-mouse-position old-pos)))))
+            (apply #'set-mouse-position old-pos)))))
 
 ;;;###autoload
 (defun mouse-avoidance-mode (&optional mode)
