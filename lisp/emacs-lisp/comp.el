@@ -56,14 +56,14 @@
   :safe #'integerp
   :version "28.1")
 
-(defcustom comp-debug 0
+(defcustom comp-debug (if (eq 'windows-nt system-type) 1 0)
   "Debug level for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
-  0 no debugging output.
-    This is the recommended value unless you are debugging the compiler itself.
-  1 emit debug symbols and dump pseudo C code.
-  2 dump gcc passes.
-  3 dump libgccjit log file."
+  0 no debug output.
+  1 emit debug symbols.
+  2 emit debug symbols and dump pseudo C code.
+  3 emit debug symbols and dump: pseudo C code, GCC intermediate
+  passes and libgccjit log file."
   :type 'integer
   :safe #'natnump
   :version "28.1")
