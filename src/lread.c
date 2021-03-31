@@ -1656,6 +1656,12 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
   struct stat eln_st;
 
   if (no_native
+      || load_no_native)
+    Fputhash (*filename, Qt, V_comp_no_native_file_h);
+  else
+    Fremhash (*filename, V_comp_no_native_file_h);
+
+  if (no_native
       || load_no_native
       || !suffix_p (*filename, ".elc"))
     return;

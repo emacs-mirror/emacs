@@ -2244,7 +2244,8 @@ If you set `term-file-prefix' to nil, this function does nothing."
 			   (let ((file (locate-library (concat term-file-prefix type))))
 			     (and file
 				  (or (assoc file load-history)
-				      (load file t t)))))
+				      (load (file-name-sans-extension file)
+                                            t t)))))
 		       type)
 	;; Next, try to find a matching initialization function, and call it.
 	(tty-find-type #'(lambda (type)
