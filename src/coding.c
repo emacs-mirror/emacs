@@ -7799,7 +7799,13 @@ encode_coding (struct coding_system *coding)
     coding_set_source (coding);
     consume_chars (coding, translation_table, max_lookup);
     coding_set_destination (coding);
+    /* The CODING_MODE_LAST_BLOCK flag should be set only for the last
+       iteration of the encoding.  */
+    unsigned saved_mode = coding->mode;
+    if (coding->consumed_char < coding->src_chars)
+      coding->mode &= ~CODING_MODE_LAST_BLOCK;
     (*(coding->encoder)) (coding);
+    coding->mode = saved_mode;
   } while (coding->consumed_char < coding->src_chars);
 
   if (BUFFERP (coding->dst_object) && coding->produced_char > 0)

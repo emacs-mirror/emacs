@@ -1,4 +1,4 @@
-;;; lpr.el --- print Emacs buffer on line printer
+;;; lpr.el --- print Emacs buffer on line printer  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2021 Free Software
 ;; Foundation, Inc.
@@ -39,11 +39,9 @@
   (memq system-type '(usg-unix-v hpux))
   "Non-nil if running on a system type that uses the \"lp\" command.")
 
-
 (defgroup lpr nil
   "Print Emacs buffer on line printer."
   :group 'text)
-
 
 ;;;###autoload
 (defcustom printer-name
@@ -65,8 +63,7 @@ file.  If you want to discard the printed output, set this to \"NUL\"."
 		 :tag "Printer Name"
 		 (const :tag "Default" nil)
 		 ;; could use string but then we lose completion for files.
-		 (file :tag "Name"))
-  :group 'lpr)
+                 (file :tag "Name")))
 
 ;;;###autoload
 (defcustom lpr-switches nil
@@ -74,16 +71,14 @@ file.  If you want to discard the printed output, set this to \"NUL\"."
 It is recommended to set `printer-name' instead of including an explicit
 switch on this list.
 See `lpr-command'."
-  :type '(repeat (string :tag "Argument"))
-  :group 'lpr)
+  :type '(repeat (string :tag "Argument")))
 
 (defcustom lpr-add-switches (memq system-type '(berkeley-unix gnu/linux))
   "Non-nil means construct `-T' and `-J' options for the printer program.
 These are made assuming that the program is `lpr';
 if you are using some other incompatible printer program,
 this variable should be nil."
-  :type 'boolean
-  :group 'lpr)
+  :type 'boolean)
 
 (defcustom lpr-printer-switch
   (if lpr-lp-system
@@ -94,8 +89,7 @@ This switch is used in conjunction with `printer-name'."
   :type '(choice :menu-tag "Printer Name Switch"
 		 :tag "Printer Name Switch"
 		 (const :tag "None" nil)
-		 (string :tag "Printer Switch"))
-  :group 'lpr)
+                 (string :tag "Printer Switch")))
 
 ;;;###autoload
 (defcustom lpr-command
@@ -116,8 +110,7 @@ Windows NT and Novell Netware respectively) are handled specially, using
 `printer-name' as the destination for output; any other program is
 treated like `lpr' except that an explicit filename is given as the last
 argument."
-  :type 'string
-  :group 'lpr)
+  :type 'string)
 
 ;; Default is nil, because that enables us to use pr -f
 ;; which is more reliable than pr with no args, which is what lpr -p does.
@@ -127,22 +120,21 @@ If nil, we run `lpr-page-header-program' to make page headings
 and print the result."
   :type '(choice (const nil)
 		 (string :tag "Single argument")
-		 (repeat :tag "Multiple arguments" (string :tag "Argument")))
-  :group 'lpr)
+                 (repeat :tag "Multiple arguments" (string :tag "Argument"))))
 
 (defcustom print-region-function
   (if (memq system-type '(ms-dos windows-nt))
-      #'w32-direct-print-region-function
+      (progn
+        (declare-function w32-direct-print-region-function "w32-fns")
+        #'w32-direct-print-region-function)
     #'call-process-region)
   "Function to call to print the region on a printer.
 See definition of `print-region-1' for calling conventions."
-  :type 'function
-  :group 'lpr)
+  :type 'function)
 
 (defcustom lpr-page-header-program "pr"
   "Name of program for adding page headers to a file."
-  :type 'string
-  :group 'lpr)
+  :type 'string)
 
 ;; Berkeley systems support -F, and GNU pr supports both -f and -F,
 ;; So it looks like -F is a better default.
@@ -151,8 +143,7 @@ See definition of `print-region-1' for calling conventions."
 If `%s' appears in any of the strings, it is substituted by the page title.
 Note that for correct quoting, `%s' should normally be a separate element.
 The variable `lpr-page-header-program' specifies the program to use."
-  :type '(repeat string)
-  :group 'lpr)
+  :type '(repeat string))
 
 ;;;###autoload
 (defun lpr-buffer ()
@@ -248,7 +239,7 @@ for further customization of the printer command."
 	      nil
 	    ;; Run a separate program to get page headers.
 	    (let ((new-coords (print-region-new-buffer start end)))
-	      (apply 'call-process-region (car new-coords) (cdr new-coords)
+              (apply #'call-process-region (car new-coords) (cdr new-coords)
 		     lpr-page-header-program t t nil
 		     (mapcar (lambda (e) (format e name))
 			     lpr-page-header-switches)))
@@ -270,7 +261,7 @@ for further customization of the printer command."
       (let ((retval
              (let ((tempbuf (current-buffer)))
                (with-current-buffer buf
-                 (apply (or print-region-function 'call-process-region)
+                 (apply (or print-region-function #'call-process-region)
                         start end lpr-command
                         nil tempbuf nil
                         (nconc (and name lpr-add-switches

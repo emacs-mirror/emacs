@@ -2783,7 +2783,7 @@ xic_set_preeditarea (struct window *w, int x, int y)
   XVaNestedList attr;
   XPoint spot;
 
-  spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w);
+  spot.x = WINDOW_TO_FRAME_PIXEL_X (w, x) + WINDOW_LEFT_FRINGE_WIDTH (w) + WINDOW_LEFT_MARGIN_WIDTH(w);
   spot.y = WINDOW_TO_FRAME_PIXEL_Y (w, y) + FONT_BASE (FRAME_FONT (f));
   attr = XVaCreateNestedList (0, XNSpotLocation, &spot, NULL);
   XSetICValues (FRAME_XIC (f), XNPreeditAttributes, attr, NULL);

@@ -782,9 +782,12 @@ pattern to search for."
       (user-error "No matches for: %s" regexp))
     xrefs))
 
+(defvar project-regexp-history-variable 'grep-regexp-history)
+
 (defun project--read-regexp ()
   (let ((sym (thing-at-point 'symbol t)))
-    (read-regexp "Find regexp" (and sym (regexp-quote sym)))))
+    (read-regexp "Find regexp" (and sym (regexp-quote sym))
+                 project-regexp-history-variable)))
 
 ;;;###autoload
 (defun project-find-file ()

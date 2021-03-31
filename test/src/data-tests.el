@@ -358,11 +358,34 @@ comparing the subr with a much slower lisp implementation."
             (should (equal (symbol-value var) 42))
             (should (equal (default-value var) (symbol-value var)))
             (set var 123)
+            (should (not (local-variable-p var)))
             (should (equal (symbol-value var) 123))
             (should (equal (default-value var) (symbol-value var)))) ;bug#44733
           (should (equal (symbol-value var) def))
           (should (equal (default-value var) (symbol-value var))))
         (should (equal (default-value var) def))))))
+
+(ert-deftest data-tests--let-buffer-local-no-unwind-other-buffers ()
+  "Test that a let-binding for a buffer-local unwinds only current-buffer."
+  (let ((blvar (make-symbol "blvar")))
+    (set-default blvar 0)
+    (make-variable-buffer-local blvar)
+    (dolist (var (list blvar 'left-margin))
+      (let* ((def (default-value var))
+             (newdef (+ def 1))
+             (otherbuf (generate-new-buffer "otherbuf")))
+        (with-temp-buffer
+          (cl-progv (list var) (list newdef)
+            (with-current-buffer otherbuf
+              (set var 123)
+              (should (local-variable-p var))
+              (should (equal (symbol-value var) 123))
+              (should (equal (default-value var) newdef))))
+          (with-current-buffer otherbuf
+            (should (local-variable-p var))
+            (should (equal (symbol-value var) 123))
+            (should (equal (default-value var) def)))
+          )))))
 
 (ert-deftest binding-test-makunbound ()
   "Tests of makunbound, from the manual."

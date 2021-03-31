@@ -556,6 +556,9 @@ be found in this alist.
 This alist is used by w32font.c when it looks for fonts that can display
 characters from scripts for which no USBs are defined.")
 
+(declare-function x-list-fonts "xfaces.c"
+                  (pattern &optional face frame maximum width))
+
 (defun w32-find-non-USB-fonts (&optional frame size)
   "Compute the value of `w32-non-USB-fonts' for specified SIZE and FRAME.
 FRAME defaults to the selected frame.

@@ -32,11 +32,12 @@
 		  (optional prompt default &optional complete))
 (declare-function TeX-argument-insert "ext:tex"
 		  (name optional &optional prefix))
-(declare-function LaTeX-add-labels "ext:tex" (&rest entries) t)
-(declare-function LaTeX-add-index-entries "ext:tex" (&rest entries) t)
-(declare-function LaTeX-bibitem-list "ext:tex" () t)
-(declare-function LaTeX-index-entry-list "ext:tex" () t)
-(declare-function LaTeX-label-list "ext:tex" () t)
+(declare-function LaTeX-add-labels "ext:latex" (&rest labels) t)
+(declare-function LaTeX-add-index-entries "ext:latex" (&rest index-entries) t)
+(declare-function LaTeX-add-bibitems "ext:latex" (&rest bibitems) t)
+(declare-function LaTeX-bibitem-list "ext:latex" () t)
+(declare-function LaTeX-index-entry-list "ext:latex" () t)
+(declare-function LaTeX-label-list "ext:latex" () t)
 (declare-function multi-prompt "ext:multi-prompt"
 		  (separator unique prompt table &optional
 			     mp-predicate require-match initial history))
@@ -69,8 +70,6 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
         (LaTeX-add-labels label))
     (TeX-argument-insert label optional)))
 
-(declare-function LaTeX-add-bibitems "latex") ;FIXME: Can't find the definition
-
 ;;;###autoload
 (defun reftex-arg-cite (optional &optional prompt definition)
   "Use `reftex-citation' or AUCTeX's code to insert a cite-key macro argument.
@@ -87,7 +86,6 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
     (apply #'LaTeX-add-bibitems items)
     (TeX-argument-insert (mapconcat #'identity items reftex-cite-key-separator)
 			 optional)))
-
 
 ;;;###autoload
 (defun reftex-arg-index-tag (optional &optional prompt &rest _args)

@@ -2844,8 +2844,9 @@ and overlay is highlighted between MK and END-MK."
     (when (and (not pre-existing) w)
       (compilation-set-window-height w))
 
-    (if from-compilation-buffer
-        ;; If the compilation buffer window was selected,
+    (if (or from-compilation-buffer
+            (eq w (selected-window)))
+        ;; If the compilation buffer window is selected,
         ;; keep the compilation buffer in this window;
         ;; display the source in another window.
         (let ((pop-up-windows t))

@@ -273,6 +273,7 @@ images."
 
 (defvar newsticker--plainview-tool-bar-map
   (when (boundp 'tool-bar-map)
+    (defvar tool-bar-map)
     (let ((tool-bar-map (make-sparse-keymap)))
       (tool-bar-add-item "newsticker/prev-feed"
                          'newsticker-previous-feed

@@ -2369,7 +2369,10 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).
+
+The comparison with PROP is done using `eq'.
+
 If PROP is already a property on the list, its value is set to VAL,
 otherwise the new PROP VAL pair is added.  The new plist is returned;
 use `(setq x (plist-put x prop val))' to be sure to use the new value.
@@ -3211,7 +3214,10 @@ suppressed.  */)
 DEFUN ("plist-member", Fplist_member, Splist_member, 2, 2, 0,
        doc: /* Return non-nil if PLIST has the property PROP.
 PLIST is a property list, which is a list of the form
-\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol.
+\(PROP1 VALUE1 PROP2 VALUE2 ...).
+
+The comparison with PROP is done using `eq'.
+
 Unlike `plist-get', this allows you to distinguish between a missing
 property and a property with the value nil.
 The value is actually the tail of PLIST whose car is PROP.  */)

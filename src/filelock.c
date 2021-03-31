@@ -719,8 +719,8 @@ lock_file (Lisp_Object fn)
     }
 }
 
-void
-unlock_file (Lisp_Object fn)
+static Lisp_Object
+unlock_file_body (Lisp_Object fn)
 {
   char *lfname;
   USE_SAFE_ALLOCA;
@@ -737,6 +737,23 @@ unlock_file (Lisp_Object fn)
     report_file_errno ("Unlocking file", filename, err);
 
   SAFE_FREE ();
+  return Qnil;
+}
+
+static Lisp_Object
+unlock_file_handle_error (Lisp_Object err)
+{
+  call1 (intern ("userlock--handle-unlock-error"), err);
+  return Qnil;
+}
+
+void
+unlock_file (Lisp_Object fn)
+{
+  internal_condition_case_1 (unlock_file_body,
+			     fn,
+			     list1(Qfile_error),
+			     unlock_file_handle_error);
 }
 
 #else  /* MSDOS */
@@ -790,7 +807,10 @@ DEFUN ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
        0, 0, 0,
        doc: /* Unlock the file visited in the current buffer.
 If the buffer is not modified, this does nothing because the file
-should not be locked in that case.  */)
+should not be locked in that case.  It also does nothing if the
+current buffer is not visiting a file, or is not locked.  Handles file
+system errors by calling `display-warning' and continuing as if the
+error did not occur.  */)
   (void)
 {
   if (SAVE_MODIFF < MODIFF

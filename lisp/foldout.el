@@ -230,14 +230,6 @@ An end marker of nil means the fold ends after (point-max).")
       (setcdr outl-entry (nconc foldout-entry (cdr outl-entry)))
       ))
 
-;; outline-flag-region has different `flag' values in outline.el and
-;; noutline.el for hiding and showing text.
-
-(defconst foldout-hide-flag
-  (if (featurep 'noutline) t ?\^M))
-
-(defconst foldout-show-flag
-  (if (featurep 'noutline) nil ?\n))
 
 
 (defun foldout-zoom-subtree (&optional exposure)
@@ -364,8 +356,7 @@ exited and text is left visible."
 
 	;; make sure the next heading is exposed
 	(if end-marker
-	    (outline-flag-region end-of-subtree beginning-of-heading
-				 foldout-show-flag)))
+            (outline-flag-region end-of-subtree beginning-of-heading nil)))
 
       ;; zap the markers so they don't slow down editing
       (set-marker start-marker nil)
@@ -550,6 +541,14 @@ Valid modifiers are shift, control, meta, alt, hyper and super.")
     (define-key outline-minor-mode-map mouse-2 'foldout-mouse-show)
     (define-key outline-minor-mode-map mouse-3 'foldout-mouse-hide-or-exit)
     ))
+
+;; Obsolete.
+
+(defconst foldout-hide-flag t)
+(make-obsolete-variable 'foldout-hide-flag nil "28.1")
+
+(defconst foldout-show-flag nil)
+(make-obsolete-variable 'foldout-show-flag nil "28.1")
 
 (provide 'foldout)
 

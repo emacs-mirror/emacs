@@ -299,6 +299,8 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 ;;;     o edt-emulation-on      o edt-load-keys
 ;;;
 (defconst edt-xserver (when (eq window-system 'x)
+                        (declare-function x-server-vendor "xfns.c"
+                                          (&optional terminal))
 			;; The Cygwin window manager has a `/' in its
 			;; name, which breaks the generated file name of
 			;; the custom key map file.  Replace `/' with a

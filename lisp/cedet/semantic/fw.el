@@ -270,11 +270,11 @@ later installation should be done in MODE hook."
   (mode-local-bind
    ;; Add the semantic- prefix to OVERLOAD short names.
    (mapcar
-    #'(lambda (e)
-        (let ((name (symbol-name (car e))))
-          (if (string-match "^semantic-" name)
-              e
-            (cons (intern (format "semantic-%s" name)) (cdr e)))))
+    (lambda (e)
+      (let ((name (symbol-name (car e))))
+        (if (string-match "^semantic-" name)
+            e
+          (cons (intern (format "semantic-%s" name)) (cdr e)))))
     overrides)
    (list 'constant-flag (not transient)
          'override-flag t)))

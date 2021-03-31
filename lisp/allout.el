@@ -1,6 +1,6 @@
-;;; allout.el --- extensive outline mode for use alone and with other modes
+;;; allout.el --- extensive outline mode for use alone and with other modes  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1992-1994, 2001-2021 Free Software Foundation, Inc.
+;; Copyright (C) 1992-2021 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail...>
 ;; Created: Dec 1991 -- first release to usenet
@@ -133,13 +133,14 @@ respective allout-mode keybinding variables, `allout-command-prefix',
     (when (boundp 'allout-unprefixed-keybindings)
       (dolist (entry allout-unprefixed-keybindings)
         (define-key map (car (read-from-string (car entry))) (cadr entry))))
-    (substitute-key-definition 'beginning-of-line 'allout-beginning-of-line
+    (substitute-key-definition #'beginning-of-line #'allout-beginning-of-line
                                map global-map)
-    (substitute-key-definition 'move-beginning-of-line 'allout-beginning-of-line
+    (substitute-key-definition #'move-beginning-of-line
+                               #'allout-beginning-of-line
                                map global-map)
-    (substitute-key-definition 'end-of-line 'allout-end-of-line
+    (substitute-key-definition #'end-of-line #'allout-end-of-line
                                map global-map)
-    (substitute-key-definition 'move-end-of-line 'allout-end-of-line
+    (substitute-key-definition #'move-end-of-line #'allout-end-of-line
                                map global-map)
     (allout-institute-keymap map)))
 ;;;_  > allout-institute-keymap (map)
@@ -169,7 +170,7 @@ Default is `\C-c<space>'; just `\C-c' is more short-and-sweet, if you're
 willing to let allout use a bunch of \C-c keybindings."
   :type 'string
   :group 'allout-keybindings
-  :set 'allout-compose-and-institute-keymap)
+  :set #'allout-compose-and-institute-keymap)
 ;;;_   = allout-keybindings-binding
 (define-widget 'allout-keybindings-binding 'lazy
   "Structure of allout keybindings customization items."
@@ -230,7 +231,7 @@ prevails."
   :version "24.1"
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
-  :set 'allout-compose-and-institute-keymap
+  :set #'allout-compose-and-institute-keymap
  )
 ;;;_   = allout-unprefixed-keybindings
 (defcustom allout-unprefixed-keybindings
@@ -254,7 +255,7 @@ See the existing keys for examples."
   :version "24.1"
   :type 'allout-keybindings-binding
   :group 'allout-keybindings
-  :set 'allout-compose-and-institute-keymap
+  :set #'allout-compose-and-institute-keymap
   )
 
 ;;;_  > allout-auto-activation-helper (var value)
@@ -276,8 +277,8 @@ Establishes allout processing as part of visiting a file if
 The proper way to use this is through customizing the setting of
 `allout-auto-activation'."
   (if (not allout-auto-activation)
-      (remove-hook 'find-file-hook 'allout-find-file-hook)
-      (add-hook 'find-file-hook 'allout-find-file-hook)))
+      (remove-hook 'find-file-hook #'allout-find-file-hook)
+      (add-hook 'find-file-hook #'allout-find-file-hook)))
 ;;;_  = allout-auto-activation
 ;;;###autoload
 (defcustom allout-auto-activation nil
@@ -298,7 +299,7 @@ With value \"activate\", only auto-mode-activation is enabled.
 Auto-layout is not.
 
 With value nil, inhibit any automatic allout-mode activation."
-  :set 'allout-auto-activation-helper
+  :set #'allout-auto-activation-helper
   ;; FIXME: Using strings here is unusual and less efficient than symbols.
   :type '(choice (const :tag "On" t)
                 (const :tag "Ask about layout" "ask")
@@ -405,7 +406,7 @@ where auto-fill occurs."
   :group 'allout)
 (make-variable-buffer-local 'allout-use-hanging-indents)
 ;;;###autoload
-(put 'allout-use-hanging-indents 'safe-local-variable 'booleanp)
+(put 'allout-use-hanging-indents 'safe-local-variable #'booleanp)
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
 				    'text)
@@ -434,7 +435,7 @@ just the header."
   :group 'allout)
 (make-variable-buffer-local 'allout-show-bodies)
 ;;;###autoload
-(put 'allout-show-bodies 'safe-local-variable 'booleanp)
+(put 'allout-show-bodies 'safe-local-variable #'booleanp)
 
 ;;;_  = allout-beginning-of-line-cycles
 (defcustom allout-beginning-of-line-cycles t
@@ -507,7 +508,7 @@ character, which is typically set to the `allout-primary-bullet'."
   :group 'allout)
 (make-variable-buffer-local 'allout-header-prefix)
 ;;;###autoload
-(put 'allout-header-prefix 'safe-local-variable 'stringp)
+(put 'allout-header-prefix 'safe-local-variable #'stringp)
 ;;;_  = allout-primary-bullet
 (defcustom allout-primary-bullet "*"
   "Bullet used for top-level outline topics.
@@ -524,7 +525,7 @@ bullets."
   :group 'allout)
 (make-variable-buffer-local 'allout-primary-bullet)
 ;;;###autoload
-(put 'allout-primary-bullet 'safe-local-variable 'stringp)
+(put 'allout-primary-bullet 'safe-local-variable #'stringp)
 ;;;_  = allout-plain-bullets-string
 (defcustom allout-plain-bullets-string ".,"
   "The bullets normally used in outline topic prefixes.
@@ -540,7 +541,7 @@ of this var to take effect."
   :group 'allout)
 (make-variable-buffer-local 'allout-plain-bullets-string)
 ;;;###autoload
-(put 'allout-plain-bullets-string 'safe-local-variable 'stringp)
+(put 'allout-plain-bullets-string 'safe-local-variable #'stringp)
 ;;;_  = allout-distinctive-bullets-string
 (defcustom allout-distinctive-bullets-string "*+-=>()[{}&!?#%\"X@$~_\\:;^"
   "Persistent outline header bullets used to distinguish special topics.
@@ -588,7 +589,7 @@ strings."
   :group 'allout)
 (make-variable-buffer-local 'allout-distinctive-bullets-string)
 ;;;###autoload
-(put 'allout-distinctive-bullets-string 'safe-local-variable 'stringp)
+(put 'allout-distinctive-bullets-string 'safe-local-variable #'stringp)
 
 ;;;_  = allout-use-mode-specific-leader
 (defcustom allout-use-mode-specific-leader t
@@ -655,7 +656,7 @@ are always respected by the topic maneuvering functions."
   :group 'allout)
 (make-variable-buffer-local 'allout-old-style-prefixes)
 ;;;###autoload
-(put 'allout-old-style-prefixes 'safe-local-variable 'booleanp)
+(put 'allout-old-style-prefixes 'safe-local-variable #'booleanp)
 ;;;_  = allout-stylish-prefixes -- alternating bullets
 (defcustom allout-stylish-prefixes t
   "Do fancy stuff with topic prefix bullets according to level, etc.
@@ -703,7 +704,7 @@ is non-nil."
   :group 'allout)
 (make-variable-buffer-local 'allout-stylish-prefixes)
 ;;;###autoload
-(put 'allout-stylish-prefixes 'safe-local-variable 'booleanp)
+(put 'allout-stylish-prefixes 'safe-local-variable #'booleanp)
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
@@ -717,7 +718,7 @@ disables numbering maintenance."
   :group 'allout)
 (make-variable-buffer-local 'allout-numbered-bullet)
 ;;;###autoload
-(put 'allout-numbered-bullet 'safe-local-variable 'string-or-null-p)
+(put 'allout-numbered-bullet 'safe-local-variable #'string-or-null-p)
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
   "Bullet signifying file cross-references, for `allout-resolve-xref'.
@@ -726,7 +727,7 @@ Set this var to the bullet you want to use for file cross-references."
   :type '(choice (const nil) string)
   :group 'allout)
 ;;;###autoload
-(put 'allout-file-xref-bullet 'safe-local-variable 'string-or-null-p)
+(put 'allout-file-xref-bullet 'safe-local-variable #'string-or-null-p)
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
   "Presentation-format white-space padding factor, for greater indent."
@@ -735,7 +736,7 @@ Set this var to the bullet you want to use for file cross-references."
 
 (make-variable-buffer-local 'allout-presentation-padding)
 ;;;###autoload
-(put 'allout-presentation-padding 'safe-local-variable 'integerp)
+(put 'allout-presentation-padding 'safe-local-variable #'integerp)
 
 ;;;_  = allout-flattened-numbering-abbreviation
 (define-obsolete-variable-alias 'allout-abbreviate-flattened-numbering
@@ -1056,7 +1057,7 @@ invoking it directly."
           (setq allout-primary-bullet leader))
       allout-header-prefix)))
 (defalias 'allout-infer-header-lead
-  'allout-infer-header-lead-and-primary-bullet)
+  #'allout-infer-header-lead-and-primary-bullet)
 ;;;_   > allout-infer-body-reindent ()
 (defun allout-infer-body-reindent ()
   "Determine proper setting for `allout-reindent-bodies'.
@@ -1196,7 +1197,7 @@ Also refresh various data structures that hinge on the regexp."
                             "[^" allout-primary-bullet "]"))
                   "\\)"
                   ))))
-(define-obsolete-function-alias 'set-allout-regexp 'allout-set-regexp "26.1")
+(define-obsolete-function-alias 'set-allout-regexp #'allout-set-regexp "26.1")
 ;;;_  : Menu bar
 (defvar allout-mode-exposure-menu)
 (defvar allout-mode-editing-menu)
@@ -1589,17 +1590,6 @@ non-nil in a lasting way.")
 (defvar-local allout-explicitly-deactivated nil
   "If t, `allout-mode's last deactivation was deliberate.
 So `allout-post-command-business' should not reactivate it...")
-;;;_  > allout-setup-menubar ()
-(defun allout-setup-menubar ()
-  "Populate the current buffer's menubar with `allout-mode' stuff."
-  (let ((menus (list allout-mode-exposure-menu
-		     allout-mode-editing-menu
-		     allout-mode-navigation-menu
-		     allout-mode-misc-menu))
-	cur)
-    (while menus
-      (setq cur (car menus)
-            menus (cdr menus)))))
 ;;;_  > allout-overlay-preparations
 (defun allout-overlay-preparations ()
   "Set the properties of the allout invisible-text overlay and others."
@@ -1613,7 +1603,7 @@ So `allout-post-command-business' should not reactivate it...")
   ;; property controls the isearch _arrival_ behavior.  This is the case at
   ;; least in emacs 21, 22.1, and xemacs 21.4.
   (put 'allout-exposure-category 'isearch-open-invisible
-       'allout-isearch-end-handler)
+       #'allout-isearch-end-handler)
   (put 'allout-exposure-category 'insert-in-front-hooks
        '(allout-overlay-insert-in-front-handler))
   (put 'allout-exposure-category 'modification-hooks
@@ -1903,12 +1893,12 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
           (allout-do-resumptions)
 
           (remove-from-invisibility-spec '(allout . t))
-          (remove-hook 'pre-command-hook 'allout-pre-command-business t)
-          (remove-hook 'post-command-hook 'allout-post-command-business t)
-          (remove-hook 'before-change-functions 'allout-before-change-handler t)
-          (remove-hook 'isearch-mode-end-hook 'allout-isearch-end-handler t)
+          (remove-hook 'pre-command-hook #'allout-pre-command-business t)
+          (remove-hook 'post-command-hook #'allout-post-command-business t)
+          (remove-hook 'before-change-functions #'allout-before-change-handler t)
+          (remove-hook 'isearch-mode-end-hook #'allout-isearch-end-handler t)
           (remove-hook 'write-contents-functions
-                       'allout-write-contents-hook-handler t)
+                       #'allout-write-contents-hook-handler t)
 
           (remove-overlays (point-min) (point-max)
                            'category 'allout-exposure-category))
@@ -1937,11 +1927,11 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
       (add-to-invisibility-spec '(allout . t))
 
       (allout-add-resumptions '(line-move-ignore-invisible t))
-      (add-hook 'pre-command-hook 'allout-pre-command-business nil t)
-      (add-hook 'post-command-hook 'allout-post-command-business nil t)
-      (add-hook 'before-change-functions 'allout-before-change-handler nil t)
-      (add-hook 'isearch-mode-end-hook 'allout-isearch-end-handler nil t)
-      (add-hook 'write-contents-functions 'allout-write-contents-hook-handler
+      (add-hook 'pre-command-hook #'allout-pre-command-business nil t)
+      (add-hook 'post-command-hook #'allout-post-command-business nil t)
+      (add-hook 'before-change-functions #'allout-before-change-handler nil t)
+      (add-hook 'isearch-mode-end-hook #'allout-isearch-end-handler nil t)
+      (add-hook 'write-contents-functions #'allout-write-contents-hook-handler
                 nil t)
 
       ;; Stash auto-fill settings and adjust so custom allout auto-fill
@@ -1966,8 +1956,6 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
           ;; allout-auto-fill will use the stashed values and so forth.
           (allout-add-resumptions '(auto-fill-function allout-auto-fill)))
 
-      (allout-setup-menubar)
-
       ;; Do auto layout if warranted:
       (when (and allout-layout
                  allout-auto-activation
@@ -1987,7 +1975,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
           (allout-this-or-next-heading)
           (condition-case err
               (progn
-                (apply 'allout-expose-topic (list use-layout))
+                (apply #'allout-expose-topic (list use-layout))
                 (message "Adjusting `%s' exposure... done."
                          (buffer-name)))
             ;; Problem applying exposure -- notify user, but don't
@@ -1999,7 +1987,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
     )                                   ; let (())
   )  					; define-minor-mode
 ;;;_  > allout-minor-mode alias
-(defalias 'allout-minor-mode 'allout-mode)
+(defalias 'allout-minor-mode #'allout-mode)
 ;;;_  > allout-unload-function
 (defun allout-unload-function ()
   "Unload the allout outline library."
@@ -2068,7 +2056,7 @@ internal functions use this feature cohesively bunch changes."
                 (error "Concealed-text change abandoned, text reconcealed"))))
       (goto-char start))))
 ;;;_  > allout-before-change-handler (beg end)
-(defun allout-before-change-handler (beg end)
+(defun allout-before-change-handler (_beg _end)
   "Protect against changes to invisible text.
 
 See `allout-overlay-interior-modification-handler' for details."
@@ -2232,7 +2220,7 @@ Actually, returns prefix beginning point."
            (or (not (allout-do-doublecheck))
                (not (allout-aberrant-container-p)))))))
 ;;;_    > allout-on-heading-p ()
-(defalias 'allout-on-heading-p 'allout-on-current-heading-p)
+(defalias 'allout-on-heading-p #'allout-on-current-heading-p)
 ;;;_    > allout-e-o-prefix-p ()
 (defun allout-e-o-prefix-p ()
   "True if point is located where current topic prefix ends, heading begins."
@@ -2768,7 +2756,7 @@ of (before any) topics, in which case we return nil."
         (goto-char (point-min))
         nil))))
 ;;;_   > allout-back-to-heading ()
-(defalias 'allout-back-to-heading 'allout-back-to-current-heading)
+(defalias 'allout-back-to-heading #'allout-back-to-current-heading)
 ;;;_   > allout-pre-next-prefix ()
 (defun allout-pre-next-prefix ()
   "Skip forward to just before the next heading line.
@@ -2850,7 +2838,7 @@ collapsed."
   (allout-beginning-of-current-entry)
   (search-forward "\n" nil t)
   (forward-char -1))
-(defalias 'allout-end-of-heading 'allout-end-of-current-heading)
+(defalias 'allout-end-of-heading #'allout-end-of-current-heading)
 ;;;_   > allout-get-body-text ()
 (defun allout-get-body-text ()
   "Return the unmangled body text of the topic immediately containing point."
@@ -3289,10 +3277,6 @@ Returns the qualifying command, if any, else nil."
   (interactive)
   (let* ((modified (event-modifiers last-command-event))
          (key-num (cond ((numberp last-command-event) last-command-event)
-                        ;; for XEmacs character type:
-                        ((and (fboundp 'characterp)
-                              (apply 'characterp (list last-command-event)))
-                         (apply 'char-to-int (list last-command-event)))
                         (t 0)))
          mapped-binding)
 
@@ -5137,7 +5121,7 @@ Optional FOLLOWERS arguments dictate exposure for succeeding siblings."
 	     (if (and spec
 		      (allout-descend-to-depth new-depth)
 		      (not (allout-hidden-p)))
-		 (progn (setq got (apply 'allout-old-expose-topic spec))
+		 (progn (setq got (apply #'allout-old-expose-topic spec))
 			(if (and got (or (not max-pos) (> got max-pos)))
 			    (setq max-pos got)))))))
     (while (and followers
@@ -5215,7 +5199,7 @@ Optional arg CONTEXT indicates interior levels to include."
 	    (setq flat-index (cdr flat-index)))
 	  ;; Dispose of single extra delim:
 	  (setq result (cdr result))))
-    (apply 'concat result)))
+    (apply #'concat result)))
 ;;;_   > allout-stringify-flat-index-plain (flat-index)
 (defun allout-stringify-flat-index-plain (flat-index)
   "Convert list representing section/subsection/... to document string."
@@ -5226,7 +5210,7 @@ Optional arg CONTEXT indicates interior levels to include."
 			     (if result
 				 (cons delim result))))
 	  (setq flat-index (cdr flat-index)))
-    (apply 'concat result)))
+    (apply #'concat result)))
 ;;;_   > allout-stringify-flat-index-indented (flat-index)
 (defun allout-stringify-flat-index-indented (flat-index)
   "Convert list representing section/subsection/... to document string."
@@ -5255,7 +5239,7 @@ Optional arg CONTEXT indicates interior levels to include."
 	    (setq flat-index (cdr flat-index)))
 	  ;; Dispose of single extra delim:
 	  (setq result (cdr result))))
-    (apply 'concat result)))
+    (apply #'concat result)))
 ;;;_   > allout-listify-exposed (&optional start end format)
 (defun allout-listify-exposed (&optional start end format)
 
@@ -5381,7 +5365,7 @@ header and body.  The elements of that list are:
       ;; Put the list with first at front, to last at back:
       (nreverse result))))
 
-(define-obsolete-function-alias 'allout-region-active-p 'region-active-p "28.1")
+(define-obsolete-function-alias 'allout-region-active-p #'region-active-p "28.1")
 
 ;;_   > allout-process-exposed (&optional func from to frombuf
 ;;;					    tobuf format)
@@ -5498,7 +5482,7 @@ alternate presentation format for the outline:
 	 (beg (if arg (allout-back-to-current-heading) (point-min)))
 	 (end (if arg (allout-end-of-current-subtree) (point-max)))
 	 (buf (current-buffer))
-	 (start-list ()))
+	 ) ;; (start-list ())
     (if (eq format 'flat)
 	(setq format (if arg (save-excursion
 				   (goto-char beg)
@@ -5510,7 +5494,7 @@ alternate presentation format for the outline:
 			     end
 			     (current-buffer)
 			     tobuf
-			     format start-list)
+			     format nil) ;; start-list
     (goto-char (point-min))
     (pop-to-buffer buf)
     (goto-char start-pt)))
@@ -5622,11 +5606,12 @@ environment.  Leaves point at the end of the line."
 	(begindoc "\\begin{document}\n\\begin{center}\n")
 	(title (format "%s%s%s%s"
 		       "\\titlecmd{"
-		       (allout-latex-verb-quote (if allout-title
-						(condition-case nil
-						    (eval allout-title)
-						  (error "<unnamed buffer>"))
-					      "Unnamed Outline"))
+		       (allout-latex-verb-quote
+			(if allout-title
+			    (condition-case nil
+				(eval allout-title t)
+			      (error "<unnamed buffer>"))
+			  "Unnamed Outline"))
 		       "}\n"
 		       "\\end{center}\n\n"))
 	(hsize "\\hsize = 7.5 true in\n")
@@ -6219,7 +6204,7 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
 ;;;_   > outlineify-sticky ()
 ;; outlinify-sticky is correct spelling; provide this alias for sticklers:
 ;;;###autoload
-(defalias 'outlinify-sticky 'outlineify-sticky)
+(defalias 'outlinify-sticky #'outlineify-sticky)
 ;;;###autoload
 (defun outlineify-sticky (&optional _arg)
   "Activate outline mode and establish file var so it is started subsequently.
@@ -6441,7 +6426,7 @@ If BEG is bigger than END we return 0."
 ;;;_   > allout-format-quote (string)
 (defun allout-format-quote (string)
   "Return a copy of string with all \"%\" characters doubled."
-  (apply 'concat
+  (apply #'concat
          (mapcar (lambda (char) (if (= char ?%) "%%" (char-to-string char)))
                  string)))
 (define-obsolete-function-alias 'allout-flatten #'flatten-tree "27.1")

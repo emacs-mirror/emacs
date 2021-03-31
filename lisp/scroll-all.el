@@ -1,4 +1,4 @@
-;;; scroll-all.el --- scroll all buffers together minor mode
+;;; scroll-all.el --- scroll all buffers together minor mode  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -47,38 +47,41 @@
 	(condition-case nil
 	    (funcall func arg)
 	  ;; Ignore beginning- or end-of-buffer error in other windows.
-	  (error nil)
-	  )
+          (error nil))
 	(other-window 1)
 	(setq count (1+ count))))))
 
 (defun scroll-all-scroll-down-all (arg)
-  "Scroll down in all visible windows."
+  "Scroll down ARG lines in all visible windows."
   (interactive "p")
   (scroll-all-function-all 'next-line arg))
 
 (defun scroll-all-scroll-up-all (arg)
-  "Scroll up in all visible windows."
+  "Scroll up ARG lines in all visible windows."
   (interactive "p")
   (scroll-all-function-all 'previous-line arg))
 
 (defun scroll-all-page-down-all (arg)
-  "Page down in all visible windows."
+  "Page down in all visible windows.
+ARG is like in `scroll-up'."
   (interactive "P")
   (scroll-all-function-all 'scroll-up arg))
 
 (defun scroll-all-page-up-all (arg)
-  "Page up in all visible windows."
+  "Page up in all visible windows.
+ARG is like in `scroll-down'."
   (interactive "P")
   (scroll-all-function-all 'scroll-down arg))
 
 (defun scroll-all-beginning-of-buffer-all (arg)
-  "Go to the beginning of the buffer in all visible windows."
+  "Go to the beginning of the buffer in all visible windows.
+ARG is like in `beginning-of-buffer'."
   (interactive "P")
   (scroll-all-function-all 'beginning-of-buffer arg))
 
 (defun scroll-all-end-of-buffer-all (arg)
-  "Go to the end of the buffer in all visible windows."
+  "Go to the end of the buffer in all visible windows.
+ARG is like in `end-of-buffer'."
   (interactive "P")
   (scroll-all-function-all 'end-of-buffer arg))
 

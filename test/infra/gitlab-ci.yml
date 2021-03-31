@@ -61,6 +61,8 @@ default:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
 
 .job-template:
+  variables:
+    test_name: ${CI_JOB_NAME}-${CI_COMMIT_SHORT_SHA}
   rules:
     - changes:
         - "**/Makefile.in"
@@ -95,14 +97,18 @@ default:
   artifacts:
     expire_in: 24 hrs
     paths: []
-      # - "test/**/*.log"
-      # - "**/*.log"
   # using the variables for each job
   script:
     - docker pull ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
     # TODO: with make -j4 several of the tests were failing, for example shadowfile-tests, but passed without it
     - 'export PWD=$(pwd)'
-    - 'docker run -i --rm -e EMACS_EMBA_CI=${EMACS_EMBA_CI} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+    - 'docker run -i -e EMACS_EMBA_CI=${EMACS_EMBA_CI} --volumes-from $(docker ps -q -f "label=com.gitlab.gitlab-runner.job.id=${CI_JOB_ID}"):ro --name ${test_name} ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} /bin/bash -c "git fetch ${PWD} HEAD && echo checking out these updated files && git diff --name-only FETCH_HEAD && ( git diff --name-only FETCH_HEAD | xargs git checkout -f FETCH_HEAD ) && make -j4 && make ${make_params}"'
+  after_script:
+    # - docker ps -a
+    # - printenv
+    # - test -n "$(docker ps -aq -f name=${test_name})" && ( docker export ${test_name} | tar -tvf - )
+    - test -n "$(docker ps -aq -f name=${test_name})" && docker cp ${test_name}:checkout/test ${test_name}
+    - test -n "$(docker ps -aq -f name=${test_name})" && docker rm ${test_name}
 
 .build-template:
   rules:
@@ -132,6 +138,19 @@ default:
   script:
     - docker build --pull --target ${target} -t ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG} -f test/infra/Dockerfile.emba .
     - docker push ${CI_REGISTRY_IMAGE}:${target}-${BUILD_TAG}
+
+.test-template:
+  # Do not run fast and normal test jobs when scheduled
+  rules:
+    - if: '$CI_JOB_STAGE =~ "fast|normal" && $CI_PIPELINE_SOURCE == "schedule"'
+      when: never
+    - when: always
+  artifacts:
+    name: ${test_name}
+    public: true
+    expire_in: 1 week
+    paths:
+      - "${test_name}/**/*.log"
 
 .gnustep-template:
   rules:
@@ -185,7 +204,7 @@ build-image-inotify:
 
 test-fast-inotify:
   stage: fast
-  extends: [.job-template]
+  extends: [.job-template, .test-template]
   variables:
     target: emacs-inotify
     make_params: "-C test check"
@@ -204,14 +223,14 @@ build-image-gnustep:
 
 test-lisp-inotify:
   stage: normal
-  extends: [.job-template]
+  extends: [.job-template, .test-template]
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp"
 
 test-lisp-net-inotify:
   stage: normal
-  extends: [.job-template]
+  extends: [.job-template, .test-template]
   variables:
     target: emacs-inotify
     make_params: "-C test check-lisp-net"
@@ -219,10 +238,10 @@ test-lisp-net-inotify:
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
   stage: platforms
-  extends: [.job-template, .filenotify-gio-template]
+  extends: [.job-template, .test-template, .filenotify-gio-template]
   variables:
     target: emacs-filenotify-gio
-    make_params: "-k -C test autorevert-tests filenotify-tests"
+    make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
 
 test-gnustep:
   # This tests the GNUstep build process
@@ -235,7 +254,7 @@ test-gnustep:
 test-all-inotify:
   # This tests also file monitor libraries inotify and inotifywatch.
   stage: slow
-  extends: [.job-template]
+  extends: [.job-template, .test-template]
   rules:
     # note there's no "changes" section, so this always runs on a schedule
     - if: '$CI_PIPELINE_SOURCE == "web"'

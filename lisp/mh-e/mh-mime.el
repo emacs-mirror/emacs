@@ -487,15 +487,11 @@ decoding the same message multiple times."
         (mh-display-emphasis)
         (mm-handle-set-undisplayer
          handle
-         `(lambda ()
-            (let (buffer-read-only)
-              (if (fboundp 'remove-specifier)
-                  ;; This is only valid on XEmacs.
-                  (mapcar (lambda (prop)
-                            (remove-specifier
-                             (face-property 'default prop) (current-buffer)))
-                          '(background background-pixmap foreground)))
-              (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
+         (let ((beg (point-min-marker))
+               (end (point-max-marker)))
+           (lambda ()
+             (let ((inhibit-read-only t))
+               (delete-region beg end)))))))))
 
 ;;;###mh-autoload
 (defun mh-decode-message-header ()
@@ -781,7 +777,7 @@ This is only useful if a Content-Disposition header is not present."
          (funcall media-test handle) ; Since mm-inline-large-images is T,
                                         ; this only tells us if the image is
                                         ; something that emacs can display
-         (let* ((image (mm-get-image handle)))
+         (let ((image (mm-get-image handle)))
            (or (mh-do-in-xemacs
                  (and (mh-funcall-if-exists glyphp image)
                       (< (glyph-width image)
@@ -790,7 +786,7 @@ This is only useful if a Content-Disposition header is not present."
                          (or mh-max-inline-image-height
                              (window-pixel-height)))))
                (mh-do-in-gnu-emacs
-                 (let ((size (mh-funcall-if-exists image-size image)))
+                 (let ((size (and (fboundp 'image-size) (image-size image))))
                    (and size
                         (< (cdr size) (or mh-max-inline-image-height
                                           (1- (window-height))))

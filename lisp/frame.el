@@ -367,6 +367,7 @@ there (in decreasing order of priority)."
       ;; by the lines added in x-create-frame for the tab-bar and
       ;; switch `tab-bar-mode' off.
       (when (display-graphic-p)
+        (declare-function tab-bar-height "xdisp.c" (&optional frame pixelwise))
 	(let* ((init-lines
 		(assq 'tab-bar-lines initial-frame-alist))
 	       (other-lines
@@ -708,9 +709,11 @@ Return nil if we don't know how to interpret DISPLAY."
 (defun make-frame-on-display (display &optional parameters)
   "Make a frame on display DISPLAY.
 The optional argument PARAMETERS specifies additional frame parameters."
-  (interactive (list (completing-read
-                      (format "Make frame on display: ")
-                      (x-display-list))))
+  (interactive (if (fboundp 'x-display-list)
+                   (list (completing-read
+                          (format "Make frame on display: ")
+                          (x-display-list)))
+                 (user-error "This Emacs build does not support X displays")))
   (make-frame (cons (cons 'display display) parameters)))
 
 (defun make-frame-on-current-monitor (&optional parameters)
@@ -1370,7 +1373,7 @@ FRAME defaults to the selected frame."
 FRAME defaults to the selected frame."
   (setq frame (window-normalize-frame frame))
   (- (frame-native-height frame)
-     (tab-bar-height frame t)
+     (if (fboundp 'tab-bar-height) (tab-bar-height frame t) 0)
      (* 2 (frame-internal-border-width frame))))
 
 (defun frame-outer-width (&optional frame)
