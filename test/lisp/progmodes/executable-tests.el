@@ -19,9 +19,6 @@
 
 ;;; Commentary:
 
-;; This file is part of ERT, the Emacs Lisp Regression Testing tool.
-;; See ert.el or the texinfo manual for more details.
-
 ;;; Code:
 
 (require 'ert)
