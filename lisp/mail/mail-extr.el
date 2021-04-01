@@ -2236,13 +2236,13 @@ place.  It affects how `mail-extract-address-components' works."
 
 
 ;(let ((all nil))
-;  (mapatoms #'(lambda (x)
+;  (mapatoms (lambda (x)
 ;		(if (and (boundp x)
 ;			 (string-match "^mail-extr-" (symbol-name x)))
 ;		    (setq all (cons x all)))))
 ;  (setq all (sort all #'string-lessp))
 ;  (cons 'setq
-;	(apply 'nconc (mapcar #'(lambda (x)
+;	(apply 'nconc (mapcar (lambda (x)
 ;				  (list x (symbol-value x)))
 ;			      all))))
 
