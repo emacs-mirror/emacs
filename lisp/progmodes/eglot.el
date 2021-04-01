@@ -1445,7 +1445,9 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (cl-loop for (var . saved-binding) in eglot--saved-bindings
              do (set (make-local-variable var) saved-binding))
     (remove-function (local 'imenu-create-index-function) #'eglot-imenu)
-    (setq eglot--current-flymake-report-fn nil)
+    (when eglot--current-flymake-report-fn
+      (eglot--report-to-flymake nil)
+      (setq eglot--current-flymake-report-fn nil))
     (let ((server eglot--cached-server))
       (setq eglot--cached-server nil)
       (when server
@@ -1680,17 +1682,8 @@ COMMAND is a symbol naming the command."
                                              (t          'eglot-note))
                                        message `((eglot-lsp-diag . ,diag-spec)))))
          into diags
-         finally (cond ((and flymake-mode eglot--current-flymake-report-fn)
-                        (save-restriction
-                          (widen)
-                          (funcall eglot--current-flymake-report-fn diags
-                                   ;; If the buffer hasn't changed since last
-                                   ;; call to the report function, flymake won't
-                                   ;; delete old diagnostics.  Using :region
-                                   ;; keyword forces flymake to delete
-                                   ;; them (github#159).
-                                   :region (cons (point-min) (point-max))))
-                        (setq eglot--unreported-diagnostics nil))
+         finally (cond (eglot--current-flymake-report-fn
+                        (eglot--report-to-flymake diags))
                        (t
                         (setq eglot--unreported-diagnostics (cons t diags))))))
     (jsonrpc--debug server "Diagnostics received for unvisited %s" uri)))
@@ -1970,13 +1963,28 @@ When called interactively, use the currently active server"
     :textDocument (eglot--TextDocumentIdentifier))))
 
 (defun eglot-flymake-backend (report-fn &rest _more)
-  "An EGLOT Flymake backend.
-Calls REPORT-FN maybe if server publishes diagnostics in time."
+  "A Flymake backend for Eglot.
+Calls REPORT-FN (or arranges for it to be called) when the server
+publishes diagnostics.  Between calls to this function, REPORT-FN
+may be called multiple times (respecting the protocol of
+`flymake-backend-functions')."
   (setq eglot--current-flymake-report-fn report-fn)
   ;; Report anything unreported
   (when eglot--unreported-diagnostics
-    (funcall report-fn (cdr eglot--unreported-diagnostics))
-    (setq eglot--unreported-diagnostics nil)))
+    (eglot--report-to-flymake (cdr eglot--unreported-diagnostics))))
+
+(defun eglot--report-to-flymake (diags)
+  "Internal helper for `eglot-flymake-backend'."
+  (save-restriction
+    (widen)
+    (funcall eglot--current-flymake-report-fn diags
+             ;; If the buffer hasn't changed since last
+             ;; call to the report function, flymake won't
+             ;; delete old diagnostics.  Using :region
+             ;; keyword forces flymake to delete
+             ;; them (github#159).
+             :region (cons (point-min) (point-max))))
+  (setq eglot--unreported-diagnostics nil))
 
 (defun eglot-xref-backend () "EGLOT xref backend." 'eglot)
 
