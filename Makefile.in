@@ -923,7 +923,7 @@ maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 ### Note that we abuse this in some subdirectories (eg leim),
 ### to delete some generated files that are slow to rebuild.
 extraclean_dirs = ${NTDIR} lib-src src leim \
-  admin/charsets admin/grammars admin/unidata lisp lib
+  admin/charsets admin/grammars admin/unidata lisp lib lwlib
 
 $(foreach dir,$(extraclean_dirs),$(eval $(call submake_template,$(dir),extraclean)))
 
