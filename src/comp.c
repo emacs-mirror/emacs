@@ -4431,7 +4431,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
       gcc_jit_context_set_bool_option (comp.ctxt,
 				       GCC_JIT_BOOL_OPTION_DEBUGINFO,
 				       1);
-  if (comp.debug > 2)
+  if (comp.debug >= 3)
     {
       logfile = emacs_fopen ("libgccjit.log", "w");
       gcc_jit_context_set_logfile (comp.ctxt,
@@ -4493,7 +4493,7 @@ DEFUN ("comp--compile-ctxt-to-file", Fcomp__compile_ctxt_to_file,
 
   add_driver_options ();
 
-  if (comp.debug)
+  if (comp.debug > 1)
       gcc_jit_context_dump_to_file (comp.ctxt,
 				    format_string ("%s.c", SSDATA (ebase_name)),
 				    1);
@@ -4689,7 +4689,8 @@ maybe_defer_native_compilation (Lisp_Object function_name,
       || !NILP (Vpurify_flag)
       || !COMPILEDP (definition)
       || !STRINGP (Vload_true_file_name)
-      || !suffix_p (Vload_true_file_name, ".elc"))
+      || !suffix_p (Vload_true_file_name, ".elc")
+      || !NILP (Fgethash (Vload_true_file_name, V_comp_no_native_file_h, Qnil)))
     return;
 
   Lisp_Object src =
@@ -5372,6 +5373,13 @@ This makes primitive functions redefinable or advisable effectively.  */);
 This is used to prevent double trampoline instantiation but also to
 protect the trampolines against GC.  */);
   Vcomp_installed_trampolines_h = CALLN (Fmake_hash_table);
+
+  DEFVAR_LISP ("comp-no-native-file-h", V_comp_no_native_file_h,
+	       doc: /* Files for which no deferred compilation has to
+be performed because the bytecode version was explicitly requested by
+the user during load.
+For internal use.  */);
+  V_comp_no_native_file_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
   Fprovide (intern_c_string ("nativecomp"), Qnil);
 #endif /* #ifdef HAVE_NATIVE_COMP */
