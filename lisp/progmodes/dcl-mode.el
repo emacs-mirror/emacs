@@ -23,9 +23,11 @@
 
 ;;; Commentary:
 
-;; DCL mode is a package for editing DCL command files.  It helps you
-;; indent lines, add leading `$' and trailing `-', move around in the
-;; code and insert lexical functions.
+;; DCL mode is a package for editing
+;; [DCL](https://en.wikipedia.org/wiki/DIGITAL_Command_Language)
+;; command files.
+;; It helps you indent lines, add leading `$' and trailing `-', move
+;; around in the code and insert lexical functions.
 ;;
 ;; Type `C-h m' when you are editing a .COM file to get more
 ;; information about this mode.
