@@ -442,7 +442,7 @@ With argument, positions cursor at end of buffer."
 ;;; 	 (let ((name-start (point)))
 ;;; 	   (forward-sexp 1)
 ;;; 	   (process-send-string "inferior-lisp"
-;;; 				(format "(compile '%s #'(lambda "
+;;; 				(format "(compile '%s (lambda "
 ;;; 					(buffer-substring name-start
 ;;; 							  (point)))))
 ;;; 	 (let ((body-start (point)))

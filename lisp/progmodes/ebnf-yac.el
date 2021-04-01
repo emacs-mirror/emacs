@@ -271,13 +271,13 @@
   (let ((table (make-vector 256 'error)))
     ;; upper & lower case letters:
     (mapc
-     #'(lambda (char)
-	 (aset table char 'non-terminal))
+     (lambda (char)
+       (aset table char 'non-terminal))
      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
     ;; printable characters:
     (mapc
-     #'(lambda (char)
-	 (aset table char 'character))
+     (lambda (char)
+       (aset table char 'character))
      "!#$&()*+-.0123456789=?@[\\]^_`~")
     ;; Override space characters:
     (aset table ?\n 'space)		; [NL] linefeed
