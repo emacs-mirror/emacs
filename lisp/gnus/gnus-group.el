@@ -4697,20 +4697,20 @@ This command may read the active file."
     (gnus-cache-open))
   (funcall gnus-group-prepare-function
 	   (or level gnus-level-subscribed)
-	   #'(lambda (info)
-	       (let ((marks (gnus-info-marks info)))
-		 (assq 'cache marks)))
+           (lambda (info)
+             (let ((marks (gnus-info-marks info)))
+               (assq 'cache marks)))
 	   lowest
-	   #'(lambda (group)
-	       (or (gethash group
-			    gnus-cache-active-hashtb)
-		   ;; Cache active file might use "."
-		   ;; instead of ":".
-		   (gethash
-		    (mapconcat #'identity
-			       (split-string group ":")
-			       ".")
-		    gnus-cache-active-hashtb))))
+           (lambda (group)
+             (or (gethash group
+                          gnus-cache-active-hashtb)
+                 ;; Cache active file might use "."
+                 ;; instead of ":".
+                 (gethash
+                  (mapconcat #'identity
+                             (split-string group ":")
+                             ".")
+                  gnus-cache-active-hashtb))))
   (goto-char (point-min))
   (gnus-group-position-point))
 
@@ -4728,9 +4728,9 @@ This command may read the active file."
     (gnus-cache-open))
   (funcall gnus-group-prepare-function
 	   (or level gnus-level-subscribed)
-	   #'(lambda (info)
-	       (let ((marks (gnus-info-marks info)))
-		 (assq 'dormant marks)))
+           (lambda (info)
+             (let ((marks (gnus-info-marks info)))
+               (assq 'dormant marks)))
 	   lowest
 	   'ignore)
   (goto-char (point-min))
@@ -4750,9 +4750,9 @@ This command may read the active file."
     (gnus-cache-open))
   (funcall gnus-group-prepare-function
 	   (or level gnus-level-subscribed)
-	   #'(lambda (info)
-	       (let ((marks (gnus-info-marks info)))
-		 (assq 'tick marks)))
+           (lambda (info)
+             (let ((marks (gnus-info-marks info)))
+               (assq 'tick marks)))
 	   lowest
 	   'ignore)
   (goto-char (point-min))

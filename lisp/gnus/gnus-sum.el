@@ -5676,9 +5676,9 @@ or a straight list of headers."
 	    (or dependencies
 		(with-current-buffer gnus-summary-buffer
 		  gnus-newsgroup-dependencies))))
-     (delq nil (mapcar   #'(lambda (header)
-			     (gnus-dependencies-add-header
-			      header dependencies force-new))
+       (delq nil (mapcar (lambda (header)
+                           (gnus-dependencies-add-header
+                            header dependencies force-new))
 			 gnus-headers-retrieved-by)))))
   (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
 

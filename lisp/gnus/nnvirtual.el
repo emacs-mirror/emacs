@@ -362,9 +362,9 @@ It is computed from the marks of individual component groups.")
     (dolist (group nnvirtual-component-groups)
       (setq unexpired (nconc unexpired
 			     (mapcar
-			      #'(lambda (article)
-				  (nnvirtual-reverse-map-article
-				   group article))
+                              (lambda (article)
+                                (nnvirtual-reverse-map-article
+                                 group article))
 			      (gnus-uncompress-range
 			       (gnus-group-expire-articles-1 group))))))
     (sort (delq nil unexpired) #'<)))
