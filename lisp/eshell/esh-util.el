@@ -223,18 +223,6 @@ then quoting is done by a backslash, rather than a doubled delimiter."
 	      (string-to-number string)
 	    string))))))
 
-(defun eshell-sublist (l &optional n m)
-  "Return from LIST the N to M elements.
-If N or M is nil, it means the end of the list."
-  (let ((a (copy-sequence l)))
-    (if (and m (consp (nthcdr m a)))
-	(setcdr (nthcdr m a) nil))
-    (if n
-	(setq a (nthcdr n a))
-      (setq n (1- (length a))
-	    a (last a)))
-    a))
-
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.
 It might be different from \(getenv \"PATH\"), when
@@ -710,8 +698,16 @@ gid format.  Valid values are `string' and `integer', defaulting to
 ;     (or result
 ;	(file-attributes filename))))
 
+;; Obsolete.
+
 (define-obsolete-function-alias 'eshell-copy-tree #'copy-tree "28.1")
 (define-obsolete-function-alias 'eshell-user-name #'user-login-name "28.1")
+
+(defun eshell-sublist (l &optional n m)
+  "Return from LIST the N to M elements.
+If N or M is nil, it means the end of the list."
+  (declare (obsolete seq-subseq "28.1"))
+  (seq-subseq l n (1+ m)))
 
 (provide 'esh-util)
 

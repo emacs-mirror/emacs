@@ -758,7 +758,7 @@ matched."
 	(setq nth (eshell-hist-word-reference nth)))
       (unless (numberp mth)
 	(setq mth (eshell-hist-word-reference mth)))
-      (cons (mapconcat #'identity (eshell-sublist textargs nth mth) " ")
+      (cons (mapconcat #'identity (seq-subseq textargs nth (1+ mth)) " ")
 	    end))))
 
 (defun eshell-hist-parse-modifier (hist reference)

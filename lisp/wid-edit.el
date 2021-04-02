@@ -1878,20 +1878,9 @@ as the argument to `documentation-property'."
   (let ((value (widget-get widget :value)))
     (and (listp value)
 	 (<= (length value) (length vals))
-	 (let ((head (widget-sublist vals 0 (length value))))
+         (let ((head (seq-subseq vals 0 (length value))))
 	   (and (equal head value)
-		(cons head (widget-sublist vals (length value))))))))
-
-(defun widget-sublist (list start &optional end)
-  "Return the sublist of LIST from START to END.
-If END is omitted, it defaults to the length of LIST."
-  (if (> start 0) (setq list (nthcdr start list)))
-  (if end
-      (unless (<= end start)
-	(setq list (copy-sequence list))
-	(setcdr (nthcdr (- end start 1) list) nil)
-	list)
-    (copy-sequence list)))
+                (cons head (seq-subseq vals (length value))))))))
 
 (defun widget-item-action (widget &optional event)
   ;; Just notify itself.
@@ -4117,7 +4106,9 @@ is inline."
 	(setq help-echo (funcall help-echo widget)))
     (if help-echo (message "%s" (eval help-echo)))))
 
-;;; The End:
+;;; Obsolete.
+
+(define-obsolete-function-alias 'widget-sublist #'seq-subseq "28.1")
 
 (provide 'wid-edit)
 

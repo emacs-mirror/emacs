@@ -147,6 +147,7 @@ the sequence, and its index within the sequence."
   "Return a shallow copy of SEQUENCE."
   (copy-sequence sequence))
 
+;;;###autoload
 (cl-defgeneric seq-subseq (sequence start &optional end)
   "Return the sequence of elements of SEQUENCE from START to END.
 END is exclusive.
