@@ -1674,8 +1674,16 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
     {
       src_name = concat2 (src_name, build_string (".gz"));
       if (NILP (Ffile_exists_p (src_name)))
-	/* Can't find the corresponding source file.  */
-	return;
+	{
+	  if (!NILP (find_symbol_value (Qcomp_warning_on_missing_source)))
+	    call2 (intern_c_string ("display-warning"),
+		   Qcomp,
+		   CALLN (Fformat,
+			  build_string ("Cannot look-up eln file as no source "
+					"file was found for %s"),
+			  *filename));
+	  return;
+	}
     }
   Lisp_Object eln_rel_name = Fcomp_el_to_eln_rel_filename (src_name);
 

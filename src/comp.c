@@ -5254,7 +5254,8 @@ compiled one.  */);
   DEFSYM (Qlate, "late");
   DEFSYM (Qlambda_fixup, "lambda-fixup");
   DEFSYM (Qgccjit, "gccjit");
-  DEFSYM (Qcomp_subr_trampoline_install, "comp-subr-trampoline-install")
+  DEFSYM (Qcomp_subr_trampoline_install, "comp-subr-trampoline-install");
+  DEFSYM (Qcomp_warning_on_missing_source, "comp-warning-on-missing-source");
 
   /* To be signaled by the compiler.  */
   DEFSYM (Qnative_compiler_error, "native-compiler-error");
