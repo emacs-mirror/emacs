@@ -3801,6 +3801,16 @@ if test "${with_native_compilation}" != "no"; then
     if test "${HAVE_ZLIB}" = no; then
        AC_MSG_ERROR(['--with-nativecomp' requires zlib])
     fi
+
+    # Ensure libgccjit installed by Homebrew can be found.
+    if test -n "$BREW"; then
+      BREW_LIBGCCJIT_PREFIX=`$BREW --prefix --installed libgccjit 2>/dev/null`
+      if test "$BREW_LIBGCCJIT_PREFIX"; then
+        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_PREFIX}/include"
+        LDFLAGS="$LDFLAGS -L${BREW_LIBGCCJIT_PREFIX}/lib/gcc/10 -I${BREW_LIBGCCJIT_PREFIX}/include"
+      fi
+    fi
+
     # Check if libgccjit is available.
     AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, [], [libgccjit_not_found])
     AC_CHECK_HEADERS(libgccjit.h, [], [libgccjit_dev_not_found])

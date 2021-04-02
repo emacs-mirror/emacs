@@ -323,10 +323,11 @@ COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
 ifeq (${ns_self_contained},no)
 BIN_DESTDIR='$(DESTDIR)${bindir}/'
+ELN_DESTDIR = $(DESTDIR)${libdir}/emacs/${version}/
 else
 BIN_DESTDIR='${ns_appbindir}/'
+ELN_DESTDIR = ${ns_appresdir}/
 endif
-ELN_DESTDIR = $(DESTDIR)${libdir}/emacs/${version}/
 
 all: ${SUBDIR} info
 
@@ -752,7 +753,8 @@ install-etc:
 ### Install native compiled Lisp files.
 install-eln:
 ifeq ($(HAVE_NATIVE_COMP),yes)
-	find native-lisp -type f -exec ${INSTALL_DATA} -D "{}" "$(ELN_DESTDIR){}" \;
+	find native-lisp -type d -exec $(MKDIR_P) "$(ELN_DESTDIR){}" \; ; \
+	find native-lisp -type f -exec ${INSTALL_DATA} "{}" "$(ELN_DESTDIR){}" \;
 endif
 
 ### Build Emacs and install it, stripping binaries while installing them.
