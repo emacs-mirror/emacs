@@ -59,11 +59,11 @@ This includes when running `eshell-command'."
 (defun eshell-script-initialize ()  ;Called from `eshell-mode' via intern-soft!
   "Initialize the script parsing code."
   (setq-local eshell-interpreter-alist
-	(cons (cons #'(lambda (file _args)
-                        (string= (file-name-nondirectory file)
-                                 "eshell"))
-                    'eshell/source)
-	      eshell-interpreter-alist))
+              (cons (cons (lambda (file _args)
+                            (string= (file-name-nondirectory file)
+                                     "eshell"))
+                          'eshell/source)
+                    eshell-interpreter-alist))
   (setq-local eshell-complex-commands
 	(append '("source" ".") eshell-complex-commands))
   ;; these two variables are changed through usage, but we don't want
