@@ -750,7 +750,7 @@ automatically."
   :type 'boolean)
 
 (defcustom widget-image-conversion
-  '((xpm ".xpm") (gif ".gif") (png ".png") (jpeg ".jpg" ".jpeg")
+  '((svg ".svg") (xpm ".xpm") (gif ".gif") (png ".png") (jpeg ".jpg" ".jpeg")
     (xbm ".xbm"))
   "Conversion alist from image formats to file name suffixes."
   :group 'widgets
@@ -2564,9 +2564,9 @@ Return an alist of (TYPE MATCH)."
   :button-suffix ""
   :button-prefix ""
   :on "(*)"
-  :on-glyph "radio1"
+  :on-glyph "radio-checked"
   :off "( )"
-  :off-glyph "radio0")
+  :off-glyph "radio")
 
 (defun widget-radio-button-notify (widget _child &optional event)
   ;; Tell daddy.
