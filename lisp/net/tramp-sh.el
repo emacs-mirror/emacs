@@ -3740,8 +3740,6 @@ Fall back to normal file name handler if no Tramp handler exists."
 	          "changes done" "changes-done-hint" string)
           string (tramp-compat-string-replace
 	          "renamed to" "moved" string))
-    (when (getenv "EMACS_EMBA_CI")
-      (message "%s" string))
 
     (catch 'doesnt-work
       ;; https://bugs.launchpad.net/bugs/1742946
