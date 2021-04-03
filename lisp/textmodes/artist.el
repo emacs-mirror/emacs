@@ -106,13 +106,6 @@
 ;; If you add a new drawing mode, send it to me, and I would gladly
 ;; include in the next release!
 
-;;; Installation:
-
-;; To use artist, put this in your .emacs:
-;;
-;;    (autoload 'artist-mode "artist" "Enter artist-mode" t)
-
-
 ;;; Requirements:
 
 ;; Artist requires the `rect' package (which comes with Emacs) to be
