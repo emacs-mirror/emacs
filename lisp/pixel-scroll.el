@@ -1,4 +1,4 @@
-;;; pixel-scroll.el --- Scroll a line smoothly
+;;; pixel-scroll.el --- Scroll a line smoothly  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 ;; Author: Tak Kunihiro <tkk@misasa.okayama-u.ac.jp>
@@ -124,7 +124,7 @@ This is an alternative of `scroll-up'.  Scope moves downward."
   (or arg (setq arg 1))
   (if (pixel-scroll-in-rush-p)
       (scroll-up arg)
-    (dotimes (ii arg)                    ; move scope downward
+    (dotimes (_ arg)                    ; move scope downward
       (let ((amt (if pixel-resolution-fine-flag
                      (if (integerp pixel-resolution-fine-flag)
                          pixel-resolution-fine-flag
@@ -145,7 +145,7 @@ This is and alternative of `scroll-down'.  Scope moves upward."
   (or arg (setq arg 1))
   (if (pixel-scroll-in-rush-p)
       (scroll-down arg)
-    (dotimes (ii arg)
+    (dotimes (_ arg)
       (let ((amt (if pixel-resolution-fine-flag
                      (if (integerp pixel-resolution-fine-flag)
                          pixel-resolution-fine-flag
@@ -244,7 +244,7 @@ that was scrolled."
          (dst (* line height))         ; goal                  @25  @25  @92
          (delta (- dst src)))          ; pixels to be scrolled  25   17    4
     (pixel--whistlestop-pixel-up (1- delta)) ; until one less  @24  @24  @91
-    (dotimes (ii line)
+    (dotimes (_ line)
       ;; On horizontal scrolling, move cursor.
       (when (> (window-hscroll) 0)
         (vertical-motion 1))
