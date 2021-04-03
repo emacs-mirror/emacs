@@ -2584,12 +2584,9 @@ The method used must be an out-of-band method."
 	(save-restriction
 	  (narrow-to-region beg-marker end-marker)
 	  ;; Check for "--dired" output.
-	  (forward-line -2)
-	  (when (looking-at-p "//SUBDIRED//")
-	    (forward-line -1))
-	  (when (looking-at "//DIRED//\\s-+")
-	    (let ((beg (match-end 0))
-		  (end (point-at-eol)))
+	  (when (re-search-backward "^//DIRED//\\s-+\\(.+\\)$" nil 'noerror)
+	    (let ((beg (match-beginning 1))
+		  (end (match-end 0)))
 	      ;; Now read the numeric positions of file names.
 	      (goto-char beg)
 	      (while (< (point) end)
@@ -2599,7 +2596,7 @@ The method used must be an out-of-band method."
 		      ;; End is followed by \n or by " -> ".
 		      (put-text-property start end 'dired-filename t))))))
 	  ;; Remove trailing lines.
-	  (goto-char (point-at-bol))
+	  (beginning-of-line)
 	  (while (looking-at "//")
 	    (forward-line 1)
 	    (delete-region (match-beginning 0) (point))))
