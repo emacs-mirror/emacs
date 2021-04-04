@@ -3747,13 +3747,13 @@ window state change flag is reset.  */)
 DEFUN ("frame-scale-factor", Fframe_scale_factor, Sframe_scale_factor,
        0, 1, 0,
        doc: /* Return FRAMEs scale factor.
-The scale factor is the amount a logical pixel size must be multiplied
-to find the real number of pixels.  */)
+The scale factor is the amount by which a logical pixel size must be
+multiplied to find the real number of pixels.  */)
      (Lisp_Object frame)
 {
   struct frame *f = decode_live_frame (frame);
 
-  return (make_float (FRAME_SCALE_FACTOR (f)));
+  return (make_float (f ? FRAME_SCALE_FACTOR (f) : 1));
 }
 
 /***********************************************************************
