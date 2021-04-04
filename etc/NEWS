@@ -1056,6 +1056,10 @@ the commands 'customize', 'customize-group', 'customize-apropos' and
 To customize obsolete user options, use 'customize-option' or
 'customize-saved'.
 
+*** New SVG icons for checkboxes and arrows.
+They will be used automatically instead of the old icons.  If Emacs is
+built without SVG support, the old icons will be used instead.
+
 ** Edebug
 
 *** Obsoletions
