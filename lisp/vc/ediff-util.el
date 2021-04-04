@@ -4190,10 +4190,6 @@ Mail anyway? (y or n) ")
 (define-obsolete-function-alias 'ediff-add-to-history #'add-to-history "27.1")
 (define-obsolete-function-alias 'ediff-copy-list #'copy-sequence "28.1")
 
-
-;; don't report error if version control package wasn't found
-;;(ediff-load-version-control 'silent)
-
 (run-hooks 'ediff-load-hook)
 
 ;;; ediff-util.el ends here
