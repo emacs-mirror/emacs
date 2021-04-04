@@ -119,6 +119,7 @@ There are different timeouts for local and remote file notification libraries."
   (cond
    ((file-remote-p temporary-file-directory) 20)
    ((eq system-type 'cygwin) 10)
+   ((getenv "EMACS_EMBA_CI") 10)
    ((string-equal (file-notify--test-library) "w32notify") 4)
    (t 3)))
 
