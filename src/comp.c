@@ -4750,7 +4750,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 /* Fixup the system eln-cache dir.  This is the last entry in
    `comp-eln-load-path'.  */
 void
-fixup_eln_load_path (Lisp_Object directory)
+fixup_eln_load_path (Lisp_Object eln_filename)
 {
   Lisp_Object last_cell = Qnil;
   Lisp_Object tmp = Vcomp_eln_load_path;
@@ -4760,7 +4760,7 @@ fixup_eln_load_path (Lisp_Object directory)
 
   Lisp_Object eln_cache_sys =
     Ffile_name_directory (concat2 (Vinvocation_directory,
-				   directory));
+				   eln_filename));
   bool preloaded =
     !NILP (Fequal (Fsubstring (eln_cache_sys, make_fixnum (-10),
 			       make_fixnum (-1)),
