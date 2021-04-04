@@ -528,15 +528,6 @@ therefore no longer care about) will be invalid at any time.\n
       (group xdigit xdigit)
       (group xdigit xdigit)))
 
-(defun hfy-interq (set-a set-b)
-  "Return the intersection (using `eq') of two lists SET-A and SET-B."
-  (let ((sa set-a) (interq nil) (elt nil))
-    (while sa
-      (setq elt (car sa)
-            sa  (cdr sa))
-      (if (memq elt set-b) (setq interq (cons elt interq))))
-    interq))
-
 (defun hfy-color-vals (color)
   "Where COLOR is a color name or #XXXXXX style triplet, return a
 list of three (16 bit) rgb values for said color.\n
@@ -884,7 +875,9 @@ See also `hfy-display-class' for details of valid values for CLASS."
                        (setq score 0) (ignore "t match"))
                       ((not (cdr (assq key face-class))) ;Neither good nor bad.
                        nil (ignore "non match, non collision"))
-                      ((setq x (hfy-interq val (cdr (assq key face-class))))
+                      ((setq x (nreverse
+                                (seq-intersection val (cdr (assq key face-class))
+                                                  #'eq)))
                        (setq score (+ score (length x)))
                        (ignore "intersection"))
                       (t ;; nope.
@@ -2351,6 +2344,13 @@ You may also want to set `hfy-page-header' and `hfy-page-footer'."
   (interactive)
   (let ((file (hfy-initfile)))
     (load file 'NOERROR nil nil) ))
+
+;; Obsolete.
+
+(defun hfy-interq (set-a set-b)
+  "Return the intersection (using `eq') of two lists SET-A and SET-B."
+  (declare (obsolete seq-intersection "28.1"))
+  (nreverse (seq-intersection set-a set-b #'eq)))
 
 (provide 'htmlfontify)
 

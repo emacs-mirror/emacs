@@ -558,7 +558,7 @@ all.  This may very well take some time.")
     (nnmail-activate 'nndiary)
     ;; Articles not listed in active-articles are already gone,
     ;; so don't try to expire them.
-    (setq articles (gnus-intersection articles active-articles))
+    (setq articles (nreverse (seq-intersection articles active-articles #'eq)))
     (while articles
       (setq article (nndiary-article-to-file (setq number (pop articles))))
       (if (and (nndiary-deletable-article-p group number)

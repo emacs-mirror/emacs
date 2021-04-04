@@ -179,12 +179,8 @@ Both lists have to be sorted over <."
 
 ;;;###autoload
 (defun gnus-intersection (list1 list2)
-  (let ((result nil))
-    (while list2
-      (when (memq (car list2) list1)
-	(setq result (cons (car list2) result)))
-      (setq list2 (cdr list2)))
-    result))
+  (declare (obsolete seq-intersection "28.1"))
+  (nreverse (seq-intersection list1 list2 #'eq)))
 
 ;;;###autoload
 (defun gnus-sorted-intersection (list1 list2)

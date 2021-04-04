@@ -578,7 +578,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 
 (defun gnus-new-processable (unmarkp articles)
   (if unmarkp
-      (gnus-intersection gnus-newsgroup-processable articles)
+      (nreverse (seq-intersection gnus-newsgroup-processable articles #'eq))
     (gnus-set-difference articles gnus-newsgroup-processable)))
 
 (defun gnus-uu-mark-by-regexp (regexp &optional unmark)

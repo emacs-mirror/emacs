@@ -1680,6 +1680,7 @@ Sat, 07 Sep 2002 00:00:01 GMT
              nil))))
     nil))
 
+;; FIXME: Can this be replaced by seq-intersection?
 (defun newsticker--lists-intersect-p (list1 list2)
   "Return t if LIST1 and LIST2 share elements."
   (let ((result nil))
