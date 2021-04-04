@@ -523,13 +523,10 @@ therefore no longer care about) will be invalid at any time.\n
 (defvar hfy-tmpfont-stack nil
   "An alist of derived fonts resulting from overlays.")
 
-(defconst hfy-hex-regex "[[:xdigit:]]")
-
 (defconst hfy-triplet-regex
-  (concat
-   "\\(" hfy-hex-regex hfy-hex-regex "\\)"
-   "\\(" hfy-hex-regex hfy-hex-regex "\\)"
-   "\\(" hfy-hex-regex hfy-hex-regex "\\)"))
+  (rx (group xdigit xdigit)
+      (group xdigit xdigit)
+      (group xdigit xdigit)))
 
 (defun hfy-interq (set-a set-b)
   "Return the intersection (using `eq') of two lists SET-A and SET-B."
