@@ -9917,6 +9917,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   char *wrapped_contents = NULL;
   ptrdiff_t wrapped_size;
 
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  char *css = NULL;
+#endif
+
 #if ! GLIB_CHECK_VERSION (2, 36, 0)
   /* g_type_init is a glib function that must be called prior to
      using gnome type library functions (obsolete since 2.36.0).  */
@@ -9944,16 +9948,15 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
                            FRAME_DISPLAY_INFO (f)->resy);
 
 #if LIBRSVG_CHECK_VERSION (2, 48, 0)
-  char *css;
   Lisp_Object lcss = image_spec_value (img->spec, QCcss, NULL);
   if (!STRINGP (lcss))
     {
       /* Generate the CSS for the SVG image.  */
-      char *css_spec = "svg{font-family:\"%s\";font-size:%4dpx}";
+      const char *css_spec = "svg{font-family:\"%s\";font-size:%4dpx}";
       int css_len = strlen (css_spec) + strlen (img->face_font_family);
       css = xmalloc (css_len);
       snprintf (css, css_len, css_spec, img->face_font_family, img->face_font_size);
-      rsvg_handle_set_stylesheet (rsvg_handle, css, strlen (css), NULL);
+      rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *)css, strlen (css), NULL);
     }
   else
     {
@@ -10141,7 +10144,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
                            FRAME_DISPLAY_INFO (f)->resy);
 
 #if LIBRSVG_CHECK_VERSION (2, 48, 0)
-  rsvg_handle_set_stylesheet (rsvg_handle, css, strlen (css), NULL);
+  rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *)css, strlen (css), NULL);
 #endif
 #else
   /* Make a handle to a new rsvg object.  */
