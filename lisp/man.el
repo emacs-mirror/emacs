@@ -1503,7 +1503,9 @@ manpage command."
               (quit-restore-window
                (get-buffer-window Man-buffer t) 'kill)
               ;; Ensure that we end up in the correct window.
-              (select-window (old-selected-window)))
+              (let ((old-window (old-selected-window)))
+                (when (window-live-p old-window)
+                  (select-window old-window))))
           (kill-buffer Man-buffer)))
 
       (when message
