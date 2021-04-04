@@ -1535,7 +1535,7 @@ to `compilation-error-regexp-alist' if RULES is nil."
           (error "HYPERLINK should be an integer: %s" (nth 5 item)))
 
         (goto-char start)
-        (while (re-search-forward pat end t)
+        (while (compilation--re-search-forward-limited pat end 1024)
           (when (setq props (compilation-error-properties
                              file line end-line col end-col
                              (or type 2) fmt rule))
@@ -1596,6 +1596,28 @@ to `compilation-error-regexp-alist' if RULES is nil."
               (font-lock-append-text-property
                (match-beginning mn) (match-end mn)
                'font-lock-face (cadr props)))))))))
+
+(defun compilation--re-search-forward-limited (regexp bound n)
+  "Like 're-search-forward limited to the first N chars per line.
+This avoids Emacs performance degradation on scanning excessively
+long lines of text.  It is reasonable when scanning for compiler
+warnings to expect to find them early on each line.  REGEXP and
+BOUND are as in 're-search-forward."
+  (let ((inhibit-field-text-motion t)
+        (found nil)
+        (orig-point (point)))
+    (while (and (null found)
+                (< (point) bound)
+                (not (eobp)))
+      (setq found (re-search-forward regexp
+                                     (max (point)
+                                          (min bound (+ (point-at-bol) n)))
+                                     t))
+      (when (null found)
+        (forward-line 1)))
+    (when (null found)
+      (goto-char orig-point))
+    found))
 
 (defvar-local compilation--parsed -1)
 
