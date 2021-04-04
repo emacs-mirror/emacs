@@ -475,7 +475,7 @@ Menu items are appended to the common grammar menu.")
 	     (with-current-buffer (find-file-noselect infile)
 	       (setq infile buffer-file-name)
 	       (if outdir (setq default-directory outdir))
-	       (semantic-grammar-create-package nil t))
+	       (semantic-grammar-create-package t t))
 	   (error (message "%s" (error-message-string err)) nil)))
 	lang filename copyright-end)
     (when (and packagename

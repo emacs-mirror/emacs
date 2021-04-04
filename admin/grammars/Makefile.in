@@ -34,7 +34,7 @@ top_builddir = @top_builddir@
 unexport EMACSDATA EMACSDOC EMACSPATH
 
 EMACS = ${top_builddir}/src/emacs
-emacs = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp
+emacs = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp --eval '(setq load-prefer-newer t)'
 
 make_bovine = ${emacs} -l semantic/bovine/grammar -f bovine-batch-make-parser
 make_wisent = ${emacs} -l semantic/wisent/grammar -f wisent-batch-make-parser
@@ -42,6 +42,9 @@ make_wisent = ${emacs} -l semantic/wisent/grammar -f wisent-batch-make-parser
 cedetdir = ${top_srcdir}/lisp/cedet
 bovinedir = ${cedetdir}/semantic/bovine
 wisentdir = ${cedetdir}/semantic/wisent
+
+grammar_bovine = ${bovinedir}/grammar.el
+grammar_wisent = ${wisentdir}/grammar.el
 
 BOVINE = \
 	${bovinedir}/c-by.el \
@@ -68,35 +71,32 @@ bovine: ${BOVINE}
 
 wisent: ${WISENT}
 
-## TODO add dependencies on semantic/{bovine,wisent}/grammar.el
-
 ## c-by.el, make-by.el.
-${bovinedir}/%-by.el: ${srcdir}/%.by
+${bovinedir}/%-by.el: ${srcdir}/%.by ${grammar_bovine}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_bovine} -o "$@" $<
 
-${bovinedir}/scm-by.el: ${srcdir}/scheme.by
+${bovinedir}/scm-by.el: ${srcdir}/scheme.by ${grammar_bovine}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_bovine} -o "$@" $<
 
 ## grammar-wy.el
-${cedetdir}/semantic/%-wy.el: ${srcdir}/%.wy
+${cedetdir}/semantic/%-wy.el: ${srcdir}/%.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
 ## js-wy.el, python-wy.el
-${wisentdir}/%-wy.el: ${srcdir}/%.wy
+${wisentdir}/%-wy.el: ${srcdir}/%.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
-${wisentdir}/javat-wy.el: ${srcdir}/java-tags.wy
+${wisentdir}/javat-wy.el: ${srcdir}/java-tags.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
-${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy
+${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
-
 
 .PHONY: distclean bootstrap-clean maintainer-clean extraclean gen-clean
 
