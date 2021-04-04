@@ -620,7 +620,7 @@ behavior."
 	(setq common (ediff-intersection common lis3 #'string=)))
 
     ;; copying is needed because sort sorts via side effects
-    (setq common (sort (ediff-copy-list common) 'string-lessp))
+    (setq common (sort (copy-sequence common) #'string-lessp))
 
     ;; compute difference list
     (setq difflist (ediff-set-difference
@@ -631,7 +631,7 @@ behavior."
 		    #'string=)
 	  difflist (delete "."  difflist)
 	  ;; copying is needed because sort sorts via side effects
-	  difflist (sort (ediff-copy-list (delete ".." difflist))
+          difflist (sort (copy-sequence (delete ".." difflist))
 			 #'string-lessp))
 
     (setq difflist (mapcar (lambda (elt) (cons elt 1)) difflist))
@@ -729,7 +729,7 @@ behavior."
 	  )
 
     ;; copying is needed because sort sorts via side effects
-    (setq common (sort (ediff-copy-list common) 'string-lessp))
+    (setq common (sort (copy-sequence common) #'string-lessp))
 
     ;; return result
     (cons
