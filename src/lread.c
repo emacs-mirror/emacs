@@ -1645,6 +1645,40 @@ directories, make sure the PREDICATE function returns `dir-ok' for them.  */)
   return file;
 }
 
+#ifdef HAVE_NATIVE_COMP
+static bool
+maybe_swap_for_eln1 (Lisp_Object src_name, Lisp_Object eln_name,
+		     Lisp_Object *filename, int *fd, struct timespec mtime)
+{
+  struct stat eln_st;
+  int eln_fd = emacs_open (SSDATA (ENCODE_FILE (eln_name)), O_RDONLY, 0);
+
+  if (eln_fd > 0)
+    {
+      if (fstat (eln_fd, &eln_st) || S_ISDIR (eln_st.st_mode))
+	emacs_close (eln_fd);
+      else
+	{
+	  struct timespec eln_mtime = get_stat_mtime (&eln_st);
+	  if (timespec_cmp (eln_mtime, mtime) >= 0)
+	    {
+	      emacs_close (*fd);
+	      *fd = eln_fd;
+	      *filename = eln_name;
+	      /* Store the eln -> el relation.  */
+	      Fputhash (Ffile_name_nondirectory (eln_name),
+			src_name, Vcomp_eln_to_el_h);
+	      return true;
+	    }
+	  else
+	    emacs_close (eln_fd);
+	}
+    }
+
+  return false;
+}
+#endif
+
 /* Look for a suitable .eln file to be loaded in place of FILENAME.
    If found replace the content of FILENAME and FD. */
 
@@ -1653,7 +1687,6 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
 		    struct timespec mtime)
 {
 #ifdef HAVE_NATIVE_COMP
-  struct stat eln_st;
 
   if (no_native
       || load_no_native)
@@ -1687,36 +1720,24 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
     }
   Lisp_Object eln_rel_name = Fcomp_el_to_eln_rel_filename (src_name);
 
+  Lisp_Object dir = Qnil;
   FOR_EACH_TAIL_SAFE (eln_path_tail)
     {
+      dir = XCAR (eln_path_tail);
       Lisp_Object eln_name =
 	Fexpand_file_name (eln_rel_name,
-			   Fexpand_file_name (Vcomp_native_version_dir,
-					      XCAR (eln_path_tail)));
-      int eln_fd = emacs_open (SSDATA (ENCODE_FILE (eln_name)), O_RDONLY, 0);
-
-      if (eln_fd > 0)
-	{
-	  if (fstat (eln_fd, &eln_st) || S_ISDIR (eln_st.st_mode))
-	    emacs_close (eln_fd);
-	  else
-	    {
-	      struct timespec eln_mtime = get_stat_mtime (&eln_st);
-	      if (timespec_cmp (eln_mtime, mtime) >= 0)
-		{
-		  *filename = eln_name;
-		  emacs_close (*fd);
-		  *fd = eln_fd;
-		  /* Store the eln -> el relation.  */
-		  Fputhash (Ffile_name_nondirectory (eln_name),
-			    src_name, Vcomp_eln_to_el_h);
-		  return;
-		}
-	      else
-		emacs_close (eln_fd);
-	    }
-	}
+			   Fexpand_file_name (Vcomp_native_version_dir, dir));
+      if (maybe_swap_for_eln1 (src_name, eln_name, filename, fd, mtime))
+	return;
     }
+
+  /* Look also in preloaded subfolder of the last entry in
+     `comp-eln-load-path'.  */
+  dir = Fexpand_file_name (build_string ("preloaded"),
+			   Fexpand_file_name (Vcomp_native_version_dir,
+					      dir));
+  maybe_swap_for_eln1 (src_name, Fexpand_file_name (eln_rel_name, dir),
+		       filename, fd, mtime);
 #endif
 }
 
