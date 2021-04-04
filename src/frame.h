@@ -911,7 +911,7 @@ default_pixels_per_inch_y (void)
 #if defined HAVE_NS
 # define FRAME_SCALE_FACTOR(f) (FRAME_NS_P (f) ? ns_frame_scale_factor (f) : 1)
 #else
-# define FRAME_SCALE_FACTOR(f) 1;
+# define FRAME_SCALE_FACTOR(f) 1
 #endif
 
 /* Pixel width of frame F.  */
