@@ -143,7 +143,7 @@
   (let* ((data-parent-dir
           (file-name-directory (directory-file-name xref-tests--data-dir)))
          (project-find-functions
-          #'(lambda (_) (cons 'transient data-parent-dir)))
+          (lambda (_) (cons 'transient data-parent-dir)))
          (xref-file-name-display 'project-relative)
          ;; Some older BSD find versions can produce '//' in the output.
          (expected (list
