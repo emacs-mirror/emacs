@@ -2442,7 +2442,7 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       img->face_foreground = foreground;
       img->face_background = background;
       img->face_font_size = font_size;
-      img->face_font_family = malloc (strlen (font_family) + 1);
+      img->face_font_family = xmalloc (strlen (font_family) + 1);
       strcpy (img->face_font_family, font_family);
       img->load_failed_p = ! img->type->load_img (f, img);
 
@@ -9647,6 +9647,11 @@ DEF_DLL_FN (gboolean, rsvg_handle_get_geometry_for_layer,
 	    (RsvgHandle *, const char *, const RsvgRectangle *,
 	     RsvgRectangle *, RsvgRectangle *, GError **));
 #  endif
+
+#  if LIBRSVG_CHECK_VERSION (2, 48, 0)
+DEF_DLL_FN (gboolean, rsvg_handle_set_stylesheet,
+	    (RsvgHandle *, const guint8 *, gsize, GError **));
+#  endif
 DEF_DLL_FN (void, rsvg_handle_get_dimensions,
 	    (RsvgHandle *, RsvgDimensionData *));
 DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
@@ -9700,6 +9705,9 @@ init_svg_functions (void)
   LOAD_DLL_FN (library, rsvg_handle_get_intrinsic_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_geometry_for_layer);
 #endif
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  LOAD_DLL_FN (library, rsvg_handle_set_stylesheet);
+#endif
   LOAD_DLL_FN (library, rsvg_handle_get_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_pixbuf);
 
@@ -9740,6 +9748,9 @@ init_svg_functions (void)
 #   undef rsvg_handle_get_geometry_for_layer
 #  endif
 #  undef rsvg_handle_get_dimensions
+#  if LIBRSVG_CHECK_VERSION (2, 48, 0)
+#   undef rsvg_handle_set_stylesheet
+#  endif
 #  undef rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   undef g_file_new_for_path
@@ -9773,6 +9784,9 @@ init_svg_functions (void)
 	fn_rsvg_handle_get_geometry_for_layer
 #  endif
 #  define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
+#  if LIBRSVG_CHECK_VERSION (2, 48, 0)
+#   define rsvg_handle_set_stylesheet fn_rsvg_handle_set_stylesheet
+#  endif
 #  define rsvg_handle_get_pixbuf fn_rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   define g_file_new_for_path fn_g_file_new_for_path
