@@ -51,7 +51,7 @@ BOVINE = \
 ## FIXME Should include this one too:
 ##	${cedetdir}/semantic/grammar-wy.el
 ## but semantic/grammar.el (which is what we use to generate grammar-wy.el)
-## requires it!
+## requires it!  https://debbugs.gnu.org/16008
 WISENT = \
 	${wisentdir}/javat-wy.el \
 	${wisentdir}/js-wy.el \
@@ -67,6 +67,8 @@ all: ${ALL}
 bovine: ${BOVINE}
 
 wisent: ${WISENT}
+
+## TODO add dependencies on semantic/{bovine,wisent}/grammar.el
 
 ## c-by.el, make-by.el.
 ${bovinedir}/%-by.el: ${srcdir}/%.by
@@ -96,19 +98,20 @@ ${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
 
-.PHONY: distclean bootstrap-clean maintainer-clean extraclean
+.PHONY: distclean bootstrap-clean maintainer-clean extraclean gen-clean
 
 distclean:
 	rm -f Makefile
 
-## Perhaps this should do what extraclean (qv) does.
+## IMO this should run gen-clean.
 bootstrap-clean:
 
-maintainer-clean: distclean
-
-## We do not normally delete the generated files, even in bootstrap.
-## Creating them does not take long, so we could easily change this.
-extraclean:
+gen-clean:
 	rm -f ${ALL}
+
+maintainer-clean: gen-clean distclean
+
+extraclean: maintainer-clean
+
 
 # Makefile.in ends here
