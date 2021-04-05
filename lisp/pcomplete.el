@@ -1311,18 +1311,6 @@ If specific documentation can't be given, be generic."
       (pcomplete-read-hosts pcomplete-hosts-file 'pcomplete--host-name-cache
                    'pcomplete--host-name-cache-timestamp)))
 
-;; create a set of aliases which allow completion functions to be not
-;; quite so verbose
-
-;;; jww (1999-10-20): are these a good idea?
-;; (defalias 'pc-here 'pcomplete-here)
-;; (defalias 'pc-test 'pcomplete-test)
-;; (defalias 'pc-opt 'pcomplete-opt)
-;; (defalias 'pc-match 'pcomplete-match)
-;; (defalias 'pc-match-string 'pcomplete-match-string)
-;; (defalias 'pc-match-beginning 'pcomplete-match-beginning)
-;; (defalias 'pc-match-end 'pcomplete-match-end)
-
 (provide 'pcomplete)
 
 ;;; pcomplete.el ends here
