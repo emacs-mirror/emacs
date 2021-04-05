@@ -354,12 +354,13 @@ Notes:
 All these arguments can be overwritten by connection properties.
 See Info node `(tramp) Predefined connection information'.
 
-When using `su' or `sudo' the phrase \"open connection to a remote
-host\" sounds strange, but it is used nevertheless, for consistency.
-No connection is opened to a remote host, but `su' or `sudo' is
-started on the local host.  You should specify a remote host
-`localhost' or the name of the local host.  Another host name is
-useful only in combination with `tramp-default-proxies-alist'.")
+When using `su', `sudo' or `doas' the phrase \"open connection to
+a remote host\" sounds strange, but it is used nevertheless, for
+consistency.  No connection is opened to a remote host, but `su',
+`sudo' or `doas' is started on the local host.  You should
+specify a remote host `localhost' or the name of the local host.
+Another host name is useful only in combination with
+`tramp-default-proxies-alist'.")
 
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it performs
@@ -688,6 +689,15 @@ The answer will be provided by `tramp-action-terminal', which see."
   "Regular expression matching plink's anti-spoofing message.
 The regexp should match at end of buffer."
   :version "27.1"
+  :type 'regexp)
+
+;; Powershell requires "ssh -t -t" for terminal emulation.  If it
+;; doesn't fit, there is an error.
+(defcustom tramp-no-job-control-regexp
+  (regexp-quote "Thus no job control in this shell.")
+  "Regular expression matching powershell's job control message.
+The regexp should match at end of buffer."
+  :version "28.1"
   :type 'regexp)
 
 (defcustom tramp-operation-not-permitted-regexp
@@ -1808,6 +1818,7 @@ The outline level is equal to the verbosity of the Tramp message."
   "Get the debug buffer for VEC."
   (with-current-buffer (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
+      (set-buffer-file-coding-system 'utf-8)
       (setq buffer-undo-list t)
       ;; Activate `outline-mode'.  This runs `text-mode-hook' and
       ;; `outline-mode-hook'.  We must prevent that local processes
@@ -1848,7 +1859,7 @@ ARGUMENTS to actually emit the message (if applicable)."
 	(when (bobp)
 	  (insert
 	   (format
-	    ";; Emacs: %s Tramp: %s -*- mode: outline; -*-"
+	    ";; Emacs: %s Tramp: %s -*- mode: outline; coding: utf-8; -*-"
 	    emacs-version tramp-version))
 	  (when (>= tramp-verbose 10)
 	    (let ((tramp-verbose 0))
