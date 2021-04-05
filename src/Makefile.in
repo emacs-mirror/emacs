@@ -503,6 +503,7 @@ shortlisp := $(filter-out ${shortlisp_filter},${shortlisp})
 ## the critical path (relevant in parallel compilations).
 ## We don't really need to sort, but may as well use it to remove duplicates.
 shortlisp := loaddefs.el loadup.el $(sort ${shortlisp})
+export LISP_PRELOADED = ${shortlisp}
 lisp = $(addprefix ${lispsource}/,${shortlisp})
 
 ## Construct full set of libraries to be linked.

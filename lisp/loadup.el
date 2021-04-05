@@ -472,17 +472,25 @@ lost after dumping")))
                     (when (subr-native-elisp-p f)
                       (puthash (subr-native-comp-unit f) nil h)))))
       (maphash (lambda (cu _)
-                 (native-comp-unit-set-file
-                  cu
-	          (cons
-                   ;; Relative filename from the installed binary.
-                   (file-relative-name (concat eln-dest-dir
-                                               (file-name-nondirectory
-                                                (native-comp-unit-file cu)))
-                                       bin-dest-dir)
-                   ;; Relative filename from the built uninstalled binary.
-                   (file-relative-name (native-comp-unit-file cu)
-                                       invocation-directory))))
+                 (let* ((file (native-comp-unit-file cu))
+                        (preloaded (equal (substring (file-name-directory file)
+                                                     -10 -1)
+                                          "preloaded"))
+                        (eln-dest-dir-eff (if preloaded
+                                              (expand-file-name "preloaded"
+                                                                eln-dest-dir)
+                                            eln-dest-dir)))
+                   (native-comp-unit-set-file
+                    cu
+	            (cons
+                     ;; Relative filename from the installed binary.
+                     (file-relative-name (expand-file-name
+                                          (file-name-nondirectory
+                                           file)
+                                          eln-dest-dir-eff)
+                                         bin-dest-dir)
+                     ;; Relative filename from the built uninstalled binary.
+                     (file-relative-name file invocation-directory)))))
 	       h))))
 
 (when (hash-table-p purify-flag)
