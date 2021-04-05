@@ -291,20 +291,6 @@ Prepend remote identification of `default-directory', if any."
 
 (define-obsolete-function-alias 'eshell-flatten-list #'flatten-tree "27.1")
 
-(defun eshell-uniquify-list (l)
-  "Remove occurring multiples in L.  You probably want to sort first."
-  (let ((m l))
-    (while m
-      (while (and (cdr m)
-		  (string= (car m)
-			   (cadr m)))
-	(setcdr m (cddr m)))
-      (setq m (cdr m))))
-  l)
-(define-obsolete-function-alias
-  'eshell-uniqify-list
-  'eshell-uniquify-list "27.1")
-
 (defun eshell-stringify (object)
   "Convert OBJECT into a string value."
   (cond
@@ -700,6 +686,8 @@ gid format.  Valid values are `string' and `integer', defaulting to
 
 ;; Obsolete.
 
+(define-obsolete-function-alias 'eshell-uniquify-list #'seq-uniq "28.1")
+(define-obsolete-function-alias 'eshell-uniqify-list #'seq-uniq "28.1")
 (define-obsolete-function-alias 'eshell-copy-tree #'copy-tree "28.1")
 (define-obsolete-function-alias 'eshell-user-name #'user-login-name "28.1")
 

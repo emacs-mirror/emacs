@@ -1260,18 +1260,9 @@ If specific documentation can't be given, be generic."
 
 (defun pcomplete-uniquify-list (l)
   "Sort and remove multiples in L."
-  (setq l (sort l 'string-lessp))
-  (let ((m l))
-    (while m
-      (while (and (cdr m)
-		  (string= (car m)
-			   (cadr m)))
-	(setcdr m (cddr m)))
-      (setq m (cdr m))))
-  l)
-(define-obsolete-function-alias
-  'pcomplete-uniqify-list
-  'pcomplete-uniquify-list "27.1")
+  (setq l (sort l #'string-lessp))
+  (seq-uniq l))
+(define-obsolete-function-alias 'pcomplete-uniqify-list #'pcomplete-uniquify-list "27.1")
 
 (defun pcomplete-process-result (cmd &rest args)
   "Call CMD using `call-process' and return the simplest result."

@@ -130,7 +130,7 @@ The format of each entry is
     (?e . (lambda (lst) (mapcar #'file-name-extension lst)))
     (?t . (lambda (lst) (mapcar #'file-name-nondirectory lst)))
     (?q . (lambda (lst) (mapcar #'eshell-escape-arg lst)))
-    (?u . (lambda (lst) (eshell-uniquify-list lst)))
+    (?u . (lambda (lst) (seq-uniq lst)))
     (?o . (lambda (lst) (sort lst #'string-lessp)))
     (?O . (lambda (lst) (nreverse (sort lst #'string-lessp))))
     (?j . (eshell-join-members))

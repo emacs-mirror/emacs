@@ -431,6 +431,7 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil."
         (setq index (1+ index)))
       nil)))
 
+;;;###autoload
 (cl-defgeneric seq-uniq (sequence &optional testfn)
   "Return a list of the elements of SEQUENCE with duplicates removed.
 TESTFN is used to compare elements, or `equal' if TESTFN is nil."
