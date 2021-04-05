@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(require 'rx)
-
 ;; Try to load python support, but fail silently since it is only used
 ;; for optional functionality
 (require 'python nil t)

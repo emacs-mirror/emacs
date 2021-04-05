@@ -153,7 +153,8 @@ Optional argument FACE specifies the face to do the highlighting."
       ;; with a reference face needed for the color.
       (pulse-reset-face face)
       (let* ((start (color-name-to-rgb
-                     (face-background 'pulse-highlight-start-face)))
+                     (face-background 'pulse-highlight-start-face
+                                      nil 'default)))
              (stop (color-name-to-rgb (face-background 'default)))
              (colors (mapcar (apply-partially 'apply 'color-rgb-to-hex)
                              (color-gradient start stop pulse-iterations))))

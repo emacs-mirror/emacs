@@ -35,9 +35,6 @@
 ;;
 ;; For more details on Wisent itself read the Wisent manual.
 
-;;; History:
-;;
-
 ;;; Code:
 (require 'semantic/wisent)
 (eval-when-compile (require 'cl-lib))
@@ -69,7 +66,7 @@
   "Define a context NAME that will bind variables VARS."
   (declare (indent 1))
   (let* ((context (wisent-context-name name))
-         (declarations (mapcar #'(lambda (v) (list 'defvar v)) vars)))
+         (declarations (mapcar (lambda (v) (list 'defvar v)) vars)))
     `(progn
        ,@declarations
        (eval-when-compile
@@ -3488,11 +3485,11 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
        ;; in local variable OBN.
        ,@(let (obcode)
            (mapatoms
-            #'(lambda (s)
-                (setq obcode
-                      (cons `(fset (intern ,(symbol-name s) ,obn)
-                                   #',(symbol-function s))
-                            obcode)))
+            (lambda (s)
+              (setq obcode
+                    (cons `(fset (intern ,(symbol-name s) ,obn)
+                                 #',(symbol-function s))
+                          obcode)))
             obv)
            obcode)
        ;; Generate code to create the automaton.
@@ -3504,18 +3501,18 @@ See also `wisent-compile-grammar' for more details on AUTOMATON."
          ,@(mapcar
             ;; Use name `st' rather than `state' since `state' is
             ;; defined as dynbound in `semantic-actions' context above :-( !
-            #'(lambda (st) ;; for each state
-                `(list
-                  ,@(mapcar
-                     #'(lambda (tr) ;; for each transition
-                         (let ((k (car tr))  ; token
-                               (a (cdr tr))) ; action
-                           (if (and (symbolp a)
-                                    (intern-soft (symbol-name a) obv))
-                               `(cons ,(if (symbolp k) `(quote ,k) k)
-                                      (intern-soft ,(symbol-name a) ,obn))
-                             `(quote ,tr))))
-                     st)))
+            (lambda (st) ;; for each state
+              `(list
+                ,@(mapcar
+                   (lambda (tr) ;; for each transition
+                     (let ((k (car tr))  ; token
+                           (a (cdr tr))) ; action
+                       (if (and (symbolp a)
+                                (intern-soft (symbol-name a) obv))
+                           `(cons ,(if (symbolp k) `(quote ,k) k)
+                                  (intern-soft ,(symbol-name a) ,obn))
+                         `(quote ,tr))))
+                   st)))
             (aref automaton 0)))
         ;; The code of the goto table is unchanged.
         ,(aref automaton 1)

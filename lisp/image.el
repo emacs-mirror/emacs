@@ -603,12 +603,16 @@ means display it in the right marginal area."
 (defun insert-image (image &optional string area slice)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.  STRING
-defaults to a single space if you omit it.
+with a `display' property whose value is the image.
+
+STRING defaults to a single space if you omit it, which means
+that the inserted image will behave as whitespace syntactically.
+
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area.
+
 SLICE specifies slice of IMAGE to insert.  SLICE nil or omitted
 means insert whole image.  SLICE is a list (X Y WIDTH HEIGHT)
 specifying the X and Y positions and WIDTH and HEIGHT of image area
@@ -1130,6 +1134,7 @@ default is 20%."
     image))
 
 (defun image--get-imagemagick-and-warn (&optional position)
+  (declare-function image-transforms-p "image.c" (&optional frame))
   (unless (or (fboundp 'imagemagick-types) (image-transforms-p))
     (error "Cannot rescale images on this terminal"))
   (let ((image (image--get-image position)))

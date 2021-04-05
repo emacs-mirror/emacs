@@ -614,13 +614,14 @@ point."
         str))))
 
 ;;;###autoload
-(defun emacs-init-time ()
-  "Return a string giving the duration of the Emacs initialization."
+(defun emacs-init-time (&optional format)
+  "Return a string giving the duration of the Emacs initialization.
+FORMAT is a string to format the result, using `format'. If nil,
+the default format \"%f seconds\" is used."
   (interactive)
-  (let ((str
-	 (format "%s seconds"
-		 (float-time
-		  (time-subtract after-init-time before-init-time)))))
+  (let ((str (format (or format "%f seconds")
+                     (float-time (time-subtract after-init-time
+                                                before-init-time)))))
     (if (called-interactively-p 'interactive)
         (message "%s" str)
       str)))

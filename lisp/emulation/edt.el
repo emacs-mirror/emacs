@@ -178,9 +178,6 @@
 (defvar edt-user-global-map)
 (defvar rect-start-point)
 
-(defconst edt-version "4.0" "EDT Emulation version number.")
-(make-obsolete-variable 'edt-version nil "28.1")
-
 ;;;
 ;;;  User Configurable Variables
 ;;;
@@ -299,6 +296,8 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 ;;;     o edt-emulation-on      o edt-load-keys
 ;;;
 (defconst edt-xserver (when (eq window-system 'x)
+                        (declare-function x-server-vendor "xfns.c"
+                                          (&optional terminal))
 			;; The Cygwin window manager has a `/' in its
 			;; name, which breaks the generated file name of
 			;; the custom key map file.  Replace `/' with a
@@ -2530,6 +2529,9 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
       (edt-set-term-width-132))
   (set-frame-width nil 132)
   (message "Terminal width 132"))
+
+(defconst edt-version "4.0" "EDT Emulation version number.")
+(make-obsolete-variable 'edt-version 'emacs-version "28.1")
 
 (provide 'edt)
 

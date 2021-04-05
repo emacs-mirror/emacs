@@ -3941,13 +3941,15 @@ it.  See `format' for details.
 If DEFAULT is a list, the first element is used as the default.
 If not, the element is used as is.
 
-If DEFAULT is nil, no \"default value\" string is included in the
-return value."
+If DEFAULT is nil or an empty string, no \"default value\" string
+is included in the return value."
   (concat
    (if (null format-args)
        prompt
      (apply #'format prompt format-args))
    (and default
+        (or (not (stringp default))
+            (length> default 0))
         (format minibuffer-default-prompt-format
                 (if (consp default)
                     (car default)

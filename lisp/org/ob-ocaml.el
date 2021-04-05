@@ -32,7 +32,7 @@
 
 ;;; Requirements:
 
-;; - tuareg-mode :: http://www-rocq.inria.fr/~acohen/tuareg/
+;; - tuareg-mode :: https://www-rocq.inria.fr/~acohen/tuareg/
 
 ;;; Code:
 (require 'ob)

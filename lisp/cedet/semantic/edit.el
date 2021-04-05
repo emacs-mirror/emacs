@@ -154,8 +154,8 @@ Optional argument BUFFER is the buffer to search for changes in."
 	(when (overlay-get (car ol) 'semantic-change)
 	  (setq ret (cons (car ol) ret)))
 	(setq ol (cdr ol)))
-      (sort ret #'(lambda (a b) (< (overlay-start a)
-				   (overlay-start b)))))))
+      (sort ret (lambda (a b) (< (overlay-start a)
+                                 (overlay-start b)))))))
 
 (defun semantic-edits-change-function-handle-changes  (start end _length)
   "Run whenever a buffer controlled by `semantic-mode' change.

@@ -1,4 +1,4 @@
-;;; mh-limit.el --- MH-E display limits
+;;; mh-limit.el --- MH-E display limits  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2003, 2006-2021 Free Software Foundation, Inc.
 
@@ -237,7 +237,7 @@ Return number of messages put in the sequence:
               (setq list (cons (mh-get-msg-num t) list)))
           (if (assoc 'subject mh-seq-list) (mh-delete-seq 'subject))
           ;; sort the result into a sequence
-          (let ((sorted-list (sort (copy-sequence list) 'mh-lessp)))
+          (let ((sorted-list (sort (copy-sequence list) #'mh-lessp)))
             (while sorted-list
               (mh-add-msgs-to-seq (car sorted-list) 'subject nil)
               (setq sorted-list (cdr sorted-list)))

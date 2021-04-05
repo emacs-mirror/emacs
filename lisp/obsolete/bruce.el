@@ -30,7 +30,7 @@
 ;; Decency Act of 1996. This Act bans "indecent speech", whatever that is,
 ;; from the Internet. For more on the CDA, see Richard Stallman's essay on
 ;; censorship, included in the etc directory of emacs distributions 19.34
-;; and up. See also http://www.eff.org/blueribbon.html.
+;; and up. See also https://www.eff.org/blueribbon.html.
 
 ;; For many years, emacs has included a program called Spook. This program
 ;; adds a series of "keywords" to email just before it goes out. On the

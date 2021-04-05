@@ -162,11 +162,7 @@ ptrdiff_t_to_dump_off (ptrdiff_t value)
 static int
 dump_get_page_size (void)
 {
-#if defined (WINDOWSNT) || defined (CYGWIN)
-  return 64 * 1024;  /* Worst-case allocation granularity.  */
-#else
-  return getpagesize ();
-#endif
+  return 64 * 1024;
 }
 
 #define dump_offsetof(type, member)                             \
@@ -5467,9 +5463,6 @@ Value is nil if this session was not started using a dump file.*/)
 		Fcons (Qdump_file_name, dump_fn));
 }
 
-#endif /* HAVE_PDUMPER */
-
-
 static void
 thaw_hash_tables (void)
 {
@@ -5478,10 +5471,15 @@ thaw_hash_tables (void)
     hash_table_thaw (AREF (hash_tables, i));
 }
 
+#endif /* HAVE_PDUMPER */
+
+
 void
 init_pdumper_once (void)
 {
+#ifdef HAVE_PDUMPER
   pdumper_do_now_and_after_load (thaw_hash_tables);
+#endif
 }
 
 void

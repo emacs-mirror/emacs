@@ -1600,7 +1600,7 @@ not be expanded."
              (result (funcall hide-ifdef-evaluator expr))
              (exprstring (replace-regexp-in-string
                           ;; Trim off leading/trailing whites
-                          "^[ \t]*\\([^ \t]+\\)[ \t]*" "\\1"
+                          "^[ \t]*\\|[ \t]*$"  ""
                           (replace-regexp-in-string
                            "\\(//.*\\)" "" ; Trim off end-of-line comments
                            (buffer-substring-no-properties start end)))))
@@ -1743,10 +1743,10 @@ first arg will be `hif-etc'."
 (defun hide-ifdef-guts ()
   "Does most of the work of `hide-ifdefs'.
 It does not do the work that's pointless to redo on a recursive entry."
-  ;; (message "hide-ifdef-guts")
   (save-excursion
     (let* ((case-fold-search t) ; Ignore case for `hide-ifdef-header-regexp'
            (expand-header (and hide-ifdef-expand-reinclusion-protection
+                               (buffer-file-name)
                                (string-match hide-ifdef-header-regexp
                                              (buffer-file-name))
                                (zerop hif-recurse-level)))

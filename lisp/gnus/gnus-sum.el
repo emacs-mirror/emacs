@@ -5676,9 +5676,9 @@ or a straight list of headers."
 	    (or dependencies
 		(with-current-buffer gnus-summary-buffer
 		  gnus-newsgroup-dependencies))))
-     (delq nil (mapcar   #'(lambda (header)
-			     (gnus-dependencies-add-header
-			      header dependencies force-new))
+       (delq nil (mapcar (lambda (header)
+                           (gnus-dependencies-add-header
+                            header dependencies force-new))
 			 gnus-headers-retrieved-by)))))
   (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
 
@@ -5977,14 +5977,15 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			 (input
 			  (read-string
 			   (if only-read-p
-			       (format
-				"How many articles from %s (available %d, default %d): "
-				(gnus-group-real-name gnus-newsgroup-name)
-				number default)
-			     (format
-			      "How many articles from %s (%d default): "
-			      (gnus-group-real-name gnus-newsgroup-name)
-			      default))
+			       (format-prompt
+				    "How many articles from %s (available %d)"
+				    default
+				    (gnus-group-real-name gnus-newsgroup-name)
+				    number)
+			     (format-prompt
+			      "How many articles from %s"
+			      default
+			      (gnus-group-real-name gnus-newsgroup-name)))
 			   nil
 			   nil
 			   (number-to-string default))))
@@ -8568,8 +8569,9 @@ If UNREPLIED (the prefix), limit to unreplied articles."
   (interactive "P" gnus-summary-mode)
   (if unreplied
       (gnus-summary-limit
-       (gnus-set-difference gnus-newsgroup-articles
-	gnus-newsgroup-replied))
+       (seq-difference gnus-newsgroup-articles
+                       gnus-newsgroup-replied
+                       #'eq))
     (gnus-summary-limit gnus-newsgroup-replied))
   (gnus-summary-position-point))
 
@@ -9514,11 +9516,9 @@ If BACKWARD, search backward instead."
   (interactive
    (list
     (read-string
-     (format "Search article %s (regexp%s): "
-	     (if current-prefix-arg "backward" "forward")
-	     (if gnus-last-search-regexp
-		 (concat ", default " gnus-last-search-regexp)
-	       "")))
+     (format-prompt "Search article %s (regexp)"
+                    gnus-last-search-regexp
+                    (if current-prefix-arg "backward" "forward")))
     current-prefix-arg)
    gnus-summary-mode)
   (if (string-equal regexp "")
@@ -9537,10 +9537,8 @@ If BACKWARD, search backward instead."
   (interactive
    (list
     (read-string
-     (format "Search article backward (regexp%s): "
-	     (if gnus-last-search-regexp
-		 (concat ", default " gnus-last-search-regexp)
-	       ""))))
+     (format-prompt "Search article backward (regexp)"
+                    gnus-last-search-regexp)))
    gnus-summary-mode)
   (gnus-summary-search-article-forward regexp 'backward))
 

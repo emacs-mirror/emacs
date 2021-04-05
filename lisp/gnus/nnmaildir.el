@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; Maildir format is documented at <URL:http://cr.yp.to/proto/maildir.html>.
+;; Maildir format is documented at <URL:https://cr.yp.to/proto/maildir.html>.
 ;; nnmaildir also stores extra information in the .nnmaildir/ directory
 ;; within a maildir.
 ;;

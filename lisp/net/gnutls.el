@@ -4,7 +4,7 @@
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
-;; Originally-By: Simon Josefsson (See http://josefsson.org/emacs-security/)
+;; Originally-By: Simon Josefsson (See https://josefsson.org/emacs-security/)
 ;; Thanks-To: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
 ;; This file is part of GNU Emacs.
@@ -336,8 +336,8 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                              t)
                             ;; if a list, look for hostname matches
                             ((listp gnutls-verify-error)
-                             (cadr (cl-find-if #'(lambda (x)
-                                                   (string-match (car x) hostname))
+                             (cadr (cl-find-if (lambda (x)
+                                                 (string-match (car x) hostname))
                                                gnutls-verify-error)))
                             ;; else it's nil
                             (t nil))))

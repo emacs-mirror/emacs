@@ -274,7 +274,7 @@ For instance: /home/<username>/.semanticdb/!usr!include!BROWSE"
       (insert-file-contents B)
       (let ((ans nil)
 	    (efcn (symbol-function 'ebrowse-show-progress)))
-	(fset 'ebrowse-show-progress #'(lambda (&rest _junk) nil))
+        (fset 'ebrowse-show-progress (lambda (&rest _junk) nil))
 	(unwind-protect ;; Protect against errors w/ ebrowse
 	    (setq ans (list B (ebrowse-read)))
 	  ;; These items must always happen

@@ -1260,18 +1260,9 @@ If specific documentation can't be given, be generic."
 
 (defun pcomplete-uniquify-list (l)
   "Sort and remove multiples in L."
-  (setq l (sort l 'string-lessp))
-  (let ((m l))
-    (while m
-      (while (and (cdr m)
-		  (string= (car m)
-			   (cadr m)))
-	(setcdr m (cddr m)))
-      (setq m (cdr m))))
-  l)
-(define-obsolete-function-alias
-  'pcomplete-uniqify-list
-  'pcomplete-uniquify-list "27.1")
+  (setq l (sort l #'string-lessp))
+  (seq-uniq l))
+(define-obsolete-function-alias 'pcomplete-uniqify-list #'pcomplete-uniquify-list "27.1")
 
 (defun pcomplete-process-result (cmd &rest args)
   "Call CMD using `call-process' and return the simplest result."
@@ -1319,18 +1310,6 @@ If specific documentation can't be given, be generic."
   (if pcomplete-hosts-file
       (pcomplete-read-hosts pcomplete-hosts-file 'pcomplete--host-name-cache
                    'pcomplete--host-name-cache-timestamp)))
-
-;; create a set of aliases which allow completion functions to be not
-;; quite so verbose
-
-;;; jww (1999-10-20): are these a good idea?
-;; (defalias 'pc-here 'pcomplete-here)
-;; (defalias 'pc-test 'pcomplete-test)
-;; (defalias 'pc-opt 'pcomplete-opt)
-;; (defalias 'pc-match 'pcomplete-match)
-;; (defalias 'pc-match-string 'pcomplete-match-string)
-;; (defalias 'pc-match-beginning 'pcomplete-match-beginning)
-;; (defalias 'pc-match-end 'pcomplete-match-end)
 
 (provide 'pcomplete)
 

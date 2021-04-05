@@ -1,4 +1,4 @@
-;;; dynamic-setting.el --- Support dynamic changes
+;;; dynamic-setting.el --- Support dynamic changes  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
@@ -91,4 +91,4 @@ Changes can be
 	  ((eq type 'tool-bar-style) (force-mode-line-update t)))))
 
 (define-key special-event-map [config-changed-event]
-  'dynamic-setting-handle-config-changed-event)
+  #'dynamic-setting-handle-config-changed-event)

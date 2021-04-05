@@ -27,7 +27,7 @@
 (require 'pcomplete)
 
 
-;;;; tlmgr - http://www.tug.org/texlive/tlmgr.html
+;;;; tlmgr - https://www.tug.org/texlive/tlmgr.html
 
 (defcustom pcmpl-x-tlmgr-program "tlmgr"
   "Name of the tlmgr program."

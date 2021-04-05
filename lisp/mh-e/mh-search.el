@@ -1,4 +1,4 @@
-;;; mh-search  ---  MH-Search mode
+;;; mh-search  ---  MH-Search mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -332,7 +332,7 @@ configuration and is used when the search folder is dismissed."
   (interactive (list (mh-prompt-for-folder "Search" mh-current-folder nil nil t)
                      (current-window-configuration)))
   ;; FIXME: `pick-folder' is unused!
-  (let ((pick-folder (if (equal folder "+") mh-current-folder folder)))
+  (let () ;; (pick-folder (if (equal folder "+") mh-current-folder folder))
     (switch-to-buffer-other-window "search-pattern")
     (if (or (zerop (buffer-size))
             (not (y-or-n-p "Reuse pattern? ")))
@@ -356,7 +356,7 @@ configuration and is used when the search folder is dismissed."
           "---------\n")
   (mh-search-mode)
   (goto-char (point-min))
-  (dotimes (i 5)
+  (dotimes (_ 5)
     (add-text-properties (point) (1+ (point)) '(front-sticky t))
     (add-text-properties (- (mh-line-end-position) 2)
                          (1- (mh-line-end-position))
@@ -453,7 +453,7 @@ search all folders."
 
 (defvar mh-flists-search-folders)
 
-(defun mh-flists-execute (&rest ignored)
+(defun mh-flists-execute (&rest _ignored)
   "Execute flists.
 Search for messages belonging to `mh-flists-sequence' in the
 folders specified by `mh-flists-search-folders'. If
@@ -880,7 +880,7 @@ used to search."
               folder-path
             (format "%s/" folder-path)))))
 
-(defalias 'mh-swish++-next-result 'mh-swish-next-result)
+(defalias 'mh-swish++-next-result #'mh-swish-next-result)
 
 (defun mh-swish++-regexp-builder (regexp-list)
   "Generate query for swish++.
@@ -1853,7 +1853,7 @@ PROC is used to convert the value to actual data."
                                     (1+ last-slash) (1- last-space)))
                  (buffer-substring-no-properties (1+ last-space) end))))))
 
-(defalias 'mh-md5-parser 'mh-openssl-parser)
+(defalias 'mh-md5-parser #'mh-openssl-parser)
 
 ;;;###mh-autoload
 (defun mh-index-update-maps (folder &optional origin-map)

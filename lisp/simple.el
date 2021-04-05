@@ -836,7 +836,10 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this command indents to the
 column specified by the function `current-left-margin'.
 
-With ARG, perform this action that many times."
+With ARG, perform this action that many times.
+
+Also see `open-line' (bound to \\[open-line]) for a command that
+just inserts a newline without doing any indentation."
   (interactive "*p")
   (delete-horizontal-space t)
   (unless arg
@@ -2002,9 +2005,14 @@ This function uses the `read-extended-command-predicate' user option."
            (complete-with-action action obarray string pred)))
        (lambda (sym)
          (and (commandp sym)
-              (or (null read-extended-command-predicate)
-                  (and (functionp read-extended-command-predicate)
-                       (funcall read-extended-command-predicate sym buffer)))))
+              (cond ((null read-extended-command-predicate))
+                    ((functionp read-extended-command-predicate)
+                     ;; Don't let bugs break M-x completion; interpret
+                     ;; them as the absence of a predicate.
+                     (condition-case-unless-debug err
+                         (funcall read-extended-command-predicate sym buffer)
+                       (error (message "read-extended-command-predicate: %s: %s"
+                                       sym (error-message-string err))))))))
        t nil 'extended-command-history))))
 
 (defun command-completion-using-modes-p (symbol buffer)

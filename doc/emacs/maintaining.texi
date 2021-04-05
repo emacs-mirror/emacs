@@ -1664,6 +1664,7 @@ the project back-end.  For example, the VC back-end doesn't consider
 * Project File Commands::   Commands for handling project files.
 * Project Buffer Commands:: Commands for handling project buffers.
 * Switching Projects::      Switching between projects.
+* Managing Projects::       Managing the project list file.
 @end menu
 
 @node Project File Commands
@@ -1842,6 +1843,21 @@ in the menu, and which key invokes each command.
   The variable @code{project-list-file} names the file in which Emacs
 records the list of known projects.  It defaults to the file
 @file{projects} in @code{user-emacs-directory} (@pxref{Find Init}).
+
+@node Managing Projects
+@subsection Managing the Project List File
+
+@table @kbd
+@item M-x project-remove-known-project
+Remove a known project from the @code{project-list-file}.
+@end table
+
+@findex project-remove-known-project
+  Normally Emacs automatically adds and removes projects to and from the
+@code{project-list-file}, but sometimes you may want to manually edit
+the available projects.  @kbd{M-x project-remove-known-project}
+prompts you to choose one of the available projects, and then removes
+it from the file.
 
 @node Change Log
 @section Change Logs

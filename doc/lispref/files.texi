@@ -764,6 +764,8 @@ This function unlocks the file being visited in the current buffer,
 if the buffer is modified.  If the buffer is not modified, then
 the file should not be locked, so this function does nothing.  It also
 does nothing if the current buffer is not visiting a file, or is not locked.
+This function handles file system errors by calling @code{display-warning}
+and otherwise ignores the error.
 @end defun
 
 @defopt create-lockfiles

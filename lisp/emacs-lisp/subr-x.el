@@ -215,28 +215,6 @@ The variable list SPEC is the same as in `if-let'."
 
 (define-obsolete-function-alias 'string-reverse 'reverse "25.1")
 
-(defsubst string-trim-left (string &optional regexp)
-  "Trim STRING of leading string matching REGEXP.
-
-REGEXP defaults to \"[ \\t\\n\\r]+\"."
-  (if (string-match (concat "\\`\\(?:" (or regexp "[ \t\n\r]+") "\\)") string)
-      (substring string (match-end 0))
-    string))
-
-(defsubst string-trim-right (string &optional regexp)
-  "Trim STRING of trailing string matching REGEXP.
-
-REGEXP defaults to  \"[ \\t\\n\\r]+\"."
-  (let ((i (string-match-p (concat "\\(?:" (or regexp "[ \t\n\r]+") "\\)\\'")
-                           string)))
-    (if i (substring string 0 i) string)))
-
-(defsubst string-trim (string &optional trim-left trim-right)
-  "Trim STRING of leading and trailing strings matching TRIM-LEFT and TRIM-RIGHT.
-
-TRIM-LEFT and TRIM-RIGHT default to \"[ \\t\\n\\r]+\"."
-  (string-trim-left (string-trim-right string trim-right) trim-left))
-
 ;;;###autoload
 (defun string-truncate-left (string length)
   "Truncate STRING to LENGTH, replacing initial surplus with \"...\"."

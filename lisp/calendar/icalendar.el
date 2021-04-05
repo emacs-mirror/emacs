@@ -66,7 +66,7 @@
 ;;  0.02:
 ;;  - Should work in XEmacs now.  Thanks to Len Trigg for the XEmacs patches!
 ;;  - Added exporting from Emacs diary to ical.
-;;  - Some bugfixes, after testing with calendars from http://icalshare.com.
+;;  - Some bugfixes, after testing with calendars from https://icalshare.com.
 ;;  - Tested with Emacs 21.3.2 and XEmacs 21.4.12
 
 ;;  0.01: (2003-03-21)
@@ -104,10 +104,6 @@
 
 
 ;;; Code:
-
-(defconst icalendar-version "0.19"
-  "Version number of icalendar.el.")
-(make-obsolete-variable 'icalendar-version nil "28.1")
 
 ;; ======================================================================
 ;; Customizables
@@ -2556,6 +2552,11 @@ the entry."
           (or (icalendar--get-event-property event 'STATUS) "")
           (or (icalendar--get-event-property event 'URL) "")
           (or (icalendar--get-event-property event 'CLASS) "")))
+
+;; Obsolete
+
+(defconst icalendar-version "0.19" "Version number of icalendar.el.")
+(make-obsolete-variable 'icalendar-version 'emacs-version "28.1")
 
 (provide 'icalendar)
 

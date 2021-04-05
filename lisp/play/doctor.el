@@ -1583,7 +1583,7 @@ Hack on previous word, setting global variable DOCTOR-OWNER to correct result."
 			   E-mail: jo@samaritans.org or\, at your option\,
 			   anonymous E-mail: samaritans@anon.twwells.com\ \.
                            or find a Befrienders crisis center at
-			   http://www.befrienders.org/\ \.
+                           https://www.befrienders.org/\ \.
 			   (doc$ doctor--please) (doc$ doctor--continue) \.)))
 	(t (doctor-type (doc$ doctor--deathlst)))))
 

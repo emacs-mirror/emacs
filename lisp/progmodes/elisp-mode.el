@@ -530,6 +530,7 @@ functions are annotated with \"<f>\" via the
                     ((elisp--expect-function-p beg)
                      (list nil obarray
                            :predicate #'fboundp
+                           :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
                            :company-location #'elisp--company-location))
@@ -543,6 +544,7 @@ functions are annotated with \"<f>\" via the
                                             (symbol-plist sym)))
                            :annotation-function
                            (lambda (str) (if (fboundp (intern-soft str)) " <f>"))
+                           :company-kind #'elisp--company-kind
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
                            :company-location #'elisp--company-location))
@@ -553,6 +555,11 @@ functions are annotated with \"<f>\" via the
                                                  obarray
                                                  #'boundp
                                                  'strict))
+                           :company-kind
+                           (lambda (s)
+                             (if (test-completion s elisp--local-variables-completion-table)
+                                 'value
+                               'variable))
                            :company-doc-buffer #'elisp--company-doc-buffer
                            :company-docsig #'elisp--company-doc-string
                            :company-location #'elisp--company-location)))
@@ -599,11 +606,13 @@ functions are annotated with \"<f>\" via the
                                       (looking-at "\\_<let\\*?\\_>"))))
                         (list t obarray
                               :predicate #'boundp
+                              :company-kind (lambda (_) 'variable)
                               :company-doc-buffer #'elisp--company-doc-buffer
                               :company-docsig #'elisp--company-doc-string
                               :company-location #'elisp--company-location))
                        (_ (list nil obarray
                                 :predicate #'fboundp
+                                :company-kind #'elisp--company-kind
                                 :company-doc-buffer #'elisp--company-doc-buffer
                                 :company-docsig #'elisp--company-doc-string
                                 :company-location #'elisp--company-location
@@ -618,6 +627,16 @@ functions are annotated with \"<f>\" via the
                       (apply-partially 'completion-table-with-terminator
                                        " " (cadr table-etc)))
                     (cddr table-etc)))))))))
+
+(defun elisp--company-kind (str)
+  (let ((sym (intern-soft str)))
+    (cond
+     ((or (macrop sym) (special-form-p sym)) 'keyword)
+     ((fboundp sym) 'function)
+     ((boundp sym) 'variable)
+     ((featurep sym) 'module)
+     ((facep sym) 'color)
+     (t 'text))))
 
 (defun lisp-completion-at-point (&optional _predicate)
   (declare (obsolete elisp-completion-at-point "25.1"))

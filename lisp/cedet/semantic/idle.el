@@ -216,9 +216,9 @@ And also manages services that depend on tag values."
     (let* ((inhibit-quit nil)
            (buffers (delq (current-buffer)
                           (delq nil
-                                (mapcar #'(lambda (b)
-                                            (and (buffer-file-name b)
-                                                 b))
+                                (mapcar (lambda (b)
+                                          (and (buffer-file-name b)
+                                               b))
                                         (buffer-list)))))
 	   ;; safe ;; This safe is not used, but could be.
            others
@@ -356,9 +356,9 @@ Uses `semantic-idle-work-for-on-buffer' to do the work."
 		 (cb (current-buffer))
 		 (buffers (delq (current-buffer)
 				(delq nil
-				      (mapcar #'(lambda (b)
-						  (and (buffer-file-name b)
-						       b))
+                                      (mapcar (lambda (b)
+                                                (and (buffer-file-name b)
+                                                     b))
 					      (buffer-list)))))
 		 safe) ;; errbuf
 	    ;; First, handle long tasks in the current buffer.

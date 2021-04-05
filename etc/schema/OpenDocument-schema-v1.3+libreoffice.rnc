@@ -1,0 +1,892 @@
+# Open Document Format for Office Applications (OpenDocument) Version 1.3
+# OASIS Standard, In progress
+# Relax-NG Schema
+# Source: https://tools.oasis-open.org/version-control/svn/office/
+# Copyright (c) OASIS Open 2002-2015. All Rights Reserved.
+#
+# All capitalized terms in the following text have the meanings assigned to them
+# in the OASIS Intellectual Property Rights Policy (the "OASIS IPR Policy"). The
+# full Policy may be found at the OASIS website.
+#
+# This document and translations of it may be copied and furnished to others, and
+# derivative works that comment on or otherwise explain it or assist in its
+# implementation may be prepared, copied, published, and distributed, in whole or
+# in part, without restriction of any kind, provided that the above copyright
+# notice and this section are included on all such copies and derivative works.
+# However, this document itself may not be modified in any way, including by
+# removing the copyright notice or references to OASIS, except as needed for the
+# purpose of developing any document or deliverable produced by an OASIS
+# Technical Committee (in which case the rules applicable to copyrights, as set
+# forth in the OASIS IPR Policy, must be followed) or as required to translate it
+# into languages other than English.
+#
+# The limited permissions granted above are perpetual and will not be revoked by
+# OASIS or its successors or assigns.
+#
+# This document and the information contained herein is provided on an "AS IS"
+# basis and OASIS DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+# LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL NOT
+# INFRINGE ANY OWNERSHIP RIGHTS OR ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+# FITNESS FOR A PARTICULAR PURPOSE.
+
+namespace anim = "urn:oasis:names:tc:opendocument:xmlns:animation:1.0"
+namespace calcext =
+  "urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0"
+namespace chart = "urn:oasis:names:tc:opendocument:xmlns:chart:1.0"
+namespace chartooo = "http://openoffice.org/2010/chart"
+namespace config = "urn:oasis:names:tc:opendocument:xmlns:config:1.0"
+namespace css3t = "http://www.w3.org/TR/css3-text/"
+namespace db = "urn:oasis:names:tc:opendocument:xmlns:database:1.0"
+namespace dc = "http://purl.org/dc/elements/1.1/"
+namespace dr3d = "urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0"
+namespace draw = "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+namespace drawooo = "http://openoffice.org/2010/draw"
+namespace field =
+  "urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0"
+namespace fo =
+  "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+namespace form = "urn:oasis:names:tc:opendocument:xmlns:form:1.0"
+namespace grddl = "http://www.w3.org/2003/g/data-view#"
+namespace loext =
+  "urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0"
+namespace math = "http://www.w3.org/1998/Math/MathML"
+namespace meta = "urn:oasis:names:tc:opendocument:xmlns:meta:1.0"
+namespace number = "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0"
+namespace office = "urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+namespace officeooo = "http://openoffice.org/2009/office"
+namespace presentation =
+  "urn:oasis:names:tc:opendocument:xmlns:presentation:1.0"
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+namespace script = "urn:oasis:names:tc:opendocument:xmlns:script:1.0"
+namespace smil =
+  "urn:oasis:names:tc:opendocument:xmlns:smil-compatible:1.0"
+namespace style = "urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+namespace svg =
+  "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+namespace table = "urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+namespace tableooo = "http://openoffice.org/2009/table"
+namespace text = "urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+namespace xforms = "http://www.w3.org/2002/xforms"
+namespace xhtml = "http://www.w3.org/1999/xhtml"
+namespace xlink = "http://www.w3.org/1999/xlink"
+
+include "OpenDocument-schema-v1.3.rnc" {
+  office-document-common-attrs =
+    attribute office:version {
+      # FIXME remove this hack once we write 1.3
+      "1.3" | "1.2"
+    }
+    & attribute grddl:transformation {
+        list { anyIRI* }
+      }?
+  style-graphic-properties-attlist =
+    attribute draw:stroke { "none" | "dash" | "solid" }?
+    & attribute draw:stroke-dash { styleNameRef }?
+    & attribute draw:stroke-dash-names { styleNameRefs }?
+    & attribute svg:stroke-width { length }?
+    & attribute svg:stroke-color { color }?
+    & attribute draw:marker-start { styleNameRef }?
+    & attribute draw:marker-end { styleNameRef }?
+    & attribute draw:marker-start-width { length }?
+    & attribute draw:marker-end-width { length }?
+    & attribute draw:marker-start-center { boolean }?
+    & attribute draw:marker-end-center { boolean }?
+    & attribute svg:stroke-opacity {
+        xsd:double { minInclusive = "0" maxInclusive = "1" }
+        | zeroToHundredPercent
+      }?
+    & attribute draw:stroke-linejoin {
+        "miter" | "round" | "bevel" | "middle" | "none"
+      }?
+    & attribute svg:stroke-linecap { "butt" | "square" | "round" }?
+    & attribute draw:symbol-color { color }?
+    & attribute text:animation {
+        "none" | "scroll" | "alternate" | "slide"
+      }?
+    & attribute text:animation-direction {
+        "left" | "right" | "up" | "down"
+      }?
+    & attribute text:animation-start-inside { boolean }?
+    & attribute text:animation-stop-inside { boolean }?
+    & attribute text:animation-repeat { nonNegativeInteger }?
+    & attribute text:animation-delay { duration }?
+    & attribute text:animation-steps { length }?
+    & attribute draw:auto-grow-width { boolean }?
+    & attribute draw:auto-grow-height { boolean }?
+    & # FIXME remove this once the export bug is fixed
+      attribute draw:fit-to-size {
+        "true" | "false" | "all" | "shrink-to-fit"
+      }?
+    & attribute draw:fit-to-contour { boolean }?
+    & attribute draw:textarea-vertical-align {
+        "top" | "middle" | "bottom" | "justify"
+      }?
+    & attribute draw:textarea-horizontal-align {
+        "left" | "center" | "right" | "justify"
+      }?
+    & attribute fo:wrap-option { "no-wrap" | "wrap" }?
+    & attribute style:shrink-to-fit { boolean }?
+    & attribute draw:color-mode {
+        "greyscale" | "mono" | "watermark" | "standard"
+      }?
+    & attribute draw:color-inversion { boolean }?
+    & attribute draw:luminance { signedZeroToHundredPercent }
+      # https://issues.oasis-open.org/browse/OFFICE-3821
+      ?
+    & attribute draw:contrast { percent }?
+    & attribute draw:gamma { percent }?
+    & attribute draw:red { signedZeroToHundredPercent }?
+    & attribute draw:green { signedZeroToHundredPercent }?
+    & attribute draw:blue { signedZeroToHundredPercent }?
+    & attribute draw:image-opacity { zeroToHundredPercent }?
+    & attribute draw:shadow { "visible" | "hidden" }?
+    & attribute draw:shadow-offset-x { length }?
+    & attribute draw:shadow-offset-y { length }?
+    & attribute draw:shadow-color { color }?
+    & attribute draw:shadow-opacity { zeroToHundredPercent }?
+    & # TODO: no proposal for loext:shadow-blur
+      attribute loext:shadow-blur { length }?
+    & attribute draw:start-line-spacing-horizontal { distance }?
+    & attribute draw:start-line-spacing-vertical { distance }?
+    & attribute draw:end-line-spacing-horizontal { distance }?
+    & attribute draw:end-line-spacing-vertical { distance }?
+    & attribute draw:line-distance { distance }?
+    & attribute draw:guide-overhang { length }?
+    & attribute draw:guide-distance { distance }?
+    & attribute draw:start-guide { length }?
+    & attribute draw:end-guide { length }?
+    & attribute draw:placing { "below" | "above" }?
+    & attribute draw:parallel { boolean }?
+    & attribute draw:measure-align {
+        "automatic" | "left-outside" | "inside" | "right-outside"
+      }?
+    & attribute draw:measure-vertical-align {
+        "automatic" | "above" | "below" | "center"
+      }?
+    & attribute draw:unit {
+        "automatic"
+        | "mm"
+        | "cm"
+        | "m"
+        | "km"
+        | "pt"
+        | "pc"
+        | "inch"
+        | "ft"
+        | "mi"
+      }?
+    & attribute draw:show-unit { boolean }?
+    & attribute draw:decimal-places { nonNegativeInteger }?
+    & attribute draw:caption-type {
+        "straight-line" | "angled-line" | "angled-connector-line"
+      }?
+    & attribute draw:caption-angle-type { "fixed" | "free" }?
+    & attribute draw:caption-angle { angle }?
+    & attribute draw:caption-gap { distance }?
+    & attribute draw:caption-escape-direction {
+        "horizontal" | "vertical" | "auto"
+      }?
+    & attribute draw:caption-escape { length | percent }?
+    & attribute draw:caption-line-length { length }?
+    & attribute draw:caption-fit-line-length { boolean }?
+    & attribute dr3d:horizontal-segments { nonNegativeInteger }?
+    & attribute dr3d:vertical-segments { nonNegativeInteger }?
+    & attribute dr3d:edge-rounding { percent }?
+    & attribute dr3d:edge-rounding-mode { "correct" | "attractive" }?
+    & attribute dr3d:back-scale { percent }?
+    & attribute dr3d:depth { length }?
+    & attribute dr3d:backface-culling { "enabled" | "disabled" }?
+    & attribute dr3d:end-angle { angle }?
+    & attribute dr3d:close-front { boolean }?
+    & attribute dr3d:close-back { boolean }?
+    & attribute dr3d:lighting-mode { "standard" | "double-sided" }?
+    & attribute dr3d:normals-kind { "object" | "flat" | "sphere" }?
+    & attribute dr3d:normals-direction { "normal" | "inverse" }?
+    & attribute dr3d:texture-generation-mode-x {
+        "object" | "parallel" | "sphere"
+      }?
+    & attribute dr3d:texture-generation-mode-y {
+        "object" | "parallel" | "sphere"
+      }?
+    & attribute dr3d:texture-kind {
+        "luminance" | "intensity" | "color"
+      }?
+    & attribute dr3d:texture-filter { "enabled" | "disabled" }?
+    & attribute dr3d:texture-mode { "replace" | "modulate" | "blend" }?
+    & attribute dr3d:ambient-color { color }?
+    & attribute dr3d:emissive-color { color }?
+    & attribute dr3d:specular-color { color }?
+    & attribute dr3d:diffuse-color { color }?
+    & attribute dr3d:shininess { percent }?
+    & attribute dr3d:shadow { "visible" | "hidden" }?
+    & common-draw-rel-size-attlist
+    & attribute fo:min-width { length | percent }?
+    & attribute fo:min-height { length | percent }?
+    & attribute fo:max-height { length | percent }?
+    & attribute fo:max-width { length | percent }?
+    & common-horizontal-margin-attlist
+    & common-vertical-margin-attlist
+    & common-margin-attlist
+    & attribute style:print-content { boolean }?
+    & attribute style:protect {
+        "none"
+        | list { ("content" | "position" | "size")+ }
+      }?
+    & attribute style:horizontal-pos {
+        "left"
+        | "center"
+        | "right"
+        | "from-left"
+        | "inside"
+        | "outside"
+        | "from-inside"
+      }?
+    & attribute svg:x { coordinate }?
+    & attribute style:horizontal-rel {
+        "page"
+        | "page-content"
+        | "page-start-margin"
+        | "page-end-margin"
+        | "frame"
+        | "frame-content"
+        | "frame-start-margin"
+        | "frame-end-margin"
+        | "paragraph"
+        | "paragraph-content"
+        | "paragraph-start-margin"
+        | "paragraph-end-margin"
+        | "char"
+      }?
+    & common-vertical-pos-attlist
+    & common-vertical-rel-attlist
+    & common-text-anchor-attlist
+    & common-border-attlist
+    & common-border-line-width-attlist
+    & common-padding-attlist
+    & common-shadow-attlist
+    & common-background-color-attlist
+    & common-background-transparency-attlist
+    & common-editable-attlist
+    & attribute style:wrap {
+        "none"
+        | "left"
+        | "right"
+        | "parallel"
+        | "dynamic"
+        | "run-through"
+        | "biggest"
+      }?
+    & attribute style:wrap-dynamic-threshold { nonNegativeLength }?
+    & attribute style:number-wrapped-paragraphs {
+        "no-limit" | positiveInteger
+      }?
+    & attribute style:wrap-contour { boolean }?
+    & attribute style:wrap-contour-mode { "full" | "outside" }?
+    & attribute style:run-through { "foreground" | "background" }?
+    & attribute style:flow-with-text { boolean }?
+    & attribute style:overflow-behavior {
+        "clip" | "auto-create-new-frame"
+      }?
+    & attribute style:mirror {
+        "none"
+        | "vertical"
+        | horizontal-mirror
+        | list { "vertical", horizontal-mirror }
+        | list { horizontal-mirror, "vertical" }
+      }?
+    & attribute fo:clip { "auto" | clipShape }?
+    & attribute draw:wrap-influence-on-position {
+        "iterative" | "once-concurrent" | "once-successive"
+      }?
+    & common-writing-mode-attlist
+    & attribute draw:frame-display-scrollbar { boolean }?
+    & attribute draw:frame-display-border { boolean }?
+    & attribute draw:frame-margin-horizontal { nonNegativePixelLength }?
+    & attribute draw:frame-margin-vertical { nonNegativePixelLength }?
+    & attribute draw:visible-area-left { nonNegativeLength }?
+    & attribute draw:visible-area-top { nonNegativeLength }?
+    & attribute draw:visible-area-width { positiveLength }?
+    & attribute draw:visible-area-height { positiveLength }?
+    & attribute draw:draw-aspect {
+        "content" | "thumbnail" | "icon" | "print-view"
+      }?
+    & attribute draw:ole-draw-aspect { nonNegativeInteger }?
+    & # https://issues.oasis-open.org/browse/OFFICE-4047
+      attribute loext:allow-overlap { boolean }?
+    & # TODO: no proposal for loext:glow*
+      attribute loext:glow-radius { length }?
+    & attribute loext:glow-color { color }?
+    & attribute loext:glow-transparency { zeroToHundredPercent }?
+    & # TODO: no proposal for loext:softedge-radius
+      attribute loext:softedge-radius { length }?
+  draw-text =
+    (text-p
+     | text-list
+     | # https://issues.oasis-open.org/browse/OFFICE-3761
+       loext-table)*
+  office-annotation-attlist &=
+    attribute office:display { boolean }?
+    & common-office-annotation-name-attlist?
+    & attribute loext:resolved { boolean }?
+  style-style-content =
+    (attribute style:family { "text" },
+     style-text-properties?)
+    | (attribute style:family { "paragraph" },
+       # TODO no proposal
+       loext-graphic-properties?,
+       style-paragraph-properties?,
+       style-text-properties?)
+    | (attribute style:family { "section" },
+       style-section-properties?)
+    | (attribute style:family { "ruby" },
+       style-ruby-properties?)
+    | (attribute style:family { "table" },
+       style-table-properties?)
+    | (attribute style:family { "table-column" },
+       style-table-column-properties?)
+    | (attribute style:family { "table-row" },
+       style-table-row-properties?)
+    | (attribute style:family { "table-cell" },
+       # TODO no proposal
+       loext-graphic-properties?,
+       style-table-cell-properties?,
+       style-paragraph-properties?,
+       style-text-properties?)
+    | (attribute style:family { "graphic" | "presentation" },
+       style-graphic-properties?,
+       style-paragraph-properties?,
+       style-text-properties?)
+    | (attribute style:family { "drawing-page" },
+       style-drawing-page-properties?)
+    | (attribute style:family { "chart" },
+       style-chart-properties?,
+       style-graphic-properties?,
+       style-paragraph-properties?,
+       style-text-properties?)
+  table-table-template =
+    element table:table-template {
+      table-table-template-attlist,
+      table-first-row?,
+      table-last-row?,
+      table-first-column?,
+      table-last-column?,
+      table-body,
+      table-even-rows?,
+      table-odd-rows?,
+      table-even-columns?,
+      table-odd-columns?,
+      table-background?,
+      # TODO no proposal
+      table-first-row-even-column?,
+      table-last-row-even-column?,
+      table-first-row-end-column?,
+      table-first-row-start-column?,
+      table-last-row-end-column?,
+      table-last-row-start-column?
+    }
+  draw-frame =
+    element draw:frame {
+      common-draw-shape-with-text-and-styles-attlist,
+      common-draw-position-attlist,
+      common-draw-rel-size-attlist,
+      common-draw-caption-id-attlist,
+      presentation-shape-attlist,
+      draw-frame-attlist,
+      (draw-text-box
+       | draw-image
+       | draw-object
+       | draw-object-ole
+       | draw-applet
+       | draw-floating-frame
+       | draw-plugin
+       | table-table)*,
+      office-event-listeners?,
+      draw-glue-point*,
+      draw-image-map?,
+      svg-title?,
+      svg-desc?,
+      (draw-contour-polygon | draw-contour-path)?,
+      # TODO no proposal
+      loext-signatureline?,
+      loext-qrcode?
+    }
+  common-value-and-type-attlist =
+    (attribute office:value-type { "float" },
+     attribute calcext:value-type { "float" }?,
+     attribute office:value { double })
+    | (attribute office:value-type { "percentage" },
+       attribute calcext:value-type { "percentage" }?,
+       attribute office:value { double })
+    | (attribute office:value-type { "currency" },
+       attribute calcext:value-type { "currency" }?,
+       attribute office:value { double },
+       attribute office:currency { \string }?)
+    | (attribute office:value-type { "date" },
+       attribute calcext:value-type { "date" }?,
+       attribute office:date-value { dateOrDateTime })
+    | (attribute office:value-type { "time" },
+       attribute calcext:value-type { "time" }?,
+       attribute office:time-value { duration })
+    | (attribute office:value-type { "boolean" },
+       attribute calcext:value-type { "boolean" }?,
+       attribute office:boolean-value { boolean })
+    | (attribute office:value-type { "string" },
+       # OFFICE-3759
+       attribute calcext:value-type { "string" | "error" }?,
+       attribute office:string-value { \string }?)
+  chart-axis =
+    element chart:axis {
+      chart-axis-attlist,
+      # OFFICE-2119
+      ((attribute chartooo:axis-type { "auto" },
+        chartooo-date-scale?)
+       | (attribute chartooo:axis-type { "date" },
+          chartooo-date-scale)
+       | attribute chartooo:axis-type { "text" })?,
+      chart-title?,
+      chart-categories?,
+      chart-grid*
+    }
+  table-table =
+    element table:table {
+      table-table-attlist,
+      table-title?,
+      table-desc?,
+      # TODO add to proposal, OFFICE-2112
+      table-table-protection?,
+      table-table-source?,
+      office-dde-source?,
+      table-scenario?,
+      office-forms?,
+      table-shapes?,
+      table-columns-and-groups,
+      table-rows-and-groups,
+      table-named-expressions?,
+      # TODO no proposal, this is wild guessing, OFFICE-3785
+      element calcext:conditional-formats {
+        element calcext:conditional-format {
+          attribute calcext:target-range-address { cellRangeAddress },
+          (element calcext:condition {
+             attribute calcext:apply-style-name { styleNameRef },
+             attribute calcext:value { \string },
+             attribute calcext:base-cell-address { cellAddress }
+           }+
+           | element calcext:data-bar {
+               attribute calcext:max-length { \string },
+               attribute calcext:negative-color { color },
+               attribute calcext:positive-color { color },
+               attribute calcext:axis-color { color },
+               attribute calcext:axis-position { "middle" }?,
+               element calcext:formatting-entry {
+                 attribute calcext:value { \string },
+                 attribute calcext:type {
+                   "auto-minimum"
+                   | "auto-maximum"
+                   | "minimum"
+                   | "maximum"
+                   | "percent"
+                   | "percentile"
+                   | "number"
+                   | "formula"
+                 }
+               },
+               element calcext:formatting-entry {
+                 attribute calcext:value { \string },
+                 attribute calcext:type {
+                   "auto-minimum"
+                   | "auto-maximum"
+                   | "minimum"
+                   | "maximum"
+                   | "percent"
+                   | "percentile"
+                   | "number"
+                   | "formula"
+                 }
+               }
+             }
+           | element calcext:color-scale {
+               element calcext:color-scale-entry {
+                 attribute calcext:value { \string },
+                 attribute calcext:type {
+                   "minimum"
+                   | "maximum"
+                   | "percent"
+                   | "percentile"
+                   | "number"
+                   | "formula"
+                 },
+                 attribute calcext:color { color }
+               },
+               element calcext:color-scale-entry {
+                 attribute calcext:value { \string },
+                 attribute calcext:type {
+                   "minimum"
+                   | "maximum"
+                   | "percent"
+                   | "percentile"
+                   | "number"
+                   | "formula"
+                 },
+                 attribute calcext:color { color }
+               },
+               element calcext:color-scale-entry {
+                 attribute calcext:value { \string },
+                 attribute calcext:type {
+                   "minimum"
+                   | "maximum"
+                   | "percent"
+                   | "percentile"
+                   | "number"
+                   | "formula"
+                 },
+                 attribute calcext:color { color }
+               }?
+             })
+        }+
+      }?
+    }
+  # TODO no proposal
+  draw-object =
+    element draw:object {
+      draw-object-attlist,
+      loext-text,
+      (common-draw-data-attlist | office-document | math-math)
+    }
+  draw-object-ole =
+    element draw:object-ole {
+      draw-object-ole-attlist,
+      loext-text,
+      (common-draw-data-attlist | office-binary-data)
+    }
+  # FIXME: one test exports 250 here, which is probably a bug
+  fontWeight =
+    "normal"
+    | "bold"
+    | "100"
+    | "200"
+    | "250"
+    | "300"
+    | "400"
+    | "500"
+    | "600"
+    | "700"
+    | "800"
+    | "900"
+}
+# TODO no proposal
+loext-p =
+  element loext:p { paragraph-attrs, paragraph-content-or-hyperlink* }
+loext-text = (loext-p | text-list | loext-table)*
+# OFFICE-2119
+chartooo-date-scale =
+  element chartooo:date-scale {
+    attribute chart:base-time-unit { chart-time-unit }?
+    & (attribute chart:major-interval-value { positiveInteger },
+       attribute chart:major-interval-unit { chart-time-unit })?
+    & (attribute chart:minor-interval-value { positiveInteger },
+       attribute chart:minor-interval-unit { chart-time-unit })?
+  }
+chart-time-unit = "days" | "months" | "years"
+# TODO no proposal
+loext-signatureline =
+  element loext:signatureline {
+    attribute loext:id { \string },
+    attribute loext:suggested-signer-name { \string },
+    attribute loext:suggested-signer-title { \string },
+    attribute loext:suggested-signer-email { \string },
+    attribute loext:signing-instructions { \string },
+    attribute loext:show-sign-date { boolean },
+    attribute loext:can-add-comment { boolean }
+  }
+loext-qrcode =
+  element loext:qrcode {
+    attribute office:string-value { \string },
+    attribute loext:qrcode-errorcorrection {
+      "low" | "medium" | "quartile" | "high"
+    },
+    attribute loext:qrcode-border { nonNegativeInteger }
+  }
+# https://issues.oasis-open.org/browse/OFFICE-3761
+loext-table =
+  element loext:table {
+    table-table-attlist,
+    table-title?,
+    table-desc?,
+    table-table-source?,
+    office-dde-source?,
+    table-scenario?,
+    office-forms?,
+    table-shapes?,
+    loext-columns-and-groups,
+    loext-rows-and-groups,
+    table-named-expressions?
+  }
+loext-rows-and-groups = (table-table-row-group | loext-rows-no-group)+
+loext-rows-no-group =
+  (loext-rows, (table-table-header-rows, loext-rows?)?)
+  | (table-table-header-rows, loext-rows?)
+loext-rows =
+  table-table-rows | (text-soft-page-break?, loext-table-row)+
+loext-table-row =
+  element loext:table-row {
+    table-table-row-attlist,
+    (loext-table-cell | loext-covered-table-cell)+
+  }
+loext-table-cell =
+  element loext:table-cell {
+    table-table-cell-attlist,
+    table-table-cell-attlist-extra,
+    table-table-cell-content
+  }
+loext-covered-table-cell =
+  element loext:covered-table-cell {
+    table-table-cell-attlist, table-table-cell-content
+  }
+loext-columns-and-groups =
+  (table-table-column-group | loext-columns-no-group)+
+loext-columns-no-group =
+  (loext-columns, (table-table-header-columns, loext-columns?)?)
+  | (table-table-header-columns, loext-columns?)
+loext-columns = loext-table-columns | loext-table-column+
+loext-table-columns =
+  element loext:table-columns { loext-table-column+ }
+loext-table-column =
+  element loext:table-column { table-table-column-attlist, empty }
+loext-graphic-properties =
+  element loext:graphic-properties {
+    style-graphic-properties-content-strict
+  }
+table-first-row-even-column =
+  element loext:first-row-even-column {
+    common-table-template-attlist, empty
+  }
+table-last-row-even-column =
+  element loext:last-row-even-column {
+    common-table-template-attlist, empty
+  }
+table-first-row-end-column =
+  element loext:first-row-end-column {
+    common-table-template-attlist, empty
+  }
+table-first-row-start-column =
+  element loext:first-row-start-column {
+    common-table-template-attlist, empty
+  }
+table-last-row-end-column =
+  element loext:last-row-end-column {
+    common-table-template-attlist, empty
+  }
+table-last-row-start-column =
+  element loext:last-row-start-column {
+    common-table-template-attlist, empty
+  }
+common-draw-rel-size-attlist &=
+  # OFFICE-3854
+  attribute loext:rel-width-rel {
+    "page"
+    | [
+        # TODO layout-environment ?
+
+      ]
+      "paragraph"
+  }?,
+  attribute loext:rel-height-rel { "page" | "paragraph" }?
+common-svg-font-face-xlink-attlist &=
+  # TODO no proposal
+  attribute loext:font-style { fontStyle }?,
+  attribute loext:font-weight { fontWeight }?
+# TODO no proposal
+
+# there's no ref-attrs so add it here
+text-common-ref-content &=
+  attribute loext:reference-language { language }?
+style-list-level-label-alignment-attlist &=
+  # TODO no proposal
+  attribute loext:label-followed-by {
+    "listtab" | "space" | "nothing" | "newline"
+  }?
+style-ruby-properties-attlist &=
+  # TODO proposal, OFFICE-3944
+  attribute loext:ruby-position {
+    "above" | "below" | "inter-character"
+  }?
+style-text-properties-attlist &=
+  # TODO no proposal
+  attribute officeooo:rsid { \string }?,
+  attribute officeooo:paragraph-rsid { \string }?,
+  # https://issues.oasis-open.org/browse/OFFICE-4049
+  attribute loext:opacity { zeroToHundredPercent }?
+style-text-properties-attlist &=
+  # OFFICE-3843
+  attribute loext:padding { nonNegativeLength }?,
+  attribute loext:padding-left { nonNegativeLength }?,
+  attribute loext:padding-right { nonNegativeLength }?,
+  attribute loext:padding-top { nonNegativeLength }?,
+  attribute loext:padding-bottom { nonNegativeLength }?,
+  attribute loext:border { \string }?,
+  attribute loext:border-left { \string }?,
+  attribute loext:border-right { \string }?,
+  attribute loext:border-top { \string }?,
+  attribute loext:border-bottom { \string }?,
+  attribute loext:shadow { shadowType }?
+# TODO no proposal
+style-chart-properties-attlist &=
+  attribute loext:try-staggering-first { boolean }?
+# TODO no proposal
+style-chart-properties-attlist &=
+  attribute loext:std-weight { \string }?
+# TODO no proposal
+chart-series-attlist &= attribute loext:label-string { \string }?
+# OFFICE-1148
+style-chart-properties-attlist &=
+  attribute loext:regression-max-degree { positiveInteger }?,
+  attribute loext:regression-force-intercept { boolean }?,
+  attribute loext:regression-intercept-value { double }?,
+  attribute loext:regression-name { \string }?,
+  attribute loext:regression-period { \string }?,
+  attribute loext:regression-extrapolate-forward { \string }?,
+  attribute loext:regression-extrapolate-backward { \string }?
+# TODO no proposal
+table-data-pilot-field-attlist &=
+  attribute tableooo:display-name { \string }?
+# TODO no proposal, 9009663d
+chart-chart-attlist &= attribute loext:data-pilot-source { \string }?
+# OFFICE-2112, TODO half of this missing in proposal
+table-table-protection =
+  element loext:table-protection {
+    attribute loext:select-protected-cells { boolean }?,
+    attribute loext:select-unprotected-cells { boolean }?,
+    attribute loext:insert-columns { boolean }?,
+    attribute loext:insert-rows { boolean }?,
+    attribute loext:delete-columns { boolean }?,
+    attribute loext:delete-rows { boolean }?
+  }
+office-spreadsheet-attlist &=
+  attribute loext:protection-key-digest-algorithm-2 { anyURI }?
+table-table-attlist &=
+  attribute loext:protection-key-digest-algorithm-2 { anyURI }?
+# https://issues.oasis-open.org/browse/OFFICE-2317
+vertJustifyValues = "auto" | "distribute"
+common-text-justify =
+  attribute css3t:text-justify { vertJustifyValues }?
+style-vertical-justify =
+  attribute loext:vertical-justify { vertJustifyValues }?,
+  attribute style:vertical-justify { vertJustifyValues }?
+style-paragraph-properties-attlist &=
+  (common-text-justify, style-vertical-justify)?
+style-table-cell-properties-attlist &=
+  (common-text-justify, style-vertical-justify)?
+number-fraction-attlist &=
+  # OFFICE-3695
+
+  # TODO no proposal, 1544a26ac9f7dd60605dd21e9cbe29d490aafdce
+  attribute loext:max-numerator-digits { positiveInteger }?
+# TODO no proposal
+table-data-pilot-level-attlist &=
+  attribute calcext:repeat-item-labels { boolean }?
+# TODO no proposal
+draw-enhanced-geometry-attlist &=
+  attribute drawooo:sub-view-size { \string }?,
+  attribute drawooo:enhanced-path { \string }?
+# TODO no proposal
+draw-custom-shape-attlist &= common-draw-rel-size-attlist
+# TODO no proposal
+style-page-layout-properties-attlist &=
+  style-graphic-fill-properties-attlist
+style-header-footer-properties-attlist &=
+  style-graphic-fill-properties-attlist
+# TODO no proposal
+text-index-entry-tab-stop-attrs &= attribute style:with-tab { boolean }?
+# TODO no proposal
+style-text-properties-attlist &=
+  attribute loext:char-shading-value { \string }?
+# TODO no proposal
+text-bookmark-start-attlist &=
+  (attribute loext:hidden { boolean },
+   attribute loext:condition { \string }?)?
+# TODO no proposal; see 7a5d79f2297a43d0a854e304b0792164272edfe0
+
+# FIXME this is almost certainly incomplete: need to figure out which elements can have this and which named pattern can be extended with it to get exactly these elements
+form-checkbox-attlist &= attribute form:input-required { boolean }?
+# https://issues.oasis-open.org/browse/OFFICE-4030
+common-writing-mode-attlist &= attribute loext:writing-mode { "bt-lr" }?
+# https://issues.oasis-open.org/browse/OFFICE-4073
+common-vertical-rel-attlist &=
+  attribute loext:vertical-rel {
+    "page-content-top" | "page-content-bottom"
+  }?
+# https://issues.oasis-open.org/browse/OFFICE-4105
+style-page-layout-properties-attlist &=
+  attribute loext:margin-gutter { length }?
+# just a test-case for user-defined attributes, move along, nothing to see here...
+style-table-cell-properties-attlist &= attribute proName { \string }?
+# TODO no proposal
+chart-data-point-attlist &=
+  attribute loext:custom-label-field { \string }?
+# TODO no proposal
+style-text-properties-attlist &=
+  attribute loext:hyphenation-no-caps { boolean }?
+# TODO no proposal
+chart-data-point-attlist &=
+  (attribute loext:custom-label-pos-x { double },
+   attribute loext:custom-label-pos-y { double })?
+# TODO no proposal
+chart-legend-attlist &= attribute loext:overlay { boolean }?
+# https://issues.oasis-open.org/browse/OFFICE-3936
+style-chart-properties-attlist &=
+  attribute loext:major-origin { double }?
+# TODO no proposal
+text-index-entry-chapter-attrs &=
+  attribute loext:outline-content-visible { boolean }?
+# https://issues.oasis-open.org/browse/OFFICE-2096
+paragraph-content |=
+  element field:fieldmark-start {
+    attribute text:name { \string },
+    attribute field:type {
+      # TODO <rng:ref name="namespacedToken"/>
+      \string
+    },
+    element field:param {
+      attribute field:name { \string },
+      attribute field:value { \string }
+    }*
+  }
+paragraph-content |= element field:fieldmark-end { empty }
+paragraph-content |=
+  element field:fieldmark {
+    attribute text:name { \string },
+    attribute field:type {
+      # TODO <rng:ref name="namespacedToken"/>
+      \string
+    },
+    element field:param {
+      attribute field:name { \string },
+      attribute field:value { \string }
+    }*
+  }
+# TODO no proposal
+animation-element |=
+  element loext:animatePhysics {
+    common-anim-target-attlist,
+    common-timing-attlist,
+    animate-physics-attlist
+  }
+animate-physics-attlist =
+  # default value: 0
+  attribute loext:velocity-x { double }?,
+  # default value: 0
+  attribute loext:velocity-y { double }?,
+  # default value: 0.1
+  attribute loext:bounciness {
+    xsd:double { minInclusive = "0" maxInclusive = "1" }
+  }?,
+  # default value: 1
+  attribute loext:density {
+    xsd:double { minInclusive = "0" }
+  }?
+# TODO no proposal
+style-chart-properties-attlist &=
+  attribute loext:custom-leader-lines { boolean }?
+# TODO no proposal
+style-chart-properties-attlist &=
+  attribute loext:external-data { \string }?

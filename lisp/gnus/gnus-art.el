@@ -971,7 +971,7 @@ see http://www.cs.indiana.edu/picons/ftp/index.html"
   :version "22.1"
   :type '(repeat directory)
   :link '(url-link :tag "download"
-		   "http://www.cs.indiana.edu/picons/ftp/index.html")
+                   "http://www.cs.indiana.edu/picons/ftp/index.html")
   :link '(custom-manual "(gnus)Picons")
   :group 'gnus-picon)
 
@@ -6648,9 +6648,10 @@ not have a face in `gnus-article-boring-faces'."
 	(catch 'only-boring
 	  (while (re-search-forward "\\b\\w\\w" nil t)
 	    (forward-char -1)
-	    (when (not (gnus-intersection
+            (when (not (seq-intersection
 			(gnus-faces-at (point))
-			(symbol-value 'gnus-article-boring-faces)))
+                        (symbol-value 'gnus-article-boring-faces)
+                        #'eq))
 	      (throw 'only-boring nil)))
 	  (throw 'only-boring t))))))
 

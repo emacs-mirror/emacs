@@ -1431,7 +1431,7 @@ If `bibtex-expand-strings' is non-nil, BibTeX strings are expanded
 for generating the URL.
 Set this variable before loading BibTeX mode.
 
-The following is a complex example, see URL `http://link.aps.org/'.
+The following is a complex example, see URL `https://link.aps.org/'.
 
    (((\"journal\" . \"\\\\=<\\(PR[ABCDEL]?\\|RMP\\)\\\\=>\")
      \"http://link.aps.org/abstract/%s/v%s/p%s\"

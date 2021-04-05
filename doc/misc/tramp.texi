@@ -2305,6 +2305,8 @@ which support this.
 This approach has also the advantage, that settings in
 @code{tramp-sh-extra-args} will be applied.  For @command{zsh}, the
 trouble with the shell prompt due to set zle options will be avoided.
+For @command{bash}, loading @file{~/.editrc} or @file{~/.inputrc} is
+suppressed.
 
 Similar problems can happen with the local shell Tramp uses to create
 a process.  By default, it uses the command @command{/bin/sh} for
@@ -5074,6 +5076,24 @@ from GNU ELPA, you must delete and reinstall it.
 @ifset installchapter
 In case you have installed it from its Git repository, @ref{Recompilation}.
 @end ifset
+
+
+@item
+I get an error @samp{tramp-file-name-handler: Invalid function:
+tramp-compat-with-mutex}
+
+Likely, you have a running Emacs session with loaded @value{tramp},
+and you try to upgrade it to another version from GNU ELPA.  Since
+@value{tramp} is not forward compatible, you must unload / reload it.
+Try the following steps:
+
+@example
+@kbd{M-x tramp-unload-tramp @key{RET}}
+@kbd{M-x load-library @key{RET} tramp @key{RET}}
+@end example
+
+If this doesn't work, you must restart Emacs with proper
+@code{load-path} for the new @value{tramp} version.
 
 
 @item

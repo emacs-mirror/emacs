@@ -5751,6 +5751,28 @@ Cropping is performed after scaling but before rotation.
 @cindex SVG images
 
 SVG (Scalable Vector Graphics) is an XML format for specifying images.
+SVG images support the following additional image descriptor
+properties:
+
+@table @code
+@item :foreground @var{foreground}
+@var{foreground}, if non-@code{nil}, should be a string specifying a
+color, which is used as the image's foreground color.  If the value is
+@code{nil}, it defaults to the faces's foreground color.
+
+@item :background @var{background}
+@var{background}, if non-@code{nil}, should be a string specifying a
+color, which is used as the image's background color if the image
+supports transparency.  If the value is @code{nil}, it defaults to the
+faces's background color.
+
+@item :css @var{css}
+@var{css}, if non-@code{nil}, should be a string specifying the CSS to
+override the default CSS used when generating the image.
+@end table
+
+@subsubheading SVG library
+
 If your Emacs build has SVG support, you can create and manipulate
 these images with the following functions from the @file{svg.el}
 library.

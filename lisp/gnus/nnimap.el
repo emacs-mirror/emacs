@@ -440,6 +440,7 @@ during splitting, which may be slow."
 
 ;; This is only needed for Windows XP or earlier
 (defun nnimap-map-port (port)
+  (declare-function x-server-version "xfns.c" (&optional terminal))
   (if (and (eq system-type 'windows-nt)
            (<= (car (x-server-version)) 5)
            (equal port "imaps"))
@@ -1613,13 +1614,15 @@ If LIMIT, first try to limit the search to the N last articles."
 	      (setq start-article 1))
 	    (let* ((unread
 		    (gnus-compress-sequence
-		     (gnus-set-difference
-		      (gnus-set-difference
+                     (seq-difference
+                      (seq-difference
 		       existing
 		       (gnus-sorted-union
 			(cdr (assoc '%Seen flags))
-			(cdr (assoc '%Deleted flags))))
-		      (cdr (assoc '%Flagged flags)))))
+                        (cdr (assoc '%Deleted flags)))
+                       #'eq)
+                      (cdr (assoc '%Flagged flags))
+                      #'eq)))
 		   (read (gnus-range-difference
 			  (cons start-article high) unread)))
 	      (when (> start-article 1)

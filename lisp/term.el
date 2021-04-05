@@ -2535,7 +2535,7 @@ See `term-prompt-regexp'."
 ;; then the filename reader will only accept a file that exists.
 ;;
 ;; A typical use:
-;; (interactive (term-get-source "Compile file: " prev-lisp-dir/file
+;; (interactive (term-get-source "Compile file" prev-lisp-dir/file
 ;;                                 '(lisp-mode) t))
 
 ;; This is pretty stupid about strings.  It decides we're in a string
@@ -2566,9 +2566,7 @@ See `term-prompt-regexp'."
                       (car def)))
 	 (deffile (if sfile-p (file-name-nondirectory stringfile)
                       (cdr def)))
-	 (ans (read-file-name (if deffile (format "%s(default %s) "
-						  prompt    deffile)
-				  prompt)
+	 (ans (read-file-name (format-prompt prompt deffile)
 			      defdir
 			      (concat defdir deffile)
 			      mustmatch-p)))

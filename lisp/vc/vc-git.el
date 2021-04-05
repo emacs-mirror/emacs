@@ -27,14 +27,6 @@
 ;; system.
 ;;
 
-;;; Installation:
-
-;; To install: put this file on the load-path and add Git to the list
-;; of supported backends in `vc-handled-backends'; the following line,
-;; placed in your init file, will accomplish this:
-;;
-;;     (add-to-list 'vc-handled-backends 'Git)
-
 ;;; Todo:
 ;;  - check if more functions could use vc-git-command instead
 ;;     of start-process.
@@ -252,7 +244,7 @@ included in the completions."
                ;; Do not use the `file-name-directory' here: git-ls-files
                ;; sometimes fails to return the correct status for relative
                ;; path specs.
-               ;; See also: http://marc.info/?l=git&m=125787684318129&w=2
+               ;; See also: https://marc.info/?l=git&m=125787684318129&w=2
                (name (file-relative-name file dir))
                (str (with-demoted-errors "Error: %S"
                       (cd dir)

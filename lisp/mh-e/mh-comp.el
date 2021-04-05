@@ -1,4 +1,4 @@
-;;; mh-comp.el --- MH-E functions for composing and sending messages
+;;; mh-comp.el --- MH-E functions for composing and sending messages  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 1997, 2000-2021 Free Software Foundation,
 ;; Inc.
@@ -719,12 +719,14 @@ message and scan line."
                (mh-insert-fields field value)))))
          (mh-components-to-list components-file))
         (delete-file components-file))
-      (mh-insert-fields "Resent-To:" (mapconcat 'identity (list to comp-to) ", ")
-                        "Resent-Cc:" (mapconcat 'identity (list cc comp-cc) ", ")
-                        "Resent-Fcc:" (mapconcat 'identity (list fcc
-                                                                 comp-fcc) ", ")
-                        "Resent-Bcc:" (mapconcat 'identity (list bcc
-                                                                 comp-bcc) ", ")
+      (mh-insert-fields "Resent-To:" (mapconcat #'identity (list to comp-to)
+                                                ", ")
+                        "Resent-Cc:" (mapconcat #'identity (list cc comp-cc)
+                                                ", ")
+                        "Resent-Fcc:" (mapconcat #'identity (list fcc comp-fcc)
+                                                 ", ")
+                        "Resent-Bcc:" (mapconcat #'identity (list bcc comp-bcc)
+                                                 ", ")
                         "Resent-From:" from)
       (save-buffer)
       (message "Redistributing...")
@@ -1096,7 +1098,7 @@ letter."
   (setq mode-line-buffer-identification (list "    {%b}"))
   (mh-logo-display)
   (mh-make-local-hook 'kill-buffer-hook)
-  (add-hook 'kill-buffer-hook 'mh-tidy-draft-buffer nil t)
+  (add-hook 'kill-buffer-hook #'mh-tidy-draft-buffer nil t)
   (run-hook-with-args 'mh-compose-letter-function to subject cc))
 
 (defun mh-insert-x-mailer ()
@@ -1165,7 +1167,7 @@ This should be the last function called when composing the draft."
 MSG can be a message number, a list of message numbers, or a sequence.
 The hook `mh-annotate-msg-hook' is run after annotating; see its
 documentation for variables it can use."
-  (apply 'mh-exec-cmd "anno" folder
+  (apply #'mh-exec-cmd "anno" folder
          (if (listp msg) (append msg args) (cons msg args)))
   (save-excursion
     (cond ((get-buffer folder)          ; Buffer may be deleted

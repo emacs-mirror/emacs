@@ -51,9 +51,6 @@
 ;; In thumbs-mode, pressing <return> on an image will bring you in image view
 ;; mode for that image.  C-h m will give you a list of available keybinding.
 
-;;; History:
-;;
-
 ;;; Code:
 
 (require 'dired)
@@ -93,11 +90,12 @@ When it reaches that size (in bytes), a warning is sent."
 ;; customize this value to the absolute filename.
 (defcustom thumbs-conversion-program
   (if (eq system-type 'windows-nt)
+      ;; FIXME is this necessary, or can a sane PATHEXE be assumed?
+      ;; Eg find-program does not do this.
       "convert.exe"
-    (or (executable-find "convert")
-        "/usr/bin/convert"))
+    "convert")
   "Name of conversion program for thumbnails generation.
-It must be \"convert\"."
+This must be the ImageMagick \"convert\" utility."
   :type 'string
   :version "28.1")
 

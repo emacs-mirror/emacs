@@ -1364,19 +1364,6 @@ C-e}:
 (this is an unquoted list)
 @end smallexample
 
-@ignore
-@noindent
-What you see depends on which version of Emacs you are running.  GNU
-Emacs version 22 provides more information than version 20 and before.
-First, the more recent result of generating an error; then the
-earlier, version 20 result.
-
-@need 1250
-@noindent
-In GNU Emacs version 22, a @file{*Backtrace*} window will open up and
-you will see the following in it:
-@end ignore
-
 A @file{*Backtrace*} window will open up and you should see the
 following in it:
 
@@ -1838,19 +1825,6 @@ Debugger entered--Lisp error: (void-function fill-column)
 (Remember, to quit the debugger and make the debugger window go away,
 type @kbd{q} in the @file{*Backtrace*} buffer.)
 
-@ignore
-@need 800
-In GNU Emacs 20 and before, you will produce an error message that says:
-
-@smallexample
-Symbol's function definition is void:@: fill-column
-@end smallexample
-
-@noindent
-(The message will go away as soon as you move the cursor or type
-another key.)
-@end ignore
-
 @node Void Variable
 @subsection Error Message for a Symbol Without a Value
 @cindex Symbol without value error
@@ -1906,18 +1880,6 @@ evaluated the preceding s-expression, which in this case was
 Since @code{+} does not have a value bound to it, just the function
 definition, the error message reported that the symbol's value as a
 variable was void.
-
-@ignore
-@need 800
-In GNU Emacs version 20 and before, your error message will say:
-
-@example
-Symbol's value as variable is void:@: +
-@end example
-
-@noindent
-The meaning is the same as in GNU Emacs 22.
-@end ignore
 
 @node Arguments
 @section Arguments
@@ -2196,19 +2158,6 @@ This is the value of the argument that was passed to @code{+}.  If the
 addition had been passed the correct type of object, the value passed
 would have been a number, such as 37, rather than a symbol like
 @code{hello}.  But then you would not have got the error message.
-
-@ignore
-@need 1250
-In GNU Emacs version 20 and before, the echo area displays an error
-message that says:
-
-@smallexample
-Wrong type argument:@: number-or-marker-p, hello
-@end smallexample
-
-This says, in different words, the same as the top line of the
-@file{*Backtrace*} buffer.
-@end ignore
 
 @node message
 @subsection The @code{message} Function
@@ -6663,9 +6612,9 @@ original text of the function:
 @end group
 @end smallexample
 
-(In recent versions of GNU Emacs, the @code{what-line} function has
+(In modern versions of GNU Emacs, the @code{what-line} function has
 been expanded to tell you your line number in a narrowed buffer as
-well as your line number in a widened buffer.  The recent version is
+well as your line number in a widened buffer.  The modern version is
 more complex than the version shown here.  If you feel adventurous,
 you might want to look at it after figuring out how this version
 works.  You will probably need to use @kbd{C-h f}
@@ -10392,9 +10341,8 @@ echo area: @code{^Jgazelle^J^Jgiraffe^J^Jlion^J^Jtiger^Jnil}, in which
 each @samp{^J} stands for a newline.)
 
 @need 1500
-In a recent instance of GNU Emacs, you can evaluate these expressions
-directly in the Info buffer, and the echo area will grow to show the
-results.
+You can evaluate these expressions directly in the Info buffer, and
+the echo area will grow to show the results.
 
 @smallexample
 @group
@@ -18104,8 +18052,7 @@ argument of 4:
 @end smallexample
 
 @noindent
-In a recent GNU Emacs, you will create and enter a @file{*Backtrace*}
-buffer that says:
+This will create and enter a @file{*Backtrace*} buffer that says:
 
 @noindent
 @smallexample
@@ -18139,25 +18086,12 @@ In practice, for a bug as simple as this, the Lisp error line will
 tell you what you need to know to correct the definition.  The
 function @code{1=} is void.
 
-@ignore
-@need 800
-In GNU Emacs 20 and before, you will see:
-
-@smallexample
-Symbol's function definition is void:@: 1=
-@end smallexample
-
-@noindent
-which has the same meaning as the @file{*Backtrace*} buffer line in
-version 21.
-@end ignore
-
 However, suppose you are not quite certain what is going on?
 You can read the complete backtrace.
 
-In this case, you need to run a recent GNU Emacs, which automatically
-starts the debugger that puts you in the @file{*Backtrace*} buffer; or
-else, you need to start the debugger manually as described below.
+Emacs automatically starts the debugger that puts you in the
+@file{*Backtrace*} buffer.  You can also start the debugger manually
+as described below.
 
 Read the @file{*Backtrace*} buffer from the bottom up; it tells you
 what Emacs did that led to the error.  Emacs made an interactive call
@@ -18197,14 +18131,8 @@ then run your test again.
 @section @code{debug-on-entry}
 @findex debug-on-entry
 
-A recent GNU Emacs starts the debugger automatically when your
-function has an error.
-
-@ignore
-GNU Emacs version 20 and before did not; it simply
-presented you with an error message.  You had to start the debugger
-manually.
-@end ignore
+Emacs starts the debugger automatically when your function has an
+error.
 
 Incidentally, you can start the debugger manually for all versions of
 Emacs; the advantage is that the debugger runs even if you do not have
@@ -20079,8 +20007,8 @@ the tic marks themselves and their spacing:
 @code{defvar}.  The @code{boundp} predicate checks whether it has
 already been set; @code{boundp} returns @code{nil} if it has not.  If
 @code{graph-blank} were unbound and we did not use this conditional
-construction, in a recent GNU Emacs, we would enter the debugger and
-see an error message saying @samp{@w{Debugger entered--Lisp error:}
+construction, we would enter the debugger and see an error message
+saying @samp{@w{Debugger entered--Lisp error:}
 @w{(void-variable graph-blank)}}.)
 
 @need 1200

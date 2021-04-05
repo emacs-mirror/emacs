@@ -554,30 +554,30 @@ After interpretation of ARGS the results are concatenated as for
 `:seq'."
   (apply #'concat
 	 (mapcar
-	  #'(lambda (re)
-	      (cond
-	       ((stringp re)
-		re)
-	       ((symbolp re)
-		(cadr (assoc re rst-re-alist)))
-	       ((characterp re)
-		(regexp-quote (char-to-string re)))
-	       ((listp re)
-		(let ((nested
-		       (mapcar #'rst-re (cdr re))))
-		  (cond
-		   ((eq (car re) :seq)
-		    (mapconcat #'identity nested ""))
-		   ((eq (car re) :shy)
-		    (concat "\\(?:" (mapconcat #'identity nested "") "\\)"))
-		   ((eq (car re) :grp)
-		    (concat "\\(" (mapconcat #'identity nested "") "\\)"))
-		   ((eq (car re) :alt)
-		    (concat "\\(?:" (mapconcat #'identity nested "\\|") "\\)"))
-		   (t
-		    (error "Unknown list car: %s" (car re))))))
-	       (t
-		(error "Unknown object type for building regex: %s" re))))
+          (lambda (re)
+            (cond
+             ((stringp re)
+              re)
+             ((symbolp re)
+              (cadr (assoc re rst-re-alist)))
+             ((characterp re)
+              (regexp-quote (char-to-string re)))
+             ((listp re)
+              (let ((nested
+                     (mapcar #'rst-re (cdr re))))
+                (cond
+                 ((eq (car re) :seq)
+                  (mapconcat #'identity nested ""))
+                 ((eq (car re) :shy)
+                  (concat "\\(?:" (mapconcat #'identity nested "") "\\)"))
+                 ((eq (car re) :grp)
+                  (concat "\\(" (mapconcat #'identity nested "") "\\)"))
+                 ((eq (car re) :alt)
+                  (concat "\\(?:" (mapconcat #'identity nested "\\|") "\\)"))
+                 (t
+                  (error "Unknown list car: %s" (car re))))))
+             (t
+              (error "Unknown object type for building regex: %s" re))))
 	  args)))
 
 ;; FIXME: Remove circular dependency between `rst-re' and `rst-re-alist'.
@@ -709,8 +709,8 @@ Return CHAR if so or signal an error otherwise."
   ;; testcover: ok.
   "Return position of SELF in ADOS or nil."
   (cl-check-type self rst-Ado)
-  (cl-position-if #'(lambda (e)
-		      (rst-Ado-equal self e))
+  (cl-position-if (lambda (e)
+                    (rst-Ado-equal self e))
 		  ados))
 
 
@@ -814,8 +814,8 @@ Return ADO if so or signal an error otherwise."
   "Return sublist of HDRS whose car's adornment equals that of SELF or nil."
   (cl-check-type self rst-Hdr)
   (let ((ado (rst-Hdr-ado self)))
-    (cl-member-if #'(lambda (hdr)
-		      (rst-Ado-equal ado (rst-Hdr-ado hdr)))
+    (cl-member-if (lambda (hdr)
+                    (rst-Ado-equal ado (rst-Hdr-ado hdr)))
 		  hdrs)))
 
 (defun rst-Hdr-ado-map (selves)
@@ -1277,8 +1277,8 @@ This inherits from Text mode.")
 
 ;; Abbrevs.
 (define-abbrev-table 'rst-mode-abbrev-table
-  (mapcar #'(lambda (x)
-	      (append x '(nil 0 system)))
+  (mapcar (lambda (x)
+            (append x '(nil 0 system)))
           '(("contents" ".. contents::\n..\n   ")
             ("con" ".. contents::\n..\n   ")
             ("cont" "[...]")
@@ -1501,9 +1501,9 @@ file."
   :type `(repeat
 	  (group :tag "Adornment specification"
 		 (choice :tag "Adornment character"
-			 ,@(mapcar #'(lambda (char)
-				       (list 'const
-					     :tag (char-to-string char) char))
+                         ,@(mapcar (lambda (char)
+                                     (list 'const
+                                           :tag (char-to-string char) char))
 				   rst-adornment-chars))
 		 (radio :tag "Adornment type"
 			(const :tag "Overline and underline" over-and-under)
@@ -1540,8 +1540,8 @@ search starts after this entry.  Return nil if no new preferred
 	      ;; Start searching after the level of the previous adornment.
 	      (cdr (rst-Hdr-member-ado prev (rst-Hdr-preferred-adornments))))
 	  (rst-Hdr-preferred-adornments))))
-    (cl-find-if #'(lambda (cand)
-		    (not (rst-Hdr-member-ado cand seen)))
+    (cl-find-if (lambda (cand)
+                  (not (rst-Hdr-member-ado cand seen)))
 		candidates)))
 
 (defun rst-update-section (hdr)
@@ -1620,55 +1620,55 @@ returned."
 	       (ttl-blw ; Title found below starting here.
 		(rst-forward-line-looking-at
 		 +1 'ttl-beg-1
-		 #'(lambda (mtcd)
-		     (when mtcd
-		       (setq txt-blw (match-string-no-properties 1))
-		       (point)))))
+                 (lambda (mtcd)
+                   (when mtcd
+                     (setq txt-blw (match-string-no-properties 1))
+                     (point)))))
 	       txt-abv
 	       (ttl-abv ; Title found above starting here.
 		(rst-forward-line-looking-at
 		  -1 'ttl-beg-1
-		  #'(lambda (mtcd)
-		      (when mtcd
-			(setq txt-abv (match-string-no-properties 1))
-			(point)))))
+                  (lambda (mtcd)
+                    (when mtcd
+                      (setq txt-abv (match-string-no-properties 1))
+                      (point)))))
 	       (und-fnd ; Matching underline found starting here.
 		(and ttl-blw
 		     (rst-forward-line-looking-at
 		      +2 (list ado-re 'lin-end)
-		      #'(lambda (mtcd)
-			  (when mtcd
-			    (point))))))
+                      (lambda (mtcd)
+                        (when mtcd
+                          (point))))))
 	       (ovr-fnd ; Matching overline found starting here.
 		(and ttl-abv
 		     (rst-forward-line-looking-at
 		      -2 (list ado-re 'lin-end)
-		      #'(lambda (mtcd)
-			  (when mtcd
-			    (point))))))
+                      (lambda (mtcd)
+                        (when mtcd
+                          (point))))))
 	       (und-wng ; Wrong underline found starting here.
 		(and ttl-blw
 		     (not und-fnd)
 		     (rst-forward-line-looking-at
 		      +2 'ado-beg-2-1
-		      #'(lambda (mtcd)
-			  (when mtcd
-			    (point))))))
+                      (lambda (mtcd)
+                        (when mtcd
+                          (point))))))
 	       (ovr-wng ; Wrong overline found starting here.
 		(and ttl-abv (not ovr-fnd)
 		     (rst-forward-line-looking-at
 		       -2 'ado-beg-2-1
-		       #'(lambda (mtcd)
-			   (when (and
-				  mtcd
-				  ;; An adornment above may be a legal
-				  ;; adornment for the line above - consider it
-				  ;; a wrong overline only when it is equally
-				  ;; long.
-				  (equal
-				   (length (match-string-no-properties 1))
-				   (length adornment)))
-			     (point)))))))
+                       (lambda (mtcd)
+                         (when (and
+                                mtcd
+                                ;; An adornment above may be a legal
+                                ;; adornment for the line above - consider it
+                                ;; a wrong overline only when it is equally
+                                ;; long.
+                                (equal
+                                 (length (match-string-no-properties 1))
+                                 (length adornment)))
+                           (point)))))))
 	  (cond
 	   ((and nxt-emp prv-emp)
 	    ;; A transition.
@@ -1708,11 +1708,11 @@ a section header or nil if no title line is found."
        (rst-forward-line-strict 0))
       (let* (cnd-beg ; Beginning of a title candidate.
 	     cnd-txt ; Text of a title candidate.
-	     (cnd-fun #'(lambda (mtcd) ; Function setting title candidate data.
-			  (when mtcd
-			    (setq cnd-beg (match-beginning 0))
-			    (setq cnd-txt (match-string-no-properties 1))
-			    t)))
+             (cnd-fun (lambda (mtcd) ; Function setting title candidate data.
+                        (when mtcd
+                          (setq cnd-beg (match-beginning 0))
+                          (setq cnd-txt (match-string-no-properties 1))
+                          t)))
 	     ttl)
 	(cond
 	 ((looking-at (rst-re 'ado-beg-2-1))
@@ -1728,10 +1728,10 @@ a section header or nil if no title line is found."
 	  ;; Title line found - check for a following underline.
 	  (setq ttl (rst-forward-line-looking-at
 		     1 'ado-beg-2-1
-		     #'(lambda (mtcd)
-			 (when mtcd
-			   (rst-classify-adornment
-			    (match-string-no-properties 0) (match-end 0))))))
+                     (lambda (mtcd)
+                       (when mtcd
+                         (rst-classify-adornment
+                          (match-string-no-properties 0) (match-end 0))))))
 	  ;; Title candidate found if no valid adornment found.
 	  (funcall cnd-fun (not ttl))))
 	(cond
@@ -1827,15 +1827,15 @@ given."
 	 (ignore-ttl
 	  (if ignore-position
 	      (cl-find-if
-	       #'(lambda (ttl)
-		   (equal (rst-Ttl-contains ttl ignore-position) 0))
+               (lambda (ttl)
+                 (equal (rst-Ttl-contains ttl ignore-position) 0))
 	       all-ttls)))
 	 (really-ignore
 	  (if ignore-ttl
 	      (<= (cl-count-if
-		   #'(lambda (ttl)
-		       (rst-Ado-equal (rst-Ttl-ado ignore-ttl)
-				      (rst-Ttl-ado ttl)))
+                   (lambda (ttl)
+                     (rst-Ado-equal (rst-Ttl-ado ignore-ttl)
+                                 (rst-Ttl-ado ttl)))
 		   all-ttls)
 		  1)))
 	 (real-ttls (delq (if really-ignore ignore-ttl) all-ttls)))
@@ -1859,14 +1859,14 @@ given."
 Return a list of (`rst-Ttl' . LEVEL) with ascending line number."
   (let ((hier (rst-Hdr-ado-map (rst-hdr-hierarchy))))
     (mapcar
-     #'(lambda (ttl)
-	 (cons ttl (rst-Ado-position (rst-Ttl-ado ttl) hier)))
+     (lambda (ttl)
+       (cons ttl (rst-Ado-position (rst-Ttl-ado ttl) hier)))
      (rst-all-ttls))))
 
 (defun rst-get-previous-hdr ()
   "Return the `rst-Hdr' before point or nil if none."
-  (let ((prev (cl-find-if #'(lambda (ttl)
-			      (< (rst-Ttl-contains ttl (point)) 0))
+  (let ((prev (cl-find-if (lambda (ttl)
+                            (< (rst-Ttl-contains ttl (point)) 0))
 			  (rst-all-ttls)
 			  :from-end t)))
     (and prev (rst-Ttl-hdr prev))))
@@ -2169,19 +2169,19 @@ hierarchy is similar to that used by `rst-adjust-section'."
   (let* ((beg (region-beginning))
 	 (end (region-end))
 	 (ttls-reg (cl-remove-if-not
-		    #'(lambda (ttl)
-			(and
-			 (>= (rst-Ttl-contains ttl beg) 0)
-			 (< (rst-Ttl-contains ttl end) 0)))
+                    (lambda (ttl)
+                      (and
+                       (>= (rst-Ttl-contains ttl beg) 0)
+                       (< (rst-Ttl-contains ttl end) 0)))
 		    (rst-all-ttls))))
     (save-excursion
       ;; Apply modifications.
       (rst-destructuring-dolist
 	  ((marker &rest hdr
 		   &aux (hier (rst-hdr-hierarchy)))
-	   (mapcar #'(lambda (ttl)
-		       (cons (copy-marker (rst-Ttl-get-title-beginning ttl))
-			     (rst-Ttl-hdr ttl)))
+           (mapcar (lambda (ttl)
+                     (cons (copy-marker (rst-Ttl-get-title-beginning ttl))
+                           (rst-Ttl-hdr ttl)))
 		   ttls-reg))
 	(set-marker
 	 (goto-char marker) nil)
@@ -2391,9 +2391,9 @@ also arranged by `rst-insert-list-new-tag'."
   "List of favorite bullets."
   :group 'rst
   :type `(repeat
-	  (choice ,@(mapcar #'(lambda (char)
-				(list 'const
-				      :tag (char-to-string char) char))
+          (choice ,@(mapcar (lambda (char)
+                              (list 'const
+                                    :tag (char-to-string char) char))
 			    rst-bullets)))
   :package-version '(rst . "1.1.0"))
 
@@ -2517,13 +2517,13 @@ ordered by POINT."
 		   (looking-at (rst-re rst-re-beg)) ; Start found
 		   (not (rst-forward-line-looking-at
 			 -1 'lin-end
-			 #'(lambda (mtcd) ; Previous line exists and is...
-			     (and
-			      (not mtcd) ; non-empty,
-			      (<= (current-indentation) clm) ; less indented
-			      (not (and (= (current-indentation) clm)
+                         (lambda (mtcd) ; Previous line exists and is...
+                           (and
+                            (not mtcd) ; non-empty,
+                            (<= (current-indentation) clm) ; less indented
+                            (not (and (= (current-indentation) clm)
 					; not a beg at same level.
-					(looking-at (rst-re rst-re-beg)))))))))
+                                      (looking-at (rst-re rst-re-beg)))))))))
 	      (back-to-indentation)
 	      (push (cons (point) clm) r)))
 	  (1value ; At least one line is moved in this loop.
@@ -2553,8 +2553,8 @@ modified."
 	  ((bullet _clm &rest pnts)
 	   ;; Zip preferred bullets and sorted columns associating a bullet
 	   ;; with a column and all the points this column is found.
-	   (cl-mapcar #'(lambda (bullet clm2pnt)
-			  (cons bullet clm2pnt))
+           (cl-mapcar (lambda (bullet clm2pnt)
+                        (cons bullet clm2pnt))
 		      rst-preferred-bullets
 		      (sort clm2pnts #'car-less-than-car)))
 	;; Replace the bullets by the preferred ones.
@@ -2614,8 +2614,8 @@ section headers at all."
     (when (>= point (rst-Stn-get-title-beginning stn))
       ;; Point may be in this section or a child.
       (let ((in-child (cl-find-if
-		       #'(lambda (child)
-			   (>= point (rst-Stn-get-title-beginning child)))
+                       (lambda (child)
+                         (>= point (rst-Stn-get-title-beginning child)))
 		       (rst-Stn-children stn)
 		       :from-end t)))
 	(if in-child
@@ -2829,18 +2829,18 @@ file-write hook to always make it up-to-date automatically."
 	    (and beg
 		 (rst-forward-line-looking-at
 		  1 'lin-end
-		  #'(lambda (mtcd)
-		      (unless mtcd
-			(rst-apply-indented-blocks
-			 (point) (point-max) (current-indentation)
-			 #'(lambda (count _in-first _in-sub in-super in-empty
-					  _relind)
-			     (cond
-			      ((or (> count 1) in-super))
-			      ((not in-empty)
-			       (setq fnd (line-end-position))
-			       nil)))))
-		      t)))
+                  (lambda (mtcd)
+                    (unless mtcd
+                      (rst-apply-indented-blocks
+                       (point) (point-max) (current-indentation)
+                       (lambda (count _in-first _in-sub in-super in-empty
+                                 _relind)
+                         (cond
+                          ((or (> count 1) in-super))
+                          ((not in-empty)
+                           (setq fnd (line-end-position))
+                           nil)))))
+                    t)))
 	  (when fnd
 	    (delete-region beg fnd))
 	  (goto-char beg)
@@ -3024,14 +3024,14 @@ direction."
 	 (contained nil) ; Title contains point (or is after point otherwise).
          (found (or (cl-position-if
 		     ;; Find a title containing or after point.
-		     #'(lambda (ttl)
-			 (let ((cmp (rst-Ttl-contains ttl pnt)))
-			   (cond
-			    ((= cmp 0) ; Title contains point.
-			     (setq contained t)
-			     t)
-			    ((> cmp 0) ; Title after point.
-			     t))))
+                     (lambda (ttl)
+                       (let ((cmp (rst-Ttl-contains ttl pnt)))
+                         (cond
+                          ((= cmp 0) ; Title contains point.
+                           (setq contained t)
+                           t)
+                          ((> cmp 0) ; Title after point.
+                           t))))
 		     ttls)
 		    ;; Point after all titles.
 		    count))
@@ -3290,8 +3290,8 @@ remove all indentation (CNT = 0).  A tab is taken from the text
 above.  If no suitable tab is found `rst-indent-width' is used."
   (interactive "r\np")
   (let ((tabs (sort (rst-compute-tabs beg)
-		    #'(lambda (x y)
-			(<= x y))))
+                    (lambda (x y)
+                      (<= x y))))
 	(leftmostcol (rst-find-leftmost-column beg end)))
     (when (or (> leftmostcol 0) (> cnt 0))
       ;; Apply the indent.
@@ -3306,8 +3306,8 @@ above.  If no suitable tab is found `rst-indent-width' is used."
 		(dir (cl-signum cnt)) ; Direction to take.
 		(abs (abs cnt)) ; Absolute number of steps to take.
 		;; Get the position of the first tab beyond leftmostcol.
-		(fnd (cl-position-if #'(lambda (elt)
-					 (funcall cmp elt leftmostcol))
+                (fnd (cl-position-if (lambda (elt)
+                                       (funcall cmp elt leftmostcol))
                                       tabs))
 		;; Virtual position of tab.
 		(pos (+ (or fnd len) (1- abs)))
@@ -3492,20 +3492,20 @@ do all lines instead of just paragraphs."
 	(indent ""))
     (rst-apply-indented-blocks
      beg end (rst-find-leftmost-column beg end)
-     #'(lambda (count in-first in-sub in-super in-empty _relind)
-	 (cond
-	  (in-empty)
-	  (in-super)
-	  ((zerop count))
-	  (in-sub
-	   (insert indent))
-	  ((or in-first all)
-	   (let ((tag (format "%d. " (cl-incf enum))))
-	     (setq indent (make-string (length tag) ? ))
-	     (insert tag)))
-	  (t
-	   (insert indent)))
-	 nil))))
+     (lambda (count in-first in-sub in-super in-empty _relind)
+       (cond
+        (in-empty)
+        (in-super)
+        ((zerop count))
+        (in-sub
+         (insert indent))
+        ((or in-first all)
+         (let ((tag (format "%d. " (cl-incf enum))))
+           (setq indent (make-string (length tag) ? ))
+           (insert tag)))
+        (t
+         (insert indent)))
+       nil))))
 
 ;; FIXME: Does not deal with deeper indentation - although
 ;;        `rst-apply-indented-blocks' could.
@@ -3520,18 +3520,18 @@ do all lines instead of just paragraphs."
 	 (indent (make-string (length bul) ? )))
     (rst-apply-indented-blocks
      beg end (rst-find-leftmost-column beg end)
-     #'(lambda (count in-first in-sub in-super in-empty _relind)
-	 (cond
-	  (in-empty)
-	  (in-super)
-	  ((zerop count))
-	  (in-sub
-	   (insert indent))
-	  ((or in-first all)
-	   (insert bul))
-	  (t
-	   (insert indent)))
-	 nil))))
+     (lambda (count in-first in-sub in-super in-empty _relind)
+       (cond
+        (in-empty)
+        (in-super)
+        ((zerop count))
+        (in-sub
+         (insert indent))
+        ((or in-first all)
+         (insert bul))
+        (t
+         (insert indent)))
+       nil))))
 
 ;; FIXME: Does not deal with a varying number of digits appropriately.
 ;; FIXME: Does not deal with multiple levels independently.
@@ -3561,11 +3561,11 @@ Region is from BEG to END.  With WITH-EMPTY prefix empty lines too."
   (let ((ind (rst-find-leftmost-column beg end)))
     (rst-apply-indented-blocks
      beg end ind
-     #'(lambda (_count _in-first _in-sub in-super in-empty _relind)
-	 (when (and (not in-super) (or with-empty (not in-empty)))
-	   (move-to-column ind t)
-	   (insert "| "))
-	 nil))))
+     (lambda (_count _in-first _in-sub in-super in-empty _relind)
+       (when (and (not in-super) (or with-empty (not in-empty)))
+         (move-to-column ind t)
+         (insert "| "))
+       nil))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4085,16 +4085,16 @@ end of the buffer) return nil and do not move point."
     (setq fnd (rst-apply-indented-blocks
   	       (line-beginning-position 2) ; Skip the current line
 	       (or limit (point-max)) (or column (current-column))
-  	       #'(lambda (_count _in-first _in-sub in-super in-empty _relind)
-  		   (cond
-  		    (in-empty
-  		     (setq candidate (or candidate (line-beginning-position)))
-  		     nil)
-  		    (in-super
-  		     (or candidate (line-beginning-position)))
-  		    (t ; Non-empty, same or more indented line.
-  		     (setq candidate nil)
-  		     nil)))))
+               (lambda (_count _in-first _in-sub in-super in-empty _relind)
+                 (cond
+                  (in-empty
+                   (setq candidate (or candidate (line-beginning-position)))
+                   nil)
+                  (in-super
+                   (or candidate (line-beginning-position)))
+                  (t ; Non-empty, same or more indented line.
+                   (setq candidate nil)
+                   nil)))))
     (when fnd
       (goto-char fnd))))
 

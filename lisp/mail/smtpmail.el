@@ -489,13 +489,6 @@ for `smtpmail-try-auth-method'.")
       recipient
     (concat recipient "@" smtpmail-sendto-domain)))
 
-(defun smtpmail-intersection (list1 list2)
-  (let ((result nil))
-    (dolist (el2 list2)
-      (when (memq el2 list1)
-	(push el2 result)))
-    (nreverse result)))
-
 (defun smtpmail-command-or-throw (process string &optional code)
   (let (ret)
     (smtpmail-send-command process string)
@@ -512,9 +505,10 @@ for `smtpmail-try-auth-method'.")
 	(if port
 	    (format "%s" port)
 	  "smtp"))
-  (let* ((mechs (smtpmail-intersection
+  (let* ((mechs (seq-intersection
+                 smtpmail-auth-supported
                  (cdr-safe (assoc 'auth supported-extensions))
-                 smtpmail-auth-supported))
+                 #'eq))
 	 (auth-source-creation-prompts
           '((user  . "SMTP user name for %h: ")
             (secret . "SMTP password for %u@%h: ")))
@@ -1086,6 +1080,12 @@ many continuation lines."
 	;; get rid of any continuation lines
 	(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
 	  (replace-match ""))))))
+
+;; Obsolete.
+
+(defun smtpmail-intersection (list1 list2)
+  (declare (obsolete seq-intersection "28.1"))
+  (seq-intersection list2 list1 #'eq))
 
 (provide 'smtpmail)
 

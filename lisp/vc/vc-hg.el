@@ -30,8 +30,6 @@
 
 ;;; Bugs:
 
-;;; Installation:
-
 ;;; Todo:
 
 ;; 1) Implement the rest of the vc interface. See the comment at the
@@ -96,9 +94,6 @@
 ;; mercurial's control and extracting the current revision should be done
 ;; without even using `hg' (this way even if you don't have `hg' installed,
 ;; Emacs is able to tell you this file is under mercurial's control).
-
-;;; History:
-;;
 
 ;;; Code:
 

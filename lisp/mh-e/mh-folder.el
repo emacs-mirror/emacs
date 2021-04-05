@@ -1,4 +1,4 @@
-;;; mh-folder.el --- MH-Folder mode
+;;; mh-folder.el --- MH-Folder mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2003, 2005-2021 Free Software Foundation, Inc.
 
@@ -209,10 +209,10 @@ annotation.")
 
 ;; Use defalias to make sure the documented primary key bindings
 ;; appear in menu lists.
-(defalias 'mh-alt-show 'mh-show)
-(defalias 'mh-alt-refile-msg 'mh-refile-msg)
-(defalias 'mh-alt-send 'mh-send)
-(defalias 'mh-alt-visit-folder 'mh-visit-folder)
+(defalias 'mh-alt-show #'mh-show)
+(defalias 'mh-alt-refile-msg #'mh-refile-msg)
+(defalias 'mh-alt-send #'mh-send)
+(defalias 'mh-alt-visit-folder #'mh-visit-folder)
 
 ;; Save the "b" binding for a future `back'. Maybe?
 (gnus-define-keys  mh-folder-mode-map
@@ -650,11 +650,11 @@ perform the operation on all messages in that region.
   (auto-save-mode -1)
   (setq buffer-offer-save t)
   (mh-make-local-hook (mh-write-file-functions))
-  (add-hook (mh-write-file-functions) 'mh-execute-commands nil t)
+  (add-hook (mh-write-file-functions) #'mh-execute-commands nil t)
   (make-local-variable 'revert-buffer-function)
   (make-local-variable 'hl-line-mode)   ; avoid pollution
   (mh-funcall-if-exists hl-line-mode 1)
-  (setq revert-buffer-function 'mh-undo-folder)
+  (setq revert-buffer-function #'mh-undo-folder)
   (add-to-list 'minor-mode-alist '(mh-showing-mode " Show"))
   (mh-do-in-xemacs
     (easy-menu-add mh-folder-sequence-menu)
@@ -1117,7 +1117,7 @@ called interactively."
          (message "Destination folder: %s" (cdr mh-last-destination)))
         (t
          (mh-iterate-on-range msg range
-           (apply 'mh-write-msg-to-file msg (cdr mh-last-destination)))
+           (apply #'mh-write-msg-to-file msg (cdr mh-last-destination)))
          (mh-next-msg interactive-flag))))
 
 ;;;###mh-autoload
@@ -1606,7 +1606,7 @@ after the commands are processed."
       ;; Now delete messages
       (cond (mh-delete-list
              (setq redraw-needed-flag t)
-             (apply 'mh-exec-cmd "rmm" folder
+             (apply #'mh-exec-cmd "rmm" folder
                     (mh-coalesce-msg-list mh-delete-list))
              (mh-delete-scan-msgs mh-delete-list)
              (setq mh-delete-list nil)))
@@ -1620,8 +1620,8 @@ after the commands are processed."
           ;; (mh-refile-a-msg nil (intern dest))
           ;; (mh-delete-a-msg nil)))
           (if (null dest)
-              (apply 'mh-exec-cmd "rmm" folder msg-list)
-            (apply 'mh-exec-cmd "refile" "-src" folder dest msg-list)
+              (apply #'mh-exec-cmd "rmm" folder msg-list)
+            (apply #'mh-exec-cmd "refile" "-src" folder dest msg-list)
             (push dest folders-changed))
           (setq redraw-needed-flag t)
           (mh-delete-scan-msgs mh-blacklist)
@@ -1703,7 +1703,7 @@ after the commands are processed."
       (mh-recenter nil)))
 
 ;;;###mh-autoload
-(defun mh-make-folder-mode-line (&optional ignored)
+(defun mh-make-folder-mode-line (&optional _ignored)
   "Set the fields of the mode line for a folder buffer.
 The optional argument is now obsolete and IGNORED. It used to be
 used to pass in what is now stored in the buffer-local variable

@@ -60,7 +60,7 @@
 
 (defcustom url-cookie-multiple-line nil
   "If nil, HTTP requests put all cookies for the server on one line.
-Some web servers, such as http://www.hotmail.com/, only accept cookies
+Some web servers, such as https://www.hotmail.com/, only accept cookies
 when they are on one line.  This is broken behavior, but just try
 telling Microsoft that."
   :type 'boolean
@@ -358,10 +358,10 @@ i.e. 1970-1-1) are loaded as expiring one year from now instead."
 Default is 1 hour.  Note that if you change this variable outside of
 the `customize' interface after `url-do-setup' has been run, you need
 to run the `url-cookie-setup-save-timer' function manually."
-  :set #'(lambda (var val)
-	   (set-default var val)
-	   (if (bound-and-true-p url-setup-done)
-	       (url-cookie-setup-save-timer)))
+  :set (lambda (var val)
+         (set-default var val)
+         (if (bound-and-true-p url-setup-done)
+             (url-cookie-setup-save-timer)))
   :type 'integer
   :group 'url-cookie)
 

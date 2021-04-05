@@ -1,4 +1,4 @@
-;;; mh-speed.el --- MH-E speedbar support
+;;; mh-speed.el --- MH-E speedbar support  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -100,9 +100,9 @@
 
 ;; Alphabetical.
 
-(defalias 'mh-speed-contract-folder 'mh-speed-toggle)
+(defalias 'mh-speed-contract-folder #'mh-speed-toggle)
 
-(defalias 'mh-speed-expand-folder 'mh-speed-toggle)
+(defalias 'mh-speed-expand-folder #'mh-speed-toggle)
 
 (defun mh-speed-refresh ()
   "Regenerates the list of folders in the speedbar.
@@ -202,9 +202,9 @@ created."
       (mh-speed-flists nil))))
 
 ;;;###mh-autoload
-(defalias 'mh-show-speedbar-buttons 'mh-folder-speedbar-buttons)
+(defalias 'mh-show-speedbar-buttons #'mh-folder-speedbar-buttons)
 ;;;###mh-autoload
-(defalias 'mh-letter-speedbar-buttons 'mh-folder-speedbar-buttons)
+(defalias 'mh-letter-speedbar-buttons #'mh-folder-speedbar-buttons)
 
 (defmacro mh-speed-select-attached-frame ()
   "Compatibility macro to handle speedbar versions 0.11a and 0.14beta4."
@@ -431,7 +431,7 @@ flists is run only for that one folder."
                (setq mh-speed-flists-folder nil)
                (mh-process-kill-without-query mh-speed-flists-process)
                (set-process-filter mh-speed-flists-process
-                                   'mh-speed-parse-flists-output)))))))
+                                   #'mh-speed-parse-flists-output)))))))
 
 ;; Copied from mh-make-folder-list-filter...
 ;; XXX Refactor to use mh-make-folder-list-filer?

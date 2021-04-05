@@ -336,12 +336,12 @@ exchange in environments where Unicode is not available.  This input method
 uses this transliteration to allow you to produce the IPA in your editor
 with a keyboard that's limited to ASCII.
 
-See http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf for a full definition
+See https://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf for a full definition
 of the mapping.")
 
 (quail-define-rules
  ;; Table taken from https://en.wikipedia.org/wiki/X-SAMPA, checked with
- ;; http://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf
+ ;; https://www.phon.ucl.ac.uk/home/sampa/ipasam-x.pdf
 
  ("d`" "ɖ")	;; Voiced retroflex plosive		U+0256
  ("g" "ɡ")	;; Voiced velar plosive			U+0261

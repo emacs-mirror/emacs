@@ -503,7 +503,8 @@ If INHERIT is t, and FACE doesn't define a foreground color, then any
   foreground color that FACE inherits through its `:inherit' attribute
   is considered as well; however the return value may still be nil.
 If INHERIT is a face or a list of faces, then it is used to try to
-  resolve an unspecified foreground color.
+  resolve an unspecified foreground color, in addition to using any
+inherited color.
 
 To ensure that a valid color is always returned, use a value of
 `default' for INHERIT; this will resolve any unspecified values by
@@ -523,7 +524,8 @@ If INHERIT is t, and FACE doesn't define a background color, then any
   background color that FACE inherits through its `:inherit' attribute
   is considered as well; however the return value may still be nil.
 If INHERIT is a face or a list of faces, then it is used to try to
-  resolve an unspecified background color.
+  resolve an unspecified background color, in addition to using any
+inherited color.
 
 To ensure that a valid color is always returned, use a value of
 `default' for INHERIT; this will resolve any unspecified values by
@@ -1260,7 +1262,15 @@ of a global face.  Value is the new attribute value."
 		   (or (car (rassoc old-value valid))
 		       (format "%s" old-value))))
 	     (setq new-value
-		   (face-read-string face default attribute-name valid))
+                   (if (memq attribute '(:foreground :background))
+                       (let ((color
+                              (read-color
+                               (format-prompt "%s for face `%s'"
+                                              default attribute-name face))))
+                         (if (equal (string-trim color) "")
+                             default
+                           color))
+		     (face-read-string face default attribute-name valid)))
 	     (if (equal new-value default)
 		 ;; Nothing changed, so don't bother with all the stuff
 		 ;; below.  In particular, this avoids a non-tty color

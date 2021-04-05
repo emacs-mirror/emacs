@@ -2826,7 +2826,7 @@ hunk text is not found in the source file."
 
 ;;; Support for converting a diff to diff3 markers via `wiggle'.
 
-;; Wiggle can be found at http://neil.brown.name/wiggle/ or in your nearest
+;; Wiggle can be found at https://neil.brown.name/wiggle/ or in your nearest
 ;; Debian repository.
 
 (defun diff-wiggle ()
