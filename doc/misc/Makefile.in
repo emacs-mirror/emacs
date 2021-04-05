@@ -100,10 +100,6 @@ texi_sources = $(addsuffix .texi,${TARGETS})
 texi_notgen = $(filter-out $(notdir ${TEXI_FROM_ORG}),${texi_sources})
 texi_and_org = $(notdir ${ORG_SRC}) ${texi_notgen}
 SOURCES = $(sort ${texi_and_org})
-.PHONY: echo-sources
-## Used by the top-level Makefile.
-echo-sources:
-	@echo ${SOURCES}
 
 DVI_TARGETS  = $(TARGETS:=.dvi)
 HTML_TARGETS = $(TARGETS:=.html)
@@ -122,7 +118,7 @@ ENVADD = $(AM_V_GEN)TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" \
 gfdl = ${srcdir}/doclicense.texi
 style = ${emacsdir}/docstyle.texi
 
-.PHONY: info dvi html pdf ps echo-info $(INFO_TARGETS)
+.PHONY: info dvi html pdf ps echo-info echo-sources $(INFO_TARGETS)
 ## Prevent implicit rule triggering for foo.info.
 .SUFFIXES:
 
@@ -137,6 +133,9 @@ info: $(INFO_TARGETS)
 echo-info:
 	@echo "$(INFO_INSTALL) " | \
 	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */.info /g"
+
+echo-sources:
+	@echo ${SOURCES}
 
 dvi: $(DVI_TARGETS)
 
