@@ -342,6 +342,14 @@ For example, you can set it to <return> like `isearch-exit'."
   :group 'convenience
   :version "28.1")
 
+(defcustom repeat-keep-prefix t
+  "Keep the prefix arg of the previous command."
+  :type 'boolean
+  :group 'convenience
+  :version "28.1")
+
+;;;###autoload (defvar repeat-map nil)
+
 ;;;###autoload
 (define-minor-mode repeat-mode
   "Toggle Repeat mode.
@@ -364,8 +372,9 @@ When Repeat mode is enabled, and the command symbol has the property named
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
   (when repeat-mode
-    (let ((rep-map (and (symbolp this-command)
-                        (get this-command 'repeat-map))))
+    (let ((rep-map (or repeat-map
+                       (and (symbolp this-command)
+                            (get this-command 'repeat-map)))))
       (when rep-map
         (when (boundp rep-map)
           (setq rep-map (symbol-value rep-map)))
@@ -381,6 +390,9 @@ When Repeat mode is enabled, and the command symbol has the property named
           ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
           (when (or (lookup-key map (this-single-command-keys) nil)
                     prefix-command-p)
+
+            (when (and repeat-keep-prefix (not prefix-command-p))
+              (setq prefix-arg current-prefix-arg))
 
             ;; Messaging
             (unless prefix-command-p
@@ -402,7 +414,8 @@ When Repeat mode is enabled, and the command symbol has the property named
             (when repeat-exit-key
               (define-key map repeat-exit-key 'ignore))
 
-            (set-transient-map map)))))))
+            (set-transient-map map))))))
+  (setq repeat-map nil))
 
 (provide 'repeat)
 
