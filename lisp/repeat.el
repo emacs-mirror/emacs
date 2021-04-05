@@ -364,35 +364,39 @@ When Repeat mode is enabled, and the command symbol has the property named
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
   (when repeat-mode
-    (let ((repeat-map (and (symbolp this-command)
-                           (get this-command 'repeat-map))))
-      (when repeat-map
-        (when (boundp repeat-map)
-          (setq repeat-map (symbol-value repeat-map)))
-        (let ((map (copy-keymap repeat-map))
-              keys mess)
-          (map-keymap (lambda (key _) (push key keys)) map)
+    (let ((rep-map (and (symbolp this-command)
+                        (get this-command 'repeat-map))))
+      (when rep-map
+        (when (boundp rep-map)
+          (setq rep-map (symbol-value rep-map)))
+        (let ((prefix-command-p (memq this-original-command
+                                      '(universal-argument
+                                        universal-argument-more
+                                        digit-argument
+                                        negative-argument)))
+              (map (copy-keymap rep-map))
+              keys)
 
           ;; Exit when the last char is not among repeatable keys,
           ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
-          (when (or (memq last-command-event keys)
-                    (memq this-original-command '(universal-argument
-                                                  universal-argument-more
-				                  digit-argument
-                                                  negative-argument)))
+          (when (or (lookup-key map (this-single-command-keys) nil)
+                    prefix-command-p)
+
             ;; Messaging
-            (setq mess (format-message
-                        "Repeat with %s%s"
-                        (mapconcat (lambda (key)
-                                     (key-description (vector key)))
-                                   keys ", ")
-                        (if repeat-exit-key
-                            (format ", or exit with %s"
-                                    (key-description repeat-exit-key))
-                          "")))
-            (if (current-message)
-                (message "%s [%s]" (current-message) mess)
-              (message mess))
+            (unless prefix-command-p
+              (map-keymap (lambda (key _) (push key keys)) map)
+              (let ((mess (format-message
+                           "Repeat with %s%s"
+                           (mapconcat (lambda (key)
+                                        (key-description (vector key)))
+                                      keys ", ")
+                           (if repeat-exit-key
+                               (format ", or exit with %s"
+                                       (key-description repeat-exit-key))
+                             ""))))
+                (if (current-message)
+                    (message "%s [%s]" (current-message) mess)
+                  (message mess))))
 
             ;; Adding an exit key
             (when repeat-exit-key
