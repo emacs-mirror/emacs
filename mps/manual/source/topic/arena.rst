@@ -388,7 +388,7 @@ Arena properties
     :term:`result code` if not.
 
     To effectively remove any commit limit, pass the maximum value of
-    the :c:type:`size_t` type for the :c:var:`limit` argument, that
+    the :c:type:`size_t` type for the :c:data:`limit` argument, that
     is, ``((size_t)-1)``, or :c:macro:`SIZE_MAX` in C99 or later.
 
     See :c:func:`mps_arena_commit_limit` for details.
