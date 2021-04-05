@@ -1917,7 +1917,8 @@ Similarly for Soar, Scheme, etc."
             (unless (or no-newline comint-use-prompt-regexp)
               ;; Cover the terminating newline
               (add-text-properties end (1+ end)
-                                   '(rear-nonsticky t
+                                   '(rear-nonsticky
+                                     (field inhibit-line-move-field-capture read-only)
                                      field boundary
                                      inhibit-line-move-field-capture t)))))
 
@@ -2126,7 +2127,8 @@ Make backspaces delete the previous character."
                 (add-text-properties comint-last-output-start (point)
                                      '(front-sticky
 				       (field inhibit-line-move-field-capture)
-				       rear-nonsticky t
+				       rear-nonsticky
+				       (field inhibit-line-move-field-capture read-only)
 				       field output
 				       inhibit-line-move-field-capture t))))
 
@@ -2155,7 +2157,9 @@ Make backspaces delete the previous character."
 	      (font-lock-prepend-text-property prompt-start (point)
 					       'font-lock-face
 					       'comint-highlight-prompt)
-	      (add-text-properties prompt-start (point) '(rear-nonsticky t)))
+	      (add-text-properties prompt-start (point)
+	                           '(rear-nonsticky
+	                             (field inhibit-line-move-field-capture read-only))))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
