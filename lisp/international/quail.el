@@ -728,9 +728,9 @@ Available types are listed in the variable `quail-keyboard-layout-alist'."
   :type (cons 'choice (mapcar (lambda (elt)
 				(list 'const (car elt)))
 			      quail-keyboard-layout-alist))
-  :set #'(lambda (symbol value)
-	   (quail-update-keyboard-layout value)
-	   (set symbol value)))
+  :set (lambda (symbol value)
+         (quail-update-keyboard-layout value)
+         (set symbol value)))
 
 ;;;###autoload
 (defun quail-set-keyboard-layout (kbd-type)
@@ -1571,12 +1571,12 @@ with more keys."
 	    (let (char)
 	      (if (stringp quail-current-str)
 		  (catch 'tag
-		    (mapc #'(lambda (ch)
-			      (when (/= (unibyte-char-to-multibyte
-					 (multibyte-char-to-unibyte ch))
-					ch)
-				  (setq char ch)
-				  (throw 'tag nil)))
+                    (mapc (lambda (ch)
+                            (when (/= (unibyte-char-to-multibyte
+                                       (multibyte-char-to-unibyte ch))
+                                      ch)
+                              (setq char ch)
+                              (throw 'tag nil)))
 			  quail-current-str))
 		(if (/= (unibyte-char-to-multibyte
 			 (multibyte-char-to-unibyte quail-current-str))
@@ -2827,19 +2827,19 @@ If CHAR is an ASCII character and can be input by typing itself, return t."
 	(key-list nil))
     (if (consp decode-map)
 	(let ((str (string char)))
-	  (mapc #'(lambda (elt)
-		    (if (string= str (car elt))
-			(setq key-list (cons (cdr elt) key-list))))
+          (mapc (lambda (elt)
+                  (if (string= str (car elt))
+                      (setq key-list (cons (cdr elt) key-list))))
 		(cdr decode-map)))
       (let ((key-head (aref decode-map char)))
 	(if (stringp key-head)
 	    (setq key-list (quail-find-key1
 			    (quail-lookup-key key-head nil t)
 			    key-head char nil))
-	  (mapc #'(lambda (elt)
-		    (setq key-list
-			  (quail-find-key1
-			   (quail-lookup-key elt nil t) elt char key-list)))
+          (mapc (lambda (elt)
+                  (setq key-list
+                        (quail-find-key1
+                         (quail-lookup-key elt nil t) elt char key-list)))
 		key-head))))
     (or key-list
 	(and (< char 128)

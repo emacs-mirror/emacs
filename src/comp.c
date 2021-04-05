@@ -4131,16 +4131,18 @@ directory in `comp-eln-load-path' otherwise.  */)
   if (!file_name_absolute_p (SSDATA (base_dir)))
     base_dir = Fexpand_file_name (base_dir, Vinvocation_directory);
 
-  /* In case the file being compiled is found in 'LISP_PRELOADED'
-     target for output the 'preloaded' subfolder.  */
+  /* In case the file being compiled is found in 'LISP_PRELOADED' or
+     `comp-file-preloaded-p' is non-nil target for output the
+     'preloaded' subfolder.  */
   Lisp_Object lisp_preloaded =
     Fgetenv_internal (build_string ("LISP_PRELOADED"), Qnil);
   base_dir = Fexpand_file_name (Vcomp_native_version_dir, base_dir);
-  if (!NILP (lisp_preloaded)
-      && !NILP (Fmember (CALL1I (file-name-base, source_filename),
-			 Fmapcar (intern_c_string ("file-name-base"),
-				  CALL1I (split-string, lisp_preloaded)))))
-	  base_dir = Fexpand_file_name (build_string ("preloaded"), base_dir);
+  if (comp_file_preloaded_p
+      || (!NILP (lisp_preloaded)
+	  && !NILP (Fmember (CALL1I (file-name-base, source_filename),
+			     Fmapcar (intern_c_string ("file-name-base"),
+				      CALL1I (split-string, lisp_preloaded))))))
+    base_dir = Fexpand_file_name (build_string ("preloaded"), base_dir);
 
   return Fexpand_file_name (filename, base_dir);
 }
@@ -5397,6 +5399,10 @@ be performed because the bytecode version was explicitly requested by
 the user during load.
 For internal use.  */);
   V_comp_no_native_file_h = CALLN (Fmake_hash_table, QCtest, Qequal);
+
+  DEFVAR_BOOL ("comp-file-preloaded-p", comp_file_preloaded_p,
+	       doc: /* When non-nil assume the file being compiled to
+be preloaded.  */);
 
   Fprovide (intern_c_string ("nativecomp"), Qnil);
 #endif /* #ifdef HAVE_NATIVE_COMP */

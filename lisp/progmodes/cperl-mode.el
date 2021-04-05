@@ -3608,7 +3608,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		;; 1+6+2+1+1+6+1+1+1=20 extra () before this:
 		"\\|"
 		"\\\\\\(['`\"($]\\)")	; BACKWACKED something-hairy
-	     ""))))
+	     "")))
+         warning-message)
     (unwind-protect
 	(progn
 	  (save-excursion
@@ -3671,7 +3672,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			(looking-at "\\(cut\\|end\\)\\>"))
 		    (if (or (nth 3 state) (nth 4 state) ignore-max)
 			nil		; Doing a chunk only
-		      (message "=cut is not preceded by a POD section")
+		      (setq warning-message "=cut is not preceded by a POD section")
 		      (or (car err-l) (setcar err-l (point))))
 		  (beginning-of-line)
 
@@ -3686,7 +3687,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			(goto-char b)
 			(if (re-search-forward "\n=\\(cut\\|end\\)\\>" stop-point 'toend)
 			    (progn
-			      (message "=cut is not preceded by an empty line")
+			      (setq warning-message "=cut is not preceded by an empty line")
 			      (setq b1 t)
 			      (or (car err-l) (setcar err-l b))))))
 		  (beginning-of-line 2)	; An empty line after =cut is not POD!
@@ -3829,7 +3830,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		    (progn		; Pretend we matched at the end
 		      (goto-char (point-max))
 		      (re-search-forward "\\'")
-		      (message "End of here-document `%s' not found." tag)
+		      (setq warning-message
+                            (format "End of here-document `%s' not found." tag))
 		      (or (car err-l) (setcar err-l b))))
 		  (if cperl-pod-here-fontify
 		      (progn
@@ -3906,7 +3908,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 						    'face font-lock-string-face)
 		      (cperl-commentify (point) (+ (point) 2) nil)
 		      (cperl-put-do-not-fontify (point) (+ (point) 2) t))
-		  (message "End of format `%s' not found." name)
+		  (setq warning-message
+                        (format "End of format `%s' not found." name))
 		  (or (car err-l) (setcar err-l b)))
 		(forward-line)
 		(if (> (point) max)
@@ -4426,8 +4429,9 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 					  REx-subgr-end argument) ; continue
 				  (setq argument nil)))
 			      (and argument
-				   (message "Couldn't find end of charclass in a REx, pos=%s"
-					    REx-subgr-start))
+				   (setq warning-message
+                                         (format "Couldn't find end of charclass in a REx, pos=%s"
+					         REx-subgr-start)))
 			      (setq argument (1- (point)))
 			      (goto-char REx-subgr-end)
 			      (cperl-highlight-charclass
@@ -4483,7 +4487,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 					   (setq qtag "Can't find })")))
 				  (progn
 				    (goto-char (1- e))
-				    (message "%s" qtag))
+				    (setq warning-message
+                                          (format "%s" qtag)))
 				(cperl-postpone-fontification
 				 (1- tag) (1- (point))
 				 'face font-lock-variable-name-face)
@@ -4512,9 +4517,9 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			       ;; (1- e) 'toend)
 			       (search-forward ")" (1- e) 'toend)
 			       ;;)
-			       (message
-				"Couldn't find end of (?#...)-comment in a REx, pos=%s"
-				REx-subgr-start))))
+			       (setq warning-message
+				     (format "Couldn't find end of (?#...)-comment in a REx, pos=%s"
+				             REx-subgr-start)))))
 			    (if (>= (point) e)
 				(goto-char (1- e)))
 			    (cond
@@ -4592,8 +4597,8 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	      (if (> (point) stop-point)
 		  (progn
 		    (if end
-			(message "Garbage after __END__/__DATA__ ignored")
-		      (message "Unbalanced syntax found while scanning")
+			(setq warning-message "Garbage after __END__/__DATA__ ignored")
+		      (setq warning-message "Unbalanced syntax found while scanning")
 		      (or (car err-l) (setcar err-l b)))
 		    (goto-char stop-point))))
 	    (setq cperl-syntax-state (cons state-point state)
@@ -4612,6 +4617,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
       ;; cperl-mode-syntax-table.
       ;; (set-syntax-table cperl-mode-syntax-table)
       )
+    (when warning-message (message warning-message))
     (list (car err-l) overshoot)))
 
 (defun cperl-find-pods-heres-region (min max)

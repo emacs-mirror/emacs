@@ -3077,6 +3077,11 @@ struct image
      is created.  */
   unsigned long face_foreground, face_background;
 
+  /* Details of the font, only really relevant for types like SVG that
+     allow us to draw text. */
+  int face_font_size;
+  char *face_font_family;
+
   /* True if this image has a `transparent' background -- that is, is
      uses an image mask.  The accessor macro for this is
      `IMAGE_BACKGROUND_TRANSPARENT'.  */

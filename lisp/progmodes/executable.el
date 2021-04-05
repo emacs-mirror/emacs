@@ -1,4 +1,4 @@
-;;; executable.el --- base functionality for executable interpreter scripts
+;;; executable.el --- base functionality for executable interpreter scripts  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1994-1996, 2000-2021 Free Software Foundation, Inc.
 

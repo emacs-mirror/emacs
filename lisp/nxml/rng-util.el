@@ -36,26 +36,6 @@
 
 (defconst rng-builtin-datatypes-uri (rng-make-datatypes-uri ""))
 
-(defun rng-uniquify-eq (list)
-  "Destructively remove `eq' duplicates from LIST."
-  (and list
-       (let ((head list))
-	 (while (cdr head)
-	   (if (eq (car head) (cadr head))
-	       (setcdr head (cddr head)))
-	   (setq head (cdr head)))
-	 list)))
-
-(defun rng-uniquify-equal (list)
-  "Destructively remove `equal' duplicates from LIST."
-  (and list
-       (let ((head list))
-	 (while (cdr head)
-	   (if (equal (car head) (cadr head))
-	       (setcdr head (cddr head)))
-	   (setq head (cdr head)))
-	 list)))
-
 (defun rng-blank-p (str) (string-match "\\`[ \t\n\r]*\\'" str))
 
 (defun rng-substq (new old list)
@@ -103,6 +83,14 @@ LIST is not modified."
   string)
 
 (define-error 'rng-error nil)
+
+;; Obsolete.
+
+(defun rng-uniquify-eq (list)
+  (declare (obsolete seq-uniq "28.1"))
+  (seq-uniq list #'eq))
+
+(define-obsolete-function-alias 'rng-uniquify-equal #'seq-uniq "28.1")
 
 (provide 'rng-util)
 

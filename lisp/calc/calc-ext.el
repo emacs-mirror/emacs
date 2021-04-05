@@ -2784,23 +2784,23 @@ If X is not an error form, return 1."
   (declare (indent 1) (debug (sexp body)))
   (setq math-integral-cache nil)
   (cons 'progn
-        (mapcar #'(lambda (func)
-                    `(put ',func 'math-integral
-                          (nconc
-                           (get ',func 'math-integral)
-                           (list
-                            #'(lambda (u) ,@code)))))
+        (mapcar (lambda (func)
+                  `(put ',func 'math-integral
+                        (nconc
+                         (get ',func 'math-integral)
+                         (list
+                          (lambda (u) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
 
 (defmacro math-defintegral-2 (funcs &rest code)
   (declare (indent 1) (debug (sexp body)))
   (setq math-integral-cache nil)
   (cons 'progn
-        (mapcar #'(lambda (func)
-                    `(put ',func 'math-integral-2
-                          (nconc
-                            (get ',func 'math-integral-2)
-                            (list #'(lambda (u v) ,@code)))))
+        (mapcar (lambda (func)
+                  `(put ',func 'math-integral-2
+                        (nconc
+                         (get ',func 'math-integral-2)
+                         (list (lambda (u v) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
 
 (defvar var-IntegAfterRules 'calc-IntegAfterRules)

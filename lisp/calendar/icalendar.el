@@ -105,10 +105,6 @@
 
 ;;; Code:
 
-(defconst icalendar-version "0.19"
-  "Version number of icalendar.el.")
-(make-obsolete-variable 'icalendar-version nil "28.1")
-
 ;; ======================================================================
 ;; Customizables
 ;; ======================================================================
@@ -2556,6 +2552,11 @@ the entry."
           (or (icalendar--get-event-property event 'STATUS) "")
           (or (icalendar--get-event-property event 'URL) "")
           (or (icalendar--get-event-property event 'CLASS) "")))
+
+;; Obsolete
+
+(defconst icalendar-version "0.19" "Version number of icalendar.el.")
+(make-obsolete-variable 'icalendar-version 'emacs-version "28.1")
 
 (provide 'icalendar)
 

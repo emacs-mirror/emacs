@@ -31,9 +31,6 @@
 
 ;;; Code:
 
-(defconst linum-version "0.9x")
-(make-obsolete-variable 'linum-version nil "28.1")
-
 (defvar-local linum-overlays nil "Overlays used in this buffer.")
 (defvar-local linum-available nil "Overlays available for reuse.")
 (defvar linum-before-numbering-hook nil
@@ -243,6 +240,9 @@ Linum mode is a buffer-local minor mode."
   (global-linum-mode -1)
   ;; continue standard unloading
   nil)
+
+(defconst linum-version "0.9x")
+(make-obsolete-variable 'linum-version 'emacs-version "28.1")
 
 (provide 'linum)
 

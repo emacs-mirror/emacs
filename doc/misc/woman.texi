@@ -105,11 +105,9 @@ Mile End Road, London E1 4NS, UK
 @chapter Introduction
 @cindex introduction
 
-This version of WoMan should run with GNU Emacs 20.3 or later on any
-platform.  It has not been tested, and may not run, with any other
-version of Emacs.  It was developed primarily on various versions of
-Microsoft Windows, but has also been tested on MS-DOS, and various
-versions of UNIX and GNU/Linux.
+WoMan was developed primarily on various versions of Microsoft
+Windows, but has also been tested on MS-DOS, and various versions of
+UNIX and GNU/Linux.
 
 WoMan is distributed with GNU Emacs.
 

@@ -7601,15 +7601,6 @@ associated TAG, if any."
           (put-text-property (match-beginning 0) (match-end 0)
                              'face 'font-lock-string-face))))))
 
-(defun idlwave-uniquify (list)
-  (let ((ht (make-hash-table :size (length list) :test 'equal)))
-    (delq nil
-	  (mapcar (lambda (x)
-		    (unless (gethash x ht)
-		      (puthash x t ht)
-		      x))
-		  list))))
-
 (defun idlwave-after-successful-completion (type slash &optional verify)
   "Add `=' or `(' after successful completion of keyword and function.
 Restore the pre-completion window configuration if possible."
@@ -9100,6 +9091,9 @@ This function was written since `list-abbrevs' looks terrible for IDLWAVE mode."
 
 ;; Run the hook
 (run-hooks 'idlwave-load-hook)
+
+;; Obsolete.
+(define-obsolete-function-alias 'idlwave-uniquify #'seq-uniq "28.1")
 
 (provide 'idlwave)
 

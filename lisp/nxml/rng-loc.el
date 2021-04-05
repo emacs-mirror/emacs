@@ -182,7 +182,7 @@ If TYPE-ID is non-nil, then locate the schema for this TYPE-ID."
     (while files
       (setq type-ids (rng-possible-type-ids-using (car files) type-ids))
       (setq files (cdr files)))
-    (rng-uniquify-equal (sort type-ids 'string<))))
+    (seq-uniq (sort type-ids 'string<))))
 
 (defun rng-locate-schema-file-using (files)
   "Locate a schema using the schema locating files FILES.

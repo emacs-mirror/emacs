@@ -106,13 +106,6 @@
 ;; If you add a new drawing mode, send it to me, and I would gladly
 ;; include in the next release!
 
-;;; Installation:
-
-;; To use artist, put this in your .emacs:
-;;
-;;    (autoload 'artist-mode "artist" "Enter artist-mode" t)
-
-
 ;;; Requirements:
 
 ;; Artist requires the `rect' package (which comes with Emacs) to be
@@ -1760,13 +1753,6 @@ info-variant-part."
   "Call function FN with ARGS, if FN is not nil."
   `(if ,fn (funcall ,fn ,@args)))
 
-(defun artist-uniq (l)
-  "Remove consecutive duplicates in list L.  Comparison is done with `equal'."
-  (cond ((null l) nil)
-	((null (cdr l)) l)		; only one element in list
-	((equal (car l) (car (cdr l))) (artist-uniq (cdr l))) ; first 2 equal
-	(t (cons (car l) (artist-uniq (cdr l)))))) ; first 2 are different
-
 (defun artist-string-split (str r)
   "Split string STR at occurrences of regexp R, returning a list of strings."
   (let ((res nil)
@@ -2768,7 +2754,7 @@ to append to the end of the list, when doing free-hand drawing)."
 Also, the `artist-key-poly-point-list' is reversed."
 
   (setq artist-key-poly-point-list
-	(artist-uniq artist-key-poly-point-list))
+        (seq-uniq artist-key-poly-point-list))
 
   (if (>= (length artist-key-poly-point-list) 2)
 
@@ -5379,10 +5365,7 @@ The event, EV, is the mouse event."
 	 (concat "Hello Tomas,\n\n"
 		 "I have a nice bug report on Artist for you! Here it is:")))))
 
-
-;;
-;; Now provide this minor mode
-;;
+(define-obsolete-function-alias 'artist-uniq #'seq-uniq "28.1")
 
 (provide 'artist)
 

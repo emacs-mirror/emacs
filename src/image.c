@@ -150,14 +150,6 @@ typedef struct pgtk_bitmap_record Bitmap_Record;
 # define COLOR_TABLE_SUPPORT 1
 #endif
 
-#ifdef HAVE_RSVG
-#if defined HAVE_NS
-# define FRAME_SCALE_FACTOR(f) ns_frame_scale_factor (f)
-#else
-# define FRAME_SCALE_FACTOR(f) 1;
-#endif
-#endif
-
 static void image_disable_image (struct frame *, struct image *);
 static void image_edge_detection (struct frame *, struct image *, Lisp_Object,
                                   Lisp_Object);
@@ -1329,6 +1321,7 @@ free_image (struct frame *f, struct image *img)
 
       /* Free resources, then free IMG.  */
       img->type->free_img (f, img);
+      xfree (img->face_font_family);
       xfree (img);
     }
 }
@@ -1727,7 +1720,7 @@ make_image_cache (void)
 static struct image *
 search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash,
                     unsigned long foreground, unsigned long background,
-                    bool ignore_colors)
+                    int font_size, char *font_family, bool ignore_colors)
 {
   struct image *img;
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
@@ -1751,7 +1744,10 @@ search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash,
     if (img->hash == hash
 	&& !NILP (Fequal (img->spec, spec))
 	&& (ignore_colors || (img->face_foreground == foreground
-                              && img->face_background == background)))
+                              && img->face_background == background
+			      && img->face_font_size == font_size
+			      && (font_family
+				  &&!strcmp (font_family, img->face_font_family)))))
       break;
   return img;
 }
@@ -1769,7 +1765,7 @@ uncache_image (struct frame *f, Lisp_Object spec)
      can have multiple copies of an image with the same spec. We want
      to remove them all to ensure the user doesn't see an old version
      of the image when the face changes.  */
-  while ((img = search_image_cache (f, spec, hash, 0, 0, true)))
+  while ((img = search_image_cache (f, spec, hash, 0, 0, 0, NULL, true)))
     {
       free_image (f, img);
       /* As display glyphs may still be referring to the image ID, we
@@ -2542,6 +2538,8 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
   struct face *face = FACE_FROM_ID (f, face_id);
   unsigned long foreground = FACE_COLOR_TO_PIXEL (face->foreground, f);
   unsigned long background = FACE_COLOR_TO_PIXEL (face->background, f);
+  int font_size = face->font->pixel_size;
+  char *font_family = SSDATA (face->lface[LFACE_FAMILY_INDEX]);
 
   /* F must be a window-system frame, and SPEC must be a valid image
      specification.  */
@@ -2550,7 +2548,8 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
 
   /* Look up SPEC in the hash table of the image cache.  */
   hash = sxhash (spec);
-  img = search_image_cache (f, spec, hash, foreground, background, false);
+  img = search_image_cache (f, spec, hash, foreground, background,
+			    font_size, font_family, false);
   if (img && img->load_failed_p)
     {
       free_image (f, img);
@@ -2565,6 +2564,9 @@ lookup_image (struct frame *f, Lisp_Object spec, int face_id)
       cache_image (f, img);
       img->face_foreground = foreground;
       img->face_background = background;
+      img->face_font_size = font_size;
+      img->face_font_family = xmalloc (strlen (font_family) + 1);
+      strcpy (img->face_font_family, font_family);
       img->load_failed_p = ! img->type->load_img (f, img);
 
       /* If we can't load the image, and we don't have a width and
@@ -9680,6 +9682,7 @@ enum svg_keyword_index
   SVG_DATA,
   SVG_FILE,
   SVG_BASE_URI,
+  SVG_CSS,
   SVG_ASCENT,
   SVG_MARGIN,
   SVG_RELIEF,
@@ -9700,6 +9703,7 @@ static const struct image_keyword svg_format[SVG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":base-uri",		IMAGE_STRING_VALUE,			0},
+  {":css",		IMAGE_STRING_VALUE,                     0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
   {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -9783,6 +9787,11 @@ DEF_DLL_FN (gboolean, rsvg_handle_get_geometry_for_layer,
 	    (RsvgHandle *, const char *, const RsvgRectangle *,
 	     RsvgRectangle *, RsvgRectangle *, GError **));
 #  endif
+
+#  if LIBRSVG_CHECK_VERSION (2, 48, 0)
+DEF_DLL_FN (gboolean, rsvg_handle_set_stylesheet,
+	    (RsvgHandle *, const guint8 *, gsize, GError **));
+#  endif
 DEF_DLL_FN (void, rsvg_handle_get_dimensions,
 	    (RsvgHandle *, RsvgDimensionData *));
 DEF_DLL_FN (GdkPixbuf *, rsvg_handle_get_pixbuf, (RsvgHandle *));
@@ -9836,6 +9845,9 @@ init_svg_functions (void)
   LOAD_DLL_FN (library, rsvg_handle_get_intrinsic_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_geometry_for_layer);
 #endif
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  LOAD_DLL_FN (library, rsvg_handle_set_stylesheet);
+#endif
   LOAD_DLL_FN (library, rsvg_handle_get_dimensions);
   LOAD_DLL_FN (library, rsvg_handle_get_pixbuf);
 
@@ -9876,6 +9888,9 @@ init_svg_functions (void)
 #   undef rsvg_handle_get_geometry_for_layer
 #  endif
 #  undef rsvg_handle_get_dimensions
+#  if LIBRSVG_CHECK_VERSION (2, 48, 0)
+#   undef rsvg_handle_set_stylesheet
+#  endif
 #  undef rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   undef g_file_new_for_path
@@ -9909,6 +9924,9 @@ init_svg_functions (void)
 	fn_rsvg_handle_get_geometry_for_layer
 #  endif
 #  define rsvg_handle_get_dimensions fn_rsvg_handle_get_dimensions
+#  if LIBRSVG_CHECK_VERSION (2, 48, 0)
+#   define rsvg_handle_set_stylesheet fn_rsvg_handle_set_stylesheet
+#  endif
 #  define rsvg_handle_get_pixbuf fn_rsvg_handle_get_pixbuf
 #  if LIBRSVG_CHECK_VERSION (2, 32, 0)
 #   define g_file_new_for_path fn_g_file_new_for_path
@@ -9986,7 +10004,7 @@ svg_load (struct frame *f, struct image *img)
 
 #if LIBRSVG_CHECK_VERSION (2, 46, 0)
 static double
-svg_css_length_to_pixels (RsvgLength length, double dpi)
+svg_css_length_to_pixels (RsvgLength length, double dpi, int font_size)
 {
   double value = length.length;
 
@@ -10014,9 +10032,16 @@ svg_css_length_to_pixels (RsvgLength length, double dpi)
     case RSVG_UNIT_IN:
       value *= dpi;
       break;
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+      /* We don't know exactly what font size is used on older librsvg
+	 versions.  */
+    case RSVG_UNIT_EM:
+      value *= font_size;
+      break;
+#endif
     default:
-      /* Probably one of em, ex, or %.  We can't know what the pixel
-         value is without more information.  */
+      /* Probably ex or %.  We can't know what the pixel value is
+         without more information.  */
       value = 0;
     }
 
@@ -10046,6 +10071,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   char *wrapped_contents = NULL;
   ptrdiff_t wrapped_size;
 
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  char *css = NULL;
+#endif
+
 #if ! GLIB_CHECK_VERSION (2, 36, 0)
   /* g_type_init is a glib function that must be called prior to
      using gnome type library functions (obsolete since 2.36.0).  */
@@ -10071,6 +10100,26 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
                            FRAME_DISPLAY_INFO (f)->resy);
+
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  Lisp_Object lcss = image_spec_value (img->spec, QCcss, NULL);
+  if (!STRINGP (lcss))
+    {
+      /* Generate the CSS for the SVG image.  */
+      const char *css_spec = "svg{font-family:\"%s\";font-size:%4dpx}";
+      int css_len = strlen (css_spec) + strlen (img->face_font_family);
+      css = xmalloc (css_len);
+      snprintf (css, css_len, css_spec, img->face_font_family, img->face_font_size);
+      rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *)css, strlen (css), NULL);
+    }
+  else
+    {
+      css = xmalloc (SBYTES (lcss) + 1);
+      strncpy (css, SSDATA (lcss), SBYTES (lcss));
+      *(css + SBYTES (lcss) + 1) = 0;
+    }
+#endif
+
 #else
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();
@@ -10113,20 +10162,20 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (has_width && has_height)
     {
       /* Success!  We can use these values directly.  */
-      viewbox_width = svg_css_length_to_pixels (iwidth, dpi);
-      viewbox_height = svg_css_length_to_pixels (iheight, dpi);
+      viewbox_width = svg_css_length_to_pixels (iwidth, dpi, img->face_font_size);
+      viewbox_height = svg_css_length_to_pixels (iheight, dpi, img->face_font_size);
     }
   else if (has_width && has_viewbox)
     {
-      viewbox_width = svg_css_length_to_pixels (iwidth, dpi);
-      viewbox_height = svg_css_length_to_pixels (iwidth, dpi)
-        * viewbox.width / viewbox.height;
+      viewbox_width = svg_css_length_to_pixels (iwidth, dpi, img->face_font_size);
+      viewbox_height = svg_css_length_to_pixels (iwidth, dpi, img->face_font_size)
+        * viewbox.height / viewbox.width;
     }
   else if (has_height && has_viewbox)
     {
-      viewbox_height = svg_css_length_to_pixels (iheight, dpi);
-      viewbox_width = svg_css_length_to_pixels (iheight, dpi)
-        * viewbox.height / viewbox.width;
+      viewbox_height = svg_css_length_to_pixels (iheight, dpi, img->face_font_size);
+      viewbox_width = svg_css_length_to_pixels (iheight, dpi, img->face_font_size)
+        * viewbox.width / viewbox.height;
     }
   else if (has_viewbox)
     {
@@ -10247,6 +10296,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
 
   rsvg_handle_set_dpi_x_y (rsvg_handle, FRAME_DISPLAY_INFO (f)->resx,
                            FRAME_DISPLAY_INFO (f)->resy);
+
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  rsvg_handle_set_stylesheet (rsvg_handle, (guint8 *)css, strlen (css), NULL);
+#endif
 #else
   /* Make a handle to a new rsvg object.  */
   rsvg_handle = rsvg_handle_new ();
@@ -10279,6 +10332,11 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
   if (!pixbuf) goto rsvg_error;
   g_object_unref (rsvg_handle);
   xfree (wrapped_contents);
+
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  if (!STRINGP (lcss))
+    xfree (css);
+#endif
 
   /* Extract some meta data from the svg handle.  */
   width     = gdk_pixbuf_get_width (pixbuf);
@@ -10350,6 +10408,10 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     g_object_unref (rsvg_handle);
   if (wrapped_contents)
     xfree (wrapped_contents);
+#if LIBRSVG_CHECK_VERSION (2, 48, 0)
+  if (css && !STRINGP (lcss))
+    xfree (css);
+#endif
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
   image_error ("Error parsing SVG image `%s'", img->spec);
@@ -10941,6 +11003,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #if defined (HAVE_RSVG)
   DEFSYM (Qsvg, "svg");
   DEFSYM (QCbase_uri, ":base-uri");
+  DEFSYM (QCcss, ":css");
   add_image_type (Qsvg);
 #ifdef HAVE_NTGUI
   /* Other libraries used directly by svg code.  */

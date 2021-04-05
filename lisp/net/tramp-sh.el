@@ -103,12 +103,12 @@ detected as prompt when being sent on echoing hosts, therefore.")
 (defconst tramp-end-of-heredoc (md5 tramp-end-of-output)
   "String used to recognize end of heredoc strings.")
 
-(defcustom tramp-use-ssh-controlmaster-options t
+(defcustom tramp-use-ssh-controlmaster-options (not (eq system-type 'windows-nt))
   "Whether to use `tramp-ssh-controlmaster-options'.
 Set it to nil, if you use Control* or Proxy* options in your ssh
 configuration."
   :group 'tramp
-  :version "24.4"
+  :version "28.1"
   :type 'boolean)
 
 (defvar tramp-ssh-controlmaster-options nil
@@ -389,7 +389,14 @@ The string is used in `tramp-methods'.")
 		  (regexp-opt
 		   '("rcp" "remcp" "rsh" "telnet" "nc" "krlogin" "fcp"))
 		  "\\'")
-	        nil ,(user-login-name))))
+	        nil ,(user-login-name)))
+
+ ;; MS Windows Openssh client does not cooperate well with cmdproxy.
+ (when-let ((encoding-shell
+	     (and (eq system-type 'windows-nt) (executable-find "powershell"))))
+   (add-to-list 'tramp-connection-properties
+		`(,(regexp-opt '("/sshx:" "/scpx:"))
+                  "encoding-shell" ,encoding-shell))))
 
 ;;;###tramp-autoload
 (defconst tramp-completion-function-alist-rsh
@@ -484,6 +491,7 @@ shell from reading its init file."
   '((tramp-login-prompt-regexp tramp-action-login)
     (tramp-password-prompt-regexp tramp-action-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
+    (tramp-no-job-control-regexp tramp-action-permission-denied)
     (shell-prompt-pattern tramp-action-succeed)
     (tramp-shell-prompt-pattern tramp-action-succeed)
     (tramp-yesno-prompt-regexp tramp-action-yesno)
@@ -2584,12 +2592,9 @@ The method used must be an out-of-band method."
 	(save-restriction
 	  (narrow-to-region beg-marker end-marker)
 	  ;; Check for "--dired" output.
-	  (forward-line -2)
-	  (when (looking-at-p "//SUBDIRED//")
-	    (forward-line -1))
-	  (when (looking-at "//DIRED//\\s-+")
-	    (let ((beg (match-end 0))
-		  (end (point-at-eol)))
+	  (when (re-search-backward "^//DIRED//\\s-+\\(.+\\)$" nil 'noerror)
+	    (let ((beg (match-beginning 1))
+		  (end (match-end 0)))
 	      ;; Now read the numeric positions of file names.
 	      (goto-char beg)
 	      (while (< (point) end)
@@ -2599,7 +2604,7 @@ The method used must be an out-of-band method."
 		      ;; End is followed by \n or by " -> ".
 		      (put-text-property start end 'dired-filename t))))))
 	  ;; Remove trailing lines.
-	  (goto-char (point-at-bol))
+	  (beginning-of-line)
 	  (while (looking-at "//")
 	    (forward-line 1)
 	    (delete-region (match-beginning 0) (point))))
@@ -3751,12 +3756,17 @@ Fall back to normal file name handler if no Tramp handler exists."
       ;; Determine monitor name.
       (unless (tramp-connection-property-p proc "gio-file-monitor")
         (cond
-         ;; We have seen this only on cygwin gio, which uses the
-         ;; GPollFileMonitor.
+         ;; We have seen this on cygwin gio and on emba.  Let's make some assumptions.
          ((string-match
            "Can't find module 'help' specified in GIO_USE_FILE_MONITOR" string)
-          (tramp-set-connection-property
-           proc "gio-file-monitor" 'GPollFileMonitor))
+          (cond
+           ((getenv "EMACS_EMBA_CI")
+            (tramp-set-connection-property
+             proc "gio-file-monitor" 'GInotifyFileMonitor))
+           ((eq system-type 'cygwin)
+            (tramp-set-connection-property
+             proc "gio-file-monitor" 'GPollFileMonitor))
+           (t (tramp-error proc 'file-error "Cannot determine gio monitor"))))
          ;; TODO: What happens, if several monitor names are reported?
          ((string-match "\
 Supported arguments for GIO_USE_FILE_MONITOR environment variable:
@@ -4855,8 +4865,6 @@ connection if a previous connection has died for some reason."
 		      (setenv "HISTSIZE" "0"))))
 	      (setenv "PROMPT_COMMAND")
 	      (setenv "PS1" tramp-initial-end-of-output)
-              (unless (stringp tramp-encoding-shell)
-                (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
 	      (let* ((current-host tramp-system-name)
 		     (target-alist (tramp-compute-multi-hops vec))
 		     ;; We will apply `tramp-ssh-controlmaster-options'
@@ -4868,17 +4876,23 @@ connection if a previous connection has died for some reason."
 		     ;; W32 systems.
 		     (process-coding-system-alist nil)
 		     (coding-system-for-read nil)
-		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
+		     (encoding-shell
+		      (tramp-get-connection-property
+		       vec "encoding-shell" tramp-encoding-shell))
+		     (extra-args (tramp-get-sh-extra-args encoding-shell))
 		     ;; This must be done in order to avoid our file
 		     ;; name handler.
 		     (p (let ((default-directory
 				(tramp-compat-temporary-file-directory)))
+			  (unless (stringp encoding-shell)
+			    (tramp-error
+			     vec 'file-error "`tramp-encoding-shell' not set"))
 			  (apply
 			   #'start-process
 			   (tramp-get-connection-name vec)
 			   (tramp-get-connection-buffer vec)
 			   (append
-			    (list tramp-encoding-shell)
+			    (list encoding-shell)
 			    (and extra-args (split-string extra-args))
 			    (and tramp-encoding-command-interactive
 				 (list tramp-encoding-command-interactive)))))))
@@ -4897,8 +4911,7 @@ connection if a previous connection has died for some reason."
 
 		;; Check whether process is alive.
 		(tramp-barf-if-no-shell-prompt
-		 p 10
-		 "Couldn't find local shell prompt for %s" tramp-encoding-shell)
+		 p 10 "Couldn't find local shell prompt for %s" encoding-shell)
 
 		;; Now do all the connections as specified.
 		(while target-alist
@@ -4972,12 +4985,8 @@ connection if a previous connection has died for some reason."
 			?h (or l-host "") ?u (or l-user "") ?p (or l-port "")
 			?c (format-spec options (format-spec-make ?t tmpfile))
 			?l (concat remote-shell " " extra-args " -i"))
-		       ;; Local shell could be a Windows COMSPEC.  It
-		       ;; doesn't know the ";" syntax, but we must
-		       ;; exit always for `start-file-process'.  It
-		       ;; could also be a restricted shell, which does
-		       ;; not allow "exec".
-		       (when r-shell '("&&" "exit" "||" "exit")))
+		       ;; A restricted shell does not allow "exec".
+		       (when r-shell '("; exit")))
 		      " "))
 
 		    ;; Send the command.

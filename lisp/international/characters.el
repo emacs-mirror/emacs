@@ -484,9 +484,9 @@ with L, LRE, or LRO Unicode bidi character type.")
 	  (progn
 	    (modify-syntax-entry chars syntax)
 	    (modify-category-entry chars category))
-	(mapc #'(lambda (x)
-		  (modify-syntax-entry x syntax)
-		  (modify-category-entry x category))
+        (mapc (lambda (x)
+                (modify-syntax-entry x syntax)
+                (modify-category-entry x category))
 	      chars)))))
 
 ;; Bidi categories
@@ -1390,8 +1390,8 @@ with L, LRE, or LRO Unicode bidi character type.")
 	(dolist (charset-info (nthcdr 2 slot))
 	  (let ((charset (car charset-info)))
 	    (dolist (code-range (cdr charset-info))
-	      (map-charset-chars #'(lambda (range _arg)
-				     (set-char-table-range table range 2))
+              (map-charset-chars (lambda (range _arg)
+                                   (set-char-table-range table range 2))
 				 charset nil
 				 (car code-range) (cdr code-range)))))
 	(optimize-char-table table)
@@ -1417,8 +1417,8 @@ Setup char-width-table appropriate for non-CJK language environment."
   (require 'charscript))
 
 (map-charset-chars
- #'(lambda (range _ignore)
-     (set-char-table-range char-script-table range 'tibetan))
+ (lambda (range _ignore)
+   (set-char-table-range char-script-table range 'tibetan))
  'tibetan)
 
 
@@ -1426,14 +1426,14 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 (when (setq unicode-category-table
 	    (unicode-property-table-internal 'general-category))
-  (map-char-table #'(lambda (key val)
-		      (if val
-			  (cond ((or (and (/= (aref (symbol-name val) 0) ?M)
-					  (/= (aref (symbol-name val) 0) ?C))
-				     (eq val 'Zs))
-				 (modify-category-entry key ?.))
-				((eq val 'Mn)
-				 (modify-category-entry key ?^)))))
+  (map-char-table (lambda (key val)
+                    (if val
+                        (cond ((or (and (/= (aref (symbol-name val) 0) ?M)
+                                        (/= (aref (symbol-name val) 0) ?C))
+                                   (eq val 'Zs))
+                               (modify-category-entry key ?.))
+                              ((eq val 'Mn)
+                               (modify-category-entry key ?^)))))
 		  unicode-category-table))
 
 (optimize-char-table (standard-category-table))
@@ -1524,21 +1524,21 @@ option `glyphless-char-display'."
 	    ((eq target 'format-control)
 	     (when unicode-category-table
 	       (map-char-table
-		#'(lambda (char category)
-		    (if (eq category 'Cf)
-			(let ((this-method method)
-			      from to)
-			  (if (consp char)
-			      (setq from (car char) to (cdr char))
-			    (setq from char to char))
-			  (while (<= from to)
-			    (when (/= from #xAD)
-			      (if (eq method 'acronym)
-				  (setq this-method
-					(aref char-acronym-table from)))
-			      (set-char-table-range glyphless-char-display
-						    from this-method))
-			    (setq from (1+ from))))))
+                (lambda (char category)
+                  (if (eq category 'Cf)
+                      (let ((this-method method)
+                            from to)
+                        (if (consp char)
+                            (setq from (car char) to (cdr char))
+                          (setq from char to char))
+                        (while (<= from to)
+                          (when (/= from #xAD)
+                            (if (eq method 'acronym)
+                                (setq this-method
+                                      (aref char-acronym-table from)))
+                            (set-char-table-range glyphless-char-display
+                                                  from this-method))
+                          (setq from (1+ from))))))
 		unicode-category-table)))
 	    ((eq target 'no-font)
 	     (set-char-table-extra-slot glyphless-char-display 0 method))

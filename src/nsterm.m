@@ -9790,7 +9790,7 @@ nswindow_orderedIndex_sort (id w1, id w2, void *c)
   IOSurfaceRef surface = NULL;
 
   NSTRACE ("[EmacsSurface getContextWithSize:]");
-  NSTRACE_MSG (@"IOSurface count: %lu", [cache count] + (lastSurface ? 1 : 0));
+  NSTRACE_MSG ("IOSurface count: %lu", [cache count] + (lastSurface ? 1 : 0));
 
   for (id object in cache)
     {

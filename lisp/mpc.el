@@ -129,12 +129,10 @@
   "Return L1 after removing all elements not found in L2.
 If SELECTFUN is non-nil, elements aren't compared directly, but instead
 they are passed through SELECTFUN before comparison."
-  (let ((res ()))
-    (if selectfun (setq l2 (mapcar selectfun l2)))
-    (dolist (elem l1)
-      (when (member (if selectfun (funcall selectfun elem) elem) l2)
-        (push elem res)))
-    (nreverse res)))
+  (when selectfun
+    (setq l1 (mapcar selectfun l1))
+    (setq l2 (mapcar selectfun l2)))
+  (seq-intersection l1 l2))
 
 (defun mpc-event-set-point (event)
   (condition-case nil (posn-set-point (event-end event))
@@ -698,7 +696,7 @@ The songs are returned as alists."
               (let* ((osongs (mpc-cmd-find other-tag value))
                      (ofiles (mpc-assq-all 'file (apply 'append osongs)))
                      (plfiles (mpc-assq-all 'file (apply 'append plsongs))))
-                (when (mpc-intersection plfiles ofiles)
+                (when (seq-intersection plfiles ofiles)
                   (push pl pls)))))))
       pls))
 
@@ -1669,7 +1667,7 @@ Return non-nil if a selection was deactivated."
                                      (mpc-cmd-list mpc-tag (car cst) val))
                                    (cdr cst)))))
           (setq active
-                (if (listp active) (mpc-intersection active vals) vals))))
+                (if (listp active) (seq-intersection active vals) vals))))
 
       (when (listp active)
         ;; Remove the selections if they are all in conflict with

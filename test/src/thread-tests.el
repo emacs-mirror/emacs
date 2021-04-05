@@ -315,8 +315,8 @@
   "Test signaling a thread as soon as it is started by the OS."
   (skip-unless (featurep 'threads))
   (let ((thread
-         (make-thread #'(lambda ()
-                          (while t (thread-yield))))))
+         (make-thread (lambda ()
+                        (while t (thread-yield))))))
     (thread-signal thread 'error nil)
     (sit-for 1)
     (should-not (thread-live-p thread))
@@ -331,7 +331,7 @@
     (let (buffer-read-only)
       (erase-buffer))
     (let ((thread
-           (make-thread #'(lambda () (thread-signal main-thread 'error nil)))))
+           (make-thread (lambda () (thread-signal main-thread 'error nil)))))
       (while (thread-live-p thread)
         (thread-yield))
       (read-event nil nil 0.1)

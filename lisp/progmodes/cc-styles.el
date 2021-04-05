@@ -476,8 +476,8 @@ and exists only for compatibility reasons."
 			    (if current-prefix-arg " or add" "")
 			    ": ")
 		    (mapcar
-		     #'(lambda (langelem)
-			 (cons (format "%s" (car langelem)) nil))
+		     (lambda (langelem)
+		       (cons (format "%s" (car langelem)) nil))
 		     (get 'c-offsets-alist 'c-stylevar-fallback))
 		    nil (not current-prefix-arg)
 		    ;; initial contents tries to be the last element

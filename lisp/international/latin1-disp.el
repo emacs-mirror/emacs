@@ -186,8 +186,8 @@ character set."
 		     'arabic-iso8859-6
 		   (car (remq 'ascii (get-language-info language
 							'charset))))))
-    (map-charset-chars #'(lambda (range _arg)
-			   (standard-display-default (car range) (cdr range)))
+    (map-charset-chars (lambda (range _arg)
+                         (standard-display-default (car range) (cdr range)))
 		       charset))
   (sit-for 0))
 
