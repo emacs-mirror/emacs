@@ -68,5 +68,5 @@ COPY . /checkout
 WORKDIR /checkout
 RUN ./autogen.sh autoconf
 RUN ./configure --with-ns
-RUN make -j4 bootstrap
+RUN make bootstrap
 RUN make -j4
