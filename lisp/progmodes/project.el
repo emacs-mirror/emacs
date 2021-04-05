@@ -1322,7 +1322,7 @@ are legal even if they aren't listed in the dispatch menu."
                key tmp)))
      (let ((key (if key
                     (vector key)
-                  (where-is-internal cmd project-prefix-map t))))
+                  (where-is-internal cmd (list project-prefix-map) t))))
        (format "[%s] %s"
                (propertize (key-description key) 'face 'bold)
                label)))
