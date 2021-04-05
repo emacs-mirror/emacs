@@ -69,9 +69,11 @@ Definitions
 
 _`.def.platform`: A *platform* is a combination of an architecture
 (`.def.arch`_), an operating system (`.def.os`_), and a builder
-(`.def.builder`_).  The set of supported platforms is maintained in the
+(`.def.builder`_). The set of supported platforms is maintained in the
 `Platforms section of "Building the Memory Pool System"
-<../manual/html/guide/build.html#platforms>`_.
+<platforms_>`_.
+
+.. _platforms: ../manual/html/guide/build.html#platforms
 
 _`.def.arch`: An *architecture* is processor type with associated calling
 conventions and other binary interface stuff these days often called the
@@ -113,9 +115,10 @@ source code.  Since `version 1.110`_ we made it possible to simply
 include the file ``mps.c`` in a client's build process, without
 requiring a separate build of the MPS or linking a library.  This is
 described `section 2.3.1, "Compiling for production" of the MPS manual
-<../manual/html/guide/build.html#compiling-for-production>`_.
+<compiling_>`_.
 
 .. _`version 1.110`: https://www.ravenbrook.com/project/mps/version/1.110/
+.. _compiling: ../manual/html/guide/build.html#compiling-for-production
 
 _`.no-gen`: No generated code or external tools are required.  On most
 platforms the only tool is the C compiler.  On 64-bit Windows we require
@@ -127,7 +130,9 @@ messy code bases which used a great number of ``#ifdef`` statements.
 These quickly became very expensive to maintain and develop.  The
 general rule in the MPS is "no ``#ifdefs``".  Instead, platform-specific
 code is kept in separate source files and selected by carefully controlled
-``#ifdefs``, such as in `mps.c <../code/mps.c>`_.
+``#ifdefs``, such as in mps.c_.
+
+.. _mps.c: ../code/mps.c
 
 _`.min-dep`: Dependency on a particular configuration should be
 minimized and localized when developing code.  This is enshrined in the
@@ -244,11 +249,14 @@ be suffixed with on or more target parameter codes (defined below). In
 particular, the names of assembly language sources must include the
 target parameter code for the relevant architecture.
 
-_`.mod.example`: For example, the stack scanner is defined in `ss.h
-<../code/ss.h>`_ (which is platform-independent).  It has some
-platform-independent C in `ss.c <../code/ss.c>`_ and, for example,
-`ssw3i6mv.c <../code/ssw3i6mv.c>`_ is specific to Windows on the x64
+_`.mod.example`: For example, the stack scanner is defined in ss.h_
+(which is platform-independent). It has some platform-independent C in
+ss.c_ and, for example, ssw3i6mv.c_ is specific to Windows on the x64
 architecture built with Microsoft Visual C.
+
+.. _ss.c: ../code/ss.c
+.. _ss.h: ../code/ss.h
+.. _ssw3i6mv.c: ../code/ssw3i6mv.c
 
 
 Build system rationale
@@ -346,8 +354,8 @@ identifiers beginning "CONFIG\_" should only appear in impl.h.config.
 Code may depend on configuration parameters in certain, limited ways, as
 defined below (`.conf`_).
 
-.. _`config.h`: <../code/config.h>
-.. _`mpstd.h`: <../code/mpstd.h>
+.. _config.h: ../code/config.h
+.. _mpstd.h: ../code/mpstd.h
 
 
 Target platform detection
@@ -428,11 +436,13 @@ usually just ``unsigned long`` but under Microsoft C on 64-bit Windows
 
     #define MPS_T_ULONGEST      unsigned __int64
 
-_`.pf.pf-string`: The declaration of ``MPS_PF_STRING`` defines a string
-that is used to identify the target platform in `version.c
-<../code/version.c>`_.  For example::
+_`.pf.pf-string`: The declaration of ``MPS_PF_STRING`` defines a
+string that is used to identify the target platform in version.c_. For
+example::
 
     #define MPS_PF_STRING   "w3i6mv"
+
+.. _version.c: ../code/version.c
 
 
 Target varieties

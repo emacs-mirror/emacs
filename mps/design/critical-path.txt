@@ -222,7 +222,9 @@ MPS, we encourage clients to compile the MPS in the same translation
 unit as their format code, so that the compiler can be intelligent
 about inlining parts of ``_mps_fix2()`` in the format scanner. The
 instructions for doing this are in `Building the Memory Pool System
-<../manual/build.txt>`_, part of the manual.
+<build.txt_>`_, part of the manual.
+
+.. _build.txt: ../manual/build.txt
 
 
 The second stage fix in the MPM
@@ -326,12 +328,11 @@ So far this document has described the ways in which the garbage
 collector is designed around optimising the critical path.  There are a
 few other things that the MPS does that are important.
 
-Firstly, inlining is very important.  The first stage fix is inlined
-into the format scanner by being implemented in macros in
-mps.h_.  And to get even better inlining, `we
-recommend <../manual/build.txt>`_ that the whole MPS is compiled in a
-single translation unit with the client format and that strong global
-optimisation is applied.
+Firstly, inlining is very important. The first stage fix is inlined
+into the format scanner by being implemented in macros in mps.h_. And
+to get even better inlining, `we recommend <build.txt_>`_ that the
+whole MPS is compiled in a single translation unit with the client
+format and that strong global optimisation is applied.
 
 Secondly, we are very careful with code annotations on the critical
 path.  Assertions, statistics, and telemetry are all disabled on the
