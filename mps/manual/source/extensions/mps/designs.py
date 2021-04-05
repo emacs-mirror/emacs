@@ -50,6 +50,7 @@ typename = re.compile(r'``({0}|[A-Z][A-Za-z0-9_]*'
                       .format('|'.join(map(re.escape, TYPES.split()))))
 design_ref = re.compile(r'^( *\.\. _design\.mps\.(?:[^:\n]+): (?:[^#:\n]+))$', re.MULTILINE)
 design_frag_ref = re.compile(r'^( *\.\. _design\.mps\.([^:\n]+)\.([^:\n]+): (?:[^#:\n]+))#(.+)$', re.MULTILINE)
+relative_link = re.compile(r'^( *\.\. _[\w\.]+: +\.\./)', re.MULTILINE)
 history = re.compile(r'^Document History\n.*',
                      re.MULTILINE | re.IGNORECASE | re.DOTALL)
 
@@ -124,6 +125,7 @@ def convert_file(name, source, dest):
     s = citation.sub(citation_sub, s)
     s = design_ref.sub(r'\1.html', s)
     s = design_frag_ref.sub(r'\1.html#design.mps.\2.\3', s)
+    s = relative_link.sub(r'\1../../', s)
     s = history.sub('', s)
     # Don't try to format all the quoted code blocks as C.
     s = '.. highlight:: none\n\n' + s
