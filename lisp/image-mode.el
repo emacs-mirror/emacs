@@ -732,8 +732,9 @@ displays an image file as text."
     (setq image-type previous-image-type)
     ;; Enable image minor mode with `C-c C-c'.
     (image-minor-mode 1)
-    ;; Show the image file as text.
-    (image-toggle-display-text)))
+    (unless (image-get-display-property)
+      ;; Show the image file as text.
+      (image-toggle-display-text))))
 
 (defun image-mode-as-hex ()
   "Set a non-image mode as major mode in combination with image minor mode.
