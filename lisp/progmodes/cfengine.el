@@ -1,4 +1,4 @@
-;;; cfengine.el --- mode for editing Cfengine files
+;;; cfengine.el --- mode for editing Cfengine files  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 
@@ -1440,7 +1440,7 @@ to the action header."
       (cfengine3-mode)
     (cfengine2-mode)))
 
-(defalias 'cfengine-mode 'cfengine3-mode)
+(defalias 'cfengine-mode #'cfengine3-mode)
 
 (provide 'cfengine3)
 (provide 'cfengine)

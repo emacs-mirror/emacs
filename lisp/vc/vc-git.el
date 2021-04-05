@@ -27,14 +27,6 @@
 ;; system.
 ;;
 
-;;; Installation:
-
-;; To install: put this file on the load-path and add Git to the list
-;; of supported backends in `vc-handled-backends'; the following line,
-;; placed in your init file, will accomplish this:
-;;
-;;     (add-to-list 'vc-handled-backends 'Git)
-
 ;;; Todo:
 ;;  - check if more functions could use vc-git-command instead
 ;;     of start-process.

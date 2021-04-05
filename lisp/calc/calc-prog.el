@@ -1881,9 +1881,9 @@ Redefine the corresponding command."
 	  (if (fboundp (setq chk (intern (concat "math-" qual-name))))
 	      (append rest
 		      (if is-rest
-			  `((mapcar #'(lambda (x)
-					(or (,chk x)
-					    (math-reject-arg x ',qual)))
+                          `((mapcar (lambda (x)
+                                      (or (,chk x)
+                                          (math-reject-arg x ',qual)))
 				    ,var))
 			`((or (,chk ,var)
 			      (math-reject-arg ,var ',qual)))))
@@ -1894,9 +1894,9 @@ Redefine the corresponding command."
 						  qual-name 1))))))
 		(append rest
 			(if is-rest
-			    `((mapcar #'(lambda (x)
-					  (and (,chk x)
-					       (math-reject-arg x ',qual)))
+                            `((mapcar (lambda (x)
+                                        (and (,chk x)
+                                             (math-reject-arg x ',qual)))
 				      ,var))
 			  `((and
 			     (,chk ,var)

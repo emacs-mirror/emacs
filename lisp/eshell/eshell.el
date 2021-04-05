@@ -294,9 +294,9 @@ With prefix ARG, insert output into the current buffer at point."
     (setq arg current-prefix-arg))
   (let ((eshell-non-interactive-p t))
     ;; Enable `eshell-mode' only in this minibuffer.
-    (minibuffer-with-setup-hook #'(lambda ()
-                                    (eshell-mode)
-                                    (eshell-command-mode +1))
+    (minibuffer-with-setup-hook (lambda ()
+                                  (eshell-mode)
+                                  (eshell-command-mode +1))
       (unless command
         (setq command (read-from-minibuffer "Emacs shell command: "))
 	(if (eshell-using-module 'eshell-hist)

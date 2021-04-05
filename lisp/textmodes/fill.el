@@ -412,12 +412,12 @@ and `fill-nobreak-invisible'."
   ;; Register `kinsoku' for scripts HAN, KANA, BOPOMOFO, and CJK-MISC.
   ;; Also tell that they don't use space between words.
   (map-char-table
-   #'(lambda (key val)
-       (when (memq val '(han kana bopomofo cjk-misc))
-	 (set-char-table-range fill-find-break-point-function-table
-			       key 'kinsoku)
-	 (set-char-table-range fill-nospace-between-words-table
-			       key t)))
+   (lambda (key val)
+     (when (memq val '(han kana bopomofo cjk-misc))
+       (set-char-table-range fill-find-break-point-function-table
+                             key 'kinsoku)
+       (set-char-table-range fill-nospace-between-words-table
+                             key t)))
    char-script-table)
   ;; Do the same thing also for full width characters and half
   ;; width kana variants.

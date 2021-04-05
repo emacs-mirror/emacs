@@ -1,4 +1,4 @@
-;;; isearchb --- a marriage between iswitchb and isearch
+;;; isearchb.el --- a marriage between iswitchb and isearch  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2004-2021 Free Software Foundation, Inc.
 
@@ -89,13 +89,11 @@
   "Number of idle seconds before isearchb turns itself off.
 If nil, don't use a timeout."
   :type '(choice (integer :tag "Seconds")
-		 (const :tag "Disable" nil))
-  :group 'isearchb)
+                 (const :tag "Disable" nil)))
 
 (defcustom isearchb-show-completions t
   "If non-nil, show possible completions in the minibuffer."
-  :type 'boolean
-  :group 'isearchb)
+  :type 'boolean)
 
 (defvar isearchb-start-buffer nil)
 (defvar isearchb-last-buffer nil)

@@ -3744,6 +3744,17 @@ window state change flag is reset.  */)
   return (FRAME_WINDOW_STATE_CHANGE (f) = !NILP (arg)) ? Qt : Qnil;
 }
 
+DEFUN ("frame-scale-factor", Fframe_scale_factor, Sframe_scale_factor,
+       0, 1, 0,
+       doc: /* Return FRAMEs scale factor.
+The scale factor is the amount by which a logical pixel size must be
+multiplied to find the real number of pixels.  */)
+     (Lisp_Object frame)
+{
+  struct frame *f = decode_live_frame (frame);
+
+  return (make_float (f ? FRAME_SCALE_FACTOR (f) : 1));
+}
 
 /***********************************************************************
 				Frame Parameters
@@ -6457,6 +6468,7 @@ iconify the top level frame instead.  */);
   defsubr (&Sframe_pointer_visible_p);
   defsubr (&Sframe_window_state_change);
   defsubr (&Sset_frame_window_state_change);
+  defsubr (&Sframe_scale_factor);
 
 #ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sx_get_resource);

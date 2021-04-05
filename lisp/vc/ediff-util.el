@@ -4188,12 +4188,7 @@ Mail anyway? (y or n) ")
     (cdr result)))
 
 (define-obsolete-function-alias 'ediff-add-to-history #'add-to-history "27.1")
-
-(defalias 'ediff-copy-list 'copy-sequence)
-
-
-;; don't report error if version control package wasn't found
-;;(ediff-load-version-control 'silent)
+(define-obsolete-function-alias 'ediff-copy-list #'copy-sequence "28.1")
 
 (run-hooks 'ediff-load-hook)
 

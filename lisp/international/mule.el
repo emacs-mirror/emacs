@@ -32,7 +32,7 @@
 
 (defconst mule-version "6.0 (HANACHIRUSATO)" "\
 Version number and name of this version of MULE (multilingual environment).")
-(make-obsolete-variable 'mule-version nil "28.1")
+(make-obsolete-variable 'mule-version 'emacs-version "28.1")
 
 (defconst mule-version-date "2003.9.1" "\
 Distribution date of this version of MULE (multilingual environment).")
@@ -491,27 +491,27 @@ per-character basis, this may not be accurate."
 		   (cond
 		    ((listp cs-list)
 		     (catch 'tag
-		       (mapc #'(lambda (charset)
-				 (if (encode-char char charset)
-				     (throw 'tag charset)))
+                       (mapc (lambda (charset)
+                               (if (encode-char char charset)
+                                   (throw 'tag charset)))
 			     cs-list)
 		       nil))
 		    ((eq cs-list 'iso-2022)
 		     (catch 'tag2
-		       (mapc #'(lambda (charset)
-				 (if (and (plist-get (charset-plist charset)
-						     :iso-final-char)
-					  (encode-char char charset))
-				     (throw 'tag2 charset)))
+                       (mapc (lambda (charset)
+                               (if (and (plist-get (charset-plist charset)
+                                                   :iso-final-char)
+                                        (encode-char char charset))
+                                   (throw 'tag2 charset)))
 			     charset-list)
 		       nil))
 		    ((eq cs-list 'emacs-mule)
 		     (catch 'tag3
-		       (mapc #'(lambda (charset)
-				 (if (and (plist-get (charset-plist charset)
-						     :emacs-mule-id)
-					  (encode-char char charset))
-				     (throw 'tag3 charset)))
+                       (mapc (lambda (charset)
+                               (if (and (plist-get (charset-plist charset)
+                                                   :emacs-mule-id)
+                                        (encode-char char charset))
+                                   (throw 'tag3 charset)))
 			     charset-list)
 		       nil)))))))))))
 

@@ -254,73 +254,6 @@ version 20.2.  It has also been bundled and pre-installed with XEmacs
 plug-in package which is available from the @value{XEMACSFTP}.  See the
 XEmacs 21.x documentation on package installation for details.
 
-Users of earlier Emacs distributions (including Emacs 19) or people
-craving for new features and bugs can get a copy of the @RefTeX{}
-distribution from the maintainer's web page.  @xref{Imprint}, for more
-information.  The following instructions will guide you through the
-process of installing such a distribution.
-
-@subsection Building and Installing
-
-Note: Currently installation is supported for Emacs only.  XEmacs users
-might want to refer to the @RefTeX{} package available through the
-package system of XEmacs.
-
-@subsubheading Installation with make
-
-In order to install RefTeX, unpack the distribution and edit the header
-of the Makefile.  Basically, you need to change the path specifications
-for Emacs Lisp files and info files.  Also, enter the name of your Emacs
-executable (usually either @samp{emacs} or @samp{xemacs}).
-
-Then, type
-
-@example
-make
-make install
-@end example
-
-to compile and install the code and documentation.
-
-Per default @RefTeX{} is installed in its own subdirectory which might
-not be on your load path.  In this case, add it to load path with a
-command like the following, replacing the sample directory with the one
-where @RefTeX{} is installed in your case.
-
-@example
-(add-to-list 'load-path "/path/to/reftex")
-@end example
-
-Put this command into your init file before other @RefTeX{}-related
-settings.
-
-@subsubheading Installation by Hand
-
-If you want to get your hands dirty, there is also the possibility to
-install by manually copying files.
-
-@enumerate a
-@item
-Copy the reftex*.el lisp files to a directory on your load path.  Make
-sure that no old copy of @RefTeX{} shadows these files.
-@item
-Byte compile the files.  The sequence of compiling should be:
-reftex-var.el, reftex.el, and then all the others.
-@item
-Copy the info file reftex.info to the info directory.
-@end enumerate
-
-@subsection Loading @RefTeX{}
-
-In order to make the most important functions for entering @RefTeX{}
-mode available add the following line to your init file.
-
-@example
-(require 'reftex)
-@end example
-
-@subsection Entering @RefTeX{} Mode
-
 @findex turn-on-reftex
 @findex reftex-mode
 @vindex LaTeX-mode-hook
@@ -3259,9 +3192,9 @@ with the @kbd{g} key.  To get this behavior, use instead
 
 @AUCTeX{} is without doubt the best major mode for editing @TeX{} and @LaTeX{}
 files with Emacs (@pxref{Top,AUCTeX,,auctex, The AUCTeX User Manual}).
-If @AUCTeX{} is not part of your Emacs distribution, you can get
-it@footnote{XEmacs 21.x users may want to install the corresponding
-XEmacs package.} by FTP from the @value{AUCTEXSITE}.
+You can get it from its home page at @value{AUCTEXSITE}, but since
+it is available from GNU ELPA, you can simply install it from @kbd{M-x
+list-packages}.
 
 @menu
 * AUCTeX-RefTeX Interface::          How both packages work together
@@ -3609,18 +3542,6 @@ argument (which really is a second argument to the macro @code{\begin})
 as a label of type @code{?p}.  Argument count for this macro starts only
 after the @samp{@{step+@}}, also when specifying how to get
 context.
-
-@item
-@b{Idle timers in XEmacs}@*
-@cindex Idle timer restart
-@vindex reftex-use-itimer-in-xemacs
-In XEmacs, idle timer restart does not work reliably after fast
-keystrokes.  Therefore @RefTeX{} currently uses the post command
-hook to start the timer used for automatic crossref information.  When
-this bug gets fixed, a real idle timer can be requested with
-@lisp
-(setq reftex-use-itimer-in-xemacs t)
-@end lisp
 
 @item
 @b{Viper mode}@*

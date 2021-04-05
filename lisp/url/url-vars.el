@@ -22,10 +22,6 @@
 
 ;;; Code:
 
-(defconst url-version "Emacs"
-  "Version number of URL package.")
-(make-obsolete-variable 'url-version nil "28.1")
-
 (defgroup url nil
   "Uniform Resource Locator tool."
   :version "22.1"
@@ -426,6 +422,11 @@ Should be one of:
   "Non-nil means don't open new network connections.
 This should be set, e.g. by mail user agents rendering HTML to avoid
 `bugs' which call home.")
+
+;; Obsolete
+
+(defconst url-version "Emacs" "Version number of URL package.")
+(make-obsolete-variable 'url-version 'emacs-version "28.1")
 
 (provide 'url-vars)
 

@@ -477,7 +477,7 @@ Menu items are appended to the common grammar menu.")
 	 (condition-case err
 	     (with-current-buffer (find-file-noselect infile)
 	       (if outdir (setq default-directory outdir))
-	       (semantic-grammar-create-package nil t))
+	       (semantic-grammar-create-package t t))
 	   (error (message "%s" (error-message-string err)) nil)))
 	output-data)
     (when (setq output-data (assoc packagename wisent-make-parsers--parser-file-name))

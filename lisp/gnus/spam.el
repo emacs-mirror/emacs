@@ -710,16 +710,8 @@ finds ham or spam.")
 (defun spam-set-difference (list1 list2)
   "Return a set difference of LIST1 and LIST2.
 When either list is nil, the other is returned."
-  (if (and list1 list2)
-      ;; we have two non-nil lists
-      (progn
-        (dolist (item (append list1 list2))
-          (when (and (memq item list1) (memq item list2))
-            (setq list1 (delq item list1))
-            (setq list2 (delq item list2))))
-        (append list1 list2))
-    ;; if either of the lists was nil, return the other one
-    (if list1 list1 list2)))
+  (declare (obsolete seq-difference "28.1"))
+  (seq-difference list1 list2 #'eq))
 
 (defun spam-group-ham-mark-p (group mark &optional spam)
   "Checks if MARK is considered a ham mark in GROUP."
@@ -1327,7 +1319,7 @@ In the case of mover backends, checks the setting of
              (new-articles (spam-list-articles
                             gnus-newsgroup-articles
                             classification))
-             (changed-articles (spam-set-difference new-articles old-articles)))
+             (changed-articles (seq-difference new-articles old-articles #'eq)))
         ;; now that we have the changed articles, we go through the processors
         (dolist (backend (spam-backend-list))
           (let (unregister-list)

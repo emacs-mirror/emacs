@@ -103,7 +103,7 @@ This is typically the filename.")
 
 ;;;; Commonly needed location classes are defined here:
 
-(defcustom xref-file-name-display 'abs
+(defcustom xref-file-name-display 'project-relative
   "Style of file name display in *xref* buffers.
 
 If the value is the symbol `abs', the default, show the file names
@@ -521,7 +521,7 @@ If SELECT is non-nil, select the target window."
   "Face for displaying line numbers in the xref buffer."
   :version "27.1")
 
-(defface xref-match '((t :inherit highlight))
+(defface xref-match '((t :inherit match))
   "Face used to highlight matches in the xref buffer."
   :version "27.1")
 

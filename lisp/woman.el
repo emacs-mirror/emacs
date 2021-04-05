@@ -390,9 +390,6 @@
 
 (eval-when-compile (require 'cl-lib))
 
-(defvar woman-version "0.551 (beta)" "WoMan version information.")
-(make-obsolete-variable 'woman-version nil "28.1")
-
 (require 'man)
 (define-button-type 'WoMan-xref-man-page
   :supertype 'Man-abstract-xref-man-page
@@ -4579,6 +4576,11 @@ logging the message."
                  (woman-find-file file) (current-buffer))))
     (bookmark-default-handler
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
+
+;; Obsolete.
+
+(defvar woman-version "0.551 (beta)" "WoMan version information.")
+(make-obsolete-variable 'woman-version 'emacs-version "28.1")
 
 (provide 'woman)
 

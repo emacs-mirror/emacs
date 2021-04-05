@@ -172,20 +172,6 @@ created by `shadow-define-regexp-group'.")
 ;;; Syntactic sugar; General list and string manipulation
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun shadow-union (a b)
-  "Add members of list A to list B if not equal to items already in B."
-  (if (null a)
-      b
-    (if (member (car a) b)
-	(shadow-union (cdr a) b)
-      (shadow-union (cdr a) (cons (car a) b)))))
-
-(defun shadow-find (func list)
-  "If FUNC applied to some element of LIST is non-nil, return first such element."
-  (while (and list (not (funcall func (car list))))
-    (setq list (cdr list)))
-  (car list))
-
 (defun shadow-regexp-superquote (string)
   "Like `regexp-quote', but includes the \\` and \\'.
 This makes sure regexp matches nothing but STRING."
@@ -226,7 +212,7 @@ information defining the cluster.  For interactive use, call
 
 (defun shadow-get-cluster (name)
   "Return cluster named NAME, or nil."
-  (shadow-find
+  (seq-find
    (lambda (x) (string-equal (shadow-cluster-name x) name))
    shadow-clusters))
 
@@ -252,7 +238,7 @@ information defining the cluster.  For interactive use, call
 (defun shadow-site-cluster (site)
   "Given a SITE, return cluster it is in, or nil."
   (or (shadow-get-cluster (shadow-site-name site))
-      (shadow-find
+      (seq-find
        (lambda (x)
          (string-match (shadow-cluster-regexp x) (shadow-name-site site)))
        shadow-clusters)))
@@ -653,7 +639,7 @@ Consider them as regular expressions if third arg REGEXP is true."
        shadows shadow-files-to-copy (with-output-to-string (backtrace))))
     (when shadows
       (setq shadow-files-to-copy
-	    (shadow-union shadows shadow-files-to-copy))
+            (cl-union shadows shadow-files-to-copy :test #'equal))
       (when (not shadow-inhibit-message)
 	(message "%s" (substitute-command-keys
 		       "Use \\[shadow-copy-files] to update shadows."))
@@ -838,6 +824,17 @@ look for files that have been changed and need to be copied to other systems."
 	  (symbol-function 'shadow-orig-save-buffers-kill-emacs)))
   ;; continue standard unloading
   nil)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Obsolete
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun shadow-union (a b)
+  "Add members of list A to list B if not equal to items already in B."
+  (declare (obsolete cl-union "28.1"))
+  (cl-union a b :test #'equal))
+
+(define-obsolete-function-alias 'shadow-find #'seq-find "28.1")
 
 (provide 'shadowfile)
 

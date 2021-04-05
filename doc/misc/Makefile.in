@@ -22,7 +22,7 @@ SHELL = @SHELL@
 # Where to find the source code.  $(srcdir) will be the doc/misc subdirectory
 # of the source tree.  This is set by configure's '--srcdir' option.
 srcdir=@srcdir@
-
+top_srcdir = @top_srcdir@
 top_builddir = @top_builddir@
 
 ## Where the output files go.
@@ -100,10 +100,6 @@ texi_sources = $(addsuffix .texi,${TARGETS})
 texi_notgen = $(filter-out $(notdir ${TEXI_FROM_ORG}),${texi_sources})
 texi_and_org = $(notdir ${ORG_SRC}) ${texi_notgen}
 SOURCES = $(sort ${texi_and_org})
-.PHONY: echo-sources
-## Used by the top-level Makefile.
-echo-sources:
-	@echo ${SOURCES}
 
 DVI_TARGETS  = $(TARGETS:=.dvi)
 HTML_TARGETS = $(TARGETS:=.html)
@@ -122,7 +118,7 @@ ENVADD = $(AM_V_GEN)TEXINPUTS="$(srcdir):$(emacsdir):$(TEXINPUTS)" \
 gfdl = ${srcdir}/doclicense.texi
 style = ${emacsdir}/docstyle.texi
 
-.PHONY: info dvi html pdf ps echo-info $(INFO_TARGETS)
+.PHONY: info dvi html pdf ps echo-info echo-sources $(INFO_TARGETS)
 ## Prevent implicit rule triggering for foo.info.
 .SUFFIXES:
 
@@ -137,6 +133,9 @@ info: $(INFO_TARGETS)
 echo-info:
 	@echo "$(INFO_INSTALL) " | \
 	  sed -e 's|[^ ]*/||g' -e 's/\.info//g' -e "s/  */.info /g"
+
+echo-sources:
+	@echo ${SOURCES}
 
 dvi: $(DVI_TARGETS)
 
@@ -235,14 +234,14 @@ ${buildinfodir}/tramp.info tramp.html: ${srcdir}/trampver.texi
 
 abs_top_builddir = @abs_top_builddir@
 EMACS = ${abs_top_builddir}/src/emacs
-emacs = "${EMACS}" -batch --no-site-file --no-site-lisp
+emacs = "${EMACS}" -batch --no-site-file --no-site-lisp --eval '(setq load-prefer-newer t)'
 
 # Generated .texi files go in srcdir so they can be included in the
 # release tarfile along with the others.
 # Work in srcdir (and use abs_top_builddir) so that +setupfile and
 # things like org-setup's "version" macro work.  Sigh.
 define org_template
- $(1:.org=.texi): $(1)
+ $(1:.org=.texi): $(1) ${top_srcdir}/lisp/org/ox-texinfo.el
 	$${AM_V_GEN}cd "$${srcdir}" && $${emacs} -l ox-texinfo \
 	  -f org-texinfo-export-to-texinfo-batch $$(notdir $$<) $$(notdir $$@)
 endef

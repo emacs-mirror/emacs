@@ -907,6 +907,13 @@ default_pixels_per_inch_y (void)
   (WINDOWP (f->minibuffer_window)				\
    && XFRAME (XWINDOW (f->minibuffer_window)->frame) == f)
 
+/* Scale factor of frame F.  */
+#if defined HAVE_NS
+# define FRAME_SCALE_FACTOR(f) (FRAME_NS_P (f) ? ns_frame_scale_factor (f) : 1)
+#else
+# define FRAME_SCALE_FACTOR(f) 1
+#endif
+
 /* Pixel width of frame F.  */
 #define FRAME_PIXEL_WIDTH(f) ((f)->pixel_width)
 

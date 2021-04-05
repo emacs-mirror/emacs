@@ -34,7 +34,7 @@ top_builddir = @top_builddir@
 unexport EMACSDATA EMACSDOC EMACSPATH
 
 EMACS = ${top_builddir}/src/emacs
-emacs = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp
+emacs = EMACSLOADPATH= "${EMACS}" -batch --no-site-file --no-site-lisp --eval '(setq load-prefer-newer t)'
 
 make_bovine = ${emacs} -l semantic/bovine/grammar -f bovine-batch-make-parser
 make_wisent = ${emacs} -l semantic/wisent/grammar -f wisent-batch-make-parser
@@ -42,6 +42,9 @@ make_wisent = ${emacs} -l semantic/wisent/grammar -f wisent-batch-make-parser
 cedetdir = ${top_srcdir}/lisp/cedet
 bovinedir = ${cedetdir}/semantic/bovine
 wisentdir = ${cedetdir}/semantic/wisent
+
+grammar_bovine = ${bovinedir}/grammar.el
+grammar_wisent = ${wisentdir}/grammar.el
 
 BOVINE = \
 	${bovinedir}/c-by.el \
@@ -51,7 +54,7 @@ BOVINE = \
 ## FIXME Should include this one too:
 ##	${cedetdir}/semantic/grammar-wy.el
 ## but semantic/grammar.el (which is what we use to generate grammar-wy.el)
-## requires it!
+## requires it!  https://debbugs.gnu.org/16008
 WISENT = \
 	${wisentdir}/javat-wy.el \
 	${wisentdir}/js-wy.el \
@@ -69,46 +72,46 @@ bovine: ${BOVINE}
 wisent: ${WISENT}
 
 ## c-by.el, make-by.el.
-${bovinedir}/%-by.el: ${srcdir}/%.by
+${bovinedir}/%-by.el: ${srcdir}/%.by ${grammar_bovine}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_bovine} -o "$@" $<
 
-${bovinedir}/scm-by.el: ${srcdir}/scheme.by
+${bovinedir}/scm-by.el: ${srcdir}/scheme.by ${grammar_bovine}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_bovine} -o "$@" $<
 
 ## grammar-wy.el
-${cedetdir}/semantic/%-wy.el: ${srcdir}/%.wy
+${cedetdir}/semantic/%-wy.el: ${srcdir}/%.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
 ## js-wy.el, python-wy.el
-${wisentdir}/%-wy.el: ${srcdir}/%.wy
+${wisentdir}/%-wy.el: ${srcdir}/%.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
-${wisentdir}/javat-wy.el: ${srcdir}/java-tags.wy
+${wisentdir}/javat-wy.el: ${srcdir}/java-tags.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
-${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy
+${cedetdir}/srecode/srt-wy.el: ${srcdir}/srecode-template.wy ${grammar_wisent}
 	$(AM_V_GEN)[ ! -f "$@" ] || chmod +w "$@"
 	$(AM_V_at)${make_wisent} -o "$@" $<
 
-
-.PHONY: distclean bootstrap-clean maintainer-clean extraclean
+.PHONY: distclean bootstrap-clean maintainer-clean extraclean gen-clean
 
 distclean:
 	rm -f Makefile
 
-## Perhaps this should do what extraclean (qv) does.
+## IMO this should run gen-clean.
 bootstrap-clean:
 
-maintainer-clean: distclean
-
-## We do not normally delete the generated files, even in bootstrap.
-## Creating them does not take long, so we could easily change this.
-extraclean:
+gen-clean:
 	rm -f ${ALL}
+
+maintainer-clean: gen-clean distclean
+
+extraclean: maintainer-clean
+
 
 # Makefile.in ends here

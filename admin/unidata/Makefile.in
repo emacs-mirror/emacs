@@ -85,26 +85,26 @@ ${unidir}/charscript.el: ${srcdir}/Blocks.txt ${blocks}
 	$(AM_V_GEN)$(AWK) -f ${blocks} < $< > $@
 
 
-.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
+.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean gen-clean
 
 clean:
 	rm -f ${srcdir}/*.elc unidata.txt
 
+## IMO this should also run gen-clean.
 bootstrap-clean: clean
 
 distclean: clean
 	rm -f Makefile
 
-maintainer-clean: distclean
-
-## Do not remove these files, even in a bootstrap, because they rarely
-## change and it slows down bootstrap (a tiny bit).
-## Cf leim/ja-dic (which is much slower).
-
 ## macuvs.h is a generated file, but it's also checked in because
 ## macOS builds would need to do a headless bootstrap without it,
 ## which is currently awkward.  To avoid changing checked-in files
 ## from a make target, we don't delete it here.
-extraclean: distclean
+gen-clean:
 	rm -f ${unidir}/charscript.el*
 	rm -f ${unifiles} ${unidir}/charprop.el
+## ref: https://lists.gnu.org/r/emacs-devel/2013-11/msg01029.html
+
+maintainer-clean: gen-clean distclean
+
+extraclean: maintainer-clean

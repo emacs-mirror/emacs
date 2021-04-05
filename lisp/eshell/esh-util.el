@@ -223,18 +223,6 @@ then quoting is done by a backslash, rather than a doubled delimiter."
 	      (string-to-number string)
 	    string))))))
 
-(defun eshell-sublist (l &optional n m)
-  "Return from LIST the N to M elements.
-If N or M is nil, it means the end of the list."
-  (let ((a (copy-sequence l)))
-    (if (and m (consp (nthcdr m a)))
-	(setcdr (nthcdr m a) nil))
-    (if n
-	(setq a (nthcdr n a))
-      (setq n (1- (length a))
-	    a (last a)))
-    a))
-
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.
 It might be different from \(getenv \"PATH\"), when
@@ -302,20 +290,6 @@ Prepend remote identification of `default-directory', if any."
        (setq list-iter (cdr list-iter)))))
 
 (define-obsolete-function-alias 'eshell-flatten-list #'flatten-tree "27.1")
-
-(defun eshell-uniquify-list (l)
-  "Remove occurring multiples in L.  You probably want to sort first."
-  (let ((m l))
-    (while m
-      (while (and (cdr m)
-		  (string= (car m)
-			   (cadr m)))
-	(setcdr m (cddr m)))
-      (setq m (cdr m))))
-  l)
-(define-obsolete-function-alias
-  'eshell-uniqify-list
-  'eshell-uniquify-list "27.1")
 
 (defun eshell-stringify (object)
   "Convert OBJECT into a string value."
@@ -710,8 +684,18 @@ gid format.  Valid values are `string' and `integer', defaulting to
 ;     (or result
 ;	(file-attributes filename))))
 
+;; Obsolete.
+
+(define-obsolete-function-alias 'eshell-uniquify-list #'seq-uniq "28.1")
+(define-obsolete-function-alias 'eshell-uniqify-list #'seq-uniq "28.1")
 (define-obsolete-function-alias 'eshell-copy-tree #'copy-tree "28.1")
 (define-obsolete-function-alias 'eshell-user-name #'user-login-name "28.1")
+
+(defun eshell-sublist (l &optional n m)
+  "Return from LIST the N to M elements.
+If N or M is nil, it means the end of the list."
+  (declare (obsolete seq-subseq "28.1"))
+  (seq-subseq l n (1+ m)))
 
 (provide 'esh-util)
 

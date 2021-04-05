@@ -199,10 +199,10 @@ Thus, this does not include the current directory.")
 
   (when eshell-cd-on-directory
     (setq-local eshell-interpreter-alist
-	  (cons (cons #'(lambda (file _args)
-                          (eshell-lone-directory-p file))
-		      'eshell-dirs-substitute-cd)
-		eshell-interpreter-alist)))
+                (cons (cons (lambda (file _args)
+                              (eshell-lone-directory-p file))
+                            'eshell-dirs-substitute-cd)
+                      eshell-interpreter-alist)))
 
   (add-hook 'eshell-parse-argument-hook
 	    #'eshell-parse-user-reference nil t)

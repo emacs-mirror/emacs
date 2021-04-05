@@ -1134,13 +1134,13 @@ command before it's run."
 		       (and grep-find-ignored-files
 			    (concat " --exclude="
 				    (mapconcat
-				     #'(lambda (ignore)
-					 (cond ((stringp ignore)
-						(shell-quote-argument ignore))
-					       ((consp ignore)
-						(and (funcall (car ignore) dir)
-						     (shell-quote-argument
-						      (cdr ignore))))))
+                                     (lambda (ignore)
+                                       (cond ((stringp ignore)
+                                              (shell-quote-argument ignore))
+                                             ((consp ignore)
+                                              (and (funcall (car ignore) dir)
+                                                   (shell-quote-argument
+                                                    (cdr ignore))))))
 				     grep-find-ignored-files
 				     " --exclude=")))
 		       (and (eq grep-use-directories-skip t)
@@ -1274,13 +1274,13 @@ command before it's run."
                  ;; we should use shell-quote-argument here
                  " -name "
                  (mapconcat
-                  #'(lambda (ignore)
-                      (cond ((stringp ignore)
-                             (shell-quote-argument ignore))
-                            ((consp ignore)
-                             (and (funcall (car ignore) dir)
-                                  (shell-quote-argument
-                                   (cdr ignore))))))
+                  (lambda (ignore)
+                    (cond ((stringp ignore)
+                           (shell-quote-argument ignore))
+                          ((consp ignore)
+                           (and (funcall (car ignore) dir)
+                                (shell-quote-argument
+                                 (cdr ignore))))))
                   grep-find-ignored-files
                   " -o -name ")
                  " "
