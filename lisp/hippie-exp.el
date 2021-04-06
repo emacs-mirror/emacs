@@ -1,4 +1,4 @@
-;;; hippie-exp.el --- expand text trying various ways to find its expansion
+;;; hippie-exp.el --- expand text trying various ways to find its expansion  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992, 2001-2021 Free Software Foundation, Inc.
 
@@ -58,7 +58,7 @@
 ;;  The variable `hippie-expand-dabbrev-as-symbol' controls whether
 ;;  characters of syntax '_' is considered part of the words to expand
 ;;  dynamically.
-;;  See also the macro `make-hippie-expand-function' below.
+;;  See also the function `make-hippie-expand-function' below.
 ;;
 ;;  A short description of the current try-functions in this file:
 ;;    `try-complete-file-name' : very convenient to have in any buffer,
@@ -215,50 +215,42 @@
   "The list of expansion functions tried in order by `hippie-expand'.
 To change the behavior of `hippie-expand', remove, change the order of,
 or insert functions in this list."
-  :type '(repeat function)
-  :group 'hippie-expand)
+  :type '(repeat function))
 
 (defcustom hippie-expand-verbose t
   "Non-nil makes `hippie-expand' output which function it is trying."
-  :type 'boolean
-  :group 'hippie-expand)
+  :type 'boolean)
 
 (defcustom hippie-expand-dabbrev-skip-space nil
   "Non-nil means tolerate trailing spaces in the abbreviation to expand."
-  :group 'hippie-expand
   :type 'boolean)
 
 (defcustom hippie-expand-dabbrev-as-symbol t
   "Non-nil means expand as symbols, i.e. syntax `_' is considered a letter."
-  :group 'hippie-expand
   :type 'boolean)
 
 (defcustom hippie-expand-no-restriction t
   "Non-nil means that narrowed buffers are widened during search."
-  :group 'hippie-expand
   :type 'boolean)
 
 (defcustom hippie-expand-max-buffers ()
   "The maximum number of buffers (apart from the current) searched.
 If nil, all buffers are searched."
   :type '(choice (const :tag "All" nil)
-		 integer)
-  :group 'hippie-expand)
+		 integer))
 
 (defcustom hippie-expand-ignore-buffers '("^ \\*.*\\*$" dired-mode)
   "A list specifying which buffers not to search (if not current).
 Can contain both regexps matching buffer names (as strings) and major modes
 \(as atoms)."
-  :type '(repeat (choice regexp (symbol :tag "Major Mode")))
-  :group 'hippie-expand)
+  :type '(repeat (choice regexp (symbol :tag "Major Mode"))))
 
 (defcustom hippie-expand-only-buffers ()
   "A list specifying the only buffers to search (in addition to current).
 Can contain both regexps matching buffer names (as strings) and major modes
 \(as atoms).  If non-nil, this variable overrides the variable
 `hippie-expand-ignore-buffers'."
-  :type '(repeat (choice regexp (symbol :tag "Major Mode")))
-  :group 'hippie-expand)
+  :type '(repeat (choice regexp (symbol :tag "Major Mode"))))
 
 ;;;###autoload
 (defun hippie-expand (arg)
@@ -407,18 +399,19 @@ undoes the expansion."
 ;;                               try-expand-line-all-buffers)))
 ;;
 ;;;###autoload
-(defmacro make-hippie-expand-function (try-list &optional verbose)
+(defun make-hippie-expand-function (try-list &optional verbose)
   "Construct a function similar to `hippie-expand'.
 Make it use the expansion functions in TRY-LIST.  An optional second
 argument VERBOSE non-nil makes the function verbose."
-  `(lambda (arg)
-     ,(concat
-       "Try to expand text before point, using the following functions: \n"
-       (mapconcat 'prin1-to-string (eval try-list) ", "))
-     (interactive "P")
-     (let ((hippie-expand-try-functions-list ,try-list)
-           (hippie-expand-verbose ,verbose))
-       (hippie-expand arg))))
+  (lambda (arg)
+    (:documentation
+     (concat
+      "Try to expand text before point, using the following functions: \n"
+      (mapconcat #'prin1-to-string try-list ", ")))
+    (interactive "P")
+    (let ((hippie-expand-try-functions-list try-list)
+          (hippie-expand-verbose verbose))
+      (hippie-expand arg))))
 
 
 ;;;  Here follows the try-functions and their requisites:
@@ -434,7 +427,8 @@ string).  It returns t if a new completion is found, nil otherwise."
 	(he-init-string (he-file-name-beg) (point))
 	(let ((name-part (file-name-nondirectory he-search-string))
 	      (dir-part (expand-file-name (or (file-name-directory
-					       he-search-string) ""))))
+					       he-search-string)
+					      ""))))
 	  (if (not (he-string-member name-part he-tried-table))
 	      (setq he-tried-table (cons name-part he-tried-table)))
 	  (if (and (not (equal he-search-string ""))
@@ -442,7 +436,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 	      (setq he-expand-list (sort (file-name-all-completions
 					  name-part
 					  dir-part)
-					 'string-lessp))
+					 #'string-lessp))
 	      (setq he-expand-list ())))))
 
   (while (and he-expand-list
@@ -538,7 +532,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 					    (or (boundp sym)
 						(fboundp sym)
                                                 (symbol-plist sym))))
-			 'string-lessp)))))
+			 #'string-lessp)))))
   (while (and he-expand-list
 	      (he-string-member (car he-expand-list) he-tried-table))
     (setq he-expand-list (cdr he-expand-list)))
@@ -822,9 +816,10 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	(setq he-expand-list
 	      (and (not (equal he-search-string ""))
                    (mapcar (lambda (sym)
-			     (if (and (boundp sym) (vectorp (eval sym)))
+			     (if (and (boundp sym)
+				      (abbrev-table-p (symbol-value sym)))
 				 (abbrev-expansion (downcase he-search-string)
-                                                   (eval sym))))
+                                                   (symbol-value sym))))
 			   (append '(local-abbrev-table
 				     global-abbrev-table)
 				   abbrev-table-name-list))))))
