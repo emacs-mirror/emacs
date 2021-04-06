@@ -1338,23 +1338,27 @@ made from `project-switch-commands'.
 When called in a program, it will use the project corresponding
 to directory DIR."
   (interactive (list (project-prompt-project-dir)))
-  (let ((commands-menu
-         (mapcar
-          (lambda (row)
-            (if (characterp (car row))
-                ;; Deprecated format.
-                ;; XXX: Add a warning about it?
-                (reverse row)
-              row))
-          project-switch-commands))
-        command)
+  (let* ((commands-menu
+          (mapcar
+           (lambda (row)
+             (if (characterp (car row))
+                 ;; Deprecated format.
+                 ;; XXX: Add a warning about it?
+                 (reverse row)
+               row))
+           project-switch-commands))
+         (commands-map
+          (let ((temp-map (make-sparse-keymap)))
+            (set-keymap-parent temp-map project-prefix-map)
+            (dolist (row commands-menu temp-map)
+              (when-let ((cmd (nth 0 row))
+                         (keychar (nth 2 row)))
+                (define-key temp-map (vector keychar) cmd)))))
+         command)
     (while (not command)
-      (let ((choice (read-event (project--keymap-prompt))))
-        (when (setq command
-                    (or (car
-                         (seq-find (lambda (row) (equal choice (nth 2 row)))
-                                   commands-menu))
-                        (lookup-key project-prefix-map (vector choice))))
+      (let ((overriding-local-map commands-map)
+            (choice (read-key-sequence (project--keymap-prompt))))
+        (when (setq command (lookup-key commands-map choice))
           (unless (or project-switch-use-entire-map
                       (assq command commands-menu))
             ;; TODO: Add some hint to the prompt, like "key not
