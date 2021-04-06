@@ -459,7 +459,7 @@ lost after dumping")))
 (when (featurep 'nativecomp)
   ;; Fix the compilation unit filename to have it working when
   ;; installed or if the source directory got moved.  This is set to be
-  ;; a cons cell of the form:
+  ;; a pair in the form of:
   ;;     (rel-filename-from-install-bin . rel-filename-from-local-bin).
   (let ((h (make-hash-table :test #'eq))
         (bin-dest-dir (cadr (member "--bin-dest" command-line-args)))

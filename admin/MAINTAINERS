@@ -131,6 +131,13 @@ Amin Bandali
 	    lisp/erc/*
 	    doc/misc/erc.texi
 
+Andrea Corallo
+	Lisp native compiler
+	    src/comp.c
+	    lisp/emacs-lisp/comp.el
+	    lisp/emacs-lisp/comp-cstr.el
+	    test/src/comp-*.el
+
 ==============================================================================
 2. Areas that someone is willing to maintain, although he would not
 necessarily mind if someone else was the official maintainer.
