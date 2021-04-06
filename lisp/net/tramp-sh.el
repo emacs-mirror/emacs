@@ -949,7 +949,7 @@ Format specifiers \"%s\" are replaced before the script is used.")
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
-    (file-newer-than-file-p . tramp-sh-handle-file-newer-than-file-p)
+    (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-notify-add-watch . tramp-sh-handle-file-notify-add-watch)
     (file-notify-rm-watch . tramp-handle-file-notify-rm-watch)
     (file-notify-valid-p . tramp-handle-file-notify-valid-p)
@@ -1556,49 +1556,6 @@ ID-FORMAT valid values are `string' and `integer'."
       ;; satisfied without remote operation.
       (or (tramp-check-cached-permissions v ?r)
 	  (tramp-run-test "-r" filename)))))
-
-;; When the remote shell is started, it looks for a shell which groks
-;; tilde expansion.  Here, we assume that all shells which grok tilde
-;; expansion will also provide a `test' command which groks `-nt' (for
-;; newer than).  If this breaks, tell me about it and I'll try to do
-;; something smarter about it.
-(defun tramp-sh-handle-file-newer-than-file-p (file1 file2)
-  "Like `file-newer-than-file-p' for Tramp files."
-  (cond ((not (file-exists-p file1)) nil)
-        ((not (file-exists-p file2)) t)
-        (t ;; We are sure both files exist at this point.  We try to
-           ;; get the mtime of both files.  If they are not equal to
-           ;; the "dont-know" value, then we subtract the times and
-           ;; obtain the result.
-	   (let ((fa1 (file-attributes file1))
-		 (fa2 (file-attributes file2)))
-	     (if (and
-		  (not
-		   (tramp-compat-time-equal-p
-		    (tramp-compat-file-attribute-modification-time fa1)
-		    tramp-time-dont-know))
-		  (not
-		   (tramp-compat-time-equal-p
-		    (tramp-compat-file-attribute-modification-time fa2)
-		    tramp-time-dont-know)))
-		 (time-less-p
-		  (tramp-compat-file-attribute-modification-time fa2)
-		  (tramp-compat-file-attribute-modification-time fa1))
-	       ;; If one of them is the dont-know value, then we can
-	       ;; still try to run a shell command on the remote host.
-	       ;; However, this only works if both files are Tramp
-	       ;; files and both have the same method, same user, same
-	       ;; host.
-	       (unless (tramp-equal-remote file1 file2)
-		 (with-parsed-tramp-file-name
-		     (if (tramp-tramp-file-p file1) file1 file2) nil
-		   (tramp-error
-		    v 'file-error
-		    "Files %s and %s must have same method, user, host"
-		    file1 file2)))
-	       (with-parsed-tramp-file-name file1 nil
-		 (tramp-run-test2
-		  (tramp-get-test-nt-command v) file1 file2)))))))
 
 ;; Functions implemented using the basic functions above.
 
@@ -3958,24 +3915,6 @@ Returns the exit code of the `test' program."
       (tramp-get-test-command v)
       switch
       (tramp-shell-quote-argument localname)))))
-
-(defun tramp-run-test2 (format-string file1 file2)
-  "Run `test'-like program on the remote system, given FILE1, FILE2.
-FORMAT-STRING contains the program name, switches, and place holders.
-Returns the exit code of the `test' program.  Barfs if the methods,
-hosts, or files, disagree."
-  (unless (tramp-equal-remote file1 file2)
-    (with-parsed-tramp-file-name (if (tramp-tramp-file-p file1) file1 file2) nil
-      (tramp-error
-       v 'file-error
-       "tramp-run-test2 only implemented for same method, user, host")))
-  (with-parsed-tramp-file-name file1 v1
-    (with-parsed-tramp-file-name file1 v2
-      (tramp-send-command-and-check
-       v1
-       (format format-string
-	       (tramp-shell-quote-argument v1-localname)
-	       (tramp-shell-quote-argument v2-localname))))))
 
 (defconst tramp-sunos-unames (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
   "Regexp to determine remote SunOS.")
