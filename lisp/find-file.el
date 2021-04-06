@@ -298,7 +298,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
 (defalias 'ff-find-related-file #'ff-find-other-file)
 
 ;;;###autoload
-(defun ff-find-other-file (&optional in-other-window ignore-include)
+(defun ff-find-other-file (&optional in-other-window ignore-include event)
   "Find the header or source file corresponding to this file.
 Being on a `#include' line pulls in that file.
 
@@ -350,9 +350,11 @@ Variables of interest include:
 
  - `ff-file-created-hook'
    List of functions to be called if the other file has been created."
-  (interactive "P")
-  (let ((ff-ignore-include ignore-include))
-    (ff-find-the-other-file in-other-window)))
+  (interactive (list current-prefix-arg nil last-nonmenu-event))
+  (save-excursion
+    (posn-set-point (event-end event))
+    (let ((ff-ignore-include ignore-include))
+      (ff-find-the-other-file in-other-window))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Support functions
@@ -734,42 +736,26 @@ called before `ff-post-load-hook'."
                   buffer-or-name in-other-window nil))
 
 ;;;###autoload
-(defun ff-mouse-find-other-file (event)
-  "Visit the file you click on."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point event)
-    (ff-find-other-file nil)))
+(define-obsolete-function-alias
+  'ff-mouse-find-other-file #'ff-find-other-file "28.1")
 
 ;;;###autoload
-(defun ff-mouse-find-other-file-other-window (event)
-  "Visit the file you click on in another window."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point event)
-    (ff-find-other-file t)))
+(define-obsolete-function-alias
+  'ff-mouse-find-other-file-other-window #'ff-find-other-file-other-window "28.1")
+;;;###autoload
+(defun ff-find-other-file-other-window (event)
+  "Visit the file you point at in another window."
+  (interactive (list last-nonmenu-event))
+  (ff-find-other-file t nil event))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; This section offers an example of user defined function to select files
 
-(defun ff-upcase-p (string &optional start end)
-  "Return t if STRING is all uppercase.
-Given START and/or END, checks between these characters."
-  (let (match str)
-    (if (not start)
-        (setq start 0))
-    (if (not end)
-        (setq end (length string)))
-    (if (= start end)
-        (setq end (1+ end)))
-    (setq str (substring string start end))
-    (if (and
-         (ff-string-match "[[:upper:]]+" str)
-         (setq match (match-data))
-         (= (car match) 0)
-         (= (car (cdr match)) (length str)))
-        t
-      nil)))
+(defun ff-upcase-p (string)
+  "Return t if STRING is all uppercase."
+  ;; FIXME: Why `ff-string-match' since `[:upper:]' only makes
+  ;; sense when `case-fold-search' is nil?
+  (ff-string-match "\\`[[:upper:]]*\\'" string))
 
 (defun ff-cc-hh-converter (arg)
   "Discriminate file extensions.
