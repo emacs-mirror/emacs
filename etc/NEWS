@@ -929,6 +929,14 @@ take the actual screenshot, and defaults to "ImageMagick import".
 A server entry retrieved by auth-source can request a desired smtp
 authentication mechanism by setting a value for the key 'smtp-auth'.
 
+** Search and Replace
+
+*** New user option 'isearch-wrap-pause' defines how to wrap the search.
+There are choices to disable wrapping completely and to wrap immediately.
+When wrapping immediately, it consistently handles the numeric arguments
+of 'C-s' ('isearch-repeat-forward') and 'C-r' ('isearch-repeat-backward'),
+continuing with the remaining count after wrapping.
+
 ** Grep
 
 +++
