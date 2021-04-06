@@ -639,7 +639,7 @@ Consider them as regular expressions if third arg REGEXP is true."
        shadows shadow-files-to-copy (with-output-to-string (backtrace))))
     (when shadows
       (setq shadow-files-to-copy
-            (cl-union shadows shadow-files-to-copy :test #'equal))
+            (nreverse (cl-union shadows shadow-files-to-copy :test #'equal)))
       (when (not shadow-inhibit-message)
 	(message "%s" (substitute-command-keys
 		       "Use \\[shadow-copy-files] to update shadows."))
@@ -832,7 +832,7 @@ look for files that have been changed and need to be copied to other systems."
 (defun shadow-union (a b)
   "Add members of list A to list B if not equal to items already in B."
   (declare (obsolete cl-union "28.1"))
-  (cl-union a b :test #'equal))
+  (nreverse (cl-union a b :test #'equal)))
 
 (define-obsolete-function-alias 'shadow-find #'seq-find "28.1")
 
