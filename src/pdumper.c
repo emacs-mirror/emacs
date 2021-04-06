@@ -5277,7 +5277,7 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	if (installation_state == UNKNOWN)
 	  {
 	    Lisp_Object fname =
-	      concat2 (Vinvocation_directory, XCAR (comp_u->file));
+	      Fexpand_file_name (XCAR (comp_u->file), Vinvocation_directory);
 	    FILE *file;
 	    if ((file = emacs_fopen (SSDATA (ENCODE_FILE (fname)), "r")))
 	      {
@@ -5293,9 +5293,9 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  }
 
 	comp_u->file =
-	  concat2 (Vinvocation_directory,
-		   installation_state == INSTALLED
-		   ? XCAR (comp_u->file) : XCDR (comp_u->file));
+	  Fexpand_file_name (installation_state == INSTALLED
+			     ? XCAR (comp_u->file) : XCDR (comp_u->file),
+			     Vinvocation_directory);
 	comp_u->handle = dynlib_open (SSDATA (comp_u->file));
 	if (!comp_u->handle)
 	  error ("%s", dynlib_error ());
