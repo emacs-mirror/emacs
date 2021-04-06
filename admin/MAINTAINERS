@@ -132,8 +132,8 @@ Amin Bandali
 	    doc/misc/erc.texi
 
 Andrea Corallo
-        Lisp native compiler
-            src/comp.c
+	Lisp native compiler
+	    src/comp.c
 	    lisp/emacs-lisp/comp.el
 	    lisp/emacs-lisp/comp-cstr.el
 	    test/src/comp-*.el
