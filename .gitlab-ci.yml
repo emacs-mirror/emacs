@@ -136,7 +136,7 @@ test-filenotify-gio:
 test-native-bootstrap-speed0:
   # Test a full native bootstrap
   # Run for now only speed 0 to limit memory usage and compilation time.
-  stage: test
+  stage: slow
   # Uncomment the following to run it only when sceduled.
   # only:
   #   - schedules
@@ -148,7 +148,7 @@ test-native-bootstrap-speed0:
   timeout: 8 hours
 
 test-native-bootstrap-speed1:
-  stage: test
+  stage: slow
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
@@ -157,7 +157,7 @@ test-native-bootstrap-speed1:
   timeout: 8 hours
 
 test-native-bootstrap-speed2:
-  stage: test
+  stage: slow
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
