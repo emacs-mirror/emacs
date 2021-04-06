@@ -227,10 +227,10 @@ modes, etc., of files.  You may still sometimes want to revert
 them manually.
 
 Use this option with care since it could lead to excessive auto-reverts.
-For more information, see Info node `(emacs)Autorevert'."
+For more information, see Info node `(emacs)Auto Revert'."
   :group 'auto-revert
   :type 'boolean
-  :link '(info-link "(emacs)Autorevert"))
+  :link '(info-link "(emacs)Auto Revert"))
 
 (defcustom global-auto-revert-ignore-modes ()
   "List of major modes Global Auto-Revert Mode should not check."
