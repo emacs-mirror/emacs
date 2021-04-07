@@ -364,17 +364,17 @@
             '((a c) (b c) (7 c) (-3 c) (nil nil) (t c) (q c) (r c) (s c)
               (t c) (x "a") (x "c") (x c) (x d) (x e)))
 
-    (mapcar (lambda (x) (cond ((member '(a . b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((member '(a . b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a . b)) a b (c) (d)))
-    (mapcar (lambda (x) (cond ((memq '(a . b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((memq '(a . b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a . b)) a b (c) (d)))
-    (mapcar (lambda (x) (cond ((member '(a b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((member '(a b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a b)) a b (c) (d)))
-    (mapcar (lambda (x) (cond ((memq '(a b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((memq '(a b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a b)) a b (c) (d)))
 
     (assoc 'b '((a 1) (b 2) (c 3)))
@@ -396,7 +396,7 @@
       x)
 
     (let ((x 1) (bytecomp-test-var 2) (y 3))
-      (list x bytecomp-test-var (bytecomp-get-test-var) y))
+      (list x bytecomp-test-var (bytecomp-test-get-var) y))
 
     (progn
       (defvar d)
@@ -430,7 +430,7 @@
       (list s x i))
 
     (let ((x 2))
-      (list (or (bytecomp-identity 'a) (setq x 3)) x)))
+      (list (or (bytecomp-test-identity 'a) (setq x 3)) x)))
   "List of expression for test.
 Each element will be executed by interpreter and with
 bytecompiled code, and their results compared.")
