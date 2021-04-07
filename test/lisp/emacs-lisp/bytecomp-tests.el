@@ -444,6 +444,65 @@
        (arith-error (prog1 (lambda (y) (+ y x))
                       (setq x 10))))
      4)
+
+    ;; No error, no success handler.
+    (condition-case x
+        (list 42)
+      (error (cons 'bad x)))
+    ;; Error, no success handler.
+    (condition-case x
+        (/ 1 0)
+      (error (cons 'bad x)))
+    ;; No error, success handler.
+    (condition-case x
+        (list 42)
+      (error (cons 'bad x))
+      (:success (cons 'good x)))
+    ;; Error, success handler.
+    (condition-case x
+        (/ 1 0)
+      (error (cons 'bad x))
+      (:success (cons 'good x)))
+    ;; Verify that the success code is not subject to the error handlers.
+    (condition-case x
+        (list 42)
+      (error (cons 'bad x))
+      (:success (/ (car x) 0)))
+    ;; Check variable scoping on success.
+    (let ((x 2))
+      (condition-case x
+          (list x)
+        (error (list 'bad x))
+        (:success (list 'good x))))
+    ;; Check variable scoping on failure.
+    (let ((x 2))
+      (condition-case x
+          (/ 1 0)
+        (error (list 'bad x))
+        (:success (list 'good x))))
+    ;; Check capture of mutated result variable.
+    (funcall
+     (condition-case x
+         3
+       (:success (prog1 (lambda (y) (+ y x))
+                   (setq x 10))))
+     4)
+    ;; Check for-effect context, on error.
+    (let ((f (lambda (x)
+               (condition-case nil
+                   (/ 1 0)
+                 (error 'bad)
+                 (:success 'good))
+               (1+ x))))
+      (funcall f 3))
+    ;; Check for-effect context, on success.
+    (let ((f (lambda (x)
+               (condition-case nil
+                   nil
+                 (error 'bad)
+                 (:success 'good))
+               (1+ x))))
+      (funcall f 3))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
@@ -1184,6 +1243,74 @@ compiled correctly."
   ;; Don't confuse a string return value for a docstring.
   (let ((lexical-binding t))
     (should (equal (funcall (byte-compile '(lambda (x) "foo")) 'dummy) "foo"))))
+
+(ert-deftest bytecomp-condition-case-success ()
+  ;; No error, no success handler.
+  (should (equal (condition-case x
+                     (list 42)
+                   (error (cons 'bad x)))
+                 '(42)))
+  ;; Error, no success handler.
+  (should (equal (condition-case x
+                     (/ 1 0)
+                   (error (cons 'bad x)))
+                 '(bad arith-error)))
+  ;; No error, success handler.
+  (should (equal (condition-case x
+                     (list 42)
+                   (error (cons 'bad x))
+                   (:success (cons 'good x)))
+                 '(good 42)))
+  ;; Error, success handler.
+  (should (equal (condition-case x
+                     (/ 1 0)
+                   (error (cons 'bad x))
+                   (:success (cons 'good x)))
+                 '(bad arith-error)))
+  ;; Verify that the success code is not subject to the error handlers.
+  (should-error (condition-case x
+                    (list 42)
+                  (error (cons 'bad x))
+                  (:success (/ (car x) 0)))
+                :type 'arith-error)
+  ;; Check variable scoping.
+  (let ((x 2))
+    (should (equal (condition-case x
+                       (list x)
+                     (error (list 'bad x))
+                     (:success (list 'good x)))
+                   '(good (2))))
+    (should (equal (condition-case x
+                       (/ 1 0)
+                     (error (list 'bad x))
+                     (:success (list 'good x)))
+                   '(bad (arith-error)))))
+  ;; Check capture of mutated result variable.
+  (should (equal (funcall
+                  (condition-case x
+                      3
+                    (:success (prog1 (lambda (y) (+ y x))
+                                (setq x 10))))
+                  4)
+                 14))
+    ;; Check for-effect context, on error.
+  (should (equal (let ((f (lambda (x)
+                            (condition-case nil
+                                (/ 1 0)
+                              (error 'bad)
+                              (:success 'good))
+                            (1+ x))))
+                   (funcall f 3))
+                 4))
+  ;; Check for-effect context, on success.
+  (should (equal (let ((f (lambda (x)
+                            (condition-case nil
+                                nil
+                              (error 'bad)
+                              (:success 'good))
+                            (1+ x))))
+                   (funcall f 3))
+                 4)))
 
 ;; Local Variables:
 ;; no-byte-compile: t

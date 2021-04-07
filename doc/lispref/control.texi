@@ -2012,7 +2012,8 @@ that can be handled).
 This special form establishes the error handlers @var{handlers} around
 the execution of @var{protected-form}.  If @var{protected-form} executes
 without error, the value it returns becomes the value of the
-@code{condition-case} form; in this case, the @code{condition-case} has
+@code{condition-case} form (in the absence of a success handler; see below).
+In this case, the @code{condition-case} has
 no effect.  The @code{condition-case} form makes a difference when an
 error occurs during @var{protected-form}.
 
@@ -2061,6 +2062,12 @@ error description.
 
 If @var{var} is @code{nil}, that means no variable is bound.  Then the
 error symbol and associated data are not available to the handler.
+
+@cindex success handler
+As a special case, one of the @var{handlers} can be a list of the
+form @code{(:success @var{body}@dots{})}, where @var{body} is executed
+with @var{var} (if non-@code{nil}) bound to the return value of
+@var{protected-form} when that expression terminates without error.
 
 @cindex rethrow a signal
 Sometimes it is necessary to re-throw a signal caught by

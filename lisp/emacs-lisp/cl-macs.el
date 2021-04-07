@@ -2144,7 +2144,9 @@ Like `cl-flet' but the definitions can refer to previous ones.
             ((and `(condition-case ,err-var ,bodyform . ,handlers)
                   (guard (not (eq err-var var))))
              `(condition-case ,err-var
-                  (progn (setq ,retvar ,bodyform) nil)
+                  ,(if (assq :success handlers)
+                       bodyform
+                     `(progn (setq ,retvar ,bodyform) nil))
                 . ,(mapcar (lambda (h)
                              (cons (car h) (funcall opt-exps (cdr h))))
                            handlers)))

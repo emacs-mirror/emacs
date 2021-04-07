@@ -2935,6 +2935,12 @@ arrays nor objects.
 The special events 'dbus-event' and 'file-notify' are now ignored in
 'while-no-input' when added to this variable.
 
++++
+** 'condition-case' now allows for a success handler.
+It is written as (:success BODY...) where BODY is executed whenever
+the protected form terminates without error, with the specified
+variable bound to the the value of the protected form.
+
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems
 
