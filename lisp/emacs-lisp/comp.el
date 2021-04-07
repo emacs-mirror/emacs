@@ -3962,9 +3962,11 @@ display a message."
 
 (defun comp--native-compile (function-or-file &optional with-late-load output)
   "Compile FUNCTION-OR-FILE into native code.
-This serves as internal implementation of `native-compile'.
 When WITH-LATE-LOAD is non-nil, mark the compilation unit for late
-load once it finishes compiling."
+load once it finishes compiling.
+This serves as internal implementation of `native-compile' but
+allowing for WITH-LATE-LOAD to be controlled is in use also for
+the deferred compilation mechanism."
   (comp-ensure-native-compiler)
   (unless (or (functionp function-or-file)
               (stringp function-or-file))
@@ -4142,8 +4144,10 @@ form, return the compiled function."
 
 ;;;###autoload
 (defun batch-native-compile ()
-  "Run `native-compile' on remaining command-line arguments.
-Ultra cheap impersonation of `batch-byte-compile'."
+  "Perform native compilation on remaining command-line arguments.
+Use this from the command line, with ‘-batch’;
+it won’t work in an interactive Emacs.
+Native compilation equivalent to `batch-byte-compile'."
   (comp-ensure-native-compiler)
   (cl-loop for file in command-line-args-left
            if (or (null byte-native-for-bootstrap)
@@ -4156,8 +4160,11 @@ Ultra cheap impersonation of `batch-byte-compile'."
 ;;;###autoload
 (defun batch-byte-native-compile-for-bootstrap ()
   "Like `batch-native-compile', but used for booststrap.
-Generate *.elc files in addition to the *.eln files.  If the
-environment variable 'NATIVE_DISABLED' is set, only byte compile."
+Generate .elc files in addition to the .eln files.
+Force the produced .eln to be outputted in the eln system
+directory (the last entry in `comp-eln-load-path').
+If the environment variable 'NATIVE_DISABLED' is set, only byte
+compile."
   (comp-ensure-native-compiler)
   (if (equal (getenv "NATIVE_DISABLED") "1")
       (batch-byte-compile)
