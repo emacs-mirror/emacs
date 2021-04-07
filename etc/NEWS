@@ -367,6 +367,12 @@ trying to be non-destructive.
 This command opens a new buffer called "*Memory Report*" and gives a
 summary of where Emacs is using memory currently.
 
++++
+** New user option 'isearch-repeat-on-direction-change'.
+When this option is set, direction changes in Isearch move to another
+search match, if there is one, instead of moving point to the other
+end of the current match.
+
 ** Outline
 
 +++
