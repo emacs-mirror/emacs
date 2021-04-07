@@ -1363,7 +1363,11 @@ to directory DIR."
                       (assq command commands-menu))
             ;; TODO: Add some hint to the prompt, like "key not
             ;; recognized" or something.
-            (setq command nil)))))
+            (setq command nil)))
+        (let ((global-command (lookup-key (current-global-map) choice)))
+          (when (memq global-command
+                      '(keyboard-quit keyboard-escape-quit))
+            (call-interactively global-command)))))
     (let ((default-directory dir)
           (project-current-inhibit-prompt t))
       (call-interactively command))))
