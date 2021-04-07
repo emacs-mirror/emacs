@@ -1627,7 +1627,6 @@ or to the last history element for a backward search."
   (if isearch-forward
       (comint-goto-input (1- (ring-length comint-input-ring)))
     (comint-goto-input nil))
-  (setq isearch-success t)
   (goto-char (if isearch-forward (comint-line-beginning-position) (point-max))))
 
 (defun comint-history-isearch-push-state ()

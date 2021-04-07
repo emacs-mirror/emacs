@@ -1887,8 +1887,6 @@ Use `isearch-exit' to quit without signaling."
                 (setq count (1+ count)) ;; Increment to force repeat
                 (setq isearch-wrapped t)
                 (if isearch-wrap-function
-                    ;; Note that some wrap functions change the value of
-                    ;; isearch-success, so it's handled above before this call.
                     (funcall isearch-wrap-function)
                   (goto-char (if isearch-forward (point-min) (point-max)))))))
            ;; Stop looping on failure
