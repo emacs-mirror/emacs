@@ -2864,7 +2864,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
   (define-key vhdl-mode-map "\C-c\M--"	   'vhdl-comment-display-line)
   (define-key vhdl-mode-map "\C-c\C-i\C-l" 'indent-according-to-mode)
   (define-key vhdl-mode-map "\C-c\C-i\C-g" 'vhdl-indent-group)
-  (define-key vhdl-mode-map "\M-\C-\\"	   'vhdl-indent-region)
+  (define-key vhdl-mode-map "\M-\C-\\"	   'indent-region)
   (define-key vhdl-mode-map "\C-c\C-i\C-b" 'vhdl-indent-buffer)
   (define-key vhdl-mode-map "\C-c\C-a\C-g" 'vhdl-align-group)
   (define-key vhdl-mode-map "\C-c\C-a\C-a" 'vhdl-align-group)
@@ -3575,7 +3575,7 @@ STRING are replaced by `-' and substrings are converted to lower case."
     ("Indent"
      ["Line"			indent-according-to-mode :keys "C-c C-i C-l"]
      ["Group"			vhdl-indent-group :keys "C-c C-i C-g"]
-     ["Region"			vhdl-indent-region (mark)]
+     ["Region"			indent-region (mark)]
      ["Buffer"			vhdl-indent-buffer :keys "C-c C-i C-b"])
     ("Align"
      ["Group"			vhdl-align-group t]
@@ -7383,22 +7383,8 @@ only-lines."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Progress reporting
 
-(defvar vhdl-progress-info nil
-  "Array variable for progress information: 0 begin, 1 end, 2 time.")
-
-(defun vhdl-update-progress-info (string pos)
-  "Update progress information."
-  (when (and vhdl-progress-info (not noninteractive)
-	     (time-less-p vhdl-progress-interval
-			  (time-since (aref vhdl-progress-info 2))))
-    (let ((delta (- (aref vhdl-progress-info 1)
-                    (aref vhdl-progress-info 0))))
-      (message "%s... (%2d%%)" string
-	       (if (= 0 delta)
-		   100
-                 (floor (* 100.0 (- pos (aref vhdl-progress-info 0)))
-                        delta))))
-    (aset vhdl-progress-info 2 (time-convert nil 'integer))))
+(defvar vhdl--progress-reporter nil
+  "Holds the progress reporter data during long running operations.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Indentation commands
@@ -7414,7 +7400,7 @@ else indent `correctly'."
    (cond
     ;; indent region if region is active
     ((and (not (featurep 'xemacs)) (use-region-p))
-     (vhdl-indent-region (region-beginning) (region-end) nil))
+     (indent-region (region-beginning) (region-end) nil))
     ;; expand word
     ((= (char-syntax (preceding-char)) ?w)
      (let ((case-fold-search (not vhdl-word-completion-case-sensitive))
@@ -7509,25 +7495,17 @@ indentation change."
       (when (> (- (point-max) pos) (point))
 	(goto-char (- (point-max) pos))))
     (run-hooks 'vhdl-special-indent-hook)
-    (vhdl-update-progress-info "Indenting" (vhdl-current-line))
+    (when vhdl--progress-reporter
+      (progress-reporter-update vhdl--progress-reporter (point)))
     shift-amt))
 
-(defun vhdl-indent-region (beg end &optional column)
-  "Indent region as VHDL code.
-Adds progress reporting to `indent-region'."
-  (interactive "r\nP")
-  (when vhdl-progress-interval
-    (setq vhdl-progress-info (vector (count-lines (point-min) beg)
-				     (count-lines (point-min) end) 0)))
-  (indent-region beg end column)
-  (when vhdl-progress-interval (message "Indenting...done"))
-  (setq vhdl-progress-info nil))
+(define-obsolete-function-alias 'vhdl-indent-region #'indent-region "28.1")
 
 (defun vhdl-indent-buffer ()
   "Indent whole buffer as VHDL code.
 Calls `indent-region' for whole buffer and adds progress reporting."
   (interactive)
-  (vhdl-indent-region (point-min) (point-max)))
+  (indent-region (point-min) (point-max)))
 
 (defun vhdl-indent-group ()
   "Indent group of lines between empty lines."
@@ -7540,7 +7518,7 @@ Calls `indent-region' for whole buffer and adds progress reporting."
 	       (if (re-search-forward vhdl-align-group-separate nil t)
 		   (point-marker)
 		 (point-max-marker)))))
-    (vhdl-indent-region beg end)))
+    (indent-region beg end)))
 
 (defun vhdl-indent-sexp (&optional endpos)
   "Indent each line of the list starting just after point.
@@ -7799,18 +7777,21 @@ the token in MATCH."
   "Align region, treat groups of lines separately."
   (interactive "r\nP")
   (save-excursion
-    (let (orig pos)
-      (goto-char beg)
-      (beginning-of-line)
-      (setq orig (point-marker))
-      (setq beg (point))
-      (goto-char end)
-      (setq end (point-marker))
-      (untabify beg end)
-      (unless no-message
-	(when vhdl-progress-interval
-	  (setq vhdl-progress-info (vector (count-lines (point-min) beg)
-					   (count-lines (point-min) end) 0))))
+    (goto-char beg)
+    (beginning-of-line)
+    (setq beg (point))
+    (goto-char end)
+    (setq end (point-marker))
+    (untabify beg end)
+    (let ((orig (copy-marker beg))
+          pos
+          (vhdl--progress-reporter
+           (if no-message
+	       ;; Preserve a potential progress reporter from
+	       ;; when called from `vhdl-align-region' call.
+	       vhdl--progress-reporter
+	     (when vhdl-progress-interval
+	       (make-progress-reporter "Aligning..." beg (copy-marker end))))))
       (when (nth 0 vhdl-beautify-options)
 	(vhdl-fixup-whitespace-region beg end t))
       (goto-char beg)
@@ -7825,19 +7806,21 @@ the token in MATCH."
 	  (setq pos (point-marker))
 	  (vhdl-align-region-1 beg pos spacing)
 	  (unless no-comments (vhdl-align-inline-comment-region-1 beg pos))
-	  (vhdl-update-progress-info "Aligning" (vhdl-current-line))
+	  (when vhdl--progress-reporter
+	    (progress-reporter-update vhdl--progress-reporter (point)))
 	  (setq beg (1+ pos))
 	  (goto-char beg))
 	;; align last group
 	(when (< beg end)
 	  (vhdl-align-region-1 beg end spacing)
 	  (unless no-comments (vhdl-align-inline-comment-region-1 beg end))
-	  (vhdl-update-progress-info "Aligning" (vhdl-current-line))))
+	  (when vhdl--progress-reporter
+	    (progress-reporter-update vhdl--progress-reporter (point)))))
       (when vhdl-indent-tabs-mode
 	(tabify orig end))
       (unless no-message
-	(when vhdl-progress-interval (message "Aligning...done"))
-	(setq vhdl-progress-info nil)))))
+	(when vhdl--progress-reporter
+	  (progress-reporter-done vhdl--progress-reporter))))))
 
 (defun vhdl-align-region (beg end &optional spacing)
   "Align region, treat blocks with same indent and argument lists separately."
@@ -7848,10 +7831,10 @@ the token in MATCH."
     ;; align blocks with same indent and argument lists
     (save-excursion
       (let ((cur-beg beg)
-	    indent cur-end)
-	(when vhdl-progress-interval
-	  (setq vhdl-progress-info (vector (count-lines (point-min) beg)
-					   (count-lines (point-min) end) 0)))
+	    indent cur-end
+	    (vhdl--progress-reporter
+	     (when vhdl-progress-interval
+	       (make-progress-reporter "Aligning..." beg (copy-marker end)))))
 	(goto-char end)
 	(setq end (point-marker))
 	(goto-char cur-beg)
@@ -7874,15 +7857,16 @@ the token in MATCH."
 			    (= (current-indentation) indent))
 			(<= (save-excursion
 			      (nth 0 (parse-partial-sexp
-				      (point) (vhdl-point 'eol)))) 0))
+				      (point) (vhdl-point 'eol))))
+			    0))
 	      (unless (looking-at "^\\s-*$")
 		(setq cur-end (vhdl-point 'bonl)))
 	      (beginning-of-line 2)))
 	  ;; align region
 	  (vhdl-align-region-groups cur-beg cur-end spacing t t))
 	(vhdl-align-inline-comment-region beg end spacing noninteractive)
-	(when vhdl-progress-interval (message "Aligning...done"))
-	(setq vhdl-progress-info nil)))))
+	(when vhdl--progress-reporter
+	  (progress-reporter-done vhdl--progress-reporter))))))
 
 (defun vhdl-align-group (&optional spacing)
   "Align group of lines between empty lines."
@@ -8126,7 +8110,8 @@ end of line, do nothing in comments."
   "Convert all words matching WORD-REGEXP in region to lower or upper case,
 depending on parameter UPPER-CASE."
   (let ((case-replace nil)
-	(last-update 0))
+	(pr (when (and count vhdl-progress-interval (not noninteractive))
+	      (make-progress-reporter "Fixing case..." beg (copy-marker end)))))
     (vhdl-prepare-search-2
      (save-excursion
        (goto-char end)
@@ -8137,14 +8122,8 @@ depending on parameter UPPER-CASE."
 	     (if upper-case
 		 (upcase-word -1)
 	       (downcase-word -1)))
-	 (when (and count vhdl-progress-interval (not noninteractive)
-		    (time-less-p vhdl-progress-interval
-				 (time-since last-update)))
-	   (message "Fixing case... (%2d%s)"
-		    (+ (* count 20) (/ (* 20 (- (point) beg)) (- end beg)))
-		    "%")
-	   (setq last-update (time-convert nil 'integer))))
-       (goto-char end)))))
+	 (when pr (progress-reporter-update pr (point))))
+       (when pr (progress-reporter-done pr))))))
 
 (defun vhdl-fix-case-region (beg end &optional arg)
   "Convert all VHDL words in region to lower or upper case, depending on
@@ -8283,7 +8262,7 @@ case fixing to a region.  Calls functions `vhdl-indent-buffer',
       (replace-match "" nil t)))
   (when (nth 0 vhdl-beautify-options) (vhdl-fixup-whitespace-region beg end t))
   (when (nth 1 vhdl-beautify-options) (vhdl-fix-statement-region beg end))
-  (when (nth 2 vhdl-beautify-options) (vhdl-indent-region beg end))
+  (when (nth 2 vhdl-beautify-options) (indent-region beg end))
   (when (nth 3 vhdl-beautify-options)
     (let ((vhdl-align-groups t)) (vhdl-align-region beg end)))
   (when (nth 4 vhdl-beautify-options) (vhdl-fix-case-region beg end))
@@ -12411,7 +12390,7 @@ reflected in a subsequent paste operation."
 	(insert "\n")
 	(setq position (point))
 	(vhdl-insert-string-or-file vhdl-testbench-declarations)
-	(vhdl-indent-region position (point)))
+	(indent-region position (point)))
       (setq position (point))
       (insert "\n\n")
       (vhdl-comment-display-line) (insert "\n")
@@ -12442,7 +12421,7 @@ reflected in a subsequent paste operation."
 	(insert "\n")
 	(setq position (point))
 	(vhdl-insert-string-or-file vhdl-testbench-statements)
-	(vhdl-indent-region position (point)))
+	(indent-region position (point)))
       (insert "\n")
       (indent-to vhdl-basic-offset)
       (unless (eq vhdl-testbench-create-files 'none)
@@ -14832,11 +14811,11 @@ if required."
   "Name of last selected project.")
 
 ;; macros must be defined in the file they are used (copied from `speedbar.el')
-;;; (defmacro speedbar-with-writable (&rest forms)
-;;;   "Allow the buffer to be writable and evaluate FORMS."
-;;;   (list 'let '((inhibit-read-only t))
-;;; 	(cons 'progn forms)))
-;;; (put 'speedbar-with-writable 'lisp-indent-function 0)
+;; (defmacro speedbar-with-writable (&rest forms)
+;;   "Allow the buffer to be writable and evaluate FORMS."
+;;   (declare (indent 0) (debug t))
+;;   (list 'let '((inhibit-read-only t))
+;; 	(cons 'progn forms)))
 
 (declare-function speedbar-extension-list-to-regex "speedbar" (extlist))
 (declare-function speedbar-directory-buttons "speedbar" (directory _index))
