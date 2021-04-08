@@ -169,7 +169,8 @@ The string is used in `tramp-methods'.")
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				             ("-e" "none") ("-t" "-t")
-					     ("-o" "RemoteCommand='%l'") ("%h")))
+					     ("-o" "RemoteCommand=\"%l\"")
+					     ("%h")))
                 (tramp-async-args           (("-q")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
@@ -225,7 +226,8 @@ The string is used in `tramp-methods'.")
                 (tramp-login-program        "ssh")
                 (tramp-login-args           (("-l" "%u") ("-p" "%p") ("%c")
 				             ("-e" "none") ("-t" "-t")
-					     ("-o" "RemoteCommand='%l'") ("%h")))
+					     ("-o" "RemoteCommand=\"%l\"")
+					     ("%h")))
                 (tramp-async-args           (("-q")))
                 (tramp-remote-shell         ,tramp-default-remote-shell)
                 (tramp-remote-shell-login   ("-l"))
@@ -389,14 +391,7 @@ The string is used in `tramp-methods'.")
 		  (regexp-opt
 		   '("rcp" "remcp" "rsh" "telnet" "nc" "krlogin" "fcp"))
 		  "\\'")
-	        nil ,(user-login-name)))
-
- ;; MS Windows Openssh client does not cooperate well with cmdproxy.
- (when-let ((encoding-shell
-	     (and (eq system-type 'windows-nt) (executable-find "powershell"))))
-   (add-to-list 'tramp-connection-properties
-		`(,(regexp-opt '("/sshx:" "/scpx:"))
-                  "encoding-shell" ,encoding-shell))))
+	        nil ,(user-login-name))))
 
 ;;;###tramp-autoload
 (defconst tramp-completion-function-alist-rsh
@@ -491,7 +486,6 @@ shell from reading its init file."
   '((tramp-login-prompt-regexp tramp-action-login)
     (tramp-password-prompt-regexp tramp-action-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
-    (tramp-no-job-control-regexp tramp-action-permission-denied)
     (shell-prompt-pattern tramp-action-succeed)
     (tramp-shell-prompt-pattern tramp-action-succeed)
     (tramp-yesno-prompt-regexp tramp-action-yesno)
@@ -4804,6 +4798,8 @@ connection if a previous connection has died for some reason."
 		      (setenv "HISTSIZE" "0"))))
 	      (setenv "PROMPT_COMMAND")
 	      (setenv "PS1" tramp-initial-end-of-output)
+              (unless (stringp tramp-encoding-shell)
+                (tramp-error vec 'file-error "`tramp-encoding-shell' not set"))
 	      (let* ((current-host tramp-system-name)
 		     (target-alist (tramp-compute-multi-hops vec))
 		     ;; We will apply `tramp-ssh-controlmaster-options'
@@ -4815,23 +4811,17 @@ connection if a previous connection has died for some reason."
 		     ;; W32 systems.
 		     (process-coding-system-alist nil)
 		     (coding-system-for-read nil)
-		     (encoding-shell
-		      (tramp-get-connection-property
-		       vec "encoding-shell" tramp-encoding-shell))
-		     (extra-args (tramp-get-sh-extra-args encoding-shell))
+		     (extra-args (tramp-get-sh-extra-args tramp-encoding-shell))
 		     ;; This must be done in order to avoid our file
 		     ;; name handler.
 		     (p (let ((default-directory
 				(tramp-compat-temporary-file-directory)))
-			  (unless (stringp encoding-shell)
-			    (tramp-error
-			     vec 'file-error "`tramp-encoding-shell' not set"))
 			  (apply
 			   #'start-process
 			   (tramp-get-connection-name vec)
 			   (tramp-get-connection-buffer vec)
 			   (append
-			    (list encoding-shell)
+			    (list tramp-encoding-shell)
 			    (and extra-args (split-string extra-args))
 			    (and tramp-encoding-command-interactive
 				 (list tramp-encoding-command-interactive)))))))
@@ -4850,7 +4840,8 @@ connection if a previous connection has died for some reason."
 
 		;; Check whether process is alive.
 		(tramp-barf-if-no-shell-prompt
-		 p 10 "Couldn't find local shell prompt for %s" encoding-shell)
+		 p 10
+		 "Couldn't find local shell prompt for %s" tramp-encoding-shell)
 
 		;; Now do all the connections as specified.
 		(while target-alist
@@ -4925,7 +4916,7 @@ connection if a previous connection has died for some reason."
 			?c (format-spec options (format-spec-make ?t tmpfile))
 			?l (concat remote-shell " " extra-args " -i"))
 		       ;; A restricted shell does not allow "exec".
-		       (when r-shell '("; exit")))
+		       (when r-shell '("&&" "exit" "||" "exit")))
 		      " "))
 
 		    ;; Send the command.

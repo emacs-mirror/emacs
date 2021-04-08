@@ -691,15 +691,6 @@ The regexp should match at end of buffer."
   :version "27.1"
   :type 'regexp)
 
-;; Powershell requires "ssh -t -t" for terminal emulation.  If it
-;; doesn't fit, there is an error.
-(defcustom tramp-no-job-control-regexp
-  (regexp-quote "Thus no job control in this shell.")
-  "Regular expression matching powershell's job control message.
-The regexp should match at end of buffer."
-  :version "28.1"
-  :type 'regexp)
-
 (defcustom tramp-operation-not-permitted-regexp
   (concat "\\(" "preserving times.*" "\\|" "set mode" "\\)" ":\\s-*"
 	  (regexp-opt '("Operation not permitted") t))
