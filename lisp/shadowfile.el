@@ -1,4 +1,4 @@
-;;; shadowfile.el --- automatic file copying
+;;; shadowfile.el --- automatic file copying  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
 
@@ -90,27 +90,23 @@
   "If t, always copy shadow files without asking.
 If nil (the default), always ask.  If not nil and not t, ask only if there
 is no buffer currently visiting the file."
-  :type '(choice (const t) (const nil) (other :tag "Ask if no buffer" maybe))
-  :group 'shadow)
+  :type '(choice (const t) (const nil) (other :tag "Ask if no buffer" maybe)))
 
 (defcustom shadow-inhibit-message nil
   "If non-nil, do not display a message when a file needs copying."
-  :type 'boolean
-  :group 'shadow)
+  :type 'boolean)
 
 (defcustom shadow-inhibit-overload nil
   "If non-nil, shadowfile won't redefine \\[save-buffers-kill-emacs].
 Normally it overloads the function `save-buffers-kill-emacs' to check for
 files that have been changed and need to be copied to other systems."
-  :type 'boolean
-  :group 'shadow)
+  :type 'boolean)
 
 (defcustom shadow-info-file (locate-user-emacs-file "shadows" ".shadows")
   "File to keep shadow information in.
 The `shadow-info-file' should be shadowed to all your accounts to
 ensure consistency.  Default: ~/.emacs.d/shadows"
   :type 'file
-  :group 'shadow
   :version "26.2")
 
 (defcustom shadow-todo-file
@@ -122,13 +118,12 @@ remember and ask you again in your next Emacs session.
 This file must NOT be shadowed to any other system, it is host-specific.
 Default: ~/.emacs.d/shadow_todo"
   :type 'file
-  :group 'shadow
   :version "26.2")
 
 
-;;; The following two variables should in most cases initialize themselves
-;;; correctly.  They are provided as variables in case the defaults are wrong
-;;; on your machine (and for efficiency).
+;; The following two variables should in most cases initialize themselves
+;; correctly.  They are provided as variables in case the defaults are wrong
+;; on your machine (and for efficiency).
 
 (defvar shadow-system-name (concat "/" (system-name) ":")
   "The identification for local files on this machine.")
@@ -160,7 +155,7 @@ created by `shadow-define-regexp-group'.")
 (defvar shadow-files-to-copy nil)	; List of files that need to
 					; be copied to remote hosts.
 
-(defvar shadow-hashtable nil)		; for speed
+(defvar shadow-hashtable (make-hash-table :test #'equal)) ; for speed
 
 (defvar shadow-info-buffer nil)		; buf visiting shadow-info-file
 (defvar shadow-todo-buffer nil)		; buf visiting shadow-todo-file
@@ -191,11 +186,11 @@ PREFIX."
 ;;; Clusters and sites
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;; I use the term `site' to refer to a string which may be the
-;;; cluster identification "/name:", a remote identification
-;;; "/method:user@host:", or "/system-name:" (the value of
-;;; `shadow-system-name') for the location of local files.  All
-;;; user-level commands should accept either.
+;; I use the term `site' to refer to a string which may be the
+;; cluster identification "/name:", a remote identification
+;; "/method:user@host:", or "/system-name:" (the value of
+;; `shadow-system-name') for the location of local files.  All
+;; user-level commands should accept either.
 
 (cl-defstruct (shadow-cluster (:type list) :named) name primary regexp)
 
@@ -580,7 +575,7 @@ be shadowed), and list of SITES."
 Filename should have clusters expanded, but otherwise can have any format.
 Return value is a list of dotted pairs like (from . to), where from
 and to are absolute file names."
-  (or (symbol-value (intern-soft file shadow-hashtable))
+  (or (gethash file shadow-hashtable)
       (let* ((absolute-file (shadow-expand-file-name
 			     (or (shadow-local-file file) file)
 			     shadow-homedir))
@@ -598,7 +593,7 @@ and to are absolute file names."
              "shadow-shadows-of: %s %s %s %s %s"
              file (shadow-local-file file) shadow-homedir
              absolute-file canonical-file))
-	(set (intern file shadow-hashtable) shadows))))
+	  (puthash file shadows shadow-hashtable))))
 
 (defun shadow-shadows-of-1 (file groups regexp)
   "Return list of FILE's shadows in GROUPS.
@@ -735,7 +730,7 @@ With non-nil argument also saves the buffer."
 	   (sit-for 1))))))
 
 (defun shadow-invalidate-hashtable ()
-  (setq shadow-hashtable (make-vector 37 0)))
+  (clrhash shadow-hashtable))
 
 (defun shadow-insert-var (variable)
   "Build a `setq' to restore VARIABLE.
@@ -744,17 +739,17 @@ will restore VARIABLE to its current setting.
 VARIABLE must be the name of a variable whose value is a list."
   (let ((standard-output (current-buffer)))
     (insert (format "(setq %s" variable))
-    (cond ((consp (eval variable))
+    (cond ((consp (symbol-value variable))
 	   (insert "\n  '(")
-	   (prin1 (car (eval variable)))
-	   (let ((rest (cdr (eval variable))))
+	   (prin1 (car (symbol-value variable)))
+	   (let ((rest (cdr (symbol-value variable))))
 	     (while rest
 	       (insert "\n    ")
 	       (prin1 (car rest))
 	       (setq rest (cdr rest)))
 	     (insert "))\n\n")))
 	  (t (insert " ")
-	     (prin1 (eval variable))
+	     (prin1 (symbol-value variable))
 	     (insert ")\n\n")))))
 
 (defun shadow-save-buffers-kill-emacs (&optional arg)
@@ -763,6 +758,11 @@ With prefix arg, silently save all file-visiting buffers, then kill.
 
 Extended by shadowfile to automatically save `shadow-todo-file' and
 look for files that have been changed and need to be copied to other systems."
+  (interactive "P")
+  (shadow--save-buffers-kill-emacs arg)
+  (save-buffers-kill-emacs arg))
+
+(defun shadow--save-buffers-kill-emacs (&optional arg &rest _)
   ;; This function is necessary because we need to get control and save
   ;; the todo file /after/ saving other files, but /before/ the warning
   ;; message about unsaved buffers (because it can get modified by the
@@ -770,27 +770,10 @@ look for files that have been changed and need to be copied to other systems."
   ;; because it is not called at the correct time, and also because it is
   ;; called when the terminal is disconnected and we cannot ask whether
   ;; to copy files.
-  (interactive "P")
   (shadow-save-todo-file)
   (save-some-buffers arg t)
   (shadow-copy-files)
-  (shadow-save-todo-file)
-  (and (or (not (memq t (mapcar (lambda (buf) (and (buffer-file-name buf)
-                                              (buffer-modified-p buf)))
-				(buffer-list))))
-	   (yes-or-no-p "Modified buffers exist; exit anyway? "))
-       (or (not (fboundp 'process-list))
-	   ;; `process-list' is not defined on MSDOS.
-	   (let ((processes (process-list))
-		 active)
-	     (while processes
-	       (and (memq (process-status (car processes)) '(run stop open listen))
-		    (process-query-on-exit-flag (car processes))
-		    (setq active t))
-	       (setq processes (cdr processes)))
-	     (or (not active)
-		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
-       (kill-emacs)))
+  (shadow-save-todo-file))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Hook us up
@@ -809,19 +792,15 @@ look for files that have been changed and need to be copied to other systems."
 	(message "Shadowfile information files not found - aborting")
 	(beep)
 	(sit-for 3))
-    (when (and (not shadow-inhibit-overload)
-	       (not (fboundp 'shadow-orig-save-buffers-kill-emacs)))
-      (defalias 'shadow-orig-save-buffers-kill-emacs
-	(symbol-function 'save-buffers-kill-emacs))
-      (defalias 'save-buffers-kill-emacs 'shadow-save-buffers-kill-emacs))
-    (add-hook 'write-file-functions 'shadow-add-to-todo)
-    (define-key ctl-x-4-map "s" 'shadow-copy-files)))
+    (unless shadow-inhibit-overload
+      (advice-add 'save-buffers-kill-emacs :before
+	          #'shadow--save-buffers-kill-emacs))
+    (add-hook 'write-file-functions #'shadow-add-to-todo)
+    (define-key ctl-x-4-map "s" #'shadow-copy-files)))
 
 (defun shadowfile-unload-function ()
-  (substitute-key-definition 'shadow-copy-files nil ctl-x-4-map)
-  (when (fboundp 'shadow-orig-save-buffers-kill-emacs)
-    (fset 'save-buffers-kill-emacs
-	  (symbol-function 'shadow-orig-save-buffers-kill-emacs)))
+  (substitute-key-definition #'shadow-copy-files nil ctl-x-4-map)
+  (advice-remove 'save-buffers-kill-emacs #'shadow--save-buffers-kill-emacs)
   ;; continue standard unloading
   nil)
 
