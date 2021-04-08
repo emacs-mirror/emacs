@@ -348,7 +348,11 @@ For example, you can set it to <return> like `isearch-exit'."
   :group 'convenience
   :version "28.1")
 
-;;;###autoload (defvar repeat-map nil)
+;;;###autoload
+(defvar repeat-map nil
+  "The value of the repeating map for the next command.
+A command called from the map can set it again to the same map when
+the map can't be set on the command symbol property `repeat-map'.")
 
 ;;;###autoload
 (define-minor-mode repeat-mode
@@ -388,8 +392,9 @@ When Repeat mode is enabled, and the command symbol has the property named
 
           ;; Exit when the last char is not among repeatable keys,
           ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
-          (when (or (lookup-key map (this-single-command-keys) nil)
-                    prefix-command-p)
+          (when (and (zerop (minibuffer-depth)) ; avoid remapping in prompts
+                     (or (lookup-key map (this-command-keys-vector))
+                         prefix-command-p))
 
             (when (and repeat-keep-prefix (not prefix-command-p))
               (setq prefix-arg current-prefix-arg))
