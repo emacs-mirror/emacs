@@ -2409,11 +2409,6 @@ parameter.
 by mistake and were not useful to Lisp code.
 
 ---
-** Loading 'generic-x' unconditionally loads all modes.
-The user option 'generic-extras-enable-list' is now obsolete, and
-setting it has no effect.
-
----
 ** The 'load-dangerous-libraries' variable is now obsolete.
 It was used to allow loading Lisp libraries compiled by XEmacs, a
 modified version of Emacs which is no longer actively maintained.
