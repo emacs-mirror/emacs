@@ -686,9 +686,9 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
 	      (let* ((buffers (mapcar #'car erc-modified-channels-alist))
 		     (counts (mapcar #'cadr erc-modified-channels-alist))
 		     (faces (mapcar #'cddr erc-modified-channels-alist))
-		     (long-names (mapcar #'(lambda (buf)
-					     (or (buffer-name buf)
-						 ""))
+                     (long-names (mapcar (lambda (buf)
+                                           (or (buffer-name buf)
+                                               ""))
 					 buffers))
 		     (short-names (if (functionp erc-track-shorten-function)
 				      (funcall erc-track-shorten-function

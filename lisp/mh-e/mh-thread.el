@@ -233,7 +233,7 @@ sibling."
                    (push index msg-list)))
                (forward-line))
              (mh-scan-folder mh-current-folder
-                             (mapcar #'(lambda (x) (format "%s" x))
+                             (mapcar (lambda (x) (format "%s" x))
                                      (mh-coalesce-msg-list msg-list))
                              t))
            (when mh-index-data
@@ -591,7 +591,7 @@ Only information about messages in MSG-LIST are added to the tree."
        #'call-process (expand-file-name mh-scan-prog mh-progs) nil '(t nil) nil
        "-width" "10000" "-format"
        "%(msg)\n%{message-id}\n%{references}\n%{in-reply-to}\n%{subject}\n"
-       folder (mapcar #'(lambda (x) (format "%s" x)) msg-list)))
+       folder (mapcar (lambda (x) (format "%s" x)) msg-list)))
     (goto-char (point-min))
     (let ((roots ())
           (case-fold-search t))
@@ -635,9 +635,9 @@ Only information about messages in MSG-LIST are added to the tree."
                      (mh-thread-remove-parent-link id)
                      (mh-thread-add-link (car ancestors) id)))
                 (mh-thread-add-link (car ancestors) (cadr ancestors)))))))
-      (maphash #'(lambda (_k v)
-                   (when (null (mh-container-parent v))
-                     (push v roots)))
+      (maphash (lambda (_k v)
+                 (when (null (mh-container-parent v))
+                   (push v roots)))
                mh-thread-id-table)
       (setq roots (mh-thread-prune-containers roots))
       (prog1 (setq roots (mh-thread-group-by-subject roots))
@@ -720,25 +720,25 @@ For now it will take the last string inside angles."
                      mh-thread-history)
                (mh-thread-remove-parent-link node)))))
     (let ((results ()))
-      (maphash #'(lambda (_k v)
-                   (when (and (null (mh-container-parent v))
-                              (gethash (mh-message-id (mh-container-message v))
-                                       mh-thread-id-index-map))
-                     (push v results)))
+      (maphash (lambda (_k v)
+                 (when (and (null (mh-container-parent v))
+                            (gethash (mh-message-id (mh-container-message v))
+                                     mh-thread-id-index-map))
+                   (push v results)))
                mh-thread-id-table)
       (mh-thread-sort-containers results))))
 
 (defun mh-thread-sort-containers (containers)
   "Sort a list of message CONTAINERS to be in ascending order wrt index."
   (sort containers
-        #'(lambda (x y)
-            (when (and (mh-container-message x) (mh-container-message y))
-              (let* ((id-x (mh-message-id (mh-container-message x)))
-                     (id-y (mh-message-id (mh-container-message y)))
-                     (index-x (gethash id-x mh-thread-id-index-map))
-                     (index-y (gethash id-y mh-thread-id-index-map)))
-                (and (integerp index-x) (integerp index-y)
-                     (< index-x index-y)))))))
+        (lambda (x y)
+          (when (and (mh-container-message x) (mh-container-message y))
+            (let* ((id-x (mh-message-id (mh-container-message x)))
+                   (id-y (mh-message-id (mh-container-message y)))
+                   (index-x (gethash id-x mh-thread-id-index-map))
+                   (index-y (gethash id-y mh-thread-id-index-map)))
+              (and (integerp index-x) (integerp index-y)
+                   (< index-x index-y)))))))
 
 (defvar mh-thread-last-ancestor)
 
