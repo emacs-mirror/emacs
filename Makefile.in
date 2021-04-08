@@ -326,7 +326,13 @@ CONFIG_STATUS_FILES_IN = \
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = "$(DESTDIR)${etcdir}" "$(DESTDIR)${lispdir}"
 
+ifeq (${ns_self_contained},no)
+BIN_DESTDIR='$(DESTDIR)${bindir}/'
 ELN_DESTDIR = $(DESTDIR)${libdir}/emacs/${version}/
+else
+BIN_DESTDIR='${ns_appbindir}/'
+ELN_DESTDIR = ${ns_appresdir}/
+endif
 
 gsettings_SCHEMAS = etc/org.gnu.emacs.defaults.gschema.xml
 
@@ -423,7 +429,7 @@ lib lib-src lisp nt: Makefile
 dirstate = .git/logs/HEAD
 VCSWITNESS = $(if $(wildcard $(srcdir)/$(dirstate)),$$(srcdir)/../$(dirstate))
 src: Makefile
-	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' BIN_DESTDIR='$(DESTDIR)${bindir}/' \
+	$(MAKE) -C $@ VCSWITNESS='$(VCSWITNESS)' BIN_DESTDIR='$(BIN_DESTDIR)' \
 		 ELN_DESTDIR='$(ELN_DESTDIR)' all
 
 blessmail: Makefile src
@@ -754,7 +760,8 @@ install-etc:
 ### Install native compiled Lisp files.
 install-eln:
 ifeq ($(HAVE_NATIVE_COMP),yes)
-	find native-lisp -type f -exec ${INSTALL_DATA} -D "{}" "$(ELN_DESTDIR){}" \;
+	find native-lisp -type d -exec $(MKDIR_P) "$(ELN_DESTDIR){}" \; ; \
+	find native-lisp -type f -exec ${INSTALL_DATA} "{}" "$(ELN_DESTDIR){}" \;
 endif
 
 ### Build Emacs and install it, stripping binaries while installing them.

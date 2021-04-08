@@ -5276,12 +5276,13 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	/* Check just once if this is a local build or Emacs was installed.  */
 	if (installation_state == UNKNOWN)
 	  {
+	    /* Can't use expand-file-name here, because we are too
+	       early in the startup, and we will crash at least on
+	       WINDOWSNT.  */
 	    Lisp_Object fname =
-	      Fexpand_file_name (XCAR (comp_u->file), Vinvocation_directory);
-	    FILE *file;
-	    if ((file = emacs_fopen (SSDATA (ENCODE_FILE (fname)), "r")))
+	      concat2 (Vinvocation_directory, XCAR (comp_u->file));
+	    if (file_access_p (SSDATA (ENCODE_FILE (fname)), F_OK))
 	      {
-		fclose (file);
 		installation_state = INSTALLED;
 		fixup_eln_load_path (XCAR (comp_u->file));
 	      }
@@ -5293,10 +5294,10 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	  }
 
 	comp_u->file =
-	  Fexpand_file_name (installation_state == INSTALLED
-			     ? XCAR (comp_u->file) : XCDR (comp_u->file),
-			     Vinvocation_directory);
-	comp_u->handle = dynlib_open (SSDATA (comp_u->file));
+	  concat2 (Vinvocation_directory,
+		   installation_state == INSTALLED
+		   ? XCAR (comp_u->file) : XCDR (comp_u->file));
+	comp_u->handle = dynlib_open (SSDATA (ENCODE_FILE (comp_u->file)));
 	if (!comp_u->handle)
 	  error ("%s", dynlib_error ());
 	load_comp_unit (comp_u, true, false);
