@@ -382,25 +382,17 @@ When Repeat mode is enabled, and the command symbol has the property named
       (when rep-map
         (when (boundp rep-map)
           (setq rep-map (symbol-value rep-map)))
-        (let ((prefix-command-p (memq this-original-command
-                                      '(universal-argument
-                                        universal-argument-more
-                                        digit-argument
-                                        negative-argument)))
-              (map (copy-keymap rep-map))
+        (let ((map (copy-keymap rep-map))
               keys)
 
           ;; Exit when the last char is not among repeatable keys,
           ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
           (when (and (zerop (minibuffer-depth)) ; avoid remapping in prompts
                      (or (lookup-key map (this-command-keys-vector))
-                         prefix-command-p))
-
-            (when (and repeat-keep-prefix (not prefix-command-p))
-              (setq prefix-arg current-prefix-arg))
+                         prefix-arg))
 
             ;; Messaging
-            (unless prefix-command-p
+            (unless prefix-arg
               (map-keymap (lambda (key _) (push key keys)) map)
               (let ((mess (format-message
                            "Repeat with %s%s"
@@ -418,6 +410,9 @@ When Repeat mode is enabled, and the command symbol has the property named
             ;; Adding an exit key
             (when repeat-exit-key
               (define-key map repeat-exit-key 'ignore))
+
+            (when (and repeat-keep-prefix (not prefix-arg))
+              (setq prefix-arg current-prefix-arg))
 
             (set-transient-map map))))))
   (setq repeat-map nil))
