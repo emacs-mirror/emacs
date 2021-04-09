@@ -1639,7 +1639,8 @@ No indentation or other \"electric\" behavior is performed."
   ;;
   ;; This function might do hidden buffer changes.
   (save-excursion
-    (let* (knr-start knr-res
+    (let* (kluge-start
+	   knr-start knr-res
 	   decl-result brace-decl-p
 	   (start (point))
 	   (paren-state (c-parse-state))
@@ -1670,12 +1671,20 @@ No indentation or other \"electric\" behavior is performed."
 		    (not (looking-at c-defun-type-name-decl-key))))))
 	'at-function-end)
        (t
+	;; Kluge so that c-beginning-of-decl-1 won't go back if we're already
+	;; at a declaration.
+	(if (or (and (eolp) (not (eobp))) ; EOL is matched by "\\s>"
+		(not (c-looking-at-non-alphnumspace)))
+	    (forward-char))
+	(setq kluge-start (point))
+
 	(if (and least-enclosing
 		 (eq (char-after least-enclosing) ?\())
 	    (c-go-list-forward least-enclosing))
 	(c-forward-syntactic-ws)
 	(setq knr-start (point))
-	(if (c-syntactic-re-search-forward "{" nil t t)
+	(if (and (c-syntactic-re-search-forward "[;{]" nil t t)
+		 (eq (char-before) ?\{))
 	    (progn
 	      (backward-char)
 	      (cond
@@ -1689,19 +1698,27 @@ No indentation or other \"electric\" behavior is performed."
 	       ((and knr-res
 		     (goto-char knr-res)
 		     (c-backward-syntactic-ws))) ; Always returns nil.
-	       ((and (eq (char-before) ?\))
-		     (c-go-list-backward))
-		(c-syntactic-skip-backward "^;" start t)
-		(if (eq (point) start)
-		    (if (progn (c-backward-syntactic-ws)
-			       (memq (char-before) '(?\; ?} nil)))
-			(if (progn (c-forward-syntactic-ws)
-				   (eq (point) start))
-			    'at-header
-			  'outwith-function)
-		      'in-header)
-		  'outwith-function))
-	       (t 'outwith-function)))
+	       (t
+		(when (eq (char-before) ?\))
+		  ;; The `c-go-list-backward' is a precaution against
+		  ;; `c-beginning-of-decl-1' spuriously finding a C++ lambda
+		  ;; function inside the parentheses.
+		  (c-go-list-backward))
+		(setq decl-result
+		      (car (c-beginning-of-decl-1
+			    (and least-enclosing
+				 (c-safe-position
+				  least-enclosing paren-state)))))
+		(cond
+		 ((> (point) start)
+		  'outwith-function)
+		 ((eq decl-result 'same)
+		  (if (eq (point) start)
+		      'at-header
+		    'in-header))
+		 (t (error
+		     "c-where-wrt-brace-construct: c-beginning-of-decl-1 returned %s"
+		     decl-result))))))
 	  'outwith-function))))))
 
 (defun c-backward-to-nth-BOF-{ (n where)
