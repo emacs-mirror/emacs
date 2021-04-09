@@ -569,8 +569,8 @@ byte-compiled.  Run with dynamic binding."
   `(with-current-buffer (get-buffer-create "*Compile-Log*")
      (let ((inhibit-read-only t)) (erase-buffer))
      (byte-compile ,@form)
-     (ert-info ((buffer-string) :prefix "buffer: ")
-       (should (re-search-forward ,re-warning)))))
+     (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
+       (should (re-search-forward ,(string-replace " " "[ \n]+" re-warning))))))
 
 (ert-deftest bytecomp-warn-wrong-args ()
   (bytecomp--with-warning-test "remq.*3.*2"
@@ -596,12 +596,13 @@ byte-compiled.  Run with dynamic binding."
 
 (defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
   `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()
-     :expected-result ,(if reverse :failed :passed)
      (with-current-buffer (get-buffer-create "*Compile-Log*")
        (let ((inhibit-read-only t)) (erase-buffer))
        (byte-compile-file ,(ert-resource-file file))
        (ert-info ((buffer-string) :prefix "buffer: ")
-         (should (re-search-forward ,re-warning))))))
+         (,(if reverse 'should-not 'should)
+          (re-search-forward ,(string-replace " " "[ \n]+" re-warning)
+                             nil t))))))
 
 (bytecomp--define-warning-file-test "error-lexical-var-with-add-hook.el"
                             "add-hook.*lexical var")
@@ -643,10 +644,10 @@ byte-compiled.  Run with dynamic binding."
                             "free.*foo")
 
 (bytecomp--define-warning-file-test "warn-free-variable-reference.el"
-                            "free.*bar")
+                            "free variable .bar")
 
 (bytecomp--define-warning-file-test "warn-make-variable-buffer-local.el"
-                            "make-variable-buffer-local.*not called at toplevel")
+                            "make-variable-buffer-local. not called at toplevel")
 
 (bytecomp--define-warning-file-test "warn-interactive-only.el"
                             "next-line.*interactive use only.*forward-line")
@@ -655,19 +656,19 @@ byte-compiled.  Run with dynamic binding."
                             "malformed interactive spec")
 
 (bytecomp--define-warning-file-test "warn-obsolete-defun.el"
-                            "foo-obsolete.*obsolete function.*99.99")
+  "foo-obsolete. is an obsolete function (as of 99.99)")
 
 (defvar bytecomp--tests-obsolete-var nil)
 (make-obsolete-variable 'bytecomp--tests-obsolete-var nil "99.99")
 
 (bytecomp--define-warning-file-test "warn-obsolete-hook.el"
-                            "bytecomp--tests-obs.*obsolete[^z-a]*99.99")
+  "bytecomp--tests-obsolete-var. is an obsolete variable (as of 99.99)")
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable-same-file.el"
                             "foo-obs.*obsolete.*99.99" t)
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable.el"
-                            "bytecomp--tests-obs.*obsolete[^z-a]*99.99")
+  "bytecomp--tests-obsolete-var. is an obsolete variable (as of 99.99)")
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable-bound.el"
                             "bytecomp--tests-obs.*obsolete.*99.99" t)
@@ -698,64 +699,64 @@ byte-compiled.  Run with dynamic binding."
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-autoload.el"
- "autoload.*foox.*wider than.*characters")
+ "autoload .foox. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-custom-declare-variable.el"
- "custom-declare-variable.*foo.*wider than.*characters")
+ "custom-declare-variable .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defalias.el"
- "defalias.*foo.*wider than.*characters")
+ "defalias .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defconst.el"
- "defconst.*foo.*wider than.*characters")
+ "defconst .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-define-abbrev-table.el"
- "define-abbrev.*foo.*wider than.*characters")
+ "define-abbrev-table .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-define-obsolete-function-alias.el"
- "defalias.*foo.*wider than.*characters")
+ "defalias .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-define-obsolete-variable-alias.el"
- "defvaralias.*foo.*wider than.*characters")
+ "defvaralias .foo. docstring wider than .* characters")
 
 ;; TODO: We don't yet issue warnings for defuns.
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defun.el"
- "wider than.*characters" 'reverse)
+ "wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvar.el"
- "defvar.*foo.*wider than.*characters")
+ "defvar .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvaralias.el"
- "defvaralias.*foo.*wider than.*characters")
+ "defvaralias .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-ignore-fill-column.el"
- "defvar.*foo.*wider than.*characters" 'reverse)
+ "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-ignore-override.el"
- "defvar.*foo.*wider than.*characters" 'reverse)
+ "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-ignore.el"
- "defvar.*foo.*wider than.*characters" 'reverse)
+ "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-multiline-first.el"
- "defvar.*foo.*wider than.*characters")
+ "defvar .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-multiline.el"
- "defvar.*foo.*wider than.*characters")
+ "defvar .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "nowarn-inline-after-defvar.el"
