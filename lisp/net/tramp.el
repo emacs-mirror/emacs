@@ -1078,7 +1078,13 @@ initial value is overwritten by the car of `tramp-file-name-structure'.")
 
 (defconst tramp-completion-file-name-regexp-default
   (concat
-   "\\`/\\("
+   "\\`"
+   ;; `file-name-completion' uses absolute paths for matching.  This
+   ;; means that on W32 systems, something like "/ssh:host:~/path"
+   ;; becomes "c:/ssh:host:~/path".  See also `tramp-drop-volume-letter'.
+   (when (eq system-type 'windows-nt)
+       "\\(?:[[:alpha:]]:\\)?")
+   "/\\("
    ;; Optional multi hop.
    "\\([^/|:]+:[^/|:]*|\\)*"
    ;; Last hop.
