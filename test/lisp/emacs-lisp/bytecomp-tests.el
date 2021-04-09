@@ -431,6 +431,12 @@
 
     (let ((x 2))
       (list (or (bytecomp-test-identity 'a) (setq x 3)) x))
+
+    (let* ((x 1)
+           (y (condition-case x
+                  (/ 1 0)
+                (arith-error x))))
+      (list x y))
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 
