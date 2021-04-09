@@ -41,7 +41,7 @@
   "Identity, but hidden from some optimisations."
   x)
 
-(defconst byte-opt-testsuite-arith-data
+(defconst bytecomp-tests--test-cases
   '(
     ;; some functional tests
     (let ((a most-positive-fixnum) (b 1) (c 1.0))  (+ a b c))
@@ -430,69 +430,54 @@
       (list s x i))
 
     (let ((x 2))
-      (list (or (bytecomp-test-identity 'a) (setq x 3)) x)))
-  "List of expression for test.
-Each element will be executed by interpreter and with
-bytecompiled code, and their results compared.")
+      (list (or (bytecomp-test-identity 'a) (setq x 3)) x))
+    )
+  "List of expressions for cross-testing interpreted and compiled code.")
 
-(defun bytecomp-check-1 (pat)
-  "Return non-nil if PAT is the same whether directly evalled or compiled."
+(defconst bytecomp-tests--test-cases-lexbind-only
+  `(
+    ;; This would infloop (and exhaust stack) with dynamic binding.
+    (let ((f #'car))
+      (let ((f (lambda (x) (cons (funcall f x) (cdr x)))))
+        (funcall f '(1 . 2))))
+    )
+  "List of expressions for cross-testing interpreted and compiled code.
+These are only tested with lexical binding.")
+
+(defun bytecomp-tests--eval-interpreted (form)
+  "Evaluate FORM using the Lisp interpreter, returning errors as a
+special value."
+  (condition-case err
+      (eval form lexical-binding)
+    (error (list 'bytecomp-check-error (car err)))))
+
+(defun bytecomp-tests--eval-compiled (form)
+  "Evaluate FORM using the Lisp byte-code compiler, returning errors as a
+special value."
   (let ((warning-minimum-log-level :emergency)
-        (byte-compile-warnings nil)
-	(v0 (condition-case err
-		(eval pat)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (equal v0 v1)))
+        (byte-compile-warnings nil))
+    (condition-case err
+	(funcall (byte-compile (list 'lambda nil form)))
+      (error (list 'bytecomp-check-error (car err))))))
 
-(put 'bytecomp-check-1 'ert-explainer 'bytecomp-explain-1)
+(ert-deftest bytecomp-tests-lexbind ()
+  "Check that various expressions behave the same when interpreted and
+byte-compiled.  Run with lexical binding."
+  (let ((lexical-binding t))
+    (dolist (form (append bytecomp-tests--test-cases-lexbind-only
+                          bytecomp-tests--test-cases))
+      (ert-info ((prin1-to-string form) :prefix "form: ")
+        (should (equal (bytecomp-tests--eval-interpreted form)
+                       (bytecomp-tests--eval-compiled form)))))))
 
-(defun bytecomp-explain-1 (pat)
-  (let ((v0 (condition-case err
-		(eval pat)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
-	    pat v0 v1)))
-
-(ert-deftest bytecomp-tests ()
-  "Test the Emacs byte compiler."
-  (dolist (pat byte-opt-testsuite-arith-data)
-    (should (bytecomp-check-1 pat))))
-
-(defun test-byte-opt-arithmetic (&optional arg)
-  "Unit test for byte-opt arithmetic operations.
-Subtests signal errors if something goes wrong."
-  (interactive "P")
-  (switch-to-buffer (generate-new-buffer "*Font Pase Test*"))
-  (let ((warning-minimum-log-level :emergency)
-	(byte-compile-warnings nil)
-	(pass-face '((t :foreground "green")))
-	(fail-face '((t :foreground "red")))
-	(print-escape-nonascii t)
-	(print-escape-newlines t)
-	(print-quoted t)
-	v0 v1)
-    (dolist (pat byte-opt-testsuite-arith-data)
-      (condition-case err
-	  (setq v0 (eval pat))
-	(error (setq v0 (list 'bytecomp-check-error (car err)))))
-      (condition-case err
-	  (setq v1 (funcall (byte-compile (list 'lambda nil pat))))
-	(error (setq v1 (list 'bytecomp-check-error (car err)))))
-      (insert (format "%s" pat))
-      (indent-to-column 65)
-      (if (equal v0 v1)
-	  (insert (propertize "OK" 'face pass-face))
-	(insert (propertize "FAIL\n" 'face fail-face))
-	(indent-to-column 55)
-	(insert (propertize (format "[%s] vs [%s]" v0 v1)
-			    'face fail-face)))
-      (insert "\n"))))
+(ert-deftest bytecomp-tests-dynbind ()
+  "Check that various expressions behave the same when interpreted and
+byte-compiled.  Run with dynamic binding."
+  (let ((lexical-binding nil))
+    (dolist (form bytecomp-tests--test-cases)
+      (ert-info ((prin1-to-string form) :prefix "form: ")
+        (should (equal (bytecomp-tests--eval-interpreted form)
+                       (bytecomp-tests--eval-compiled form)))))))
 
 (defun test-byte-comp-compile-and-load (compile &rest forms)
   (declare (indent 1))
@@ -812,47 +797,6 @@ Subtests signal errors if something goes wrong."
       (defmacro m () 5)
       (defun def () (m))))
   (should (equal (funcall 'def) 4)))
-
-(defconst bytecomp-lexbind-tests
-  `(
-    (let ((f #'car))
-      (let ((f (lambda (x) (cons (funcall f x) (cdr x)))))
-        (funcall f '(1 . 2))))
-    )
-  "List of expression for test.
-Each element will be executed by interpreter and with
-bytecompiled code, and their results compared.")
-
-(defun bytecomp-lexbind-check-1 (pat)
-  "Return non-nil if PAT is the same whether directly evalled or compiled."
-  (let ((warning-minimum-log-level :emergency)
-	(byte-compile-warnings nil)
-	(v0 (condition-case err
-		(eval pat t)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (let ((lexical-binding t))
-                           (byte-compile `(lambda nil ,pat))))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (equal v0 v1)))
-
-(put 'bytecomp-lexbind-check-1 'ert-explainer 'bytecomp-lexbind-explain-1)
-
-(defun bytecomp-lexbind-explain-1 (pat)
-  (let ((v0 (condition-case err
-		(eval pat t)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (let ((lexical-binding t))
-                           (byte-compile (list 'lambda nil pat))))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
-	    pat v0 v1)))
-
-(ert-deftest bytecomp-lexbind-tests ()
-  "Test the Emacs byte compiler lexbind handling."
-  (dolist (pat bytecomp-lexbind-tests)
-    (should (bytecomp-lexbind-check-1 pat))))
 
 (defmacro bytecomp-tests--with-temp-file (file-name-var &rest body)
   (declare (indent 1))
