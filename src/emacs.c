@@ -1060,6 +1060,7 @@ load_seccomp (const char *file)
       emacs_perror ("read");
       goto out;
     }
+  eassert (read <= SIZE_MAX);
   if (read != size)
     {
       fprintf (stderr,
