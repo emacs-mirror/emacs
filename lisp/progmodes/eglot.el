@@ -2674,10 +2674,7 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                    (eglot--glob-compile globPattern t t))
                  watchers))
          (dirs-to-watch
-          (cl-loop for f in (eglot--files-recursively)
-                   when (cl-loop for g in globs thereis (funcall g f))
-                   collect (file-name-directory f) into dirs
-                   finally (cl-return (delete-dups dirs)))))
+          (eglot--directories-matched-by-globs default-directory globs)))
     (cl-labels
         ((handle-event
           (event)
@@ -2784,8 +2781,22 @@ If NOERROR, return predicate, else erroring function."
         (cl-loop with default-directory = dir
                  with completion-regexp-list = '("^[^.]")
                  for f in (file-name-all-completions "" dir)
-                 if (file-name-directory f) append (eglot--files-recursively f)
+                 if (file-directory-p f) append (eglot--files-recursively f)
                  else collect (expand-file-name f))))
+
+(defun eglot--directories-matched-by-globs (dir globs)
+  "Discover subdirectories of DIR with files matched by one of GLOBS.
+Each element of GLOBS is either an uncompiled glob-string or a
+compiled glob."
+  (setq globs (cl-loop for g in globs
+                       collect (if (stringp g) (eglot--glob-compile g t t) g)))
+  (cl-loop for f in (eglot--files-recursively dir)
+           for fdir = (file-name-directory f)
+           when (and
+                 (not (member fdir dirs))
+                 (cl-loop for g in globs thereis (funcall g f)))
+           collect fdir into dirs
+           finally (cl-return (delete-dups dirs))))
 
 
 ;;; Rust-specific
