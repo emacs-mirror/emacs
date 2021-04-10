@@ -1,4 +1,4 @@
-;;; cc-mode.el --- major mode for editing C and similar languages
+;;; cc-mode.el --- major mode for editing C and similar languages -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
