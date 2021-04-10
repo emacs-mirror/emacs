@@ -1091,7 +1091,7 @@ load_seccomp (const char *file)
   success = true;
 
  out:
-  if (fd < 0)
+  if (0 <= fd)
     emacs_close (fd);
   free (buffer);
   return success;
