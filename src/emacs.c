@@ -1060,7 +1060,7 @@ load_seccomp (const char *file)
       emacs_perror ("read");
       goto out;
     }
-  if (read != count)
+  if (read != size)
     {
       fprintf (stderr,
                "seccomp filter %s changed size while reading\n",
