@@ -1103,7 +1103,13 @@ On W32 systems, the volume letter must be ignored.")
 
 (defconst tramp-completion-file-name-regexp-simplified
   (concat
-   "\\`/\\("
+   "\\`"
+   ;; Allow the volume letter at the beginning of the path.  See the
+   ;; comment in `tramp-completion-file-name-regexp-default' for more
+   ;; details.
+   (when (eq system-type 'windows-nt)
+     "\\(?:[[:alpha:]]:\\)?")
+   "/\\("
    ;; Optional multi hop.
    "\\([^/|:]*|\\)*"
    ;; Last hop.
@@ -1119,7 +1125,14 @@ See `tramp-file-name-structure' for more explanations.
 On W32 systems, the volume letter must be ignored.")
 
 (defconst tramp-completion-file-name-regexp-separate
-  "\\`/\\(\\[[^]]*\\)?\\'"
+  (concat
+   "\\`"
+   ;; Allow the volume letter at the beginning of the path.  See the
+   ;; comment in `tramp-completion-file-name-regexp-default' for more
+   ;; details.
+   (when (eq system-type 'windows-nt)
+     "\\(?:[[:alpha:]]:\\)?")
+   "/\\(\\[[^]]*\\)?\\'")
   "Value for `tramp-completion-file-name-regexp' for separate remoting.
 See `tramp-file-name-structure' for more explanations.")
 
