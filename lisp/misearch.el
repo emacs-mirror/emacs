@@ -238,7 +238,7 @@ set in `multi-isearch-buffers' or `multi-isearch-buffers-regexp'."
     (while (not (string-equal
 		 (setq buf (read-buffer (multi-occur--prompt) nil t))
 		 ""))
-      (cl-pushnew buf bufs)
+      (cl-pushnew buf bufs :test #'equal)
       (setq ido-ignore-item-temp-list bufs))
     (nreverse bufs)))
 
