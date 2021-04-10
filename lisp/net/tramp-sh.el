@@ -401,16 +401,34 @@ The string is used in `tramp-methods'.")
 
 ;;;###tramp-autoload
 (defconst tramp-completion-function-alist-ssh
-  '((tramp-parse-rhosts      "/etc/hosts.equiv")
+  `((tramp-parse-rhosts      "/etc/hosts.equiv")
     (tramp-parse-rhosts      "/etc/shosts.equiv")
-    (tramp-parse-shosts      "/etc/ssh_known_hosts")
-    (tramp-parse-sconfig     "/etc/ssh_config")
+    ;; On W32 systems, the ssh directory is located somewhere else.
+    (tramp-parse-shosts      ,(expand-file-name
+			       "ssh/ssh_known_hosts"
+			       (or (and (eq system-type 'windows-nt)
+					(getenv "ProgramData"))
+				   "/etc/")))
+    (tramp-parse-sconfig     ,(expand-file-name
+			       "ssh/ssh_config"
+			       (or (and (eq system-type 'windows-nt)
+					(getenv "ProgramData"))
+				   "/etc/")))
     (tramp-parse-shostkeys   "/etc/ssh2/hostkeys")
     (tramp-parse-sknownhosts "/etc/ssh2/knownhosts")
     (tramp-parse-rhosts      "~/.rhosts")
     (tramp-parse-rhosts      "~/.shosts")
-    (tramp-parse-shosts      "~/.ssh/known_hosts")
-    (tramp-parse-sconfig     "~/.ssh/config")
+    ;; On W32 systems, the .ssh directory is located somewhere else.
+    (tramp-parse-shosts      ,(expand-file-name
+			       ".ssh/known_hosts"
+			       (or (and (eq system-type 'windows-nt)
+					(getenv "USERPROFILE"))
+				   "~/")))
+    (tramp-parse-sconfig     ,(expand-file-name
+			       ".ssh/config"
+			       (or (and (eq system-type 'windows-nt)
+					(getenv "USERPROFILE"))
+				   "~/")))
     (tramp-parse-shostkeys   "~/.ssh2/hostkeys")
     (tramp-parse-sknownhosts "~/.ssh2/knownhosts"))
   "Default list of (FUNCTION FILE) pairs to be examined for ssh methods.")
@@ -433,7 +451,7 @@ The string is used in `tramp-methods'.")
 ;;;###tramp-autoload
 (defconst tramp-completion-function-alist-putty
   `((tramp-parse-putty
-     ,(if (memq system-type '(windows-nt))
+     ,(if (eq system-type 'windows-nt)
 	  "HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions"
 	"~/.putty/sessions")))
  "Default list of (FUNCTION REGISTRY) pairs to be examined for putty sessions.")
@@ -5764,7 +5782,7 @@ function cell is returned to be applied on a buffer."
 	   ;; slashes as directory separators.
 	   (cond
 	    ((and (string-match-p "local" prop)
-		  (memq system-type '(windows-nt)))
+		  (eq system-type 'windows-nt))
 	       "(%s | \"%s\")")
 	    ((string-match-p "local" prop) "(%s | %s)")
 	    (t "(%s | %s >%%s)"))
@@ -5775,7 +5793,7 @@ function cell is returned to be applied on a buffer."
 	   ;; the pipe symbol be quoted if they use forward
 	   ;; slashes as directory separators.
 	   (if (and (string-match-p "local" prop)
-		    (memq system-type '(windows-nt)))
+		    (eq system-type 'windows-nt))
 	       "(%s <%%s | \"%s\")"
 	     "(%s <%%s | %s)")
 	   compress coding))
