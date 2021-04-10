@@ -64,10 +64,10 @@ minibuffer-electric-default-mode}.
 
   Since the minibuffer appears in the echo area, it can conflict with
 other uses of the echo area.  If an error message or an informative
-message is emitted while the minibuffer is active, the message hides
-the minibuffer for a few seconds, or until you type something; then
-the minibuffer comes back.  While the minibuffer is in use, Emacs does
-not echo keystrokes.
+message is emitted while the minibuffer is active, the message is
+displayed in brackets after the minibuffer text for a few seconds, or
+until you type something; then the message disappears.  While the
+minibuffer is in use, Emacs does not echo keystrokes.
 
 @node Minibuffer File
 @section Minibuffers for File Names
