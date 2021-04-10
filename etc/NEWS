@@ -483,6 +483,13 @@ documented.
 SMIE is now always enabled and 'ruby-use-smie' only controls whether
 indentation is done using SMIE or with the old ad-hoc code.
 
+** Icomplete
+
++++
+*** New minor mode Icomplete-Vertical mode.
+This mode is intended to be used with Icomplete or Fido, to display the
+list of completions candidates vertically instead of horizontally.
+
 ---
 ** Specific warnings can now be disabled from the warning buffer.
 When a warning is displayed to the user, the resulting buffer now has
