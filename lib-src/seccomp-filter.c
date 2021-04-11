@@ -241,12 +241,12 @@ main (int argc, char **argv)
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (open),
         SCMP_A1_32 (SCMP_CMP_MASKED_EQ,
                     ~(O_RDONLY | O_BINARY | O_CLOEXEC | O_PATH
-                      | O_DIRECTORY),
+                      | O_DIRECTORY | O_NOFOLLOW),
                     0));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (openat),
         SCMP_A2_32 (SCMP_CMP_MASKED_EQ,
                     ~(O_RDONLY | O_BINARY | O_CLOEXEC | O_PATH
-                      | O_DIRECTORY),
+                      | O_DIRECTORY | O_NOFOLLOW),
                     0));
 
   /* Allow `tcgetpgrp'.  */
