@@ -4201,7 +4201,7 @@ getrusage get_current_dir_name \
 lrand48 random rint trunc \
 select getpagesize setlocale newlocale \
 getrlimit setrlimit shutdown \
-pthread_sigmask strsignal setitimer timer_getoverrun \
+pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
@@ -5497,6 +5497,12 @@ gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
+
+# timer_getoverrun needs the same libarary as timer_settime
+OLD_LIBS=$LIBS
+LIBS="$LIB_TIMER_TIME $LIBS"
+AC_CHECK_FUNCS(timer_getoverrun)
+LIBS=$OLD_LIBS
 
 if test "${opsys}" = "mingw32"; then
   CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I \${abs_top_srcdir}/nt/inc"
