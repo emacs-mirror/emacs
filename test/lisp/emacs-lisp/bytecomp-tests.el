@@ -437,6 +437,13 @@
                   (/ 1 0)
                 (arith-error x))))
       (list x y))
+
+    (funcall
+     (condition-case x
+         (/ 1 0)
+       (arith-error (prog1 (lambda (y) (+ y x))
+                      (setq x 10))))
+     4)
     )
   "List of expressions for cross-testing interpreted and compiled code.")
 

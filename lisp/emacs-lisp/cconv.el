@@ -498,7 +498,7 @@ places where they originally did not directly appear."
      (let* ((class (and var (cconv--var-classification (list var) form)))
             (newenv
              (cond ((eq class :captured+mutated)
-                    (cons `(,var . (car-save ,var)) env))
+                    (cons `(,var . (car-safe ,var)) env))
                    ((assq var env) (cons `(,var) env))
                    (t env)))
             (msg (when (eq class :unused)
