@@ -40,6 +40,7 @@ human-readable representation to out.pfc.  */
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -285,6 +286,12 @@ main (int argc, char **argv)
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (rt_sigaction));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (sigprocmask));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (rt_sigprocmask));
+
+  /* Allow reading the current time.  */
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (clock_gettime),
+        SCMP_A0_32 (SCMP_CMP_EQ, CLOCK_REALTIME));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (time));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (gettimeofday));
 
   /* Allow timer support.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (timer_create));
