@@ -4181,7 +4181,7 @@ AC_SUBST([LIBS_MAIL])
 
 HAVE_SECCOMP=no
 AC_CHECK_HEADERS(
-  [linux/seccomp.h],
+  [linux/seccomp.h linux/filter.h],
   [AC_CHECK_DECLS(
     [SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC],
     [HAVE_SECCOMP=yes], [],

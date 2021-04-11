@@ -61,8 +61,8 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <sys/socket.h>
 #endif
 
-#if defined HAVE_LINUX_SECCOMP_H       \
-  && HAVE_DECL_SECCOMP_SET_MODE_FILTER \
+#if defined HAVE_LINUX_SECCOMP_H && defined HAVE_LINUX_FILTER_H \
+  && HAVE_DECL_SECCOMP_SET_MODE_FILTER                          \
   && HAVE_DECL_SECCOMP_FILTER_FLAG_TSYNC
 # define SECCOMP_USABLE 1
 #else
