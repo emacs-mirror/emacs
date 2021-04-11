@@ -191,7 +191,14 @@ LIBS_ETAGS = $(LIB_CLOCK_GETTIME) $(LIB_GETRANDOM)
 
 LIBSECCOMP=@LIBSECCOMP@
 
+# Currently, we can only generate seccomp filter files for x86-64.
 ifneq ($(LIBSECCOMP),)
+ifeq ($(shell uname -m),x86_64)
+SECCOMP_FILTER=1
+endif
+endif
+
+ifeq ($(SECCOMP_FILTER),1)
 DONT_INSTALL += seccomp-filter$(EXEEXT)
 endif
 
@@ -224,7 +231,7 @@ config_h = ../src/config.h $(srcdir)/../src/conf_post.h
 
 all: ${EXE_FILES} ${SCRIPTS}
 
-ifneq ($(LIBSECCOMP),)
+ifeq ($(SECCOMP_FILTER),1)
 all: seccomp-filter.bpf
 endif
 
@@ -410,7 +417,7 @@ update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 emacsclient.res: ../nt/emacsclient.rc $(NTINC)/../icons/emacs.ico
 	$(AM_V_RC)$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o $@ $<
 
-ifneq ($(LIBSECCOMP),)
+ifeq ($(SECCOMP_FILTER),1)
 seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
 	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $< $(LIBSECCOMP) -o $@
 
