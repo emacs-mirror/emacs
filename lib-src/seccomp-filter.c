@@ -60,7 +60,10 @@ fail (int error, const char *format, ...)
   va_list ap;
   va_start (ap, format);
   if (error == 0)
-    vfprintf (stderr, format, ap);
+    {
+      vfprintf (stderr, format, ap);
+      fputc ('\n', stderr);
+    }
   else
     {
       char buffer[1000];
