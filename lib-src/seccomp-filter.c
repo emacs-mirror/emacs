@@ -151,7 +151,6 @@ main (int argc, char **argv)
   set_attribute (SCMP_FLTATR_ACT_BADARCH, SCMP_ACT_KILL_PROCESS);
   set_attribute (SCMP_FLTATR_CTL_NNP, 1);
   set_attribute (SCMP_FLTATR_CTL_TSYNC, 1);
-  set_attribute (SCMP_FLTATR_CTL_LOG, 0);
 
   verify (CHAR_BIT == 8);
   verify (sizeof (int) == 4 && INT_MIN == INT32_MIN
