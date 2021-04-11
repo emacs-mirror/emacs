@@ -177,4 +177,37 @@ to `make-temp-file', which see."
         (ert-info ((format "Process output: %s" (buffer-string)))
           (should-not (eql status 0)))))))
 
+(ert-deftest emacs-tests/bwrap/allows-stdout ()
+  (let ((bash (executable-find "bash"))
+        (bwrap (executable-find "bwrap"))
+        (emacs
+         (expand-file-name invocation-name invocation-directory))
+        (filter (ert-resource-file "seccomp-filter-exec.bpf"))
+        (process-environment nil))
+    (skip-unless bash)
+    (skip-unless bwrap)
+    (skip-unless (file-executable-p emacs))
+    (skip-unless (file-readable-p filter))
+    (should-not (file-remote-p bwrap))
+    (should-not (file-remote-p emacs))
+    (should-not (file-remote-p filter))
+    (with-temp-buffer
+      (let* ((command
+              (concat
+               (mapconcat #'shell-quote-argument
+                          `(,(file-name-unquote bwrap)
+                            "--ro-bind" "/" "/"
+                            "--seccomp" "20"
+                            "--"
+                            ,(file-name-unquote emacs)
+                            "--quick" "--batch"
+                            ,(format "--eval=%S" '(message "Hi")))
+                          " ")
+               " 20< "
+               (shell-quote-argument (file-name-unquote filter))))
+             (status (call-process bash nil t nil "-c" command)))
+        (ert-info ((format "Process output: %s" (buffer-string)))
+          (should (eql status 0)))
+        (should (equal (string-trim (buffer-string)) "Hi"))))))
+
 ;;; emacs-tests.el ends here

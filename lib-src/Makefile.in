@@ -240,7 +240,7 @@ config_h = ../src/config.h $(srcdir)/../src/conf_post.h
 all: ${EXE_FILES} ${SCRIPTS}
 
 ifeq ($(SECCOMP_FILTER),1)
-all: seccomp-filter.bpf
+all: seccomp-filter.bpf seccomp-filter-exec.bpf
 endif
 
 .PHONY: all need-blessmail maybe-blessmail
@@ -430,9 +430,10 @@ seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
 	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(LIBSECCOMP_CFLAGS) $< \
 	  $(LIBSECCOMP_LIBS) -o $@
 
-seccomp-filter.bpf seccomp-filter.pfc: seccomp-filter$(EXEEXT)
+seccomp-filter.bpf seccomp-filter.pfc seccomp-filter-exec.bpf seccomp-filter-exec.pfc: seccomp-filter$(EXEEXT)
 	$(AM_V_GEN)./seccomp-filter$(EXEEXT) \
-	  seccomp-filter.bpf seccomp-filter.pfc
+	  seccomp-filter.bpf seccomp-filter.pfc \
+	  seccomp-filter-exec.bpf seccomp-filter-exec.pfc
 endif
 
 ## Makefile ends here.

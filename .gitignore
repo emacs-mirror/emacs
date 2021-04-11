@@ -306,3 +306,5 @@ src/gdb.ini
 # Seccomp filter files.
 lib-src/seccomp-filter.bpf
 lib-src/seccomp-filter.pfc
+lib-src/seccomp-filter-exec.bpf
+lib-src/seccomp-filter-exec.pfc

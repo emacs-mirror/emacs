@@ -26,10 +26,12 @@ only a Linux kernel supporting the Secure Computing extension.
 
 Usage:
 
-  seccomp-filter out.bpf out.pfc
+  seccomp-filter out.bpf out.pfc out-exec.bpf out-exec.pfc
 
 This writes the raw `struct sock_filter' array to out.bpf and a
-human-readable representation to out.pfc.  */
+human-readable representation to out.pfc.  Additionally, it writes
+variants of those files that can be used to sandbox Emacs before
+'execve' to out-exec.bpf and out-exec.pfc.  */
 
 #include "config.h"
 
@@ -42,6 +44,7 @@ human-readable representation to out.pfc.  */
 #include <stdio.h>
 #include <time.h>
 
+#include <asm/prctl.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <sys/prctl.h>
@@ -139,8 +142,9 @@ export_filter (const char *file,
 int
 main (int argc, char **argv)
 {
-  if (argc != 3)
-    fail (0, "usage: %s out.bpf out.pfc", argv[0]);
+  if (argc != 5)
+    fail (0, "usage: %s out.bpf out.pfc out-exec.bpf out-exec.pfc",
+          argv[0]);
 
   /* Any unhandled syscall should abort the Emacs process.  */
   ctx = seccomp_init (SCMP_ACT_KILL_PROCESS);
@@ -156,6 +160,8 @@ main (int argc, char **argv)
   verify (CHAR_BIT == 8);
   verify (sizeof (int) == 4 && INT_MIN == INT32_MIN
           && INT_MAX == INT32_MAX);
+  verify (sizeof (long) == 8 && LONG_MIN == INT64_MIN
+          && LONG_MAX == INT64_MAX);
   verify (sizeof (void *) == 8);
   verify ((uintptr_t) NULL == 0);
 
@@ -327,4 +333,29 @@ main (int argc, char **argv)
 
   EXPORT_FILTER (argv[1], seccomp_export_bpf);
   EXPORT_FILTER (argv[2], seccomp_export_pfc);
+
+  /* When applying a Seccomp filter before executing the Emacs binary
+     (e.g. using the `bwrap' program), we need to allow further system
+     calls.  Firstly, the wrapper binary will need to `execve' the
+     Emacs binary.  Furthermore, the C library requires some system
+     calls at startup time to set up thread-local storage.  */
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (execve));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (set_tid_address));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (arch_prctl),
+        SCMP_A0_32 (SCMP_CMP_EQ, ARCH_SET_FS));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (statfs));
+
+  /* We want to allow starting the Emacs binary itself with the
+     --seccomp flag, so we need to allow the `prctl' and `seccomp'
+     system calls.  */
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (prctl),
+        SCMP_A0_32 (SCMP_CMP_EQ, PR_SET_NO_NEW_PRIVS),
+        SCMP_A1_64 (SCMP_CMP_EQ, 1), SCMP_A2_64 (SCMP_CMP_EQ, 0),
+        SCMP_A3_64 (SCMP_CMP_EQ, 0), SCMP_A4_64 (SCMP_CMP_EQ, 0));
+  RULE (SCMP_ACT_ALLOW, SCMP_SYS (seccomp),
+        SCMP_A0_32 (SCMP_CMP_EQ, SECCOMP_SET_MODE_FILTER),
+        SCMP_A1_32 (SCMP_CMP_EQ, SECCOMP_FILTER_FLAG_TSYNC));
+
+  EXPORT_FILTER (argv[3], seccomp_export_bpf);
+  EXPORT_FILTER (argv[4], seccomp_export_pfc);
 }
