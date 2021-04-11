@@ -4179,7 +4179,15 @@ fi
 AC_SUBST([BLESSMAIL_TARGET])
 AC_SUBST([LIBS_MAIL])
 
-AC_CHECK_HEADERS([linux/seccomp.h], [HAVE_SECCOMP=yes])
+HAVE_SECCOMP=no
+AC_CHECK_HEADERS(
+  [linux/seccomp.h],
+  [AC_CHECK_DECLS(
+    [SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC],
+    [HAVE_SECCOMP=yes], [],
+    [[
+    #include <linux/seccomp.h>
+    ]])])
 
 LIBSECCOMP=
 AC_CHECK_HEADER([seccomp.h],

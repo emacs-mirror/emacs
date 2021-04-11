@@ -61,7 +61,15 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 # include <sys/socket.h>
 #endif
 
-#ifdef HAVE_LINUX_SECCOMP_H
+#if defined HAVE_LINUX_SECCOMP_H       \
+  && HAVE_DECL_SECCOMP_SET_MODE_FILTER \
+  && HAVE_DECL_SECCOMP_FILTER_FLAG_TSYNC
+# define SECCOMP_USABLE 1
+#else
+# define SECCOMP_USABLE 0
+#endif
+
+#if SECCOMP_USABLE
 # include <linux/seccomp.h>
 # include <linux/filter.h>
 # include <sys/prctl.h>
@@ -248,7 +256,7 @@ Initialization options:\n\
 --dump-file FILE            read dumped state from FILE\n\
 ",
 #endif
-#ifdef HAVE_LINUX_SECCOMP_H
+#if SECCOMP_USABLE
     "\
 --sandbox=FILE              read Seccomp BPF filter from FILE\n\
 "
@@ -950,7 +958,7 @@ load_pdump (int argc, char **argv)
 }
 #endif /* HAVE_PDUMPER */
 
-#ifdef HAVE_LINUX_SECCOMP_H
+#if SECCOMP_USABLE
 
 /* Wrapper function for the `seccomp' system call on GNU/Linux.  This
    system call usually doesn't have a wrapper function.  See the
@@ -1123,7 +1131,7 @@ maybe_load_seccomp (int argc, char **argv)
     fatal ("cannot enable seccomp filter from %s", file);
 }
 
-#endif  /* HAVE_LINUX_SECCOMP_H */
+#endif  /* SECCOMP_USABLE */
 
 int
 main (int argc, char **argv)
@@ -1135,7 +1143,7 @@ main (int argc, char **argv)
   /* First, check whether we should apply a seccomp filter.  This
      should come at the very beginning to allow the filter to protect
      the initialization phase.  */
-#ifdef HAVE_LINUX_SECCOMP_H
+#if SECCOMP_USABLE
   maybe_load_seccomp (argc, argv);
 #endif
 
@@ -2333,7 +2341,7 @@ static const struct standard_args standard_args[] =
 #ifdef HAVE_PDUMPER
   { "-dump-file", "--dump-file", 1, 1 },
 #endif
-#ifdef HAVE_LINUX_SECCOMP_H
+#if SECCOMP_USABLE
   { "-seccomp", "--seccomp", 1, 1 },
 #endif
 #ifdef HAVE_NS
