@@ -531,6 +531,7 @@ Scoping Rules for Variable Bindings
 * Dynamic Binding Tips::    Avoiding problems with dynamic binding.
 * Lexical Binding::         A different type of local variable binding.
 * Using Lexical Binding::   How to enable lexical binding.
+* Converting to Lexical Binding:: Convert existing code to lexical binding.
 
 Buffer-Local Variables
 
