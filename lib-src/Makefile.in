@@ -189,10 +189,12 @@ LIB_WSOCK32=@LIB_WSOCK32@
 ## Extra libraries for etags
 LIBS_ETAGS = $(LIB_CLOCK_GETTIME) $(LIB_GETRANDOM)
 
-LIBSECCOMP=@LIBSECCOMP@
+HAVE_LIBSECCOMP=@HAVE_LIBSECCOMP@
+LIBSECCOMP_LIBS=@LIBSECCOMP_LIBS@
+LIBSECCOMP_CFLAGS=@LIBSECCOMP_CFLAGS@
 
 # Currently, we can only generate seccomp filter files for x86-64.
-ifneq ($(LIBSECCOMP),)
+ifeq ($(HAVE_LIBSECCOMP),yes)
 ifeq ($(shell uname -m),x86_64)
 SECCOMP_FILTER=1
 endif
@@ -419,7 +421,8 @@ emacsclient.res: ../nt/emacsclient.rc $(NTINC)/../icons/emacs.ico
 
 ifeq ($(SECCOMP_FILTER),1)
 seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
-	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $< $(LIBSECCOMP) -o $@
+	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(LIBSECCOMP_CFLAGS) $< \
+	  $(LIBSECCOMP_LIBS) -o $@
 
 seccomp-filter.bpf seccomp-filter.pfc: seccomp-filter$(EXEEXT)
 	$(AM_V_GEN)./seccomp-filter$(EXEEXT) \
