@@ -1987,46 +1987,68 @@ scale_image_size (int size, size_t divisor, size_t multiplier)
   return INT_MAX;
 }
 
+/* Return a size, in pixels, from the value specified by SYMBOL, which
+   may be an integer or a pair of the form (VALUE . 'em) where VALUE
+   is a float that is multiplied by the font size to get the final
+   dimension.
+
+   If the value doesn't exist in the image spec, or is invalid, return
+   -1.
+*/
+static int
+image_get_dimension (struct image *img, Lisp_Object symbol)
+{
+  Lisp_Object value = image_spec_value (img->spec, symbol, NULL);
+
+  if (FIXNATP (value))
+    return min (XFIXNAT (value), INT_MAX);
+  if (CONSP (value) && NUMBERP (CAR (value)) && EQ (Qem, CDR (value)))
+    return min (img->face_font_size * XFLOATINT (CAR (value)), INT_MAX);
+
+  return -1;
+}
+
 /* Compute the desired size of an image with native size WIDTH x HEIGHT.
    Use SPEC to deduce the size.  Store the desired size into
    *D_WIDTH x *D_HEIGHT.  Store -1 x -1 if the native size is OK.  */
 static void
 compute_image_size (size_t width, size_t height,
-		    Lisp_Object spec,
+		    struct image *img,
 		    int *d_width, int *d_height)
 {
   Lisp_Object value;
+  int int_value;
   int desired_width = -1, desired_height = -1, max_width = -1, max_height = -1;
   double scale = 1;
 
-  value = image_spec_value (spec, QCscale, NULL);
+  value = image_spec_value (img->spec, QCscale, NULL);
   if (NUMBERP (value))
     scale = XFLOATINT (value);
 
-  value = image_spec_value (spec, QCmax_width, NULL);
-  if (FIXNATP (value))
-    max_width = min (XFIXNAT (value), INT_MAX);
+  int_value = image_get_dimension (img, QCmax_width);
+  if (int_value >= 0)
+    max_width = int_value;
 
-  value = image_spec_value (spec, QCmax_height, NULL);
-  if (FIXNATP (value))
-    max_height = min (XFIXNAT (value), INT_MAX);
+  int_value = image_get_dimension (img, QCmax_height);
+  if (int_value >= 0)
+    max_height = int_value;
 
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  If either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
      aspect ratio.  */
-  value = image_spec_value (spec, QCwidth, NULL);
-  if (FIXNATP (value))
+  int_value = image_get_dimension (img, QCwidth);
+  if (int_value >= 0)
     {
-      desired_width = min (XFIXNAT (value) * scale, INT_MAX);
+      desired_width = int_value;
       /* :width overrides :max-width. */
       max_width = -1;
     }
 
-  value = image_spec_value (spec, QCheight, NULL);
-  if (FIXNATP (value))
+  int_value = image_get_dimension (img, QCheight);
+  if (int_value >= 0)
     {
-      desired_height = min (XFIXNAT (value) * scale, INT_MAX);
+      desired_height = int_value;
       /* :height overrides :max-height. */
       max_height = -1;
     }
@@ -2216,7 +2238,7 @@ image_set_transform (struct frame *f, struct image *img)
     }
   else
 #endif
-    compute_image_size (img->width, img->height, img->spec, &width, &height);
+    compute_image_size (img->width, img->height, img, &width, &height);
 
   /* Determine rotation.  */
   double rotation = 0.0;
@@ -9210,7 +9232,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   compute_image_size (MagickGetImageWidth (image_wand),
 		      MagickGetImageHeight (image_wand),
-		      img->spec, &desired_width, &desired_height);
+		      img, &desired_width, &desired_height);
 
   if (desired_width != -1 && desired_height != -1)
     {
@@ -10068,7 +10090,7 @@ svg_load_image (struct frame *f, struct image *img, char *contents,
     viewbox_height = dimension_data.height;
   }
 
-  compute_image_size (viewbox_width, viewbox_height, img->spec,
+  compute_image_size (viewbox_width, viewbox_height, img,
                       &width, &height);
 
   width *= FRAME_SCALE_FACTOR (f);
@@ -10776,6 +10798,8 @@ non-numeric, there is no explicit limit on the size of images.  */);
   DEFSYM (Qpostscript, "postscript");
   DEFSYM (QCmax_width, ":max-width");
   DEFSYM (QCmax_height, ":max-height");
+
+  DEFSYM (Qem, "em");
 
 #ifdef HAVE_NATIVE_TRANSFORMS
   DEFSYM (Qscale, "scale");

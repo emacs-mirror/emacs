@@ -5298,6 +5298,16 @@ where @var{props} is a property list of alternating keyword symbols
 and values, including at least the pair @code{:type @var{type}} that
 specifies the image type.
 
+  Image descriptors which define image dimensions, @code{:width},
+@code{:height}, @code{:max-width} and @code{:max-height}, may take
+either an integer, which represents the dimension in pixels, or a pair
+@code{(@var{value} . em)}, where @var{value} is the dimension's
+length in @dfn{ems}@footnote{In typography an em is a distance
+equivalent to the height of the type.  For example when using 12 point
+type 1 em is equal to 12 points.  Its use ensures distances and type
+remain proportional.}.  One em is equivalent to the height of the font
+and @var{value} may be an integer or a float.
+
   The following is a list of properties that are meaningful for all
 image types (there are also properties which are meaningful only for
 certain image types, as documented in the following subsections):
