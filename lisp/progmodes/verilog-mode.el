@@ -3607,7 +3607,7 @@ inserted using a single call to `verilog-insert'."
 ;; More searching
 
 (defun verilog-declaration-end ()
-  (search-forward ";"))
+  (search-forward ";" nil t))
 
 (defun verilog-single-declaration-end (limit)
   "Returns pos where current (single) declaration statement ends.
@@ -7555,25 +7555,25 @@ will be completed at runtime and should not be added to this list.")
 TYPE is `module', `tf' for task or function, or t if unknown."
   (if (string= verilog-str "")
       (setq verilog-str "[a-zA-Z_]"))
-  (let ((verilog-str (concat (cond
-                              ((eq type 'module) "\\<\\(module\\|connectmodule\\)\\s +")
-                              ((eq type 'tf) "\\<\\(task\\|function\\)\\s +")
-                              (t "\\<\\(task\\|function\\|module\\|connectmodule\\)\\s +"))
-                             "\\<\\(" verilog-str "[a-zA-Z0-9_.]*\\)\\>"))
+  (let ((verilog-str
+         (concat (cond
+                  ((eq type 'module) "\\<\\(module\\|connectmodule\\)\\s +")
+                  ((eq type 'tf) "\\<\\(task\\|function\\)\\s +")
+                  (t "\\<\\(task\\|function\\|module\\|connectmodule\\)\\s +"))
+                 "\\<\\(" verilog-str "[a-zA-Z0-9_.]*\\)\\>"))
 	match)
 
-    (if (not (looking-at verilog-defun-re))
-	(verilog-re-search-backward verilog-defun-re nil t))
-    (forward-char 1)
+    (save-excursion
+      (if (not (looking-at verilog-defun-re))
+	  (verilog-re-search-backward verilog-defun-re nil t))
+      (forward-char 1)
 
-    ;; Search through all reachable functions
-    (goto-char (point-min))
-    (while (verilog-re-search-forward verilog-str (point-max) t)
-      (progn (setq match (buffer-substring (match-beginning 2)
-					   (match-end 2)))
-             (setq verilog-all (cons match verilog-all))))
-    (if (match-beginning 0)
-	(goto-char (match-beginning 0)))))
+      ;; Search through all reachable functions
+      (goto-char (point-min))
+      (while (verilog-re-search-forward verilog-str (point-max) t)
+        (setq match (buffer-substring (match-beginning 2)
+				      (match-end 2)))
+        (setq verilog-all (cons match verilog-all))))))
 
 (defun verilog-get-completion-decl (end)
   "Macro for searching through current declaration (var, type or const)
