@@ -37,23 +37,19 @@ finish."
 (defcustom eshell-proc-load-hook nil
   "A hook that gets run when `eshell-proc' is loaded."
   :version "24.1"			; removed eshell-proc-initialize
-  :type 'hook
-  :group 'eshell-proc)
+  :type 'hook)
 
 (defcustom eshell-process-wait-seconds 0
   "The number of seconds to delay waiting for a synchronous process."
-  :type 'integer
-  :group 'eshell-proc)
+  :type 'integer)
 
 (defcustom eshell-process-wait-milliseconds 50
   "The number of milliseconds to delay waiting for a synchronous process."
-  :type 'integer
-  :group 'eshell-proc)
+  :type 'integer)
 
 (defcustom eshell-done-messages-in-minibuffer t
   "If non-nil, subjob \"Done\" messages will display in minibuffer."
-  :type 'boolean
-  :group 'eshell-proc)
+  :type 'boolean)
 
 (defcustom eshell-delete-exited-processes t
   "If nil, process entries will stick around until `jobs' is run.
@@ -72,14 +68,12 @@ subjob is done is that it will no longer appear in the
 
 Note that Eshell will have to be restarted for a change in this
 variable's value to take effect."
-  :type 'boolean
-  :group 'eshell-proc)
+  :type 'boolean)
 
 (defcustom eshell-reset-signals
   "^\\(interrupt\\|killed\\|quit\\|stopped\\)"
   "If a termination signal matches this regexp, the terminal will be reset."
-  :type 'regexp
-  :group 'eshell-proc)
+  :type 'regexp)
 
 (defcustom eshell-exec-hook nil
   "Called each time a process is exec'd by `eshell-gather-process-output'.
@@ -88,8 +82,7 @@ It is useful for things that must be done each time a process is
 executed in an eshell mode buffer (e.g., `set-process-query-on-exit-flag').
 In contrast, `eshell-mode-hook' is only executed once, when the buffer
 is created."
-  :type 'hook
-  :group 'eshell-proc)
+  :type 'hook)
 
 (defcustom eshell-kill-hook nil
   "Called when a process run by `eshell-gather-process-output' has ended.
@@ -99,8 +92,7 @@ nil, in which case the user attempted to send a signal, but there was
 no relevant process.  This can be used for displaying help
 information, for example."
   :version "24.1"			; removed eshell-reset-after-proc
-  :type 'hook
-  :group 'eshell-proc)
+  :type 'hook)
 
 ;;; Internal Variables:
 
@@ -126,8 +118,7 @@ information, for example."
 Runs `eshell-reset-after-proc' and `eshell-kill-hook', passing arguments
 PROC and STATUS to functions on the latter."
   ;; Was there till 24.1, but it is not optional.
-  (if (memq #'eshell-reset-after-proc eshell-kill-hook)
-      (setq eshell-kill-hook (delq #'eshell-reset-after-proc eshell-kill-hook)))
+  (remove-hook 'eshell-kill-hook #'eshell-reset-after-proc)
   (eshell-reset-after-proc status)
   (run-hook-with-args 'eshell-kill-hook proc status))
 
@@ -165,7 +156,7 @@ The signals which will cause this to happen are matched by
 		   eshell-process-wait-milliseconds))))
     (setq procs (cdr procs))))
 
-(defalias 'eshell/wait 'eshell-wait-for-process)
+(defalias 'eshell/wait #'eshell-wait-for-process)
 
 (defun eshell/jobs (&rest _args)
   "List processes, if there are any."
@@ -457,8 +448,7 @@ If QUERY is non-nil, query the user with QUERY before calling FUNC."
 
 (defcustom eshell-kill-process-wait-time 5
   "Seconds to wait between sending termination signals to a subprocess."
-  :type 'integer
-  :group 'eshell-proc)
+  :type 'integer)
 
 (defcustom eshell-kill-process-signals '(SIGINT SIGQUIT SIGKILL)
   "Signals used to kill processes when an Eshell buffer exits.
@@ -466,8 +456,7 @@ Eshell calls each of these signals in order when an Eshell buffer is
 killed; if the process is still alive afterwards, Eshell waits a
 number of seconds defined by `eshell-kill-process-wait-time', and
 tries the next signal in the list."
-  :type '(repeat symbol)
-  :group 'eshell-proc)
+  :type '(repeat symbol))
 
 (defcustom eshell-kill-processes-on-exit nil
   "If non-nil, kill active processes when exiting an Eshell buffer.
@@ -489,8 +478,7 @@ long to delay between signals."
   :type '(choice (const :tag "Kill all, don't ask" t)
 		 (const :tag "Ask before killing" ask)
 		 (const :tag "Ask for each process" every)
-		 (const :tag "Don't kill subprocesses" nil))
-  :group 'eshell-proc)
+		 (const :tag "Don't kill subprocesses" nil)))
 
 (defun eshell-round-robin-kill (&optional query)
   "Kill current process by trying various signals in sequence.
