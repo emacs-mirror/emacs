@@ -607,7 +607,7 @@ This sets `buffer-save-without-query' so that `save-some-buffers' will
 save the notes buffer without asking.
 
 \\{remember-notes-mode-map}"
-  nil nil nil
+  :lighter nil
   (cond
    (remember-notes-mode
     (add-hook 'kill-buffer-query-functions

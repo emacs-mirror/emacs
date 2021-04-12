@@ -402,7 +402,7 @@ format.  See `ibuffer-update-saved-filters-format' and
 ;;;###autoload
 (define-minor-mode ibuffer-auto-mode
   "Toggle use of Ibuffer's auto-update facility (Ibuffer Auto mode)."
-  nil nil nil
+  :lighter nil
   (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))
   (cond (ibuffer-auto-mode

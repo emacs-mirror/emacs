@@ -108,7 +108,7 @@ ARG is like in `end-of-buffer'."
 
 When Scroll-All mode is enabled, scrolling commands invoked in
 one window apply to all visible windows in the same frame."
-  nil " *SL*" nil
+  :lighter " *SL*"
   :global t
   :group 'windows
   (if scroll-all-mode

@@ -314,8 +314,6 @@ but before calling PC Selection mode):
   C-BACKSPACE  backward-kill-word
   M-BACKSPACE  undo"
   ;; FIXME: bring pc-bindings-mode here ?
-  nil nil nil
-
   :global t
 
   (if pc-selection-mode

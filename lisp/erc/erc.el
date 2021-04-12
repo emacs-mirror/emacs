@@ -1289,7 +1289,6 @@ With a prefix argument ARG, enable %s if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 %s" name name doc)
-        nil nil nil
         ;; FIXME: We don't know if this group exists, so this `:group' may
         ;; actually just silence a valid warning about the fact that the var
         ;; is not associated with any group.

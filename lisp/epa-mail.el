@@ -59,7 +59,7 @@ Otherwise, signal an error."
 ;;;###autoload
 (define-minor-mode epa-mail-mode
   "A minor-mode for composing encrypted/clearsigned mails."
-  nil " epa-mail" epa-mail-mode-map)
+  :lighter " epa-mail")
 
 ;;; Utilities
 

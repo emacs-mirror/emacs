@@ -464,9 +464,6 @@ ERC Track minor mode is a global minor mode.  It exists for the
 sole purpose of providing the C-c C-SPC and C-c C-@ keybindings.
 Make sure that you have enabled the track module, otherwise the
 keybindings will not do anything useful."
-  :init-value nil
-  :lighter ""
-  :keymap erc-track-minor-mode-map
   :global t)
 
 (defun erc-track-minor-mode-maybe (&optional buffer)

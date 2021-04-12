@@ -751,7 +751,7 @@ into the tar-file buffer that it came from.  The changes will
 actually appear on disk when you save the tar-file's buffer."
   ;; Don't do this, because it is redundant and wastes mode line space.
   ;; :lighter " TarFile"
-  nil nil nil
+  :lighter nil
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
       (error "This buffer is not an element of a tar file"))
   (cond (tar-subfile-mode
