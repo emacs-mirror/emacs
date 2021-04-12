@@ -12,6 +12,9 @@
 ;; file on 18/3/2008, and the maintainer agreed that when a bug is
 ;; filed in the Emacs bug reporting system against this file, a copy
 ;; of the bug report be sent to the maintainer's email address.
+;;
+;; Reto also said in Apr 2021 that he preferred to keep the XEmacs
+;; compatibility code.
 
 (defconst vhdl-version "3.38.1"
   "VHDL Mode version number.")
