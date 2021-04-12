@@ -51,6 +51,8 @@ variants of those files that can be used to sandbox Emacs before
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <linux/futex.h>
+#include <linux/filter.h>
+#include <linux/seccomp.h>
 #include <fcntl.h>
 #include <sched.h>
 #include <seccomp.h>
