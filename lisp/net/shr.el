@@ -183,8 +183,10 @@ temporarily blinks with this face."
   "Face for <abbr> elements."
   :version "27.1")
 
-(defvar shr-inhibit-images nil
-  "If non-nil, inhibit loading images.")
+(defcustom shr-inhibit-images nil
+  "If non-nil, inhibit loading images."
+  :version "28.1"
+  :type 'boolean)
 
 (defvar shr-external-rendering-functions nil
   "Alist of tag/function pairs used to alter how shr renders certain tags.
