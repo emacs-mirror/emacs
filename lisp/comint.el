@@ -2254,23 +2254,23 @@ This function could be on `comint-output-filter-functions' or bound to a key."
     (let ((inhibit-read-only t))
       (delete-region (point-min) (point)))))
 
-(defun comint-strip-ctrl-m (&optional _string)
+(defun comint-strip-ctrl-m (&optional _string interactive)
   "Strip trailing `^M' characters from the current output group.
 This function could be on `comint-output-filter-functions' or bound to a key."
-  (interactive)
+  (interactive (list nil t))
   (let ((process (get-buffer-process (current-buffer))))
     (if (not process)
         ;; This function may be used in
         ;; `comint-output-filter-functions', and in that case, if
         ;; there's no process, then we should do nothing.  If
         ;; interactive, report an error.
-        (when (called-interactively-p 'interactive)
+        (when interactive
           (error "No process in the current buffer"))
       (let ((pmark (process-mark process)))
         (save-excursion
           (condition-case nil
 	      (goto-char
-	       (if (called-interactively-p 'interactive)
+	       (if interactive
 	           comint-last-input-end comint-last-output-start))
 	    (error nil))
           (while (re-search-forward "\r+$" pmark t)
