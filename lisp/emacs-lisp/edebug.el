@@ -4116,12 +4116,12 @@ This should be a list of `edebug---frame' objects.")
   "Stack frames of the current Edebug Backtrace buffer with instrumentation.
 This should be a list of `edebug---frame' objects.")
 
-;; Data structure for backtrace frames with information
-;; from Edebug instrumentation found in the backtrace.
 (cl-defstruct
     (edebug--frame
      (:constructor edebug--make-frame)
      (:include backtrace-frame))
+  "Data structure for backtrace frames with information
+from Edebug instrumentation found in the backtrace."
   def-name before-index after-index)
 
 (defun edebug-pop-to-backtrace ()
