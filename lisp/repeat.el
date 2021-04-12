@@ -348,6 +348,17 @@ For example, you can set it to <return> like `isearch-exit'."
   :group 'convenience
   :version "28.1")
 
+(defcustom repeat-mode-echo #'repeat-mode-message
+  "Function to display a hint about available keys.
+Function is called after every repeatable command with one argument:
+a string with a list of keys."
+  :type '(choice (const :tag "Show hints in the echo area"
+                        repeat-mode-message)
+                 (const :tag "Don't show hints" ignore)
+                 (function :tag "Function"))
+  :group 'convenience
+  :version "28.1")
+
 ;;;###autoload
 (defvar repeat-map nil
   "The value of the repeating map for the next command.
@@ -377,8 +388,8 @@ When Repeat mode is enabled, and the command symbol has the property named
   "Function run after commands to set transient keymap for repeatable keys."
   (when repeat-mode
     (let ((rep-map (or repeat-map
-                       (and (symbolp this-command)
-                            (get this-command 'repeat-map)))))
+                       (and (symbolp real-this-command)
+                            (get real-this-command 'repeat-map)))))
       (when rep-map
         (when (boundp rep-map)
           (setq rep-map (symbol-value rep-map)))
@@ -403,9 +414,7 @@ When Repeat mode is enabled, and the command symbol has the property named
                                (format ", or exit with %s"
                                        (key-description repeat-exit-key))
                              ""))))
-                (if (current-message)
-                    (message "%s [%s]" (current-message) mess)
-                  (message mess))))
+                (funcall repeat-mode-echo mess)))
 
             ;; Adding an exit key
             (when repeat-exit-key
@@ -416,6 +425,12 @@ When Repeat mode is enabled, and the command symbol has the property named
 
             (set-transient-map map))))))
   (setq repeat-map nil))
+
+(defun repeat-mode-message (mess)
+  "Function that displays available repeating keys in the echo area."
+  (if (current-message)
+      (message "%s [%s]" (current-message) mess)
+    (message mess)))
 
 (provide 'repeat)
 
