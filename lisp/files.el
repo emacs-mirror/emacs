@@ -7633,6 +7633,9 @@ If CHAR is in [Xugo], the value is taken from FROM (or 0 if omitted)."
 	;; Rights relative to the previous file modes.
 	((= char ?X) (if (= (logand from #o111) 0) 0 #o0111))
 	((= char ?u) (let ((uright (logand #o4700 from)))
+		       ;; FIXME: These divisions/shifts seem to be right
+                       ;; for the `7' part of the #o4700 mask, but not
+                       ;; for the `4' part.  Same below for `g' and `o'.
 		       (+ uright (/ uright #o10) (/ uright #o100))))
 	((= char ?g) (let ((gright (logand #o2070 from)))
 		       (+ gright (/ gright #o10) (* gright #o10))))
@@ -7667,11 +7670,28 @@ as in \"og+rX-w\"."
 	      op char-right)))
     num-rights))
 
-(defun file-modes-number-to-symbolic (mode)
+(defun file-modes-number-to-symbolic (mode &optional filetype)
+  "Return a string describing a a file's MODE.
+For instance, if MODE is #o700, then it produces `-rwx------'.
+FILETYPE if provided should be a character denoting the type of file,
+such as `?d' for a directory, or `?l' for a symbolic link and will override
+the leading `-' char."
   (string
-   (if (zerop (logand  8192 mode))
-       (if (zerop (logand 16384 mode)) ?- ?d)
-     ?c) ; completeness
+   (or filetype
+       (pcase (lsh mode -12)
+         ;; POSIX specifies that the file type is included in st_mode
+         ;; and provides names for the file types but values only for
+         ;; the permissions (e.g., S_IWOTH=2).
+
+         ;; (#o017 ??) ;; #define S_IFMT  00170000
+         (#o014 ?s)    ;; #define S_IFSOCK 0140000
+         (#o012 ?l)    ;; #define S_IFLNK  0120000
+         ;; (8  ??)    ;; #define S_IFREG  0100000
+         (#o006  ?b)   ;; #define S_IFBLK  0060000
+         (#o004  ?d)   ;; #define S_IFDIR  0040000
+         (#o002  ?c)   ;; #define S_IFCHR  0020000
+         (#o001  ?p)   ;; #define S_IFIFO  0010000
+         (_ ?-)))
    (if (zerop (logand   256 mode)) ?- ?r)
    (if (zerop (logand   128 mode)) ?- ?w)
    (if (zerop (logand    64 mode))

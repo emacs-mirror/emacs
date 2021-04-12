@@ -474,6 +474,7 @@ checksum before doing the check."
   "Construct a `rw-r--r--' string indicating MODE.
 MODE should be an integer which is a file mode value.
 For instance, if mode is #o700, then it produces `rwx------'."
+  (declare (obsolete file-modes-number-to-symbolic "28.1"))
   (substring (file-modes-number-to-symbolic mode) 1))
 
 (defun tar-header-block-summarize (tar-hblock &optional mod-p)
@@ -489,25 +490,26 @@ For instance, if mode is #o700, then it produces `rwx------'."
 	;; (ck (tar-header-checksum tar-hblock))
 	(type (tar-header-link-type tar-hblock))
 	(link-name (tar-header-link-name tar-hblock)))
-    (format "%c%c%s %7s/%-7s %7s%s %s%s"
+    (format "%c%s %7s/%-7s %7s%s %s%s"
 	    (if mod-p ?* ? )
-	    (cond ((or (eq type nil) (eq type 0)) ?-)
-		  ((eq type 1) ?h)	; link
-		  ((eq type 2) ?l)	; symlink
-		  ((eq type 3) ?c)	; char special
-		  ((eq type 4) ?b)	; block special
-		  ((eq type 5) ?d)	; directory
-		  ((eq type 6) ?p)	; FIFO/pipe
-		  ((eq type 20) ?*)	; directory listing
-		  ((eq type 28) ?L)	; next has longname
-		  ((eq type 29) ?M)	; multivolume continuation
-		  ((eq type 35) ?S)	; sparse
-		  ((eq type 38) ?V)	; volume header
-		  ((eq type 55) ?H)	; pax global extended header
-		  ((eq type 72) ?X)	; pax extended header
-		  (t ?\s)
-		  )
-	    (tar-grind-file-mode mode)
+	    (file-modes-number-to-symbolic
+	     mode
+	     (cond ((or (eq type nil) (eq type 0)) ?-)
+		   ((eq type 1) ?h)	; link
+		   ((eq type 2) ?l)	; symlink
+		   ((eq type 3) ?c)	; char special
+		   ((eq type 4) ?b)	; block special
+		   ((eq type 5) ?d)	; directory
+		   ((eq type 6) ?p)	; FIFO/pipe
+		   ((eq type 20) ?*)	; directory listing
+		   ((eq type 28) ?L)	; next has longname
+		   ((eq type 29) ?M)	; multivolume continuation
+		   ((eq type 35) ?S)	; sparse
+		   ((eq type 38) ?V)	; volume header
+		   ((eq type 55) ?H)	; pax global extended header
+		   ((eq type 72) ?X)	; pax extended header
+		   (t ?\s)
+		   ))
 	    (if (= 0 (length uname)) uid uname)
 	    (if (= 0 (length gname)) gid gname)
 	    size
