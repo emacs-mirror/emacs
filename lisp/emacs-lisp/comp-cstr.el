@@ -186,12 +186,14 @@ Return them as multiple value."
 ;;; Value handling.
 
 (defun comp-normalize-valset (valset)
-  "Sort VALSET and return it."
-  (cl-sort valset (lambda (x y)
-                    ;; We might want to use `sxhash-eql' for speed but
-                    ;; this is safer to keep tests stable.
-                    (< (sxhash-equal x)
-                       (sxhash-equal y)))))
+  "Sort and remove duplicates from VALSET then return it."
+  (cl-remove-duplicates
+   (cl-sort valset (lambda (x y)
+                     ;; We might want to use `sxhash-eql' for speed but
+                     ;; this is safer to keep tests stable.
+                     (< (sxhash-equal x)
+			(sxhash-equal y))))
+   :test #'eq))
 
 (defun comp-union-valsets (&rest valsets)
   "Union values present into VALSETS."
