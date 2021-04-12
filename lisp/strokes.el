@@ -1393,7 +1393,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 \\[strokes-decode-buffer].
 
 \\{strokes-mode-map}"
-  :ligher strokes-lighter :global t
+  :lighter strokes-lighter :global t
   (cond ((not (display-mouse-p))
 	 (error "Can't use Strokes without a mouse"))
 	(strokes-mode			; turn on strokes
