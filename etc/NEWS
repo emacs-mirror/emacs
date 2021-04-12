@@ -276,6 +276,9 @@ input using the minibuffer.
 * Editing Changes in Emacs 28.1
 
 +++
+** A prefix arg now causes 'delete-other-frames' to only iconify frames
+
++++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
 'execute-extended-command', but limits the set of commands to the

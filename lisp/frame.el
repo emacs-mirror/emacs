@@ -301,7 +301,7 @@ This function runs the abnormal hook `move-frame-functions'."
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
 (declare-function tool-bar-height "xdisp.c" (&optional frame pixelwise))
 
-(defalias 'tool-bar-lines-needed 'tool-bar-height)
+(defalias 'tool-bar-lines-needed #'tool-bar-height)
 
 ;; startup.el calls this function after loading the user's init
 ;; file.  Now default-frame-alist and initial-frame-alist contain
@@ -690,8 +690,8 @@ is not considered (see `next-frame')."
 				  0))
   (select-frame-set-input-focus (selected-frame)))
 
-(defalias 'next-multiframe-window 'next-window-any-frame)
-(defalias 'previous-multiframe-window 'previous-window-any-frame)
+(defalias 'next-multiframe-window #'next-window-any-frame)
+(defalias 'previous-multiframe-window #'previous-window-any-frame)
 
 (defun window-system-for-display (display)
   "Return the window system for DISPLAY.
@@ -782,7 +782,7 @@ If DISPLAY is nil, that stands for the selected frame's display."
                                 (format "Delete %s frames? " (length frames))
                               (format "Delete %s ? " (car frames))))))
         (error "Abort!")
-      (mapc 'delete-frame frames)
+      (mapc #'delete-frame frames)
       (x-close-connection display))))
 
 (defun make-frame-command ()
@@ -1162,8 +1162,8 @@ e.g. (mapc \\='frame-set-background-mode (frame-list))."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
-	   (mapc 'frame-set-background-mode (frame-list)))
-  :initialize 'custom-initialize-changed
+	   (mapc #'frame-set-background-mode (frame-list)))
+  :initialize #'custom-initialize-changed
   :type '(choice (const dark)
 		 (const light)
 		 (const :tag "automatic" nil)))
@@ -1176,6 +1176,27 @@ e.g. (mapc \\='frame-set-background-mode (frame-list))."
 
 (defvar inhibit-frame-set-background-mode nil)
 
+(defun frame--current-backround-mode (frame)
+  (let* ((frame-default-bg-mode (frame-terminal-default-bg-mode frame))
+         (bg-color (frame-parameter frame 'background-color))
+         (tty-type (tty-type frame))
+         (default-bg-mode
+	   (if (or (window-system frame)
+		   (and tty-type
+			(string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+				      tty-type)))
+	       'light
+	     'dark)))
+    (cond (frame-default-bg-mode)
+	  ((equal bg-color "unspecified-fg") ; inverted colors
+	   (if (eq default-bg-mode 'light) 'dark 'light))
+	  ((not (color-values bg-color frame))
+	   default-bg-mode)
+	  ((color-dark-p (mapcar (lambda (c) (/ c 65535.0))
+	                         (color-values bg-color frame)))
+	   'dark)
+	  (t 'light))))
+
 (defun frame-set-background-mode (frame &optional keep-face-specs)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
@@ -1184,30 +1205,8 @@ according to the `background-mode' and `display-type' frame parameters.
 If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
 face specs for the new background mode."
   (unless inhibit-frame-set-background-mode
-    (let* ((frame-default-bg-mode (frame-terminal-default-bg-mode frame))
-	   (bg-color (frame-parameter frame 'background-color))
-	   (tty-type (tty-type frame))
-	   (default-bg-mode
-	     (if (or (window-system frame)
-		     (and tty-type
-			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-					tty-type)))
-		 'light
-	       'dark))
-	   (non-default-bg-mode (if (eq default-bg-mode 'light) 'dark 'light))
-	   (bg-mode
-	    (cond (frame-default-bg-mode)
-		  ((equal bg-color "unspecified-fg") ; inverted colors
-		   non-default-bg-mode)
-		  ((not (color-values bg-color frame))
-		   default-bg-mode)
-		  ((>= (apply '+ (color-values bg-color frame))
-		       ;; Just looking at the screen, colors whose
-		       ;; values add up to .6 of the white total
-		       ;; still look dark to me.
-		       (* (apply '+ (color-values "white" frame)) .6))
-		   'light)
-		  (t 'dark)))
+    (let* ((bg-mode
+	    (frame--current-backround-mode frame))
 	   (display-type
 	    (cond ((null (window-system frame))
 		   (if (tty-display-color-p frame) 'color 'mono))
@@ -1272,6 +1271,26 @@ the `background-mode' terminal parameter."
 	(if bg-resource
 	    (intern (downcase bg-resource))))
       (terminal-parameter frame 'background-mode)))
+
+;; FIXME: This needs to be significantly improved before we can use it:
+;; - Fix the "scope" to be consistent: the code below is partly per-frame
+;;   and partly all-frames :-(
+;; - Make it interact correctly with color themes (e.g. modus-themes).
+;;   Maybe automatically disabling color themes that disagree with the
+;;   selected value of `dark-mode'.
+;; - Check interaction with "(in|re)verse-video".
+;;
+;; (define-minor-mode dark-mode
+;;   "Use light text on dark background."
+;;   :global t
+;;   :group 'faces
+;;   (when (eq dark-mode
+;;             (eq 'light (frame--current-backround-mode (selected-frame))))
+;;     ;; FIXME: Change the face's SPEC instead?
+;;     (set-face-attribute 'default nil
+;;                         :foreground (face-attribute 'default :background)
+;;                         :background (face-attribute 'default :foreground))
+;;     (frame-set-background-mode (selected-frame))))
 
 
 ;;;; Frame configurations
@@ -1357,9 +1376,9 @@ differing font heights."
 If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
 
-(defalias 'frame-border-width 'frame-internal-border-width)
-(defalias 'frame-pixel-width 'frame-native-width)
-(defalias 'frame-pixel-height 'frame-native-height)
+(defalias 'frame-border-width #'frame-internal-border-width)
+(defalias 'frame-pixel-width #'frame-native-width)
+(defalias 'frame-pixel-height #'frame-native-height)
 
 (defun frame-inner-width (&optional frame)
   "Return inner width of FRAME in pixels.
@@ -1991,9 +2010,9 @@ frame's display)."
        (fboundp 'image-mask-p)
        (fboundp 'image-size)))
 
-(defalias 'display-blink-cursor-p 'display-graphic-p)
-(defalias 'display-multi-frame-p 'display-graphic-p)
-(defalias 'display-multi-font-p 'display-graphic-p)
+(defalias 'display-blink-cursor-p #'display-graphic-p)
+(defalias 'display-multi-frame-p #'display-graphic-p)
+(defalias 'display-multi-font-p #'display-graphic-p)
 
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
@@ -2340,13 +2359,15 @@ In the 3rd, 4th, and 6th examples, the returned value is relative to
 the opposite frame edge from the edge indicated in the input spec."
   (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec) frame)))
 
-(defun delete-other-frames (&optional frame)
+(defun delete-other-frames (&optional frame iconify)
   "Delete all frames on FRAME's terminal, except FRAME.
 If FRAME uses another frame's minibuffer, the minibuffer frame is
 left untouched.  Do not delete any of FRAME's child frames.  If
 FRAME is a child frame, delete its siblings only.  FRAME must be
-a live frame and defaults to the selected one."
-  (interactive)
+a live frame and defaults to the selected one.
+If the prefix arg ICONIFY is non-nil, just iconify the frames rather than
+deleting them."
+  (interactive "i\nP")
   (setq frame (window-normalize-frame frame))
   (let ((minibuffer-frame (window-frame (minibuffer-window frame)))
         (this (next-frame frame t))
@@ -2361,7 +2382,7 @@ a live frame and defaults to the selected one."
                   (and parent (not (eq (frame-parent this) parent)))
                   ;; Do not delete a child frame of FRAME.
                   (eq (frame-parent this) frame))
-        (delete-frame this))
+        (if iconify (iconify-frame this) (delete-frame this)))
       (setq this next))
     ;; In a second round consider all remaining frames.
     (setq this (next-frame frame t))
@@ -2373,7 +2394,7 @@ a live frame and defaults to the selected one."
                   (and parent (not (eq (frame-parent this) parent)))
                   ;; Do not delete a child frame of FRAME.
                   (eq (frame-parent this) frame))
-        (delete-frame this))
+        (if iconify (iconify-frame this) (delete-frame this)))
       (setq this next))))
 
 
@@ -2399,7 +2420,7 @@ parameters `bottom-divider-width' and `right-divider-width'."
   :type '(choice (const :tag "Bottom only" bottom-only)
 		 (const :tag "Right only" right-only)
 		 (const :tag "Bottom and right" t))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
          (when window-divider-mode
@@ -2420,7 +2441,7 @@ parameter `bottom-divider-width'."
   :type '(restricted-sexp
           :tag "Default width of bottom dividers"
           :match-alternatives (window-divider-width-valid-p))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
          (when window-divider-mode
@@ -2437,7 +2458,7 @@ parameter `right-divider-width'."
   :type '(restricted-sexp
           :tag "Default width of right dividers"
           :match-alternatives (window-divider-width-valid-p))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
          (when window-divider-mode
@@ -2714,14 +2735,14 @@ See also `toggle-frame-maximized'."
 
 ;;;; Key bindings
 
-(define-key ctl-x-5-map "2" 'make-frame-command)
-(define-key ctl-x-5-map "1" 'delete-other-frames)
-(define-key ctl-x-5-map "0" 'delete-frame)
-(define-key ctl-x-5-map "o" 'other-frame)
-(define-key ctl-x-5-map "5" 'other-frame-prefix)
-(define-key global-map [f11] 'toggle-frame-fullscreen)
-(define-key global-map [(meta f10)] 'toggle-frame-maximized)
-(define-key esc-map    [f10]        'toggle-frame-maximized)
+(define-key ctl-x-5-map "2" #'make-frame-command)
+(define-key ctl-x-5-map "1" #'delete-other-frames)
+(define-key ctl-x-5-map "0" #'delete-frame)
+(define-key ctl-x-5-map "o" #'other-frame)
+(define-key ctl-x-5-map "5" #'other-frame-prefix)
+(define-key global-map [f11] #'toggle-frame-fullscreen)
+(define-key global-map [(meta f10)] #'toggle-frame-maximized)
+(define-key esc-map    [f10]        #'toggle-frame-maximized)
 
 
 ;; Misc.
