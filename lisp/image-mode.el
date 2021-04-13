@@ -713,8 +713,7 @@ Key bindings:
 Image minor mode provides the key \\<image-mode-map>\\[image-toggle-display],
 to switch back to `image-mode' and display an image file as the
 actual image."
-  nil (:eval (if image-type (format " Image[%s]" image-type) " Image"))
-  image-minor-mode-map
+  :lighter (:eval (if image-type (format " Image[%s]" image-type) " Image"))
   :group 'image
   :version "22.1"
   (if image-minor-mode

@@ -1289,7 +1289,6 @@ With a prefix argument ARG, enable %s if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 %s" name name doc)
-        nil nil nil
         ;; FIXME: We don't know if this group exists, so this `:group' may
         ;; actually just silence a valid warning about the fact that the var
         ;; is not associated with any group.
@@ -2321,7 +2320,7 @@ If ARG is non-nil, show the *erc-protocol* buffer."
         (use-local-map (make-sparse-keymap))
         (local-set-key (kbd "t") 'erc-toggle-debug-irc-protocol))
       (add-hook 'kill-buffer-hook
-                #'(lambda () (setq erc-debug-irc-protocol nil))
+                (lambda () (setq erc-debug-irc-protocol nil))
                 nil 'local)
       (goto-char (point-max))
       (let ((inhibit-read-only t))
@@ -2945,9 +2944,9 @@ If no USER argument is specified, list the contents of `erc-ignore-list'."
     (if (null (erc-with-server-buffer erc-ignore-list))
         (erc-display-line (erc-make-notice "Ignore list is empty") 'active)
       (erc-display-line (erc-make-notice "Ignore list:") 'active)
-      (mapc #'(lambda (item)
-                (erc-display-line (erc-make-notice item)
-                                  'active))
+      (mapc (lambda (item)
+              (erc-display-line (erc-make-notice item)
+                             'active))
             (erc-with-server-buffer erc-ignore-list))))
   t)
 
@@ -3129,8 +3128,8 @@ were most recently invited.  See also `invitation'."
     (when chnl
       ;; Prevent double joining of same channel on same server.
       (let* ((joined-channels
-              (mapcar #'(lambda (chanbuf)
-                          (with-current-buffer chanbuf (erc-default-target)))
+              (mapcar (lambda (chanbuf)
+                        (with-current-buffer chanbuf (erc-default-target)))
                       (erc-channel-list erc-server-process)))
              (server (with-current-buffer (process-buffer erc-server-process)
 		       (or erc-session-server erc-server-announced-name)))
@@ -4149,9 +4148,9 @@ Displays PROC and PARSED appropriately using `erc-display-message'."
    (mapconcat
     #'identity
     (let (res)
-      (mapc #'(lambda (x)
-                (if (stringp x)
-                    (setq res (append res (list x)))))
+      (mapc (lambda (x)
+              (if (stringp x)
+                  (setq res (append res (list x)))))
             parsed)
       res)
     " ")))
@@ -4539,10 +4538,10 @@ See also: `erc-echo-notice-in-user-buffers',
                  ;; Remove the unbanned masks from the ban list
                  (setq erc-channel-banlist
                        (cl-delete-if
-                        #'(lambda (y)
-                            (member (upcase (cdr y))
-                                    (mapcar #'upcase
-                                            (cdr (split-string mode)))))
+                        (lambda (y)
+                          (member (upcase (cdr y))
+                                  (mapcar #'upcase
+                                          (cdr (split-string mode)))))
                         erc-channel-banlist)))
                 ((string-match "^\\+" mode)
                  ;; Add the banned mask(s) to the ban list

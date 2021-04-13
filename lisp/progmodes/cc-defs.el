@@ -1,4 +1,4 @@
-;;; cc-defs.el --- compile time definitions for CC Mode
+;;; cc-defs.el --- compile time definitions for CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 

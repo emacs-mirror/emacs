@@ -286,6 +286,8 @@ $(test_module): $(test_module:${SO}=.c) ../src/emacs-module.h
 	  $(srcdir)/../lib/timespec.c $(srcdir)/../lib/gettime.c
 endif
 
+src/emacs-tests.log: ../lib-src/seccomp-filter.c
+
 ## Check that there is no 'automated' subdirectory, which would
 ## indicate an incomplete merge from an older version of Emacs where
 ## the tests were arranged differently.

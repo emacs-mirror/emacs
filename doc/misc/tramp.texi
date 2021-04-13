@@ -5067,6 +5067,33 @@ remote files}.
 
 
 @item
+How to prevent @value{tramp} from clearing the @code{recentf-list}?
+
+When @value{tramp} cleans a connection, it removes the respective
+remote file name(s) from @code{recentf-list}.  This is needed, because
+an unresponsive remote host could trigger @code{recentf} to connect
+that host again and again.
+
+If you find the cleanup disturbing, because the file names in
+@code{recentf-list} are precious to you, you could add the following
+two forms in your @file{~/.emacs} after loading the @code{tramp} and
+@code{recentf} packages:
+
+@lisp
+@group
+(remove-hook
+ 'tramp-cleanup-connection-hook
+ #'tramp-recentf-cleanup)
+@end group
+@group
+(remove-hook
+ 'tramp-cleanup-all-connections-hook
+ #'tramp-recentf-cleanup-all)
+@end group
+@end lisp
+
+
+@item
 I get a warning @samp{Tramp has been compiled with Emacs a.b, this is Emacs c.d}
 
 @value{tramp} comes with compatibility code for different Emacs

@@ -1242,7 +1242,7 @@ bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-c
 checking of documentation strings.
 
 \\{checkdoc-minor-mode-map}"
-  nil checkdoc-minor-mode-string nil
+  :lighter checkdoc-minor-mode-string
   :group 'checkdoc)
 
 ;;; Subst utils

@@ -342,6 +342,29 @@ For example, you can set it to <return> like `isearch-exit'."
   :group 'convenience
   :version "28.1")
 
+(defcustom repeat-keep-prefix t
+  "Keep the prefix arg of the previous command."
+  :type 'boolean
+  :group 'convenience
+  :version "28.1")
+
+(defcustom repeat-mode-echo #'repeat-mode-message
+  "Function to display a hint about available keys.
+Function is called after every repeatable command with one argument:
+a string with a list of keys."
+  :type '(choice (const :tag "Show hints in the echo area"
+                        repeat-mode-message)
+                 (const :tag "Don't show hints" ignore)
+                 (function :tag "Function"))
+  :group 'convenience
+  :version "28.1")
+
+;;;###autoload
+(defvar repeat-map nil
+  "The value of the repeating map for the next command.
+A command called from the map can set it again to the same map when
+the map can't be set on the command symbol property `repeat-map'.")
+
 ;;;###autoload
 (define-minor-mode repeat-mode
   "Toggle Repeat mode.
@@ -364,41 +387,50 @@ When Repeat mode is enabled, and the command symbol has the property named
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
   (when repeat-mode
-    (let ((repeat-map (and (symbolp this-command)
-                           (get this-command 'repeat-map))))
-      (when repeat-map
-        (when (boundp repeat-map)
-          (setq repeat-map (symbol-value repeat-map)))
-        (let ((map (copy-keymap repeat-map))
-              keys mess)
-          (map-keymap (lambda (key _) (push key keys)) map)
+    (let ((rep-map (or repeat-map
+                       (and (symbolp real-this-command)
+                            (get real-this-command 'repeat-map)))))
+      (when rep-map
+        (when (boundp rep-map)
+          (setq rep-map (symbol-value rep-map)))
+        (let ((map (copy-keymap rep-map))
+              keys)
 
           ;; Exit when the last char is not among repeatable keys,
           ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
-          (when (or (memq last-command-event keys)
-                    (memq this-original-command '(universal-argument
-                                                  universal-argument-more
-				                  digit-argument
-                                                  negative-argument)))
+          (when (and (zerop (minibuffer-depth)) ; avoid remapping in prompts
+                     (or (lookup-key map (this-command-keys-vector))
+                         prefix-arg))
+
             ;; Messaging
-            (setq mess (format-message
-                        "Repeat with %s%s"
-                        (mapconcat (lambda (key)
-                                     (key-description (vector key)))
-                                   keys ", ")
-                        (if repeat-exit-key
-                            (format ", or exit with %s"
-                                    (key-description repeat-exit-key))
-                          "")))
-            (if (current-message)
-                (message "%s [%s]" (current-message) mess)
-              (message mess))
+            (unless prefix-arg
+              (map-keymap (lambda (key _) (push key keys)) map)
+              (let ((mess (format-message
+                           "Repeat with %s%s"
+                           (mapconcat (lambda (key)
+                                        (key-description (vector key)))
+                                      keys ", ")
+                           (if repeat-exit-key
+                               (format ", or exit with %s"
+                                       (key-description repeat-exit-key))
+                             ""))))
+                (funcall repeat-mode-echo mess)))
 
             ;; Adding an exit key
             (when repeat-exit-key
               (define-key map repeat-exit-key 'ignore))
 
-            (set-transient-map map)))))))
+            (when (and repeat-keep-prefix (not prefix-arg))
+              (setq prefix-arg current-prefix-arg))
+
+            (set-transient-map map))))))
+  (setq repeat-map nil))
+
+(defun repeat-mode-message (mess)
+  "Function that displays available repeating keys in the echo area."
+  (if (current-message)
+      (message "%s [%s]" (current-message) mess)
+    (message mess)))
 
 (provide 'repeat)
 

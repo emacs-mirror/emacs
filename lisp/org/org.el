@@ -15584,7 +15584,7 @@ When a buffer is unmodified, it is just killed.  When modified, it is saved
 This mode supports entering LaTeX environment and math in LaTeX fragments
 in Org mode.
 \\{org-cdlatex-mode-map}"
-  nil " OCDL" nil
+  :lighter " OCDL"
   (when org-cdlatex-mode
     (require 'cdlatex)
     (run-hooks 'cdlatex-mode-hook)

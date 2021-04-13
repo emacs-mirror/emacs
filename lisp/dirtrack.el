@@ -184,7 +184,7 @@ working directory at all times, and that you set the variable
 This is an alternative to `shell-dirtrack-mode', which works by
 tracking `cd' and similar commands which change the shell working
 directory."
-  nil nil nil
+  :lighter nil
   (if dirtrack-mode
       (add-hook 'comint-preoutput-filter-functions 'dirtrack nil t)
     (remove-hook 'comint-preoutput-filter-functions 'dirtrack t)))
@@ -192,7 +192,7 @@ directory."
 
 (define-minor-mode dirtrack-debug-mode
   "Toggle Dirtrack debugging."
-  nil nil nil
+  :lighter nil
   (if dirtrack-debug-mode
       (display-buffer (get-buffer-create dirtrack-debug-buffer))))
 

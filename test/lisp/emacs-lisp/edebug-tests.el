@@ -1061,5 +1061,30 @@ backtracking (Bug#42701)."
                        "edebug-anon10001"
                        "edebug-tests-duplicate-symbol-backtrack"))))))
 
+(defmacro edebug-tests--duplicate-&define (_arg)
+  "Helper macro for the ERT test `edebug-tests-duplicate-&define'.
+The Edebug specification is similar to the one used by `cl-flet'
+previously; see Bug#41988."
+  (declare (debug (&or (&define name function-form) (defun)))))
+
+(ert-deftest edebug-tests-duplicate-&define ()
+  "Check that Edebug doesn't backtrack out of `&define' forms.
+This avoids potential duplicate definitions (Bug#41988)."
+  (with-temp-buffer
+    (print '(defun edebug-tests-duplicate-&define ()
+              (edebug-tests--duplicate-&define
+               (edebug-tests-duplicate-&define-inner () nil)))
+           (current-buffer))
+    (let* ((edebug-all-defs t)
+           (edebug-initial-mode 'Go-nonstop)
+           (instrumented-names ())
+           (edebug-new-definition-function
+            (lambda (name)
+              (when (memq name instrumented-names)
+                (error "Duplicate definition of `%s'" name))
+              (push name instrumented-names)
+              (edebug-new-definition name))))
+      (should-error (eval-buffer) :type 'invalid-read-syntax))))
+
 (provide 'edebug-tests)
 ;;; edebug-tests.el ends here

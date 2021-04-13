@@ -2440,7 +2440,7 @@ The third `match-string' will be the used in the menu.")
 HTML Autoview mode is a buffer-local minor mode for use with
 `html-mode'.  If enabled, saving the file automatically runs
 `browse-url-of-buffer' to view it."
-  nil nil nil
+  :lighter nil
   (if html-autoview-mode
       (add-hook 'after-save-hook #'browse-url-of-buffer nil t)
     (remove-hook 'after-save-hook #'browse-url-of-buffer t)))

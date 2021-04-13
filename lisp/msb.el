@@ -1,4 +1,4 @@
-;;; msb.el --- customizable buffer-selection with multiple menus
+;;; msb.el --- customizable buffer-selection with multiple menus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1995, 1997-2021 Free Software Foundation, Inc.
 
@@ -252,14 +252,12 @@ error every time you do \\[msb]."
   :type `(choice (const :tag "long" :value ,msb--very-many-menus)
 		 (const :tag "short" :value ,msb--few-menus)
 		 (sexp :tag "user"))
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defcustom msb-modes-key 4000
   "The sort key for files sorted by mode."
   :type 'integer
-  :set 'msb-custom-set
-  :group 'msb
+  :set #'msb-custom-set
   :version "20.3")
 
 (defcustom msb-separator-diff 100
@@ -267,8 +265,7 @@ error every time you do \\[msb]."
 The separators will appear between all menus that have a sorting key
 that differs by this value or more."
   :type '(choice integer (const nil))
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defvar msb-files-by-directory-sort-key 0
   "The sort key for files sorted by directory.")
@@ -278,8 +275,7 @@ that differs by this value or more."
 If this variable is set to 15 for instance, then the submenu will be
 split up in minor parts, 15 items each.  A value of nil means no limit."
   :type '(choice integer (const nil))
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defcustom msb-max-file-menu-items 10
   "The maximum number of items from different directories.
@@ -293,27 +289,23 @@ them together.
 
 If the value is not a number, then the value 10 is used."
   :type 'integer
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defcustom msb-most-recently-used-sort-key -1010
   "Where should the menu with the most recently used buffers be placed?"
   :type 'integer
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defcustom msb-display-most-recently-used 15
   "How many buffers should be in the most-recently-used menu.
 No buffers at all if less than 1 or nil (or any non-number)."
   :type 'integer
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defcustom msb-most-recently-used-title "Most recently used (%d)"
   "The title for the most-recently-used menu."
   :type 'string
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defvar msb-horizontal-shift-function (lambda () 0)
   "Function that specifies how many pixels to shift the top menu leftwards.")
@@ -323,8 +315,7 @@ No buffers at all if less than 1 or nil (or any non-number)."
 Non-nil means that the buffer menu should include buffers that have
 names that starts with a space character."
   :type 'boolean
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defvar msb-item-handling-function 'msb-item-handler
   "The appearance of a buffer menu.
@@ -354,15 +345,13 @@ Set this to nil or t if you don't want any sorting (faster)."
   :type '(choice (const msb-sort-by-name)
 		 (const :tag "Newest first" t)
 		 (const :tag "Oldest first" nil))
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (defcustom msb-files-by-directory nil
   "Non-nil means that files should be sorted by directory.
 This is instead of the groups in `msb-menu-cond'."
   :type 'boolean
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 
 (define-obsolete-variable-alias 'msb-after-load-hooks
   'msb-after-load-hook "24.1")
@@ -370,8 +359,7 @@ This is instead of the groups in `msb-menu-cond'."
 (defcustom msb-after-load-hook nil
   "Hook run after the msb package has been loaded."
   :type 'hook
-  :set 'msb-custom-set
-  :group 'msb)
+  :set #'msb-custom-set)
 (make-obsolete-variable 'msb-after-load-hook
                         "use `with-eval-after-load' instead." "28.1")
 
@@ -458,10 +446,10 @@ An item look like (NAME . BUFFER)."
 
 ;;;
 ;;; msb
-;;;
-;;; This function can be used instead of (mouse-buffer-menu EVENT)
-;;; function in "mouse.el".
-;;;
+;;
+;; This function can be used instead of (mouse-buffer-menu EVENT)
+;; function in "mouse.el".
+;;
 (defun msb (event)
   "Pop up several menus of buffers for selection with the mouse.
 This command switches buffers in the window that you clicked on, and
@@ -707,7 +695,7 @@ See `msb-menu-cond' for a description of its elements."
 	  (cl-loop for fi
                    across function-info-vector
                    if (and (setq result
-                                 (eval (aref fi 1))) ;Test CONDITION
+                                 (eval (aref fi 1) t)) ;Test CONDITION
                            (not (and (eq result 'no-multi)
                                      multi-flag))
                            (progn (when (eq result 'multi)
@@ -727,12 +715,11 @@ All side-effects.  Adds an element of form (BUFFER-TITLE . BUFFER)
 to the buffer-list variable in FUNCTION-INFO."
   (let ((list-symbol (aref function-info 0))) ;BUFFER-LIST-VARIABLE
     ;; Here comes the hairy side-effect!
-    (set list-symbol
-	 (cons (cons (funcall (aref function-info 4) ;ITEM-HANDLER
-			      buffer
-			      max-buffer-name-length)
-		     buffer)
-	       (eval list-symbol)))))
+    (push (cons (funcall (aref function-info 4) ;ITEM-HANDLER
+			 buffer
+			 max-buffer-name-length)
+		buffer)
+	  (symbol-value list-symbol))))
 
 (defsubst msb--choose-menu (buffer function-info-vector max-buffer-name-length)
   "Select the appropriate menu for BUFFER."
@@ -754,7 +741,7 @@ to the buffer-list variable in FUNCTION-INFO."
 
 (defun msb--create-sort-item (function-info)
   "Return (SORT-KEY TITLE . BUFFER-LIST) or nil if the buffer-list is empty."
-  (let ((buffer-list (eval (aref function-info 0))))
+  (let ((buffer-list (symbol-value (aref function-info 0))))
     (when buffer-list
       (let ((sorter (aref function-info 5)) ;SORTER
 	    (sort-key (aref function-info 2))) ;MENU-SORT-KEY
@@ -925,7 +912,7 @@ It takes the form ((TITLE . BUFFER-LIST)...)."
                                    for value = (msb--create-sort-item elt)
                                    if value collect value))))
       (setq menu
-	    (mapcar 'cdr		;Remove the SORT-KEY
+	    (mapcar #'cdr		;Remove the SORT-KEY
 		    ;; Sort the menus - not the items.
 		    (msb--add-separators
 		    (sort
@@ -1113,8 +1100,8 @@ variable `msb-menu-cond'."
 		    (nconc
 		     (list (frame-parameter frame 'name)
 			   (frame-parameter frame 'name))
-                     `(lambda ()
-                        (interactive) (menu-bar-select-frame ,frame))))
+                     (lambda ()
+                       (interactive) (menu-bar-select-frame frame))))
 		  frames)))))
       (setcdr global-buffers-menu-map
 	      (if (and buffers-menu frames-menu)
@@ -1128,7 +1115,7 @@ variable `msb-menu-cond'."
 ;; C-down-mouse-1).
 (defvar msb-mode-map
   (let ((map (make-sparse-keymap "Msb")))
-    (define-key map [remap mouse-buffer-menu] 'msb)
+    (define-key map [remap mouse-buffer-menu] #'msb)
     map))
 
 ;;;###autoload
@@ -1137,14 +1124,14 @@ variable `msb-menu-cond'."
 
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'."
-  :global t :group 'msb
+  :global t
   (if msb-mode
       (progn
-	(add-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
-	(remove-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
+	(add-hook 'menu-bar-update-hook #'msb-menu-bar-update-buffers)
+	(remove-hook 'menu-bar-update-hook #'menu-bar-update-buffers)
 	(msb-menu-bar-update-buffers t))
-    (remove-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
-    (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
+    (remove-hook 'menu-bar-update-hook #'msb-menu-bar-update-buffers)
+    (add-hook 'menu-bar-update-hook #'menu-bar-update-buffers)
     (menu-bar-update-buffers t)))
 
 (defun msb-unload-function ()

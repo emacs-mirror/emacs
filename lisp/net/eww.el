@@ -987,6 +987,7 @@ the like."
     (define-key map "F" 'eww-toggle-fonts)
     (define-key map "D" 'eww-toggle-paragraph-direction)
     (define-key map [(meta C)] 'eww-toggle-colors)
+    (define-key map [(meta I)] 'eww-toggle-images)
 
     (define-key map "b" 'eww-add-bookmark)
     (define-key map "B" 'eww-list-bookmarks)
@@ -1015,6 +1016,7 @@ the like."
 	["List cookies" url-cookie-list t]
 	["Toggle fonts" eww-toggle-fonts t]
 	["Toggle colors" eww-toggle-colors t]
+	["Toggle images" eww-toggle-images t]
         ["Character Encoding" eww-set-character-encoding]
         ["Toggle Paragraph Direction" eww-toggle-paragraph-direction]))
     map))
@@ -1892,6 +1894,14 @@ If CHARSET is nil then use UTF-8."
 	       "on"
 	     "off"))
   (eww-reload))
+
+(defun eww-toggle-images ()
+  "Toggle whether or not to display images."
+  (interactive nil eww-mode)
+  (setq shr-inhibit-images (not shr-inhibit-images))
+  (eww-reload)
+  (message "Images are now %s"
+           (if shr-inhibit-images "off" "on")))
 
 ;;; Bookmarks code
 

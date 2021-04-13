@@ -167,7 +167,7 @@ properties, after each buffer modification, on the modified zone.
 The process is synchronous.  Though, initial indentation of
 buffer, which can take a few seconds on large buffers, is done
 during idle time."
-  nil " Ind" nil
+  :lighter " Ind"
   (cond
    (org-indent-mode
     ;; mode was turned on.

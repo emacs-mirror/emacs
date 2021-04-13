@@ -1,4 +1,4 @@
-;;; cc-guess.el --- guess indentation values by scanning existing code
+;;; cc-guess.el --- guess indentation values by scanning existing code -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2006, 2011-2021 Free Software
 ;; Foundation, Inc.

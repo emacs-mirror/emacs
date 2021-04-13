@@ -95,6 +95,17 @@ lacks the terminfo database, you can instruct Emacs to support 24-bit
 true color by setting 'COLORTERM=truecolor' in the environment.  This is
 useful on systems such as FreeBSD which ships only with "etc/termcap".
 
+** Emacs now supports loading a Secure Computing filter.
+This is supported only on capable GNU/Linux systems.  To activate,
+invoke Emacs with the '--seccomp=FILE' command-line option.  FILE must
+name a binary file containing an array of 'struct sock_filter'
+structures.  Emacs will then install that list of Secure Computing
+filters into its own process early during the startup process.  You
+can use this functionality to put an Emacs process in a sandbox to
+avoid security issues when executing untrusted code.  See the manual
+page for 'seccomp' system call, for details about Secure Computing
+filters.
+
 
 * Changes in Emacs 28.1
 
@@ -270,6 +281,9 @@ input using the minibuffer.
 * Editing Changes in Emacs 28.1
 
 +++
+** A prefix arg now causes 'delete-other-frames' to only iconify frames
+
++++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
 'execute-extended-command', but limits the set of commands to the
@@ -371,6 +385,12 @@ trying to be non-destructive.
 ** New command 'memory-report'.
 This command opens a new buffer called "*Memory Report*" and gives a
 summary of where Emacs is using memory currently.
+
++++
+** New user option 'isearch-repeat-on-direction-change'.
+When this option is set, direction changes in Isearch move to another
+search match, if there is one, instead of moving point to the other
+end of the current match.
 
 ** Outline
 
@@ -481,6 +501,13 @@ documented.
 *** 'ruby-use-smie' is declared obsolete.
 SMIE is now always enabled and 'ruby-use-smie' only controls whether
 indentation is done using SMIE or with the old ad-hoc code.
+
+** Icomplete
+
++++
+*** New minor mode Icomplete-Vertical mode.
+This mode is intended to be used with Icomplete or Fido, to display the
+list of completions candidates vertically instead of horizontally.
 
 ---
 ** Specific warnings can now be disabled from the warning buffer.
@@ -933,6 +960,14 @@ take the actual screenshot, and defaults to "ImageMagick import".
 *** Allow direct selection of smtp authentication mechanism.
 A server entry retrieved by auth-source can request a desired smtp
 authentication mechanism by setting a value for the key 'smtp-auth'.
+
+** Search and Replace
+
+*** New user option 'isearch-wrap-pause' defines how to wrap the search.
+There are choices to disable wrapping completely and to wrap immediately.
+When wrapping immediately, it consistently handles the numeric arguments
+of 'C-s' ('isearch-repeat-forward') and 'C-r' ('isearch-repeat-backward'),
+continuing with the remaining count after wrapping.
 
 ** Grep
 
@@ -2264,6 +2299,10 @@ You can type 'C-x u u' instead of 'C-x u C-x u' to undo many changes,
 'M-g n n p p' to navigate next-error matches.  Any other key exits
 transient mode and then is executed normally.  'repeat-exit-key'
 defines an additional key to exit mode like 'isearch-exit' ('RET').
+With 'repeat-keep-prefix' you can keep the prefix arg of the previous command.
+For example, this can help to reverse the window navigation direction
+with e.g. 'C-x o M-- o o'.  Also it can help to set a new step with
+e.g. 'C-x { C-5 { { {' will set the window resizing step to 5 columns.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -2340,6 +2379,11 @@ This is to keep the same behavior as Eshell.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
++++
+** The use of positional arguments in 'define-minor-mode' is obsolete.
+These were actually rendered obsolete in Emacs-21 but were never
+marked as such.
+
 ** 'facemenu-color-alist' is now obsolete, and is not used.
 
 ** 'facemenu.el' is no longer preloaded.
@@ -2402,11 +2446,6 @@ parameter.
 ** The Lisp variables 'previous-system-messages-locale' and
 'previous-system-time-locale' have been removed, as they were created
 by mistake and were not useful to Lisp code.
-
----
-** Loading 'generic-x' unconditionally loads all modes.
-The user option 'generic-extras-enable-list' is now obsolete, and
-setting it has no effect.
 
 ---
 ** The 'load-dangerous-libraries' variable is now obsolete.
@@ -2523,6 +2562,12 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 ** The variable 'keyboard-type' is obsolete and not dynamically scoped any more.
 
 ** The 'values' variable is now obsolete.
+
++++
+** The '&define' keyword in an Edebug specification now disables backtracking.
+The implementation was buggy, and multiple &define forms in an &or
+form should be exceedingly rare.  See the Info node 'Backtracking' in
+the Emacs Lisp reference manual for background.
 
 
 * Lisp Changes in Emacs 28.1

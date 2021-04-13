@@ -1,4 +1,4 @@
-;;; cc-bytecomp.el --- compile time setup for proper compilation
+;;; cc-bytecomp.el --- compile time setup for proper compilation -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2000-2021 Free Software Foundation, Inc.
 
@@ -85,8 +85,7 @@
 
 (defvar cc-bytecomp-environment-set nil)
 
-(defmacro cc-bytecomp-debug-msg (&rest args)
-  (ignore args)
+(defmacro cc-bytecomp-debug-msg (&rest _args) ; Change to ARGS when needed.
   ;;`(message ,@args)
   )
 

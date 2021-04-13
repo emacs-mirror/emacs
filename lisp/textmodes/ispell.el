@@ -3744,7 +3744,7 @@ SPC.
 
 For spell-checking \"on the fly\", not just after typing SPC or
 RET, use `flyspell-mode'."
-  nil " Spell" ispell-minor-keymap)
+  :lighter " Spell" :keymap ispell-minor-keymap)
 
 (defun ispell-minor-check ()
   "Check previous word, then continue with the normal binding of this key.

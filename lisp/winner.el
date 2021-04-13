@@ -1,4 +1,4 @@
-;;; winner.el --- Restore old window configurations
+;;; winner.el --- Restore old window configurations  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1997-1998, 2001-2021 Free Software Foundation, Inc.
 
@@ -33,13 +33,12 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl-lib))
+(require 'ring)
 
 (defun winner-active-region ()
   (declare (gv-setter (lambda (store)
                         `(if ,store (activate-mark) (deactivate-mark)))))
   (region-active-p))
-
-(require 'ring)
 
 (defgroup winner nil
   "Restoring window configurations."
@@ -273,7 +272,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
   (let* ((buffers nil)
 	 (alive
           ;; Possibly update `winner-point-alist'
-	  (cl-loop for buf in (mapcar 'cdr (cdr conf))
+          (cl-loop for buf in (mapcar #'cdr (cdr conf))
                    for pos = (winner-get-point buf nil)
                    if (and pos (not (memq buf buffers)))
                    do (push buf buffers)
@@ -317,7 +316,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
       ;; Return t if this is still a possible configuration.
       (or (null xwins)
 	  (progn
-	    (mapc 'delete-window (cdr xwins)) ; delete all but one
+            (mapc #'delete-window (cdr xwins)) ; delete all but one
 	    (unless (one-window-p t)
 	      (delete-window (car xwins))
 	      t))))))
@@ -328,22 +327,20 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 (defcustom winner-mode-hook nil
   "Functions to run whenever Winner mode is turned on or off."
-  :type 'hook
-  :group 'winner)
+  :type 'hook)
 
 (define-obsolete-variable-alias 'winner-mode-leave-hook
   'winner-mode-off-hook "24.3")
 
 (defcustom winner-mode-off-hook nil
   "Functions to run whenever Winner mode is turned off."
-  :type 'hook
-  :group 'winner)
+  :type 'hook)
 
 (defvar winner-mode-map
   (let ((map (make-sparse-keymap)))
     (unless winner-dont-bind-my-keys
-      (define-key map [(control c) left] 'winner-undo)
-      (define-key map [(control c) right] 'winner-redo))
+      (define-key map [(control c) left] #'winner-undo)
+      (define-key map [(control c) right] #'winner-redo))
     map)
   "Keymap for Winner mode.")
 

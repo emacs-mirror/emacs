@@ -1111,7 +1111,7 @@ please check its value")
                          ("--no-x-resources") ("--debug-init")
                          ("--user") ("--iconic") ("--icon-type") ("--quick")
 			 ("--no-blinking-cursor") ("--basic-display")
-                         ("--dump-file") ("--temacs")))
+                         ("--dump-file") ("--temacs") ("--seccomp")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -1163,7 +1163,8 @@ please check its value")
 	  (push '(visibility . icon) initial-frame-alist))
 	 ((member argi '("-nbc" "-no-blinking-cursor"))
 	  (setq no-blinking-cursor t))
-         ((member argi '("-dump-file" "-temacs"))  ; Handled in C
+         ((member argi '("-dump-file" "-temacs" "-seccomp"))
+          ;; Handled in C
           (or argval (pop args))
           (setq argval nil))
 	 ;; Push the popped arg back on the list of arguments.

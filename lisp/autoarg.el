@@ -107,7 +107,7 @@ then invokes the normal binding of \\[autoarg-terminate].
 `C-u \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
 
 \\{autoarg-mode-map}"
-  nil " Aarg" autoarg-mode-map :global t :group 'keyboard)
+  :lighter" Aarg" :global t :group 'keyboard)
 
 ;;;###autoload
 (define-minor-mode autoarg-kp-mode
@@ -118,7 +118,7 @@ This is similar to `autoarg-mode' but rebinds the keypad keys
 `kp-1' etc. to supply digit arguments.
 
 \\{autoarg-kp-mode-map}"
-  nil " Aakp" autoarg-kp-mode-map :global t :group 'keyboard
+  :lighter " Aakp" :global t :group 'keyboard
   (if autoarg-kp-mode
       (dotimes (i 10)
 	(let ((sym (intern (format "kp-%d" i))))

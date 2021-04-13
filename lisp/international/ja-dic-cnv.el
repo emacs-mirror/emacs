@@ -323,11 +323,9 @@
     (insert ")\n\n")))
 
 (defun skkdic-convert (filename &optional dirname)
-  "Generate Emacs Lisp file form Japanese dictionary file FILENAME.
+  "Generate Emacs Lisp file from Japanese dictionary file FILENAME.
 The format of the dictionary file should be the same as SKK dictionaries.
-Optional argument DIRNAME if specified is the directory name under which
-the generated Emacs Lisp is saved.
-The name of generated file is specified by the variable `ja-dic-filename'."
+Saves the output as `ja-dic-filename', in directory DIRNAME (if specified)."
   (interactive "FSKK dictionary file: ")
   (let* ((skkbuf (get-buffer-create " *skkdic-unannotated*"))
 	 (buf (get-buffer-create "*skkdic-work*")))

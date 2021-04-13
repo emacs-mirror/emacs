@@ -1,4 +1,4 @@
-;;; cc-styles.el --- support for styles in CC Mode
+;;; cc-styles.el --- support for styles in CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -464,7 +464,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     offset))
 
 ;;;###autoload
-(defun c-set-offset (symbol offset &optional ignored)
+(defun c-set-offset (symbol offset &optional _ignored)
   "Change the value of a syntactic element symbol in `c-offsets-alist'.
 SYMBOL is the syntactic element symbol to change and OFFSET is the new
 offset for that syntactic element.  The optional argument is not used

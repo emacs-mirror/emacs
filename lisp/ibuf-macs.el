@@ -66,8 +66,8 @@ During evaluation of body, bind `it' to the value returned by TEST."
 	   (ibuffer-redisplay-engine
 	    ;; Get rid of dead buffers
 	    (delq nil
-		  (mapcar #'(lambda (e) (when (buffer-live-p (car e))
-					  e))
+                  (mapcar (lambda (e) (when (buffer-live-p (car e))
+                                        e))
 			  ibuffer-save-marks-tmp-mark-list)))
 	   (ibuffer-redisplay t))))))
 
@@ -154,8 +154,8 @@ value if and only if `a' is \"less than\" `b'.
        (ibuffer-redisplay t)
        (setq ibuffer-last-sorting-mode ',name))
      (push (list ',name ,description
-		 #'(lambda (a b)
-		     ,@body))
+                 (lambda (a b)
+                   ,@body))
 	   ibuffer-sorting-functions-alist)
      :autoload-end))
 
@@ -259,18 +259,18 @@ buffer object.
 				    'ibuffer-map-deletion-lines)
 				   (_
 				    'ibuffer-map-marked-lines))
-				#'(lambda (buf mark)
-                                    ;; Silence warning for code that doesn't
-                                    ;; use `mark'.
-                                    (ignore mark)
-				    ,(if (eq modifier-p :maybe)
-					 `(let ((ibuffer-tmp-previous-buffer-modification
-						 (buffer-modified-p buf)))
-					    (prog1 ,inner-body
-					      (when (not (eq ibuffer-tmp-previous-buffer-modification
-							     (buffer-modified-p buf)))
-						(setq ibuffer-did-modification t))))
-				       inner-body)))))
+                                (lambda (buf mark)
+                                  ;; Silence warning for code that doesn't
+                                  ;; use `mark'.
+                                  (ignore mark)
+                                  ,(if (eq modifier-p :maybe)
+                                       `(let ((ibuffer-tmp-previous-buffer-modification
+                                               (buffer-modified-p buf)))
+                                          (prog1 ,inner-body
+                                            (when (not (eq ibuffer-tmp-previous-buffer-modification
+                                                           (buffer-modified-p buf)))
+                                              (setq ibuffer-did-modification t))))
+                                     inner-body)))))
 			  ,finish)))
 	    (if dangerous
 		`(when (ibuffer-confirm-operation-on ,active-opstring marked-names)

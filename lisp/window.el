@@ -10256,6 +10256,10 @@ displaying that processes's buffer."
 (defvar other-window-repeat-map
   (let ((map (make-sparse-keymap)))
     (define-key map "o" 'other-window)
+    (define-key map "O" (lambda ()
+                          (interactive)
+                          (setq repeat-map 'other-window-repeat-map)
+                          (other-window -1)))
     map)
   "Keymap to repeat other-window key sequences.  Used in `repeat-mode'.")
 (put 'other-window 'repeat-map 'other-window-repeat-map)

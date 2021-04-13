@@ -51,14 +51,11 @@ BOVINE = \
 	${bovinedir}/make-by.el \
 	${bovinedir}/scm-by.el
 
-## FIXME Should include this one too:
-##	${cedetdir}/semantic/grammar-wy.el
-## but semantic/grammar.el (which is what we use to generate grammar-wy.el)
-## requires it!  https://debbugs.gnu.org/16008
-WISENT = \
-	${wisentdir}/javat-wy.el \
-	${wisentdir}/js-wy.el \
-	${wisentdir}/python-wy.el \
+WISENT = 				   \
+	${cedetdir}/semantic/grammar-wy.el \
+	${wisentdir}/javat-wy.el 	   \
+	${wisentdir}/js-wy.el 		   \
+	${wisentdir}/python-wy.el 	   \
 	${cedetdir}/srecode/srt-wy.el
 
 ALL = ${BOVINE} ${WISENT}

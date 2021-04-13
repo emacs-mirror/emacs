@@ -1,4 +1,4 @@
-;;; files-x.el --- extended file handling commands
+;;; files-x.el --- extended file handling commands  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
@@ -602,7 +602,7 @@ PROFILES is a list of connection profiles (symbols).")
   "Normalize plist CRITERIA according to properties.
 Return a reordered plist."
   (apply
-   'append
+   #'append
    (mapcar
     (lambda (property)
       (when (and (plist-member criteria property) (plist-get criteria property))

@@ -2798,7 +2798,6 @@ or to the last history element for a backward search."
   (if isearch-forward
       (goto-history-element (length (minibuffer-history-value)))
     (goto-history-element 0))
-  (setq isearch-success t)
   (goto-char (if isearch-forward (minibuffer-prompt-end) (point-max))))
 
 (defun minibuffer-history-isearch-push-state ()

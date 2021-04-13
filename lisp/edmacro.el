@@ -1,4 +1,4 @@
-;;; edmacro.el --- keyboard macro editor
+;;; edmacro.el --- keyboard macro editor  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993-1994, 2001-2021 Free Software Foundation, Inc.
 
@@ -74,8 +74,8 @@ Default nil means to write characters above \\177 in octal notation."
 
 (defvar edmacro-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'edmacro-finish-edit)
-    (define-key map "\C-c\C-q" 'edmacro-insert-key)
+    (define-key map "\C-c\C-c" #'edmacro-finish-edit)
+    (define-key map "\C-c\C-q" #'edmacro-insert-key)
     map))
 
 (defvar edmacro-store-hook)
@@ -177,8 +177,8 @@ With a prefix argument, format the macro in a more concise way."
 	  (set-buffer-modified-p nil))
 	(run-hooks 'edmacro-format-hook)))))
 
-;;; The next two commands are provided for convenience and backward
-;;; compatibility.
+;; The next two commands are provided for convenience and backward
+;; compatibility.
 
 ;;;###autoload
 (defun edit-last-kbd-macro (&optional prefix)
@@ -237,8 +237,7 @@ or nil, use a compact 80-column format."
 		   ((looking-at "Command:[ \t]*\\([^ \t\n]*\\)[ \t]*$")
 		    (when edmacro-store-hook
 		      (error "\"Command\" line not allowed in this context"))
-		    (let ((str (buffer-substring (match-beginning 1)
-						 (match-end 1))))
+		    (let ((str (match-string 1)))
 		      (unless (equal str "")
 			(setq cmd (and (not (equal str "none"))
 				       (intern str)))
@@ -253,8 +252,7 @@ or nil, use a compact 80-column format."
 		    (when edmacro-store-hook
 		      (error "\"Key\" line not allowed in this context"))
 		    (let ((key (edmacro-parse-keys
-				(buffer-substring (match-beginning 1)
-						  (match-end 1)))))
+				(match-string 1))))
 		      (unless (equal key "")
 			(if (equal key "none")
 			    (setq no-keys t)
@@ -274,16 +272,14 @@ or nil, use a compact 80-column format."
 		   ((looking-at "Counter:[ \t]*\\([^ \t\n]*\\)[ \t]*$")
 		    (when edmacro-store-hook
 		      (error "\"Counter\" line not allowed in this context"))
-		    (let ((str (buffer-substring (match-beginning 1)
-						 (match-end 1))))
+		    (let ((str (match-string 1)))
 		      (unless (equal str "")
 			(setq mac-counter (string-to-number str))))
 		    t)
 		   ((looking-at "Format:[ \t]*\"\\([^\n]*\\)\"[ \t]*$")
 		    (when edmacro-store-hook
 		      (error "\"Format\" line not allowed in this context"))
-		    (let ((str (buffer-substring (match-beginning 1)
-						 (match-end 1))))
+		    (let ((str (match-string 1)))
 		      (unless (equal str "")
 			(setq mac-format str)))
 		    t)
@@ -475,7 +471,7 @@ doubt, use whitespace."
 			 (and (not (memq (aref rest-mac i) pkeys))
 			      (prog1 (vconcat "C-u " (cl-subseq rest-mac 1 i) " ")
 				(cl-callf cl-subseq rest-mac i)))))))
-	     (bind-len (apply 'max 1
+	     (bind-len (apply #'max 1
 			      (cl-loop for map in maps
                                        for b = (lookup-key map rest-mac)
                                        when b collect b)))
@@ -506,7 +502,7 @@ doubt, use whitespace."
                        finally return i))
 	     desc)
 	(if (stringp bind) (setq bind nil))
-	(cond ((and (eq bind 'self-insert-command) (not prefix)
+	(cond ((and (eq bind #'self-insert-command) (not prefix)
 		    (> text 1) (integerp first)
 		    (> first 32) (<= first maxkey) (/= first 92)
 		    (progn
@@ -520,11 +516,11 @@ doubt, use whitespace."
 			    desc))))
 	       (when (or (string-match "^\\^.$" desc)
 			 (member desc res-words))
-		 (setq desc (mapconcat 'char-to-string desc " ")))
+		 (setq desc (mapconcat #'char-to-string desc " ")))
 	       (when verbose
 		 (setq bind (format "%s * %d" bind text)))
 	       (setq bind-len text))
-	      ((and (eq bind 'execute-extended-command)
+	      ((and (eq bind #'execute-extended-command)
 		    (> text bind-len)
 		    (memq (aref rest-mac text) '(return 13))
 		    (progn
@@ -667,10 +663,8 @@ This function assumes that the events can be stored in a string."
 				  (substring word 2 -2) "\r")))
 	      ((and (string-match "^\\(\\([ACHMsS]-\\)*\\)<\\(.+\\)>$" word)
 		    (progn
-		      (setq word (concat (substring word (match-beginning 1)
-						    (match-end 1))
-					 (substring word (match-beginning 3)
-						    (match-end 3))))
+		      (setq word (concat (match-string 1 word)
+					 (match-string 3 word)))
 		      (not (string-match
 			    "\\<\\(NUL\\|RET\\|LFD\\|ESC\\|SPC\\|DEL\\)$"
 			    word))))

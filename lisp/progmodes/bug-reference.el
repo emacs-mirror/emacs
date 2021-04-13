@@ -440,9 +440,6 @@ and set it if applicable."
 ;;;###autoload
 (define-minor-mode bug-reference-mode
   "Toggle hyperlinking bug references in the buffer (Bug Reference mode)."
-  nil
-  ""
-  nil
   :after-hook (bug-reference--run-auto-setup)
   (if bug-reference-mode
       (jit-lock-register #'bug-reference-fontify)
@@ -454,9 +451,6 @@ and set it if applicable."
 ;;;###autoload
 (define-minor-mode bug-reference-prog-mode
   "Like `bug-reference-mode', but only buttonize in comments and strings."
-  nil
-  ""
-  nil
   :after-hook (bug-reference--run-auto-setup)
   (if bug-reference-prog-mode
       (jit-lock-register #'bug-reference-fontify)

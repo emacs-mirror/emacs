@@ -331,7 +331,7 @@ the primary since reading the primary can deactivate it."
   "This mode is used for buffers related to a main *cvs* buffer.
 All the `cvs-mode' buffer operations are simply rebound under
 the \\[cvs-mode-map] prefix."
-  nil " CVS"
+  :lighter " CVS"
   :group 'pcl-cvs)
 (put 'cvs-minor-mode 'permanent-local t)
 

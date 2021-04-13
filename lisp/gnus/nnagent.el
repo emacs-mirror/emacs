@@ -1,4 +1,3 @@
-
 ;;; nnagent.el --- offline backend for Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997-2021 Free Software Foundation, Inc.
