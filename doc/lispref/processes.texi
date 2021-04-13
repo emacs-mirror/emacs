@@ -1325,7 +1325,7 @@ the numeric ID of the foreground process group of @var{process}; it
 returns @code{nil} if Emacs can be certain that this is not so.  The
 value is @code{t} if Emacs cannot tell whether this is true.  This
 function signals an error if @var{process} is a network, serial, or
-pipe connection, or is the subprocess is not active.
+pipe connection, or if the subprocess is not active.
 @end defun
 
 @node Signals to Processes
