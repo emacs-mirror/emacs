@@ -631,7 +631,15 @@ DST is returned."
               (setf (typeset dst) (typeset neg)
                     (valset dst) (valset neg)
                     (range dst) (range neg)
-                    (neg dst) (neg neg))))))
+                    (neg dst) (neg neg)))))
+
+        ;; (not null) => t
+        (when (and (neg dst)
+                   (null (typeset dst))
+                   (null (valset dst))
+                   (null (range dst)))
+          (give-up)))
+
       dst)))
 
 (defun comp-cstr-union-1 (range dst &rest srcs)
