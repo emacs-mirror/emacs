@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; Simply M-x eglot should be enough to get you started, but here's a
-;; little info (see the accompanying README.md or the URL for more).
+ ;; little info (see the accompanying README.md or the URL for more).
 ;;
 ;; M-x eglot starts a server via a shell-command guessed from
 ;; `eglot-server-programs', using the current major-mode (for whatever
@@ -2783,6 +2783,15 @@ If NOERROR, return predicate, else erroring function."
   `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
 
 (defun eglot--files-recursively (&optional dir)
+  "Because `directory-files-recursively' isn't complete in 26.3."
+  (cons (setq dir (expand-file-name (or dir default-directory)))
+        (cl-loop with default-directory = dir
+                 with completion-regexp-list = '("^[^.]")
+                 for f in (file-name-all-completions "" dir)
+                 if (file-directory-p f) append (eglot--files-recursively f)
+                 else collect (expand-file-name f))))
+
+(defun eglot--directories-recursively (&optional dir)
   "Because `directory-files-recursively' isn't complete in 26.3."
   (cons (setq dir (expand-file-name (or dir default-directory)))
         (cl-loop with default-directory = dir
