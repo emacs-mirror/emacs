@@ -6496,8 +6496,13 @@ button_event (GtkWidget * widget, GdkEvent * event, gpointer * user_data)
 	}
     }
 
+  /* xg_event_is_for_scrollbar() doesn't work correctly on sway, and
+   * we shouldn't need it.
+   */
+#if 0
   if (f && xg_event_is_for_scrollbar (f, event))
     f = 0;
+#endif
 
   if (f)
     {
