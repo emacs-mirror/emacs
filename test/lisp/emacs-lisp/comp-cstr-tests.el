@@ -147,7 +147,7 @@
       ;; 52 Conservative.
       ((or (member foo) (not string)) . (not string))
       ;; 53
-      ((or (not (integer 1 2)) integer) . integer)
+      ((or (not (integer 1 2)) integer) . t)
       ;; 54
       ((or (not (integer 1 2)) (not integer)) . (not integer))
       ;; 55
@@ -181,7 +181,7 @@
       ;; 69
       ((and (integer 0 20) (not (integer 5 10))) . (or (integer 0 4) (integer 11 20)))
       ;; 70
-      ((and (not (member a)) (not (member b))) . (not (member b a)))
+      ((and (not (member a)) (not (member b))) . (not (member a b)))
       ;; 71
       ((and (not boolean) (not (member b))) . (not (or (member b) boolean)))
       ;; 72
