@@ -4761,6 +4761,7 @@ window on a minibuffer-less frame.
 @node Display Property
 @section The @code{display} Property
 @cindex display specification
+@cindex display property
 @kindex display @r{(text property)}
 
   The @code{display} text property (or overlay property) is used to
@@ -5777,13 +5778,13 @@ properties:
 @item :foreground @var{foreground}
 @var{foreground}, if non-@code{nil}, should be a string specifying a
 color, which is used as the image's foreground color.  If the value is
-@code{nil}, it defaults to the faces's foreground color.
+@code{nil}, it defaults to the current face's foreground color.
 
 @item :background @var{background}
 @var{background}, if non-@code{nil}, should be a string specifying a
 color, which is used as the image's background color if the image
 supports transparency.  If the value is @code{nil}, it defaults to the
-faces's background color.
+current face's background color.
 
 @item :css @var{css}
 @var{css}, if non-@code{nil}, should be a string specifying the CSS to
