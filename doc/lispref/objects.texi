@@ -2407,7 +2407,7 @@ that is evaluated.  For example:
 
 @noindent
 Although the list @code{(0.5)} was mutable when it was created, it should not
-have been changed via @code{setcar} because it given to @code{eval}.  The
+have been changed via @code{setcar} because it was given to @code{eval}.  The
 reverse does not occur: an object that should not be changed never
 becomes mutable afterwards.
 
