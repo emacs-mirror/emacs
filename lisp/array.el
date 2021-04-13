@@ -1,4 +1,4 @@
-;;; array.el --- array editing commands for GNU Emacs
+;;; array.el --- array editing commands for GNU Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1987, 2000-2021 Free Software Foundation, Inc.
 
@@ -769,25 +769,25 @@ Return COLUMN."
 
 (defvar array-mode-map
   (let ((map (make-keymap)))
-    (define-key map "\M-ad"   'array-display-local-variables)
-    (define-key map "\M-am"   'array-make-template)
-    (define-key map "\M-ae"   'array-expand-rows)
-    (define-key map "\M-ar"   'array-reconfigure-rows)
-    (define-key map "\M-a="   'array-what-position)
-    (define-key map "\M-ag"   'array-goto-cell)
-    (define-key map "\M-af"   'array-fill-rectangle)
-    (define-key map "\C-n"    'array-next-row)
-    (define-key map "\C-p"    'array-previous-row)
-    (define-key map "\C-f"    'array-forward-column)
-    (define-key map "\C-b"    'array-backward-column)
-    (define-key map "\M-n"    'array-copy-down)
-    (define-key map "\M-p"    'array-copy-up)
-    (define-key map "\M-f"    'array-copy-forward)
-    (define-key map "\M-b"    'array-copy-backward)
-    (define-key map "\M-\C-n" 'array-copy-row-down)
-    (define-key map "\M-\C-p" 'array-copy-row-up)
-    (define-key map "\M-\C-f" 'array-copy-column-forward)
-    (define-key map "\M-\C-b" 'array-copy-column-backward)
+    (define-key map "\M-ad"   #'array-display-local-variables)
+    (define-key map "\M-am"   #'array-make-template)
+    (define-key map "\M-ae"   #'array-expand-rows)
+    (define-key map "\M-ar"   #'array-reconfigure-rows)
+    (define-key map "\M-a="   #'array-what-position)
+    (define-key map "\M-ag"   #'array-goto-cell)
+    (define-key map "\M-af"   #'array-fill-rectangle)
+    (define-key map "\C-n"    #'array-next-row)
+    (define-key map "\C-p"    #'array-previous-row)
+    (define-key map "\C-f"    #'array-forward-column)
+    (define-key map "\C-b"    #'array-backward-column)
+    (define-key map "\M-n"    #'array-copy-down)
+    (define-key map "\M-p"    #'array-copy-up)
+    (define-key map "\M-f"    #'array-copy-forward)
+    (define-key map "\M-b"    #'array-copy-backward)
+    (define-key map "\M-\C-n" #'array-copy-row-down)
+    (define-key map "\M-\C-p" #'array-copy-row-up)
+    (define-key map "\M-\C-f" #'array-copy-column-forward)
+    (define-key map "\M-\C-b" #'array-copy-column-backward)
     map)
   "Keymap used in array mode.")
 
@@ -815,17 +815,17 @@ in array mode may have different values assigned to the variables.
 The variables are:
 
 Variables you assign:
-     array-max-row:          The number of rows in the array.
-     array-max-column:       The number of columns in the array.
-     array-columns-per-line: The number of columns in the array
+     `array-max-row':          The number of rows in the array.
+     `array-max-column':       The number of columns in the array.
+     `array-columns-per-line': The number of columns in the array
                              per line of buffer.
-     array-field-width:      The width of each field, in characters.
-     array-rows-numbered:    A logical variable describing whether to ignore
+     `array-field-width':      The width of each field, in characters.
+     `array-rows-numbered':    A logical variable describing whether to ignore
                              row numbers in the buffer.
 
 Variables which are calculated:
-     array-line-length:      The number of characters in a buffer line.
-     array-lines-per-row:    The number of buffer lines used to
+     `array-line-length':      The number of characters in a buffer line.
+     `array-lines-per-row':    The number of buffer lines used to
                              display each row.
 
   The following commands are available (an asterisk indicates it may

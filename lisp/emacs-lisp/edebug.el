@@ -1942,14 +1942,16 @@ a sequence of elements."
   ;; Normally, &define is interpreted specially other places.
   ;; This should only be called inside of a spec list to match the remainder
   ;; of the current list.  e.g. ("lambda" &define args def-body)
-   (edebug-make-form-wrapper
-    cursor
-    (edebug-before-offset cursor)
-    ;; Find the last offset in the list.
-    (let ((offsets (edebug-cursor-offsets cursor)))
-      (while (consp offsets) (setq offsets (cdr offsets)))
-      offsets)
-    specs))
+  (prog1 (edebug-make-form-wrapper
+          cursor
+          (edebug-before-offset cursor)
+          ;; Find the last offset in the list.
+          (let ((offsets (edebug-cursor-offsets cursor)))
+            (while (consp offsets) (setq offsets (cdr offsets)))
+            offsets)
+          specs)
+    ;; Stop backtracking here (Bug#41988).
+    (setq edebug-gate t)))
 
 (cl-defmethod edebug--match-&-spec-op ((_ (eql &name)) cursor specs)
   "Compute the name for `&name SPEC FUN` spec operator.
@@ -4114,12 +4116,12 @@ This should be a list of `edebug---frame' objects.")
   "Stack frames of the current Edebug Backtrace buffer with instrumentation.
 This should be a list of `edebug---frame' objects.")
 
-;; Data structure for backtrace frames with information
-;; from Edebug instrumentation found in the backtrace.
 (cl-defstruct
     (edebug--frame
      (:constructor edebug--make-frame)
      (:include backtrace-frame))
+  "Data structure for backtrace frames with information
+from Edebug instrumentation found in the backtrace."
   def-name before-index after-index)
 
 (defun edebug-pop-to-backtrace ()

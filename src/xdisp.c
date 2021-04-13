@@ -13607,8 +13607,9 @@ redisplay_tab_bar (struct frame *f)
 
 /* Get information about the tab-bar item which is displayed in GLYPH
    on frame F.  Return in *PROP_IDX the index where tab-bar item
-   properties start in F->tab_bar_items.  Value is false if
-   GLYPH doesn't display a tab-bar item.  */
+   properties start in F->tab_bar_items.  Return in CLOSE_P an
+   indication whether the click was on the close-tab icon of the tab.
+   Value is false if GLYPH doesn't display a tab-bar item.  */
 
 static bool
 tab_bar_item_info (struct frame *f, struct glyph *glyph,
@@ -13654,7 +13655,6 @@ static int
 get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
 		   int *hpos, int *vpos, int *prop_idx, bool *close_p)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   struct window *w = XWINDOW (f->tab_bar_window);
   int area;
 
@@ -13668,18 +13668,7 @@ get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
   if (!tab_bar_item_info (f, *glyph, prop_idx, close_p))
     return -1;
 
-  /* Is mouse on the highlighted item?  */
-  if (EQ (f->tab_bar_window, hlinfo->mouse_face_window)
-      && *vpos >= hlinfo->mouse_face_beg_row
-      && *vpos <= hlinfo->mouse_face_end_row
-      && (*vpos > hlinfo->mouse_face_beg_row
-	  || *hpos >= hlinfo->mouse_face_beg_col)
-      && (*vpos < hlinfo->mouse_face_end_row
-	  || *hpos < hlinfo->mouse_face_end_col
-	  || hlinfo->mouse_face_past_end))
-    return 0;
-
-  return 1;
+  return *prop_idx == f->last_tab_bar_item ? 0 : 1;
 }
 
 
@@ -13693,7 +13682,6 @@ void
 handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
 		      int modifiers)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   struct window *w = XWINDOW (f->tab_bar_window);
   int hpos, vpos, prop_idx;
   bool close_p;
@@ -13701,24 +13689,13 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
   Lisp_Object enabled_p;
   int ts;
 
-  /* If not on the highlighted tab-bar item, and mouse-highlight is
-     non-nil, return.  This is so we generate the tab-bar button
-     click only when the mouse button is released on the same item as
-     where it was pressed.  However, when mouse-highlight is disabled,
-     generate the click when the button is released regardless of the
-     highlight, since tab-bar items are not highlighted in that
-     case.  */
   frame_to_window_pixel_xy (w, &x, &y);
   ts = get_tab_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx, &close_p);
   if (ts == -1
-      || (ts != 0 && !NILP (Vmouse_highlight)))
+      /* If the button is released on a tab other than the one where
+	 it was pressed, don't generate the tab-bar button click event.  */
+      || (ts != 0 && !down_p))
     return;
-
-  /* When mouse-highlight is off, generate the click for the item
-     where the button was pressed, disregarding where it was
-     released.  */
-  if (NILP (Vmouse_highlight) && !down_p)
-    prop_idx = f->last_tab_bar_item;
 
   /* If item is disabled, do nothing.  */
   enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);
@@ -13726,21 +13703,12 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
     return;
 
   if (down_p)
-    {
-      /* Show item in pressed state.  */
-      if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
-      f->last_tab_bar_item = prop_idx;
-    }
+    f->last_tab_bar_item = prop_idx; /* record the pressed tab */
   else
     {
       Lisp_Object key, frame;
       struct input_event event;
       EVENT_INIT (event);
-
-      /* Show item in released state.  */
-      if (!NILP (Vmouse_highlight))
-	show_mouse_face (hlinfo, DRAW_IMAGE_RAISED);
 
       key = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_KEY);
 
@@ -13752,97 +13720,6 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
       kbd_buffer_store_event (&event);
       f->last_tab_bar_item = -1;
     }
-}
-
-
-/* Possibly highlight a tab-bar item on frame F when mouse moves to
-   tab-bar window-relative coordinates X/Y.  Called from
-   note_mouse_highlight.  */
-
-static void
-note_tab_bar_highlight (struct frame *f, int x, int y)
-{
-  Lisp_Object window = f->tab_bar_window;
-  struct window *w = XWINDOW (window);
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
-  int hpos, vpos;
-  struct glyph *glyph;
-  struct glyph_row *row;
-  int i;
-  Lisp_Object enabled_p;
-  int prop_idx;
-  bool close_p;
-  enum draw_glyphs_face draw = DRAW_IMAGE_RAISED;
-  int rc;
-
-  /* Function note_mouse_highlight is called with negative X/Y
-     values when mouse moves outside of the frame.  */
-  if (x <= 0 || y <= 0)
-    {
-      clear_mouse_face (hlinfo);
-      return;
-    }
-
-  rc = get_tab_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx, &close_p);
-  if (rc < 0)
-    {
-      /* Not on tab-bar item.  */
-      clear_mouse_face (hlinfo);
-      return;
-    }
-  else if (rc == 0)
-    /* On same tab-bar item as before.  */
-    goto set_help_echo;
-
-  clear_mouse_face (hlinfo);
-
-  bool mouse_down_p = false;
-#ifndef HAVE_NS
-  /* Mouse is down, but on different tab-bar item?  */
-  Display_Info *dpyinfo = FRAME_DISPLAY_INFO (f);
-  mouse_down_p = (gui_mouse_grabbed (dpyinfo)
-		  && f == dpyinfo->last_mouse_frame);
-
-  if (mouse_down_p && f->last_tab_bar_item != prop_idx)
-    return;
-#endif
-  draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
-
-  /* If tab-bar item is not enabled, don't highlight it.  */
-  enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);
-  if (!NILP (enabled_p) && !NILP (Vmouse_highlight))
-    {
-      /* Compute the x-position of the glyph.  In front and past the
-	 image is a space.  We include this in the highlighted area.  */
-      row = MATRIX_ROW (w->current_matrix, vpos);
-      for (i = x = 0; i < hpos; ++i)
-	x += row->glyphs[TEXT_AREA][i].pixel_width;
-
-      /* Record this as the current active region.  */
-      hlinfo->mouse_face_beg_col = hpos;
-      hlinfo->mouse_face_beg_row = vpos;
-      hlinfo->mouse_face_beg_x = x;
-      hlinfo->mouse_face_past_end = false;
-
-      hlinfo->mouse_face_end_col = hpos + 1;
-      hlinfo->mouse_face_end_row = vpos;
-      hlinfo->mouse_face_end_x = x + glyph->pixel_width;
-      hlinfo->mouse_face_window = window;
-      hlinfo->mouse_face_face_id = TAB_BAR_FACE_ID;
-
-      /* Display it as active.  */
-      show_mouse_face (hlinfo, draw);
-    }
-
- set_help_echo:
-
-  /* Set help_echo_string to a help string to display for this tab-bar item.
-     XTread_socket does the rest.  */
-  help_echo_object = help_echo_window = Qnil;
-  help_echo_pos = -1;
-  help_echo_string = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_HELP);
-  if (NILP (help_echo_string))
-    help_echo_string = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_CAPTION);
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -33537,13 +33414,9 @@ note_mouse_highlight (struct frame *f, int x, int y)
   frame_to_window_pixel_xy (w, &x, &y);
 
 #if defined (HAVE_WINDOW_SYSTEM)
-  /* Handle tab-bar window differently since it doesn't display a
-     buffer.  */
+  /* We don't highlight tab-bar buttons.  */
   if (EQ (window, f->tab_bar_window))
-    {
-      note_tab_bar_highlight (f, x, y);
-      return;
-    }
+    return;
 #endif
 
 #if defined (HAVE_WINDOW_SYSTEM) && ! defined (HAVE_EXT_TOOL_BAR)

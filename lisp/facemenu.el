@@ -539,6 +539,7 @@ filter out the color from the output."
 This is installed as a `revert-buffer-function' in the *Colors* buffer."
   (list-colors-display nil (buffer-name) list-colors-callback))
 
+;;;###autoload
 (defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.
 If the optional argument LIST is non-nil, it should be a list of

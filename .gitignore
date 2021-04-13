@@ -88,6 +88,7 @@ lisp/cedet/semantic/wisent/javat-wy.el
 lisp/cedet/semantic/wisent/js-wy.el
 lisp/cedet/semantic/wisent/python-wy.el
 lisp/cedet/srecode/srt-wy.el
+lisp/cedet/semantic/grammar-wy.el
 lisp/eshell/esh-groups.el
 lisp/finder-inf.el
 lisp/leim/ja-dic/
@@ -189,6 +190,7 @@ lib-src/make-docfile
 lib-src/make-fingerprint
 lib-src/movemail
 lib-src/profile
+lib-src/seccomp-filter
 lib-src/test-distrib
 lib-src/update-game-score
 nextstep/Cocoa/Emacs.base/Contents/Info.plist
@@ -302,3 +304,9 @@ nt/emacs.rc
 nt/emacsclient.rc
 src/gdb.ini
 /var/
+
+# Seccomp filter files.
+lib-src/seccomp-filter.bpf
+lib-src/seccomp-filter.pfc
+lib-src/seccomp-filter-exec.bpf
+lib-src/seccomp-filter-exec.pfc

@@ -254,7 +254,7 @@ available and the current buffer was set up for parsing.  Return
 non-nil if the minor mode is enabled."
 ;;
 ;;\\{semantic-decoration-map}"
-  nil nil nil
+  :lighter nil
   (if semantic-decoration-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
           (progn

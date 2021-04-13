@@ -317,7 +317,7 @@ EOF
 echo "Finding loaddef targets..."
 
 find lisp -name '*.el' -exec grep '^;.*generated-autoload-file:' {} + | \
-    sed -e '/loaddefs\|esh-groups/d' -e 's|/[^/]*: "|/|' -e 's/"//g' \
+    sed -e '/loaddefs\|esh-groups/d' -e 's|/[^/]*: "|/|' -e 's/"//g'    \
     >| $tempfile || die "Error finding targets"
 
 genfiles=
@@ -363,9 +363,15 @@ make -C lisp "$@" autoloads EMACS=../src/bootstrap-emacs || die "make src error"
 
 
 ## Ignore comment differences.
-[ ! "$lboot_flag" ] || \
+[ ! "$lboot_flag" ] ||                      \
     diff -q -I '^;' $ldefs_in $ldefs_out || \
     cp $ldefs_in $ldefs_out || die "cp ldefs_boot error"
+
+# Refresh the prebuilt grammar-wy.el
+grammar_in=lisp/cedet/semantic/grammar-wy.el
+grammar_out=lisp/cedet/semantic/grm-wy-boot.el
+make -C admin/grammars/ ../../$grammar_in
+cp $grammar_in $grammar_out || die "cp grm_wy_boot error"
 
 
 echo "Checking status of loaddef files..."
@@ -373,7 +379,7 @@ echo "Checking status of loaddef files..."
 ## It probably would be fine to just check+commit lisp/, since
 ## making autoloads should not effect any other files.  But better
 ## safe than sorry.
-modified=$(status $genfiles $ldefs_out) || die
+modified=$(status $genfiles $ldefs_out $grammar_out) || die
 
 
 commit "loaddefs" $modified || die "commit error"

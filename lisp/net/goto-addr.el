@@ -263,9 +263,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 ;;;###autoload
 (define-minor-mode goto-address-mode
   "Minor mode to buttonize URLs and e-mail addresses in the current buffer."
-  nil
-  ""
-  nil
+  :lighter ""
   (if goto-address-mode
       (jit-lock-register #'goto-address-fontify-region)
     (jit-lock-unregister #'goto-address-fontify-region)
@@ -285,9 +283,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 ;;;###autoload
 (define-minor-mode goto-address-prog-mode
   "Like `goto-address-mode', but only for comments and strings."
-  nil
-  ""
-  nil
+  :lighter ""
   (if goto-address-prog-mode
       (jit-lock-register #'goto-address-fontify-region)
     (jit-lock-unregister #'goto-address-fontify-region)

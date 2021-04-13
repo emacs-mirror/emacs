@@ -652,7 +652,7 @@ with a prefix argument, prompt for START-AT and FORMAT."
   "Toggle the region as rectangular.
 
 Activates the region if needed.  Only lasts until the region is deactivated."
-  nil nil nil
+  :lighter nil
   (rectangle--reset-crutches)
   (when rectangle-mark-mode
     (add-hook 'deactivate-mark-hook

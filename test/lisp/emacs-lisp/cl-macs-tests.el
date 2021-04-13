@@ -629,14 +629,24 @@ collection clause."
                           (let (n1)
                             (and xs
                                  (progn (setq n1 (1+ n))
-                                        (len2 (cdr xs) n1)))))))
+                                        (len2 (cdr xs) n1))))))
+         ;; Tail call in error handler.
+         (len3 (xs n)
+               (if xs
+                   (condition-case nil
+                       (/ 1 0)
+                     (arith-error (len3 (cdr xs) (1+ n))))
+                 n)))
       (should (equal (len nil 0) 0))
       (should (equal (len2 nil 0) 0))
+      (should (equal (len3 nil 0) 0))
       (should (equal (len list-42 0) 42))
       (should (equal (len2 list-42 0) 42))
+      (should (equal (len3 list-42 0) 42))
       ;; Should not bump into stack depth limits.
       (should (equal (len list-42k 0) 42000))
-      (should (equal (len2 list-42k 0) 42000))))
+      (should (equal (len2 list-42k 0) 42000))
+      (should (equal (len3 list-42k 0) 42000))))
 
   ;; Check that non-recursive functions are handled more efficiently.
   (should (pcase (macroexpand '(cl-labels ((f (x) (+ x 1))) (f 5)))

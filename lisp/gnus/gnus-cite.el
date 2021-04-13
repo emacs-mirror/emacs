@@ -1134,9 +1134,7 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 (define-minor-mode gnus-message-citation-mode
   "Minor mode providing more font-lock support for nested citations.
 When enabled, it automatically turns on `font-lock-mode'."
-  nil ;; init-value
-  "" ;; lighter
-  nil ;; keymap
+  :lighter ""
   (when (derived-mode-p 'message-mode)
     ;; FIXME: Use font-lock-add-keywords!
     (let ((defaults (car font-lock-defaults))

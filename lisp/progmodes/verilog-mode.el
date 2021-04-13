@@ -9,7 +9,7 @@
 ;; Keywords: languages
 ;; The "Version" is the date followed by the decimal rendition of the Git
 ;;     commit hex.
-;; Version: 2021.03.30.243771231
+;; Version: 2021.04.12.188864585
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 19/3/2008, and the maintainer agreed that when a bug is
@@ -124,7 +124,7 @@
 ;;
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "2021-03-30-e87a75f-vpo-GNU"
+(defconst verilog-mode-version "2021-04-12-b41d849-vpo-GNU"
   "Version of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -3607,7 +3607,7 @@ inserted using a single call to `verilog-insert'."
 ;; More searching
 
 (defun verilog-declaration-end ()
-  (search-forward ";"))
+  (search-forward ";" nil t))
 
 (defun verilog-single-declaration-end (limit)
   "Returns pos where current (single) declaration statement ends.
@@ -7555,25 +7555,25 @@ will be completed at runtime and should not be added to this list.")
 TYPE is `module', `tf' for task or function, or t if unknown."
   (if (string= verilog-str "")
       (setq verilog-str "[a-zA-Z_]"))
-  (let ((verilog-str (concat (cond
-                              ((eq type 'module) "\\<\\(module\\|connectmodule\\)\\s +")
-                              ((eq type 'tf) "\\<\\(task\\|function\\)\\s +")
-                              (t "\\<\\(task\\|function\\|module\\|connectmodule\\)\\s +"))
-                             "\\<\\(" verilog-str "[a-zA-Z0-9_.]*\\)\\>"))
+  (let ((verilog-str
+         (concat (cond
+                  ((eq type 'module) "\\<\\(module\\|connectmodule\\)\\s +")
+                  ((eq type 'tf) "\\<\\(task\\|function\\)\\s +")
+                  (t "\\<\\(task\\|function\\|module\\|connectmodule\\)\\s +"))
+                 "\\<\\(" verilog-str "[a-zA-Z0-9_.]*\\)\\>"))
 	match)
 
-    (if (not (looking-at verilog-defun-re))
-	(verilog-re-search-backward verilog-defun-re nil t))
-    (forward-char 1)
+    (save-excursion
+      (if (not (looking-at verilog-defun-re))
+	  (verilog-re-search-backward verilog-defun-re nil t))
+      (forward-char 1)
 
-    ;; Search through all reachable functions
-    (goto-char (point-min))
-    (while (verilog-re-search-forward verilog-str (point-max) t)
-      (progn (setq match (buffer-substring (match-beginning 2)
-					   (match-end 2)))
-             (setq verilog-all (cons match verilog-all))))
-    (if (match-beginning 0)
-	(goto-char (match-beginning 0)))))
+      ;; Search through all reachable functions
+      (goto-char (point-min))
+      (while (verilog-re-search-forward verilog-str (point-max) t)
+        (setq match (buffer-substring (match-beginning 2)
+				      (match-end 2)))
+        (setq verilog-all (cons match verilog-all))))))
 
 (defun verilog-get-completion-decl (end)
   "Macro for searching through current declaration (var, type or const)
@@ -11561,6 +11561,7 @@ See the example in `verilog-auto-inout-modport'."
 
 (defvar vl-cell-type nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-cell-name nil "See `verilog-auto-inst'.") ; Prevent compile warning
+(defvar vl-memory    nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-modport   nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-name  nil "See `verilog-auto-inst'.") ; Prevent compile warning
 (defvar vl-width nil "See `verilog-auto-inst'.") ; Prevent compile warning
@@ -12063,6 +12064,7 @@ Lisp Templates:
         vl-width       Width of the input/output port (`3' for [2:0]).
                        May be a (...) expression if bits isn't a constant.
         vl-dir         Direction of the pin input/output/inout/interface.
+        vl-memory      The unpacked array part of the I/O port (`[5:0]').
         vl-modport     The modport, if an interface with a modport.
         vl-cell-type   Module name/type of the cell (`InstModule').
         vl-cell-name   Instance name of the cell (`instName').

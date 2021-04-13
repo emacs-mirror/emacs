@@ -201,6 +201,14 @@ something before the starting point, type @kbd{C-r} to switch to a
 backward search, leaving the search string unchanged.  Similarly,
 @kbd{C-s} in a backward search switches to a forward search.
 
+@cindex search, changing direction
+@vindex isearch-repeat-on-direction-change
+  When you change the direction of a search, the first command you
+type will, by default, remain on the same match, and the cursor will
+move to the other end of the match.  To move to another match
+immediately, customize the variable
+@code{isearch-repeat-on-direction-change} to @code{t}.
+
 @cindex search, wrapping around
 @cindex search, overwrapped
 @cindex wrapped search

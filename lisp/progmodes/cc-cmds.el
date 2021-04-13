@@ -1,4 +1,4 @@
-;;; cc-cmds.el --- user level commands for CC Mode
+;;; cc-cmds.el --- user level commands for CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -49,11 +49,10 @@
 					; which looks at this.
 (cc-bytecomp-defun electric-pair-post-self-insert-function)
 (cc-bytecomp-defvar c-indent-to-body-directives)
+(defvar c-syntactic-context)
 
 ;; Indentation / Display syntax functions
 (defvar c-fix-backslashes t)
-
-(defvar c-syntactic-context)
 
 (defun c-indent-line (&optional syntax quiet ignore-point-pos)
   "Indent the current line according to the syntactic context,
@@ -1220,9 +1219,9 @@ numeric argument is supplied, or the point is inside a literal."
       (self-insert-command (prefix-numeric-value arg)))
     (setq final-pos (point))
 
-;;;; 2010-01-31: There used to be code here to put a syntax-table text
-;;;; property on the new < or > and its mate (if any) when they are template
-;;;; parens.  This is now done in an after-change function.
+;;;;  2010-01-31: There used to be code here to put a syntax-table text
+;;;;  property on the new < or > and its mate (if any) when they are template
+;;;;  parens.  This is now done in an after-change function.
 
     (when (and (not arg) (not literal))
       ;; Have we got a delimiter on a #include directive?
@@ -1640,7 +1639,7 @@ No indentation or other \"electric\" behavior is performed."
   ;; This function might do hidden buffer changes.
   (save-excursion
     (let* (knr-start knr-res
-	   decl-result brace-decl-p
+	   decl-result
 	   (start (point))
 	   (paren-state (c-parse-state))
 	   (least-enclosing (c-least-enclosing-brace paren-state)))
@@ -1670,12 +1669,19 @@ No indentation or other \"electric\" behavior is performed."
 		    (not (looking-at c-defun-type-name-decl-key))))))
 	'at-function-end)
        (t
+	;; Kluge so that c-beginning-of-decl-1 won't go back if we're already
+	;; at a declaration.
+	(if (or (and (eolp) (not (eobp))) ; EOL is matched by "\\s>"
+		(not (c-looking-at-non-alphnumspace)))
+	    (forward-char))
+
 	(if (and least-enclosing
 		 (eq (char-after least-enclosing) ?\())
 	    (c-go-list-forward least-enclosing))
 	(c-forward-syntactic-ws)
 	(setq knr-start (point))
-	(if (c-syntactic-re-search-forward "{" nil t t)
+	(if (and (c-syntactic-re-search-forward "[;{]" nil t t)
+		 (eq (char-before) ?\{))
 	    (progn
 	      (backward-char)
 	      (cond
@@ -1689,19 +1695,27 @@ No indentation or other \"electric\" behavior is performed."
 	       ((and knr-res
 		     (goto-char knr-res)
 		     (c-backward-syntactic-ws))) ; Always returns nil.
-	       ((and (eq (char-before) ?\))
-		     (c-go-list-backward))
-		(c-syntactic-skip-backward "^;" start t)
-		(if (eq (point) start)
-		    (if (progn (c-backward-syntactic-ws)
-			       (memq (char-before) '(?\; ?} nil)))
-			(if (progn (c-forward-syntactic-ws)
-				   (eq (point) start))
-			    'at-header
-			  'outwith-function)
-		      'in-header)
-		  'outwith-function))
-	       (t 'outwith-function)))
+	       (t
+		(when (eq (char-before) ?\))
+		  ;; The `c-go-list-backward' is a precaution against
+		  ;; `c-beginning-of-decl-1' spuriously finding a C++ lambda
+		  ;; function inside the parentheses.
+		  (c-go-list-backward))
+		(setq decl-result
+		      (car (c-beginning-of-decl-1
+			    (and least-enclosing
+				 (c-safe-position
+				  least-enclosing paren-state)))))
+		(cond
+		 ((> (point) start)
+		  'outwith-function)
+		 ((eq decl-result 'same)
+		  (if (eq (point) start)
+		      'at-header
+		    'in-header))
+		 (t (error
+		     "c-where-wrt-brace-construct: c-beginning-of-decl-1 returned %s"
+		     decl-result))))))
 	  'outwith-function))))))
 
 (defun c-backward-to-nth-BOF-{ (n where)
@@ -1810,11 +1824,13 @@ No indentation or other \"electric\" behavior is performed."
       nil)))
 
 (eval-and-compile
-  (defmacro c-while-widening-to-decl-block (condition)
+  (defmacro c-while-widening-to-decl-block (condition &optional no-where)
     ;; Repeatedly evaluate CONDITION until it returns nil.  After each
     ;; evaluation, if `c-defun-tactic' is set appropriately, widen to innards
     ;; of the next enclosing declaration block (e.g. namespace, class), or the
     ;; buffer's original restriction.
+    ;;
+    ;; If NO-WHERE is non-nil, don't compile in a `(setq where ....)'.
     ;;
     ;; This is a very special purpose macro, which assumes the existence of
     ;; several variables.  It is for use only in c-beginning-of-defun and
@@ -1826,7 +1842,8 @@ No indentation or other \"electric\" behavior is performed."
        (setq paren-state (c-whack-state-after lim paren-state))
        (setq lim (c-widen-to-enclosing-decl-scope
 		  paren-state orig-point-min orig-point-max))
-       (setq where 'in-block))))
+       ,@(if (not no-where)
+	     `((setq where 'in-block))))))
 
 (def-edebug-spec c-while-widening-to-decl-block t)
 
@@ -2307,11 +2324,11 @@ with a brace block, at the outermost level of nesting."
 	(c-save-buffer-state ((paren-state (c-parse-state))
 			      (orig-point-min (point-min))
 			      (orig-point-max (point-max))
-			      lim name limits where)
+			      lim name limits)
 	  (setq lim (c-widen-to-enclosing-decl-scope
 		     paren-state orig-point-min orig-point-max))
 	  (and lim (setq lim (1- lim)))
-	  (c-while-widening-to-decl-block (not (setq name (c-defun-name-1))))
+	  (c-while-widening-to-decl-block (not (setq name (c-defun-name-1))) t)
 	  (when name
 	    (setq limits (c-declaration-limits-1 near))
 	    (cons name limits)))
@@ -2927,10 +2944,13 @@ function does not require the declaration to contain a brace block."
 			 (c-looking-at-special-brace-list)))
 	       (or allow-early-stop (/= here last))
 	       (save-excursion	; Is this a check that we're NOT at top level?
-;;;; NO!  This seems to check that (i) EITHER we're at the top level; OR (ii) The next enclosing
-;;;; level of bracketing is a '{'.  HMM.  Doesn't seem to make sense.
-;;;; 2003/8/8 This might have something to do with the GCC extension "Statement Expressions", e.g.
-;;;; while ({stmt1 ; stmt2 ; exp ;}).  This form excludes such Statement Expressions.
+;;;;  NO!  This seems to check that (i) EITHER we're at the top level;
+;;;;  OR (ii) The next enclosing  level of bracketing is a '{'.  HMM.
+;;;;  Doesn't seem to make sense.
+;;;;  2003/8/8 This might have something to do with the GCC extension
+;;;;  "Statement Expressions", e.g.
+;;;;  while ({stmt1 ; stmt2 ; exp ;}).
+;;;;  This form excludes such Statement Expressions.
 		 (or (not (c-safe (up-list -1) t))
 		     (= (char-after) ?{))))
 	  (goto-char last)

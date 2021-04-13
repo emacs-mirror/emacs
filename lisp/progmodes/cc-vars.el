@@ -1,4 +1,4 @@
-;;; cc-vars.el --- user customization variables for CC Mode
+;;; cc-vars.el --- user customization variables for CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -41,6 +41,9 @@
     (load "cc-bytecomp" nil t)))
 
 (cc-require 'cc-defs)
+
+(defvar c-syntactic-context)
+(defvar c-syntactic-element)
 
 (cc-eval-when-compile
   (require 'custom)

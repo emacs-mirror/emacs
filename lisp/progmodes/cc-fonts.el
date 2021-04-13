@@ -1,4 +1,4 @@
-;;; cc-fonts.el --- font lock support for CC Mode
+;;; cc-fonts.el --- font lock support for CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -2287,7 +2287,7 @@ need for `c-font-lock-extra-types'.")
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; fontification".
-  (let (pos after-name)
+  (let (pos)
     (while (c-syntactic-re-search-forward c-using-key limit 'end)
       (while  ; Do one declarator of a comma separated list, each time around.
 	  (progn
@@ -2295,7 +2295,6 @@ need for `c-font-lock-extra-types'.")
 	    (setq pos (point))		; token after "using".
 	    (when (and (c-on-identifier)
 		       (c-forward-name))
-	      (setq after-name (point))
 	      (cond
 	       ((eq (char-after) ?=)		; using foo = <type-id>;
 		(goto-char pos)
@@ -2305,7 +2304,8 @@ need for `c-font-lock-extra-types'.")
 		       (c-go-up-list-backward)
 		       (eq (char-after) ?{)
 		       (eq (car (c-beginning-of-decl-1
-				 (c-determine-limit 1000))) 'same)
+				 (c-determine-limit 1000)))
+			   'same)
 		       (looking-at c-colon-type-list-re)))
 		;; Inherited protected member: leave unfontified
 		)

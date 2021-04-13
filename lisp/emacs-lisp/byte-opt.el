@@ -528,8 +528,14 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          `(condition-case ,var          ;Not evaluated.
               ,(byte-optimize-form exp for-effect)
             ,@(mapcar (lambda (clause)
-                        `(,(car clause)
-                          ,@(byte-optimize-body (cdr clause) for-effect)))
+                        (let ((byte-optimize--lexvars
+                               (and lexical-binding
+                                    (if var
+                                        (cons (list var t)
+                                              byte-optimize--lexvars)
+                                      byte-optimize--lexvars))))
+                          (cons (car clause)
+                                (byte-optimize-body (cdr clause) for-effect))))
                       clauses))))
 
       (`(unwind-protect ,exp . ,exps)

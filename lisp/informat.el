@@ -1,4 +1,4 @@
-;;; informat.el --- info support functions package for Emacs
+;;; informat.el --- info support functions package for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1986, 2001-2021 Free Software Foundation, Inc.
 
@@ -140,7 +140,7 @@
 		(or (bolp)
 		    (newline))
 		(insert "\^_\f\nTag table:\n")
-		(if (eq major-mode 'info-mode)
+		(if (derived-mode-p 'info-mode)
 		    (move-marker Info-tag-table-marker (point)))
 		(setq tag-list (nreverse tag-list))
 		(while tag-list

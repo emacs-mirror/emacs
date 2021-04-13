@@ -402,7 +402,7 @@ format.  See `ibuffer-update-saved-filters-format' and
 ;;;###autoload
 (define-minor-mode ibuffer-auto-mode
   "Toggle use of Ibuffer's auto-update facility (Ibuffer Auto mode)."
-  nil nil nil
+  :lighter nil
   (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))
   (cond (ibuffer-auto-mode
@@ -687,8 +687,8 @@ specifications with the same structure as
 `ibuffer-filtering-qualifiers'."
   (not
    (memq nil ;; a filter will return nil if it failed
-	 (mapcar #'(lambda (filter)
-                     (ibuffer-included-in-filter-p buf filter))
+         (mapcar (lambda (filter)
+                   (ibuffer-included-in-filter-p buf filter))
                  filters))))
 
 (defun ibuffer-unary-operand (filter)
@@ -724,8 +724,8 @@ specification, with the same structure as an element of the list
        ;;  (dolist (filter-spec (cdr filter) nil)
        ;;    (when (ibuffer-included-in-filter-p buf filter-spec)
        ;;      (throw 'has-match t))))
-       (memq t (mapcar #'(lambda (x)
-                           (ibuffer-included-in-filter-p buf x))
+       (memq t (mapcar (lambda (x)
+                         (ibuffer-included-in-filter-p buf x))
                        (cdr filter))))
       ('and
        (catch 'no-match
@@ -1589,8 +1589,8 @@ to move by.  The default is `ibuffer-marked-char'."
       (message "No buffers marked; use `m' to mark a buffer")
     (let ((count
 	   (ibuffer-map-marked-lines
-	    #'(lambda (_buf _mark)
-		'kill))))
+            (lambda (_buf _mark)
+              'kill))))
       (message "Killed %s lines" count))))
 
 ;;;###autoload
@@ -1609,8 +1609,8 @@ a prefix argument reverses the meaning of that variable."
 		  (when current-prefix-arg
 		    (setq only-visible (not only-visible)))
 		  (if only-visible
-		      (let ((table (mapcar #'(lambda (x)
-					       (buffer-name (car x)))
+                      (let ((table (mapcar (lambda (x)
+                                             (buffer-name (car x)))
 					   (ibuffer-current-state-list))))
 			(when (null table)
 			  (error "No buffers!"))
@@ -1621,10 +1621,10 @@ a prefix argument reverses the meaning of that variable."
     (let (buf-point)
       ;; Blindly search for our buffer: it is very likely that it is
       ;; not in a hidden filter group.
-      (ibuffer-map-lines #'(lambda (buf _marks)
-			     (when (string= (buffer-name buf) name)
-			       (setq buf-point (point))
-			       nil))
+      (ibuffer-map-lines (lambda (buf _marks)
+                           (when (string= (buffer-name buf) name)
+                             (setq buf-point (point))
+                             nil))
 			 t nil)
       (when (and
 	     (null buf-point)
@@ -1635,10 +1635,10 @@ a prefix argument reverses the meaning of that variable."
 	  (dolist (group ibuffer-hidden-filter-groups)
 	    (ibuffer-jump-to-filter-group group)
 	    (ibuffer-toggle-filter-group)
-	    (ibuffer-map-lines #'(lambda (buf _marks)
-				   (when (string= (buffer-name buf) name)
-				     (setq buf-point (point))
-				     nil))
+            (ibuffer-map-lines (lambda (buf _marks)
+                                 (when (string= (buffer-name buf) name)
+                                   (setq buf-point (point))
+                                   nil))
 			       t group)
 	    (if buf-point
 		(throw 'found nil)
@@ -1775,11 +1775,11 @@ You can then feed the file name(s) to other commands with \\[yank]."
 (defun ibuffer-mark-on-buffer (func &optional ibuffer-mark-on-buffer-mark group)
   (let ((count
 	 (ibuffer-map-lines
-	  #'(lambda (buf _mark)
-	      (when (funcall func buf)
-		(ibuffer-set-mark-1 (or ibuffer-mark-on-buffer-mark
-					ibuffer-marked-char))
-		t))
+          (lambda (buf _mark)
+            (when (funcall func buf)
+              (ibuffer-set-mark-1 (or ibuffer-mark-on-buffer-mark
+                                      ibuffer-marked-char))
+              t))
 	  nil
 	  group)))
     (ibuffer-redisplay t)
@@ -1791,8 +1791,8 @@ You can then feed the file name(s) to other commands with \\[yank]."
   "Mark all buffers whose name matches REGEXP."
   (interactive "sMark by name (regexp): ")
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (string-match regexp (buffer-name buf)))))
+   (lambda (buf)
+     (string-match regexp (buffer-name buf)))))
 
 (defun ibuffer-locked-buffer-p (&optional buf)
   "Return non-nil if BUF is locked.
@@ -1816,9 +1816,9 @@ When BUF nil, default to the buffer at current line."
   "Mark all buffers whose major mode matches REGEXP."
   (interactive "sMark by major mode (regexp): ")
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (with-current-buffer buf
-	 (string-match regexp (format-mode-line mode-name nil nil buf))))))
+   (lambda (buf)
+     (with-current-buffer buf
+       (string-match regexp (format-mode-line mode-name nil nil buf))))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-file-name-regexp (regexp)
@@ -1840,21 +1840,21 @@ Otherwise buffers whose name matches an element of
   (interactive (let ((reg (read-string "Mark by content (regexp): ")))
                  (list reg current-prefix-arg)))
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (let ((mode (with-current-buffer buf major-mode))
-             res)
-         (cond ((and (not all-buffers)
-                     (or
-                      (memq mode ibuffer-never-search-content-mode)
-                      (cl-dolist (x ibuffer-never-search-content-name nil)
-                        (when-let ((found (string-match x (buffer-name buf))))
-                          (cl-return found)))))
-                (setq res nil))
-               (t
-                (with-current-buffer buf
-                  (save-mark-and-excursion
-                   (goto-char (point-min))
-                   (setq res (re-search-forward regexp nil t)))))) res))))
+   (lambda (buf)
+     (let ((mode (with-current-buffer buf major-mode))
+           res)
+       (cond ((and (not all-buffers)
+                   (or
+                    (memq mode ibuffer-never-search-content-mode)
+                    (cl-dolist (x ibuffer-never-search-content-name nil)
+                      (when-let ((found (string-match x (buffer-name buf))))
+                        (cl-return found)))))
+              (setq res nil))
+             (t
+              (with-current-buffer buf
+                (save-mark-and-excursion
+                  (goto-char (point-min))
+                  (setq res (re-search-forward regexp nil t)))))) res))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-mode (mode)
@@ -1869,92 +1869,92 @@ Otherwise buffers whose name matches an element of
              (format-prompt "Mark by major mode" default)
              (ibuffer-list-buffer-modes) nil t nil nil default)))))
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (eq (buffer-local-value 'major-mode buf) mode))))
+   (lambda (buf)
+     (eq (buffer-local-value 'major-mode buf) mode))))
 
 ;;;###autoload
 (defun ibuffer-mark-modified-buffers ()
   "Mark all modified buffers."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf) (buffer-modified-p buf))))
+   (lambda (buf) (buffer-modified-p buf))))
 
 ;;;###autoload
 (defun ibuffer-mark-unsaved-buffers ()
   "Mark all modified buffers that have an associated file."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf) (and (buffer-local-value 'buffer-file-name buf)
-			(buffer-modified-p buf)))))
+   (lambda (buf) (and (buffer-local-value 'buffer-file-name buf)
+                 (buffer-modified-p buf)))))
 
 ;;;###autoload
 (defun ibuffer-mark-dissociated-buffers ()
   "Mark all buffers whose associated file does not exist."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (with-current-buffer buf
-	 (or
-	  (and buffer-file-name
-	       (not (file-exists-p buffer-file-name)))
-	  (and (eq major-mode 'dired-mode)
-	       (boundp 'dired-directory)
-	       (stringp dired-directory)
-	       (not (file-exists-p (file-name-directory dired-directory)))))))))
+   (lambda (buf)
+     (with-current-buffer buf
+       (or
+        (and buffer-file-name
+             (not (file-exists-p buffer-file-name)))
+        (and (eq major-mode 'dired-mode)
+             (boundp 'dired-directory)
+             (stringp dired-directory)
+             (not (file-exists-p (file-name-directory dired-directory)))))))))
 
 ;;;###autoload
 (defun ibuffer-mark-help-buffers ()
   "Mark buffers whose major mode is in variable `ibuffer-help-buffer-modes'."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (with-current-buffer buf
-	 (memq major-mode ibuffer-help-buffer-modes)))))
+   (lambda (buf)
+     (with-current-buffer buf
+       (memq major-mode ibuffer-help-buffer-modes)))))
 
 ;;;###autoload
 (defun ibuffer-mark-compressed-file-buffers ()
   "Mark buffers whose associated file is compressed."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (with-current-buffer buf
-	 (and buffer-file-name
-	      (string-match ibuffer-compressed-file-name-regexp
-			   buffer-file-name))))))
+   (lambda (buf)
+     (with-current-buffer buf
+       (and buffer-file-name
+            (string-match ibuffer-compressed-file-name-regexp
+                          buffer-file-name))))))
 
 ;;;###autoload
 (defun ibuffer-mark-old-buffers ()
   "Mark buffers which have not been viewed in `ibuffer-old-time' hours."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf)
-       (with-current-buffer buf
-	 (when buffer-display-time
-	   (time-less-p
-	    (* 60 60 ibuffer-old-time)
-	    (time-since buffer-display-time)))))))
+   (lambda (buf)
+     (with-current-buffer buf
+       (when buffer-display-time
+         (time-less-p
+          (* 60 60 ibuffer-old-time)
+          (time-since buffer-display-time)))))))
 
 ;;;###autoload
 (defun ibuffer-mark-special-buffers ()
   "Mark all buffers whose name begins and ends with `*'."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf) (string-match "^\\*.+\\*$"
-				 (buffer-name buf)))))
+   (lambda (buf) (string-match "^\\*.+\\*$"
+                          (buffer-name buf)))))
 
 ;;;###autoload
 (defun ibuffer-mark-read-only-buffers ()
   "Mark all read-only buffers."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf) (buffer-local-value 'buffer-read-only buf))))
+   (lambda (buf) (buffer-local-value 'buffer-read-only buf))))
 
 ;;;###autoload
 (defun ibuffer-mark-dired-buffers ()
   "Mark all `dired' buffers."
   (interactive)
   (ibuffer-mark-on-buffer
-   #'(lambda (buf) (eq (buffer-local-value 'major-mode buf) 'dired-mode))))
+   (lambda (buf) (eq (buffer-local-value 'major-mode buf) 'dired-mode))))
 
 ;;;###autoload
 (defun ibuffer-do-occur (regexp &optional nlines)
@@ -1970,8 +1970,8 @@ defaults to one."
   (let ((ibuffer-do-occur-bufs nil))
     ;; Accumulate a list of marked buffers
     (ibuffer-map-marked-lines
-     #'(lambda (buf _mark)
-	 (push buf ibuffer-do-occur-bufs)))
+     (lambda (buf _mark)
+       (push buf ibuffer-do-occur-bufs)))
     (occur-1 regexp nlines ibuffer-do-occur-bufs)))
 
 (provide 'ibuf-ext)

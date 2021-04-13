@@ -488,7 +488,7 @@ interpreted as a regular expression which always matches."
 ;; either lower case or upper case letters.  See
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
-  (when (memq system-type '(windows-nt))
+  (when (eq system-type 'windows-nt)
     (list (format "\\`\\(%s\\|%s\\)\\'"
 		  (regexp-quote (downcase tramp-system-name))
 		  (regexp-quote (upcase tramp-system-name)))))
@@ -558,7 +558,7 @@ usually suffice.")
 the remote shell.")
 
 (defcustom tramp-local-end-of-line
-  (if (memq system-type '(windows-nt)) "\r\n" "\n")
+  (if (eq system-type 'windows-nt) "\r\n" "\n")
   "String used for end of line in local processes."
   :version "24.1"
   :type 'string)
@@ -689,15 +689,6 @@ The answer will be provided by `tramp-action-terminal', which see."
   "Regular expression matching plink's anti-spoofing message.
 The regexp should match at end of buffer."
   :version "27.1"
-  :type 'regexp)
-
-;; Powershell requires "ssh -t -t" for terminal emulation.  If it
-;; doesn't fit, there is an error.
-(defcustom tramp-no-job-control-regexp
-  (regexp-quote "Thus no job control in this shell.")
-  "Regular expression matching powershell's job control message.
-The regexp should match at end of buffer."
-  :version "28.1"
   :type 'regexp)
 
 (defcustom tramp-operation-not-permitted-regexp
@@ -1087,7 +1078,13 @@ initial value is overwritten by the car of `tramp-file-name-structure'.")
 
 (defconst tramp-completion-file-name-regexp-default
   (concat
-   "\\`/\\("
+   "\\`"
+   ;; `file-name-completion' uses absolute paths for matching.  This
+   ;; means that on W32 systems, something like "/ssh:host:~/path"
+   ;; becomes "c:/ssh:host:~/path".  See also `tramp-drop-volume-letter'.
+   (when (eq system-type 'windows-nt)
+       "\\(?:[[:alpha:]]:\\)?")
+   "/\\("
    ;; Optional multi hop.
    "\\([^/|:]+:[^/|:]*|\\)*"
    ;; Last hop.
@@ -1106,7 +1103,13 @@ On W32 systems, the volume letter must be ignored.")
 
 (defconst tramp-completion-file-name-regexp-simplified
   (concat
-   "\\`/\\("
+   "\\`"
+   ;; Allow the volume letter at the beginning of the path.  See the
+   ;; comment in `tramp-completion-file-name-regexp-default' for more
+   ;; details.
+   (when (eq system-type 'windows-nt)
+     "\\(?:[[:alpha:]]:\\)?")
+   "/\\("
    ;; Optional multi hop.
    "\\([^/|:]*|\\)*"
    ;; Last hop.
@@ -1122,7 +1125,14 @@ See `tramp-file-name-structure' for more explanations.
 On W32 systems, the volume letter must be ignored.")
 
 (defconst tramp-completion-file-name-regexp-separate
-  "\\`/\\(\\[[^]]*\\)?\\'"
+  (concat
+   "\\`"
+   ;; Allow the volume letter at the beginning of the path.  See the
+   ;; comment in `tramp-completion-file-name-regexp-default' for more
+   ;; details.
+   (when (eq system-type 'windows-nt)
+     "\\(?:[[:alpha:]]:\\)?")
+   "/\\(\\[[^]]*\\)?\\'")
   "Value for `tramp-completion-file-name-regexp' for separate remoting.
 See `tramp-file-name-structure' for more explanations.")
 
@@ -3128,7 +3138,7 @@ User may be nil."
 (defun tramp-parse-putty (registry-or-dirname)
   "Return a list of (user host) tuples allowed to access.
 User is always nil."
-  (if (memq system-type '(windows-nt))
+  (if (eq system-type 'windows-nt)
       (with-tramp-connection-property nil "parse-putty"
 	(with-temp-buffer
 	  (when (zerop (tramp-call-process
@@ -4980,7 +4990,7 @@ VEC is used for tracing."
     (let ((candidates '("en_US.utf8" "C.utf8" "en_US.UTF-8"))
 	  locale)
       (with-temp-buffer
-	(unless (or (memq system-type '(windows-nt))
+	(unless (or (eq system-type 'windows-nt)
                     (not (zerop (tramp-call-process
                                  nil "locale" nil t nil "-a"))))
 	  (while candidates

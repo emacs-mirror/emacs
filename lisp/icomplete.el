@@ -562,6 +562,37 @@ Usually run by inclusion in `minibuffer-setup-hook'."
                  (completion--cache-all-sorted-completions beg end (cons comp all))))
        finally return all)))
 
+(defvar icomplete-vertical-mode-minibuffer-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-n") 'icomplete-forward-completions)
+    (define-key map (kbd "C-p") 'icomplete-backward-completions)
+    map)
+  "Keymap used by `icomplete-vertical-mode' in the minibuffer.")
+
+(defun icomplete--vertical-minibuffer-setup ()
+  "Setup the minibuffer for vertical display of completion candidates."
+  (use-local-map (make-composed-keymap icomplete-vertical-mode-minibuffer-map
+                                       (current-local-map)))
+  (setq-local icomplete-separator "\n"
+              icomplete-hide-common-prefix nil
+              ;; Ask `icomplete-completions' to return enough completions candidates.
+              icomplete-prospects-height 25
+              redisplay-adhoc-scroll-in-resize-mini-windows nil))
+
+;;;###autoload
+(define-minor-mode icomplete-vertical-mode
+  "Toggle vertical candidate display in `icomplete-mode' or `fido-mode'.
+
+As many completion candidates as possible are displayed, depending on
+the value of `max-mini-window-height', and the way the mini-window is
+resized depends on `resize-mini-windows'."
+  :global t
+  (remove-hook 'icomplete-minibuffer-setup-hook
+               #'icomplete--vertical-minibuffer-setup)
+  (when icomplete-vertical-mode
+    (add-hook 'icomplete-minibuffer-setup-hook
+              #'icomplete--vertical-minibuffer-setup)))
+
 
 
 
@@ -784,10 +815,13 @@ matches exist."
         (if last (setcdr last base-size))
 	(if prospects
 	    (concat determ
-		    "{"
-		    (mapconcat 'identity prospects icomplete-separator)
-		    (and limit (concat icomplete-separator ellipsis))
-		    "}")
+		    (if icomplete-vertical-mode " \n" "{")
+		    (mapconcat 'identity prospects (if icomplete-vertical-mode
+                                                       "\n"
+                                                       icomplete-separator))
+		    (unless icomplete-vertical-mode
+                      (concat (and limit (concat icomplete-separator ellipsis))
+                              "}")))
 	  (concat determ " [Matched]"))))))
 
 ;;; Iswitchb compatibility

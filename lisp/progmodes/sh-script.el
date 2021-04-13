@@ -2967,7 +2967,7 @@ The document is bounded by `sh-here-document-word'."
 
 (define-minor-mode sh-electric-here-document-mode
   "Make << insert a here document skeleton."
-  nil nil nil
+  :lighter nil
   (if sh-electric-here-document-mode
       (add-hook 'post-self-insert-hook #'sh--maybe-here-document nil t)
     (remove-hook 'post-self-insert-hook #'sh--maybe-here-document t)))

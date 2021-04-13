@@ -1,4 +1,4 @@
-;;; cc-menus.el --- imenu support for CC Mode
+;;; cc-menus.el --- imenu support for CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 

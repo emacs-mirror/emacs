@@ -488,8 +488,17 @@ for use at QPOS."
              (qsuffix (cdr action))
              (ufull (if (zerop (length qsuffix)) ustring
                       (funcall unquote (concat string qsuffix))))
-             (_ (cl-assert (string-prefix-p ustring ufull)))
-             (usuffix (substring ufull (length ustring)))
+             ;; If (not (string-prefix-p ustring ufull)) we have a problem:
+             ;; the unquoting the qfull gives something "unrelated" to ustring.
+             ;; E.g. "~/" and "/" where "~//" gets unquoted to just "/" (see
+             ;; bug#47678).
+             ;; In that case we can't even tell if we're right before the
+             ;; "/" or right after it (aka if this "/" is from qstring or
+             ;; from qsuffix), which which usuffix to use is very unclear.
+             (usuffix (if (string-prefix-p ustring ufull)
+                          (substring ufull (length ustring))
+                        ;; FIXME: Maybe "" is preferable/safer?
+                        qsuffix))
              (boundaries (completion-boundaries ustring table pred usuffix))
              (qlboundary (car (funcall requote (car boundaries) string)))
              (qrboundary (if (zerop (cdr boundaries)) 0 ;Common case.

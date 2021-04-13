@@ -31,7 +31,12 @@
 (require 'semantic/format)
 ;; FIXME this is a generated file, but we need to load this file to
 ;; generate it!
-(require 'semantic/grammar-wy)
+;; We need `semantic/grammar-wy.el' but we're also needed to generate
+;; that file from `grammar.wy', so to break the dependency, we keep
+;; a bootstrap copy of `grammar-wy.el' in `grm-wy-boot.el'.  See bug#16008.
+(eval-and-compile
+  (unless (require 'semantic/grammar-wy nil t)
+    (load "semantic/grm-wy-boot")))
 (require 'semantic/idle)
 (require 'help-fns)
 (require 'semantic/analyze)

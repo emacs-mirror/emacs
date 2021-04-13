@@ -1,4 +1,4 @@
-;;; cc-awk.el --- AWK specific code within cc-mode.
+;;; cc-awk.el --- AWK specific code within cc-mode. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1988, 1994, 1996, 2000-2021 Free Software Foundation,
 ;; Inc.

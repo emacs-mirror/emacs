@@ -1510,11 +1510,11 @@ form specifications (that is, @code{form}, @code{body}, @code{def-form}, and
 must be in the form itself rather than at a higher level.
 
 Backtracking is also disabled after successfully matching a quoted
-symbol or string specification, since this usually indicates a
-recognized construct.  But if you have a set of alternative constructs that
-all begin with the same symbol, you can usually work around this
-constraint by factoring the symbol out of the alternatives, e.g.,
-@code{["foo" &or [first case] [second case] ...]}.
+symbol, string specification, or @code{&define} keyword, since this
+usually indicates a recognized construct.  But if you have a set of
+alternative constructs that all begin with the same symbol, you can
+usually work around this constraint by factoring the symbol out of the
+alternatives, e.g., @code{["foo" &or [first case] [second case] ...]}.
 
 Most needs are satisfied by these two ways that backtracking is
 automatically disabled, but occasionally it is useful to explicitly

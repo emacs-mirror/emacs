@@ -568,8 +568,6 @@ format first."
 ;;;###autoload
 (define-minor-mode ruler-mode
   "Toggle display of ruler in header line (Ruler mode)."
-  nil nil
-  ruler-mode-map
   :group 'ruler-mode
   :variable (ruler-mode
 	     . (lambda (enable)

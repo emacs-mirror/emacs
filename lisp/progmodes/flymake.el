@@ -741,7 +741,10 @@ to handle a report even if TOKEN was not expected.  REGION is
 a (BEG . END) pair of buffer positions indicating that this
 report applies to that region."
   (let* ((state (gethash backend flymake--backend-state))
-         (first-report (not (flymake--backend-state-reported-p state))))
+         first-report)
+    (unless state
+      (error "Can't find state for %s in `flymake--backend-state'" backend))
+    (setf first-report (not (flymake--backend-state-reported-p state)))
     (setf (flymake--backend-state-reported-p state) t)
     (let (expected-token
           new-diags)

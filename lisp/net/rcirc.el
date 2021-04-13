@@ -196,7 +196,7 @@ If nil, no maximum is applied."
 
 Uninteresting lines are those whose responses are listed in
 `rcirc-omit-responses'."
-  nil " Omit" nil
+  :lighter " Omit"
   (if rcirc-omit-mode
       (progn
 	(add-to-invisibility-spec '(rcirc-omit . nil))
@@ -1359,9 +1359,7 @@ Create the buffer if it doesn't exist."
 
 (define-minor-mode rcirc-multiline-minor-mode
   "Minor mode for editing multiple lines in rcirc."
-  :init-value nil
   :lighter " rcirc-mline"
-  :keymap rcirc-multiline-minor-mode-map
   :global nil
   (setq fill-column rcirc-max-message-length))
 
@@ -1863,9 +1861,6 @@ This function does not alter the INPUT string."
 ;;;###autoload
 (define-minor-mode rcirc-track-minor-mode
   "Global minor mode for tracking activity in rcirc buffers."
-  :init-value nil
-  :lighter ""
-  :keymap rcirc-track-minor-mode-map
   :global t
   (or global-mode-string (setq global-mode-string '("")))
   ;; toggle the mode-line channel indicator

@@ -2141,6 +2141,13 @@ Like `cl-flet' but the definitions can refer to previous ones.
                      ;; tail-called any more.
                      (not (memq var shadowings)))))
              `(,(car exp) ,bindings . ,(funcall opt-exps exps)))
+            ((and `(condition-case ,err-var ,bodyform . ,handlers)
+                  (guard (not (eq err-var var))))
+             `(condition-case ,err-var
+                  (progn (setq ,retvar ,bodyform) nil)
+                . ,(mapcar (lambda (h)
+                             (cons (car h) (funcall opt-exps (cdr h))))
+                           handlers)))
             ('nil nil)  ;No need to set `retvar' to return nil.
             (_ `(progn (setq ,retvar ,exp) nil))))))
 

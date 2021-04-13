@@ -198,7 +198,9 @@ encryption is used."
                       (mapcar #'car (epg-context-result-for
                                      context 'encrypted-to)))
 	  (if (or beg end)
-	      (setq string (substring string (or beg 0) end)))
+              (setq string (substring string
+                                      (or beg 0)
+                                      (and end (min end (length string))))))
 	  (save-excursion
 	    ;; If visiting, bind off buffer-file-name so that
 	    ;; file-locking will not ask whether we should

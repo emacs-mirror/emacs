@@ -1477,15 +1477,22 @@ If the value is nil, don't highlight the buffer names specially."
 
 (defcustom list-matching-lines-jump-to-current-line nil
   "If non-nil, \\[list-matching-lines] shows the current line highlighted.
-Set the point right after such line when there are matches after it."
+The current line for this purpose is the line of the original buffer
+which was current when \\[list-matching-lines] was invoked.
+Point in the `*Occur*' buffer will be set right after such line when
+there are matches after it."
 :type 'boolean
 :group 'matching
 :version "26.1")
 
 (defcustom list-matching-lines-prefix-face 'shadow
   "Face used by \\[list-matching-lines] to show the prefix column.
-If the face doesn't differ from the default face,
-don't highlight the prefix with line numbers specially."
+The prefix column is the part of display that precedes the actual
+contents of the line; it normally shows the line number.  \(For
+multiline matches, the prefix column shows the line number for the
+first line and whitespace for the rest of the lines.\)
+If this face will display the same as the default face, the prefix
+column will not be highlighted speciall."
   :type 'face
   :group 'matching
   :version "24.4")
@@ -1565,11 +1572,24 @@ REGION must be a list of (START . END) positions as returned by
 `region-bounds'.
 
 The lines are shown in a buffer named `*Occur*'.
-It serves as a menu to find any of the occurrences in this buffer.
+That buffer can serve as a menu for finding any of the matches for REGEXP
+in the current buffer.
 \\<occur-mode-map>\\[describe-mode] in that buffer will explain how.
-If `list-matching-lines-jump-to-current-line' is non-nil, then show
-the current line highlighted with `list-matching-lines-current-line-face'
-and set point at the first match after such line.
+
+Matches for REGEXP are shown in the face determined by the
+variable `list-matching-lines-face'.
+Names of buffers with matched lines are shown in the face determined
+by the variable `list-matching-lines-buffer-name-face'.
+The line numbers of the matching lines are shown in the face
+determined by the variable `list-matching-lines-prefix-face'.
+
+If `list-matching-lines-jump-to-current-line' is non-nil, then the
+line in the current buffer which was current when the command was
+invoked will be shown in the `*Occur*' buffer highlighted with
+the `list-matching-lines-current-line-face', with point at the end
+of that line.  (If the current line doesn't match REGEXP, it will
+nonetheless be inserted into the `*Occur*' buffer between the 2
+closest lines that do match REGEXP.)
 
 If REGEXP contains upper case characters (excluding those preceded by `\\')
 and `search-upper-case' is non-nil, the matching is case-sensitive.

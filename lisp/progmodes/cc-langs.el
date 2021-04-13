@@ -1,4 +1,4 @@
-;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
+;;; cc-langs.el --- language specific settings for CC Mode -*- lexical-binding: t; coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -580,14 +580,12 @@ don't have EOL terminated statements. "
 (c-lang-defvar c-at-vsemi-p-fn (c-lang-const c-at-vsemi-p-fn))
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
-  "Contains a predicate regarding the presence of virtual semicolons.
-More precisely, the function answers the question, \"are we unsure whether a
-virtual semicolon exists on this line?\".  The (admittedly kludgy) purpose of
-such a function is to prevent an infinite recursion in
-`c-beginning-of-statement-1' when point starts at a `while' token.  The function
-MUST NOT UNDER ANY CIRCUMSTANCES call `c-beginning-of-statement-1', even
-indirectly.  This variable contains nil for languages which don't have EOL
-terminated statements."
+  "A function \"are we unsure whether there is a virtual semicolon on this line?\".
+The (admittedly kludgy) purpose of such a function is to prevent an infinite
+recursion in c-beginning-of-statement-1 when point starts at a `while' token.
+The function MUST NOT UNDER ANY CIRCUMSTANCES call `c-beginning-of-statement-1',
+even indirectly.  This variable contains nil for languages which don't have
+EOL terminated statements."
   t nil
   (c c++ objc) 'c-macro-vsemi-status-unknown-p
   awk 'c-awk-vsemi-status-unknown-p)

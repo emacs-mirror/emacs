@@ -1408,13 +1408,11 @@ highlighting.
 When ReST minor mode is enabled, the ReST mode keybindings
 are installed on top of the major mode bindings.  Use this
 for modes derived from Text mode, like Mail mode."
- ;; The initial value.
- nil
- ;; The indicator for the mode line.
- " ReST"
- ;; The minor mode bindings.
- rst-mode-map
- :group 'rst)
+  ;; The indicator for the mode line.
+  :lighter " ReST"
+  ;; The minor mode bindings.
+  :keymap rst-mode-map
+  :group 'rst)
 
 ;; FIXME: can I somehow install these too?
 ;;        :abbrev-table rst-mode-abbrev-table

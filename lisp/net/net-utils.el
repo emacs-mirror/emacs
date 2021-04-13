@@ -857,9 +857,14 @@ and `network-connection-service-alist', which see."
 ;; FIXME: modern whois clients include a much better tld <-> whois server
 ;; list, Emacs should probably avoid specifying the server as the client
 ;; will DTRT anyway... -rfr
+;; I'm not sure about the above FIXME.  It seems to me that we should
+;; just check the Root Zone Database maintained at:
+;;     https://www.iana.org/domains/root/db
+;; For example:  whois -h whois.iana.org .se | grep whois
 (defcustom whois-server-tld
-  '(("rs.internic.net" . "com")
-    ("whois.publicinterestregistry.net" . "org")
+  '(("whois.verisign-grs.com" . "com")
+    ("whois.verisign-grs.com" . "net")
+    ("whois.pir.org" . "org")
     ("whois.ripe.net" . "be")
     ("whois.ripe.net" . "de")
     ("whois.ripe.net" . "dk")
@@ -867,10 +872,13 @@ and `network-connection-service-alist', which see."
     ("whois.ripe.net" . "fi")
     ("whois.ripe.net" . "fr")
     ("whois.ripe.net" . "uk")
+    ("whois.iis.se" . "se")
+    ("whois.iis.nu" . "nu")
     ("whois.apnic.net" . "au")
     ("whois.apnic.net" . "ch")
     ("whois.apnic.net" . "hk")
     ("whois.apnic.net" . "jp")
+    ("whois.eu" . "eu")
     ("whois.nic.gov" . "gov")
     ("whois.nic.mil" . "mil"))
   "Alist to map top level domains to whois servers."

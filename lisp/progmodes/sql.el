@@ -1545,9 +1545,7 @@ statement.  The format of variable should be a valid
 ;; `sql-font-lock-keywords-builder' function and follow the
 ;; implementation pattern used for the other products in this file.
 
-(eval-when-compile
-  (defvar sql-mode-ansi-font-lock-keywords)
-  (setq sql-mode-ansi-font-lock-keywords nil))
+(defvar sql-mode-ansi-font-lock-keywords)
 
 (eval-and-compile
   (defun sql-font-lock-keywords-builder (face boundaries &rest keywords)
