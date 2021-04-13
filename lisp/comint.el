@@ -1797,6 +1797,10 @@ Ignore duplicates if `comint-input-ignoredups' is non-nil."
 			(min size (- comint-input-ring-size size)))))
     (ring-insert comint-input-ring cmd)))
 
+(defconst comint--prompt-rear-nonsticky
+  '(field inhibit-line-move-field-capture read-only font-lock-face)
+  "Text properties we set on the prompt and don't want to leak past it.")
+
 (defun comint-send-input (&optional no-newline artificial)
   "Send input to process.
 After the process output mark, sends all text from the process mark to
@@ -1916,8 +1920,8 @@ Similarly for Soar, Scheme, etc."
             (unless (or no-newline comint-use-prompt-regexp)
               ;; Cover the terminating newline
               (add-text-properties end (1+ end)
-                                   '(rear-nonsticky
-                                     (field inhibit-line-move-field-capture read-only)
+                                   `(rear-nonsticky
+                                     ,comint--prompt-rear-nonsticky
                                      field boundary
                                      inhibit-line-move-field-capture t)))))
 
@@ -2124,10 +2128,10 @@ Make backspaces delete the previous character."
 	    (unless comint-use-prompt-regexp
               (with-silent-modifications
                 (add-text-properties comint-last-output-start (point)
-                                     '(front-sticky
+                                     `(rear-nonsticky
+				       ,comint--prompt-rear-nonsticky
+				       front-sticky
 				       (field inhibit-line-move-field-capture)
-				       rear-nonsticky
-				       (field inhibit-line-move-field-capture read-only)
 				       field output
 				       inhibit-line-move-field-capture t))))
 
@@ -2157,8 +2161,8 @@ Make backspaces delete the previous character."
 					       'font-lock-face
 					       'comint-highlight-prompt)
 	      (add-text-properties prompt-start (point)
-	                           '(rear-nonsticky
-	                             (field inhibit-line-move-field-capture read-only))))
+	                           `(rear-nonsticky
+	                             ,comint--prompt-rear-nonsticky)))
 	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
