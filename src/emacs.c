@@ -450,16 +450,14 @@ real_filename (char *filename)
 #ifdef WINDOWSNT
   /* w32_my_exename resolves symlinks internally, so no need to
      call realpath.  */
-  real_name = xmalloc (strlen (filename));
-  strcpy (real_name, filename);
-  return real_name;
+  real_name = xstrdup (filename);
 #else
   real_name = realpath (filename, NULL);
   if (!real_name)
     fatal ("could not resolve realpath of \"%s\": %s",
 	   filename, strerror (errno));
-  return real_name;
 #endif
+  return real_name;
 }
 
 /* Set `invocation-name' `invocation-directory'.  */
