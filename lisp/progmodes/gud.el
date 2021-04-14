@@ -293,6 +293,10 @@ Used to gray out relevant toolbar icons.")
       (tool-bar-local-item-from-menu
        (car x) (cdr x) map gud-minor-mode-map))))
 
+(defvar gud-repeat-map (make-sparse-keymap)
+  "Keymap to repeat gud stepping instructions `C-x C-a C-n n n'.
+Used in `repeat-mode'.")
+
 (defun gud-file-name (f)
   "Transform a relative file name to an absolute file name.
 Uses `gud-<MINOR-MODE>-directories' to find the source files."
@@ -783,6 +787,17 @@ the buffer in which this command was invoked."
 
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	 nil    "Run the program.")
+
+  (dolist (cmd '(("n" . gud-next)
+                 ("s" . gud-step)
+                 ("i" . gud-stepi)
+                 ("c" . gud-cont)
+                 ("l" . gud-refresh)
+                 ("f" . gud-finish)
+                 ("<" . gud-up)
+                 (">" . gud-down)))
+    (define-key gud-repeat-map (car cmd) (cdr cmd))
+    (put (cdr cmd) 'repeat-map 'gud-repeat-map))
 
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
             nil 'local)
