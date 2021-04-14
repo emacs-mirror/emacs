@@ -572,8 +572,8 @@ extern ptrdiff_t str_to_unibyte (const unsigned char *, unsigned char *,
 extern ptrdiff_t strwidth (const char *, ptrdiff_t);
 extern ptrdiff_t c_string_width (const unsigned char *, ptrdiff_t, int,
 				 ptrdiff_t *, ptrdiff_t *);
-extern ptrdiff_t lisp_string_width (Lisp_Object, ptrdiff_t,
-				    ptrdiff_t *, ptrdiff_t *);
+extern ptrdiff_t lisp_string_width (Lisp_Object, ptrdiff_t, ptrdiff_t,
+				    ptrdiff_t, ptrdiff_t *, ptrdiff_t *);
 
 extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object string_escape_byte8 (Lisp_Object);

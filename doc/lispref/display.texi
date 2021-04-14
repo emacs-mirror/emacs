@@ -1965,9 +1965,18 @@ Tables}).  The width of a tab character is usually @code{tab-width}
 (@pxref{Usual Display}).
 @end defun
 
-@defun string-width string
+@defun string-width string &optional from to
 This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.
+Optional arguments @var{from} and @var{to} specify the substring of
+@var{string} to consider, and are interpreted as in @code{substring}
+(@pxref{Creating Strings}).
+
+The return value is an approximation: it only considers the values
+returned by @code{char-width} for the constituent characters, always
+takes a tab character as taking @code{tab-width} columns, ignores
+display properties and fonts, etc.  For these reasons, we recommend to
+use @code{window-text-pixel-size}, described below, instead.
 @end defun
 
 @defun truncate-string-to-width string width &optional start-column padding ellipsis ellipsis-text-property

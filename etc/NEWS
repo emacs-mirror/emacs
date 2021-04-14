@@ -2665,6 +2665,11 @@ argument ELLIPSIS, will now indicate truncation using '…' when
 the selected frame can display it, and using "..." otherwise.
 
 +++
+** 'string-width' now accepts two optional arguments FROM and TO.
+This allows to calculate the width of a substring without consing a
+new string.
+
++++
 ** New command 'make-directory-autoloads'.
 This does the same as the old command 'update-directory-autoloads',
 but has different semantics: Instead of passing in the output file via
