@@ -450,8 +450,6 @@ When Repeat mode is enabled, and the command symbol has the property named
 (defvar repeat-echo-mode-line-string
   (propertize "[Repeating...] " 'face 'mode-line-emphasis)
   "String displayed in the mode line in repeating mode.")
-;;;###autoload
-(put 'mode-line-defining-kbd-macro 'risky-local-variable t)
 
 (defun repeat-echo-mode-line (map)
   "Display the repeat indicator in the mode line."
