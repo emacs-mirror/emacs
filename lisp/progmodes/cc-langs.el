@@ -378,12 +378,14 @@ The syntax tables aren't stored directly since they're quite large."
        (let ((table (make-syntax-table)))
 	 (c-populate-syntax-table table)
 	 ;; Mode specific syntaxes.
-	 ,(cond ((or (c-major-mode-is 'objc-mode) (c-major-mode-is 'java-mode))
+	 ,(cond ((c-major-mode-is 'objc-mode)
 		 ;; Let '@' be part of symbols in ObjC to cope with
 		 ;; its compiler directives as single keyword tokens.
 		 ;; This is then necessary since it's assumed that
 		 ;; every keyword is a single symbol.
 		 '(modify-syntax-entry ?@ "_" table))
+		((c-major-mode-is 'java-mode)
+		 '(modify-syntax-entry ?@ "'" table))
 		((c-major-mode-is 'pike-mode)
 		 '(modify-syntax-entry ?@ "." table)))
 	 table)))
