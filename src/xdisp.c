@@ -875,11 +875,12 @@ wset_update_mode_line (struct window *w)
   w->update_mode_line = true;
   /* When a window's mode line needs to be updated, the window's frame's
      title may also need to be updated, but we don't need to worry about it
-     here.  Instead, `gui_consider_frame_title` is automatically called
+     here.  Instead, `gui_consider_frame_title' is automatically called
      whenever w->update_mode_line is set for that frame's selected window.
      But for this to work reliably, we have to make sure the window
      is considered, so we have to mark it for redisplay.  */
-  wset_redisplay (w); }
+  wset_redisplay (w);
+}
 
 DEFUN ("set-buffer-redisplay", Fset_buffer_redisplay,
        Sset_buffer_redisplay, 4, 4, 0,
