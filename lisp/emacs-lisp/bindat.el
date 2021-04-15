@@ -167,7 +167,7 @@
 
 (defun bindat--unpack-strz (len)
   (let ((i 0) s)
-    (while (and (< i len) (/= (aref bindat-raw (+ bindat-idx i)) 0))
+    (while (and (if len (< i len) t) (/= (aref bindat-raw (+ bindat-idx i)) 0))
       (setq i (1+ i)))
     (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
     (setq bindat-idx (+ bindat-idx len))
@@ -439,6 +439,12 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (aset bindat-raw (+ bindat-idx i) (aref v i)))
   (setq bindat-idx (+ bindat-idx len)))
 
+(defun bindat--pack-strz (v)
+  (let ((len (length v)))
+    (dotimes (i len)
+      (aset bindat-raw (+ bindat-idx i) (aref v i)))
+    (setq bindat-idx (+ bindat-idx len 1))))
+
 (defun bindat--pack-bits (len v)
   (let ((bnum (1- (* 8 len))) j m)
     (while (>= bnum 0)
@@ -677,14 +683,23 @@ is the name of a variable that will hold the value we need to pack.")
     (`(length . ,_) `(cl-incf bindat-idx ,len))
     (`(pack . ,args) `(bindat--pack-str ,len . ,args))))
 
-(cl-defmethod bindat--type (op (_ (eql strz))  len)
+(cl-defmethod bindat--type (op (_ (eql strz))  &optional len)
   (bindat--pcase op
     ('unpack `(bindat--unpack-strz ,len))
-    (`(length . ,_) `(cl-incf bindat-idx ,len))
-    ;; Here we don't add the terminating zero because we rely
-    ;; on the fact that `bindat-raw' was presumably initialized with
-    ;; all-zeroes before we started.
-    (`(pack . ,args) `(bindat--pack-str ,len . ,args))))
+    (`(length ,val)
+     `(cl-incf bindat-idx ,(cond
+                            ((null len) `(length ,val))
+                            ((numberp len) len)
+                            (t `(or ,len (length ,val))))))
+    (`(pack . ,args)
+     (macroexp-let2 nil len len
+       `(if ,len
+            ;; Same as non-zero terminated strings since we don't actually add
+            ;; the terminating zero anyway (because we rely on the fact that
+            ;; `bindat-raw' was presumably initialized with all-zeroes before
+            ;; we started).
+            (bindat--pack-str ,len . ,args)
+          (bindat--pack-strz . ,args))))))
 
 (cl-defmethod bindat--type (op (_ (eql bits))  len)
   (bindat--pcase op
@@ -812,7 +827,7 @@ is the name of a variable that will hold the value we need to pack.")
   '(&or ["uint" def-form]
         ["uintr" def-form]
         ["str" def-form]
-        ["strz" def-form]
+        ["strz" &optional def-form]
         ["bits" def-form]
         ["fill" def-form]
         ["align" def-form]
@@ -832,7 +847,7 @@ TYPE is a Bindat type expression.  It can take the following forms:
   uint BITLEN		- Big-endian unsigned integer
   uintr BITLEN		- Little-endian unsigned integer
   str LEN		- Byte string
-  strz LEN		- Zero-terminated byte-string
+  strz [LEN]		- Zero-terminated byte-string
   bits LEN		- Bit vector (LEN is counted in bytes)
   fill LEN		- Just a filler
   align LEN		- Fill up to the next multiple of LEN bytes

@@ -3410,8 +3410,9 @@ Unsigned integer in little endian order, with @var{bitlen} bits.
 @item str @var{len}
 String of bytes of length @var{len}.
 
-@item strz @var{len}
-Zero-terminated string of bytes, in a fixed-size field with length @var{len}.
+@item strz &optional @var{len}
+Zero-terminated string of bytes, can be of arbitrary length or in a fixed-size
+field with length @var{len}.
 
 @item vec @var{len} [@var{type}]
 Vector of @var{len} elements.  The type of the elements is given by
