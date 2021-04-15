@@ -300,7 +300,8 @@ to find the list of ignores for each directory."
          (command (format "%s %s %s -type f %s -print0"
                           find-program
                           ;; In case DIR is a symlink.
-                          (file-name-as-directory localdir)
+                          (file-name-unquote
+                           (file-name-as-directory localdir))
                           (xref--find-ignores-arguments ignores localdir)
                           (if files
                               (concat (shell-quote-argument "(")
@@ -317,10 +318,13 @@ to find the list of ignores for each directory."
            #'string<))))
 
 (defun project--remote-file-names (local-files)
-  "Return LOCAL-FILES as if they were on the system of `default-directory'."
+  "Return LOCAL-FILES as if they were on the system of `default-directory'.
+Also quote LOCAL-FILES if `default-directory' is quoted."
   (let ((remote-id (file-remote-p default-directory)))
     (if (not remote-id)
-        local-files
+        (if (file-name-quoted-p default-directory)
+            (mapcar #'file-name-quote local-files)
+          local-files)
       (mapcar (lambda (file)
                 (concat remote-id file))
               local-files))))
