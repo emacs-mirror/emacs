@@ -1835,6 +1835,7 @@ No indentation or other \"electric\" behavior is performed."
     ;; This is a very special purpose macro, which assumes the existence of
     ;; several variables.  It is for use only in c-beginning-of-defun and
     ;; c-end-of-defun.
+    (declare (debug t))
     `(while
 	 (and ,condition
 	      (eq c-defun-tactic 'go-outward)

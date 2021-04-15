@@ -969,6 +969,7 @@ Note that the style variables are always made local to the buffer."
 (defmacro c-run-mode-hooks (&rest hooks)
   ;; Emacs 21.1 has introduced a system with delayed mode hooks that
   ;; requires the use of the new function `run-mode-hooks'.
+  (declare (debug t))
   (if (cc-bytecomp-fboundp 'run-mode-hooks)
       `(run-mode-hooks ,@hooks)
     `(progn ,@(mapcar (lambda (hook) `(run-hooks ,hook)) hooks))))
@@ -2503,6 +2504,7 @@ This function is called from `c-common-init', once per mode initialization."
 
 ;; Emacs < 22 and XEmacs
 (defmacro c-advise-fl-for-region (function)
+  (declare (debug t))
   `(defadvice ,function (before get-awk-region activate)
      ;; Make sure that any string/regexp is completely font-locked.
      (when c-buffer-is-cc-mode

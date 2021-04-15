@@ -86,6 +86,7 @@
 (defvar cc-bytecomp-environment-set nil)
 
 (defmacro cc-bytecomp-debug-msg (&rest _args) ; Change to ARGS when needed.
+  ;; (declare (debug t))
   ;;`(message ,@args)
   )
 
@@ -296,6 +297,7 @@ during compilation, but compile in a `require'.  Don't use within
 
 Having cyclic cc-require's will result in infinite recursion.  That's
 somewhat intentional."
+  (declare (debug t))
   `(progn
      (eval-when-compile
        (cc-bytecomp-load (symbol-name ,cc-part)))
@@ -308,6 +310,7 @@ time, (ii) generate code to load the file at load time.
 
 CC-PART will normally be a quoted name such as \\='cc-fix.
 CONDITION should not be quoted."
+  (declare (debug t))
   (if (eval condition)
       (progn
 	(cc-bytecomp-load (symbol-name (eval cc-part)))
@@ -322,6 +325,7 @@ after the loading of FILE.
 
 CC-PART will normally be a quoted name such as \\='cc-fix.  FILE
 should be a string.  CONDITION should not be quoted."
+  (declare (debug t))
   (if (eval condition)
       (progn
 	(cc-bytecomp-load (symbol-name (eval cc-part)))
@@ -332,6 +336,7 @@ should be a string.  CONDITION should not be quoted."
 (defmacro cc-provide (feature)
   "A replacement for the `provide' form that restores the environment
 after the compilation.  Don't use within `eval-when-compile'."
+  (declare (debug t))
   `(progn
      (eval-when-compile (cc-bytecomp-restore-environment))
      (provide ,feature)))
@@ -343,6 +348,7 @@ during compilation.  Don't use outside `eval-when-compile' or
 
 Having cyclic cc-load's will result in infinite recursion.  That's
 somewhat intentional."
+  (declare (debug t))
   `(or (and (featurep 'cc-bytecomp)
 	    (cc-bytecomp-load ,cc-part))
        (load ,cc-part nil t nil)))
@@ -351,6 +357,7 @@ somewhat intentional."
   "Force loading of the corresponding .el file in the current directory
 during compilation, but do a compile time `require' otherwise.  Don't
 use within `eval-when-compile'."
+  (declare (debug t))
   `(eval-when-compile
      (if (and (fboundp 'cc-bytecomp-is-compiling)
 	      (cc-bytecomp-is-compiling))
@@ -362,6 +369,7 @@ use within `eval-when-compile'."
   "Do a `require' of an external package.
 This restores and sets up the compilation environment before and
 afterwards.  Don't use within `eval-when-compile'."
+  (declare (debug t))
   `(progn
      (eval-when-compile (cc-bytecomp-restore-environment))
      (require ,feature)
@@ -370,6 +378,7 @@ afterwards.  Don't use within `eval-when-compile'."
 (defmacro cc-bytecomp-defvar (var)
   "Binds the symbol as a variable during compilation of the file,
 to silence the byte compiler.  Don't use within `eval-when-compile'."
+  (declare (debug nil))
   `(eval-when-compile
      (if (boundp ',var)
 	 (cc-bytecomp-debug-msg
@@ -397,6 +406,7 @@ definition.  That means that this macro will not shut up warnings
 about incorrect number of arguments.  It's dangerous to try to replace
 existing functions since the byte compiler might need the definition
 at compile time, e.g. for macros and inline functions."
+  (declare (debug nil))
   `(eval-when-compile
      (if (fboundp ',fun)
 	 (cc-bytecomp-debug-msg
@@ -418,6 +428,7 @@ at compile time, e.g. for macros and inline functions."
 (defmacro cc-bytecomp-put (symbol propname value)
   "Set a property on a symbol during compilation (and evaluation) of
 the file.  Don't use outside `eval-when-compile'."
+  (declare (debug t))
   `(eval-when-compile
      (if (not (assoc (cons ,symbol ,propname) cc-bytecomp-original-properties))
 	 (progn
@@ -438,6 +449,7 @@ the file.  Don't use outside `eval-when-compile'."
 the compilation.  This is the same as using `boundp' but additionally
 exclude any variables that have been bound during compilation with
 `cc-bytecomp-defvar'."
+  (declare (debug t))
   (if (and (cc-bytecomp-is-compiling)
 	   (memq (car (cdr symbol)) cc-bytecomp-unbound-variables))
       nil
@@ -448,6 +460,7 @@ exclude any variables that have been bound during compilation with
 the compilation.  This is the same as using `fboundp' but additionally
 exclude any functions that have been bound during compilation with
 `cc-bytecomp-defun'."
+  (declare (debug t))
   (let (fun-elem)
     (if (and (cc-bytecomp-is-compiling)
 	     (setq fun-elem (assq (car (cdr symbol))
