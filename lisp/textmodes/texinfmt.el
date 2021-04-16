@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;;; Emacs lisp functions to convert Texinfo files to Info files.
+;;; Emacs Lisp functions to convert Texinfo files to Info files.
 
 ;;; Code:
 

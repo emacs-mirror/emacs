@@ -222,7 +222,7 @@ warn instead."
 
 ;JAVE this just instantiates a default empty ebrowse struct?
 ; how would new instances wind up here?
-; the ebrowse class isn't singleton, unlike the emacs lisp one
+; the ebrowse class isn't singleton, unlike the Emacs Lisp one
 (defvar-mode-local c++-mode semanticdb-project-system-databases
   ()
   "Search Ebrowse for symbols.")
