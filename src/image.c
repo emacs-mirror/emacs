@@ -2040,7 +2040,7 @@ compute_image_size (size_t width, size_t height,
   int_value = image_get_dimension (img, QCwidth);
   if (int_value >= 0)
     {
-      desired_width = int_value;
+      desired_width = int_value * scale;
       /* :width overrides :max-width. */
       max_width = -1;
     }
@@ -2048,7 +2048,7 @@ compute_image_size (size_t width, size_t height,
   int_value = image_get_dimension (img, QCheight);
   if (int_value >= 0)
     {
-      desired_height = int_value;
+      desired_height = int_value * scale;
       /* :height overrides :max-height. */
       max_height = -1;
     }
