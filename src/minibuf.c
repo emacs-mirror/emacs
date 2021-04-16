@@ -112,13 +112,15 @@ choose_minibuf_frame (void)
 {
   if (FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame))
+      && WINDOW_LIVE_P (XFRAME (selected_frame)->minibuffer_window)
       && !EQ (minibuf_window, XFRAME (selected_frame)->minibuffer_window))
     {
       struct frame *sf = XFRAME (selected_frame);
-      /* I don't think that any frames may validly have a null minibuffer
-	 window anymore.  */
-      if (NILP (sf->minibuffer_window))
-	emacs_abort ();
+      /* I don't think that any frames may validly have a null
+	 minibuffer window anymore.  (2021-04-15): Tooltip frames have
+	 a null MB.  Comment out the following.  */
+      /* if (NILP (sf->minibuffer_window)) */
+      /* 	emacs_abort (); */
 
       minibuf_window = sf->minibuffer_window;
     }
@@ -195,7 +197,9 @@ move_minibuffers_onto_frame (struct frame *of, bool for_deletion)
 	&& (for_deletion || minibuf_follows_frame () || FRAME_INITIAL_P (of))))
     return;
   if (FRAME_LIVE_P (f)
-      && !EQ (f->minibuffer_window, of->minibuffer_window))
+      && !EQ (f->minibuffer_window, of->minibuffer_window)
+      && WINDOW_LIVE_P (f->minibuffer_window) /* F not a tootip frame */
+      && WINDOW_LIVE_P (of->minibuffer_window))
     {
       zip_minibuffer_stacks (f->minibuffer_window, of->minibuffer_window);
       if (for_deletion && XFRAME (MB_frame) != of)
@@ -636,6 +640,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
 
   if (minibuf_level > 1
+      && WINDOW_LIVE_P (XFRAME (MB_frame)->minibuffer_window)
       && !EQ (XWINDOW (XFRAME (selected_frame)->minibuffer_window)->frame,
 	      MB_frame)
       && minibuf_moves_frame_when_opened ()
@@ -908,11 +913,13 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   unbind_to (count, Qnil);
 
   /* Switch the frame back to the calling frame.  */
-  if ((!EQ (selected_frame, calling_frame)
-       || !EQ (XWINDOW (XFRAME (calling_frame)->minibuffer_window)->frame,
-	       calling_frame))
-      && FRAMEP (calling_frame)
-      && FRAME_LIVE_P (XFRAME (calling_frame)))
+  if (FRAMEP (calling_frame)
+      && FRAME_LIVE_P (XFRAME (calling_frame))
+      && (!EQ (selected_frame, calling_frame)
+	  || (WINDOW_LIVE_P (XFRAME (calling_frame)->minibuffer_window)
+	      && !EQ (XWINDOW (XFRAME (calling_frame)->minibuffer_window)
+		      ->frame,
+		      calling_frame))))
     call2 (intern ("select-frame-set-input-focus"), calling_frame, Qnil);
 
   /* Add the value to the appropriate history list, if any.  This is
@@ -1056,10 +1063,13 @@ read_minibuf_unwind (void)
     {
       f = XFRAME (exp_MB_frame);
       window = f->minibuffer_window;
-      w = XWINDOW (window);
-      if (EQ (w->frame, exp_MB_frame)
-	  && EQ (w->contents, nth_minibuffer (minibuf_level)))
-	goto found;
+      if (WINDOW_LIVE_P (window))
+	{
+	  w = XWINDOW (window);
+	  if (EQ (w->frame, exp_MB_frame)
+	      && EQ (w->contents, nth_minibuffer (minibuf_level)))
+	    goto found;
+	}
     }
   return; /* expired minibuffer not found.  Maybe we should output an
 	     error, here. */
