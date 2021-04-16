@@ -515,8 +515,8 @@ below the @code{completion-cycle-threshold}), press @kbd{M-?}.
 @subsection pcomplete
 Pcomplete, short for programmable completion, is the completion
 library originally written for Eshell, but usable for command
-completion@footnote{Command completion as opposed to code completion,
-which is a beyond the scope of pcomplete.}  in other modes.
+completion@footnote{Command completion, as opposed to code completion,
+which is beyond the scope of pcomplete.} in other modes.
 
 Completions are defined as functions (with @code{defun}) named
 @code{pcomplete/COMMAND}, where @code{COMMAND} is the name of the
