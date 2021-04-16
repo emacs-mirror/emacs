@@ -312,9 +312,15 @@ to find the list of ignores for each directory."
                                        (concat " -o " find-name-arg " "))
                                       " "
                                       (shell-quote-argument ")"))
-                            ""))))
+                            "")))
+         (output (with-output-to-string
+                   (with-current-buffer standard-output
+                     (let ((status
+                            (process-file-shell-command command nil t)))
+                       (unless (zerop status)
+                         (error "File listing failed: %s" (buffer-string))))))))
     (project--remote-file-names
-     (sort (split-string (shell-command-to-string command) "\0" t)
+     (sort (split-string output "\0" t)
            #'string<))))
 
 (defun project--remote-file-names (local-files)
