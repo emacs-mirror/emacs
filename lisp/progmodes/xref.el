@@ -1416,7 +1416,8 @@ IGNORES is a list of glob patterns for files to ignore."
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
                                      (file-name-as-directory
-                                      (file-local-name (expand-file-name dir)))
+                                      (file-name-unquote
+                                       (file-local-name (expand-file-name dir))))
                                      ignores))
        (def default-directory)
        (buf (get-buffer-create " *xref-grep*"))
