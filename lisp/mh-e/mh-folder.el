@@ -25,8 +25,6 @@
 
 ;; Mode for browsing folders
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

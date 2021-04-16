@@ -4055,7 +4055,6 @@ this version is not backward compatible to 0.14 or earlier.")
 
 (provide 'speedbar)
 
-;; run load-time hooks
 (run-hooks 'speedbar-load-hook)
 
 ;;; speedbar ends here

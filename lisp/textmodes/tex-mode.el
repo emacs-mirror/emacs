@@ -28,7 +28,6 @@
 
 ;;; Code:
 
-;; Pacify the byte-compiler
 (eval-when-compile
   (require 'compare-w)
   (require 'cl-lib)

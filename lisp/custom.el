@@ -1623,8 +1623,6 @@ If a choice with the same tag already exists, no action is taken."
       (put variable 'custom-type
            (append choices (list choice))))))
 
-;;; The End.
-
 (provide 'custom)
 
 ;;; custom.el ends here

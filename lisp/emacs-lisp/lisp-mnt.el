@@ -109,11 +109,6 @@
 ;;    * Footer line --- marks end-of-file so it can be distinguished from
 ;; an expanded formfeed or the results of truncation.
 
-;;; Change Log:
-
-;; Tue Jul 14 23:44:17 1992	ESR
-;;	* Created.
-
 ;;; Code:
 
 ;;; Variables:

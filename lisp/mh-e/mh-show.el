@@ -26,8 +26,6 @@
 
 ;; Mode for showing messages.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

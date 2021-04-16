@@ -674,10 +674,6 @@ match REGEXP."
         (insert (nth 1 item) (nth 0 item) "\n"))
       (pop-to-buffer buf))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Keybindings
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (provide 'filecache)
 
 ;;; filecache.el ends here

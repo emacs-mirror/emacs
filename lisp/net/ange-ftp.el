@@ -6258,10 +6258,6 @@ be recognized automatically (they are all valid BS2000 hosts too)."
 ;; ange-ftp-bs2000-file-name-as-directory
 ;; ange-ftp-bs2000-make-compressed-filename
 ;; ange-ftp-bs2000-file-name-sans-versions
-
-;;;; ------------------------------------------------------------
-;;;; Finally provide package.
-;;;; ------------------------------------------------------------
 
 (provide 'ange-ftp)
 

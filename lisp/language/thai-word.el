@@ -11074,4 +11074,4 @@ With argument, do this that many times."
 ;; coding: utf-8
 ;; End:
 
-;; end of thai-word.el
+;; thai-word.el ends here

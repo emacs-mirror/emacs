@@ -69,8 +69,6 @@
 ;;  (5) Better canonicalizing for message identifier and subject
 ;;      strings.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

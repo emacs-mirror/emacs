@@ -39,8 +39,6 @@
 ;;      documentation will direct you to the specific instructions for
 ;;      your particular searcher.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

@@ -30,8 +30,6 @@
 ;; small support routines are needed, place them with the function;
 ;; otherwise, create a separate section for them.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

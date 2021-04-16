@@ -284,7 +284,6 @@ line LINE of the window, or centered if LINE is nil."
       (pop-to-buffer old-buffer)
       )))
 
-;;; Place `provide' at end of file.
 (provide 'makeinfo)
 
 ;;; makeinfo.el ends here

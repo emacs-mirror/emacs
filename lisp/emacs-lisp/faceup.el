@@ -1170,11 +1170,6 @@ Intended to be called when a file is loaded."
      ;; File is being evaluated using, for example, `eval-buffer'.
      default-directory)))
 
-
-;; ----------------------------------------------------------------------
-;; The end
-;;
-
 (provide 'faceup)
 
 ;;; faceup.el ends here

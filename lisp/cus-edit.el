@@ -5155,8 +5155,6 @@ if that value is non-nil."
 
 (put 'Custom-mode 'mode-class 'special)
 
-;;; The End.
-
 (provide 'cus-edit)
 
 ;;; cus-edit.el ends here

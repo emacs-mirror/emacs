@@ -36,8 +36,6 @@
 ;; because it's pointless to compile a file full of macros. But we
 ;; kept the name.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'cl-lib)
