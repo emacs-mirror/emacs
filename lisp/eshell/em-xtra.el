@@ -23,13 +23,10 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'esh-util)
 (eval-when-compile
   (require 'eshell))
-;; Strictly speaking, should only be needed at compile time.
-;; Require at run-time too to silence compiler.
-(require 'pcomplete)
-(require 'compile)
 
 ;; There are no items in this custom group, but eshell modules (ab)use
 ;; custom groups.
@@ -49,50 +46,45 @@ naturally accessible within Emacs."
 
 (defun eshell/expr (&rest args)
   "Implementation of expr, using the calc package."
-  (if (not (fboundp 'calc-eval))
-      (throw 'eshell-replace-command
-	     (eshell-parse-command "*expr" (flatten-tree args)))
-    ;; to fool the byte-compiler...
-    (let ((func 'calc-eval))
-      (funcall func (eshell-flatten-and-stringify args)))))
+  (calc-eval (eshell-flatten-and-stringify args)))
 
 (defun eshell/substitute (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'substitute (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-substitute', for comparing lists of strings."
+  (apply #'cl-substitute (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/count (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'count (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-count', for comparing lists of strings."
+  (apply #'cl-count (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/mismatch (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'mismatch (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-mismatch', for comparing lists of strings."
+  (apply #'cl-mismatch (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/union (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'union (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-union', for comparing lists of strings."
+  (apply #'cl-union (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/intersection (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'intersection (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-intersection', for comparing lists of strings."
+  (apply #'cl-intersection (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/set-difference (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'set-difference (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-set-difference', for comparing lists of strings."
+  (apply #'cl-set-difference (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
 (defun eshell/set-exclusive-or (&rest args)
-  "Easy front-end to `intersection', for comparing lists of strings."
-  (apply 'set-exclusive-or (car args) (cadr args) :test 'equal
+  "Easy front-end to `cl-set-exclusive-or', for comparing lists of strings."
+  (apply #'cl-set-exclusive-or (car args) (cadr args) :test #'equal
 	 (cddr args)))
 
-(defalias 'eshell/ff 'find-name-dired)
-(defalias 'eshell/gf 'find-grep-dired)
+(defalias 'eshell/ff #'find-name-dired)
+(defalias 'eshell/gf #'find-grep-dired)
 
 (provide 'em-xtra)
 
