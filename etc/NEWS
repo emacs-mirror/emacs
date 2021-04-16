@@ -2673,7 +2673,7 @@ the selected frame can display it, and using "..." otherwise.
 
 +++
 ** 'string-width' now accepts two optional arguments FROM and TO.
-This allows to calculate the width of a substring without consing a
+This allows calculating the width of a substring without consing a
 new string.
 
 +++

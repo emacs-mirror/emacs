@@ -1975,8 +1975,8 @@ Optional arguments @var{from} and @var{to} specify the substring of
 The return value is an approximation: it only considers the values
 returned by @code{char-width} for the constituent characters, always
 takes a tab character as taking @code{tab-width} columns, ignores
-display properties and fonts, etc.  For these reasons, we recommend to
-use @code{window-text-pixel-size}, described below, instead.
+display properties and fonts, etc.  For these reasons, we recommend
+using @code{window-text-pixel-size}, described below, instead.
 @end defun
 
 @defun truncate-string-to-width string width &optional start-column padding ellipsis ellipsis-text-property
