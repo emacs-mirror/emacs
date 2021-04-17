@@ -2542,8 +2542,13 @@ window_list (void)
   if (!CONSP (Vwindow_list))
     {
       Lisp_Object tail, frame;
+      ptrdiff_t count = SPECPDL_INDEX ();
 
       Vwindow_list = Qnil;
+      /*  Don't allow quitting in Fnconc.  Otherwise we might end up
+	  with a too short Vwindow_list and Fkill_buffer not being able
+	  to replace a buffer in all windows showing it (Bug#47244).  */
+      specbind (Qinhibit_quit, Qt);
       FOR_EACH_FRAME (tail, frame)
 	{
 	  Lisp_Object arglist = Qnil;
@@ -2555,6 +2560,8 @@ window_list (void)
 	  arglist = Fnreverse (arglist);
 	  Vwindow_list = nconc2 (Vwindow_list, arglist);
 	}
+
+      unbind_to (count, Qnil);
     }
 
   return Vwindow_list;
@@ -2691,6 +2698,8 @@ static Lisp_Object
 next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames,
 	     bool next_p)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
+
   decode_next_window_args (&window, &minibuf, &all_frames);
 
   /* If ALL_FRAMES is a frame, and WINDOW isn't on that frame, just
@@ -2698,6 +2707,9 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames,
   if (FRAMEP (all_frames)
       && !EQ (all_frames, XWINDOW (window)->frame))
     return Fframe_first_window (all_frames);
+
+  /*  Don't allow quitting in Fmemq.  */
+  specbind (Qinhibit_quit, Qt);
 
   if (next_p)
     {
@@ -2747,6 +2759,8 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames,
       if (WINDOWP (candidate))
 	window = candidate;
     }
+
+  unbind_to (count, Qnil);
 
   return window;
 }
@@ -2838,9 +2852,13 @@ static Lisp_Object
 window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   Lisp_Object tail, list, rest;
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   decode_next_window_args (&window, &minibuf, &all_frames);
   list = Qnil;
+
+  /*  Don't allow quitting in Fmemq and Fnconc.  */
+  specbind (Qinhibit_quit, Qt);
 
   for (tail = window_list (); CONSP (tail); tail = XCDR (tail))
     if (candidate_window_p (XCAR (tail), window, minibuf, all_frames))
@@ -2856,6 +2874,9 @@ window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
       XSETCDR (tail, Qnil);
       list = nconc2 (rest, list);
     }
+
+  unbind_to (count, Qnil);
+
   return list;
 }
 
