@@ -189,7 +189,7 @@ For backward compatibility with the Emacs<21 calling convention,
 the keywords can also be preceded by the obsolete triplet
 INIT-VALUE LIGHTER KEYMAP.
 
-\(fn MODE DOC [KEYWORD VAL ...] &rest BODY)"
+\(fn MODE DOC [KEYWORD VAL ... &rest BODY])"
   (declare (doc-string 2)
            (debug (&define name string-or-null-p
 			   [&optional [&not keywordp] sexp
