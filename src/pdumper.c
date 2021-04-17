@@ -5325,6 +5325,13 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	    memcpy (fndata + execdir_len, SSDATA (cu_file), fn_len);
 	  }
 
+	/* FIXME: This records the names of the *.eln files in an
+	   unexpanded form, with one or more ".." elements (and on
+	   Windows with the first part using backslashes).  The file
+	   names are also unibyte.  If we care about this, we need to
+	   loop in startup.el over all the preloaded modules and run
+	   their file names through expand-file-name and
+	   decode-coding-string.  */
 	comp_u->file = eln_fname;
 	comp_u->handle = dynlib_open (SSDATA (eln_fname));
 	if (!comp_u->handle)
