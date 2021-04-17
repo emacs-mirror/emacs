@@ -3901,7 +3901,7 @@ if test "${with_native_compilation}" != "no"; then
       # mingw32 loads the library dynamically.
       mingw32) ;;
       # OpenBSD doesn't have libdl, all the functions are in libc
-      openbsd)
+      netbsd|openbsd)
         LIBGCCJIT_LIB="-lgccjit" ;;
       *)
         LIBGCCJIT_LIB="-lgccjit -ldl" ;;

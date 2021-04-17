@@ -440,6 +440,26 @@ terminate_due_to_signal (int sig, int backtrace_limit)
   exit (1);
 }
 
+/* Return the real filename following symlinks in case.
+   The caller should deallocate the returned buffer.  */
+
+static char *
+real_filename (char *filename)
+{
+  char *real_name;
+#ifdef WINDOWSNT
+  /* w32_my_exename resolves symlinks internally, so no need to
+     call realpath.  */
+  real_name = xstrdup (filename);
+#else
+  real_name = realpath (filename, NULL);
+  if (!real_name)
+    fatal ("could not resolve realpath of \"%s\": %s",
+	   filename, strerror (errno));
+#endif
+  return real_name;
+}
+
 /* Set `invocation-name' `invocation-directory'.  */
 
 static void
@@ -474,6 +494,10 @@ set_invocation_vars (char *argv0, char const *original_pwd)
   handler = Ffind_file_name_handler (raw_name, Qt);
   if (! NILP (handler))
     raw_name = concat2 (slash_colon, raw_name);
+
+  char *filename = real_filename (SSDATA (raw_name));
+  raw_name = build_unibyte_string (filename);
+  xfree (filename);
 
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
   Vinvocation_directory = Ffile_name_directory (raw_name);
@@ -888,17 +912,9 @@ load_pdump (int argc, char **argv, char const *original_pwd)
      the dump in the hardcoded location.  */
   if (dump_file && *dump_file)
     {
-#ifdef WINDOWSNT
-      /* w32_my_exename resolves symlinks internally, so no need to
-	 call realpath.  */
-#else
-      char *real_exename = realpath (dump_file, NULL);
-      if (!real_exename)
-        fatal ("could not resolve realpath of \"%s\": %s",
-               dump_file, strerror (errno));
+      char *real_exename = real_filename (dump_file);
       xfree (dump_file);
       dump_file = real_exename;
-#endif
       ptrdiff_t exenamelen = strlen (dump_file);
 #ifndef WINDOWSNT
       bufsize = exenamelen + 1;

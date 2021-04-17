@@ -3860,6 +3860,9 @@ processes from `comp-async-compilations'"
                                 ((executable-find "nproc")
                                  (string-to-number
                                   (shell-command-to-string "nproc")))
+                                ((eq 'berkeley-unix system-type)
+                                 (string-to-number
+                                  (shell-command-to-string "sysctl -n hw.ncpu")))
                                 (t 1))
                           2))))
     comp-async-jobs-number))
