@@ -159,7 +159,7 @@ Fundamental Editing Commands
 
 Important Text-Changing Commands
 * Mark::                The mark: how to delimit a region of text.
-* Killing::             Killing (cutting) and yanking (copying) text.
+* Killing::             Killing (cutting) and yanking (pasting) text.
 * Registers::           Saving a text string or a location in the buffer.
 * Display::             Controlling what text is displayed.
 * Search::              Finding or replacing occurrences of a string.
