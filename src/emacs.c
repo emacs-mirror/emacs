@@ -820,6 +820,7 @@ load_pdump (int argc, char **argv)
     NULL
 #endif
     ;
+  const char *argv0_base = "emacs";
 
   /* TODO: maybe more thoroughly scrub process environment in order to
      make this use case (loading a dump file in an unexeced emacs)
@@ -891,6 +892,7 @@ load_pdump (int argc, char **argv)
 	   dump_file, dump_error_to_string (result));
 
  hardcoded:
+
 #ifdef WINDOWSNT
   /* On MS-Windows, PATH_EXEC normally starts with a literal
      "%emacs_dir%", so it will never work without some tweaking.  */
@@ -900,7 +902,6 @@ load_pdump (int argc, char **argv)
   /* Look for "emacs.pdmp" in PATH_EXEC.  We hardcode "emacs" in
      "emacs.pdmp" so that the Emacs binary still works if the user
      copies and renames it.  */
-  const char *argv0_base = "emacs";
   needed = (strlen (path_exec)
 	    + 1
 	    + strlen (argv0_base)
