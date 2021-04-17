@@ -2923,15 +2923,19 @@ alternative implementation will be used."
 			;; until the process is deleted.
 			(when (bufferp stderr)
 			  (with-current-buffer stderr
-			    (insert-file-contents-literally remote-tmpstderr))
+			    ;; There's a mysterious error, see
+			    ;; <https://github.com/joaotavora/eglot/issues/662>.
+			    (ignore-errors
+			      (insert-file-contents-literally remote-tmpstderr)))
 			  ;; Delete tmpstderr file.
 			  (add-function
 			   :after (process-sentinel p)
 			   (lambda (_proc _msg)
 			     (when (file-exists-p remote-tmpstderr)
 			       (with-current-buffer stderr
-				 (insert-file-contents-literally
-				  remote-tmpstderr nil nil nil 'replace))
+				 (ignore-errors
+				   (insert-file-contents-literally
+				    remote-tmpstderr nil nil nil 'replace)))
 			       (delete-file remote-tmpstderr)))))
 			;; Return process.
 			p)))
