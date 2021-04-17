@@ -917,7 +917,8 @@ load_pdump (int argc, char **argv)
   /* Assume the Emacs binary lives in a sibling directory as set up by
      the default installation configuration.  */
   const char *go_up = "../../../../bin/";
-  needed += strlen (strip_suffix) - strlen (suffix) + strlen (go_up);
+  needed += (strip_suffix ? strlen (strip_suffix) : 0)
+    - strlen (suffix) + strlen (go_up);
   if (exec_bufsize < needed)
     {
       xfree (emacs_executable);
@@ -925,7 +926,8 @@ load_pdump (int argc, char **argv)
 				  -1, 1);
     }
   sprintf (emacs_executable, "%s%c%s%s%s",
-	   path_exec, DIRECTORY_SEP, go_up, argv0_base, strip_suffix);
+	   path_exec, DIRECTORY_SEP, go_up, argv0_base,
+	   strip_suffix ? strip_suffix : "");
   result = pdumper_load (dump_file, emacs_executable);
 
   if (result == PDUMPER_LOAD_FILE_NOT_FOUND)
