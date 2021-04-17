@@ -25,6 +25,8 @@
 (eval-when-compile
   (declare-function system-packages-get-command "system-packages"))
 
+(defvar use-package-ensure-system-package--custom-packages '()
+  "List of custom packages installed.")
 
 (defun use-package-ensure-system-package-consify (arg)
   "Turn `arg' into a cons of (`package-name' . `install-command')."
@@ -38,10 +40,17 @@
      ((not (cdr arg))
       (use-package-ensure-system-package-consify (car arg)))
      ((stringp (cdr arg))
-      (cons (car arg) `(async-shell-command ,(cdr arg))))
+      (progn
+	(push (cdr arg) use-package-ensure-system-package--custom-packages)
+	(cons (car arg) `(async-shell-command ,(cdr arg)))))
      (t
       (cons (car arg)
 	    `(system-packages-install ,(symbol-name (cdr arg)))))))))
+
+(defun use-package-ensure-system-package-update-custom-packages ()
+  (interactive)
+  (dolist (cmd use-package-ensure-system-package--custom-packages)
+    (async-shell-command cmd)))
 
 ;;;###autoload
 (defun use-package-normalize/:ensure-system-package (_name-symbol keyword args)
