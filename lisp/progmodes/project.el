@@ -787,7 +787,11 @@ pattern to search for."
 (defun project--find-regexp-in-files (regexp files)
   (unless files
     (user-error "Empty file list"))
-  (let ((xrefs (xref-matches-in-files regexp files)))
+  (let ((xrefs (xref-matches-in-files
+                regexp
+                ;; FIXME: `xref-matches-in-files' should work with
+                ;; quoted filenames.
+                (mapcar #'file-name-unquote files))))
     (unless xrefs
       (user-error "No matches for: %s" regexp))
     xrefs))

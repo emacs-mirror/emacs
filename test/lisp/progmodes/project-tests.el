@@ -28,11 +28,15 @@
 (require 'project)
 
 (require 'ert)
+(require 'grep)
+(require 'xref)
 
 (ert-deftest project/quoted-directory ()
-  "Check that `project-files' deals with quoted directory
-names (Bug#47799)."
+  "Check that `project-files' and `project-find-regexp' deal with
+quoted directory names (Bug#47799)."
   (skip-unless (executable-find find-program))
+  (skip-unless (executable-find "xargs"))
+  (skip-unless (executable-find "grep"))
   (let ((directory (make-temp-file "project-tests-" :directory)))
     (unwind-protect
         (let ((default-directory directory)
@@ -42,11 +46,30 @@ names (Bug#47799)."
                (expand-file-name "projects" directory))
               (project (cons 'transient (file-name-quote directory)))
               (file (expand-file-name "file" directory)))
-          (make-empty-file file)
           (add-hook 'project-find-functions (lambda (_dir) project))
           (should (eq (project-current) project))
+          (write-region "contents" nil file nil nil nil 'excl)
           (should (equal (project-files project)
-                         (list (file-name-quote file)))))
+                         (list (file-name-quote file))))
+          (let* ((references nil)
+                 (xref-search-program 'grep)
+                 (xref-show-xrefs-function
+                  (lambda (fetcher _display)
+                    (push (funcall fetcher) references))))
+            (project-find-regexp "tent")
+            (pcase references
+              (`((,item))
+               (should
+                ;; FIXME: Shouldn't `xref-match-item' be a subclass of
+                ;; `xref-item'?
+                (cl-typep item '(or xref-item xref-match-item)))
+               (should
+                (file-equal-p
+                 (xref-location-group (xref-item-location item))
+                 file)))
+              (otherwise
+               (ert-fail (format-message "Unexpected references: %S"
+                                         otherwise))))))
       (delete-directory directory :recursive))))
 
 ;;; project-tests.el ends here
