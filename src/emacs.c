@@ -795,7 +795,10 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
 	      char *real_name = realpath (candidate, NULL);
 
 	      if (real_name)
-		return real_name;
+		{
+		  *candidate_size = strlen (real_name) + 1;
+		  return real_name;
+		}
 	    }
 	  return candidate;
 	}
