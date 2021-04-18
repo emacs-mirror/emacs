@@ -4760,14 +4760,12 @@ fixup_eln_load_path (Lisp_Object eln_filename)
     if (CONSP (tem))
       last_cell = tem;
 
-  const char preloaded[] = "preloaded";
-  ptrdiff_t preloaded_len = sizeof (preloaded) - 1;
+  const char preloaded[] = "/preloaded/";
   Lisp_Object eln_cache_sys = Ffile_name_directory (eln_filename);
-  bool preloaded_p =
-    !NILP (Fequal (Fsubstring_no_properties (eln_cache_sys,
-					     make_fixnum (-preloaded_len - 1),
-					     make_fixnum (-1)),
-		   build_string (preloaded)));
+  const char *p_preloaded =
+    SSDATA (eln_cache_sys) + SBYTES (eln_cache_sys) - sizeof (preloaded) + 1;
+  bool preloaded_p = strcmp (p_preloaded, preloaded) == 0;
+
   /* One or two directories up...  */
   for (int i = 0; i < (preloaded_p ? 2 : 1); i++)
     eln_cache_sys =
