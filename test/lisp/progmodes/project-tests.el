@@ -32,6 +32,7 @@
 (ert-deftest project/quoted-directory ()
   "Check that `project-files' deals with quoted directory
 names (Bug#47799)."
+  (skip-unless (executable-find find-program))
   (let ((directory (make-temp-file "project-tests-" :directory)))
     (unwind-protect
         (let ((project (cons 'transient (file-name-quote directory)))
