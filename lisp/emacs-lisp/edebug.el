@@ -459,6 +459,9 @@ invoked without a prefix argument.
 If acting on a `defun' for FUNCTION, and the function was instrumented,
 `Edebug: FUNCTION' is printed in the minibuffer.  If not instrumented,
 just FUNCTION is printed."
+  ;; Re-install our advice, in case `debug' re-bound `load-read-function' to
+  ;; its default value.
+  (add-function :around load-read-function #'edebug--read)
   (let* ((edebug-all-forms (not (eq (not edebug-it) (not edebug-all-defs))))
 	 (edebug-all-defs  edebug-all-forms))
     (funcall orig-fun nil)))
