@@ -4356,6 +4356,16 @@ pdumper_remember_lv_ptr_raw_impl (void *ptr, enum Lisp_Type type)
 }
 
 
+#ifdef HAVE_NATIVE_COMP
+/* This records the directory where the Emacs executable lives, to be
+   used for locating the native-lisp directory from which we need to
+   load the preloaded *.eln files.  See pdumper_set_emacs_execdir
+   below.  */
+static char *emacs_execdir;
+static ptrdiff_t execdir_size;
+static ptrdiff_t execdir_len;
+#endif
+
 /* Dump runtime */
 enum dump_memory_protection
 {
@@ -5269,35 +5279,61 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	struct Lisp_Native_Comp_Unit *comp_u =
 	  dump_ptr (dump_base, reloc_offset);
 	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
-	if (!CONSP (comp_u->file))
+	if (STRINGP (comp_u->file))
 	  error ("Trying to load incoherent dumped eln file %s",
 		 SSDATA (comp_u->file));
 
+	/* emacs_execdir is always unibyte, but the file names in
+	   comp_u->file could be multibyte, so we need to encode
+	   them.  */
+	Lisp_Object cu_file1 = ENCODE_FILE (XCAR (comp_u->file));
+	Lisp_Object cu_file2 = ENCODE_FILE (XCDR (comp_u->file));
+	ptrdiff_t fn1_len = SBYTES (cu_file1), fn2_len = SBYTES (cu_file2);
+	Lisp_Object eln_fname;
+	char *fndata;
+
 	/* Check just once if this is a local build or Emacs was installed.  */
+	/* Can't use expand-file-name here, because we are too early
+	   in the startup, and we will crash at least on WINDOWSNT.  */
 	if (installation_state == UNKNOWN)
 	  {
-	    /* Can't use expand-file-name here, because we are too
-	       early in the startup, and we will crash at least on
-	       WINDOWSNT.  */
-	    Lisp_Object fname =
-	      concat2 (Vinvocation_directory, XCAR (comp_u->file));
-	    if (file_access_p (SSDATA (ENCODE_FILE (fname)), F_OK))
-	      {
-		installation_state = INSTALLED;
-		fixup_eln_load_path (XCAR (comp_u->file));
-	      }
+	    eln_fname = make_uninit_string (execdir_len + fn1_len);
+	    fndata = SSDATA (eln_fname);
+	    memcpy (fndata, emacs_execdir, execdir_len);
+	    memcpy (fndata + execdir_len, SSDATA (cu_file1), fn1_len);
+	    if (file_access_p (fndata, F_OK))
+	      installation_state = INSTALLED;
 	    else
 	      {
+		eln_fname = make_uninit_string (execdir_len + fn2_len);
+		fndata = SSDATA (eln_fname);
+		memcpy (fndata, emacs_execdir, execdir_len);
+		memcpy (fndata + execdir_len, SSDATA (cu_file2), fn2_len);
 		installation_state = LOCAL_BUILD;
-		fixup_eln_load_path (XCDR (comp_u->file));
 	      }
+	    fixup_eln_load_path (eln_fname);
+	  }
+	else
+	  {
+	    ptrdiff_t fn_len =
+	      installation_state == INSTALLED ? fn1_len : fn2_len;
+	    Lisp_Object cu_file =
+	      installation_state == INSTALLED ? cu_file1 : cu_file2;
+	    eln_fname = make_uninit_string (execdir_len + fn_len);
+	    fndata = SSDATA (eln_fname);
+	    memcpy (fndata, emacs_execdir, execdir_len);
+	    memcpy (fndata + execdir_len, SSDATA (cu_file), fn_len);
 	  }
 
-	comp_u->file =
-	  concat2 (Vinvocation_directory,
-		   installation_state == INSTALLED
-		   ? XCAR (comp_u->file) : XCDR (comp_u->file));
-	comp_u->handle = dynlib_open (SSDATA (ENCODE_FILE (comp_u->file)));
+	/* FIXME: This records the names of the *.eln files in an
+	   unexpanded form, with one or more ".." elements (and on
+	   Windows with the first part using backslashes).  The file
+	   names are also unibyte.  If we care about this, we need to
+	   loop in startup.el over all the preloaded modules and run
+	   their file names through expand-file-name and
+	   decode-coding-string.  */
+	comp_u->file = eln_fname;
+	comp_u->handle = dynlib_open (SSDATA (eln_fname));
 	if (!comp_u->handle)
 	  error ("%s", dynlib_error ());
 	load_comp_unit (comp_u, true, false);
@@ -5435,6 +5471,26 @@ dump_do_all_emacs_relocations (const struct dump_header *const header,
     dump_do_emacs_relocation (dump_base, r[i]);
 }
 
+#ifdef HAVE_NATIVE_COMP
+/* Compute and record the directory of the Emacs executable given the
+   file name of that executable.  */
+static void
+pdumper_set_emacs_execdir (char *emacs_executable)
+{
+  char *p = emacs_executable + strlen (emacs_executable);
+
+  while (p > emacs_executable
+	 && !IS_DIRECTORY_SEP (p[-1]))
+    --p;
+  eassert (p > emacs_executable);
+  emacs_execdir = xpalloc (emacs_execdir, &execdir_size,
+			   p - emacs_executable + 1 - execdir_size, -1, 1);
+  memcpy (emacs_execdir, emacs_executable, p - emacs_executable);
+  execdir_len = p - emacs_executable;
+  emacs_execdir[execdir_len] = '\0';
+}
+#endif
+
 enum dump_section
   {
    DS_HOT,
@@ -5451,7 +5507,7 @@ static Lisp_Object *pdumper_hashes = &zero_vector;
    N.B. We run very early in initialization, so we can't use lisp,
    unwinding, xmalloc, and so on.  */
 int
-pdumper_load (const char *dump_filename, char *argv0, char const *original_pwd)
+pdumper_load (const char *dump_filename, char *argv0)
 {
   intptr_t dump_size;
   struct stat stat;
@@ -5607,9 +5663,11 @@ pdumper_load (const char *dump_filename, char *argv0, char const *original_pwd)
   for (int i = 0; i < nr_dump_hooks; ++i)
     dump_hooks[i] ();
 
-  /* Once we can allocate and before loading .eln files we must set
-     Vinvocation_directory (.eln paths are relative to it). */
-  init_vars_for_load (argv0, original_pwd);
+#ifdef HAVE_NATIVE_COMP
+  pdumper_set_emacs_execdir (argv0);
+#else
+  (void) argv0;
+#endif
 
   dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
   dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);

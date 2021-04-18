@@ -440,53 +440,33 @@ terminate_due_to_signal (int sig, int backtrace_limit)
   exit (1);
 }
 
-/* Return the real filename following symlinks in case.
-   The caller should deallocate the returned buffer.  */
-
-static char *
-real_filename (char *filename)
-{
-  char *real_name;
-#ifdef WINDOWSNT
-  /* w32_my_exename resolves symlinks internally, so no need to
-     call realpath.  */
-  real_name = xstrdup (filename);
-#else
-  real_name = realpath (filename, NULL);
-  if (!real_name)
-    fatal ("could not resolve realpath of \"%s\": %s",
-	   filename, strerror (errno));
-#endif
-  return real_name;
-}
-
-/* Set `invocation-name' `invocation-directory'.  */
-
+
+/* Code for dealing with Lisp access to the Unix command line.  */
 static void
-set_invocation_vars (char *argv0, char const *original_pwd)
+init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
 {
-  Lisp_Object raw_name, handler;
+  int i;
+  Lisp_Object name, dir, handler;
+  ptrdiff_t count = SPECPDL_INDEX ();
+  Lisp_Object raw_name;
   AUTO_STRING (slash_colon, "/:");
 
+  initial_argv = argv;
+  initial_argc = argc;
+
 #ifdef WINDOWSNT
-  /* Must use argv0 converted to UTF-8, as it begets many standard
+  /* Must use argv[0] converted to UTF-8, as it begets many standard
      file and directory names.  */
   {
-    char argv0_1[MAX_UTF8_PATH];
+    char argv0[MAX_UTF8_PATH];
 
-    /* Avoid calling 'openp' below, as we aren't ready for that yet:
-       emacs_dir is not yet defined in the environment, and therefore
-       emacs_root_dir, called by expand-file-name, will abort.  */
-    if (!IS_ABSOLUTE_FILE_NAME (argv0))
-      argv0 = w32_my_exename ();
-
-    if (filename_from_ansi (argv0, argv0_1) == 0)
-      raw_name = build_unibyte_string (argv0_1);
-    else
+    if (filename_from_ansi (argv[0], argv0) == 0)
       raw_name = build_unibyte_string (argv0);
+    else
+      raw_name = build_unibyte_string (argv[0]);
   }
 #else
-  raw_name = build_unibyte_string (argv0);
+  raw_name = build_unibyte_string (argv[0]);
 #endif
 
   /* Add /: to the front of the name
@@ -495,26 +475,16 @@ set_invocation_vars (char *argv0, char const *original_pwd)
   if (! NILP (handler))
     raw_name = concat2 (slash_colon, raw_name);
 
-  char *filename = real_filename (SSDATA (raw_name));
-  raw_name = build_unibyte_string (filename);
-  xfree (filename);
-
   Vinvocation_name = Ffile_name_nondirectory (raw_name);
   Vinvocation_directory = Ffile_name_directory (raw_name);
 
-#ifdef WINDOWSNT
-  eassert (!NILP (Vinvocation_directory)
-	   && !NILP (Ffile_name_absolute_p (Vinvocation_directory)));
-#endif
-
-  /* If we got no directory in argv0, search PATH to find where
+  /* If we got no directory in argv[0], search PATH to find where
      Emacs actually came from.  */
   if (NILP (Vinvocation_directory))
     {
       Lisp_Object found;
-      int yes =
-	openp (Vexec_path, Vinvocation_name, Vexec_suffixes, &found,
-	       make_fixnum (X_OK), false, false);
+      int yes = openp (Vexec_path, Vinvocation_name, Vexec_suffixes,
+		       &found, make_fixnum (X_OK), false, false);
       if (yes == 1)
 	{
 	  /* Add /: to the front of the name
@@ -536,38 +506,6 @@ set_invocation_vars (char *argv0, char const *original_pwd)
 
       Vinvocation_directory = Fexpand_file_name (Vinvocation_directory, odir);
     }
-}
-
-/* Initialize a number of variables (ultimately
-   'Vinvocation_directory') needed by pdumper to complete native code
-   load.  */
-
-void
-init_vars_for_load (char *argv0, char const *original_pwd)
-{
-  /* This function is called from within pdumper while loading (as
-     soon as we are able to allocate) or later during boot if pdumper
-     is not used.  No need to run it twice.  */
-  static bool double_run_guard;
-  if (double_run_guard)
-    return;
-  double_run_guard = true;
-
-  init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
-  set_invocation_vars (argv0, original_pwd);
-}
-
-
-/* Code for dealing with Lisp access to the Unix command line.  */
-static void
-init_cmdargs (int argc, char **argv, int skip_args, char const *original_pwd)
-{
-  int i;
-  Lisp_Object name, dir;
-  ptrdiff_t count = SPECPDL_INDEX ();
-
-  initial_argv = argv;
-  initial_argc = argc;
 
   Vinstallation_directory = Qnil;
 
@@ -801,6 +739,8 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
      implementation of malloc, since the caller calls our free.  */
 #ifdef WINDOWSNT
   char *prog_fname = w32_my_exename ();
+  if (prog_fname)
+    *candidate_size = strlen (prog_fname) + 1;
   return prog_fname ? xstrdup (prog_fname) : NULL;
 #else  /* !WINDOWSNT */
   char *candidate = NULL;
@@ -809,7 +749,11 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
      path already, so just copy it.  */
   eassert (argv0);
   if (strchr (argv0, DIRECTORY_SEP))
-    return xstrdup (argv0);
+    {
+      char *val = xstrdup (argv0);
+      *candidate_size = strlen (val) + 1;
+      return val;
+    }
   ptrdiff_t argv0_length = strlen (argv0);
 
   const char *path = getenv ("PATH");
@@ -846,7 +790,22 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
       struct stat st;
       if (file_access_p (candidate, X_OK)
 	  && stat (candidate, &st) == 0 && S_ISREG (st.st_mode))
-	return candidate;
+	{
+	  /* People put on PATH a symlink to the real Emacs
+	     executable, with all the auxiliary files where the real
+	     executable lives.  Support that.  */
+	  if (lstat (candidate, &st) == 0 && S_ISLNK (st.st_mode))
+	    {
+	      char *real_name = realpath (candidate, NULL);
+
+	      if (real_name)
+		{
+		  *candidate_size = strlen (real_name) + 1;
+		  return real_name;
+		}
+	    }
+	  return candidate;
+	}
       *candidate = '\0';
     }
   while (*path++ != '\0');
@@ -856,10 +815,11 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
 }
 
 static void
-load_pdump (int argc, char **argv, char const *original_pwd)
+load_pdump (int argc, char **argv)
 {
   const char *const suffix = ".pdmp";
   int result;
+  char *emacs_executable = argv[0];
   const char *strip_suffix =
 #if defined DOS_NT || defined CYGWIN
     ".exe"
@@ -867,6 +827,7 @@ load_pdump (int argc, char **argv, char const *original_pwd)
     NULL
 #endif
     ;
+  const char *argv0_base = "emacs";
 
   /* TODO: maybe more thoroughly scrub process environment in order to
      make this use case (loading a dump file in an unexeced emacs)
@@ -889,9 +850,19 @@ load_pdump (int argc, char **argv, char const *original_pwd)
       skip_args++;
     }
 
+  /* Where's our executable?  */
+  ptrdiff_t bufsize, exec_bufsize;
+  emacs_executable = load_pdump_find_executable (argv[0], &bufsize);
+  exec_bufsize = bufsize;
+
+  /* If we couldn't find our executable, go straight to looking for
+     the dump in the hardcoded location.  */
+  if (!(emacs_executable && *emacs_executable))
+    goto hardcoded;
+
   if (dump_file)
     {
-      result = pdumper_load (dump_file, argv[0], original_pwd);
+      result = pdumper_load (dump_file, emacs_executable);
 
       if (result != PDUMPER_LOAD_SUCCESS)
         fatal ("could not load dump file \"%s\": %s",
@@ -905,41 +876,29 @@ load_pdump (int argc, char **argv, char const *original_pwd)
      so we can't use decode_env_path.  We're working in whatever
      encoding the system natively uses for filesystem access, so
      there's no need for character set conversion.  */
-  ptrdiff_t bufsize;
-  dump_file = load_pdump_find_executable (argv[0], &bufsize);
-
-  /* If we couldn't find our executable, go straight to looking for
-     the dump in the hardcoded location.  */
-  if (dump_file && *dump_file)
+  ptrdiff_t exenamelen = strlen (emacs_executable);
+  if (strip_suffix)
     {
-      char *real_exename = real_filename (dump_file);
-      xfree (dump_file);
-      dump_file = real_exename;
-      ptrdiff_t exenamelen = strlen (dump_file);
-#ifndef WINDOWSNT
-      bufsize = exenamelen + 1;
-#endif
-      if (strip_suffix)
-        {
-	  ptrdiff_t strip_suffix_length = strlen (strip_suffix);
-	  ptrdiff_t prefix_length = exenamelen - strip_suffix_length;
-	  if (0 <= prefix_length
-	      && !memcmp (&dump_file[prefix_length], strip_suffix,
-			  strip_suffix_length))
-	    exenamelen = prefix_length;
-        }
-      ptrdiff_t needed = exenamelen + strlen (suffix) + 1;
-      if (bufsize < needed)
-	dump_file = xpalloc (dump_file, &bufsize, needed - bufsize, -1, 1);
-      strcpy (dump_file + exenamelen, suffix);
-      result = pdumper_load (dump_file, argv[0], original_pwd);
-      if (result == PDUMPER_LOAD_SUCCESS)
-        goto out;
-
-      if (result != PDUMPER_LOAD_FILE_NOT_FOUND)
-        fatal ("could not load dump file \"%s\": %s",
-               dump_file, dump_error_to_string (result));
+      ptrdiff_t strip_suffix_length = strlen (strip_suffix);
+      ptrdiff_t prefix_length = exenamelen - strip_suffix_length;
+      if (0 <= prefix_length
+	  && !memcmp (&emacs_executable[prefix_length], strip_suffix,
+		      strip_suffix_length))
+	exenamelen = prefix_length;
     }
+  ptrdiff_t needed = exenamelen + strlen (suffix) + 1;
+  dump_file = xpalloc (NULL, &bufsize, needed - bufsize, -1, 1);
+  memcpy (dump_file, emacs_executable, exenamelen);
+  strcpy (dump_file + exenamelen, suffix);
+  result = pdumper_load (dump_file, emacs_executable);
+  if (result == PDUMPER_LOAD_SUCCESS)
+    goto out;
+
+  if (result != PDUMPER_LOAD_FILE_NOT_FOUND)
+    fatal ("could not load dump file \"%s\": %s",
+	   dump_file, dump_error_to_string (result));
+
+ hardcoded:
 
 #ifdef WINDOWSNT
   /* On MS-Windows, PATH_EXEC normally starts with a literal
@@ -950,12 +909,11 @@ load_pdump (int argc, char **argv, char const *original_pwd)
   /* Look for "emacs.pdmp" in PATH_EXEC.  We hardcode "emacs" in
      "emacs.pdmp" so that the Emacs binary still works if the user
      copies and renames it.  */
-  const char *argv0_base = "emacs";
-  ptrdiff_t needed = (strlen (path_exec)
-                      + 1
-                      + strlen (argv0_base)
-                      + strlen (suffix)
-                      + 1);
+  needed = (strlen (path_exec)
+	    + 1
+	    + strlen (argv0_base)
+	    + strlen (suffix)
+	    + 1);
   if (bufsize < needed)
     {
       xfree (dump_file);
@@ -963,7 +921,21 @@ load_pdump (int argc, char **argv, char const *original_pwd)
     }
   sprintf (dump_file, "%s%c%s%s",
            path_exec, DIRECTORY_SEP, argv0_base, suffix);
-  result = pdumper_load (dump_file, argv[0], original_pwd);
+  /* Assume the Emacs binary lives in a sibling directory as set up by
+     the default installation configuration.  */
+  const char *go_up = "../../../../bin/";
+  needed += (strip_suffix ? strlen (strip_suffix) : 0)
+    - strlen (suffix) + strlen (go_up);
+  if (exec_bufsize < needed)
+    {
+      xfree (emacs_executable);
+      emacs_executable = xpalloc (NULL, &exec_bufsize, needed - exec_bufsize,
+				  -1, 1);
+    }
+  sprintf (emacs_executable, "%s%c%s%s%s",
+	   path_exec, DIRECTORY_SEP, go_up, argv0_base,
+	   strip_suffix ? strip_suffix : "");
+  result = pdumper_load (dump_file, emacs_executable);
 
   if (result == PDUMPER_LOAD_FILE_NOT_FOUND)
     {
@@ -998,7 +970,7 @@ load_pdump (int argc, char **argv, char const *original_pwd)
 #endif
       sprintf (dump_file, "%s%c%s%s",
 	       path_exec, DIRECTORY_SEP, argv0_base, suffix);
-      result = pdumper_load (dump_file, argv[0], original_pwd);
+      result = pdumper_load (dump_file, emacs_executable);
     }
 
   if (result != PDUMPER_LOAD_SUCCESS)
@@ -1010,6 +982,7 @@ load_pdump (int argc, char **argv, char const *original_pwd)
 
  out:
   xfree (dump_file);
+  xfree (emacs_executable);
 }
 #endif /* HAVE_PDUMPER */
 
@@ -1320,10 +1293,9 @@ main (int argc, char **argv)
   w32_init_main_thread ();
 #endif
 
-  emacs_wd = emacs_get_current_dir_name ();
 #ifdef HAVE_PDUMPER
   if (attempt_load_pdump)
-    load_pdump (argc, argv, emacs_wd);
+    load_pdump (argc, argv);
 #endif
 
   argc = maybe_disable_address_randomization (argc, argv);
@@ -1395,6 +1367,7 @@ main (int argc, char **argv)
       exit (0);
     }
 
+  emacs_wd = emacs_get_current_dir_name ();
 #ifdef HAVE_PDUMPER
   if (dumped_with_pdumper_p ())
     pdumper_record_wd (emacs_wd);
@@ -2041,7 +2014,8 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
   /* Init buffer storage and default directory of main buffer.  */
   init_buffer ();
 
-  init_vars_for_load (argv[0], original_pwd);
+  /* Must precede init_cmdargs and init_sys_modes.  */
+  init_callproc_1 ();
 
   /* Must precede init_lread.  */
   init_cmdargs (argc, argv, skip_args, original_pwd);

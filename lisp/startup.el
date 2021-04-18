@@ -544,7 +544,8 @@ It is the default value of the variable `top-level'."
           (dolist (path (split-string path-env path-separator))
             (unless (string= "" path)
               (push path comp-eln-load-path)))))
-      (push (concat user-emacs-directory "eln-cache/") comp-eln-load-path)
+      (push (expand-file-name "eln-cache/" user-emacs-directory)
+            comp-eln-load-path)
       ;; When $HOME is set to '/nonexistent' means we are running the
       ;; testsuite, add a temporary folder in front to produce there
       ;; new compilations.
@@ -636,6 +637,16 @@ It is the default value of the variable `top-level'."
 		(set pathsym (mapcar (lambda (dir)
 				       (decode-coding-string dir coding t))
 				     path)))))
+        (when (featurep 'nativecomp)
+          (let ((npath (symbol-value 'comp-eln-load-path)))
+            (set 'comp-eln-load-path
+                 (mapcar (lambda (dir)
+                           ;; Call expand-file-name to remove all the
+                           ;; pesky ".." from the directyory names in
+                           ;; comp-eln-load-path.
+                           (expand-file-name
+                            (decode-coding-string dir coding t)))
+                         npath))))
 	(dolist (filesym '(data-directory doc-directory exec-directory
 					  installation-directory
 					  invocation-directory invocation-name

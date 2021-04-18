@@ -4749,29 +4749,28 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 /* Functions used to load eln files.  */
 /**************************************/
 
-/* Fixup the system eln-cache dir.  This is the last entry in
-   `comp-eln-load-path'.  */
+/* Fixup the system eln-cache directory, which is the last entry in
+   `comp-eln-load-path'.  Argument is a .eln file in that directory.  */
 void
 fixup_eln_load_path (Lisp_Object eln_filename)
 {
   Lisp_Object last_cell = Qnil;
-  Lisp_Object tmp = Vcomp_eln_load_path;
-  FOR_EACH_TAIL (tmp)
-    if (CONSP (tmp))
-      last_cell = tmp;
+  Lisp_Object tem = Vcomp_eln_load_path;
+  FOR_EACH_TAIL (tem)
+    if (CONSP (tem))
+      last_cell = tem;
 
-  Lisp_Object eln_cache_sys =
-    Ffile_name_directory (concat2 (Vinvocation_directory,
-				   eln_filename));
-  bool preloaded =
-    !NILP (Fequal (Fsubstring (eln_cache_sys, make_fixnum (-10),
-			       make_fixnum (-1)),
-		   build_string ("preloaded")));
+  const char preloaded[] = "/preloaded/";
+  Lisp_Object eln_cache_sys = Ffile_name_directory (eln_filename);
+  const char *p_preloaded =
+    SSDATA (eln_cache_sys) + SBYTES (eln_cache_sys) - sizeof (preloaded) + 1;
+  bool preloaded_p = strcmp (p_preloaded, preloaded) == 0;
+
   /* One or two directories up...  */
-  for (int i = 0; i < (preloaded ? 2 : 1); i++)
+  for (int i = 0; i < (preloaded_p ? 2 : 1); i++)
     eln_cache_sys =
-      Ffile_name_directory (Fsubstring (eln_cache_sys, Qnil,
-					make_fixnum (-1)));
+      Ffile_name_directory (Fsubstring_no_properties (eln_cache_sys, Qnil,
+						      make_fixnum (-1)));
   Fsetcar (last_cell, eln_cache_sys);
 }
 
