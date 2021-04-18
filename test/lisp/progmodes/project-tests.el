@@ -35,9 +35,16 @@ names (Bug#47799)."
   (skip-unless (executable-find find-program))
   (let ((directory (make-temp-file "project-tests-" :directory)))
     (unwind-protect
-        (let ((project (cons 'transient (file-name-quote directory)))
+        (let ((default-directory directory)
+              (project-current-inhibit-prompt t)
+              (project-find-functions nil)
+              (project-list-file
+               (expand-file-name "projects" directory))
+              (project (cons 'transient (file-name-quote directory)))
               (file (expand-file-name "file" directory)))
           (make-empty-file file)
+          (add-hook 'project-find-functions (lambda (_dir) project))
+          (should (eq (project-current) project))
           (should (equal (project-files project)
                          (list (file-name-quote file)))))
       (delete-directory directory :recursive))))
