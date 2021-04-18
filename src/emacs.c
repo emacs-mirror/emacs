@@ -749,7 +749,11 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
      path already, so just copy it.  */
   eassert (argv0);
   if (strchr (argv0, DIRECTORY_SEP))
-    return xstrdup (argv0);
+    {
+      char *val = xstrdup (argv0);
+      *candidate_size = strlen (val) + 1;
+      return val;
+    }
   ptrdiff_t argv0_length = strlen (argv0);
 
   const char *path = getenv ("PATH");
