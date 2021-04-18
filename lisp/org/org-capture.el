@@ -521,7 +521,7 @@ for a capture buffer.")
   "Minor mode for special key bindings in a capture buffer.
 
 Turning on this mode runs the normal hook `org-capture-mode-hook'."
-  nil " Cap" org-capture-mode-map
+  :lighter " Cap"
   (setq-local
    header-line-format
    (substitute-command-keys

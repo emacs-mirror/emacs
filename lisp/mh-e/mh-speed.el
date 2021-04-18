@@ -26,8 +26,6 @@
 
 ;; Future versions should only use flists.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

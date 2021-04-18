@@ -117,8 +117,8 @@
   (ignore-errors (delete-file shadow-info-file))
   (ignore-errors (delete-file shadow-todo-file))
   ;; Reset variables.
+  (shadow-invalidate-hashtable)
   (setq shadow-info-buffer nil
-        shadow-hashtable nil
         shadow-todo-buffer nil
         shadow-files-to-copy nil))
 

@@ -59,6 +59,7 @@
 (declare-function tramp-get-remote-perl "tramp-sh")
 (declare-function tramp-get-remote-stat "tramp-sh")
 (declare-function tramp-list-tramp-buffers "tramp-cmds")
+(declare-function tramp-method-out-of-band-p "tramp-sh")
 (declare-function tramp-smb-get-localname "tramp-smb")
 (defvar ange-ftp-make-backup-files)
 (defvar auto-save-file-name-transforms)
@@ -3097,6 +3098,7 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-scp-p)))
   ;; Wildcards are not supported in tramp-crypt.el.
   (skip-unless (not (tramp--test-crypt-p)))
   ;; Since Emacs 26.1.
@@ -4369,7 +4371,7 @@ This tests also `make-symbolic-link', `file-truename' and `add-name-to-file'."
 	  (delete-file tmp-name))))))
 
 (defun tramp--test-shell-file-name ()
-  "Return default remote shell.."
+  "Return default remote shell."
   (if (tramp--test-adb-p) "/system/bin/sh" "/bin/sh"))
 
 (ert-deftest tramp-test28-process-file ()
@@ -5838,18 +5840,18 @@ This requires restrictions of file name syntax."
   "Check, whether the locale host runs MS Windows."
   (eq system-type 'windows-nt))
 
-(defun tramp--test-windows-nt-and-batch-p ()
-  "Check, whether the locale host runs MS Windows in batch mode.
-This does not support special characters."
-  (and (eq system-type 'windows-nt) noninteractive))
+(defun tramp--test-windows-nt-and-out-of-band-p ()
+  "Check, whether the locale host runs MS Windows and an out-of-band method.
+This does not support utf8 based file transfer."
+  (and (eq system-type 'windows-nt)
+       (tramp-method-out-of-band-p tramp-test-vec 1)))
 
-(defun tramp--test-windows-nt-and-pscp-psftp-p ()
-  "Check, whether the locale host runs MS Windows, and ps{cp,ftp} is used.
+(defun tramp--test-windows-nt-and-scp-p ()
+  "Check, whether the locale host runs MS Windows, and scpx? is used.
 This does not support utf8 based file transfer."
   (and (eq system-type 'windows-nt)
        (string-match-p
-	(regexp-opt '("pscp" "psftp"))
-	(file-remote-p tramp-test-temporary-file-directory 'method))))
+	"^scpx?" (file-remote-p tramp-test-temporary-file-directory 'method))))
 
 (defun tramp--test-windows-nt-or-smb-p ()
   "Check, whether the locale or remote host runs MS Windows.
@@ -6112,7 +6114,7 @@ This requires restrictions of file name syntax."
   "Check special characters in file names."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-scp-p)))
   (skip-unless (or (tramp--test-emacs26-p) (not (tramp--test-rclone-p))))
 
   (tramp--test-special-characters))
@@ -6124,7 +6126,7 @@ Use the `stat' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-scp-p)))
   ;; We cannot use `tramp-test-vec', because this fails during compilation.
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-stat v)))
@@ -6143,7 +6145,7 @@ Use the `perl' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-scp-p)))
   ;; We cannot use `tramp-test-vec', because this fails during compilation.
   (with-parsed-tramp-file-name tramp-test-temporary-file-directory nil
     (skip-unless (tramp-get-remote-perl v)))
@@ -6165,7 +6167,7 @@ Use the `ls' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-scp-p)))
 
   (let ((tramp-connection-properties
 	 (append
@@ -6230,8 +6232,7 @@ Use the `ls' command."
   (skip-unless (tramp--test-enabled))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-gdrive-p)))
   (skip-unless (not (tramp--test-crypt-p)))
@@ -6247,8 +6248,7 @@ Use the `stat' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   ;; We cannot use `tramp-test-vec', because this fails during compilation.
@@ -6270,8 +6270,7 @@ Use the `perl' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
   ;; We cannot use `tramp-test-vec', because this fails during compilation.
@@ -6296,8 +6295,7 @@ Use the `ls' command."
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-docker-p)))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-batch-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-pscp-psftp-p)))
+  (skip-unless (not (tramp--test-windows-nt-and-out-of-band-p)))
   (skip-unless (not (tramp--test-ksh-p)))
   (skip-unless (not (tramp--test-crypt-p)))
 

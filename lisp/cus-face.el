@@ -395,8 +395,6 @@ This means reset FACE to its value in FROM-THEME."
 
 (define-obsolete-function-alias 'custom-facep #'facep "28.1")
 
-;;; The End.
-
 (provide 'cus-face)
 
 ;;; cus-face.el ends here

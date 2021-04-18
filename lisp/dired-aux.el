@@ -2980,7 +2980,7 @@ a file name.  Otherwise, it searches the whole buffer without restrictions."
 When on, Isearch skips matches outside file names using the predicate
 `dired-isearch-filter-filenames' that matches only at file names.
 When off, it uses the original predicate."
-  nil nil nil
+  :lighter nil
   (if dired-isearch-filenames-mode
       (add-function :before-while (local 'isearch-filter-predicate)
                     #'dired-isearch-filter-filenames

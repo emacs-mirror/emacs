@@ -319,16 +319,17 @@ first and the associated buffer to its right."
 
 
 ;;;###autoload
-(defun 2C-associate-buffer ()
-  "Associate another buffer with this one in two-column minor mode.
+(defun 2C-associate-buffer (buffer)
+  "Associate another BUFFER with this one in two-column minor mode.
 Can also be used to associate a just previously visited file, by
 accepting the proposed default buffer.
 
 \(See  \\[describe-mode] .)"
-  (interactive)
+  (interactive
+   (list (or (2C-other)
+	     (read-buffer "Associate buffer: " (other-buffer)))))
   (let ((b1 (current-buffer))
-	(b2 (or (2C-other)
-		(read-buffer "Associate buffer: " (other-buffer)))))
+	(b2 buffer))
     (setq 2C-mode nil)
     (with-current-buffer b2
       (and (2C-other)

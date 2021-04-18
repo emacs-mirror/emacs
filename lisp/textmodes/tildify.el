@@ -486,7 +486,7 @@ that space character is replaced by a hard space specified by
 When `tildify-mode' is enabled, if `tildify-string-alist' specifies a hard space
 representation for current major mode, the `tildify-space-string' buffer-local
 variable will be set to the representation."
-  nil " ~" nil
+  :lighter " ~"
   (when tildify-mode
     (let ((space (with-suppressed-warnings ((obsolete
                                              tildify--pick-alist-entry))
@@ -502,8 +502,6 @@ variable will be set to the representation."
       (add-hook 'post-self-insert-hook #'tildify-space nil t)
     (remove-hook 'post-self-insert-hook #'tildify-space t)))
 
-
-;;; *** Announce ***
 
 (provide 'tildify)
 

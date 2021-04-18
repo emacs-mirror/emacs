@@ -354,12 +354,13 @@ Notes:
 All these arguments can be overwritten by connection properties.
 See Info node `(tramp) Predefined connection information'.
 
-When using `su' or `sudo' the phrase \"open connection to a remote
-host\" sounds strange, but it is used nevertheless, for consistency.
-No connection is opened to a remote host, but `su' or `sudo' is
-started on the local host.  You should specify a remote host
-`localhost' or the name of the local host.  Another host name is
-useful only in combination with `tramp-default-proxies-alist'.")
+When using `su', `sudo' or `doas' the phrase \"open connection to
+a remote host\" sounds strange, but it is used nevertheless, for
+consistency.  No connection is opened to a remote host, but `su',
+`sudo' or `doas' is started on the local host.  You should
+specify a remote host `localhost' or the name of the local host.
+Another host name is useful only in combination with
+`tramp-default-proxies-alist'.")
 
 (defcustom tramp-default-method
   ;; An external copy method seems to be preferred, because it performs
@@ -487,7 +488,7 @@ interpreted as a regular expression which always matches."
 ;; either lower case or upper case letters.  See
 ;; <https://debbugs.gnu.org/cgi/bugreport.cgi?bug=38079#20>.
 (defcustom tramp-restricted-shell-hosts-alist
-  (when (memq system-type '(windows-nt))
+  (when (eq system-type 'windows-nt)
     (list (format "\\`\\(%s\\|%s\\)\\'"
 		  (regexp-quote (downcase tramp-system-name))
 		  (regexp-quote (upcase tramp-system-name)))))
@@ -557,7 +558,7 @@ usually suffice.")
 the remote shell.")
 
 (defcustom tramp-local-end-of-line
-  (if (memq system-type '(windows-nt)) "\r\n" "\n")
+  (if (eq system-type 'windows-nt) "\r\n" "\n")
   "String used for end of line in local processes."
   :version "24.1"
   :type 'string)
@@ -1077,7 +1078,13 @@ initial value is overwritten by the car of `tramp-file-name-structure'.")
 
 (defconst tramp-completion-file-name-regexp-default
   (concat
-   "\\`/\\("
+   "\\`"
+   ;; `file-name-completion' uses absolute paths for matching.  This
+   ;; means that on W32 systems, something like "/ssh:host:~/path"
+   ;; becomes "c:/ssh:host:~/path".  See also `tramp-drop-volume-letter'.
+   (when (eq system-type 'windows-nt)
+       "\\(?:[[:alpha:]]:\\)?")
+   "/\\("
    ;; Optional multi hop.
    "\\([^/|:]+:[^/|:]*|\\)*"
    ;; Last hop.
@@ -1096,7 +1103,13 @@ On W32 systems, the volume letter must be ignored.")
 
 (defconst tramp-completion-file-name-regexp-simplified
   (concat
-   "\\`/\\("
+   "\\`"
+   ;; Allow the volume letter at the beginning of the path.  See the
+   ;; comment in `tramp-completion-file-name-regexp-default' for more
+   ;; details.
+   (when (eq system-type 'windows-nt)
+     "\\(?:[[:alpha:]]:\\)?")
+   "/\\("
    ;; Optional multi hop.
    "\\([^/|:]*|\\)*"
    ;; Last hop.
@@ -1112,7 +1125,14 @@ See `tramp-file-name-structure' for more explanations.
 On W32 systems, the volume letter must be ignored.")
 
 (defconst tramp-completion-file-name-regexp-separate
-  "\\`/\\(\\[[^]]*\\)?\\'"
+  (concat
+   "\\`"
+   ;; Allow the volume letter at the beginning of the path.  See the
+   ;; comment in `tramp-completion-file-name-regexp-default' for more
+   ;; details.
+   (when (eq system-type 'windows-nt)
+     "\\(?:[[:alpha:]]:\\)?")
+   "/\\(\\[[^]]*\\)?\\'")
   "Value for `tramp-completion-file-name-regexp' for separate remoting.
 See `tramp-file-name-structure' for more explanations.")
 
@@ -1808,6 +1828,7 @@ The outline level is equal to the verbosity of the Tramp message."
   "Get the debug buffer for VEC."
   (with-current-buffer (get-buffer-create (tramp-debug-buffer-name vec))
     (when (bobp)
+      (set-buffer-file-coding-system 'utf-8)
       (setq buffer-undo-list t)
       ;; Activate `outline-mode'.  This runs `text-mode-hook' and
       ;; `outline-mode-hook'.  We must prevent that local processes
@@ -1848,7 +1869,7 @@ ARGUMENTS to actually emit the message (if applicable)."
 	(when (bobp)
 	  (insert
 	   (format
-	    ";; Emacs: %s Tramp: %s -*- mode: outline; -*-"
+	    ";; Emacs: %s Tramp: %s -*- mode: outline; coding: utf-8; -*-"
 	    emacs-version tramp-version))
 	  (when (>= tramp-verbose 10)
 	    (let ((tramp-verbose 0))
@@ -3117,7 +3138,7 @@ User may be nil."
 (defun tramp-parse-putty (registry-or-dirname)
   "Return a list of (user host) tuples allowed to access.
 User is always nil."
-  (if (memq system-type '(windows-nt))
+  (if (eq system-type 'windows-nt)
       (with-tramp-connection-property nil "parse-putty"
 	(with-temp-buffer
 	  (when (zerop (tramp-call-process
@@ -3867,8 +3888,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	 (or (not (stringp stderr)) (not (tramp-tramp-file-p stderr))))))
 
 (defun tramp-handle-make-process (&rest args)
-  "An alternative `make-process' implementation for Tramp files.
-It does not support `:stderr'."
+  "An alternative `make-process' implementation for Tramp files."
   (when args
     (with-parsed-tramp-file-name (expand-file-name default-directory) nil
       (let ((default-directory (tramp-compat-temporary-file-directory))
@@ -4969,7 +4989,7 @@ VEC is used for tracing."
     (let ((candidates '("en_US.utf8" "C.utf8" "en_US.UTF-8"))
 	  locale)
       (with-temp-buffer
-	(unless (or (memq system-type '(windows-nt))
+	(unless (or (eq system-type 'windows-nt)
                     (not (zerop (tramp-call-process
                                  nil "locale" nil t nil "-a"))))
 	  (while candidates

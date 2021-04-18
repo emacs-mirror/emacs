@@ -1402,7 +1402,7 @@ are handled according to `rmail-mime-media-type-handlers-alist'.
 By default, this displays text and multipart messages, and offers to
 download attachments as specified by `rmail-mime-attachment-dirs-alist'.
 The arguments ARG and STATE have no effect in this case."
-  (interactive (list current-prefix-arg nil))
+  (interactive)
   (if rmail-enable-mime
       (with-current-buffer rmail-buffer
 	(if (or (rmail-mime-message-p)

@@ -296,7 +296,7 @@ to find the list of ignores for each directory."
          ;; Make sure ~/ etc. in local directory name is
          ;; expanded and not left for the shell command
          ;; to interpret.
-         (localdir (file-local-name (expand-file-name dir)))
+         (localdir (file-name-unquote (file-local-name (expand-file-name dir))))
          (command (format "%s %s %s -type f %s -print0"
                           find-program
                           ;; In case DIR is a symlink.
@@ -311,16 +311,25 @@ to find the list of ignores for each directory."
                                        (concat " -o " find-name-arg " "))
                                       " "
                                       (shell-quote-argument ")"))
-                            ""))))
+                            "")))
+         (output (with-output-to-string
+                   (with-current-buffer standard-output
+                     (let ((status
+                            (process-file-shell-command command nil t)))
+                       (unless (zerop status)
+                         (error "File listing failed: %s" (buffer-string))))))))
     (project--remote-file-names
-     (sort (split-string (shell-command-to-string command) "\0" t)
+     (sort (split-string output "\0" t)
            #'string<))))
 
 (defun project--remote-file-names (local-files)
-  "Return LOCAL-FILES as if they were on the system of `default-directory'."
+  "Return LOCAL-FILES as if they were on the system of `default-directory'.
+Also quote LOCAL-FILES if `default-directory' is quoted."
   (let ((remote-id (file-remote-p default-directory)))
     (if (not remote-id)
-        local-files
+        (if (file-name-quoted-p default-directory)
+            (mapcar #'file-name-quote local-files)
+          local-files)
       (mapcar (lambda (file)
                 (concat remote-id file))
               local-files))))
@@ -1322,7 +1331,7 @@ are legal even if they aren't listed in the dispatch menu."
                key tmp)))
      (let ((key (if key
                     (vector key)
-                  (where-is-internal cmd project-prefix-map t))))
+                  (where-is-internal cmd (list project-prefix-map) t))))
        (format "[%s] %s"
                (propertize (key-description key) 'face 'bold)
                label)))
@@ -1338,28 +1347,36 @@ made from `project-switch-commands'.
 When called in a program, it will use the project corresponding
 to directory DIR."
   (interactive (list (project-prompt-project-dir)))
-  (let ((commands-menu
-         (mapcar
-          (lambda (row)
-            (if (characterp (car row))
-                ;; Deprecated format.
-                ;; XXX: Add a warning about it?
-                (reverse row)
-              row))
-          project-switch-commands))
-        command)
+  (let* ((commands-menu
+          (mapcar
+           (lambda (row)
+             (if (characterp (car row))
+                 ;; Deprecated format.
+                 ;; XXX: Add a warning about it?
+                 (reverse row)
+               row))
+           project-switch-commands))
+         (commands-map
+          (let ((temp-map (make-sparse-keymap)))
+            (set-keymap-parent temp-map project-prefix-map)
+            (dolist (row commands-menu temp-map)
+              (when-let ((cmd (nth 0 row))
+                         (keychar (nth 2 row)))
+                (define-key temp-map (vector keychar) cmd)))))
+         command)
     (while (not command)
-      (let ((choice (read-event (project--keymap-prompt))))
-        (when (setq command
-                    (or (car
-                         (seq-find (lambda (row) (equal choice (nth 2 row)))
-                                   commands-menu))
-                        (lookup-key project-prefix-map (vector choice))))
+      (let ((overriding-local-map commands-map)
+            (choice (read-key-sequence (project--keymap-prompt))))
+        (when (setq command (lookup-key commands-map choice))
           (unless (or project-switch-use-entire-map
                       (assq command commands-menu))
             ;; TODO: Add some hint to the prompt, like "key not
             ;; recognized" or something.
-            (setq command nil)))))
+            (setq command nil)))
+        (let ((global-command (lookup-key (current-global-map) choice)))
+          (when (memq global-command
+                      '(keyboard-quit keyboard-escape-quit))
+            (call-interactively global-command)))))
     (let ((default-directory dir)
           (project-current-inhibit-prompt t))
       (call-interactively command))))

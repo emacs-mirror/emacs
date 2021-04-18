@@ -191,7 +191,8 @@ when this variable is set to nil.")
 (defconst log-edit-files-buf "*log-edit-files*")
 (defvar log-edit-initial-files nil)
 (defvar log-edit-callback nil)
-(defvar log-edit-diff-function nil)
+(defvar log-edit-diff-function
+  (lambda () (error "Diff functionality has not been setup")))
 (defvar log-edit-listfun nil)
 
 (defvar log-edit-parent-buffer nil)
@@ -659,9 +660,7 @@ Also saves its contents in the comment history and hides
 (defun log-edit-show-diff ()
   "Show the diff for the files to be committed."
   (interactive)
-  (if (functionp log-edit-diff-function)
-      (funcall log-edit-diff-function)
-    (error "Diff functionality has not been setup")))
+  (funcall log-edit-diff-function))
 
 (defun log-edit-show-files ()
   "Show the list of files to be committed."

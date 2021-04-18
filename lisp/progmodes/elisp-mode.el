@@ -496,7 +496,7 @@ functions are annotated with \"<f>\" via the
 	   (end
 	    (unless (or (eq beg (point-max))
 			(member (char-syntax (char-after beg))
-                                '(?\s ?\" ?\( ?\))))
+                                '(?\" ?\()))
 	      (condition-case nil
 		  (save-excursion
 		    (goto-char beg)

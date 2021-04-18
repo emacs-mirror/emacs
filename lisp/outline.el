@@ -374,8 +374,9 @@ faces to major mode's faces."
   "Toggle Outline minor mode.
 
 See the command `outline-mode' for more information on this mode."
-  nil " Outl" (list (cons [menu-bar] outline-minor-mode-menu-bar-map)
-		    (cons outline-minor-mode-prefix outline-mode-prefix-map))
+  :lighter " Outl"
+  :keymap (list (cons [menu-bar] outline-minor-mode-menu-bar-map)
+		(cons outline-minor-mode-prefix outline-mode-prefix-map))
   (if outline-minor-mode
       (progn
         (when (or outline-minor-mode-cycle outline-minor-mode-highlight)

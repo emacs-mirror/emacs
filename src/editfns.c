@@ -3386,12 +3386,11 @@ styled_format (ptrdiff_t nargs, Lisp_Object *args, bool message)
 	      else
 		{
 		  ptrdiff_t nch, nby;
-		  width = lisp_string_width (arg, prec, &nch, &nby);
+		  nchars_string = SCHARS (arg);
+		  width = lisp_string_width (arg, 0, nchars_string, prec,
+					     &nch, &nby);
 		  if (prec < 0)
-		    {
-		      nchars_string = SCHARS (arg);
-		      nbytes = SBYTES (arg);
-		    }
+		    nbytes = SBYTES (arg);
 		  else
 		    {
 		      nchars_string = nch;

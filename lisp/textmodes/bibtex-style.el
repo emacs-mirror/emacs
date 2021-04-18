@@ -24,7 +24,6 @@
 
 ;; Done: font-lock, imenu, outline, commenting, indentation.
 ;; Todo: tab-completion.
-;; Bugs:
 
 ;;; Code:
 

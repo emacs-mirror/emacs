@@ -46,7 +46,6 @@ the mode if ARG is omitted or nil.
 
 ERC fill mode is a global minor mode.  When enabled, messages in
 the channel buffers are filled."
-  nil nil nil
   :global t
   (if erc-fill-mode
       (erc-fill-enable)

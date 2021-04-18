@@ -765,6 +765,15 @@ your initialization file (@pxref{Init File}):
 the variable @code{fido-mode} to @code{t} (@pxref{Easy
 Customization}).
 
+@findex icomplete-vertical-mode
+@cindex Icomplete vertical mode
+
+  Icomplete mode and Fido mode display the possible completions on the
+same line as the prompt by default.  To display the completion candidates
+vertically under the prompt, type @kbd{M-x icomplete-vertical-mode}, or
+customize the variable @code{icomplete-vertical-mode} to @code{t}
+(@pxref{Easy Customization}).
+
 @node Buffer Menus
 @subsection Customizing Buffer Menus
 

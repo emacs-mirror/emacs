@@ -120,12 +120,13 @@
   :group 'message-buffers
   :type 'integer)
 
-(defcustom message-send-rename-function nil
+(defcustom message-send-rename-function #'message-default-send-rename-function
   "Function called to rename the buffer after sending it."
   :group 'message-buffers
-  :type '(choice function (const nil)))
+  :version "28.1"
+  :type 'function)
 
-(defcustom message-fcc-handler-function 'message-output
+(defcustom message-fcc-handler-function #'message-output
   "A function called to save outgoing articles.
 This function will be called with the name of the file to store the
 article in.  The default function is `message-output' which saves in Unix
@@ -186,22 +187,26 @@ Otherwise, most addresses look like `angles', but they look like
 
 (defcustom message-syntax-checks
   (if message-insert-canlock '((sender . disabled)) nil)
-  ;; Guess this one shouldn't be easy to customize...
   "Controls what syntax checks should not be performed on outgoing posts.
 To disable checking of long signatures, for instance, add
  `(signature . disabled)' to this list.
 
 Don't touch this variable unless you really know what you're doing.
 
-Checks include `approved', `bogus-recipient', `continuation-headers',
-`control-chars', `empty', `existing-newsgroups', `from', `illegible-text',
-`invisible-text', `long-header-lines', `long-lines', `message-id',
-`multiple-headers', `new-text', `newsgroups', `quoting-style',
-`repeated-newsgroups', `reply-to', `sender', `sendsys', `shoot',
-`shorten-followup-to', `signature', `size', `subject', `subject-cmsg'
-and `valid-newsgroups'."
-  :group 'message-news
-  :type '(repeat sexp))			; Fixme: improve this
+See the Message manual for the meanings of the valid syntax check
+types."
+  :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
+  :type '(alist
+	  :key-type symbol
+	  :value-type (const disabled)
+	  :options (approved bogus-recipient continuation-headers
+		    control-chars empty existing-newsgroups from illegible-text
+		    invisible-text long-header-lines long-lines message-id
+		    multiple-headers new-text newgroups quoting-style
+		    repeated-newsgroups reply-to sender sendsys shoot
+		    shorten-followup-to signature size subject subject-cmsg
+		    valid-newsgroups)))
 
 (defcustom message-required-headers '((optional . References)
 				      From)
@@ -418,7 +423,7 @@ you can explicitly override this setting by calling
   :type 'string
   :group 'message-various)
 
-(defcustom message-cross-post-note-function 'message-cross-post-insert-note
+(defcustom message-cross-post-note-function #'message-cross-post-insert-note
   "Function to use to insert note about Crosspost or Followup-To.
 The function will be called with four arguments.  The function should not only
 insert a note, but also ensure old notes are deleted.  See the documentation
@@ -756,7 +761,7 @@ See also `send-mail-function'."
   :link '(custom-manual "(message)Mail Variables")
   :group 'message-mail)
 
-(defcustom message-send-news-function 'message-send-news
+(defcustom message-send-news-function #'message-send-news
   "Function to call to send the current buffer as news.
 The headers should be delimited by a line whose contents match the
 variable `mail-header-separator'."
@@ -765,29 +770,32 @@ variable `mail-header-separator'."
   :link '(custom-manual "(message)News Variables")
   :type 'function)
 
-(defcustom message-reply-to-function nil
+(defcustom message-reply-to-function #'ignore
   "If non-nil, function that should return a list of headers.
 This function should pick out addresses from the To, Cc, and From headers
 and respond with new To and Cc headers."
   :group 'message-interface
   :link '(custom-manual "(message)Reply")
-  :type '(choice function (const nil)))
+  :version "28.1"
+  :type 'function)
 
-(defcustom message-wide-reply-to-function nil
+(defcustom message-wide-reply-to-function #'ignore
   "If non-nil, function that should return a list of headers.
 This function should pick out addresses from the To, Cc, and From headers
 and respond with new To and Cc headers."
   :group 'message-interface
   :link '(custom-manual "(message)Wide Reply")
-  :type '(choice function (const nil)))
+  :version "28.1"
+  :type 'function)
 
-(defcustom message-followup-to-function nil
+(defcustom message-followup-to-function #'ignore
   "If non-nil, function that should return a list of headers.
 This function should pick out addresses from the To, Cc, and From headers
 and respond with new To and Cc headers."
   :group 'message-interface
   :link '(custom-manual "(message)Followup")
-  :type '(choice function (const nil)))
+  :version "28.1"
+  :type 'function)
 
 (defcustom message-extra-wide-headers nil
   "If non-nil, a list of additional address headers.
@@ -1021,7 +1029,7 @@ the signature is inserted."
   :version "22.1"
   :group 'message-various)
 
-(defcustom message-citation-line-function 'message-insert-citation-line
+(defcustom message-citation-line-function #'message-insert-citation-line
   "Function called to insert the \"Whomever writes:\" line.
 
 Predefined functions include `message-insert-citation-line' and
@@ -1103,7 +1111,7 @@ Used by `message-yank-original' via `message-yank-cite'."
   :link '(custom-manual "(message)Insertion Variables")
   :type 'integer)
 
-(defcustom message-cite-function 'message-cite-original-without-signature
+(defcustom message-cite-function #'message-cite-original-without-signature
   "Function for citing an original message.
 Predefined functions include `message-cite-original' and
 `message-cite-original-without-signature'.
@@ -1116,7 +1124,7 @@ Note that these functions use `mail-citation-hook' if that is non-nil."
   :version "22.3" ;; Gnus 5.10.12 (changed default)
   :group 'message-insertion)
 
-(defcustom message-indent-citation-function 'message-indent-citation
+(defcustom message-indent-citation-function #'message-indent-citation
   "Function for modifying a citation just inserted in the mail buffer.
 This can also be a list of functions.  Each function can find the
 citation between (point) and (mark t).  And each function should leave
@@ -2847,79 +2855,79 @@ Consider adding this function to `message-header-setup-hook'"
 (unless message-mode-map
   (setq message-mode-map (make-keymap))
   (set-keymap-parent message-mode-map text-mode-map)
-  (define-key message-mode-map "\C-c?" 'describe-mode)
+  (define-key message-mode-map "\C-c?" #'describe-mode)
 
-  (define-key message-mode-map "\C-c\C-f\C-t" 'message-goto-to)
-  (define-key message-mode-map "\C-c\C-f\C-o" 'message-goto-from)
-  (define-key message-mode-map "\C-c\C-f\C-b" 'message-goto-bcc)
-  (define-key message-mode-map "\C-c\C-f\C-w" 'message-goto-fcc)
-  (define-key message-mode-map "\C-c\C-f\C-c" 'message-goto-cc)
-  (define-key message-mode-map "\C-c\C-f\C-s" 'message-goto-subject)
-  (define-key message-mode-map "\C-c\C-f\C-r" 'message-goto-reply-to)
-  (define-key message-mode-map "\C-c\C-f\C-n" 'message-goto-newsgroups)
-  (define-key message-mode-map "\C-c\C-f\C-d" 'message-goto-distribution)
-  (define-key message-mode-map "\C-c\C-f\C-f" 'message-goto-followup-to)
-  (define-key message-mode-map "\C-c\C-f\C-m" 'message-goto-mail-followup-to)
-  (define-key message-mode-map "\C-c\C-f\C-k" 'message-goto-keywords)
-  (define-key message-mode-map "\C-c\C-f\C-u" 'message-goto-summary)
+  (define-key message-mode-map "\C-c\C-f\C-t" #'message-goto-to)
+  (define-key message-mode-map "\C-c\C-f\C-o" #'message-goto-from)
+  (define-key message-mode-map "\C-c\C-f\C-b" #'message-goto-bcc)
+  (define-key message-mode-map "\C-c\C-f\C-w" #'message-goto-fcc)
+  (define-key message-mode-map "\C-c\C-f\C-c" #'message-goto-cc)
+  (define-key message-mode-map "\C-c\C-f\C-s" #'message-goto-subject)
+  (define-key message-mode-map "\C-c\C-f\C-r" #'message-goto-reply-to)
+  (define-key message-mode-map "\C-c\C-f\C-n" #'message-goto-newsgroups)
+  (define-key message-mode-map "\C-c\C-f\C-d" #'message-goto-distribution)
+  (define-key message-mode-map "\C-c\C-f\C-f" #'message-goto-followup-to)
+  (define-key message-mode-map "\C-c\C-f\C-m" #'message-goto-mail-followup-to)
+  (define-key message-mode-map "\C-c\C-f\C-k" #'message-goto-keywords)
+  (define-key message-mode-map "\C-c\C-f\C-u" #'message-goto-summary)
   (define-key message-mode-map "\C-c\C-f\C-i"
-    'message-insert-or-toggle-importance)
+    #'message-insert-or-toggle-importance)
   (define-key message-mode-map "\C-c\C-f\C-a"
-    'message-generate-unsubscribed-mail-followup-to)
+    #'message-generate-unsubscribed-mail-followup-to)
 
   ;; modify headers (and insert notes in body)
-  (define-key message-mode-map "\C-c\C-fs"    'message-change-subject)
+  (define-key message-mode-map "\C-c\C-fs"    #'message-change-subject)
   ;;
-  (define-key message-mode-map "\C-c\C-fx"    'message-cross-post-followup-to)
+  (define-key message-mode-map "\C-c\C-fx"    #'message-cross-post-followup-to)
   ;; prefix+message-cross-post-followup-to = same w/o cross-post
-  (define-key message-mode-map "\C-c\C-ft"    'message-reduce-to-to-cc)
-  (define-key message-mode-map "\C-c\C-fa"    'message-add-archive-header)
+  (define-key message-mode-map "\C-c\C-ft"    #'message-reduce-to-to-cc)
+  (define-key message-mode-map "\C-c\C-fa"    #'message-add-archive-header)
   ;; mark inserted text
-  (define-key message-mode-map "\C-c\M-m" 'message-mark-inserted-region)
-  (define-key message-mode-map "\C-c\M-f" 'message-mark-insert-file)
+  (define-key message-mode-map "\C-c\M-m" #'message-mark-inserted-region)
+  (define-key message-mode-map "\C-c\M-f" #'message-mark-insert-file)
 
-  (define-key message-mode-map "\C-c\C-b" 'message-goto-body)
-  (define-key message-mode-map "\C-c\C-i" 'message-goto-signature)
+  (define-key message-mode-map "\C-c\C-b" #'message-goto-body)
+  (define-key message-mode-map "\C-c\C-i" #'message-goto-signature)
 
-  (define-key message-mode-map "\C-c\C-t" 'message-insert-to)
-  (define-key message-mode-map "\C-c\C-fw" 'message-insert-wide-reply)
-  (define-key message-mode-map "\C-c\C-n" 'message-insert-newsgroups)
-  (define-key message-mode-map "\C-c\C-l" 'message-to-list-only)
-  (define-key message-mode-map "\C-c\C-f\C-e" 'message-insert-expires)
+  (define-key message-mode-map "\C-c\C-t" #'message-insert-to)
+  (define-key message-mode-map "\C-c\C-fw" #'message-insert-wide-reply)
+  (define-key message-mode-map "\C-c\C-n" #'message-insert-newsgroups)
+  (define-key message-mode-map "\C-c\C-l" #'message-to-list-only)
+  (define-key message-mode-map "\C-c\C-f\C-e" #'message-insert-expires)
 
-  (define-key message-mode-map "\C-c\C-u" 'message-insert-or-toggle-importance)
+  (define-key message-mode-map "\C-c\C-u" #'message-insert-or-toggle-importance)
   (define-key message-mode-map "\C-c\M-n"
-    'message-insert-disposition-notification-to)
+    #'message-insert-disposition-notification-to)
 
-  (define-key message-mode-map "\C-c\C-y" 'message-yank-original)
-  (define-key message-mode-map "\C-c\M-\C-y" 'message-yank-buffer)
-  (define-key message-mode-map "\C-c\C-q" 'message-fill-yanked-message)
-  (define-key message-mode-map "\C-c\C-w" 'message-insert-signature)
-  (define-key message-mode-map "\C-c\M-h" 'message-insert-headers)
-  (define-key message-mode-map "\C-c\C-r" 'message-caesar-buffer-body)
-  (define-key message-mode-map "\C-c\C-o" 'message-sort-headers)
-  (define-key message-mode-map "\C-c\M-r" 'message-rename-buffer)
+  (define-key message-mode-map "\C-c\C-y" #'message-yank-original)
+  (define-key message-mode-map "\C-c\M-\C-y" #'message-yank-buffer)
+  (define-key message-mode-map "\C-c\C-q" #'message-fill-yanked-message)
+  (define-key message-mode-map "\C-c\C-w" #'message-insert-signature)
+  (define-key message-mode-map "\C-c\M-h" #'message-insert-headers)
+  (define-key message-mode-map "\C-c\C-r" #'message-caesar-buffer-body)
+  (define-key message-mode-map "\C-c\C-o" #'message-sort-headers)
+  (define-key message-mode-map "\C-c\M-r" #'message-rename-buffer)
 
-  (define-key message-mode-map "\C-c\C-c" 'message-send-and-exit)
-  (define-key message-mode-map "\C-c\C-s" 'message-send)
-  (define-key message-mode-map "\C-c\C-k" 'message-kill-buffer)
-  (define-key message-mode-map "\C-c\C-d" 'message-dont-send)
-  (define-key message-mode-map "\C-c\n" 'gnus-delay-article)
+  (define-key message-mode-map "\C-c\C-c" #'message-send-and-exit)
+  (define-key message-mode-map "\C-c\C-s" #'message-send)
+  (define-key message-mode-map "\C-c\C-k" #'message-kill-buffer)
+  (define-key message-mode-map "\C-c\C-d" #'message-dont-send)
+  (define-key message-mode-map "\C-c\n" #'gnus-delay-article)
 
-  (define-key message-mode-map "\C-c\M-k" 'message-kill-address)
-  (define-key message-mode-map "\C-c\C-e" 'message-elide-region)
-  (define-key message-mode-map "\C-c\C-v" 'message-delete-not-region)
-  (define-key message-mode-map "\C-c\C-z" 'message-kill-to-signature)
-  (define-key message-mode-map "\M-\r" 'message-newline-and-reformat)
-  (define-key message-mode-map [remap split-line]  'message-split-line)
+  (define-key message-mode-map "\C-c\M-k" #'message-kill-address)
+  (define-key message-mode-map "\C-c\C-e" #'message-elide-region)
+  (define-key message-mode-map "\C-c\C-v" #'message-delete-not-region)
+  (define-key message-mode-map "\C-c\C-z" #'message-kill-to-signature)
+  (define-key message-mode-map "\M-\r" #'message-newline-and-reformat)
+  (define-key message-mode-map [remap split-line]  #'message-split-line)
 
-  (define-key message-mode-map "\C-c\C-a" 'mml-attach-file)
-  (define-key message-mode-map "\C-c\C-p" 'message-insert-screenshot)
+  (define-key message-mode-map "\C-c\C-a" #'mml-attach-file)
+  (define-key message-mode-map "\C-c\C-p" #'message-insert-screenshot)
 
-  (define-key message-mode-map "\C-a" 'message-beginning-of-line)
-  (define-key message-mode-map "\t" 'message-tab)
+  (define-key message-mode-map "\C-a" #'message-beginning-of-line)
+  (define-key message-mode-map "\t" #'message-tab)
 
-  (define-key message-mode-map "\M-n" 'message-display-abbrev))
+  (define-key message-mode-map "\M-n" #'message-display-abbrev))
 
 (easy-menu-define
   message-mode-menu message-mode-map "Message Menu."
@@ -3169,14 +3177,13 @@ Like `text-mode', but with these additional commands:
   ;; `electric-pair-mode', and C-M-* navigation by syntactically
   ;; excluding citations and other artifacts.
   ;;
-  (setq-local syntax-propertize-function 'message--syntax-propertize)
+  (setq-local syntax-propertize-function #'message--syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
   (setq-local message-encoded-mail-cache nil))
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."
   (setq-local fill-paragraph-function #'message-fill-paragraph)
-  (make-local-variable 'adaptive-fill-first-line-regexp)
   (let ((quote-prefix-regexp
 	 ;; User should change message-cite-prefix-regexp if
 	 ;; message-yank-prefix is set to an abnormal value.
@@ -3287,7 +3294,7 @@ Like `text-mode', but with these additional commands:
   (push-mark)
   (message-position-on-field "Summary" "Subject"))
 
-(define-obsolete-function-alias 'message-goto-body-1 'message-goto-body "27.1")
+(define-obsolete-function-alias 'message-goto-body-1 #'message-goto-body "27.1")
 (defun message-goto-body (&optional interactive)
   "Move point to the beginning of the message body.
 Returns point."
@@ -6662,9 +6669,8 @@ moved to the beginning "
 		 (not (buffer-modified-p buffer)))
 	(kill-buffer buffer))))
   ;; Rename the buffer.
-  (if message-send-rename-function
-      (funcall message-send-rename-function)
-    (message-default-send-rename-function))
+  (funcall (or message-send-rename-function
+               #'message-default-send-rename-function))
   ;; Push the current buffer onto the list.
   (when message-max-buffers
     (setq message-buffer-list
@@ -6763,8 +6769,9 @@ are not included."
 (defun message-setup-1 (headers &optional yank-action actions return-action)
   (dolist (action actions)
     (condition-case nil
+        ;; FIXME: Use functions rather than expressions!
 	(add-to-list 'message-send-actions
-		     `(apply ',(car action) ',(cdr action)))))
+		     `(apply #',(car action) ',(cdr action)))))
   (setq message-return-action return-action)
   (setq message-reply-buffer
 	(if (and (consp yank-action)
@@ -6903,7 +6910,7 @@ are not included."
 ;;;###autoload
 (defun message-mail (&optional to subject other-headers continue
 			       switch-function yank-action send-actions
-			       return-action &rest ignored)
+			       return-action &rest _)
   "Start editing a mail message to be sent.
 OTHER-HEADERS is an alist of header/value pairs.  CONTINUE says whether
 to continue editing a message already being composed.  SWITCH-FUNCTION
@@ -7127,15 +7134,12 @@ want to get rid of this query permanently.")))
 	    ;; specific, and just Cc-in the rest.
 	    (setq follow-to (list
 			     (cons 'To
-				   (mapconcat
-				    (lambda (addr)
-				      (cdr addr)) recipients ", "))))
+				   (mapconcat #'cdr recipients ", "))))
 	  ;; Put the first recipient in the To header.
 	  (setq follow-to (list (cons 'To (cdr (pop recipients)))))
 	  ;; Put the rest of the recipients in Cc.
 	  (when recipients
-	    (setq recipients (mapconcat
-			      (lambda (addr) (cdr addr)) recipients ", "))
+	    (setq recipients (mapconcat #'cdr recipients ", "))
 	    (if (string-match "^ +" recipients)
 		(setq recipients (substring recipients (match-end 0))))
 	    (push (cons 'Cc recipients) follow-to)))))
@@ -7862,7 +7866,7 @@ is for the internal use."
   (interactive)
   (setq rmail-enable-mime-composing t)
   (setq rmail-insert-mime-forwarded-message-function
-	'message-forward-rmail-make-body))
+	#'message-forward-rmail-make-body))
 
 ;;;###autoload
 (defun message-resend (address)

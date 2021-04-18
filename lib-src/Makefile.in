@@ -189,6 +189,30 @@ LIB_WSOCK32=@LIB_WSOCK32@
 ## Extra libraries for etags
 LIBS_ETAGS = $(LIB_CLOCK_GETTIME) $(LIB_GETRANDOM)
 
+HAVE_SECCOMP=@HAVE_SECCOMP@
+HAVE_LIBSECCOMP=@HAVE_LIBSECCOMP@
+LIBSECCOMP_LIBS=@LIBSECCOMP_LIBS@
+LIBSECCOMP_CFLAGS=@LIBSECCOMP_CFLAGS@
+
+# Currently, we can only generate seccomp filter files for x86-64.
+ifeq ($(HAVE_SECCOMP),yes)
+ifeq ($(HAVE_LIBSECCOMP),yes)
+ifeq ($(shell uname -m),x86_64)
+# We require SECCOMP_RET_KILL_PROCESS, which is only available in
+# Linux 4.14 and later.
+ifeq ($(shell { echo 4.14; uname -r | cut -d . -f 1-2; } | \
+              sort -C -t . -n -k 1,1 -k 2,2 && \
+              echo 1),1)
+SECCOMP_FILTER=1
+endif
+endif
+endif
+endif
+
+ifeq ($(SECCOMP_FILTER),1)
+DONT_INSTALL += seccomp-filter$(EXEEXT)
+endif
+
 ## Extra libraries to use when linking movemail.
 LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
   $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV) $(LIB_WSOCK32) $(LIBS_ETAGS)
@@ -217,6 +241,10 @@ CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 config_h = ../src/config.h $(srcdir)/../src/conf_post.h
 
 all: ${EXE_FILES} ${SCRIPTS}
+
+ifeq ($(SECCOMP_FILTER),1)
+all: seccomp-filter.bpf seccomp-filter-exec.bpf
+endif
 
 .PHONY: all need-blessmail maybe-blessmail
 
@@ -399,5 +427,16 @@ update-game-score${EXEEXT}: ${srcdir}/update-game-score.c $(NTLIB) $(config_h)
 
 emacsclient.res: ../nt/emacsclient.rc $(NTINC)/../icons/emacs.ico
 	$(AM_V_RC)$(WINDRES) -O coff --include-dir=$(NTINC)/.. -o $@ $<
+
+ifeq ($(SECCOMP_FILTER),1)
+seccomp-filter$(EXEEXT): $(srcdir)/seccomp-filter.c $(config_h)
+	$(AM_V_CCLD)$(CC) $(ALL_CFLAGS) $(LIBSECCOMP_CFLAGS) $< \
+	  $(LIBSECCOMP_LIBS) -o $@
+
+seccomp-filter.bpf seccomp-filter.pfc seccomp-filter-exec.bpf seccomp-filter-exec.pfc: seccomp-filter$(EXEEXT)
+	$(AM_V_GEN)./seccomp-filter$(EXEEXT) \
+	  seccomp-filter.bpf seccomp-filter.pfc \
+	  seccomp-filter-exec.bpf seccomp-filter-exec.pfc
+endif
 
 ## Makefile ends here.

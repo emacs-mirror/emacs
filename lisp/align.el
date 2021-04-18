@@ -1587,8 +1587,6 @@ aligner would have dealt with are."
     (if report
 	(message "Aligning...done"))))
 
-;; Provide:
-
 (provide 'align)
 
 (run-hooks 'align-load-hook)

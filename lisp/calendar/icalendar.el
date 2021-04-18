@@ -581,19 +581,19 @@ ALIST is a VTIMEZONE potentially containing historical records."
     (list
      (car
       (sort components
-            #'(lambda (a b)
-                (let* ((get-recent (lambda (n)
-                                     (car
-                                      (sort
-                                       (delq nil
-                                             (mapcar (lambda (p)
-                                                       (and (memq (car p) '(DTSTART RDATE))
-                                                            (car (cddr p))))
-                                                     n))
-                                       'string-greaterp))))
-                       (a-recent (funcall get-recent (car (cddr a))))
-                       (b-recent (funcall get-recent (car (cddr b)))))
-                  (string-greaterp a-recent b-recent))))))))
+            (lambda (a b)
+              (let* ((get-recent (lambda (n)
+                                   (car
+                                    (sort
+                                     (delq nil
+                                           (mapcar (lambda (p)
+                                                     (and (memq (car p) '(DTSTART RDATE))
+                                                          (car (cddr p))))
+                                                   n))
+                                     'string-greaterp))))
+                     (a-recent (funcall get-recent (car (cddr a))))
+                     (b-recent (funcall get-recent (car (cddr b)))))
+                (string-greaterp a-recent b-recent))))))))
 
 (defun icalendar--convert-all-timezones (icalendar)
   "Convert all timezones in the ICALENDAR into an alist.

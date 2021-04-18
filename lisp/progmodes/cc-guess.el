@@ -1,4 +1,4 @@
-;;; cc-guess.el --- guess indentation values by scanning existing code
+;;; cc-guess.el --- guess indentation values by scanning existing code -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2006, 2011-2021 Free Software
 ;; Foundation, Inc.
@@ -58,7 +58,7 @@
 ;;
 ;; If you want to reuse the guessed style in future emacs sessions,
 ;; you may want to put it to your .emacs. `c-guess-view' is for
-;; you. It emits emacs lisp code which defines the last guessed
+;; you. It emits Emacs Lisp code which defines the last guessed
 ;; style, in a temporary buffer. You can put the emitted code into
 ;; your .emacs. This command was suggested by Alan Mackenzie.
 
@@ -527,7 +527,7 @@ is called with one argument, the guessed style."
 	    (cdr needs-markers)))))
 
 (defun c-guess-view (&optional with-name)
-  "Emit emacs lisp code which defines the last guessed style.
+  "Emit Emacs Lisp code which defines the last guessed style.
 So you can put the code into .emacs if you prefer the
 guessed code.
 \"STYLE NAME HERE\" is used as the name for the style in the

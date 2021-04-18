@@ -1686,7 +1686,7 @@ presence of such a binding can still prevent translation from taking place.
 For example, let us return to our VT100 example above and add a binding for
 @kbd{C-c @key{ESC}} to the global map; now when the user hits @kbd{C-c
 @key{PF1}} Emacs will fail to decode @kbd{C-c @key{ESC} O P} into @kbd{C-c
-@key{PF1}} because it will stop reading keys right after @kbd{C-x @key{ESC}},
+@key{PF1}} because it will stop reading keys right after @kbd{C-c @key{ESC}},
 leaving @kbd{O P} for later.  This is in case the user really hit @kbd{C-c
 @key{ESC}}, in which case Emacs should not sit there waiting for the next key
 to decide whether the user really pressed @kbd{@key{ESC}} or @kbd{@key{PF1}}.

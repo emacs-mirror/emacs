@@ -869,6 +869,19 @@ bset_update_mode_line (struct buffer *b)
   b->text->redisplay = true;
 }
 
+void
+wset_update_mode_line (struct window *w)
+{
+  w->update_mode_line = true;
+  /* When a window's mode line needs to be updated, the window's frame's
+     title may also need to be updated, but we don't need to worry about it
+     here.  Instead, `gui_consider_frame_title' is automatically called
+     whenever w->update_mode_line is set for that frame's selected window.
+     But for this to work reliably, we have to make sure the window
+     is considered, so we have to mark it for redisplay.  */
+  wset_redisplay (w);
+}
+
 DEFUN ("set-buffer-redisplay", Fset_buffer_redisplay,
        Sset_buffer_redisplay, 4, 4, 0,
        doc: /* Mark the current buffer for redisplay.
@@ -13607,8 +13620,9 @@ redisplay_tab_bar (struct frame *f)
 
 /* Get information about the tab-bar item which is displayed in GLYPH
    on frame F.  Return in *PROP_IDX the index where tab-bar item
-   properties start in F->tab_bar_items.  Value is false if
-   GLYPH doesn't display a tab-bar item.  */
+   properties start in F->tab_bar_items.  Return in CLOSE_P an
+   indication whether the click was on the close-tab icon of the tab.
+   Value is false if GLYPH doesn't display a tab-bar item.  */
 
 static bool
 tab_bar_item_info (struct frame *f, struct glyph *glyph,
@@ -13654,7 +13668,6 @@ static int
 get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
 		   int *hpos, int *vpos, int *prop_idx, bool *close_p)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   struct window *w = XWINDOW (f->tab_bar_window);
   int area;
 
@@ -13668,18 +13681,7 @@ get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
   if (!tab_bar_item_info (f, *glyph, prop_idx, close_p))
     return -1;
 
-  /* Is mouse on the highlighted item?  */
-  if (EQ (f->tab_bar_window, hlinfo->mouse_face_window)
-      && *vpos >= hlinfo->mouse_face_beg_row
-      && *vpos <= hlinfo->mouse_face_end_row
-      && (*vpos > hlinfo->mouse_face_beg_row
-	  || *hpos >= hlinfo->mouse_face_beg_col)
-      && (*vpos < hlinfo->mouse_face_end_row
-	  || *hpos < hlinfo->mouse_face_end_col
-	  || hlinfo->mouse_face_past_end))
-    return 0;
-
-  return 1;
+  return *prop_idx == f->last_tab_bar_item ? 0 : 1;
 }
 
 
@@ -13701,24 +13703,13 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
   Lisp_Object enabled_p;
   int ts;
 
-  /* If not on the highlighted tab-bar item, and mouse-highlight is
-     non-nil, return.  This is so we generate the tab-bar button
-     click only when the mouse button is released on the same item as
-     where it was pressed.  However, when mouse-highlight is disabled,
-     generate the click when the button is released regardless of the
-     highlight, since tab-bar items are not highlighted in that
-     case.  */
   frame_to_window_pixel_xy (w, &x, &y);
   ts = get_tab_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx, &close_p);
   if (ts == -1
-      || (ts != 0 && !NILP (Vmouse_highlight)))
+      /* If the button is released on a tab other than the one where
+	 it was pressed, don't generate the tab-bar button click event.  */
+      || (ts != 0 && !down_p))
     return;
-
-  /* When mouse-highlight is off, generate the click for the item
-     where the button was pressed, disregarding where it was
-     released.  */
-  if (NILP (Vmouse_highlight) && !down_p)
-    prop_idx = f->last_tab_bar_item;
 
   /* If item is disabled, do nothing.  */
   enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);
@@ -13727,10 +13718,10 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
 
   if (down_p)
     {
-      /* Show item in pressed state.  */
+      /* Show the clicked button in pressed state.  */
       if (!NILP (Vmouse_highlight))
 	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
-      f->last_tab_bar_item = prop_idx;
+      f->last_tab_bar_item = prop_idx; /* record the pressed tab */
     }
   else
     {
@@ -31998,6 +31989,11 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 static void
 show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 {
+  /* Don't bother doing anything if the mouse-face window is not set
+     up.  */
+  if (!WINDOWP (hlinfo->mouse_face_window))
+    return;
+
   struct window *w = XWINDOW (hlinfo->mouse_face_window);
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 

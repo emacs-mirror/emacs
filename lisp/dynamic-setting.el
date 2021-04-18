@@ -24,8 +24,8 @@
 
 ;;; Commentary:
 
-;; This file provides the lisp part of the GConf and XSetting code in
-;; xsetting.c.  But it is nothing that prevents it from being used by
+;; This file provides the Lisp part of the GConf and XSetting code in
+;; xsetting.c.  But there is nothing that prevents it from being used by
 ;; other configuration schemes.
 
 ;;; Code:
@@ -92,3 +92,6 @@ Changes can be
 
 (define-key special-event-map [config-changed-event]
   #'dynamic-setting-handle-config-changed-event)
+
+(provide 'dynamic-setting)
+;;; dynamic-setting.el ends here

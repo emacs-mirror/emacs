@@ -248,8 +248,6 @@ If SEQ is already a ring, return it."
 	  (ring-insert-at-beginning ring (elt seq count))))
       ring)))
 
-;;; provide ourself:
-
 (provide 'ring)
 
 ;;; ring.el ends here

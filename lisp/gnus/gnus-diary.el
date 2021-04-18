@@ -32,11 +32,6 @@
 ;; gnus-diary is a utility toolkit used on top of the nndiary back end. It is
 ;; now fully documented in the Gnus manual.
 
-
-;; Bugs / Todo:
-;; ===========
-
-
 ;;; Code:
 
 (require 'nndiary)

@@ -1,7 +1,6 @@
-;;; jka-compr.el --- reading/writing/loading compressed files
+;;; jka-compr.el --- reading/writing/loading compressed files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 1993-1995, 1997, 1999-2021 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1993-2021 Free Software Foundation, Inc.
 
 ;; Author: Jay K. Adams <jka@ece.cmu.edu>
 ;; Maintainer: emacs-devel@gnu.org
@@ -120,7 +119,7 @@ data appears to be compressed already.")
       (widen) (erase-buffer)
       (insert (format "Error while executing \"%s %s < %s\"\n\n"
 		      prog
-		      (mapconcat 'identity args " ")
+		      (mapconcat #'identity args " ")
 		      infile))
 
       (and errfile
@@ -170,7 +169,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 			 (format
 			  "%s %s 2> %s | \"%s\" bs=%d skip=%d %s 2> %s"
 			  prog
-			  (mapconcat 'identity args " ")
+			  (mapconcat #'identity args " ")
 			  err-file
 			  jka-compr-dd-program
 			  jka-compr-dd-blocksize
@@ -218,7 +217,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 				 "-c"
 				 (format "%s %s 2> %s %s"
 					 prog
-					 (mapconcat 'identity args " ")
+					 (mapconcat #'identity args " ")
 					 err-file
 					 (if (stringp output)
 					     (concat "> " output)
@@ -227,7 +226,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 		  (jka-compr-error prog args infile message err-file))
 	    (delete-file err-file)))
       (or (eq 0
-	      (apply 'call-process
+	      (apply #'call-process
 		     prog infile (if (stringp output) temp output)
 		     nil args))
 	  (jka-compr-error prog args infile message))
@@ -622,12 +621,12 @@ There should be no more than seven characters after the final `/'."
 	  (substring file 0 (string-match (jka-compr-info-regexp info) file)))
       file)))
 
-(put 'write-region 'jka-compr 'jka-compr-write-region)
-(put 'insert-file-contents 'jka-compr 'jka-compr-insert-file-contents)
-(put 'file-local-copy 'jka-compr 'jka-compr-file-local-copy)
-(put 'load 'jka-compr 'jka-compr-load)
+(put 'write-region 'jka-compr #'jka-compr-write-region)
+(put 'insert-file-contents 'jka-compr #'jka-compr-insert-file-contents)
+(put 'file-local-copy 'jka-compr #'jka-compr-file-local-copy)
+(put 'load 'jka-compr #'jka-compr-load)
 (put 'byte-compiler-base-file-name 'jka-compr
-     'jka-compr-byte-compiler-base-file-name)
+     #'jka-compr-byte-compiler-base-file-name)
 
 ;;;###autoload
 (defvar jka-compr-inhibit nil
@@ -649,7 +648,7 @@ It is not recommended to set this variable permanently to anything but nil.")
 ;; to prevent the primitive from calling our handler again.
 (defun jka-compr-run-real-handler (operation args)
   (let ((inhibit-file-name-handlers
-	 (cons 'jka-compr-handler
+	 (cons #'jka-compr-handler
 	       (and (eq inhibit-file-name-operation operation)
 		    inhibit-file-name-handlers)))
 	(inhibit-file-name-operation operation))
@@ -674,7 +673,7 @@ by `jka-compr-installed'."
 	 (last fnha))
 
     (while (cdr last)
-      (if (eq (cdr (car (cdr last))) 'jka-compr-handler)
+      (if (eq (cdr (car (cdr last))) #'jka-compr-handler)
 	  (setcdr last (cdr (cdr last)))
 	(setq last (cdr last))))
 

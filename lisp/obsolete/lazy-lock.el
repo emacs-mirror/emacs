@@ -1016,8 +1016,6 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 (unless (assq 'lazy-lock-mode minor-mode-alist)
   (setq minor-mode-alist (append minor-mode-alist '((lazy-lock-mode nil)))))
 
-;; Provide ourselves:
-
 (provide 'lazy-lock)
 
 ;; Local Variables:

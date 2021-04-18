@@ -26,8 +26,6 @@
 ;; Sequences are stored in the alist `mh-seq-list' in the form:
 ;;     ((seq-name msgs ...) (seq-name msgs ...) ...)
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

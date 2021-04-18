@@ -4254,6 +4254,22 @@ fi
 AC_SUBST([BLESSMAIL_TARGET])
 AC_SUBST([LIBS_MAIL])
 
+HAVE_SECCOMP=no
+AC_CHECK_HEADERS(
+  [linux/seccomp.h linux/filter.h],
+  [AC_CHECK_DECLS(
+    [SECCOMP_SET_MODE_FILTER, SECCOMP_FILTER_FLAG_TSYNC],
+    [HAVE_SECCOMP=yes], [],
+    [[
+    #include <linux/seccomp.h>
+    ]])])
+AC_SUBST([HAVE_SECCOMP])
+
+EMACS_CHECK_MODULES([LIBSECCOMP], [libseccomp >= 2.4.0])
+AC_SUBST([HAVE_LIBSECCOMP])
+AC_SUBST([LIBSECCOMP_LIBS])
+AC_SUBST([LIBSECCOMP_CFLAGS])
+
 OLD_LIBS=$LIBS
 LIBS="$LIB_PTHREAD $LIB_MATH $LIBS"
 AC_CHECK_FUNCS(accept4 fchdir gethostname \
@@ -4261,7 +4277,7 @@ getrusage get_current_dir_name \
 lrand48 random rint trunc \
 select getpagesize setlocale newlocale \
 getrlimit setrlimit shutdown \
-pthread_sigmask strsignal setitimer timer_getoverrun \
+pthread_sigmask strsignal setitimer \
 sendto recvfrom getsockname getifaddrs freeifaddrs \
 gai_strerror sync \
 getpwent endpwent getgrent endgrent \
@@ -5562,6 +5578,12 @@ gl_INIT
 CFLAGS=$SAVE_CFLAGS
 LIBS=$SAVE_LIBS
 
+# timer_getoverrun needs the same libarary as timer_settime
+OLD_LIBS=$LIBS
+LIBS="$LIB_TIMER_TIME $LIBS"
+AC_CHECK_FUNCS(timer_getoverrun)
+LIBS=$OLD_LIBS
+
 if test "${opsys}" = "mingw32"; then
   CPPFLAGS="$CPPFLAGS -DUSE_CRT_DLL=1 -I \${abs_top_srcdir}/nt/inc"
   # Remove unneeded switches from the value of CC that goes to Makefiles
@@ -5751,7 +5773,8 @@ optsep=
 emacs_config_features=
 for opt in ACL CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
- M17N_FLT MODULES NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SOUND THREADS TIFF \
+ M17N_FLT MODULES NOTIFY NS OLDXMENU PDUMPER PGTK PNG RSVG SECCOMP SOUND \
+ THREADS TIFF \
  TOOLKIT_SCROLL_BARS UNEXEC X11 XAW3D XDBE XFT XIM XPM XWIDGETS X_TOOLKIT \
  ZLIB; do
 

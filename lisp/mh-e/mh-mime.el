@@ -36,8 +36,6 @@
 ;;   MIME option to mh-forward command to move to content-description
 ;;   insertion point.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

@@ -383,7 +383,7 @@
 ;; There is no artificial-intelligence magic in this package.  The
 ;; definition of a table and the cells inside the table is reasonably
 ;; limited in order to achieve acceptable performance in the
-;; interactive operation under Emacs lisp implementation.  A valid
+;; interactive operation under Emacs Lisp implementation.  A valid
 ;; table is a rectangular text area completely filled with valid
 ;; cells.  A valid cell is a rectangle text area, which four borders
 ;; consist of valid border characters.  Cells can not be nested one to

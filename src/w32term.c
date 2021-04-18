@@ -2031,8 +2031,11 @@ w32_draw_image_relief (struct glyph_string *s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief
-	: DEFAULT_TOOL_BAR_BUTTON_RELIEF;
+      thick = (tab_bar_button_relief < 0
+	       ? DEFAULT_TAB_BAR_BUTTON_RELIEF
+	       : (tool_bar_button_relief < 0
+		  ? DEFAULT_TOOL_BAR_BUTTON_RELIEF
+		  : min (tool_bar_button_relief, 1000000)));
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -2045,6 +2048,19 @@ w32_draw_image_relief (struct glyph_string *s)
   y1 = y + s->slice.height - 1;
 
   extra_x = extra_y = 0;
+  if (s->face->id == TAB_BAR_FACE_ID)
+    {
+      if (CONSP (Vtab_bar_button_margin)
+	  && FIXNUMP (XCAR (Vtab_bar_button_margin))
+	  && FIXNUMP (XCDR (Vtab_bar_button_margin)))
+	{
+	  extra_x = XFIXNUM (XCAR (Vtab_bar_button_margin));
+	  extra_y = XFIXNUM (XCDR (Vtab_bar_button_margin));
+	}
+      else if (FIXNUMP (Vtab_bar_button_margin))
+	extra_x = extra_y = XFIXNUM (Vtab_bar_button_margin);
+    }
+
   if (s->face->id == TOOL_BAR_FACE_ID)
     {
       if (CONSP (Vtool_bar_button_margin)

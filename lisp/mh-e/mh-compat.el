@@ -23,8 +23,6 @@
 
 ;;; Commentary:
 
-;;; Change Log:
-
 ;;; Code:
 
 ;; This is a good place to gather code that is used for compatibility

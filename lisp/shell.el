@@ -980,7 +980,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 
 The `dirtrack' package provides an alternative implementation of
 this feature; see the function `dirtrack-mode'."
-  nil nil nil
+  :lighter nil
   (setq list-buffers-directory (if shell-dirtrack-mode default-directory))
   (if shell-dirtrack-mode
       (add-hook 'comint-input-filter-functions #'shell-directory-tracker nil t)

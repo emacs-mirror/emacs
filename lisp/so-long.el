@@ -1185,7 +1185,7 @@ current buffer, and buffer-local values are assigned to variables in accordance
 with `so-long-variable-overrides'.
 
 This minor mode is a standard `so-long-action' option."
-  nil nil nil
+  :lighter nil
   (if so-long-minor-mode ;; We are enabling the mode.
       (progn
         ;; Housekeeping.  `so-long-minor-mode' might be invoked directly rather

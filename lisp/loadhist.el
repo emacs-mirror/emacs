@@ -1,4 +1,4 @@
-;;; loadhist.el --- lisp functions for working with feature groups
+;;; loadhist.el --- lisp functions for working with feature groups  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1995, 1998, 2000-2021 Free Software Foundation, Inc.
 

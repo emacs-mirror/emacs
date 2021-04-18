@@ -247,8 +247,6 @@
 ;; I'd recommend the first one since you'll get the same behavior for
 ;; all modes out-of-the-box.
 
-;;; TODO:
-
 ;;; Code:
 
 (require 'ansi-color)
@@ -3385,7 +3383,8 @@ user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive "p")
   (pop-to-buffer
-   (process-buffer (python-shell-get-process-or-error msg)) nil t))
+   (process-buffer (python-shell-get-process-or-error msg))
+   nil 'mark-for-redisplay))
 
 (defun python-shell-send-setup-code ()
   "Send all setup code for shell.
