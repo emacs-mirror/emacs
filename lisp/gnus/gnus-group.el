@@ -2462,7 +2462,8 @@ the ephemeral group."
             (with-temp-file tmpfile
               (mm-disable-multibyte)
               (dolist (id ids)
-                (let ((file (concat "~/.emacs.d/debbugs-cache/" id)))
+                (let ((file (expand-file-name id (locate-user-emacs-file
+                                                  "debbugs-cache"))))
                   (if (and (not gnus-plugged)
                            (file-exists-p file))
                       (insert-file-contents file)
