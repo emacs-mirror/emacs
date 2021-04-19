@@ -1,4 +1,4 @@
-;;; custom--test-theme.el -- A test theme.  -*- lexical-binding:t -*-
+;;; custom--test-theme.el --- A test theme.  -*- lexical-binding:t -*-
 
 (deftheme custom--test
   "A test theme.")

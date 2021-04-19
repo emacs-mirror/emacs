@@ -1,4 +1,4 @@
-;;; w32console.el -- Setup w32 console keys and colors.  -*- lexical-binding: t; -*-
+;;; w32console.el --- Setup w32 console keys and colors.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2007-2021 Free Software Foundation, Inc.
 

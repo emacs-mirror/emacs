@@ -1,4 +1,4 @@
-;;; url-mail.el --- Mail Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
+;;; url-mailto.el --- Mail Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 

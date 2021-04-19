@@ -4655,4 +4655,4 @@ one of the aforementioned options instead of using this mode."
 
 (provide 'js)
 
-;; js.el ends here
+;;; js.el ends here

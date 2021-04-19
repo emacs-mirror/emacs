@@ -45,4 +45,4 @@
 	 "[\u0D80-\u0DFF]")
 	0 #'font-shape-gstring)))
 
-;; sinhala.el ends here
+;;; sinhala.el ends here

@@ -328,4 +328,4 @@ Returns non-nil if any false statements are found."
 
 (provide 'check-declare)
 
-;;; check-declare.el ends here.
+;;; check-declare.el ends here

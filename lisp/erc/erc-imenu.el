@@ -1,4 +1,4 @@
-;;; erc-imenu.el -- Imenu support for ERC  -*- lexical-binding: t; -*-
+;;; erc-imenu.el --- Imenu support for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2002, 2004, 2006-2021 Free Software Foundation,
 ;; Inc.

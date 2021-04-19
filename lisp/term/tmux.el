@@ -22,4 +22,4 @@ it runs, which can change when the tmux session is moved to another tty."
 
 (provide 'term/tmux)
 
-;; tmux.el ends here
+;;; tmux.el ends here

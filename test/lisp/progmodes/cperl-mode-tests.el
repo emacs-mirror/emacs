@@ -1,4 +1,4 @@
-;;; cperl-mode-tests --- Test for cperl-mode  -*- lexical-binding: t -*-
+;;; cperl-mode-tests.el --- Test for cperl-mode  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 

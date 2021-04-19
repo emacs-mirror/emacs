@@ -1669,3 +1669,5 @@
         ["Quit" calc-quit]))
 
 (provide 'calc-menu)
+
+;;; calc-menu.el ends here

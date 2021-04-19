@@ -1,4 +1,4 @@
-;;; fortune-tests.el --- Tests for fortune.el  -*- lexical-binding: t -*-
+;;; cookie1-tests.el --- Tests for cookie1.el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Free Software Foundation, Inc.
 

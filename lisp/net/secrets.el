@@ -957,3 +957,5 @@ to their attributes."
 ;; * Check, whether the dh-ietf1024-aes128-cbc-pkcs7 algorithm can be
 ;;   used for the transfer of the secrets.  Currently, we use the
 ;;   plain algorithm.
+
+;;; secrets.el ends here

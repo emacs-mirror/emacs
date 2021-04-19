@@ -1,4 +1,4 @@
-;;; image-size-tests.el -- tests for image scaling  -*- lexical-binding: t; -*-
+;;; image-size-tests.el --- tests for image scaling  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 

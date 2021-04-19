@@ -1,4 +1,4 @@
-;;; tests/eshell-tests.el --- Eshell test suite  -*- lexical-binding:t -*-
+;;; eshell-tests.el --- Eshell test suite  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

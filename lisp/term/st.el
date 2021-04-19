@@ -17,4 +17,4 @@
 
 (provide 'term/st)
 
-;; st.el ends here
+;;; st.el ends here

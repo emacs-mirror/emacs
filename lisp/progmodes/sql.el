@@ -5606,7 +5606,7 @@ The default value disables the internal pager."
 
 (provide 'sql)
 
-;;; sql.el ends here
-
 ; LocalWords:  sql SQL SQLite sqlite Sybase Informix MySQL
 ; LocalWords:  Postgres SQLServer SQLi
+
+;;; sql.el ends here

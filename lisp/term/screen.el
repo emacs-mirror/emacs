@@ -22,4 +22,4 @@ it runs, which can change when the screen session is moved to another tty."
 
 (provide 'term/screen)
 
-;; screen.el ends here
+;;; screen.el ends here

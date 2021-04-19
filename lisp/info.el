@@ -1,4 +1,4 @@
-;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
+;;; info.el --- Info package for Emacs  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1992-2021 Free Software Foundation, Inc.
 

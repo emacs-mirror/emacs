@@ -56,3 +56,5 @@ The language name is spelled as \"ꪁꪫꪱꪣ ꪼꪕ\", and the script name is
 spelled as \"ꪎꪳ ꪼꪕ\".")))
 
 (provide 'tai-viet)
+
+;;; tai-viet.el ends here

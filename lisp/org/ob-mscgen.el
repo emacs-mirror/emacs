@@ -1,4 +1,4 @@
-;;; ob-msc.el --- Babel Functions for Mscgen         -*- lexical-binding: t; -*-
+;;; ob-mscgen.el --- Babel Functions for Mscgen         -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2010-2021 Free Software Foundation, Inc.
 
@@ -78,4 +78,4 @@ mscgen supported formats."
 
 (provide 'ob-mscgen)
 
-;;; ob-msc.el ends here
+;;; ob-mscgen.el ends here

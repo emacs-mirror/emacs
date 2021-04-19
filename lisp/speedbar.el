@@ -1,4 +1,4 @@
-;;; speedbar --- quick access to files and tags in a frame  -*- lexical-binding: t; -*-
+;;; speedbar.el --- quick access to files and tags in a frame  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -4057,4 +4057,4 @@ this version is not backward compatible to 0.14 or earlier.")
 
 (run-hooks 'speedbar-load-hook)
 
-;;; speedbar ends here
+;;; speedbar.el ends here
