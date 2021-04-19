@@ -1362,6 +1362,25 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
           (sort (mapcar (lambda (x) (cons (funcall keyfun x) x)) elems)
                  #'car-less-than-car)))
 
+(defun minibuffer--sort-by-position (hist elems)
+  "Sort ELEMS by their position in HIST."
+  (let ((hash (make-hash-table :test #'equal :size (length hist)))
+        (index 0))
+    ;; Record positions in hash
+    (dolist (c hist)
+      (unless (gethash c hash)
+        (puthash c index hash))
+      (cl-incf index))
+    (minibuffer--sort-by-key
+     elems (lambda (x) (gethash x hash most-positive-fixnum)))))
+
+(defun minibuffer--sort-by-length-alpha (elems)
+  "Sort ELEMS first by length, then alphabetically."
+  (sort elems (lambda (c1 c2)
+                (or (< (length c1) (length c2))
+                    (and (= (length c1) (length c2))
+                         (string< c1 c2))))))
+
 (defun completion-all-sorted-completions (&optional start end)
   (or completion-all-sorted-completions
       (let* ((start (or start (minibuffer-prompt-end)))
@@ -1395,25 +1414,17 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
            (sort-fun
             (setq all (funcall sort-fun all)))
            (t
-            ;; Prefer shorter completions, by default.
-            (setq all (sort all (lambda (c1 c2) (< (length c1) (length c2)))))
-            (if (and (minibufferp) (not (eq minibuffer-history-variable t)))
-                ;; Prefer recently used completions and put the default, if
-                ;; it exists, on top.
-                (let* ((hist (symbol-value minibuffer-history-variable))
-                       (hash (make-hash-table :test #'equal :size (length hist)))
-                       (index 0)
-                       (def (car-safe minibuffer-default)))
-                  ;; Record history positions in hash
-                  (dolist (c hist)
-                    (unless (gethash c hash)
-                      (puthash c index hash))
-                    (cl-incf index))
-                  (when (stringp def)
-                    (puthash def -1 hash))
-                  (setq all (minibuffer--sort-by-key
-                             all (lambda (x)
-                                   (gethash x hash most-positive-fixnum))))))))
+            ;; Sort first by length and alphabetically.
+            (setq all (minibuffer--sort-by-length-alpha all))
+
+            ;; Sort by history position, put the default, if it
+            ;; exists, on top.
+            (when (and (minibufferp) (not (eq minibuffer-history-variable t)))
+              (let ((def (car-safe minibuffer-default))
+                    (hist (symbol-value minibuffer-history-variable)))
+              (setq all (minibuffer--sort-by-position
+                         (if def (cons def hist) hist)
+                         all))))))
 
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
