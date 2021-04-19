@@ -1381,6 +1381,26 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
                     (and (= (length c1) (length c2))
                          (string< c1 c2))))))
 
+(defun minibuffer--sort-preprocess-history (base)
+  "Preprocess history.
+Remove completion BASE prefix string from history elements."
+  (let* ((def (if (stringp minibuffer-default)
+                  minibuffer-default
+                (car-safe minibuffer-default)))
+         (hist (and (not (eq minibuffer-history-variable t))
+                    (symbol-value minibuffer-history-variable)))
+         (base-size (length base)))
+    ;; Default comes first.
+    (setq hist (if def (cons def hist) hist))
+    ;; Drop base string from the history elements.
+    (if (= base-size 0)
+        hist
+      (delq nil (mapcar
+                 (lambda (c)
+                   (when (string-prefix-p base c)
+                     (substring c base-size)))
+                 hist)))))
+
 (defun completion-all-sorted-completions (&optional start end)
   (or completion-all-sorted-completions
       (let* ((start (or start (minibuffer-prompt-end)))
@@ -1410,21 +1430,17 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
           (setq all (delete-dups all))
           (setq last (last all))
 
-          (cond
-           (sort-fun
-            (setq all (funcall sort-fun all)))
-           (t
+          (if sort-fun
+              (setq all (funcall sort-fun all))
             ;; Sort first by length and alphabetically.
             (setq all (minibuffer--sort-by-length-alpha all))
-
             ;; Sort by history position, put the default, if it
             ;; exists, on top.
-            (when (and (minibufferp) (not (eq minibuffer-history-variable t)))
-              (let ((def (car-safe minibuffer-default))
-                    (hist (symbol-value minibuffer-history-variable)))
+            (when (minibufferp)
               (setq all (minibuffer--sort-by-position
-                         (if def (cons def hist) hist)
-                         all))))))
+                         (minibuffer--sort-preprocess-history
+                          (substring string 0 base-size))
+                         all))))
 
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
