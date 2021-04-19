@@ -60,6 +60,10 @@ variants of those files that can be used to sandbox Emacs before
 
 #include "verify.h"
 
+#ifndef ARCH_CET_STATUS
+#define ARCH_CET_STATUS 0x3001
+#endif
+
 static ATTRIBUTE_FORMAT_PRINTF (2, 3) _Noreturn void
 fail (int error, const char *format, ...)
 {
@@ -345,6 +349,8 @@ main (int argc, char **argv)
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (set_tid_address));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (arch_prctl),
         SCMP_A0_32 (SCMP_CMP_EQ, ARCH_SET_FS));
+  RULE (SCMP_ACT_ERRNO (EINVAL), SCMP_SYS (arch_prctl),
+        SCMP_A0_32 (SCMP_CMP_EQ, ARCH_CET_STATUS));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (statfs));
 
   /* We want to allow starting the Emacs binary itself with the
