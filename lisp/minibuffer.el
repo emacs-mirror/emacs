@@ -1393,14 +1393,31 @@ scroll the window of possible completions."
             (if (and (minibufferp) (not (eq minibuffer-history-variable t)))
                 ;; Prefer recently used completions and put the default, if
                 ;; it exists, on top.
-                (let ((hist (symbol-value minibuffer-history-variable)))
-                  (setq all
-                        (sort all
-                              (lambda (c1 c2)
-                                (cond ((equal c1 minibuffer-default) t)
-                                      ((equal c2 minibuffer-default) nil)
-                                      (t (> (length (member c1 hist))
-                                            (length (member c2 hist))))))))))))
+                (let* ((hist (symbol-value minibuffer-history-variable))
+                       (hash (make-hash-table :test #'equal :size (length hist)))
+                       (index 0)
+                       (def (car-safe minibuffer-default)))
+                  ;; Record history positions in hash
+                  (dolist (c hist)
+                    (unless (gethash c hash)
+                      (puthash c index hash))
+                    (cl-incf index))
+                  (when (stringp def)
+                    (puthash def -1 hash))
+                  ;; Decorate elements with history position
+                  (let ((c all))
+                    (while c
+                      (setcar c (cons (gethash (car c) hash
+                                               most-positive-fixnum)
+                                      (car c)))
+                      (pop c)))
+                  (setq all (sort all #'car-less-than-car))
+                  ;; Drop decoration from the elements
+                  (let ((c all))
+                    (while c
+                      (setcar c (cdar c))
+                      (pop c)))))))
+
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
           ;; all possibilities.
