@@ -1,4 +1,4 @@
-;;; tildify-test.el --- ERT tests for tildify.el -*- lexical-binding: t -*-
+;;; tildify-tests.el --- ERT tests for tildify.el -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
 

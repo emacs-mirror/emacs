@@ -1,4 +1,4 @@
-;;; tests/em-ls-tests.el --- em-ls test suite  -*- lexical-binding:t -*-
+;;; em-ls-tests.el --- em-ls test suite  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 

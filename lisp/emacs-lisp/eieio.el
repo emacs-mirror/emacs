@@ -981,4 +981,4 @@ of `eq'."
 
 (provide 'eieio)
 
-;;; eieio ends here
+;;; eieio.el ends here

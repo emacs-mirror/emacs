@@ -29,8 +29,6 @@
 ;; that are used to send the mail. Other that those, functions that
 ;; are needed in mh-letter.el should be found there.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

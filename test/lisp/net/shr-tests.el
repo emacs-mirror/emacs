@@ -1,4 +1,4 @@
-;;; network-stream-tests.el --- tests for network processes       -*- lexical-binding: t; -*-
+;;; shr-tests.el --- tests for shr.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 

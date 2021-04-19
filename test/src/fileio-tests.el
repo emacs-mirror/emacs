@@ -1,4 +1,4 @@
-;;; unit tests for src/fileio.c      -*- lexical-binding: t; -*-
+;;; fileio-tests.el --- unit tests for src/fileio.c      -*- lexical-binding: t; -*-
 
 ;; Copyright 2017-2021 Free Software Foundation, Inc.
 

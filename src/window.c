@@ -215,20 +215,6 @@ wset_combination (struct window *w, bool horflag, Lisp_Object val)
     w->horizontal = horflag;
 }
 
-static void
-wset_update_mode_line (struct window *w)
-{
-  /* If this window is the selected window on its frame, set the
-     global variable update_mode_lines, so that gui_consider_frame_title
-     will consider this frame's title for redisplay.  */
-  Lisp_Object fselected_window = XFRAME (WINDOW_FRAME (w))->selected_window;
-
-  if (WINDOWP (fselected_window) && XWINDOW (fselected_window) == w)
-    update_mode_lines = 42;
-  else
-    w->update_mode_line = true;
-}
-
 /* True if leaf window W doesn't reflect the actual state
    of displayed buffer due to its text or overlays change.  */
 
@@ -518,10 +504,18 @@ select_window (Lisp_Object window, Lisp_Object norecord,
 {
   struct window *w;
   struct frame *sf;
+  Lisp_Object frame;
+  struct frame *f;
 
   CHECK_LIVE_WINDOW (window);
 
   w = XWINDOW (window);
+  frame = WINDOW_FRAME (w);
+  f = XFRAME (frame);
+
+  if (FRAME_TOOLTIP_P (f))
+    /* Do not select a tooltip window (Bug#47207).  */
+    error ("Cannot select a tooltip window");
 
   /* Make the selected window's buffer current.  */
   Fset_buffer (w->contents);
@@ -542,14 +536,14 @@ select_window (Lisp_Object window, Lisp_Object norecord,
     redisplay_other_windows ();
 
   sf = SELECTED_FRAME ();
-  if (XFRAME (WINDOW_FRAME (w)) != sf)
+  if (f != sf)
     {
-      fset_selected_window (XFRAME (WINDOW_FRAME (w)), window);
+      fset_selected_window (f, window);
       /* Use this rather than Fhandle_switch_frame
 	 so that FRAME_FOCUS_FRAME is moved appropriately as we
 	 move around in the state where a minibuffer in a separate
 	 frame is active.  */
-      Fselect_frame (WINDOW_FRAME (w), norecord);
+      Fselect_frame (frame, norecord);
       /* Fselect_frame called us back so we've done all the work already.  */
       eassert (EQ (window, selected_window));
       return window;
@@ -2556,8 +2550,13 @@ window_list (void)
   if (!CONSP (Vwindow_list))
     {
       Lisp_Object tail, frame;
+      ptrdiff_t count = SPECPDL_INDEX ();
 
       Vwindow_list = Qnil;
+      /*  Don't allow quitting in Fnconc.  Otherwise we might end up
+	  with a too short Vwindow_list and Fkill_buffer not being able
+	  to replace a buffer in all windows showing it (Bug#47244).  */
+      specbind (Qinhibit_quit, Qt);
       FOR_EACH_FRAME (tail, frame)
 	{
 	  Lisp_Object arglist = Qnil;
@@ -2569,6 +2568,8 @@ window_list (void)
 	  arglist = Fnreverse (arglist);
 	  Vwindow_list = nconc2 (Vwindow_list, arglist);
 	}
+
+      unbind_to (count, Qnil);
     }
 
   return Vwindow_list;
@@ -2603,7 +2604,7 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow,
     candidate_p = false;
   else if (MINI_WINDOW_P (w)
            && (EQ (minibuf, Qlambda)
-	       || (WINDOWP (minibuf) && !EQ (minibuf, window))))
+	       || (WINDOW_LIVE_P (minibuf) && !EQ (minibuf, window))))
     {
       /* If MINIBUF is `lambda' don't consider any mini-windows.
          If it is a window, consider only that one.  */
@@ -2666,12 +2667,12 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
   Lisp_Object miniwin = XFRAME (w->frame)->minibuffer_window;
 
   XSETWINDOW (*window, w);
-  /* MINIBUF nil may or may not include minibuffers.  Decide if it
-     does.  */
-  if (NILP (*minibuf))
-    *minibuf = this_minibuffer_depth (XWINDOW (miniwin)->contents)
-      ? miniwin
-      : Qlambda;
+  /* MINIBUF nil may or may not include minibuffer windows.  Decide if
+     it does.  But first make sure that this frame's minibuffer window
+     is live (Bug#47207).  */
+  if (WINDOW_LIVE_P (miniwin) && NILP (*minibuf))
+    *minibuf = (this_minibuffer_depth (XWINDOW (miniwin)->contents)
+		? miniwin : Qlambda);
   else if (!EQ (*minibuf, Qt))
     *minibuf = Qlambda;
 
@@ -2682,9 +2683,10 @@ decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object 
   /* ALL_FRAMES nil doesn't specify which frames to include.  */
   if (NILP (*all_frames))
     *all_frames
-      = (!EQ (*minibuf, Qlambda)
-	 ? FRAME_MINIBUF_WINDOW (XFRAME (w->frame))
-	 : Qnil);
+      /* Once more make sure that this frame's minibuffer window is live
+	 before including it (Bug#47207).  */
+      = ((WINDOW_LIVE_P (miniwin) && !EQ (*minibuf, Qlambda))
+	 ? miniwin : Qnil);
   else if (EQ (*all_frames, Qvisible))
     ;
   else if (EQ (*all_frames, make_fixnum (0)))
@@ -2705,6 +2707,8 @@ static Lisp_Object
 next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames,
 	     bool next_p)
 {
+  ptrdiff_t count = SPECPDL_INDEX ();
+
   decode_next_window_args (&window, &minibuf, &all_frames);
 
   /* If ALL_FRAMES is a frame, and WINDOW isn't on that frame, just
@@ -2712,6 +2716,9 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames,
   if (FRAMEP (all_frames)
       && !EQ (all_frames, XWINDOW (window)->frame))
     return Fframe_first_window (all_frames);
+
+  /*  Don't allow quitting in Fmemq.  */
+  specbind (Qinhibit_quit, Qt);
 
   if (next_p)
     {
@@ -2761,6 +2768,8 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames,
       if (WINDOWP (candidate))
 	window = candidate;
     }
+
+  unbind_to (count, Qnil);
 
   return window;
 }
@@ -2852,9 +2861,13 @@ static Lisp_Object
 window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   Lisp_Object tail, list, rest;
+  ptrdiff_t count = SPECPDL_INDEX ();
 
   decode_next_window_args (&window, &minibuf, &all_frames);
   list = Qnil;
+
+  /*  Don't allow quitting in Fmemq and Fnconc.  */
+  specbind (Qinhibit_quit, Qt);
 
   for (tail = window_list (); CONSP (tail); tail = XCDR (tail))
     if (candidate_window_p (XCAR (tail), window, minibuf, all_frames))
@@ -2870,6 +2883,9 @@ window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
       XSETCDR (tail, Qnil);
       list = nconc2 (rest, list);
     }
+
+  unbind_to (count, Qnil);
+
   return list;
 }
 
@@ -8225,6 +8241,7 @@ syms_of_window (void)
   DEFSYM (Qmode_line_format, "mode-line-format");
   DEFSYM (Qheader_line_format, "header-line-format");
   DEFSYM (Qtab_line_format, "tab-line-format");
+  DEFSYM (Qno_other_window, "no-other-window");
 
   DEFVAR_LISP ("temp-buffer-show-function", Vtemp_buffer_show_function,
 	       doc: /* Non-nil means call as function to display a help buffer.

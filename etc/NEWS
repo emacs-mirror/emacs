@@ -1572,6 +1572,13 @@ will match the font size in use where it is embedded.
 
 This feature relies on librsvg 2.48 or above being available.
 
++++
+*** Image properties support 'em' sizes.
+Size image properties, for example ':height', ':max-height', etc., can
+be given a cons of the form '(SIZE . em)', where SIZE is an integer or
+float which is multiplied by the font size to calculate the image
+size, and em is a symbol.
+
 ** EWW
 
 +++
@@ -2678,6 +2685,11 @@ argument ELLIPSIS, will now indicate truncation using '…' when
 the selected frame can display it, and using "..." otherwise.
 
 +++
+** 'string-width' now accepts two optional arguments FROM and TO.
+This allows calculating the width of a substring without consing a
+new string.
+
++++
 ** New command 'make-directory-autoloads'.
 This does the same as the old command 'update-directory-autoloads',
 but has different semantics: Instead of passing in the output file via
@@ -2942,6 +2954,12 @@ arrays nor objects.
 ** 'while-no-input-ignore-events' accepts more special events.
 The special events 'dbus-event' and 'file-notify' are now ignored in
 'while-no-input' when added to this variable.
+
++++
+** 'condition-case' now allows for a success handler.
+It is written as (:success BODY...) where BODY is executed whenever
+the protected form terminates without error, with the specified
+variable bound to the the value of the protected form.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

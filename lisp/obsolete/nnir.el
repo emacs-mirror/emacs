@@ -1339,7 +1339,6 @@ Query for the specs, or use SPECS."
 
 (define-obsolete-function-alias 'nnir-get-active #'gnus-server-get-active "28.1")
 
-;; The end.
 (provide 'nnir)
 
 ;;; nnir.el ends here

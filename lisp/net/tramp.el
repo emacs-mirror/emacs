@@ -3888,8 +3888,7 @@ substitution.  SPEC-LIST is a list of char/value pairs used for
 	 (or (not (stringp stderr)) (not (tramp-tramp-file-p stderr))))))
 
 (defun tramp-handle-make-process (&rest args)
-  "An alternative `make-process' implementation for Tramp files.
-It does not support `:stderr'."
+  "An alternative `make-process' implementation for Tramp files."
   (when args
     (with-parsed-tramp-file-name (expand-file-name default-directory) nil
       (let ((default-directory (tramp-compat-temporary-file-directory))

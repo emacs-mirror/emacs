@@ -1,4 +1,4 @@
-;;; editfns-tests.el -- tests for editfns.c  -*- lexical-binding:t -*-
+;;; editfns-tests.el --- tests for editfns.c  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 

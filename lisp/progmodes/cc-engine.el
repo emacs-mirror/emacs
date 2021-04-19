@@ -737,6 +737,7 @@ comment at the start of cc-engine.el for more info."
   '(setq stack (cons (cons state saved-pos)
 		     stack)))
 (defmacro c-bos-pop-state (&optional do-if-done)
+  (declare (debug t))
   `(if (setq state (car (car stack))
 	     saved-pos (cdr (car stack))
 	     stack (cdr stack))
@@ -761,6 +762,7 @@ comment at the start of cc-engine.el for more info."
      (goto-char pos)
      (setq sym nil)))
 (defmacro c-bos-save-error-info (missing got)
+  (declare (debug t))
   `(setq saved-pos (vector pos ,missing ,got)))
 (defmacro c-bos-report-error ()
   '(unless noerror
@@ -1871,51 +1873,51 @@ comment at the start of cc-engine.el for more info."
 ; 		 (setq in-face (point)))
 ; 	       (not (eobp)))))))
 
-(defmacro c-debug-sws-msg (&rest args)
-  (ignore args)
+(defmacro c-debug-sws-msg (&rest _args)
+  ;; (declare (debug t))
   ;;`(message ,@args)
   )
 
 (defmacro c-put-is-sws (beg end)
   ;; This macro does a hidden buffer change.
+  (declare (debug t))
   `(let ((beg ,beg) (end ,end))
      (put-text-property beg end 'c-is-sws t)
      ,@(when (facep 'c-debug-is-sws-face)
 	 '((c-debug-add-face beg end 'c-debug-is-sws-face)))))
-(def-edebug-spec c-put-is-sws t)
 
 (defmacro c-put-in-sws (beg end)
   ;; This macro does a hidden buffer change.
+  (declare (debug t))
   `(let ((beg ,beg) (end ,end))
      (put-text-property beg end 'c-in-sws t)
      ,@(when (facep 'c-debug-is-sws-face)
 	 '((c-debug-add-face beg end 'c-debug-in-sws-face)))))
-(def-edebug-spec c-put-in-sws t)
 
 (defmacro c-remove-is-sws (beg end)
   ;; This macro does a hidden buffer change.
+  (declare (debug t))
   `(let ((beg ,beg) (end ,end))
      (remove-text-properties beg end '(c-is-sws nil))
      ,@(when (facep 'c-debug-is-sws-face)
 	 '((c-debug-remove-face beg end 'c-debug-is-sws-face)))))
-(def-edebug-spec c-remove-is-sws t)
 
 (defmacro c-remove-in-sws (beg end)
   ;; This macro does a hidden buffer change.
+  (declare (debug t))
   `(let ((beg ,beg) (end ,end))
      (remove-text-properties beg end '(c-in-sws nil))
      ,@(when (facep 'c-debug-is-sws-face)
 	 '((c-debug-remove-face beg end 'c-debug-in-sws-face)))))
-(def-edebug-spec c-remove-in-sws t)
 
 (defmacro c-remove-is-and-in-sws (beg end)
   ;; This macro does a hidden buffer change.
+  (declare (debug t))
   `(let ((beg ,beg) (end ,end))
      (remove-text-properties beg end '(c-is-sws nil c-in-sws nil))
      ,@(when (facep 'c-debug-is-sws-face)
 	 '((c-debug-remove-face beg end 'c-debug-is-sws-face)
 	   (c-debug-remove-face beg end 'c-debug-in-sws-face)))))
-(def-edebug-spec c-remove-is-and-in-sws t)
 
 ;; The type of literal position `end' is in a `before-change-functions'
 ;; function - one of `c', `c++', `pound', `noise', `attribute' or nil (but NOT
@@ -3517,6 +3519,7 @@ mhtml-mode."
 (defmacro c-state-cache-top-lparen (&optional cache)
   ;; Return the address of the top left brace/bracket/paren recorded in CACHE
   ;; (default `c-state-cache') (or nil).
+  (declare (debug t))
   (let ((cash (or cache 'c-state-cache)))
     `(if (consp (car ,cash))
 	 (caar ,cash)
@@ -3525,6 +3528,7 @@ mhtml-mode."
 (defmacro c-state-cache-top-paren (&optional cache)
   ;; Return the address of the latest brace/bracket/paren (whether left or
   ;; right) recorded in CACHE (default `c-state-cache') or nil.
+  (declare (debug t))
   (let ((cash (or cache 'c-state-cache)))
     `(if (consp (car ,cash))
 	 (cdar ,cash)
@@ -3533,6 +3537,7 @@ mhtml-mode."
 (defmacro c-state-cache-after-top-paren (&optional cache)
   ;; Return the position just after the latest brace/bracket/paren (whether
   ;; left or right) recorded in CACHE (default `c-state-cache') or nil.
+  (declare (debug t))
   (let ((cash (or cache 'c-state-cache)))
     `(if (consp (car ,cash))
 	 (cdar ,cash)
@@ -4487,6 +4492,7 @@ mhtml-mode."
 (defmacro c-state-maybe-marker (place marker)
   ;; If PLACE is non-nil, return a marker marking it, otherwise nil.
   ;; We (re)use MARKER.
+  (declare (debug (form symbolp)))
   `(let ((-place- ,place))
      (and -place-
 	  (or ,marker (setq ,marker (make-marker)))
@@ -5973,6 +5979,7 @@ comment at the start of cc-engine.el for more info."
 ; spots and the preceding token end.")
 
 (defmacro c-debug-put-decl-spot-faces (match-pos decl-pos)
+  (declare (debug t))
   (when (facep 'c-debug-decl-spot-face)
     `(c-save-buffer-state ((match-pos ,match-pos) (decl-pos ,decl-pos))
        (c-debug-add-face (max match-pos (point-min)) decl-pos
@@ -5980,6 +5987,7 @@ comment at the start of cc-engine.el for more info."
        (c-debug-add-face decl-pos (min (1+ decl-pos) (point-max))
 			 'c-debug-decl-spot-face))))
 (defmacro c-debug-remove-decl-spot-faces (beg end)
+  (declare (debug t))
   (when (facep 'c-debug-decl-spot-face)
     `(c-save-buffer-state ()
        (c-debug-remove-face ,beg ,end 'c-debug-decl-spot-face)
@@ -7774,6 +7782,7 @@ comment at the start of cc-engine.el for more info."
 (defvar c-last-identifier-range nil)
 
 (defmacro c-record-type-id (range)
+  (declare (debug t))
   (if (eq (car-safe range) 'cons)
       ;; Always true.
       `(setq c-record-type-identifiers
@@ -7784,6 +7793,7 @@ comment at the start of cc-engine.el for more info."
 		 (cons range c-record-type-identifiers))))))
 
 (defmacro c-record-ref-id (range)
+  (declare (debug t))
   (if (eq (car-safe range) 'cons)
       ;; Always true.
       `(setq c-record-ref-identifiers
@@ -7809,6 +7819,7 @@ comment at the start of cc-engine.el for more info."
   ;; if TYPE is 'type or as a reference if TYPE is 'ref.
   ;;
   ;; This macro might do hidden buffer changes.
+  (declare (debug t))
   `(let (res)
      (setq c-last-identifier-range nil)
      (while (if (setq res ,(if (eq type 'type)
@@ -7833,6 +7844,7 @@ comment at the start of cc-engine.el for more info."
   ;; `c-forward-keyword-prefixed-id'.
   ;;
   ;; This macro might do hidden buffer changes.
+  (declare (debug t))
   `(while (and (progn
 		 ,(when update-safe-pos
 		    '(setq safe-pos (point)))
@@ -8776,6 +8788,7 @@ comment at the start of cc-engine.el for more info."
 (defmacro c-pull-open-brace (ps)
   ;; Pull the next open brace from PS (which has the form of paren-state),
   ;; skipping over any brace pairs.  Returns NIL when PS is exhausted.
+  (declare (debug (symbolp)))
   `(progn
      (while (consp (car ,ps))
        (setq ,ps (cdr ,ps)))
@@ -8891,6 +8904,7 @@ comment at the start of cc-engine.el for more info."
   ;; a comma.  If either of <symbol> or bracketed <expression> is missing,
   ;; throw nil to 'level.  If the terminating } or ) is unmatched, throw nil
   ;; to 'done.  This is not a general purpose macro!
+  (declare (debug t))
   `(while (eq (char-before) ?,)
      (backward-char)
      (c-backward-syntactic-ws ,limit)
@@ -9284,6 +9298,7 @@ This function might do hidden buffer changes."
   ;; sometimes consumes the identifier in the declaration as a type.
   ;; This is used to "backtrack" and make the last type be treated as
   ;; an identifier instead.
+  (declare (debug nil))
   `(progn
      ,(unless short
 	;; These identifiers are bound only in the inner let.
@@ -14686,18 +14701,6 @@ Cannot combine absolute offsets %S and %S in `add' method"
 		    (current-column)))
       indent)))
 
-
-(def-edebug-spec c-bos-pop-state t)
-(def-edebug-spec c-bos-save-error-info t)
-(def-edebug-spec c-state-cache-top-lparen t)
-(def-edebug-spec c-state-cache-top-paren t)
-(def-edebug-spec c-state-cache-after-top-paren t)
-(def-edebug-spec c-state-maybe-marker (form symbolp))
-(def-edebug-spec c-record-type-id t)
-(def-edebug-spec c-record-ref-id t)
-(def-edebug-spec c-forward-keyword-prefixed-id t)
-(def-edebug-spec c-forward-id-comma-list t)
-(def-edebug-spec c-pull-open-brace (symbolp))
 
 (cc-provide 'cc-engine)
 

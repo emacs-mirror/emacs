@@ -9,4 +9,4 @@
 
 (provide 'term/konsole)
 
-;; konsole.el ends here
+;;; konsole.el ends here

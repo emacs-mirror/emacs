@@ -1,4 +1,4 @@
-;; bug-reference.el --- buttonize bug references  -*- lexical-binding: t; -*-
+;;; bug-reference.el --- buttonize bug references  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 

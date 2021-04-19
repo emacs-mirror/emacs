@@ -1,4 +1,4 @@
-;; erc-page.el - CTCP PAGE support for ERC  -*- lexical-binding: t; -*-
+;;; erc-page.el --- CTCP PAGE support for ERC  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002, 2004, 2006-2021 Free Software Foundation, Inc.
 

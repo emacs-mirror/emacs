@@ -1,4 +1,4 @@
-;;; mh-search  ---  MH-Search mode  -*- lexical-binding: t; -*-
+;;; mh-search.el --- MH-Search mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -38,8 +38,6 @@
 ;;      read the documentation for `mh-search' to get started. That
 ;;      documentation will direct you to the specific instructions for
 ;;      your particular searcher.
-
-;;; Change Log:
 
 ;;; Code:
 
@@ -1945,4 +1943,4 @@ folder buffer."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;;; mh-search ends here
+;;; mh-search.el ends here

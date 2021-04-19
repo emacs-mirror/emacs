@@ -28,8 +28,6 @@
 ;; inc can also be used to incorporate mail from multiple spool files
 ;; into separate folders. See "C-h v mh-inc-spool-list".
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

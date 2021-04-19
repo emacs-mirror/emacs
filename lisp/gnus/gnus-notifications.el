@@ -1,4 +1,4 @@
-;; gnus-notifications.el -- Send notification on new message in Gnus  -*- lexical-binding: t; -*-
+;;; gnus-notifications.el --- Send notification on new message in Gnus  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 

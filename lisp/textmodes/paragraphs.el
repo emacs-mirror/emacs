@@ -202,8 +202,6 @@ This is desirable in modes where blank lines are the paragraph delimiters."
 (put 'paragraph-ignore-fill-prefix 'safe-local-variable #'booleanp)
 
 ;; Silence the compiler.
-(defvar multiple-lines)
-
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.
 With argument ARG, do it ARG times;
@@ -262,13 +260,13 @@ Returns the count of paragraphs left to move."
 	  ;; Search back for line that starts or separates paragraphs.
 	  (if (if fill-prefix-regexp
 		  ;; There is a fill prefix; it overrides parstart.
-		  (let (multiple-lines)
+		  (let () ;; multiple-lines
 		    (while (and (progn (beginning-of-line) (not (bobp)))
 				(progn (move-to-left-margin)
 				       (not (looking-at parsep)))
 				(looking-at fill-prefix-regexp))
-		      (unless (= (point) start)
-			(setq multiple-lines t))
+		      ;; (unless (= (point) start)
+		      ;;   (setq multiple-lines t))
 		      (forward-line -1))
 		    (move-to-left-margin)
 		    ;; This deleted code caused a long hanging-indent line

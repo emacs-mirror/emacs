@@ -1298,8 +1298,6 @@ from your existing entries."
 		 (gnus-registry-insert db k newv)))
       (registry-reindex db))))
 
-;; TODO: a few things
-
 (provide 'gnus-registry)
 
 ;;; gnus-registry.el ends here

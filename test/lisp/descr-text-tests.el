@@ -1,4 +1,4 @@
-;;; descr-text-test.el --- ERT tests for descr-text.el -*- lexical-binding: t -*-
+;;; descr-text-tests.el --- ERT tests for descr-text.el -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2014, 2016-2021 Free Software Foundation, Inc.
 

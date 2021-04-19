@@ -837,7 +837,6 @@ matches exist."
 ;;;###autoload  (make-obsolete 'iswitchb-mode
 ;;;###autoload    "use `icomplete-mode' or `ido-mode' instead." "24.4"))
 
-;;;_* Provide
 (provide 'icomplete)
 
 ;;_* Local emacs vars.

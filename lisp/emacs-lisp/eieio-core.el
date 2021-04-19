@@ -169,7 +169,7 @@ Return nil if that option doesn't exist."
   (and (recordp obj)
        (eieio--class-p (eieio--object-class obj))))
 
-(define-obsolete-function-alias 'object-p 'eieio-object-p "25.1")
+(define-obsolete-function-alias 'object-p #'eieio-object-p "25.1")
 
 (defun class-abstract-p (class)
   "Return non-nil if CLASS is abstract.
@@ -242,9 +242,9 @@ use \\='%s or turn off `eieio-backward-compatibility' instead" cname)
 
 (cl-deftype list-of (elem-type)
   `(and list
-        (satisfies (lambda (list)
-                     (cl-every (lambda (elem) (cl-typep elem ',elem-type))
-                               list)))))
+        (satisfies ,(lambda (list)
+                      (cl-every (lambda (elem) (cl-typep elem elem-type))
+                                list)))))
 
 
 (defun eieio-make-class-predicate (class)
@@ -787,7 +787,7 @@ Fills in OBJ's SLOT with its default value."
   (cond
    ;; Is it a function call?  If so, evaluate it.
    ((eieio-eval-default-p val)
-    (eval val))
+    (eval val t))
    ;;;; check for quoted things, and unquote them
    ;;((and (consp val) (eq (car val) 'quote))
    ;; (car (cdr val)))
@@ -1029,7 +1029,7 @@ method invocation orders of the involved classes."
          (eieio--class-precedence-c3 class))))))
 
 (define-obsolete-function-alias
-  'class-precedence-list 'eieio--class-precedence-list "24.4")
+  'class-precedence-list #'eieio--class-precedence-list "24.4")
 
 
 ;;; Here are some special types of errors

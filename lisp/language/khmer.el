@@ -35,4 +35,4 @@
   (set-char-table-range composition-function-table '(#x1780 . #x17FF) val)
   (set-char-table-range composition-function-table '(#x19E0 . #x19FF) val))
 
-;; khmer.el ends here
+;;; khmer.el ends here

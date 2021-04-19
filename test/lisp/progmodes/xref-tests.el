@@ -156,3 +156,5 @@
                  (cl-every (lambda (e1 e2)
                              (string-match-p e1 e2))
                            expected actual)))))
+
+;;; xref-tests.el ends here

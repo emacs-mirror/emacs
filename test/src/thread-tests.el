@@ -1,4 +1,4 @@
-;;; threads.el --- tests for threads. -*- lexical-binding: t -*-
+;;; thread-tests.el --- tests for threads. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 

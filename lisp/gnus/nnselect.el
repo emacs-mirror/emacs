@@ -968,7 +968,6 @@ Pass NO-PARSE on to the search engine."
     (gnus-group-make-search-group no-parse spec)))
 
 
-;; The end.
 (provide 'nnselect)
 
 ;;; nnselect.el ends here

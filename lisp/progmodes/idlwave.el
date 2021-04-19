@@ -1,4 +1,4 @@
-;; idlwave.el --- IDL editing mode for GNU Emacs  -*- lexical-binding: t; -*-
+;;; idlwave.el --- IDL editing mode for GNU Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

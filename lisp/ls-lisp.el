@@ -28,7 +28,7 @@
 ;; OVERVIEW ==========================================================
 
 ;; This file advises the function `insert-directory' to implement it
-;; directly from Emacs lisp, without running ls in a subprocess.
+;; directly from Emacs Lisp, without running ls in a subprocess.
 ;; This is useful if you don't have ls installed (ie, on MS Windows).
 
 ;; This function can use regexps instead of shell wildcards.  If you

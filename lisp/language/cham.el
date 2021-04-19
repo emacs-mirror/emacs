@@ -43,3 +43,5 @@ an Austronesian language spoken by some 245,000 Chams
 in Vietnam and Cambodia.")))
 
 (provide 'cham)
+
+;;; cham.el ends here

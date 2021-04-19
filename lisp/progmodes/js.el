@@ -494,10 +494,11 @@ for preventing Firefox from stealing the keyboard focus."
   :type 'boolean)
 
 (defcustom js-js-tmpdir
-  "~/.emacs.d/js/js"
+  (locate-user-emacs-file "js/js")
   "Temporary directory used by `js-mode' to communicate with Mozilla.
 This directory must be readable and writable by both Mozilla and Emacs."
-  :type 'directory)
+  :type 'directory
+  :version "28.1")
 
 (defcustom js-js-timeout 5
   "Reply timeout for executing commands in Mozilla via `js-mode'.
@@ -4654,4 +4655,4 @@ one of the aforementioned options instead of using this mode."
 
 (provide 'js)
 
-;; js.el ends here
+;;; js.el ends here

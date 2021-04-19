@@ -1,4 +1,4 @@
-;;; perl-mode-tests --- Test for perl-mode  -*- lexical-binding: t -*-
+;;; perl-mode-tests.el --- Test for perl-mode  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 

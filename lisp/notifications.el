@@ -420,3 +420,5 @@ version this library is compliant with."
 		      notifications-get-server-information-method)))
 
 (provide 'notifications)
+
+;;; notifications.el ends here

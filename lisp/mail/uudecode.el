@@ -1,4 +1,4 @@
-;;; uudecode.el -- elisp native uudecode  -*- lexical-binding:t -*-
+;;; uudecode.el --- elisp native uudecode  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 

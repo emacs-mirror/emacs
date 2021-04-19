@@ -1,4 +1,4 @@
-;; erc-desktop-notifications.el -- Send notification on PRIVMSG or mentions -*- lexical-binding:t -*-
+;;; erc-desktop-notifications.el --- Send notification on PRIVMSG or mentions -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2012-2021 Free Software Foundation, Inc.
 

@@ -324,8 +324,8 @@ and VALUE-END, otherwise a STRING giving the value."
 	    (setq strs (cons (car arg) strs))
 	    (setq names (cons (cdr arg) names)))
 	  (setq args (cdr args))))
-      (cons (apply 'concat (nreverse strs))
-	    (apply 'append (nreverse names))))))
+      (cons (apply #'concat (nreverse strs))
+	    (apply #'append (nreverse names))))))
 
 (eval-when-compile
   ;; Make a symbolic group named NAME from the regexp R.
@@ -338,7 +338,7 @@ and VALUE-END, otherwise a STRING giving the value."
 	   (cons (concat "\\(" (car ,sym) "\\)") (cons ',name (cdr ,sym)))))))
 
   (defun xmltok-p (&rest r) (xmltok+ "\\(?:"
-				     (apply 'xmltok+ r)
+				     (apply #'xmltok+ r)
 				     "\\)"))
 
   ;; Get the group index of ELEM in a LIST of symbols.
@@ -372,22 +372,23 @@ and VALUE-END, otherwise a STRING giving the value."
   (defmacro xmltok-defregexp (sym r)
     `(defalias ',sym
        (let ((r ,r))
-	 `(macro lambda (action &optional group-name)
-		 (cond ((eq action 'regexp)
-			,(car r))
-		       ((or (eq action 'start) (eq action 'beginning))
-			(list 'match-beginning (xmltok-get-index group-name
-								 ',(cdr r))))
-		       ((eq action 'end)
-			(list 'match-end (xmltok-get-index group-name
-							   ',(cdr r))))
-		       ((eq action 'string)
-			(list 'match-string
-			      (xmltok-get-index group-name ',(cdr r))))
-		       ((eq action 'string-no-properties)
-			(list 'match-string-no-properties
-			      (xmltok-get-index group-name ',(cdr r))))
-		       (t (error "Invalid action: %s" action))))))))
+	 `(macro
+	   . ,(lambda (action &optional group-name)
+		(cond ((eq action 'regexp)
+		       (car r))
+		      ((or (eq action 'start) (eq action 'beginning))
+		       (list 'match-beginning (xmltok-get-index group-name
+								(cdr r))))
+		      ((eq action 'end)
+		       (list 'match-end (xmltok-get-index group-name
+							  (cdr r))))
+		      ((eq action 'string)
+		       (list 'match-string
+			     (xmltok-get-index group-name (cdr r))))
+		      ((eq action 'string-no-properties)
+		       (list 'match-string-no-properties
+			     (xmltok-get-index group-name (cdr r))))
+		      (t (error "Invalid action: %s" action)))))))))
 
 
 (eval-when-compile
@@ -878,7 +879,7 @@ and VALUE-END, otherwise a STRING giving the value."
 				(cons " " value-parts)))))
 	       (< (point) end))))
     (when well-formed
-      (aset att 5 (apply 'concat (nreverse value-parts))))
+      (aset att 5 (apply #'concat (nreverse value-parts))))
     (aset att 6 (nreverse refs))))
 
 (defun xmltok-scan-after-amp (entity-handler)
@@ -1333,7 +1334,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT."
 		 t))))
     (if (not well-formed)
 	nil
-      (apply 'concat
+      (apply #'concat
 	     (nreverse (cons (buffer-substring-no-properties start lim)
 			     value-parts))))))
 
@@ -1358,7 +1359,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT."
 
 (defun xmltok-require-next-token (&rest types)
   (xmltok-next-prolog-token)
-  (apply 'xmltok-require-token types))
+  (apply #'xmltok-require-token types))
 
 (defun xmltok-require-token (&rest types)
   ;; XXX Generate a more helpful error message

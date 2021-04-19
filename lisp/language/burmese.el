@@ -55,3 +55,5 @@
 		 (vector "." 0 #'font-shape-gstring))))
   (set-char-table-range composition-function-table '(#x1000 . #x107F) elt)
   (set-char-table-range composition-function-table '(#xAA60 . #xAA7B) elt))
+
+;;; burmese.el ends here

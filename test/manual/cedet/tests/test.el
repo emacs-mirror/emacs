@@ -153,7 +153,4 @@
 (defvar-mode-local emacs-lisp-mode a-mode-local-def
   "some value")
 
-
-;;; Provide
-;;
 (provide 'test)

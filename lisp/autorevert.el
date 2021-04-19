@@ -937,7 +937,6 @@ the timer when no buffers need to be checked."
           (cancel-timer auto-revert-timer))
 	(setq auto-revert-timer nil)))))
 
-;; The end:
 (provide 'autorevert)
 
 (run-hooks 'auto-revert-load-hook)

@@ -33,7 +33,7 @@
 ;; What is artist?
 ;; ---------------
 ;;
-;; Artist is an Emacs lisp package that allows you to draw lines,
+;; Artist is an Emacs Lisp package that allows you to draw lines,
 ;; rectangles and ellipses by using your mouse and/or keyboard.  The
 ;; shapes are made up with the ascii characters |, -, / and \.
 ;;

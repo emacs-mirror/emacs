@@ -378,4 +378,4 @@ Process queued spam reports."
 
 (provide 'spam-report)
 
-;;; spam-report.el ends here.
+;;; spam-report.el ends here
