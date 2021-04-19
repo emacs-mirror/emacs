@@ -1355,6 +1355,13 @@ scroll the window of possible completions."
     (if (eq (car bounds) base) md-at-point
       (completion-metadata (substring string 0 base) table pred))))
 
+(defun minibuffer--sort-by-key (elems keyfun)
+  "Return ELEMS sorted by increasing value of their KEYFUN.
+KEYFUN takes an element of ELEMS and should return a numerical value."
+  (mapcar #'cdr
+          (sort (mapcar (lambda (x) (cons (funcall keyfun x) x)) elems)
+                 #'car-less-than-car)))
+
 (defun completion-all-sorted-completions (&optional start end)
   (or completion-all-sorted-completions
       (let* ((start (or start (minibuffer-prompt-end)))
@@ -1404,19 +1411,8 @@ scroll the window of possible completions."
                     (cl-incf index))
                   (when (stringp def)
                     (puthash def -1 hash))
-                  ;; Decorate elements with history position
-                  (let ((c all))
-                    (while c
-                      (setcar c (cons (gethash (car c) hash
-                                               most-positive-fixnum)
-                                      (car c)))
-                      (pop c)))
-                  (setq all (sort all #'car-less-than-car))
-                  ;; Drop decoration from the elements
-                  (let ((c all))
-                    (while c
-                      (setcar c (cdar c))
-                      (pop c)))))))
+                  (minibuffer--sort-by-key
+                   all (lambda (x) (gethash x hash most-positive-fixnum)))))))
 
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
