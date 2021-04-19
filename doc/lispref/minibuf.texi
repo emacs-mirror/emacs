@@ -167,8 +167,10 @@ various applications such as completion.
 
 The argument @var{history} specifies a history list variable to use
 for saving the input and for history commands used in the minibuffer.
-It defaults to @code{minibuffer-history}.  You can optionally specify
-a starting position in the history list as well.  @xref{Minibuffer History}.
+It defaults to @code{minibuffer-history}.  If @var{history} is the
+symbol @code{t}, history is not recorded.  You can optionally specify
+a starting position in the history list as well.  @xref{Minibuffer
+History}.
 
 If the variable @code{minibuffer-allow-text-properties} is
 non-@code{nil}, then the string that is returned includes whatever text
@@ -1107,9 +1109,10 @@ The function @code{completing-read} uses
 @code{minibuffer-local-must-match-map} if @var{require-match} is
 non-@code{nil}.  @xref{Completion Commands}.
 
-The argument @var{history} specifies which history list variable to use for
-saving the input and for minibuffer history commands.  It defaults to
-@code{minibuffer-history}.  @xref{Minibuffer History}.
+The argument @var{history} specifies which history list variable to
+use for saving the input and for minibuffer history commands.  It
+defaults to @code{minibuffer-history}.  If @var{history} is the symbol
+@code{t}, history is not recorded.  @xref{Minibuffer History}.
 
 The argument @var{initial} is mostly deprecated; we recommend using a
 non-@code{nil} value only in conjunction with specifying a cons cell

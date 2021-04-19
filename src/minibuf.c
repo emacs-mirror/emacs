@@ -2023,7 +2023,8 @@ HIST, if non-nil, specifies a history list and optionally the initial
   (This is the only case in which you should use INITIAL-INPUT instead
   of DEF.)  Positions are counted starting from 1 at the beginning of
   the list.  The variable `history-length' controls the maximum length
-  of a history list.
+  of a history list.  If HIST is the symbol `t', history is not
+  recorded.
 
 DEF, if non-nil, is the default value or the list of default values.
 

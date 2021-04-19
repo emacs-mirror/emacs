@@ -1390,7 +1390,7 @@ scroll the window of possible completions."
            (t
             ;; Prefer shorter completions, by default.
             (setq all (sort all (lambda (c1 c2) (< (length c1) (length c2)))))
-            (if (minibufferp)
+            (if (and (minibufferp) (not (eq minibuffer-history-variable t)))
                 ;; Prefer recently used completions and put the default, if
                 ;; it exists, on top.
                 (let ((hist (symbol-value minibuffer-history-variable)))
