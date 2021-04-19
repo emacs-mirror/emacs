@@ -1437,7 +1437,7 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
    ;; test-completion, then we shouldn't exit, but that should be rare.
    (lambda ()
      (if minibuffer--require-match
-         (minibuffer-message "Incomplete")
+         (completion--message "Incomplete")
        ;; If a match is not required, exit after all.
        (exit-minibuffer)))))
 
@@ -2022,7 +2022,7 @@ variables.")
           ;; the sole completion, then hide (previous&stale) completions.
           (minibuffer-hide-completions)
           (ding)
-          (minibuffer-message
+          (completion--message
            (if completions "Sole completion" "No completions")))
 
       (let* ((last (last completions))
