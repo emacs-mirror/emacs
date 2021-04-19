@@ -2224,7 +2224,7 @@ Help message may be switched off by setting `cperl-message-electric-keyword'
 to nil."
   (let ((beg (point-at-bol)))
     (and (save-excursion
-	   (backward-sexp 1)
+           (skip-chars-backward "[:alpha:]")
 	   (cperl-after-expr-p nil "{;:"))
 	 (save-excursion
 	   (not
