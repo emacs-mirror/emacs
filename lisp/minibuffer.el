@@ -1411,8 +1411,9 @@ KEYFUN takes an element of ELEMS and should return a numerical value."
                     (cl-incf index))
                   (when (stringp def)
                     (puthash def -1 hash))
-                  (minibuffer--sort-by-key
-                   all (lambda (x) (gethash x hash most-positive-fixnum)))))))
+                  (setq all (minibuffer--sort-by-key
+                             all (lambda (x)
+                                   (gethash x hash most-positive-fixnum))))))))
 
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
