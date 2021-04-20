@@ -118,7 +118,7 @@ it is disabled.")
 ;;;###autoload
 (defalias 'easy-mmode-define-minor-mode #'define-minor-mode)
 ;;;###autoload
-(defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
+(defmacro define-minor-mode (mode doc &rest body)
   "Define a new minor mode MODE.
 This defines the toggle command MODE and (by default) a control variable
 MODE (you can override this with the :variable keyword, see below).
@@ -200,6 +200,9 @@ INIT-VALUE LIGHTER KEYMAP.
 
   (let* ((last-message (make-symbol "last-message"))
          (mode-name (symbol-name mode))
+         (init-value nil)
+         (keymap nil)
+         (lighter nil)
 	 (pretty-name nil)
 	 (globalp nil)
 	 (set nil)
@@ -216,22 +219,20 @@ INIT-VALUE LIGHTER KEYMAP.
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
          (interactive t)
-         (warnwrap (if (keywordp init-value) #'identity
+         (warnwrap (if (or (null body) (keywordp (car body))) #'identity
                      (lambda (exp)
                        (macroexp-warn-and-return
                         "Use keywords rather than deprecated positional arguments to `define-minor-mode'"
                         exp))))
 	 keyw keymap-sym tmp)
 
-    ;; Allow skipping the first three args.
-    (cond
-     ((keywordp init-value)
-      (setq body (if keymap `(,init-value ,lighter ,keymap ,@body)
-		   `(,init-value ,lighter))
-	    init-value nil lighter nil keymap nil))
-     ((keywordp lighter)
-      (setq body `(,lighter ,keymap ,@body) lighter nil keymap nil))
-     ((keywordp keymap) (push keymap body) (setq keymap nil)))
+    ;; Allow BODY to start with the old INIT-VALUE LIGHTER KEYMAP triplet.
+    (unless (keywordp (car body))
+      (setq init-value (pop body))
+      (unless (keywordp (car body))
+        (setq lighter (pop body))
+        (unless (keywordp (car body))
+          (setq keymap (pop body)))))
 
     ;; Check keys.
     (while (keywordp (setq keyw (car body)))
