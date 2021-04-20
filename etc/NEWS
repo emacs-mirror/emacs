@@ -2393,6 +2393,10 @@ This affects the suffix specified by completion 'annotation-function'.
 The mark will be set to point to the end of the new buffer.
 
 +++
+** An active minibuffer now has major mode 'minibuffer-mode', not the
+erroneous 'minibuffer-inactive-mode' it formerly had.
+
++++
 ** Some properties from completion tables are now preserved.
 If 'minibuffer-allow-text-properties' is non-nil, doing completion
 over a table of strings with properties will no longer remove all the

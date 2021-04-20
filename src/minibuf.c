@@ -567,7 +567,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
      in previous recursive minibuffer, but was not set explicitly
      to t for this invocation, so set it to nil in this minibuffer.
      Save the old value now, before we change it.  */
-  specbind (intern ("minibuffer-completing-file-name"),
+  specbind (Qminibuffer_completing_file_name,
 	    Vminibuffer_completing_file_name);
   if (EQ (Vminibuffer_completing_file_name, Qlambda))
     Vminibuffer_completing_file_name = Qnil;
@@ -920,13 +920,13 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 	      && !EQ (XWINDOW (XFRAME (calling_frame)->minibuffer_window)
 		      ->frame,
 		      calling_frame))))
-    call2 (intern ("select-frame-set-input-focus"), calling_frame, Qnil);
+    call2 (Qselect_frame_set_input_focus, calling_frame, Qnil);
 
   /* Add the value to the appropriate history list, if any.  This is
      done after the previous buffer has been made current again, in
      case the history variable is buffer-local.  */
   if (! (NILP (Vhistory_add_new_input) || NILP (histstring)))
-    call2 (intern ("add-to-history"), histvar, histstring);
+    call2 (Qadd_to_history, histvar, histstring);
 
   /* If Lisp form desired instead of string, parse it.  */
   if (expflag)
@@ -965,13 +965,13 @@ set_minibuffer_mode (Lisp_Object buf, EMACS_INT depth)
   Fset_buffer (buf);
   if (depth > 0)
     {
-      if (!NILP (Ffboundp (intern ("fundamental-mode"))))
-	call0 (intern ("fundamental-mode"));
+      if (!NILP (Ffboundp (Qminibuffer_mode)))
+	call0 (Qminibuffer_mode);
     }
   else
     {
-      if (!NILP (Ffboundp (intern ("minibuffer-inactive-mode"))))
-	call0 (intern ("minibuffer-inactive-mode"));
+      if (!NILP (Ffboundp (Qminibuffer_inactive_mode)))
+	call0 (Qminibuffer_inactive_mode);
       else
 	Fkill_all_local_variables ();
     }
@@ -1163,7 +1163,7 @@ read_minibuf_unwind (void)
      dead, we may keep displaying this buffer (tho it's inactive), so reset it,
      to make sure we don't leave around bindings and stuff which only
      made sense during the read_minibuf invocation.  */
-  call0 (intern ("minibuffer-inactive-mode"));
+  call0 (Qminibuffer_inactive_mode);
 
   /* We've exited the recursive edit, so switch the current windows
      away from the expired minibuffer window, both in the current
@@ -2332,6 +2332,12 @@ syms_of_minibuf (void)
 
   /* A frame parameter.  */
   DEFSYM (Qminibuffer_exit, "minibuffer-exit");
+
+  DEFSYM (Qminibuffer_mode, "minibuffer-mode");
+  DEFSYM (Qminibuffer_inactive_mode, "minibuffer-inactive-mode");
+  DEFSYM (Qminibuffer_completing_file_name, "minibuffer-completing-file-name");
+  DEFSYM (Qselect_frame_set_input_focus, "select-frame-set-input-focus");
+  DEFSYM (Qadd_to_history, "add-to-history");
 
   DEFVAR_LISP ("read-expression-history", Vread_expression_history,
 	       doc: /* A history list for arguments that are Lisp expressions to evaluate.

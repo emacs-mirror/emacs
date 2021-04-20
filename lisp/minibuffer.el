@@ -2499,6 +2499,16 @@ not active.")
   "Major mode to use in the minibuffer when it is not active.
 This is only used when the minibuffer area has no active minibuffer.")
 
+(define-derived-mode minibuffer-mode nil "Minibuffer"
+  "Major mode used for active minibuffers.
+
+For customizing this mode, it is better to use
+`minibuffer-setup-hook' and `minibuffer-exit-hook' rather than
+the mode hook of this mode."
+  :syntax-table nil
+  :abbrev-table nil
+  :interactive nil)
+
 ;;; Completion tables.
 
 (defun minibuffer--double-dollars (str)

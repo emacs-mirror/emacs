@@ -97,6 +97,14 @@ to be done.  @xref{Text from Minibuffer}, for the non-completion
 minibuffer local maps.  @xref{Completion Commands}, for the minibuffer
 local maps for completion.
 
+@cindex active minibuffer
+  An active minibuffer usually has major mode @code{minibuffer-mode}.
+This is an Emacs internal mode without any special features.  To
+customize the setup of minibuffers, we suggest you use
+@code{minibuffer-setup-hook} (@pxref{Minibuffer Misc}) rather than
+@code{minibuffer-mode-hook}, since the former is run later, after the
+minibuffer has been fully initialized.
+
 @cindex inactive minibuffer
   When a minibuffer is inactive, its major mode is
 @code{minibuffer-inactive-mode}, with keymap
