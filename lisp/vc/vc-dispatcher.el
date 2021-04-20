@@ -1,4 +1,4 @@
-;;; vc-dispatcher.el -- generic command-dispatcher facility.  -*- lexical-binding: t -*-
+;;; vc-dispatcher.el --- generic command-dispatcher facility.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 

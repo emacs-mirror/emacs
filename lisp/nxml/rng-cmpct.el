@@ -922,4 +922,4 @@ Current token after parse is token following ]."
 
 (provide 'rng-cmpct)
 
-;;; rng-cmpct.el
+;;; rng-cmpct.el ends here

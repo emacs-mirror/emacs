@@ -1386,7 +1386,8 @@ do_switch_frame (Lisp_Object frame, int track, int for_deletion, Lisp_Object nor
      especially when deleting the initial frame during startup.  */
   CHECK_FRAME (frame);
   f = XFRAME (frame);
-  if (!FRAME_LIVE_P (f))
+  /* Silently ignore dead and tooltip frames (Bug#47207).  */
+  if (!FRAME_LIVE_P (f) || FRAME_TOOLTIP_P (f))
     return Qnil;
   else if (f == sf)
     return frame;
@@ -1510,7 +1511,16 @@ redisplay will display FRAME.
 This function returns FRAME, or nil if FRAME has been deleted.  */)
   (Lisp_Object frame, Lisp_Object norecord)
 {
-  return do_switch_frame (frame, 1, 0, norecord);
+  struct frame *f;
+
+  CHECK_LIVE_FRAME (frame);
+  f = XFRAME (frame);
+
+  if (FRAME_TOOLTIP_P (f))
+    /* Do not select a tooltip frame (Bug#47207).  */
+    error ("Cannot select a tooltip frame");
+  else
+    return do_switch_frame (frame, 1, 0, norecord);
 }
 
 DEFUN ("handle-switch-frame", Fhandle_switch_frame,
@@ -1525,6 +1535,7 @@ necessarily represent user-visible input focus.  */)
   /* Preserve prefix arg that the command loop just cleared.  */
   kset_prefix_arg (current_kboard, Vcurrent_prefix_arg);
   run_hook (Qmouse_leave_buffer_hook);
+
   return do_switch_frame (event, 0, 0, Qnil);
 }
 

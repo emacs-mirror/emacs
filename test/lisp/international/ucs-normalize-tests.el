@@ -1,4 +1,4 @@
-;;; ucs-normalize --- tests for international/ucs-normalize.el -*- lexical-binding: t -*-
+;;; ucs-normalize-tests.el --- tests for international/ucs-normalize.el -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; fill-test.el --- ERT tests for fill.el -*- lexical-binding: t -*-
+;;; fill-tests.el --- ERT tests for fill.el -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 

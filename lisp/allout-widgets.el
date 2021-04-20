@@ -1,4 +1,4 @@
-;; allout-widgets.el --- Visually highlight allout outline structure.  -*- lexical-binding: t; -*-
+;;; allout-widgets.el --- Visually highlight allout outline structure.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
@@ -2296,3 +2296,5 @@ The elements of LIST are not copied, just the list structure itself."
 ;;;_  , Local variables:
 ;;;_  , allout-layout: (-1 : 0)
 ;;;_  , End:
+
+;;; allout-widgets.el ends here

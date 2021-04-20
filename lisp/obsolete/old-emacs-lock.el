@@ -1,4 +1,4 @@
-;;; emacs-lock.el --- prevents you from exiting Emacs if a buffer is locked  -*- lexical-binding: t; -*-
+;;; old-emacs-lock.el --- prevents you from exiting Emacs if a buffer is locked  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1994, 1997, 2001-2021 Free Software Foundation, Inc.
 
@@ -99,4 +99,4 @@ If the buffer is locked, signal error and display its name."
 
 (provide 'emacs-lock)
 
-;;; emacs-lock.el ends here
+;;; old-emacs-lock.el ends here

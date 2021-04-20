@@ -1,4 +1,4 @@
-;; ox-man.el --- Man Back-End for Org Export Engine -*- lexical-binding: t; -*-
+;;; ox-man.el --- Man Back-End for Org Export Engine -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 

@@ -183,9 +183,9 @@ main (int argc, char **argv)
            some versions of the dynamic loader still use it.  Also
            allow allocating thread stacks.  */
         SCMP_A3_32 (SCMP_CMP_MASKED_EQ,
-                    ~(MAP_PRIVATE | MAP_FILE | MAP_ANONYMOUS
-                      | MAP_FIXED | MAP_DENYWRITE | MAP_STACK
-                      | MAP_NORESERVE),
+                    ~(MAP_SHARED | MAP_PRIVATE | MAP_FILE
+                      | MAP_ANONYMOUS | MAP_FIXED | MAP_DENYWRITE
+                      | MAP_STACK | MAP_NORESERVE),
                     0));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (mmap),
         SCMP_A2_32 (SCMP_CMP_MASKED_EQ,

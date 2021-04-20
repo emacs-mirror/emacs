@@ -1,4 +1,4 @@
-;;; eieio-custom.el -- eieio object customization  -*- lexical-binding:t -*-
+;;; eieio-custom.el --- eieio object customization  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2001, 2005, 2007-2021 Free Software Foundation,
 ;; Inc.

@@ -1,4 +1,4 @@
-;; info-edit.el --- Editing info files  -*- lexical-binding:t -*-
+;;; info-edit.el --- Editing info files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1985-1986, 1992-2021 Free Software Foundation, Inc.
 

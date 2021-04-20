@@ -1,4 +1,4 @@
-;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
+;;; erc-button.el --- A way of buttonizing certain things in ERC buffers  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-2004, 2006-2021 Free Software Foundation, Inc.
 

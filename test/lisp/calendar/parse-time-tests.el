@@ -1,4 +1,4 @@
-;; parse-time-tests.el --- Test suite for parse-time.el  -*- lexical-binding:t -*-
+;;; parse-time-tests.el --- Test suite for parse-time.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 

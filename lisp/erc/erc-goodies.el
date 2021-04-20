@@ -1,4 +1,4 @@
-;; erc-goodies.el --- Collection of ERC modules  -*- lexical-binding: t; -*-
+;;; erc-goodies.el --- Collection of ERC modules  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2021 Free Software Foundation, Inc.
 

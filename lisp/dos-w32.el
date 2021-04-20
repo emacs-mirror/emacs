@@ -1,4 +1,4 @@
-;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms  -*- lexical-binding: t; -*-
+;;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996, 2001-2021 Free Software Foundation, Inc.
 

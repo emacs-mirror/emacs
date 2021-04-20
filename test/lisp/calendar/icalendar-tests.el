@@ -1,4 +1,4 @@
-;; icalendar-tests.el --- Test suite for icalendar.el  -*- lexical-binding:t -*-
+;;; icalendar-tests.el --- Test suite for icalendar.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2005, 2008-2021 Free Software Foundation, Inc.
 

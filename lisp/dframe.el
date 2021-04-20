@@ -1,4 +1,4 @@
-;;; dframe --- dedicate frame support modes  -*- lexical-binding:t -*-
+;;; dframe.el --- dedicate frame support modes  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 

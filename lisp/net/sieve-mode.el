@@ -206,4 +206,4 @@ Turning on Sieve mode runs `sieve-mode-hook'."
 
 (provide 'sieve-mode)
 
-;; sieve-mode.el ends here
+;;; sieve-mode.el ends here
