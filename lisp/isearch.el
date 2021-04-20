@@ -3056,10 +3056,6 @@ See more for options in `search-exit-option'."
            (goto-char isearch-pre-move-point))
          (isearch-search-and-update)))
      (setq isearch-pre-move-point nil))
-  ;; Terminate the search if point has moved to another buffer.
-  (unless (eq isearch--current-buffer (current-buffer))
-    (when (buffer-live-p isearch--current-buffer)
-      (with-current-buffer isearch--current-buffer (isearch-exit))))
   (force-mode-line-update))
 
 (defun isearch-quote-char (&optional count)
