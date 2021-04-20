@@ -292,6 +292,8 @@ or \\[wdired-abort-changes] to abort changes")))
       (call-interactively (or (if map (lookup-key map (this-command-keys)))
                               #'self-insert-command)))))
 
+(put 'wdired--self-insert 'delete-selection 'delete-selection-uses-region-p)
+
 (defun wdired--before-change-fn (beg end)
   (save-excursion
     ;; Make sure to process entire lines.
