@@ -23,9 +23,9 @@
 
 ;;; Commentary:
 
-;;; Code:
+;;; Emacs Lisp functions to convert Texinfo files to Info files.
 
-;;; Emacs lisp functions to convert Texinfo files to Info files.
+;;; Code:
 
 (defvar texinfmt-version "2.42 of  7 Jul 2006")
 (make-obsolete-variable 'texinfmt-version 'emacs-version "28.1")
@@ -4310,8 +4310,6 @@ For example, invoke
            (setq error 1))))
       (kill-emacs error))))
 
-
-;;; Place `provide' at end of file.
 (provide 'texinfmt)
 
 ;;; texinfmt.el ends here

@@ -25,8 +25,6 @@
 
 ;; "Poor man's threading" by psg.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

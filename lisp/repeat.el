@@ -348,16 +348,21 @@ For example, you can set it to <return> like `isearch-exit'."
   :group 'convenience
   :version "28.1")
 
-(defcustom repeat-mode-echo #'repeat-mode-message
+(defcustom repeat-echo-function #'repeat-echo-message
   "Function to display a hint about available keys.
 Function is called after every repeatable command with one argument:
-a string with a list of keys."
+a repeating map, or nil after deactivating the repeat mode."
   :type '(choice (const :tag "Show hints in the echo area"
-                        repeat-mode-message)
-                 (const :tag "Don't show hints" ignore)
+                        repeat-echo-message)
+                 (const :tag "Show indicator in the mode line"
+                        repeat-echo-mode-line)
+                 (const :tag "No visual feedback" ignore)
                  (function :tag "Function"))
   :group 'convenience
   :version "28.1")
+
+(defvar repeat-in-progress nil
+  "Non-nil when the repeating map is active.")
 
 ;;;###autoload
 (defvar repeat-map nil
@@ -386,51 +391,73 @@ When Repeat mode is enabled, and the command symbol has the property named
 
 (defun repeat-post-hook ()
   "Function run after commands to set transient keymap for repeatable keys."
-  (when repeat-mode
-    (let ((rep-map (or repeat-map
-                       (and (symbolp real-this-command)
-                            (get real-this-command 'repeat-map)))))
-      (when rep-map
-        (when (boundp rep-map)
-          (setq rep-map (symbol-value rep-map)))
-        (let ((map (copy-keymap rep-map))
-              keys)
+  (let ((was-in-progress repeat-in-progress))
+    (setq repeat-in-progress nil)
+    (when repeat-mode
+      (let ((rep-map (or repeat-map
+                         (and (symbolp real-this-command)
+                              (get real-this-command 'repeat-map)))))
+        (when rep-map
+          (when (boundp rep-map)
+            (setq rep-map (symbol-value rep-map)))
+          (let ((map (copy-keymap rep-map)))
 
-          ;; Exit when the last char is not among repeatable keys,
-          ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
-          (when (and (zerop (minibuffer-depth)) ; avoid remapping in prompts
-                     (or (lookup-key map (this-command-keys-vector))
-                         prefix-arg))
+            ;; Exit when the last char is not among repeatable keys,
+            ;; so e.g. `C-x u u' repeats undo, whereas `C-/ u' doesn't.
+            (when (and (zerop (minibuffer-depth)) ; avoid remapping in prompts
+                       (or (lookup-key map (this-command-keys-vector))
+                           prefix-arg))
 
-            ;; Messaging
-            (unless prefix-arg
-              (map-keymap (lambda (key _) (push key keys)) map)
-              (let ((mess (format-message
-                           "Repeat with %s%s"
-                           (mapconcat (lambda (key)
-                                        (key-description (vector key)))
-                                      keys ", ")
-                           (if repeat-exit-key
-                               (format ", or exit with %s"
-                                       (key-description repeat-exit-key))
-                             ""))))
-                (funcall repeat-mode-echo mess)))
+              ;; Messaging
+              (unless prefix-arg
+                (funcall repeat-echo-function map))
 
-            ;; Adding an exit key
-            (when repeat-exit-key
-              (define-key map repeat-exit-key 'ignore))
+              ;; Adding an exit key
+              (when repeat-exit-key
+                (define-key map repeat-exit-key 'ignore))
 
-            (when (and repeat-keep-prefix (not prefix-arg))
-              (setq prefix-arg current-prefix-arg))
+              (when (and repeat-keep-prefix (not prefix-arg))
+                (setq prefix-arg current-prefix-arg))
 
-            (set-transient-map map))))))
-  (setq repeat-map nil))
+              (setq repeat-in-progress t)
+              (set-transient-map map))))))
 
-(defun repeat-mode-message (mess)
-  "Function that displays available repeating keys in the echo area."
-  (if (current-message)
-      (message "%s [%s]" (current-message) mess)
-    (message mess)))
+    (setq repeat-map nil)
+    (when (and was-in-progress (not repeat-in-progress))
+      (funcall repeat-echo-function nil))))
+
+(defun repeat-echo-message-string (map)
+  "Return a string with a list of repeating keys."
+  (let (keys)
+    (map-keymap (lambda (key _) (push key keys)) map)
+    (format-message "Repeat with %s%s"
+                    (mapconcat (lambda (key)
+                                 (key-description (vector key)))
+                               keys ", ")
+                    (if repeat-exit-key
+                        (format ", or exit with %s"
+                                (key-description repeat-exit-key))
+                      ""))))
+
+(defun repeat-echo-message (map)
+  "Display available repeating keys in the echo area."
+  (when map
+    (let ((mess (repeat-echo-message-string map)))
+      (if (current-message)
+          (message "%s [%s]" (current-message) mess)
+        (message mess)))))
+
+(defvar repeat-echo-mode-line-string
+  (propertize "[Repeating...] " 'face 'mode-line-emphasis)
+  "String displayed in the mode line in repeating mode.")
+
+(defun repeat-echo-mode-line (map)
+  "Display the repeat indicator in the mode line."
+  (if map
+      (unless (assq 'repeat-in-progress mode-line-modes)
+        (add-to-list 'mode-line-modes (list 'repeat-in-progress
+                                            repeat-echo-mode-line-string)))
+    (force-mode-line-update t)))
 
 (provide 'repeat)
 

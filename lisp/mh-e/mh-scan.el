@@ -27,8 +27,6 @@
 ;; This file contains constants and a few functions for interpreting
 ;; scan lines.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

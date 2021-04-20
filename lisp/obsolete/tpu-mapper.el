@@ -69,7 +69,7 @@
 
 ;;;###autoload
 (defun tpu-mapper ()
-  "Create an Emacs lisp file defining the TPU-edt keypad for X-windows.
+  "Create an Emacs Lisp file defining the TPU-edt keypad for X-windows.
 
 This command displays an instruction screen showing the TPU-edt keypad
 and asks you to press the TPU-edt editing keys.  It uses the keys you

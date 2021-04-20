@@ -6457,7 +6457,6 @@ If BEG is bigger than END we return 0."
     (isearch-repeat 'forward)
     (isearch-mode t)))
 
-;;;_ #11 Provide
 (provide 'allout)
 
 ;;;_* Local emacs vars.

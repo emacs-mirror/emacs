@@ -503,8 +503,6 @@ variable will be set to the representation."
     (remove-hook 'post-self-insert-hook #'tildify-space t)))
 
 
-;;; *** Announce ***
-
 (provide 'tildify)
 
 ;;; tildify.el ends here

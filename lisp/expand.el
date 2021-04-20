@@ -484,7 +484,6 @@ This is used only in conjunction with `expand-add-abbrevs'."
 
 (provide 'expand)
 
-;; run load hooks
 (run-hooks 'expand-load-hook)
 
 ;;; expand.el ends here

@@ -26,7 +26,7 @@
 
 ;;  [Part of the GNU Emacs EDT Emulation.]
 
-;;  This emacs lisp program can be used to create an emacs lisp file
+;;  This Emacs Lisp program can be used to create an Emacs Lisp file
 ;;  that defines the mapping of the user's keyboard to the LK-201
 ;;  keyboard function keys and keypad keys (around which EDT has been
 ;;  designed).  Please read the "Usage" AND "Known Problems" sections

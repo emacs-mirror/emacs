@@ -2112,8 +2112,6 @@ chapter."
 
   (message "Multiple files updated."))
 
-
-;; Place `provide' at end of file.
 (provide 'texnfo-upd)
 
 ;;; texnfo-upd.el ends here

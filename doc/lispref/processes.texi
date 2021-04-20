@@ -1325,7 +1325,7 @@ the numeric ID of the foreground process group of @var{process}; it
 returns @code{nil} if Emacs can be certain that this is not so.  The
 value is @code{t} if Emacs cannot tell whether this is true.  This
 function signals an error if @var{process} is a network, serial, or
-pipe connection, or is the subprocess is not active.
+pipe connection, or if the subprocess is not active.
 @end defun
 
 @node Signals to Processes
@@ -3410,8 +3410,9 @@ Unsigned integer in little endian order, with @var{bitlen} bits.
 @item str @var{len}
 String of bytes of length @var{len}.
 
-@item strz @var{len}
-Zero-terminated string of bytes, in a fixed-size field with length @var{len}.
+@item strz &optional @var{len}
+Zero-terminated string of bytes, can be of arbitrary length or in a fixed-size
+field with length @var{len}.
 
 @item vec @var{len} [@var{type}]
 Vector of @var{len} elements.  The type of the elements is given by

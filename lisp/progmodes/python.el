@@ -247,8 +247,6 @@
 ;; I'd recommend the first one since you'll get the same behavior for
 ;; all modes out-of-the-box.
 
-;;; TODO:
-
 ;;; Code:
 
 (require 'ansi-color)

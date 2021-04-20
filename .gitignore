@@ -135,7 +135,6 @@ src/gl-stamp
 *.dll
 *.core
 *.elc
-*.eln
 *.o
 *.res
 *.so
@@ -305,11 +304,11 @@ nt/emacsclient.rc
 src/gdb.ini
 /var/
 
-# gsettings schema
-/etc/*.gschema.valid
-
 # Seccomp filter files.
 lib-src/seccomp-filter.bpf
 lib-src/seccomp-filter.pfc
 lib-src/seccomp-filter-exec.bpf
 lib-src/seccomp-filter-exec.pfc
+
+# gsettings schema
+/etc/*.gschema.valid

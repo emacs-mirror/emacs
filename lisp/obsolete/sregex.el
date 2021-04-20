@@ -208,7 +208,7 @@
 ;;   This is a "trapdoor" for including ordinary regular expression
 ;;   strings in the result.  Some regular expressions are clearer when
 ;;   written the old way: "[a-z]" vs. (sregexq (char (?a . ?z))), for
-;;   instance.  However, see the note under "Bugs," below.
+;;   instance.
 
 ;; Each CHAR-CLAUSE that is passed to (char ...) and (not-char ...)
 ;; has one of the following forms:
@@ -235,8 +235,6 @@
 ;; - add support for character classes ([:blank:], ...)
 ;; - add support for non-greedy operators *? and +?
 ;; - bug: (sregexq (opt (opt ?a))) returns "a??" which is a non-greedy "a?"
-
-;;; Bugs:
 
 ;;; Code:
 

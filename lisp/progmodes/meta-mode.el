@@ -942,9 +942,6 @@ The environment marked is the one that contains point or follows point."
               (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
                     (list "" 'ispell-complete-word))))
 
-
-;;; Just in case ...
-
 (provide 'meta-mode)
 (run-hooks 'meta-mode-load-hook)
 

@@ -2290,7 +2290,6 @@ The elements of LIST are not copied, just the list structure itself."
 
 (define-obsolete-function-alias 'allout-frame-property #'frame-parameter "28.1")
 
-;;;_ : provide
 (provide 'allout-widgets)
 
 ;;;_ . Local emacs vars.

@@ -498,8 +498,6 @@ For use on `kill-buffer-hook'."
            (file-name-directory filename) retval)))
     retval))
 
-;;; The End
-
 (defun uniquify-unload-function ()
   "Unload the uniquify library."
   (save-current-buffer

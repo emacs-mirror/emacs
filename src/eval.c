@@ -1310,7 +1310,7 @@ DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
        doc: /* Regain control when an error is signaled.
 Executes BODYFORM and returns its value if no error happens.
 Each element of HANDLERS looks like (CONDITION-NAME BODY...)
-where the BODY is made of Lisp expressions.
+or (:success BODY...), where the BODY is made of Lisp expressions.
 
 A handler is applicable to an error if CONDITION-NAME is one of the
 error's condition names.  Handlers may also apply when non-error
@@ -1331,6 +1331,10 @@ with VAR bound to (ERROR-SYMBOL . SIGNAL-DATA) from the error.
 \(If VAR is nil, the handler can't access that information.)
 Then the value of the last BODY form is returned from the `condition-case'
 expression.
+
+The special handler (:success BODY...) is invoked if BODYFORM terminated
+without signalling an error.  BODY is then evaluated with VAR bound to
+the value returned by BODYFORM.
 
 See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
@@ -1355,16 +1359,21 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 
   CHECK_SYMBOL (var);
 
+  Lisp_Object success_handler = Qnil;
+
   for (Lisp_Object tail = handlers; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object tem = XCAR (tail);
-      clausenb++;
       if (! (NILP (tem)
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
 	error ("Invalid condition handler: %s",
 	       SDATA (Fprin1_to_string (tem, Qt)));
+      if (EQ (XCAR (tem), QCsuccess))
+	success_handler = XCDR (tem);
+      else
+	clausenb++;
     }
 
   /* The first clause is the one that should be checked first, so it
@@ -1378,7 +1387,8 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
   Lisp_Object volatile *clauses = alloca (clausenb * sizeof *clauses);
   clauses += clausenb;
   for (Lisp_Object tail = handlers; CONSP (tail); tail = XCDR (tail))
-    *--clauses = XCAR (tail);
+    if (!EQ (XCAR (XCAR (tail)), QCsuccess))
+      *--clauses = XCAR (tail);
   for (ptrdiff_t i = 0; i < clausenb; i++)
     {
       Lisp_Object clause = clauses[i];
@@ -1418,6 +1428,23 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 
   Lisp_Object result = eval_sub (bodyform);
   handlerlist = oldhandlerlist;
+  if (!NILP (success_handler))
+    {
+      if (NILP (var))
+	return Fprogn (success_handler);
+
+      Lisp_Object handler_var = var;
+      if (!NILP (Vinternal_interpreter_environment))
+	{
+	  result = Fcons (Fcons (var, result),
+		       Vinternal_interpreter_environment);
+	  handler_var = Qinternal_interpreter_environment;
+	}
+
+      ptrdiff_t count = SPECPDL_INDEX ();
+      specbind (handler_var, result);
+      return unbind_to (count, Fprogn (success_handler));
+    }
   return result;
 }
 
@@ -4490,6 +4517,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sthrow);
   defsubr (&Sunwind_protect);
   defsubr (&Scondition_case);
+  DEFSYM (QCsuccess, ":success");
   defsubr (&Ssignal);
   defsubr (&Scommandp);
   defsubr (&Sautoload);

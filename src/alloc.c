@@ -6271,7 +6271,7 @@ For further details, see Info node `(elisp)Garbage Collection'.  */)
 }
 
 DEFUN ("garbage-collect-maybe", Fgarbage_collect_maybe,
-Sgarbage_collect_maybe, 1, 1, "",
+Sgarbage_collect_maybe, 1, 1, 0,
        doc: /* Call `garbage-collect' if enough allocation happened.
 FACTOR determines what "enough" means here:
 If FACTOR is a positive number N, it means to run GC if more than

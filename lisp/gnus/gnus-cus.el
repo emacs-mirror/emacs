@@ -1102,8 +1102,6 @@ articles in the thread.
       (widget-setup)
       (buffer-enable-undo))))
 
-;;; The End:
-
 (provide 'gnus-cus)
 
 ;;; gnus-cus.el ends here
