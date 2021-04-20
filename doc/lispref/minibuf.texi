@@ -2154,7 +2154,7 @@ that is the question to ask the user.  The function can also return
 
 The argument @var{actor} says how to act on the objects for which the
 user answers yes.  It should be a function of one argument, and will
-be called with each object from @var{LIST} for which the user answers
+be called with each object from @var{list} for which the user answers
 yes.
 
 If the argument @var{help} is given, it should be a list of this form:
