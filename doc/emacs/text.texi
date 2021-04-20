@@ -502,8 +502,8 @@ text.
 @cindex mode, Auto Fill
 
   @dfn{Auto Fill} mode is a buffer-local minor mode (@pxref{Minor
-Modes}) in which lines are broken automatically at spaces when the
-line becomes too wide.
+Modes}) in which lines are broken automatically when the line becomes
+too wide and you type @kbd{@key{SPC}} or @kbd{@key{RET}}.
 
 @table @kbd
 @item M-x auto-fill-mode
@@ -522,12 +522,21 @@ certain major modes, add @code{auto-fill-mode} to the mode hooks
 (@pxref{Major Modes}).  When Auto Fill mode is enabled, the mode
 indicator @samp{Fill} appears in the mode line (@pxref{Mode Line}).
 
-  Auto Fill mode breaks lines automatically at spaces whenever they
-get longer than the desired width.  This line breaking occurs only
-when you type @key{SPC} or @key{RET}.  If you wish to insert a space
-or newline without permitting line-breaking, type @kbd{C-q @key{SPC}}
-or @kbd{C-q C-j} respectively.  Also, @kbd{C-o} inserts a newline
-without line breaking.
+  Auto Fill mode breaks lines automatically at the appropriate places
+whenever lines get longer than the desired width.  This line breaking
+occurs only when you type @kbd{@key{SPC}} or @kbd{@key{RET}}.  If you
+wish to insert a space or newline without permitting line-breaking,
+type @kbd{C-q @key{SPC}} or @kbd{C-q C-j} respectively.  Also,
+@kbd{C-o} inserts a newline without line breaking.
+
+@cindex kinsoku line-breaking rules
+  The place where Auto Fill breaks a line depends on the line's
+characters.  For characters from @acronym{ASCII}, Latin, and most
+other scripts Emacs breaks a line on space characters, to keep the
+words intact.  But for CJK scripts, a line can be broken between any
+two characters.  (If you load the @file{kinsoku} library, Emacs will
+avoid breaking a line between certain pairs of CJK characters, where
+special rules prohibit that.)
 
   When Auto Fill mode breaks a line, it tries to obey the
 @dfn{adaptive fill prefix}: if a fill prefix can be deduced from the
@@ -548,6 +557,9 @@ described in the next section.
 @ifnottex
 (@pxref{Fill Commands}).
 @end ifnottex
+
+  A similar feature that wraps long lines automatically at display
+time is Visual Line Mode (@pxref{Visual Line Mode}).
 
 @node Fill Commands
 @subsection Explicit Fill Commands
@@ -571,7 +583,11 @@ Center a line.
 current paragraph.  It redistributes the line breaks within the
 paragraph, and deletes any excess space and tab characters occurring
 within the paragraph, in such a way that the lines end up fitting
-within a certain maximum width.
+within a certain maximum width.  Like Auto Fill mode, this and other
+filling commands usually break lines at space characters, but for CJK
+characters these commands can break a line between almost any two
+characters, and they can also obey the kinsoku rules.  @xref{Auto
+Fill}.
 
 @findex fill-region
   Normally, @kbd{M-q} acts on the paragraph where point is, but if
@@ -645,8 +661,8 @@ or before @samp{)}, @samp{:} or @samp{?}); and
 even if preceded by a non-whitespace character).
 
   Emacs can display an indicator in the @code{fill-column} position
-using the Display fill column indicator mode 
-(@pxref{Displaying Boundaries, display-fill-column-indicator}).
+using the Display fill column indicator mode (@pxref{Displaying
+Boundaries, display-fill-column-indicator}).
 
 @node Fill Prefix
 @subsection The Fill Prefix
