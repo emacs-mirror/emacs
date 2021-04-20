@@ -2325,6 +2325,13 @@ This is a mode for searching a RFC 2229 dictionary server.
 the mouse in 'dictionary-tooltip-dictionary' (which must be customized
 first).
 
+** transient.el
+
+This library implements support for powerful keyboard-driven menus.
+Such menus can be used as simple visual command dispatchers.  More
+complex menus take advantage of infix arguments, which are somewhat
+similar to prefix arguments, but are more flexible and discoverable.
+
 
 * Incompatible Editing Changes in Emacs 28.1
 
