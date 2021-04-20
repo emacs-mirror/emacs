@@ -728,10 +728,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     Vminibuffer_completing_file_name = Qlambda;
 
   /* If variable is unbound, make it nil.  */
-  histval = find_symbol_value (Vminibuffer_history_variable);
+  histval = find_symbol_value (histvar);
   if (EQ (histval, Qunbound))
     {
-      Fset (Vminibuffer_history_variable, Qnil);
+      Fset (histvar, Qnil);
       histval = Qnil;
     }
 
@@ -752,10 +752,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   /* Defeat (setq-default truncate-lines t), since truncated lines do
      not work correctly in minibuffers.  (Bug#5715, etc)  */
   bset_truncate_lines (current_buffer, Qnil);
-
-  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
-  if (inherit_input_method)
-    bset_enable_multibyte_characters (current_buffer, enable_multibyte);
 
   /* The current buffer's default directory is usually the right thing
      for our minibuffer here.  However, if you're typing a command at
@@ -808,9 +804,11 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     specbind (Qinhibit_modification_hooks, Qt);
     Ferase_buffer ();
 
-    if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
-	&& ! STRING_MULTIBYTE (minibuf_prompt))
-      minibuf_prompt = Fstring_make_multibyte (minibuf_prompt);
+    /* If appropriate, copy enable-multibyte-characters into the minibuffer.
+       In any case don't blindly inherit the multibyteness used previously.  */
+    bset_enable_multibyte_characters (current_buffer,
+                                      inherit_input_method ? enable_multibyte
+                                      : Qt);
 
     /* Insert the prompt, record where it ends.  */
     Finsert (1, &minibuf_prompt);
