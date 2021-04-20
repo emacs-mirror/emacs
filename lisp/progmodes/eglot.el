@@ -945,7 +945,8 @@ This docstring appeases checkdoc, that's all."
                                   (format "*%s stderr*" readable-name))
                          :file-handler t)))))))
          (spread (lambda (fn) (lambda (server method params)
-                                (apply fn server method (append params nil)))))
+                                (let ((eglot--cached-server server))
+                                 (apply fn server method (append params nil))))))
          (server
           (apply
            #'make-instance class
