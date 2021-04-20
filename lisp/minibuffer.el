@@ -2469,10 +2469,33 @@ with `minibuffer-local-must-match-map'.")
 (defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
 (make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 
-(let ((map minibuffer-local-ns-map))
-  (define-key map " " 'exit-minibuffer)
-  (define-key map "\t" 'exit-minibuffer)
-  (define-key map "?" 'self-insert-and-exit))
+(defvar minibuffer-local-ns-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map " "  #'exit-minibuffer)
+    (define-key map "\t" #'exit-minibuffer)
+    (define-key map "?"  #'self-insert-and-exit)
+    map)
+  "Local keymap for the minibuffer when spaces are not allowed.")
+
+(defun read-no-blanks-input (prompt &optional initial inherit-input-method)
+  "Read a string from the terminal, not allowing blanks.
+Prompt with PROMPT.  Whitespace terminates the input.  If INITIAL is
+non-nil, it should be a string, which is used as initial input, with
+point positioned at the end, so that SPACE will accept the input.
+\(Actually, INITIAL can also be a cons of a string and an integer.
+Such values are treated as in `read-from-minibuffer', but are normally
+not useful in this function.)
+
+Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
+the current input method and the setting of`enable-multibyte-characters'.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error."
+  (read-from-minibuffer prompt initial minibuffer-local-ns-map
+		        nil minibuffer-history nil inherit-input-method))
+
+;;; Major modes for the minibuffer
 
 (defvar minibuffer-inactive-mode-map
   (let ((map (make-keymap)))
