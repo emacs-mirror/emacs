@@ -489,12 +489,12 @@ for use at QPOS."
              (ufull (if (zerop (length qsuffix)) ustring
                       (funcall unquote (concat string qsuffix))))
              ;; If (not (string-prefix-p ustring ufull)) we have a problem:
-             ;; the unquoting the qfull gives something "unrelated" to ustring.
+             ;; unquoting the qfull gives something "unrelated" to ustring.
              ;; E.g. "~/" and "/" where "~//" gets unquoted to just "/" (see
              ;; bug#47678).
              ;; In that case we can't even tell if we're right before the
              ;; "/" or right after it (aka if this "/" is from qstring or
-             ;; from qsuffix), which which usuffix to use is very unclear.
+             ;; from qsuffix), thus which usuffix to use is very unclear.
              (usuffix (if (string-prefix-p ustring ufull)
                           (substring ufull (length ustring))
                         ;; FIXME: Maybe "" is preferable/safer?
@@ -2498,6 +2498,8 @@ not active.")
   ;; Note: this major mode is called from minibuf.c.
   "Major mode to use in the minibuffer when it is not active.
 This is only used when the minibuffer area has no active minibuffer.")
+
+(defvaralias 'minibuffer-mode-map 'minibuffer-local-map)
 
 (define-derived-mode minibuffer-mode nil "Minibuffer"
   "Major mode used for active minibuffers.
