@@ -1972,7 +1972,7 @@ was entered.
 The return value of @code{completion-table-dynamic} is a function that
 can be used as the 2nd argument to @code{try-completion} and
 @code{all-completions}.  Note that this function will always return
-empty metadata and trivial boundaries (@pxref{Programmed Completion}).
+empty metadata and trivial boundaries.
 @end defun
 
 @defun completion-table-with-cache function &optional ignore-case
