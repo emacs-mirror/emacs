@@ -958,6 +958,13 @@ authentication mechanism by setting a value for the key 'smtp-auth'.
 
 ** Search and Replace
 
+*** New key 'M-s M-.' starts isearch with the thing found at point.
+This key is bound to the new command 'isearch-forward-thing-at-point'.
+The new user option 'isearch-forward-thing-at-point' defines
+a list of symbols to try to get the "thing" at point.  By default,
+the first element of the list is 'region' that tries to yank
+the currently active region to the search string.
+
 *** New user option 'isearch-wrap-pause' defines how to wrap the search.
 There are choices to disable wrapping completely and to wrap immediately.
 When wrapping immediately, it consistently handles the numeric arguments
