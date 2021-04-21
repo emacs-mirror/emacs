@@ -785,7 +785,7 @@ directly."
 	     (setq size (- (aref body 1) (aref body 0)))
 	     (cond ((string= encoding "base64")
                     ;; https://en.wikipedia.org/wiki/Base64#MIME
-		    (setq size (max (* (- size 814) 0.73) 100)))
+		    (setq size (* size 0.73)))
 		   ((string= encoding "quoted-printable")
                     ;; Assume most of the text is ASCII...
 		    (setq size (/ (* size 5) 7)))))))
