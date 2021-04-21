@@ -4166,7 +4166,7 @@ Native compilation equivalent to `batch-byte-compile'."
 
 ;;;###autoload
 (defun batch-byte-native-compile-for-bootstrap ()
-  "Like `batch-native-compile', but used for booststrap.
+  "Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
 directory (the last entry in `comp-eln-load-path').
