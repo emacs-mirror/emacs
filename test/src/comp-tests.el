@@ -507,6 +507,10 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2021-02/msg01949.html>"
   (should (equal (comp-test-46824-1-f) nil)))
 
+(comp-deftest comp-test-47868-1 ()
+  (should-not (equal-including-properties (comp-test-47868-1-f)
+                                          (comp-test-47868-2-f))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests. ;;

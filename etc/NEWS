@@ -2580,6 +2580,11 @@ the Emacs Lisp reference manual for background.
 * Lisp Changes in Emacs 28.1
 
 +++
+** New function 'sxhash-equal-including-properties'.
+This is identical to 'sxhash-equal' but accounting also for string
+properties.
+
++++
 ** 'unlock-buffer' displays warnings instead of signaling.
 Instead of signaling 'file-error' conditions for file system level
 errors, the function now calls 'display-warning' and continues as if

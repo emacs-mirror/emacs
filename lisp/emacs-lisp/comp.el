@@ -730,11 +730,14 @@ Returns ELT."
 	     finally return h)
     "Hash table lap-op -> stack adjustment."))
 
+(define-hash-table-test 'comp-imm-equal-test #'equal-including-properties
+  #'sxhash-equal-including-properties)
+
 (cl-defstruct comp-data-container
   "Data relocation container structure."
   (l () :type list
      :documentation "Constant objects used by functions.")
-  (idx (make-hash-table :test #'equal) :type hash-table
+  (idx (make-hash-table :test 'comp-imm-equal-test) :type hash-table
        :documentation "Obj -> position into the previous field."))
 
 (cl-defstruct (comp-ctxt (:include comp-cstr-ctxt))
@@ -3648,25 +3651,26 @@ Prepare every function for final compilation and drive the C back-end."
              (print-gensym t)
              (print-circle t)
              (print-escape-multibyte t)
-             (expr `(progn
-                      (require 'comp)
-                      (setf comp-verbose ,comp-verbose
-                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
-                            comp-ctxt ,comp-ctxt
-                            comp-eln-load-path ',comp-eln-load-path
-                            comp-native-driver-options
-                            ',comp-native-driver-options
-                            load-path ',load-path)
-                      ,comp-async-env-modifier-form
-                      (message "Compiling %s..." ',output)
-                      (comp-final1)))
+             (expr `((require 'comp)
+                     (setf comp-verbose ,comp-verbose
+                           comp-libgccjit-reproducer ,comp-libgccjit-reproducer
+                           comp-ctxt ,comp-ctxt
+                           comp-eln-load-path ',comp-eln-load-path
+                           comp-native-driver-options
+                           ',comp-native-driver-options
+                           load-path ',load-path)
+                     ,comp-async-env-modifier-form
+                     (message "Compiling %s..." ',output)
+                     (comp-final1)))
              (temp-file (make-temp-file
 			 (concat "emacs-int-comp-"
 				 (file-name-base output) "-")
 			 nil ".el")))
 	(with-temp-file temp-file
           (insert ";; -*-coding: nil; -*-\n")
-          (insert (prin1-to-string expr)))
+          (mapc (lambda (e)
+                  (insert (prin1-to-string e)))
+                expr))
 	(with-temp-buffer
           (unwind-protect
               (if (zerop
@@ -3900,34 +3904,33 @@ display a message."
                        ; commanded for late load.
                   (file-newer-than-file-p
                    source-file (comp-el-to-eln-filename source-file)))
-         do (let* ((expr `(progn
-                            (require 'comp)
-                            ,(when (boundp 'backtrace-line-length)
-                               `(setf backtrace-line-length ,backtrace-line-length))
-                            (setf comp-speed ,comp-speed
-                                  comp-debug ,comp-debug
-                                  comp-verbose ,comp-verbose
-                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
-                                  comp-async-compilation t
-                                  comp-eln-load-path ',comp-eln-load-path
-                                  comp-native-driver-options
-                                  ',comp-native-driver-options
-                                  load-path ',load-path
-                                  warning-fill-column most-positive-fixnum)
-                            ,comp-async-env-modifier-form
-                            (message "Compiling %s..." ,source-file)
-                            (comp--native-compile ,source-file ,(and load t))))
+         do (let* ((expr `((require 'comp)
+                           ,(when (boundp 'backtrace-line-length)
+                              `(setf backtrace-line-length ,backtrace-line-length))
+                           (setf comp-speed ,comp-speed
+                                 comp-debug ,comp-debug
+                                 comp-verbose ,comp-verbose
+                                 comp-libgccjit-reproducer ,comp-libgccjit-reproducer
+                                 comp-async-compilation t
+                                 comp-eln-load-path ',comp-eln-load-path
+                                 comp-native-driver-options
+                                 ',comp-native-driver-options
+                                 load-path ',load-path
+                                 warning-fill-column most-positive-fixnum)
+                           ,comp-async-env-modifier-form
+                           (message "Compiling %s..." ,source-file)
+                           (comp--native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
                    (temp-file (make-temp-file
                                (concat "emacs-async-comp-"
                                        (file-name-base source-file) "-")
                                nil ".el"))
-                   (expr-string (prin1-to-string expr))
+                   (expr-strings (mapcar #'prin1-to-string expr))
                    (_ (progn
                         (with-temp-file temp-file
-                          (insert expr-string))
+                          (mapc #'insert expr-strings))
                         (comp-log "\n")
-                        (comp-log expr-string)))
+                        (mapc #'comp-log expr-strings)))
                    (load1 load)
                    (process (make-process
                              :name (concat "Compiling: " source-file)
@@ -4162,7 +4165,7 @@ Native compilation equivalent to `batch-byte-compile'."
 
 ;;;###autoload
 (defun batch-byte-native-compile-for-bootstrap ()
-  "Like `batch-native-compile', but used for booststrap.
+  "Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
 directory (the last entry in `comp-eln-load-path').

@@ -501,6 +501,14 @@
               (format "%S"
                       (error-message-string err))))))
       (cl-return-from comp-test-46824-1-f))))
+
+(defun comp-test-47868-1-f ()
+  " ")
+
+(defun comp-test-47868-2-f ()
+  #(" " 0 1 (face font-lock-keyword-face)))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tromey's tests ;;
