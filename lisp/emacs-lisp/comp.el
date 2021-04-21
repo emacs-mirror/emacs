@@ -731,8 +731,7 @@ Returns ELT."
     "Hash table lap-op -> stack adjustment."))
 
 (define-hash-table-test 'comp-imm-equal-test #'equal-including-properties
-  (lambda (x)
-    (sxhash-equal-including-properties x)))
+  #'sxhash-equal-including-properties)
 
 (cl-defstruct comp-data-container
   "Data relocation container structure."
