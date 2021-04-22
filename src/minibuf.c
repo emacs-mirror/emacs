@@ -660,17 +660,14 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   record_unwind_protect_void (minibuffer_unwind);
   record_unwind_protect (restore_window_configuration,
-                         Fcons (Qt, Fcurrent_window_configuration (Qnil)));
+			 list3 (Fcurrent_window_configuration (Qnil), Qt, Qt));
 
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
   if (!EQ (mini_frame, selected_frame))
     record_unwind_protect (restore_window_configuration,
-			   Fcons (/* Arrange for the frame later to be
-                                     switched back to the calling
-                                     frame. */
-                                  Qnil,
-                                  Fcurrent_window_configuration (mini_frame)));
+			   list3 (Fcurrent_window_configuration (mini_frame),
+				  Qnil, Qt));
 
   /* If the minibuffer is on an iconified or invisible frame,
      make it visible now.  */
@@ -1069,13 +1066,13 @@ read_minibuf_unwind (void)
 	    goto found;
 	}
     }
-  return; /* expired minibuffer not found.  Maybe we should output an
-	     error, here. */
+  exp_MB_frame = Qnil;		/* "Can't happen." */
 
  found:
-  if (!EQ (exp_MB_frame, saved_selected_frame))
+  if (!EQ (exp_MB_frame, saved_selected_frame)
+      && !NILP (exp_MB_frame))
     do_switch_frame (exp_MB_frame, 0, 0, Qt); /* This also sets
-					     minibuff_window */
+					     minibuf_window */
 
   /* To keep things predictable, in case it matters, let's be in the
      minibuffer when we reset the relevant variables.  Don't depend on
@@ -1185,7 +1182,8 @@ read_minibuf_unwind (void)
     }
 
   /* Restore the selected frame. */
-  if (!EQ (exp_MB_frame, saved_selected_frame))
+  if (!EQ (exp_MB_frame, saved_selected_frame)
+      && !NILP (exp_MB_frame))
     do_switch_frame (saved_selected_frame, 0, 0, Qt);
 }
 
@@ -1200,6 +1198,7 @@ minibuffer_unwind (void)
   Lisp_Object window;
   Lisp_Object entry;
 
+  if (NILP (exp_MB_frame)) return; /* "Can't happen." */
   f = XFRAME (exp_MB_frame);
   window = f->minibuffer_window;
   w = XWINDOW (window);

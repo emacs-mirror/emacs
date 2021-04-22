@@ -2674,9 +2674,11 @@ one to another in the init file.  The same user option also controls
 whether the function 'read-answer' accepts short answers.
 
 +++
-** 'set-window-configuration' now takes an optional 'dont-set-frame'
-parameter which, when non-nil, instructs the function not to select
-the frame recorded in the configuration.
+** 'set-window-configuration' now takes two optional parameters,
+'dont-set-frame' and 'dont-set-miniwindow'.  The first of these, when
+non-nil, instructs the function not to select the frame recorded in
+the configuration.  The second prevents the current minibuffer being
+replaced by the one stored in the configuration.
 
 +++
 ** 'define-globalized-minor-mode' now takes a ':predicate' parameter.
