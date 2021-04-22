@@ -1374,7 +1374,8 @@ The last thing is to trigger a new round of lazy highlighting."
 		    ;; the X coordinate it returns is 1 pixel beyond
 		    ;; the last visible one.
 		    (>= (car visible-p)
-                        (* (window-max-chars-per-line) (frame-char-width))))
+                        (* (window-max-chars-per-line) (frame-char-width)))
+                    (< (car visible-p) 0))
 		(set-window-hscroll (selected-window) current-scroll))))
 	(if isearch-other-end
             (if (< isearch-other-end (point)) ; isearch-forward?
