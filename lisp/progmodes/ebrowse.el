@@ -794,7 +794,7 @@ and TREE is a list of `ebrowse-ts' structures forming the class tree."
 	     (ebrowse-hs-version header) ebrowse-version-string))
     ;; Read Lisp objects.  Temporarily increase `gc-cons-threshold' to
     ;; prevent a GC that would not free any memory.
-    (let ((gc-cons-threshold 2000000))
+    (let ((gc-cons-threshold (max gc-cons-threshold 2000000)))
       (while (not (progn (skip-chars-forward " \t\n") (eobp)))
 	(let* ((root (read (current-buffer)))
 	       (old-root-ptr (ebrowse-class-in-tree root tree)))
