@@ -35,6 +35,7 @@ variants of those files that can be used to sandbox Emacs before
 
 #include "config.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -169,7 +170,7 @@ main (int argc, char **argv)
   verify (sizeof (long) == 8 && LONG_MIN == INT64_MIN
           && LONG_MAX == INT64_MAX);
   verify (sizeof (void *) == 8);
-  verify ((uintptr_t) NULL == 0);
+  assert ((uintptr_t) NULL == 0);
 
   /* Allow a clean exit.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (exit));
