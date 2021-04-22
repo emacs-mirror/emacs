@@ -2242,10 +2242,9 @@ display it in the other window (@code{xref-prev-group}).
 Display the reference on the current line in the other window
 (@code{xref-show-location-at-point}).
 
-@item @key{TAB}
-@findex xref-quit-and-goto-xref
-Display the reference on the current line and bury the @file{*xref*}
-buffer (@code{xref-quit-and-goto-xref}).
+@kindex C-u RET
+To bury the @file{*xref*} buffer before displaying the reference, call
+@code{xref-goto-xref} with a prefix argument: @kbd{C-u RET}.
 
 @item r @var{pattern} @key{RET} @var{replacement} @key{RET}
 Perform interactive query-replace on references that match

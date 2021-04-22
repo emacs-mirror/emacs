@@ -1644,10 +1644,18 @@ in 'project-list-file'.
 
 ** xref
 
----
++++
 *** Prefix arg of 'xref-goto-xref' quits the "*xref*" buffer.
 So typing 'C-u RET' in the "*xref*" buffer quits its window
 before navigating to the selected location.
+
++++
+*** The TAB binding in *xref* buffers has been removed. Use 'C-u RET' instead.
+To restore the old binding, say something like:
+
+    (require 'xref)
+    (define-key xref--xref-buffer-mode-map
+                (kbd "TAB") #'xref-quit-and-goto-xref)
 
 *** New user options 'xref-search-program' and 'xref-search-program-alist'.
 So far 'grep' and 'ripgrep' are supported.  'ripgrep' seems to offer better
