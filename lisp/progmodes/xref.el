@@ -1534,6 +1534,8 @@ FILES must be a list of absolute file names."
                        #'tramp-file-local-name
                        #'file-local-name)
                    files)))
+    (when (file-name-quoted-p (car files))
+      (setq files (mapcar #'file-name-unquote files)))
     (with-current-buffer output
       (erase-buffer)
       (with-temp-buffer
