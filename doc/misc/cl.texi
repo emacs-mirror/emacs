@@ -2246,7 +2246,7 @@ were non-@code{nil}, the loop returns @code{t}:
 
 @item never @var{condition}
 This clause is like @code{always}, except that the loop returns
-@code{t} if any conditions were false, or @code{nil} otherwise.
+@code{t} if all conditions were false, or @code{nil} otherwise.
 
 @item thereis @var{condition}
 This clause stops the loop when the specified form is non-@code{nil};
