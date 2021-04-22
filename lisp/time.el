@@ -534,6 +534,7 @@ If the value is t instead of an alist, use the value of
 (define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `world-clock'."
+  :interactive nil
   (setq-local revert-buffer-function #'world-clock-update)
   (setq show-trailing-whitespace nil))
 
