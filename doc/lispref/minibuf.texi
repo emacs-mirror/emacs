@@ -980,17 +980,17 @@ and @var{suffix} holds the text after point.
 
 Normally completion operates on the whole string, so for all normal
 collections, this will always return @code{(0 . (length
-@var{suffix}))}.  But more complex completion such as completion on
-files is done one field at a time.  For example, completion of
+@var{suffix}))}.  But more complex completion, such as completion on
+files, is done one field at a time.  For example, completion of
 @code{"/usr/sh"} will include @code{"/usr/share/"} but not
 @code{"/usr/share/doc"} even if @code{"/usr/share/doc"} exists.
 Also @code{all-completions} on @code{"/usr/sh"} will not include
 @code{"/usr/share/"} but only @code{"share/"}.  So if @var{string} is
 @code{"/usr/sh"} and @var{suffix} is @code{"e/doc"},
-@code{completion-boundaries} will return @code{(5 . 1)} which tells us
+@code{completion-boundaries} will return @w{@code{(5 . 1)}} which tells us
 that the @var{collection} will only return completion information that
 pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
-@code{try-completion} is not affected by nontrivial boundaries; i.e.,
+@code{try-completion} is not affected by nontrivial boundaries; e.g.,
 @code{try-completion} on @code{"/usr/sh"} might still return
 @code{"/usr/share/"}, not @code{"share/"}.
 @end defun
@@ -1897,11 +1897,11 @@ should return @code{(boundaries @var{start} . @var{end})}, where
 string, and @var{end} is the position of the end boundary in
 @var{suffix}.
 
-If you return nontrivial boundaries, make sure that the
+If a Lisp program returns nontrivial boundaries, it should make sure that the
 @code{all-completions} operation is consistent with them.  The
 completions returned by @code{all-completions} should only pertain to
 the piece of the prefix and suffix covered by the completion
-boundaries.  @ref{Basic Completion} for the precise expected semantics
+boundaries.  @xref{Basic Completion}, for the precise expected semantics
 of completion boundaries.
 
 @item metadata
