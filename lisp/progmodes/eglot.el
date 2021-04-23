@@ -907,6 +907,9 @@ Each function is passed the server as an argument")
              " "))
     contact))
 
+(defvar-local eglot--cached-server nil
+  "A cached reference to the current EGLOT server.")
+
 (defun eglot--connect (managed-major-mode project class contact)
   "Connect to MANAGED-MAJOR-MODE, PROJECT, CLASS and CONTACT.
 This docstring appeases checkdoc, that's all."
@@ -1377,9 +1380,6 @@ For example, to keep your Company customization use
   `(unless (or (not (boundp ',symbol)) (eglot--stay-out-of-p ',symbol))
      (push (cons ',symbol (symbol-value ',symbol)) eglot--saved-bindings)
      (setq-local ,symbol ,binding)))
-
-(defvar-local eglot--cached-server nil
-  "A cached reference to the current EGLOT server.")
 
 (defun eglot-managed-p ()
   "Tell if current buffer is managed by EGLOT."
