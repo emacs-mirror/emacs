@@ -994,12 +994,33 @@ loop using the command \\[fileloop-continue]."
 (defvar compilation-read-command)
 (declare-function compilation-read-command "compile")
 
+(defun project-prefixed-buffer-name (mode)
+  (concat "*"
+          (file-name-nondirectory
+           (directory-file-name default-directory))
+          "-"
+          (downcase mode)
+          "*"))
+
+(defcustom project-compilation-buffer-name-function nil
+  "Function to compute the name of a project compilation buffer.
+If non-nil, it overrides `compilation-buffer-name-function' for
+`project-compile'."
+  :group 'project
+  :type '(choice (const :tag "Default" nil)
+                 (const :tag "Prefixed with root directory name"
+                        project-prefixed-buffer-name)
+                 (function :tag "Custom function")))
+
 ;;;###autoload
 (defun project-compile ()
   "Run `compile' in the project root."
   (declare (interactive-only compile))
   (interactive)
-  (let ((default-directory (project-root (project-current t))))
+  (let ((default-directory (project-root (project-current t)))
+        (compilation-buffer-name-function
+         (or project-compilation-buffer-name-function
+             compilation-buffer-name-function)))
     (call-interactively #'compile)))
 
 (defun project--read-project-buffer ()
