@@ -515,7 +515,7 @@ The current buffer is given by BUFFER."
 (defun erc-open-network-stream (name buffer host service &rest parameters)
   "Like `open-network-stream', but does non-blocking IO."
   (let ((p (plist-put parameters :nowait t)))
-    (open-network-stream name buffer host service p)))
+    (apply #'open-network-stream name buffer host service p)))
 
 (defun erc-server-connect (server port buffer &optional client-certificate)
   "Perform the connection and login using the specified SERVER and PORT.
