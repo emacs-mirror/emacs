@@ -138,6 +138,13 @@ Use `erc-current-nick' to access this.")
 (defvar-local erc-session-port nil
   "The port used to connect to.")
 
+(defvar-local erc-session-client-certificate nil
+  "TLS client certificate used when connecting over TLS.
+If non-nil, should either be a list where the first element is
+the certificate key file name, and the second element is the
+certificate file name itself, or t, which means that
+`auth-source' will be queried for the key and the certificate.")
+
 (defvar-local erc-server-announced-name nil
   "The name the server announced to use.")
 
@@ -505,18 +512,23 @@ The current buffer is given by BUFFER."
          (memq (process-status erc-server-process) '(run open)))))
 
 ;;;; Connecting to a server
-(defun erc-open-network-stream (name buffer host service)
-  "As `open-network-stream', but does non-blocking IO"
-  (make-network-process :name name :buffer  buffer
-                        :host host :service service :nowait t))
+(defun erc-open-network-stream (name buffer host service &rest parameters)
+  "Like `open-network-stream', but does non-blocking IO."
+  (let ((p (plist-put parameters :nowait t)))
+    (open-network-stream name buffer host service p)))
 
-(defun erc-server-connect (server port buffer)
+(defun erc-server-connect (server port buffer &optional client-certificate)
   "Perform the connection and login using the specified SERVER and PORT.
-We will store server variables in the buffer given by BUFFER."
-  (let ((msg (erc-format-message 'connect ?S server ?p port)) process)
+We will store server variables in the buffer given by BUFFER.
+CLIENT-CERTIFICATE may optionally be used to specify a TLS client
+certificate to use for authentication when connecting over
+TLS (see `erc-session-client-certificate' for more details)."
+  (let ((msg (erc-format-message 'connect ?S server ?p port)) process
+        (args `(,(format "erc-%s-%s" server port) nil ,server ,port)))
+    (when client-certificate
+      (setq args `(,@args :client-certificate ,client-certificate)))
     (message "%s" msg)
-    (setq process (funcall erc-server-connect-function
-                           (format "erc-%s-%s" server port) nil server port))
+    (setq process (apply erc-server-connect-function args))
     (unless (processp process)
       (error "Connection attempt failed"))
     ;; Misc server variables
