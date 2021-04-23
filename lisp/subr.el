@@ -1830,12 +1830,13 @@ function, it is changed to a list of functions."
     (unless (member function hook-value)
       (when (stringp function)          ;FIXME: Why?
 	(setq function (purecopy function)))
+      ;; All those `equal' tests performed between functions can end up being
+      ;; costly since those functions may be large recursive and even cyclic
+      ;; structures, so we index `hook--depth-alist' with `eq'.  (bug#46326)
       (when (or (get hook 'hook--depth-alist) (not (zerop depth)))
         ;; Note: The main purpose of the above `when' test is to avoid running
         ;; this `setf' before `gv' is loaded during bootstrap.
-        (setf (alist-get function (get hook 'hook--depth-alist)
-                         0 'remove #'equal)
-              depth))
+        (push (cons function depth) (get hook 'hook--depth-alist)))
       (setq hook-value
 	    (if (< 0 depth)
 		(append hook-value (list function))
@@ -1845,8 +1846,8 @@ function, it is changed to a list of functions."
           (setq hook-value
                 (sort (if (< 0 depth) hook-value (copy-sequence hook-value))
                       (lambda (f1 f2)
-                        (< (alist-get f1 depth-alist 0 nil #'equal)
-                           (alist-get f2 depth-alist 0 nil #'equal))))))))
+                        (< (alist-get f1 depth-alist 0 nil #'eq)
+                           (alist-get f2 depth-alist 0 nil #'eq))))))))
     ;; Set the actual variable
     (if local
 	(progn
@@ -1907,11 +1908,20 @@ one will be removed."
 	       (not (and (consp (symbol-value hook))
 			 (memq t (symbol-value hook)))))
       (setq local t))
-    (let ((hook-value (if local (symbol-value hook) (default-value hook))))
+    (let ((hook-value (if local (symbol-value hook) (default-value hook)))
+          (old-fun nil))
       ;; Remove the function, for both the list and the non-list cases.
       (if (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
-	  (if (equal hook-value function) (setq hook-value nil))
-	(setq hook-value (delete function (copy-sequence hook-value))))
+	  (when (equal hook-value function)
+	    (setq old-fun hook-value)
+	    (setq hook-value nil))
+	(when (setq old-fun (car (member function hook-value)))
+	  (setq hook-value (remq old-fun hook-value))))
+      (when old-fun
+        ;; Remove auxiliary depth info to avoid leaks.
+        (put hook 'hook--depth-alist
+             (delq (assq old-fun (get hook 'hook--depth-alist))
+                   (get hook 'hook--depth-alist))))
       ;; If the function is on the global hook, we need to shadow it locally
       ;;(when (and local (member function (default-value hook))
       ;;	       (not (member (cons 'not function) hook-value)))
