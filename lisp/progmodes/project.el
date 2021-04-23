@@ -920,8 +920,7 @@ if one already exists."
   (let* ((default-directory (project-root (project-current t)))
          (default-project-shell-name
            (concat "*" (file-name-nondirectory
-                        (directory-file-name
-                         (file-name-directory default-directory)))
+                        (directory-file-name default-directory))
                    "-shell*"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
@@ -940,8 +939,7 @@ if one already exists."
   (let* ((default-directory (project-root (project-current t)))
          (eshell-buffer-name
           (concat "*" (file-name-nondirectory
-                       (directory-file-name
-                        (file-name-directory default-directory)))
+                       (directory-file-name default-directory))
                   "-eshell*"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
@@ -1323,6 +1321,7 @@ to distinguish the menu entries in the dispatch menu.  If KEY is
 absent, COMMAND must be bound in `project-prefix-map', and the
 key is looked up in that map."
   :version "28.1"
+  :group 'project
   :package-version '(project . "0.6.0")
   :type '(repeat
           (list
@@ -1339,6 +1338,7 @@ listed in `project-switch-commands' and signal an error when
 others are invoked.  Otherwise, all keys in `project-prefix-map'
 are legal even if they aren't listed in the dispatch menu."
   :type 'boolean
+  :group 'project
   :version "28.1")
 
 (defun project--keymap-prompt ()
