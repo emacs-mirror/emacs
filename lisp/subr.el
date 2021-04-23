@@ -1918,7 +1918,8 @@ one will be removed."
 	(when (setq old-fun (car (member function hook-value)))
 	  (setq hook-value (remq old-fun hook-value))))
       (when old-fun
-        ;; Remove auxiliary depth info to avoid leaks.
+        ;; Remove auxiliary depth info to avoid leaks (bug#46414)
+        ;; and to avoid the list growing too long.
         (put hook 'hook--depth-alist
              (delq (assq old-fun (get hook 'hook--depth-alist))
                    (get hook 'hook--depth-alist))))
@@ -5017,7 +5018,8 @@ See also `with-eval-after-load'."
                      (funcall func)
                    (let ((lfn load-file-name)
                          ;; Don't use letrec, because equal (in
-                         ;; add/remove-hook) would get trapped in a cycle.
+                         ;; add/remove-hook) would get trapped in a cycle
+                         ;; (bug#46326).
                          (fun (make-symbol "eval-after-load-helper")))
                      (fset fun (lambda (file)
                                  (when (equal file lfn)
@@ -5606,7 +5608,7 @@ to deactivate this transient map, regardless of KEEP-PRED."
             (remove-hook 'pre-command-hook clearfun)
             (when on-exit (funcall on-exit)))))
     ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
-    ;; in a cycle.
+    ;; in a cycle. (bug#46326)
     (fset clearfun
           (lambda ()
             (with-demoted-errors "set-transient-map PCH: %S"
