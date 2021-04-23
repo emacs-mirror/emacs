@@ -1920,9 +1920,9 @@ one will be removed."
       (when old-fun
         ;; Remove auxiliary depth info to avoid leaks (bug#46414)
         ;; and to avoid the list growing too long.
-        (put hook 'hook--depth-alist
-             (delq (assq old-fun (get hook 'hook--depth-alist))
-                   (get hook 'hook--depth-alist))))
+        (let* ((depths (get hook 'hook--depth-alist))
+               (di (assq old-fun depths)))
+          (when di (put hook 'hook--depth-alist (delq di depths)))))
       ;; If the function is on the global hook, we need to shadow it locally
       ;;(when (and local (member function (default-value hook))
       ;;	       (not (member (cons 'not function) hook-value)))
@@ -5018,7 +5018,7 @@ See also `with-eval-after-load'."
                      (funcall func)
                    (let ((lfn load-file-name)
                          ;; Don't use letrec, because equal (in
-                         ;; add/remove-hook) would get trapped in a cycle
+                         ;; add/remove-hook) could get trapped in a cycle
                          ;; (bug#46326).
                          (fun (make-symbol "eval-after-load-helper")))
                      (fset fun (lambda (file)
@@ -5607,7 +5607,7 @@ to deactivate this transient map, regardless of KEEP-PRED."
             (internal-pop-keymap map 'overriding-terminal-local-map)
             (remove-hook 'pre-command-hook clearfun)
             (when on-exit (funcall on-exit)))))
-    ;; Don't use letrec, because equal (in add/remove-hook) would get trapped
+    ;; Don't use letrec, because equal (in add/remove-hook) could get trapped
     ;; in a cycle. (bug#46326)
     (fset clearfun
           (lambda ()
