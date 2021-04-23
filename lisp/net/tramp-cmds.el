@@ -482,7 +482,8 @@ It is completed by \"M-x TAB\" only if package.el is loaded, and
 Tramp is an installed ELPA package."
   ;; We cannot apply `package-installed-p', this would also return the
   ;; builtin package.
-  (tramp-compat-funcall 'package--user-installed-p 'tramp))
+  (and (assq 'tramp (bound-and-true-p package-alist))
+       (tramp-compat-funcall 'package--user-installed-p 'tramp)))
 
 ;;;###tramp-autoload
 (defun tramp-recompile-elpa ()
