@@ -2271,7 +2271,8 @@ The following user options have been renamed:
 The old names are now obsolete.
 
 ---
-*** `world-clock-mode' is no longer interactive.
+*** 'world-clock-mode' can no longer be turned on interactively.
+Use 'display-time-world' to turn on that mode.
 
 ** D-Bus
 
