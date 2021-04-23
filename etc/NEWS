@@ -2270,6 +2270,9 @@ The following user options have been renamed:
 
 The old names are now obsolete.
 
+---
+*** `world-clock-mode' is no longer interactive.
+
 ** D-Bus
 
 +++
