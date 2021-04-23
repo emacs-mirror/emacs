@@ -271,7 +271,7 @@ the form (concat S2 S)."
     (let* ((str (if (string-prefix-p s1 string completion-ignore-case)
                     (concat s2 (substring string (length s1)))))
            (res (if str (complete-with-action action table str pred))))
-      (when res
+      (when (or res (eq (car-safe action) 'boundaries))
         (cond
          ((eq (car-safe action) 'boundaries)
           (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))

@@ -83,7 +83,12 @@
   (let* ((origtable '("A-hello" "A-there"))
          (subvtable (completion-table-subvert origtable "B" "A")))
     (should (equal (try-completion "B-hel" subvtable)
-                   "B-hello"))))
+                   "B-hello"))
+    (should (equal (all-completions "B-hel" subvtable) '("-hello")))
+    (should (test-completion "B-hello" subvtable))
+    (should (equal (completion-boundaries "B-hel" subvtable
+                                          nil "suffix")
+                   '(1 . 6)))))
 
 (ert-deftest completion-table-test-quoting ()
   (let ((process-environment
