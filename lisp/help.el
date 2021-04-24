@@ -222,7 +222,7 @@ Do not call this in the scope of `with-help-window'."
      (let ((title (car section)) (commands (cdr section)))
        (concat
         "\n\n"
-        (propertize (car section) 'face 'help-for-help-header)
+        (propertize title 'face 'help-for-help-header)
         "\n\n"
         (help--for-help-make-commands commands))))
    sections ""))
