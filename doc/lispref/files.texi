@@ -2215,7 +2215,7 @@ form.
 
   A @dfn{directory name} is a string that must name a directory if it
 names any file at all.  A directory is actually a kind of file, and it
-has a file name (called the @dfn{directory file name}, which is
+has a file name (called the @dfn{directory file name}), which is
 related to the directory name but is typically not identical.  (This
 is not quite the same as the usual POSIX terminology.)  These two
 names for the same entity are related by a syntactic transformation.
