@@ -3,6 +3,7 @@
 ;; Copyright (C) 1988, 2001-2021 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
+;;         Simon Josefsson
 ;; Maintainer: emacs-devel@gnu.org
 
 ;; This file is part of GNU Emacs.
@@ -22,18 +23,26 @@
 
 ;;; Commentary:
 
-;; The entry point, `rot13-other-window', performs a Caesar cipher
-;; encrypt/decrypt on the current buffer and displays the result in another
-;; window.  ROT13 encryption is sometimes used on USENET as a read-at-your-
-;; own-risk wrapper for material some might consider offensive, such as
-;; ethnic humor.
+;;   "ROT13 ('rotate by 13 places') is a simple letter substitution
+;;   cipher that replaces a letter with the 13th letter after it in
+;;   the alphabet.  ROT13 is a special case of the Caesar cipher
+;;   which was developed in ancient Rome.
 ;;
-;; Written by Howard Gayle.
-;; This hack is mainly to show off the char table stuff.
+;;   Because there are 26 letters (2×13) in the basic Latin
+;;   alphabet, ROT13 is its own inverse; that is, to undo ROT13, the
+;;   same algorithm is applied, so the same action can be used for
+;;   encoding and decoding.  The algorithm provides virtually no
+;;   cryptographic security, and is often cited as a canonical
+;;   example of weak encryption.
 ;;
-;; New entry points, `rot13', `rot13-string', and `rot13-region' that
-;; performs Caesar cipher encrypt/decrypt on buffers and strings, was
-;; added by Simon Josefsson.
+;;   ROT13 is used in online forums as a means of hiding spoilers,
+;;   punchlines, puzzle solutions, and offensive materials from the
+;;   casual glance."                      - Wikipedia article on ROT13
+;;
+;; The entry points, `rot13', `rot13-string', and `rot13-region' performs ROT13
+;; encoding/decoding on buffers and strings.  The entry point
+;; `rot13-other-window' performs a ROT13 encoding/decoding on the current
+;; buffer and displays the result in another window.
 
 ;;; Code:
 
