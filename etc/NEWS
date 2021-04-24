@@ -989,6 +989,9 @@ skipped.
 ** Help
 
 ---
+*** The 'help-for-help' ('C-h C-h') screen has been redesigned.
+
+---
 *** Keybindings in 'help-mode' use the new 'help-key-binding' face.
 This face is added by 'substitute-command-keys' to any "\[command]"
 substitution.  The return value of that function should consequently
