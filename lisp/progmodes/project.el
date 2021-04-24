@@ -918,10 +918,7 @@ With \\[universal-argument] prefix arg, create a new inferior shell buffer even
 if one already exists."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
-         (default-project-shell-name
-           (concat "*" (file-name-nondirectory
-                        (directory-file-name default-directory))
-                   "-shell*"))
+         (default-project-shell-name (project-prefixed-buffer-name "shell"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
         (pop-to-buffer-same-window shell-buffer)
@@ -937,10 +934,7 @@ if one already exists."
   (interactive)
   (defvar eshell-buffer-name)
   (let* ((default-directory (project-root (project-current t)))
-         (eshell-buffer-name
-          (concat "*" (file-name-nondirectory
-                       (directory-file-name default-directory))
-                  "-eshell*"))
+         (eshell-buffer-name (project-prefixed-buffer-name "eshell"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
         (pop-to-buffer-same-window eshell-buffer)
@@ -1004,6 +998,7 @@ loop using the command \\[fileloop-continue]."
   "Function to compute the name of a project compilation buffer.
 If non-nil, it overrides `compilation-buffer-name-function' for
 `project-compile'."
+  :version "28.1"
   :group 'project
   :type '(choice (const :tag "Default" nil)
                  (const :tag "Prefixed with root directory name"
