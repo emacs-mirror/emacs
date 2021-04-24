@@ -480,15 +480,17 @@ in expressions ordinarily.
 
   Another problem can happen if the macro definition itself
 evaluates any of the macro argument expressions, such as by calling
-@code{eval} (@pxref{Eval}).  You have to take into account that the
-context of the caller is not accessible at that time since the macro expansion
-may take place long before the code is executed.  Also if your macro definition
-does not use @code{lexical-binding} its own variables may hide the
-user's variables, if the user happens to use a
-variable with the same name as one of the macro arguments.  Inside the
-macro body, the macro argument binding is the most local binding of this
-variable, so any references inside the form being evaluated do refer to
-it.  Here is an example:
+@code{eval} (@pxref{Eval}).  You have to take into account that macro
+expansion may take place long before the code is executed, when the
+context of the caller (where the macro expansion will be evaluated) is
+not yet accessible.
+
+  Also, if your macro definition does not use @code{lexical-binding}, its
+formal arguments may hide the user's variables of the same name.  Inside
+the macro body, the macro argument binding is the most local binding of
+such variable, so any references inside the form being evaluated do refer
+to it.  Here is an example:
+
 @example
 @group
 (defmacro foo (a)
@@ -510,9 +512,9 @@ it.  Here is an example:
 @code{x}, because @code{a} conflicts with the macro argument variable
 @code{a}.
 
-  Also the expansion of @code{(foo x)} above will return something
-different or signal an error when the code is compiled since in that case
-@code{(foo x)} is expanded during compilation whereas the execution of
+  Also, the expansion of @code{(foo x)} above will return something
+different or signal an error when the code is compiled, since in that case
+@code{(foo x)} is expanded during compilation, whereas the execution of
 @code{(setq x 'b)} will only take place later when the code is executed.
 
   To avoid these problems, @strong{don't evaluate an argument expression
