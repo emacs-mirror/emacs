@@ -49,9 +49,7 @@
     ;; Not sure how I should handle gracefully degrading from one proxy to
     ;; another, so for now just deal with the first one
     ;; (while proxies
-    (if (listp proxies)
-	(setq proxy (car proxies))
-      (setq proxy proxies))
+    (setq proxy (if (listp proxies) (car proxies) proxies))
     (cond
      ((string-match "^DIRECT" proxy) nil)
      ((string-match "^PROXY +" proxy)
