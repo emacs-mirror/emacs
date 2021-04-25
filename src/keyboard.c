@@ -10379,7 +10379,7 @@ update_recent_keys (int new_size, int kept_keys)
 }
 
 DEFUN ("lossage-size", Flossage_size, Slossage_size, 0, 1,
-       "(list (read-number \"new-size: \" (lossage-size)))",
+       "(list (read-number \"Set maximum keystrokes to: \" (lossage-size)))",
        doc: /* Return or set the maximum number of keystrokes to save.
 If called with a non-nil ARG, set the limit to ARG and return it.
 Otherwise, return the current limit.
