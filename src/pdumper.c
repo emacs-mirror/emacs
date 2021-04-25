@@ -5335,7 +5335,11 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 	comp_u->file = eln_fname;
 	comp_u->handle = dynlib_open (SSDATA (eln_fname));
 	if (!comp_u->handle)
-	  error ("%s", dynlib_error ());
+	  {
+	    fprintf (stderr, "Error using execdir %s:\n",
+		     emacs_execdir);
+	    error ("%s", dynlib_error ());
+	  }
 	load_comp_unit (comp_u, true, false);
 	break;
       }

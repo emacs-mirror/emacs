@@ -746,10 +746,18 @@ load_pdump_find_executable (char const *argv0, ptrdiff_t *candidate_size)
   char *candidate = NULL;
 
   /* If the executable name contains a slash, we have some kind of
-     path already, so just copy it.  */
+     path already, so just resolve symlinks and return the result.  */
   eassert (argv0);
   if (strchr (argv0, DIRECTORY_SEP))
     {
+      char *real_name = realpath (argv0, NULL);
+
+      if (real_name)
+	{
+	  *candidate_size = strlen (real_name) + 1;
+	  return real_name;
+	}
+
       char *val = xstrdup (argv0);
       *candidate_size = strlen (val) + 1;
       return val;
