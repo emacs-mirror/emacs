@@ -105,7 +105,7 @@
 language-server/bin/php-language-server.php"))
                                 ((c++-mode c-mode) . ("ccls"))
                                 ((caml-mode tuareg-mode reason-mode)
-                                 . ("ocaml-language-server" "--stdio"))
+                                 . ("ocamllsp"))
                                 (ruby-mode
                                  . ("solargraph" "socket" "--port" :autoport))
                                 (haskell-mode
