@@ -500,6 +500,13 @@ access in cases which need more than Lisp.
 
 ** Fix portable dumping so that you can redump without using -batch
 
+*** Redumps and native compiler "preloaded" sub-folder.
+In order to depose new .eln files being compiled into the "preloaded"
+sub-folder the native compiler needs to know in advance if this file
+will be preloaded or not.  As .eln files are not moved afterwards
+subsequent redumps might refer to .eln file out of the "preloaded"
+sub-folder.
+
 ** Imenu could be extended into a file-structure browsing mechanism
 This could use code like that of customize-groups.
 

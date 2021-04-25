@@ -178,13 +178,18 @@ See the functions `find-function' and `find-variable'."
             (setq name rel))))
     (unless (equal name library) name)))
 
+(defvar comp-eln-to-el-h)
+
 (defun find-library-name (library)
   "Return the absolute file name of the Emacs Lisp source of LIBRARY.
 LIBRARY should be a string (the name of the library)."
   ;; If the library is byte-compiled, try to find a source library by
   ;; the same name.
-  (when (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
+  (cond
+   ((string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
     (setq library (replace-match "" t t library)))
+   ((string-match "\\.eln\\'" library)
+    (setq library (gethash (file-name-nondirectory library) comp-eln-to-el-h))))
   (or
    (locate-file library
                 (or find-function-source-path load-path)
@@ -491,7 +496,7 @@ message about the whole chain of aliases."
     (cons function
           (cond
            ((autoloadp def) (nth 1 def))
-           ((subrp def)
+           ((subr-primitive-p def)
             (if lisp-only
                 (error "%s is a built-in function" function))
             (help-C-file-name def 'subr))

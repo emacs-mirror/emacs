@@ -301,15 +301,11 @@ dynlib_error (void)
   return dlerror ();
 }
 
-/* FIXME: Currently there is no way to unload a module, so this
-   function is never used.  */
-#if false
 int
 dynlib_close (dynlib_handle_ptr h)
 {
   return dlclose (h) == 0;
 }
-#endif
 
 #else
 

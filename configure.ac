@@ -187,7 +187,8 @@ dnl It is important that variables on the RHS not be expanded here,
 dnl hence the single quotes.  This is per the GNU coding standards, see
 dnl (autoconf) Installation Directory Variables
 dnl See also epaths.h below.
-lispdir='${datadir}/emacs/${version}/lisp'
+lispdirrel='${version}/lisp'
+lispdir='${datadir}/emacs/'${lispdirrel}
 standardlisppath='${lispdir}'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
@@ -483,6 +484,7 @@ OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 OPTION_DEFAULT_ON([zlib],[don't compile with zlib decompression support])
 OPTION_DEFAULT_ON([modules],[don't compile with dynamic modules support])
 OPTION_DEFAULT_ON([threads],[don't compile with elisp threading support])
+OPTION_DEFAULT_OFF([native-compilation],[compile with Emacs Lisp native compiler support])
 
 AC_ARG_WITH([file-notification],[AS_HELP_STRING([--with-file-notification=LIB],
  [use a file notification library (LIB one of: yes, inotify, kqueue, gfile, w32, no)])],
@@ -1889,6 +1891,7 @@ if test "${with_ns}" != no; then
   # so avoid NS_IMPL_COCOA if macuvs.h is absent.
   # Even a headless Emacs can build macuvs.h, so this should let you bootstrap.
   if test "${opsys}" = darwin && test -f "$srcdir/src/macuvs.h"; then
+     lispdirrel=Contents/Resources/lisp
      NS_IMPL_COCOA=yes
      ns_appdir=`pwd`/nextstep/Emacs.app
      ns_appbindir=${ns_appdir}/Contents/MacOS
@@ -3660,6 +3663,7 @@ AC_SUBST(LIBZ)
 LIBMODULES=
 HAVE_MODULES=no
 MODULES_OBJ=
+NEED_DYNLIB=no
 case $opsys in
   cygwin|mingw32) MODULES_SUFFIX=".dll" ;;
   darwin) MODULES_SUFFIX=".dylib" ;;
@@ -3695,7 +3699,8 @@ if test "${with_modules}" != "no"; then
 fi
 
 if test "${HAVE_MODULES}" = yes; then
-   MODULES_OBJ="dynlib.o emacs-module.o"
+   MODULES_OBJ="emacs-module.o"
+   NEED_DYNLIB=yes
    AC_DEFINE(HAVE_MODULES, 1, [Define to 1 if dynamic modules are enabled])
    AC_DEFINE_UNQUOTED(MODULES_SUFFIX, "$MODULES_SUFFIX",
      [System extension for dynamic libraries])
@@ -3721,6 +3726,124 @@ module_env_snippet_27="$srcdir/src/module-env-27.h"
 module_env_snippet_28="$srcdir/src/module-env-28.h"
 emacs_major_version="${PACKAGE_VERSION%%.*}"
 AC_SUBST(emacs_major_version)
+
+### Emacs Lisp native compiler support
+
+AC_DEFUN([libgccjit_smoke_test], [
+  AC_LANG_SOURCE(
+    [[#include <libgccjit.h>
+      #include <stdlib.h>
+      #include <stdio.h>
+      int
+      main (int argc, char **argv)
+      {
+        gcc_jit_context *ctxt;
+        gcc_jit_result *result;
+        ctxt = gcc_jit_context_acquire ();
+        if (!ctxt)
+          exit (1);
+        gcc_jit_type *int_type =
+          gcc_jit_context_get_type (ctxt, GCC_JIT_TYPE_INT);
+        gcc_jit_function *func =
+          gcc_jit_context_new_function (ctxt, NULL,
+                                        GCC_JIT_FUNCTION_EXPORTED,
+                                        int_type, "foo", 0, NULL, 0);
+        gcc_jit_block *block = gcc_jit_function_new_block (func, "foo");
+        gcc_jit_block_end_with_return (
+          block,
+          NULL,
+          gcc_jit_context_new_rvalue_from_int (ctxt, int_type, 1));
+        result = gcc_jit_context_compile (ctxt);
+        if (!result)
+          exit (1);
+        typedef int (*fn_type) (void);
+        fn_type foo =
+          (fn_type)gcc_jit_result_get_code (result, "foo");
+        if (!foo)
+          exit (1);
+        if (foo () != 1)
+          exit (1);
+        gcc_jit_context_release (ctxt);
+        gcc_jit_result_release (result);
+        return 0;
+      }]])])
+
+AC_DEFUN([libgccjit_not_found], [
+  AC_MSG_ERROR([elisp native compiler requested but libgccjit not found.
+Please try installing libgccjit or similar package.
+If you are sure you want Emacs compiled without elisp native compiler, pass
+  --without-native-compilation
+to configure.])])
+
+AC_DEFUN([libgccjit_dev_not_found], [
+  AC_MSG_ERROR([elisp native compiler requested but libgccjit header files were
+not found.
+Please try installing libgccjit-dev or similar package.
+If you are sure you want Emacs compiled without elisp native compiler, pass
+--without-nativecomp
+to configure.])])
+
+AC_DEFUN([libgccjit_broken], [
+  AC_MSG_ERROR([Installed libgccjit has failed passing the smoke test.
+You can verify it yourself compiling:
+<https://gcc.gnu.org/onlinedocs/jit/intro/tutorial01.html>.
+Please report the issue to your distribution if libgccjit was installed through
+that.
+Here instructions on how to compile and install libgccjit from source:
+<https://gcc.gnu.org/wiki/JIT>.])])
+
+HAVE_NATIVE_COMP=no
+LIBGCCJIT_LIB=
+if test "${with_native_compilation}" != "no"; then
+    if test "${HAVE_PDUMPER}" = no; then
+       AC_MSG_ERROR(['--with-nativecomp' requires '--with-dumping=pdumper'])
+    fi
+    if test "${HAVE_ZLIB}" = no; then
+       AC_MSG_ERROR(['--with-nativecomp' requires zlib])
+    fi
+
+    # Ensure libgccjit installed by Homebrew can be found.
+    if test -n "$BREW"; then
+      BREW_LIBGCCJIT_PREFIX=`$BREW --prefix --installed libgccjit 2>/dev/null`
+      if test "$BREW_LIBGCCJIT_PREFIX"; then
+        brew_libdir=`find ${BREW_LIBGCCJIT_PREFIX}/ -name \*.so \
+                     | sed -e '1!d;s|/[[^/]]*\.so$||'`
+        CFLAGS="$CFLAGS -I${BREW_LIBGCCJIT_PREFIX}/include"
+        LDFLAGS="$LDFLAGS -L${brew_libdir} -I${BREW_LIBGCCJIT_PREFIX}/include"
+      fi
+    fi
+
+    # Check if libgccjit is available.
+    AC_CHECK_LIB(gccjit, gcc_jit_context_acquire, [], [libgccjit_not_found])
+    AC_CHECK_HEADERS(libgccjit.h, [], [libgccjit_dev_not_found])
+    emacs_save_LIBS=$LIBS
+    LIBS="-lgccjit"
+    # Check if libgccjit really works.
+    AC_RUN_IFELSE([libgccjit_smoke_test], [], [libgccjit_broken])
+    LIBS=$emacs_save_LIBS
+    HAVE_NATIVE_COMP=yes
+    case "${opsys}" in
+      # mingw32 loads the library dynamically.
+      mingw32) ;;
+      # OpenBSD doesn't have libdl, all the functions are in libc
+      netbsd|openbsd)
+        LIBGCCJIT_LIB="-lgccjit" ;;
+      *)
+        LIBGCCJIT_LIB="-lgccjit -ldl" ;;
+    esac
+    NEED_DYNLIB=yes
+    AC_DEFINE(HAVE_NATIVE_COMP, 1, [Define to 1 if native compiler is available.])
+fi
+AC_DEFINE_UNQUOTED(NATIVE_ELISP_SUFFIX, ".eln",
+  [System extension for native compiled elisp])
+AC_SUBST(HAVE_NATIVE_COMP)
+AC_SUBST(LIBGCCJIT_LIB)
+
+DYNLIB_OBJ=
+if test "${NEED_DYNLIB}" = yes; then
+  DYNLIB_OBJ="dynlib.o"
+fi
+AC_SUBST(DYNLIB_OBJ)
 
 ### Use -lpng if available, unless '--with-png=no'.
 HAVE_PNG=no
@@ -5258,6 +5381,7 @@ AC_SUBST(sharedstatedir)
 AC_SUBST(libexecdir)
 AC_SUBST(mandir)
 AC_SUBST(infodir)
+AC_SUBST(lispdirrel)
 AC_SUBST(lispdir)
 AC_SUBST(standardlisppath)
 AC_SUBST(locallisppath)
@@ -5701,8 +5825,8 @@ optsep=
 emacs_config_features=
 for opt in ACL CAIRO DBUS FREETYPE GCONF GIF GLIB GMP GNUTLS GPM GSETTINGS \
  HARFBUZZ IMAGEMAGICK JPEG JSON LCMS2 LIBOTF LIBSELINUX LIBSYSTEMD LIBXML2 \
- M17N_FLT MODULES NOTIFY NS OLDXMENU PDUMPER PNG RSVG SECCOMP SOUND \
- THREADS TIFF \
+ M17N_FLT MODULES NATIVE_COMP NOTIFY NS OLDXMENU PDUMPER PNG RSVG SECCOMP \
+ SOUND THREADS TIFF \
  TOOLKIT_SCROLL_BARS UNEXEC X11 XAW3D XDBE XFT XIM XPM XWIDGETS X_TOOLKIT \
  ZLIB; do
 
@@ -5778,6 +5902,7 @@ AS_ECHO(["  Does Emacs use -lXaw3d?                                 ${HAVE_XAW3D
   Does Emacs support the portable dumper?                 ${with_pdumper}
   Does Emacs support legacy unexec dumping?               ${with_unexec}
   Which dumping strategy does Emacs use?                  ${with_dumping}
+  Does Emacs have native lisp compiler?                   ${HAVE_NATIVE_COMP}
 "])
 
 if test -n "${EMACSDATA}"; then

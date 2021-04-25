@@ -146,6 +146,11 @@ The return value of this function is not used."
       (list 'function-put (list 'quote f)
             ''lisp-indent-function (list 'quote val))))
 
+(defalias 'byte-run--set-speed
+  #'(lambda (f _args val)
+      (list 'function-put (list 'quote f)
+            ''speed (list 'quote val))))
+
 (defalias 'byte-run--set-completion
   #'(lambda (f _args val)
       (list 'function-put (list 'quote f)
@@ -173,6 +178,7 @@ If `error-free', drop calls even if `byte-compile-delete-errors' is nil.")
    (list 'compiler-macro #'byte-run--set-compiler-macro)
    (list 'doc-string #'byte-run--set-doc-string)
    (list 'indent #'byte-run--set-indent)
+   (list 'speed #'byte-run--set-speed)
    (list 'completion #'byte-run--set-completion)
    (list 'modes #'byte-run--set-modes))
   "List associating function properties to their macro expansion.
@@ -381,6 +387,10 @@ You don't need this.  (See bytecomp.el commentary for more details.)
   `(prog1
        (defun ,name ,arglist ,@body)
      (eval-and-compile
+       ;; Never native-compile defsubsts as we need the byte
+       ;; definition in `byte-compile-unfold-bcf' to perform the
+       ;; inlining (Bug#42664, Bug#43280, Bug#44209).
+       ,(byte-run--set-speed name nil -1)
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
 (defvar advertised-signature-table (make-hash-table :test 'eq :weakness 'key))

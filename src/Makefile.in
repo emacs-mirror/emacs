@@ -242,7 +242,7 @@ LIBZ = @LIBZ@
 
 ## system-specific libs for dynamic modules, else empty
 LIBMODULES = @LIBMODULES@
-## dynlib.o emacs-module.o if modules enabled, else empty
+## emacs-module.o if modules enabled, else empty
 MODULES_OBJ = @MODULES_OBJ@
 
 XRANDR_LIBS = @XRANDR_LIBS@
@@ -326,6 +326,11 @@ GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 LIBGMP = @LIBGMP@
 
+LIBGCCJIT = @LIBGCCJIT_LIB@
+
+## dynlib.o if necessary, else empty
+DYNLIB_OBJ = @DYNLIB_OBJ@
+
 RUN_TEMACS = ./temacs
 
 # Whether builds should contain details. '--no-build-details' or empty.
@@ -392,7 +397,7 @@ base_obj = dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex-emacs.o undo.o \
 	alloc.o pdumper.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o font.o print.o lread.o $(MODULES_OBJ) \
-	syntax.o $(UNEXEC_OBJ) bytecode.o \
+	syntax.o $(UNEXEC_OBJ) bytecode.o comp.o $(DYNLIB_OBJ) \
 	process.o gnutls.o callproc.o \
 	region-cache.o sound.o timefns.o atimer.o \
 	doprnt.o intervals.o textprop.o composite.o xml.o lcms.o $(NOTIFY_OBJ) \
@@ -495,6 +500,7 @@ shortlisp := $(filter-out ${shortlisp_filter},${shortlisp})
 ## the critical path (relevant in parallel compilations).
 ## We don't really need to sort, but may as well use it to remove duplicates.
 shortlisp := loaddefs.el loadup.el $(sort ${shortlisp})
+export LISP_PRELOADED = ${shortlisp}
 lisp = $(addprefix ${lispsource}/,${shortlisp})
 
 ## Construct full set of libraries to be linked.
@@ -510,7 +516,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(HARFBUZZ_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIBGNUTLS_LIBS) $(LIB_PTHREAD) $(GETADDRINFO_A_LIBS) $(LCMS2_LIBS) \
    $(NOTIFY_LIBS) $(LIB_MATH) $(LIBZ) $(LIBMODULES) $(LIBSYSTEMD_LIBS) \
-   $(JSON_LIBS) $(LIBGMP)
+   $(JSON_LIBS) $(LIBGMP) $(LIBGCCJIT)
 
 ## FORCE it so that admin/unidata can decide whether this file is
 ## up-to-date.  Although since charprop depends on bootstrap-emacs,
@@ -560,7 +566,8 @@ endif
 
 ifeq ($(DUMPING),pdumper)
 $(pdmp): emacs$(EXEEXT)
-	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump
+	LC_ALL=C $(RUN_TEMACS) -batch $(BUILD_DETAILS) -l loadup --temacs=pdump \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
 	cp -f $@ $(bootstrap_pdmp)
 endif
 
@@ -791,7 +798,8 @@ endif
 ifeq ($(DUMPING),pdumper)
 $(bootstrap_pdmp): bootstrap-emacs$(EXEEXT)
 	rm -f $@
-	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap
+	$(RUN_TEMACS) --batch $(BUILD_DETAILS) -l loadup --temacs=pbootstrap \
+		--bin-dest $(BIN_DESTDIR) --eln-dest $(ELN_DESTDIR)
 	@: Compile some files earlier to speed up further compilation.
 	$(MAKE) -C ../lisp compile-first EMACS="$(bootstrap_exe)"
 endif

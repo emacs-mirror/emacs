@@ -2477,6 +2477,14 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
 (defmacro cl-the (type form)
   "Return FORM.  If type-checking is enabled, assert that it is of TYPE."
   (declare (indent 1) (debug (cl-type-spec form)))
+  ;; When native compiling possibly add the appropriate type hint.
+  (when (and (boundp 'byte-native-compiling)
+             byte-native-compiling)
+    (setf form
+          (cl-case type
+            (fixnum `(comp-hint-fixnum ,form))
+            (cons `(comp-hint-cons ,form))
+            (otherwise form))))
   (if (not (or (not (macroexp-compiling-p))
                (< cl--optimize-speed 3)
                (= cl--optimize-safety 3)))
@@ -2486,6 +2494,28 @@ values.  For compatibility, (cl-values A B C) is a synonym for (list A B C).
                 (signal 'wrong-type-argument
                         (list ',type ,temp ',form)))
               ,temp))))
+
+;;;###autoload
+(or (assq 'cl-optimize defun-declarations-alist)
+    (let ((x (list 'cl-optimize #'cl--optimize)))
+      (push x macro-declarations-alist)
+      (push x defun-declarations-alist)))
+
+(defun cl--optimize (f _args &rest qualities)
+  "Serve 'cl-optimize' in function declarations.
+Example:
+(defun foo (x)
+  (declare (cl-optimize (speed 3) (safety 0)))
+  x)"
+  ;; FIXME this should make use of `cl--declare-stack' but I suspect
+  ;; this mechanism should be reviewed first.
+  (cl-loop for (qly val) in qualities
+           do (cl-ecase qly
+                (speed
+                 (setf cl--optimize-speed val)
+                 (byte-run--set-speed f nil val))
+                (safety
+                 (setf cl--optimize-safety val)))))
 
 (defvar cl--proclaim-history t)    ; for future compilers
 (defvar cl--declare-stack t)       ; for future compilers
@@ -3556,6 +3586,10 @@ The type name can then be used in `cl-typecase', `cl-check-type', etc."
           (cl-function (lambda (&cl-defs ('*) ,@arglist) ,@body)))))
 
 (cl-deftype extended-char () '(and character (not base-char)))
+;; Define fixnum so `cl-typep' recognize it and the type check emitted
+;; by `cl-the' is effective.
+(cl-deftype fixnum () 'fixnump)
+(cl-deftype bignum () 'bignump)
 
 ;;; Additional functions that we can now define because we've defined
 ;;; `cl-defsubst' and `cl-typep'.

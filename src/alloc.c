@@ -3152,6 +3152,26 @@ cleanup_vector (struct Lisp_Vector *vector)
       module_finalize_function (function);
     }
 #endif
+  else if (NATIVE_COMP_FLAG
+	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_NATIVE_COMP_UNIT))
+    {
+      struct Lisp_Native_Comp_Unit *cu =
+	PSEUDOVEC_STRUCT (vector, Lisp_Native_Comp_Unit);
+      unload_comp_unit (cu);
+    }
+  else if (NATIVE_COMP_FLAG
+	   && PSEUDOVECTOR_TYPEP (&vector->header, PVEC_SUBR))
+    {
+      struct Lisp_Subr *subr =
+	PSEUDOVEC_STRUCT (vector, Lisp_Subr);
+      if (!NILP (subr->native_comp_u[0]))
+	{
+	  /* FIXME Alternative and non invasive solution to this
+	     cast?  */
+	  xfree ((char *)subr->symbol_name);
+	  xfree (subr->native_c_name[0]);
+	}
+    }
 }
 
 /* Reclaim space used by unmarked vectors.  */
@@ -6725,6 +6745,15 @@ mark_object (Lisp_Object arg)
 	    break;
 
 	  case PVEC_SUBR:
+	    if (SUBR_NATIVE_COMPILEDP (obj))
+	      {
+		set_vector_marked (ptr);
+		struct Lisp_Subr *subr = XSUBR (obj);
+		mark_object (subr->native_intspec);
+		mark_object (subr->native_comp_u[0]);
+		mark_object (subr->lambda_list[0]);
+		mark_object (subr->type[0]);
+	      }
 	    break;
 
 	  case PVEC_FREE:
@@ -6869,7 +6898,9 @@ survives_gc_p (Lisp_Object obj)
       break;
 
     case Lisp_Vectorlike:
-      survives_p = SUBRP (obj) || vector_marked_p (XVECTOR (obj));
+      survives_p =
+	(SUBRP (obj) && !SUBR_NATIVE_COMPILEDP (obj)) ||
+	vector_marked_p (XVECTOR (obj));
       break;
 
     case Lisp_Cons:
@@ -7629,14 +7660,14 @@ N should be nonnegative.  */);
   static union Aligned_Lisp_Subr Swatch_gc_cons_threshold =
      {{{ PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
        { .a4 = watch_gc_cons_threshold },
-       4, 4, "watch_gc_cons_threshold", 0, 0}};
+       4, 4, "watch_gc_cons_threshold", {0}, 0}};
   XSETSUBR (watcher, &Swatch_gc_cons_threshold.s);
   Fadd_variable_watcher (Qgc_cons_threshold, watcher);
 
   static union Aligned_Lisp_Subr Swatch_gc_cons_percentage =
      {{{ PSEUDOVECTOR_FLAG | (PVEC_SUBR << PSEUDOVECTOR_AREA_BITS) },
        { .a4 = watch_gc_cons_percentage },
-       4, 4, "watch_gc_cons_percentage", 0, 0}};
+       4, 4, "watch_gc_cons_percentage", {0}, 0}};
   XSETSUBR (watcher, &Swatch_gc_cons_percentage.s);
   Fadd_variable_watcher (Qgc_cons_percentage, watcher);
 }

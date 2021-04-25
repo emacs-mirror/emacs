@@ -135,6 +135,7 @@ src/gl-stamp
 *.dll
 *.core
 *.elc
+*.eln
 *.o
 *.res
 *.so

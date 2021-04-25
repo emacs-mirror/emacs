@@ -49,6 +49,11 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 */
 #define PATH_SITELOADSEARCH "%emacs_dir%/share/emacs/@VER@/site-lisp;%emacs_dir%/share/emacs/site-lisp"
 
+/* Like PATH_LOADSEARCH, but contains the relative path from the
+   installation directory.
+*/
+#define PATH_REL_LOADSEARCH ""
+
 /* Like PATH_LOADSEARCH, but used only during the build process
    when Emacs is dumping.  Configure (using "make epaths-force-w32") sets
    this to $buildlisppath, which normally has the value: <srcdir>/lisp.

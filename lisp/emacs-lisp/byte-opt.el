@@ -2356,6 +2356,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 ;;
 (eval-when-compile
  (or (byte-code-function-p (symbol-function 'byte-optimize-form))
+     (subr-native-elisp-p (symbol-function 'byte-optimize-form))
      (assq 'byte-code (symbol-function 'byte-optimize-form))
      (let ((byte-optimize nil)
 	   (byte-compile-warnings nil))

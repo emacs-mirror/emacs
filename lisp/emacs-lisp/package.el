@@ -396,6 +396,12 @@ a sane initial value."
   :version "25.1"
   :type '(repeat symbol))
 
+(defcustom package-native-compile nil
+  "Non-nil means to native compile packages on installation."
+  :type '(boolean)
+  :risky t
+  :version "28.1")
+
 (defcustom package-menu-async t
   "If non-nil, package-menu will use async operations when possible.
 Currently, only the refreshing of archive contents supports
@@ -985,6 +991,8 @@ untar into a directory named DIR; otherwise, signal an error."
         ;; E.g. for multi-package installs, we should first install all packages
         ;; and then compile them.
         (package--compile new-desc)
+        (when package-native-compile
+          (package--native-compile-async new-desc))
         ;; After compilation, load again any files loaded by
         ;; `activate-1', so that we use the byte-compiled definitions.
         (package--load-files-for-activation new-desc :reload)))
@@ -1068,6 +1076,15 @@ This assumes that `pkg-desc' has already been activated with
   (let ((warning-minimum-level :error)
         (load-path load-path))
     (byte-recompile-directory (package-desc-dir pkg-desc) 0 t)))
+
+(defun package--native-compile-async (pkg-desc)
+  "Native compile installed package PKG-DESC asynchronously.
+This assumes that `pkg-desc' has already been activated with
+`package-activate-1'."
+  (when (and (featurep 'nativecomp)
+             (native-comp-available-p))
+    (let ((warning-minimum-level :error))
+      (native-compile-async (package-desc-dir pkg-desc) t))))
 
 ;;;; Inferring package from current buffer
 (defun package-read-from-string (str)
@@ -2243,6 +2260,17 @@ confirmation to install packages."
   (equal (cadr (assq (package-desc-name pkg) package-alist))
          pkg))
 
+(declare-function comp-el-to-eln-filename "comp.c")
+(defun package--delete-directory (dir)
+  "Delete DIR recursively.
+Clean-up the corresponding .eln files if Emacs is native
+compiled."
+  (when (featurep 'nativecomp)
+    (cl-loop
+     for file in (directory-files-recursively dir ".el\\'")
+     do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
+  (delete-directory dir t))
+
 (defun package-delete (pkg-desc &optional force nosave)
   "Delete package PKG-DESC.
 
@@ -2295,7 +2323,7 @@ If NOSAVE is non-nil, the package is not removed from
                   (package-desc-name pkg-used-elsewhere-by)))
           (t
            (add-hook 'post-command-hook #'package-menu--post-refresh)
-           (delete-directory dir t)
+           (package--delete-directory dir)
            ;; Remove NAME-VERSION.signed and NAME-readme.txt files.
            ;;
            ;; NAME-readme.txt files are no longer created, but they
@@ -4118,7 +4146,8 @@ activations need to be changed, such as when `package-load-list' is modified."
                 (let ((load-suffixes '(".el" ".elc")))
                   (locate-library (package--autoloads-file-name pkg))))
                (pfile (prin1-to-string file)))
-          (insert "(let ((load-file-name " pfile "))\n")
+          (insert "(let ((load-true-file-name " pfile ")\
+(load-file-name " pfile "))\n")
           (insert-file-contents file)
           ;; Fixup the special #$ reader form and throw away comments.
           (while (re-search-forward "#\\$\\|^;\\(.*\n\\)" nil 'move)

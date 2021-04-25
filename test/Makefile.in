@@ -47,6 +47,8 @@ SO = @MODULES_SUFFIX@
 
 SEPCHAR = @SEPCHAR@
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+
 -include ${top_builddir}/src/verbose.mk
 
 # Load any GNU ELPA dependencies that are present, for optional tests.
@@ -118,6 +120,8 @@ emacs = LANG=C EMACSLOADPATH= 		   \
 # Set HOME to a nonexistent directory to prevent tests from accessing
 # it accidentally (e.g., popping up a gnupg dialog if ~/.authinfo.gpg
 # exists, or writing to ~/.bzr.log when running bzr commands).
+# NOTE if the '/nonexistent' name is changed `normal-top-level' in
+# startup.el must be updated too.
 TEST_HOME = /nonexistent
 
 test_module_dir := src/emacs-module-resources
@@ -126,9 +130,15 @@ test_module_dir := src/emacs-module-resources
 
 all: check
 
+ifeq ($(HAVE_NATIVE_COMP),yes)
 SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable)))
 SELECTOR_EXPENSIVE = (not (tag :unstable))
 SELECTOR_ALL = t
+else
+SELECTOR_DEFAULT = (not (or (tag :expensive-test) (tag :unstable) (tag :nativecomp)))
+SELECTOR_EXPENSIVE = (not (or (tag :unstable) (tag :nativecomp)))
+SELECTOR_ALL = (not (tag :nativecomp))
+endif
 ifdef SELECTOR
 SELECTOR_ACTUAL=$(SELECTOR)
 else ifndef MAKECMDGOALS

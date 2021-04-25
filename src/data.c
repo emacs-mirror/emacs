@@ -88,12 +88,6 @@ XOBJFWD (lispfwd a)
 }
 
 static void
-CHECK_SUBR (Lisp_Object x)
-{
-  CHECK_TYPE (SUBRP (x), Qsubrp, x);
-}
-
-static void
 set_blv_found (struct Lisp_Buffer_Local_Value *blv, int found)
 {
   eassert (found == !EQ (blv->defcell, blv->valcell));
@@ -259,6 +253,8 @@ for example, (type-of 1) returns `integer'.  */)
           }
         case PVEC_MODULE_FUNCTION:
           return Qmodule_function;
+	case PVEC_NATIVE_COMP_UNIT:
+          return Qnative_comp_unit;
         case PVEC_XWIDGET:
           return Qxwidget;
         case PVEC_XWIDGET_VIEW:
@@ -779,6 +775,13 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 
   eassert (valid_lisp_object_p (definition));
 
+#ifdef HAVE_NATIVE_COMP
+  if (comp_enable_subr_trampolines
+      && SUBRP (function)
+      && !SUBR_NATIVE_COMPILEDP (function))
+    CALLN (Ffuncall, Qcomp_subr_trampoline_install, symbol);
+#endif
+
   set_symbol_function (symbol, definition);
 
   return definition;
@@ -823,6 +826,8 @@ The return value is undefined.  */)
     else
       Ffset (symbol, definition);
   }
+
+  maybe_defer_native_compilation (symbol, definition);
 
   if (!NILP (docstring))
     Fput (symbol, Qfunction_documentation, docstring);
@@ -870,6 +875,72 @@ SUBR must be a built-in function.  */)
   return build_string (name);
 }
 
+DEFUN ("subr-native-elisp-p", Fsubr_native_elisp_p, Ssubr_native_elisp_p, 1, 1,
+       0, doc: /* Return t if the object is native compiled lisp
+function, nil otherwise.  */)
+  (Lisp_Object object)
+{
+  return SUBR_NATIVE_COMPILEDP (object) ? Qt : Qnil;
+}
+
+DEFUN ("subr-native-lambda-list", Fsubr_native_lambda_list,
+       Ssubr_native_lambda_list, 1, 1, 0,
+       doc: /* Return the lambda list for a native compiled lisp/d
+function or t otherwise.  */)
+  (Lisp_Object subr)
+{
+  CHECK_SUBR (subr);
+
+  return SUBR_NATIVE_COMPILED_DYNP (subr)
+    ? XSUBR (subr)->lambda_list[0]
+    : Qt;
+}
+
+DEFUN ("subr-type", Fsubr_type,
+       Ssubr_type, 1, 1, 0,
+       doc: /* Return the type of SUBR.  */)
+  (Lisp_Object subr)
+{
+  CHECK_SUBR (subr);
+#ifdef HAVE_NATIVE_COMP
+  return SUBR_TYPE (subr);
+#else
+  return Qnil;
+#endif
+}
+
+#ifdef HAVE_NATIVE_COMP
+
+DEFUN ("subr-native-comp-unit", Fsubr_native_comp_unit,
+       Ssubr_native_comp_unit, 1, 1, 0,
+       doc: /* Return the native compilation unit.  */)
+  (Lisp_Object subr)
+{
+  CHECK_SUBR (subr);
+  return XSUBR (subr)->native_comp_u[0];
+}
+
+DEFUN ("native-comp-unit-file", Fnative_comp_unit_file,
+       Snative_comp_unit_file, 1, 1, 0,
+       doc: /* Return the file of the native compilation unit.  */)
+  (Lisp_Object comp_unit)
+{
+  CHECK_TYPE (NATIVE_COMP_UNITP (comp_unit), Qnative_comp_unit, comp_unit);
+  return XNATIVE_COMP_UNIT (comp_unit)->file;
+}
+
+DEFUN ("native-comp-unit-set-file", Fnative_comp_unit_set_file,
+       Snative_comp_unit_set_file, 2, 2, 0,
+       doc: /* Return the file of the native compilation unit.  */)
+  (Lisp_Object comp_unit, Lisp_Object new_file)
+{
+  CHECK_TYPE (NATIVE_COMP_UNITP (comp_unit), Qnative_comp_unit, comp_unit);
+  XNATIVE_COMP_UNIT (comp_unit)->file = new_file;
+  return comp_unit;
+}
+
+#endif
+
 DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
        doc: /* Return the interactive form of CMD or nil if none.
 If CMD is not a command, the return value is nil.
@@ -895,6 +966,9 @@ Value, if non-nil, is a list (interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
+      if (SUBR_NATIVE_COMPILEDP (fun) && !NILP (XSUBR (fun)->native_intspec))
+	return XSUBR (fun)->native_intspec;
+
       const char *spec = XSUBR (fun)->intspec;
       if (spec)
 	return list2 (Qinteractive,
@@ -3961,6 +4035,7 @@ syms_of_data (void)
   DEFSYM (Qoverlay, "overlay");
   DEFSYM (Qfinalizer, "finalizer");
   DEFSYM (Qmodule_function, "module-function");
+  DEFSYM (Qnative_comp_unit, "native-comp-unit");
   DEFSYM (Quser_ptr, "user-ptr");
   DEFSYM (Qfloat, "float");
   DEFSYM (Qwindow_configuration, "window-configuration");
@@ -4085,6 +4160,14 @@ syms_of_data (void)
   defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
   defsubr (&Ssubr_name);
+  defsubr (&Ssubr_native_elisp_p);
+  defsubr (&Ssubr_native_lambda_list);
+  defsubr (&Ssubr_type);
+#ifdef HAVE_NATIVE_COMP
+  defsubr (&Ssubr_native_comp_unit);
+  defsubr (&Snative_comp_unit_file);
+  defsubr (&Snative_comp_unit_set_file);
+#endif
 #ifdef HAVE_MODULES
   defsubr (&Suser_ptrp);
 #endif
