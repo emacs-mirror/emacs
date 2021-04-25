@@ -865,12 +865,11 @@ mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
 ###      with them.
 ###
 ###      Delete '.dvi' files here if they are not part of the distribution.
-clean_dirs = $(mostlyclean_dirs) nextstep
+clean_dirs = $(mostlyclean_dirs) nextstep admin/charsets admin/unidata
 
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
 clean: $(clean_dirs:=_clean) clean-gsettings-schemas
-	$(MAKE) -C admin/charsets $@
 	[ ! -d test ] || $(MAKE) -C test $@
 	-rm -f ./*.tmp etc/*.tmp*
 	-rm -rf info-dir.*
@@ -892,16 +891,11 @@ top_distclean=\
 	rm -f config.status config.log~ \
 	  Makefile makefile lib/gnulib.mk ${SUBDIR_MAKEFILES}
 
-distclean_dirs = $(clean_dirs) leim lisp
+distclean_dirs = $(clean_dirs) leim lisp admin/grammars
 
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
 
-maybeclean_dirs = test admin/grammars admin/unidata admin/charsets
-
 distclean: $(distclean_dirs:=_distclean)
-	for dir in $(filter-out test,$(maybeclean_dirs)); do \
-	  $(MAKE) -C $$dir $@ || exit; \
-	done
 	[ ! -d test ] || $(MAKE) -C test $@
 	${top_distclean}
 
@@ -911,9 +905,6 @@ distclean: $(distclean_dirs:=_distclean)
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),bootstrap-clean)))
 
 bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
-	for dir in $(filter-out test,$(maybeclean_dirs)); do \
-	  $(MAKE) -C $$dir $@ || exit; \
-	done
 	[ ! -d test ] || $(MAKE) -C test $@
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
@@ -935,14 +926,12 @@ top_maintainer_clean=\
 	${top_distclean}; \
 	rm -fr autom4te.cache
 
-maintainer_clean_dirs = src leim lisp
+maintainer_clean_dirs = src leim lisp admin/charsets admin/grammars \
+  admin/unidata
 
 $(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
 
 maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
-	for dir in $(filter-out test,$(maybeclean_dirs)); do \
-	  $(MAKE) -C $$dir $@ || exit; \
-	done
 	[ ! -d test ] || $(MAKE) -C test $@
 	${top_maintainer_clean}
 

@@ -1274,6 +1274,45 @@ Return either 'hide-all, 'headings-only, or 'show-all."
       (setq outline--cycle-buffer-state 'show-all)
       (message "Show all")))))
 
+(defvar outline-navigation-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-b") #'outline-backward-same-level)
+    (define-key map (kbd "b") #'outline-backward-same-level)
+    (define-key map (kbd "C-f") #'outline-forward-same-level)
+    (define-key map (kbd "f") #'outline-forward-same-level)
+    (define-key map (kbd "C-n") #'outline-next-visible-heading)
+    (define-key map (kbd "n") #'outline-next-visible-heading)
+    (define-key map (kbd "C-p") #'outline-previous-visible-heading)
+    (define-key map (kbd "p") #'outline-previous-visible-heading)
+    (define-key map (kbd "C-u") #'outline-up-heading)
+    (define-key map (kbd "u") #'outline-up-heading)
+    map))
+
+(dolist (command '(outline-backward-same-level
+                   outline-forward-same-level
+                   outline-next-visible-heading
+                   outline-previous-visible-heading
+                   outline-up-heading))
+  (put command 'repeat-map 'outline-navigation-repeat-map))
+
+(defvar outline-editing-repeat-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-v") #'outline-move-subtree-down)
+    (define-key map (kbd "v") #'outline-move-subtree-down)
+    (define-key map (kbd "C-^") #'outline-move-subtree-up)
+    (define-key map (kbd "^") #'outline-move-subtree-up)
+    (define-key map (kbd "C->") #'outline-demote)
+    (define-key map (kbd ">") #'outline-demote)
+    (define-key map (kbd "C-<") #'outline-promote)
+    (define-key map (kbd "<") #'outline-promote)
+    map))
+
+(dolist (command '(outline-move-subtree-down
+                   outline-move-subtree-up
+                   outline-demote
+                   outline-promote))
+  (put command 'repeat-map 'outline-editing-repeat-map))
+
 (provide 'outline)
 (provide 'noutline)
 

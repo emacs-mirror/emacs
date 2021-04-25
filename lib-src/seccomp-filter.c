@@ -35,6 +35,7 @@ variants of those files that can be used to sandbox Emacs before
 
 #include "config.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdarg.h>
@@ -59,6 +60,10 @@ variants of those files that can be used to sandbox Emacs before
 #include <unistd.h>
 
 #include "verify.h"
+
+#ifndef ARCH_CET_STATUS
+#define ARCH_CET_STATUS 0x3001
+#endif
 
 static ATTRIBUTE_FORMAT_PRINTF (2, 3) _Noreturn void
 fail (int error, const char *format, ...)
@@ -165,7 +170,7 @@ main (int argc, char **argv)
   verify (sizeof (long) == 8 && LONG_MIN == INT64_MIN
           && LONG_MAX == INT64_MAX);
   verify (sizeof (void *) == 8);
-  verify ((uintptr_t) NULL == 0);
+  assert ((uintptr_t) NULL == 0);
 
   /* Allow a clean exit.  */
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (exit));
@@ -345,6 +350,8 @@ main (int argc, char **argv)
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (set_tid_address));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (arch_prctl),
         SCMP_A0_32 (SCMP_CMP_EQ, ARCH_SET_FS));
+  RULE (SCMP_ACT_ERRNO (EINVAL), SCMP_SYS (arch_prctl),
+        SCMP_A0_32 (SCMP_CMP_EQ, ARCH_CET_STATUS));
   RULE (SCMP_ACT_ALLOW, SCMP_SYS (statfs));
 
   /* We want to allow starting the Emacs binary itself with the

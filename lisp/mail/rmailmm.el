@@ -784,9 +784,11 @@ directly."
 	   (let ((encoding (rmail-mime-entity-transfer-encoding entity)))
 	     (setq size (- (aref body 1) (aref body 0)))
 	     (cond ((string= encoding "base64")
-		    (setq size (/ (* size 3) 4)))
+                    ;; https://en.wikipedia.org/wiki/Base64#MIME
+		    (setq size (* size 0.73)))
 		   ((string= encoding "quoted-printable")
-		    (setq size (/ (* size 7) 3)))))))
+                    ;; Assume most of the text is ASCII...
+		    (setq size (/ (* size 5) 7)))))))
 
     (cond
      ((string-match "text/html" content-type)

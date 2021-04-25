@@ -2121,7 +2121,7 @@ read_char_help_form_unwind (void)
   Lisp_Object window_config = XCAR (help_form_saved_window_configs);
   help_form_saved_window_configs = XCDR (help_form_saved_window_configs);
   if (!NILP (window_config))
-    Fset_window_configuration (window_config, Qnil);
+    Fset_window_configuration (window_config, Qnil, Qnil);
 }
 
 #define STOP_POLLING					\

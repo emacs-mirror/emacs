@@ -2648,7 +2648,8 @@ candidate_window_p (Lisp_Object window, Lisp_Object owindow,
     candidate_p = ((EQ (XWINDOW (all_frames)->frame, w->frame)
                     || (EQ (f->minibuffer_window, all_frames)
                         && EQ (XWINDOW (all_frames)->frame, FRAME_FOCUS_FRAME (f))))
-                   && !is_minibuffer (0, XWINDOW (all_frames)->contents));
+                   && (EQ (minibuf, Qt)
+		       || !is_minibuffer (0, XWINDOW (all_frames)->contents)));
   else if (FRAMEP (all_frames))
     candidate_p = EQ (all_frames, w->frame);
 
@@ -6880,19 +6881,22 @@ DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_config
 }
 
 DEFUN ("set-window-configuration", Fset_window_configuration,
-       Sset_window_configuration, 1, 2, 0,
+       Sset_window_configuration, 1, 3, 0,
        doc: /* Set the configuration of windows and buffers as specified by CONFIGURATION.
 CONFIGURATION must be a value previously returned
 by `current-window-configuration' (which see).
 
 Normally, this function selects the frame of the CONFIGURATION, but if
 DONT-SET-FRAME is non-nil, it leaves selected the frame which was
-current at the start of the function.
+current at the start of the function.  If DONT-SET-MINIWINDOW is non-nil,
+the mini-window of the frame doesn't get set to the corresponding element
+of CONFIGURATION.
 
 If CONFIGURATION was made from a frame that is now deleted,
 only frame-independent values can be restored.  In this case,
 the return value is nil.  Otherwise the value is t.  */)
-  (Lisp_Object configuration, Lisp_Object dont_set_frame)
+  (Lisp_Object configuration, Lisp_Object dont_set_frame,
+   Lisp_Object dont_set_miniwindow)
 {
   register struct save_window_data *data;
   struct Lisp_Vector *saved_windows;
@@ -7103,8 +7107,10 @@ the return value is nil.  Otherwise the value is t.  */)
 		}
 	    }
 
-	  if (BUFFERP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
-	    /* If saved buffer is alive, install it.  */
+	  if ((NILP (dont_set_miniwindow) || !MINI_WINDOW_P (w))
+	      && BUFFERP (p->buffer) && BUFFER_LIVE_P (XBUFFER (p->buffer)))
+	    /* If saved buffer is alive, install it, unless it's a
+	       minibuffer we explicitly prohibit.  */
 	    {
 	      wset_buffer (w, p->buffer);
 	      w->start_at_line_beg = !NILP (p->start_at_line_beg);
@@ -7257,9 +7263,11 @@ void
 restore_window_configuration (Lisp_Object configuration)
 {
   if (CONSP (configuration))
-    Fset_window_configuration (XCDR (configuration), XCAR (configuration));
+    Fset_window_configuration (XCAR (configuration),
+			       XCAR (XCDR (configuration)),
+			       XCAR (XCDR (XCDR (configuration))));
   else
-    Fset_window_configuration (configuration, Qnil);
+    Fset_window_configuration (configuration, Qnil, Qnil);
 }
 
 

@@ -292,28 +292,31 @@ or \\[wdired-abort-changes] to abort changes")))
       (call-interactively (or (if map (lookup-key map (this-command-keys)))
                               #'self-insert-command)))))
 
-(defun wdired--before-change-fn (beg end)
-  (save-excursion
-    ;; Make sure to process entire lines.
-    (goto-char end)
-    (setq end (line-end-position))
-    (goto-char beg)
-    (forward-line 0)
+(put 'wdired--self-insert 'delete-selection 'delete-selection-uses-region-p)
 
-    (while (< (point) end)
-      (unless (wdired--line-preprocessed-p)
+(defun wdired--before-change-fn (beg end)
+  (save-match-data
+    (save-excursion
+      ;; Make sure to process entire lines.
+      (goto-char end)
+      (setq end (line-end-position))
+      (goto-char beg)
+      (forward-line 0)
+
+      (while (< (point) end)
+        (unless (wdired--line-preprocessed-p)
+          (with-silent-modifications
+            (put-text-property (point) (1+ (point)) 'front-sticky t)
+            (wdired--preprocess-files)
+            (when wdired-allow-to-change-permissions
+              (wdired--preprocess-perms))
+            (when (fboundp 'make-symbolic-link)
+              (wdired--preprocess-symlinks))))
+        (forward-line))
+      (when (eobp)
         (with-silent-modifications
-          (put-text-property (point) (1+ (point)) 'front-sticky t)
-          (wdired--preprocess-files)
-          (when wdired-allow-to-change-permissions
-            (wdired--preprocess-perms))
-          (when (fboundp 'make-symbolic-link)
-            (wdired--preprocess-symlinks))))
-      (forward-line))
-    (when (eobp)
-      (with-silent-modifications
-        ;; Is this good enough? Assumes no extra white lines from dired.
-        (put-text-property (1- (point-max)) (point-max) 'read-only t)))))
+          ;; Is this good enough? Assumes no extra white lines from dired.
+          (put-text-property (1- (point-max)) (point-max) 'read-only t))))))
 
 (defun wdired-isearch-filter-read-only (beg end)
   "Skip matches that have a read-only property."

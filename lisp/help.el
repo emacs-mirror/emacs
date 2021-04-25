@@ -187,59 +187,120 @@ Do not call this in the scope of `with-help-window'."
 ;; So keyboard macro definitions are documented correctly
 (fset 'defining-kbd-macro (symbol-function 'start-kbd-macro))
 
+
+;;; Help for help.  (a.k.a. `C-h C-h')
+
+(defvar help-for-help-buffer-name " *Metahelp*"
+  "Name of the `help-for-help' buffer.")
+
+(defface help-for-help-header '((t :height 1.26))
+  "Face used for headers in the `help-for-help' buffer."
+  :group 'help)
+
+(defun help--for-help-make-commands (commands)
+  "Create commands for `help-for-help' screen from COMMANDS."
+  (mapconcat
+   (lambda (cmd)
+     (if (listp cmd)
+         (let ((name (car cmd)) (desc (cadr cmd)))
+           (concat
+            "   "
+            (if (string-match (rx string-start "C-" word string-end) name)
+                ;; `help--key-description-fontified' would convert "C-m" to
+                ;; "RET" so we can't use it here.
+                (propertize name 'face 'help-key-binding)
+              (concat "\\[" name "]"))
+            (propertize "\t" 'display '(space :align-to 8))
+            desc))
+       ""))
+   commands "\n"))
+
+(defun help--for-help-make-sections (sections)
+  "Create sections for `help-for-help' screen from SECTIONS."
+  (mapconcat
+   (lambda (section)
+     (let ((title (car section)) (commands (cdr section)))
+       (concat
+        "\n\n"
+        (propertize title 'face 'help-for-help-header)
+        "\n\n"
+        (help--for-help-make-commands commands))))
+   sections ""))
+
 (defalias 'help 'help-for-help)
 (make-help-screen help-for-help
   (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
-  "You have typed %THIS-KEY%, the help character.  Type a Help option:
-\(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
-
-\\[apropos-command] PATTERN   Show commands whose name matches the PATTERN (a list of words
-              or a regexp).  See also \\[apropos].
-\\[describe-bindings]           Display all key bindings.
-\\[describe-key-briefly] KEYS      Display the command name run by the given key sequence.
-\\[describe-coding-system] CODING    Describe the given coding system, or RET for current ones.
-\\[apropos-documentation] PATTERN   Show a list of functions, variables, and other items whose
-              documentation matches the PATTERN (a list of words or a regexp).
-\\[view-echo-area-messages]           Go to the *Messages* buffer which logs echo-area messages.
-\\[describe-function] FUNCTION  Display documentation for the given function.
-\\[Info-goto-emacs-command-node] COMMAND   Show the Emacs manual's section that describes the command.
-\\[describe-gnu-project]           Display information about the GNU project.
-\\[view-hello-file]           Display the HELLO file which illustrates various scripts.
-\\[info]           Start the Info documentation reader: read included manuals.
-\\[describe-input-method] METHOD    Describe a specific input method, or RET for current.
-\\[describe-key] KEYS      Display the full documentation for the key sequence.
-\\[Info-goto-emacs-key-command-node] KEYS      Show the Emacs manual's section for the command bound to KEYS.
-\\[view-lossage]           Show last 300 input keystrokes (lossage).
-\\[describe-language-environment] LANG-ENV  Describe a specific language environment, or RET for current.
-\\[describe-mode]           Display documentation of current minor modes and current major mode,
-             including their special commands.
-\\[view-emacs-news]           Display news of recent Emacs changes.
-\\[describe-symbol] SYMBOL    Display the given function or variable's documentation and value.
-\\[finder-by-keyword] TOPIC     Find packages matching a given topic keyword.
-\\[describe-package] PACKAGE   Describe the given Emacs Lisp package.
-\\[info-emacs-manual]           Display the Emacs manual in Info mode.
-\\[info-display-manual]           Prompt for a manual and then display it in Info mode.
-\\[describe-syntax]           Display contents of current syntax table, plus explanations.
-\\[info-lookup-symbol] SYMBOL    Show the section for the given symbol in the Info manual
-              for the programming language used in this buffer.
-\\[help-with-tutorial]           Start the Emacs learn-by-doing tutorial.
-\\[describe-variable] VARIABLE  Display the given variable's documentation and value.
-\\[where-is] COMMAND   Display which keystrokes invoke the given command (where-is).
-\\[display-local-help]           Display any available local help at point in the echo area.
-
-\\[about-emacs]         Information about Emacs.
-\\[describe-copying]         Emacs copying permission (GNU General Public License).
-\\[view-emacs-debugging]         Instructions for debugging GNU Emacs.
-\\[view-external-packages]         External packages and information about Emacs.
-\\[view-emacs-FAQ]         Emacs FAQ.
-C-m         How to order printed Emacs manuals.
-C-n         News of recent Emacs changes.
-\\[describe-distribution]         Emacs ordering and distribution information.
-\\[view-emacs-problems]         Info about known Emacs problems.
-\\[search-forward-help-for-help]         Search forward \"help window\".
-\\[view-emacs-todo]         Emacs TODO list.
-\\[describe-no-warranty]         Information on absence of warranty for GNU Emacs."
-  help-map)
+  (concat
+   "\(Type "
+   (help--key-description-fontified "\s") ; SPC
+   " or "
+   (help--key-description-fontified "\d") ; DEL
+   " to scroll, "
+   (help--key-description-fontified "\C-s")
+   " to search, or \\<help-map>\\[help-quit] to exit.)"
+   (help--for-help-make-sections
+    '(("Commands, Keys and Functions"
+       ("describe-mode"
+        "Show help for current major and minor modes and their commands")
+       ("describe-bindings" "Show all key bindings")
+       ("describe-key" "Show help for key")
+       ("describe-key-briefly" "Show help for key briefly")
+       ("where-is" "Show which key runs a specific command")
+       ""
+       ("apropos-command"
+        "Search for commands (see also \\[apropos])")
+       ("apropos-documentation"
+        "Search documentation of functions, variables, and other items")
+       ("describe-function" "Show help for function")
+       ("describe-variable" "Show help for variable")
+       ("describe-symbol" "Show help for function or variable"))
+      ("Manuals"
+       ("info-emacs-manual" "Show Emacs manual")
+       ("Info-goto-emacs-command-node"
+        "Show Emacs manual section for command")
+       ("Info-goto-emacs-key-command-node"
+        "Show Emacs manual section for a key sequence")
+       ("info" "Show all installed manuals")
+       ("info-display-manual" "Show a specific manual")
+       ("info-lookup-symbol" "Show description of symbol in pertinent manual"))
+      ("Other Help Commands"
+       ("view-external-packages"
+        "Extending Emacs with external packages")
+       ("finder-by-keyword"
+        "Search for Emacs packages (see also \\[list-packages])")
+       ("describe-package" "Describe a specific Emacs package")
+       ""
+       ("help-with-tutorial" "Start the Emacs tutorial")
+       ("view-echo-area-messages"
+        "Show recent messages (from echo area)")
+       ("view-lossage" "Show last 300 input keystrokes (lossage)")
+       ("display-local-help" "Show local help at point"))
+      ("Miscellaneous"
+       ("about-emacs" "About Emacs")
+       ("view-emacs-FAQ" "Emacs FAQ")
+       ("C-n" "News of recent changes")
+       ("view-emacs-problems" "Known problems")
+       ("view-emacs-debugging" "Debugging Emacs")
+       ""
+       ("describe-gnu-project" "About the GNU project")
+       ("describe-copying"
+        "Emacs copying permission (GNU General Public License)")
+       ("describe-distribution"
+        "Emacs ordering and distribution information")
+       ("C-m" "Order printed manuals")
+       ("view-emacs-todo" "Emacs TODO")
+       ("describe-no-warranty"
+        "Information on absence of warranty"))
+      ("Internationalization and Coding Systems"
+       ("describe-input-method" "Describe input method")
+       ("describe-coding-system" "Describe coding system")
+       ("describe-language-environment"
+        "Describe language environment")
+       ("describe-syntax" "Show current syntax table")
+       ("view-hello-file"
+        "Display the HELLO file illustrating various scripts")))))
+  help-map
+  help-for-help-buffer-name)
 
 
 
@@ -885,7 +946,7 @@ current buffer."
   "Search forward \"help window\"."
   (interactive)
   ;; Move cursor to the "help window".
-  (pop-to-buffer " *Metahelp*")
+  (pop-to-buffer help-for-help-buffer-name)
   ;; Do incremental search forward.
   (isearch-forward nil t))
 

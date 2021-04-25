@@ -787,11 +787,7 @@ pattern to search for."
 (defun project--find-regexp-in-files (regexp files)
   (unless files
     (user-error "Empty file list"))
-  (let ((xrefs (xref-matches-in-files
-                regexp
-                ;; FIXME: `xref-matches-in-files' should work with
-                ;; quoted filenames.
-                (mapcar #'file-name-unquote files))))
+  (let ((xrefs (xref-matches-in-files regexp files)))
     (unless xrefs
       (user-error "No matches for: %s" regexp))
     xrefs))
@@ -922,11 +918,7 @@ With \\[universal-argument] prefix arg, create a new inferior shell buffer even
 if one already exists."
   (interactive)
   (let* ((default-directory (project-root (project-current t)))
-         (default-project-shell-name
-           (concat "*" (file-name-nondirectory
-                        (directory-file-name
-                         (file-name-directory default-directory)))
-                   "-shell*"))
+         (default-project-shell-name (project-prefixed-buffer-name "shell"))
          (shell-buffer (get-buffer default-project-shell-name)))
     (if (and shell-buffer (not current-prefix-arg))
         (pop-to-buffer-same-window shell-buffer)
@@ -942,11 +934,7 @@ if one already exists."
   (interactive)
   (defvar eshell-buffer-name)
   (let* ((default-directory (project-root (project-current t)))
-         (eshell-buffer-name
-          (concat "*" (file-name-nondirectory
-                       (directory-file-name
-                        (file-name-directory default-directory)))
-                  "-eshell*"))
+         (eshell-buffer-name (project-prefixed-buffer-name "eshell"))
          (eshell-buffer (get-buffer eshell-buffer-name)))
     (if (and eshell-buffer (not current-prefix-arg))
         (pop-to-buffer-same-window eshell-buffer)
@@ -998,12 +986,34 @@ loop using the command \\[fileloop-continue]."
 (defvar compilation-read-command)
 (declare-function compilation-read-command "compile")
 
+(defun project-prefixed-buffer-name (mode)
+  (concat "*"
+          (file-name-nondirectory
+           (directory-file-name default-directory))
+          "-"
+          (downcase mode)
+          "*"))
+
+(defcustom project-compilation-buffer-name-function nil
+  "Function to compute the name of a project compilation buffer.
+If non-nil, it overrides `compilation-buffer-name-function' for
+`project-compile'."
+  :version "28.1"
+  :group 'project
+  :type '(choice (const :tag "Default" nil)
+                 (const :tag "Prefixed with root directory name"
+                        project-prefixed-buffer-name)
+                 (function :tag "Custom function")))
+
 ;;;###autoload
 (defun project-compile ()
   "Run `compile' in the project root."
   (declare (interactive-only compile))
   (interactive)
-  (let ((default-directory (project-root (project-current t))))
+  (let ((default-directory (project-root (project-current t)))
+        (compilation-buffer-name-function
+         (or project-compilation-buffer-name-function
+             compilation-buffer-name-function)))
     (call-interactively #'compile)))
 
 (defun project--read-project-buffer ()
@@ -1306,6 +1316,7 @@ to distinguish the menu entries in the dispatch menu.  If KEY is
 absent, COMMAND must be bound in `project-prefix-map', and the
 key is looked up in that map."
   :version "28.1"
+  :group 'project
   :package-version '(project . "0.6.0")
   :type '(repeat
           (list
@@ -1322,6 +1333,7 @@ listed in `project-switch-commands' and signal an error when
 others are invoked.  Otherwise, all keys in `project-prefix-map'
 are legal even if they aren't listed in the dispatch menu."
   :type 'boolean
+  :group 'project
   :version "28.1")
 
 (defun project--keymap-prompt ()

@@ -916,7 +916,8 @@ find a node."
 	  (when (and (not no-pop-to-dir)
                      (not Info-current-file))
 	    (Info-directory))
-	  (user-error "Info file %s does not exist" filename)))
+          (user-error "Info file `%s' does not exist; consider installing it"
+                      filename)))
       filename))))
 
 (defun Info-find-node (filename nodename &optional no-going-back strict-case)

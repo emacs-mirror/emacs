@@ -1200,7 +1200,7 @@ please check its value")
         ;; are dependencies between them.
         (nreverse custom-delayed-init-variables))
   (mapc #'custom-reevaluate-setting custom-delayed-init-variables)
-  (setq custom-delayed-init-variables nil)
+  (setq custom-delayed-init-variables t)
 
   ;; Warn for invalid user name.
   (when init-file-user

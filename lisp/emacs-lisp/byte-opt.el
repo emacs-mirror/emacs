@@ -1324,7 +1324,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          line-beginning-position line-end-position
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
-	 make-byte-code make-list make-string make-symbol marker-buffer max
+	 make-byte-code make-list make-string make-symbol mark marker-buffer max
 	 member memq memql min minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
@@ -1374,7 +1374,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	 invocation-directory invocation-name
 	 keymapp keywordp
 	 list listp
-	 make-marker mark mark-marker markerp max-char
+	 make-marker mark-marker markerp max-char
 	 memory-limit
 	 mouse-movement-p
 	 natnump nlistp not null number-or-marker-p numberp

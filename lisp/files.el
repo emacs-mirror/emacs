@@ -1653,13 +1653,14 @@ rather than FUN itself, to `minibuffer-setup-hook'."
     (when (eq (car-safe fun) :append)
       (setq append '(t) fun (cadr fun)))
     `(let ((,funsym ,fun)
-           ,hook)
-       (setq ,hook
-             (lambda ()
-               ;; Clear out this hook so it does not interfere
-               ;; with any recursive minibuffer usage.
-               (remove-hook 'minibuffer-setup-hook ,hook)
-               (funcall ,funsym)))
+           ;; Use a symbol to make sure `add-hook' doesn't waste time
+           ;; in `equal'ity testing (bug#46326).
+           (,hook (make-symbol "minibuffer-setup")))
+       (fset ,hook (lambda ()
+                     ;; Clear out this hook so it does not interfere
+                     ;; with any recursive minibuffer usage.
+                     (remove-hook 'minibuffer-setup-hook ,hook)
+                     (funcall ,funsym)))
        (unwind-protect
            (progn
              (add-hook 'minibuffer-setup-hook ,hook ,@append)

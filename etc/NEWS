@@ -963,6 +963,13 @@ authentication mechanism by setting a value for the key 'smtp-auth'.
 
 ** Search and Replace
 
+*** New key 'M-s M-.' starts isearch with the thing found at point.
+This key is bound to the new command 'isearch-forward-thing-at-point'.
+The new user option 'isearch-forward-thing-at-point' defines
+a list of symbols to try to get the "thing" at point.  By default,
+the first element of the list is 'region' that tries to yank
+the currently active region to the search string.
+
 *** New user option 'isearch-wrap-pause' defines how to wrap the search.
 There are choices to disable wrapping completely and to wrap immediately.
 When wrapping immediately, it consistently handles the numeric arguments
@@ -985,6 +992,9 @@ On systems where the grep command supports it, directories will be
 skipped.
 
 ** Help
+
+---
+*** The 'help-for-help' ('C-h C-h') screen has been redesigned.
 
 ---
 *** Keybindings in 'help-mode' use the new 'help-key-binding' face.
@@ -1683,6 +1693,13 @@ choosing the exact definition to go to, and this should do TRT.
 If chosen, file names in "*xref*" buffers will be displayed relative
 to the 'project-root' of the current project, when available.
 
++++
+*** The TAB key binding in *xref* buffers is obsolete.
+Use 'C-u RET' instead.  The TAB binding in *xref* buffers is still
+supported, but we plan on removing it in a future version; at that
+time, the command 'xref-quit-and-goto-xref' will no longer have a key
+binding in 'xref--xref-buffer-mode-map'.
+
 ** json.el
 
 ---
@@ -1743,6 +1760,42 @@ type for highlighting the entire message but not the sender's nick.
 *** erc-status-sidebar.el is now part of ERC.
 The 'erc-status-sidebar' package which provides a HexChat-like
 activity overview sidebar for joined IRC channels is now part of ERC.
+
++++
+*** erc-tls now supports specifying a TLS client certificate.
+The 'erc-tls' function has been updated to allow specifying a TLS
+client certificate for authentication, as an alternative to NickServ
+password-based authentication.  This is referred to as "CertFP" (short
+for Certificate Fingerprint) by several IRC networks.
+
+To use a certificate with 'erc-tls', specify the ':client-certificate'
+optional parameter, whose value should be as described in the
+documentation of 'open-network-stream': if non-nil, it should either
+be a list where the first element is the file name of the private key
+corresponding to a client certificate and the second element is the
+file name of the client certificate itself to use when connecting over
+TLS, or t, which means that 'auth-source' will be queried for the
+private key and the certificate.
+
+Examples of use:
+
+    (erc-tls :server "chat.freenode.net" :port 6697
+             :client-certificate
+             '("/home/bandali/my-cert.key"
+               "/home/bandali/my-cert.crt"))
+
+    (erc-tls :server "chat.freenode.net" :port 6697
+             :client-certificate
+             `(,(expand-file-name "~/cert-freenode.key")
+               ,(expand-file-name "~/cert-freenode.crt")))
+
+    (erc-tls :server "chat.freenode.net" :port 6697
+             :client-certificate t)
+
+In the case of ':client-certificate t', you will need to add a line
+like the following to your authinfo file (e.g. "~/.authinfo.gpg"):
+
+    machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
 
 ** Battery
 
@@ -2240,6 +2293,10 @@ The following user options have been renamed:
 
 The old names are now obsolete.
 
+---
+*** 'world-clock-mode' can no longer be turned on interactively.
+Use 'world-clock' to turn on that mode.
+
 ** D-Bus
 
 +++
@@ -2338,6 +2395,13 @@ This is a mode for searching a RFC 2229 dictionary server.
 the mouse in 'dictionary-tooltip-dictionary' (which must be customized
 first).
 
+** transient.el
+
+This library implements support for powerful keyboard-driven menus.
+Such menus can be used as simple visual command dispatchers.  More
+complex menus take advantage of infix arguments, which are somewhat
+similar to prefix arguments, but are more flexible and discoverable.
+
 
 * Incompatible Editing Changes in Emacs 28.1
 
@@ -2404,6 +2468,10 @@ This affects the suffix specified by completion 'annotation-function'.
 
 ** 'set-process-buffer' now updates the process mark.
 The mark will be set to point to the end of the new buffer.
+
++++
+** An active minibuffer now has major mode 'minibuffer-mode', not the
+erroneous 'minibuffer-inactive-mode' it formerly had.
 
 +++
 ** Some properties from completion tables are now preserved.
@@ -2674,9 +2742,11 @@ one to another in the init file.  The same user option also controls
 whether the function 'read-answer' accepts short answers.
 
 +++
-** 'set-window-configuration' now takes an optional 'dont-set-frame'
-parameter which, when non-nil, instructs the function not to select
-the frame recorded in the configuration.
+** 'set-window-configuration' now takes two optional parameters,
+'dont-set-frame' and 'dont-set-miniwindow'.  The first of these, when
+non-nil, instructs the function not to select the frame recorded in
+the configuration.  The second prevents the current minibuffer being
+replaced by the one stored in the configuration.
 
 +++
 ** 'define-globalized-minor-mode' now takes a ':predicate' parameter.

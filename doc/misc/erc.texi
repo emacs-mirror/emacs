@@ -514,12 +514,79 @@ Non-interactively, it takes the following keyword arguments.
 
 That is, if called with the following arguments, @var{server} and
 @var{full-name} will be set to those values, whereas
-@code{erc-compute-port}, @code{erc-compute-nick} and
-@code{erc-compute-full-name} will be invoked for the values of the other
-parameters.
+@code{erc-compute-port} and @code{erc-compute-nick} will be invoked
+for the values of the other parameters.
 
 @example
 (erc :server "chat.freenode.net" :full-name "Harry S Truman")
+@end example
+@end defun
+
+To connect securely over an encrypted TLS connection, use @kbd{M-x
+erc-tls}.
+
+@defun erc-tls
+Select connection parameters and run ERC over TLS@.
+Non-interactively, it takes the following keyword arguments.
+
+@itemize @bullet
+@item @var{server}
+@item @var{port}
+@item @var{nick}
+@item @var{password}
+@item @var{full-name}
+@item @var{client-certificate}
+@end itemize
+
+That is, if called with the following arguments, @var{server} and
+@var{full-name} will be set to those values, whereas
+@code{erc-compute-port} and @code{erc-compute-nick} will be invoked
+for the values of the other parameters, and @code{client-certificate}
+will be @code{nil}.
+
+@example
+(erc-tls :server "chat.freenode.net" :full-name "Harry S Truman")
+@end example
+
+To use a certificate with @code{erc-tls}, specify the optional
+@var{client-certificate} keyword argument, whose value should be as
+described in the documentation of @code{open-network-stream}: if
+non-@code{nil}, it should either be a list where the first element is
+the file name of the private key corresponding to a client certificate
+and the second element is the file name of the client certificate
+itself to use when connecting over TLS, or @code{t}, which means that
+@code{auth-source} will be queried for the private key and the
+certificate.  Authenticating using a TLS client certificate is also
+refered to as ``CertFP'' (Certificate Fingerprint) authentication by
+various IRC networks.
+
+Examples of use:
+
+@example
+(erc-tls :server "chat.freenode.net" :port 6697
+         :client-certificate
+         '("/home/bandali/my-cert.key"
+           "/home/bandali/my-cert.crt"))
+@end example
+
+@example
+(erc-tls :server "chat.freenode.net" :port 6697
+         :client-certificate
+         `(,(expand-file-name "~/cert-freenode.key")
+           ,(expand-file-name "~/cert-freenode.crt")))
+@end example
+
+@example
+(erc-tls :server "chat.freenode.net" :port 6697
+         :client-certificate t)
+@end example
+
+In the case of @code{:client-certificate t}, you will need to add a
+line like the following to your authinfo file
+(e.g. @file{~/.authinfo.gpg}):
+
+@example
+machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
 @end example
 @end defun
 

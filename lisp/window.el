@@ -7411,8 +7411,8 @@ For instance:
 
 Buffer display can be further customized to a very high degree;
 the rest of this docstring explains some of the many
-possibilities, and also see `(emacs)Window Choice' for more
-information.
+possibilities, and also see Info node `(emacs)Window Choice' for
+more information.
 
 BUFFER-OR-NAME must be a buffer or a string naming a live buffer.
 Return the window chosen for displaying that buffer, or nil if no

@@ -359,7 +359,7 @@
 	(delete-region (point-min) (point))))))
 
 (defun benchmark-decoder ()
-  (let ((gc-cons-threshold 4000000))
+  (let ((gc-cons-threshold (max gc-cons-threshold 4000000)))
     (insert "Without optimization:\n")
     (dolist (files test-file-list)
       (dolist (file (cdr files))
