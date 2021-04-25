@@ -4775,13 +4775,13 @@ If menu binding was not done, calls `pr-menu-bind'."
 (defun pr-menu-create (name alist var-sym fun entry index)
   (cons name
 	(mapcar
-	 #'(lambda (elt)
-	     (let ((sym (car elt)))
-	       (vector
-		(symbol-name sym)
-		`(,fun ',sym nil ',entry ',index)
-		:style 'radio
-		:selected `(eq ,var-sym ',sym))))
+         (lambda (elt)
+           (let ((sym (car elt)))
+             (vector
+              (symbol-name sym)
+              `(,fun ',sym nil ',entry ',index)
+              :style 'radio
+              :selected `(eq ,var-sym ',sym))))
 	 alist)))
 
 
@@ -4883,23 +4883,23 @@ If menu binding was not done, calls `pr-menu-bind'."
 					       (cons inherits old)))))
 	   (mapc
 	    (cond ((not local)		; global settings
-		   #'(lambda (option)
-		       (let ((var-sym (car option)))
-			 (or (eq var-sym 'inherits-from:)
-			     (set var-sym (eval (cdr option)))))))
+                   (lambda (option)
+                     (let ((var-sym (car option)))
+                       (or (eq var-sym 'inherits-from:)
+                           (set var-sym (eval (cdr option)))))))
 		  (kill			; local settings with killing
-		   #'(lambda (option)
-		       (let ((var-sym (car option)))
-			 (unless (eq var-sym 'inherits-from:)
-			   (setq local-list (cons var-sym local-list))
-			   (set (make-local-variable var-sym)
-				(eval (cdr option)))))))
+                   (lambda (option)
+                     (let ((var-sym (car option)))
+                       (unless (eq var-sym 'inherits-from:)
+                         (setq local-list (cons var-sym local-list))
+                         (set (make-local-variable var-sym)
+                              (eval (cdr option)))))))
 		  (t			; local settings without killing
-		   #'(lambda (option)
-		       (let ((var-sym (car option)))
-			 (or (eq var-sym 'inherits-from:)
-			     (set (make-local-variable var-sym)
-				  (eval (cdr option))))))))
+                   (lambda (option)
+                     (let ((var-sym (car option)))
+                       (or (eq var-sym 'inherits-from:)
+                           (set (make-local-variable var-sym)
+                                (eval (cdr option))))))))
 	    (nthcdr 3 setting))
 	   local-list))))
 
@@ -5077,9 +5077,9 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-complete-alist (prompt alist default)
-  (let ((collection (mapcar #'(lambda (elt)
-				(setq elt (car elt))
-				(cons (symbol-name elt) elt))
+  (let ((collection (mapcar (lambda (elt)
+                              (setq elt (car elt))
+                              (cons (symbol-name elt) elt))
 			    alist)))
     (cdr (assoc (completing-read (concat prompt ": ")
 				 collection nil t
@@ -5413,19 +5413,19 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-file-list (dir file-regexp fun)
-  (mapcar #'(lambda (file)
-	      (and (or pr-list-directory
-		       (not (file-directory-p file)))
-		   (let ((buffer (pr-find-buffer-visiting file))
-			 pop-up-windows
-			 pop-up-frames)
-		     (and (or buffer
-			      (file-readable-p file))
-			  (with-current-buffer (or buffer
-                                                   (find-file-noselect file))
-			    (funcall fun)
-			    (or buffer
-				(kill-buffer (current-buffer))))))))
+  (mapcar (lambda (file)
+            (and (or pr-list-directory
+                     (not (file-directory-p file)))
+                 (let ((buffer (pr-find-buffer-visiting file))
+                       pop-up-windows
+                       pop-up-frames)
+                   (and (or buffer
+                            (file-readable-p file))
+                        (with-current-buffer (or buffer
+                                                 (find-file-noselect file))
+                          (funcall fun)
+                          (or buffer
+                              (kill-buffer (current-buffer))))))))
 	  (directory-files dir t file-regexp)))
 
 
@@ -5438,10 +5438,10 @@ If menu binding was not done, calls `pr-menu-bind'."
   (pr-delete-file-if-exists (setq filename (expand-file-name filename)))
   (let ((pr-spool-p t))
     (pr-file-list dir file-regexp
-		  #'(lambda ()
-		      (if (pr-auto-mode-p)
-			  (pr-ps-mode n-up filename)
-			(pr-text2ps 'buffer n-up filename)))))
+                  (lambda ()
+                    (if (pr-auto-mode-p)
+                        (pr-ps-mode n-up filename)
+                      (pr-text2ps 'buffer n-up filename)))))
   (or pr-spool-p
       (pr-despool-print filename)))
 
@@ -5672,44 +5672,44 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
        (pr-insert-checkbox
 	"\n               "
 	'pr-i-region
-	#'(lambda (widget &rest _ignore)
-	    (let ((region-p (pr-interface-save
-			     (ps-mark-active-p))))
-	      (cond ((null (widget-value widget)) ; widget is nil
-		     (setq pr-i-region nil))
-		    (region-p		; widget is true and there is a region
-		     (setq pr-i-region t)
-		     (widget-value-set widget t)
-		     (widget-setup))	; MUST be called after widget-value-set
-		    (t			; widget is true and there is no region
-		     (ding)
-		     (message "There is no region active")
-		     (setq pr-i-region nil)
-		     (widget-value-set widget nil)
-		     (widget-setup)))))	; MUST be called after widget-value-set
+        (lambda (widget &rest _ignore)
+          (let ((region-p (pr-interface-save
+                           (ps-mark-active-p))))
+            (cond ((null (widget-value widget)) ; widget is nil
+                   (setq pr-i-region nil))
+                  (region-p		; widget is true and there is a region
+                   (setq pr-i-region t)
+                   (widget-value-set widget t)
+                   (widget-setup))	; MUST be called after widget-value-set
+                  (t			; widget is true and there is no region
+                   (ding)
+                   (message "There is no region active")
+                   (setq pr-i-region nil)
+                   (widget-value-set widget nil)
+                   (widget-setup)))))	; MUST be called after widget-value-set
 	" Region"))
   ;;    1a. Buffer: Mode
   (put 'pr-i-mode 'pr-widget
        (pr-insert-checkbox
 	"    "
 	'pr-i-mode
-	#'(lambda (widget &rest _ignore)
-	    (let ((mode-p (pr-interface-save
-			   (pr-mode-alist-p))))
-	      (cond
-	       ((null (widget-value widget)) ; widget is nil
-		(setq pr-i-mode nil))
-	       (mode-p			; widget is true and there is a `mode'
-		(setq pr-i-mode t)
-		(widget-value-set widget t)
-		(widget-setup))		; MUST be called after widget-value-set
-	       (t			; widget is true and there is no `mode'
-		(ding)
-		(message
-		 "This buffer isn't in a mode that printing treats specially.")
-		(setq pr-i-mode nil)
-		(widget-value-set widget nil)
-		(widget-setup)))))	; MUST be called after widget-value-set
+        (lambda (widget &rest _ignore)
+          (let ((mode-p (pr-interface-save
+                         (pr-mode-alist-p))))
+            (cond
+             ((null (widget-value widget)) ; widget is nil
+              (setq pr-i-mode nil))
+             (mode-p			; widget is true and there is a `mode'
+              (setq pr-i-mode t)
+              (widget-value-set widget t)
+              (widget-setup))		; MUST be called after widget-value-set
+             (t			; widget is true and there is no `mode'
+              (ding)
+              (message
+               "This buffer isn't in a mode that printing treats specially.")
+              (setq pr-i-mode nil)
+              (widget-value-set widget nil)
+              (widget-setup)))))	; MUST be called after widget-value-set
 	" Mode\n"))
 
   ;;    1b. Directory:
@@ -5769,14 +5769,14 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
        (pr-insert-checkbox
 	"    "
 	'pr-i-despool
-	#'(lambda (widget &rest _ignore)
-	    (if pr-spool-p
-		(setq pr-i-despool (not pr-i-despool))
-	      (ding)
-	      (message "Can despool only when spooling is actually selected")
-	      (setq pr-i-despool nil))
-	    (widget-value-set widget pr-i-despool)
-	    (widget-setup))		; MUST be called after widget-value-set
+        (lambda (widget &rest _ignore)
+          (if pr-spool-p
+              (setq pr-i-despool (not pr-i-despool))
+            (ding)
+            (message "Can despool only when spooling is actually selected")
+            (setq pr-i-despool nil))
+          (widget-value-set widget pr-i-despool)
+          (widget-setup))		; MUST be called after widget-value-set
 	" Despool   "))
   ;; 2. PostScript Printer: Preview    Print    Quit
   (pr-insert-button 'pr-interface-preview "Preview" "   ")
@@ -5835,9 +5835,9 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; 4. Settings:
   ;; 4. Settings: Landscape             Auto Region    Verbose
   (pr-insert-checkbox "\n\n  " 'ps-landscape-mode
-		      #'(lambda (&rest _ignore)
-			  (setq ps-landscape-mode (not ps-landscape-mode)
-				pr-file-landscape ps-landscape-mode))
+                      (lambda (&rest _ignore)
+                        (setq ps-landscape-mode (not ps-landscape-mode)
+                              pr-file-landscape ps-landscape-mode))
 		      " Landscape             ")
   (pr-insert-toggle 'pr-auto-region " Auto Region                ")
   (pr-insert-toggle 'pr-buffer-verbose " Verbose\n  ")
@@ -5857,28 +5857,28 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (pr-insert-toggle 'ps-zebra-stripes " Zebra Stripes")
   (pr-insert-checkbox "         "
 		      'pr-spool-p
-		      #'(lambda (&rest _ignore)
-			  (setq pr-spool-p (not pr-spool-p))
-			  (unless pr-spool-p
-			    (setq pr-i-despool nil)
-			    (pr-update-checkbox 'pr-i-despool)))
+                      (lambda (&rest _ignore)
+                        (setq pr-spool-p (not pr-spool-p))
+                        (unless pr-spool-p
+                          (setq pr-i-despool nil)
+                          (pr-update-checkbox 'pr-i-despool)))
 		      " Spool Buffer")
 
   ;; 4. Settings: Duplex                Print with faces
   (pr-insert-checkbox "\n  "
 		      'ps-spool-duplex
-		      #'(lambda (&rest _ignore)
-			  (setq ps-spool-duplex (not ps-spool-duplex)
-				pr-file-duplex  ps-spool-duplex))
+                      (lambda (&rest _ignore)
+                        (setq ps-spool-duplex (not ps-spool-duplex)
+                              pr-file-duplex  ps-spool-duplex))
 		      " Duplex                ")
   (pr-insert-toggle 'pr-faces-p " Print with faces")
 
   ;; 4. Settings: Tumble                Print via Ghostscript
   (pr-insert-checkbox "\n  "
 		      'ps-spool-tumble
-		      #'(lambda (&rest _ignore)
-			  (setq ps-spool-tumble (not ps-spool-tumble)
-				pr-file-tumble  ps-spool-tumble))
+                      (lambda (&rest _ignore)
+                        (setq ps-spool-tumble (not ps-spool-tumble)
+                              pr-file-tumble  ps-spool-tumble))
 		      " Tumble                ")
   (pr-insert-toggle 'pr-print-using-ghostscript " Print via Ghostscript\n  ")
 
@@ -5886,11 +5886,11 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (pr-insert-toggle 'ps-print-upside-down " Upside-Down")
   (pr-insert-italic "\n\nSelect Pages  :   " 2 14)
   (pr-insert-menu "Page Parity" 'ps-even-or-odd-pages
-		  (mapcar #'(lambda (alist)
-                              (list 'choice-item
-                                    :format "%[%t%]"
-                                    :tag (cdr alist)
-                                    :value (car alist)))
+                  (mapcar (lambda (alist)
+                            (list 'choice-item
+                                  :format "%[%t%]"
+                                  :tag (cdr alist)
+                                  :value (car alist)))
 			  pr-even-or-odd-alist)))
 
 
@@ -5898,7 +5898,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; 5. Customize:
   (pr-insert-italic "\n\nCustomize     :   " 2 11)
   (pr-insert-button 'pr-customize "printing" "   ")
-  (pr-insert-button #'(lambda (&rest _ignore) (ps-print-customize))
+  (pr-insert-button (lambda (&rest _ignore) (ps-print-customize))
 		    "ps-print" "   ")
   (pr-insert-button 'lpr-customize "lpr"))
 
@@ -6207,18 +6207,18 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 (defun pr-choice-alist (alist)
-  (let ((max (apply #'max (mapcar #'(lambda (alist)
-                                      (length (symbol-name (car alist))))
+  (let ((max (apply #'max (mapcar (lambda (alist)
+                                    (length (symbol-name (car alist))))
                                   alist))))
-    (mapcar #'(lambda (alist)
-		(let* ((sym  (car alist))
-		       (name (symbol-name sym)))
-                  (list
-                   'choice-item
-                   :format "%[%t%]"
-                   :tag (concat name
-                                (make-string (- max (length name)) ?_))
-                   :value sym)))
+    (mapcar (lambda (alist)
+              (let* ((sym  (car alist))
+                     (name (symbol-name sym)))
+                (list
+                 'choice-item
+                 :format "%[%t%]"
+                 :tag (concat name
+                              (make-string (- max (length name)) ?_))
+                 :value sym)))
 	    alist)))
 
 
@@ -6226,6 +6226,5 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 (provide 'printing)
-
 
 ;;; printing.el ends here
