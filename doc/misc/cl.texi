@@ -2084,14 +2084,15 @@ This clause also accepts optional @samp{from @var{pos}} and
 @samp{to @var{pos}} terms, limiting the clause to overlays which
 overlap the specified region.
 
-@item for @var{var} being the intervals [of @var{buffer}] @dots{}
-This clause iterates over all intervals of a buffer with constant
-text properties.  The variable @var{var} will be bound to conses
-of start and end positions, where one start position is always equal
-to the previous end position.  The clause allows @code{of},
+@item for @var{var} being the intervals [of @var{object}] @dots{}
+This clause iterates over all intervals of a buffer or string with
+constant text properties.  The variable @var{var} will be bound to
+conses of start and end positions, where one start position is always
+equal to the previous end position.  The clause allows @code{of},
 @code{from}, @code{to}, and @code{property} terms, where the latter
 term restricts the search to just the specified property.  The
-@code{of} term may specify either a buffer or a string.
+@code{of} term may specify either a buffer or a string.  @xref{Text
+Properties,,,elisp}.
 
 @item for @var{var} being the frames
 This clause iterates over all Emacs frames. The clause @code{screens} is
@@ -2238,7 +2239,7 @@ were non-@code{nil}, the loop returns @code{t}:
 
 @item never @var{condition}
 This clause is like @code{always}, except that the loop returns
-@code{t} if any conditions were false, or @code{nil} otherwise.
+@code{t} if all conditions were false, or @code{nil} otherwise.
 
 @item thereis @var{condition}
 This clause stops the loop when the specified form is non-@code{nil};

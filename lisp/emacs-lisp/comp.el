@@ -193,7 +193,7 @@ Note that when `no-byte-compile' is set to non-nil it overrides the value of
 `no-native-compile'.
 This is normally set in local file variables at the end of the elisp file:
 
-\;; Local Variables:\n;; no-native-compile: t\n;; End: ")
+\;; Local Variables:\n;; no-native-compile: t\n;; End:")
 ;;;###autoload(put 'no-native-compile 'safe-local-variable 'booleanp)
 
 (defvar comp-log-time-report nil
@@ -561,7 +561,7 @@ Useful to hook into pass checkers.")
    for cstr = (comp-type-spec-to-cstr type-spec)
    do (puthash f cstr h)
    finally return h)
-  "Hash table function -> `comp-constraint'")
+  "Hash table function -> `comp-constraint'.")
 
 (defconst comp-known-predicates
   '((arrayp              . array)
@@ -598,7 +598,7 @@ Useful to hook into pass checkers.")
    for cstr = (comp-type-spec-to-cstr type-spec)
    do (puthash pred cstr h)
    finally return h)
-  "Hash table function -> `comp-constraint'")
+  "Hash table function -> `comp-constraint'.")
 
 (defun comp-known-predicate-p (predicate)
   "Return t if PREDICATE is known."
@@ -692,7 +692,7 @@ Useful to hook into pass checkers.")
   (- (comp-vec-end vec) (comp-vec-beg vec)))
 
 (defsubst comp-vec--verify-idx (vec idx)
-  "Check whether idx is in bounds for VEC."
+  "Check whether IDX is in bounds for VEC."
   (cl-assert (and (< idx (comp-vec-end vec))
                   (>= idx (comp-vec-beg vec)))))
 
@@ -949,7 +949,7 @@ To be used by all entry points."
   (when (memq function '(eq eql equal)) t))
 
 (defun comp-arithm-cmp-fun-p (function)
-  "Predicate for arithmetic comparision functions."
+  "Predicate for arithmetic comparison functions."
   (when (memq function '(= > < >= <=)) t))
 
 (defun comp-set-op-p (op)
@@ -3269,7 +3269,6 @@ FUNCTION can be a function-name or byte compiled function."
     (gethash func (comp-ctxt-byte-func-to-func-h comp-ctxt))))
 
 (defun comp-call-optim-form-call (callee args)
-  ""
   (cl-flet ((fill-args (args total)
               ;; Fill missing args to reach TOTAL
               (append args (cl-loop repeat (- total (length args))
@@ -3482,7 +3481,7 @@ These are substituted with a normal 'set' op."
 ;;; Final pass specific code.
 
 (defun comp-args-to-lambda-list (args)
-  "Return a lambda list for args."
+  "Return a lambda list for ARGS."
   (cl-loop
    with res
    repeat (comp-args-base-min args)

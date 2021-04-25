@@ -38,46 +38,62 @@
 
 (defun map-y-or-n-p (prompter actor list &optional help action-alist
 			      no-cursor-in-echo-area)
-  "Ask a series of boolean questions.
-Takes args PROMPTER ACTOR LIST, and optional args HELP and ACTION-ALIST.
+  "Ask a boolean question per PROMPTER for each object in LIST, then call ACTOR.
 
 LIST is a list of objects, or a function of no arguments to return the next
-object or nil.
+object; when it returns nil, the list of objects is considered exhausted.
 
-If PROMPTER is a string, the prompt is \(format PROMPTER OBJECT).  If not
-a string, PROMPTER is a function of one arg (an object from LIST), which
-returns a string to be used as the prompt for that object.  If the return
-value is not a string, it may be nil to ignore the object or non-nil to act
-on the object without asking the user.
+If PROMPTER is a string, it should be a format string to be used to format
+the question as \(format PROMPTER OBJECT).
+If PROMPTER is not a string, it should be a function of one argument, an
+object from LIST, which returns a string to be used as the question for
+that object.  If the function's return value is not a string, it may be
+nil to ignore the object, or non-nil to act on the object with ACTOR
+without asking the user.
 
-ACTOR is a function of one arg (an object from LIST),
-which gets called with each object that the user answers `yes' for.
+ACTOR is a function of one argument, an object from LIST,
+which gets called with each object for which the user answers `yes'
+to the question presented by PROMPTER.
 
-If HELP is given, it is a list (OBJECT OBJECTS ACTION),
-where OBJECT is a string giving the singular noun for an elt of LIST;
-OBJECTS is the plural noun for elts of LIST, and ACTION is a transitive
-verb describing ACTOR.  The default is \(\"object\" \"objects\" \"act on\").
+The user's answers to the questions may be one of the following:
 
-At the prompts, the user may enter y, Y, or SPC to act on that object;
-n, N, or DEL to skip that object; ! to act on all following objects;
-ESC or q to exit (skip all following objects); . (period) to act on the
-current object and then exit; or \\[help-command] to get help.
+ - y, Y, or SPC to act on that object;
+ - n, N, or DEL to skip that object;
+ - ! to act on all following objects;
+ - ESC or q to exit (skip all following objects);
+ - . (period) to act on the current object and then exit; or
+ - \\[help-command] to get help.
 
-If ACTION-ALIST is given, it is an alist (KEY FUNCTION HELP) of extra keys
-that will be accepted.  KEY is a character; FUNCTION is a function of one
-arg (an object from LIST); HELP is a string.  When the user hits KEY,
-FUNCTION is called.  If it returns non-nil, the object is considered
-\"acted upon\", and the next object from LIST is processed.  If it returns
-nil, the prompt is repeated for the same object.
+HELP provides information for displaying help when the user
+types \\[help-command].  If HELP is given, it should be a list of
+the form (OBJECT OBJECTS ACTION), where OBJECT is a string giving
+the singular noun describing an element of LIST; OBJECTS is the
+plural noun describing several elements of LIST, and ACTION is a
+transitive verb describing action by ACTOR on one or more elements
+of LIST.  If HELP is omitted or nil, it defaults
+to \(\"object\" \"objects\" \"act on\").
 
-Final optional argument NO-CURSOR-IN-ECHO-AREA non-nil says not to set
-`cursor-in-echo-area' while prompting.
+If ACTION-ALIST is given, it is an alist specifying additional keys
+that will be accepted as an answer to the questions.  Each element
+of the alist has the form (KEY FUNCTION HELP), where KEY is a character;
+FUNCTION is a function of one argument (an object from LIST); and HELP
+is a string.  When the user presses KEY, FUNCTION is called; if it
+returns non-nil, the object is considered to have been \"acted upon\",
+and `map-y-or-n-p' proceeeds to the next object from LIST.  If
+FUNCTION returns nil, the prompt is re-issued for the same object: this
+comes in handy if FUNCTION produces some display that will allow the
+user to make an intelligent decision whether the object in question
+should be acted upon.  If the user types \\[help-command], the string
+given by HELP is used to describe the effect of KEY.
+
+Optional argument NO-CURSOR-IN-ECHO-AREA, if non-nil, means not to set
+`cursor-in-echo-area' while prompting with the questions.
 
 This function uses `query-replace-map' to define the standard responses,
-but not all of the responses which `query-replace' understands
-are meaningful here.
+but only some of the responses which `query-replace' understands
+are meaningful here, as described above.
 
-Returns the number of actions taken."
+The function's value is the number of actions taken."
   (let* ((actions 0)
          (msg (current-message))
 	 user-keys mouse-event map prompt char elt def
