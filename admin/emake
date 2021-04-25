@@ -69,7 +69,7 @@ GEN.*loaddefs|\
 ^There seems to be no|\
 ^config.status:|\
 ELN_DESTDIR|\
-^ *--bin-dest |\
+--bin-dest |\
 ^ *$|\
 ^Makefile built|\
 The GNU allocators don't work|\
