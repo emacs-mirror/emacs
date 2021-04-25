@@ -1,4 +1,4 @@
-;;; ol-eshell.el - Links to Working Directories in Eshell -*- lexical-binding: t; -*-
+;;; ol-eshell.el --- Links to Working Directories in Eshell  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 

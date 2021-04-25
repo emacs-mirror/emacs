@@ -83,7 +83,8 @@ gives the window that lists the options."
   :type 'boolean
   :group 'help)
 
-(defmacro make-help-screen (fname help-line help-text helped-map)
+(defmacro make-help-screen (fname help-line help-text helped-map
+                                  &optional buffer-name)
   "Construct help-menu function name FNAME.
 When invoked, FNAME shows HELP-LINE and reads a command using HELPED-MAP.
 If the command is the help character, FNAME displays HELP-TEXT
@@ -132,7 +133,7 @@ and then returns."
                (when (or (eq char ??) (eq char help-char)
                          (memq char help-event-list))
                  (setq config (current-window-configuration))
-                 (pop-to-buffer " *Metahelp*" nil t)
+                 (pop-to-buffer (or ,buffer-name " *Metahelp*") nil t)
                  (and (fboundp 'make-frame)
                       (not (eq (window-frame)
                                prev-frame))
@@ -166,7 +167,12 @@ and then returns."
                                 (format "Type one of the options listed%s: "
                                         (if (pos-visible-in-window-p
                                              (point-max))
-                                            "" ", or SPACE or DEL to scroll")))
+                                            ""
+                                          (concat  ", or "
+                                                   (help--key-description-fontified "\s") ; SPC
+                                                   " or "
+                                                   (help--key-description-fontified "\d") ; DEL
+                                                   " to scroll"))))
                            char (aref key 0)))
 
                    ;; If this is a scroll bar command, just run it.

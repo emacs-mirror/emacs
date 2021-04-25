@@ -1,4 +1,4 @@
-;;;; testcover-ses.el -- Example use of `testcover' to test "SES"  -*- lexical-binding: t; -*-
+;;; tcover-ses.el --- Example use of `testcover' to test "SES"  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -716,4 +716,4 @@ spreadsheet files with invalid formatting."
   ;;Could do this here: (testcover-end "ses.el")
   (message "Done"))
 
-;;; testcover-ses.el ends here.
+;;; tcover-ses.el ends here

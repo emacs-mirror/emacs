@@ -3148,12 +3148,6 @@ syms_of_keymap (void)
 	       doc: /* Default keymap to use when reading from the minibuffer.  */);
   Vminibuffer_local_map = Fmake_sparse_keymap (Qnil);
 
-  DEFVAR_LISP ("minibuffer-local-ns-map", Vminibuffer_local_ns_map,
-	       doc: /* Local keymap for the minibuffer when spaces are not allowed.  */);
-  Vminibuffer_local_ns_map = Fmake_sparse_keymap (Qnil);
-  Fset_keymap_parent (Vminibuffer_local_ns_map, Vminibuffer_local_map);
-
-
   DEFVAR_LISP ("minor-mode-map-alist", Vminor_mode_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes.
 Each element looks like (VARIABLE . KEYMAP); KEYMAP is used to read

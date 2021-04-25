@@ -580,4 +580,4 @@ to local variable `sieve-manage-capability'."
 
 (provide 'sieve-manage)
 
-;; sieve-manage.el ends here
+;;; sieve-manage.el ends here

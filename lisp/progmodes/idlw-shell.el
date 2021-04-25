@@ -1,4 +1,4 @@
-;; idlw-shell.el --- run IDL as an inferior process of Emacs.  -*- lexical-binding:t -*-
+;;; idlw-shell.el --- run IDL as an inferior process of Emacs.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2021 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; character-tests.el -- tests for character.c  -*- lexical-binding:t -*-
+;;; character-tests.el --- tests for character.c  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2021 Free Software Foundation, Inc.
 

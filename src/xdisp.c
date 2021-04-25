@@ -10064,8 +10064,20 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	  if ((op & MOVE_TO_POS) != 0
 	      && (IT_CHARPOS (*it) > to_charpos
 		  || (IT_CHARPOS (*it) == to_charpos
+		      /* Consider TO_CHARPOS as REACHED if we are at
+			 EOB that ends in something other than a newline.  */
 		      && to_charpos == ZV
-		      && (ZV_BYTE <= 1 || FETCH_BYTE (ZV_BYTE - 1) != '\n'))))
+		      && (ZV_BYTE <= 1 || FETCH_BYTE (ZV_BYTE - 1) != '\n')
+		      /* But if we have a display or an overlay string
+			 at EOB, keep going until we exhaust all the
+			 characters of the string(s).  */
+		      && (it->sp == 0
+			  || (STRINGP (it->string)
+			      && (it->current.overlay_string_index < 0
+				  || (it->current.overlay_string_index >= 0
+				      && it->current.overlay_string_index
+				         >= it->n_overlay_strings - 1))
+			      && IT_STRING_CHARPOS (*it) >= it->end_charpos)))))
 	    {
 	      reached = 9;
 	      goto out;

@@ -1166,9 +1166,10 @@ If ALL is non-nil, update prompts in all IRC buffers."
        (or (eq (aref target 0) ?#)
            (eq (aref target 0) ?&))))
 
-(defcustom rcirc-log-directory "~/.emacs.d/rcirc-log"
+(defcustom rcirc-log-directory (locate-user-emacs-file "rcirc-log")
   "Directory to keep IRC logfiles."
-  :type 'directory)
+  :type 'directory
+  :version "28.1")
 
 (defcustom rcirc-log-flag nil
   "Non-nil means log IRC activity to disk.

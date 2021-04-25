@@ -97,6 +97,14 @@ to be done.  @xref{Text from Minibuffer}, for the non-completion
 minibuffer local maps.  @xref{Completion Commands}, for the minibuffer
 local maps for completion.
 
+@cindex active minibuffer
+  An active minibuffer usually has major mode @code{minibuffer-mode}.
+This is an Emacs internal mode without any special features.  To
+customize the setup of minibuffers, we suggest you use
+@code{minibuffer-setup-hook} (@pxref{Minibuffer Misc}) rather than
+@code{minibuffer-mode-hook}, since the former is run later, after the
+minibuffer has been fully initialized.
+
 @cindex inactive minibuffer
   When a minibuffer is inactive, its major mode is
 @code{minibuffer-inactive-mode}, with keymap
@@ -167,8 +175,10 @@ various applications such as completion.
 
 The argument @var{history} specifies a history list variable to use
 for saving the input and for history commands used in the minibuffer.
-It defaults to @code{minibuffer-history}.  You can optionally specify
-a starting position in the history list as well.  @xref{Minibuffer History}.
+It defaults to @code{minibuffer-history}.  If @var{history} is the
+symbol @code{t}, history is not recorded.  You can optionally specify
+a starting position in the history list as well.  @xref{Minibuffer
+History}.
 
 If the variable @code{minibuffer-allow-text-properties} is
 non-@code{nil}, then the string that is returned includes whatever text
@@ -970,16 +980,19 @@ and @var{suffix} holds the text after point.
 
 Normally completion operates on the whole string, so for all normal
 collections, this will always return @code{(0 . (length
-@var{suffix}))}.  But more complex completion such as completion on
-files is done one field at a time.  For example, completion of
+@var{suffix}))}.  But more complex completion, such as completion on
+files, is done one field at a time.  For example, completion of
 @code{"/usr/sh"} will include @code{"/usr/share/"} but not
 @code{"/usr/share/doc"} even if @code{"/usr/share/doc"} exists.
 Also @code{all-completions} on @code{"/usr/sh"} will not include
 @code{"/usr/share/"} but only @code{"share/"}.  So if @var{string} is
 @code{"/usr/sh"} and @var{suffix} is @code{"e/doc"},
-@code{completion-boundaries} will return @code{(5 . 1)} which tells us
+@code{completion-boundaries} will return @w{@code{(5 . 1)}} which tells us
 that the @var{collection} will only return completion information that
 pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
+@code{try-completion} is not affected by nontrivial boundaries; e.g.,
+@code{try-completion} on @code{"/usr/sh"} might still return
+@code{"/usr/share/"}, not @code{"share/"}.
 @end defun
 
 If you store a completion alist in a variable, you should mark the
@@ -1107,9 +1120,10 @@ The function @code{completing-read} uses
 @code{minibuffer-local-must-match-map} if @var{require-match} is
 non-@code{nil}.  @xref{Completion Commands}.
 
-The argument @var{history} specifies which history list variable to use for
-saving the input and for minibuffer history commands.  It defaults to
-@code{minibuffer-history}.  @xref{Minibuffer History}.
+The argument @var{history} specifies which history list variable to
+use for saving the input and for minibuffer history commands.  It
+defaults to @code{minibuffer-history}.  If @var{history} is the symbol
+@code{t}, history is not recorded.  @xref{Minibuffer History}.
 
 The argument @var{initial} is mostly deprecated; we recommend using a
 non-@code{nil} value only in conjunction with specifying a cons cell
@@ -1883,6 +1897,13 @@ should return @code{(boundaries @var{start} . @var{end})}, where
 string, and @var{end} is the position of the end boundary in
 @var{suffix}.
 
+If a Lisp program returns nontrivial boundaries, it should make sure that the
+@code{all-completions} operation is consistent with them.  The
+completions returned by @code{all-completions} should only pertain to
+the piece of the prefix and suffix covered by the completion
+boundaries.  @xref{Basic Completion}, for the precise expected semantics
+of completion boundaries.
+
 @item metadata
 This specifies a request for information about the state of the
 current completion.  The return value should have the form
@@ -1961,7 +1982,7 @@ was entered.
 The return value of @code{completion-table-dynamic} is a function that
 can be used as the 2nd argument to @code{try-completion} and
 @code{all-completions}.  Note that this function will always return
-empty metadata and trivial boundaries (@pxref{Programmed Completion}).
+empty metadata and trivial boundaries.
 @end defun
 
 @defun completion-table-with-cache function &optional ignore-case

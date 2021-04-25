@@ -438,7 +438,7 @@ Presumes point is at the end of the `cl-defmethod' symbol."
 ;;;###autoload
 (defmacro cl-defmethod (name args &rest body)
   "Define a new method for generic function NAME.
-This it defines an implementation of NAME to use for invocations
+This defines an implementation of NAME to use for invocations
 of specific types of arguments.
 
 ARGS is a list of dispatch arguments (see `cl-defun'), but where

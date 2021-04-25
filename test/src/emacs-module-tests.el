@@ -1,4 +1,4 @@
-;;; emacs-module-tests --- Test GNU Emacs modules.  -*- lexical-binding: t; -*-
+;;; emacs-module-tests.el --- Test GNU Emacs modules.  -*- lexical-binding: t; -*-
 
 ;; Copyright 2015-2021 Free Software Foundation, Inc.
 

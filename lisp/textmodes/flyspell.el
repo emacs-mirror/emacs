@@ -77,7 +77,7 @@ Detection of repeated words is not implemented in
   "A list of exceptions for duplicated words.
 It should be a list of (LANGUAGE . EXCEPTION-LIST).
 
-LANGUAGE is nil, which means the exceptions apply regardless of
+LANGUAGE can be nil, which means the exceptions apply regardless of
 the current dictionary, or a regular expression matching the
 dictionary name (`ispell-local-dictionary' or
 `ispell-dictionary') for which the exceptions should apply.

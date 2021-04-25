@@ -73,9 +73,9 @@
 ;; M-x list-packages
 ;;    Enters a mode similar to buffer-menu which lets you manage
 ;;    packages.  You can choose packages for install (mark with "i",
-;;    then "x" to execute) or deletion (not implemented yet), and you
-;;    can see what packages are available.  This will automatically
-;;    fetch the latest list of packages from ELPA.
+;;    then "x" to execute) or deletion, and you can see what packages
+;;    are available.  This will automatically fetch the latest list of
+;;    packages from ELPA.
 ;;
 ;; M-x package-install-from-buffer
 ;;    Install a package consisting of a single .el file that appears
@@ -89,7 +89,7 @@
 ;;    Install a package from the indicated file.  The package can be
 ;;    either a tar file or a .el file.  A tar file must contain an
 ;;    appropriately-named "-pkg.el" file; a .el file must be properly
-;;    formatted as with package-install-from-buffer.
+;;    formatted as with `package-install-from-buffer'.
 
 ;;; Thanks:
 ;;; (sorted by sort-lines):
@@ -225,7 +225,7 @@ security."
   :type '(alist :key-type (string :tag "Archive name")
                 :value-type (string :tag "URL or directory name"))
   :risky t
-  :version "26.1")                      ; gnutls test
+  :version "28.1")
 
 (defcustom package-menu-hide-low-priority 'archive
   "If non-nil, hide low priority packages from the packages menu.

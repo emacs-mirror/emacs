@@ -1,4 +1,4 @@
-;;; image-transform-tests.el --- Test suite for image transforms.  -*- lexical-binding: t -*-
+;;; image-transforms-tests.el --- Test suite for image transforms.  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 

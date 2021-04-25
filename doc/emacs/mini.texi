@@ -247,6 +247,9 @@ You might need also to enable @code{minibuffer-depth-indicate-mode}
 to show the current recursion depth in the minibuffer prompt
 on recursive use of the minibuffer.
 
+  When active, the minibuffer is usually in @code{minibuffer-mode}.
+This is an internal Emacs mode without any special features.
+
 @findex minibuffer-inactive-mode
   When not active, the minibuffer is in @code{minibuffer-inactive-mode},
 and clicking @kbd{mouse-1} there shows the @file{*Messages*} buffer.

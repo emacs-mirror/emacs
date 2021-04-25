@@ -206,7 +206,7 @@ search status stack."
      (multi-isearch-pop-state cmd ,(current-buffer))))
 
 (defun multi-isearch-pop-state (_cmd buffer)
-  "Restore the multiple buffers search state.
+  "Restore the multiple buffers search state in BUFFER.
 Switch to the buffer restored from the search status stack."
   (unless (equal buffer (current-buffer))
     (switch-to-buffer (setq multi-isearch-current-buffer buffer))))

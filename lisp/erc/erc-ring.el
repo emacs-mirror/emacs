@@ -1,4 +1,4 @@
-;; erc-ring.el -- Command history handling for erc using ring.el  -*- lexical-binding: t; -*-
+;;; erc-ring.el --- Command history handling for erc using ring.el  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2001-2004, 2006-2021 Free Software Foundation, Inc.
 

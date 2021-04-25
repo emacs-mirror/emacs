@@ -1,4 +1,4 @@
-;;; simple-test.el --- Tests for simple.el           -*- lexical-binding: t; -*-
+;;; simple-tests.el --- Tests for simple.el           -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 

@@ -142,7 +142,7 @@ Move point ``up'' one reference (@code{senator-go-to-up-reference}).
 The meaning of ``up'' is language-dependent; in C++, for instance,
 this means moving to the parent of the current tag.
 
-@item C-c, @key{SPC}
+@item C-c , @key{SPC}
 Display a list of possible completions for the symbol at point
 (@code{semantic-complete-analyze-inline}).  This also activates a
 special set of keybindings for choosing a completion: @key{RET}

@@ -1,4 +1,4 @@
-;;; auto-revert-tests.el --- Tests of auto-revert   -*- lexical-binding: t -*-
+;;; autorevert-tests.el --- Tests of auto-revert   -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2015-2021 Free Software Foundation, Inc.
 

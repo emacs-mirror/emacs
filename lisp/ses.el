@@ -1,4 +1,4 @@
-;;; ses.el -- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
+;;; ses.el --- Simple Emacs Spreadsheet  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 

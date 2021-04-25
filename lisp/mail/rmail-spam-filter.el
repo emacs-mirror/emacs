@@ -555,4 +555,4 @@ checks to see if the old format is used, and updates it if necessary."
 
 (provide 'rmail-spam-filter)
 
-;;; rmail-spam-filter ends here
+;;; rmail-spam-filter.el ends here

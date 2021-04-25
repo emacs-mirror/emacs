@@ -47,8 +47,12 @@
 ;;
 ;; M-x erc RET
 ;;
-;; After you are connected to a server, you can use C-h m or have a look at
-;; the ERC menu.
+;; or
+;;
+;; M-x erc-tls RET
+;;
+;; to connect over TLS (encrypted).  Once you are connected to a
+;; server, you can use C-h m or have a look at the ERC menu.
 
 ;;; Code:
 
@@ -1967,7 +1971,8 @@ removed from the list will be disabled."
        (switch-to-buffer buffer)))))
 
 (defun erc-open (&optional server port nick full-name
-                           connect passwd tgt-list channel process)
+                           connect passwd tgt-list channel process
+                           client-certificate)
   "Connect to SERVER on PORT as NICK with FULL-NAME.
 
 If CONNECT is non-nil, connect to the server.  Otherwise assume
@@ -1976,6 +1981,13 @@ target CHANNEL.
 
 Use PASSWD as user password on the server.  If TGT-LIST is
 non-nil, use it to initialize `erc-default-recipients'.
+
+CLIENT-CERTIFICATE, if non-nil, should either be a list where the
+first element is the file name of the private key corresponding
+to a client certificate and the second element is the file name
+of the client certificate itself to use when connecting over TLS,
+or t, which means that `auth-source' will be queried for the
+private key and the certificate.
 
 Returns the buffer for the given server or channel."
   (let ((server-announced-name (when (and (boundp 'erc-session-server)
@@ -2059,6 +2071,8 @@ Returns the buffer for the given server or channel."
                 (if (functionp secret)
                     (funcall secret)
                   secret))))
+    ;; client certificate (only useful if connecting over TLS)
+    (setq erc-session-client-certificate client-certificate)
     ;; debug output buffer
     (setq erc-dbuf
           (when erc-log-p
@@ -2079,7 +2093,10 @@ Returns the buffer for the given server or channel."
     (run-hook-with-args 'erc-connect-pre-hook buffer)
 
     (when connect
-      (erc-server-connect erc-session-server erc-session-port buffer))
+      (erc-server-connect erc-session-server
+                          erc-session-port
+                          buffer
+                          erc-session-client-certificate))
     (erc-update-mode-line)
 
     ;; Now display the buffer in a window as per user wishes.
@@ -2196,22 +2213,22 @@ parameters SERVER and NICK."
   "ERC is a powerful, modular, and extensible IRC client.
 This function is the main entry point for ERC.
 
-It permits you to select connection parameters, and then starts ERC.
+It allows selecting connection parameters, and then starts ERC.
 
 Non-interactively, it takes the keyword arguments
    (server (erc-compute-server))
    (port   (erc-compute-port))
    (nick   (erc-compute-nick))
    password
-   (full-name (erc-compute-full-name)))
+   (full-name (erc-compute-full-name))
 
 That is, if called with
 
    (erc :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
 
-then the server and full-name will be set to those values, whereas
-`erc-compute-port', `erc-compute-nick' and `erc-compute-full-name' will
-be invoked for the values of the other parameters."
+then the server and full-name will be set to those values,
+whereas `erc-compute-port' and `erc-compute-nick' will be invoked
+for the values of the other parameters."
   (interactive (erc-select-read-args))
   (erc-open server port nick full-name t password))
 
@@ -2220,21 +2237,66 @@ be invoked for the values of the other parameters."
 (defalias 'erc-ssl #'erc-tls)
 
 ;;;###autoload
-(defun erc-tls (&rest r)
-  "Interactively select TLS connection parameters and run ERC.
-Arguments are the same as for `erc'."
+(cl-defun erc-tls (&key (server (erc-compute-server))
+                        (port   (erc-compute-port))
+                        (nick   (erc-compute-nick))
+                        password
+                        (full-name (erc-compute-full-name))
+                        client-certificate)
+  "ERC is a powerful, modular, and extensible IRC client.
+This function is the main entry point for ERC over TLS.
+
+It allows selecting connection parameters, and then starts ERC
+over TLS.
+
+Non-interactively, it takes the keyword arguments
+   (server (erc-compute-server))
+   (port   (erc-compute-port))
+   (nick   (erc-compute-nick))
+   password
+   (full-name (erc-compute-full-name))
+   client-certificate
+
+That is, if called with
+
+   (erc-tls :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
+
+then the server and full-name will be set to those values,
+whereas `erc-compute-port' and `erc-compute-nick' will be invoked
+for the values of their respective parameters.
+
+CLIENT-CERTIFICATE, if non-nil, should either be a list where the
+first element is the certificate key file name, and the second
+element is the certificate file name itself, or t, which means
+that `auth-source' will be queried for the key and the
+certificate.  Authenticating using a TLS client certificate is
+also refered to as \"CertFP\" (Certificate Fingerprint)
+authentication by various IRC networks.
+
+Example usage:
+
+    (erc-tls :server \"chat.freenode.net\" :port 6697
+             :client-certificate
+             '(\"/data/bandali/my-cert.key\"
+               \"/data/bandali/my-cert.crt\"))"
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))
   (let ((erc-server-connect-function 'erc-open-tls-stream))
-    (apply #'erc r)))
+    (erc-open server port nick full-name t password
+              nil nil nil client-certificate)))
 
-(defun erc-open-tls-stream (name buffer host port)
+(defun erc-open-tls-stream (name buffer host port &rest parameters)
   "Open an TLS stream to an IRC server.
-The process will be given the name NAME, its target buffer will be
-BUFFER.  HOST and PORT specify the connection target."
-  (open-network-stream name buffer host port
-		       :nowait t
-                       :type 'tls))
+The process will be given the name NAME, its target buffer will
+be BUFFER.  HOST and PORT specify the connection target.
+PARAMETERS should be a sequence of keywords and values, per
+`open-network-stream'."
+  (let ((p (plist-put parameters :type 'tls))
+        args)
+    (unless (plist-member p :nowait)
+      (setq p (plist-put p :nowait t)))
+    (setq args `(,name ,buffer ,host ,port ,@p))
+    (apply #'open-network-stream args)))
 
 ;;; Displaying error messages
 

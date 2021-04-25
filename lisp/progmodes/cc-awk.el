@@ -1227,4 +1227,4 @@ comment at the start of cc-engine.el for more info."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-;;; awk-mode.el ends here
+;;; cc-awk.el ends here

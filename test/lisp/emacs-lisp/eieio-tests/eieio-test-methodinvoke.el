@@ -1,4 +1,4 @@
-;;; eieio-testsinvoke.el -- eieio tests for method invocation  -*- lexical-binding:t -*-
+;;; eieio-test-methodinvoke.el --- eieio tests for method invocation  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2005, 2008, 2010, 2013-2021 Free Software Foundation,
 ;; Inc.

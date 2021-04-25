@@ -3427,7 +3427,7 @@ where:
   (if (wisent-automaton-p grammar)
       grammar ;; Grammar already compiled just return it
     (wisent-with-context compile-grammar
-      (let* ((gc-cons-threshold 1000000))
+      (let* ((gc-cons-threshold (max gc-cons-threshold 1000000)))
         (garbage-collect)
 	(setq wisent-new-log-flag t)
 	;; Parse input grammar

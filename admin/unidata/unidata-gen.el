@@ -1,4 +1,4 @@
-;; unidata-gen.el -- Create files containing character property data  -*- lexical-binding:t -*-
+;;; unidata-gen.el --- Create files containing character property data  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2008-2021 Free Software Foundation, Inc.
 
@@ -1446,7 +1446,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
                 ";; no-byte-compile: t\n"
                 ";; no-update-autoloads: t\n"
                 ";; End:\n\n"
-                (format ";; %s ends here\n" basename)))))
+                (format ";;; %s ends here\n" basename)))))
   (or noninteractive (message "Generating %s...done" file)))
 
 (defun unidata-gen-charprop (&optional charprop-file)
@@ -1470,7 +1470,7 @@ Property value is a symbol `o' (Open), `c' (Close), or `n' (None)."
 	    ";; no-byte-compile: t\n"
 	    ";; no-update-autoloads: t\n"
 	    ";; End:\n\n"
-	    (format ";; %s ends here\n"
+            (format ";;; %s ends here\n"
 		    (file-name-nondirectory charprop-file)))))
 
 

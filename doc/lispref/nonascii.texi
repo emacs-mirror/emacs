@@ -301,7 +301,7 @@ character, and returns that character.  If @var{char} is neither
 @end defun
 
 @defun unibyte-char-to-multibyte char
-This convert the unibyte character @var{char} to a multibyte
+This converts the unibyte character @var{char} to a multibyte
 character, assuming @var{char} is either @acronym{ASCII} or raw 8-bit
 byte.
 @end defun
@@ -676,7 +676,7 @@ This function returns the value of @var{char}'s @var{propname} property.
 @end group
 @group
 (get-char-code-property ?\( 'paired-bracket)
-     @result{} 41  ;; closing parenthesis
+     @result{} 41  ; closing parenthesis
 @end group
 @group
 (get-char-code-property ?\) 'bracket-type)
@@ -955,13 +955,13 @@ translating the result.
 
 @defvar standard-translation-table-for-decode
 This is the default translation table for decoding.  If a coding
-systems specifies its own translation tables, the table that is the
+system specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
 @defvar standard-translation-table-for-encode
 This is the default translation table for encoding.  If a coding
-systems specifies its own translation tables, the table that is the
+system specifies its own translation tables, the table that is the
 value of this variable, if non-@code{nil}, is applied after them.
 @end defvar
 
@@ -1258,7 +1258,7 @@ name or @code{nil}.
 @defun check-coding-system coding-system
 This function checks the validity of @var{coding-system}.  If that is
 valid, it returns @var{coding-system}.  If @var{coding-system} is
-@code{nil}, the function return @code{nil}.  For any other values, it
+@code{nil}, the function returns @code{nil}.  For any other values, it
 signals an error whose @code{error-symbol} is @code{coding-system-error}
 (@pxref{Signaling Errors, signal}).
 @end defun

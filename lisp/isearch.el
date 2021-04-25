@@ -972,12 +972,13 @@ Each element is an `isearch--state' struct where the slots are
 (defvar-local isearch-mode nil) ;; Name of the minor mode, if non-nil.
 
 (define-key global-map "\C-s" 'isearch-forward)
-(define-key esc-map "\C-s" 'isearch-forward-regexp)
+(define-key esc-map    "\C-s" 'isearch-forward-regexp)
 (define-key global-map "\C-r" 'isearch-backward)
-(define-key esc-map "\C-r" 'isearch-backward-regexp)
-(define-key search-map "w" 'isearch-forward-word)
-(define-key search-map "_" 'isearch-forward-symbol)
-(define-key search-map "." 'isearch-forward-symbol-at-point)
+(define-key esc-map    "\C-r" 'isearch-backward-regexp)
+(define-key search-map    "w" 'isearch-forward-word)
+(define-key search-map    "_" 'isearch-forward-symbol)
+(define-key search-map    "." 'isearch-forward-symbol-at-point)
+(define-key search-map "\M-." 'isearch-forward-thing-at-point)
 
 ;; Entry points to isearch-mode.
 
@@ -1154,6 +1155,42 @@ positive, or search for ARGth symbol backward if ARG is negative."
         (isearch-repeat-forward count)))
      (t
       (setq isearch-error "No symbol at point")
+      (isearch-push-state)
+      (isearch-update)))))
+
+(defcustom isearch-forward-thing-at-point '(region url symbol sexp)
+  "A list of symbols to try to get the \"thing\" at point.
+Each element of the list should be one of the symbols supported by
+`bounds-of-thing-at-point'.  This variable is used by the command
+`isearch-forward-thing-at-point' to yank the initial \"thing\"
+as text to the search string."
+  :type '(repeat (symbol :tag "Thing symbol"))
+  :version "28.1")
+
+(defun isearch-forward-thing-at-point ()
+  "Do incremental search forward for the \"thing\" found near point.
+Like ordinary incremental search except that the \"thing\" found at point
+is added to the search string initially.  The \"thing\" is defined by
+`bounds-of-thing-at-point'.  You can customize the variable
+`isearch-forward-thing-at-point' to define a list of symbols to try
+to find a \"thing\" at point.  For example, when the list contains
+the symbol `region' and the region is active, then text from the
+active region is added to the search string."
+  (interactive)
+  (isearch-forward nil 1)
+  (let ((bounds (seq-some (lambda (thing)
+                            (bounds-of-thing-at-point thing))
+                          isearch-forward-thing-at-point)))
+    (cond
+     (bounds
+      (when (use-region-p)
+        (deactivate-mark))
+      (when (< (car bounds) (point))
+	(goto-char (car bounds)))
+      (isearch-yank-string
+       (buffer-substring-no-properties (car bounds) (cdr bounds))))
+     (t
+      (setq isearch-error "No thing at point")
       (isearch-push-state)
       (isearch-update)))))
 
@@ -1337,7 +1374,8 @@ The last thing is to trigger a new round of lazy highlighting."
 		    ;; the X coordinate it returns is 1 pixel beyond
 		    ;; the last visible one.
 		    (>= (car visible-p)
-                        (* (window-max-chars-per-line) (frame-char-width))))
+                        (* (window-max-chars-per-line) (frame-char-width)))
+                    (< (car visible-p) 0))
 		(set-window-hscroll (selected-window) current-scroll))))
 	(if isearch-other-end
             (if (< isearch-other-end (point)) ; isearch-forward?
@@ -3056,10 +3094,6 @@ See more for options in `search-exit-option'."
            (goto-char isearch-pre-move-point))
          (isearch-search-and-update)))
      (setq isearch-pre-move-point nil))
-  ;; Terminate the search if point has moved to another buffer.
-  (unless (eq isearch--current-buffer (current-buffer))
-    (when (buffer-live-p isearch--current-buffer)
-      (with-current-buffer isearch--current-buffer (isearch-exit))))
   (force-mode-line-update))
 
 (defun isearch-quote-char (&optional count)
