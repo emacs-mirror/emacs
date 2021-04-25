@@ -53,10 +53,10 @@
 	(setq proxy (car proxies))
       (setq proxy proxies))
     (cond
-     ((string-match "^direct" proxy) nil)
-     ((string-match "^proxy +" proxy)
+     ((string-match "^DIRECT" proxy) nil)
+     ((string-match "^PROXY +" proxy)
       (concat "http://" (substring proxy (match-end 0)) "/"))
-     ((string-match "^socks +" proxy)
+     ((string-match "^SOCKS +" proxy)
       (concat "socks://" (substring proxy (match-end 0))))
      (t
       (display-warning 'url (format "Unknown proxy directive: %s" proxy) :error)
