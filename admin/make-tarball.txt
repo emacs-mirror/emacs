@@ -259,8 +259,9 @@ General steps (for each step, check for possible errors):
 
 UPDATING THE EMACS WEB PAGES AFTER A RELEASE
 
-As soon as possible after a release, the Emacs web pages should be updated.
-(See admin/notes/www for general information.)
+As soon as possible after a release, the Emacs web pages at
+https://www.gnu.org/software/emacs/ should be updated.  (See
+admin/notes/www for general information.)
 
 The pages to update are:
 
@@ -270,7 +271,14 @@ add the new NEWS file as news/NEWS.xx.y
 
 For every new release, a banner is displayed on top of the emacs.html
 page.  Uncomment and the release banner in emacs.html.  Keep it on the
-page for about a month, then comment it again.
+page for about a month, then comment it again.  The new release banner
+looks like this:
+
+    <div class="release-banner">
+	<div class="container">
+	    <h2><em>Emacs 27.1 is out</em>, download it <a href="download.html">here</a>!</h2>
+	</div>
+    </div>
 
 Regenerate the various manuals in manual/.
 The scripts admin/make-manuals and admin/upload-manuals summarize the process.

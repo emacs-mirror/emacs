@@ -2239,9 +2239,10 @@ This function asks the user a series of questions, reading a
 single-character answer in the echo area for each one.
 
 The value of @var{list} specifies the objects to ask questions about.
-It should be either a list of objects or a generator function.  If it is
-a function, it should expect no arguments, and should return either the
-next object to ask about, or @code{nil}, meaning to stop asking questions.
+It should be either a list of objects or a generator function.  If it
+is a function, it will be called with no arguments, and should return
+either the next object to ask about, or @code{nil}, meaning to stop
+asking questions.
 
 The argument @var{prompter} specifies how to ask each question.  If
 @var{prompter} is a string, the question text is computed like this:
@@ -2252,19 +2253,20 @@ The argument @var{prompter} specifies how to ask each question.  If
 
 @noindent
 where @var{object} is the next object to ask about (as obtained from
-@var{list}).
+@var{list}).  @xref{Formatting Strings}, for more information about
+@code{format}.
 
-If not a string, @var{prompter} should be a function of one argument
-(the next object to ask about) and should return the question text.  If
-the value is a string, that is the question to ask the user.  The
-function can also return @code{t}, meaning do act on this object (and
-don't ask the user), or @code{nil}, meaning ignore this object (and don't
-ask the user).
+If @var{prompter} is not a string, it should be a function of one
+argument (the object to ask about) and should return the question text
+for that object.  If the value @var{prompter} returns is a string,
+that is the question to ask the user.  The function can also return
+@code{t}, meaning to act on this object without asking the user, or
+@code{nil}, which means to silently ignore this object.
 
-The argument @var{actor} says how to act on the answers that the user
-gives.  It should be a function of one argument, and it is called with
-each object that the user says yes for.  Its argument is always an
-object obtained from @var{list}.
+The argument @var{actor} says how to act on the objects for which the
+user answers yes.  It should be a function of one argument, and will
+be called with each object from @var{list} for which the user answers
+yes.
 
 If the argument @var{help} is given, it should be a list of this form:
 
@@ -2274,34 +2276,49 @@ If the argument @var{help} is given, it should be a list of this form:
 
 @noindent
 where @var{singular} is a string containing a singular noun that
-describes the objects conceptually being acted on, @var{plural} is the
+describes a single object to be acted on, @var{plural} is the
 corresponding plural noun, and @var{action} is a transitive verb
-describing what @var{actor} does.
+describing what @var{actor} does with the objects.
 
-If you don't specify @var{help}, the default is @code{("object"
-"objects" "act on")}.
+If you don't specify @var{help}, it defaults to the list
+@w{@code{("object" "objects" "act on")}}.
 
-Each time a question is asked, the user may enter @kbd{y}, @kbd{Y}, or
-@key{SPC} to act on that object; @kbd{n}, @kbd{N}, or @key{DEL} to skip
-that object; @kbd{!} to act on all following objects; @key{ESC} or
-@kbd{q} to exit (skip all following objects); @kbd{.} (period) to act on
-the current object and then exit; or @kbd{C-h} to get help.  These are
-the same answers that @code{query-replace} accepts.  The keymap
-@code{query-replace-map} defines their meaning for @code{map-y-or-n-p}
-as well as for @code{query-replace}; see @ref{Search and Replace}.
+Each time a question is asked, the user can answer as follows:
+
+@table @asis
+@item @kbd{y}, @kbd{Y}, or @kbd{@key{SPC}}
+act on the object
+@item @kbd{n}, @kbd{N}, or @kbd{@key{DEL}}
+skip the object
+@item @kbd{!}
+act on all the following objects
+@item @kbd{@key{ESC}} or @kbd{q}
+exit (skip all following objects)
+@item @kbd{.} (period)
+act on the object and then exit
+@item @kbd{C-h}
+get help
+@end table
+
+@noindent
+These are the same answers that @code{query-replace} accepts.  The
+keymap @code{query-replace-map} defines their meaning for
+@code{map-y-or-n-p} as well as for @code{query-replace}; see
+@ref{Search and Replace}.
 
 You can use @var{action-alist} to specify additional possible answers
-and what they mean.  It is an alist of elements of the form
-@code{(@var{char} @var{function} @var{help})}, each of which defines one
-additional answer.  In this element, @var{char} is a character (the
+and what they mean.  If provided, @var{action-alist} should be an
+alist whose elements are of the form @w{@code{(@var{char}
+@var{function} @var{help})}}.  Each of the alist elements defines one
+additional answer.  In each element, @var{char} is a character (the
 answer); @var{function} is a function of one argument (an object from
-@var{list}); @var{help} is a string.
-
-When the user responds with @var{char}, @code{map-y-or-n-p} calls
-@var{function}.  If it returns non-@code{nil}, the object is considered
-acted upon, and @code{map-y-or-n-p} advances to the next object in
-@var{list}.  If it returns @code{nil}, the prompt is repeated for the
-same object.
+@var{list}); and @var{help} is a string.  When the user responds with
+@var{char}, @code{map-y-or-n-p} calls @var{function}.  If it returns
+non-@code{nil}, the object is considered to have been acted upon, and
+@code{map-y-or-n-p} advances to the next object in @var{list}.  If it
+returns @code{nil}, the prompt is repeated for the same object.  If
+the user requests help, the text in @var{help} is used to describe
+these additional answers.
 
 Normally, @code{map-y-or-n-p} binds @code{cursor-in-echo-area} while
 prompting.  But if @var{no-cursor-in-echo-area} is non-@code{nil}, it

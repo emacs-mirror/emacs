@@ -2920,7 +2920,7 @@ menu item.
 
 @item :active @var{enable}
 @var{enable} is an expression; if it evaluates to @code{nil}, the item
-is make unselectable..  @code{:enable} is an alias for @code{:active}.
+is made unselectable.  @code{:enable} is an alias for @code{:active}.
 
 @item :visible @var{include}
 @var{include} is an expression; if it evaluates to @code{nil}, the
