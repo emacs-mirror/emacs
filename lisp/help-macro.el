@@ -59,12 +59,6 @@
 ;;->  (define-key c-mp "\C-h" 'help-for-empire-redistribute-map)
 ;;->  (define-key c-mp help-character 'help-for-empire-redistribute-map)
 
-;;; Change Log:
-;;
-;; 22-Jan-1991		Lynn Slater x2048
-;;    Last Modified: Mon Oct  1 11:43:52 1990 #3 (Lynn Slater)
-;;    documented better
-
 ;;; Code:
 
 (require 'backquote)
