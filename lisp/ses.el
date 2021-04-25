@@ -172,14 +172,14 @@ Each function is called with ARG=1."
 
 (defvar ses--completion-table nil
   "Set globally to what completion table to use depending on type
-  of completion (local printers, cells, etc.). We need to go
-  through a local variable to pass the SES buffer local variable
-  to completing function while the current buffer is the
-  minibuffer.")
+of completion (local printers, cells, etc.).  We need to go
+through a local variable to pass the SES buffer local variable
+to completing function while the current buffer is the
+minibuffer.")
 
 (defvar ses--list-orig-buffer nil
-  "Calling buffer for SES listing help. Used for listing local
-  printers or renamed cells.")
+  "Calling buffer for SES listing help.
+Used for listing local printers or renamed cells.")
 
 
 (defconst ses-mode-edit-map
@@ -395,8 +395,9 @@ left-justification of the result.  Set to error-signal if `ses-call-printer'
 encountered an error during printing.  Otherwise nil.")
 
 (defvar ses-start-time nil
-  "Time when current operation started.  Used by `ses--time-check' to decide
-when to emit a progress message.")
+  "Time when current operation started.
+Used by `ses--time-check' to decide when to emit a progress
+message.")
 
 
 ;;----------------------------------------------------------------------------
@@ -560,9 +561,10 @@ the corresponding cell with name PROPERTY-NAME."
 		(eq (ses-cell-symbol (car rowcol) (cdr rowcol)) sym))))))
 
 (defun ses--cell (sym value formula printer references)
-  "Load a cell SYM from the spreadsheet file.  Does not recompute VALUE from
-FORMULA, does not reprint using PRINTER, does not check REFERENCES.
-Safety-checking for FORMULA and PRINTER are deferred until first use."
+  "Load a cell SYM from the spreadsheet file.
+Does not recompute VALUE from FORMULA, does not reprint using
+PRINTER, does not check REFERENCES.  Safety-checking for FORMULA
+and PRINTER are deferred until first use."
   (let ((rowcol (ses-sym-rowcol sym)))
     (ses-formula-record formula)
     (ses-printer-record printer)
@@ -580,8 +582,7 @@ Safety-checking for FORMULA and PRINTER are deferred until first use."
   (set sym value))
 
 (defun ses-local-printer-compile (printer)
-  "Convert local printer function into faster printer
-definition."
+  "Convert local printer function into faster printer definition."
   (cond
    ((functionp printer) printer)
    ((stringp printer)
@@ -610,8 +611,8 @@ Return the printer info."
 	   ses--local-printer-hashmap))
 
 (defmacro ses-column-widths (widths)
-  "Load the vector of column widths from the spreadsheet file.  This is a
-macro to prevent propagate-on-load viruses."
+  "Load the vector of column widths from the spreadsheet file.
+This is a macro to prevent propagate-on-load viruses."
   (or (and (vectorp widths) (= (length widths) ses--numcols))
       (error "Bad column-width vector"))
   ;;To save time later, we also calculate the total width of each line in the
@@ -748,8 +749,8 @@ for this spreadsheet."
   (intern (concat (ses-column-letter col) (number-to-string (1+ row)))))
 
 (defun ses-decode-cell-symbol (str)
-  "Decode a symbol \"A1\" => (0,0).  Return nil if STR is not a
-canonical cell name."
+  "Decode a symbol \"A1\" => (0,0).
+Return nil if STR is not a canonical cell name."
   (let (case-fold-search)
     (and (string-match "\\`\\([A-Z]+\\)\\([0-9]+\\)\\'" str)
 	 (let* ((col-str (match-string-no-properties 1 str))
@@ -1061,15 +1062,15 @@ the old and FORCE is nil."
   (ses-cell-set-formula row col nil))
 
 (defcustom ses-self-reference-early-detection nil
-  "True if cycle detection is early for cells that refer to themselves."
+  "Non-nil if cycle detection is early for cells that refer to themselves."
   :version "24.1"
   :type 'boolean
   :group 'ses)
 
 (defun ses-update-cells (list &optional force)
-  "Recalculate cells in LIST, checking for dependency loops.  Prints
-progress messages every second.  Dependent cells are not recalculated
-if the cell's value is unchanged and FORCE is nil."
+  "Recalculate cells in LIST, checking for dependency loops.
+Print progress messages every second.  Dependent cells are not
+recalculated if the cell's value is unchanged and FORCE is nil."
   (let ((ses--deferred-recalc list)
 	(nextlist             list)
 	(pos		      (point))
@@ -2025,7 +2026,7 @@ Delete overlays, remove special text properties."
 When you invoke SES in a new buffer, it is divided into cells
 that you can enter data into.  You can navigate the cells with
 the arrow keys and add more cells with the tab key.  The contents
-of these cells can be numbers, text, or Lisp expressions. (To
+of these cells can be numbers, text, or Lisp expressions.  (To
 enter text, enclose it in double quotes.)
 
 In an expression, you can use cell coordinates to refer to the
@@ -2131,9 +2132,9 @@ formula:
 
 (defun ses-command-hook ()
   "Invoked from `post-command-hook'.  If point has moved to a different cell,
-moves the underlining overlay.  Performs any recalculations or cell-data
+move the underlining overlay.  Perform any recalculations or cell-data
 writes that have been deferred.  If buffer-narrowing has been deferred,
-narrows the buffer now."
+narrow the buffer now."
   (condition-case err
       (when (eq major-mode 'ses-mode)  ; Otherwise, not our buffer anymore.
 	(when ses--deferred-recalc
@@ -2267,8 +2268,8 @@ Based on the current set of columns and `window-hscroll' position."
     (ses-jump cell)))
 
 (defun ses-reprint-all (&optional nonarrow)
-  "Recreate the display area.  Calls all printer functions.  Narrows to
-print area if NONARROW is nil."
+  "Recreate the display area.  Call all printer functions.
+Narrow to print area if optional argument NONARROW is nil."
   (interactive "*P")
   (widen)
   (unless nonarrow
@@ -2495,8 +2496,8 @@ to are recalculated first."
       (and collection (list start end collection))))))
 
 (defun ses-edit-cell (row col newval)
-  "Display current cell contents in minibuffer, for editing.  Returns nil if
-cell formula was unsafe and user declined confirmation."
+  "Display current cell contents in minibuffer, for editing.
+Return nil if cell formula was unsafe and user declined confirmation."
   (interactive
    (progn
      (barf-if-buffer-read-only)
@@ -2559,8 +2560,9 @@ cell formula was unsafe and user declined confirmation."
       (funcall x 1))))
 
 (defun ses-read-symbol (row col symb)
-  "Self-insert for a symbol as a cell formula.  The set of all symbols that
-have been used as formulas in this spreadsheet is available for completions."
+  "Self-insert for a symbol as a cell formula.
+The set of all symbols that have been used as formulas in this
+spreadsheet is available for completions."
   (interactive
    (let ((rowcol (progn (ses-check-curcell) (ses-sym-rowcol ses--curcell)))
 	 newval)
@@ -2593,7 +2595,7 @@ With prefix, deletes several cells."
       (forward-char 1))))
 
 (defun ses-clear-cell-backward (count)
-  "Move to previous cell and then delete it.  With prefix, deletes several
+  "Move to previous cell and then delete it.  With prefix, delete several
 cells."
   (interactive "*p")
   (if (< count 0)
@@ -3371,9 +3373,9 @@ is non-nil.  Newlines and tabs in the export text are escaped."
 ;;----------------------------------------------------------------------------
 
 (defun ses-list-local-printers (&optional local-printer-hashmap)
-  "List local printers in a help buffer. Can be called either
-during editing a printer or a formula, or while in the SES
-buffer."
+  "List local printers in a help buffer.
+Can be called either during editing a printer or a formula, or
+while in the SES buffer."
   (interactive
    (list (cond
           ((derived-mode-p 'ses-mode) ses--local-printer-hashmap)
@@ -3405,9 +3407,9 @@ buffer."
             (buffer-string)))))))
 
 (defun ses-list-named-cells (&optional named-cell-hashmap)
-  "List named cells in a help buffer. Can be called either
-during editing a printer or a formula, or while in the SES
-buffer."
+  "List named cells in a help buffer.
+Can be called either during editing a printer or a formula, or
+while in the SES buffer."
   (interactive
    (list (cond
           ((derived-mode-p 'ses-mode) ses--named-cell-hashmap)
