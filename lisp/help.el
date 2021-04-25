@@ -239,7 +239,7 @@ Do not call this in the scope of `with-help-window'."
    (help--key-description-fontified "\C-s")
    " to search, or \\<help-map>\\[help-quit] to exit.)"
    (help--for-help-make-sections
-    '(("Commands, Keys and Functions"
+    `(("Commands, Keys and Functions"
        ("describe-mode"
         "Show help for current major and minor modes and their commands")
        ("describe-bindings" "Show all key bindings")
@@ -273,8 +273,8 @@ Do not call this in the scope of `with-help-window'."
        ("help-with-tutorial" "Start the Emacs tutorial")
        ("view-echo-area-messages"
         "Show recent messages (from echo area)")
-       ("view-lossage" (format "Show last %d input keystrokes (lossage)"
-                               (lossage-size)))
+       ("view-lossage" ,(format "Show last %d input keystrokes (lossage)"
+                                (lossage-size)))
        ("display-local-help" "Show local help at point"))
       ("Miscellaneous"
        ("about-emacs" "About Emacs")
