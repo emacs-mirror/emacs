@@ -2696,9 +2696,9 @@ PROPERTIES are passed to `insert-text-button', for which this
 function is a convenience wrapper used by `describe-package-1'."
   (let ((button-text (if (display-graphic-p) text (concat "[" text "]")))
         (button-face (if (display-graphic-p)
-                         '(:box (:line-width 2 :color "dark grey")
-                                :background "light grey"
-                                :foreground "black")
+                         (progn
+                           (require 'cus-edit) ; for the custom-button face
+                           'custom-button)
                        'link)))
     (apply #'insert-text-button button-text 'face button-face 'follow-link t
            properties)))
