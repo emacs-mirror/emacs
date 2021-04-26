@@ -552,6 +552,8 @@ Useful to hook into pass checkers.")
     (signal (function (symbol t) nil)))
   "Alist used for type propagation.")
 
+(defvar comp-ctxt) ; To make comp.el loadable in non native comp builds.
+
 (defconst comp-known-func-cstr-h
   (cl-loop
    with comp-ctxt = (make-comp-cstr-ctxt)
