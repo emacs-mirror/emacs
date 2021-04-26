@@ -1,9 +1,8 @@
 ;;; comp.el --- compilation of Lisp code into native code -*- lexical-binding: t -*-
 
-;; Author: Andrea Corallo <akrl@sdf.com>
-
 ;; Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
+;; Author: Andrea Corallo <akrl@sdf.com>
 ;; Keywords: lisp
 ;; Package: emacs
 

@@ -1,9 +1,8 @@
 ;;; comp-cstr.el --- native compiler constraint library -*- lexical-binding: t -*-
 
-;; Author: Andrea Corallo <akrl@sdf.com>
-
 ;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
+;; Author: Andrea Corallo <akrl@sdf.com>
 ;; Keywords: lisp
 ;; Package: emacs
 
