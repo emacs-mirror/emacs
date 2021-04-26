@@ -5080,7 +5080,7 @@ ID-FORMAT valid values are `string' and `integer'."
     (or (when-let
 	    ((handler
 	      (find-file-name-handler
-	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-uid)))
+	       (tramp-make-tramp-file-name vec) 'tramp-get-remote-gid)))
 	  (funcall handler #'tramp-get-remote-gid vec id-format))
 	;; Ensure there is a valid result.
 	(and (equal id-format 'integer) tramp-unknown-id-integer)
