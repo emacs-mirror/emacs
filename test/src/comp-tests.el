@@ -28,8 +28,11 @@
 (require 'ert)
 (require 'cl-lib)
 
-(defconst comp-test-directory (file-name-directory (or load-file-name
-                                                       buffer-file-name)))
+(defconst comp-test-directory (concat (file-name-directory
+                                       (or load-file-name
+                                           buffer-file-name))
+                                      "comp-tests-resources/"))
+
 (defconst comp-test-src
   (concat comp-test-directory "comp-test-funcs.el"))
 
