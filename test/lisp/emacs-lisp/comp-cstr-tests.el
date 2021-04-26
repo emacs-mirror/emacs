@@ -29,8 +29,6 @@
 (require 'cl-lib)
 (require 'comp-cstr)
 
-(defvar comp-ctxt) ; So we can run these tests on non native compiled builds.
-
 (cl-eval-when (compile eval load)
 
   (defun comp-cstr-test-ts (type-spec)
