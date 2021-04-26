@@ -177,7 +177,7 @@ Return them as multiple value."
 
 ;; So we can load comp-cstr.el and comp.el in non native compiled
 ;; builds.
-(defvar comp-ctxt)
+(defvar comp-ctxt nil)
 
 (defvar comp-cstr-one (comp-value-to-cstr 1)
   "Represent the integer immediate one.")
