@@ -3878,7 +3878,7 @@ processes from `comp-async-compilations'"
         (save-excursion
           (accept-process-output process)
           (goto-char (or comp-last-scanned-async-output (point-min)))
-          (while (re-search-forward "^.*+?\\(?:Error\\|Warning\\): .*$"
+          (while (re-search-forward "^.*?\\(?:Error\\|Warning\\): .*$"
                                     nil t)
             (display-warning 'comp (match-string 0)))
           (setq comp-last-scanned-async-output (point-max))))
