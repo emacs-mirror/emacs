@@ -27,7 +27,6 @@
 
 (require 'ert)
 (require 'cl-lib)
-(require 'comp)
 
 (defconst comp-test-directory (file-name-directory (or load-file-name
                                                        buffer-file-name)))
@@ -38,6 +37,7 @@
   (concat comp-test-directory "comp-test-funcs-dyn.el"))
 
 (when (featurep 'nativecomp)
+  (require 'comp)
   (message "Compiling tests...")
   (load (native-compile comp-test-src))
   (load (native-compile comp-test-dyn-src)))
