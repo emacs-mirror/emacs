@@ -208,7 +208,7 @@ LIBRARY should be a string (the name of the library)."
                        (or find-function-source-path load-path)
                        load-file-rep-suffixes)))))
    (find-library--from-load-history library)
-   (error "Can't find library %s" library)))
+   (signal 'file-error (list "Can't find library" library))))
 
 (defun find-library--from-load-history (library)
   ;; In `load-history', the file may be ".elc", ".el", ".el.gz", and
