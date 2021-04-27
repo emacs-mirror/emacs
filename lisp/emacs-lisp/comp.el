@@ -86,14 +86,14 @@ This is intended for debugging the compiler itself.
 (defcustom comp-deferred-compilation-deny-list
   '()
   "List of regexps to exclude matching files from deferred native compilation.
-Files whose names match any regexp is excluded from native compilation."
+Files whose names match any regexp are excluded from native compilation."
   :type '(repeat regexp)
   :version "28.1")
 
 (defcustom comp-bootstrap-deny-list
   '()
   "List of regexps to exclude files from native compilation during bootstrap.
-Files whose names match any regexp is excluded from native compilation
+Files whose names match any regexp are excluded from native compilation
 during bootstrap."
   :type '(repeat regexp)
   :version "28.1")
@@ -603,7 +603,7 @@ Useful to hook into pass checkers.")
   (when (gethash predicate comp-known-predicates-h) t))
 
 (defun comp-pred-to-cstr (predicate)
-  "Given PREDICATE, return the correspondig constraint."
+  "Given PREDICATE, return the corresponding constraint."
   (gethash predicate comp-known-predicates-h))
 
 (defconst comp-symbol-values-optimizable '(most-positive-fixnum
@@ -1474,7 +1474,7 @@ STACK-OFF is the index of the first slot frame involved."
                              collect (comp-slot-n sp))))
 
 (cl-defun make-comp-mvar (&key slot (constant nil const-vld) type)
-  "`comp-mvar' intitializer."
+  "`comp-mvar' initializer."
   (let ((mvar (make--comp-mvar :slot slot)))
     (when const-vld
       (comp-add-const-to-relocs constant)
@@ -2255,7 +2255,7 @@ into the C code forwarding the compilation unit."
 
 
 (defsubst comp-mvar-used-p (mvar)
-  "Non-nil when MVAR is used as lhs in the current funciton."
+  "Non-nil when MVAR is used as lhs in the current function."
   (declare (gv-setter (lambda (val)
 			`(puthash ,mvar ,val comp-pass))))
   (gethash mvar comp-pass))
@@ -3627,7 +3627,7 @@ Prepare every function for final compilation and drive the C back-end."
            compile-result))))
 
 (defvar comp-async-compilation nil
-  "Non-nil while executing an asyncronous native compilation.")
+  "Non-nil while executing an asynchronous native compilation.")
 
 (defun comp-final (_)
   "Final pass driving the C back-end for code emission."
