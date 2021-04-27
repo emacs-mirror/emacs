@@ -11860,7 +11860,7 @@ resize_mini_window (struct window *w, bool exact_p)
       int height, max_height;
       struct text_pos start;
       struct buffer *old_current_buffer = NULL;
-      int windows_height = FRAME_WINDOWS_HEIGHT (f);
+      int windows_height = FRAME_INNER_HEIGHT (f);
 
       if (current_buffer != XBUFFER (w->contents))
 	{
@@ -13477,8 +13477,6 @@ PIXELWISE non-nil means return the height of the tab bar in pixels.  */)
 static bool
 redisplay_tab_bar (struct frame *f)
 {
-  f->tab_bar_redisplayed = true;
-
   struct window *w;
   struct it it;
   struct glyph_row *row;
@@ -13491,6 +13489,8 @@ redisplay_tab_bar (struct frame *f)
       || (w = XWINDOW (f->tab_bar_window),
           WINDOW_TOTAL_LINES (w) == 0))
     return false;
+
+  f->tab_bar_redisplayed = true;
 
   /* Set up an iterator for the tab-bar window.  */
   init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TAB_BAR_FACE_ID);
@@ -14402,21 +14402,13 @@ PIXELWISE non-nil means return the height of the tool bar in pixels.  */)
   return make_fixnum (height);
 }
 
+#ifndef HAVE_EXT_TOOL_BAR
 
-/* Display the tool-bar of frame F.  Value is true if tool-bar's
-   height should be changed.  */
+/* Display the internal tool-bar of frame F.  Value is true if
+   tool-bar's height should be changed.  */
 static bool
 redisplay_tool_bar (struct frame *f)
 {
-  f->tool_bar_redisplayed = true;
-#ifdef HAVE_EXT_TOOL_BAR
-
-  if (FRAME_EXTERNAL_TOOL_BAR (f))
-    update_frame_tool_bar (f);
-  return false;
-
-#else /* ! (HAVE_EXT_TOOL_BAR) */
-
   struct window *w;
   struct it it;
   struct glyph_row *row;
@@ -14429,6 +14421,8 @@ redisplay_tool_bar (struct frame *f)
       || (w = XWINDOW (f->tool_bar_window),
           WINDOW_TOTAL_LINES (w) == 0))
     return false;
+
+  f->tool_bar_redisplayed = true;
 
   /* Set up an iterator for the tool-bar window.  */
   init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
@@ -14565,12 +14559,9 @@ redisplay_tool_bar (struct frame *f)
     }
 
   f->minimize_tool_bar_window_p = false;
+
   return false;
-
-#endif /* HAVE_EXT_TOOL_BAR */
 }
-
-#ifndef HAVE_EXT_TOOL_BAR
 
 /* Get information about the tool-bar item which is displayed in GLYPH
    on frame F.  Return in *PROP_IDX the index where tool-bar item
@@ -19334,7 +19325,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
 #ifdef HAVE_EXT_TOOL_BAR
 	  if (FRAME_EXTERNAL_TOOL_BAR (f))
-	    redisplay_tool_bar (f);
+	    update_frame_tool_bar (f);
 #else
 	  if (WINDOWP (f->tool_bar_window)
 	      && (FRAME_TOOL_BAR_LINES (f) > 0

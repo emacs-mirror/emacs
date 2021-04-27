@@ -319,9 +319,12 @@ Encode names if ENCODE is non-nil, otherwise decode."
       (setf (oref db tracked)
             (append gnus-registry-track-extra
                     '(mark group keyword)))
-      (when (not (equal old (oref db tracked)))
+      (when (not (seq-set-equal-p old (oref db tracked)))
         (gnus-message 9 "Reindexing the Gnus registry (tracked change)")
-        (registry-reindex db))
+	(let ((message-log-max (if (< gnus-verbose 9)
+				   nil
+				 message-log-max)))
+          (registry-reindex db)))
       (gnus-registry--munge-group-names db)))
   db)
 

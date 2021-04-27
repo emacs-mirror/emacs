@@ -835,8 +835,6 @@ correspond to previously loaded files (those returned by
       ;; Don't return nil.
       t)))
 
-(declare-function find-library-name "find-func" (library))
-
 (defun package--files-load-history ()
   (delq nil
         (mapcar (lambda (x)
@@ -846,20 +844,22 @@ correspond to previously loaded files (those returned by
                 load-history)))
 
 (defun package--list-of-conflicts (dir history)
-   (delq
-    nil
-    (mapcar
-     (lambda (x) (let* ((file (file-relative-name x dir))
-                        ;; Previously loaded file, if any.
-                        (previous
-                         (ignore-errors
-                           (file-name-sans-extension
-                            (file-truename (find-library-name file)))))
-                        (pos (when previous (member previous history))))
-                   ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
-                   (when pos
-                     (cons (file-name-sans-extension file) (length pos)))))
-     (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))))
+  (require 'find-func)
+  (declare-function find-library-name "find-func" (library))
+  (delq
+   nil
+   (mapcar
+    (lambda (x) (let* ((file (file-relative-name x dir))
+                  ;; Previously loaded file, if any.
+                  (previous
+                   (ignore-error file-error ;"Can't find library"
+                     (file-name-sans-extension
+                      (file-truename (find-library-name file)))))
+                  (pos (when previous (member previous history))))
+             ;; Return (RELATIVE-FILENAME . HISTORY-POSITION)
+             (when pos
+               (cons (file-name-sans-extension file) (length pos)))))
+    (directory-files-recursively dir "\\`[^\\.].*\\.el\\'"))))
 
 (defun package--list-loaded-files (dir)
   "Recursively list all files in DIR which correspond to loaded features.

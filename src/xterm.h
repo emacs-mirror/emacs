@@ -1079,7 +1079,7 @@ extern bool x_had_errors_p (Display *);
 extern void x_uncatch_errors (void);
 extern void x_uncatch_errors_after_check (void);
 extern void x_clear_errors (Display *);
-extern void x_set_window_size (struct frame *f, bool, int, int, bool);
+extern void x_set_window_size (struct frame *f, bool, int, int);
 extern void x_make_frame_visible (struct frame *f);
 extern void x_make_frame_invisible (struct frame *f);
 extern void x_iconify_frame (struct frame *f);

@@ -9,6 +9,7 @@
 ;;               Andreas Fuchs (afs@void.at)
 ;;               Gergely Nagy (algernon@midgard.debian.net)
 ;;               David Edmondson (dme@dme.org)
+;;               Michael Olson (mwolson@gnu.org)
 ;;               Kelvin White (kwhite@gnu.org)
 ;; Maintainer: Amin Bandali <bandali@gnu.org>
 ;; Keywords: IRC, chat, client, Internet

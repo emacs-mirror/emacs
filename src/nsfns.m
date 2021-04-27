@@ -669,21 +669,9 @@ ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 
   {
-    int inhibit
-      = ((f->after_make_frame
-	  && !f->tool_bar_resized
-	  && (EQ (frame_inhibit_implied_resize, Qt)
-	      || (CONSP (frame_inhibit_implied_resize)
-		  && !NILP (Fmemq (Qtool_bar_lines,
-				   frame_inhibit_implied_resize))))
-	  && NILP (get_frame_param (f, Qfullscreen)))
-	 ? 0
-	 : 2);
-
     NSTRACE_MSG ("inhibit:%d", inhibit);
 
-    frame_size_history_add (f, Qupdate_frame_tool_bar, 0, 0, Qnil);
-    adjust_frame_size (f, -1, -1, inhibit, 0, Qtool_bar_lines);
+    adjust_frame_size (f, -1, -1, 2, false, Qtool_bar_lines);
   }
 }
 
@@ -1332,8 +1320,7 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
                          RES_TYPE_STRING);
 
   parms = get_geometry_from_preferences (dpyinfo, parms);
-  window_prompting = gui_figure_window_size (f, parms, false, true,
-                                             &x_width, &x_height);
+  window_prompting = gui_figure_window_size (f, parms, false, true);
 
   tem = gui_display_get_arg (dpyinfo, parms, Qunsplittable, 0, 0,
                              RES_TYPE_BOOLEAN);
@@ -1400,13 +1387,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   /* Allow set_window_size_hook, now.  */
   f->can_set_window_size = true;
 
-  if (x_width > 0)
-    SET_FRAME_WIDTH (f, x_width);
-  if (x_height > 0)
-    SET_FRAME_HEIGHT (f, x_height);
-
-  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f), 0, 1,
-		     Qx_create_frame_2);
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
+		     0, true, Qx_create_frame_2);
 
   if (! f->output_data.ns->explicit_parent)
     {

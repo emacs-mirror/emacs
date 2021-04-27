@@ -641,7 +641,7 @@ update_frame_menubar (struct frame *f)
   lw_refigure_widget (x->column_widget, True);
 
   /* Force the pane widget to resize itself.  */
-  adjust_frame_size (f, -1, -1, 2, false, Qupdate_frame_menubar);
+  adjust_frame_size (f, -1, -1, 2, false, Qmenu_bar_lines);
   unblock_input ();
 #endif /* USE_GTK */
 }
@@ -1044,6 +1044,7 @@ free_frame_menubar (struct frame *f)
   /* Motif automatically shrinks the frame in lw_destroy_all_widgets.
      If we want to preserve the old height, calculate it now so we can
      restore it below.  */
+  int old_width = FRAME_TEXT_WIDTH (f);
   int old_height = FRAME_TEXT_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
 #endif
 
@@ -1077,26 +1078,43 @@ free_frame_menubar (struct frame *f)
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       f->output_data.x->menubar_widget = NULL;
 
+      /* When double-buffering is enabled and the frame shall not be
+	 resized either because resizing is inhibited or the frame is
+	 fullheight, some (usually harmless) display artifacts like a
+	 doubled mode line may show up.  Sometimes the configuration
+	 gets messed up in a more serious fashion though and you may
+	 have to resize the frame to get it back in a normal state.  */
       if (f->output_data.x->widget)
 	{
 #ifdef USE_MOTIF
 	  XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
 	  if (x1 == 0 && y1 == 0)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
-	  if (frame_inhibit_resize (f, false, Qmenu_bar_lines))
-	    adjust_frame_size (f, -1, old_height, 1, false, Qfree_frame_menubar_1);
+	  /* When resizing is inhibited and a normal Motif frame is not
+	     fullheight, we have to explicitly request its old sizes
+	     here since otherwise turning off the menu bar will shrink
+	     the frame but turning them on again will not resize it
+	     back.  For a fullheight frame we let the window manager
+	     deal with this problem.  */
+	  if (frame_inhibit_resize (f, false, Qmenu_bar_lines)
+	      && !EQ (get_frame_param (f, Qfullscreen), Qfullheight))
+	    adjust_frame_size (f, old_width, old_height, 1, false,
+			       Qmenu_bar_lines);
 	  else
-	    adjust_frame_size (f, -1, -1, 2, false, Qfree_frame_menubar_1);
+	    adjust_frame_size (f, -1, -1, 2, false, Qmenu_bar_lines);
 #else
-	  adjust_frame_size (f, -1, -1, 2, false, Qfree_frame_menubar_1);
+	  adjust_frame_size (f, -1, -1, 2, false, Qmenu_bar_lines);
 #endif /* USE_MOTIF */
 	}
       else
 	{
 #ifdef USE_MOTIF
 	  if (WINDOWP (FRAME_ROOT_WINDOW (f))
-	      && frame_inhibit_resize (f, false, Qmenu_bar_lines))
-	    adjust_frame_size (f, -1, old_height, 1, false, Qfree_frame_menubar_2);
+	      /* See comment above.  */
+	      && frame_inhibit_resize (f, false, Qmenu_bar_lines)
+	      && !EQ (get_frame_param (f, Qfullscreen), Qfullheight))
+	    adjust_frame_size (f, old_width, old_height, 1, false,
+			       Qmenu_bar_lines);
 #endif
 	}
 

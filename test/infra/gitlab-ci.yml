@@ -238,46 +238,48 @@ test-lisp-net-inotify:
 test-filenotify-gio:
   # This tests file monitor libraries gfilemonitor and gio.
   stage: platforms
+  needs: [build-image-filenotify-gio]
   extends: [.job-template, .test-template, .filenotify-gio-template]
   variables:
     target: emacs-filenotify-gio
     make_params: "-k -C test autorevert-tests.log filenotify-tests.log"
 
-test-native-bootstrap-speed0:
+build-native-bootstrap-speed0:
   # Test a full native bootstrap
   # Run for now only speed 0 to limit memory usage and compilation time.
   stage: slow
-  # Uncomment the following to run it only when sceduled.
+  # Uncomment the following to run it only when scheduled.
   # only:
   #   - schedules
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
-    - ./configure --without-makeinfo --with-nativecomp
+    - ./configure --with-nativecomp
     - make bootstrap NATIVE_FULL_AOT=1 BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 0)"' -j2
   timeout: 8 hours
 
-test-native-bootstrap-speed1:
+build-native-bootstrap-speed1:
   stage: slow
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
-    - ./configure --without-makeinfo --with-nativecomp
+    - ./configure --with-nativecomp
     - make bootstrap BYTE_COMPILE_EXTRA_FLAGS='--eval "(setq comp-speed 1)"'
   timeout: 8 hours
 
-test-native-bootstrap-speed2:
+build-native-bootstrap-speed2:
   stage: slow
   script:
     - DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y -qq -o=Dpkg::Use-Pty=0 libgccjit-6-dev
     - ./autogen.sh autoconf
-    - ./configure --without-makeinfo --with-nativecomp
+    - ./configure --with-nativecomp
     - make bootstrap
   timeout: 8 hours
 
 test-gnustep:
   # This tests the GNUstep build process
   stage: platforms
+  needs: [build-image-gnustep]
   extends: [.job-template, .gnustep-template]
   variables:
     target: emacs-gnustep
@@ -294,3 +296,7 @@ test-all-inotify:
   variables:
     target: emacs-inotify
     make_params: check-expensive
+
+# Local Variables:
+# add-log-current-defun-header-regexp: "^\\([-_.[:alnum:]]+\\)[ \t]*:"
+# End:

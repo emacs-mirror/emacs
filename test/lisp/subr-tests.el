@@ -382,7 +382,7 @@ cf. Bug#25477."
   "Test for https://debbugs.gnu.org/22027 ."
   (let ((default "foo") res)
     (cl-letf (((symbol-function 'read-string)
-               (lambda (_prompt _init _hist def _inher-input) def)))
+               (lambda (_prompt &optional _init _hist def _inher-input) def)))
       (setq res (read-passwd "pass: " 'confirm (mapconcat #'string default "")))
       (should (string= default res)))))
 

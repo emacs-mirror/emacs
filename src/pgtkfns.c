@@ -439,7 +439,7 @@ x_change_tab_bar_height (struct frame *f, int height)
   int unit = FRAME_LINE_HEIGHT (f);
   int old_height = FRAME_TAB_BAR_HEIGHT (f);
   int lines = (height + unit - 1) / unit;
-  Lisp_Object fullscreen;
+  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
 
   /* Make sure we redisplay all windows in this frame.  */
   fset_redisplay (f);
@@ -447,16 +447,8 @@ x_change_tab_bar_height (struct frame *f, int height)
   /* Recalculate tab bar and frame text sizes.  */
   FRAME_TAB_BAR_HEIGHT (f) = height;
   FRAME_TAB_BAR_LINES (f) = lines;
-  /* Store the `tab-bar-lines' and `height' frame parameters.  */
   store_frame_param (f, Qtab_bar_lines, make_fixnum (lines));
-  store_frame_param (f, Qheight, make_fixnum (FRAME_LINES (f)));
 
-  /* We also have to make sure that the internal border at the top of
-     the frame, below the menu bar or tab bar, is redrawn when the
-     tab bar disappears.  This is so because the internal border is
-     below the tab bar if one is displayed, but is below the menu bar
-     if there isn't a tab bar.  The tab bar draws into the area
-     below the menu bar.  */
   if (FRAME_X_WINDOW (f) && FRAME_TAB_BAR_HEIGHT (f) == 0)
     {
       clear_frame (f);
@@ -466,25 +458,21 @@ x_change_tab_bar_height (struct frame *f, int height)
   if ((height < old_height) && WINDOWP (f->tab_bar_window))
     clear_glyph_matrix (XWINDOW (f->tab_bar_window)->current_matrix);
 
-  /* Recalculate tabbar height.  */
-  f->n_tab_bar_rows = 0;
-  if (old_height == 0
-      && (!f->after_make_frame
-	  || NILP (frame_inhibit_implied_resize)
-	  || (CONSP (frame_inhibit_implied_resize)
-	      &&
-	      NILP (Fmemq (Qtab_bar_lines, frame_inhibit_implied_resize)))))
-    f->tab_bar_redisplayed = f->tab_bar_resized = false;
+  if (!f->tab_bar_resized)
+    {
+      /* As long as tab_bar_resized is false, effectively try to change
+        F's native height.  */
+      if (NILP (fullscreen) || EQ (fullscreen, Qfullwidth))
+	adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
+			   1, false, Qtab_bar_lines);
+      else
+	adjust_frame_size (f, -1, -1, 4, false, Qtab_bar_lines);
 
-  adjust_frame_size (f, -1, -1,
-		     ((!f->tab_bar_resized
-		       && (NILP (fullscreen =
-				 get_frame_param (f, Qfullscreen))
-			   || EQ (fullscreen, Qfullwidth))) ? 1
-		      : (old_height == 0 || height == 0) ? 2
-		      : 4), false, Qtab_bar_lines);
-
-  f->tab_bar_resized = f->tab_bar_redisplayed;
+      f->tab_bar_resized = f->tab_bar_redisplayed;
+    }
+  else
+    /* Any other change may leave the native size of F alone.  */
+    adjust_frame_size (f, -1, -1, 3, false, Qtab_bar_lines);
 
   /* adjust_frame_size might not have done anything, garbage frame
      here.  */
@@ -1238,7 +1226,6 @@ This function is an internal primitive--use `make-frame' instead.  */ )
   struct pgtk_display_info *dpyinfo = NULL;
   Lisp_Object parent, parent_frame;
   struct kboard *kb;
-  int x_width = 0, x_height = 0;
 
   parms = Fcopy_alist (parms);
 
@@ -1578,7 +1565,7 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
   /* Compute the size of the X window.  */
   window_prompting =
-    gui_figure_window_size (f, parms, true, true, &x_width, &x_height);
+    gui_figure_window_size (f, parms, true, true);
 
   tem =
     gui_display_get_arg (dpyinfo, parms, Qunsplittable, 0, 0,
@@ -1693,11 +1680,6 @@ This function is an internal primitive--use `make-frame' instead.  */ )
 
   /* Consider frame official, now.  */
   f->can_set_window_size = true;
-
-  if (x_width > 0)
-    SET_FRAME_WIDTH (f, x_width);
-  if (x_height > 0)
-    SET_FRAME_HEIGHT (f, x_height);
 
   /* Tell the server what size and position, etc, we want, and how
      badly we want them.  This should be done after we have the menu
@@ -2793,10 +2775,8 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
   struct frame *f;
   Lisp_Object frame;
   Lisp_Object name;
-  int width, height;
   ptrdiff_t count = SPECPDL_INDEX ();
   bool face_change_before = face_change;
-  int x_width = 0, x_height = 0;
 
   if (!dpyinfo->terminal->name)
     error ("Terminal is not live, can't create new frames on it");
@@ -2940,7 +2920,7 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
                          "inhibitDoubleBuffering", "InhibitDoubleBuffering",
                          RES_TYPE_BOOLEAN);
 
-  gui_figure_window_size (f, parms, false, false, &x_width, &x_height);
+  gui_figure_window_size (f, parms, false, false);
 
   xg_create_frame_widgets (f);
   pgtk_set_event_handler (f);
@@ -2968,15 +2948,6 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
                          "cursorType", "CursorType", RES_TYPE_SYMBOL);
   gui_default_parameter (f, parms, Qalpha, Qnil,
                          "alpha", "Alpha", RES_TYPE_NUMBER);
-
-  /* Dimensions, especially FRAME_LINES (f), must be done via change_frame_size.
-     Change will not be effected unless different from the current
-     FRAME_LINES (f).  */
-  width = FRAME_COLS (f);
-  height = FRAME_LINES (f);
-  SET_FRAME_COLS (f, 0);
-  SET_FRAME_LINES (f, 0);
-  change_frame_size (f, width, height, true, false, false, false);
 
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, Qtooltip)))
@@ -3033,6 +3004,8 @@ x_create_tip_frame (struct pgtk_display_info *dpyinfo, Lisp_Object parms, struct
      visible won't work.  */
   Vframe_list = Fcons (frame, Vframe_list);
   f->can_set_window_size = true;
+  adjust_frame_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
+		     0, true, Qtip_frame);
 
   /* Setting attributes of faces of the tooltip frame from resources
      and similar will set face_change, which leads to the clearing of

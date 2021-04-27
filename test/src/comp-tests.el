@@ -26,18 +26,15 @@
 ;;; Code:
 
 (require 'ert)
+(require 'ert-x)
 (require 'cl-lib)
-(require 'comp)
 
-(defconst comp-test-directory (file-name-directory (or load-file-name
-                                                       buffer-file-name)))
-(defconst comp-test-src
-  (concat comp-test-directory "comp-test-funcs.el"))
+(defconst comp-test-src (ert-resource-file "comp-test-funcs.el"))
 
-(defconst comp-test-dyn-src
-  (concat comp-test-directory "comp-test-funcs-dyn.el"))
+(defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el"))
 
 (when (featurep 'nativecomp)
+  (require 'comp)
   (message "Compiling tests...")
   (load (native-compile comp-test-src))
   (load (native-compile comp-test-dyn-src)))
@@ -57,8 +54,8 @@
 Check that the resulting binaries do not differ."
   :tags '(:expensive-test :nativecomp)
   (let* ((byte-native-for-bootstrap t) ; FIXME HACK
-         (comp-src (concat comp-test-directory
-                              "../../lisp/emacs-lisp/comp.el"))
+         (comp-src (expand-file-name "../../../lisp/emacs-lisp/comp.el"
+                                     (ert-resource-directory)))
          (comp1-src (make-temp-file "stage1-" nil ".el"))
          (comp2-src (make-temp-file "stage2-" nil ".el"))
          ;; Can't use debug symbols.
@@ -494,7 +491,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 
 (comp-deftest 45603-1 ()
   "<https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-12/msg01994.html>"
-  (load (native-compile (concat comp-test-directory "comp-test-45603.el")))
+  (load (native-compile (ert-resource-file "comp-test-45603.el")))
   (should (fboundp #'comp-test-45603--file-local-name)))
 
 (comp-deftest 46670-1 ()
@@ -1405,7 +1402,7 @@ Return a list of results."
   (let ((comp-speed 3)
         (comp-post-pass-hooks '((comp-final comp-tests-pure-checker-1
                                             comp-tests-pure-checker-2))))
-    (load (native-compile (concat comp-test-directory "comp-test-pure.el")))
+    (load (native-compile (ert-resource-file "comp-test-pure.el")))
 
     (should (subr-native-elisp-p (symbol-function #'comp-tests-pure-caller-f)))
     (should (= (comp-tests-pure-caller-f) 4))

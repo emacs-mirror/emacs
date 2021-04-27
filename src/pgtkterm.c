@@ -457,9 +457,8 @@ x_set_offset (struct frame *f, int xoff, int yoff, int change_gravity)
 }
 
 static void
-pgtk_set_window_size (struct frame *f,
-		      bool change_gravity,
-		      int width, int height, bool pixelwise)
+pgtk_set_window_size (struct frame *f, bool change_gravity,
+		      int width, int height)
 /* --------------------------------------------------------------------------
      Adjust window pixel size based on given character grid size
      Impl is a bit more complex than other terms, need to do some
@@ -475,6 +474,7 @@ pgtk_set_window_size (struct frame *f,
   gtk_widget_get_size_request (FRAME_GTK_WIDGET (f), &pixelwidth,
 			       &pixelheight);
 
+#if 0
   if (pixelwise)
     {
       pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
@@ -485,7 +485,12 @@ pgtk_set_window_size (struct frame *f,
       pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
       pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
     }
+#else
+  pixelwidth = width;
+  pixelheight = height;
+#endif
 
+#if 0
   frame_size_history_add
     (f, Qx_set_window_size_1, width, height,
      list5 (Fcons (make_fixnum (pixelwidth), make_fixnum (pixelheight)),
@@ -493,6 +498,7 @@ pgtk_set_window_size (struct frame *f,
 	    make_fixnum (f->border_width),
 	    make_fixnum (FRAME_PGTK_TITLEBAR_HEIGHT (f)),
 	    make_fixnum (FRAME_TOOLBAR_HEIGHT (f))));
+#endif
 
   for (GtkWidget * w = FRAME_GTK_WIDGET (f); w != NULL;
        w = gtk_widget_get_parent (w))
@@ -691,6 +697,9 @@ pgtk_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   FRAME_COLUMN_WIDTH (f) = font->average_width;
   get_font_ascent_descent (font, &font_ascent, &font_descent);
   FRAME_LINE_HEIGHT (f) = font_ascent + font_descent;
+
+  /* We could use a more elaborate calculation here.  */
+  FRAME_TAB_BAR_HEIGHT (f) = FRAME_TAB_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 
   /* Compute the scroll bar width in character columns.  */
   if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)

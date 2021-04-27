@@ -6223,7 +6223,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     /* But only if we have a small colormap.  Xaw3d can allocate nice
        colors itself.  */
     {
-      XtSetArg (av[ac], XtNbeNiceToColormap,
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap,
                 DefaultDepthOfScreen (FRAME_X_SCREEN (f)) < 16);
       ++ac;
     }
@@ -6234,20 +6234,20 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     {
       /* This tells Xaw3d to use real colors instead of dithering for
 	 the shadows.  */
-      XtSetArg (av[ac], XtNbeNiceToColormap, False);
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap, False);
       ++ac;
 
       /* Specify the colors.  */
       pixel = f->output_data.x->scroll_bar_top_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNtopShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNtopShadowPixel, pixel);
 	  ++ac;
 	}
       pixel = f->output_data.x->scroll_bar_bottom_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNbottomShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNbottomShadowPixel, pixel);
 	  ++ac;
 	}
     }
@@ -6424,7 +6424,7 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     /* But only if we have a small colormap.  Xaw3d can allocate nice
        colors itself.  */
     {
-      XtSetArg (av[ac], XtNbeNiceToColormap,
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap,
                 DefaultDepthOfScreen (FRAME_X_SCREEN (f)) < 16);
       ++ac;
     }
@@ -6435,20 +6435,20 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     {
       /* This tells Xaw3d to use real colors instead of dithering for
 	 the shadows.  */
-      XtSetArg (av[ac], XtNbeNiceToColormap, False);
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap, False);
       ++ac;
 
       /* Specify the colors.  */
       pixel = f->output_data.x->scroll_bar_top_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNtopShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNtopShadowPixel, pixel);
 	  ++ac;
 	}
       pixel = f->output_data.x->scroll_bar_bottom_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNbottomShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNbottomShadowPixel, pixel);
 	  ++ac;
 	}
     }
@@ -7833,10 +7833,6 @@ x_net_wm_state (struct frame *f, Window window)
       break;
     }
 
-  frame_size_history_add
-    (f, Qx_net_wm_state, 0, 0,
-     list2 (get_frame_param (f, Qfullscreen), lval));
-
   store_frame_param (f, Qfullscreen, lval);
 /**   store_frame_param (f, Qsticky, sticky ? Qt : Qnil); **/
 }
@@ -8167,19 +8163,29 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (f && event->xproperty.atom == dpyinfo->Xatom_net_wm_state)
 	{
           bool not_hidden = x_handle_net_wm_state (f, &event->xproperty);
+
 	  if (not_hidden && FRAME_ICONIFIED_P (f))
 	    {
+	      if (CONSP (frame_size_history))
+		frame_size_history_plain
+		  (f, build_string ("PropertyNotify, not hidden & iconified"));
+
 	      /* Gnome shell does not iconify us when C-z is pressed.
 		 It hides the frame.  So if our state says we aren't
 		 hidden anymore, treat it as deiconified.  */
 	      SET_FRAME_VISIBLE (f, 1);
 	      SET_FRAME_ICONIFIED (f, false);
+
 	      f->output_data.x->has_been_visible = true;
 	      inev.ie.kind = DEICONIFY_EVENT;
 	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
-	  else if (! not_hidden && ! FRAME_ICONIFIED_P (f))
+	  else if (!not_hidden && !FRAME_ICONIFIED_P (f))
 	    {
+	      if (CONSP (frame_size_history))
+		frame_size_history_plain
+		  (f, build_string ("PropertyNotify, hidden & not iconified"));
+
 	      SET_FRAME_VISIBLE (f, 0);
 	      SET_FRAME_ICONIFIED (f, true);
 	      inev.ie.kind = ICONIFY_EVENT;
@@ -8357,10 +8363,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
              and that way, we know the window is not iconified now.  */
           if (visible || FRAME_ICONIFIED_P (f))
             {
+	      if (CONSP (frame_size_history))
+		frame_size_history_plain
+		  (f, build_string ("UnmapNotify, visible | iconified"));
+
               SET_FRAME_ICONIFIED (f, true);
-              inev.ie.kind = ICONIFY_EVENT;
+	      inev.ie.kind = ICONIFY_EVENT;
               XSETFRAME (inev.ie.frame_or_window, f);
             }
+	  else if (CONSP (frame_size_history))
+	    frame_size_history_plain
+	      (f, build_string ("UnmapNotify, not visible & not iconified"));
         }
       goto OTHER;
 
@@ -8372,8 +8385,24 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       if (f)
         {
 	  bool iconified = FRAME_ICONIFIED_P (f);
+	  int value;
+	  bool sticky;
+          bool not_hidden = x_get_current_wm_state (f, event->xmap.window, &value, &sticky);
 
-          /* Check if fullscreen was specified before we where mapped the
+	  if (CONSP (frame_size_history))
+	    frame_size_history_extra
+	      (f,
+	       iconified
+	       ? (not_hidden
+		  ? build_string ("MapNotify, not hidden & iconified")
+		  : build_string ("MapNotify, hidden & iconified"))
+	       : (not_hidden
+		  ? build_string ("MapNotify, not hidden & not iconified")
+		  : build_string ("MapNotify, hidden & not iconified")),
+	       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+	       -1, -1, f->new_width, f->new_height);
+
+	  /* Check if fullscreen was specified before we where mapped the
              first time, i.e. from the command line.  */
           if (!f->output_data.x->has_been_visible)
 	    {
@@ -8974,7 +9003,16 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 	      || !(configureEvent.xconfigure.width <= 1
 		   && configureEvent.xconfigure.height <= 1)))
         {
-          block_input ();
+
+	  if (CONSP (frame_size_history))
+	    frame_size_history_extra
+	      (f, build_string ("ConfigureNotify"),
+	       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+	       configureEvent.xconfigure.width,
+	       configureEvent.xconfigure.height,
+	       f->new_width, f->new_height);
+
+	  block_input ();
           if (FRAME_X_DOUBLE_BUFFERED_P (f))
             font_drop_xrender_surfaces (f);
           unblock_input ();
@@ -9015,24 +9053,28 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 
 #ifndef USE_X_TOOLKIT
 #ifndef USE_GTK
-          int width =
-	    FRAME_PIXEL_TO_TEXT_WIDTH (f, configureEvent.xconfigure.width);
-          int height =
-	    FRAME_PIXEL_TO_TEXT_HEIGHT (f, configureEvent.xconfigure.height);
+          int width = configureEvent.xconfigure.width;
+          int height = configureEvent.xconfigure.height;
 
-          /* In the toolkit version, change_frame_size
+	  if (CONSP (frame_size_history))
+	    frame_size_history_extra
+	      (f, build_string ("ConfigureNotify"),
+	       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+	       width, height, f->new_width, f->new_height);
+
+	  /* In the toolkit version, change_frame_size
              is called by the code that handles resizing
              of the EmacsFrame widget.  */
 
           /* Even if the number of character rows and columns has
              not changed, the font size may have changed, so we need
              to check the pixel dimensions as well.  */
-          if (width != FRAME_TEXT_WIDTH (f)
-              || height != FRAME_TEXT_HEIGHT (f)
-              || configureEvent.xconfigure.width != FRAME_PIXEL_WIDTH (f)
-              || configureEvent.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
+          if (width != FRAME_PIXEL_WIDTH (f)
+              || height != FRAME_PIXEL_HEIGHT (f)
+	      || (delayed_size_change
+		  && (width != f->new_width || height != f->new_height)))
             {
-              change_frame_size (f, width, height, false, true, false, true);
+              change_frame_size (f, width, height, false, true, false);
               x_clear_under_internal_border (f);
               SET_FRAME_GARBAGED (f);
               cancel_mouse_face (f);
@@ -10217,11 +10259,6 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
   int unit, font_ascent, font_descent;
-#ifndef USE_X_TOOLKIT
-  int old_menu_bar_height = FRAME_MENU_BAR_HEIGHT (f);
-  int old_tab_bar_height = FRAME_TAB_BAR_HEIGHT (f);
-  Lisp_Object fullscreen;
-#endif
 
   if (fontset < 0)
     fontset = fontset_from_font (font_object);
@@ -10239,8 +10276,9 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 
 #ifndef USE_X_TOOLKIT
   FRAME_MENU_BAR_HEIGHT (f) = FRAME_MENU_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
-  FRAME_TAB_BAR_HEIGHT (f) = FRAME_TAB_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 #endif
+  /* We could use a more elaborate calculation here.  */
+  FRAME_TAB_BAR_HEIGHT (f) = FRAME_TAB_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
 
   /* Compute character columns occupied by scrollbar.
 
@@ -10253,34 +10291,14 @@ x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
   else
     FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + unit - 1) / unit;
 
-  if (FRAME_X_WINDOW (f) != 0)
-    {
-      /* Don't change the size of a tip frame; there's no point in
-	 doing it because it's done in Fx_show_tip, and it leads to
-	 problems because the tip frame has no widget.  */
-      if (!FRAME_TOOLTIP_P (f))
-	{
-	  adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-			     FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3,
-			     false, Qfont);
-#ifndef USE_X_TOOLKIT
-	  if ((FRAME_MENU_BAR_HEIGHT (f) != old_menu_bar_height
-	       || FRAME_TAB_BAR_HEIGHT (f) != old_tab_bar_height)
-	      && !f->after_make_frame
-	      && (EQ (frame_inhibit_implied_resize, Qt)
-		  || (CONSP (frame_inhibit_implied_resize)
-		      && NILP (Fmemq (Qfont, frame_inhibit_implied_resize))))
-	      && (NILP (fullscreen = get_frame_param (f, Qfullscreen))
-		  || EQ (fullscreen, Qfullwidth)))
-	    /* If the menu/tab bar height changes, try to keep text height
-	       constant.  */
-	    adjust_frame_size
-	      (f, -1, FRAME_TEXT_HEIGHT (f) + FRAME_MENU_BAR_HEIGHT (f)
-	       + FRAME_TAB_BAR_HEIGHT (f)
-	       - old_menu_bar_height - old_tab_bar_height, 1, false, Qfont);
-#endif /* USE_X_TOOLKIT  */
-	}
-    }
+
+  /* Don't change the size of a tip frame; there's no point in doing it
+     because it's done in Fx_show_tip, and it leads to problems because
+     the tip frame has no widget.  */
+  if (FRAME_X_WINDOW (f) != 0 && !FRAME_TOOLTIP_P (f))
+    adjust_frame_size
+      (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+       FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3, false, Qfont);
 
 #ifdef HAVE_X_I18N
   if (FRAME_XIC (f)
@@ -11164,10 +11182,6 @@ x_handle_net_wm_state (struct frame *f, const XPropertyEvent *event)
       break;
     }
 
-  frame_size_history_add
-    (f, Qx_handle_net_wm_state, 0, 0,
-     list2 (get_frame_param (f, Qfullscreen), lval));
-
   store_frame_param (f, Qfullscreen, lval);
   store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
 
@@ -11222,9 +11236,6 @@ x_check_fullscreen (struct frame *f)
 	  emacs_abort ();
         }
 
-      frame_size_history_add
-	(f, Qx_check_fullscreen, width, height, Qnil);
-
       x_wm_set_size_hint (f, 0, false);
 
       XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
@@ -11234,8 +11245,7 @@ x_check_fullscreen (struct frame *f)
 	x_wait_for_event (f, ConfigureNotify);
       else
 	{
-	  change_frame_size (f, width, height - FRAME_MENUBAR_HEIGHT (f),
-			     false, true, false, true);
+	  change_frame_size (f, width, height, false, true, false);
 	  x_sync (f);
 	}
     }
@@ -11389,57 +11399,12 @@ static void
 x_set_window_size_1 (struct frame *f, bool change_gravity,
 		     int width, int height)
 {
-  int pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
-  int pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
-  int old_width = FRAME_PIXEL_WIDTH (f);
-  int old_height = FRAME_PIXEL_HEIGHT (f);
-  Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
-
   if (change_gravity)
     f->win_gravity = NorthWestGravity;
   x_wm_set_size_hint (f, 0, false);
 
-  /* When the frame is fullheight and we only want to change the width
-     or it is fullwidth and we only want to change the height we should
-     be able to preserve the fullscreen property.  However, due to the
-     fact that we have to send a resize request anyway, the window
-     manager will abolish it.  At least the respective size should
-     remain unchanged but giving the frame back its normal size will
-     be broken ... */
-  if (EQ (fullscreen, Qfullwidth) && width == FRAME_TEXT_WIDTH (f))
-    {
-      frame_size_history_add
-	(f, Qx_set_window_size_1, width, height,
-	 list2i (old_height, pixelheight + FRAME_MENUBAR_HEIGHT (f)));
-
-      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		     old_width, pixelheight + FRAME_MENUBAR_HEIGHT (f));
-    }
-  else if (EQ (fullscreen, Qfullheight) && height == FRAME_TEXT_HEIGHT (f))
-    {
-      frame_size_history_add
-	(f, Qx_set_window_size_2, width, height,
-	 list2i (old_width, pixelwidth));
-
-      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		     pixelwidth, old_height);
-    }
-
-  else
-    {
-      frame_size_history_add
-	(f, Qx_set_window_size_3, width, height,
-	 list3i (pixelwidth + FRAME_TOOLBAR_WIDTH (f),
-		 (pixelheight + FRAME_TOOLBAR_HEIGHT (f)
-		  + FRAME_MENUBAR_HEIGHT (f)),
-		 FRAME_MENUBAR_HEIGHT (f)));
-
-      XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
-		     pixelwidth, pixelheight + FRAME_MENUBAR_HEIGHT (f));
-      fullscreen = Qnil;
-    }
-
-
+  XResizeWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+		 width, height + FRAME_MENUBAR_HEIGHT (f));
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
      receive in the ConfigureNotify event; if we get what we asked
@@ -11468,65 +11433,41 @@ x_set_window_size_1 (struct frame *f, bool change_gravity,
     {
       x_wait_for_event (f, ConfigureNotify);
 
-      if (!NILP (fullscreen))
-	/* Try to restore fullscreen state.  */
-	{
-	  store_frame_param (f, Qfullscreen, fullscreen);
-	  gui_set_fullscreen (f, fullscreen, fullscreen);
-	}
+      if (CONSP (frame_size_history))
+	frame_size_history_extra
+	  (f, build_string ("x_set_window_size_1, visible"),
+	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
+	   f->new_width, f->new_height);
     }
   else
     {
-      change_frame_size (f, width, height, false, true, false, true);
+      if (CONSP (frame_size_history))
+	frame_size_history_extra
+	  (f, build_string ("x_set_window_size_1, invisible"),
+	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
+	   f->new_width, f->new_height);
+
+      /* Call adjust_frame_size right away as with GTK.  It might be
+	 tempting to clear out f->new_width and f->new_height here.  */
+      adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
+			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
+			 5, 0, Qx_set_window_size_1);
+
       x_sync (f);
     }
 }
 
 
-/* Call this to change the size of frame F's x-window.
-   If CHANGE_GRAVITY, change to top-left-corner window gravity
-   for this size change and subsequent size changes.
-   Otherwise we leave the window gravity unchanged.  */
+/* Change the size of frame F's X window to WIDTH and HEIGHT pixels.  If
+   CHANGE_GRAVITY, change to top-left-corner window gravity for this
+   size change and subsequent size changes.  Otherwise we leave the
+   window gravity unchanged.  */
 
 void
 x_set_window_size (struct frame *f, bool change_gravity,
-		   int width, int height, bool pixelwise)
+		   int width, int height)
 {
   block_input ();
-
-  /* The following breaks our calculations.  If it's really needed,
-     think of something else.  */
-#if false
-  if (!FRAME_TOOLTIP_P (f))
-    {
-      int text_width, text_height;
-
-      /* When the frame is maximized/fullscreen or running under for
-         example Xmonad, x_set_window_size_1 will be a no-op.
-         In that case, the right thing to do is extend rows/width to
-         the current frame size.  We do that first if x_set_window_size_1
-         turns out to not be a no-op (there is no way to know).
-         The size will be adjusted again if the frame gets a
-         ConfigureNotify event as a result of x_set_window_size.  */
-      int pixelh = FRAME_PIXEL_HEIGHT (f);
-#ifdef USE_X_TOOLKIT
-      /* The menu bar is not part of text lines.  The tool bar
-         is however.  */
-      pixelh -= FRAME_MENUBAR_HEIGHT (f);
-#endif
-      text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, FRAME_PIXEL_WIDTH (f));
-      text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelh);
-
-      change_frame_size (f, text_width, text_height, false, true, false, true);
-    }
-#endif
-
-  /* Pixelize width and height, if necessary.  */
-  if (! pixelwise)
-    {
-      width = width * FRAME_COLUMN_WIDTH (f);
-      height = height * FRAME_LINE_HEIGHT (f);
-    }
 
 #ifdef USE_GTK
   if (FRAME_GTK_WIDGET (f))
@@ -11880,6 +11821,11 @@ x_make_frame_visible (struct frame *f)
     poll_for_input_1 ();
     poll_suppress_count = old_poll_suppress_count;
 #endif
+
+    if (CONSP (frame_size_history))
+      frame_size_history_plain
+	(f, build_string ("x_make_frame_visible"));
+
     if (! FRAME_VISIBLE_P (f))
       x_wait_for_event (f, MapNotify);
   }
@@ -11936,6 +11882,10 @@ x_make_frame_invisible (struct frame *f)
      and synchronize with the server to make sure we agree.  */
   SET_FRAME_VISIBLE (f, 0);
   SET_FRAME_ICONIFIED (f, false);
+
+  if (CONSP (frame_size_history))
+    frame_size_history_plain
+      (f, build_string ("x_make_frame_invisible"));
 
   unblock_input ();
 }

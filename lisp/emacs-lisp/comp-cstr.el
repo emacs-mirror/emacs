@@ -1,9 +1,8 @@
 ;;; comp-cstr.el --- native compiler constraint library -*- lexical-binding: t -*-
 
-;; Author: Andrea Corallo <akrl@sdf.com>
-
 ;; Copyright (C) 2020-2021 Free Software Foundation, Inc.
 
+;; Author: Andrea Corallo <akrl@sdf.com>
 ;; Keywords: lisp
 ;; Package: emacs
 
@@ -175,6 +174,10 @@ Return them as multiple value."
    else
      collect cstr into positives
    finally return (cl-values positives negatives)))
+
+;; So we can load comp-cstr.el and comp.el in non native compiled
+;; builds.
+(defvar comp-ctxt nil)
 
 (defvar comp-cstr-one (comp-value-to-cstr 1)
   "Represent the integer immediate one.")
