@@ -296,3 +296,7 @@ test-all-inotify:
   variables:
     target: emacs-inotify
     make_params: check-expensive
+
+# Local Variables:
+# add-log-current-defun-header-regexp: "^\\([-_.[:alnum:]]+\\)[ \t]*:"
+# End:
