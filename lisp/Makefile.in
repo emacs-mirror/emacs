@@ -30,6 +30,13 @@ EXEEXT = @EXEEXT@
 # limitation.
 XARGS_LIMIT = @XARGS_LIMIT@
 
+HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
+ifeq ($(HAVE_NATIVE_COMP),yes)
+ifndef NATIVE_FULL_AOT
+NATIVE_SKIP_NONDUMP = 1
+endif
+endif
+
 -include ${top_builddir}/src/verbose.mk
 
 FIND_DELETE = @FIND_DELETE@
@@ -82,8 +89,12 @@ COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/macroexp.elc \
 	$(lisp)/emacs-lisp/cconv.elc    \
 	$(lisp)/emacs-lisp/byte-opt.elc \
-	$(lisp)/emacs-lisp/bytecomp.elc \
-	$(lisp)/emacs-lisp/autoload.elc
+	$(lisp)/emacs-lisp/bytecomp.elc
+ifeq ($(HAVE_NATIVE_COMP),yes)
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp.elc
+COMPILE_FIRST += $(lisp)/emacs-lisp/comp-cstr.elc
+endif
+COMPILE_FIRST += $(lisp)/emacs-lisp/autoload.elc
 
 # Files to compile early in compile-main.  Works around bug#25556.
 MAIN_FIRST = ./emacs-lisp/eieio.el ./emacs-lisp/eieio-base.el \
@@ -260,9 +271,15 @@ TAGS: ${ETAGS} ${tagsfiles}
 THEFILE = no-such-file
 .PHONY: $(THEFILE)c
 $(THEFILE)c:
+ifeq ($(HAVE_NATIVE_COMP),yes)
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+		-l comp -f byte-compile-refresh-preloaded \
+		-f batch-byte-native-compile-for-bootstrap $(THEFILE)
+else
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
 		-l bytecomp -f byte-compile-refresh-preloaded \
 		-f batch-byte-compile $(THEFILE)
+endif
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
@@ -275,8 +292,14 @@ $(THEFILE)c:
 
 # An old-fashioned suffix rule, which, according to the GNU Make manual,
 # cannot have prerequisites.
+ifeq ($(HAVE_NATIVE_COMP),yes)
+.el.elc:
+	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) \
+	-l comp -f batch-byte-native-compile-for-bootstrap $<
+else
 .el.elc:
 	$(AM_V_ELC)$(emacs) $(BYTE_COMPILE_FLAGS) -f batch-byte-compile $<
+endif
 
 .PHONY: compile-first compile-main compile compile-always
 
@@ -294,7 +317,13 @@ compile-first: $(COMPILE_FIRST)
 
 .PHONY: compile-targets
 # TARGETS is set dynamically in the recursive call from 'compile-main'.
+# Do not build comp.el unless necessary not to exceed max-specpdl-size and
+# max-lisp-eval-depth in normal builds.
+ifneq ($(HAVE_NATIVE_COMP),yes)
+compile-targets: $(filter-out ./emacs-lisp/comp-cstr.elc,$(filter-out ./emacs-lisp/comp.elc,$(TARGETS)))
+else
 compile-targets: $(TARGETS)
+endif
 
 # Compile all the Elisp files that need it.  Beware: it approximates
 # 'no-byte-compile', so watch out for false-positives!
@@ -307,9 +336,11 @@ compile-main: gen-lisp compile-clean
 	      GREP_OPTIONS= grep '^;.*[^a-zA-Z]no-byte-compile: *t' $$el > /dev/null && \
 	      continue; 			     \
 	  echo "$${el}c";                            \
-	done | xargs $(XARGS_LIMIT) echo) | 	     \
-	while read chunk; do 			     \
-	  $(MAKE) compile-targets TARGETS="$$chunk"; \
+	done | xargs $(XARGS_LIMIT) echo) |	     \
+	while read chunk; do			     \
+	  $(MAKE) compile-targets		     \
+		  NATIVE_DISABLED=$(NATIVE_SKIP_NONDUMP) \
+		  TARGETS="$$chunk";		     \
 	done
 
 .PHONY: compile-clean

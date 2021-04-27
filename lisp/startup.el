@@ -519,6 +519,7 @@ DIRS are relative."
       xdg-dir)
      (t emacs-d-dir))))
 
+(defvar comp-eln-load-path)
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
 It sets `command-line-processed', processes the command-line,
@@ -536,6 +537,20 @@ It is the default value of the variable `top-level'."
     (setq user-emacs-directory
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
+    (when (featurep 'nativecomp)
+      ;; Form `comp-eln-load-path'.
+      (let ((path-env (getenv "EMACSNATIVELOADPATH")))
+        (when path-env
+          (dolist (path (split-string path-env path-separator))
+            (unless (string= "" path)
+              (push path comp-eln-load-path)))))
+      (push (expand-file-name "eln-cache/" user-emacs-directory)
+            comp-eln-load-path)
+      ;; When $HOME is set to '/nonexistent' means we are running the
+      ;; testsuite, add a temporary folder in front to produce there
+      ;; new compilations.
+      (when (equal (getenv "HOME") "/nonexistent")
+        (push (make-temp-file "emacs-testsuite-" t) comp-eln-load-path)))
     ;; Look in each dir in load-path for a subdirs.el file.  If we
     ;; find one, load it, which will add the appropriate subdirs of
     ;; that dir into load-path.  This needs to be done before setting
@@ -622,6 +637,16 @@ It is the default value of the variable `top-level'."
 		(set pathsym (mapcar (lambda (dir)
 				       (decode-coding-string dir coding t))
 				     path)))))
+        (when (featurep 'nativecomp)
+          (let ((npath (symbol-value 'comp-eln-load-path)))
+            (set 'comp-eln-load-path
+                 (mapcar (lambda (dir)
+                           ;; Call expand-file-name to remove all the
+                           ;; pesky ".." from the directyory names in
+                           ;; comp-eln-load-path.
+                           (expand-file-name
+                            (decode-coding-string dir coding t)))
+                         npath))))
 	(dolist (filesym '(data-directory doc-directory exec-directory
 					  installation-directory
 					  invocation-directory invocation-name

@@ -5352,7 +5352,7 @@ w32_read_socket (struct terminal *terminal,
 	  if (f)
 	    {
 	      RECT rect;
-	      int /* rows, columns, */ width, height, text_width, text_height;
+	      int /* rows, columns, */ width, height;
 
 	      if (GetClientRect (msg.msg.hwnd, &rect)
 		  /* GetClientRect evidently returns (0, 0, 0, 0) if
@@ -5365,23 +5365,11 @@ w32_read_socket (struct terminal *terminal,
 		{
 		  height = rect.bottom - rect.top;
 		  width = rect.right - rect.left;
-		  text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
-		  text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
-		  /* rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height); */
-		  /* columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width); */
-
-		  /* TODO: Clip size to the screen dimensions.  */
-
-		  /* Even if the number of character rows and columns
-		     has not changed, the font size may have changed,
-		     so we need to check the pixel dimensions as well.  */
-
 		  if (width != FRAME_PIXEL_WIDTH (f)
-		      || height != FRAME_PIXEL_HEIGHT (f)
-		      || text_width != FRAME_TEXT_WIDTH (f)
-		      || text_height != FRAME_TEXT_HEIGHT (f))
+		      || height != FRAME_PIXEL_HEIGHT (f))
 		    {
-		      change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
+		      change_frame_size
+			(f, width, height, false, true, false);
 		      SET_FRAME_GARBAGED (f);
 		      cancel_mouse_face (f);
 		      f->win_gravity = NorthWestGravity;
@@ -5565,7 +5553,7 @@ w32_read_socket (struct terminal *terminal,
 	  if (f && !FRAME_ICONIFIED_P (f) && msg.msg.wParam != SIZE_MINIMIZED)
 	    {
 	      RECT rect;
-	      int /* rows, columns, */ width, height, text_width, text_height;
+	      int /* rows, columns, */ width, height;
 
 	      if (GetClientRect (msg.msg.hwnd, &rect)
 		  /* GetClientRect evidently returns (0, 0, 0, 0) if
@@ -5578,23 +5566,12 @@ w32_read_socket (struct terminal *terminal,
 		{
 		  height = rect.bottom - rect.top;
 		  width = rect.right - rect.left;
-		  text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, width);
-		  text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, height);
-		  /* rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height); */
-		  /* columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width); */
-
-		  /* TODO: Clip size to the screen dimensions.  */
-
-		  /* Even if the number of character rows and columns
-		     has not changed, the font size may have changed,
-		     so we need to check the pixel dimensions as well.  */
 
 		  if (width != FRAME_PIXEL_WIDTH (f)
-		      || height != FRAME_PIXEL_HEIGHT (f)
-		      || text_width != FRAME_TEXT_WIDTH (f)
-		      || text_height != FRAME_TEXT_HEIGHT (f))
+		      || height != FRAME_PIXEL_HEIGHT (f))
 		    {
-		      change_frame_size (f, text_width, text_height, 0, 1, 0, 1);
+		      change_frame_size
+			(f, width, height, false, true, false);
 		      SET_FRAME_GARBAGED (f);
 		      cancel_mouse_face (f);
 		      f->win_gravity = NorthWestGravity;
@@ -6267,17 +6244,15 @@ w32_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 	FRAME_CONFIG_SCROLL_BAR_COLS (f) * unit;
     }
 
-  /* Now make the frame display the given font.  */
-  if (FRAME_NATIVE_WINDOW (f) != 0)
-    {
-      /* Don't change the size of a tip frame; there's no point in
-	 doing it because it's done in Fx_show_tip, and it leads to
-	 problems because the tip frame has no widget.  */
-      if (!FRAME_TOOLTIP_P (f))
-	adjust_frame_size (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
-			   FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3,
-			   false, Qfont);
-    }
+  FRAME_TAB_BAR_HEIGHT (f) = FRAME_TAB_BAR_LINES (f) * FRAME_LINE_HEIGHT (f);
+
+/* Don't change the size of a tip frame; there's no point in
+   doing it because it's done in Fx_show_tip, and it leads to
+   problems because the tip frame has no widget.  */
+  if (FRAME_NATIVE_WINDOW (f) != 0 && !FRAME_TOOLTIP_P (f))
+    adjust_frame_size
+      (f, FRAME_COLS (f) * FRAME_COLUMN_WIDTH (f),
+       FRAME_LINES (f) * FRAME_LINE_HEIGHT (f), 3, false, Qfont);
 
   /* X version sets font of input methods here also.  */
 
@@ -6490,7 +6465,8 @@ w32fullscreen_hook (struct frame *f)
 	ShowWindow (hwnd, SW_SHOWNORMAL);
       else if (f->want_fullscreen == FULLSCREEN_MAXIMIZED)
 	{
-	  if (prev_fsmode == FULLSCREEN_BOTH || prev_fsmode == FULLSCREEN_WIDTH
+	  if (prev_fsmode == FULLSCREEN_BOTH
+	      || prev_fsmode == FULLSCREEN_WIDTH
 	      || prev_fsmode == FULLSCREEN_HEIGHT)
 	    /* Make window normal since otherwise the subsequent
 	       maximization might fail in some cases.  */
@@ -6499,52 +6475,31 @@ w32fullscreen_hook (struct frame *f)
 	}
       else if (f->want_fullscreen == FULLSCREEN_BOTH)
         {
-	  int menu_bar_height = GetSystemMetrics (SM_CYMENU);
-
-	  w32_fullscreen_rect (hwnd, f->want_fullscreen,
-			       FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
+	  w32_fullscreen_rect
+	    (hwnd, f->want_fullscreen,
+	     FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
 	  if (!FRAME_UNDECORATED (f))
 	    SetWindowLong (hwnd, GWL_STYLE, dwStyle & ~WS_OVERLAPPEDWINDOW);
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
                         rect.right - rect.left, rect.bottom - rect.top,
                         SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
 	  change_frame_size
-	    (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, rect.right - rect.left),
-	     FRAME_PIXEL_TO_TEXT_HEIGHT (f, (rect.bottom - rect.top
-					     - menu_bar_height)),
-	     0, 1, 0, 1);
+	    (f, rect.right - rect.left, rect.bottom - rect.top,
+	     false, true, false);
         }
       else
         {
 	  ShowWindow (hwnd, SW_SHOWNORMAL);
-	  w32_fullscreen_rect (hwnd, f->want_fullscreen,
-			       FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
+	  w32_fullscreen_rect
+	    (hwnd, f->want_fullscreen,
+	     FRAME_NORMAL_PLACEMENT (f).rcNormalPosition, &rect);
           SetWindowPos (hwnd, HWND_TOP, rect.left, rect.top,
                         rect.right - rect.left, rect.bottom - rect.top, 0);
 
-	  if (f->want_fullscreen == FULLSCREEN_WIDTH)
-	    {
-	      int border_width = GetSystemMetrics (SM_CXFRAME);
-
-	      change_frame_size
-		(f, (FRAME_PIXEL_TO_TEXT_WIDTH
-		     (f, rect.right - rect.left - 2 * border_width)),
-		 0, 0, 1, 0, 1);
-	    }
-	  else
-	    {
-	      int border_height = GetSystemMetrics (SM_CYFRAME);
-	      /* Won't work for wrapped menu bar.  */
-	      int menu_bar_height = GetSystemMetrics (SM_CYMENU);
-	      int title_height = GetSystemMetrics (SM_CYCAPTION);
-
-	      change_frame_size
-		(f, 0, (FRAME_PIXEL_TO_TEXT_HEIGHT
-			(f, rect.bottom - rect.top - 2 * border_height
-			 - title_height - menu_bar_height)),
-		 0, 1, 0, 1);
-	    }
-        }
+	  change_frame_size
+	    (f, rect.right - rect.left, rect.bottom - rect.top,
+	     false, true, false);
+	}
 
       f->want_fullscreen = FULLSCREEN_NONE;
       unblock_input ();
@@ -6559,16 +6514,14 @@ w32fullscreen_hook (struct frame *f)
     f->want_fullscreen |= FULLSCREEN_WAIT;
 }
 
-/* Call this to change the size of frame F's native window.
-   If CHANGE_GRAVITY, change to top-left-corner window gravity
-   for this size change and subsequent size changes.
-   Otherwise we leave the window gravity unchanged.  */
-
+/* Change the size of frame F's Windows window to WIDTH and HEIGHT
+   pixels.  If CHANGE_GRAVITY, change to top-left-corner window gravity
+   for this size change and subsequent size changes.  Otherwise leave
+   the window gravity unchanged.  */
 static void
 w32_set_window_size (struct frame *f, bool change_gravity,
-		   int width, int height, bool pixelwise)
+		     int width, int height)
 {
-  int pixelwidth, pixelheight;
   Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
   RECT rect;
   MENUBARINFO info;
@@ -6583,17 +6536,6 @@ w32_set_window_size (struct frame *f, bool change_gravity,
   info.rcBar.top = info.rcBar.bottom = 0;
   GetMenuBarInfo (FRAME_W32_WINDOW (f), 0xFFFFFFFD, 0, &info);
   menu_bar_height = info.rcBar.bottom - info.rcBar.top;
-
-  if (pixelwise)
-    {
-      pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
-      pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
-    }
-  else
-    {
-      pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, width);
-      pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, height);
-    }
 
   if (w32_add_wrapped_menu_bar_lines)
     {
@@ -6610,15 +6552,15 @@ w32_set_window_size (struct frame *f, bool change_gravity,
       if ((default_menu_bar_height > 0)
 	  && (menu_bar_height > default_menu_bar_height)
 	  && ((menu_bar_height % default_menu_bar_height) == 0))
-	pixelheight = pixelheight + menu_bar_height - default_menu_bar_height;
+	height = height + menu_bar_height - default_menu_bar_height;
     }
 
   f->win_gravity = NorthWestGravity;
   w32_wm_set_size_hint (f, (long) 0, false);
 
   rect.left = rect.top = 0;
-  rect.right = pixelwidth;
-  rect.bottom = pixelheight;
+  rect.right = width;
+  rect.bottom = height;
 
   AdjustWindowRect (&rect, f->output_data.w32->dwStyle, menu_bar_height > 0);
 
@@ -6636,7 +6578,7 @@ w32_set_window_size (struct frame *f, bool change_gravity,
 	{
 	  rect.left = window_rect.left;
 	  rect.right = window_rect.right;
-	  pixelwidth = 0;
+	  width = -1;
 	}
       if (EQ (fullscreen, Qmaximized)
 	  || EQ (fullscreen, Qfullboth)
@@ -6644,19 +6586,12 @@ w32_set_window_size (struct frame *f, bool change_gravity,
 	{
 	  rect.top = window_rect.top;
 	  rect.bottom = window_rect.bottom;
-	  pixelheight = 0;
+	  height = -1;
 	}
     }
 
-  if (pixelwidth > 0 || pixelheight > 0)
+  if (width > 0 || height > 0)
     {
-      frame_size_history_add
-	(f, Qx_set_window_size_1, width, height,
-	 list2 (Fcons (make_fixnum (pixelwidth),
-		       make_fixnum (pixelheight)),
-		Fcons (make_fixnum (rect.right - rect.left),
-		       make_fixnum (rect.bottom - rect.top))));
-
       if (!FRAME_PARENT_FRAME (f))
 	my_set_window_pos (FRAME_W32_WINDOW (f), NULL,
 			   0, 0,
@@ -6670,12 +6605,7 @@ w32_set_window_size (struct frame *f, bool change_gravity,
 			   rect.bottom - rect.top,
 			   SWP_NOMOVE | SWP_NOACTIVATE);
 
-      change_frame_size (f,
-			 ((pixelwidth == 0)
-			     ? 0 : FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth)),
-			 ((pixelheight == 0)
-			  ? 0 : FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight)),
-			 0, 1, 0, 1);
+      change_frame_size (f, width, height, false, true, false);
       SET_FRAME_GARBAGED (f);
 
       /* If cursor was outside the new size, mark it as off.  */

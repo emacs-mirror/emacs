@@ -998,67 +998,49 @@ xg_set_geometry (struct frame *f)
     }
 }
 
-/* Function to handle resize of our frame.  As we have a Gtk+ tool bar
-   and a Gtk+ menu bar, we get resize events for the edit part of the
-   frame only.  We let Gtk+ deal with the Gtk+ parts.
-   F is the frame to resize.
-   PIXELWIDTH, PIXELHEIGHT is the new size in pixels.  */
-
+/** Function to handle resize of native frame F to WIDTH and HEIGHT
+    pixels after we got a ConfigureNotify event.  */
 void
-xg_frame_resized (struct frame *f, int pixelwidth, int pixelheight)
+xg_frame_resized (struct frame *f, int width, int height)
 {
-  int width, height;
-
-  if (pixelwidth == -1 && pixelheight == -1)
+  /* Ignore case where size of native rectangle didn't change.  */
+  if (width != FRAME_PIXEL_WIDTH (f) || height != FRAME_PIXEL_HEIGHT (f)
+      || (delayed_size_change
+	  && (width != f->new_width || height != f->new_height)))
     {
-      if (FRAME_GTK_WIDGET (f) && gtk_widget_get_mapped (FRAME_GTK_WIDGET (f)))
-	gdk_window_get_geometry (gtk_widget_get_window (FRAME_GTK_WIDGET (f)),
-				 0, 0, &pixelwidth, &pixelheight);
-      else
-	return;
-    }
+      if (CONSP (frame_size_history))
+	frame_size_history_extra
+	  (f, build_string ("xg_frame_resized, changed"),
+	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
+	   delayed_size_change ? f->new_width : -1,
+	   delayed_size_change ? f->new_height : -1);
 
-  width = FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth);
-  height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight);
-  PGTK_TRACE ("xg_frame_resized: pixel: %dx%d, text: %dx%d", pixelwidth, pixelheight, width, height);
-
-  frame_size_history_add
-    (f, Qxg_frame_resized, width, height, Qnil);
-
-  PGTK_TRACE ("width: %d -> %d.", FRAME_TEXT_WIDTH (f), width);
-  PGTK_TRACE ("height: %d -> %d.", FRAME_TEXT_HEIGHT (f), height);
-  PGTK_TRACE ("pixelwidth: %d -> %d.", FRAME_PIXEL_WIDTH (f), pixelwidth);
-  PGTK_TRACE ("pixelheight: %d -> %d.", FRAME_PIXEL_HEIGHT (f), pixelheight);
-
-  if (width != FRAME_TEXT_WIDTH (f)
-      || height != FRAME_TEXT_HEIGHT (f)
-      || pixelwidth != FRAME_PIXEL_WIDTH (f)
-      || pixelheight != FRAME_PIXEL_HEIGHT (f))
-    {
       FRAME_RIF (f)->clear_under_internal_border (f);
-      change_frame_size (f, width, height, 0, 1, 0, 1);
+      change_frame_size (f, width, height, false, true, false);
       SET_FRAME_GARBAGED (f);
       cancel_mouse_face (f);
     }
+  else if (CONSP (frame_size_history))
+    frame_size_history_extra
+      (f, build_string ("xg_frame_resized, unchanged"),
+       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
+       delayed_size_change ? f->new_width : -1,
+       delayed_size_change ? f->new_height : -1);
+
 }
 
 /** Resize the outer window of frame F.  WIDTH and HEIGHT are the new
-    pixel sizes of F's text area.  */
+    native pixel sizes of F.  */
 void
 xg_frame_set_char_size (struct frame *f, int width, int height)
 {
-  int pixelwidth = FRAME_TEXT_TO_PIXEL_WIDTH (f, width);
-  int pixelheight = FRAME_TEXT_TO_PIXEL_HEIGHT (f, height);
   Lisp_Object fullscreen = get_frame_param (f, Qfullscreen);
   gint gwidth, gheight;
-  int totalheight
-    = pixelheight + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
-  int totalwidth = pixelwidth + FRAME_TOOLBAR_WIDTH (f);
+  int outer_height
+    = height + FRAME_TOOLBAR_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f);
+  int outer_width = width + FRAME_TOOLBAR_WIDTH (f);
   bool was_visible = false;
   bool hide_child_frame;
-
-  if (FRAME_PIXEL_HEIGHT (f) == 0)
-    return;
 
 #ifndef HAVE_PGTK
   gtk_window_get_size (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
@@ -1078,8 +1060,8 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
   /* Do this before resize, as we don't know yet if we will be resized.  */
   FRAME_RIF (f)->clear_under_internal_border (f);
 
-  totalheight /= xg_get_scale (f);
-  totalwidth /= xg_get_scale (f);
+  outer_height /= xg_get_scale (f);
+  outer_width /= xg_get_scale (f);
 
   x_wm_set_size_hint (f, 0, 0);
 
@@ -1092,61 +1074,45 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
      manager will abolish it.  At least the respective size should
      remain unchanged but giving the frame back its normal size will
      be broken ... */
-  if (EQ (fullscreen, Qfullwidth) && width == FRAME_TEXT_WIDTH (f))
-    {
-      frame_size_history_add
-	(f, Qxg_frame_set_char_size_1, width, height,
-	 list2i (gheight, totalheight));
-
+  if (EQ (fullscreen, Qfullwidth) && width == FRAME_PIXEL_WIDTH (f))
 #ifndef HAVE_PGTK
-      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 gwidth, totalheight);
+    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       gwidth, outer_height);
 #else
-      if (FRAME_GTK_OUTER_WIDGET (f))
-	{
-	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			     gwidth, totalheight);
-	}
-      else
-	{
-	  gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				       gwidth, totalheight);
-	}
+    if (FRAME_GTK_OUTER_WIDGET (f))
+      {
+	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			   gwidth, outer_height);
+      }
+    else
+      {
+	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				     gwidth, outer_height);
+      }
 #endif
-    }
-  else if (EQ (fullscreen, Qfullheight) && height == FRAME_TEXT_HEIGHT (f))
-    {
-      frame_size_history_add
-	(f, Qxg_frame_set_char_size_2, width, height,
-	 list2i (gwidth, totalwidth));
-
+  else if (EQ (fullscreen, Qfullheight) && height == FRAME_PIXEL_HEIGHT (f))
 #ifndef HAVE_PGTK
-      gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 totalwidth, gheight);
+    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       outer_width, gheight);
 #else
-      if (FRAME_GTK_OUTER_WIDGET (f))
-	{
-	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			     totalwidth, gheight);
-	}
-      else
-	{
-	  gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				       totalwidth, gheight);
-	}
+    if (FRAME_GTK_OUTER_WIDGET (f))
+      {
+	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+			   outer_width, gheight);
+      }
+    else
+      {
+	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
+				     outer_width, gheight);
+      }
 #endif
-    }
   else if (FRAME_PARENT_FRAME (f) && FRAME_VISIBLE_P (f))
     {
       was_visible = true;
       hide_child_frame = EQ (x_gtk_resize_child_frames, Qhide);
 
-      if (totalwidth != gwidth || totalheight != gheight)
+      if (outer_width != gwidth || outer_height != gheight)
 	{
-	  frame_size_history_add
-	    (f, Qxg_frame_set_char_size_4, width, height,
-	     list2i (totalwidth, totalheight));
-
           if (hide_child_frame)
             {
               block_input ();
@@ -1160,14 +1126,14 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 
 #ifndef HAVE_PGTK
 	  gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			     totalwidth, totalheight);
+			     outer_width, outer_height);
 #else
 	  if (FRAME_GTK_OUTER_WIDGET (f)) {
 	    gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			       totalwidth, totalheight);
+			       outer_width, outer_height);
 	  } else {
 	    gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-					 totalwidth, totalheight);
+					 outer_width, outer_height);
 	  }
 #endif
 
@@ -1187,19 +1153,16 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
     }
   else
     {
-      frame_size_history_add
-	(f, Qxg_frame_set_char_size_3, width, height,
-	 list2i (totalwidth, totalheight));
 #ifndef HAVE_PGTK
       gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			 totalwidth, totalheight);
+			 outer_width, outer_height);
 #else
       if (FRAME_GTK_OUTER_WIDGET (f)) {
 	gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-			   totalwidth, totalheight);
+			   outer_width, outer_height);
       } else {
 	gtk_widget_set_size_request (FRAME_GTK_WIDGET (f),
-				     totalwidth, totalheight);
+				     outer_width, outer_height);
       }
 #endif
       fullscreen = Qnil;
@@ -1224,6 +1187,12 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
       x_wait_for_event (f, ConfigureNotify);
 #endif
 
+      if (CONSP (frame_size_history))
+	frame_size_history_extra
+	  (f, build_string ("xg_frame_set_char_size, visible"),
+	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
+	   f->new_width, f->new_height);
+
       if (!NILP (fullscreen))
 	/* Try to restore fullscreen state.  */
 	{
@@ -1232,8 +1201,17 @@ xg_frame_set_char_size (struct frame *f, int width, int height)
 	}
     }
   else
-    adjust_frame_size (f, width, height, 5, 0, Qxg_frame_set_char_size);
+    {
+      if (CONSP (frame_size_history))
+	frame_size_history_extra
+	  (f, build_string ("xg_frame_set_char_size, invisible"),
+	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f), width, height,
+	   f->new_width, f->new_height);
 
+      adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, width),
+			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, height),
+			 5, 0, Qxg_frame_set_char_size);
+    }
 }
 
 /* Handle height/width changes (i.e. add/remove/move menu/toolbar).
@@ -1372,7 +1350,8 @@ style_changed_cb (GObject *go,
             {
               FRAME_TERMINAL (f)->set_scroll_bar_default_width_hook (f);
               FRAME_TERMINAL (f)->set_scroll_bar_default_height_hook (f);
-              xg_frame_set_char_size (f, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f));
+              xg_frame_set_char_size (f, FRAME_PIXEL_WIDTH (f),
+				      FRAME_PIXEL_HEIGHT (f));
             }
         }
     }
@@ -5040,10 +5019,7 @@ tb_size_cb (GtkWidget    *widget,
   struct frame *f = user_data;
 
   if (xg_update_tool_bar_sizes (f))
-    {
-      frame_size_history_add (f, Qtb_size_cb, 0, 0, Qnil);
-      adjust_frame_size (f, -1, -1, 5, 0, Qtool_bar_lines);
-    }
+    adjust_frame_size (f, -1, -1, 2, false, Qtool_bar_lines);
 }
 
 /* Create a tool bar for frame F.  */
@@ -5675,23 +5651,10 @@ update_frame_tool_bar (struct frame *f)
         xg_pack_tool_bar (f, FRAME_TOOL_BAR_POSITION (f));
       gtk_widget_show_all (x->toolbar_widget);
       if (xg_update_tool_bar_sizes (f))
-	{
-	  int inhibit
-	    = ((f->after_make_frame
-		&& !f->tool_bar_resized
-		&& (EQ (frame_inhibit_implied_resize, Qt)
-		    || (CONSP (frame_inhibit_implied_resize)
-			&& !NILP (Fmemq (Qtool_bar_lines,
-					 frame_inhibit_implied_resize))))
-		/* This will probably fail to DTRT in the
-		   fullheight/-width cases.  */
-		&& NILP (get_frame_param (f, Qfullscreen)))
-	       ? 0
-	       : 2);
+	/* It's not entirely clear whether here we want a treatment
+	   similar to that for frames with internal tool bar.  */
+	adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
 
-	  frame_size_history_add (f, Qupdate_frame_tool_bar, 0, 0, Qnil);
-	  adjust_frame_size (f, -1, -1, inhibit, 0, Qtool_bar_lines);
-	}
       f->tool_bar_resized = f->tool_bar_redisplayed;
     }
 
@@ -5740,7 +5703,6 @@ free_frame_tool_bar (struct frame *f)
                              NULL);
         }
 
-      frame_size_history_add (f, Qfree_frame_tool_bar, 0, 0, Qnil);
       adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
 
       unblock_input ();
@@ -5772,11 +5734,7 @@ xg_change_toolbar_position (struct frame *f, Lisp_Object pos)
   g_object_unref (top_widget);
 
   if (xg_update_tool_bar_sizes (f))
-    {
-      frame_size_history_add (f, Qxg_change_toolbar_position, 0, 0, Qnil);
-      adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
-    }
-
+    adjust_frame_size (f, -1, -1, 2, 0, Qtool_bar_lines);
 
   unblock_input ();
 }

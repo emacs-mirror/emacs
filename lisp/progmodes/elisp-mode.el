@@ -160,18 +160,34 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
       (byte-compile-file buffer-file-name)
     (error "The buffer must be saved in a file first")))
 
-(defun emacs-lisp-byte-compile-and-load ()
-  "Byte-compile the current file (if it has changed), then load compiled code."
-  (interactive nil emacs-lisp-mode)
+(defun emacs-lisp--before-compile-buffer ()
+  "Make sure the buffer is saved before compiling."
   (or buffer-file-name
       (error "The buffer must be saved in a file first"))
-  (require 'bytecomp)
   ;; Recompile if file or buffer has changed since last compilation.
   (if (and (buffer-modified-p)
 	   (y-or-n-p (format "Save buffer %s first? " (buffer-name))))
-      (save-buffer))
+      (save-buffer)))
+
+(defun emacs-lisp-byte-compile-and-load ()
+  "Byte-compile the current file (if it has changed), then load compiled code."
+  (interactive nil emacs-lisp-mode)
+  (emacs-lisp--before-compile-buffer)
+  (require 'bytecomp)
   (byte-recompile-file buffer-file-name nil 0)
   (load buffer-file-name))
+
+(declare-function native-compile "comp")
+(defun emacs-lisp-native-compile-and-load ()
+  "Native-compile synchronously the current file (if it has changed).
+Load the compiled code when finished.
+
+Use `emacs-lisp-byte-compile-and-load' in combination with
+`comp-deferred-compilation' set to `t' to achieve asynchronous
+native compilation."
+  (interactive nil emacs-lisp-mode)
+  (emacs-lisp--before-compile-buffer)
+  (load (native-compile buffer-file-name)))
 
 (defun emacs-lisp-macroexpand ()
   "Macroexpand the form after point.

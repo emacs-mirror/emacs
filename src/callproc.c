@@ -457,7 +457,7 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
     int ok;
 
     ok = openp (Vexec_path, args[0], Vexec_suffixes, &path,
-		make_fixnum (X_OK), false);
+		make_fixnum (X_OK), false, false);
     if (ok < 0)
       report_file_error ("Searching for program", args[0]);
   }

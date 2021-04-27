@@ -34,7 +34,15 @@ AM_V_AR = @echo "  AR      " $@;
 AM_V_at = @
 AM_V_CC = @echo "  CC      " $@;
 AM_V_CCLD = @echo "  CCLD    " $@;
+ifeq ($(HAVE_NATIVE_COMP),yes)
+ifeq ($(NATIVE_DISABLED),1)
 AM_V_ELC = @echo "  ELC     " $@;
+else
+AM_V_ELC = @echo "  ELC+ELN     " $@;
+endif
+else
+AM_V_ELC = @echo "  ELC     " $@;
+endif
 AM_V_GEN = @echo "  GEN     " $@;
 AM_V_GLOBALS = @echo "  GEN     " globals.h;
 AM_V_NO_PD = --no-print-directory

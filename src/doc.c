@@ -327,6 +327,11 @@ string is passed through `substitute-command-keys'.  */)
     xsignal1 (Qvoid_function, function);
   if (CONSP (fun) && EQ (XCAR (fun), Qmacro))
     fun = XCDR (fun);
+#ifdef HAVE_NATIVE_COMP
+  if (!NILP (Fsubr_native_elisp_p (fun)))
+    doc = native_function_doc (fun);
+  else
+#endif
   if (SUBRP (fun))
     doc = make_fixnum (XSUBR (fun)->doc);
 #ifdef HAVE_MODULES
@@ -495,10 +500,11 @@ store_function_docstring (Lisp_Object obj, EMACS_INT offset)
 	    XSETCAR (tem, make_fixnum (offset));
 	}
     }
-
   /* Lisp_Subrs have a slot for it.  */
-  else if (SUBRP (fun))
-    XSUBR (fun)->doc = offset;
+  else if (SUBRP (fun) && !SUBR_NATIVE_COMPILEDP (fun))
+    {
+      XSUBR (fun)->doc = offset;
+    }
 
   /* Bytecode objects sometimes have slots for it.  */
   else if (COMPILEDP (fun))

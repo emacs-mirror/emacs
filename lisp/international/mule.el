@@ -317,8 +317,9 @@ Return t if file exists."
       (when purify-flag
 	(push (purecopy file) preloaded-file-list))
       (unwind-protect
-	  (let ((load-file-name fullname)
-		(set-auto-coding-for-load t)
+	  (let ((load-true-file-name fullname)
+                (load-file-name fullname)
+                (set-auto-coding-for-load t)
 		(inhibit-file-name-operation nil))
 	    (with-current-buffer buffer
               ;; So that we don't get completely screwed if the

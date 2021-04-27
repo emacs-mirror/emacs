@@ -4156,8 +4156,9 @@ prompt the user for the name of an NNTP server to use."
   ;; file.
   (unless (string-match "^Gnus" gnus-version)
     (load "gnus-load" nil t))
-  (unless (byte-code-function-p (symbol-function 'gnus))
-    (message "You should byte-compile Gnus")
+  (unless (or (byte-code-function-p (symbol-function 'gnus))
+	      (subr-native-elisp-p (symbol-function 'gnus)))
+    (message "You should compile Gnus")
     (sit-for 2))
   (let ((gnus-action-message-log (list nil)))
     (gnus-1 arg dont-connect child)

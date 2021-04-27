@@ -589,7 +589,7 @@ struct terminal
    window gravity for this size change and subsequent size changes.
    Otherwise we leave the window gravity unchanged.  */
   void (*set_window_size_hook) (struct frame *f, bool change_gravity,
-                                int width, int height, bool pixelwise);
+                                int width, int height);
 
   /* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
    to really change the position, and 0 when calling from

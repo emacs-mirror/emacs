@@ -102,7 +102,7 @@ bool display_completed;
 
 /* True means SIGWINCH happened when not safe.  */
 
-static bool delayed_size_change;
+bool delayed_size_change;
 
 /* A glyph for a space.  */
 
@@ -5770,32 +5770,34 @@ handle_window_change_signal (int sig)
      termcap-controlled terminal, but we can't decide which.
      Therefore, we resize the frames corresponding to each tty.
   */
-  for (tty = tty_list; tty; tty = tty->next) {
+  for (tty = tty_list; tty; tty = tty->next)
+    {
+      if (! tty->term_initted)
+	continue;
 
-    if (! tty->term_initted)
-      continue;
+      /* Suspended tty frames have tty->input == NULL avoid trying to
+	 use it.  */
+      if (!tty->input)
+	continue;
 
-    /* Suspended tty frames have tty->input == NULL avoid trying to
-       use it.  */
-    if (!tty->input)
-      continue;
+      get_tty_size (fileno (tty->input), &width, &height);
 
-    get_tty_size (fileno (tty->input), &width, &height);
+      if (width > 5 && height > 2)
+	{
+	  Lisp_Object tail, frame;
 
-    if (width > 5 && height > 2) {
-      Lisp_Object tail, frame;
+	  FOR_EACH_FRAME (tail, frame)
+	    {
+	      struct frame *f = XFRAME (frame);
 
-      FOR_EACH_FRAME (tail, frame)
-        if (FRAME_TERMCAP_P (XFRAME (frame)) && FRAME_TTY (XFRAME (frame)) == tty)
-          /* Record the new sizes, but don't reallocate the data
-             structures now.  Let that be done later outside of the
-             signal handler.  */
-          change_frame_size (XFRAME (frame), width,
-			     height - FRAME_MENU_BAR_LINES (XFRAME (frame))
-			     - FRAME_TAB_BAR_LINES (XFRAME (frame)),
-			     0, 1, 0, 0);
+	      if (FRAME_TERMCAP_P (f) && FRAME_TTY (f) == tty)
+		/* Record the new sizes, but don't reallocate the data
+		   structures now.  Let that be done later outside of the
+		   signal handler.  */
+		change_frame_size (f, width, height, false, true, false);
+	    }
+	}
     }
-  }
 }
 
 static void
@@ -5821,15 +5823,17 @@ do_pending_window_change (bool safe)
     {
       Lisp_Object tail, frame;
 
-      delayed_size_change = 0;
+      delayed_size_change = false;
 
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (f->new_height != 0 || f->new_width != 0)
+	  /* Negative new_width or new_height values mean no change is
+	     required (a native size can never drop below zero).  */
+	  if (f->new_height >= 0 || f->new_width >= 0)
 	    change_frame_size (f, f->new_width, f->new_height,
-			       0, 0, safe, f->new_pixelwise);
+			       false, false, safe);
 	}
     }
 }
@@ -5837,47 +5841,43 @@ do_pending_window_change (bool safe)
 
 static void
 change_frame_size_1 (struct frame *f, int new_width, int new_height,
-		     bool pretend, bool delay, bool safe, bool pixelwise)
+		     bool pretend, bool delay, bool safe)
 {
-  /* If we can't deal with the change now, queue it for later.  */
   if (delay || (redisplaying_p && !safe))
     {
+      if (CONSP (frame_size_history)
+	  && ((new_width != f->new_width
+	       || new_height != f->new_height
+	       || new_width != FRAME_PIXEL_WIDTH (f)
+	       || new_height != FRAME_PIXEL_HEIGHT (f))))
+	frame_size_history_extra
+	  (f, build_string ("change_frame_size_1, delayed"),
+	   FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+	   new_width, new_height, f->new_width, f->new_height);
+
+      /* We can't deal with the change now, queue it for later.  */
       f->new_width = new_width;
       f->new_height = new_height;
-      f->new_pixelwise = pixelwise;
-      delayed_size_change = 1;
+      delayed_size_change = true;
     }
   else
     {
-      /* This size-change overrides any pending one for this frame.  */
-      f->new_height = 0;
-      f->new_width = 0;
-      f->new_pixelwise = 0;
-
-      /* If an argument is zero, set it to the current value.  */
-      if (pixelwise)
-	{
-	  new_width = (new_width <= 0) ? FRAME_TEXT_WIDTH (f) : new_width;
-	  new_height = (new_height <= 0) ? FRAME_TEXT_HEIGHT (f) : new_height;
-	}
-      else
-	{
-	  new_width = (((new_width <= 0) ? FRAME_COLS (f) : new_width)
-		       * FRAME_COLUMN_WIDTH (f));
-	  new_height = (((new_height <= 0) ? FRAME_LINES (f) : new_height)
-			* FRAME_LINE_HEIGHT (f));
-	}
-
-      /* Adjust frame size but make sure set_window_size_hook does not
-	 get called.  */
-      adjust_frame_size (f, new_width, new_height, 5, pretend,
-			 Qchange_frame_size);
+      /* Storing -1 in the new_width/new_height slots means that no size
+	 change is pending.  Native sizes are always non-negative.  */
+      f->new_height = -1;
+      f->new_width = -1;
+      /* adjust_frame_size wants its arguments in terms of text_width
+	 and text_height, so convert them here.  For pathologically
+	 small frames, the resulting values may be negative though.  */
+      adjust_frame_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, new_width),
+			 FRAME_PIXEL_TO_TEXT_HEIGHT (f, new_height), 5,
+			 pretend, Qchange_frame_size);
     }
 }
 
 
-/* Change text height/width of frame F.  Values may be given as zero to
-   indicate that no change is needed.
+/* Change native height/width of frame F to NEW_WIDTH/NEW_HEIGHT pixels.
+   Values may be given as -1 to indicate that no change is needed.
 
    If DELAY, assume we're being called from a signal handler, and queue
    the change for later - perhaps the next redisplay.  Since this tries
@@ -5887,7 +5887,7 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
    change frame sizes while a redisplay is in progress.  */
 void
 change_frame_size (struct frame *f, int new_width, int new_height,
-		   bool pretend, bool delay, bool safe, bool pixelwise)
+		   bool pretend, bool delay, bool safe)
 {
   Lisp_Object tail, frame;
 
@@ -5897,13 +5897,12 @@ change_frame_size (struct frame *f, int new_width, int new_height,
          size affects all frames.  Termcap now supports multiple
          ttys. */
       FOR_EACH_FRAME (tail, frame)
-	if (! FRAME_WINDOW_P (XFRAME (frame)))
+	if (!FRAME_WINDOW_P (XFRAME (frame)))
 	  change_frame_size_1 (XFRAME (frame), new_width, new_height,
-			       pretend, delay, safe, pixelwise);
+			       pretend, delay, safe);
     }
   else
-    change_frame_size_1 (f, new_width, new_height, pretend, delay, safe,
-			 pixelwise);
+    change_frame_size_1 (f, new_width, new_height, pretend, delay, safe);
 }
 
 /***********************************************************************
@@ -6505,9 +6504,8 @@ init_display_interactive (void)
     t->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame),
                        FrameCols (t->display_info.tty),
-                       FrameRows (t->display_info.tty)
-		       - FRAME_MENU_BAR_LINES (f)
-		       - FRAME_TAB_BAR_LINES (f), 0, 0, 1, 0);
+                       FrameRows (t->display_info.tty),
+		       false, false, true);
 
     /* Delete the initial terminal. */
     if (--initial_terminal->reference_count == 0

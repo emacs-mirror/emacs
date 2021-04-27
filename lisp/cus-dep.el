@@ -109,6 +109,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
             (string-match "\\`\\(.*\\)\\.el\\'" file)
             (let ((name (or generated-autoload-load-name ; see bug#5277
                             (file-name-nondirectory (match-string 1 file))))
+                  (load-true-file-name file)
                   (load-file-name file))
               (if (save-excursion
                     (re-search-forward

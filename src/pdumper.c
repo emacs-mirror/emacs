@@ -121,6 +121,9 @@ static const char dump_magic[16] = {
 static pdumper_hook dump_hooks[24];
 static int nr_dump_hooks = 0;
 
+static pdumper_hook dump_late_hooks[24];
+static int nr_dump_late_hooks = 0;
+
 static struct
 {
   void *mem;
@@ -175,6 +178,8 @@ enum dump_reloc_type
     /* dump_ptr = dump_ptr + dump_base  */
     RELOC_DUMP_TO_DUMP_PTR_RAW,
     /* dump_mpz = [rebuild bignum]  */
+    RELOC_NATIVE_COMP_UNIT,
+    RELOC_NATIVE_SUBR,
     RELOC_BIGNUM,
     /* dump_lv = make_lisp_ptr (dump_lv + dump_base,
 				type - RELOC_DUMP_TO_DUMP_LV)
@@ -317,6 +322,20 @@ dump_fingerprint (char const *label,
   fprintf (stderr, "%s: %.*s\n", label, hexbuf_size, hexbuf);
 }
 
+/* To be used if some order in the relocation process has to be enforced. */
+enum reloc_phase
+  {
+    /* First to run.  Place every relocation with no dependency here.  */
+    EARLY_RELOCS,
+    /* Late and very late relocs are relocated at the very last after
+       all hooks has been run.  All lisp machinery is at disposal
+       (memory allocation allowed too).  */
+    LATE_RELOCS,
+    VERY_LATE_RELOCS,
+    /* Fake, must be last.  */
+    RELOC_NUM_PHASES
+  };
+
 /* Format of an Emacs dump file.  All offsets are relative to
    the beginning of the file.  An Emacs dump file is coupled
    to exactly the Emacs binary that produced it, so details of
@@ -344,7 +363,7 @@ struct dump_header
 
   /* Relocation table for the dump file; each entry is a
      struct dump_reloc.  */
-  struct dump_table_locator dump_relocs;
+  struct dump_table_locator dump_relocs[RELOC_NUM_PHASES];
 
   /* "Relocation" table we abuse to hold information about the
      location and type of each lisp object in the dump.  We need for
@@ -425,6 +444,7 @@ enum cold_op
     COLD_OP_CHARSET,
     COLD_OP_BUFFER,
     COLD_OP_BIGNUM,
+    COLD_OP_NATIVE_SUBR,
   };
 
 /* This structure controls what operations we perform inside
@@ -524,7 +544,7 @@ struct dump_context
   Lisp_Object cold_queue;
 
   /* Relocations in the dump.  */
-  Lisp_Object dump_relocs;
+  Lisp_Object dump_relocs[RELOC_NUM_PHASES];
 
   /* Object starts.  */
   Lisp_Object object_starts;
@@ -919,7 +939,7 @@ dump_note_reachable (struct dump_context *ctx, Lisp_Object object)
 static void *
 dump_object_emacs_ptr (Lisp_Object lv)
 {
-  if (SUBRP (lv))
+  if (SUBRP (lv) && !SUBR_NATIVE_COMPILEDP (lv))
     return XSUBR (lv);
   if (dump_builtin_symbol_p (lv))
     return XSYMBOL (lv);
@@ -1405,7 +1425,7 @@ dump_reloc_dump_to_emacs_ptr_raw (struct dump_context *ctx,
                                   dump_off dump_offset)
 {
   if (ctx->flags.dump_object_contents)
-    dump_push (&ctx->dump_relocs,
+    dump_push (&ctx->dump_relocs[EARLY_RELOCS],
                list2 (make_fixnum (RELOC_DUMP_TO_EMACS_PTR_RAW),
                       dump_off_to_lisp (dump_offset)));
 }
@@ -1438,7 +1458,7 @@ dump_reloc_dump_to_dump_lv (struct dump_context *ctx,
       emacs_abort ();
     }
 
-  dump_push (&ctx->dump_relocs,
+  dump_push (&ctx->dump_relocs[EARLY_RELOCS],
              list2 (make_fixnum (reloc_type),
                     dump_off_to_lisp (dump_offset)));
 }
@@ -1454,7 +1474,7 @@ dump_reloc_dump_to_dump_ptr_raw (struct dump_context *ctx,
                                  dump_off dump_offset)
 {
   if (ctx->flags.dump_object_contents)
-    dump_push (&ctx->dump_relocs,
+    dump_push (&ctx->dump_relocs[EARLY_RELOCS],
                list2 (make_fixnum (RELOC_DUMP_TO_DUMP_PTR_RAW),
                       dump_off_to_lisp (dump_offset)));
 }
@@ -1487,7 +1507,7 @@ dump_reloc_dump_to_emacs_lv (struct dump_context *ctx,
       emacs_abort ();
     }
 
-  dump_push (&ctx->dump_relocs,
+  dump_push (&ctx->dump_relocs[EARLY_RELOCS],
              list2 (make_fixnum (reloc_type),
                     dump_off_to_lisp (dump_offset)));
 }
@@ -2200,7 +2220,7 @@ dump_bignum (struct dump_context *ctx, Lisp_Object object)
          Lisp_Bignum instead of the actual mpz field so that the
          relocation offset is aligned.  The relocation-application
          code knows to actually advance past the header.  */
-      dump_push (&ctx->dump_relocs,
+      dump_push (&ctx->dump_relocs[EARLY_RELOCS],
                  list2 (make_fixnum (RELOC_BIGNUM),
                         dump_off_to_lisp (bignum_offset)));
     }
@@ -2840,20 +2860,73 @@ dump_bool_vector (struct dump_context *ctx, const struct Lisp_Vector *v)
 static dump_off
 dump_subr (struct dump_context *ctx, const struct Lisp_Subr *subr)
 {
-#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_594AB72B54)
+#if CHECK_STRUCTS && !defined (HASH_Lisp_Subr_AA236F7759)
 # error "Lisp_Subr changed. See CHECK_STRUCTS comment in config.h."
 #endif
   struct Lisp_Subr out;
   dump_object_start (ctx, &out, sizeof (out));
   DUMP_FIELD_COPY (&out, subr, header.size);
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
+  if (NATIVE_COMP_FLAG && !NILP (subr->native_comp_u[0]))
+    out.function.a0 = NULL;
+  else
+    dump_field_emacs_ptr (ctx, &out, subr, &subr->function.a0);
   DUMP_FIELD_COPY (&out, subr, min_args);
   DUMP_FIELD_COPY (&out, subr, max_args);
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
-  dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
+  if (NATIVE_COMP_FLAG && !NILP (subr->native_comp_u[0]))
+    {
+      dump_field_fixup_later (ctx, &out, subr, &subr->symbol_name);
+      dump_remember_cold_op (ctx,
+                             COLD_OP_NATIVE_SUBR,
+			     make_lisp_ptr ((void *) subr, Lisp_Vectorlike));
+      dump_field_lv (ctx, &out, subr, &subr->native_intspec, WEIGHT_NORMAL);
+    }
+  else
+    {
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->symbol_name);
+      dump_field_emacs_ptr (ctx, &out, subr, &subr->intspec);
+    }
   DUMP_FIELD_COPY (&out, subr, doc);
-  return dump_object_finish (ctx, &out, sizeof (out));
+  if (NATIVE_COMP_FLAG)
+    {
+      dump_field_lv (ctx, &out, subr, &subr->native_comp_u[0], WEIGHT_NORMAL);
+      if (!NILP (subr->native_comp_u[0]))
+	dump_field_fixup_later (ctx, &out, subr, &subr->native_c_name[0]);
+
+      dump_field_lv (ctx, &out, subr, &subr->lambda_list[0], WEIGHT_NORMAL);
+      dump_field_lv (ctx, &out, subr, &subr->type[0], WEIGHT_NORMAL);
+    }
+  dump_off subr_off = dump_object_finish (ctx, &out, sizeof (out));
+  if (NATIVE_COMP_FLAG
+      && ctx->flags.dump_object_contents
+      && !NILP (subr->native_comp_u[0]))
+    /* We'll do the final addr relocation during VERY_LATE_RELOCS time
+       after the compilation units has been loaded. */
+    dump_push (&ctx->dump_relocs[VERY_LATE_RELOCS],
+	       list2 (make_fixnum (RELOC_NATIVE_SUBR),
+		      dump_off_to_lisp (subr_off)));
+  return subr_off;
 }
+
+#ifdef HAVE_NATIVE_COMP
+static dump_off
+dump_native_comp_unit (struct dump_context *ctx,
+		       struct Lisp_Native_Comp_Unit *comp_u)
+{
+  /* Have function documentation always lazy loaded to optimize load-time.  */
+  comp_u->data_fdoc_v = Qnil;
+  START_DUMP_PVEC (ctx, &comp_u->header, struct Lisp_Native_Comp_Unit, out);
+  dump_pseudovector_lisp_fields (ctx, &out->header, &comp_u->header);
+  out->handle = NULL;
+
+  dump_off comp_u_off = finish_dump_pvec (ctx, &out->header);
+  if (ctx->flags.dump_object_contents)
+    /* We'll do the real elf load during LATE_RELOCS relocation time. */
+    dump_push (&ctx->dump_relocs[LATE_RELOCS],
+	       list2 (make_fixnum (RELOC_NATIVE_COMP_UNIT),
+		      dump_off_to_lisp (comp_u_off)));
+  return comp_u_off;
+}
+#endif
 
 static void
 fill_pseudovec (union vectorlike_header *header, Lisp_Object item)
@@ -2879,7 +2952,7 @@ dump_vectorlike (struct dump_context *ctx,
                  Lisp_Object lv,
                  dump_off offset)
 {
-#if CHECK_STRUCTS && !defined HASH_pvec_type_A4A6E9984D
+#if CHECK_STRUCTS && !defined HASH_pvec_type_F5BA506141
 # error "pvec_type changed. See CHECK_STRUCTS comment in config.h."
 #endif
   const struct Lisp_Vector *v = XVECTOR (lv);
@@ -2932,6 +3005,11 @@ dump_vectorlike (struct dump_context *ctx,
     case PVEC_BIGNUM:
       offset = dump_bignum (ctx, lv);
       break;
+#ifdef HAVE_NATIVE_COMP
+    case PVEC_NATIVE_COMP_UNIT:
+      offset = dump_native_comp_unit (ctx, XNATIVE_COMP_UNIT (lv));
+      break;
+#endif
     case PVEC_WINDOW_CONFIGURATION:
       error_unsupported_dump_object (ctx, lv, "window configuration");
     case PVEC_OTHER:
@@ -3167,6 +3245,12 @@ dump_metadata_for_pdumper (struct dump_context *ctx)
 				       (void const *) dump_hooks[i]);
   dump_emacs_reloc_immediate_int (ctx, &nr_dump_hooks, nr_dump_hooks);
 
+  for (int i = 0; i < nr_dump_late_hooks; ++i)
+    dump_emacs_reloc_to_emacs_ptr_raw (ctx, &dump_late_hooks[i],
+				       (void const *) dump_late_hooks[i]);
+  dump_emacs_reloc_immediate_int (ctx, &nr_dump_late_hooks,
+				  nr_dump_late_hooks);
+
   for (int i = 0; i < nr_remembered_data; ++i)
     {
       dump_emacs_reloc_to_emacs_ptr_raw (ctx, &remembered_data[i].mem,
@@ -3328,6 +3412,29 @@ dump_cold_bignum (struct dump_context *ctx, Lisp_Object object)
     }
 }
 
+#ifdef HAVE_NATIVE_COMP
+static void
+dump_cold_native_subr (struct dump_context *ctx, Lisp_Object subr)
+{
+  /* Dump subr contents.  */
+  dump_off subr_offset = dump_recall_object (ctx, subr);
+  eassert (subr_offset > 0);
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     subr_offset + dump_offsetof (struct Lisp_Subr, symbol_name),
+     ctx->offset);
+  const char *symbol_name = XSUBR (subr)->symbol_name;
+  dump_write (ctx, symbol_name, 1 + strlen (symbol_name));
+
+  dump_remember_fixup_ptr_raw
+    (ctx,
+     subr_offset + dump_offsetof (struct Lisp_Subr, native_c_name[0]),
+     ctx->offset);
+  const char *c_name = XSUBR (subr)->native_c_name[0];
+  dump_write (ctx, c_name, 1 + strlen (c_name));
+}
+#endif
+
 static void
 dump_drain_cold_data (struct dump_context *ctx)
 {
@@ -3371,6 +3478,11 @@ dump_drain_cold_data (struct dump_context *ctx)
         case COLD_OP_BIGNUM:
           dump_cold_bignum (ctx, data);
           break;
+#ifdef HAVE_NATIVE_COMP
+	case COLD_OP_NATIVE_SUBR:
+	  dump_cold_native_subr (ctx, data);
+	  break;
+#endif
         default:
           emacs_abort ();
         }
@@ -3779,7 +3891,7 @@ dump_do_fixup (struct dump_context *ctx,
       /* Dump wants a pointer to a Lisp object.
          If DUMP_FIXUP_LISP_OBJECT_RAW, we should stick a C pointer in
          the dump; otherwise, a Lisp_Object.  */
-      if (SUBRP (arg))
+      if (SUBRP (arg) && !SUBR_NATIVE_COMPILEDP (arg))
         {
           dump_value = emacs_offset (XSUBR (arg));
           if (type == DUMP_FIXUP_LISP_OBJECT)
@@ -3960,7 +4072,8 @@ types.  */)
   ctx->symbol_aux = Qnil;
   ctx->copied_queue = Qnil;
   ctx->cold_queue = Qnil;
-  ctx->dump_relocs = Qnil;
+  for (int i = 0; i < RELOC_NUM_PHASES; ++i)
+    ctx->dump_relocs[i] = Qnil;
   ctx->object_starts = Qnil;
   ctx->emacs_relocs = Qnil;
   ctx->bignum_data = make_eq_hash_table ();
@@ -4128,8 +4241,9 @@ types.  */)
   /* Emit instructions for Emacs to execute when loading the dump.
      Note that this relocation information ends up in the cold section
      of the dump.  */
-  drain_reloc_list (ctx, dump_emit_dump_reloc, emacs_reloc_merger,
-		    &ctx->dump_relocs, &ctx->header.dump_relocs);
+  for (int i = 0; i < RELOC_NUM_PHASES; ++i)
+    drain_reloc_list (ctx, dump_emit_dump_reloc, emacs_reloc_merger,
+		      &ctx->dump_relocs[i], &ctx->header.dump_relocs[i]);
   dump_off number_hot_relocations = ctx->number_hot_relocations;
   ctx->number_hot_relocations = 0;
   dump_off number_discardable_relocations = ctx->number_discardable_relocations;
@@ -4147,7 +4261,8 @@ types.  */)
   eassert (NILP (ctx->deferred_symbols));
   eassert (NILP (ctx->deferred_hash_tables));
   eassert (NILP (ctx->fixups));
-  eassert (NILP (ctx->dump_relocs));
+  for (int i = 0; i < RELOC_NUM_PHASES; ++i)
+    eassert (NILP (ctx->dump_relocs[i]));
   eassert (NILP (ctx->emacs_relocs));
 
   /* Dump is complete.  Go back to the header and write the magic
@@ -4207,6 +4322,15 @@ pdumper_do_now_and_after_load_impl (pdumper_hook hook)
   hook ();
 }
 
+void
+pdumper_do_now_and_after_late_load_impl (pdumper_hook hook)
+{
+  if (nr_dump_late_hooks == ARRAYELTS (dump_late_hooks))
+    fatal ("out of dump hooks: make dump_late_hooks[] bigger");
+  dump_late_hooks[nr_dump_late_hooks++] = hook;
+  hook ();
+}
+
 static void
 pdumper_remember_user_data_1 (void *mem, int nbytes)
 {
@@ -4232,6 +4356,16 @@ pdumper_remember_lv_ptr_raw_impl (void *ptr, enum Lisp_Type type)
 }
 
 
+#ifdef HAVE_NATIVE_COMP
+/* This records the directory where the Emacs executable lives, to be
+   used for locating the native-lisp directory from which we need to
+   load the preloaded *.eln files.  See pdumper_set_emacs_execdir
+   below.  */
+static char *emacs_execdir;
+static ptrdiff_t execdir_size;
+static ptrdiff_t execdir_len;
+#endif
+
 /* Dump runtime */
 enum dump_memory_protection
 {
@@ -5138,6 +5272,117 @@ dump_do_dump_relocation (const uintptr_t dump_base,
         dump_write_word_to_dump (dump_base, reloc_offset, value);
         break;
       }
+#ifdef HAVE_NATIVE_COMP
+    case RELOC_NATIVE_COMP_UNIT:
+      {
+	static enum { UNKNOWN, LOCAL_BUILD, INSTALLED } installation_state;
+	struct Lisp_Native_Comp_Unit *comp_u =
+	  dump_ptr (dump_base, reloc_offset);
+	comp_u->lambda_gc_guard_h = CALLN (Fmake_hash_table, QCtest, Qeq);
+	if (STRINGP (comp_u->file))
+	  error ("Trying to load incoherent dumped eln file %s",
+		 SSDATA (comp_u->file));
+
+	/* emacs_execdir is always unibyte, but the file names in
+	   comp_u->file could be multibyte, so we need to encode
+	   them.  */
+	Lisp_Object cu_file1 = ENCODE_FILE (XCAR (comp_u->file));
+	Lisp_Object cu_file2 = ENCODE_FILE (XCDR (comp_u->file));
+	ptrdiff_t fn1_len = SBYTES (cu_file1), fn2_len = SBYTES (cu_file2);
+	Lisp_Object eln_fname;
+	char *fndata;
+
+	/* Check just once if this is a local build or Emacs was installed.  */
+	/* Can't use expand-file-name here, because we are too early
+	   in the startup, and we will crash at least on WINDOWSNT.  */
+	if (installation_state == UNKNOWN)
+	  {
+	    eln_fname = make_uninit_string (execdir_len + fn1_len);
+	    fndata = SSDATA (eln_fname);
+	    memcpy (fndata, emacs_execdir, execdir_len);
+	    memcpy (fndata + execdir_len, SSDATA (cu_file1), fn1_len);
+	    if (file_access_p (fndata, F_OK))
+	      installation_state = INSTALLED;
+	    else
+	      {
+		eln_fname = make_uninit_string (execdir_len + fn2_len);
+		fndata = SSDATA (eln_fname);
+		memcpy (fndata, emacs_execdir, execdir_len);
+		memcpy (fndata + execdir_len, SSDATA (cu_file2), fn2_len);
+		installation_state = LOCAL_BUILD;
+	      }
+	    fixup_eln_load_path (eln_fname);
+	  }
+	else
+	  {
+	    ptrdiff_t fn_len =
+	      installation_state == INSTALLED ? fn1_len : fn2_len;
+	    Lisp_Object cu_file =
+	      installation_state == INSTALLED ? cu_file1 : cu_file2;
+	    eln_fname = make_uninit_string (execdir_len + fn_len);
+	    fndata = SSDATA (eln_fname);
+	    memcpy (fndata, emacs_execdir, execdir_len);
+	    memcpy (fndata + execdir_len, SSDATA (cu_file), fn_len);
+	  }
+
+	/* FIXME: This records the names of the *.eln files in an
+	   unexpanded form, with one or more ".." elements (and on
+	   Windows with the first part using backslashes).  The file
+	   names are also unibyte.  If we care about this, we need to
+	   loop in startup.el over all the preloaded modules and run
+	   their file names through expand-file-name and
+	   decode-coding-string.  */
+	comp_u->file = eln_fname;
+	comp_u->handle = dynlib_open (SSDATA (eln_fname));
+	if (!comp_u->handle)
+	  {
+	    fprintf (stderr, "Error using execdir %s:\n",
+		     emacs_execdir);
+	    error ("%s", dynlib_error ());
+	  }
+	load_comp_unit (comp_u, true, false);
+	break;
+      }
+    case RELOC_NATIVE_SUBR:
+      {
+	if (!NATIVE_COMP_FLAG)
+	  /* This cannot happen.  */
+	  emacs_abort ();
+
+	/* When resurrecting from a dump given non all the original
+	   native compiled subrs may be still around we can't rely on
+	   a 'top_level_run' mechanism, we revive them one-by-one
+	   here.  */
+	struct Lisp_Subr *subr = dump_ptr (dump_base, reloc_offset);
+	struct Lisp_Native_Comp_Unit *comp_u =
+	  XNATIVE_COMP_UNIT (subr->native_comp_u[0]);
+	if (!comp_u->handle)
+	  error ("NULL handle in compilation unit %s", SSDATA (comp_u->file));
+	const char *c_name = subr->native_c_name[0];
+	eassert (c_name);
+	void *func = dynlib_sym (comp_u->handle, c_name);
+	if (!func)
+	  error ("can't find function \"%s\" in compilation unit %s", c_name,
+		 SSDATA (comp_u->file));
+	subr->function.a0 = func;
+	Lisp_Object lambda_data_idx =
+	  Fgethash (build_string (c_name), comp_u->lambda_c_name_idx_h, Qnil);
+	if (!NILP (lambda_data_idx))
+	  {
+	    /* This is an anonymous lambda.
+	       We must fixup d_reloc_imp so the lambda can be referenced
+	       by code.  */
+	    Lisp_Object tem;
+	    XSETSUBR (tem, subr);
+	    Lisp_Object *fixup =
+	      &(comp_u->data_imp_relocs[XFIXNUM (lambda_data_idx)]);
+	    eassert (EQ (*fixup, Qlambda_fixup));
+	    *fixup = tem;
+	    Fputhash (tem, Qt, comp_u->lambda_gc_guard_h);
+	  }
+	break;
+      }
+#endif
     case RELOC_BIGNUM:
       {
         struct Lisp_Bignum *bignum = dump_ptr (dump_base, reloc_offset);
@@ -5160,11 +5405,12 @@ dump_do_dump_relocation (const uintptr_t dump_base,
 }
 
 static void
-dump_do_all_dump_relocations (const struct dump_header *const header,
-			      const uintptr_t dump_base)
+dump_do_all_dump_reloc_for_phase (const struct dump_header *const header,
+				  const uintptr_t dump_base,
+				  const enum reloc_phase phase)
 {
-  struct dump_reloc *r = dump_ptr (dump_base, header->dump_relocs.offset);
-  dump_off nr_entries = header->dump_relocs.nr_entries;
+  struct dump_reloc *r = dump_ptr (dump_base, header->dump_relocs[phase].offset);
+  dump_off nr_entries = header->dump_relocs[phase].nr_entries;
   for (dump_off i = 0; i < nr_entries; ++i)
     dump_do_dump_relocation (dump_base, r[i]);
 }
@@ -5229,6 +5475,26 @@ dump_do_all_emacs_relocations (const struct dump_header *const header,
     dump_do_emacs_relocation (dump_base, r[i]);
 }
 
+#ifdef HAVE_NATIVE_COMP
+/* Compute and record the directory of the Emacs executable given the
+   file name of that executable.  */
+static void
+pdumper_set_emacs_execdir (char *emacs_executable)
+{
+  char *p = emacs_executable + strlen (emacs_executable);
+
+  while (p > emacs_executable
+	 && !IS_DIRECTORY_SEP (p[-1]))
+    --p;
+  eassert (p > emacs_executable);
+  emacs_execdir = xpalloc (emacs_execdir, &execdir_size,
+			   p - emacs_executable + 1 - execdir_size, -1, 1);
+  memcpy (emacs_execdir, emacs_executable, p - emacs_executable);
+  execdir_len = p - emacs_executable;
+  emacs_execdir[execdir_len] = '\0';
+}
+#endif
+
 enum dump_section
   {
    DS_HOT,
@@ -5245,7 +5511,7 @@ static Lisp_Object *pdumper_hashes = &zero_vector;
    N.B. We run very early in initialization, so we can't use lisp,
    unwinding, xmalloc, and so on.  */
 int
-pdumper_load (const char *dump_filename)
+pdumper_load (const char *dump_filename, char *argv0)
 {
   intptr_t dump_size;
   struct stat stat;
@@ -5380,7 +5646,7 @@ pdumper_load (const char *dump_filename)
   dump_public.start = dump_base;
   dump_public.end = dump_public.start + dump_size;
 
-  dump_do_all_dump_relocations (header, dump_base);
+  dump_do_all_dump_reloc_for_phase (header, dump_base, EARLY_RELOCS);
   dump_do_all_emacs_relocations (header, dump_base);
 
   dump_mmap_discard_contents (&sections[DS_DISCARDABLE]);
@@ -5400,6 +5666,21 @@ pdumper_load (const char *dump_filename)
      initialization.  */
   for (int i = 0; i < nr_dump_hooks; ++i)
     dump_hooks[i] ();
+
+#ifdef HAVE_NATIVE_COMP
+  pdumper_set_emacs_execdir (argv0);
+#else
+  (void) argv0;
+#endif
+
+  dump_do_all_dump_reloc_for_phase (header, dump_base, LATE_RELOCS);
+  dump_do_all_dump_reloc_for_phase (header, dump_base, VERY_LATE_RELOCS);
+
+  /* Run the functions Emacs registered for doing post-dump-load
+     initialization.  */
+  for (int i = 0; i < nr_dump_late_hooks; ++i)
+    dump_late_hooks[i] ();
+
   initialized = true;
 
   struct timespec load_timespec =

@@ -1936,7 +1936,7 @@ usage: (make-process &rest ARGS)  */)
 	{
 	  tem = Qnil;
 	  openp (Vexec_path, program, Vexec_suffixes, &tem,
-		 make_fixnum (X_OK), false);
+		 make_fixnum (X_OK), false, false);
 	  if (NILP (tem))
 	    report_file_error ("Searching for program", program);
 	  tem = Fexpand_file_name (tem, Qnil);

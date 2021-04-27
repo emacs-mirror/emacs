@@ -283,17 +283,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
       ;; Restore points
       (dolist (win (winner-sorted-window-list))
         (unless (and (pop alive)
-                     (let* ((buf   (window-buffer win))
-                            (pos   (winner-get-point (window-buffer win) win))
-                            (entry (assq buf (window-prev-buffers win))))
-                       ;; Try to restore point of buffer in the selected
-                       ;; window (Bug#23621).
-                       (let ((marker (nth 2 entry)))
-                         (when (and switch-to-buffer-preserve-window-point
-                                    marker
-                                    (not (= marker pos)))
-                           (setq pos marker))
-                         (setf (window-point win) pos)))
+                     (setf (window-point win)
+                           (winner-get-point (window-buffer win) win))
 		     (not (or (member (buffer-name (window-buffer win))
 				      winner-boring-buffers)
 			      (and winner-boring-buffers-regexp

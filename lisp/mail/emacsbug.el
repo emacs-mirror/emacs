@@ -309,7 +309,7 @@ usually do not have translators for other languages.\n\n")))
      (lambda (var)
        (let ((val (getenv var)))
 	 (if val (insert (format "  value of $%s: %s\n" var val)))))
-     '("EMACSDATA" "EMACSDOC" "EMACSLOADPATH" "EMACSPATH"
+     '("EMACSDATA" "EMACSDOC" "EMACSLOADPATH" "EMACSNATIVELOADPATH" "EMACSPATH"
        "LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))

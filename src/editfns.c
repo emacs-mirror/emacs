@@ -2941,6 +2941,8 @@ DEFUN ("propertize", Fpropertize, Spropertize, 1, MANY, 0,
 First argument is the string to copy.
 Remaining arguments form a sequence of PROPERTY VALUE pairs for text
 properties to add to the result.
+
+See Info node `(elisp) Text Properties' for more information.
 usage: (propertize STRING &rest PROPERTIES)  */)
   (ptrdiff_t nargs, Lisp_Object *args)
 {

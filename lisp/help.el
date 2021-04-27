@@ -239,7 +239,7 @@ Do not call this in the scope of `with-help-window'."
    (help--key-description-fontified "\C-s")
    " to search, or \\<help-map>\\[help-quit] to exit.)"
    (help--for-help-make-sections
-    '(("Commands, Keys and Functions"
+    `(("Commands, Keys and Functions"
        ("describe-mode"
         "Show help for current major and minor modes and their commands")
        ("describe-bindings" "Show all key bindings")
@@ -273,7 +273,8 @@ Do not call this in the scope of `with-help-window'."
        ("help-with-tutorial" "Start the Emacs tutorial")
        ("view-echo-area-messages"
         "Show recent messages (from echo area)")
-       ("view-lossage" "Show last 300 input keystrokes (lossage)")
+       ("view-lossage" ,(format "Show last %d input keystrokes (lossage)"
+                                (lossage-size)))
        ("display-local-help" "Show local help at point"))
       ("Miscellaneous"
        ("about-emacs" "About Emacs")
@@ -298,7 +299,8 @@ Do not call this in the scope of `with-help-window'."
         "Describe language environment")
        ("describe-syntax" "Show current syntax table")
        ("view-hello-file"
-        "Display the HELLO file illustrating various scripts")))))
+        "Display the HELLO file illustrating various scripts"))))
+   "\n")
   help-map
   help-for-help-buffer-name)
 
@@ -1868,6 +1870,8 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
                   (error "Unrecognized usage format"))
 	      (help--make-usage-docstring 'fn arglist)))))
 
+(declare-function subr-native-lambda-list "data.c")
+
 (defun help-function-arglist (def &optional preserve-names)
   "Return a formal argument list for the function DEF.
 If PRESERVE-NAMES is non-nil, return a formal arglist that uses
@@ -1883,6 +1887,10 @@ the same names as used in the original source code, when possible."
    ((and (byte-code-function-p def) (listp (aref def 0))) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
    ((eq (car-safe def) 'closure) (nth 2 def))
+   ((and (featurep 'nativecomp)
+         (subrp def)
+         (listp (subr-native-lambda-list def)))
+    (subr-native-lambda-list def))
    ((or (and (byte-code-function-p def) (integerp (aref def 0)))
         (subrp def) (module-function-p def))
     (or (when preserve-names

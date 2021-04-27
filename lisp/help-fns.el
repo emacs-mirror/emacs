@@ -805,6 +805,8 @@ Returns a list of the form (REAL-FUNCTION DEF ALIASED REAL-DEF)."
 		 ;; aliases before functions.
 		 (aliased
 		  (format-message "an alias for `%s'" real-def))
+                 ((subr-native-elisp-p def)
+                  (concat beg "native compiled Lisp function"))
 		 ((subrp def)
 		  (concat beg (if (eq 'unevalled (cdr (subr-arity def)))
 		                  "special form"

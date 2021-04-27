@@ -1669,9 +1669,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  c-recognize-knr-p)		; Strictly speaking, bogus, but it
 					; speeds up lisp.h tremendously.
       (save-excursion
-	(when (not (c-back-over-member-initializers
-		    (max (- (point) 2000) (point-min)))) ; c-determine-limit
-							 ; is too slow, here.
+	(when (not (c-back-over-member-initializers decl-search-lim))
 	  (unless (or (eobp)
 		      (looking-at "\\s(\\|\\s)"))
 	    (forward-char))
