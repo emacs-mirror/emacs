@@ -169,14 +169,6 @@ pixel_to_char_size (EmacsFrame ew, Dimension pixel_width, Dimension pixel_height
 }
 
 static void
-pixel_to_text_size (EmacsFrame ew, Dimension pixel_width, Dimension pixel_height, int *text_width, int *text_height)
-{
-  struct frame *f = ew->emacs_frame.frame;
-  *text_width = FRAME_PIXEL_TO_TEXT_WIDTH (f, (int) pixel_width);
-  *text_height = FRAME_PIXEL_TO_TEXT_HEIGHT (f, (int) pixel_height);
-}
-
-static void
 char_to_pixel_size (EmacsFrame ew, int char_width, int char_height, Dimension *pixel_width, Dimension *pixel_height)
 {
   struct frame *f = ew->emacs_frame.frame;
@@ -257,27 +249,14 @@ set_frame_size (EmacsFrame ew)
 
    */
 
-  /* Hairily merged geometry */
   struct frame *f = ew->emacs_frame.frame;
-  int w = FRAME_COLS (f);
-  int h = FRAME_LINES (f);
-  Widget wmshell = get_wm_shell ((Widget) ew);
-  Dimension pixel_width, pixel_height;
-  /* Each Emacs shell is now independent and top-level.  */
 
-  if (! XtIsSubclass (wmshell, shellWidgetClass)) emacs_abort ();
+  ew->core.width = FRAME_PIXEL_WIDTH (f);
+  ew->core.height = FRAME_PIXEL_HEIGHT (f);
 
-  char_to_pixel_size (ew, w, h, &pixel_width, &pixel_height);
-  ew->core.width = (frame_resize_pixelwise
-		    ? FRAME_PIXEL_WIDTH (f)
-		    : pixel_width);
-  ew->core.height = (frame_resize_pixelwise
-		     ? FRAME_PIXEL_HEIGHT (f)
-		     : pixel_height);
-
-  frame_size_history_add
-    (f, Qset_frame_size, FRAME_TEXT_WIDTH (f), FRAME_TEXT_HEIGHT (f),
-     list2i (ew->core.width, ew->core.height));
+  if (CONSP (frame_size_history))
+    frame_size_history_plain
+      (f, build_string ("set_frame_size"));
 }
 
 static void
@@ -350,6 +329,13 @@ update_from_various_frame_slots (EmacsFrame ew)
   ew->emacs_frame.foreground_pixel = FRAME_FOREGROUND_PIXEL (f);
   ew->emacs_frame.cursor_color = x->cursor_pixel;
   ew->core.border_pixel = x->border_pixel;
+
+  if (CONSP (frame_size_history))
+    frame_size_history_extra
+      (f, build_string ("update_from_various_frame_slots"),
+       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+       ew->core.width, ew->core.height,
+       f->new_width, f->new_height);
 }
 
 static void
@@ -381,6 +367,7 @@ static void
 EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs)
 {
   EmacsFrame ew = (EmacsFrame) widget;
+  struct frame *f = ew->emacs_frame.frame;
 
   /* This used to contain SubstructureRedirectMask, but this turns out
      to be a problem with XIM on Solaris, and events from that mask
@@ -394,6 +381,11 @@ EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs
   /* Some ConfigureNotify events does not end up in EmacsFrameResize so
      make sure we get them all.  Seen with xfcwm4 for example.  */
   XtAddRawEventHandler (widget, StructureNotifyMask, False, resize_cb, NULL);
+
+  if (CONSP (frame_size_history))
+    frame_size_history_plain
+      (f, build_string ("EmacsFrameRealize"));
+
   update_wm_hints (ew);
 }
 
@@ -408,18 +400,15 @@ EmacsFrameResize (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame *f = ew->emacs_frame.frame;
-  int width, height;
 
-  pixel_to_text_size (ew, ew->core.width, ew->core.height, &width, &height);
+  if (CONSP (frame_size_history))
+    frame_size_history_extra
+      (f, build_string ("EmacsFrameResize"),
+       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+       ew->core.width, ew->core.height,
+       f->new_width, f->new_height);
 
-  frame_size_history_add
-    (f, QEmacsFrameResize, width, height,
-     list5 (make_fixnum (ew->core.width), make_fixnum (ew->core.height),
-	    make_fixnum (FRAME_TOP_MARGIN_HEIGHT (f)),
-	    make_fixnum (FRAME_SCROLL_BAR_AREA_HEIGHT (f)),
-	    make_fixnum (2 * FRAME_INTERNAL_BORDER_WIDTH (f))));
-
-  change_frame_size (f, width, height, 0, 1, 0, 1);
+  change_frame_size (f, ew->core.width, ew->core.height, false, true, false);
 
   update_wm_hints (ew);
   update_various_frame_slots (ew);
@@ -463,9 +452,17 @@ EmacsFrameSetCharSize (Widget widget, int columns, int rows)
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame *f = ew->emacs_frame.frame;
 
+  if (CONSP (frame_size_history))
+    frame_size_history_extra
+      (f, build_string ("EmacsFrameSetCharSize"),
+       FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f),
+       columns, rows,
+       f->new_width, f->new_height);
+
   if (!frame_inhibit_resize (f, 0, Qfont)
       && !frame_inhibit_resize (f, 1, Qfont))
-    x_set_window_size (f, 0, columns, rows, 0);
+    x_set_window_size (f, 0, columns * FRAME_COLUMN_WIDTH (f),
+		       rows * FRAME_LINE_HEIGHT (f));
 }
 
 
