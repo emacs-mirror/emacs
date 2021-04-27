@@ -790,7 +790,9 @@ Non memoized version of `comp-cstr-intersection-no-mem'."
 
             (setf (range pos)
                   (comp-range-intersection (range pos)
-                                           (comp-range-negation (range neg))))
+                                           (comp-range-negation (range neg)))
+                  (valset pos)
+                  (cl-set-difference (valset pos) (valset neg)))
 
             ;; Return a non negated form.
             (setf (typeset dst) (typeset pos)

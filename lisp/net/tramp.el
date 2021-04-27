@@ -2564,8 +2564,11 @@ Falls back to normal file name handler if no Tramp file name handler exists."
   (tramp-unload-file-name-handlers)
   (when tramp-mode
     ;; We cannot use `tramp-compat-temporary-file-directory' here due
-    ;; to autoload.
+    ;; to autoload.  When installing Tramp's GNU ELPA package, there
+    ;; might be an older, incompatible version active.  We try to
+    ;; overload this.
     (let ((default-directory temporary-file-directory))
+      (load "tramp-compat" 'noerror 'nomessage)
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 

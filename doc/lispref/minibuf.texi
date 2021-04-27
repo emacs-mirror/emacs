@@ -1819,12 +1819,10 @@ default to that string.
 @item :affixation-function
 The value should be a function to add prefixes and suffixes to
 completions.  This function must accept one argument, a list of
-completions, and should return such a list of completions where
-each element contains a list of three elements: a completion,
-a prefix string, and a suffix string.  When this function
-returns a list of two elements, it is interpreted as a list
-of a completion and a suffix string like in @code{:annotation-function}.
-This function takes priority over @code{:annotation-function}.
+completions, and should return a list of annotated completions.  Each
+element of the returned list must be a three-element list, the
+completion, a prefix string, and a suffix string.  This function takes
+priority over @code{:annotation-function}.
 
 @item :exit-function
 The value should be a function to run after performing completion.
@@ -1942,10 +1940,8 @@ completions.  The function should take one argument,
 return such a list of @var{completions} where each element contains a list
 of three elements: a completion, a prefix which is displayed before
 the completion string in the @file{*Completions*} buffer, and
-a suffix displayed after the completion string.  When this function
-returns a list of two elements, it is interpreted as a list of
-a completion and a suffix string like in @code{annotation-function}.
-This function takes priority over @code{annotation-function}.
+a suffix displayed after the completion string.  This function
+takes priority over @code{annotation-function}.
 
 @item display-sort-function
 The value should be a function for sorting completions.  The function
