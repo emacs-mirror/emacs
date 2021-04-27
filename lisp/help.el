@@ -210,6 +210,7 @@ Do not call this in the scope of `with-help-window'."
                 ;; "RET" so we can't use it here.
                 (propertize name 'face 'help-key-binding)
               (concat "\\[" name "]"))
+            " " ; ensure we have some whitespace before the description
             (propertize "\t" 'display '(space :align-to 8))
             desc))
        ""))
