@@ -6223,7 +6223,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     /* But only if we have a small colormap.  Xaw3d can allocate nice
        colors itself.  */
     {
-      XtSetArg (av[ac], XtNbeNiceToColormap,
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap,
                 DefaultDepthOfScreen (FRAME_X_SCREEN (f)) < 16);
       ++ac;
     }
@@ -6234,20 +6234,20 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     {
       /* This tells Xaw3d to use real colors instead of dithering for
 	 the shadows.  */
-      XtSetArg (av[ac], XtNbeNiceToColormap, False);
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap, False);
       ++ac;
 
       /* Specify the colors.  */
       pixel = f->output_data.x->scroll_bar_top_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNtopShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNtopShadowPixel, pixel);
 	  ++ac;
 	}
       pixel = f->output_data.x->scroll_bar_bottom_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNbottomShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNbottomShadowPixel, pixel);
 	  ++ac;
 	}
     }
@@ -6424,7 +6424,7 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     /* But only if we have a small colormap.  Xaw3d can allocate nice
        colors itself.  */
     {
-      XtSetArg (av[ac], XtNbeNiceToColormap,
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap,
                 DefaultDepthOfScreen (FRAME_X_SCREEN (f)) < 16);
       ++ac;
     }
@@ -6435,20 +6435,20 @@ x_create_horizontal_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
     {
       /* This tells Xaw3d to use real colors instead of dithering for
 	 the shadows.  */
-      XtSetArg (av[ac], XtNbeNiceToColormap, False);
+      XtSetArg (av[ac], (String) XtNbeNiceToColormap, False);
       ++ac;
 
       /* Specify the colors.  */
       pixel = f->output_data.x->scroll_bar_top_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNtopShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNtopShadowPixel, pixel);
 	  ++ac;
 	}
       pixel = f->output_data.x->scroll_bar_bottom_shadow_pixel;
       if (pixel != -1)
 	{
-	  XtSetArg (av[ac], XtNbottomShadowPixel, pixel);
+	  XtSetArg (av[ac], (String) XtNbottomShadowPixel, pixel);
 	  ++ac;
 	}
     }
