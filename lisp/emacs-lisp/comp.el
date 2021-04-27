@@ -115,11 +115,10 @@ or one if there's just one execution unit."
   :risky t
   :version "28.1")
 
-;; FIXME: This an abnormal hook, and should be renamed to something
-;; like `comp-async-cu-done-function'.
-(defcustom comp-async-cu-done-hook nil
-  "Hook run after asynchronously compiling a single compilation unit.
-Called with one argument FILE, the filename used as input to compilation."
+(defcustom comp-async-cu-done-functions nil
+  "List of functions to call after asynchronously compiling one compilation unit.
+Called with one argument FILE, the filename used as input to
+compilation."
   :type 'hook
   :version "28.1")
 
@@ -3940,7 +3939,7 @@ display a message."
                              :sentinel
                              (lambda (process _event)
                                (run-hook-with-args
-                                'comp-async-cu-done-hook
+                                'comp-async-cu-done-functions
                                 source-file)
                                (comp-accept-and-process-async-output process)
                                (ignore-errors (delete-file temp-file))
