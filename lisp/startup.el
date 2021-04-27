@@ -550,7 +550,9 @@ It is the default value of the variable `top-level'."
       ;; testsuite, add a temporary folder in front to produce there
       ;; new compilations.
       (when (equal (getenv "HOME") "/nonexistent")
-        (push (make-temp-file "emacs-testsuite-" t) comp-eln-load-path)))
+        (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
+          (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
+          (push tmp-dir comp-eln-load-path))))
     ;; Look in each dir in load-path for a subdirs.el file.  If we
     ;; find one, load it, which will add the appropriate subdirs of
     ;; that dir into load-path.  This needs to be done before setting
