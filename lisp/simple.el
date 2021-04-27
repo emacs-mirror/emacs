@@ -2080,8 +2080,11 @@ or (if one of MODES is a minor mode), if it is switched on in BUFFER."
                             (obsolete
                              (format " (%s)" (car obsolete)))
                             ((and binding (not (stringp binding)))
-                             (format " (%s)" (key-description binding))))))
-         (if suffix (list command-name suffix) command-name)))
+                             (format " (%s)" (key-description binding)))
+                            (t ""))))
+         (put-text-property 0 (length suffix)
+                            'face 'completions-annotations suffix)
+         (list command-name "" suffix)))
      command-names)))
 
 (defcustom suggest-key-bindings t

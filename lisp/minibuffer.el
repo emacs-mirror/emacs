@@ -122,10 +122,10 @@ This metadata is an alist.  Currently understood keys are:
    returns a string to append to STRING.
 - `affixation-function': function to prepend/append a prefix/suffix to
    entries.  Takes one argument (COMPLETIONS) and should return a list
-   of completions with a list of either two elements: completion
-   and suffix, or three elements: completion, its prefix
-   and suffix.  This function takes priority over `annotation-function'
-   when both are provided, so only this function is used.
+   of annotated completions.  The elements of the list must be
+   three-element lists: completion, its prefix and suffix.  This
+   function takes priority over `annotation-function' when both are
+   provided, so only this function is used.
 - `display-sort-function': function to sort entries in *Completions*.
    Takes one argument (COMPLETIONS) and should return a new list
    of completions.  Can operate destructively.
@@ -1972,11 +1972,11 @@ These include:
 
 `:affixation-function': Function to prepend/append a prefix/suffix to
    completions.  The function must accept one argument, a list of
-   completions, and return a list where each element is a list of
-   either two elements: a completion, and a suffix, or
-   three elements: a completion, a prefix and a suffix.
-   This function takes priority over `:annotation-function'
-   when both are provided, so only this function is used.
+   completions, and return a list of annotated completions.  The
+   elements of the list must be three-element lists: completion, its
+   prefix and suffix.  This function takes priority over
+   `:annotation-function' when both are provided, so only this
+   function is used.
 
 `:exit-function': Function to run after completion is performed.
 
