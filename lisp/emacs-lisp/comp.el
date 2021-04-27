@@ -87,7 +87,7 @@ This is intended for debugging the compiler itself.
   '()
   "List of regexps to exclude matching files from deferred native compilation.
 Files whose names match any regexp is excluded from native compilation."
-  :type 'list
+  :type '(repeat regexp)
   :version "28.1")
 
 (defcustom comp-bootstrap-deny-list
@@ -95,7 +95,7 @@ Files whose names match any regexp is excluded from native compilation."
   "List of regexps to exclude files from native compilation during bootstrap.
 Files whose names match any regexp is excluded from native compilation
 during bootstrap."
-  :type 'list
+  :type '(repeat regexp)
   :version "28.1")
 
 (defcustom comp-never-optimize-functions
@@ -104,7 +104,7 @@ during bootstrap."
     ;; REMOVE.
     macroexpand rename-buffer)
   "Primitive functions to exclude from trampoline optimization."
-  :type 'list
+  :type '(repeat symbol)
   :version "28.1")
 
 (defcustom comp-async-jobs-number 0
@@ -130,7 +130,7 @@ compilation."
 (defcustom comp-async-env-modifier-form nil
   "Form evaluated before compilation by each asynchronous compilation subprocess.
 Used to modify the compiler environment."
-  :type 'list
+  :type 'sexp
   :risky t
   :version "28.1")
 
@@ -168,7 +168,7 @@ affecting the assembler and linker are likely to be useful.
 
 Passing these options is only available in libgccjit version 9
 and above."
-  :type 'list
+  :type '(repeat string)                ; FIXME is this right?
   :version "28.1")
 
 (defcustom comp-libgccjit-reproducer nil
