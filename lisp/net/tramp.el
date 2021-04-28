@@ -64,6 +64,10 @@
 (declare-function netrc-parse "netrc")
 (defvar auto-save-file-name-transforms)
 
+;; Reload `tramp-compat' when we reload `tramp-autoloads' of the GNU ELPA package.
+;;;###autoload (when (featurep 'tramp-compat)
+;;;###autoload   (load "tramp-compat" 'noerror 'nomessage))
+
 ;;; User Customizable Internal Variables:
 
 (defgroup tramp nil
@@ -2188,14 +2192,15 @@ without a visible progress reporter."
 FILE must be a local file name on a connection identified via VEC."
   (declare (indent 3) (debug t))
   `(if (file-name-absolute-p ,file)
-      (let ((value (tramp-get-file-property ,vec ,file ,property 'undef)))
-	(when (eq value 'undef)
-	  ;; We cannot pass @body as parameter to
-	  ;; `tramp-set-file-property' because it mangles our
-	  ;; debug messages.
-	  (setq value (progn ,@body))
-	  (tramp-set-file-property ,vec ,file ,property value))
-	value)
+       (let ((value (tramp-get-file-property
+		     ,vec ,file ,property tramp-cache-undefined)))
+	 (when (eq value tramp-cache-undefined)
+	   ;; We cannot pass @body as parameter to
+	   ;; `tramp-set-file-property' because it mangles our debug
+	   ;; messages.
+	   (setq value (progn ,@body))
+	   (tramp-set-file-property ,vec ,file ,property value))
+	 value)
      ,@body))
 
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-file-property\\>"))
@@ -2203,14 +2208,15 @@ FILE must be a local file name on a connection identified via VEC."
 (defmacro with-tramp-connection-property (key property &rest body)
   "Check in Tramp for property PROPERTY, otherwise execute BODY and set."
   (declare (indent 2) (debug t))
-  `(let ((value (tramp-get-connection-property ,key ,property 'undef)))
-    (when (eq value 'undef)
-      ;; We cannot pass ,@body as parameter to
-      ;; `tramp-set-connection-property' because it mangles our debug
-      ;; messages.
-      (setq value (progn ,@body))
-      (tramp-set-connection-property ,key ,property value))
-    value))
+  `(let ((value (tramp-get-connection-property
+		 ,key ,property tramp-cache-undefined)))
+     (when (eq value tramp-cache-undefined)
+       ;; We cannot pass ,@body as parameter to
+       ;; `tramp-set-connection-property' because it mangles our debug
+       ;; messages.
+       (setq value (progn ,@body))
+       (tramp-set-connection-property ,key ,property value))
+     value))
 
 (font-lock-add-keywords
  'emacs-lisp-mode '("\\<with-tramp-connection-property\\>"))
@@ -2568,7 +2574,6 @@ Falls back to normal file name handler if no Tramp file name handler exists."
     ;; might be an older, incompatible version active.  We try to
     ;; overload this.
     (let ((default-directory temporary-file-directory))
-      (load "tramp-compat" 'noerror 'nomessage)
       (load "tramp" 'noerror 'nomessage)))
   (apply operation args)))
 
@@ -3716,21 +3721,19 @@ User is always nil."
 		 (signal (car err) (cdr err))))))
 
 	;; Save exit.
-	(progn
-	  (when visit
-	    (setq buffer-file-name filename
-		  buffer-read-only (not (file-writable-p filename)))
-	    (set-visited-file-modtime)
-	    (set-buffer-modified-p nil))
-	  (when (and (stringp local-copy)
-		     (or remote-copy (null tramp-temp-buffer-file-name)))
-	    (delete-file local-copy))
-	  (when (stringp remote-copy)
-	    (delete-file (tramp-make-tramp-file-name v remote-copy 'nohop)))))
+	(when visit
+	  (setq buffer-file-name filename
+		buffer-read-only (not (file-writable-p filename)))
+	  (set-visited-file-modtime)
+	  (set-buffer-modified-p nil))
+	(when (and (stringp local-copy)
+		   (or remote-copy (null tramp-temp-buffer-file-name)))
+	  (delete-file local-copy))
+	(when (stringp remote-copy)
+	  (delete-file (tramp-make-tramp-file-name v remote-copy 'nohop))))
 
       ;; Result.
-      (list (expand-file-name filename)
-	    (cadr result)))))
+      (cons (expand-file-name filename) (cdr result)))))
 
 (defun tramp-handle-load (file &optional noerror nomessage nosuffix must-suffix)
   "Like `load' for Tramp files."

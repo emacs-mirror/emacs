@@ -628,10 +628,8 @@ offered."
   (let ((result
 	 (insert-file-contents
 	  (tramp-archive-gvfs-file-name filename) visit beg end replace)))
-    (prog1
-	(list (expand-file-name filename)
-	      (cadr result))
-      (when visit (setq buffer-file-name filename)))))
+    (when visit (setq buffer-file-name filename))
+    (cons (expand-file-name filename) (cdr result))))
 
 (defun tramp-archive-handle-load
     (file &optional noerror nomessage nosuffix must-suffix)
