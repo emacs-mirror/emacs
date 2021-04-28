@@ -3730,31 +3730,29 @@ Fall back to normal file name handler if no Tramp handler exists."
 
       ;; Determine monitor name.
       (unless (tramp-connection-property-p proc "gio-file-monitor")
-        (cond
-         ;; We have seen this on cygwin gio and on emba.  Let's make some assumptions.
-         ((string-match
-           "Can't find module 'help' specified in GIO_USE_FILE_MONITOR" string)
-          (cond
-           ((getenv "EMACS_EMBA_CI")
-            (tramp-set-connection-property
-             proc "gio-file-monitor" 'GInotifyFileMonitor))
-           ((eq system-type 'cygwin)
-            (tramp-set-connection-property
-             proc "gio-file-monitor" 'GPollFileMonitor))
-           (t (tramp-error proc 'file-error "Cannot determine gio monitor"))))
-         ;; TODO: What happens, if several monitor names are reported?
-         ((string-match "\
+        (tramp-set-connection-property
+         proc "gio-file-monitor"
+         (cond
+          ;; We have seen this on cygwin gio and on emba.  Let's make
+          ;; some assumptions.
+          ((string-match
+            "Can't find module 'help' specified in GIO_USE_FILE_MONITOR" string)
+           (cond
+            ((getenv "EMACS_EMBA_CI") 'GInotifyFileMonitor)
+            ((eq system-type 'cygwin) 'GPollFileMonitor)
+            (t tramp-cache-undefined)))
+          ;; TODO: What happens, if several monitor names are reported?
+          ((string-match "\
 Supported arguments for GIO_USE_FILE_MONITOR environment variable:
 \\s-*\\([[:alpha:]]+\\) - 20" string)
-          (tramp-set-connection-property
-           proc "gio-file-monitor"
            (intern
-            (format "G%sFileMonitor" (capitalize (match-string 1 string))))))
-         (t (throw 'doesnt-work nil)))
-        (setq string (replace-match "" nil nil string)))
+	    (format "G%sFileMonitor" (capitalize (match-string 1 string)))))
+          (t (throw 'doesnt-work nil))))
+	(setq string (substring string (match-end 0))))
 
       ;; Delete empty lines.
-      (setq string (tramp-compat-string-replace "\n\n" "\n" string))
+      (setq string (tramp-compat-string-replace "\n\n" "\n" string)
+	    string (replace-regexp-in-string "^\n" "" string))
 
       (while (string-match
 	      (eval-when-compile
