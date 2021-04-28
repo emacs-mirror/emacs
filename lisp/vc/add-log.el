@@ -1194,7 +1194,7 @@ file were isearch was started."
     (forward-paragraph n)))
 
 (defcustom add-log-current-defun-header-regexp
-  "^\\([[:upper:]][[:upper:]_ ]*[[:upper:]_]\\|[-_[:alpha:]]+\\)[ \t]*[:=]"
+  "^\\([[:upper:]][[:upper:]_ ]*[[:upper:]_]\\|[-_[:alnum:]]*[[:alpha:]][-_[:alnum:]]*\\)[ \t]*[:=]"
   "Heuristic regexp used by `add-log-current-defun' for unknown major modes.
 The regexp's first submatch is placed in the ChangeLog entry, in
 parentheses."
