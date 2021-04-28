@@ -291,6 +291,7 @@ Only has effect when `ruby-use-smie' is nil."
 
 (defcustom ruby-encoding-map
   '((us-ascii       . nil)       ;; Do not put coding: us-ascii
+    (utf-8          . nil)       ;; Default since Ruby 2.0
     (shift-jis      . cp932)     ;; Emacs charset name of Shift_JIS
     (shift_jis      . cp932)     ;; MIME charset name of Shift_JIS
     (japanese-cp932 . cp932))    ;; Emacs charset name of CP932
@@ -760,7 +761,7 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
 
 (defun ruby--detect-encoding ()
   (if (eq ruby-insert-encoding-magic-comment 'always-utf8)
-      "utf-8"
+      'utf-8
     (let ((coding-system
            (or save-buffer-coding-system
                buffer-file-coding-system)))
@@ -769,12 +770,11 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
                 (or (coding-system-get coding-system 'mime-charset)
                     (coding-system-change-eol-conversion coding-system nil))))
       (if coding-system
-          (symbol-name
-           (if ruby-use-encoding-map
-               (let ((elt (assq coding-system ruby-encoding-map)))
-                 (if elt (cdr elt) coding-system))
-             coding-system))
-        "ascii-8bit"))))
+          (if ruby-use-encoding-map
+              (let ((elt (assq coding-system ruby-encoding-map)))
+                (if elt (cdr elt) coding-system))
+            coding-system)
+        'ascii-8bit))))
 
 (defun ruby--encoding-comment-required-p ()
   (or (eq ruby-insert-encoding-magic-comment 'always-utf8)
@@ -796,7 +796,7 @@ The style of the comment is controlled by `ruby-encoding-magic-comment-style'."
                    (unless (string= (match-string 2) coding-system)
                      (goto-char (match-beginning 2))
                      (delete-region (point) (match-end 2))
-                     (insert coding-system)))
+                     (insert (symbol-name coding-system))))
                   ((looking-at "\\s *#.*coding\\s *[:=]"))
                   (t (when ruby-insert-encoding-magic-comment
                        (ruby--insert-coding-comment coding-system))))
