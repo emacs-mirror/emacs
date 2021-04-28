@@ -74,7 +74,7 @@
   cmpfun)
 
 (defmacro avl-tree--root (tree)
-  ;; Return the root node for an AVL tree.  INTERNAL USE ONLY.
+  "Return the root node for an AVL tree.  INTERNAL USE ONLY."
   `(avl-tree--node-left (avl-tree--dummyroot ,tree)))
 
 ;; ----------------------------------------------------------------
@@ -337,7 +337,7 @@ inserted data."
       ))))
 
 (defun avl-tree--check (tree)
-  "Check the tree's balance."
+  "Check the balance of TREE."
   (avl-tree--check-node (avl-tree--root tree)))
 (defun avl-tree--check-node (node)
   (if (null node) 0
@@ -405,8 +405,8 @@ itself."
 \n(fn OBJ)")
 
 (defun avl-tree--stack-repopulate (stack)
-  ;; Recursively push children of the node at the head of STACK onto the
-  ;; front of the STACK, until a leaf is reached.
+  "Recursively push children of the node at the head of STACK onto the
+front of the STACK, until a leaf is reached."
   (let ((node (car (avl-tree--stack-store stack)))
 	(dir (if (avl-tree--stack-reverse stack) 1 0)))
     (when node  ; check for empty stack
@@ -504,13 +504,13 @@ previously specified in `avl-tree-create' when TREE was created."
 
 
 (defun avl-tree-map (fun tree &optional reverse)
-  "Modify all elements in the AVL tree TREE by applying FUNCTION.
+  "Modify all elements in the AVL tree TREE by applying function FUN.
 
-Each element is replaced by the return value of FUNCTION applied
-to that element.
+Each element is replaced by the return value of FUN applied to
+that element.
 
-FUNCTION is applied to the elements in ascending order, or
-descending order if REVERSE is non-nil."
+FUN is applied to the elements in ascending order, or descending
+order if REVERSE is non-nil."
   (avl-tree--mapc
    (lambda (node)
      (setf (avl-tree--node-data node)
@@ -520,7 +520,7 @@ descending order if REVERSE is non-nil."
 
 
 (defun avl-tree-mapc (fun tree &optional reverse)
-  "Apply FUNCTION to all elements in AVL tree TREE,
+  "Apply function FUN to all elements in AVL tree TREE,
 for side-effect only.
 
 FUNCTION is applied to the elements in ascending order, or
@@ -534,7 +534,7 @@ descending order if REVERSE is non-nil."
 
 (defun avl-tree-mapf
   (fun combinator tree &optional reverse)
-  "Apply FUNCTION to all elements in AVL tree TREE,
+  "Apply function FUN to all elements in AVL tree TREE,
 and combine the results using COMBINATOR.
 
 The FUNCTION is applied and the results are combined in ascending
