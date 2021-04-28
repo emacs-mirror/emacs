@@ -222,6 +222,10 @@ let the buffer grow forever."
   :type '(choice (const :tag "Don't show confirmation prompt" nil)
                  (symbol :tag "Show confirmation prompt" 'confirm)))
 
+;; Customizable via `completion-category-overrides'.
+(when (assoc 'flex completion-styles-alist)
+  (add-to-list 'completion-category-defaults '(eglot (styles flex basic))))
+
 
 ;;; Constants
 ;;;
@@ -1421,8 +1425,6 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (eglot--setq-saving flymake-diagnostic-functions '(eglot-flymake-backend))
     (eglot--setq-saving company-backends '(company-capf))
     (eglot--setq-saving company-tooltip-align-annotations t)
-    (when (assoc 'flex completion-styles-alist)
-      (eglot--setq-saving completion-styles '(flex basic)))
     (unless (eglot--stay-out-of-p 'imenu)
       (add-function :before-until (local 'imenu-create-index-function)
                     #'eglot-imenu))
@@ -2166,7 +2168,8 @@ is not active."
                                    (get-text-property 0 'eglot--lsp-item c)
                                    :sortText)
                                   "")))))
-           (metadata `(metadata . ((display-sort-function . ,sort-completions))))
+           (metadata `(metadata (category . eglot)
+                                (display-sort-function . ,sort-completions)))
            resp items (cached-proxies :none)
            (proxies
             (lambda ()
