@@ -3708,7 +3708,8 @@ Fall back to normal file name handler if no Tramp handler exists."
 	(remote-prefix
 	 (with-current-buffer (process-buffer proc)
 	   (file-remote-p default-directory)))
-	(rest-string (process-get proc 'rest-string)))
+	(rest-string (process-get proc 'rest-string))
+	pos)
     (when rest-string
       (tramp-message proc 10 "Previous string:\n%s" rest-string))
     (tramp-message proc 6 "%S\n%s" proc string)
@@ -3737,22 +3738,23 @@ Fall back to normal file name handler if no Tramp handler exists."
           ;; some assumptions.
           ((string-match
             "Can't find module 'help' specified in GIO_USE_FILE_MONITOR" string)
+	   (setq pos (match-end 0))
            (cond
             ((getenv "EMACS_EMBA_CI") 'GInotifyFileMonitor)
             ((eq system-type 'cygwin) 'GPollFileMonitor)
-            (t tramp-cache-undefined)))
+            (t nil)))
           ;; TODO: What happens, if several monitor names are reported?
           ((string-match "\
 Supported arguments for GIO_USE_FILE_MONITOR environment variable:
 \\s-*\\([[:alpha:]]+\\) - 20" string)
+	   (setq pos (match-end 0))
            (intern
 	    (format "G%sFileMonitor" (capitalize (match-string 1 string)))))
-          (t (throw 'doesnt-work nil))))
-	(setq string (substring string (match-end 0))))
+          (t (setq pos (length string)) nil)))
+	(setq string (substring string pos)))
 
       ;; Delete empty lines.
-      (setq string (tramp-compat-string-replace "\n\n" "\n" string)
-	    string (replace-regexp-in-string "^\n" "" string))
+      (setq string (tramp-compat-string-replace "\n\n" "\n" string))
 
       (while (string-match
 	      (eval-when-compile
@@ -3783,6 +3785,8 @@ Supported arguments for GIO_USE_FILE_MONITOR environment variable:
 	     `(file-notify ,object file-notify-callback))))))
 
     ;; Save rest of the string.
+    (while (string-match "^\n" string)
+      (setq string (replace-match "" nil nil string)))
     (when (zerop (length string)) (setq string nil))
     (when string (tramp-message proc 10 "Rest string:\n%s" string))
     (process-put proc 'rest-string string)))
