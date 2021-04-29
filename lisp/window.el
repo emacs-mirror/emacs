@@ -6133,29 +6133,27 @@ value can be also stored on disk and read back in a new session."
 		;; Select window if it's the selected one.
 		(when (cdr (assq 'selected state))
 		  (select-window window))
-                (when next-buffers
-                  (set-window-next-buffers
-                   window
-                   (delq nil (mapcar (lambda (buffer)
-                                       (setq buffer (get-buffer buffer))
-                                       (when (buffer-live-p buffer) buffer))
-                                     next-buffers))))
-                (when prev-buffers
-                  (set-window-prev-buffers
-                   window
-                   (delq nil (mapcar (lambda (entry)
-                                       (let ((buffer (get-buffer (nth 0 entry)))
-                                             (m1 (nth 1 entry))
-                                             (m2 (nth 2 entry)))
-                                         (when (buffer-live-p buffer)
-                                           (list buffer
-                                                 (if (markerp m1) m1
-                                                   (set-marker (make-marker) m1
-                                                               buffer))
-                                                 (if (markerp m2) m2
-                                                   (set-marker (make-marker) m2
-                                                               buffer))))))
-                                     prev-buffers)))))
+                (set-window-next-buffers
+                 window
+                 (delq nil (mapcar (lambda (buffer)
+                                     (setq buffer (get-buffer buffer))
+                                     (when (buffer-live-p buffer) buffer))
+                                   next-buffers)))
+                (set-window-prev-buffers
+                 window
+                 (delq nil (mapcar (lambda (entry)
+                                     (let ((buffer (get-buffer (nth 0 entry)))
+                                           (m1 (nth 1 entry))
+                                           (m2 (nth 2 entry)))
+                                       (when (buffer-live-p buffer)
+                                         (list buffer
+                                               (if (markerp m1) m1
+                                                 (set-marker (make-marker) m1
+                                                             buffer))
+                                               (if (markerp m2) m2
+                                                 (set-marker (make-marker) m2
+                                                             buffer))))))
+                                   prev-buffers))))
 	    ;; We don't want to raise an error in case the buffer does
 	    ;; not exist anymore, so we switch to a previous one and
 	    ;; save the window with the intention of deleting it later

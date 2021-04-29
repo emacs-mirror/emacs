@@ -5100,12 +5100,12 @@ I get an error @samp{tramp-file-name-handler: Invalid function:
 tramp-compat-with-mutex}
 
 @value{tramp} comes with compatibility code for different Emacs
-versions.  When you see this warning, you don't use the Emacs built-in
-version of @value{tramp}.  In case you have installed @value{tramp}
-from GNU ELPA, see the package README file for instructions how to
-recompile it.
+versions.  When you see such a message (the text might differ), you
+don't use the Emacs built-in version of @value{tramp}.  In case you
+have installed @value{tramp} from GNU ELPA, see the package README
+file for instructions how to recompile it.
 @ifset installchapter
-In case you have installed it from its Git repository, @ref{Recompilation}.
+@xref{Recompilation}.
 @end ifset
 
 

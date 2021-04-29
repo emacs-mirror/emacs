@@ -275,6 +275,7 @@ The keys are strings specifying the general hierarchical level in the
 document; the values are regular expressions.")
 
 
+;;;###autoload
 (defun texinfo-make-menu (&optional beginning end)
   "Without any prefix argument, make or update a menu.
 Make the menu for the section enclosing the node found following point.
@@ -351,6 +352,7 @@ at the level specified by LEVEL.  Point is left at the end of menu."
       (texinfo-delete-old-menu beginning first))
     (texinfo-insert-menu new-menu-list node-name)))
 
+;;;###autoload
 (defun texinfo-all-menus-update (&optional update-all-nodes-p)
   "Update every regular menu in a Texinfo file.
 Update pre-existing master menu, if there is one.
@@ -733,6 +735,7 @@ is the menu entry name, and the cdr of P is the node name."
 
 ;;; Starting menu descriptions by inserting titles
 
+;;;###autoload
 (defun texinfo-start-menu-description ()
   "In this menu entry, insert the node's section title as a description.
 Position point at beginning of description ready for editing.
@@ -817,6 +820,7 @@ complements the node name rather than repeats it as a title does."
 ;; Since the make-menu functions indent descriptions, these functions
 ;; are useful primarily for indenting a single menu specially.
 
+;;;###autoload
 (defun texinfo-indent-menu-description (column &optional region-p)
   "Indent every description in menu following point to COLUMN.
 Non-nil argument (prefix, if interactive) means indent every
@@ -872,6 +876,7 @@ second and subsequent lines of a multi-line description."
 
 ;;; Making the master menu
 
+;;;###autoload
 (defun texinfo-master-menu (update-all-nodes-menus-p)
   "Make a master menu for a whole Texinfo file.
 Remove pre-existing master menu, if there is one.
@@ -1266,6 +1271,7 @@ end of that region; it limits the search."
 
 ;;; Updating a node
 
+;;;###autoload
 (defun texinfo-update-node (&optional beginning end)
   "Without any prefix argument, update the node in which point is located.
 Interactively, a prefix argument means to operate on the region.
@@ -1313,6 +1319,7 @@ which menu descriptions are indented. Its default value is 32."
 	  (goto-char (point-max))
 	  (message "Done...nodes updated in region.  You may save the buffer."))))))
 
+;;;###autoload
 (defun texinfo-every-node-update ()
   "Update every node in a Texinfo file.
 
@@ -1553,6 +1560,7 @@ towards which the pointer is directed, one of `next', `previous', or `up'."
 ;; (The subsection to which `Next' points will most likely be the first
 ;; item on the section's menu.)
 
+;;;###autoload
 (defun texinfo-sequential-node-update (&optional region-p)
   "Update one node (or many) in a Texinfo file with sequential pointers.
 
@@ -1676,6 +1684,7 @@ or `Up' pointer."
 ;; before the `@chapter', `@section', and such like lines of a region
 ;; in a Texinfo file.
 
+;;;###autoload
 (defun texinfo-insert-node-lines (beginning end &optional title-p)
   "Insert missing `@node' lines in region of Texinfo file.
 Non-nil argument (prefix, if interactive) means also to insert the
@@ -1989,6 +1998,7 @@ be the files included within it.  A main menu must already exist."
 
 ;;; The multiple-file update function
 
+;;;###autoload
 (defun texinfo-multiple-files-update
   (outer-file &optional make-master-menu update-everything)
   "Update first node pointers in each file included in OUTER-FILE;
@@ -2113,5 +2123,9 @@ chapter."
   (message "Multiple files updated."))
 
 (provide 'texnfo-upd)
+
+;; Local Variables:
+;; generated-autoload-file: "texinfo-loaddefs.el"
+;; End:
 
 ;;; texnfo-upd.el ends here

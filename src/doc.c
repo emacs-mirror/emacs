@@ -550,7 +550,7 @@ the same file name is found in the `doc-directory'.  */)
   Lisp_Object delayed_init =
     find_symbol_value (intern ("custom-delayed-init-variables"));
 
-  if (EQ (delayed_init, Qunbound)) delayed_init = Qnil;
+  if (!CONSP (delayed_init)) delayed_init = Qnil;
 
   CHECK_STRING (filename);
 
