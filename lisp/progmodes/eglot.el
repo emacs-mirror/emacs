@@ -104,7 +104,8 @@
                                  . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php"))
                                 ((c++-mode c-mode) . ("ccls"))
-                                ((caml-mode tuareg-mode reason-mode)
+                                (((caml-mode :language-id "ocaml")
+                                  (tuareg-mode :language-id "ocaml") reason-mode)
                                  . ("ocamllsp"))
                                 (ruby-mode
                                  . ("solargraph" "socket" "--port" :autoport))
@@ -129,9 +130,23 @@ language-server/bin/php-language-server.php"))
                                 (zig-mode . ("zls")))
   "How the command `eglot' guesses the server to start.
 An association list of (MAJOR-MODE . CONTACT) pairs.  MAJOR-MODE
-is a mode symbol, or a list of mode symbols.  The associated
-CONTACT specifies how to connect to a server for managing buffers
-of those modes.  CONTACT can be:
+identifies the buffers that are to be managed by a specific
+language server.  The associated CONTACT specifies how to connect
+to a server for those buffers.
+
+MAJOR-MODE can be:
+
+* In the most common case, a symbol such as `c-mode';
+
+* A list (MAJOR-MODE-SYMBOL :LANGUAGE-ID ID) where
+  MAJOR-MODE-SYMBOL is the aforementioned symbol and ID is a
+  string identifying the language to the server;
+
+* A list combining the previous two alternatives, meaning
+  multiple major modes will be associated with a single server
+  program.
+
+CONTACT can be:
 
 * In the most common case, a list of strings (PROGRAM [ARGS...]).
   PROGRAM is called with ARGS and is expected to serve LSP requests
@@ -612,6 +627,9 @@ treated as in `eglot-dbind'."
    (major-mode
     :documentation "Major mode symbol."
     :accessor eglot--major-mode)
+   (language-id
+    :documentation "Language ID string for the mode."
+    :accessor eglot--language-id)
    (capabilities
     :documentation "JSON object containing server capabilities."
     :accessor eglot--capabilities)
@@ -720,9 +738,29 @@ PRESERVE-BUFFERS as in `eglot-shutdown', which see."
 (defvar eglot--command-history nil
   "History of CONTACT arguments to `eglot'.")
 
+(defun eglot--lookup-mode (mode)
+  "Lookup `eglot-server-programs' for MODE.
+Return (LANGUAGE-ID . CONTACT-PROXY).  If not specified,
+LANGUAGE-ID is determined from MODE."
+  (cl-loop
+   for (modes . contact) in eglot-server-programs
+   thereis (cl-some
+            (lambda (spec)
+              (cl-destructuring-bind (probe &key language-id &allow-other-keys)
+                  (if (consp spec) spec (list spec))
+                (and (provided-mode-derived-p mode probe)
+                     (cons
+                      (or language-id
+                          (or (get mode 'eglot-language-id)
+                              (get spec 'eglot-language-id)
+                              (string-remove-suffix "-mode" (symbol-name mode))))
+                      contact))))
+            (if (or (symbolp modes) (keywordp (cadr modes)))
+                (list modes) modes))))
+
 (defun eglot--guess-contact (&optional interactive)
   "Helper for `eglot'.
-Return (MANAGED-MODE PROJECT CLASS CONTACT).  If INTERACTIVE is
+Return (MANAGED-MODE PROJECT CLASS CONTACT LANG-ID).  If INTERACTIVE is
 non-nil, maybe prompt user, else error as soon as something can't
 be guessed."
   (let* ((guessed-mode (if buffer-file-name major-mode))
@@ -740,11 +778,9 @@ be guessed."
             (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
            (t guessed-mode)))
          (project (or (project-current) `(transient . ,default-directory)))
-         (guess (cdr (assoc managed-mode eglot-server-programs
-                            (lambda (m1 m2)
-                              (cl-find
-                               m2 (if (listp m1) m1 (list m1))
-                               :test #'provided-mode-derived-p)))))
+         (lang-id-and-guess (eglot--lookup-mode guessed-mode))
+         (language-id (car lang-id-and-guess))
+         (guess (cdr lang-id-and-guess))
          (guess (if (functionp guess)
                     (funcall guess interactive)
                   guess))
@@ -791,10 +827,11 @@ be guessed."
                         :test #'equal))))
               guess
               (eglot--error "Couldn't guess for `%s'!" managed-mode))))
-    (list managed-mode project class contact)))
+    (list managed-mode project class contact language-id)))
 
 ;;;###autoload
-(defun eglot (managed-major-mode project class contact &optional interactive)
+(defun eglot (managed-major-mode project class contact language-id
+                                 &optional interactive)
   "Manage a project with a Language Server Protocol (LSP) server.
 
 The LSP server of CLASS is started (or contacted) via CONTACT.
@@ -821,6 +858,9 @@ CONTACT specifies how to contact the server.  It is a
 keyword-value plist used to initialize CLASS or a plain list as
 described in `eglot-server-programs', which see.
 
+LANGUAGE-ID is the language ID string to send to the server for
+MANAGED-MAJOR-MODE, which matters to a minority of servers.
+
 INTERACTIVE is t if called interactively."
   (interactive (append (eglot--guess-contact t) '(t)))
   (let* ((current-server (eglot-current-server))
@@ -830,7 +870,7 @@ INTERACTIVE is t if called interactively."
              (y-or-n-p "[eglot] Live process found, reconnect instead? "))
         (eglot-reconnect current-server interactive)
       (when live-p (ignore-errors (eglot-shutdown current-server)))
-      (eglot--connect managed-major-mode project class contact))))
+      (eglot--connect managed-major-mode project class contact language-id))))
 
 (defun eglot-reconnect (server &optional interactive)
   "Reconnect to SERVER.
@@ -841,7 +881,8 @@ INTERACTIVE is t if called interactively."
   (eglot--connect (eglot--major-mode server)
                   (eglot--project server)
                   (eieio-object-class-name server)
-                  (eglot--saved-initargs server))
+                  (eglot--saved-initargs server)
+                  (eglot--language-id server))
   (eglot--message "Reconnected!"))
 
 (defvar eglot--managed-mode) ; forward decl
@@ -914,8 +955,8 @@ Each function is passed the server as an argument")
 (defvar-local eglot--cached-server nil
   "A cached reference to the current EGLOT server.")
 
-(defun eglot--connect (managed-major-mode project class contact)
-  "Connect to MANAGED-MAJOR-MODE, PROJECT, CLASS and CONTACT.
+(defun eglot--connect (managed-major-mode project class contact language-id)
+  "Connect to MANAGED-MAJOR-MODE, LANGUAGE-ID, PROJECT, CLASS and CONTACT.
 This docstring appeases checkdoc, that's all."
   (let* ((default-directory (project-root project))
          (nickname (file-name-base (directory-file-name default-directory)))
@@ -969,6 +1010,7 @@ This docstring appeases checkdoc, that's all."
     (setf (eglot--project server) project)
     (setf (eglot--project-nickname server) nickname)
     (setf (eglot--major-mode server) managed-major-mode)
+    (setf (eglot--language-id server) language-id)
     (setf (eglot--inferior-process server) autostart-inferior-process)
     (run-hook-with-args 'eglot-server-initialized-hook server)
     ;; Now start the handshake.  To honour `eglot-sync-connect'
@@ -1737,11 +1779,7 @@ THINGS are either registrations or unregisterations (sic)."
   (append
    (eglot--VersionedTextDocumentIdentifier)
    (list :languageId
-	 (cond
-           ((get major-mode 'eglot-language-id))
-           ((string-match "\\(.*\\)-mode" (symbol-name major-mode))
-            (match-string 1 (symbol-name major-mode)))
-           (t "unknown"))
+	 (eglot--language-id (eglot--current-server-or-lose))
          :text
          (eglot--widening
           (buffer-substring-no-properties (point-min) (point-max))))))
