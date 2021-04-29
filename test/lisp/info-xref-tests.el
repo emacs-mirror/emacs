@@ -1,4 +1,4 @@
-;;; info-xref.el --- tests for info-xref.el  -*- lexical-binding:t -*-
+;;; info-xref-tests.el --- tests for info-xref.el  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013-2021 Free Software Foundation, Inc.
 

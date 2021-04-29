@@ -525,9 +525,16 @@ If the value is t instead of an alist, use the value of
   '((t :inherit font-lock-variable-name-face))
   "Face for time zone label in `world-clock' buffer.")
 
+(defvar world-clock-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "n" #'next-line)
+    (define-key map "p" #'previous-line)
+    map))
+
 (define-derived-mode world-clock-mode special-mode "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `world-clock'."
+  :interactive nil
   (setq-local revert-buffer-function #'world-clock-update)
   (setq show-trailing-whitespace nil))
 
@@ -591,7 +598,9 @@ To turn off the world time display, go to the window and type `\\[quit-window]'.
   "Update the `world-clock' buffer."
   (if (get-buffer world-clock-buffer-name)
       (with-current-buffer (get-buffer world-clock-buffer-name)
-        (world-clock-display (time--display-world-list)))
+        (let ((op (point)))
+          (world-clock-display (time--display-world-list))
+          (goto-char op)))
     (world-clock-cancel-timer)))
 
 ;;;###autoload

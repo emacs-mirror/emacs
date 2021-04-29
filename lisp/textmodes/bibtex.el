@@ -5608,8 +5608,5 @@ If APPEND is non-nil, append ENTRIES to those already displayed."
   (setq buffer-read-only t)
   (goto-char (point-min)))
 
-
-;; Make BibTeX a Feature
-
 (provide 'bibtex)
 ;;; bibtex.el ends here

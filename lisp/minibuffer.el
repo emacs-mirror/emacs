@@ -122,10 +122,10 @@ This metadata is an alist.  Currently understood keys are:
    returns a string to append to STRING.
 - `affixation-function': function to prepend/append a prefix/suffix to
    entries.  Takes one argument (COMPLETIONS) and should return a list
-   of completions with a list of either two elements: completion
-   and suffix, or three elements: completion, its prefix
-   and suffix.  This function takes priority over `annotation-function'
-   when both are provided, so only this function is used.
+   of annotated completions.  The elements of the list must be
+   three-element lists: completion, its prefix and suffix.  This
+   function takes priority over `annotation-function' when both are
+   provided, so only this function is used.
 - `display-sort-function': function to sort entries in *Completions*.
    Takes one argument (COMPLETIONS) and should return a new list
    of completions.  Can operate destructively.
@@ -271,7 +271,7 @@ the form (concat S2 S)."
     (let* ((str (if (string-prefix-p s1 string completion-ignore-case)
                     (concat s2 (substring string (length s1)))))
            (res (if str (complete-with-action action table str pred))))
-      (when res
+      (when (or res (eq (car-safe action) 'boundaries))
         (cond
          ((eq (car-safe action) 'boundaries)
           (let ((beg (or (and (eq (car-safe res) 'boundaries) (cadr res)) 0)))
@@ -488,8 +488,17 @@ for use at QPOS."
              (qsuffix (cdr action))
              (ufull (if (zerop (length qsuffix)) ustring
                       (funcall unquote (concat string qsuffix))))
-             (_ (cl-assert (string-prefix-p ustring ufull)))
-             (usuffix (substring ufull (length ustring)))
+             ;; If (not (string-prefix-p ustring ufull)) we have a problem:
+             ;; unquoting the qfull gives something "unrelated" to ustring.
+             ;; E.g. "~/" and "/" where "~//" gets unquoted to just "/" (see
+             ;; bug#47678).
+             ;; In that case we can't even tell if we're right before the
+             ;; "/" or right after it (aka if this "/" is from qstring or
+             ;; from qsuffix), thus which usuffix to use is very unclear.
+             (usuffix (if (string-prefix-p ustring ufull)
+                          (substring ufull (length ustring))
+                        ;; FIXME: Maybe "" is preferable/safer?
+                        qsuffix))
              (boundaries (completion-boundaries ustring table pred usuffix))
              (qlboundary (car (funcall requote (car boundaries) string)))
              (qrboundary (if (zerop (cdr boundaries)) 0 ;Common case.
@@ -1346,6 +1355,52 @@ scroll the window of possible completions."
     (if (eq (car bounds) base) md-at-point
       (completion-metadata (substring string 0 base) table pred))))
 
+(defun minibuffer--sort-by-key (elems keyfun)
+  "Return ELEMS sorted by increasing value of their KEYFUN.
+KEYFUN takes an element of ELEMS and should return a numerical value."
+  (mapcar #'cdr
+          (sort (mapcar (lambda (x) (cons (funcall keyfun x) x)) elems)
+                 #'car-less-than-car)))
+
+(defun minibuffer--sort-by-position (hist elems)
+  "Sort ELEMS by their position in HIST."
+  (let ((hash (make-hash-table :test #'equal :size (length hist)))
+        (index 0))
+    ;; Record positions in hash
+    (dolist (c hist)
+      (unless (gethash c hash)
+        (puthash c index hash))
+      (cl-incf index))
+    (minibuffer--sort-by-key
+     elems (lambda (x) (gethash x hash most-positive-fixnum)))))
+
+(defun minibuffer--sort-by-length-alpha (elems)
+  "Sort ELEMS first by length, then alphabetically."
+  (sort elems (lambda (c1 c2)
+                (or (< (length c1) (length c2))
+                    (and (= (length c1) (length c2))
+                         (string< c1 c2))))))
+
+(defun minibuffer--sort-preprocess-history (base)
+  "Preprocess history.
+Remove completion BASE prefix string from history elements."
+  (let* ((def (if (stringp minibuffer-default)
+                  minibuffer-default
+                (car-safe minibuffer-default)))
+         (hist (and (not (eq minibuffer-history-variable t))
+                    (symbol-value minibuffer-history-variable)))
+         (base-size (length base)))
+    ;; Default comes first.
+    (setq hist (if def (cons def hist) hist))
+    ;; Drop base string from the history elements.
+    (if (= base-size 0)
+        hist
+      (delq nil (mapcar
+                 (lambda (c)
+                   (when (string-prefix-p base c)
+                     (substring c base-size)))
+                 hist)))))
+
 (defun completion-all-sorted-completions (&optional start end)
   (or completion-all-sorted-completions
       (let* ((start (or start (minibuffer-prompt-end)))
@@ -1375,23 +1430,18 @@ scroll the window of possible completions."
           (setq all (delete-dups all))
           (setq last (last all))
 
-          (cond
-           (sort-fun
-            (setq all (funcall sort-fun all)))
-           (t
-            ;; Prefer shorter completions, by default.
-            (setq all (sort all (lambda (c1 c2) (< (length c1) (length c2)))))
-            (if (minibufferp)
-                ;; Prefer recently used completions and put the default, if
-                ;; it exists, on top.
-                (let ((hist (symbol-value minibuffer-history-variable)))
-                  (setq all
-                        (sort all
-                              (lambda (c1 c2)
-                                (cond ((equal c1 minibuffer-default) t)
-                                      ((equal c2 minibuffer-default) nil)
-                                      (t (> (length (member c1 hist))
-                                            (length (member c2 hist))))))))))))
+          (if sort-fun
+              (setq all (funcall sort-fun all))
+            ;; Sort first by length and alphabetically.
+            (setq all (minibuffer--sort-by-length-alpha all))
+            ;; Sort by history position, put the default, if it
+            ;; exists, on top.
+            (when (minibufferp)
+              (setq all (minibuffer--sort-by-position
+                         (minibuffer--sort-preprocess-history
+                          (substring string 0 base-size))
+                         all))))
+
           ;; Cache the result.  This is not just for speed, but also so that
           ;; repeated calls to minibuffer-force-complete can cycle through
           ;; all possibilities.
@@ -1414,7 +1464,7 @@ scroll the window of possible completions."
    ;; test-completion, then we shouldn't exit, but that should be rare.
    (lambda ()
      (if minibuffer--require-match
-         (minibuffer-message "Incomplete")
+         (completion--message "Incomplete")
        ;; If a match is not required, exit after all.
        (exit-minibuffer)))))
 
@@ -1922,11 +1972,11 @@ These include:
 
 `:affixation-function': Function to prepend/append a prefix/suffix to
    completions.  The function must accept one argument, a list of
-   completions, and return a list where each element is a list of
-   either two elements: a completion, and a suffix, or
-   three elements: a completion, a prefix and a suffix.
-   This function takes priority over `:annotation-function'
-   when both are provided, so only this function is used.
+   completions, and return a list of annotated completions.  The
+   elements of the list must be three-element lists: completion, its
+   prefix and suffix.  This function takes priority over
+   `:annotation-function' when both are provided, so only this
+   function is used.
 
 `:exit-function': Function to run after completion is performed.
 
@@ -1999,7 +2049,7 @@ variables.")
           ;; the sole completion, then hide (previous&stale) completions.
           (minibuffer-hide-completions)
           (ding)
-          (minibuffer-message
+          (completion--message
            (if completions "Sole completion" "No completions")))
 
       (let* ((last (last completions))
@@ -2435,10 +2485,33 @@ with `minibuffer-local-must-match-map'.")
 (defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
 (make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
 
-(let ((map minibuffer-local-ns-map))
-  (define-key map " " 'exit-minibuffer)
-  (define-key map "\t" 'exit-minibuffer)
-  (define-key map "?" 'self-insert-and-exit))
+(defvar minibuffer-local-ns-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map " "  #'exit-minibuffer)
+    (define-key map "\t" #'exit-minibuffer)
+    (define-key map "?"  #'self-insert-and-exit)
+    map)
+  "Local keymap for the minibuffer when spaces are not allowed.")
+
+(defun read-no-blanks-input (prompt &optional initial inherit-input-method)
+  "Read a string from the terminal, not allowing blanks.
+Prompt with PROMPT.  Whitespace terminates the input.  If INITIAL is
+non-nil, it should be a string, which is used as initial input, with
+point positioned at the end, so that SPACE will accept the input.
+\(Actually, INITIAL can also be a cons of a string and an integer.
+Such values are treated as in `read-from-minibuffer', but are normally
+not useful in this function.)
+
+Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
+the current input method and the setting of`enable-multibyte-characters'.
+
+If `inhibit-interaction' is non-nil, this function will signal an
+`inhibited-interaction' error."
+  (read-from-minibuffer prompt initial minibuffer-local-ns-map
+		        nil minibuffer-history nil inherit-input-method))
+
+;;; Major modes for the minibuffer
 
 (defvar minibuffer-inactive-mode-map
   (let ((map (make-keymap)))
@@ -2464,6 +2537,18 @@ not active.")
   ;; Note: this major mode is called from minibuf.c.
   "Major mode to use in the minibuffer when it is not active.
 This is only used when the minibuffer area has no active minibuffer.")
+
+(defvaralias 'minibuffer-mode-map 'minibuffer-local-map)
+
+(define-derived-mode minibuffer-mode nil "Minibuffer"
+  "Major mode used for active minibuffers.
+
+For customizing this mode, it is better to use
+`minibuffer-setup-hook' and `minibuffer-exit-hook' rather than
+the mode hook of this mode."
+  :syntax-table nil
+  :abbrev-table nil
+  :interactive nil)
 
 ;;; Completion tables.
 

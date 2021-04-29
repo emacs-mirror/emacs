@@ -528,8 +528,14 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          `(condition-case ,var          ;Not evaluated.
               ,(byte-optimize-form exp for-effect)
             ,@(mapcar (lambda (clause)
-                        `(,(car clause)
-                          ,@(byte-optimize-body (cdr clause) for-effect)))
+                        (let ((byte-optimize--lexvars
+                               (and lexical-binding
+                                    (if var
+                                        (cons (list var t)
+                                              byte-optimize--lexvars)
+                                      byte-optimize--lexvars))))
+                          (cons (car clause)
+                                (byte-optimize-body (cdr clause) for-effect))))
                       clauses))))
 
       (`(unwind-protect ,exp . ,exps)
@@ -1318,7 +1324,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
          line-beginning-position line-end-position
 	 local-variable-if-set-p local-variable-p locale-info
 	 log log10 logand logb logcount logior lognot logxor lsh
-	 make-byte-code make-list make-string make-symbol marker-buffer max
+	 make-byte-code make-list make-string make-symbol mark marker-buffer max
 	 member memq memql min minibuffer-selected-window minibuffer-window
 	 mod multibyte-char-to-unibyte next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
@@ -1368,7 +1374,7 @@ Same format as `byte-optimize--lexvars', with shared structure and contents.")
 	 invocation-directory invocation-name
 	 keymapp keywordp
 	 list listp
-	 make-marker mark mark-marker markerp max-char
+	 make-marker mark-marker markerp max-char
 	 memory-limit
 	 mouse-movement-p
 	 natnump nlistp not null number-or-marker-p numberp
@@ -2350,6 +2356,7 @@ If FOR-EFFECT is non-nil, the return value is assumed to be of no importance."
 ;;
 (eval-when-compile
  (or (byte-code-function-p (symbol-function 'byte-optimize-form))
+     (subr-native-elisp-p (symbol-function 'byte-optimize-form))
      (assq 'byte-code (symbol-function 'byte-optimize-form))
      (let ((byte-optimize nil)
 	   (byte-compile-warnings nil))

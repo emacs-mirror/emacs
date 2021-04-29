@@ -1,4 +1,4 @@
-;;; strokes.el --- control Emacs through mouse strokes
+;;; strokes.el --- control Emacs through mouse strokes  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1997, 2000-2021 Free Software Foundation, Inc.
 
@@ -138,15 +138,14 @@
 ;; the user to enter strokes which "remove the pencil from the paper"
 ;; so to speak, so one character can have multiple strokes.
 
-;; NOTE (Oct 7, 2006): The URLs below seem to be invalid!!!
-
 ;; You can read more about strokes at:
 
-;; http://www.mit.edu/people/cadet/strokes-help.html
+;; https://web.archive.org/web/20041209171947/http://www.mit.edu/people/cadet/strokes-help.html
 
 ;; If you're interested in using strokes for writing English into Emacs
 ;; using strokes, then you'll want to read about it on the web page above
-;; or just download from http://www.mit.edu/people/cadet/strokes-abc.el,
+;; or just download from:
+;; https://web.archive.org/web/20041204163338/http://www.mit.edu/people/cadet/strokes-abc.el
 ;; which is nothing but a file with some helper commands for inserting
 ;; alphanumerics and punctuation.
 
@@ -216,14 +215,12 @@ static char * stroke_xpm[] = {
 
 (defcustom strokes-lighter " Strokes"
   "Mode line identifier for Strokes mode."
-  :type 'string
-  :group 'strokes)
+  :type 'string)
 
 (defcustom strokes-character ?@
   "Character used when drawing strokes in the strokes buffer.
 \(The default is `@', which works well.)"
-  :type 'character
-  :group 'strokes)
+  :type 'character)
 
 (defcustom strokes-minimum-match-score 1000
   "Minimum score for a stroke to be considered a possible match.
@@ -239,8 +236,7 @@ then you can set `strokes-minimum-match-score' to something that works
 for you.  The only purpose of this variable is to insure that if you
 do a bogus stroke that really doesn't match any of the predefined
 ones, then strokes should NOT pick the one that came closest."
-  :type 'integer
-  :group 'strokes)
+  :type 'integer)
 
 (defcustom strokes-grid-resolution 9
   "Integer defining dimensions of the stroke grid.
@@ -256,14 +252,12 @@ WARNING: Changing the value of this variable will gravely affect the
          figure out what it should be based on your needs and on how
          quick the particular platform(s) you're operating on, and
          only then start programming in your custom strokes."
-  :type 'integer
-  :group 'strokes)
+  :type 'integer)
 
 (defcustom strokes-file (locate-user-emacs-file "strokes" ".strokes")
   "File containing saved strokes for Strokes mode."
   :version "24.4"                       ; added locate-user-emacs-file
-  :type 'file
-  :group 'strokes)
+  :type 'file)
 
 (defvar strokes-buffer-name " *strokes*"
   "The name of the buffer that the strokes take place in.")
@@ -273,8 +267,7 @@ WARNING: Changing the value of this variable will gravely affect the
 If nil, strokes will be read the same, however the user will not be
 able to see the strokes.  This be helpful for people who don't like
 the delay in switching to the strokes buffer."
-  :type 'boolean
-  :group 'strokes)
+  :type 'boolean)
 
 ;;; internal variables...
 
@@ -312,12 +305,6 @@ the corresponding interactive function.")
 ;;    ))
 
 ;;; Macros...
-
-;; unused
-;; (defmacro strokes-while-inhibiting-garbage-collector (&rest forms)
-;;   "Execute FORMS without interference from the garbage collector."
-;;   `(let ((gc-cons-threshold 134217727))
-;;      ,@forms))
 
 (defsubst strokes-click-p (stroke)
   "Non-nil if STROKE is really click."
@@ -1044,7 +1031,7 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
     (help-mode)
     (help-print-return-message)))
 
-(define-obsolete-function-alias 'strokes-report-bug 'report-emacs-bug "24.1")
+(define-obsolete-function-alias 'strokes-report-bug #'report-emacs-bug "24.1")
 
 (defun strokes-window-configuration-changed-p ()
   "Non-nil if the `strokes-window-configuration' frame properties changed.
@@ -1379,8 +1366,8 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 
 (defvar strokes-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [(shift down-mouse-2)] 'strokes-do-stroke)
-    (define-key map [(meta down-mouse-2)] 'strokes-do-complex-stroke)
+    (define-key map [(shift down-mouse-2)] #'strokes-do-stroke)
+    (define-key map [(meta down-mouse-2)] #'strokes-do-complex-stroke)
     map))
 
 ;;;###autoload
@@ -1399,8 +1386,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 \\[strokes-decode-buffer].
 
 \\{strokes-mode-map}"
-  nil strokes-lighter strokes-mode-map
-  :group 'strokes :global t
+  :lighter strokes-lighter :global t
   (cond ((not (display-mouse-p))
 	 (error "Can't use Strokes without a mouse"))
 	(strokes-mode			; turn on strokes
@@ -1408,15 +1394,15 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 	      (null strokes-global-map)
 	      (strokes-load-user-strokes))
 	 (add-hook 'kill-emacs-query-functions
-		   'strokes-prompt-user-save-strokes)
+		   #'strokes-prompt-user-save-strokes)
 	 (add-hook 'select-frame-hook
-		   'strokes-update-window-configuration)
+		   #'strokes-update-window-configuration)
 	 (strokes-update-window-configuration))
 	(t				; turn off strokes
 	 (if (get-buffer strokes-buffer-name)
 	     (kill-buffer (get-buffer strokes-buffer-name)))
 	 (remove-hook 'select-frame-hook
-		      'strokes-update-window-configuration))))
+		      #'strokes-update-window-configuration))))
 
 
 ;;;; strokes-xpm stuff (later may be separate)...
@@ -1426,74 +1412,75 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 
 (defface strokes-char '((t (:background "lightgray")))
   "Face for strokes characters."
-  :version "21.1"
-  :group 'strokes)
+  :version "21.1")
 
 (put 'strokes 'char-table-extra-slots 0)
-(defconst strokes-char-table (make-char-table 'strokes) ;
+(defconst strokes-char-table
+  (let ((ct (make-char-table 'strokes))) ;
+    (aset ct ?0 0)
+    (aset ct ?1 1)
+    (aset ct ?2 2)
+    (aset ct ?3 3)
+    (aset ct ?4 4)
+    (aset ct ?5 5)
+    (aset ct ?6 6)
+    (aset ct ?7 7)
+    (aset ct ?8 8)
+    (aset ct ?9 9)
+    (aset ct ?a 10)
+    (aset ct ?b 11)
+    (aset ct ?c 12)
+    (aset ct ?d 13)
+    (aset ct ?e 14)
+    (aset ct ?f 15)
+    (aset ct ?g 16)
+    (aset ct ?h 17)
+    (aset ct ?i 18)
+    (aset ct ?j 19)
+    (aset ct ?k 20)
+    (aset ct ?l 21)
+    (aset ct ?m 22)
+    (aset ct ?n 23)
+    (aset ct ?o 24)
+    (aset ct ?p 25)
+    (aset ct ?q 26)
+    (aset ct ?r 27)
+    (aset ct ?s 28)
+    (aset ct ?t 29)
+    (aset ct ?u 30)
+    (aset ct ?v 31)
+    (aset ct ?w 32)
+    (aset ct ?x 33)
+    (aset ct ?y 34)
+    (aset ct ?z 35)
+    (aset ct ?A 36)
+    (aset ct ?B 37)
+    (aset ct ?C 38)
+    (aset ct ?D 39)
+    (aset ct ?E 40)
+    (aset ct ?F 41)
+    (aset ct ?G 42)
+    (aset ct ?H 43)
+    (aset ct ?I 44)
+    (aset ct ?J 45)
+    (aset ct ?K 46)
+    (aset ct ?L 47)
+    (aset ct ?M 48)
+    (aset ct ?N 49)
+    (aset ct ?O 50)
+    (aset ct ?P 51)
+    (aset ct ?Q 52)
+    (aset ct ?R 53)
+    (aset ct ?S 54)
+    (aset ct ?T 55)
+    (aset ct ?U 56)
+    (aset ct ?V 57)
+    (aset ct ?W 58)
+    (aset ct ?X 59)
+    (aset ct ?Y 60)
+    (aset ct ?Z 61)
+    ct)
   "The table which stores values for the character keys.")
-(aset strokes-char-table ?0 0)
-(aset strokes-char-table ?1 1)
-(aset strokes-char-table ?2 2)
-(aset strokes-char-table ?3 3)
-(aset strokes-char-table ?4 4)
-(aset strokes-char-table ?5 5)
-(aset strokes-char-table ?6 6)
-(aset strokes-char-table ?7 7)
-(aset strokes-char-table ?8 8)
-(aset strokes-char-table ?9 9)
-(aset strokes-char-table ?a 10)
-(aset strokes-char-table ?b 11)
-(aset strokes-char-table ?c 12)
-(aset strokes-char-table ?d 13)
-(aset strokes-char-table ?e 14)
-(aset strokes-char-table ?f 15)
-(aset strokes-char-table ?g 16)
-(aset strokes-char-table ?h 17)
-(aset strokes-char-table ?i 18)
-(aset strokes-char-table ?j 19)
-(aset strokes-char-table ?k 20)
-(aset strokes-char-table ?l 21)
-(aset strokes-char-table ?m 22)
-(aset strokes-char-table ?n 23)
-(aset strokes-char-table ?o 24)
-(aset strokes-char-table ?p 25)
-(aset strokes-char-table ?q 26)
-(aset strokes-char-table ?r 27)
-(aset strokes-char-table ?s 28)
-(aset strokes-char-table ?t 29)
-(aset strokes-char-table ?u 30)
-(aset strokes-char-table ?v 31)
-(aset strokes-char-table ?w 32)
-(aset strokes-char-table ?x 33)
-(aset strokes-char-table ?y 34)
-(aset strokes-char-table ?z 35)
-(aset strokes-char-table ?A 36)
-(aset strokes-char-table ?B 37)
-(aset strokes-char-table ?C 38)
-(aset strokes-char-table ?D 39)
-(aset strokes-char-table ?E 40)
-(aset strokes-char-table ?F 41)
-(aset strokes-char-table ?G 42)
-(aset strokes-char-table ?H 43)
-(aset strokes-char-table ?I 44)
-(aset strokes-char-table ?J 45)
-(aset strokes-char-table ?K 46)
-(aset strokes-char-table ?L 47)
-(aset strokes-char-table ?M 48)
-(aset strokes-char-table ?N 49)
-(aset strokes-char-table ?O 50)
-(aset strokes-char-table ?P 51)
-(aset strokes-char-table ?Q 52)
-(aset strokes-char-table ?R 53)
-(aset strokes-char-table ?S 54)
-(aset strokes-char-table ?T 55)
-(aset strokes-char-table ?U 56)
-(aset strokes-char-table ?V 57)
-(aset strokes-char-table ?W 58)
-(aset strokes-char-table ?X 59)
-(aset strokes-char-table ?Y 60)
-(aset strokes-char-table ?Z 61)
 
 (defconst strokes-base64-chars
   ;; I wanted to make this a vector of individual like (vector ?0

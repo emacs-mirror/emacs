@@ -5676,9 +5676,9 @@ or a straight list of headers."
 	    (or dependencies
 		(with-current-buffer gnus-summary-buffer
 		  gnus-newsgroup-dependencies))))
-     (delq nil (mapcar   #'(lambda (header)
-			     (gnus-dependencies-add-header
-			      header dependencies force-new))
+       (delq nil (mapcar (lambda (header)
+                           (gnus-dependencies-add-header
+                            header dependencies force-new))
 			 gnus-headers-retrieved-by)))))
   (gnus-message 7 "Fetching headers for %s...done" gnus-newsgroup-name)))
 
@@ -8089,7 +8089,7 @@ Return nil if there are no unseen articles."
 
 (defun gnus-summary-first-unseen-or-unread-subject ()
   "Place the point on the subject line of the first unseen and unread article.
-If all article have been seen, on the subject line of the first unread
+If all articles have been seen, on the subject line of the first unread
 article."
   (interactive nil gnus-summary-mode)
   (prog1
@@ -8569,8 +8569,9 @@ If UNREPLIED (the prefix), limit to unreplied articles."
   (interactive "P" gnus-summary-mode)
   (if unreplied
       (gnus-summary-limit
-       (gnus-set-difference gnus-newsgroup-articles
-	gnus-newsgroup-replied))
+       (seq-difference gnus-newsgroup-articles
+                       gnus-newsgroup-replied
+                       #'eq))
     (gnus-summary-limit gnus-newsgroup-replied))
   (gnus-summary-position-point))
 

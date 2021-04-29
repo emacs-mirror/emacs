@@ -1,4 +1,4 @@
-;;; cc-fonts.el --- font lock support for CC Mode
+;;; cc-fonts.el --- font lock support for CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -218,6 +218,7 @@
     ;; incorrectly.
     ;;
     ;; This function does a hidden buffer change.
+    (declare (debug t))
     (if (fboundp 'font-lock-set-face)
 	;; Note: This function has no docstring in XEmacs so it might be
 	;; considered internal.
@@ -228,6 +229,7 @@
     ;; This is the inverse of `c-put-font-lock-face'.
     ;;
     ;; This function does a hidden buffer change.
+    (declare (debug t))
     (if (fboundp 'font-lock-remove-face)
 	`(font-lock-remove-face ,from ,to)
       `(remove-text-properties ,from ,to '(face nil))))
@@ -238,11 +240,13 @@
     ;; region should include them.
     ;;
     ;; This function does a hidden buffer change.
+    (declare (debug t))
     (if (featurep 'xemacs)
 	`(c-put-font-lock-face (1+ ,from) (1- ,to) 'font-lock-string-face)
       `(c-put-font-lock-face ,from ,to 'font-lock-string-face)))
 
   (defmacro c-fontify-types-and-refs (varlist &rest body)
+    (declare (indent 1) (debug let*))
     ;; Like `let', but additionally activates `c-record-type-identifiers'
     ;; and `c-record-ref-identifiers', and fontifies the recorded ranges
     ;; accordingly on exit.
@@ -253,7 +257,6 @@
 	   ,@varlist)
        (prog1 (progn ,@body)
 	 (c-fontify-recorded-types-and-refs))))
-  (put 'c-fontify-types-and-refs 'lisp-indent-function 1)
 
   (defun c-skip-comments-and-strings (limit)
     ;; If the point is within a region fontified as a comment or
@@ -482,20 +485,7 @@
 	  ;; In the next form, check that point hasn't been moved beyond
 	  ;; `limit' in any of the above stanzas.
 	  ,(c-make-font-lock-search-form (car normal) (cdr normal) t)
-	  nil))))
-
-;  (eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
-;    '(progn
-(def-edebug-spec c-put-font-lock-face t)
-(def-edebug-spec c-remove-font-lock-face t)
-(def-edebug-spec c-put-font-lock-string-face t)
-  (def-edebug-spec c-fontify-types-and-refs let*)
-  (def-edebug-spec c-make-syntactic-matcher t)
-  ;; If there are literal quoted or backquoted highlight specs in
-  ;; the call to `c-make-font-lock-search-function' then let's
-  ;; instrument the forms in them.
-  (def-edebug-spec c-make-font-lock-search-function
-    (form &rest &or ("quote" (&rest form)) ("`" (&rest form)) form)));))
+	  nil)))))
 
 (defun c-fontify-recorded-types-and-refs ()
   ;; Convert the ranges recorded on `c-record-type-identifiers' and
@@ -1679,9 +1669,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  c-recognize-knr-p)		; Strictly speaking, bogus, but it
 					; speeds up lisp.h tremendously.
       (save-excursion
-	(when (not (c-back-over-member-initializers
-		    (max (- (point) 2000) (point-min)))) ; c-determine-limit
-							 ; is too slow, here.
+	(when (not (c-back-over-member-initializers decl-search-lim))
 	  (unless (or (eobp)
 		      (looking-at "\\s(\\|\\s)"))
 	    (forward-char))
@@ -2287,7 +2275,7 @@ need for `c-font-lock-extra-types'.")
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
   ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
   ;; fontification".
-  (let (pos after-name)
+  (let (pos)
     (while (c-syntactic-re-search-forward c-using-key limit 'end)
       (while  ; Do one declarator of a comma separated list, each time around.
 	  (progn
@@ -2295,7 +2283,6 @@ need for `c-font-lock-extra-types'.")
 	    (setq pos (point))		; token after "using".
 	    (when (and (c-on-identifier)
 		       (c-forward-name))
-	      (setq after-name (point))
 	      (cond
 	       ((eq (char-after) ?=)		; using foo = <type-id>;
 		(goto-char pos)
@@ -2305,7 +2292,8 @@ need for `c-font-lock-extra-types'.")
 		       (c-go-up-list-backward)
 		       (eq (char-after) ?{)
 		       (eq (car (c-beginning-of-decl-1
-				 (c-determine-limit 1000))) 'same)
+				 (c-determine-limit 1000)))
+			   'same)
 		       (looking-at c-colon-type-list-re)))
 		;; Inherited protected member: leave unfontified
 		)
@@ -2712,6 +2700,7 @@ need for `pike-font-lock-extra-types'.")
 (defmacro c-set-doc-comment-re-element (suffix)
   ;; Set the variable `c-doc-line-join-re' to a buffer local value suitable
   ;; for the current doc comment style, or kill the local value.
+  (declare (debug t))
   (let ((var (intern (concat "c-doc" suffix))))
     `(let* ((styles (c-get-doc-comment-style))
 	    elts)
@@ -2738,6 +2727,7 @@ need for `pike-font-lock-extra-types'.")
 (defmacro c-set-doc-comment-char-list (suffix)
   ;; Set the variable 'c-doc-<suffix>' to the list of *-<suffix>, which must
   ;; be characters, and * represents the doc comment style.
+  (declare (debug t))
   (let ((var (intern (concat "c-doc" suffix))))
     `(let* ((styles (c-get-doc-comment-style))
 	    elts)
@@ -2783,7 +2773,7 @@ need for `pike-font-lock-extra-types'.")
   ;; is used as a flag in other code to skip comments.
   ;;
   ;; This function might do hidden buffer changes.
-
+  (declare (indent 2))
   (let (comment-beg region-beg)
     (if (memq (get-text-property (point) 'face)
 	      '(font-lock-comment-face font-lock-comment-delimiter-face))
@@ -2866,7 +2856,6 @@ need for `pike-font-lock-extra-types'.")
 
 	  (goto-char region-end)))))
   nil)
-(put 'c-font-lock-doc-comments 'lisp-indent-function 2)
 
 (defun c-find-invalid-doc-markup (regexp limit)
   ;; Used to fontify invalid markup in doc comments after the correct

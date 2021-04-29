@@ -608,9 +608,7 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 {
   struct frame *f = get_frame ();
 
-  change_frame_size (f, event->dwSize.X, event->dwSize.Y
-		     - FRAME_MENU_BAR_LINES (f)
-		     - FRAME_TAB_BAR_LINES (f), 0, 1, 0, 0);
+  change_frame_size (f, event->dwSize.X, event->dwSize.Y, false, true, false);
   SET_FRAME_GARBAGED (f);
 }
 
@@ -624,11 +622,9 @@ maybe_generate_resize_event (void)
 
   /* It is okay to call this unconditionally, since it will do nothing
      if the size hasn't actually changed.  */
-  change_frame_size (f,
-		     1 + info.srWindow.Right - info.srWindow.Left,
-		     1 + info.srWindow.Bottom - info.srWindow.Top
-		     - FRAME_MENU_BAR_LINES (f)
-		     - FRAME_TAB_BAR_LINES (f), 0, 1, 0, 0);
+  change_frame_size (f, 1 + info.srWindow.Right - info.srWindow.Left,
+		     1 + info.srWindow.Bottom - info.srWindow.Top,
+		     false, true, false);
 }
 
 #if HAVE_W32NOTIFY

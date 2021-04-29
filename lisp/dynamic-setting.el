@@ -1,4 +1,4 @@
-;;; dynamic-setting.el --- Support dynamic changes
+;;; dynamic-setting.el --- Support dynamic changes  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2009-2021 Free Software Foundation, Inc.
 
@@ -24,8 +24,8 @@
 
 ;;; Commentary:
 
-;; This file provides the lisp part of the GConf and XSetting code in
-;; xsetting.c.  But it is nothing that prevents it from being used by
+;; This file provides the Lisp part of the GConf and XSetting code in
+;; xsetting.c.  But there is nothing that prevents it from being used by
 ;; other configuration schemes.
 
 ;;; Code:
@@ -91,4 +91,7 @@ Changes can be
 	  ((eq type 'tool-bar-style) (force-mode-line-update t)))))
 
 (define-key special-event-map [config-changed-event]
-  'dynamic-setting-handle-config-changed-event)
+  #'dynamic-setting-handle-config-changed-event)
+
+(provide 'dynamic-setting)
+;;; dynamic-setting.el ends here

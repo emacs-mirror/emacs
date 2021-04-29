@@ -45,8 +45,8 @@
 (define-button-type 'sort-listed-character-sets
   'help-echo (purecopy "mouse-2, RET: sort on this column")
   'face 'bold
-  'action #'(lambda (button)
-	      (sort-listed-character-sets (button-get button 'sort-key))))
+  'action (lambda (button)
+            (sort-listed-character-sets (button-get button 'sort-key))))
 
 (define-button-type 'list-charset-chars
   :supertype 'help-xref
@@ -1172,12 +1172,12 @@ The default is 20.  If LIMIT is negative, do not limit the listing."
 	(if (or (vectorp elt) (listp elt))
 	    (let ((i 0))
 	      (catch 'tag
-		(mapc #'(lambda (x)
-			  (setq i (1+ i))
-			  (when (= i limit)
-			    (insert "  ...\n")
-			    (throw 'tag nil))
-			  (insert (format "  %s\n" x)))
+                (mapc (lambda (x)
+                        (setq i (1+ i))
+                        (when (= i limit)
+                          (insert "  ...\n")
+                          (throw 'tag nil))
+                        (insert (format "  %s\n" x)))
 		      elt)))
 	  (insert (format "  %s\n" elt)))))))
 

@@ -120,8 +120,6 @@
 ;; can cycle through all file buffers and *scratch* although your current
 ;; configuration perhaps is "files" which ignores buffer *scratch*.
 
-;;; History:
-
 ;;; Code:
 
 ;; ----------------------------------------------------------------------
@@ -1506,7 +1504,6 @@ name of buffer configuration."
   ;; continue standard unloading
   nil)
 
-;; Now provide feature bs
 (provide 'bs)
 
 ;;; bs.el ends here

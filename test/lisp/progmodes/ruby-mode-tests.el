@@ -32,6 +32,13 @@
      (ruby-mode)
      ,@body))
 
+(defmacro ruby-with-temp-file (contents &rest body)
+  `(ruby-with-temp-buffer ,contents
+     (set-visited-file-name "ruby-mode-tests")
+     ,@body
+     (set-buffer-modified-p nil)
+     (delete-file buffer-file-name)))
+
 (defun ruby-should-indent (content column)
   "Assert indentation COLUMN on the last line of CONTENT."
   (ruby-with-temp-buffer content
@@ -843,6 +850,30 @@ VALUES-PLIST is a list with alternating index and value elements."
           (ruby-custom-encoding-magic-comment-template "# encoding: %s\n"))
       (ruby--insert-coding-comment "utf-8")
       (should (string= "# encoding: utf-8\n\n" (buffer-string))))))
+
+(ert-deftest ruby--set-encoding-when-ascii ()
+  (ruby-with-temp-file "ascii"
+    (let ((ruby-encoding-magic-comment-style 'ruby)
+          (ruby-insert-encoding-magic-comment t))
+      (setq save-buffer-coding-system 'us-ascii)
+      (ruby-mode-set-encoding)
+      (should (string= "ascii" (buffer-string))))))
+
+(ert-deftest ruby--set-encoding-when-utf8 ()
+  (ruby-with-temp-file "💎"
+    (let ((ruby-encoding-magic-comment-style 'ruby)
+          (ruby-insert-encoding-magic-comment t))
+      (setq save-buffer-coding-system 'utf-8)
+      (ruby-mode-set-encoding)
+      (should (string= "💎" (buffer-string))))))
+
+(ert-deftest ruby--set-encoding-when-latin-15 ()
+  (ruby-with-temp-file "Ⓡ"
+    (let ((ruby-encoding-magic-comment-style 'ruby)
+          (ruby-insert-encoding-magic-comment t))
+      (setq save-buffer-coding-system 'iso-8859-15)
+      (ruby-mode-set-encoding)
+      (should (string= "# coding: iso-8859-15\nⓇ" (buffer-string))))))
 
 (ert-deftest ruby--indent/converted-from-manual-test ()
   :tags '(:expensive-test)

@@ -1,4 +1,4 @@
-;;; cc-awk.el --- AWK specific code within cc-mode.
+;;; cc-awk.el --- AWK specific code within cc-mode. -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1988, 1994, 1996, 2000-2021 Free Software Foundation,
 ;; Inc.
@@ -1227,4 +1227,4 @@ comment at the start of cc-engine.el for more info."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-;;; awk-mode.el ends here
+;;; cc-awk.el ends here

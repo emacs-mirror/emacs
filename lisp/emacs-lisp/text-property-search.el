@@ -214,3 +214,5 @@ and if a matching region is found, place point at its end."
   (funcall predicate value prop-value))
 
 (provide 'text-property-search)
+
+;;; text-property-search.el ends here

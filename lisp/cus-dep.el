@@ -1,4 +1,4 @@
-;;; cus-dep.el --- find customization dependencies
+;;; cus-dep.el --- find customization dependencies  -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 1997, 2001-2021 Free Software Foundation, Inc.
 ;;
@@ -109,6 +109,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
             (string-match "\\`\\(.*\\)\\.el\\'" file)
             (let ((name (or generated-autoload-load-name ; see bug#5277
                             (file-name-nondirectory (match-string 1 file))))
+                  (load-true-file-name file)
                   (load-file-name file))
               (if (save-excursion
                     (re-search-forward
@@ -131,7 +132,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
                                  'custom-where name)
                             ;; Eval to get the 'custom-group, -tag,
                             ;; -version, group-documentation etc properties.
-                            (eval expr))
+                            (eval expr t))
                         ;; Eval failed for some reason.  Eg maybe the
                         ;; defcustom uses something defined earlier
                         ;; in the file (we haven't loaded the file).
@@ -163,7 +164,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		(let ((members (get symbol 'custom-group))
 		      where found)
 		  (when members
-		    (dolist (member (mapcar 'car members))
+		    (dolist (member (mapcar #'car members))
 		      (setq where (get member 'custom-where))
 		      (unless (or (null where)
 				  (member where found))

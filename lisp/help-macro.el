@@ -59,12 +59,6 @@
 ;;->  (define-key c-mp "\C-h" 'help-for-empire-redistribute-map)
 ;;->  (define-key c-mp help-character 'help-for-empire-redistribute-map)
 
-;;; Change Log:
-;;
-;; 22-Jan-1991		Lynn Slater x2048
-;;    Last Modified: Mon Oct  1 11:43:52 1990 #3 (Lynn Slater)
-;;    documented better
-
 ;;; Code:
 
 (require 'backquote)
@@ -83,7 +77,8 @@ gives the window that lists the options."
   :type 'boolean
   :group 'help)
 
-(defmacro make-help-screen (fname help-line help-text helped-map)
+(defmacro make-help-screen (fname help-line help-text helped-map
+                                  &optional buffer-name)
   "Construct help-menu function name FNAME.
 When invoked, FNAME shows HELP-LINE and reads a command using HELPED-MAP.
 If the command is the help character, FNAME displays HELP-TEXT
@@ -132,7 +127,7 @@ and then returns."
                (when (or (eq char ??) (eq char help-char)
                          (memq char help-event-list))
                  (setq config (current-window-configuration))
-                 (pop-to-buffer " *Metahelp*" nil t)
+                 (pop-to-buffer (or ,buffer-name " *Metahelp*") nil t)
                  (and (fboundp 'make-frame)
                       (not (eq (window-frame)
                                prev-frame))
@@ -147,18 +142,23 @@ and then returns."
                    (setq new-minor-mode-map-alist minor-mode-map-alist))
                  (goto-char (point-min))
                  (while (or (memq char (append help-event-list
-                                               (cons help-char '(?? ?\C-v ?\s ?\177 delete backspace vertical-scroll-bar ?\M-v))))
+                                               (cons help-char '( ?? ?\C-v ?\s ?\177 deletechar backspace vertical-scroll-bar ?\M-v
+                                                                  next prior up down))))
                             (eq (car-safe char) 'switch-frame)
                             (equal key "\M-v"))
                    (condition-case nil
                        (cond
                         ((eq (car-safe char) 'switch-frame)
                          (handle-switch-frame char))
-                        ((memq char '(?\C-v ?\s))
+                        ((memq char '(?\C-v ?\s next))
                          (scroll-up))
-                        ((or (memq char '(?\177 ?\M-v delete backspace))
+                        ((or (memq char '(?\177 ?\M-v deletechar backspace prior))
                              (equal key "\M-v"))
-                         (scroll-down)))
+                         (scroll-down))
+                        ((memq char '(down))
+                         (scroll-up 1))
+                        ((memq char '(up))
+                         (scroll-down 1)))
                      (error nil))
                    (let ((cursor-in-echo-area t)
                          (overriding-local-map local-map))
@@ -166,7 +166,12 @@ and then returns."
                                 (format "Type one of the options listed%s: "
                                         (if (pos-visible-in-window-p
                                              (point-max))
-                                            "" ", or SPACE or DEL to scroll")))
+                                            ""
+                                          (concat  ", or "
+                                                   (help--key-description-fontified "\s") ; SPC
+                                                   " or "
+                                                   (help--key-description-fontified "\d") ; DEL
+                                                   " to scroll"))))
                            char (aref key 0)))
 
                    ;; If this is a scroll bar command, just run it.

@@ -1182,8 +1182,8 @@ If FORMAT, also format the current score file."
       (when (consp rule) ;; the rule exists
 	(setq rule (if (symbolp (car rule))
 		       (format "(%S)" (car rule))
-		     (mapconcat #'(lambda (obj)
-				    (regexp-quote (format "%S" obj)))
+                     (mapconcat (lambda (obj)
+                                  (regexp-quote (format "%S" obj)))
 				rule
 				sep)))
 	(goto-char (point-min))

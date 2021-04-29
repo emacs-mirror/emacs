@@ -43,6 +43,8 @@
 ;; Since we don't use byte-decompile-lapcode, let's try not loading byte-opt.
 (require 'byte-compile "bytecomp")
 
+(declare-function comp-c-func-name "comp.el")
+
 (defvar disassemble-column-1-indent 8 "*")
 (defvar disassemble-column-2-indent 10 "*")
 
@@ -73,8 +75,9 @@ redefine OBJECT if it is a symbol."
       (disassemble-internal object indent nil)))
   nil)
 
-
-(defun disassemble-internal (obj indent interactive-p)
+(declare-function native-comp-unit-file "data.c")
+(declare-function subr-native-comp-unit "data.c")
+(cl-defun disassemble-internal (obj indent interactive-p)
   (let ((macro 'nil)
 	(name (when (symbolp obj)
                 (prog1 obj
@@ -82,7 +85,27 @@ redefine OBJECT if it is a symbol."
 	args)
     (setq obj (autoload-do-load obj name))
     (if (subrp obj)
-	(error "Can't disassemble #<subr %s>" name))
+        (if (and (fboundp 'subr-native-elisp-p)
+                 (subr-native-elisp-p obj))
+            (progn
+              (require 'comp)
+              (call-process "objdump" nil (current-buffer) t "-S"
+                            (native-comp-unit-file (subr-native-comp-unit obj)))
+              (goto-char (point-min))
+              (re-search-forward (concat "^.*"
+                                         (regexp-quote
+                                          (concat "<"
+                                                  (comp-c-func-name
+                                                   (subr-name obj) "F" t)
+                                                  ">:"))))
+              (beginning-of-line)
+              (delete-region (point-min) (point))
+              (when (re-search-forward "^.*<.*>:" nil t 2)
+                (delete-region (match-beginning 0) (point-max)))
+              (asm-mode)
+              (setq buffer-read-only t)
+              (cl-return-from disassemble-internal))
+	  (error "Can't disassemble #<subr %s>" name)))
     (if (eq (car-safe obj) 'macro)	;Handle macros.
 	(setq macro t
 	      obj (cdr obj)))

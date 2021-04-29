@@ -316,8 +316,26 @@ is also interactive.  There are 3 cases:
   `(advice--add-function ,where (gv-ref ,(advice--normalize-place place))
                          ,function ,props))
 
+(declare-function comp-subr-trampoline-install "comp")
+
 ;;;###autoload
 (defun advice--add-function (where ref function props)
+  (when (and (featurep 'nativecomp)
+             (subr-primitive-p (gv-deref ref)))
+    (let ((subr-name (intern (subr-name (gv-deref ref)))))
+      ;; Requiring the native compiler to advice `macroexpand' cause a
+      ;; circular dependency in eager macro expansion.
+      ;; uniquify is advising `rename-buffer' while being loaded in
+      ;; loadup.el.  This would require the whole native compiler
+      ;; machinery but we don't want to include it in the dump.
+      ;; Because these two functions are already handled in
+      ;; `comp-never-optimize-functions' we hack the problem this way
+      ;; for now :/
+      (unless (memq subr-name '(macroexpand rename-buffer))
+        ;; Must require explicitly as during bootstrap we have no
+        ;; autoloads.
+        (require 'comp)
+        (comp-subr-trampoline-install subr-name))))
   (let* ((name (cdr (assq 'name props)))
          (a (advice--member-p (or name function) (if name t) (gv-deref ref))))
     (when a

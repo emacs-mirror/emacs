@@ -505,7 +505,6 @@ DESCRIPTOR should be an object returned by `file-notify-add-watch'."
 ;;   due to the way events are propagated during idle time.  Note: This
 ;;   may be perfectly acceptable.
 
-;; The end:
 (provide 'filenotify)
 
 ;;; filenotify.el ends here

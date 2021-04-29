@@ -321,10 +321,6 @@ separators (like underscores) at places they belong to."
 	(remove-hook 'write-file-functions
 		     'glasses-convert-to-unreadable t)))))
 
-
-;;; Announce
-
 (provide 'glasses)
-
 
 ;;; glasses.el ends here

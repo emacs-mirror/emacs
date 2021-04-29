@@ -1,7 +1,6 @@
 ;;; which-func.el --- print current function in mode line  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1994, 1997-1998, 2001-2021 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
 ;;           (doesn't seem to be responsive any more)
@@ -25,17 +24,17 @@
 ;;; Commentary:
 
 ;; This package prints name of function where your current point is
-;; located in mode line. It assumes that you work with imenu package
-;; and imenu--index-alist is up to date.
+;; located in mode line.  It assumes that you work with the imenu
+;; package and `imenu--index-alist' is up to date.
 
 ;; KNOWN BUGS
 ;; ----------
 ;; Really this package shows not "function where the current point is
 ;; located now", but "nearest function which defined above the current
-;; point". So if your current point is located after end of function
-;; FOO but before begin of function BAR, FOO will be displayed in mode
-;; line.
-;; - if two windows display the same buffer, both windows
+;; point".  So if your current point is located after the end of
+;; function FOO but before the beginning of function BAR, FOO will be
+;; displayed in the mode line.
+;; - If two windows display the same buffer, both windows
 ;;   show the same `which-func' information.
 
 ;; TODO LIST
@@ -44,7 +43,7 @@
 ;; function determination mechanism should be used to determine the end
 ;; of a function as well as the beginning of a function.
 ;;     2. This package should be realized with the help of overlay
-;; properties instead of imenu--index-alist variable.
+;; properties instead of the `imenu--index-alist' variable.
 
 ;;; History:
 
@@ -214,7 +213,7 @@ It creates the Imenu index for the buffer, if necessary."
      (setq which-func-mode nil))))
 
 (defun which-func-update ()
-  ;; "Update the Which-Function mode display for all windows."
+  "Update the Which-Function mode display for all windows."
   ;; (walk-windows 'which-func-update-1 nil 'visible))
   (let ((non-essential t))
     (which-func-update-1 (selected-window))))

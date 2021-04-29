@@ -379,4 +379,4 @@ Used to bracket operations which move point in the sieve-buffer."
 
 (provide 'sieve)
 
-;; sieve.el ends here
+;;; sieve.el ends here

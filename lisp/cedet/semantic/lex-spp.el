@@ -278,10 +278,10 @@ The return list is meant to be saved in a semanticdb table."
   (let (macros)
     (when (obarrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
       (mapatoms
-       #'(lambda (symbol)
-	   (setq macros (cons (cons (symbol-name symbol)
-				    (symbol-value symbol))
-			      macros)))
+       (lambda (symbol)
+         (setq macros (cons (cons (symbol-name symbol)
+                                  (symbol-value symbol))
+                            macros)))
        semantic-lex-spp-dynamic-macro-symbol-obarray))
     macros))
 
@@ -291,18 +291,18 @@ The value of each symbol is the replacement stream."
   (let (macros)
     (when (obarrayp semantic-lex-spp-macro-symbol-obarray)
       (mapatoms
-       #'(lambda (symbol)
-	   (setq macros (cons symbol macros)))
+       (lambda (symbol)
+         (setq macros (cons symbol macros)))
        semantic-lex-spp-macro-symbol-obarray))
     (when (obarrayp semantic-lex-spp-project-macro-symbol-obarray)
       (mapatoms
-       #'(lambda (symbol)
-	   (setq macros (cons symbol macros)))
+       (lambda (symbol)
+         (setq macros (cons symbol macros)))
        semantic-lex-spp-project-macro-symbol-obarray))
     (when (obarrayp semantic-lex-spp-dynamic-macro-symbol-obarray)
       (mapatoms
-       #'(lambda (symbol)
-	   (setq macros (cons symbol macros)))
+       (lambda (symbol)
+         (setq macros (cons symbol macros)))
        semantic-lex-spp-dynamic-macro-symbol-obarray))
     macros))
 

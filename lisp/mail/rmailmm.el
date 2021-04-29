@@ -784,9 +784,11 @@ directly."
 	   (let ((encoding (rmail-mime-entity-transfer-encoding entity)))
 	     (setq size (- (aref body 1) (aref body 0)))
 	     (cond ((string= encoding "base64")
-		    (setq size (/ (* size 3) 4)))
+                    ;; https://en.wikipedia.org/wiki/Base64#MIME
+		    (setq size (* size 0.73)))
 		   ((string= encoding "quoted-printable")
-		    (setq size (/ (* size 7) 3)))))))
+                    ;; Assume most of the text is ASCII...
+		    (setq size (/ (* size 5) 7)))))))
 
     (cond
      ((string-match "text/html" content-type)
@@ -1402,7 +1404,7 @@ are handled according to `rmail-mime-media-type-handlers-alist'.
 By default, this displays text and multipart messages, and offers to
 download attachments as specified by `rmail-mime-attachment-dirs-alist'.
 The arguments ARG and STATE have no effect in this case."
-  (interactive (list current-prefix-arg nil))
+  (interactive)
   (if rmail-enable-mime
       (with-current-buffer rmail-buffer
 	(if (or (rmail-mime-message-p)

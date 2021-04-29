@@ -483,6 +483,11 @@ current precision are displayed in scientific notation in calc-mode.")
   "Floating-point numbers with this negative exponent or lower are displayed
 scientific notation in calc-mode.")
 
+(defvar calc-digit-after-point nil
+  "If t, display at least one digit after the decimal point, as in `12.0'.
+If nil, the decimal point may come last in a number, as in `12.'.
+This setting only applies to floats in normal display mode.")
+
 (defvar calc-other-modes nil
   "List of used-defined strings to append to Calculator mode line.")
 
@@ -3184,7 +3189,8 @@ the United States."
 		      exp (- exp adj)))))
 	  (setq str (int-to-string mant))
 	  (let* ((len (length str))
-		 (dpos (+ exp len)))
+		 (dpos (+ exp len))
+                 (trailing-0 (and calc-digit-after-point "0")))
 	    (if (and (eq fmt 'float)
 		     (<= dpos (+ calc-internal-prec calc-display-sci-high))
 		     (>= dpos (+ calc-display-sci-low 2)))
@@ -3194,9 +3200,11 @@ the United States."
 		    (setq str (concat "0" point str)))
 		   ((and (<= exp 0) (> dpos 0))
 		    (setq str (concat (substring str 0 dpos) point
-				      (substring str dpos))))
+				      (substring str dpos)
+                                      (and (>= dpos len) trailing-0))))
 		   ((> exp 0)
-		    (setq str (concat str (make-string exp ?0) point)))
+		    (setq str (concat str (make-string exp ?0)
+                                      point trailing-0)))
 		   (t   ; (< dpos 0)
 		    (setq str (concat "0" point
 				      (make-string (- dpos) ?0) str))))

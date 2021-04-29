@@ -1792,8 +1792,89 @@ member list with elements @code{CC} and @code{To}, then
 @code{message-carefully-insert-headers} will not insert a @code{To}
 header when the message is already @code{CC}ed to the recipient.
 
+@item message-syntax-checks
+@vindex message-syntax-checks
+Controls what syntax checks should not be performed on outgoing posts.
+To disable checking of long signatures, for instance, add
+
+@lisp
+(signature . disabled)
+@end lisp
+
+to this list.
+
+Valid checks are:
+
+@table @code
+@item approved
+@cindex approved
+Check whether the article has an @code{Approved} header, which is
+something only moderators should include.
+@item continuation-headers
+Check whether there are continuation header lines that don't begin with
+whitespace.
+@item control-chars
+Check for invalid characters.
+@item empty
+Check whether the article is empty.
+@item existing-newsgroups
+Check whether the newsgroups mentioned in the @code{Newsgroups} and
+@code{Followup-To} headers exist.
+@item from
+Check whether the @code{From} header seems nice.
+@item illegible-text
+Check whether there is any non-printable character in the body.
+@item invisible-text
+Check whether there is any invisible text in the buffer.
+@item long-header-lines
+Check for too long header lines.
+@item long-lines
+@cindex long lines
+Check for too long lines in the body.
+@item message-id
+Check whether the @code{Message-ID} looks syntactically ok.
+@item multiple-headers
+Check for the existence of multiple equal headers.
+@item new-text
+Check whether there is any new text in the messages.
+@item newsgroups
+Check whether the @code{Newsgroups} header exists and is not empty.
+@item quoting-style
+Check whether text follows last quoted portion.
+@item repeated-newsgroups
+Check whether the @code{Newsgroups} and @code{Followup-To} headers
+contains repeated group names.
+@item reply-to
+Check whether the @code{Reply-To} header looks ok.
+@item sender
+@cindex Sender
+Insert a new @code{Sender} header if the @code{From} header looks odd.
+@item sendsys
+@cindex sendsys
+Check for the existence of version and sendsys commands.
+@item shoot
+Check whether the domain part of the @code{Message-ID} header looks ok.
+@item shorten-followup-to
+Check whether to add a @code{Followup-To} header to shorten the number
+of groups to post to.
+@item signature
+Check the length of the signature.
+@item size
+Check for excessive size.
+@item subject
+Check whether the @code{Subject} header exists and is not empty.
+@item subject-cmsg
+Check the subject for commands.
+@item valid-newsgroups
+Check whether the @code{Newsgroups} and @code{Followup-To} headers
+are valid syntactically.
 @end table
 
+All these conditions are checked by default, except for @code{sender}
+for which the check is disabled by default if
+@code{message-insert-canlock} is non-@code{nil} (@pxref{Canceling News}).
+
+@end table
 
 @node Mail Headers
 @section Mail Headers
@@ -2071,88 +2152,6 @@ another element.
 Other variables for customizing outgoing news articles:
 
 @table @code
-
-@item message-syntax-checks
-@vindex message-syntax-checks
-Controls what syntax checks should not be performed on outgoing posts.
-To disable checking of long signatures, for instance, add
-
-@lisp
-(signature . disabled)
-@end lisp
-
-to this list.
-
-Valid checks are:
-
-@table @code
-@item approved
-@cindex approved
-Check whether the article has an @code{Approved} header, which is
-something only moderators should include.
-@item continuation-headers
-Check whether there are continuation header lines that don't begin with
-whitespace.
-@item control-chars
-Check for invalid characters.
-@item empty
-Check whether the article is empty.
-@item existing-newsgroups
-Check whether the newsgroups mentioned in the @code{Newsgroups} and
-@code{Followup-To} headers exist.
-@item from
-Check whether the @code{From} header seems nice.
-@item illegible-text
-Check whether there is any non-printable character in the body.
-@item invisible-text
-Check whether there is any invisible text in the buffer.
-@item long-header-lines
-Check for too long header lines.
-@item long-lines
-@cindex long lines
-Check for too long lines in the body.
-@item message-id
-Check whether the @code{Message-ID} looks syntactically ok.
-@item multiple-headers
-Check for the existence of multiple equal headers.
-@item new-text
-Check whether there is any new text in the messages.
-@item newsgroups
-Check whether the @code{Newsgroups} header exists and is not empty.
-@item quoting-style
-Check whether text follows last quoted portion.
-@item repeated-newsgroups
-Check whether the @code{Newsgroups} and @code{Followup-To} headers
-contains repeated group names.
-@item reply-to
-Check whether the @code{Reply-To} header looks ok.
-@item sender
-@cindex Sender
-Insert a new @code{Sender} header if the @code{From} header looks odd.
-@item sendsys
-@cindex sendsys
-Check for the existence of version and sendsys commands.
-@item shoot
-Check whether the domain part of the @code{Message-ID} header looks ok.
-@item shorten-followup-to
-Check whether to add a @code{Followup-To} header to shorten the number
-of groups to post to.
-@item signature
-Check the length of the signature.
-@item size
-Check for excessive size.
-@item subject
-Check whether the @code{Subject} header exists and is not empty.
-@item subject-cmsg
-Check the subject for commands.
-@item valid-newsgroups
-Check whether the @code{Newsgroups} and @code{Followup-To} headers
-are valid syntactically.
-@end table
-
-All these conditions are checked by default, except for @code{sender}
-for which the check is disabled by default if
-@code{message-insert-canlock} is non-@code{nil} (@pxref{Canceling News}).
 
 @item message-ignored-news-headers
 @vindex message-ignored-news-headers

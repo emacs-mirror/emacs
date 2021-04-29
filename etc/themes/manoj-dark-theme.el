@@ -1,4 +1,4 @@
-;;; manoj-dark.el --- A dark theme from Manoj  -*- lexical-binding:t -*-
+;;; manoj-dark-theme.el --- A dark theme from Manoj  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 

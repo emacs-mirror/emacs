@@ -1,4 +1,4 @@
-;;; ps-mule.el --- provide multi-byte character facility to ps-print
+;;; ps-mule.el --- provide multi-byte character facility to ps-print  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1998-2021 Free Software Foundation, Inc.
 
@@ -612,7 +612,7 @@ f2, f3, h0, h1, and H0 respectively."
 	      (push (/ code 256) code-list)
 	      (push (% code 256) code-list))))
 	(forward-char 1)))
-    (apply 'unibyte-string (nreverse code-list))))
+    (apply #'unibyte-string (nreverse code-list))))
 
 (defun ps-mule-plot-composition (composition font-spec-table)
   "Generate PostScript code for plotting COMPOSITION with FONT-SPEC-TABLE."
@@ -1041,10 +1041,11 @@ Any other value is treated as \"/H0\"."
     (list (ps-mule-encode-region (point-min) (point-max)
 				 (aref ps-mule-font-spec-tables
 				       (aref ps-mule-font-number-to-type
-					     (cond ((string= fonttag "/h0") 4)
-						   ((string= fonttag "/h1") 5)
-						   ((string= fonttag "/L0") 6)
-						   (t 0))))))))
+					     (pcase fonttag
+					       ("/h0" 4)
+					       ("/h1" 5)
+					       ("/L0" 6)
+					       (_     0))))))))
 
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
@@ -1055,20 +1056,17 @@ It checks if all multi-byte characters in the region are printable or not."
 	     (goto-char from)
 	     (= (skip-chars-forward "\x00-\x7F" to) to)))
       ;; All characters can be printed by normal PostScript fonts.
-      (setq ps-basic-plot-string-function 'ps-basic-plot-string
+      (setq ps-basic-plot-string-function #'ps-basic-plot-string
             ;; FIXME: Doesn't ps-encode-header-string-function take 2 args?
-	    ps-encode-header-string-function 'identity)
-    (setq ps-basic-plot-string-function 'ps-mule-plot-string
-	  ps-encode-header-string-function 'ps-mule-encode-header-string
+	    ps-encode-header-string-function #'identity)
+    (setq ps-basic-plot-string-function #'ps-mule-plot-string
+	  ps-encode-header-string-function #'ps-mule-encode-header-string
 	  ps-mule-font-info-database
-	  (cond ((eq ps-multibyte-buffer 'non-latin-printer)
-		 ps-mule-font-info-database-ps)
-		((eq ps-multibyte-buffer 'bdf-font)
-		 ps-mule-font-info-database-bdf)
-		((eq ps-multibyte-buffer 'bdf-font-except-latin)
-		 ps-mule-font-info-database-ps-bdf)
-		(t
-		 ps-mule-font-info-database-default)))
+	  (pcase ps-multibyte-buffer
+	    ('non-latin-printer     ps-mule-font-info-database-ps)
+	    ('bdf-font              ps-mule-font-info-database-bdf)
+	    ('bdf-font-except-latin ps-mule-font-info-database-ps-bdf)
+	    (_                      ps-mule-font-info-database-default)))
 
     ;; Be sure to have font information for Latin-1.
     (or (assq 'iso-8859-1 ps-mule-font-info-database)
@@ -1112,10 +1110,12 @@ It checks if all multi-byte characters in the region are printable or not."
 		  id-max (1+ id-max))
 	    (if (ps-mule-check-font font-spec)
 		(aset font-spec-vec
-		      (cond ((eq (car e) 'normal) 0)
-			    ((eq (car e) 'bold) 1)
-			    ((eq (car e) 'italic) 2)
-			    (t 3)) font-spec)))
+		      (pcase (car e)
+			('normal 0)
+			('bold   1)
+			('italic 2)
+			(_       3))
+		      font-spec)))
 	  (when (aref font-spec-vec 0)
 	    (or (aref font-spec-vec 3)
 		(aset font-spec-vec 3 (or (aref font-spec-vec 1)
@@ -1182,7 +1182,7 @@ V%s 0 /%s-latin1 /%s Latin1Encoding put\n"
   (let ((output-head (list t))
 	(ps-mule-output-list (list t)))
     (dotimes (i 4)
-      (map-char-table 'ps-mule-prepare-glyph
+      (map-char-table #'ps-mule-prepare-glyph
 		      (aref ps-mule-font-spec-tables i)))
     (ps-mule-restruct-output-list (cdr ps-mule-output-list) output-head)
     (ps-output-prologue (cdr output-head)))

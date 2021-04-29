@@ -23,9 +23,6 @@
 ;;
 ;; Major mode framework for editing Semantic's input grammar files.
 
-;;; History:
-;;
-
 ;;; Code:
 
 (require 'semantic)
@@ -34,7 +31,12 @@
 (require 'semantic/format)
 ;; FIXME this is a generated file, but we need to load this file to
 ;; generate it!
-(require 'semantic/grammar-wy)
+;; We need `semantic/grammar-wy.el' but we're also needed to generate
+;; that file from `grammar.wy', so to break the dependency, we keep
+;; a bootstrap copy of `grammar-wy.el' in `grm-wy-boot.el'.  See bug#16008.
+(eval-and-compile
+  (unless (require 'semantic/grammar-wy nil t)
+    (load "semantic/grm-wy-boot")))
 (require 'semantic/idle)
 (require 'help-fns)
 (require 'semantic/analyze)
@@ -143,12 +145,12 @@ It ignores whitespaces, newlines and comments."
 ARGS are ASSOC's key value list."
   (let ((key t))
     `(semantic-tag-make-plist
-      ,@(mapcar #'(lambda (i)
-                    (prog1
-                        (if key
-                            (list 'quote i)
-                          i)
-                      (setq key (not key))))
+      ,@(mapcar (lambda (i)
+                  (prog1
+                      (if key
+                          (list 'quote i)
+                        i)
+                    (setq key (not key))))
                 args))))
 
 (defsubst semantic-grammar-quote-p (sym)
@@ -193,11 +195,11 @@ That is tag names plus names defined in tag attribute `:rest'."
                 class (current-buffer))))
     (apply #'append
            (mapcar
-            #'(lambda (tag)
-                (mapcar
-                 #'intern
-                 (cons (semantic-tag-name tag)
-                       (semantic-tag-get-attribute tag :rest))))
+            (lambda (tag)
+              (mapcar
+               #'intern
+               (cons (semantic-tag-name tag)
+                     (semantic-tag-get-attribute tag :rest))))
             tags))))
 
 (defsubst semantic-grammar-item-text (item)
@@ -298,9 +300,9 @@ foo.by it is foo-by."
 That is an alist of (VALUE . TOKEN) where VALUE is the string value of
 the keyword and TOKEN is the terminal symbol identifying the keyword."
   (mapcar
-   #'(lambda (key)
-       (cons (semantic-tag-get-attribute key :value)
-             (intern (semantic-tag-name key))))
+   (lambda (key)
+     (cons (semantic-tag-get-attribute key :value)
+           (intern (semantic-tag-name key))))
    (semantic-find-tags-by-class 'keyword (current-buffer))))
 
 (defun semantic-grammar-keyword-properties (keywords)
@@ -599,9 +601,6 @@ Typically a DEFINE expression should look like this:
 ;;
 ;; PLEASE DO NOT MANUALLY EDIT THIS FILE!  It is automatically
 ;; generated from the grammar file " gram ".
-
-;;; History:
-;;
 
 ;;; Code:
 
@@ -1069,7 +1068,7 @@ See also the variable `semantic-grammar-file-regexp'."
            (setq semantic--grammar-macros-regexp-1
                  (concat "(\\s-*"
                          (regexp-opt
-                          (mapcar #'(lambda (e) (symbol-name (car e)))
+                          (mapcar (lambda (e) (symbol-name (car e)))
                                   semantic-grammar-macros)
                           t)
                          "\\>"))
@@ -1862,11 +1861,11 @@ Optional argument COLOR determines if color is added to the text."
       (setq label "Keyword: ")
       (let (summary)
         (semantic--find-tags-by-function
-         #'(lambda (put)
-             (unless summary
-               (setq summary (cdr (assoc "summary"
-                                         (semantic-tag-get-attribute
-                                          put :value))))))
+         (lambda (put)
+           (unless summary
+             (setq summary (cdr (assoc "summary"
+                                       (semantic-tag-get-attribute
+                                        put :value))))))
          ;; Get `put' tag with TAG name.
          (semantic-find-tags-by-name-regexp
           (regexp-quote (semantic-tag-name tag))

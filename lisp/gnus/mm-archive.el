@@ -108,4 +108,4 @@
 
 (provide 'mm-archive)
 
-;; mm-archive.el ends here
+;;; mm-archive.el ends here

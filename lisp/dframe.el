@@ -1,4 +1,4 @@
-;;; dframe --- dedicate frame support modes  -*- lexical-binding:t -*-
+;;; dframe.el --- dedicate frame support modes  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1996-2021 Free Software Foundation, Inc.
 
@@ -828,7 +828,7 @@ the mode-line."
 
 (defvar dframe-version "1.3"
   "The current version of the dedicated frame library.")
-(make-obsolete-variable 'dframe-version nil "28.1")
+(make-obsolete-variable 'dframe-version 'emacs-version "28.1")
 
 (provide 'dframe)
 

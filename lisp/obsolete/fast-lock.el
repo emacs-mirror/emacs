@@ -752,8 +752,6 @@ See `fast-lock-get-face-properties'."
 (unless (assq 'fast-lock-mode minor-mode-alist)
   (setq minor-mode-alist (append minor-mode-alist '((fast-lock-mode nil)))))
 
-;; Provide ourselves:
-
 (provide 'fast-lock)
 
 ;;; fast-lock.el ends here

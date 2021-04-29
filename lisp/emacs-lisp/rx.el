@@ -1210,7 +1210,7 @@ unmatchable     Never match anything at all.
 CHARCLASS       Match a character from a character class.  One of:
  alpha, alphabetic, letter   Alphabetic characters (defined by Unicode).
  alnum, alphanumeric         Alphabetic or decimal digit chars (Unicode).
- digit numeric, num          0-9.
+ digit, numeric, num         0-9.
  xdigit, hex-digit, hex      0-9, A-F, a-f.
  cntrl, control              ASCII codes 0-31.
  blank                       Horizontal whitespace (Unicode).

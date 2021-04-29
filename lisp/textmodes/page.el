@@ -170,8 +170,6 @@ point, respectively."
   (interactive)
   (apply #'message (cons "Page %d, line %d" (page--what-page))))
 
-
-;;; Place `provide' at end of file.
 (provide 'page)
 
 ;;; page.el ends here

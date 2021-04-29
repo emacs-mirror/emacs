@@ -31,8 +31,6 @@
 ;; mh-utils.el. That will help prevent the loading of this file until
 ;; a message is actually composed.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

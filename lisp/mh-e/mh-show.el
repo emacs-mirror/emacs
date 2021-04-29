@@ -26,8 +26,6 @@
 
 ;; Mode for showing messages.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
@@ -187,7 +185,7 @@ Sets the current buffer to the show buffer."
     (set-buffer folder)
     ;; When Gnus uses external displayers it has to keep handles longer. So
     ;; we will delete these handles when mh-quit is called on the folder. It
-    ;; would be nicer if there are weak pointers in emacs lisp, then we could
+    ;; would be nicer if there are weak pointers in Emacs Lisp, then we could
     ;; get the garbage collector to do this for us.
     (unless (mh-buffer-data)
       (setf (mh-buffer-data) (mh-make-buffer-data)))

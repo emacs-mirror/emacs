@@ -522,7 +522,7 @@ set `xmltok-dtd'.  Returns the position of the end of the token."
 	  (unless attribute-flag
 	    (setcdr ns-prefixes (cons nil (cdr ns-prefixes))))))
       (setq iter (cdr iter)))
-    (rng-uniquify-equal
+    (seq-uniq
      (sort (apply #'append
 		  (cons extra-strings
 			(mapcar (lambda (name)

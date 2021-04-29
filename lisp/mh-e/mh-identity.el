@@ -33,8 +33,6 @@
 ;; in MH-Letter mode. The command `mh-insert-identity' can be used
 ;; to manually insert an identity.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

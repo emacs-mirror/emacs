@@ -839,7 +839,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 		 (setq current (car loop)
 		       loop (cdr loop))
 		 (setcdr current
-			 (gnus-set-difference (cdr current) numbers)))))))))
+                         (seq-difference (cdr current) numbers #'eq)))))))))
 
 (defun gnus-cite-parse-attributions ()
   (let (al-alist)
@@ -999,7 +999,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 		    loop (cdr loop))
 	      (if (eq current best)
 		  ()
-		(setcdr current (gnus-set-difference (cdr current) numbers))
+                (setcdr current (seq-difference (cdr current) numbers #'eq))
 		(when (null (cdr current))
 		  (setq gnus-cite-loose-prefix-alist
 			(delq current gnus-cite-loose-prefix-alist)
@@ -1134,9 +1134,7 @@ Returns nil if there is no such line before LIMIT, t otherwise."
 (define-minor-mode gnus-message-citation-mode
   "Minor mode providing more font-lock support for nested citations.
 When enabled, it automatically turns on `font-lock-mode'."
-  nil ;; init-value
-  "" ;; lighter
-  nil ;; keymap
+  :lighter ""
   (when (derived-mode-p 'message-mode)
     ;; FIXME: Use font-lock-add-keywords!
     (let ((defaults (car font-lock-defaults))

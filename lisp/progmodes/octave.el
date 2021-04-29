@@ -1769,8 +1769,8 @@ sentence."
           (insert "\nRetry with ")
           (insert-text-button "'-all'"
                               'follow-link t
-                              'action #'(lambda (_b)
-                                          (octave-lookfor str '-all)))
+                              'action (lambda (_b)
+                                        (octave-lookfor str '-all)))
           (insert ".\n"))
         (octave-help-mode)))))
 

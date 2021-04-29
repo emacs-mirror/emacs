@@ -23,8 +23,6 @@
 
 ;;; Commentary:
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

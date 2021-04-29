@@ -737,9 +737,9 @@ sure of changing the value of `foo'."
                    :end-of-command "\r\n"
                    :success "^1 OK "
                    :starttls-function
-                   #'(lambda (capabilities)
-                       (when (string-match-p "STARTTLS" capabilities)
-                         "1 STARTTLS\r\n"))))
+                   (lambda (capabilities)
+                     (when (string-match-p "STARTTLS" capabilities)
+                       "1 STARTTLS\r\n"))))
          done)
     (when process
       (imap-log buffer)

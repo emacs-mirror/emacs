@@ -301,7 +301,7 @@ This function runs the abnormal hook `move-frame-functions'."
 (declare-function tool-bar-mode "tool-bar" (&optional arg))
 (declare-function tool-bar-height "xdisp.c" (&optional frame pixelwise))
 
-(defalias 'tool-bar-lines-needed 'tool-bar-height)
+(defalias 'tool-bar-lines-needed #'tool-bar-height)
 
 ;; startup.el calls this function after loading the user's init
 ;; file.  Now default-frame-alist and initial-frame-alist contain
@@ -615,15 +615,6 @@ there (in decreasing order of priority)."
 	      (face-set-after-frame-default frame-initial-frame)
 	      (setq newparms (delq new-bg newparms)))
 
-	    (when (numberp (car frame-size-history))
-	      (setq frame-size-history
-		    (cons (1- (car frame-size-history))
-			  (cons
-			   (list frame-initial-frame
-				 "FRAME-NOTICE-USER"
-				 nil newparms)
-			   (cdr frame-size-history)))))
-
 	    (modify-frame-parameters frame-initial-frame newparms)))))
 
     ;; Restore the original buffer.
@@ -690,8 +681,8 @@ is not considered (see `next-frame')."
 				  0))
   (select-frame-set-input-focus (selected-frame)))
 
-(defalias 'next-multiframe-window 'next-window-any-frame)
-(defalias 'previous-multiframe-window 'previous-window-any-frame)
+(defalias 'next-multiframe-window #'next-window-any-frame)
+(defalias 'previous-multiframe-window #'previous-window-any-frame)
 
 (defun window-system-for-display (display)
   "Return the window system for DISPLAY.
@@ -782,7 +773,7 @@ If DISPLAY is nil, that stands for the selected frame's display."
                                 (format "Delete %s frames? " (length frames))
                               (format "Delete %s ? " (car frames))))))
         (error "Abort!")
-      (mapc 'delete-frame frames)
+      (mapc #'delete-frame frames)
       (x-close-connection display))))
 
 (defun make-frame-command ()
@@ -925,12 +916,6 @@ the new frame according to its own rules."
       (unless (assq param parameters)
         (let ((val (frame-parameter oldframe param)))
           (when val (set-frame-parameter frame param val)))))
-
-    (when (numberp (car frame-size-history))
-      (setq frame-size-history
-	    (cons (1- (car frame-size-history))
-		  (cons (list frame "MAKE-FRAME")
-			(cdr frame-size-history)))))
 
     ;; We can run `window-configuration-change-hook' for this frame now.
     (frame-after-make-frame frame t)
@@ -1162,8 +1147,8 @@ e.g. (mapc \\='frame-set-background-mode (frame-list))."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
-	   (mapc 'frame-set-background-mode (frame-list)))
-  :initialize 'custom-initialize-changed
+	   (mapc #'frame-set-background-mode (frame-list)))
+  :initialize #'custom-initialize-changed
   :type '(choice (const dark)
 		 (const light)
 		 (const :tag "automatic" nil)))
@@ -1176,6 +1161,27 @@ e.g. (mapc \\='frame-set-background-mode (frame-list))."
 
 (defvar inhibit-frame-set-background-mode nil)
 
+(defun frame--current-backround-mode (frame)
+  (let* ((frame-default-bg-mode (frame-terminal-default-bg-mode frame))
+         (bg-color (frame-parameter frame 'background-color))
+         (tty-type (tty-type frame))
+         (default-bg-mode
+	   (if (or (window-system frame)
+		   (and tty-type
+			(string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+				      tty-type)))
+	       'light
+	     'dark)))
+    (cond (frame-default-bg-mode)
+	  ((equal bg-color "unspecified-fg") ; inverted colors
+	   (if (eq default-bg-mode 'light) 'dark 'light))
+	  ((not (color-values bg-color frame))
+	   default-bg-mode)
+	  ((color-dark-p (mapcar (lambda (c) (/ c 65535.0))
+	                         (color-values bg-color frame)))
+	   'dark)
+	  (t 'light))))
+
 (defun frame-set-background-mode (frame &optional keep-face-specs)
   "Set up display-dependent faces on FRAME.
 Display-dependent faces are those which have different definitions
@@ -1184,30 +1190,8 @@ according to the `background-mode' and `display-type' frame parameters.
 If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
 face specs for the new background mode."
   (unless inhibit-frame-set-background-mode
-    (let* ((frame-default-bg-mode (frame-terminal-default-bg-mode frame))
-	   (bg-color (frame-parameter frame 'background-color))
-	   (tty-type (tty-type frame))
-	   (default-bg-mode
-	     (if (or (window-system frame)
-		     (and tty-type
-			  (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-					tty-type)))
-		 'light
-	       'dark))
-	   (non-default-bg-mode (if (eq default-bg-mode 'light) 'dark 'light))
-	   (bg-mode
-	    (cond (frame-default-bg-mode)
-		  ((equal bg-color "unspecified-fg") ; inverted colors
-		   non-default-bg-mode)
-		  ((not (color-values bg-color frame))
-		   default-bg-mode)
-		  ((>= (apply '+ (color-values bg-color frame))
-		       ;; Just looking at the screen, colors whose
-		       ;; values add up to .6 of the white total
-		       ;; still look dark to me.
-		       (* (apply '+ (color-values "white" frame)) .6))
-		   'light)
-		  (t 'dark)))
+    (let* ((bg-mode
+	    (frame--current-backround-mode frame))
 	   (display-type
 	    (cond ((null (window-system frame))
 		   (if (tty-display-color-p frame) 'color 'mono))
@@ -1272,6 +1256,26 @@ the `background-mode' terminal parameter."
 	(if bg-resource
 	    (intern (downcase bg-resource))))
       (terminal-parameter frame 'background-mode)))
+
+;; FIXME: This needs to be significantly improved before we can use it:
+;; - Fix the "scope" to be consistent: the code below is partly per-frame
+;;   and partly all-frames :-(
+;; - Make it interact correctly with color themes (e.g. modus-themes).
+;;   Maybe automatically disabling color themes that disagree with the
+;;   selected value of `dark-mode'.
+;; - Check interaction with "(in|re)verse-video".
+;;
+;; (define-minor-mode dark-mode
+;;   "Use light text on dark background."
+;;   :global t
+;;   :group 'faces
+;;   (when (eq dark-mode
+;;             (eq 'light (frame--current-backround-mode (selected-frame))))
+;;     ;; FIXME: Change the face's SPEC instead?
+;;     (set-face-attribute 'default nil
+;;                         :foreground (face-attribute 'default :background)
+;;                         :background (face-attribute 'default :foreground))
+;;     (frame-set-background-mode (selected-frame))))
 
 
 ;;;; Frame configurations
@@ -1357,9 +1361,9 @@ differing font heights."
 If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
 
-(defalias 'frame-border-width 'frame-internal-border-width)
-(defalias 'frame-pixel-width 'frame-native-width)
-(defalias 'frame-pixel-height 'frame-native-height)
+(defalias 'frame-border-width #'frame-internal-border-width)
+(defalias 'frame-pixel-width #'frame-native-width)
+(defalias 'frame-pixel-height #'frame-native-height)
 
 (defun frame-inner-width (&optional frame)
   "Return inner width of FRAME in pixels.
@@ -1676,26 +1680,104 @@ and width values are in pixels.
 
 (defun frame--size-history (&optional frame)
   "Print history of resize operations for FRAME.
-Print prettified version of `frame-size-history' into a buffer
-called *frame-size-history*.  Optional argument FRAME denotes the
-frame whose history will be printed.  FRAME defaults to the
-selected frame."
+This function dumps a prettified version of `frame-size-history'
+into a buffer called *frame-size-history*.  The optional argument
+FRAME denotes the frame whose history will be dumped; it defaults
+to the selected frame.
+
+Storing information about resize operations is off by default.
+If you set the variable `frame-size-history' like this
+
+(setq frame-size-history '(100))
+
+then Emacs will save information about the next 100 significant
+operations affecting any frame's size in that variable.  This
+function prints the entries for FRAME stored in that variable in
+a more legible way.
+
+All lines start with an indication of the requested action.  An
+entry like `menu-bar-lines' or `scroll-bar-width' indicates that
+a change of the corresponding frame parameter or Lisp variable
+was requested.  An entry like gui_figure_window_size indicates
+that that C function was executed, an entry like ConfigureNotify
+indicates that that event was received.
+
+In long entries, a number in parentheses displays the INHIBIT
+parameter passed to the C function adjust_frame_size.  Such
+entries may also display changes of frame rectangles in a form
+like R=n1xn2~>n3xn4 where R denotes the rectangle type (TS for
+text, NS for native and IS for inner frame rectangle sizes, all
+in pixels, TC for text rectangle sizes in frame columns and
+lines), n1 and n2 denote the old width and height and n3 and n4
+the new width and height in the according units.  MS stands for
+the minimum inner frame size in pixels, IH and IV, if present,
+indicate that resizing horizontally and/or vertically was
+inhibited (either by `frame-inhibit-implied-resize' or because of
+the frame's fullscreen state).
+
+Shorter entries represent C functions that process width and
+height changes of the native rectangle where PS stands for the
+frame's present pixel width and height, XS for a requested pixel
+width and height and DS for some earlier requested but so far
+delayed pixel width and height.
+
+Very short entries represent calls of C functions that do not
+directly ask for size changes but may indirectly affect the size
+of frames like calls to map a frame or change its visibility."
   (let ((history (reverse frame-size-history))
-	entry)
+	entry item)
     (setq frame (window-normalize-frame frame))
     (with-current-buffer (get-buffer-create "*frame-size-history*")
       (erase-buffer)
       (insert (format "Frame size history of %s\n" frame))
       (while (consp (setq entry (pop history)))
-	(when (eq (car entry) frame)
-          (pop entry)
-          (insert (format "%s" (pop entry)))
-          (move-to-column 24 t)
-          (while entry
-            (insert (format " %s" (pop entry))))
-          (insert "\n")))
-      (unless frame-size-history
-        (insert "Frame size history is nil.\n")))))
+        (setq item (car entry))
+	(cond
+         ((not (consp item))
+          ;; An item added quickly for debugging purposes.
+          (insert (format "%s\n" entry)))
+         ((and (eq (nth 0 item) frame) (= (nth 1 item) 1))
+          ;; Length 1 is a "plain event".
+          (insert (format "%s\n" (nth 2 item))))
+         ((and (eq (nth 0 item) frame) (= (nth 1 item) 2))
+          ;; Length 2 is an "extra" item.
+          (insert (format "%s" (nth 2 item)))
+          (setq item (nth 0 (cdr entry)))
+          (insert (format ", PS=%sx%s" (nth 0 item) (nth 1 item)))
+          (when (or (>= (nth 2 item) 0) (>= (nth 3 item) 0))
+            (insert (format ", XS=%sx%s" (nth 2 item) (nth 3 item))))
+          (setq item (nth 1 (cdr entry)))
+          (when (or (>= (nth 0 item) 0) (>= (nth 1 item) 0))
+            (insert (format ", DS=%sx%s" (nth 0 item) (nth 1 item))))
+          (insert "\n"))
+         ((and (eq (nth 0 item) frame) (= (nth 1 item) 5))
+          ;; Length 5 is an `adjust-frame-size' item.
+          (insert (format "%s (%s)" (nth 3 item) (nth 2 item)))
+          (setq item (nth 0 (cdr entry)))
+          (unless (and (= (nth 0 item) (nth 2 item))
+                       (= (nth 1 item) (nth 3 item)))
+            (insert (format ", TS=%sx%s~>%sx%s"
+                            (nth 0 item) (nth 1 item) (nth 2 item) (nth 3 item))))
+          (setq item (nth 1 (cdr entry)))
+          (unless (and (= (nth 0 item) (nth 2 item))
+                       (= (nth 1 item) (nth 3 item)))
+            (insert (format ", TC=%sx%s~>%sx%s"
+                            (nth 0 item) (nth 1 item) (nth 2 item) (nth 3 item))))
+          (setq item (nth 2 (cdr entry)))
+          (unless (and (= (nth 0 item) (nth 2 item))
+                       (= (nth 1 item) (nth 3 item)))
+            (insert (format ", NS=%sx%s~>%sx%s"
+                            (nth 0 item) (nth 1 item) (nth 2 item) (nth 3 item))))
+          (setq item (nth 3 (cdr entry)))
+          (unless (and (= (nth 0 item) (nth 2 item))
+                       (= (nth 1 item) (nth 3 item)))
+            (insert (format ", IS=%sx%s~>%sx%s"
+                            (nth 0 item) (nth 1 item) (nth 2 item) (nth 3 item))))
+          (setq item (nth 4 (cdr entry)))
+          (insert (format ", MS=%sx%s" (nth 0 item) (nth 1 item)))
+          (when (nth 2 item) (insert " IH"))
+          (when (nth 3 item) (insert " IV"))
+          (insert "\n")))))))
 
 (declare-function x-frame-edges "xfns.c" (&optional frame type))
 (declare-function w32-frame-edges "w32fns.c" (&optional frame type))
@@ -1991,9 +2073,9 @@ frame's display)."
        (fboundp 'image-mask-p)
        (fboundp 'image-size)))
 
-(defalias 'display-blink-cursor-p 'display-graphic-p)
-(defalias 'display-multi-frame-p 'display-graphic-p)
-(defalias 'display-multi-font-p 'display-graphic-p)
+(defalias 'display-blink-cursor-p #'display-graphic-p)
+(defalias 'display-multi-frame-p #'display-graphic-p)
+(defalias 'display-multi-font-p #'display-graphic-p)
 
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
@@ -2340,13 +2422,15 @@ In the 3rd, 4th, and 6th examples, the returned value is relative to
 the opposite frame edge from the edge indicated in the input spec."
   (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec) frame)))
 
-(defun delete-other-frames (&optional frame)
+(defun delete-other-frames (&optional frame iconify)
   "Delete all frames on FRAME's terminal, except FRAME.
 If FRAME uses another frame's minibuffer, the minibuffer frame is
 left untouched.  Do not delete any of FRAME's child frames.  If
 FRAME is a child frame, delete its siblings only.  FRAME must be
-a live frame and defaults to the selected one."
-  (interactive)
+a live frame and defaults to the selected one.
+If the prefix arg ICONIFY is non-nil, just iconify the frames rather than
+deleting them."
+  (interactive "i\nP")
   (setq frame (window-normalize-frame frame))
   (let ((minibuffer-frame (window-frame (minibuffer-window frame)))
         (this (next-frame frame t))
@@ -2361,7 +2445,7 @@ a live frame and defaults to the selected one."
                   (and parent (not (eq (frame-parent this) parent)))
                   ;; Do not delete a child frame of FRAME.
                   (eq (frame-parent this) frame))
-        (delete-frame this))
+        (if iconify (iconify-frame this) (delete-frame this)))
       (setq this next))
     ;; In a second round consider all remaining frames.
     (setq this (next-frame frame t))
@@ -2373,7 +2457,7 @@ a live frame and defaults to the selected one."
                   (and parent (not (eq (frame-parent this) parent)))
                   ;; Do not delete a child frame of FRAME.
                   (eq (frame-parent this) frame))
-        (delete-frame this))
+        (if iconify (iconify-frame this) (delete-frame this)))
       (setq this next))))
 
 
@@ -2399,7 +2483,7 @@ parameters `bottom-divider-width' and `right-divider-width'."
   :type '(choice (const :tag "Bottom only" bottom-only)
 		 (const :tag "Right only" right-only)
 		 (const :tag "Bottom and right" t))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
          (when window-divider-mode
@@ -2420,7 +2504,7 @@ parameter `bottom-divider-width'."
   :type '(restricted-sexp
           :tag "Default width of bottom dividers"
           :match-alternatives (window-divider-width-valid-p))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
          (when window-divider-mode
@@ -2437,7 +2521,7 @@ parameter `right-divider-width'."
   :type '(restricted-sexp
           :tag "Default width of right dividers"
           :match-alternatives (window-divider-width-valid-p))
-  :initialize 'custom-initialize-default
+  :initialize #'custom-initialize-default
   :set (lambda (symbol value)
 	 (set-default symbol value)
          (when window-divider-mode
@@ -2714,14 +2798,14 @@ See also `toggle-frame-maximized'."
 
 ;;;; Key bindings
 
-(define-key ctl-x-5-map "2" 'make-frame-command)
-(define-key ctl-x-5-map "1" 'delete-other-frames)
-(define-key ctl-x-5-map "0" 'delete-frame)
-(define-key ctl-x-5-map "o" 'other-frame)
-(define-key ctl-x-5-map "5" 'other-frame-prefix)
-(define-key global-map [f11] 'toggle-frame-fullscreen)
-(define-key global-map [(meta f10)] 'toggle-frame-maximized)
-(define-key esc-map    [f10]        'toggle-frame-maximized)
+(define-key ctl-x-5-map "2" #'make-frame-command)
+(define-key ctl-x-5-map "1" #'delete-other-frames)
+(define-key ctl-x-5-map "0" #'delete-frame)
+(define-key ctl-x-5-map "o" #'other-frame)
+(define-key ctl-x-5-map "5" #'other-frame-prefix)
+(define-key global-map [f11] #'toggle-frame-fullscreen)
+(define-key global-map [(meta f10)] #'toggle-frame-maximized)
+(define-key esc-map    [f10]        #'toggle-frame-maximized)
 
 
 ;; Misc.

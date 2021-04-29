@@ -136,5 +136,6 @@
     (if (looking-at tai-viet-re)
 	(tai-viet-compose-region from (match-end 0)))))
 
-;;
 (provide 'tai-viet-util)
+
+;;; tv-util.el ends here

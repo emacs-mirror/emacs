@@ -1207,9 +1207,9 @@ If LANG is omitted, get the extra word characters for the default language."
 	  (split-string
 	   (ispell--call-enchant-lsmod "-list-dicts") " ([^)]+)\n" t))
          (found
-          (mapcar #'(lambda (lang)
-                      `(,lang "[[:alpha:]]" "[^[:alpha:]]"
-                              ,(ispell--get-extra-word-characters lang) t nil nil utf-8))
+          (mapcar (lambda (lang)
+                    `(,lang "[[:alpha:]]" "[^[:alpha:]]"
+                            ,(ispell--get-extra-word-characters lang) t nil nil utf-8))
                   dictionaries)))
     ;; Merge into FOUND any elements from the standard ispell-dictionary-base-alist
     ;; which have no element in FOUND at all.
@@ -3744,7 +3744,7 @@ SPC.
 
 For spell-checking \"on the fly\", not just after typing SPC or
 RET, use `flyspell-mode'."
-  nil " Spell" ispell-minor-keymap)
+  :lighter " Spell" :keymap ispell-minor-keymap)
 
 (defun ispell-minor-check ()
   "Check previous word, then continue with the normal binding of this key.

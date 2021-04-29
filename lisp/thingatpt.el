@@ -600,10 +600,14 @@ with angle brackets.")
              (buffer-substring-no-properties
               (car boundary-pair) (cdr boundary-pair))))))
 
-;;  Buffer
+;;  Buffer and region
 
 (put 'buffer 'end-op (lambda () (goto-char (point-max))))
 (put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
+(put 'region 'bounds-of-thing-at-point
+     (lambda ()
+       (when (use-region-p)
+         (cons (region-beginning) (region-end)))))
 
 ;; UUID
 

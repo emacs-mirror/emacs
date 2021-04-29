@@ -297,17 +297,19 @@ ${charsetdir}/%.map: ${GLIBC_CHARMAPS}/%.gz ${mapconv} ${compact}
 	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x/' GLIBC-1 ${compact} > $@
 
 
-.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean
+.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean gen-clean
 
 clean:
 
+## IMO this should also run gen-clean.
 bootstrap-clean: clean
 
 distclean: clean
 	rm -f Makefile
 
-maintainer-clean: distclean
-
-## Do not remove these files, even in a bootstrap.  They rarely change.
-extraclean:
+gen-clean:
 	rm -f ${CHARSETS} ${SED_SCRIPT} ${TRANS_TABLE} ${srcdir}/charsets.stamp
+
+maintainer-clean: gen-clean distclean
+
+extraclean: maintainer-clean

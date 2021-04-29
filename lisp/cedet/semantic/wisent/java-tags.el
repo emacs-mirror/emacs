@@ -24,9 +24,6 @@
 ;;; Commentary:
 ;;
 
-;;; History:
-;;
-
 ;;; Code:
 
 (require 'semantic/wisent)

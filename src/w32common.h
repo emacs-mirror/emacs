@@ -86,6 +86,14 @@ get_proc_addr (HINSTANCE handle, LPCSTR fname)
     }									\
   while (false)
 
+/* Load a function from the DLL, and don't fail if it does not exist.  */
+#define LOAD_DLL_FN_OPT(lib, func)                                      \
+  do									\
+    {									\
+      fn_##func = (W32_PFN_##func) get_proc_addr (lib, #func);		\
+    }									\
+  while (false)
+
 #ifdef HAVE_HARFBUZZ
 extern bool hbfont_init_w32_funcs (HMODULE);
 #endif

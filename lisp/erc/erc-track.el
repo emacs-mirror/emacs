@@ -464,9 +464,6 @@ ERC Track minor mode is a global minor mode.  It exists for the
 sole purpose of providing the C-c C-SPC and C-c C-@ keybindings.
 Make sure that you have enabled the track module, otherwise the
 keybindings will not do anything useful."
-  :init-value nil
-  :lighter ""
-  :keymap erc-track-minor-mode-map
   :global t)
 
 (defun erc-track-minor-mode-maybe (&optional buffer)
@@ -686,9 +683,9 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
 	      (let* ((buffers (mapcar #'car erc-modified-channels-alist))
 		     (counts (mapcar #'cadr erc-modified-channels-alist))
 		     (faces (mapcar #'cddr erc-modified-channels-alist))
-		     (long-names (mapcar #'(lambda (buf)
-					     (or (buffer-name buf)
-						 ""))
+                     (long-names (mapcar (lambda (buf)
+                                           (or (buffer-name buf)
+                                               ""))
 					 buffers))
 		     (short-names (if (functionp erc-track-shorten-function)
 				      (funcall erc-track-shorten-function

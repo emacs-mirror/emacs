@@ -410,8 +410,7 @@ specified by `tabulated-list-sort-key'.  It then erases the
 buffer and inserts the entries with `tabulated-list-printer'.
 
 Optional argument REMEMBER-POS, if non-nil, means to move point
-to the entry with the same ID element as the current line and
-recenter window line accordingly.
+to the entry with the same ID element as the current line.
 
 Non-nil UPDATE argument means to use an alternative printing
 method which is faster if most entries haven't changed since the
@@ -424,18 +423,10 @@ changing `tabulated-list-sort-key'."
 		     (funcall tabulated-list-entries)
 		   tabulated-list-entries))
         (sorter (tabulated-list--get-sorter))
-	entry-id saved-pt saved-col window-line)
+        entry-id saved-pt saved-col)
     (and remember-pos
 	 (setq entry-id (tabulated-list-get-id))
-	 (setq saved-col (current-column))
-         (when (eq (window-buffer) (current-buffer))
-           (setq window-line
-                 (save-excursion
-                   (save-restriction
-                     (widen)
-                     (narrow-to-region (window-start) (point))
-                     (goto-char (point-min))
-                     (vertical-motion (buffer-size)))))))
+	 (setq saved-col (current-column)))
     ;; Sort the entries, if necessary.
     (when sorter
       (setq entries (sort entries sorter)))
@@ -490,9 +481,7 @@ changing `tabulated-list-sort-key'."
     ;; If REMEMBER-POS was specified, move to the "old" location.
     (if saved-pt
 	(progn (goto-char saved-pt)
-	       (move-to-column saved-col)
-	       (when window-line
-                 (recenter window-line)))
+	       (move-to-column saved-col))
       (goto-char (point-min)))))
 
 (defun tabulated-list-print-entry (id cols)

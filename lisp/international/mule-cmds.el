@@ -679,18 +679,18 @@ DEFAULT is the coding system to use by default in the query."
   ;;	((CODING (POS . CHAR) (POS . CHAR) ...) ...)
   (if unsafe
       (setq unsafe
-	    (mapcar #'(lambda (coding)
-			(cons coding
-			      (if (stringp from)
-				  (mapcar #'(lambda (pos)
-					      (cons pos (aref from pos)))
-					  (unencodable-char-position
-					   0 (length from) coding
-					   11 from))
-				(mapcar #'(lambda (pos)
-					    (cons pos (char-after pos)))
-					(unencodable-char-position
-					 from to coding 11)))))
+            (mapcar (lambda (coding)
+                      (cons coding
+                            (if (stringp from)
+                                (mapcar (lambda (pos)
+                                          (cons pos (aref from pos)))
+                                        (unencodable-char-position
+                                         0 (length from) coding
+                                         11 from))
+                              (mapcar (lambda (pos)
+                                        (cons pos (char-after pos)))
+                                      (unencodable-char-position
+                                       from to coding 11)))))
 		    unsafe)))
 
   (setq codings (sanitize-coding-system-list codings))
@@ -744,19 +744,19 @@ e.g., for sending an email message.\n ")
 		(insert (format "  %s cannot encode these:" (car coding)))
 		(let ((i 0)
 		      (func1
-		       #'(lambda (bufname pos)
-			   (when (buffer-live-p (get-buffer bufname))
-			     (pop-to-buffer bufname)
-			     (goto-char pos))))
+                       (lambda (bufname pos)
+                         (when (buffer-live-p (get-buffer bufname))
+                           (pop-to-buffer bufname)
+                           (goto-char pos))))
 		      (func2
-		       #'(lambda (bufname pos coding)
-			   (when (buffer-live-p (get-buffer bufname))
-			     (pop-to-buffer bufname)
-			     (if (< (point) pos)
-				 (goto-char pos)
-			       (forward-char 1)
-			       (search-unencodable-char coding)
-			       (forward-char -1))))))
+                       (lambda (bufname pos coding)
+                         (when (buffer-live-p (get-buffer bufname))
+                           (pop-to-buffer bufname)
+                           (if (< (point) pos)
+                               (goto-char pos)
+                             (forward-char 1)
+                             (search-unencodable-char coding)
+                             (forward-char -1))))))
 		  (dolist (elt (cdr coding))
 		    (insert " ")
 		    (if (stringp from)
@@ -3047,7 +3047,7 @@ on encoding."
 	       (#x1D000 . #x1FFFF)
 	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
-	    (gc-cons-threshold 10000000)
+            (gc-cons-threshold (max gc-cons-threshold 10000000))
 	    (names (make-hash-table :size 42943 :test #'equal)))
         (dolist (range ranges)
           (let ((c (car range))

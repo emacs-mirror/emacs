@@ -5067,33 +5067,46 @@ remote files}.
 
 
 @item
+How to prevent @value{tramp} from clearing the @code{recentf-list}?
+
+When @value{tramp} cleans a connection, it removes the respective
+remote file name(s) from @code{recentf-list}.  This is needed, because
+an unresponsive remote host could trigger @code{recentf} to connect
+that host again and again.
+
+If you find the cleanup disturbing, because the file names in
+@code{recentf-list} are precious to you, you could add the following
+two forms in your @file{~/.emacs} after loading the @code{tramp} and
+@code{recentf} packages:
+
+@lisp
+@group
+(remove-hook
+ 'tramp-cleanup-connection-hook
+ #'tramp-recentf-cleanup)
+@end group
+@group
+(remove-hook
+ 'tramp-cleanup-all-connections-hook
+ #'tramp-recentf-cleanup-all)
+@end group
+@end lisp
+
+
+@item
 I get a warning @samp{Tramp has been compiled with Emacs a.b, this is Emacs c.d}
-
-@value{tramp} comes with compatibility code for different Emacs
-versions.  When you see this warning, you don't use the Emacs built-in
-version of @value{tramp}.  In case you have installed @value{tramp}
-from GNU ELPA, you must delete and reinstall it.
-@ifset installchapter
-In case you have installed it from its Git repository, @ref{Recompilation}.
-@end ifset
-
-
 @item
 I get an error @samp{tramp-file-name-handler: Invalid function:
 tramp-compat-with-mutex}
 
-Likely, you have a running Emacs session with loaded @value{tramp},
-and you try to upgrade it to another version from GNU ELPA.  Since
-@value{tramp} is not forward compatible, you must unload / reload it.
-Try the following steps:
-
-@example
-@kbd{M-x tramp-unload-tramp @key{RET}}
-@kbd{M-x load-library @key{RET} tramp @key{RET}}
-@end example
-
-If this doesn't work, you must restart Emacs with proper
-@code{load-path} for the new @value{tramp} version.
+@value{tramp} comes with compatibility code for different Emacs
+versions.  When you see such a message (the text might differ), you
+don't use the Emacs built-in version of @value{tramp}.  In case you
+have installed @value{tramp} from GNU ELPA, see the package README
+file for instructions how to recompile it.
+@ifset installchapter
+@xref{Recompilation}.
+@end ifset
 
 
 @item

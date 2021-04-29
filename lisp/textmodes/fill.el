@@ -49,10 +49,12 @@ A value of nil means that any change in indentation starts a new paragraph."
 
 (defcustom fill-separate-heterogeneous-words-with-space nil
   "Non-nil means to use a space to separate words of a different kind.
-This will be done with a word in the end of a line and a word in
-the beginning of the next line when concatenating them for
-filling those lines.  Whether to use a space depends on how the
-words are categorized."
+For example, when an English word at the end of a line and a CJK word
+at the beginning of the next line are joined into a single line, they
+will be separated by a space if this variable is non-nil.
+Whether to use a space to separate such words also depends on the entry
+in `fill-nospace-between-words-table' for the characters before and
+after the newline."
   :type 'boolean
   :version "26.1")
 
@@ -412,12 +414,12 @@ and `fill-nobreak-invisible'."
   ;; Register `kinsoku' for scripts HAN, KANA, BOPOMOFO, and CJK-MISC.
   ;; Also tell that they don't use space between words.
   (map-char-table
-   #'(lambda (key val)
-       (when (memq val '(han kana bopomofo cjk-misc))
-	 (set-char-table-range fill-find-break-point-function-table
-			       key 'kinsoku)
-	 (set-char-table-range fill-nospace-between-words-table
-			       key t)))
+   (lambda (key val)
+     (when (memq val '(han kana bopomofo cjk-misc))
+       (set-char-table-range fill-find-break-point-function-table
+                             key 'kinsoku)
+       (set-char-table-range fill-nospace-between-words-table
+                             key t)))
    char-script-table)
   ;; Do the same thing also for full width characters and half
   ;; width kana variants.

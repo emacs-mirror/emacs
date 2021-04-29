@@ -1,4 +1,4 @@
-;;; scroll-tests.el -- tests for scrolling -*- lexical-binding: t -*-
+;;; scroll-tests.el --- tests for scrolling -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2017-2021 Free Software Foundation, Inc.
 

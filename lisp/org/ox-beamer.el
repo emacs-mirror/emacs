@@ -895,14 +895,16 @@ holding export options."
 ;;; Minor Mode
 
 
-(defvar org-beamer-mode-map (make-sparse-keymap)
+(defvar org-beamer-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-b" 'org-beamer-select-environment)
+    map)
   "The keymap for `org-beamer-mode'.")
-(define-key org-beamer-mode-map "\C-c\C-b" 'org-beamer-select-environment)
 
 ;;;###autoload
 (define-minor-mode org-beamer-mode
   "Support for editing Beamer oriented Org mode files."
-  nil " Bm" 'org-beamer-mode-map)
+  :lighter " Bm")
 
 (when (fboundp 'font-lock-add-keywords)
   (font-lock-add-keywords

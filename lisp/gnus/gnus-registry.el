@@ -319,9 +319,12 @@ Encode names if ENCODE is non-nil, otherwise decode."
       (setf (oref db tracked)
             (append gnus-registry-track-extra
                     '(mark group keyword)))
-      (when (not (equal old (oref db tracked)))
+      (when (not (seq-set-equal-p old (oref db tracked)))
         (gnus-message 9 "Reindexing the Gnus registry (tracked change)")
-        (registry-reindex db))
+	(let ((message-log-max (if (< gnus-verbose 9)
+				   nil
+				 message-log-max)))
+          (registry-reindex db)))
       (gnus-registry--munge-group-names db)))
   db)
 
@@ -1290,15 +1293,13 @@ from your existing entries."
       (registry-reindex db)
       (cl-loop for k being the hash-keys of (oref db data)
 	    using (hash-value v)
-	    do (let ((newv (delq nil (mapcar #'(lambda (entry)
-						 (unless (member (car entry) extra)
-						   entry))
+            do (let ((newv (delq nil (mapcar (lambda (entry)
+                                               (unless (member (car entry) extra)
+                                                 entry))
 					     v))))
 		 (registry-delete db (list k) nil)
 		 (gnus-registry-insert db k newv)))
       (registry-reindex db))))
-
-;; TODO: a few things
 
 (provide 'gnus-registry)
 

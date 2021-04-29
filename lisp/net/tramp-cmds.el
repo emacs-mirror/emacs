@@ -472,6 +472,49 @@ For details, see `tramp-rename-files'."
 (function-put
  #'tramp-rename-these-files 'completion-predicate #'tramp-command-completion-p)
 
+;; This function takes action since Emacs 28.1, when
+;; `read-extended-command-predicate' is set to
+;; `command-completion-default-include-p'.
+;;;###tramp-autoload
+(defun tramp-recompile-elpa-command-completion-p (_symbol _buffer)
+  "A predicate for `tramp-recompile-elpa'.
+It is completed by \"M-x TAB\" only if package.el is loaded, and
+Tramp is an installed ELPA package."
+  ;; We cannot apply `package-installed-p', this would also return the
+  ;; builtin package.
+  (and (assq 'tramp (bound-and-true-p package-alist))
+       (tramp-compat-funcall 'package--user-installed-p 'tramp)))
+
+;;;###tramp-autoload
+(defun tramp-recompile-elpa ()
+  "Recompile the installed Tramp ELPA package.
+This is needed if there are compatibility problems."
+  ;; (declare (completion tramp-recompile-elpa-command-completion-p))
+  (interactive)
+  ;; We expect just one Tramp package is installed.
+  (when-let
+      ((dir (tramp-compat-funcall
+	     'package-desc-dir
+	     (car (alist-get 'tramp (bound-and-true-p package-alist))))))
+    (dolist (elc (directory-files dir 'full "\\.elc$"))
+      (delete-file elc))
+    (with-current-buffer (get-buffer-create byte-compile-log-buffer)
+      (let ((inhibit-read-only t))
+	(compilation-mode)
+	(goto-char (point-max))
+	(insert "\f\n")
+	(call-process
+	 (expand-file-name invocation-name invocation-directory) nil t t
+	 "-Q" "-batch" "-L" dir
+	 "--eval" (format "(byte-recompile-directory %S 0 t)" dir))
+	(message "Package `tramp' recompiled.")))))
+
+;; Starting with Emacs 28.1, this can be replaced by the "(declare ...)" form.
+;;;###tramp-autoload
+(function-put
+ #'tramp-recompile-elpa 'completion-predicate
+ #'tramp-recompile-elpa-command-completion-p)
+
 ;; Tramp version is useful in a number of situations.
 
 ;;;###tramp-autoload

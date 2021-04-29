@@ -519,6 +519,7 @@ DIRS are relative."
       xdg-dir)
      (t emacs-d-dir))))
 
+(defvar comp-eln-load-path)
 (defun normal-top-level ()
   "Emacs calls this function when it first starts up.
 It sets `command-line-processed', processes the command-line,
@@ -536,6 +537,22 @@ It is the default value of the variable `top-level'."
     (setq user-emacs-directory
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
+    (when (featurep 'nativecomp)
+      ;; Form `comp-eln-load-path'.
+      (let ((path-env (getenv "EMACSNATIVELOADPATH")))
+        (when path-env
+          (dolist (path (split-string path-env path-separator))
+            (unless (string= "" path)
+              (push path comp-eln-load-path)))))
+      (push (expand-file-name "eln-cache/" user-emacs-directory)
+            comp-eln-load-path)
+      ;; When $HOME is set to '/nonexistent' means we are running the
+      ;; testsuite, add a temporary folder in front to produce there
+      ;; new compilations.
+      (when (equal (getenv "HOME") "/nonexistent")
+        (let ((tmp-dir (make-temp-file "emacs-testsuite-" t)))
+          (add-hook 'kill-emacs-hook (lambda () (delete-directory tmp-dir t)))
+          (push tmp-dir comp-eln-load-path))))
     ;; Look in each dir in load-path for a subdirs.el file.  If we
     ;; find one, load it, which will add the appropriate subdirs of
     ;; that dir into load-path.  This needs to be done before setting
@@ -622,6 +639,16 @@ It is the default value of the variable `top-level'."
 		(set pathsym (mapcar (lambda (dir)
 				       (decode-coding-string dir coding t))
 				     path)))))
+        (when (featurep 'nativecomp)
+          (let ((npath (symbol-value 'comp-eln-load-path)))
+            (set 'comp-eln-load-path
+                 (mapcar (lambda (dir)
+                           ;; Call expand-file-name to remove all the
+                           ;; pesky ".." from the directyory names in
+                           ;; comp-eln-load-path.
+                           (expand-file-name
+                            (decode-coding-string dir coding t)))
+                         npath))))
 	(dolist (filesym '(data-directory doc-directory exec-directory
 					  installation-directory
 					  invocation-directory invocation-name
@@ -1097,7 +1124,7 @@ please check its value")
                          ("--no-x-resources") ("--debug-init")
                          ("--user") ("--iconic") ("--icon-type") ("--quick")
 			 ("--no-blinking-cursor") ("--basic-display")
-                         ("--dump-file") ("--temacs")))
+                         ("--dump-file") ("--temacs") ("--seccomp")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -1149,7 +1176,8 @@ please check its value")
 	  (push '(visibility . icon) initial-frame-alist))
 	 ((member argi '("-nbc" "-no-blinking-cursor"))
 	  (setq no-blinking-cursor t))
-         ((member argi '("-dump-file" "-temacs"))  ; Handled in C
+         ((member argi '("-dump-file" "-temacs" "-seccomp"))
+          ;; Handled in C
           (or argval (pop args))
           (setq argval nil))
 	 ;; Push the popped arg back on the list of arguments.
@@ -1174,7 +1202,7 @@ please check its value")
         ;; are dependencies between them.
         (nreverse custom-delayed-init-variables))
   (mapc #'custom-reevaluate-setting custom-delayed-init-variables)
-  (setq custom-delayed-init-variables nil)
+  (setq custom-delayed-init-variables t)
 
   ;; Warn for invalid user name.
   (when init-file-user

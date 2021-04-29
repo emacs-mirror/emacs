@@ -191,6 +191,33 @@ An existing calc stack is reused, otherwise a new one is created."
     (let ((calc-number-radix 36))
       (should (equal (math-format-number 12345678901) "36#5,O6A,QT1")))))
 
+(ert-deftest calc-digit-after-point ()
+  "Test display of trailing 0 after decimal point (bug#47302)."
+  (let ((calc-digit-after-point nil))
+    ;; Integral floats have no digits after the decimal point (default).
+    (should (equal (math-format-number '(float 0 0)) "0."))
+    (should (equal (math-format-number '(float 5 0)) "5."))
+    (should (equal (math-format-number '(float 3 1)) "30."))
+    (should (equal (math-format-number '(float 23 0)) "23."))
+    (should (equal (math-format-number '(float 123 0)) "123."))
+    (should (equal (math-format-number '(float 1 -1)) "0.1"))
+    (should (equal (math-format-number '(float 54 -1)) "5.4"))
+    (should (equal (math-format-number '(float 1 -4)) "1e-4"))
+    (should (equal (math-format-number '(float 1 14)) "1e14"))
+    (should (equal (math-format-number 12) "12")))
+  (let ((calc-digit-after-point t))
+    ;; Integral floats have at least one digit after the decimal point.
+    (should (equal (math-format-number '(float 0 0)) "0.0"))
+    (should (equal (math-format-number '(float 5 0)) "5.0"))
+    (should (equal (math-format-number '(float 3 1)) "30.0"))
+    (should (equal (math-format-number '(float 23 0)) "23.0"))
+    (should (equal (math-format-number '(float 123 0)) "123.0"))
+    (should (equal (math-format-number '(float 1 -1)) "0.1"))
+    (should (equal (math-format-number '(float 54 -1)) "5.4"))
+    (should (equal (math-format-number '(float 1 -4)) "1e-4"))
+    (should (equal (math-format-number '(float 1 14)) "1e14"))
+    (should (equal (math-format-number 12) "12"))))
+
 (ert-deftest calc-calendar ()
   "Test calendar conversions (bug#36822)."
   (should (equal (calcFunc-julian (math-parse-date "2019-07-27")) 2458692))

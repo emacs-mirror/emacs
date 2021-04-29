@@ -24,8 +24,6 @@
 
 ;;; Commentary:
 
-;;; Change Log:
-
 ;;; Code:
 
 ;; The names of ephemeral buffers have a " *mh-" prefix (so that they

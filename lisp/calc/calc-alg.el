@@ -444,12 +444,12 @@ Code can refer to the expression to simplify via lexical variable `expr'
 and should return the simplified expression to use (or nil)."
   (declare (indent 1) (debug (sexp body)))
   (cons 'progn
-        (mapcar #'(lambda (func)
-                    `(put ',func 'math-simplify
-                          (nconc
-                           (get ',func 'math-simplify)
-                           (list
-                            #'(lambda (expr) ,@code)))))
+        (mapcar (lambda (func)
+                  `(put ',func 'math-simplify
+                        (nconc
+                         (get ',func 'math-simplify)
+                         (list
+                          (lambda (expr) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
 
 (math-defsimplify (+ -)

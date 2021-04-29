@@ -3755,8 +3755,6 @@ WINDOW must be a valid window and defaults to the selected one.
 If the option `window-resize-pixelwise' is non-nil minimize
 WINDOW pixelwise."
   (interactive)
-  (when switch-to-buffer-preserve-window-point
-    (window--before-delete-windows window))
   (setq window (window-normalize-window window))
   (window-resize
    window
@@ -4142,41 +4140,6 @@ frame can be safely deleted."
 		(throw 'done t)
 	      (setq parent (window-parent parent))))))))
 
-;; This function is called by `delete-window' and
-;; `delete-other-windows' when `switch-to-buffer-preserve-window-point'
-;; evaluates non-nil: it allows `winner-undo' to restore the
-;; buffer point from deleted windows (Bug#23621).
-(defun window--before-delete-windows (&optional window)
-  "Update `window-prev-buffers' before delete a window.
-Optional arg WINDOW, if non-nil, update WINDOW-START and POS
-in `window-prev-buffers' for all windows displaying same
-buffer as WINDOW.  Otherwise, update `window-prev-buffers' for
-all windows.
-
-The new values for WINDOW-START and POS are those
-returned by `window-start' and `window-point' respectively.
-
-This function is called only if `switch-to-buffer-preserve-window-point'
-evaluates non-nil."
-  (dolist (win (window-list nil 'no-minibuf))
-    (let* ((buf   (window-buffer (or window win)))
-           (start (window-start win))
-           (pos   (window-point win))
-           (entry (assq buf (window-prev-buffers win))))
-      (cond (entry
-             (let ((marker (nth 2 entry)))
-               (unless (= pos marker)
-                 (set-marker (nth 1 entry) start buf)
-                 (set-marker marker pos buf))))
-            (t
-             (let ((prev-buf (window-prev-buffers win))
-                   (start-m  (make-marker))
-                   (pos-m    (make-marker)))
-               (set-marker start-m start buf)
-               (set-marker pos-m pos buf)
-               (push (list buf start-m pos-m) prev-buf)
-               (set-window-prev-buffers win prev-buf)))))))
-
 (defun delete-window (&optional window)
   "Delete WINDOW.
 WINDOW must be a valid window and defaults to the selected one.
@@ -4195,8 +4158,6 @@ argument.  Signal an error if WINDOW is either the only window on
 its frame, the last non-side window, or part of an atomic window
 that is its frame's root window."
   (interactive)
-  (when switch-to-buffer-preserve-window-point
-    (window--before-delete-windows))
   (setq window (window-normalize-window window))
   (let* ((frame (window-frame window))
 	 (function (window-parameter window 'delete-window))
@@ -6172,29 +6133,27 @@ value can be also stored on disk and read back in a new session."
 		;; Select window if it's the selected one.
 		(when (cdr (assq 'selected state))
 		  (select-window window))
-                (when next-buffers
-                  (set-window-next-buffers
-                   window
-                   (delq nil (mapcar (lambda (buffer)
-                                       (setq buffer (get-buffer buffer))
-                                       (when (buffer-live-p buffer) buffer))
-                                     next-buffers))))
-                (when prev-buffers
-                  (set-window-prev-buffers
-                   window
-                   (delq nil (mapcar (lambda (entry)
-                                       (let ((buffer (get-buffer (nth 0 entry)))
-                                             (m1 (nth 1 entry))
-                                             (m2 (nth 2 entry)))
-                                         (when (buffer-live-p buffer)
-                                           (list buffer
-                                                 (if (markerp m1) m1
-                                                   (set-marker (make-marker) m1
-                                                               buffer))
-                                                 (if (markerp m2) m2
-                                                   (set-marker (make-marker) m2
-                                                               buffer))))))
-                                     prev-buffers)))))
+                (set-window-next-buffers
+                 window
+                 (delq nil (mapcar (lambda (buffer)
+                                     (setq buffer (get-buffer buffer))
+                                     (when (buffer-live-p buffer) buffer))
+                                   next-buffers)))
+                (set-window-prev-buffers
+                 window
+                 (delq nil (mapcar (lambda (entry)
+                                     (let ((buffer (get-buffer (nth 0 entry)))
+                                           (m1 (nth 1 entry))
+                                           (m2 (nth 2 entry)))
+                                       (when (buffer-live-p buffer)
+                                         (list buffer
+                                               (if (markerp m1) m1
+                                                 (set-marker (make-marker) m1
+                                                             buffer))
+                                               (if (markerp m2) m2
+                                                 (set-marker (make-marker) m2
+                                                             buffer))))))
+                                   prev-buffers))))
 	    ;; We don't want to raise an error in case the buffer does
 	    ;; not exist anymore, so we switch to a previous one and
 	    ;; save the window with the intention of deleting it later
@@ -7411,8 +7370,8 @@ For instance:
 
 Buffer display can be further customized to a very high degree;
 the rest of this docstring explains some of the many
-possibilities, and also see `(emacs)Window Choice' for more
-information.
+possibilities, and also see Info node `(emacs)Window Choice' for
+more information.
 
 BUFFER-OR-NAME must be a buffer or a string naming a live buffer.
 Return the window chosen for displaying that buffer, or nil if no
@@ -10256,6 +10215,10 @@ displaying that processes's buffer."
 (defvar other-window-repeat-map
   (let ((map (make-sparse-keymap)))
     (define-key map "o" 'other-window)
+    (define-key map "O" (lambda ()
+                          (interactive)
+                          (setq repeat-map 'other-window-repeat-map)
+                          (other-window -1)))
     map)
   "Keymap to repeat other-window key sequences.  Used in `repeat-mode'.")
 (put 'other-window 'repeat-map 'other-window-repeat-map)

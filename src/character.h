@@ -42,7 +42,7 @@ INLINE_HEADER_BEGIN
 			F9..FF	   11111yyy
 
    In each bit pattern, 'x' and 'y' each represent a single bit of the
-   character code payload, and least one 'y' must be a 1 bit.
+   character code payload, and at least one 'y' must be a 1 bit.
    In the 5-byte sequence, the 22-bit payload cannot exceed 3FFF7F.
 */
 
@@ -572,8 +572,8 @@ extern ptrdiff_t str_to_unibyte (const unsigned char *, unsigned char *,
 extern ptrdiff_t strwidth (const char *, ptrdiff_t);
 extern ptrdiff_t c_string_width (const unsigned char *, ptrdiff_t, int,
 				 ptrdiff_t *, ptrdiff_t *);
-extern ptrdiff_t lisp_string_width (Lisp_Object, ptrdiff_t,
-				    ptrdiff_t *, ptrdiff_t *);
+extern ptrdiff_t lisp_string_width (Lisp_Object, ptrdiff_t, ptrdiff_t,
+				    ptrdiff_t, ptrdiff_t *, ptrdiff_t *);
 
 extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object string_escape_byte8 (Lisp_Object);

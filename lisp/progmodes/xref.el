@@ -1,7 +1,7 @@
 ;;; xref.el --- Cross-referencing commands              -*-lexical-binding:t-*-
 
 ;; Copyright (C) 2014-2021 Free Software Foundation, Inc.
-;; Version: 1.0.4
+;; Version: 1.1.0
 ;; Package-Requires: ((emacs "26.1"))
 
 ;; This is a GNU ELPA :core package.  Avoid functionality that is not
@@ -24,11 +24,6 @@
 
 ;;; Commentary:
 
-;; NOTE: The xref API is still experimental and can change in major,
-;; backward-incompatible ways.  Everyone is encouraged to try it, and
-;; report to us any problems or use cases we hadn't anticipated, by
-;; sending an email to emacs-devel, or `M-x report-emacs-bug'.
-;;
 ;; This file provides a somewhat generic infrastructure for cross
 ;; referencing commands, in particular "find-definition".
 ;;
@@ -103,7 +98,7 @@ This is typically the filename.")
 
 ;;;; Commonly needed location classes are defined here:
 
-(defcustom xref-file-name-display 'abs
+(defcustom xref-file-name-display 'project-relative
   "Style of file name display in *xref* buffers.
 
 If the value is the symbol `abs', the default, show the file names
@@ -521,7 +516,7 @@ If SELECT is non-nil, select the target window."
   "Face for displaying line numbers in the xref buffer."
   :version "27.1")
 
-(defface xref-match '((t :inherit highlight))
+(defface xref-match '((t :inherit match))
   "Face used to highlight matches in the xref buffer."
   :version "27.1")
 
@@ -657,8 +652,8 @@ SELECT is `quit', also quit the *xref* window."
 
 (defun xref-goto-xref (&optional quit)
   "Jump to the xref on the current line and select its window.
-Non-interactively, non-nil QUIT, or interactively, with prefix argument
-means to first quit the *xref* buffer."
+If QUIT is non-nil (interactively, with prefix argument), also
+quit the *xref* buffer."
   (interactive "P")
   (let* ((buffer (current-buffer))
          (xref (or (xref--item-at-point)
@@ -1416,7 +1411,8 @@ IGNORES is a list of glob patterns for files to ignore."
        (command (xref--rgrep-command (xref--regexp-to-extended regexp)
                                      files
                                      (file-name-as-directory
-                                      (file-local-name (expand-file-name dir)))
+                                      (file-name-unquote
+                                       (file-local-name (expand-file-name dir))))
                                      ignores))
        (def default-directory)
        (buf (get-buffer-create " *xref-grep*"))
@@ -1533,6 +1529,8 @@ FILES must be a list of absolute file names."
                        #'tramp-file-local-name
                        #'file-local-name)
                    files)))
+    (when (file-name-quoted-p (car files))
+      (setq files (mapcar #'file-name-unquote files)))
     (with-current-buffer output
       (erase-buffer)
       (with-temp-buffer

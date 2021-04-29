@@ -1,4 +1,4 @@
-;;; eieio-speedbar.el -- Classes for managing speedbar displays.  -*- lexical-binding:t -*-
+;;; eieio-speedbar.el --- Classes for managing speedbar displays.  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1999-2002, 2005, 2007-2021 Free Software Foundation,
 ;; Inc.

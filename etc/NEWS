@@ -24,10 +24,14 @@ applies, and please also update docstrings as needed.
 
 * Installation Changes in Emacs 28.1
 
+** Emacs now optionally supports native compilation of Lisp files.
+To enable this, configure Emacs with the '--with-native-compilation' option.
+This requires the libgccjit library to be installed and functional.
+
 ---
 ** Support for building with Motif has been removed.
 
-** Cairo graphics library is now used by default if found.
+** The Cairo graphics library is now used by default if present.
 '--with-cairo' is now the default, if the appropriate development files
 are found by 'configure'.  Note that building with Cairo means using
 Pango instead of libXFT for font support.  Since Pango 1.44 has
@@ -89,6 +93,17 @@ If your text-mode terminal supports 24-bit true color, but your system
 lacks the terminfo database, you can instruct Emacs to support 24-bit
 true color by setting 'COLORTERM=truecolor' in the environment.  This is
 useful on systems such as FreeBSD which ships only with "etc/termcap".
+
+** Emacs now supports loading a Secure Computing filter.
+This is supported only on capable GNU/Linux systems.  To activate,
+invoke Emacs with the '--seccomp=FILE' command-line option.  FILE must
+name a binary file containing an array of 'struct sock_filter'
+structures.  Emacs will then install that list of Secure Computing
+filters into its own process early during the startup process.  You
+can use this functionality to put an Emacs process in a sandbox to
+avoid security issues when executing untrusted code.  See the manual
+page for 'seccomp' system call, for details about Secure Computing
+filters.
 
 
 * Changes in Emacs 28.1
@@ -265,6 +280,9 @@ input using the minibuffer.
 * Editing Changes in Emacs 28.1
 
 +++
+** A prefix arg now causes 'delete-other-frames' to only iconify frames
+
++++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
 'execute-extended-command', but limits the set of commands to the
@@ -366,6 +384,12 @@ trying to be non-destructive.
 ** New command 'memory-report'.
 This command opens a new buffer called "*Memory Report*" and gives a
 summary of where Emacs is using memory currently.
+
++++
+** New user option 'isearch-repeat-on-direction-change'.
+When this option is set, direction changes in Isearch move to another
+search match, if there is one, instead of moving point to the other
+end of the current match.
 
 ** Outline
 
@@ -476,6 +500,13 @@ documented.
 *** 'ruby-use-smie' is declared obsolete.
 SMIE is now always enabled and 'ruby-use-smie' only controls whether
 indentation is done using SMIE or with the old ad-hoc code.
+
+** Icomplete
+
++++
+*** New minor mode Icomplete-Vertical mode.
+This mode is intended to be used with Icomplete or Fido, to display the
+list of completions candidates vertically instead of horizontally.
 
 ---
 ** Specific warnings can now be disabled from the warning buffer.
@@ -929,6 +960,21 @@ take the actual screenshot, and defaults to "ImageMagick import".
 A server entry retrieved by auth-source can request a desired smtp
 authentication mechanism by setting a value for the key 'smtp-auth'.
 
+** Search and Replace
+
+*** New key 'M-s M-.' starts isearch with the thing found at point.
+This key is bound to the new command 'isearch-forward-thing-at-point'.
+The new user option 'isearch-forward-thing-at-point' defines
+a list of symbols to try to get the "thing" at point.  By default,
+the first element of the list is 'region' that tries to yank
+the currently active region to the search string.
+
+*** New user option 'isearch-wrap-pause' defines how to wrap the search.
+There are choices to disable wrapping completely and to wrap immediately.
+When wrapping immediately, it consistently handles the numeric arguments
+of 'C-s' ('isearch-repeat-forward') and 'C-r' ('isearch-repeat-backward'),
+continuing with the remaining count after wrapping.
+
 ** Grep
 
 +++
@@ -945,6 +991,9 @@ On systems where the grep command supports it, directories will be
 skipped.
 
 ** Help
+
+---
+*** The 'help-for-help' ('C-h C-h') screen has been redesigned.
 
 ---
 *** Keybindings in 'help-mode' use the new 'help-key-binding' face.
@@ -1055,6 +1104,10 @@ the commands 'customize', 'customize-group', 'customize-apropos' and
 
 To customize obsolete user options, use 'customize-option' or
 'customize-saved'.
+
+*** New SVG icons for checkboxes and arrows.
+They will be used automatically instead of the old icons.  If Emacs is
+built without SVG support, the old icons will be used instead.
 
 ** Edebug
 
@@ -1232,6 +1285,14 @@ key             binding
 / m             package-menu-filter-marked
 / u             package-menu-filter-upgradable
 / /             package-menu-filter-clear
+
+*** Option to automatically native-compile packages upon installation.
+Customize the user option 'package-native-compile' to enable automatic
+native compilation of packages when they are installed.  That option
+is nil by default; if set non-nil, and if your Emacs was built with
+native-compilation support, each package will be natively compiled
+when it is installed, by invoking an asynchronous Emacs subprocess to
+run the native-compilation of the package files.
 
 ---
 *** Column widths in 'list-packages' display can now be customized.
@@ -1511,6 +1572,22 @@ This controls whether to use smoothing or not for an image.  Values
 include nil (no smoothing), t (do smoothing) or a predicate function
 that's called with the image object and should return nil/t.
 
++++
+*** SVG images now support user stylesheets.
+The ':css' image attribute can be used to override the default CSS
+stylesheet for an image.  The default sets 'font-family' and
+'font-size' to match the current face, so an image with 'height="1em"'
+will match the font size in use where it is embedded.
+
+This feature relies on librsvg 2.48 or above being available.
+
++++
+*** Image properties support 'em' sizes.
+Size image properties, for example ':height', ':max-height', etc., can
+be given a cons of the form '(SIZE . em)', where SIZE is an integer or
+float which is multiplied by the font size to calculate the image
+size, and em is a symbol.
+
 ** EWW
 
 +++
@@ -1615,6 +1692,13 @@ choosing the exact definition to go to, and this should do TRT.
 If chosen, file names in "*xref*" buffers will be displayed relative
 to the 'project-root' of the current project, when available.
 
++++
+*** The TAB key binding in *xref* buffers is obsolete.
+Use 'C-u RET' instead.  The TAB binding in *xref* buffers is still
+supported, but we plan on removing it in a future version; at that
+time, the command 'xref-quit-and-goto-xref' will no longer have a key
+binding in 'xref--xref-buffer-mode-map'.
+
 ** json.el
 
 ---
@@ -1675,6 +1759,42 @@ type for highlighting the entire message but not the sender's nick.
 *** erc-status-sidebar.el is now part of ERC.
 The 'erc-status-sidebar' package which provides a HexChat-like
 activity overview sidebar for joined IRC channels is now part of ERC.
+
++++
+*** erc-tls now supports specifying a TLS client certificate.
+The 'erc-tls' function has been updated to allow specifying a TLS
+client certificate for authentication, as an alternative to NickServ
+password-based authentication.  This is referred to as "CertFP" (short
+for Certificate Fingerprint) by several IRC networks.
+
+To use a certificate with 'erc-tls', specify the ':client-certificate'
+optional parameter, whose value should be as described in the
+documentation of 'open-network-stream': if non-nil, it should either
+be a list where the first element is the file name of the private key
+corresponding to a client certificate and the second element is the
+file name of the client certificate itself to use when connecting over
+TLS, or t, which means that 'auth-source' will be queried for the
+private key and the certificate.
+
+Examples of use:
+
+    (erc-tls :server "chat.freenode.net" :port 6697
+             :client-certificate
+             '("/home/bandali/my-cert.key"
+               "/home/bandali/my-cert.crt"))
+
+    (erc-tls :server "chat.freenode.net" :port 6697
+             :client-certificate
+             `(,(expand-file-name "~/cert-freenode.key")
+               ,(expand-file-name "~/cert-freenode.crt")))
+
+    (erc-tls :server "chat.freenode.net" :port 6697
+             :client-certificate t)
+
+In the case of ':client-certificate t', you will need to add a line
+like the following to your authinfo file (e.g. "~/.authinfo.gpg"):
+
+    machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
 
 ** Battery
 
@@ -2172,6 +2292,10 @@ The following user options have been renamed:
 
 The old names are now obsolete.
 
+---
+*** 'world-clock-mode' can no longer be turned on interactively.
+Use 'world-clock' to turn on that mode.
+
 ** D-Bus
 
 +++
@@ -2238,6 +2362,10 @@ You can type 'C-x u u' instead of 'C-x u C-x u' to undo many changes,
 'M-g n n p p' to navigate next-error matches.  Any other key exits
 transient mode and then is executed normally.  'repeat-exit-key'
 defines an additional key to exit mode like 'isearch-exit' ('RET').
+With 'repeat-keep-prefix' you can keep the prefix arg of the previous command.
+For example, this can help to reverse the window navigation direction
+with e.g. 'C-x o M-- o o'.  Also it can help to set a new step with
+e.g. 'C-x { C-5 { { {' will set the window resizing step to 5 columns.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -2265,6 +2393,13 @@ This is a mode for searching a RFC 2229 dictionary server.
 'dictionary-tooltip-mode' which performs a lookup of the word under
 the mouse in 'dictionary-tooltip-dictionary' (which must be customized
 first).
+
+** transient.el
+
+This library implements support for powerful keyboard-driven menus.
+Such menus can be used as simple visual command dispatchers.  More
+complex menus take advantage of infix arguments, which are somewhat
+similar to prefix arguments, but are more flexible and discoverable.
 
 
 * Incompatible Editing Changes in Emacs 28.1
@@ -2314,6 +2449,11 @@ This is to keep the same behavior as Eshell.
 
 * Incompatible Lisp Changes in Emacs 28.1
 
++++
+** The use of positional arguments in 'define-minor-mode' is obsolete.
+These were actually rendered obsolete in Emacs-21 but were never
+marked as such.
+
 ** 'facemenu-color-alist' is now obsolete, and is not used.
 
 ** 'facemenu.el' is no longer preloaded.
@@ -2327,6 +2467,10 @@ This affects the suffix specified by completion 'annotation-function'.
 
 ** 'set-process-buffer' now updates the process mark.
 The mark will be set to point to the end of the new buffer.
+
++++
+** An active minibuffer now has major mode 'minibuffer-mode', not the
+erroneous 'minibuffer-inactive-mode' it formerly had.
 
 +++
 ** Some properties from completion tables are now preserved.
@@ -2376,11 +2520,6 @@ parameter.
 ** The Lisp variables 'previous-system-messages-locale' and
 'previous-system-time-locale' have been removed, as they were created
 by mistake and were not useful to Lisp code.
-
----
-** Loading 'generic-x' unconditionally loads all modes.
-The user option 'generic-extras-enable-list' is now obsolete, and
-setting it has no effect.
 
 ---
 ** The 'load-dangerous-libraries' variable is now obsolete.
@@ -2498,8 +2637,19 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 
 ** The 'values' variable is now obsolete.
 
++++
+** The '&define' keyword in an Edebug specification now disables backtracking.
+The implementation was buggy, and multiple &define forms in an &or
+form should be exceedingly rare.  See the Info node 'Backtracking' in
+the Emacs Lisp reference manual for background.
+
 
 * Lisp Changes in Emacs 28.1
+
++++
+** New function 'sxhash-equal-including-properties'.
+This is identical to 'sxhash-equal' but accounting also for string
+properties.
 
 +++
 ** 'unlock-buffer' displays warnings instead of signaling.
@@ -2591,9 +2741,11 @@ one to another in the init file.  The same user option also controls
 whether the function 'read-answer' accepts short answers.
 
 +++
-** 'set-window-configuration' now takes an optional 'dont-set-frame'
-parameter which, when non-nil, instructs the function not to select
-the frame recorded in the configuration.
+** 'set-window-configuration' now takes two optional parameters,
+'dont-set-frame' and 'dont-set-miniwindow'.  The first of these, when
+non-nil, instructs the function not to select the frame recorded in
+the configuration.  The second prevents the current minibuffer being
+replaced by the one stored in the configuration.
 
 +++
 ** 'define-globalized-minor-mode' now takes a ':predicate' parameter.
@@ -2605,6 +2757,11 @@ used in.
 Modes that use 'truncate-string-to-width' with non-nil, non-string
 argument ELLIPSIS, will now indicate truncation using '…' when
 the selected frame can display it, and using "..." otherwise.
+
++++
+** 'string-width' now accepts two optional arguments FROM and TO.
+This allows calculating the width of a substring without consing a
+new string.
 
 +++
 ** New command 'make-directory-autoloads'.
@@ -2871,6 +3028,12 @@ arrays nor objects.
 ** 'while-no-input-ignore-events' accepts more special events.
 The special events 'dbus-event' and 'file-notify' are now ignored in
 'while-no-input' when added to this variable.
+
++++
+** 'condition-case' now allows for a success handler.
+It is written as (:success BODY...) where BODY is executed whenever
+the protected form terminates without error, with the specified
+variable bound to the the value of the protected form.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

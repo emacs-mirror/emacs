@@ -222,7 +222,7 @@ warn instead."
 
 ;JAVE this just instantiates a default empty ebrowse struct?
 ; how would new instances wind up here?
-; the ebrowse class isn't singleton, unlike the emacs lisp one
+; the ebrowse class isn't singleton, unlike the Emacs Lisp one
 (defvar-mode-local c++-mode semanticdb-project-system-databases
   ()
   "Search Ebrowse for symbols.")
@@ -274,7 +274,7 @@ For instance: /home/<username>/.semanticdb/!usr!include!BROWSE"
       (insert-file-contents B)
       (let ((ans nil)
 	    (efcn (symbol-function 'ebrowse-show-progress)))
-	(fset 'ebrowse-show-progress #'(lambda (&rest _junk) nil))
+        (fset 'ebrowse-show-progress (lambda (&rest _junk) nil))
 	(unwind-protect ;; Protect against errors w/ ebrowse
 	    (setq ans (list B (ebrowse-read)))
 	  ;; These items must always happen

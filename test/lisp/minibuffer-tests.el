@@ -83,7 +83,12 @@
   (let* ((origtable '("A-hello" "A-there"))
          (subvtable (completion-table-subvert origtable "B" "A")))
     (should (equal (try-completion "B-hel" subvtable)
-                   "B-hello"))))
+                   "B-hello"))
+    (should (equal (all-completions "B-hel" subvtable) '("-hello")))
+    (should (test-completion "B-hello" subvtable))
+    (should (equal (completion-boundaries "B-hel" subvtable
+                                          nil "suffix")
+                   '(1 . 6)))))
 
 (ert-deftest completion-table-test-quoting ()
   (let ((process-environment
@@ -130,6 +135,58 @@
                  '("buf" point "f")))
   (should (equal (completion-pcm--optimize-pattern '(any "" any))
                  '(any))))
+
+(defun test-completion-all-sorted-completions (base def history-var history-list)
+  (with-temp-buffer
+    (insert base)
+    (cl-letf (((symbol-function #'minibufferp) (lambda (&rest _) t)))
+      (let ((completion-styles '(basic))
+            (completion-category-defaults nil)
+            (completion-category-overrides nil)
+            (minibuffer-history-variable history-var)
+            (minibuffer-history history-list)
+            (minibuffer-default def)
+            (minibuffer-completion-table
+             (lambda (str pred action)
+               (pcase action
+                 (`(boundaries . ,_) `(boundaries ,(length base) . 0))
+                 (_ (complete-with-action
+                     action
+                     '("epsilon" "alpha" "gamma" "beta" "delta")
+                     (substring str (length base)) pred))))))
+        (completion-all-sorted-completions)))))
+
+(ert-deftest completion-all-sorted-completions ()
+  ;; No base, disabled history, no default
+  (should (equal (test-completion-all-sorted-completions
+                  "" nil t nil)
+                 `("beta" "alpha" "delta" "gamma" "epsilon" . 0)))
+  ;; No base, disabled history, default string
+  (should (equal (test-completion-all-sorted-completions
+                  "" "gamma" t nil)
+                 `("gamma" "beta" "alpha" "delta" "epsilon" . 0)))
+  ;; No base, empty history, default string
+  (should (equal (test-completion-all-sorted-completions
+                  "" "gamma" 'minibuffer-history nil)
+                 `("gamma" "beta" "alpha" "delta" "epsilon" . 0)))
+  ;; No base, empty history, default list
+  (should (equal (test-completion-all-sorted-completions
+                  "" '("gamma" "zeta") 'minibuffer-history nil)
+                 `("gamma" "beta" "alpha" "delta" "epsilon" . 0)))
+  ;; No base, history, default string
+  (should (equal (test-completion-all-sorted-completions
+                  "" "gamma" 'minibuffer-history '("other" "epsilon" "delta"))
+                 `("gamma" "epsilon" "delta" "beta" "alpha"  . 0)))
+  ;; Base, history, default string
+  (should (equal (test-completion-all-sorted-completions
+                  "base/" "base/gamma" 'minibuffer-history
+                  '("some/alpha" "base/epsilon" "base/delta"))
+                 `("gamma" "epsilon" "delta" "beta" "alpha"  . 5)))
+  ;; Base, history, default string
+  (should (equal (test-completion-all-sorted-completions
+                  "base/" "gamma" 'minibuffer-history
+                  '("some/alpha" "base/epsilon" "base/delta"))
+                 `("epsilon" "delta" "beta" "alpha" "gamma"  . 5))))
 
 (provide 'minibuffer-tests)
 ;;; minibuffer-tests.el ends here

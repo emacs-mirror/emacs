@@ -245,10 +245,10 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
        (forward-paragraph 1)
        (setq end (point))
        (setq found
-             (refer-every (lambda (keyword)
-                       (goto-char begin)
-                       (re-search-forward keyword end t))
-                    keywords-list))
+             (seq-every-p (lambda (keyword)
+                            (goto-char begin)
+                            (re-search-forward keyword end t))
+                          keywords-list))
        (if (not found)
            (progn
              (setq begin end)
@@ -259,12 +259,6 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
                 (message "Scanning %s... found" file))
        (progn (message "Scanning %s... not found" file)
               nil))))
-
-(defun refer-every (pred l)
-  (cond ((null l) nil)
-	((funcall pred (car l))
-	 (or (null (cdr l))
-	     (refer-every pred (cdr l))))))
 
 (defun refer-convert-string-to-list-of-strings (s)
    (let ((current (current-buffer))
@@ -390,5 +384,7 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
     (if refer-cache-bib-files
         (setq refer-bib-files files))
     files))
+
+(define-obsolete-function-alias 'refer-every #'seq-every-p "28.1")
 
 ;;; refer.el ends here

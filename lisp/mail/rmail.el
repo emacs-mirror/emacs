@@ -3671,9 +3671,9 @@ If BUFFER is not swapped, yank out of its message viewer buffer."
     (push (cons "cc" cc) other-headers)
     (push (cons "in-reply-to" in-reply-to) other-headers)
     (setq other-headers
-	  (mapcar #'(lambda (elt)
-		      (cons (car elt) (if (stringp (cdr elt))
-					  (rfc2047-decode-string (cdr elt)))))
+          (mapcar (lambda (elt)
+                    (cons (car elt) (if (stringp (cdr elt))
+                                        (rfc2047-decode-string (cdr elt)))))
 		  other-headers))
     (if (stringp to) (setq to (rfc2047-decode-string to)))
     (if (stringp in-reply-to)

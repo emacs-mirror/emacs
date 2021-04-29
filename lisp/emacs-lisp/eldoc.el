@@ -63,7 +63,7 @@ If this variable is set to 0, no idle time is required."
   :type 'number)
 
 (defcustom eldoc-print-after-edit nil
-  "If non-nil eldoc info is only shown when editing.
+  "If non-nil, eldoc info is only shown when editing.
 Changing the value requires toggling `eldoc-mode'."
   :type 'boolean)
 
@@ -391,12 +391,12 @@ name, inside its arg list, or on any object with some associated
 information.
 
 Each hook function is called with at least one argument CALLBACK,
-a function, and decides whether to display a doc short string
+a function, and decides whether to display a short doc string
 about the context around point.
 
 - If that decision can be taken quickly, the hook function may
-  call CALLBACK immediately following the protocol described
-  below.  Alternatively it may ignore CALLBACK entirely and
+  call CALLBACK immediately, following the protocol described
+  below.  Alternatively, it may ignore CALLBACK entirely and
   return either the doc string, or nil if there's no doc
   appropriate for the context.
 
@@ -688,11 +688,11 @@ following values are allowed:
 - `eldoc-documentation-compose': calls all functions in the
   special hook and displays all of the resulting doc strings
   together.  Wait for all strings to be ready, and preserve their
-  relative as specified by the order of functions in the hook;
+  relative order as specified by the order of functions in the hook;
 
 - `eldoc-documentation-compose-eagerly': calls all functions in
-  the special hook and display as many of the resulting doc
-  strings as possible, as soon as possible.  Preserving the
+  the special hook and displays as many of the resulting doc
+  strings as possible, as soon as possible.  Preserves the
   relative order of doc strings;
 
 - `eldoc-documentation-enthusiast': calls all functions in the
@@ -793,7 +793,7 @@ function passes responsibility to the functions in
 Other third-party values of `eldoc-documentation-strategy' should
 not use `eldoc--make-callback'.  They must find some alternate
 way to produce callbacks to feed to
-`eldoc-documentation-function' and should endeavour to display
+`eldoc-documentation-functions' and should endeavour to display
 the docstrings eventually produced, using
 `eldoc-display-functions'."
   (let* (;; How many callbacks have been created by the strategy

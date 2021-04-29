@@ -1,4 +1,4 @@
-;;; simula.el --- SIMULA 87 code editing commands for Emacs
+;;; simula.el --- SIMULA 87 code editing commands for Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1992, 1994, 1996, 2001-2021 Free Software Foundation,
 ;; Inc.
@@ -52,6 +52,7 @@ the run of whitespace at the beginning of the line.")
 Otherwise TAB indents only when point is within
 the run of whitespace at the beginning of the line."
   :type 'boolean)
+(make-obsolete-variable 'simula-tab-always-indent 'tab-always-indent "28.1")
 
 (defconst simula-indent-level-default 3
   "Indentation of SIMULA statements with respect to containing block.")
@@ -148,7 +149,24 @@ Please note that the standard definitions are required
 for SIMULA mode to function correctly."
   :type '(choice file (const nil)))
 
-(defvar simula-mode-syntax-table nil
+(defvar simula-mode-syntax-table
+  (let ((st (copy-syntax-table (standard-syntax-table))))
+    (modify-syntax-entry ?!  "<"    st)
+    (modify-syntax-entry ?$  "."    st)
+    (modify-syntax-entry ?%  "< b"  st)
+    (modify-syntax-entry ?\n "> b"  st)
+    (modify-syntax-entry ?'  "\""   st)
+    (modify-syntax-entry ?\( "()"   st)
+    (modify-syntax-entry ?\) ")("   st)
+    (modify-syntax-entry ?\; ">"    st)
+    (modify-syntax-entry ?\[ "."    st)
+    (modify-syntax-entry ?\\ "."    st)
+    (modify-syntax-entry ?\] "."    st)
+    (modify-syntax-entry ?_  "_"    st)
+    (modify-syntax-entry ?\| "."    st)
+    (modify-syntax-entry ?\{ "."    st)
+    (modify-syntax-entry ?\} "."    st)
+    st)
   "Syntax table in SIMULA mode buffers.")
 
 (defconst simula-syntax-propertize-function
@@ -237,39 +255,20 @@ for SIMULA mode to function correctly."
     ["Forward Statement"      simula-next-statement t]
     ["Backward Up Level"      simula-backward-up-level t]
     ["Forward Down Statement" simula-forward-down-level t])
-  "Lucid Emacs menu for SIMULA mode.")
-
-(if simula-mode-syntax-table
-    ()
-  (setq simula-mode-syntax-table (copy-syntax-table (standard-syntax-table)))
-  (modify-syntax-entry ?!  "<"    simula-mode-syntax-table)
-  (modify-syntax-entry ?$  "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?%  "< b"  simula-mode-syntax-table)
-  (modify-syntax-entry ?\n "> b"  simula-mode-syntax-table)
-  (modify-syntax-entry ?'  "\""   simula-mode-syntax-table)
-  (modify-syntax-entry ?\( "()"   simula-mode-syntax-table)
-  (modify-syntax-entry ?\) ")("   simula-mode-syntax-table)
-  (modify-syntax-entry ?\; ">"    simula-mode-syntax-table)
-  (modify-syntax-entry ?\[ "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?\\ "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?\] "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?_  "_"    simula-mode-syntax-table)
-  (modify-syntax-entry ?\| "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?\{ "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?\} "."    simula-mode-syntax-table))
+  "Emacs menu for SIMULA mode.")
 
 (defvar simula-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-u"   'simula-backward-up-level)
-    (define-key map "\C-c\C-p"   'simula-previous-statement)
-    (define-key map "\C-c\C-d"   'simula-forward-down-level)
-    (define-key map "\C-c\C-n"   'simula-next-statement)
-    ;; (define-key map "\C-c\C-g"   'simula-goto-definition)
-    ;; (define-key map "\C-c\C-h"   'simula-standard-help)
-    (define-key map "\177"       'backward-delete-char-untabify)
-    (define-key map ":"          'simula-electric-label)
-    (define-key map "\e\C-q"     'simula-indent-exp)
-    (define-key map "\t"         'simula-indent-command)
+    (define-key map "\C-c\C-u"   #'simula-backward-up-level)
+    (define-key map "\C-c\C-p"   #'simula-previous-statement)
+    (define-key map "\C-c\C-d"   #'simula-forward-down-level)
+    (define-key map "\C-c\C-n"   #'simula-next-statement)
+    ;; (define-key map "\C-c\C-g"   #'simula-goto-definition)
+    ;; (define-key map "\C-c\C-h"   #'simula-standard-help)
+    (define-key map "\177"       #'backward-delete-char-untabify)
+    (define-key map ":"          #'simula-electric-label)
+    (define-key map "\e\C-q"     #'simula-indent-exp)
+    ;; (define-key map "\t"         #'simula-indent-command)
     map)
   "Keymap used in `simula-mode'.")
 
@@ -285,8 +284,8 @@ for SIMULA mode to function correctly."
     ["Previous Statement" simula-previous-statement
      :enable (not (bobp))]
     "---"
-    ["Indent Line" simula-indent-command
-     :enable (not buffer-read-only)]
+    ;; ["Indent Line" simula-indent-command
+    ;;  :enable (not buffer-read-only)]
     ["Indent Expression" simula-indent-exp
      :enable (not buffer-read-only)]))
 
@@ -295,9 +294,6 @@ for SIMULA mode to function correctly."
   "Major mode for editing SIMULA code.
 \\{simula-mode-map}
 Variables controlling indentation style:
- `simula-tab-always-indent'
-    Non-nil means TAB in SIMULA mode should always reindent the current line,
-    regardless of where in the line point is when the TAB command is used.
  `simula-indent-level'
     Indentation of SIMULA statements with respect to containing block.
  `simula-substatement-offset'
@@ -335,7 +331,7 @@ with no arguments, if that value is non-nil."
   ;; (setq-local end-comment-column 75)
   (setq-local paragraph-start "[ \t]*$\\|\f")
   (setq-local paragraph-separate paragraph-start)
-  (setq-local indent-line-function 'simula-indent-line)
+  (setq-local indent-line-function #'simula-indent-line)
   (setq-local comment-start "! ")
   (setq-local comment-end " ;")
   (setq-local comment-start-skip "!+ *")
@@ -415,6 +411,7 @@ A numeric argument, regardless of its value, means indent rigidly
 all the lines of the SIMULA statement after point so that this line
 becomes properly indented.
 The relative indentation among the lines of the statement are preserved."
+  (declare (obsolete indent-for-tab-command "28.1"))
   (interactive "P")
   (let ((case-fold-search t))
     (if (or whole-exp simula-tab-always-indent
@@ -1564,30 +1561,6 @@ If not nil and not t, move to limit of search and return nil."
   (simula-install-standard-abbrevs))
 
 ;; Hilit mode support.
-(when (fboundp 'hilit-set-mode-patterns)
-  (when (and (boundp 'hilit-patterns-alist)
-	     (not (assoc 'simula-mode hilit-patterns-alist)))
-    (hilit-set-mode-patterns
-     'simula-mode
-     '(
-       ("^%\\([ \t\f].*\\)?$" nil comment)
-       ("^%include\\>" nil include)
-       ("\"[^\"\n]*\"\\|'.'\\|'![0-9]+!'" nil string)
-       ((regexp-opt '("ACTIVATE" "AFTER" "AND" "ARRAY" "AT" "BEFORE"
-                      "BEGIN" "BOOLEAN" "CHARACTER" "CLASS" "DELAY"
-                      "DO" "ELSE" "END" "EQ" "EQV" "EXTERNAL" "FALSE"
-                      "FOR" "GE" "GO" "GOTO" "GT" "HIDDEN" "IF" "IMP"
-                      "IN" "INNER" "INSPECT" "INTEGER" "IS" "LABEL"
-                      "LE" "LONG" "LT" "NAME" "NE" "NEW" "NONE" "NOT"
-                      "NOTEXT" "OR" "OTHERWISE" "PRIOR" "PROCEDURE"
-                      "PROTECTED" "QUA" "REACTIVATE" "REAL" "REF"
-                      "SHORT" "STEP" "SWITCH" "TEXT" "THEN" "THIS"
-                      "TO" "TRUE" "UNTIL" "VALUE" "VIRTUAL" "WHEN"
-                      "WHILE")
-                    'words)
-        nil keyword)
-       ("!\\|\\<COMMENT\\>" ";" comment))
-     nil 'case-insensitive)))
 
 ;; obsolete
 
@@ -1598,7 +1571,7 @@ If not nil and not t, move to limit of search and return nil."
 			"24.4")
 
 (define-obsolete-function-alias 'simula-submit-bug-report
-  'report-emacs-bug "24.4")
+  #'report-emacs-bug "24.4")
 
 (defun simula-popup-menu (_e)
   "Pops up the SIMULA menu."

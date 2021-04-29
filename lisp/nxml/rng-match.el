@@ -472,7 +472,7 @@ list is nullable and whose cdr is the normalized list."
     (cons nullable
 	  (if sorted
 	      head
-	    (rng-uniquify-eq (sort head 'rng-compare-ipattern))))))
+            (seq-uniq (sort head 'rng-compare-ipattern) #'eq)))))
 
 (defun rng-compare-ipattern (p1 p2)
   (< (rng--ipattern-index p1)

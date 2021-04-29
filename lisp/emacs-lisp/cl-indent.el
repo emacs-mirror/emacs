@@ -27,7 +27,7 @@
 
 ;; This package supplies a single entry point, common-lisp-indent-function,
 ;; which performs indentation in the preferred style for Common Lisp code.
-;; It is also a suitable function for indenting Emacs lisp code.
+;; It is also a suitable function for indenting Emacs Lisp code.
 ;;
 ;; To enable it:
 ;;

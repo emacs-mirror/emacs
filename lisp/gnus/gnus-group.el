@@ -2462,7 +2462,8 @@ the ephemeral group."
             (with-temp-file tmpfile
               (mm-disable-multibyte)
               (dolist (id ids)
-                (let ((file (concat "~/.emacs.d/debbugs-cache/" id)))
+                (let ((file (expand-file-name id (locate-user-emacs-file
+                                                  "debbugs-cache"))))
                   (if (and (not gnus-plugged)
                            (file-exists-p file))
                       (insert-file-contents file)
@@ -4697,20 +4698,20 @@ This command may read the active file."
     (gnus-cache-open))
   (funcall gnus-group-prepare-function
 	   (or level gnus-level-subscribed)
-	   #'(lambda (info)
-	       (let ((marks (gnus-info-marks info)))
-		 (assq 'cache marks)))
+           (lambda (info)
+             (let ((marks (gnus-info-marks info)))
+               (assq 'cache marks)))
 	   lowest
-	   #'(lambda (group)
-	       (or (gethash group
-			    gnus-cache-active-hashtb)
-		   ;; Cache active file might use "."
-		   ;; instead of ":".
-		   (gethash
-		    (mapconcat #'identity
-			       (split-string group ":")
-			       ".")
-		    gnus-cache-active-hashtb))))
+           (lambda (group)
+             (or (gethash group
+                          gnus-cache-active-hashtb)
+                 ;; Cache active file might use "."
+                 ;; instead of ":".
+                 (gethash
+                  (mapconcat #'identity
+                             (split-string group ":")
+                             ".")
+                  gnus-cache-active-hashtb))))
   (goto-char (point-min))
   (gnus-group-position-point))
 
@@ -4728,9 +4729,9 @@ This command may read the active file."
     (gnus-cache-open))
   (funcall gnus-group-prepare-function
 	   (or level gnus-level-subscribed)
-	   #'(lambda (info)
-	       (let ((marks (gnus-info-marks info)))
-		 (assq 'dormant marks)))
+           (lambda (info)
+             (let ((marks (gnus-info-marks info)))
+               (assq 'dormant marks)))
 	   lowest
 	   'ignore)
   (goto-char (point-min))
@@ -4750,9 +4751,9 @@ This command may read the active file."
     (gnus-cache-open))
   (funcall gnus-group-prepare-function
 	   (or level gnus-level-subscribed)
-	   #'(lambda (info)
-	       (let ((marks (gnus-info-marks info)))
-		 (assq 'tick marks)))
+           (lambda (info)
+             (let ((marks (gnus-info-marks info)))
+               (assq 'tick marks)))
 	   lowest
 	   'ignore)
   (goto-char (point-min))

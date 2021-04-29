@@ -1,4 +1,4 @@
-;;; mh-search  ---  MH-Search mode  -*- lexical-binding: t; -*-
+;;; mh-search.el --- MH-Search mode  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1993, 1995, 2001-2021 Free Software Foundation, Inc.
 
@@ -38,8 +38,6 @@
 ;;      read the documentation for `mh-search' to get started. That
 ;;      documentation will direct you to the specific instructions for
 ;;      your particular searcher.
-
-;;; Change Log:
 
 ;;; Code:
 
@@ -274,23 +272,23 @@ folder containing the index search results."
                             t)))
 
         ;; Copy the search results over.
-        (maphash #'(lambda (folder msgs)
-                     (let ((cur (car (mh-translate-range folder "cur")))
-                           (msgs (sort (cl-loop
-                                        for msg being the hash-keys of msgs
-                                        collect msg)
-                                       #'<)))
-                       (mh-exec-cmd "refile" msgs "-src" folder
-                                    "-link" index-folder)
-                       ;; Restore cur to old value, that refile changed
-                       (when cur
-                         (mh-exec-cmd-quiet nil "mark" folder "-add" "-zero"
-                                            "-sequence"
-                                            "cur" (format "%s" cur)))
-                       (cl-loop for msg in msgs
-                                do (cl-incf result-count)
-                                (setf (gethash result-count origin-map)
-                                      (cons folder msg)))))
+        (maphash (lambda (folder msgs)
+                   (let ((cur (car (mh-translate-range folder "cur")))
+                         (msgs (sort (cl-loop
+                                      for msg being the hash-keys of msgs
+                                      collect msg)
+                                     #'<)))
+                     (mh-exec-cmd "refile" msgs "-src" folder
+                                  "-link" index-folder)
+                     ;; Restore cur to old value, that refile changed
+                     (when cur
+                       (mh-exec-cmd-quiet nil "mark" folder "-add" "-zero"
+                                          "-sequence"
+                                          "cur" (format "%s" cur)))
+                     (cl-loop for msg in msgs
+                              do (cl-incf result-count)
+                              (setf (gethash result-count origin-map)
+                                    (cons folder msg)))))
                  folder-results-map)
 
         ;; Vist the results folder.
@@ -1136,10 +1134,10 @@ REGEXP-LIST is an alist of fields and values."
         ((atom (cadr expr)) `(or (and ,expr)))
         ((eq (caadr expr) 'not) (mh-mairix-convert-to-sop* (cadadr expr)))
         ((eq (caadr expr) 'and) (mh-mairix-convert-to-sop*
-                                 `(or ,@(mapcar #'(lambda (x) `(not ,x))
+                                 `(or ,@(mapcar (lambda (x) `(not ,x))
                                                 (cdadr expr)))))
         ((eq (caadr expr) 'or) (mh-mairix-convert-to-sop*
-                                `(and ,@(mapcar #'(lambda (x) `(not ,x))
+                                `(and ,@(mapcar (lambda (x) `(not ,x))
                                                 (cdadr expr)))))
         (t (error "Unreachable: %s" expr))))
 
@@ -1620,7 +1618,7 @@ garbled."
     (cl-loop for seq in seq-list
              do (apply #'mh-exec-cmd "mark" mh-current-folder
                        "-sequence" (symbol-name (car seq)) "-add"
-                       (mapcar #'(lambda (x) (format "%s" x)) (cdr seq))))))
+                       (mapcar (lambda (x) (format "%s" x)) (cdr seq))))))
 
 ;;;###mh-autoload
 (defun mh-create-sequence-map (seq-list)
@@ -1945,4 +1943,4 @@ folder buffer."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;;; mh-search ends here
+;;; mh-search.el ends here

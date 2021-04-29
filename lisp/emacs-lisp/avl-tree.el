@@ -74,7 +74,7 @@
   cmpfun)
 
 (defmacro avl-tree--root (tree)
-  ;; Return the root node for an AVL tree.  INTERNAL USE ONLY.
+  "Return the root node for an AVL TREE.  INTERNAL USE ONLY."
   `(avl-tree--node-left (avl-tree--dummyroot ,tree)))
 
 ;; ----------------------------------------------------------------
@@ -117,11 +117,11 @@ NODE is the node, and BRANCH is the branch.
   `(- 1 ,dir))
 
 (defmacro avl-tree--dir-to-sign (dir)
-  "Convert direction (0,1) to sign factor (-1,+1)."
+  "Convert direction DIR (0,1) to sign factor (-1,+1)."
   `(1- (* 2 ,dir)))
 
 (defmacro avl-tree--sign-to-dir (dir)
-  "Convert sign factor (-x,+x) to direction (0,1)."
+  "Convert sign factor in DIR (-x,+x) to direction (0,1)."
   `(if (< ,dir 0) 0 1))
 
 
@@ -129,7 +129,7 @@ NODE is the node, and BRANCH is the branch.
 ;;                          Deleting data
 
 (defun avl-tree--del-balance (node branch dir)
-  "Rebalance a tree after deleting a node.
+  "Rebalance a tree after deleting a NODE.
 The deletion was done from the left (DIR=0) or right (DIR=1) sub-tree
 of the left (BRANCH=0) or right (BRANCH=1) child of NODE.
 Return t if the height of the tree has shrunk."
@@ -247,9 +247,9 @@ the related data."
 ;;                           Entering data
 
 (defun avl-tree--enter-balance (node branch dir)
-  "Rebalance tree after an insertion
-into the left (DIR=0) or right (DIR=1) sub-tree of the
-left (BRANCH=0) or right (BRANCH=1) child of NODE.
+  "Rebalance tree after insertion of NODE.
+NODE was inserted into the left (DIR=0) or right (DIR=1) sub-tree
+of the left (BRANCH=0) or right (BRANCH=1) child of NODE.
 Return t if the height of the tree has grown."
   (let ((br (avl-tree--node-branch node branch))
 	;; opposite direction: 0,1 -> 1,0
@@ -337,7 +337,7 @@ inserted data."
       ))))
 
 (defun avl-tree--check (tree)
-  "Check the tree's balance."
+  "Check the balance of TREE."
   (avl-tree--check-node (avl-tree--root tree)))
 (defun avl-tree--check-node (node)
   (if (null node) 0
@@ -379,7 +379,8 @@ itself."
 
 ;;; INTERNAL USE ONLY
 (defun avl-tree--do-copy (root)
-  "Copy the AVL tree with ROOT as root.  Highly recursive."
+  "Copy the AVL tree wiath ROOT as root.
+This function is highly recursive."
   (if (null root)
       nil
     (avl-tree--node-create
@@ -405,8 +406,9 @@ itself."
 \n(fn OBJ)")
 
 (defun avl-tree--stack-repopulate (stack)
-  ;; Recursively push children of the node at the head of STACK onto the
-  ;; front of the STACK, until a leaf is reached.
+  "Recursively push children of STACK onto the front.
+This pushes the children of the node at the head of STACK onto
+the front of STACK, until a leaf node is reached."
   (let ((node (car (avl-tree--stack-store stack)))
 	(dir (if (avl-tree--stack-reverse stack) 1 0)))
     (when node  ; check for empty stack
@@ -429,7 +431,7 @@ and returns non-nil if A is less than B, and nil otherwise.
 \n(fn TREE)")
 
 (defun avl-tree-empty (tree)
-  "Return t if AVL tree TREE is empty, otherwise return nil."
+  "Return t if AVL TREE is empty, otherwise return nil."
   (null (avl-tree--root tree)))
 
 (defun avl-tree-enter (tree data &optional updatefun)
@@ -451,7 +453,7 @@ Returns the new data."
 			   0 data updatefun)))
 
 (defun avl-tree-delete (tree data &optional test nilflag)
-  "Delete the element matching DATA from the AVL tree TREE.
+  "Delete the element matching DATA from the AVL TREE.
 Matching uses the comparison function previously specified in
 `avl-tree-create' when TREE was created.
 
@@ -473,7 +475,7 @@ value is non-nil."
 
 
 (defun avl-tree-member (tree data &optional nilflag)
-  "Return the element in the AVL tree TREE which matches DATA.
+  "Return the element in the AVL TREE which matches DATA.
 Matching uses the comparison function previously specified in
 `avl-tree-create' when TREE was created.
 
@@ -496,7 +498,7 @@ for you.)"
 
 
 (defun avl-tree-member-p (tree data)
-  "Return t if an element matching DATA exists in the AVL tree TREE.
+  "Return t if an element matching DATA exists in the AVL TREE.
 Otherwise return nil.  Matching uses the comparison function
 previously specified in `avl-tree-create' when TREE was created."
   (let ((flag '(nil)))
@@ -504,13 +506,13 @@ previously specified in `avl-tree-create' when TREE was created."
 
 
 (defun avl-tree-map (fun tree &optional reverse)
-  "Modify all elements in the AVL tree TREE by applying FUNCTION.
+  "Modify all elements in the AVL TREE by applying function FUN.
 
-Each element is replaced by the return value of FUNCTION applied
-to that element.
+Each element is replaced by the return value of FUN applied to
+that element.
 
-FUNCTION is applied to the elements in ascending order, or
-descending order if REVERSE is non-nil."
+FUN is applied to the elements in ascending order, or descending
+order if REVERSE is non-nil."
   (avl-tree--mapc
    (lambda (node)
      (setf (avl-tree--node-data node)
@@ -520,8 +522,7 @@ descending order if REVERSE is non-nil."
 
 
 (defun avl-tree-mapc (fun tree &optional reverse)
-  "Apply FUNCTION to all elements in AVL tree TREE,
-for side-effect only.
+  "Apply function FUN to all elements in AVL TREE, for side-effect only.
 
 FUNCTION is applied to the elements in ascending order, or
 descending order if REVERSE is non-nil."
@@ -534,8 +535,7 @@ descending order if REVERSE is non-nil."
 
 (defun avl-tree-mapf
   (fun combinator tree &optional reverse)
-  "Apply FUNCTION to all elements in AVL tree TREE,
-and combine the results using COMBINATOR.
+  "Apply FUN to all elements in AVL TREE, combine results using COMBINATOR.
 
 The FUNCTION is applied and the results are combined in ascending
 order, or descending order if REVERSE is non-nil."
@@ -553,8 +553,7 @@ order, or descending order if REVERSE is non-nil."
 
 
 (defun avl-tree-mapcar (fun tree &optional reverse)
-  "Apply function FUN to all elements in AVL tree TREE,
-and make a list of the results.
+  "Apply FUN to all elements in AVL TREE, and make a list of the results.
 
 The function is applied and the list constructed in ascending
 order, or descending order if REVERSE is non-nil.
@@ -586,7 +585,7 @@ is more efficient."
       (avl-tree--node-data node))))
 
 (defun avl-tree-copy (tree)
-  "Return a copy of the AVL tree TREE."
+  "Return a copy of the AVL TREE."
   (let ((new-tree (avl-tree-create (avl-tree--cmpfun tree))))
     (setf (avl-tree--root new-tree) (avl-tree--do-copy (avl-tree--root tree)))
     new-tree))
@@ -608,13 +607,12 @@ is more efficient."
     treesize))
 
 (defun avl-tree-clear (tree)
-  "Clear the AVL tree TREE."
+  "Clear the AVL TREE."
   (setf (avl-tree--root tree) nil))
 
 
 (defun avl-tree-stack (tree &optional reverse)
-  "Return an object that behaves like a sorted stack
-of all elements of TREE.
+  "Return an object that behaves like a sorted stack of all elements of TREE.
 
 If REVERSE is non-nil, the stack is sorted in reverse order.
 \(See also `avl-tree-stack-pop').
@@ -655,8 +653,7 @@ a null element stored in the AVL tree.)"
 
 
 (defun avl-tree-stack-first (avl-tree-stack &optional nilflag)
-  "Return the first element of AVL-TREE-STACK, without removing it
-from the stack.
+  "Return the first element of AVL-TREE-STACK, without removing it from stack.
 
 Returns nil if the stack is empty, or NILFLAG if specified.
 \(The latter allows an empty stack to be distinguished from

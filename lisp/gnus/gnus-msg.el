@@ -415,11 +415,12 @@ only affect the Gcc copy, but not the original message."
 			     gnus-article-reply)))
 	   (,oarticle gnus-article-reply)
 	   (,yanked gnus-article-yanked-articles)
-	   (,group (when gnus-article-reply
-		     (or (nnselect-article-group
-			  (or (car-safe gnus-article-reply)
-			      gnus-article-reply))
-			 gnus-newsgroup-name)))
+           (,group (if gnus-article-reply
+		       (or (nnselect-article-group
+			    (or (car-safe gnus-article-reply)
+			        gnus-article-reply))
+                           gnus-newsgroup-name)
+                     gnus-newsgroup-name))
 	   (message-header-setup-hook
 	    (copy-sequence message-header-setup-hook))
 	   (mbl mml-buffer-list)

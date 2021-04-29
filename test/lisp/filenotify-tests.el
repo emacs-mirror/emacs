@@ -117,8 +117,9 @@ There are different timeouts for local and remote file notification libraries."
 (defun file-notify--test-timeout ()
   "Timeout to wait for arriving a bunch of events, in seconds."
   (cond
+   ((file-remote-p temporary-file-directory) 20)
    ((eq system-type 'cygwin) 10)
-   ((file-remote-p temporary-file-directory) 6)
+   ((getenv "EMACS_EMBA_CI") 10)
    ((string-equal (file-notify--test-library) "w32notify") 4)
    (t 3)))
 

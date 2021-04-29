@@ -182,7 +182,7 @@ by counted more than once."
 
 (cl-defmethod memory-report--object-size-1 (_ (value symbol))
   ;; Don't count global symbols -- makes sizes of lists of symbols too
-  ;; heavey.
+  ;; heavy.
   (if (intern-soft value obarray)
       0
     (memory-report--size 'symbol)))
@@ -214,14 +214,14 @@ by counted more than once."
       (setf (gethash value counted) t)
       (when (car value)
         (cl-incf total (memory-report--object-size counted (car value))))
-      (if (cdr value)
-          (if (consp (cdr value))
-              (if (gethash (cdr value) counted)
-                  (setq value nil)
-                (setq value (cdr value)))
-            (cl-incf total (memory-report--object-size counted (cdr value)))
-            (setq value nil))
-        (setq value nil)))
+      (let ((next (cdr value)))
+        (setq value (when next
+                      (if (consp next)
+                          (unless (gethash next counted)
+                            (cdr value))
+                        (cl-incf total (memory-report--object-size
+                                        counted next))
+                        nil)))))
     total))
 
 (cl-defmethod memory-report--object-size-1 (counted (value vector))

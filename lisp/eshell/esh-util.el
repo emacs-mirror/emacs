@@ -23,6 +23,7 @@
 
 ;;; Code:
 
+(require 'seq)
 (eval-when-compile (require 'cl-lib))
 
 (defgroup eshell-util nil
@@ -37,25 +38,21 @@
 If nil, t will be represented only in the exit code of the function,
 and not printed as a string.  This causes Lisp functions to behave
 similarly to external commands, as far as successful result output."
-  :type 'boolean
-  :group 'eshell-util)
+  :type 'boolean)
 
 (defcustom eshell-group-file "/etc/group"
   "If non-nil, the name of the group file on your system."
-  :type '(choice (const :tag "No group file" nil) file)
-  :group 'eshell-util)
+  :type '(choice (const :tag "No group file" nil) file))
 
 (defcustom eshell-passwd-file "/etc/passwd"
   "If non-nil, the name of the passwd file on your system."
-  :type '(choice (const :tag "No passwd file" nil) file)
-  :group 'eshell-util)
+  :type '(choice (const :tag "No passwd file" nil) file))
 
 (defcustom eshell-hosts-file "/etc/hosts"
   "The name of the /etc/hosts file.
 Use `pcomplete-hosts-file' instead; this variable is obsolete and
 has no effect."
-  :type '(choice (const :tag "No hosts file" nil) file)
-  :group 'eshell-util)
+  :type '(choice (const :tag "No hosts file" nil) file))
 ;; Don't make it into an alias, because it doesn't really work with
 ;; custom and risks creating duplicate entries.  Just point users to
 ;; the other variable, which is less frustrating.
@@ -64,25 +61,21 @@ has no effect."
 (defcustom eshell-handle-errors t
   "If non-nil, Eshell will handle errors itself.
 Setting this to nil is offered as an aid to debugging only."
-  :type 'boolean
-  :group 'eshell-util)
+  :type 'boolean)
 
 (defcustom eshell-private-file-modes 384 ; umask 177
   "The file-modes value to use for creating \"private\" files."
-  :type 'integer
-  :group 'eshell-util)
+  :type 'integer)
 
 (defcustom eshell-private-directory-modes 448 ; umask 077
   "The file-modes value to use for creating \"private\" directories."
-  :type 'integer
-  :group 'eshell-util)
+  :type 'integer)
 
 (defcustom eshell-tar-regexp
   "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|xz\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
   "Regular expression used to match tar file names."
   :version "24.1"			; added xz
-  :type 'regexp
-  :group 'eshell-util)
+  :type 'regexp)
 
 (defcustom eshell-convert-numeric-arguments t
   "If non-nil, converting arguments of numeric form to Lisp numbers.
@@ -99,16 +92,14 @@ following in your init file:
 Any function with the property `eshell-no-numeric-conversions' set to
 a non-nil value, will be passed strings, not numbers, even when an
 argument matches `eshell-number-regexp'."
-  :type 'boolean
-  :group 'eshell-util)
+  :type 'boolean)
 
 (defcustom eshell-number-regexp "-?\\([0-9]*\\.\\)?[0-9]+\\(e[-0-9.]+\\)?"
   "Regular expression used to match numeric arguments.
 If `eshell-convert-numeric-arguments' is non-nil, and an argument
 matches this regexp, it will be converted to a Lisp number, using the
 function `string-to-number'."
-  :type 'regexp
-  :group 'eshell-util)
+  :type 'regexp)
 
 (defcustom eshell-ange-ls-uids nil
   "List of user/host/id strings, used to determine remote ownership."
@@ -116,8 +107,7 @@ function `string-to-number'."
 		       (string :tag "Hostname")
 		       (repeat (cons :tag "User/UID List"
 				     (string :tag "Username")
-				     (repeat :tag "UIDs" string)))))
-  :group 'eshell-util)
+				     (repeat :tag "UIDs" string))))))
 
 ;;; Internal Variables:
 
@@ -223,18 +213,6 @@ then quoting is done by a backslash, rather than a doubled delimiter."
 	      (string-to-number string)
 	    string))))))
 
-(defun eshell-sublist (l &optional n m)
-  "Return from LIST the N to M elements.
-If N or M is nil, it means the end of the list."
-  (let ((a (copy-sequence l)))
-    (if (and m (consp (nthcdr m a)))
-	(setcdr (nthcdr m a) nil))
-    (if n
-	(setq a (nthcdr n a))
-      (setq n (1- (length a))
-	    a (last a)))
-    a))
-
 (defvar-local eshell-path-env (getenv "PATH")
   "Content of $PATH.
 It might be different from \(getenv \"PATH\"), when
@@ -303,20 +281,6 @@ Prepend remote identification of `default-directory', if any."
 
 (define-obsolete-function-alias 'eshell-flatten-list #'flatten-tree "27.1")
 
-(defun eshell-uniquify-list (l)
-  "Remove occurring multiples in L.  You probably want to sort first."
-  (let ((m l))
-    (while m
-      (while (and (cdr m)
-		  (string= (car m)
-			   (cadr m)))
-	(setcdr m (cddr m)))
-      (setq m (cdr m))))
-  l)
-(define-obsolete-function-alias
-  'eshell-uniqify-list
-  'eshell-uniquify-list "27.1")
-
 (defun eshell-stringify (object)
   "Convert OBJECT into a string value."
   (cond
@@ -334,11 +298,11 @@ Prepend remote identification of `default-directory', if any."
 
 (defsubst eshell-stringify-list (args)
   "Convert each element of ARGS into a string value."
-  (mapcar 'eshell-stringify args))
+  (mapcar #'eshell-stringify args))
 
 (defsubst eshell-flatten-and-stringify (&rest args)
   "Flatten and stringify all of the ARGS into a single string."
-  (mapconcat 'eshell-stringify (flatten-tree args) " "))
+  (mapconcat #'eshell-stringify (flatten-tree args) " "))
 
 (defsubst eshell-directory-files (regexp &optional directory)
   "Return a list of files in the given DIRECTORY matching REGEXP."
@@ -497,7 +461,7 @@ list."
 
 (defsubst eshell-copy-environment ()
   "Return an unrelated copy of `process-environment'."
-  (mapcar 'concat process-environment))
+  (mapcar #'concat process-environment))
 
 (defun eshell-subgroups (groupsym)
   "Return all of the subgroups of GROUPSYM."
@@ -645,73 +609,81 @@ gid format.  Valid values are `string' and `integer', defaulting to
   "If the `processp' function does not exist, PROC is not a process."
   (and (fboundp 'processp) (processp proc)))
 
-; (defun eshell-copy-file
-;   (file newname &optional ok-if-already-exists keep-date)
-;   "Copy FILE to NEWNAME.  See docs for `copy-file'."
-;   (let (copied)
-;     (if (string-match "\\`\\([^:]+\\):\\(.*\\)" file)
-;	(let ((front (match-string 1 file))
-;	      (back (match-string 2 file))
-;	      buffer)
-;	  (if (and front (string-match eshell-tar-regexp front)
-;		     (setq buffer (find-file-noselect front)))
-;	    (with-current-buffer buffer
-;	      (goto-char (point-min))
-;	      (if (re-search-forward (concat " " (regexp-quote back)
-;					     "$") nil t)
-;		  (progn
-;		    (tar-copy (if (file-directory-p newname)
-;				  (expand-file-name
-;				   (file-name-nondirectory back) newname)
-;				newname))
-;		    (setq copied t))
-;		(error "%s not found in tar file %s" back front))))))
-;     (unless copied
-;       (copy-file file newname ok-if-already-exists keep-date))))
+;; (defun eshell-copy-file
+;;   (file newname &optional ok-if-already-exists keep-date)
+;;   "Copy FILE to NEWNAME.  See docs for `copy-file'."
+;;   (let (copied)
+;;     (if (string-match "\\`\\([^:]+\\):\\(.*\\)" file)
+;;	(let ((front (match-string 1 file))
+;;	      (back (match-string 2 file))
+;;	      buffer)
+;;	  (if (and front (string-match eshell-tar-regexp front)
+;;		     (setq buffer (find-file-noselect front)))
+;;	    (with-current-buffer buffer
+;;	      (goto-char (point-min))
+;;	      (if (re-search-forward (concat " " (regexp-quote back)
+;;					     "$") nil t)
+;;		  (progn
+;;		    (tar-copy (if (file-directory-p newname)
+;;				  (expand-file-name
+;;				   (file-name-nondirectory back) newname)
+;;				newname))
+;;		    (setq copied t))
+;;		(error "%s not found in tar file %s" back front))))))
+;;     (unless copied
+;;       (copy-file file newname ok-if-already-exists keep-date))))
 
-; (defun eshell-file-attributes (filename)
-;   "Return a list of attributes of file FILENAME.
-; See the documentation for `file-attributes'."
-;   (let (result)
-;     (when (string-match "\\`\\([^:]+\\):\\(.*\\)\\'" filename)
-;       (let ((front (match-string 1 filename))
-;	    (back (match-string 2 filename))
-;	    buffer)
-;	(when (and front (string-match eshell-tar-regexp front)
-;		   (setq buffer (find-file-noselect front)))
-;	  (with-current-buffer buffer
-;	    (goto-char (point-min))
-;	    (when (re-search-forward (concat " " (regexp-quote back)
-;					     "\\s-*$") nil t)
-;	      (let* ((descrip (tar-current-descriptor))
-;		     (tokens (tar-desc-tokens descrip)))
-;		(setq result
-;		      (list
-;		       (cond
-;			((eq (tar-header-link-type tokens) 5)
-;			 t)
-;			((eq (tar-header-link-type tokens) t)
-;			 (tar-header-link-name tokens)))
-;		       1
-;		       (tar-header-uid tokens)
-;		       (tar-header-gid tokens)
-;		       (tar-header-date tokens)
-;		       (tar-header-date tokens)
-;		       (tar-header-date tokens)
-;		       (tar-header-size tokens)
-;		       (concat
-;			(cond
-;			 ((eq (tar-header-link-type tokens) 5) "d")
-;			 ((eq (tar-header-link-type tokens) t) "l")
-;			 (t "-"))
-;			(tar-grind-file-mode (tar-header-mode tokens)
-;					     (make-string 9 ? ) 0))
-;		       nil nil nil))))))))
-;     (or result
-;	(file-attributes filename))))
+;; (defun eshell-file-attributes (filename)
+;;   "Return a list of attributes of file FILENAME.
+;; See the documentation for `file-attributes'."
+;;   (let (result)
+;;     (when (string-match "\\`\\([^:]+\\):\\(.*\\)\\'" filename)
+;;       (let ((front (match-string 1 filename))
+;;	    (back (match-string 2 filename))
+;;	    buffer)
+;;	(when (and front (string-match eshell-tar-regexp front)
+;;		   (setq buffer (find-file-noselect front)))
+;;	  (with-current-buffer buffer
+;;	    (goto-char (point-min))
+;;	    (when (re-search-forward (concat " " (regexp-quote back)
+;;					     "\\s-*$") nil t)
+;;	      (let* ((descrip (tar-current-descriptor))
+;;		     (tokens (tar-desc-tokens descrip)))
+;;		(setq result
+;;		      (list
+;;		       (cond
+;;			((eq (tar-header-link-type tokens) 5)
+;;			 t)
+;;			((eq (tar-header-link-type tokens) t)
+;;			 (tar-header-link-name tokens)))
+;;		       1
+;;		       (tar-header-uid tokens)
+;;		       (tar-header-gid tokens)
+;;		       (tar-header-date tokens)
+;;		       (tar-header-date tokens)
+;;		       (tar-header-date tokens)
+;;		       (tar-header-size tokens)
+;;		       (file-modes-number-to-symbolic
+;;                       (logior (tar-header-mode tokens)
+;;			        (cond
+;;			         ((eq (tar-header-link-type tokens) 5) 16384)
+;;			         ((eq (tar-header-link-type tokens) t) 32768))))
+;;		       nil nil nil))))))))
+;;     (or result
+;;	(file-attributes filename))))
 
+;; Obsolete.
+
+(define-obsolete-function-alias 'eshell-uniquify-list #'seq-uniq "28.1")
+(define-obsolete-function-alias 'eshell-uniqify-list #'seq-uniq "28.1")
 (define-obsolete-function-alias 'eshell-copy-tree #'copy-tree "28.1")
 (define-obsolete-function-alias 'eshell-user-name #'user-login-name "28.1")
+
+(defun eshell-sublist (l &optional n m)
+  "Return from LIST the N to M elements.
+If N or M is nil, it means the end of the list."
+  (declare (obsolete seq-subseq "28.1"))
+  (seq-subseq l n (1+ m)))
 
 (provide 'esh-util)
 

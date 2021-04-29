@@ -172,6 +172,29 @@ This allows you to resume earlier Isearch sessions through the
 command history."
   :type 'boolean)
 
+(defcustom isearch-wrap-pause t
+  "Define the behavior of wrapping when there are no more matches.
+When `t' (by default), signal an error when no more matches are found.
+Then after repeating the search, wrap with `isearch-wrap-function'.
+When `no', wrap immediately after reaching the last match.
+When `no-ding', wrap immediately without flashing the screen.
+When `nil', never wrap, just stop at the last match."
+  :type '(choice (const :tag "Pause before wrapping" t)
+                 (const :tag "No pause before wrapping" no)
+                 (const :tag "No pause and no flashing" no-ding)
+                 (const :tag "Disable wrapping" nil))
+  :version "28.1")
+
+(defcustom isearch-repeat-on-direction-change nil
+  "Whether a direction change should move to another match.
+When `nil', the default, a direction change moves point to the other
+end of the current search match.
+When `t', a direction change moves to another search match, if there
+is one."
+  :type '(choice (const :tag "Remain on the same match" nil)
+                 (const :tag "Move to another match" t))
+  :version "28.1")
+
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
 
@@ -949,12 +972,13 @@ Each element is an `isearch--state' struct where the slots are
 (defvar-local isearch-mode nil) ;; Name of the minor mode, if non-nil.
 
 (define-key global-map "\C-s" 'isearch-forward)
-(define-key esc-map "\C-s" 'isearch-forward-regexp)
+(define-key esc-map    "\C-s" 'isearch-forward-regexp)
 (define-key global-map "\C-r" 'isearch-backward)
-(define-key esc-map "\C-r" 'isearch-backward-regexp)
-(define-key search-map "w" 'isearch-forward-word)
-(define-key search-map "_" 'isearch-forward-symbol)
-(define-key search-map "." 'isearch-forward-symbol-at-point)
+(define-key esc-map    "\C-r" 'isearch-backward-regexp)
+(define-key search-map    "w" 'isearch-forward-word)
+(define-key search-map    "_" 'isearch-forward-symbol)
+(define-key search-map    "." 'isearch-forward-symbol-at-point)
+(define-key search-map "\M-." 'isearch-forward-thing-at-point)
 
 ;; Entry points to isearch-mode.
 
@@ -1131,6 +1155,42 @@ positive, or search for ARGth symbol backward if ARG is negative."
         (isearch-repeat-forward count)))
      (t
       (setq isearch-error "No symbol at point")
+      (isearch-push-state)
+      (isearch-update)))))
+
+(defcustom isearch-forward-thing-at-point '(region url symbol sexp)
+  "A list of symbols to try to get the \"thing\" at point.
+Each element of the list should be one of the symbols supported by
+`bounds-of-thing-at-point'.  This variable is used by the command
+`isearch-forward-thing-at-point' to yank the initial \"thing\"
+as text to the search string."
+  :type '(repeat (symbol :tag "Thing symbol"))
+  :version "28.1")
+
+(defun isearch-forward-thing-at-point ()
+  "Do incremental search forward for the \"thing\" found near point.
+Like ordinary incremental search except that the \"thing\" found at point
+is added to the search string initially.  The \"thing\" is defined by
+`bounds-of-thing-at-point'.  You can customize the variable
+`isearch-forward-thing-at-point' to define a list of symbols to try
+to find a \"thing\" at point.  For example, when the list contains
+the symbol `region' and the region is active, then text from the
+active region is added to the search string."
+  (interactive)
+  (isearch-forward nil 1)
+  (let ((bounds (seq-some (lambda (thing)
+                            (bounds-of-thing-at-point thing))
+                          isearch-forward-thing-at-point)))
+    (cond
+     (bounds
+      (when (use-region-p)
+        (deactivate-mark))
+      (when (< (car bounds) (point))
+	(goto-char (car bounds)))
+      (isearch-yank-string
+       (buffer-substring-no-properties (car bounds) (cdr bounds))))
+     (t
+      (setq isearch-error "No thing at point")
       (isearch-push-state)
       (isearch-update)))))
 
@@ -1314,7 +1374,8 @@ The last thing is to trigger a new round of lazy highlighting."
 		    ;; the X coordinate it returns is 1 pixel beyond
 		    ;; the last visible one.
 		    (>= (car visible-p)
-                        (* (window-max-chars-per-line) (frame-char-width))))
+                        (* (window-max-chars-per-line) (frame-char-width)))
+                    (< (car visible-p) 0))
 		(set-window-hscroll (selected-window) current-scroll))))
 	(if isearch-other-end
             (if (< isearch-other-end (point)) ; isearch-forward?
@@ -1827,14 +1888,15 @@ Use `isearch-exit' to quit without signaling."
 	    ;; After taking the last element, adjust ring to previous one.
 	    (isearch-ring-adjust1 nil))
 	;; If already have what to search for, repeat it.
-	(or isearch-success
-	    (progn
-	      ;; Set isearch-wrapped before calling isearch-wrap-function
-	      (setq isearch-wrapped t)
-	      (if isearch-wrap-function
-		  (funcall isearch-wrap-function)
-	        (goto-char (if isearch-forward (point-min) (point-max)))))))
+	(unless (or isearch-success (null isearch-wrap-pause))
+	  ;; Set isearch-wrapped before calling isearch-wrap-function
+	  (setq isearch-wrapped t)
+	  (if isearch-wrap-function
+	      (funcall isearch-wrap-function)
+	    (goto-char (if isearch-forward (point-min) (point-max))))))
     ;; C-s in reverse or C-r in forward, change direction.
+    (if (and isearch-other-end isearch-repeat-on-direction-change)
+        (goto-char isearch-other-end))
     (setq isearch-forward (not isearch-forward)
 	  isearch-success t))
 
@@ -1844,7 +1906,8 @@ Use `isearch-exit' to quit without signaling."
       (setq isearch-success t)
     ;; For the case when count > 1, don't keep intermediate states
     ;; added to isearch-cmds by isearch-push-state in this loop.
-    (let ((isearch-cmds isearch-cmds))
+    (let ((isearch-cmds isearch-cmds)
+          (was-success isearch-success))
       (while (<= 0 (setq count (1- (or count 1))))
 	(if (and isearch-success
 		 (equal (point) isearch-other-end)
@@ -1859,13 +1922,26 @@ Use `isearch-exit' to quit without signaling."
 	      (forward-char (if isearch-forward 1 -1))
 	      (isearch-search))
 	  (isearch-search))
-	(when (> count 0)
-	  ;; Update isearch-cmds, so if isearch-search fails later,
-	  ;; it can restore old successful state from isearch-cmds.
-	  (isearch-push-state))
-	;; Stop looping on failure.
-	(when (or (not isearch-success) isearch-error)
-	  (setq count 0)))))
+	  (when (> count 0)
+	    ;; Update isearch-cmds, so if isearch-search fails later,
+	    ;; it can restore old successful state from isearch-cmds.
+	    (isearch-push-state))
+          (cond
+           ;; Wrap immediately and repeat the search again
+           ((memq isearch-wrap-pause '(no no-ding))
+            (if isearch-success
+                (setq was-success isearch-success)
+              ;; If failed this time after succeeding last time
+              (when was-success
+                (setq was-success nil)
+                (setq count (1+ count)) ;; Increment to force repeat
+                (setq isearch-wrapped t)
+                (if isearch-wrap-function
+                    (funcall isearch-wrap-function)
+                  (goto-char (if isearch-forward (point-min) (point-max)))))))
+           ;; Stop looping on failure
+           (t (when (or (not isearch-success) isearch-error)
+                (setq count 0)))))))
 
   (isearch-push-state)
   (isearch-update))
@@ -1884,10 +1960,12 @@ of the buffer, type \\[isearch-beginning-of-buffer] with a numeric argument."
         (cond ((< count 0)
                (isearch-repeat-backward (abs count))
                ;; Reverse the direction back
-               (isearch-repeat 'forward))
+               (let ((isearch-repeat-on-direction-change nil))
+                 (isearch-repeat 'forward)))
               (t
                ;; Take into account one iteration to reverse direction
-               (when (not isearch-forward) (setq count (1+ count)))
+               (unless isearch-repeat-on-direction-change
+                 (when (not isearch-forward) (setq count (1+ count))))
                (isearch-repeat 'forward count))))
     (isearch-repeat 'forward)))
 
@@ -1905,10 +1983,12 @@ of the buffer, type \\[isearch-end-of-buffer] with a numeric argument."
         (cond ((< count 0)
                (isearch-repeat-forward (abs count))
                ;; Reverse the direction back
-               (isearch-repeat 'backward))
+               (let ((isearch-repeat-on-direction-change nil))
+                 (isearch-repeat 'backward)))
               (t
                ;; Take into account one iteration to reverse direction
-               (when isearch-forward (setq count (1+ count)))
+               (unless isearch-repeat-on-direction-change
+                 (when isearch-forward (setq count (1+ count))))
                (isearch-repeat 'backward count))))
     (isearch-repeat 'backward)))
 
@@ -2519,7 +2599,9 @@ Otherwise invoke whatever the calling mouse-2 command sequence
 is bound to outside of Isearch."
   (interactive "e")
   (let ((w (posn-window (event-start click)))
-        (binding (let ((overriding-terminal-local-map nil))
+        (binding (let ((overriding-terminal-local-map nil)
+                       ;; Key search depends on mode (bug#47755)
+                       (isearch-mode nil))
                    (key-binding (this-command-keys-vector) t))))
     (if (and (window-minibuffer-p w)
 	     (not (minibuffer-window-active-p w))) ; in echo area
@@ -3488,10 +3570,10 @@ Optional third argument, if t, means if fail just return nil (no error).
      ;; stack overflow in regexp search.
      (setq isearch-error (format "%s" lossage))))
 
-  (if isearch-success
-      nil
+  (unless isearch-success
     ;; Ding if failed this time after succeeding last time.
     (and (isearch--state-success (car isearch-cmds))
+	 (not (eq isearch-wrap-pause 'no-ding))
 	 (ding))
     (if (functionp (isearch--state-pop-fun (car isearch-cmds)))
         (funcall (isearch--state-pop-fun (car isearch-cmds))

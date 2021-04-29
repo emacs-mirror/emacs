@@ -1262,7 +1262,7 @@ extern struct glyph space_glyph;
 /* True means last display completed.  False means it was preempted.  */
 
 extern bool display_completed;
-
+extern bool delayed_size_change;
 
 
 /************************************************************************
@@ -3066,6 +3066,11 @@ struct image
      is created.  */
   unsigned long face_foreground, face_background;
 
+  /* Details of the font, only really relevant for types like SVG that
+     allow us to draw text. */
+  int face_font_size;
+  char *face_font_family;
+
   /* True if this image has a `transparent' background -- that is, is
      uses an image mask.  The accessor macro for this is
      `IMAGE_BACKGROUND_TRANSPARENT'.  */
@@ -3636,7 +3641,7 @@ extern void gui_update_window_begin (struct window *);
 extern void gui_update_window_end (struct window *, bool, bool);
 #endif
 void do_pending_window_change (bool);
-void change_frame_size (struct frame *, int, int, bool, bool, bool, bool);
+void change_frame_size (struct frame *, int, int, bool, bool, bool);
 void init_display (void);
 void syms_of_display (void);
 extern void spec_glyph_lookup_face (struct window *, GLYPH *);

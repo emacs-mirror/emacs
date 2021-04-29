@@ -1965,9 +1965,18 @@ Tables}).  The width of a tab character is usually @code{tab-width}
 (@pxref{Usual Display}).
 @end defun
 
-@defun string-width string
+@defun string-width string &optional from to
 This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.
+Optional arguments @var{from} and @var{to} specify the substring of
+@var{string} to consider, and are interpreted as in @code{substring}
+(@pxref{Creating Strings}).
+
+The return value is an approximation: it only considers the values
+returned by @code{char-width} for the constituent characters, always
+takes a tab character as taking @code{tab-width} columns, ignores
+display properties and fonts, etc.  For these reasons, we recommend
+using @code{window-text-pixel-size}, described below, instead.
 @end defun
 
 @defun truncate-string-to-width string width &optional start-column padding ellipsis ellipsis-text-property
@@ -4752,6 +4761,7 @@ window on a minibuffer-less frame.
 @node Display Property
 @section The @code{display} Property
 @cindex display specification
+@cindex display property
 @kindex display @r{(text property)}
 
   The @code{display} text property (or overlay property) is used to
@@ -5289,6 +5299,16 @@ where @var{props} is a property list of alternating keyword symbols
 and values, including at least the pair @code{:type @var{type}} that
 specifies the image type.
 
+  Image descriptors which define image dimensions, @code{:width},
+@code{:height}, @code{:max-width} and @code{:max-height}, may take
+either an integer, which represents the dimension in pixels, or a pair
+@code{(@var{value} . em)}, where @var{value} is the dimension's
+length in @dfn{ems}@footnote{In typography an em is a distance
+equivalent to the height of the type.  For example when using 12 point
+type 1 em is equal to 12 points.  Its use ensures distances and type
+remain proportional.}.  One em is equivalent to the height of the font
+and @var{value} may be an integer or a float.
+
   The following is a list of properties that are meaningful for all
 image types (there are also properties which are meaningful only for
 certain image types, as documented in the following subsections):
@@ -5751,6 +5771,28 @@ Cropping is performed after scaling but before rotation.
 @cindex SVG images
 
 SVG (Scalable Vector Graphics) is an XML format for specifying images.
+SVG images support the following additional image descriptor
+properties:
+
+@table @code
+@item :foreground @var{foreground}
+@var{foreground}, if non-@code{nil}, should be a string specifying a
+color, which is used as the image's foreground color.  If the value is
+@code{nil}, it defaults to the current face's foreground color.
+
+@item :background @var{background}
+@var{background}, if non-@code{nil}, should be a string specifying a
+color, which is used as the image's background color if the image
+supports transparency.  If the value is @code{nil}, it defaults to the
+current face's background color.
+
+@item :css @var{css}
+@var{css}, if non-@code{nil}, should be a string specifying the CSS to
+override the default CSS used when generating the image.
+@end table
+
+@subsubheading SVG library
+
 If your Emacs build has SVG support, you can create and manipulate
 these images with the following functions from the @file{svg.el}
 library.

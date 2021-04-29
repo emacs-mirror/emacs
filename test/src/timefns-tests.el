@@ -1,4 +1,4 @@
-;;; timefns-tests.el -- tests for timefns.c -*- lexical-binding: t -*-
+;;; timefns-tests.el --- tests for timefns.c -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2016-2021 Free Software Foundation, Inc.
 

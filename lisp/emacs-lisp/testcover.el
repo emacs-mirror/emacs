@@ -1,4 +1,4 @@
-;;;; testcover.el -- Visual code-coverage tool  -*- lexical-binding:t -*-
+;;; testcover.el --- Visual code-coverage tool  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2002-2021 Free Software Foundation, Inc.
 
@@ -675,4 +675,4 @@ The list is 1valued if all of its constituent elements are also 1valued."
     (testcover-analyze-coverage (cadr form)))
    (t (testcover-analyze-coverage-backquote form))))
 
-;; testcover.el ends here.
+;;; testcover.el ends here

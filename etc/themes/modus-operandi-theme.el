@@ -4,7 +4,7 @@
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; URL: https://gitlab.com/protesilaos/modus-themes
-;; Version: 1.2.3
+;; Version: 1.3.2
 ;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: faces, theme, accessibility
 
@@ -52,6 +52,9 @@
 
 (eval-and-compile
   (unless (and (fboundp 'require-theme)
+               load-file-name
+               (equal (file-name-directory load-file-name)
+                      (expand-file-name "themes/" data-directory))
                (require-theme 'modus-themes t))
     (require 'modus-themes)))
 

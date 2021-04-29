@@ -41,7 +41,7 @@
   "Identity, but hidden from some optimisations."
   x)
 
-(defconst byte-opt-testsuite-arith-data
+(defconst bytecomp-tests--test-cases
   '(
     ;; some functional tests
     (let ((a most-positive-fixnum) (b 1) (c 1.0))  (+ a b c))
@@ -364,17 +364,17 @@
             '((a c) (b c) (7 c) (-3 c) (nil nil) (t c) (q c) (r c) (s c)
               (t c) (x "a") (x "c") (x c) (x d) (x e)))
 
-    (mapcar (lambda (x) (cond ((member '(a . b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((member '(a . b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a . b)) a b (c) (d)))
-    (mapcar (lambda (x) (cond ((memq '(a . b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((memq '(a . b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a . b)) a b (c) (d)))
-    (mapcar (lambda (x) (cond ((member '(a b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((member '(a b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a b)) a b (c) (d)))
-    (mapcar (lambda (x) (cond ((memq '(a b) x) 1)
-                              ((equal x '(c)) 2)))
+    (mapcar (lambda (x) (ignore-errors (cond ((memq '(a b) x) 1)
+                                             ((equal x '(c)) 2))))
             '(((a b)) a b (c) (d)))
 
     (assoc 'b '((a 1) (b 2) (c 3)))
@@ -396,7 +396,7 @@
       x)
 
     (let ((x 1) (bytecomp-test-var 2) (y 3))
-      (list x bytecomp-test-var (bytecomp-get-test-var) y))
+      (list x bytecomp-test-var (bytecomp-test-get-var) y))
 
     (progn
       (defvar d)
@@ -430,69 +430,126 @@
       (list s x i))
 
     (let ((x 2))
-      (list (or (bytecomp-identity 'a) (setq x 3)) x)))
-  "List of expression for test.
-Each element will be executed by interpreter and with
-bytecompiled code, and their results compared.")
+      (list (or (bytecomp-test-identity 'a) (setq x 3)) x))
 
-(defun bytecomp-check-1 (pat)
-  "Return non-nil if PAT is the same whether directly evalled or compiled."
+    (let* ((x 1)
+           (y (condition-case x
+                  (/ 1 0)
+                (arith-error x))))
+      (list x y))
+
+    (funcall
+     (condition-case x
+         (/ 1 0)
+       (arith-error (prog1 (lambda (y) (+ y x))
+                      (setq x 10))))
+     4)
+
+    ;; No error, no success handler.
+    (condition-case x
+        (list 42)
+      (error (cons 'bad x)))
+    ;; Error, no success handler.
+    (condition-case x
+        (/ 1 0)
+      (error (cons 'bad x)))
+    ;; No error, success handler.
+    (condition-case x
+        (list 42)
+      (error (cons 'bad x))
+      (:success (cons 'good x)))
+    ;; Error, success handler.
+    (condition-case x
+        (/ 1 0)
+      (error (cons 'bad x))
+      (:success (cons 'good x)))
+    ;; Verify that the success code is not subject to the error handlers.
+    (condition-case x
+        (list 42)
+      (error (cons 'bad x))
+      (:success (/ (car x) 0)))
+    ;; Check variable scoping on success.
+    (let ((x 2))
+      (condition-case x
+          (list x)
+        (error (list 'bad x))
+        (:success (list 'good x))))
+    ;; Check variable scoping on failure.
+    (let ((x 2))
+      (condition-case x
+          (/ 1 0)
+        (error (list 'bad x))
+        (:success (list 'good x))))
+    ;; Check capture of mutated result variable.
+    (funcall
+     (condition-case x
+         3
+       (:success (prog1 (lambda (y) (+ y x))
+                   (setq x 10))))
+     4)
+    ;; Check for-effect context, on error.
+    (let ((f (lambda (x)
+               (condition-case nil
+                   (/ 1 0)
+                 (error 'bad)
+                 (:success 'good))
+               (1+ x))))
+      (funcall f 3))
+    ;; Check for-effect context, on success.
+    (let ((f (lambda (x)
+               (condition-case nil
+                   nil
+                 (error 'bad)
+                 (:success 'good))
+               (1+ x))))
+      (funcall f 3))
+    )
+  "List of expressions for cross-testing interpreted and compiled code.")
+
+(defconst bytecomp-tests--test-cases-lexbind-only
+  `(
+    ;; This would infloop (and exhaust stack) with dynamic binding.
+    (let ((f #'car))
+      (let ((f (lambda (x) (cons (funcall f x) (cdr x)))))
+        (funcall f '(1 . 2))))
+    )
+  "List of expressions for cross-testing interpreted and compiled code.
+These are only tested with lexical binding.")
+
+(defun bytecomp-tests--eval-interpreted (form)
+  "Evaluate FORM using the Lisp interpreter, returning errors as a
+special value."
+  (condition-case err
+      (eval form lexical-binding)
+    (error (list 'bytecomp-check-error (car err)))))
+
+(defun bytecomp-tests--eval-compiled (form)
+  "Evaluate FORM using the Lisp byte-code compiler, returning errors as a
+special value."
   (let ((warning-minimum-log-level :emergency)
-        (byte-compile-warnings nil)
-	(v0 (condition-case err
-		(eval pat)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (equal v0 v1)))
+        (byte-compile-warnings nil))
+    (condition-case err
+	(funcall (byte-compile (list 'lambda nil form)))
+      (error (list 'bytecomp-check-error (car err))))))
 
-(put 'bytecomp-check-1 'ert-explainer 'bytecomp-explain-1)
+(ert-deftest bytecomp-tests-lexbind ()
+  "Check that various expressions behave the same when interpreted and
+byte-compiled.  Run with lexical binding."
+  (let ((lexical-binding t))
+    (dolist (form (append bytecomp-tests--test-cases-lexbind-only
+                          bytecomp-tests--test-cases))
+      (ert-info ((prin1-to-string form) :prefix "form: ")
+        (should (equal (bytecomp-tests--eval-interpreted form)
+                       (bytecomp-tests--eval-compiled form)))))))
 
-(defun bytecomp-explain-1 (pat)
-  (let ((v0 (condition-case err
-		(eval pat)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (byte-compile (list 'lambda nil pat)))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
-	    pat v0 v1)))
-
-(ert-deftest bytecomp-tests ()
-  "Test the Emacs byte compiler."
-  (dolist (pat byte-opt-testsuite-arith-data)
-    (should (bytecomp-check-1 pat))))
-
-(defun test-byte-opt-arithmetic (&optional arg)
-  "Unit test for byte-opt arithmetic operations.
-Subtests signal errors if something goes wrong."
-  (interactive "P")
-  (switch-to-buffer (generate-new-buffer "*Font Pase Test*"))
-  (let ((warning-minimum-log-level :emergency)
-	(byte-compile-warnings nil)
-	(pass-face '((t :foreground "green")))
-	(fail-face '((t :foreground "red")))
-	(print-escape-nonascii t)
-	(print-escape-newlines t)
-	(print-quoted t)
-	v0 v1)
-    (dolist (pat byte-opt-testsuite-arith-data)
-      (condition-case err
-	  (setq v0 (eval pat))
-	(error (setq v0 (list 'bytecomp-check-error (car err)))))
-      (condition-case err
-	  (setq v1 (funcall (byte-compile (list 'lambda nil pat))))
-	(error (setq v1 (list 'bytecomp-check-error (car err)))))
-      (insert (format "%s" pat))
-      (indent-to-column 65)
-      (if (equal v0 v1)
-	  (insert (propertize "OK" 'face pass-face))
-	(insert (propertize "FAIL\n" 'face fail-face))
-	(indent-to-column 55)
-	(insert (propertize (format "[%s] vs [%s]" v0 v1)
-			    'face fail-face)))
-      (insert "\n"))))
+(ert-deftest bytecomp-tests-dynbind ()
+  "Check that various expressions behave the same when interpreted and
+byte-compiled.  Run with dynamic binding."
+  (let ((lexical-binding nil))
+    (dolist (form bytecomp-tests--test-cases)
+      (ert-info ((prin1-to-string form) :prefix "form: ")
+        (should (equal (bytecomp-tests--eval-interpreted form)
+                       (bytecomp-tests--eval-compiled form)))))))
 
 (defun test-byte-comp-compile-and-load (compile &rest forms)
   (declare (indent 1))
@@ -584,8 +641,8 @@ Subtests signal errors if something goes wrong."
   `(with-current-buffer (get-buffer-create "*Compile-Log*")
      (let ((inhibit-read-only t)) (erase-buffer))
      (byte-compile ,@form)
-     (ert-info ((buffer-string) :prefix "buffer: ")
-       (should (re-search-forward ,re-warning)))))
+     (ert-info ((prin1-to-string (buffer-string)) :prefix "buffer: ")
+       (should (re-search-forward ,(string-replace " " "[ \n]+" re-warning))))))
 
 (ert-deftest bytecomp-warn-wrong-args ()
   (bytecomp--with-warning-test "remq.*3.*2"
@@ -611,12 +668,13 @@ Subtests signal errors if something goes wrong."
 
 (defmacro bytecomp--define-warning-file-test (file re-warning &optional reverse)
   `(ert-deftest ,(intern (format "bytecomp/%s" file)) ()
-     :expected-result ,(if reverse :failed :passed)
      (with-current-buffer (get-buffer-create "*Compile-Log*")
        (let ((inhibit-read-only t)) (erase-buffer))
        (byte-compile-file ,(ert-resource-file file))
        (ert-info ((buffer-string) :prefix "buffer: ")
-         (should (re-search-forward ,re-warning))))))
+         (,(if reverse 'should-not 'should)
+          (re-search-forward ,(string-replace " " "[ \n]+" re-warning)
+                             nil t))))))
 
 (bytecomp--define-warning-file-test "error-lexical-var-with-add-hook.el"
                             "add-hook.*lexical var")
@@ -658,10 +716,10 @@ Subtests signal errors if something goes wrong."
                             "free.*foo")
 
 (bytecomp--define-warning-file-test "warn-free-variable-reference.el"
-                            "free.*bar")
+                            "free variable .bar")
 
 (bytecomp--define-warning-file-test "warn-make-variable-buffer-local.el"
-                            "make-variable-buffer-local.*not called at toplevel")
+                            "make-variable-buffer-local. not called at toplevel")
 
 (bytecomp--define-warning-file-test "warn-interactive-only.el"
                             "next-line.*interactive use only.*forward-line")
@@ -670,19 +728,19 @@ Subtests signal errors if something goes wrong."
                             "malformed interactive spec")
 
 (bytecomp--define-warning-file-test "warn-obsolete-defun.el"
-                            "foo-obsolete.*obsolete function.*99.99")
+  "foo-obsolete. is an obsolete function (as of 99.99)")
 
 (defvar bytecomp--tests-obsolete-var nil)
 (make-obsolete-variable 'bytecomp--tests-obsolete-var nil "99.99")
 
 (bytecomp--define-warning-file-test "warn-obsolete-hook.el"
-                            "bytecomp--tests-obs.*obsolete[^z-a]*99.99")
+  "bytecomp--tests-obsolete-var. is an obsolete variable (as of 99.99)")
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable-same-file.el"
                             "foo-obs.*obsolete.*99.99" t)
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable.el"
-                            "bytecomp--tests-obs.*obsolete[^z-a]*99.99")
+  "bytecomp--tests-obsolete-var. is an obsolete variable (as of 99.99)")
 
 (bytecomp--define-warning-file-test "warn-obsolete-variable-bound.el"
                             "bytecomp--tests-obs.*obsolete.*99.99" t)
@@ -713,64 +771,64 @@ Subtests signal errors if something goes wrong."
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-autoload.el"
- "autoload.*foox.*wider than.*characters")
+ "autoload .foox. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-custom-declare-variable.el"
- "custom-declare-variable.*foo.*wider than.*characters")
+ "custom-declare-variable .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defalias.el"
- "defalias.*foo.*wider than.*characters")
+ "defalias .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defconst.el"
- "defconst.*foo.*wider than.*characters")
+ "defconst .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-define-abbrev-table.el"
- "define-abbrev.*foo.*wider than.*characters")
+ "define-abbrev-table .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-define-obsolete-function-alias.el"
- "defalias.*foo.*wider than.*characters")
+ "defalias .foo. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-define-obsolete-variable-alias.el"
- "defvaralias.*foo.*wider than.*characters")
+ "defvaralias .foo. docstring wider than .* characters")
 
 ;; TODO: We don't yet issue warnings for defuns.
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defun.el"
- "wider than.*characters" 'reverse)
+ "wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvar.el"
- "defvar.*foo.*wider than.*characters")
+ "defvar .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-defvaralias.el"
- "defvaralias.*foo.*wider than.*characters")
+ "defvaralias .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-ignore-fill-column.el"
- "defvar.*foo.*wider than.*characters" 'reverse)
+ "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-ignore-override.el"
- "defvar.*foo.*wider than.*characters" 'reverse)
+ "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-ignore.el"
- "defvar.*foo.*wider than.*characters" 'reverse)
+ "defvar .foo-bar. docstring wider than .* characters" 'reverse)
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-multiline-first.el"
- "defvar.*foo.*wider than.*characters")
+ "defvar .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "warn-wide-docstring-multiline.el"
- "defvar.*foo.*wider than.*characters")
+ "defvar .foo-bar. docstring wider than .* characters")
 
 (bytecomp--define-warning-file-test
  "nowarn-inline-after-defvar.el"
@@ -812,47 +870,6 @@ Subtests signal errors if something goes wrong."
       (defmacro m () 5)
       (defun def () (m))))
   (should (equal (funcall 'def) 4)))
-
-(defconst bytecomp-lexbind-tests
-  `(
-    (let ((f #'car))
-      (let ((f (lambda (x) (cons (funcall f x) (cdr x)))))
-        (funcall f '(1 . 2))))
-    )
-  "List of expression for test.
-Each element will be executed by interpreter and with
-bytecompiled code, and their results compared.")
-
-(defun bytecomp-lexbind-check-1 (pat)
-  "Return non-nil if PAT is the same whether directly evalled or compiled."
-  (let ((warning-minimum-log-level :emergency)
-	(byte-compile-warnings nil)
-	(v0 (condition-case err
-		(eval pat t)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (let ((lexical-binding t))
-                           (byte-compile `(lambda nil ,pat))))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (equal v0 v1)))
-
-(put 'bytecomp-lexbind-check-1 'ert-explainer 'bytecomp-lexbind-explain-1)
-
-(defun bytecomp-lexbind-explain-1 (pat)
-  (let ((v0 (condition-case err
-		(eval pat t)
-	      (error (list 'bytecomp-check-error (car err)))))
-	(v1 (condition-case err
-		(funcall (let ((lexical-binding t))
-                           (byte-compile (list 'lambda nil pat))))
-	      (error (list 'bytecomp-check-error (car err))))))
-    (format "Expression `%s' gives `%s' if directly evalled, `%s' if compiled."
-	    pat v0 v1)))
-
-(ert-deftest bytecomp-lexbind-tests ()
-  "Test the Emacs byte compiler lexbind handling."
-  (dolist (pat bytecomp-lexbind-tests)
-    (should (bytecomp-lexbind-check-1 pat))))
 
 (defmacro bytecomp-tests--with-temp-file (file-name-var &rest body)
   (declare (indent 1))
@@ -1226,6 +1243,74 @@ compiled correctly."
   ;; Don't confuse a string return value for a docstring.
   (let ((lexical-binding t))
     (should (equal (funcall (byte-compile '(lambda (x) "foo")) 'dummy) "foo"))))
+
+(ert-deftest bytecomp-condition-case-success ()
+  ;; No error, no success handler.
+  (should (equal (condition-case x
+                     (list 42)
+                   (error (cons 'bad x)))
+                 '(42)))
+  ;; Error, no success handler.
+  (should (equal (condition-case x
+                     (/ 1 0)
+                   (error (cons 'bad x)))
+                 '(bad arith-error)))
+  ;; No error, success handler.
+  (should (equal (condition-case x
+                     (list 42)
+                   (error (cons 'bad x))
+                   (:success (cons 'good x)))
+                 '(good 42)))
+  ;; Error, success handler.
+  (should (equal (condition-case x
+                     (/ 1 0)
+                   (error (cons 'bad x))
+                   (:success (cons 'good x)))
+                 '(bad arith-error)))
+  ;; Verify that the success code is not subject to the error handlers.
+  (should-error (condition-case x
+                    (list 42)
+                  (error (cons 'bad x))
+                  (:success (/ (car x) 0)))
+                :type 'arith-error)
+  ;; Check variable scoping.
+  (let ((x 2))
+    (should (equal (condition-case x
+                       (list x)
+                     (error (list 'bad x))
+                     (:success (list 'good x)))
+                   '(good (2))))
+    (should (equal (condition-case x
+                       (/ 1 0)
+                     (error (list 'bad x))
+                     (:success (list 'good x)))
+                   '(bad (arith-error)))))
+  ;; Check capture of mutated result variable.
+  (should (equal (funcall
+                  (condition-case x
+                      3
+                    (:success (prog1 (lambda (y) (+ y x))
+                                (setq x 10))))
+                  4)
+                 14))
+    ;; Check for-effect context, on error.
+  (should (equal (let ((f (lambda (x)
+                            (condition-case nil
+                                (/ 1 0)
+                              (error 'bad)
+                              (:success 'good))
+                            (1+ x))))
+                   (funcall f 3))
+                 4))
+  ;; Check for-effect context, on success.
+  (should (equal (let ((f (lambda (x)
+                            (condition-case nil
+                                nil
+                              (error 'bad)
+                              (:success 'good))
+                            (1+ x))))
+                   (funcall f 3))
+                 4)))
 
 ;; Local Variables:
 ;; no-byte-compile: t

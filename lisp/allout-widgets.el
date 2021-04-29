@@ -1,4 +1,4 @@
-;; allout-widgets.el --- Visually highlight allout outline structure.  -*- lexical-binding: t; -*-
+;;; allout-widgets.el --- Visually highlight allout outline structure.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2005-2021 Free Software Foundation, Inc.
 
@@ -2290,10 +2290,11 @@ The elements of LIST are not copied, just the list structure itself."
 
 (define-obsolete-function-alias 'allout-frame-property #'frame-parameter "28.1")
 
-;;;_ : provide
 (provide 'allout-widgets)
 
 ;;;_ . Local emacs vars.
 ;;;_  , Local variables:
 ;;;_  , allout-layout: (-1 : 0)
 ;;;_  , End:
+
+;;; allout-widgets.el ends here

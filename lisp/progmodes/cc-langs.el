@@ -1,4 +1,4 @@
-;;; cc-langs.el --- language specific settings for CC Mode -*- coding: utf-8 -*-
+;;; cc-langs.el --- language specific settings for CC Mode -*- lexical-binding: t; coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -159,7 +159,9 @@ evaluated and bound to VAR when the result from the macro
 `c-lang-const' is typically used in VAL to get the right value for the
 language being initialized, and such calls will be macro expanded to
 the evaluated constant value at compile time."
-
+  (declare (indent defun)
+	   (debug (&define name def-form
+			   &optional &or ("quote" symbolp) stringp)))
   (when (and (not doc)
 	     (eq (car-safe val) 'c-lang-const)
 	     (eq (nth 1 val) var)
@@ -191,6 +193,7 @@ Emacs variable like `comment-start'.
 `c-lang-const' is typically used in VAL to get the right value for the
 language being initialized, and such calls will be macro expanded to
 the evaluated constant value at compile time."
+  (declare (debug (&define name def-form)))
   (let ((elem (assq var (cdr c-emacs-variable-inits))))
     (if elem
 	(setcdr elem (list val)) ; Maybe remove "list", sometime. 2006-07-19
@@ -199,13 +202,6 @@ the evaluated constant value at compile time."
 
   ;; Return the symbol, like the other def* forms.
   `',var)
-
-(put 'c-lang-defvar 'lisp-indent-function 'defun)
-; (eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
-;  '
-(def-edebug-spec c-lang-defvar
-  (&define name def-form &optional &or ("quote" symbolp) stringp))
-(def-edebug-spec c-lang-setvar (&define name def-form))
 
 ;; Suppress "might not be defined at runtime" warning.
 ;; This file is only used when compiling other cc files.
@@ -337,7 +333,8 @@ the evaluated constant value at compile time."
 This includes setting \\=' and \" as string delimiters, and setting up
 the comment syntax to handle both line style \"//\" and block style
 \"/*\" \"*/\" comments."
-
+  ;; Never native compile to allow cc-mode.el:467 hack.
+  (declare (speed -1))
   (modify-syntax-entry ?_  "_"     table)
   (modify-syntax-entry ?\\ "\\"    table)
   (modify-syntax-entry ?+  "."     table)
@@ -378,12 +375,14 @@ The syntax tables aren't stored directly since they're quite large."
        (let ((table (make-syntax-table)))
 	 (c-populate-syntax-table table)
 	 ;; Mode specific syntaxes.
-	 ,(cond ((or (c-major-mode-is 'objc-mode) (c-major-mode-is 'java-mode))
+	 ,(cond ((c-major-mode-is 'objc-mode)
 		 ;; Let '@' be part of symbols in ObjC to cope with
 		 ;; its compiler directives as single keyword tokens.
 		 ;; This is then necessary since it's assumed that
 		 ;; every keyword is a single symbol.
 		 '(modify-syntax-entry ?@ "_" table))
+		((c-major-mode-is 'java-mode)
+		 '(modify-syntax-entry ?@ "'" table))
 		((c-major-mode-is 'pike-mode)
 		 '(modify-syntax-entry ?@ "." table)))
 	 table)))
@@ -579,14 +578,12 @@ don't have EOL terminated statements. "
 (c-lang-defvar c-at-vsemi-p-fn (c-lang-const c-at-vsemi-p-fn))
 
 (c-lang-defconst c-vsemi-status-unknown-p-fn
-  "Contains a predicate regarding the presence of virtual semicolons.
-More precisely, the function answers the question, \"are we unsure whether a
-virtual semicolon exists on this line?\".  The (admittedly kludgy) purpose of
-such a function is to prevent an infinite recursion in
-`c-beginning-of-statement-1' when point starts at a `while' token.  The function
-MUST NOT UNDER ANY CIRCUMSTANCES call `c-beginning-of-statement-1', even
-indirectly.  This variable contains nil for languages which don't have EOL
-terminated statements."
+  "A function \"are we unsure whether there is a virtual semicolon on this line?\".
+The (admittedly kludgy) purpose of such a function is to prevent an infinite
+recursion in c-beginning-of-statement-1 when point starts at a `while' token.
+The function MUST NOT UNDER ANY CIRCUMSTANCES call `c-beginning-of-statement-1',
+even indirectly.  This variable contains nil for languages which don't have
+EOL terminated statements."
   t nil
   (c c++ objc) 'c-macro-vsemi-status-unknown-p
   awk 'c-awk-vsemi-status-unknown-p)
@@ -4093,6 +4090,7 @@ accomplish that conveniently."
 This macro is expanded at compile time to a form tailored for the mode
 in question, so MODE must be a constant.  Therefore MODE is not
 evaluated and should not be quoted."
+  (declare (debug nil))
   `(funcall ,(c-make-init-lang-vars-fun mode)))
 
 

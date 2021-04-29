@@ -869,6 +869,19 @@ bset_update_mode_line (struct buffer *b)
   b->text->redisplay = true;
 }
 
+void
+wset_update_mode_line (struct window *w)
+{
+  w->update_mode_line = true;
+  /* When a window's mode line needs to be updated, the window's frame's
+     title may also need to be updated, but we don't need to worry about it
+     here.  Instead, `gui_consider_frame_title' is automatically called
+     whenever w->update_mode_line is set for that frame's selected window.
+     But for this to work reliably, we have to make sure the window
+     is considered, so we have to mark it for redisplay.  */
+  wset_redisplay (w);
+}
+
 DEFUN ("set-buffer-redisplay", Fset_buffer_redisplay,
        Sset_buffer_redisplay, 4, 4, 0,
        doc: /* Mark the current buffer for redisplay.
@@ -10051,8 +10064,20 @@ move_it_to (struct it *it, ptrdiff_t to_charpos, int to_x, int to_y, int to_vpos
 	  if ((op & MOVE_TO_POS) != 0
 	      && (IT_CHARPOS (*it) > to_charpos
 		  || (IT_CHARPOS (*it) == to_charpos
+		      /* Consider TO_CHARPOS as REACHED if we are at
+			 EOB that ends in something other than a newline.  */
 		      && to_charpos == ZV
-		      && (ZV_BYTE <= 1 || FETCH_BYTE (ZV_BYTE - 1) != '\n'))))
+		      && (ZV_BYTE <= 1 || FETCH_BYTE (ZV_BYTE - 1) != '\n')
+		      /* But if we have a display or an overlay string
+			 at EOB, keep going until we exhaust all the
+			 characters of the string(s).  */
+		      && (it->sp == 0
+			  || (STRINGP (it->string)
+			      && (it->current.overlay_string_index < 0
+				  || (it->current.overlay_string_index >= 0
+				      && it->current.overlay_string_index
+				         >= it->n_overlay_strings - 1))
+			      && IT_STRING_CHARPOS (*it) >= it->end_charpos)))))
 	    {
 	      reached = 9;
 	      goto out;
@@ -11835,7 +11860,7 @@ resize_mini_window (struct window *w, bool exact_p)
       int height, max_height;
       struct text_pos start;
       struct buffer *old_current_buffer = NULL;
-      int windows_height = FRAME_WINDOWS_HEIGHT (f);
+      int windows_height = FRAME_INNER_HEIGHT (f);
 
       if (current_buffer != XBUFFER (w->contents))
 	{
@@ -13452,8 +13477,6 @@ PIXELWISE non-nil means return the height of the tab bar in pixels.  */)
 static bool
 redisplay_tab_bar (struct frame *f)
 {
-  f->tab_bar_redisplayed = true;
-
   struct window *w;
   struct it it;
   struct glyph_row *row;
@@ -13466,6 +13489,8 @@ redisplay_tab_bar (struct frame *f)
       || (w = XWINDOW (f->tab_bar_window),
           WINDOW_TOTAL_LINES (w) == 0))
     return false;
+
+  f->tab_bar_redisplayed = true;
 
   /* Set up an iterator for the tab-bar window.  */
   init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TAB_BAR_FACE_ID);
@@ -13607,8 +13632,9 @@ redisplay_tab_bar (struct frame *f)
 
 /* Get information about the tab-bar item which is displayed in GLYPH
    on frame F.  Return in *PROP_IDX the index where tab-bar item
-   properties start in F->tab_bar_items.  Value is false if
-   GLYPH doesn't display a tab-bar item.  */
+   properties start in F->tab_bar_items.  Return in CLOSE_P an
+   indication whether the click was on the close-tab icon of the tab.
+   Value is false if GLYPH doesn't display a tab-bar item.  */
 
 static bool
 tab_bar_item_info (struct frame *f, struct glyph *glyph,
@@ -13654,7 +13680,6 @@ static int
 get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
 		   int *hpos, int *vpos, int *prop_idx, bool *close_p)
 {
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
   struct window *w = XWINDOW (f->tab_bar_window);
   int area;
 
@@ -13668,18 +13693,7 @@ get_tab_bar_item (struct frame *f, int x, int y, struct glyph **glyph,
   if (!tab_bar_item_info (f, *glyph, prop_idx, close_p))
     return -1;
 
-  /* Is mouse on the highlighted item?  */
-  if (EQ (f->tab_bar_window, hlinfo->mouse_face_window)
-      && *vpos >= hlinfo->mouse_face_beg_row
-      && *vpos <= hlinfo->mouse_face_end_row
-      && (*vpos > hlinfo->mouse_face_beg_row
-	  || *hpos >= hlinfo->mouse_face_beg_col)
-      && (*vpos < hlinfo->mouse_face_end_row
-	  || *hpos < hlinfo->mouse_face_end_col
-	  || hlinfo->mouse_face_past_end))
-    return 0;
-
-  return 1;
+  return *prop_idx == f->last_tab_bar_item ? 0 : 1;
 }
 
 
@@ -13701,24 +13715,13 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
   Lisp_Object enabled_p;
   int ts;
 
-  /* If not on the highlighted tab-bar item, and mouse-highlight is
-     non-nil, return.  This is so we generate the tab-bar button
-     click only when the mouse button is released on the same item as
-     where it was pressed.  However, when mouse-highlight is disabled,
-     generate the click when the button is released regardless of the
-     highlight, since tab-bar items are not highlighted in that
-     case.  */
   frame_to_window_pixel_xy (w, &x, &y);
   ts = get_tab_bar_item (f, x, y, &glyph, &hpos, &vpos, &prop_idx, &close_p);
   if (ts == -1
-      || (ts != 0 && !NILP (Vmouse_highlight)))
+      /* If the button is released on a tab other than the one where
+	 it was pressed, don't generate the tab-bar button click event.  */
+      || (ts != 0 && !down_p))
     return;
-
-  /* When mouse-highlight is off, generate the click for the item
-     where the button was pressed, disregarding where it was
-     released.  */
-  if (NILP (Vmouse_highlight) && !down_p)
-    prop_idx = f->last_tab_bar_item;
 
   /* If item is disabled, do nothing.  */
   enabled_p = AREF (f->tab_bar_items, prop_idx + TAB_BAR_ITEM_ENABLED_P);
@@ -13727,10 +13730,10 @@ handle_tab_bar_click (struct frame *f, int x, int y, bool down_p,
 
   if (down_p)
     {
-      /* Show item in pressed state.  */
+      /* Show the clicked button in pressed state.  */
       if (!NILP (Vmouse_highlight))
 	show_mouse_face (hlinfo, DRAW_IMAGE_SUNKEN);
-      f->last_tab_bar_item = prop_idx;
+      f->last_tab_bar_item = prop_idx; /* record the pressed tab */
     }
   else
     {
@@ -14399,21 +14402,13 @@ PIXELWISE non-nil means return the height of the tool bar in pixels.  */)
   return make_fixnum (height);
 }
 
+#ifndef HAVE_EXT_TOOL_BAR
 
-/* Display the tool-bar of frame F.  Value is true if tool-bar's
-   height should be changed.  */
+/* Display the internal tool-bar of frame F.  Value is true if
+   tool-bar's height should be changed.  */
 static bool
 redisplay_tool_bar (struct frame *f)
 {
-  f->tool_bar_redisplayed = true;
-#ifdef HAVE_EXT_TOOL_BAR
-
-  if (FRAME_EXTERNAL_TOOL_BAR (f))
-    update_frame_tool_bar (f);
-  return false;
-
-#else /* ! (HAVE_EXT_TOOL_BAR) */
-
   struct window *w;
   struct it it;
   struct glyph_row *row;
@@ -14426,6 +14421,8 @@ redisplay_tool_bar (struct frame *f)
       || (w = XWINDOW (f->tool_bar_window),
           WINDOW_TOTAL_LINES (w) == 0))
     return false;
+
+  f->tool_bar_redisplayed = true;
 
   /* Set up an iterator for the tool-bar window.  */
   init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
@@ -14562,12 +14559,9 @@ redisplay_tool_bar (struct frame *f)
     }
 
   f->minimize_tool_bar_window_p = false;
+
   return false;
-
-#endif /* HAVE_EXT_TOOL_BAR */
 }
-
-#ifndef HAVE_EXT_TOOL_BAR
 
 /* Get information about the tool-bar item which is displayed in GLYPH
    on frame F.  Return in *PROP_IDX the index where tool-bar item
@@ -19331,7 +19325,7 @@ redisplay_window (Lisp_Object window, bool just_this_one_p)
 
 #ifdef HAVE_EXT_TOOL_BAR
 	  if (FRAME_EXTERNAL_TOOL_BAR (f))
-	    redisplay_tool_bar (f);
+	    update_frame_tool_bar (f);
 #else
 	  if (WINDOWP (f->tool_bar_window)
 	      && (FRAME_TOOL_BAR_LINES (f) > 0
@@ -31983,6 +31977,11 @@ draw_row_with_mouse_face (struct window *w, int start_x, struct glyph_row *row,
 static void
 show_mouse_face (Mouse_HLInfo *hlinfo, enum draw_glyphs_face draw)
 {
+  /* Don't bother doing anything if the mouse-face window is not set
+     up.  */
+  if (!WINDOWP (hlinfo->mouse_face_window))
+    return;
+
   struct window *w = XWINDOW (hlinfo->mouse_face_window);
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 

@@ -1336,7 +1336,7 @@ See the variable `iswitchb-case' for details."
 
 Iswitchb mode is a global minor mode that enables switching
 between buffers using substrings.  See `iswitchb' for details."
-  nil nil iswitchb-global-map :global t
+  :keymap iswitchb-global-map :global t
   (if iswitchb-mode
       (add-hook 'minibuffer-setup-hook #'iswitchb-minibuffer-setup)
     (remove-hook 'minibuffer-setup-hook #'iswitchb-minibuffer-setup)))

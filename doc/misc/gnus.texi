@@ -17966,7 +17966,7 @@ This creates a group including all flagged messages from all groups on
 two IMAP servers, "home" and "work".
 
 And one last example.  Here is a function that runs a search query to
-find all message that have been received recently from certain groups:
+find all messages that have been received recently from certain groups:
 
 @lisp
 (defun my-recent-email (args)

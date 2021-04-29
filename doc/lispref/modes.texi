@@ -1660,7 +1660,7 @@ reserved for users.  @xref{Key Binding Conventions}.
   The macro @code{define-minor-mode} offers a convenient way of
 implementing a mode in one self-contained definition.
 
-@defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
+@defmac define-minor-mode mode doc keyword-args@dots{} body@dots{}
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
 mode, with @var{doc} as its documentation string.
@@ -1675,14 +1675,36 @@ If @var{doc} is @code{nil}, the macro supplies a default documentation string
 explaining the above.
 
 By default, it also defines a variable named @var{mode}, which is set to
-@code{t} or @code{nil} by enabling or disabling the mode.  The variable
-is initialized to @var{init-value}.  Except in unusual circumstances
-(see below), this value must be @code{nil}.
+@code{t} or @code{nil} by enabling or disabling the mode.
 
+The @var{keyword-args} consist of keywords followed by
+corresponding values.  A few keywords have special meanings:
+
+@table @code
+@item :global @var{global}
+If non-@code{nil}, this specifies that the minor mode should be global
+rather than buffer-local.  It defaults to @code{nil}.
+
+One of the effects of making a minor mode global is that the
+@var{mode} variable becomes a customization variable.  Toggling it
+through the Customize interface turns the mode on and off, and its
+value can be saved for future Emacs sessions (@pxref{Saving
+Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
+variable to work, you should ensure that the minor mode function
+is available each time Emacs starts; usually this is done by
+marking the @code{define-minor-mode} form as autoloaded.
+
+@item :init-value @var{init-value}
+This is the value to which the @var{mode} variable is initialized.
+Except in unusual circumstances (see below), this value must be
+@code{nil}.
+
+@item :lighter @var{lighter}
 The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
 in the mode line.
 
+@item :keymap @var{keymap}
 The optional argument @var{keymap} specifies the keymap for the minor
 mode.  If non-@code{nil}, it should be a variable name (whose value is
 a keymap), a keymap, or an alist of the form
@@ -1696,42 +1718,6 @@ where each @var{key-sequence} and @var{definition} are arguments
 suitable for passing to @code{define-key} (@pxref{Changing Key
 Bindings}).  If @var{keymap} is a keymap or an alist, this also
 defines the variable @code{@var{mode}-map}.
-
-The above three arguments @var{init-value}, @var{lighter}, and
-@var{keymap} can be (partially) omitted when @var{keyword-args} are
-used.  The @var{keyword-args} consist of keywords followed by
-corresponding values.  A few keywords have special meanings:
-
-@table @code
-@item :group @var{group}
-Custom group name to use in all generated @code{defcustom} forms.
-Defaults to @var{mode} without the possible trailing @samp{-mode}.
-@strong{Warning:} don't use this default group name unless you have
-written a @code{defgroup} to define that group properly.  @xref{Group
-Definitions}.
-
-@item :global @var{global}
-If non-@code{nil}, this specifies that the minor mode should be global
-rather than buffer-local.  It defaults to @code{nil}.
-
-One of the effects of making a minor mode global is that the
-@var{mode} variable becomes a customization variable.  Toggling it
-through the Customize interface turns the mode on and off, and its
-value can be saved for future Emacs sessions (@pxref{Saving
-Customizations,,, emacs, The GNU Emacs Manual}.  For the saved
-variable to work, you should ensure that the @code{define-minor-mode}
-form is evaluated each time Emacs starts; for packages that are not
-part of Emacs, the easiest way to do this is to specify a
-@code{:require} keyword.
-
-@item :init-value @var{init-value}
-This is equivalent to specifying @var{init-value} positionally.
-
-@item :lighter @var{lighter}
-This is equivalent to specifying @var{lighter} positionally.
-
-@item :keymap @var{keymap}
-This is equivalent to specifying @var{keymap} positionally.
 
 @item :variable @var{place}
 This replaces the default variable @var{mode}, used to store the state

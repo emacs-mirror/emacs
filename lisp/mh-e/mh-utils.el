@@ -24,8 +24,6 @@
 
 ;;; Commentary:
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)
@@ -544,8 +542,8 @@ nested folders within them."
                                    (mh-sub-folders-actual folder)))
                             (t match))))
     (if add-trailing-slash-flag
-        (mapcar #'(lambda (x)
-                    (if (cdr x) (cons (concat (car x) "/") (cdr x)) x))
+        (mapcar (lambda (x)
+                  (if (cdr x) (cons (concat (car x) "/") (cdr x)) x))
                 sub-folders)
       sub-folders)))
 

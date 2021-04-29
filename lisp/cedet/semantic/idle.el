@@ -171,7 +171,8 @@ date, and reparses while the user is idle (not typing.)
 
 The minor mode can be turned on only if semantic feature is
 available and the current buffer was set up for parsing.  Return
-non-nil if the minor mode is enabled."  nil nil nil
+non-nil if the minor mode is enabled."
+  :lighter nil
   (if semantic-idle-scheduler-mode
       (if (not (and (featurep 'semantic) (semantic-active-p)))
           (progn
@@ -216,9 +217,9 @@ And also manages services that depend on tag values."
     (let* ((inhibit-quit nil)
            (buffers (delq (current-buffer)
                           (delq nil
-                                (mapcar #'(lambda (b)
-                                            (and (buffer-file-name b)
-                                                 b))
+                                (mapcar (lambda (b)
+                                          (and (buffer-file-name b)
+                                               b))
                                         (buffer-list)))))
 	   ;; safe ;; This safe is not used, but could be.
            others
@@ -356,9 +357,9 @@ Uses `semantic-idle-work-for-on-buffer' to do the work."
 		 (cb (current-buffer))
 		 (buffers (delq (current-buffer)
 				(delq nil
-				      (mapcar #'(lambda (b)
-						  (and (buffer-file-name b)
-						       b))
+                                      (mapcar (lambda (b)
+                                                (and (buffer-file-name b)
+                                                     b))
 					      (buffer-list)))))
 		 safe) ;; errbuf
 	    ;; First, handle long tasks in the current buffer.

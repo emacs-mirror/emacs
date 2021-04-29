@@ -219,8 +219,17 @@ void
 init_eval_once (void)
 {
   /* Don't forget to update docs (lispref node "Local Variables").  */
-  max_specpdl_size = 1800; /* See bug#46818.  */
-  max_lisp_eval_depth = 800;
+  if (!NATIVE_COMP_FLAG)
+    {
+      max_specpdl_size = 1800; /* See bug#46818.  */
+      max_lisp_eval_depth = 800;
+    }
+  else
+    {
+      /* Original values increased for comp.el.  */
+      max_specpdl_size = 2500;
+      max_lisp_eval_depth = 1600;
+    }
   Vrun_hooks = Qnil;
   pdumper_do_now_and_after_load (init_eval_once_for_pdumper);
 }
@@ -1301,7 +1310,7 @@ DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
        doc: /* Regain control when an error is signaled.
 Executes BODYFORM and returns its value if no error happens.
 Each element of HANDLERS looks like (CONDITION-NAME BODY...)
-where the BODY is made of Lisp expressions.
+or (:success BODY...), where the BODY is made of Lisp expressions.
 
 A handler is applicable to an error if CONDITION-NAME is one of the
 error's condition names.  Handlers may also apply when non-error
@@ -1322,6 +1331,10 @@ with VAR bound to (ERROR-SYMBOL . SIGNAL-DATA) from the error.
 \(If VAR is nil, the handler can't access that information.)
 Then the value of the last BODY form is returned from the `condition-case'
 expression.
+
+The special handler (:success BODY...) is invoked if BODYFORM terminated
+without signalling an error.  BODY is then evaluated with VAR bound to
+the value returned by BODYFORM.
 
 See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
@@ -1346,16 +1359,21 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 
   CHECK_SYMBOL (var);
 
+  Lisp_Object success_handler = Qnil;
+
   for (Lisp_Object tail = handlers; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object tem = XCAR (tail);
-      clausenb++;
       if (! (NILP (tem)
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
 	error ("Invalid condition handler: %s",
 	       SDATA (Fprin1_to_string (tem, Qt)));
+      if (EQ (XCAR (tem), QCsuccess))
+	success_handler = XCDR (tem);
+      else
+	clausenb++;
     }
 
   /* The first clause is the one that should be checked first, so it
@@ -1369,7 +1387,8 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
   Lisp_Object volatile *clauses = alloca (clausenb * sizeof *clauses);
   clauses += clausenb;
   for (Lisp_Object tail = handlers; CONSP (tail); tail = XCDR (tail))
-    *--clauses = XCAR (tail);
+    if (!EQ (XCAR (XCAR (tail)), QCsuccess))
+      *--clauses = XCAR (tail);
   for (ptrdiff_t i = 0; i < clausenb; i++)
     {
       Lisp_Object clause = clauses[i];
@@ -1409,6 +1428,23 @@ internal_lisp_condition_case (Lisp_Object var, Lisp_Object bodyform,
 
   Lisp_Object result = eval_sub (bodyform);
   handlerlist = oldhandlerlist;
+  if (!NILP (success_handler))
+    {
+      if (NILP (var))
+	return Fprogn (success_handler);
+
+      Lisp_Object handler_var = var;
+      if (!NILP (Vinternal_interpreter_environment))
+	{
+	  result = Fcons (Fcons (var, result),
+		       Vinternal_interpreter_environment);
+	  handler_var = Qinternal_interpreter_environment;
+	}
+
+      ptrdiff_t count = SPECPDL_INDEX ();
+      specbind (handler_var, result);
+      return unbind_to (count, Fprogn (success_handler));
+    }
   return result;
 }
 
@@ -1488,6 +1524,90 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   else
     {
       Lisp_Object val = bfun (arg1, arg2);
+      eassert (handlerlist == c);
+      handlerlist = c->next;
+      return val;
+    }
+}
+
+/* Like internal_condition_case_1 but call BFUN with ARG1, ARG2, ARG3 as
+   its arguments.  */
+
+Lisp_Object
+internal_condition_case_3 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object,
+                                                Lisp_Object),
+                           Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
+                           Lisp_Object handlers,
+                           Lisp_Object (*hfun) (Lisp_Object))
+{
+  struct handler *c = push_handler (handlers, CONDITION_CASE);
+  if (sys_setjmp (c->jmp))
+    {
+      Lisp_Object val = handlerlist->val;
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
+      return hfun (val);
+    }
+  else
+    {
+      Lisp_Object val = bfun (arg1, arg2, arg3);
+      eassert (handlerlist == c);
+      handlerlist = c->next;
+      return val;
+    }
+}
+
+/* Like internal_condition_case_1 but call BFUN with ARG1, ARG2, ARG3, ARG4 as
+   its arguments.  */
+
+Lisp_Object
+internal_condition_case_4 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object,
+                                                Lisp_Object, Lisp_Object),
+                           Lisp_Object arg1, Lisp_Object arg2,
+                           Lisp_Object arg3, Lisp_Object arg4,
+                           Lisp_Object handlers,
+                           Lisp_Object (*hfun) (Lisp_Object))
+{
+  struct handler *c = push_handler (handlers, CONDITION_CASE);
+  if (sys_setjmp (c->jmp))
+    {
+      Lisp_Object val = handlerlist->val;
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
+      return hfun (val);
+    }
+  else
+    {
+      Lisp_Object val = bfun (arg1, arg2, arg3, arg4);
+      eassert (handlerlist == c);
+      handlerlist = c->next;
+      return val;
+    }
+}
+
+/* Like internal_condition_case_1 but call BFUN with ARG1, ARG2, ARG3,
+   ARG4, ARG5 as its arguments.  */
+
+Lisp_Object
+internal_condition_case_5 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object,
+                                                Lisp_Object, Lisp_Object,
+						Lisp_Object),
+                           Lisp_Object arg1, Lisp_Object arg2,
+                           Lisp_Object arg3, Lisp_Object arg4,
+			   Lisp_Object arg5, Lisp_Object handlers,
+                           Lisp_Object (*hfun) (Lisp_Object))
+{
+  struct handler *c = push_handler (handlers, CONDITION_CASE);
+  if (sys_setjmp (c->jmp))
+    {
+      Lisp_Object val = handlerlist->val;
+      clobbered_eassert (handlerlist == c);
+      handlerlist = handlerlist->next;
+      return hfun (val);
+    }
+  else
+    {
+      Lisp_Object val = bfun (arg1, arg2, arg3, arg4, arg5);
       eassert (handlerlist == c);
       handlerlist = c->next;
       return val;
@@ -2329,7 +2449,7 @@ eval_sub (Lisp_Object form)
   else if (!NILP (fun) && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
-  if (SUBRP (fun))
+  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
     {
       Lisp_Object args_left = original_args;
       ptrdiff_t numargs = list_length (args_left);
@@ -2432,7 +2552,9 @@ eval_sub (Lisp_Object form)
 	    }
 	}
     }
-  else if (COMPILEDP (fun) || MODULE_FUNCTIONP (fun))
+  else if (COMPILEDP (fun)
+	   || SUBR_NATIVE_COMPILED_DYNP (fun)
+	   || MODULE_FUNCTIONP (fun))
     return apply_lambda (fun, original_args, count);
   else
     {
@@ -2910,9 +3032,11 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       && (fun = XSYMBOL (fun)->u.s.function, SYMBOLP (fun)))
     fun = indirect_function (fun);
 
-  if (SUBRP (fun))
+  if (SUBRP (fun) && !SUBR_NATIVE_COMPILED_DYNP (fun))
     val = funcall_subr (XSUBR (fun), numargs, args + 1);
-  else if (COMPILEDP (fun) || MODULE_FUNCTIONP (fun))
+  else if (COMPILEDP (fun)
+	   || SUBR_NATIVE_COMPILED_DYNP (fun)
+	   || MODULE_FUNCTIONP (fun))
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
@@ -3122,6 +3246,11 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
   else if (MODULE_FUNCTIONP (fun))
     return funcall_module (fun, nargs, arg_vector);
 #endif
+  else if (SUBR_NATIVE_COMPILED_DYNP (fun))
+    {
+      syms_left = XSUBR (fun)->lambda_list[0];
+      lexenv = Qnil;
+    }
   else
     emacs_abort ();
 
@@ -3182,6 +3311,13 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
+  else if (SUBR_NATIVE_COMPILEDP (fun))
+    {
+      eassert (SUBR_NATIVE_COMPILED_DYNP (fun));
+      /* No need to use funcall_subr as we have zero arguments by
+	 construction.  */
+      val = XSUBR (fun)->function.a0 ();
+    }
   else
     val = fetch_and_exec_byte_code (fun, Qnil, 0, NULL);
 
@@ -4381,6 +4517,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sthrow);
   defsubr (&Sunwind_protect);
   defsubr (&Scondition_case);
+  DEFSYM (QCsuccess, ":success");
   defsubr (&Ssignal);
   defsubr (&Scommandp);
   defsubr (&Sautoload);

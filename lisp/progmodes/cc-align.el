@@ -1,4 +1,4 @@
-;;; cc-align.el --- custom indentation functions for CC Mode
+;;; cc-align.el --- custom indentation functions for CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -43,6 +43,9 @@
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
 (cc-require 'cc-engine)
+
+(defvar c-syntactic-context)
+(defvar c-syntactic-element)
 
 
 ;; Standard line-up functions

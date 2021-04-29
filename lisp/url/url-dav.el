@@ -43,22 +43,11 @@
 (defvar url-http-response-status)
 (defvar url-http-end-of-headers)
 
-(defun url-intersection (l1 l2)
-  "Return a list of the elements occurring in both of the lists L1 and L2."
-  (if (null l2)
-      l2
-    (let (result)
-      (while l1
-	(if (member (car l1) l2)
-	    (setq result (cons (pop l1) result))
-	  (pop l1)))
-      (nreverse result))))
-
 ;;;###autoload
 (defun url-dav-supported-p (url)
   "Return WebDAV protocol version supported by URL.
 Returns nil if WebDAV is not supported."
-  (url-intersection url-dav-supported-protocols
+  (seq-intersection url-dav-supported-protocols
 		    (plist-get (url-http-options url) 'dav)))
 
 (defun url-dav-node-text (node)
@@ -910,7 +899,9 @@ Returns nil if URL contains no name starting with FILE."
 	t)))
 
 
-;;; Miscellaneous stuff.
+;;; Obsolete.
+
+(define-obsolete-function-alias 'url-intersection #'seq-intersection "28.1")
 
 (provide 'url-dav)
 

@@ -26,8 +26,6 @@
 
 ;; Spam handling in MH-E.
 
-;;; Change Log:
-
 ;;; Code:
 
 (require 'mh-e)

@@ -1482,14 +1482,21 @@ x_get_window_property_as_lisp_data (struct x_display_info *dpyinfo,
 	= XGetSelectionOwner (display, selection_atom) != 0;
       unblock_input ();
       if (there_is_a_selection_owner)
-	signal_error ("Selection owner couldn't convert",
-		      actual_type
-		      ? list2 (target_type,
-			       x_atom_to_symbol (dpyinfo, actual_type))
-		      : target_type);
+	{
+	  AUTO_STRING (format, "Selection owner couldn't convert: %s");
+	  CALLN (Fmessage, format,
+		 actual_type
+		 ? list2 (target_type,
+			  x_atom_to_symbol (dpyinfo, actual_type))
+		 : target_type);
+	  return Qnil;
+	}
       else
-	signal_error ("No selection",
-		      x_atom_to_symbol (dpyinfo, selection_atom));
+	{
+	  AUTO_STRING (format, "No selection: %s");
+	  CALLN (Fmessage, format, x_atom_to_symbol (dpyinfo, selection_atom));
+	  return Qnil;
+	}
     }
 
   if (actual_type == dpyinfo->Xatom_INCR)

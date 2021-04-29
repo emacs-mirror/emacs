@@ -47,7 +47,7 @@
 
 (defmacro save-electric-modes (&rest body)
   (declare (indent defun) (debug t))
-  `(call-with-saved-electric-modes #'(lambda () ,@body)))
+  `(call-with-saved-electric-modes (lambda () ,@body)))
 
 (defun electric-pair-test-for (fixture where char expected-string
                                        expected-point mode bindings
@@ -359,7 +359,7 @@ baz\"\""
 #    \"
 #
 baz\"\""
-  :fixture-fn #'(lambda () (goto-char (point-min)) (search-forward "bar")))
+  :fixture-fn (lambda () (goto-char (point-min)) (search-forward "bar")))
 
 (define-electric-pair-test inhibit-in-mismatched-string-inside-c-comments
   "foo\"\"/*
@@ -378,7 +378,7 @@ baz\"\""
     \"   \"
     \"
 */baz\"\""
-  :fixture-fn #'(lambda () (goto-char (point-min)) (search-forward "bar")))
+  :fixture-fn (lambda () (goto-char (point-min)) (search-forward "bar")))
 
 
 ;;; More quotes, but now don't bind `electric-pair-text-syntax-table'
@@ -520,8 +520,8 @@ baz\"\""
 (define-electric-pair-test js-mode-braces
   "" "{" :expected-string "{}" :expected-point 2
   :modes '(js-mode)
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)))
 
 
 (define-electric-pair-test js-mode-braces-with-layout
@@ -529,29 +529,29 @@ baz\"\""
   :modes '(js-mode)
   :test-in-comments nil
   :test-in-strings nil
-  :fixture-fn #'(lambda ()
-                  (electric-layout-mode 1)
-                  (electric-pair-mode 1)))
+  :fixture-fn (lambda ()
+                (electric-layout-mode 1)
+                (electric-pair-mode 1)))
 
 (define-electric-pair-test js-mode-braces-with-layout-and-indent
   "" "{" :expected-string "{\n    \n}" :expected-point 7
   :modes '(js-mode)
   :test-in-comments nil
   :test-in-strings nil
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (electric-indent-mode 1)
-                  (electric-layout-mode 1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (electric-indent-mode 1)
+                (electric-layout-mode 1)))
 
 (define-electric-pair-test js-mode-braces-with-layout-and-indent
   "" "{" :expected-string "{\n    \n}" :expected-point 7
   :modes '(js-mode)
   :test-in-comments nil
   :test-in-strings nil
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (electric-indent-mode 1)
-                  (electric-layout-mode 1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (electric-indent-mode 1)
+                (electric-layout-mode 1)))
 
 
 ;;; Backspacing
@@ -606,55 +606,55 @@ baz\"\""
 ;;;
 (define-electric-pair-test autowrapping-1
   "foo" "(" :expected-string "(foo)" :expected-point 2
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (mark-sexp 1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (mark-sexp 1)))
 
 (define-electric-pair-test autowrapping-2
   "foo" ")" :expected-string "(foo)" :expected-point 6
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (mark-sexp 1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (mark-sexp 1)))
 
 (define-electric-pair-test autowrapping-3
   "foo" ")" :expected-string "(foo)" :expected-point 6
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (goto-char (point-max))
-                  (skip-chars-backward "\"")
-                  (mark-sexp -1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (goto-char (point-max))
+                (skip-chars-backward "\"")
+                (mark-sexp -1)))
 
 (define-electric-pair-test autowrapping-4
   "foo" "(" :expected-string "(foo)" :expected-point 2
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (goto-char (point-max))
-                  (skip-chars-backward "\"")
-                  (mark-sexp -1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (goto-char (point-max))
+                (skip-chars-backward "\"")
+                (mark-sexp -1)))
 
 (define-electric-pair-test autowrapping-5
   "foo" "\"" :expected-string "\"foo\"" :expected-point 2
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (mark-sexp 1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (mark-sexp 1)))
 
 (define-electric-pair-test autowrapping-6
   "foo" "\"" :expected-string "\"foo\"" :expected-point 6
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (goto-char (point-max))
-                  (skip-chars-backward "\"")
-                  (mark-sexp -1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (goto-char (point-max))
+                (skip-chars-backward "\"")
+                (mark-sexp -1)))
 
 (define-electric-pair-test autowrapping-7
   "foo" "\"" :expected-string "``foo''" :expected-point 8
   :modes '(tex-mode)
   :test-in-comments nil
-  :fixture-fn #'(lambda ()
-                  (electric-pair-mode 1)
-                  (goto-char (point-max))
-                  (skip-chars-backward "\"")
-                  (mark-sexp -1)))
+  :fixture-fn (lambda ()
+                (electric-pair-mode 1)
+                (goto-char (point-max))
+                (skip-chars-backward "\"")
+                (mark-sexp -1)))
 
 
 ;;; Electric quotes

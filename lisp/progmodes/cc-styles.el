@@ -1,4 +1,4 @@
-;;; cc-styles.el --- support for styles in CC Mode
+;;; cc-styles.el --- support for styles in CC Mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1985, 1987, 1992-2021 Free Software Foundation, Inc.
 
@@ -374,7 +374,7 @@ in this way.
 If DONT-OVERRIDE is t, style variables that already have values (i.e., whose
 values are not the symbol `set-from-style') will not be overridden.  CC Mode
 calls c-set-style internally in this way whilst initializing a buffer; if
-cc-set-style is called like this from anywhere else, it will usually behave as
+c-set-style is called like this from anywhere else, it will usually behave as
 a null operation."
   (interactive
    (list (let ((completion-ignore-case t)
@@ -464,7 +464,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
     offset))
 
 ;;;###autoload
-(defun c-set-offset (symbol offset &optional ignored)
+(defun c-set-offset (symbol offset &optional _ignored)
   "Change the value of a syntactic element symbol in `c-offsets-alist'.
 SYMBOL is the syntactic element symbol to change and OFFSET is the new
 offset for that syntactic element.  The optional argument is not used
@@ -476,8 +476,8 @@ and exists only for compatibility reasons."
 			    (if current-prefix-arg " or add" "")
 			    ": ")
 		    (mapcar
-		     #'(lambda (langelem)
-			 (cons (format "%s" (car langelem)) nil))
+		     (lambda (langelem)
+		       (cons (format "%s" (car langelem)) nil))
 		     (get 'c-offsets-alist 'c-stylevar-fallback))
 		    nil (not current-prefix-arg)
 		    ;; initial contents tries to be the last element

@@ -585,7 +585,7 @@ Overrides `semantic-nonterminal-static'."
 
 ;;; Context parsing
 ;;
-;; Emacs lisp is very different from C,C++ which most context parsing
+;; Emacs Lisp is very different from C,C++ which most context parsing
 ;; functions are written.  Support them here.
 (define-mode-local-override semantic-up-context emacs-lisp-mode
   (&optional _point _bounds-type)

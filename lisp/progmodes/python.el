@@ -241,13 +241,11 @@
 ;; 2) Add the following hook in your .emacs:
 
 ;; (add-hook 'python-mode-hook
-;;   #'(lambda ()
-;;       (define-key python-mode-map "\C-m" 'newline-and-indent)))
+;;   (lambda ()
+;;     (define-key python-mode-map "\C-m" 'newline-and-indent)))
 
 ;; I'd recommend the first one since you'll get the same behavior for
 ;; all modes out-of-the-box.
-
-;;; TODO:
 
 ;;; Code:
 
@@ -3385,7 +3383,8 @@ user-friendly message if there's no process running; defaults to
 t when called interactively."
   (interactive "p")
   (pop-to-buffer
-   (process-buffer (python-shell-get-process-or-error msg)) nil t))
+   (process-buffer (python-shell-get-process-or-error msg))
+   nil 'mark-for-redisplay))
 
 (defun python-shell-send-setup-code ()
   "Send all setup code for shell.
@@ -3976,8 +3975,8 @@ Returns the tracked buffer."
   "Finish tracking."
   (python-pdbtrack-unset-tracked-buffer)
   (when python-pdbtrack-kill-buffers
-      (mapc #'(lambda (buffer)
-                (ignore-errors (kill-buffer buffer)))
+    (mapc (lambda (buffer)
+            (ignore-errors (kill-buffer buffer)))
             python-pdbtrack-buffers-to-kill))
   (setq python-pdbtrack-buffers-to-kill nil))
 

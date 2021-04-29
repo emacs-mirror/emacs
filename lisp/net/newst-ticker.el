@@ -1,4 +1,4 @@
-;; newst-ticker.el --- mode line ticker for newsticker.  -*- lexical-binding: t; -*-
+;;; newst-ticker.el --- mode line ticker for newsticker.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021 Free Software Foundation, Inc.
 

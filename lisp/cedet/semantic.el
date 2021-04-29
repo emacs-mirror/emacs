@@ -678,15 +678,15 @@ This function returns semantic tags without overlays."
       (if tag
           (if (car tag)
               (setq tag (mapcar
-                         #'(lambda (tag)
-                             ;; Set the 'reparse-symbol property to
-                             ;; NONTERM unless it was already setup
-                             ;; by a tag expander
-                             (or (semantic--tag-get-property
-                                  tag 'reparse-symbol)
-                                 (semantic--tag-put-property
-                                  tag 'reparse-symbol nonterm))
-                             tag)
+                         (lambda (tag)
+                           ;; Set the 'reparse-symbol property to
+                           ;; NONTERM unless it was already setup
+                           ;; by a tag expander
+                           (or (semantic--tag-get-property
+                                tag 'reparse-symbol)
+                               (semantic--tag-put-property
+                                tag 'reparse-symbol nonterm))
+                           tag)
                          (semantic--tag-expand tag))
                     result (append result tag))
             ;; No error in this case, a purposeful nil means don't

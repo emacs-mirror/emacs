@@ -2121,7 +2121,7 @@ read_char_help_form_unwind (void)
   Lisp_Object window_config = XCAR (help_form_saved_window_configs);
   help_form_saved_window_configs = XCDR (help_form_saved_window_configs);
   if (!NILP (window_config))
-    Fset_window_configuration (window_config, Qnil);
+    Fset_window_configuration (window_config, Qnil, Qnil);
 }
 
 #define STOP_POLLING					\
@@ -10379,7 +10379,7 @@ update_recent_keys (int new_size, int kept_keys)
 }
 
 DEFUN ("lossage-size", Flossage_size, Slossage_size, 0, 1,
-       "(list (read-number \"new-size: \" (lossage-size)))",
+       "(list (read-number \"Set maximum keystrokes to: \" (lossage-size)))",
        doc: /* Return or set the maximum number of keystrokes to save.
 If called with a non-nil ARG, set the limit to ARG and return it.
 Otherwise, return the current limit.
@@ -10665,10 +10665,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
      with a window system; but suspend should be disabled in that case.  */
   get_tty_size (fileno (CURTTY ()->input), &width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (SELECTED_FRAME (), width,
-		       height - FRAME_MENU_BAR_LINES (SELECTED_FRAME ())
-		       - FRAME_TAB_BAR_LINES (SELECTED_FRAME ()),
-		       0, 0, 0, 0);
+    change_frame_size (SELECTED_FRAME (), width, height, false, false, false);
 
   run_hook (intern ("suspend-resume-hook"));
 

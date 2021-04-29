@@ -4398,8 +4398,8 @@ end
 
 (defun ebnf-format-float (&rest floats)
   (mapconcat
-   #'(lambda (float)
-       (format ebnf-format-float float))
+   (lambda (float)
+     (format ebnf-format-float float))
    floats
    " "))
 
@@ -4959,8 +4959,8 @@ killed after process termination."
 
 (defvar ebnf-map-name
   (let ((map (make-vector 256 ?\_)))
-    (mapc #'(lambda (char)
-	      (aset map char char))
+    (mapc (lambda (char)
+            (aset map char char))
 	  (concat "#$%&+-.0123456789=?@~"
 		  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		  "abcdefghijklmnopqrstuvwxyz"))

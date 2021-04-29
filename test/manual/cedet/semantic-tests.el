@@ -1,4 +1,4 @@
-;;; semantic-utest.el --- Miscellaneous Semantic tests.  -*- lexical-binding: t; -*-
+;;; semantic-tests.el --- Miscellaneous Semantic tests.  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2003-2021  Free Software Foundation, Inc.
 

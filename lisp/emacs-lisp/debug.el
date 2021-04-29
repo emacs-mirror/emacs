@@ -213,7 +213,7 @@ the debugger will not be entered."
 	      last-input-event last-command-event last-nonmenu-event
 	      last-event-frame
 	      overriding-local-map
-	      load-read-function
+	      (load-read-function #'read)
 	      ;; If we are inside a minibuffer, allow nesting
 	      ;; so that we don't get an error from the `e' command.
 	      (enable-recursive-minibuffers

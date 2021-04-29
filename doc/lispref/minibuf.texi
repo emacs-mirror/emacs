@@ -97,6 +97,14 @@ to be done.  @xref{Text from Minibuffer}, for the non-completion
 minibuffer local maps.  @xref{Completion Commands}, for the minibuffer
 local maps for completion.
 
+@cindex active minibuffer
+  An active minibuffer usually has major mode @code{minibuffer-mode}.
+This is an Emacs internal mode without any special features.  To
+customize the setup of minibuffers, we suggest you use
+@code{minibuffer-setup-hook} (@pxref{Minibuffer Misc}) rather than
+@code{minibuffer-mode-hook}, since the former is run later, after the
+minibuffer has been fully initialized.
+
 @cindex inactive minibuffer
   When a minibuffer is inactive, its major mode is
 @code{minibuffer-inactive-mode}, with keymap
@@ -167,8 +175,10 @@ various applications such as completion.
 
 The argument @var{history} specifies a history list variable to use
 for saving the input and for history commands used in the minibuffer.
-It defaults to @code{minibuffer-history}.  You can optionally specify
-a starting position in the history list as well.  @xref{Minibuffer History}.
+It defaults to @code{minibuffer-history}.  If @var{history} is the
+symbol @code{t}, history is not recorded.  You can optionally specify
+a starting position in the history list as well.  @xref{Minibuffer
+History}.
 
 If the variable @code{minibuffer-allow-text-properties} is
 non-@code{nil}, then the string that is returned includes whatever text
@@ -970,16 +980,19 @@ and @var{suffix} holds the text after point.
 
 Normally completion operates on the whole string, so for all normal
 collections, this will always return @code{(0 . (length
-@var{suffix}))}.  But more complex completion such as completion on
-files is done one field at a time.  For example, completion of
+@var{suffix}))}.  But more complex completion, such as completion on
+files, is done one field at a time.  For example, completion of
 @code{"/usr/sh"} will include @code{"/usr/share/"} but not
 @code{"/usr/share/doc"} even if @code{"/usr/share/doc"} exists.
 Also @code{all-completions} on @code{"/usr/sh"} will not include
 @code{"/usr/share/"} but only @code{"share/"}.  So if @var{string} is
 @code{"/usr/sh"} and @var{suffix} is @code{"e/doc"},
-@code{completion-boundaries} will return @code{(5 . 1)} which tells us
+@code{completion-boundaries} will return @w{@code{(5 . 1)}} which tells us
 that the @var{collection} will only return completion information that
 pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
+@code{try-completion} is not affected by nontrivial boundaries; e.g.,
+@code{try-completion} on @code{"/usr/sh"} might still return
+@code{"/usr/share/"}, not @code{"share/"}.
 @end defun
 
 If you store a completion alist in a variable, you should mark the
@@ -1107,9 +1120,10 @@ The function @code{completing-read} uses
 @code{minibuffer-local-must-match-map} if @var{require-match} is
 non-@code{nil}.  @xref{Completion Commands}.
 
-The argument @var{history} specifies which history list variable to use for
-saving the input and for minibuffer history commands.  It defaults to
-@code{minibuffer-history}.  @xref{Minibuffer History}.
+The argument @var{history} specifies which history list variable to
+use for saving the input and for minibuffer history commands.  It
+defaults to @code{minibuffer-history}.  If @var{history} is the symbol
+@code{t}, history is not recorded.  @xref{Minibuffer History}.
 
 The argument @var{initial} is mostly deprecated; we recommend using a
 non-@code{nil} value only in conjunction with specifying a cons cell
@@ -1805,12 +1819,10 @@ default to that string.
 @item :affixation-function
 The value should be a function to add prefixes and suffixes to
 completions.  This function must accept one argument, a list of
-completions, and should return such a list of completions where
-each element contains a list of three elements: a completion,
-a prefix string, and a suffix string.  When this function
-returns a list of two elements, it is interpreted as a list
-of a completion and a suffix string like in @code{:annotation-function}.
-This function takes priority over @code{:annotation-function}.
+completions, and should return a list of annotated completions.  Each
+element of the returned list must be a three-element list, the
+completion, a prefix string, and a suffix string.  This function takes
+priority over @code{:annotation-function}.
 
 @item :exit-function
 The value should be a function to run after performing completion.
@@ -1883,6 +1895,13 @@ should return @code{(boundaries @var{start} . @var{end})}, where
 string, and @var{end} is the position of the end boundary in
 @var{suffix}.
 
+If a Lisp program returns nontrivial boundaries, it should make sure that the
+@code{all-completions} operation is consistent with them.  The
+completions returned by @code{all-completions} should only pertain to
+the piece of the prefix and suffix covered by the completion
+boundaries.  @xref{Basic Completion}, for the precise expected semantics
+of completion boundaries.
+
 @item metadata
 This specifies a request for information about the state of the
 current completion.  The return value should have the form
@@ -1921,10 +1940,8 @@ completions.  The function should take one argument,
 return such a list of @var{completions} where each element contains a list
 of three elements: a completion, a prefix which is displayed before
 the completion string in the @file{*Completions*} buffer, and
-a suffix displayed after the completion string.  When this function
-returns a list of two elements, it is interpreted as a list of
-a completion and a suffix string like in @code{annotation-function}.
-This function takes priority over @code{annotation-function}.
+a suffix displayed after the completion string.  This function
+takes priority over @code{annotation-function}.
 
 @item display-sort-function
 The value should be a function for sorting completions.  The function
@@ -1961,7 +1978,7 @@ was entered.
 The return value of @code{completion-table-dynamic} is a function that
 can be used as the 2nd argument to @code{try-completion} and
 @code{all-completions}.  Note that this function will always return
-empty metadata and trivial boundaries (@pxref{Programmed Completion}).
+empty metadata and trivial boundaries.
 @end defun
 
 @defun completion-table-with-cache function &optional ignore-case
@@ -2218,9 +2235,10 @@ This function asks the user a series of questions, reading a
 single-character answer in the echo area for each one.
 
 The value of @var{list} specifies the objects to ask questions about.
-It should be either a list of objects or a generator function.  If it is
-a function, it should expect no arguments, and should return either the
-next object to ask about, or @code{nil}, meaning to stop asking questions.
+It should be either a list of objects or a generator function.  If it
+is a function, it will be called with no arguments, and should return
+either the next object to ask about, or @code{nil}, meaning to stop
+asking questions.
 
 The argument @var{prompter} specifies how to ask each question.  If
 @var{prompter} is a string, the question text is computed like this:
@@ -2231,19 +2249,20 @@ The argument @var{prompter} specifies how to ask each question.  If
 
 @noindent
 where @var{object} is the next object to ask about (as obtained from
-@var{list}).
+@var{list}).  @xref{Formatting Strings}, for more information about
+@code{format}.
 
-If not a string, @var{prompter} should be a function of one argument
-(the next object to ask about) and should return the question text.  If
-the value is a string, that is the question to ask the user.  The
-function can also return @code{t}, meaning do act on this object (and
-don't ask the user), or @code{nil}, meaning ignore this object (and don't
-ask the user).
+If @var{prompter} is not a string, it should be a function of one
+argument (the object to ask about) and should return the question text
+for that object.  If the value @var{prompter} returns is a string,
+that is the question to ask the user.  The function can also return
+@code{t}, meaning to act on this object without asking the user, or
+@code{nil}, which means to silently ignore this object.
 
-The argument @var{actor} says how to act on the answers that the user
-gives.  It should be a function of one argument, and it is called with
-each object that the user says yes for.  Its argument is always an
-object obtained from @var{list}.
+The argument @var{actor} says how to act on the objects for which the
+user answers yes.  It should be a function of one argument, and will
+be called with each object from @var{list} for which the user answers
+yes.
 
 If the argument @var{help} is given, it should be a list of this form:
 
@@ -2253,34 +2272,49 @@ If the argument @var{help} is given, it should be a list of this form:
 
 @noindent
 where @var{singular} is a string containing a singular noun that
-describes the objects conceptually being acted on, @var{plural} is the
+describes a single object to be acted on, @var{plural} is the
 corresponding plural noun, and @var{action} is a transitive verb
-describing what @var{actor} does.
+describing what @var{actor} does with the objects.
 
-If you don't specify @var{help}, the default is @code{("object"
-"objects" "act on")}.
+If you don't specify @var{help}, it defaults to the list
+@w{@code{("object" "objects" "act on")}}.
 
-Each time a question is asked, the user may enter @kbd{y}, @kbd{Y}, or
-@key{SPC} to act on that object; @kbd{n}, @kbd{N}, or @key{DEL} to skip
-that object; @kbd{!} to act on all following objects; @key{ESC} or
-@kbd{q} to exit (skip all following objects); @kbd{.} (period) to act on
-the current object and then exit; or @kbd{C-h} to get help.  These are
-the same answers that @code{query-replace} accepts.  The keymap
-@code{query-replace-map} defines their meaning for @code{map-y-or-n-p}
-as well as for @code{query-replace}; see @ref{Search and Replace}.
+Each time a question is asked, the user can answer as follows:
+
+@table @asis
+@item @kbd{y}, @kbd{Y}, or @kbd{@key{SPC}}
+act on the object
+@item @kbd{n}, @kbd{N}, or @kbd{@key{DEL}}
+skip the object
+@item @kbd{!}
+act on all the following objects
+@item @kbd{@key{ESC}} or @kbd{q}
+exit (skip all following objects)
+@item @kbd{.} (period)
+act on the object and then exit
+@item @kbd{C-h}
+get help
+@end table
+
+@noindent
+These are the same answers that @code{query-replace} accepts.  The
+keymap @code{query-replace-map} defines their meaning for
+@code{map-y-or-n-p} as well as for @code{query-replace}; see
+@ref{Search and Replace}.
 
 You can use @var{action-alist} to specify additional possible answers
-and what they mean.  It is an alist of elements of the form
-@code{(@var{char} @var{function} @var{help})}, each of which defines one
-additional answer.  In this element, @var{char} is a character (the
+and what they mean.  If provided, @var{action-alist} should be an
+alist whose elements are of the form @w{@code{(@var{char}
+@var{function} @var{help})}}.  Each of the alist elements defines one
+additional answer.  In each element, @var{char} is a character (the
 answer); @var{function} is a function of one argument (an object from
-@var{list}); @var{help} is a string.
-
-When the user responds with @var{char}, @code{map-y-or-n-p} calls
-@var{function}.  If it returns non-@code{nil}, the object is considered
-acted upon, and @code{map-y-or-n-p} advances to the next object in
-@var{list}.  If it returns @code{nil}, the prompt is repeated for the
-same object.
+@var{list}); and @var{help} is a string.  When the user responds with
+@var{char}, @code{map-y-or-n-p} calls @var{function}.  If it returns
+non-@code{nil}, the object is considered to have been acted upon, and
+@code{map-y-or-n-p} advances to the next object in @var{list}.  If it
+returns @code{nil}, the prompt is repeated for the same object.  If
+the user requests help, the text in @var{help} is used to describe
+these additional answers.
 
 Normally, @code{map-y-or-n-p} binds @code{cursor-in-echo-area} while
 prompting.  But if @var{no-cursor-in-echo-area} is non-@code{nil}, it

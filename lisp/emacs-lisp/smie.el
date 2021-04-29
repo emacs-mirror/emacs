@@ -57,7 +57,7 @@
 ;;
 ;;     SMIE: Weakness is Power!  Auto-indentation with incomplete information
 ;;     Stefan Monnier, <Programming> Journal 2020, volumn 5, issue 1.
-;;     doi: 10.22152/programming-journal.org/2020/5/1
+;;     doi: 10.22152/programming-journal.org/2021/5/1
 
 ;; A good background to understand the development (especially the parts
 ;; building the 2D precedence tables and then computing the precedence levels
@@ -68,7 +68,7 @@
 ;; OTOH we had to kill many chickens, read many coffee grounds, and practice
 ;; untold numbers of black magic spells, to come up with the indentation code.
 ;; Since then, some of that code has been beaten into submission, but the
-;; smie-indent-keyword is still pretty obscure.
+;; `smie-indent-keyword' function is still pretty obscure.
 
 
 ;; Conflict resolution:
@@ -247,7 +247,7 @@ be either:
   ;; (exp (exp (or "+" "*" "=" ..) exp)).
   ;; Basically, make it EBNF (except for the specification of a separator in
   ;; the repetition, maybe).
-  (let* ((nts (mapcar 'car bnf))        ;Non-terminals.
+  (let* ((nts (mapcar #'car bnf))        ;Non-terminals.
          (first-ops-table ())
          (last-ops-table ())
          (first-nts-table ())
@@ -266,7 +266,7 @@ be either:
                 (push resolver precs))
                (t (error "Unknown resolver %S" resolver))))
             (apply #'smie-merge-prec2s over
-                   (mapcar 'smie-precs->prec2 precs))))
+                   (mapcar #'smie-precs->prec2 precs))))
          again)
     (dolist (rules bnf)
       (let ((nt (car rules))
@@ -497,7 +497,7 @@ CSTS is a list of pairs representing arcs in a graph."
                      res))
                  cycle)))
     (mapconcat
-     (lambda (elems) (mapconcat 'identity elems "="))
+     (lambda (elems) (mapconcat #'identity elems "="))
      (append names (list (car names)))
      " < ")))
 
@@ -567,7 +567,7 @@ PREC2 is a table as returned by `smie-precs->prec2' or
     ;; Then eliminate trivial constraints iteratively.
     (let ((i 0))
       (while csts
-        (let ((rhvs (mapcar 'cdr csts))
+        (let ((rhvs (mapcar #'cdr csts))
               (progress nil))
           (dolist (cst csts)
             (unless (memq (car cst) rhvs)
@@ -657,8 +657,8 @@ use syntax-tables to handle them in efficient C code.")
 Same calling convention as `smie-forward-token-function' except
 it should move backward to the beginning of the previous token.")
 
-(defalias 'smie-op-left 'car)
-(defalias 'smie-op-right 'cadr)
+(defalias 'smie-op-left #'car)
+(defalias 'smie-op-right #'cadr)
 
 (defun smie-default-backward-token ()
   (forward-comment (- (point)))
@@ -974,8 +974,7 @@ I.e. a good choice can be:
 (defcustom smie-blink-matching-inners t
   "Whether SMIE should blink to matching opener for inner keywords.
 If non-nil, it will blink not only for \"begin..end\" but also for \"if...else\"."
-  :type 'boolean
-  :group 'smie)
+  :type 'boolean)
 
 (defun smie-blink-matching-check (start end)
   (save-excursion
@@ -1141,8 +1140,7 @@ OPENER is non-nil if TOKEN is an opener and nil if it's a closer."
 
 (defcustom smie-indent-basic 4
   "Basic amount of indentation."
-  :type 'integer
-  :group 'smie)
+  :type 'integer)
 
 (defvar smie-rules-function #'ignore
   "Function providing the indentation rules.
@@ -1189,7 +1187,7 @@ designed specifically for use in this function.")
 	(and ;; (looking-at comment-start-skip) ;(bug#16041).
 	 (forward-comment (point-max))))))
 
-(defalias 'smie-rule-hanging-p 'smie-indent--hanging-p)
+(defalias 'smie-rule-hanging-p #'smie-indent--hanging-p)
 (defun smie-indent--hanging-p ()
   "Return non-nil if the current token is \"hanging\".
 A hanging keyword is one that's at the end of a line except it's not at
@@ -1205,7 +1203,7 @@ the beginning of a line."
 	       (funcall smie--hanging-eolp-function)
                (point))))))
 
-(defalias 'smie-rule-bolp 'smie-indent--bolp)
+(defalias 'smie-rule-bolp #'smie-indent--bolp)
 (defun smie-indent--bolp ()
   "Return non-nil if the current token is the first on the line."
   (save-excursion (skip-chars-backward " \t") (bolp)))
@@ -1421,7 +1419,7 @@ BASE-POS is the position relative to which offsets should be applied."
       (forward-sexp 1)
       nil)
      ((eobp) nil)
-     (t (error "Bumped into unknown token")))))
+     (t (error "Bumped into unknown token: %S" tok)))))
 
 (defun smie-indent-backward-token ()
   "Skip token backward and return it, along with its levels."
@@ -1810,9 +1808,11 @@ Each function is called with no argument, shouldn't move point, and should
 return either nil if it has no opinion, or an integer representing the column
 to which that point should be aligned, if we were to reindent it.")
 
+(defalias 'smie--funcall #'funcall) ;Debugging/tracing convenience indirection.
+
 (defun smie-indent-calculate ()
   "Compute the indentation to use for point."
-  (run-hook-with-args-until-success 'smie-indent-functions))
+  (run-hook-wrapped 'smie-indent-functions #'smie--funcall))
 
 (defun smie-indent-line ()
   "Indent current line using the SMIE indentation engine."
@@ -2016,7 +2016,7 @@ value with which to replace it."
   ;; FIXME improve value-type.
   :type '(choice (const nil)
                  (alist :key-type symbol))
-  :initialize 'custom-initialize-set
+  :initialize #'custom-initialize-set
   :set #'smie-config--setter)
 
 (defun smie-config-local (rules)

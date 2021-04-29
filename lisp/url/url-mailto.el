@@ -1,4 +1,4 @@
-;;; url-mail.el --- Mail Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
+;;; url-mailto.el --- Mail Uniform Resource Locator retrieval code  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 1996-1999, 2004-2021 Free Software Foundation, Inc.
 
@@ -104,8 +104,8 @@
 	    (or (search-forward (concat "\n" mail-header-separator "\n") nil t)
 	    	(goto-char (point-max)))
 	    (insert (mapconcat
-		     #'(lambda (string)
-			 (replace-regexp-in-string "\r\n" "\n" string))
+                     (lambda (string)
+                       (replace-regexp-in-string "\r\n" "\n" string))
 		     (cdar args) "\n")))
 	(url-mail-goto-field (caar args))
 	;; (setq func (intern-soft (concat "mail-" (caar args))))
