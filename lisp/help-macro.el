@@ -168,9 +168,9 @@ and then returns."
                                              (point-max))
                                             ""
                                           (concat  ", or "
-                                                   (help--key-description-fontified "\s") ; SPC
+                                                   (help--key-description-fontified (kbd "<PageDown>"))
                                                    " or "
-                                                   (help--key-description-fontified "\d") ; DEL
+                                                   (help--key-description-fontified (kbd "<PageUp>"))
                                                    " to scroll"))))
                            char (aref key 0)))
 

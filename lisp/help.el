@@ -233,9 +233,9 @@ Do not call this in the scope of `with-help-window'."
   (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
   (concat
    "\(Type "
-   (help--key-description-fontified "\s") ; SPC
+   (help--key-description-fontified (kbd "<PageDown>"))
    " or "
-   (help--key-description-fontified "\d") ; DEL
+   (help--key-description-fontified (kbd "<PageUp>"))
    " to scroll, "
    (help--key-description-fontified "\C-s")
    " to search, or \\<help-map>\\[help-quit] to exit.)"
