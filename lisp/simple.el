@@ -7691,44 +7691,53 @@ are interchanged."
   (interactive "*p")
   (transpose-subr 'forward-word arg))
 
-(defun transpose-sexps (arg)
+(defun transpose-sexps (arg &optional interactive)
   "Like \\[transpose-chars] (`transpose-chars'), but applies to sexps.
 Unlike `transpose-words', point must be between the two sexps and not
 in the middle of a sexp to be transposed.
 With non-zero prefix arg ARG, effect is to take the sexp before point
 and drag it forward past ARG other sexps (backward if ARG is negative).
 If ARG is zero, the sexps ending at or after point and at or after mark
-are interchanged."
-  (interactive "*p")
-  (transpose-subr
-   (lambda (arg)
-     ;; Here we should try to simulate the behavior of
-     ;; (cons (progn (forward-sexp x) (point))
-     ;;       (progn (forward-sexp (- x)) (point)))
-     ;; Except that we don't want to rely on the second forward-sexp
-     ;; putting us back to where we want to be, since forward-sexp-function
-     ;; might do funny things like infix-precedence.
-     (if (if (> arg 0)
-	     (looking-at "\\sw\\|\\s_")
-	   (and (not (bobp))
-		(save-excursion (forward-char -1) (looking-at "\\sw\\|\\s_"))))
-	 ;; Jumping over a symbol.  We might be inside it, mind you.
-	 (progn (funcall (if (> arg 0)
-			     'skip-syntax-backward 'skip-syntax-forward)
-			 "w_")
-		(cons (save-excursion (forward-sexp arg) (point)) (point)))
-       ;; Otherwise, we're between sexps.  Take a step back before jumping
-       ;; to make sure we'll obey the same precedence no matter which direction
-       ;; we're going.
-       (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward) " .")
-       (cons (save-excursion (forward-sexp arg) (point))
-	     (progn (while (or (forward-comment (if (> arg 0) 1 -1))
-			       (not (zerop (funcall (if (> arg 0)
-							'skip-syntax-forward
-						      'skip-syntax-backward)
-						    ".")))))
-		    (point)))))
-   arg 'special))
+are interchanged.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "*p\nd")
+  (if interactive
+      (condition-case nil
+          (transpose-sexps arg nil)
+        (scan-error (user-error "Not between two complete sexps")))
+    (transpose-subr
+     (lambda (arg)
+       ;; Here we should try to simulate the behavior of
+       ;; (cons (progn (forward-sexp x) (point))
+       ;;       (progn (forward-sexp (- x)) (point)))
+       ;; Except that we don't want to rely on the second forward-sexp
+       ;; putting us back to where we want to be, since forward-sexp-function
+       ;; might do funny things like infix-precedence.
+       (if (if (> arg 0)
+	       (looking-at "\\sw\\|\\s_")
+	     (and (not (bobp))
+		  (save-excursion
+                    (forward-char -1)
+                    (looking-at "\\sw\\|\\s_"))))
+	   ;; Jumping over a symbol.  We might be inside it, mind you.
+	   (progn (funcall (if (> arg 0)
+			       'skip-syntax-backward 'skip-syntax-forward)
+			   "w_")
+		  (cons (save-excursion (forward-sexp arg) (point)) (point)))
+         ;; Otherwise, we're between sexps.  Take a step back before jumping
+         ;; to make sure we'll obey the same precedence no matter which
+         ;; direction we're going.
+         (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward)
+                  " .")
+         (cons (save-excursion (forward-sexp arg) (point))
+	       (progn (while (or (forward-comment (if (> arg 0) 1 -1))
+			         (not (zerop (funcall (if (> arg 0)
+							  'skip-syntax-forward
+						        'skip-syntax-backward)
+						      ".")))))
+		      (point)))))
+     arg 'special)))
 
 (defun transpose-lines (arg)
   "Exchange current line and previous line, leaving point after both.

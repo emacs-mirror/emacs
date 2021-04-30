@@ -38,7 +38,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defun reposition-window (&optional arg)
+(defun reposition-window (&optional arg interactive)
   "Make the current definition and/or comment visible.
 Further invocations move it to the top of the window or toggle the
 visibility of comments that precede it.
@@ -55,118 +55,124 @@ the comment lines.
 visible (if only part could otherwise be made so), to make the defun line
 visible (if point is in code and it could not be made so, or if only
 comments, including the first comment line, are visible), or to make the
-first comment line visible (if point is in a comment)."
-  (interactive "P")
-  (let* (;; (here (line-beginning-position))
-	 (here (point))
-	 ;; change this name once I've gotten rid of references to ht.
-	 ;; this is actually the number of the last screen line
-	 (ht (- (window-height) 2))
-	 (line (repos-count-screen-lines (window-start) (point)))
-	 (comment-height
-	  ;; The call to max deals with the case of cursor between defuns.
-	  (max 0
-	       (repos-count-screen-lines-signed
-		;; the beginning of the preceding comment
-		(save-excursion
-		  (if (not (eobp)) (forward-char 1))
-		  (end-of-defun -1)
-		  ;; Skip whitespace, newlines, and form feeds.
-		  (if (re-search-forward "[^ \t\n\f]" nil t)
-		      (backward-char 1))
-		  (point))
-		here)))
-	 (defun-height
-	   (repos-count-screen-lines-signed
-	    (save-excursion
-	      (end-of-defun 1) ; so comments associate with following defuns
-	      (beginning-of-defun 1)
-	      (point))
-	    here))
-	 ;; This must be positive, so don't use the signed version.
-	 (defun-depth (repos-count-screen-lines here
-						(save-excursion
-						  (end-of-defun 1)
-						  (point))))
-	 (defun-line-onscreen-p
-	   (and (<= defun-height line)
-		(<= (- line defun-height) ht))))
-    (cond ((or (= comment-height line)
-	       (and (= line ht)
-		    (> comment-height line)
-		    ;; if defun line offscreen, we should be in case 4
-		    defun-line-onscreen-p))
-	   ;; Either first comment line is at top of screen or (point at
-	   ;; bottom of screen, defun line onscreen, and first comment line
-	   ;; off top of screen).  That is, it looks like we just did
-	   ;; recenter-definition, trying to fit as much of the comment
-	   ;; onscreen as possible.  Put defun line at top of screen; that
-	   ;; is, show as much code, and as few comments, as possible.
+first comment line visible (if point is in a comment).
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "P\nd")
+  (if interactive
+      (condition-case e
+          (reposition-window arg nil)
+        (scan-error (user-error (cadr e))))
+    (let* (;; (here (line-beginning-position))
+	   (here (point))
+	   ;; change this name once I've gotten rid of references to ht.
+	   ;; this is actually the number of the last screen line
+	   (ht (- (window-height) 2))
+	   (line (repos-count-screen-lines (window-start) (point)))
+	   (comment-height
+	    ;; The call to max deals with the case of cursor between defuns.
+	    (max 0
+	         (repos-count-screen-lines-signed
+		  ;; the beginning of the preceding comment
+		  (save-excursion
+		    (if (not (eobp)) (forward-char 1))
+		    (end-of-defun -1)
+		    ;; Skip whitespace, newlines, and form feeds.
+		    (if (re-search-forward "[^ \t\n\f]" nil t)
+		        (backward-char 1))
+		    (point))
+		  here)))
+	   (defun-height
+	     (repos-count-screen-lines-signed
+	      (save-excursion
+	        (end-of-defun 1) ; so comments associate with following defuns
+	        (beginning-of-defun 1)
+	        (point))
+	      here))
+	   ;; This must be positive, so don't use the signed version.
+	   (defun-depth (repos-count-screen-lines here
+						  (save-excursion
+						    (end-of-defun 1)
+						    (point))))
+	   (defun-line-onscreen-p
+	     (and (<= defun-height line)
+		  (<= (- line defun-height) ht))))
+      (cond ((or (= comment-height line)
+	         (and (= line ht)
+		      (> comment-height line)
+		      ;; if defun line offscreen, we should be in case 4
+		      defun-line-onscreen-p))
+	     ;; Either first comment line is at top of screen or (point at
+	     ;; bottom of screen, defun line onscreen, and first comment line
+	     ;; off top of screen).  That is, it looks like we just did
+	     ;; recenter-definition, trying to fit as much of the comment
+	     ;; onscreen as possible.  Put defun line at top of screen; that
+	     ;; is, show as much code, and as few comments, as possible.
 
-	   (if (and arg (> defun-depth (1+ ht)))
-	       ;; Can't fit whole defun onscreen without moving point.
-	       (progn (end-of-defun) (beginning-of-defun) (recenter 0))
-	     (recenter (max defun-height 0)))
-	   ;;(repos-debug-macro "1")
-	   )
+	     (if (and arg (> defun-depth (1+ ht)))
+	         ;; Can't fit whole defun onscreen without moving point.
+	         (progn (end-of-defun) (beginning-of-defun) (recenter 0))
+	       (recenter (max defun-height 0)))
+	     ;;(repos-debug-macro "1")
+	     )
 
-	  ((or (= defun-height line)
-	       (= line 0)
-	       (and (< line comment-height)
-		    (< defun-height 0)))
-	   ;; Defun line or cursor at top of screen, OR cursor in comment
-	   ;; whose first line is offscreen.
-	   ;; Avoid moving definition up even if defun runs offscreen;
-	   ;; we care more about getting the comment onscreen.
+	    ((or (= defun-height line)
+	         (= line 0)
+	         (and (< line comment-height)
+		      (< defun-height 0)))
+	     ;; Defun line or cursor at top of screen, OR cursor in comment
+	     ;; whose first line is offscreen.
+	     ;; Avoid moving definition up even if defun runs offscreen;
+	     ;; we care more about getting the comment onscreen.
 
-	   (cond ((= line ht)
-		  ;; cursor on last screen line (and so in a comment)
-		  (if arg (progn (end-of-defun) (beginning-of-defun)))
-		  (recenter 0)
-		  ;;(repos-debug-macro "2a")
-		  )
+	     (cond ((= line ht)
+		    ;; cursor on last screen line (and so in a comment)
+		    (if arg (progn (end-of-defun) (beginning-of-defun)))
+		    (recenter 0)
+		    ;;(repos-debug-macro "2a")
+		    )
 
-		 ;; This condition, copied from case 4, may not be quite right
+		   ;; This condition, copied from case 4, may not be quite right
 
-		 ((and arg (< ht comment-height))
-		  ;; Can't get first comment line onscreen.
-		  ;; Go there and try again.
-		  (forward-line (- comment-height))
-		  (beginning-of-line)
-		  ;; was (reposition-window)
-		  (recenter 0)
-		  ;;(repos-debug-macro "2b")
-		  )
-		 (t
-		  (recenter (min ht comment-height))
-		  ;;(repos-debug-macro "2c")
-		  ))
-	   ;; (recenter (min ht comment-height))
-	   )
+		   ((and arg (< ht comment-height))
+		    ;; Can't get first comment line onscreen.
+		    ;; Go there and try again.
+		    (forward-line (- comment-height))
+		    (beginning-of-line)
+		    ;; was (reposition-window)
+		    (recenter 0)
+		    ;;(repos-debug-macro "2b")
+		    )
+		   (t
+		    (recenter (min ht comment-height))
+		    ;;(repos-debug-macro "2c")
+		    ))
+	     ;; (recenter (min ht comment-height))
+	     )
 
-	  ((and (> (+ line defun-depth -1) ht)
-		defun-line-onscreen-p)
-	   ;; Defun runs off the bottom of the screen and the defun line
-	   ;; is onscreen.
-	   ;; Move the defun up.
-	   (recenter (max 0 (1+ (- ht defun-depth)) defun-height))
-	   ;;(repos-debug-macro "3")
-	   )
+	    ((and (> (+ line defun-depth -1) ht)
+		  defun-line-onscreen-p)
+	     ;; Defun runs off the bottom of the screen and the defun line
+	     ;; is onscreen.
+	     ;; Move the defun up.
+	     (recenter (max 0 (1+ (- ht defun-depth)) defun-height))
+	     ;;(repos-debug-macro "3")
+	     )
 
-	  (t
-	   ;; If on the bottom line and comment start is offscreen
-	   ;; then just move all comments offscreen, or at least as
-	   ;; far as they'll go.
+	    (t
+	     ;; If on the bottom line and comment start is offscreen
+	     ;; then just move all comments offscreen, or at least as
+	     ;; far as they'll go.
 
-	   ;; Try to get as much of the comments onscreen as possible.
-	   (if (and arg (< ht comment-height))
-	       ;; Can't get defun line onscreen; go there and try again.
-	       (progn (forward-line (- defun-height))
-		      (beginning-of-line)
-		      (reposition-window))
-	     (recenter (min ht comment-height)))
-	   ;;(repos-debug-macro "4")
-	   ))))
+	     ;; Try to get as much of the comments onscreen as possible.
+	     (if (and arg (< ht comment-height))
+	         ;; Can't get defun line onscreen; go there and try again.
+	         (progn (forward-line (- defun-height))
+		        (beginning-of-line)
+		        (reposition-window))
+	       (recenter (min ht comment-height)))
+	     ;;(repos-debug-macro "4")
+	     )))))
 
 ;;; Auxiliary functions
 
