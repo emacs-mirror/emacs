@@ -1440,7 +1440,7 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 
 (define-minor-mode eglot--managed-mode
   "Mode for source buffers managed by some EGLOT project."
-  nil nil eglot-mode-map
+  :init-value nil :lighter nil :keymap eglot-mode-map
   (cond
    (eglot--managed-mode
     (add-hook 'after-change-functions 'eglot--after-change nil t)
