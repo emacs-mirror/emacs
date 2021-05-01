@@ -531,8 +531,11 @@ The mail program is given by `mairix-mail-program'."
 If FILE is nil, use default.  If THREADS is non-nil, also return
 whole threads.  Function returns t if messages were found."
   (let* ((commandsplit (split-string mairix-command))
-	 (args (cons (car commandsplit)
-		     `(nil ,(get-buffer-create mairix-output-buffer) nil)))
+	 (args (cons
+                (car commandsplit)
+		(append
+                 `(nil ,(get-buffer-create mairix-output-buffer) nil)
+                 mairix-search-options)))
 	 rval)
     (with-current-buffer mairix-output-buffer
       (erase-buffer))
