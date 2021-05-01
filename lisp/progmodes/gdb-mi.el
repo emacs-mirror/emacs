@@ -2696,7 +2696,7 @@ If `default-directory' is remote, full file names are adapted accordingly."
     (let ((remote (file-remote-p default-directory)))
       (when remote
         (goto-char (point-min))
-        (while (re-search-forward "[\\[,]fullname=\"\\(.+\\)\"" nil t)
+        (while (re-search-forward "[\\[,]fullname=\"\\(.+?\\)\"" nil t)
           (replace-match (concat remote "\\1") nil nil nil 1))))
     (goto-char (point-min))
     (when fix-key
