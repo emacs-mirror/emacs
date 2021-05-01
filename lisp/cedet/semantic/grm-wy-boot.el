@@ -436,12 +436,6 @@
 
 ;;; Analyzers
 ;;
-(define-lex-regex-type-analyzer semantic-grammar-wy--<symbol>-regexp-analyzer
-  "regexp analyzer for <symbol> tokens."
-  ":?\\(\\sw\\|\\s_\\)+"
-  '((PERCENT_PERCENT . "\\`%%\\'"))
-  'SYMBOL)
-
 (define-lex-keyword-type-analyzer semantic-grammar-wy--<keyword>-keyword-analyzer
   "keyword analyzer for <keyword> tokens."
   "\\(\\sw\\|\\s_\\)+")
@@ -452,10 +446,10 @@
   nil
   'CHARACTER)
 
-(define-lex-sexp-type-analyzer semantic-grammar-wy--<qlist>-sexp-analyzer
-  "sexp analyzer for <qlist> tokens."
-  "\\s'\\s-*("
-  'PREFIXED_LIST)
+(define-lex-sexp-type-analyzer semantic-grammar-wy--<string>-sexp-analyzer
+  "sexp analyzer for <string> tokens."
+  "\\s\""
+  'STRING)
 
 (define-lex-block-type-analyzer semantic-grammar-wy--<block>-block-analyzer
   "block analyzer for <block> tokens."
@@ -476,10 +470,16 @@
     (COLON . ":"))
   'punctuation)
 
-(define-lex-sexp-type-analyzer semantic-grammar-wy--<string>-sexp-analyzer
-  "sexp analyzer for <string> tokens."
-  "\\s\""
-  'STRING)
+(define-lex-regex-type-analyzer semantic-grammar-wy--<symbol>-regexp-analyzer
+  "regexp analyzer for <symbol> tokens."
+  ":?\\(\\sw\\|\\s_\\)+"
+  '((PERCENT_PERCENT . "\\`%%\\'"))
+  'SYMBOL)
+
+(define-lex-sexp-type-analyzer semantic-grammar-wy--<qlist>-sexp-analyzer
+  "sexp analyzer for <qlist> tokens."
+  "\\s'\\s-*("
+  'PREFIXED_LIST)
 
 (define-lex-sexp-type-analyzer semantic-grammar-wy--<sexp>-sexp-analyzer
   "sexp analyzer for <sexp> tokens."
