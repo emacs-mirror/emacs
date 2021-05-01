@@ -4376,7 +4376,7 @@ overlay arrow in source buffer."
   (let ((frame (bindat-get-field (gdb-json-partial-output) 'frame)))
     (when frame
       (setq gdb-selected-frame (bindat-get-field frame 'func))
-      (setq gdb-selected-file (bindat-get-field frame 'fullname))
+      (setq gdb-selected-file (file-local-name (bindat-get-field frame 'fullname)))
       (setq gdb-frame-number (bindat-get-field frame 'level))
       (setq gdb-frame-address (bindat-get-field frame 'addr))
       (let ((line (bindat-get-field frame 'line)))
