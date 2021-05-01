@@ -190,7 +190,7 @@ to navigate in it.")
 It takes two arguments, a buffer position in the error buffer
 and a buffer position in the error locus buffer.
 The buffer for the error locus should already be current.
-nil means use goto-char using the second argument position.")
+nil means use `goto-char' using the second argument position.")
 
 (defsubst next-error-buffer-p (buffer
 			       &optional avoid-current
@@ -389,7 +389,7 @@ Intended to be used in `next-error-found-function'."
 (defcustom next-error-found-function #'ignore
   "Function called when a next locus is found and displayed.
 Function is called with two arguments: a FROM-BUFFER buffer
-from which next-error navigated, and a target buffer TO-BUFFER."
+from which `next-error' navigated, and a target buffer TO-BUFFER."
   :type '(choice (const :tag "No default" ignore)
                  (const :tag "Quit previous window with M-0"
                         next-error-quit-window)
@@ -399,7 +399,7 @@ from which next-error navigated, and a target buffer TO-BUFFER."
 
 (defun next-error-found (&optional from-buffer to-buffer)
   "Function to call when the next locus is found and displayed.
-FROM-BUFFER is a buffer from which next-error navigated,
+FROM-BUFFER is a buffer from which `next-error' navigated,
 and TO-BUFFER is a target buffer."
   (setq next-error-last-buffer (or from-buffer (current-buffer)))
   (when to-buffer
@@ -1803,8 +1803,8 @@ moving point."
 
 (defun eval-expression-get-print-arguments (prefix-argument)
   "Get arguments for commands that print an expression result.
-Returns a list (INSERT-VALUE NO-TRUNCATE CHAR-PRINT-LIMIT)
-based on PREFIX-ARG.  This function determines the interpretation
+Returns a list (INSERT-VALUE NO-TRUNCATE CHAR-PRINT-LIMIT) based
+on PREFIX-ARGUMENT.  This function determines the interpretation
 of the prefix argument for `eval-expression' and
 `eval-last-sexp'."
   (let ((num (prefix-numeric-value prefix-argument)))
@@ -3380,8 +3380,7 @@ is not *inside* the region START...END."
 	      (> (cdr undo-elt) start)))))
 
 (defun undo-adjust-elt (elt deltas)
-  "Return adjustment of undo element ELT by the undo DELTAS
-list."
+  "Return adjustment of undo element ELT by the undo DELTAS list."
   (pcase elt
     ;; POSITION
     ((pred integerp)
@@ -3425,8 +3424,7 @@ list."
 ;; There was no strong reason to prefer one or the other, except that
 ;; the first is more consistent with prior undo in region behavior.
 (defun undo-adjust-beg-end (beg end deltas)
-  "Return cons of adjustments to BEG and END by the undo DELTAS
-list."
+  "Return cons of adjustments to BEG and END by the undo DELTAS list."
   (let ((adj-beg (undo-adjust-pos beg deltas)))
     ;; Note: option 2 above would be like (cons (min ...) adj-end)
     (cons adj-beg
