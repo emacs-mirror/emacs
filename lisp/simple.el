@@ -597,10 +597,12 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
          ;; Don't auto-fill if we have a prefix argument.
          (auto-fill-function (if arg nil auto-fill-function))
          (arg (prefix-numeric-value arg))
+         (procsym (make-symbol "newline-postproc")) ;(bug#46326)
          (postproc
           ;; Do the rest in post-self-insert-hook, because we want to do it
           ;; *before* other functions on that hook.
           (lambda ()
+            (remove-hook 'post-self-insert-hook procsym t)
             ;; Mark the newline(s) `hard'.
             (if use-hard-newlines
                 (set-hard-newline-properties
@@ -619,6 +621,7 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
             ;; starts a page.
             (or was-page-start
                 (move-to-left-margin nil t)))))
+    (fset procsym postproc)
     (if (not interactive)
 	;; FIXME: For non-interactive uses, many calls actually
 	;; just want (insert "\n"), so maybe we should do just
@@ -628,13 +631,13 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
 	  (self-insert-command arg))
       (unwind-protect
 	  (progn
-	    (add-hook 'post-self-insert-hook postproc nil t)
+	    (add-hook 'post-self-insert-hook procsym nil t)
 	    (self-insert-command arg))
 	;; We first used let-binding to protect the hook, but that
 	;; was naive since add-hook affects the symbol-default
 	;; value of the variable, whereas the let-binding might
 	;; protect only the buffer-local value.
-	(remove-hook 'post-self-insert-hook postproc t))))
+	(remove-hook 'post-self-insert-hook procsym t))))
   nil)
 
 (defun set-hard-newline-properties (from to)
@@ -1982,7 +1985,8 @@ This function uses the `read-extended-command-predicate' user option."
        (concat (cond
 	        ((eq current-prefix-arg '-) "- ")
 	        ((and (consp current-prefix-arg)
-		      (eq (car current-prefix-arg) 4)) "C-u ")
+		      (eq (car current-prefix-arg) 4))
+		 "C-u ")
 	        ((and (consp current-prefix-arg)
 		      (integerp (car current-prefix-arg)))
 	         (format "%d " (car current-prefix-arg)))
@@ -5244,8 +5248,7 @@ region instead.
 This command's old key binding has been given to `kill-ring-save'."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
-  (interactive (list (mark) (point)
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive (list (mark) (point) 'region))
   (let ((str (if region
                  (funcall region-extract-function nil)
                (filter-buffer-substring beg end))))
@@ -5277,8 +5280,7 @@ This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
-  (interactive (list (mark) (point)
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive (list (mark) (point) 'region))
   (copy-region-as-kill beg end region)
   ;; This use of called-interactively-p is correct because the code it
   ;; controls just gives the user visual feedback.
