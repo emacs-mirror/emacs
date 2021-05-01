@@ -2450,6 +2450,11 @@ This is to keep the same behavior as Eshell.
 * Incompatible Lisp Changes in Emacs 28.1
 
 +++
+** 'completing-read-default' sets completion variables buffer-locally.
+'minibuffer-completion-table' and related variables are now set buffer-locally
+in the minibuffer instead of being set via a global let-binding.
+
++++
 ** The use of positional arguments in 'define-minor-mode' is obsolete.
 These were actually rendered obsolete in Emacs-21 but were never
 marked as such.

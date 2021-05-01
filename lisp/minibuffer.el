@@ -3900,13 +3900,7 @@ See `completing-read' for the meaning of the arguments."
                 ;; `read-from-minibuffer' uses 1-based index.
                 (1+ (cdr initial-input)))))
 
-  (let* ((minibuffer-completion-table collection)
-         (minibuffer-completion-predicate predicate)
-         ;; FIXME: Remove/rename this var, see the next one.
-         (minibuffer-completion-confirm (unless (eq require-match t)
-                                          require-match))
-         (minibuffer--require-match require-match)
-         (base-keymap (if require-match
+  (let* ((base-keymap (if require-match
                          minibuffer-local-must-match-map
                         minibuffer-local-completion-map))
          (keymap (if (memq minibuffer-completing-file-name '(nil lambda))
@@ -3919,8 +3913,17 @@ See `completing-read' for the meaning of the arguments."
                     ;; in minibuffer-local-filename-completion-map can
                     ;; override bindings in base-keymap.
                     base-keymap)))
-         (result (read-from-minibuffer prompt initial-input keymap
-                                       nil hist def inherit-input-method)))
+         (result
+          (minibuffer-with-setup-hook
+              (lambda ()
+                (setq-local minibuffer-completion-table collection)
+                (setq-local minibuffer-completion-predicate predicate)
+                ;; FIXME: Remove/rename this var, see the next one.
+                (setq-local minibuffer-completion-confirm
+                            (unless (eq require-match t) require-match))
+                (setq-local minibuffer--require-match require-match))
+            (read-from-minibuffer prompt initial-input keymap
+                                  nil hist def inherit-input-method))))
     (when (and (equal result "") def)
       (setq result (if (consp def) (car def) def)))
     result))
