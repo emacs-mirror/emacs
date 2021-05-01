@@ -1070,7 +1070,6 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   Lisp_Object parent, parent_frame;
   struct kboard *kb;
   static int desc_ctr = 1;
-  int x_width = 0, x_height = 0;
 
   /* gui_display_get_arg modifies parms.  */
   parms = Fcopy_alist (parms);
