@@ -453,6 +453,11 @@ struct frame
      frame is in the process of being redisplayed.  */
   bool_bf inhibit_clear_image_cache : 1;
 
+  /* True when new_width or new_height were set by change_frame_size,
+     false when they were set by adjust_frame_size internally or not
+     set.  */
+  bool_bf new_size_p;
+
   /* Bitfield area ends here.  */
 
   /* This frame's change stamp, set the last time window change

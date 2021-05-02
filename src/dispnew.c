@@ -102,7 +102,7 @@ bool display_completed;
 
 /* True means SIGWINCH happened when not safe.  */
 
-bool delayed_size_change;
+static bool delayed_size_change;
 
 /* A glyph for a space.  */
 
@@ -5815,7 +5815,6 @@ deliver_window_change_signal (int sig)
 void
 do_pending_window_change (bool safe)
 {
-  /* If window change signal handler should have run before, run it now.  */
   if (redisplaying_p && !safe)
     return;
 
@@ -5830,8 +5829,11 @@ do_pending_window_change (bool safe)
 	  struct frame *f = XFRAME (frame);
 
 	  /* Negative new_width or new_height values mean no change is
-	     required (a native size can never drop below zero).  */
-	  if (f->new_height >= 0 || f->new_width >= 0)
+	     required (a native size can never drop below zero).  If
+	     new_size_p is not set, this means the size change was
+	     requested by adjust_frame_size but has not been honored by
+	     the window manager yet.  */
+	  if (f->new_size_p && (f->new_height >= 0 || f->new_width >= 0))
 	    change_frame_size (f, f->new_width, f->new_height,
 			       false, false, safe);
 	}
@@ -5858,14 +5860,17 @@ change_frame_size_1 (struct frame *f, int new_width, int new_height,
       /* We can't deal with the change now, queue it for later.  */
       f->new_width = new_width;
       f->new_height = new_height;
+      f->new_size_p = true;
       delayed_size_change = true;
     }
   else
     {
       /* Storing -1 in the new_width/new_height slots means that no size
-	 change is pending.  Native sizes are always non-negative.  */
+	 change is pending.  Native sizes are always non-negative.
+	 Reset the new_size_p slot as well.  */
       f->new_height = -1;
       f->new_width = -1;
+      f->new_size_p = false;
       /* adjust_frame_size wants its arguments in terms of text_width
 	 and text_height, so convert them here.  For pathologically
 	 small frames, the resulting values may be negative though.  */
