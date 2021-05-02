@@ -142,7 +142,8 @@ and then returns."
                    (setq new-minor-mode-map-alist minor-mode-map-alist))
                  (goto-char (point-min))
                  (while (or (memq char (append help-event-list
-                                               (cons help-char '( ?? ?\C-v ?\s ?\177 deletechar backspace vertical-scroll-bar ?\M-v
+                                               (cons help-char '( ?? ?\C-v ?\s ?\177 ?\M-v ?\S-\s
+                                                                  deletechar backspace vertical-scroll-bar
                                                                   next prior up down))))
                             (eq (car-safe char) 'switch-frame)
                             (equal key "\M-v"))
@@ -152,7 +153,7 @@ and then returns."
                          (handle-switch-frame char))
                         ((memq char '(?\C-v ?\s next))
                          (scroll-up))
-                        ((or (memq char '(?\177 ?\M-v deletechar backspace prior))
+                        ((or (memq char '(?\177 ?\M-v ?\S-\s deletechar backspace prior))
                              (equal key "\M-v"))
                          (scroll-down))
                         ((memq char '(down))
