@@ -7308,15 +7308,18 @@ not_in_argv (NSString *arg)
   oldw = FRAME_PIXEL_WIDTH (emacsframe);
   oldh = FRAME_PIXEL_HEIGHT (emacsframe);
 
-  NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
-  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
-
   /* Don't want to do anything when the view size hasn't changed. */
-  if (oldh == newh && oldw == neww)
+  if ((oldh == newh && oldw == neww)
+      || (emacsframe->new_size_p
+          && newh == emacsframe->new_height
+          && neww == emacsframe->new_width))
     {
       NSTRACE_MSG ("No change");
       return;
     }
+
+  NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
+  NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
 
 #ifdef NS_DRAW_TO_BUFFER
   if ([self wantsUpdateLayer])
