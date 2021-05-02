@@ -1913,6 +1913,11 @@ toggle between displaying the document or editing it as text.
     (unless (memq doc-view-doc-type '(ps))
       (setq-local require-final-newline nil))
 
+    ;; These modes will just display "1", so they're not very useful
+    ;; in this mode.
+    (setq-local global-linum-mode nil
+                display-line-numbers-mode nil)
+
     (doc-view-make-safe-dir doc-view-cache-directory)
     ;; Handle compressed files, remote files, files inside archives
     (setq-local doc-view--buffer-file-name
