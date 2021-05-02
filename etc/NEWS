@@ -1008,6 +1008,11 @@ GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
 *** 'g' ('revert-buffer') in 'help-mode' no longer requires confirmation.
 
 +++
+*** New command 'describe-command' shows help for a command.
+This can be used instead of 'describe-function' for interactive
+commands and is globally bound to `C-h x'.
+
++++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
 ---

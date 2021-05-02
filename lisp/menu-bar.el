@@ -1882,6 +1882,9 @@ they ran"))
     (bindings--define-key menu [describe-function]
       '(menu-item "Describe Function..." describe-function
                   :help "Display documentation of function/command"))
+    (bindings--define-key menu [describe-command]
+      '(menu-item "Describe Command..." describe-command
+                  :help "Display documentation of command"))
     (bindings--define-key menu [shortdoc-display-group]
       '(menu-item "Function Group Overview..." shortdoc-display-group
                   :help "Display a function overview for a specific topic"))

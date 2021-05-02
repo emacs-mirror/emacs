@@ -106,6 +106,7 @@
     (define-key map "t" 'help-with-tutorial)
     (define-key map "v" 'describe-variable)
     (define-key map "w" 'where-is)
+    (define-key map "x" 'describe-command)
     (define-key map "q" 'help-quit)
     map)
   "Keymap for characters following the Help key.")
@@ -252,6 +253,7 @@ Do not call this in the scope of `with-help-window'."
         "Search for commands (see also \\[apropos])")
        ("apropos-documentation"
         "Search documentation of functions, variables, and other items")
+       ("describe-command" "Show help for command")
        ("describe-function" "Show help for function")
        ("describe-variable" "Show help for variable")
        ("describe-symbol" "Show help for function or variable"))
