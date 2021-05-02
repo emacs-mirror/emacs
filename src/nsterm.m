@@ -7303,16 +7303,34 @@ not_in_argv (NSString *arg)
 
   NSTRACE ("[EmacsView viewDidResize]");
 
+#ifdef NS_DRAW_TO_BUFFER
+  /* If the buffer size doesn't match the view's backing size, destroy
+     the buffer and let it be recreated at the correct size later.  */
+  if ([self wantsUpdateLayer] && surface)
+    {
+      NSRect surfaceRect = {{0, 0}, [surface getSize]};
+      NSRect frameRect = [[self window] convertRectToBacking:frame];
+
+      if (!NSEqualRects (frameRect, surfaceRect))
+        {
+          [surface release];
+          surface = nil;
+
+          [self setNeedsDisplay:YES];
+        }
+    }
+#endif
+
   neww = (int)NSWidth (frame);
   newh = (int)NSHeight (frame);
   oldw = FRAME_PIXEL_WIDTH (emacsframe);
   oldh = FRAME_PIXEL_HEIGHT (emacsframe);
 
   /* Don't want to do anything when the view size hasn't changed. */
-  if ((oldh == newh && oldw == neww)
-      || (emacsframe->new_size_p
-          && newh == emacsframe->new_height
-          && neww == emacsframe->new_width))
+  if (emacsframe->new_size_p
+      ? (newh == emacsframe->new_height
+         && neww == emacsframe->new_width)
+      : (oldh == newh && oldw == neww))
     {
       NSTRACE_MSG ("No change");
       return;
@@ -7320,16 +7338,6 @@ not_in_argv (NSString *arg)
 
   NSTRACE_SIZE ("New size", NSMakeSize (neww, newh));
   NSTRACE_SIZE ("Original size", NSMakeSize (oldw, oldh));
-
-#ifdef NS_DRAW_TO_BUFFER
-  if ([self wantsUpdateLayer])
-    {
-      [surface release];
-      surface = nil;
-
-      [self setNeedsDisplay:YES];
-    }
-#endif
 
   change_frame_size (emacsframe, neww, newh, false, YES, false);
 
