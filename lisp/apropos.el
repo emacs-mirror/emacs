@@ -809,34 +809,35 @@ Returns list of symbols and values found."
   (apropos-parse-pattern pattern t)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator ())
-   (let (f v p)
-     (mapatoms
-      (lambda (symbol)
-	(setq f nil v nil p nil)
-	(or (memq symbol '(apropos-regexp
-			   apropos-pattern apropos-all-words-regexp
-			   apropos-words apropos-all-words
-			   do-all apropos-accumulator
-			   symbol f v p))
-	    (setq v (apropos-value-internal 'boundp symbol 'symbol-value)))
-	(if do-all
-	    (setq f (apropos-value-internal 'fboundp symbol 'symbol-function)
-		  p (apropos-format-plist symbol "\n    " t)))
-	(if (apropos-false-hit-str v)
-	    (setq v nil))
-	(if (apropos-false-hit-str f)
-	    (setq f nil))
-	(if (apropos-false-hit-str p)
-	    (setq p nil))
-	(if (or f v p)
-	    (setq apropos-accumulator (cons (list symbol
-						  (+ (apropos-score-str f)
-						     (apropos-score-str v)
-						     (apropos-score-str p))
-						  f v p)
-					    apropos-accumulator))))))
-   (let ((apropos-multi-type do-all))
-     (apropos-print nil "\n----------------\n")))
+  (let (f v p)
+    (mapatoms
+     (lambda (symbol)
+       (setq f nil v nil p nil)
+       (or (memq symbol '(apropos-regexp
+                          apropos--current apropos-pattern-quoted pattern
+		          apropos-pattern apropos-all-words-regexp
+		          apropos-words apropos-all-words
+		          do-all apropos-accumulator
+		          symbol f v p))
+           (setq v (apropos-value-internal 'boundp symbol 'symbol-value)))
+       (if do-all
+           (setq f (apropos-value-internal 'fboundp symbol 'symbol-function)
+	         p (apropos-format-plist symbol "\n    " t)))
+       (if (apropos-false-hit-str v)
+           (setq v nil))
+       (if (apropos-false-hit-str f)
+           (setq f nil))
+       (if (apropos-false-hit-str p)
+           (setq p nil))
+       (if (or f v p)
+           (setq apropos-accumulator (cons (list symbol
+					         (+ (apropos-score-str f)
+					            (apropos-score-str v)
+					            (apropos-score-str p))
+					         f v p)
+				           apropos-accumulator))))))
+  (let ((apropos-multi-type do-all))
+    (apropos-print nil "\n----------------\n")))
 
 ;;;###autoload
 (defun apropos-local-value (pattern &optional buffer)
@@ -928,7 +929,13 @@ Returns list of symbols and documentation found."
 
 (defun apropos-value-internal (predicate symbol function)
   (when (funcall predicate symbol)
-    (setq symbol (prin1-to-string (funcall function symbol)))
+    (setq symbol (prin1-to-string
+                  (if (memq symbol '(command-history minibuffer-history))
+                      ;; The value we're looking for will always be in
+                      ;; the first element of these two lists, so skip
+                      ;; that value.
+                      (cdr (funcall function symbol))
+                    (funcall function symbol))))
     (when (string-match apropos-regexp symbol)
       (if apropos-match-face
           (put-text-property (match-beginning 0) (match-end 0)
