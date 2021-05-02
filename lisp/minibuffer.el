@@ -2182,8 +2182,7 @@ variables.")
                           (plist-get completion-extra-properties
                                      :affixation-function)))
              (sort-fun (completion-metadata-get all-md 'display-sort-function))
-             (group-fun (and completions-group
-                             (completion-metadata-get all-md 'group-function)))
+             (group-fun (completion-metadata-get all-md 'group-function))
              (mainbuf (current-buffer))
              ;; If the *Completions* buffer is shown in a new
              ;; window, mark it as softly-dedicated, so bury-buffer in
