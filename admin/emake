@@ -27,8 +27,7 @@ s#^Configuring local git # Configuring local git #
 s#^Installing git hooks...# Installing git hooks...#
 s#^Running # Running #
 s#^Configured for # Configured for #
-s#^./temacs # ./temacs #
-s#^Dumping under the name# Dumping under the name#
+s#^./temacs.*#  \\& #
 ' | \
 egrep --line-buffered -v "^make|\
 ^Loading|\
@@ -40,6 +39,7 @@ INFO.*Scraping.*[.]\$|\
 ^Adding name|\
 ^Dump mode|\
 ^Dumping finger|\
+^Dumping under the name|\
 ^Byte counts|\
 ^Reloc counts|\
 ^Pure-hashed|\
