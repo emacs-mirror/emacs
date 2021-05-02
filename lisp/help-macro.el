@@ -25,11 +25,12 @@
 
 ;;; Commentary:
 
-;; This file supplies the macro make-help-screen which constructs
-;; single character dispatching with browsable help such as that provided
-;; by help-for-help. This can be used to make many modes easier to use; for
-;; example, the GNU Emacs Empire Tool uses this for every "nested" mode map
-;; called from the main mode map.
+;; This file supplies the macro `make-help-screen' which constructs
+;; single character dispatching with browsable help such as that
+;; provided by `help-for-help'.  This can be used to make many modes
+;; easier to use; for example, the (long-since defunct) GNU Emacs
+;; Empire Tool used this for every "nested" mode map called from the
+;; main mode map.
 
 ;;       The name of this package was changed from help-screen.el to
 ;; help-macro.el in order to fit in a 14-character limit.
