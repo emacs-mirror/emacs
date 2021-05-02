@@ -615,7 +615,7 @@ must not be within a `c-save-buffer-state', since the user then
 wouldn't be able to undo them.
 
 The return value is the value of the last form in BODY."
-  (declare (debug t) (indent 1))
+  (declare (debug let*) (indent 1))
   (if (fboundp 'with-silent-modifications)
       `(with-silent-modifications (let* ,varlist ,@body))
     `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
