@@ -1091,7 +1091,7 @@ ayuda, y entonces teclear C-x 1.
 
 Aquí hay algunas otras opciones útiles de C-h:
 
-   C-h x	Describe un comando.  Usted teclea el nombre de la
+   C-h x	Describe un comando.  Usted teclea el nombre del
 		comando.
 
 >> Intente teclear C-h x previous-line <Return>.
