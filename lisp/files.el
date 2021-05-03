@@ -7439,7 +7439,11 @@ only these files will be asked to be saved."
         ;; might be bound to different file name handlers, we still
         ;; need this.
         (saved-file-name-handler-alist file-name-handler-alist)
-        file-name-handler-alist
+        (inhibit-file-name-handlers
+         (cons 'file-name-non-special
+               (and (eq inhibit-file-name-operation operation)
+                    inhibit-file-name-handlers)))
+        (inhibit-file-name-operation operation)
         ;; Some operations respect file name handlers in
         ;; `default-directory'.  Because core function like
         ;; `call-process' don't care about file name handlers in
