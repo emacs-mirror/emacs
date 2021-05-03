@@ -1082,7 +1082,7 @@ defaulting to active region when used interactively.
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---
-** The 'list-bookmark' menu is now based on 'tabulated-list-mode'.
+** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
 The interactive bookmark list will now benefit from features in
 'tabulated-list-mode' like sorting columns or changing column width.
 
