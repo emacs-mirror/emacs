@@ -5390,17 +5390,24 @@ init_buffer (void)
 	 recorded by temacs, that cannot be used by the dumped Emacs.
 	 We map new memory for their text here.
 
-	 Implementation note: the buffers we carry from temacs are:
+	 Implementation notes: the buffers we carry from temacs are:
 	 " prin1", "*scratch*", " *Minibuf-0*", "*Messages*", and
 	 " *code-conversion-work*".  They are created by
 	 init_buffer_once and init_window_once (which are not called
-	 in the dumped Emacs), and by the first call to coding.c routines.  */
+	 in the dumped Emacs), and by the first call to coding.c
+	 routines.  Since FOR_EACH_LIVE_BUFFER only walks the buffers
+	 in Vbuffer_alist, any buffer we carry from temacs that is
+	 not in the alist (a.k.a. "magic invisible buffers") should
+	 be handled here explicitly.  */
       FOR_EACH_LIVE_BUFFER (tail, buffer)
         {
 	  struct buffer *b = XBUFFER (buffer);
 	  b->text->beg = NULL;
 	  enlarge_buffer_text (b, 0);
 	}
+      /* The " prin1" buffer is not in Vbuffer_alist.  */
+      XBUFFER (Vprin1_to_string_buffer)->text->beg = NULL;
+      enlarge_buffer_text (XBUFFER (Vprin1_to_string_buffer), 0);
     }
 #endif /* USE_MMAP_FOR_BUFFERS */
 

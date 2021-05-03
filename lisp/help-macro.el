@@ -25,11 +25,12 @@
 
 ;;; Commentary:
 
-;; This file supplies the macro make-help-screen which constructs
-;; single character dispatching with browsable help such as that provided
-;; by help-for-help. This can be used to make many modes easier to use; for
-;; example, the GNU Emacs Empire Tool uses this for every "nested" mode map
-;; called from the main mode map.
+;; This file supplies the macro `make-help-screen' which constructs
+;; single character dispatching with browsable help such as that
+;; provided by `help-for-help'.  This can be used to make many modes
+;; easier to use; for example, the (long-since defunct) GNU Emacs
+;; Empire Tool used this for every "nested" mode map called from the
+;; main mode map.
 
 ;;       The name of this package was changed from help-screen.el to
 ;; help-macro.el in order to fit in a 14-character limit.
@@ -142,7 +143,8 @@ and then returns."
                    (setq new-minor-mode-map-alist minor-mode-map-alist))
                  (goto-char (point-min))
                  (while (or (memq char (append help-event-list
-                                               (cons help-char '( ?? ?\C-v ?\s ?\177 deletechar backspace vertical-scroll-bar ?\M-v
+                                               (cons help-char '( ?? ?\C-v ?\s ?\177 ?\M-v ?\S-\s
+                                                                  deletechar backspace vertical-scroll-bar
                                                                   next prior up down))))
                             (eq (car-safe char) 'switch-frame)
                             (equal key "\M-v"))
@@ -152,7 +154,7 @@ and then returns."
                          (handle-switch-frame char))
                         ((memq char '(?\C-v ?\s next))
                          (scroll-up))
-                        ((or (memq char '(?\177 ?\M-v deletechar backspace prior))
+                        ((or (memq char '(?\177 ?\M-v ?\S-\s deletechar backspace prior))
                              (equal key "\M-v"))
                          (scroll-down))
                         ((memq char '(down))
@@ -168,9 +170,9 @@ and then returns."
                                              (point-max))
                                             ""
                                           (concat  ", or "
-                                                   (help--key-description-fontified "\s") ; SPC
+                                                   (help--key-description-fontified (kbd "<PageDown>"))
                                                    " or "
-                                                   (help--key-description-fontified "\d") ; DEL
+                                                   (help--key-description-fontified (kbd "<PageUp>"))
                                                    " to scroll"))))
                            char (aref key 0)))
 

@@ -1270,8 +1270,6 @@ extern struct glyph space_glyph;
 /* True means last display completed.  False means it was preempted.  */
 
 extern bool display_completed;
-extern bool delayed_size_change;
-
 
 /************************************************************************
 			  Glyph Strings

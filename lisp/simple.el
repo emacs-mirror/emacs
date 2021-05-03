@@ -190,7 +190,7 @@ to navigate in it.")
 It takes two arguments, a buffer position in the error buffer
 and a buffer position in the error locus buffer.
 The buffer for the error locus should already be current.
-nil means use goto-char using the second argument position.")
+nil means use `goto-char' using the second argument position.")
 
 (defsubst next-error-buffer-p (buffer
 			       &optional avoid-current
@@ -389,7 +389,7 @@ Intended to be used in `next-error-found-function'."
 (defcustom next-error-found-function #'ignore
   "Function called when a next locus is found and displayed.
 Function is called with two arguments: a FROM-BUFFER buffer
-from which next-error navigated, and a target buffer TO-BUFFER."
+from which `next-error' navigated, and a target buffer TO-BUFFER."
   :type '(choice (const :tag "No default" ignore)
                  (const :tag "Quit previous window with M-0"
                         next-error-quit-window)
@@ -399,7 +399,7 @@ from which next-error navigated, and a target buffer TO-BUFFER."
 
 (defun next-error-found (&optional from-buffer to-buffer)
   "Function to call when the next locus is found and displayed.
-FROM-BUFFER is a buffer from which next-error navigated,
+FROM-BUFFER is a buffer from which `next-error' navigated,
 and TO-BUFFER is a target buffer."
   (setq next-error-last-buffer (or from-buffer (current-buffer)))
   (when to-buffer
@@ -597,10 +597,12 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
          ;; Don't auto-fill if we have a prefix argument.
          (auto-fill-function (if arg nil auto-fill-function))
          (arg (prefix-numeric-value arg))
+         (procsym (make-symbol "newline-postproc")) ;(bug#46326)
          (postproc
           ;; Do the rest in post-self-insert-hook, because we want to do it
           ;; *before* other functions on that hook.
           (lambda ()
+            (remove-hook 'post-self-insert-hook procsym t)
             ;; Mark the newline(s) `hard'.
             (if use-hard-newlines
                 (set-hard-newline-properties
@@ -619,6 +621,7 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
             ;; starts a page.
             (or was-page-start
                 (move-to-left-margin nil t)))))
+    (fset procsym postproc)
     (if (not interactive)
 	;; FIXME: For non-interactive uses, many calls actually
 	;; just want (insert "\n"), so maybe we should do just
@@ -628,13 +631,13 @@ A non-nil INTERACTIVE argument means to run the `post-self-insert-hook'."
 	  (self-insert-command arg))
       (unwind-protect
 	  (progn
-	    (add-hook 'post-self-insert-hook postproc nil t)
+	    (add-hook 'post-self-insert-hook procsym nil t)
 	    (self-insert-command arg))
 	;; We first used let-binding to protect the hook, but that
 	;; was naive since add-hook affects the symbol-default
 	;; value of the variable, whereas the let-binding might
 	;; protect only the buffer-local value.
-	(remove-hook 'post-self-insert-hook postproc t))))
+	(remove-hook 'post-self-insert-hook procsym t))))
   nil)
 
 (defun set-hard-newline-properties (from to)
@@ -1800,8 +1803,8 @@ moving point."
 
 (defun eval-expression-get-print-arguments (prefix-argument)
   "Get arguments for commands that print an expression result.
-Returns a list (INSERT-VALUE NO-TRUNCATE CHAR-PRINT-LIMIT)
-based on PREFIX-ARG.  This function determines the interpretation
+Returns a list (INSERT-VALUE NO-TRUNCATE CHAR-PRINT-LIMIT) based
+on PREFIX-ARGUMENT.  This function determines the interpretation
 of the prefix argument for `eval-expression' and
 `eval-last-sexp'."
   (let ((num (prefix-numeric-value prefix-argument)))
@@ -1982,7 +1985,8 @@ This function uses the `read-extended-command-predicate' user option."
        (concat (cond
 	        ((eq current-prefix-arg '-) "- ")
 	        ((and (consp current-prefix-arg)
-		      (eq (car current-prefix-arg) 4)) "C-u ")
+		      (eq (car current-prefix-arg) 4))
+		 "C-u ")
 	        ((and (consp current-prefix-arg)
 		      (integerp (car current-prefix-arg)))
 	         (format "%d " (car current-prefix-arg)))
@@ -3376,8 +3380,7 @@ is not *inside* the region START...END."
 	      (> (cdr undo-elt) start)))))
 
 (defun undo-adjust-elt (elt deltas)
-  "Return adjustment of undo element ELT by the undo DELTAS
-list."
+  "Return adjustment of undo element ELT by the undo DELTAS list."
   (pcase elt
     ;; POSITION
     ((pred integerp)
@@ -3421,8 +3424,7 @@ list."
 ;; There was no strong reason to prefer one or the other, except that
 ;; the first is more consistent with prior undo in region behavior.
 (defun undo-adjust-beg-end (beg end deltas)
-  "Return cons of adjustments to BEG and END by the undo DELTAS
-list."
+  "Return cons of adjustments to BEG and END by the undo DELTAS list."
   (let ((adj-beg (undo-adjust-pos beg deltas)))
     ;; Note: option 2 above would be like (cons (min ...) adj-end)
     (cons adj-beg
@@ -5244,8 +5246,7 @@ region instead.
 This command's old key binding has been given to `kill-ring-save'."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
-  (interactive (list (mark) (point)
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive (list (mark) (point) 'region))
   (let ((str (if region
                  (funcall region-extract-function nil)
                (filter-buffer-substring beg end))))
@@ -5277,8 +5278,7 @@ This command is similar to `copy-region-as-kill', except that it gives
 visual feedback indicating the extent of the region being copied."
   ;; Pass mark first, then point, because the order matters when
   ;; calling `kill-append'.
-  (interactive (list (mark) (point)
-		     (prefix-numeric-value current-prefix-arg)))
+  (interactive (list (mark) (point) 'region))
   (copy-region-as-kill beg end region)
   ;; This use of called-interactively-p is correct because the code it
   ;; controls just gives the user visual feedback.
@@ -7691,44 +7691,53 @@ are interchanged."
   (interactive "*p")
   (transpose-subr 'forward-word arg))
 
-(defun transpose-sexps (arg)
+(defun transpose-sexps (arg &optional interactive)
   "Like \\[transpose-chars] (`transpose-chars'), but applies to sexps.
 Unlike `transpose-words', point must be between the two sexps and not
 in the middle of a sexp to be transposed.
 With non-zero prefix arg ARG, effect is to take the sexp before point
 and drag it forward past ARG other sexps (backward if ARG is negative).
 If ARG is zero, the sexps ending at or after point and at or after mark
-are interchanged."
-  (interactive "*p")
-  (transpose-subr
-   (lambda (arg)
-     ;; Here we should try to simulate the behavior of
-     ;; (cons (progn (forward-sexp x) (point))
-     ;;       (progn (forward-sexp (- x)) (point)))
-     ;; Except that we don't want to rely on the second forward-sexp
-     ;; putting us back to where we want to be, since forward-sexp-function
-     ;; might do funny things like infix-precedence.
-     (if (if (> arg 0)
-	     (looking-at "\\sw\\|\\s_")
-	   (and (not (bobp))
-		(save-excursion (forward-char -1) (looking-at "\\sw\\|\\s_"))))
-	 ;; Jumping over a symbol.  We might be inside it, mind you.
-	 (progn (funcall (if (> arg 0)
-			     'skip-syntax-backward 'skip-syntax-forward)
-			 "w_")
-		(cons (save-excursion (forward-sexp arg) (point)) (point)))
-       ;; Otherwise, we're between sexps.  Take a step back before jumping
-       ;; to make sure we'll obey the same precedence no matter which direction
-       ;; we're going.
-       (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward) " .")
-       (cons (save-excursion (forward-sexp arg) (point))
-	     (progn (while (or (forward-comment (if (> arg 0) 1 -1))
-			       (not (zerop (funcall (if (> arg 0)
-							'skip-syntax-forward
-						      'skip-syntax-backward)
-						    ".")))))
-		    (point)))))
-   arg 'special))
+are interchanged.
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "*p\nd")
+  (if interactive
+      (condition-case nil
+          (transpose-sexps arg nil)
+        (scan-error (user-error "Not between two complete sexps")))
+    (transpose-subr
+     (lambda (arg)
+       ;; Here we should try to simulate the behavior of
+       ;; (cons (progn (forward-sexp x) (point))
+       ;;       (progn (forward-sexp (- x)) (point)))
+       ;; Except that we don't want to rely on the second forward-sexp
+       ;; putting us back to where we want to be, since forward-sexp-function
+       ;; might do funny things like infix-precedence.
+       (if (if (> arg 0)
+	       (looking-at "\\sw\\|\\s_")
+	     (and (not (bobp))
+		  (save-excursion
+                    (forward-char -1)
+                    (looking-at "\\sw\\|\\s_"))))
+	   ;; Jumping over a symbol.  We might be inside it, mind you.
+	   (progn (funcall (if (> arg 0)
+			       'skip-syntax-backward 'skip-syntax-forward)
+			   "w_")
+		  (cons (save-excursion (forward-sexp arg) (point)) (point)))
+         ;; Otherwise, we're between sexps.  Take a step back before jumping
+         ;; to make sure we'll obey the same precedence no matter which
+         ;; direction we're going.
+         (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward)
+                  " .")
+         (cons (save-excursion (forward-sexp arg) (point))
+	       (progn (while (or (forward-comment (if (> arg 0) 1 -1))
+			         (not (zerop (funcall (if (> arg 0)
+							  'skip-syntax-forward
+						        'skip-syntax-backward)
+						      ".")))))
+		      (point)))))
+     arg 'special)))
 
 (defun transpose-lines (arg)
   "Exchange current line and previous line, leaving point after both.

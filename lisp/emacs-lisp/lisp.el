@@ -503,7 +503,7 @@ If ARG is positive, that's the end of the buffer.
 Otherwise, that's the beginning of the buffer."
   (if (> arg 0) (point-max) (point-min)))
 
-(defun end-of-defun (&optional arg)
+(defun end-of-defun (&optional arg interactive)
   "Move forward to next end of defun.
 With argument, do it that many times.
 Negative argument -N means move back to Nth preceding end of defun.
@@ -513,129 +513,145 @@ matches the open-parenthesis that starts a defun; see function
 `beginning-of-defun'.
 
 If variable `end-of-defun-function' is non-nil, its value
-is called as a function to find the defun's end."
-  (interactive "^p")
-  (or (not (eq this-command 'end-of-defun))
-      (eq last-command 'end-of-defun)
-      (and transient-mark-mode mark-active)
-      (push-mark))
-  (if (or (null arg) (= arg 0)) (setq arg 1))
-  (let ((pos (point))
-        (beg (progn (end-of-line 1) (beginning-of-defun-raw 1) (point)))
-	(skip (lambda ()
-		;; When comparing point against pos, we want to consider that if
-		;; point was right after the end of the function, it's still
-		;; considered as "in that function".
-		;; E.g. `eval-defun' from right after the last close-paren.
-		(unless (bolp)
-		  (skip-chars-forward " \t")
-		  (if (looking-at "\\s<\\|\n")
-		      (forward-line 1))))))
-    (funcall end-of-defun-function)
-    (when (<= arg 1)
-      (funcall skip))
-    (cond
-     ((> arg 0)
-      ;; Moving forward.
-      (if (> (point) pos)
-          ;; We already moved forward by one because we started from
-          ;; within a function.
-          (setq arg (1- arg))
-        ;; We started from after the end of the previous function.
-        (goto-char pos))
-      (unless (zerop arg)
-        (beginning-of-defun-raw (- arg))
-        (funcall end-of-defun-function)))
-     ((< arg 0)
-      ;; Moving backward.
-      (if (< (point) pos)
-          ;; We already moved backward because we started from between
-          ;; two functions.
-          (setq arg (1+ arg))
-        ;; We started from inside a function.
-        (goto-char beg))
-      (unless (zerop arg)
-        (beginning-of-defun-raw (- arg))
-	(setq beg (point))
-        (funcall end-of-defun-function))))
-    (funcall skip)
-    (while (and (< arg 0) (>= (point) pos))
-      ;; We intended to move backward, but this ended up not doing so:
-      ;; Try harder!
-      (goto-char beg)
-      (beginning-of-defun-raw (- arg))
-      (if (>= (point) beg)
-	  (setq arg 0)
-	(setq beg (point))
-        (funcall end-of-defun-function)
-	(funcall skip)))))
+is called as a function to find the defun's end.
 
-(defun mark-defun (&optional arg)
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "^p\nd")
+  (if interactive
+      (condition-case e
+          (end-of-defun arg nil)
+        (scan-error (user-error (cadr e))))
+    (or (not (eq this-command 'end-of-defun))
+        (eq last-command 'end-of-defun)
+        (and transient-mark-mode mark-active)
+        (push-mark))
+    (if (or (null arg) (= arg 0)) (setq arg 1))
+    (let ((pos (point))
+          (beg (progn (end-of-line 1) (beginning-of-defun-raw 1) (point)))
+	  (skip (lambda ()
+		  ;; When comparing point against pos, we want to consider that
+		  ;; if point was right after the end of the function, it's
+		  ;; still considered as "in that function".
+		  ;; E.g. `eval-defun' from right after the last close-paren.
+		  (unless (bolp)
+		    (skip-chars-forward " \t")
+		    (if (looking-at "\\s<\\|\n")
+		        (forward-line 1))))))
+      (funcall end-of-defun-function)
+      (when (<= arg 1)
+        (funcall skip))
+      (cond
+       ((> arg 0)
+        ;; Moving forward.
+        (if (> (point) pos)
+            ;; We already moved forward by one because we started from
+            ;; within a function.
+            (setq arg (1- arg))
+          ;; We started from after the end of the previous function.
+          (goto-char pos))
+        (unless (zerop arg)
+          (beginning-of-defun-raw (- arg))
+          (funcall end-of-defun-function)))
+       ((< arg 0)
+        ;; Moving backward.
+        (if (< (point) pos)
+            ;; We already moved backward because we started from between
+            ;; two functions.
+            (setq arg (1+ arg))
+          ;; We started from inside a function.
+          (goto-char beg))
+        (unless (zerop arg)
+          (beginning-of-defun-raw (- arg))
+	  (setq beg (point))
+          (funcall end-of-defun-function))))
+      (funcall skip)
+      (while (and (< arg 0) (>= (point) pos))
+        ;; We intended to move backward, but this ended up not doing so:
+        ;; Try harder!
+        (goto-char beg)
+        (beginning-of-defun-raw (- arg))
+        (if (>= (point) beg)
+	    (setq arg 0)
+	  (setq beg (point))
+          (funcall end-of-defun-function)
+	  (funcall skip))))))
+
+(defun mark-defun (&optional arg interactive)
   "Put mark at end of this defun, point at beginning.
 The defun marked is the one that contains point or follows point.
 With positive ARG, mark this and that many next defuns; with negative
 ARG, change the direction of marking.
 
 If the mark is active, it marks the next or previous defun(s) after
-the one(s) already marked."
-  (interactive "p")
-  (setq arg (or arg 1))
-  ;; There is no `mark-defun-back' function - see
-  ;; https://lists.gnu.org/r/bug-gnu-emacs/2016-11/msg00079.html
-  ;; for explanation
-  (when (eq last-command 'mark-defun-back)
-    (setq arg (- arg)))
-  (when (< arg 0)
-    (setq this-command 'mark-defun-back))
-  (cond ((use-region-p)
-         (if (>= arg 0)
-             (set-mark
-              (save-excursion
-                (goto-char (mark))
-                ;; change the dotimes below to (end-of-defun arg) once bug #24427 is fixed
-                (dotimes (_ignore arg)
-                  (end-of-defun))
-                (point)))
-           (beginning-of-defun-comments (- arg))))
-        (t
-         (let ((opoint (point))
-               beg end)
-           (push-mark opoint)
-           ;; Try first in this order for the sake of languages with nested
-           ;; functions where several can end at the same place as with the
-           ;; offside rule, e.g. Python.
-           (beginning-of-defun-comments)
-           (setq beg (point))
-           (end-of-defun)
-           (setq end (point))
-           (when (or (and (<= (point) opoint)
-                          (> arg 0))
-                     (= beg (point-min))) ; we were before the first defun!
-             ;; beginning-of-defun moved back one defun so we got the wrong
-             ;; one.  If ARG < 0, however, we actually want to go back.
-             (goto-char opoint)
-             (end-of-defun)
-             (setq end (point))
-             (beginning-of-defun-comments)
-             (setq beg (point)))
-           (goto-char beg)
-           (cond ((> arg 0)
-                  ;; change the dotimes below to (end-of-defun arg) once bug #24427 is fixed
+the one(s) already marked.
+
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage."
+  (interactive "p\nd")
+  (if interactive
+      (condition-case e
+          (mark-defun arg nil)
+        (scan-error (user-error (cadr e))))
+    (setq arg (or arg 1))
+    ;; There is no `mark-defun-back' function - see
+    ;; https://lists.gnu.org/r/bug-gnu-emacs/2016-11/msg00079.html
+    ;; for explanation
+    (when (eq last-command 'mark-defun-back)
+      (setq arg (- arg)))
+    (when (< arg 0)
+      (setq this-command 'mark-defun-back))
+    (cond ((use-region-p)
+           (if (>= arg 0)
+               (set-mark
+                (save-excursion
+                  (goto-char (mark))
+                  ;; change the dotimes below to (end-of-defun arg)
+                  ;; once bug #24427 is fixed
                   (dotimes (_ignore arg)
                     (end-of-defun))
-                  (setq end (point))
-                  (push-mark end nil t)
-                  (goto-char beg))
-                 (t
-                  (goto-char beg)
-                  (unless (= arg -1)    ; beginning-of-defun behaves
-                                        ; strange with zero arg - see
-                                        ; https://lists.gnu.org/r/bug-gnu-emacs/2017-02/msg00196.html
-                    (beginning-of-defun (1- (- arg))))
-                  (push-mark end nil t))))))
-  (skip-chars-backward "[:space:]\n")
-  (unless (bobp)
-    (forward-line 1)))
+                  (point)))
+             (beginning-of-defun-comments (- arg))))
+          (t
+           (let ((opoint (point))
+                 beg end)
+             (push-mark opoint)
+             ;; Try first in this order for the sake of languages with nested
+             ;; functions where several can end at the same place as with the
+             ;; offside rule, e.g. Python.
+             (beginning-of-defun-comments)
+             (setq beg (point))
+             (end-of-defun)
+             (setq end (point))
+             (when (or (and (<= (point) opoint)
+                            (> arg 0))
+                       (= beg (point-min))) ; we were before the first defun!
+               ;; beginning-of-defun moved back one defun so we got the wrong
+               ;; one.  If ARG < 0, however, we actually want to go back.
+               (goto-char opoint)
+               (end-of-defun)
+               (setq end (point))
+               (beginning-of-defun-comments)
+               (setq beg (point)))
+             (goto-char beg)
+             (cond ((> arg 0)
+                    ;; change the dotimes below to (end-of-defun arg)
+                    ;; once bug #24427 is fixed
+                    (dotimes (_ignore arg)
+                      (end-of-defun))
+                    (setq end (point))
+                    (push-mark end nil t)
+                    (goto-char beg))
+                   (t
+                    (goto-char beg)
+                    (unless (= arg -1)
+                      ;; beginning-of-defun behaves strange with zero arg - see
+                      ;; lists.gnu.org/r/bug-gnu-emacs/2017-02/msg00196.html
+                      (beginning-of-defun (1- (- arg))))
+                    (push-mark end nil t))))))
+    (skip-chars-backward "[:space:]\n")
+    (unless (bobp)
+      (forward-line 1))))
 
 (defvar narrow-to-defun-include-comments nil
   "If non-nil, `narrow-to-defun' will also show comments preceding the defun.")

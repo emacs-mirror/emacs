@@ -174,26 +174,47 @@ with the current prefix.  The files are chosen according to
 Functions on `help-fns-describe-function-functions' can use this
 to get buffer-local values.")
 
+(defun help-fns--describe-function-or-command-prompt (&optional want-command)
+  "Prompt for a function from `describe-function' or `describe-command'.
+If optional argument WANT-COMMAND is non-nil, prompt for an
+interactive command."
+  (let* ((fn (if want-command
+                 (caar command-history)
+               (function-called-at-point)))
+         (prompt (format-prompt (if want-command
+                                    "Describe command"
+                                  "Describe function")
+                                fn))
+         (enable-recursive-minibuffers t)
+         (val (completing-read
+               prompt
+               #'help--symbol-completion-table
+               (lambda (f) (if want-command
+                          (commandp f)
+                        (or (fboundp f) (get f 'function-documentation))))
+               t nil nil
+               (and fn (symbol-name fn)))))
+    (unless (equal val "")
+      (setq fn (intern val)))
+    ;; These error messages are intended to be less technical for the
+    ;; `describe-command' case, as they are directed at users that are
+    ;; not necessarily ELisp programmers.
+    (unless (and fn (symbolp fn))
+      (user-error (if want-command
+                      "You didn't specify a command's symbol"
+                    "You didn't specify a function symbol")))
+    (unless (or (fboundp fn) (get fn 'function-documentation))
+      (user-error (if want-command
+                      "Symbol is not a command: %s"
+                    "Symbol's function definition is void: %s")
+                  fn))
+    (list fn)))
+
 ;;;###autoload
 (defun describe-function (function)
   "Display the full documentation of FUNCTION (a symbol).
 When called from lisp, FUNCTION may also be a function object."
-  (interactive
-   (let* ((fn (function-called-at-point))
-          (enable-recursive-minibuffers t)
-          (val (completing-read
-                (format-prompt "Describe function" fn)
-                #'help--symbol-completion-table
-                (lambda (f) (or (fboundp f) (get f 'function-documentation)))
-                t nil nil
-                (and fn (symbol-name fn)))))
-     (unless (equal val "")
-       (setq fn (intern val)))
-     (unless (and fn (symbolp fn))
-       (user-error "You didn't specify a function symbol"))
-     (unless (or (fboundp fn) (get fn 'function-documentation))
-       (user-error "Symbol's function definition is void: %s" fn))
-     (list fn)))
+  (interactive (help-fns--describe-function-or-command-prompt))
 
   ;; We save describe-function-orig-buffer on the help xref stack, so
   ;; it is restored by the back/forward buttons.  'help-buffer'
@@ -223,9 +244,14 @@ When called from lisp, FUNCTION may also be a function object."
         (describe-function-1 function)
         (with-current-buffer standard-output
           ;; Return the text we displayed.
-          (buffer-string))))
-    ))
+          (buffer-string))))))
 
+;;;###autoload
+(defun describe-command (command)
+  "Display the full documentation of COMMAND (a symbol).
+When called from lisp, COMMAND may also be a function object."
+  (interactive (help-fns--describe-function-or-command-prompt 'is-command))
+  (describe-function command))
 
 ;; Could be this, if we make symbol-file do the work below.
 ;; (defun help-C-file-name (subr-or-var kind)

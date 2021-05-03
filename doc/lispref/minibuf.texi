@@ -1188,9 +1188,9 @@ in the minibuffer to do completion.
 @defvar minibuffer-completion-table
 The value of this variable is the completion table (@pxref{Basic
 Completion}) used for completion in the minibuffer.  This is the
-global variable that contains what @code{completing-read} passes to
+buffer-local variable that contains what @code{completing-read} passes to
 @code{try-completion}.  It is used by minibuffer completion commands
-such as @code{minibuffer-complete-word}.
+such as @code{minibuffer-complete}.
 @end defvar
 
 @defvar minibuffer-completion-predicate
@@ -1201,7 +1201,7 @@ minibuffer completion functions.
 
 @defvar minibuffer-completion-confirm
 This variable determines whether Emacs asks for confirmation before
-exiting the minibuffer; @code{completing-read} binds this variable,
+exiting the minibuffer; @code{completing-read} sets this variable,
 and the function @code{minibuffer-complete-and-exit} checks the value
 before exiting.  If the value is @code{nil}, confirmation is not
 required.  If the value is @code{confirm}, the user may exit with an
