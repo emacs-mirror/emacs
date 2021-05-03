@@ -136,6 +136,16 @@ will fetch all parts that have types that match that string.  A
 likely value would be \"text/\" to automatically fetch all
 textual parts.")
 
+(defvoo nnimap-keepalive-intervals (cons (* 60 15)
+                                         (* 60 5))
+  "Configuration for the nnimap keepalive timer.
+The value is a cons of two integers (each representing a number
+of seconds): the first is how often to run the keepalive
+function, the second is the seconds of inactivity required to
+send the actual keepalive command.
+
+Set to nil to disable keepalive commands altogether.")
+
 (defgroup nnimap nil
   "IMAP for Gnus."
   :group 'gnus)
@@ -405,15 +415,16 @@ during splitting, which may be slow."
       nil)))
 
 (defun nnimap-keepalive ()
-  (let ((now (current-time)))
+  (let ((now (current-time))
+        ;; Set this so we don't wait for a response.
+        (nnimap-streaming t))
     (dolist (buffer nnimap-process-buffers)
       (when (buffer-live-p buffer)
 	(with-current-buffer buffer
 	  (when (and nnimap-object
 		     (nnimap-last-command-time nnimap-object)
 		     (time-less-p
-		      ;; More than five minutes since the last command.
-		      (* 5 60)
+		      (cdr nnimap-keepalive-intervals)
 		      (time-subtract
 		       now
 		       (nnimap-last-command-time nnimap-object))))
@@ -448,9 +459,12 @@ during splitting, which may be slow."
     port))
 
 (defun nnimap-open-connection-1 (buffer)
-  (unless nnimap-keepalive-timer
-    (setq nnimap-keepalive-timer (run-at-time (* 60 15) (* 60 15)
-					      #'nnimap-keepalive)))
+  (unless (or nnimap-keepalive-timer
+              (null nnimap-keepalive-intervals))
+    (setq nnimap-keepalive-timer (run-at-time
+                                  (car nnimap-keepalive-intervals)
+                                  (car nnimap-keepalive-intervals)
+				  #'nnimap-keepalive)))
   (with-current-buffer (nnimap-make-process-buffer buffer)
     (let* ((coding-system-for-read 'binary)
 	   (coding-system-for-write 'binary)
