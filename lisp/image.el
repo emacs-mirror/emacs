@@ -875,7 +875,9 @@ do not check N is within the range of frames present in the image."
       (setq n (min n (1- (car (plist-get (cdr image)
                                          :animate-multi-frame-data)))))))
   (plist-put (cdr image) :index n)
-  (force-window-update))
+  (when-let ((window
+              (get-buffer-window (plist-get (cdr image) :animate-buffer) t)))
+    (force-window-update window)))
 
 (defun image-animate-get-speed (image)
   "Return the speed factor for animating IMAGE."
