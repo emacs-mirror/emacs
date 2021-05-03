@@ -1056,10 +1056,10 @@ att först senare ta bort fönstret med C-x 1.
 
 Här är fler varianter på C-h:
 
-   C-h f        Beskriv en funktion. Du skriver in funktionsnamnet.
+   C-h f        Beskriv ett kommando. Du skriver in kommandots namn.
 
->> Prova att skriva C-h f previous-line<Return>.
-   Detta ger den information Emacs har om funktionen
+>> Prova att skriva C-h x previous-line <Return>.
+   Detta visar den information Emacs har om den funktion
    som implementerar kommandot C-p.
 
 Ett liknande kommando, C-h v, visar dokumentationen för de variabler

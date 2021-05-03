@@ -1038,10 +1038,10 @@ then type C-x 1.
 
 Here are some other useful C-h options:
 
-   C-h f	Describe a function.  You type in the name of the
-		function.
+   C-h x	Describe a command.  You type in the name of the
+		command.
 
->> Try typing C-h f previous-line <Return>.
+>> Try typing C-h x previous-line <Return>.
    This displays all the information Emacs has about the
    function which implements the C-p command.
 

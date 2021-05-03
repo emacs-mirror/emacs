@@ -56,12 +56,17 @@ See `display-line-numbers' for value options."
 
 (defcustom display-line-numbers-width-start nil
   "If non-nil, count number of lines to use for line number width.
-When `display-line-numbers-mode' is turned on,
-`display-line-numbers-width' is set to the minimum width necessary
-to display all line numbers in the buffer."
+When `display-line-numbers-mode' is turned on, if this option is
+non-nil, `display-line-numbers-width' is set up front to a width
+necessary to display all line numbers in the buffer.  If the value
+is a positive number, it is interpreted as extra lines to account
+for when computing the required width; this should be set to the
+number of lines in the tallest window in which you want to prevent
+the line-number width from changing."
   :group 'display-line-numbers
-  :type 'boolean
-  :version "26.1")
+  :type '(choice (boolean :tag "Minimum width for buffer's line count")
+                 (integer :tag "Number of extra lines to account for"))
+  :version "28.1")
 
 (defun display-line-numbers-update-width ()
   "Prevent the line number width from shrinking."
@@ -83,7 +88,11 @@ the mode is on, set `display-line-numbers' directly."
         (when display-line-numbers-width-start
           (setq display-line-numbers-width
                 (length (number-to-string
-                         (count-lines (point-min) (point-max))))))
+                         (+ (count-lines (point-min) (point-max))
+                            (if (and (numberp display-line-numbers-width-start)
+                                     (> display-line-numbers-width-start 0))
+                                display-line-numbers-width-start
+                              0))))))
         (when display-line-numbers-grow-only
           (add-hook 'pre-command-hook #'display-line-numbers-update-width nil t))
         (setq display-line-numbers display-line-numbers-type))

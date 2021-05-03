@@ -122,10 +122,10 @@ This metadata is an alist.  Currently understood keys are:
    returns a string to append to STRING.
 - `affixation-function': function to prepend/append a prefix/suffix to
    entries.  Takes one argument (COMPLETIONS) and should return a list
-   of completions with a list of either two elements: completion
-   and suffix, or three elements: completion, its prefix
-   and suffix.  This function takes priority over `annotation-function'
-   when both are provided, so only this function is used.
+   of annotated completions.  The elements of the list must be
+   three-element lists: completion, its prefix and suffix.  This
+   function takes priority over `annotation-function' when both are
+   provided, so only this function is used.
 - `display-sort-function': function to sort entries in *Completions*.
    Takes one argument (COMPLETIONS) and should return a new list
    of completions.  Can operate destructively.
@@ -1972,11 +1972,11 @@ These include:
 
 `:affixation-function': Function to prepend/append a prefix/suffix to
    completions.  The function must accept one argument, a list of
-   completions, and return a list where each element is a list of
-   either two elements: a completion, and a suffix, or
-   three elements: a completion, a prefix and a suffix.
-   This function takes priority over `:annotation-function'
-   when both are provided, so only this function is used.
+   completions, and return a list of annotated completions.  The
+   elements of the list must be three-element lists: completion, its
+   prefix and suffix.  This function takes priority over
+   `:annotation-function' when both are provided, so only this
+   function is used.
 
 `:exit-function': Function to run after completion is performed.
 
@@ -3900,13 +3900,7 @@ See `completing-read' for the meaning of the arguments."
                 ;; `read-from-minibuffer' uses 1-based index.
                 (1+ (cdr initial-input)))))
 
-  (let* ((minibuffer-completion-table collection)
-         (minibuffer-completion-predicate predicate)
-         ;; FIXME: Remove/rename this var, see the next one.
-         (minibuffer-completion-confirm (unless (eq require-match t)
-                                          require-match))
-         (minibuffer--require-match require-match)
-         (base-keymap (if require-match
+  (let* ((base-keymap (if require-match
                          minibuffer-local-must-match-map
                         minibuffer-local-completion-map))
          (keymap (if (memq minibuffer-completing-file-name '(nil lambda))
@@ -3919,8 +3913,17 @@ See `completing-read' for the meaning of the arguments."
                     ;; in minibuffer-local-filename-completion-map can
                     ;; override bindings in base-keymap.
                     base-keymap)))
-         (result (read-from-minibuffer prompt initial-input keymap
-                                       nil hist def inherit-input-method)))
+         (result
+          (minibuffer-with-setup-hook
+              (lambda ()
+                (setq-local minibuffer-completion-table collection)
+                (setq-local minibuffer-completion-predicate predicate)
+                ;; FIXME: Remove/rename this var, see the next one.
+                (setq-local minibuffer-completion-confirm
+                            (unless (eq require-match t) require-match))
+                (setq-local minibuffer--require-match require-match))
+            (read-from-minibuffer prompt initial-input keymap
+                                  nil hist def inherit-input-method))))
     (when (and (equal result "") def)
       (setq result (if (consp def) (car def) def)))
     result))

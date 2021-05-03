@@ -432,6 +432,9 @@ In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer's
 accessible portion.
 
+When invoked interactively, matching a newline with `\\n' will not work;
+use `C-q C-j' instead.  To match a tab character (`\\t'), just press `TAB'.
+
 Use \\<minibuffer-local-map>\\[next-history-element] \
 to pull the last incremental search regexp to the minibuffer
 that reads REGEXP, or invoke replacements from

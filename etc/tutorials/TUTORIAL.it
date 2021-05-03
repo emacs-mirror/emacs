@@ -578,7 +578,7 @@ originale in modo da conservarlo.  Il nuovo nome è ottenuto
 aggiungendo un carattere "~" alla fine del nome originale.  Quando il
 salvataggio termina, Emacs mostra il nome del file scritto.
 
->> Premi C-x C-s TUTORIAL<Invio>.
+>> Premi C-x C-s TUTORIAL <Invio>.
    Questo dovrebbe salvare questa esercitazione in un file chiamato
    “TUTORIAL” e mostrare “Wrote ...TUTORIAL nella parte bassa dello
    schermo.
@@ -623,8 +623,8 @@ file, puoi farlo visitando di nuovo quel file usando C-x C-f.  Ma c'è
 un modo più semplice: usa il comando C-x b.  Questo comando richiede
 il nome del buffer.
 
->> Crea un file chiamato “pippo” con C-x C-f pippo<Invio>.
-   Torna poi a questa esercitazione con C-x b TUTORIAL<Invio>.
+>> Crea un file chiamato “pippo” con C-x C-f pippo <Invio>.
+   Torna poi a questa esercitazione con C-x b TUTORIAL <Invio>.
 
 La maggior parte delle volte, il nome del buffer corrisponde al nome
 del file (senza la parte relativa alla directory).  Questo non è
@@ -641,8 +641,8 @@ Anche il buffer chiamato “*Messages* non è associato ad alcun file.
 Quel buffer contiene tutti i messaggi che sono apparsi nella parte
 bassa dello schermo durante la sessione di Emacs.
 
->> Passa al buffer con i messaggi con C-x b *Messages*<Invio>.
-   Torna poi a questa esercitazione con C-x b TUTORIAL<Invio>.
+>> Passa al buffer con i messaggi con C-x b *Messages* <Invio>.
+   Torna poi a questa esercitazione con C-x b TUTORIAL <Invio>.
 
 Se si modifica in qualche modo il testo di un file e poi si visita un
 altro file questo non comporta il salvataggio del primo.  Le modifiche
@@ -752,7 +752,7 @@ salvataggio automatico.
 Se il computer si blocca si può recuperare il file salvato
 automaticamente aprendo il file in modo normale (il file che si stava
 scrivendo, non quello di salvataggio automatico) e usando poi M-x
-recover-this-file<Invio>.  Quando viene chiesta la conferma si risponda
+recover-this-file <Invio>.  Quando viene chiesta la conferma si risponda
 con yes<Invio> per procedere con il recupero dei dati salvati
 automaticamente.
 
@@ -818,7 +818,7 @@ fundamental-mode è il comando per attivare la modalità primaria
 Se si vuole inserire del testo in italiano, come questo file,
 probabilmente è più adeguata la modalità testo.
 
->> Inserisci M-x text-mode<Invio>.
+>> Inserisci M-x text-mode <Invio>.
 
 Non preoccuparti, nessuno dei comandi che hai imparato verrà
 modificato in modo sostanziale.  Tuttavia adesso puoi osservare come
@@ -853,14 +853,14 @@ testo, è la modalità “Auto Fill” (riempimento automatico).  Quando
 questa modalità è attiva, Emacs interrompe la riga tra due parole ogni
 volta che, nel corso dell'inserimento, essa diventa troppo lunga.
 
-Si può attivare il modo “Auto Fill” con M-x auto-fill-mode<Invio>.
+Si può attivare il modo “Auto Fill” con M-x auto-fill-mode <Invio>.
 Quando la modalità suddetta è attiva può essere disattivata eseguendo
-di nuovo M-x auto-fill-mode<Invio>.  Se la modalità è disattivata
+di nuovo M-x auto-fill-mode <Invio>.  Se la modalità è disattivata
 questo comando la attiva, viceversa se è già attiva.  Un comando che
 funziona così si comporta come un interruttore, attiva o disattiva
 qualcosa ogni volta che viene premuto.
 
->> Usa M-x auto fill mode<Invio> adesso.  Inserisci una riga di “asdf ”
+>> Usa M-x auto fill mode <Invio> adesso.  Inserisci una riga di “asdf ”
    ripetuti fino a quando non la vedi dividersi in due righe.  Devi
    interporre degli spazi perché la modalità Auto Fill spezza le righe
    solo in corrispondenza di uno spazio.
@@ -1021,13 +1021,13 @@ chiamano “finestra”, ed è possibile mostrarne più di uno
 contemporaneamente.  Su un terminale testuale, è possibile mostrare un
 solo frame alla volta.
 
->> Usa M-x make-frame<Invio>.
+>> Usa M-x make-frame <Invio>.
    Un nuovo frame dovrebbe apparire sullo schermo.
 
 In questo nuovo frame puoi svolgere qualsiasi cosa come nel frame
 originale.  Non c'è nulla di speciale nel primo frame.
 
->> Usa M-x delete-frame<Invio>.
+>> Usa M-x delete-frame <Invio>.
    Questo rimuove il frame selezionato.
 
 Puoi anche eliminare un frame usando i metodi offerti dal sistema
@@ -1076,7 +1076,7 @@ aiuto che può fornire.  Se si è attivato l'aiuto con C-h e si decide
 che non serve più si può annullare la richiesta con C-g.
 
 (Se C-h non mostra un messaggio relativo all'aiuto nella parte bassa
-dello schermo, prova ad usare il tasto F1 oppure con M-x help<Invio>.)
+dello schermo, prova ad usare il tasto F1 oppure con M-x help <Invio>.)
 
 La forma base di aiuto è data da C-h c.  Si inserisce C-h, il
 carattere c e poi un carattere o una sequenza di caratteri; Emacs
@@ -1110,9 +1110,9 @@ mentre fai riferimento al testo di aiuto e poi usare un C-x 1.
 
 Ecco altre utili opzioni di C-h:
 
-	C-h f   Descrive una funzione.  Inserisci il nome della funzione.
+	C-h x   Descrive un comando.  Inserisci il nome della comando.
 
->> Prova con C-h f previous-line<Invio>.
+>> Prova con C-h x previous-line <Invio>.
    Questo mostrerà tutte le informazioni che Emacs possiede sulla
    funzione che implementa il comando C-p.
 
@@ -1128,7 +1128,7 @@ variabile quando Emacs lo richiede.
 		una sequenza di uno o due caratteri che serve a far
 		partire il comando senza doverlo inserire per esteso.
 
->> Prova C-h a file<Invio>
+>> Prova C-h a file <Invio>
 
 Questo mostrerà in un'altra finestra una lista di tutti i comandi che
 contengono la parola “file” nel nome.  Nella lista si vedranno
@@ -1143,7 +1143,7 @@ esteso come find-file.
    C-h i	Leggi la documentazione.  Questo comando apre un
 		buffer speciale chiamato “*info*” in cui puoi leggere
 		i manuali on-line dei pacchetti installati sul tuo
-		sistema.  Batti m emacs<Invio> per leggere il manuale
+		sistema.  Batti m emacs <Invio> per leggere il manuale
 		di Emacs.  Se non hai mai usato il sistema Info prima
 		d'ora premi ? ed Emacs ti guiderà nell'uso delle
 		opzioni del modo Info.  Una volta terminata questa

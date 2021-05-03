@@ -1010,6 +1010,9 @@ a dynamic local binding, Emacs records the contents of the value cell
 value cell.  When the binding construct finishes executing, Emacs pops
 the old value off the stack, and puts it in the value cell.
 
+  Note that when code using Dynamic Binding is native compiled the
+native compiler will not perform any Lisp specific optimization.
+
 @node Dynamic Binding Tips
 @subsection Proper Use of Dynamic Binding
 

@@ -107,8 +107,8 @@ Display the @file{*Messages*} buffer
 (@code{view-echo-area-messages}).  @xref{Misc Help}.
 @item C-h f @var{function} @key{RET}
 Display documentation on the Lisp function named @var{function}
-(@code{describe-function}).  Since commands are Lisp functions,
-this works for commands too.  @xref{Name Help}.
+(@code{describe-function}).  Since commands are Lisp functions, this
+works for commands too, but you can also use @code{C-h x}.  @xref{Name Help}.
 @item C-h h
 Display the @file{HELLO} file, which shows examples of various character
 sets.
@@ -154,6 +154,9 @@ Display the documentation of the Lisp variable @var{var}
 @item C-h w @var{command} @key{RET}
 Show which keys run the command named @var{command} (@code{where-is}).
 @xref{Key Help}.
+@item C-h x @var{command} @key{RET}
+Display documentation on the named @var{command}
+(@code{describe-command}).  @xref{Name Help}.
 @item C-h C @var{coding} @key{RET}
 Describe the coding system @var{coding}
 (@code{describe-coding-system}).  @xref{Coding Systems}.
@@ -233,31 +236,31 @@ the button.
 @node Name Help
 @section Help by Command or Variable Name
 
-@kindex C-h f
-@findex describe-function
-  @kbd{C-h f @var{function} @key{RET}} (@code{describe-function})
-displays the documentation of Lisp function @var{function}, in a
-window.  Since commands are Lisp functions, you can use this method to
-view the documentation of any command whose name you know.  For
-example,
+@kindex C-h x
+@findex describe-command
+  @kbd{C-h x @var{command} @key{RET}} (@code{describe-command})
+displays the documentation of the named @var{command}, in a
+window.  For example,
 
 @example
-C-h f auto-fill-mode @key{RET}
+C-h x auto-fill-mode @key{RET}
 @end example
 
 @noindent
-displays the documentation of @code{auto-fill-mode}.  This is the only
-way to get the documentation of a command that is not bound to any key
+displays the documentation of @code{auto-fill-mode}.  This is how you
+would get the documentation of a command that is not bound to any key
 (one which you would normally run using @kbd{M-x}).
 
-  @kbd{C-h f} is also useful for Lisp functions that you use in a Lisp
-program.  For example, if you have just written the expression
+@kindex C-h f
+@findex describe-function
+  @kbd{C-h f @var{function} @key{RET}} (@code{describe-function})
+displays the documentation of Lisp @var{function}.  This command is
+intended for Lisp functions that you use in a Lisp program.  For
+example, if you have just written the expression
 @code{(make-vector len)} and want to check that you are using
-@code{make-vector} properly, type @kbd{C-h f make-vector @key{RET}}.
-Because @kbd{C-h f} allows all function names, not just command names,
-you may find that some of your favorite completion abbreviations that
-work in @kbd{M-x} don't work in @kbd{C-h f}.  An abbreviation that is
-unique among command names may not be unique among all function names.
+@code{make-vector} properly, type @w{@kbd{C-h f make-vector @key{RET}}}.
+Additionally, since all commands are Lisp functions, you can also use
+this command to view the documentation of any command.
 
   If you type @kbd{C-h f @key{RET}}, it describes the function called
 by the innermost Lisp expression in the buffer around point,
@@ -265,7 +268,7 @@ by the innermost Lisp expression in the buffer around point,
 (That name appears as the default while you enter the argument.)  For
 example, if point is located following the text @samp{(make-vector
 (car x)}, the innermost list containing point is the one that starts
-with @samp{(make-vector}, so @kbd{C-h f @key{RET}} describes the
+with @samp{(make-vector}, so @w{@kbd{C-h f @key{RET}}} describes the
 function @code{make-vector}.
 
   @kbd{C-h f} is also useful just to verify that you spelled a

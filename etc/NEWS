@@ -1008,6 +1008,11 @@ GTK toolkit, this is only true if 'x-gtk-use-system-tooltips' is t.
 *** 'g' ('revert-buffer') in 'help-mode' no longer requires confirmation.
 
 +++
+*** New command 'describe-command' shows help for a command.
+This can be used instead of 'describe-function' for interactive
+commands and is globally bound to `C-h x'.
+
++++
 *** New command 'describe-keymap' describes keybindings in a keymap.
 
 ---
@@ -2448,6 +2453,11 @@ This is to keep the same behavior as Eshell.
 
 
 * Incompatible Lisp Changes in Emacs 28.1
+
++++
+** 'completing-read-default' sets completion variables buffer-locally.
+'minibuffer-completion-table' and related variables are now set buffer-locally
+in the minibuffer instead of being set via a global let-binding.
 
 +++
 ** The use of positional arguments in 'define-minor-mode' is obsolete.

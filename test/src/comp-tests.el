@@ -293,7 +293,7 @@ Check that the resulting binaries do not differ."
                (comp-tests-throw-f 3)))))
 
 (comp-deftest gc ()
-  "Try to do some longer computation to let the gc kick in."
+  "Try to do some longer computation to let the GC kick in."
   (dotimes (_ 100000)
     (comp-tests-cons-cdr-f 3))
   (should (= (comp-tests-cons-cdr-f 3) 3)))
@@ -317,7 +317,7 @@ Check that the resulting binaries do not differ."
   (should (string= (comp-tests-string-trim-f "dsaf ") "dsaf")))
 
 (comp-deftest trampoline-removal ()
-  ;; This tests that we can can call primitives with no dedicated bytecode.
+  ;; This tests that we can call primitives with no dedicated bytecode.
   ;; At speed >= 2 the trampoline will not be used.
   (should (hash-table-p (comp-tests-trampoline-removal-f))))
 
@@ -399,7 +399,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
   (should (string= " ➊" (comp-test-45342-f 1))))
 
 (comp-deftest assume-double-neg ()
-  "In fwprop assumtions (not (not (member x))) /= (member x)."
+  "In fwprop assumptions (not (not (member x))) /= (member x)."
   (should-not (comp-test-assume-double-neg-f "bar" "foo")))
 
 (comp-deftest assume-in-loop-1 ()
@@ -416,7 +416,7 @@ https://lists.gnu.org/archive/html/bug-gnu-emacs/2020-03/msg00914.html."
 
 (defvar comp-test-primitive-advice)
 (comp-deftest primitive-advice ()
-  "Test effectiveness of primitive advicing."
+  "Test effectiveness of primitive advising."
   (let (comp-test-primitive-advice
         (f (lambda (&rest args)
              (setq comp-test-primitive-advice args))))

@@ -1188,9 +1188,9 @@ in the minibuffer to do completion.
 @defvar minibuffer-completion-table
 The value of this variable is the completion table (@pxref{Basic
 Completion}) used for completion in the minibuffer.  This is the
-global variable that contains what @code{completing-read} passes to
+buffer-local variable that contains what @code{completing-read} passes to
 @code{try-completion}.  It is used by minibuffer completion commands
-such as @code{minibuffer-complete-word}.
+such as @code{minibuffer-complete}.
 @end defvar
 
 @defvar minibuffer-completion-predicate
@@ -1201,7 +1201,7 @@ minibuffer completion functions.
 
 @defvar minibuffer-completion-confirm
 This variable determines whether Emacs asks for confirmation before
-exiting the minibuffer; @code{completing-read} binds this variable,
+exiting the minibuffer; @code{completing-read} sets this variable,
 and the function @code{minibuffer-complete-and-exit} checks the value
 before exiting.  If the value is @code{nil}, confirmation is not
 required.  If the value is @code{confirm}, the user may exit with an
@@ -1819,12 +1819,10 @@ default to that string.
 @item :affixation-function
 The value should be a function to add prefixes and suffixes to
 completions.  This function must accept one argument, a list of
-completions, and should return such a list of completions where
-each element contains a list of three elements: a completion,
-a prefix string, and a suffix string.  When this function
-returns a list of two elements, it is interpreted as a list
-of a completion and a suffix string like in @code{:annotation-function}.
-This function takes priority over @code{:annotation-function}.
+completions, and should return a list of annotated completions.  Each
+element of the returned list must be a three-element list, the
+completion, a prefix string, and a suffix string.  This function takes
+priority over @code{:annotation-function}.
 
 @item :exit-function
 The value should be a function to run after performing completion.
@@ -1942,10 +1940,8 @@ completions.  The function should take one argument,
 return such a list of @var{completions} where each element contains a list
 of three elements: a completion, a prefix which is displayed before
 the completion string in the @file{*Completions*} buffer, and
-a suffix displayed after the completion string.  When this function
-returns a list of two elements, it is interpreted as a list of
-a completion and a suffix string like in @code{annotation-function}.
-This function takes priority over @code{annotation-function}.
+a suffix displayed after the completion string.  This function
+takes priority over @code{annotation-function}.
 
 @item display-sort-function
 The value should be a function for sorting completions.  The function

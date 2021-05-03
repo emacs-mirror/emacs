@@ -668,11 +668,7 @@ ns_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
        }
     }
 
-  {
-    NSTRACE_MSG ("inhibit:%d", inhibit);
-
-    adjust_frame_size (f, -1, -1, 2, false, Qtool_bar_lines);
-  }
+  adjust_frame_size (f, -1, -1, 2, false, Qtool_bar_lines);
 }
 
 static void
@@ -1070,7 +1066,6 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
   Lisp_Object parent, parent_frame;
   struct kboard *kb;
   static int desc_ctr = 1;
-  int x_width = 0, x_height = 0;
 
   /* gui_display_get_arg modifies parms.  */
   parms = Fcopy_alist (parms);

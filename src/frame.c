@@ -621,12 +621,8 @@ frame_size_history_extra (struct frame *f, Lisp_Object parameter,
  *   must be preserved.  The code for setting up window dividers and
  *   that responsible for wrapping the (internal) tool bar use this.
  *
- * 5 means to never call set_window_size_hook.  change_frame_size uses
- *   this.
- *
- * Note that even when set_window_size_hook is not called, individual
- * windows may have to be resized (via `window--sanitize-window-sizes')
- * in order to support minimum size constraints.
+ * 5 means to never call set_window_size_hook.  Usually this means to
+ *   call resize_frame_windows.  change_frame_size uses this.
  *
  * PRETEND is as for change_frame_size.  PARAMETER, if non-nil, is the
  * symbol of the parameter changed (like `menu-bar-lines', `font', ...).
@@ -718,6 +714,9 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 
   if (FRAME_WINDOW_P (f)
       && f->can_set_window_size
+      /* For inhibit == 1 call the window_size_hook only if a native
+	 size changes.  For inhibit == 0 or inhibit == 2 always call
+	 it.  */
       && ((!inhibit_horizontal
 	   && (new_native_width != old_native_width
 	       || inhibit == 0 || inhibit == 2))
@@ -725,29 +724,25 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 	      && (new_native_height != old_native_height
 		  || inhibit == 0 || inhibit == 2))))
     {
-      /* Make sure we respect fullheight and fullwidth.  */
-      if (inhibit_horizontal)
-	new_native_width = old_native_width;
-      else if (inhibit_vertical)
-	new_native_height = old_native_height;
-
-      if (inhibit == 2 && f->new_width > 0 && f->new_height > 0)
+      if (inhibit == 2
+#ifdef USE_MOTIF
+	  && !EQ (parameter, Qmenu_bar_lines)
+#endif
+	  && (f->new_width >= 0 || f->new_height >= 0))
 	/* For implied resizes with inhibit 2 (external menu and tool
 	   bar) pick up any new sizes the display engine has not
 	   processed yet.  Otherwsie, we would request the old sizes
 	   which will make this request appear as a request to set new
-	   sizes and have the WM react accordingly which is not TRT.  */
+	   sizes and have the WM react accordingly which is not TRT.
+
+	   We don't that for the external menu bar on Motif.
+	   Otherwise, switching off the menu bar will shrink the frame
+	   and switching it on will not enlarge it.  */
 	{
-	  /* But don't that for the external menu bar on Motif.
-	     Otherwise, switching off the menu bar will shrink the frame
-	     and switching it on will not enlarge it.  */
-#ifdef USE_MOTIF
-	  if (!EQ (parameter, Qmenu_bar_lines))
-#endif
-	    {
-	      new_native_width = f->new_width;
-	      new_native_height = f->new_height;
-	    }
+	  if (f->new_width >= 0)
+	    new_native_width = f->new_width;
+	  if (f->new_height >= 0)
+	    new_native_height = f->new_height;
 	}
 
       if (CONSP (frame_size_history))
@@ -762,6 +757,17 @@ adjust_frame_size (struct frame *f, int new_text_width, int new_text_height,
 				   new_inner_width, new_inner_height,
 				   min_inner_width, min_inner_height,
 				   inhibit_horizontal, inhibit_vertical);
+
+      if (inhibit == 0 || inhibit == 1)
+	{
+	  f->new_width = new_native_width;
+	  f->new_height = new_native_height;
+	  /* Resetting f->new_size_p is controversial: It might cause
+	     do_pending_window_change drop a previous request and we are
+	     in troubles when the window manager does not honor the
+	     request we issue here.  */
+	  f->new_size_p = false;
+	}
 
       if (FRAME_TERMINAL (f)->set_window_size_hook)
         FRAME_TERMINAL (f)->set_window_size_hook

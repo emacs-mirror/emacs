@@ -1,4 +1,4 @@
-/* Compile elisp into native code.
+/* Compile Emacs Lisp into native code.
    Copyright (C) 2019-2021 Free Software Foundation, Inc.
 
 Author: Andrea Corallo <akrl@sdf.org>
@@ -4716,7 +4716,7 @@ maybe_defer_native_compilation (Lisp_Object function_name,
 	return;
     }
 
-  /* This is to have deferred compilaiton able to compile comp
+  /* This is so deferred compilation is able to compile comp
      dependencies breaking circularity.  */
   if (!NILP (Ffeaturep (Qcomp, Qnil)))
     {
@@ -4949,7 +4949,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
       /* In case another load of the same CU is active on the stack
 	 all ephemeral data is hold by that frame.  Re-writing
 	 'data_ephemeral_vec' would be not only a waste of cycles but
-	 more importanly would lead to crashed if the contained data
+	 more importantly would lead to crashes if the contained data
 	 is not cons hashed.  */
       if (!recursive_load)
 	{

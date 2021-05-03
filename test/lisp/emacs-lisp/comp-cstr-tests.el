@@ -198,22 +198,26 @@
       ((and (or symbol string) (or number marker)) . nil)
       ;; 78
       ((and t t) . t)
-      ;; 80
+      ;; 79
       ((and (or marker number) (integer 0 0)) . (integer 0 0))
-      ;; 81
+      ;; 80
       ((and t (not t)) . nil)
-      ;; 82
+      ;; 81
       ((or (integer 1 1) (not (integer 1 1))) . t)
-      ;; 83
+      ;; 82
       ((not t) . nil)
-      ;; 84
+      ;; 83
       ((not nil) . t)
-      ;; 85
+      ;; 84
       ((or (not string) t) . t)
-      ;; 86
+      ;; 85
       ((or (not vector) sequence) . sequence)
+      ;; 86
+      ((or (not symbol) null) . t)
       ;; 87
-      ((or (not symbol) null) . t))
+      ((and (or null integer) (not (or null integer))) . nil)
+      ;; 88
+      ((and (or (member a b c)) (not (or (member a b)))) . (member c)))
     "Alist type specifier -> expected type specifier."))
 
 (defmacro comp-cstr-synthesize-tests ()

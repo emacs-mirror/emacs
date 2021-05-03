@@ -2221,6 +2221,10 @@ unfolded."
   "Show any images that are in the HTML-rendered article buffer.
 This only works if the article in question is HTML."
   (interactive nil gnus-article-mode gnus-summary-mode)
+  ;; Reselect for image display.
+  (let ((gnus-blocked-images nil)
+        (gnus-inhibit-images nil))
+    (gnus-summary-select-article))
   (gnus-with-article-buffer
     (save-restriction
       (widen)

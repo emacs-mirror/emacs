@@ -1200,17 +1200,17 @@ in array mode may have different values assigned to the variables.
 The variables are:
 
 Variables you assign:
-     array-max-row:          The number of rows in the array.
-     array-max-column:       The number of columns in the array.
-     array-columns-per-line: The number of columns in the array
+     `array-max-row':          The number of rows in the array.
+     `array-max-column':       The number of columns in the array.
+     `array-columns-per-line': The number of columns in the array
                              per line of buffer.
-     array-field-width:      The width of each field, in characters.
-     array-rows-numbered:    A logical variable describing whether to ignore
+     `array-field-width':      The width of each field, in characters.
+     `array-rows-numbered':    A logical variable describing whether to ignore
                              row numbers in the buffer.
 
 Variables which are calculated:
-     array-line-length:      The number of characters in a buffer line.
-     array-lines-per-row:    The number of buffer lines used to
+     `array-line-length':      The number of characters in a buffer line.
+     `array-lines-per-row':    The number of buffer lines used to
                              display each row.
 
   The following commands are available (an asterisk indicates it may
@@ -4079,7 +4079,7 @@ in this way.
 If DONT-OVERRIDE is t, style variables that already have values (i.e., whose
 values are not the symbol `set-from-style') will not be overridden.  CC Mode
 calls c-set-style internally in this way whilst initializing a buffer; if
-cc-set-style is called like this from anywhere else, it will usually behave as
+c-set-style is called like this from anywhere else, it will usually behave as
 a null operation.
 
 \(fn STYLENAME &optional DONT-OVERRIDE)" t nil)
@@ -4891,7 +4891,7 @@ DEFAULT-BODY, if present, is used as the body of a default method.
 
 (autoload 'cl-defmethod "cl-generic" "\
 Define a new method for generic function NAME.
-This it defines an implementation of NAME to use for invocations
+This defines an implementation of NAME to use for invocations
 of specific types of arguments.
 
 ARGS is a list of dispatch arguments (see `cl-defun'), but where
@@ -5318,6 +5318,96 @@ REGEXP-GROUP is the regular expression group in REGEXP to use.
 \(fn PROCESS COMMAND REGEXP REGEXP-GROUP)" nil nil)
 
 (register-definition-prefixes "comint" '("comint-"))
+
+;;;***
+
+;;;### (autoloads nil "comp" "emacs-lisp/comp.el" (0 0 0 0))
+;;; Generated autoloads from emacs-lisp/comp.el
+(put 'no-native-compile 'safe-local-variable 'booleanp)
+
+(autoload 'comp-subr-trampoline-install "comp" "\
+Make SUBR-NAME effectively advice-able when called from native code.
+
+\(fn SUBR-NAME)" nil nil)
+
+(autoload 'comp-c-func-name "comp" "\
+Given NAME, return a name suitable for the native code.
+Add PREFIX in front of it.  If FIRST is not nil, pick the first
+available name ignoring compilation context and potential name
+clashes.
+
+\(fn NAME PREFIX &optional FIRST)" nil nil)
+
+(autoload 'comp-clean-up-stale-eln "comp" "\
+Given FILE remove all its *.eln files in `comp-eln-load-path'
+sharing the original source filename (including FILE).
+
+\(fn FILE)" nil nil)
+
+(autoload 'comp-lookup-eln "comp" "\
+Given a Lisp source FILENAME return the corresponding .eln file if found.
+Search happens in `comp-eln-load-path'.
+
+\(fn FILENAME)" nil nil)
+
+(autoload 'native-compile "comp" "\
+Compile FUNCTION-OR-FILE into native code.
+This is the synchronous entry-point for the Emacs Lisp native
+compiler.
+FUNCTION-OR-FILE is a function symbol, a form, or the filename of
+an Emacs Lisp source file.
+If OUTPUT is non-nil, use it as the filename for the compiled
+object.
+If FUNCTION-OR-FILE is a filename, return the filename of the
+compiled object.  If FUNCTION-OR-FILE is a function symbol or a
+form, return the compiled function.
+
+\(fn FUNCTION-OR-FILE &optional OUTPUT)" nil nil)
+
+(autoload 'batch-native-compile "comp" "\
+Perform native compilation on remaining command-line arguments.
+Use this from the command line, with ‘-batch’;
+it won’t work in an interactive Emacs.
+Native compilation equivalent to `batch-byte-compile'." nil nil)
+
+(autoload 'batch-byte-native-compile-for-bootstrap "comp" "\
+Like `batch-native-compile', but used for bootstrap.
+Generate .elc files in addition to the .eln files.
+Force the produced .eln to be outputted in the eln system
+directory (the last entry in `comp-eln-load-path').
+If the environment variable 'NATIVE_DISABLED' is set, only byte
+compile." nil nil)
+
+(autoload 'native-compile-async "comp" "\
+Compile FILES asynchronously.
+FILES is one file or a list of filenames or directories.
+
+If optional argument RECURSIVELY is non-nil, recurse into
+subdirectories of given directories.
+
+If optional argument LOAD is non-nil, request to load the file
+after compiling.
+
+The optional argument SELECTOR has the following valid values:
+
+nil -- Select all files.
+a string -- A regular expression selecting files with matching names.
+a function -- A function selecting files with matching names.
+
+The variable `comp-async-jobs-number' specifies the number
+of (commands) to run simultaneously.
+
+\(fn FILES &optional RECURSIVELY LOAD SELECTOR)" nil nil)
+
+(register-definition-prefixes "comp" '("comp-" "make-comp-edge" "native-" "no-native-compile"))
+
+;;;***
+
+;;;### (autoloads nil "comp-cstr" "emacs-lisp/comp-cstr.el" (0 0
+;;;;;;  0 0))
+;;; Generated autoloads from emacs-lisp/comp-cstr.el
+
+(register-definition-prefixes "comp-cstr" '("comp-" "with-comp-cstr-accessors"))
 
 ;;;***
 
@@ -8460,7 +8550,7 @@ Switch to *dungeon* buffer and start game." t nil)
 ;;;;;;  0 0 0))
 ;;; Generated autoloads from emacs-lisp/easy-mmode.el
 
-(defalias 'easy-mmode-define-minor-mode 'define-minor-mode)
+(defalias 'easy-mmode-define-minor-mode #'define-minor-mode)
 
 (autoload 'define-minor-mode "easy-mmode" "\
 Define a new minor mode MODE.
@@ -8483,39 +8573,31 @@ documenting what its argument does.  If the word \"ARG\" does not
 appear in DOC, a paragraph is added to DOC explaining
 usage of the mode argument.
 
-Optional INIT-VALUE is the initial value of the mode's variable.
-  Note that the minor mode function won't be called by setting
-  this option, so the value *reflects* the minor mode's natural
-  initial state, rather than *setting* it.
-  In the vast majority of cases it should be nil.
-Optional LIGHTER is displayed in the mode line when the mode is on.
-Optional KEYMAP is the default keymap bound to the mode keymap.
-  If non-nil, it should be a variable name (whose value is a keymap),
-  or an expression that returns either a keymap or a list of
-  (KEY . BINDING) pairs where KEY and BINDING are suitable for
-  `define-key'.  If you supply a KEYMAP argument that is not a
-  symbol, this macro defines the variable MODE-map and gives it
-  the value that KEYMAP specifies.
-
 BODY contains code to execute each time the mode is enabled or disabled.
   It is executed after toggling the mode, and before running MODE-hook.
   Before the actual body code, you can write keyword arguments, i.e.
   alternating keywords and values.  If you provide BODY, then you must
-  provide (even if just nil) INIT-VALUE, LIGHTER, and KEYMAP, or provide
-  at least one keyword argument, or both; otherwise, BODY would be
-  misinterpreted as the first omitted argument.  The following special
-  keywords are supported (other keywords are passed to `defcustom' if
-  the minor mode is global):
+  provide at least one keyword argument (e.g. `:lighter nil`).
+  The following special keywords are supported (other keywords are passed
+  to `defcustom' if the minor mode is global):
 
-:group GROUP	Custom group name to use in all generated `defcustom' forms.
 :global GLOBAL	If non-nil specifies that the minor mode is not meant to be
 		buffer-local, so don't make the variable MODE buffer-local.
 		By default, the mode is buffer-local.
-:init-value VAL	Same as the INIT-VALUE argument.
+:init-value VAL	the initial value of the mode's variable.
+		Note that the minor mode function won't be called by setting
+		this option, so the value *reflects* the minor mode's natural
+		initial state, rather than *setting* it.
+		In the vast majority of cases it should be nil.
 		Not used if you also specify :variable.
-:lighter SPEC	Same as the LIGHTER argument.
-:keymap MAP	Same as the KEYMAP argument.
-:require SYM	Same as in `defcustom'.
+:lighter SPEC	Text displayed in the mode line when the mode is on.
+:keymap MAP	Keymap bound to the mode keymap.  Defaults to `MODE-map'.
+		If non-nil, it should be a variable name (whose value is
+		a keymap), or an expression that returns either a keymap or
+		a list of (KEY . BINDING) pairs where KEY and BINDING are
+		suitable for `define-key'.  If you supply a KEYMAP argument
+		that is not a symbol, this macro defines the variable MODE-map
+		and gives it the value that KEYMAP specifies.
 :interactive VAL  Whether this mode should be a command or not.  The default
                 is to make it one; use nil to avoid that.  If VAL is a list,
                 it's interpreted as a list of major modes this minor mode
@@ -8529,7 +8611,6 @@ BODY contains code to execute each time the mode is enabled or disabled.
 		sets it.  If you specify a :variable, this function does
 		not define a MODE variable (nor any of the terms used
 		in :variable).
-
 :after-hook     A single lisp form which is evaluated after the mode hooks
                 have been run.  It should not be quoted.
 
@@ -8538,13 +8619,17 @@ For example, you could write
     :lighter \" Foo\" :require \\='foo :global t :group \\='hassle :version \"27.5\"
     ...BODY CODE...)
 
-\(fn MODE DOC &optional INIT-VALUE LIGHTER KEYMAP &rest BODY)" nil t)
+For backward compatibility with the Emacs<21 calling convention,
+the keywords can also be preceded by the obsolete triplet
+INIT-VALUE LIGHTER KEYMAP.
+
+\(fn MODE DOC [KEYWORD VAL ... &rest BODY])" nil t)
 
 (function-put 'define-minor-mode 'doc-string-elt '2)
 
-(defalias 'easy-mmode-define-global-mode 'define-globalized-minor-mode)
+(defalias 'easy-mmode-define-global-mode #'define-globalized-minor-mode)
 
-(defalias 'define-global-minor-mode 'define-globalized-minor-mode)
+(defalias 'define-global-minor-mode #'define-globalized-minor-mode)
 
 (autoload 'define-globalized-minor-mode "easy-mmode" "\
 Make a global mode GLOBAL-MODE corresponding to buffer-local minor MODE.
@@ -10617,32 +10702,66 @@ Prompt the user for values of nick, server, port, and password." nil nil)
 ERC is a powerful, modular, and extensible IRC client.
 This function is the main entry point for ERC.
 
-It permits you to select connection parameters, and then starts ERC.
+It allows selecting connection parameters, and then starts ERC.
 
 Non-interactively, it takes the keyword arguments
    (server (erc-compute-server))
    (port   (erc-compute-port))
    (nick   (erc-compute-nick))
    password
-   (full-name (erc-compute-full-name)))
+   (full-name (erc-compute-full-name))
 
 That is, if called with
 
    (erc :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
 
-then the server and full-name will be set to those values, whereas
-`erc-compute-port', `erc-compute-nick' and `erc-compute-full-name' will
-be invoked for the values of the other parameters.
+then the server and full-name will be set to those values,
+whereas `erc-compute-port' and `erc-compute-nick' will be invoked
+for the values of the other parameters.
 
 \(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) PASSWORD (FULL-NAME (erc-compute-full-name)))" t nil)
 
 (defalias 'erc-select #'erc)
 
 (autoload 'erc-tls "erc" "\
-Interactively select TLS connection parameters and run ERC.
-Arguments are the same as for `erc'.
+ERC is a powerful, modular, and extensible IRC client.
+This function is the main entry point for ERC over TLS.
 
-\(fn &rest R)" t nil)
+It allows selecting connection parameters, and then starts ERC
+over TLS.
+
+Non-interactively, it takes the keyword arguments
+   (server (erc-compute-server))
+   (port   (erc-compute-port))
+   (nick   (erc-compute-nick))
+   password
+   (full-name (erc-compute-full-name))
+   client-certificate
+
+That is, if called with
+
+   (erc-tls :server \"chat.freenode.net\" :full-name \"Harry S Truman\")
+
+then the server and full-name will be set to those values,
+whereas `erc-compute-port' and `erc-compute-nick' will be invoked
+for the values of their respective parameters.
+
+CLIENT-CERTIFICATE, if non-nil, should either be a list where the
+first element is the certificate key file name, and the second
+element is the certificate file name itself, or t, which means
+that `auth-source' will be queried for the key and the
+certificate.  Authenticating using a TLS client certificate is
+also refered to as \"CertFP\" (Certificate Fingerprint)
+authentication by various IRC networks.
+
+Example usage:
+
+    (erc-tls :server \"chat.freenode.net\" :port 6697
+             :client-certificate
+             '(\"/data/bandali/my-cert.key\"
+               \"/data/bandali/my-cert.crt\"))
+
+\(fn &key (SERVER (erc-compute-server)) (PORT (erc-compute-port)) (NICK (erc-compute-nick)) PASSWORD (FULL-NAME (erc-compute-full-name)) CLIENT-CERTIFICATE)" t nil)
 
 (autoload 'erc-handle-irc-url "erc" "\
 Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
@@ -11973,6 +12092,23 @@ Besides the choice of face, it is the same as `buffer-face-mode'.
 ;;;### (autoloads nil "facemenu" "facemenu.el" (0 0 0 0))
 ;;; Generated autoloads from facemenu.el
 
+(autoload 'list-colors-display "facemenu" "\
+Display names of defined colors, and show what they look like.
+If the optional argument LIST is non-nil, it should be a list of
+colors to display.  Otherwise, this command computes a list of
+colors that the current display can handle.  Customize
+`list-colors-sort' to change the order in which colors are shown.
+Type `g' or \\[revert-buffer] after customizing `list-colors-sort'
+to redisplay colors in the new order.
+
+If the optional argument BUFFER-NAME is nil, it defaults to *Colors*.
+
+If the optional argument CALLBACK is non-nil, it should be a
+function to call each time the user types RET or clicks on a
+color.  The function should accept a single argument, the color name.
+
+\(fn &optional LIST BUFFER-NAME CALLBACK)" t nil)
+
 (register-definition-prefixes "facemenu" '("facemenu-" "list-colors-"))
 
 ;;;***
@@ -12440,7 +12576,7 @@ specifies what to use in place of \"-ls\" as the final argument.
 ;;;### (autoloads nil "find-file" "find-file.el" (0 0 0 0))
 ;;; Generated autoloads from find-file.el
 
-(defvar ff-special-constructs `((,(purecopy "^#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") lambda nil (buffer-substring (match-beginning 2) (match-end 2)))) "\
+(defvar ff-special-constructs `((,(purecopy "^#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") \, (lambda nil (match-string 2)))) "\
 List of special constructs recognized by `ff-treat-as-special'.
 Each element, tried in order, has the form (REGEXP . EXTRACT).
 If REGEXP matches the current line (from the beginning of the line),
@@ -12458,7 +12594,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window.
 
 \(fn &optional IN-OTHER-WINDOW)" t nil)
 
-(defalias 'ff-find-related-file 'ff-find-other-file)
+(defalias 'ff-find-related-file #'ff-find-other-file)
 
 (autoload 'ff-find-other-file "find-file" "\
 Find the header or source file corresponding to this file.
@@ -12513,15 +12649,14 @@ Variables of interest include:
  - `ff-file-created-hook'
    List of functions to be called if the other file has been created.
 
-\(fn &optional IN-OTHER-WINDOW IGNORE-INCLUDE)" t nil)
+\(fn &optional IN-OTHER-WINDOW IGNORE-INCLUDE EVENT)" t nil)
 
-(autoload 'ff-mouse-find-other-file "find-file" "\
-Visit the file you click on.
+(define-obsolete-function-alias 'ff-mouse-find-other-file #'ff-find-other-file "28.1")
 
-\(fn EVENT)" t nil)
+(define-obsolete-function-alias 'ff-mouse-find-other-file-other-window #'ff-find-other-file-other-window "28.1")
 
-(autoload 'ff-mouse-find-other-file-other-window "find-file" "\
-Visit the file you click on in another window.
+(autoload 'ff-find-other-file-other-window "find-file" "\
+Visit the file you point at in another window.
 
 \(fn EVENT)" t nil)
 
@@ -13794,7 +13929,7 @@ regular expression that can be used as an element of
 ;;;### (autoloads nil "generic-x" "generic-x.el" (0 0 0 0))
 ;;; Generated autoloads from generic-x.el
 
-(register-definition-prefixes "generic-x" '("alias-generic-mode" "ansible-inventory-generic-mode" "apache-" "astap-generic-mode" "default-generic-mode" "etc-" "fvwm-generic-mode" "generic-" "hosts-generic-mode" "ibis-generic-mode" "java-" "mail" "named-" "pkginfo-generic-mode" "prototype-generic-mode" "rc-generic-mode" "rul-" "samba-generic-mode" "show-tabs-generic-mode" "spice-generic-mode" "vrml-generic-mode" "x-resource-generic-mode" "xmodmap-generic-mode"))
+(register-definition-prefixes "generic-x" '("default-generic-mode" "generic-"))
 
 ;;;***
 
@@ -14628,6 +14763,8 @@ Both lists have to be sorted over <.
 
 
 \(fn LIST1 LIST2)" nil nil)
+
+(make-obsolete 'gnus-intersection 'seq-intersection '"28.1")
 
 (autoload 'gnus-sorted-intersection "gnus-range" "\
 Return intersection of LIST1 and LIST2.
@@ -16284,7 +16421,7 @@ whitespace.  Case does not matter.")
 (autoload 'hs-minor-mode "hideshow" "\
 Minor mode to selectively hide/show code and comment blocks.
 
-If called interactively, toggle `Hs minor mode'.  If the prefix
+If called interactively, toggle `hs minor mode'.  If the prefix
 argument is positive, enable the mode, and if it is zero or negative,
 disable the mode.
 
@@ -16503,7 +16640,7 @@ Construct a function similar to `hippie-expand'.
 Make it use the expansion functions in TRY-LIST.  An optional second
 argument VERBOSE non-nil makes the function verbose.
 
-\(fn TRY-LIST &optional VERBOSE)" nil t)
+\(fn TRY-LIST &optional VERBOSE)" nil nil)
 
 (register-definition-prefixes "hippie-exp" '("he-" "hippie-expand-" "try-"))
 
@@ -17021,6 +17158,36 @@ You can use the following key bindings to navigate and select
 completions:
 
 \\{icomplete-minibuffer-map}
+
+\(fn &optional ARG)" t nil)
+
+(defvar icomplete-vertical-mode nil "\
+Non-nil if Icomplete-Vertical mode is enabled.
+See the `icomplete-vertical-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `icomplete-vertical-mode'.")
+
+(custom-autoload 'icomplete-vertical-mode "icomplete" nil)
+
+(autoload 'icomplete-vertical-mode "icomplete" "\
+Toggle vertical candidate display in `icomplete-mode' or `fido-mode'.
+
+If called interactively, toggle `Icomplete-Vertical mode'.  If the
+prefix argument is positive, enable the mode, and if it is zero or
+negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable the
+mode if ARG is nil, omitted, or is a positive number.  Disable the
+mode if ARG is a negative number.
+
+The mode's hook is called both when the mode is enabled and when it is
+disabled.
+
+As many completion candidates as possible are displayed, depending on
+the value of `max-mini-window-height', and the way the mini-window is
+resized depends on `resize-mini-windows'.
 
 \(fn &optional ARG)" t nil)
 (when (locate-library "obsolete/iswitchb")
@@ -17670,12 +17837,16 @@ means display it in the right marginal area.
 (autoload 'insert-image "image" "\
 Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.  STRING
-defaults to a single space if you omit it.
+with a `display' property whose value is the image.
+
+STRING defaults to a single space if you omit it, which means
+that the inserted image will behave as whitespace syntactically.
+
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area.
+
 SLICE specifies slice of IMAGE to insert.  SLICE nil or omitted
 means insert whole image.  SLICE is a list (X Y WIDTH HEIGHT)
 specifying the X and Y positions and WIDTH and HEIGHT of image area
@@ -20464,13 +20635,6 @@ An adapted `makefile-mode' that knows about imake.
 
 ;;;***
 
-;;;### (autoloads nil "makeinfo" "textmodes/makeinfo.el" (0 0 0 0))
-;;; Generated autoloads from textmodes/makeinfo.el
-
-(register-definition-prefixes "makeinfo" '("makeinfo-"))
-
-;;;***
-
 ;;;### (autoloads nil "makesum" "makesum.el" (0 0 0 0))
 ;;; Generated autoloads from makesum.el
 
@@ -20663,7 +20827,7 @@ OTHER-HEADERS is an alist of header/value pairs.  CONTINUE says whether
 to continue editing a message already being composed.  SWITCH-FUNCTION
 is a function used to switch to and display the mail buffer.
 
-\(fn &optional TO SUBJECT OTHER-HEADERS CONTINUE SWITCH-FUNCTION YANK-ACTION SEND-ACTIONS RETURN-ACTION &rest IGNORED)" t nil)
+\(fn &optional TO SUBJECT OTHER-HEADERS CONTINUE SWITCH-FUNCTION YANK-ACTION SEND-ACTIONS RETURN-ACTION &rest _)" t nil)
 
 (autoload 'message-news "message" "\
 Start editing a news article to be sent.
@@ -22104,7 +22268,7 @@ See the `mouse-wheel-mode' command
 for a description of this minor mode.
 Setting this variable directly does not take effect;
 either customize it (see the info node `Easy Customization')
-or call the function `mouse-wheel-mode'." :set #'custom-set-minor-mode :initialize 'custom-initialize-delay :group 'mouse :type 'boolean)
+or call the function `mouse-wheel-mode'." :set #'custom-set-minor-mode :initialize 'custom-initialize-delay :type 'boolean :group 'mouse)
 
 (custom-autoload 'mouse-wheel-mode "mwheel" nil)
 
@@ -25756,7 +25920,7 @@ Open profile FILENAME.
 
 ;;;### (autoloads nil "project" "progmodes/project.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/project.el
-(push (purecopy '(project 0 5 4)) package--builtin-versions)
+(push (purecopy '(project 0 6 0)) package--builtin-versions)
 
 (autoload 'project-current "project" "\
 Return the project instance in DIRECTORY, defaulting to `default-directory'.
@@ -27305,6 +27469,11 @@ recently executed command not bound to an input event\".
 
 \(fn REPEAT-ARG)" t nil)
 
+(defvar repeat-map nil "\
+The value of the repeating map for the next command.
+A command called from the map can set it again to the same map when
+the map can't be set on the command symbol property `repeat-map'.")
+
 (defvar repeat-mode nil "\
 Non-nil if Repeat mode is enabled.
 See the `repeat-mode' command
@@ -27391,8 +27560,10 @@ visible (if only part could otherwise be made so), to make the defun line
 visible (if point is in code and it could not be made so, or if only
 comments, including the first comment line, are visible), or to make the
 first comment line visible (if point is in a comment).
+If INTERACTIVE is non-nil, as it is interactively,
+report errors as appropriate for this kind of usage.
 
-\(fn &optional ARG)" t nil)
+\(fn &optional ARG INTERACTIVE)" t nil)
 
 (register-definition-prefixes "reposition" '("repos-count-screen-lines"))
 
@@ -28258,7 +28429,7 @@ unmatchable     Never match anything at all.
 CHARCLASS       Match a character from a character class.  One of:
  alpha, alphabetic, letter   Alphabetic characters (defined by Unicode).
  alnum, alphanumeric         Alphabetic or decimal digit chars (Unicode).
- digit numeric, num          0-9.
+ digit, numeric, num         0-9.
  xdigit, hex-digit, hex      0-9, A-F, a-f.
  cntrl, control              ASCII codes 0-31.
  blank                       Horizontal whitespace (Unicode).
@@ -29246,6 +29417,17 @@ Like `mail' command, but display mail buffer in another frame.
 ;;; Generated autoloads from emacs-lisp/seq.el
 (push (purecopy '(seq 2 22)) package--builtin-versions)
 
+(autoload 'seq-subseq "seq" "\
+Return the sequence of elements of SEQUENCE from START to END.
+END is exclusive.
+
+If END is omitted, it defaults to the length of the sequence.  If
+START or END is negative, it counts from the end.  Signal an
+error if START or END are outside of the sequence (i.e too large
+if positive or too small if negative).
+
+\(fn SEQUENCE START &optional END)" nil nil)
+
 (autoload 'seq-take "seq" "\
 Take the first N elements of SEQUENCE and return the result.
 The result is a sequence of the same type as SEQUENCE.
@@ -29313,8 +29495,20 @@ Equality is defined by TESTFN if non-nil or by `equal' if nil.
 
 \(fn SEQUENCE ELT &optional TESTFN)" nil nil)
 
+(autoload 'seq-uniq "seq" "\
+Return a list of the elements of SEQUENCE with duplicates removed.
+TESTFN is used to compare elements, or `equal' if TESTFN is nil.
+
+\(fn SEQUENCE &optional TESTFN)" nil nil)
+
 (autoload 'seq-intersection "seq" "\
 Return a list of the elements that appear in both SEQUENCE1 and SEQUENCE2.
+Equality is defined by TESTFN if non-nil or by `equal' if nil.
+
+\(fn SEQUENCE1 SEQUENCE2 &optional TESTFN)" nil nil)
+
+(autoload 'seq-difference "seq" "\
+Return a list of the elements that appear in SEQUENCE1 but not in SEQUENCE2.
 Equality is defined by TESTFN if non-nil or by `equal' if nil.
 
 \(fn SEQUENCE1 SEQUENCE2 &optional TESTFN)" nil nil)
@@ -29426,7 +29620,7 @@ Major mode for Simple Emacs Spreadsheet.
 When you invoke SES in a new buffer, it is divided into cells
 that you can enter data into.  You can navigate the cells with
 the arrow keys and add more cells with the tab key.  The contents
-of these cells can be numbers, text, or Lisp expressions. (To
+of these cells can be numbers, text, or Lisp expressions.  (To
 enter text, enclose it in double quotes.)
 
 In an expression, you can use cell coordinates to refer to the
@@ -29825,9 +30019,6 @@ Turning on Sieve mode runs `sieve-mode-hook'.
 Major mode for editing SIMULA code.
 \\{simula-mode-map}
 Variables controlling indentation style:
- `simula-tab-always-indent'
-    Non-nil means TAB in SIMULA mode should always reindent the current line,
-    regardless of where in the line point is when the TAB command is used.
  `simula-indent-level'
     Indentation of SIMULA statements with respect to containing block.
  `simula-substatement-offset'
@@ -30020,7 +30211,7 @@ buffer names.
 (autoload 'smerge-mode "smerge-mode" "\
 Minor mode to simplify editing output from the diff3 program.
 
-If called interactively, toggle `Smerge mode'.  If the prefix argument
+If called interactively, toggle `SMerge mode'.  If the prefix argument
 is positive, enable the mode, and if it is zero or negative, disable
 the mode.
 
@@ -32965,14 +33156,6 @@ value of `texinfo-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads nil "texnfo-upd" "textmodes/texnfo-upd.el" (0 0
-;;;;;;  0 0))
-;;; Generated autoloads from textmodes/texnfo-upd.el
-
-(register-definition-prefixes "texnfo-upd" '("texinfo-"))
-
-;;;***
-
 ;;;### (autoloads nil "text-property-search" "emacs-lisp/text-property-search.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from emacs-lisp/text-property-search.el
@@ -33922,6 +34105,8 @@ the output buffer or changing the window configuration.
 
 ;;;### (autoloads nil "tramp" "net/tramp.el" (0 0 0 0))
 ;;; Generated autoloads from net/tramp.el
+ (when (featurep 'tramp-compat)
+  (load "tramp-compat" 'noerror 'nomessage))
 
 (defvar tramp-mode t "\
 Whether Tramp is enabled.
@@ -34115,6 +34300,67 @@ Add archive file name handler to `file-name-handler-alist'." (when tramp-archive
 
 ;;;***
 
+;;;### (autoloads nil "transient" "transient.el" (0 0 0 0))
+;;; Generated autoloads from transient.el
+
+(autoload 'transient-insert-suffix "transient" "\
+Insert a SUFFIX into PREFIX before LOC.
+PREFIX is a prefix command, a symbol.
+SUFFIX is a suffix command or a group specification (of
+  the same forms as expected by `transient-define-prefix').
+LOC is a command, a key vector, a key description (a string
+  as returned by `key-description'), or a coordination list
+  (whose last element may also be a command or key).
+See info node `(transient)Modifying Existing Transients'.
+
+\(fn PREFIX LOC SUFFIX)" nil nil)
+
+(function-put 'transient-insert-suffix 'lisp-indent-function 'defun)
+
+(autoload 'transient-append-suffix "transient" "\
+Insert a SUFFIX into PREFIX after LOC.
+PREFIX is a prefix command, a symbol.
+SUFFIX is a suffix command or a group specification (of
+  the same forms as expected by `transient-define-prefix').
+LOC is a command, a key vector, a key description (a string
+  as returned by `key-description'), or a coordination list
+  (whose last element may also be a command or key).
+See info node `(transient)Modifying Existing Transients'.
+
+\(fn PREFIX LOC SUFFIX)" nil nil)
+
+(function-put 'transient-append-suffix 'lisp-indent-function 'defun)
+
+(autoload 'transient-replace-suffix "transient" "\
+Replace the suffix at LOC in PREFIX with SUFFIX.
+PREFIX is a prefix command, a symbol.
+SUFFIX is a suffix command or a group specification (of
+  the same forms as expected by `transient-define-prefix').
+LOC is a command, a key vector, a key description (a string
+  as returned by `key-description'), or a coordination list
+  (whose last element may also be a command or key).
+See info node `(transient)Modifying Existing Transients'.
+
+\(fn PREFIX LOC SUFFIX)" nil nil)
+
+(function-put 'transient-replace-suffix 'lisp-indent-function 'defun)
+
+(autoload 'transient-remove-suffix "transient" "\
+Remove the suffix or group at LOC in PREFIX.
+PREFIX is a prefix command, a symbol.
+LOC is a command, a key vector, a key description (a string
+  as returned by `key-description'), or a coordination list
+  (whose last element may also be a command or key).
+See info node `(transient)Modifying Existing Transients'.
+
+\(fn PREFIX LOC)" nil nil)
+
+(function-put 'transient-remove-suffix 'lisp-indent-function 'defun)
+
+(register-definition-prefixes "transient" '("transient-"))
+
+;;;***
+
 ;;;### (autoloads nil "tree-widget" "tree-widget.el" (0 0 0 0))
 ;;; Generated autoloads from tree-widget.el
 
@@ -34178,11 +34424,13 @@ first and the associated buffer to its right.
 \(fn &optional BUFFER)" t nil)
 
 (autoload '2C-associate-buffer "two-column" "\
-Associate another buffer with this one in two-column minor mode.
+Associate another BUFFER with this one in two-column minor mode.
 Can also be used to associate a just previously visited file, by
 accepting the proposed default buffer.
 
-\(See  \\[describe-mode] .)" t nil)
+\(See  \\[describe-mode] .)
+
+\(fn BUFFER)" t nil)
 
 (autoload '2C-split "two-column" "\
 Split a two-column text at point, into two buffers in two-column minor mode.
@@ -34665,7 +34913,7 @@ added to this list, so most requests can just pass in nil.
 
 \(fn URL)" nil nil)
 
-(register-definition-prefixes "url-dav" '("url-"))
+(register-definition-prefixes "url-dav" '("url-dav-"))
 
 ;;;***
 
@@ -36062,7 +36310,7 @@ Key bindings:
 ;;;### (autoloads nil "verilog-mode" "progmodes/verilog-mode.el"
 ;;;;;;  (0 0 0 0))
 ;;; Generated autoloads from progmodes/verilog-mode.el
-(push (purecopy '(verilog-mode 2021 3 30 243771231)) package--builtin-versions)
+(push (purecopy '(verilog-mode 2021 4 12 188864585)) package--builtin-versions)
 
 (autoload 'verilog-mode "verilog-mode" "\
 Major mode for editing Verilog code.
@@ -38166,7 +38414,7 @@ If LIMIT is non-nil, then do not consider characters beyond LIMIT.
 
 ;;;### (autoloads nil "xref" "progmodes/xref.el" (0 0 0 0))
 ;;; Generated autoloads from progmodes/xref.el
-(push (purecopy '(xref 1 0 4)) package--builtin-versions)
+(push (purecopy '(xref 1 1 0)) package--builtin-versions)
 
 (autoload 'xref-find-backend "xref" nil nil nil)
 
@@ -38377,14 +38625,15 @@ Zone out, completely." t nil)
 ;;;;;;  "cedet/semantic/decorate/include.el" "cedet/semantic/decorate/mode.el"
 ;;;;;;  "cedet/semantic/dep.el" "cedet/semantic/doc.el" "cedet/semantic/edit.el"
 ;;;;;;  "cedet/semantic/find.el" "cedet/semantic/format.el" "cedet/semantic/grammar-wy.el"
-;;;;;;  "cedet/semantic/html.el" "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el"
-;;;;;;  "cedet/semantic/idle.el" "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el"
-;;;;;;  "cedet/semantic/lex.el" "cedet/semantic/mru-bookmark.el"
-;;;;;;  "cedet/semantic/scope.el" "cedet/semantic/senator.el" "cedet/semantic/sort.el"
-;;;;;;  "cedet/semantic/symref.el" "cedet/semantic/symref/cscope.el"
-;;;;;;  "cedet/semantic/symref/global.el" "cedet/semantic/symref/grep.el"
-;;;;;;  "cedet/semantic/symref/idutils.el" "cedet/semantic/symref/list.el"
-;;;;;;  "cedet/semantic/tag-file.el" "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
+;;;;;;  "cedet/semantic/grm-wy-boot.el" "cedet/semantic/html.el"
+;;;;;;  "cedet/semantic/ia-sb.el" "cedet/semantic/ia.el" "cedet/semantic/idle.el"
+;;;;;;  "cedet/semantic/imenu.el" "cedet/semantic/lex-spp.el" "cedet/semantic/lex.el"
+;;;;;;  "cedet/semantic/mru-bookmark.el" "cedet/semantic/scope.el"
+;;;;;;  "cedet/semantic/senator.el" "cedet/semantic/sort.el" "cedet/semantic/symref.el"
+;;;;;;  "cedet/semantic/symref/cscope.el" "cedet/semantic/symref/global.el"
+;;;;;;  "cedet/semantic/symref/grep.el" "cedet/semantic/symref/idutils.el"
+;;;;;;  "cedet/semantic/symref/list.el" "cedet/semantic/tag-file.el"
+;;;;;;  "cedet/semantic/tag-ls.el" "cedet/semantic/tag-write.el"
 ;;;;;;  "cedet/semantic/tag.el" "cedet/semantic/texi.el" "cedet/semantic/util-modes.el"
 ;;;;;;  "cedet/semantic/wisent/java-tags.el" "cedet/semantic/wisent/javascript.el"
 ;;;;;;  "cedet/semantic/wisent/javat-wy.el" "cedet/semantic/wisent/js-wy.el"
@@ -38418,72 +38667,64 @@ Zone out, completely." t nil)
 ;;;;;;  "eshell/em-term.el" "eshell/em-tramp.el" "eshell/em-unix.el"
 ;;;;;;  "eshell/em-xtra.el" "faces.el" "files.el" "font-core.el"
 ;;;;;;  "font-lock.el" "format.el" "frame.el" "help.el" "hfy-cmap.el"
-;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charprop.el"
-;;;;;;  "international/charscript.el" "international/cp51932.el"
-;;;;;;  "international/eucjp-ms.el" "international/iso-transl.el"
+;;;;;;  "ibuf-ext.el" "indent.el" "international/characters.el" "international/charscript.el"
+;;;;;;  "international/cp51932.el" "international/eucjp-ms.el" "international/iso-transl.el"
 ;;;;;;  "international/mule-cmds.el" "international/mule-conf.el"
-;;;;;;  "international/mule.el" "international/uni-bidi.el" "international/uni-brackets.el"
-;;;;;;  "international/uni-category.el" "international/uni-combining.el"
-;;;;;;  "international/uni-comment.el" "international/uni-decimal.el"
-;;;;;;  "international/uni-decomposition.el" "international/uni-digit.el"
-;;;;;;  "international/uni-lowercase.el" "international/uni-mirrored.el"
-;;;;;;  "international/uni-name.el" "international/uni-numeric.el"
-;;;;;;  "international/uni-old-name.el" "international/uni-special-lowercase.el"
-;;;;;;  "international/uni-special-titlecase.el" "international/uni-special-uppercase.el"
-;;;;;;  "international/uni-titlecase.el" "international/uni-uppercase.el"
-;;;;;;  "isearch.el" "jit-lock.el" "jka-cmpr-hook.el" "language/burmese.el"
-;;;;;;  "language/cham.el" "language/chinese.el" "language/cyrillic.el"
-;;;;;;  "language/czech.el" "language/english.el" "language/ethiopic.el"
-;;;;;;  "language/european.el" "language/georgian.el" "language/greek.el"
-;;;;;;  "language/hebrew.el" "language/indian.el" "language/japanese.el"
-;;;;;;  "language/khmer.el" "language/korean.el" "language/lao.el"
-;;;;;;  "language/misc-lang.el" "language/romanian.el" "language/sinhala.el"
-;;;;;;  "language/slovak.el" "language/tai-viet.el" "language/thai.el"
-;;;;;;  "language/tibetan.el" "language/utf-8-lang.el" "language/vietnamese.el"
-;;;;;;  "ldefs-boot.el" "leim/ja-dic/ja-dic.el" "leim/leim-list.el"
-;;;;;;  "leim/quail/4Corner.el" "leim/quail/ARRAY30.el" "leim/quail/CCDOSPY.el"
-;;;;;;  "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el" "leim/quail/ECDICT.el"
-;;;;;;  "leim/quail/ETZY.el" "leim/quail/PY-b5.el" "leim/quail/PY.el"
-;;;;;;  "leim/quail/Punct-b5.el" "leim/quail/Punct.el" "leim/quail/QJ-b5.el"
-;;;;;;  "leim/quail/QJ.el" "leim/quail/SW.el" "leim/quail/TONEPY.el"
-;;;;;;  "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el" "leim/quail/arabic.el"
-;;;;;;  "leim/quail/cham.el" "leim/quail/compose.el" "leim/quail/croatian.el"
-;;;;;;  "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el" "leim/quail/czech.el"
-;;;;;;  "leim/quail/georgian.el" "leim/quail/greek.el" "leim/quail/hanja-jis.el"
-;;;;;;  "leim/quail/hanja.el" "leim/quail/hanja3.el" "leim/quail/hebrew.el"
-;;;;;;  "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el" "leim/quail/latin-ltx.el"
-;;;;;;  "leim/quail/latin-post.el" "leim/quail/latin-pre.el" "leim/quail/persian.el"
-;;;;;;  "leim/quail/programmer-dvorak.el" "leim/quail/py-punct.el"
-;;;;;;  "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el" "leim/quail/quick-cns.el"
-;;;;;;  "leim/quail/rfc1345.el" "leim/quail/sami.el" "leim/quail/sgml-input.el"
-;;;;;;  "leim/quail/slovak.el" "leim/quail/symbol-ksc.el" "leim/quail/tamil-dvorak.el"
-;;;;;;  "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el" "leim/quail/vntelex.el"
-;;;;;;  "leim/quail/vnvni.el" "leim/quail/welsh.el" "loadup.el" "mail/blessmail.el"
-;;;;;;  "mail/rmailedit.el" "mail/rmailkwd.el" "mail/rmailmm.el"
-;;;;;;  "mail/rmailmsc.el" "mail/rmailsort.el" "mail/rmailsum.el"
-;;;;;;  "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el" "mh-e/mh-loaddefs.el"
-;;;;;;  "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el" "newcomment.el"
-;;;;;;  "obarray.el" "org/ob-core.el" "org/ob-lob.el" "org/ob-matlab.el"
-;;;;;;  "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el" "org/ol-irc.el"
-;;;;;;  "org/ol.el" "org/org-archive.el" "org/org-attach.el" "org/org-clock.el"
-;;;;;;  "org/org-colview.el" "org/org-compat.el" "org/org-datetree.el"
-;;;;;;  "org/org-duration.el" "org/org-element.el" "org/org-feed.el"
-;;;;;;  "org/org-footnote.el" "org/org-goto.el" "org/org-id.el" "org/org-indent.el"
-;;;;;;  "org/org-install.el" "org/org-keys.el" "org/org-lint.el"
-;;;;;;  "org/org-list.el" "org/org-macs.el" "org/org-mobile.el" "org/org-num.el"
-;;;;;;  "org/org-plot.el" "org/org-refile.el" "org/org-table.el"
-;;;;;;  "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el" "org/ox-html.el"
-;;;;;;  "org/ox-icalendar.el" "org/ox-latex.el" "org/ox-md.el" "org/ox-odt.el"
-;;;;;;  "org/ox-org.el" "org/ox-publish.el" "org/ox-texinfo.el" "org/ox.el"
-;;;;;;  "progmodes/elisp-mode.el" "progmodes/prog-mode.el" "ps-mule.el"
-;;;;;;  "register.el" "replace.el" "rfn-eshadow.el" "select.el" "simple.el"
-;;;;;;  "startup.el" "subdirs.el" "subr.el" "tab-bar.el" "textmodes/fill.el"
+;;;;;;  "international/mule.el" "isearch.el" "jit-lock.el" "jka-cmpr-hook.el"
+;;;;;;  "language/burmese.el" "language/cham.el" "language/chinese.el"
+;;;;;;  "language/cyrillic.el" "language/czech.el" "language/english.el"
+;;;;;;  "language/ethiopic.el" "language/european.el" "language/georgian.el"
+;;;;;;  "language/greek.el" "language/hebrew.el" "language/indian.el"
+;;;;;;  "language/japanese.el" "language/khmer.el" "language/korean.el"
+;;;;;;  "language/lao.el" "language/misc-lang.el" "language/romanian.el"
+;;;;;;  "language/sinhala.el" "language/slovak.el" "language/tai-viet.el"
+;;;;;;  "language/thai.el" "language/tibetan.el" "language/utf-8-lang.el"
+;;;;;;  "language/vietnamese.el" "ldefs-boot.el" "leim/ja-dic/ja-dic.el"
+;;;;;;  "leim/leim-list.el" "leim/quail/4Corner.el" "leim/quail/ARRAY30.el"
+;;;;;;  "leim/quail/CCDOSPY.el" "leim/quail/CTLau-b5.el" "leim/quail/CTLau.el"
+;;;;;;  "leim/quail/ECDICT.el" "leim/quail/ETZY.el" "leim/quail/PY-b5.el"
+;;;;;;  "leim/quail/PY.el" "leim/quail/Punct-b5.el" "leim/quail/Punct.el"
+;;;;;;  "leim/quail/QJ-b5.el" "leim/quail/QJ.el" "leim/quail/SW.el"
+;;;;;;  "leim/quail/TONEPY.el" "leim/quail/ZIRANMA.el" "leim/quail/ZOZY.el"
+;;;;;;  "leim/quail/arabic.el" "leim/quail/cham.el" "leim/quail/compose.el"
+;;;;;;  "leim/quail/croatian.el" "leim/quail/cyril-jis.el" "leim/quail/cyrillic.el"
+;;;;;;  "leim/quail/czech.el" "leim/quail/georgian.el" "leim/quail/greek.el"
+;;;;;;  "leim/quail/hanja-jis.el" "leim/quail/hanja.el" "leim/quail/hanja3.el"
+;;;;;;  "leim/quail/hebrew.el" "leim/quail/ipa-praat.el" "leim/quail/latin-alt.el"
+;;;;;;  "leim/quail/latin-ltx.el" "leim/quail/latin-post.el" "leim/quail/latin-pre.el"
+;;;;;;  "leim/quail/persian.el" "leim/quail/programmer-dvorak.el"
+;;;;;;  "leim/quail/py-punct.el" "leim/quail/pypunct-b5.el" "leim/quail/quick-b5.el"
+;;;;;;  "leim/quail/quick-cns.el" "leim/quail/rfc1345.el" "leim/quail/sami.el"
+;;;;;;  "leim/quail/sgml-input.el" "leim/quail/slovak.el" "leim/quail/symbol-ksc.el"
+;;;;;;  "leim/quail/tamil-dvorak.el" "leim/quail/tsang-b5.el" "leim/quail/tsang-cns.el"
+;;;;;;  "leim/quail/vntelex.el" "leim/quail/vnvni.el" "leim/quail/welsh.el"
+;;;;;;  "loadup.el" "mail/blessmail.el" "mail/rmailedit.el" "mail/rmailkwd.el"
+;;;;;;  "mail/rmailmm.el" "mail/rmailmsc.el" "mail/rmailsort.el"
+;;;;;;  "mail/rmailsum.el" "mail/undigest.el" "menu-bar.el" "mh-e/mh-gnus.el"
+;;;;;;  "mh-e/mh-loaddefs.el" "minibuffer.el" "mouse.el" "net/tramp-loaddefs.el"
+;;;;;;  "newcomment.el" "obarray.el" "org/ob-core.el" "org/ob-lob.el"
+;;;;;;  "org/ob-matlab.el" "org/ob-tangle.el" "org/ob.el" "org/ol-bbdb.el"
+;;;;;;  "org/ol-irc.el" "org/ol.el" "org/org-archive.el" "org/org-attach.el"
+;;;;;;  "org/org-clock.el" "org/org-colview.el" "org/org-compat.el"
+;;;;;;  "org/org-datetree.el" "org/org-duration.el" "org/org-element.el"
+;;;;;;  "org/org-feed.el" "org/org-footnote.el" "org/org-goto.el"
+;;;;;;  "org/org-id.el" "org/org-indent.el" "org/org-install.el"
+;;;;;;  "org/org-keys.el" "org/org-lint.el" "org/org-list.el" "org/org-macs.el"
+;;;;;;  "org/org-mobile.el" "org/org-num.el" "org/org-plot.el" "org/org-refile.el"
+;;;;;;  "org/org-table.el" "org/org-timer.el" "org/ox-ascii.el" "org/ox-beamer.el"
+;;;;;;  "org/ox-html.el" "org/ox-icalendar.el" "org/ox-latex.el"
+;;;;;;  "org/ox-md.el" "org/ox-odt.el" "org/ox-org.el" "org/ox-publish.el"
+;;;;;;  "org/ox-texinfo.el" "org/ox.el" "progmodes/elisp-mode.el"
+;;;;;;  "progmodes/prog-mode.el" "ps-mule.el" "register.el" "replace.el"
+;;;;;;  "rfn-eshadow.el" "select.el" "simple.el" "startup.el" "subdirs.el"
+;;;;;;  "subr.el" "tab-bar.el" "textmodes/fill.el" "textmodes/makeinfo.el"
 ;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/reftex-auc.el"
 ;;;;;;  "textmodes/reftex-cite.el" "textmodes/reftex-dcr.el" "textmodes/reftex-global.el"
 ;;;;;;  "textmodes/reftex-index.el" "textmodes/reftex-parse.el" "textmodes/reftex-ref.el"
-;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/text-mode.el"
-;;;;;;  "uniquify.el" "vc/ediff-hook.el" "vc/vc-hooks.el" "version.el"
-;;;;;;  "widget.el" "window.el") (0 0 0 0))
+;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/texnfo-upd.el"
+;;;;;;  "textmodes/text-mode.el" "uniquify.el" "vc/ediff-hook.el"
+;;;;;;  "vc/vc-hooks.el" "version.el" "widget.el" "window.el") (0
+;;;;;;  0 0 0))
 
 ;;;***
 

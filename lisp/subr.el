@@ -1815,9 +1815,15 @@ This makes the hook buffer-local, and it makes t a member of the
 buffer-local value.  That acts as a flag to run the hook
 functions of the global value as well as in the local value.
 
-HOOK should be a symbol, and FUNCTION may be any valid function.  If
-HOOK is void, it is first set to nil.  If HOOK's value is a single
-function, it is changed to a list of functions."
+HOOK should be a symbol.  If HOOK is void, it is first set to
+nil.  If HOOK's value is a single function, it is changed to a
+list of functions.
+
+FUNCTION may be any valid function, but it's recommended to use a
+function symbol and not a lambda form.  Using a symbol will
+ensure that the function is not re-added if the function is
+edited, and using lambda forms may also have a negative
+performance impact when running `add-hook' and `remove-hook'."
   (or (boundp hook) (set hook nil))
   (or (default-boundp hook) (set-default hook nil))
   (unless (numberp depth) (setq depth (if depth 90 0)))

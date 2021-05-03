@@ -145,11 +145,11 @@ If value is `verbose', the computed score is shown for each match."
     ;; Use `apropos-follow' instead of just using the button
     ;; definition of RET, so that users can use it anywhere in an
     ;; apropos item, not just on top of a button.
-    (define-key map "\C-m" 'apropos-follow)
+    (define-key map "\C-m" #'apropos-follow)
 
     ;; Movement keys
-    (define-key map "n" 'apropos-next-symbol)
-    (define-key map "p" 'apropos-previous-symbol)
+    (define-key map "n" #'apropos-next-symbol)
+    (define-key map "p" #'apropos-previous-symbol)
     map)
   "Keymap used in Apropos mode.")
 
@@ -347,7 +347,7 @@ WILD should be a subexpression matching wildcards between matches."
      (lambda (w)
        (concat "\\(?:" w "\\)" ;; parens for synonyms
                wild "\\(?:"
-               (mapconcat 'identity
+               (mapconcat #'identity
 			  (delq w (copy-sequence words))
 			  "\\|")
                "\\)"))
@@ -389,14 +389,14 @@ This updates variables `apropos-pattern', `apropos-pattern-quoted',
       ;; use a trick that would find a match even if the words are
       ;; on different lines.
       (let ((words pattern))
-	(setq apropos-pattern (mapconcat 'identity pattern " ")
+	(setq apropos-pattern (mapconcat #'identity pattern " ")
 	      apropos-pattern-quoted (regexp-quote apropos-pattern))
 	(dolist (word words)
 	  (let ((syn apropos-synonyms) (s word) (a word))
 	    (while syn
 	      (if (member word (car syn))
 		  (progn
-		    (setq a (mapconcat 'identity (car syn) "\\|"))
+		    (setq a (mapconcat #'identity (car syn) "\\|"))
 		    (if (member word (cdr (car syn)))
 			(setq s a))
 		    (setq syn nil))
@@ -513,7 +513,7 @@ variables, not just user options."
 		       #'(lambda (symbol)
 			   (and (boundp symbol)
 				(get symbol 'variable-documentation)))
-		     'custom-variable-p)))
+		     #'custom-variable-p)))
 
 ;;;###autoload
 (defun apropos-variable (pattern &optional do-not-all)
@@ -556,7 +556,7 @@ or a non-nil `apropos-do-all' argument."
 
 ;; For auld lang syne:
 ;;;###autoload
-(defalias 'command-apropos 'apropos-command)
+(defalias 'command-apropos #'apropos-command)
 ;;;###autoload
 (defun apropos-command (pattern &optional do-all var-predicate)
   "Show commands (interactively callable functions) that match PATTERN.
@@ -685,7 +685,7 @@ FILE should be one of the libraries currently loaded and should
 thus be found in `load-history'.  If `apropos-do-all' is non-nil,
 the output includes key-bindings of commands."
   (interactive
-   (let* ((libs (delq nil (mapcar 'car load-history)))
+   (let* ((libs (delq nil (mapcar #'car load-history)))
           (libs
            (nconc (delq nil
                         (mapcar
@@ -731,9 +731,9 @@ the output includes key-bindings of commands."
         (format-message
                 "Library `%s' provides: %s\nand requires: %s"
                 file
-                (mapconcat 'apropos-library-button
+                (mapconcat #'apropos-library-button
                            (or provides '(nil)) " and ")
-                (mapconcat 'apropos-library-button
+                (mapconcat #'apropos-library-button
                            (or requires '(nil)) " and ")))))))
 
 (defun apropos-symbols-internal (symbols keys &optional text)
@@ -809,34 +809,34 @@ Returns list of symbols and values found."
   (apropos-parse-pattern pattern t)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator ())
-   (let (f v p)
-     (mapatoms
-      (lambda (symbol)
-	(setq f nil v nil p nil)
-	(or (memq symbol '(apropos-regexp
-			   apropos-pattern apropos-all-words-regexp
-			   apropos-words apropos-all-words
-			   do-all apropos-accumulator
-			   symbol f v p))
-	    (setq v (apropos-value-internal 'boundp symbol 'symbol-value)))
-	(if do-all
-	    (setq f (apropos-value-internal 'fboundp symbol 'symbol-function)
-		  p (apropos-format-plist symbol "\n    " t)))
-	(if (apropos-false-hit-str v)
-	    (setq v nil))
-	(if (apropos-false-hit-str f)
-	    (setq f nil))
-	(if (apropos-false-hit-str p)
-	    (setq p nil))
-	(if (or f v p)
-	    (setq apropos-accumulator (cons (list symbol
-						  (+ (apropos-score-str f)
-						     (apropos-score-str v)
-						     (apropos-score-str p))
-						  f v p)
-					    apropos-accumulator))))))
-   (let ((apropos-multi-type do-all))
-     (apropos-print nil "\n----------------\n")))
+  (let (f v p)
+    (mapatoms
+     (lambda (symbol)
+       (setq f nil v nil p nil)
+       (or (memq symbol '(apropos-regexp
+                          apropos--current apropos-pattern-quoted pattern
+		          apropos-pattern apropos-all-words-regexp
+		          apropos-words apropos-all-words
+		          apropos-accumulator))
+           (setq v (apropos-value-internal #'boundp symbol #'symbol-value)))
+       (if do-all
+           (setq f (apropos-value-internal #'fboundp symbol #'symbol-function)
+	         p (apropos-format-plist symbol "\n    " t)))
+       (if (apropos-false-hit-str v)
+           (setq v nil))
+       (if (apropos-false-hit-str f)
+           (setq f nil))
+       (if (apropos-false-hit-str p)
+           (setq p nil))
+       (if (or f v p)
+           (setq apropos-accumulator (cons (list symbol
+					         (+ (apropos-score-str f)
+					            (apropos-score-str v)
+					            (apropos-score-str p))
+					         f v p)
+				           apropos-accumulator))))))
+  (let ((apropos-multi-type do-all))
+    (apropos-print nil "\n----------------\n")))
 
 ;;;###autoload
 (defun apropos-local-value (pattern &optional buffer)
@@ -851,9 +851,11 @@ Optional arg BUFFER (default: current buffer) is the buffer to check."
   (let ((var             nil))
     (mapatoms
      (lambda (symb)
-       (unless (memq symb '(apropos-regexp apropos-pattern apropos-all-words-regexp
-                            apropos-words apropos-all-words apropos-accumulator symb var))
-         (setq var  (apropos-value-internal 'local-variable-if-set-p symb 'symbol-value)))
+       (unless (memq symb '(apropos-regexp apropos-pattern
+                            apropos-all-words-regexp apropos-words
+                            apropos-all-words apropos-accumulator))
+         (setq var  (apropos-value-internal #'local-variable-if-set-p symb
+                                            #'symbol-value)))
        (when (and (fboundp 'apropos-false-hit-str)  (apropos-false-hit-str var))
          (setq var nil))
        (when var
@@ -928,7 +930,13 @@ Returns list of symbols and documentation found."
 
 (defun apropos-value-internal (predicate symbol function)
   (when (funcall predicate symbol)
-    (setq symbol (prin1-to-string (funcall function symbol)))
+    (setq symbol (prin1-to-string
+                  (if (memq symbol '(command-history minibuffer-history))
+                      ;; The value we're looking for will always be in
+                      ;; the first element of these two lists, so skip
+                      ;; that value.
+                      (cdr (funcall function symbol))
+                    (funcall function symbol))))
     (when (string-match apropos-regexp symbol)
       (if apropos-match-face
           (put-text-property (match-beginning 0) (match-end 0)
