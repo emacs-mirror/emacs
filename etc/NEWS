@@ -299,6 +299,9 @@ prompt, and how you can tweak the file size threshold.
 ** A prefix arg now causes 'delete-other-frames' to only iconify frames
 
 +++
+** The "Edit => Clear" menu item now obeys a rectangular region
+
++++
 ** New command 'execute-extended-command-for-buffer'.
 This new command, bound to 'M-S-x', works like
 'execute-extended-command', but limits the set of commands to the
