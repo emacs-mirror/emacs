@@ -196,11 +196,9 @@ escapes removed.")
   "Mapping of server buffers to their specific ping timer.")
 
 (defvar-local erc-server-connected nil
-  "Non-nil if the current buffer has been used by ERC to establish
-an IRC connection.
-
-If you wish to determine whether an IRC connection is currently
-active, use the `erc-server-process-alive' function instead.")
+  "Non-nil if the current buffer belongs to an active IRC connection.
+To determine whether an underlying transport is connected, use the
+function `erc-server-process-alive' instead.")
 
 (defvar-local erc-server-reconnect-count 0
   "Number of times we have failed to reconnect to the current server.")
@@ -602,7 +600,11 @@ Make sure you are in an ERC buffer when running this."
         (erc-open erc-session-server erc-session-port erc-server-current-nick
                   erc-session-user-full-name t erc-session-password
                   nil nil nil erc-session-client-certificate
-                  erc-session-username)))))
+                  erc-session-username
+                  (erc-networks--id-given erc-networks--id))
+        (unless (with-suppressed-warnings ((obsolete erc-reuse-buffers))
+                  erc-reuse-buffers)
+          (cl-assert (not (eq buffer (current-buffer)))))))))
 
 (defun erc-server-delayed-reconnect (buffer)
   (if (buffer-live-p buffer)
@@ -1336,7 +1338,11 @@ add things to `%s' instead."
                                              nick erc-session-user-full-name
                                              nil nil
                                              (list chnl) chnl
-                                             erc-server-process))
+                                             erc-server-process
+                                             nil
+                                             erc-session-username
+                                             (erc-networks--id-given
+                                              erc-networks--id)))
                       (when buffer
                         (set-buffer buffer)
                         (with-suppressed-warnings
@@ -1427,19 +1433,27 @@ add things to `%s' instead."
       ;; sent to the correct nick. also add to bufs, since the user will want
       ;; to see the nick change in the query, and if it's a newly begun query,
       ;; erc-channel-users won't contain it
-      (erc-buffer-filter
-       (lambda ()
-         (when (equal (erc-default-target) nick)
-           (setq erc-default-recipients (cons nn (cdr erc-default-recipients))
-                 erc--target (erc--target-from-string nn))
-           (rename-buffer nn t)         ; bug#12002
-           (erc-update-mode-line)
-           (cl-pushnew (current-buffer) bufs))))
+      ;;
+      ;; Possibly still relevant: bug#12002
+      (when-let ((buf (erc-get-buffer nick erc-server-process))
+                 (tgt (erc--target-from-string nn)))
+        (with-current-buffer buf
+          (setq erc-default-recipients (cons nn (cdr erc-default-recipients))
+                erc--target tgt))
+        (with-current-buffer (erc-get-buffer-create erc-session-server
+                                                    erc-session-port nil tgt
+                                                    (erc-networks--id-given
+                                                     erc-networks--id))
+          ;; Current buffer is among bufs
+          (erc-update-mode-line)))
       (erc-update-user-nick nick nn host nil nil login)
       (cond
        ((string= nick (erc-current-nick))
         (cl-pushnew (erc-server-buffer) bufs)
         (erc-set-current-nick nn)
+        ;; Rename session, possibly rename server buf and all targets
+        (when (erc-network)
+          (erc-networks--id-reload erc-networks--id proc parsed))
         (erc-update-mode-line)
         (setq erc-nick-change-attempt-count 0)
         (setq erc-default-nicks (if (consp erc-nick) erc-nick (list erc-nick)))

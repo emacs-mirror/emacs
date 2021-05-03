@@ -566,8 +566,9 @@
       (erc-log-irc-protocol ":irc.gnu.org 001 tester :Welcome")
       (erc-log-irc-protocol ":irc.gnu.org 002 tester :Your host is irc.gnu.org")
       (setq erc-network 'FooNet)
+      (setq erc-networks--id (erc-networks--id-create nil))
       (erc-log-irc-protocol ":irc.gnu.org 422 tester :MOTD missing")
-      (setq erc-network 'BarNet)
+      (setq erc-networks--id (erc-networks--id-create 'BarNet))
       (erc-log-irc-protocol ":irc.gnu.org 221 tester +i")
       (set-process-query-on-exit-flag erc-server-process nil)))
   (with-current-buffer "*erc-protocol*"

@@ -134,6 +134,8 @@
 (defvar erc--server-last-reconnect-count)
 (defvar erc--server-reconnecting)
 (defvar erc-channel-members-changed-hook)
+(defvar erc-network)
+(defvar erc-networks--id)
 (defvar erc-server-367-functions)
 (defvar erc-server-announced-name)
 (defvar erc-server-connect-function)
@@ -210,11 +212,20 @@ parameters and authentication."
   :set (lambda (sym val)
          (set sym (if (functionp val) (funcall val) val))))
 
-(defcustom erc-rename-buffers nil
+(defcustom erc-rename-buffers t
   "Non-nil means rename buffers with network name, if available."
   :version "24.5"
   :group 'erc
   :type 'boolean)
+
+;; For the sake of compatibility, an ID will be created on the user's
+;; behalf when `erc-rename-buffers' is nil and one wasn't provided.
+;; The name will simply be that of the buffer, usually SERVER:PORT.
+;; This violates the policy of treating provided IDs as gospel, but
+;; it'll have to do for now.
+
+(make-obsolete-variable 'erc-rename-buffers
+                        "old behavior when t now permanent" "29.1")
 
 (defvar erc-password nil
   "Password to use when authenticating to an IRC server.
@@ -1660,6 +1671,14 @@ effect when `erc-join-buffer' is set to `frame'."
            (erc-channel-p (erc-default-target))))
         (t nil)))
 
+;; For the sake of compatibility, a historical quirk concerning this
+;; option, when nil, has been preserved: all buffers are suffixed with
+;; the original dialed host name, which is usually something like
+;; irc.libera.chat.  Collisions are handled by adding a uniquifying
+;; numeric suffix of the form <N>.  Note that channel reassociation
+;; behavior involving this option (when nil) was inverted in 28.1 (ERC
+;; 5.4 and 5.4.1).  This was regrettable and has since been undone.
+
 (defcustom erc-reuse-buffers t
   "If nil, create new buffers on joining a channel/query.
 If non-nil, a new buffer will only be created when you join
@@ -1668,6 +1687,9 @@ open with nicks of the same name on different servers.  Otherwise,
 the existing buffers will be reused."
   :group 'erc-buffers
   :type 'boolean)
+
+(make-obsolete-variable 'erc-reuse-buffers
+                        "old behavior when t now permanent" "29.1")
 
 (defun erc-normalize-port (port)
   "Normalize the port specification PORT to integer form.
@@ -1704,55 +1726,61 @@ symbol, it may have these values:
   "Check whether ports A and B are equal."
   (= (erc-normalize-port a) (erc-normalize-port b)))
 
-(defun erc-generate-new-buffer-name (server port target)
-  "Create a new buffer name based on the arguments."
-  (when (numberp port) (setq port (number-to-string port)))
-  (let* ((buf-name (or target
-                       (let ((name (concat server ":" port)))
-                         (when (> (length name) 1)
-                           name))
-                       ;; This fallback should in fact never happen.
-                       "*erc-server-buffer*"))
-         (full-buf-name (concat buf-name "/" server))
-         (dup-buf-name (buffer-name (car (erc-channel-list nil))))
-         buffer-name)
-    ;; Reuse existing buffers, but not if the buffer is a connected server
-    ;; buffer and not if its associated with a different server than the
-    ;; current ERC buffer.
-    ;; If buf-name is taken by a different connection (or by something !erc)
-    ;; then see if "buf-name/server" meets the same criteria.
-    (if (and dup-buf-name (string-match-p (concat buf-name "/") dup-buf-name))
-        (setq buffer-name full-buf-name) ; ERC buffer with full name already exists.
-      (dolist (candidate (list buf-name full-buf-name))
-        (if (and (not buffer-name)
-                 erc-reuse-buffers
-                 (or (not (get-buffer candidate))
-                     ;; Looking for a server buffer, so there's no target.
-                     (and (not target)
-                          (with-current-buffer (get-buffer candidate)
-                            (and (erc-server-buffer-p)
-                                 (not (erc-server-process-alive)))))
-                     ;; Channel buffer; check that it's from the right server.
-                     (and target
-                          (with-current-buffer (get-buffer candidate)
-                            (and (string= erc-session-server server)
-                                 (erc-port-equal erc-session-port port))))))
-            (setq buffer-name candidate)
-          (when (and (not buffer-name) (get-buffer buf-name) erc-reuse-buffers)
-            ;; A new buffer will be created with the name buf-name/server, rename
-            ;; the existing name-duplicated buffer with the same format as well.
-            (with-current-buffer (get-buffer buf-name)
-              (when (derived-mode-p 'erc-mode) ; ensure it's an erc buffer
-                (rename-buffer
-                 (concat buf-name "/" (or erc-session-server erc-server-announced-name)))))))))
-    ;; If buffer-name is unset, neither candidate worked out for us,
-    ;; fallback to the old <N> uniquification method:
-    (or buffer-name (generate-new-buffer-name full-buf-name))))
+(defun erc-generate-new-buffer-name (server port target &optional tgt-info id)
+  "Determine the name of an ERC buffer.
+When TGT-INFO is nil, assume this is a server buffer.  If ID is non-nil,
+return ID as a string unless a buffer already exists with a live server
+process, in which case signal an error.  When ID is nil, return a
+temporary name based on SERVER and PORT to be replaced with the network
+name when discovered (see `erc-networks--rename-server-buffer').  Allow
+either SERVER or PORT (but not both) to be nil to accommodate oddball
+`erc-server-connect-function's.
 
-(defun erc-get-buffer-create (server port target)
+When TGT-INFO is non-nil, expect its string field to match the redundant
+param TARGET (retained for compatibility).  Whenever possibly, prefer
+returning TGT-INFO's string unmodified.  But when a case-insensitive
+collision prevents that, return target@ID when ID is non-nil or
+target@network otherwise after renaming the conflicting buffer in the
+same manner."
+  (when target ; compat
+    (setq tgt-info (erc--target-from-string target)))
+  (if tgt-info
+      (let* ((esid (erc-networks--id-symbol erc-networks--id))
+             (name (if esid
+                       (erc-networks--reconcile-buffer-names tgt-info
+                                                             erc-networks--id)
+                     (erc--target-string tgt-info))))
+        (if (and esid (with-suppressed-warnings ((obsolete erc-reuse-buffers))
+                        erc-reuse-buffers))
+            name
+          (generate-new-buffer-name name)))
+    (if (and (with-suppressed-warnings ((obsolete erc-reuse-buffers))
+               erc-reuse-buffers)
+             id)
+        (progn
+          (when-let* ((buf (get-buffer (symbol-name id)))
+                      ((erc-server-process-alive buf)))
+            (user-error  "Session with ID %S already exists" id))
+          (symbol-name id))
+      (generate-new-buffer-name (if (and server port)
+                                    (if (with-suppressed-warnings
+                                            ((obsolete erc-reuse-buffers))
+                                          erc-reuse-buffers)
+                                        (format "%s:%s" server port)
+                                      (format "%s:%s/%s" server port server))
+                                  (or server port))))))
+
+(defun erc-get-buffer-create (server port target &optional tgt-info id)
   "Create a new buffer based on the arguments."
-  (get-buffer-create (erc-generate-new-buffer-name server port target)))
-
+  (when target ; compat
+    (setq tgt-info (erc--target-from-string target)))
+  (if (and erc--server-reconnecting
+           (not tgt-info)
+           (with-suppressed-warnings ((obsolete erc-reuse-buffers))
+             erc-reuse-buffers))
+      (current-buffer)
+    (get-buffer-create
+     (erc-generate-new-buffer-name server port nil tgt-info id))))
 
 (defun erc-member-ignore-case (string list)
   "Return non-nil if STRING is a member of LIST.
@@ -2094,7 +2122,7 @@ removed from the list will be disabled."
 
 (defun erc-open (&optional server port nick full-name
                            connect passwd tgt-list channel process
-                           client-certificate user)
+                           client-certificate user id)
   "Connect to SERVER on PORT as NICK with USER and FULL-NAME.
 
 If CONNECT is non-nil, connect to the server.  Otherwise assume
@@ -2111,11 +2139,17 @@ of the client certificate itself to use when connecting over TLS,
 or t, which means that `auth-source' will be queried for the
 private key and the certificate.
 
+When non-nil, ID should be a symbol for identifying the connection.
+
 Returns the buffer for the given server or channel."
-  (let ((buffer (erc-get-buffer-create server port channel))
-        (old-buffer (current-buffer))
-        old-point
-        (continued-session (and erc-reuse-buffers erc--server-reconnecting)))
+  (let* ((target (and channel (erc--target-from-string channel)))
+         (buffer (erc-get-buffer-create server port nil target id))
+         (old-buffer (current-buffer))
+         old-point
+         (continued-session (and erc--server-reconnecting
+                                 (with-suppressed-warnings
+                                     ((obsolete erc-reuse-buffers))
+                                   erc-reuse-buffers))))
     (when connect (run-hook-with-args 'erc-before-connect server port nick))
     (erc-update-modules)
     (set-buffer buffer)
@@ -2145,7 +2179,9 @@ Returns the buffer for the given server or channel."
     (set-marker erc-insert-marker (point))
     ;; stack of default recipients
     (setq erc-default-recipients tgt-list)
-    (setq erc--target (and channel (erc--target-from-string channel)))
+    (when target
+      (setq erc--target target
+            erc-network (erc-network)))
     (setq erc-server-current-nick nil)
     ;; Initialize erc-server-users and erc-channel-users
     (if connect
@@ -2184,6 +2220,10 @@ Returns the buffer for the given server or channel."
                :require '(:secret))))
     ;; client certificate (only useful if connecting over TLS)
     (setq erc-session-client-certificate client-certificate)
+    (setq erc-networks--id (if connect
+                               (erc-networks--id-create id)
+                             (buffer-local-value 'erc-networks--id
+                                                 old-buffer)))
     ;; debug output buffer
     (setq erc-dbuf
           (when erc-log-p
@@ -2322,7 +2362,8 @@ parameters SERVER and NICK."
                     (nick   (erc-compute-nick))
                     (user   (erc-compute-user))
                     password
-                    (full-name (erc-compute-full-name)))
+                    (full-name (erc-compute-full-name))
+                    id)
   "ERC is a powerful, modular, and extensible IRC client.
 This function is the main entry point for ERC.
 
@@ -2335,6 +2376,7 @@ Non-interactively, it takes the keyword arguments
    (user   (erc-compute-user))
    password
    (full-name (erc-compute-full-name))
+   id
 
 That is, if called with
 
@@ -2342,9 +2384,13 @@ That is, if called with
 
 then the server and full-name will be set to those values,
 whereas `erc-compute-port' and `erc-compute-nick' will be invoked
-for the values of the other parameters."
+for the values of the other parameters.
+
+When present, ID should be an opaque object used to identify the
+connection unequivocally.  This is rarely needed and not available
+interactively."
   (interactive (erc-select-read-args))
-  (erc-open server port nick full-name t password nil nil nil nil user))
+  (erc-open server port nick full-name t password nil nil nil nil user id))
 
 ;;;###autoload
 (defalias 'erc-select #'erc)
@@ -2357,7 +2403,8 @@ for the values of the other parameters."
                         (user   (erc-compute-user))
                         password
                         (full-name (erc-compute-full-name))
-                        client-certificate)
+                        client-certificate
+                        id)
   "ERC is a powerful, modular, and extensible IRC client.
 This function is the main entry point for ERC over TLS.
 
@@ -2371,6 +2418,7 @@ Non-interactively, it takes the keyword arguments
    password
    (full-name (erc-compute-full-name))
    client-certificate
+   id
 
 That is, if called with
 
@@ -2393,12 +2441,18 @@ Example usage:
     (erc-tls :server \"irc.libera.chat\" :port 6697
              :client-certificate
              \\='(\"/home/bandali/my-cert.key\"
-               \"/home/bandali/my-cert.crt\"))"
+               \"/home/bandali/my-cert.crt\"))
+
+When present, ID should be an opaque object for identifying the
+connection unequivocally.  (In most cases, this would be a string or a
+symbol composed of letters from the Latin alphabet.)  This option is
+generally unneeded, however.  See info node `(erc) Connecting' for use
+cases.  Not available interactively."
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))
   (let ((erc-server-connect-function 'erc-open-tls-stream))
     (erc-open server port nick full-name t password
-              nil nil nil client-certificate user)))
+              nil nil nil client-certificate user id)))
 
 (defun erc-open-tls-stream (name buffer host port &rest parameters)
   "Open an TLS stream to an IRC server.
@@ -2463,13 +2517,20 @@ The buffer is created if it doesn't exist.
 
 If OUTBOUND is non-nil, STRING is being sent to the IRC server and
 appears in face `erc-input-face' in the buffer.  Lines must already
-contain CRLF endings.  Peer is identified by the most precise label
-available at run time, starting with the network name, followed by the
-announced host name, and falling back to the dialed <server>:<port>."
+contain CRLF endings.  A peer is identified by the most precise label
+available, starting with the session ID followed by the server-reported
+hostname, and falling back to the dialed <server>:<port> pair.
+
+When capturing logs for multiple peers and sorting them into buckets,
+such inconsistent labeling may pose a problem until the MOTD is
+received.  Setting a fixed `erc-networks--id' can serve as a
+workaround."
   (when erc-debug-irc-protocol
-    (let ((esid (or (and (erc-network) (erc-network-name))
-                    erc-server-announced-name
-                    (format "%s:%s" erc-session-server erc-session-port)))
+    (let ((esid (if-let ((erc-networks--id)
+                         (esid (erc-networks--id-symbol erc-networks--id)))
+                    (symbol-name esid)
+                  (or erc-server-announced-name
+                      (format "%s:%s" erc-session-server erc-session-port))))
           (ts (when erc-debug-irc-protocol-time-format
                 (format-time-string erc-debug-irc-protocol-time-format))))
       (with-current-buffer (get-buffer-create "*erc-protocol*")
@@ -3866,7 +3927,8 @@ the message given by REASON."
       (when process
         (delete-process process))
       (erc-server-reconnect)
-      (with-suppressed-warnings ((obsolete erc-server-reconnecting))
+      (with-suppressed-warnings ((obsolete erc-server-reconnecting)
+                                 ((obsolete erc-reuse-buffers)))
         (if erc-reuse-buffers
             (progn (cl-assert (not erc--server-reconnecting))
                    (cl-assert (not erc-server-reconnecting)))
@@ -6626,21 +6688,13 @@ This should be a string with substitution variables recognized by
   "Return the network or the current target and network combined.
 If the name of the network is not available, then use the
 shortened server name instead."
-  (let ((network-name (or (and (fboundp 'erc-network-name) (erc-network-name))
-                          (erc-shorten-server-name
-                           (or erc-server-announced-name
-                               erc-session-server)))))
-    (when (and network-name (symbolp network-name))
-      (setq network-name (symbol-name network-name)))
-    (cond ((erc-default-target)
-           (concat (erc-string-no-properties (erc-default-target))
-                   "@" network-name))
-          ((and network-name
-                (not (get-buffer network-name)))
-           (when erc-rename-buffers
-	     (rename-buffer network-name))
-           network-name)
-          (t (buffer-name (current-buffer))))))
+  (if-let ((erc--target)
+           (name (if-let ((esid (erc-networks--id-symbol erc-networks--id)))
+                     (symbol-name esid)
+                   (erc-shorten-server-name (or erc-server-announced-name
+                                                erc-session-server)))))
+      (concat (erc--target-string erc--target) "@" name)
+    (buffer-name)))
 
 (defun erc-format-away-status ()
   "Return a formatted `erc-mode-line-away-status-format' if `erc-away' is non-nil."
@@ -7060,20 +7114,29 @@ See also `format-spec'."
 ;; FIXME: Don't set the hook globally!
 (add-hook 'kill-buffer-hook #'erc-kill-buffer-function)
 
-(defcustom erc-kill-server-hook '(erc-kill-server)
-  "Invoked whenever a server buffer is killed via `kill-buffer'."
+(defcustom erc-kill-server-hook '(erc-kill-server
+                                  erc-networks-shrink-ids-and-buffer-names)
+  "Invoked whenever a live server buffer is killed via `kill-buffer'."
+  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
   :group 'erc-hooks
   :type 'hook)
 
-(defcustom erc-kill-channel-hook '(erc-kill-channel)
+(defcustom erc-kill-channel-hook
+  '(erc-kill-channel
+    erc-networks-shrink-ids-and-buffer-names
+    erc-networks-rename-surviving-target-buffer)
   "Invoked whenever a channel-buffer is killed via `kill-buffer'."
+  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
   :group 'erc-hooks
   :type 'hook)
 
-(defcustom erc-kill-buffer-hook nil
-  "Hook run whenever a non-server or channel buffer is killed.
+(defcustom erc-kill-buffer-hook
+  '(erc-networks-shrink-ids-and-buffer-names
+    erc-networks-rename-surviving-target-buffer)
+  "Hook run whenever a query buffer is killed.
 
 See also `kill-buffer'."
+  :package-version '(ERC . "5.4.1") ; FIXME increment upon publishing to ELPA
   :group 'erc-hooks
   :type 'hook)
 
