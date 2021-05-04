@@ -169,7 +169,7 @@ A non-nil value may result in truncated bookmark names."
 
 (defcustom bookmark-fontify t
   "Whether to colorize a bookmarked line.
-If non-nil, setting a bookmark wil colorize the current line with
+If non-nil, setting a bookmark will colorize the current line with
 `bookmark-face'."
   :type  'boolean
   :version "28.1")
@@ -183,18 +183,18 @@ If non-nil, setting a bookmark wil colorize the current line with
 (defface bookmark-face
   '((((class grayscale)
       (background light))
-     (:background "DimGray"))
+     :background "DimGray")
     (((class grayscale)
       (background dark))
-     (:background "LightGray"))
+     :background "LightGray")
     (((class color)
       (background light))
-     (:foreground "White" :background "DarkOrange1"))
+     :foreground "White" :background "DarkOrange1")
     (((class color)
       (background dark))
-     (:foreground "Black" :background "DarkOrange1")))
+     :foreground "Black" :background "DarkOrange1"))
   "Face used to highlight current line."
-  :version "28.2")
+  :version "28.1")
 
 ;;; No user-serviceable parts beyond this point.
 
@@ -451,23 +451,22 @@ In other words, return all information but the name."
 
 (defun bookmark--fontify ()
   "Apply a colorized overlay to the bookmarked location.
-See defcustom variable `bookmark-fontify'."
+See user option `bookmark-fontify'."
   (let ((bm (make-overlay (point-at-bol)
-                          (min (point-max) (+ 1 (point-at-eol))))))
+                          (min (point-max) (1+ (point-at-eol))))))
     (overlay-put bm 'category 'bookmark)
     (overlay-put bm 'face 'bookmark-face)))
 
 (defun bookmark--unfontify (bm)
   "Remove a bookmark's colorized overlay.
 BM is a bookmark as returned from function `bookmark-get-bookmark'.
-See defcustom variable `bookmark-fontify'."
+See user option `bookmark-fontify'."
   (let ((filename (assq 'filename bm))
         (pos      (assq 'position bm))
-        (buffers  (buffer-list))
-        buf overlays found temp)
+        overlays found temp)
     (when filename (setq filename (expand-file-name (cdr filename))))
     (when pos (setq pos (cdr pos)))
-    (while (setq buf (pop buffers))
+    (dolist (buf (buffer-list))
       (with-current-buffer buf
         (when (equal filename buffer-file-name)
           (setq overlays (overlays-at pos))
