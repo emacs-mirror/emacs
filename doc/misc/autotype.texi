@@ -579,7 +579,7 @@ table:
 @vindex skeleton-transformation
 Insert string or character.  Literal strings and characters are passed through
 @code{skeleton-transformation} when that is non-@code{nil}.
-@item @code{?\n}
+@item @code{\n}
 @c ??? something seems very wrong here.
 Insert a newline and align under current line, but not if this is the
 last element of a skeleton and the newline would be inserted at end of
