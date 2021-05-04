@@ -1120,6 +1120,7 @@ without using 'header-line-format', has been dropped.  Consequently,
 the variables 'bookmark-bmenu-use-header-line' and
 'bookmark-bmenu-inline-header-height' are now declared obsolete.
 
+---
 *** New user option 'bookmark-fontify'.
 If non-nil, setting a bookmark will colorize the current line with
 'bookmark-face'.
