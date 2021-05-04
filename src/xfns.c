@@ -1608,13 +1608,15 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 /* Set the number of lines used for the tab bar of frame F to VALUE.
    VALUE not an integer, or < 0 means set the lines to zero.  OLDVAL
-   is the old number of tab bar lines.  This function changes the
+   is the old number of tab bar lines.  This function may change the
    height of all windows on frame F to match the new tab bar height.
-   The frame's height doesn't change.  */
+   The frame's height may change if frame_inhibit_implied_resize was
+   set accordingly.  */
 
 static void
 x_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
+  int olines = FRAME_TAB_BAR_LINES (f);
   int nlines;
 
   /* Treat tab bars like menu bars.  */
@@ -1627,7 +1629,8 @@ x_set_tab_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   else
     nlines = 0;
 
-  x_change_tab_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
+  if (nlines != olines && (olines == 0 || nlines == 0))
+    x_change_tab_bar_height (f, nlines * FRAME_LINE_HEIGHT (f));
 }
 
 

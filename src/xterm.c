@@ -11823,12 +11823,14 @@ x_make_frame_visible (struct frame *f)
     poll_suppress_count = old_poll_suppress_count;
 #endif
 
-    if (CONSP (frame_size_history))
-      frame_size_history_plain
-	(f, build_string ("x_make_frame_visible"));
+    if (!FRAME_VISIBLE_P (f))
+      {
+	if (CONSP (frame_size_history))
+	  frame_size_history_plain
+	    (f, build_string ("x_make_frame_visible"));
 
-    if (! FRAME_VISIBLE_P (f))
-      x_wait_for_event (f, MapNotify);
+	x_wait_for_event (f, MapNotify);
+      }
   }
 }
 
