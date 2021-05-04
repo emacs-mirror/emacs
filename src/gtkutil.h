@@ -200,7 +200,11 @@ extern bool xg_prepare_tooltip (struct frame *f,
 				Lisp_Object string,
 				int *width,
 				int *height);
+#ifndef HAVE_PGTK
 extern void xg_show_tooltip (struct frame *f, int root_x, int root_y);
+#else
+extern void xg_show_tooltip (struct frame *f, Lisp_Object string);
+#endif
 extern bool xg_hide_tooltip (struct frame *f);
 
 #ifdef USE_CAIRO

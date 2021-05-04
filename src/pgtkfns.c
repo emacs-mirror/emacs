@@ -3287,13 +3287,10 @@ Text larger than the specified size is clipped.  */)
       Fx_hide_tip ();
 
       block_input ();
-      ok = xg_prepare_tooltip (f, string, &width, &height);
-      if (ok)
-        {
-	  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
-          xg_show_tooltip (f, root_x, root_y);
-	  tip_last_frame = frame;
-        }
+
+      ok = true;
+      xg_show_tooltip (f, string);
+      tip_last_frame = frame;
 
       unblock_input ();
       if (ok) goto start_timer;
