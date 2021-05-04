@@ -5673,9 +5673,12 @@ Linefeed indents to this column in Fundamental mode.  */);
   DEFVAR_PER_BUFFER ("tab-width", &BVAR (current_buffer, tab_width),
 		     Qintegerp,
 		     doc: /* Distance between tab stops (for display of tab characters), in columns.
-NOTE: This controls the display width of a TAB character, and not
-the size of an indentation step.
-This should be an integer greater than zero.  */);
+This controls the width of a TAB character on display.
+The value should be a positive integer.
+Note that this variable doesn't necessarily affect the size of the
+indentation step.  However, if the major mode's indentation facility
+inserts one or more TAB characters, this variable will affect the
+indentation step as well, even if `indent-tabs-mode' is non-nil.  */);
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &BVAR (current_buffer, ctl_arrow), Qnil,
 		     doc: /* Non-nil means display control chars with uparrow.
