@@ -1081,7 +1081,7 @@ This assumes that `pkg-desc' has already been activated with
   "Native compile installed package PKG-DESC asynchronously.
 This assumes that `pkg-desc' has already been activated with
 `package-activate-1'."
-  (when (and (featurep 'nativecomp)
+  (when (and (featurep 'native-compile)
              (native-comp-available-p))
     (let ((warning-minimum-level :error))
       (native-compile-async (package-desc-dir pkg-desc) t))))
@@ -2265,7 +2265,7 @@ confirmation to install packages."
   "Delete DIR recursively.
 Clean-up the corresponding .eln files if Emacs is native
 compiled."
-  (when (featurep 'nativecomp)
+  (when (featurep 'native-compile)
     (cl-loop
      for file in (directory-files-recursively dir ".el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))

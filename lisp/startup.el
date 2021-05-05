@@ -537,7 +537,7 @@ It is the default value of the variable `top-level'."
     (setq user-emacs-directory
 	  (startup--xdg-or-homedot startup--xdg-config-home-emacs nil))
 
-    (when (featurep 'nativecomp)
+    (when (featurep 'native-compile)
       ;; Form `comp-eln-load-path'.
       (let ((path-env (getenv "EMACSNATIVELOADPATH")))
         (when path-env
@@ -639,7 +639,7 @@ It is the default value of the variable `top-level'."
 		(set pathsym (mapcar (lambda (dir)
 				       (decode-coding-string dir coding t))
 				     path)))))
-        (when (featurep 'nativecomp)
+        (when (featurep 'native-compile)
           (let ((npath (symbol-value 'comp-eln-load-path)))
             (set 'comp-eln-load-path
                  (mapcar (lambda (dir)

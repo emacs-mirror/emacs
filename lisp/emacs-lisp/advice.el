@@ -2076,7 +2076,7 @@ mapped to the closest extremal position).
 If FUNCTION was not advised already, its advice info will be
 initialized.  Redefining a piece of advice whose name is part of
 the cache-id will clear the cache."
-  (when (and (featurep 'nativecomp)
+  (when (and (featurep 'native-compile)
              (subr-primitive-p (symbol-function function)))
     (comp-subr-trampoline-install function))
   (cond ((not (ad-is-advised function))

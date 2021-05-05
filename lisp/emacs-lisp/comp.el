@@ -938,7 +938,7 @@ In use by the back-end."
 Signal an error otherwise.
 To be used by all entry points."
   (cond
-   ((null (featurep 'nativecomp))
+   ((null (featurep 'native-compile))
     (error "Emacs was not compiled with native compiler support (--with-native-compilation)"))
    ((null (native-comp-available-p))
     (error "Cannot find libgccjit library"))))
