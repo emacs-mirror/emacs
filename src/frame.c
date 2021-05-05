@@ -3295,12 +3295,15 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
   /* It's questionable whether here we should report the value of
      f->new_height (and f->new_width below) but we've done that in the
      past, so let's keep it.  Note that a value of -1 for either of
-     these means that no new size was requested.  */
-  height = (f->new_height >= 0
+     these means that no new size was requested.
+
+     But check f->new_size before to make sure that f->new_height and
+     f->new_width are not ones requested by adjust_frame_size.  */
+  height = ((f->new_size_p && f->new_height >= 0)
 	    ? f->new_height / FRAME_LINE_HEIGHT (f)
 	    : FRAME_LINES (f));
   store_in_alist (&alist, Qheight, make_fixnum (height));
-  width = (f->new_width >= 0
+  width = ((f->new_size_p && f->new_width >= 0)
 	   ? f->new_width / FRAME_COLUMN_WIDTH (f)
 	   : FRAME_COLS(f));
   store_in_alist (&alist, Qwidth, make_fixnum (width));
