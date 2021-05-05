@@ -965,7 +965,7 @@ without repeating the prefix."
   "Edit most recent 300 keystrokes as a keyboard macro."
   (interactive)
   (kmacro-push-ring)
-  (edit-kbd-macro "\C-hl"))
+  (edit-kbd-macro (car (where-is-internal 'view-lossage))))
 
 
 ;;; Single-step editing of keyboard macros
