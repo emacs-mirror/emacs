@@ -38,7 +38,7 @@ ifeq ($(HAVE_NATIVE_COMP),yes)
 ifeq ($(NATIVE_DISABLED),1)
 AM_V_ELC = @echo "  ELC     " $@;
 else
-AM_V_ELC = @echo "  ELC+ELN     " $@;
+AM_V_ELC = @echo "  ELC+ELN " $@;
 endif
 else
 AM_V_ELC = @echo "  ELC     " $@;
