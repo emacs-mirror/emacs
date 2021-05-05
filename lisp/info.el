@@ -1855,7 +1855,8 @@ See `completing-read' for a description of arguments and usage."
          (lambda (string pred action)
            (complete-with-action
             action
-            (Info-build-node-completions (Info-find-file file1 nil t))
+            (when-let ((file2 (Info-find-file file1 'noerror t)))
+              (Info-build-node-completions file2))
             string pred))
 	 nodename predicate code))))
    ;; Otherwise use Info-read-node-completion-table.
