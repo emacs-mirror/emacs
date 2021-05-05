@@ -93,8 +93,6 @@ typedef struct pgtk_output xp_output;
   gtk_font_selection_dialog_set_font_name (x, y)
 #endif
 
-#define gdk_window_get_geometry(w, a, b, c, d) \
-  gdk_window_get_geometry (w, a, b, c, d, 0)
 #define gtk_box_new(ori, spacing)                                       \
   ((ori) == GTK_ORIENTATION_HORIZONTAL                                  \
    ? gtk_hbox_new (FALSE, (spacing)) : gtk_vbox_new (FALSE, (spacing)))

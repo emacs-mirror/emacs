@@ -1120,11 +1120,14 @@ current project, it will be killed."
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
-  (let (bufs)
+  (let ((remote-project-p (file-remote-p (project-root pr)))
+        bufs)
     (dolist (buf (buffer-list))
-      (when (equal pr
-                   (with-current-buffer buf
-                     (project-current)))
+      (when (and (let ((remote (file-remote-p (buffer-local-value 'default-directory buf))))
+                   (if remote-project-p remote (not remote)))
+                 (equal pr
+                        (with-current-buffer buf
+                          (project-current))))
         (push buf bufs)))
     (nreverse bufs)))
 

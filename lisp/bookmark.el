@@ -167,12 +167,34 @@ A non-nil value may result in truncated bookmark names."
   "Time before `bookmark-bmenu-search' updates the display."
   :type  'number)
 
+(defcustom bookmark-fontify t
+  "Whether to colorize a bookmarked line.
+If non-nil, setting a bookmark will colorize the current line with
+`bookmark-face'."
+  :type  'boolean
+  :version "28.1")
+
 ;; FIXME: No longer used.  Should be declared obsolete or removed.
 (defface bookmark-menu-heading
   '((t (:inherit font-lock-type-face)))
   "Face used to highlight the heading in bookmark menu buffers."
   :version "22.1")
 
+(defface bookmark-face
+  '((((class grayscale)
+      (background light))
+     :background "DimGray")
+    (((class grayscale)
+      (background dark))
+     :background "LightGray")
+    (((class color)
+      (background light))
+     :foreground "White" :background "DarkOrange1")
+    (((class color)
+      (background dark))
+     :foreground "Black" :background "DarkOrange1"))
+  "Face used to highlight current line."
+  :version "28.1")
 
 ;;; No user-serviceable parts beyond this point.
 
@@ -427,6 +449,30 @@ In other words, return all information but the name."
 (defvar bookmark-history nil
   "The history list for bookmark functions.")
 
+(defun bookmark--fontify ()
+  "Apply a colorized overlay to the bookmarked location.
+See user option `bookmark-fontify'."
+  (let ((bm (make-overlay (point-at-bol)
+                          (min (point-max) (1+ (point-at-eol))))))
+    (overlay-put bm 'category 'bookmark)
+    (overlay-put bm 'face 'bookmark-face)))
+
+(defun bookmark--unfontify (bm)
+  "Remove a bookmark's colorized overlay.
+BM is a bookmark as returned from function `bookmark-get-bookmark'.
+See user option `bookmark-fontify'."
+  (let ((filename (assq 'filename bm))
+        (pos      (assq 'position bm))
+        overlays found temp)
+    (when filename (setq filename (expand-file-name (cdr filename))))
+    (when pos (setq pos (cdr pos)))
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+        (when (equal filename buffer-file-name)
+          (setq overlays (overlays-at pos))
+          (while (and (not found) (setq temp (pop overlays)))
+            (when (eq 'bookmark (overlay-get temp 'category))
+              (delete-overlay (setq found temp)))))))))
 
 (defun bookmark-completing-read (prompt &optional default)
   "Prompting with PROMPT, read a bookmark name in completion.
@@ -825,7 +871,9 @@ still there, in order, if the topmost one is ever deleted."
 
            ;; Ask for an annotation buffer for this bookmark
            (when bookmark-use-annotations
-             (bookmark-edit-annotation str))))
+             (bookmark-edit-annotation str))
+           (when bookmark-fontify
+             (bookmark--fontify))))
     (setq bookmark-yank-point nil)
     (setq bookmark-current-buffer nil)))
 
@@ -1094,6 +1142,14 @@ and then show any annotations for this bookmark."
     (if win (set-window-point win (point))))
   ;; FIXME: we used to only run bookmark-after-jump-hook in
   ;; `bookmark-jump' itself, but in none of the other commands.
+  (when bookmark-fontify
+    (let ((overlays (overlays-at (point)))
+          temp found)
+      (while (and (not found) (setq temp (pop overlays)))
+        (when (eq 'bookmark (overlay-get temp 'category))
+          (setq found t)))
+      (unless found
+        (bookmark--fontify))))
   (run-hooks 'bookmark-after-jump-hook)
   (if bookmark-automatically-show-annotations
       ;; if there is an annotation for this bookmark,
@@ -1357,6 +1413,7 @@ probably because we were called from there."
   (bookmark-maybe-historicize-string bookmark-name)
   (bookmark-maybe-load-default-file)
   (let ((will-go (bookmark-get-bookmark bookmark-name 'noerror)))
+    (bookmark--unfontify will-go)
     (setq bookmark-alist (delq will-go bookmark-alist))
     ;; Added by db, nil bookmark-current-bookmark if the last
     ;; occurrence has been deleted

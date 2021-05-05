@@ -2537,21 +2537,20 @@ unless NOMODES is non-nil."
     (let* (not-serious
 	   (msg
 	    (cond
-	     ((not warn) nil)
 	     ((and error (file-exists-p buffer-file-name))
 	      (setq buffer-read-only t)
 	      "File exists, but cannot be read")
 	     ((and error (file-symlink-p buffer-file-name))
 	      "Symbolic link that points to nonexistent file")
 	     ((not buffer-read-only)
-	      (if (and warn
-		       ;; No need to warn if buffer is auto-saved
-		       ;; under the name of the visited file.
-		       (not (and buffer-file-name
-				 auto-save-visited-file-name))
-		       (file-newer-than-file-p (or buffer-auto-save-file-name
-						   (make-auto-save-file-name))
-					       buffer-file-name))
+	      (if (and
+                   ;; No need to warn if buffer is auto-saved
+		   ;; under the name of the visited file.
+		   (not (and buffer-file-name
+			     auto-save-visited-file-name))
+		   (file-newer-than-file-p (or buffer-auto-save-file-name
+					       (make-auto-save-file-name))
+					   buffer-file-name))
 		  (format "%s has auto save data; consider M-x recover-this-file"
 			  (file-name-nondirectory buffer-file-name))
 		(setq not-serious t)
@@ -2565,7 +2564,7 @@ unless NOMODES is non-nil."
 	      (setq buffer-read-only nil)
 	      (unless (file-directory-p default-directory)
 		"Use M-x make-directory RET RET to create the directory and its parents")))))
-      (when msg
+      (when (and warn msg)
 	(message "%s" msg)
 	(or not-serious (sit-for 1 t))))
     (when (and auto-save-default (not noauto))
@@ -7439,7 +7438,11 @@ only these files will be asked to be saved."
         ;; might be bound to different file name handlers, we still
         ;; need this.
         (saved-file-name-handler-alist file-name-handler-alist)
-        file-name-handler-alist
+        (inhibit-file-name-handlers
+         (cons 'file-name-non-special
+               (and (eq inhibit-file-name-operation operation)
+                    inhibit-file-name-handlers)))
+        (inhibit-file-name-operation operation)
         ;; Some operations respect file name handlers in
         ;; `default-directory'.  Because core function like
         ;; `call-process' don't care about file name handlers in

@@ -1,7 +1,6 @@
 ;;; elp.el --- Emacs Lisp Profiler  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1994-1995, 1997-1998, 2001-2021 Free Software
-;; Foundation, Inc.
+;; Copyright (C) 1994-2021 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw
 ;; Maintainer: emacs-devel@gnu.org
@@ -30,8 +29,8 @@
 ;; hacks those functions so that profiling information is recorded
 ;; whenever they are called.  To print out the current results, use
 ;; M-x elp-results.  If you want output to go to standard-output
-;; instead of a separate buffer, setq elp-use-standard-output to
-;; non-nil.  With elp-reset-after-results set to non-nil, profiling
+;; instead of a separate buffer, set `elp-use-standard-output' to
+;; non-nil.  With `elp-reset-after-results' set to non-nil, profiling
 ;; information will be reset whenever the results are displayed.  You
 ;; can also reset all profiling info at any time with M-x
 ;; elp-reset-all.
@@ -40,12 +39,12 @@
 ;; the package follows the GNU coding standard of a common textual
 ;; prefix.  Use M-x elp-instrument-package for this.
 ;;
-;; If you want to sort the results, set elp-sort-by-function to some
+;; If you want to sort the results, set `elp-sort-by-function' to some
 ;; predicate function.  The three most obvious choices are predefined:
-;; elp-sort-by-call-count, elp-sort-by-average-time, and
-;; elp-sort-by-total-time.  Also, you can prune from the output, all
+;; `elp-sort-by-call-count', `elp-sort-by-average-time', and
+;; `elp-sort-by-total-time'.  Also, you can prune from the output, all
 ;; functions that have been called fewer than a given number of times
-;; by setting elp-report-limit.
+;; by setting `elp-report-limit'.
 ;;
 ;; Elp can instrument byte-compiled functions just as easily as
 ;; interpreted functions, but it cannot instrument macros.  However,
@@ -95,11 +94,11 @@
 
 ;; Note that there are plenty of factors that could make the times
 ;; reported unreliable, including the accuracy and granularity of your
-;; system clock, and the overhead spent in lisp calculating and
+;; system clock, and the overhead spent in Lisp calculating and
 ;; recording the intervals.  I figure the latter is pretty constant,
 ;; so while the times may not be entirely accurate, I think they'll
 ;; give you a good feel for the relative amount of work spent in the
-;; various lisp routines you are profiling.  Note further that times
+;; various Lisp routines you are profiling.  Note further that times
 ;; are calculated using wall-clock time, so other system load will
 ;; affect accuracy too.
 
@@ -404,15 +403,15 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 (defvar elp-et-len nil)
 
 (defun elp-sort-by-call-count (vec1 vec2)
-  ;; sort by highest call count.  See `sort'.
+  "Predicate to sort by highest call count.  See `sort'."
   (>= (aref vec1 0) (aref vec2 0)))
 
 (defun elp-sort-by-total-time (vec1 vec2)
-  ;; sort by highest total time spent in function. See `sort'.
+  "Predicate to sort by highest total time spent in function. See `sort'."
   (>= (aref vec1 1) (aref vec2 1)))
 
 (defun elp-sort-by-average-time (vec1 vec2)
-  ;; sort by highest average time spent in function. See `sort'.
+  "Predicate to sort by highest average time spent in function. See `sort'."
   (>= (aref vec1 2) (aref vec2 2)))
 
 (defsubst elp-pack-number (number width)
@@ -470,13 +469,13 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
   "Keymap used on the function name column." )
 
 (defun elp-results-jump-to-definition (&optional event)
-  "Jump to the definition of the function under the point."
+  "Jump to the definition of the function at point."
   (interactive (list last-nonmenu-event))
   (if event (posn-set-point (event-end event)))
   (find-function (get-text-property (point) 'elp-symname)))
 
 (defun elp-output-insert-symname (symname)
-  ;; Insert SYMNAME with text properties.
+  "Insert SYMNAME with text properties."
   (insert (propertize symname
 		      'elp-symname (intern symname)
 		      'keymap elp-results-symname-map
@@ -587,7 +586,6 @@ displayed."
   "Un-instrument before unloading a function."
   (elp-restore-function (cdr x)))
 
-
 (provide 'elp)
 
 ;;; elp.el ends here

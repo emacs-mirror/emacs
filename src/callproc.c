@@ -276,6 +276,9 @@ usage: (call-process PROGRAM &optional INFILE DESTINATION DISPLAY &rest ARGS)  *
   else
     infile = build_string (NULL_DEVICE);
 
+  /* Remove "/:" from INFILE.  */
+  infile = remove_slash_colon (infile);
+
   encoded_infile = ENCODE_FILE (infile);
 
   filefd = emacs_open (SSDATA (encoded_infile), O_RDONLY, 0);
@@ -439,9 +442,15 @@ call_process (ptrdiff_t nargs, Lisp_Object *args, int filefd,
   current_dir = encode_current_directory ();
 
   if (STRINGP (error_file))
-    error_file = ENCODE_FILE (error_file);
+    {
+      error_file = remove_slash_colon (error_file);
+      error_file = ENCODE_FILE (error_file);
+    }
   if (STRINGP (output_file))
-    output_file = ENCODE_FILE (output_file);
+    {
+      output_file = remove_slash_colon (output_file);
+      output_file = ENCODE_FILE (output_file);
+    }
 
   display_p = INTERACTIVE && nargs >= 4 && !NILP (args[3]);
 

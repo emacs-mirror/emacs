@@ -659,7 +659,7 @@ It is not recommended to set this variable permanently to anything but nil.")
   "Uninstall jka-compr.
 This removes the entries in `file-name-handler-alist' and `auto-mode-alist'
 and `inhibit-local-variables-suffixes' that were added
-by `jka-compr-installed'."
+by `jka-compr-install'."
   ;; Delete from inhibit-local-variables-suffixes what jka-compr-install added.
   (mapc
      (lambda (x)
