@@ -299,8 +299,9 @@ to find the list of ignores for each directory."
          (localdir (file-name-unquote (file-local-name (expand-file-name dir))))
          (command (format "%s %s %s -type f %s -print0"
                           find-program
-                          ;; In case DIR is a symlink.
-                          (file-name-as-directory localdir)
+                          (shell-quote-argument
+                           ;; In case DIR is a symlink.
+                           (file-name-as-directory localdir))
                           (xref--find-ignores-arguments ignores localdir)
                           (if files
                               (concat (shell-quote-argument "(")
