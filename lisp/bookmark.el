@@ -121,6 +121,12 @@ recently set ones come first, oldest ones come last)."
   :type 'boolean)
 
 
+(defcustom bookmark-menu-confirm-deletion nil
+  "Non-nil means confirm before deleting bookmarks in a bookmark menu buffer.
+Nil means don't prompt for confirmation."
+  :version "28.1"
+  :type 'boolean)
+
 (defcustom bookmark-automatically-show-annotations t
   "Non-nil means show annotations when jumping to a bookmark."
   :type 'boolean)
@@ -1433,6 +1439,13 @@ probably because we were called from there."
 If optional argument NO-CONFIRM is non-nil, don't ask for
 confirmation."
   (interactive "P")
+  ;; We don't use `bookmark-menu-confirm-deletion' here because that
+  ;; variable is specifically to control confirmation prompting in a
+  ;; bookmark menu buffer, where the user has the marked-for-deletion
+  ;; bookmarks arrayed in front of them and might have accidentally
+  ;; hit the key that executes the deletions.  The UI situation here
+  ;; is quite different, by contrast: the user got to this point by a
+  ;; sequence of keystrokes unlikely to be typed by chance.
   (when (or no-confirm
             (yes-or-no-p "Permanently delete all bookmarks? "))
     (bookmark-maybe-load-default-file)
@@ -2199,30 +2212,35 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
 
 
 (defun bookmark-bmenu-execute-deletions ()
-  "Delete bookmarks flagged `D'."
+  "Delete bookmarks flagged `D'.
+If `bookmark-menu-confirm-deletion' is non-nil, prompt for
+confirmation first."
   (interactive nil bookmark-bmenu-mode)
-  (let ((reporter (make-progress-reporter "Deleting bookmarks..."))
-        (o-point  (point))
-        (o-str    (save-excursion
-                    (beginning-of-line)
-                    (unless (= (following-char) ?D)
-                      (buffer-substring
-                       (point)
-                       (progn (end-of-line) (point))))))
-        (o-col     (current-column)))
-    (goto-char (point-min))
-    (while (re-search-forward "^D" (point-max) t)
-      (bookmark-delete (bookmark-bmenu-bookmark) t)) ; pass BATCH arg
-    (bookmark-bmenu-list)
-    (if o-str
-        (progn
-          (goto-char (point-min))
-          (search-forward o-str)
-          (beginning-of-line)
-          (forward-char o-col))
-      (goto-char o-point))
-    (beginning-of-line)
-    (progress-reporter-done reporter)))
+  (if (and bookmark-menu-confirm-deletion
+           (not (yes-or-no-p "Delete selected bookmarks? ")))
+      (message "Bookmarks not deleted.")
+    (let ((reporter (make-progress-reporter "Deleting bookmarks..."))
+          (o-point  (point))
+          (o-str    (save-excursion
+                      (beginning-of-line)
+                      (unless (= (following-char) ?D)
+                        (buffer-substring
+                         (point)
+                         (progn (end-of-line) (point))))))
+          (o-col     (current-column)))
+      (goto-char (point-min))
+      (while (re-search-forward "^D" (point-max) t)
+        (bookmark-delete (bookmark-bmenu-bookmark) t)) ; pass BATCH arg
+      (bookmark-bmenu-list)
+      (if o-str
+          (progn
+            (goto-char (point-min))
+            (search-forward o-str)
+            (beginning-of-line)
+            (forward-char o-col))
+        (goto-char o-point))
+      (beginning-of-line)
+      (progress-reporter-done reporter))))
 
 
 (defun bookmark-bmenu-rename ()

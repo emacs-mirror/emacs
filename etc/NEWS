@@ -276,6 +276,14 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 ** Commands 'set-frame-width' and 'set-frame-height' can now get their
 input using the minibuffer.
 
+---
+** New user option 'bookmark-menu-confirm-deletion'
+In Bookmark Menu mode, Emacs by default does not prompt for
+confirmation when you type 'x' to execute the deletion of bookmarks
+that have been marked for deletion.  However, if this new option is
+non-nil then Emacs will require confirmation with 'yes-or-no-p' before
+deleting.
+
 
 * Editing Changes in Emacs 28.1
 
