@@ -324,13 +324,13 @@ is also interactive.  There are 3 cases:
              (subr-primitive-p (gv-deref ref)))
     (let ((subr-name (intern (subr-name (gv-deref ref)))))
       ;; Requiring the native compiler to advice `macroexpand' cause a
-      ;; circular dependency in eager macro expansion.
-      ;; uniquify is advising `rename-buffer' while being loaded in
-      ;; loadup.el.  This would require the whole native compiler
-      ;; machinery but we don't want to include it in the dump.
-      ;; Because these two functions are already handled in
-      ;; `comp-never-optimize-functions' we hack the problem this way
-      ;; for now :/
+      ;; circular dependency in eager macro expansion.  uniquify is
+      ;; advising `rename-buffer' while being loaded in loadup.el.
+      ;; This would require the whole native compiler machinery but we
+      ;; don't want to include it in the dump.  Because these two
+      ;; functions are already handled in
+      ;; `native-comp-never-optimize-functions' we hack the problem
+      ;; this way for now :/
       (unless (memq subr-name '(macroexpand rename-buffer))
         ;; Must require explicitly as during bootstrap we have no
         ;; autoloads.

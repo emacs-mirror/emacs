@@ -98,7 +98,7 @@ during bootstrap."
   :type '(repeat regexp)
   :version "28.1")
 
-(defcustom comp-never-optimize-functions
+(defcustom native-comp-never-optimize-functions
   '(;; The following two are mandatory for Emacs to be working
     ;; correctly (see comment in `advice--add-function'). DO NOT
     ;; REMOVE.
@@ -662,7 +662,7 @@ Useful to hook into pass checkers.")
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
   (unless (or (null comp-enable-subr-trampolines)
-              (memq subr-name comp-never-optimize-functions)
+              (memq subr-name native-comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
     (comp--install-trampoline
@@ -3275,7 +3275,7 @@ FUNCTION can be a function-name or byte compiled function."
     (when (and callee
                (or (symbolp callee)
                    (gethash callee (comp-ctxt-byte-func-to-func-h comp-ctxt)))
-               (not (memq callee comp-never-optimize-functions)))
+               (not (memq callee native-comp-never-optimize-functions)))
       (let* ((f (if (symbolp callee)
                     (symbol-function callee)
                   (cl-assert (byte-code-function-p callee))
