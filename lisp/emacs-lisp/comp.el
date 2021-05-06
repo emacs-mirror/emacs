@@ -161,7 +161,7 @@ if `confirm-kill-processes' is non-nil."
   :type 'boolean
   :version "28.1")
 
-(defcustom comp-native-driver-options nil
+(defcustom native-comp-driver-options nil
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
 affecting the assembler and linker are likely to be useful.
@@ -747,7 +747,7 @@ Returns ELT."
          :documentation "Default speed for this compilation unit.")
   (debug native-comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
-  (driver-options comp-native-driver-options :type list
+  (driver-options native-comp-driver-options :type list
          :documentation "Options for the GCC driver.")
   (top-level-forms () :type list
                    :documentation "List of spilled top level forms.")
@@ -1338,7 +1338,7 @@ clashes."
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
                                                byte-native-qualities)
-        (comp-ctxt-driver-options comp-ctxt) (alist-get 'comp-native-driver-options
+        (comp-ctxt-driver-options comp-ctxt) (alist-get 'native-comp-driver-options
                                                         byte-native-qualities)
         (comp-ctxt-top-level-forms comp-ctxt)
         (cl-loop
@@ -3654,8 +3654,8 @@ Prepare every function for final compilation and drive the C back-end."
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
                            comp-eln-load-path ',comp-eln-load-path
-                           comp-native-driver-options
-                           ',comp-native-driver-options
+                           native-comp-driver-options
+                           ',native-comp-driver-options
                            load-path ',load-path)
                      ,native-comp-async-env-modifier-form
                      (message "Compiling %s..." ',output)
@@ -3911,8 +3911,8 @@ display a message."
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                                  comp-async-compilation t
                                  comp-eln-load-path ',comp-eln-load-path
-                                 comp-native-driver-options
-                                 ',comp-native-driver-options
+                                 native-comp-driver-options
+                                 ',native-comp-driver-options
                                  load-path ',load-path
                                  warning-fill-column most-positive-fixnum)
                            ,native-comp-async-env-modifier-form

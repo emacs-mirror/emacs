@@ -4358,7 +4358,7 @@ DEFUN ("comp-native-driver-options-effective-p",
 static void
 add_driver_options (void)
 {
-  Lisp_Object options = Fsymbol_value (Qcomp_native_driver_options);
+  Lisp_Object options = Fsymbol_value (Qnative_comp_driver_options);
 
 #if defined (LIBGCCJIT_HAVE_gcc_jit_context_add_driver_option)	\
   || defined (WINDOWSNT)
@@ -5209,7 +5209,7 @@ compiled one.  */);
 
   DEFSYM (Qnative_comp_speed, "native-comp-speed");
   DEFSYM (Qnative_comp_debug, "native-comp-debug");
-  DEFSYM (Qcomp_native_driver_options, "comp-native-driver-options");
+  DEFSYM (Qnative_comp_driver_options, "native-comp-driver-options");
   DEFSYM (Qcomp_libgccjit_reproducer, "comp-libgccjit-reproducer");
 
   /* Limple instruction set.  */
