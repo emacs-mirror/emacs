@@ -2238,8 +2238,8 @@ With argument ARG, insert value in current buffer after the form."
         (setq byte-compile-noruntime-functions nil)
         (setq byte-compile-new-defuns nil)
         (when byte-native-compiling
-          (defvar comp-speed)
-          (push `(comp-speed . ,comp-speed) byte-native-qualities)
+          (defvar native-comp-speed)
+          (push `(native-comp-speed . ,native-comp-speed) byte-native-qualities)
           (defvar comp-debug)
           (push `(comp-debug . ,comp-debug) byte-native-qualities)
           (defvar comp-native-driver-options)

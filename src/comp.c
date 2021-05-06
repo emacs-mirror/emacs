@@ -2745,7 +2745,7 @@ emit_ctxt_code (void)
 {
   /* Emit optimize qualities.  */
   Lisp_Object opt_qly[] =
-    { Fcons (Qcomp_speed, make_fixnum (comp.speed)),
+    { Fcons (Qnative_comp_speed, make_fixnum (comp.speed)),
       Fcons (Qcomp_debug, make_fixnum (comp.debug)),
       Fcons (Qgccjit,
 	     Fcomp_libgccjit_version ()) };
@@ -4856,7 +4856,7 @@ load_comp_unit (struct Lisp_Native_Comp_Unit *comp_u, bool loading_dump,
     /* 'dlopen' returns the same handle when trying to load two times
        the same shared.  In this case touching 'd_reloc' etc leads to
        fails in case a frame with a reference to it in a live reg is
-       active (comp-speed > 0).
+       active (native-comp-speed > 0).
 
        We must *never* mess with static pointers in an already loaded
        eln.  */
@@ -5207,7 +5207,7 @@ After compilation, each function definition is updated to the native
 compiled one.  */);
   comp_deferred_compilation = true;
 
-  DEFSYM (Qcomp_speed, "comp-speed");
+  DEFSYM (Qnative_comp_speed, "native-comp-speed");
   DEFSYM (Qcomp_debug, "comp-debug");
   DEFSYM (Qcomp_native_driver_options, "comp-native-driver-options");
   DEFSYM (Qcomp_libgccjit_reproducer, "comp-libgccjit-reproducer");

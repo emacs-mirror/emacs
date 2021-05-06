@@ -43,7 +43,7 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defcustom comp-speed 2
+(defcustom native-comp-speed 2
   "Optimization level for native compilation, a number between -1 and 3.
  -1 functions are kept in bytecode form and no native compilation is performed.
   0 native compilation is performed with no optimizations.
@@ -743,7 +743,7 @@ Returns ELT."
   "Lisp side of the compiler context."
   (output nil :type string
           :documentation "Target output file-name for the compilation.")
-  (speed comp-speed :type number
+  (speed native-comp-speed :type number
          :documentation "Default speed for this compilation unit.")
   (debug comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
@@ -899,7 +899,7 @@ CFG is mutated by a pass.")
   (has-non-local nil :type boolean
                  :documentation "t if non local jumps are present.")
   (speed nil :type number
-         :documentation "Optimization level (see `comp-speed').")
+         :documentation "Optimization level (see `native-comp-speed').")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
   (type nil :type (or null comp-mvar)
@@ -1334,7 +1334,7 @@ clashes."
                                         filename
                                         (when byte-native-for-bootstrap
                                           (car (last comp-eln-load-path))))))
-  (setf (comp-ctxt-speed comp-ctxt) (alist-get 'comp-speed
+  (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'comp-debug
                                                byte-native-qualities)
@@ -3250,14 +3250,14 @@ Return t if something was changed."
 ;;   funcall trampoline gets optimized into normal indirect calls.
 ;;   This makes effectively this calls equivalent to all the subrs that got
 ;;   dedicated byte-code ops.
-;;   Triggered at comp-speed >= 2.
+;;   Triggered at native-comp-speed >= 2.
 ;; - Recursive calls gets optimized into direct calls.
-;;   Triggered at comp-speed >= 2.
+;;   Triggered at native-comp-speed >= 2.
 ;; - Intra compilation unit procedure calls gets optimized into direct calls.
 ;;   This can be a big win and even allow gcc to inline but does not make
 ;;   function in the compilation unit re-definable safely without recompiling
 ;;   the full compilation unit.
-;;   For this reason this is triggered only at comp-speed == 3.
+;;   For this reason this is triggered only at native-comp-speed == 3.
 
 (defun comp-func-in-unit (func)
   "Given FUNC return the `comp-fun' definition in the current context.
@@ -3756,7 +3756,7 @@ Return the trampoline if found or nil otherwise."
          ;; Use speed 0 to maximize compilation speed and not to
          ;; optimize away funcall calls!
          (byte-optimize nil)
-         (comp-speed 1)
+         (native-comp-speed 1)
          (lexical-binding t))
     (comp--native-compile
      form nil
@@ -3905,7 +3905,7 @@ display a message."
          do (let* ((expr `((require 'comp)
                            ,(when (boundp 'backtrace-line-length)
                               `(setf backtrace-line-length ,backtrace-line-length))
-                           (setf comp-speed ,comp-speed
+                           (setf native-comp-speed ,native-comp-speed
                                  comp-debug ,comp-debug
                                  comp-verbose ,comp-verbose
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
