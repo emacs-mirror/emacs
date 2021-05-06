@@ -63,7 +63,6 @@
     (data vec length)
     (_ align 4)))
 
-
 (defconst packet-bindat-type
   (bindat-type
     (header type header-bindat-type)
@@ -122,8 +121,6 @@
   (dotimes (_ 10000)
     (bindat-unpack packet-bindat-spec
                    (bindat-pack packet-bindat-spec struct-bindat))))
-
-
 
 (provide 'benchmarks/pack-unpack)
 ;;; benchmarks/pack-unpack.el ends here
