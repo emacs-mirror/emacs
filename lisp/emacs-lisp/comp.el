@@ -90,7 +90,7 @@ Files whose names match any regexp are excluded from native compilation."
   :type '(repeat regexp)
   :version "28.1")
 
-(defcustom comp-bootstrap-deny-list
+(defcustom native-comp-bootstrap-deny-list
   '()
   "List of regexps to exclude files from native compilation during bootstrap.
 Files whose names match any regexp are excluded from native compilation
@@ -4159,7 +4159,7 @@ Native compilation equivalent to `batch-byte-compile'."
   (cl-loop for file in command-line-args-left
            if (or (null byte-native-for-bootstrap)
                   (cl-notany (lambda (re) (string-match re file))
-                             comp-bootstrap-deny-list))
+                             native-comp-bootstrap-deny-list))
            do (comp--native-compile file)
            else
            do (byte-compile-file file)))
