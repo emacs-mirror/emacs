@@ -284,6 +284,14 @@ that have been marked for deletion.  However, if this new option is
 non-nil then Emacs will require confirmation with 'yes-or-no-p' before
 deleting.
 
+---
+** New help window when Emacs prompts before opening a large file.
+Commands like 'find-file' or 'visit-tags-table' ask to visit a file
+normally or literally when the file is larger than a certain size (by
+default, 9.5 MiB).  Press '?' or 'C-h' in that prompt to read more
+about the different options to visit a file, how you can disable the
+prompt, and how you can tweak the file size threshold.
+
 
 * Editing Changes in Emacs 28.1
 
