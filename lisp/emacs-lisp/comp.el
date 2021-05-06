@@ -78,7 +78,7 @@ This is intended for debugging the compiler itself.
   :risky t
   :version "28.1")
 
-(defcustom comp-always-compile nil
+(defcustom native-comp-always-compile nil
   "Non-nil means unconditionally (re-)compile all files."
   :type 'boolean
   :version "28.1")
@@ -3897,7 +3897,7 @@ display a message."
          do (cl-assert (string-match-p comp-valid-source-re source-file) nil
                        "`comp-files-queue' should be \".el\" files: %s"
                        source-file)
-         when (or comp-always-compile
+         when (or native-comp-always-compile
                   load ; Always compile when the compilation is
                        ; commanded for late load.
                   (file-newer-than-file-p
