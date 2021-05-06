@@ -1882,10 +1882,17 @@ the Top node in FILENAME."
       (or (cdr (assoc filename Info-file-completions))
 	  (with-temp-buffer
 	    (Info-mode)
-	    (Info-goto-node (format "(%s)Top" filename))
-	    (Info-build-node-completions-1)
-	    (push (cons filename Info-current-file-completions) Info-file-completions)
-	    Info-current-file-completions))
+            (condition-case nil
+	        (Info-goto-node (format "(%s)Top" filename))
+              ;; `Info-goto-node' signals a `user-error' when there
+              ;; are no nodes in the file in question (for instance,
+              ;; if it's not actually an Info file).
+              (user-error nil)
+              (:success
+	       (Info-build-node-completions-1)
+	       (push (cons filename Info-current-file-completions)
+                     Info-file-completions)
+	       Info-current-file-completions))))
     (or Info-current-file-completions
 	(Info-build-node-completions-1))))
 
