@@ -178,7 +178,7 @@ the .eln output directory."
   :type 'boolean
   :version "28.1")
 
-(defcustom comp-warning-on-missing-source t
+(defcustom native-comp-warning-on-missing-source t
   "Emit a warning if a byte-code file being loaded has no corresponding source.
 The source file is necessary for native code file look-up and deferred
 compilation mechanism."

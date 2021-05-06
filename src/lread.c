@@ -1708,7 +1708,8 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
       src_name = concat2 (src_name, build_string (".gz"));
       if (NILP (Ffile_exists_p (src_name)))
 	{
-	  if (!NILP (find_symbol_value (Qcomp_warning_on_missing_source)))
+	  if (!NILP (find_symbol_value (
+		       Qnative_comp_warning_on_missing_source)))
 	    call2 (intern_c_string ("display-warning"),
 		   Qcomp,
 		   CALLN (Fformat,
