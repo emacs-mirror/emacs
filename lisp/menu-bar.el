@@ -79,9 +79,6 @@
                   :help "Print current buffer with page headings"))
     menu))
 
-;; Only declared obsolete (and only made a proper alias) in 23.3.
-(define-obsolete-variable-alias
-  'menu-bar-files-menu 'menu-bar-file-menu "22.1")
 (defvar menu-bar-file-menu
   (let ((menu (make-sparse-keymap "File")))
 
