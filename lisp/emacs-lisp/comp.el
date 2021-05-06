@@ -152,7 +152,7 @@ Set this variable to nil if these warnings annoy you."
   :type 'boolean
   :version "28.1")
 
-(defcustom comp-async-query-on-exit nil
+(defcustom native-comp-async-query-on-exit nil
   "Whether to query the user about killing async compilations when exiting.
 If this is non-nil, Emacs will ask for confirmation to exit and kill the
 asynchronous native compilations if any are running.  If nil, when you
@@ -3953,7 +3953,7 @@ display a message."
                                    (native-elisp-load eln-file
                                                       (eq load1 'late))))
                                (comp-run-async-workers))
-                             :noquery (not comp-async-query-on-exit))))
+                             :noquery (not native-comp-async-query-on-exit))))
               (puthash source-file process comp-async-compilations))
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
