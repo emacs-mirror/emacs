@@ -124,7 +124,9 @@ or array."
                           (with-no-warnings (map-put! ,mgetter ,key ,v ,testfn))
                         (map-not-inplace
                          ,(funcall msetter
-                                   `(map-insert ,mgetter ,key ,v))))))))))
+                                   `(map-insert ,mgetter ,key ,v))
+                         ;; Always return the value.
+                         ,v))))))))
    ;; `testfn' is deprecated.
    (advertised-calling-convention (map key &optional default) "27.1"))
   ;; Can't use `cl-defmethod' with `advertised-calling-convention'.
@@ -429,18 +431,22 @@ To insert an element without modifying MAP, use `map-insert'."
   ;; `testfn' only exists for backward compatibility with `map-put'!
   (declare (advertised-calling-convention (map key value) "27.1"))
   ;; Can't use `cl-defmethod' with `advertised-calling-convention'.
-  (map--dispatch map
-    :list
-    (if (map--plist-p map)
-        (plist-put map key value)
-      (let ((oldmap map))
-        (setf (alist-get key map key nil (or testfn #'equal)) value)
-        (unless (eq oldmap map)
-          (signal 'map-not-inplace (list oldmap)))))
-    :hash-table (puthash key value map)
-    ;; FIXME: If `key' is too large, should we signal `map-not-inplace'
-    ;; and let `map-insert' grow the array?
-    :array (aset map key value)))
+  (map--dispatch
+   map
+   :list
+   (progn
+     (if (map--plist-p map)
+         (plist-put map key value)
+       (let ((oldmap map))
+         (setf (alist-get key map key nil (or testfn #'equal)) value)
+         (unless (eq oldmap map)
+           (signal 'map-not-inplace (list oldmap)))))
+     ;; Always return the value.
+     value)
+   :hash-table (puthash key value map)
+   ;; FIXME: If `key' is too large, should we signal `map-not-inplace'
+   ;; and let `map-insert' grow the array?
+   :array (aset map key value)))
 
 (cl-defgeneric map-insert (map key value)
   "Return a new map like MAP except that it associates KEY with VALUE.
