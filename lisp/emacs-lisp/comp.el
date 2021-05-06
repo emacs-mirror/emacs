@@ -1028,9 +1028,9 @@ Assume allocation class 'd-default as default."
     (,(rx-to-string
        `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
      (1 font-lock-keyword-face)))
-  "Highlights used by `comp-limple-mode'.")
+  "Highlights used by `native-comp-limple-mode'.")
 
-(define-derived-mode comp-limple-mode fundamental-mode "LIMPLE"
+(define-derived-mode native-comp-limple-mode fundamental-mode "LIMPLE"
   "Syntax-highlight LIMPLE IR."
   (setf font-lock-defaults '(comp-limple-lock-keywords)))
 
@@ -1059,8 +1059,8 @@ with `message'.  Otherwise, log with `comp-log-to-buffer'."
          (inhibit-read-only t)
          at-end-p)
     (with-current-buffer log-buffer
-      (unless (eq major-mode 'comp-limple-mode)
-        (comp-limple-mode))
+      (unless (eq major-mode 'native-comp-limple-mode)
+        (native-comp-limple-mode))
       (when (= (point) (point-max))
         (setf at-end-p t))
       (save-excursion
