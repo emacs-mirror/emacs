@@ -476,5 +476,42 @@ Evaluate BODY for each created map."
                      (list one two))
                    '(1 2)))))
 
+(ert-deftest test-map-setf-alist-insert-key ()
+  (let ((alist))
+    (should (equal (setf (map-elt alist 'key) 'value)
+                   'value))
+    (should (equal alist '((key . value))))))
+
+(ert-deftest test-map-setf-alist-overwrite-key ()
+  (let ((alist '((key . value1))))
+    (should (equal (setf (map-elt alist 'key) 'value2)
+                   'value2))
+    (should (equal alist '((key . value2))))))
+
+(ert-deftest test-map-setf-plist-insert-key ()
+  (let ((plist '(key value)))
+    (should (equal (setf (map-elt plist 'key2) 'value2)
+                   'value2))
+    (should (equal plist '(key value key2 value2)))))
+
+(ert-deftest test-map-setf-plist-overwrite-key ()
+  (let ((plist '(key value)))
+    (should (equal (setf (map-elt plist 'key) 'value2)
+                   'value2))
+    (should (equal plist '(key value2)))))
+
+(ert-deftest test-hash-table-setf-insert-key ()
+  (let ((ht (make-hash-table)))
+    (should (equal (setf (map-elt ht 'key) 'value)
+		   'value))
+    (should (equal (map-elt ht 'key) 'value))))
+
+(ert-deftest test-hash-table-setf-overwrite-key ()
+  (let ((ht (make-hash-table)))
+    (puthash 'key 'value1 ht)
+    (should (equal (setf (map-elt ht 'key) 'value2)
+		   'value2))
+    (should (equal (map-elt ht 'key) 'value2))))
+
 (provide 'map-tests)
 ;;; map-tests.el ends here
