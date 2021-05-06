@@ -3585,7 +3585,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		"\\<\\(q[wxqr]?\\|[msy]\\|tr\\)\\>" ; QUOTED CONSTRUCT
 		"\\|"
 		;; 1+6+2+1=10 extra () before this:
-		"\\([?/<]\\)"	; /blah/ or ?blah? or <file*glob>
+		"\\([/<]\\)"	; /blah/ or <file*glob>
 		"\\|"
 		;; 1+6+2+1+1=11 extra () before this
 		"\\<" cperl-sub-regexp "\\>" ;  sub with proto/attr
@@ -3920,7 +3920,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		;; 1+6+2=9 extra () before this:
 		;; "\\<\\(q[wxqr]?\\|[msy]\\|tr\\)\\>"
 		;; "\\|"
-		;; "\\([?/<]\\)"	; /blah/ or ?blah? or <file*glob>
+		;; "\\([/<]\\)"	; /blah/ or <file*glob>
 		(setq b1 (if (match-beginning 10) 10 11)
 		      argument (buffer-substring
 				(match-beginning b1) (match-end b1))
@@ -3958,7 +3958,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 		(goto-char (match-beginning b1))
 		(cperl-backward-to-noncomment (point-min))
 		(or bb
-		    (if (eq b1 11)	; bare /blah/ or ?blah? or <foo>
+		    (if (eq b1 11)	; bare /blah/ or <foo>
 			(setq argument ""
 			      b1 nil
 			      bb	; Not a regexp?
@@ -3966,7 +3966,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			       ;; What is below: regexp-p?
 			       (and
 				(or (memq (preceding-char)
-					  (append (if (memq c '(?\? ?\<))
+					  (append (if (char-equal c ?\<)
 						      ;; $a++ ? 1 : 2
 						      "~{(=|&*!,;:["
 						    "~{(=|&+-*!,;:[") nil))
@@ -3977,14 +3977,11 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 					   (forward-sexp -1)
 ;; After these keywords `/' starts a RE.  One should add all the
 ;; functions/builtins which expect an argument, but ...
-					   (if (eq (preceding-char) ?-)
-					       ;; -d ?foo? is a RE
-					       (looking-at "[a-zA-Z]\\>")
 					     (and
 					      (not (memq (preceding-char)
 							 '(?$ ?@ ?& ?%)))
 					      (looking-at
-					       "\\(while\\|if\\|unless\\|until\\|and\\|or\\|not\\|xor\\|split\\|grep\\|map\\|print\\|say\\|return\\)\\>")))))
+					       "\\(while\\|if\\|unless\\|until\\|and\\|or\\|not\\|xor\\|split\\|grep\\|map\\|print\\|say\\|return\\)\\>"))))
 				    (and (eq (preceding-char) ?.)
 					 (eq (char-after (- (point) 2)) ?.))
 				    (bobp))
@@ -7232,8 +7229,7 @@ $~	The name of the current report format.
 ... >= ...	Numeric greater than or equal to.
 ... >> ...	Bitwise shift right.
 ... >>= ...	Bitwise shift right assignment.
-... ? ... : ...	Condition=if-then-else operator.   ?PAT? One-time pattern match.
-?PATTERN?	One-time pattern match.
+... ? ... : ...	Condition=if-then-else operator.
 @ARGV	Command line arguments (not including the command name - see $0).
 @INC	List of places to look for perl scripts during do/include/use.
 @_    Parameter array for subroutines; result of split() unless in list context.
