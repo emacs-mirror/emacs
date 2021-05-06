@@ -122,7 +122,7 @@ compilation."
   :type 'hook
   :version "28.1")
 
-(defcustom comp-async-all-done-hook nil
+(defcustom native-comp-async-all-done-hook nil
   "Hook run after completing asynchronous compilation of all input files."
   :type 'hook
   :version "28.1")
@@ -3886,7 +3886,7 @@ processes from `comp-async-compilations'"
 
 (defun comp-run-async-workers ()
   "Start compiling files from `comp-files-queue' asynchronously.
-When compilation is finished, run `comp-async-all-done-hook' and
+When compilation is finished, run `native-comp-async-all-done-hook' and
 display a message."
   (if (or comp-files-queue
           (> (comp-async-runnings) 0))
@@ -3958,7 +3958,7 @@ display a message."
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
     ;; No files left to compile and all processes finished.
-    (run-hooks 'comp-async-all-done-hook)
+    (run-hooks 'native-comp-async-all-done-hook)
     (with-current-buffer (get-buffer-create comp-async-buffer-name)
       (save-excursion
         (goto-char (point-max))
