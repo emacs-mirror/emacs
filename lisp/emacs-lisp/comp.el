@@ -55,7 +55,7 @@
   :safe #'integerp
   :version "28.1")
 
-(defcustom comp-debug (if (eq 'windows-nt system-type) 1 0)
+(defcustom native-comp-debug (if (eq 'windows-nt system-type) 1 0)
   "Debug level for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no debug output.
@@ -745,7 +745,7 @@ Returns ELT."
           :documentation "Target output file-name for the compilation.")
   (speed native-comp-speed :type number
          :documentation "Default speed for this compilation unit.")
-  (debug comp-debug :type number
+  (debug native-comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
   (driver-options comp-native-driver-options :type list
          :documentation "Options for the GCC driver.")
@@ -1336,7 +1336,7 @@ clashes."
                                           (car (last comp-eln-load-path))))))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
-        (comp-ctxt-debug comp-ctxt) (alist-get 'comp-debug
+        (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
                                                byte-native-qualities)
         (comp-ctxt-driver-options comp-ctxt) (alist-get 'comp-native-driver-options
                                                         byte-native-qualities)
@@ -3906,7 +3906,7 @@ display a message."
                            ,(when (boundp 'backtrace-line-length)
                               `(setf backtrace-line-length ,backtrace-line-length))
                            (setf native-comp-speed ,native-comp-speed
-                                 comp-debug ,comp-debug
+                                 native-comp-debug ,native-comp-debug
                                  comp-verbose ,comp-verbose
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                                  comp-async-compilation t
