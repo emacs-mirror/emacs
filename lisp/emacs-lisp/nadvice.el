@@ -320,7 +320,7 @@ is also interactive.  There are 3 cases:
 
 ;;;###autoload
 (defun advice--add-function (where ref function props)
-  (when (and (featurep 'nativecomp)
+  (when (and (featurep 'native-compile)
              (subr-primitive-p (gv-deref ref)))
     (let ((subr-name (intern (subr-name (gv-deref ref)))))
       ;; Requiring the native compiler to advice `macroexpand' cause a

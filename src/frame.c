@@ -1931,52 +1931,6 @@ other_frames (struct frame *f, bool invisible, bool force)
   return false;
 }
 
-/* Make sure that minibuf_window doesn't refer to FRAME's minibuffer
-   window.  Preferably use the selected frame's minibuffer window
-   instead.  If the selected frame doesn't have one, get some other
-   frame's minibuffer window.  SELECT non-zero means select the new
-   minibuffer window.  */
-static void
-check_minibuf_window (Lisp_Object frame, int select)
-{
-  struct frame *f = decode_live_frame (frame);
-
-  XSETFRAME (frame, f);
-
-  if (WINDOWP (minibuf_window) && EQ (f->minibuffer_window, minibuf_window))
-    {
-      Lisp_Object frames, this, window = make_fixnum (0);
-
-      if (!EQ (frame, selected_frame)
-	  && FRAME_HAS_MINIBUF_P (XFRAME (selected_frame)))
-	window = FRAME_MINIBUF_WINDOW (XFRAME (selected_frame));
-      else
-	FOR_EACH_FRAME (frames, this)
-	  {
-	    if (!EQ (this, frame) && FRAME_HAS_MINIBUF_P (XFRAME (this)))
-	      {
-		window = FRAME_MINIBUF_WINDOW (XFRAME (this));
-		break;
-	      }
-	  }
-
-      /* Don't abort if no window was found (Bug#15247).  */
-      if (WINDOWP (window))
-	{
-	  /* Use set_window_buffer instead of Fset_window_buffer (see
-	     discussion of bug#11984, bug#12025, bug#12026).  */
-	  set_window_buffer (window, XWINDOW (minibuf_window)->contents, 0, 0);
-	  minibuf_window = window;
-
-	  /* SELECT non-zero usually means that FRAME's minibuffer
-	     window was selected; select the new one.  */
-	  if (select)
-	    Fselect_window (minibuf_window, Qnil);
-	}
-    }
-}
-
-
 /**
  * delete_frame:
  *
@@ -1991,7 +1945,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   struct frame *sf;
   struct kboard *kb;
   Lisp_Object frames, frame1;
-  int minibuffer_selected, is_tooltip_frame;
+  int is_tooltip_frame;
   bool nochild = !FRAME_PARENT_FRAME (f);
   Lisp_Object minibuffer_child_frame = Qnil;
 
@@ -2099,7 +2053,6 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
   /* At this point, we are committed to deleting the frame.
      There is no more chance for errors to prevent it.  */
-  minibuffer_selected = EQ (minibuf_window, selected_window);
   sf = SELECTED_FRAME ();
   /* Don't let the frame remain selected.  */
   if (f == sf)
@@ -2157,9 +2110,10 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       do_switch_frame (frame1, 0, 1, Qnil);
       sf = SELECTED_FRAME ();
     }
-
-  /* Don't allow minibuf_window to remain on a deleted frame.  */
-  check_minibuf_window (frame, minibuffer_selected);
+  else
+    /* Ensure any minibuffers on FRAME are moved onto the selected
+       frame.  */
+    move_minibuffers_onto_frame (f, true);
 
   /* Don't let echo_area_window to remain on a deleted frame.  */
   if (EQ (f->minibuffer_window, echo_area_window))
@@ -2791,9 +2745,6 @@ displayed in the terminal.  */)
   if (NILP (force) && !other_frames (f, true, false))
     error ("Attempt to make invisible the sole visible or iconified frame");
 
-  /* Don't allow minibuf_window to remain on an invisible frame.  */
-  check_minibuf_window (frame, EQ (minibuf_window, selected_window));
-
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->frame_visible_invisible_hook)
     FRAME_TERMINAL (f)->frame_visible_invisible_hook (f, false);
 
@@ -2835,9 +2786,6 @@ for how to proceed.  */)
 	}
     }
 #endif	/* HAVE_WINDOW_SYSTEM */
-
-  /* Don't allow minibuf_window to remain on an iconified frame.  */
-  check_minibuf_window (frame, EQ (minibuf_window, selected_window));
 
   if (FRAME_WINDOW_P (f) && FRAME_TERMINAL (f)->iconify_frame_hook)
     FRAME_TERMINAL (f)->iconify_frame_hook (f);
@@ -3298,12 +3246,15 @@ If FRAME is omitted or nil, return information on the currently selected frame. 
   /* It's questionable whether here we should report the value of
      f->new_height (and f->new_width below) but we've done that in the
      past, so let's keep it.  Note that a value of -1 for either of
-     these means that no new size was requested.  */
-  height = (f->new_height >= 0
+     these means that no new size was requested.
+
+     But check f->new_size before to make sure that f->new_height and
+     f->new_width are not ones requested by adjust_frame_size.  */
+  height = ((f->new_size_p && f->new_height >= 0)
 	    ? f->new_height / FRAME_LINE_HEIGHT (f)
 	    : FRAME_LINES (f));
   store_in_alist (&alist, Qheight, make_fixnum (height));
-  width = (f->new_width >= 0
+  width = ((f->new_size_p && f->new_width >= 0)
 	   ? f->new_width / FRAME_COLUMN_WIDTH (f)
 	   : FRAME_COLS(f));
   store_in_alist (&alist, Qwidth, make_fixnum (width));

@@ -276,6 +276,22 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 ** Commands 'set-frame-width' and 'set-frame-height' can now get their
 input using the minibuffer.
 
+---
+** New user option 'bookmark-menu-confirm-deletion'
+In Bookmark Menu mode, Emacs by default does not prompt for
+confirmation when you type 'x' to execute the deletion of bookmarks
+that have been marked for deletion.  However, if this new option is
+non-nil then Emacs will require confirmation with 'yes-or-no-p' before
+deleting.
+
+---
+** New help window when Emacs prompts before opening a large file.
+Commands like 'find-file' or 'visit-tags-table' ask to visit a file
+normally or literally when the file is larger than a certain size (by
+default, 9.5 MiB).  Press '?' or 'C-h' in that prompt to read more
+about the different options to visit a file, how you can disable the
+prompt, and how you can tweak the file size threshold.
+
 
 * Editing Changes in Emacs 28.1
 

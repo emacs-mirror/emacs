@@ -524,4 +524,31 @@ however, must not happen when the keyword occurs in a variable
     ;; No block should have been created here
     (should-not (search-forward-regexp "{" nil t))))
 
+(ert-deftest cperl-test-bug-47598 ()
+  "Check that a file test followed by ? is no longer interpreted
+as a regex."
+  ;; Testing the text from the bug report
+  (with-temp-buffer
+    (insert "my $f = -f ? 'file'\n")
+    (insert "      : -l ? [readlink]\n")
+    (insert "      : -d ? 'dir'\n")
+    (insert "      : 'unknown';\n")
+    (funcall cperl-test-mode)
+    ;; Perl mode doesn't highlight file tests as functions, so we
+    ;; can't test for the function's face.  But we can verify that the
+    ;; function is not a string.
+    (goto-char (point-min))
+    (search-forward "?")
+    (should-not (nth 3 (syntax-ppss (point)))))
+  ;; Testing the actual targets for the regexp: m?foo? (still valid)
+  ;; and ?foo? (invalid since Perl 5.22)
+  (with-temp-buffer
+    (insert "m?foo?;")
+    (funcall cperl-test-mode)
+    (should (nth 3 (syntax-ppss 3))))
+  (with-temp-buffer
+    (insert " ?foo?;")
+    (funcall cperl-test-mode)
+    (should-not (nth 3 (syntax-ppss 3)))))
+
 ;;; cperl-mode-tests.el ends here

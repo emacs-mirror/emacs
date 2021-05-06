@@ -2129,27 +2129,60 @@ think it does, because \"free\" is pretty hard to define in practice."
 
 (declare-function x-popup-dialog "menu.c" (position contents &optional header))
 
+(defun files--ask-user-about-large-file-help-text (op-type size)
+  "Format the text that explains the options to open large files in Emacs.
+OP-TYPE contains the kind of file operation that will be
+performed.  SIZE is the size of the large file."
+  (format
+   "The file that you want to %s is large (%s), which exceeds the
+ threshold above which Emacs asks for confirmation (%s).
+
+ Large files may be slow to edit or navigate so Emacs asks you
+ before you try to %s such files.
+
+ You can press:
+ 'y' to %s the file.
+ 'n' to abort, and not %s the file.
+ 'l' (the letter ell) to %s the file literally, which means that
+ Emacs will %s the file without doing any format or character code
+ conversion and in Fundamental mode, without loading any potentially
+ expensive features.
+
+ You can customize the option `large-file-warning-threshold' to be the
+ file size, in bytes, from which Emacs will ask for confirmation.  Set
+ it to nil to never request confirmation."
+   op-type
+   size
+   (funcall byte-count-to-string-function large-file-warning-threshold)
+   op-type
+   op-type
+   op-type
+   op-type
+   op-type))
+
 (defun files--ask-user-about-large-file (size op-type filename offer-raw)
+  "Query the user about what to do with large files.
+Files are \"large\" if file SIZE is larger than `large-file-warning-threshold'.
+
+OP-TYPE specifies the file operation being performed on FILENAME.
+
+If OFFER-RAW is true, give user the additional option to open the
+file literally."
   (let ((prompt (format "File %s is large (%s), really %s?"
 		        (file-name-nondirectory filename)
 		        (funcall byte-count-to-string-function size) op-type)))
     (if (not offer-raw)
         (if (y-or-n-p prompt) nil 'abort)
-      (let* ((use-dialog (and (display-popup-menus-p)
-                              last-input-event
-	                      (listp last-nonmenu-event)
-	                      use-dialog-box))
-             (choice
-              (if use-dialog
-                  (x-popup-dialog t `(,prompt
-                                      ("Yes" . ?y)
-                                      ("No" . ?n)
-                                      ("Open literally" . ?l)))
-                (read-char-choice
-                 (concat prompt " (y)es or (n)o or (l)iterally ")
-                 '(?y ?Y ?n ?N ?l ?L)))))
-        (cond ((memq choice '(?y ?Y)) nil)
-              ((memq choice '(?l ?L)) 'raw)
+      (let ((choice
+             (car
+              (read-multiple-choice
+               prompt '((?y "yes")
+                        (?n "no")
+                        (?l "literally"))
+               (files--ask-user-about-large-file-help-text
+                op-type (funcall byte-count-to-string-function size))))))
+        (cond ((eq choice ?y) nil)
+              ((eq choice ?l) 'raw)
               (t 'abort))))))
 
 (defun abort-if-file-too-large (size op-type filename &optional offer-raw)

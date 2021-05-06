@@ -1245,7 +1245,7 @@ aspell is used along with Emacs).")
 
 (defun ispell-set-spellchecker-params ()
   "Initialize some spellchecker parameters when changed or first used."
-  (unless (eq ispell-last-program-name ispell-program-name)
+  (unless (equal ispell-last-program-name ispell-program-name)
     (ispell-kill-ispell t)
     (if (and (condition-case ()
 		 (progn
