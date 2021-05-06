@@ -134,7 +134,7 @@ Used to modify the compiler environment."
   :risky t
   :version "28.1")
 
-(defcustom comp-async-report-warnings-errors t
+(defcustom native-comp-async-report-warnings-errors t
   "Whether to report warnings and errors from asynchronous native compilation.
 
 When native compilation happens asynchronously, it can produce
@@ -3873,7 +3873,7 @@ processes from `comp-async-compilations'"
 (make-variable-buffer-local 'comp-last-scanned-async-output)
 (defun comp-accept-and-process-async-output (process)
   "Accept PROCESS output and check for diagnostic messages."
-  (if comp-async-report-warnings-errors
+  (if native-comp-async-report-warnings-errors
       (with-current-buffer (process-buffer process)
         (save-excursion
           (accept-process-output process)
