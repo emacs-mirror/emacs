@@ -46,7 +46,7 @@
 (require 'benchmark)
 (require 'outline)
 (require 'org)
-(if (featurep 'nativecomp)
+(if (featurep 'native-compile)
     (require 'comp)
   (defvar comp-speed))
 
@@ -109,7 +109,7 @@ RECOMPILE all the benchmark folder when non nil."
 	      (funcall compile-function f))
 	    test-sources))
     ;; Load
-    (mapc #'load (mapcar (if (and (featurep 'nativecomp)
+    (mapc #'load (mapcar (if (and (featurep 'native-compile)
 				  (fboundp 'comp-el-to-eln-filename))
 			     ;; FIXME: Isn't the elc->eln
                              ;; remapping fully automatic?
