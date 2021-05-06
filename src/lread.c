@@ -1700,7 +1700,7 @@ maybe_swap_for_eln (bool no_native, Lisp_Object *filename, int *fd,
     return;
 
   /* Search eln in the eln-cache directories.  */
-  Lisp_Object eln_path_tail = Vcomp_eln_load_path;
+  Lisp_Object eln_path_tail = Vnative_comp_eln_load_path;
   Lisp_Object src_name =
     Fsubstring (*filename, Qnil, make_fixnum (-1));
   if (NILP (Ffile_exists_p (src_name)))

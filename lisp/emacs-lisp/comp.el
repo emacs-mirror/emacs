@@ -1333,7 +1333,7 @@ clashes."
     (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
                                         filename
                                         (when byte-native-for-bootstrap
-                                          (car (last comp-eln-load-path))))))
+                                          (car (last native-comp-eln-load-path))))))
   (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
         (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
@@ -3653,7 +3653,7 @@ Prepare every function for final compilation and drive the C back-end."
                      (setf native-comp-verbose ,native-comp-verbose
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
-                           comp-eln-load-path ',comp-eln-load-path
+                           native-comp-eln-load-path ',native-comp-eln-load-path
                            native-comp-driver-options
                            ',native-comp-driver-options
                            load-path ',load-path)
@@ -3703,12 +3703,12 @@ Prepare every function for final compilation and drive the C back-end."
 
 (defun comp-eln-load-path-eff ()
   "Return a list of effective eln load directories.
-Account for `comp-eln-load-path' and `comp-native-version-dir'."
+Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
   (mapcar (lambda (dir)
             (expand-file-name comp-native-version-dir
                               (file-name-as-directory
                                (expand-file-name dir invocation-directory))))
-          comp-eln-load-path))
+          native-comp-eln-load-path))
 
 (defun comp-trampoline-filename (subr-name)
   "Given SUBR-NAME return the filename containing the trampoline."
@@ -3772,14 +3772,14 @@ Return the trampoline if found or nil otherwise."
       when (file-writable-p f)
         do (cl-return f)
       finally (error "Cannot find suitable directory for output in \
-`comp-eln-load-path'")))))
+`native-comp-eln-load-path'")))))
 
 
 ;; Some entry point support code.
 
 ;;;###autoload
 (defun comp-clean-up-stale-eln (file)
-  "Given FILE remove all its *.eln files in `comp-eln-load-path'
+  "Given FILE remove all its *.eln files in `native-comp-eln-load-path'
 sharing the original source filename (including FILE)."
   (when (string-match (rx "-" (group-n 1 (1+ hex)) "-" (1+ hex) ".eln" eos)
                       file)
@@ -3910,7 +3910,7 @@ display a message."
                                  native-comp-verbose ,native-comp-verbose
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                                  comp-async-compilation t
-                                 comp-eln-load-path ',comp-eln-load-path
+                                 native-comp-eln-load-path ',native-comp-eln-load-path
                                  native-comp-driver-options
                                  ',native-comp-driver-options
                                  load-path ',load-path
@@ -4123,10 +4123,10 @@ bytecode definition was not changed in the meantime)."
 ;;;###autoload
 (defun comp-lookup-eln (filename)
   "Given a Lisp source FILENAME return the corresponding .eln file if found.
-Search happens in `comp-eln-load-path'."
+Search happens in `native-comp-eln-load-path'."
   (cl-loop
    with eln-filename = (comp-el-to-eln-rel-filename filename)
-   for dir in comp-eln-load-path
+   for dir in native-comp-eln-load-path
    for f = (expand-file-name eln-filename
                              (expand-file-name comp-native-version-dir
                                                (expand-file-name
@@ -4169,7 +4169,7 @@ Native compilation equivalent to `batch-byte-compile'."
   "Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
-directory (the last entry in `comp-eln-load-path').
+directory (the last entry in `native-comp-eln-load-path').
 If the environment variable 'NATIVE_DISABLED' is set, only byte
 compile."
   (comp-ensure-native-compiler)

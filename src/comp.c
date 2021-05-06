@@ -4095,11 +4095,11 @@ directory in `comp-eln-load-path' otherwise.  */)
   Lisp_Object source_filename = filename;
   filename = Fcomp_el_to_eln_rel_filename (filename);
 
-  /* If base_dir was not specified search inside Vcomp_eln_load_path
+  /* If base_dir was not specified search inside Vnative_comp_eln_load_path
      for the first directory where we have write access.  */
   if (NILP (base_dir))
     {
-      Lisp_Object eln_load_paths = Vcomp_eln_load_path;
+      Lisp_Object eln_load_paths = Vnative_comp_eln_load_path;
       FOR_EACH_TAIL (eln_load_paths)
 	{
 	  Lisp_Object dir = XCAR (eln_load_paths);
@@ -4630,7 +4630,7 @@ void
 eln_load_path_final_clean_up (void)
 {
 #ifdef WINDOWSNT
-  Lisp_Object dir_tail = Vcomp_eln_load_path;
+  Lisp_Object dir_tail = Vnative_comp_eln_load_path;
   FOR_EACH_TAIL (dir_tail)
     {
       Lisp_Object files_in_dir =
@@ -4755,7 +4755,7 @@ void
 fixup_eln_load_path (Lisp_Object eln_filename)
 {
   Lisp_Object last_cell = Qnil;
-  Lisp_Object tem = Vcomp_eln_load_path;
+  Lisp_Object tem = Vnative_comp_eln_load_path;
   FOR_EACH_TAIL (tem)
     if (CONSP (tem))
       last_cell = tem;
@@ -5127,7 +5127,7 @@ static bool
 file_in_eln_sys_dir (Lisp_Object filename)
 {
   Lisp_Object eln_sys_dir = Qnil;
-  Lisp_Object tmp = Vcomp_eln_load_path;
+  Lisp_Object tmp = Vnative_comp_eln_load_path;
   FOR_EACH_TAIL (tmp)
     eln_sys_dir = XCAR (tmp);
   return !NILP (Fstring_match (Fregexp_quote (Fexpand_file_name (eln_sys_dir,
@@ -5369,7 +5369,7 @@ For internal use.  */);
 	       doc: /* Hash table eln-filename -> el-filename.  */);
   Vcomp_eln_to_el_h = CALLN (Fmake_hash_table, QCtest, Qequal);
 
-  DEFVAR_LISP ("comp-eln-load-path", Vcomp_eln_load_path,
+  DEFVAR_LISP ("native-comp-eln-load-path", Vnative_comp_eln_load_path,
 	       doc: /* List of eln cache directories.
 
 If a directory is non absolute is assumed to be relative to
@@ -5381,7 +5381,7 @@ The last directory of this list is assumed to be the system one.  */);
   /* Temporary value in use for bootstrap.  We can't do better as
      `invocation-directory' is still unset, will be fixed up during
      dump reload.  */
-  Vcomp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
+  Vnative_comp_eln_load_path = Fcons (build_string ("../native-lisp/"), Qnil);
 
   DEFVAR_BOOL ("comp-enable-subr-trampolines", comp_enable_subr_trampolines,
 	       doc: /* If non-nil enable primitive trampoline synthesis.
