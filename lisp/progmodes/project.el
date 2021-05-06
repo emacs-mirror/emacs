@@ -1120,11 +1120,13 @@ current project, it will be killed."
 
 (defun project--buffer-list (pr)
   "Return the list of all buffers in project PR."
-  (let ((remote-project-p (file-remote-p (project-root pr)))
+  (let ((conn (file-remote-p (project-root pr)))
         bufs)
     (dolist (buf (buffer-list))
-      (when (and (let ((remote (file-remote-p (buffer-local-value 'default-directory buf))))
-                   (if remote-project-p remote (not remote)))
+      ;; For now we go with the assumption that a project must reside
+      ;; entirely on one host.  We might relax that in the future.
+      (when (and (equal conn
+                        (file-remote-p (buffer-local-value 'default-directory buf)))
                  (equal pr
                         (with-current-buffer buf
                           (project-current))))
