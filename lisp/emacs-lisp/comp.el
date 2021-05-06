@@ -127,7 +127,7 @@ compilation."
   :type 'hook
   :version "28.1")
 
-(defcustom comp-async-env-modifier-form nil
+(defcustom native-comp-async-env-modifier-form nil
   "Form evaluated before compilation by each asynchronous compilation subprocess.
 Used to modify the compiler environment."
   :type 'sexp
@@ -3657,7 +3657,7 @@ Prepare every function for final compilation and drive the C back-end."
                            comp-native-driver-options
                            ',comp-native-driver-options
                            load-path ',load-path)
-                     ,comp-async-env-modifier-form
+                     ,native-comp-async-env-modifier-form
                      (message "Compiling %s..." ',output)
                      (comp-final1)))
              (temp-file (make-temp-file
@@ -3915,7 +3915,7 @@ display a message."
                                  ',comp-native-driver-options
                                  load-path ',load-path
                                  warning-fill-column most-positive-fixnum)
-                           ,comp-async-env-modifier-form
+                           ,native-comp-async-env-modifier-form
                            (message "Compiling %s..." ,source-file)
                            (comp--native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
