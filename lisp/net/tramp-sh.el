@@ -125,6 +125,15 @@ depends on the installed local ssh version.
 
 The string is used in `tramp-methods'.")
 
+(defvar tramp-scp-strict-file-name-checking nil
+  "Which scp strict file name checking argument to use.
+
+It is the string \"-T\" if supported by the local scp (since
+release 8.0), otherwise the string \"\".  If it is nil, it will
+be auto-detected by Tramp.
+
+The string is used in `tramp-methods'.")
+
 ;; Initialize `tramp-methods' with the supported methods.
 ;;;###tramp-autoload
 (tramp--with-startup
@@ -160,8 +169,8 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-login   ("-l"))
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
-                (tramp-copy-args            (("-P" "%p") ("-p" "%k") ("-q")
-					     ("-r") ("%c")))
+                (tramp-copy-args            (("-P" "%p") ("-p" "%k")
+					     ("%x") ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -177,7 +186,7 @@ The string is used in `tramp-methods'.")
                 (tramp-remote-shell-args    ("-c"))
                 (tramp-copy-program         "scp")
                 (tramp-copy-args            (("-P" "%p") ("-p" "%k")
-				             ("-q") ("-r") ("%c")))
+				             ("%x") ("-q") ("-r") ("%c")))
                 (tramp-copy-keep-date       t)
                 (tramp-copy-recursive       t)))
  (add-to-list 'tramp-methods
@@ -2279,7 +2288,8 @@ The method used must be an out-of-band method."
 	      spec (list
 		    ?h (or host "") ?u (or user "") ?p (or port "")
 		    ?r listener ?c options ?k (if keep-date " " "")
-                    ?n (concat "2>" (tramp-get-remote-null-device v)))
+                    ?n (concat "2>" (tramp-get-remote-null-device v))
+		    ?x (tramp-scp-strict-file-name-checking v))
 	      copy-program (tramp-get-method-parameter v 'tramp-copy-program)
 	      copy-keep-date (tramp-get-method-parameter
 			      v 'tramp-copy-keep-date)
@@ -2867,14 +2877,11 @@ alternative implementation will be used."
 			     (if (symbolp coding) coding (cdr coding))))
 			(clear-visited-file-modtime)
 			(narrow-to-region (point-max) (point-max))
-			;; We call `tramp-maybe-open-connection', in
-			;; order to cleanup the prompt afterwards.
 			(catch 'suppress
-			  (tramp-maybe-open-connection v)
-			  (setq p (tramp-get-connection-process v))
 			  ;; Set the pid of the remote shell.  This is
 			  ;; needed when sending signals remotely.
 			  (let ((pid (tramp-send-command-and-read v "echo $$")))
+			    (setq p (tramp-get-connection-process v))
 			    (process-put p 'remote-pid pid)
 			    (tramp-set-connection-property p "remote-pid" pid))
 			  ;; `tramp-maybe-open-connection' and
@@ -4737,6 +4744,31 @@ Goes through the list `tramp-inline-compress-commands'."
 				  " -o ControlPersist=no")))))))))
       tramp-ssh-controlmaster-options)))
 
+(defun tramp-scp-strict-file-name-checking (vec)
+  "Return the strict file name checking argument of the local scp."
+  (cond
+   ;; No options to be computed.
+   ((null (assoc "%x" (tramp-get-method-parameter vec 'tramp-copy-args)))
+    "")
+
+   ;; There is already a value to be used.
+   ((stringp tramp-scp-strict-file-name-checking)
+    tramp-scp-strict-file-name-checking)
+
+   ;; Determine the options.
+   (t (setq tramp-scp-strict-file-name-checking "")
+      (let ((case-fold-search t))
+	(ignore-errors
+	  (when (executable-find "scp")
+	    (with-tramp-progress-reporter
+		vec 4 "Computing strict file name argument"
+	      (with-temp-buffer
+		(tramp-call-process vec "scp" nil t nil "-T")
+		(goto-char (point-min))
+		(unless (search-forward-regexp "unknown option -- T" nil t)
+		  (setq tramp-scp-strict-file-name-checking "-T")))))))
+      tramp-scp-strict-file-name-checking)))
+
 (defun tramp-timeout-session (vec)
   "Close the connection VEC after a session timeout.
 If there is just some editing, retry it after 5 seconds."
@@ -5229,12 +5261,11 @@ Return ATTR."
 	 (directory-file-name (tramp-file-name-unquote-localname vec))))
     (when (string-match-p tramp-ipv6-regexp host)
       (setq host (format "[%s]" host)))
-    ;; This does not work yet for MS Windows scp, if there are
-    ;; characters to be quoted.  Win32 OpenSSH 7.9 is said to support
-    ;; this, see
-    ;; <https://github.com/PowerShell/Win32-OpenSSH/releases/tag/v7.9.0.0p1-Beta>
+    ;; This does not work for MS Windows scp, if there are characters
+    ;; to be quoted.  OpenSSH 8 supports disabling of strict file name
+    ;; checking in scp, we use it when available.
     (unless (string-match-p "ftp$" method)
-      (setq localname (tramp-shell-quote-argument localname)))
+      (setq localname (shell-quote-argument localname)))
     (cond
      ((tramp-get-method-parameter vec 'tramp-remote-copy-program)
       localname)
