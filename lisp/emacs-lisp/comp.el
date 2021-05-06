@@ -67,7 +67,7 @@ This is intended for debugging the compiler itself.
   :safe #'natnump
   :version "28.1")
 
-(defcustom comp-verbose 0
+(defcustom native-comp-verbose 0
   "Compiler verbosity for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no logging.
@@ -1037,9 +1037,9 @@ Assume allocation class 'd-default as default."
 (cl-defun comp-log (data &optional (level 1) quoted)
   "Log DATA at LEVEL.
 LEVEL is a number from 1-3, and defaults to 1; if it is less
-than `comp-verbose', do nothing.  If `noninteractive', log
+than `native-comp-verbose', do nothing.  If `noninteractive', log
 with `message'.  Otherwise, log with `comp-log-to-buffer'."
-  (when (>= comp-verbose level)
+  (when (>= native-comp-verbose level)
     (if noninteractive
         (cl-typecase data
           (atom (message "%s" data))
@@ -1091,7 +1091,7 @@ with `message'.  Otherwise, log with `comp-log-to-buffer'."
 (defun comp-log-func (func verbosity)
   "Log function FUNC at VERBOSITY.
 VERBOSITY is a number between 0 and 3."
-  (when (>= comp-verbose verbosity)
+  (when (>= native-comp-verbose verbosity)
     (comp-log (format "\nFunction: %s\n" (comp-func-name func)) verbosity)
     (cl-loop
      for block-name being each hash-keys of (comp-func-blocks func)
@@ -3650,7 +3650,7 @@ Prepare every function for final compilation and drive the C back-end."
              (print-circle t)
              (print-escape-multibyte t)
              (expr `((require 'comp)
-                     (setf comp-verbose ,comp-verbose
+                     (setf native-comp-verbose ,native-comp-verbose
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
                            comp-eln-load-path ',comp-eln-load-path
@@ -3907,7 +3907,7 @@ display a message."
                               `(setf backtrace-line-length ,backtrace-line-length))
                            (setf native-comp-speed ,native-comp-speed
                                  native-comp-debug ,native-comp-debug
-                                 comp-verbose ,comp-verbose
+                                 native-comp-verbose ,native-comp-verbose
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                                  comp-async-compilation t
                                  comp-eln-load-path ',comp-eln-load-path
