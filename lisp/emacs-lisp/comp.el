@@ -107,7 +107,7 @@ during bootstrap."
   :type '(repeat symbol)
   :version "28.1")
 
-(defcustom comp-async-jobs-number 0
+(defcustom native-comp-async-jobs-number 0
   "Default number of subprocesses used for async native compilation.
 Value of zero means to use half the number of the CPU's execution units,
 or one if there's just one execution unit."
@@ -3851,7 +3851,7 @@ processes from `comp-async-compilations'"
 (defvar comp-num-cpus nil)
 (defun comp-effective-async-max-jobs ()
   "Compute the effective number of async jobs."
-  (if (zerop comp-async-jobs-number)
+  (if (zerop native-comp-async-jobs-number)
       (or comp-num-cpus
           (setf comp-num-cpus
                 ;; FIXME: we already have a function to determine
@@ -3867,7 +3867,7 @@ processes from `comp-async-compilations'"
                                   (shell-command-to-string "sysctl -n hw.ncpu")))
                                 (t 1))
                           2))))
-    comp-async-jobs-number))
+    native-comp-async-jobs-number))
 
 (defvar comp-last-scanned-async-output nil)
 (make-variable-buffer-local 'comp-last-scanned-async-output)
@@ -4066,7 +4066,7 @@ nil -- Select all files.
 a string -- A regular expression selecting files with matching names.
 a function -- A function selecting files with matching names.
 
-The variable `comp-async-jobs-number' specifies the number
+The variable `native-comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously.
 
 LOAD can also be the symbol `late'.  This is used internally if
@@ -4200,7 +4200,7 @@ nil -- Select all files.
 a string -- A regular expression selecting files with matching names.
 a function -- A function selecting files with matching names.
 
-The variable `comp-async-jobs-number' specifies the number
+The variable `native-comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously."
   ;; Normalize: we only want to pass t or nil, never e.g. `late'.
   (let ((load (not (not load))))
