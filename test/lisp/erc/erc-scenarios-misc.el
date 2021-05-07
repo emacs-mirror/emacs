@@ -104,4 +104,38 @@
         (should-not erc-network)
         (should (string= erc-server-announced-name "irc.foonet.org"))))))
 
+;; Targets that are host/server masks like $*, $$*, and #* are routed
+;; to the server buffer: https://github.com/ircdocs/wooooms/issues/5
+
+(ert-deftest erc-scenarios-base-mask-target-routing ()
+  :tags '(:expensive-test)
+  (erc-scenarios-common-with-cleanup
+      ((erc-scenarios-common-dialog "base/mask-target-routing")
+       (dumb-server (erc-d-run "localhost" t 'foonet))
+       (port (process-contact dumb-server :service))
+       (expect (erc-d-t-make-expecter)))
+
+    (ert-info ("Connect to foonet")
+      (with-current-buffer (erc :server "127.0.0.1"
+                                :port port
+                                :nick "tester"
+                                :password "changeme"
+                                :full-name "tester")
+        (should (string= (buffer-name) (format "127.0.0.1:%d" port)))))
+
+    (erc-d-t-wait-for 10 (get-buffer "foonet"))
+
+    (ert-info ("Channel buffer #foo playback received")
+      (with-current-buffer (erc-d-t-wait-for 3 (get-buffer "#foo"))
+        (funcall expect 10 "Excellent workman")))
+
+    (ert-info ("Global notices routed to server buffer")
+      (with-current-buffer "foonet"
+        (funcall expect 10 "going down soon")
+        (funcall expect 10 "this is a warning")
+        (funcall expect 10 "second warning")
+        (funcall expect 10 "final warning")))
+
+    (should-not (get-buffer "$*"))))
+
 ;;; erc-scenarios-misc.el ends here

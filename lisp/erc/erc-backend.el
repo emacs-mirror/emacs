@@ -1334,16 +1334,7 @@ add things to `%s' instead."
         (let* ((str (cond
                      ;; If I have joined a channel
                      ((erc-current-nick-p nick)
-                      (setq buffer (erc-open erc-session-server erc-session-port
-                                             nick erc-session-user-full-name
-                                             nil nil
-                                             (list chnl) chnl
-                                             erc-server-process
-                                             nil
-                                             erc-session-username
-                                             (erc-networks--id-given
-                                              erc-networks--id)))
-                      (when buffer
+                      (when (setq buffer (erc--open-target chnl))
                         (set-buffer buffer)
                         (with-suppressed-warnings
                             ((obsolete erc-add-default-channel))
@@ -1534,6 +1525,13 @@ add things to `%s' instead."
              fnick)
         (setf (erc-response.contents parsed) msg)
         (setq buffer (erc-get-buffer (if privp nick tgt) proc))
+        ;; Even worth checking for empty target here? (invalid anyway)
+        (unless (or buffer noticep (string-empty-p tgt) (eq ?$ (aref tgt 0)))
+          (if (and privp msgp (not (erc-is-message-ctcp-and-not-action-p msg)))
+              (when erc-auto-query
+                (let ((erc-join-buffer erc-auto-query))
+                  (setq buffer (erc--open-target nick))))
+            (setq buffer (erc--open-target tgt))))
         (when buffer
           (with-current-buffer buffer
             (when privp (erc--unhide-prompt))
@@ -1569,13 +1567,7 @@ add things to `%s' instead."
                                     s parsed buffer nick)
                 (run-hook-with-args-until-success
                  'erc-echo-notice-hook s parsed buffer nick))
-            (erc-display-message parsed nil buffer s)))
-        (when (string= cmd "PRIVMSG")
-          (erc-auto-query proc parsed))))))
-
-;; FIXME: need clean way of specifying extra hooks in
-;; define-erc-response-handler.
-(add-hook 'erc-server-PRIVMSG-functions #'erc-auto-query)
+            (erc-display-message parsed nil buffer s)))))))
 
 (define-erc-response-handler (QUIT)
   "Another user has quit IRC." nil

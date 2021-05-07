@@ -3791,13 +3791,14 @@ on the value of `erc-query-display'."
   ;; `kill-buffer'?  If it makes sense, re-add it.  -- SK @ 2021-11-11
   (interactive
    (list (read-string "Start a query with: ")))
-  (let ((session-buffer (erc-server-buffer))
-        (erc-join-buffer erc-query-display))
-    (if user
-        (erc-query user session-buffer)
+  (unless user
       ;; currently broken, evil hack to display help anyway
                                         ;(erc-delete-query))))
-      (signal 'wrong-number-of-arguments ""))))
+    (signal 'wrong-number-of-arguments ""))
+  (let ((erc-join-buffer erc-query-display))
+    (erc-with-server-buffer
+     (erc--open-target user))))
+
 (defalias 'erc-cmd-Q #'erc-cmd-QUERY)
 
 (defun erc-quit/part-reason-default ()
@@ -4473,28 +4474,30 @@ See `erc-default-server-hook'."
   (nconc erc-server-vectors (list parsed))
   nil)
 
-(defun erc-query (target server)
-  "Open a query buffer on TARGET, using SERVER.
+(defun erc--open-target (target)
+  "Open an ERC buffer on TARGET."
+  (erc-open erc-session-server
+            erc-session-port
+            (erc-current-nick)
+            erc-session-user-full-name
+            nil
+            nil
+            (list target)
+            target
+            erc-server-process
+            nil
+            erc-session-username
+            (erc-networks--id-given erc-networks--id)))
+
+(defun erc-query (target server-buffer)
+  "Open a query buffer on TARGET using SERVER-BUFFER.
 To change how this query window is displayed, use `let' to bind
 `erc-join-buffer' before calling this."
-  (unless (and server
-               (buffer-live-p server)
-               (set-buffer server))
+  (declare (obsolete "bind `erc-cmd-query' and call `erc-cmd-QUERY'" "29.1"))
+  (unless (buffer-live-p server-buffer)
     (error "Couldn't switch to server buffer"))
-  (let ((buf (erc-open erc-session-server
-                       erc-session-port
-                       (erc-current-nick)
-                       erc-session-user-full-name
-                       nil
-                       nil
-                       (list target)
-                       target
-                       erc-server-process
-                       erc-session-username)))
-    (unless buf
-      (error "Couldn't open query window"))
-    (erc-update-mode-line)
-    buf))
+  (with-current-buffer server-buffer
+    (erc--open-target target)))
 
 (defcustom erc-auto-query 'window-noselect
   "If non-nil, create a query buffer each time you receive a private message.
@@ -4513,6 +4516,9 @@ a new window, but not to select it.  See the documentation for
                  (const :tag "Use current buffer" buffer)
                  (const :tag "Use current buffer" t)))
 
+;; FIXME either retire this or put it to use or more clearly explain
+;; what it's supposed to do.  It's currently only used by the obsolete
+;; function `erc-auto-query'.
 (defcustom erc-query-on-unjoined-chan-privmsg t
   "If non-nil create query buffer on receiving any PRIVMSG at all.
 This includes PRIVMSGs directed to channels.  If you are using an IRC
@@ -4634,6 +4640,8 @@ and as second argument the event parsed as a vector."
            (let ((erc-query-display erc-auto-query))
              (erc-cmd-QUERY query))
            nil))))
+
+(make-obsolete 'erc-auto-query "try erc-cmd-QUERY instead" "29.1")
 
 (defun erc-is-message-ctcp-p (message)
   "Check if MESSAGE is a CTCP message or not."
