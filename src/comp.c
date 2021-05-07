@@ -5403,7 +5403,7 @@ For internal use.  */);
 	       doc: /* When non-nil assume the file being compiled to
 be preloaded.  */);
 
-  Fprovide (intern_c_string ("nativecomp"), Qnil);
+  Fprovide (intern_c_string ("native-compile"), Qnil);
 #endif /* #ifdef HAVE_NATIVE_COMP */
 
   defsubr (&Snative_comp_available_p);

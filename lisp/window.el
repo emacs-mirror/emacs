@@ -4117,7 +4117,7 @@ frame can be safely deleted."
 		  (let ((minibuf (active-minibuffer-window)))
 		    (and minibuf (eq frame (window-frame minibuf))
                          (not (eq (default-toplevel-value
-                                    minibuffer-follows-selected-frame)
+                                    'minibuffer-follows-selected-frame)
                                   t)))))
 	'frame))
      ((window-minibuffer-p window)

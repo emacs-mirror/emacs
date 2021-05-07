@@ -33,7 +33,7 @@
 
 (defconst comp-test-dyn-src (ert-resource-file "comp-test-funcs-dyn.el"))
 
-(when (featurep 'nativecomp)
+(when (featurep 'native-compile)
   (require 'comp)
   (message "Compiling tests...")
   (load (native-compile comp-test-src))

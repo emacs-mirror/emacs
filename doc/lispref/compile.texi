@@ -361,7 +361,7 @@ it does nothing.  It always returns @var{function}.
   These features permit you to write code to be evaluated during
 compilation of a program.
 
-@defspec eval-and-compile body@dots{}
+@defmac eval-and-compile body@dots{}
 This form marks @var{body} to be evaluated both when you compile the
 containing code and when you run it (whether compiled or not).
 
@@ -386,9 +386,9 @@ If functions are defined programmatically (with @code{fset} say), then
 @code{eval-and-compile} can be used to have that done at compile-time
 as well as run-time, so calls to those functions are checked (and
 warnings about ``not known to be defined'' suppressed).
-@end defspec
+@end defmac
 
-@defspec eval-when-compile body@dots{}
+@defmac eval-when-compile body@dots{}
 This form marks @var{body} to be evaluated at compile time but not when
 the compiled program is loaded.  The result of evaluation by the
 compiler becomes a constant which appears in the compiled program.  If
@@ -434,7 +434,7 @@ with other versions of Emacs.
 Lisp idiom @code{(eval-when (compile eval) @dots{})}.  Elsewhere, the
 Common Lisp @samp{#.} reader macro (but not when interpreting) is closer
 to what @code{eval-when-compile} does.
-@end defspec
+@end defmac
 
 @node Compiler Errors
 @section Compiler Errors

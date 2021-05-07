@@ -14515,6 +14515,17 @@ names.  If your IMAP mailboxes are called something like @samp{INBOX}
 and @samp{INBOX.Lists.emacs}, but you'd like the nnimap group names to
 be @samp{INBOX} and @samp{Lists.emacs}, you should enable this option.
 
+@item nnimap-keepalive-intervals
+By default, nnimap will send occasional @samp{NOOP} (keepalive)
+commands to the server, to keep the connection alive.  This option
+governs how often that happens.  It is a cons of two integers,
+representing seconds: first how often to run the keepalive check, and
+the second how many seconds of user inactivity are required to
+actually send the command.  The default, @code{(900 . 300)}, means run
+the check every fifteen minutes and, if the user has been inactive for
+five minutes, send the keepalive command.  Set to @code{nil} to
+disable keepalive commands altogether.
+
 @end table
 
 

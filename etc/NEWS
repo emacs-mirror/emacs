@@ -276,6 +276,22 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 ** Commands 'set-frame-width' and 'set-frame-height' can now get their
 input using the minibuffer.
 
+---
+** New user option 'bookmark-menu-confirm-deletion'
+In Bookmark Menu mode, Emacs by default does not prompt for
+confirmation when you type 'x' to execute the deletion of bookmarks
+that have been marked for deletion.  However, if this new option is
+non-nil then Emacs will require confirmation with 'yes-or-no-p' before
+deleting.
+
+---
+** New help window when Emacs prompts before opening a large file.
+Commands like 'find-file' or 'visit-tags-table' ask to visit a file
+normally or literally when the file is larger than a certain size (by
+default, 9.5 MiB).  Press '?' or 'C-h' in that prompt to read more
+about the different options to visit a file, how you can disable the
+prompt, and how you can tweak the file size threshold.
+
 
 * Editing Changes in Emacs 28.1
 
@@ -1082,16 +1098,6 @@ defaulting to active region when used interactively.
 ** The old non-SMIE indentation of 'sh-mode' has been removed.
 
 ---
-** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
-The interactive bookmark list will now benefit from features in
-'tabulated-list-mode' like sorting columns or changing column width.
-
-Support for the optional "inline" header line, allowing for a header
-without using 'header-line-format', has been dropped.  Consequently,
-the variables 'bookmark-bmenu-use-header-line' and
-'bookmark-bmenu-inline-header-height' are now declared obsolete.
-
----
 ** The sb-image.el library is now marked obsolete.
 This file was a compatibility kludge which is no longer needed.
 
@@ -1113,6 +1119,28 @@ To customize obsolete user options, use 'customize-option' or
 *** New SVG icons for checkboxes and arrows.
 They will be used automatically instead of the old icons.  If Emacs is
 built without SVG support, the old icons will be used instead.
+
+** Bookmarks
+
+*** Bookmarks can now be targets for new tabs.
+When the bookmark.el library is loaded, a customize choice is added
+to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
+
+---
+*** The 'list-bookmarks' menu is now based on 'tabulated-list-mode'.
+The interactive bookmark list will now benefit from features in
+'tabulated-list-mode' like sorting columns or changing column width.
+
+Support for the optional "inline" header line, allowing for a header
+without using 'header-line-format', has been dropped.  Consequently,
+the variables 'bookmark-bmenu-use-header-line' and
+'bookmark-bmenu-inline-header-height' are now declared obsolete.
+
+---
+*** New user option 'bookmark-fontify'.
+If non-nil, setting a bookmark will colorize the current line with
+'bookmark-face'.
+
 
 ** Edebug
 
@@ -2193,10 +2221,6 @@ with initial input as the default directory.
 The width now depends of the width of the window, but will never be
 wider than the length of the longest buffer name, except that it will
 never be narrower than 19 characters.
-
-*** Bookmarks can now be targets for new tabs.
-When the bookmark.el library is loaded, a customize choice is added
-to 'tab-bar-new-tab-choice' for new tabs to show the bookmark list.
 
 ---
 *** Movement commands in 'gomoku-mode' are fixed.

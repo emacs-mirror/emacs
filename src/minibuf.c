@@ -212,7 +212,23 @@ DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
        doc: /* Return the currently active minibuffer window, or nil if none.  */)
      (void)
 {
-  return minibuf_level ? minibuf_window : Qnil;
+  Lisp_Object frames, frame;
+  struct frame *f;
+  Lisp_Object innermost_MB;
+
+  if (!minibuf_level)
+    return Qnil;
+
+  innermost_MB = nth_minibuffer (minibuf_level);
+  FOR_EACH_FRAME (frames, frame)
+    {
+      f = XFRAME (frame);
+      if (FRAME_LIVE_P (f)
+	  && WINDOW_LIVE_P (f->minibuffer_window)
+	  && EQ (XWINDOW (f->minibuffer_window)->contents, innermost_MB))
+	return f->minibuffer_window;
+    }
+  return minibuf_window;	/* "Can't happen." */
 }
 
 DEFUN ("set-minibuffer-window", Fset_minibuffer_window,

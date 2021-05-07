@@ -2252,9 +2252,8 @@ Based on the current set of columns and `window-hscroll' position."
                                                  (push (symbol-name key) names))
 					       ses--named-cell-hashmap)
 				      names)))))
-		 (if
-		     (string= s "")
-		     (error "Invalid cell name")
+		 (if (string= s "")
+		     (user-error "Invalid cell name")
 		   (list (intern s)))))
   (let ((rowcol (ses-sym-rowcol sym)))
     (or rowcol (error "Invalid cell name"))
@@ -3381,7 +3380,7 @@ while in the SES buffer."
           ((derived-mode-p 'ses-mode) ses--local-printer-hashmap)
           ((minibufferp) ses--completion-table)
           ((derived-mode-p 'help-mode) nil)
-          (t (error "Not in a SES buffer")))))
+          (t (user-error "Not in a SES buffer")))))
   (when local-printer-hashmap
     (let ((ses--list-orig-buffer (or ses--list-orig-buffer (current-buffer))))
       (help-setup-xref
@@ -3415,7 +3414,7 @@ while in the SES buffer."
           ((derived-mode-p 'ses-mode) ses--named-cell-hashmap)
           ((minibufferp) ses--completion-table)
           ((derived-mode-p 'help-mode) nil)
-          (t (error "Not in a SES buffer")))))
+          (t (user-error "Not in a SES buffer")))))
   (when named-cell-hashmap
     (let ((ses--list-orig-buffer (or ses--list-orig-buffer (current-buffer))))
       (help-setup-xref
@@ -3458,7 +3457,9 @@ With a \\[universal-argument] prefix arg, prompt the user.
 The top row is row 1.  Selecting row 0 displays the default header row."
   (interactive
    (list (if (numberp current-prefix-arg) current-prefix-arg
-	   (let ((currow (1+ (car (ses-sym-rowcol ses--curcell)))))
+	   (let* ((curcell (or (ses--cell-at-pos (point))
+                               (user-error "Invalid header-row")))
+                  (currow (1+ (car (ses-sym-rowcol curcell)))))
 	     (if current-prefix-arg
 		 (read-number "Header row: " currow)
 	       currow)))))

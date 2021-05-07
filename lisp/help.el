@@ -1890,7 +1890,7 @@ the same names as used in the original source code, when possible."
    ((and (byte-code-function-p def) (listp (aref def 0))) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
    ((eq (car-safe def) 'closure) (nth 2 def))
-   ((and (featurep 'nativecomp)
+   ((and (featurep 'native-compile)
          (subrp def)
          (listp (subr-native-lambda-list def)))
     (subr-native-lambda-list def))

@@ -938,7 +938,7 @@ In use by the back-end."
 Signal an error otherwise.
 To be used by all entry points."
   (cond
-   ((null (featurep 'nativecomp))
+   ((null (featurep 'native-compile))
     (error "Emacs was not compiled with native compiler support (--with-native-compilation)"))
    ((null (native-comp-available-p))
     (error "Cannot find libgccjit library"))))
@@ -3944,11 +3944,14 @@ display a message."
                                 source-file)
                                (comp-accept-and-process-async-output process)
                                (ignore-errors (delete-file temp-file))
-                               (when (and load1
-                                          (zerop (process-exit-status process)))
-                                 (native-elisp-load
-                                  (comp-el-to-eln-filename source-file1)
-                                  (eq load1 'late)))
+                               (let ((eln-file (comp-el-to-eln-filename
+                                                source-file1)))
+                                 (when (and load1
+                                            (zerop (process-exit-status
+                                                    process))
+                                            (file-exists-p eln-file))
+                                   (native-elisp-load eln-file
+                                                      (eq load1 'late))))
                                (comp-run-async-workers))
                              :noquery (not comp-async-query-on-exit))))
               (puthash source-file process comp-async-compilations))
