@@ -2267,7 +2267,7 @@ Clean-up the corresponding .eln files if Emacs is native
 compiled."
   (when (featurep 'native-compile)
     (cl-loop
-     for file in (directory-files-recursively dir ".el\\'")
+     for file in (directory-files-recursively dir "\\.el\\'")
      do (comp-clean-up-stale-eln (comp-el-to-eln-filename file))))
   (delete-directory dir t))
 

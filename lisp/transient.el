@@ -3569,7 +3569,7 @@ we stop there."
                                   "transient-define-argument"
                                   "transient-define-suffix")
                             t)
-                "\\_>[ \t'\(]*"
+                "\\_>[ \t'(]*"
                 "\\(\\(?:\\sw\\|\\s_\\)+\\)?")
        (1 'font-lock-keyword-face)
        (2 'font-lock-function-name-face nil t)))))

@@ -496,7 +496,7 @@ This is needed if there are compatibility problems."
       ((dir (tramp-compat-funcall
 	     'package-desc-dir
 	     (car (alist-get 'tramp (bound-and-true-p package-alist))))))
-    (dolist (elc (directory-files dir 'full "\\.elc$"))
+    (dolist (elc (directory-files dir 'full "\\.elc\\'"))
       (delete-file elc))
     (with-current-buffer (get-buffer-create byte-compile-log-buffer)
       (let ((inhibit-read-only t))

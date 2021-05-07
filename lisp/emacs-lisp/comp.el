@@ -43,7 +43,7 @@
   "Emacs Lisp native compiler."
   :group 'lisp)
 
-(defcustom comp-speed 2
+(defcustom native-comp-speed 2
   "Optimization level for native compilation, a number between -1 and 3.
  -1 functions are kept in bytecode form and no native compilation is performed.
   0 native compilation is performed with no optimizations.
@@ -55,7 +55,7 @@
   :safe #'integerp
   :version "28.1")
 
-(defcustom comp-debug (if (eq 'windows-nt system-type) 1 0)
+(defcustom native-comp-debug (if (eq 'windows-nt system-type) 1 0)
   "Debug level for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no debug output.
@@ -67,7 +67,7 @@ This is intended for debugging the compiler itself.
   :safe #'natnump
   :version "28.1")
 
-(defcustom comp-verbose 0
+(defcustom native-comp-verbose 0
   "Compiler verbosity for native compilation, a number between 0 and 3.
 This is intended for debugging the compiler itself.
   0 no logging.
@@ -78,7 +78,7 @@ This is intended for debugging the compiler itself.
   :risky t
   :version "28.1")
 
-(defcustom comp-always-compile nil
+(defcustom native-comp-always-compile nil
   "Non-nil means unconditionally (re-)compile all files."
   :type 'boolean
   :version "28.1")
@@ -90,7 +90,7 @@ Files whose names match any regexp are excluded from native compilation."
   :type '(repeat regexp)
   :version "28.1")
 
-(defcustom comp-bootstrap-deny-list
+(defcustom native-comp-bootstrap-deny-list
   '()
   "List of regexps to exclude files from native compilation during bootstrap.
 Files whose names match any regexp are excluded from native compilation
@@ -98,7 +98,7 @@ during bootstrap."
   :type '(repeat regexp)
   :version "28.1")
 
-(defcustom comp-never-optimize-functions
+(defcustom native-comp-never-optimize-functions
   '(;; The following two are mandatory for Emacs to be working
     ;; correctly (see comment in `advice--add-function'). DO NOT
     ;; REMOVE.
@@ -107,7 +107,7 @@ during bootstrap."
   :type '(repeat symbol)
   :version "28.1")
 
-(defcustom comp-async-jobs-number 0
+(defcustom native-comp-async-jobs-number 0
   "Default number of subprocesses used for async native compilation.
 Value of zero means to use half the number of the CPU's execution units,
 or one if there's just one execution unit."
@@ -115,26 +115,26 @@ or one if there's just one execution unit."
   :risky t
   :version "28.1")
 
-(defcustom comp-async-cu-done-functions nil
+(defcustom native-comp-async-cu-done-functions nil
   "List of functions to call after asynchronously compiling one compilation unit.
 Called with one argument FILE, the filename used as input to
 compilation."
   :type 'hook
   :version "28.1")
 
-(defcustom comp-async-all-done-hook nil
+(defcustom native-comp-async-all-done-hook nil
   "Hook run after completing asynchronous compilation of all input files."
   :type 'hook
   :version "28.1")
 
-(defcustom comp-async-env-modifier-form nil
+(defcustom native-comp-async-env-modifier-form nil
   "Form evaluated before compilation by each asynchronous compilation subprocess.
 Used to modify the compiler environment."
   :type 'sexp
   :risky t
   :version "28.1")
 
-(defcustom comp-async-report-warnings-errors t
+(defcustom native-comp-async-report-warnings-errors t
   "Whether to report warnings and errors from asynchronous native compilation.
 
 When native compilation happens asynchronously, it can produce
@@ -152,7 +152,7 @@ Set this variable to nil if these warnings annoy you."
   :type 'boolean
   :version "28.1")
 
-(defcustom comp-async-query-on-exit nil
+(defcustom native-comp-async-query-on-exit nil
   "Whether to query the user about killing async compilations when exiting.
 If this is non-nil, Emacs will ask for confirmation to exit and kill the
 asynchronous native compilations if any are running.  If nil, when you
@@ -161,7 +161,7 @@ if `confirm-kill-processes' is non-nil."
   :type 'boolean
   :version "28.1")
 
-(defcustom comp-native-driver-options nil
+(defcustom native-comp-driver-options nil
   "Options passed verbatim to the native compiler's back-end driver.
 Note that not all options are meaningful; typically only the options
 affecting the assembler and linker are likely to be useful.
@@ -178,7 +178,7 @@ the .eln output directory."
   :type 'boolean
   :version "28.1")
 
-(defcustom comp-warning-on-missing-source t
+(defcustom native-comp-warning-on-missing-source t
   "Emit a warning if a byte-code file being loaded has no corresponding source.
 The source file is necessary for native code file look-up and deferred
 compilation mechanism."
@@ -662,7 +662,7 @@ Useful to hook into pass checkers.")
 (defun comp-subr-trampoline-install (subr-name)
   "Make SUBR-NAME effectively advice-able when called from native code."
   (unless (or (null comp-enable-subr-trampolines)
-              (memq subr-name comp-never-optimize-functions)
+              (memq subr-name native-comp-never-optimize-functions)
               (gethash subr-name comp-installed-trampolines-h))
     (cl-assert (subr-primitive-p (symbol-function subr-name)))
     (comp--install-trampoline
@@ -743,11 +743,11 @@ Returns ELT."
   "Lisp side of the compiler context."
   (output nil :type string
           :documentation "Target output file-name for the compilation.")
-  (speed comp-speed :type number
+  (speed native-comp-speed :type number
          :documentation "Default speed for this compilation unit.")
-  (debug comp-debug :type number
+  (debug native-comp-debug :type number
          :documentation "Default debug level for this compilation unit.")
-  (driver-options comp-native-driver-options :type list
+  (driver-options native-comp-driver-options :type list
          :documentation "Options for the GCC driver.")
   (top-level-forms () :type list
                    :documentation "List of spilled top level forms.")
@@ -899,7 +899,7 @@ CFG is mutated by a pass.")
   (has-non-local nil :type boolean
                  :documentation "t if non local jumps are present.")
   (speed nil :type number
-         :documentation "Optimization level (see `comp-speed').")
+         :documentation "Optimization level (see `native-comp-speed').")
   (pure nil :type boolean
         :documentation "t if pure nil otherwise.")
   (type nil :type (or null comp-mvar)
@@ -1028,18 +1028,18 @@ Assume allocation class 'd-default as default."
     (,(rx-to-string
        `(seq "(" (group-n 1 (or ,@(mapcar #'symbol-name comp-limple-ops)))))
      (1 font-lock-keyword-face)))
-  "Highlights used by `comp-limple-mode'.")
+  "Highlights used by `native-comp-limple-mode'.")
 
-(define-derived-mode comp-limple-mode fundamental-mode "LIMPLE"
+(define-derived-mode native-comp-limple-mode fundamental-mode "LIMPLE"
   "Syntax-highlight LIMPLE IR."
   (setf font-lock-defaults '(comp-limple-lock-keywords)))
 
 (cl-defun comp-log (data &optional (level 1) quoted)
   "Log DATA at LEVEL.
 LEVEL is a number from 1-3, and defaults to 1; if it is less
-than `comp-verbose', do nothing.  If `noninteractive', log
+than `native-comp-verbose', do nothing.  If `noninteractive', log
 with `message'.  Otherwise, log with `comp-log-to-buffer'."
-  (when (>= comp-verbose level)
+  (when (>= native-comp-verbose level)
     (if noninteractive
         (cl-typecase data
           (atom (message "%s" data))
@@ -1059,8 +1059,8 @@ with `message'.  Otherwise, log with `comp-log-to-buffer'."
          (inhibit-read-only t)
          at-end-p)
     (with-current-buffer log-buffer
-      (unless (eq major-mode 'comp-limple-mode)
-        (comp-limple-mode))
+      (unless (eq major-mode 'native-comp-limple-mode)
+        (native-comp-limple-mode))
       (when (= (point) (point-max))
         (setf at-end-p t))
       (save-excursion
@@ -1091,7 +1091,7 @@ with `message'.  Otherwise, log with `comp-log-to-buffer'."
 (defun comp-log-func (func verbosity)
   "Log function FUNC at VERBOSITY.
 VERBOSITY is a number between 0 and 3."
-  (when (>= comp-verbose verbosity)
+  (when (>= native-comp-verbose verbosity)
     (comp-log (format "\nFunction: %s\n" (comp-func-name func)) verbosity)
     (cl-loop
      for block-name being each hash-keys of (comp-func-blocks func)
@@ -1333,12 +1333,12 @@ clashes."
     (setf (comp-ctxt-output comp-ctxt) (comp-el-to-eln-filename
                                         filename
                                         (when byte-native-for-bootstrap
-                                          (car (last comp-eln-load-path))))))
-  (setf (comp-ctxt-speed comp-ctxt) (alist-get 'comp-speed
+                                          (car (last native-comp-eln-load-path))))))
+  (setf (comp-ctxt-speed comp-ctxt) (alist-get 'native-comp-speed
                                                byte-native-qualities)
-        (comp-ctxt-debug comp-ctxt) (alist-get 'comp-debug
+        (comp-ctxt-debug comp-ctxt) (alist-get 'native-comp-debug
                                                byte-native-qualities)
-        (comp-ctxt-driver-options comp-ctxt) (alist-get 'comp-native-driver-options
+        (comp-ctxt-driver-options comp-ctxt) (alist-get 'native-comp-driver-options
                                                         byte-native-qualities)
         (comp-ctxt-top-level-forms comp-ctxt)
         (cl-loop
@@ -3250,14 +3250,14 @@ Return t if something was changed."
 ;;   funcall trampoline gets optimized into normal indirect calls.
 ;;   This makes effectively this calls equivalent to all the subrs that got
 ;;   dedicated byte-code ops.
-;;   Triggered at comp-speed >= 2.
+;;   Triggered at native-comp-speed >= 2.
 ;; - Recursive calls gets optimized into direct calls.
-;;   Triggered at comp-speed >= 2.
+;;   Triggered at native-comp-speed >= 2.
 ;; - Intra compilation unit procedure calls gets optimized into direct calls.
 ;;   This can be a big win and even allow gcc to inline but does not make
 ;;   function in the compilation unit re-definable safely without recompiling
 ;;   the full compilation unit.
-;;   For this reason this is triggered only at comp-speed == 3.
+;;   For this reason this is triggered only at native-comp-speed == 3.
 
 (defun comp-func-in-unit (func)
   "Given FUNC return the `comp-fun' definition in the current context.
@@ -3275,7 +3275,7 @@ FUNCTION can be a function-name or byte compiled function."
     (when (and callee
                (or (symbolp callee)
                    (gethash callee (comp-ctxt-byte-func-to-func-h comp-ctxt)))
-               (not (memq callee comp-never-optimize-functions)))
+               (not (memq callee native-comp-never-optimize-functions)))
       (let* ((f (if (symbolp callee)
                     (symbol-function callee)
                   (cl-assert (byte-code-function-p callee))
@@ -3650,14 +3650,14 @@ Prepare every function for final compilation and drive the C back-end."
              (print-circle t)
              (print-escape-multibyte t)
              (expr `((require 'comp)
-                     (setf comp-verbose ,comp-verbose
+                     (setf native-comp-verbose ,native-comp-verbose
                            comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                            comp-ctxt ,comp-ctxt
-                           comp-eln-load-path ',comp-eln-load-path
-                           comp-native-driver-options
-                           ',comp-native-driver-options
+                           native-comp-eln-load-path ',native-comp-eln-load-path
+                           native-comp-driver-options
+                           ',native-comp-driver-options
                            load-path ',load-path)
-                     ,comp-async-env-modifier-form
+                     ,native-comp-async-env-modifier-form
                      (message "Compiling %s..." ',output)
                      (comp-final1)))
              (temp-file (make-temp-file
@@ -3703,12 +3703,12 @@ Prepare every function for final compilation and drive the C back-end."
 
 (defun comp-eln-load-path-eff ()
   "Return a list of effective eln load directories.
-Account for `comp-eln-load-path' and `comp-native-version-dir'."
+Account for `native-comp-eln-load-path' and `comp-native-version-dir'."
   (mapcar (lambda (dir)
             (expand-file-name comp-native-version-dir
                               (file-name-as-directory
                                (expand-file-name dir invocation-directory))))
-          comp-eln-load-path))
+          native-comp-eln-load-path))
 
 (defun comp-trampoline-filename (subr-name)
   "Given SUBR-NAME return the filename containing the trampoline."
@@ -3756,7 +3756,7 @@ Return the trampoline if found or nil otherwise."
          ;; Use speed 0 to maximize compilation speed and not to
          ;; optimize away funcall calls!
          (byte-optimize nil)
-         (comp-speed 1)
+         (native-comp-speed 1)
          (lexical-binding t))
     (comp--native-compile
      form nil
@@ -3772,14 +3772,14 @@ Return the trampoline if found or nil otherwise."
       when (file-writable-p f)
         do (cl-return f)
       finally (error "Cannot find suitable directory for output in \
-`comp-eln-load-path'")))))
+`native-comp-eln-load-path'")))))
 
 
 ;; Some entry point support code.
 
 ;;;###autoload
 (defun comp-clean-up-stale-eln (file)
-  "Given FILE remove all its *.eln files in `comp-eln-load-path'
+  "Given FILE remove all its *.eln files in `native-comp-eln-load-path'
 sharing the original source filename (including FILE)."
   (when (string-match (rx "-" (group-n 1 (1+ hex)) "-" (1+ hex) ".eln" eos)
                       file)
@@ -3851,7 +3851,7 @@ processes from `comp-async-compilations'"
 (defvar comp-num-cpus nil)
 (defun comp-effective-async-max-jobs ()
   "Compute the effective number of async jobs."
-  (if (zerop comp-async-jobs-number)
+  (if (zerop native-comp-async-jobs-number)
       (or comp-num-cpus
           (setf comp-num-cpus
                 ;; FIXME: we already have a function to determine
@@ -3867,13 +3867,13 @@ processes from `comp-async-compilations'"
                                   (shell-command-to-string "sysctl -n hw.ncpu")))
                                 (t 1))
                           2))))
-    comp-async-jobs-number))
+    native-comp-async-jobs-number))
 
 (defvar comp-last-scanned-async-output nil)
 (make-variable-buffer-local 'comp-last-scanned-async-output)
 (defun comp-accept-and-process-async-output (process)
   "Accept PROCESS output and check for diagnostic messages."
-  (if comp-async-report-warnings-errors
+  (if native-comp-async-report-warnings-errors
       (with-current-buffer (process-buffer process)
         (save-excursion
           (accept-process-output process)
@@ -3886,7 +3886,7 @@ processes from `comp-async-compilations'"
 
 (defun comp-run-async-workers ()
   "Start compiling files from `comp-files-queue' asynchronously.
-When compilation is finished, run `comp-async-all-done-hook' and
+When compilation is finished, run `native-comp-async-all-done-hook' and
 display a message."
   (if (or comp-files-queue
           (> (comp-async-runnings) 0))
@@ -3897,7 +3897,7 @@ display a message."
          do (cl-assert (string-match-p comp-valid-source-re source-file) nil
                        "`comp-files-queue' should be \".el\" files: %s"
                        source-file)
-         when (or comp-always-compile
+         when (or native-comp-always-compile
                   load ; Always compile when the compilation is
                        ; commanded for late load.
                   (file-newer-than-file-p
@@ -3905,17 +3905,17 @@ display a message."
          do (let* ((expr `((require 'comp)
                            ,(when (boundp 'backtrace-line-length)
                               `(setf backtrace-line-length ,backtrace-line-length))
-                           (setf comp-speed ,comp-speed
-                                 comp-debug ,comp-debug
-                                 comp-verbose ,comp-verbose
+                           (setf native-comp-speed ,native-comp-speed
+                                 native-comp-debug ,native-comp-debug
+                                 native-comp-verbose ,native-comp-verbose
                                  comp-libgccjit-reproducer ,comp-libgccjit-reproducer
                                  comp-async-compilation t
-                                 comp-eln-load-path ',comp-eln-load-path
-                                 comp-native-driver-options
-                                 ',comp-native-driver-options
+                                 native-comp-eln-load-path ',native-comp-eln-load-path
+                                 native-comp-driver-options
+                                 ',native-comp-driver-options
                                  load-path ',load-path
                                  warning-fill-column most-positive-fixnum)
-                           ,comp-async-env-modifier-form
+                           ,native-comp-async-env-modifier-form
                            (message "Compiling %s..." ,source-file)
                            (comp--native-compile ,source-file ,(and load t))))
                    (source-file1 source-file) ;; Make the closure works :/
@@ -3940,7 +3940,7 @@ display a message."
                              :sentinel
                              (lambda (process _event)
                                (run-hook-with-args
-                                'comp-async-cu-done-functions
+                                'native-comp-async-cu-done-functions
                                 source-file)
                                (comp-accept-and-process-async-output process)
                                (ignore-errors (delete-file temp-file))
@@ -3953,12 +3953,12 @@ display a message."
                                    (native-elisp-load eln-file
                                                       (eq load1 'late))))
                                (comp-run-async-workers))
-                             :noquery (not comp-async-query-on-exit))))
+                             :noquery (not native-comp-async-query-on-exit))))
               (puthash source-file process comp-async-compilations))
          when (>= (comp-async-runnings) (comp-effective-async-max-jobs))
            do (cl-return)))
     ;; No files left to compile and all processes finished.
-    (run-hooks 'comp-async-all-done-hook)
+    (run-hooks 'native-comp-async-all-done-hook)
     (with-current-buffer (get-buffer-create comp-async-buffer-name)
       (save-excursion
         (goto-char (point-max))
@@ -4066,7 +4066,7 @@ nil -- Select all files.
 a string -- A regular expression selecting files with matching names.
 a function -- A function selecting files with matching names.
 
-The variable `comp-async-jobs-number' specifies the number
+The variable `native-comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously.
 
 LOAD can also be the symbol `late'.  This is used internally if
@@ -4123,10 +4123,10 @@ bytecode definition was not changed in the meantime)."
 ;;;###autoload
 (defun comp-lookup-eln (filename)
   "Given a Lisp source FILENAME return the corresponding .eln file if found.
-Search happens in `comp-eln-load-path'."
+Search happens in `native-comp-eln-load-path'."
   (cl-loop
    with eln-filename = (comp-el-to-eln-rel-filename filename)
-   for dir in comp-eln-load-path
+   for dir in native-comp-eln-load-path
    for f = (expand-file-name eln-filename
                              (expand-file-name comp-native-version-dir
                                                (expand-file-name
@@ -4159,7 +4159,7 @@ Native compilation equivalent to `batch-byte-compile'."
   (cl-loop for file in command-line-args-left
            if (or (null byte-native-for-bootstrap)
                   (cl-notany (lambda (re) (string-match re file))
-                             comp-bootstrap-deny-list))
+                             native-comp-bootstrap-deny-list))
            do (comp--native-compile file)
            else
            do (byte-compile-file file)))
@@ -4169,7 +4169,7 @@ Native compilation equivalent to `batch-byte-compile'."
   "Like `batch-native-compile', but used for bootstrap.
 Generate .elc files in addition to the .eln files.
 Force the produced .eln to be outputted in the eln system
-directory (the last entry in `comp-eln-load-path').
+directory (the last entry in `native-comp-eln-load-path').
 If the environment variable 'NATIVE_DISABLED' is set, only byte
 compile."
   (comp-ensure-native-compiler)
@@ -4200,7 +4200,7 @@ nil -- Select all files.
 a string -- A regular expression selecting files with matching names.
 a function -- A function selecting files with matching names.
 
-The variable `comp-async-jobs-number' specifies the number
+The variable `native-comp-async-jobs-number' specifies the number
 of (commands) to run simultaneously."
   ;; Normalize: we only want to pass t or nil, never e.g. `late'.
   (let ((load (not (not load))))

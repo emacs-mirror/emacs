@@ -252,6 +252,8 @@ pair of the form (KEY VALUE).  The following KEYs are defined:
     - \"%c\" adds additional `tramp-ssh-controlmaster-options'
       options for the first hop.
     - \"%n\" expands to \"2>/dev/null\".
+    - \"%x\" is replaced by the `tramp-scp-strict-file-name-checking'
+      argument if it is supported.
 
     The existence of `tramp-login-args', combined with the
     absence of `tramp-copy-args', is an indication that the

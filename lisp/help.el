@@ -233,7 +233,7 @@ Do not call this in the scope of `with-help-window'."
 (make-help-screen help-for-help
   (purecopy "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?")
   (concat
-   "\(Type "
+   "(Type "
    (help--key-description-fontified (kbd "<PageDown>"))
    " or "
    (help--key-description-fontified (kbd "<PageUp>"))
