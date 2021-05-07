@@ -195,9 +195,6 @@ is greater than 10.
 	      "^error with add-name-to-file")
 	    debug-ignored-errors))
 	  inhibit-message)
-     (when trace-buffer
-       (dolist (elt (all-completions "tramp-" obarray 'functionp))
-	 (trace-function-background (intern elt))))
      (unwind-protect
 	 (let ((tramp--test-instrument-test-case-p t)) ,@body)
        ;; Unwind forms.
@@ -205,13 +202,12 @@ is greater than 10.
 	 (untrace-all))
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
 	 (dolist
-	     (buf (if trace-buffer
-		      (cons (get-buffer trace-buffer) (tramp-list-tramp-buffers))
-		    (tramp-list-tramp-buffers)))
+	     (buf (append
+		   (tramp-list-tramp-buffers)
+		   (and trace-buffer (list (get-buffer trace-buffer)))))
 	   (with-current-buffer buf
-	     (message ";; %s\n%s" buf (buffer-string)))))
-       (when trace-buffer
-	 (kill-buffer trace-buffer)))))
+	     (message ";; %s\n%s" buf (buffer-string)))
+	   (kill-buffer buf))))))
 
 (defsubst tramp--test-message (fmt-string &rest arguments)
   "Emit a message into ERT *Messages*."

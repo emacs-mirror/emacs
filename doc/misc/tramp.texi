@@ -5336,6 +5336,7 @@ The verbosity levels are
 @*@indent @w{ 8}  connection properties
 @*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
+@*@indent @w{11}  call traces (maintainer only)
 
 With @code{tramp-verbose} greater than or equal to 4, messages are
 also written to a @value{tramp} debug buffer.  Such debug buffers are
@@ -5384,21 +5385,8 @@ The debug buffer is written as a file in your
 this option with care, because it could decrease the performance of
 @value{tramp} actions.
 
-To enable stepping through @value{tramp} function call traces, they
-have to be specifically enabled as shown in this code:
-
-@lisp
-@group
-(require 'trace)
-(dolist (elt (all-completions "tramp-" obarray 'functionp))
-  (trace-function-background (intern elt)))
-(untrace-function 'tramp-read-passwd)
-@end group
-@end lisp
-
-The buffer @file{*trace-output*} contains the output from the function
-call traces.  Disable @code{tramp-read-passwd} to stop password
-strings from being written to @file{*trace-output*}.
+If @code{tramp-verbose} is greater than or equal to 11, @value{tramp}
+function call traces are written to the buffer @file{*trace-output*}.
 
 
 @node GNU Free Documentation License
