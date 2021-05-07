@@ -5266,7 +5266,7 @@ Return ATTR."
     ;; to be quoted.  OpenSSH 8 supports disabling of strict file name
     ;; checking in scp, we use it when available.
     (unless (string-match-p "ftp$" method)
-      (setq localname (shell-quote-argument localname)))
+      (setq localname (tramp-unquote-shell-quote-argument localname)))
     (cond
      ((tramp-get-method-parameter vec 'tramp-remote-copy-program)
       localname)

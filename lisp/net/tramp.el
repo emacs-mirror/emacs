@@ -5476,8 +5476,12 @@ T1 and T2 are time values (as returned by `current-time' for example)."
   "Remove quotation prefix \"/:\" from string S, and quote it then for shell.
 Suppress `shell-file-name'.  This is needed on w32 systems, which
 would use a wrong quoting for local file names.  See `w32-shell-name'."
-  (let (shell-file-name)
-    (shell-quote-argument (tramp-compat-file-name-unquote s))))
+  (if (eq system-type 'windows-nt)
+      (let ((result (tramp-compat-file-name-unquote s)))
+	(setq result (tramp-compat-string-replace "\"" "\"\"" result))
+	(concat "\"" result "\""))
+    (let (shell-file-name)
+      (shell-quote-argument (tramp-compat-file-name-unquote s)))))
 
 ;; Currently (as of Emacs 20.5), the function `shell-quote-argument'
 ;; does not deal well with newline characters.  Newline is replaced by
