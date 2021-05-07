@@ -7559,7 +7559,10 @@ only these files will be asked to be saved."
 	(setq file-arg-indices (cdr file-arg-indices))))
     (pcase method
       ('identity (car arguments))
-      ('add (file-name-quote (apply operation arguments) t))
+      ('add
+       ;; This is `file-truename'.  We don't want file name handlers
+       ;; to expand this.
+       (file-name-quote (let (tramp-mode) (apply operation arguments)) t))
       ('buffer-file-name
        (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
          (apply operation arguments)))

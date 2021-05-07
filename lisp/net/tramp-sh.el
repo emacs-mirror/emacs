@@ -2371,11 +2371,12 @@ The method used must be an out-of-band method."
 		 ;; can be handled.  We don't set a timeout, because
 		 ;; the copying of large files can last longer than 60
 		 ;; secs.
-		 p (apply
-		    #'start-process
-		    (tramp-get-connection-name v)
-		    (tramp-get-connection-buffer v)
-		    copy-program copy-args))
+		 p (let ((default-directory (tramp-compat-temporary-file-directory)))
+		     (apply
+		      #'start-process
+		      (tramp-get-connection-name v)
+		      (tramp-get-connection-buffer v)
+		      copy-program copy-args)))
 		(tramp-message orig-vec 6 "%s" (string-join (process-command p) " "))
 		(process-put p 'vector orig-vec)
 		(process-put p 'adjust-window-size-function #'ignore)
