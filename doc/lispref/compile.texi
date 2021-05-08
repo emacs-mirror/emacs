@@ -801,13 +801,13 @@ The @code{silly-loop} function is somewhat more complex:
 
 @cindex native code
   In addition to the byte-compilation, described in @ref{Byte
-Compilation, previous chapter}, Emacs can also optionally compile Lisp
-function definitions into a true compiled code, known as @dfn{native
-code}.  This feature uses the @file{libgccjit} library, which is part
-of the GCC distribution, and requires that Emacs be built with support
-for using that library.  It also requires to have GCC and Binutils
-(the assembler and linker) available on your system for you to be able
-to native-compile Lisp code.
+Compilation, the previous chapter}, Emacs can also optionally compile
+Lisp function definitions into a true compiled code, known as
+@dfn{native code}.  This feature uses the @file{libgccjit} library,
+which is part of the GCC distribution, and requires that Emacs be
+built with support for using that library.  It also requires to have
+GCC and Binutils (the assembler and linker) available on your system
+for you to be able to native-compile Lisp code.
 
 @vindex native-compile@r{, a Lisp feature}
   To determine whether the current Emacs process can produce and load
@@ -857,7 +857,7 @@ specified, the former takes precedence.
 @section Native-Compilation Functions
 @cindex native-compilation functions
 
-   Native-Compilation is implemented as side effect of
+   Native-Compilation is implemented as a side effect of
 byte-compilation (@pxref{Byte Compilation}).  Thus, compiling Lisp
 code natively always produces its byte code as well, and therefore all
 the rules and caveats of preparing Lisp code for byte compilation
@@ -892,14 +892,14 @@ argument @var{function-or-file} can be a function symbol, a Lisp form,
 or a name (a string) of the file which contains the Emacs Lisp source
 code to compile.  If the optional argument @var{output} is provided,
 it must be a string specifying the name of the file to write the
-compiled code.  Otherwise, if @var{function-or-file} is a function or
-a Lisp form, this function returns the compiled object, and if
-@var{function-or-file} is a file name, the function returns the full
-absolute name of the file it created for the compiled code.  The
+compiled code into.  Otherwise, if @var{function-or-file} is a
+function or a Lisp form, this function returns the compiled object,
+and if @var{function-or-file} is a file name, the function returns the
+full absolute name of the file it created for the compiled code.  The
 output file is by default given the @file{.eln} extension.
 
 This function runs the final phase of the native compilation, which
-invokes GCC via @file{libgccjit}, in a separate sub-process, which
+invokes GCC via @file{libgccjit}, in a separate subprocess, which
 invokes the same Emacs executable as the process that called this
 function.
 @end defun
@@ -913,12 +913,12 @@ attempt to compile all the other files, and will terminate with a
 non-zero status code.
 @end defun
 
-Native compilation can be run entirely asynchronously, in a
-sub-process of the main Emacs process.  This leaves the main Emacs
-process free to use while the compilation runs in the background.
-This is the method used by Emacs to natively-compile any Lisp file or
-byte-compiled Lisp file that is loaded into Emacs, when no
-natively-compiled file for it is available.
+Native compilation can be run entirely asynchronously, in a subprocess
+of the main Emacs process.  This leaves the main Emacs process free to
+use while the compilation runs in the background.  This is the method
+used by Emacs to natively-compile any Lisp file or byte-compiled Lisp
+file that is loaded into Emacs, when no natively-compiled file for it
+is available.
 
 @defun native-compile-async files &optional recursively load selector
 This function compiles the named @var{files} asynchronously.  The
@@ -944,12 +944,12 @@ or the directory should be selected for compilation.
 
 On systems with multiple CPU execution units, when @var{files} names
 more than one file, this function will normally start several
-compilation sub-processes in parallel, under the control of
+compilation subprocesses in parallel, under the control of
 @code{native-comp-async-jobs-number} (@pxref{Native-Compilation
 Variables}).
 @end defun
 
-  The following function allows Lisp program to test whether
+  The following function allows Lisp programs to test whether
 native-compilation is available at runtime.
 
 @defun native-comp-available-p
@@ -962,7 +962,7 @@ whether native-compilation is available should use this predicate.
 
 @node Native-Compilation Variables
 @section Native-Compilation Variables
-@cindex native-compilation variable
+@cindex native-compilation variables
 
   This section documents the variables that control
 native-compilation.
