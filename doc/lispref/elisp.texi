@@ -197,6 +197,7 @@ To view this manual in other formats, click
 
 * Loading::                 Reading files of Lisp code into Lisp.
 * Byte Compilation::        Compilation makes programs run faster.
+* Native Compilation::      Compile Lisp into native machine code.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
 * Read and Print::          Converting Lisp objects to text and back.
@@ -645,6 +646,11 @@ Byte Compilation
 * Compiler Errors::         Handling compiler error messages.
 * Byte-Code Objects::       The data type used for byte-compiled functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
+
+Native Compilation
+
+* Native-Compilation Functions::  Functions to natively-compile Lisp.
+* Native-Compilation Variables::  Variables controlling native compilation.
 
 Debugging Lisp Programs
 

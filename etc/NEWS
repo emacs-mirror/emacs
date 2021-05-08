@@ -26,7 +26,10 @@ applies, and please also update docstrings as needed.
 
 ** Emacs now optionally supports native compilation of Lisp files.
 To enable this, configure Emacs with the '--with-native-compilation' option.
-This requires the libgccjit library to be installed and functional.
+This requires the libgccjit library to be installed and functional,
+and also requires GCC and Binutils to be available when Lisp code is
+natively compiled.  See the Info node "(elisp) Native Compilation" for
+more details.
 
 ---
 ** Support for building with Motif has been removed.
