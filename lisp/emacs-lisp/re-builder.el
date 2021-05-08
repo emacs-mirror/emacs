@@ -346,7 +346,7 @@ matching parts of the target buffer will be highlighted.
 Case-sensitivity can be toggled with \\[reb-toggle-case].  The
 regexp builder supports three different forms of input which can
 be set with \\[reb-change-syntax].  More options and details are
-provided in the initial comment of`re-builder.el'."
+provided in the Commentary section of this library."
   (interactive)
   (if (and (string= (buffer-name) reb-buffer)
 	   (reb-mode-buffer-p))
