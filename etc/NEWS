@@ -3217,6 +3217,14 @@ The new variable 'xwidget-webkit-download-dir' says where to download to.
 ".so" suffix is supported as well.
 
 +++
+** On macOS, Emacs now supports native tabs (in macOS 10.12 and later).
+Native tabbing behavior is specified system-wide via System
+Preferences, under under General > 'Prefer tabs when opening
+documents'. In macOS versions 10.15 and earlier, this option is
+located under Dock instead. Note that this feature is unrelated to the
+Emacs 'tab-bar-mode'.
+
++++
 ** On MS-Windows, Emacs can now toggle the IME.
 A new function 'w32-set-ime-open-status' can now be used to disable
 and enable the MS-Windows native Input Method Editor (IME) at run
