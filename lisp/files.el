@@ -7932,7 +7932,7 @@ Otherwise, trash FILENAME using the freedesktop.org conventions,
                         (expand-file-name files-base trash-files-dir))
                    (setq overwrite t
                          files-base (file-name-nondirectory
-                                     (make-temp-file
+                                     (make-temp-name
                                       (expand-file-name
                                        files-base trash-files-dir)))))
 		 (setq info-fn (expand-file-name
