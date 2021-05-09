@@ -109,7 +109,8 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
  7  file caching
  8  connection properties
  9  test commands
-10  traces (huge)."
+10  traces (huge)
+11  call traces (maintainer only)."
   :type 'integer)
 
 (defcustom tramp-debug-to-file nil
@@ -1390,6 +1391,14 @@ calling HANDLER.")
 (cl-defstruct (tramp-file-name (:type list) :named)
   method user domain host port localname hop)
 
+(put #'tramp-file-name-method 'tramp-suppress-trace t)
+(put #'tramp-file-name-user 'tramp-suppress-trace t)
+(put #'tramp-file-name-domain 'tramp-suppress-trace t)
+(put #'tramp-file-name-host 'tramp-suppress-trace t)
+(put #'tramp-file-name-port 'tramp-suppress-trace t)
+(put #'tramp-file-name-localname 'tramp-suppress-trace t)
+(put #'tramp-file-name-hop 'tramp-suppress-trace t)
+
 (defun tramp-file-name-user-domain (vec)
   "Return user and domain components of VEC."
   (when (or (tramp-file-name-user vec) (tramp-file-name-domain vec))
@@ -1397,6 +1406,8 @@ calling HANDLER.")
 	    (and (tramp-file-name-domain vec)
 		 tramp-prefix-domain-format)
 	    (tramp-file-name-domain vec))))
+
+(put #'tramp-file-name-user-domain 'tramp-suppress-trace t)
 
 (defun tramp-file-name-host-port (vec)
   "Return host and port components of VEC."
@@ -1406,11 +1417,15 @@ calling HANDLER.")
 		 tramp-prefix-port-format)
 	    (tramp-file-name-port vec))))
 
+(put #'tramp-file-name-host-port 'tramp-suppress-trace t)
+
 (defun tramp-file-name-port-or-default (vec)
   "Return port component of VEC.
 If nil, return `tramp-default-port'."
   (or (tramp-file-name-port vec)
       (tramp-get-method-parameter vec 'tramp-default-port)))
+
+(put #'tramp-file-name-port-or-default 'tramp-suppress-trace t)
 
 ;; Comparison of file names is performed by `tramp-equal-remote'.
 (defun tramp-file-name-equal-p (vec1 vec2)
@@ -1457,6 +1472,8 @@ entry does not exist, return nil."
 	   (not (string-match-p tramp-ignored-file-name-regexp name)))
        (string-match-p tramp-file-name-regexp name)
        t))
+
+(put #'tramp-tramp-file-p 'tramp-suppress-trace t)
 
 ;; This function bypasses the file name handler approach.  It is NOT
 ;; recommended to use it in any package if not absolutely necessary.
@@ -1506,6 +1523,8 @@ This is METHOD, if non-nil.  Otherwise, do a lookup in
 	result
       (propertize result 'tramp-default t))))
 
+(put #'tramp-find-method 'tramp-suppress-trace t)
+
 (defun tramp-find-user (method user host)
   "Return the right user string to use depending on METHOD and HOST.
 This is USER, if non-nil.  Otherwise, do a lookup in
@@ -1527,6 +1546,8 @@ This is USER, if non-nil.  Otherwise, do a lookup in
 	result
       (propertize result 'tramp-default t))))
 
+(put #'tramp-find-user 'tramp-suppress-trace t)
+
 (defun tramp-find-host (method user host)
   "Return the right host string to use depending on METHOD and USER.
 This is HOST, if non-nil.  Otherwise, do a lookup in
@@ -1547,6 +1568,8 @@ This is HOST, if non-nil.  Otherwise, do a lookup in
     (if (or (> (length host) 0) (null result))
 	result
       (propertize result 'tramp-default t))))
+
+(put #'tramp-find-host 'tramp-suppress-trace t)
 
 (defun tramp-dissect-file-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of NAME, a remote file name.
@@ -1612,6 +1635,8 @@ default values are used."
 	    (tramp-user-error
 	     v "Method `%s' is not supported for multi-hops." method)))))))
 
+(put #'tramp-dissect-file-name 'tramp-suppress-trace t)
+
 (defun tramp-dissect-hop-name (name &optional nodefault)
   "Return a `tramp-file-name' structure of `hop' part of NAME.
 See `tramp-dissect-file-name' for details."
@@ -1628,6 +1653,8 @@ See `tramp-dissect-file-name' for details."
        (tramp-file-name-method v)))
     ;; Return result.
     v))
+
+(put #'tramp-dissect-hop-name 'tramp-suppress-trace t)
 
 (defun tramp-buffer-name (vec)
   "A name for the connection buffer VEC."
@@ -1805,6 +1832,8 @@ version, the function does nothing."
 	(format "*debug tramp/%s %s@%s*" method user-domain host-port)
       (format "*debug tramp/%s %s*" method host-port))))
 
+(put #'tramp-debug-buffer-name 'tramp-suppress-trace t)
+
 (defconst tramp-debug-outline-regexp
   (concat
    "[[:digit:]]+:[[:digit:]]+:[[:digit:]]+\\.[[:digit:]]+ " ;; Timestamp.
@@ -1829,6 +1858,8 @@ Point must be at the beginning of a header line.
 
 The outline level is equal to the verbosity of the Tramp message."
   (1+ (string-to-number (match-string 2))))
+
+(put #'tramp-debug-outline-level 'tramp-suppress-trace t)
 
 (defun tramp-get-debug-buffer (vec)
   "Get the debug buffer for VEC."
@@ -1855,11 +1886,15 @@ The outline level is equal to the verbosity of the Tramp message."
       (use-local-map special-mode-map))
     (current-buffer)))
 
+(put #'tramp-get-debug-buffer 'tramp-suppress-trace t)
+
 (defun tramp-get-debug-file-name (vec)
   "Get the debug buffer for VEC."
   (expand-file-name
    (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
    (tramp-compat-temporary-file-directory)))
+
+(put #'tramp-get-debug-file-name 'tramp-suppress-trace t)
 
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
@@ -1871,8 +1906,8 @@ ARGUMENTS to actually emit the message (if applicable)."
     (with-current-buffer (tramp-get-debug-buffer vec)
       (goto-char (point-max))
       (let ((point (point)))
-	;; Headline.
 	(when (bobp)
+	  ;; Headline.
 	  (insert
 	   (format
 	    ";; Emacs: %s Tramp: %s -*- mode: outline; coding: utf-8; -*-"
@@ -1885,6 +1920,12 @@ ARGUMENTS to actually emit the message (if applicable)."
 		(locate-library "tramp")
 		(or tramp-repository-branch "")
 		(or tramp-repository-version "")))))
+	  ;; Traces.
+	  (when (>= tramp-verbose 11)
+	    (dolist (elt (all-completions "tramp-" obarray 'functionp))
+	      (let ((fn (intern elt)))
+		(unless (get fn 'tramp-suppress-trace)
+		  (trace-function-background fn)))))
 	  ;; Delete debug file.
 	  (when (and tramp-debug-to-file (tramp-get-debug-file-name vec))
 	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))))
@@ -5408,6 +5449,8 @@ Invokes `password-read' if available, `read-passwd' else."
       ;; Reenable the timers.
       (with-timeout-unsuspend stimers))))
 
+(put #'tramp-read-passwd 'tramp-suppress-trace t)
+
 (defun tramp-clear-passwd (vec)
   "Clear password cache for connection related to VEC."
   (let ((method (tramp-file-name-method vec))
@@ -5421,6 +5464,8 @@ Invokes `password-read' if available, `read-passwd' else."
      `(:max 1 ,(and user-domain :user) ,user-domain
        :host ,host-port :port ,method))
     (password-cache-remove (tramp-make-tramp-file-name vec 'noloc 'nohop))))
+
+(put #'tramp-clear-passwd 'tramp-suppress-trace t)
 
 (defun tramp-time-diff (t1 t2)
   "Return the difference between the two times, in seconds.

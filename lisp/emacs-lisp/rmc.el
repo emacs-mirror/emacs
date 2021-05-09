@@ -27,36 +27,37 @@
 
 ;;;###autoload
 (defun read-multiple-choice (prompt choices &optional help-string)
-  "Ask user a multiple choice question.
-PROMPT should be a string that will be displayed as the prompt.
+  "Ask user to select an entry from CHOICES, promting with PROMPT.
+This function allows to ask the user a multiple-choice question.
 
-CHOICES is a list of (KEY NAME [DESCRIPTION]).  KEY is a
-character to be entered.  NAME is a short name for the entry to
-be displayed while prompting (if there's room, it might be
-shortened).  DESCRIPTION is an optional longer explanation for
-the entry that will be displayed in a help buffer if the user
-requests more help.  This help description has a fixed format in
-columns, but, for greater flexibility, instead of passing a
-DESCRIPTION, the user can use the optional argument HELP-STRING.
-This argument is a string that contains the text with the
-complete description of all choices.  `read-multiple-choice' will
-display that description in a help buffer if the user requests
-it.
+CHOICES should be a list of the form (KEY NAME [DESCRIPTION]).
+KEY is a character the user should type to select the entry.
+NAME is a short name for the entry to be displayed while prompting
+\(if there's no room, it might be shortened).
+DESCRIPTION is an optional longer description of the entry; it will
+be displayed in a help buffer if the user requests more help.  This
+help description has a fixed format in columns.  For greater
+flexibility, instead of passing a DESCRIPTION, the caller can pass
+the optional argument HELP-STRING.  This argument is a string that
+should contain a more detailed description of all of the possible
+choices.  `read-multiple-choice' will display that description in a
+help buffer if the user requests that.
 
 This function translates user input into responses by consulting
 the bindings in `query-replace-map'; see the documentation of
-that variable for more information.  In this case, the useful
-bindings are `recenter', `scroll-up', `scroll-down', and `edit'.
-If the user enters `recenter', `scroll-up', or `scroll-down'
-responses, perform the requested window recentering or scrolling
-and ask again.  If the user enters `edit', start a recursive
-edit.  When the user exit the recursive edit, the multiple choice
-prompt gains focus again.
+that variable for more information.  The relevant bindings for the
+purposes of this function are `recenter', `scroll-up', `scroll-down',
+and `edit'.
+If the user types the `recenter', `scroll-up', or `scroll-down'
+responses, the function performs the requested window recentering or
+scrolling, and then asks the question again.  If the user enters `edit',
+the function starts a recursive edit.  When the user exit the recursive
+edit, the multiple-choice prompt gains focus again.
 
-When `use-dialog-box' is t (the default), this function can pop
-up a dialog window to collect the user input.  That functionality
-requires `display-popup-menus-p' to return t.  Otherwise, a
-text dialog will be used.
+When `use-dialog-box' is t (the default), and the command using this
+function was invoked via the mouse, this function pops up a GUI dialog
+to collect the user input, but only if Emacs is capable of using GUI
+dialogs.  Otherwise, the function will always use text-mode dialogs.
 
 The return value is the matching entry from the CHOICES list.
 
@@ -146,7 +147,7 @@ Usage example:
                     (save-excursion
                       (message "%s"
                                (substitute-command-keys
-                                "Recursive edit.  Resume with \\[exit-recursive-edit]"))
+                                "Recursive edit; type \\[exit-recursive-edit] to return to help screen"))
                       (recursive-edit))))
                  (t tchar)))
           (when (eq tchar t)

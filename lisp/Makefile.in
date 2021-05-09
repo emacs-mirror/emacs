@@ -202,7 +202,7 @@ $(lisp)/loaddefs.el: gen-lisp $(LOADDEFS)
 # regeneration of all these files.
 .PHONY: autoloads-force
 autoloads-force:
-	rm loaddefs.el
+	rm -f $(lisp)/loaddefs.el
 	$(MAKE) autoloads
 
 # This is required by the bootstrap-emacs target in ../src/Makefile, so

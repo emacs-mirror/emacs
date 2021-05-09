@@ -4361,9 +4361,12 @@ This may be a useful alternative binding for \\[delete-other-windows]
 
 ;; The following function is called by `set-window-buffer' _before_ it
 ;; replaces the buffer of the argument window with the new buffer.
-(defun record-window-buffer (&optional window)
+(defun record-window-buffer (&optional window do-minibuf)
   "Record WINDOW's buffer.
-WINDOW must be a live window and defaults to the selected one."
+WINDOW must be a live window and defaults to the selected one.
+
+If WINDOW is a minibuffer, it will only be recorded if DO-MINIBUF
+is non-nil."
   (let* ((window (window-normalize-window window t))
 	 (buffer (window-buffer window))
 	 (entry (assq buffer (window-prev-buffers window))))
@@ -4371,14 +4374,13 @@ WINDOW must be a live window and defaults to the selected one."
     ;; `switch-to-prev-buffer' and `switch-to-next-buffer'.
     (set-window-next-buffers window nil)
 
-    (when entry
-      ;; Remove all entries for BUFFER from WINDOW's previous buffers.
-      (set-window-prev-buffers
-       window (assq-delete-all buffer (window-prev-buffers window))))
-
     ;; Don't record insignificant buffers.
     (when (or (not (eq (aref (buffer-name buffer) 0) ?\s))
-              (minibufferp buffer))
+              (and do-minibuf (minibufferp buffer)))
+      (when entry
+        ;; Remove all entries for BUFFER from WINDOW's previous buffers.
+        (set-window-prev-buffers
+         window (assq-delete-all buffer (window-prev-buffers window))))
       ;; Add an entry for buffer to WINDOW's previous buffers.
       (with-current-buffer buffer
 	(let ((start (window-start window))

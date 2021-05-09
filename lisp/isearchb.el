@@ -7,7 +7,6 @@
 ;; Created: 16 Apr 2004
 ;; Version: 1.5
 ;; Keywords: lisp
-;; X-URL: http://www.newartisans.com/johnw/emacs.html
 
 ;; This file is part of GNU Emacs.
 

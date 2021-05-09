@@ -492,7 +492,7 @@
       '(menu-item "Select All" mark-whole-buffer
                   :help "Mark the whole buffer for a subsequent cut/copy"))
     (bindings--define-key menu [clear]
-      '(menu-item "Clear" delete-region
+      '(menu-item "Clear" delete-active-region
                   :enable (and mark-active
                                (not buffer-read-only))
                   :help

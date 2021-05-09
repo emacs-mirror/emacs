@@ -962,7 +962,10 @@ the user from the mailer."
 
 (defun mail-envelope-from ()
   "Return the envelope mail address to use when sending mail.
-This function uses `mail-envelope-from'."
+This function uses the `mail-envelope-from' variable.
+
+The buffer should be narrowed to the headers of the mail message
+before this function is called."
   (if (eq mail-envelope-from 'header)
       (nth 1 (mail-extract-address-components
  	      (mail-fetch-field "From")))

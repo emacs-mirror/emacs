@@ -163,9 +163,9 @@ zip_minibuffer_stacks (Lisp_Object dest_window, Lisp_Object source_window)
     }
 
   if (live_minibuffer_p (dw->contents))
-    call1 (Qrecord_window_buffer, dest_window);
+    call2 (Qrecord_window_buffer, dest_window, Qt);
   if (live_minibuffer_p (sw->contents))
-    call1 (Qrecord_window_buffer, source_window);
+    call2 (Qrecord_window_buffer, source_window, Qt);
 
   acc = merge_c (dw->prev_buffers, sw->prev_buffers, minibuffer_ent_greater);
 
@@ -204,6 +204,14 @@ move_minibuffers_onto_frame (struct frame *of, bool for_deletion)
       zip_minibuffer_stacks (f->minibuffer_window, of->minibuffer_window);
       if (for_deletion && XFRAME (MB_frame) != of)
 	MB_frame = selected_frame;
+      if (!for_deletion
+	  && MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (of))))
+	{
+	  Lisp_Object old_frame;
+	  XSETFRAME (old_frame, of);
+	  Fset_frame_selected_window (old_frame,
+				      Fframe_first_window (old_frame), Qnil);
+	}
     }
 }
 
@@ -672,7 +680,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
     }
   MB_frame = XWINDOW (XFRAME (selected_frame)->minibuffer_window)->frame;
   if (live_minibuffer_p (XWINDOW (minibuf_window)->contents))
-    call1 (Qrecord_window_buffer, minibuf_window);
+    call2 (Qrecord_window_buffer, minibuf_window, Qt);
 
   record_unwind_protect_void (minibuffer_unwind);
   record_unwind_protect (restore_window_configuration,
