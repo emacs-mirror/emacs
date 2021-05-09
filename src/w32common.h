@@ -41,8 +41,8 @@ extern int    	      w32_minor_version;
 extern int    	      w32_build_number;
 
 enum {
-  OS_9X = 1,
-  OS_NT
+  OS_SUBTYPE_9X = 1,
+  OS_SUBTYPE_NT
 };
 
 extern int os_subtype;
