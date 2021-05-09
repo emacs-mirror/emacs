@@ -3094,7 +3094,6 @@ This tests also `file-directory-p' and `file-accessible-directory-p'."
   (skip-unless (tramp--test-enabled))
   (skip-unless (tramp--test-sh-p))
   (skip-unless (not (tramp--test-rsync-p)))
-  (skip-unless (not (tramp--test-windows-nt-and-scp-p)))
   ;; Wildcards are not supported in tramp-crypt.el.
   (skip-unless (not (tramp--test-crypt-p)))
   ;; Since Emacs 26.1.
@@ -5842,13 +5841,6 @@ This does not support utf8 based file transfer."
   (and (eq system-type 'windows-nt)
        (tramp-method-out-of-band-p tramp-test-vec 1)))
 
-(defun tramp--test-windows-nt-and-scp-p ()
-  "Check, whether the locale host runs MS Windows, and scpx? is used.
-This does not support utf8 based file transfer."
-  (and (eq system-type 'windows-nt)
-       (string-match-p
-	"^scpx?" (file-remote-p tramp-test-temporary-file-directory 'method))))
-
 (defun tramp--test-windows-nt-or-smb-p ()
   "Check, whether the locale or remote host runs MS Windows.
 This requires restrictions of file name syntax."
@@ -6072,10 +6064,9 @@ This requires restrictions of file name syntax."
 		 "\tfoo bar baz\t")
 		(t " foo\tbar baz\t"))
 	  "@foo@bar@baz@"
-	  (unless (tramp--test-windows-nt-and-scp-p)
-	    "$foo$bar$$baz$")
+	  (unless (tramp--test-windows-nt-and-out-of-band-p) "$foo$bar$$baz$")
 	  "-foo-bar-baz-"
-	  "%foo%bar%baz%"
+	  (unless (tramp--test-windows-nt-and-out-of-band-p) "%foo%bar%baz%")
 	  "&foo&bar&baz&"
 	  (unless (or (tramp--test-ftp-p)
 		      (tramp--test-gvfs-p)
@@ -6089,7 +6080,7 @@ This requires restrictions of file name syntax."
 	      "'foo'bar'baz'"
 	    "'foo\"bar'baz\"")
 	  "#foo~bar#baz~"
-	  (unless (tramp--test-windows-nt-and-scp-p)
+	  (unless (tramp--test-windows-nt-and-out-of-band-p)
 	    (if (or (tramp--test-gvfs-p) (tramp--test-windows-nt-or-smb-p))
 		"!foo!bar!baz!"
 	      "!foo|bar!baz|"))

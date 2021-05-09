@@ -2166,7 +2166,7 @@ commands for those hosts, the property @t{"posix"} should be set to
 
 The default value of this property is @code{t} (not specified in
 @code{tramp-methods}).  If the remote host runs native MS Windows,
-this propery has no effect.
+this property has no effect.
 
 @item @t{"mount-point"}
 
@@ -4504,9 +4504,9 @@ Note how @samp{%r}, @samp{%h} and @samp{%p} must be encoded as
 @samp{%%r}, @samp{%%h} and @samp{%%p}.
 
 @vindex tramp-use-ssh-controlmaster-options
-If the @file{~/.ssh/config} is configured appropriately for the above
-behavior, then any changes to @command{ssh} can be suppressed with
-this @code{nil} setting:
+If the @file{~/.ssh/config} file is configured appropriately for the
+above behavior, then any changes to @command{ssh} can be suppressed
+with this @code{nil} setting:
 
 @lisp
 (customize-set-variable 'tramp-use-ssh-controlmaster-options nil)
@@ -4517,6 +4517,10 @@ this @code{nil} setting:
 This should also be set to @code{nil} if you use the
 @option{ProxyCommand} or @option{ProxyJump} options in your
 @command{ssh} configuration.
+
+On MS Windows, @code{tramp-use-ssh-controlmaster-options} is set to
+@code{nil} by default, because the MS Windows and MSYS2
+implementations of @command{OpenSSH} do not support this option properly.
 
 
 @item
