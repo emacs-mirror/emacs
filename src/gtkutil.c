@@ -738,6 +738,9 @@ xg_check_special_colors (struct frame *f,
 /***********************************************************************
                               Tooltips
  ***********************************************************************/
+
+#ifndef HAVE_PGTK
+
 /* Gtk+ calls this callback when the parent of our tooltip dummy changes.
    We use that to pop down the tooltip.  This happens if Gtk+ for some
    reason wants to change or hide the tooltip.  */
@@ -911,6 +914,27 @@ xg_hide_tooltip (struct frame *f)
     }
   return FALSE;
 }
+
+#else
+
+void
+xg_show_tooltip (struct frame *f,
+		 Lisp_Object string)
+{
+  Lisp_Object encoded_string = ENCODE_UTF_8 (string);
+  gtk_widget_set_tooltip_text (FRAME_GTK_OUTER_WIDGET (f), SSDATA (encoded_string));
+}
+
+bool
+xg_hide_tooltip (struct frame *f)
+{
+  if (gtk_widget_get_tooltip_text (FRAME_GTK_OUTER_WIDGET (f)) == NULL)
+    return FALSE;
+  gtk_widget_set_tooltip_text (FRAME_GTK_OUTER_WIDGET (f), NULL);
+  return TRUE;
+}
+
+#endif
 
 
 /***********************************************************************
@@ -1563,8 +1587,10 @@ xg_create_frame_widgets (struct frame *f)
   f->output_data.xp->ttip_widget = 0;
   f->output_data.xp->ttip_lbl = 0;
   f->output_data.xp->ttip_window = 0;
+#ifndef HAVE_PGTK
   gtk_widget_set_tooltip_text (wtop, "Dummy text");
   g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
+#endif
 
   {
     GdkScreen *screen = gtk_widget_get_screen (wtop);
@@ -1665,8 +1691,10 @@ xg_create_frame_outer_widgets (struct frame *f)
   f->output_data.xp->ttip_widget = 0;
   f->output_data.xp->ttip_lbl = 0;
   f->output_data.xp->ttip_window = 0;
+#ifndef HAVE_PGTK
   gtk_widget_set_tooltip_text (wtop, "Dummy text");
   g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
+#endif
 
   {
     GdkScreen *screen = gtk_widget_get_screen (wtop);
@@ -3005,6 +3033,11 @@ make_menu_item (const char *utf8_label,
 
   if (wtoadd) gtk_container_add (GTK_CONTAINER (w), wtoadd);
   if (! item->enabled) gtk_widget_set_sensitive (w, FALSE);
+
+#ifdef HAVE_PGTK
+  if (!NILP (item->help))
+    gtk_widget_set_tooltip_text (w, SSDATA (item->help));
+#endif
 
   return w;
 }
