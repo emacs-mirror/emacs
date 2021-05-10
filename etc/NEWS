@@ -2485,6 +2485,13 @@ This is to keep the same behavior as Eshell.
 * Incompatible Lisp Changes in Emacs 28.1
 
 +++
+** The 'lexical-binding' local variable is always enabled.
+Previously, if 'enable-local-variables' was nil, a 'lexical-binding'
+local variable would not be heeded.  This has now changed, and a file
+with a 'lexical-binding' cookie is always heeded.  To revert to the
+old behavior, set 'permanently-enabled-local-variables' to nil.
+
++++
 ** 'completing-read-default' sets completion variables buffer-locally.
 'minibuffer-completion-table' and related variables are now set buffer-locally
 in the minibuffer instead of being set via a global let-binding.
