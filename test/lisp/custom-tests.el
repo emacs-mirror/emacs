@@ -230,4 +230,108 @@ Ensure the directory is recursively deleted after the fact."
       (should (eq (default-value 'custom--test-local-option) 'initial))
       (should (eq (default-value 'custom--test-permanent-option) 'initial)))))
 
+;; The following three tests demonstrate Bug#21355.
+;; In this one, we set an user option for the current session and then
+;; we enable a theme that doesn't have a setting for it, ending up with
+;; a non-nil saved-value property.  Since the `caar' of the theme-value
+;; property is user (i.e., the user theme setting is active), we might
+;; save the setting to the custom-file, even though it was meant for the
+;; current session only.  So there should be a nil saved-value property
+;; for this test to pass.
+(ert-deftest custom-test-no-saved-value-after-enabling-theme ()
+  "Test that we don't record a saved-value property when we shouldn't."
+  (let ((custom-theme-load-path `(,(ert-resource-directory))))
+    (customize-option 'mark-ring-max)
+    (let* ((field (seq-find (lambda (widget)
+                              (eq mark-ring-max (widget-value widget)))
+                            widget-field-list))
+           (parent (widget-get field :parent)))
+      ;; Move to the editable widget, modify the value and save it.
+      (goto-char (widget-field-text-end field))
+      (insert "0")
+      (widget-apply parent :custom-set)
+      ;; Just setting for the current session should not store a saved-value
+      ;; property.
+      (should-not (get 'mark-ring-max 'saved-value))
+      ;; Now enable and disable the test theme.
+      (load-theme 'custom--test 'no-confirm)
+      (disable-theme 'custom--test)
+      ;; Since the user customized the option, this is OK.
+      (should (eq (caar (get 'mark-ring-max 'theme-value)) 'user))
+      ;; The saved-value property should still be nil.
+      (should-not (get 'mark-ring-max 'saved-value)))))
+
+;; In this second test, we load a theme that has a setting for the user option
+;; above.  We must check that we don't end up with a non-nil saved-value
+;; property and a user setting active in the theme-value property, which
+;; means we might inadvertently save the session setting in the custom-file.
+(defcustom custom--test-bug-21355-before 'foo
+  "User option for `custom-test-no-saved-value-after-enabling-theme-2'."
+  :type 'symbol :group 'emacs)
+
+(ert-deftest custom-test-no-saved-value-after-enabling-theme-2 ()
+  "Test that we don't record a saved-value property when we shouldn't."
+  (let ((custom-theme-load-path `(,(ert-resource-directory))))
+    (customize-option 'custom--test-bug-21355-before)
+    (let* ((field (seq-find
+                   (lambda (widget)
+                     (eq custom--test-bug-21355-before (widget-value widget)))
+                   widget-field-list))
+           (parent (widget-get field :parent)))
+      ;; Move to the editable widget, modify the value and save it.
+      (goto-char (widget-field-text-end field))
+      (insert "bar")
+      (widget-apply parent :custom-set)
+      ;; Just setting for the current session should not store a saved-value
+      ;; property.
+      (should-not (get 'custom--test-bug-21355-before 'saved-value))
+      ;; Now load our test theme, which has a setting for
+      ;; `custom--test-bug-21355-before'.
+      (load-theme 'custom--test 'no-confirm 'no-enable)
+      (enable-theme 'custom--test)
+      ;; Since the user customized the option, this is OK.
+      (should (eq (caar (get 'custom--test-bug-21355-before 'theme-value))
+                  'user))
+      ;; But the saved-value property has to be nil, since the user didn't mark
+      ;; this variable to save for future sessions.
+      (should-not (get 'custom--test-bug-21355-before 'saved-value)))))
+
+(defvar custom--test-bug-21355-after)
+
+;; In this test, we check that stashing a theme value for a not yet defined
+;; option works, but that later on if the user customizes the option for the
+;; current session, we might save the theme setting in the custom file.
+(ert-deftest custom-test-no-saved-value-after-customizing-option ()
+  "Test for a nil saved-value after setting an option for the current session."
+  (let ((custom-theme-load-path `(,(ert-resource-directory))))
+    ;; Check that we correctly stashed the value.
+    (load-theme 'custom--test 'no-confirm 'no-enable)
+    (enable-theme 'custom--test)
+    (should (and (not (boundp 'custom--test-bug-21355-after))
+                 (eq (eval
+                      (car (get 'custom--test-bug-21355-after 'saved-value)))
+                     'after)))
+    ;; Now Emacs finds the defcustom.
+    (defcustom custom--test-bug-21355-after 'initially "..."
+      :type 'symbol :group 'emacs)
+    ;; And we used the stashed value correctly.
+    (should (and (boundp 'custom--test-bug-21355-after)
+                 (eq custom--test-bug-21355-after 'after)))
+    ;; Now customize it.
+    (customize-option 'custom--test-bug-21355-after)
+    (let* ((field (seq-find (lambda (widget)
+                              (eq custom--test-bug-21355-after
+                                  (widget-value widget)))
+                            widget-field-list))
+           (parent (widget-get field :parent)))
+      ;; Move to the editable widget, modify the value and save it.
+      (goto-char (widget-field-text-end field))
+      (insert "bar")
+      (widget-apply parent :custom-set)
+      ;; The user customized the variable, so this is OK.
+      (should (eq (caar (get 'custom--test-bug-21355-after 'theme-value))
+                  'user))
+      ;; But it was only for the current session, so this should not happen.
+      (should-not (get 'custom--test-bug-21355-after 'saved-value)))))
+
 ;;; custom-tests.el ends here
