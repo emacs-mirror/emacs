@@ -467,7 +467,7 @@ $(CAL_DIR)/hol-loaddefs.el: $(CAL_SRC) $(CAL_DIR)/diary-loaddefs.el
 	   --eval "(setq generated-autoload-file (expand-file-name (unmsys--file-name \"$@\")))" \
 	   -f batch-update-autoloads $(CAL_DIR)
 
-.PHONY: bootstrap-clean distclean maintainer-clean extraclean
+.PHONY: bootstrap-clean distclean maintainer-clean
 
 bootstrap-clean:
 	find $(lisp) -name '*.elc' $(FIND_DELETE)
@@ -478,12 +478,6 @@ distclean:
 
 maintainer-clean: distclean bootstrap-clean
 	rm -f TAGS
-
-extraclean: bootstrap-clean distclean
-	-for file in $(loaddefs); do rm -f $${file}~; done
-	-rm -f $(lisp)/loaddefs.el~
-	-find $(lisp) -name '*~' $(FIND_DELETE)
-	-find $(lisp) -name '#*' $(FIND_DELETE)
 
 .PHONY: check-declare
 

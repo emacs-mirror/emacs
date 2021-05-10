@@ -170,7 +170,7 @@ $(DESTDIR)${archlibdir}: all
         fi
 
 .PHONY: install uninstall mostlyclean clean distclean maintainer-clean
-.PHONY: bootstrap-clean extraclean check tags
+.PHONY: bootstrap-clean check tags
 
 install: $(DESTDIR)${archlibdir}
 	@echo
@@ -202,9 +202,6 @@ distclean: clean
 
 bootstrap-clean maintainer-clean: distclean
 	true
-
-extraclean: maintainer-clean
-	-rm -f *~ \#*
 
 ## Test the contents of the directory.
 check:

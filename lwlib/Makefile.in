@@ -93,9 +93,9 @@ globals_h = ../src/globals.h
 $(globals_h):
 	$(MAKE) -C ../src globals.h
 
-.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean extraclean
+.PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
-clean mostlyclean extraclean:
+clean mostlyclean:
 	rm -f ./*.o liblw.a \#* $(DEPDIR)/*
 
 distclean: clean

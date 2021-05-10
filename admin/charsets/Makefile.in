@@ -297,7 +297,7 @@ ${charsetdir}/%.map: ${GLIBC_CHARMAPS}/%.gz ${mapconv} ${compact}
 	${AM_V_GEN}${run_mapconv} $< '/^<.*[ 	]\/x/' GLIBC-1 ${compact} > $@
 
 
-.PHONY: clean bootstrap-clean distclean maintainer-clean extraclean gen-clean
+.PHONY: clean bootstrap-clean distclean maintainer-clean gen-clean
 
 clean:
 
@@ -312,4 +312,3 @@ gen-clean:
 
 maintainer-clean: gen-clean distclean
 
-extraclean: maintainer-clean

@@ -671,7 +671,7 @@ ns-app: emacs$(EXEEXT) $(pdmp)
 	$(MAKE) -C ../nextstep all
 
 .PHONY: mostlyclean clean bootstrap-clean distclean maintainer-clean
-.PHONY: versionclean extraclean
+.PHONY: versionclean
 
 mostlyclean:
 	rm -f temacs$(EXEEXT) core ./*.core \#* ./*.o
@@ -706,9 +706,6 @@ distclean: bootstrap-clean
 
 maintainer-clean: distclean
 	rm -f TAGS
-extraclean: distclean
-	rm -f ./*~ \#* TAGS config.in
-
 
 ETAGS = ../lib-src/etags${EXEEXT}
 

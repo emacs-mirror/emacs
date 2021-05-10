@@ -96,6 +96,8 @@ NTDIR=@NTDIR@
 top_builddir = @top_builddir@
 -include ${top_builddir}/src/verbose.mk
 
+FIND_DELETE = @FIND_DELETE@
+
 HAVE_NATIVE_COMP = @HAVE_NATIVE_COMP@
 
 # ==================== Where To Install Things ====================
@@ -932,19 +934,14 @@ maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 ### says GCC supports it, and that's where the configuration part of
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
-### Note that we abuse this in some subdirectories (eg leim),
-### to delete some generated files that are slow to rebuild.
-extraclean_dirs = ${NTDIR} lib-src src leim \
-  admin/charsets admin/grammars admin/unidata lisp lib lwlib
-
-$(foreach dir,$(extraclean_dirs),$(eval $(call submake_template,$(dir),extraclean)))
-
-extraclean: $(extraclean_dirs:=_extraclean)
-	${top_maintainer_clean}
-	-rm -f config-tmp-* aclocal.m4 configure
-	-rm -f ./*~ \#* etc/refcards/emacsver.tex doc/emacs/emacsver.texi
+extraclean: maintainer-clean
+	-rm -f config-tmp-* aclocal.m4 configure src/config.in
+	-rm -f etc/refcards/emacsver.tex doc/emacs/emacsver.texi
 	-rm -f info/*.info info/dir
 	-rmdir info 2>/dev/null
+	-[ "${srcdir}" = "." ] || \
+	  find ${srcdir} '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
+	-find . '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
 
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
