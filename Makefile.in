@@ -928,6 +928,8 @@ $(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),mai
 
 maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 	[ ! -d test ] || $(MAKE) -C test $@
+	rm -rf ${srcdir}/info
+	rm -f ${srcdir}/etc/refcards/emacsver.tex
 	${top_maintainer_clean}
 
 ### This doesn't actually appear in the coding standards, but Karl
@@ -936,9 +938,6 @@ maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 ### it deletes backup and autosave files too.
 extraclean: maintainer-clean
 	-rm -f config-tmp-* aclocal.m4 configure src/config.in
-	-rm -f etc/refcards/emacsver.tex doc/emacs/emacsver.texi
-	-rm -f info/*.info info/dir
-	-rmdir info 2>/dev/null
 	-[ "${srcdir}" = "." ] || \
 	  find ${srcdir} '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
 	-find . '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
