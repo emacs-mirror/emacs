@@ -845,12 +845,11 @@ endef
 ###      target for GCC does not delete 'libgcc.a', because recompiling it
 ###      is rarely necessary and takes a lot of time.
 mostlyclean_dirs = src oldXMenu lwlib lib lib-src nt doc/emacs doc/misc \
-  doc/lispref doc/lispintro
+  doc/lispref doc/lispintro test
 
 $(foreach dir,$(mostlyclean_dirs),$(eval $(call submake_template,$(dir),mostlyclean)))
 
 mostlyclean: $(mostlyclean_dirs:=_mostlyclean)
-	[ ! -d test ] || $(MAKE) -C test $@
 
 ### 'clean'
 ###      Delete all files from the current directory that are normally
@@ -865,7 +864,6 @@ clean_dirs = $(mostlyclean_dirs) nextstep admin/charsets admin/unidata
 $(foreach dir,$(clean_dirs),$(eval $(call submake_template,$(dir),clean)))
 
 clean: $(clean_dirs:=_clean)
-	[ ! -d test ] || $(MAKE) -C test $@
 	-rm -f ./*.tmp etc/*.tmp*
 	-rm -rf info-dir.*
 	-rm -rf native-lisp
@@ -891,7 +889,6 @@ distclean_dirs = $(clean_dirs) leim lisp admin/grammars
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),distclean)))
 
 distclean: $(distclean_dirs:=_distclean)
-	[ ! -d test ] || $(MAKE) -C test $@
 	${top_distclean}
 
 ### 'bootstrap-clean'
@@ -900,7 +897,6 @@ distclean: $(distclean_dirs:=_distclean)
 $(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),bootstrap-clean)))
 
 bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
-	[ ! -d test ] || $(MAKE) -C test $@
 	[ ! -f config.log ] || mv -f config.log config.log~
 	rm -rf ${srcdir}/info
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
@@ -922,12 +918,11 @@ top_maintainer_clean=\
 	rm -fr ${srcdir}/autom4te.cache
 
 maintainer_clean_dirs = src leim lisp admin/charsets admin/grammars \
-  admin/unidata
+  admin/unidata test
 
 $(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
 
 maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
-	[ ! -d test ] || $(MAKE) -C test $@
 	rm -rf ${srcdir}/info
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
 	${top_maintainer_clean}
@@ -958,12 +953,7 @@ TAGS tags: lib lib-src # src
 CHECK_TARGETS = check check-maybe check-expensive check-all
 .PHONY: $(CHECK_TARGETS)
 $(CHECK_TARGETS): all
-ifeq ($(wildcard test),test)
 	$(MAKE) -C test $@
-else
-	@echo "You do not seem to have the test/ directory."
-	@echo "Maybe you used a release tarfile that lacks tests."
-endif
 
 test/%:
 	$(MAKE) -C test $*
