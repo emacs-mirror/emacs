@@ -510,8 +510,7 @@ pgtk_set_window_size (struct frame *f, bool change_gravity,
   f->output_data.pgtk->preferred_width = pixelwidth;
   f->output_data.pgtk->preferred_height = pixelheight;
   x_wm_set_size_hint (f, 0, 0);
-  xg_frame_set_char_size (f, FRAME_PIXEL_TO_TEXT_WIDTH (f, pixelwidth),
-			  FRAME_PIXEL_TO_TEXT_HEIGHT (f, pixelheight));
+  xg_frame_set_char_size (f, pixelwidth, pixelheight);
   gtk_widget_queue_resize (FRAME_WIDGET (f));
 
   unblock_input ();
