@@ -917,12 +917,9 @@ top_maintainer_clean=\
 	${top_distclean}; \
 	rm -fr ${srcdir}/autom4te.cache
 
-maintainer_clean_dirs = src leim lisp admin/charsets admin/grammars \
-  admin/unidata test
+$(foreach dir,$(distclean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
 
-$(foreach dir,$(maintainer_clean_dirs),$(eval $(call submake_template,$(dir),maintainer-clean)))
-
-maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
+maintainer-clean: $(distclean_dirs:=_maintainer-clean)
 	rm -rf ${srcdir}/info
 	rm -f ${srcdir}/etc/refcards/emacsver.tex
 	${top_maintainer_clean}
