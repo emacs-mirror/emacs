@@ -919,7 +919,7 @@ bootstrap-clean: $(distclean_dirs:=_bootstrap-clean)
 ###      begin to build the program.
 top_maintainer_clean=\
 	${top_distclean}; \
-	rm -fr autom4te.cache
+	rm -fr ${srcdir}/autom4te.cache
 
 maintainer_clean_dirs = src leim lisp admin/charsets admin/grammars \
   admin/unidata
@@ -937,7 +937,8 @@ maintainer-clean: bootstrap-clean $(maintainer_clean_dirs:=_maintainer-clean)
 ### the coding standards seem to come from.  It's like distclean, but
 ### it deletes backup and autosave files too.
 extraclean: maintainer-clean
-	-rm -f config-tmp-* aclocal.m4 configure src/config.in
+	-rm -f config-tmp-* ${srcdir}/aclocal.m4 ${srcdir}/configure \
+	  ${srcdir}/src/config.in
 	-[ "${srcdir}" = "." ] || \
 	  find ${srcdir} '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
 	-find . '(' -name '*~' -o -name '#*' ')' ${FIND_DELETE}
