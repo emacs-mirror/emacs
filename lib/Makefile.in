@@ -113,7 +113,7 @@ distclean bootstrap-clean: mostlyclean
 	rm -fr $(DEPDIR)
 maintainer-clean: distclean
 	rm -f TAGS gnulib.mk
-	-rmdir malloc sys 2>/dev/null
+	-rmdir malloc sys 2>/dev/null || true
 
 .PHONY: mostlyclean clean distclean bootstrap-clean maintainer-clean
 
