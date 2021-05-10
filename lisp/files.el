@@ -391,6 +391,10 @@ constructed by taking the directory part of the replaced file-name,
 concatenated with the buffer file name with all directory separators
 changed to `!' to prevent clashes.  This will not work
 correctly if your filesystem truncates the resulting name.
+If UNIQUIFY is one of the members of `secure-hash-algorithms',
+Emacs constructs the nondirectory part of the auto-save file name
+by applying that `secure-hash' to the buffer file name.  This
+avoids any risk of excessively long file names.
 
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
@@ -6647,14 +6651,20 @@ See also `auto-save-file-name-p'."
 			uniq (car (cddr (car list)))))
 	      (setq list (cdr list)))
 	    (if result
-		(if uniq
-		    (setq filename (concat
-				    (file-name-directory result)
-				    (subst-char-in-string
-				     ?/ ?!
-				     (replace-regexp-in-string "!" "!!"
-							       filename))))
-		  (setq filename result)))
+                (setq filename
+                      (cond
+                       ((memq uniq (secure-hash-algorithms))
+                        (concat
+                         (file-name-directory result)
+                         (secure-hash uniq filename)))
+                       (uniq
+                        (concat
+			 (file-name-directory result)
+			 (subst-char-in-string
+			  ?/ ?!
+			  (replace-regexp-in-string
+                           "!" "!!" filename))))
+		       (t result))))
 	    (setq result
 		  (if (and (eq system-type 'ms-dos)
 			   (not (msdos-long-file-names)))
