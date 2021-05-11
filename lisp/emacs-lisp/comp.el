@@ -83,7 +83,7 @@ This is intended for debugging the compiler itself.
   :type 'boolean
   :version "28.1")
 
-(defcustom comp-deferred-compilation-deny-list
+(defcustom native-comp-deferred-compilation-deny-list
   '()
   "List of regexps to exclude matching files from deferred native compilation.
 Files whose names match any regexp are excluded from native compilation."
@@ -4044,11 +4044,11 @@ LOAD and SELECTOR work as described in `native--compile-async'."
        (t (error "SELECTOR must be a function a regexp or nil")))
       ;; Also exclude files from deferred compilation if
       ;; any of the regexps in
-      ;; `comp-deferred-compilation-deny-list' matches.
+      ;; `native-comp-deferred-compilation-deny-list' matches.
       (and (eq load 'late)
            (cl-some (lambda (re)
                       (string-match-p re file))
-                    comp-deferred-compilation-deny-list))))
+                    native-comp-deferred-compilation-deny-list))))
 
 (defun native--compile-async (files &optional recursively load selector)
   "Compile FILES asynchronously.
