@@ -91,12 +91,11 @@
   :prefix "facemenu-")
 
 (defcustom facemenu-keybindings
-  (mapcar 'purecopy
   '((default     . "d")
     (bold        . "b")
     (italic      . "i")
-    (bold-italic . "l") ; {bold} intersect {italic} = {l}
-    (underline   . "u")))
+    (bold-italic . "l")              ; {bold} intersect {italic} = {l}
+    (underline   . "u"))
   "Alist of interesting faces and keybindings.
 Each element is itself a list: the car is the name of the face,
 the next element is the key to use as a keyboard equivalent of the menu item;
@@ -147,7 +146,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-face-menu
   (let ((map (make-sparse-keymap "Face")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-face))
+    (define-key map "o" (cons "Other..." 'facemenu-set-face))
     map)
   "Menu keymap for faces.")
 (defalias 'facemenu-face-menu facemenu-face-menu)
@@ -155,7 +154,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-foreground-menu
   (let ((map (make-sparse-keymap "Foreground Color")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-foreground))
+    (define-key map "o" (cons "Other..." 'facemenu-set-foreground))
     map)
   "Menu keymap for foreground colors.")
 (defalias 'facemenu-foreground-menu facemenu-foreground-menu)
@@ -163,7 +162,7 @@ it will remove any faces not explicitly in the list."
 
 (defvar facemenu-background-menu
   (let ((map (make-sparse-keymap "Background Color")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-background))
+    (define-key map "o" (cons "Other..." 'facemenu-set-background))
     map)
   "Menu keymap for background colors.")
 (defalias 'facemenu-background-menu facemenu-background-menu)
@@ -186,27 +185,22 @@ return a string which is inserted.  It may set `facemenu-end-add-face'."
 
 (defvar facemenu-special-menu
   (let ((map (make-sparse-keymap "Special")))
-    (define-key map [?s] (cons (purecopy "Remove Special")
-			       'facemenu-remove-special))
-    (define-key map [?c] (cons (purecopy "Charset")
-			       'facemenu-set-charset))
-    (define-key map [?t] (cons (purecopy "Intangible")
-			       'facemenu-set-intangible))
-    (define-key map [?v] (cons (purecopy "Invisible")
-			       'facemenu-set-invisible))
-    (define-key map [?r] (cons (purecopy "Read-Only")
-			       'facemenu-set-read-only))
+    (define-key map [?s] (cons "Remove Special" 'facemenu-remove-special))
+    (define-key map [?c] (cons "Charset" 'facemenu-set-charset))
+    (define-key map [?t] (cons "Intangible" 'facemenu-set-intangible))
+    (define-key map [?v] (cons "Invisible" 'facemenu-set-invisible))
+    (define-key map [?r] (cons "Read-Only" 'facemenu-set-read-only))
     map)
   "Menu keymap for non-face text-properties.")
 (defalias 'facemenu-special-menu facemenu-special-menu)
 
 (defvar facemenu-justification-menu
   (let ((map (make-sparse-keymap "Justification")))
-    (define-key map [?c] (cons (purecopy "Center") 'set-justification-center))
-    (define-key map [?b] (cons (purecopy "Full") 'set-justification-full))
-    (define-key map [?r] (cons (purecopy "Right") 'set-justification-right))
-    (define-key map [?l] (cons (purecopy "Left") 'set-justification-left))
-    (define-key map [?u] (cons (purecopy "Unfilled") 'set-justification-none))
+    (define-key map [?c] (cons "Center" 'set-justification-center))
+    (define-key map [?b] (cons "Full" 'set-justification-full))
+    (define-key map [?r] (cons "Right" 'set-justification-right))
+    (define-key map [?l] (cons "Left" 'set-justification-left))
+    (define-key map [?u] (cons "Unfilled" 'set-justification-none))
     map)
   "Submenu for text justification commands.")
 (defalias 'facemenu-justification-menu facemenu-justification-menu)
@@ -214,13 +208,13 @@ return a string which is inserted.  It may set `facemenu-end-add-face'."
 (defvar facemenu-indentation-menu
   (let ((map (make-sparse-keymap "Indentation")))
     (define-key map [decrease-right-margin]
-      (cons (purecopy "Indent Right Less") 'decrease-right-margin))
+      (cons "Indent Right Less" 'decrease-right-margin))
     (define-key map [increase-right-margin]
-      (cons (purecopy "Indent Right More") 'increase-right-margin))
+      (cons "Indent Right More" 'increase-right-margin))
     (define-key map [decrease-left-margin]
-      (cons (purecopy "Indent Less") 'decrease-left-margin))
+      (cons "Indent Less" 'decrease-left-margin))
     (define-key map [increase-left-margin]
-      (cons (purecopy "Indent More") 'increase-left-margin))
+      (cons "Indent More" 'increase-left-margin))
     map)
   "Submenu for indentation commands.")
 (defalias 'facemenu-indentation-menu facemenu-indentation-menu)
@@ -230,36 +224,29 @@ return a string which is inserted.  It may set `facemenu-end-add-face'."
   "Facemenu top-level menu keymap.")
 (setq facemenu-menu (make-sparse-keymap "Text Properties"))
 (let ((map facemenu-menu))
-  (define-key map [dc] (cons (purecopy "Display Colors") 'list-colors-display))
-  (define-key map [df] (cons (purecopy "Display Faces") 'list-faces-display))
-  (define-key map [dp] (cons (purecopy "Describe Properties")
-			     'describe-text-properties))
-  (define-key map [ra] (list 'menu-item (purecopy "Remove Text Properties")
+  (define-key map [dc] (cons "Display Colors" 'list-colors-display))
+  (define-key map [df] (cons "Display Faces" 'list-faces-display))
+  (define-key map [dp] (cons "Describe Properties" 'describe-text-properties))
+  (define-key map [ra] (list 'menu-item "Remove Text Properties"
 			     'facemenu-remove-all
 			     :enable 'mark-active))
-  (define-key map [rm] (list 'menu-item (purecopy "Remove Face Properties")
+  (define-key map [rm] (list 'menu-item "Remove Face Properties"
 			     'facemenu-remove-face-props
 			     :enable 'mark-active))
-  (define-key map [s1] (list (purecopy "--"))))
+  (define-key map [s1] (list "--")))
 (let ((map facemenu-menu))
-  (define-key map [in] (cons (purecopy "Indentation")
-			     'facemenu-indentation-menu))
-  (define-key map [ju] (cons (purecopy "Justification")
-			     'facemenu-justification-menu))
-  (define-key map [s2] (list (purecopy "--")))
-  (define-key map [sp] (cons (purecopy "Special Properties")
-			     'facemenu-special-menu))
-  (define-key map [bg] (cons (purecopy "Background Color")
-			     'facemenu-background-menu))
-  (define-key map [fg] (cons (purecopy "Foreground Color")
-			     'facemenu-foreground-menu))
-  (define-key map [fc] (cons (purecopy "Face")
-			     'facemenu-face-menu)))
+  (define-key map [in] (cons "Indentation" 'facemenu-indentation-menu))
+  (define-key map [ju] (cons "Justification" 'facemenu-justification-menu))
+  (define-key map [s2] (list "--"))
+  (define-key map [sp] (cons "Special Properties" 'facemenu-special-menu))
+  (define-key map [bg] (cons "Background Color" 'facemenu-background-menu))
+  (define-key map [fg] (cons "Foreground Color" 'facemenu-foreground-menu))
+  (define-key map [fc] (cons "Face" 'facemenu-face-menu)))
 (defalias 'facemenu-menu facemenu-menu)
 
 (defvar facemenu-keymap
   (let ((map (make-sparse-keymap "Set face")))
-    (define-key map "o" (cons (purecopy "Other...") 'facemenu-set-face))
+    (define-key map "o" (cons "Other..." 'facemenu-set-face))
     (define-key map "\M-o" 'font-lock-fontify-block)
     map)
   "Keymap for face-changing commands.
@@ -819,11 +806,11 @@ This is called whenever you create a new face, and at other times."
 	    symbol (intern name)))
     (setq menu 'facemenu-face-menu)
     (setq docstring
-	  (purecopy (format "Select face `%s' for subsequent insertion.
+	  (format "Select face `%s' for subsequent insertion.
 If the mark is active and there is no prefix argument,
 apply face `%s' to the region instead.
 This command was defined by `facemenu-add-new-face'."
-		  name name)))
+		  name name))
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
 			     (symbolp (car m))
