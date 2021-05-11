@@ -456,9 +456,6 @@
 (defvar menu-bar-edit-menu
   (let ((menu (make-sparse-keymap "Edit")))
 
-    (bindings--define-key menu [props]
-      '(menu-item "Text Properties" facemenu-menu))
-
     ;; ns-win.el said: Add spell for platform consistency.
     (if (featurep 'ns)
         (bindings--define-key menu [spell]

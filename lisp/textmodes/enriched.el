@@ -38,6 +38,7 @@
 
 ;;; Code:
 
+(require 'facemenu)
 (provide 'enriched)
 
 ;;;
@@ -235,6 +236,9 @@ Commands:
 	(t				; Turn mode on
          (add-hook 'change-major-mode-hook
                    #'enriched-before-change-major-mode nil 'local)
+         (easy-menu-add-item
+          text-mode-menu nil
+          ["Text Properties" facemenu-menu :help "Change text properties"])
 	 (add-to-list 'buffer-file-format 'text/enriched)
 	 ;; Save old variable values before we change them.
 	 ;; These will be restored if we exit Enriched mode.
