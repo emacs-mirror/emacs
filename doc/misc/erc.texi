@@ -588,6 +588,9 @@ line like the following to your authinfo file
 @example
 machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
 @end example
+
+See (info "(auth) Help for users") for more on the
+@file{.authinfo}/@file{.netrc} backend of @code{auth-source}.
 @end defun
 
 @subheading Server

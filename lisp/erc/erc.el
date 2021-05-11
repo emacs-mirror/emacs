@@ -2278,8 +2278,8 @@ Example usage:
 
     (erc-tls :server \"chat.freenode.net\" :port 6697
              :client-certificate
-             '(\"/data/bandali/my-cert.key\"
-               \"/data/bandali/my-cert.crt\"))"
+             '(\"/home/bandali/my-cert.key\"
+               \"/home/bandali/my-cert.crt\"))"
   (interactive (let ((erc-default-port erc-default-port-tls))
 		 (erc-select-read-args)))
   (let ((erc-server-connect-function 'erc-open-tls-stream))

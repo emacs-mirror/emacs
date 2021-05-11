@@ -1804,36 +1804,10 @@ activity overview sidebar for joined IRC channels is now part of ERC.
 The 'erc-tls' function has been updated to allow specifying a TLS
 client certificate for authentication, as an alternative to NickServ
 password-based authentication.  This is referred to as "CertFP" (short
-for Certificate Fingerprint) by several IRC networks.
-
-To use a certificate with 'erc-tls', specify the ':client-certificate'
-optional parameter, whose value should be as described in the
-documentation of 'open-network-stream': if non-nil, it should either
-be a list where the first element is the file name of the private key
-corresponding to a client certificate and the second element is the
-file name of the client certificate itself to use when connecting over
-TLS, or t, which means that 'auth-source' will be queried for the
-private key and the certificate.
-
-Examples of use:
-
-    (erc-tls :server "chat.freenode.net" :port 6697
-             :client-certificate
-             '("/home/bandali/my-cert.key"
-               "/home/bandali/my-cert.crt"))
-
-    (erc-tls :server "chat.freenode.net" :port 6697
-             :client-certificate
-             `(,(expand-file-name "~/cert-freenode.key")
-               ,(expand-file-name "~/cert-freenode.crt")))
-
-    (erc-tls :server "chat.freenode.net" :port 6697
-             :client-certificate t)
-
-In the case of ':client-certificate t', you will need to add a line
-like the following to your authinfo file (e.g. "~/.authinfo.gpg"):
-
-    machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
+for Certificate Fingerprint) by several IRC networks.  See the Info
+node "(erc) Connecting" in the ERC manual for more details and
+examples on how to specify and use TLS client certificates with
+'erc-tls'.
 
 ** Battery
 
