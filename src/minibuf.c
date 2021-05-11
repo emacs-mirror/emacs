@@ -969,6 +969,8 @@ static Lisp_Object
 nth_minibuffer (EMACS_INT depth)
 {
   Lisp_Object tail = Fnthcdr (make_fixnum (depth), Vminibuffer_list);
+  if (NILP (tail))
+    return Qnil;
   return XCAR (tail);
 }
 
