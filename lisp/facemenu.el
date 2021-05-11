@@ -244,6 +244,10 @@ return a string which is inserted.  It may set `facemenu-end-add-face'."
   (define-key map [fc] (cons "Face" 'facemenu-face-menu)))
 (defalias 'facemenu-menu facemenu-menu)
 
+(easy-menu-add-item
+ menu-bar-edit-menu nil
+ ["Text Properties" facemenu-menu])
+
 (defvar facemenu-keymap
   (let ((map (make-sparse-keymap "Set face")))
     (define-key map "o" (cons "Other..." 'facemenu-set-face))
