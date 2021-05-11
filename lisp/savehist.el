@@ -213,6 +213,7 @@ Normally invoked by calling `savehist-mode' to unset the minor mode."
     (cancel-timer savehist-timer)
     (setq savehist-timer nil)))
 
+(defvar savehist--has-given-file-warning nil)
 (defun savehist-save (&optional auto-save)
   "Save the values of minibuffer history variables.
 Unbound symbols referenced in `savehist-additional-variables' are ignored.
@@ -286,23 +287,29 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
     ;; If autosaving, avoid writing if nothing has changed since the
     ;; last write.
     (let ((checksum (md5 (current-buffer) nil nil savehist-coding-system)))
-      (unless (and auto-save (equal checksum savehist-last-checksum))
-	;; Set file-precious-flag when saving the buffer because we
-	;; don't want a half-finished write ruining the entire
-	;; history.  Remember that this is run from a timer and from
-	;; kill-emacs-hook, and also that multiple Emacs instances
-	;; could write to this file at once.
-	(let ((file-precious-flag t)
-	      (coding-system-for-write savehist-coding-system)
-              (dir (file-name-directory savehist-file)))
-          ;; Ensure that the directory exists before saving.
-          (unless (file-exists-p dir)
-            (make-directory dir t))
-	  (write-region (point-min) (point-max) savehist-file nil
-			(unless (called-interactively-p 'interactive) 'quiet)))
-	(when savehist-file-modes
-	  (set-file-modes savehist-file savehist-file-modes))
-	(setq savehist-last-checksum checksum)))))
+      (condition-case err
+        (unless (and auto-save (equal checksum savehist-last-checksum))
+	  ;; Set file-precious-flag when saving the buffer because we
+	  ;; don't want a half-finished write ruining the entire
+	  ;; history.  Remember that this is run from a timer and from
+	  ;; kill-emacs-hook, and also that multiple Emacs instances
+	  ;; could write to this file at once.
+	  (let ((file-precious-flag t)
+	        (coding-system-for-write savehist-coding-system)
+                (dir (file-name-directory savehist-file)))
+            ;; Ensure that the directory exists before saving.
+            (unless (file-exists-p dir)
+              (make-directory dir t))
+	    (write-region (point-min) (point-max) savehist-file nil
+			  (unless (called-interactively-p 'interactive) 'quiet)))
+	  (when savehist-file-modes
+	    (set-file-modes savehist-file savehist-file-modes))
+	  (setq savehist-last-checksum checksum))
+        (file-error
+         (unless savehist--has-given-file-warning
+          (lwarn '(savehist-file) :warning "Error writing `%s': %s"
+                 savehist-file (caddr err))
+          (setq savehist--has-given-file-warning t)))))))
 
 (defun savehist-autosave ()
   "Save the minibuffer history if it has been modified since the last save.
