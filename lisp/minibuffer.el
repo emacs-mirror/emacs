@@ -1147,8 +1147,20 @@ completion candidates than this number."
 
 (defcustom completions-group nil
   "Enable grouping of completion candidates in the *Completions* buffer.
-See also `completions-group-format'."
+See also `completions-group-format' and `completions-group-sort'."
   :type 'boolean
+  :version "28.1")
+
+(defcustom completions-group-sort nil
+  "Sort groups in the *Completions* buffer.
+
+The value can either be nil to disable sorting, `alphabetical' for
+alphabetical sorting or a custom sorting function.  The sorting
+function takes and returns an alist of groups, where each element is a
+pair of a group title string and a list of group candidate strings."
+  :type '(choice (const :tag "No sorting" nil)
+                 (const :tag "Alphabetical sorting" alphabetical)
+                 function)
   :version "28.1")
 
 (defcustom completions-group-format
@@ -1434,16 +1446,21 @@ Remove completion BASE prefix string from history elements."
                      (substring c base-size)))
                  hist)))))
 
-(defun minibuffer--group-by (fun elems)
-  "Group ELEMS by FUN."
+(defun minibuffer--group-by (group-fun sort-fun elems)
+  "Group ELEMS by GROUP-FUN and sort groups by SORT-FUN."
   (let ((groups))
     (dolist (cand elems)
-      (let* ((key (funcall fun cand nil))
+      (let* ((key (funcall group-fun cand nil))
              (group (assoc key groups)))
         (if group
             (setcdr group (cons cand (cdr group)))
           (push (list key cand) groups))))
-    (mapcan (lambda (x) (nreverse (cdr x))) (nreverse groups))))
+    (setq groups (nreverse groups)
+          groups (mapc (lambda (x)
+                         (setcdr x (nreverse (cdr x))))
+                       groups)
+          groups (funcall sort-fun groups))
+    (mapcan #'cdr groups)))
 
 (defun completion-all-sorted-completions (&optional start end)
   (or completion-all-sorted-completions
@@ -2216,7 +2233,17 @@ variables.")
                       ;; `group-function'.
                       (when group-fun
                         (setq completions
-                              (minibuffer--group-by group-fun completions)))
+                              (minibuffer--group-by
+                               group-fun
+                               (pcase completions-group-sort
+                                 ('nil #'identity)
+                                 ('alphabetical
+                                  (lambda (groups)
+                                    (sort groups
+                                          (lambda (x y)
+                                            (string< (car x) (car y))))))
+                                 (_ completions-group-sort))
+                               completions)))
 
                       (cond
                        (aff-fun
