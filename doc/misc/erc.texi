@@ -557,7 +557,7 @@ and the second element is the file name of the client certificate
 itself to use when connecting over TLS, or @code{t}, which means that
 @code{auth-source} will be queried for the private key and the
 certificate.  Authenticating using a TLS client certificate is also
-refered to as ``CertFP'' (Certificate Fingerprint) authentication by
+referred to as ``CertFP'' (Certificate Fingerprint) authentication by
 various IRC networks.
 
 Examples of use:
