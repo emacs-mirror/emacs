@@ -3425,11 +3425,16 @@ confirmation.  To disable the confirmation, see
     (let ((buf-list (dired-buffers-for-dir (expand-file-name fn))))
       (and buf-list
            (or (and dired-clean-confirm-killing-deleted-buffers
-                    (y-or-n-p (format
-                               (ngettext "Kill Dired buffer of %s, too? "
-                                         "Kill Dired buffers of %s, too? "
-                                         (length buf-list))
-                               (file-name-nondirectory fn))))
+                    (y-or-n-p
+                     (format
+                      (ngettext "Kill Dired buffer of %s, too? "
+                                "Kill Dired buffers of %s, too? "
+                                (length buf-list))
+                      (file-name-nondirectory
+                       ;; FN may end in a / if `dired-listing-switches'
+                       ;; contains -p, so we need to strip that
+                       ;; (bug#48301).
+                       (directory-file-name fn)))))
                (not dired-clean-confirm-killing-deleted-buffers))
            (dolist (buf buf-list)
              (kill-buffer buf))))))
