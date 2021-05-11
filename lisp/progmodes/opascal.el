@@ -1766,6 +1766,7 @@ Coloring:
   (setq-local syntax-propertize-function opascal--syntax-propertize)
 
   (setq-local comment-start "// ")
+  (setq-local comment-end "}")
   (setq-local comment-start-skip "\\(?://\\|(\\*\\|{\\)[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\n\\|\\*)\\|}\\)"))
 
