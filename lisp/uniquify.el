@@ -246,7 +246,14 @@ this rationalization."
                              (if (buffer-live-p (uniquify-item-buffer item))
                                  item))
                            items)))
-	  (setq fix-list (append fix-list items))))
+          ;; Other buffer's `uniquify-managed' lists may share
+          ;; elements.  Ensure that we don't add these elements more
+          ;; than once to this buffer's `uniquify-managed' list.
+          (let ((new-items nil))
+            (dolist (item items)
+              (unless (memq item fix-list)
+                (push item new-items)))
+	    (setq fix-list (append fix-list new-items)))))
       ;; selects buffers whose names may need changing, and others that
       ;; may conflict, then bring conflicting names together
       (uniquify-rationalize fix-list))))
