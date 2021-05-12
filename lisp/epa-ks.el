@@ -68,9 +68,9 @@ This is used when reverting a buffer to restart search.")
 (defvar epa-ks-search-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    (define-key map (kbd "f") #'epa-ks--mark-key-to-fetch)
-    (define-key map (kbd "i") #'epa-ks--inspect-key-to-fetch)
-    (define-key map (kbd "u") #'epa-ks--unmark-key-to-fetch)
+    (define-key map (kbd "f") #'epa-ks-mark-key-to-fetch)
+    (define-key map (kbd "i") #'epa-ks-inspect-key-to-fetch)
+    (define-key map (kbd "u") #'epa-ks-unmark-key-to-fetch)
     (define-key map (kbd "x") #'epa-ks-do-key-to-fetch)
     map))
 
@@ -89,19 +89,19 @@ This is used when reverting a buffer to restart search.")
             nil t)
   (tabulated-list-init-header))
 
-(defun epa-ks--inspect-key-to-fetch ()
+(defun epa-ks-inspect-key-to-fetch ()
   "Display full ID of key under point in the minibuffer."
   (interactive)
   (message "Full ID: %s" (epa-ks-key-id (car (tabulated-list-get-id)))))
 
-(defun epa-ks--unmark-key-to-fetch ()
+(defun epa-ks-unmark-key-to-fetch ()
   "Remove fetch mark for key under point.
 
 If a region is active, unmark all keys in active region."
   (interactive)
-  (epa-ks--mark-key-to-fetch ""))
+  (epa-ks-mark-key-to-fetch ""))
 
-(defun epa-ks--mark-key-to-fetch (tag)
+(defun epa-ks-mark-key-to-fetch (tag)
   "Add fetch-mark to key under point.
 
 If a region is active, mark all keys in active region.
@@ -109,7 +109,7 @@ If a region is active, mark all keys in active region.
 When all keys have been selected, use \\[epa-ks-do-key-to-fetch] to
 actually import the keys.
 
-When called interactively, `epa-ks--mark-key-to-fetch' will always
+When called interactively, `epa-ks-mark-key-to-fetch' will always
 add a \"F\" tag.  Non-interactivly the tag must be specified by
 setting the TAG parameter."
   (interactive (list "F"))
@@ -125,7 +125,7 @@ setting the TAG parameter."
 (defun epa-ks-do-key-to-fetch ()
   "Fetch all marked keys from keyserver and import them.
 
-Keys are marked using `epa-ks--mark-key-to-fetch'."
+Keys are marked using `epa-ks-mark-key-to-fetch'."
   (interactive)
   (save-excursion
     (let (keys)
