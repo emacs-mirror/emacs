@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2021 Free Software Foundation, Inc.
 
-;; Author: Philip K. <philip@warpmail.net>
+;; Author: Philip K. <philipk@posteo.net>
 ;; Keywords: PGP, GnuPG
 
 ;; This file is part of GNU Emacs.
