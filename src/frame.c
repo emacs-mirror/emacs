@@ -971,6 +971,7 @@ make_frame (bool mini_p)
   f->no_accept_focus = false;
   f->z_group = z_group_none;
   f->tooltip = false;
+  f->was_invisible = false;
   f->child_frame_border_width = -1;
   f->last_tab_bar_item = -1;
 #ifndef HAVE_EXT_TOOL_BAR
@@ -5855,7 +5856,18 @@ selected frame.  This is useful when `make-pointer-invisible' is set.  */)
   return decode_any_frame (frame)->pointer_invisible ? Qnil : Qt;
 }
 
+DEFUN ("frame--set-was-invisible", Fframe__set_was_invisible,
+       Sframe__set_was_invisible, 2, 2, 0,
+       doc: /* Set FRAME's was-invisible flag if WAS-INVISIBLE is non-nil.
+This function is for internal use only.  */)
+  (Lisp_Object frame, Lisp_Object was_invisible)
+{
+  struct frame *f = decode_live_frame (frame);
 
+  f->was_invisible = !NILP (was_invisible);
+
+  return f->was_invisible ? Qt : Qnil;
+}
 
 /***********************************************************************
 			Multimonitor data
@@ -6495,6 +6507,7 @@ iconify the top level frame instead.  */);
   defsubr (&Sframe_position);
   defsubr (&Sset_frame_position);
   defsubr (&Sframe_pointer_visible_p);
+  defsubr (&Sframe__set_was_invisible);
   defsubr (&Sframe_window_state_change);
   defsubr (&Sset_frame_window_state_change);
   defsubr (&Sframe_scale_factor);

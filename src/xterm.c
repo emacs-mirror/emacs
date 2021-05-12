@@ -8181,8 +8181,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #if defined USE_GTK && defined HAVE_GTK3
 	      /* If GTK3 wants to impose some old size here (Bug#24526),
 		 tell it that the current size is what we want.  */
-	      xg_frame_set_char_size
-		(f, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+	      if (f->was_invisible)
+		{
+		  xg_frame_set_char_size
+		    (f, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+		  f->was_invisible = false;
+		}
 #endif
 	      XSETFRAME (inev.ie.frame_or_window, f);
 	    }
@@ -8443,8 +8447,12 @@ handle_one_xevent (struct x_display_info *dpyinfo,
 #if defined USE_GTK && defined HAVE_GTK3
 	      /* If GTK3 wants to impose some old size here (Bug#24526),
 		 tell it that the current size is what we want.  */
-	      xg_frame_set_char_size
-		(f, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+	      if (f->was_invisible)
+		{
+		  xg_frame_set_char_size
+		    (f, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+		  f->was_invisible = false;
+		}
 #endif
 	      f->output_data.x->has_been_visible = true;
 	    }

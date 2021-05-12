@@ -2118,7 +2118,23 @@ the X resource \"reverseVideo\" is present, handle that."
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame t)
 	  (face-set-after-frame-default frame parameters)
-	  (if (null visibility-spec)
+          ;; Mark frame as 'was-invisible' when it was created as
+          ;; invisible or iconified and PARAMETERS contains either a
+          ;; width or height specification.  This should be sufficient
+          ;; to handle Bug#24526 (where a frame is initially iconified
+          ;; to allow manipulating its size in a non-obtrusive way) and
+          ;; avoid that a tiling window manager for GTK3 gets a resize
+          ;; request it cannot handle (Bug#48268).  The 'was-invisible'
+          ;; flag is eventually processed in xterm.c after we receive a
+          ;; MapNotify event; non-X builds ignore it.
+          (frame--set-was-invisible
+           frame
+           (and visibility-spec
+                (memq (cdr visibility-spec) '(nil icon))
+                (or (assq 'width parameters)
+                    (assq 'height parameters))))
+
+          (if (null visibility-spec)
 	      (make-frame-visible frame)
 	    (modify-frame-parameters frame (list visibility-spec)))
 	  (setq success t))

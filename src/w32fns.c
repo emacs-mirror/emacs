@@ -6107,6 +6107,8 @@ DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
 
 	  if (!NILP (visibility))
 	    w32_make_frame_visible (f);
+	  else
+	    f->was_invisible = true;
 	}
 
       store_frame_param (f, Qvisibility, visibility);
