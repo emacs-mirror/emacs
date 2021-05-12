@@ -94,6 +94,8 @@ EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
 @item To create a cleartext signature of the region, type @kbd{M-x epa-sign-region}
 
 @item To encrypt a file, type @kbd{M-x epa-encrypt-file}
+
+@item To query a key server for keys, type @kbd{M-x epa-search-keys}
 @end itemize
 
 EasyPG Assistant provides several cryptographic features which can be
@@ -112,6 +114,7 @@ This chapter introduces various commands for typical use cases.
 * Dired integration::
 * Mail-mode integration::
 * Encrypting/decrypting gpg files::
+* Querying a key server::
 @end menu
 
 @node Key management, Cryptographic operations on regions, Commands, Commands
@@ -439,6 +442,21 @@ default value is @code{nil}.
 If non-@code{nil}, disable auto-saving when opening an encrypted file.
 The default value is @code{t}.
 @end defvar
+
+@node Querying a key server,  , Mail-mode integration, Commands
+@section Querying a key server
+
+The @code{epa-search-keys} command can be used to query a
+@acronym{GPG} key server.  Emacs will then pop up a buffer that lists
+the matches, and you can then fetch (and add) keys to your personal
+key ring.
+
+In the key search buffer, you can use the @kbd{f} command to mark keys
+for fetching, and then @kbd{x} to fetch the keys (and incorporate them
+into your key ring).
+
+The @code{epa-keyserver} variable says which server to query.
+
 
 @node GnuPG version compatibility, Caching Passphrases, Commands, Top
 @chapter GnuPG version compatibility

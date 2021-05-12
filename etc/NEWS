@@ -2380,6 +2380,11 @@ step to 5 columns.
 
 * New Modes and Packages in Emacs 28.1
 
+** Key Server Client added
+GPG key servers can now be queried for keys with the
+`M-x epa-search-keys' command.  Keys can then be added to your
+personal key ring.
+
 ** Lisp Data mode
 The new command 'lisp-data-mode' enables a major mode for buffers
 composed of Lisp symbolic expressions that do not form a computer
