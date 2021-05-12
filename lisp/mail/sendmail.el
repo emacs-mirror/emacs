@@ -726,14 +726,21 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
   ;; are also sometimes used and should be separators.
   (setq paragraph-separate
-	(concat (regexp-quote mail-header-separator)
+        (if (zerop (length mail-header-separator))
+	    (concat
 		;; This is based on adaptive-fill-regexp (presumably
 		;; the idea is to allow navigation etc of cited paragraphs).
-		"$\\|\t*[-–!|#%;>*·•‣⁃◦ ]+$"
+		"\t*[-–!|#%;>*·•‣⁃◦ ]+$"
 		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
 		"--\\( \\|-+\\)$\\|"
-		page-delimiter)))
-
+		page-delimiter)
+	  (concat (regexp-quote mail-header-separator)
+                  ;; This is based on adaptive-fill-regexp (presumably
+                  ;; the idea is to allow navigation etc of cited paragraphs).
+                  "$\\|\t*[-–!|#%;>*·•‣⁃◦ ]+$"
+                  "\\|[ \t]*[-[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
+                  "--\\( \\|-+\\)$\\|"
+                  page-delimiter))))
 
 (defun mail-header-end ()
   "Return the buffer location of the end of headers, as a number."
@@ -763,10 +770,11 @@ Concretely: replace the first blank line in the header with the separator."
   "Remove header separator to put the message in correct form for sendmail.
 Leave point at the start of the delimiter line."
   (goto-char (point-min))
-  (when (re-search-forward
-	 (concat "^" (regexp-quote mail-header-separator) "\n")
-	 nil t)
-    (replace-match "\n"))
+  (unless (zerop (length mail-header-separator))
+    (when (re-search-forward
+           (concat "^" (regexp-quote mail-header-separator) "\n")
+           nil t)
+      (replace-match "\n")))
   (rfc822-goto-eoh))
 
 (defun mail-mode-auto-fill ()
@@ -931,7 +939,9 @@ the user from the mailer."
 		(error "Message contains non-ASCII characters"))))
 	;; Complain about any invalid line.
 	(goto-char (point-min))
-	(re-search-forward (regexp-quote mail-header-separator) (point-max) t)
+        ;; Search for mail-header-eeparator as whole line.
+	(re-search-forward (concat "^" (regexp-quote mail-header-separator) "$")
+                           (point-max) t)
 	(let ((header-end (or (match-beginning 0) (point-max))))
 	  (goto-char (point-min))
 	  (while (< (point) header-end)
