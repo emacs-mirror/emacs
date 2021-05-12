@@ -2377,13 +2377,14 @@ direction with e.g. 'C-x o M-- o o'.  Also it can help to set a new
 step with e.g. 'C-x { C-5 { { {', which will set the window resizing
 step to 5 columns.
 
++++
+** EasyPG
+GPG key servers can now be queried for keys with the
+'M-x epa-search-keys' command.  Keys can then be added to your
+personal key ring.
+
 
 * New Modes and Packages in Emacs 28.1
-
-** Key Server Client added
-GPG key servers can now be queried for keys with the
-`M-x epa-search-keys' command.  Keys can then be added to your
-personal key ring.
 
 ** Lisp Data mode
 The new command 'lisp-data-mode' enables a major mode for buffers
