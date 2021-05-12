@@ -31,7 +31,7 @@
 
 (defun text-property-search-forward (property &optional value predicate
                                               not-current)
-  "Search for the next region of text whose PROPERTY matches VALUE.
+  "Search for the next region of text where PREDICATE is true.
 PREDICATE is used to decide whether a value of PROPERTY should be
 considered as matching VALUE.
 
@@ -42,16 +42,18 @@ non-nil if these two values are to be considered a match.
 Two special values of PREDICATE can also be used:
 If PREDICATE is t, that means a value must `equal' VALUE to be
 considered a match.
-If PREDICATE is nil, a value will match if is not `equal' to
-VALUE.  Furthermore, the match region is ended if the value
-changes.  For instance, this means that if you loop with
+If PREDICATE is nil (which is the default value), a value will
+match if is not `equal' to VALUE.  Furthermore, a nil PREDICATE
+means that the match region is ended if the value changes.  For
+instance, this means that if you loop with
 
   (while (setq prop (text-property-search-forward 'face))
     ...)
 
-you will get all distinct regions with different `face' values in
+you will get all distinct regions with non-nil `face' values in
 the buffer, and the `prop' object will have the details about the
-match.
+match.  See the manual for more details and examples about how
+VALUE and PREDICATE interact.
 
 If NOT-CURRENT is non-nil, the function will search for the first
 region that doesn't include point and has a value of PROPERTY
