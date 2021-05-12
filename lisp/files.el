@@ -3771,8 +3771,8 @@ inhibited."
       (with-demoted-errors "Directory-local variables error: %s"
 	;; Note this is a no-op if enable-local-variables is nil.
 	(hack-dir-local-variables))
-      (let ((result (append (hack-local-variables-prop-line)
-                            (hack-local-variables--find-variables))))
+      (let ((result (append (hack-local-variables--find-variables)
+                            (hack-local-variables-prop-line))))
         (if (and enable-local-variables
                  (not (inhibit-local-variables-p)))
             (progn
