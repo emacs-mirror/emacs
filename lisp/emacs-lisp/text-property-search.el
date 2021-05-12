@@ -46,18 +46,19 @@ If PREDICATE is nil, a value will match if is not `equal' to
 VALUE.  Furthermore, the match region is ended if the value
 changes.  For instance, this means that if you loop with
 
-  (while (text-property-search-forward 'face)
+  (while (setq prop (text-property-search-forward 'face))
     ...)
 
 you will get all distinct regions with different `face' values in
-the buffer.
+the buffer, and the `prop' object will have the details about the
+match.
 
 If NOT-CURRENT is non-nil, the function will search for the first
 region that doesn't include point and has a value of PROPERTY
 that matches VALUE.
 
 If no matches can be found, return nil and don't move point.
-If found, move point to the start of the region and return a
+If found, move point to the end of the region and return a
 `prop-match' object describing the match.  To access the details
 of the match, use `prop-match-beginning' and `prop-match-end' for
 the buffer positions that limit the region, and
@@ -134,7 +135,7 @@ the buffer positions that limit the region, and
   "Search for the previous region of text whose PROPERTY matches VALUE.
 
 Like `text-property-search-forward', which see, but searches backward,
-and if a matching region is found, place point at its end."
+and if a matching region is found, place point at the start of the region."
   (interactive
    (list
     (let ((string (completing-read "Search for property: " obarray)))
