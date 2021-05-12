@@ -3767,7 +3767,7 @@ use \\[mail-yank-original] to yank the original message into it."
     (rmail-apply-in-message
      rmail-current-message
      (lambda ()
-       (let ((beg (point-min)) (end (point-max))
+       (let ((end (point-max))
              subheader)
          ;; Find the message's real header.
          (search-forward "\n\n" nil 'move)
