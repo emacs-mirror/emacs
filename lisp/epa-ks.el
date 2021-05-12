@@ -110,7 +110,7 @@ When all keys have been selected, use \\[epa-ks-do-key-to-fetch] to
 actually import the keys.
 
 When called interactively, `epa-ks--mark-key-to-fetch' will always
-add a \"F\" tag. Non-interactivly the tag must be specified by
+add a \"F\" tag.  Non-interactivly the tag must be specified by
 setting the TAG parameter."
   (interactive (list "F"))
   (if (region-active-p)
@@ -135,14 +135,14 @@ Keys are marked using `epa-ks--mark-key-to-fetch'."
           (push (epa-ks-key-id (car (tabulated-list-get-id)))
                 keys))
         (forward-line))
-      (when (yes-or-no-p (format "Proceed fetching all %d key(s)? "
+      (when (yes-or-no-p (format "Proceed with fetching all %d key(s)? "
                                  (length keys))))
       (dolist (id keys)
         (epa-ks--fetch-key id))))
   (tabulated-list-clear-all-tags))
 
 (defun epa-ks--fetch-key (id)
-  "Send request to import key with id ID."
+  "Send request to import key with specified ID."
   (url-retrieve
    (format "https://%s/pks/lookup?%s"
            epa-keyserver
@@ -209,10 +209,10 @@ KEYS is a list of `epa-ks-key' structures, as parsed by
 
 The keyserver to be used is specified by `epa-keyserver'.
 
-If EXACT is non-nil require exact matches.  Interactively, this
-can be provoked using a prefix argument.
+If EXACT is non-nil (interactively, prefix argument), require
+exact matches.
 
-Note that the request may fail, is the query is not specific
+Note that the request may fail if the query is not specific
 enough, since keyservers have strict timeout settings."
   (interactive (list (read-string "Search for: ")
                      current-prefix-arg))
