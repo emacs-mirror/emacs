@@ -896,8 +896,9 @@ the user from the mailer."
                 (concat "\\(?:[[:space:];,]\\|\\`\\)"
                         (regexp-opt mail-mailing-lists t)
                         "\\(?:[[:space:];,]\\|\\'\\)"))))
-        (mail-combine-fields "To")
-        (mail-combine-fields "Cc")
+        (unless noninteractive
+          (mail-combine-fields "To")
+          (mail-combine-fields "Cc"))
 	;; If there are mailing lists defined
 	(when ml
 	  (save-excursion
