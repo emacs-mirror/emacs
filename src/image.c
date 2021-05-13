@@ -4061,6 +4061,7 @@ enum xpm_keyword_index
   XPM_LAST
 };
 
+#if defined HAVE_XPM || defined HAVE_NS
 /* Vector of image_keyword structures describing the format
    of valid XPM image specifications.  */
 
@@ -4078,6 +4079,7 @@ static const struct image_keyword xpm_format[XPM_LAST] =
   {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
 };
+#endif	/* HAVE_XPM || HAVE_NS */
 
 #if defined HAVE_X_WINDOWS && !defined USE_CAIRO
 
@@ -4301,6 +4303,7 @@ init_xpm_functions (void)
 
 #endif /* WINDOWSNT */
 
+#if defined HAVE_XPM || defined HAVE_NS
 /* Value is true if COLOR_SYMBOLS is a valid color symbols list
    for XPM images.  Such a list must consist of conses whose car and
    cdr are strings.  */
@@ -4321,8 +4324,6 @@ xpm_valid_color_symbols_p (Lisp_Object color_symbols)
   return NILP (color_symbols);
 }
 
-
-#if defined HAVE_XPM || defined HAVE_NS
 /* Value is true if OBJECT is a valid XPM image specification.  */
 
 static bool
