@@ -777,7 +777,6 @@ be guessed."
            ((not guessed-mode)
             (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
            (t guessed-mode)))
-         (project (or (project-current) `(transient . ,default-directory)))
          (lang-id-and-guess (eglot--lookup-mode guessed-mode))
          (language-id (car lang-id-and-guess))
          (guess (cdr lang-id-and-guess))
@@ -827,7 +826,21 @@ be guessed."
                         :test #'equal))))
               guess
               (eglot--error "Couldn't guess for `%s'!" managed-mode))))
-    (list managed-mode project class contact language-id)))
+    (list managed-mode (eglot--current-project) class contact language-id)))
+
+(defvar eglot-lsp-context)
+(put 'eglot-lsp-context 'variable-documentation
+     "Dynamically non-nil when searching for projects in LSP context.")
+
+(defun eglot--current-project ()
+  "Return a project object for Eglot's LSP purposes.
+This relies on `project-current' and thus on
+`project-find-functions'.  Functions in the latter
+variable (which see) can query the value `eglot-lsp-context' to
+decide whether a given directory is a project containing a
+suitable root directory for a given LSP server's purposes."
+  (let ((eglot-lsp-context t))
+    (or (project-current) `(transient . ,default-directory))))
 
 ;;;###autoload
 (defun eglot (managed-major-mode project class contact language-id
@@ -844,13 +857,16 @@ exchanged periodically to provide enhanced code-analysis via
 
 Interactively, the command attempts to guess MANAGED-MAJOR-MODE
 from current buffer, CLASS and CONTACT from
-`eglot-server-programs' and PROJECT from `project-current'.  If
-it can't guess, the user is prompted.  With a single
+`eglot-server-programs' and PROJECT from
+`project-find-functions'.  The search for active projects in this
+context binds `eglot-lsp-context' (which see).
+
+If it can't guess, the user is prompted.  With a single
 \\[universal-argument] prefix arg, it always prompt for COMMAND.
 With two \\[universal-argument] prefix args, also prompts for
 MANAGED-MAJOR-MODE.
 
-PROJECT is a project instance as returned by `project-current'.
+PROJECT is a project object as returned by `project-current'.
 
 CLASS is a subclass of `eglot-lsp-server'.
 
@@ -1537,8 +1553,7 @@ If it is activated, also signal textDocument/didOpen."
                 eglot--cached-server
                 (setq eglot--cached-server
                       (cl-find major-mode
-                               (gethash (or (project-current)
-                                            `(transient . ,default-directory))
+                               (gethash (eglot--current-project)
                                         eglot--servers-by-project)
                                :key #'eglot--major-mode))))
       (setq eglot--unreported-diagnostics `(:just-opened . nil))
@@ -2939,9 +2954,8 @@ If INTERACTIVE, prompt user for details."
               ((string= system-type "darwin") "config_mac")
               ((string= system-type "windows-nt") "config_win")
               (t "config_linux"))))
-           (project (or (project-current) `(transient . ,default-directory)))
            (workspace
-            (expand-file-name (md5 (project-root project))
+            (expand-file-name (md5 (project-root (eglot--current-project)))
                               (concat user-emacs-directory
                                       "eglot-eclipse-jdt-cache"))))
       (unless jar
