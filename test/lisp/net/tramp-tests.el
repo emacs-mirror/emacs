@@ -179,6 +179,11 @@ The temporary file is not created."
   "Whether `tramp--test-instrument-test-case' run.
 This shall used dynamically bound only.")
 
+;; When `tramp-verbose' is greater than 10, and you want to trace
+;; other functions as well, do something like
+;; (let ((tramp-trace-functions '(file-name-non-special)))
+;;   (tramp--test-instrument-test-case 11
+;;     ...))
 (defmacro tramp--test-instrument-test-case (verbose &rest body)
   "Run BODY with `tramp-verbose' equal VERBOSE.
 Print the content of the Tramp connection and debug buffers, if
@@ -187,8 +192,7 @@ is greater than 10.
 `should-error' is not handled properly.  BODY shall not contain a timeout."
   (declare (indent 1) (debug (natnump body)))
   `(let* ((tramp-verbose (max (or ,verbose 0) (or tramp-verbose 0)))
-	  (trace-buffer
-	   (when (> tramp-verbose 10) (generate-new-buffer " *temp*")))
+	  (trace-buffer (tramp-trace-buffer-name tramp-test-vec))
 	  (debug-ignored-errors
 	   (append
 	    '("^make-symbolic-link not supported$"
@@ -198,13 +202,9 @@ is greater than 10.
      (unwind-protect
 	 (let ((tramp--test-instrument-test-case-p t)) ,@body)
        ;; Unwind forms.
-       (when trace-buffer
-	 (untrace-all))
        (when (and (null tramp--test-instrument-test-case-p) (> tramp-verbose 3))
-	 (dolist
-	     (buf (append
-		   (tramp-list-tramp-buffers)
-		   (and trace-buffer (list (get-buffer trace-buffer)))))
+	 (untrace-all)
+	 (dolist (buf (tramp-list-tramp-buffers))
 	   (with-current-buffer buf
 	     (message ";; %s\n%s" buf (buffer-string)))
 	   (kill-buffer buf))))))

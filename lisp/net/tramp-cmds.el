@@ -57,7 +57,9 @@ SYNTAX can be one of the symbols `default' (default),
    (all-completions
     "*tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))
    (all-completions
-    "*debug tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
+    "*debug tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))
+   (all-completions
+    "*trace tramp" (mapcar #'list (mapcar #'buffer-name (buffer-list))))))
 
 (defun tramp-list-remote-buffers ()
   "Return a list of all buffers with remote `default-directory'."

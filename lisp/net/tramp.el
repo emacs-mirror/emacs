@@ -1665,6 +1665,8 @@ See `tramp-dissect-file-name' for details."
 	(format "*tramp/%s %s@%s*" method user-domain host-port)
       (format "*tramp/%s %s*" method host-port))))
 
+(put #'tramp-buffer-name 'tramp-suppress-trace t)
+
 (defun tramp-make-tramp-file-name (&rest args)
   "Construct a Tramp file name from ARGS.
 
@@ -1889,12 +1891,21 @@ The outline level is equal to the verbosity of the Tramp message."
 (put #'tramp-get-debug-buffer 'tramp-suppress-trace t)
 
 (defun tramp-get-debug-file-name (vec)
-  "Get the debug buffer for VEC."
+  "Get the debug file name for VEC."
   (expand-file-name
    (tramp-compat-string-replace "/" " " (tramp-debug-buffer-name vec))
    (tramp-compat-temporary-file-directory)))
 
 (put #'tramp-get-debug-file-name 'tramp-suppress-trace t)
+
+(defun tramp-trace-buffer-name (vec)
+  "A name for the trace buffer for VEC."
+  (tramp-compat-string-replace "debug" "trace" (tramp-debug-buffer-name vec)))
+
+(put #'tramp-trace-buffer-name 'tramp-suppress-trace t)
+
+(defvar tramp-trace-functions nil
+  "A list of non-Tramp functions to be trace with tramp-verbose > 10.")
 
 (defun tramp-debug-message (vec fmt-string &rest arguments)
   "Append message to debug buffer of VEC.
@@ -1922,10 +1933,13 @@ ARGUMENTS to actually emit the message (if applicable)."
 		(or tramp-repository-version "")))))
 	  ;; Traces.
 	  (when (>= tramp-verbose 11)
-	    (dolist (elt (all-completions "tramp-" obarray 'functionp))
-	      (let ((fn (intern elt)))
-		(unless (get fn 'tramp-suppress-trace)
-		  (trace-function-background fn)))))
+	    (dolist
+		(elt
+		 (append
+		  (mapcar #'intern (all-completions "tramp-" obarray 'functionp))
+		  tramp-trace-functions))
+	      (unless (get elt 'tramp-suppress-trace)
+		(trace-function-background elt))))
 	  ;; Delete debug file.
 	  (when (and tramp-debug-to-file (tramp-get-debug-file-name vec))
 	    (ignore-errors (delete-file (tramp-get-debug-file-name vec)))))
