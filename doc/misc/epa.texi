@@ -360,7 +360,7 @@ With prefix argument, asks you to select the recipients interactively,
 whether to sign, and which key(s) to sign with.
 @end table
 
-@node Encrypting/decrypting gpg files,  , Mail-mode integration, Commands
+@node Encrypting/decrypting gpg files, Querying a key server, Mail-mode integration, Commands
 @section Encrypting/decrypting gpg files
 By default, every file whose name ends with @file{.gpg} will be
 treated as encrypted.  That is, when you open such a file, the
@@ -443,7 +443,7 @@ If non-@code{nil}, disable auto-saving when opening an encrypted file.
 The default value is @code{t}.
 @end defvar
 
-@node Querying a key server,  , Mail-mode integration, Commands
+@node Querying a key server,  , Encrypting/decrypting gpg files, Commands
 @section Querying a key server
 
 The @code{epa-search-keys} command can be used to query a
