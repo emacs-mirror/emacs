@@ -4747,7 +4747,7 @@ sys_rename_replace (const char *oldname, const char *newname, BOOL force)
   /* volume_info is set indirectly by map_w32_filename.  */
   oldname_dev = volume_info.serialnum;
 
-  if (os_subtype == OS_9X)
+  if (os_subtype == OS_SUBTYPE_9X)
     {
       char * o;
       char * p;
@@ -10468,7 +10468,7 @@ shutdown_handler (DWORD type)
 HANDLE
 maybe_load_unicows_dll (void)
 {
-  if (os_subtype == OS_9X)
+  if (os_subtype == OS_SUBTYPE_9X)
     {
       HANDLE ret = LoadLibrary ("Unicows.dll");
       if (ret)

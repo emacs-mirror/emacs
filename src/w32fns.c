@@ -7993,7 +7993,7 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
 
       /* The Unicode version of SHFileOperation is not supported on
 	 Windows 9X. */
-      if (w32_unicode_filenames && os_subtype != OS_9X)
+      if (w32_unicode_filenames && os_subtype != OS_SUBTYPE_9X)
 	{
 	  SHFILEOPSTRUCTW file_op_w;
 	  /* We need one more element beyond MAX_PATH because this is
@@ -9122,7 +9122,7 @@ The coordinates X and Y are interpreted in pixels relative to a position
   /* When "mouse trails" are in effect, moving the mouse cursor
      sometimes leaves behind an annoying "ghost" of the pointer.
      Avoid that by momentarily switching off mouse trails.  */
-  if (os_subtype == OS_NT
+  if (os_subtype == OS_SUBTYPE_NT
       && w32_major_version + w32_minor_version >= 6)
     ret = SystemParametersInfo (SPI_GETMOUSETRAILS, 0, &trail_num, 0);
   SetCursorPos (xval, yval);
@@ -9297,7 +9297,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
   if (!OpenPrinter (pname_buf, &hPrn, NULL))
     return Qnil;
   /* GetPrinterW is not supported by unicows.dll.  */
-  if (w32_unicode_filenames && os_subtype != OS_9X)
+  if (w32_unicode_filenames && os_subtype != OS_SUBTYPE_9X)
     GetPrinterW (hPrn, 2, NULL, 0, &dwNeeded);
   else
     GetPrinterA (hPrn, 2, NULL, 0, &dwNeeded);
@@ -9307,7 +9307,7 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       return Qnil;
     }
   /* Call GetPrinter again with big enough memory block.  */
-  if (w32_unicode_filenames && os_subtype != OS_9X)
+  if (w32_unicode_filenames && os_subtype != OS_SUBTYPE_9X)
     {
       /* Allocate memory for the PRINTER_INFO_2 struct.  */
       ppi2w = xmalloc (dwNeeded);
@@ -9443,9 +9443,9 @@ cache_system_info (void)
   w32_minor_version = version.info.minor;
 
   if (version.info.platform & 0x8000)
-    os_subtype = OS_9X;
+    os_subtype = OS_SUBTYPE_9X;
   else
-    os_subtype = OS_NT;
+    os_subtype = OS_SUBTYPE_NT;
 
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);
@@ -9456,7 +9456,7 @@ cache_system_info (void)
   GetVersionEx (&osinfo_cache);
 
   w32_build_number = osinfo_cache.dwBuildNumber;
-  if (os_subtype == OS_9X)
+  if (os_subtype == OS_SUBTYPE_9X)
     w32_build_number &= 0xffff;
 
   w32_num_mouse_buttons = GetSystemMetrics (SM_CMOUSEBUTTONS);
@@ -9635,7 +9635,7 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event, int cpId)
 
   /* On NT, call ToUnicode instead and then convert to the current
      console input codepage.  */
-  if (os_subtype == OS_NT)
+  if (os_subtype == OS_SUBTYPE_NT)
     {
       WCHAR buf[128];
 
@@ -11049,7 +11049,7 @@ see `w32-ansi-code-page'.  */);
   w32_multibyte_code_page = _getmbcp ();
 #endif
 
-  if (os_subtype == OS_NT)
+  if (os_subtype == OS_SUBTYPE_NT)
     w32_unicode_gui = 1;
   else
     w32_unicode_gui = 0;

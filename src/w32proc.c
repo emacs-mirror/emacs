@@ -623,7 +623,7 @@ init_timers (void)
      need to probe for its availability dynamically, and call it
      through a pointer.  */
   s_pfn_Get_Thread_Times = NULL; /* in case dumped Emacs comes with a value */
-  if (os_subtype != OS_9X)
+  if (os_subtype != OS_SUBTYPE_9X)
     s_pfn_Get_Thread_Times = (GetThreadTimes_Proc)
       get_proc_addr (GetModuleHandle ("kernel32.dll"), "GetThreadTimes");
 
@@ -2654,7 +2654,7 @@ find_child_console (HWND hwnd, LPARAM arg)
 
       GetClassName (hwnd, window_class, sizeof (window_class));
       if (strcmp (window_class,
-		  (os_subtype == OS_9X)
+		  (os_subtype == OS_SUBTYPE_9X)
 		  ? "tty"
 		  : "ConsoleWindowClass") == 0)
 	{
@@ -2878,7 +2878,7 @@ sys_kill (pid_t pid, int sig)
       if (NILP (Vw32_start_process_share_console) && cp && cp->hwnd)
 	{
 #if 1
-	  if (os_subtype == OS_9X)
+	  if (os_subtype == OS_SUBTYPE_9X)
 	    {
 /*
    Another possibility is to try terminating the VDM out-right by
@@ -3793,7 +3793,7 @@ w32_compare_strings (const char *s1, const char *s2, char *locname,
 
   if (!g_b_init_compare_string_w)
     {
-      if (os_subtype == OS_9X)
+      if (os_subtype == OS_SUBTYPE_9X)
 	{
 	  pCompareStringW = (CompareStringW_Proc)
             get_proc_addr (LoadLibrary ("Unicows.dll"),
