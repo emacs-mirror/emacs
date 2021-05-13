@@ -1046,8 +1046,8 @@ This docstring appeases checkdoc, that's all."
                               (emacs-pid))
                             ;; Maybe turn trampy `/ssh:foo@bar:/path/to/baz.py'
                             ;; into `/path/to/baz.py', so LSP groks it.
-                            :rootPath (expand-file-name
-                                       (file-local-name default-directory))
+                            :rootPath (file-local-name
+                                       (expand-file-name default-directory))
                             :rootUri (eglot--path-to-uri default-directory)
                             :initializationOptions (eglot-initialization-options
                                                     server)
@@ -1274,24 +1274,31 @@ If optional MARKER, return a marker instead"
 
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
-  (concat "file://" (if (eq system-type 'windows-nt) "/")
-          (url-hexify-string
-           ;; Again watch out for trampy paths.
-           (directory-file-name (file-local-name (file-truename path))) 
-           eglot--uri-path-allowed-chars)))
+  (let ((truepath (file-truename path)))
+    (concat "file://"
+            ;; Add a leading "/" for local MS Windows-style paths.
+            (if (and (eq system-type 'windows-nt)
+                     (not (file-remote-p truepath)))
+                "/")
+            (url-hexify-string
+             ;; Again watch out for trampy paths.
+             (directory-file-name (file-local-name truepath))
+             eglot--uri-path-allowed-chars))))
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to file path, helped by `eglot--current-server'."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
-  (let* ((retval (url-filename (url-generic-parse-url (url-unhex-string uri))))
-         (normalized (if (and (eq system-type 'windows-nt)
-                              (cl-plusp (length retval)))
-                         (substring retval 1)
-                       retval))
-         (server (eglot-current-server))
+  (let* ((server (eglot-current-server))
          (remote-prefix (and server
                              (file-remote-p
-                              (project-root (eglot--project server))))))
+                              (project-root (eglot--project server)))))
+         (retval (url-filename (url-generic-parse-url (url-unhex-string uri))))
+         ;; Remove the leading "/" for local MS Windows-style paths.
+         (normalized (if (and (not remote-prefix)
+                              (eq system-type 'windows-nt)
+                              (cl-plusp (length retval)))
+                         (substring retval 1)
+                       retval)))
     (concat remote-prefix normalized)))
 
 (defun eglot--snippet-expansion-fn ()
