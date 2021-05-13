@@ -4322,6 +4322,7 @@ xpm_valid_color_symbols_p (Lisp_Object color_symbols)
 }
 
 
+#if defined HAVE_XPM || defined HAVE_NS
 /* Value is true if OBJECT is a valid XPM image specification.  */
 
 static bool
@@ -4337,6 +4338,7 @@ xpm_image_p (Lisp_Object object)
 	  && (! fmt[XPM_COLOR_SYMBOLS].count
 	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
+#endif	/* HAVE_XPM || HAVE_NS */
 
 #endif /* HAVE_XPM || USE_CAIRO || HAVE_NS */
 
