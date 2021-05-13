@@ -7492,12 +7492,7 @@ only these files will be asked to be saved."
 ;; operations, which return a file name.  See Bug#29579.
 
 (defun file-name-non-special (operation &rest arguments)
-  (let (;; In general, we don't want any file name handler.  For some
-        ;; few cases, operations with two file name arguments which
-        ;; might be bound to different file name handlers, we still
-        ;; need this.
-        (saved-file-name-handler-alist file-name-handler-alist)
-        (inhibit-file-name-handlers
+  (let ((inhibit-file-name-handlers
          (cons 'file-name-non-special
                (and (eq inhibit-file-name-operation operation)
                     inhibit-file-name-handlers)))
@@ -7583,72 +7578,73 @@ only these files will be asked to be saved."
 	  (when (car pair)
 	    (setcar pair (file-name-unquote (car pair) t))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (pcase method
-      ('identity (car arguments))
-      ('add
-       ;; This is `file-truename'.  We don't want file name handlers
-       ;; to expand this.
-       (file-name-quote (let (tramp-mode) (apply operation arguments)) t))
-      ('buffer-file-name
-       (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
-         (apply operation arguments)))
-      ('insert-file-contents
-       (let ((visit (nth 1 arguments)))
-         (unwind-protect
-             (apply operation arguments)
-           (when (and visit buffer-file-name)
-             (setq buffer-file-name (file-name-quote buffer-file-name t))))))
-      ('unquote-then-quote
-       ;; We can't use `cl-letf' with `(buffer-local-value)' here
-       ;; because it wouldn't work during bootstrapping.
-       (let ((buffer (current-buffer)))
-         ;; `unquote-then-quote' is used only for the
-         ;; `verify-visited-file-modtime' action, which takes a buffer
-         ;; as only optional argument.
-         (with-current-buffer (or (car arguments) buffer)
-           (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
-             ;; Make sure to hide the temporary buffer change from the
-             ;; underlying operation.
-             (with-current-buffer buffer
-               (apply operation arguments))))))
-      ('local-copy
-       (let* ((file-name-handler-alist saved-file-name-handler-alist)
-              (source (car arguments))
-              (target (car (cdr arguments)))
-              (prefix (expand-file-name
-                       "file-name-non-special" temporary-file-directory))
-              tmpfile)
-         (cond
-          ;; If source is remote, we must create a local copy.
-          ((file-remote-p source)
-           (setq tmpfile (make-temp-name prefix))
-           (apply operation source tmpfile (cddr arguments))
-           (setq source tmpfile))
-          ;; If source is quoted, and the unquoted source looks
-          ;; remote, we must create a local copy.
-          ((file-name-quoted-p source t)
-           (setq source (file-name-unquote source t))
-           (when (file-remote-p source)
+    ;; In general, we don't want any file name handler, see Bug#47625,
+    ;; Bug#48349.  For some few cases, operations with two file name
+    ;; arguments which might be bound to different file name handlers,
+    ;; we still need this.
+    (let ((tramp-mode (and tramp-mode (eq method 'local-copy))))
+      (pcase method
+        ('identity (car arguments))
+        ('add (file-name-quote (apply operation arguments) t))
+        ('buffer-file-name
+         (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
+           (apply operation arguments)))
+        ('insert-file-contents
+         (let ((visit (nth 1 arguments)))
+           (unwind-protect
+               (apply operation arguments)
+             (when (and visit buffer-file-name)
+               (setq buffer-file-name (file-name-quote buffer-file-name t))))))
+        ('unquote-then-quote
+         ;; We can't use `cl-letf' with `(buffer-local-value)' here
+         ;; because it wouldn't work during bootstrapping.
+         (let ((buffer (current-buffer)))
+           ;; `unquote-then-quote' is used only for the
+           ;; `verify-visited-file-modtime' action, which takes a
+           ;; buffer as only optional argument.
+           (with-current-buffer (or (car arguments) buffer)
+             (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
+               ;; Make sure to hide the temporary buffer change from
+               ;; the underlying operation.
+               (with-current-buffer buffer
+                 (apply operation arguments))))))
+        ('local-copy
+         (let ((source (car arguments))
+               (target (car (cdr arguments)))
+               (prefix (expand-file-name
+                        "file-name-non-special" temporary-file-directory))
+               tmpfile)
+           (cond
+            ;; If source is remote, we must create a local copy.
+            ((file-remote-p source)
              (setq tmpfile (make-temp-name prefix))
-             (let (file-name-handler-alist)
-               (apply operation source tmpfile (cddr arguments)))
-             (setq source tmpfile))))
-         ;; If target is quoted, and the unquoted target looks remote,
-         ;; we must disable the file name handler.
-         (when (file-name-quoted-p target t)
-           (setq target (file-name-unquote target t))
-           (when (file-remote-p target)
-             (setq file-name-handler-alist nil)))
-         ;; Do it.
-         (setcar arguments source)
-         (setcar (cdr arguments) target)
-         (apply operation arguments)
-         ;; Cleanup.
-         (when (and tmpfile (file-exists-p tmpfile))
-           (if (file-directory-p tmpfile)
-               (delete-directory tmpfile 'recursive) (delete-file tmpfile)))))
-      (_
-       (apply operation arguments)))))
+             (apply operation source tmpfile (cddr arguments))
+             (setq source tmpfile))
+            ;; If source is quoted, and the unquoted source looks
+            ;; remote, we must create a local copy.
+            ((file-name-quoted-p source t)
+             (setq source (file-name-unquote source t))
+             (when (file-remote-p source)
+               (setq tmpfile (make-temp-name prefix))
+               (let (file-name-handler-alist)
+                 (apply operation source tmpfile (cddr arguments)))
+               (setq source tmpfile))))
+           ;; If target is quoted, and the unquoted target looks
+           ;; remote, we must disable the file name handler.
+           (when (file-name-quoted-p target t)
+             (setq target (file-name-unquote target t))
+             (when (file-remote-p target)
+               (setq file-name-handler-alist nil)))
+           ;; Do it.
+           (setcar arguments source)
+           (setcar (cdr arguments) target)
+           (apply operation arguments)
+           ;; Cleanup.
+           (when (and tmpfile (file-exists-p tmpfile))
+             (if (file-directory-p tmpfile)
+                 (delete-directory tmpfile 'recursive) (delete-file tmpfile)))))
+        (_
+         (apply operation arguments))))))
 
 (defsubst file-name-quoted-p (name &optional top)
   "Whether NAME is quoted with prefix \"/:\".
