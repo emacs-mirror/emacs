@@ -2006,7 +2006,24 @@ This function uses the `read-extended-command-predicate' user option."
 	     '(metadata
 	       (affixation-function . read-extended-command--affixation)
 	       (category . command))
-           (complete-with-action action obarray string pred)))
+           (let ((pred
+                  (if (memq action '(nil t))
+                      ;; Exclude from completions obsolete commands
+                      ;; lacking a `current-name', or where `when' is
+                      ;; not the current major version.
+                      (lambda (sym)
+                        (let ((obsolete (get sym 'byte-obsolete-info)))
+                          (and (funcall pred sym)
+                               (or (equal string (symbol-name sym))
+                                   (not obsolete)
+                                   (and
+                                    ;; Has a current-name.
+                                    (functionp (car obsolete))
+                                    ;; when >= emacs-major-version
+                                    (>= (car (version-to-list (caddr obsolete)))
+                                        emacs-major-version))))))
+                    pred)))
+             (complete-with-action action obarray string pred))))
        (lambda (sym)
          (and (commandp sym)
               (cond ((null read-extended-command-predicate))
