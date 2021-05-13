@@ -10838,6 +10838,47 @@ include the height of both, if present, in the return value.  */)
 
   return Fcons (make_fixnum (x - start_x), make_fixnum (y));
 }
+
+DEFUN ("display--line-is-continued-p", Fdisplay__line_is_continued_p,
+       Sdisplay__line_is_continued_p, 0, 0, 0,
+       doc: /* Return non-nil if the current screen line is continued on display.  */)
+  (void)
+{
+  struct buffer *oldb = current_buffer;
+  struct window *w = XWINDOW (selected_window);
+  enum move_it_result rc = MOVE_POS_MATCH_OR_ZV;
+
+  set_buffer_internal_1 (XBUFFER (w->contents));
+
+  if (PT < ZV)
+    {
+      struct text_pos startpos;
+      struct it it;
+      void *itdata;
+      /* Use a marker, since vertical-motion enters redisplay, which can
+	 trigger fontifications, which in turn could modify buffer text.  */
+      Lisp_Object opoint = Fpoint_marker ();
+
+      /* Make sure to start from the beginning of the current screen
+	 line, so that move_it_in_display_line_to counts pixels correctly.  */
+      Fvertical_motion (make_fixnum (0), selected_window, Qnil);
+      SET_TEXT_POS (startpos, PT, PT_BYTE);
+      itdata = bidi_shelve_cache ();
+      start_display (&it, w, startpos);
+      /* If lines are truncated, no line is continued.  */
+      if (it.line_wrap != TRUNCATE)
+	{
+	  it.glyph_row = NULL;
+	  rc = move_it_in_display_line_to (&it, ZV, -1, MOVE_TO_POS);
+	}
+      SET_PT_BOTH (marker_position (opoint), marker_byte_position (opoint));
+      bidi_unshelve_cache (itdata, false);
+    }
+  set_buffer_internal_1 (oldb);
+
+  return rc == MOVE_LINE_CONTINUED ? Qt : Qnil;
+}
+
 
 /***********************************************************************
 			       Messages
@@ -34739,6 +34780,7 @@ be let-bound around code that needs to disable messages temporarily. */);
   defsubr (&Swindow_text_pixel_size);
   defsubr (&Smove_point_visually);
   defsubr (&Sbidi_find_overridden_directionality);
+  defsubr (&Sdisplay__line_is_continued_p);
 
   DEFSYM (Qmenu_bar_update_hook, "menu-bar-update-hook");
   DEFSYM (Qoverriding_terminal_local_map, "overriding-terminal-local-map");

@@ -6935,11 +6935,13 @@ The value is a floating-point number."
 	       (or (null rbot) (= rbot 0)))
 	  nil)
 	 ;; If cursor is not in the bottom scroll margin, and the
-	 ;; current line is not too tall, move forward.
+	 ;; current line is not too tall, or if there's a continuation
+	 ;; line below this one, move forward.
 	 ((and (or (null this-height) (<= this-height winh))
 	       vpos
 	       (> vpos 0)
-	       (< py last-line))
+	       (or (< py last-line)
+                   (display--line-is-continued-p)))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
