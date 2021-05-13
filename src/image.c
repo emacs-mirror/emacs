@@ -4706,10 +4706,11 @@ xpm_load (struct frame *f, struct image *img)
 
 #endif /* HAVE_XPM && !USE_CAIRO */
 
-#if defined USE_CAIRO || (defined HAVE_NS && !defined HAVE_XPM)
+#if (defined USE_CAIRO && defined HAVE_XPM)	\
+  || (defined HAVE_NS && !defined HAVE_XPM)
 
-/* XPM support functions for NS where libxpm is not available.
-   Only XPM version 3 (without any extensions) is supported.  */
+/* XPM support functions for NS where libxpm is not available, and for
+   Cairo.  Only XPM version 3 (without any extensions) is supported.  */
 
 static void xpm_put_color_table_v (Lisp_Object, const char *,
                                    int, Lisp_Object);
