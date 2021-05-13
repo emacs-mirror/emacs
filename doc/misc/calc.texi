@@ -16890,8 +16890,8 @@ additional argument from the top of the stack.
 @menu
 * Date Conversions::
 * Date Functions::
-* Time Zones::
 * Business Days::
+* Time Zones::
 @end menu
 
 @node Date Conversions
