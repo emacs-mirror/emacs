@@ -2020,8 +2020,13 @@ This function uses the `read-extended-command-predicate' user option."
                                     ;; Has a current-name.
                                     (functionp (car obsolete))
                                     ;; when >= emacs-major-version
-                                    (>= (car (version-to-list (caddr obsolete)))
-                                        emacs-major-version))))))
+                                    (condition-case nil
+                                        (>= (car (version-to-list
+                                                  (caddr obsolete)))
+                                            emacs-major-version)
+                                      ;; If the obsoletion version isn't
+                                      ;; valid, include the command.
+                                      (error t)))))))
                     pred)))
              (complete-with-action action obarray string pred))))
        (lambda (sym)
