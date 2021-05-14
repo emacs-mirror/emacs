@@ -4361,45 +4361,45 @@ This may be a useful alternative binding for \\[delete-other-windows]
 
 ;; The following function is called by `set-window-buffer' _before_ it
 ;; replaces the buffer of the argument window with the new buffer.
-(defun record-window-buffer (&optional window do-minibuf)
-  "Record WINDOW's buffer.
+(defun push-window-buffer-onto-prev (&optional window)
+  "Push entry for WINDOW's buffer onto WINDOW's prev-buffers list.
 WINDOW must be a live window and defaults to the selected one.
 
-If WINDOW is a minibuffer, it will only be recorded if DO-MINIBUF
-is non-nil."
+Any duplicate entries for the buffer in the list are removed."
   (let* ((window (window-normalize-window window t))
-	 (buffer (window-buffer window))
-	 (entry (assq buffer (window-prev-buffers window))))
+         (buffer (window-buffer window))
+         (w-list (window-prev-buffers window))
+         (entry (assq buffer w-list)))
+    (when entry
+      (setq w-list (assq-delete-all buffer w-list)))
+    (let ((start (window-start window))
+          (point (window-point window)))
+      (setq entry
+            (cons buffer
+                  (with-current-buffer buffer
+                    (if entry
+                        ;; We have an entry, update marker positions.
+                        (list (set-marker (nth 1 entry) start)
+                              (set-marker (nth 2 entry) point))
+                      (list (copy-marker start)
+                            (copy-marker
+                             ;; Preserve window-point-insertion-type
+                             ;; (Bug#12855)
+                             point window-point-insertion-type))))))
+      (set-window-prev-buffers window (cons entry w-list)))))
+
+(defun record-window-buffer (&optional window)
+  "Record WINDOW's buffer.
+WINDOW must be a live window and defaults to the selected one."
+  (let* ((window (window-normalize-window window t))
+         (buffer (window-buffer window)))
     ;; Reset WINDOW's next buffers.  If needed, they are resurrected by
     ;; `switch-to-prev-buffer' and `switch-to-next-buffer'.
     (set-window-next-buffers window nil)
 
     ;; Don't record insignificant buffers.
-    (when (or (not (eq (aref (buffer-name buffer) 0) ?\s))
-              (and do-minibuf (minibufferp buffer)))
-      (when entry
-        ;; Remove all entries for BUFFER from WINDOW's previous buffers.
-        (set-window-prev-buffers
-         window (assq-delete-all buffer (window-prev-buffers window))))
-      ;; Add an entry for buffer to WINDOW's previous buffers.
-      (with-current-buffer buffer
-	(let ((start (window-start window))
-	      (point (window-point window)))
-	  (setq entry
-		(cons buffer
-		      (if entry
-			  ;; We have an entry, update marker positions.
-			  (list (set-marker (nth 1 entry) start)
-				(set-marker (nth 2 entry) point))
-			;; Make new markers.
-			(list (copy-marker start)
-			      (copy-marker
-			       ;; Preserve window-point-insertion-type
-			       ;; (Bug#12855).
-			       point window-point-insertion-type)))))
-	  (set-window-prev-buffers
-	   window (cons entry (window-prev-buffers window)))))
-
+    (when (not (eq (aref (buffer-name buffer) 0) ?\s))
+      (push-window-buffer-onto-prev window)
       (run-hooks 'buffer-list-update-hook))))
 
 (defun unrecord-window-buffer (&optional window buffer)
