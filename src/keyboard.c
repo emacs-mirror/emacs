@@ -3233,10 +3233,6 @@ help_char_p (Lisp_Object c)
 static void
 record_char (Lisp_Object c)
 {
-  /* quail.el binds this to avoid recording keys twice.  */
-  if (inhibit_record_char)
-    return;
-
   int recorded = 0;
 
   if (CONSP (c) && (EQ (XCAR (c), Qhelp_echo) || EQ (XCAR (c), Qmouse_movement)))
@@ -12343,13 +12339,6 @@ If nil, Emacs crashes immediately in response to fatal signals.  */);
                Vwhile_no_input_ignore_events,
                doc: /* Ignored events from while-no-input.  */);
 
-  DEFVAR_BOOL ("inhibit--record-char",
-	       inhibit_record_char,
-	       doc: /* If non-nil, don't record input events.
-This inhibits recording input events for the purposes of keyboard
-macros, dribble file, and `recent-keys'.
-Internal use only.  */);
-
   pdumper_do_now_and_after_load (syms_of_keyboard_for_pdumper);
 }
 
@@ -12383,8 +12372,6 @@ syms_of_keyboard_for_pdumper (void)
   /* Create the initial keyboard.  Qt means 'unset'.  */
   eassert (initial_kboard == NULL);
   initial_kboard = allocate_kboard (Qt);
-
-  inhibit_record_char = false;
 }
 
 void
