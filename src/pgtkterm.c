@@ -3551,12 +3551,31 @@ pgtk_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 }
 
 static struct atimer *hourglass_atimer = NULL;
-static int hourglass_enter_count = 0;
 
 static void
 hourglass_cb (struct atimer *timer)
 {
- /*NOP*/}
+  /*NOP*/
+}
+
+static void
+start_timer (void)
+{
+  static bool hourglass_inited = false;
+
+  /* For cursor animation, we receive signals, set pending_signals, and dispatch. */
+  /* This is useful for drawing text while busy, and C-g takes effect while busy. */
+  if (!hourglass_inited)
+    {
+      struct timespec ts = make_timespec (0, 50 * 1000 * 1000);
+      if (hourglass_atimer != NULL)
+	cancel_atimer (hourglass_atimer);
+      hourglass_atimer =
+	start_atimer (ATIMER_CONTINUOUS, ts, hourglass_cb, NULL);
+
+      hourglass_inited = true;
+    }
+}
 
 static void
 pgtk_show_hourglass (struct frame *f)
@@ -3572,32 +3591,13 @@ pgtk_show_hourglass (struct frame *f)
   gdk_window_raise (gtk_widget_get_window (x->hourglass_widget));
   gdk_window_set_cursor (gtk_widget_get_window (x->hourglass_widget),
 			 x->hourglass_cursor);
-
-  /* For cursor animation, we receive signals, set pending_signals, and dispatch. */
-  if (hourglass_enter_count++ == 0)
-    {
-      struct timespec ts = make_timespec (0, 50 * 1000 * 1000);
-      if (hourglass_atimer != NULL)
-	cancel_atimer (hourglass_atimer);
-      hourglass_atimer =
-	start_atimer (ATIMER_CONTINUOUS, ts, hourglass_cb, NULL);
-    }
-
-  /* Cursor frequently stops animation. gtk's bug? */
 }
 
 static void
 pgtk_hide_hourglass (struct frame *f)
 {
   struct pgtk_output *x = FRAME_X_OUTPUT (f);
-  if (--hourglass_enter_count == 0)
-    {
-      if (hourglass_atimer != NULL)
-	{
-	  cancel_atimer (hourglass_atimer);
-	  hourglass_atimer = NULL;
-	}
-    }
+
   if (x->hourglass_widget != NULL)
     {
       gtk_widget_destroy (x->hourglass_widget);
@@ -6994,6 +6994,8 @@ pgtk_term_init (Lisp_Object display_name, char *resource_name)
   pgtk_im_init (dpyinfo);
 
   unblock_input ();
+
+  start_timer();
 
   return dpyinfo;
 }
