@@ -1596,6 +1596,8 @@ This adds rules for comments and assignments."
 
 ;;; Completion
 
+(defvar sh--completion-keywords '("if" "while" "until" "for"))
+
 (defun sh--vars-before-point ()
   (save-excursion
     (let ((vars ()))
@@ -1617,7 +1619,7 @@ This adds rules for comments and assignments."
                          (sh--vars-before-point))
                  (locate-file-completion-table
                   exec-path exec-suffixes string pred t)
-                 '("if" "while" "until" "for"))))
+                 sh--completion-keywords)))
     (complete-with-action action cmds string pred)))
 
 (defun sh-completion-at-point-function ()
@@ -1628,9 +1630,17 @@ This adds rules for comments and assignments."
           (start (point)))
       (cond
        ((eq (char-before) ?$)
-        (list start end (sh--vars-before-point)))
+        (list start end (sh--vars-before-point)
+              :company-kind (lambda (_) 'variable)))
        ((sh-smie--keyword-p)
-        (list start end #'sh--cmd-completion-table))))))
+        (list start end #'sh--cmd-completion-table
+              :company-kind
+              (lambda (s)
+                (cond
+                 ((member s sh--completion-keywords) 'keyword)
+                 ((string-suffix-p "=" s) 'variable)
+                 (t 'function)))
+              ))))))
 
 ;;; Indentation and navigation with SMIE.
 
