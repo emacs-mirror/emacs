@@ -245,13 +245,13 @@ endef
 $(foreach test,${TESTS},$(eval $(call test_template,${test})))
 
 ## Get the tests for only a specific directory.
-SUBDIRS = $(sort $(shell find lib-src lisp misc src -type d ! -path "*resources*" -print))
+SUBDIRS = $(sort $(shell cd ${srcdir} && find lib-src lisp misc src -type d ! -path "*resources*" -print))
 
 define subdir_template
   .PHONY: check-$(subst /,-,$(1))
   check-$(subst /,-,$(1)):
 	@${MAKE} check LOGFILES="$(patsubst %.el,%.log, \
-		$(patsubst $(srcdir)/%,%,$(wildcard $(1)/*.el)))"
+		$(patsubst $(srcdir)/%,%,$(wildcard ${srcdir}/$(1)/*.el)))"
 endef
 
 $(foreach subdir, $(SUBDIRS), $(eval $(call subdir_template,$(subdir))))
@@ -340,6 +340,7 @@ mostlyclean:
 
 clean:
 	find . '(' -name '*.log' -o -name '*.log~' ')' $(FIND_DELETE)
+	rm -f ${srcdir}/lisp/gnus/mml-sec-resources/random_seed
 	rm -f $(test_module_dir)/*.o $(test_module_dir)/*.so \
 	  $(test_module_dir)/*.dll
 

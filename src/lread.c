@@ -1945,7 +1945,17 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes,
 	      }
 	    else
 	      {
-		fd = emacs_open (pfn, O_RDONLY, 0);
+                /*  In some systems (like Windows) finding out if a
+                    file exists is cheaper to do than actually opening
+                    it.  Only open the file when we are sure that it
+                    exists.  */
+#ifdef WINDOWSNT
+                if (faccessat (AT_FDCWD, pfn, R_OK, AT_EACCESS))
+                  fd = -1;
+                else
+#endif
+                  fd = emacs_open (pfn, O_RDONLY, 0);
+
 		if (fd < 0)
 		  {
 		    if (! (errno == ENOENT || errno == ENOTDIR))

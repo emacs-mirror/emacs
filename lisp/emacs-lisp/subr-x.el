@@ -289,6 +289,18 @@ than this function."
       (let ((result nil)
             (result-length 0)
             (index (if end (1- (length string)) 0)))
+        ;; FIXME: This implementation, which uses encode-coding-char
+        ;; to encode the string one character at a time, is in general
+        ;; incorrect: coding-systems that produce prefix or suffix
+        ;; bytes, such as ISO-2022-based or UTF-8/16 with BOM, will
+        ;; produce those bytes for each character, instead of just
+        ;; once for the entire string.  encode-coding-char attempts to
+        ;; remove those extra bytes at least in some situations, but
+        ;; it cannot do that in all cases.  And in any case, producing
+        ;; what is supposed to be a UTF-16 or ISO-2022-CN encoded
+        ;; string which lacks the BOM bytes at the beginning and the
+        ;; charset designation sequences at the head and tail of the
+        ;; result will definitely surprise the callers in some cases.
         (while (let ((encoded (encode-coding-char
                                (aref string index) coding-system)))
                  (and (<= (+ (length encoded) result-length) length)

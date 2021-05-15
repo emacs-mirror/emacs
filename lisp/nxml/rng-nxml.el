@@ -179,7 +179,8 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                    ;; attributes are required
                    (insert " "))))
               ((member completion extra-strings)
-               (insert ">")))))))))
+               (insert ">"))))
+          :company-kind ,(lambda () 'property))))))
 
 (defconst rng-in-end-tag-name-regex
   (replace-regexp-in-string
@@ -254,7 +255,8 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                   (when (and (eq status 'finished)
                              (not (looking-at "=")))
                     (insert "=\"\"")
-                    (forward-char -1)))))))))
+                    (forward-char -1)))
+               :company-kind ,(lambda (_) 'enum-member)))))))
 
 (defconst rng-in-attribute-value-regex
   (replace-regexp-in-string
@@ -279,7 +281,8 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
             (lambda (_completion status)
               (when (eq status 'finished)
                 (let ((delim (char-before value-start)))
-                  (unless (eq (char-after) delim) (insert delim)))))))
+                  (unless (eq (char-after) delim) (insert delim))))))
+           (kind-function (lambda (_) 'value)))
       (and (rng-adjust-state-for-attribute lt-pos
 					   name-start)
 	   (if (string= (buffer-substring-no-properties name-start
@@ -290,14 +293,16 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
                    (rng-possible-namespace-uris
                     (and colon
                          (buffer-substring-no-properties (1+ colon) name-end))))
-                 :exit-function ,exit-function)
+                 :exit-function ,exit-function
+                 :company-kind ,kind-function)
 	     (rng-adjust-state-for-attribute-value name-start
 						   colon
 						   name-end)
              `(,value-start ,(point)
                ,(rng-strings-to-completion-table
                  (rng-match-possible-value-strings))
-               :exit-function ,exit-function))))))
+               :exit-function ,exit-function
+               :company-kind ,kind-function))))))
 
 (defun rng-possible-namespace-uris (prefix)
   (let ((ns (if prefix (nxml-ns-get-prefix prefix)

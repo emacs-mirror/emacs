@@ -137,7 +137,7 @@ ${srcdir}/../lisp/language/pinyin.el: ${srcdir}/MISC-DIC/pinyin.map
 	$(AM_V_GEN)${RUN_EMACS} -l titdic-cnv -f pinyin-convert $< $@
 
 
-.PHONY: bootstrap-clean distclean maintainer-clean extraclean gen-clean
+.PHONY: bootstrap-clean distclean maintainer-clean gen-clean
 
 ## Perhaps this should run gen-clean.
 bootstrap-clean:
@@ -153,7 +153,5 @@ maintainer-clean: gen-clean distclean
 gen-clean:
 	rm -f ${TIT_MISC} ${leimdir}/leim-list.el
 	rm -rf ${leimdir}/ja-dic
-
-extraclean: maintainer-clean
 
 ### Makefile.in ends here

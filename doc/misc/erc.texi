@@ -557,7 +557,7 @@ and the second element is the file name of the client certificate
 itself to use when connecting over TLS, or @code{t}, which means that
 @code{auth-source} will be queried for the private key and the
 certificate.  Authenticating using a TLS client certificate is also
-refered to as ``CertFP'' (Certificate Fingerprint) authentication by
+referred to as ``CertFP'' (Certificate Fingerprint) authentication by
 various IRC networks.
 
 Examples of use:
@@ -588,6 +588,9 @@ line like the following to your authinfo file
 @example
 machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
 @end example
+
+@xref{Help for users,,,auth, Emacs auth-source Library}, for more on the
+@file{.authinfo}/@file{.netrc} backend of @code{auth-source}.
 @end defun
 
 @subheading Server

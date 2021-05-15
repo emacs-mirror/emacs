@@ -1885,6 +1885,14 @@ any form of file-local variable.  For examples of why you might want
 to use this, @pxref{Auto Major Mode}.
 @end defvar
 
+@defvar permanently-enabled-local-variables
+Some local variable settings will, by default, be heeded even if
+@code{enable-local-variables} is @code{nil}.  By default, this is only
+the case for the @code{lexical-binding} local variable setting, but
+this can be controlled by using this variable, which is a list of
+symbols.
+@end defvar
+
 @defun hack-local-variables &optional handle-mode
 This function parses, and binds or evaluates as appropriate, any local
 variables specified by the contents of the current buffer.  The variable

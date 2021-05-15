@@ -184,7 +184,7 @@ commands.
 ** Support for '(box . SIZE)' 'cursor-type'.
 By default, 'box' cursor always has a filled box shape.  But if you
 specify 'cursor-type' to be '(box . SIZE)', the cursor becomes a hollow
-box if the point is on an image larger than 'SIZE' pixels in any
+box if the point is on an image larger than SIZE pixels in any
 dimension.
 
 +++
@@ -280,7 +280,7 @@ commands.  The new keystrokes are 'C-x x g' ('revert-buffer'),
 input using the minibuffer.
 
 ---
-** New user option 'bookmark-menu-confirm-deletion'
+** New user option 'bookmark-menu-confirm-deletion'.
 In Bookmark Menu mode, Emacs by default does not prompt for
 confirmation when you type 'x' to execute the deletion of bookmarks
 that have been marked for deletion.  However, if this new option is
@@ -299,10 +299,10 @@ prompt, and how you can tweak the file size threshold.
 * Editing Changes in Emacs 28.1
 
 +++
-** A prefix arg now causes 'delete-other-frames' to only iconify frames
+** A prefix arg now causes 'delete-other-frames' to only iconify frames.
 
 +++
-** The "Edit => Clear" menu item now obeys a rectangular region
+** The "Edit => Clear" menu item now obeys a rectangular region.
 
 +++
 ** New command 'execute-extended-command-for-buffer'.
@@ -389,9 +389,10 @@ setting the variable 'auto-save-visited-mode' buffer-locally to nil.
 description of the properties.  Likewise 'button-describe' does the
 same for a button.
 
-** Obsolete commands are no longer hidden from command completion.
+** Obsolete aliases are no longer hidden from command completion.
 Completion of command names now considers obsolete aliases as
-candidates.  Invoking a command via an obsolete alias now mentions the
+candidates, if they were marked obsolete in the current major version
+of Emacs.  Invoking a command via an obsolete alias now mentions the
 obsolescence fact and shows the new name of the command.
 
 +++
@@ -526,7 +527,7 @@ indentation is done using SMIE or with the old ad-hoc code.
 ** Icomplete
 
 +++
-*** New minor mode Icomplete-Vertical mode.
+*** New minor mode 'icomplete-vertical-mode'.
 This mode is intended to be used with Icomplete or Fido, to display the
 list of completions candidates vertically instead of horizontally.
 
@@ -1147,7 +1148,6 @@ the variables 'bookmark-bmenu-use-header-line' and
 If non-nil, setting a bookmark will colorize the current line with
 'bookmark-face'.
 
-
 ** Edebug
 
 *** Obsoletions
@@ -1231,7 +1231,8 @@ command line under point (and any following output).
 
 ---
 *** Environment variable 'INSIDE_EMACS' is now copied to subprocesses.
-Its value equals the result of evaluating '(format "%s,eshell" emacs-version)'.
+Its value contains the result of evaluating '(format "%s,eshell"
+emacs-version)'.  Other package names, like "tramp", could also be included.
 
 ---
 *** Eshell no longer re-initializes its keymap every call.
@@ -1345,16 +1346,16 @@ See the new user options 'package-name-column-width',
 *** gdb-mi can now store and restore window configurations.
 Use 'gdb-save-window-configuration' to save window configuration to a
 file and 'gdb-load-window-configuration' to load from a file.  These
-commands can also be accessed through the menu bar under 'Gud --
-GDB-Windows'.  'gdb-default-window-configuration-file', when non-nil,
+commands can also be accessed through the menu bar under "Gud =>
+GDB-Windows".  'gdb-default-window-configuration-file', when non-nil,
 is loaded when GDB starts up.
 
 +++
 *** gdb-mi can now restore window configuration after quit.
 Set 'gdb-restore-window-configuration-after-quit' to non-nil and Emacs
 will remember the window configuration before GDB started and restore
-it after GDB quits.  A toggle button is also provided under 'Gud --
-GDB-Windows'.
+it after GDB quits.  A toggle button is also provided under "Gud =>
+GDB-Windows".
 
 +++
 *** gdb-mi now has a better logic for displaying source buffers.
@@ -1625,7 +1626,7 @@ This feature relies on librsvg 2.48 or above being available.
 Size image properties, for example ':height', ':max-height', etc., can
 be given a cons of the form '(SIZE . em)', where SIZE is an integer or
 float which is multiplied by the font size to calculate the image
-size, and em is a symbol.
+size, and 'em' is a symbol.
 
 ** EWW
 
@@ -1732,8 +1733,8 @@ If chosen, file names in "*xref*" buffers will be displayed relative
 to the 'project-root' of the current project, when available.
 
 +++
-*** The TAB key binding in *xref* buffers is obsolete.
-Use 'C-u RET' instead.  The TAB binding in *xref* buffers is still
+*** The 'TAB' key binding in "*xref*" buffers is obsolete.
+Use 'C-u RET' instead.  The 'TAB' binding in "*xref*" buffers is still
 supported, but we plan on removing it in a future version; at that
 time, the command 'xref-quit-and-goto-xref' will no longer have a key
 binding in 'xref--xref-buffer-mode-map'.
@@ -1804,36 +1805,10 @@ activity overview sidebar for joined IRC channels is now part of ERC.
 The 'erc-tls' function has been updated to allow specifying a TLS
 client certificate for authentication, as an alternative to NickServ
 password-based authentication.  This is referred to as "CertFP" (short
-for Certificate Fingerprint) by several IRC networks.
-
-To use a certificate with 'erc-tls', specify the ':client-certificate'
-optional parameter, whose value should be as described in the
-documentation of 'open-network-stream': if non-nil, it should either
-be a list where the first element is the file name of the private key
-corresponding to a client certificate and the second element is the
-file name of the client certificate itself to use when connecting over
-TLS, or t, which means that 'auth-source' will be queried for the
-private key and the certificate.
-
-Examples of use:
-
-    (erc-tls :server "chat.freenode.net" :port 6697
-             :client-certificate
-             '("/home/bandali/my-cert.key"
-               "/home/bandali/my-cert.crt"))
-
-    (erc-tls :server "chat.freenode.net" :port 6697
-             :client-certificate
-             `(,(expand-file-name "~/cert-freenode.key")
-               ,(expand-file-name "~/cert-freenode.crt")))
-
-    (erc-tls :server "chat.freenode.net" :port 6697
-             :client-certificate t)
-
-In the case of ':client-certificate t', you will need to add a line
-like the following to your authinfo file (e.g. "~/.authinfo.gpg"):
-
-    machine chat.freenode.net key /home/bandali/my-cert.key cert /home/bandali/my-cert.crt
+for Certificate Fingerprint) by several IRC networks.  See the Info
+node "(erc) Connecting" in the ERC manual for more details and
+examples on how to specify and use TLS client certificates with
+'erc-tls'.
 
 ** Battery
 
@@ -2397,10 +2372,17 @@ You can type 'C-x u u' instead of 'C-x u C-x u' to undo many changes,
 'M-g n n p p' to navigate next-error matches.  Any other key exits
 transient mode and then is executed normally.  'repeat-exit-key'
 defines an additional key to exit mode like 'isearch-exit' ('RET').
-With 'repeat-keep-prefix' you can keep the prefix arg of the previous command.
-For example, this can help to reverse the window navigation direction
-with e.g. 'C-x o M-- o o'.  Also it can help to set a new step with
-e.g. 'C-x { C-5 { { {' will set the window resizing step to 5 columns.
+With 'repeat-keep-prefix' you can keep the prefix arg of the previous
+command.  For example, this can help to reverse the window navigation
+direction with e.g. 'C-x o M-- o o'.  Also it can help to set a new
+step with e.g. 'C-x { C-5 { { {', which will set the window resizing
+step to 5 columns.
+
++++
+** EasyPG
+GPG key servers can now be queried for keys with the
+'M-x epa-search-keys' command.  Keys can then be added to your
+personal key ring.
 
 
 * New Modes and Packages in Emacs 28.1
@@ -2485,13 +2467,20 @@ This is to keep the same behavior as Eshell.
 * Incompatible Lisp Changes in Emacs 28.1
 
 +++
+** The 'lexical-binding' local variable is always enabled.
+Previously, if 'enable-local-variables' was nil, a 'lexical-binding'
+local variable would not be heeded.  This has now changed, and a file
+with a 'lexical-binding' cookie is always heeded.  To revert to the
+old behavior, set 'permanently-enabled-local-variables' to nil.
+
++++
 ** 'completing-read-default' sets completion variables buffer-locally.
 'minibuffer-completion-table' and related variables are now set buffer-locally
 in the minibuffer instead of being set via a global let-binding.
 
 +++
 ** The use of positional arguments in 'define-minor-mode' is obsolete.
-These were actually rendered obsolete in Emacs-21 but were never
+These were actually rendered obsolete in Emacs 21 but were never
 marked as such.
 
 ** 'facemenu-color-alist' is now obsolete, and is not used.
@@ -2679,8 +2668,8 @@ back in Emacs 23.1.  The affected functions are: 'make-obsolete',
 
 +++
 ** The '&define' keyword in an Edebug specification now disables backtracking.
-The implementation was buggy, and multiple &define forms in an &or
-form should be exceedingly rare.  See the Info node 'Backtracking' in
+The implementation was buggy, and multiple '&define' forms in an '&or'
+form should be exceedingly rare.  See the Info node "(elisp) Backtracking" in
 the Emacs Lisp reference manual for background.
 
 
@@ -3071,9 +3060,16 @@ The special events 'dbus-event' and 'file-notify' are now ignored in
 
 +++
 ** 'condition-case' now allows for a success handler.
-It is written as (:success BODY...) where BODY is executed whenever
-the protected form terminates without error, with the specified
-variable bound to the the value of the protected form.
+It is written as '(:success BODY...)' where BODY is executed
+whenever the protected form terminates without error, with the
+specified variable bound to the the value of the protected form.
+
++++
+** 'The 'uniquify' argument in 'auto-save-file-name-transforms' can be a symbol.
+If this symbol is one of the members of 'secure-hash-algorithms',
+Emacs constructs the nondirectory part of the auto-save file name by
+applying that 'secure-hash' to the buffer file name.  This avoids any
+risk of excessively long file names.
 
 
 * Changes in Emacs 28.1 on Non-Free Operating Systems

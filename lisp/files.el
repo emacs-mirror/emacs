@@ -391,6 +391,10 @@ constructed by taking the directory part of the replaced file-name,
 concatenated with the buffer file name with all directory separators
 changed to `!' to prevent clashes.  This will not work
 correctly if your filesystem truncates the resulting name.
+If UNIQUIFY is one of the members of `secure-hash-algorithms',
+Emacs constructs the nondirectory part of the auto-save file name
+by applying that `secure-hash' to the buffer file name.  This
+avoids any risk of excessively long file names.
 
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
@@ -577,7 +581,9 @@ a -*- line.
 
 The command \\[normal-mode], when used interactively,
 always obeys file local variable specifications and the -*- line,
-and ignores this variable."
+and ignores this variable.
+
+Also see the `permanently-enabled-local-variables' variable."
   :risky t
   :type '(choice (const :tag "Query Unsafe" t)
 		 (const :tag "Safe Only" :safe)
@@ -3198,13 +3204,8 @@ we don't actually set it to the same mode the buffer already has."
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil))))))
-    ;; hack-local-variables checks local-enable-local-variables etc, but
-    ;; we might as well be explicit here for the sake of clarity.
     (and (not done)
-	 enable-local-variables
-	 local-enable-local-variables
-	 try-locals
-	 (setq mode (hack-local-variables t))
+	 (setq mode (hack-local-variables t (not try-locals)))
 	 (not (memq mode modes))	; already tried and failed
 	 (if (not (functionp mode))
 	     (message "Ignoring unknown mode `%s'" mode)
@@ -3503,6 +3504,10 @@ function is allowed to change the contents of this alist.
 This hook is called only if there is at least one file-local
 variable to set.")
 
+(defvar permanently-enabled-local-variables '(lexical-binding)
+  "A list of local variables that are always enabled.
+This overrides any `enable-local-variables' setting.")
+
 (defun hack-local-variables-confirm (all-vars unsafe-vars risky-vars dir-name)
   "Get confirmation before setting up local variable values.
 ALL-VARS is the list of all variables to be set up.
@@ -3716,25 +3721,26 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 ;; TODO?  Warn once per file rather than once per session?
 (defvar hack-local-variables--warned-lexical nil)
 
-(defun hack-local-variables (&optional handle-mode)
+(defun hack-local-variables (&optional handle-mode inhibit-locals)
   "Parse and put into effect this buffer's local variables spec.
 For buffers visiting files, also puts into effect directory-local
 variables.
+
 Uses `hack-local-variables-apply' to apply the variables.
 
-If HANDLE-MODE is nil, we apply all the specified local
-variables.  If HANDLE-MODE is neither nil nor t, we do the same,
-except that any settings of `mode' are ignored.
+See `hack-local-variables--find-variables' for the meaning of
+HANDLE-MODE.
 
-If HANDLE-MODE is t, all we do is check whether a \"mode:\"
-is specified, and return the corresponding mode symbol, or nil.
-In this case, we try to ignore minor-modes, and return only a
-major-mode.
-
-If `enable-local-variables' or `local-enable-local-variables' is nil,
-this function does nothing.  If `inhibit-local-variables-regexps'
+If `enable-local-variables' or `local-enable-local-variables' is
+nil, or INHIBIT-LOCALS is non-nil, this function disregards all
+normal local variables.  If `inhibit-local-variables-regexps'
 applies to the file in question, the file is not scanned for
-local variables, but directory-local variables may still be applied."
+local variables, but directory-local variables may still be
+applied.
+
+Variables present in `permanently-enabled-local-variables' will
+still be evaluated, even if local variables are otherwise
+inhibited."
   ;; We don't let inhibit-local-variables-p influence the value of
   ;; enable-local-variables, because then it would affect dir-local
   ;; variables.  We don't want to search eg tar files for file local
@@ -3742,9 +3748,18 @@ local variables, but directory-local variables may still be applied."
   ;; to them.  The real meaning of inhibit-local-variables-p is "do
   ;; not scan this file for local variables".
   (let ((enable-local-variables
-	 (and local-enable-local-variables enable-local-variables))
-	result)
-    (unless (eq handle-mode t)
+	 (and (not inhibit-locals)
+              local-enable-local-variables enable-local-variables)))
+    (if (eq handle-mode t)
+        ;; We're looking just for the major mode setting.
+        (and enable-local-variables
+             (not (inhibit-local-variables-p))
+	     ;; If HANDLE-MODE is t, and the prop line specifies a
+	     ;; mode, then we're done, and have no need to scan further.
+             (or (hack-local-variables-prop-line t)
+                 ;; Look for the mode elsewhere in the buffer.
+                 (hack-local-variables--find-variables t)))
+      ;; Normal handling of local variables.
       (setq file-local-variables-alist nil)
       (when (and (file-remote-p default-directory)
                  (fboundp 'hack-connection-local-variables)
@@ -3755,133 +3770,138 @@ local variables, but directory-local variables may still be applied."
            (connection-local-criteria-for-default-directory))))
       (with-demoted-errors "Directory-local variables error: %s"
 	;; Note this is a no-op if enable-local-variables is nil.
-	(hack-dir-local-variables)))
-    ;; This entire function is basically a no-op if enable-local-variables
-    ;; is nil.  All it does is set file-local-variables-alist to nil.
-    (when enable-local-variables
-      ;; This part used to ignore enable-local-variables when handle-mode
-      ;; was t.  That was inappropriate, eg consider the
-      ;; (artificial) example of:
-      ;; (setq local-enable-local-variables nil)
-      ;; Open a file foo.txt that contains "mode: sh".
-      ;; It correctly opens in text-mode.
-      ;; M-x set-visited-file name foo.c, and it incorrectly stays in text-mode.
-      (unless (or (inhibit-local-variables-p)
-		  ;; If HANDLE-MODE is t, and the prop line specifies a
-		  ;; mode, then we're done, and have no need to scan further.
-		  (and (setq result (hack-local-variables-prop-line
-                                     handle-mode))
-		       (eq handle-mode t)))
-	;; Look for "Local variables:" line in last page.
-	(save-excursion
-	  (goto-char (point-max))
-	  (search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
-			   'move)
-	  (when (let ((case-fold-search t))
-		  (search-forward "Local Variables:" nil t))
-	    (skip-chars-forward " \t")
-	    ;; suffix is what comes after "local variables:" in its line.
-	    ;; prefix is what comes before "local variables:" in its line.
-	    (let ((suffix
-		   (concat
-		    (regexp-quote (buffer-substring (point)
-						    (line-end-position)))
-		    "$"))
-		  (prefix
-		   (concat "^" (regexp-quote
-				(buffer-substring (line-beginning-position)
-						  (match-beginning 0))))))
+	(hack-dir-local-variables))
+      (let ((result (append (hack-local-variables--find-variables)
+                            (hack-local-variables-prop-line))))
+        (if (and enable-local-variables
+                 (not (inhibit-local-variables-p)))
+            (progn
+	      ;; Set the variables.
+	      (hack-local-variables-filter result nil)
+	      (hack-local-variables-apply))
+          ;; Handle `lexical-binding' and other special local
+          ;; variables.
+          (dolist (variable permanently-enabled-local-variables)
+            (when-let ((elem (assq variable result)))
+              (push elem file-local-variables-alist)))
+          (hack-local-variables-apply))))))
 
-	      (forward-line 1)
-	      (let ((startpos (point))
-		    endpos
-		    (thisbuf (current-buffer)))
-		(save-excursion
-		  (unless (let ((case-fold-search t))
-			    (re-search-forward
-			     (concat prefix "[ \t]*End:[ \t]*" suffix)
-			     nil t))
-		    ;; This used to be an error, but really all it means is
-		    ;; that this may simply not be a local-variables section,
-		    ;; so just ignore it.
-		    (message "Local variables list is not properly terminated"))
-		  (beginning-of-line)
-		  (setq endpos (point)))
+(defun hack-local-variables--find-variables (&optional handle-mode)
+  "Return all local variables in the ucrrent buffer.
+If HANDLE-MODE is nil, we gather all the specified local
+variables.  If HANDLE-MODE is neither nil nor t, we do the same,
+except that any settings of `mode' are ignored.
 
-		(with-temp-buffer
-		  (insert-buffer-substring thisbuf startpos endpos)
-		  (goto-char (point-min))
-		  (subst-char-in-region (point) (point-max) ?\^m ?\n)
-		  (while (not (eobp))
-		    ;; Discard the prefix.
-		    (if (looking-at prefix)
-			(delete-region (point) (match-end 0))
-		      (error "Local variables entry is missing the prefix"))
-		    (end-of-line)
-		    ;; Discard the suffix.
-		    (if (looking-back suffix (line-beginning-position))
-			(delete-region (match-beginning 0) (point))
-		      (error "Local variables entry is missing the suffix"))
-		    (forward-line 1))
-		  (goto-char (point-min))
+If HANDLE-MODE is t, all we do is check whether a \"mode:\"
+is specified, and return the corresponding mode symbol, or nil.
+In this case, we try to ignore minor-modes, and return only a
+major-mode."
+  (let ((result nil))
+    ;; Look for "Local variables:" line in last page.
+    (save-excursion
+      (goto-char (point-max))
+      (search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
+		       'move)
+      (when (let ((case-fold-search t))
+	      (search-forward "Local Variables:" nil t))
+        (skip-chars-forward " \t")
+        ;; suffix is what comes after "local variables:" in its line.
+        ;; prefix is what comes before "local variables:" in its line.
+        (let ((suffix
+	       (concat
+	        (regexp-quote (buffer-substring (point)
+					        (line-end-position)))
+	        "$"))
+	      (prefix
+	       (concat "^" (regexp-quote
+			    (buffer-substring (line-beginning-position)
+					      (match-beginning 0))))))
 
-		  (while (not (or (eobp)
-                                  (and (eq handle-mode t) result)))
-		    ;; Find the variable name;
-		    (unless (looking-at hack-local-variable-regexp)
-                      (error "Malformed local variable line: %S"
-                             (buffer-substring-no-properties
-                              (point) (line-end-position))))
-                    (goto-char (match-end 1))
-		    (let* ((str (match-string 1))
-			   (var (intern str))
-			   val val2)
-		      (and (equal (downcase (symbol-name var)) "mode")
-			   (setq var 'mode))
-		      ;; Read the variable value.
-		      (skip-chars-forward "^:")
-		      (forward-char 1)
-                      ;; As a defensive measure, we do not allow
-                      ;; circular data in the file-local data.
-		      (let ((read-circle nil))
-			(setq val (read (current-buffer))))
-		      (if (eq handle-mode t)
-			  (and (eq var 'mode)
-			       ;; Specifying minor-modes via mode: is
-			       ;; deprecated, but try to reject them anyway.
-			       (not (string-match
-				     "-minor\\'"
-				     (setq val2 (downcase (symbol-name val)))))
-			       (setq result (intern (concat val2 "-mode"))))
-			(cond ((eq var 'coding))
-			      ((eq var 'lexical-binding)
-			       (unless hack-local-variables--warned-lexical
-				 (setq hack-local-variables--warned-lexical t)
-				 (display-warning
-                                  'files
-                                  (format-message
-                                   "%s: `lexical-binding' at end of file unreliable"
-                                   (file-name-nondirectory
-                                    ;; We are called from
-                                    ;; 'with-temp-buffer', so we need
-                                    ;; to use 'thisbuf's name in the
-                                    ;; warning message.
-                                    (or (buffer-file-name thisbuf) ""))))))
-                              ((and (eq var 'mode) handle-mode))
-			      (t
-			       (ignore-errors
-				 (push (cons (if (eq var 'eval)
-						 'eval
-					       (indirect-variable var))
-					     val)
-                                       result))))))
-		    (forward-line 1))))))))
-      ;; Now we've read all the local variables.
-      ;; If HANDLE-MODE is t, return whether the mode was specified.
-      (if (eq handle-mode t) result
-	;; Otherwise, set the variables.
-	(hack-local-variables-filter result nil)
-	(hack-local-variables-apply)))))
+	  (forward-line 1)
+	  (let ((startpos (point))
+	        endpos
+	        (thisbuf (current-buffer)))
+	    (save-excursion
+	      (unless (let ((case-fold-search t))
+		        (re-search-forward
+		         (concat prefix "[ \t]*End:[ \t]*" suffix)
+		         nil t))
+	        ;; This used to be an error, but really all it means is
+	        ;; that this may simply not be a local-variables section,
+	        ;; so just ignore it.
+	        (message "Local variables list is not properly terminated"))
+	      (beginning-of-line)
+	      (setq endpos (point)))
+
+	    (with-temp-buffer
+	      (insert-buffer-substring thisbuf startpos endpos)
+	      (goto-char (point-min))
+	      (subst-char-in-region (point) (point-max) ?\^m ?\n)
+	      (while (not (eobp))
+	        ;; Discard the prefix.
+	        (if (looking-at prefix)
+		    (delete-region (point) (match-end 0))
+		  (error "Local variables entry is missing the prefix"))
+	        (end-of-line)
+	        ;; Discard the suffix.
+	        (if (looking-back suffix (line-beginning-position))
+		    (delete-region (match-beginning 0) (point))
+		  (error "Local variables entry is missing the suffix"))
+	        (forward-line 1))
+	      (goto-char (point-min))
+
+	      (while (not (or (eobp)
+                              (and (eq handle-mode t) result)))
+	        ;; Find the variable name;
+	        (unless (looking-at hack-local-variable-regexp)
+                  (error "Malformed local variable line: %S"
+                         (buffer-substring-no-properties
+                          (point) (line-end-position))))
+                (goto-char (match-end 1))
+	        (let* ((str (match-string 1))
+		       (var (intern str))
+		       val val2)
+		  (and (equal (downcase (symbol-name var)) "mode")
+		       (setq var 'mode))
+		  ;; Read the variable value.
+		  (skip-chars-forward "^:")
+		  (forward-char 1)
+                  ;; As a defensive measure, we do not allow
+                  ;; circular data in the file-local data.
+		  (let ((read-circle nil))
+		    (setq val (read (current-buffer))))
+		  (if (eq handle-mode t)
+		      (and (eq var 'mode)
+			   ;; Specifying minor-modes via mode: is
+			   ;; deprecated, but try to reject them anyway.
+			   (not (string-match
+			         "-minor\\'"
+			         (setq val2 (downcase (symbol-name val)))))
+			   (setq result (intern (concat val2 "-mode"))))
+		    (cond ((eq var 'coding))
+			  ((eq var 'lexical-binding)
+			   (unless hack-local-variables--warned-lexical
+			     (setq hack-local-variables--warned-lexical t)
+			     (display-warning
+                              'files
+                              (format-message
+                               "%s: `lexical-binding' at end of file unreliable"
+                               (file-name-nondirectory
+                                ;; We are called from
+                                ;; 'with-temp-buffer', so we need
+                                ;; to use 'thisbuf's name in the
+                                ;; warning message.
+                                (or (buffer-file-name thisbuf) ""))))))
+                          ((and (eq var 'mode) handle-mode))
+			  (t
+			   (ignore-errors
+			     (push (cons (if (eq var 'eval)
+					     'eval
+					   (indirect-variable var))
+				         val)
+                                   result))))))
+	        (forward-line 1)))))))
+    result))
 
 (defun hack-local-variables-apply ()
   "Apply the elements of `file-local-variables-alist'.
@@ -6631,14 +6651,20 @@ See also `auto-save-file-name-p'."
 			uniq (car (cddr (car list)))))
 	      (setq list (cdr list)))
 	    (if result
-		(if uniq
-		    (setq filename (concat
-				    (file-name-directory result)
-				    (subst-char-in-string
-				     ?/ ?!
-				     (replace-regexp-in-string "!" "!!"
-							       filename))))
-		  (setq filename result)))
+                (setq filename
+                      (cond
+                       ((memq uniq (secure-hash-algorithms))
+                        (concat
+                         (file-name-directory result)
+                         (secure-hash uniq filename)))
+                       (uniq
+                        (concat
+			 (file-name-directory result)
+			 (subst-char-in-string
+			  ?/ ?!
+			  (replace-regexp-in-string
+                           "!" "!!" filename))))
+		       (t result))))
 	    (setq result
 		  (if (and (eq system-type 'ms-dos)
 			   (not (msdos-long-file-names)))
@@ -7466,12 +7492,7 @@ only these files will be asked to be saved."
 ;; operations, which return a file name.  See Bug#29579.
 
 (defun file-name-non-special (operation &rest arguments)
-  (let (;; In general, we don't want any file name handler.  For some
-        ;; few cases, operations with two file name arguments which
-        ;; might be bound to different file name handlers, we still
-        ;; need this.
-        (saved-file-name-handler-alist file-name-handler-alist)
-        (inhibit-file-name-handlers
+  (let ((inhibit-file-name-handlers
          (cons 'file-name-non-special
                (and (eq inhibit-file-name-operation operation)
                     inhibit-file-name-handlers)))
@@ -7557,72 +7578,73 @@ only these files will be asked to be saved."
 	  (when (car pair)
 	    (setcar pair (file-name-unquote (car pair) t))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (pcase method
-      ('identity (car arguments))
-      ('add
-       ;; This is `file-truename'.  We don't want file name handlers
-       ;; to expand this.
-       (file-name-quote (let (tramp-mode) (apply operation arguments)) t))
-      ('buffer-file-name
-       (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
-         (apply operation arguments)))
-      ('insert-file-contents
-       (let ((visit (nth 1 arguments)))
-         (unwind-protect
-             (apply operation arguments)
-           (when (and visit buffer-file-name)
-             (setq buffer-file-name (file-name-quote buffer-file-name t))))))
-      ('unquote-then-quote
-       ;; We can't use `cl-letf' with `(buffer-local-value)' here
-       ;; because it wouldn't work during bootstrapping.
-       (let ((buffer (current-buffer)))
-         ;; `unquote-then-quote' is used only for the
-         ;; `verify-visited-file-modtime' action, which takes a buffer
-         ;; as only optional argument.
-         (with-current-buffer (or (car arguments) buffer)
-           (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
-             ;; Make sure to hide the temporary buffer change from the
-             ;; underlying operation.
-             (with-current-buffer buffer
-               (apply operation arguments))))))
-      ('local-copy
-       (let* ((file-name-handler-alist saved-file-name-handler-alist)
-              (source (car arguments))
-              (target (car (cdr arguments)))
-              (prefix (expand-file-name
-                       "file-name-non-special" temporary-file-directory))
-              tmpfile)
-         (cond
-          ;; If source is remote, we must create a local copy.
-          ((file-remote-p source)
-           (setq tmpfile (make-temp-name prefix))
-           (apply operation source tmpfile (cddr arguments))
-           (setq source tmpfile))
-          ;; If source is quoted, and the unquoted source looks
-          ;; remote, we must create a local copy.
-          ((file-name-quoted-p source t)
-           (setq source (file-name-unquote source t))
-           (when (file-remote-p source)
+    ;; In general, we don't want any file name handler, see Bug#47625,
+    ;; Bug#48349.  For some few cases, operations with two file name
+    ;; arguments which might be bound to different file name handlers,
+    ;; we still need this.
+    (let ((tramp-mode (and tramp-mode (eq method 'local-copy))))
+      (pcase method
+        ('identity (car arguments))
+        ('add (file-name-quote (apply operation arguments) t))
+        ('buffer-file-name
+         (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
+           (apply operation arguments)))
+        ('insert-file-contents
+         (let ((visit (nth 1 arguments)))
+           (unwind-protect
+               (apply operation arguments)
+             (when (and visit buffer-file-name)
+               (setq buffer-file-name (file-name-quote buffer-file-name t))))))
+        ('unquote-then-quote
+         ;; We can't use `cl-letf' with `(buffer-local-value)' here
+         ;; because it wouldn't work during bootstrapping.
+         (let ((buffer (current-buffer)))
+           ;; `unquote-then-quote' is used only for the
+           ;; `verify-visited-file-modtime' action, which takes a
+           ;; buffer as only optional argument.
+           (with-current-buffer (or (car arguments) buffer)
+             (let ((buffer-file-name (file-name-unquote buffer-file-name t)))
+               ;; Make sure to hide the temporary buffer change from
+               ;; the underlying operation.
+               (with-current-buffer buffer
+                 (apply operation arguments))))))
+        ('local-copy
+         (let ((source (car arguments))
+               (target (car (cdr arguments)))
+               (prefix (expand-file-name
+                        "file-name-non-special" temporary-file-directory))
+               tmpfile)
+           (cond
+            ;; If source is remote, we must create a local copy.
+            ((file-remote-p source)
              (setq tmpfile (make-temp-name prefix))
-             (let (file-name-handler-alist)
-               (apply operation source tmpfile (cddr arguments)))
-             (setq source tmpfile))))
-         ;; If target is quoted, and the unquoted target looks remote,
-         ;; we must disable the file name handler.
-         (when (file-name-quoted-p target t)
-           (setq target (file-name-unquote target t))
-           (when (file-remote-p target)
-             (setq file-name-handler-alist nil)))
-         ;; Do it.
-         (setcar arguments source)
-         (setcar (cdr arguments) target)
-         (apply operation arguments)
-         ;; Cleanup.
-         (when (and tmpfile (file-exists-p tmpfile))
-           (if (file-directory-p tmpfile)
-               (delete-directory tmpfile 'recursive) (delete-file tmpfile)))))
-      (_
-       (apply operation arguments)))))
+             (apply operation source tmpfile (cddr arguments))
+             (setq source tmpfile))
+            ;; If source is quoted, and the unquoted source looks
+            ;; remote, we must create a local copy.
+            ((file-name-quoted-p source t)
+             (setq source (file-name-unquote source t))
+             (when (file-remote-p source)
+               (setq tmpfile (make-temp-name prefix))
+               (let (file-name-handler-alist)
+                 (apply operation source tmpfile (cddr arguments)))
+               (setq source tmpfile))))
+           ;; If target is quoted, and the unquoted target looks
+           ;; remote, we must disable the file name handler.
+           (when (file-name-quoted-p target t)
+             (setq target (file-name-unquote target t))
+             (when (file-remote-p target)
+               (setq file-name-handler-alist nil)))
+           ;; Do it.
+           (setcar arguments source)
+           (setcar (cdr arguments) target)
+           (apply operation arguments)
+           ;; Cleanup.
+           (when (and tmpfile (file-exists-p tmpfile))
+             (if (file-directory-p tmpfile)
+                 (delete-directory tmpfile 'recursive) (delete-file tmpfile)))))
+        (_
+         (apply operation arguments))))))
 
 (defsubst file-name-quoted-p (name &optional top)
   "Whether NAME is quoted with prefix \"/:\".

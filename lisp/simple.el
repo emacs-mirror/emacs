@@ -2006,7 +2006,29 @@ This function uses the `read-extended-command-predicate' user option."
 	     '(metadata
 	       (affixation-function . read-extended-command--affixation)
 	       (category . command))
-           (complete-with-action action obarray string pred)))
+           (let ((pred
+                  (if (memq action '(nil t))
+                      ;; Exclude from completions obsolete commands
+                      ;; lacking a `current-name', or where `when' is
+                      ;; not the current major version.
+                      (lambda (sym)
+                        (let ((obsolete (get sym 'byte-obsolete-info)))
+                          (and (funcall pred sym)
+                               (or (equal string (symbol-name sym))
+                                   (not obsolete)
+                                   (and
+                                    ;; Has a current-name.
+                                    (functionp (car obsolete))
+                                    ;; when >= emacs-major-version
+                                    (condition-case nil
+                                        (>= (car (version-to-list
+                                                  (caddr obsolete)))
+                                            emacs-major-version)
+                                      ;; If the obsoletion version isn't
+                                      ;; valid, include the command.
+                                      (error t)))))))
+                    pred)))
+             (complete-with-action action obarray string pred))))
        (lambda (sym)
          (and (commandp sym)
               (cond ((null read-extended-command-predicate))
@@ -6918,11 +6940,13 @@ The value is a floating-point number."
 	       (or (null rbot) (= rbot 0)))
 	  nil)
 	 ;; If cursor is not in the bottom scroll margin, and the
-	 ;; current line is not too tall, move forward.
+	 ;; current line is not too tall, or if there's a continuation
+	 ;; line below this one, move forward.
 	 ((and (or (null this-height) (<= this-height winh))
 	       vpos
 	       (> vpos 0)
-	       (< py last-line))
+	       (or (< py last-line)
+                   (display--line-is-continued-p)))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
 	 ;; or clear vscroll and move forward at end of tall image.
