@@ -2294,6 +2294,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     Vdump_mode = build_string (dump_mode);
 
   /* Enter editor command loop.  This never returns.  */
+  set_initial_minibuffer_mode ();
   Frecursive_edit ();
   eassume (false);
 }

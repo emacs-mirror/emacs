@@ -2271,6 +2271,13 @@ If no minibuffer is active, return nil.  */)
 
 
 
+void
+set_initial_minibuffer_mode (void)
+{
+  Lisp_Object minibuf = get_minibuffer (0);
+  set_minibuffer_mode (minibuf, 0);
+}
+
 static void init_minibuf_once_for_pdumper (void);
 
 void
@@ -2279,6 +2286,8 @@ init_minibuf_once (void)
   staticpro (&Vminibuffer_list);
   staticpro (&Vcommand_loop_level_list);
   pdumper_do_now_and_after_load (init_minibuf_once_for_pdumper);
+  /* Ensure our inactive minibuffer exists.  */
+  get_minibuffer (0);
 }
 
 static void
@@ -2296,9 +2305,6 @@ init_minibuf_once_for_pdumper (void)
   minibuf_prompt = Qnil;
   minibuf_save_list = Qnil;
   last_minibuf_string = Qnil;
-  /* Ensure our inactive minibuffer exists.  */
-  Lisp_Object minibuf = get_minibuffer (0);
-  set_minibuffer_mode (minibuf, 0);
 }
 
 void
