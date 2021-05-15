@@ -653,11 +653,12 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
       return unbind_to (count, val);
     }
 
-  minibuf_level++;         /* Before calling choose_minibuf_frame.  */
-  /* Ensure now that the latest minibuffer has been created, in case
-     anything happens which depends on MINNIBUF_LEVEL and
-     Vminibuffer_list being consistent with eachother.  */
-  minibuffer = get_minibuffer (minibuf_level);
+  /* Ensure now that the latest minibuffer has been created and pushed
+     onto Vminibuffer_list before incrementing minibuf_level, in case
+     a hook called during the minibuffer creation calls
+     Factive_minibuffer_window.  */
+  minibuffer = get_minibuffer (minibuf_level + 1);
+  minibuf_level++;		/* Before calling choose_minibuf_frame.  */
 
   /* Choose the minibuffer window and frame, and take action on them.  */
 
@@ -2278,8 +2279,6 @@ init_minibuf_once (void)
   staticpro (&Vminibuffer_list);
   staticpro (&Vcommand_loop_level_list);
   pdumper_do_now_and_after_load (init_minibuf_once_for_pdumper);
-  /* Ensure our inactive minibuffer exists.  */
-  get_minibuffer (0);
 }
 
 static void
@@ -2297,6 +2296,9 @@ init_minibuf_once_for_pdumper (void)
   minibuf_prompt = Qnil;
   minibuf_save_list = Qnil;
   last_minibuf_string = Qnil;
+  /* Ensure our inactive minibuffer exists.  */
+  Lisp_Object minibuf = get_minibuffer (0);
+  set_minibuffer_mode (minibuf, 0);
 }
 
 void
