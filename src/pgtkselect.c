@@ -235,6 +235,9 @@ pgtk_selection_lost (GtkWidget * widget, GdkEventSelection * event,
 static bool
 pgtk_selection_usable (void)
 {
+  if (pgtk_enable_selection_on_multi_display)
+    return true;
+
   /*
    * https://github.com/GNOME/gtk/blob/gtk-3-24/gdk/wayland/gdkselection-wayland.c#L1033
    *
@@ -639,4 +642,9 @@ to convert into a type that we don't know about or that is inappropriate.\n\
 This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vpgtk_sent_selection_hooks = Qnil;
+
+  DEFVAR_BOOL ("pgtk-enable-selection-on-multi-display", pgtk_enable_selection_on_multi_display,
+	       doc: /* Enable selection on multi display environment.
+This may cause crash.  */);
+  pgtk_enable_selection_on_multi_display = false;
 }

@@ -124,6 +124,29 @@ check_pgtk_display_info (Lisp_Object object)
   return dpyinfo;
 }
 
+/* On Wayland,
+ * even if without WAYLAND_DISPLAY, --display DISPLAY works, but
+ * gdk_display_get_name() always return "wayland-0", which may be
+ * different from DISPLAY.
+ * If with WAYLAND_DISPLAY, then it always returns WAYLAND_DISPLAY.
+ * So pgtk emacs is confused and enter multi display environment.
+ * To workaround this situation, treat all the wayland-* as the same
+ * display.
+ */
+static Lisp_Object
+is_wayland_display(Lisp_Object dpyname)
+{
+  const char *p = SSDATA (dpyname);
+  if (strncmp(p, "wayland-", 8) != 0)
+    return Qnil;
+  p += 8;
+  do {
+    if (*p < '0' || *p > '9')
+      return Qnil;
+  } while (*++p != '\0');
+  return Qt;
+}
+
 /* Return the X display structure for the display named NAME.
    Open a new connection if necessary.  */
 static struct pgtk_display_info *
@@ -133,9 +156,18 @@ pgtk_display_info_for_name (Lisp_Object name)
 
   CHECK_STRING (name);
 
-  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
-    if (!NILP (Fstring_equal (XCAR (dpyinfo->name_list_element), name)))
-      return dpyinfo;
+  if (!NILP (is_wayland_display(name)))
+    {
+      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+	if (!NILP (is_wayland_display (XCAR (dpyinfo->name_list_element))))
+	  return dpyinfo;
+    }
+  else
+    {
+      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+	if (!NILP (Fstring_equal (XCAR (dpyinfo->name_list_element), name)))
+	  return dpyinfo;
+    }
 
   /* Use this general default value to start with.  */
   Vx_resource_name = Vinvocation_name;
