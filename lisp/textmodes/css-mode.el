@@ -1307,11 +1307,14 @@ for determining whether point is within a selector."
     (let ((pos (point)))
       (skip-chars-backward "-[:alnum:]")
       (when (eq (char-before) ?\:)
-        (list (point) pos
-              (if (eq (char-before (- (point) 1)) ?\:)
-                  css-pseudo-element-ids
-                css-pseudo-class-ids)
-              :company-kind (lambda (_) 'function))))))
+        (let ((double-colon (eq (char-before (- (point) 1)) ?\:)))
+          (list (- (point) (if double-colon 2 1))
+                pos
+                (nconc
+                 (unless double-colon
+                   (mapcar (lambda (id) (concat ":" id)) css-pseudo-class-ids))
+                 (mapcar (lambda (id) (concat "::" id)) css-pseudo-element-ids))
+                :company-kind (lambda (_) 'function)))))))
 
 (defun css--complete-at-rule ()
   "Complete at-rule (statement beginning with `@') at point."
