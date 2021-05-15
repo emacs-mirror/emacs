@@ -363,24 +363,24 @@ This variable is only used if the variable
       (when proc
         (set-process-filter proc nil)
         (delete-process proc)))
-    (let ((inhibit-read-only t)
-	(coding-system-for-read
-	 ;; MS-Windows versions of network utilities output text
-	 ;; encoded in the console (a.k.a. "OEM") codepage, which is
-	 ;; different from the default system (a.k.a. "ANSI")
-	 ;; codepage.
-	 (if (eq system-type 'windows-nt)
-	     (intern (format "cp%d" (w32-get-console-output-codepage)))
-	   coding-system-for-read)))
+    (let ((inhibit-read-only t))
       (erase-buffer))
     (net-utils-mode)
     (setq-local net-utils--revert-cmd
                 `(net-utils-run-simple ,(current-buffer)
                                        ,program-name ,args nodisplay))
-    (set-process-filter
-     (apply #'start-process program-name
-            (current-buffer) program-name args)
-     #'net-utils-remove-ctrl-m-filter)
+    (let ((coding-system-for-read
+	   ;; MS-Windows versions of network utilities output text
+	   ;; encoded in the console (a.k.a. "OEM") codepage, which is
+	   ;; different from the default system (a.k.a. "ANSI")
+	   ;; codepage.
+	   (if (eq system-type 'windows-nt)
+	       (intern (format "cp%d" (w32-get-console-output-codepage)))
+	     coding-system-for-read)))
+      (set-process-filter
+       (apply #'start-process program-name
+              (current-buffer) program-name args)
+       #'net-utils-remove-ctrl-m-filter))
     (unless nodisplay (display-buffer (current-buffer)))))
 
 (defun net-utils--revert-function (&optional _ignore-auto _noconfirm)
