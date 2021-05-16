@@ -344,9 +344,11 @@ and set it if applicable."
 
 (defun bug-reference-try-setup-from-rmail ()
   "Try setting up `bug-reference-mode' from the current rmail mail.
-Looks at the headers List-Id, To, From, and Cc and tries to guess
-suitable values for `bug-reference-bug-regexp' and
-`bug-reference-url-format'."
+Guesses suitable `bug-reference-bug-regexp' and
+`bug-reference-url-format' values by matching the current Rmail
+file's name against GROUP-REGEXP and the values of List-Id, To,
+From, and Cc against HEADER-REGEXP in
+`bug-reference-setup-from-mail-alist'."
   (with-demoted-errors
       "Error in bug-reference-try-setup-from-rmail: %S"
     (when (and bug-reference-mode
@@ -358,7 +360,8 @@ suitable values for `bug-reference-bug-regexp' and
             (let ((val (mail-fetch-field field)))
               (when val
                 (push val header-values)))))
-        (bug-reference--maybe-setup-from-mail nil header-values)))))
+        (bug-reference--maybe-setup-from-mail
+         (buffer-file-name) header-values)))))
 
 (defvar bug-reference-setup-from-irc-alist
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
@@ -481,6 +484,18 @@ guesswork is based on these variables:
     (save-restriction
       (widen)
       (bug-reference-unfontify (point-min) (point-max)))))
+
+(defun bug-reference-mode-force-auto-setup ()
+  "Enable `bug-reference-mode' and force auto-setup.
+Enabling `bug-reference-mode' runs its auto-setup only if
+`bug-reference-bug-regexp' and `bug-reference-url-format' are not
+set already.  This function sets the latter to `nil'
+buffer-locally, so that the auto-setup will always run.
+
+This is mostly intended for MUA modes like `rmail-mode' where the
+same buffer is re-used for different contexts."
+  (setq-local bug-reference-url-format nil)
+  (bug-reference-mode))
 
 ;;;###autoload
 (define-minor-mode bug-reference-prog-mode
