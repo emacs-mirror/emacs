@@ -131,7 +131,10 @@ scrolling."
   :version "28.1")
 
 (defcustom mouse-wheel-progressive-speed t
-  "If non-nil, the faster the user moves the wheel, the faster the scrolling.
+  "If nil, scrolling speed is proportional to the wheel speed.
+If non-nil, moving the wheel faster will make scrolling
+progressively faster.
+
 Note that this has no effect when `mouse-wheel-scroll-amount' specifies
 a \"near full screen\" scroll or when the mouse wheel sends key instead
 of button events."
