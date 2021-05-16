@@ -238,8 +238,8 @@ and apply it if applicable."
   "An alist for setting up `bug-reference-mode' in mail modes.
 
 This takes action if `bug-reference-mode' is enabled in group and
-message buffers of Emacs mail clients.  Currently, only Gnus is
-supported.
+message buffers of Emacs mail clients.  Currently, Gnus and Rmail
+are supported.
 
 Each element has the form
 
@@ -342,6 +342,24 @@ and set it if applicable."
                       (push val header-values))))))
             (bug-reference--maybe-setup-from-mail nil header-values)))))))
 
+(defun bug-reference-try-setup-from-rmail ()
+  "Try setting up `bug-reference-mode' from the current rmail mail.
+Looks at the headers List-Id, To, From, and Cc and tries to guess
+suitable values for `bug-reference-bug-regexp' and
+`bug-reference-url-format'."
+  (with-demoted-errors
+      "Error in bug-reference-try-setup-from-rmail: %S"
+    (when (and bug-reference-mode
+               (derived-mode-p 'rmail-mode))
+      (let (header-values)
+        (save-excursion
+          (goto-char (point-min))
+          (dolist (field '("list-id" "to" "from" "cc"))
+            (let ((val (mail-fetch-field field)))
+              (when val
+                (push val header-values)))))
+        (bug-reference--maybe-setup-from-mail nil header-values)))))
+
 (defvar bug-reference-setup-from-irc-alist
   `((,(concat "#" (regexp-opt '("emacs" "gnus" "org-mode" "rcirc"
                                 "erc") 'words))
@@ -423,6 +441,7 @@ and set it if applicable."
 (defvar bug-reference-auto-setup-functions
   (list #'bug-reference-try-setup-from-vc
         #'bug-reference-try-setup-from-gnus
+        #'bug-reference-try-setup-from-rmail
         #'bug-reference-try-setup-from-rcirc
         #'bug-reference-try-setup-from-erc)
   "Functions trying to auto-setup `bug-reference-mode'.
