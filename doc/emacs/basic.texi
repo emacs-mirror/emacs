@@ -112,7 +112,7 @@ just like digits.  Case is ignored.
 @cindex curly quotes, inserting
 @cindex curved quotes, inserting
   A few common Unicode characters can be inserted via a command
-starting with @kbd{C-x 8}.  For example, @kbd{C-x 8 [} inserts @t{‘}
+starting with @w{@kbd{C-x 8}}.  For example, @kbd{C-x 8 [} inserts @t{‘}
 which is Unicode code-point U+2018 @sc{left single quotation mark},
 sometimes called a left single ``curved quote'' or ``curly quote''.
 Similarly, @w{@kbd{C-x 8 ]}}, @kbd{C-x 8 @{} and @kbd{C-x 8 @}} insert the

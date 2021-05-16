@@ -1649,10 +1649,10 @@ for details.
 @cindex curved quotes, and terminal capabilities
 @cindex @code{homoglyph} face
 
-Emacs tries to determine if the curved quotes @samp{‘} and @samp{’}
+Emacs tries to determine if the curved quotes @t{‘} and @t{’}
 can be displayed on the current display.  By default, if this seems to
-be so, then Emacs will translate the @acronym{ASCII} quotes (@samp{`}
-and @samp{'}), when they appear in messages and help texts, to these
+be so, then Emacs will translate the @acronym{ASCII} quotes @w{(@samp{`}
+and @samp{'})}, when they appear in messages and help texts, to these
 curved quotes.  You can influence or inhibit this translation by
 customizing the user option @code{text-quoting-style} (@pxref{Keys in
 Documentation,,, elisp, The Emacs Lisp Reference Manual}).
@@ -1661,7 +1661,7 @@ Documentation,,, elisp, The Emacs Lisp Reference Manual}).
 known to look just like @acronym{ASCII} characters, they are shown
 with the @code{homoglyph} face.  Curved quotes that are known not to
 be displayable are shown as their @acronym{ASCII} approximations
-@t{`}, @t{'}, and @t{"} with the @code{homoglyph} face.
+@samp{`}, @samp{'}, and @samp{"} with the @code{homoglyph} face.
 
 @node Cursor Display
 @section Displaying the Cursor
