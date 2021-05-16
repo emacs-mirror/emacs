@@ -9343,6 +9343,11 @@ handle_one_xevent (struct x_display_info *dpyinfo,
       goto OTHER;
 
     case VisibilityNotify:
+      f = x_top_window_to_frame (dpyinfo, event->xvisibility.window);
+      if (f && (event->xvisibility.state == VisibilityUnobscured
+		|| event->xvisibility.state == VisibilityPartiallyObscured))
+	SET_FRAME_VISIBLE (f, 1);
+
       goto OTHER;
 
     case MappingNotify:

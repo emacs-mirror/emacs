@@ -420,6 +420,24 @@ and set it if applicable."
      (erc-format-target)
      (erc-network-name))))
 
+(defvar bug-reference-auto-setup-functions
+  (list #'bug-reference-try-setup-from-vc
+        #'bug-reference-try-setup-from-gnus
+        #'bug-reference-try-setup-from-rcirc
+        #'bug-reference-try-setup-from-erc)
+  "Functions trying to auto-setup `bug-reference-mode'.
+These functions are run after `bug-reference-mode' has been
+activated in a buffer and try to guess suitable values for
+`bug-reference-bug-regexp' and `bug-reference-url-format'.  Their
+guesswork is based on these variables:
+
+- `bug-reference-setup-from-vc-alist' for guessing based on
+  version control, e.g., URL of repository.
+- `bug-reference-setup-from-mail-alist' for guessing based on
+  mail group names or mail header values.
+- `bug-reference-setup-from-irc-alist' for guessing based on IRC
+  channel or network names.")
+
 (defun bug-reference--run-auto-setup ()
   (when (or bug-reference-mode
             bug-reference-prog-mode)
@@ -430,10 +448,7 @@ and set it if applicable."
       (with-demoted-errors
           "Error during bug-reference auto-setup: %S"
         (catch 'setup
-          (dolist (f (list #'bug-reference-try-setup-from-vc
-                           #'bug-reference-try-setup-from-gnus
-                           #'bug-reference-try-setup-from-rcirc
-                           #'bug-reference-try-setup-from-erc))
+          (dolist (f bug-reference-auto-setup-functions)
             (when (funcall f)
               (throw 'setup t))))))))
 

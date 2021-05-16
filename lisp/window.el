@@ -5036,14 +5036,10 @@ nil means to not handle the buffer in a particular way.  This
   (setq window (window-normalize-window window t))
   (let* ((buffer (window-buffer window))
 	 (quit-restore (window-parameter window 'quit-restore))
-	 (prev-buffer
-	  (let* ((prev-buffers (window-prev-buffers window))
-		 (prev-buffer (caar prev-buffers)))
-	    (and (or (not (eq prev-buffer buffer))
-		     (and (cdr prev-buffers)
-			  (not (eq (setq prev-buffer (cadr prev-buffers))
-				   buffer))))
-		 prev-buffer)))
+         (prev-buffer (catch 'prev-buffer
+                        (dolist (buf (window-prev-buffers window))
+                          (unless (eq (car buf) buffer)
+                            (throw 'prev-buffer (car buf))))))
 	 quad entry)
     (cond
      ((and (not prev-buffer)
@@ -5114,7 +5110,10 @@ nil means to not handle the buffer in a particular way.  This
       (set-window-parameter window 'quit-restore nil)
       ;; Make sure that WINDOW is no more dedicated.
       (set-window-dedicated-p window nil)
-      (switch-to-prev-buffer window bury-or-kill)))
+      (if prev-buffer
+          (switch-to-prev-buffer window bury-or-kill)
+        ;; Delete WINDOW if there is no previous buffer (Bug#48367).
+        (window--delete window nil (eq bury-or-kill 'kill)))))
 
     ;; Deal with the buffer.
     (cond

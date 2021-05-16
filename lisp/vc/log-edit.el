@@ -797,11 +797,15 @@ to build the Fixes: header.")
 (declare-function diff-add-log-current-defuns "diff-mode" ())
 
 (defun log-edit-generate-changelog-from-diff ()
-  "Insert a VC commit log message by looking at the current diff.
-This command is intended to be uses on the \"*vc-log*\" buffer.
-This command will generate a ChangeLog entries listing the
-changed functions.  You can then add a description where needed,
-and use \\[fill-paragraph] to join consecutive function names."
+  "Insert a VC commit log message by looking at the current diffs.
+This command is intended to be used in the \"*vc-log*\" buffer.
+This command will generate ChangeLog entries listing the modified
+files and functions changed in those files, based on the diffs
+you are about to commit.  You can then add a description for each
+change where needed, and use \\[fill-paragraph] to join consecutive function
+names into a single entry where they all share the same description.
+Should you need to look at the diffs themselves, they can be found
+in the \"*vc-diff*\" buffer produced by this command."
   (interactive)
   (change-log-insert-entries
    (with-current-buffer

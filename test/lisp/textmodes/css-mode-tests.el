@@ -143,20 +143,20 @@
     (css-mode)
     (insert "body:a")
     (let ((completions (css-mode-tests--completions)))
-      (should (member "active" completions))
-      (should-not (member "disabled" completions))
+      (should (member ":active" completions))
+      (should-not (member ":disabled" completions))
       ;; Don't include pseudo-elements
-      (should-not (member "after" completions)))))
+      (should-not (member "::after" completions)))))
 
 (ert-deftest css-test-complete-pseudo-element ()
   (with-temp-buffer
     (css-mode)
     (insert "body::a")
     (let ((completions (css-mode-tests--completions)))
-      (should (member "after" completions))
-      (should-not (member "disabled" completions))
+      (should (member "::after" completions))
+      (should-not (member "::disabled" completions))
       ;; Don't include pseudo-classes
-      (should-not (member "active" completions)))))
+      (should-not (member ":active" completions)))))
 
 (ert-deftest css-test-complete-at-rule ()
   (with-temp-buffer

@@ -328,6 +328,7 @@ Currently there are `threads' and `flags'.")
 
 ;;;; Main interactive functions
 
+;;;###autoload
 (defun mairix-search (search threads)
   "Call Mairix with SEARCH.
 If THREADS is non-nil, also display whole threads of found
@@ -342,6 +343,7 @@ messages.  Results will be put into the default search file."
 	 threads)
     (mairix-show-folder mairix-search-file)))
 
+;;;###autoload
 (defun mairix-use-saved-search ()
   "Use a saved search for querying Mairix."
   (interactive)
@@ -374,6 +376,7 @@ Overwrite existing entry? ")
 	(setcdr (assoc name mairix-saved-searches) mairix-last-search))))
   (mairix-select-save))
 
+;;;###autoload
 (defun mairix-edit-saved-searches-customize ()
   "Edit the list of saved searches in a customization buffer."
   (interactive)
@@ -386,6 +389,8 @@ in your .emacs by pressing `Save for Future Sessions'.\n"
 (make-string 65 ?=) "\n")))
 
 (autoload 'mail-strip-quoted-names "mail-utils")
+
+;;;###autoload
 (defun mairix-search-from-this-article (threads)
   "Search messages from sender of the current article.
 This is effectively a shortcut for calling `mairix-search' with
@@ -402,6 +407,7 @@ threads."
 	 threads)
       (error "No function for obtaining mail header specified"))))
 
+;;;###autoload
 (defun mairix-search-thread-this-article ()
   "Search thread for the current article.
 This is effectively a shortcut for calling `mairix-search'
@@ -423,12 +429,14 @@ with m:msgid of the current article and enabled threads."
     (mairix-search
      (format "m:%s" mid) t)))
 
+;;;###autoload
 (defun mairix-widget-search-based-on-article ()
   "Create mairix query based on current article using widgets."
   (interactive)
   (mairix-widget-search
    (mairix-widget-get-values)))
 
+;;;###autoload
 (defun mairix-edit-saved-searches ()
   "Edit current mairix searches."
   (interactive)
@@ -441,6 +449,7 @@ with m:msgid of the current article and enabled threads."
 
 (defvar mairix-widgets)
 
+;;;###autoload
 (defun mairix-widget-search (&optional mvalues)
   "Create mairix query interactively using graphical widgets.
 MVALUES may contain values from current article."
@@ -470,6 +479,7 @@ MVALUES may contain values from current article."
   (widget-setup)
   (goto-char (point-min)))
 
+;;;###autoload
 (defun mairix-update-database ()
   "Call mairix for updating the database for SERVERS.
 Mairix will be called asynchronously unless
@@ -521,8 +531,11 @@ The mail program is given by `mairix-mail-program'."
 If FILE is nil, use default.  If THREADS is non-nil, also return
 whole threads.  Function returns t if messages were found."
   (let* ((commandsplit (split-string mairix-command))
-	 (args (cons (car commandsplit)
-		     `(nil ,(get-buffer-create mairix-output-buffer) nil)))
+	 (args (cons
+                (car commandsplit)
+		(append
+                 `(nil ,(get-buffer-create mairix-output-buffer) nil)
+                 mairix-search-options)))
 	 rval)
     (with-current-buffer mairix-output-buffer
       (erase-buffer))
