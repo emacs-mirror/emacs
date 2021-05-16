@@ -2723,13 +2723,12 @@ the result will be a local, non-Tramp, file name."
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
-;; The complete STDERR buffer is available only when the process has
-;; terminated.
 (defun tramp-sh-handle-make-process (&rest args)
   "Like `make-process' for Tramp files.
-STDERR can also be a file name.  If method parameter `tramp-direct-async'
-and connection property \"direct-async-process\" are non-nil, an
-alternative implementation will be used."
+STDERR can also be a remote file name.  If method parameter
+`tramp-direct-async' and connection property
+\"direct-async-process\" are non-nil, an alternative
+implementation will be used."
   (if (tramp-direct-async-process-p args)
       (apply #'tramp-handle-make-process args)
     (when args
@@ -2763,7 +2762,7 @@ alternative implementation will be used."
 	    (signal 'wrong-type-argument (list #'functionp sentinel)))
 	  (unless (or (null stderr) (bufferp stderr) (stringp stderr))
 	    (signal 'wrong-type-argument (list #'bufferp stderr)))
-	  (when (and (stringp stderr) (tramp-tramp-file-p stderr)
+	  (when (and (stringp stderr)
 		     (not (tramp-equal-remote default-directory stderr)))
 	    (signal 'file-error (list "Wrong stderr" stderr)))
 
@@ -2775,9 +2774,9 @@ alternative implementation will be used."
 		 ;; STDERR can also be a file name.
 		 (tmpstderr
 		  (and stderr
-		       (if (and (stringp stderr) (tramp-tramp-file-p stderr))
-			   (tramp-unquote-file-local-name stderr)
-			 (tramp-make-tramp-temp-file v))))
+		       (tramp-unquote-file-local-name
+			(if (stringp stderr)
+			    stderr (tramp-make-tramp-temp-name v)))))
 		 (remote-tmpstderr
 		  (and tmpstderr (tramp-make-tramp-file-name v tmpstderr)))
 		 (program (car command))
@@ -2786,7 +2785,8 @@ alternative implementation will be used."
 		 ;; "-c", it might be that the arguments exceed the
 		 ;; command line length.  Therefore, we modify the
 		 ;; command.
-		 (heredoc (and (stringp program)
+		 (heredoc (and (not (bufferp stderr))
+			       (stringp program)
 			       (string-match-p "sh$" program)
 			       (= (length args) 2)
 			       (string-equal "-c" (car args))
@@ -2850,6 +2850,23 @@ alternative implementation will be used."
 		 tramp-current-connection
 		 p)
 
+	    ;; Handle error buffer.
+	    (when (bufferp stderr)
+	      (with-current-buffer stderr
+		(setq buffer-read-only nil))
+	      ;; Create named pipe.
+	      (tramp-send-command v (format "mknod %s p" tmpstderr))
+	      ;; Create stderr process.
+	      (make-process
+	       :name (buffer-name stderr)
+	       :buffer stderr
+	       :command `("cat" ,tmpstderr)
+	       :coding coding
+	       :noquery t
+	       :filter nil
+	       :sentinel #'ignore
+	       :file-handler t))
+
 	    (while (get-process name1)
 	      ;; NAME must be unique as process name.
 	      (setq i (1+ i)
@@ -2912,38 +2929,16 @@ alternative implementation will be used."
 			(ignore-errors
 			  (set-process-query-on-exit-flag p (null noquery))
 			  (set-marker (process-mark p) (point)))
-			;; We must flush them here already; otherwise
-			;; `rename-file', `delete-file' or
-			;; `insert-file-contents' will fail.
-			(tramp-flush-connection-property v "process-name")
-			(tramp-flush-connection-property v "process-buffer")
-			;; Copy tmpstderr file.
-			(when (and (stringp stderr)
-				   (not (tramp-tramp-file-p stderr)))
-			  (add-function
-			   :after (process-sentinel p)
-			   (lambda (_proc _msg)
-			     (rename-file remote-tmpstderr stderr))))
-			;; Provide error buffer.  This shows only
-			;; initial error messages; messages arriving
-			;; later on will be inserted when the process
-			;; is deleted.  The temporary file will exist
-			;; until the process is deleted.
+			;; Kill stderr process delete and named pipe.
 			(when (bufferp stderr)
-			  (with-current-buffer stderr
-			    ;; There's a mysterious error, see
-			    ;; <https://github.com/joaotavora/eglot/issues/662>.
-			    (ignore-errors
-			      (insert-file-contents-literally remote-tmpstderr)))
-			  ;; Delete tmpstderr file.
 			  (add-function
 			   :after (process-sentinel p)
 			   (lambda (_proc _msg)
-			     (when (file-exists-p remote-tmpstderr)
-			       (with-current-buffer stderr
-				 (ignore-errors
-				   (insert-file-contents-literally
-				    remote-tmpstderr nil nil nil 'replace)))
+			     (ignore-errors
+			       (while (accept-process-output
+				       (get-buffer-process stderr) 0 nil t))
+			       (delete-process (get-buffer-process stderr)))
+			     (ignore-errors
 			       (delete-file remote-tmpstderr)))))
 			;; Return process.
 			p)))
@@ -4834,10 +4829,12 @@ connection if a previous connection has died for some reason."
 	  (with-tramp-progress-reporter
 	      vec 3
 	      (if (zerop (length (tramp-file-name-user vec)))
-		  (format "Opening connection for %s using %s"
+		  (format "Opening connection %s for %s using %s"
+			  process-name
 			  (tramp-file-name-host vec)
 			  (tramp-file-name-method vec))
-		(format "Opening connection for %s@%s using %s"
+		(format "Opening connection %s for %s@%s using %s"
+			process-name
 			(tramp-file-name-user vec)
 			(tramp-file-name-host vec)
 			(tramp-file-name-method vec)))
@@ -5937,8 +5934,6 @@ function cell is returned to be applied on a buffer."
 ;;   session could be reused after a connection loss.  Use dtach, or
 ;;   screen, or tmux, or mosh.
 ;;
-;; * Implement `:stderr' of `make-process' as pipe process.
-
 ;; * One interesting solution (with other applications as well) would
 ;;   be to stipulate, as a directory or connection-local variable, an
 ;;   additional rc file on the remote machine that is sourced every
