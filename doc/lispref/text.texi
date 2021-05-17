@@ -1118,25 +1118,32 @@ one, it rotates the kill ring to place the yanked string at the front.
 @end deffn
 
 @deffn Command yank-pop &optional arg
-This command replaces the just-yanked entry from the kill ring with a
-different entry from the kill ring.
-
-This works only immediately after a @code{yank} or another
-@code{yank-pop}.  At such a time, the region contains text that was just
-inserted by yanking.  @code{yank-pop} deletes that text and inserts in
-its place a different piece of killed text.  It does not add the deleted
-text to the kill ring, since it is already in the kill ring somewhere.
-It does however rotate the kill ring to place the newly yanked string at
-the front.
+When invoked immediately after a @code{yank} or another
+@code{yank-pop}, this command replaces the just-yanked entry from the
+kill ring with a different entry from the kill ring.  When this
+command is invoked like that, the region contains text that was just
+inserted by another yank command.  @code{yank-pop} deletes that text
+and inserts in its place a different piece of killed text.  It does
+not add the deleted text to the kill ring, since it is already in the
+kill ring somewhere.  It does however rotate the kill ring to place
+the newly yanked string at the front.
 
 If @var{arg} is @code{nil}, then the replacement text is the previous
 element of the kill ring.  If @var{arg} is numeric, the replacement is
 the @var{arg}th previous kill.  If @var{arg} is negative, a more recent
 kill is the replacement.
 
-The sequence of kills in the kill ring wraps around, so that after the
-oldest one comes the newest one, and before the newest one goes the
-oldest.
+The sequence of kills in the kill ring wraps around, so if
+@code{yank-pop} is invoked repeatedly and reaches the oldest kill, the
+one that comes after it is the newest one, and the one before the
+newest one is the oldest one.
+
+This command can also be invoked after a command that is not a yank
+command.  In that case, it prompts in the minibuffer for a kill-ring
+entry, with completion, and uses the kill ring elements as the
+minibuffer history (@pxref{Minibuffer History}).  This allows the user
+to interactively select one of the previous kills recorded in the kill
+ring.
 
 The return value is always @code{nil}.
 @end deffn

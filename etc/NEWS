@@ -334,12 +334,13 @@ forms, but this command has now been changed to work more like
 'eval-defun', and reset the values as specified.
 
 +++
-** Standalone 'M-y' uses the minibuffer to complete previous kills.
-When 'M-y' is typed not after a yank command, it activates the minibuffer
-where you can browse previous kills using the minibuffer history or
-completion.  In Isearch, you can bind 'C-s M-y' to the command
-'isearch-yank-pop' that uses the minibuffer with completion on
-previous kills to read a string and append it to the search string.
+** Standalone 'M-y' allows interactive selection from previous kills.
+'M-y' can now be typed after a command that is not a yank command.
+When invoked like that, it prompts in the minibuffer for one of the
+previous kills, offering completion and minibuffer-history navigation
+through previous kills recorded in the kill ring.  A similar feature
+in Isearch can be invoked if you bind 'C-s M-y' to the command
+'isearch-yank-pop'.
 
 ---
 ** New user options 'copy-region-blink-delay' and 'delete-pair-blink-delay'.

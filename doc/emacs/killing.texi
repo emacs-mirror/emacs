@@ -289,8 +289,9 @@ way to move or copy text is to kill it and then yank it elsewhere.
 @item C-y
 Yank the last kill into the buffer, at point (@code{yank}).
 @item M-y
-Replace the text just yanked with an earlier batch of killed text
-(@code{yank-pop}).  @xref{Earlier Kills}.
+Either replace the text just yanked with an earlier batch of killed
+text (@code{yank-pop}), or allow to select from the list of
+previously-killed batches of text.  @xref{Earlier Kills}.
 @item C-M-w
 Cause the following command, if it is a kill command, to append to the
 previous kill (@code{append-next-kill}).  @xref{Appending Kills}.
@@ -354,7 +355,7 @@ with @kbd{C-h v kill-ring}.
 @kbd{C-y} to yank text that is no longer the most recent kill.  This
 is useful if you remember which kill ring entry you want.  If you
 don't, you can use the @kbd{M-y} (@code{yank-pop}) command to cycle
-through the possibilities.
+through the possibilities or to select one of the earlier kills.
 
 @kindex M-y
 @findex yank-pop
@@ -363,26 +364,29 @@ that was yanked and replaces it with the text from an earlier kill.
 So, to recover the text of the next-to-the-last kill, first use
 @kbd{C-y} to yank the last kill, and then use @kbd{M-y} to replace it
 with the previous kill.  This works only after a @kbd{C-y}
-or another @kbd{M-y}.
+or another @kbd{M-y}.  (If @kbd{M-y} is invoked after some other
+command, it works differently, see below.)
 
-  You can understand @kbd{M-y} in terms of a last-yank pointer which
-points at an entry in the kill ring.  Each time you kill, the last-yank
-pointer moves to the newly made entry at the front of the ring.
-@kbd{C-y} yanks the entry which the last-yank pointer points to.
-@kbd{M-y} moves the last-yank pointer to a different entry, and the
-text in the buffer changes to match.  Enough @kbd{M-y} commands can move
-the pointer to any entry in the ring, so you can get any entry into the
-buffer.  Eventually the pointer reaches the end of the ring; the next
-@kbd{M-y} loops back around to the first entry again.
+  You can understand this operation mode of @kbd{M-y} in terms of a
+last-yank pointer which points at an entry in the kill ring.  Each
+time you kill, the last-yank pointer moves to the newly made entry at
+the front of the ring.  @kbd{C-y} yanks the entry which the last-yank
+pointer points to.  @kbd{M-y} moves the last-yank pointer to a
+different entry, and the text in the buffer changes to match.  Enough
+@kbd{M-y} commands can move the pointer to any entry in the ring, so
+you can get any entry into the buffer.  Eventually the pointer reaches
+the end of the ring; the next @kbd{M-y} loops back around to the first
+entry again.
 
   @kbd{M-y} moves the last-yank pointer around the ring, but it does
 not change the order of the entries in the ring, which always runs from
 the most recent kill at the front to the oldest one still remembered.
 
-  @kbd{M-y} can take a numeric argument, which tells it how many entries
-to advance the last-yank pointer by.  A negative argument moves the
-pointer toward the front of the ring; from the front of the ring, it
-moves around to the last entry and continues forward from there.
+  When used after @kbd{C-y} or @kbd{M-y}, @kbd{M-y} can take a numeric
+argument, which tells it how many entries to advance the last-yank
+pointer by.  A negative argument moves the pointer toward the front of
+the ring; from the front of the ring, it moves around to the last
+entry and continues forward from there.
 
   Once the text you are looking for is brought into the buffer, you can
 stop doing @kbd{M-y} commands and it will stay there.  It's just a copy
@@ -394,14 +398,22 @@ pointer remains at the same place in the kill ring, so repeating
   When you call @kbd{C-y} with a numeric argument, that also sets the
 last-yank pointer to the entry that it yanks.
 
-  Alternatively, when the previous command was not a yank command,
-@kbd{M-y} activates the minibuffer where you can browse previous kills
-using the minibuffer history commands (@pxref{Minibuffer History}), or
-you can use completion commands (@pxref{Completion}) on a list of
-previously killed blocks of text from the kill ring.  Exiting the
-minibuffer will insert the selected text to the buffer.  With a plain
-prefix argument (@kbd{C-u M-y}), this command leaves the cursor in
-front of the inserted text, and sets the mark at the end.
+  You can also invoke @kbd{M-y} after a command that is not a yank
+command.  In that case, @kbd{M-y} prompts you in the minibuffer for
+one of the previous kills.  You can use the minibuffer history
+commands (@pxref{Minibuffer History}) to navigate or search through
+the entries in the kill ring until you find the one you want to
+reinsert.  Or you can use completion commands (@pxref{Completion
+Commands}) to complete on the list of entries in the kill ring or pop
+up the @file{*Completions*} buffer with the candidate entries from
+which you can choose.  After selecting the kill-ring entry, you can
+optionally edit it in the minibuffer.  Finally, type @kbd{RET} to exit
+the minibuffer and insert the selected text.
+
+  When invoked with a plain prefix argument (@kbd{C-u M-y}) after a
+command that is not a yank command, @kbd{M-y} leaves the cursor in
+front of the inserted text, and sets the mark at the end, like
+@kbd{C-y} does.
 
 @node Appending Kills
 @subsection Appending Kills
