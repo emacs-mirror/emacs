@@ -2657,6 +2657,10 @@ generate a tag.
 @item
 In Ruby code, @code{def} or @code{class} or @code{module} at the
 beginning of a line generate a tag.  Constants also generate tags.
+
+@item
+In Rust code, tags anything defined with @code{fn}, @code{enum},
+@code{struct} or @code{macro_rules!}.
 @end itemize
 
   You can also generate tags based on regexp matching (@pxref{Etags
