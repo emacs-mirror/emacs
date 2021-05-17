@@ -3296,6 +3296,11 @@ module A9,57
     alias_method ( :foo2,foo237,586
 A::Constant Constant42,655
 
+rs-src/test.rs,52
+enum IpAddrKind 3,11
+fn test1(8,48
+fn main(12,88
+
 scm-src/test.scm,260
 (define hello 1,0
 (set! hello 3,32

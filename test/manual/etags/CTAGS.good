@@ -759,6 +759,7 @@ Install_Abort_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Abort_Handle
 Install_Error_Handler/p	ada-src/2ataspri.adb	/^   procedure Install_Error_Handler (Handler : Syst/
 Install_Error_Handler/p	ada-src/2ataspri.ads	/^   procedure Install_Error_Handler (Handler : Syst/
 Invoking gzip	tex-src/gzip.texi	/^@node Invoking gzip, Advanced usage, Sample, Top$/
+IpAddrKind	rs-src/test.rs	3
 IsControlChar	pas-src/common.pas	/^function IsControlChar; (*($/
 IsControlCharName	pas-src/common.pas	/^function IsControlCharName($/
 Is_Set/f	ada-src/2ataspri.adb	/^   function  Is_Set (Cell : in TAS_Cell) return Bo/
@@ -984,6 +985,7 @@ MoveLayerBottom	lua-src/allegro.lua	/^function MoveLayerBottom ()$/
 MoveLayerTop	lua-src/allegro.lua	/^function MoveLayerTop ()$/
 Mtest.go	go-src/test.go	1
 Mtest.go	go-src/test.go	/^func main() {$/
+Mtest.rs	rs-src/test.rs	/^fn main() {$/
 Mtest1.go	go-src/test1.go	1
 Mtest1.go	go-src/test1.go	/^func main() {$/
 Mx.cc	cp-src/x.cc	/^main(int argc, char *argv[])$/
@@ -4323,6 +4325,7 @@ test	php-src/ptest.php	/^test $/
 test-begin	scm-src/test.scm	/^(define-syntax test-begin$/
 test.me22b	lua-src/test.lua	/^   local function test.me22b (one)$/
 test.me_22a	lua-src/test.lua	/^   function test.me_22a(one, two)$/
+test1	rs-src/test.rs	/^fn test1() {$/
 test_undefined	c-src/emacs/src/keyboard.c	/^test_undefined (Lisp_Object binding)$/
 texttreelist	prol-src/natded.prolog	/^texttreelist([]).$/
 there-is-a-=-in-the-middle!	scm-src/test.scm	/^(define (there-is-a-=-in-the-middle!) #t)$/
