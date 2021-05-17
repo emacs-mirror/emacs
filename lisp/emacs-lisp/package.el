@@ -1305,7 +1305,10 @@ is non-nil, don't propagate connection errors (does not apply to
 errors signaled by ERROR-FORM or by BODY).
 
 \(fn URL &key ASYNC FILE ERROR-FORM NOERROR &rest BODY)"
-  (declare (indent defun) (debug t))
+  (declare (indent defun)
+           ;; FIXME: This should be something like
+           ;; `form def-body &rest form', but that doesn't work.
+           (debug (form &rest sexp)))
   (while (keywordp (car body))
     (setq body (cdr (cdr body))))
   `(package--with-response-buffer-1 ,url (lambda () ,@body)

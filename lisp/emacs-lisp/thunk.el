@@ -52,7 +52,7 @@
 
 (defmacro thunk-delay (&rest body)
   "Delay the evaluation of BODY."
-  (declare (debug t))
+  (declare (debug (def-body)))
   (cl-assert lexical-binding)
   `(let (forced
          (val (lambda () ,@body)))

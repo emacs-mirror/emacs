@@ -95,7 +95,7 @@ about local variables or possible weirdness in a major mode.
 `lm-with-file' does a similar thing, but it sets
 `emacs-lisp-mode' which is not wanted here."
 
-  (declare (debug t) (indent 1))
+  (declare (debug (form def-body)) (indent 1))
   `(let* ((info-xref-with-file--filename ,filename)
           (info-xref-with-file--body     (lambda () ,@body))
           (info-xref-with-file--existing
