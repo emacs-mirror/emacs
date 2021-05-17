@@ -503,7 +503,7 @@ arguments.  Note if NAME is nil the advice is anonymous;
 otherwise it is named `SYMBOL@NAME'.
 
 \(fn SYMBOL (WHERE LAMBDA-LIST &optional NAME DEPTH) &rest BODY)"
-  (declare (indent 2) (doc-string 3) (debug (sexp sexp body)))
+  (declare (indent 2) (doc-string 3) (debug (sexp sexp def-body)))
   (or (listp args) (signal 'wrong-type-argument (list 'listp args)))
   (or (<= 2 (length args) 4)
       (signal 'wrong-number-of-arguments (list 2 4 (length args))))
