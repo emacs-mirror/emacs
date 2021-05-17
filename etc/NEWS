@@ -712,6 +712,18 @@ line, and allows truncating them (to preserve space on the mode line)
 or showing them literally, either instead of, or in addition to,
 displaying "by name" or "by date" sort order.
 
++++
+*** New user option 'dired-compress-directory-default-suffix'.
+This user option controls default suffix for compressing a directory.
+If it's nil, ".tar.gz" will be used.  Refer to
+'dired-compress-files-alist' for a list of supported suffixes.
+
++++
+*** New user option 'dired-compress-file-default-suffix'.
+This user option controls the default suffix for compressing files.
+If it's nil, ".gz" will be used.  Refer to 'dired-compress-file-alist'
+for a list of supported suffixes.
+
 ---
 *** Broken and circular links are shown with the 'dired-broken-symlink' face.
 
