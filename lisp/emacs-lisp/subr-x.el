@@ -174,8 +174,8 @@ As a special case, interprets a SPEC of the form \(SYMBOL SOMETHING)
 like \((SYMBOL SOMETHING)).  This exists for backward compatibility
 with an old syntax that accepted only one binding."
   (declare (indent 2)
-           (debug ([&or (&rest [&or symbolp (symbolp form) (form)])
-                        (symbolp form)]
+           (debug ([&or (symbolp form)  ; must be first, Bug#48489
+                        (&rest [&or symbolp (symbolp form) (form)])]
                    form body)))
   (when (and (<= (length spec) 2)
              (not (listp (car spec))))
