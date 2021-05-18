@@ -1334,7 +1334,8 @@ Return nil if no change in files."
                        (user-error "No compression rule found for suffix %s, \
 see `dired-compress-file-alist' for the supported suffixes list."
                                    dired-compress-file-default-suffix)
-                     (and (or (not (file-exists-p out-name))
+                     (and (file-exists-p file)
+                          (or (not (file-exists-p out-name))
                               (y-or-n-p
                                (format
                                 "File %s already exists.  Really compress? "
@@ -1343,8 +1344,7 @@ see `dired-compress-file-alist' for the supported suffixes list."
                            (replace-regexp-in-string
                             "%o" (shell-quote-argument out-name)
                             (replace-regexp-in-string
-                             "%i" (shell-quote-argument
-                                   (file-name-nondirectory file))
+                             "%i" (shell-quote-argument file)
                              (cdr rule)
                              nil t)
                             nil t))
