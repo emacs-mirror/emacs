@@ -1113,8 +1113,8 @@ used instead of `browse-url-new-window-flag'."
 					 ",new-window"))
 				   ")"))))))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-netscape-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-netscape-sentinel process url)))))
 
 (function-put 'browse-url-netscape 'browse-url-browser-kind 'external)
 
@@ -1185,8 +1185,8 @@ used instead of `browse-url-new-window-flag'."
 				      ",new-window"))
 				")"))))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-mozilla-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-mozilla-sentinel process url)))))
 
 (function-put 'browse-url-mozilla 'browse-url-browser-kind 'external)
 
@@ -1303,8 +1303,8 @@ used instead of `browse-url-new-window-flag'."
                             '("--existing"))
                           (list url)))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-galeon-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-galeon-sentinel process url)))))
 
 (function-put 'browse-url-galeon 'browse-url-browser-kind 'external)
 
@@ -1351,8 +1351,8 @@ used instead of `browse-url-new-window-flag'."
                             '("--existing"))
                           (list url)))))
     (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-epiphany-sentinel process ,url)))))
+			  (lambda (process _change)
+			    (browse-url-epiphany-sentinel process url)))))
 
 (function-put 'browse-url-epiphany 'browse-url-browser-kind 'external)
 
@@ -1715,8 +1715,8 @@ from `browse-url-elinks-wrapper'."
 	  (elinks-ping-process (start-process "elinks-ping" nil
 					      "elinks" "-remote" "ping()")))
       (set-process-sentinel elinks-ping-process
-			    `(lambda (process change)
-			       (browse-url-elinks-sentinel process ,url))))))
+			    (lambda (process _change)
+			      (browse-url-elinks-sentinel process url))))))
 
 (function-put 'browse-url-elinks 'browse-url-browser-kind 'external)
 
