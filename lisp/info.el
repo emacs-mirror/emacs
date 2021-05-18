@@ -2148,8 +2148,10 @@ If DIRECTION is `backward', search in the reverse direction."
     (goto-char (if isearch-forward (point-min) (point-max)))))
 
 (defun Info-isearch-push-state ()
-  `(lambda (cmd)
-     (Info-isearch-pop-state cmd ',Info-current-file ',Info-current-node)))
+  (let ((file Info-current-file)
+        (node Info-current-node))
+    (lambda (cmd)
+      (Info-isearch-pop-state cmd file node))))
 
 (defun Info-isearch-pop-state (_cmd file node)
   (or (and (equal Info-current-file file)
