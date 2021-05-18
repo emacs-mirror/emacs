@@ -988,9 +988,7 @@ one window."
   (let ((buf (ibuffer-current-buffer t)))
     (bury-buffer (current-buffer))
     (if noselect
-	(let ((curwin (selected-window)))
-	  (pop-to-buffer buf)
-	  (select-window curwin))
+        (display-buffer buf)
       (switch-to-buffer-other-window buf))))
 
 (defun ibuffer-visit-buffer-other-window-noselect ()
