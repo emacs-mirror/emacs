@@ -1029,14 +1029,21 @@ clashes (Bug#41853)."
                                     inner@cl-flet@10002
                                     edebug-tests-cl-flet-2)))))))
 
+(defmacro edebug-tests--duplicate-symbol-backtrack (arg)
+  "Helper macro that exemplifies Bug#42701.
+ARG is either (FORM) or (FORM IGNORED)."
+  (declare (debug ([&or (form) (form sexp)])))
+  (car arg))
+
 (ert-deftest edebug-tests-duplicate-symbol-backtrack ()
   "Check that Edebug doesn't create duplicate symbols when
 backtracking (Bug#42701)."
   (with-temp-buffer
-    (dolist (form '((require 'subr-x)
-                    (defun edebug-tests-duplicate-symbol-backtrack ()
-                      (if-let (x (funcall (lambda (y) 1) 2)) 3 4))))
-      (print form (current-buffer)))
+    (print '(defun edebug-tests-duplicate-symbol-backtrack ()
+              (edebug-tests--duplicate-symbol-backtrack
+               ;; Passing (FORM IGNORED) forces backtracking.
+               ((lambda () 123) ignored)))
+           (current-buffer))
     (let* ((edebug-all-defs t)
            (edebug-initial-mode 'Go-nonstop)
            (instrumented-names ())
