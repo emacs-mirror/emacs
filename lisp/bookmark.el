@@ -173,7 +173,7 @@ A non-nil value may result in truncated bookmark names."
   "Time before `bookmark-bmenu-search' updates the display."
   :type  'number)
 
-(defcustom bookmark-fontify t
+(defcustom bookmark-fontify nil
   "Whether to colorize a bookmarked line.
 If non-nil, setting a bookmark will colorize the current line with
 `bookmark-face'."
