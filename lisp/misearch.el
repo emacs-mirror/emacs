@@ -202,8 +202,9 @@ the initial buffer."
   "Save a function restoring the state of multiple buffers search.
 Save the current buffer to the additional state parameter in the
 search status stack."
-  `(lambda (cmd)
-     (multi-isearch-pop-state cmd ,(current-buffer))))
+  (let ((buf (current-buffer)))
+    (lambda (cmd)
+      (multi-isearch-pop-state cmd buf))))
 
 (defun multi-isearch-pop-state (_cmd buffer)
   "Restore the multiple buffers search state in BUFFER.
