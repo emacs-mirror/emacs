@@ -782,24 +782,32 @@ If kbd macro currently being defined end it before activating it."
 ;; executing the macro later on (but that's controversial...)
 
 ;;;###autoload
-(defun kmacro-lambda-form (mac &optional counter format)
+(defun kmacro-lambda-form (mac)
   "Create lambda form for macro bound to symbol or key."
-  (let ((mac (if counter (list mac counter format) mac)))
-    (lambda (&optional arg)
-      "Keyboard macro."
-      (interactive "p")
+  ;; FIXME: This should be a "funcallable struct"!
+  (lambda (&optional arg)
+    "Keyboard macro."
+    ;; We put an "unused prompt" as a special marker so
+    ;; `kmacro-extract-lambda' can see it's "one of us".
+    (interactive "pkmacro")
+    (if (eq arg 'kmacro--extract-lambda)
+        (cons 'kmacro--extract-lambda mac)
       (kmacro-exec-ring-item mac arg))))
 
 (defun kmacro-extract-lambda (mac)
   "Extract kmacro from a kmacro lambda form."
-  (and (eq (car-safe mac) 'lambda)
-       (setq mac (assoc 'kmacro-exec-ring-item mac))
-       (setq mac (car-safe (cdr-safe (car-safe (cdr-safe mac)))))
-       (listp mac)
-       (= (length mac) 3)
-       (arrayp (car mac))
-       mac))
-
+  (let ((mac (cond
+              ((eq (car-safe mac) 'lambda)
+               (let ((e (assoc 'kmacro-exec-ring-item mac)))
+                 (car-safe (cdr-safe (car-safe (cdr-safe e))))))
+              ((and (functionp mac)
+                    (equal (interactive-form mac) '(interactive "pkmacro")))
+               (let ((r (funcall mac 'kmacro--extract-lambda)))
+                 (and (eq (car-safe r) 'kmacro--extract-lambda) (cdr r)))))))
+    (and (consp mac)
+         (= (length mac) 3)
+         (arrayp (car mac))
+         mac)))
 
 (defalias 'kmacro-p #'kmacro-extract-lambda
   "Return non-nil if MAC is a kmacro keyboard macro.")
