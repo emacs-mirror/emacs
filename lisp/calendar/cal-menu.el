@@ -104,9 +104,9 @@
         ;; The bug has since been fixed.
         (dotimes (i 11)
           (push (vector (format "hol-year-%d" i)
-                        `(lambda ()
-                           (interactive)
-                           (holiday-list (+ displayed-year ,(- i 5))))
+                        (lambda ()
+                          (interactive)
+                          (holiday-list (+ displayed-year (- i 5))))
                         :label `(format "For Year %d"
                                        (+ displayed-year ,(- i 5))))
                 l))
