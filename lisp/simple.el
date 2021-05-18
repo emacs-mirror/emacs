@@ -5587,7 +5587,8 @@ This command honors the `yank-handled-properties' and
 property, in the way that `yank' does."
   (interactive "p")
   (if (not (eq last-command 'yank))
-      (yank-from-kill-ring (read-from-kill-ring) current-prefix-arg)
+      (yank-from-kill-ring (read-from-kill-ring "Yank from kill-ring: ")
+                           current-prefix-arg)
     (setq this-command 'yank)
     (unless arg (setq arg 1))
     (let ((inhibit-read-only t)
@@ -5676,8 +5677,9 @@ With ARG, rotate that many kills forward (or backward, if negative)."
   (current-kill arg))
 
 (defvar read-from-kill-ring-history)
-(defun read-from-kill-ring ()
-  "Read a `kill-ring' entry using completion and minibuffer history."
+(defun read-from-kill-ring (prompt)
+  "Read a `kill-ring' entry using completion and minibuffer history.
+PROMPT is a string to prompt with."
   ;; `current-kill' updates `kill-ring' with a possible interprogram-paste
   (current-kill 0)
   (let* ((history-add-new-input nil)
@@ -5721,11 +5723,7 @@ With ARG, rotate that many kills forward (or backward, if negative)."
              (define-key map "?" nil)
              map)))
       (completing-read
-       ;; FIXME: This prompt is specific to using this function from
-       ;; yank-related commands, but the function could be used in
-       ;; other contexts.  Should the prompt be passed via an
-       ;; argument?
-       "Yank from kill-ring: "
+       prompt
        (lambda (string pred action)
          (if (eq action 'metadata)
              ;; Keep sorted by recency
@@ -5755,7 +5753,8 @@ With \\[universal-argument] as argument, this command puts point at
 beginning of the inserted text and mark at the end, like `yank' does.
 
 When called from Lisp, insert STRING like `insert-for-yank' does."
-  (interactive (list (read-from-kill-ring) current-prefix-arg))
+  (interactive (list (read-from-kill-ring "Yank from kill-ring: ")
+                     current-prefix-arg))
   (push-mark)
   (insert-for-yank string)
   (if (consp arg)

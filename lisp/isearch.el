@@ -2538,7 +2538,7 @@ If search string is empty, just beep."
   "Read a string from the `kill-ring' and append it to the search string."
   (interactive)
   (with-isearch-suspended
-   (let ((string (read-from-kill-ring)))
+   (let ((string (read-from-kill-ring "Yank from kill-ring: ")))
      (if (and isearch-case-fold-search
               (eq 'not-yanks search-upper-case))
          (setq string (downcase string)))
