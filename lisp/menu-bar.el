@@ -2288,9 +2288,10 @@ It must accept a buffer as its only required argument.")
       (setq i (1- i))
       (aset buffers-vec i
             (cons (car pair)
-                  `(lambda ()
-                     (interactive)
-                     (funcall menu-bar-select-buffer-function ,(cdr pair))))))
+                  (let ((buf (cdr pair)))
+                    (lambda ()
+                      (interactive)
+                      (funcall menu-bar-select-buffer-function buf))))))
     buffers-vec))
 
 (defun menu-bar-update-buffers (&optional force)
@@ -2345,8 +2346,8 @@ It must accept a buffer as its only required argument.")
                (aset frames-vec i
                      (cons
                       (frame-parameter frame 'name)
-                      `(lambda ()
-                         (interactive) (menu-bar-select-frame ,frame))))
+                      (lambda ()
+                        (interactive) (menu-bar-select-frame frame))))
                (setq i (1+ i)))
 	     ;; Put it after the normal buffers
 	     (setq buffers-menu
