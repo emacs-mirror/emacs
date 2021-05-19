@@ -2273,6 +2273,9 @@ doug_lea_malloc=$emacs_cv_var_doug_lea_malloc
 hybrid_malloc=
 system_malloc=yes
 
+dnl This must be before the test of $ac_cv_func_sbrk below.
+AC_CHECK_FUNCS_ONCE([sbrk])
+
 test $with_unexec = yes &&
 case "$opsys" in
   ## darwin ld insists on the use of malloc routines in the System framework.
@@ -2306,6 +2309,9 @@ elif test "$hybrid_malloc" = yes; then
   GNU_MALLOC_reason=" (only before dumping)"
   GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=
+  # FIXME: This is to prevent Gnulib from redirecting 'free' to its
+  # replacement, instead of 'hybrid_free' in gmalloc.c.
+  gl_cv_func_free_preserves_errno=yes
 else
   test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
   VMLIMIT_OBJ=vm-limit.o
@@ -4677,7 +4683,7 @@ AC_CHECK_HEADERS(valgrind/valgrind.h)
 
 AC_CHECK_MEMBERS([struct unipair.unicode], [], [], [[#include <linux/kd.h>]])
 
-AC_CHECK_FUNCS_ONCE([__lsan_ignore_object sbrk])
+AC_CHECK_FUNCS_ONCE([__lsan_ignore_object])
 
 AC_FUNC_FORK
 
