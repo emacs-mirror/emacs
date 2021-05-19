@@ -484,6 +484,7 @@ file.  Since that is a plaintext file, this could be dangerous."
      :prompt-regexp "^[[:alnum:]_]*=[#>] "
      :prompt-length 5
      :prompt-cont-regexp "^[[:alnum:]_]*[-(][#>] "
+     :statement sql-postgres-statement-starters
      :input-filter sql-remove-tabs-filter
      :terminator ("\\(^\\s-*\\\\g\\|;\\)" . "\\g"))
 
@@ -1238,6 +1239,13 @@ add your name with a \"-U\" prefix (such as \"-Umark\") to the list."
           (when (string-match "^ \\([^ |]+\\) +|.*" row)
             (push (match-string 1 row) res))))
       (nreverse res))))
+
+(defcustom sql-postgres-statement-starters
+  (regexp-opt '("with"))
+  "Additional statement-starting keywords in Postgres."
+  :type 'string
+  :group 'SQL
+  :version "28.1")
 
 ;; Customization for Interbase
 
