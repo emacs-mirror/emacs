@@ -50,6 +50,30 @@
 (defvar hl-line-mode)
 (defvar hl-line-sticky-flag)
 
+(declare-function gdb-tooltip-print "gdb-mi" (expr))
+(declare-function gdb-tooltip-print-1 "gdb-mi" (expr))
+(declare-function gud-pp "gdb-mi" (arg))
+(declare-function gdb-var-delete "gdb-mi" ())
+(declare-function speedbar-toggle-line-expansion "gud" ())
+(declare-function speedbar-edit-line "gud" ())
+;; FIXME: The declares below are necessary because we don't call `gud-def'
+;; at toplevel, so the compiler doesn't know under which circumstances
+;; they're defined.
+(declare-function gud-statement "gud" (arg))
+(declare-function gud-until     "gud" (arg))
+(declare-function gud-pv        "gud" (arg))
+(declare-function gud-print     "gud" (arg))
+(declare-function gud-down      "gud" (arg))
+(declare-function gud-up        "gud" (arg))
+(declare-function gud-jump      "gud" (arg))
+(declare-function gud-finish    "gud" (arg))
+(declare-function gud-cont      "gud" (arg))
+(declare-function gud-next      "gud" (arg))
+(declare-function gud-stepi     "gud" (arg))
+(declare-function gud-step      "gud" (arg))
+(declare-function gud-remove    "gud" (arg))
+(declare-function gud-tbreak    "gud" (arg))
+(declare-function gud-break     "gud" (arg))
 
 ;; ======================================================================
 ;; GUD commands must be visible in C buffers visited by GUD
@@ -66,7 +90,7 @@ pdb (Python), and jdb."
   "Prefix of all GUD commands valid in C buffers."
   :type 'key-sequence)
 
-(global-set-key (vconcat gud-key-prefix "\C-l") 'gud-refresh)
+(global-set-key (vconcat gud-key-prefix "\C-l") #'gud-refresh)
 ;; (define-key ctl-x-map " " 'gud-break); backward compatibility hack
 
 (defvar gud-marker-filter nil)
@@ -150,10 +174,11 @@ Used to gray out relevant toolbar icons.")
 				    (or (not (gdb-show-run-p))
 					(bound-and-true-p
 					 gdb-active-process)))))
-    ([go]	menu-item (if (bound-and-true-p gdb-active-process)
-			      "Continue" "Run") gud-go
+    ([go]     .	(menu-item (if (bound-and-true-p gdb-active-process)
+			       "Continue" "Run")
+			   gud-go
 		  :visible (and (eq gud-minor-mode 'gdbmi)
-                                (gdb-show-run-p)))
+                                (gdb-show-run-p))))
     ([stop]	menu-item "Stop" gud-stop-subjob
 		  :visible (or (not (memq gud-minor-mode '(gdbmi pdb)))
 			       (and (eq gud-minor-mode 'gdbmi)
@@ -185,13 +210,15 @@ Used to gray out relevant toolbar icons.")
 				  (bound-and-true-p gdb-active-process))
 		  :visible (and (string-equal
 				 (buffer-local-value
-				  'gud-target-name gud-comint-buffer) "emacs")
+				  'gud-target-name gud-comint-buffer)
+				 "emacs")
 				(eq gud-minor-mode 'gdbmi)))
-    ([print*]	menu-item (if (eq gud-minor-mode 'jdb)
-			      "Dump object"
-			    "Print Dereference") gud-pstar
+    ([print*] . (menu-item (if (eq gud-minor-mode 'jdb)
+			       "Dump object"
+			     "Print Dereference")
+			   gud-pstar
                   :enable (not gud-running)
-		  :visible (memq gud-minor-mode '(gdbmi gdb jdb)))
+		  :visible (memq gud-minor-mode '(gdbmi gdb jdb))))
     ([print]	menu-item "Print Expression" gud-print
                   :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
@@ -336,7 +363,7 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 		   (eq gud-minor-mode 'gdbmi))
 	  (make-local-variable 'gdb-define-alist)
 	  (unless  gdb-define-alist (gdb-create-define-alist))
-	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t))
+	  (add-hook 'after-save-hook #'gdb-create-define-alist nil t))
 	(make-local-variable 'gud-keep-buffer))
       buf)))
 
@@ -383,8 +410,8 @@ we're in the GUD buffer)."
 	      `(gud-call ,cmd arg)
 	    ;; Unused lexical warning if cmd does not use "arg".
 	    cmd))))
-     ,(if key `(local-set-key ,(concat "\C-c" key) ',func))
-     ,(if key `(global-set-key (vconcat gud-key-prefix ,key) ',func))))
+     ,(if key `(local-set-key ,(concat "\C-c" key) #',func))
+     ,(if key `(global-set-key (vconcat gud-key-prefix ,key) #',func))))
 
 ;; Where gud-display-frame should put the debugging arrow; a cons of
 ;; (filename . line-number).  This is set by the marker-filter, which scans
@@ -450,12 +477,12 @@ The value t means that there is no stack, and we are in display-file mode.")
   "Install those variables used by speedbar to enhance gud/gdb."
   (unless gud-speedbar-key-map
     (setq gud-speedbar-key-map (speedbar-make-specialized-keymap))
-    (define-key gud-speedbar-key-map "j" 'speedbar-edit-line)
-    (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
-    (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
-    (define-key gud-speedbar-key-map " " 'speedbar-toggle-line-expansion)
-    (define-key gud-speedbar-key-map "D" 'gdb-var-delete)
-    (define-key gud-speedbar-key-map "p" 'gud-pp))
+    (define-key gud-speedbar-key-map "j" #'speedbar-edit-line)
+    (define-key gud-speedbar-key-map "e" #'speedbar-edit-line)
+    (define-key gud-speedbar-key-map "\C-m" #'speedbar-edit-line)
+    (define-key gud-speedbar-key-map " " #'speedbar-toggle-line-expansion)
+    (define-key gud-speedbar-key-map "D" #'gdb-var-delete)
+    (define-key gud-speedbar-key-map "p" #'gud-pp))
 
   (speedbar-add-expansion-list '("GUD" gud-speedbar-menu-items
 				 gud-speedbar-key-map
@@ -625,8 +652,7 @@ required by the caller."
 (defcustom gud-gud-gdb-command-name "gdb --fullname"
   "Default command to run an executable under GDB in text command mode.
 The option \"--fullname\" must be included in this value."
-   :type 'string
-   :group 'gud)
+   :type 'string)
 
 (defvar gud-gdb-marker-regexp
   ;; This used to use path-separator instead of ":";
@@ -801,9 +827,9 @@ the buffer in which this command was invoked."
 
   (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
             nil 'local)
-  (setq-local gud-gdb-completion-function 'gud-gdb-completions)
+  (setq-local gud-gdb-completion-function #'gud-gdb-completions)
 
-  (local-set-key "\C-i" 'completion-at-point)
+  (local-set-key "\C-i" #'completion-at-point)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
   (setq gdb-first-prompt t)
@@ -2182,9 +2208,9 @@ extension EXTN.  Normally EXTN is given as the regular expression
   (setq gud-jdb-analysis-buffer (get-buffer-create " *gud-jdb-scratch*"))
   (prog1
       (apply
-       'nconc
+       #'nconc
        (mapcar
-	'gud-jdb-build-class-source-alist-for-file
+	#'gud-jdb-build-class-source-alist-for-file
 	sources))
     (kill-buffer gud-jdb-analysis-buffer)
     (setq gud-jdb-analysis-buffer nil)))
@@ -2251,13 +2277,14 @@ relative to a classpath directory."
        ;; name relative to classpath
        (filename
 	(concat
-	 (mapconcat 'identity
+	 (mapconcat #'identity
 		    (split-string
 		     ;; Eliminate any subclass references in the class
 		     ;; name string. These start with a "$"
                      (if (string-match "\\$.*" p)
                          (replace-match "" t t p) p)
-		     "\\.") "/")
+		     "\\.")
+		    "/")
 	 ".java"))
        (cplist (append gud-jdb-sourcepath gud-jdb-classpath))
        found-file)
@@ -2279,7 +2306,7 @@ during jdb initialization depending on the value of
   "Parse the classpath list and convert each item to an absolute pathname."
   (mapcar (lambda (s) (if (string-match "[/\\]$" s)
 			  (replace-match "" nil nil s) s))
-	  (mapcar 'file-truename
+	  (mapcar #'file-truename
 		  (split-string
 		   string
 		   (concat "[ \t\n\r,\"" path-separator "]+")))))
@@ -2458,7 +2485,7 @@ gud, see `gud-mode'."
 	(if (string-match "-attach" command-line)
 	    (gud-call "classpath"))
 	(fset 'gud-jdb-find-source
-	      'gud-jdb-find-source-using-classpath))
+	      #'gud-jdb-find-source-using-classpath))
 
     ;; Else create and bind the class/source association list as well
     ;; as the source file list.
@@ -2466,8 +2493,8 @@ gud, see `gud-mode'."
 	  (gud-jdb-build-class-source-alist
 	   (setq gud-jdb-source-files
 		 (gud-jdb-build-source-files-list gud-jdb-directories
-						  "\\.java$"))))
-    (fset 'gud-jdb-find-source 'gud-jdb-find-source-file)))
+						  "\\.java\\'"))))
+    (fset 'gud-jdb-find-source #'gud-jdb-find-source-file)))
 
 ;;
 ;; End of debugger-specific information
@@ -2578,7 +2605,7 @@ Commands:
 
 \\{gud-mode-map}"
   (setq mode-line-process '(":%s"))
-  (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
+  (define-key (current-local-map) "\C-c\C-l" #'gud-refresh)
   (setq-local gud-last-frame nil)
   (if (boundp 'tool-bar-map)            ; not --without-x
       (setq-local tool-bar-map gud-tool-bar-map))
@@ -2587,7 +2614,7 @@ Commands:
   (setq-local comint-input-ignoredups t)
   (make-local-variable 'paragraph-start)
   (setq-local gud-delete-prompt-marker (make-marker))
-  (add-hook 'kill-buffer-hook 'gud-kill-buffer-hook nil t))
+  (add-hook 'kill-buffer-hook #'gud-kill-buffer-hook nil t))
 
 (defcustom gud-chdir-before-run t
   "Non-nil if GUD should `cd' to the debugged executable."
@@ -2654,7 +2681,7 @@ Commands:
 	(setq w (cdr w)))
       ;; Tramp has already been loaded if we are here.
       (if w (setcar w (setq file (file-local-name file)))))
-    (apply 'make-comint (concat "gud" filepart) program nil
+    (apply #'make-comint (concat "gud" filepart) program nil
 	   (if massage-args (funcall massage-args file args) args))
     ;; Since comint clobbered the mode, we don't set it until now.
     (gud-mode)
@@ -2664,8 +2691,8 @@ Commands:
   (if find-file (setq-local gud-find-file find-file))
   (setq gud-last-last-frame nil)
 
-  (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
-  (set-process-sentinel (get-buffer-process (current-buffer)) 'gud-sentinel)
+  (set-process-filter (get-buffer-process (current-buffer)) #'gud-filter)
+  (set-process-sentinel (get-buffer-process (current-buffer)) #'gud-sentinel)
   (gud-set-buffer))
 
 (defun gud-set-buffer ()
@@ -3186,10 +3213,11 @@ class of the file (using s to separate nested class ids)."
           (while (and cplist (not class-found))
             (if (string-match (car cplist) f)
                 (setq class-found
-		      (mapconcat 'identity
+		      (mapconcat #'identity
                                  (split-string
                                    (substring f (+ (match-end 0) 1))
-                                  "/") ".")))
+                                   "/")
+                                 ".")))
             (setq cplist (cdr cplist)))
           ;; if f is visited by a java(cc-mode) buffer, walk up the
           ;; syntactic information chain and collect any 'inclass
@@ -3228,7 +3256,7 @@ class of the file (using s to separate nested class ids)."
                       ))
                   (string-match (concat (car nclass) "$") class-found)
                   (setq class-found
-                        (replace-match (mapconcat 'identity nclass "$")
+                        (replace-match (mapconcat #'identity nclass "$")
                                        t t class-found)))))
           (if (not class-found)
               (message "gud-find-class: class for file %s not found!" f))
@@ -3362,7 +3390,7 @@ Treats actions as defuns."
   (setq-local outline-regexp "[ \t]")
   (setq-local imenu-generic-expression
               '((nil "^define[ \t]+\\(\\w+\\)" 1)))
-  (setq-local indent-line-function 'gdb-script-indent-line)
+  (setq-local indent-line-function #'gdb-script-indent-line)
   (setq-local beginning-of-defun-function
               #'gdb-script-beginning-of-defun)
   (setq-local end-of-defun-function
@@ -3393,14 +3421,14 @@ Treats actions as defuns."
   (require 'tooltip)
   (if gud-tooltip-mode
       (progn
-	(add-hook 'change-major-mode-hook 'gud-tooltip-change-major-mode)
-	(add-hook 'pre-command-hook 'tooltip-hide)
-	(add-hook 'tooltip-functions 'gud-tooltip-tips)
-	(define-key global-map [mouse-movement] 'gud-tooltip-mouse-motion))
-    (unless tooltip-mode (remove-hook 'pre-command-hook 'tooltip-hide)
-    (remove-hook 'change-major-mode-hook 'gud-tooltip-change-major-mode)
-    (remove-hook 'tooltip-functions 'gud-tooltip-tips)
-    (define-key global-map [mouse-movement] 'ignore)))
+	(add-hook 'change-major-mode-hook #'gud-tooltip-change-major-mode)
+	(add-hook 'pre-command-hook #'tooltip-hide)
+	(add-hook 'tooltip-functions #'gud-tooltip-tips)
+	(define-key global-map [mouse-movement] #'gud-tooltip-mouse-motion))
+    (unless tooltip-mode (remove-hook 'pre-command-hook #'tooltip-hide)
+    (remove-hook 'change-major-mode-hook #'gud-tooltip-change-major-mode)
+    (remove-hook 'tooltip-functions #'gud-tooltip-tips)
+    (define-key global-map [mouse-movement] #'ignore)))
   (gud-tooltip-activate-mouse-motions-if-enabled)
   (if (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
@@ -3417,9 +3445,9 @@ Treats actions as defuns."
 		    (make-local-variable 'gdb-define-alist)
 		    (gdb-create-define-alist)
 		    (add-hook 'after-save-hook
-			      'gdb-create-define-alist nil t))))))
+			      #'gdb-create-define-alist nil t))))))
 	(kill-local-variable 'gdb-define-alist)
-	(remove-hook 'after-save-hook 'gdb-create-define-alist t))))
+	(remove-hook 'after-save-hook #'gdb-create-define-alist t))))
 
 (defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode
 					python-mode)
@@ -3450,12 +3478,12 @@ only tooltips in the buffer containing the overlay arrow."
 
 (defun gud-tooltip-change-major-mode ()
   "Function added to `change-major-mode-hook' when tooltip mode is on."
-  (add-hook 'post-command-hook 'gud-tooltip-activate-mouse-motions-if-enabled))
+  (add-hook 'post-command-hook #'gud-tooltip-activate-mouse-motions-if-enabled))
 
 (defun gud-tooltip-activate-mouse-motions-if-enabled ()
   "Reconsider for all buffers whether mouse motion events are desired."
   (remove-hook 'post-command-hook
-	       'gud-tooltip-activate-mouse-motions-if-enabled)
+	       #'gud-tooltip-activate-mouse-motions-if-enabled)
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (if (and gud-tooltip-mode
@@ -3564,7 +3592,7 @@ This function must return nil if it doesn't handle EVENT."
 	       (posn-point (event-end event))
 	       (or (and (eq gud-minor-mode 'gdbmi) (not gdb-active-process))
 		   (progn (setq gud-tooltip-event event)
-			  (eval (cons 'and gud-tooltip-display)))))
+			  (eval (cons 'and gud-tooltip-display) t))))
       (let ((expr (tooltip-expr-to-print event)))
 	(when expr
 	  (if (and (eq gud-minor-mode 'gdbmi)
@@ -3594,10 +3622,10 @@ so they have been disabled."))
                         (gdb-input
                          (concat
 			  "server macro expand " expr "\n")
-			 `(lambda () (gdb-tooltip-print-1 ,expr)))
+			 (lambda () (gdb-tooltip-print-1 expr)))
                       (gdb-input
 		       (concat cmd "\n")
-		       `(lambda () (gdb-tooltip-print ,expr))))
+		       (lambda () (gdb-tooltip-print expr))))
                   (add-function :override (process-filter process)
                                 #'gud-tooltip-process-output)
 		  (gud-basic-call cmd))
