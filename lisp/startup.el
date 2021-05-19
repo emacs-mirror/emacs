@@ -2317,6 +2317,9 @@ A fancy display is used on graphic displays, normal otherwise."
         (set-buffer-major-mode (current-buffer))
         (current-buffer))))
 
+;; This avoids byte-compiler warning in the unexec build.
+(declare-function pdumper-stats "pdumper.c" ())
+
 (defun command-line-1 (args-left)
   "A subroutine of `command-line'."
   (display-startup-echo-area-message)
