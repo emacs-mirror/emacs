@@ -340,7 +340,8 @@ When invoked like that, it prompts in the minibuffer for one of the
 previous kills, offering completion and minibuffer-history navigation
 through previous kills recorded in the kill ring.  A similar feature
 in Isearch can be invoked if you bind 'C-s M-y' to the command
-'isearch-yank-pop'.
+'isearch-yank-pop'.  When the user option 'yank-from-kill-ring-rotate'
+is nil the kill ring is not rotated after 'yank-from-kill-ring'.
 
 ---
 ** New user options 'copy-region-blink-delay' and 'delete-pair-blink-delay'.
