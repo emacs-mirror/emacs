@@ -32,6 +32,10 @@ symbols (a.k.a.@: ``identifiers'') and their references.
 A mode for merging changes to program sources made on separate
 branches of development.
 @end ifnottex
+
+@item
+A minor-mode for highlighting bug references and visiting the
+referenced bug reports in their issue tracker.
 @end itemize
 
 If you are maintaining a large Lisp program, then in addition to the
@@ -49,6 +53,8 @@ Lisp Regression Testing}).
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
 @end ifnottex
+* Bug Reference::       Highlighting references to bug reports and browsing
+                          them in their issue trackers.
 @end menu
 
 @node Version Control
@@ -3053,3 +3059,52 @@ the target should be built.
 @ifnottex
 @include emerge-xtra.texi
 @end ifnottex
+
+
+@node Bug Reference
+@section Bug Reference
+@cindex bug reference
+
+  Most projects with a certain amount of users track bug reports in
+some issue tracking software which assigns each report a unique and
+short number or identifier.  Those are used to reference a given bug,
+e.g., in a source code comment above the code fixing some bug, in
+documentation files, or in discussions on some mailinglist or IRC
+channel.
+
+@findex bug-reference-mode
+@findex bug-reference-prog-mode
+The minor modes @code{bug-reference-mode} and
+@code{bug-reference-prog-mode} highlight such bug references and make
+it possible to follow them to the corresponding bug report on the
+project's issue tracker.  @code{bug-reference-prog-mode} is a variant
+of @code{bug-reference-mode} which highlights bug references only
+inside source code comments and strings.
+
+For its working, bug reference mode needs to know the syntax of bug
+references (@code{bug-reference-bug-regexp}), and the URL of the
+tracker where bug reports can be looked up
+(@code{bug-reference-url-format}).  Since those are typically
+different from project to project, it makes sense to specify them in
+@pxref{Directory Variables} or @pxref{File Variables}.
+
+For example, let's assume in our project, we usually write references
+to bug reports as bug#1234, or Bug-1234 and that this bug's page on
+the issue tracker is https://project.org/issues/1234, then these local
+variables section would do.
+
+@smallexample
+;; Local Variables:
+;; bug-reference-bug-regexp: "\\([Bb]ug[#-]\\)\\([0-9]+\\)"
+;; bug-reference-url-format: "https://project.org/issues/%s"
+;; End:
+@end smallexample
+
+The string captured by the second regexp group in
+(@code{bug-reference-bug-regexp}) is used to replace the @code{%s}
+template in the @code{bug-reference-url-format}.
+
+Note that @code{bug-reference-url-format} may also be a function in
+order to cater for more complex scenarios, e.g., when the part before
+the actual bug number has to be used to distinguish between issues and
+merge requests where each of them has a different URL.
